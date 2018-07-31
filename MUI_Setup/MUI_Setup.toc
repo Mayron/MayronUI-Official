@@ -15,3 +15,4 @@ imports/Recount.lua
 imports/ShadowedUnitFrames.lua
 imports/SimplePowerBar.lua
 imports/TipTac.lua
+imports/Bazooka.lua
