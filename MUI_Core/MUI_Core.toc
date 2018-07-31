@@ -1,0 +1,30 @@
+## Interface: 80000
+## Title: |cff00ccffMUI|r Core
+## SavedVariables: MUIdb
+## Version: 5.3.0.1
+## OptionalDeps: ShadowedUnitFrames, Bartender4
+
+## libs:
+libs/LibStub.lua
+libs/LibMayronDB.lua
+libs/LibSharedMedia-3.0/CallbackHandler-1.0.lua
+libs/LibSharedMedia-3.0/LibSharedMedia-3.0.lua
+
+## MUI API's:
+APIs/toolkit.lua
+APIs/event_manager.lua
+APIs/gui_builder.lua
+APIs/reskinner.lua
+
+## initializer:
+init.lua
+
+## Localization
+localization.lua
+
+## core modules:
+data_text.lua
+bottom_ui.lua
+afk_display.lua
+sidebar.lua
+OrderHallCommandBar.lua
