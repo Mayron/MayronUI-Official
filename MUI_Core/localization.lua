@@ -22,28 +22,28 @@ return end
 
 if LOCALE == "deDE" then
 	-- German translations go here
-	L["Hello!"] 				= "Hallo!";
-	L["Character"]				= "Charakter";
-	L["Bags"]					= "Taschen";
-	L["Friends"]				= "Freunde";
-	L["Guild"]					= "Gilde";
-	L["Help Menu"]				= "Hilfe Menü";
-	L["PVP"]					= "PVP";
-	L["Spell Book"]				= "Zauber Buch";
-	L["Talents"]				= "Talente";
-	L["Achievements"]			= "Erfolge";
-	L["Glyphs"]					= "Glyphen";
-	L["Calendar"]				= "Kalender";
-	L["LFD"]					= "LFD";
-	L["Raid"]					= "Raid";
-	L["Encounter Journal"]		= "Encounter Journal";
-	L["Collections Journal"]	= "Sammlungen Journal";
-	L["Macros"]					= "Makros";
-	L["Map / Quest Log"]		= "Karte / Quests";
-	L["Reputation"]				= "Ruf";
-	L["PVP Score"]				= "PVP Wertung";
-	L["Currency"]				= "Währung";
-	
+	-- MUI Chat
+	L["Hello!"] 						= "Hallo!";
+	L["Character"]						= "Charakter";
+	L["Bags"]							= "Taschen";
+	L["Friends"]						= "Freunde";
+	L["Guild"]							= "Gilde";
+	L["Help Menu"]						= "Hilfe Menü";
+	L["PVP"]							= "PVP";
+	L["Spell Book"]						= "Zauber Buch";
+	L["Talents"]						= "Talente";
+	L["Achievements"]					= "Erfolge";
+	L["Glyphs"]							= "Glyphen";
+	L["Calendar"]						= "Kalender";
+	L["LFD"]							= "LFD";
+	L["Raid"]							= "Raid";
+	L["Encounter Journal"]				= "Encounter Journal";
+	L["Collections Journal"]			= "Sammlungen Journal";
+	L["Macros"]							= "Makros";
+	L["Map / Quest Log"]				= "Karte / Quests";
+	L["Reputation"]						= "Ruf";
+	L["PVP Score"]						= "PVP Wertung";
+	L["Currency"]						= "Währung";
 	L["MUI Layout Button"]				= "MUI Layout Taste";
 	L["Left Click:"]					= "Links Klick:";
 	L["Switch Layout"]					= "Layout wechseln";
@@ -54,9 +54,21 @@ if LOCALE == "deDE" then
 	L["ALT + Left Click:"]				= "ALT + Links Klick:";
 	L["Toggle Tooltip"]					= "Tooltip";
 	
+	-- MUI Core
+	L["Starter Edition accounts cannot perform this action."]	= "Sorry, das geht nicht mit der Starter Edition.";
+	L["Loot Specialization set to: Current Specialization"]		= "Die Beute Spezialisierung entspricht der Spezialisierung:";
+	L["Must be level 10 or higher to use Talents."]				= "Talente sind erst ab Level 10 verfügbar.";
 	L["Choose Spec"]					= "Spezialisierung wählen";
 	L["Choose Loot Spec"]				= "Beutespezialisierung wählen";
+	L["Current Spec"]					= "Aktive Spezialisierung";
 	L[" (current)"]						= " (aktuell)";
+	L["Friends"]						= "Freunde";
+	L["Guild"]							= "Gilde";
+	L["Bags"]							= "Taschen";
+	L["Toggle Bags"]					= "Taschen umschalten";
+	L["Sort Bags"]						= "Taschen sortieren";
+	L["Commands"]						= "Befehle";
+	L["Armor"]							= "Rüstung";
 	L["Head"]							= "Kopf";
 	L["Shoulder"]						= "Schulter";
 	L["Chest"]							= "Brust";
@@ -67,32 +79,43 @@ if LOCALE == "deDE" then
 	L["Hands"]							= "Hände";
 	L["Main Hand"]						= "Haupthand";
 	L["Secondary Hand"]					= "Nebenhand";
+	L["Zone"]							= "Zone";
+	L["Rank"]							= "Rang";
+	L["<none>"]							= "<Keine>";
+	L["Notes"]							= "Anmerkungen";
+	L["Achievement Points"]				= "Erfolgspunkte";
+	L["No Guild"]						= "Keine Gilde";
+	L["No Spec"]						= "Keine Spezialisierung";
+	L["Current Money"]					= "Aktuelles Vermögen";
+	L["Start of the day"]				= "Bei Tagesbeginn";
+	L["Today's profit"]					= "Tagesprofit";
+	L["Money per character"]			= "Vermögen je Charakter";
 return end
 
 if LOCALE == "frFR" then
 	-- French translations go here
+	-- MUI Chat
 	L["Hello!"] = "Bonjour!"
-	L["Character"]				= "Charakter";
-	L["Bags"]					= "Des sacs";
-	L["Friends"]				= "Copains";
-	L["Guild"]					= "Guilde";
-	L["Help Menu"]				= "Menu d'aide";
-	L["PVP"]					= "PVP";
-	L["Spell Book"]				= "Livre de sortilèges";
-	L["Talents"]				= "Talents";
-	L["Achievements"]			= "Accomplissement";
-	L["Glyphs"]					= "Glyphes";
-	L["Calendar"]				= "Calendrier";
-	L["LFD"]					= "LFD";
-	L["Raid"]					= "Raid";
-	L["Encounter Journal"]		= "Journal de rencontre";
-	L["Collections Journal"]	= "Journal des collections";
-	L["Macros"]					= "Macros";
-	L["Map / Quest Log"]		= "Carte / Quêtes";
-	L["Reputation"]				= "Réputation";
-	L["PVP Score"]				= "Score PVP";
-	L["Currency"]				= "Devise";
-	
+	L["Character"]						= "Charakter";
+	L["Bags"]							= "Des sacs";
+	L["Friends"]						= "Copains";
+	L["Guild"]							= "Guilde";
+	L["Help Menu"]						= "Menu d'aide";
+	L["PVP"]							= "PVP";
+	L["Spell Book"]						= "Livre de sortilèges";
+	L["Talents"]						= "Talents";
+	L["Achievements"]					= "Accomplissement";
+	L["Glyphs"]							= "Glyphes";
+	L["Calendar"]						= "Calendrier";
+	L["LFD"]							= "LFD";
+	L["Raid"]							= "Raid";
+	L["Encounter Journal"]				= "Journal de rencontre";
+	L["Collections Journal"]			= "Journal des collections";
+	L["Macros"]							= "Macros";
+	L["Map / Quest Log"]				= "Carte / Quêtes";
+	L["Reputation"]						= "Réputation";
+	L["PVP Score"]						= "Score PVP";
+	L["Currency"]						= "Devise";
 	L["MUI Layout Button"]				= "MUI bouton de mise en page";
 	L["Left Click:"]					= "Click gauche:";
 	L["Switch Layout"]					= "Changer la disposition";

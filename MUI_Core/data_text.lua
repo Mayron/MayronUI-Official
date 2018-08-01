@@ -222,9 +222,9 @@ do
                 colored = tk.string.format("%s%s%%|r", HIGHLIGHT_FONT_COLOR_CODE, format_value);
 
             end
-            self.btn:SetText(tk.string.format("Armor: %s", colored));
+            self.btn:SetText(tk.string.format(L["Armor"]..": %s", colored));
         else
-            self.btn:SetText("Armor: |cffffffffnone|r");
+            self.btn:SetText(L["Armor"]..": |cffffffffnone|r");
         end
     end
 
@@ -270,7 +270,7 @@ end
 -- friends:
 -----------------------------
 items.friends = {};
-items.friends.label = "Friends: |cffffffff%u|r";
+items.friends.label = L["Friends"]..": |cffffffff%u|r";
 
 function items.friends:enable()
     self.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
@@ -449,7 +449,6 @@ function items.combat_timer:update(override)
             tk.C_Timer.After(0.05, loop);
         end
     end
-
     loop();
 end
 
@@ -457,7 +456,7 @@ end
 -- guild:
 -----------------------------
 items.guild = {};
-items.guild.label = "Guild: |cffffffff%u|r";
+items.guild.label = L["Guild"]..": |cffffffff%u|r";
 
 function items.guild.OnEnter(self)    
     local fullName, rank, _, _, _, zone, note, _, _, status, classFileName, achievementPoints = tk.unpack(self.data);
@@ -465,14 +464,13 @@ function items.guild.OnEnter(self)
 
     GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
     GameTooltip:AddLine(tk:GetClassColoredString(classFileName, fullName));
-    GameTooltip:AddDoubleLine("Zone:", zone, nil, nil, nil, 1, 1, 1);
-    GameTooltip:AddDoubleLine("Rank:", rank, nil, nil, nil, 1, 1, 1);
-
+    GameTooltip:AddDoubleLine(L["Zone"]..":", zone, nil, nil, nil, 1, 1, 1);
+    GameTooltip:AddDoubleLine(L["Rank"]..":", rank, nil, nil, nil, 1, 1, 1);
     if (#note > 0) then
-        GameTooltip:AddDoubleLine("Notes:", note, nil, nil, nil, 1, 1, 1);
+        GameTooltip:AddDoubleLine(L["Notes"]..":", note, nil, nil, nil, 1, 1, 1);
     end
 
-    GameTooltip:AddDoubleLine("Achievement Points:", achievementPoints, nil, nil, nil, 1, 1, 1);
+    GameTooltip:AddDoubleLine(L["Achievement Points"]..":", achievementPoints, nil, nil, nil, 1, 1, 1);
     GameTooltip:Show();
 end
 
@@ -500,8 +498,8 @@ end
 
 function items.guild:update()
     if (not IsInGuild()) then
-        self.btn:SetText("No Guild");
-    else        
+        self.btn:SetText(L["No Guild"]);
+    else
         GuildRoster();
         local _, _, numOnlineAndMobile = GetNumGuildMembers();
         numOnlineAndMobile = (not dt.sv.guild.show_self and numOnlineAndMobile - 1) or numOnlineAndMobile;
@@ -535,7 +533,7 @@ do
         self:update();
         if (button == "RightButton") then
             if (IsTrialAccount()) then
-                tk:Print("Starter Edition accounts cannot perform this action.");
+                tk:Print(L["Starter Edition accounts cannot perform this action."]);
             elseif (IsInGuild()) then
                 ToggleGuildFrame();
             end
@@ -596,7 +594,7 @@ items.spec = {};
 do
     local function OnEnter(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
-        GameTooltip:SetText("Commands:")
+        GameTooltip:SetText(L["Commands"]..":")
         GameTooltip:AddDoubleLine(tk:GetThemeColoredString(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
         GameTooltip:AddDoubleLine(tk:GetThemeColoredString(L["Right Click:"]), L["Choose Loot Spec"], r, g, b, 1, 1, 1);
         GameTooltip:Show();
@@ -650,7 +648,7 @@ function items.spec:update()
     if (not self.btn) then return; end
 
     if (UnitLevel("player") < 10) then
-        self.btn:SetText("No Spec");
+        self.btn:SetText(L["No Spec"]);
         self.showMenu = nil;
         return;
     end
@@ -658,8 +656,8 @@ function items.spec:update()
     self.showMenu = true;
     local specID = GetSpecialization();
 
-    if (not specID) then        
-        self.btn:SetText("No Spec");
+    if (not specID) then
+        self.btn:SetText(L["No Spec"]);
     else
         local _, name = GetSpecializationInfo(specID, nil, nil, "player");
         self.btn:SetText(name);
@@ -680,7 +678,7 @@ do
                 dt.slideController:Start();
                 if (self.lootSpecID == 0) then
                     local _, name = GetSpecializationInfo(GetSpecialization());
-                    tk.print(YELLOW_FONT_COLOR_CODE.."Loot Specialization set to: Current Specialization ("..name..")|r");
+                    tk.print(YELLOW_FONT_COLOR_CODE..L["Loot Specialization set to: Current Specialization"].." ("..name..")|r");
                 end
             end
 
@@ -688,7 +686,7 @@ do
     end
 
     local function SetEquipmentSet(self, setName, specName)
-        if (setName == "<none>") then setName = nil; end
+        if (setName == L["<none>"]) then setName = nil; end
         db.profile.datatext.spec.sets[specName] = setName;
     end
 
@@ -708,7 +706,7 @@ do
     function items.spec:click(button)
         if (not self.showMenu) then
             if (UnitLevel("player") < 10) then
-                tk:Print("Must be level 10 or higher to use Talents.");
+                tk:Print(L["Must be level 10 or higher to use Talents."]);
             end
             return;
         end
@@ -721,7 +719,7 @@ do
             local title = self.content.labels[numLabelsShown] or CreateLabel(self.content);
 
             self.content.labels[numLabelsShown] = title;
-            title.name:SetText(tk:GetRGBColoredString("Choose Spec:", r, g, b));
+            title.name:SetText(tk:GetRGBColoredString(L["Choose Spec"]..":", r, g, b));
             title:SetNormalTexture(1);
             title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
 
@@ -776,8 +774,8 @@ do
 						if (label == nil) then break end -- failsave
 						dropdown:AddOption(label, C_EquipmentSet.SetEquipmentSet, nil, specName);
                     end
-					dropdown:AddOption("<none>", C_EquipmentSet.SetEquipmentSet, nil, specName);
                     dropdown.registered = true;
+					dropdown:AddOption(L["<none>"], C_EquipmentSet.SetEquipmentSet, nil, specName);
                 end
 				]]--
             end
@@ -829,7 +827,7 @@ do
             local title = self.content.labels[numLabelsShown] or CreateLabel(self.content);
 
             self.content.labels[numLabelsShown] = title;
-            title.name:SetText(tk:GetRGBColoredString("Choose Loot Spec:", r, g, b));
+            title.name:SetText(tk:GetRGBColoredString(L["Choose Loot Spec"]..":", r, g, b));
             title:SetNormalTexture(1);
             title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
 
@@ -844,7 +842,7 @@ do
                 if (i == 0) then
                     name = tk.select(2, GetSpecializationInfo(GetSpecialization()));
                     label.lootSpecID = 0;
-                    name = tk.string.format("Current Spec (%s)", name);
+                    name = tk.string.format(L["Current Spec"].." (%s)", name);
                 else
                     label.lootSpecID, name = GetSpecializationInfo(i);
                 end
@@ -947,13 +945,13 @@ function items.money:enable()
     end):SetKey("money");
 
     self.info = {
-        tk:GetThemeColoredString("Current Money:"),
+        tk:GetThemeColoredString(L["Current Money"]..":"),
         nil,
-        tk:GetThemeColoredString("Start of the day:"),
+        tk:GetThemeColoredString(L["Start of the day"]..":"),
         self:GetCurrency(dt.sv.money.today_currency),
-        tk:GetThemeColoredString("Today's profit:"),
+        tk:GetThemeColoredString(L["Today's profit"]..":"),
         nil,
-        NORMAL_FONT_COLOR_CODE.."Money per character:".."|r"
+        NORMAL_FONT_COLOR_CODE..L["Money per character"]..":".."|r"
     };
 end
 
@@ -1176,9 +1174,9 @@ items.bags = {};
 do
     local function OnEnter(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
-        GameTooltip:SetText("Commands:")
-        GameTooltip:AddDoubleLine(tk:GetThemeColoredString("Left Click:"), "Toggle Bags", r, g, b, 1, 1, 1);
-        GameTooltip:AddDoubleLine(tk:GetThemeColoredString("Right Click:"), "Sort Bags", r, g, b, 1, 1, 1);
+        GameTooltip:SetText(L["Commands"]..":");
+        GameTooltip:AddDoubleLine(tk:GetThemeColoredString(L["Left Click:"]), L["Toggle Bags"], r, g, b, 1, 1, 1);
+        GameTooltip:AddDoubleLine(tk:GetThemeColoredString(L["Right Click:"]), L["Sort Bags"], r, g, b, 1, 1, 1);
         GameTooltip:Show();
     end
 
@@ -1216,9 +1214,9 @@ function items.bags:update()
     end
 
     if (dt.sv.bags.show_total_slots) then
-        self.btn:SetText(tk.string.format("Bags: |cffffffff%u / %u|r", slots, totalSlots));
+        self.btn:SetText(tk.string.format(L["Bags"]..": |cffffffff%u / %u|r", slots, totalSlots));
     else
-        self.btn:SetText(tk.string.format("Bags: |cffffffff%u|r", slots));
+        self.btn:SetText(tk.string.format(L["Bags"]..": |cffffffff%u|r", slots));
     end
 end
 
