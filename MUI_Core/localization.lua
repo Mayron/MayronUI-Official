@@ -37,8 +37,8 @@ if LOCALE == "deDE" then
 	L["Calendar"]						= "Kalender";
 	L["LFD"]							= "LFD";
 	L["Raid"]							= "Raid";
-	L["Encounter Journal"]				= "Encounter Journal";
-	L["Collections Journal"]			= "Sammlungen Journal";
+	L["Encounter Journal"]				= "Dungeonkompendium";
+	L["Collections Journal"]			= "Sammlung";
 	L["Macros"]							= "Makros";
 	L["Map / Quest Log"]				= "Karte / Quests";
 	L["Reputation"]						= "Ruf";
