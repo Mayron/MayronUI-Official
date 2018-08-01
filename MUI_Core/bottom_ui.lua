@@ -690,6 +690,7 @@ function private.ArtifactBar_OnSetup(resourceBar, data)
         data.statusbar:SetMinMaxValues(0, maxValue);
         data.statusbar:SetValue(currentValue);
         if (data.statusbar.text) then
+			if currentValue > 0 and maxValue == 0 then maxValue = currentValue end
             local percent = (currentValue / maxValue) * 100;
             currentValue = tk:FormatNumberString(currentValue);
             maxValue = tk:FormatNumberString(maxValue);
