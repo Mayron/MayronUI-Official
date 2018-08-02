@@ -165,7 +165,7 @@ private.races = { -- lower = lower model
             hoverValue = -0.4,
         }
     },
-    MagharOrcs = {
+    MagharOrc = {
         Male = {
             value = -0.4,
             hoverValue = -0.4,
