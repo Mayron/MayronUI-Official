@@ -6,6 +6,7 @@ local em = core.EventManager;
 local tk = core.Toolkit;
 local db = core.Database;
 local gui = core.GUI_Builder;
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 
 local bui = {};
 bui.ActionBar_Panel = {};

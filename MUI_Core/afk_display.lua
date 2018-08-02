@@ -5,6 +5,7 @@ local _, core = ...;
 local em = core.EventManager;
 local tk = core.Toolkit;
 local db = core.Database;
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 
 local afk = {};
 local private = {};
@@ -165,7 +166,7 @@ private.races = { -- lower = lower model
             hoverValue = -0.4,
         }
     },
-    MagharOrcs = {
+    MagharOrc = {
         Male = {
             value = -0.4,
             hoverValue = -0.4,
@@ -472,10 +473,10 @@ do
         f.dataFrame.right:SetPoint("LEFT", f.dataFrame.center, "RIGHT", 20, 0);
         f.dataFrame.right:SetNormalFontObject("GameFontHighlight");
 
-        f.dataFrame.left:SetText("Whispers: 0");
-        f.dataFrame.right:SetText("Guild Chat: 0");
-        f.dataFrame.right.label = "Guild Chat: %u";
-        f.dataFrame.left.label = "Whispers: %u";
+        f.dataFrame.left:SetText(L["Whispers"]..": 0");
+        f.dataFrame.right:SetText(L["Guild Chat"]..": 0");
+        f.dataFrame.right.label = L["Guild Chat"]..": %u";
+        f.dataFrame.left.label = L["Whispers"]..": %u";
 
         em:CreateEventHandler("CHAT_MSG_WHISPER", IncrementCounter).f = f.dataFrame.left;
         em:CreateEventHandler("CHAT_MSG_BN_WHISPER", IncrementCounter).f = f.dataFrame.left;

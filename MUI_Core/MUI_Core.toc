@@ -9,6 +9,12 @@ libs/LibStub.lua
 libs/LibMayronDB.lua
 libs/LibSharedMedia-3.0/CallbackHandler-1.0.lua
 libs/LibSharedMedia-3.0/LibSharedMedia-3.0.lua
+libs/AceLocale-3.0/AceLocale-3.0.lua
+
+## Localization
+locales/enUS.lua
+locales/deDE.lua
+locales/frFR.lua
 
 ## MUI API's:
 APIs/toolkit.lua
@@ -18,9 +24,6 @@ APIs/reskinner.lua
 
 ## initializer:
 init.lua
-
-## Localization
-localization.lua
 
 ## core modules:
 data_text.lua

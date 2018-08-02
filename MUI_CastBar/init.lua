@@ -12,6 +12,7 @@ MayronUI:RegisterModule("CastBars", CastBars_Module);
 local CastBar = tk:CreateProtectedPrototype("CastBar", true);
 local appearance;
 CastBars_Module.bars = {};
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 
 ----------------
 -- defaults:
@@ -96,6 +97,7 @@ Ticks.data = {
     -- WARLOCK
     [(GetSpellInfo(193440)) or "_"] = 3, -- Demonwrath
     [(GetSpellInfo(198590)) or "_"] = 6, -- Drain Soul
+	[(GetSpellInfo(234153)) or "_"] = 4, -- Health Funnel
 };
 
 -------------------

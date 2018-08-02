@@ -6,7 +6,7 @@ local em = core.EventManager;
 local tk = core.Toolkit;
 local db = core.Database;
 local gui = core.GUI_Builder;
-local L = core.L;
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 
 local dt = {};
 MayronUI:RegisterModule("DataText", dt, true);
@@ -932,12 +932,14 @@ function items.money:enable()
     self.copper_string = "|TInterface\\MoneyFrame\\UI-CopperIcon:14:14:2:0|t";
     self.showMenu = true;
 
-    local _, month, day = CalendarGetDate();
-    local date = tk.string.format("%d-%d", day, month);
-    if (dt.sv.money.date ~= date) then
-        dt.sv.money.today_currency = GetMoney();
-        dt.sv.money.date = date;
-    end
+	if PLAYER_LOGIN then
+		local _, month, day = CalendarGetDate();
+		local date = tk.string.format("%d-%d", day, month);
+		if (dt.sv.money.date ~= date) then
+			dt.sv.money.today_currency = GetMoney();
+			dt.sv.money.date = date;
+		end
+	end
 
     em:CreateEventHandler("PLAYER_MONEY", function()
         if (not self.btn) then return; end

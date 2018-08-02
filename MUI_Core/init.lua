@@ -22,7 +22,7 @@ db:AddToDefaults("global.core", {
         {"Bartender4", true, "Bartender4"},
         {"Grid", true, "Grid"},
         {"Masque", true, "Masque"},
-        {"Mik Scrolling Battle Text", true, "MikScrollingBattleText"},
+        {"Mik Scrolling Battle Text", false, "MikScrollingBattleText"},
         {"Recount", true, "Recount"},
         {"Shadowed Unit Frames", true, "ShadowedUnitFrames"},
         {"TipTac", true, "TipTac"},
@@ -80,13 +80,14 @@ function MayronUI:IsInstalled()
 end
 
 MayronUI:RegisterModule("MUI_Core", core);
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 
 core.commands = {
 	["config"] = function()
         if (not tk.IsAddOnLoaded("MUI_Config")) then
             EnableAddOn("MUI_Config");
             if (not tk.LoadAddOn("MUI_Config")) then
-                tk:Print("Failed to load MUI_Config. Possibly missing?");
+                tk:Print(L["Failed to load MUI_Config. Possibly missing?"]);
                 return;
             end
             MayronUI:ImportModule("Config"):init();
@@ -102,9 +103,9 @@ core.commands = {
 	end,
 	["help"] = function()
 		tk.print(" ");
-		tk:Print("List of slash commands:")
-		tk:Print("|cff00cc66/mui config|r - shows config menu");
-		tk:Print("|cff00cc66/mui install|r - shows setup menu");
+		tk:Print(L["List of slash commands:"])
+		tk:Print("|cff00cc66/mui config|r - "..L["shows config menu"]);
+		tk:Print("|cff00cc66/mui install|r - "..L["shows setup menu"]);
         tk.print(" ");
 	end
 };
@@ -155,7 +156,7 @@ function core:init()
 			end
 		end
 	end
-    tk:Print("Welcome back", UnitName("player").."!");
+    tk:Print(L["Welcome back"], UnitName("player").."!");
 end
 
 ------------------------

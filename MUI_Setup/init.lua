@@ -547,7 +547,7 @@ function setup:Install()
     end
 
     -- MayronUI profiles:
-    for id, name in tk:IterateArgs("AuraFrames", "Bartender4", "Omen", "Recount") do
+    for id, name in tk:IterateArgs("AuraFrames", "Bartender4", "Bazooka", "Omen", "Recount") do	-- Please keep Bazooka until the UI can handle those minimap ccons itself :)
         if (tk._G[name]) then
             local path = tk:GetDBObject(name);
             if (path) then
