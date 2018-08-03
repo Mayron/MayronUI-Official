@@ -6,7 +6,7 @@ local core = MayronUI:ImportModule("MUI_Core");
 local tk = core.Toolkit;
 local em = core.EventManager;
 local db = core.Database;
-local L = core.L;
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 
 MayronUI:RegisterModule("Chat", chat);
 
@@ -261,7 +261,7 @@ do
 		local linkType = tk.string.split(":", linkData)
 		if (linkType == "item" or linkType == "spell" or linkType == "enchant" or
 				linkType == "quest" or linkType == "talent" or linkType == "glyph" or
-				linkType == "unit" or linkType == "achievement") then
+				linkType == "unit" or linkType == "achievement") then -- missing type for new community link ?
 			GameTooltip:SetOwner(self, "ANCHOR_CURSOR");
 			GameTooltip:SetHyperlink(linkData);
 			GameTooltip:Show();

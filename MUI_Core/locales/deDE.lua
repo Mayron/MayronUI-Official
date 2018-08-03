@@ -1,12 +1,17 @@
 local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "deDE") 
-if not L then return end 
+if not L then return end
+
+-- To change the value, add right before the ; a = and write the translation beween two "
+-- The spaces are not needed. They are just for a nice alignment.
+-- Example:
+-- L["Hello!"] 						= "Hi!";
 
 -- German translations go here
 -- MUI Chat
 L["Hello!"] 						= "Hallo!";
 L["Character"]						= "Charakter";
 L["Bags"]							= "Taschen";
-L["Friends"]						= ""; -- Freunde
+L["Friends"]						= "Freunde";
 L["Guild"]							= "Gilde";
 L["Help Menu"]						= "Hilfe Menü";
 L["PVP"]							= "PVP";
@@ -33,6 +38,27 @@ L["Right Click:"]					= "Rechts Klick:";
 L["Show Layout Config Tool"]		= "Zeige Layout Konfig-Tool";
 L["ALT + Left Click:"]				= "ALT + Links Klick:";
 L["Toggle Tooltip"]					= "Tooltip";
+L["Edit Box (Message Input Box)"]	= "Eingabebox (zum schreiben)";
+L["Background Color"]				= "Hintergrund Farbe";
+L["Backdrop Inset"]					= "Hintergrund eingelassen";
+L["Chat Frame Options"]				= "Chat Fenster Einstellungen";
+L["Enable Chat Frame"]				= "Aktiviere Chat Fenster";
+L["Options"]						= "Einstellungen";
+L["Button Swapping in Combat"]		= "Schaltflächenwechsel im Kampf";
+L["Standard Chat Buttons"]			= "Standard Chat Schaltflächen";
+L["Left Button"]					= "Linke Schaltfläche";
+L["Middle Button"]					= "Mittlere Schaltfläche";
+L["Right Button"]					= "Rechte Schaltfläche";
+L["Shift"]							= "Umschalt";	-- Mod-Key!
+L["Ctrg"]							= "Strg";		-- Mod-Key!
+L["Alt"]							= "Alt";		-- Mod-Key!
+
+L["Chat Buttons with Modifier Key 1"]						= "Chat Schaltflächen - 1. Mod-Taste";
+L["Chat Buttons with Modifier Key 2"]						= "Chat Schaltflächen - 2. Mod-Taste";
+L["Set the border size.\n\nDefault is 1."]					= "Setzt die Randbreite.\n\nStandard ist 1.";
+
+L["Set the spacing between the background and the border.\n\nDefault is 0."]					= "Setzt den Abstand zwischen Hintergrund und Rand.\n\nStandard ist 0.";
+L["Allow the use of modifier keys to swap chat buttons while in combat."]						= "Erlaubt die Nutzung der Mod-Tasten zum wechseln der Chat-Schaltflächen, während man sich im Kampf befindet.";
 
 -- MUI Core
 L["Failed to load MUI_Config. Possibly missing?"]			= "MUI_Config konnte nicht geladen werden! Evtl. fehlt das Addon?";
@@ -46,13 +72,11 @@ L["Must be level 10 or higher to use Talents."]				= "Talente sind erst ab Level
 L["Requires level 10+ to view the PVP window."]				= "PVP ist erst ab Level 10 verfügbar.";
 L["Requires level 10+ to view the Glyphs window."]			= "Glyphen sind erst ab Level 10 verfügbar";
 L["Requires being inside a Battle Ground."]					= "Sie müssen sich in einem Schlachtfeld befinden.";
+
 L["Choose Spec"]					= "Spezialisierung wählen";
 L["Choose Loot Spec"]				= "Beutespezialisierung wählen";
 L["Current Spec"]					= "Aktive Spezialisierung";
 L[" (current)"]						= " (aktuell)";
-L["Friends"]						= "Freunde";
-L["Guild"]							= "Gilde";
-L["Bags"]							= "Taschen";
 L["Toggle Bags"]					= "Taschen umschalten";
 L["Sort Bags"]						= "Taschen sortieren";
 L["Commands"]						= "Befehle";
@@ -113,7 +137,6 @@ L["Relative Frame"]					= "Relativ zu Rahmen";
 L["Relative Point"]					= "Relativ zu Punkt";
 L["X-Offset"]						= "X Offset";
 L["Y-Offset"]						= "Y Offset";
-
 
 L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."]	= "Wenn aktiviert, wird die CastBar am %s Einheiten Fenster verankert. (Sofern existent!)";
 L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."]					= "Das %s Einheiten Fenster muss für dieses Feature aktiviert sein.";

@@ -14,17 +14,17 @@ function chat:GetConfig()
             type = "category",
             module = "Chat",
             children = {
-                {   name = "Edit Box (Message Input Box)",
+                {   name = L["Edit Box (Message Input Box)"],
                     type = "title",
                     padding_top = 0
                 },
-                {   name = "Y-Offset",
+                {   name = L["Y-Offset"],
                     type = "textfield",
                     value_type = "number",
                     tooltip = "Set the vertical positioning of the edit box.\n\nDefault is -8.",
                     db_path = "profile.chat.edit_box.yOffset"
                 },
-                {   name = "Height",
+                {   name = L["Height"],
                     type = "textfield",
                     value_type = "number",
                     tooltip = "The height of the edit box.\n\nDefault is 27.",
@@ -32,31 +32,31 @@ function chat:GetConfig()
                 },
                 { type = "divider",
                 },
-                {   name = "Border",
+                {   name = L["Border"],
                     type = "dropdown",
                     options = tk.Constants.LSM:List("border"),
                     db_path = "profile.chat.edit_box.border",
                 },
-                {   name = "Background Color",
+                {   name = L["Background Color"],
                     type = "color",
                     height = 64,
                     db_path = "profile.chat.edit_box.backdrop_color"
                 },
                 { type = "divider",
                 },
-                {   name = "Border Size",
+                {   name = L["Border Size"],
                     type = "textfield",
                     value_type = "number",
-                    tooltip = "Set the border size.\n\nDefault is 1.",
+                    tooltip = L["Set the border size.\n\nDefault is 1."],
                     db_path = "profile.chat.edit_box.border_size"
                 },
-                {   name = "Backdrop Inset",
+                {   name = L["Backdrop Inset"],
                     type = "textfield",
                     value_type = "number",
-                    tooltip = "Set the spacing between the background and the border.\n\nDefault is 0.",
+                    tooltip = L["Set the spacing between the background and the border.\n\nDefault is 0."],
                     db_path = "profile.chat.edit_box.inset"
                 },
-                {   name = "Chat Frame Options",
+                {   name = L["Chat Frame Options"],
                     type = "title",
                 },
                 {   type = "loop",
@@ -65,7 +65,7 @@ function chat:GetConfig()
                     },
                     func = function(id, name)
                         return {
-                            {   name = name.." Options",
+                            {   name = name.." "..L["Options"],
                                 type = "submenu",
                                 module = "Chat",
                                 inherit = {
@@ -94,30 +94,30 @@ function chat:GetConfig()
                                     },
                                 },
                                 children = { -- shame I can't loop this
-                                    {   name = "Enable Chat Frame",
+                                    {   name = L["Enable Chat Frame"],
                                         type = "check",
                                         requires_reload = true,
                                         db_path = "profile.chat.enabled["..name:upper():gsub("%s+", "").."]"
                                     },
-                                    {   name = "Button Swapping in Combat",
+                                    {   name = L["Button Swapping in Combat"],
                                         type = "check",
-                                        tooltip = "Allow the use of modifier keys to swap chat buttons while in combat.",
+                                        tooltip = L["Allow the use of modifier keys to swap chat buttons while in combat."],
                                         db_path = "profile.chat.data["..id.."].combat_swap",
                                     },
-                                    {   name = "Standard Chat Buttons",
+                                    {   name = L["Standard Chat Buttons"],
                                         type = "title",
                                         padding_top = 0
                                     },
-                                    {   name = "Left Button",
+                                    {   name = L["Left Button"],
                                         db_path = "profile.chat.data["..id.."].buttons[1][1]"
                                     },
-                                    {   name = "Middle Button",
+                                    {   name = L["Middle Button"],
                                         db_path = "profile.chat.data["..id.."].buttons[1][2]"
                                     },
-                                    {   name = "Right Button",
+                                    {   name = L["Right Button"],
                                         db_path = "profile.chat.data["..id.."].buttons[1][3]"
                                     },
-                                    {   name = "Chat Buttons with Modifier Key 1",
+                                    {   name = L["Chat Buttons with Modifier Key 1"],
                                         type = "title",
                                     },
                                     {   name = "Control",
@@ -139,7 +139,7 @@ function chat:GetConfig()
                                             end
                                         end
                                     },
-                                    {   name = "Shift",
+                                    {   name = L["Shift"],
                                         height = 40,
                                         min_width = true,
                                         type = "check",
@@ -158,7 +158,7 @@ function chat:GetConfig()
                                             end
                                         end
                                     },
-                                    {   name = "Alt",
+                                    {   name = L["Alt"],
                                         height = 40,
                                         min_width = true,
                                         type = "check",
@@ -178,16 +178,16 @@ function chat:GetConfig()
                                     },
                                     {   type = "divider",
                                     },
-                                    {   name = "Left Button",
+                                    {   name = L["Left Button"],
                                         db_path = "profile.chat.data["..id.."].buttons[2][1]"
                                     },
-                                    {   name = "Middle Button",
+                                    {   name = L["Middle Button"],
                                         db_path = "profile.chat.data["..id.."].buttons[2][2]"
                                     },
-                                    {   name = "Right Button",
+                                    {   name = L["Right Button"],
                                         db_path = "profile.chat.data["..id.."].buttons[2][3]"
                                     },
-                                    {   name = "Chat Buttons with Modifier Key 2",
+                                    {   name = L["Chat Buttons with Modifier Key 2"],
                                         type = "title",
                                     },
                                     {   name = "Control",
@@ -209,7 +209,7 @@ function chat:GetConfig()
                                             end
                                         end
                                     },
-                                    {   name = "Shift",
+                                    {   name = L["Shift"],
                                         height = 40,
                                         min_width = true,
                                         type = "check",
@@ -228,7 +228,7 @@ function chat:GetConfig()
                                             end
                                         end
                                     },
-                                    {   name = "Alt",
+                                    {   name = L["Alt"],
                                         height = 40,
                                         min_width = true,
                                         type = "check",
@@ -249,13 +249,13 @@ function chat:GetConfig()
                                     },
                                     {   type = "divider",
                                     },
-                                    {   name = "Left Button",
+                                    {   name = L["Left Button"],
                                         db_path = "profile.chat.data["..id.."].buttons[3][1]"
                                     },
-                                    {   name = "Middle Button",
+                                    {   name = L["Middle Button"],
                                         db_path = "profile.chat.data["..id.."].buttons[3][2]"
                                     },
-                                    {   name = "Right Button",
+                                    {   name = L["Right Button"],
                                         db_path = "profile.chat.data["..id.."].buttons[3][3]"
                                     },
                                 }
