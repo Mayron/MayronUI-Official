@@ -14,7 +14,7 @@ What character were you playing on (class, level, faction, etc...) and where wer
 
 **Language/Locale**
 
-What is your WoW Client's language set to (Enlish, German, etc...)?
+What is your WoW Client's language set to (English, German, etc...)?
 
 **To Reproduce the bug**
 
