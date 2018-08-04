@@ -1,13 +1,13 @@
-**Describe the bug**
+---
+name: Bug report
+about: Create a report to help us improve
 
+---
+
+**Describe the bug**
 A clear and concise description of what the bug is.
 
-**Class, Level, Faction and Location**
-
-What character were you playing on (class, level, faction, etc...) and where were you in the game when this occurred?
-
 **To Reproduce**
-
 Steps to reproduce the behavior:
 1. Go to '...'
 2. Click on '....'
@@ -15,18 +15,21 @@ Steps to reproduce the behavior:
 4. See error
 
 **Expected behavior**
-
 A clear and concise description of what you expected to happen.
 
 **Screenshots**
+If applicable, add screenshots to help explain your problem.
 
-If applicable, add screenshots to help explain your problem
-(you can drag and drop images into the textbox to upload them).
+**Desktop (please complete the following information):**
+ - OS: [e.g. iOS]
+ - Browser [e.g. chrome, safari]
+ - Version [e.g. 22]
 
-**Lua Error**
-
-If applicable, do you have a Lua error to go with this bug report?
+**Smartphone (please complete the following information):**
+ - Device: [e.g. iPhone6]
+ - OS: [e.g. iOS8.1]
+ - Browser [e.g. stock browser, safari]
+ - Version [e.g. 22]
 
 **Additional context**
-
 Add any other context about the problem here.
