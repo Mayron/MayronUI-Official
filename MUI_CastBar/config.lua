@@ -148,7 +148,7 @@ function CastBars:GetConfig()
                         "player", "target", "focus", "mirror"
                     },
                     func = function(_, name)
-                        local cap_name = name:gsub("^%l", tk.string.upper);
+                        local cap_name = L[name:gsub("^%l", tk.string.upper)];
                         return {
                             {   name = cap_name,
                                 type = "submenu",

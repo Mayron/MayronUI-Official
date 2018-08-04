@@ -5,7 +5,7 @@ local _, chat = ...;
 local core = MayronUI:ImportModule("MUI_Core");
 local db = core.Database;
 local tk = core.Toolkit;
-local L = core.L;
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 ------------------------
 ------------------------
 function chat:GetConfig()
@@ -65,7 +65,7 @@ function chat:GetConfig()
                     },
                     func = function(id, name)
                         return {
-                            {   name = name.." "..L["Options"],
+                            {   name = L[name].." "..L["Options"],
                                 type = "submenu",
                                 module = "Chat",
                                 inherit = {
