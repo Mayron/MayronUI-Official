@@ -11,6 +11,7 @@ local private = {};
 
 MayronUI:RegisterModule("Config", config);
 
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 local ColorPickerFrame, OpacitySliderFrame, ReloadUI = ColorPickerFrame, OpacitySliderFrame, ReloadUI;
 
 function config:Show()
@@ -466,7 +467,7 @@ function private:LoadChild(child_data, parent_dynamicFrame, submenu_data)
     if (child_data.type ~= "loop") then
         local type = (child_data.type == "radio" and "check") or child_data.type;
         if (not private[type]) then
-            tk:Print("Config type '"..type.."' unsupported!");
+            tk:Print(tk.string.format(L["Config type '%s' unsupported!"], type));
             return;
         end
         if (child_data.OnInitialize) then
@@ -598,8 +599,8 @@ function private:SetupMenu()
     self.reload_warning = bottombar:CreateFontString(nil, "OVERLAY", "GameFontNormal");
     self.reload_warning:SetPoint("LEFT");
     self.reload_warning:SetText("");
-    self.reload_warning.reload_message = "The UI requires reloading to apply changes.";
-    self.reload_warning.restart_message = "Some changes require a client restart to take effect.";
+    self.reload_warning.reload_message = L["The UI requires reloading to apply changes."];
+    self.reload_warning.restart_message = L["Some changes require a client restart to take effect."];
 
     -- forward and back buttons
     self.menu.back = gui:CreateButton(topbar:GetFrame());
@@ -631,14 +632,14 @@ function private:SetupMenu()
     tk:SetThemeColor(self.menu.back.arrow);
     self.menu.back:SetEnabled(false);
 
-    self.menu.profiles = gui:CreateButton(topbar:GetFrame(), "Reload UI"); -- will change to profiles another time
+    self.menu.profiles = gui:CreateButton(topbar:GetFrame(), L["Reload UI"]); -- will change to profiles another time
     self.menu.profiles:SetPoint("RIGHT", topbar:GetFrame(), "RIGHT");
     self.menu.profiles:SetScript("OnClick", function()
         ReloadUI();
         tk.PlaySound(tk.Constants.CLICK);
     end);
 
-    self.menu.installer = gui:CreateButton(topbar:GetFrame(), "MUI Installer");
+    self.menu.installer = gui:CreateButton(topbar:GetFrame(), L["MUI Installer"]);
     self.menu.installer:SetPoint("RIGHT", self.menu.profiles, "LEFT", -10, 0);
     self.menu.installer:SetScript("OnClick", function()
         core.commands["install"]();

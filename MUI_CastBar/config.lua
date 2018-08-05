@@ -5,6 +5,7 @@ local _, CastBars = ...;
 local core = MayronUI:ImportModule("MUI_Core");
 local tk = core.Toolkit;
 local db = core.Database;
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 
 local Map = {};
 Map.position_textfields = {};
@@ -17,7 +18,7 @@ local function UnlockCastBar(button, data)
     local castbar = tk._G["MUI_"..name.."CastBar"];
     castbar.unlocked = not castbar.unlocked;
     if (not castbar) then
-        tk:Print(name.." CastBar not enabled.");
+        tk:Print(name..L[" CastBar not enabled."]);
         return;
     end
     tk:MakeMovable(castbar, nil, castbar.unlocked);
@@ -49,7 +50,7 @@ local function UnlockCastBar(button, data)
         castbar.move_label:SetPoint("CENTER", castbar.move_indicator, "CENTER");
     end
     if (castbar.unlocked) then
-        button:SetText("Lock");
+        button:SetText(L["Lock"]);
         castbar.move_indicator:Show();
         castbar.move_label:Show();
         castbar:SetAlpha(1);
@@ -57,7 +58,7 @@ local function UnlockCastBar(button, data)
         castbar.duration:SetText("");
         castbar.statusbar:SetStatusBarColor(0, 0, 0, 0);
     else
-        button:SetText("Unlock");
+        button:SetText(L["Unlock"]);
         castbar.move_indicator:Hide();
         castbar.move_label:Hide();
         castbar:SetAlpha(0);
@@ -76,70 +77,70 @@ function CastBars:GetConfig()
             type = "category",
             module = "CastBars",
             children = {
-                {   name = "Appearance",
+                {   name = L["Appearance"],
                     type = "title",
                     padding_top = 0,
                 },
                 {   type = "divider"
                 },
-                {   name = "Bar Texture",
+                {   name = L["Bar Texture"],
                     type = "dropdown",
                     options = tk.Constants.LSM:List("statusbar"),
                     db_path = "profile.castbars.appearance.texture"
                 },
-                {   name = "Border",
+                {   name = L["Border"],
                     type = "dropdown",
                     options = tk.Constants.LSM:List("border"),
                     db_path = "profile.castbars.appearance.border",
                 },
                 {   type = "divider"
                 },
-                {   name = "Border Size",
+                {   name = L["Border Size"],
                     type = "textfield",
                     value_type = "number",
                     db_path = "profile.castbars.appearance.border_size"
                 },
-                {   name = "Frame Inset",
+                {   name = L["Frame Inset"],
                     type = "textfield",
                     value_type = "number",
                     tooltip = "Set the spacing between the status bar and the backdrop.",
                     db_path = "profile.castbars.appearance.inset"
                 },
                 {   type = "fontstring",
-                    content = "Colors",
+                    content = L["Colors"],
                     subtype = "header",
                 },
-                {   name = "Normal Casting",
+                {   name = L["Normal Casting"],
                     type = "color",
                     width = 160,
                     db_path = "profile.castbars.appearance.colors.normal"
                 },
-                {   name = "Finished Casting",
+                {   name = L["Finished Casting"],
                     type = "color",
                     width = 160,
                     db_path = "profile.castbars.appearance.colors.finished"
                 },
-                {   name = "Interrupted",
+                {   name = L["Interrupted"],
                     type = "color",
                     width = 160,
                     db_path = "profile.castbars.appearance.colors.interrupted"
                 },
-                {   name = "Latency",
+                {   name = L["Latency"],
                     type = "color",
                     width = 160,
                     db_path = "profile.castbars.appearance.colors.latency"
                 },
-                {   name = "Border",
+                {   name = L["Border"],
                     type = "color",
                     width = 160,
                     db_path = "profile.castbars.appearance.colors.border"
                 },
-                {   name = "Backdrop",
+                {   name = L["Backdrop"],
                     type = "color",
                     width = 160,
                     db_path = "profile.castbars.appearance.colors.backdrop"
                 },
-                {   name = "Individual Cast Bar Options",
+                {   name = L["Individual Cast Bar Options"],
                     type = "title",
                 },
                 {   type = "loop",
@@ -147,7 +148,7 @@ function CastBars:GetConfig()
                         "player", "target", "focus", "mirror"
                     },
                     func = function(_, name)
-                        local cap_name = name:gsub("^%l", tk.string.upper);
+                        local cap_name = L[name:gsub("^%l", tk.string.upper)];
                         return {
                             {   name = cap_name,
                                 type = "submenu",
@@ -158,34 +159,33 @@ function CastBars:GetConfig()
                                 end,
                                 module = "CastBars",
                                 children = {
-                                    {   name = "Enable Bar",
+                                    {   name = L["Enable Bar"],
                                         type = "check",
                                         db_path = "profile.castbars."..name..".enabled",
                                     },
-                                    {   name = "Show Icon",
+                                    {   name = L["Show Icon"],
                                         type = "check",
                                         enabled = name ~= "mirror",
                                         db_path = "profile.castbars."..name..".show_icon"
                                     },
-                                    {   name = "Show Latency Bar",
+                                    {   name = L["Show Latency Bar"],
                                         type = "check",
                                         enabled = name == "player",
                                         db_path = "profile.castbars."..name..".show_latency"
                                     },
-                                    {   name = "Anchor to SUF Portrait Bar",
+                                    {   name = L["Anchor to SUF Portrait Bar"],
                                         type = "check",
                                         OnLoad = function(_, container)
                                             Map.suf_anchor_checkbuttons[name] = container.btn;
                                         end,
                                         enabled = name ~= "mirror",
-                                        tooltip = "If enabled the Cast Bar will be fixed to the "..
-                                                cap_name.." Unit Frame's Portrait Bar (if it exists).",
+                                        tooltip = tk.string.format(L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."], cap_name),
                                         db_path = "profile.castbars."..name..".anchor_to_SUF",
                                         SetValue = function(path, _, new, button)
                                             local unitframe = tk._G["SUFUnit"..name];
                                             if (new and not (unitframe and unitframe.portrait)) then
                                                 button:SetChecked(false);
-                                                tk:Print("The", cap_name, "Unit Frames's Portrait Bar needs to be enabled to use this feature.");
+                                                tk:Print(tk.string.format(L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."], cap_name));
                                                 return;
                                             end
                                             db:SetPathValue(path, new);
@@ -203,15 +203,15 @@ function CastBars:GetConfig()
                                     {   type = "divider",
                                         enabled = name ~= "mirror",
                                     },
-                                    {   name = "Unlock",
+                                    {   name = L["Unlock"],
                                         type = "button",
                                         castbar_name = name,
                                         OnClick = UnlockCastBar
                                     },
                                     {   type = "divider"
                                     },
-                                    {   name = "Width",
-                                        tooltip = "Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar.",
+                                    {   name = L["Width"],
+                                        tooltip = L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."],
                                         type = "textfield",
                                         value_type = "number",
                                         OnLoad = function(_, container)
@@ -222,8 +222,8 @@ function CastBars:GetConfig()
                                         end,
                                         db_path = "profile.castbars."..name..".width"
                                     },
-                                    {   name = "Height",
-                                        tooltip = "Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar.",
+                                    {   name = L["Height"],
+                                        tooltip = L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."],
                                         type = "textfield",
                                         value_type = "number",
                                         OnLoad = function(_, container)
@@ -236,25 +236,25 @@ function CastBars:GetConfig()
                                     },
                                     {   type = "divider",
                                     },
-                                    {   name = "Frame Strata",
+                                    {   name = L["Frame Strata"],
                                         type = "dropdown",
                                         options = tk.Constants.FRAME_STRATA_VALUES,
                                         db_path = "profile.castbars."..name..".frame_strata"
                                     },
-                                    {   name = "Frame Level",
+                                    {   name = L["Frame Level"],
                                         type = "slider",
                                         min = 1,
                                         max = 50,
                                         step = 1,
                                         db_path = "profile.castbars."..name..".frame_level"
                                     },
-                                    {   name = "Manual Positioning",
+                                    {   name = L["Manual Positioning"],
                                         type = "title",
                                     },
                                     {   type = "fontstring",
-                                        content = "Manual positioning only works if the CastBar is not anchored to a SUF Portrait Bar.",
+                                        content = L["Manual positioning only works if the CastBar is not anchored to a SUF Portrait Bar."],
                                     },
-                                    {   name = "Point",
+                                    {   name = L["Point"],
                                         type = "textfield",
                                         value_type = "string",
                                         db_path = "profile.castbars."..name..".position.point",
@@ -275,7 +275,7 @@ function CastBars:GetConfig()
                                             end
                                         end
                                     },
-                                    {   name = "Relative Frame",
+                                    {   name = L["Relative Frame"],
                                         type = "textfield",
                                         value_type = "string",
                                         db_path = "profile.castbars."..name..".position.relativeFrame",
@@ -296,7 +296,7 @@ function CastBars:GetConfig()
                                             end
                                         end
                                     },
-                                    {   name = "Relative Point",
+                                    {   name = L["Relative Point"],
                                         type = "textfield",
                                         value_type = "string",
                                         db_path = "profile.castbars."..name..".position.relativePoint",
@@ -319,7 +319,7 @@ function CastBars:GetConfig()
                                     },
                                     {   type = "divider"
                                     },
-                                    {   name = "X-Offset",
+                                    {   name = L["X-Offset"],
                                         type = "textfield",
                                         value_type = "number",
                                         db_path = "profile.castbars."..name..".position.x",
@@ -340,7 +340,7 @@ function CastBars:GetConfig()
                                             end
                                         end
                                     },
-                                    {   name = "Y-Offset",
+                                    {   name = L["Y-Offset"],
                                         type = "textfield",
                                         value_type = "number",
                                         db_path = "profile.castbars."..name..".position.y",

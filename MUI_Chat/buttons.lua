@@ -5,7 +5,7 @@ local _, chat = ...;
 local core = MayronUI:ImportModule("MUI_Core");
 local em = core.EventManager;
 local tk = core.Toolkit;
-local L = core.L;
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 local private = {};
 
 ------------------------
@@ -29,7 +29,7 @@ private.toggle[L["Friends"]] = ToggleFriendsFrame;
 
 private.toggle[L["Guild"]] = function()
     if (IsTrialAccount()) then
-        tk:Print("Starter Edition accounts cannot perform this action.");
+        tk:Print(L["Starter Edition accounts cannot perform this action."]);
     elseif (IsInGuild()) then
         ToggleGuildFrame();
     end
@@ -39,7 +39,7 @@ private.toggle[L["Help Menu"]] = ToggleHelpFrame;
 
 private.toggle[L["PVP"]] = function()
     if (UnitLevel("player") < 10) then
-        tk:Print("Requires level 10+ to view the PVP window.");
+        tk:Print(L["Requires level 10+ to view the PVP window."]);
     else
         TogglePVPUI();
     end
@@ -51,7 +51,7 @@ end
 
 private.toggle[L["Talents"]] = function()
     if (UnitLevel("player") < 10) then
-        tk:Print("Must be level 10 or higher to use Talents.");
+        tk:Print(L["Must be level 10 or higher to use Talents."]);
     else
         if (not tk._G["PlayerTalentFrame"]) then
             tk.LoadAddOn("Blizzard_TalentUI");
@@ -64,9 +64,10 @@ private.toggle[L["Achievements"]] = ToggleAchievementFrame;
 
 private.toggle[L["Glyphs"]] = function()
     if (UnitLevel("player") < 10) then
-        tk:Print("Requires level 10+ to view the Glyphs window.");
+        tk:Print(L["Requires level 10+ to view the Glyphs window."]);
     else
-        ToggleGlyphFrame();
+		-- ToggleGlyphFrame(); -- Glyph Frame is combined to the spellbook
+		ToggleFrame(SpellBookFrame);
     end
 end
 
@@ -101,7 +102,7 @@ end
 
 private.toggle[L["PVP Score"]] = function()
     if (not UnitInBattleground("player")) then
-        tk:Print("Requires being inside a Battle Ground.");
+        tk:Print(L["Requires being inside a Battle Ground."]);
     else
         ToggleWorldStateScoreFrame();
     end

@@ -8,6 +8,7 @@ init.lua
 ## imports:
 imports/AuraFrames.lua
 imports/Bartender4.lua
+imports/Bazooka.lua
 imports/Grid.lua
 imports/Masque.lua
 imports/MikScrollingBattleText.lua

@@ -12,6 +12,8 @@ local gui = core.GUI_Builder;
 local db = core.Database;
 local private = {};
 
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
+
 ------------------------
 ------------------------
 local function ChangeTheme(self, value)
@@ -79,23 +81,23 @@ end
 function private:LoadCustomMenu(s)
     s.theme_title = s:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
     s.theme_title:SetPoint("TOPLEFT", 20, -20);
-    s.theme_title:SetText("Choose Theme:");
+    s.theme_title:SetText(L["Choose Theme:"]);
 
     s.themeDropdown = gui:CreateDropDown(s);
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Death Knight", "C41F3B"), ChangeTheme, "DEATHKNIGHT");
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Demon Hunter", "A330C9"), ChangeTheme, "DEMONHUNTER");
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Druid", "FF7D0A"), ChangeTheme, "DRUID");
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Hunter", "ABD473"), ChangeTheme, "HUNTER");
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Mage", "69CCF0"), ChangeTheme, "MAGE");
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Monk", "00FF96"), ChangeTheme, "MONK");
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Paladin", "F58CBA"), ChangeTheme, "PALADIN");
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Priest", "FFFFFF"), ChangeTheme, "PRIEST");
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Rogue", "FFF569"), ChangeTheme, "ROGUE");
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Shaman", "0070DE"), ChangeTheme, "SHAMAN");
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Warlock", "9482C9"), ChangeTheme, "WARLOCK");
-    s.themeDropdown:AddOption(tk:GetHexColoredString("Warrior", "C79C6E"), ChangeTheme, "WARRIOR");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(6),	"C41F3B"), ChangeTheme, "DEATHKNIGHT");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(12),	"A330C9"), ChangeTheme, "DEMONHUNTER");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(11),	"FF7D0A"), ChangeTheme, "DRUID");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(3),	"ABD473"), ChangeTheme, "HUNTER");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(8),	"69CCF0"), ChangeTheme, "MAGE");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(10),	"00FF96"), ChangeTheme, "MONK");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(2),	"F58CBA"), ChangeTheme, "PALADIN");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(5),	"FFFFFF"), ChangeTheme, "PRIEST");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(4),	"FFF569"), ChangeTheme, "ROGUE");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(7),	"0070DE"), ChangeTheme, "SHAMAN");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(9),	"9482C9"), ChangeTheme, "WARLOCK");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(1),	"C79C6E"), ChangeTheme, "WARRIOR");
     
-    s.themeDropdown:AddOption("Custom Colour", function()
+    s.themeDropdown:AddOption(L["Custom Colour"], function()
         local colors = {};
         ColorPickerFrame:SetColorRGB(1, 1, 1);        
         ColorPickerFrame.previousValues = {1, 1, 1, 0};
@@ -116,13 +118,13 @@ function private:LoadCustomMenu(s)
         ColorPickerFrame:Show();
     end);
 
-    s.themeDropdown:SetLabel("Theme");
+    s.themeDropdown:SetLabel(L["Theme"]);
     s.themeDropdown:SetPoint("TOPLEFT", s.theme_title, "BOTTOMLEFT", 0, -10);
 
     -- profile dropdown menu
     s.profile_title = s:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
     s.profile_title:SetPoint("TOPLEFT", s.themeDropdown:GetFrame(), "BOTTOMLEFT", 0, -20);
-    s.profile_title:SetText("Choose Profile:");
+    s.profile_title:SetText(L["Choose Profile:"]);
 
     s.profileDropdown = gui:CreateDropDown(s);
     for _, name, _ in db:IterateProfiles() do
@@ -132,13 +134,13 @@ function private:LoadCustomMenu(s)
     s.profileDropdown:SetLabel(db:GetCurrentProfile());
     s.profileDropdown:SetPoint("TOPLEFT", s.profile_title, "BOTTOMLEFT", 0, -10);
 
-    s.profileDropdown:AddOption("<new profile>", function(self)
+    s.profileDropdown:AddOption(L["<new profile>"], function(self)
         if (not tk.StaticPopupDialogs["MUI_NewProfile"]) then
 
             tk.StaticPopupDialogs["MUI_NewProfile"] = {
-                text = "Create New Profile:",
-                button1 = "Confirm",
-                button2 = "Cancel",
+                text = L["Create New Profile:"],
+                button1 = L["Confirm"],
+                button2 = L["Cancel"],
                 timeout = 0,
                 whileDead = true,
                 hideOnEscape = true,
@@ -159,13 +161,13 @@ function private:LoadCustomMenu(s)
         self:SetLabel(db:GetCurrentProfile());
     end);
 
-    s.profileDropdown:AddOption("<remove profile>", function(self)
+    s.profileDropdown:AddOption(L["<remove profile>"], function(self)
         if (not tk.StaticPopupDialogs["MUI_RemoveProfile"]) then
 
             tk.StaticPopupDialogs["MUI_RemoveProfile"] = {
-                text = "Remove Profile:",
-                button1 = "Confirm",
-                button2 = "Cancel",
+                text = L["Remove Profile:"],
+                button1 = L["Confirm"],
+                button2 = L["Cancel"],
                 timeout = 0,
                 whileDead = true,
                 hideOnEscape = true,
@@ -194,27 +196,27 @@ function private:LoadCustomMenu(s)
     if (tk.IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
         s.chat_title = s:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
         s.chat_title:SetPoint("TOPLEFT", s.profileDropdown:GetFrame(), "BOTTOMLEFT", 0, -40);
-        s.chat_title:SetText("Enabled Chat Frames:");
+        s.chat_title:SetText(L["Enabled Chat Frames:"]);
 
-        s.tl = gui:CreateCheckButton(s, "Top Left");
+        s.tl = gui:CreateCheckButton(s, L["Top Left"]);
         s.tl:SetPoint("TOPLEFT", s.chat_title, "BOTTOMLEFT", 0, -10);
         s.tl.btn:SetScript("OnClick", function(self)
             db.profile.chat.enabled["TOPLEFT"] = self:GetChecked();
         end);
 
-        s.bl = gui:CreateCheckButton(s, "Bottom Left");
+        s.bl = gui:CreateCheckButton(s, L["Bottom Left"]);
         s.bl:SetPoint("TOPLEFT", s.tl, "BOTTOMLEFT", 0, -10);
         s.bl.btn:SetScript("OnClick", function(self)
             db.profile.chat.enabled["BOTTOMLEFT"] = self:GetChecked();
         end);
 
-        s.br = gui:CreateCheckButton(s, "Bottom Right");
+        s.br = gui:CreateCheckButton(s, L["Bottom Right"]);
         s.br:SetPoint("TOPLEFT", s.bl, "BOTTOMLEFT", 0, -10);
         s.br.btn:SetScript("OnClick", function(self)
             db.profile.chat.enabled["BOTTOMRIGHT"] = self:GetChecked();
         end);
 
-        s.tr = gui:CreateCheckButton(s, "Top Right");
+        s.tr = gui:CreateCheckButton(s, L["Top Right"]);
         s.tr:SetPoint("TOPLEFT", s.br, "BOTTOMLEFT", 0, -10);
         s.tr.btn:SetScript("OnClick", function(self)
             db.profile.chat.enabled["TOPRIGHT"] = self:GetChecked();
@@ -224,12 +226,12 @@ function private:LoadCustomMenu(s)
     -- UI Scale
     s.scale_title = s:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
     s.scale_title:SetPoint("TOPLEFT", s.theme_title, "TOPRIGHT", 150, 0);
-    s.scale_title:SetText("Adjust the UI Scale:");
+    s.scale_title:SetText(L["Adjust the UI Scale:"]);
 
     s.scaler = tk.CreateFrame("Slider", nil, s, "OptionsSliderTemplate");
     s.scaler:SetPoint("TOPLEFT", s.scale_title, "BOTTOMLEFT", 0, -10);
     s.scaler:SetWidth(200);
-    s.scaler.tooltipText = "This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7";
+    s.scaler.tooltipText = L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"];
     s.scaler:SetMinMaxValues(0.6, 1.2);
     s.scaler:SetValueStep(0.05);
     s.scaler:SetObeyStepOnDrag(true);
@@ -264,10 +266,10 @@ function private:LoadCustomMenu(s)
 	-- Localization (currently in development)
 	-- s.localization = s:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
     -- s.localization:SetPoint("TOPLEFT", s.chat_title, "TOPRIGHT", 95, 0);
-    -- s.localization:SetText("Use Localization:");
+    -- s.localization:SetText(L["Use Localization:"]);
     -- s.localization:Hide();
 
-	-- s.localization.cb = gui:CreateCheckButton(s, "WoW Client: "..GetLocale());
+	-- s.localization.cb = gui:CreateCheckButton(s, L["WoW Client: "]..GetLocale());
 	-- s.localization.cb:SetPoint("TOPLEFT", s.chat_title, "TOPRIGHT", 95, -40);
 	-- s.localization.cb.btn:SetScript("OnClick", function(self)
 	-- 	db.global.core.localization = self:GetChecked();
@@ -276,7 +278,7 @@ function private:LoadCustomMenu(s)
     -- AddOn Settings to Inject
     s.inject_title = s:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
     s.inject_title:SetPoint("TOPLEFT", s.scale_title, "TOPRIGHT", 110, 0);
-    s.inject_title:SetText("AddOn Settings to Override:");
+    s.inject_title:SetText(L["AddOn Settings to Override:"]);
 
     local child, previous;
     s.addon_container, child = gui:CreateScrollFrame(s);
@@ -308,13 +310,13 @@ function private:LoadCustomMenu(s)
     end
 
     -- install button
-    s.install = gui:CreateButton(s, "Install");
+    s.install = gui:CreateButton(s, L["Install"]);
     s.install:SetPoint("TOPRIGHT", s.addon_container, "BOTTOMRIGHT", 0, -20);
 
     s.install:SetScript("OnClick", setup.Install);
     s.install:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT", 18, 4)
-        GameTooltip:AddLine(tk:GetThemeColoredString("Warning:").." This will reload the UI!");
+        GameTooltip:AddLine(tk:GetThemeColoredString(L["Warning:"]).." "..L["This will reload the UI!"]);
         GameTooltip:SetFrameLevel(30)
         GameTooltip:Show()
     end);
@@ -345,7 +347,7 @@ function private:LoadInfoMenu(s)
     content:SetJustifyH("LEFT");
     content:SetJustifyV("TOP");
     content:SetText(private.content);
-    content:SetFont(font, 13);
+    content:SetFont(font, 13); -- font size should be added to config and profile. I personally prefer 10 ;-)
     content:SetSpacing(6);
     s.child:SetHeight(900); -- can't use GetStringHeight
 end
@@ -393,7 +395,7 @@ function setup:Show()
     window:SetPoint("CENTER");
     window:SetFrameStrata("DIALOG");
 
-    gui:AddTitleBar(window, "Setup Menu");
+    gui:AddTitleBar(window, L["Setup Menu"]);
     gui:AddCloseButton(window);
 
     window.bg = tk:SetBackground(window, 0, 0, 0, 0.8); -- was 0.8 but set to 0.2 for testing
@@ -431,7 +433,7 @@ function setup:Show()
     title:SetPoint("BOTTOMLEFT");
 
     local version = window.info:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
-    version:SetText("VERSION "..GetAddOnMetadata("MUI_Core", "Version"));
+    version:SetText(L["VERSION"].." "..GetAddOnMetadata("MUI_Core", "Version"));
     version:SetPoint("BOTTOMLEFT", title, "TOPLEFT", 0, 4);
 
     window.submenu = gui:CreateDialogBox(window.banner:GetFrame());
@@ -442,7 +444,7 @@ function setup:Show()
     -- menu buttons:
     local install = tk.CreateFrame("CheckButton", nil, window.menu:GetFrame());
     install:SetNormalFontObject("GameFontHighlight");
-    install:SetText("INSTALL");
+    install:SetText(L["INSTALL"]);
     install:SetPoint("LEFT");
     install:SetCheckedTexture(1);
     install:SetHighlightTexture(1);
@@ -452,7 +454,7 @@ function setup:Show()
 
     local custom = tk.CreateFrame("CheckButton", nil, window.menu:GetFrame());
     custom:SetNormalFontObject("GameFontHighlight");
-    custom:SetText("CUSTOM INSTALL");
+    custom:SetText(L["CUSTOM INSTALL"]);
     custom:SetPoint("LEFT", install, "RIGHT", 40, 0);
     custom:SetCheckedTexture(1);
     custom:SetHighlightTexture(1);
@@ -462,7 +464,7 @@ function setup:Show()
 
     local info = tk.CreateFrame("CheckButton", nil, window.menu:GetFrame());
     info:SetNormalFontObject("GameFontHighlight");
-    info:SetText("INFORMATION");
+    info:SetText(L["INFORMATION"]);
     info:SetPoint("LEFT", custom, "RIGHT", 40, 0);
     info:SetCheckedTexture(1);
     info:SetHighlightTexture(1);
@@ -547,7 +549,7 @@ function setup:Install()
     end
 
     -- MayronUI profiles:
-    for id, name in tk:IterateArgs("AuraFrames", "Bartender4", "Omen", "Recount") do
+    for id, name in tk:IterateArgs("AuraFrames", "Bartender4", "Bazooka", "Omen", "Recount") do	-- Please keep Bazooka until MUI can handle those minimap icons itself :)
         if (tk._G[name]) then
             local path = tk:GetDBObject(name);
             if (path) then

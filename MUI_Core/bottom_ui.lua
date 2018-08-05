@@ -6,6 +6,7 @@ local em = core.EventManager;
 local tk = core.Toolkit;
 local db = core.Database;
 local gui = core.GUI_Builder;
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 
 local bui = {};
 bui.ActionBar_Panel = {};
@@ -690,6 +691,7 @@ function private.ArtifactBar_OnSetup(resourceBar, data)
         data.statusbar:SetMinMaxValues(0, maxValue);
         data.statusbar:SetValue(currentValue);
         if (data.statusbar.text) then
+			if currentValue > 0 and maxValue == 0 then maxValue = currentValue end
             local percent = (currentValue / maxValue) * 100;
             currentValue = tk:FormatNumberString(currentValue);
             maxValue = tk:FormatNumberString(maxValue);

@@ -4,6 +4,7 @@ local db = core.Database;
 local minimap = {};
 
 MayronUI:RegisterModule("MiniMap", minimap);
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
 
 ------------------------
 -- Defaults
@@ -152,13 +153,13 @@ function minimap:init()
 		if (minimap.sv.Tooltip) then return; end -- helper tooltip (can be hidden)
 		GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -2)
 		GameTooltip:SetText("MUI MiniMap");  -- This sets the top line of text, in gold.
-		GameTooltip:AddDoubleLine("CTRL + Drag:", "Move Minimap", 1, 1, 1);
-		GameTooltip:AddDoubleLine("SHIFT + Drag:", "Resize Minimap", 1, 1, 1);
-		GameTooltip:AddDoubleLine("Left Click:", "Ping Minimap", 1, 1, 1);
-		GameTooltip:AddDoubleLine("Middle Click:", "Show Tracking Menu", 1, 1, 1);
-		GameTooltip:AddDoubleLine("Right Click:", "Show Menu", 1, 1, 1);		
-		GameTooltip:AddDoubleLine("Mouse Wheel:", "Zoom in/out", 1, 1, 1);
-		GameTooltip:AddDoubleLine("ALT + Left Click:", "Toggle this Tooltip", 1, 0, 0, 1, 0, 0);
+		GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["SHIFT + Drag:"], L["Resize Minimap"], 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["Left Click:"], L["Ping Minimap"], 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["Middle Click:"], L["Show Tracking Menu"], 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["Right Click:"], L["Show Menu"], 1, 1, 1);		
+		GameTooltip:AddDoubleLine(L["Mouse Wheel:"], L["Zoom in/out"], 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
 		GameTooltip:Show();
 	end);
 	Minimap:HookScript("OnMouseDown", function(self, button)		
@@ -195,7 +196,7 @@ function minimap:init()
 		local numPendingInvites = C_Calendar.GetNumPendingInvites();
 
 		if (numPendingInvites > 0) then
-			self:SetText(tk.string.format("%s (%i)", "New Event!", numPendingInvites));
+			self:SetText(tk.string.format("%s (%i)", L["New Event!"], numPendingInvites));
             self:Show();
 		else
 			self:SetText("");
@@ -205,7 +206,7 @@ function minimap:init()
 
 	-- Drop down List:
 	local menuList = {
-		{ 	text = "Calendar",
+		{ 	text = L["Calendar"],
 			func = function()
 				if (not tk._G["CalendarFrame"]) then
                     tk.LoadAddOn("Blizzard_Calendar");
@@ -213,28 +214,28 @@ function minimap:init()
                 Calendar_Toggle();
 			end
 		},
-		{	text = "Customer Support",
+		{	text = L["Customer Support"],
 			func = function() ToggleHelpFrame(); end
 		},
-		{ 	text = "Class Order Hall / Garrison Report",
+		{ 	text = L["Class Order Hall"].." / "..L["Garrison Report"],
 			func = function() GarrisonLandingPage_Toggle(); end
 		},
-		{ 	text = "Tracking Menu",
+		{ 	text = L["Tracking Menu"],
 			func = function()  
 				ToggleDropDownMenu(1, nil, MiniMapTrackingDropDown, "MiniMapTracking", 0, -5);
 				tk.PlaySound(tk.Constants.CLICK);
 			end 
 		},
-		{ 	text = tk:GetThemeColoredString("MUI Config Menu"),
+		{ 	text = tk:GetThemeColoredString(L["MUI Config Menu"]),
 			func = function()  
 				if (tk.InCombatLockdown()) then
-					tk:Print("Cannot access config menu while in combat.");
+					tk:Print(L["Cannot access config menu while in combat."]);
 				else
 					core.commands["config"]()
 				end				
 			end 
 		},
-		{ 	text = tk:GetThemeColoredString("MUI Installer"),
+		{ 	text = tk:GetThemeColoredString(L["MUI Installer"]),
 			func = function()
 				core.commands["install"]();
 			end 
@@ -248,7 +249,7 @@ function minimap:init()
             end
         });
 		tk.table.insert(menuList, {
-            text = tk:GetHexColoredString("Music Player", "70db70"),
+            text = tk:GetHexColoredString(L["Music Player"], "70db70"),
             func = function()
                 SlashCmdList["Leatrix_Plus"]("play")
             end
@@ -305,7 +306,7 @@ function minimap:init()
 			end
 			local players = GetNumGroupMembers();
 			players = (players > 0 and players) or 1;
-			mode.txt:SetText(players .. difficulty);
+			mode.txt:SetText(players .. difficulty); -- localization possible?
 		else
 			mode.txt:SetText("");
 		end

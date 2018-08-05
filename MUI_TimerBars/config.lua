@@ -10,6 +10,8 @@ local gui = core.GUI_Builder;
 local Map = {};
 Map.position_textfields = {};
 
+local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
+
 ----------------
 -- ListFrame
 ----------------
@@ -154,14 +156,14 @@ local function CreateListFrame(_, self)
 
         local row1 = panel:CreateCell();
         row1.label = row1:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
-        row1.label:SetText("Enter the Name of a "..(type == "buffs" and "Buff" or "Debuff").." to Track:");
+        row1.label:SetText(tk.string.format(L["Enter the Name of a %s to Track:"], (type == "buffs" and "Buff" or "Debuff")));
         row1.label:SetPoint("LEFT");
         row1:SetInsets(22, 5, 0, 5);
 
         local row2 = panel:CreateCell();
         row2.cb1 = gui:CreateCheckButton(row2:GetFrame(),
-            "Only track your "..type, nil,
-            "Only "..type.." casted by you will be tracked.");
+            tk.string.format(L["Only track your %s"], type), nil,
+			tk.string.format(L["Only %s casted by you will be tracked."], type));
 
         row2.cb1:SetPoint("LEFT");
         row2.cb1.btn:SetChecked(db.profile.timer_bars[name]["only_player_"..type]);
@@ -172,9 +174,9 @@ local function CreateListFrame(_, self)
         end);
 
         row2.cb2 = gui:CreateCheckButton(row2:GetFrame(),
-            "Track all "..type, nil,
-            "Ignore the list of "..type.." to track and track everything.\n\n"..
-            "Enabling this will dynamically generate the list of "..type.." to track.");
+            tk.string.format(L["Track all %s"], type), nil,
+            tk.string.format(L["Ignore the list of %s to track and track everything."], type).."\n\n"..
+			tk.string.format(L["Enabling this will dynamically generate the list of %s to track."], type));
 
         row2.cb2:SetPoint("LEFT", row2.cb1, "RIGHT", 5, 0);
         row2.cb2.btn:SetChecked(db.profile.timer_bars[name]["track_all_"..type]);
@@ -242,71 +244,71 @@ function TimerBars:GetConfig()
             type = "category",
             module = "TimerBars",
             children = {
-                {   name = "General Options",
+                {   name = L["General Options"],
                     type = "title",
                     padding_top = 0
                 },
-                {   name = "Sort By Time Remaining",
+                {   name = L["Sort By Time Remaining"],
                     type = "check",
                     width = 220,
                     db_path = "profile.timer_bars.sort_by_time"
                 },
-                {   name = "Show Tooltips On Mouseover",
+                {   name = L["Show Tooltips On Mouseover"],
                     type = "check",
                     width = 230,
                     db_path = "profile.timer_bars.show_tooltips"
                 },
                 {   type = "divider"
                 },
-                {   name = "Bar Texture",
+                {   name = L["Bar Texture"],
                     type = "dropdown",
                     db_path = "profile.timer_bars.status_bar_texture",
                     options = tk.Constants.LSM:List("statusbar"),
                 },
                 {   type = "divider"
                 },
-                {   name = "Create New Field",
+                {   name = L["Create New Field"],
                     type = "button",
                     OnClick = function()
                         local name = "MUI_CreateTimerBarField";
                         if (not tk.StaticPopupDialogs[name]) then
-                            gui:CreatePopupDialog(name, "Name of New TimerBar Field:", true, function(dialog)
+                            gui:CreatePopupDialog(name, L["Name of New TimerBar Field:"], true, function(dialog)
                                 local text = dialog.editBox:GetText();
                                 local tbl = db.profile.timer_bars.field_names:GetTable();
                                 db:SetPathValue("profile.timer_bars.field_names["..(#tbl + 1).."]", text);
-                                tk:Print("TimerBar field '"..text.."' created.");
+                                tk:Print(tk.string.format(L["TimerBar field '%s' created."], text));
                                 MayronUI:ImportModule("Config"):ShowReloadMessage();
                             end);
                         end
                         tk.StaticPopup_Show(name);
                     end
                 },
-                {   name = "Remove Field",
+                {   name = L["Remove Field"],
                     type = "button",
                     OnClick = function()
                         local name = "MUI_DeleteTimerBarField";
                         if (not tk.StaticPopupDialogs[name]) then
-                            gui:CreatePopupDialog(name, "Name of TimerBar Field to Remove:", true, function(dialog)
+                            gui:CreatePopupDialog(name, L["Name of TimerBar Field to Remove:"], true, function(dialog)
                                 local text = dialog.editBox:GetText();
                                 local tbl = db.profile.timer_bars.field_names:GetTable();
                                 local id = tk:GetIndex(tbl, text);
                                 if (id) then
                                     db:SetPathValue("profile.timer_bars.field_names["..id.."]", nil);
-                                    tk:Print("TimerBar field '"..text.."' remove.");
+                                    tk:Print(tk.string.format(L["TimerBar field '%s' remove."], text));
                                     if (not db.profile.timer_bars.delete_fields) then
                                         db.profile.timer_bars.delete_fields = {};
                                     end
                                     db.profile.timer_bars.delete_fields[text] = true;
                                     MayronUI:ImportModule("Config"):ShowReloadMessage();
                                 else
-                                    tk:Print("TimerBar field '"..text.."' does not exist.");
+                                    tk:Print(tk.string.format(L["TimerBar field '%s' does not exist."], text));
                                 end
                             end);
                         end
                         tk.StaticPopup_Show(name);
                     end
                 },
-                {   name = "Existing Timer Bar Fields",
+                {   name = L["Existing Timer Bar Fields"],
                     type = "title",
                 },
                 {   type = "loop",
@@ -320,11 +322,11 @@ function TimerBars:GetConfig()
                                 end,
                                 module = "TimerBars",
                                 children = {
-                                    {   name = "Enable Field",
+                                    {   name = L["Enable Field"],
                                         type = "check",
                                         db_path = "profile.timer_bars."..name..".enabled",
                                     },
-                                    {   name = "Unlock",
+                                    {   name = L["Unlock"],
                                         type = "button",
                                         OnClick = function(widget)
                                             widget.toggle = not widget.toggle;
@@ -335,12 +337,12 @@ function TimerBars:GetConfig()
                                                     local r, g, b = tk:GetThemeColor();
                                                     field.move_indicator = tk:SetBackground(field, r, g, b);
                                                     field.move_label = field:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
-                                                    field.move_label:SetText("<"..name.." Field>");
+                                                    field.move_label:SetText(tk.string.format(L["<%s Field>"], name));
                                                     field.move_label:SetPoint("CENTER");
                                                 end
                                                 field.move_indicator:SetAlpha(0.4);
                                                 field.move_label:SetAlpha(0.8);
-                                                widget:SetText("Lock");
+                                                widget:SetText(L["Lock"]);
                                             elseif (field.move_indicator) then
                                                 field.move_indicator:SetAlpha(0);
                                                 field.move_label:SetAlpha(0);
@@ -356,39 +358,39 @@ function TimerBars:GetConfig()
                                     },
                                     {   type = "divider",
                                     },
-                                    {   name = "Unit to Track",
+                                    {   name = L["Unit to Track"],
                                         type = "dropdown",
-                                        tooltip = "The unit who is affected by the spell.",
+                                        tooltip = L["The unit who is affected by the spell."],
                                         db_path = "profile.timer_bars."..name..".unit",
                                         options = {
-                                            "Player",
-                                            "Target",
-                                            "TargetTarget",
-                                            "Focus",
-                                            "FocusTarget"
+                                            L["Player"],
+                                            L["Target"],
+                                            L["TargetTarget"],
+                                            L["Focus"],
+                                            L["FocusTarget"]
                                         },
                                     },
                                     {   type = "divider"
                                     },
-                                    {   name = "Manage Tracking Buffs",
+                                    {   name = L["Manage Tracking Buffs"],
                                         type = "button",
                                         data = {name, "buffs"},
                                         width = 220,
                                         OnClick = CreateListFrame,
                                     },
-                                    {   name = "Manage Tracking Debuffs",
+                                    {   name = L["Manage Tracking Debuffs"],
                                         type = "button",
                                         data = {name, "debuffs"},
                                         width = 220,
                                         OnClick = CreateListFrame,
                                     },
-                                    {   name = "Appearance Options",
+                                    {   name = L["Appearance Options"],
                                         type = "title"
                                     },
-                                    {   content = "The field's vertical growth direction:",
+                                    {   content = L["The field's vertical growth direction:"],
                                         type = "fontstring",
                                     },
-                                    {   name = "Up",
+                                    {   name = L["Up"],
                                         db_path = "profile.timer_bars."..name..".direction",
                                         type = "radio",
                                         min_width = true,
@@ -400,7 +402,7 @@ function TimerBars:GetConfig()
                                             db:SetPathValue(db_path, value and "UP" or "DOWN");
                                         end,
                                     },
-                                    {   name = "Down",
+                                    {   name = L["Down"],
                                         db_path = "profile.timer_bars."..name..".direction",
                                         type = "radio",
                                         min_width = true,
@@ -414,21 +416,21 @@ function TimerBars:GetConfig()
                                     },
                                     {   type = "divider"
                                     },
-                                    {   name = "Bar Width",
+                                    {   name = L["Bar Width"],
                                         type = "slider",
                                         db_path = "profile.timer_bars."..name..".bar_width",
                                         step = 1,
                                         min = 100,
                                         max = 400,
                                     },
-                                    {   name = "Bar Height",
+                                    {   name = L["Bar Height"],
                                         type = "slider",
                                         db_path = "profile.timer_bars."..name..".bar_height",
                                         step = 1,
                                         min = 5,
                                         max = 50,
                                     },
-                                    {   name = "Bar Spacing",
+                                    {   name = L["Bar Spacing"],
                                         type = "slider",
                                         db_path = "profile.timer_bars."..name..".spacing",
                                         step = 1,
@@ -437,25 +439,25 @@ function TimerBars:GetConfig()
                                     },
                                     {   type = "divider"
                                     },
-                                    {   name = "Show Icons",
+                                    {   name = L["Show Icons"],
                                         type = "check",
                                         db_path = "profile.timer_bars."..name..".show_icons",
                                     },
-                                    {   name = "Show Spark",
+                                    {   name = L["Show Spark"],
                                         type = "check",
                                         db_path = "profile.timer_bars."..name..".spark",
                                     },
                                     {   type = "divider"
                                     },
-                                    {   name = "Background Color",
+                                    {   name = L["Background Color"],
                                         type = "color",
                                         db_path = "profile.timer_bars."..name..".background_color",
                                     },
-                                    {   name = "Buff Bar Color",
+                                    {   name = L["Buff Bar Color"],
                                         type = "color",
                                         db_path = "profile.timer_bars."..name..".buff_bar_color",
                                     },
-                                    {   name = "Debuff Bar Color",
+                                    {   name = L["Debuff Bar Color"],
                                         type = "color",
                                         db_path = "profile.timer_bars."..name..".debuff_bar_color",
                                     },
@@ -463,9 +465,9 @@ function TimerBars:GetConfig()
                                     },
                                     {   type = "fontstring",
                                         subtype = "header",
-                                        content = "Manual Positioning"
+                                        content = L["Manual Positioning"]
                                     },
-                                    {   name = "Point",
+                                    {   name = L["Point"],
                                         type = "textfield",
                                         value_type = "string",
                                         db_path = "profile.timer_bars."..name..".position.point",
@@ -483,7 +485,7 @@ function TimerBars:GetConfig()
                                             end
                                         end
                                     },
-                                    {   name = "Relative Frame",
+                                    {   name = L["Relative Frame"],
                                         type = "textfield",
                                         value_type = "string",
                                         db_path = "profile.timer_bars."..name..".position.relativeFrame",
@@ -501,7 +503,7 @@ function TimerBars:GetConfig()
                                             end
                                         end
                                     },
-                                    {   name = "Relative Point",
+                                    {   name = L["Relative Point"],
                                         type = "textfield",
                                         value_type = "string",
                                         db_path = "profile.timer_bars."..name..".position.relativePoint",
@@ -521,7 +523,7 @@ function TimerBars:GetConfig()
                                     },
                                     {   type = "divider"
                                     },
-                                    {   name = "X-Offset",
+                                    {   name = L["X-Offset"],
                                         db_path = "profile.timer_bars."..name..".position.x",
                                         OnLoad = function(_, container)
                                             Map.position_textfields[name].x = container.widget.field;
@@ -539,7 +541,7 @@ function TimerBars:GetConfig()
                                             end
                                         end
                                     },
-                                    {   name = "Y-Offset",
+                                    {   name = L["Y-Offset"],
                                         db_path = "profile.timer_bars."..name..".position.y",
                                         OnLoad = function(_, container)
                                             Map.position_textfields[name].y = container.widget.field;
@@ -557,52 +559,52 @@ function TimerBars:GetConfig()
                                             end
                                         end
                                     },
-                                    {   name = "Text Options",
+                                    {   name = L["Text Options"],
                                         type = "title",
                                     },
-                                    {   content = "Time Remaining Text",
+                                    {   content = L["Time Remaining Text"],
                                         type = "fontstring",
                                         subtype = "header",
                                     },
-                                    {   name = "Show",
+                                    {   name = L["Show"],
                                         type = "check",
                                         height = 50,
                                         min_width = true,
                                         db_path = "profile.timer_bars."..name..".time.show",
                                     },
-                                    {   name = "Font Size",
+                                    {   name = L["Font Size"],
                                         type = "slider",
-                                        tooltip = "Default is 11",
+                                        tooltip = L["Default is 11"],
                                         step = 1,
                                         min = 8,
                                         max = 22,
                                         db_path = "profile.timer_bars."..name..".time.font_size",
                                     },
-                                    {   name = "Font Type",
+                                    {   name = L["Font Type"],
                                         type = "dropdown",
                                         db_path = "profile.timer_bars."..name..".time.font",
                                         font_chooser = true,
                                         options = tk.Constants.LSM:List("font"),
                                     },
-                                    {   content = "Spell Name Text",
+                                    {   content = L["Spell Name Text"],
                                         type = "fontstring",
                                         subtype = "header",
                                     },
-                                    {   name = "Show",
+                                    {   name = L["Show"],
                                         type = "check",
                                         height = 50,
                                         min_width = true,
                                         db_path = "profile.timer_bars."..name..".spell_name.show",
                                     },
-                                    {   name = "Font Size",
+                                    {   name = L["Font Size"],
                                         type = "slider",
-                                        tooltip = "Default is 11",
+                                        tooltip = L["Default is 11"],
                                         step = 1,
                                         min = 8,
                                         max = 22,
                                         db_path = "profile.timer_bars."..name..".spell_name.font_size",
                                     },
-                                    {   name = "Font Type",
+                                    {   name = L["Font Type"],
                                         type = "dropdown",
                                         db_path = "profile.timer_bars."..name..".spell_name.font",
                                         font_chooser = true,
