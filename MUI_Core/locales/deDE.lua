@@ -56,12 +56,14 @@ L["Right Button"]					= "Rechte Schaltfläche";
 L["Shift"]							= "Umschalt";	-- Mod-Key!
 L["Ctrg"]							= "Strg";		-- Mod-Key!
 L["Alt"]							= "Alt";		-- Mod-Key!
+L["Set the border size."]			= "Setzt die Breite des Randes.";
+L["The height of the edit box."]	= "Die Höhe des Eingabefeldes.";
 
 L["Chat Buttons with Modifier Key 1"]						= "Chat Schaltflächen - 1. Mod-Taste";
 L["Chat Buttons with Modifier Key 2"]						= "Chat Schaltflächen - 2. Mod-Taste";
-L["Set the border size.\n\nDefault is 1."]					= "Setzt die Randbreite.\n\nStandard ist 1.";
+L["Set the vertical positioning of the edit box"]			= "Setzt die verticale Position des Eingabefeldes.";
+L["Set the spacing between the background and the border."]	= "Setzt den Abstand zwischen Hintergrund und Rand.";
 
-L["Set the spacing between the background and the border.\n\nDefault is 0."]					= "Setzt den Abstand zwischen Hintergrund und Rand.\n\nStandard ist 0.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."]						= "Erlaubt die Nutzung der Mod-Tasten zum wechseln der Chat-Schaltflächen, während man sich im Kampf befindet.";
 
 -- MUI Core

@@ -57,12 +57,14 @@ L["Right Button"]					;
 L["Shift"]							;	-- Mod-Key!
 L["Ctrg"]							;	-- Mod-Key!
 L["Alt"]							;	-- Mod-Key!
+L["Set the border size."]			;
+L["The height of the edit box."]	;
 
 L["Chat Buttons with Modifier Key 1"]						;
 L["Chat Buttons with Modifier Key 2"]						;
-L["Set the border size.\n\nDefault is 1."]					;
+L["Set the vertical positioning of the edit box"]			;
+L["Set the spacing between the background and the border."]	;
 
-L["Set the spacing between the background and the border.\n\nDefault is 0."]					;
 L["Allow the use of modifier keys to swap chat buttons while in combat."]						;
 
 -- MUI Core
