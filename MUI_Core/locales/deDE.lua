@@ -61,7 +61,7 @@ L["The height of the edit box."]	= "Die Höhe des Eingabefeldes.";
 
 L["Chat Buttons with Modifier Key 1"]						= "Chat Schaltflächen - 1. Mod-Taste";
 L["Chat Buttons with Modifier Key 2"]						= "Chat Schaltflächen - 2. Mod-Taste";
-L["Set the vertical positioning of the edit box"]			= "Setzt die verticale Position des Eingabefeldes.";
+L["Set the vertical positioning of the edit box."]			= "Setzt die verticale Position des Eingabefeldes.";
 L["Set the spacing between the background and the border."]	= "Setzt den Abstand zwischen Hintergrund und Rand.";
 
 L["Allow the use of modifier keys to swap chat buttons while in combat."]						= "Erlaubt die Nutzung der Mod-Tasten zum wechseln der Chat-Schaltflächen, während man sich im Kampf befindet.";

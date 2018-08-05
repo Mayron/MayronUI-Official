@@ -57,7 +57,7 @@ function chat:GetConfig()
                     type = "textfield",
                     value_type = "number",
                     tooltip = L["Set the spacing between the background and the border."].."\n\n"..
-							  L["Default value is "].."0"],
+							  L["Default value is "].."0",
                     db_path = "profile.chat.edit_box.inset"
                 },
                 {   name = L["Chat Frame Options"],
