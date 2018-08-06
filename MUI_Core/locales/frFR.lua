@@ -61,7 +61,7 @@ L["Toggle Tooltip"]					= "Afficher info-bulle";
 
 --L["Chat Buttons with Modifier Key 1"]						;
 --L["Chat Buttons with Modifier Key 2"]						;
---L["Set the vertical positioning of the edit box"]			;
+--L["Set the vertical positioning of the edit box."]			;
 --L["Set the spacing between the background and the border."]	;
 
 --L["Allow the use of modifier keys to swap chat buttons while in combat."]						;
