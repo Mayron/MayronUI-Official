@@ -344,7 +344,13 @@ L["Never"]							= "";
 L["Always"]							= "";
 L["On Mouse-over"]					= "";
 L["Bar"]							= "";
+L["AFK Window"]						= "";
+L["Enable AFK Window"]				= "";
+L["Use the MUI AFK Window"]			= "";
+L["Rotate the Camera"]				= "";
+L["Show your character"]			= "";
 
+L["Displays a zoomed version of your character."]			= "";
 L["Uncheck to prevent MUI from changing the game font."]	= "";
 L["Config type '%s' unsupported!"]							= "";
 L["The UI requires reloading to apply changes."]			= "";
@@ -371,6 +377,7 @@ L["The height of the gradient effect."]						= "";
 L["Adjust the spacing between data text buttons."]			= "";
 L["The frame strata of the entire DataText bar."]			= "";
 
+L["While AFK the camera will slowly rotate arround your character."]							= "";
 L["Anchor the Objective Tracker to the action bar container on the right side of the screen."]	= "";
 L["Disable this to stop MUI from controlling the Objective Tracker."]							= "";
 L["Adjust the horizontal positioning of the Objective Tracker."]								= "";
