@@ -1,4 +1,4 @@
-local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "enUS", true) 
+local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "enUS", true, true) 
 if not L then return end 
 --[[
 To enable a translation, you need to uncomment the responsible line.
