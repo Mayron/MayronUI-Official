@@ -56,12 +56,14 @@ L["Right Button"]					= "Rechte Schaltfläche";
 L["Shift"]							= "Umschalt";	-- Mod-Key!
 L["Ctrg"]							= "Strg";		-- Mod-Key!
 L["Alt"]							= "Alt";		-- Mod-Key!
+L["Set the border size."]			= "Setzt die Breite des Randes.";
+L["The height of the edit box."]	= "Die Höhe des Eingabefeldes.";
 
 L["Chat Buttons with Modifier Key 1"]						= "Chat Schaltflächen - 1. Mod-Taste";
 L["Chat Buttons with Modifier Key 2"]						= "Chat Schaltflächen - 2. Mod-Taste";
-L["Set the border size.\n\nDefault is 1."]					= "Setzt die Randbreite.\n\nStandard ist 1.";
+L["Set the vertical positioning of the edit box."]			= "Setzt die verticale Position des Eingabefeldes.";
+L["Set the spacing between the background and the border."]	= "Setzt den Abstand zwischen Hintergrund und Rand.";
 
-L["Set the spacing between the background and the border.\n\nDefault is 0."]					= "Setzt den Abstand zwischen Hintergrund und Rand.\n\nStandard ist 0.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."]						= "Erlaubt die Nutzung der Mod-Tasten zum wechseln der Chat-Schaltflächen, während man sich im Kampf befindet.";
 
 -- MUI Core
@@ -341,7 +343,13 @@ L["Never"]							= "Niemals";
 L["Always"]							= "Immer";
 L["On Mouse-over"]					= "Bei Mausover";
 L["Bar"]							= "Leiste";
+L["AFK Window"]						= "AFK Fenster";
+L["Enable AFK Window"]				= "AFK Fenster aktivieren";
+L["Use the MUI AFK Window"]			= "Aktivieren um das MUI AFK Fenster zu verwenden.";
+L["Rotate the Camera"]				= "Kamera rotation aktivieren";
+L["Show your character"]			= "Spieler-Charakter anzeigen";
 
+L["Displays a zoomed version of your character."]			= "Zeigt eine große Version deines Charakters im AFK Fenster.";
 L["Uncheck to prevent MUI from changing the game font."]	= "Deaktivieren um MUI daran zu hindern die Hauptschriftart des Spiels zu ändern.";
 L["Config type '%s' unsupported!"]							= "Konfigurationstyp '%s' wird nicht unterstützt!";
 L["The UI requires reloading to apply changes."]			= "Das UI muss neu geladen werden um die Änderungen zu übernehmen.";
@@ -368,6 +376,7 @@ L["The height of the gradient effect."]						= "Die Höhe der Farbverlaufeffeckt
 L["Adjust the spacing between data text buttons."]			= "Den Abstand zwischen den DataText Elementen anpassen.";
 L["The frame strata of the entire DataText bar."]			= "Die Darstellungsschicht der DataText Leiste.";
 
+L["While AFK the camera will slowly rotate arround your character."]							= "Im AFK Zustand, bewegt sich die Kamera langsam um deinen Charakter herum.";
 L["Anchor the Objective Tracker to the action bar container on the right side of the screen."]	= "Verankert den Quest Tracker an der SideBar auf der rechten Seite.";
 L["Disable this to stop MUI from controlling the Objective Tracker."]							= "Wenn deaktiviert, wird MUI den Quest Tracker nicht konfigurieren.";
 L["Adjust the horizontal positioning of the Objective Tracker."]								= "Verschiebt den Aufgaben / Quest Tracke horizontal.";

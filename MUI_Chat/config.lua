@@ -21,13 +21,15 @@ function chat:GetConfig()
                 {   name = L["Y-Offset"],
                     type = "textfield",
                     value_type = "number",
-                    tooltip = "Set the vertical positioning of the edit box.\n\nDefault is -8.",
+                    tooltip = L["Set the vertical positioning of the edit box."].."\n\n"..
+							  L["Default value is "].."-8",
                     db_path = "profile.chat.edit_box.yOffset"
                 },
                 {   name = L["Height"],
                     type = "textfield",
                     value_type = "number",
-                    tooltip = "The height of the edit box.\n\nDefault is 27.",
+                    tooltip = L["The height of the edit box."].."\n\n"..
+							  L["Default value is "].."27",
                     db_path = "profile.chat.edit_box.height"
                 },
                 { type = "divider",
@@ -47,13 +49,15 @@ function chat:GetConfig()
                 {   name = L["Border Size"],
                     type = "textfield",
                     value_type = "number",
-                    tooltip = L["Set the border size.\n\nDefault is 1."],
+                    tooltip = L["Set the border size."].."\n\n"..
+							  L["Default value is "].."1",
                     db_path = "profile.chat.edit_box.border_size"
                 },
                 {   name = L["Backdrop Inset"],
                     type = "textfield",
                     value_type = "number",
-                    tooltip = L["Set the spacing between the background and the border.\n\nDefault is 0."],
+                    tooltip = L["Set the spacing between the background and the border."].."\n\n"..
+							  L["Default value is "].."0",
                     db_path = "profile.chat.edit_box.inset"
                 },
                 {   name = L["Chat Frame Options"],

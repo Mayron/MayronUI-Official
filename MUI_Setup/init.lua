@@ -84,18 +84,18 @@ function private:LoadCustomMenu(s)
     s.theme_title:SetText(L["Choose Theme:"]);
 
     s.themeDropdown = gui:CreateDropDown(s);
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(6),	"C41F3B"), ChangeTheme, "DEATHKNIGHT");
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(12),	"A330C9"), ChangeTheme, "DEMONHUNTER");
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(11),	"FF7D0A"), ChangeTheme, "DRUID");
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(3),	"ABD473"), ChangeTheme, "HUNTER");
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(8),	"69CCF0"), ChangeTheme, "MAGE");
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(10),	"00FF96"), ChangeTheme, "MONK");
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(2),	"F58CBA"), ChangeTheme, "PALADIN");
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(5),	"FFFFFF"), ChangeTheme, "PRIEST");
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(4),	"FFF569"), ChangeTheme, "ROGUE");
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(7),	"0070DE"), ChangeTheme, "SHAMAN");
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(9),	"9482C9"), ChangeTheme, "WARLOCK");
-    s.themeDropdown:AddOption(tk:GetHexColoredString(UnitClass(1),	"C79C6E"), ChangeTheme, "WARRIOR");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("6"),	"C41F3B"), ChangeTheme, "DEATHKNIGHT");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("12"),	"A330C9"), ChangeTheme, "DEMONHUNTER");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("11"),	"FF7D0A"), ChangeTheme, "DRUID");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("3"),	"ABD473"), ChangeTheme, "HUNTER");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("8"),	"69CCF0"), ChangeTheme, "MAGE");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("10"),	"00FF96"), ChangeTheme, "MONK");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("2"),	"F58CBA"), ChangeTheme, "PALADIN");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("5"),	"FFFFFF"), ChangeTheme, "PRIEST");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("4"),	"FFF569"), ChangeTheme, "ROGUE");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("7"),	"0070DE"), ChangeTheme, "SHAMAN");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("9"),	"9482C9"), ChangeTheme, "WARLOCK");
+    s.themeDropdown:AddOption(tk:GetHexColoredString(GetClassInfo("1"),	"C79C6E"), ChangeTheme, "WARRIOR");
     
     s.themeDropdown:AddOption(L["Custom Colour"], function()
         local colors = {};

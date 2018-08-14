@@ -497,7 +497,9 @@ function afk:Toggle(show)
     end
     if (show) then
         tk.UIParent:Hide();
-        MoveViewLeftStart(0.01);
+		if (db.global.afk.rotateCamera) then
+			MoveViewLeftStart(0.01);
+		end
         if (not private.display) then
             private.display = private:CreateDisplay();
             if (db.global.afk.playerModel) then

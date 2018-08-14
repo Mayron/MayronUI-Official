@@ -1,4 +1,4 @@
-local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "enUS", true) 
+local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "enUS", true, true) 
 if not L then return end 
 --[[
 To enable a translation, you need to uncomment the responsible line.
@@ -57,12 +57,14 @@ L["Right Button"]					;
 L["Shift"]							;	-- Mod-Key!
 L["Ctrg"]							;	-- Mod-Key!
 L["Alt"]							;	-- Mod-Key!
+L["Set the border size."]			;
+L["The height of the edit box."]	;
 
 L["Chat Buttons with Modifier Key 1"]						;
 L["Chat Buttons with Modifier Key 2"]						;
-L["Set the border size.\n\nDefault is 1."]					;
+L["Set the vertical positioning of the edit box."]			;
+L["Set the spacing between the background and the border."]	;
 
-L["Set the spacing between the background and the border.\n\nDefault is 0."]					;
 L["Allow the use of modifier keys to swap chat buttons while in combat."]						;
 
 -- MUI Core
@@ -342,8 +344,13 @@ L["Never"]							= "";
 L["Always"]							= "";
 L["On Mouse-over"]					= "";
 L["Bar"]							= "";
+L["AFK Window"]						= "";
+L["Enable AFK Window"]				= "";
+L["Use the MUI AFK Window"]			= "";
+L["Rotate the Camera"]				= "";
+L["Show your character"]			= "";
 
-
+L["Displays a zoomed version of your character."]			= "";
 L["Uncheck to prevent MUI from changing the game font."]	= "";
 L["Config type '%s' unsupported!"]							= "";
 L["The UI requires reloading to apply changes."]			= "";
@@ -370,6 +377,7 @@ L["The height of the gradient effect."]						= "";
 L["Adjust the spacing between data text buttons."]			= "";
 L["The frame strata of the entire DataText bar."]			= "";
 
+L["While AFK the camera will slowly rotate arround your character."]							= "";
 L["Anchor the Objective Tracker to the action bar container on the right side of the screen."]	= "";
 L["Disable this to stop MUI from controlling the Objective Tracker."]							= "";
 L["Adjust the horizontal positioning of the Objective Tracker."]								= "";
