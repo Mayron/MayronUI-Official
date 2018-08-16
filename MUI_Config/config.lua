@@ -476,7 +476,7 @@ function config:init()
                     }
                 },
                 {   type = "loop",
-                    args = {"Artifact", "Reputation", "XP"},
+                    args = {"Artifact", "Azerite", "Reputation", "XP"},
                     func = function(_, name)
                         local key = name:lower().."Bar";
                         local child = {

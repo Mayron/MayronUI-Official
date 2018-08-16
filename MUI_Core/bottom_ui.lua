@@ -16,8 +16,9 @@ bui.Resources = {};
 bui.Resources.REPUTATION_BAR_ID = "Reputation";
 bui.Resources.EXPERIENCE_BAR_ID = "XP";
 bui.Resources.ARTIFACT_BAR_ID = "Artifact";
+bui.Resources.AZERITE_BAR_ID = "Azerite";
 
-bui.Resources.bar_names = {"Artifact", "Reputation", "XP"};
+bui.Resources.bar_names = {"Artifact", "Azerite", "Reputation", "XP"};
 local private = {};
 
 local ab = bui.ActionBar_Panel;
@@ -47,6 +48,12 @@ db:AddToDefaults("profile.bottomui", {
         show_text = false,
         font_size = 10,
     },
+	azeriteBar = {
+		enabled = true,
+        height = 8,
+        show_text = false,
+        font_size = 10,
+	},
     unit_panels = {
         enabled = true,
         control_SUF = true,
@@ -718,6 +725,45 @@ function private.ArtifactBar_ShowText()
     if (handler) then handler:Run(); end
 end
 
+function private.AzeriteBar_OnSetup(resourceBar, data)
+    data.blizzard_bar = AzeriteWatchBar;
+    data.statusbar.texture = data.statusbar:GetStatusBarTexture();
+    data.statusbar.texture:SetVertexColor(0.9, 0.8, 0.6, 1);
+
+    local handler = em:CreateEventHandler("AZERITE_ITEM_EXPERIENCE_CHANGED", function()
+		local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem(); 
+        local activeXP, totalXP = C_AzeriteItem.GetAzeriteItemXPInfo(azeriteItemLocation); -- tk.select(1, ...) not needed
+        
+        data.statusbar:SetMinMaxValues(0, totalXP);
+        data.statusbar:SetValue(activeXP);
+        if (data.statusbar.text) then
+			if activeXP > 0 and totalXP == 0 then totalXP = activeXP end
+            local percent = (activeXP / totalXP) * 100;
+            activeXP = tk:FormatNumberString(activeXP);
+            totalXP = tk:FormatNumberString(totalXP);
+            local text = tk.string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
+            data.statusbar.text:SetText(text);
+        end
+    end);
+    handler:SetKey("azerite_bar_update");
+
+    em:CreateEventHandler("UNIT_INVENTORY_CHANGED", function()
+        local equipped = C_AzeriteItem.HasActiveAzeriteItem();
+        if (not equipped and data.enabled) then
+            bui.Resources:DisableBar(data.id);
+            return;
+        elseif (equipped and not data.enabled) then
+            bui.Resources:EnableBar(data.id);
+        end
+        if (equipped) then handler:Run(); end
+    end):Run();
+end
+
+function private.AzeriteBar_ShowText()
+    local handler = em:FindHandlerByKey("AZERITE_ITEM_EXPERIENCE_CHANGED", "azerite_bar_update");
+    if (handler) then handler:Run(); end
+end
+
 function private.ReputationBar_OnSetup(resourceBar, data)
 
     data.statusbar:HookScript("OnEnter", function(self)
@@ -801,6 +847,8 @@ function ResourceBar:SetShown(data, value)
     local valid = true;
     if (data.id == bui.Resources.ARTIFACT_BAR_ID) then
         valid = HasArtifactEquipped();
+	elseif (data.id == bui.Resources.AZERITE_BAR_ID) then
+        valid = C_AzeriteItem.HasActiveAzeriteItem();
     elseif (data.id == bui.Resources.REPUTATION_BAR_ID) then
         valid = GetWatchedFactionInfo();
     elseif (data.id == bui.Resources.EXPERIENCE_BAR_ID) then
@@ -1127,6 +1175,22 @@ function bui:OnConfigUpdate(list, value)
             local bar = bui.Resources.bars[bui.Resources.ARTIFACT_BAR_ID];
             if (key == "enabled") then
                 bui.Resources:SetBarEnabled(value, bui.Resources.ARTIFACT_BAR_ID);
+            elseif (key == "height") then
+                bar:SetHeight(value);
+                self.Resources:UpdateContainer();
+            elseif (key == "show_text") then
+                bar:SetTextShown(value);
+            elseif (key == "font_size") then
+                local statusbar = ResourceBar.Static:GetData(bar).statusbar;
+                if (statusbar.text) then
+                    tk:SetFontSize(statusbar.text, value);
+                end
+            end
+		elseif (key == "azeriteBar") then
+            key = list:PopFront();
+            local bar = bui.Resources.bars[bui.Resources.AZERITE_BAR_ID];
+            if (key == "enabled") then
+                bui.Resources:SetBarEnabled(value, bui.Resources.AZERITE_BAR_ID);
             elseif (key == "height") then
                 bar:SetHeight(value);
                 self.Resources:UpdateContainer();
