@@ -728,21 +728,42 @@ end
 function private.AzeriteBar_OnSetup(resourceBar, data)
     data.blizzard_bar = AzeriteWatchBar;
     data.statusbar.texture = data.statusbar:GetStatusBarTexture();
-    data.statusbar.texture:SetVertexColor(ARTIFACT_BAR_COLOR:GetRGB(), 1); -- original from FrameXML/Constants.lua
+    data.statusbar.texture:SetVertexColor(ARTIFACT_BAR_COLOR:GetRGB(), 0.8); -- original from FrameXML/Constants.lua
 
+	data.statusbar:HookScript("OnEnter", function(self)
+        local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem(); 
+        local activeXP, totalXP = C_AzeriteItem.GetAzeriteItemXPInfo(azeriteItemLocation); -- tk.select(1, ...) not needed
+
+		if (totalXP > 0) then			
+			local percent = (activeXP / totalXP) * 100;
+			activeXP = tk:FormatNumberString(activeXP);
+			totalXP = tk:FormatNumberString(totalXP);
+			local text = tk.string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
+			
+			GameTooltip:SetOwner(self, "ANCHOR_TOP");
+			GameTooltip:AddLine(text, 1, 1, 1);
+			GameTooltip:Show();
+		end
+    end);
+	
+    data.statusbar:HookScript("OnLeave", function(self)
+        GameTooltip:Hide();
+    end);
+	
     local handler = em:CreateEventHandler("AZERITE_ITEM_EXPERIENCE_CHANGED", function()
 		local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem(); 
         local activeXP, totalXP = C_AzeriteItem.GetAzeriteItemXPInfo(azeriteItemLocation); -- tk.select(1, ...) not needed
         
         data.statusbar:SetMinMaxValues(0, totalXP);
         data.statusbar:SetValue(activeXP);
-        if (data.statusbar.text) then
+
+		if (data.statusbar.text) then
 			if activeXP > 0 and totalXP == 0 then totalXP = activeXP end
-            local percent = (activeXP / totalXP) * 100;
-            activeXP = tk:FormatNumberString(activeXP);
-            totalXP = tk:FormatNumberString(totalXP);
-            local text = tk.string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
-            data.statusbar.text:SetText(text);
+			local percent = (activeXP / totalXP) * 100;
+			activeXP = tk:FormatNumberString(activeXP);
+			totalXP = tk:FormatNumberString(totalXP);
+			local text = tk.string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
+			data.statusbar.text:SetText(text);
         end
     end);
     handler:SetKey("azerite_bar_update");
