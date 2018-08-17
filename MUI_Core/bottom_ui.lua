@@ -728,7 +728,7 @@ end
 function private.AzeriteBar_OnSetup(resourceBar, data)
     data.blizzard_bar = AzeriteWatchBar;
     data.statusbar.texture = data.statusbar:GetStatusBarTexture();
-    data.statusbar.texture:SetVertexColor(0.9, 0.8, 0.6, 1);
+    data.statusbar.texture:SetVertexColor(ARTIFACT_BAR_COLOR:GetRGB(), 1); -- original from FrameXML/Constants.lua
 
     local handler = em:CreateEventHandler("AZERITE_ITEM_EXPERIENCE_CHANGED", function()
 		local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem(); 
