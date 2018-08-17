@@ -109,7 +109,6 @@ L["Today's profit"]					= "Profit du jour";
 L["Money per character"]			= "Argent par personnage";
 
 -- afk
---[[
 L["Guild Chat"]						= "Discussion de guilde";
 L["Whispers"]						= "Chuchotement";
 
@@ -207,7 +206,7 @@ L["Setup Menu"]						= "Menu d'installation";
 L["VERSION"]						= "VERSION";
 
 
-L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"]	;
+--L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"]	= "";
 
 -- MUI TimerBar
 L["Only track your %s"]				= "Traquer uniquement vos %s";
@@ -255,6 +254,7 @@ L["Enter the Name of a %s to Track:"]						= "Entrer le nom du %s à traquer:";
 --L["Enabling this will dynamically generate the list of %s to track."]							= "";
 --L["The unit who is affected by the spell."]														= "";
 --L["The field's vertical growth direction:"]														= "";													;
+
 --[[
 -- MUI Config
 L["Reload UI"]						= "";
