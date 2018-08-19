@@ -49,7 +49,7 @@ db:AddToDefaults("profile.bottomui", {
         font_size = 10,
     },
 	azeriteBar = {
-		enabled = true,
+        enabled = true,
         height = 8,
         show_text = false,
         font_size = 10,
