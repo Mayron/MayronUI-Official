@@ -245,7 +245,6 @@ L["Text Options"]					= "Text Einstellungen";
 L["Time Remaining Text"]			= "Text: Verbleibende Zeit";
 L["Show"]							= "Anzeigen";
 L["Font Size"]						= "Schriftgröße";
-L["Default is 11"]					= "Standard ist 11";
 L["Font Type"]						= "Schriftart";
 L["Spell Name Text"]				= "Text: Zaubername";
 

@@ -1,7 +1,7 @@
 ## Interface: 80000
 ## Title: |cff00ccffMUI|r Core
 ## SavedVariables: MUIdb
-## Version: 5.3.0.1
+## Version: 5.3.2
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 
 ## libs:
@@ -9,7 +9,7 @@ libs/LibStub.lua
 libs/LibMayronDB.lua
 libs/LibSharedMedia-3.0/CallbackHandler-1.0.lua
 libs/LibSharedMedia-3.0/LibSharedMedia-3.0.lua
-libs/AceLocale-3.0/AceLocale-3.0.lua
+libs/AceLocale-3.0/AceLocale-3.0.lua 
 
 ## Localization
 locales/enUS.lua

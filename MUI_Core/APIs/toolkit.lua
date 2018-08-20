@@ -690,12 +690,14 @@ function tk:IsPlayerMaxLevel()
             return (lvl == 100);
         elseif (id == 6) then
             return (lvl == 110);
+		elseif (id == 7) then
+            return (lvl == 120);
         end
     end
 end
 
 -------------------------------
--- Colour Related Functions
+-- Color Related Functions
 -------------------------------
 function tk:GetHexColoredString(str, hex)
     return tk.string.format("|cff%s%s|r", hex:upper(), str);

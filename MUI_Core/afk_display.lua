@@ -44,6 +44,22 @@ function private:ResetDataText()
     f.right:SetText(tk.string.format(f.right.label, f.right.num));
 end
 
+function private:UpdateDisplay()
+	local specType
+	if (GetSpecialization()) then
+		specType = (tk.select(2, GetSpecializationInfo(GetSpecialization()))).." ";
+	else
+		specType = "";
+	end
+	local name = tk.string.format("%s - %s\nLevel %u, "..tk:GetClassColoredString(nil, specType..UnitClass("player")),
+		UnitPVPName("player"),
+		GetRealmName(),
+		UnitLevel("player")
+	);
+	self.display.name:SetText(name);
+	private:ResetDataText();
+end
+
 -- prevents cutting of models
 private.races = { -- lower = lower model
     Human = {
@@ -508,7 +524,7 @@ function afk:Toggle(show)
         end
         private.display:Show();
         PositionModel(private.display.modelFrame.model);
-        private:ResetDataText();
+        private:UpdateDisplay();
         private:StartTimer();
     else
         tk.UIParent:Show();
