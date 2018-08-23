@@ -1,0 +1,18 @@
+## Interface: 80000
+## Title: |cff00ccffMUI|r Setup
+## Dependencies: MUI_Core
+## LoadOnDemand: 1
+
+Setup.lua
+
+## imports:
+imports/AuraFrames.lua
+imports/Bartender4.lua
+imports/Bazooka.lua
+imports/Grid.lua
+imports/Masque.lua
+imports/MikScrollingBattleText.lua
+imports/Recount.lua
+imports/ShadowedUnitFrames.lua
+imports/SimplePowerBar.lua
+imports/TipTac.lua

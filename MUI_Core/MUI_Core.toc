@@ -1,0 +1,24 @@
+## Interface: 80000
+## Title: |cff00ccffMUI|r Core
+## SavedVariables: MUIdb
+## Version: 5.3.1
+## OptionalDeps: ShadowedUnitFrames, Bartender4
+
+## libs:
+Libs\LibStub.lua
+Libs\LibMayronDB-1.2.lua
+Libs\LibMayronObjects-2.3\LibMayronObjects.xml
+Libs\LibMayronEvents-1.0.lua
+Libs\LibMayronGUI-1.0\LibMayronGUI.xml
+Libs\LibSharedMedia-3.0\CallbackHandler-1.0.lua
+Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
+Libs\AceLocale-3.0\AceLocale-3.0.lua
+
+## Localization
+Locales\Locales.xml
+
+## Engine:
+Engine\Core.xml
+
+## Modules:
+Modules\Modules.xml
