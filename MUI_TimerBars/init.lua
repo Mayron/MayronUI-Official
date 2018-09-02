@@ -73,8 +73,12 @@ local bar_OnLeave = function(self)
     GameTooltip:Hide()
 end
 
-local function GetAuraIndexByName(auraName, unitName)
-    for i = 1, 100 do
+local function GetBuffIndexByName(auraName, unitName)
+if not auraName then return; end
+if (tk.type(auraName) == "number") then 
+	return GetBuffIndexBySpellId(auraName, unitName);
+end
+    for i = 1, 40 do
         local name = UnitBuff(unitName, i)
         if not name then return 0; end
         
@@ -85,6 +89,79 @@ local function GetAuraIndexByName(auraName, unitName)
 
     return 0;
 end
+
+local function GetBuffIndexBySpellId(spellId, unitName)
+if not spellId then return; end
+	for i = 1, 40 do
+        local spId = tk.select(10, UnitBuff(unitName, i));
+        if not spId then return 0; end
+        if spellId == spId then
+            return i;
+        end
+    end
+    return 0;
+end
+
+local function GetDebuffIndexByName(auraName, unitName)
+if not auraName then return; end
+if (tk.type(auraName) == "number") then 
+	return GetDebuffIndexBySpellId(auraName, unitName);
+end
+    for i = 1, 40 do
+        local name = UnitDebuff(unitName, i)
+        if not name then return 0; end
+        
+        if auraName:lower() == name:lower() then
+            return i;
+        end
+    end
+
+    return 0;
+end
+
+local function GetDebuffIndexBySpellId(spellId, unitName)
+if not spellId then return; end
+	for i = 1, 40 do
+        local spId = tk.select(10, UnitDebuff(unitName, i));
+        if not spId then return 0; end
+        if spellId == spId then
+            return i;
+        end
+    end
+    return 0;
+end
+
+--[[
+local function GetAuraIndexByName(auraName, unitName)
+	local name;
+	if (unitName == "Player") then
+		for i = 1, 40 do
+			name = UnitBuff(unitName, i)
+			if not name then return 0; end
+
+			if auraName:lower() == name:lower() then
+				return i;
+			end
+		end
+	elseif(unitName == "Target") then
+		for i = 1, 40 do
+			name = UnitBuff(unitName, i)
+			if not name then break; end
+			if auraName:lower() == name:lower() then
+				return i;
+			end
+		end
+		for i = 1, 40 do
+			name = UnitDebuff(unitName, i)
+			if not name then return 0; end
+			if auraName:lower() == name:lower() then
+				return i;
+			end
+		end
+	end
+	return 0;
+end
+]]
 
 TimerBars.bars = tk:CreateStack(
     function(self, sv)
@@ -236,21 +313,21 @@ function Field:Create(name)
     return Field[name];
 end
 
-function Field:AddBuff(data, buffName, buffIndex)
-    if (not (buffName and buffIndex)) then return; end
-    local duration, expires, caster, _, _, spellID = tk.select(5, UnitBuff(data.unit, buffIndex));
+function Field:AddBuff(data, buffIndex)
+    if (not (buffIndex) or buffIndex == 0) then return; end
+    local buffName, _, count, _, duration, expires, caster, _, _, spellID = UnitBuff(data.unit, buffIndex);
 
-    if ((data.track_all_buffs or data.buffs and data.buffs[buffName]) and caster and (expires > 0)) then
+    if ((data.track_all_buffs or data.buffs and data.buffs[spellID]) and caster and (expires > 0)) then
         if (not (data.only_player_buffs and caster ~= "player")) then
-            local bar = self:AddBar(buffName, spellID, expires, duration, "BUFF", buffIndex);-- 2018-07-22 CB: Added Index
+            local bar = self:AddBar(buffName, spellID, expires, duration, "BUFF", count);
             local c = data.buff_bar_color;
 
             bar.slider:SetStatusBarColor(c.r, c.g, c.b, c.a);
 
             if (data.track_all_buffs) then
-                if (tk.type(data.buffs[buffName]) ~= "number") then
-                    data.buffs[buffName] = spellID;
-                    data.sv.buffs[buffName] = spellID;                    
+                if (tk.type(data.buffs[spellID]) ~= "number") then
+                    data.buffs[spellID] = buffName;
+                    data.sv.buffs[spellID] = buffName;                    
                 end
 
                 local manager = tk.string.format("%s%s", data.name, "BuffsManager");
@@ -266,21 +343,22 @@ function Field:AddBuff(data, buffName, buffIndex)
     end
 end
 
-function Field:AddDebuff(data, debuffName, debuffIndex)
-    if (not (debuffName and debuffIndex)) then return; end
-    local duration, expires, caster, _, _, spellID = tk.select(5, UnitDebuff(data.unit, debuffIndex));
-
-    if ((data.track_all_debuffs or data.debuffs and data.debuffs[debuffName]) and expires and caster) then
+function Field:AddDebuff(data, debuffIndex)
+    if (not (debuffIndex) or debuffIndex == 0) then return; end
+    --local duration, expires, caster, _, _, spellID = tk.select(5, UnitDebuff(data.unit, debuffIndex));
+	local debuffName, _, count, _, duration, expires, caster, _, _, spellID = UnitDebuff(data.unit, debuffIndex);
+print("Count:"..count.." DebuffID: ".. spellID.. " duration: "..duration.." expires: "..expires);
+    if ((data.track_all_debuffs or data.debuffs and data.debuffs[spellID]) and expires and caster) then
         if (not (data.only_player_debuffs and caster ~= "player")) then
-            local bar = self:AddBar(debuffName, spellID, expires, duration, "DEBUFF");
+            local bar = self:AddBar(debuffName, spellID, expires, duration, "DEBUFF", count);
 
             local c = data.debuff_bar_color;
             bar.slider:SetStatusBarColor(c.r, c.g, c.b, c.a);
 
             if (data.track_all_debuffs) then
-                if (tk.type(data.debuffs[debuffName]) ~= "number") then
-                    data.debuffs[debuffName] = spellID;
-                    data.sv.debuffs[debuffName] = spellID;
+                if (tk.type(data.debuffs[spellID]) ~= "number") then
+                    data.debuffs[spellID] = debuffName;
+                    data.sv.debuffs[spellID] = debuffName;
                 end
 
                 local manager = tk.string.format("%s%s", data.name, "DebuffsManager");
@@ -337,53 +415,52 @@ function Field:Scan(data)
 
     if (not data.track_all_buffs) then        
         if (data.buffs) then
-            for auraName, bar in tk.pairs(data.active_bar_keys) do
-                if (bar.type == "BUFF" and not data.buffs[auraName]) then
+            for spellID, bar in tk.pairs(data.active_bar_keys) do
+                if (bar.type == "BUFF" and not data.buffs[spellID]) then
                     local id = tk:GetIndex(data.active_bars, bar);
                     self:RemoveBar(bar, id);
                 end
             end
 
-            for auraName, _ in tk.pairs(data.buffs) do
-                local auraIndex = GetAuraIndexByName(auraName, data.unit);
-                self:AddBuff(auraName, auraIndex);
+            for spellID, _ in tk.pairs(data.buffs) do
+                local auraIndex = GetBuffIndexBySpellId(spellID, data.unit);
+                self:AddBuff(auraIndex);
             end
         end        
     else
-        for auraName, bar in tk.pairs(data.active_bar_keys) do
-            local auraIndex = GetAuraIndexByName(auraName, data.unit);
-            if (bar.type == "BUFF" and not (tk.select(1, UnitBuff(data.unit, auraIndex)))) then
+        for spellID, bar in tk.pairs(data.active_bar_keys) do
+            local auraIndex = GetBuffIndexBySpellId(spellID, data.unit);
+            if (bar.type == "BUFF" and not (UnitBuff(data.unit, auraIndex))) then
                 local id = tk:GetIndex(data.active_bars, bar);
                 self:RemoveBar(bar, id);
             end
         end
 
-        for i = 1, 100 do
+        for i = 1, 40 do
             local auraName = UnitBuff(data.unit, i);
             if (not auraName) then break; end       
-
-            self:AddBuff(name, i);
+            self:AddBuff(i);
         end
     end
 
     if (not data.track_all_debuffs) then
         if (data.debuffs) then
 
-            for auraName, bar in tk.pairs(data.active_bar_keys) do
-                if (bar.type == "DEBUFF" and not data.debuffs[auraName]) then
+            for spellID, bar in tk.pairs(data.active_bar_keys) do
+                if (bar.type == "DEBUFF" and not data.debuffs[spellID]) then
                     local id = tk:GetIndex(data.active_bars, bar);
                     self:RemoveBar(bar, id);
                 end
             end
 
-            for auraName, _ in tk.pairs(data.debuffs) do
-                local auraIndex = GetAuraIndexByName(auraName, data.unit);
-                self:AddDebuff(auraName, auraIndex);
+            for spellID, _ in tk.pairs(data.debuffs) do
+                local auraIndex = GetDebuffIndexBySpellId(spellID, data.unit);
+                self:AddDebuff(auraIndex);
             end
         end
     else
-        for auraName, bar in tk.pairs(data.active_bar_keys) do
-            local auraIndex = GetAuraIndexByName(auraName, data.unit);
+        for spellID, bar in tk.pairs(data.active_bar_keys) do
+            local auraIndex = GetDebuffIndexBySpellId(spellID, data.unit);
 
             if (bar.type == "DEBUFF" and not (tk.select(1, UnitDebuff(data.unit, auraIndex)))) then
                 local id = tk:GetIndex(data.active_bars, bar);
@@ -391,11 +468,11 @@ function Field:Scan(data)
             end
         end
 
-        for i = 1, 100 do
+        for i = 1, 40 do
             local auraName = UnitDebuff(data.unit, i);
             if (not auraName) then break; end
 
-            self:AddDebuff(auraName, i);
+            self:AddDebuff(i);
         end
     end
 end
@@ -446,40 +523,54 @@ function Field:OnEvent(data, frame, event)
     if (event == "COMBAT_LOG_EVENT_UNFILTERED") then
 
         local payload = {CombatLogGetCurrentEventInfo()};
-        local _, event, _, _, _, _, _, destGUID = unpack(payload);
-
+        local _, event, _, srcGUID, srcName, _, _, destGUID, destName = unpack(payload);
+		
         if (event == "SPELL_AURA_APPLIED" or event == "SPELL_AURA_REFRESH" or event == "SPELL_CAST_SUCCESS") then
-            local auraName, _, spellType = tk.select(13, unpack(payload)); -- spellType == "BUFF"
-            local auraIndex = GetAuraIndexByName(auraName, data.unit);
-
-            if (event == "SPELL_CAST_SUCCESS") then
-
-                if (UnitBuff(data.unit, auraIndex)) then
-                    spellType = "BUFF";
-
-                elseif (UnitDebuff(data.unit, auraIndex)) then
-                    spellType = "DEBUFF";
-                end
-            end
-
-            if (not ((destGUID == "" and (data.unit == "Player")) or
-                (UnitExists(data.unit) and UnitGUID(data.unit) == destGUID))) then                     
-                return; 
-            end
+            local spellId, auraName, _, spellType = tk.select(12, unpack(payload));
+            
+			--local auraIndex = GetAuraIndexByName(auraName, data.unit);
+			--[[
+			if (srcName == "Gargnash" and data.unit == "Target") then
+				print(auraName, spellId, auraIndex);
+			end 
+			]]
 
             if (spellType == "BUFF") then
-                self:AddBuff(auraName, auraIndex);
-
+				local buffIndex = GetBuffIndexBySpellId(spellId, data.unit);
+                self:AddBuff(buffIndex);
             elseif (spellType == "DEBUFF") then
-                self:AddDebuff(auraName, auraIndex);
-
-            end
+				local debuffIndex = GetDebuffIndexBySpellId(spellId, data.unit);
+                self:AddDebuff(debuffIndex);
+            elseif not (spellType) then
+				local buffIndex = GetBuffIndexByName(auraName, data.unit);
+				local debuffIndex = GetDebuffIndexByName(auraName, data.unit);
+				if (buffIndex > 0) then
+					self:AddBuff(buffIndex);
+				elseif (debuffIndex > 0) then
+					self:AddDebuff(debuffIndex);
+				end
+			end
+		elseif (event == "SPELL_AURA_APPLIED_DOSE") then
+			-- Like agonie stacks
+			local spellId, auraName, _, spellType = tk.select(12, unpack(payload));
+			if (spellType == "BUFF") then
+				local buffIndex = GetBuffIndexBySpellId(spellId, data.unit);
+                self:AddBuff(buffIndex);
+            elseif (spellType == "DEBUFF") then
+				local debuffIndex = GetDebuffIndexBySpellId(spellId, data.unit);
+                self:AddDebuff(debuffIndex);
+			end
         elseif (event == "SPELL_AURA_REMOVED") then
             if (not UnitExists(data.unit)) then return; end
-            local auraName = tk.select(13, unpack(payload)); -- spellType == "BUFF"
-            local bar = data.active_bar_keys[auraName];
-            local auraIndex = GetAuraIndexByName(auraName, data.unit);
-            local auraInfo = UnitAura(data.unit, auraIndex);
+            local spellId, auraName, _, spellType = tk.select(12, unpack(payload));
+            local bar = data.active_bar_keys[spellId];
+			if (spellType == "BUFF") then
+				local buffIndex = GetBuffIndexBySpellId(spellId, data.unit);
+				local auraInfo = UnitBuff(data.unit, buffIndex);
+			elseif (spellType == "DEBUFF") then
+				local debuffIndex = GetDebuffIndexBySpellId(spellId, data.unit);
+				local auraInfo = UnitDebuff(data.unit, debuffIndex);
+			end
 
             if (bar and not auraInfo) then
                 local id = tk:GetIndex(data.active_bars, bar);
@@ -498,21 +589,25 @@ function Field:OnEvent(data, frame, event)
     end
 end
 
-function Field:AddBar(data, name, spellID, expires, duration, buffType, buffIndex) -- 2018-07-22 CB: Added Index
-    duration = tk.math.floor(duration + 0.5);
-    local bar = data.active_bar_keys[name] or TimerBars.bars:Pop(data.sv);
+function Field:AddBar(data, name, spellID, expires, duration, buffType, count)
+    -- duration = tk.math.floor(duration + 0.5);
+    local bar = data.active_bar_keys[spellID] or TimerBars.bars:Pop(data.sv);
     bar.type = buffType;
 
-    if (not data.active_bar_keys[name]) then
-        data.active_bar_keys[name] = bar;
+    if (not data.active_bar_keys[spellID]) then
+        data.active_bar_keys[spellID] = bar;
         data.active_bars[#data.active_bars + 1] = bar;
 
-        if (not data.total_bars[name..buffType]) then
-            data.total_bars[name..buffType] = bar;
+        if (not data.total_bars[spellID..buffType]) then
+            data.total_bars[spellID..buffType] = bar;
         end
     end
-
-    bar.name:SetText(name);
+	
+	if (count and count > 0) then
+		bar.name:SetText(count.."x "..name);
+	else
+		bar.name:SetText(name);
+	end
     bar.duration:SetText(duration);
     bar.icon:SetTexture(GetSpellTexture(spellID));
     bar.icon:SetTexCoord(0.1, 0.92, 0.08, 0.92);
@@ -520,16 +615,16 @@ function Field:AddBar(data, name, spellID, expires, duration, buffType, buffInde
     bar.slider:SetValue(duration);
     bar.spellID = spellID;
     bar.expires = expires;
-	bar.buffIndex = buffIndex; -- 2018-07-22 CB: Added Index
+	bar.count = count;
     self:PositionBars();
 
     return bar;
 end
 
 function Field:RemoveBar(data, bar, id)
-    id = id or tk:GetIndex(data.active_bars, bar);
+    id = id or tk:GetIndex(data.active_bars, bar); -- ???
     tk.table.remove(data.active_bars, id);
-    data.active_bar_keys[bar.name:GetText()] = nil;
+    data.active_bar_keys[bar.spellID] = nil;
     bar:ClearAllPoints();
     bar:Hide();
     TimerBars.bars:Push(bar);
