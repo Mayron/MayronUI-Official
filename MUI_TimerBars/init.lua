@@ -347,7 +347,7 @@ function Field:AddDebuff(data, debuffIndex)
     if (not (debuffIndex) or debuffIndex == 0) then return; end
     --local duration, expires, caster, _, _, spellID = tk.select(5, UnitDebuff(data.unit, debuffIndex));
 	local debuffName, _, count, _, duration, expires, caster, _, _, spellID = UnitDebuff(data.unit, debuffIndex);
-print("Count:"..count.." DebuffID: ".. spellID.. " duration: "..duration.." expires: "..expires);
+-- print("Count:"..count.." DebuffID: ".. spellID.. " duration: "..duration.." expires: "..expires);
     if ((data.track_all_debuffs or data.debuffs and data.debuffs[spellID]) and expires and caster) then
         if (not (data.only_player_debuffs and caster ~= "player")) then
             local bar = self:AddBar(debuffName, spellID, expires, duration, "DEBUFF", count);
@@ -492,7 +492,8 @@ function TimerBars:RefreshFields()
 end
 
 function Field:OnUpdate(data)
-    for _, bar in tk.ipairs(data.active_bars) do
+	local tmp_bars = data.active_bars;
+    for _, bar in tk.ipairs(tmp_bars) do
         local duration = bar.expires - GetTime();
         duration = (duration > 0) and duration or 0;
         bar.slider:SetValue(duration);
