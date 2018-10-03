@@ -604,17 +604,17 @@ function config:init()
                                     return current_value or "disabled";
                                 end,
                                 options = {
-                                    L["Combat_timer"],
-                                    L["Durability"],
-                                    L["Friends"],
-                                    L["Guild"],
-                                    L["Performance"],
-                                    L["Memory"],
-                                    L["Money"],
-                                    L["Bags"],
-                                    L["Spec"],
-                                    L["Disabled"],
-                                    L["Blank"]
+                                    "combat_timer",
+                                    "durability",
+                                    "friends",
+                                    "guild",
+                                    "performance",
+                                    "memory",
+                                    "money",
+                                    "bags",
+                                    "spec",
+                                    "disabled",
+                                    "blank"
                                 }
                             }
                         };

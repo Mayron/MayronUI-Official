@@ -873,6 +873,10 @@ items.money = {};
 items.money.label = "|cffffffff%s|r";
 
 function items.money:GetCurrency(value, color, btn_label)
+	if (not value) then
+		-- Value is not set! Failsave to 0
+		value = 0;
+	end
     local text = "";  
     local gold = tk.math.floor(tk.math.abs(value / 10000));
     local silver = tk.math.floor(tk.math.abs((value / 100) % 100));
