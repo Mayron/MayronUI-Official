@@ -1,12 +1,12 @@
--- Setup Namespaces ----------------------
+local addOnName, namespace = ...;
 
-local addOnName, Core = ...;
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
-local obj = Core.Objects;
+-- Setup Namespace ----------------------
+local em = namespace.EventManager;
+local tk = namespace.Toolkit;
+local db = namespace.Database;
+local gui = namespace.GUIBuilder;
+local obj = namespace.Objects;
+local L = namespace.Locale;
 
 -- Register and Import Modules -----------
 
@@ -84,25 +84,6 @@ local function ToggleBartenderBar(btBar, show, bartenderControl)
     end
 end
 
-local FadeBarsIn_Counter = 0;
-
-local function FadeBarsIn(bartenderControl)
-    if (not (tk.IsAddOnLoaded("Bartender4") and bartenderControl)) then 
-        return;
-     end
-
-     FadeBarsIn_Counter = FadeBarsIn_Counter + 1;
-
-    if (FadeBarsIn_Counter > 6) then
-        ToggleBartenderBar(ActionBarBTBar3, true, bartenderControl);
-        ToggleBartenderBar(ActionBarBTBar4, true, bartenderControl);
-        tk.UIFrameFadeIn(ActionBarBTBar3, 0.3, 0, 1);
-        tk.UIFrameFadeIn(ActionBarBTBar4, 0.3, 0, 1);
-    else
-        tk.C_Timer.After(0.02, FadeBarsIn);
-    end
-end
-
 -- ActionBarPanel Module ----------------- 
 
 ActionBarPanelModule:OnInitialize(function(self, data, buiContainer, subModules)
@@ -144,6 +125,18 @@ ActionBarPanelModule:OnEnable(function(self, data)
     data.slideController:SetMinHeight(data.sv.retractHeight);
     data.slideController:SetMaxHeight(data.sv.expandHeight);
     data.slideController:SetStepValue(data.sv.animateSpeed);
+
+    data.slideController:OnStartExpand(function()
+        ToggleBartenderBar(data.BTBar3, true, data.bartenderControl);
+        ToggleBartenderBar(data.BTBar4, true, data.bartenderControl);
+        tk.UIFrameFadeIn(data.BTBar3, 0.3, 0, 1);
+        tk.UIFrameFadeIn(data.BTBar4, 0.3, 0, 1);
+    end);
+
+    data.slideController:OnStartRetract(function()
+        tk.UIFrameFadeOut(data.BTBar3, 0.1, 1, 0);
+        tk.UIFrameFadeOut(data.BTBar4, 0.1, 1, 0);
+    end);
 
     data.slideController:OnEndRetract(function()
         ToggleBartenderBar(data.BTBar3, false, data.bartenderControl);
@@ -213,23 +206,15 @@ ActionBarPanelModule:OnEnable(function(self, data)
 
         tk.PlaySound(tk.Constants.CLICK);
 
-        if (data.sv.expanded) then
+        local expanded = data.sv.expanded;
+
+        if (expanded) then
             data.slideController:Start(data.slideController.FORCE_RETRACT);
-
-            if (tk.IsAddOnLoaded("Bartender4") and data.bartenderControl) then
-                ToggleBartenderBar(data.BTBar3, true, data.bartenderControl);
-                ToggleBartenderBar(data.BTBar4, true, data.bartenderControl);
-
-                tk.UIFrameFadeOut(data.BTBar3, 0.1, 1, 0);
-                tk.UIFrameFadeOut(data.BTBar4, 0.1, 1, 0);
-            end
         else
-            FadeBarsIn_Counter = 0;
-            FadeBarsIn();
             data.slideController:Start(data.slideController.FORCE_EXPAND);
         end
 
-        data.sv.expanded = not data.sv.expanded;
+        data.sv.expanded = not expanded;
     end);
 
     group:SetScript("OnPlay", function()
@@ -284,8 +269,13 @@ function ActionBarPanel:PositionBartenderBars(data)
     end
 
     if (tk.IsAddOnLoaded("Bartender4") and data.bartenderControl) then
-        local height = data.ResourceBars:GetHeight() +
-                ((data.DataText:IsShown() and data.DataText:GetHeight()) or 0) - 3;
+        local height = data.ResourceBars:GetHeight() - 3;
+        local dataTextModule = MayronUI:ImportModule("DataText");        
+
+        if (dataTextModule and dataTextModule:IsShown()) then
+            local bar = dataTextModule:GetFrame();
+            height = height + ((bar and bar:GetHeight()) or 0);
+        end                
 
         data.BTBar1.config.position.y = 39 + height;
         data.BTBar2.config.position.y = 39 + height;

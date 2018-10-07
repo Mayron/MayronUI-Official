@@ -51,6 +51,15 @@ function SlideController:Start(data, forceState)
         data.frame.ScrollFrame.animating = true;
     end
 
+    if (self:IsExpanded() and data.onStartRetract) then
+        data.onStartRetract(self, data.frame);
+
+    elseif (self:IsRetracted() and data.onStartExpand) then
+        if (data.onStartExpand) then
+            data.onStartExpand(self, data.frame);
+        end
+    end
+
     loop();
 end
 
@@ -102,10 +111,18 @@ function SlideController:SetMinHeight(data, minHeight)
     data.minHeight = math.floor(minHeight + 0.5);
 end
 
-function SlideController:OnEndRetract(data, func)
-    data.onEndRetract = func;
+function SlideController:OnStartExpand(data, func)
+    data.onStartExpand = func;
 end
 
 function SlideController:OnEndExpand(data, func)
     data.onEndExpand = func;
+end
+
+function SlideController:OnStartRetract(data, func)
+    data.onStartRetract = func;
+end
+
+function SlideController:OnEndRetract(data, func)
+    data.onEndRetract = func;
 end

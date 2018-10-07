@@ -45,8 +45,18 @@ end
 CurrencyModule:OnInitialize(function(self, data) 
     data.sv = db.profile.datatext.currency;
 
+    local coloredKey = tk:GetClassColoredText(nil, tk:GetPlayerKey());
+    
+    -- saves info on the currency that each logged in character has
+    if (not db:ParsePathValue("global.datatext.currency.characters")) then
+        db:SetPathValue("global.datatext.currency.characters", {});
+    end
+    
+	-- store character's money to be seen by other characters
+    db.global.datatext.money.characters[coloredKey] = GetMoney();
+
     if (data.sv.enabled) then
-        DataText:RegisterDataItem(self, data.sv.displayOrder);
+        --DataText:RegisterDataItem(self);
     end
 end);
 

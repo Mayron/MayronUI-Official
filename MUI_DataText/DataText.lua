@@ -1,23 +1,14 @@
 -- Setup namespaces ------------------
-local addOnName, Core = ...;
-
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local obj = Core.Objects;
-local L = Core.Locale;
-
+local addOnName, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local MAX_DATA_ITEMS = 10;
 
-local Lib = LibStub:GetLibrary("LibMayronGUI");
-local WidgetsPackage = Lib.WidgetsPackage;
-local SlideController = WidgetsPackage:Get("SlideController");
+-- Register and Import ---------
 
--- Register and Import Modules ---------
+local Engine = obj:Import("MayronUI.Engine");
+local SlideController = obj:Import("MayronUI.Widgets.SlideController");
 
-local MUICorePackage = Core.Objects:Import(addOnName);
-local DataTextModule, DataText = MayronUI:RegisterModule("BottomUI_DataText", true);
+local dataTextModule, DataTextClass = MayronUI:RegisterModule("DataText");
 local Container = MayronUI:ImportModule("BottomUI_Container");
 
 -- Load Database Defaults --------------
@@ -35,31 +26,34 @@ db:AddToDefaults("profile.datatext", {
 		maxHeight = 250,
 		width = 200,
 		itemHeight = 26 -- the height of each list item in the popup menu
-	}
+    }
 });
 
 -- Local Functions ---------------------
 
-local BlankDataItem = {};
+-- local BlankDataItem = {};
 
-function BlankDataItem:Enable()
-    self.btn:SetText("");
-    self.showMenu = nil;
-end
+-- function BlankDataItem:Enable()
+--     self.btn:SetText("");
+--     self.showMenu = nil;
+-- end
 
 -- DataText Module -------------------
 
-DataTextModule:OnInitialize(function(self, data, buiContainer, subModules, a)
-    data.sv = db.profile.datatext;
-    data.buiContainer = buiContainer;
-    data.ResourceBars = subModules.ResourceBars;
+dataTextModule:OnInitialize(function(self, data)
+    data.sv = db.profile.datatext; -- database saved variables table
+    data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
+    data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
+    data.lastButtonClicked = ""; -- last data text button clicked on
+    data.DataModules = {}; -- holds all data text modules
 
     if (data.sv.enabled) then 
         self:SetEnabled(true);
     end    
 end);
 
-DataTextModule:OnEnable(function(self, data)
+dataTextModule:OnEnable(function(self, data)
+    -- the main bar containing all data text buttons
     data.bar = tk:PopFrame("Frame", data.buiContainer);
     data.bar:SetHeight(data.sv.height);
     data.bar:SetPoint("BOTTOMLEFT");
@@ -67,21 +61,30 @@ DataTextModule:OnEnable(function(self, data)
     data.bar:SetFrameStrata(data.sv.frameStrata);
     data.bar:SetFrameLevel(data.sv.frameLevel);
 
+    data.resourceBars:SetPoint("BOTTOMLEFT", data.bar, "TOPLEFT", 0, -1);
+    data.resourceBars:SetPoint("BOTTOMRIGHT", data.bar, "TOPRIGHT", 0, -1);
+
+    local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
+    actionBarPanelModule:PositionBartenderBars(data);
+
     tk:SetBackground(data.bar, 0, 0, 0);
 
-	local coloredKey = tk:GetClassColoredText(nil, tk:GetPlayerKey());
-	
-    if (not db:ParsePathValue("global.datatext.money.characters")) then
-        db:SetPathValue("global.datatext.money.characters", {});
-    end
-    
-	-- store character's money to be seen by other characters
-    db.global.datatext.money.characters[coloredKey] = GetMoney();
-
     -- create the popup menu (displayed when a data item button is clicked)
+    -- each data text module has its own frame to be used as the scroll child
     data.popup = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.buiContainer, "MUI_DataTextPopupMenu");
 	data.popup:SetWidth(data.sv.popup.width);
     data.popup:SetFrameStrata("DIALOG");
+    data.popup:EnableMouse(true);
+    data.popup:Hide();
+
+    -- controls the Esc key behaviour to close the popup (must use global name)
+    tk.table.insert(UISpecialFrames, "MUI_DataTextPopupMenu");
+
+    if (data.sv.popup.hideInCombat) then	
+        em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
+            tk._G["MUI_DataTextPopupMenu"]:Hide();
+        end);		
+    end
 	
     data.popup.ScrollBar:SetPoint("TOPLEFT", data.popup, "TOPRIGHT", -6, 1);
     data.popup.ScrollBar:SetPoint("BOTTOMRIGHT", data.popup, "BOTTOMRIGHT", -1, 1);
@@ -91,40 +94,24 @@ DataTextModule:OnEnable(function(self, data)
     data.popup.bg:SetPoint("BOTTOMRIGHT", 0, -2);
     
     data.popup.bg:SetGridColor(0.4, 0.4, 0.4, 1);
-    data.popup.bg:SetFrameLevel(1);
-
-    data.popup:EnableMouse(true);
-    data.popup.anchor = "";
-    data.popup.lastButton = "";
-    data.popup:Hide();
-
+    data.popup.bg:SetFrameLevel(1);   
+    
     data.popup:SetScript("OnHide", function()
 		-- when popup is closed by user
         if (data.dropdowns) then
 		-- popup menu content has dropdown menu's
-            for _, dropdown in tk.ipairs(data.dropdowns) do
-			
+            for _, dropdown in tk.ipairs(data.dropdowns) do			
 				--TODO: fold them all
                 dropdown:GetFrame().menu:Hide(); 
             end
         end
     end);
 
-	-- provides more intelligent 
+	-- provides more intelligent scrolling (+ controls visibility of scrollbar)
     data.slideController = SlideController(data.popup);
-	
-	-- controls the Esc key behaviour to close the popup (must use global name)
-    tk.table.insert(UISpecialFrames, "MUI_DataTextPopupMenu");
-
-    if (data.sv.popup.hideInCombat) then	
-		-- TODO
-        em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-			tk._G["MUI_DataTextPopupMenu"]:Hide();
-        end);		
-    end
 end);
 
-DataTextModule:OnConfigUpdate(function(self, data, list, value)
+dataTextModule:OnConfigUpdate(function(self, data, list, value)
     local key = list:PopFront();
 
     if (key == "profile" and list:PopFront() == "datatext") then
@@ -196,17 +183,15 @@ DataTextModule:OnConfigUpdate(function(self, data, list, value)
     end
 end);
 
--- DataText Object -------------------
+-- DataTextClass -------------------
 
--- it's the parent name (might not work)
--- MUICorePackage:DefineParams("Module", "number");
-function DataText:RegisterDataItem(data, dataModule, displayOrder)
-    local dataModuleName = dataModule:GetModuleName();
-    data.DataModules = data.DataModules or {};
-    data.DataModules[dataModuleName] = dataModule;    
+Engine:DefineParams("IdataTextModule", "number");
+function DataTextClass:RegisterDataModule(data, dataModule)
+    local dataModuleName = dataModule:GetObjectType(); -- get's name of object/module
+    data.DataModules[dataModuleName] = dataModule;
     
-    local btn = tk:PopFrame("Button", data.bar);
-    local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
+    local btn = dataModule.Button;
+    btn:SetParent(data.bar);
 
     btn:SetNormalTexture(tk.Constants.MEDIA.."mui_bar");
     btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
@@ -215,28 +200,29 @@ function DataText:RegisterDataItem(data, dataModule, displayOrder)
     btn:GetHighlightTexture():SetVertexColor(0.08, 0.08, 0.08);
 
     btn:SetNormalFontObject("MUI_FontNormal");
-    btn:SetText((dataModuleName == "blank" and " ") or dataModuleName);
+    btn:SetText(dataModuleName);
+
+    local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
     btn:GetFontString():SetFont(font,  data.sv.fontSize);
 
     btn:SetScript("OnClick", function(_, ...)
-        self:ClickButton(dataModule, btnClicked, ...);
+        self:ClickModuleButton(dataModule, btn, ...);
     end);
 
-    btn:SetID(displayOrder);
-    dataModule:SetEnabled(true, btn);
-    self:PositionDataItems();                
+    self:PositionDataItems();
+    return btn;            
 end
 
-function DataText:PositionDataItems(data)
+function DataTextClass:PositionDataItems(data)
     local flatOrdering = {};
     local ordering = {};   
 
     for dataModuleName, dataModule in pairs(data.DataModules) do
         if (dataModule:IsEnabled()) then
 
-            local btn = dataModule:GetButton();       
-            local displayOrder = btn:GetID();
-            btn.module = dataModule; -- temporarily
+            local btn = dataModule.Button;       
+            local displayOrder = dataModule.ButtonID;
+            btn._module = dataModule; -- temporarily
 
             for i = displayOrder, 100 do
                 if (not ordering[i]) then
@@ -253,9 +239,9 @@ function DataText:PositionDataItems(data)
             local selectedDisplayOrder = #flatOrdering + 1;
             flatOrdering[selectedDisplayOrder] = btn;
 
-            btn:SetID(selectedDisplayOrder);                  
-            btn.module:Update(data);
-            btn.module = nil; -- remove temporary module ref
+            btn.ButtonID = selectedDisplayOrder;                  
+            btn._module:Update(data);
+            btn._module = nil; -- remove temporary _module ref
         end
     end
 
@@ -286,29 +272,30 @@ function DataText:PositionDataItems(data)
     data.popup:Hide();
 end
 
-MUICorePackage:DefineParams("Frame");
-MUICorePackage:DefineReturns("Frame");
-function DataText:ChangeMenuScrollChild(data, scrollChild)
-    local oldScrollChild = data.popup:GetScrollChild();
+Engine:DefineParams("Frame");
+Engine:DefineReturns("Frame");
+-- Attach current dataTextModule scroll child onto shared popup and hide previous scroll child
+function DataTextClass:ChangeMenuContent(data, content)
+    local oldContent = data.popup:GetScrollChild();
 
-    if (oldScrollChild) then 
-        oldScrollChild:Hide();
+    if (oldContent) then 
+        oldContent:Hide();
     end
     
-    if (not scrollChild) then
-        scrollChild = tk:PopFrame("Frame", data.popup);
-        scrollChild:SetSize(data.popup:GetWidth(), 10);
+    if (not content) then
+        content = tk:PopFrame("Frame", data.popup);
+        content:SetSize(data.popup:GetWidth(), 10);
     end
 
     -- attach scroll child to menu frame container
-    data.popup:SetScrollChild(scrollChild);
-    scrollChild:Show();
+    data.popup:SetScrollChild(content);
+    content:Show();
 
-    return scrollChild;
+    return content;
 end
 
-MUICorePackage:DefineParams("table");
-function DataText:ClearLabels(data, labels)
+Engine:DefineParams("table");
+function DataTextClass:ClearLabels(data, labels)
     if (not labels) then 
         return; 
     end
@@ -323,11 +310,11 @@ function DataText:ClearLabels(data, labels)
     end
 end
 
-MUICorePackage:DefineParams("Frame", "number", "table");
-MUICorePackage:DefineReturns("number");
+Engine:DefineParams("Frame", "number", "table");
+Engine:DefineReturns("number");
 -- returned the total height of all labels
 -- total height is used to controll the dynamic scrollbar
-function DataText:PositionLabels(data, numLabelsShown, labels)
+function DataTextClass:PositionLabels(data, numLabelsShown, labels)
     if (totalLabelsShown == 0) then 
         return 0; 
     end
@@ -364,78 +351,91 @@ function DataText:PositionLabels(data, numLabelsShown, labels)
     return totalHeight;
 end
 
-MUICorePackage:DefineParams("Button", "Button");
-function DataText:ClickButton(data, dataModule, btnClicked, ...)
-    local btn = dataModule:GetButton();
-
+Engine:DefineParams("Button", "Button");
+function DataTextClass:ClickModuleButton(data, dataModule, ...)
     GameTooltip:Hide();
-    dataModule:Update(data);
 
-    data.content = self:ChangeMenuScrollChild(data.content);
+    -- update last button ID that was clicked
+    data.lastButtonID = dataModule.ButtonID;
+
+    dataModule:Update(data);
     data.slideController:Stop();
 
-    if (data.popup:IsShown() and data.lastID == btn:GetID() and data.lastButtonClicked == btnClicked) then
-        if (dataModule:GetModuleName() == "DataText_Specialization") then
+    if (data.lastButtonID == dataModule.ButtonID) then
+        if (data.popup:IsShown()) then
+            -- clicked on same dataTextModule button so close the popup!
             gui:FoldAllDropDownMenus();
+            data.slideController:Start();
+            tk.UIFrameFadeOut(data.popup, 0.3, data.popup:GetAlpha(), 0);
+            tk.PlaySound(tk.Constants.CLICK);
         end
 
-        data.slideController:Start();
-        tk.UIFrameFadeOut(data.popup, 0.3, data.popup:GetAlpha(), 0);
-		tk.PlaySound(tk.Constants.CLICK);
         return;
     end
 
+    -- a different dataTextModule button was clicked on!
+    -- reset popup...
     data.popup:Hide();
     data.popup:ClearAllPoints();
 
-    if (not dataModule:HasMenu()) then
-        dataModule:Click(data, btnClicked, ...);
+    if (not dataModule.HasMenu) then
+        -- execute dataTextModule specific click logic
+        dataModule:Click(...);
         return;
     end
 
-    self:ClearLabels(data.content.labels);
+    -- update content of popup based on which dataTextModule button was clicked
+    local content = dataModule.MenuContent;
+    data.content = self:ChangeMenuContent(content);
+    self:ClearLabels(datModule.MenuLabels);    
+    
+    -- execute dataTextModule specific click logic
+    dataModule:Click(...);
 
-    local numLabelsShown = dataModule:Click(data.content, btnClicked, ...);
+    -- this might have been updated by dataModule:Click(...)
+    local labelsShown = dataModule.TotalLabelsShown;
+
+    -- calculate new height based on number of labels to show
     local totalHeight = self:PositionLabels(numLabelsShown) or data.sv.popup.maxHeight;
     totalHeight = (totalHeight < data.sv.popup.maxHeight) and totalHeight or data.sv.popup.maxHeight;  
 
-    local offset = data.ResourceBars:GetHeight();
+    -- move popup menu higher if there are resource bars displayed
+    local offset = data.resourceBars:GetHeight();
 
-    if (btn:GetID() == #data.OrderedButtons) then
+    -- update positioning of popup menu based on dataTextModule button's location
+    if (dataModule.ButtonID == #data.OrderedButtons) then
+        -- if button was the last button displayed on the data-text bar
         data.popup:SetPoint("BOTTOMRIGHT", btn, "TOPRIGHT", -1, offset + 2);
-
-    elseif (btn:GetID() == 1) then
+    elseif (dataModule.ButtonID == 1) then
+        -- if button was the first button displayed on the data-text bar
         data.popup:SetPoint("BOTTOMLEFT", btn, "TOPLEFT", 1, offset + 2);
-
     else
+        -- if button was not the first or last button displayed on the data-text bar
         data.popup:SetPoint("BOTTOM", btn, "TOP", 0, offset + 2);
     end
 
-    data.lastID = btn:GetID();
-    data.lastButtonClicked = btnClicked;
-
+    -- begin expanding the popup menu
     data.slideController:SetMaxHeight(totalHeight);
     data.slideController:Start();
-
     tk.UIFrameFadeIn(data.menu, 0.3, 0, 1);
     tk.PlaySound(tk.Constants.CLICK);
 end
 
-MUICorePackage:DefineParams("string");
-function DataText:ForceUpdate(data, dataModuleName)    
+Engine:DefineParams("string");
+function DataTextClass:ForceUpdate(data, dataModuleName)    
     data.DataModules[dataModuleName]:Update();
 end
 
-MUICorePackage:DefineReturns("boolean");
-function DataText:IsShown(data)    
-    return data.bar:IsShown();
+Engine:DefineReturns("boolean");
+function DataTextClass:IsShown(data)    
+    return (data.bar and data.bar:IsShown()) or false;
 end
 
-MUICorePackage:DefineReturns("Frame");
-function DataText:GetFrame(data)    
+Engine:DefineReturns("Frame");
+function DataTextClass:GetFrame(data)    
     return data.bar;
 end
 
-function DataText:GetMenuWidth(data)
+function DataTextClass:GetMenuWidth(data)
     return data.sv.popup.width;
 end

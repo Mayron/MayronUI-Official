@@ -1,0 +1,18 @@
+## Interface: 80000
+## Title: |cff00ccffMUI|r DataText
+## Dependencies: MUI_Core
+## OptionalDeps: MUI_Config
+
+DataText.lua
+IDataTextModule.lua
+
+Modules\CombatTimer.lua
+
+## Modules\Currency.lua
+## Modules\Durability.lua
+## Modules\Friends.lua
+## Modules\Guild.lua
+## Modules\Inventory.lua
+## Modules\Memory.lua
+## Modules\Performance.lua
+## Modules\Specialization.lua

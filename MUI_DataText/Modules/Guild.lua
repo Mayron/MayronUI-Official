@@ -77,7 +77,7 @@ GuildModule:OnInitialize(function(self, data)
     data.sv = db.profile.datatext.guild;
 
     if (data.sv.enabled) then
-        DataText:RegisterDataItem(self, data.sv.displayOrder);
+        --DataText:RegisterDataItem(self);
     end
 end);
 

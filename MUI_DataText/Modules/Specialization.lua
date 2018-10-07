@@ -85,7 +85,7 @@ SpecializationModule:OnInitialize(function(self, data)
     data.sv = db.profile.datatext.specialization;
 
     if (data.sv.enabled) then
-        DataText:RegisterDataItem(self,data.sv.displayOrder);
+        --DataText:RegisterDataItem(self);
     end
 end);
 

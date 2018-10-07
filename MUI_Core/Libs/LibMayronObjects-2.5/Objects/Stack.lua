@@ -1,8 +1,7 @@
 local Lib = LibStub:GetLibrary("LibMayronObjects");
-local SystemPackage = Lib:Import("Framework.System");
-local Stack = SystemPackage:CreateClass("Stack");
------------------------------
------------------------------
+local Collections = Lib:Import("Framework.System.Collections");
+local Stack = Collections:CreateClass("Stack");
+ ---------------------------------------
 
 function Stack:__Construct(data, OnNew, OnPush, OnPop)
     data.tbl = {};

@@ -1,14 +1,14 @@
-local _, Core = ...;
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local gui = Core.GUIBuilder;
+local _, namespace = ...;
+local em = namespace.EventManager;
+local tk = namespace.Toolkit;
+local gui = namespace.GUIBuilder;
 
 local private = {};
 private.troops = {};
 
 local IsAddOnLoaded = IsAddOnLoaded;
 
-function Core:SetupOrderHallBar()
+function namespace:SetupOrderHallBar()
     if (IsAddOnLoaded("Blizzard_OrderHallUI")) then
 
         private:ReskinCommandBar();
@@ -18,7 +18,7 @@ function Core:SetupOrderHallBar()
         em:CreateEventHandler("ADDON_LOADED", function(handler, _, name)
 
             if (name == "Blizzard_OrderHallUI" and OrderHallCommandBar) then
-                Core:SetupOrderHallBar();
+                self:SetupOrderHallBar();
                 handler:Destroy();
             end
 
@@ -27,7 +27,6 @@ function Core:SetupOrderHallBar()
 end
 
 function private:ReskinCommandBar()
-
     tk:KillElement(OrderHallCommandBar.Background);
     tk:KillElement(OrderHallCommandBar.WorldMapButton);
     gui:CreateDialogBox(nil, "LOW", OrderHallCommandBar);
@@ -40,11 +39,9 @@ function private:ReskinCommandBar()
     OrderHallCommandBar.Currency:SetPoint("LEFT", OrderHallCommandBar.ClassIcon, "RIGHT", 10, 0);
     OrderHallCommandBar.AreaName:SetPoint("LEFT", OrderHallCommandBar.CurrencyIcon, "RIGHT", 10, 2);
     OrderHallCommandBar:SetWidth(OrderHallCommandBar.AreaName:GetStringWidth() + 500);
-
 end
 
 function private:EnumerateTroops()
-
     local width = OrderHallCommandBar.AreaName:GetStringWidth() + 200;
     tk:EmptyTable(private.troops);
 

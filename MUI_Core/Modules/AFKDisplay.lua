@@ -1,10 +1,10 @@
 -- Setup namespaces ------------
 
-local _, Core = ...;
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local L = Core.Locale;
+local _, namespace = ...;
+local em = namespace.EventManager;
+local tk = namespace.Toolkit;
+local db = namespace.Database;
+local L = namespace.Locale;
 
 local Private = {};
 

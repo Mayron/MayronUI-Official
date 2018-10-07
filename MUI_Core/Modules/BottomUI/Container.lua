@@ -1,12 +1,12 @@
--- Setup Namespaces ----------------------
+local addOnName, namespace = ...;
 
-local addOnName, Core = ...;
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBottomUIlder;
-local L = Core.Locale;
-local obj = Core.Objects;
+-- Setup Namespaces ----------------------
+local em = namespace.EventManager;
+local tk = namespace.Toolkit;
+local db = namespace.Database;
+local gui = namespace.GUIBottomUIlder;
+local obj = namespace.Objects;
+local L = namespace.Locale;
 
 -- Constants -----------------------------
 
@@ -23,7 +23,7 @@ local ResourceBar = BottomUIPackage:CreateClass("ResourceBar", FrameWrapper);
 
 -- Register and Import Modules -----------
  
-local ContainerModule, Container = MayronUI:RegisterModule("BottomUI_Container");
+local containerModule, ContainerClass = MayronUI:RegisterModule("BottomUI_Container");
 
 -- Add Database Defaults -----------------
 
@@ -76,12 +76,12 @@ end
 
 -- Container Module ------------------
 
-ContainerModule:OnInitialize(function(self, data)
+containerModule:OnInitialize(function(self, data)
     if (not MayronUI:IsInstalled()) then 
         return; 
     end
 
-    db = Core.Database;
+    db = namespace.Database;
     data.sv = db.profile.bottomui;
     data.container = tk.CreateFrame("Frame", "MUI_BottomContainer", tk.UIParent);
     data.container:SetPoint("BOTTOM", 0, -1);
@@ -119,19 +119,18 @@ ContainerModule:OnInitialize(function(self, data)
     -- Initialize Sub Modules -------------
 
     data.subModules = {};
-    data.subModules.DataText = MayronUI:ImportModule("BottomUI_DataText");
+
     data.subModules.ResourceBars = MayronUI:ImportModule("BottomUI_ResourceBars");
     data.subModules.ActionBarPanel = MayronUI:ImportModule("BottomUI_ActionBarPanel");
     data.subModules.UnitFramePanel = MayronUI:ImportModule("BottomUI_UnitFramePanel");
-    
-    data.subModules.DataText:Initialize(data.container, data.subModules);    
+
     data.subModules.ResourceBars:Initialize(data.container, data.subModules);    
     data.subModules.ActionBarPanel:Initialize(data.container, data.subModules);  
     data.subModules.UnitFramePanel:Initialize(data.container, data.subModules);
 end);
 
 -- TODO: Split this up where revelant!
-ContainerModule:OnConfigUpdate(function(self, data, list, value)
+containerModule:OnConfigUpdate(function(self, data, list, value)
     local unitFramePanel = data.subModules["UnitFramePanel"];
     local key = list:PopFront();
 
@@ -140,7 +139,11 @@ ContainerModule:OnConfigUpdate(function(self, data, list, value)
 
         if (key == "width") then
             data.container:SetWidth(value);
-            DataText:SetupButtons();
+
+            if (IsAddOnLoaded("MUI_DataText")) then
+                local dataTextModule = MayronUI:ImportModule("DataText");
+                dataTextModule:SetupButtons();
+            end
 
         elseif (key == "gradients") then
             if (list:PopFront() == "enabled") then
@@ -278,9 +281,9 @@ ContainerModule:OnConfigUpdate(function(self, data, list, value)
     end
 end);
 
--- Container Object -----------------
+-- ContainerClass -----------------
 
-function Container:UpdateContainer(data)
+function ContainerClass:UpdateContainer(data)
     data.subModules.ActionBarPanel:PositionBartenderBars();  
 end
     

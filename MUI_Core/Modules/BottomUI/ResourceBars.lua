@@ -1,12 +1,13 @@
+local addOnName, namespace = ...;
+
 -- Setup Namespaces ----------------------
 
-local addOnName, Core = ...;
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBottomUIlder;
-local L = Core.Locale;
-local obj = Core.Objects;
+local em = namespace.EventManager;
+local tk = namespace.Toolkit;
+local db = namespace.Database;
+local gui = namespace.GUIBuilder;
+local obj = namespace.Objects;
+local L = namespace.Locale;
 
 local Private = {}; -- needed for dynamically loading correct bar
 
@@ -19,16 +20,15 @@ local ARTIFACT_BAR_ID = "artifact";
 
 -- Setup Objects -------------------------
 
-local FrameWrapper = obj:Import("Framework.System.FrameWrapper");
 local Engine = obj:Import("MayronUI.Engine");
 local BottomUIPackage = obj:CreatePackage("BottomUI", addOnName);
-local ResourceBar = BottomUIPackage:CreateClass("ResourceBar", FrameWrapper);
+local ResourceBar = BottomUIPackage:CreateClass("ResourceBar", "Framework.System.FrameWrapper");
 
 -- Register and Import Modules -----------
 
 local DataText = MayronUI:ImportModule("BottomUI_DataText");
 local Container = MayronUI:ImportModule("BottomUI_Container");
-local ResourceBarsModule, ResourceBars = MayronUI:RegisterModule("BottomUI_ResourceBars", true);
+local resourceBarsModule, ResourceBarsClass = MayronUI:RegisterModule("BottomUI_ResourceBars", true);
 
 -- Load Database Defaults ----------------
 
@@ -57,7 +57,7 @@ db:AddToDefaults("profile.resourceBars", {
 
 function Private.experienceBar_OnSetup(resourceBar, data)
     if (tk:IsPlayerMaxLevel()) then
-        ResourceBars:DisableBar(EXPERIENCE_BAR_ID);
+        ResourceBarsClass:DisableBar(EXPERIENCE_BAR_ID);
         return;
     end
 
@@ -77,7 +77,7 @@ function Private.experienceBar_OnSetup(resourceBar, data)
 
     em:CreateEventHandler("PLAYER_LEVEL_UP", function(handler, _, level)
         if (GetMaxPlayerLevel() == level) then
-            ResourceBars:DisableBar(EXPERIENCE_BAR_ID);
+            ResourceBarsClass:DisableBar(EXPERIENCE_BAR_ID);
             em:FindHandlerByKey("PLAYER_XP_UPDATE", "xp_bar_update"):Destroy();
             handler:Destroy();
         end
@@ -194,10 +194,10 @@ function Private.reputationBar_OnSetup(resourceBar, data)
 		
 		if (not InCombatLockdown()) then
 			if (not factionName or standingID == 8) then		
-				ResourceBarsModule:DisableBar(data.barName);
+				resourceBarsModule:DisableBar(data.barName);
 				return;			
 			elseif (not data.enabled) then		
-				ResourceBarsModule:EnableBar(data.barName);			
+				resourceBarsModule:EnableBar(data.barName);			
 			end
 		end
 		
@@ -306,28 +306,21 @@ BottomUIPackage:DefineParams("boolean");
 function ResourceBar:SetEnabled(data, enabled)
     data.enabled = enabled;
     data.frame:SetShown(enabled);
-    ResourceBarsModule:UpdateContainer();
+    resourceBarsModule:UpdateContainer();
 end
 
 -- ResourceBars Module -------------------
-ResourceBarsModule:OnInitialize(function(self, data, buiContainer)
-    data.buiContainer = container;
+resourceBarsModule:OnInitialize(function(self, data, buiContainer)
+    data.buiContainer = buiContainer;
     data.sv = db.profile.resourceBars;
     self:SetEnabled(true); -- set module enabled (not bar)
 end);
 
-ResourceBarsModule:OnEnable(function(self, data)
-    data.barsContainer = tk.CreateFrame("Frame", nil, data.buiContainer);
-    data.barsContainer:SetFrameStrata("MEDIUM");
-    
-
-    if (DataText:IsShown() and DataText:IsEnabled()) then
-        data.barsContainer:SetPoint("BOTTOMLEFT", DataText:GetFrame(), "TOPLEFT", 0, -1);
-        data.barsContainer:SetPoint("BOTTOMRIGHT", DataText:GetFrame(), "TOPRIGHT", 0, -1);
-    else
-        data.barsContainer:SetPoint("BOTTOMLEFT", data.buiContainer, "TOPLEFT", 0, -1);
-        data.barsContainer:SetPoint("BOTTOMRIGHT", data.buiContainer, "TOPRIGHT", 0, -1);
-    end
+resourceBarsModule:OnEnable(function(self, data)
+    data.barsContainer = tk.CreateFrame("Frame", "MUI_ResourceBars", data.buiContainer);
+    data.barsContainer:SetFrameStrata("MEDIUM");    
+    data.barsContainer:SetPoint("BOTTOMLEFT", data.buiContainer, "TOPLEFT", 0, -1);
+    data.barsContainer:SetPoint("BOTTOMRIGHT", data.buiContainer, "TOPRIGHT", 0, -1);
 
     data.bars = {};
     for _, barName in tk.ipairs(BAR_NAMES) do
@@ -351,14 +344,14 @@ ResourceBarsModule:OnEnable(function(self, data)
 
     self:UpdateContainer();
 
-    if (db.profile.datatext.combatBlock) then
+    if (DataText and db.profile.datatext.combatBlock) then
         self:CreateBlocker();
     end
 end);
 
--- ResourceBars Object -------------------
+-- ResourceBarsClass -------------------
 
-function ResourceBars:UpdateContainer(data)
+function ResourceBarsClass:UpdateContainer(data)
     local height = 0;
     local previousBar;
 
@@ -394,17 +387,17 @@ function ResourceBars:UpdateContainer(data)
 end
 
 Engine:DefineReturns("number");
-function ResourceBars:GetHeight(data)
+function ResourceBarsClass:GetHeight(data)
     return data.barsContainer:GetHeight();
 end
 
 Engine:DefineParams("string");
 Engine:DefineReturns("Frame");
-function ResourceBars:GetBar(data, barName)
+function ResourceBarsClass:GetBar(data, barName)
     return data.bars[barName];
 end
 
-function ResourceBars:CreateBlocker(data)
+function ResourceBarsClass:CreateBlocker(data)
     if (not data.blocker) then
         data.blocker = tk:PopFrame("Frame", data.barsContainer);
 
@@ -431,6 +424,6 @@ function ResourceBars:CreateBlocker(data)
 end
 
 Engine:DefineReturns("Frame");
-function ResourceBars:GetBarContainer(data)
+function ResourceBarsClass:GetBarContainer(data)
     return data.barsContainer;
 end

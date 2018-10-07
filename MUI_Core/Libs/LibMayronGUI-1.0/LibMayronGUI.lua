@@ -6,14 +6,14 @@ if (not Lib) then return; end
 local LibObjectLua = LibStub:GetLibrary("LibMayronObjects");
 local Private = {};
 
-Lib.WidgetsPackage = LibObjectLua:CreatePackage("Widgets", addonName);
+Lib.WidgetsPackage = LibObjectLua:CreatePackage("Widgets", "MayronUI");
 Lib.LibObjectLua = LibObjectLua;
 Lib.Private = Private;
 
 Private.DUMMY_FRAME = CreateFrame("Frame");
 Private.DUMMY_FUNC = function() end;
 Private.FrameWrapper = LibObjectLua:Import("Framework.System.FrameWrapper");
-Private.LinkedList = LibObjectLua:Import("Framework.System.LinkedList");
+Private.LinkedList = LibObjectLua:Import("Framework.System.Collections.LinkedList");
 -----------------------------
 -----------------------------
 

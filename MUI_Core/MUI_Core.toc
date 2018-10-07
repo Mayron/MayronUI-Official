@@ -7,7 +7,7 @@
 ## libs:
 Libs\LibStub.lua
 Libs\LibMayronDB-1.2.lua
-Libs\LibMayronObjects-2.3\LibMayronObjects.xml
+Libs\LibMayronObjects-2.5\LibMayronObjects.xml
 Libs\LibMayronEvents-1.0.lua
 Libs\LibMayronGUI-1.0\LibMayronGUI.xml
 Libs\LibSharedMedia-3.0\CallbackHandler-1.0.lua

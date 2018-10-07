@@ -1,11 +1,11 @@
 ------------------------
--- Setup namespaces
+-- Setup namespace
 ------------------------
-local _, Core = ...;
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local gui = Core.GUIBuilder;
-local db = Core.Database;
+local _, namespace = ...;
+local em = namespace.EventManager;
+local tk = namespace.Toolkit;
+local gui = namespace.GUIBuilder;
+local db = namespace.Database;
 
 local Private = {};
 

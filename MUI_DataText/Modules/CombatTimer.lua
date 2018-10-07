@@ -1,45 +1,52 @@
 -- Setup Namespaces ------------------
 
-local _, Core = ...;
-
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
+local _, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 -- Register and Import Modules -------
 
-local DataText = MayronUI:ImportModule("BottomUI_DataText");
-local CombatTimerModule, CombatTimer = MayronUI:RegisterModule("DataText_CombatTimer");
-local Engine = Core.Objects:Import("MayronUI.Engine");
+local Engine = obj:Import("MayronUI.Engine");
+local DataText = MayronUI:ImportModule("DataText");
+local CombatTimer = Engine:CreateClass("CombatTimer", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
 
-db:AddToDefaults("profile.datatext.combat_timer", {
-    enabled = false,
+db:AddToDefaults("profile.datatext.combatTimer", {
+    enabled = true,
     displayOrder = 3
 });
 
 -- CombatTimer Module ----------------
 
-CombatTimerModule:OnInitialize(function(self, data) 
-    data.sv = db.profile.datatext.combat_timer;
+DataText:Hook("OnInitialize", function(self)
+    local sv = db.profile.datatext.combatTimer;
+    print("ok2")
+    print(sv.displayOrder)
 
-    if (data.sv.enabled) then
-        DataText:RegisterDataItem(self, data.sv.displayOrder);
+    if (sv.enabled) then
+        print("Ok")
+        local combatTimer = CombatTimer(sv);
+        self:RegisterDataModule(combatTimer);
     end
 end);
 
-CombatTimerModule:OnEnable(function(self, data, btn)
-    data.btn = btn;
+function CombatTimer:__Construct(data, sv)
+    data.sv = sv;
+
+    -- set public instance properties
+    self.MenuContent = CreateFrame("Frame");
+    self.MenuLabels = {};
+    self.TotalLabelsShown = 0;
+    self.HasMenu = false;
+    self.Button = CreateFrame("Button");
+    self.ButtonID = sv.diplayOrder;
+    self.ModuleName = "Combat Timer"
 
     em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
         data.startTime = GetTime();
         data.inCombat = true;
         data.executed = nil;
         self:Update();
-
     end):SetKey("combat_timer");
 
     em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
@@ -70,20 +77,17 @@ CombatTimerModule:OnEnable(function(self, data, btn)
     data.btn.seconds:SetPoint("CENTER");
     data.btn.minutes:SetPoint("RIGHT", self.btn.seconds, "LEFT");
     data.btn.milliseconds:SetPoint("LEFT", self.btn.seconds, "RIGHT");
-end);
+end
 
-CombatTimerModule:OnDisable(function(self, data)
-    em:FindHandlerByKey("PLAYER_REGEN_DISABLED", "combat_timer"):Destroy();
-    em:FindHandlerByKey("PLAYER_REGEN_ENABLED", "combat_timer"):Destroy();
+function CombatTimer:Click(data) 
 
-    data.btn.minutes:SetText("");
-    data.btn.seconds:SetText("");
-    data.btn.milliseconds:SetText("");
-end);
+end
 
--- CombatTimer Object -----------------------------
+function CombatTimer:IsEnabled(data) 
 
-function CombatTimer:Update(data, override)
+end
+
+function CombatTimer:Update(data) 
     if (not override and data.executed) then 
         return; 
     end
@@ -113,11 +117,11 @@ function CombatTimer:Update(data, override)
     loop();
 end
 
-function CombatTimer:HasMenu()
-    return false;
-end
+function CombatTimer:Disable(data) 
+    em:FindHandlerByKey("PLAYER_REGEN_DISABLED", "combatTimer"):Destroy();
+    em:FindHandlerByKey("PLAYER_REGEN_ENABLED", "combatTimer"):Destroy();
 
-Engine:DefineReturns("Button");
-function CombatTimer:GetButton(data)
-    return data.btn;
+    data.btn.minutes:SetText("");
+    data.btn.seconds:SetText("");
+    data.btn.milliseconds:SetText("");
 end

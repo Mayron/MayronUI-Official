@@ -1,12 +1,13 @@
+local addOnName, namespace = ...;
+
 -- Setup Namespaces ----------------------
 
-local addOnName, Core = ...;
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
-local obj = Core.Objects;
+local em = namespace.EventManager;
+local tk = namespace.Toolkit;
+local db = namespace.Database;
+local gui = namespace.GUIBuilder;
+local obj = namespace.Objects;
+local L = namespace.Locale;
 
 -- Constants -----------------------------
 
@@ -24,7 +25,7 @@ local ResourceBar = BottomUIPackage:CreateClass("ResourceBar", FrameWrapper);
 -- Register and Import Modules -----------
 
 local DataText = MayronUI:ImportModule("DataText");
-local UnitFramePanelModule, UnitFramePanel = MayronUI:RegisterModule("BottomUI_UnitFramePanel", true);
+local unitFramePanelModule, UnitFramePanelClass = MayronUI:RegisterModule("BottomUI_UnitFramePanel", true);
 
 -- Load Database Defaults ----------------
 
@@ -85,7 +86,7 @@ end
 
 -- UnitFramePanel Module ----------------- 
 
-UnitFramePanelModule:OnInitialize(function(self, data, buiContainer, subModules)
+unitFramePanelModule:OnInitialize(function(self, data, buiContainer, subModules)
     data.sv = db.profile.unitPanels;
     data.buiContainer = buiContainer;    
     data.ActionBarPanel = subModules.ActionBarPanel;
@@ -97,7 +98,7 @@ UnitFramePanelModule:OnInitialize(function(self, data, buiContainer, subModules)
     self:SetupSUFPortraitGradients();
 end);
 
-UnitFramePanelModule:OnEnable(function(self, data)
+unitFramePanelModule:OnEnable(function(self, data)
     if (data.left) then 
         return;         
     end
@@ -286,9 +287,9 @@ UnitFramePanelModule:OnEnable(function(self, data)
     end
 end);
 
--- UnitFramePanel Object -----------------------
+-- UnitFramePanelClass -----------------------
 
-function UnitFramePanel:UpdateUnitNameText(data, unitType, unitLevel)
+function UnitFramePanelClass:UpdateUnitNameText(data, unitType, unitLevel)
     local name = UnitName(unitType);
 
     if (#name > 22) then
@@ -333,7 +334,7 @@ function UnitFramePanel:UpdateUnitNameText(data, unitType, unitLevel)
     data[unitType].text:SetText(tk.string.format("%s %s", name, unitLevel));
 end
 
-function UnitFramePanel:SetupSUFPortraitGradients(data)
+function UnitFramePanelClass:SetupSUFPortraitGradients(data)
     if (not tk.IsAddOnLoaded("ShadowedUnitFrames")) then 
         return; 
     end

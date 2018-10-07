@@ -1,10 +1,10 @@
 local Lib = LibStub:GetLibrary("LibMayronObjects");
-local SystemPackage = Lib:Import("Framework.System");
-local LinkedList = SystemPackage:CreateClass("LinkedList");
+local Collections = Lib:CreatePackage("Collections", "Framework.System");
+local LinkedList = Collections:CreateClass("LinkedList");
+
 local Node = {};
 local LinkedListData = {};
------------------------
------------------------
+---------------------------------------
 
 function LinkedList:__Construct(data, ...)  
     for _, value in Lib:IterateArgs(...) do

@@ -2,7 +2,6 @@
 ..\FrameXML\UI.xsd">
     <Script file="BottomUI\Container.lua"/>
     <Script file="BottomUI\UnitFramePanel.lua"/>
-    <Include file="BottomUI\DataText\DataText.xml"/>
     <Script file="BottomUI\ResourceBars.lua"/>
     <Script file="BottomUI\ActionBarPanel.lua"/>
     <Script file="SideBar.lua"/>

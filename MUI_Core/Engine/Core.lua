@@ -1,26 +1,29 @@
 -- Setup namespaces ---------------------------
 
-local addOnName, Core = ...;
+local addOnName, namespace = ...;
 
 MayronUI = {};
 MayronUI.RegisteredModules = {};
 MayronUI.ModulesInitialized = false;
 
-Core.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase("MUIdb", addOnName);
-Core.EventManager = LibStub:GetLibrary("LibMayronEvents");
-Core.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
-Core.Objects = LibStub:GetLibrary("LibMayronObjects");
-Core.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
+namespace.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase("MUIdb", addOnName);
+namespace.EventManager = LibStub:GetLibrary("LibMayronEvents");
+namespace.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
+namespace.Objects = LibStub:GetLibrary("LibMayronObjects");
+namespace.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 
-local db = Core.Database;
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
+local db = namespace.Database;
+local em = namespace.EventManager;
+local tk = namespace.Toolkit;
+local gui = namespace.GUIBuilder;
+local obj = namespace.Objects;
+local L = namespace.Locale;
 
-local Engine = Core.Objects:CreatePackage("Engine", "MayronUI");
+local Engine = namespace.Objects:CreatePackage("Engine", "MayronUI");
 local Module = Engine:CreateClass("Module");
 local ModuleHiddenData = {}; -- we pass real module data to module functions
+
+local Commands = {};
 
 -- Add Default Database Values ----------------
 
@@ -28,7 +31,7 @@ db:AddToDefaults("global.Core", {
     uiScale = 0.7,
     change_game_font = true,
     font = "MUI_Font",
-	use_localization = true,
+	useLocalization = true,
     addons = {
         {"Aura Frames", true, "AuraFrames"},
         {"Bartender4", true, "Bartender4"},
@@ -53,7 +56,7 @@ db:AddToDefaults("profile.theme", {
 
 -- Slash Commands ------------------
 
-Core.commands = {
+Commands = {
 	["config"] = function()
         if (not tk.IsAddOnLoaded("MUI_Config")) then
             EnableAddOn("MUI_Config");
@@ -94,13 +97,15 @@ Engine:DefineReturns("string", "?boolean");
 function Module:__Construct(data, moduleName, initializeOnDemand, injectedNamespace)
     local hiddenData = {};
     ModuleHiddenData[tostring(self)] = hiddenData;    
+
+    hiddenData.hooks = {};
     hiddenData.moduleName = moduleName;
     hiddenData.initializeOnDemand = initializeOnDemand;
     hiddenData.initialized = false;
     hiddenData.enabled = false;
 
     if (injectedNamespace) then
-        Core.Objects:CopyTableValues(injectedNamespace, data, 1);
+        obj:CopyTableValues(injectedNamespace, data, 1);
 
         for key, value in pairs(injectedNamespace) do
             data[key] = value;
@@ -116,12 +121,22 @@ end
 Engine:DefineParams("function");
 function Module:OnInitialize(data, initializedCallback)
     ModuleHiddenData[tostring(self)].initializedCallback = initializedCallback;
+
+    print(self)
+
+    -- Call any other functions attached to this modules OnInitialize event
+    local hooks = ModuleHiddenData[tostring(self)].hooks["OnInitialize"];
+    if (hooks) then
+        for _, func in ipairs(hooks) do
+            func(self, data);
+        end
+    end
 end
 
 function Module:Initialize(data, ...)
     local hiddenData = ModuleHiddenData[tostring(self)];   
 
-    Core.Objects:Assert(hiddenData.initializedCallback, 
+    obj:Assert(hiddenData.initializedCallback, 
         "No initialized callback registered with module '%s'", hiddenData.moduleName);
 
     hiddenData.initializedCallback(self, data, ...);  
@@ -141,11 +156,27 @@ end
 Engine:DefineParams("function");
 function Module:OnEnable(data, enabledCallback)
     ModuleHiddenData[tostring(self)].enabledCallback = enabledCallback;
+
+    -- Call any other functions attached to this modules OnEnable event
+    local hooks = ModuleHiddenData[tostring(self)].hooks["OnEnable"];
+    if (hooks) then
+        for _, func in ipairs(hooks) do
+            func(self, data);
+        end
+    end
 end
 
 Engine:DefineParams("function");
 function Module:OnDisable(data, disabledCallback)
-    ModuleHiddenData[tostring(self)].disabledCallback = disabledCallback;
+    ModuleHiddenData[tostring(self)].disabledCallback = disabledCallback;  
+
+    -- Call any other functions attached to this modules OnDisable event
+    local hooks = ModuleHiddenData[tostring(self)].hooks["OnDisable"];
+    if (hooks) then
+        for _, func in ipairs(hooks) do
+            func(self, data);
+        end
+    end
 end
 
 Engine:DefineParams("boolean");
@@ -154,10 +185,10 @@ function Module:SetEnabled(data, enabled, ...)
     hiddenData.enabled = enabled;
     
     if (enabled) then
-        Core.Objects:Assert(hiddenData.enabledCallback, "No enabled callback registered with module '%s'", moduleName);
+        namespace.Objects:Assert(hiddenData.enabledCallback, "No enabled callback registered with module '%s'", moduleName);
         hiddenData.enabledCallback(self, data, ...);
     else
-        Core.Objects:Assert(hiddenData.disabledCallback, "No disabled callback registered with module '%s'", moduleName);
+        namespace.Objects:Assert(hiddenData.disabledCallback, "No disabled callback registered with module '%s'", moduleName);
         hiddenData.disabledCallback(self, data, ...);
     end
 end
@@ -170,11 +201,33 @@ end
 Engine:DefineParams("function");
 function Module:OnConfigUpdate(data, configUpdateCallback)
     ModuleHiddenData[tostring(self)].configUpdateCallback = configUpdateCallback;
+
+    -- Call any other functions attached to this modules OnConfigUpdate event
+    local hooks = ModuleHiddenData[tostring(self)].hooks["OnConfigUpdate"];
+    if (hooks) then
+        for _, func in ipairs(hooks) do
+            func(self, data);
+        end
+    end
 end
 
 Engine:DefineParams("LinkedList", "any");
 function Module:ConfigUpdate(data, linkedList, newValue)
     ModuleHiddenData[tostring(self)].configUpdateCallback(self, data, linkedList, newValue);
+end
+
+-- Hook more functions to a module event. Useful if module is spread across multiple files
+function Module:Hook(data, eventName, func)
+    local hooks = ModuleHiddenData[tostring(self)].hooks[eventName];
+
+    if (not hooks) then
+        hooks = {};
+        ModuleHiddenData[tostring(self)].hooks[eventName] = hooks;
+    end
+
+    print("hook "..tostring(self))
+
+    table.insert(hooks, func);
 end
 
 -- MayronUI Functions ---------------------
@@ -213,11 +266,15 @@ function MayronUI:IsInstalled()
 	return db.global.installed and db.global.installed[tk:GetPlayerKey()];
 end
 
+function MayronUI:GetCoreComponents()
+    return tk, db, em, gui, obj, L;
+end
+
 -- Register MUICore Module ---------------------
 
-local MUICoreModule, MUICore = MayronUI:RegisterModule("MUI_Core");
+local coreModule = MayronUI:RegisterModule("Core");
 
-MUICoreModule:OnInitialize(function() 
+coreModule:OnInitialize(function() 
     for i = 1, NUM_CHAT_WINDOWS do
         tk._G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
     end
@@ -227,7 +284,7 @@ MUICoreModule:OnInitialize(function()
         local args = {};
         
 		if (#str == 0) then
-			Core.commands.help();
+			Commands.help();
 			return;
         end
         
@@ -237,7 +294,7 @@ MUICoreModule:OnInitialize(function()
 			end
         end
         
-        local path = Core.commands;
+        local path = Commands;
         
 		for id, arg in tk.ipairs(args) do
             arg = tk.string.lower(arg);
@@ -251,12 +308,12 @@ MUICoreModule:OnInitialize(function()
                     path = path[arg];
                     
 				else
-					Core.commands.help();
+					Commands.help();
                     return;
                     
 				end
 			else
-				Core.commands.help();
+				Commands.help();
                 return;
                 
 			end
@@ -265,16 +322,6 @@ MUICoreModule:OnInitialize(function()
     
     tk:Print(L["Welcome back"], UnitName("player").."!");
 end);
-
--- MUICore Object -----------------------
-
-function MUICore:GetDatabase()
-    return Core.Database;
-end
-
-function MUICore:GetToolkit()
-    return Core.Toolkit;
-end
 
 -- Initialize Modules -------------------
 
@@ -312,7 +359,7 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
         db.global.reanchor = nil;
     end
 
-    Core:SetupOrderHallBar();
+    namespace:SetupOrderHallBar();
     MayronUI.ModulesInitialized = true;
     tk.collectgarbage("collect");
 
@@ -335,7 +382,7 @@ db:OnStart(function(self)
     -- To keep UI widget styles consistent ----------
     -- Can only use once Database is loaded...
 
-    local Style = Core.Objects:Import("MUI_Core.Widgets.Style");
+    local Style = obj:Import("MayronUI.Widgets.Style");
 
     tk.Constants.AddOnStyle = Style();
     -- tk.Constants.AddOnStyle:EnableColorUpdates();

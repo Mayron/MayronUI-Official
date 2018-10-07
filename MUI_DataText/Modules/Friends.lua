@@ -49,7 +49,7 @@ FriendsModule:OnInitialize(function(self, data)
     data.sv = db.profile.datatext.friends;
 
     if (data.sv.enabled) then
-        DataText:RegisterDataItem(self, data.sv.displayOrder);
+        --DataText:RegisterDataItem(self);
     end
 end);
 

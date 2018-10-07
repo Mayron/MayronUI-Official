@@ -2,11 +2,11 @@
 -- Setup namespaces
 ------------------------
 local _, chat = ...;
-local core = MayronUI:ImportModule("MUI_Core");
+local core = MayronUI:ImportModule("Core");
 local tk = core.Toolkit;
 local em = core.EventManager;
 local db = core.Database;
-local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
+local L = LibStub ("AceLocale-3.0"):GetLocale("MayronUI");
 
 MayronUI:RegisterModule("Chat", chat);
 
