@@ -101,7 +101,7 @@ dataTextModule:OnEnable(function(self, data)
         if (data.dropdowns) then
 		-- popup menu content has dropdown menu's
             for _, dropdown in tk.ipairs(data.dropdowns) do			
-				--TODO: fold them all
+				gui:FoldAllDropDownMenus();
                 dropdown:GetFrame().menu:Hide(); 
             end
         end
@@ -185,25 +185,13 @@ end);
 
 -- DataTextClass -------------------
 
-Engine:DefineParams("IdataTextModule", "number");
+Engine:DefineParams("IDataTextModule");
 function DataTextClass:RegisterDataModule(data, dataModule)
     local dataModuleName = dataModule:GetObjectType(); -- get's name of object/module
     data.DataModules[dataModuleName] = dataModule;
     
     local btn = dataModule.Button;
     btn:SetParent(data.bar);
-
-    btn:SetNormalTexture(tk.Constants.MEDIA.."mui_bar");
-    btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
-
-    btn:SetHighlightTexture(tk.Constants.MEDIA.."mui_bar");
-    btn:GetHighlightTexture():SetVertexColor(0.08, 0.08, 0.08);
-
-    btn:SetNormalFontObject("MUI_FontNormal");
-    btn:SetText(dataModuleName);
-
-    local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
-    btn:GetFontString():SetFont(font,  data.sv.fontSize);
 
     btn:SetScript("OnClick", function(_, ...)
         self:ClickModuleButton(dataModule, btn, ...);
@@ -213,67 +201,82 @@ function DataTextClass:RegisterDataModule(data, dataModule)
     return btn;            
 end
 
+Engine:DefineParams("IDataTextModule", "?string");
+Engine:DefineReturns("Button");
+function DataTextClass:CreateDataTextButton(data, dataModule, btnText)
+    local btn = CreateFrame("Button");
+    btn:SetNormalTexture(tk.Constants.MEDIA.."mui_bar");
+    btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
+
+    btn:SetHighlightTexture(tk.Constants.MEDIA.."mui_bar");
+    btn:GetHighlightTexture():SetVertexColor(0.08, 0.08, 0.08);
+
+    btn:SetNormalFontObject("MUI_FontNormal");
+
+    local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
+    btn:SetText(btnText or " ");
+    btn:GetFontString():SetFont(font, data.sv.fontSize);
+
+    return btn;
+end
+
 function DataTextClass:PositionDataItems(data)
     local flatOrdering = {};
     local ordering = {};   
 
     for dataModuleName, dataModule in pairs(data.DataModules) do
         if (dataModule:IsEnabled()) then
-
             local btn = dataModule.Button;       
-            local displayOrder = dataModule.ButtonID;
+            local displayOrder = dataModule:GetDisplayOrder();
             btn._module = dataModule; -- temporarily
 
-            for i = displayOrder, 100 do
-                if (not ordering[i]) then
-                    ordering[i] = btn;                    
-                    break;
+            -- ensure that all display orders for each datatext module are unique
+            for i = 1, 100 do                
+                if (i >= displayOrder) then
+                    if (not ordering[i]) then
+                        ordering[i] = btn; 
+                        break;
+                    end
+                elseif (ordering[i] == nil) then
+                    ordering[i] = false;
                 end
             end
         end
     end
     
-    -- remove all nils (some gaps in the display order might exist)
-    for i, btn in ipairs(ordering) do        
+    -- remove all false values (some gaps in the display order might exist)
+    for i, btn in ipairs(ordering) do         
         if (ordering[i]) then
             local selectedDisplayOrder = #flatOrdering + 1;
             flatOrdering[selectedDisplayOrder] = btn;
-
-            btn.ButtonID = selectedDisplayOrder;                  
-            btn._module:Update(data);
-            btn._module = nil; -- remove temporary _module ref
-        end
+            btn._module:SetDisplayOrder(selectedDisplayOrder);
+        end        
     end
 
     data.OrderedButtons = flatOrdering;
     local itemWidth = data.buiContainer:GetWidth() / #data.OrderedButtons;
 
-    for i = 1, MAX_DATA_ITEMS do
-        local btn = data.OrderedButtons[i];
+    for i, btn in ipairs(data.OrderedButtons) do
+        btn:ClearAllPoints();
+        btn:Show();
 
-        if (i <= #data.OrderedButtons) then
-            btn:ClearAllPoints();
-            btn:Show();
-
-            if (i == 1) then
-                btn:SetPoint("BOTTOMLEFT", data.sv.spacing, 0);
-                btn:SetPoint("TOPRIGHT", data.bar, "TOPLEFT", itemWidth - data.sv.spacing, - data.sv.spacing);
-            else
-                local previousBtn = data.OrderedButtons[i - 1];
-                btn:SetPoint("TOPLEFT", previousBtn, "TOPRIGHT", data.sv.spacing, 0);
-                btn:SetPoint("BOTTOMRIGHT", previousBtn, "BOTTOMRIGHT", itemWidth, 0);
-            end
-
-        elseif (btn) then
-            btn:Hide();
+        if (i == 1) then                
+            btn:SetPoint("BOTTOMLEFT", data.sv.spacing, 0);
+            btn:SetPoint("TOPRIGHT", data.bar, "TOPLEFT", itemWidth - data.sv.spacing, - data.sv.spacing);
+        else
+            local previousBtn = data.OrderedButtons[i - 1];
+            btn:SetPoint("TOPLEFT", previousBtn, "TOPRIGHT", data.sv.spacing, 0);
+            btn:SetPoint("BOTTOMRIGHT", previousBtn, "BOTTOMRIGHT", itemWidth, 0);
         end
+
+        btn._module:Update();
+        btn._module = nil; -- remove temporary _module ref
     end
 
     data.popup:Hide();
 end
 
 Engine:DefineParams("Frame");
-Engine:DefineReturns("Frame");
 -- Attach current dataTextModule scroll child onto shared popup and hide previous scroll child
 function DataTextClass:ChangeMenuContent(data, content)
     local oldContent = data.popup:GetScrollChild();
@@ -281,17 +284,13 @@ function DataTextClass:ChangeMenuContent(data, content)
     if (oldContent) then 
         oldContent:Hide();
     end
-    
-    if (not content) then
-        content = tk:PopFrame("Frame", data.popup);
-        content:SetSize(data.popup:GetWidth(), 10);
-    end
+
+    content:SetParent(data.popup);
+    content:SetSize(data.popup:GetWidth(), 10);
 
     -- attach scroll child to menu frame container
     data.popup:SetScrollChild(content);
     content:Show();
-
-    return content;
 end
 
 Engine:DefineParams("table");
@@ -310,68 +309,77 @@ function DataTextClass:ClearLabels(data, labels)
     end
 end
 
-Engine:DefineParams("Frame", "number", "table");
+Engine:DefineParams("IDataTextModule");
 Engine:DefineReturns("number");
 -- returned the total height of all labels
 -- total height is used to controll the dynamic scrollbar
-function DataTextClass:PositionLabels(data, numLabelsShown, labels)
+function DataTextClass:PositionLabels(data, dataModule)    
+    local totalLabelsShown = dataModule.TotalLabelsShown;
+    local labelHeight = data.sv.popup.itemHeight;
+
     if (totalLabelsShown == 0) then 
         return 0; 
     end
 
-    labels = labels or data.content.labels;
     local totalHeight = 0;
 
-    for i = 1, #labels do
-        local label = labels[i];
+    for i = 1, totalLabelsShown do
+        local label = dataModule.MenuLabels[i];
+        local labelType = type(label);
+        
+        if (labelType == "table" and label.GetObjectType) then
+            labelType = label:GetObjectType();
+        end
+        
+        obj:Assert(labelType == "Frame" or labelType == "Button", 
+            "Invalid data-text label of type '%s' at id %s.", labelType, i);
 
-        if (label) then
-            if (i == 1) then
-                label:SetPoint("TOPLEFT", 2, 0);
-                label:SetPoint("BOTTOMRIGHT", data.content, "TOPRIGHT", -2, - data.sv.popup.itemHeight);
-            else
-                label:SetPoint("TOPLEFT", labels[i - 1], "BOTTOMLEFT", 0, -2);
-                label:SetPoint("BOTTOMRIGHT", labels[i - 1], "BOTTOMRIGHT", 0, -(data.sv.popup.itemHeight + 2));
-            end
+        if (i == 1) then
+            label:SetPoint("TOPLEFT", 2, 0);
+            label:SetPoint("BOTTOMRIGHT", dataModule.MenuContent, "TOPRIGHT", -2, - labelHeight);
+        else
+            label:SetPoint("TOPLEFT", dataModule.MenuLabels[i - 1], "BOTTOMLEFT", 0, -2);
+            label:SetPoint("BOTTOMRIGHT", dataModule.MenuLabels[i - 1], "BOTTOMRIGHT", 0, -(labelHeight + 2));
+        end
 
-            if (numLabelsShown and (i > numLabelsShown)) then
-                label:Hide();
-            else
-                label:Show();
-                totalHeight = totalHeight + data.sv.popup.itemHeight;
-
-                if (i > 1) then
-                    totalHeight = totalHeight + 2;
-                end
+        if (totalLabelsShown and (i > totalLabelsShown)) then
+            label:Hide();
+        else
+            label:Show();
+            totalHeight = totalHeight + labelHeight;
+            if (i > 1) then
+                totalHeight = totalHeight + 2;
             end
         end
     end
 
-    data.content:SetHeight(totalHeight);
+    dataModule.MenuContent:SetHeight(totalHeight);
     return totalHeight;
 end
 
-Engine:DefineParams("Button", "Button");
-function DataTextClass:ClickModuleButton(data, dataModule, ...)
+Engine:DefineParams("IDataTextModule", "Button");
+function DataTextClass:ClickModuleButton(data, dataModule, btn, ...)
     GameTooltip:Hide();
-
-    -- update last button ID that was clicked
-    data.lastButtonID = dataModule.ButtonID;
-
     dataModule:Update(data);
     data.slideController:Stop();
 
-    if (data.lastButtonID == dataModule.ButtonID) then
-        if (data.popup:IsShown()) then
-            -- clicked on same dataTextModule button so close the popup!
-            gui:FoldAllDropDownMenus();
-            data.slideController:Start();
-            tk.UIFrameFadeOut(data.popup, 0.3, data.popup:GetAlpha(), 0);
-            tk.PlaySound(tk.Constants.CLICK);
-        end
+    local btnID = dataModule:GetDisplayOrder();
 
+    if (data.lastButtonID == btnID and data.popup:IsShown()) then       
+        -- clicked on same dataTextModule button so close the popup!
+
+        -- if button was rapidly clicked on, reset alpha
+        data.popup:SetAlpha(1);
+        gui:FoldAllDropDownMenus(); -- fold any dropdown menus (slideController is not a dropdown menu)
+        data.slideController:Start(SlideController.Static.FORCE_RETRACT);
+
+        --tk.UIFrameFadeOut(data.popup, 0.3, data.popup:GetAlpha(), 0);
+        tk.PlaySound(tk.Constants.CLICK);
         return;
     end
+
+    -- update last button ID that was clicked (use display order for this)
+    data.lastButtonID = btnID;
 
     -- a different dataTextModule button was clicked on!
     -- reset popup...
@@ -385,28 +393,24 @@ function DataTextClass:ClickModuleButton(data, dataModule, ...)
     end
 
     -- update content of popup based on which dataTextModule button was clicked
-    local content = dataModule.MenuContent;
-    data.content = self:ChangeMenuContent(content);
-    self:ClearLabels(datModule.MenuLabels);    
+    self:ChangeMenuContent(dataModule.MenuContent);
+    self:ClearLabels(dataModule.MenuLabels);    
     
     -- execute dataTextModule specific click logic
     dataModule:Click(...);
 
-    -- this might have been updated by dataModule:Click(...)
-    local labelsShown = dataModule.TotalLabelsShown;
-
     -- calculate new height based on number of labels to show
-    local totalHeight = self:PositionLabels(numLabelsShown) or data.sv.popup.maxHeight;
+    local totalHeight = self:PositionLabels(dataModule) or data.sv.popup.maxHeight;
     totalHeight = (totalHeight < data.sv.popup.maxHeight) and totalHeight or data.sv.popup.maxHeight;  
 
     -- move popup menu higher if there are resource bars displayed
     local offset = data.resourceBars:GetHeight();
 
     -- update positioning of popup menu based on dataTextModule button's location
-    if (dataModule.ButtonID == #data.OrderedButtons) then
+    if (btnID == #data.OrderedButtons) then
         -- if button was the last button displayed on the data-text bar
         data.popup:SetPoint("BOTTOMRIGHT", btn, "TOPRIGHT", -1, offset + 2);
-    elseif (dataModule.ButtonID == 1) then
+    elseif (btnID == 1) then
         -- if button was the first button displayed on the data-text bar
         data.popup:SetPoint("BOTTOMLEFT", btn, "TOPLEFT", 1, offset + 2);
     else
@@ -417,7 +421,8 @@ function DataTextClass:ClickModuleButton(data, dataModule, ...)
     -- begin expanding the popup menu
     data.slideController:SetMaxHeight(totalHeight);
     data.slideController:Start();
-    tk.UIFrameFadeIn(data.menu, 0.3, 0, 1);
+
+    tk.UIFrameFadeIn(data.popup, 0.3, 0, 1);
     tk.PlaySound(tk.Constants.CLICK);
 end
 

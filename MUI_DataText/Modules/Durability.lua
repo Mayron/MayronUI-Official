@@ -1,12 +1,7 @@
 -- Setup Namespaces ------------------
 
-local _, Core = ...;
-
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
+local _, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local LABEL_PATTERN = "|cffffffff%s|r";
 
@@ -17,9 +12,9 @@ local DURABILITY_SLOTS = {
 
 -- Register and Import Modules -------
 
-local DataText = MayronUI:ImportModule("BottomUI_DataText");
-local DurabilityModule, Durability = MayronUI:RegisterModule("DataText_Durability");
-local Engine = Core.Objects:Import("MayronUI.Engine");
+local Engine = obj:Import("MayronUI.Engine");
+local DataText = MayronUI:ImportModule("DataText");
+local Durability = Engine:CreateClass("Durability", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
 
@@ -35,19 +30,22 @@ local function OnLabelClick(self)
     DataText.slideController:Start();
 end
 
-local function CreateLabel(contentFrame)
+local function CreateLabel(contentFrame, popupWidth)
     local label = tk:PopFrame("Frame", contentFrame);
 
     label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     label.value = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+
     label.name:SetPoint("LEFT", 6, 0);
-    label.name:SetWidth(DataText.sv.menu_width * 0.7); -- needs to be removed!
+    label.name:SetWidth(popupWidth * 0.7); -- needs to be removed!
     label.name:SetWordWrap(false);
     label.name:SetJustifyH("LEFT");
+
     label.value:SetPoint("RIGHT", -10, 0);
-    label.value:SetWidth(DataText.sv.menu_width * 0.3); -- needs to be removed!
+    label.value:SetWidth(popupWidth * 0.3); -- needs to be removed!
     label.value:SetWordWrap(false);
     label.value:SetJustifyH("RIGHT");
+
     tk:SetBackground(label, 0, 0, 0, 0.2);
 
     return label;
@@ -55,19 +53,38 @@ end
 
 -- Durability Module --------------
 
-DurabilityModule:OnInitialize(function(self, data) 
-    data.sv = db.profile.datatext.durability;
+DataText:Hook("OnInitialize", function(self, dataTextData)
+    local sv = db.profile.datatext.durability;
+    sv:SetParent(dataTextData.sv);
 
-    if (data.sv.enabled) then
-        --DataText:RegisterDataItem(self);
+    if (sv.enabled) then
+        local durability = Durability(sv);
+        self:RegisterDataModule(durability);
     end
 end);
 
-DurabilityModule:OnEnable(function(self, data, btn)
-    data.btn = btn;
+function Durability:__Construct(data, sv)
+    data.sv = sv;
+    data.displayOrder = sv.displayOrder;
+
+    -- set public instance properties
+    self.MenuContent = CreateFrame("Frame");
+    self.MenuLabels = {};
+    self.TotalLabelsShown = 0;
+    self.HasMenu = true;
+    self.Button = DataText:CreateDataTextButton(self);
+end
+
+function Durability:IsEnabled(data) 
+    return data.sv.enabled;
+end
+
+function Durability:Enable(data)
+    data.sv.enabled = true;
+
     data.showMenu = true;
     data.handler = em:CreateEventHandler("UPDATE_INVENTORY_DURABILITY", function()
-        if (not data.btn) then 
+        if (notself.Button) then 
             return; 
         end
 
@@ -75,17 +92,17 @@ DurabilityModule:OnEnable(function(self, data, btn)
     end);
 
     tk:KillElement(DurabilityFrame);
-end);
+end
 
-DurabilityModule:OnDisable(function(self, data)
+function Durability:Disable(data)
+    data.sv.enabled = false;
+
     if (data.handler) then
         data.handler:Destroy();
     end
 
     data.showMenu = nil;
-end);
-
--- Durability Object --------------
+end;
 
 function Durability:Update(data)
     local durability_total, max_total = 0, 0;
@@ -121,17 +138,15 @@ function Durability:Update(data)
             colored = tk.string.format("%s%s%%|r", HIGHLIGHT_FONT_COLOR_CODE, format_value);
 
         end
-        data.btn:SetText(tk.string.format(L["Armor"]..": %s", colored));
+       self.Button:SetText(tk.string.format(L["Armor"]..": %s", colored));
     else
-        data.btn:SetText(L["Armor"]..": |cffffffffnone|r");
+       self.Button:SetText(L["Armor"]..": |cffffffffnone|r");
     end
 end
 
 function Durability:Click(data)
-    local numLabelsShown = 0;
+    local totalLabelsShown = 0;
     local index = 0;
-
-    data.content.labels = data.content.labels or {};
 
     for _, slotName in tk.ipairs(DURABILITY_SLOTS) do
         local id = GetInventorySlotInfo(slotName);
@@ -139,13 +154,15 @@ function Durability:Click(data)
 
         if (durability) then
             index = index + 1;
-            numLabelsShown = numLabelsShown + 1;
+            totalLabelsShown = totalLabelsShown + 1;
 
             local value = (durability / max) * 100;
             local alert = GetInventoryAlertStatus(id);
-            local label = data.content.labels[numLabelsShown] or CreateLabel(data.content);
 
-            data.content.labels[numLabelsShown] = label;
+            -- get or create new label
+            local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.sv.popup.width);
+            self.MenuLabels[totalLabelsShown] = label;
+
             slotName = slotName:gsub("Slot", "");
             slotName = tk:SplitCamelString(slotName);
             
@@ -162,14 +179,16 @@ function Durability:Click(data)
         end
     end
 
-    return DataText:PositionLabels(data.content, numLabelsShown);
+    self.TotalLabelsShown = totalLabelsShown;
 end
 
-function Durability:HasMenu()
-    return true;
+function Durability:GetDisplayOrder(data)
+    return data.displayOrder;
 end
 
-Engine:DefineReturns("Button");
-function Durability:GetButton(data)
-    return data.btn;
-end
+function Durability:SetDisplayOrder(data, displayOrder)
+    if (data.displayOrder ~= displayOrder) then
+        data.displayOrder = displayOrder;
+        data.sv.displayOrder = displayOrder;
+    end
+end 

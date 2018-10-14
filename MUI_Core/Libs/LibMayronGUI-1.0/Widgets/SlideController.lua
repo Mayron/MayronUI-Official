@@ -5,6 +5,9 @@ local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
 
 local SlideController = WidgetsPackage:CreateClass("SlideController");
+
+SlideController.Static.FORCE_RETRACT = 1;
+SlideController.Static.FORCE_EXPAND = 2;
 ---------------------------------
 
 WidgetsPackage:DefineParams("Frame")
@@ -13,18 +16,15 @@ function SlideController:__Construct(data, frame)
     data.step = 20;
     data.minHeight = 1;
     data.maxHeight = 200;
-    data.FORCE_RETRACT = 1;
-    data.FORCE_EXPAND = 2;
 end
 
 function SlideController:Start(data, forceState)        
     local step = math.abs(data.step);
-    data.stop = nil;
 
     if (forceState) then
-        step = (forceState == self.FORCE_RETRACT and -data.step) or data.step;
+        step = (forceState == SlideController.Static.FORCE_RETRACT and -data.step) or data.step;
     else
-        step = ((self:IsExpanded()) and -data.step) or data.step;
+        step = ((self:IsMaxExpanded()) and -data.step) or data.step;
     end
 
     local function loop()
@@ -47,20 +47,24 @@ function SlideController:Start(data, forceState)
     end
 
     data.frame:Show();
+    
     if (data.frame.ScrollFrame) then
         data.frame.ScrollFrame.animating = true;
     end
 
-    if (self:IsExpanded() and data.onStartRetract) then
+    if (self:IsMaxExpanded() and data.onStartRetract) then
         data.onStartRetract(self, data.frame);
 
-    elseif (self:IsRetracted() and data.onStartExpand) then
+    elseif (self:IsMaxRetracted() and data.onStartExpand) then
         if (data.onStartExpand) then
             data.onStartExpand(self, data.frame);
         end
     end
 
-    loop();
+    C_Timer.After(0.04, function()
+        data.stop = nil;
+        loop();
+    end);
 end
 
 function SlideController:Stop(data)
@@ -74,10 +78,10 @@ function SlideController:Stop(data)
         data.frame.ScrollFrame.animating = false;
     end
 
-    if (self:IsExpanded() and data.onEndExpand) then
+    if (self:IsMaxExpanded() and data.onEndExpand) then
         data.onEndExpand(self, data.frame);
 
-    elseif (self:IsRetracted()) then
+    elseif (self:IsMaxRetracted()) then
         if (data.onEndRetract) then
             data.onEndRetract(self, data.frame);
         else
@@ -95,11 +99,11 @@ function SlideController:IsRunning(data)
     return data.stop;
 end
 
-function SlideController:IsExpanded(data)
+function SlideController:IsMaxExpanded(data)
     return ((math.floor(data.frame:GetHeight() + 0.5)) == data.maxHeight);
 end
 
-function SlideController:IsRetracted(data)
+function SlideController:IsMaxRetracted(data)
     return ((math.floor(data.frame:GetHeight() + 0.5)) == data.minHeight);
 end
 

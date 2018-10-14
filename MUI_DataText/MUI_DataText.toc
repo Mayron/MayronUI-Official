@@ -7,11 +7,11 @@ DataText.lua
 IDataTextModule.lua
 
 Modules\CombatTimer.lua
+Modules\Currency.lua
+Modules\Durability.lua
+Modules\Friends.lua
 
-## Modules\Currency.lua
-## Modules\Durability.lua
-## Modules\Friends.lua
-## Modules\Guild.lua
+##Modules\Guild.lua
 ## Modules\Inventory.lua
 ## Modules\Memory.lua
 ## Modules\Performance.lua

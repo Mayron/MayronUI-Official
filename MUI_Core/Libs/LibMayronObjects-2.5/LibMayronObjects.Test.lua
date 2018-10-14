@@ -684,29 +684,71 @@ function GenericClasses_Test4()
     print("GenericClasses_Test4 Successful!");
 end
 
+function Get_DefinedProperty_After_Setting_Test1() 
+    print("Get_DefinedProperty_After_Setting_Test1 Started");
+
+    local TestPackage = lib:CreatePackage("Get_DefinedProperty_After_Setting_Test1", "Test");
+	
+    local IDummyClass = TestPackage:CreateInterface("IDummyClass");
+    IDummyClass:DefineProperty("MyString", "string");
+	
+    local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyClass);
+
+    function DummyClass:__Construct(data)
+        self.MyString = "test value";
+		
+		local value = self.MyString;		
+		assert(value == "test value");
+    end
+
+    local dummyClassInstance = DummyClass();  
+	assert(dummyClassInstance.MyString == "test value");
+
+    print("Get_DefinedProperty_After_Setting_Test1 Successful!");
+end
+
+function GetObjectType_In_Constructor_Test1() 
+    print("GetObjectType_In_Constructor_Test1 Started");
+
+    local TestPackage = lib:CreatePackage("GetObjectType_In_Constructor_Test1", "Test");	
+    local DummyClass = TestPackage:CreateClass("DummyClass");
+
+    function DummyClass:__Construct(data)
+        self.MyString = "test value";
+		local objType = self:GetObjectType();		
+		assert(objType == "DummyClass");
+    end
+
+    local dummyClassInstance = DummyClass();  
+
+    print("GetObjectType_In_Constructor_Test1 Successful!");
+end
+
 ---------------------------------
 -- Run Tests:
 ---------------------------------
-HelloWorld_Test1();
-Inheritance_Test1();
-DefineParams_Test1();
-DefineReturns_Test1();
-ImportPackage_Test1();
-DuplicateClass_Test1();
-Interfaces_Test1();
-Interfaces_Test2();
-Interfaces_Test3();
-DefineParams_Test2();
-Inheritance_Test2();
-UsingParent_Test1();
-SubPackages_Test1();
-DefineProperty_Test1();
-DefineProperty_Test2();
-DefineProperty_Test3();
-DefineProperty_Test4();
-DefineProperty_Test5();
-DefineProperty_Test6();
-GenericClasses_Test1();
-GenericClasses_Test2();
-GenericClasses_Test3();
-GenericClasses_Test4();
+-- HelloWorld_Test1();
+-- Inheritance_Test1();
+-- DefineParams_Test1();
+-- DefineReturns_Test1();
+-- ImportPackage_Test1();
+-- DuplicateClass_Test1();
+-- Interfaces_Test1();
+-- Interfaces_Test2();
+-- Interfaces_Test3();
+-- DefineParams_Test2();
+-- Inheritance_Test2();
+-- UsingParent_Test1();
+-- SubPackages_Test1();
+-- DefineProperty_Test1();
+-- DefineProperty_Test2();
+-- DefineProperty_Test3();
+-- DefineProperty_Test4();
+-- DefineProperty_Test5();
+-- DefineProperty_Test6();
+-- GenericClasses_Test1();
+-- GenericClasses_Test2();
+-- GenericClasses_Test3();
+-- GenericClasses_Test4();
+-- Get_DefinedProperty_After_Setting_Test1();
+-- GetObjectType_In_Constructor_Test1();

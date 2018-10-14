@@ -6,6 +6,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local Engine = obj:Import("MayronUI.Engine");
 local IDataTextModule = Engine:CreateInterface("IDataTextModule");
+-- local BaseDataTextModule = Engine:CreateClass("BaseDataTextModule", nil, "IDataTextModule");
 
 -- IDataTextModule Properties --------
 
@@ -14,8 +15,6 @@ IDataTextModule:DefineProperty("MenuLabels", "table");
 IDataTextModule:DefineProperty("TotalLabelsShown", "number");
 IDataTextModule:DefineProperty("HasMenu", "boolean");
 IDataTextModule:DefineProperty("Button", "Button");
-IDataTextModule:DefineProperty("ButtonID", "number");
-IDataTextModule:DefineProperty("ModuleName", "string");
 
 -- IDataTextModule Functions ---------
 
@@ -25,4 +24,22 @@ function IDataTextModule:IsEnabled() end
 function IDataTextModule:Disable() end
 function IDataTextModule:Enable() end
 
--- function IDataTextModule:SetItem() end
+Engine:DefineReturns("number");
+function IDataTextModule:GetDisplayOrder() end
+
+Engine:DefineParams("number");
+function IDataTextModule:SetDisplayOrder(displayOrder) end
+
+-- TODO: BaseDataTextModule Functions ---------
+
+-- function BaseDataTextModule:GetDisplayOrder(data)
+--     return data.displayOrder;
+-- end
+
+-- function BaseDataTextModule:SetDisplayOrder(data, displayOrder)
+--     if (data.displayOrder ~= displayOrder) then
+--         data.displayOrder = displayOrder;
+--         data.sv.displayOrder = displayOrder;
+--         self:Update();
+--     end
+-- end 

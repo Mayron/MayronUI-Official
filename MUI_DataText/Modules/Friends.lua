@@ -1,21 +1,16 @@
 -- Setup Namespaces ------------------
 
-local _, Core = ...;
-
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
+local _, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local LABEL_PATTERN = L["Friends"]..": |cffffffff%u|r";
 local convert = {WTCG = "HS", Pro = "OW"};
 
 -- Register and Import Modules -------
 
-local DataText = MayronUI:ImportModule("BottomUI_DataText");
-local FriendsModule, Friends = MayronUI:RegisterModule("DataText_Friends");
-local Engine = Core.Objects:Import("MayronUI.Engine");
+local Engine = obj:Import("MayronUI.Engine");
+local DataText = MayronUI:ImportModule("DataText");
+local Friends = Engine:CreateClass("Friends", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
 
@@ -45,17 +40,18 @@ end
 
 -- Friends Module --------------
 
-FriendsModule:OnInitialize(function(self, data) 
-    data.sv = db.profile.datatext.friends;
+DataText:Hook("OnInitialize", function(self, dataTextData)
+    local sv = db.profile.datatext.friends;
+    sv:SetParent(dataTextData.sv);
 
-    if (data.sv.enabled) then
-        --DataText:RegisterDataItem(self);
+    if (sv.enabled) then
+        local friends = Friends(sv);
+        self:RegisterDataModule(friends);
     end
 end);
 
-FriendsModule:OnEnable(function(self, data, btn)
-    data.btn = btn;  
-    data.btn:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+function Friends:Enable(data) 
+    self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
     data.showMenu = nil;
 
     data.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
@@ -65,15 +61,15 @@ FriendsModule:OnEnable(function(self, data, btn)
 
         self:Update();
     end);  
-end);
+end
 
-FriendsModule:OnDisable(function(self, data)
+function Friends:Disable(data)
     if (data.handler) then
         data.handler:Destroy();
     end
 
     data.btn:RegisterForClicks("LeftButtonUp");
-end);
+end
 
 -- Friends Object --------------
 
@@ -164,11 +160,13 @@ function Friends:Click(data, content)
     return numLabelsShown;
 end
 
-function Friends:HasMenu()
-    return true;
+function Friends:GetDisplayOrder(data)
+    return data.displayOrder;
 end
 
-Engine:DefineReturns("Button");
-function Friends:GetButton(data)
-    return data.btn;
-end
+function Friends:SetDisplayOrder(data, displayOrder)
+    if (data.displayOrder ~= displayOrder) then
+        data.displayOrder = displayOrder;
+        data.sv.displayOrder = displayOrder;
+    end
+end 

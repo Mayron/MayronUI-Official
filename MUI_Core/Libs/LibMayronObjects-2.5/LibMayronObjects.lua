@@ -201,7 +201,7 @@ function ProxyStack:Pop(proxyEntity, key, entity, controller)
 
         local returnValues = Core:PopWrapper(
             Core:ValidateFunctionCall(definition, errorMessage, 
-            proxyObject.Object[proxyObject.Key](proxyObject.Self, proxyObject.PrivateData, ...)) 
+                proxyObject.Object[proxyObject.Key](proxyObject.Self, proxyObject.PrivateData, ...)) 
         );
 
         if (proxyObject.Key ~= "Destroy") then
@@ -256,7 +256,7 @@ function Core:CreateClass(package, packageData, className, parentClass, ...)
     local RawProxyClassString   = tostring(ProxyClass);
 
     ClassController.IsClass     = true;
-    ClassController.EntityName  = className;
+    ClassController.EntityName  = className;    
     ClassController.Entity      = ProxyClass;
     ClassController.Definitions = Definitions;
     ClassController.Friends     = Friends;
@@ -325,9 +325,6 @@ function Core:CreateClass(package, packageData, className, parentClass, ...)
             value = ProxyStack:Pop(Class, key, ProxyClass, ClassController);
 
         elseif (not value) then
-
-            --print(ProxyClass == ClassController.ParentClass);
-
             -- no real value stored in Class
             if (ClassController.ParentClass) then
                 -- search parent class instead	
@@ -423,7 +420,12 @@ function Core:CreateInstance(classController, ...)
     end    
 
     ProxyInstanceMT.__index = function(_, key)
-        -- might be an instance property or a class function
+        -- check if instance property
+        if (Instance[key] ~= nil) then
+            return Instance[key];
+        end
+
+        -- check if class property (Static) or class function
         local value = classController.Entity[key];
 
         if (value and type(value) == "function") then                
@@ -453,6 +455,7 @@ function Core:CreateInstance(classController, ...)
 
         Instance[key] = value;
 
+        -- if reassigning an instance property, should check that new value is valid
         if (InstanceController.IsConstructed) then            
             Core:ValidateImplementedProperties(Instance, classController.Interfaces, classController.EntityName);
         end        
@@ -463,10 +466,11 @@ function Core:CreateInstance(classController, ...)
     end
 
     ProxyInstanceMT.__tostring = function()
-        return RawProxyInstanceString:gsub("table", string.format("<Instance> %s", InstanceController.EntityName));      
+        return RawProxyInstanceString:gsub("table", string.format("<Instance> %s", classController.EntityName));      
     end
 
     setmetatable(ProxyInstance, ProxyInstanceMT);
+    AllControllers[tostring(ProxyInstance)] = InstanceController;
 
     -- Clone or Create Instance here:
     if (classController.CloneFrom) then
@@ -488,7 +492,6 @@ function Core:CreateInstance(classController, ...)
     end
 
     InstanceController.IsConstructed = true;
-    AllControllers[tostring(ProxyInstance)] = InstanceController;
     return ProxyInstance;
 end
 
@@ -948,40 +951,42 @@ function Core:Error(errorMessage, ...)
     self:Assert(false, errorMessage, ...);
 end
 
-function Core:IsMatchingTypes(expected, value)
+function Core:IsMatchingTypes(expectedTypeName, value)
     if (value == nil) then
         return expected == "nil";
     end
 
-    if (expected == "table" or expected == "number" or expected == "function" 
-            or expected == "boolean" or expected == "string") then
+    -- check if basic type
+    if (expectedTypeName == "table" or expectedTypeName == "number" or expectedTypeName == "function" 
+            or expectedTypeName == "boolean" or expectedTypeName == "string") then
 
-        return expected == type(value);
+        return expectedTypeName == type(value);
 
-    elseif (value.GetObjectType) then       
-
+    elseif (value.GetObjectType) then
         repeat
-            -- Need to check if it is a Blizzard widget with no controller first
-
-            if (expected == value:GetObjectType()) then
-                return true;
-            end            
+            -- check if blizzard widget first
+            if (not value.GetObjectType) then
+                return false;
+                
+            elseif (expectedTypeName == value:GetObjectType()) then
+                return true; -- Object or Widget matches!
+            end        
 
             local controller = self:GetController(value);
-            local interfaceController;
+
+            if (not controller) then 
+                return false; 
+            end
                
+            -- check all interface types
             for _, interface in ipairs(controller.Interfaces) do
-                interfaceController = self:GetController(interface);
+                local interfaceController = self:GetController(interface);
 
-                if (expected == interfaceController.EntityName) then
-                    return true;
+                if (expectedTypeName == interfaceController.EntityName) then
+                    return true; -- interface name matches!
                 end
-            end
+            end        
 
-            if (expected == value:GetObjectType()) then
-                return true;
-            end
-            
             value = controller.ParentClass;
 
             if (value) then

@@ -13,14 +13,16 @@ DropDownMenu.Static.MAX_HEIGHT = 354;
 -- Local Functions -------------------------------
 local dropdowns = {};
 
-local function FoldAll(exception)        
+-- @param exclude - for all except the excluded dropdown menu
+local function FoldAll(exclude)        
     for i, dropdown in ipairs(dropdowns) do
-        if ((not exception) or (exception and exception ~= dropdown)) then
+        print(i)
+        if ((not exclude) or (exclude and exclude ~= dropdown)) then
             dropdown:Hide();
         end
     end
 
-    if (not exception and DropDownMenu.Static.Menu) then
+    if (not exclude and DropDownMenu.Static.Menu) then
         DropDownMenu.Static.Menu:Hide();
     end
 end
@@ -37,8 +39,8 @@ end
 
 -- Lib Functions ------------------------
 
-function Lib:FoldAllDropDownMenus() 
-    FoldAll(); 
+function Lib:FoldAllDropDownMenus(exclude) 
+    FoldAll(exclude); 
 end
 
 -- @constructor    

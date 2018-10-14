@@ -1,49 +1,50 @@
 -- Setup Namespaces ------------------
 
-local _, Core = ...;
-
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
-
-local LABEL_PATTERN = "|cffffffff%s|r";
+local _, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 -- Register and Import Modules -------
 
-local DataText = MayronUI:ImportModule("BottomUI_DataText");
-local CurrencyModule, Currency = MayronUI:RegisterModule("DataText_Currency");
-local Engine = Core.Objects:Import("MayronUI.Engine");
+local Engine = obj:Import("MayronUI.Engine");
+local DataText = MayronUI:ImportModule("DataText");
+local Currency = Engine:CreateClass("Currency", nil, "MayronUI.Engine.IDataTextModule");
+
+local LABEL_PATTERN = "|cffffffff%s|r";
 
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.currency", {
     enabled = true,
-    show_copper = true,
-    show_silver = true,
-    show_gold = true,
-    show_realm = false,
+
+    -- todo: this needs to be more intelligent...
+    showCopper = false,
+    showSilver = false,
+    showGold = true,
+
+    showRealm = false,
     displayOrder = 7
 });
 
 -- Local Functions ----------------
 
-local function CreateLabel(contentFrame)
-    local label = tk:PopFrame("Frame", contentFrame);
+local function CreateLabel(content, popupWidth)
+    local label = tk:PopFrame("Frame", content);
+
     label.value = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     label.value:SetPoint("LEFT", 6, 0);
-    label.value:SetWidth(DataText.sv.menu_width); -- TODO needs to be removed
+    label.value:SetWidth(popupWidth);
     label.value:SetWordWrap(false);
     label.value:SetJustifyH("LEFT");
+
     label.bg = tk:SetBackground(label, 0, 0, 0, 0.2);
     return label;
 end
 
 -- Currency Module ----------------
 
-CurrencyModule:OnInitialize(function(self, data) 
-    data.sv = db.profile.datatext.currency;
+DataText:Hook("OnInitialize", function(self, dataTextData)
+    local sv = db.profile.datatext.currency;
+    sv:SetParent(dataTextData.sv);
 
     local coloredKey = tk:GetClassColoredText(nil, tk:GetPlayerKey());
     
@@ -55,13 +56,23 @@ CurrencyModule:OnInitialize(function(self, data)
 	-- store character's money to be seen by other characters
     db.global.datatext.money.characters[coloredKey] = GetMoney();
 
-    if (data.sv.enabled) then
-        --DataText:RegisterDataItem(self);
+    if (sv.enabled) then
+        local currency = Currency(sv);
+        self:RegisterDataModule(currency);
     end
 end);
 
-CurrencyModule:OnEnable(function(self, data, btn)
-    data.btn = btn;    
+function Currency:__Construct(data, sv)
+    data.sv = sv;
+    data.displayOrder = sv.displayOrder;
+
+    -- set public instance properties
+    self.MenuContent = CreateFrame("Frame");
+    self.MenuLabels = {};
+    self.TotalLabelsShown = 0;
+    self.HasMenu = true;
+    self.Button = DataText:CreateDataTextButton(self);
+
     data.goldString = "|TInterface\\MoneyFrame\\UI-GoldIcon:14:14:2:0|t";
     data.silverString = "|TInterface\\MoneyFrame\\UI-SilverIcon:14:14:2:0|t";
     data.copperString = "|TInterface\\MoneyFrame\\UI-CopperIcon:14:14:2:0|t";
@@ -79,7 +90,7 @@ CurrencyModule:OnEnable(function(self, data, btn)
     end
 
     em:CreateEventHandler("PLAYER_MONEY", function()
-        if (not data.btn) then 
+        if (not self.Button) then 
             return; 
         end
 
@@ -94,15 +105,22 @@ CurrencyModule:OnEnable(function(self, data, btn)
     data.info[6] = self:GetFormattedCurrency(data.sv.todayCurrency);
     data.info[7] = tk:GetThemeColoredText(L["Today's profit"]..":");
     data.info[8] = nil;
-    data.info[9] = NORMAL_FONT_COLOR_CODE..L["Money per character"]..":".."|r";        
-end);
+    data.info[9] = NORMAL_FONT_COLOR_CODE..L["Money per character"]..":".."|r";   
+end
 
-CurrencyModule:OnDisable(function(self, data) 
+function Currency:IsEnabled(data) 
+    return data.sv.enabled;
+end
+
+function Currency:Enable(data)
+    data.sv.enabled = true;     
+end
+
+function Currency:Disable(data) 
+    data.sv.enabled = false;
     em:FindHandlerByKey("PLAYER_MONEY", "money"):Destroy();
     data.showMenu = nil;
-end);
-
--- Currency Object -----------------------------
+end
 
 Engine:DefineParams("number", "?string", "?boolean")
 function Currency:GetFormattedCurrency(data, currency, colorCode, hasLabel)
@@ -113,7 +131,7 @@ function Currency:GetFormattedCurrency(data, currency, colorCode, hasLabel)
 
     colorCode = colorCode or "|cffffffff";
 
-    if (gold > 0 and (not hasLabel or data.sv.show_gold)) then
+    if (gold > 0 and (not hasLabel or data.sv.showGold)) then
         if (tk.tonumber(gold) > 1000) then
             gold = tk.string.gsub(gold, "^(-?%d+)(%d%d%d)", '%1,%2')
         end
@@ -121,24 +139,24 @@ function Currency:GetFormattedCurrency(data, currency, colorCode, hasLabel)
         text = tk.string.format("%s %s%s|r%s", text, colorCode, gold, data.goldString);
     end
 
-    if (silver > 0 and (not hasLabel or data.sv.show_silver)) then
+    if (silver > 0 and (not hasLabel or data.sv.showSilver)) then
         text = tk.string.format("%s %s%s|r%s", text, colorCode, silver, data.silverString);
     end
 
-    if (copper > 0 and (not hasLabel or data.sv.show_copper)) then
+    if (copper > 0 and (not hasLabel or data.sv.showCopper)) then
         text = tk.string.format("%s %s%s|r%s", text, colorCode, copper, data.copperString);
     end
 
     if (text == "") then
-        if (data.sv.show_gold or not hasLabel) then
+        if (data.sv.showGold or not hasLabel) then
             text = tk.string.format("%d%s", 0, data.goldString);
         end
 
-        if (data.sv.show_silver or not hasLabel) then
+        if (data.sv.showSilver or not hasLabel) then
             text = tk.string.format("%s %d%s", text, 0, data.silverString);
         end
 
-        if (data.sv.show_copper or not hasLabel) then
+        if (data.sv.showCopper or not hasLabel) then
             text = tk.string.format("%s %d%s", text, 0, data.copperString);
         end
     end
@@ -163,71 +181,65 @@ end
 function Currency:Update(data)
     local currentCurrency = self:GetFormattedCurrency(GetMoney(), nil, true);
 
-    data.btn:SetText();
+    self.Button:SetText(currentCurrency);
     local colored_key = tk:GetClassColoredText(nil, tk:GetPlayerKey());
     db.global.datatext.money.characters[colored_key] = GetMoney();
 end
 
-
-function Currency:Click(data)
-    data.content.labels = data.content.labels or {};
+function Currency:Click(data)    
+    self.MenuLabels = self.MenuLabels or {};
     data.info[2] = self:GetFormattedCurrency(GetMoney());
     data.info[6] = self:GetDifference();
 
     local r, g, b = tk:GetThemeColor();
-    local id;
+    local popupWidth = data.sv.popup.width;
+    local totalLabelsShown = 0;
 
-    for n, value in tk.ipairs(data.info) do
-        data.content.labels[n] = data.content.labels[n] or CreateLabel(data.content);
-        data.content.labels[n].value:SetText(value);
+    -- weird logic
+    for id, value in tk.ipairs(data.info) do
+        self.MenuLabels[id] = self.MenuLabels[id] or CreateLabel(self.MenuContent, popupWidth);
+        self.MenuLabels[id].value:SetText(value);
 
-        if (n % 2 == 1) then
-            self.content.labels[n].bg:SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.2);
+        if (id % 2 == 1) then
+            self.MenuLabels[id].bg:SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.2);
         end
 
-        id = n + 1;
+        totalLabelsShown = id;
     end
 
-    local invert = true;
-    for character_name, value in db.global.datatext.money.characters:Iterate() do
 
-        data.content.labels[id] = self.content.labels[id] or CreateLabel(data.content);
-        local name_label = data.content.labels[id];
+    for characterName, value in db.global.datatext.money.characters:Iterate() do
+        totalLabelsShown = totalLabelsShown + 1;
+        local nameLabel = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, popupWidth);
+        self.MenuLabels[totalLabelsShown] = nameLabel;
 
-        if (data.sv.show_realm) then
-            name_label.value:SetText(character_name);
+        if (data.sv.showRealm) then
+            nameLabel.value:SetText(characterName);
         else
-            local name = tk.strsplit("-", character_name);
-            name_label.value:SetText(name);
+            local name = tk.strsplit("-", characterName);
+            nameLabel.value:SetText(name);
         end
 
-        id = id + 1;
+        totalLabelsShown = totalLabelsShown + 1;
 
-        data.content.labels[id] = data.content.labels[id] or CreateLabel(data.content);
-        local money_label = data.content.labels[id];
-        money_label.value:SetText(data:GetFormattedCurrency(value));
+        local moneyLabel = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, popupWidth);
+        self.MenuLabels[totalLabelsShown] = moneyLabel;
 
-        id = id + 1;
-
-        if (invert) then
-            name_label.bg:SetColorTexture(0.2, 0.2, 0.2, 0.2);
-            money_label.bg:SetColorTexture(0.2, 0.2, 0.2, 0.2);
-        else
-            name_label.bg:SetColorTexture(0, 0, 0, 0.2);
-            money_label.bg:SetColorTexture(0, 0, 0, 0.2);
-        end
-
-        invert = not invert;
+        moneyLabel.value:SetText(self:GetFormattedCurrency(value));
+        nameLabel.bg:SetColorTexture(0.2, 0.2, 0.2, 0.2);
+        moneyLabel.bg:SetColorTexture(0, 0, 0, 0.2);
     end
 
-    return DataText:PositionLabels(data.content);
+    self.TotalLabelsShown = totalLabelsShown;
 end
 
-function Currency:HasMenu()
-    return true;
+function Currency:GetDisplayOrder(data)
+    return data.displayOrder;
 end
 
-Engine:DefineReturns("Button");
-function Currency:GetButton(data)
-    return data.btn;
-end
+function Currency:SetDisplayOrder(data, displayOrder)
+    if (data.displayOrder ~= displayOrder) then
+        data.displayOrder = displayOrder;
+        data.sv.displayOrder = displayOrder;
+    end
+end 

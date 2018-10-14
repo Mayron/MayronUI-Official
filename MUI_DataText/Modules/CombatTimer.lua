@@ -18,13 +18,11 @@ db:AddToDefaults("profile.datatext.combatTimer", {
 
 -- CombatTimer Module ----------------
 
-DataText:Hook("OnInitialize", function(self)
+DataText:Hook("OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.combatTimer;
-    print("ok2")
-    print(sv.displayOrder)
+    sv:SetParent(dataTextData.sv);
 
     if (sv.enabled) then
-        print("Ok")
         local combatTimer = CombatTimer(sv);
         self:RegisterDataModule(combatTimer);
     end
@@ -32,15 +30,13 @@ end);
 
 function CombatTimer:__Construct(data, sv)
     data.sv = sv;
+    data.displayOrder = sv.displayOrder;
 
     -- set public instance properties
     self.MenuContent = CreateFrame("Frame");
     self.MenuLabels = {};
     self.TotalLabelsShown = 0;
     self.HasMenu = false;
-    self.Button = CreateFrame("Button");
-    self.ButtonID = sv.diplayOrder;
-    self.ModuleName = "Combat Timer"
 
     em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
         data.startTime = GetTime();
@@ -51,40 +47,46 @@ function CombatTimer:__Construct(data, sv)
 
     em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
         data.inCombat = nil;
-        data.btn.minutes:SetText(self.minutes or "00");
-        data.btn.seconds:SetText(self.seconds or ":00:");
-        data.btn.milliseconds:SetText(self.milliseconds or "00");
+        data.minutes:SetText(data.minutes or "00");
+        data.seconds:SetText(data.seconds or ":00:");
+        data.milliseconds:SetText(data.milliseconds or "00");
 
     end):SetKey("combat_timer");
 
     data.showMenu = nil;    
     local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
 
-    data.btn.seconds = data.btn:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
-    data.btn.seconds:SetFont(font, DataText.sv.font_size);
-    data.btn.minutes = data.btn:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
-    data.btn.minutes:SetFont(font, DataText.sv.font_size);
-    data.btn.minutes:SetJustifyH("RIGHT");
+    -- create datatext button
+    self.Button = DataText:CreateDataTextButton(self);
 
-    data.btn.milliseconds = data.btn:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
-    data.btn.milliseconds:SetFont(font, DataText.sv.font_size);
-    data.btn.milliseconds:SetJustifyH("LEFT");
-    data.btn.minutes:SetText("00");
-    data.btn.seconds:SetText(":00:");
-    data.btn.milliseconds:SetText("00");
+    data.seconds = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
+    data.seconds:SetFont(font, sv.fontSize);
+    
+    data.minutes = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
+    data.minutes:SetFont(font, sv.fontSize);
+    data.minutes:SetJustifyH("RIGHT");
 
-    data.btn:SetText("");
-    data.btn.seconds:SetPoint("CENTER");
-    data.btn.minutes:SetPoint("RIGHT", self.btn.seconds, "LEFT");
-    data.btn.milliseconds:SetPoint("LEFT", self.btn.seconds, "RIGHT");
+    data.milliseconds = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
+    data.milliseconds:SetFont(font, sv.fontSize);
+    data.milliseconds:SetJustifyH("LEFT");
+
+    data.minutes:SetText("00");
+    data.seconds:SetText(":00:");
+    data.milliseconds:SetText("00");
+    
+    data.seconds:SetPoint("CENTER");
+    data.minutes:SetPoint("RIGHT", data.seconds, "LEFT");
+    data.milliseconds:SetPoint("LEFT", data.seconds, "RIGHT");
 end
 
-function CombatTimer:Click(data) 
-
-end
+function CombatTimer:Click(data) end
 
 function CombatTimer:IsEnabled(data) 
+    return data.sv.enabled;
+end
 
+function CombatTimer:Enable(data) 
+    data.sv.enabled = true;
 end
 
 function CombatTimer:Update(data) 
@@ -105,9 +107,9 @@ function CombatTimer:Update(data)
         data.seconds = tk.string.format(":%02d:", s%60);
         data.milliseconds = tk.string.format("%02d", (s*100)%100);
 
-        data.btn.minutes:SetText(RED_FONT_COLOR_CODE .. data.minutes .. "|r");
-        data.btn.seconds:SetText(RED_FONT_COLOR_CODE .. data.seconds .. "|r");
-        data.btn.milliseconds:SetText(RED_FONT_COLOR_CODE .. data.milliseconds .. "|r");
+        data.minutes:SetText(RED_FONT_COLOR_CODE .. data.minutes .. "|r");
+        data.seconds:SetText(RED_FONT_COLOR_CODE .. data.seconds .. "|r");
+        data.milliseconds:SetText(RED_FONT_COLOR_CODE .. data.milliseconds .. "|r");
 
         if (not override) then
             tk.C_Timer.After(0.05, loop);
@@ -118,10 +120,23 @@ function CombatTimer:Update(data)
 end
 
 function CombatTimer:Disable(data) 
+    data.sv.enabled = false;
+
     em:FindHandlerByKey("PLAYER_REGEN_DISABLED", "combatTimer"):Destroy();
     em:FindHandlerByKey("PLAYER_REGEN_ENABLED", "combatTimer"):Destroy();
 
-    data.btn.minutes:SetText("");
-    data.btn.seconds:SetText("");
-    data.btn.milliseconds:SetText("");
+    data.minutes:SetText("");
+    data.seconds:SetText("");
+    data.milliseconds:SetText("");
 end
+
+function CombatTimer:GetDisplayOrder(data)
+    return data.displayOrder;
+end
+
+function CombatTimer:SetDisplayOrder(data, displayOrder)
+    if (data.displayOrder ~= displayOrder) then
+        data.displayOrder = displayOrder;
+        data.sv.displayOrder = displayOrder;
+    end
+end 

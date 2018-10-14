@@ -120,17 +120,7 @@ end
 
 Engine:DefineParams("function");
 function Module:OnInitialize(data, initializedCallback)
-    ModuleHiddenData[tostring(self)].initializedCallback = initializedCallback;
-
-    print(self)
-
-    -- Call any other functions attached to this modules OnInitialize event
-    local hooks = ModuleHiddenData[tostring(self)].hooks["OnInitialize"];
-    if (hooks) then
-        for _, func in ipairs(hooks) do
-            func(self, data);
-        end
-    end
+    ModuleHiddenData[tostring(self)].initializedCallback = initializedCallback;    
 end
 
 function Module:Initialize(data, ...)
@@ -141,6 +131,16 @@ function Module:Initialize(data, ...)
 
     hiddenData.initializedCallback(self, data, ...);  
     hiddenData.initialized = true;
+
+    -- Call any other functions attached to this modules OnInitialize event
+    local hooks = ModuleHiddenData[tostring(self)].hooks["OnInitialize"];
+
+    if (hooks) then
+        for _, func in ipairs(hooks) do
+            func(self, data);
+        end
+    end
+
 end
 
 Engine:DefineReturns("boolean");
@@ -156,40 +156,36 @@ end
 Engine:DefineParams("function");
 function Module:OnEnable(data, enabledCallback)
     ModuleHiddenData[tostring(self)].enabledCallback = enabledCallback;
-
-    -- Call any other functions attached to this modules OnEnable event
-    local hooks = ModuleHiddenData[tostring(self)].hooks["OnEnable"];
-    if (hooks) then
-        for _, func in ipairs(hooks) do
-            func(self, data);
-        end
-    end
 end
 
 Engine:DefineParams("function");
 function Module:OnDisable(data, disabledCallback)
-    ModuleHiddenData[tostring(self)].disabledCallback = disabledCallback;  
-
-    -- Call any other functions attached to this modules OnDisable event
-    local hooks = ModuleHiddenData[tostring(self)].hooks["OnDisable"];
-    if (hooks) then
-        for _, func in ipairs(hooks) do
-            func(self, data);
-        end
-    end
+    ModuleHiddenData[tostring(self)].disabledCallback = disabledCallback;
 end
 
 Engine:DefineParams("boolean");
 function Module:SetEnabled(data, enabled, ...)   
     local hiddenData = ModuleHiddenData[tostring(self)];
-    hiddenData.enabled = enabled;
-    
+    local hooks;
+
+    hiddenData.enabled = enabled;    
+
     if (enabled) then
         namespace.Objects:Assert(hiddenData.enabledCallback, "No enabled callback registered with module '%s'", moduleName);
         hiddenData.enabledCallback(self, data, ...);
+        -- Call any other functions attached to this modules OnEnable event
+        hooks = ModuleHiddenData[tostring(self)].hooks["OnEnable"];
     else
         namespace.Objects:Assert(hiddenData.disabledCallback, "No disabled callback registered with module '%s'", moduleName);
         hiddenData.disabledCallback(self, data, ...);
+        -- Call any other functions attached to this modules OnDisable event
+        hooks = ModuleHiddenData[tostring(self)].hooks["OnDisable"];
+    end
+
+    if (hooks) then
+        for _, func in ipairs(hooks) do
+            func(self, data);
+        end
     end
 end
 
@@ -201,6 +197,11 @@ end
 Engine:DefineParams("function");
 function Module:OnConfigUpdate(data, configUpdateCallback)
     ModuleHiddenData[tostring(self)].configUpdateCallback = configUpdateCallback;
+end
+
+Engine:DefineParams("LinkedList", "any");
+function Module:ConfigUpdate(data, linkedList, newValue)
+    ModuleHiddenData[tostring(self)].configUpdateCallback(self, data, linkedList, newValue);
 
     -- Call any other functions attached to this modules OnConfigUpdate event
     local hooks = ModuleHiddenData[tostring(self)].hooks["OnConfigUpdate"];
@@ -211,21 +212,14 @@ function Module:OnConfigUpdate(data, configUpdateCallback)
     end
 end
 
-Engine:DefineParams("LinkedList", "any");
-function Module:ConfigUpdate(data, linkedList, newValue)
-    ModuleHiddenData[tostring(self)].configUpdateCallback(self, data, linkedList, newValue);
-end
-
 -- Hook more functions to a module event. Useful if module is spread across multiple files
 function Module:Hook(data, eventName, func)
     local hooks = ModuleHiddenData[tostring(self)].hooks[eventName];
-
+    
     if (not hooks) then
         hooks = {};
         ModuleHiddenData[tostring(self)].hooks[eventName] = hooks;
     end
-
-    print("hook "..tostring(self))
 
     table.insert(hooks, func);
 end
