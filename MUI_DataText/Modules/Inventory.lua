@@ -1,25 +1,20 @@
 -- Setup Namespaces ------------------
 
-local _, Core = ...;
-
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
+local _, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local LABEL_PATTERN = "|cffffffff%s|r";
 
 -- Register and Import Modules -------
 
-local DataText = MayronUI:ImportModule("BottomUI_DataText");
-local InventoryModule, Inventory = MayronUI:RegisterModule("DataText_Inventory");
-local Engine = Core.Objects:Import("MayronUI.Engine");
+local Engine = obj:Import("MayronUI.Engine");
+local DataText = MayronUI:ImportModule("DataText");
+local Inventory = Engine:CreateClass("Inventory", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.inventory", {
-    enabled = true,
+    enabled = false,
     showTotalSlots = false,
     slotsToShow = "free",
     displayOrder = 6
@@ -27,50 +22,71 @@ db:AddToDefaults("profile.datatext.inventory", {
 
 -- Local Functions ----------------
 
-local function Button_OnEnter(self)
+local function button_OnEnter(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
     GameTooltip:SetText(L["Commands"]..":");
-    GameTooltip:AddDoubleLine(tk:GetThemeColoredString(L["Left Click:"]), L["Toggle Bags"], r, g, b, 1, 1, 1);
-    GameTooltip:AddDoubleLine(tk:GetThemeColoredString(L["Right Click:"]), L["Sort Bags"], r, g, b, 1, 1, 1);
+    GameTooltip:AddDoubleLine(tk:GetThemeColoredText(L["Left Click:"]), L["Toggle Bags"], r, g, b, 1, 1, 1);
+    GameTooltip:AddDoubleLine(tk:GetThemeColoredText(L["Right Click:"]), L["Sort Bags"], r, g, b, 1, 1, 1);
     GameTooltip:Show();
 end
 
-local function Button_OnLeave()
+local function button_OnLeave()
     GameTooltip:Hide();
 end
 
 -- Inventory Module --------------
 
-InventoryModule:OnInitialize(function(self, data) 
-    data.sv = db.profile.datatext.inventory;
+DataText:Hook("OnInitialize", function(self, dataTextData)
+    local sv = db.profile.datatext.inventory;
+    sv:SetParent(dataTextData.sv);
 
-    if (data.sv.enabled) then
-        --DataText:RegisterDataItem(self);
+    if (sv.enabled) then
+        local inventory = Inventory(sv, dataTextData.slideController);
+        self:RegisterDataModule(inventory);
     end
 end);
 
-InventoryModule:OnEnable(function(self, data, btn)
-    data.btn = btn;
-    data.btn:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-    data.btn:SetScript("OnEnter", OnEnter);
-    data.btn:SetScript("OnLeave", OnLeave);
+function Inventory:__Construct(data, sv, slideController)
+    data.sv = sv;
+    data.displayOrder = sv.displayOrder;
+    data.slideController = slideController;
+
+    -- set public instance properties
+    self.MenuContent = CreateFrame("Frame");
+    self.MenuLabels = {};
+    self.TotalLabelsShown = 0;
+    self.HasLeftMenu = false;
+    self.HasRightMenu = false;
+
+    self.Button = DataText:CreateDataTextButton(self);
+    self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+    self.Button:SetScript("OnEnter", button_OnEnter);
+    self.Button:SetScript("OnLeave", button_OnLeave);
 
     data.handler = em:CreateEventHandler("BAG_UPDATE", function()
-        if (not data.btn) then 
+        if (not self.Button) then 
             return; 
         end
 
         self:Update(data);
     end);
-end);
+end
 
-InventoryModule:OnDisable(function(self, data)
+function Inventory:Enable(data) 
+    data.sv.enabled = true;
+end
+
+function Inventory:Disable(data)
+    data.sv.enabled = false;
+
     if (data.handler) then
         data.handler:Destroy();
     end
-end);
+end
 
--- Inventory Object --------------
+function Inventory:IsEnabled(data) 
+    return data.sv.enabled;
+end
 
 function Inventory:Update(data)
     local slots = 0;
@@ -86,13 +102,13 @@ function Inventory:Update(data)
     end
 
     if (data.sv.showTotalSlots) then
-        data.btn:SetText(tk.string.format(L["Bags"]..": |cffffffff%u / %u|r", slots, totalSlots));
+        self.Button:SetText(tk.string.format(L["Bags"]..": |cffffffff%u / %u|r", slots, totalSlots));
     else
-        data.btn:SetText(tk.string.format(L["Bags"]..": |cffffffff%u|r", slots));
+        self.Button:SetText(tk.string.format(L["Bags"]..": |cffffffff%u|r", slots));
     end
 end
 
-function Inventory:Click(data)
+function Inventory:Click(data, button)
 	if (button == "LeftButton") then
         ToggleAllBags();
      elseif (button == "RightButton") then
@@ -100,11 +116,13 @@ function Inventory:Click(data)
      end
 end
 
-function Inventory:HasMenu()
-    return false;
+function Inventory:GetDisplayOrder(data)
+    return data.displayOrder;
 end
- 
-Engine:DefineReturns("Button");
-function Inventory:GetButton(data)
-    return data.btn;
-end
+
+function Inventory:SetDisplayOrder(data, displayOrder)
+    if (data.displayOrder ~= displayOrder) then
+        data.displayOrder = displayOrder;
+        data.sv.displayOrder = displayOrder;
+    end
+end 

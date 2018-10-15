@@ -13,7 +13,8 @@ local IDataTextModule = Engine:CreateInterface("IDataTextModule");
 IDataTextModule:DefineProperty("MenuContent", "Frame");
 IDataTextModule:DefineProperty("MenuLabels", "table");
 IDataTextModule:DefineProperty("TotalLabelsShown", "number");
-IDataTextModule:DefineProperty("HasMenu", "boolean");
+IDataTextModule:DefineProperty("HasLeftMenu", "boolean");
+IDataTextModule:DefineProperty("HasRightMenu", "boolean");
 IDataTextModule:DefineProperty("Button", "Button");
 
 -- IDataTextModule Functions ---------

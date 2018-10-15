@@ -1,125 +1,142 @@
 -- Setup Namespaces ------------------
 
-local _, Core = ...;
-
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
+local _, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local LABEL_PATTERN = L["Guild"]..": |cffffffff%u|r";
 
 -- Register and Import Modules -------
 
-local DataText = MayronUI:ImportModule("BottomUI_DataText");
-local GuildModule, Guild = MayronUI:RegisterModule("DataText_Guild");
-local Engine = Core.Objects:Import("MayronUI.Engine");
+local Engine = obj:Import("MayronUI.Engine");
+local DataText = MayronUI:ImportModule("DataText");
+local Guild = Engine:CreateClass("Guild", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.guild", {
     enabled = true,
-    show_self = true,
-    show_tooltips = true,
+    showSelf = true,
+    showTooltips = true,
     displayOrder = 3
 });
 
 -- Local Functions ----------------
 
-local function OnLabelClick(self)
-    ChatFrame_SendSmartTell(self.id);
-    DataText.slideController:Start();
-end
+local CreateLabel;
+do
+    local onLabelClickFunc;
 
-local function CreateLabel(c)
-    local label = tk:PopFrame("Button", c);
+    local function button_OnEnter(self)
+        local fullName, rank, _, _, _, zone, note, _, _, status, classFileName, achievementPoints = tk.unpack(self.guildRosterInfo);
+        fullName = tk.strsplit("-", fullName);   
 
-    label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    label.name:SetPoint("LEFT", 6, 0);
-    label.name:SetWidth(DataText.sv.menu_width - 10);
-    label.name:SetWordWrap(false);
-    label.name:SetJustifyH("LEFT");
+        GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
+        GameTooltip:AddLine(tk:GetClassColoredText(classFileName, fullName));
+        GameTooltip:AddDoubleLine(L["Zone"]..":", zone, nil, nil, nil, 1, 1, 1);
+        GameTooltip:AddDoubleLine(L["Rank"]..":", rank, nil, nil, nil, 1, 1, 1);
 
-    if (DataText.sv.guild.show_tooltips) then
-        label:SetScript("OnEnter", items.guild.OnEnter);
-        label:SetScript("OnLeave", items.guild.OnLeave);
+        if (#note > 0) then
+            GameTooltip:AddDoubleLine(L["Notes"]..":", note, nil, nil, nil, 1, 1, 1);
+        end
+
+        GameTooltip:AddDoubleLine(L["Achievement Points"]..":", achievementPoints, nil, nil, nil, 1, 1, 1);
+        GameTooltip:Show();
     end
 
-    label:SetScript("OnClick", OnLabelClick);
-    return label;
-end
-
-local function Button_OnEnter(self)    
-    local fullName, rank, _, _, _, zone, note, _, _, status, classFileName, achievementPoints = tk.unpack(self.data);
-    fullName = tk.strsplit("-", fullName);
-
-    GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
-    GameTooltip:AddLine(tk:GetClassColoredString(classFileName, fullName));
-    GameTooltip:AddDoubleLine(L["Zone"]..":", zone, nil, nil, nil, 1, 1, 1);
-    GameTooltip:AddDoubleLine(L["Rank"]..":", rank, nil, nil, nil, 1, 1, 1);
-
-    if (#note > 0) then
-        GameTooltip:AddDoubleLine(L["Notes"]..":", note, nil, nil, nil, 1, 1, 1);
+    local function button_OnLeave(self)
+        GameTooltip:Hide();
     end
 
-    GameTooltip:AddDoubleLine(L["Achievement Points"]..":", achievementPoints, nil, nil, nil, 1, 1, 1);
-    GameTooltip:Show();
-end
+    function CreateLabel(contentFrame, popupWidth, slideController, showTooltips)
+        local label = tk:PopFrame("Button", contentFrame);
 
-local   function Button_OnLeave(self)
-    GameTooltip:Hide();
+        label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+        label.name:SetPoint("LEFT", 6, 0);
+        label.name:SetWidth(popupWidth - 10);
+        label.name:SetWordWrap(false);
+        label.name:SetJustifyH("LEFT");
+
+        if (showTooltips) then
+            label:SetScript("OnEnter", button_OnEnter);
+            label:SetScript("OnLeave", button_OnLeave);
+        end
+
+        if (not onLabelClickFunc) then
+            onLabelClickFunc = function(self)
+                ChatFrame_SendSmartTell(self.id);
+                slideController:Start(slideController.Static.FORCE_RETRACT);
+            end
+        end
+
+        label:SetScript("OnClick", onLabelClickFunc);
+        return label;
+    end
 end
 
 -- Guild Module --------------
 
-GuildModule:OnInitialize(function(self, data) 
-    data.sv = db.profile.datatext.guild;
+DataText:Hook("OnInitialize", function(self, dataTextData)
+    local sv = db.profile.datatext.guild;
+    sv:SetParent(dataTextData.sv);
 
-    if (data.sv.enabled) then
-        --DataText:RegisterDataItem(self);
+    if (sv.enabled) then
+        local guild = Guild(sv, dataTextData.slideController);
+        self:RegisterDataModule(guild);
     end
 end);
 
-GuildModule:OnEnable(function(self, data, btn)
-    data.btn = btn;
-    data.btn:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-    data.showMenu = nil;
+function Guild:__Construct(data, sv, slideController)
+    data.sv = sv;
+    data.displayOrder = sv.displayOrder;
+    data.slideController = slideController;
+
+    -- set public instance properties
+    self.MenuContent = CreateFrame("Frame");
+    self.MenuLabels = {};
+    self.TotalLabelsShown = 0;
+    self.HasLeftMenu = true;
+    self.HasRightMenu = false;
+
+    self.Button = DataText:CreateDataTextButton(self);
+    self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 
     data.handler = em:CreateEventHandler("GUILD_ROSTER_UPDATE", function()
-        if (not data.btn) then return; end
-        data:update();
-    end);   
-end);
+        if (not self.Button) then return; end
+        self:Update();
+    end);
+end
 
-GuildModule:OnDisable(function(self, data)
+function Guild:IsEnabled(data) 
+    return data.sv.enabled;
+end
+
+function Guild:Enable(data) 
+    data.sv.enabled = true;
+end
+
+function Guild:Disable(self)
     if (data.handler) then
         data.handler:Destroy();
     end
 
-    data.btn:RegisterForClicks("LeftButtonUp");
-end);
-
--- Guild Object --------------
+    self.Button:RegisterForClicks("LeftButtonUp");
+end
 
 function Guild:Update(data)
     if (not IsInGuild()) then
-        data.btn:SetText(L["No Guild"]);
+        self.Button:SetText(L["No Guild"]);
     else
         GuildRoster(); -- Must get data from server first!
+
         local _, _, numOnlineAndMobile = GetNumGuildMembers();
+        numOnlineAndMobile = (not data.sv.showSelf and numOnlineAndMobile - 1) or numOnlineAndMobile;
 
-        local showSelf = DataText.sv.guild.show_self; -- TODO Remove this!
-        numOnlineAndMobile = (not showSelf and numOnlineAndMobile - 1) or numOnlineAndMobile;
-
-        data.showMenu = (numOnlineAndMobile ~= 0);
-        data.btn:SetText(tk.string.format(LABEL_PATTERN, numOnlineAndMobile));
+        -- data.showMenu = (numOnlineAndMobile ~= 0);
+        self.Button:SetText(tk.string.format(LABEL_PATTERN, numOnlineAndMobile));
     end
 end
 
-function Guild:Click(data)
-    self:Update();
-
+function Guild:Click(data, button)
     if (button == "RightButton") then
         if (IsTrialAccount()) then
             tk:Print(L["Starter Edition accounts cannot perform this action."]);
@@ -127,7 +144,6 @@ function Guild:Click(data)
             ToggleGuildFrame();
         end
 
-        DataText.slideController:Start(); -- TODO: Remove!
         return;
     end
 
@@ -135,55 +151,52 @@ function Guild:Click(data)
         return; 
     end
 
-    data.content.labels = data.content.labels or {};
-
-    local numLabelsShown = 0;
+    local totalLabelsShown = 0;
     local playerName = tk:GetPlayerKey();
 
     for i = 1, (GetNumGuildMembers()) do
         local fullName, _, _, level, class, _, _, _, online, status, classFileName = GetGuildRosterInfo(i);
-        local showSelf = DataText.sv.guild.show_self; -- TODO: Remove!
         
-        if (online and fullName ~= playerName) then
-            numLabelsShown = numLabelsShown + 1;
+        if (online and (data.sv.showSelf or fullName ~= playerName)) then
+            totalLabelsShown = totalLabelsShown + 1;
 
             local status = (status == 1 and " |cffffe066[AFK]|r") or (status == 2 and " |cffff3333[DND]|r") or "";
-            local label = data.content.labels[numLabelsShown] or CreateLabel(data.content);
+            local label = self.MenuLabels[totalLabelsShown] or 
+                CreateLabel(self.MenuContent, data.sv.popup.width, data.slideController, data.sv.showTooltips);
 
-            data.content.labels[numLabelsShown] = label;
-
-            if (items.guild.update_required) then
-                if (DataText.sv.guild.show_tooltips) then
-                    label:SetScript("OnEnter", items.guild.OnEnter);
-                    label:SetScript("OnLeave", items.guild.OnLeave);
-                else
-                    label:SetScript("OnEnter", nil);
-                    label:SetScript("OnLeave", nil);
-                end
-            end
+            self.MenuLabels[totalLabelsShown] = label;
 
             label.id = fullName; -- used for messaging
             fullName = tk.strsplit("-", fullName);
+            
             label:SetNormalTexture(1);
             label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);
             label:SetHighlightTexture(1);
             label:GetHighlightTexture():SetColorTexture(0.2, 0.2, 0.2, 0.4);
-            label.data = {GetGuildRosterInfo(i)};
+
+            -- required for button_OnEnter
+            if (tk.type(label.guildRosterInfo) == "table") then
+                label.guildRosterInfo:Close();
+                label.guildRosterInfo = nil;
+            end
+
+            label.guildRosterInfo = tk:GetWrapper(GetGuildRosterInfo(i));
+
             label.name:SetText(tk.string.format("%s%s %s",
-                tk:GetClassColoredString(classFileName, fullName), status, level));
+                tk:GetClassColoredText(classFileName, fullName), status, level));
         end
     end
 
-    items.guild.update_required = nil; -- Change this!
-
-    return DataText:PositionLabels(data.content, numLabelsShown);
+    self.TotalLabelsShown = totalLabelsShown;
 end
 
-function Guild:HasMenu()
-    return true;
+function Guild:GetDisplayOrder(data)
+    return data.displayOrder;
 end
 
-Engine:DefineReturns("Button");
-function Guild:GetButton(data)
-    return data.btn;
-end
+function Guild:SetDisplayOrder(data, displayOrder)
+    if (data.displayOrder ~= displayOrder) then
+        data.displayOrder = displayOrder;
+        data.sv.displayOrder = displayOrder;
+    end
+end 

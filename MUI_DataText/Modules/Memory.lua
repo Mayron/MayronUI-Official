@@ -1,20 +1,15 @@
 -- Setup Namespaces ------------------
 
-local _, Core = ...;
-
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
+local _, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local LABEL_PATTERN = "|cffffffff%s|r mb";
 
 -- Register and Import Modules -------
 
-local DataText = MayronUI:ImportModule("BottomUI_DataText");
-local MemoryModule, Memory = MayronUI:RegisterModule("DataText_Memory");
-local Engine = Core.Objects:Import("MayronUI.Engine");
+local Engine = obj:Import("MayronUI.Engine");
+local DataText = MayronUI:ImportModule("DataText");
+local Memory = Engine:CreateClass("Memory", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
 
@@ -25,9 +20,8 @@ db:AddToDefaults("profile.datatext.memory", {
 
 -- Local Functions ----------------
 
-local function CreateLabel(c)
-    local label = tk:PopFrame("Frame", c);
-    local popupWidth = DataText:GetMenuWidth();
+local function CreateLabel(contentFrame, popupWidth)
+    local label = tk:PopFrame("Frame", contentFrame);
 
     label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     label.value = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -52,29 +46,47 @@ end
 
 -- Memory Module --------------
 
-MemoryModule:OnInitialize(function(self, data) 
-    data.sv = db.profile.datatext.memory;
+DataText:Hook("OnInitialize", function(self, dataTextData)
+    local sv = db.profile.datatext.memory;
+    sv:SetParent(dataTextData.sv);
 
-    if (data.sv.enabled) then
-        --DataText:RegisterDataItem(self);
+    if (sv.enabled) then
+        local memory = Memory(sv);
+        self:RegisterDataModule(memory);
     end
 end);
 
-MemoryModule:OnEnable(function(self, data, btn, content)    
-    data.btn = btn;
-    data.content = content; -- content?
-    data.showMenu = true;
-end);
+function Memory:__Construct(data, sv)
+    data.sv = sv;
+    data.displayOrder = sv.displayOrder;
 
-MemoryModule:OnDisable(function(self, data)
-    data.showMenu = nil;
-    data.disabled = true;
-end);
+    -- set public instance properties
+    self.MenuContent = CreateFrame("Frame");
+    self.MenuLabels = {};
+    self.TotalLabelsShown = 0;
+    self.HasLeftMenu = true;
+    self.HasRightMenu = false;
+    self.Button = DataText:CreateDataTextButton(self);
+end
 
--- Memory Object --------------
+function Memory:IsEnabled(data) 
+    return data.sv.enabled;
+end
+
+function Memory:Enable(data) 
+    data.sv.enabled = true;
+end
+
+function Memory:Disable(self)
+    if (data.handler) then
+        data.handler:Destroy();
+    end
+
+    self.Button:RegisterForClicks("LeftButtonUp");
+end
 
 function Memory:Update(data)
-    if (not override and data.executed) then 
+    if (data.executed) then 
         return; 
     end
 
@@ -96,55 +108,60 @@ function Memory:Update(data)
         total = (total / 1000);
         total = tk:FormatFloat(1, total);
 
-        data.btn:SetText(tk.string.format(LABEL_PATTERN, total));
-        if (not override) then
-            tk.C_Timer.After(10, loop);
-        end
+        self.Button:SetText(tk.string.format(LABEL_PATTERN, total));
+
+        tk.C_Timer.After(10, loop);
     end
 
     loop();
 end
 
-function Memory:Click(data, content)
+function Memory:Click(data)
     tk.collectgarbage("collect");
-    content.labels = content.labels or {};
-    local sorted = {};
+    
+    local currentIndex = 0;
+    local sorted = tk:GetWrapper();    
 
     for i = 1, GetNumAddOns() do
         local _, name = GetAddOnInfo(i);
         local usage = GetAddOnMemoryUsage(i);
-        local value;
-
-        if (usage > 1000) then
-            value = usage / 1000;
-            value = tk:FormatFloat(1, value).." mb";
-        else
-            value = tk:FormatFloat(0, usage).." kb";
-        end
-
-        content.labels[i] = content.labels[i] or CreateLabel(content);
-
-        local label = content.labels[i];
-        label.name:SetText(name);
-        label.value:SetText(value);
-        label.usage = usage;
 
         if (usage > 1) then
-            tk.table.insert(sorted, label);
+            currentIndex = currentIndex + 1;
+
+            local label = self.MenuLabels[currentIndex] or CreateLabel(self.MenuContent, data.sv.popup.width);
+            local value;
+
+            if (usage > 1000) then
+                value = usage / 1000;
+                value = tk:FormatFloat(1, value).." mb";
+            else
+                value = tk:FormatFloat(0, usage).." kb";
+            end
+
+            label.name:SetText(name);
+            label.value:SetText(value);
+            label.usage = usage;
+        
+            tk.table.insert(sorted, label);            
         end
     end
 
     tk.table.sort(sorted, compare);
-    content.labels = sorted;
+    tk:EmptyTable(self.MenuLabels);
+    tk:FillTable(self.MenuLabels, unpack(sorted));
+    sorted:Close();
 
-    return #sorted;
+    self.TotalLabelsShown = #self.MenuLabels;
 end
 
-function Memory:HasMenu()
-    return true;
+function Memory:GetDisplayOrder(data)
+    return data.displayOrder;
 end
 
-Engine:DefineReturns("Button");
-function Memory:GetButton(data)
-    return data.btn;
-end
+function Memory:SetDisplayOrder(data, displayOrder)
+    if (data.displayOrder ~= displayOrder) then
+        data.displayOrder = displayOrder;
+        data.sv.displayOrder = displayOrder;
+    end
+end 

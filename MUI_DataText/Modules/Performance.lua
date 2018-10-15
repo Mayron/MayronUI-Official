@@ -1,80 +1,99 @@
 -- Setup Namespaces ------------------
 
-local _, Core = ...;
-
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
+local _, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local LABEL_PATTERN = "|cffffffff%s|r";
 
 -- Register and Import Modules -------
 
-local DataText = MayronUI:ImportModule("BottomUI_DataText");
-local PerformanceModule, Performance = MayronUI:RegisterModule("DataText_Performance");
-local Engine = Core.Objects:Import("MayronUI.Engine");
+local Engine = obj:Import("MayronUI.Engine");
+local DataText = MayronUI:ImportModule("DataText");
+local Performance = Engine:CreateClass("Performance", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.performance", {
     enabled = true,
-    show_fps = true,
-    show_home_latency = true,
-    show_server_latency = false,
+    showFps = true,
+    showHomeLatency = true,
+    showServerLatency = false,
     displayOrder = 4
 });
 
 -- Performance Module --------------
 
-PerformanceModule:OnInitialize(function(self, data) 
-    data.sv = db.profile.datatext.performance;
+DataText:Hook("OnInitialize", function(self, dataTextData)
+    local sv = db.profile.datatext.performance;
+    sv:SetParent(dataTextData.sv);
 
-    if (data.sv.enabled) then
-        --DataText:RegisterDataItem(self);
+    if (sv.enabled) then
+        local performance = Performance(sv);
+        self:RegisterDataModule(performance);
+        performance:Enable();
     end
 end);
 
-PerformanceModule:OnEnable(function(self, data, btn)
-    data.btn = btn; 
-end);
+function Performance:__Construct(data, sv)
+    data.sv = sv;
+    data.displayOrder = sv.displayOrder;
 
-PerformanceModule:OnDisable(function(self, data)
-    data.disabled = true;
-end);
+    -- set public instance properties
+    self.MenuContent = CreateFrame("Frame");
+    self.MenuLabels = {};
+    self.TotalLabelsShown = 0;
+    self.HasLeftMenu = false;
+    self.HasRightMenu = false;
+    self.Button = DataText:CreateDataTextButton(self);
+end
 
--- Performance Object --------------
+function Performance:Enable(data) 
+    data.sv.enabled = true;
 
-function Performance:Update(data, override)
-    if (not override and data.executed) then 
+    data.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
+        if (not self.Button) then return; end
+        self:Update();
+    end);  
+end
+
+function Performance:Disable(data)
+    data.sv.enabled = false;
+
+    if (data.handler) then
+        data.handler:Destroy();
+    end
+end
+
+function Performance:IsEnabled(data) 
+    return data.sv.enabled;
+end
+
+function Performance:Update(data)
+    if (data.executed) then 
         return; 
     end
 
     data.executed = true;
 
     local function loop()
-        if (data.disabled) then 
-            return; 
-        end
-
         local _, _, latencyHome, latencyServer = GetNetStats();
 
         local label = "";
 
-        if (data.sv.show_fps) then
+        if (data.sv.showFps) then
             label = tk.string.format("|cffffffff%u|r fps", GetFramerate());
         end
 
-        if (data.sv.show_home_latency) then
+        if (data.sv.showHomeLatency) then
             label = tk.string.format("%s |cffffffff%u|r ms", label, latencyHome);
         end
 
-        if (data.sv.show_server_latency) then
+        if (data.sv.showServerLatency) then
             label = tk.string.format("%s |cffffffff%u|r ms", label, latencyServer);
         end
 
-        data.btn:SetText(label:trim());
+        self.Button:SetText(label:trim());
+
         if (not override) then
             tk.C_Timer.After(3, loop);
         end
@@ -83,14 +102,15 @@ function Performance:Update(data, override)
     loop();
 end
 
-function Performance:Click(data)
+function Performance:Click(data) end
+
+function Performance:GetDisplayOrder(data)
+    return data.displayOrder;
 end
 
-function Performance:HasMenu()
-    return false;
-end
-
-Engine:DefineReturns("Button");
-function Performance:GetButton(data)
-    return data.btn;
-end
+function Performance:SetDisplayOrder(data, displayOrder)
+    if (data.displayOrder ~= displayOrder) then
+        data.displayOrder = displayOrder;
+        data.sv.displayOrder = displayOrder;
+    end
+end 

@@ -19,23 +19,32 @@ db:AddToDefaults("profile.datatext.friends", {
     displayOrder = 2
 });
 
--- Local Functions ----------------
+-- Local Functions -------------------
 
-local function CreateLabel(c)
-    local label = tk:PopFrame("Button", c);
-    label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    label.name:SetPoint("LEFT", 6, 0);
-    label.name:SetPoint("RIGHT", -10, 0);
-    label.name:SetWordWrap(false);
-    label.name:SetJustifyH("LEFT");
-    label:SetScript("OnClick", OnLabelClick);
+local CreateLabel;
+do
+    local onLabelClickFunc;
 
-    return label;
-end
+     function CreateLabel(contentFrame, slideController)
+        local label = tk:PopFrame("Button", contentFrame);
 
-local function OnLabelClick(self)
-    ChatFrame_SendSmartTell(self.id);
-    DataText.slideController:Start(); -- remove
+        label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+        label.name:SetPoint("LEFT", 6, 0);
+        label.name:SetPoint("RIGHT", -10, 0);
+        label.name:SetWordWrap(false);
+        label.name:SetJustifyH("LEFT");
+        
+        if (not onLabelClickFunc) then
+            onLabelClickFunc = function(self)
+                ChatFrame_SendSmartTell(self.id);
+                slideController:Start(slideController.Static.FORCE_RETRACT);
+            end
+        end
+
+        label:SetScript("OnClick", onLabelClickFunc);
+
+        return label;
+    end
 end
 
 -- Friends Module --------------
@@ -45,33 +54,50 @@ DataText:Hook("OnInitialize", function(self, dataTextData)
     sv:SetParent(dataTextData.sv);
 
     if (sv.enabled) then
-        local friends = Friends(sv);
+        local friends = Friends(sv, dataTextData.slideController);
         self:RegisterDataModule(friends);
     end
 end);
 
-function Friends:Enable(data) 
+function Friends:__Construct(data, sv, slideController)
+    data.sv = sv;
+    data.displayOrder = sv.displayOrder;
+    data.slideController = slideController;
+
+    -- set public instance properties
+    self.MenuContent = CreateFrame("Frame");
+    self.MenuLabels = {};
+    self.TotalLabelsShown = 0;
+    self.HasLeftMenu = true;
+    self.HasRightMenu = false;
+
+    self.Button = DataText:CreateDataTextButton(self);
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+
     data.showMenu = nil;
 
     data.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
-        if (not data.btn) then 
-            return; 
-        end
-
+        if (not self.Button) then return; end
         self:Update();
     end);  
 end
 
+function Friends:Enable(data) 
+    data.sv.enabled = true;
+end
+
 function Friends:Disable(data)
+    data.sv.enabled = false;
     if (data.handler) then
         data.handler:Destroy();
     end
 
-    data.btn:RegisterForClicks("LeftButtonUp");
+    self.Button:RegisterForClicks("LeftButtonUp");
 end
 
--- Friends Object --------------
+function Friends:IsEnabled(data) 
+    return data.sv.enabled;
+end
 
 function Friends:Update(data)
     local total_online = 0;
@@ -89,12 +115,11 @@ function Friends:Update(data)
     end
 
     data.showMenu = (total_online ~= 0);
-    data.btn:SetText(tk.string.format(LABEL_PATTERN, total_online));
+    self.Button:SetText(tk.string.format(LABEL_PATTERN, total_online));
 end
 
-function Friends:Click(data, content)
+function Friends:Click(data, button)
     if (button == "RightButton") then
-        DataText.slideController:Start(); -- remove
         ToggleFriendsFrame();
         return;
     end
@@ -103,20 +128,19 @@ function Friends:Click(data, content)
         return; 
     end
 
-    content.labels = content.labels or {};
-
     local r, g, b = tk:GetThemeColor();
-    local numLabelsShown = 0;
+    local totalLabelsShown = 0;
 
+    -- Battle.Net friends
     for i = 1, BNGetNumFriends() do
         local _, realName, _, _, toonName, _, client, online, _, isAFK, isDND = BNGetFriendInfo(i);
 
         if (online) then
-            numLabelsShown = numLabelsShown + 1;
-            local status = (isAFK and "|cffffe066[AFK] |r") or (isDND and "|cffff3333[DND] |r") or "";
+            totalLabelsShown = totalLabelsShown + 1;
 
-            local label = content.labels[numLabelsShown] or CreateLabel(content);
-            content.labels[numLabelsShown]= label;
+            local status = (isAFK and "|cffffe066[AFK] |r") or (isDND and "|cffff3333[DND] |r") or "";
+            local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.slideController);
+            self.MenuLabels[totalLabelsShown] = label;
 
             label.id = realName;
             label:SetNormalTexture(1);
@@ -135,29 +159,32 @@ function Friends:Click(data, content)
         end
     end
 
+    -- WoW Friends (non-Battle.Net)
     for i = 1, GetNumFriends() do
         local name, level, class, _, online, status = GetFriendInfo(i);
+
         if (online) then
             local classFileName = tk:GetIndex(tk.Constants.LOCALIZED_CLASS_NAMES, class) or class;
 
             status = (status == " <Away>" and " |cffffe066[AFK]|r") or 
                      (status == " <DND>" and " |cffff3333[DND]|r") or "";
 
-            numLabelsShown = numLabelsShown + 1;
+            totalLabelsShown = totalLabelsShown + 1;
 
-            local label = content.labels[numLabelsShown] or CreateLabel(content);
-            content.labels[numLabelsShown] = label; -- old: numBNFriends + i
+            local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.slideController);
+            self.MenuLabels[totalLabelsShown] = label; -- old: numBNFriends + i
 
             label.id = name;
             label:SetNormalTexture(1);
             label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);
             label:SetHighlightTexture(1);
             label:GetHighlightTexture():SetColorTexture(0.2, 0.2, 0.2, 0.4);
-            label.name:SetText(tk.string.format("%s%s %s ", tk:GetClassColoredString(classFileName, name), status, level));
+            label.name:SetText(tk.string.format("%s%s %s ", 
+                tk:GetClassColoredString(classFileName, name), status, level));
         end
     end
 
-    return numLabelsShown;
+    self.TotalLabelsShown = totalLabelsShown;
 end
 
 function Friends:GetDisplayOrder(data)

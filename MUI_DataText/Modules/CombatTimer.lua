@@ -36,7 +36,8 @@ function CombatTimer:__Construct(data, sv)
     self.MenuContent = CreateFrame("Frame");
     self.MenuLabels = {};
     self.TotalLabelsShown = 0;
-    self.HasMenu = false;
+    self.HasLeftMenu = false;
+    self.HasRightMenu = false;
 
     em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
         data.startTime = GetTime();

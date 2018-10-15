@@ -10,12 +10,18 @@ SlideController.Static.FORCE_RETRACT = 1;
 SlideController.Static.FORCE_EXPAND = 2;
 ---------------------------------
 
-WidgetsPackage:DefineParams("Frame")
-function SlideController:__Construct(data, frame)
+local function frameOnHide(self)
+    self:SetHeight(1);
+end
+
+WidgetsPackage:DefineParams("Frame", "?number")
+function SlideController:__Construct(data, frame, step)
     data.frame = frame;
-    data.step = 20;
+    data.step = step or 20;
     data.minHeight = 1;
     data.maxHeight = 200;
+
+    frame:HookScript("OnHide", frameOnHide);
 end
 
 function SlideController:Start(data, forceState)        

@@ -190,15 +190,14 @@ function DataTextClass:RegisterDataModule(data, dataModule)
     local dataModuleName = dataModule:GetObjectType(); -- get's name of object/module
     data.DataModules[dataModuleName] = dataModule;
     
-    local btn = dataModule.Button;
-    btn:SetParent(data.bar);
+    local dataTextButton = dataModule.Button;
+    dataTextButton:SetParent(data.bar);
 
-    btn:SetScript("OnClick", function(_, ...)
-        self:ClickModuleButton(dataModule, btn, ...);
+    dataTextButton:SetScript("OnClick", function(_, ...)
+        self:ClickModuleButton(dataModule, dataTextButton, ...);
     end);
 
-    self:PositionDataItems();
-    return btn;            
+    self:PositionDataItems();          
 end
 
 Engine:DefineParams("IDataTextModule", "?string");
@@ -358,14 +357,14 @@ function DataTextClass:PositionLabels(data, dataModule)
 end
 
 Engine:DefineParams("IDataTextModule", "Button");
-function DataTextClass:ClickModuleButton(data, dataModule, btn, ...)
+function DataTextClass:ClickModuleButton(data, dataModule, dataTextButton, button, ...)
     GameTooltip:Hide();
     dataModule:Update(data);
     data.slideController:Stop();
 
-    local btnID = dataModule:GetDisplayOrder();
+    local buttonDisplayOrder = dataModule:GetDisplayOrder();
 
-    if (data.lastButtonID == btnID and data.popup:IsShown()) then       
+    if (data.lastButtonID == buttonDisplayOrder and data.lastButton == button and data.popup:IsShown()) then       
         -- clicked on same dataTextModule button so close the popup!
 
         -- if button was rapidly clicked on, reset alpha
@@ -379,16 +378,19 @@ function DataTextClass:ClickModuleButton(data, dataModule, btn, ...)
     end
 
     -- update last button ID that was clicked (use display order for this)
-    data.lastButtonID = btnID;
+    data.lastButtonID = buttonDisplayOrder;
+    data.lastButton = button;
 
     -- a different dataTextModule button was clicked on!
     -- reset popup...
-    data.popup:Hide();
+    -- data.popup:Hide();
     data.popup:ClearAllPoints();
 
-    if (not dataModule.HasMenu) then
+    -- handle type of button click
+    if ((button == "RightButton" and not dataModule.HasRightMenu) or 
+        (button == "LeftButton" and not dataModule.HasLeftMenu)) then
         -- execute dataTextModule specific click logic
-        dataModule:Click(...);
+        dataModule:Click(button, ...);
         return;
     end
 
@@ -397,7 +399,7 @@ function DataTextClass:ClickModuleButton(data, dataModule, btn, ...)
     self:ClearLabels(dataModule.MenuLabels);    
     
     -- execute dataTextModule specific click logic
-    dataModule:Click(...);
+    dataModule:Click(button, ...);
 
     -- calculate new height based on number of labels to show
     local totalHeight = self:PositionLabels(dataModule) or data.sv.popup.maxHeight;
@@ -407,15 +409,15 @@ function DataTextClass:ClickModuleButton(data, dataModule, btn, ...)
     local offset = data.resourceBars:GetHeight();
 
     -- update positioning of popup menu based on dataTextModule button's location
-    if (btnID == #data.OrderedButtons) then
+    if (buttonDisplayOrder == #data.OrderedButtons) then
         -- if button was the last button displayed on the data-text bar
-        data.popup:SetPoint("BOTTOMRIGHT", btn, "TOPRIGHT", -1, offset + 2);
-    elseif (btnID == 1) then
+        data.popup:SetPoint("BOTTOMRIGHT", dataTextButton, "TOPRIGHT", -1, offset + 2);
+    elseif (buttonDisplayOrder == 1) then
         -- if button was the first button displayed on the data-text bar
-        data.popup:SetPoint("BOTTOMLEFT", btn, "TOPLEFT", 1, offset + 2);
+        data.popup:SetPoint("BOTTOMLEFT", dataTextButton, "TOPLEFT", 1, offset + 2);
     else
         -- if button was not the first or last button displayed on the data-text bar
-        data.popup:SetPoint("BOTTOM", btn, "TOP", 0, offset + 2);
+        data.popup:SetPoint("BOTTOM", dataTextButton, "TOP", 0, offset + 2);
     end
 
     -- begin expanding the popup menu
@@ -439,8 +441,4 @@ end
 Engine:DefineReturns("Frame");
 function DataTextClass:GetFrame(data)    
     return data.bar;
-end
-
-function DataTextClass:GetMenuWidth(data)
-    return data.sv.popup.width;
 end

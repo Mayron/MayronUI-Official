@@ -71,7 +71,8 @@ function Durability:__Construct(data, sv)
     self.MenuContent = CreateFrame("Frame");
     self.MenuLabels = {};
     self.TotalLabelsShown = 0;
-    self.HasMenu = true;
+    self.HasLeftMenu = true;
+    self.HasRightMenu = false;
     self.Button = DataText:CreateDataTextButton(self);
 end
 

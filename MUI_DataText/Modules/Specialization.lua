@@ -1,20 +1,15 @@
 -- Setup Namespaces ------------------
 
-local _, Core = ...;
-
-local em = Core.EventManager;
-local tk = Core.Toolkit;
-local db = Core.Database;
-local gui = Core.GUIBuilder;
-local L = Core.Locale;
+local _, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local LABEL_PATTERN = "|cffffffff%s|r";
 
 -- Register and Import Modules -------
 
-local DataText = MayronUI:ImportModule("BottomUI_DataText");
-local SpecializationModule, Specialization = MayronUI:RegisterModule("DataText_Specialization");
-local Engine = Core.Objects:Import("MayronUI.Engine");
+local Engine = obj:Import("MayronUI.Engine");
+local DataText = MayronUI:ImportModule("DataText");
+local Specialization = Engine:CreateClass("Specialization", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
 
@@ -26,7 +21,7 @@ db:AddToDefaults("profile.datatext.specialization", {
 
 -- Local Functions ----------------
 
-local function OnEnter(self)
+local function button_OnEnter(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
     GameTooltip:SetText(L["Commands"]..":")
     GameTooltip:AddDoubleLine(tk:GetThemeColoredText(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
@@ -34,28 +29,48 @@ local function OnEnter(self)
     GameTooltip:Show();
 end
 
-local function OnLeave()
+local function button_OnLeave()
     GameTooltip:Hide();
 end
 
-local function OnLabelClick(self)
-    if (self.specID) then
-        if (GetSpecialization() ~= self.specID) then
-            SetSpecialization(self.specID);
-            DataText.slideController:Start();
-        end
+local CreateLabel;
+do
+    local onLabelClickFunc;
 
-    elseif (self.lootSpecID) then
-        if (GetLootSpecialization() ~= self.lootSpecID) then
-            SetLootSpecialization(self.lootSpecID);
-            DataText.slideController:Start();
+    function CreateLabel(contentFrame, popupWidth, slideController)
+        local label = tk:PopFrame("Button", contentFrame);
+    
+        label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+        label.name:SetPoint("LEFT", 6, 0);
+        label.name:SetWidth(popupWidth - 10);
+        label.name:SetWordWrap(false);
+        label.name:SetJustifyH("LEFT");
 
-            if (self.lootSpecID == 0) then
-                local _, name = GetSpecializationInfo(GetSpecialization());
-                tk.print(YELLOW_FONT_COLOR_CODE..L["Loot Specialization set to: Current Specialization"].." ("..name..")|r");
+
+        if (not onLabelClickFunc) then
+            onLabelClickFunc = function(self)
+                if (self.specID) then
+                    if (GetSpecialization() ~= self.specID) then
+                        SetSpecialization(self.specID);
+                        slideController:Start();
+                    end
+            
+                elseif (self.lootSpecID) then
+                    if (GetLootSpecialization() ~= self.lootSpecID) then
+                        SetLootSpecialization(self.lootSpecID);
+                        slideController:Start();
+            
+                        if (self.lootSpecID == 0) then
+                            local _, name = GetSpecializationInfo(GetSpecialization());
+                            tk.print(YELLOW_FONT_COLOR_CODE..L["Loot Specialization set to: Current Specialization"].." ("..name..")|r");
+                        end
+                    end            
+                end
             end
         end
 
+        label:SetScript("OnClick", onLabelClickFunc);    
+        return label;
     end
 end
 
@@ -63,40 +78,46 @@ local function SetEquipmentSet(self, setName, specName)
     if (setName == L["<none>"]) then 
         setName = nil; 
     end
-    db.profile.datatext.spec.sets[specName] = setName;
-end
 
-local function CreateLabel(c)
-    local label = tk:PopFrame("Button", c);
-
-    label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    label.name:SetPoint("LEFT", 6, 0);
-    label.name:SetWidth(DataText.sv.menu_width - 10);
-    label.name:SetWordWrap(false);
-    label.name:SetJustifyH("LEFT");
-    label:SetScript("OnClick", OnLabelClick);
-
-    return label;
+    db.profile.datatext.specialization.sets[specName] = setName;
 end
 
 -- Specialization Module --------------
 
-SpecializationModule:OnInitialize(function(self, data) 
-    data.sv = db.profile.datatext.specialization;
+DataText:Hook("OnInitialize", function(self, dataTextData)
+    local sv = db.profile.datatext.specialization;
+    sv:SetParent(dataTextData.sv);
 
-    if (data.sv.enabled) then
-        --DataText:RegisterDataItem(self);
+    if (sv.enabled) then
+        local specialization = Specialization(sv, dataTextData.bar, dataTextData.slideController);
+        self:RegisterDataModule(specialization);
+        specialization:Enable();
     end
 end);
 
-SpecializationModule:OnEnable(function(self, data, btn)
-    data.btn = btn;
-    data.showMenu = true;
-    data.btn:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+function Specialization:__Construct(data, sv, dataTextBar, slideController)
+    data.sv = sv;
+    data.displayOrder = sv.displayOrder;
+    data.dataTextBar = dataTextBar;
+    data.slideController = slideController;
+
+    -- set public instance properties
+    self.MenuContent = CreateFrame("Frame");
+    self.MenuLabels = {};
+    self.TotalLabelsShown = 0;
+    self.HasLeftMenu = true;
+    self.HasRightMenu = true;
+
+    self.Button = DataText:CreateDataTextButton(self);
+    self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+end
+
+function Specialization:Enable(data) 
+    data.sv.enabled = true;
 
     local r, g, b = tk:GetThemeColor();
-    data.btn:SetScript("OnEnter", OnEnter);
-    data.btn:SetScript("OnLeave", OnLeave);
+    self.Button:SetScript("OnEnter", button_OnEnter);
+    self.Button:SetScript("OnLeave", button_OnLeave);
 
     em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
         self:Update();
@@ -104,13 +125,13 @@ SpecializationModule:OnEnable(function(self, data, btn)
 
     em:CreateEventHandler("PLAYER_SPECIALIZATION_CHANGED", function(_, _, unitID)
         if (unitID == "player") then
-            data:update();  
+            self:Update(); 
 
-            if (not DataText.sv.spec.sets) then return; end
+            if (not data.sv.sets) then return; end
             local _, name = GetSpecializationInfo(GetSpecialization());
 
-            if (DataText.sv.spec.sets[name]) then
-                local setName = DataText.sv.spec.sets[name];
+            if (data.sv.sets[name]) then
+                local setName = data.sv.sets[name];
 
                 if (setName ~= nil) then                    
                     C_EquipmentSet.UseEquipmentSet(setName);
@@ -118,71 +139,73 @@ SpecializationModule:OnEnable(function(self, data, btn)
             end
         end
     end):SetKey("spec_2");
-end);
+end
 
-SpecializationModule:OnDisable(function(self, data)
+function Specialization:IsEnabled(data) 
+    return data.sv.enabled;
+end
+
+function Specialization:Disable(data)
+    data.sv.enabled = false;
+
     em:FindHandlerByKey("spec_1"):Destroy();
     em:FindHandlerByKey("spec_2"):Destroy();
 
-    data.btn:SetScript("OnEnter", nil);
-    data.btn:SetScript("OnLeave", nil);
-    data.showMenu = nil;
-end);
-
--- Specialization Object --------------
+    self.Button:SetScript("OnEnter", nil);
+    self.Button:SetScript("OnLeave", nil);
+end
 
 function Specialization:Update(data)
-    if (not data.btn) then 
+    if (not self.Button) then 
         return; 
     end
 
     if (UnitLevel("player") < 10) then
-        data.btn:SetText(L["No Spec"]);
-        data.showMenu = nil;
+        self.Button:SetText(L["No Spec"]);
+        -- data.showMenu = nil;
         return;
     end
 
-    data.showMenu = true;
+    -- data.showMenu = true;
     local specID = GetSpecialization();
 
     if (not specID) then
-        data.btn:SetText(L["No Spec"]);
+        self.Button:SetText(L["No Spec"]);
     else
         local _, name = GetSpecializationInfo(specID, nil, nil, "player");
-        data.btn:SetText(name);
+        self.Button:SetText(name);
     end
 end
 
-function Specialization:Click(data, content)
-    if (not data.showMenu) then
+function Specialization:Click(data, button)
+    -- if (not data.showMenu) then
         if (UnitLevel("player") < 10) then
             tk:Print(L["Must be level 10 or higher to use Talents."]);
-        end
-        return;
-    end
+            return;
+        end        
+    -- end
 
-    local numLabelsShown = 1;
-    local r, g, b = tk:GetThemeColor();
-
-    data.content.labels = data.content.labels or {};    
+    local totalLabelsShown = 1;
+    local r, g, b = tk:GetThemeColor(); 
+    local itemHeight = data.sv.popup.itemHeight;
 
     if (button == "LeftButton") then
-        local title = data.content.labels[numLabelsShown] or CreateLabel(data.content);
+        local title = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.sv.popup.width, data.slideController);
 
-        data.content.labels[numLabelsShown] = title;
-        title.name:SetText(tk:GetRGBColoredString(L["Choose Spec"]..":", r, g, b));
+        self.MenuLabels[totalLabelsShown] = title;
+        title.name:SetText(tk:GetRGBColoredText(L["Choose Spec"]..":", r, g, b));
         title:SetNormalTexture(1);
         title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
 
         local dropdownID = 0;
 
         for i = 1, GetNumSpecializations() do
-            numLabelsShown = numLabelsShown + 1;
+            totalLabelsShown = totalLabelsShown + 1;
             local _, specName = GetSpecializationInfo(i);
             local extra = "";
-            local label = data.content.labels[numLabelsShown] or CreateLabel(data.content);
+            local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.sv.popup.width, data.slideController);
 
-            data.content.labels[numLabelsShown] = label;
+            self.MenuLabels[totalLabelsShown] = label;
             label.specID = i;
             label.lootSpecID = nil;
 
@@ -203,15 +226,14 @@ function Specialization:Click(data, content)
 
             -- create dropdown:
             local dropdown = data.dropdowns[i] or gui:CreateDropDown(
-                tk.Constants.AddOnStyle, data.content, "UP", DataText.bar);
+                tk.Constants.AddOnStyle, self.MenuContent, "UP", data.dataTextBar);
 
-                data.dropdowns[i] = dropdown;
+            data.dropdowns[i] = dropdown;
             label.dropdown = dropdown;
-
             dropdown:Show();
 
-            if (DataText.sv.spec.sets and DataText.sv.spec.sets[specName]) then
-                dropdown:SetLabel(DataText.sv.spec.sets[specName]);
+            if (data.sv.sets and data.sv.sets[specName]) then
+                dropdown:SetLabel(data.sv.sets[specName]);
             else
                 dropdown:SetLabel("Equipment Set");
             end
@@ -235,15 +257,15 @@ function Specialization:Click(data, content)
         -- position manually:
         local totalHeight = 0;
 
-        for i = 1, #data.content.labels do
-            local f = data.content.labels[i];
+        for i = 1, #self.MenuLabels do
+            local f = self.MenuLabels[i];
 
             if (i == 1) then
                 f:SetPoint("TOPLEFT", 2, 0);
-                f:SetPoint("BOTTOMRIGHT", data.content, "TOPRIGHT", -2, - DataText.sv.menu_item_height);
+                f:SetPoint("BOTTOMRIGHT", self.MenuContent, "TOPRIGHT", -2, - itemHeight);
 
             else
-                local anchor = data.content.labels[i - 1];
+                local anchor = self.MenuLabels[i - 1];
                 local xOffset = 0;
                 local dropdownPadding = 0;
 
@@ -254,7 +276,7 @@ function Specialization:Click(data, content)
                 end
 
                 f:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -(dropdownPadding));
-                f:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", xOffset, -(DataText.sv.menu_item_height + dropdownPadding));
+                f:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", xOffset, -(itemHeight + dropdownPadding));
                 totalHeight = totalHeight + dropdownPadding;
             end
 
@@ -262,15 +284,15 @@ function Specialization:Click(data, content)
                 local dropdownPadding = 10;
 
                 f.dropdown:SetPoint("TOPLEFT", f, "BOTTOMLEFT", 0, -dropdownPadding);
-                f.dropdown:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -8, -(DataText.sv.menu_item_height + dropdownPadding));
-                totalHeight = totalHeight + DataText.sv.menu_item_height + dropdownPadding;
+                f.dropdown:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -8, -(itemHeight + dropdownPadding));
+                totalHeight = totalHeight + itemHeight + dropdownPadding;
             end
 
-            if (i > numLabelsShown) then
+            if (i > totalLabelsShown) then
                 f:Hide();
             else
                 f:Show();
-                totalHeight = totalHeight + DataText.sv.menu_item_height;
+                totalHeight = totalHeight + itemHeight;
 
                 if (i > 1) then 
                     totalHeight = totalHeight + 2; 
@@ -278,22 +300,21 @@ function Specialization:Click(data, content)
             end            
         end
 
-        data.content:SetHeight(totalHeight); -- manual positioning = manual setting of height
-        return totalHeight;
+        self.MenuContent:SetHeight(totalHeight); -- manual positioning = manual setting of height
 
     elseif (button == "RightButton") then
-        local title = data.content.labels[numLabelsShown] or CreateLabel(data.content);
+        local title = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.sv.popup.width, data.slideController);
 
-        data.content.labels[numLabelsShown] = title;
-        title.name:SetText(tk:GetRGBColoredString(L["Choose Loot Spec"]..":", r, g, b));
+        self.MenuLabels[totalLabelsShown] = title;
+        title.name:SetText(tk:GetRGBColoredText(L["Choose Loot Spec"]..":", r, g, b));
         title:SetNormalTexture(1);
         title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
 
         for i = 0, GetNumSpecializations() do
-            numLabelsShown = numLabelsShown + 1;
+            totalLabelsShown = totalLabelsShown + 1;
 
-            local label = data.content.labels[numLabelsShown] or CreateLabel(data.content);
-            data.content.labels[numLabelsShown] = label;
+            local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.sv.popup.width, data.slideController);
+            self.MenuLabels[totalLabelsShown] = label;
 
             local name;
 
@@ -318,17 +339,19 @@ function Specialization:Click(data, content)
                 label:SetHighlightTexture(1);
                 label:GetHighlightTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.4);
             end                
-        end
-
-        return DataText:PositionLabels(data.content, numLabelsShown);
+        end       
     end
+
+    self.TotalLabelsShown = totalLabelsShown;
 end
 
-function Specialization:HasMenu()
-    return true;
+function Specialization:GetDisplayOrder(data)
+    return data.displayOrder;
 end
 
-Engine:DefineReturns("Button");
-function Specialization:GetButton(data)
-    return data.btn;
-end
+function Specialization:SetDisplayOrder(data, displayOrder)
+    if (data.displayOrder ~= displayOrder) then
+        data.displayOrder = displayOrder;
+        data.sv.displayOrder = displayOrder;
+    end
+end 

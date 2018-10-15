@@ -14,7 +14,7 @@ local LABEL_PATTERN = "|cffffffff%s|r";
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.currency", {
-    enabled = true,
+    enabled = false,
 
     -- todo: this needs to be more intelligent...
     showCopper = false,
@@ -22,7 +22,7 @@ db:AddToDefaults("profile.datatext.currency", {
     showGold = true,
 
     showRealm = false,
-    displayOrder = 7
+    displayOrder = 20
 });
 
 -- Local Functions ----------------
@@ -70,7 +70,8 @@ function Currency:__Construct(data, sv)
     self.MenuContent = CreateFrame("Frame");
     self.MenuLabels = {};
     self.TotalLabelsShown = 0;
-    self.HasMenu = true;
+    self.HasLeftMenu = true;
+    self.HasRightMenu = false;
     self.Button = DataText:CreateDataTextButton(self);
 
     data.goldString = "|TInterface\\MoneyFrame\\UI-GoldIcon:14:14:2:0|t";
