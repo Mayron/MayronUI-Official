@@ -14,10 +14,10 @@ local Inventory = Engine:CreateClass("Inventory", nil, "MayronUI.Engine.IDataTex
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.inventory", {
-    enabled = false,
+    enabled = true,
     showTotalSlots = false,
     slotsToShow = "free",
-    displayOrder = 6
+    displayOrder = 7
 });
 
 -- Local Functions ----------------

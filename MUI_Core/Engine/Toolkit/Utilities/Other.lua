@@ -78,21 +78,25 @@ function tk:GetDifficultyColor(level)
     return color;
 end
 
-function tk:Equals(value1, value2)
+function tk:Equals(value1, value2, shallowEquals)
     local type1 = tk.type(value1);
 
     if (tk.type(value2) == type1) then
 
         if (type1 == "table") then
-            for id, value in pairs(value1) do
-                if (not self:Equals(value, value2[id])) then
-                    return false;
+            if (shallowEquals) then
+                return tk.tostring(value1) == tk.tostring(value2);
+            else
+                for id, value in pairs(value1) do
+                    if (not self:Equals(value, value2[id])) then
+                        return false;
+                    end
                 end
             end
 
             return true;
         elseif (type1 == "function") then
-            return true; -- ignore functions
+            return tk.tostring(value1) == tk.tostring(value2);
         else
             return value1 == value2;
         end        

@@ -24,7 +24,8 @@ function SlideController:__Construct(data, frame, step)
     frame:HookScript("OnHide", frameOnHide);
 end
 
-function SlideController:Start(data, forceState)        
+function SlideController:Start(data, forceState)
+    assert(type(data) == "table" and not data.GetObjectType);
     local step = math.abs(data.step);
 
     if (forceState) then
@@ -47,7 +48,7 @@ function SlideController:Start(data, forceState)
             data.frame:SetHeight(newHeight);
             C_Timer.After(0.02, loop);
         else
-            data.frame:SetHeight(endHeight);
+            data.frame:SetHeight(endHeight);            
             self:Stop();
         end
     end

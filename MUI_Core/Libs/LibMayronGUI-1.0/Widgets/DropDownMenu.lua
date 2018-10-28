@@ -16,7 +16,6 @@ local dropdowns = {};
 -- @param exclude - for all except the excluded dropdown menu
 local function FoldAll(exclude)        
     for i, dropdown in ipairs(dropdowns) do
-        print(i)
         if ((not exclude) or (exclude and exclude ~= dropdown)) then
             dropdown:Hide();
         end
@@ -27,7 +26,7 @@ local function FoldAll(exclude)
     end
 end
 
-local function OnClick(self)
+local function DropDownToggleButton_OnClick(self)
     DropDownMenu.Static.Menu:SetFrameStrata("TOOLTIP");
     self.dropdown:Toggle(not self.dropdown:IsExpanded());
     FoldAll(self.dropdown);
@@ -46,8 +45,8 @@ end
 -- @constructor    
 function Lib:CreateDropDown(style, parent, direction)
     local r, g, b = style:GetColor();    
-    local frame = Private:PopFrame("Frame", parent);
-    local header = Private:PopFrame("Frame", frame);
+    local dropDownContainer = Private:PopFrame("Frame", parent);
+    local header = Private:PopFrame("Frame", dropDownContainer);
 
     if (not DropDownMenu.Static.Menu) then
         DropDownMenu.Static.Menu = Lib:CreateScrollFrame(style, UIParent, "MUI_DropDownMenu");
@@ -61,8 +60,7 @@ function Lib:CreateDropDown(style, parent, direction)
     end
 
     direction = direction or "DOWN";
-    direction = direction:upper();
-    parent = parent or UIParent;
+    direction = direction:upper();    
     
     header:SetPoint("TOPLEFT");
     header:SetBackdrop(style:GetBackdrop("DropDownMenu"));
@@ -71,51 +69,58 @@ function Lib:CreateDropDown(style, parent, direction)
     header.bg = Private:SetBackground(header, background);
     header.bg:SetVertexColor(r * 0.7, g * 0.7, b * 0.7, 0.6);
 
-    frame:SetSize(200, 30);
+    dropDownContainer:SetSize(200, 30);
 
-    frame.btn = self:CreateButton(style, frame);
-    frame.btn:SetSize(30, 30);
-    frame.btn:SetPoint("TOPRIGHT", frame, "TOPRIGHT");
-    frame.btn:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT");
-    frame.btn:SetScript("OnSizeChanged", OnSizeChanged);
+    dropDownContainer.toggleButton = self:CreateButton(style, dropDownContainer);
+    dropDownContainer.toggleButton:SetSize(30, 30);
+    dropDownContainer.toggleButton:SetPoint("TOPRIGHT", dropDownContainer, "TOPRIGHT");
+    dropDownContainer.toggleButton:SetPoint("BOTTOMRIGHT", dropDownContainer, "BOTTOMRIGHT");
+    dropDownContainer.toggleButton:SetScript("OnSizeChanged", OnSizeChanged);
     
-    frame.btn.arrow = frame.btn:CreateTexture(nil, "OVERLAY");
-    frame.btn.arrow:SetTexture(style:GetTexture("ArrowButtonTexture"));
-    frame.btn.arrow:SetAllPoints(true);
+    dropDownContainer.toggleButton.arrow = dropDownContainer.toggleButton:CreateTexture(nil, "OVERLAY");
+    dropDownContainer.toggleButton.arrow:SetTexture(style:GetTexture("ArrowButtonTexture"));
+    dropDownContainer.toggleButton.arrow:SetAllPoints(true);
 
-    frame.child = Private:PopFrame("Frame", DropDownMenu.Static.Menu);
-    Private:SetFullWidth(frame.child);
+    dropDownContainer.child = Private:PopFrame("Frame", DropDownMenu.Static.Menu);
+    Private:SetFullWidth(dropDownContainer.child);
 
-    frame.btn.child = frame.child; -- needed for OnClick
-    frame.btn:SetScript("OnClick", OnClick);
-    header:SetPoint("BOTTOMRIGHT", frame.btn, "BOTTOMLEFT", -2, 0);
+    dropDownContainer.toggleButton.child = dropDownContainer.child; -- needed for OnClick
+    dropDownContainer.toggleButton:SetScript("OnClick", DropDownToggleButton_OnClick);
+    
+    header:SetPoint("BOTTOMRIGHT", dropDownContainer.toggleButton, "BOTTOMLEFT", -2, 0);
 
     if (direction == "DOWN") then
-        frame.btn.arrow:SetTexCoord(0, 1, 0.2, 1);
+        dropDownContainer.toggleButton.arrow:SetTexCoord(0, 1, 0.2, 1);
     elseif (direction == "UP") then
-        frame.btn.arrow:SetTexCoord(1, 0, 1, 0.2);
+        dropDownContainer.toggleButton.arrow:SetTexCoord(1, 0, 1, 0.2);
     end
 
     local slideController = SlideController(DropDownMenu.Static.Menu);
     slideController:SetMinHeight(1);
+
     slideController:OnEndRetract(function(self, frame)
         frame:Hide();
     end);
 
-    frame.btn.dropdown = DropDownMenu(header, direction, slideController, frame, menu, style);    
-    table.insert(dropdowns, frame.btn.dropdown);
-    frame.btn.dropdown:SetEnabled(true); -- enabled by default
+    dropDownContainer.toggleButton.dropdown = DropDownMenu(header, direction, slideController, dropDownContainer, menu, style);    
+    table.insert(dropdowns, dropDownContainer.toggleButton.dropdown);
+    dropDownContainer.toggleButton.dropdown:SetEnabled(true); -- enabled by default
 
-    return frame.btn.dropdown;
+    return dropDownContainer.toggleButton.dropdown;
 end
+
+-----------------------------------
+-- DropDownMenu Object
+-----------------------------------
 
 function DropDownMenu:__Construct(data, header, direction, slideController, frame, menu, style)
     data.header = header;
     data.direction = direction;
     data.slideController = slideController;
-    data.frame = frame;
+    data.frame = frame; -- must be called frame for GetFrame() to work!
     data.menu = menu;
     data.style = style;
+    data.options = {};
 end
 
 function DropDownMenu:GetMenu(data)
@@ -152,48 +157,52 @@ function DropDownMenu:SetLabel(data, text, tooltip)
 end
 
 function DropDownMenu:GetLabel(data)
-    return data.label:GetText();
+    return data.label and data.label:GetText();
 end
 
-function DropDownMenu:RemoveOption(data, value)
-    local option;
+WidgetsPackage:DefineReturns("number");
+function DropDownMenu:GetNumOptions(data)
+    return #data.options;
+end
 
-    for id, o in ipairs(data.list) do
-        if (o.value == value) then
-            option = o;
-            table.remove(data.list, id);
-            break;
-        end
-    end
+WidgetsPackage:DefineParams("number");
+WidgetsPackage:DefineReturns("Button");
+function DropDownMenu:GetOption(data, optionID)
+    local foundOption = data.options[optionID]
+    obj:Assert(foundOption, "DropDownMenu.GetOption failed to find option with id '%s'.", optionID);
+    return foundOption;
+end
 
-    if (not option) then 
-        return false; 
-    end
+WidgetsPackage:DefineParams("number");
+function DropDownMenu:RemoveOption(data, optionID)
+    local optionToRemove = self:GetOption(optionID);
 
-    Private:PushFrame(option);
+    table.remove(data.options, optionToRemove);
+    Private:PushFrame(optionToRemove);
 
     local height = 30;
     local child = data.frame.child;
 
-    for id, o in ipairs(data.list) do
-        o:ClearAllPoints();
+    -- reposition all options
+    for id, option in ipairs(data.options) do
+        option:ClearAllPoints();
 
         if (id == 1) then
             if (data.direction == "DOWN") then
-                o:SetPoint("TOPLEFT", 2, -2);
-                o:SetPoint("TOPRIGHT", -2, -2);
+                option:SetPoint("TOPLEFT", 2, -2);
+                option:SetPoint("TOPRIGHT", -2, -2);
             elseif (data.direction == "UP") then
-                o:SetPoint("BOTTOMLEFT", 2, 2);
-                o:SetPoint("BOTTOMRIGHT", -2, 2);
+                option:SetPoint("BOTTOMLEFT", 2, 2);
+                option:SetPoint("BOTTOMRIGHT", -2, 2);
             end
 
         else
             if (data.direction == "DOWN") then
-                o:SetPoint("TOPLEFT", data.list[id - 1], "BOTTOMLEFT", 0, -1);
-                o:SetPoint("TOPRIGHT", data.list[id - 1], "BOTTOMRIGHT", 0, -1);
+                option:SetPoint("TOPLEFT", data.options[id - 1], "BOTTOMLEFT", 0, -1);
+                option:SetPoint("TOPRIGHT", data.options[id - 1], "BOTTOMRIGHT", 0, -1);
             elseif (data.direction == "UP") then
-                o:SetPoint("BOTTOMLEFT", data.list[id - 1], "TOPLEFT", 0, 1);
-                o:SetPoint("BOTTOMRIGHT", data.list[id - 1], "TOPRIGHT", 0, 1);
+                option:SetPoint("BOTTOMLEFT", data.options[id - 1], "TOPLEFT", 0, 1);
+                option:SetPoint("BOTTOMRIGHT", data.options[id - 1], "TOPRIGHT", 0, 1);
             end
 
             height = height + 27;
@@ -206,103 +215,97 @@ function DropDownMenu:RemoveOption(data, value)
     if (DropDownMenu.Static.Menu:IsShown()) then
         DropDownMenu.Static.Menu:SetHeight(height);
     end
-
-    return true;
 end
 
-function DropDownMenu:GetOption(data, value)
-    for id, o in ipairs(data.list) do
-        if (o.value == value) then
-            return o;
-        end
-    end
-end
-
-function DropDownMenu:GetNumOptions(data)
-    return #data.list;
-end
-
-function DropDownMenu:AddOption(data, label, func, value, ...)
-    value = value or label;
-    data.list = data.list or {};
-
+function DropDownMenu:AddOption(data, label, func, ...)
     local r, g, b = data.style:GetColor();  
-    local child = data.frame.child;    
-    local o = Private:PopFrame("Button", child);
+    local child = data.frame.child;   
     local height = 30;
 
-    if (#data.list == 0) then
+    local option = Private:PopFrame("Button", child);    
+
+    if (#data.options == 0) then
         if (data.direction == "DOWN") then
-            o:SetPoint("TOPLEFT", 2, -2);
-            o:SetPoint("TOPRIGHT", -2, -2);
+            option:SetPoint("TOPLEFT", 2, -2);
+            option:SetPoint("TOPRIGHT", -2, -2);
         elseif (data.direction == "UP") then
-            o:SetPoint("BOTTOMLEFT", 2, 2);
-            o:SetPoint("BOTTOMRIGHT", -2, 2);
+            option:SetPoint("BOTTOMLEFT", 2, 2);
+            option:SetPoint("BOTTOMRIGHT", -2, 2);
         end
 
     else
+        local previousOption = data.options[#data.options];
+        
         if (data.direction == "DOWN") then
-            o:SetPoint("TOPLEFT", data.list[#data.list], "BOTTOMLEFT", 0, -1);
-            o:SetPoint("TOPRIGHT", data.list[#data.list], "BOTTOMRIGHT", 0, -1);
+            option:SetPoint("TOPLEFT", previousOption, "BOTTOMLEFT", 0, -1);
+            option:SetPoint("TOPRIGHT", previousOption, "BOTTOMRIGHT", 0, -1);
         elseif (data.direction == "UP") then
-            o:SetPoint("BOTTOMLEFT", data.list[#data.list], "TOPLEFT", 0, 1);
-            o:SetPoint("BOTTOMRIGHT", data.list[#data.list], "TOPRIGHT", 0, 1);
+            option:SetPoint("BOTTOMLEFT", previousOption, "TOPLEFT", 0, 1);
+            option:SetPoint("BOTTOMRIGHT", previousOption, "TOPRIGHT", 0, 1);
         end
 
         height = child:GetHeight() + 27;
     end
 
+    -- insert option only after it has been positioned
+    table.insert(data.options, option);
+
     data.scrollHeight = height;
-    child:SetHeight(height);
+    child:SetHeight(height);    
 
-    o.value = value;
-    table.insert(data.list, o);
+    option:SetHeight(26);
+    option:SetNormalFontObject("GameFontHighlight");
+    option:SetText(label or " ");
 
-    o:SetHeight(26);
-    o:SetNormalFontObject("GameFontHighlight");
-    o:SetText(label);
-    o:GetFontString():ClearAllPoints();
-    o:GetFontString():SetPoint("LEFT", 10, 0);
-    o:GetFontString():SetPoint("RIGHT", -10, 0);
-    o:GetFontString():SetWordWrap(false);
-    o:GetFontString():SetJustifyH("LEFT");
+    local optionFontString = option:GetFontString();
+    optionFontString:ClearAllPoints();
+    optionFontString:SetPoint("LEFT", 10, 0);
+    optionFontString:SetPoint("RIGHT", -10, 0);
+    optionFontString:SetWordWrap(false);
+    optionFontString:SetJustifyH("LEFT");
 
-    o:SetNormalTexture(1);
-    o:GetNormalTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
-    o:SetHighlightTexture(1);
-    o:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
+    option:SetNormalTexture(1);
+    option:GetNormalTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
+    option:SetHighlightTexture(1);
+    option:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
 
-    local id = #data.list;
-    local args = {...};
-
-    o:SetScript("OnClick", function()
-        self:SetLabel(label, true);
-        self:Toggle(false);
-        func(self, value, unpack(args));
-    end);
-
-    return o;
+    if (func) then
+        local args = {...};
+        
+        option:SetScript("OnClick", function()
+            self:SetLabel(label, true);
+            self:Toggle(false);
+            func(self, unpack(args));
+        end);
+    else
+        option:SetScript("OnClick", function()
+            self:SetLabel(label, true);
+            self:Toggle(false);
+        end);
+    end
+    
+    return option;
 end
 
 function DropDownMenu:SetEnabled(data, enabled)    
-    data.frame.btn:SetEnabled(enabled);
+    data.frame.toggleButton:SetEnabled(enabled);
 
     if (enabled) then
         local r, g, b = data.style:GetColor();
 
-        --TODO: Use style:ApplyColor(...)?
+        --TODoption: Use style:ApplyColor(...)?
         DropDownMenu.Static.Menu:SetBackdropBorderColor(r, g, b);
         data.header.bg:SetVertexColor(r, g, b, 0.6);    
         data.header:SetBackdropBorderColor(r, g, b);
-        data.frame.btn:GetNormalTexture():SetVertexColor(r * 0.8, g * 0.8, b * 0.8, 0.6);
-        data.frame.btn:GetHighlightTexture():SetVertexColor(r, g, b, 0.3);
-        data.frame.btn:SetBackdropBorderColor(r, g, b);
-        data.frame.btn.arrow:SetAlpha(1);
+        data.frame.toggleButton:GetNormalTexture():SetVertexColor(r * 0.8, g * 0.8, b * 0.8, 0.6);
+        data.frame.toggleButton:GetHighlightTexture():SetVertexColor(r, g, b, 0.3);
+        data.frame.toggleButton:SetBackdropBorderColor(r, g, b);
+        data.frame.toggleButton.arrow:SetAlpha(1);
 
-        if (data.list) then
-            for id, o in ipairs(data.list) do
-                o:GetNormalTexture():SetColorTexture(r, g, b, 0.4);
-                o:GetHighlightTexture():SetColorTexture(r, g, b, 0.4);
+        if (data.options) then
+            for id, o in ipairs(data.options) do
+                option:GetNormalTexture():SetColorTexture(r, g, b, 0.4);
+                option:GetHighlightTexture():SetColorTexture(r, g, b, 0.4);
             end
         end
 
@@ -314,10 +317,10 @@ function DropDownMenu:SetEnabled(data, enabled)
         DropDownMenu.Static.Menu:SetBackdropBorderColor(0.2, 0.2, 0.2); 
         data.header.bg:SetVertexColor(0.2, 0.2, 0.2, 0.6);               
         data.header:SetBackdropBorderColor(0.2, 0.2, 0.2);
-        data.frame.btn:GetNormalTexture():SetVertexColor(0.2, 0.2, 0.2, 0.6);
-        data.frame.btn:GetHighlightTexture():SetVertexColor(0.2, 0.2, 0.2, 0.7);
-        data.frame.btn:SetBackdropBorderColor(0.2, 0.2, 0.2);
-        data.frame.btn.arrow:SetAlpha(0.5);
+        data.frame.toggleButton:GetNormalTexture():SetVertexColor(0.2, 0.2, 0.2, 0.6);
+        data.frame.toggleButton:GetHighlightTexture():SetVertexColor(0.2, 0.2, 0.2, 0.7);
+        data.frame.toggleButton:SetBackdropBorderColor(0.2, 0.2, 0.2);
+        data.frame.toggleButton.arrow:SetAlpha(0.5);
 
         style:ApplyColor(nil, 0.8, container.ScrollBar.thumb);
 
@@ -335,10 +338,10 @@ function DropDownMenu:Hide(data)
     data.frame.child:Hide();
 
     if (data.direction == "DOWN") then
-        data.frame.btn.arrow:SetTexCoord(0, 1, 0.2, 1);
+        data.frame.toggleButton.arrow:SetTexCoord(0, 1, 0.2, 1);
 
     elseif (data.direction == "UP") then
-        data.frame.btn.arrow:SetTexCoord(1, 0, 1, 0.2);
+        data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0.2);
     end
 end
 
@@ -347,11 +350,12 @@ function DropDownMenu:IsExpanded(data)
 end
 
 function DropDownMenu:Toggle(data, show, clickSoundFilePath)
-    if (not data.list) then 
+    if (not data.options) then 
+        -- no list of options so nothing to toggle...
         return; 
     end
 
-    local step = #data.list * 4;
+    local step = #data.options * 4;
     step = (step > 20) and step or 20;
     step = (step < 30) and step or 30;
 
@@ -366,8 +370,8 @@ function DropDownMenu:Toggle(data, show, clickSoundFilePath)
     end
 
     if (show) then
-        local max_height = (data.scrollHeight < DropDownMenu.Static.MAX_HEIGHT) and
-                data.scrollHeight or DropDownMenu.Static.MAX_HEIGHT;
+        local max_height = (data.scrollHeight < DropDownMenu.Static.MAX_HEIGHT) 
+            and data.scrollHeight or DropDownMenu.Static.MAX_HEIGHT;
 
         DropDownMenu.Static.Menu:SetScrollChild(data.frame.child);
         DropDownMenu.Static.Menu:SetHeight(1);
@@ -376,15 +380,15 @@ function DropDownMenu:Toggle(data, show, clickSoundFilePath)
         data.slideController:SetMaxHeight(max_height);
 
         if (data.direction == "DOWN") then
-            data.frame.btn.arrow:SetTexCoord(1, 0, 1, 0.2);
+            data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0.2);
         elseif (data.direction == "UP") then
-            data.frame.btn.arrow:SetTexCoord(0, 1, 0.2, 1);
+            data.frame.toggleButton.arrow:SetTexCoord(0, 1, 0.2, 1);
         end
     else
         if (data.direction == "DOWN") then
-            data.frame.btn.arrow:SetTexCoord(0, 1, 0.2, 1);
+            data.frame.toggleButton.arrow:SetTexCoord(0, 1, 0.2, 1);
         elseif (data.direction == "UP") then
-            data.frame.btn.arrow:SetTexCoord(1, 0, 1, 0.2);
+            data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0.2);
         end
     end
 

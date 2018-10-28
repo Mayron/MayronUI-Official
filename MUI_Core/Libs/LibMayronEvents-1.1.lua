@@ -1,6 +1,6 @@
 local addonName, Core = ...;
 
-local Lib = LibStub:NewLibrary("LibMayronEvents", 1.0);
+local Lib = LibStub:NewLibrary("LibMayronEvents", 1.1);
 if (not Lib) then return; end
 
 local error, assert, rawget, rawset = error, assert, rawget, rawset;

@@ -29,15 +29,6 @@ db:AddToDefaults("profile.datatext", {
     }
 });
 
--- Local Functions ---------------------
-
--- local BlankDataItem = {};
-
--- function BlankDataItem:Enable()
---     self.btn:SetText("");
---     self.showMenu = nil;
--- end
-
 -- DataText Module -------------------
 
 dataTextModule:OnInitialize(function(self, data)
@@ -323,22 +314,35 @@ function DataTextClass:PositionLabels(data, dataModule)
     local totalHeight = 0;
 
     for i = 1, totalLabelsShown do
-        local label = dataModule.MenuLabels[i];
-        local labelType = type(label);
-        
+        local label = dataModule.MenuLabels[i];        
+        local labelType = type(label);       
+
+        obj:Assert(labelType ~= "nil", "Invalid total labels to show.");
+
         if (labelType == "table" and label.GetObjectType) then
-            labelType = label:GetObjectType();
+            labelType = label:GetObjectType();            
+        end       
+
+        if (labelType == "DropDownMenu") then
+            label = label:GetFrame();
+            labelType = label:GetObjectType();            
         end
         
         obj:Assert(labelType == "Frame" or labelType == "Button", 
-            "Invalid data-text label of type '%s' at id %s.", labelType, i);
+            "Invalid data-text label of type '%s' at index %s.", labelType, i);
 
         if (i == 1) then
             label:SetPoint("TOPLEFT", 2, 0);
             label:SetPoint("BOTTOMRIGHT", dataModule.MenuContent, "TOPRIGHT", -2, - labelHeight);
         else
-            label:SetPoint("TOPLEFT", dataModule.MenuLabels[i - 1], "BOTTOMLEFT", 0, -2);
-            label:SetPoint("BOTTOMRIGHT", dataModule.MenuLabels[i - 1], "BOTTOMRIGHT", 0, -(labelHeight + 2));
+            local previousLabel = dataModule.MenuLabels[i - 1];
+
+            if (previousLabel:IsObjectType("DropDownMenu")) then
+                previousLabel = previousLabel:GetFrame();
+            end
+
+            label:SetPoint("TOPLEFT", previousLabel, "BOTTOMLEFT", 0, -2);
+            label:SetPoint("BOTTOMRIGHT", previousLabel, "BOTTOMRIGHT", 0, -(labelHeight + 2));
         end
 
         if (totalLabelsShown and (i > totalLabelsShown)) then

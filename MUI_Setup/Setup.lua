@@ -1,20 +1,13 @@
 local _, namespace = ...;
 namespace.import = {};
 
-local SetupModule, Setup = MayronUI:RegisterModule("MUI_Setup");
-
-local Core = MayronUI:ImportModule("MUI_Core");
-local tk = Core:GetToolkit();
-local db = Core:GetDatabase();
-local obj = LibStub:GetLibrary("LibMayronObjects");
-local gui = LibStub:GetLibrary("LibMayronGUI");
-local L = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
-
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local Private = {};
 
 -- Imported Objects ---------------------
 
-local Panel = obj:Import("MUI_Core.Widgets.Panel");
+local SetupModule, Setup = MayronUI:RegisterModule("MUI_Setup");
+local Panel = obj:Import("MayronUI.Widgets.Panel");
 
 -- Local Functions ----------------------
 

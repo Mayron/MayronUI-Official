@@ -12,8 +12,8 @@ local CombatTimer = Engine:CreateClass("CombatTimer", nil, "MayronUI.Engine.IDat
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.combatTimer", {
-    enabled = true,
-    displayOrder = 3
+    enabled = false,
+    displayOrder = 4
 });
 
 -- CombatTimer Module ----------------
@@ -48,13 +48,12 @@ function CombatTimer:__Construct(data, sv)
 
     em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
         data.inCombat = nil;
-        data.minutes:SetText(data.minutes or "00");
-        data.seconds:SetText(data.seconds or ":00:");
-        data.milliseconds:SetText(data.milliseconds or "00");
+        data.minutes:SetText(data.minutes.value or "00");
+        data.seconds:SetText(data.seconds.value or ":00:");
+        data.milliseconds:SetText(data.milliseconds.value or "00");
 
     end):SetKey("combat_timer");
-
-    data.showMenu = nil;    
+  
     local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
 
     -- create datatext button
@@ -104,13 +103,13 @@ function CombatTimer:Update(data)
 
         local s = (GetTime() - data.startTime);
 
-        data.minutes = tk.string.format("%02d", (s/60)%60);
-        data.seconds = tk.string.format(":%02d:", s%60);
-        data.milliseconds = tk.string.format("%02d", (s*100)%100);
+        data.minutes.value = tk.string.format("%02d", (s/60)%60);
+        data.seconds.value = tk.string.format(":%02d:", s%60);
+        data.milliseconds.value = tk.string.format("%02d", (s*100)%100);
 
-        data.minutes:SetText(RED_FONT_COLOR_CODE .. data.minutes .. "|r");
-        data.seconds:SetText(RED_FONT_COLOR_CODE .. data.seconds .. "|r");
-        data.milliseconds:SetText(RED_FONT_COLOR_CODE .. data.milliseconds .. "|r");
+        data.minutes:SetText(tk.string.format("%s%s|r", RED_FONT_COLOR_CODE, data.minutes.value));
+        data.seconds:SetText(tk.string.format("%s%s|r", RED_FONT_COLOR_CODE, data.seconds.value));
+        data.milliseconds:SetText(tk.string.format("%s%s|r", RED_FONT_COLOR_CODE, data.milliseconds.value));
 
         if (not override) then
             tk.C_Timer.After(0.05, loop);

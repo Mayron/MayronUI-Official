@@ -16,12 +16,14 @@ local Specialization = Engine:CreateClass("Specialization", nil, "MayronUI.Engin
 db:AddToDefaults("profile.datatext.specialization", {
     enabled = true,
     sets = {},
-    displayOrder = 7
+    displayOrder = 8
 });
 
 -- Local Functions ----------------
 
 local function button_OnEnter(self)
+    local r, g, b = tk:GetThemeColor(); 
+
     GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
     GameTooltip:SetText(L["Commands"]..":")
     GameTooltip:AddDoubleLine(tk:GetThemeColoredText(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
@@ -33,53 +35,64 @@ local function button_OnLeave()
     GameTooltip:Hide();
 end
 
-local CreateLabel;
-do
-    local onLabelClickFunc;
+local function SetLabelEnabled(label, enabled)    
+    if (not enabled) then
+        label:SetNormalTexture(1);
+        label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
+        label:SetHighlightTexture(nil);
+    else
+        local r, g, b = tk:GetThemeColor(); 
 
-    function CreateLabel(contentFrame, popupWidth, slideController)
-        local label = tk:PopFrame("Button", contentFrame);
-    
-        label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-        label.name:SetPoint("LEFT", 6, 0);
-        label.name:SetWidth(popupWidth - 10);
-        label.name:SetWordWrap(false);
-        label.name:SetJustifyH("LEFT");
-
-
-        if (not onLabelClickFunc) then
-            onLabelClickFunc = function(self)
-                if (self.specID) then
-                    if (GetSpecialization() ~= self.specID) then
-                        SetSpecialization(self.specID);
-                        slideController:Start();
-                    end
-            
-                elseif (self.lootSpecID) then
-                    if (GetLootSpecialization() ~= self.lootSpecID) then
-                        SetLootSpecialization(self.lootSpecID);
-                        slideController:Start();
-            
-                        if (self.lootSpecID == 0) then
-                            local _, name = GetSpecializationInfo(GetSpecialization());
-                            tk.print(YELLOW_FONT_COLOR_CODE..L["Loot Specialization set to: Current Specialization"].." ("..name..")|r");
-                        end
-                    end            
-                end
-            end
-        end
-
-        label:SetScript("OnClick", onLabelClickFunc);    
-        return label;
+        label:SetNormalTexture(1);
+        label:GetNormalTexture():SetColorTexture(r * 0.5, g * 0.5, b * 0.5, 0.4);
+        label:SetHighlightTexture(1);
+        label:GetHighlightTexture():SetColorTexture(r * 0.5, g * 0.5, b * 0.5, 0.5);
     end
 end
 
-local function SetEquipmentSet(self, setName, specName)
-    if (setName == L["<none>"]) then 
-        setName = nil; 
+local function SetEquipmentSet(dropdown, specializationName, equipmentSetId)
+    db.profile.datatext.specialization.sets[specializationName] = equipmentSetId;
+end
+
+local function CreateDropDown(contentFrame, popupWidth, dataTextBar, sets)
+    -- create dropdown to list all equipment sets per specialization:
+    local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, contentFrame, "UP", dataTextBar);
+    dropdown:SetWidth(popupWidth - 10); 
+    dropdown:Show();
+
+    local currentSpecializationName = tk.select(2, GetSpecializationInfo(1));
+    local equipmentSetId = sets[currentSpecializationName];
+
+    if (type(equipmentSetId) == "number" and equipmentSetId >= 0 and equipmentSetId <= 9) then
+        local equipmentSetName = C_EquipmentSet.GetEquipmentSetInfo(equipmentSetId);
+
+        if (equipmentSetName) then
+            -- if user has an equipment set associated with the specialization
+            dropdown:SetLabel(equipmentSetName);
+        end
     end
 
-    db.profile.datatext.specialization.sets[specName] = setName;
+    if (not dropdown:GetLabel()) then
+        -- if no associated equipment set, set default label
+        dropdown:SetLabel("Equipment Set");
+    end
+
+    if (not dropdown.registered) then
+        for equipmentSetId = 9, 0, -1 do
+            local equipmentSetName = C_EquipmentSet.GetEquipmentSetInfo(equipmentSetId);
+
+            if (equipmentSetName) then
+            -- label, click function, value (nil) and a list of args to pass to function (specName passed to C_EquipmentSet.SetEquipmentSet) 
+                dropdown:AddOption(equipmentSetName, SetEquipmentSet, currentSpecializationName, equipmentSetId);
+            end
+        end
+
+        -- does not change to anything (the default)
+        dropdown:AddOption(L["<none>"], SetEquipmentSet, currentSpecializationName);
+        dropdown.registered = true;  -- do not repeat this setup             
+    end
+
+    return dropdown;
 end
 
 -- Specialization Module --------------
@@ -100,6 +113,7 @@ function Specialization:__Construct(data, sv, dataTextBar, slideController)
     data.displayOrder = sv.displayOrder;
     data.dataTextBar = dataTextBar;
     data.slideController = slideController;
+    data.dropdowns = {};
 
     -- set public instance properties
     self.MenuContent = CreateFrame("Frame");
@@ -115,7 +129,6 @@ end
 function Specialization:Enable(data) 
     data.sv.enabled = true;
 
-    local r, g, b = tk:GetThemeColor();
     self.Button:SetScript("OnEnter", button_OnEnter);
     self.Button:SetScript("OnLeave", button_OnLeave);
 
@@ -127,14 +140,17 @@ function Specialization:Enable(data)
         if (unitID == "player") then
             self:Update(); 
 
-            if (not data.sv.sets) then return; end
-            local _, name = GetSpecializationInfo(GetSpecialization());
+            if (not data.sv.sets) then 
+                return; 
+            end
 
-            if (data.sv.sets[name]) then
-                local setName = data.sv.sets[name];
+            local _, specializationName = GetSpecializationInfo(GetSpecialization());
 
-                if (setName ~= nil) then                    
-                    C_EquipmentSet.UseEquipmentSet(setName);
+            if (data.sv.sets[specializationName]) then
+                local equipmentSetId = data.sv.sets[specializationName];
+
+                if (equipmentSetId ~= nil) then                    
+                    C_EquipmentSet.UseEquipmentSet(equipmentSetId);
                 end
             end
         end
@@ -162,187 +178,178 @@ function Specialization:Update(data)
 
     if (UnitLevel("player") < 10) then
         self.Button:SetText(L["No Spec"]);
-        -- data.showMenu = nil;
         return;
     end
 
-    -- data.showMenu = true;
-    local specID = GetSpecialization();
+    local specializationID = GetSpecialization();
 
-    if (not specID) then
+    if (not specializationID) then
         self.Button:SetText(L["No Spec"]);
     else
-        local _, name = GetSpecializationInfo(specID, nil, nil, "player");
+        local _, name = GetSpecializationInfo(specializationID, nil, nil, "player");
         self.Button:SetText(name);
     end
 end
 
-function Specialization:Click(data, button)
-    -- if (not data.showMenu) then
-        if (UnitLevel("player") < 10) then
-            tk:Print(L["Must be level 10 or higher to use Talents."]);
-            return;
-        end        
-    -- end
+function Specialization:GetLabel(data, index)        
+    local label = self.MenuLabels[index];
 
-    local totalLabelsShown = 1;
-    local r, g, b = tk:GetThemeColor(); 
-    local itemHeight = data.sv.popup.itemHeight;
-
-    if (button == "LeftButton") then
-        local title = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.sv.popup.width, data.slideController);
-
-        self.MenuLabels[totalLabelsShown] = title;
-        title.name:SetText(tk:GetRGBColoredText(L["Choose Spec"]..":", r, g, b));
-        title:SetNormalTexture(1);
-        title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
-
-        local dropdownID = 0;
-
-        for i = 1, GetNumSpecializations() do
-            totalLabelsShown = totalLabelsShown + 1;
-            local _, specName = GetSpecializationInfo(i);
-            local extra = "";
-            local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.sv.popup.width, data.slideController);
-
-            self.MenuLabels[totalLabelsShown] = label;
-            label.specID = i;
-            label.lootSpecID = nil;
-
-            if (GetSpecialization() == i) then
-                label:SetNormalTexture(1);
-                label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);
-                label:SetHighlightTexture(nil);
-                extra = L[" (current)"];
-            else
-                label:SetNormalTexture(1);
-                label:GetNormalTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.2);
-                label:SetHighlightTexture(1);
-                label:GetHighlightTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.4);
-            end
-
-            label.name:SetText(specName..extra);
-            data.dropdowns = data.dropdowns or {};
-
-            -- create dropdown:
-            local dropdown = data.dropdowns[i] or gui:CreateDropDown(
-                tk.Constants.AddOnStyle, self.MenuContent, "UP", data.dataTextBar);
-
-            data.dropdowns[i] = dropdown;
-            label.dropdown = dropdown;
-            dropdown:Show();
-
-            if (data.sv.sets and data.sv.sets[specName]) then
-                dropdown:SetLabel(data.sv.sets[specName]);
-            else
-                dropdown:SetLabel("Equipment Set");
-            end
-
-            if (not dropdown.registered) then
-                for i = 0, C_EquipmentSet.GetNumEquipmentSets() do
-                    local label = C_EquipmentSet.GetEquipmentSetInfo(i);
-
-                    if (label == nil) then 
-                        break; 
-                    end 
-
-                    dropdown:AddOption(label, C_EquipmentSet.SetEquipmentSet, nil, specName);
-                end
-
-                dropdown.registered = true;
-                dropdown:AddOption(L["<none>"], C_EquipmentSet.SetEquipmentSet, nil, specName);
-            end
-        end
-
-        -- position manually:
-        local totalHeight = 0;
-
-        for i = 1, #self.MenuLabels do
-            local f = self.MenuLabels[i];
-
-            if (i == 1) then
-                f:SetPoint("TOPLEFT", 2, 0);
-                f:SetPoint("BOTTOMRIGHT", self.MenuContent, "TOPRIGHT", -2, - itemHeight);
-
-            else
-                local anchor = self.MenuLabels[i - 1];
-                local xOffset = 0;
-                local dropdownPadding = 0;
-
-                if (anchor.dropdown) then
-                    anchor = anchor.dropdown:GetFrame();
-                    xOffset = 8;
-                    dropdownPadding = 10;
-                end
-
-                f:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -(dropdownPadding));
-                f:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", xOffset, -(itemHeight + dropdownPadding));
-                totalHeight = totalHeight + dropdownPadding;
-            end
-
-            if (f.dropdown) then
-                local dropdownPadding = 10;
-
-                f.dropdown:SetPoint("TOPLEFT", f, "BOTTOMLEFT", 0, -dropdownPadding);
-                f.dropdown:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -8, -(itemHeight + dropdownPadding));
-                totalHeight = totalHeight + itemHeight + dropdownPadding;
-            end
-
-            if (i > totalLabelsShown) then
-                f:Hide();
-            else
-                f:Show();
-                totalHeight = totalHeight + itemHeight;
-
-                if (i > 1) then 
-                    totalHeight = totalHeight + 2; 
-                end
-            end            
-        end
-
-        self.MenuContent:SetHeight(totalHeight); -- manual positioning = manual setting of height
-
-    elseif (button == "RightButton") then
-        local title = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.sv.popup.width, data.slideController);
-
-        self.MenuLabels[totalLabelsShown] = title;
-        title.name:SetText(tk:GetRGBColoredText(L["Choose Loot Spec"]..":", r, g, b));
-        title:SetNormalTexture(1);
-        title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
-
-        for i = 0, GetNumSpecializations() do
-            totalLabelsShown = totalLabelsShown + 1;
-
-            local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.sv.popup.width, data.slideController);
-            self.MenuLabels[totalLabelsShown] = label;
-
-            local name;
-
-            if (i == 0) then
-                name = tk.select(2, GetSpecializationInfo(GetSpecialization()));
-                label.lootSpecID = 0;
-                name = tk.string.format(L["Current Spec"].." (%s)", name);
-            else
-                label.lootSpecID, name = GetSpecializationInfo(i);
-            end
-
-            label.specID = nil;
-            label.name:SetText(name);
-
-            if (GetLootSpecialization() == label.lootSpecID) then
-                label:SetNormalTexture(1);
-                label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);
-                label:SetHighlightTexture(nil);
-            else
-                label:SetNormalTexture(1);
-                label:GetNormalTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.2);
-                label:SetHighlightTexture(1);
-                label:GetHighlightTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.4);
-            end                
-        end       
+    if (label) then
+        return label;
     end
 
-    self.TotalLabelsShown = totalLabelsShown;
+    label = tk:PopFrame("Button", self.MenuContent);    
+    label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    label.name:SetPoint("LEFT", 6, 0);
+    label.name:SetWidth(data.sv.popup.width - 10);
+    label.name:SetWordWrap(false);
+    label.name:SetJustifyH("LEFT");
+
+    label:SetScript("OnClick", function(self) 
+        -- must use "self" as label properties are set after GetLabel is called
+        -- (so should be dynamically bound, not static using a closure)
+        if (label.dropdown or not self.specializationID) then
+            return;
+        end     
+        
+        local currentSpecializationID = GetSpecialization();
+
+        if (self.lootSpecID ~= nil) then
+            -- handle changing loot specs
+
+            if (GetLootSpecialization() ~= self.lootSpecID) then
+                -- update loot spec ID:
+                local sex = UnitSex("player");
+                self.lootSpecID = GetSpecializationInfo(self.specializationID, nil, nil, nil, sex) or 0; 
+
+                -- change loot specialization
+                SetLootSpecialization(self.lootSpecID);
+    
+                if (self.lootSpecID == 0) then
+                    -- no chat message is printed when set to current spec, so print our own
+                    local _, name = GetSpecializationInfo(currentSpecializationID);
+                    tk.print(YELLOW_FONT_COLOR_CODE..L["Loot Specialization set to: Current Specialization"].." ("..name..")|r");
+                end
+            end   
+        else
+            -- handle changing spec
+            if (currentSpecializationID ~= self.specializationID) then
+                -- change specialization
+                SetSpecialization(self.specializationID);           
+            end         
+        end
+
+        data.slideController:Start();
+    end);
+
+    self.MenuLabels[index] = label;
+    return label;
+end
+
+-- show specialization selection with dropdown menus
+function Specialization:HandleLeftClick(data)
+    local popupWidth = data.sv.popup.width;
+    local sets = data.sv.sets;
+    local totalLabelsShown = 1; -- including title
+
+    for i = 1, GetNumSpecializations() do
+        -- create label
+        totalLabelsShown = totalLabelsShown + 1;
+
+        local label = self:GetLabel(totalLabelsShown);
+        label.specializationID = i;
+        label.lootSpecID = nil;
+
+        -- update labels based on specialization
+        local specializationName = tk.select(2, GetSpecializationInfo(label.specializationID));
+        local enabled = (label.specializationID ~= GetSpecialization());
+
+        SetLabelEnabled(label, enabled);
+
+        if (enabled) then
+            specializationName = string.format("Current (%s)", specializationName);
+        end
+
+        label.name:SetText(specializationName);  
+
+        -- create dropdown        
+        local dropdown = data.dropdowns[i] or CreateDropDown(self.MenuContent, popupWidth, data.dataTextBar, sets);
+        data.dropdowns[i] = dropdown;
+
+        -- treat dropdown menu as a label to position correctly
+        totalLabelsShown = totalLabelsShown + 1;
+
+        label = self:GetLabel(totalLabelsShown);
+        label.dropdown = dropdown;
+
+        SetLabelEnabled(label, false);
+
+        dropdown:SetParent(label);
+        dropdown:SetAllPoints(true);
+        dropdown:Show();
+    end
+
+    return totalLabelsShown;
+end
+
+function Specialization:HandleRightClick(data)
+    local popupWidth = data.sv.popup.width;
+    local totalLabelsShown = 1; -- including title
+
+    -- start at index 0 as 0 = setting loot specialization to the "auto" current spec option
+    for i = 0, GetNumSpecializations() do
+        totalLabelsShown = totalLabelsShown + 1;
+
+        local label = self:GetLabel(totalLabelsShown);
+        label.specializationID = i;   
+        
+        if (label.dropdown) then
+            local frame = label.dropdown:GetFrame();       
+            frame:SetParent(tk.Constants.DUMMY_FRAME);
+            frame:SetAllPoints(true);
+            frame:Hide();
+            label.dropdown = nil;
+        end
+        
+        local sex = UnitSex("player");
+        label.lootSpecID = GetSpecializationInfo(label.specializationID, nil, nil, nil, sex) or 0; 
+
+        -- update labels based on loot spec
+        local enabled = (label.lootSpecID ~= GetLootSpecialization());
+        SetLabelEnabled(label, enabled);
+
+        if (label.specializationID == 0) then
+            local specializationName = tk.select(2, GetSpecializationInfo(GetSpecialization()));  
+            label.name:SetText(string.format("Current (%s)", specializationName));  
+        else
+            local specializationName = tk.select(2, GetSpecializationInfo(label.specializationID));
+            label.name:SetText(specializationName);
+        end 
+    end    
+
+    return totalLabelsShown;
+end
+
+function Specialization:Click(data, button)
+    if (UnitLevel("player") < 10) then
+        tk:Print(L["Must be level 10 or higher to use Talents."]);
+        return;
+    end        
+
+    local r, g, b = tk:GetThemeColor();
+    local title = self:GetLabel(1);
+
+    title:SetNormalTexture(1);
+    title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
+
+    if (button == "LeftButton") then
+        title.name:SetText(tk:GetRGBColoredText(L["Choose Spec"]..":", r, g, b));
+        self.TotalLabelsShown = self:HandleLeftClick();
+
+    elseif (button == "RightButton") then
+        title.name:SetText(tk:GetRGBColoredText(L["Choose Loot Spec"]..":", r, g, b));
+        self.TotalLabelsShown = self:HandleRightClick();  
+    end   
 end
 
 function Specialization:GetDisplayOrder(data)

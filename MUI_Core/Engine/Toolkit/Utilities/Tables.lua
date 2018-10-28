@@ -4,61 +4,33 @@ core.Toolkit = core.Toolkit or {};
 local tk = core.Toolkit;
 -----------------------------
 
-do
-    local wrappers = {};
-
-    local function iter(wrapper, id)
-        id = id + 1;
-        local arg = wrapper[id];
-
-        if (arg) then
-            return id, arg;
-        else
-            tk.table.insert(wrappers, wrapper);
-        end
-    end
-
-    function tk:IterateArgs(...)
-        local wrapper;
-
-        if (#wrappers > 0) then
-            wrapper = wrappers[#wrappers];
-            wrappers[#wrappers] = nil;
-        else
-            wrapper = {};
-        end
-
-        tk:EmptyTable(wrapper);
-
-        local id = 1;
-        local arg = (tk.select(id, ...));
-        
-        repeat
-            wrapper[id] = arg;
-            id = id + 1;
-            arg = (tk.select(id, ...));
-        until (not arg);
-
-        return iter, wrapper, 0;
-    end
-end
-
 -- TABLE FUNCTIONS
+local PushTableAsWrapper;
+
 do
     local wrappers = {};
     local parent = {};
     local counter = 0;
     local unpacker = {};
 
-    local function startCleaningTimer()
+    local function StartCleaningTimer()
         counter = counter + 1;
 
         if (counter >= 10) then
             counter = 0;
             tk:EmptyTable(wrappers);   
         else
-            C_Timer.After(1, startCleaningTimer);
+            C_Timer.After(1, StartCleaningTimer);
         end        
+    end
+
+    PushTableAsWrapper = function(table)
+        tk:EmptyTable(table);
+        wrappers[#wrappers + 1] = table;
+
+        if (counter == 0) then
+            StartCleaningTimer();
+        end  
     end
 
     function parent:Close()
@@ -75,7 +47,7 @@ do
             wrappers[#wrappers + 1] = self;
 
             if (counter == 0) then
-                startCleaningTimer();
+                StartCleaningTimer();
             end            
         end        
     end
@@ -170,6 +142,63 @@ function tk:EmptyTable(tbl)
     for key, _ in tk.pairs(tbl) do
         tbl[key] = nil;
     end
+end
+
+-- remove all nil values from index portion of table
+function tk:CleanIndexes(tbl) 
+    local tempIndexTable;
+    
+    for index = 1, #tbl do
+        if (tbl[index] ~= nil) then
+            tempIndexTable = tempIndexTable or {};
+            tk.table.insert(tempIndexTable, tbl[index]);    
+            tbl[index] = nil;        
+        end        
+    end
+
+    if (tempIndexTable) then
+        for index = 1, #tempIndexTable do
+            tbl[index] = tempIndexTable[index];
+        end
+        PushTableAsWrapper(tempIndexTable);
+    end
+end
+
+function tk:RemoveAllFromTable(mainTable, subTable, preserveIndex)
+    local totalRemoved = 0;
+    
+    for subIndex = 1, #subTable do
+        local subValue = subTable[subIndex];
+
+        for mainIndex = 1, #mainTable do
+            local mainValue = mainTable[mainIndex];
+
+            if (self:Equals(mainValue, subValue, true)) then
+                -- remove it!
+                tk:Print("remove:", subValue);
+                mainTable[mainIndex] = nil;
+                totalRemoved = totalRemoved + 1;
+                break;
+            end
+        end
+    end
+
+    if (not preserveIndex) then
+        self:CleanIndexes(mainTable);
+    end
+
+    for _, subValue in tk.pairs(subTable) do
+        for key, mainValue in tk.pairs(mainTable) do
+            if (self:Equals(mainValue, subValue)) then
+                -- remove it!
+                mainTable[key] = nil;
+                totalRemoved = totalRemoved + 1;
+                break;
+            end
+        end
+    end
+
+    return totalRemoved;
 end
 
 function tk:FillTable(tbl, ...)

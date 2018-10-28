@@ -99,8 +99,9 @@ function tk:MakeResizable(frame, dragger)
 end
 
 function tk:KillElement(element)
-    element:Hide();
-    element:SetAllPoints(tk.Constants.DUMMY_FRAME);
+    element:Hide();    
+    element:SetParent(tk.Constants.DUMMY_FRAME);
+    element:SetAllPoints(true);
     element.Show = tk.Constants.DUMMY_FUNC;
 end
 

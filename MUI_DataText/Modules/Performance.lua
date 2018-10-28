@@ -18,7 +18,7 @@ db:AddToDefaults("profile.datatext.performance", {
     showFps = true,
     showHomeLatency = true,
     showServerLatency = false,
-    displayOrder = 4
+    displayOrder = 6
 });
 
 -- Performance Module --------------
