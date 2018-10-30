@@ -6,7 +6,7 @@ MayronUI = {};
 MayronUI.RegisteredModules = {};
 MayronUI.ModulesInitialized = false;
 
-namespace.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase("MUIdb", addOnName);
+namespace.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
 namespace.EventManager = LibStub:GetLibrary("LibMayronEvents");
 namespace.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.Objects = LibStub:GetLibrary("LibMayronObjects");
@@ -29,10 +29,10 @@ local Commands = {};
 
 db:AddToDefaults("global.Core", {
     uiScale = 0.7,
-    change_game_font = true,
+    changeGameFont = true,
     font = "MUI_Font",
 	useLocalization = true,
-    addons = {
+    addons = {    
         {"Aura Frames", true, "AuraFrames"},
         {"Bartender4", true, "Bartender4"},
         {"Grid", true, "Grid"},
@@ -140,7 +140,6 @@ function Module:Initialize(data, ...)
             func(self, data);
         end
     end
-
 end
 
 Engine:DefineReturns("boolean");
@@ -359,7 +358,7 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
 
 end):SetAutoDestroy(true);
 
-db:OnStart(function(self)
+db:OnStartUp(function(self)
     MayronUI.db = self;
     local r, g, b = tk:GetThemeColor();
     local myFont = tk.CreateFont("MUI_FontNormal");
@@ -402,7 +401,7 @@ db:OnStart(function(self)
 
     -- Set Master Game Font Here! -------------------
 
-    if (self.global.Core.change_game_font ~= false) then
+    if (self.global.Core.changeGameFont ~= false) then
         tk:SetGameFont(media:Fetch("font", self.global.Core.font));
     end
 end);

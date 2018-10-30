@@ -1,6 +1,6 @@
 ## Interface: 80000
 ## Title: |cff00ccffMUI|r Core
-## SavedVariables: MUIdb
+## SavedVariables: MayronUIdb
 ## Version: 5.3.1
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 

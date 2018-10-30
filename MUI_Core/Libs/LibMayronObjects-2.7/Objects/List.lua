@@ -123,19 +123,19 @@ function List:ToTable(data)
 end
 
 function List:AddAll(data, ...)
-    for _, value in Core:IterateArgs(...) do
+    for _, value in pairs({...}) do
         table.insert(data.values, value);
     end    
 end
 
 function List:RemoveAll(data, ...)
-    for _, value in Core:IterateArgs(...) do
+    for _, value in pairs({...}) do
         self:RemoveByValue(value);
     end
 end
 
 function List:RetainAll(data, ...)
-    for _, value in Core:IterateArgs(...) do
+    for _, value in pairs({...}) do
         if (not self:Contains(value)) then
             self:RemoveByValue(value);
         end

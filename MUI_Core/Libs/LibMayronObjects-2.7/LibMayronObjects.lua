@@ -292,6 +292,10 @@ function Core:CreateClass(package, packageData, className, parentClass, ...)
     end
 
     ProxyClass.Static.IsFriendClass = function(_, friendClassName)
+        if (friendClassName == className) then 
+            return true;
+        end
+        
         return Friends[friendClassName];
     end
 
@@ -865,7 +869,7 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
                     -- it's optional:
                     defValue = defValue:sub(2, #defValue);
                     errorFound = (realValue ~= nil) and (defValue ~= "any" and not self:IsMatchingTypes(defValue, realValue));
-                else                   
+                else
                     errorFound = (realValue == nil) or (defValue ~= "any" and not self:IsMatchingTypes(defValue, realValue));
                 end
             else
@@ -1007,7 +1011,12 @@ function Core:IsMatchingTypes(expectedTypeName, value)
 
         return (expectedTypeName == type(value));
 
-    elseif (value.GetObjectType) then  
+    elseif (value.GetObjectType) then
+        
+        if (expectedTypeName == value:GetObjectType()) then
+            return true;
+        end
+
         local controller = self:GetController(value, true);
 
         while (value and controller) do

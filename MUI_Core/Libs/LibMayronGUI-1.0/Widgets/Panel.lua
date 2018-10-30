@@ -66,7 +66,7 @@ end
 function Panel:AddCells(data, ...)
     data.cells = data.cells or Private.LinkedList();
 
-    for _, cell in Private:IterateArgs(...) do
+    for _, cell in pairs({...}) do
         data.cells:AddToBack(cell);
         cell:SetPanel(self);
     end

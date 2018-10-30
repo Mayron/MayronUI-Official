@@ -125,7 +125,7 @@ function Style:ApplyColor(data, colorName, alpha, ...)
         alpha = 1;
     end
 
-    for id, element in Private:IterateArgs(...) do  
+    for id, element in pairs({...}) do  
 
         LibObjectLua:Assert(type(element) == "table" and element.GetObjectType,
             "Style.ApplyColor: Widget expected but received a %s value of %s", type(element), element);

@@ -30,7 +30,11 @@ function private:HideTextures(frame, layers)
     for layer = 1, (#layers) do
         for r = 1, frame:GetNumRegions() do
             local region = tk.select(r, frame:GetRegions());
-            if not (region) then return; end
+
+            if not (region) then 
+                return; 
+            end
+            
             if (region:GetObjectType() == "Texture") then
                 if (region:GetDrawLayer() == layers[layer]) then
                     region:Hide();
@@ -45,26 +49,38 @@ end
 
 do
     local indexes = {};
+
     function rs:GetFrameFromPath(path)
         if (tk.string.find(path, "%.")) then
             local frame;
-            for _, key in tk:IterateArgs(tk.strsplit(".", path)) do
+
+            for _, key in ipairs({tk.strsplit(".", path)}) do
                 tk:EmptyTable(indexes);
+
                 if (key:find("%b[]")) then
                     for index in key:gmatch("(%b[])") do
                         index = index:match("%[(.+)%]");
                         tk.table.insert(indexes, index);
                     end
                 end
+
                 key = tk.strsplit("[", key);
                 frame = (frame and frame[key]) or tk._G[key];
-                if (not frame) then return; end
+
+                if (not frame) then 
+                    return; 
+                end
+
                 for _, key in tk.ipairs(indexes) do
                     key = tk.tonumber(key) or key;
                     frame = (frame and frame[key]) or tk._G[key];
-                    if (not frame) then return; end
+
+                    if (not frame) then 
+                        return; 
+                    end
                 end
             end
+
             return frame;
         else
             return tk._G[path];
@@ -172,14 +188,20 @@ function rs:ReskinScrollBar(slider)
 end
 
 function rs:ReskinIcon(button, texture)
-    if (button.border) then return; end
+    if (button.border) then 
+        return; 
+    end
+
     button:SetHighlightTexture("");
     button:SetPushedTexture("");
 
     texture = texture or button.icon or button.Icon or
             tk._G[tk.tostring(button:GetName()).."IconTexture"] or button:GetNormalTexture();
 
-    if (not texture) then return; end
+    if (not texture) then 
+        return; 
+    end
+
     texture:SetTexCoord(0.1, 0.92, 0.08, 0.92);
     button.border = button:CreateTexture(nil, "BACKGROUND");
     button.border:SetTexture(tk.Constants.MEDIA.."reskin\\mui_button");
@@ -187,6 +209,7 @@ function rs:ReskinIcon(button, texture)
     texture:ClearAllPoints();
     texture:SetPoint("TOPLEFT", 1, -1);
     texture:SetPoint("BOTTOMRIGHT", -1, 1);
+
     return texture;
 end
 

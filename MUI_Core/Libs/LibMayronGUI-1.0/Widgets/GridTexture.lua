@@ -6,8 +6,10 @@ local Private = Lib.Private;
 ---------------------------------
 
 do
+    local regions = {"tl", "tr", "bl", "br", "t", "b", "l", "r", "c"};
+
     local function SetGridColor(self, r, g, b)        
-        for _, key in Private:IterateArgs("tl", "tr", "bl", "br", "t", "b", "l", "r", "c") do
+        for _, key in ipairs(regions) do
             self[key]:SetVertexColor(r, g, b);
         end
     end
@@ -22,7 +24,7 @@ do
         local largeHeight = 1 - smallHeight;
         inset = inset or 0;
 
-        for _, key in Private:IterateArgs("tl", "tr", "bl", "br", "t", "b", "l", "r", "c") do
+        for _, key in ipairs(regions) do
             frame[key] = frame:CreateTexture(nil, "BACKGROUND");
             frame[key]:SetTexture(texture);
             frame[key]:SetSize(cornerSize, cornerSize);

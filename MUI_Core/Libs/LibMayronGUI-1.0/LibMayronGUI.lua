@@ -195,74 +195,17 @@ do
         frame:SetAllPoints(true);
         frame:Hide();
 
-        for _, child in self:IterateArgs(frame:GetChildren()) do
+        for _, child in pairs({frame:GetChildren()}) do
             self:PushFrame(child);
         end
 
-        for _, region in self:IterateArgs(frame:GetRegions()) do
+        for _, region in pairs({frame:GetRegions()}) do
             region:SetParent(DUMMY_FRAME);
             region:SetAllPoints(true);
             region:Hide();
         end
 
         frames[objectType][#frames + 1] = frame;
-    end
-end
-
-do
-    local wrappers = {};
-
-    local function iter(wrapper, id)
-        id = id + 1;
-        local arg = wrapper[id];
-
-        if (arg) then
-            return id, arg;
-        else
-            Private:PushWrapper(wrapper);
-        end
-    end
-
-    function Private:PopWrapper(...)
-        local wrapper;
-
-        if (#wrappers > 0) then
-            wrapper = wrappers[#wrappers];
-            wrappers[#wrappers] = nil;
-        else
-            wrapper = {};
-        end
-
-        -- Empty Table
-        for key, _ in pairs(wrapper) do
-            wrapper[key] = nil;
-        end
-
-        local id = 1;
-        local arg = (select(id, ...));
-
-        repeat
-            -- fill wrapper
-            wrapper[id] = arg;
-            id = id + 1;
-            arg = (select(id, ...));
-        until (not arg);
-
-        return wrapper;
-    end
-
-    function Private:PushWrapper(wrapper)
-        -- Empty Table
-        for key, _ in pairs(wrapper) do
-            wrapper[key] = nil;
-        end
-        
-        table.insert(wrappers, wrapper);
-    end
-
-    function Private:IterateArgs(...)
-        local wrapper = self:PopWrapper(...);
-        return iter, wrapper, 0;
     end
 end
 

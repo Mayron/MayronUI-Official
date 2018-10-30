@@ -7,7 +7,7 @@ local LinkedListData = {};
 ---------------------------------------
 
 function LinkedList:__Construct(data, ...)  
-    for _, value in Lib:IterateArgs(...) do
+    for _, value in pairs({...}) do
         self:AddToBack(value);
     end
 

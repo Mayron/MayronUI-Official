@@ -217,6 +217,13 @@ function DropDownMenu:RemoveOption(data, optionID)
     end
 end
 
+function DropDownMenu:AddOptions(data, func, optionsTable)
+    for id, optionValues in ipairs(optionsTable) do
+        local label = optionValues[1];
+        self:AddOption(label, func, select(2, unpack(optionValues)));
+    end
+end
+
 function DropDownMenu:AddOption(data, label, func, ...)
     local r, g, b = data.style:GetColor();  
     local child = data.frame.child;   
@@ -303,7 +310,7 @@ function DropDownMenu:SetEnabled(data, enabled)
         data.frame.toggleButton.arrow:SetAlpha(1);
 
         if (data.options) then
-            for id, o in ipairs(data.options) do
+            for id, option in ipairs(data.options) do
                 option:GetNormalTexture():SetColorTexture(r, g, b, 0.4);
                 option:GetHighlightTexture():SetColorTexture(r, g, b, 0.4);
             end

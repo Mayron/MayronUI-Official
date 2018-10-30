@@ -89,7 +89,7 @@ containerModule:OnInitialize(function(self, data)
     data.container:SetFrameStrata("LOW");
 
     local r, g, b = tk:GetThemeColor();
-    db:AppendOnce("profile.bottomui.gradients", {
+    db:AppendOnce(db.profile, "bottomui.gradients", {
         from = {r = r, g = g, b = b, a = 0.5},
         to = {r = 0, g = 0, b = 0, a = 0}
     });

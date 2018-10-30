@@ -122,7 +122,7 @@ local function OnMenuButtonClick(self)
     local submenu = window.submenu;
 
     if (self:GetChecked()) then
-        for _, frame in tk:IterateArgs(submenu:GetChildren()) do
+        for _, frame in ipairs({submenu:GetChildren()}) do
             frame:Hide();
         end
 
@@ -244,18 +244,21 @@ function Private:LoadThemeMenu(menuSection)
     menuSection.themeTitle:SetText(L["Choose Theme:"]);
 
     menuSection.themeDropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, menuSection);
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Death Knight", "C41F3B"), ChangeTheme, "DEATHKNIGHT");
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Demon Hunter", "A330C9"), ChangeTheme, "DEMONHUNTER");
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Druid", "FF7D0A"), ChangeTheme, "DRUID");
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Hunter", "ABD473"), ChangeTheme, "HUNTER");
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Mage", "69CCF0"), ChangeTheme, "MAGE");
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Monk", "00FF96"), ChangeTheme, "MONK");
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Paladin", "F58CBA"), ChangeTheme, "PALADIN");
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Priest", "FFFFFF"), ChangeTheme, "PRIEST");
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Rogue", "FFF569"), ChangeTheme, "ROGUE");
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Shaman", "0070DE"), ChangeTheme, "SHAMAN");
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Warlock", "9482C9"), ChangeTheme, "WARLOCK");
-    menuSection.themeDropdown:AddOption(tk:GetHexColoredText("Warrior", "C79C6E"), ChangeTheme, "WARRIOR");
+
+    menuSection.themeDropdown:AddOptions(ChangeTheme, {
+        { tk:GetHexColoredText("Death Knight", "C41F3B"), "DEATHKNIGHT" },
+        { tk:GetHexColoredText("Demon Hunter", "A330C9"), "DEMONHUNTER" },
+        { tk:GetHexColoredText("Druid", "FF7D0A"), "DRUID" },
+        { tk:GetHexColoredText("Hunter", "ABD473"), "HUNTER" },
+        { tk:GetHexColoredText("Mage", "69CCF0"), "MAGE" },
+        { tk:GetHexColoredText("Monk", "00FF96"), "MONK" },
+        { tk:GetHexColoredText("Paladin", "F58CBA"), "PALADIN" },
+        { tk:GetHexColoredText("Priest", "FFFFFF"), "PRIEST" },
+        { tk:GetHexColoredText("Rogue", "FFF569"), "ROGUE" },
+        { tk:GetHexColoredText("Shaman", "0070DE"), "SHAMAN" },
+        { tk:GetHexColoredText("Warlock", "9482C9"), "WARLOCK" },
+        { tk:GetHexColoredText("Warrior", "C79C6E"), "WARRIOR" }
+    });
     
     menuSection.themeDropdown:AddOption(L["Custom Colour"], function()
         local colors = {};
@@ -618,7 +621,8 @@ function Setup:Install()
     end
 
     -- MayronUI profiles:
-    for id, name in tk:IterateArgs("AuraFrames", "Bartender4", "Bazooka", "Omen", "Recount") do	-- Please keep Bazooka until MUI can handle those minimap icons itself :)
+    -- Please keep Bazooka until MUI can handle those minimap icons itself :)
+    for id, name in ipairs({"AuraFrames", "Bartender4", "Bazooka", "Omen", "Recount"}) do
         if (tk._G[name]) then
             local path = tk:GetDBObject(name);
             if (path) then
@@ -630,7 +634,7 @@ function Setup:Install()
     end
 
     -- Default Profiles:
-    for id, name in tk:IterateArgs("Grid", "ShadowUF", "SimplePowerBar") do
+    for id, name in ipairs({"Grid", "ShadowUF", "SimplePowerBar"}) do
         if (tk._G[name]) then
             local path = tk:GetDBObject(name);
             if (path) then
@@ -643,8 +647,8 @@ function Setup:Install()
 
     -- Register the UI as installed once everything else is successful!
         
-    if (not db.global.previously_installed) then
-        db.global.previously_installed = true;
+    if (not db.global.previouslyInstalled) then
+        db.global.previouslyInstalled = true;
         db.global.tutorial = true;
     end
     
@@ -654,9 +658,8 @@ function Setup:Install()
     end
 
     db.global.installed[tk:GetPlayerKey()] = true;
-    MUIdb.global.installed._data = nil; -- to remove old (beta) bug
-
     db.global.reanchor = true;
+
     ReloadUI();
 end
 

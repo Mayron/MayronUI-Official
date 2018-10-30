@@ -27,7 +27,7 @@ do
         local totalHeight = 0; -- used to dynamically set the ScrollChild's height so that is can be visible
         local previousChild;
 
-        for id, child in Private:IterateArgs(scrollChild:GetChildren()) do
+        for id, child in pairs({scrollChild:GetChildren()}) do
             child:ClearAllPoints();
             totalRowWidth = totalRowWidth + child:GetWidth();
 
@@ -96,7 +96,7 @@ do
             data.frame:SetSize(UIParent:GetWidth(), UIParent:GetHeight());
         end
 
-        for _, child in Private:IterateArgs(...) do
+        for _, child in pairs({...}) do
             child:SetParent(data.scrollChild);
         end
 

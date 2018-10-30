@@ -202,7 +202,7 @@ function tk:RemoveAllFromTable(mainTable, subTable, preserveIndex)
 end
 
 function tk:FillTable(tbl, ...)
-    for id, value in self:IterateArgs(...) do
+    for id, value in ipairs({...}) do
         tbl[id] = value;
     end
 end
@@ -210,7 +210,7 @@ end
 function tk:GetMergedTable(...)
     local merged = {};
 
-    for _, tbl in self:IterateArgs(...) do
+    for _, tbl in ipairs({...}) do
         for key, value in tk.pairs(tbl) do
             if (merged[key] and (tk.type(merged[key]) == "table") and (tk.type(value) == "table")) then
                 merged[key] = tk:GetMergedTable(merged[key], value);
@@ -230,7 +230,7 @@ do
         args = args or tk:CreateLinkedList();
         args:Clear();
 
-        for _, key in self:IterateArgs(tk.strsplit(".", path)) do
+        for _, key in ipairs({tk.strsplit(".", path)}) do
             local firstKey = tk.strsplit("[", key);
 
             args:AddToBack(tk.tonumber(firstKey) or firstKey);
@@ -329,11 +329,11 @@ do
         frame:SetAllPoints(true);
         frame:Hide();
 
-        for _, child in self:IterateArgs(frame:GetChildren()) do
+        for _, child in ipairs({frame:GetChildren()}) do
             self:PushFrame(child);
         end
 
-        for _, region in self:IterateArgs(frame:GetRegions()) do
+        for _, region in ipairs({frame:GetRegions()}) do
             region:SetParent(tk.Constants.DUMMY_FRAME);
             region:SetAllPoints(true);
             region:Hide();

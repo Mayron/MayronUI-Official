@@ -13,8 +13,6 @@ Observer.Static:AddFriendClass("Helper");
 local select, _G = select, _G;
 local tonumber, strsplit = tonumber, strsplit;
 
---local internalTree = {};
-
 -- OnAddOnLoadedListener
 local OnAddOnLoadedListener = CreateFrame("Frame");
 OnAddOnLoadedListener:RegisterEvent("ADDON_LOADED");
@@ -30,8 +28,8 @@ end);
 
 local function GetNextPath(path, key)
     if (path ~= nil) then    
-        if (tonumber(key)) then
-            key = string.format("%s[%s]", path, key);
+        if (tonumber(key)) then            
+            return string.format("%s[%s]", path, key);
         else
             return string.format("%s.%s", path, key);
         end
@@ -42,6 +40,10 @@ local function GetNextPath(path, key)
 
         return key;
     end
+end
+
+local function IsObserver(value)
+    return (type(value) == "table" and value.IsObjectType and value:IsObjectType("Observer"));
 end
 
 ------------------------
@@ -155,8 +157,8 @@ function Database:Start(data)
     -- create Profile and Global accessible observers:
 
     local currentProfile = self:GetCurrentProfile();
-    self.profile = Observer(data.helper, false, data.sv.profiles[currentProfile], data.defaults.profile);
-    self.global = Observer(data.helper, true, data.sv.global, data.defaults.global);
+    self.profile = Observer(false, data);
+    self.global = Observer(true, data);
 
     data.loaded = true;
 
@@ -224,13 +226,49 @@ Example: value = db:ParsePathValue(db.profile, "mySettings[" .. moduleName .. "]
 ]]
 Framework:DefineParams("table", "string");
 function Database:ParsePathValue(data, rootTable, path)    
-    local lastTable, lastKey = data.helper:GetLastTableKeyPairs(rootTable, path, true);
+    for _, key in ipairs({strsplit(".", path)}) do
+        if (tonumber(key)) then
+            key = tonumber(key);
+            rootTable = rootTable[key];
 
-    if (lastKey and lastTable) then
-        return lastTable[lastKey];
+            if (rootTable == nil) then 
+                return; 
+            end
+        else
+            local indexes;
+
+            if (key:find("%b[]")) then
+                indexes = {};
+                for index in key:gmatch("(%b[])") do
+                    index = index:match("%[(.+)%]");
+                    table.insert(indexes, index);
+                end
+            end
+
+            key = strsplit("[", key);
+
+            if (#key > 0) then
+                rootTable = rootTable[key];
+
+                if (rootTable == nil) then 
+                    return; 
+                end
+            end
+
+            if (indexes) then
+                for _, key in ipairs(indexes) do
+                    key = tonumber(key) or key;
+                    rootTable = rootTable[key];
+
+                    if (rootTable == nil) then 
+                        return; 
+                    end
+                end
+            end
+        end
     end
 
-    return nil;
+    return rootTable;
 end
 
 --[[
@@ -427,14 +465,14 @@ end
 Do NOT call this manually! Should only be called by the library to create a new 
 observer that controls a database table.
 ]]
-Framework:DefineParams("Helper", "boolean", "?table", "?table");
-function Observer:__Construct(data, helper, isGlobal, svTable, defaults)
-    data.helper = helper;       
+Framework:DefineParams("boolean", "table");
+function Observer:__Construct(data, isGlobal, previousData)
     data.isGlobal = isGlobal;
-    data.svTable = svTable;
-    data.defaults = defaults;
+    data.helper = previousData.helper;       
+    data.sv = previousData.sv;
+    data.defaults = previousData.defaults;
     data.internalTree = {};
-    data.database = helper:GetDatabase();
+    data.database = data.helper:GetDatabase();
 end
 
 --[[
@@ -453,32 +491,35 @@ Observer.Static:OnIndexed(function(self, data, key, realValue)
     if (realValue ~= nil) then
         return realValue; -- it is an observer object value
     end
-    
-    if (not data.svTable) then
-        if (not data.defaults) then
-            return nil;
-        end
-        -- it is already indexing the defaults table so continue...
-        return data.helper:GetNextDefaultValue(data, data.defaults, key);
-    end
 
-    local foundValue = data.svTable[key];    
+    local foundValue;    
+    local svTable = self:ToSavedVariable();
 
-    if (type(foundValue) == "table") then
+    if (svTable) then
         -- convert saved variable table into an Observer
-        foundValue = data.helper:GetNextObserver(data, foundValue, key);
+        foundValue = data.helper:GetNextValue(data, svTable, key);
     end
-    
-    -- check parent if still not found
-    if (foundValue == nil and data.parent) then 
-        foundValue = data.helper:GetNextParentValue(data, data.parent, key);
-    end
-    
-    -- check defaults if still not found 
-    if (foundValue == nil and data.defaults) then
-        foundValue = data.helper:GetNextDefaultValue(data, data.defaults, key);    
-    end      
 
+    -- check parent if still not found
+    if (foundValue == nil) then 
+        if (data.parent) then            
+            local parentData = data:GetFriendData(data.parent);
+            local svTable = data.parent:ToSavedVariable();
+
+            data.helper:SetUsingChild(data.isGlobal, data.path, data.parent);
+            foundValue = data.helper:GetNextValue(parentData, svTable, key);
+        end
+    end
+
+    -- check defaults if still not found 
+    if (foundValue == nil) then
+        local defaults = self:GetDefaults();
+
+        if (defaults) then
+            foundValue = data.helper:GetNextValue(data, defaults, key);
+        end
+    end
+    
     return foundValue;
 end);
 
@@ -535,19 +576,23 @@ do
     ]]
     Framework:DefineReturns("table");
     function Observer:ToTable(data)
-        local merged = {};      
+        local merged = {};
+        local svTable = self:ToSavedVariable();
+        local defaults = self:GetDefaults();
 
-        Merge(merged, data.svTable);
+        if (svTable) then
+            Merge(merged, svTable);
+        end
 
-        if (data.defaults) then
-            Merge(merged, data.defaults);
+        if (defaults) then
+            Merge(merged, defaults);
         end
     
         if (data.parent) then
             local parentTable = data.parent:ToSavedVariable();
 
             if (parentTable) then
-                Merge(merged, data.parent:ToSavedVariable());
+                Merge(merged, parentTable);
             end
         end
         
@@ -561,7 +606,41 @@ Gets the underlining saved variables table. Default or parent values will not be
 @return (table): the underlining saved variables table.
 ]]
 function Observer:ToSavedVariable(data)
-    return data.svTable;
+    local rootTable;
+
+    if (data.isGlobal) then      
+        rootTable = data.sv.global;
+    else        
+        local currentProfile = data.database:GetCurrentProfile();
+        rootTable = data.sv.profiles[currentProfile];
+    end
+
+    if (data.path) then        
+        return data.database:ParsePathValue(rootTable, data.path);
+    end
+    
+    return rootTable;
+end
+
+--[[
+Gets the underlining saved variables table. Default or parent values will not be included in this!
+
+@return (table): the underlining saved variables table.
+]]
+function Observer:GetDefaults(data)
+    local rootTable;
+
+    if (data.isGlobal) then
+        rootTable = data.defaults.global;
+    else
+        rootTable = data.defaults.profile;
+    end
+
+    if (data.path) then
+        return data.database:ParsePathValue(rootTable, data.path);
+    end
+    
+    return rootTable;
 end
 
 --[[
@@ -626,14 +705,6 @@ function Observer:GetLength(data, includeKeys)
 end
 
 --[[
-@return (int): Returns whether the current parent observer is using a child observer (useful for debugging)
-]]
-Framework:DefineReturns("boolean");
-function Observer:IsUsingChild(data)    
-    return data.usingChild ~= nil;
-end
-
---[[
 Helper function to return the path address of the observer.
 @return (string): The path address
 ]]
@@ -656,7 +727,7 @@ function Helper:GetDatabase(data)
 end
 
 do
-    local function getNextTable(tbl, key, parsing)
+    local function GetNextTable(tbl, key, parsing)
         local previous = tbl;
 
         if (tbl[key] == nil) then
@@ -667,15 +738,15 @@ do
         return previous, tbl[key];
     end
 
-    local isEmpty;
+    local IsEmpty;
 
-    isEmpty = function(tbl)
+    IsEmpty = function(tbl)
         if (tbl == nil) then
             return true;
         end
 
         for key, value in pairs(tbl) do
-            if (type(value) ~= "table" or not isEmpty(value)) then
+            if (type(value) ~= "table" or not IsEmpty(value)) then
                 return false;
             end
         end
@@ -684,47 +755,63 @@ do
     end
 
     Framework:DefineParams("table", "string", "?boolean", "?boolean");
-    function Helper:GetLastTableKeyPairs(_, rootTable, path, parsing, cleaning)
+    function Helper:GetLastTableKeyPairs(_, rootTable, path, cleaning)
         local nextTable = rootTable;
-        local lastTable;
-        local lastKey;
+        local lastTable, lastKey;
 
-        for _, pathSection in ipairs({strsplit(".", path)}) do
-            lastKey = strsplit("[", pathSection);
-            lastTable, nextTable = getNextTable(nextTable, lastKey, parsing);
-            
-            if (cleaning and isEmpty(nextTable)) then
-                if (type(lastTable) == "table") then
-                    lastTable[lastKey] = nil;
-                end
-                return nil;
-            end
+        for _, key in ipairs({strsplit(".", path)}) do
+            if (tonumber(key)) then
+                key = tonumber(key);
+                lastKey = key;
+                lastTable, nextTable = GetNextTable(nextTable, key);
 
-            if (pathSection:find("%b[]")) then
-
-                -- extraSection could be `path["key"]`
-                for extraSection in pathSection:gmatch("(%b[])") do
-                    -- remove square brackets (i.e. "key")
-                    local extraKey = extraSection:match("%[(.+)%]");
-
-                    lastKey = tonumber(extraKey) or extraKey;
-                    lastTable, nextTable = getNextTable(nextTable, lastKey, parsing);
-
-                    if (parsing and lastTable == nil) then
-                        return nil;
+                if (cleaning and IsEmpty(nextTable)) then
+                    if (type(lastTable) == "table") then
+                        lastTable[lastKey] = nil;
                     end
+                    return nil;
+                end
 
-                    if (cleaning and isEmpty(nextTable)) then
+            elseif (key ~= "db") then
+                local indexes;
+
+                if (key:find("%b[]")) then
+                    indexes = {};
+
+                    for index in key:gmatch("(%b[])") do
+                        index = index:match("%[(.+)%]");
+                        table.insert(indexes, index);
+                    end
+                end
+
+                key = strsplit("[", key);
+
+                if (#key > 0) then
+                    lastKey = key;
+                    lastTable, nextTable = GetNextTable(nextTable, key);
+
+                    if (cleaning and IsEmpty(nextTable)) then
                         if (type(lastTable) == "table") then
                             lastTable[lastKey] = nil;
                         end
                         return nil;
                     end
                 end
-            end
 
-            if (parsing and lastTable == nil) then
-                return nil;
+                if (indexes) then
+                    for _, key in ipairs(indexes) do
+                        key = tonumber(key) or key;
+                        lastKey = key;
+                        lastTable, nextTable = GetNextTable(nextTable, key);
+
+                        if (cleaning and IsEmpty(nextTable)) then
+                            if (type(lastTable) == "table") then
+                                lastTable[lastKey] = nil;
+                            end
+                            return nil;
+                        end
+                    end
+                end
             end
         end
 
@@ -755,50 +842,41 @@ function Helper:GetCurrentProfileKey()
     return string.join("-", playerName, realm);
 end
 
-
-Framework:DefineParams("table", "table", "any"); -- should be string or integer
-Framework:DefineReturns("Observer");
-function Helper:GetNextObserver(data, previousObserverData, svTable, key)
-    -- create Observer to represent found saved vairable sub-table
-
-    local nextObserver = previousObserverData.internalTree[key] or 
-        Observer(self, previousObserverData.isGlobal, svTable);
-
-    previousObserverData.internalTree[key] = nextObserver; -- store for later use
-    self:UpdateObserver(previousObserverData, nextObserver, key);
-
-    return nextObserver;
-end
-
-Framework:DefineParams("table", "Observer", "any") -- should be string or number
-function Helper:GetNextParentValue(data, previousObserverData, parent, key)
-    -- does not need to be converted to Observer as it already is one
-    local nextValue = parent[key]; 
+Framework:DefineParams("table", "table", "any") -- should be string or number
+function Helper:GetNextValue(data, previousObserverData, tbl, key)    
+    --tbl could be sv or defaults table
+    local nextValue = tbl[key]; 
 
     if (type(nextValue) ~= "table") then
         return nextValue;
     end
-    
-    self:UpdateObserver(previousObserverData, nextValue, key);
 
-    return nextValue;
-end
+    local nextObserver = nextValue;    
 
-Framework:DefineParams("table", "table", "any") -- should be string or number
-function Helper:GetNextDefaultValue(data, previousObserverData, defaults, key)
-    local nextValue = defaults[key];
+    if (not IsObserver(nextObserver)) then
+        nextObserver = previousObserverData.internalTree[key];
 
-    if (type(nextValue) ~= "table") then
-        return nextValue;
-    end  
+        if (not nextObserver) then
+            nextObserver = Observer(previousObserverData.isGlobal, previousObserverData);
+        end
 
-    local defaultObserver = previousObserverData.internalTree[key] 
-        or Observer(self, previousObserverData.isGlobal, nil, nextValue);
+        previousObserverData.internalTree[key] = nextObserver;
+    end
 
-    previousObserverData.internalTree[key] = defaultObserver; -- store for later use
-    self:UpdateObserver(previousObserverData, defaultObserver, key);
+    -- get next observer data and set next path (needs to be updated if from internalTree)
+    local nextPath = GetNextPath(previousObserverData.path, key);
+    local nextObserverData = data:GetFriendData(nextObserver);
+    nextObserverData.path = nextPath;
 
-    return defaultObserver;
+    -- get next child path in use
+    if (previousObserverData.usingChild) then
+        local nextChildPath = GetNextPath(previousObserverData.usingChild.path, key);
+        self:SetUsingChild(previousObserverData.usingChild.isGlobal, nextChildPath, nextObserver);
+    else
+        nextObserverData.usingChild = nil;
+    end
+
+    return nextObserver;
 end
 
 Framework:DefineParams("table", "?number");
@@ -849,7 +927,13 @@ function Helper:GetDatabaseRootTableName(data, observer)
     end
 
     local currentProfile = data.database:GetCurrentProfile();
-    return string.format("profile[%s]", currentProfile);
+
+    if (currentProfile:find("%s+")) then
+        -- has spaces
+        return string.format("profile['%s']", currentProfile);
+    else
+        return string.format("profile.%s", currentProfile);
+    end    
 end
 
 do
@@ -887,29 +971,25 @@ do
         local path;    
         local defaultRootTable;
         local svRootTable;
+        local isGlobal;
 
         if (observerData.usingChild) then
-            svRootTable = observerData.usingChild.svTable;
-            path = observerData.usingChild.childPath;
-        else
+            path = observerData.usingChild.path;
+            isGlobal = observerData.usingChild.isGlobal;
+        else            
             path = observerData.path;
-
-            if (observerData.isGlobal) then
-                svRootTable = data.dbData.sv.global;
-            else    
-                local currentProfile = data.database:GetCurrentProfile();
-                svRootTable = data.dbData.sv.profiles[currentProfile];
-            end
+            isGlobal = observerData.isGlobal;
         end
 
-        if (observerData.isGlobal) then
+        if (isGlobal) then
             defaultRootTable = data.dbData.defaults.global;
-        else
+            svRootTable = data.dbData.sv.global;
+        else            
             defaultRootTable = data.dbData.defaults.profile;
+            svRootTable = data.database.profile:ToSavedVariable();
         end
 
-        indexingPath = GetNextPath(path, key);
-
+        local indexingPath = GetNextPath(path, key);
         local defaultValue = data.database:ParsePathValue(defaultRootTable, indexingPath);
         
         if (not equals(defaultValue, value)) then
@@ -923,37 +1003,13 @@ do
     end
 end
 
-Framework:DefineParams("table", "Observer", "any");
-function Helper:UpdateObserver(data, parentData, observer, key)
-    local observerData = data:GetFriendData(observer);
+Framework:DefineParams("boolean", "string", "Observer");
+function Helper:SetUsingChild(data, isGlobal, path, parentObserver)
+    local parentObserverData = data:GetFriendData(parentObserver);
+    local usingChild = parentObserverData.usingChild or {};
+    
+    usingChild.isGlobal = isGlobal;
+    usingChild.path = path;
 
-    observerData.isDefault = (not observerData.svTable);
-
-    -- get next path
-    observerData.path = GetNextPath(parentData.path, key);
-
-    -- get next defaults table
-    if (type(parentData.defaults) == "table") then
-        observerData.defaults = parentData.defaults[key];
-    end
-
-    -- get next child
-    if (parentData.usingChild) then        
-        local svTable;
-        
-        if (observerData.isGlobal) then
-            svTable = data.dbData.sv.global;
-        else
-            local currentProfile = data.database:GetCurrentProfile();
-            svTable = data.dbData.sv.profiles[currentProfile];
-        end
-
-        observerData.usingChild = {
-            svTable = svTable, 
-            childPath = GetNextPath(parentData.childPath, key)
-        };
-
-    else
-        observerData.usingChild = nil;
-    end
+    parentObserverData.usingChild = usingChild;
 end

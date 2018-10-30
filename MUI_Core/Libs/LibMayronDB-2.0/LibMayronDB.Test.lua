@@ -69,6 +69,8 @@ local function UsingParentObserver_Test1()
         self.profile.myChild:SetParent(self.profile.myParent);
         self.profile.myChild.events:Print();
 
+        assert(self.profile.myChild.events.Something[1] == 1, "Child not connected to parent");
+
         print("UsingParentObserver_Test1 Successful!");
     end);    
 end
@@ -154,15 +156,60 @@ local function UpdatingToDefaultValueShouldRemoveSavedVariableValue_Test1()
         -- does not work first time (must be using internalTree to mess things up)
         local options = self.profile.subtable.options:ToSavedVariable();
         assert(type(options) == "table", "Should be a table but got "..tostring(options));       
-        assert(options.option4.value2 == 5000, "Should still equal false!");
+        assert(options.option4.value2 == 5000, "Should be true.");
 
         self.profile.subtable.options.option4.value2 = 20;
 
-        -- setting this back to default should remove it from the saved variable table... and should CLEAN UP!
-        
+        assert(self.profile.subtable.options.option4.value2 == 20, "Should be 20.");
+        -- setting this back to default should remove it from the saved variable table... and should CLEAN UP!        
 
         print("UpdatingToDefaultValueShouldRemoveSavedVariableValue_Test1 Successful!");
     end); 
+end
+
+local function UpdatingSameValueMultipleTimes_Test1()
+    print("UpdatingSameValueMultipleTimes_Test1 Started");
+
+    db:OnStartUp(function(self, addOnName)
+
+        self:AddToDefaults("global.core", {
+            value = 0.7,
+        });
+
+        assert(self.global.core.value == 0.7, "does not equal 0.7");
+        self.global.core.value = 0.6;
+        assert(self.global.core.value == 0.6, "does not equal 0.6");
+        self.global.core.value = 0.5;
+        assert(self.global.core.value == 0.5, "does not equal 0.5");
+        self.global.core.value = 0.4;
+        assert(self.global.core.value == 0.4, "does not equal 0.4");
+        self.global.core.value = 0.3;
+        assert(self.global.core.value == 0.3, "does not equal 0.3");
+
+        self.global.core.value = nil;
+        assert(self.global.core.value == 0.7, "does not go back to the default value of 0.7");
+
+        print("UpdatingSameValueMultipleTimes_Test1 Successful!");
+    end);
+end
+
+local function CleaningUpWithNilValue_Test1()
+    print("CleaningUpWithNilValue_Test1 Started");
+
+    db:OnStartUp(function(self, addOnName)
+
+        self:SetPathValue(self.global, "core.subTable1.subTable2[".."hello".."][4]", {
+            value = 100,
+        });
+
+        assert(self.global.core.subTable1.subTable2["hello"][4].value == 100, "does not equal 100");
+
+        self.global.core.subTable1.subTable2["hello"][4].value = nil;
+
+        assert(self.global.core == nil, "self.global.core should be removed!")
+
+        print("CleaningUpWithNilValue_Test1 Successful!");
+    end);
 end
 
 -- Uncomment to delete test database
@@ -177,3 +224,5 @@ end
 -- UsingParentObserver_Test2();
 -- UsingParentObserver_Test3();
 -- UpdatingToDefaultValueShouldRemoveSavedVariableValue_Test1()
+-- UpdatingSameValueMultipleTimes_Test1()
+-- CleaningUpWithNilValue_Test1();

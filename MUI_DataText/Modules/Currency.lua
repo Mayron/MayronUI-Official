@@ -14,6 +14,7 @@ local LABEL_PATTERN = "|cffffffff%s|r";
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.currency", {
+    -- TODO: This is not disabled by default!
     enabled = false,
 
     -- todo: this needs to be more intelligent...
@@ -22,6 +23,8 @@ db:AddToDefaults("profile.datatext.currency", {
     showGold = true,
 
     showRealm = false,
+
+    -- TODO: Not at the end like it should be!
     displayOrder = 20
 });
 
@@ -49,12 +52,12 @@ DataText:Hook("OnInitialize", function(self, dataTextData)
     local coloredKey = tk:GetClassColoredText(nil, tk:GetPlayerKey());
     
     -- saves info on the currency that each logged in character has
-    if (not db:ParsePathValue("global.datatext.currency.characters")) then
-        db:SetPathValue("global.datatext.currency.characters", {});
+    if (not db:ParsePathValue(db.global, "datatext.currency.characters")) then
+        db:SetPathValue(db.global, "datatext.currency.characters", {});
     end
     
 	-- store character's money to be seen by other characters
-    db.global.datatext.money.characters[coloredKey] = GetMoney();
+    db.global.datatext.currency.characters[coloredKey] = GetMoney();
 
     if (sv.enabled) then
         local currency = Currency(sv);
@@ -184,7 +187,7 @@ function Currency:Update(data)
 
     self.Button:SetText(currentCurrency);
     local colored_key = tk:GetClassColoredText(nil, tk:GetPlayerKey());
-    db.global.datatext.money.characters[colored_key] = GetMoney();
+    db.global.datatext.currency.characters[colored_key] = GetMoney();
 end
 
 function Currency:Click(data)    
@@ -209,7 +212,7 @@ function Currency:Click(data)
     end
 
 
-    for characterName, value in db.global.datatext.money.characters:Iterate() do
+    for characterName, value in db.global.datatext.currency.characters:Iterate() do
         totalLabelsShown = totalLabelsShown + 1;
         local nameLabel = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, popupWidth);
         self.MenuLabels[totalLabelsShown] = nameLabel;

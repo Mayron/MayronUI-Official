@@ -106,7 +106,7 @@ function tk:KillElement(element)
 end
 
 function tk:HideFrameElements(frame, kill)
-    for _, child in self:IterateArgs(frame:GetChildren()) do
+    for _, child in pairs({frame:GetChildren()}) do
         if (kill) then
             self:KillElement(child);
         else
@@ -114,7 +114,7 @@ function tk:HideFrameElements(frame, kill)
         end
     end
 
-    for _, region in self:IterateArgs(frame:GetRegions()) do
+    for _, region in pairs({frame:GetRegions()}) do
         if (kill) then
             self:KillElement(region);
         else
@@ -186,7 +186,7 @@ end
 function tk:GroupCheckButtons(...)
     local btns = {};
 
-    for id, btn in self:IterateArgs(...) do
+    for id, btn in ipairs({...}) do
         btn:SetID(id);
         tk.table.insert(btns, btn);
 
