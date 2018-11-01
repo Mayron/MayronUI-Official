@@ -452,7 +452,7 @@ function Database:AppendOnce(data, rootTable, path, value)
     end
 
     self:SetPathValue(rootTable, path, value);
-    appended[path] = true;
+    appendTable[path] = true;
 
     return true;
 end
@@ -502,21 +502,35 @@ Observer.Static:OnIndexed(function(self, data, key, realValue)
 
     -- check parent if still not found
     if (foundValue == nil) then 
-        if (data.parent) then            
-            local parentData = data:GetFriendData(data.parent);
-            local svTable = data.parent:ToSavedVariable();
+        if (data.parent) then
+            local svTable = data.parent:ToSavedVariable();           
 
-            data.helper:SetUsingChild(data.isGlobal, data.path, data.parent);
-            foundValue = data.helper:GetNextValue(parentData, svTable, key);
+            if (svTable ~= nil) then
+                local parentData = data:GetFriendData(data.parent);
+                
+                data.helper:SetUsingChild(data.isGlobal, data.path, data.parent);
+                -- it is possible to not have a svTable (might be dependent on defaults table)
+                foundValue = data.helper:GetNextValue(parentData, svTable, key);                
+            end
         end
     end
 
-    -- check defaults if still not found 
+    -- check own defaults table if still not found
     if (foundValue == nil) then
         local defaults = self:GetDefaults();
 
         if (defaults) then
             foundValue = data.helper:GetNextValue(data, defaults, key);
+        end
+    end
+
+    if (foundValue == nil and data.parent) then
+        -- check parent's defaults table before own defaults table
+        local defaults = data.parent:GetDefaults();
+
+        if (defaults ~= nil) then
+            local parentData = data:GetFriendData(data.parent);            
+            foundValue = data.helper:GetNextValue(parentData, defaults, key);                
         end
     end
     
@@ -611,12 +625,12 @@ function Observer:ToSavedVariable(data)
     if (data.isGlobal) then      
         rootTable = data.sv.global;
     else        
-        local currentProfile = data.database:GetCurrentProfile();
-        rootTable = data.sv.profiles[currentProfile];
+        local currentProfile = data.database:GetCurrentProfile();        
+        rootTable = data.sv.profiles[currentProfile];        
     end
 
     if (data.path) then        
-        return data.database:ParsePathValue(rootTable, data.path);
+        rootTable = data.database:ParsePathValue(rootTable, data.path);
     end
     
     return rootTable;

@@ -212,6 +212,48 @@ local function CleaningUpWithNilValue_Test1()
     end);
 end
 
+local function UsingBothParentAndDefaults_Test1()
+    print("UsingBothParentAndDefaults_Test1 Started");
+
+    db:OnStartUp(function(self, addOnName)
+        self:AddToDefaults("profile.myModule", {
+            enabled = true,
+            frameStrata = "MEDIUM",
+            frameLevel = 20,
+            height = 24,
+            spacing = 1,
+            fontSize = 11,
+            combatBlock = true,	
+            popup = {
+                hideInCombat = true,
+                maxHeight = 250,
+                width = 200,
+                itemHeight = 26
+            }
+        })        
+        
+        db:AddToDefaults("profile.myModule.mySubModule", {
+            enabled = true,
+            sets = {},
+            displayOrder = 8
+        });
+        
+
+        local sv = self.profile.myModule;
+        local subSv = self.profile.myModule.mySubModule;
+
+        subSv:SetParent(sv);
+        subSv:Print() -- should print all parent defaults
+
+        local width = subSv.popup.width;
+
+        assert(width == 200, "Width must be 200");       
+        
+        print("UsingBothParentAndDefaults_Test1 Successful!");
+    end);
+
+end
+
 -- Uncomment to delete test database
 -- db:OnStartUp(function(self, addOnName)
 --     TestDB = {};
@@ -226,3 +268,4 @@ end
 -- UpdatingToDefaultValueShouldRemoveSavedVariableValue_Test1()
 -- UpdatingSameValueMultipleTimes_Test1()
 -- CleaningUpWithNilValue_Test1();
+--UsingBothParentAndDefaults_Test1();

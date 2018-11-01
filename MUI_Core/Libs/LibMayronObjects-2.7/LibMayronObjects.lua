@@ -215,7 +215,12 @@ function ProxyStack:Pop(proxyEntity, key, entity, controller)
             end
         end
 
-        ProxyStack:Push(proxyObject);
+        ProxyStack:Push(proxyObject); 
+
+        if (#returnValues == 0) then
+            return nil; -- fixes returning nil instead of nothing
+        end
+        
         return unpack(returnValues);
     end
 

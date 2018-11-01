@@ -57,7 +57,7 @@ db:AddToDefaults("profile.theme", {
 -- Slash Commands ------------------
 
 Commands = {
-	["config"] = function()
+    ["config"] = function()
         if (not tk.IsAddOnLoaded("MUI_Config")) then
             EnableAddOn("MUI_Config");
 
@@ -66,7 +66,7 @@ Commands = {
                 return;
             end
 
-            MayronUI:ImportModule("Config"):init();
+            MayronUI:ImportModule("Config"):Initialize(); -- need to change this
         end
 
         MayronUI:ImportModule("Config"):Show();
