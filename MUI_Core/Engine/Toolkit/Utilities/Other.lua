@@ -11,22 +11,6 @@ function tk.Numbers:ToPrecision(number, precision)
     return number;
 end
 
---TODO: When is this used? Is it useful?
-function tk:Select(startIndex, endIndex, ...)
-    local values = {select(startIndex, ...)};
-    local maxSize = endIndex - startIndex;
-
-    if (#values <= maxSize) then
-        return unpack(values);
-    end
-
-    for i = endIndex, #values do
-        values[i] = nil; -- cut off after endIndex
-    end
-
-    return unpack(values);
-end
-
 function tk:Print(...)
     local hex = tk.select(4, self:GetThemeColor());
     local prefix = self.Strings:GetHexColoredText("MayronUI:", hex);

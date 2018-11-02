@@ -2,4 +2,4 @@
 ## Title: |cff00ccffMUI|r MiniMap
 ## Dependencies: MUI_Core
 
-MiniMap.lua
+MUI_MiniMap.lua

@@ -26,6 +26,7 @@ function private.submenu:Run(child_data)
         private.menu.back:SetEnabled(true);
         tk.PlaySound(tk.Constants.CLICK);
     end);
+    
     return btn;
 end
 

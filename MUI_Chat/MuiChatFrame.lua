@@ -1,3 +1,5 @@
+-- @Description: Handles the MUI Chat Frame artwork that wraps around the blizzard Chat Frames
+
 -- Setup namespaces ------------------
 local addOnName, namespace = ...;
 local ChatClass = namespace.ChatClass;

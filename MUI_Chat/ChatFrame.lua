@@ -1,3 +1,5 @@
+-- @Description: Controls the Blizzard Chat Frame changes (not the MUI Chat Frame!)
+
 -- Setup namespaces ------------------
 local addOnName, namespace = ...;
 local ChatClass = namespace.ChatClass;

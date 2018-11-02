@@ -7,17 +7,29 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local Engine = obj:Import("MayronUI.Engine");
 local chatModule, ChatClass = MayronUI:RegisterModule("Chat");
 
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local Engine = obj:CreatePackage("TimerBars", "MayronUI.Engine");
+
+
 namespace.ChatClass = ChatClass;
 
 -- Load Database Defaults --------------
 
 db:AddToDefaults("profile.chat", {
 	enabled = true,
-	enabledChatFrames = {
-		["TOPLEFT"] = true,
-		["BOTTOMLEFT"] = false,
-		["BOTTOMRIGHT"] = false,
-		["TOPRIGHT"] = false,
+	chatFrames = {
+		TOPLEFT = {
+			enabled = true,
+		},
+		TOPRIGHT = {
+			enabled = false,
+		},
+		BOTTOMLEFT = {
+			enabled = false,
+		},
+		BOTTOMRIGHT = {
+			enabled = false,
+		}
 	},
 	layout = "DPS", -- default layout
     editBox = {
@@ -143,13 +155,14 @@ chatModule:OnInitialize(function(self, data)
         end
 	end
 	
-	for anchorName, enabled in data.sv.enabledChatFrames:Iterate() do
-		if (enabled) then
-			local muiChatFrame = self:ShowMuiChatFrame(anchorName);
+	for anchorName, _ in data.sv.chatFrames:Iterate() do
+		chatFrameData = data.sv.chatFrames[anchorName];
 
-			for buttonID, button in pairs(muiChatFrame.buttons) do
-				self:SetUpButtonHandler(anchorName, buttonID, button);
-			end
+		if (chatFrameData.enabled) then			
+			chatFrameData:SetParent(data.sv.templateMuiChatFrame);
+				
+			local muiChatFrame = self:ShowMuiChatFrame(anchorName);
+			self:SetUpButtonHandler(muiChatFrame, chatFrameData.buttons);
 
 			if (anchorName == "TOPLEFT") then
 				if (tk.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
@@ -165,16 +178,6 @@ chatModule:OnInitialize(function(self, data)
 			end
 		end
 	end
-
-	-- 2018-07-19 CB: BNToastFrame_Show is not a function anymore
-    -- tk.hooksecurefunc(BNToastFrame, "Show", function()
-	-- 	BNToastFrame:ClearAllPoints();
-	-- 	if ((tk.select(1, ChatFrame1:GetPoint())):find("BOTTOM")) then
-    --         BNToastFrame:SetPoint("BOTTOMLEFT", ChatFrame1, "TOPLEFT", -4, 34);
-	-- 	else
-    --         BNToastFrame:SetPoint("TOPLEFT", ChatFrame1, "BOTTOMLEFT", -4, -10);
-    --     end
-	-- end);
 end);
 
 --TODO

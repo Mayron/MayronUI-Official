@@ -114,16 +114,7 @@ local function ChatButton_OnClick(self)
     clickHandlers[text]();
 end
 
-function ChatClass:SetUpButtonHandler(data, anchorName, buttonID, button)
-    local muiChatFrame = data.chatFrames[anchorName];    
-
-    if (not data.sv[anchorName]) then
-        data.sv[anchorName] = {};
-    end
-
-    data.sv[anchorName]:SetParent(data.sv.templateMuiChatFrame);
-    local buttonSettings = data.sv[anchorName].buttons;
-
+function ChatClass:SetUpButtonHandler(data, muiChatFrame, buttonSettings)
     em:CreateEventHandler("MODIFIER_STATE_CHANGED", function()
         if (data.sv.swapInCombat or not InCombatLockdown()) then
             local updated = false;
