@@ -65,14 +65,14 @@ end
 
 local function UpdateOptions(menuSection)
     if (tk.IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
-        menuSection.tl.btn:SetChecked(db.profile.chat.enabled["TOPLEFT"]);
-        menuSection.bl.btn:SetChecked(db.profile.chat.enabled["BOTTOMLEFT"]);
-        menuSection.br.btn:SetChecked(db.profile.chat.enabled["BOTTOMRIGHT"]);
-        menuSection.tr.btn:SetChecked(db.profile.chat.enabled["TOPRIGHT"]);
+        menuSection.tl.btn:SetChecked(db.profile.chat.enabledChatFrames["TOPLEFT"]);
+        menuSection.bl.btn:SetChecked(db.profile.chat.enabledChatFrames["BOTTOMLEFT"]);
+        menuSection.br.btn:SetChecked(db.profile.chat.enabledChatFrames["BOTTOMRIGHT"]);
+        menuSection.tr.btn:SetChecked(db.profile.chat.enabledChatFrames["TOPRIGHT"]);
     end
 
-	if (db.global.Core.localization) then
-		menuSection.localization.cb.btn:SetChecked(db.global.Core.localization);
+	if (db.global.core.localization) then
+		menuSection.localization.cb.btn:SetChecked(db.global.core.localization);
     end
     
     menuSection.themeDropdown:SetLabel("Theme");
@@ -301,28 +301,28 @@ function Private:LoadChatMenu(menuSection)
     menuSection.tl:SetPoint("TOPLEFT", menuSection.chatTitle, "BOTTOMLEFT", 0, -10);
 
     menuSection.tl.btn:SetScript("OnClick", function(self)
-        db.profile.chat.enabled["TOPLEFT"] = self:GetChecked();
+        db.profile.chat.enabledChatFrames["TOPLEFT"] = self:GetChecked();
     end);
 
     menuSection.bl = gui:CreateCheckButton(menuSection, L["Bottom Left"]);
     menuSection.bl:SetPoint("TOPLEFT", menuSection.tl, "BOTTOMLEFT", 0, -10);
 
     menuSection.bl.btn:SetScript("OnClick", function(self)
-        db.profile.chat.enabled["BOTTOMLEFT"] = self:GetChecked();
+        db.profile.chat.enabledChatFrames["BOTTOMLEFT"] = self:GetChecked();
     end);
 
     menuSection.br = gui:CreateCheckButton(menuSection, L["Bottom Right"]);
     menuSection.br:SetPoint("TOPLEFT", menuSection.bl, "BOTTOMLEFT", 0, -10);
 
     menuSection.br.btn:SetScript("OnClick", function(self)
-        db.profile.chat.enabled["BOTTOMRIGHT"] = self:GetChecked();
+        db.profile.chat.enabledChatFrames["BOTTOMRIGHT"] = self:GetChecked();
     end);
 
     menuSection.tr = gui:CreateCheckButton(menuSection, L["Top Right"]);
     menuSection.tr:SetPoint("TOPLEFT", menuSection.br, "BOTTOMLEFT", 0, -10);
 
     menuSection.tr.btn:SetScript("OnClick", function(self)
-        db.profile.chat.enabled["TOPRIGHT"] = self:GetChecked();
+        db.profile.chat.enabledChatFrames["TOPRIGHT"] = self:GetChecked();
     end);
 end
 
@@ -346,7 +346,7 @@ function Private:LoadCustomMenu(menuSection)
     menuSection.scaler:SetMinMaxValues(0.6, 1.2);
     menuSection.scaler:SetValueStep(0.05);
     menuSection.scaler:SetObeyStepOnDrag(true);
-    menuSection.scaler:SetValue(db.global.Core.uiScale);
+    menuSection.scaler:SetValue(db.global.core.uiScale);
     menuSection.scaler.Low:SetText(0.6);
     menuSection.scaler.Low:ClearAllPoints();
     menuSection.scaler.Low:SetPoint("BOTTOMLEFT", 5, -8);
@@ -355,7 +355,7 @@ function Private:LoadCustomMenu(menuSection)
     menuSection.scaler.High:SetPoint("BOTTOMRIGHT", -5, -8);
     menuSection.scaler.Value = menuSection.scaler:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
     menuSection.scaler.Value:SetPoint("BOTTOM", 0, -8);
-    menuSection.scaler.Value:SetText(db.global.Core.uiScale);
+    menuSection.scaler.Value:SetText(db.global.core.uiScale);
 
     menuSection.applyScaleBtn = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "Apply Scaling");
     menuSection.applyScaleBtn:SetPoint("TOPLEFT", menuSection.scaler, "BOTTOMLEFT", 0, -20);
@@ -364,13 +364,13 @@ function Private:LoadCustomMenu(menuSection)
     menuSection.applyScaleBtn:SetScript("OnClick", function(self)
         self:Disable();
         SetCVar("useUiScale", "1");
-        SetCVar("uiscale", db.global.Core.uiScale);
+        SetCVar("uiscale", db.global.core.uiScale);
     end);    
 
     menuSection.scaler:SetScript("OnValueChanged", function(self, value)
         value = math.floor((value * 100) + 0.5) / 100;
         self.Value:SetText(value);
-        db.global.Core.uiScale = value;
+        db.global.core.uiScale = value;
         menuSection.applyScaleBtn:Enable();
     end);
 	
@@ -383,7 +383,7 @@ function Private:LoadCustomMenu(menuSection)
 	-- menuSection.localization.cb = gui:CreateCheckButton(menuSection, L["WoW Client: "]..GetLocale());
 	-- menuSection.localization.cb:SetPoint("TOPLEFT", menuSection.chatTitle, "TOPRIGHT", 95, -40);
 	-- menuSection.localization.cb.btn:SetScript("OnClick", function(self)
-	-- 	db.global.Core.localization = self:GetChecked();
+	-- 	db.global.core.localization = self:GetChecked();
 	-- end);
 
     -- AddOn Settings to Inject
@@ -399,7 +399,7 @@ function Private:LoadCustomMenu(menuSection)
     gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", menuSection.addonContainer);
 
     local totalAddOnsLoaded = 0;
-    for id, addonData in db.global.Core.addons:Iterate() do        
+    for id, addonData in db.global.core.addons:Iterate() do        
         local alias, value, addonName = unpack(addonData);
 
         if (IsAddOnLoaded(addonName)) then
@@ -408,7 +408,7 @@ function Private:LoadCustomMenu(menuSection)
 
             cb.btn:SetChecked(value);
             cb.btn:SetScript("OnClick", function(self)
-                db.global.Core.addons[id] = {alias, self:GetChecked(), addonName};
+                db.global.core.addons[id] = {alias, self:GetChecked(), addonName};
             end);
 
             if (not previous) then
@@ -451,7 +451,7 @@ function Private:LoadCustomMenu(menuSection)
 end
 
 function Private:LoadInfoMenu(menuSection)
-    local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
+    local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
     menuSection.info, menuSection.child = gui:CreateScrollFrame(tk.Constants.AddOnStyle, menuSection);   
     tk:SetFullWidth(menuSection.child);
@@ -599,7 +599,7 @@ function Setup:Install()
     SetCVar("floatingCombatTextCombatDamage", "1");
     SetCVar("floatingCombatTextCombatHealing", "1");
     SetCVar("useUiScale", "1");
-    SetCVar("uiscale", db.global.Core.uiScale);
+    SetCVar("uiscale", db.global.core.uiScale);
 
     ChatFrame1:SetUserPlaced(true);
     ChatFrame1:ClearAllPoints();
@@ -618,12 +618,12 @@ function Setup:Install()
     end
 
     -- Export AddOn values to db:
-    for id, addonData in db.global.Core.addons:Iterate() do
+    for id, addonData in db.global.core.addons:Iterate() do
         local alias, value, addonName = unpack(addonData);
         
         if (value and IsAddOnLoaded(addonName)) then
             namespace.import[addonName]();
-            db.global.Core.addons[id] = {alias, false, addonName};
+            db.global.core.addons[id] = {alias, false, addonName};
         end
     end
 
@@ -643,7 +643,7 @@ function Setup:Install()
     -- Default Profiles:
     for id, name in ipairs({"Grid", "ShadowUF", "SimplePowerBar"}) do
         if (_G[name]) then
-            local path = tk:GetDBObject(name);
+            local path = tk.Tables:GetDBObject(name);
             if (path) then
                 if (path:GetCurrentProfile() ~= "Default") then
                     path:SetProfile("Default");

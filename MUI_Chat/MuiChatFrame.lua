@@ -112,7 +112,7 @@ local function CreateChatFrame(anchorName)
 	return muiChatFrame;
 end
 
-local function RepositionChatFrame(anchorName)
+local function RepositionChatFrame(muiChatFrame, anchorName)
 	muiChatFrame:ClearAllPoints();
 	muiChatFrame.window:ClearAllPoints();
 	muiChatFrame.sidebar:ClearAllPoints();
@@ -146,7 +146,7 @@ local function RepositionChatFrame(anchorName)
 		end
 	end
 
-	if (tk.Strings:Contains("RIGHT")) then
+	if (tk.Strings:Contains(anchorName, "RIGHT")) then
 		muiChatFrame.layoutButton:SetPoint("LEFT", muiChatFrame.sidebar, "LEFT", 2, 0);
 		muiChatFrame.layoutButton:GetNormalTexture():SetTexCoord(1, 0, 0, 1);
 		muiChatFrame.layoutButton:GetHighlightTexture():SetTexCoord(1, 0, 0, 1);
@@ -171,7 +171,7 @@ function ChatClass:ShowMuiChatFrame(data, anchorName) -- lets assume it's enable
 			"Could not find chat frame at anchor point '%s'", anchorName);
 
 		if (anchorName ~= "TOPLEFT") then
-			RepositionChatFrame(muiChatFrame);
+			RepositionChatFrame(muiChatFrame, anchorName);
 		end
 			
 		-- chat channel button
