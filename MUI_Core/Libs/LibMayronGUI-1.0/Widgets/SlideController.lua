@@ -14,7 +14,7 @@ local function frameOnHide(self)
     self:SetHeight(1);
 end
 
-WidgetsPackage:DefineParams("Frame", "?number")
+WidgetsPackage:DefineParams("Frame", "?number");
 function SlideController:__Construct(data, frame, step)
     data.frame = frame;
     data.step = step or 20;
@@ -44,7 +44,7 @@ function SlideController:Start(data, forceState)
 
         if ((step > 0 and newHeight < data.maxHeight) or
                 (step < 0 and newHeight > data.minHeight)) then
-
+            
             data.frame:SetHeight(newHeight);
             C_Timer.After(0.02, loop);
         else
@@ -122,18 +122,26 @@ function SlideController:SetMinHeight(data, minHeight)
     data.minHeight = math.floor(minHeight + 0.5);
 end
 
-function SlideController:OnStartExpand(data, func)
-    data.onStartExpand = func;
+local function AddDelay(func, delay)
+    if (type(delay) == "number" and delay > 0) then
+        return function() C_Timer.After(0.02 * delay, func); end
+    end
+
+    return func;
 end
 
-function SlideController:OnEndExpand(data, func)
-    data.onEndExpand = func;
+function SlideController:OnStartExpand(data, func, delay)
+    data.onStartExpand = AddDelay(func, delay);
 end
 
-function SlideController:OnStartRetract(data, func)
-    data.onStartRetract = func;
+function SlideController:OnEndExpand(data, func, delay)
+    data.onEndExpand = AddDelay(func, delay);
 end
 
-function SlideController:OnEndRetract(data, func)
-    data.onEndRetract = func;
+function SlideController:OnStartRetract(data, func, delay)
+    data.onStartRetract = AddDelay(func, delay);
+end
+
+function SlideController:OnEndRetract(data, func, delay)
+    data.onEndRetract = AddDelay(func, delay);
 end

@@ -358,8 +358,10 @@ Moves the profile to the bin. The profile cannot be accessed from the bin.
 Use db:RestoreProfile(profileName) to restore the profile.
 
 @param (string) profileName: The name of the profile to move to the bin.
+@return (boolean): Returns true if the profile was changed due to removing the current profile
 ]]
 Framework:DefineParams("string");
+Framework:DefineReturns("boolean");
 function Database:RemoveProfile(data, profileName)
      if (data.sv.profiles[profileName]) then
 
@@ -369,8 +371,11 @@ function Database:RemoveProfile(data, profileName)
         
         if (self:GetCurrentProfile() == profileName) then
             self:SetProfile("Default");
+            return true;
         end
     end
+
+    return false;
 end
 
 --[[

@@ -3,6 +3,7 @@ if (not Lib) then return; end
 
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
+local obj = Lib.Objects;
 
 local SlideController = WidgetsPackage:Get("SlideController");
 local Style = WidgetsPackage:Get("Style");
@@ -43,16 +44,12 @@ function Lib:FoldAllDropDownMenus(exclude)
 end
 
 -- @constructor    
-function Lib:CreateDropDown(style, parent, direction)
-    local r, g, b = style:GetColor();    
-    local dropDownContainer = Private:PopFrame("Frame", parent);
-    local header = Private:PopFrame("Frame", dropDownContainer);
+function Lib:CreateDropDown(style, parent, direction)   
 
     if (not DropDownMenu.Static.Menu) then
         DropDownMenu.Static.Menu = Lib:CreateScrollFrame(style, UIParent, "MUI_DropDownMenu");
         DropDownMenu.Static.Menu:Hide(); 
         DropDownMenu.Static.Menu:SetBackdrop(style:GetBackdrop("DropDownMenu"));
-        DropDownMenu.Static.Menu:SetBackdropBorderColor(r * 0.7, g * 0.7, b * 0.7);
         DropDownMenu.Static.Menu:SetScript("OnHide", FoldAll);
 
         Private:SetBackground(DropDownMenu.Static.Menu, 0, 0, 0, 0.9);
@@ -62,14 +59,13 @@ function Lib:CreateDropDown(style, parent, direction)
     direction = direction or "DOWN";
     direction = direction:upper();    
     
-    header:SetPoint("TOPLEFT");
-    header:SetBackdrop(style:GetBackdrop("DropDownMenu"));
-    header:SetBackdropBorderColor(r * 0.7, g * 0.7, b * 0.6);     
-
-    header.bg = Private:SetBackground(header, background);
-    header.bg:SetVertexColor(r * 0.7, g * 0.7, b * 0.7, 0.6);
-
+    local dropDownContainer = Private:PopFrame("Frame", parent);
     dropDownContainer:SetSize(200, 30);
+
+    local header = Private:PopFrame("Frame", dropDownContainer);
+    header:SetAllPoints(true);
+    header:SetBackdrop(style:GetBackdrop("DropDownMenu"));
+    header.bg = Private:SetBackground(header, style:GetTexture("ButtonTexture"));
 
     dropDownContainer.toggleButton = self:CreateButton(style, dropDownContainer);
     dropDownContainer.toggleButton:SetSize(30, 30);
@@ -104,7 +100,9 @@ function Lib:CreateDropDown(style, parent, direction)
 
     dropDownContainer.toggleButton.dropdown = DropDownMenu(header, direction, slideController, dropDownContainer, menu, style);    
     table.insert(dropdowns, dropDownContainer.toggleButton.dropdown);
-    dropDownContainer.toggleButton.dropdown:SetEnabled(true); -- enabled by default
+
+    -- enabled by default
+    dropDownContainer.toggleButton.dropdown:SetEnabled(true); 
 
     return dropDownContainer.toggleButton.dropdown;
 end
@@ -168,16 +166,25 @@ end
 WidgetsPackage:DefineParams("number");
 WidgetsPackage:DefineReturns("Button");
 function DropDownMenu:GetOption(data, optionID)
-    local foundOption = data.options[optionID]
+    local foundOption = data.options[optionID];
     obj:Assert(foundOption, "DropDownMenu.GetOption failed to find option with id '%s'.", optionID);
     return foundOption;
+end
+
+WidgetsPackage:DefineParams("string");
+function DropDownMenu:RemoveOptionByLabel(data, label)
+    for optionID, optionButton in ipairs(data.options) do
+        if (optionButton:GetText() == label) then
+            self:RemoveOption(optionID);
+        end
+    end
 end
 
 WidgetsPackage:DefineParams("number");
 function DropDownMenu:RemoveOption(data, optionID)
     local optionToRemove = self:GetOption(optionID);
 
-    table.remove(data.options, optionToRemove);
+    table.remove(data.options, optionID);
     Private:PushFrame(optionToRemove);
 
     local height = 30;
@@ -299,15 +306,16 @@ function DropDownMenu:SetEnabled(data, enabled)
 
     if (enabled) then
         local r, g, b = data.style:GetColor();
+        r = r * 0.7; g = g * 0.7; b = b * 0.7;
 
-        --TODoption: Use style:ApplyColor(...)?
         DropDownMenu.Static.Menu:SetBackdropBorderColor(r, g, b);
-        data.header.bg:SetVertexColor(r, g, b, 0.6);    
-        data.header:SetBackdropBorderColor(r, g, b);
-        data.frame.toggleButton:GetNormalTexture():SetVertexColor(r * 0.8, g * 0.8, b * 0.8, 0.6);
+
+        data.header:SetBackdropBorderColor(r, g, b); 
+        data.header.bg:SetVertexColor(r, g, b, 0.6);
+
+        data.frame.toggleButton:GetNormalTexture():SetVertexColor(r, g, b, 0.6);
         data.frame.toggleButton:GetHighlightTexture():SetVertexColor(r, g, b, 0.3);
         data.frame.toggleButton:SetBackdropBorderColor(r, g, b);
-        data.frame.toggleButton.arrow:SetAlpha(1);
 
         if (data.options) then
             for id, option in ipairs(data.options) do

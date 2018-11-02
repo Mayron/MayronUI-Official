@@ -131,7 +131,7 @@ ActionBarPanelModule:OnEnable(function(self, data)
         ToggleBartenderBar(data.BTBar4, true, data.bartenderControl);
         tk.UIFrameFadeIn(data.BTBar3, 0.3, 0, 1);
         tk.UIFrameFadeIn(data.BTBar4, 0.3, 0, 1);
-    end);
+    end, 5);
 
     data.slideController:OnStartRetract(function()
         tk.UIFrameFadeOut(data.BTBar3, 0.1, 1, 0);
@@ -209,9 +209,9 @@ ActionBarPanelModule:OnEnable(function(self, data)
         local expanded = data.sv.expanded;
 
         if (expanded) then
-            data.slideController:Start(data.slideController.FORCE_RETRACT);
+            data.slideController:Start(SlideController.Static.FORCE_RETRACT);
         else
-            data.slideController:Start(data.slideController.FORCE_EXPAND);
+            data.slideController:Start(SlideController.Static.FORCE_EXPAND);
         end
 
         data.sv.expanded = not expanded;

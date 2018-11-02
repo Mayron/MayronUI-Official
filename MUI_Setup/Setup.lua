@@ -18,7 +18,7 @@ local function ChangeTheme(self, value)
         db.profile["profile.bottomui.gradients"] = nil;
 
     elseif (db.profile.theme) then
-        value = db.profile.theme.color:GetTable();
+        value = db.profile.theme.color:ToTable();
     else 
         return;
     end
@@ -62,25 +62,26 @@ local function ChangeTheme(self, value)
     end
 end
 
-local function UpdateOptions(s)
+local function UpdateOptions(menuSection)
     if (tk.IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
-        s.tl.btn:SetChecked(db.profile.chat.enabled["TOPLEFT"]);
-        s.bl.btn:SetChecked(db.profile.chat.enabled["BOTTOMLEFT"]);
-        s.br.btn:SetChecked(db.profile.chat.enabled["BOTTOMRIGHT"]);
-        s.tr.btn:SetChecked(db.profile.chat.enabled["TOPRIGHT"]);
+        menuSection.tl.btn:SetChecked(db.profile.chat.enabled["TOPLEFT"]);
+        menuSection.bl.btn:SetChecked(db.profile.chat.enabled["BOTTOMLEFT"]);
+        menuSection.br.btn:SetChecked(db.profile.chat.enabled["BOTTOMRIGHT"]);
+        menuSection.tr.btn:SetChecked(db.profile.chat.enabled["TOPRIGHT"]);
     end
 	if (db.global.Core.localization) then
-		s.localization.cb.btn:SetChecked(db.global.Core.localization);
+		menuSection.localization.cb.btn:SetChecked(db.global.Core.localization);
 	end
-    s.themeDropdown:SetLabel("Theme");
+    menuSection.themeDropdown:SetLabel("Theme");
 end
 
-local function ChangeProfile(self, name)
+-- first argument is the dropdown menu self reference
+local function ChangeProfile(_, profileName)
     local window = SetupModule:GetWindow();
 
     if (window) then
-        db:SetProfile(name);      
-        ChangeTheme();    
+        db:SetProfile(profileName);      
+        ChangeTheme();
         UpdateOptions(window.submenu[window.customTab.type]);
     end
 end
@@ -175,7 +176,7 @@ function Private:LoadProfileMenu(menuSection)
     menuSection.profileDropdown:SetPoint("TOPLEFT", menuSection.profileTitle, "BOTTOMLEFT", 0, -10);
 
     for _, name, _ in db:IterateProfiles() do
-        menuSection.profileDropdown:AddOption(name, ChangeProfile);
+        menuSection.profileDropdown:AddOption(name, ChangeProfile, name);
     end
 
     menuSection.profileDropdown:AddOption(L["<new profile>"], function(self)
@@ -193,9 +194,8 @@ function Private:LoadProfileMenu(menuSection)
                 OnAccept = function(dialog)
                     local text = dialog.editBox:GetText()
                     ChangeProfile(nil, text);
-                    UpdateOptions(s);
-                    menuSection.profileDropdown:AddOption(text, ChangeProfile);
-                    menuSection.profileDropdown:SetLabel(text);
+                    UpdateOptions(menuSection);
+                    menuSection.profileDropdown:AddOption(text, ChangeProfile, text);
                 end,
             };
 
@@ -221,12 +221,12 @@ function Private:LoadProfileMenu(menuSection)
                     local text = dialog.editBox:GetText();
                     local changed = db:RemoveProfile(text);
 
-                    menuSection.profileDropdown:RemoveOption(text);
+                    menuSection.profileDropdown:RemoveOptionByLabel(text);
                     menuSection.profileDropdown:SetLabel(db:GetCurrentProfile());
 
                     if (changed) then
                         ChangeTheme();
-                        UpdateOptions(s);
+                        UpdateOptions(menuSection);
                     end
                 end,
             };

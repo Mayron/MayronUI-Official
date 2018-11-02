@@ -26,7 +26,7 @@ end;
 tk.Constants.LSM = LibStub("LibSharedMedia-3.0");
 
 tk.Constants.backdrop = {
-    edgeFile = "Interface\\AddOns\\MUI_Core\\media\\borders\\skinner",
+    edgeFile = "interface\\addons\\MUI_Core\\Media\\borders\\skinner",
     edgeSize = 1,
 };
 

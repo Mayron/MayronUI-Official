@@ -281,7 +281,7 @@ coreModule:OnInitialize(function()
 			return;
         end
         
-		for _, arg in tk:IterateArgs(tk.string.split(' ', str)) do
+		for _, arg in ipairs({tk.string.split(' ', str)}) do
 			if (#arg > 0) then
                 tk.table.insert(args, arg);
 			end

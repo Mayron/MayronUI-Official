@@ -2,7 +2,6 @@ local Lib = LibStub:GetLibrary("LibMayronGUI");
 if (not Lib) then return; end
 
 local WidgetsPackage = Lib.WidgetsPackage;
-local LibObjectLua = Lib.LibObjectLua;
 local Private = Lib.Private;
 
 local Cell = WidgetsPackage:CreateClass("Cell", Private.FrameWrapper);
