@@ -14,7 +14,6 @@ local LABEL_PATTERN = "|cffffffff%s|r";
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.currency", {
-    -- TODO: This is not disabled by default!
     enabled = false,
 
     -- todo: this needs to be more intelligent...
@@ -49,7 +48,7 @@ DataText:Hook("OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.currency;
     sv:SetParent(dataTextData.sv);
 
-    local coloredKey = tk:GetClassColoredText(nil, tk:GetPlayerKey());
+    local coloredKey = tk.Strings:GetClassColoredText(nil, tk:GetPlayerKey());
     
     -- saves info on the currency that each logged in character has
     if (not db:ParsePathValue(db.global, "datatext.currency.characters")) then

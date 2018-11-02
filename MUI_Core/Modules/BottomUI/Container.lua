@@ -195,7 +195,7 @@ containerModule:OnConfigUpdate(function(self, data, list, value)
                         tk:SetClassColoredTexture(class, unit.target.bg);
 
                     else
-                        tk:SetThemeColor(unit.sv.alpha, unit.target.bg);
+                        tk:ApplyThemeColor(unit.sv.alpha, unit.target.bg);
                     end
                 end
             end

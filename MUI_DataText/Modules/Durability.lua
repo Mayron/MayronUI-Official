@@ -123,22 +123,22 @@ function Durability:Update(data)
     local value = (durability_total / max_total) * 100;
 
     if (itemsEquipped) then
-        local format_value = tk:FormatFloat(1, value);
+        local realValue = tk.Numbers:ToPrecision(value, 2);
         local colored;
 
         if (value < 25) then
-            colored = tk.string.format("%s%s%%|r", RED_FONT_COLOR_CODE, format_value);
+            colored = tk.string.format("%s%s%%|r", RED_FONT_COLOR_CODE, realValue);
 
         elseif (value < 40) then
-            colored = tk.string.format("%s%s%%|r", ORANGE_FONT_COLOR_CODE, format_value);
+            colored = tk.string.format("%s%s%%|r", ORANGE_FONT_COLOR_CODE, realValue);
 
         elseif (value < 70) then
-            colored = tk.string.format("%s%s%%|r", YELLOW_FONT_COLOR_CODE, format_value);
+            colored = tk.string.format("%s%s%%|r", YELLOW_FONT_COLOR_CODE, realValue);
 
         else
-            colored = tk.string.format("%s%s%%|r", HIGHLIGHT_FONT_COLOR_CODE, format_value);
-
+            colored = tk.string.format("%s%s%%|r", HIGHLIGHT_FONT_COLOR_CODE, realValue);
         end
+
        self.Button:SetText(tk.string.format(L["Armor"]..": %s", colored));
     else
        self.Button:SetText(L["Armor"]..": |cffffffffnone|r");
@@ -165,7 +165,7 @@ function Durability:Click(data)
             self.MenuLabels[totalLabelsShown] = label;
 
             slotName = slotName:gsub("Slot", "");
-            slotName = tk:SplitCamelString(slotName);
+            slotName = tk.Strings:SplitByCamelCase(slotName);
             
             label.name:SetText(L[slotName]);
 

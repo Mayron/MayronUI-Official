@@ -95,8 +95,8 @@ function Private.experienceBar_OnSetup(resourceBar, data)
 
         if (data.statusbar.text) then
             local percent = (currentValue / maxValue) * 100;
-            currentValue = tk:FormatNumberString(currentValue);
-            maxValue = tk:FormatNumberString(maxValue);
+            currentValue = tk.Strings:FormatReadableNumber(currentValue);
+            maxValue = tk.Strings:FormatReadableNumber(maxValue);
             local text = tk.string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
             data.statusbar.text:SetText(text);
         end
@@ -131,8 +131,8 @@ function Private.artifactBar_OnSetup(resourceBar, data)
             end
 
             local percent = (currentValue / maxValue) * 100;
-            currentValue = tk:FormatNumberString(currentValue);
-            maxValue = tk:FormatNumberString(maxValue);
+            currentValue = tk.Strings:FormatReadableNumber(currentValue);
+            maxValue = tk.Strings:FormatReadableNumber(maxValue);
 
             local text = tk.string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
             data.statusbar.text:SetText(text);
@@ -170,8 +170,8 @@ function Private.reputationBar_OnSetup(resourceBar, data)
 				currentValue = currentValue - minValue;
 				local percent = (currentValue / maxValue) * 100;
 				
-				currentValue = tk:FormatNumberString(currentValue);
-				maxValue = tk:FormatNumberString(maxValue);
+				currentValue = tk.Strings:FormatReadableNumber(currentValue);
+				maxValue = tk.Strings:FormatReadableNumber(maxValue);
 				
 				local text = tk.string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
 				
@@ -209,8 +209,8 @@ function Private.reputationBar_OnSetup(resourceBar, data)
 		
         if (data.statusbar.text) then		
             local percent = (currentValue / maxValue) * 100;
-            currentValue = tk:FormatNumberString(currentValue);
-            maxValue = tk:FormatNumberString(maxValue);
+            currentValue = tk.Strings:FormatReadableNumber(currentValue);
+            maxValue = tk.Strings:FormatReadableNumber(maxValue);
 			
             local text = tk.string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
             data.statusbar.text:SetText(text);			

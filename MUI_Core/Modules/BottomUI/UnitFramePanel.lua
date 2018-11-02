@@ -211,7 +211,7 @@ unitFramePanelModule:OnEnable(function(self, data)
                         local _, class = UnitClass("target");
                         tk:SetClassColoredTexture(class, data.target.bg);
                     else
-                        tk:SetThemeColor(data.sv.alpha, data.target.bg);
+                        tk:ApplyThemeColor(data.sv.alpha, data.target.bg);
                     end
                 end
             else
@@ -251,18 +251,25 @@ unitFramePanelModule:OnEnable(function(self, data)
                             local _, class = UnitClass("target");
                             tk:SetClassColoredTexture(class, data.target.bg);
                         else
-                            tk:SetThemeColor(data.sv.alpha, data.target.bg);
+                            tk:ApplyThemeColor(data.sv.alpha, data.target.bg);
                         end
                     end
 
                 else
-                    tk:SetThemeColor(data.sv.alpha, data.target.bg);
+                    tk:ApplyThemeColor(data.sv.alpha, data.target.bg);
                 end
             end);
         end
     end
 
-    tk:SetThemeColor(data.sv.alpha, data.left.bg, data.center.bg, data.right.bg, data.player.bg, data.target.bg);
+    tk:ApplyThemeColor(data.sv.alpha, 
+        data.left.bg, 
+        data.center.bg, 
+        data.right.bg, 
+        data.player.bg, 
+        data.target.bg
+    );
+
     data.right.bg:SetTexCoord(1, 0, 0, 1);
 
     if (tk.IsAddOnLoaded("ShadowedUnitFrames") and data.sv.controlGrid) then
@@ -301,7 +308,7 @@ function UnitFramePanelClass:UpdateUnitNameText(data, unitType, unitLevel)
     local _, class = UnitClass(unitType); -- not sure if this works..
     local classif = UnitClassification(unitType);
 
-    if (tk.tonumber(unitLevel) < 1) then
+    if (tonumber(unitLevel) < 1) then
         unitLevel = "boss";
 
     elseif (classif == "elite" or classif == "rareelite") then 
@@ -314,20 +321,20 @@ function UnitFramePanelClass:UpdateUnitNameText(data, unitType, unitLevel)
 
     if (unitType ~= "player") then
         if (classif == "worldboss") then
-            unitLevel = tk:GetRGBColoredText(unitLevel, 0.25, 0.75, 0.25); -- yellow
+            unitLevel = tk.Strings:GetRGBColoredText(unitLevel, 0.25, 0.75, 0.25); -- yellow
         else
             local color = tk:GetDifficultyColor(UnitLevel(unitType));
-            unitLevel = tk:GetRGBColoredText(unitLevel, color.r, color.g, color.b);
-            name = (UnitIsPlayer(unitType) and tk:GetClassColoredText(class, name)) or name;
+            unitLevel = tk.Strings:GetRGBColoredText(unitLevel, color.r, color.g, color.b);
+            name = (UnitIsPlayer(unitType) and tk.Strings:GetClassColoredText(class, name)) or name;
         end
 
     else        
-        unitLevel = tk:GetRGBColoredText(unitLevel, 1, 0.8, 0);
+        unitLevel = tk.Strings:GetRGBColoredText(unitLevel, 1, 0.8, 0);
 
         if (UnitAffectingCombat("player")) then
-            name = tk:GetRGBColoredText(name, 1, 0, 0);
+            name = tk.Strings:GetRGBColoredText(name, 1, 0, 0);
         else
-            name = tk:GetClassColoredText(class, name);
+            name = tk.Strings:GetClassColoredText(class, name);
         end
     end
 
@@ -345,7 +352,7 @@ function UnitFramePanelClass:SetupSUFPortraitGradients(data)
         data.gradients = data.gradients or {};
         local r, g, b = tk:GetThemeColor();
 
-        for id, unitID in tk:IterateArgs("player", "target") do
+        for id, unitID in ipairs({"player", "target"}) do
             local parent = tk._G["SUFUnit"..unitID];
 
             if (parent and parent.portrait) then

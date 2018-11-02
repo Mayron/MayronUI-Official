@@ -156,6 +156,14 @@ function Lib:Error(errorMessage, ...)
     Core:Error(errorMessage, ...);
 end
 
+-- Helper function to check if value is a specified type
+-- @param value: The value to check the type of (can be nil)
+-- @param expectedTypeName: The exact type to check for (can be ObjectType)
+-- @return (boolean): Returns true if the value type matches the specified type
+function Lib:IsType(value, expectedTypeName)
+    return Core:IsMatchingType(value, expectedTypeName);
+end
+
 -------------------------------------
 -- ProxyStack
 -------------------------------------
@@ -832,9 +840,9 @@ function Core:ValidateImplementedProperties(Instance, interfaces, className)
                 if (propertyType:find("^\?")) then
                     -- it's optional:
                     propertyType = propertyType:sub(2, #propertyType);
-                    errorFound = (realValue ~= nil) and (propertyType ~= "any" and not self:IsMatchingTypes(propertyType, realValue));
+                    errorFound = (realValue ~= nil) and (propertyType ~= "any" and not self:IsMatchingType(realValue, propertyType));
                 else
-                    errorFound = (realValue == nil) or (propertyType ~= "any" and not self:IsMatchingTypes(propertyType, realValue));
+                    errorFound = (realValue == nil) or (propertyType ~= "any" and not self:IsMatchingType(realValue, propertyType));
                 end      
                 
                 errorMessage = string.format(message .. " (%s expected, got %s)", propertyType, self:GetValueType(realValue));
@@ -873,9 +881,9 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
                 if (defValue:find("^\?")) then
                     -- it's optional:
                     defValue = defValue:sub(2, #defValue);
-                    errorFound = (realValue ~= nil) and (defValue ~= "any" and not self:IsMatchingTypes(defValue, realValue));
+                    errorFound = (realValue ~= nil) and (defValue ~= "any" and not self:IsMatchingType(realValue, defValue));
                 else
-                    errorFound = (realValue == nil) or (defValue ~= "any" and not self:IsMatchingTypes(defValue, realValue));
+                    errorFound = (realValue == nil) or (defValue ~= "any" and not self:IsMatchingType(realValue, defValue));
                 end
             else
                 errorFound = true; 
@@ -1005,7 +1013,7 @@ function Core:Error(errorMessage, ...)
     self:Assert(false, errorMessage, ...);
 end
 
-function Core:IsMatchingTypes(expectedTypeName, value)
+function Core:IsMatchingType(value, expectedTypeName)
     if (value == nil) then
         return expected == "nil";
     end

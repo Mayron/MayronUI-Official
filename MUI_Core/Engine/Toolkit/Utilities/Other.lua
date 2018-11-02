@@ -2,7 +2,16 @@ local _, core = ...;
 core.Toolkit = core.Toolkit or {};
 
 local tk = core.Toolkit;
+tk.Numbers = {};
 
+function tk.Numbers:ToPrecision(number, precision)
+    number = tonumber(number);
+    number = math.floor(number * (math.pow(10, precision)));
+    number = number / (math.pow(10, precision));
+    return number;
+end
+
+--TODO: When is this used? Is it useful?
 function tk:Select(startIndex, endIndex, ...)
     local values = {select(startIndex, ...)};
     local maxSize = endIndex - startIndex;
@@ -12,7 +21,7 @@ function tk:Select(startIndex, endIndex, ...)
     end
 
     for i = endIndex, #values do
-        values[i] = nil;
+        values[i] = nil; -- cut off after endIndex
     end
 
     return unpack(values);
@@ -20,7 +29,7 @@ end
 
 function tk:Print(...)
     local hex = tk.select(4, self:GetThemeColor());
-    local prefix = self:GetHexColoredText("MayronUI:", hex);
+    local prefix = self.Strings:GetHexColoredText("MayronUI:", hex);
     DEFAULT_CHAT_FRAME:AddMessage(tk.string.join(" ", prefix, tk.tostringall(...)));
 end
 
@@ -35,7 +44,7 @@ do
         local checked = {S = false, C = false, A = false};
         for i = 1, #strKey do
             local modCode = strKey:sub(i,i)
-            modCode = tk.string.upper(modCode);
+            modCode = string.upper(modCode);
 
             checked[modCode] = true;
 
@@ -85,7 +94,7 @@ function tk:Equals(value1, value2, shallowEquals)
 
         if (type1 == "table") then
             if (shallowEquals) then
-                return tk.tostring(value1) == tk.tostring(value2);
+                return tostring(value1) == tostring(value2);
             else
                 for id, value in pairs(value1) do
                     if (not self:Equals(value, value2[id])) then
@@ -145,4 +154,3 @@ function tk:IsPlayerMaxLevel()
         end
     end
 end
-

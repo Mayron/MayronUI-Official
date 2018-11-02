@@ -27,7 +27,7 @@ local Commands = {};
 
 -- Add Default Database Values ----------------
 
-db:AddToDefaults("global.Core", {
+db:AddToDefaults("global.core", {
     uiScale = 0.7,
     changeGameFont = true,
     font = "MUI_Font",
@@ -225,6 +225,10 @@ end
 
 -- MayronUI Functions ---------------------
 
+function MayronUI:PrintTable(tbl, depth)
+    tk.Tables:Print(tbl, depth);
+end
+
 function MayronUI:ImportModule(moduleName)
     return self.RegisteredModules[moduleName];
 end
@@ -261,6 +265,10 @@ end
 
 function MayronUI:GetCoreComponents()
     return tk, db, em, gui, obj, L;
+end
+
+function MayronUI:TriggerCommand(commandName)
+    Commands[commandName:lower()]();
 end
 
 -- Register MUICore Module ---------------------
@@ -401,7 +409,7 @@ db:OnStartUp(function(self)
 
     -- Set Master Game Font Here! -------------------
 
-    if (self.global.Core.changeGameFont ~= false) then
-        tk:SetGameFont(media:Fetch("font", self.global.Core.font));
+    if (self.global.core.changeGameFont ~= false) then
+        tk:SetGameFont(media:Fetch("font", self.global.core.font));
     end
 end);

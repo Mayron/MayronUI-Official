@@ -165,37 +165,27 @@ ActionBarPanelModule:OnEnable(function(self, data)
     highlightTexture:SetPoint("TOPLEFT", 1, -1);
     highlightTexture:SetPoint("BOTTOMRIGHT", -1, 1);
 
-    expandBtn.glow = expandBtn:CreateTexture(nil, "BACKGROUND");
-    tk:SetThemeColor(expandBtn.glow);
-
+    expandBtn.glow = expandBtn:CreateTexture(nil, "BACKGROUND");    
     expandBtn.glow:SetTexture(tk.Constants.MEDIA.."bottom_ui\\glow");
     expandBtn.glow:SetSize(db.profile.bottomui.width, 60);
     expandBtn.glow:SetBlendMode("ADD");
     expandBtn.glow:SetPoint("BOTTOM", 0, 1);
+    tk:ApplyThemeColor(expandBtn.glow);
+    
+    local glowScaler = expandBtn.glow:CreateAnimationGroup();
 
-    local group = expandBtn.glow:CreateAnimationGroup();
-    group.a = group:CreateAnimation("Alpha");
-    group.a:SetSmoothing("OUT");
-    group.a:SetDuration(0.4);
-    group.a:SetFromAlpha(0);
-    group.a:SetToAlpha(1);
-    group.a:SetStartDelay(0.1);
-    group.a2 = group:CreateAnimation("Scale");
-    group.a2:SetOrigin("BOTTOM", 0, 0);
-    group.a2:SetDuration(0.4);
-    group.a2:SetFromScale(0, 0);
-    group.a2:SetToScale(1, 1);
+    glowScaler.anim = glowScaler:CreateAnimation("Scale");
+    glowScaler.anim:SetOrigin("BOTTOM", 0, 0);
+    glowScaler.anim:SetDuration(0.4);
+    glowScaler.anim:SetFromScale(0, 0);
+    glowScaler.anim:SetToScale(1, 1);
 
-    local group2 = expandBtn:CreateAnimationGroup();
-    group2.a = group2:CreateAnimation("Alpha");
-    group2.a:SetSmoothing("OUT");
-    group2.a:SetDuration(0.4);
-    group2.a:SetFromAlpha(0);
-    group2.a:SetToAlpha(1);
-
-    group:SetScript("OnFinished", function()
-        expandBtn.glow:SetAlpha(1);
-    end);
+    local expandBtnFader = expandBtn:CreateAnimationGroup();
+    expandBtnFader.anim = expandBtnFader:CreateAnimation("Alpha");
+    expandBtnFader.anim:SetSmoothing("OUT");
+    expandBtnFader.anim:SetDuration(0.2);
+    expandBtnFader.anim:SetFromAlpha(0);
+    expandBtnFader.anim:SetToAlpha(1);
 
     expandBtn:SetScript("OnClick", function(self)
         self:Hide();
@@ -217,16 +207,11 @@ ActionBarPanelModule:OnEnable(function(self, data)
         data.sv.expanded = not expanded;
     end);
 
-    group:SetScript("OnPlay", function()
-        expandBtn.glow:SetAlpha(0);
-        group2:Play();
-    end);
-
-    group2:SetScript("OnFinished", function()
+    expandBtnFader:SetScript("OnFinished", function()
         expandBtn:SetAlpha(1);
     end);
 
-    group2:SetScript("OnPlay", function()
+    expandBtnFader:SetScript("OnPlay", function()
         expandBtn:Show();
         expandBtn:SetAlpha(0);
     end);
@@ -243,9 +228,11 @@ ActionBarPanelModule:OnEnable(function(self, data)
             expandBtn:SetText("Expand");
         end
 
-        group:Stop();
-        group2:Stop();
-        group:Play();        
+        -- force call OnFinished callback
+        expandBtnFader:Stop();
+
+        glowScaler:Play();
+        expandBtnFader:Play(); 
     end);
 
     em:CreateEventHandler("PLAYER_REGEN_DISABLED", function() 

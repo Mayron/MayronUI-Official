@@ -1,14 +1,14 @@
-local core = MayronUI:ImportModule("MUI_Core");
-local tk = core.Toolkit;
-local db = core.Database;
-local minimap = {};
+-- Setup namespaces ------------------
+local addOnName, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
-MayronUI:RegisterModule("MiniMap", minimap);
-local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
+-- Register and Import ---------
 
-------------------------
--- Defaults
-------------------------
+local Engine = obj:Import("MayronUI.Engine");
+local miniMapModule, MiniMapClass = MayronUI:RegisterModule("MiniMap");
+
+-- Load Database Defaults --------------
+
 db:AddToDefaults("profile.minimap", {
 	point = "TOPRIGHT";
 	relativePoint = "TOPRIGHT";
@@ -19,52 +19,61 @@ db:AddToDefaults("profile.minimap", {
 	scale = 1,
 });
 
+local Minimap_OnDragStart;
+local Minimap_OnDragStop;
+
 do
-	local function step()
+	local updateSizeText;
+
+	local function DragStep()
 		local width = Minimap:GetWidth();
-        width = (tk.math.floor(width + 100.5) - 100);
-        Minimap:SetSize(width, width);
-		if (not minimap.updateSizeText) then
+		width = (tk.math.floor(width + 100.5) - 100);
+		Minimap:SetSize(width, width);
+		
+		if (not updateSizeText) then
 			Minimap.size:SetText("");
-        else
-            Minimap.size:SetText(width.." x "..width);
-        end
-        tk.C_Timer.After(0.02, step);
+		else
+			Minimap.size:SetText(width.." x "..width);
+		end
+
+		tk.C_Timer.After(0.02, DragStep);
 	end
-	function minimap:OnDragStart()
+
+	function Minimap_OnDragStart()
 		if (tk:IsModComboActive("C")) then
 			Minimap:StartMoving();
 		elseif (tk:IsModComboActive("S")) then
 			Minimap:StartSizing();
-			minimap.updateSizeText = true;
-            tk.C_Timer.After(0.1, step);
+			updateSizeText = true;
+			tk.C_Timer.After(0.1, DragStep);
 		end
+	end
+
+	function Minimap_OnDragStop(data)
+		Minimap:StopMovingOrSizing();
+		updateSizeText = nil;
+		
+		Minimap_ZoomIn();
+		Minimap_ZoomOut();
+
+		data.sv.point, data.sv.relativeTo, data.sv.relativePoint, data.sv.x, data.sv.y = Minimap:GetPoint();
+		data.sv.x = tk.math.floor(data.sv.x + 0.5);
+		data.sv.y = tk.math.floor(data.sv.y + 0.5);
+
+		data.sv.width, data.sv.height = Minimap:GetSize();
+		data.sv.width = math.floor(data.sv.width + 0.5);
+		data.sv.height = data.sv.width;
 	end
 end
 
-function minimap:OnDragStop()
-	Minimap:StopMovingOrSizing();
-	minimap.updateSizeText = nil;
-	Minimap_ZoomIn();
-	Minimap_ZoomOut();
-	self.sv.point, self.sv.relativeTo, self.sv.relativePoint, self.sv.x, self.sv.y = Minimap:GetPoint();
-	self.sv.x = tk.math.floor(self.sv.x + 0.5);
-	self.sv.y = tk.math.floor(self.sv.y + 0.5);
-
-	self.sv.width, self.sv.height = Minimap:GetSize();
-	self.sv.width = math.floor(self.sv.width + 0.5);
-	self.sv.height = self.sv.width;
-end
-
-function minimap:init()
-	if (not MayronUI:IsInstalled()) then return; end
-	self.sv = db.profile.minimap;
+miniMapModule:OnInitialize(function(self, data)
+	data.sv = db.profile.minimap;
 
 	Minimap:ClearAllPoints();
-	Minimap:SetPoint(self.sv.point, tk.UIParent, self.sv.relativePoint, self.sv.x, self.sv.y);
-	Minimap:SetWidth(self.sv.width);
-	Minimap:SetHeight(self.sv.height);
-	Minimap:SetScale(self.sv.scale);
+	Minimap:SetPoint(data.sv.point, tk.UIParent, data.sv.relativePoint, data.sv.x, data.sv.y);
+	Minimap:SetWidth(data.sv.width);
+	Minimap:SetHeight(data.sv.height);
+	Minimap:SetScale(data.sv.scale);
 	Minimap:SetMaskTexture('Interface\\ChatFrame\\ChatFrameBackground'); -- make rectangle
 
 	tk:KillElement(MiniMapInstanceDifficulty);
@@ -94,7 +103,7 @@ function minimap:init()
 	TimeManagerClockTicker:SetPoint("BOTTOMRIGHT", TimeManagerClockButton, "BOTTOMRIGHT", -5, 5);
 	TimeManagerClockTicker:SetJustifyH("RIGHT");
 
-	tk:SetThemeColor(TimeManagerClockTicker);
+	tk:ApplyThemeColor(TimeManagerClockTicker);
 	TimeManagerClockTicker.SetTextColor = tk.Constants.DUMMY_FUNC;
 
 	-- Mail:
@@ -144,13 +153,17 @@ function minimap:init()
 		end
 	end);
 
-	Minimap:SetScript("OnDragStart", self.OnDragStart);
+	Minimap:SetScript("OnDragStart", Minimap_OnDragStart);
 	Minimap:SetScript("OnDragStop", function()
-		minimap:OnDragStop();
+		Minimap_OnDragStop(data);
 	end);
 
 	Minimap:SetScript("OnEnter", function(self)
-		if (minimap.sv.Tooltip) then return; end -- helper tooltip (can be hidden)
+		if (data.sv.Tooltip) then 
+			-- helper tooltip (can be hidden)
+			return; 
+		end 
+
 		GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -2)
 		GameTooltip:SetText("MUI MiniMap");  -- This sets the top line of text, in gold.
 		GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
@@ -162,13 +175,14 @@ function minimap:init()
 		GameTooltip:AddDoubleLine(L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
 		GameTooltip:Show();
 	end);
+	
 	Minimap:HookScript("OnMouseDown", function(self, button)		
 		if ((IsAltKeyDown()) and (button == "LeftButton")) then
-			if (minimap.sv.Tooltip) then
-				minimap.sv.Tooltip = nil;
-				Minimap:GetScript("OnEnter")(self);
+			if (data.sv.Tooltip) then
+				data.sv.Tooltip = nil;
+				Minimap:GetScript("OnEnter")(Minimap);
 			else
-				minimap.sv.Tooltip = true;
+				data.sv.Tooltip = true;
 				GameTooltip:Hide();
 			end
 		end
@@ -226,21 +240,22 @@ function minimap:init()
 				tk.PlaySound(tk.Constants.CLICK);
 			end 
 		},
-		{ 	text = tk:GetThemeColoredString(L["MUI Config Menu"]),
+		{ 	text = tk.Strings:GetThemeColoredText(L["MUI Config Menu"]),
 			func = function()  
 				if (tk.InCombatLockdown()) then
 					tk:Print(L["Cannot access config menu while in combat."]);
 				else
-					core.commands["config"]()
+					MayronUI:TriggerCommand("config");
 				end				
 			end 
 		},
-		{ 	text = tk:GetThemeColoredString(L["MUI Installer"]),
+		{ 	text = tk.Strings:GetThemeColoredText(L["MUI Installer"]),
 			func = function()
-				core.commands["install"]();
+				MayronUI:TriggerCommand("install");
 			end 
 		},				
 	};
+
 	if (tk.IsAddOnLoaded("Leatrix_Plus")) then
         tk.table.insert(menuList, {
             text = tk:GetHexColoredString("Leatrix Plus", "70db70"),
@@ -254,7 +269,8 @@ function minimap:init()
                 SlashCmdList["Leatrix_Plus"]("play")
             end
         });
-    end
+	end
+	
     if (tk.IsAddOnLoaded("Recount")) then
         tk.table.insert(menuList,{
             text = "Toggle Recount",
@@ -271,30 +287,36 @@ function minimap:init()
 
     local menuFrame = tk.CreateFrame("Frame", "MinimapRightClickMenu", tk.UIParent, "UIDropDownMenuTemplate")
 	Minimap.oldMouseUp = Minimap:GetScript("OnMouseUp");
+
 	Minimap:SetScript("OnMouseUp", function(self, btn)
 		if (btn == "RightButton") then
 			EasyMenu(menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
+
 		elseif (btn == "MiddleButton") then
-			ToggleDropDownMenu(1, nil, MiniMapTrackingDropDown, "Minimap", 0, 0);
-            tk.PlaySound(tk.Constants.CLICK);
+			ToggleDropDownMenu(1, nil, MiniMapTrackingDropDown, "Minimap", 0, 0);			
+			tk.PlaySound(tk.Constants.CLICK);
+			
 		else
 			self.oldMouseUp(self);
 		end
-	end)
+	end);
 	
 	-- Difficulty Text:
 	local mode = tk.CreateFrame("Frame", nil, Minimap);
 	mode:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0);
 	mode:SetSize(26, 18);
+
 	mode:RegisterEvent("PLAYER_ENTERING_WORLD");
 	mode:RegisterEvent("PLAYER_DIFFICULTY_CHANGED");
 	mode:RegisterEvent("GROUP_ROSTER_UPDATE");	
+
 	mode.txt = mode:CreateFontString(nil, "OVERLAY", "MUI_FontNormal");
 	mode.txt:SetPoint("TOPRIGHT", mode, "TOPRIGHT", -5, -5);
 
 	mode:SetScript("OnEvent", function()
 		if ((IsInInstance())) then
 			local difficulty = tk.select(4, GetInstanceInfo());
+
 			if (difficulty == "Heroic") then
 				difficulty = "H";
 			elseif (difficulty == "Mythic") then
@@ -304,6 +326,7 @@ function minimap:init()
 			else
 				difficulty = "";
 			end
+
 			local players = GetNumGroupMembers();
 			players = (players > 0 and players) or 1;
 			mode.txt:SetText(players .. difficulty); -- localization possible?
@@ -311,12 +334,14 @@ function minimap:init()
 			mode.txt:SetText("");
 		end
 	end);
+
 	MiniMapTrackingBackground:Hide();
 	MiniMapTracking:Hide();
+
 	GarrisonLandingPageMinimapButton:SetSize(1, 1)
 	GarrisonLandingPageMinimapButton:SetAlpha(0);
 	GarrisonLandingPageMinimapButton:ClearAllPoints();
 	GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", tk.UIParent, "TOPRIGHT", 5, 5);
 	GarrisonLandingPageTutorialBox:Hide()
 	GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
-end
+end);

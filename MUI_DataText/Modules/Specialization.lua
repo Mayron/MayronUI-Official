@@ -26,8 +26,8 @@ local function button_OnEnter(self)
 
     GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
     GameTooltip:SetText(L["Commands"]..":")
-    GameTooltip:AddDoubleLine(tk:GetThemeColoredText(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
-    GameTooltip:AddDoubleLine(tk:GetThemeColoredText(L["Right Click:"]), L["Choose Loot Spec"], r, g, b, 1, 1, 1);
+    GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
+    GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Right Click:"]), L["Choose Loot Spec"], r, g, b, 1, 1, 1);
     GameTooltip:Show();
 end
 
@@ -343,11 +343,11 @@ function Specialization:Click(data, button)
     title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
 
     if (button == "LeftButton") then
-        title.name:SetText(tk:GetRGBColoredText(L["Choose Spec"]..":", r, g, b));
+        title.name:SetText(tk.Strings:GetRGBColoredText(L["Choose Spec"]..":", r, g, b));
         self.TotalLabelsShown = self:HandleLeftClick();
 
     elseif (button == "RightButton") then
-        title.name:SetText(tk:GetRGBColoredText(L["Choose Loot Spec"]..":", r, g, b));
+        title.name:SetText(tk.Strings:GetRGBColoredText(L["Choose Loot Spec"]..":", r, g, b));
         self.TotalLabelsShown = self:HandleRightClick();  
     end   
 end

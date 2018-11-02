@@ -106,7 +106,7 @@ function Memory:Update(data)
         end
 
         total = (total / 1000);
-        total = tk:FormatFloat(1, total);
+        total = tk.Numbers:ToPrecision(total, 2);
 
         self.Button:SetText(tk.string.format(LABEL_PATTERN, total));
 
@@ -120,7 +120,7 @@ function Memory:Click(data)
     tk.collectgarbage("collect");
     
     local currentIndex = 0;
-    local sorted = tk:GetWrapper();    
+    local sorted = {};    
 
     for i = 1, GetNumAddOns() do
         local _, name = GetAddOnInfo(i);
@@ -134,9 +134,11 @@ function Memory:Click(data)
 
             if (usage > 1000) then
                 value = usage / 1000;
-                value = tk:FormatFloat(1, value).." mb";
+                value = tk.Numbers:ToPrecision(value, 1);
+                value = string.format("%smb", value);
             else
-                value = tk:FormatFloat(0, usage).." kb";
+                value = tk.Numbers:ToPrecision(usage, 0);
+                value = string.format("%skb", value);
             end
 
             label.name:SetText(name);
@@ -147,10 +149,9 @@ function Memory:Click(data)
         end
     end
 
-    tk.table.sort(sorted, compare);
-    tk:EmptyTable(self.MenuLabels);
-    tk:FillTable(self.MenuLabels, unpack(sorted));
-    sorted:Close();
+    table.sort(sorted, compare);
+    tk.Tables:Empty(self.MenuLabels);
+    tk.Tables:Fill(self.MenuLabels, unpack(sorted));
 
     self.TotalLabelsShown = #self.MenuLabels;
 end

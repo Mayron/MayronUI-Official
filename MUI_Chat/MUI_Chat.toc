@@ -3,7 +3,9 @@
 ## Dependencies: MUI_Core
 ## OptionalDeps: MUI_Config
 
-Chat.lua
-LayoutSwitcher.lua
-Buttons.lua
-config.lua
+MUI_Chat.lua
+ChatFrame.lua
+ButtonHandlers.lua
+MuiChatFrame.lua
+RaidFrameManager.lua
+## LayoutSwitcher.lua

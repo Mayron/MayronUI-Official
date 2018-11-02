@@ -2,75 +2,10 @@ local _, core = ...;
 core.Toolkit = core.Toolkit or {};
 
 local tk = core.Toolkit;
+tk.Tables = {};
 -----------------------------
 
--- TABLE FUNCTIONS
-local PushTableAsWrapper;
-
-do
-    local wrappers = {};
-    local parent = {};
-    local counter = 0;
-    local unpacker = {};
-
-    local function StartCleaningTimer()
-        counter = counter + 1;
-
-        if (counter >= 10) then
-            counter = 0;
-            tk:EmptyTable(wrappers);   
-        else
-            C_Timer.After(1, StartCleaningTimer);
-        end        
-    end
-
-    PushTableAsWrapper = function(table)
-        tk:EmptyTable(table);
-        wrappers[#wrappers + 1] = table;
-
-        if (counter == 0) then
-            StartCleaningTimer();
-        end  
-    end
-
-    function parent:Close()
-        for _, wrapper in tk.pairs(self) do
-            if (tk.type(wrapper) == "table" and wrapper.Close) then
-                wrapper:Close();
-            end
-        end
-
-        tk:EmptyTable(self);
-        tk.setmetatable(self, nil);
-
-        if (#wrappers < 20) then
-            wrappers[#wrappers + 1] = self;
-
-            if (counter == 0) then
-                StartCleaningTimer();
-            end            
-        end        
-    end
-
-    local mt = {__index = parent};
-
-    function tk:GetWrapper(...)
-        local wrapper;
-
-        if (#wrappers > 0) then
-            wrapper = wrappers[#wrappers];
-            wrappers[#wrappers] = nil;
-            self:FillTable(wrapper, ...);
-        else
-            wrapper = {...};
-        end
-
-        wrapper = tk.setmetatable(wrapper, mt);
-        return wrapper;
-    end
-end
-
-function tk:GetKeyTable(tbl, keys)
+function tk.Tables:GetKeys(tbl, keys)
     keys = keys or {};
     for key, _ in tk.pairs(tbl) do
         tk.table.insert(keys, key);
@@ -78,7 +13,7 @@ function tk:GetKeyTable(tbl, keys)
     return keys;
 end
 
-function tk:PrintTable(tbl, depth, n)
+function tk.Tables:Print(tbl, depth, n)
     if (tk.type(tbl) ~= "table") then 
         return; 
     end
@@ -114,11 +49,7 @@ function tk:PrintTable(tbl, depth, n)
     end
 end
 
-function MUI_PrintTable(tbl, depth)
-    tk:PrintTable(tbl, depth);
-end
-
-function tk:GetIndex(tbl, value)
+function tk.Tables:GetIndex(tbl, value)
     for id, v in tk.pairs(tbl) do
         if (value == v) then 
             return id; 
@@ -128,7 +59,8 @@ function tk:GetIndex(tbl, value)
     return nil;
 end
 
-function tk:GetTableSize(tbl)
+-- includes both the index length and the hash table length
+function tk.Tables:GetFullSize(tbl)
     local size = 0;
 
     for _, _ in tk.pairs(tbl) do
@@ -138,33 +70,40 @@ function tk:GetTableSize(tbl)
     return size;
 end
 
-function tk:EmptyTable(tbl)
+function tk.Tables:Empty(tbl)
     for key, _ in tk.pairs(tbl) do
         tbl[key] = nil;
     end
 end
 
+function tk.Tables:IsEmpty(tbl)
+    local size = self:GetFullSize(tbl);
+    return size == 0;
+end
+
 -- remove all nil values from index portion of table
-function tk:CleanIndexes(tbl) 
+function tk.Tables:CleanIndexes(tbl) 
     local tempIndexTable;
     
     for index = 1, #tbl do
-        if (tbl[index] ~= nil) then
+        local value = tbl[index];
+
+        if (value ~= nil) then
             tempIndexTable = tempIndexTable or {};
-            tk.table.insert(tempIndexTable, tbl[index]);    
-            tbl[index] = nil;        
-        end        
+            tk.table.insert(tempIndexTable, value);  
+
+            tbl[index] = nil;
+        end
     end
 
     if (tempIndexTable) then
         for index = 1, #tempIndexTable do
             tbl[index] = tempIndexTable[index];
         end
-        PushTableAsWrapper(tempIndexTable);
     end
 end
 
-function tk:RemoveAllFromTable(mainTable, subTable, preserveIndex)
+function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
     local totalRemoved = 0;
     
     for subIndex = 1, #subTable do
@@ -201,19 +140,20 @@ function tk:RemoveAllFromTable(mainTable, subTable, preserveIndex)
     return totalRemoved;
 end
 
-function tk:FillTable(tbl, ...)
-    for id, value in ipairs({...}) do
-        tbl[id] = value;
+function tk.Tables:Fill(tbl, ...)
+    for key, value in pairs({...}) do
+        -- also includes indexes, so key could be a number
+        tbl[key] = value;
     end
 end
 
-function tk:GetMergedTable(...)
+function tk.Tables:Merge(...)
     local merged = {};
 
     for _, tbl in ipairs({...}) do
         for key, value in tk.pairs(tbl) do
             if (merged[key] and (tk.type(merged[key]) == "table") and (tk.type(value) == "table")) then
-                merged[key] = tk:GetMergedTable(merged[key], value);
+                merged[key] = self:Merge(merged[key], value);
             else
                 merged[key] = value;
             end
@@ -226,7 +166,9 @@ end
 do
     local args;
 
-    function tk:ConvertPathToKeys(path)
+    -- breaks apart a database path address (i.e. "db.profiles['value'][1]") 
+    -- to a LinkedList containing all sections
+    function tk.Tables:ConvertPathToKeys(path)
         args = args or tk:CreateLinkedList();
         args:Clear();
 
@@ -247,14 +189,17 @@ do
     end
 end
 
-function tk:GetDBObject(addOnName)
+-- gets the DB associated with the AddOn based on convention
+function tk.Tables:GetDBObject(addOnName)
     local addon, okay;
 
-    if (tk._G[addOnName]) then
+    if (_G[addOnName]) then
         addon = tk._G[addOnName];
         okay = true;
     else
-        okay, addon = tk.pcall(function() LibStub("AceAddon-3.0"):GetAddon(addOnName) end);
+        okay, addon = tk.pcall(function() 
+            LibStub("AceAddon-3.0"):GetAddon(addOnName) 
+        end);
     end
 
     if (not okay) then 
@@ -262,11 +207,9 @@ function tk:GetDBObject(addOnName)
     end
 
     if (addon and not addon.db) then
-
         for dbname, tbl in tk.pairs(addon) do
 
             if (tk.string.find(dbname, "db")) then
-
                 if (tk.type(addon[dbname]) == "table") then
 
                     if (addon[dbname].profile) then
@@ -282,7 +225,7 @@ function tk:GetDBObject(addOnName)
     end
 end
 
-function tk:GetLastPathKey(path)
+function tk.Tables:GetLastPathKey(path)
     local list = tk:CreateLinkedList(tk.strsplit(".", path));
     local key = list:GetBack();
 
@@ -295,50 +238,4 @@ function tk:GetLastPathKey(path)
     list:Destroy();
 
     return key;
-end
-
-do
-    local frames = {};
-
-    function tk:PopFrame(objectType, parent)
-        parent = parent or self.UIParent;
-        objectType = objectType or "Frame";
-
-        local frame = frames[objectType] and frames[objectType][#frames];
-
-        if (not frame) then
-            frame = tk.CreateFrame(objectType);
-        else
-            frames[objectType][#frames] = nil;
-        end
-
-        frame:SetParent(parent);
-        frame:Show();
-
-        return frame;
-    end
-
-    function tk:PushFrame(frame)
-        if (not frame.GetObjectType) then 
-            return; 
-        end
-
-        local objectType = frame:GetObjectType();
-        frames[objectType] = frames[objectType] or {};
-        frame:SetParent(tk.Constants.DUMMY_FRAME);
-        frame:SetAllPoints(true);
-        frame:Hide();
-
-        for _, child in ipairs({frame:GetChildren()}) do
-            self:PushFrame(child);
-        end
-
-        for _, region in ipairs({frame:GetRegions()}) do
-            region:SetParent(tk.Constants.DUMMY_FRAME);
-            region:SetAllPoints(true);
-            region:Hide();
-        end
-        
-        frames[objectType][#frames + 1] = frame;
-    end
 end
