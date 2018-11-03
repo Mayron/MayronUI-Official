@@ -5,11 +5,10 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 -- Register and Import ---------
 
 local Engine = obj:Import("MayronUI.Engine");
-local chatModule, ChatClass = MayronUI:RegisterModule("Chat");
+local ChatClass = MayronUI:RegisterModule("Chat");
 
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local Engine = obj:CreatePackage("TimerBars", "MayronUI.Engine");
-
 
 namespace.ChatClass = ChatClass;
 
@@ -125,7 +124,7 @@ end
 
 -- Chat Module -------------------
 
-chatModule:OnInitialize(function(self, data)
+function ChatClass:OnInitialize(data)
 	data.sv = db.profile.chat;	
 
     tk.StaticPopupDialogs["MUI_Link"] = {
@@ -178,10 +177,10 @@ chatModule:OnInitialize(function(self, data)
 			end
 		end
 	end
-end);
+end
 
 --TODO
-chatModule:OnConfigUpdate(function(self, data, list, value)
+function ChatClass:OnConfigUpdate(data, list, value)
 	local key = list:PopFront();
 	
     if (key == "profile" and list:PopFront() == "chat") then
@@ -239,7 +238,7 @@ chatModule:OnConfigUpdate(function(self, data, list, value)
             end
         end
     end
-end);
+end
 
 --------------------------
 -- Blizzard Globals

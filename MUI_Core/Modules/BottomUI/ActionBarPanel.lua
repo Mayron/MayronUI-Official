@@ -10,7 +10,7 @@ local L = namespace.Locale;
 
 -- Register and Import Modules -----------
 
-local ActionBarPanelModule, ActionBarPanel = MayronUI:RegisterModule("BottomUI_ActionBarPanel", true);
+local ActionBarPanelClass = MayronUI:RegisterModule("BottomUI_ActionBarPanel", true);
 local SlideController = gui.WidgetsPackage:Get("SlideController");
 
 -- Load Database Defaults ----------------
@@ -53,8 +53,8 @@ local function LoadTutorial(panel)
     frame.text:SetPoint("TOPLEFT", 10, -20);
     frame.text:SetPoint("BOTTOMRIGHT", -10, 10);
     frame.text:SetText(
-        "Press and hold the "..tk:GetThemeColoredText("Control").." key while out of "..
-                "combat to show the "..tk:GetThemeColoredText("Expand").." button.\n\n"..
+        "Press and hold the "..tk.Strings:GetThemeColoredText("Control").." key while out of "..
+                "combat to show the "..tk.Strings:GetThemeColoredText("Expand").." button.\n\n"..
                 "Click the Expand button to show a second row of action buttons!"
     );
    
@@ -62,7 +62,7 @@ local function LoadTutorial(panel)
         if (tk:IsModComboActive("C")) then
             frame.text:SetText(
                 "Once expanded, you can press and hold the same key while out of "..
-                        "combat to show the "..tk:GetThemeColoredText("Retract").." button.\n\n"..
+                        "combat to show the "..tk.Strings:GetThemeColoredText("Retract").." button.\n\n"..
                         "Pressing this will hide the second row of action buttons."
             );
 
@@ -84,9 +84,9 @@ local function ToggleBartenderBar(btBar, show, bartenderControl)
     end
 end
 
--- ActionBarPanel Module ----------------- 
+-- ActionBarPanelClass ----------------- 
 
-ActionBarPanelModule:OnInitialize(function(self, data, buiContainer, subModules)
+function ActionBarPanelClass:OnInitialize(data, buiContainer, subModules)
     data.sv = db.profile.actionBarPanel;
     data.bartenderControl = data.sv.bartender.control;
     data.buiContainer = buiContainer;
@@ -95,10 +95,10 @@ ActionBarPanelModule:OnInitialize(function(self, data, buiContainer, subModules)
 
     if (data.sv.enabled) then
         self:SetEnabled(true);
-    end    
-end);
+    end   
+end
 
-ActionBarPanelModule:OnEnable(function(self, data)
+function ActionBarPanelClass:OnEnable(data)
     if (data.panel) then 
         return; 
     end
@@ -242,15 +242,13 @@ ActionBarPanelModule:OnEnable(function(self, data)
     if (db.global.tutorial) then
         LoadTutorial(data.panel);        
     end
-end);
+end
 
--- ActionBarPanel Object ----------------------
-
-function ActionBarPanel:GetPanel(data)
+function ActionBarPanelClass:GetPanel(data)
     return data.panel;
 end
 
-function ActionBarPanel:PositionBartenderBars(data)
+function ActionBarPanelClass:PositionBartenderBars(data)
     if (not (data.BTBar1 or data.BTBar2 or data.BTBar3 or data.BTBar4)) then 
         return; 
     end
@@ -275,7 +273,7 @@ function ActionBarPanel:PositionBartenderBars(data)
     end
 end
 
-function ActionBarPanel:SetBartenderBars(data)
+function ActionBarPanelClass:SetBartenderBars(data)
     if (tk.IsAddOnLoaded("Bartender4") and data.bartenderControl) then
 
         local bar1 = data.sv.bartender[1]:match("%d+");

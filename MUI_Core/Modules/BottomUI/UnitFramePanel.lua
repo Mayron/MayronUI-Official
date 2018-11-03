@@ -1,6 +1,6 @@
-local addOnName, namespace = ...;
-
 -- Setup Namespaces ----------------------
+
+local addOnName, namespace = ...;
 
 local em = namespace.EventManager;
 local tk = namespace.Toolkit;
@@ -20,12 +20,10 @@ local RESOURCE_BAR_NAMES = {"Artifact", "Reputation", "XP"};
 
 local FrameWrapper = obj:Import("Framework.System.FrameWrapper");
 local BottomUIPackage = obj:CreatePackage("BottomUI", addonName);
-local ResourceBar = BottomUIPackage:CreateClass("ResourceBar", FrameWrapper);
 
--- Register and Import Modules -----------
+-- Register Modules ----------------------
 
-local DataText = MayronUI:ImportModule("DataText");
-local unitFramePanelModule, UnitFramePanelClass = MayronUI:RegisterModule("BottomUI_UnitFramePanel", true);
+local UnitFramePanelClass = MayronUI:RegisterModule("BottomUI_UnitFramePanel", true);
 
 -- Load Database Defaults ----------------
 
@@ -86,7 +84,7 @@ end
 
 -- UnitFramePanel Module ----------------- 
 
-unitFramePanelModule:OnInitialize(function(self, data, buiContainer, subModules)
+function UnitFramePanelClass:OnInitialize(data, buiContainer, subModules)
     data.sv = db.profile.unitPanels;
     data.buiContainer = buiContainer;    
     data.ActionBarPanel = subModules.ActionBarPanel;
@@ -96,14 +94,14 @@ unitFramePanelModule:OnInitialize(function(self, data, buiContainer, subModules)
     end
 
     self:SetupSUFPortraitGradients();
-end);
+end
 
-unitFramePanelModule:OnEnable(function(self, data)
+function UnitFramePanelClass:OnEnable(data)
     if (data.left) then 
         return;         
     end
 
-    local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
+    local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
     local actionBarPanel = data.ActionBarPanel:GetPanel();
 
     obj:Assert(actionBarPanel, "ActionBarPanel cannot be loaded.");
@@ -125,6 +123,7 @@ unitFramePanelModule:OnEnable(function(self, data)
 
     else
         local height = data.sv.height;
+        local DataText = MayronUI:ImportModule("DataText");
 
         if (DataText.bar and DataText.bar:IsShown()) then
             data.left:SetPoint("TOPLEFT", DataText.bar, "TOPLEFT", 0, height);
@@ -292,9 +291,7 @@ unitFramePanelModule:OnEnable(function(self, data)
             end
         end);
     end
-end);
-
--- UnitFramePanelClass -----------------------
+end
 
 function UnitFramePanelClass:UpdateUnitNameText(data, unitType, unitLevel)
     local name = UnitName(unitType);

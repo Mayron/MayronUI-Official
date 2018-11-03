@@ -1,15 +1,17 @@
--- Setup namespaces ------------------
+-- Setup Locals ------------------------
+
 local addOnName, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local MAX_DATA_ITEMS = 10;
 
--- Register and Import ---------
+-- Objects -----------------------------
 
 local Engine = obj:Import("MayronUI.Engine");
 local SlideController = obj:Import("MayronUI.Widgets.SlideController");
 
-local dataTextModule, DataTextClass = MayronUI:RegisterModule("DataText");
-local Container = MayronUI:ImportModule("BottomUI_Container");
+-- Register Modules --------------------
+
+local DataText = MayronUI:RegisterModule("DataText");
 
 -- Load Database Defaults --------------
 
@@ -29,9 +31,9 @@ db:AddToDefaults("profile.datatext", {
     }
 });
 
--- DataText Module -------------------
+-- DataText Functions -------------------
 
-dataTextModule:OnInitialize(function(self, data)
+function DataText:OnInitialize(data)
     data.sv = db.profile.datatext; -- database saved variables table
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
@@ -41,9 +43,9 @@ dataTextModule:OnInitialize(function(self, data)
     if (data.sv.enabled) then 
         self:SetEnabled(true);
     end    
-end);
+end
 
-dataTextModule:OnEnable(function(self, data)
+function DataText:OnEnable(data)
     -- the main bar containing all data text buttons
     data.bar = tk:PopFrame("Frame", data.buiContainer);
     data.bar:SetHeight(data.sv.height);
@@ -100,9 +102,9 @@ dataTextModule:OnEnable(function(self, data)
 
 	-- provides more intelligent scrolling (+ controls visibility of scrollbar)
     data.slideController = SlideController(data.popup);
-end);
+end
 
-dataTextModule:OnConfigUpdate(function(self, data, list, value)
+function DataText:OnConfigUpdate(data, list, value)
     local key = list:PopFront();
 
     if (key == "profile" and list:PopFront() == "datatext") then
@@ -131,7 +133,7 @@ dataTextModule:OnConfigUpdate(function(self, data, list, value)
             data.slideController:Start();
             
         elseif (key == "fontSize") then
-            local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
+            local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
             for id, btn in tk.ipairs(data.DataModules) do
                 btn:GetFontString():SetFont(font, value);
@@ -172,12 +174,10 @@ dataTextModule:OnConfigUpdate(function(self, data, list, value)
             data.bar:SetFrameLevel(value);
         end
     end
-end);
-
--- DataTextClass -------------------
+end
 
 Engine:DefineParams("IDataTextModule");
-function DataTextClass:RegisterDataModule(data, dataModule)
+function DataText:RegisterDataModule(data, dataModule)
     local dataModuleName = dataModule:GetObjectType(); -- get's name of object/module
     data.DataModules[dataModuleName] = dataModule;
     
@@ -193,7 +193,7 @@ end
 
 Engine:DefineParams("IDataTextModule", "?string");
 Engine:DefineReturns("Button");
-function DataTextClass:CreateDataTextButton(data, dataModule, btnText)
+function DataText:CreateDataTextButton(data, dataModule, btnText)
     local btn = CreateFrame("Button");
     btn:SetNormalTexture(tk.Constants.MEDIA.."mui_bar");
     btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
@@ -203,14 +203,14 @@ function DataTextClass:CreateDataTextButton(data, dataModule, btnText)
 
     btn:SetNormalFontObject("MUI_FontNormal");
 
-    local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
+    local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
     btn:SetText(btnText or " ");
     btn:GetFontString():SetFont(font, data.sv.fontSize);
 
     return btn;
 end
 
-function DataTextClass:PositionDataItems(data)
+function DataText:PositionDataItems(data)
     local flatOrdering = {};
     local ordering = {};   
 
@@ -268,7 +268,7 @@ end
 
 Engine:DefineParams("Frame");
 -- Attach current dataTextModule scroll child onto shared popup and hide previous scroll child
-function DataTextClass:ChangeMenuContent(data, content)
+function DataText:ChangeMenuContent(data, content)
     local oldContent = data.popup:GetScrollChild();
 
     if (oldContent) then 
@@ -284,7 +284,7 @@ function DataTextClass:ChangeMenuContent(data, content)
 end
 
 Engine:DefineParams("table");
-function DataTextClass:ClearLabels(data, labels)
+function DataText:ClearLabels(data, labels)
     if (not labels) then 
         return; 
     end
@@ -303,7 +303,7 @@ Engine:DefineParams("IDataTextModule");
 Engine:DefineReturns("number");
 -- returned the total height of all labels
 -- total height is used to controll the dynamic scrollbar
-function DataTextClass:PositionLabels(data, dataModule)    
+function DataText:PositionLabels(data, dataModule)    
     local totalLabelsShown = dataModule.TotalLabelsShown;
     local labelHeight = data.sv.popup.itemHeight;
 
@@ -361,7 +361,7 @@ function DataTextClass:PositionLabels(data, dataModule)
 end
 
 Engine:DefineParams("IDataTextModule", "Button");
-function DataTextClass:ClickModuleButton(data, dataModule, dataTextButton, button, ...)
+function DataText:ClickModuleButton(data, dataModule, dataTextButton, button, ...)
     GameTooltip:Hide();
     dataModule:Update(data);
     data.slideController:Stop();
@@ -425,24 +425,25 @@ function DataTextClass:ClickModuleButton(data, dataModule, dataTextButton, butto
     end
 
     -- begin expanding the popup menu
+    data.slideController:Hide();
     data.slideController:SetMaxHeight(totalHeight);
-    data.slideController:Start();
+    data.slideController:Start(SlideController.Static.FORCE_EXPAND);
 
     tk.UIFrameFadeIn(data.popup, 0.3, 0, 1);
     tk.PlaySound(tk.Constants.CLICK);
 end
 
 Engine:DefineParams("string");
-function DataTextClass:ForceUpdate(data, dataModuleName)    
+function DataText:ForceUpdate(data, dataModuleName)    
     data.DataModules[dataModuleName]:Update();
 end
 
 Engine:DefineReturns("boolean");
-function DataTextClass:IsShown(data)    
+function DataText:IsShown(data)    
     return (data.bar and data.bar:IsShown()) or false;
 end
 
 Engine:DefineReturns("Frame");
-function DataTextClass:GetFrame(data)    
+function DataText:GetFrame(data)    
     return data.bar;
 end

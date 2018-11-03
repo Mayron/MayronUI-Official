@@ -11,7 +11,7 @@ local Private = {};
 
 -- Register and Import Modules -----------
 
-local SideBarModule, SideBar = MayronUI:RegisterModule("SideBar");
+local SideBar = MayronUI:RegisterModule("SideBar");
 
 -- Add Database Defaults -----------------
 
@@ -143,7 +143,7 @@ function Private:RetractFrame(sidebar, bar2, frame, minWidth)
     tk.C_Timer.After(0.02, loop);
 end
 
-function Private:MoveFrameOut(frame, bar1, controlBartender)
+function Private:MoveFrameOut(sideBarModule, frame, bar1, controlBartender)
     local function loop()
         local point, anchor, anchorPoint, xOffset, yOffset = frame:GetPoint();
         local width = tk.math.floor(frame:GetWidth() + 0.5);
@@ -157,7 +157,7 @@ function Private:MoveFrameOut(frame, bar1, controlBartender)
             frame:Hide();
             Private:ToggleBartenderBar(bar1, false);
             frame.animating = false;
-            SideBarModule:SetBarsShown(0);            
+            sideBarModule:SetBarsShown(0);            
         end
     end
 
@@ -171,7 +171,7 @@ function Private:MoveFrameOut(frame, bar1, controlBartender)
     tk.C_Timer.After(0.02, loop);
 end
 
-function Private:MoveFrameIn(frame, bar1, controlBartender)
+function Private:MoveFrameIn(sideBarModule, frame, bar1, controlBartender)
     local counter = 1;
 
     local function loop()
@@ -198,7 +198,7 @@ function Private:MoveFrameIn(frame, bar1, controlBartender)
             frame:SetPoint(point, anchor, anchorPoint, 0, yOffset);
             Private:ToggleBartenderBar(bar1, true);
             frame.animating = false;
-            SideBarModule:SetBarsShown(1);
+            sideBarModule:SetBarsShown(1);
         end
     end
 
@@ -210,15 +210,15 @@ end
 
 -- SideBar Module -----------------------
 
-SideBarModule:OnInitialize(function(self, data)
+function SideBar:OnInitialize(data)
     data.sv = db.profile.sidebar;
     
     if (data.sv.enabled) then
         self:SetEnabled(true);
     end    
-end);
+end
 
-SideBarModule:OnEnable(function(self, data)
+function SideBar:OnEnable(data)
     Private.step = data.sv.animationSpeed;
 
     self:SetBartenderBars();    
@@ -268,9 +268,9 @@ SideBarModule:OnEnable(function(self, data)
         ObjectiveTrackerFrame.SetPoint = tk.Constants.DUMMY_FUNC;
         ObjectiveTrackerFrame.SetAllPoints = tk.Constants.DUMMY_FUNC;
     end
-end);
+end
 
-SideBarModule:OnConfigUpdate(function(data, list, value)
+function SideBar:OnConfigUpdate(list, value)
     local key = list:PopFront();
 
     if (key == "profile" and list:PopFront() == "sidebar") then
@@ -379,7 +379,7 @@ SideBarModule:OnConfigUpdate(function(data, list, value)
             end
         end
     end
-end);
+end
 
 -- SideBar Object -------------------------
 
@@ -392,7 +392,7 @@ function SideBar:Expand(data, expandAmount)
 
     if (expandAmount == 1) then        
         data.expand:Hide();
-        Private:MoveFrameIn(data.panel, data.BTBar1, data.sv.bartender.control);
+        Private:MoveFrameIn(self, data.panel, data.BTBar1, data.sv.bartender.control);
 
     elseif (expandAmount == 2) then
         data.expand:Hide();
@@ -415,7 +415,7 @@ function SideBar:Retract(data, retractAmount)
     elseif (retractAmount == 2) then
         data.expand:Hide();
         data.retract:Hide();
-        Private:MoveFrameOut(data.panel, data.BTBar1, data.sv.bartender.control);
+        Private:MoveFrameOut(self, data.panel, data.BTBar1, data.sv.bartender.control);
     end
 end
 

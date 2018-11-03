@@ -23,7 +23,7 @@ local ResourceBar = BottomUIPackage:CreateClass("ResourceBar", FrameWrapper);
 
 -- Register and Import Modules -----------
  
-local containerModule, ContainerClass = MayronUI:RegisterModule("BottomUI_Container");
+local ContainerClass = MayronUI:RegisterModule("BottomUI_Container");
 
 -- Add Database Defaults -----------------
 
@@ -74,9 +74,9 @@ local function ReanchorSUF()
     ShadowUF.Layout:Reload();
 end
 
--- Container Module ------------------
+-- ContainerClass ------------------
 
-containerModule:OnInitialize(function(self, data)
+function ContainerClass:OnInitialize(data)
     if (not MayronUI:IsInstalled()) then 
         return; 
     end
@@ -127,10 +127,10 @@ containerModule:OnInitialize(function(self, data)
     data.subModules.ResourceBars:Initialize(data.container, data.subModules);    
     data.subModules.ActionBarPanel:Initialize(data.container, data.subModules);  
     data.subModules.UnitFramePanel:Initialize(data.container, data.subModules);
-end);
+end
 
 -- TODO: Split this up where revelant!
-containerModule:OnConfigUpdate(function(self, data, list, value)
+function ContainerClass:OnConfigUpdate(data, list, value)
     local unitFramePanel = data.subModules["UnitFramePanel"];
     local key = list:PopFront();
 
@@ -279,9 +279,7 @@ containerModule:OnConfigUpdate(function(self, data, list, value)
             end
         end
     end
-end);
-
--- ContainerClass -----------------
+end
 
 function ContainerClass:UpdateContainer(data)
     data.subModules.ActionBarPanel:PositionBartenderBars();  

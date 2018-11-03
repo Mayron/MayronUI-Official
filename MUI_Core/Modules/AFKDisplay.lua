@@ -10,7 +10,7 @@ local Private = {};
 
 -- Register Module ------------
 
-local AfkDisplayModule, AfkDisplay = MayronUI:RegisterModule("AfkDisplay");
+local AfkDisplay = MayronUI:RegisterModule("AfkDisplay");
 
 -- Add Database Defaults ------
 
@@ -511,15 +511,15 @@ end
 
 -- AfkDisplay Module -----------
 
-AfkDisplayModule:OnInitialize(function(self, data)
+function AfkDisplay:OnInitialize(data)
     data.sv = db.global.afkDisplay;
 
     if (data.sv.enabled) then
         self:SetEnabled(true);
     end
-end);
+end
 
-AfkDisplayModule:OnEnable(function(self, data)
+function AfkDisplay:OnEnable(data)
     if (data.handler) then
         data.handler = em:CreateEventHandler("PLAYER_FLAGS_CHANGED", function(_, _, unitID)
             if (unitID ~= "player" or not data.sv.enabled) then 
@@ -533,9 +533,7 @@ AfkDisplayModule:OnEnable(function(self, data)
             self:Toggle(false);
         end);
     end
-end);
-
--- AfkDisplay Object -----------
+end
 
 function AfkDisplay:Toggle(data, show)
     if (tk.InCombatLockdown() or (AuctionFrame and AuctionFrame:IsVisible())) then

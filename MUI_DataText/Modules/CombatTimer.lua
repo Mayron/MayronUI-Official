@@ -3,10 +3,9 @@
 local _, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
--- Register and Import Modules -------
+-- Objects ---------------------------
 
 local Engine = obj:Import("MayronUI.Engine");
-local DataText = MayronUI:ImportModule("DataText");
 local CombatTimer = Engine:CreateClass("CombatTimer", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
@@ -18,17 +17,17 @@ db:AddToDefaults("profile.datatext.combatTimer", {
 
 -- CombatTimer Module ----------------
 
-DataText:Hook("OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.combatTimer;
     sv:SetParent(dataTextData.sv);
 
     if (sv.enabled) then
-        local combatTimer = CombatTimer(sv);
+        local combatTimer = CombatTimer(self, sv);
         self:RegisterDataModule(combatTimer);
     end
 end);
 
-function CombatTimer:__Construct(data, sv)
+function CombatTimer:__Construct(data, dataTextModule, sv)
     data.sv = sv;
     data.displayOrder = sv.displayOrder;
 
@@ -57,7 +56,7 @@ function CombatTimer:__Construct(data, sv)
     local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
 
     -- create datatext button
-    self.Button = DataText:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton(self);
 
     data.seconds = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
     data.seconds:SetFont(font, sv.fontSize);

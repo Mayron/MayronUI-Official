@@ -5,7 +5,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 -- Register and Import ---------
 
 local Engine = obj:Import("MayronUI.Engine");
-local miniMapModule, MiniMapClass = MayronUI:RegisterModule("MiniMap");
+local MiniMap = MayronUI:RegisterModule("MiniMap");
 
 -- Load Database Defaults --------------
 
@@ -66,7 +66,7 @@ do
 	end
 end
 
-miniMapModule:OnInitialize(function(self, data)
+function MiniMap:OnInitialize(data)
 	data.sv = db.profile.minimap;
 
 	Minimap:ClearAllPoints();
@@ -344,4 +344,4 @@ miniMapModule:OnInitialize(function(self, data)
 	GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", tk.UIParent, "TOPRIGHT", 5, 5);
 	GarrisonLandingPageTutorialBox:Hide()
 	GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
-end);
+end

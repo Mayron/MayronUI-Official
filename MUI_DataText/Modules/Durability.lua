@@ -13,7 +13,6 @@ local DURABILITY_SLOTS = {
 -- Register and Import Modules -------
 
 local Engine = obj:Import("MayronUI.Engine");
-local DataText = MayronUI:ImportModule("DataText");
 local Durability = Engine:CreateClass("Durability", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
@@ -53,17 +52,17 @@ end
 
 -- Durability Module --------------
 
-DataText:Hook("OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.durability;
     sv:SetParent(dataTextData.sv);
 
     if (sv.enabled) then
-        local durability = Durability(sv);
+        local durability = Durability(sv, self);
         self:RegisterDataModule(durability);
     end
 end);
 
-function Durability:__Construct(data, sv)
+function Durability:__Construct(data, sv, dataTextModule)
     data.sv = sv;
     data.displayOrder = sv.displayOrder;
 
@@ -73,7 +72,7 @@ function Durability:__Construct(data, sv)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
-    self.Button = DataText:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton(self);
 end
 
 function Durability:IsEnabled(data) 

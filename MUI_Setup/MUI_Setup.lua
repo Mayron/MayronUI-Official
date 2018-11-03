@@ -4,12 +4,16 @@ namespace.import = {};
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local Private = {};
 
--- Imported Objects ---------------------
+-- Setup Objects -------------------------
 
-local SetupModule, Setup = MayronUI:RegisterModule("MUI_Setup");
 local Panel = obj:Import("MayronUI.Widgets.Panel");
 
--- Local Functions ----------------------
+-- Register and Import Modules -----------
+
+local SetupClass = MayronUI:RegisterModule("MUI_Setup");
+local setupModule = MayronUI:ImportModule("MUI_Setup");
+
+-- Local Functions -----------------------
 
 local function ChangeTheme(self, value)
     if (value) then
@@ -25,7 +29,7 @@ local function ChangeTheme(self, value)
 
     tk:UpdateThemeColor(value);
 
-    local window = SetupModule:GetWindow();
+    local window = setupModule:GetWindow();
     local r, g, b = tk:GetThemeColor();
     local frame = window:GetFrame();
     
@@ -65,10 +69,10 @@ end
 
 local function UpdateOptions(menuSection)
     if (tk.IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
-        menuSection.tl.btn:SetChecked(db.profile.chat.enabledChatFrames["TOPLEFT"]);
-        menuSection.bl.btn:SetChecked(db.profile.chat.enabledChatFrames["BOTTOMLEFT"]);
-        menuSection.br.btn:SetChecked(db.profile.chat.enabledChatFrames["BOTTOMRIGHT"]);
-        menuSection.tr.btn:SetChecked(db.profile.chat.enabledChatFrames["TOPRIGHT"]);
+        menuSection.tl.btn:SetChecked(db.profile.chat.chatFrames["TOPLEFT"].enabled);
+        menuSection.bl.btn:SetChecked(db.profile.chat.chatFrames["BOTTOMLEFT"].enabled);
+        menuSection.br.btn:SetChecked(db.profile.chat.chatFrames["BOTTOMRIGHT"].enabled);
+        menuSection.tr.btn:SetChecked(db.profile.chat.chatFrames["TOPRIGHT"].enabled);
     end
 
 	if (db.global.core.localization) then
@@ -80,7 +84,7 @@ end
 
 -- first argument is the dropdown menu self reference
 local function ChangeProfile(_, profileName)
-    local window = SetupModule:GetWindow();
+    local window = setupModule:GetWindow();
 
     if (window) then
         db:SetProfile(profileName);      
@@ -90,11 +94,11 @@ local function ChangeProfile(_, profileName)
 end
 
 local function ExpandSetupWindow()
-    if (not SetupModule:IsExpanded()) then 
+    if (not setupModule:IsExpanded()) then 
         return; 
     end
 
-    local window = SetupModule:GetWindow();
+    local window = setupModule:GetWindow();
     local width, height = window:GetSize();
 
     if (width >= 900 and height >= 540) then 
@@ -106,11 +110,11 @@ local function ExpandSetupWindow()
 end
 
 local function RetractSetupWindow()
-    if (SetupModule:IsExpanded()) then 
+    if (setupModule:IsExpanded()) then 
         return; 
     end
 
-    local window = SetupModule:GetWindow();
+    local window = setupModule:GetWindow();
     local width, height = window:GetSize();
 
     if (width <= 750 and height <= 450) then 
@@ -122,7 +126,7 @@ local function RetractSetupWindow()
 end
 
 local function OnMenuButtonClick(self)
-    local window = SetupModule:GetWindow();
+    local window = setupModule:GetWindow();
     local submenu = window.submenu;
 
     if (self:GetChecked()) then
@@ -137,13 +141,13 @@ local function OnMenuButtonClick(self)
         end
 
         submenu[self.type]:Show();
-        SetupModule:SetExpanded(true);
+        setupModule:SetExpanded(true);
         C_Timer.After(0.02, ExpandSetupWindow);
         UIFrameFadeIn(submenu, 0.4, submenu:GetAlpha(), 1);
         UIFrameFadeOut(window.banner.left, 0.4, window.banner.left:GetAlpha(), 0.5);
         UIFrameFadeOut(window.banner.right, 0.4, window.banner.right:GetAlpha(), 0.5);
     else
-        SetupModule:SetExpanded(false);
+        setupModule:SetExpanded(false);
         C_Timer.After(0.02, RetractSetupWindow);
 
         UIFrameFadeOut(submenu, 0.4, submenu:GetAlpha(), 0);
@@ -164,7 +168,7 @@ function Private:LoadInstallMenu(menuSection)
     menuSection.installBtn = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "Install");
     menuSection.installBtn:SetPoint("CENTER", 0, -20);
     menuSection.installBtn:SetScript("OnClick", function()
-        SetupModule:Install();
+        setupModule:Install();
     end);
 end
 
@@ -301,28 +305,28 @@ function Private:LoadChatMenu(menuSection)
     menuSection.tl:SetPoint("TOPLEFT", menuSection.chatTitle, "BOTTOMLEFT", 0, -10);
 
     menuSection.tl.btn:SetScript("OnClick", function(self)
-        db.profile.chat.enabledChatFrames["TOPLEFT"] = self:GetChecked();
+        db.profile.chat.chatFrames["TOPLEFT"].enabled = self:GetChecked();
     end);
 
     menuSection.bl = gui:CreateCheckButton(menuSection, L["Bottom Left"]);
     menuSection.bl:SetPoint("TOPLEFT", menuSection.tl, "BOTTOMLEFT", 0, -10);
 
     menuSection.bl.btn:SetScript("OnClick", function(self)
-        db.profile.chat.enabledChatFrames["BOTTOMLEFT"] = self:GetChecked();
+        db.profile.chat.chatFrames["BOTTOMLEFT"].enabled = self:GetChecked();
     end);
 
     menuSection.br = gui:CreateCheckButton(menuSection, L["Bottom Right"]);
     menuSection.br:SetPoint("TOPLEFT", menuSection.bl, "BOTTOMLEFT", 0, -10);
 
     menuSection.br.btn:SetScript("OnClick", function(self)
-        db.profile.chat.enabledChatFrames["BOTTOMRIGHT"] = self:GetChecked();
+        db.profile.chat.chatFrames["BOTTOMRIGHT"].enabled = self:GetChecked();
     end);
 
     menuSection.tr = gui:CreateCheckButton(menuSection, L["Top Right"]);
     menuSection.tr:SetPoint("TOPLEFT", menuSection.br, "BOTTOMLEFT", 0, -10);
 
     menuSection.tr.btn:SetScript("OnClick", function(self)
-        db.profile.chat.enabledChatFrames["TOPRIGHT"] = self:GetChecked();
+        db.profile.chat.chatFrames["TOPRIGHT"].enabled = self:GetChecked();
     end);
 end
 
@@ -433,7 +437,7 @@ function Private:LoadCustomMenu(menuSection)
     menuSection.installBtn:SetPoint("TOPRIGHT", menuSection.addonContainer, "BOTTOMRIGHT", 0, -20);
 
     menuSection.installBtn:SetScript("OnClick", function() 
-        SetupModule:Install();
+        setupModule:Install();
     end);
 
     menuSection.installBtn:SetScript("OnEnter", function(self)
@@ -478,15 +482,13 @@ function Private:LoadInfoMenu(menuSection)
     content:SetSpacing(6);    
 end
 
--- Setup Module -----------------------
+-- SetupClass -----------------------
 
-SetupModule:OnInitialize(function(self, data)
+function SetupClass:OnInitialize(data)
     self:Show();
-end);
+end
 
--- Setup Functions --------------------
-
-function Setup:Show(data)    
+function SetupClass:Show(data)    
     if (data.window) then
         data.window:Show();
         UIFrameFadeIn(data.window, 0.3, 0, 1);
@@ -587,7 +589,7 @@ function Setup:Show(data)
     UIFrameFadeIn(data.window, 0.3, 0, 1);
 end
 
-function Setup:Install()
+function SetupClass:Install()
     PlaySoundFile("Interface\\AddOns\\MUI_Setup\\install.ogg");
 
     -- Chat Frame settings:
@@ -605,10 +607,10 @@ function Setup:Install()
     ChatFrame1:ClearAllPoints();
 
     if (IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
-        if (db.profile.chat.enabledChatFrames["TOPLEFT"]) then
+        if (db.profile.chat.chatFrames["TOPLEFT"].enabled) then
             ChatFrame1:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 34, -55);
 
-        elseif (db.profile.chat.enabledChatFrames["BOTTOMLEFT"]) then
+        elseif (db.profile.chat.chatFrames["BOTTOMLEFT"].enabled) then
             ChatFrame1:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 34, 30);
         end
 
@@ -670,15 +672,15 @@ function Setup:Install()
     ReloadUI();
 end
 
-function Setup:GetWindow(data)
+function SetupClass:GetWindow(data)
     return data.window;
 end
 
-function Setup:SetExpanded(data, expanded)
+function SetupClass:SetExpanded(data, expanded)
     data.expanded = expanded;
 end
 
-function Setup:IsExpanded(data, expanded)
+function SetupClass:IsExpanded(data, expanded)
     return data.window and data.expanded;
 end
 

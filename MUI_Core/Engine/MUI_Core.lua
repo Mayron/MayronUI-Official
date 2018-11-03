@@ -1,16 +1,14 @@
--- Setup namespaces ---------------------------
+-- Setup  -----------------------------
 
 local addOnName, namespace = ...;
-
-MayronUI = {};
-MayronUI.RegisteredModules = {};
-MayronUI.ModulesInitialized = false;
 
 namespace.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
 namespace.EventManager = LibStub:GetLibrary("LibMayronEvents");
 namespace.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.Objects = LibStub:GetLibrary("LibMayronObjects");
 namespace.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
+
+MayronUI = {};
 
 local db = namespace.Database;
 local em = namespace.EventManager;
@@ -19,13 +17,16 @@ local gui = namespace.GUIBuilder;
 local obj = namespace.Objects;
 local L = namespace.Locale;
 
+local commands = {};
+local registeredModules = {};
+local modulesInitialized = false;
+
+-- Objects  ---------------------------
+
 local Engine = namespace.Objects:CreatePackage("Engine", "MayronUI");
-local Module = Engine:CreateClass("Module");
-local ModuleHiddenData = {}; -- we pass real module data to module functions
+local BaseModule = Engine:CreateClass("BaseModule");
 
-local Commands = {};
-
--- Add Default Database Values ----------------
+-- Load Database Defaults -------------
 
 db:AddToDefaults("global.core", {
     uiScale = 0.7,
@@ -56,7 +57,7 @@ db:AddToDefaults("profile.theme", {
 
 -- Slash Commands ------------------
 
-Commands = {
+commands = {
     ["config"] = function()
         if (not tk.IsAddOnLoaded("MUI_Config")) then
             EnableAddOn("MUI_Config");
@@ -91,94 +92,61 @@ Commands = {
 	end
 };
 
--- Module Object -------------------
+-- BaseModule Object -------------------
 
 Engine:DefineReturns("string", "?boolean");
-function Module:__Construct(data, moduleName, initializeOnDemand, injectedNamespace)
-    local hiddenData = {};
-    ModuleHiddenData[tostring(self)] = hiddenData;    
+function BaseModule:__Construct(data, moduleName, initializeOnDemand)
+    local registryInfo = registeredModules[moduleName];
+    registeredModules[tostring(self)] = registryInfo;
+    
+    registryInfo.moduleName = moduleName;
+    registryInfo.initializeOnDemand = initializeOnDemand;
+    registryInfo.initialized = false;
+    registryInfo.enabled = false;
+    registryInfo.moduleData = data;
+end
 
-    hiddenData.hooks = {};
-    hiddenData.moduleName = moduleName;
-    hiddenData.initializeOnDemand = initializeOnDemand;
-    hiddenData.initialized = false;
-    hiddenData.enabled = false;
+function BaseModule:Initialize(data, ...)    
+    if (self.OnInitialize) then
+        self:OnInitialize(...);
+    end
+    
+    local registryInfo = registeredModules[tostring(self)];
+    registryInfo.initialized = true;
 
-    if (injectedNamespace) then
-        obj:CopyTableValues(injectedNamespace, data, 1);
-
-        for key, value in pairs(injectedNamespace) do
-            data[key] = value;
+    -- Call any other functions attached to this modules OnInitialize event
+    if (registryInfo.hooks and registryInfo.hooks.OnInitialize) then
+        for _, func in ipairs(registryInfo.hooks.OnInitialize) do
+            func(self, registryInfo.moduleData);
         end
     end
 end
 
 Engine:DefineReturns("string");
-function Module:GetModuleName(data)
-    return ModuleHiddenData[tostring(self)].moduleName;
-end
-
-Engine:DefineParams("function");
-function Module:OnInitialize(data, initializedCallback)
-    ModuleHiddenData[tostring(self)].initializedCallback = initializedCallback;    
-end
-
-function Module:Initialize(data, ...)
-    local hiddenData = ModuleHiddenData[tostring(self)];   
-
-    obj:Assert(hiddenData.initializedCallback, 
-        "No initialized callback registered with module '%s'", hiddenData.moduleName);
-
-    hiddenData.initializedCallback(self, data, ...);  
-    hiddenData.initialized = true;
-
-    -- Call any other functions attached to this modules OnInitialize event
-    local hooks = ModuleHiddenData[tostring(self)].hooks["OnInitialize"];
-
-    if (hooks) then
-        for _, func in ipairs(hooks) do
-            func(self, data);
-        end
-    end
-end
-
-Engine:DefineReturns("boolean");
-function Module:IsInitialized(data)
-    return ModuleHiddenData[tostring(self)].initialized;
-end
-
-Engine:DefineReturns("boolean");
-function Module:IsInitializedOnDemand(data)
-    return ModuleHiddenData[tostring(self)].initializeOnDemand == true;
-end
-
-Engine:DefineParams("function");
-function Module:OnEnable(data, enabledCallback)
-    ModuleHiddenData[tostring(self)].enabledCallback = enabledCallback;
-end
-
-Engine:DefineParams("function");
-function Module:OnDisable(data, disabledCallback)
-    ModuleHiddenData[tostring(self)].disabledCallback = disabledCallback;
+function BaseModule:GetModuleName(data)
+    local registryInfo = registeredModules[tostring(self)];
+    return registryInfo.moduleName;
 end
 
 Engine:DefineParams("boolean");
-function Module:SetEnabled(data, enabled, ...)   
-    local hiddenData = ModuleHiddenData[tostring(self)];
+function BaseModule:SetEnabled(data, enabled, ...)   
+    local registryInfo = registeredModules[tostring(self)];
     local hooks;
 
-    hiddenData.enabled = enabled;    
+    registryInfo.enabled = enabled;    
 
     if (enabled) then
-        namespace.Objects:Assert(hiddenData.enabledCallback, "No enabled callback registered with module '%s'", moduleName);
-        hiddenData.enabledCallback(self, data, ...);
+        if (self.OnEnable) then
+            self:OnEnable(...);
+        end
         -- Call any other functions attached to this modules OnEnable event
-        hooks = ModuleHiddenData[tostring(self)].hooks["OnEnable"];
+        hooks = registryInfo.hooks and registryInfo.hooks.OnEnable;
     else
-        namespace.Objects:Assert(hiddenData.disabledCallback, "No disabled callback registered with module '%s'", moduleName);
-        hiddenData.disabledCallback(self, data, ...);
+        if (self.OnDisable) then
+            self:OnDisable(...);
+        end
         -- Call any other functions attached to this modules OnDisable event
-        hooks = ModuleHiddenData[tostring(self)].hooks["OnDisable"];
+        hooks = registryInfo.hooks and registryInfo.hooks.OnDisable;
     end
 
     if (hooks) then
@@ -189,74 +157,46 @@ function Module:SetEnabled(data, enabled, ...)
 end
 
 Engine:DefineReturns("boolean");
-function Module:IsEnabled(data)
-    return ModuleHiddenData[tostring(self)].enabled;
+function BaseModule:IsInitialized(data)
+    local registryInfo = registeredModules[tostring(self)];
+    return registryInfo.initialized;
 end
 
-Engine:DefineParams("function");
-function Module:OnConfigUpdate(data, configUpdateCallback)
-    ModuleHiddenData[tostring(self)].configUpdateCallback = configUpdateCallback;
+Engine:DefineReturns("boolean");
+function BaseModule:IsInitializedOnDemand(data)
+    local registryInfo = registeredModules[tostring(self)];
+    return registryInfo.initializeOnDemand == true;
 end
 
-Engine:DefineParams("LinkedList", "any");
-function Module:ConfigUpdate(data, linkedList, newValue)
-    ModuleHiddenData[tostring(self)].configUpdateCallback(self, data, linkedList, newValue);
-
-    -- Call any other functions attached to this modules OnConfigUpdate event
-    local hooks = ModuleHiddenData[tostring(self)].hooks["OnConfigUpdate"];
-    if (hooks) then
-        for _, func in ipairs(hooks) do
-            func(self, data);
-        end
-    end
+Engine:DefineReturns("boolean");
+function BaseModule:IsEnabled(data)
+    local registryInfo = registeredModules[tostring(self)];
+    return registryInfo.enabled;
 end
 
 -- Hook more functions to a module event. Useful if module is spread across multiple files
-function Module:Hook(data, eventName, func)
-    local hooks = ModuleHiddenData[tostring(self)].hooks[eventName];
-    
-    if (not hooks) then
-        hooks = {};
-        ModuleHiddenData[tostring(self)].hooks[eventName] = hooks;
-    end
-
-    table.insert(hooks, func);
+function BaseModule:Hook(data, eventName, func)
+    local registryInfo = registeredModules[tostring(self)];
+    MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
+
+-- Engine:DefineParams("LinkedList", "any");
+-- function BaseModule:ConfigUpdate(data, linkedList, newValue)
+--     registeredModules[tostring(self)].configUpdateCallback(self, data, linkedList, newValue);
+
+--     -- Call any other functions attached to this modules OnConfigUpdate event
+--     local hooks = registeredModules[tostring(self)].hooks["OnConfigUpdate"];
+--     if (hooks) then
+--         for _, func in ipairs(hooks) do
+--             func(self, data);
+--         end
+--     end
+-- end
 
 -- MayronUI Functions ---------------------
 
 function MayronUI:PrintTable(tbl, depth)
     tk.Tables:Print(tbl, depth);
-end
-
-function MayronUI:ImportModule(moduleName)
-    return self.RegisteredModules[moduleName];
-end
-
--- @param (optional) initializeOnDemand - if true, must be initialized manually instead of 
---   MayronUI automatically initializing module during PLAYER_ENTERING_WORLD event
-function MayronUI:RegisterModule(moduleName, initializeOnDemand, injectedNamespace)
-    local SubModuleClass = Engine:CreateClass(moduleName, Module);
-    local subModuleInstance = SubModuleClass();
-
-    subModuleInstance:Super(moduleName, initializeOnDemand, injectedNamespace); -- call parent constructor
-    
-    -- Make it easy to search for
-    self.RegisteredModules[moduleName] = subModuleInstance;
-    table.insert(self.RegisteredModules, subModuleInstance);
-
-    return subModuleInstance, SubModuleClass;
-end
-
-function MayronUI:IterateModules()
-    local id = 0;
-    
-	return function()
-		id = id + 1;
-		if (id <= #self.RegisteredModules) then
-			return id, self.RegisteredModules[id];
-		end
-	end
 end
 
 function MayronUI:IsInstalled()
@@ -268,14 +208,60 @@ function MayronUI:GetCoreComponents()
 end
 
 function MayronUI:TriggerCommand(commandName)
-    Commands[commandName:lower()]();
+    commands[commandName:lower()]();
+end
+
+-- Hook more functions to a module event. Useful if module is spread across multiple files
+function MayronUI:Hook(moduleName, eventName, func)
+    local registryInfo = registeredModules[moduleName];
+
+    obj:Assert(registryInfo, "Cannot hook unregistered module '%s'.", moduleName);
+    
+    registryInfo.hooks = registryInfo.hooks or {};
+    registryInfo.hooks[eventName] = registryInfo.hooks[eventName] or {};
+
+    table.insert(registryInfo.hooks[eventName], func);
+end
+
+function MayronUI:ImportModule(moduleName)
+    local registryInfo = registeredModules[moduleName];
+    return registryInfo and registryInfo.instance;
+end
+
+-- @param (optional) initializeOnDemand - if true, must be initialized manually instead of 
+--   MayronUI automatically initializing module during PLAYER_ENTERING_WORLD event
+function MayronUI:RegisterModule(moduleName, initializeOnDemand)
+    local ModuleClass = Engine:CreateClass(moduleName, BaseModule);
+    local moduleInstance = ModuleClass();
+
+    -- must add it to the registeredModules table before calling parent constructor!
+    registeredModules[moduleName] = {};
+    registeredModules[moduleName].instance = moduleInstance;
+
+    moduleInstance:Super(moduleName, initializeOnDemand); -- call parent constructor
+
+    -- Make it easy to iterate through modules
+    table.insert(registeredModules, moduleInstance);
+
+    return ModuleClass;
+end
+
+function MayronUI:IterateModules()
+    local id = 0;
+    
+	return function()
+		id = id + 1;
+		if (id <= #registeredModules) then
+			return id, registeredModules[id];
+		end
+	end
 end
 
 -- Register MUICore Module ---------------------
 
-local coreModule = MayronUI:RegisterModule("Core");
+local CoreModule = MayronUI:RegisterModule("Core");
 
-coreModule:OnInitialize(function() 
+function CoreModule:OnInitialize(data)
     for i = 1, NUM_CHAT_WINDOWS do
         tk._G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
     end
@@ -285,7 +271,7 @@ coreModule:OnInitialize(function()
         local args = {};
         
 		if (#str == 0) then
-			Commands.help();
+			commands.help();
 			return;
         end
         
@@ -295,7 +281,7 @@ coreModule:OnInitialize(function()
 			end
         end
         
-        local path = Commands;
+        local path = commands;
         
 		for id, arg in tk.ipairs(args) do
             arg = tk.string.lower(arg);
@@ -309,61 +295,65 @@ coreModule:OnInitialize(function()
                     path = path[arg];
                     
 				else
-					Commands.help();
+					commands.help();
                     return;
                     
 				end
 			else
-				Commands.help();
-                return;
-                
+				commands.help();
+                return;                
 			end
 		end
     end
     
     tk:Print(L["Welcome back"], UnitName("player").."!");
-end);
+end
 
--- Initialize Modules -------------------
+local function PositionRecountWindow()
+    if (db.global.reanchor) then
+        Recount_MainWindow:ClearAllPoints();
+        Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
+        Recount_MainWindow:SaveMainWindowPosition();
 
+        db.global.reanchor = nil;
+    end
+
+    -- Reskin Recount Window
+    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", Recount_MainWindow);
+
+    Recount_MainWindow:SetClampedToScreen(true);
+    Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
+    Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);    
+end
+
+-- Initialize Modules after player enters world (not when DB starts!).
+-- Some dependencies, like Bartender, only load after this event.
 em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
     FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);    
 
     if (not MayronUI:IsInstalled()) then
         if ((tk.select(1, tk.LoadAddOn("MUI_Setup")))) then
+            -- Load MUI_Setup if not installled
             MayronUI:ImportModule("MUI_Setup"):Initialize();
         end
 
 		return;
-    else
-        for id, module in MayronUI:IterateModules() do
-            local initializeOnDemand = module:IsInitializedOnDemand();
-
-            if (not initializeOnDemand) then
-                module:Initialize();
-            end            
-        end  
-        
-        if (tk.IsAddOnLoaded("Recount")) then
-            if (db.global.reanchor) then
-                Recount_MainWindow:ClearAllPoints();
-                Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
-                Recount_MainWindow:SaveMainWindowPosition();
-            end
-
-            gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", Recount_MainWindow);
-            Recount_MainWindow:SetClampedToScreen(true);
-            Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
-            Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);
-        end
-
-        db.global.reanchor = nil;
     end
 
+    for id, module in MayronUI:IterateModules() do
+        local initializeOnDemand = module:IsInitializedOnDemand();
+
+        if (not initializeOnDemand) then
+            -- initialize a module if not set for manual initialization
+            module:Initialize();
+        end            
+    end  
+
+    -- TODO: This should be it's own Module
     namespace:SetupOrderHallBar();
+
     MayronUI.ModulesInitialized = true;
     tk.collectgarbage("collect");
-
 end):SetAutoDestroy(true);
 
 db:OnStartUp(function(self)
@@ -411,5 +401,9 @@ db:OnStartUp(function(self)
 
     if (self.global.core.changeGameFont ~= false) then
         tk:SetGameFont(media:Fetch("font", self.global.core.font));
+    end
+
+    if (tk.IsAddOnLoaded("Recount")) then
+        PositionRecountWindow();
     end
 end);

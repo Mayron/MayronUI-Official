@@ -122,26 +122,32 @@ function SlideController:SetMinHeight(data, minHeight)
     data.minHeight = math.floor(minHeight + 0.5);
 end
 
-local function AddDelay(func, delay)
-    if (type(delay) == "number" and delay > 0) then
-        return function() C_Timer.After(0.02 * delay, func); end
+function SlideController:Hide(data)
+    data.frame:Hide();
+end
+
+do
+    local function AddDelay(func, delay)
+        if (type(delay) == "number" and delay > 0) then
+            return function() C_Timer.After(0.02 * delay, func); end
+        end
+
+        return func;
     end
 
-    return func;
-end
+    function SlideController:OnStartExpand(data, func, delay)
+        data.onStartExpand = AddDelay(func, delay);
+    end
 
-function SlideController:OnStartExpand(data, func, delay)
-    data.onStartExpand = AddDelay(func, delay);
-end
+    function SlideController:OnEndExpand(data, func, delay)
+        data.onEndExpand = AddDelay(func, delay);
+    end
 
-function SlideController:OnEndExpand(data, func, delay)
-    data.onEndExpand = AddDelay(func, delay);
-end
+    function SlideController:OnStartRetract(data, func, delay)
+        data.onStartRetract = AddDelay(func, delay);
+    end
 
-function SlideController:OnStartRetract(data, func, delay)
-    data.onStartRetract = AddDelay(func, delay);
-end
-
-function SlideController:OnEndRetract(data, func, delay)
-    data.onEndRetract = AddDelay(func, delay);
+    function SlideController:OnEndRetract(data, func, delay)
+        data.onEndRetract = AddDelay(func, delay);
+    end
 end

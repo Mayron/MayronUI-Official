@@ -8,7 +8,6 @@ local LABEL_PATTERN = "|cffffffff%s|r mb";
 -- Register and Import Modules -------
 
 local Engine = obj:Import("MayronUI.Engine");
-local DataText = MayronUI:ImportModule("DataText");
 local Memory = Engine:CreateClass("Memory", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
@@ -46,17 +45,17 @@ end
 
 -- Memory Module --------------
 
-DataText:Hook("OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.memory;
     sv:SetParent(dataTextData.sv);
 
     if (sv.enabled) then
-        local memory = Memory(sv);
+        local memory = Memory(sv, self);
         self:RegisterDataModule(memory);
     end
 end);
 
-function Memory:__Construct(data, sv)
+function Memory:__Construct(data, sv, dataTextModule)
     data.sv = sv;
     data.displayOrder = sv.displayOrder;
 
@@ -66,7 +65,7 @@ function Memory:__Construct(data, sv)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
-    self.Button = DataText:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton(self);
 end
 
 function Memory:IsEnabled(data) 
