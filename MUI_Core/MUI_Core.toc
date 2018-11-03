@@ -1,7 +1,7 @@
 ## Interface: 80000
 ## Title: |cff00ccffMUI|r Core
 ## SavedVariables: MUIdb
-## Version: 5.3.2
+## Version: 5.3.3
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 
 ## libs:
