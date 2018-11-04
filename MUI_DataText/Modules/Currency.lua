@@ -6,7 +6,6 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 -- Register and Import Modules -------
 
 local Engine = obj:Import("MayronUI.Engine");
-local DataText = MayronUI:ImportModule("DataText");
 local Currency = Engine:CreateClass("Currency", nil, "MayronUI.Engine.IDataTextModule");
 
 local LABEL_PATTERN = "|cffffffff%s|r";
@@ -14,7 +13,6 @@ local LABEL_PATTERN = "|cffffffff%s|r";
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.currency", {
-    -- TODO: This is not disabled by default!
     enabled = false,
 
     -- todo: this needs to be more intelligent...
@@ -45,11 +43,11 @@ end
 
 -- Currency Module ----------------
 
-DataText:Hook("OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.currency;
     sv:SetParent(dataTextData.sv);
 
-    local coloredKey = tk:GetClassColoredText(nil, tk:GetPlayerKey());
+    local coloredKey = tk.Strings:GetClassColoredText(nil, tk:GetPlayerKey());
     
     -- saves info on the currency that each logged in character has
     if (not db:ParsePathValue(db.global, "datatext.currency.characters")) then
@@ -60,12 +58,12 @@ DataText:Hook("OnInitialize", function(self, dataTextData)
     db.global.datatext.currency.characters[coloredKey] = GetMoney();
 
     if (sv.enabled) then
-        local currency = Currency(sv);
+        local currency = Currency(sv, self);
         self:RegisterDataModule(currency);
     end
 end);
 
-function Currency:__Construct(data, sv)
+function Currency:__Construct(data, sv, dataTextModule)
     data.sv = sv;
     data.displayOrder = sv.displayOrder;
 
@@ -75,7 +73,7 @@ function Currency:__Construct(data, sv)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
-    self.Button = DataText:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton(self);
 
     data.goldString = "|TInterface\\MoneyFrame\\UI-GoldIcon:14:14:2:0|t";
     data.silverString = "|TInterface\\MoneyFrame\\UI-SilverIcon:14:14:2:0|t";

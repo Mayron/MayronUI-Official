@@ -8,7 +8,6 @@ local LABEL_PATTERN = "|cffffffff%s|r mb";
 -- Register and Import Modules -------
 
 local Engine = obj:Import("MayronUI.Engine");
-local DataText = MayronUI:ImportModule("DataText");
 local Memory = Engine:CreateClass("Memory", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
@@ -46,17 +45,17 @@ end
 
 -- Memory Module --------------
 
-DataText:Hook("OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.memory;
     sv:SetParent(dataTextData.sv);
 
     if (sv.enabled) then
-        local memory = Memory(sv);
+        local memory = Memory(sv, self);
         self:RegisterDataModule(memory);
     end
 end);
 
-function Memory:__Construct(data, sv)
+function Memory:__Construct(data, sv, dataTextModule)
     data.sv = sv;
     data.displayOrder = sv.displayOrder;
 
@@ -66,7 +65,7 @@ function Memory:__Construct(data, sv)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
-    self.Button = DataText:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton(self);
 end
 
 function Memory:IsEnabled(data) 
@@ -106,7 +105,7 @@ function Memory:Update(data)
         end
 
         total = (total / 1000);
-        total = tk:FormatFloat(1, total);
+        total = tk.Numbers:ToPrecision(total, 2);
 
         self.Button:SetText(tk.string.format(LABEL_PATTERN, total));
 
@@ -120,7 +119,7 @@ function Memory:Click(data)
     tk.collectgarbage("collect");
     
     local currentIndex = 0;
-    local sorted = tk:GetWrapper();    
+    local sorted = {};    
 
     for i = 1, GetNumAddOns() do
         local _, name = GetAddOnInfo(i);
@@ -134,9 +133,11 @@ function Memory:Click(data)
 
             if (usage > 1000) then
                 value = usage / 1000;
-                value = tk:FormatFloat(1, value).." mb";
+                value = tk.Numbers:ToPrecision(value, 1);
+                value = string.format("%smb", value);
             else
-                value = tk:FormatFloat(0, usage).." kb";
+                value = tk.Numbers:ToPrecision(usage, 0);
+                value = string.format("%skb", value);
             end
 
             label.name:SetText(name);
@@ -147,10 +148,9 @@ function Memory:Click(data)
         end
     end
 
-    tk.table.sort(sorted, compare);
-    tk:EmptyTable(self.MenuLabels);
-    tk:FillTable(self.MenuLabels, unpack(sorted));
-    sorted:Close();
+    table.sort(sorted, compare);
+    tk.Tables:Empty(self.MenuLabels);
+    tk.Tables:Fill(self.MenuLabels, unpack(sorted));
 
     self.TotalLabelsShown = #self.MenuLabels;
 end

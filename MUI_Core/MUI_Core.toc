@@ -18,7 +18,7 @@ Libs\AceLocale-3.0\AceLocale-3.0.lua
 Locales\Locales.xml
 
 ## Engine:
-Engine\Core.xml
+Engine\MUI_Core.xml
 
 ## Modules:
 Modules\Modules.xml

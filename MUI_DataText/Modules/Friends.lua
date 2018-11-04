@@ -9,7 +9,6 @@ local convert = {WTCG = "HS", Pro = "OW"};
 -- Register and Import Modules -------
 
 local Engine = obj:Import("MayronUI.Engine");
-local DataText = MayronUI:ImportModule("DataText");
 local Friends = Engine:CreateClass("Friends", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
@@ -49,17 +48,17 @@ end
 
 -- Friends Module --------------
 
-DataText:Hook("OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.friends;
     sv:SetParent(dataTextData.sv);
 
     if (sv.enabled) then
-        local friends = Friends(sv, dataTextData.slideController);
+        local friends = Friends(sv, dataTextData.slideController, self);
         self:RegisterDataModule(friends);
     end
 end);
 
-function Friends:__Construct(data, sv, slideController)
+function Friends:__Construct(data, sv, slideController, dataTextModule)
     data.sv = sv;
     data.displayOrder = sv.displayOrder;
     data.slideController = slideController;
@@ -71,7 +70,7 @@ function Friends:__Construct(data, sv, slideController)
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
 
-    self.Button = DataText:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton(self);
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 
     data.showMenu = nil;

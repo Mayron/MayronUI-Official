@@ -2,5 +2,5 @@
 ## Title: |cff00ccffMUI|r Cast Bars
 ## Dependencies: MUI_Core
 
-CastBar.lua
-config.lua
+MUI_CastBar.lua
+## ConfigData.lua

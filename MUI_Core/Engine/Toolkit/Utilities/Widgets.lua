@@ -105,6 +105,12 @@ function tk:KillElement(element)
     element.Show = tk.Constants.DUMMY_FUNC;
 end
 
+function tk:KillAllElements(...)
+    for _, element in ipairs({...}) do
+        self:KillElement(element);
+    end
+end
+
 function tk:HideFrameElements(frame, kill)
     for _, child in pairs({frame:GetChildren()}) do
         if (kill) then
@@ -148,9 +154,12 @@ end
 do
     local color;
 
-    function tk:SetThemeColor(...)
+    -- apply theme color to a vararg list of elements
+    -- first arg can be a number specifying the alpha value
+    function tk:ApplyThemeColor(...)
         local alpha = (tk.select(1, ...));
-
+        
+        -- first argument is "colorName"
         if (not (tk.type(alpha) == "number" and alpha)) then
             tk.Constants.AddOnStyle:ApplyColor(nil, 1, ...);
         else
@@ -242,5 +251,51 @@ function tk:SetGameFont(font)
     for _, f in tk.ipairs(fonts) do        
         local _, size, outline = tk._G[f]:GetFont();        
         tk._G[f]:SetFont(font, size, outline);
+    end
+end
+
+do
+    local frames = {};
+
+    function tk:PopFrame(frameType, parent)
+        parent = parent or self.UIParent;
+        frameType = frameType or "Frame";
+
+        local frame = frames[frameType] and frames[frameType][#frames];
+
+        if (not frame) then
+            frame = CreateFrame(frameType);
+        else
+            frames[frameType][#frames] = nil;
+        end
+
+        frame:SetParent(parent);
+        frame:Show();
+
+        return frame;
+    end
+
+    function tk:PushFrame(frame)
+        if (not frame.GetObjectType) then 
+            return; 
+        end
+
+        local frameType = frame:GetObjectType();
+        frames[frameType] = frames[frameType] or {};
+        frame:SetParent(tk.Constants.DUMMY_FRAME);
+        frame:SetAllPoints(true);
+        frame:Hide();
+
+        for _, child in ipairs({frame:GetChildren()}) do
+            self:PushFrame(child);
+        end
+
+        for _, region in ipairs({frame:GetRegions()}) do
+            region:SetParent(tk.Constants.DUMMY_FRAME);
+            region:SetAllPoints(true);
+            region:Hide();
+        end
+        
+        frames[objectType][#frames + 1] = frame;
     end
 end

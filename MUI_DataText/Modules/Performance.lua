@@ -8,7 +8,6 @@ local LABEL_PATTERN = "|cffffffff%s|r";
 -- Register and Import Modules -------
 
 local Engine = obj:Import("MayronUI.Engine");
-local DataText = MayronUI:ImportModule("DataText");
 local Performance = Engine:CreateClass("Performance", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
@@ -23,18 +22,18 @@ db:AddToDefaults("profile.datatext.performance", {
 
 -- Performance Module --------------
 
-DataText:Hook("OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.performance;
     sv:SetParent(dataTextData.sv);
 
     if (sv.enabled) then
-        local performance = Performance(sv);
+        local performance = Performance(sv, self);
         self:RegisterDataModule(performance);
         performance:Enable();
     end
 end);
 
-function Performance:__Construct(data, sv)
+function Performance:__Construct(data, sv, dataTextModule)
     data.sv = sv;
     data.displayOrder = sv.displayOrder;
 
@@ -44,7 +43,7 @@ function Performance:__Construct(data, sv)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
     self.HasRightMenu = false;
-    self.Button = DataText:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton(self);
 end
 
 function Performance:Enable(data) 

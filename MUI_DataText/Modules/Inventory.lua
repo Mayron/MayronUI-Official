@@ -8,7 +8,6 @@ local LABEL_PATTERN = "|cffffffff%s|r";
 -- Register and Import Modules -------
 
 local Engine = obj:Import("MayronUI.Engine");
-local DataText = MayronUI:ImportModule("DataText");
 local Inventory = Engine:CreateClass("Inventory", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
@@ -25,8 +24,8 @@ db:AddToDefaults("profile.datatext.inventory", {
 local function button_OnEnter(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
     GameTooltip:SetText(L["Commands"]..":");
-    GameTooltip:AddDoubleLine(tk:GetThemeColoredText(L["Left Click:"]), L["Toggle Bags"], r, g, b, 1, 1, 1);
-    GameTooltip:AddDoubleLine(tk:GetThemeColoredText(L["Right Click:"]), L["Sort Bags"], r, g, b, 1, 1, 1);
+    GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Left Click:"]), L["Toggle Bags"], r, g, b, 1, 1, 1);
+    GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Right Click:"]), L["Sort Bags"], r, g, b, 1, 1, 1);
     GameTooltip:Show();
 end
 
@@ -36,17 +35,17 @@ end
 
 -- Inventory Module --------------
 
-DataText:Hook("OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.inventory;
     sv:SetParent(dataTextData.sv);
 
     if (sv.enabled) then
-        local inventory = Inventory(sv, dataTextData.slideController);
+        local inventory = Inventory(sv, dataTextData.slideController, self);
         self:RegisterDataModule(inventory);
     end
 end);
 
-function Inventory:__Construct(data, sv, slideController)
+function Inventory:__Construct(data, sv, slideController, dataTextModule)
     data.sv = sv;
     data.displayOrder = sv.displayOrder;
     data.slideController = slideController;
@@ -58,7 +57,7 @@ function Inventory:__Construct(data, sv, slideController)
     self.HasLeftMenu = false;
     self.HasRightMenu = false;
 
-    self.Button = DataText:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton(self);
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
     self.Button:SetScript("OnEnter", button_OnEnter);
     self.Button:SetScript("OnLeave", button_OnLeave);

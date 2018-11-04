@@ -8,7 +8,6 @@ local LABEL_PATTERN = "|cffffffff%s|r";
 -- Register and Import Modules -------
 
 local Engine = obj:Import("MayronUI.Engine");
-local DataText = MayronUI:ImportModule("DataText");
 local Specialization = Engine:CreateClass("Specialization", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
@@ -21,17 +20,17 @@ db:AddToDefaults("profile.datatext.specialization", {
 
 -- Local Functions ----------------
 
-local function button_OnEnter(self)
+local function Button_OnEnter(self)
     local r, g, b = tk:GetThemeColor(); 
 
     GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
     GameTooltip:SetText(L["Commands"]..":")
-    GameTooltip:AddDoubleLine(tk:GetThemeColoredText(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
-    GameTooltip:AddDoubleLine(tk:GetThemeColoredText(L["Right Click:"]), L["Choose Loot Spec"], r, g, b, 1, 1, 1);
+    GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
+    GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Right Click:"]), L["Choose Loot Spec"], r, g, b, 1, 1, 1);
     GameTooltip:Show();
 end
 
-local function button_OnLeave()
+local function Button_OnLeave()
     GameTooltip:Hide();
 end
 
@@ -97,18 +96,18 @@ end
 
 -- Specialization Module --------------
 
-DataText:Hook("OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.specialization;
     sv:SetParent(dataTextData.sv);
 
     if (sv.enabled) then
-        local specialization = Specialization(sv, dataTextData.bar, dataTextData.slideController);
+        local specialization = Specialization(sv, dataTextData.bar, dataTextData.slideController, self);
         self:RegisterDataModule(specialization);
         specialization:Enable();
     end
 end);
 
-function Specialization:__Construct(data, sv, dataTextBar, slideController)
+function Specialization:__Construct(data, sv, dataTextBar, slideController, dataTextModule)
     data.sv = sv;
     data.displayOrder = sv.displayOrder;
     data.dataTextBar = dataTextBar;
@@ -122,15 +121,15 @@ function Specialization:__Construct(data, sv, dataTextBar, slideController)
     self.HasLeftMenu = true;
     self.HasRightMenu = true;
 
-    self.Button = DataText:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton(self);
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 end
 
 function Specialization:Enable(data) 
     data.sv.enabled = true;
 
-    self.Button:SetScript("OnEnter", button_OnEnter);
-    self.Button:SetScript("OnLeave", button_OnLeave);
+    self.Button:SetScript("OnEnter", Button_OnEnter);
+    self.Button:SetScript("OnLeave", Button_OnLeave);
 
     em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
         self:Update();
@@ -343,11 +342,11 @@ function Specialization:Click(data, button)
     title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
 
     if (button == "LeftButton") then
-        title.name:SetText(tk:GetRGBColoredText(L["Choose Spec"]..":", r, g, b));
+        title.name:SetText(tk.Strings:GetRGBColoredText(L["Choose Spec"]..":", r, g, b));
         self.TotalLabelsShown = self:HandleLeftClick();
 
     elseif (button == "RightButton") then
-        title.name:SetText(tk:GetRGBColoredText(L["Choose Loot Spec"]..":", r, g, b));
+        title.name:SetText(tk.Strings:GetRGBColoredText(L["Choose Loot Spec"]..":", r, g, b));
         self.TotalLabelsShown = self:HandleRightClick();  
     end   
 end

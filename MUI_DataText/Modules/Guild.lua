@@ -8,7 +8,6 @@ local LABEL_PATTERN = L["Guild"]..": |cffffffff%u|r";
 -- Register and Import Modules -------
 
 local Engine = obj:Import("MayronUI.Engine");
-local DataText = MayronUI:ImportModule("DataText");
 local Guild = Engine:CreateClass("Guild", nil, "MayronUI.Engine.IDataTextModule");
 
 -- Load Database Defaults ------------
@@ -31,7 +30,7 @@ do
         fullName = tk.strsplit("-", fullName);   
 
         GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
-        GameTooltip:AddLine(tk:GetClassColoredText(classFileName, fullName));
+        GameTooltip:AddLine(tk.Strings:GetClassColoredText(classFileName, fullName));
         GameTooltip:AddDoubleLine(L["Zone"]..":", zone, nil, nil, nil, 1, 1, 1);
         GameTooltip:AddDoubleLine(L["Rank"]..":", rank, nil, nil, nil, 1, 1, 1);
 
@@ -75,17 +74,17 @@ end
 
 -- Guild Module --------------
 
-DataText:Hook("OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.guild;
     sv:SetParent(dataTextData.sv);
 
     if (sv.enabled) then
-        local guild = Guild(sv, dataTextData.slideController);
+        local guild = Guild(sv, dataTextData.slideController, self);
         self:RegisterDataModule(guild);
     end
 end);
 
-function Guild:__Construct(data, sv, slideController)
+function Guild:__Construct(data, sv, slideController, dataTextModule)
     data.sv = sv;
     data.displayOrder = sv.displayOrder;
     data.slideController = slideController;
@@ -97,7 +96,7 @@ function Guild:__Construct(data, sv, slideController)
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
 
-    self.Button = DataText:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton(self);
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 
     data.handler = em:CreateEventHandler("GUILD_ROSTER_UPDATE", function()
@@ -176,14 +175,13 @@ function Guild:Click(data, button)
 
             -- required for button_OnEnter
             if (tk.type(label.guildRosterInfo) == "table") then
-                label.guildRosterInfo:Close();
                 label.guildRosterInfo = nil;
             end
 
-            label.guildRosterInfo = tk:GetWrapper(GetGuildRosterInfo(i));
+            label.guildRosterInfo = { GetGuildRosterInfo(i) };
 
             label.name:SetText(tk.string.format("%s%s %s",
-                tk:GetClassColoredText(classFileName, fullName), status, level));
+                tk.Strings:GetClassColoredText(classFileName, fullName), status, level));
         end
     end
 

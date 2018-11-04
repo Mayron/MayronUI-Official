@@ -1,31 +1,32 @@
-------------------------
--- Setup namespaces
-------------------------
-local _, chat = ...;
-local core = MayronUI:ImportModule("MUI_Core");
-local gui = core.GUI_Builder;
-local db = core.Database;
-local rs = core.Reskinner;
-local tk = core.Toolkit;
-local private = {};
+-- Setup namespaces ------------------
+local addOnName, namespace = ...;
+local ChatClass = namespace.ChatClass;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local ChatClass = namespace.ChatClass;
 
---------------------------
--- private functions
---------------------------
-function private:GetSupportedAddOns()
+-- Local Functions -------------------
+
+local function GetSupportedAddOns()
 	local addons = {"MayronUI"}; -- Add additional Supported AddOns here
-	if (tk.IsAddOnLoaded("ShadowedUnitFrames")) then tk.table.insert(addons, "ShadowUF"); end
+
+	if (tk.IsAddOnLoaded("ShadowedUnitFrames")) then 
+		tk.table.insert(addons, "ShadowUF"); 
+	end
+
 	if (LibStub) then
 		for name, status in LibStub("AceAddon-3.0"):IterateAddonStatus() do
 			local mod = tk.string.find(name, "_");
+
 			if ((not mod) and status) then
 				local dbObject = tk:GetDBObject(name);
+
 				if (dbObject and dbObject.SetProfile and dbObject.GetProfiles and dbObject.GetCurrentProfile) then
                     tk.table.insert(addons, name);
 				end
 			end
 		end
 	end
+
 	return addons;
 end
 
@@ -44,16 +45,17 @@ do
 		GameTooltip:Show();
 	end
 
-	function chat:InitializeLayoutButtons()
+	function ChatClass:SetUpLayoutSwitcher(data)
     	for layoutName, layoutData in db.global.chat.layouts:Iterate() do
 			if (not layoutData and layoutName ~= "Healer" and layoutName ~= "DPS") then
 				db.global.chat.layouts[layoutName] = nil;
 			end
 		end
 
-		for _, data in chat.sv.data:Iterate() do
+		--TODO
+		for _, data in data.sv.              :Iterate() do
 			if (chat.sv.enabled[data.name]) then
-				local cf = chat.chat_frames[data.name];
+				local cf = data.chatFrames[data.name];
 				cf.layoutButton:RegisterForClicks("LeftButtonDown", "RightButtonDown", "MiddleButtonDown");
 				cf.layoutButton:SetText(self.sv.layout:sub(1, 1):upper());
 
@@ -63,7 +65,10 @@ do
 				end);
 
 				cf.layoutButton:SetScript("OnMouseUp", function(self, btn)
-                    if (not MouseIsOver(self)) then return; end
+					if (not MouseIsOver(self)) then 
+						return; 
+					end
+
 					if (btn == "LeftButton") then
 						if (tk:IsModComboActive("A")) then
 							chat.sv.hideTooltip = not chat.sv.hideTooltip;
@@ -74,17 +79,20 @@ do
 							end
 							return;
 						end
+
 						local firstLayout, firstData;
 						local nextLayout;
 						local switched;
+
 						for key, layoutData in db.global.chat.layouts:Iterate() do
 							if (layoutData) then
 								if (not firstLayout) then
 									firstLayout = key;
 									firstData = layoutData;
 								end
+
 								if (chat.sv.layout == key) then -- the next layout
-								nextLayout = true;
+									nextLayout = true;
 								elseif (nextLayout) then
 									chat:SwitchLayouts(key, layoutData, self);
 									switched = true;
@@ -92,6 +100,7 @@ do
 								end
 							end
 						end
+
 						if (not switched) then
 							if (firstLayout ~= chat.sv.layout) then
 								chat:SwitchLayouts(firstLayout, firstData, self);
@@ -99,6 +108,7 @@ do
 								tk:Print(tk:GetRGBColoredString(firstLayout, 0, 1, 0), "Layout enabled!");
 							end
 						end
+
 					elseif (btn == "RightButton") then
 						chat:ShowLayoutTool();
 					elseif (ChatMenu:IsShown()) then
@@ -349,7 +359,7 @@ do
 		self.layoutTool:AddCells(self.description, self.addonWindow, self.menu);
 
 		-- Add ScrollFrame content:
-		for _, addonName in tk.ipairs(private:GetSupportedAddOns()) do
+		for _, addonName in ipairs(GetSupportedAddOns()) do
 			local dbObject = tk:GetDBObject(addonName);
 			local dropdown = gui:CreateDropDown(self.addonWindow.dynamicFrame:GetFrame());
             dropdown:SetLabel(dbObject:GetCurrentProfile());

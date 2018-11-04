@@ -22,13 +22,14 @@ local ARTIFACT_BAR_ID = "artifact";
 
 local Engine = obj:Import("MayronUI.Engine");
 local BottomUIPackage = obj:CreatePackage("BottomUI", addOnName);
-local ResourceBar = BottomUIPackage:CreateClass("ResourceBar", "Framework.System.FrameWrapper");
+local ResourceBarClass = BottomUIPackage:CreateClass("ResourceBar", "Framework.System.FrameWrapper");
 
 -- Register and Import Modules -----------
 
-local DataText = MayronUI:ImportModule("BottomUI_DataText");
-local Container = MayronUI:ImportModule("BottomUI_Container");
-local resourceBarsModule, ResourceBarsClass = MayronUI:RegisterModule("BottomUI_ResourceBars", true);
+local ResourceBarsClass = MayronUI:RegisterModule("BottomUI_ResourceBars", true);
+
+local dataTextModule = MayronUI:ImportModule("BottomUI_DataText");
+local containerModule = MayronUI:ImportModule("BottomUI_Container");
 
 -- Load Database Defaults ----------------
 
@@ -95,8 +96,8 @@ function Private.experienceBar_OnSetup(resourceBar, data)
 
         if (data.statusbar.text) then
             local percent = (currentValue / maxValue) * 100;
-            currentValue = tk:FormatNumberString(currentValue);
-            maxValue = tk:FormatNumberString(maxValue);
+            currentValue = tk.Strings:FormatReadableNumber(currentValue);
+            maxValue = tk.Strings:FormatReadableNumber(maxValue);
             local text = tk.string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
             data.statusbar.text:SetText(text);
         end
@@ -131,8 +132,8 @@ function Private.artifactBar_OnSetup(resourceBar, data)
             end
 
             local percent = (currentValue / maxValue) * 100;
-            currentValue = tk:FormatNumberString(currentValue);
-            maxValue = tk:FormatNumberString(maxValue);
+            currentValue = tk.Strings:FormatReadableNumber(currentValue);
+            maxValue = tk.Strings:FormatReadableNumber(maxValue);
 
             local text = tk.string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
             data.statusbar.text:SetText(text);
@@ -170,8 +171,8 @@ function Private.reputationBar_OnSetup(resourceBar, data)
 				currentValue = currentValue - minValue;
 				local percent = (currentValue / maxValue) * 100;
 				
-				currentValue = tk:FormatNumberString(currentValue);
-				maxValue = tk:FormatNumberString(maxValue);
+				currentValue = tk.Strings:FormatReadableNumber(currentValue);
+				maxValue = tk.Strings:FormatReadableNumber(maxValue);
 				
 				local text = tk.string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
 				
@@ -194,10 +195,10 @@ function Private.reputationBar_OnSetup(resourceBar, data)
 		
 		if (not InCombatLockdown()) then
 			if (not factionName or standingID == 8) then		
-				resourceBarsModule:DisableBar(data.barName);
+				ResourceBarsClass:DisableBar(data.barName);
 				return;			
 			elseif (not data.enabled) then		
-				resourceBarsModule:EnableBar(data.barName);			
+				ResourceBarsClass:EnableBar(data.barName);			
 			end
 		end
 		
@@ -209,8 +210,8 @@ function Private.reputationBar_OnSetup(resourceBar, data)
 		
         if (data.statusbar.text) then		
             local percent = (currentValue / maxValue) * 100;
-            currentValue = tk:FormatNumberString(currentValue);
-            maxValue = tk:FormatNumberString(maxValue);
+            currentValue = tk.Strings:FormatReadableNumber(currentValue);
+            maxValue = tk.Strings:FormatReadableNumber(maxValue);
 			
             local text = tk.string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
             data.statusbar.text:SetText(text);			
@@ -228,10 +229,10 @@ function Private.reputationBar_ShowText()
     end
 end
 
--- ResourceBar Object ---------------------------
+-- ResourceBarClass ---------------------------
 
 BottomUIPackage:DefineParams("Frame", "string");
-function ResourceBar:__Construct(data, barsContainer, barName)
+function ResourceBarClass:__Construct(data, barsContainer, barName)
     data.barName = barName;
     data.enabled = true;
     data.sv = db.profile.resourceBars[barName.."Bar"];
@@ -267,8 +268,6 @@ function ResourceBar:__Construct(data, barsContainer, barName)
         end
     end);
 
-
-
     statusbar.text = statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
     statusbar.text:SetPoint("CENTER");
     tk:SetFontSize(statusbar.text, data.sv.fontSize);
@@ -293,30 +292,30 @@ function ResourceBar:__Construct(data, barsContainer, barName)
 end
 
 BottomUIPackage:DefineReturns("number");
-function ResourceBar:GetHeight(data)
+function ResourceBarClass:GetHeight(data)
     return data.frame:GetHeight();
 end
 
 BottomUIPackage:DefineReturns("boolean");
-function ResourceBar:IsEnabled(data) 
+function ResourceBarClass:IsEnabled(data) 
     return data.enabled; 
 end
 
 BottomUIPackage:DefineParams("boolean");
-function ResourceBar:SetEnabled(data, enabled)
+function ResourceBarClass:SetEnabled(data, enabled)
     data.enabled = enabled;
     data.frame:SetShown(enabled);
-    resourceBarsModule:UpdateContainer();
+    ResourceBarsClass:UpdateContainer();
 end
 
--- ResourceBars Module -------------------
-resourceBarsModule:OnInitialize(function(self, data, buiContainer)
+-- ResourceBarsClass -------------------
+function ResourceBarsClass:OnInitialize(data, buiContainer)
     data.buiContainer = buiContainer;
     data.sv = db.profile.resourceBars;
     self:SetEnabled(true); -- set module enabled (not bar)
-end);
+end
 
-resourceBarsModule:OnEnable(function(self, data)
+function ResourceBarsClass:OnEnable(data)
     data.barsContainer = tk.CreateFrame("Frame", "MUI_ResourceBars", data.buiContainer);
     data.barsContainer:SetFrameStrata("MEDIUM");    
     data.barsContainer:SetPoint("BOTTOMLEFT", data.buiContainer, "TOPLEFT", 0, -1);
@@ -337,19 +336,17 @@ resourceBarsModule:OnEnable(function(self, data)
             
             if (enabled) then
                 -- Create Resource Bar here! (enabled by default!)
-                data.bars[barName] = ResourceBar(data.barsContainer, barName);                
+                data.bars[barName] = ResourceBarClass(data.barsContainer, barName);                
             end
         end
     end
 
     self:UpdateContainer();
 
-    if (DataText and db.profile.datatext.combatBlock) then
+    if (dataTextModule and db.profile.datatext.combatBlock) then
         self:CreateBlocker();
     end
-end);
-
--- ResourceBarsClass -------------------
+end
 
 function ResourceBarsClass:UpdateContainer(data)
     local height = 0;
@@ -383,7 +380,7 @@ function ResourceBarsClass:UpdateContainer(data)
     end
 
     data.barsContainer:SetHeight(height);
-    Container:UpdateContainer();
+    containerModule:UpdateContainer();
 end
 
 Engine:DefineReturns("number");
@@ -402,14 +399,14 @@ function ResourceBarsClass:CreateBlocker(data)
         data.blocker = tk:PopFrame("Frame", data.barsContainer);
 
         data.blocker:SetPoint("TOPLEFT");
-        data.blocker:SetPoint("BOTTOMRIGHT", DataText.bar, "BOTTOMRIGHT");
+        data.blocker:SetPoint("BOTTOMRIGHT", dataTextModule.bar, "BOTTOMRIGHT");
         data.blocker:EnableMouse(true);
         data.blocker:SetFrameStrata("DIALOG");
         data.blocker:SetFrameLevel(20);
         data.blocker:Hide();
 
         em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-            if (not DataText.sv.combat_block) then return; end
+            if (not dataTextModule.sv.combat_block) then return; end
             data.blocker:Show();
         end);
 

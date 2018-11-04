@@ -29,11 +29,6 @@ end
 WidgetsPackage:DefineParams("number", "number", "number", "?string");
 function Style:SetColor(data, red, green, blue, colorName)
     Setter(data, "color", {red, green, blue}, colorName);
-
-    -- colorName = colorName or "default";
-    -- if (data.trackedColors and data.trackedColors[colorName]) then
-    --     self:ApplyColor(colorName, unpack(data.trackedColors[colorName]));
-    -- end
 end
 
 WidgetsPackage:DefineParams("?string", "?boolean");
@@ -129,12 +124,6 @@ function Style:ApplyColor(data, colorName, alpha, ...)
 
         LibObjectLua:Assert(type(element) == "table" and element.GetObjectType,
             "Style.ApplyColor: Widget expected but received a %s value of %s", type(element), element);
-        -- if (storeWidgets) then
-        --     if (not data.trackedColors[colorName][tostring(element)]) then
-        --         data.trackedColors[colorName][tostring(element)] = true;
-        --         table.insert(data.trackedColors[colorName], element);
-        --     end
-        -- end
 
         local objectType = element:GetObjectType();
     

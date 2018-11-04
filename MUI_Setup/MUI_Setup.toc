@@ -3,16 +3,16 @@
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
 
-Setup.lua
+MUI_Setup.lua
 
 ## imports:
-imports/AuraFrames.lua
-imports/Bartender4.lua
-imports/Bazooka.lua
-imports/Grid.lua
-imports/Masque.lua
-imports/MikScrollingBattleText.lua
-imports/Recount.lua
-imports/ShadowedUnitFrames.lua
-imports/SimplePowerBar.lua
-imports/TipTac.lua
+Imports/AuraFrames.lua
+Imports/Bartender4.lua
+Imports/Bazooka.lua
+Imports/Grid.lua
+Imports/Masque.lua
+Imports/MikScrollingBattleText.lua
+Imports/Recount.lua
+Imports/ShadowedUnitFrames.lua
+Imports/SimplePowerBar.lua
+Imports/TipTac.lua

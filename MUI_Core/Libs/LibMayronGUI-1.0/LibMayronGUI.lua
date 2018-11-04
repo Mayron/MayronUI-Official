@@ -3,17 +3,17 @@ local addonName = ...;
 local Lib = LibStub:NewLibrary("LibMayronGUI", 1.0);
 if (not Lib) then return; end
 
-local LibObjectLua = LibStub:GetLibrary("LibMayronObjects");
+local obj = LibStub:GetLibrary("LibMayronObjects");
 local Private = {};
 
-Lib.WidgetsPackage = LibObjectLua:CreatePackage("Widgets", "MayronUI");
-Lib.LibObjectLua = LibObjectLua;
+Lib.WidgetsPackage = obj:CreatePackage("Widgets", "MayronUI");
+Lib.Objects = obj;
 Lib.Private = Private;
 
 Private.DUMMY_FRAME = CreateFrame("Frame");
 Private.DUMMY_FUNC = function() end;
-Private.FrameWrapper = LibObjectLua:Import("Framework.System.FrameWrapper");
-Private.LinkedList = LibObjectLua:Import("Framework.System.Collections.LinkedList");
+Private.FrameWrapper = obj:Import("Framework.System.FrameWrapper");
+Private.LinkedList = obj:Import("Framework.System.Collections.LinkedList");
 -----------------------------
 -----------------------------
 
@@ -191,7 +191,7 @@ do
         local objectType = frame:GetObjectType();
 
         frames[objectType] = frames[objectType] or {};
-        frame:SetParent(DUMMY_FRAME);
+        frame:SetParent(self.DUMMY_FRAME);
         frame:SetAllPoints(true);
         frame:Hide();
 
@@ -200,7 +200,7 @@ do
         end
 
         for _, region in pairs({frame:GetRegions()}) do
-            region:SetParent(DUMMY_FRAME);
+            region:SetParent(self.DUMMY_FRAME);
             region:SetAllPoints(true);
             region:Hide();
         end

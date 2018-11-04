@@ -3,7 +3,7 @@
 ## Dependencies: MUI_Core
 ## OptionalDeps: MUI_Config
 
-DataText.lua
+MUI_DataText.lua
 IDataTextModule.lua
 
 Modules\CombatTimer.lua

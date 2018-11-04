@@ -2,5 +2,5 @@
 ## Title: |cff00ccffMUI|r Timer Bars
 ## Dependencies: MUI_Core
 
-TimerBars.lua
-config.lua
+MUI_TimerBars.lua
+## ConfigData.lua

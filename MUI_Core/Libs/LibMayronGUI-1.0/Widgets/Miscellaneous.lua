@@ -87,25 +87,23 @@ end
 
 function Lib:CreateButton(style, parent, text, button)
     local r, g, b = style:GetColor();
-    local alpha = style:GetAlpha() or 0.6;
     local backgroundTexture = style:GetTexture("ButtonTexture");
 
     button = button or CreateFrame("Button", nil, parent);
     button:SetSize(150, 30);
     button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
-    button:SetBackdropBorderColor(r, g, b, 1);
 
     if (text) then
         button:SetText(text);
     end
 
-    local normal = Private:SetBackground(button, backgroundTexture);
-    local highlight = Private:SetBackground(button, backgroundTexture);
-    local disabled = Private:SetBackground(button, backgroundTexture);
+    local normal = Private:SetBackground(button, style:GetTexture("ButtonTexture") );
+    local highlight = Private:SetBackground(button, style:GetTexture("ButtonTexture") );
+    local disabled = Private:SetBackground(button, style:GetTexture("ButtonTexture") );
 
-    normal:SetVertexColor(r * 0.8, g * 0.8, b * 0.8, alpha);
-    highlight:SetVertexColor(r, g, b, alpha * 0.2);
-    disabled:SetVertexColor(r * 0.5, g * 0.5, b * 0.5, 0.8);
+    normal:SetVertexColor(r * 0.6, g * 0.6, b * 0.6, 1);
+    highlight:SetVertexColor(r, g, b, 0.2);
+    disabled:SetVertexColor(r * 0.3, g * 0.3, b * 0.3, 1);
 
     button:SetNormalTexture(normal);
     button:SetHighlightTexture(highlight);
