@@ -4,12 +4,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 -- Register and Import ---------
 
-local Engine = obj:Import("MayronUI.Engine");
 local ChatClass = MayronUI:RegisterModule("Chat");
-
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-local Engine = obj:CreatePackage("TimerBars", "MayronUI.Engine");
-
 namespace.ChatClass = ChatClass;
 
 -- Load Database Defaults --------------

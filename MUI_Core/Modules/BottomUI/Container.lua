@@ -17,9 +17,8 @@ local RESOURCE_BAR_NAMES = {"Artifact", "Reputation", "XP"};
 
 -- Setup Objects -------------------------
 
-local FrameWrapper = obj:Import("Framework.System.FrameWrapper");
 local BottomUIPackage = obj:CreatePackage("BottomUI", addonName);
-local ResourceBar = BottomUIPackage:CreateClass("ResourceBar", FrameWrapper);
+local ResourceBar = BottomUIPackage:CreateClass("ResourceBar", "Framework.System.FrameWrapper");
 
 -- Register and Import Modules -----------
  
