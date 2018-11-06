@@ -258,6 +258,7 @@ local function RepositionChatTab()
 	ChatFrame1Tab:SetPoint("LEFT", 16, 0);
 end
 
+-- override with a dummy function
 function FCFTab_UpdateColors() end
 
 function FCF_SetTabPosition(chatFrame)

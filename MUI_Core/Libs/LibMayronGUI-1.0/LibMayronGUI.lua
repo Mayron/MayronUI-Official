@@ -298,32 +298,7 @@ do
         end
 
         Private:HideTextures(frame, layerTypes);
-
-        -- if (bit.band(value, self.CREATE_BACKGROUND) ~= 0) then
-        --     self:CreateBackground(frame);
-        -- end
     end
-
-    --tk.Constants.MEDIA.."dialog_box\\Texture-Medium"
-    -- function Private:CreateBackground(frame, insets, texture)
-    --     if (frame.reskinned) then 
-    --         return; 
-    --     end
-
-    --     local left = (type(insets) == "number" and insets) or (insets and insets[1]) or 0;
-    --     local right = (type(insets) == "number" and insets) or (insets and insets[2]) or 0;
-    --     local top = (type(insets) == "number" and insets) or (insets and insets[3]) or 0;
-    --     local bottom = (type(insets) == "number" and insets) or (insets and insets[4]) or 0;
-
-    --     gui:CreateGridTexture(frame, texture, 10, 6, 512, 512);
-    
-    --     tk:SetThemeColor(frame.tl, frame.tr, frame.bl, frame.br,
-    --         frame.t, frame.b, frame.l, frame.r, frame.c);
-
-    --     frame.reskinned = true;
-
-    --     return frame;
-    -- end
 
     function Private:HideTextures(frame, layers)
         for layer = 1, (#layers) do

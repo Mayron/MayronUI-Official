@@ -8,4 +8,4 @@ ChatFrame.lua
 ButtonHandlers.lua
 MuiChatFrame.lua
 RaidFrameManager.lua
-## LayoutSwitcher.lua
+LayoutSwitcher.lua

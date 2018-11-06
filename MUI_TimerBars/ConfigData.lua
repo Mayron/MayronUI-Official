@@ -156,7 +156,7 @@ local function CreateListFrame(_, self)
 
         local row1 = panel:CreateCell();
         row1.label = row1:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
-        row1.label:SetText(tk.string.format(L["Enter the Name of a %s to Track:"], (type == "buffs" and "Buff" or type == "debuffs" and "Debuff")));
+        row1.label:SetText(tk.string.format(L["Enter the Name of a %s to Track:"], (type == "buffs" and "Buff" or "Debuff")));
         row1.label:SetPoint("LEFT");
         row1:SetInsets(22, 5, 0, 5);
 

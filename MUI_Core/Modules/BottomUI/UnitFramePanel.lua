@@ -46,7 +46,7 @@ db:AddToDefaults("profile.unitPanels", {
 
 -- SUF Functions -------------------------
 
-local function UnAnchorSUF()
+local function DetachShadowedUnitFrames()
     local currentProfile = ShadowUF.db:GetCurrentProfile();
     local SUF = ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
 
@@ -54,7 +54,7 @@ local function UnAnchorSUF()
     SUF["relativePoint"] = "TOP"; SUF["x"] = 0; SUF["y"] = -40;
 end
 
-local function ReanchorSUF(rightPanel)
+local function AttachShadowedUnitFrames(rightPanel)
     local currentProfile = ShadowUF.db:GetCurrentProfile();
     local anchorTo = "UIParent";
 
@@ -272,10 +272,14 @@ function UnitFramePanelClass:OnEnable(data)
     data.right.bg:SetTexCoord(1, 0, 0, 1);
 
     if (tk.IsAddOnLoaded("ShadowedUnitFrames") and data.sv.controlGrid) then
-        ReanchorSUF(data.right);
-        tk.hooksecurefunc(ShadowUF, "ProfilesChanged", ReanchorSUF);
-        tk.hooksecurefunc("ReloadUI", UnAnchorSUF);
-        em:CreateEventHandler("PLAYER_LOGOUT", UnAnchorSUF);
+        AttachShadowedUnitFrames(data.right);
+        
+        tk.hooksecurefunc(ShadowUF, "ProfilesChanged", function()
+            AttachShadowedUnitFrames(data.right);
+        end);
+
+        tk.hooksecurefunc("ReloadUI", DetachShadowedUnitFrames);
+        em:CreateEventHandler("PLAYER_LOGOUT", DetachShadowedUnitFrames);
     end
 
     if (tk.IsAddOnLoaded("Grid") and data.sv.controlGrid) then

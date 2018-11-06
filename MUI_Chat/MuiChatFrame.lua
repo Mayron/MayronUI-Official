@@ -166,7 +166,7 @@ function ChatClass:ShowMuiChatFrame(data, anchorName) -- lets assume it's enable
 	local muiChatFrame = data.chatFrames[anchorName];
 
 	if (not muiChatFrame) then
-		muiChatFrame = CreateChatFrame(anchorName);
+		muiChatFrame = CreateChatFrame(anchorName);	
 		data.chatFrames[anchorName] = muiChatFrame;
 
 		obj:Assert(obj:IsType(muiChatFrame, "Frame"), 
@@ -183,6 +183,8 @@ function ChatClass:ShowMuiChatFrame(data, anchorName) -- lets assume it's enable
 
 		ChatFrameChannelButton.ClearAllPoints = tk.Constants.DUMMY_FUNC;
 		ChatFrameChannelButton.SetPoint = tk.Constants.DUMMY_FUNC;
+
+		self:SetUpLayoutSwitcher(muiChatFrame.layoutButton);
 	end
 
 	muiChatFrame:Show();

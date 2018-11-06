@@ -2,7 +2,6 @@
 local addOnName, namespace = ...;
 local ChatClass = namespace.ChatClass;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-local ChatClass = namespace.ChatClass;
 
 -- Local Functions -------------------
 
@@ -18,7 +17,7 @@ local function GetSupportedAddOns()
 			local mod = tk.string.find(name, "_");
 
 			if ((not mod) and status) then
-				local dbObject = tk:GetDBObject(name);
+				local dbObject = tk.Tables:GetDBObject(name);
 
 				if (dbObject and dbObject.SetProfile and dbObject.GetProfiles and dbObject.GetCurrentProfile) then
                     tk.table.insert(addons, name);
@@ -30,142 +29,146 @@ local function GetSupportedAddOns()
 	return addons;
 end
 
+local function GetNextLayout()
+	local firstLayout, firstData;
+	local foundCurrentLayout;
+	local currentLayout = db.profile.chat.layout;
+
+	for layoutName, layoutData in db.global.chat.layouts:Iterate() do
+		if (not firstLayout) then
+			firstLayout = layoutName;
+			firstData = layoutData;
+		end
+
+		if (currentLayout == layoutName) then -- the next layout
+			foundCurrentLayout = true;
+
+		elseif (foundCurrentLayout) then
+			-- Found the next layout!
+			return layoutName, layoutData;
+		end
+	end
+
+	-- The next layout must be back to the first layout
+	return firstLayout, firstData;
+end
+
 ---------------------------------
 -- Chat Button OnLoad Functions
 ---------------------------------
 do
 	local function LayoutButton_OnEnter(self)
-		if (chat.sv.hideTooltip) then return; end
+		if (self.hideTooltip) then 
+			return; 
+		end
+
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 8, -38);
 		GameTooltip:SetText("MUI Layout Button");
-		GameTooltip:AddDoubleLine(tk:GetThemeColoredString("Left Click:"), "Switch Layout", 1, 1, 1);
-		GameTooltip:AddDoubleLine(tk:GetThemeColoredString("Middle Click:"), "Toggle Blizzard Speech Menu", 1, 1, 1);
-		GameTooltip:AddDoubleLine(tk:GetThemeColoredString("Right Click:"), "Show Layout Config Tool", 1, 1, 1);
-		GameTooltip:AddDoubleLine(tk:GetThemeColoredString("ALT + Left Click:"), "Toggle Tooltip", 1, 0, 0, 1, 0, 0);
+		GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText("Left Click:"), "Switch Layout", 1, 1, 1);
+		GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText("Middle Click:"), "Toggle Blizzard Speech Menu", 1, 1, 1);
+		GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText("Right Click:"), "Show Layout Config Tool", 1, 1, 1);
+		GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText("ALT + Left Click:"), "Toggle Tooltip", 1, 0, 0, 1, 0, 0);
 		GameTooltip:Show();
 	end
 
-	function ChatClass:SetUpLayoutSwitcher(data)
-    	for layoutName, layoutData in db.global.chat.layouts:Iterate() do
-			if (not layoutData and layoutName ~= "Healer" and layoutName ~= "DPS") then
-				db.global.chat.layouts[layoutName] = nil;
-			end
+	local function LayoutButton_OnLeave()
+		GameTooltip:Hide();
+	end
+
+	local function LayoutButton_OnMouseUp(self, chat, btnPressed)
+		if (not MouseIsOver(self)) then 
+			return; 
 		end
 
-		--TODO
-		for _, data in data.sv.              :Iterate() do
-			if (chat.sv.enabled[data.name]) then
-				local cf = data.chatFrames[data.name];
-				cf.layoutButton:RegisterForClicks("LeftButtonDown", "RightButtonDown", "MiddleButtonDown");
-				cf.layoutButton:SetText(self.sv.layout:sub(1, 1):upper());
+		if (btnPressed == "LeftButton") then
+			if (tk:IsModComboActive("A")) then
+				self.hideTooltip = not self.hideTooltip;
 
-				cf.layoutButton:SetScript("OnEnter", LayoutButton_OnEnter);
-				cf.layoutButton:SetScript("OnLeave", function()
-					GameTooltip:Hide();
-				end);
+				-- assign inverted boolean to database
+				data.sv.hideTooltip = self.hideTooltip;
+				LayoutButton_OnEnter(self);
 
-				cf.layoutButton:SetScript("OnMouseUp", function(self, btn)
-					if (not MouseIsOver(self)) then 
-						return; 
-					end
+			else
+				local layoutName, layoutData = GetNextLayout();
+				chat:SwitchLayouts(layoutName, layoutData);
 
-					if (btn == "LeftButton") then
-						if (tk:IsModComboActive("A")) then
-							chat.sv.hideTooltip = not chat.sv.hideTooltip;
-							if (chat.sv.hideTooltip) then
-								GameTooltip:Hide();
-							else
-								LayoutButton_OnEnter(self);
-							end
-							return;
-						end
-
-						local firstLayout, firstData;
-						local nextLayout;
-						local switched;
-
-						for key, layoutData in db.global.chat.layouts:Iterate() do
-							if (layoutData) then
-								if (not firstLayout) then
-									firstLayout = key;
-									firstData = layoutData;
-								end
-
-								if (chat.sv.layout == key) then -- the next layout
-									nextLayout = true;
-								elseif (nextLayout) then
-									chat:SwitchLayouts(key, layoutData, self);
-									switched = true;
-									break;
-								end
-							end
-						end
-
-						if (not switched) then
-							if (firstLayout ~= chat.sv.layout) then
-								chat:SwitchLayouts(firstLayout, firstData, self);
-							else
-								tk:Print(tk:GetRGBColoredString(firstLayout, 0, 1, 0), "Layout enabled!");
-							end
-						end
-
-					elseif (btn == "RightButton") then
-						chat:ShowLayoutTool();
-					elseif (ChatMenu:IsShown()) then
-						ChatMenu:Hide();
-					else
-						ChatMenu:ClearAllPoints();
-						ChatMenu:SetPoint("TOPLEFT", self, "TOPRIGHT", 8, 0);
-						ChatMenu:Show();
-						GameTooltip:Hide();
-					end
-				end);
+				tk.PlaySound(tk.Constants.CLICK);
+				tk:Print(tk.Strings:GetRGBColoredText(layoutName, 0, 1, 0), "Layout enabled!");
 			end
+
+		elseif (btnPressed == "RightButton") then
+			chat:ShowLayoutTool();
+
+		elseif (data.menu:IsShown()) then
+			data.menu:Hide();
+
+		else
+			data.menu:ClearAllPoints();
+			data.menu:SetPoint("TOPLEFT", self, "TOPRIGHT", 8, 0);
+			data.menu:Show();
+			GameTooltip:Hide();
 		end
+	end
+
+	-- First function to be called!
+	function ChatClass:SetUpLayoutSwitcher(data, layoutButton)
+		local layoutName = data.sv.layout;
+		local firstCharacter = layoutName:sub(1, 1):upper();
+		data.layoutButton = layoutButton;
+
+		layoutButton:SetText(firstCharacter);		
+		layoutButton:RegisterForClicks("LeftButtonDown", "RightButtonDown", "MiddleButtonDown");
+		layoutButton:SetScript("OnEnter", LayoutButton_OnEnter);
+		layoutButton:SetScript("OnLeave", LayoutButton_OnLeave);
+		layoutButton:SetScript("OnMouseUp", function(_, btnPressed)
+			LayoutButton_OnMouseUp(layoutButton, self, btnPressed);
+		end);	
 	end
 end
 
----------------------------------
--- Layout Tool functions
----------------------------------
-local function SetViewingLayout(self, layoutName)
+function ChatClass:SetViewingLayout(data, layoutName)
 	if (not layoutName) then
 		for key, layoutData in db.global.chat.layouts:Iterate() do
 			if (layoutData) then
-				layoutName = key; -- get first layout!
+				layoutName = key;
 				break;
 			end
 		end
 	end
-	chat.viewingLayout = layoutName;
+
+	data.viewingLayout = layoutName;
+
 	if (db.global.chat.layouts[layoutName]) then
-		chat:UpdateAddOnWindow();
+
+		--TODO: Change this!
+		self:UpdateAddOnWindow();
 	end
 end
 
-function chat:GetNumLayouts()
+function ChatClass:GetNumLayouts(data)
 	local n = 0;
+
 	for layoutName, layoutData in db.global.chat.layouts:Iterate() do
 		if (layoutData) then
 			n = n + 1;
 		end
 	end
+
 	return n;
 end
 
-function chat:UpdateAddOnWindow()
-	if (not self.addonWindow) then return; end
+function ChatClass:UpdateAddOnWindow(data)
+	if (not data.addonWindow) then return; end
 
-	local layoutData = db.global.chat.layouts[self.viewingLayout];
+	local layoutData = db.global.chat.layouts[data.viewingLayout];
 	if (not layoutData) then
 		SetViewingLayout();
 		return;
 	end
 
-	local children = {self.addonWindow.dynamicFrame:GetChildren()};
-
 	local unchecked, addonName;
-	for i, child in tk.ipairs(children) do
+
+	for i, child in tk.ipairs({ data.addonWindow.dynamicFrame:GetChildren() }) do
 		if (i % 2 ~= 0) then
 			-- checkbutton
 			addonName = child.btn.text:GetText();
@@ -173,8 +176,9 @@ function chat:UpdateAddOnWindow()
 			child.btn:SetChecked(unchecked);
 		else
 			-- dropdownmenu
-			local object = tk:GetDBObject(addonName);
+			local object = tk.Tables:GetDBObject(addonName);
 			child.btn.dropdown:SetEnabled(unchecked);
+
 			if (unchecked) then
 				child.btn.dropdown:SetLabel(layoutData[addonName]);
 			else
@@ -191,6 +195,7 @@ do
 
 	local function CreateNewAddOnProfile(self, addonName, dbObject, dropdown)
 		dropdown:SetLabel(db.global.chat.layouts[chat.viewingLayout][addonName]);
+
 		if (not tk.StaticPopupDialogs["MUI_NewProfileLayout"]) then
 			tk.StaticPopupDialogs["MUI_NewProfileLayout"] = {
 				text = "Create New "..addonName.." Profile:",
@@ -202,37 +207,39 @@ do
 				hasEditBox  = true,
 				preferredIndex = 3,
 				OnAccept = function(dialog)
-					local self = private.temp;
-					local text = dialog.editBox:GetText()
-					UIDropDownMenu_SetText(dialog, text)
-					local currentProfile = self.dbObject:GetCurrentProfile();
+					local text = dialog.editBox:GetText();
+
+					UIDropDownMenu_SetText(dialog, text);
+
+					local currentProfile = dbObject:GetCurrentProfile();
 					local alreadyExists = false;
-					for _, profile in tk.ipairs(self.dbObject:GetProfiles()) do
+
+					for _, profile in tk.ipairs(dbObject:GetProfiles()) do
 						if (profile == text) then
 							alreadyExists = true;
 							break;
 						end
 					end
+
 					if (not alreadyExists) then
-						self.dropdown:AddOption(text, SetAddOnProfilePair, self.addonName, text);
+						dropdown:AddOption(text, SetAddOnProfilePair, addonName, text);
 					end
-					self.dbObject:SetProfile(text);
-					self.dbObject:SetProfile(currentProfile);
-					SetAddOnProfilePair(nil, self.addonName, text);
-					self.dropdown:SetLabel(text);
+
+					dbObject:SetProfile(text);
+					dbObject:SetProfile(currentProfile);
+					SetAddOnProfilePair(nil, addonName, text);
+					dropdown:SetLabel(text);
 				end,
 			};
 		end
-		private.temp = private.temp or {};
-		private.temp.addonName = addonName;
-		private.temp.dbObject = dbObject;
-		private.temp.dropdown = dropdown;
+
         tk.StaticPopupDialogs["MUI_NewProfileLayout"].text = "Create New "..addonName.." Profile:";
         tk.StaticPopup_Show("MUI_NewProfileLayout");
 	end
 
 	local function CreateLayout()
 		if (not tk.StaticPopupDialogs["MUI_CreateLayout"]) then
+
             tk.StaticPopupDialogs["MUI_CreateLayout"] = {
 				text = "Name of New Layout:",
 				button1 = "Confirm",
@@ -245,20 +252,25 @@ do
 				OnShow = function (self)
 					local dropdown = chat.layoutTool.dropdown;
 					local length = dropdown:GetNumOptions();
+
 					self.editBox:SetText("Layout "..(length + 1));
 				end,
 				OnAccept = function(self)
 					local layout = self.editBox:GetText();
+
 					if (not db.global.chat.layouts[layout]) then
 						db.global.chat.layouts[layout] = {};
 						SetViewingLayout(layout);
+
 						local dropdown = chat.layoutTool.dropdown;
 						dropdown:AddOption(layout, SetViewingLayout);
-						chat.layoutTool.deleteButton:SetEnabled(chat:GetNumLayouts() ~= 1);
+
+						chat.layoutTool.deleteButton:SetEnabled(ChatClass:GetNumLayouts() ~= 1);
 					end
 				end,
 			}
 		end
+
         tk.StaticPopup_Show("MUI_CreateLayout");
 	end
 
@@ -295,6 +307,7 @@ do
 
 	local function DeleteLayout()
 		if (not tk.StaticPopupDialogs["MUI_DeleteLayout"]) then
+
             tk.StaticPopupDialogs["MUI_DeleteLayout"] = {
 				button1 = "Confirm",
 				button2 = "Cancel",
@@ -307,130 +320,157 @@ do
 					local dropdown = chat.layoutTool.dropdown;
 					dropdown:RemoveOption(chat.viewingLayout);
 					db.global.chat.layouts[chat.viewingLayout] = false;
+
 					SetViewingLayout();
+
 					local btn = dropdown:GetOption(chat.viewingLayout);
-					dropdown:SetLabel(btn:GetText());
-					chat.layoutTool.deleteButton:SetEnabled(chat:GetNumLayouts() ~= 1);
+					dropdown:SetLabel(btn:GetText());					
+					chat.layoutTool.deleteButton:SetEnabled(ChatClass:GetNumLayouts() ~= 1);
 				end,
 			}
 		end
+
         tk.StaticPopup_Show("MUI_DeleteLayout");
 	end
 
-	function chat:ShowLayoutTool()
-		if (self.layoutTool) then
-			self.layoutTool:Show();
-			self:UpdateAddOnWindow();
-			tk.UIFrameFadeIn(self.layoutTool, 0.3, 0, 1);
+	local function CreateScrollFrameRowContent(scrolLFrame, dbObject, addOnName)
+		local addOnProfiles = dbObject:GetProfiles();
+		local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, scrollFrame);
+		local checkButton = gui:CreateCheckButton(scrollFrame, addonName);
+
+		checkButton:SetSize(160, dropdown:GetHeight());
+
+		-- setup addOn dropdown menus with options
+		dropdown:SetLabel(dbObject:GetCurrentProfile());	
+		dropdown:AddOption("<New Profile>", CreateNewAddOnProfile, addonName, dbObject, dropdown);
+				
+		for _, profileName in tk.ipairs(addOnProfiles) do
+			dropdown:AddOption(profileName, SetAddOnProfilePair, addonName, profileName);
+		end
+
+		-- checkButton.btn:SetScript("OnClick", function(self)
+		-- 	dropdown:SetEnabled(data:GetChecked()); --TODO: data:GetChecked???
+
+		-- 	if (not data:GetChecked()) then
+		-- 		SetAddOnProfilePair(nil, addonName, false);
+		-- 	else
+		-- 		SetAddOnProfilePair(nil, addonName, dropdown:GetLabel());
+		-- 	end
+		-- end);
+
+		return checkButton, dropdown;		
+	end
+
+	function ChatClass:ShowLayoutTool(data)
+		if (data.layoutTool) then
+			data.layoutTool:Show();
+			data:UpdateAddOnWindow();
+			tk.UIFrameFadeIn(data.layoutTool, 0.3, 0, 1);
 			return;
 		end
-		self.viewingLayout = self.sv.layout;
-		self.layoutTool = gui:CreateDialogBox();
-		self.layoutTool:SetSize(700, 400);
-		self.layoutTool:SetPoint("CENTER");
-		gui:AddTitleBar(self.layoutTool, "MUI Layout Tool");
-		gui:AddCloseButton(self.layoutTool);
 
-		self.layoutTool = gui:CreatePanel(self.layoutTool);
-		self.layoutTool:SetDevMode(false); -- shows or hides the red frame info overlays
-		self.layoutTool:SetDimensions(2, 2);
-		self.layoutTool:GetRow(1):SetFixed(80);
-		self.layoutTool:GetColumn(1):SetFixed(400);
+		data.viewingLayout = data.sv.layout;
 
-		self.description = self.layoutTool:CreateCell();
-		self.description:SetDimensions(2, 1);
-		self.description:SetInsets(20, 50, 0, 50);
-		self.description.text = self.description:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
-		self.description.text:SetAllPoints(true);
-		self.description.text:SetWordWrap(true);
-		self.description.text:SetText("Here you can customise which AddOn/s should change to which Profile/s for each individual Layout, as well as manage your existing Layouts or create new Layouts.");
+		data.layoutTool = gui:CreateDialogBox(tk.Constants.AddOnStyle);
+		data.layoutTool:SetSize(700, 400);
 
-		self.addonWindow = gui:CreateDynamicFrame(self.layoutTool:GetFrame(), 5, 10);
-		gui:CreateDialogBox(nil, "LOW", self.addonWindow);
+		--data.layoutTool:data("CENTER");
 
-		self.addonWindow = self.layoutTool:CreateCell(self.addonWindow);
-        self.addonWindow.dynamicFrame = self.addonWindow:GetFrame();
-		self.addonWindow:SetInsets(10, 0, 10, 10);
+		gui:AddTitleBar(data.layoutTool, "MUI Layout Tool");
+		gui:AddCloseButton(data.layoutTool);
 
-		self.menu = gui:CreateDialogBox(self.layoutTool:GetFrame(), "LOW");
-		self.menu = self.layoutTool:CreateCell(self.menu);
-		self.menu:SetInsets(10, 10, 10, 15);
+		data.layoutTool = gui:CreatePanel(data.layoutTool);
+		data.layoutTool:SetDevMode(false); -- shows or hides the red frame info overlays
+		data.layoutTool:SetDimensions(2, 2);
+		data.layoutTool:GetRow(1):SetFixed(80);
+		data.layoutTool:GetColumn(1):SetFixed(400);
 
-		self.layoutTool:AddCells(self.description, self.addonWindow, self.menu);
+		data.description = data.layoutTool:CreateCell();
+		data.description:SetDimensions(2, 1);
+		data.description:SetInsets(20, 50, 0, 50);
+
+		data.description.text = data.description:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
+		data.description.text:SetAllPoints(true);
+		data.description.text:SetWordWrap(true);
+		data.description.text:SetText("Here you can customise which AddOn/s should change to which Profile/s for each individual Layout, as well as manage your existing Layouts or create new Layouts.");
+
+		data.addonWindow = gui:CreateDynamicFrame(data.layoutTool:GetFrame(), 5, 10);
+		gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", data.addonWindow);
+
+		data.addonWindow = data.layoutTool:CreateCell(data.addonWindow);
+        data.addonWindow.dynamicFrame = data.addonWindow:GetFrame();
+		data.addonWindow:SetInsets(10, 0, 10, 10);
+
+		local parent = data.layoutTool:GetFrame();
+		data.menu = gui:CreateDialogBox(tk.Constants.AddOnStyle, parent, "LOW");
+		data.menu = data.layoutTool:CreateCell(data.menu);
+		data.menu:SetInsets(10, 10, 10, 15);
+
+		data.layoutTool:AddCells(data.description, data.addonWindow, data.menu);
 
 		-- Add ScrollFrame content:
 		for _, addonName in ipairs(GetSupportedAddOns()) do
-			local dbObject = tk:GetDBObject(addonName);
-			local dropdown = gui:CreateDropDown(self.addonWindow.dynamicFrame:GetFrame());
-            dropdown:SetLabel(dbObject:GetCurrentProfile());
-
-			local cb = gui:CreateCheckButton(self.addonWindow.dynamicFrame:GetFrame(), addonName);
-			cb:SetSize(160, dropdown:GetHeight());
-			cb.btn:SetScript("OnClick", function(self)
-				dropdown:SetEnabled(self:GetChecked());
-				if (not self:GetChecked()) then
-					SetAddOnProfilePair(nil, addonName, false);
-				else
-					SetAddOnProfilePair(nil, addonName, dropdown:GetLabel());
-				end
-			end);
+			local dbObject = tk.Tables:GetDBObject(addonName);
 
 			if (dbObject) then
-				local profiles = dbObject:GetProfiles();
-				for _, profileName in tk.ipairs(profiles) do
-					dropdown:AddOption(profileName, SetAddOnProfilePair, addonName, profileName);
-				end
-				dropdown:AddOption("<New Profile>", CreateNewAddOnProfile, addonName, dbObject, dropdown);
-            end
-
-            self.addonWindow.dynamicFrame:AddChildren(cb, dropdown);
-		end
-		self:UpdateAddOnWindow();
-        tk.UIFrameFadeIn(self.layoutTool, 0.3, 0, 1);
-
-		-- Add menu content:
-        self.menu.layoutsTitle = self.menu:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-        self.menu.layoutsTitle:SetText("Layouts:");
-        self.menu.layoutsTitle:SetPoint("TOPLEFT", 35, -35);
-
-        self.menu.layoutsDropDown = gui:CreateDropDown(self.menu:GetFrame());
-        self.menu.layoutsDropDown:SetLabel(self.viewingLayout);
-        self.menu.layoutsDropDown:SetPoint("TOPLEFT", self.menu.layoutsTitle, "BOTTOMLEFT", 0, -5);
-		self.layoutTool.dropdown = self.menu.layoutsDropDown
-
-		for key, layoutData in db.global.chat.layouts:Iterate() do
-			if (layoutData) then
-                self.menu.layoutsDropDown:AddOption(key, SetViewingLayout);
+				local scrollFrame = data.addonWindow.dynamicFrame:GetFrame();
+				local checkButton, dropdown = CreateScrollFrameRowContent(scrollFrame, dbObject, addonName);
+				data.addonWindow.dynamicFrame:AddChildren(checkButton, dropdown);
 			end
 		end
 
-        self.menu.createButton = gui:CreateButton(self.menu:GetFrame(), "Create New Layout");
-        self.menu.createButton:SetPoint("TOP", self.menu.layoutsDropDown:GetFrame(), "BOTTOM", 0, -20);
-        self.menu.createButton:SetScript("OnClick", CreateLayout);
+		data:UpdateAddOnWindow();
+        tk.UIFrameFadeIn(data.layoutTool, 0.3, 0, 1);
 
-        self.menu.renameButton = gui:CreateButton(self.menu:GetFrame(), "Rename Layout");
-        self.menu.renameButton:SetPoint("TOP", self.menu.createButton, "BOTTOM", 0, -20);
-        self.menu.renameButton:SetScript("OnClick", RenameLayout);
+		-- Add menu content:
+        data.menu.layoutsTitle = data.menu:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+        data.menu.layoutsTitle:SetText("Layouts:");
+        data.menu.layoutsTitle:SetPoint("TOPLEFT", 35, -35);
 
-        self.menu.deleteButton = gui:CreateButton(self.menu:GetFrame(), "Delete Layout");
-        self.menu.deleteButton:SetPoint("TOP", self.menu.renameButton, "BOTTOM", 0, -20);
-        self.menu.deleteButton:SetScript("OnClick", DeleteLayout);
-		self.layoutTool.deleteButton = self.menu.deleteButton;
+        data.menu.layoutsDropDown = gui:CreateDropDown(data.menu:GetFrame());
+        data.menu.layoutsDropDown:SetLabel(data.viewingLayout);
+        data.menu.layoutsDropDown:SetPoint("TOPLEFT", data.menu.layoutsTitle, "BOTTOMLEFT", 0, -5);
+		data.layoutTool.dropdown = data.menu.layoutsDropDown
 
-        self.menu.deleteButton:SetEnabled(chat:GetNumLayouts() ~= 1);
+		for key, layoutData in db.global.chat.layouts:Iterate() do
+			if (layoutData) then
+                data.menu.layoutsDropDown:AddOption(key, SetViewingLayout);
+			end
+		end
+
+        data.menu.createButton = gui:CreateButton(data.menu:GetFrame(), "Create New Layout");
+        data.menu.createButton:SetPoint("TOP", data.menu.layoutsDropDown:GetFrame(), "BOTTOM", 0, -20);
+        data.menu.createButton:SetScript("OnClick", CreateLayout);
+
+        data.menu.renameButton = gui:CreateButton(data.menu:GetFrame(), "Rename Layout");
+        data.menu.renameButton:SetPoint("TOP", data.menu.createButton, "BOTTOM", 0, -20);
+        data.menu.renameButton:SetScript("OnClick", RenameLayout);
+
+        data.menu.deleteButton = gui:CreateButton(data.menu:GetFrame(), "Delete Layout");
+        data.menu.deleteButton:SetPoint("TOP", data.menu.renameButton, "BOTTOM", 0, -20);
+        data.menu.deleteButton:SetScript("OnClick", DeleteLayout);
+		data.layoutTool.deleteButton = data.menu.deleteButton;
+
+        data.menu.deleteButton:SetEnabled(ChatClass:GetNumLayouts() ~= 1);
 	end
 end
 
-function chat:SwitchLayouts(name, layoutData, btn)
-	tk:Print(tk:GetRGBColoredString(name, 0, 1, 0), "Layout enabled!");
-	self.sv.layout = name;
-	btn:SetText(name:sub(1, 1):upper());
-    tk.PlaySound(tk.Constants.CLICK);
+function ChatClass:SwitchLayouts(data, layoutName, layoutData)	
+	data.sv.layout = layoutName;
 
+	local firstCharacter = layoutName:sub(1, 1):upper();
+	data.layoutButton:SetText(firstCharacter);    
+	
+	-- Switch all assigned addons to new profile
 	for addonName, profileName in pairs(layoutData) do
-		local object = tk:GetDBObject(addonName);
-		if (object and profileName) then -- profileName coudl be false
-			object:SetProfile(profileName);
+
+		if (profileName) then
+			-- profileName could be false
+			local object = tk.Tables:GetDBObject(addonName);
+
+			if (object) then
+				object:SetProfile(profileName);
+			end
 		end
 	end
 end
