@@ -304,6 +304,19 @@ function Database:GetCurrentProfile(data)
 end
 
 --[[
+@return (table): A table containing string profile names for all profiles associated with the addon.
+--]]
+function Database:GetProfiles(data)
+    local profiles = {};
+
+    for profileName, _ in pairs(data.sv.profiles) do
+        table.insert(profiles, profileName);
+    end
+
+    return profiles;
+end
+
+--[[
 Usable in a for loop to loop through all profiles associated with the AddOn.
 Each loop returns values: id, profileName, profile
 

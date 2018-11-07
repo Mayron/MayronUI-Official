@@ -406,4 +406,6 @@ db:OnStartUp(function(self)
     if (tk.IsAddOnLoaded("Recount")) then
         PositionRecountWindow();
     end
+
+    tk.collectgarbage("collect");
 end);

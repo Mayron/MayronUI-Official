@@ -109,14 +109,14 @@ function Memory:Update(data)
 
         self.Button:SetText(tk.string.format(LABEL_PATTERN, total));
 
-        tk.C_Timer.After(10, loop);
+        tk.C_Timer.After(1, loop);
     end
 
     loop();
 end
 
 function Memory:Click(data)
-    tk.collectgarbage("collect");
+    --tk.collectgarbage("collect");
     
     local currentIndex = 0;
     local sorted = {};    

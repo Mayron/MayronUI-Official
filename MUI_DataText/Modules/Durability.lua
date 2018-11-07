@@ -18,7 +18,7 @@ local Durability = Engine:CreateClass("Durability", nil, "MayronUI.Engine.IDataT
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.durability", {
-    enabled = true,
+    enabled = false,
     displayOrder = 1
 });
 

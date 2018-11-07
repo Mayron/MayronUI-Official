@@ -43,15 +43,17 @@ Lib.FONT_TYPES = {
     CombatLogFont                   = "CombatLogFont",
 }
 
-function Lib:CreateDialogBox(style, parent, alphaType, frame, name) 
-    local texture = style:GetTexture("DialogBoxBackground"); 
-    frame = frame or CreateFrame("Frame", name, parent or UIParent);
+function Lib:CreateDialogBox(style, parent, alphaType, frame, globalName)    
+    frame = frame or CreateFrame("Frame", globalName, parent or UIParent);
     frame:EnableMouse(true);
-
+    
     alphaType = alphaType or "Medium";
     alphaType = alphaType:lower();
     alphaType = alphaType:gsub("^%l", string.upper);
-    texture = texture..alphaType;
+
+    local texture = style:GetTexture("DialogBoxBackground"); 
+    texture = string.format("%s%s", texture, alphaType);
+
     Lib:CreateGridTexture(frame, texture, 10, 6, 512, 512);
 
     -- apply the theme color for each Grid Cell

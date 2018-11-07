@@ -9,8 +9,13 @@ Panel.Static:AddFriendClass("Group");
 Private.Panel = Panel;
 ---------------------------------
 
-function Panel:__Construct(data, frame, name)    
-    self:SetFrame(frame or CreateFrame("Frame", name, UIParent));
+-- helper constructor
+function Lib:CreatePanel(frame, globalName)
+    return Panel(frame, globalName);
+end
+
+function Panel:__Construct(data, frame, globalName)    
+    self:SetFrame(frame or CreateFrame("Frame", globalName, UIParent));
     data.grid = Private.LinkedList();
     data.rowscale = {};
     data.columnscale = {};

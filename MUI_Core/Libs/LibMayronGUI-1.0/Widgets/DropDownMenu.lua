@@ -165,23 +165,33 @@ end
 
 WidgetsPackage:DefineParams("number");
 WidgetsPackage:DefineReturns("Button");
-function DropDownMenu:GetOption(data, optionID)
+function DropDownMenu:GetOptionByID(data, optionID)
     local foundOption = data.options[optionID];
     obj:Assert(foundOption, "DropDownMenu.GetOption failed to find option with id '%s'.", optionID);
     return foundOption;
 end
 
 WidgetsPackage:DefineParams("string");
+WidgetsPackage:DefineReturns("Button");
+function DropDownMenu:GetOptionByLabel(data, label)
+    for optionID, optionButton in ipairs(data.options) do
+        if (optionButton:GetText() == label) then
+            return optionButton;
+        end
+    end
+end
+
+WidgetsPackage:DefineParams("string");
 function DropDownMenu:RemoveOptionByLabel(data, label)
     for optionID, optionButton in ipairs(data.options) do
         if (optionButton:GetText() == label) then
-            self:RemoveOption(optionID);
+            self:RemoveOptionByID(optionID);
         end
     end
 end
 
 WidgetsPackage:DefineParams("number");
-function DropDownMenu:RemoveOption(data, optionID)
+function DropDownMenu:RemoveOptionByID(data, optionID)
     local optionToRemove = self:GetOption(optionID);
 
     table.remove(data.options, optionID);
@@ -282,22 +292,24 @@ function DropDownMenu:AddOption(data, label, func, ...)
     option:GetNormalTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
     option:SetHighlightTexture(1);
     option:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
+      
+    local args = {...};
+    option:SetScript("OnClick", function()
+        self:SetLabel(label, true);
+        self:Toggle(false);
 
-    if (func) then
-        local args = {...};
-        
-        option:SetScript("OnClick", function()
-            self:SetLabel(label, true);
-            self:Toggle(false);
+        if (not func) then return end
+
+        if (type(func) == "table") then
+            local tbl = func[1];
+            local methodName = func[2];
+
+            tbl[methodName](tbl, self, unpack(args));
+        else
             func(self, unpack(args));
-        end);
-    else
-        option:SetScript("OnClick", function()
-            self:SetLabel(label, true);
-            self:Toggle(false);
-        end);
-    end
-    
+        end
+    end);
+
     return option;
 end
 

@@ -14,7 +14,7 @@ local Friends = Engine:CreateClass("Friends", nil, "MayronUI.Engine.IDataTextMod
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.friends", {
-    enabled = true,
+    enabled = false,
     displayOrder = 2
 });
 

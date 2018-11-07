@@ -188,7 +188,8 @@ function ProxyStack:Pop(proxyEntity, key, entity, controller)
     proxyObject.Controller = controller;
     proxyObject.Self = entity;
 
-    proxyObject.Run = proxyObject.Run or function(_, ...)
+    -- TODO: Can this be reused?
+    proxyObject.Run = function(_, ...)
         local definition, errorMessage = Core:GetParamsDefinition(proxyObject);
         Core:ValidateFunctionCall(definition, errorMessage, ...);
 
