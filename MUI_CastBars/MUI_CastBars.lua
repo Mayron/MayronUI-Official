@@ -8,11 +8,11 @@ local appearance;
 -- Objects -----------------------------
 
 local Engine = obj:Import("MayronUI.Engine");
-local CastBar = Engine:CreateClass("CastBar", "Framework.System.FrameWrapper");
+local CastBarClass = Engine:CreateClass("CastBar", "Framework.System.FrameWrapper");
 
 -- Register Modules --------------------
 
-local CastBarsClass = MayronUI:RegisterModule("CastBars");
+local CastBarsModuleClass = MayronUI:RegisterModule("CastBars");
 
 -- Load Database Defaults --------------
 
@@ -99,182 +99,193 @@ Ticks.data = {
 	[(GetSpellInfo(234153)) or "_"] = 4, -- Health Funnel
 };
 
--------------------
--- CastBar Events
--------------------
-function CastBar:__Construct(data, sv, unitID, bar)
-    data.sv = sv;
-    data.unitID = unitID;
-    data.frame = bar;
-end
+-- Events ---------------------
+local Events = {};
 
-function CastBar:MIRROR_TIMER_PAUSE(data, pause_duration)
-    data.paused = pause_duration > 0;
-    if (pause_duration > 0) then
-        data.pause_duration = pause_duration;
+function Events:MIRROR_TIMER_PAUSE(castBar, data, pauseDuration)
+    data.paused = pauseDuration > 0;
+    if (pauseDuration > 0) then
+        data.pauseDuration = pauseDuration;
     end
 end
 
-function CastBar:MIRROR_TIMER_START(data, ...)
+function Events:MIRROR_TIMER_START(castBar, data, ...)
     local _, value, maxValue, step, pause, label = ...;
+
     data.frame.statusbar:SetMinMaxValues(0, (maxValue / 1000));
     data.frame.statusbar:SetValue((value / 1000));
     data.paused = pause;
     data.startTime = GetTime();
     data.frame.name:SetText(label);
+
     local c = appearance.colors.normal;
     data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
     tk.UIFrameFadeIn(data.frame, 0.1, data.frame:GetAlpha(), 1);
 end
 
-function CastBar:MIRROR_TIMER_STOP(data)
+function Events:MIRROR_TIMER_STOP(castBar, data)
     data.paused = 0;
-    data.pause_duration = nil;
+    data.pauseDuration = nil;
     data.fadingOut = true;
     data.startTime = nil;
+
     tk.UIFrameFadeOut(data.frame, 1, data.frame:GetAlpha(), 0);
 end
 
-function CastBar:UNIT_SPELLCAST_INTERRUPTED(data, ...)
+function Events:UNIT_SPELLCAST_INTERRUPTED(castBar, data, ...)
     data.frame.statusbar:SetValue(tk.select(2, data.frame.statusbar:GetMinMaxValues()))
-	self:StopCasting();
+    castBar:StopCasting();
+    
 	local c = appearance.colors.interrupted;
     data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
 end
 
-function CastBar:UNIT_SPELLCAST_INTERRUPTIBLE(data)
+function Events:UNIT_SPELLCAST_INTERRUPTIBLE(castBar, data)
 	local c = appearance.colors.normal;
     data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
 end
 
-function CastBar:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(data)
+function Events:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(castBar, data)
 	local c = appearance.colors.interrupted;
     data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
 end
 
-function CastBar:PLAYER_TARGET_CHANGED(data)
+function Events:PLAYER_TARGET_CHANGED(castBar, data)
 	if (UnitExists(data.unitID) and tk.select(1, UnitCastingInfo(data.unitID))) then
-        if (UnitName(data.unitID) == data.unitName) then return; end
+        if (UnitName(data.unitID) == data.unitName) then return end
         
-		self:StopCasting();
-        self:StartCasting();
+		castBar:StopCasting();
+        castBar:StartCasting();
         
 	elseif (data.frame:GetAlpha() > 0) then
-		self:StopCasting();
+		castBar:StopCasting();
         data.frame:SetAlpha(0);
         data.frame:Hide();
-
 	end
 end
 
-function CastBar:UNIT_SPELLCAST_DELAYED(data)
-	local endTime = tk.select(6, UnitCastingInfo(data.unitID));
+function Events:UNIT_SPELLCAST_DELAYED(castBar, data)
+    local endTime = tk.select(6, UnitCastingInfo(data.unitID));
+    
 	if (not endTime or not data.startTime) then
-		self:UNIT_SPELLCAST_INTERRUPTED(data);
-		return
-	end
+		castBar:UNIT_SPELLCAST_INTERRUPTED(data);
+		return;
+    end
+    
 	endTime = endTime / 1000;
     data.frame.statusbar:SetMinMaxValues(0, endTime - data.startTime);
 end
 
-function CastBar:UNIT_SPELLCAST_START(data, unitID)
-	if (unitID ~= data.unitID) then return; end
-	self:StartCasting();
+function Events:UNIT_SPELLCAST_START(castBar, data, unitID)
+	if (unitID ~= data.unitID) then return end
+	castBar:StartCasting();
 end
 
-function CastBar:UNIT_SPELLCAST_CHANNEL_START(data, unitID)
-    if (unitID ~= data.unitID) then return; end
-    self:StartCasting(true);
+function Events:UNIT_SPELLCAST_CHANNEL_START(castBar, data, unitID)
+    if (unitID ~= data.unitID) then return end
+    castBar:StartCasting(true);
 end
 
-function CastBar:UNIT_SPELLCAST_CHANNEL_STOP(data)
+function Events:UNIT_SPELLCAST_CHANNEL_STOP(castBar, data)
     data.frame.statusbar:SetValue(tk.select(2, data.frame.statusbar:GetMinMaxValues()));
+
     if (data.frame.statusbar:GetValue() > 0.1) then
-        self:UNIT_SPELLCAST_CHANNEL_UPDATE(data);
+        castBar:UNIT_SPELLCAST_CHANNEL_UPDATE(data);
     else
-        self:StopCasting();
+        castBar:StopCasting();
     end
 end
 
-function CastBar:UNIT_SPELLCAST_CHANNEL_UPDATE(data)
+function Events:UNIT_SPELLCAST_CHANNEL_UPDATE(castBar, data)
     local endTime = tk.select(6, UnitChannelInfo(data.unitID));
+
     if (not endTime or not data.startTime) then
-        self:StopCasting();
+        castBar:StopCasting();
+
         local c = appearance.colors.interrupted;
         data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+
         return;
     end
+
     endTime = endTime / 1000;
     data.frame.statusbar:SetMinMaxValues(0, endTime - data.startTime);
 end
 
-function CastBar:UNIT_SPELLCAST_SENT(data)
+function Events:UNIT_SPELLCAST_SENT(castBar, data)
     data.latency = GetTime();
 end
 
------------------------
--- CastBar Functions
------------------------
-function CastBar:Update(data)
-    -- if (not data.startTime) then
-    --     if (data.frame:GetAlpha() == 0) then
-    --         data.fadingOut = nil;
-    --     end
-    --     return;
-    -- end
+-- CastBarClass ----------------------
 
-    -- if (data.unitID == "mirror") then
-    --     if (not data.paused or data.paused == 0) then
-    --         for i = 1, MIRRORTIMER_NUMTIMERS do
-    --             local _, _, _, step, _, label = GetMirrorTimerInfo(i);
-
-    --             if (label == data.frame.name:GetText()) then
-    --                 local value = MirrorTimer1StatusBar:GetValue();
-    --                 local duration = tk.string.format("%.1f", value);
-
-    --                 if (tk.tonumber(duration) > 60) then
-    --                     duration = tk.date("%M:%S", duration);
-    --                 end
-
-    --                 data.frame.duration:SetText(duration);
-    --                 data.frame.statusbar:SetValue(value);
-    --                 return;
-    --             end
-    --         end
-    --     end
-    -- else
-    --     if (data.startTime and not self:IsFinished()) then
-    --         local difference = GetTime() - data.startTime;
-
-    --         if (data.channelling or data.unitID == "mirror") then
-    --             data.frame.statusbar:SetValue(data.totalTime - difference);
-    --         else
-    --             data.frame.statusbar:SetValue(difference);
-    --         end
-
-    --         local duration = data.totalTime - difference;
-
-    --         if (duration < 0) then 
-    --             duration = 0; 
-    --         end
-
-    --         duration = tk.string.format("%.1f", duration);
-
-    --         if (tk.tonumber(duration) > 60) then
-    --             duration = tk.date("%M:%S", duration);
-    --         end
-
-    --         data.frame.duration:SetText(duration);
-
-    --     elseif (data.unitID ~= "mirror") then
-    --         self:StopCasting();
-    --     else
-    --         self:MIRROR_TIMER_STOP();
-    --     end
-    -- end
+function CastBarClass:__Construct(data, sv, unitID, bar)
+    data.sv = sv;
+    data.unitID = unitID;
+    data.frame = bar;
+    
+    self.tempData = data;    
 end
 
-function CastBar:SetTicks(data, numTicks)
+function CastBarClass:Update(data)
+    if (not data.startTime) then
+        if (data.frame:GetAlpha() == 0) then
+            data.fadingOut = nil;
+        end
+        return;
+    end
+
+    if (data.unitID == "mirror") then
+        if (not data.paused or data.paused == 0) then
+            for i = 1, MIRRORTIMER_NUMTIMERS do
+                local _, _, _, step, _, label = GetMirrorTimerInfo(i);
+
+                if (label == data.frame.name:GetText()) then
+                    local value = MirrorTimer1StatusBar:GetValue();
+                    local duration = tk.string.format("%.1f", value);
+
+                    if (tk.tonumber(duration) > 60) then
+                        duration = tk.date("%M:%S", duration);
+                    end
+
+                    data.frame.duration:SetText(duration);
+                    data.frame.statusbar:SetValue(value);
+                    return;
+                end
+            end
+        end
+    else
+        if (data.startTime and not self:IsFinished()) then
+            local difference = GetTime() - data.startTime;
+
+            if (data.channelling or data.unitID == "mirror") then
+                data.frame.statusbar:SetValue(data.totalTime - difference);
+            else
+                data.frame.statusbar:SetValue(difference);
+            end
+
+            local duration = data.totalTime - difference;
+
+            if (duration < 0) then 
+                duration = 0; 
+            end
+
+            duration = tk.string.format("%.1f", duration);
+
+            if (tk.tonumber(duration) > 60) then
+                duration = tk.date("%M:%S", duration);
+            end
+
+            data.frame.duration:SetText(duration);
+
+        elseif (data.unitID ~= "mirror") then
+            self:StopCasting();
+        else
+            self:MIRROR_TIMER_STOP();
+        end
+    end
+end
+
+function CastBarClass:SetTicks(data, numTicks)
     if (data.ticks) then
         for _, tick in tk.ipairs(data.ticks) do
             tick:Hide();
@@ -297,7 +308,7 @@ function CastBar:SetTicks(data, numTicks)
     end
 end
 
-function CastBar:IsFinished(data)
+function CastBarClass:IsFinished(data)
     local value = data.frame.statusbar:GetValue();
     local maxValue = tk.select(2, data.frame.statusbar:GetMinMaxValues());
 
@@ -308,7 +319,7 @@ function CastBar:IsFinished(data)
 	return value >= maxValue;
 end
 
-function CastBar:UpdateAppearance(data)
+function CastBarClass:UpdateAppearance(data)
     data.frame.statusbar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", appearance.texture));
 
     data.frame:SetSize(data.sv.width, data.sv.height);
@@ -371,7 +382,7 @@ function CastBar:UpdateAppearance(data)
     end
 end
 
-function CastBar:StopCasting(data)
+function CastBarClass:StopCasting(data)
 	if (not data.fadingOut) then
 		data.startTime = nil;
 		data.unitName = nil;
@@ -388,7 +399,7 @@ function CastBar:StopCasting(data)
 	end
 end
 
-function CastBar:StartCasting(data, channelling)
+function CastBarClass:StartCasting(data, channelling)
     local func = channelling and UnitChannelInfo or UnitCastingInfo;
     local name, _, texture, startTime, endTime, _, _, notInterruptible = func(data.unitID);
     
@@ -455,34 +466,39 @@ function CastBar:StartCasting(data, channelling)
 	data.totalTime = endTime - startTime;
 end
 
-function CastBar:PositionCastBar(data)
+function CastBarClass:PositionCastBar(data)
     data.frame:ClearAllPoints();
 
-    local unitframe = tk._G["SUFUnit"..data.unitID:lower()];
+    local unitframe = _G[ string.format("SUFUnit%s", data.unitID:lower()) ];    
+    local anchorToSUF = IsAddOnLoaded("ShadowedUnitFrames") and data.sv.anchorToSUF;
     local sufAnchor = unitframe and unitframe.portrait;
 
-    if (not data.sv.anchorToSUF or not tk.IsAddOnLoaded("ShadowedUnitFrames") or (data.sv.anchorToSUF and not sufAnchor)) then
+    if (not (anchorToSUF and sufAnchor)) then
+        -- manual position...
         data.sv.anchorToSUF = false;
-
+        
         if (not data.sv.position) then
             data.frame:SetPoint("CENTER");
         else
-            local p, rf, rp = data.sv.position.point, data.sv.position.relativeFrame, data.sv.position.relativePoint;
+            local point = data.sv.position.point;
+            local relativeFrame = data.sv.position.relativeFrame; 
+            local relativePoint = data.sv.position.relativePoint;
             local x, y = data.sv.position.x, data.sv.position.y;
 
-            if (p and rf and rp and x and y) then
-                data.frame:SetPoint(p, tk._G[rf], rp, x, y);
+            if (point and relativeFrame and relativePoint and x and y) then
+                data.frame:SetPoint(point, _G[relativeFrame], relativePoint, x, y);
             else
                 data.frame:SetPoint("CENTER");
             end
         end
     else
+        -- anchor to ShadowedUnitFrames
         data.frame:SetPoint("TOPLEFT", sufAnchor, "TOPLEFT", -1, 1);
         data.frame:SetPoint("BOTTOMRIGHT", sufAnchor, "BOTTOMRIGHT", 1, -1);
     end
 end
 
--- CastBarsClass -----------------------
+-- CastBarsModuleClass -----------------------
 
 local function CreateCastBar(unitID, sv)
     local globalName = string.format("MUI_%sCastBar", unitID:gsub("^%l", string.upper));
@@ -538,30 +554,38 @@ local function CreateCastBar(unitID, sv)
             bar:RegisterEvent("UNIT_SPELLCAST_SENT");
         end
     end
-    
-    bar = CastBar(sv, unitID, bar);
-    bar:UpdateAppearance();
-    bar:PositionCastBar();
 
     bar.enabled = sv.enabled;
+
+    local castBar = CastBarClass(sv, unitID, bar);
+    local castBarData = castBar.tempData;
+    castBar.tempData = nil;
+
+    castBar:UpdateAppearance();
+    castBar:PositionCastBar();
+
     bar:SetScript("OnUpdate", function(_, elapsed)
-        if (bar.enabled) then 
-            bar:Update(elapsed); --TODO: Causes memory leak!
+        if (bar.enabled and bar:IsShown()) then 
+            castBar:Update(elapsed);
         end
     end);
-    
-	bar:SetScript("OnEvent", function(self, event, ...)
-        if (not sv.enabled) then return; end
-		if (event == "PLAYER_FOCUS_CHANGED") then
-			event = "PLAYER_TARGET_CHANGED";
-		end
-        bar[event](bar, ...);
+
+    bar:SetScript("OnEvent", function(self, eventName, ...)
+        if (not sv.enabled) then 
+            return; 
+        end
+
+		if (eventName == "PLAYER_FOCUS_CHANGED") then
+			eventName = "PLAYER_TARGET_CHANGED";
+        end
+        
+        Events[eventName](Events, castBar, castBarData, ...);
     end);
-    
-    return bar;
+
+    return castBar;
 end
 
-function CastBarsClass:OnInitialize(data)
+function CastBarsModuleClass:OnInitialize(data)
     data.sv = db.profile.castbars;
     appearance = data.sv.appearance;
 
@@ -583,7 +607,7 @@ function CastBarsClass:OnInitialize(data)
 	end
 end
 
-function CastBarsClass:OnConfigUpdate(data, list, value)
+function CastBarsModuleClass:OnConfigUpdate(data, list, value)
     local key = list:PopFront();
 
     if (key == "profile" and list:PopFront() == "castbars") then
