@@ -13,7 +13,7 @@ local Guild = Engine:CreateClass("Guild", nil, "MayronUI.Engine.IDataTextModule"
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.guild", {
-    enabled = false,
+    enabled = true,
     showSelf = true,
     showTooltips = true,
     displayOrder = 3

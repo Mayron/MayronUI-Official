@@ -137,4 +137,4 @@ function tk:IsPlayerMaxLevel()
             return (lvl == 120);
         end
     end
-end
+end 

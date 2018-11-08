@@ -13,7 +13,7 @@ local Performance = Engine:CreateClass("Performance", nil, "MayronUI.Engine.IDat
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.performance", {
-    enabled = false,
+    enabled = true,
     showFps = true,
     showHomeLatency = true,
     showServerLatency = false,

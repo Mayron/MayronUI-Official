@@ -109,7 +109,7 @@ function Memory:Update(data)
 
         self.Button:SetText(tk.string.format(LABEL_PATTERN, total));
 
-        tk.C_Timer.After(1, loop);
+        tk.C_Timer.After(10, loop);
     end
 
     loop();

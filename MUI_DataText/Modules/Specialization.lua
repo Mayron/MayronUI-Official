@@ -13,7 +13,7 @@ local Specialization = Engine:CreateClass("Specialization", nil, "MayronUI.Engin
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.specialization", {
-    enabled = false,
+    enabled = true,
     sets = {},
     displayOrder = 8
 });

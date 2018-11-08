@@ -216,62 +216,62 @@ end
 -- CastBar Functions
 -----------------------
 function CastBar:Update(data)
-    if (not data.startTime) then
-        if (data.frame:GetAlpha() == 0) then
-            data.fadingOut = nil;
-        end
-        return;
-    end
+    -- if (not data.startTime) then
+    --     if (data.frame:GetAlpha() == 0) then
+    --         data.fadingOut = nil;
+    --     end
+    --     return;
+    -- end
 
-    if (data.unitID == "mirror") then
-        if (not data.paused or data.paused == 0) then
-            for i = 1, MIRRORTIMER_NUMTIMERS do
-                local _, _, _, step, _, label = GetMirrorTimerInfo(i);
+    -- if (data.unitID == "mirror") then
+    --     if (not data.paused or data.paused == 0) then
+    --         for i = 1, MIRRORTIMER_NUMTIMERS do
+    --             local _, _, _, step, _, label = GetMirrorTimerInfo(i);
 
-                if (label == data.frame.name:GetText()) then
-                    local value = MirrorTimer1StatusBar:GetValue();
-                    local duration = tk.string.format("%.1f", value);
+    --             if (label == data.frame.name:GetText()) then
+    --                 local value = MirrorTimer1StatusBar:GetValue();
+    --                 local duration = tk.string.format("%.1f", value);
 
-                    if (tk.tonumber(duration) > 60) then
-                        duration = tk.date("%M:%S", duration);
-                    end
+    --                 if (tk.tonumber(duration) > 60) then
+    --                     duration = tk.date("%M:%S", duration);
+    --                 end
 
-                    data.frame.duration:SetText(duration);
-                    data.frame.statusbar:SetValue(value);
-                    return;
-                end
-            end
-        end
-    else
-        if (data.startTime and not self:IsFinished()) then
-            local difference = GetTime() - data.startTime;
+    --                 data.frame.duration:SetText(duration);
+    --                 data.frame.statusbar:SetValue(value);
+    --                 return;
+    --             end
+    --         end
+    --     end
+    -- else
+    --     if (data.startTime and not self:IsFinished()) then
+    --         local difference = GetTime() - data.startTime;
 
-            if (data.channelling or data.unitID == "mirror") then
-                data.frame.statusbar:SetValue(data.totalTime - difference);
-            else
-                data.frame.statusbar:SetValue(difference);
-            end
+    --         if (data.channelling or data.unitID == "mirror") then
+    --             data.frame.statusbar:SetValue(data.totalTime - difference);
+    --         else
+    --             data.frame.statusbar:SetValue(difference);
+    --         end
 
-            local duration = data.totalTime - difference;
+    --         local duration = data.totalTime - difference;
 
-            if (duration < 0) then 
-                duration = 0; 
-            end
+    --         if (duration < 0) then 
+    --             duration = 0; 
+    --         end
 
-            duration = tk.string.format("%.1f", duration);
+    --         duration = tk.string.format("%.1f", duration);
 
-            if (tk.tonumber(duration) > 60) then
-                duration = tk.date("%M:%S", duration);
-            end
+    --         if (tk.tonumber(duration) > 60) then
+    --             duration = tk.date("%M:%S", duration);
+    --         end
 
-            data.frame.duration:SetText(duration);
+    --         data.frame.duration:SetText(duration);
 
-        elseif (data.unitID ~= "mirror") then
-            self:StopCasting();
-        else
-            self:MIRROR_TIMER_STOP();
-        end
-    end
+    --     elseif (data.unitID ~= "mirror") then
+    --         self:StopCasting();
+    --     else
+    --         self:MIRROR_TIMER_STOP();
+    --     end
+    -- end
 end
 
 function CastBar:SetTicks(data, numTicks)
@@ -545,7 +545,9 @@ local function CreateCastBar(unitID, sv)
 
     bar.enabled = sv.enabled;
     bar:SetScript("OnUpdate", function(_, elapsed)
-        if (bar.enabled) then bar:Update(elapsed); end
+        if (bar.enabled) then 
+            bar:Update(elapsed); --TODO: Causes memory leak!
+        end
     end);
     
 	bar:SetScript("OnEvent", function(self, event, ...)
