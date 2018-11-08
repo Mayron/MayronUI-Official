@@ -564,9 +564,15 @@ local function CreateCastBar(unitID, sv)
     castBar:UpdateAppearance();
     castBar:PositionCastBar();
 
+    local totalElapsed = 0;
     bar:SetScript("OnUpdate", function(_, elapsed)
-        if (bar.enabled and bar:IsShown()) then 
-            castBar:Update(elapsed);
+        if (bar:GetAlpha() > 0) then
+            totalElapsed = totalElapsed + elapsed;
+
+            if (bar.enabled and totalElapsed > 0.01) then 
+                castBar:Update(elapsed);
+                totalElapsed = 0;
+            end
         end
     end);
 
