@@ -30,6 +30,87 @@ Core.ExportedPackages = {}; -- contains all exported packages
 --]]
 local Package; 
 
+-------------------------------------
+-- Helper functions
+-------------------------------------
+local helper = {};
+
+do
+    local wrappers = {};
+
+    local function iterator(wrapper, id)
+        id = id + 1;
+        
+        local arg = wrapper[id];
+        
+        if (arg ~= nil) then
+            return id, arg;
+        else
+            -- reached end of wrapper so finish looping and clean up
+            helper:PushWrapper(wrapper);
+        end
+    end
+
+    function helper:PopWrapper(...)
+        local wrapper;
+        
+        -- get wrapper before iterating
+        if (#wrappers > 0) then
+            wrapper = wrappers[#wrappers];
+            wrappers[#wrappers] = nil;
+
+            -- empty table (incase helper:UnpackWrapper was used)
+            for key, _ in pairs(wrapper) do
+                wrapper[key] = nil;
+            end  
+        else
+            -- create new wrapper (required if a for-loop call to 
+            -- IterateArgs is nested inside another IterateArgs call)
+            wrapper = {};
+        end
+
+        local arg;
+        local id = 0;        
+        local totalConsecutiveNils = 0;
+        
+        -- fill wrapper
+        repeat    
+            id = id + 1;        
+            arg = (select(id, ...));            
+            
+            if (arg == nil) then                
+                totalConsecutiveNils = totalConsecutiveNils + 1;
+            else
+                wrapper[id] = arg; -- add only non-nil values
+                totalConsecutiveNils = 0;
+            end
+            
+        -- repeat until we are comfortable that all arguments have been captured
+        -- should not have a function call containing more than 10 consecutive nil args
+        until (totalConsecutiveNils > 10);
+
+        return wrapper;
+    end
+
+    function helper:PushWrapper(wrapper)
+        for key, _ in pairs(wrapper) do
+            wrapper[key] = nil;
+        end            
+        
+        wrappers[#wrappers + 1] = wrapper;
+    end
+
+    function helper:UnpackWrapper(wrapper)
+        wrappers[#wrappers + 1] = wrapper;     
+        return unpack(wrapper);
+    end
+
+    function helper:IterateArgs(...)    
+        local wrapper = self:PopWrapper(...);
+        return iterator, wrapper, 0;
+    end
+end
+
 --------------------------------------------
 -- LibMayronObjects Functions
 --------------------------------------------
@@ -101,7 +182,7 @@ function Lib:Export(package, namespace)
     Core:Assert(classController and classController.IsPackage, "Export - bad argument #1 (package expected)");
     Core:Assert(not Core:IsStringNilOrWhiteSpace(namespace), "Export - bad argument #2 (invalid namespace)");    
 
-    for id, key in self:IterateArgs(strsplit(".", namespace)) do 
+    for id, key in helper:IterateArgs(strsplit(".", namespace)) do 
         Core:Assert(not Core:IsStringNilOrWhiteSpace(key), "Export - bad argument #2 (invalid namespace).");
         key = key:gsub("%s+", "");
 
@@ -162,86 +243,6 @@ end
 -- @return (boolean): Returns true if the value type matches the specified type
 function Lib:IsType(value, expectedTypeName)
     return Core:IsMatchingType(value, expectedTypeName);
-end
-
--------------------------------------
--- Wrappers
--------------------------------------
-
-do
-    local wrappers = {};
-
-    local function iterator(wrapper, id)
-        id = id + 1;
-        
-        local arg = wrapper[id];
-        
-        if (arg ~= nil) then
-            return id, arg;
-        else
-            -- reached end of wrapper so finish looping and clean up
-            Lib:PushWrapper(wrapper);
-        end
-    end
-
-    function Lib:PopWrapper(...)
-        local wrapper;
-        
-        -- get wrapper before iterating
-        if (#wrappers > 0) then
-            wrapper = wrappers[#wrappers];
-            wrappers[#wrappers] = nil;
-
-            -- empty table (incase tk:UnpackWrapper was used)
-            for key, _ in pairs(wrapper) do
-                wrapper[key] = nil;
-            end  
-        else
-            -- create new wrapper (required if a for-loop call to 
-            -- IterateArgs is nested inside another IterateArgs call)
-            wrapper = {};
-        end
-
-        local arg;
-        local id = 0;        
-        local totalConsecutiveNils = 0;
-        
-        -- fill wrapper
-        repeat    
-            id = id + 1;        
-            arg = (select(id, ...));            
-            
-            if (arg == nil) then                
-                totalConsecutiveNils = totalConsecutiveNils + 1;
-            else
-                wrapper[id] = arg; -- add only non-nil values
-                totalConsecutiveNils = 0;
-            end
-            
-        -- repeat until we are comfortable that all arguments have been captured
-        -- should not have a function call containing more than 10 consecutive nil args
-        until (totalConsecutiveNils > 10);
-
-        return wrapper;
-    end
-
-    function Lib:PushWrapper(wrapper)
-        for key, _ in pairs(wrapper) do
-            wrapper[key] = nil;
-        end            
-        
-        wrappers[#wrappers + 1] = wrapper;
-    end
-
-    function Lib:UnpackWrapper(wrapper)
-        wrappers[#wrappers + 1] = wrapper;     
-        return unpack(wrapper);
-    end
-
-    function Lib:IterateArgs(...)    
-        local wrapper = self:PopWrapper(...);
-        return iterator, wrapper, 0;
-    end
 end
 
 -------------------------------------
@@ -307,7 +308,7 @@ local function CreateProxyObject(proxyEntity, key, entity, controller)
             "Invalid instance private data found when calling %s.%s: %s", 
             proxyObject.Controller.EntityName, proxyObject.Key, tostring(proxyObject.PrivateData));
     
-        local returnValues = Lib:PopWrapper(
+        local returnValues = helper:PopWrapper(
             Core:ValidateFunctionCall(definition, errorMessage,
                 proxyObject.Object[proxyObject.Key](proxyObject.Self, proxyObject.PrivateData, ...)
             )
@@ -325,11 +326,11 @@ local function CreateProxyObject(proxyEntity, key, entity, controller)
         ProxyStack:Push(proxyObject);
 
         if (#returnValues == 0) then
-            Lib:PushWrapper(returnValues);
+            helper:PushWrapper(returnValues);
             return nil; -- fixes returning nil instead of nothing
         end
         
-        return Lib:UnpackWrapper(returnValues);        
+        return helper:UnpackWrapper(returnValues);        
     end
 
     ProxyStack.FuncStrings[tostring(proxyObject.Run)] = proxyObject;
@@ -804,7 +805,7 @@ end
 function Core:SetInterfaces(classController, ...) 
 	classController.Interfaces = {};    
 
-    for id, interface in Lib:IterateArgs(...) do
+    for id, interface in helper:IterateArgs(...) do
         if (type(interface) == "string") then
             interface = Lib:Import(interface);
         end
@@ -872,7 +873,7 @@ end
 function Core:PathExists(root, path)
     self:Assert(root, "Core.PathExists - bad argument #1 (invalid root).");
 
-    for _, key in Lib:IterateArgs(strsplit(".", path)) do
+    for _, key in helper:IterateArgs(strsplit(".", path)) do
         if (not root[key]) then
             return false;
         end

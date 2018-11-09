@@ -11,10 +11,20 @@ function tk.Numbers:ToPrecision(number, precision)
     return number;
 end
 
+function tk:ValueIsEither(value, ...)
+    for _, otherValue in pairs({...}) do
+        if (self:Equals(value, otherValue)) then
+            return true;
+        end
+    end
+
+    return false;
+end
+
 function tk:Print(...)
-    local hex = tk.select(4, self:GetThemeColor());
+    local hex = select(4, self:GetThemeColor());
     local prefix = self.Strings:GetHexColoredText("MayronUI:", hex);
-    DEFAULT_CHAT_FRAME:AddMessage(tk.string.join(" ", prefix, tk.tostringall(...)));
+    DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, tostringall(...)));
 end
 
 do

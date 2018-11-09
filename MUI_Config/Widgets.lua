@@ -1,8 +1,15 @@
+local _, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+
+local WidgetHandlers = {};
+namespace.WidgetHandlers = WidgetHandlers;
+
 --------------
 -- Sub Menu
 --------------
-private.submenu = {};
-function private.submenu:Run(child_data)
+WidgetHandlers.submenu = {};
+
+function WidgetHandlers.submenu:Run(child_data)
     local btn = tk.CreateFrame("Button", nil, private.parent);
     btn:SetSize(250, 60);
 
@@ -33,8 +40,9 @@ end
 ---------------------
 -- Loop (non-widget)
 ---------------------
-private.loop = {};
-function private.loop:Run(child_data)
+WidgetHandlers.loop = {};
+
+function WidgetHandlers.loop:Run(child_data)
     self.data = self.data or {};
     tk:EmptyTable(self.data);
 
@@ -60,8 +68,9 @@ end
 ------------------
 -- Check Button
 ------------------
-private.check = {};
-function private.check:Run(child_data)
+WidgetHandlers.check = {};
+
+function WidgetHandlers.check:Run(child_data)
     local cb = gui:CreateCheckButton(private.parent, child_data.name,
         child_data.type == "radio", child_data.tooltip);
 
@@ -84,10 +93,12 @@ end
 ----------------
 -- Title Frame
 ----------------
-private.title = {};
-function private.title:Run(child_data)
+WidgetHandlers.title = {};
+
+function WidgetHandlers.title:Run(child_data)
     local height = 20 + (child_data.padding_top or 10) + (child_data.padding_bottom or 10);
     local f = tk:PopFrame("Frame", private.parent);
+
     f.text = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     f.text:SetText(child_data.name);
     f:SetHeight(f.text:GetStringHeight() + height);
@@ -96,14 +107,16 @@ function private.title:Run(child_data)
     bg:SetPoint("TOPLEFT", 0, -(child_data.padding_top or 10));
     bg:SetPoint("BOTTOMRIGHT", 0, (child_data.padding_bottom or 10));
     f.text:SetAllPoints(bg);
+
     return f;
 end
 
 --------------
 -- Slider
 --------------
-private.slider = {};
-function private.slider:Run(child_data)
+WidgetHandlers.slider = {};
+
+function WidgetHandlers.slider:Run(child_data)
     local slider = tk.CreateFrame("Slider", nil, private.parent, "OptionsSliderTemplate");
     slider.tooltipText = child_data.tooltip;
     slider:SetMinMaxValues(child_data.min, child_data.max);
@@ -138,8 +151,9 @@ end
 --------------
 -- Divider
 --------------
-private.divider = {};
-function private.divider:Run(child_data)
+WidgetHandlers.divider = {};
+
+function WidgetHandlers.divider:Run(child_data)
     local divider = tk:PopFrame("Frame");
     divider:SetHeight(child_data.height or 1);
     return divider;
@@ -148,61 +162,75 @@ end
 -------------------
 -- Drop Down Menu
 -------------------
-private.dropdown = {};
-function private.dropdown:Run(child_data)
+WidgetHandlers.dropdown = {};
+
+function WidgetHandlers.dropdown:Run(child_data)
     local dropdown = gui:CreateDropDown(private.parent);
     local value = private:GetValue(child_data);
+
     dropdown:SetLabel(value, child_data.tooltip);
     local options = child_data.options or child_data:GetOptions();
+
     for _, name in tk.ipairs(options) do
         local option = dropdown:AddOption(name, UpdateConfig, child_data, name);
         if (child_data.font_chooser) then
             option:GetFontString():SetFont(tk.Constants.LSM:Fetch("font", name), 11);
         end
     end
+
     return private:CreateMenuContainer(dropdown, child_data);
 end
 
 --------------
 -- Button
 --------------
-private.button = {};
-function private.button:Run(child_data)
+WidgetHandlers.button = {};
+
+function WidgetHandlers.button:Run(child_data)
     local button = gui:CreateButton(nil, child_data.name);
+
     if (child_data.width) then
         button:SetWidth(child_data.width);
     end
+
     if (child_data.height) then
         button:SetHeight(child_data.height);
     end
+
     button:SetScript("OnClick", function(self)
         child_data.OnClick(self, child_data);
     end);
+
     return button;
 end
 
 -----------------
 -- Frame
 -----------------
-private.frame = {};
-function private.frame:Run(child_data)
+WidgetHandlers.frame = {};
+
+function WidgetHandlers.frame:Run(child_data)
     local frame = child_data.frame or child_data:GetFrame();
+
     if (child_data.width) then
         frame:SetWidth(child_data.width);
     else
         tk:SetFullWidth(frame, 10);
     end
+
     if (child_data.height) then
         frame:SetHeight(child_data.height);
     end
+
     tk:SetBackground(frame, 0, 0, 0, 0.2);
+
     return frame;
 end
 
 -----------------
 -- Color Picker
 -----------------
-private.color = {};
+WidgetHandlers.color = {};
 
 local function ShowColorPicker(r, g, b, a, changedCallback)
     ColorPickerFrame:SetColorRGB(r, g, b);
@@ -214,7 +242,7 @@ local function ShowColorPicker(r, g, b, a, changedCallback)
     ColorPickerFrame:Show();
 end
 
-function private.color:Run(child_data)
+function WidgetHandlers.color:Run(child_data)
     local container = tk.CreateFrame("Button");
     container.name = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
     container.name:SetText(child_data.name);
@@ -271,8 +299,9 @@ end
 ---------------
 -- Text Field
 ---------------
-private.textfield = {};
-function private.textfield:Run(child_data)
+WidgetHandlers.textfield = {};
+
+function WidgetHandlers.textfield:Run(child_data)
     local container = gui:CreateTextField(child_data.tooltip);
     local value = private:GetValue(child_data);
     container.field:SetText(value or "");
@@ -303,8 +332,9 @@ end
 ----------------
 -- Font String
 ----------------
-private.fontstring = {};
-function private.fontstring:Run(child_data)
+WidgetHandlers.fontstring = {};
+
+function WidgetHandlers.fontstring:Run(child_data)
     local divider = tk:PopFrame("Frame");
 
     divider.content = divider:CreateFontString(nil, "ARTWORK", "GameFontHighlight");

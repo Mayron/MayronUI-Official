@@ -239,3 +239,79 @@ function tk.Tables:GetLastPathKey(path)
 
     return key;
 end
+
+do
+    local wrappers = {};
+
+    local function iterator(wrapper, id)
+        id = id + 1;
+        
+        local arg = wrapper[id];
+        
+        if (arg ~= nil) then
+            return id, arg;
+        else
+            -- reached end of wrapper so finish looping and clean up
+            tk.Tables:PushWrapper(wrapper);
+        end
+    end
+
+    function tk.Tables:PopWrapper(...)
+        local wrapper;
+        
+        -- get wrapper before iterating
+        if (#wrappers > 0) then
+            wrapper = wrappers[#wrappers];
+            wrappers[#wrappers] = nil;
+
+            -- empty table (incase tk.Tables:UnpackWrapper was used)
+            for key, _ in pairs(wrapper) do
+                wrapper[key] = nil;
+            end  
+        else
+            -- create new wrapper (required if a for-loop call to 
+            -- IterateArgs is nested inside another IterateArgs call)
+            wrapper = {};
+        end
+
+        local arg;
+        local id = 0;        
+        local totalConsecutiveNils = 0;
+        
+        -- fill wrapper
+        repeat    
+            id = id + 1;        
+            arg = (select(id, ...));            
+            
+            if (arg == nil) then                
+                totalConsecutiveNils = totalConsecutiveNils + 1;
+            else
+                wrapper[id] = arg; -- add only non-nil values
+                totalConsecutiveNils = 0;
+            end
+            
+        -- repeat until we are comfortable that all arguments have been captured
+        -- should not have a function call containing more than 10 consecutive nil args
+        until (totalConsecutiveNils > 10);
+
+        return wrapper;
+    end
+
+    function tk.Tables:PushWrapper(wrapper)
+        for key, _ in pairs(wrapper) do
+            wrapper[key] = nil;
+        end            
+        
+        wrappers[#wrappers + 1] = wrapper;
+    end
+
+    function tk.Tables:UnpackWrapper(wrapper)
+        wrappers[#wrappers + 1] = wrapper;     
+        return unpack(wrapper);
+    end
+
+    function tk.Tables:IterateArgs(...)    
+        local wrapper = self:PopWrapper(...);
+        return iterator, wrapper, 0;
+    end
+end

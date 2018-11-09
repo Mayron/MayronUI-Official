@@ -5,12 +5,14 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 -- Register and Import Modules -------
 
-local configModule, ConfigClass = MayronUI:RegisterModule("Config");
+local LinkedListClass = obj:Import("Framework.System.Collections.LinkedList");
+
+local ConfigModuleClass = MayronUI:RegisterModule("Config");
 local ConfigPackage = obj:CreatePackage("Config", "MayronUI.Engine");
 
-local Container = ConfigPackage:CreateClass("Container"); -- used to be called the Menu (It's the main config menu)
-local Menu = ConfigPackage:CreateClass("Menu");  -- used to be called SubMenu
-local Element = ConfigPackage:CreateClass("Element");  -- used to be child_data
+local ContainerClass = ConfigPackage:CreateClass("Container"); -- used to be called the Menu (It's the main config menu)
+local MenuClass = ConfigPackage:CreateClass("Menu");  -- used to be called SubMenu
+local ElementClass = ConfigPackage:CreateClass("Element");  -- used to be child_data
 
 -- Local functions -------------------
 
@@ -26,20 +28,11 @@ end
 
 -- DataText Module -------------------
 
-configModule:OnInitialize(function(self, data)
-end);
+function ConfigModuleClass:OnInitialize(data)
+
+end
     
-configModule:OnEnable(function(self, data)
-    --show?
-end);
-
--- configModule:OnConfigUpdate(function(self, data, list, value)
--- end);
-
--- DataTextClass -------------------
-
-Engine:DefineParams("??");
-function ConfigClass:Show(data)
+function ConfigModuleClass:OnEnable(data)
     if (not MayronUI:IsInstalled()) then 
         tk:Print("Please install the UI and try again.");
         return; 
@@ -54,343 +47,420 @@ function ConfigClass:Show(data)
     end
 end
 
--- updates the config of all modules
-function ConfigClass:UpdateConfig(data, widget, child_data, value)
-    if (child_data.SetValue) then
-        local path = private:GetPath(child_data);
+function ConfigModuleClass:OnProfileChange(data)
+    
+end
 
-        if (not path) then
-            child_data.SetValue(value, widget);
-        else
-            local old_value = db:ParsePathValue(path);
-            child_data.SetValue(path, old_value, value, widget); -- custom way to set the value
-        end
+-- DataTextClass -------------------
+
+-- get the database path address value
+function ConfigClass:GetDatabasePathInfo(data, childData)
+    if (not childData.dbPath) then return end
+
+    local rootTable;
+
+    if (childData.isGlobal) then
+        rootTable = db.global;
     else
-        tk.assert(child_data.db_path, child_data.name.." is missing db_path value.");
-        db:SetPathValue(child_data.db_path, value);
+        rootTable = db.profile;
     end
 
-    if (child_data.requires_reload) then
+    if (type(childData.dbPath) == "function") then
+        return rootTable, childData.dbPath();
+    else
+        return rootTable, childData.dbPath;
+    end
+end
+
+-- updates the config of all modules
+function ConfigClass:UpdateConfig(data, widget, childData, value)
+    if (childData.SetValue) then
+        local rootTable, path = self:GetDatabasePathInfo(childData);
+
+        if (not path) then
+            childData.SetValue(value, widget);
+        else
+            local oldValue = db:ParsePathValue(rootTable, path);
+            childData.SetValue(path, oldValue, value, widget); -- custom way to set the value
+        end
+    else
+        obj:Assert(childData.dbPath, "%s is missing database path address element (dbPath) in config data.", childData.name);
+
+        if (childData.isGlobal) then
+            db:SetPathValue(db.global, childData.dbPath, value);
+        else
+            db:SetPathValue(db.profile, childData.dbPath, value);
+        end        
+    end
+
+    if (childData.requiresReload) then
         config:ShowReloadMessage();
-    elseif (child_data.requires_restart) then
+    elseif (childData.requiresRestart) then
         config:ShowRestartMessage();
     end
 
-    -- find the module and call the "OnConfigUpdate" function
-    if (child_data.module or config.submenu_data.module and child_data.db_path) then
-        local module = MayronUI:ImportModule(child_data.module or config.submenu_data.module);
+    -- TODO: Update specific module
+    -- -- find the module and call the "OnConfigUpdate" function
+    -- if (child_data.module or config.submenu_data.module and child_data.db_path) then
+    --     local module = MayronUI:ImportModule(child_data.module or config.submenu_data.module);
 
-        if (module.OnConfigUpdate) then
-            local list = tk:ConvertPathToKeys(child_data.db_path);
-            module:OnConfigUpdate(list, value);
-        end
-    end
+    --     if (module.OnConfigUpdate) then
+    --         local list = tk:ConvertPathToKeys(child_data.db_path);
+    --         module:OnConfigUpdate(list, value);
+    --     end
+    -- end
 end
 
-function ConfigClass:SetSubMenu(data, submenu_data)
-    self.submenu_data = submenu_data;
-    if (submenu_data.dynamicFrame) then
-        private:SwitchContent(submenu_data.dynamicFrame);
+function ConfigClass:SetMenu(data, menuData)
+    data.currentMenu.data = menuData;
+
+    if (menuData.menu) then
+        -- already previously created so switch to it...
+        private:SwitchContent(menuData.menu);
         return;
     end
-    -- load the content:
-    submenu_data.dynamicFrame = gui:CreateDynamicFrame(self.options:GetFrame(), nil, 10);
-    gui:CreateDialogBox(nil, "Low", submenu_data.dynamicFrame:GetFrame());
-    submenu_data.dynamicFrame:SetAllPoints(true);
 
-    private:SwitchContent(submenu_data.dynamicFrame);
-    private:LoadContent(submenu_data, submenu_data.dynamicFrame);
+    -- load the content:
+    local menuParent = data.options:GetFrame();
+    menuData.menu = gui:CreateDynamicFrame(tk.Constants.AddOnStyle, menuParent, nil, 10);
+
+    local menuScrollFrame = menuData.menu:GetFrame();
+
+    -- add graphical dialog box to dynamic frame:
+    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "Low", menuScrollFrame);
+    menuScrollFrame:SetAllPoints(true); -- TODO is this needed?
+
+    private:SwitchContent(menuData.menu); -- TODO can I send this the scroller?    
 end
 
--- TODO: show Categories that were not previously registered
+function ConfigClass:SwitchMenu(data, newMenu)
+    if (data.currentMenu.menu) then
+        -- hide old menu
+        data.currentMenu.menu:Hide();
+    end
+
+    local menuFrame = newMenu:GetFrame(); 
+    data.parent = menuFrame;   
+    data.currentMenu.menu = newMenu; -- update to new menu
+
+    if (not data.currentMenu.data.isLoaded) then        
+        local menuData = data.currentMenu.data;
+
+        if (menuData.children) then
+            for _, childData in pairs(menuData.children) do
+                -- load menu child element
+                self:SetUpWidget(childData, menuFrame, menuData);
+            end
+
+            if (menuData.groups) then
+                for _, group in ipairs(menuData.groups) do
+                    -- check buttons should act like radio buttons (can only select 1 in group)
+                    tk:GroupCheckButtons(unpack(group));
+                end
+            end
+
+            -- clean up data once used
+            menuData.groups = nil;
+        end
+    end
+
+    -- fade menu in...
+    UIFrameFadeIn(menuFrame, 0.3, 0, 1);
+    collectgarbage("collect"); -- all config data has been loaded and set to nil, so clean it
+end
+
+-- TODO: show Categories that were not previously registered (when addon is loaded)
 function ConfigClass:UpdateCategories() end
 
-function ConfigClass:ShowReloadMessage()
-    private.reload_warning:SetText(private.reload_warning.reload_message);
+function ConfigClass:ShowReloadMessage(data)
+    data.warningLabel:SetText(data.warningLabel.reloadText);
 end
 
 function ConfigClass:ShowRestartMessage()
-    private.reload_warning:SetText(private.reload_warning.restart_message);
+    data.warningLabel:SetText(data.warningLabel.restartText);
 end
 
-function ConfigClass:CreateMenuContainer(data, widget, child_data)
-    local container = tk:PopFrame("Frame", private.parent);
+-- create container to wrap around a child element
+function ConfigClass:CreateElementContainerFrame(data, widget, childData)
+    local container = tk:PopFrame("Frame", data.parent);
 
-    container:SetSize(child_data.width or widget:GetWidth(), child_data.height or widget:GetHeight());
-    widget:SetParent(container);
+    container:SetSize(childData.width or widget:GetWidth(), childData.height or widget:GetHeight());
     container.widget = widget;
 
-    if ((child_data.type == "slider" or child_data.type == "dropdown"
-            or child_data.type == "textfield") and child_data.name) then
+    widget:SetParent(container);
+
+    if (childData.name and tk:ValueIsEither(childData.type, "slider", "dropdown", "textField")) then
 
         container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
         container.name:SetPoint("TOPLEFT", 0, -5);
-        container.name:SetText(child_data.name);
+        container.name:SetText(childData.name);
         container:SetHeight(container:GetHeight() + container.name:GetStringHeight() + 15);
+
         widget:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -5);
 
-        if (child_data.type == "slider") then
+        if (childData.type == "slider") then
             container.name:SetPoint("TOPLEFT", 10, -5);
             container:SetWidth(container:GetWidth() + 20);
         end
     else
         widget:SetPoint("LEFT");
     end
+
     return container;
 end
 
--- get the database path
-function ConfigClass:GetPath(data, child_data)
-    if (not child_data.db_path) then return; end
-    if (tk.type(child_data.db_path) == "function") then
-        return child_data.db_path();
-    else
-        return child_data.db_path;
-    end
-end
-
-function ConfigClass:GetValue(data, child_data)
-    local path = private:GetPath(child_data);
+function ConfigClass:GetValue(data, childData)
+    local path = self:GetDatabasePathInfo(childData);
     local value;
+
     if (not path) then
-        value = child_data.GetValue and child_data.GetValue();
-    elseif (child_data.type == "color") then
-        value = {};
-        value.r = db:ParsePathValue(path..".r");
-        value.g = db:ParsePathValue(path..".g");
-        value.b = db:ParsePathValue(path..".b");
-        value.a = db:ParsePathValue(path..".a");
+        value = childData.GetValue and childData.GetValue();
+
+    elseif (childData.type == "color") then
+        value = {
+            r = db:ParsePathValue(tk.Strings:Concat(path, ".r"));
+            g = db:ParsePathValue(tk.Strings:Concat(path, ".g"));
+            b = db:ParsePathValue(tk.Strings:Concat(path, ".b"));
+            a = db:ParsePathValue(tk.Strings:Concat(path, ".a"));
+        };
+
     else
         value = db:ParsePathValue(path);
-        if (child_data.GetValue) then
-            value = child_data.GetValue(path, value);
-        else
-            return value;
+
+        if (childData.GetValue) then
+            value = childData.GetValue(path, value);
         end
     end
+    
     return value;
 end
 
-function ConfigClass:LoadChild(data, child_data, parent_dynamicFrame, submenu_data)
-    if (submenu_data.inherit) then
-        for key, value in tk.pairs(submenu_data.inherit) do
-            if (not child_data[key]) then
-                child_data[key] = value;
+--child_data, parent_dynamicFrame, submenu_data)
+function ConfigClass:SetUpWidget(data, childData, menuFrame, menuData)
+    if (menuData.inherit) then
+        for key, value in tk.pairs(menuData.inherit) do
+            if (not childData[key]) then
+                childData[key] = value;
             end
         end
     end
 
-    -- create the item, return it, add it to children
-    if (child_data.type ~= "loop") then
-        local type = (child_data.type == "radio" and "check") or child_data.type;
-        if (not private[type]) then
-            tk:Print(tk.string.format(L["Config type '%s' unsupported!"], type));
-            return;
-        end
-        if (child_data.OnInitialize) then
-            child_data.OnInitialize(child_data);
-            child_data.OnInitialize = nil;
-        end
-        if (child_data.enabled == nil or child_data.enabled) then
-            local widget = private[type]:Run(child_data);
-            if (widget) then
-                parent_dynamicFrame:AddChildren(widget);
-                if (child_data.dev_mode) then
-                    tk:SetBackground(widget, tk.math.random(), tk.math.random(), tk.math.random());
-                end
-            end
-            if (child_data.type == "title" or child_data.type == "divider" or child_data.type == "fontstring") then
-                tk:SetFullWidth(widget, 10);
-            end
-            if (child_data.type == "radio" and child_data.group) then
-                submenu_data.groups = submenu_data.groups or {};
-                submenu_data.groups[child_data.group] = submenu_data.groups[child_data.group] or {};
-                tk.table.insert(submenu_data.groups[child_data.group], widget.btn);
-            end
-            if (child_data.OnLoad) then
-                child_data.OnLoad(child_data, widget);
-                child_data.OnLoad = nil;
+    local widgetType = childData.type;
+
+    if (widgetType == "loop") then
+        for _, data in ipairs(data.loop:Run(childData)) do
+            for _, childData in ipairs(data) do
+                self:SetUpWidget(childData, menuFrame, menuData);
             end
         end
-    else
-        -- need to append children_data efficiently
-        for _, data in tk.ipairs(private.loop:Run(child_data)) do
-            for _, child_data in tk.ipairs(data) do
-                private:LoadChild(child_data, parent_dynamicFrame, submenu_data);
-            end
+
+        return
+    end    
+
+    if (widgetType == "radio") then
+        widgetType = "check";
+    end
+
+    obj:Assert(namespace.WidgetHandlers[widgetType], 
+        "Unsupported widget type '%s' found in config data.", widgetType);
+
+    if (childData.OnInitialize) then
+        childData.OnInitialize(childData);
+        childData.OnInitialize = nil;
+    end
+    
+    if (not childData.disabled) then
+        -- create the widget!
+        local widget = namespace.WidgetHandlers[widgetType]:Run(childData);
+
+        menuFrame:AddChildren(widget);
+
+        if (childData.devMode) then
+            tk:SetBackground(widget, math.random(), math.random(), math.random());
+        end
+
+        if (tk:ValueIsEither(widgetType, "title", "divider", "fontstring")) then
+            tk:SetFullWidth(widget, 10);
+        end
+
+        -- check original type (childData.type) because widgetType might have changed radio to check
+        if (childData.type == "radio" and childData.group) then
+            menuData.groups = menuData.groups or {};
+
+            -- childData.group should be a string            
+            local radioButtonGroup = menuData.groups[childData.group] or {};
+            menuData.groups[childData.group] = radioButtonGroup;
+
+            table.insert(radioButtonGroup, widget.btn);
+        end
+
+        -- setup complete, so run the OnLoad callback if one exists
+        if (childData.OnLoad) then
+            childData.OnLoad(childData, widget);
+            childData.OnLoad = nil;
         end
     end
 end
 
-function ConfigClass:LoadContent(data, submenu_data, parent_dynamicFrame)
-    self.parent = parent_dynamicFrame:GetFrame();
-    if (submenu_data.children) then
-        for _, child_data in tk.pairs(submenu_data.children) do
-            private:LoadChild(child_data, parent_dynamicFrame, submenu_data);
-        end
-        if (submenu_data.groups) then
-            for _, group in tk.ipairs(submenu_data.groups) do
-                tk:GroupCheckButtons(tk.unpack(group));
-            end
-        end
-        submenu_data.groups = nil;
-    end
-end
-
-function ConfigClass:SwitchContent(data, dynamicFrame)
-    if (private.dynamicFrame) then
-        private.dynamicFrame:Hide();
-    end
-    private.dynamicFrame = dynamicFrame; -- always a DynamicFrame
-    tk.UIFrameFadeIn(private.dynamicFrame:GetFrame(), 0.3, 0, 1);
-end
-
-function ConfigClass:SetupMenu()
-    if (self.menu) then 
+function ConfigClass:SetupMenu(data)
+    if (data.container) then 
         return; 
     end
 
-    self.history = tk:CreateLinkedList();
-    self.menu = gui:CreateDialogBox(nil, nil, nil, "MUI_Config");
-    self.menu:SetFrameStrata("DIALOG");
+    data.history = LinkedListClass();
 
-    self.menu:Hide();
-    gui:AddTitleBar(self.menu, "MUI Config");
-    gui:AddResizer(self.menu);
-    gui:AddCloseButton(self.menu);
-    self.menu:SetMinResize(600, 400);
-    self.menu:SetMaxResize(1200, 800);
-    self.menu:SetSize(800, 500);
-    self.menu:SetPoint("CENTER");
-    self.menu = gui:CreatePanel(self.menu);
-    self.menu:SetDevMode(false); -- shows or hides the red frame info overlays
-    self.menu:SetDimensions(2, 3);
-    self.menu:GetColumn(1):SetFixed(200);
-    self.menu:GetRow(1):SetFixed(80);
-    self.menu:GetRow(3):SetFixed(50);
-    self.menu:SetScript("OnShow", function(self)
-        tk.UIFrameFadeIn(self, 0.3, 0, 1);
+    data.container = gui:CreateDialogBox(nil, nil, nil, "MUI_Config");
+    data.container:SetFrameStrata("DIALOG");
+    data.container:Hide();
+    data.container:SetMinResize(600, 400);
+    data.container:SetMaxResize(1200, 800);
+    data.container:SetSize(800, 500);
+    data.container:SetPoint("CENTER");
+
+    gui:AddTitleBar(data.container, "MUI Config");
+    gui:AddResizer(data.container);
+    gui:AddCloseButton(data.container);
+
+    -- convert container to a panel
+    data.container = gui:CreatePanel(data.container);
+    data.container:SetDevMode(false); -- shows or hides the red frame info overlays
+    data.container:SetDimensions(2, 3);
+    data.container:GetColumn(1):SetFixed(200);
+    data.container:GetRow(1):SetFixed(80);
+    data.container:GetRow(3):SetFixed(50);
+    data.container:SetScript("OnShow", function(self)
+        -- fade in when shown
+        UIFrameFadeIn(self, 0.3, 0, 1);
     end)
 
-    local topbar = self.menu:CreateCell();
+    local topbar = data.container:CreateCell();
     topbar:SetInsets(25, 14, 2, 10);
     topbar:SetDimensions(2, 1);
 
-    local categories, scrollchild = gui:CreateScrollFrame(self.menu:GetFrame());
+    local categories, scrollchild = gui:CreateScrollFrame(data.container:GetFrame());
     categories.ScrollBar:SetPoint("TOPLEFT", categories.ScrollFrame, "TOPRIGHT", -5, 0);
     categories.ScrollBar:SetPoint("BOTTOMRIGHT", categories.ScrollFrame, "BOTTOMRIGHT", 0, 0);
-    categories = self.menu:CreateCell(categories);
+    categories = data.container:CreateCell(categories);
     categories:SetInsets(2, 10, 10, 10);
     categories:SetDimensions(1, 2);
 
-    local options = self.menu:CreateCell();
+    local options = data.container:CreateCell();
     options:SetInsets(2, 14, 2, 2);
     config.options = options;
 
-    local bottombar = self.menu:CreateCell();
+    local bottombar = data.container:CreateCell();
     bottombar:SetInsets(2, 30, 10, 2);
-    self.menu:AddCells(topbar, categories, options, bottombar);
-    self.reload_warning = bottombar:CreateFontString(nil, "OVERLAY", "GameFontNormal");
-    self.reload_warning:SetPoint("LEFT");
-    self.reload_warning:SetText("");
-    self.reload_warning.reload_message = L["The UI requires reloading to apply changes."];
-    self.reload_warning.restart_message = L["Some changes require a client restart to take effect."];
+    data.container:AddCells(topbar, categories, options, bottombar);
+
+    data.warningLabel = bottombar:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+    data.warningLabel:SetPoint("LEFT");
+    data.warningLabel:SetText("");
+    data.warningLabel.reloadText = L["The UI requires reloading to apply changes."];
+    data.warningLabel.restartText = L["Some changes require a client restart to take effect."];
 
     -- forward and back buttons
-    self.menu.back = gui:CreateButton(topbar:GetFrame());
-    self.menu.back:SetPoint("LEFT");
-    self.menu.back:SetWidth(50);
-    self.menu.back.arrow = self.menu.back:CreateTexture(nil, "OVERLAY");
-    self.menu.back.arrow:SetTexture(tk.Constants.MEDIA.."other\\arrow_side");
-    self.menu.back.arrow:SetSize(16, 14);
-    self.menu.back.arrow:SetPoint("CENTER", -1, 0);
+    data.container.back = gui:CreateButton(topbar:GetFrame());
+    data.container.back:SetPoint("LEFT");
+    data.container.back:SetWidth(50);
+    data.container.back.arrow = data.container.back:CreateTexture(nil, "OVERLAY");
+    data.container.back.arrow:SetTexture(tk.Constants.MEDIA.."other\\arrow_side");
+    data.container.back.arrow:SetSize(16, 14);
+    data.container.back.arrow:SetPoint("CENTER", -1, 0);
 
-    self.menu.back:SetScript("OnClick", function(self)
-        local submenu_data = private.history:GetBack();
-        private.history:RemoveBack();
-        config:SetSubMenu(submenu_data);
+    data.container.back:SetScript("OnClick", function(self)
+        local menuData = data.history:GetBack();
+        data.history:RemoveBack();
+        config:SetSubMenu(menuData);
 
-        if (private.history:GetSize() == 0) then
-            private.menu_name:SetText("");
+        if (data.history:GetSize() == 0) then
+            data.menuName:SetText("");
             self:SetEnabled(false);
         else
-            private.menu_name:SetText(submenu_data.name);
+            data.menuName:SetText(menuData.name);
         end
 
-        tk.PlaySound(tk.Constants.CLICK);
+        PlaySound(tk.Constants.CLICK);
     end);
 
-    self.menu_name = topbar:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-    self.menu_name:SetPoint("LEFT", self.menu.back, "RIGHT", 10, 0);
+    data.containerName = topbar:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
+    data.containerName:SetPoint("LEFT", data.container.back, "RIGHT", 10, 0);
 
-    tk:SetThemeColor(self.menu.back.arrow);
-    self.menu.back:SetEnabled(false);
+    tk:SetThemeColor(data.container.back.arrow);
+    data.container.back:SetEnabled(false);
 
-    self.menu.profiles = gui:CreateButton(topbar:GetFrame(), L["Reload UI"]); -- will change to profiles another time
-    self.menu.profiles:SetPoint("RIGHT", topbar:GetFrame(), "RIGHT");
-    self.menu.profiles:SetScript("OnClick", function()
+    data.container.profiles = gui:CreateButton(topbar:GetFrame(), L["Reload UI"]); -- will change to profiles another time
+    data.container.profiles:SetPoint("RIGHT", topbar:GetFrame(), "RIGHT");
+    data.container.profiles:SetScript("OnClick", function()
         ReloadUI();
         tk.PlaySound(tk.Constants.CLICK);
     end);
 
-    self.menu.installer = gui:CreateButton(topbar:GetFrame(), L["MUI Installer"]);
-    self.menu.installer:SetPoint("RIGHT", self.menu.profiles, "LEFT", -10, 0);
-    self.menu.installer:SetScript("OnClick", function()
-        core.commands["install"]();
-        private.menu:Hide();
+    data.container.installer = gui:CreateButton(topbar:GetFrame(), L["MUI Installer"]);
+    data.container.installer:SetPoint("RIGHT", data.container.profiles, "LEFT", -10, 0);
+
+    data.container.installer:SetScript("OnClick", function()
+        MayronUI:TriggerCommand("install");
+        data.container:Hide();
         tk.PlaySound(tk.Constants.CLICK);
     end);
 
-    self.menu.submenus = {};
+    data.container.menus = {};
     tk:SetFullWidth(scrollchild)
 
-    -- a category is a submenu, but a submenu is not a category
-    for id, categoryData in tk.ipairs(config.db) do
-        self.menu.submenus[id] = tk.CreateFrame("CheckButton", nil, scrollchild);
-        scrollchild:SetHeight((scrollchild:GetHeight() or 0) + 60);
+    -- a category is a menu, but a menu is not a category
+    self:SetUpCategories();
+   
+    tk:GroupCheckButtons(tk.unpack(data.container.menus));
+    data.container:Show();
+end
 
-        local f = self.menu.submenus[id];
-        f.text = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-        f.text:SetText(categoryData.name);
-        f.text:SetJustifyH("LEFT");
-        f.text:SetPoint("TOPLEFT", 10, 0);
-        f.text:SetPoint("BOTTOMRIGHT");
+function ConfigClass:SetUpCategories()
+    -- TODO!
+    -- for id, categoryData in ipairs(config.db) do
+    --     data.container.menus[id] = tk.CreateFrame("CheckButton", nil, scrollchild);
+    --     scrollchild:SetHeight((scrollchild:GetHeight() or 0) + 60);
 
-        local normal = tk:SetBackground(f, 1, 1, 1, 0);
-        local highlight = tk:SetBackground(f, 1, 1, 1, 0);
-        local checked = tk:SetBackground(f, 1, 1, 1, 0);
-        tk:SetThemeColor(0.3, normal, highlight);
-        tk:SetThemeColor(0.6, checked);
+    --     local f = data.container.menus[id];
+    --     f.text = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    --     f.text:SetText(categoryData.name);
+    --     f.text:SetJustifyH("LEFT");
+    --     f.text:SetPoint("TOPLEFT", 10, 0);
+    --     f.text:SetPoint("BOTTOMRIGHT");
 
-        f:SetSize(250, 60);
-        f:SetNormalTexture(normal);
-        f:SetHighlightTexture(highlight);
-        f:SetCheckedTexture(checked);
+    --     local normal = tk:SetBackground(f, 1, 1, 1, 0);
+    --     local highlight = tk:SetBackground(f, 1, 1, 1, 0);
+    --     local checked = tk:SetBackground(f, 1, 1, 1, 0);
+    --     tk:SetThemeColor(0.3, normal, highlight);
+    --     tk:SetThemeColor(0.6, checked);
 
-        if (id == 1) then
-            f:SetPoint("TOPLEFT", scrollchild, "TOPLEFT");
-            f:SetPoint("TOPRIGHT", scrollchild, "TOPRIGHT", -10, 0);
-        else
-            f:SetPoint("TOPLEFT", self.menu.submenus[id - 1], "BOTTOMLEFT", 0, -5);
-            f:SetPoint("TOPRIGHT", self.menu.submenus[id - 1], "BOTTOMRIGHT", 0, -5);
-            scrollchild:SetHeight(scrollchild:GetHeight() + 5);
-        end
-        f:SetScript("OnClick", function(self)
-            if (not self:GetChecked()) then
-                self:SetChecked(true);
-                return;
-            end
-            private.history:Clear();
-            private.menu_name:SetText("");
-            private.menu.back:SetEnabled(false);
-            config:SetSubMenu(categoryData);
-            tk.PlaySound(tk.Constants.CLICK);
-        end);
-        if (id == 1) then
-            config:SetSubMenu(categoryData);
-            f:SetChecked(true);
-        end
-    end
-    tk:GroupCheckButtons(tk.unpack(self.menu.submenus));
-    self.menu:Show();
+    --     f:SetSize(250, 60);
+    --     f:SetNormalTexture(normal);
+    --     f:SetHighlightTexture(highlight);
+    --     f:SetCheckedTexture(checked);
+
+    --     if (id == 1) then
+    --         f:SetPoint("TOPLEFT", scrollchild, "TOPLEFT");
+    --         f:SetPoint("TOPRIGHT", scrollchild, "TOPRIGHT", -10, 0);
+    --     else
+    --         f:SetPoint("TOPLEFT", data.container.menus[id - 1], "BOTTOMLEFT", 0, -5);
+    --         f:SetPoint("TOPRIGHT", data.container.menus[id - 1], "BOTTOMRIGHT", 0, -5);
+    --         scrollchild:SetHeight(scrollchild:GetHeight() + 5);
+    --     end
+    --     f:SetScript("OnClick", function(self)
+    --         if (not self:GetChecked()) then
+    --             self:SetChecked(true);
+    --             return;
+    --         end
+    --         private.history:Clear();
+    --         private.menuName:SetText("");
+    --         private.menu.back:SetEnabled(false);
+    --         config:SetSubMenu(categoryData);
+    --         tk.PlaySound(tk.Constants.CLICK);
+    --     end);
+
+    --     if (id == 1) then
+    --         config:SetSubMenu(categoryData);
+    --         f:SetChecked(true);
+    --     end
+    -- end
 end

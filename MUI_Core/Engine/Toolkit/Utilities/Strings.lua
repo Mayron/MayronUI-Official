@@ -3,6 +3,8 @@ core.Toolkit = core.Toolkit or {};
 
 local tk = core.Toolkit;
 tk.Strings = {};
+
+tk.Strings.Empty = "";
 -----------------------------
 
 do
@@ -53,8 +55,20 @@ function tk.Strings:GetClassColoredText(className, text)
     className = className or (select(2, UnitClass("player")));
     text = text or className;
 
-    className = className:gsub("%s+", "");
+    className = className:gsub("%s+", tk.Strings.Empty);
     className = string.upper(className);
 
     return self:GetHexColoredText(text, tk.Constants.CLASS_RGB_COLORS[className].hex);
+end
+
+function tk.Strings:Concat(...) 
+    local wrapper = tk:PopWrapper(...);
+    local value = table.concat(wrapper, tk.Strings.Empty);
+    tk:PushWrapper(wrapper);
+end
+
+function tk.Strings:Join(separator, ...)
+    local wrapper = tk:PopWrapper(...);
+    local value = table.concat(wrapper, separator);
+    tk:PushWrapper(wrapper);
 end
