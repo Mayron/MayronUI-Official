@@ -1,138 +1,110 @@
-------------------------
--- Setup namespaces
-------------------------
-local _, config = ...;
-local core = MayronUI:ImportModule("MUI_Core");
-local tk = core.Toolkit;
-local db = core.Database;
-config.db = {};
+-- Setup Namespaces ------------------
+local _, namespace = ...;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
-local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
+local ConfigModule = namespace.ConfigModule;
 
----------------------------
--- Config Functions
----------------------------
+-- TODO: need to change SetPathValue to use "global" and "profile" as a replacement to root table
+-- eventually should be able to specify defineParams as "Observer|string" rathe than "any"
 
-function config:AddCategoryData(...)
-    for _, categoryData in tk:IterateArgs(...) do
-        tk.table.insert(self.db, categoryData);
-    end
-    if (config:IsLoaded()) then
-        config:UpdateCategories(); -- doesn't do anything
-    end
-end
-
-function config:ScanForData()
-    for _, module in MayronUI:IterateModules() do
-        if (module.ns.GetConfig) then
-            local categories = module.ns:GetConfig();
-            for _, data in tk.ipairs(categories) do
-                config:AddCategoryData(data);
-            end
-            module.ns.GetConfig = nil;
-        end
-    end
-end
-
----------------------------
--- MUI_Core options
----------------------------
-function config:init()
-    config:AddCategoryData(
-        {   name = L["General"],
-            type = "category",
-            children = {
-                {   name = L["Enable Master Font"],
-                    tooltip = L["Uncheck to prevent MUI from changing the game font."],
-                    requires_restart = true,
-                    db_path = "global.core.change_game_font",
-                    type = "check",
-                },
-                {   name = L["Display Lua Errors"],
-                    type = "check",
-                    GetValue = function()
-                        return tk.tonumber(tk.GetCVar("ScriptErrors")) == 1;
-                    end,
-                    SetValue = function(value)
-                        if (value) then
-                            tk.SetCVar("ScriptErrors","1");
-                        else
-                            tk.SetCVar("ScriptErrors","0");
-                        end
+-- need to iterate each table and recycle them in PushWrapper and then start a cleaner timer
+-- after x number of seconds, remove all tables if the number has not drastically changed (not many pops)
+-- and clean garbage collector
+function ConfigModule:GetConfigData()
+    return {   
+        name = L["General"],
+        type = "category",
+        children = {
+            {   name = L["Enable Master Font"],
+                tooltip = L["Uncheck to prevent MUI from changing the game font."],
+                requiresRestart = true,
+                dbPath = "global.core.changeGameFont",
+                type = "check",
+            },
+            {   name = L["Display Lua Errors"],
+                type = "check",
+                GetValue = function()
+                    return tonumber(GetCVar("ScriptErrors")) == 1;
+                end,
+                SetValue = function(value)
+                    if (value) then
+                        SetCVar("ScriptErrors","1");
+                    else
+                        SetCVar("ScriptErrors","0");
                     end
-                },
-                { type = "divider",
-                },
-                {   name = L["Master Font"],
-                    type = "dropdown",
-                    options = tk.Constants.LSM:List("font"),
-                    db_path = "global.core.font",
-                    requires_restart = true,
-                    font_chooser = true,
-                },
-                {   type = "divider"
-                },
-                {   name = L["Set Theme Color"],
-                    type = "color",
-                    tooltip = L["Warning: This will NOT change the color of CastBars!"],
-                    db_path = "profile.theme.color",
-                    requires_reload = true,
-                    SetValue = function(_, _, value)
-                        value.hex = tk.string.format('%02x%02x%02x', value.r * 255, value.g * 255, value.b * 255);
-                        db.profile.theme.color = value;
-                        db.profile["profile.bottomui.gradients"] = nil;
-                    end
-                },
-                {   name = L["Objective (Quest) Tracker"],
-                    type = "title"
-                },
-                {   name = "Enable",
-                    tooltip = L["Disable this to stop MUI from controlling the Objective Tracker."],
-                    type = "check",
-                    db_path = "profile.sidebar.objective_tracker.enabled",
-                    module = "SideBar",
-                    requires_reload = true,
-                },
-                {   name = L["Anchor to Side Bar"],
-                    tooltip = L["Anchor the Objective Tracker to the action bar container on the right side of the screen."],
-                    type = "check",
-                    db_path = "profile.sidebar.objective_tracker.anchored_to_sidebars",
-                    module = "SideBar",
-                },
-                {   type = "divider",
-                },
-                {   name = L["Set Width"],
-                    type = "textfield",
-                    tooltip = L["Adjust the width of the Objective Tracker."].."\n\n"..
-							  L["Default value is "].."250",
-                    db_path = "profile.sidebar.objective_tracker.width",
-                    value_type = "number",
-                    module = "SideBar",
-                },
-                {   name = L["Set Height"],
-                    type = "textfield",
-                    tooltip = L["Adjust the height of the Objective Tracker."].."\n\n"..
-							  L["Default value is "].."600",
-                    db_path = "profile.sidebar.objective_tracker.height",
-                    value_type = "number",
-                    module = "SideBar",
-                },
-                {   name = L["X-Offset"],
-                    type = "textfield",
-                    tooltip = L["Adjust the horizontal positioning of the Objective Tracker."].."\n\n"..
-							  L["Default value is "].."-30",
-                    db_path = "profile.sidebar.objective_tracker.xOffset",
-                    value_type = "number",
-                    module = "SideBar",
-                },
-                {   name = L["Y-Offset"],
-                    type = "textfield",
-                    tooltip = L["Adjust the vertical positioning of the Objective Tracker."].."\n\n"..
-							  L["Default value is "].."0",
-                    db_path = "profile.sidebar.objective_tracker.yOffset",
-                    value_type = "number",
-                    module = "SideBar",
-                },
+                end
+            },
+            {   type = "divider" 
+            },
+            {   name = L["Master Font"],
+                type = "dropdown",
+                options = tk.Constants.LSM:List("font"),
+                dbPath = "core.font",
+                requiresRestart = true,
+                fontPicker = true,
+            },
+            {   type = "divider"
+            },
+            {   name = L["Set Theme Color"],
+                type = "color",
+                tooltip = L["Warning: This will NOT change the color of CastBars!"],
+                dbPath = "profile.theme.color",
+                requiresReload = true,
+                SetValue = function(_, _, value)
+                    value.hex = tk.string.format('%02x%02x%02x', value.r * 255, value.g * 255, value.b * 255);
+                    db.profile.theme.color = value;
+                    db.profile["profile.bottomui.gradients"] = nil;
+                end
+            },
+            {   name = L["Objective (Quest) Tracker"],
+                type = "title"
+            },
+            {   name = "Enable",
+                tooltip = L["Disable this to stop MUI from controlling the Objective Tracker."],
+                type = "check",
+                dbPath = "profile.sidebar.objective_tracker.enabled",
+                module = "SideBar",
+                requiresReload = true,
+            },
+            {   name = L["Anchor to Side Bar"],
+                tooltip = L["Anchor the Objective Tracker to the action bar container on the right side of the screen."],
+                type = "check",
+                dbPath = "profile.sidebar.objective_tracker.anchored_to_sidebars",
+                module = "SideBar",
+            },
+            {   type = "divider",
+            },
+            {   name = L["Set Width"],
+                type = "textfield",
+                tooltip = L["Adjust the width of the Objective Tracker."].."\n\n"..
+                            L["Default value is "].."250",
+                dbPath = "profile.sidebar.objective_tracker.width",
+                value_type = "number",
+                module = "SideBar",
+            },
+            {   name = L["Set Height"],
+                type = "textfield",
+                tooltip = L["Adjust the height of the Objective Tracker."].."\n\n"..
+                            L["Default value is "].."600",
+                dbPath = "profile.sidebar.objective_tracker.height",
+                value_type = "number",
+                module = "SideBar",
+            },
+            {   name = L["X-Offset"],
+                type = "textfield",
+                tooltip = L["Adjust the horizontal positioning of the Objective Tracker."].."\n\n"..
+                            L["Default value is "].."-30",
+                dbPath = "profile.sidebar.objective_tracker.xOffset",
+                value_type = "number",
+                module = "SideBar",
+            },
+            {   name = L["Y-Offset"],
+                type = "textfield",
+                tooltip = L["Adjust the vertical positioning of the Objective Tracker."].."\n\n"..
+                            L["Default value is "].."0",
+                dbPath = "profile.sidebar.objective_tracker.yOffset",
+                value_type = "number",
+                module = "SideBar",
             }
         },
         {   name = L["Bottom UI Panels"],
@@ -151,34 +123,34 @@ function config:init()
                     step = 5,
                     min = 680,
                     max = 1200,
-                    db_path = "profile.bottomui.width",
+                    dbPath = "profile.bottomui.width",
                 },
                 {   name = L["Unit Panels"],
                     type = "title",
                     padding_top = 0
                 },
                 {   name = L["Enable Unit Panels"],
-                    db_path = "profile.bottomui.unit_panels.enabled",
-                    requires_reload = true,
+                    dbPath = "profile.bottomui.unit_panels.enabled",
+                    requiresReload = true,
                     type = "check",
                 },
                 {   name = L["Symmetric Unit Panels"],
                     tooltip = L["Previously called 'Classic Mode'."],
                     type = "check",
-                    requires_reload = true,
-                    db_path = "profile.bottomui.unit_panels.classicMode"
+                    requiresReload = true,
+                    dbPath = "profile.bottomui.unit_panels.classicMode"
                 },
                 {   name = L["Allow MUI to Control Unit Frames"],
                     tooltip = L["TT_MUI_CONTROL_SUF"],
                     type = "check",
-                    requires_reload = true,
-                    db_path = "profile.bottomui.unit_panels.control_SUF"
+                    requiresReload = true,
+                    dbPath = "profile.bottomui.unit_panels.control_SUF"
                 },
                 {   name = L["Allow MUI to Control Grid"],
                     tooltip = L["TT_MUI_CONTROL_GRID"],
                     type = "check",
-                    requires_reload = true,
-                    db_path = "profile.bottomui.unit_panels.control_Grid"
+                    requiresReload = true,
+                    dbPath = "profile.bottomui.unit_panels.control_Grid"
                 },
                 {   type = "divider",
                 },
@@ -190,7 +162,7 @@ function config:init()
                     tooltip = L["Adjust the width of the unit frame background panels."].."\n\n"..
 							  L["Minimum value is "].."200".."\n\n"..
 							  L["Default value is "].."325",
-                    db_path = "profile.bottomui.unit_panels.unit_width",
+                    dbPath = "profile.bottomui.unit_panels.unit_width",
                 },
                 {   name = L["Name Panels"],
                     type = "title",
@@ -202,7 +174,7 @@ function config:init()
                     step = 5,
                     min = 150,
                     max = 350,
-                    db_path = "profile.bottomui.unit_panels.unit_names.width",
+                    dbPath = "profile.bottomui.unit_panels.unit_names.width",
                 },
                 {   name = L["Height"],
                     type = "slider",
@@ -211,7 +183,7 @@ function config:init()
                     step = 1,
                     min = 16,
                     max = 30,
-                    db_path = "profile.bottomui.unit_panels.unit_names.height",
+                    dbPath = "profile.bottomui.unit_panels.unit_names.height",
                 },
                 {   name = L["X-Offset"],
                     type = "slider",
@@ -220,7 +192,7 @@ function config:init()
                     step = 1,
                     min = -100,
                     max = 100,
-                    db_path = "profile.bottomui.unit_panels.unit_names.xOffset",
+                    dbPath = "profile.bottomui.unit_panels.unit_names.xOffset",
                 },
                 {   name = L["Font Size"],
                     type = "slider",
@@ -229,20 +201,20 @@ function config:init()
                     step = 1,
                     min = 8,
                     max = 18,
-                    db_path = "profile.bottomui.unit_panels.unit_names.fontSize",
+                    dbPath = "profile.bottomui.unit_panels.unit_names.fontSize",
                 },
                 {   name = L["Target Class Colored"],
                     type = "check",
                     height = 50,
-                    db_path = "profile.bottomui.unit_panels.unit_names.target_class_colored"
+                    dbPath = "profile.bottomui.unit_panels.unit_names.target_class_colored"
                 },
                 {   name = L["Action Bar Panel"],
                     type = "title",
                     padding_top = 0
                 },
                 {   name = L["Enable Action Bar Panel"],
-                    db_path = "profile.bottomui.actionbar_panel.enabled",
-                    requires_reload = true,
+                    dbPath = "profile.bottomui.actionbar_panel.enabled",
+                    requiresReload = true,
                     type = "check",
                 },
                 {   name = L["Animation Speed"],
@@ -253,7 +225,7 @@ function config:init()
                     step = 1,
                     min = 1,
                     max = 10,
-                    db_path = "profile.bottomui.actionbar_panel.animate_speed",
+                    dbPath = "profile.bottomui.actionbar_panel.animate_speed",
                 },
                 {   name = L["Retract Height"],
                     tooltip = L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."].."\n\n"..
@@ -262,7 +234,7 @@ function config:init()
                     type = "textfield",
                     value_type = "number",
                     min = 40,
-                    db_path = "profile.bottomui.actionbar_panel.retract_height"
+                    dbPath = "profile.bottomui.actionbar_panel.retract_height"
                 },
                 {   name = L["Expand Height"],
                     tooltip = L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."].."\n\n"..
@@ -271,7 +243,7 @@ function config:init()
                     type = "textfield",
                     value_type = "number",
                     min = 40,
-                    db_path = "profile.bottomui.actionbar_panel.expand_height"
+                    dbPath = "profile.bottomui.actionbar_panel.expand_height"
                 },
                 {   type = "fontstring",
                     content = "Modifier keys used to show Expand/Retract buttons:"
@@ -280,11 +252,11 @@ function config:init()
                     height = 40,
                     min_width = true,
                     type = "check",
-                    db_path = "profile.bottomui.actionbar_panel.mod_key",
+                    dbPath = "profile.bottomui.actionbar_panel.mod_key",
                     GetValue = function(_, current_value)
                         return current_value:find("C");
                     end,
-                    SetValue = function(db_path, old_value, value)
+                    SetValue = function(dbPath, old_value, value)
                         value = value and "C";
                         if (not value) then
                             if (old_value:find("C")) then
@@ -293,18 +265,18 @@ function config:init()
                         else
                             value = old_value..value;
                         end
-                        db:SetPathValue(db_path, value);
+                        db:SetPathValue(dbPath, value);
                     end
                 },
                 {   name = L["Shift"],
                     height = 40,
                     min_width = true,
                     type = "check",
-                    db_path = "profile.bottomui.actionbar_panel.mod_key",
+                    dbPath = "profile.bottomui.actionbar_panel.mod_key",
                     GetValue = function(_, current_value)
                         return current_value:find("S");
                     end,
-                    SetValue = function(db_path, old_value, value)
+                    SetValue = function(dbPath, old_value, value)
                         value = value and "S";
                         if (not value) then
                             if (old_value:find("S")) then
@@ -313,18 +285,18 @@ function config:init()
                         else
                             value = old_value..value;
                         end
-                        db:SetPathValue(db_path, value);
+                        db:SetPathValue(dbPath, value);
                     end
                 },
                 {   name = L["Alt"],
                     height = 40,
                     min_width = true,
                     type = "check",
-                    db_path = "profile.bottomui.actionbar_panel.mod_key",
+                    dbPath = "profile.bottomui.actionbar_panel.mod_key",
                     GetValue = function(_, current_value)
                         return current_value:find("A");
                     end,
-                    SetValue = function(db_path, old_value, value) -- the path and the new value
+                    SetValue = function(dbPath, old_value, value) -- the path and the new value
                         value = value and "A";
                         if (not value) then
                             if (old_value:find("A")) then
@@ -333,7 +305,7 @@ function config:init()
                         else
                             value = old_value..value;
                         end
-                        db:SetPathValue(db_path, value);
+                        db:SetPathValue(dbPath, value);
                     end
                 },
                 {   name = L["SUF Portrait Gradient"],
@@ -343,7 +315,7 @@ function config:init()
                     type = "check",
                     tooltip = L["If the SUF Player or Target portrait bars are enabled, a class"].."\n"..
 							  L["colored gradient will overlay it."],
-                    db_path = "profile.bottomui.gradients.enabled"
+                    dbPath = "profile.bottomui.gradients.enabled"
                 },
                 {   name = L["Height"],
                     type = "slider",
@@ -353,7 +325,7 @@ function config:init()
                     min = 1,
                     max = 50,
                     width = 250,
-                    db_path = "profile.bottomui.gradients.height",
+                    dbPath = "profile.bottomui.gradients.height",
                 },
                 {   type = "fontstring",
                     content = L["Gradient Colors"],
@@ -363,18 +335,18 @@ function config:init()
                     type = "color",
                     width = 150,
                     tooltip = L["What color the gradient should start as."],
-                    db_path = "profile.bottomui.gradients.from",
+                    dbPath = "profile.bottomui.gradients.from",
                 },
                 {   name = L["End Color"],
                     width = 150,
                     tooltip = L["What color the gradient should change into."],
                     type = "color",
-                    db_path = "profile.bottomui.gradients.to",
+                    dbPath = "profile.bottomui.gradients.to",
                 },
                 {   name = L["Target Class Colored"],
                     tooltip = L["TT_MUI_USE_TARGET_CLASS_COLOR"],
                     type = "check",
-                    db_path = "profile.bottomui.gradients.target_class_colored",
+                    dbPath = "profile.bottomui.gradients.target_class_colored",
                 },
                 {   name = L["Bartender Action Bars"],
                     type = "title",
@@ -382,7 +354,7 @@ function config:init()
                 {   name = L["Allow MUI to Control Selected Bartender Bars"],
                     type = "check",
                     tooltip = L["TT_MUI_CONTROL_BARTENDER"],
-                    db_path = "profile.bottomui.actionbar_panel.bartender.control"
+                    dbPath = "profile.bottomui.actionbar_panel.bartender.control"
                 },
                 {   type = "fontstring",
                     content = L["Row 1"],
@@ -390,7 +362,7 @@ function config:init()
                 },
                 {   name = L["First Bartender Bar"],
                     type = "dropdown",
-                    db_path = "profile.bottomui.actionbar_panel.bartender[1]",
+                    dbPath = "profile.bottomui.actionbar_panel.bartender[1]",
                     options = {
                         "Bar 1",
                         "Bar 2",
@@ -404,7 +376,7 @@ function config:init()
                     }
                 },
                 {   name = L["Second Bartender Bar"],
-                    db_path = "profile.bottomui.actionbar_panel.bartender[2]",
+                    dbPath = "profile.bottomui.actionbar_panel.bartender[2]",
                     type = "dropdown",
                     options = {
                         "Bar 1",
@@ -423,7 +395,7 @@ function config:init()
                     subtype = "header",
                 },
                 {   name = L["First Bartender Bar"],
-                    db_path = "profile.bottomui.actionbar_panel.bartender[3]",
+                    dbPath = "profile.bottomui.actionbar_panel.bartender[3]",
                     type = "dropdown",
                     options = {
                         "Bar 1",
@@ -438,7 +410,7 @@ function config:init()
                     }
                 },
                 {   name = L["Second Bartender Bar"],
-                    db_path = "profile.bottomui.actionbar_panel.bartender[4]",
+                    dbPath = "profile.bottomui.actionbar_panel.bartender[4]",
                     type = "dropdown",
                     options = {
                         "Bar 1",
@@ -463,12 +435,12 @@ function config:init()
                             {   name = L["Enabled"],
                                 type = "check",
                                 tooltip = L["Default value is "]..L["true"],
-                                db_path = "profile.bottomui."..key..".enabled",
+                                dbPath = "profile.bottomui."..key..".enabled",
                             },
                             {   name = L["Show Text"],
                                 type = "check",
                                 tooltip = L["Default value is "]..L["false"],
-                                db_path = "profile.bottomui."..key..".show_text",
+                                dbPath = "profile.bottomui."..key..".show_text",
                             },
                             {   name = L["Height"],
                                 type = "slider",
@@ -476,7 +448,7 @@ function config:init()
                                 min = 4,
                                 max = 30,
                                 tooltip = L["Default value is "].."8",
-                                db_path = "profile.bottomui."..key..".height",
+                                dbPath = "profile.bottomui."..key..".height",
                             },
                             {   name = L["Font Size"],
                                 type = "slider",
@@ -484,7 +456,7 @@ function config:init()
                                 min = 8,
                                 max = 18,
                                 tooltip = L["Default value is "].."10",
-                                db_path = "profile.bottomui."..key..".font_size",
+                                dbPath = "profile.bottomui."..key..".font_size",
                             },
                         };
                         return child;
@@ -504,18 +476,18 @@ function config:init()
                     tooltip = L["If unchecked, the entire DataText module will be disabled and all"].."\n"..
 							  L["DataText buttons, as well as the background bar, will not be displayed."],
                     type = "check",
-                    requires_reload = true,
-                    db_path = "profile.datatext.enable_module",
+                    requiresReload = true,
+                    dbPath = "profile.datatext.enable_module",
                 },
                 {   name = L["Block in Combat"],
                     tooltip = L["Prevents you from using data text modules while in combat."].."\n\n"..
 							  L["This is useful for 'clickers'."],
                     type = "check",
-                    db_path = "profile.datatext.combat_block",
+                    dbPath = "profile.datatext.combat_block",
                 },
                 {   name = L["Auto Hide Menu in Combat"],
                     type = "check",
-                    db_path = "profile.datatext.hideMenuInCombat",
+                    dbPath = "profile.datatext.hideMenuInCombat",
                 },
                 {   type = "divider"
                 },
@@ -526,7 +498,7 @@ function config:init()
                     step = 1,
                     min = 0,
                     max = 5,
-                    db_path = "profile.datatext.spacing",
+                    dbPath = "profile.datatext.spacing",
                 },
                 {   name = L["Font Size"],
                     type = "slider",
@@ -535,19 +507,19 @@ function config:init()
                     step = 1,
                     min = 8,
                     max = 18,
-                    db_path = "profile.datatext.font_size",
+                    dbPath = "profile.datatext.font_size",
                 },
                 {   name = L["Menu Width"],
                     type = "textfield",
                     value_type = "number",
                     tooltip = L["Default value is "].."200",
-                    db_path = "profile.datatext.menu_width",
+                    dbPath = "profile.datatext.menu_width",
                 },
                 {   name = L["Max Menu Height"],
                     type = "textfield",
                     value_type = "number",
                     tooltip = L["Default value is "].."250",
-                    db_path = "profile.datatext.max_menu_height",
+                    dbPath = "profile.datatext.max_menu_height",
                 },
                 {   type = "divider"
                 },
@@ -556,7 +528,7 @@ function config:init()
                     tooltip = L["The frame strata of the entire DataText bar."].."\n\n"..
 							  L["Default value is "].."MEDIUM",
                     options = tk.Constants.FRAME_STRATA_VALUES,
-                    db_path = "profile.datatext.frame_strata"
+                    dbPath = "profile.datatext.frame_strata"
                 },
                 {   type = "slider",
                     name = L["Bar Level"],
@@ -565,7 +537,7 @@ function config:init()
                     min = 1,
                     max = 50,
                     step = 1,
-                    db_path = "profile.datatext.frame_level"
+                    dbPath = "profile.datatext.frame_level"
                 },
                 {   name = L["Data Text Modules"],
                     type = "title",
@@ -576,7 +548,7 @@ function config:init()
                         local child = { -- return a group of children rather than 1 child?
                             {   name = L["Data Button"].." "..id,
                                 type = "dropdown",
-                                db_path = "profile.datatext.enabled["..id.."]",
+                                dbPath = "profile.datatext.enabled["..id.."]",
                                 GetValue = function(_, current_value)
                                     return current_value or "disabled";
                                 end,
@@ -610,21 +582,21 @@ function config:init()
                     children = {
                         {   name = L["Show FPS"],
                             type = "check",
-                            db_path = "profile.datatext.performance.show_fps",
+                            dbPath = "profile.datatext.performance.show_fps",
                         },
                         {   type = "divider"
                         },
                         {   name = L["Show Server Latency (ms)"],
                             type = "check",
                             width = 230,
-                            db_path = "profile.datatext.performance.show_server_latency",
+                            dbPath = "profile.datatext.performance.show_server_latency",
                         },
                         {   type = "divider"
                         },
                         {   name = L["Show Home Latency (ms)"],
                             type = "check",
                             width = 230,
-                            db_path = "profile.datatext.performance.show_home_latency",
+                            dbPath = "profile.datatext.performance.show_home_latency",
                         },
                     }
                 },
@@ -634,25 +606,25 @@ function config:init()
                     children = {
                         {   name = L["Show Copper"],
                             type = "check",
-                            db_path = "profile.datatext.money.show_copper",
+                            dbPath = "profile.datatext.money.show_copper",
                         },
                         {   type = "divider"
                         },
                         {   name = L["Show Silver"],
                             type = "check",
-                            db_path = "profile.datatext.money.show_silver",
+                            dbPath = "profile.datatext.money.show_silver",
                         },
                         {   type = "divider"
                         },
                         {   name = L["Show Gold"],
                             type = "check",
-                            db_path = "profile.datatext.money.show_gold",
+                            dbPath = "profile.datatext.money.show_gold",
                         },
                         {   type = "divider"
                         },
                         {   name = L["Show Realm Name"],
                             type = "check",
-                            db_path = "profile.datatext.money.show_realm",
+                            dbPath = "profile.datatext.money.show_realm",
                         },
                     }
                 },
@@ -662,14 +634,14 @@ function config:init()
                     children = {
                         {   name = L["Show Total Slots"],
                             type = "check",
-                            db_path = "profile.datatext.bags.show_total_slots",
+                            dbPath = "profile.datatext.bags.show_total_slots",
                         },
                         {   type = "divider"
                         },
                         {   name = L["Show Used Slots"],
                             type = "radio",
                             group = 1,
-                            db_path = "profile.datatext.bags.slots_to_show",
+                            dbPath = "profile.datatext.bags.slots_to_show",
                             GetValue = function(path, value)
                                 return value == "used";
                             end,
@@ -682,7 +654,7 @@ function config:init()
                         {   name = L["Show Free Slots"],
                             type = "radio",
                             group = 1,
-                            db_path = "profile.datatext.bags.slots_to_show",
+                            dbPath = "profile.datatext.bags.slots_to_show",
                             GetValue = function(path, value)
                                 return value == "free";
                             end,
@@ -701,12 +673,12 @@ function config:init()
                         {   type = "check",
                             name = L["Show Self"],
                             tooltip = L["Show your character in the guild list."],
-                            db_path = "profile.datatext.guild.show_self"
+                            dbPath = "profile.datatext.guild.show_self"
                         },
                         {   type = "check",
                             name = L["Show Tooltips"],
                             tooltip = L["Show guild info tooltips when the cursor is over guild members in the guild list."],
-                            db_path = "profile.datatext.guild.show_tooltips"
+                            dbPath = "profile.datatext.guild.show_tooltips"
                         }
                     }
                 }
@@ -720,13 +692,13 @@ function config:init()
                     type = "textfield",
                     tooltip = L["Default value is "].."46",
                     value_type = "number",
-                    db_path = "profile.sidebar.retract_width"
+                    dbPath = "profile.sidebar.retract_width"
                 },
                 {   name = L["Width (With 2 Bars)"],
                     tooltip = L["Default value is "].."83",
                     type = "textfield",
                     value_type = "number",
-                    db_path = "profile.sidebar.expand_width"
+                    dbPath = "profile.sidebar.expand_width"
                 },
                 {   type = "divider",
                 },
@@ -734,13 +706,13 @@ function config:init()
                     tooltip = L["Default value is "].."486",
                     type = "textfield",
                     value_type = "number",
-                    db_path = "profile.sidebar.height"
+                    dbPath = "profile.sidebar.height"
                 },
                 {   name = L["Y-Offset"],
                     tooltip = L["Default value is "].."40",
                     type = "textfield",
                     value_type = "number",
-                    db_path = "profile.sidebar.yOffset"
+                    dbPath = "profile.sidebar.yOffset"
                 },
                 {   type = "divider",
                 },
@@ -753,20 +725,20 @@ function config:init()
                     min = 1,
                     max = 10,
                     width = 250,
-                    db_path = "profile.sidebar.animate_speed"
+                    dbPath = "profile.sidebar.animate_speed"
                 },
                 {   name = L["Bartender Action Bars"],
                     type = "title",
                 },
                 {   name = L["Allow MUI to Control Selected Bartender Bars"],
                     type = "check",
-                    db_path = "profile.sidebar.bartender.control",
+                    dbPath = "profile.sidebar.bartender.control",
                     tooltip = L["TT_MUI_CONTROL_BARTENDER"],
                 },
                 {   type = "divider",
                 },
                 {   name = L["First Bartender Bar"],
-                    db_path = "profile.sidebar.bartender[1]",
+                    dbPath = "profile.sidebar.bartender[1]",
                     type = "dropdown",
                     options = {
                         "Bar 1",
@@ -781,7 +753,7 @@ function config:init()
                     }
                 },
                 {   name = L["Second Bartender Bar"],
-                    db_path = "profile.sidebar.bartender[2]",
+                    dbPath = "profile.sidebar.bartender[2]",
                     type = "dropdown",
                     options = {
                         "Bar 1",
@@ -801,11 +773,11 @@ function config:init()
                 {   name = L["Hide in Combat"],
                     type = "check",
                     height = 60,
-                    db_path = "profile.sidebar.buttons.hide_in_combat",
+                    dbPath = "profile.sidebar.buttons.hide_in_combat",
                 },
                 {   name = L["Show When"],
                     type = "dropdown",
-                    db_path = "profile.sidebar.buttons.show_when",
+                    dbPath = "profile.sidebar.buttons.show_when",
                     options = {
                         L["Never"],
                         L["Always"],
@@ -817,13 +789,13 @@ function config:init()
                 {   name = L["Width"],
                     type = "textfield",
                     tooltip = L["Default value is "].."15",
-                    db_path = "profile.sidebar.buttons.width",
+                    dbPath = "profile.sidebar.buttons.width",
                     value_type = "number",
                 },
                 {   name = L["Height"],
                     type = "textfield",
                     tooltip = L["Default value is "].."100",
-                    db_path = "profile.sidebar.buttons.height",
+                    dbPath = "profile.sidebar.buttons.height",
                     value_type = "number",
                 },
             }

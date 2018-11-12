@@ -141,7 +141,7 @@ function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
 end
 
 function tk.Tables:Fill(tbl, ...)
-    for key, value in pairs({...}) do
+    for key, value in self:IterateArgs(...) do
         -- also includes indexes, so key could be a number
         tbl[key] = value;
     end
@@ -150,7 +150,7 @@ end
 function tk.Tables:Merge(...)
     local merged = {};
 
-    for _, tbl in ipairs({...}) do
+    for _, tbl in self:IterateArgs(...) do
         for key, value in tk.pairs(tbl) do
             if (merged[key] and (tk.type(merged[key]) == "table") and (tk.type(value) == "table")) then
                 merged[key] = self:Merge(merged[key], value);
@@ -172,7 +172,7 @@ do
         args = args or tk:CreateLinkedList();
         args:Clear();
 
-        for _, key in ipairs({tk.strsplit(".", path)}) do
+        for _, key in self:IterateArgs(tk.strsplit(".", path)) do
             local firstKey = tk.strsplit("[", key);
 
             args:AddToBack(tk.tonumber(firstKey) or firstKey);

@@ -962,6 +962,17 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
 
         repeat
             defValue = definition[id];
+
+            if (defValue:find("|")) then
+                local foundMatch = false;
+
+                -- TODO: Check for "table | string"
+                local defValues = ;
+
+                for _, defValue in defValue:split("|") do
+                    defValue = defValue:replace("%s")
+                end
+            end
             
             if (defValue) then
                 if (defValue:find("^\?")) then
