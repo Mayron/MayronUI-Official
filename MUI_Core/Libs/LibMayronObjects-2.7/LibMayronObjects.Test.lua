@@ -724,6 +724,30 @@ function GetObjectType_In_Constructor_Test1()
     print("GetObjectType_In_Constructor_Test1 Successful!");
 end
 
+function UsingMultipleDefinitionsForOneArgument_Test1()
+    print("UsingMultipleDefinitionsForOneArgument_Test1 Started");
+
+    local TestPackage = lib:CreatePackage("UsingMultipleDefinitionsForOneArgument_Test1");
+
+    local TestClass = TestPackage:CreateClass("TestClass");
+
+    TestPackage:DefineParams("string|number", "number");
+    function TestClass:Run(data, value1, testNumber)
+        if (testNumber == 1) then
+            assert(type(value1) == "string");
+        else
+            assert(type(value1) == "number");
+        end
+    end
+
+    local test = TestClass();
+
+    test:Run("myString", 1);
+    test:Run(123, 2);
+
+    print("UsingMultipleDefinitionsForOneArgument_Test1 Started");
+end
+
 ---------------------------------
 -- Run Tests:
 ---------------------------------
@@ -752,3 +776,4 @@ end
 -- GenericClasses_Test4();
 -- Get_DefinedProperty_After_Setting_Test1();
 -- GetObjectType_In_Constructor_Test1();
+-- UsingMultipleDefinitionsForOneArgument_Test1();

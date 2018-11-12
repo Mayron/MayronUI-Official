@@ -50,11 +50,15 @@ function ConfigModule:GetDatabasePathInfo(data, childData)
     if (not childData.dbPath) then return end
 
     local rootTable;
+    local rootTableType, dbPath = dbPath:match("([^.]+).(.*)");
+    rootTableType = rootTableType:gsub("%s", ""):lower();
 
-    if (childData.isGlobal) then
+    if (rootTableType == "global") then
         rootTable = db.global;
-    else
+    elseif (rootTableType == "profile") then
         rootTable = db.profile;
+    else
+        tk:Error("Unknown database path root table type '%s'", rootTableType);
     end
 
     if (type(childData.dbPath) == "function") then

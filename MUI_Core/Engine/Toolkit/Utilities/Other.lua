@@ -148,3 +148,50 @@ function tk:IsPlayerMaxLevel()
         end
     end
 end 
+
+local errorInfo = {};
+errorInfo.PREFIX = "|cffffcc00MayronUI: |r";
+
+-- @param silent (boolean) - true if errors should be cause in the error log instead of triggering.
+function tk:SetSilentErrors(silent)
+    errorInfo.silent = silent;
+end
+
+-- @return errorLog (table) - contains index/string pairs of errors caught while in silent mode.
+function tk:GetErrorLog()
+    errorInfo.errorLog = errorInfo.errorLog or {};
+    return errorInfo.errorLog;
+end
+
+-- empties the error log table.
+function tk:FlushErrorLog()
+    if (errorInfo.errorLog) then
+        tk.Tables:Empty(errorInfo.errorLog);
+    end
+end
+
+-- @return numErrors (number) - the total number of errors caught while in silent mode.
+function tk:GetNumErrors()
+    return (errorInfo.errorLog and #errorInfo.errorLog) or 0;
+end
+
+function tk:Assert(condition, errorMessage, ...)
+    if (condition) then return end
+
+    if ((select(1, ...)) ~= nil) then
+        errorMessage = string.format(errorMessage, ...);
+    end     
+    
+    local fullError = tk.Strings.Join(tk.Strings.Empty, errorInfo.PREFIX, errorMessage);
+
+    if (errorInfo.silent) then
+        errorInfo.errorLog = errorInfo.errorLog or {};
+        errorInfo.errorLog[#errorInfo.errorLog + 1] = pcall(function() error(fullError) end);
+    else
+        error(fullError);
+    end    
+end
+
+function tk:Error(errorMessage, ...)
+    self:Assert(false, errorMessage, ...);
+end

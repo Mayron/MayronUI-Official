@@ -952,52 +952,67 @@ function Core:ValidateImplementedFunctions(classController)
     end
 end
 
-function Core:ValidateFunctionCall(definition, errorMessage, ...)
+function Core:ValidateValue(defValue, realValue, errorMessage)
     local errorFound;
+
+    self:Assert(type(defValue) == "string" and not self:IsStringNilOrWhiteSpace(defValue), 
+        "Invalid definition found; expected a string containing the expected type of an argument or return value.");
+
+    if (defValue:find("^\?")) then
+        -- it's optional so allow null values
+        -- remove "?" from front of string
+        defValue = defValue:sub(2, #defValue);
+        errorFound = (realValue ~= nil) and (defValue ~= "any" and not self:IsMatchingType(realValue, defValue));
+    else
+        -- it is NOT optional so it cannot be null
+        errorFound = (realValue == nil) or (defValue ~= "any" and not self:IsMatchingType(realValue, defValue));
+    end
+
+    return errorFound;
+end
+
+function Core:ValidateFunctionCall(definition, errorMessage, ...)       
+    if (not definition) then
+        return ...;
+    end
+
+    local id = 1;
+    local realValue = (select(1, ...));
     local defValue;
+    local errorFound;
 
-    if (definition) then
-        local id = 1;
-        local realValue = (select(id, ...));
+    repeat
+        defValue = definition[id];
 
-        repeat
-            defValue = definition[id];
+        if (defValue:find("|")) then
 
-            if (defValue:find("|")) then
-                local foundMatch = false;
+            for _, defValue in helper:IterateArgs(strsplit("|", defValue)) do
+                defValue = string.gsub(defValue, "%s", "");
+                errorFound = self:ValidateValue(defValue, realValue, errorMessage);
 
-                -- TODO: Check for "table | string"
-                local defValues = ;
-
-                for _, defValue in defValue:split("|") do
-                    defValue = defValue:replace("%s")
+                if (not errorFound) then
+                    break;
                 end
-            end
-            
-            if (defValue) then
-                if (defValue:find("^\?")) then
-                    -- it's optional:
-                    defValue = defValue:sub(2, #defValue);
-                    errorFound = (realValue ~= nil) and (defValue ~= "any" and not self:IsMatchingType(realValue, defValue));
-                else
-                    errorFound = (realValue == nil) or (defValue ~= "any" and not self:IsMatchingType(realValue, defValue));
-                end
-            else
-                errorFound = true; 
-                defValue = "nil";
             end
 
             if (errorFound) then
-                errorMessage = string.format("%s (%s expected, got %s)", errorMessage, defValue, self:GetValueType(realValue));
-                errorMessage = errorMessage:gsub("##", "#" .. tostring(id));        
-                self:Error(errorMessage);
+                defValue = string.gsub(defValue, "%s", "");
+                defValue = string.gsub(defValue, "|", " or ");
             end
+        else
+            errorFound = self:ValidateValue(defValue, realValue, errorMessage);
+        end    
+        
+        if (errorFound) then
+            errorMessage = string.format("%s (%s expected, got %s)", errorMessage, defValue, self:GetValueType(realValue));
+            errorMessage = errorMessage:gsub("##", "#" .. tostring(id));        
+            self:Error(errorMessage);
+        end        
 
-            id = id + 1;
-            realValue = (select(id, ...));
+        id = id + 1;
+        realValue = (select(id, ...));
 
-        until (not definition[id]);
-    end
+    until (not definition[id]);
 
     return ...;
 end
@@ -1117,36 +1132,37 @@ function Core:IsMatchingType(value, expectedTypeName)
 
     -- check if basic type
     if (expectedTypeName == "table" or expectedTypeName == "number" or expectedTypeName == "function" 
-            or expectedTypeName == "boolean" or expectedTypeName == "string") then
-
+                                    or expectedTypeName == "boolean" or expectedTypeName == "string") then
         return (expectedTypeName == type(value));
+    end
 
-    elseif (value.GetObjectType) then
+    if (not (type(value) == "table" and value.GetObjectType)) then
+        return false;
+    end        
         
-        if (expectedTypeName == value:GetObjectType()) then
-            return true;
+    if (expectedTypeName == value:GetObjectType()) then
+        return true;
+    end
+
+    local controller = self:GetController(value, true);
+
+    while (value and controller) do
+
+        if (expectedTypeName == controller.EntityName) then
+            return true; -- Object or Widget matches!
         end
+            
+        -- check all interface types
+        for _, interface in ipairs(controller.Interfaces) do
+            local interfaceController = self:GetController(interface);
 
-        local controller = self:GetController(value, true);
-
-        while (value and controller) do
-
-            if (expectedTypeName == controller.EntityName) then
-                return true; -- Object or Widget matches!
+            if (expectedTypeName == interfaceController.EntityName) then
+                return true; -- interface name matches!
             end
-               
-            -- check all interface types
-            for _, interface in ipairs(controller.Interfaces) do
-                local interfaceController = self:GetController(interface);
+        end        
 
-                if (expectedTypeName == interfaceController.EntityName) then
-                    return true; -- interface name matches!
-                end
-            end        
-
-            value = controller.ParentClass;
-            controller = self:GetController(value, true); -- fail silently
-        end
+        value = controller.ParentClass;
+        controller = self:GetController(value, true); -- fail silently
     end
 
     return false;
