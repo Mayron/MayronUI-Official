@@ -565,6 +565,9 @@ function Core:CreateInstance(classController, ...)
                 if (proxyObject.Key == "GetFrame" and key ~= "GetFrame") then  
                     -- ProxyClass changed key to GetFrame during __index meta-method call              
                     local frame = value(); -- call the proxyObject.Run function here to get the frame
+
+                    Core:Assert(type(frame) == "table" and frame.GetObjectType, 
+                        "attempt to index %s.%s (a nil value) and no data.frame property was found.", classController.EntityName, key);
         
                     if (frame[key]) then
                         -- if the frame has the key we are trying to get...
@@ -1114,7 +1117,7 @@ function Core:Assert(condition, errorMessage, ...)
 
         if (self.silent) then
             self.errorLog = self.errorLog or {};
-            self.errorLog[#self.errorLog + 1] = pcall(function() error(Core.PREFIX .. errorMessage) end);
+            self.errorLog[#self.errorLog + 1] = pcall(function() error(self.PREFIX .. errorMessage) end);
         else
             error(self.PREFIX .. errorMessage);
         end
@@ -1221,7 +1224,7 @@ end
 
 function Package:CreateClass(data, className, parentClass, ...)
     Core:Assert(not data.entities[className], 
-        "Class '%s' already exists in this package.", entityName);
+        "Class '%s' already exists in this package.", className);
 
     local class = Core:CreateClass(self, data, className, parentClass, ...);
     self[className] = class;
