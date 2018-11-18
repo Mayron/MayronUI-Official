@@ -22,14 +22,14 @@ db:AddToDefaults("profile.datatext.memory", {
 local function CreateLabel(contentFrame, popupWidth)
     local label = tk:PopFrame("Frame", contentFrame);
 
-    label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    label.value = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");   
     label.name:SetPoint("LEFT", 6, 0);
     label.name:SetPoint("Right", 6, 0);
-
     label.name:SetWidth(popupWidth * 0.6);
     label.name:SetWordWrap(false);
-    label.name:SetJustifyH("LEFT");
+    label.name:SetJustifyH("LEFT");    
+
+    label.value = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     label.value:SetPoint("RIGHT", -10, 0);
     label.value:SetWidth(popupWidth * 0.4);
     label.value:SetWordWrap(false);
@@ -122,7 +122,7 @@ function Memory:Click(data)
     local sorted = {};    
 
     for i = 1, GetNumAddOns() do
-        local _, name = GetAddOnInfo(i);
+        local _, addOnName = GetAddOnInfo(i);
         local usage = GetAddOnMemoryUsage(i);
 
         if (usage > 1) then
@@ -140,7 +140,10 @@ function Memory:Click(data)
                 value = string.format("%skb", value);
             end
 
-            label.name:SetText(name);
+            addOnName = tk.Strings:RemoveColorCode(addOnName);        
+            addOnName = tk.Strings:SetOverflow(addOnName, 15);
+
+            label.name:SetText(addOnName);
             label.value:SetText(value);
             label.usage = usage;
         

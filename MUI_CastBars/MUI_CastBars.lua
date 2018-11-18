@@ -23,7 +23,7 @@ db:AddToDefaults("profile.castbars", {
         height = 27,
         showIcon = false,
         unlocked = false, -- make movable
-        frameStrata = "DIALOG",
+        frameStrata = "MEDIUM",
         frameLevel = 10
     },
     appearance = {
@@ -102,118 +102,119 @@ Ticks.data = {
 -- Events ---------------------
 local Events = {};
 
-function Events:MIRROR_TIMER_PAUSE(castBar, data, pauseDuration)
-    data.paused = pauseDuration > 0;
+function Events:MIRROR_TIMER_PAUSE(castBar, castBarData, pauseDuration)
+    castBarData.paused = pauseDuration > 0;
+    
     if (pauseDuration > 0) then
-        data.pauseDuration = pauseDuration;
+        castBarData.pauseDuration = pauseDuration;
     end
 end
 
-function Events:MIRROR_TIMER_START(castBar, data, ...)
+function Events:MIRROR_TIMER_START(castBar, castBarData, ...)
     local _, value, maxValue, step, pause, label = ...;
 
-    data.frame.statusbar:SetMinMaxValues(0, (maxValue / 1000));
-    data.frame.statusbar:SetValue((value / 1000));
-    data.paused = pause;
-    data.startTime = GetTime();
-    data.frame.name:SetText(label);
+    castBarData.frame.statusbar:SetMinMaxValues(0, (maxValue / 1000));
+    castBarData.frame.statusbar:SetValue((value / 1000));
+    castBarData.paused = pause;
+    castBarData.startTime = GetTime();
+    castBarData.frame.name:SetText(label);
 
     local c = appearance.colors.normal;
-    data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
-    tk.UIFrameFadeIn(data.frame, 0.1, data.frame:GetAlpha(), 1);
+    castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+    tk.UIFrameFadeIn(castBarData.frame, 0.1, castBarData.frame:GetAlpha(), 1);
 end
 
-function Events:MIRROR_TIMER_STOP(castBar, data)
-    data.paused = 0;
-    data.pauseDuration = nil;
-    data.fadingOut = true;
-    data.startTime = nil;
+function Events:MIRROR_TIMER_STOP(castBar, castBarData)
+    castBarData.paused = 0;
+    castBarData.pauseDuration = nil;
+    castBarData.fadingOut = true;
+    castBarData.startTime = nil;
 
-    tk.UIFrameFadeOut(data.frame, 1, data.frame:GetAlpha(), 0);
+    tk.UIFrameFadeOut(castBarData.frame, 1, castBarData.frame:GetAlpha(), 0);
 end
 
-function Events:UNIT_SPELLCAST_INTERRUPTED(castBar, data, ...)
-    data.frame.statusbar:SetValue(tk.select(2, data.frame.statusbar:GetMinMaxValues()))
+function Events:UNIT_SPELLCAST_INTERRUPTED(castBar, castBarData, ...)
+    castBarData.frame.statusbar:SetValue(tk.select(2, castBarData.frame.statusbar:GetMinMaxValues()))
     castBar:StopCasting();
     
 	local c = appearance.colors.interrupted;
-    data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+    castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
 end
 
-function Events:UNIT_SPELLCAST_INTERRUPTIBLE(castBar, data)
+function Events:UNIT_SPELLCAST_INTERRUPTIBLE(castBar, castBarData)
 	local c = appearance.colors.normal;
-    data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+    castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
 end
 
-function Events:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(castBar, data)
+function Events:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(castBar, castBarData)
 	local c = appearance.colors.interrupted;
-    data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+    castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
 end
 
-function Events:PLAYER_TARGET_CHANGED(castBar, data)
-	if (UnitExists(data.unitID) and tk.select(1, UnitCastingInfo(data.unitID))) then
-        if (UnitName(data.unitID) == data.unitName) then return end
+function Events:PLAYER_TARGET_CHANGED(castBar, castBarData)
+	if (UnitExists(castBarData.unitID) and tk.select(1, UnitCastingInfo(castBarData.unitID))) then
+        if (UnitName(castBarData.unitID) == castBarData.unitName) then return end
         
 		castBar:StopCasting();
         castBar:StartCasting();
         
-	elseif (data.frame:GetAlpha() > 0) then
+	elseif (castBarData.frame:GetAlpha() > 0) then
 		castBar:StopCasting();
-        data.frame:SetAlpha(0);
-        data.frame:Hide();
+        castBarData.frame:SetAlpha(0);
+        castBarData.frame:Hide();
 	end
 end
 
-function Events:UNIT_SPELLCAST_DELAYED(castBar, data)
-    local endTime = tk.select(6, UnitCastingInfo(data.unitID));
+function Events:UNIT_SPELLCAST_DELAYED(castBar, castBarData)
+    local endTime = tk.select(6, UnitCastingInfo(castBarData.unitID));
     
-	if (not endTime or not data.startTime) then
-		castBar:UNIT_SPELLCAST_INTERRUPTED(data);
+	if (not endTime or not castBarData.startTime) then
+		self:UNIT_SPELLCAST_INTERRUPTED(castBar, castBarData);
 		return;
     end
     
 	endTime = endTime / 1000;
-    data.frame.statusbar:SetMinMaxValues(0, endTime - data.startTime);
+    castBarData.frame.statusbar:SetMinMaxValues(0, endTime - castBarData.startTime);
 end
 
-function Events:UNIT_SPELLCAST_START(castBar, data, unitID)
-	if (unitID ~= data.unitID) then return end
+function Events:UNIT_SPELLCAST_START(castBar, castBarData, unitID)
+	if (unitID ~= castBarData.unitID) then return end
 	castBar:StartCasting();
 end
 
-function Events:UNIT_SPELLCAST_CHANNEL_START(castBar, data, unitID)
-    if (unitID ~= data.unitID) then return end
+function Events:UNIT_SPELLCAST_CHANNEL_START(castBar, castBarData, unitID)
+    if (unitID ~= castBarData.unitID) then return end
     castBar:StartCasting(true);
 end
 
-function Events:UNIT_SPELLCAST_CHANNEL_STOP(castBar, data)
-    data.frame.statusbar:SetValue(tk.select(2, data.frame.statusbar:GetMinMaxValues()));
+function Events:UNIT_SPELLCAST_CHANNEL_STOP(castBar, castBarData)
+    castBarData.frame.statusbar:SetValue(tk.select(2, castBarData.frame.statusbar:GetMinMaxValues()));
 
-    if (data.frame.statusbar:GetValue() > 0.1) then
-        castBar:UNIT_SPELLCAST_CHANNEL_UPDATE(data);
+    if (castBarData.frame.statusbar:GetValue() > 0.1) then
+        self:UNIT_SPELLCAST_CHANNEL_UPDATE(castBar, castBarData);
     else
         castBar:StopCasting();
     end
 end
 
-function Events:UNIT_SPELLCAST_CHANNEL_UPDATE(castBar, data)
-    local endTime = tk.select(6, UnitChannelInfo(data.unitID));
+function Events:UNIT_SPELLCAST_CHANNEL_UPDATE(castBar, castBarData)
+    local endTime = tk.select(6, UnitChannelInfo(castBarData.unitID));
 
-    if (not endTime or not data.startTime) then
+    if (not endTime or not castBarData.startTime) then
         castBar:StopCasting();
 
         local c = appearance.colors.interrupted;
-        data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+        castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
 
         return;
     end
 
     endTime = endTime / 1000;
-    data.frame.statusbar:SetMinMaxValues(0, endTime - data.startTime);
+    castBarData.frame.statusbar:SetMinMaxValues(0, endTime - castBarData.startTime);
 end
 
-function Events:UNIT_SPELLCAST_SENT(castBar, data)
-    data.latency = GetTime();
+function Events:UNIT_SPELLCAST_SENT(castBar, castBarData)
+    castBarData.latency = GetTime();
 end
 
 -- CastBarClass ----------------------

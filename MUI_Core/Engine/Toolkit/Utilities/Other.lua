@@ -150,7 +150,7 @@ function tk:IsPlayerMaxLevel()
 end 
 
 local errorInfo = {};
-errorInfo.PREFIX = "|cffffcc00MayronUI: |r";
+errorInfo.PREFIX = "|cff00ccffMayronUI: |r";
 
 -- @param silent (boolean) - true if errors should be cause in the error log instead of triggering.
 function tk:SetSilentErrors(silent)
@@ -182,7 +182,7 @@ function tk:Assert(condition, errorMessage, ...)
         errorMessage = string.format(errorMessage, ...);
     end     
     
-    local fullError = tk.Strings.Join(tk.Strings.Empty, errorInfo.PREFIX, errorMessage);
+    local fullError = tk.Strings:Join(tk.Strings.Empty, errorInfo.PREFIX, errorMessage);
 
     if (errorInfo.silent) then
         errorInfo.errorLog = errorInfo.errorLog or {};

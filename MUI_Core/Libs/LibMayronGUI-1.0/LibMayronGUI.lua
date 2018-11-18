@@ -17,13 +17,13 @@ Private.LinkedList = obj:Import("Framework.System.Collections.LinkedList");
 -----------------------------
 -----------------------------
 
-function Private:ToolTip_OnEnter(frame)
+function Private.ToolTip_OnEnter(frame)
     GameTooltip:SetOwner(frame, "ANCHOR_TOP", 0, 2);
     GameTooltip:AddLine(frame.tooltip);
     GameTooltip:Show();
 end
 
-function Private:ToolTip_OnLeave(frame)
+function Private.ToolTip_OnLeave(frame)
     GameTooltip:Hide();
 end
 
@@ -236,6 +236,20 @@ function Private:MakeMovable(frame, dragger, movable)
     end);
 end
 
+function Private:MakeResizable(frame, dragger)
+    dragger = dragger or frame;
+    frame:SetResizable(true);
+    dragger:RegisterForDrag("LeftButton");
+
+    dragger:HookScript("OnDragStart", function()
+        frame:StartSizing();
+    end);
+
+    dragger:HookScript("OnDragStop", function()
+        frame:StopMovingOrSizing();
+    end);
+end
+
 function Private:SetFullWidth(frame, rightPadding)
     rightPadding = rightPadding or 0;
 
@@ -272,11 +286,6 @@ do
     function Private:HideLayers(frame, value)
         local layerTypes = {};
 
-        -- Empty Table:
-        for key, _ in pairs(self.LayerTypes) do
-            tbl[key] = nil;
-        end
-
         if (bit.band(value, self.LayerTypes.BACKGROUND) ~= 0) then
             table.insert(layerTypes, "BACKGROUND");
         end
@@ -304,7 +313,7 @@ do
         for layer = 1, (#layers) do
 
             for regionIndex = 1, frame:GetNumRegions() do                
-                local region = tk.select(regionIndex, frame:GetRegions());
+                local region = select(regionIndex, frame:GetRegions());
 
                 if (not region) then 
                     return; 

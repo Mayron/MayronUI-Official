@@ -3,5 +3,6 @@
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
 
-Core.lua
-Config.lua
+MUI_Config.lua
+ConfigData.lua
+Widgets.lua

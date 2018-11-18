@@ -225,6 +225,7 @@ end
 
 function MayronUI:ImportModule(moduleName)
     local registryInfo = registeredModules[moduleName];
+    obj:Assert(registryInfo, "Failed to import unknown module '%s'.", moduleName);
     return registryInfo and registryInfo.instance;
 end
 
@@ -384,6 +385,7 @@ db:OnStartUp(function(self)
     tk.Constants.AddOnStyle:SetTexture(tk.Constants.MEDIA.."dialog_box\\Texture-", "DialogBoxBackground");
     tk.Constants.AddOnStyle:SetTexture(tk.Constants.MEDIA.."dialog_box\\TitleBar", "TitleBarBackground");
     tk.Constants.AddOnStyle:SetTexture(tk.Constants.MEDIA.."dialog_box\\CloseButton", "CloseButtonBackground");
+    tk.Constants.AddOnStyle:SetTexture(tk.Constants.MEDIA.."dialog_box\\DragRegion", "DraggerTexture");
     tk.Constants.AddOnStyle:SetColor(r, g, b);
 
     -- Load Media using LibSharedMedia --------------

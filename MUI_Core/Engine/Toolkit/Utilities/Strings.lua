@@ -29,6 +29,19 @@ function tk.Strings:Contains(fullString, subString)
     end
 end
 
+function tk.Strings:SetOverflow(str, maxChars)
+    if (#str > maxChars) then
+        str = string.sub(str, 1, maxChars);
+        str = string.join(self.Empty, str, "...");
+    end
+
+    return str;
+end
+
+function tk.Strings:RemoveColorCode(str)
+    return string.gsub(str, "^|c" .. ('%w'):rep(8) .. "(.-)|r(.*)", "%1%2")
+end
+
 -- adds comma's to big numbers for easy readability for the player
 function tk.Strings:FormatReadableNumber(number)
     number = tostring(number);
@@ -62,13 +75,15 @@ function tk.Strings:GetClassColoredText(className, text)
 end
 
 function tk.Strings:Concat(...) 
-    local wrapper = tk:PopWrapper(...);
+    local wrapper = tk.Tables:PopWrapper(...);
     local value = table.concat(wrapper, tk.Strings.Empty);
-    tk:PushWrapper(wrapper);
+    tk.Tables:PushWrapper(wrapper);
+    return value;
 end
 
 function tk.Strings:Join(separator, ...)
-    local wrapper = tk:PopWrapper(...);
+    local wrapper = tk.Tables:PopWrapper(...);
     local value = table.concat(wrapper, separator);
-    tk:PushWrapper(wrapper);
+    tk.Tables:PushWrapper(wrapper);
+    return value;
 end

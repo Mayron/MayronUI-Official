@@ -258,7 +258,7 @@ function ActionBarPanelClass:PositionBartenderBars(data)
         local dataTextModule = MayronUI:ImportModule("DataText");        
 
         if (dataTextModule and dataTextModule:IsShown()) then
-            local bar = dataTextModule:GetFrame();
+            local bar = dataTextModule:GetDataTextBar();
             height = height + ((bar and bar:GetHeight()) or 0);
         end                
 

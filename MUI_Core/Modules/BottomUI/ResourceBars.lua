@@ -27,8 +27,6 @@ local ResourceBarClass = BottomUIPackage:CreateClass("ResourceBar", "Framework.S
 -- Register and Import Modules -----------
 
 local ResourceBarsClass = MayronUI:RegisterModule("BottomUI_ResourceBars", true);
-
-local dataTextModule = MayronUI:ImportModule("BottomUI_DataText");
 local containerModule = MayronUI:ImportModule("BottomUI_Container");
 
 -- Load Database Defaults ----------------
@@ -343,9 +341,11 @@ function ResourceBarsClass:OnEnable(data)
 
     self:UpdateContainer();
 
-    if (dataTextModule and db.profile.datatext.combatBlock) then
-        self:CreateBlocker();
-    end
+    MayronUI:Hook("DataText", "OnEnable", function(_, dataTextModuleData)
+        if (db.profile.datatext.blockInCombat) then
+            self:CreateBlocker(dataTextModuleData.sv, dataTextModuleData.bar);
+        end
+    end);
 end
 
 function ResourceBarsClass:UpdateContainer(data)
@@ -394,19 +394,19 @@ function ResourceBarsClass:GetBar(data, barName)
     return data.bars[barName];
 end
 
-function ResourceBarsClass:CreateBlocker(data)
+function ResourceBarsClass:CreateBlocker(data, dataTextSvTable, dataTextBar)
     if (not data.blocker) then
-        data.blocker = tk:PopFrame("Frame", data.barsContainer);
 
+        data.blocker = tk:PopFrame("Frame", data.barsContainer);
         data.blocker:SetPoint("TOPLEFT");
-        data.blocker:SetPoint("BOTTOMRIGHT", dataTextModule.bar, "BOTTOMRIGHT");
+        data.blocker:SetPoint("BOTTOMRIGHT", dataTextBar, "BOTTOMRIGHT");
         data.blocker:EnableMouse(true);
         data.blocker:SetFrameStrata("DIALOG");
         data.blocker:SetFrameLevel(20);
         data.blocker:Hide();
 
         em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-            if (not dataTextModule.sv.combat_block) then return; end
+            if (not dataTextSvTable.blockInCombat) then return; end
             data.blocker:Show();
         end);
 

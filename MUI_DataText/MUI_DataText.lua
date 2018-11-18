@@ -22,7 +22,7 @@ db:AddToDefaults("profile.datatext", {
     height = 24, -- height of data bar (width is the size of bottomUI container!)
     spacing = 1,
     fontSize = 11,
-    combatBlock = true,	
+    blockInCombat = true,
 	popup = {
 		hideInCombat = true,
 		maxHeight = 250,
@@ -154,7 +154,7 @@ function DataText:OnConfigUpdate(data, list, value)
         elseif (key == "spacing") then
             self:PositionDataItems();
 
-        elseif (key == "combat_block") then
+        elseif (key == "blockInCombat") then
             if (data.blocker and not value) then
                 data.blocker:Hide();
 
@@ -444,6 +444,6 @@ function DataText:IsShown(data)
 end
 
 Engine:DefineReturns("Frame");
-function DataText:GetFrame(data)    
+function DataText:GetDataTextBar(data)    
     return data.bar;
 end

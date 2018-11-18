@@ -67,16 +67,16 @@ local function AttachShadowedUnitFrames(rightPanel)
     SUF["relativePoint"] = "TOP"; SUF["x"] = 0; SUF["y"] = -40;
 
     if (SUFUnitplayer) then
-        SUFUnitplayer:SetFrameStrata("HIGH");
+        SUFUnitplayer:SetFrameStrata("MEDIUM");
     end
 
     if (SUFUnittarget) then
-        SUFUnittarget:SetFrameStrata("HIGH");
+        SUFUnittarget:SetFrameStrata("MEDIUM");
         rightPanel:SetFrameStrata("LOW");
     end
 
     if (SUFUnittargettarget) then
-        SUFUnittargettarget:SetFrameStrata("HIGH");
+        SUFUnittargettarget:SetFrameStrata("MEDIUM");
     end
 
     ShadowUF.Layout:Reload();

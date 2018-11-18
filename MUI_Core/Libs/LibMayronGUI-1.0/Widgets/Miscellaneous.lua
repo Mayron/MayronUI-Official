@@ -188,8 +188,8 @@ do
 end
 
 function Lib:AddResizer(style, frame)
-    local normalTexture = style:GetTexture("NormalTexture");
-    local highlightTexture = style:GetTexture("HighlightTexture");
+    local normalTexture = style:GetTexture("DraggerTexture");
+    local highlightTexture = style:GetTexture("DraggerTexture");
 
     frame.dragger = CreateFrame("Button", nil, frame);
     frame.dragger:SetSize(28, 28);
@@ -199,8 +199,8 @@ function Lib:AddResizer(style, frame)
     frame.dragger:SetHighlightTexture(highlightTexture, "ADD");
 
     Private:MakeResizable(frame, frame.dragger);
-    style:ApplyColor(nil, nil, normalTexture);
-    style:ApplyColor(nil, nil, highlightTexture);
+    style:ApplyColor(nil, nil, frame.dragger:GetNormalTexture());
+    style:ApplyColor(nil, nil, frame.dragger:GetHighlightTexture());
     
 end
 

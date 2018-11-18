@@ -7,48 +7,82 @@ local Private = Lib.Private;
 local TextField = WidgetsPackage:CreateClass("TextField", Private.FrameWrapper);
 ------------------------------------
 
-local OnEscapePressed = function(self)
-    self:ClearFocus();
+function Lib:CreateTextField(style, tooltip)
+    return TextField(style, tooltip);
 end
 
 local function OnEnable(self)
-    local container = self:GetParent();
-    container:SetBackdropBorderColor(self.r, self.g, self.b, 0.8);
+    local frame = self:GetParent();
+    frame:SetBackdropBorderColor(self.themeColor.r, self.themeColor.g, self.themeColor.b, 0.8);
     self:SetAlpha(1);
 end
 
 local function OnDisable(self)
-    local container = self:GetParent();
-    container:SetBackdropBorderColor(0.5, 0.5, 0.5, 0.8);
+    local frame = self:GetParent();
+    frame:SetBackdropBorderColor(0.5, 0.5, 0.5, 0.8);
     self:SetAlpha(0.4);
 end
 
-function TextField:__Construct(data, tooltip, style)
-    local r, g, b = style:GetThemeColor();
+function TextField:__Construct(data, style, tooltip)
+    local r, g, b = style:GetColor();
     local backdrop = style:GetBackdrop();
-    local container = CreateFrame("Frame");
+    data.frame = CreateFrame("Frame");
 
-    container:SetBackdrop(backdrop);
-    container:SetBackdropBorderColor(r, g, b, 0.8);
+    data.frame:SetBackdrop(backdrop);
+    data.frame:SetBackdropBorderColor(r, g, b, 0.8);
 
-    Private:SetBackground(container, 0, 0, 0, 0.2);
-    Private:HideLayers(container.field, Private.LayerTypes.BACKGROUND);
+    Private:SetBackground(data.frame, 0, 0, 0, 0.2);
+    
+    data.editBox = CreateFrame("EditBox", nil, data.frame, "InputBoxTemplate");
+    data.editBox:SetPoint("TOPLEFT", data.frame, "TOPLEFT", 5, 0);
+    data.editBox:SetPoint("BOTTOMRIGHT", data.frame, "BOTTOMRIGHT", -5, 0);
+    data.editBox:SetAutoFocus(false); 
 
-    container.field = CreateFrame("EditBox", nil, container, "InputBoxTemplate");
-    container.field:SetPoint("TOPLEFT", container, "TOPLEFT", 5, 0);
-    container.field:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", -5, 0);
-    container.field:SetAutoFocus(false);      
-    container.field:SetScript("OnEscapePressed", OnEscapePressed);
-    container.field:SetScript("OnEnable", OnEnable);
-    container.field:SetScript("OnDisable", OnDisable);
+    data.editBox:SetScript("OnEscapePressed", function()
+        data.editBox:ClearFocus();        
+        self:ApplyPreviousText();    
+    end);
 
-    container.field.ThemeColor = {r, g, b}
+    data.editBox:SetScript("OnEnable", OnEnable);
+    data.editBox:SetScript("OnDisable", OnDisable);    
+    
+    Private:HideLayers(data.editBox, Private.LayerTypes.BACKGROUND);
+
+    data.editBox.themeColor = {r, g, b};
 
     if (tooltip) then
-        container.field.tooltip = tooltip;
-        container.field:SetScript("OnEnter", Private.ToolTip_OnEnter);
-        container.field:SetScript("OnLeave", Private.ToolTip_OnLeave);
+        data.editBox.tooltip = tooltip;
+        data.editBox:SetScript("OnEnter", Private.ToolTip_OnEnter);
+        data.editBox:SetScript("OnLeave", Private.ToolTip_OnLeave);
     end
+end
 
-    return container;
+function TextField:SetText(data, text)
+    data.previousText = data.editBox:GetText();
+    data.editBox:SetText(text);
+end
+
+function TextField:GetText(data)
+    return data.editBox:GetText();
+end
+
+function TextField:GetPreviousText(data)
+    return data.previousText;
+end
+
+function TextField:ApplyPreviousText(data)
+    local currentText = data.editBox:GetText();
+    data.editBox:SetText(data.previousText);
+    data.previousText = currentText;
+end
+
+function TextField:GetEditBox(data)
+    return data.editBox;
+end
+
+function TextField:OnTextChanged(data, callback)
+    data.editBox:SetScript("OnEnterPressed", function()
+        data.editBox:ClearFocus();
+        callback(self, data.editBox:GetText(), data.previousText);
+    end);
 end

@@ -458,7 +458,7 @@ function Core:CreateClass(package, packageData, className, parentClass, ...)
                 end
             end
 
-            if (value == nil and class.GetFrame and key ~= "GetFrame") then
+            if (value == nil and classController.EntityName == "FrameWrapper" and key ~= "GetFrame") then
                 -- note: cannot check if frame has key here...
                 -- if value is still not found and object has a GetFrame method (usually
                 -- from inheriting FrameWrapper) then index the frame

@@ -39,7 +39,7 @@ function ConfigModule:GetConfigData()
             {   name = L["Master Font"],
                 type = "dropdown",
                 options = tk.Constants.LSM:List("font"),
-                dbPath = "core.font",
+                dbPath = "global.core.font",
                 requiresRestart = true,
                 fontPicker = true,
             },
@@ -800,5 +800,5 @@ function ConfigModule:GetConfigData()
                 },
             }
         }
-    );
+    };
 end
