@@ -59,25 +59,30 @@ db:AddToDefaults("profile.theme", {
 
 commands = {
     ["config"] = function()
-        if (not tk.IsAddOnLoaded("MUI_Config")) then
+        if (not IsAddOnLoaded("MUI_Config")) then
             EnableAddOn("MUI_Config");
 
-            if (not tk.LoadAddOn("MUI_Config")) then
+            if (not LoadAddOn("MUI_Config")) then
                 tk:Print(L["Failed to load MUI_Config. Possibly missing?"]);
                 return;
             end
-
-            MayronUI:ImportModule("Config"):Initialize(); -- need to change this
+        end
+            
+        local module = MayronUI:ImportModule("Config");  
+        
+        if (not module:IsInitialized()) then
+            module:Initialize();
         end
 
-        MayronUI:ImportModule("Config"):Show();
+        module:Show();
 	end,
 	["install"] = function()
-        if (not tk.IsAddOnLoaded("MUI_Setup")) then
-            local success = tk.LoadAddOn("MUI_Setup");
+        if (not IsAddOnLoaded("MUI_Setup")) then
+            EnableAddOn("MUI_Setup");
 
-            if (not success) then 
-                return; 
+            if (not LoadAddOn("MUI_Setup")) then
+                tk:Print(L["Failed to load MUI_Setup. Possibly missing?"]);
+                return;
             end
         end
 

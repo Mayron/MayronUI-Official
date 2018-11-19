@@ -11,8 +11,8 @@ namespace.WidgetHandlers = WidgetHandlers;
 --------------
 WidgetHandlers.submenu = {};
 
-function WidgetHandlers.submenu:Run(data, configTable, value)
-    local btn = tk.CreateFrame("Button", nil, data.parent);
+function WidgetHandlers.submenu:Run(parent, configTable, value)
+    local btn = tk.CreateFrame("Button", nil, parent);
     btn:SetSize(250, 60);
 
     btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -44,27 +44,26 @@ end
 ---------------------
 WidgetHandlers.loop = {};
 
-function WidgetHandlers.loop:Run(data, configTable, value)
-    self.data = self.data or {};
-    tk:EmptyTable(self.data);
+function WidgetHandlers.loop:Run(parent, configTable, value)
+    local loopContent = tk.Tables:PopWrapper();
 
     if (configTable.loops) then
         for id = 1, configTable.loops do
-            self.data[id] = configTable.func(id);
+            loopContent[id] = configTable.func(id);
         end
 
     elseif (configTable.args) then
-        for id, data in tk.ipairs(configTable.args) do
+        for id, arg in tk.ipairs(configTable.args) do
             -- func returns the children data to be loaded
-            if (tk.type(data) == "table" and not data.GetObjectType) then
-                self.data[id] = configTable.func(id, tk.unpack(data));
+            if (tk.type(parent) == "table" and not parent.GetObjectType) then
+                loopContent[id] = configTable.func(id, tk.unpack(arg));
             else
-                self.data[id] = configTable.func(id, data);
+                loopContent[id] = configTable.func(id, arg);
             end
         end
     end
 
-    return self.data;
+    return loopContent;
 end
 
 ------------------
@@ -97,9 +96,9 @@ end
 ----------------
 WidgetHandlers.title = {};
 
-function WidgetHandlers.title:Run(data, configTable, value)
+function WidgetHandlers.title:Run(parent, configTable, value)
     local height = 20 + (configTable.padding_top or 10) + (configTable.padding_bottom or 10);
-    local f = tk:PopFrame("Frame", data.parent);
+    local f = tk:PopFrame("Frame", parent);
 
     f.text = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     f.text:SetText(configTable.name);
@@ -237,8 +236,11 @@ local function ShowColorPicker(r, g, b, a, changedCallback)
     ColorPickerFrame:SetColorRGB(r, g, b);
     ColorPickerFrame.hasOpacity, ColorPickerFrame.opacity = (a ~= nil), a;
     ColorPickerFrame.previousValues = {r, g, b, a};
-    ColorPickerFrame.func, ColorPickerFrame.opacityFunc, ColorPickerFrame.cancelFunc =
-    changedCallback, changedCallback, changedCallback;
+
+    ColorPickerFrame.func = changedCallback;
+    ColorPickerFrame.opacityFunc = changedCallback;
+    ColorPickerFrame.cancelFunc = changedCallback;
+
     ColorPickerFrame:Hide(); -- Need to run the OnShow handler.
     ColorPickerFrame:Show();
 end
