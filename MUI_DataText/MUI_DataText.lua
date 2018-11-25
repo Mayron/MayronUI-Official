@@ -11,7 +11,7 @@ local SlideController = obj:Import("MayronUI.Widgets.SlideController");
 
 -- Register Modules --------------------
 
-local DataText = MayronUI:RegisterModule("DataText");
+local DataTextModuleClass = MayronUI:RegisterModule("DataText");
 
 -- Load Database Defaults --------------
 
@@ -31,9 +31,9 @@ db:AddToDefaults("profile.datatext", {
     }
 });
 
--- DataText Functions -------------------
+-- DataTextModuleClass Functions -------------------
 
-function DataText:OnInitialize(data)
+function DataTextModuleClass:OnInitialize(data)
     data.sv = db.profile.datatext; -- database saved variables table
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
@@ -45,7 +45,7 @@ function DataText:OnInitialize(data)
     end    
 end
 
-function DataText:OnEnable(data)
+function DataTextModuleClass:OnEnable(data)
     -- the main bar containing all data text buttons
     data.bar = tk:PopFrame("Frame", data.buiContainer);
     data.bar:SetHeight(data.sv.height);
@@ -104,7 +104,7 @@ function DataText:OnEnable(data)
     data.slideController = SlideController(data.popup);
 end
 
-function DataText:OnConfigUpdate(data, list, value)
+function DataTextModuleClass:OnConfigUpdate(data, list, value)
     local key = list:PopFront();
 
     if (key == "profile" and list:PopFront() == "datatext") then
@@ -177,7 +177,7 @@ function DataText:OnConfigUpdate(data, list, value)
 end
 
 Engine:DefineParams("IDataTextModule");
-function DataText:RegisterDataModule(data, dataModule)
+function DataTextModuleClass:RegisterDataModule(data, dataModule)
     local dataModuleName = dataModule:GetObjectType(); -- get's name of object/module
     data.DataModules[dataModuleName] = dataModule;
     
@@ -193,7 +193,7 @@ end
 
 Engine:DefineParams("IDataTextModule", "?string");
 Engine:DefineReturns("Button");
-function DataText:CreateDataTextButton(data, dataModule, btnText)
+function DataTextModuleClass:CreateDataTextButton(data, dataModule, btnText)
     local btn = CreateFrame("Button");
     btn:SetNormalTexture(tk.Constants.MEDIA.."mui_bar");
     btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
@@ -210,7 +210,7 @@ function DataText:CreateDataTextButton(data, dataModule, btnText)
     return btn;
 end
 
-function DataText:PositionDataItems(data)
+function DataTextModuleClass:PositionDataItems(data)
     local flatOrdering = {};
     local ordering = {};   
 
@@ -268,7 +268,7 @@ end
 
 Engine:DefineParams("Frame");
 -- Attach current dataTextModule scroll child onto shared popup and hide previous scroll child
-function DataText:ChangeMenuContent(data, content)
+function DataTextModuleClass:ChangeMenuContent(data, content)
     local oldContent = data.popup:GetScrollChild();
 
     if (oldContent) then 
@@ -284,7 +284,7 @@ function DataText:ChangeMenuContent(data, content)
 end
 
 Engine:DefineParams("table");
-function DataText:ClearLabels(data, labels)
+function DataTextModuleClass:ClearLabels(data, labels)
     if (not labels) then 
         return; 
     end
@@ -303,7 +303,7 @@ Engine:DefineParams("IDataTextModule");
 Engine:DefineReturns("number");
 -- returned the total height of all labels
 -- total height is used to controll the dynamic scrollbar
-function DataText:PositionLabels(data, dataModule)    
+function DataTextModuleClass:PositionLabels(data, dataModule)    
     local totalLabelsShown = dataModule.TotalLabelsShown;
     local labelHeight = data.sv.popup.itemHeight;
 
@@ -361,7 +361,7 @@ function DataText:PositionLabels(data, dataModule)
 end
 
 Engine:DefineParams("IDataTextModule", "Button");
-function DataText:ClickModuleButton(data, dataModule, dataTextButton, button, ...)
+function DataTextModuleClass:ClickModuleButton(data, dataModule, dataTextButton, button, ...)
     GameTooltip:Hide();
     dataModule:Update(data);
     data.slideController:Stop();
@@ -434,16 +434,16 @@ function DataText:ClickModuleButton(data, dataModule, dataTextButton, button, ..
 end
 
 Engine:DefineParams("string");
-function DataText:ForceUpdate(data, dataModuleName)    
+function DataTextModuleClass:ForceUpdate(data, dataModuleName)    
     data.DataModules[dataModuleName]:Update();
 end
 
 Engine:DefineReturns("boolean");
-function DataText:IsShown(data)    
+function DataTextModuleClass:IsShown(data)    
     return (data.bar and data.bar:IsShown()) or false;
 end
 
 Engine:DefineReturns("Frame");
-function DataText:GetDataTextBar(data)    
+function DataTextModuleClass:GetDataTextBar(data)    
     return data.bar;
 end

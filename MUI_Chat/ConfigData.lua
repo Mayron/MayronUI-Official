@@ -18,13 +18,13 @@ chatModule.ConfigData =
         },
         {   name = L["Y-Offset"],
             type = "textfield",
-            value_type = "number",
+            valueType = "number",
             tooltip = "Set the vertical positioning of the edit box.\n\nDefault is -8.",
             dbPath = "profile.chat.edit_box.yOffset"
         },
         {   name = L["Height"],
             type = "textfield",
-            value_type = "number",
+            valueType = "number",
             tooltip = "The height of the edit box.\n\nDefault is 27.",
             dbPath = "profile.chat.edit_box.height"
         },
@@ -44,13 +44,13 @@ chatModule.ConfigData =
         },
         {   name = L["Border Size"],
             type = "textfield",
-            value_type = "number",
+            valueType = "number",
             tooltip = L["Set the border size.\n\nDefault is 1."],
             dbPath = "profile.chat.edit_box.border_size"
         },
         {   name = L["Backdrop Inset"],
             type = "textfield",
-            value_type = "number",
+            valueType = "number",
             tooltip = L["Set the spacing between the background and the border.\n\nDefault is 0."],
             dbPath = "profile.chat.edit_box.inset"
         },

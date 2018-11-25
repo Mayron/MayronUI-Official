@@ -188,7 +188,7 @@ function Node:Destroy()
         self.linkedListData.front = next;
     end
 
-    self.linkedListData.size = (self.list.size or 0) - 1;
+    self.linkedListData.size = (self.linkedListData.size or 0) - 1;
 end
 
 function Node:new(linkedList, value)    

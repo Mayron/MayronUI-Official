@@ -30,10 +30,17 @@ local function MenuButton_OnClick(menuButton)
         menuButton:SetChecked(true);
         return;
     end
-
+    
     local configModule = MayronUI:ImportModule("Config");
-    configModule:OpenMenu(menuButton.module:GetModuleName());    
+    configModule:OpenMenu(menuButton.module:GetModuleName());
 end
+
+local function SubMenuButton_OnClick(subMenuButton)
+    local configModule = MayronUI:ImportModule("Config");
+    configModule:OpenMenu(subMenuButton.moduleName, subMenuButton);
+end
+
+namespace.SubMenuButton_OnClick = SubMenuButton_OnClick;
 
 -- ConfigModule -------------------
 
@@ -44,7 +51,6 @@ function ConfigModule:OnInitialize(data)
     end
 
     data.configData = {}; 
-    data.selectedMenuConfigTable = {};
 end
 
 function ConfigModule:Show(data)
@@ -79,20 +85,6 @@ function ConfigModule:GetDatabasePathInfo(data, dbPath, settingName)
     else
         return rootTable, dbPath;
     end
-end
-
-Engine:DefineParams("string");
-function ConfigModule:OpenMenu(data, moduleName)
-    local menuButton = data.window.menuButtons[moduleName];
-
-    -- change window back button state
-    data.history:Clear();
-    data.windowName:SetText("");
-    data.window.back:SetEnabled(false);
-
-    self:SetSelectedMenu(menuButton);
-
-    PlaySound(tk.Constants.CLICK);
 end
 
 Engine:DefineParams("table");
@@ -157,9 +149,10 @@ function ConfigModule:SetDatabaseValue(data, widget, configTable, value)
     if (configTable.module) then
         module = MayronUI:ImportModule(configTable.module);
 
-    elseif (data.selectedMenuConfigTable.module) then
-        -- use the module specified in the module's config data
-        module = MayronUI:ImportModule(data.selectedMenuConfigTable.module);
+        --TODO: This should use the main config table's module name, rather than the widget config table's module key/name
+    -- elseif (data.selectedMenuConfigTable.module) then
+    --     -- use the module specified in the module's config data
+    --     module = MayronUI:ImportModule(data.selectedMenuConfigTable.module);
     end    
 
     if (module.OnConfigUpdate) then
@@ -168,6 +161,94 @@ function ConfigModule:SetDatabaseValue(data, widget, configTable, value)
         -- Trigger OnConfigUpdate here!
         module:OnConfigUpdate(list, value);
     end
+end
+
+Engine:DefineParams("string", "?Button");
+function ConfigModule:OpenMenu(data, moduleName, subMenuButton) 
+    local menuButton;
+
+    if (not subMenuButton) then
+        menuButton = data.menuButtons[moduleName];
+
+        data.history:Clear();
+        data.windowName:SetText(tk.Strings.Empty);
+        data.window.back:SetEnabled(false);        
+    else
+        menuButton = subMenuButton;
+
+        data.history:AddToBack(data.selectedButton);
+        data.windowName:SetText(subMenuButton.text:GetText());
+        data.window.back:SetEnabled(true);
+    end
+
+    self:SetSelectedButton(menuButton);
+    PlaySound(tk.Constants.CLICK);
+end
+
+Engine:DefineParams("CheckButton|Button");
+function ConfigModule:SetSelectedButton(data, menuButton)
+    if (data.selectedButton) then
+        -- hide old menu
+        data.selectedButton.menu:Hide();
+    end
+
+    menuButton.menu = menuButton.menu or self:CreateMenu();
+    data.selectedButton = menuButton;
+
+    if (menuButton.module and menuButton.module.ConfigData) then
+        -- use config data to render widgets and then remove config data
+        self:RenderSelectedMenu(menuButton.module.ConfigData);
+        menuButton.module.ConfigData = nil;
+
+    elseif (menuButton.configTable) then
+        -- it is a sub-menu!
+        self:RenderSelectedMenu(menuButton.configTable);
+        menuButton.configTable = nil;        
+    end
+
+    -- todo: Might need this?
+    -- module.menu = data.selectedMenu:GetFrame();
+
+    -- fade menu in...
+    data.selectedButton.menu:Show();    
+    UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);    
+end
+
+Engine:DefineParams("table");
+function ConfigModule:RenderSelectedMenu(data, menuConfigTable)
+    if (not (menuConfigTable and type(menuConfigTable.children) == "table")) then return end
+
+    data.inherit = menuConfigTable.inherit;
+
+    for _, widgetConfigTable in pairs(menuConfigTable.children) do
+
+        if (widgetConfigTable.type == "loop") then
+            -- repeat the same configTable setup multiple times but with different parameters
+            local value = self:GetDatabaseValue(widgetConfigTable);
+
+            local widgetData = namespace.WidgetHandlers.loop:Run(
+                data.selectedButton.menu:GetFrame(), widgetConfigTable, value);
+
+            for _, widgetConfigTable in ipairs(widgetData) do
+                data.selectedButton.menu:AddChildren(self:SetUpWidget(widgetConfigTable));
+            end
+
+            tk.Tables:PushWrapper(widgetData);
+        else
+            data.selectedButton.menu:AddChildren(self:SetUpWidget(widgetConfigTable));
+        end
+    end
+    
+    if (data.groups) then
+        for _, group in ipairs(data.groups) do
+            tk:GroupCheckButtons(unpack(group));
+        end
+    end
+        
+    data.groups = nil;
+    data.inherit = nil;
+
+    collectgarbage("collect");
 end
 
 Engine:DefineReturns("DynamicFrame");
@@ -183,70 +264,6 @@ function ConfigModule:CreateMenu(data)
     menuScrollFrame:SetAllPoints(true); -- TODO is this needed?
 
     return menu;
-end
-
-Engine:DefineParams("BaseModule");
-function ConfigModule:RenderSelectedMenu(data, module)
-    local moduleConfigTable = module.ConfigData;
-
-    if (not (moduleConfigTable and type(moduleConfigTable.children) == "table")) then return end
-
-    module.menu = data.selectedMenu:GetFrame();
-
-    for _, widgetConfigTable in pairs(moduleConfigTable.children) do
-
-        if (widgetConfigTable.type == "loop") then
-            -- repeat the same configTable setup multiple times but with different parameters
-            local value = self:GetDatabaseValue(widgetConfigTable);
-
-            local widgetData = namespace.WidgetHandlers.loop:Run(
-                data.selectedMenu:GetFrame(), widgetConfigTable, value);
-
-            for _, widgetConfigTable in ipairs(widgetData) do
-                data.selectedMenu:AddChildren(self:SetUpWidget(widgetConfigTable));
-            end
-
-            tk.Tables:PushWrapper(widgetData);
-        else
-            data.selectedMenu:AddChildren(self:SetUpWidget(widgetConfigTable));
-        end
-    end
-
-    -- TODO: Is this using groups correctly?
-    -- if (data.selectedMenu.groups) then
-    --     for _, group in ipairs(data.selectedMenu.groups) do
-    --         -- check buttons should act like radio buttons (can only select 1 in group)
-    --         tk:GroupCheckButtons(unpack(group));
-    --     end
-    -- end
-
-    -- -- clean up data once used
-    -- data.selectedMenu.groups = nil;   
-
-    module.ConfigData = nil;
-    collectgarbage("collect");
-end
-
-Engine:DefineParams("CheckButton");
-function ConfigModule:SetSelectedMenu(data, menuButton)
-    if (data.selectedMenu) then
-        -- hide old menu
-        data.selectedMenu:Hide();
-    end
-
-    local menu = menuButton.menu or self:CreateMenu();
-    menuButton.menu = menu;
-
-    data.selectedMenu = menu;
-
-    if (menuButton.module.ConfigData) then
-        -- use config data to render widgets and then remove config data
-        self:RenderSelectedMenu(menuButton.module);
-    end
-
-    -- fade menu in...
-    data.selectedMenu:Show();    
-    UIFrameFadeIn(data.selectedMenu, 0.3, 0, 1);    
 end
 
 function ConfigModule:ShowReloadMessage(data)
@@ -290,9 +307,9 @@ end
 Engine:DefineParams("table");
 function ConfigModule:SetUpWidget(data, widgetConfigTable)
 
-    -- Inherit all key and value pairs from a parent table by injecting them into childData
-    if (type(data.selectedMenuConfigTable.inherit) == "table") then
-        setmetatable(widgetConfigTable, { __index = data.selectedMenuConfigTable.inherit });
+    if (type(data.inherit) == "table") then
+        -- Inherit all key and value pairs from a parent table by injecting them into childData
+        setmetatable(widgetConfigTable, { __index = data.inherit });
     end  
 
     local widgetType = widgetConfigTable.type;
@@ -322,7 +339,9 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
 
     -- create the widget!
     local value = self:GetDatabaseValue(widgetConfigTable);
-    local widget = namespace.WidgetHandlers[widgetType]:Run(data.selectedMenu:GetFrame(), widgetConfigTable, value);
+
+    local widget = namespace.WidgetHandlers[widgetType]:Run(
+        data.selectedButton.menu:GetFrame(), widgetConfigTable, value);
 
     if (widgetConfigTable.devMode) then
         -- highlight the widget in dev mode.
@@ -339,13 +358,11 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
         widget:SetScript("OnLeave", ToolTip_OnLeave);
     end
 
-    -- check original type (configTable.type) because widgetType might have changed radio to check
     if (widgetConfigTable.type == "radio" and widgetConfigTable.group) then
-        data.selectedMenuConfigTable.groups = data.selectedMenuConfigTable.groups or {};
-
-        -- configTable.group should be a string            
-        local radioButtonGroup = data.selectedMenuConfigTable.groups[widgetConfigTable.group] or {};
-        data.selectedMenuConfigTable.groups[widgetConfigTable.group] = radioButtonGroup;
+        data.groups = data.groups or {};
+          
+        local radioButtonGroup = data.groups[widgetConfigTable.group] or {};
+        data.groups[widgetConfigTable.group] = radioButtonGroup;
 
         table.insert(radioButtonGroup, widget.btn);
     end
@@ -424,17 +441,17 @@ function ConfigModule:SetUpWindow(data)
     data.window.back.arrow:SetPoint("CENTER", -1, 0);
 
     data.window.back:SetScript("OnClick", function(backButton)
-        --local configTable = data.history:GetBack();
-        --data.history:RemoveBack();
+        local menuButton = data.history:GetBack();
+        data.history:RemoveBack();
 
-        -- TODO: This is no longer how it works (uses menuButton but might need a path "name")
-        --self:SetSelectedMenu(configTable);
+        self:SetSelectedButton(menuButton);
 
         if (data.history:GetSize() == 0) then
             data.windowName:SetText("");
             backButton:SetEnabled(false);
         else
-            data.windowName:SetText(menuData.name);
+            local previousMenuButton = data.history:GetBack();
+            data.windowName:SetText(previousMenuButton.text:GetText());
         end
 
         PlaySound(tk.Constants.CLICK);
@@ -471,7 +488,7 @@ end
 function ConfigModule:SetUpMenuButtons(data, menuListScrollChild)   
     local id = 0; 
 
-    data.window.menuButtons = {};
+    data.menuButtons = {};
 
     -- contains all menu buttons in the left scroll frame of the main config window
     local scrollChildHeight = menuListScrollChild:GetHeight() + MENU_BUTTON_HEIGHT;
@@ -484,8 +501,8 @@ function ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
             id = id + 1;         
 
             local menuButton = CreateFrame("CheckButton", nil, menuListScrollChild);
-            data.window.menuButtons[id] = menuButton
-            data.window.menuButtons[moduleName] = menuButton;
+            data.menuButtons[id] = menuButton
+            data.menuButtons[moduleName] = menuButton;
             menuButton.module = module;
 
             menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -515,9 +532,9 @@ function ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
                 menuButton:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT", -10, 0);
                 menuButton:SetChecked(true);
 
-                self:SetSelectedMenu(menuButton);
+                self:SetSelectedButton(menuButton);
             else
-                local previousMenuButton = data.window.menuButtons[id - 1];
+                local previousMenuButton = data.menuButtons[id - 1];
                 menuButton:SetPoint("TOPLEFT", previousMenuButton, "BOTTOMLEFT", 0, -5);
                 menuButton:SetPoint("TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
 
@@ -527,5 +544,5 @@ function ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
         end
     end
 
-    tk:GroupCheckButtons(tk.unpack(data.window.menuButtons));
+    tk:GroupCheckButtons(tk.unpack(data.menuButtons));
 end

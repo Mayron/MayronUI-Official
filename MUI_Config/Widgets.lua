@@ -31,15 +31,11 @@ function WidgetHandlers.submenu:Run(parent, configTable, value)
     btn:SetNormalTexture(btn.normal);
     btn:SetHighlightTexture(btn.highlight);
 
-    btn:SetScript("OnClick", function()
-        -- TODO: This is all wrong!
-        data.history:AddToBack(config.submenu_data);
-        config:SetSubMenu(configTable);
-        data.menu_name:SetText(configTable.name);
-        data.menu.back:SetEnabled(true);
-        tk.PlaySound(tk.Constants.CLICK);
-    end);
-    
+    btn.configTable = configTable;
+    btn.moduleName = configTable.module;
+
+    btn:SetScript("OnClick", namespace.SubMenuButton_OnClick);
+
     return btn;
 end
 
@@ -60,7 +56,14 @@ function WidgetHandlers.loop:Run(parent, configTable, value)
     elseif (configTable.args) then
         for id, arg in tk.ipairs(configTable.args) do
             -- func returns the children data to be loaded
-            loopContent[id] = configTable.func(id, tk.unpack(arg));
+
+            if (type(arg) == "table") then
+                -- for each iteration, there might be many args to be injected into the loop function
+                loopContent[id] = configTable.func(id, tk.unpack(arg));
+            else
+                loopContent[id] = configTable.func(id, arg);
+            end
+            
 
             -- if (tk.type(parent) == "table" and not parent.GetObjectType) then
                 
@@ -84,7 +87,7 @@ function WidgetHandlers.check:Run(data, configTable, value)
 
     cb.btn:SetChecked(value);
     cb.btn:SetScript("OnClick", function(self)
-        UpdateConfig(self, configTable, self:GetChecked());
+        configModule:SetDatabaseValue(self, configTable, self:GetChecked());
     end);
 
     if (configTable.width) then
@@ -147,7 +150,7 @@ function WidgetHandlers.slider:Run(data, configTable, value)
     slider:SetScript("OnValueChanged", function(self, value)
         value = tk.math.floor(value + 0.5);
         self.Value:SetText(value);
-        UpdateConfig(self, configTable, value);
+        configModule:SetDatabaseValue(self, configTable, value);
     end);
 
     slider = configModule:CreateElementContainerFrame(slider, configTable);
@@ -178,6 +181,7 @@ function WidgetHandlers.dropdown:Run(data, configTable, value)
     local options = configTable.options or configTable:GetOptions();
 
     for _, name in tk.ipairs(options) do
+        --TODO: Need to change this to "configModule:SetDatabaseValue"
         local option = dropdown:AddOption(name, UpdateConfig, configTable, name);
 
         if (configTable.fontPicker) then
@@ -283,7 +287,8 @@ function WidgetHandlers.color:Run(data, configTable, value)
                 c.a = 1 - c.a;
             end
         end
-        UpdateConfig(container, configTable, c);
+        
+        configModule:SetDatabaseValue(container, configTable, c);
         container.color:SetColorTexture(c.r, c.g, c.b);
     end
 
@@ -320,9 +325,9 @@ function WidgetHandlers.textfield:Run(data, configTable, value)
     textField:OnTextChanged(function(self, newText)
         local value = tonumber(newText) or newText;
 
-        if (configTable.value_type and type(value) ~= configTable.value_type) then
+        if (configTable.valueType and type(value) ~= configTable.valueType) then
             self:ApplyPreviousText();
-        elseif (configTable.min and configTable.value_type == "number" and value < configTable.min) then
+        elseif (configTable.min and configTable.valueType == "number" and value < configTable.min) then
             self:ApplyPreviousText();
         else
             self:SetPreviousText(value);

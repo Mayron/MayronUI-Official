@@ -15,3 +15,5 @@ Modules\Inventory.lua
 Modules\Memory.lua
 Modules\Performance.lua
 Modules\Specialization.lua
+
+ConfigData.lua

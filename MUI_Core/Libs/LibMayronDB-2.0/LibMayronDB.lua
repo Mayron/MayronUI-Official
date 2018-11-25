@@ -227,13 +227,14 @@ Example: value = db:ParsePathValue(db.profile, "mySettings[" .. moduleName .. "]
 Framework:DefineParams("table", "string");
 function Database:ParsePathValue(data, rootTable, path)    
     for _, key in ipairs({strsplit(".", path)}) do
+
+        if (rootTable == nil or type(rootTable) ~= "table") then 
+            break;
+        end
+
         if (tonumber(key)) then
             key = tonumber(key);
             rootTable = rootTable[key];
-
-            if (rootTable == nil) then 
-                return; 
-            end
         else
             local indexes;
 
@@ -249,19 +250,15 @@ function Database:ParsePathValue(data, rootTable, path)
 
             if (#key > 0) then
                 rootTable = rootTable[key];
-
-                if (rootTable == nil) then 
-                    return; 
-                end
             end
 
-            if (indexes) then
+            if (indexes and type(rootTable) == "table") then
                 for _, key in ipairs(indexes) do
                     key = tonumber(key) or key;
                     rootTable = rootTable[key];
 
-                    if (rootTable == nil) then 
-                        return; 
+                    if (rootTable == nil or type(rootTable) ~= "table") then 
+                        break;
                     end
                 end
             end

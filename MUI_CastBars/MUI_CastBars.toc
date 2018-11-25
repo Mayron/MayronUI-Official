@@ -3,4 +3,5 @@
 ## Dependencies: MUI_Core
 
 MUI_CastBars.lua
-## ConfigData.lua
+
+ConfigData.lua

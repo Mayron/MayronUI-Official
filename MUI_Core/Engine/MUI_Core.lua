@@ -220,7 +220,10 @@ end
 function MayronUI:Hook(moduleName, eventName, func)
     local registryInfo = registeredModules[moduleName];
 
-    obj:Assert(registryInfo, "Cannot hook unregistered module '%s'.", moduleName);
+    if (not registryInfo) then
+        -- addon is disabled so cannot hook
+        return;
+    end
     
     registryInfo.hooks = registryInfo.hooks or {};
     registryInfo.hooks[eventName] = registryInfo.hooks[eventName] or {};
@@ -228,9 +231,14 @@ function MayronUI:Hook(moduleName, eventName, func)
     table.insert(registryInfo.hooks[eventName], func);
 end
 
-function MayronUI:ImportModule(moduleName)
+function MayronUI:ImportModule(moduleName, throwError)
     local registryInfo = registeredModules[moduleName];
-    obj:Assert(registryInfo, "Failed to import unknown module '%s'.", moduleName);
+    
+    if (not registryInfo) then
+        -- addon is disabled so cannot import module
+        return nil;
+    end
+
     return registryInfo and registryInfo.instance;
 end
 
