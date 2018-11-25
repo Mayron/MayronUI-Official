@@ -335,14 +335,11 @@ end
 -- Initialize Modules after player enters world (not when DB starts!).
 -- Some dependencies, like Bartender, only load after this event.
 em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
+    
     FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);    
 
     if (not MayronUI:IsInstalled()) then
-        if ((tk.select(1, tk.LoadAddOn("MUI_Setup")))) then
-            -- Load MUI_Setup if not installled
-            MayronUI:ImportModule("MUI_Setup"):Initialize();
-        end
-
+        MayronUI:TriggerCommand("install");
 		return;
     end
 

@@ -9,3 +9,5 @@ ButtonHandlers.lua
 MuiChatFrame.lua
 RaidFrameManager.lua
 LayoutSwitcher.lua
+
+ConfigData.lua

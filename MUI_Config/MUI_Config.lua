@@ -45,7 +45,9 @@ function ConfigModule:OnInitialize(data)
 
     data.configData = {}; 
     data.selectedMenuConfigTable = {};
+end
 
+function ConfigModule:Show(data)
     if (not data.window) then
         local menuListScrollChild = self:SetUpWindow();
         self:SetUpMenuButtons(menuListScrollChild);        
@@ -79,6 +81,7 @@ function ConfigModule:GetDatabasePathInfo(data, dbPath, settingName)
     end
 end
 
+Engine:DefineParams("string");
 function ConfigModule:OpenMenu(data, moduleName)
     local menuButton = data.window.menuButtons[moduleName];
 
@@ -92,6 +95,7 @@ function ConfigModule:OpenMenu(data, moduleName)
     PlaySound(tk.Constants.CLICK);
 end
 
+Engine:DefineParams("table");
 function ConfigModule:GetDatabaseValue(data, configTable)
     local rootTable, path;
     local value;
@@ -181,17 +185,22 @@ function ConfigModule:CreateMenu(data)
     return menu;
 end
 
+Engine:DefineParams("BaseModule");
 function ConfigModule:RenderSelectedMenu(data, module)
     local moduleConfigTable = module.ConfigData;
 
     if (not (moduleConfigTable and type(moduleConfigTable.children) == "table")) then return end
+
+    module.menu = data.selectedMenu:GetFrame();
 
     for _, widgetConfigTable in pairs(moduleConfigTable.children) do
 
         if (widgetConfigTable.type == "loop") then
             -- repeat the same configTable setup multiple times but with different parameters
             local value = self:GetDatabaseValue(widgetConfigTable);
-            local widgetData = namespace.WidgetHandlers.loop:Run(data.selectedMenu:GetFrame(), configTable, value);
+
+            local widgetData = namespace.WidgetHandlers.loop:Run(
+                data.selectedMenu:GetFrame(), widgetConfigTable, value);
 
             for _, widgetConfigTable in ipairs(widgetData) do
                 data.selectedMenu:AddChildren(self:SetUpWidget(widgetConfigTable));
@@ -212,19 +221,22 @@ function ConfigModule:RenderSelectedMenu(data, module)
     -- end
 
     -- -- clean up data once used
-    -- data.selectedMenu.groups = nil;
+    -- data.selectedMenu.groups = nil;   
 
     module.ConfigData = nil;
     collectgarbage("collect");
 end
 
-function ConfigModule:SetSelectedMenu(data, menuButton)   
+Engine:DefineParams("CheckButton");
+function ConfigModule:SetSelectedMenu(data, menuButton)
     if (data.selectedMenu) then
         -- hide old menu
         data.selectedMenu:Hide();
     end
 
     local menu = menuButton.menu or self:CreateMenu();
+    menuButton.menu = menu;
+
     data.selectedMenu = menu;
 
     if (menuButton.module.ConfigData) then
@@ -233,8 +245,8 @@ function ConfigModule:SetSelectedMenu(data, menuButton)
     end
 
     -- fade menu in...
-    UIFrameFadeIn(menu:GetFrame(), 0.3, 0, 1);
-    collectgarbage("collect"); -- all config data has been loaded and set to nil, so clean it
+    data.selectedMenu:Show();    
+    UIFrameFadeIn(data.selectedMenu, 0.3, 0, 1);    
 end
 
 function ConfigModule:ShowReloadMessage(data)
@@ -255,7 +267,7 @@ function ConfigModule:CreateElementContainerFrame(data, widget, childData)
 
     widget:SetParent(container);
 
-    if (childData.name and tk:ValueIsEither(childData.type, "slider", "dropdown", "textField")) then
+    if (childData.name and tk:ValueIsEither(childData.type, "slider", "dropdown", "textfield")) then
 
         container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
         container.name:SetPoint("TOPLEFT", 0, -5);
@@ -290,8 +302,12 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
         widgetType = "check";
     end
 
+    if (not namespace.WidgetHandlers[widgetType]) then
+        MayronUI:PrintTable(widgetConfigTable, 2)
+    end
+
     obj:Assert(namespace.WidgetHandlers[widgetType], 
-        "Unsupported widget type '%s' found in config data.", widgetType or "nil");
+        "Unsupported widget type '%s' found in config data", widgetType or "nil");
 
     if (widgetConfigTable.OnInitialize) then
         -- do disabled widgets need to be initialized?
@@ -461,13 +477,15 @@ function ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
     local scrollChildHeight = menuListScrollChild:GetHeight() + MENU_BUTTON_HEIGHT;
     menuListScrollChild:SetHeight(scrollChildHeight);    
     
-    for moduleName, module in MayronUI:IterateModules() do
+    for _, module in MayronUI:IterateModules() do        
+        
         if (module.ConfigData) then
+            local moduleName = module:GetModuleName();
             id = id + 1;         
 
             local menuButton = CreateFrame("CheckButton", nil, menuListScrollChild);
             data.window.menuButtons[id] = menuButton
-            data.window.menuButtons[moduleName] =menuButton;
+            data.window.menuButtons[moduleName] = menuButton;
             menuButton.module = module;
 
             menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");

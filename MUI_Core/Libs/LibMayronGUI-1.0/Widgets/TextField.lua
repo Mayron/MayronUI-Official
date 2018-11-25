@@ -25,7 +25,7 @@ end
 
 function TextField:__Construct(data, style, tooltip)
     local r, g, b = style:GetColor();
-    local backdrop = style:GetBackdrop();
+    local backdrop = style:GetBackdrop("ButtonBackdrop");
     data.frame = CreateFrame("Frame");
 
     data.frame:SetBackdrop(backdrop);

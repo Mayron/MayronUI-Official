@@ -4,13 +4,39 @@ local ChatClass = namespace.ChatClass;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 --------------------------------------
 
+namespace.ButtonNames = {    
+    L["Character"],
+    L["Bags"],
+    L["Friends"],
+    L["Guild"],    
+    L["Help Menu"],
+    L["PVP"],
+    L["Spell Book"],
+    L["Talents"],
+    L["Achievements"],
+    L["Glyphs"],
+    L["Calendar"],
+    L["LFD"],
+    L["Raid"],
+    L["Encounter Journal"],
+    L["Collections Journal"],    
+    L["Macros"],
+    L["World Map"],
+    L["Quest Log"],
+    L["Reputation"],
+    L["PVP Score"],
+    L["Currency"]    
+}
+
 local clickHandlers = {};
 
-clickHandlers[L["Character"]] = function()
+-- Character
+clickHandlers[namespace.ButtonNames[1]] = function()
     ToggleCharacter("PaperDollFrame");
 end
 
-clickHandlers[L["Bags"]] = function()
+-- Bags
+clickHandlers[namespace.ButtonNames[2]] = function()
     if (ContainerFrame1:IsVisible()) then
         ToggleBackpack();
     else
@@ -18,9 +44,11 @@ clickHandlers[L["Bags"]] = function()
     end
 end
 
-clickHandlers[L["Friends"]] = ToggleFriendsFrame;
+-- Friends
+clickHandlers[namespace.ButtonNames[3]] = ToggleFriendsFrame;
 
-clickHandlers[L["Guild"]] = function()
+-- Guild
+clickHandlers[namespace.ButtonNames[4]] = function()
     if (IsTrialAccount()) then
         tk:Print(L["Starter Edition accounts cannot perform this action."]);
     elseif (IsInGuild()) then
@@ -28,9 +56,11 @@ clickHandlers[L["Guild"]] = function()
     end
 end
 
-clickHandlers[L["Help Menu"]] = ToggleHelpFrame;
+-- Help Menu
+clickHandlers[namespace.ButtonNames[5]] = ToggleHelpFrame;
 
-clickHandlers[L["PVP"]] = function()
+-- PVP
+clickHandlers[namespace.ButtonNames[6]] = function()
     if (UnitLevel("player") < 10) then
         tk:Print(L["Requires level 10+ to view the PVP window."]);
     else
@@ -38,11 +68,13 @@ clickHandlers[L["PVP"]] = function()
     end
 end
 
-clickHandlers[L["Spell Book"]] = function()
+-- Spell Book
+clickHandlers[namespace.ButtonNames[7]] = function()
     ToggleFrame(SpellBookFrame);
 end
 
-clickHandlers[L["Talents"]] = function()
+-- Talents
+clickHandlers[namespace.ButtonNames[8]] = function()
     if (UnitLevel("player") < 10) then
         tk:Print(L["Must be level 10 or higher to use Talents."]);
     else
@@ -53,9 +85,11 @@ clickHandlers[L["Talents"]] = function()
     end
 end
 
-clickHandlers[L["Achievements"]] = ToggleAchievementFrame;
+-- Achievements
+clickHandlers[namespace.ButtonNames[9]] = ToggleAchievementFrame;
 
-clickHandlers[L["Glyphs"]] = function()
+-- Glyphs
+clickHandlers[namespace.ButtonNames[10]] = function()
     if (UnitLevel("player") < 10) then
         tk:Print(L["Requires level 10+ to view the Glyphs window."]);
     else
@@ -63,41 +97,51 @@ clickHandlers[L["Glyphs"]] = function()
     end
 end
 
-clickHandlers[L["Calendar"]] = ToggleCalendar;
+-- Calendar
+clickHandlers[namespace.ButtonNames[11]] = ToggleCalendar;
 
-clickHandlers[L["LFD"]] = ToggleLFDParentFrame;
+-- LFD
+clickHandlers[namespace.ButtonNames[12]] = ToggleLFDParentFrame;
 
-clickHandlers[L["Raid"]] = ToggleRaidFrame;
+-- Raid
+clickHandlers[namespace.ButtonNames[13]] = ToggleRaidFrame;
 
-clickHandlers[L["Encounter Journal"]] = ToggleEncounterJournal;
+-- Encounter Journal
+clickHandlers[namespace.ButtonNames[14]] = ToggleEncounterJournal;
 
-clickHandlers[L["Collections Journal"]] = function()
-    if (not tk._G["CollectionsJournal"]) then
-        tk.LoadAddOn("Blizzard_Collections");
+-- Collections Journal
+clickHandlers[namespace.ButtonNames[15]] = function()
+    if (not _G["CollectionsJournal"]) then
+        LoadAddOn("Blizzard_Collections");
     end
     ToggleFrame(CollectionsJournal);
 end
 
-clickHandlers[L["Macros"]] = function()
+-- Macros
+clickHandlers[namespace.ButtonNames[16]] = function()
     if (not MacroFrame) then
-        tk.LoadAddOn("Blizzard_MacroUI");
+        LoadAddOn("Blizzard_MacroUI");
     end
     ToggleFrame(MacroFrame);
 end
 
-clickHandlers[L["World Map"]] = function()
+-- World Map
+clickHandlers[namespace.ButtonNames[17]] = function()
     ToggleWorldMap();
 end
 
-clickHandlers[L["Quest Log"]] = function()
+-- Quest Log
+clickHandlers[namespace.ButtonNames[18]] = function()
     ToggleQuestLog();
 end
 
-clickHandlers[L["Reputation"]] = function()
+-- Repuation
+clickHandlers[namespace.ButtonNames[19]] = function()
     ToggleCharacter("ReputationFrame");
 end
 
-clickHandlers[L["PVP Score"]] = function()
+-- PVP Score
+clickHandlers[namespace.ButtonNames[20]] = function()
     if (not UnitInBattleground("player")) then
         tk:Print(L["Requires being inside a Battle Ground."]);
     else
@@ -105,7 +149,8 @@ clickHandlers[L["PVP Score"]] = function()
     end
 end
 
-clickHandlers[L["Currency"]] = function()
+-- Currency
+clickHandlers[namespace.ButtonNames[21]] = function()
     ToggleCharacter("TokenFrame");
 end
 

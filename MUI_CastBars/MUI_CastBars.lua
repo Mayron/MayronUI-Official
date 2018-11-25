@@ -166,7 +166,7 @@ function Events:PLAYER_TARGET_CHANGED(castBar, castBarData)
 end
 
 function Events:UNIT_SPELLCAST_DELAYED(castBar, castBarData)
-    local endTime = tk.select(6, UnitCastingInfo(castBarData.unitID));
+    local endTime = tk.select(5, UnitCastingInfo(castBarData.unitID));
     
 	if (not endTime or not castBarData.startTime) then
 		self:UNIT_SPELLCAST_INTERRUPTED(castBar, castBarData);
@@ -198,7 +198,7 @@ function Events:UNIT_SPELLCAST_CHANNEL_STOP(castBar, castBarData)
 end
 
 function Events:UNIT_SPELLCAST_CHANNEL_UPDATE(castBar, castBarData)
-    local endTime = tk.select(6, UnitChannelInfo(castBarData.unitID));
+    local endTime = tk.select(5, UnitChannelInfo(castBarData.unitID));
 
     if (not endTime or not castBarData.startTime) then
         castBar:StopCasting();

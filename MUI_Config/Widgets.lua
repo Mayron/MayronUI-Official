@@ -23,12 +23,16 @@ function WidgetHandlers.submenu:Run(parent, configTable, value)
 
     btn.normal = tk:SetBackground(btn, 1, 1, 1, 0);
     btn.highlight = tk:SetBackground(btn, 1, 1, 1, 0);
-    tk:SetThemeColor(0.3, btn.normal, btn.highlight);
+    tk:ApplyThemeColor(btn.normal, btn.highlight);
+
+    btn.normal:SetAlpha(0.3);
+    btn.highlight:SetAlpha(0.3);
 
     btn:SetNormalTexture(btn.normal);
     btn:SetHighlightTexture(btn.highlight);
 
     btn:SetScript("OnClick", function()
+        -- TODO: This is all wrong!
         data.history:AddToBack(config.submenu_data);
         config:SetSubMenu(configTable);
         data.menu_name:SetText(configTable.name);
@@ -48,6 +52,7 @@ function WidgetHandlers.loop:Run(parent, configTable, value)
     local loopContent = tk.Tables:PopWrapper();
 
     if (configTable.loops) then
+        -- rather than args, you specify the number of times to loop
         for id = 1, configTable.loops do
             loopContent[id] = configTable.func(id);
         end
@@ -55,11 +60,13 @@ function WidgetHandlers.loop:Run(parent, configTable, value)
     elseif (configTable.args) then
         for id, arg in tk.ipairs(configTable.args) do
             -- func returns the children data to be loaded
-            if (tk.type(parent) == "table" and not parent.GetObjectType) then
-                loopContent[id] = configTable.func(id, tk.unpack(arg));
-            else
-                loopContent[id] = configTable.func(id, arg);
-            end
+            loopContent[id] = configTable.func(id, tk.unpack(arg));
+
+            -- if (tk.type(parent) == "table" and not parent.GetObjectType) then
+                
+            -- else
+            --     loopContent[id] = configTable.func(id, arg);
+            -- end
         end
     end
 

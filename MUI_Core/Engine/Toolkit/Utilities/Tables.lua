@@ -26,26 +26,26 @@ function tk.Tables:Print(tbl, depth, n)
     end
 
     if (n == 0) then
-        tk.print(" ");
+        print(" ");
     end
 
-    for key, value in tk.pairs(tbl) do
-        if (key and tk.type(key) == "number" or tk.type(key) == "string") then
+    for key, value in pairs(tbl) do
+        if (key and type(key) == "number" or type(key) == "string") then
             key = "[\""..key.."\"]";
 
             if (tk.type(value) == "table") then
-                tk.print(tk.string.rep(' ', n)..key.." = {");
-                self:PrintTable(value, depth - 1, n + 4);
-                tk.print(tk.string.rep(' ', n).."}");
+                print(string.rep(' ', n)..key.." = {");
+                self:Print(value, depth - 1, n + 4);
+                print(string.rep(' ', n).."}");
 
             else
-                tk.print(tk.string.rep(' ', n)..key.." = "..tk.tostring(value));
+                print(string.rep(' ', n)..key.." = "..tostring(value));
             end
         end
     end
 
     if (n == 0) then
-        tk.print(" ");
+        print(" ");
     end
 end
 
