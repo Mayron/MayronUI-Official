@@ -68,6 +68,7 @@ function ConfigModule:OnProfileChange(data) end
 function ConfigModule:GetDatabasePathInfo(data, dbPath, settingName)
     local rootTable;
     local rootTableType, dbPath = dbPath:match("([^.]+).(.*)");
+    
     rootTableType = rootTableType:gsub("%s", ""):lower();
 
     if (rootTableType == "global") then
@@ -92,7 +93,7 @@ function ConfigModule:GetDatabaseValue(data, configTable)
     local rootTable, path;
     local value;
 
-    if (not configTable.dbPath) then
+    if (tk.Strings:IsNilOrWhiteSpace(configTable.dbPath)) then
         value = configTable.GetValue and configTable.GetValue();
     else
         rootTable, path = self:GetDatabasePathInfo(configTable.dbPath, configTable.name);
@@ -123,15 +124,16 @@ function ConfigModule:SetDatabaseValue(data, widget, configTable, value)
     if (configTable.SetValue) then
         local oldValue;
 
-        if (configTable.dbPath) then
+        if (not tk.Strings:IsNilOrWhiteSpace(configTable.dbPath)) then
             rootTable, path = self:GetDatabasePathInfo(configTable.dbPath, configTable.name);
             oldValue = db:ParsePathValue(rootTable, path);
         end
 
-        configTable.SetValue(path, value, widget, oldValue); -- only use of param "widget"
+        configTable.SetValue(path, value, oldValue, widget); -- TODO: only use of param "widget" (was never usually used)
     else
         -- dbPath is required if not using a custom SetValue function!
-        obj:Assert(configTable.dbPath, "%s is missing database path address element (dbPath) in config data.", childData.name);
+        tk:Assert(not tk.Strings:IsNilOrWhiteSpace(configTable.dbPath), 
+            "%s is missing database path address element (dbPath) in config data.", childData.name);
 
         local rootTable, path = self:GetDatabasePathInfo(configTable.dbPath, configTable.name);
         db:SetPathValue(rootTable, configTable.dbPath, value);      
@@ -218,37 +220,57 @@ Engine:DefineParams("table");
 function ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     if (not (menuConfigTable and type(menuConfigTable.children) == "table")) then return end
 
-    data.inherit = menuConfigTable.inherit;
+    data.tempMenuConfigTable = menuConfigTable;
 
     for _, widgetConfigTable in pairs(menuConfigTable.children) do
 
         if (widgetConfigTable.type == "loop") then
-            -- repeat the same configTable setup multiple times but with different parameters
-            local value = self:GetDatabaseValue(widgetConfigTable);
+            local widgetChildren = namespace.WidgetHandlers.loop:Run(
+                data.selectedButton.menu:GetFrame(), widgetConfigTable);
 
-            local widgetData = namespace.WidgetHandlers.loop:Run(
-                data.selectedButton.menu:GetFrame(), widgetConfigTable, value);
-
-            for _, widgetConfigTable in ipairs(widgetData) do
+            for _, widgetConfigTable in ipairs(widgetChildren) do
                 data.selectedButton.menu:AddChildren(self:SetUpWidget(widgetConfigTable));
             end
 
-            tk.Tables:PushWrapper(widgetData);
+            -- the table was previously popped
+            tk.Tables:PushWrapper(widgetChildren);
         else
             data.selectedButton.menu:AddChildren(self:SetUpWidget(widgetConfigTable));
         end
     end
     
-    if (data.groups) then
-        for _, group in ipairs(data.groups) do
+    if (data.tempMenuConfigTable.groups) then
+        for _, group in ipairs(data.tempMenuConfigTable.groups) do
             tk:GroupCheckButtons(unpack(group));
         end
     end
         
-    data.groups = nil;
-    data.inherit = nil;
-
+    data.tempMenuConfigTable = nil;
     collectgarbage("collect");
+end
+
+Engine:DefineParams("table");
+function ConfigModule:ApplyTempData(data, configTable)
+    tk:Assert(type(data.tempMenuConfigTable) == "table", "Invalid temp data for '%s'", configTable.name);
+
+    if (not tk.Strings:IsNilOrWhiteSpace(data.tempMenuConfigTable.dbPath) and
+        not tk.Strings:IsNilOrWhiteSpace(configTable.dbPath)) then
+    
+        -- append the widget config table's dbPath value onto it!
+        configTable.dbPath = tk.Strings:Join(".", data.tempMenuConfigTable.dbPath, configTable.dbPath);
+    end
+    
+    if (type(data.tempMenuConfigTable.inherit) == "table") then
+        -- Inherit all key and value pairs from a parent table by injecting them into childData
+        local metaTable = tk.Tables:PopWrapper();
+        metaTable.__index = data.tempMenuConfigTable.inherit;
+        setmetatable(configTable, metaTable);
+    end
+
+    if (configTable.type == "radio" and configTable.groupName) then
+        local tempRadioButtonGroup = tk.Tables:GetTable(data.tempMenuConfigTable, "groups", configTable.groupName);
+        table.insert(tempRadioButtonGroup, widget.btn);
+    end
 end
 
 Engine:DefineReturns("DynamicFrame");
@@ -306,11 +328,7 @@ end
 
 Engine:DefineParams("table");
 function ConfigModule:SetUpWidget(data, widgetConfigTable)
-
-    if (type(data.inherit) == "table") then
-        -- Inherit all key and value pairs from a parent table by injecting them into childData
-        setmetatable(widgetConfigTable, { __index = data.inherit });
-    end  
+    self:ApplyTempData(widgetConfigTable);
 
     local widgetType = widgetConfigTable.type;
     
@@ -318,11 +336,7 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
     if (widgetType == "radio") then
         widgetType = "check";
     end
-
-    if (not namespace.WidgetHandlers[widgetType]) then
-        MayronUI:PrintTable(widgetConfigTable, 2)
-    end
-
+    
     obj:Assert(namespace.WidgetHandlers[widgetType], 
         "Unsupported widget type '%s' found in config data", widgetType or "nil");
 
@@ -330,11 +344,6 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
         -- do disabled widgets need to be initialized?
         widgetConfigTable.OnInitialize(widgetConfigTable);
         widgetConfigTable.OnInitialize = nil;
-    end
-    
-    if (widgetConfigTable.disabled) then
-        -- why? does this not still need to be added?
-        return;
     end
 
     -- create the widget!
@@ -358,14 +367,10 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
         widget:SetScript("OnLeave", ToolTip_OnLeave);
     end
 
-    if (widgetConfigTable.type == "radio" and widgetConfigTable.group) then
-        data.groups = data.groups or {};
-          
-        local radioButtonGroup = data.groups[widgetConfigTable.group] or {};
-        data.groups[widgetConfigTable.group] = radioButtonGroup;
-
-        table.insert(radioButtonGroup, widget.btn);
-    end
+    -- if (widgetConfigTable.disabled) then
+    --     -- why? does this not still need to be added?
+    --     return;
+    -- end
 
     -- setup complete, so run the OnLoad callback if one exists
     if (widgetConfigTable.OnLoad) then

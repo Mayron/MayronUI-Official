@@ -15,8 +15,7 @@ local Guild = Engine:CreateClass("Guild", nil, "MayronUI.Engine.IDataTextModule"
 db:AddToDefaults("profile.datatext.guild", {
     enabled = true,
     showSelf = true,
-    showTooltips = true,
-    displayOrder = 3
+    showTooltips = true
 });
 
 -- Local Functions ----------------
@@ -86,7 +85,6 @@ end);
 
 function Guild:__Construct(data, sv, slideController, dataTextModule)
     data.sv = sv;
-    data.displayOrder = sv.displayOrder;
     data.slideController = slideController;
 
     -- set public instance properties
@@ -95,6 +93,7 @@ function Guild:__Construct(data, sv, slideController, dataTextModule)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
+    self.SavedVariableName = "guild";
 
     self.Button = dataTextModule:CreateDataTextButton(self);
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
@@ -187,14 +186,3 @@ function Guild:Click(data, button)
 
     self.TotalLabelsShown = totalLabelsShown;
 end
-
-function Guild:GetDisplayOrder(data)
-    return data.displayOrder;
-end
-
-function Guild:SetDisplayOrder(data, displayOrder)
-    if (data.displayOrder ~= displayOrder) then
-        data.displayOrder = displayOrder;
-        data.sv.displayOrder = displayOrder;
-    end
-end 

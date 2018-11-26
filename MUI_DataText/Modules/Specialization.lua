@@ -14,8 +14,7 @@ local Specialization = Engine:CreateClass("Specialization", nil, "MayronUI.Engin
 
 db:AddToDefaults("profile.datatext.specialization", {
     enabled = true,
-    sets = {},
-    displayOrder = 8
+    sets = {}
 });
 
 -- Local Functions ----------------
@@ -109,7 +108,6 @@ end);
 
 function Specialization:__Construct(data, sv, dataTextBar, slideController, dataTextModule)
     data.sv = sv;
-    data.displayOrder = sv.displayOrder;
     data.dataTextBar = dataTextBar;
     data.slideController = slideController;
     data.dropdowns = {};
@@ -120,6 +118,7 @@ function Specialization:__Construct(data, sv, dataTextBar, slideController, data
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = true;
+    self.SavedVariableName = "specialization";
 
     self.Button = dataTextModule:CreateDataTextButton(self);
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
@@ -350,14 +349,3 @@ function Specialization:Click(data, button)
         self.TotalLabelsShown = self:HandleRightClick();  
     end   
 end
-
-function Specialization:GetDisplayOrder(data)
-    return data.displayOrder;
-end
-
-function Specialization:SetDisplayOrder(data, displayOrder)
-    if (data.displayOrder ~= displayOrder) then
-        data.displayOrder = displayOrder;
-        data.sv.displayOrder = displayOrder;
-    end
-end 

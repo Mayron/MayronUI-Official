@@ -21,6 +21,14 @@ function tk:ValueIsEither(value, ...)
     return false;
 end
 
+function tk:UnpackIfTable(value)
+    if (type(value) == "table") then
+        return tk.Tables:UnpackWrapper(value);
+    else
+        return value;
+    end
+end
+
 function tk:Print(...)
     local hex = select(4, self:GetThemeColor());
     local prefix = self.Strings:GetHexColoredText("MayronUI:", hex);

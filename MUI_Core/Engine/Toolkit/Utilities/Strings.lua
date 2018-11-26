@@ -5,6 +5,7 @@ local tk = core.Toolkit;
 tk.Strings = {};
 
 tk.Strings.Empty = "";
+tk.Strings.Space = " ";
 -----------------------------
 
 do
@@ -27,6 +28,23 @@ function tk.Strings:Contains(fullString, subString)
     else
         return false;
     end
+end
+
+function tk.Strings:IsNilOrWhiteSpace(strValue)       
+    if (strValue == nil) then 
+        return true;
+    end
+
+    tk:Assert(type(strValue) == "string",
+        "tk.Strings.IsNilOrWhiteSpace - bad argument #1 (string expected, got %s)", type(strValue));
+
+    strValue = strValue:gsub("%s+", "");
+
+    if (#strValue > 0) then
+        return false;
+    end
+
+    return true;
 end
 
 function tk.Strings:SetOverflow(str, maxChars)
@@ -83,7 +101,15 @@ end
 
 function tk.Strings:Join(separator, ...)
     local wrapper = tk.Tables:PopWrapper(...);
+
+    tk:Assert(#wrapper > 0, "List of values to join cannot be empty.");
+
+    
     local value = table.concat(wrapper, separator);
     tk.Tables:PushWrapper(wrapper);
     return value;
+end
+
+function tk.Strings:JoinWithSpace(...)
+    return self:Join(tk.Strings.Space, ...);
 end

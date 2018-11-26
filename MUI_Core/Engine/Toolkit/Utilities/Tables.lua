@@ -13,6 +13,24 @@ function tk.Tables:GetKeys(tbl, keys)
     return keys;
 end
 
+-- gets or creates table
+function tk.Tables:GetTable(rootTable, ...)
+    tk:Assert(type(rootTable) == "table", 
+        "tk.Tables.GetTable - invalid rootTable arg (table expected, got %s)", type(rootTable));
+
+    local currentTable = rootTable;
+
+    for _, key in self:IterateArgs(...) do
+        if (type(rootTable[key]) ~= "table") then
+            rootTable[key] = self:PopWrapper();
+        end
+        
+        currentTable = rootTable[key];
+    end
+
+    return rootTable[key];
+end
+
 function tk.Tables:Print(tbl, depth, n)
     if (tk.type(tbl) ~= "table") then 
         return; 
@@ -49,9 +67,19 @@ function tk.Tables:Print(tbl, depth, n)
     end
 end
 
+function tk.Tables:Contains(tbl, value)
+    for _, tblValue in pairs(tbl) do
+        if (tk:Equals(value, tblValue)) then
+            return true;
+        end
+    end
+
+    return false;
+end
+
 function tk.Tables:GetIndex(tbl, value)
-    for id, v in tk.pairs(tbl) do
-        if (value == v) then 
+    for id, tblValue in pairs(tbl) do
+        if (tk:Equals(tblValue, value)) then 
             return id; 
         end
     end
@@ -112,7 +140,7 @@ function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
         for mainIndex = 1, #mainTable do
             local mainValue = mainTable[mainIndex];
 
-            if (self:Equals(mainValue, subValue, true)) then
+            if (tk:Equals(mainValue, subValue, true)) then
                 -- remove it!
                 tk:Print("remove:", subValue);
                 mainTable[mainIndex] = nil;
@@ -128,7 +156,7 @@ function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
 
     for _, subValue in tk.pairs(subTable) do
         for key, mainValue in tk.pairs(mainTable) do
-            if (self:Equals(mainValue, subValue)) then
+            if (tk:Equals(mainValue, subValue)) then
                 -- remove it!
                 mainTable[key] = nil;
                 totalRemoved = totalRemoved + 1;

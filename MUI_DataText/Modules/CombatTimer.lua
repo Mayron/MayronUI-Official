@@ -11,8 +11,7 @@ local CombatTimer = Engine:CreateClass("CombatTimer", nil, "MayronUI.Engine.IDat
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.combatTimer", {
-    enabled = false,
-    displayOrder = 4
+    enabled = false
 });
 
 -- CombatTimer Module ----------------
@@ -29,7 +28,6 @@ end);
 
 function CombatTimer:__Construct(data, dataTextModule, sv)
     data.sv = sv;
-    data.displayOrder = sv.displayOrder;
 
     -- set public instance properties
     self.MenuContent = CreateFrame("Frame");
@@ -37,6 +35,7 @@ function CombatTimer:__Construct(data, dataTextModule, sv)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
     self.HasRightMenu = false;
+    self.SavedVariableName = "combatTimer";
 
     em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
         data.startTime = GetTime();
@@ -128,14 +127,3 @@ function CombatTimer:Disable(data)
     data.seconds:SetText("");
     data.milliseconds:SetText("");
 end
-
-function CombatTimer:GetDisplayOrder(data)
-    return data.displayOrder;
-end
-
-function CombatTimer:SetDisplayOrder(data, displayOrder)
-    if (data.displayOrder ~= displayOrder) then
-        data.displayOrder = displayOrder;
-        data.sv.displayOrder = displayOrder;
-    end
-end 

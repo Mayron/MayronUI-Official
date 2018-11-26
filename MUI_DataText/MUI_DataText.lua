@@ -4,6 +4,19 @@ local addOnName, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local MAX_DATA_ITEMS = 10;
 
+namespace.dataTextLabels = {
+    -- { config Label, dbPath }
+    { "Combat Timer"    , "combatTimer" },
+    { "Currency"        , "currency" },
+    { "Durability"      , "durability" },
+    { "Friends"         , "friends" },
+    { "Guild"           , "guild" },
+    { "Inventory"       , "inventory" },
+    { "Memory"          , "memory" },
+    { "Performance"     , "performance" },
+    { "Specialization"  , "specialization" }
+};
+
 -- Objects -----------------------------
 
 local Engine = obj:Import("MayronUI.Engine");
@@ -28,6 +41,15 @@ db:AddToDefaults("profile.datatext", {
 		maxHeight = 250,
 		width = 200,
 		itemHeight = 26 -- the height of each list item in the popup menu
+    },
+    displayOrder = {
+        "durability",
+        "friends",
+        "guild",
+        "inventory",
+        "memory",
+        "performance",
+        "specialization",
     }
 });
 
@@ -211,39 +233,26 @@ function DataTextModuleClass:CreateDataTextButton(data, dataModule, btnText)
 end
 
 function DataTextModuleClass:PositionDataItems(data)
-    local flatOrdering = {};
-    local ordering = {};   
+    local displayOrders = db.profile.datatext.displayOrder:ToTable();
+    data.OrderedButtons = {};
 
-    for dataModuleName, dataModule in pairs(data.DataModules) do
+    for _, dataModule in pairs(data.DataModules) do
         if (dataModule:IsEnabled()) then
-            local btn = dataModule.Button;       
-            local displayOrder = dataModule:GetDisplayOrder();
-            btn._module = dataModule; -- temporarily
+            local btn = dataModule.Button;                 
+            local dbName = dataModule.SavedVariableName;
+            local displayOrder = tk.Tables:GetIndex(displayOrders, dbName);
 
-            -- ensure that all display orders for each datatext module are unique
-            for i = 1, 100 do                
-                if (i >= displayOrder) then
-                    if (not ordering[i]) then
-                        ordering[i] = btn; 
-                        break;
-                    end
-                elseif (ordering[i] == nil) then
-                    ordering[i] = false;
-                end
+            btn._module = dataModule; -- temporary
+
+            if (not displayOrder) then
+                displayOrder = #displayOrders;
+                db.profile.datatext.displayOrder[displayOrder] = dbName;
             end
+
+            data.OrderedButtons[displayOrder] = btn;
         end
     end
     
-    -- remove all false values (some gaps in the display order might exist)
-    for i, btn in ipairs(ordering) do         
-        if (ordering[i]) then
-            local selectedDisplayOrder = #flatOrdering + 1;
-            flatOrdering[selectedDisplayOrder] = btn;
-            btn._module:SetDisplayOrder(selectedDisplayOrder);
-        end        
-    end
-
-    data.OrderedButtons = flatOrdering;
     local itemWidth = data.buiContainer:GetWidth() / #data.OrderedButtons;
 
     for i, btn in ipairs(data.OrderedButtons) do

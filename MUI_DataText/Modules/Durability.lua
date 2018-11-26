@@ -18,8 +18,7 @@ local Durability = Engine:CreateClass("Durability", nil, "MayronUI.Engine.IDataT
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.durability", {
-    enabled = true,
-    displayOrder = 1
+    enabled = true
 });
 
 -- Local Functions ----------------
@@ -64,7 +63,6 @@ end);
 
 function Durability:__Construct(data, sv, dataTextModule)
     data.sv = sv;
-    data.displayOrder = sv.displayOrder;
 
     -- set public instance properties
     self.MenuContent = CreateFrame("Frame");
@@ -73,6 +71,7 @@ function Durability:__Construct(data, sv, dataTextModule)
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
     self.Button = dataTextModule:CreateDataTextButton(self);
+    self.SavedVariableName = "durability";
 end
 
 function Durability:IsEnabled(data) 
@@ -181,14 +180,3 @@ function Durability:Click(data)
 
     self.TotalLabelsShown = totalLabelsShown;
 end
-
-function Durability:GetDisplayOrder(data)
-    return data.displayOrder;
-end
-
-function Durability:SetDisplayOrder(data, displayOrder)
-    if (data.displayOrder ~= displayOrder) then
-        data.displayOrder = displayOrder;
-        data.sv.displayOrder = displayOrder;
-    end
-end 

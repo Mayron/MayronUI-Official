@@ -44,13 +44,14 @@ end
 ---------------------
 WidgetHandlers.loop = {};
 
-function WidgetHandlers.loop:Run(parent, configTable, value)
-    local loopContent = tk.Tables:PopWrapper();
+-- should return a table of children created during the loop
+function WidgetHandlers.loop:Run(parent, configTable)
+    local children = tk.Tables:PopWrapper();
 
     if (configTable.loops) then
         -- rather than args, you specify the number of times to loop
         for id = 1, configTable.loops do
-            loopContent[id] = configTable.func(id);
+            children[id] = configTable.func(id);
         end
 
     elseif (configTable.args) then
@@ -59,21 +60,14 @@ function WidgetHandlers.loop:Run(parent, configTable, value)
 
             if (type(arg) == "table") then
                 -- for each iteration, there might be many args to be injected into the loop function
-                loopContent[id] = configTable.func(id, tk.unpack(arg));
+                children[id] = configTable.func(id, tk.unpack(arg));
             else
-                loopContent[id] = configTable.func(id, arg);
-            end
-            
-
-            -- if (tk.type(parent) == "table" and not parent.GetObjectType) then
-                
-            -- else
-            --     loopContent[id] = configTable.func(id, arg);
-            -- end
+                children[id] = configTable.func(id, arg);
+            end        
         end
     end
 
-    return loopContent;
+    return children;
 end
 
 ------------------
@@ -107,7 +101,7 @@ end
 WidgetHandlers.title = {};
 
 function WidgetHandlers.title:Run(parent, configTable, value)
-    local height = 20 + (configTable.padding_top or 10) + (configTable.padding_bottom or 10);
+    local height = 20 + (configTable.paddingTop or 10) + (configTable.paddingBottom or 10);
     local f = tk:PopFrame("Frame", parent);
 
     f.text = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -115,8 +109,8 @@ function WidgetHandlers.title:Run(parent, configTable, value)
     f:SetHeight(f.text:GetStringHeight() + height);
 
     local bg = tk:SetBackground(f, 0, 0, 0, 0.2);
-    bg:SetPoint("TOPLEFT", 0, -(configTable.padding_top or 10));
-    bg:SetPoint("BOTTOMRIGHT", 0, (configTable.padding_bottom or 10));
+    bg:SetPoint("TOPLEFT", 0, -(configTable.paddingTop or 10));
+    bg:SetPoint("BOTTOMRIGHT", 0, (configTable.paddingBottom or 10));
     f.text:SetAllPoints(bg);
 
     return f;
@@ -172,6 +166,10 @@ end
 -------------------
 -- Drop Down Menu
 -------------------
+local function DropDown_OnSelectedValue(widget, configTable, value)
+    configModule:SetDatabaseValue(widget, configTable, value);
+end
+
 WidgetHandlers.dropdown = {};
 
 function WidgetHandlers.dropdown:Run(data, configTable, value)
@@ -180,9 +178,8 @@ function WidgetHandlers.dropdown:Run(data, configTable, value)
     dropdown:SetLabel(value, configTable.tooltip);
     local options = configTable.options or configTable:GetOptions();
 
-    for _, name in tk.ipairs(options) do
-        --TODO: Need to change this to "configModule:SetDatabaseValue"
-        local option = dropdown:AddOption(name, UpdateConfig, configTable, name);
+    for _, dropDownvalue in tk.ipairs(options) do
+        local option = dropdown:AddOption(dropDownvalue[1], DropDown_OnSelectedValue, configTable, value);
 
         if (configTable.fontPicker) then
             option:GetFontString():SetFont(tk.Constants.LSM:Fetch("font", name), 11);

@@ -14,8 +14,7 @@ local Friends = Engine:CreateClass("Friends", nil, "MayronUI.Engine.IDataTextMod
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.friends", {
-    enabled = true,
-    displayOrder = 2
+    enabled = true
 });
 
 -- Local Functions -------------------
@@ -60,7 +59,6 @@ end);
 
 function Friends:__Construct(data, sv, slideController, dataTextModule)
     data.sv = sv;
-    data.displayOrder = sv.displayOrder;
     data.slideController = slideController;
 
     -- set public instance properties
@@ -69,6 +67,7 @@ function Friends:__Construct(data, sv, slideController, dataTextModule)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
+    self.SavedVariableName = "friends";    
 
     self.Button = dataTextModule:CreateDataTextButton(self);
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
@@ -185,14 +184,3 @@ function Friends:Click(data, button)
 
     self.TotalLabelsShown = totalLabelsShown;
 end
-
-function Friends:GetDisplayOrder(data)
-    return data.displayOrder;
-end
-
-function Friends:SetDisplayOrder(data, displayOrder)
-    if (data.displayOrder ~= displayOrder) then
-        data.displayOrder = displayOrder;
-        data.sv.displayOrder = displayOrder;
-    end
-end 

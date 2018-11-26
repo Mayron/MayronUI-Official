@@ -13,8 +13,7 @@ local Memory = Engine:CreateClass("Memory", nil, "MayronUI.Engine.IDataTextModul
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.memory", {
-    enabled = true,
-    displayOrder = 5
+    enabled = true
 });
 
 -- Local Functions ----------------
@@ -57,7 +56,6 @@ end);
 
 function Memory:__Construct(data, sv, dataTextModule)
     data.sv = sv;
-    data.displayOrder = sv.displayOrder;
 
     -- set public instance properties
     self.MenuContent = CreateFrame("Frame");
@@ -65,6 +63,7 @@ function Memory:__Construct(data, sv, dataTextModule)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
+    self.SavedVariableName = "memory";
     self.Button = dataTextModule:CreateDataTextButton(self);
 end
 
@@ -157,14 +156,3 @@ function Memory:Click(data)
 
     self.TotalLabelsShown = #self.MenuLabels;
 end
-
-function Memory:GetDisplayOrder(data)
-    return data.displayOrder;
-end
-
-function Memory:SetDisplayOrder(data, displayOrder)
-    if (data.displayOrder ~= displayOrder) then
-        data.displayOrder = displayOrder;
-        data.sv.displayOrder = displayOrder;
-    end
-end 

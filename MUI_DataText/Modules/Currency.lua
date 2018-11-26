@@ -21,9 +21,6 @@ db:AddToDefaults("profile.datatext.currency", {
     showGold = true,
 
     showRealm = false,
-
-    -- TODO: Not at the end like it should be!
-    displayOrder = 20
 });
 
 -- Local Functions ----------------
@@ -65,7 +62,6 @@ end);
 
 function Currency:__Construct(data, sv, dataTextModule)
     data.sv = sv;
-    data.displayOrder = sv.displayOrder;
 
     -- set public instance properties
     self.MenuContent = CreateFrame("Frame");
@@ -74,6 +70,7 @@ function Currency:__Construct(data, sv, dataTextModule)
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
     self.Button = dataTextModule:CreateDataTextButton(self);
+    self.SavedVariableName = "currency";
 
     data.goldString = "|TInterface\\MoneyFrame\\UI-GoldIcon:14:14:2:0|t";
     data.silverString = "|TInterface\\MoneyFrame\\UI-SilverIcon:14:14:2:0|t";
@@ -234,14 +231,3 @@ function Currency:Click(data)
 
     self.TotalLabelsShown = totalLabelsShown;
 end
-
-function Currency:GetDisplayOrder(data)
-    return data.displayOrder;
-end
-
-function Currency:SetDisplayOrder(data, displayOrder)
-    if (data.displayOrder ~= displayOrder) then
-        data.displayOrder = displayOrder;
-        data.sv.displayOrder = displayOrder;
-    end
-end 

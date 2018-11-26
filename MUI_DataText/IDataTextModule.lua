@@ -16,6 +16,7 @@ IDataTextModule:DefineProperty("TotalLabelsShown", "number");
 IDataTextModule:DefineProperty("HasLeftMenu", "boolean");
 IDataTextModule:DefineProperty("HasRightMenu", "boolean");
 IDataTextModule:DefineProperty("Button", "Button");
+IDataTextModule:DefineProperty("SavedVariableName", "string");
 
 -- IDataTextModule Functions ---------
 
@@ -24,23 +25,3 @@ function IDataTextModule:Click() end
 function IDataTextModule:IsEnabled() end
 function IDataTextModule:Disable() end
 function IDataTextModule:Enable() end
-
-Engine:DefineReturns("number");
-function IDataTextModule:GetDisplayOrder() end
-
-Engine:DefineParams("number");
-function IDataTextModule:SetDisplayOrder(displayOrder) end
-
--- TODO: BaseDataTextModule Functions ---------
-
--- function BaseDataTextModule:GetDisplayOrder(data)
---     return data.displayOrder;
--- end
-
--- function BaseDataTextModule:SetDisplayOrder(data, displayOrder)
---     if (data.displayOrder ~= displayOrder) then
---         data.displayOrder = displayOrder;
---         data.sv.displayOrder = displayOrder;
---         self:Update();
---     end
--- end 

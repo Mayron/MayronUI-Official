@@ -15,8 +15,7 @@ local Inventory = Engine:CreateClass("Inventory", nil, "MayronUI.Engine.IDataTex
 db:AddToDefaults("profile.datatext.inventory", {
     enabled = true,
     showTotalSlots = false,
-    slotsToShow = "free",
-    displayOrder = 7
+    slotsToShow = "free"
 });
 
 -- Local Functions ----------------
@@ -47,7 +46,6 @@ end);
 
 function Inventory:__Construct(data, sv, slideController, dataTextModule)
     data.sv = sv;
-    data.displayOrder = sv.displayOrder;
     data.slideController = slideController;
 
     -- set public instance properties
@@ -56,6 +54,7 @@ function Inventory:__Construct(data, sv, slideController, dataTextModule)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
     self.HasRightMenu = false;
+    self.SavedVariableName = "inventory";
 
     self.Button = dataTextModule:CreateDataTextButton(self);
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
@@ -114,14 +113,3 @@ function Inventory:Click(data, button)
          SortBags();		
      end
 end
-
-function Inventory:GetDisplayOrder(data)
-    return data.displayOrder;
-end
-
-function Inventory:SetDisplayOrder(data, displayOrder)
-    if (data.displayOrder ~= displayOrder) then
-        data.displayOrder = displayOrder;
-        data.sv.displayOrder = displayOrder;
-    end
-end 

@@ -16,8 +16,7 @@ db:AddToDefaults("profile.datatext.performance", {
     enabled = true,
     showFps = true,
     showHomeLatency = true,
-    showServerLatency = false,
-    displayOrder = 6
+    showServerLatency = false
 });
 
 -- Performance Module --------------
@@ -35,7 +34,6 @@ end);
 
 function Performance:__Construct(data, sv, dataTextModule)
     data.sv = sv;
-    data.displayOrder = sv.displayOrder;
 
     -- set public instance properties
     self.MenuContent = CreateFrame("Frame");
@@ -43,6 +41,7 @@ function Performance:__Construct(data, sv, dataTextModule)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
     self.HasRightMenu = false;
+    self.SavedVariableName = "performance";
     self.Button = dataTextModule:CreateDataTextButton(self);
 end
 
@@ -102,14 +101,3 @@ function Performance:Update(data)
 end
 
 function Performance:Click(data) end
-
-function Performance:GetDisplayOrder(data)
-    return data.displayOrder;
-end
-
-function Performance:SetDisplayOrder(data, displayOrder)
-    if (data.displayOrder ~= displayOrder) then
-        data.displayOrder = displayOrder;
-        data.sv.displayOrder = displayOrder;
-    end
-end 
