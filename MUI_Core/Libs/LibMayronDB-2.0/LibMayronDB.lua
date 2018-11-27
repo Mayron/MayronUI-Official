@@ -46,6 +46,28 @@ local function IsObserver(value)
     return (type(value) == "table" and value.IsObjectType and value:IsObjectType("Observer"));
 end
 
+local function GetDatabasePathInfo(db, rootTableOrPath, pathOrValue)
+    local rootTable, path;
+
+    if (type(rootTableOrPath) == "table") then
+        rootTable = rootTableOrPath;
+        path = pathOrValue;        
+    else
+        local rootTableType, realPath = rootTableOrPath:match("([^.]+).(.*)");
+        rootTableType = rootTableType:gsub("%s", ""):lower();
+
+        path = realPath;
+    
+        if (rootTableType == "global") then
+            rootTable = db.global;
+        elseif (rootTableType == "profile") then
+            rootTable = db.profile;
+        end
+    end
+
+    return rootTable, path;
+end
+
 ------------------------
 -- Database API
 ------------------------
@@ -195,13 +217,18 @@ end
 --[[
 Adds a value to a table relative to a path: rootTable.<path> = <value>
 
-@param (table) rootTable: The initial root table to search from. 
-@param (string) path: a table path string (also called a path address), such as "myTable.mySubTable[2]". 
-    This is converted to a sequence of tables which are added to the database if they do not already exist (myTable will be created if not found).
-@param (any): a value to assign to the table relative to the provided path string.
+@param (table or string) rootTableOrPath: The initial root table to search from OR a string that starts with 
+    "global" or "profile" so that the rootTable can be calculated.
+@param (optional any) pathOrValue: a table path string (also called a path address) such as "myTable.mySubTable[2]"
+    OR if rootTable is a string representing the path then this is the value argument. 
+    If it is the path then this is converted to a sequence of tables which are added to the 
+    database if they do not already exist (myTable will be created if not found). 
+@param (optional any): a value to assign to the table relative to the provided path string (is nil if the path argument is the value)
 ]]
-Framework:DefineParams("table", "string", "?any");
-function Database:SetPathValue(data, rootTable, path, value)
+Framework:DefineParams("table|string");
+function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
+    local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue); 
+
     if (rootTable.GetObjectType and rootTable:GetObjectType() == "Observer") then
         rootTable = rootTable:ToSavedVariable();
     end
@@ -216,16 +243,19 @@ end
 --[[
 Searches a path address (table path string) and returns the located value if found.
 
-@param (table) rootTable: The root table to begin searching through using the path address.
+@param (table or string) rootTableOrPath: The root table to begin searching through using the path address.
+    OR a string that starts with "global" or "profile" so that the rootTable can be calculated. 
 @param (string) path: The path of the value to search for. Example: "myTable.mySubTable[2]"
-
+    OR if rootTableOrPath is a string representing the path then this is nil.
 @return (any): The value found at the location specified by the path address.
 Might return nil if the path address is invalid, or no value is located at the address.
 
 Example: value = db:ParsePathValue(db.profile, "mySettings[" .. moduleName .. "][5]");
 ]]
-Framework:DefineParams("table", "string");
-function Database:ParsePathValue(data, rootTable, path)    
+Framework:DefineParams("table|string", "?string");
+function Database:ParsePathValue(data, rootTableOrPath, pathOrNil)    
+    local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrNil);  
+
     for _, key in ipairs({strsplit(".", path)}) do
 
         if (rootTable == nil or type(rootTable) ~= "table") then 

@@ -3,6 +3,9 @@ core.Toolkit = core.Toolkit or {};
 
 local tk = core.Toolkit;
 tk.Tables = {};
+
+local obj = LibStub:GetLibrary("LibMayronObjects");
+local LinkedList = obj:Import("Framework.System.Collections.LinkedList");
 -----------------------------
 
 function tk.Tables:GetKeys(tbl, keys)
@@ -197,23 +200,23 @@ do
     -- breaks apart a database path address (i.e. "db.profiles['value'][1]") 
     -- to a LinkedList containing all sections
     function tk.Tables:ConvertPathToKeys(path)
-        args = args or tk:CreateLinkedList();
-        args:Clear();
+        argsList = argsList or LinkedList();
+        argsList:Clear();
 
         for _, key in self:IterateArgs(tk.strsplit(".", path)) do
             local firstKey = tk.strsplit("[", key);
 
-            args:AddToBack(tk.tonumber(firstKey) or firstKey);
+            argsList:AddToBack(tk.tonumber(firstKey) or firstKey);
 
             if (key:find("%b[]")) then
                 for index in key:gmatch("(%b[])") do
                     local nextKey = index:match("%[(.+)%]");
-                    args:AddToBack(tk.tonumber(nextKey) or nextKey);
+                    argsList:AddToBack(tk.tonumber(nextKey) or nextKey);
                 end
             end
         end
 
-        return args;
+        return argsList;
     end
 end
 
@@ -254,7 +257,7 @@ function tk.Tables:GetDBObject(addOnName)
 end
 
 function tk.Tables:GetLastPathKey(path)
-    local list = tk:CreateLinkedList(tk.strsplit(".", path));
+    local list = LinkedList(tk.strsplit(".", path));
     local key = list:GetBack();
 
     if (key:find("%b[]")) then

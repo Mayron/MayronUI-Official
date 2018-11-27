@@ -64,105 +64,77 @@ end
 
 function ConfigModule:OnProfileChange(data) end
 
--- Gets the database path address from the child config data
-function ConfigModule:GetDatabasePathInfo(data, dbPath, settingName)
-    local rootTable;
-    local rootTableType, dbPath = dbPath:match("([^.]+).(.*)");
-    
-    rootTableType = rootTableType:gsub("%s", ""):lower();
-
-    if (rootTableType == "global") then
-        rootTable = db.global;
-    elseif (rootTableType == "profile") then
-        rootTable = db.profile;
-    else
-        tk:Error("Unknown database root-table name for config data '%s' (expected 'global' or 'profile', found '%s')", 
-        settingName, rootTableType);
-    end
-
-    if (type(dbPath) == "function") then
-        -- dbPath can be assigned a function to dynamically generate the real dbPath
-        return rootTable, dbPath();
-    else
-        return rootTable, dbPath;
-    end
-end
-
 Engine:DefineParams("table");
-function ConfigModule:GetDatabaseValue(data, configTable)
-    local rootTable, path;
-    local value;
+function ConfigModule:GetDatabaseValue(data, configTable)  
 
     if (tk.Strings:IsNilOrWhiteSpace(configTable.dbPath)) then
-        value = configTable.GetValue and configTable.GetValue();
-    else
-        rootTable, path = self:GetDatabasePathInfo(configTable.dbPath, configTable.name);
-
-        if (configTable.type == "color") then
-            value = {};
-            value.r = db:ParsePathValue(rootTable, path..".r");
-            value.g = db:ParsePathValue(rootTable, path..".g");
-            value.b = db:ParsePathValue(rootTable, path..".b");
-            value.a = db:ParsePathValue(rootTable, path..".a");
-        else
-            value = db:ParsePathValue(rootTable, path);
-        end
-
-        if (configTable.GetValue) then
-            value = configTable.GetValue(rootTable, path, value);
-        end
+        return configTable.GetValue and configTable.GetValue();
     end
+
+    local path = configTable.dbPath;
+    local value;
+
+    if (type(path) == "function") then
+        path = path();
+    end
+
+    if (configTable.type == "color") then
+        value = {};
+        value.r = db:ParsePathValue(string.format("%s.r", path));
+        value.g = db:ParsePathValue(string.format("%s.g", path));
+        value.b = db:ParsePathValue(string.format("%s.b", path));
+        value.a = db:ParsePathValue(string.format("%s.a", path));
+    else
+        value = db:ParsePathValue(path);
+    end
+
+    if (configTable.GetValue) then
+        value = configTable.GetValue(path, value);
+    end   
 
     return value;
 end
 
 -- Updates the database based on the dbPath config value, or using SetValue,
 -- and then calls "OnConfigUpdate" for the module that the config value belongs to.
-function ConfigModule:SetDatabaseValue(data, widget, configTable, value)
+--@param widget: The created widget frame passed when calling SetValue to add custom 
+--      graphical changes to represent the new value (such as disabling the widget)
+function ConfigModule:SetDatabaseValue(data, widget, widgetConfigTable, value)
 
     -- SetValue is a custom function to manually set the datbase config value
-    if (configTable.SetValue) then
+    if (widgetConfigTable.SetValue) then
         local oldValue;
 
-        if (not tk.Strings:IsNilOrWhiteSpace(configTable.dbPath)) then
-            rootTable, path = self:GetDatabasePathInfo(configTable.dbPath, configTable.name);
-            oldValue = db:ParsePathValue(rootTable, path);
+        if (not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.dbPath)) then
+            oldValue = db:ParsePathValue(widgetConfigTable.dbPath);
         end
 
-        configTable.SetValue(path, value, oldValue, widget); -- TODO: only use of param "widget" (was never usually used)
+        widgetConfigTable.SetValue(path, value, oldValue, widget);
     else
         -- dbPath is required if not using a custom SetValue function!
-        tk:Assert(not tk.Strings:IsNilOrWhiteSpace(configTable.dbPath), 
+        tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.dbPath), 
             "%s is missing database path address element (dbPath) in config data.", childData.name);
-
-        local rootTable, path = self:GetDatabasePathInfo(configTable.dbPath, configTable.name);
-        db:SetPathValue(rootTable, configTable.dbPath, value);      
+            
+        db:SetPathValue(widgetConfigTable.dbPath, value);      
     end
 
-    if (configTable.requiresReload) then
+    if (widgetConfigTable.requiresReload) then
         self:ShowReloadMessage();
-    elseif (configTable.requiresRestart) then
+    elseif (widgetConfigTable.requiresRestart) then
         self:ShowRestartMessage();
     end
 
-    -- Update the module (the module that the config value belongs to):
-    local module;
+    local module = data.selectedButton.module;
 
-    if (configTable.module) then
-        module = MayronUI:ImportModule(configTable.module);
-
-        --TODO: This should use the main config table's module name, rather than the widget config table's module key/name
-    -- elseif (data.selectedMenuConfigTable.module) then
-    --     -- use the module specified in the module's config data
-    --     module = MayronUI:ImportModule(data.selectedMenuConfigTable.module);
-    end    
-
-    if (module.OnConfigUpdate) then
-        local list = tk.Tables:ConvertPathToKeys(configTable.dbPath);       
-        
-        -- Trigger OnConfigUpdate here!
-        module:OnConfigUpdate(list, value);
+    if (not module and data.selectedButton.moduleName) then
+        -- it's a sub menu!
+        module = MayronUI:ImportModule(data.selectedButton.moduleName);
     end
+
+    local list = tk.Tables:ConvertPathToKeys(widgetConfigTable.dbPath);    
+
+    -- Trigger Module Update via OnConfigUpdate:
+    module:OnConfigUpdate(list, value);
 end
 
 Engine:DefineParams("string", "?Button");
@@ -208,8 +180,7 @@ function ConfigModule:SetSelectedButton(data, menuButton)
         menuButton.configTable = nil;        
     end
 
-    -- todo: Might need this?
-    -- module.menu = data.selectedMenu:GetFrame();
+    collectgarbage("collect");
 
     -- fade menu in...
     data.selectedButton.menu:Show();    
@@ -225,6 +196,7 @@ function ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     for _, widgetConfigTable in pairs(menuConfigTable.children) do
 
         if (widgetConfigTable.type == "loop") then
+            -- run the loop to gather widget children
             local widgetChildren = namespace.WidgetHandlers.loop:Run(
                 data.selectedButton.menu:GetFrame(), widgetConfigTable);
 
@@ -245,8 +217,7 @@ function ConfigModule:RenderSelectedMenu(data, menuConfigTable)
         end
     end
         
-    data.tempMenuConfigTable = nil;
-    collectgarbage("collect");
+    data.tempMenuConfigTable = nil;    
 end
 
 Engine:DefineParams("table");
@@ -254,10 +225,10 @@ function ConfigModule:ApplyTempData(data, configTable)
     tk:Assert(type(data.tempMenuConfigTable) == "table", "Invalid temp data for '%s'", configTable.name);
 
     if (not tk.Strings:IsNilOrWhiteSpace(data.tempMenuConfigTable.dbPath) and
-        not tk.Strings:IsNilOrWhiteSpace(configTable.dbPath)) then
+        not tk.Strings:IsNilOrWhiteSpace(configTable.appendDbPath)) then
     
         -- append the widget config table's dbPath value onto it!
-        configTable.dbPath = tk.Strings:Join(".", data.tempMenuConfigTable.dbPath, configTable.dbPath);
+        configTable.dbPath = tk.Strings:Join(".", data.tempMenuConfigTable.dbPath, configTable.appendDbPath);
     end
     
     if (type(data.tempMenuConfigTable.inherit) == "table") then
@@ -346,11 +317,11 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
         widgetConfigTable.OnInitialize = nil;
     end
 
+    local currentValue = self:GetDatabaseValue(widgetConfigTable);
+    
     -- create the widget!
-    local value = self:GetDatabaseValue(widgetConfigTable);
-
     local widget = namespace.WidgetHandlers[widgetType]:Run(
-        data.selectedButton.menu:GetFrame(), widgetConfigTable, value);
+        data.selectedButton.menu:GetFrame(), widgetConfigTable, currentValue);
 
     if (widgetConfigTable.devMode) then
         -- highlight the widget in dev mode.

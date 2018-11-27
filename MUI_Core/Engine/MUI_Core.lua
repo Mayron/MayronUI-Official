@@ -231,7 +231,7 @@ function MayronUI:Hook(moduleName, eventName, func)
     table.insert(registryInfo.hooks[eventName], func);
 end
 
-function MayronUI:ImportModule(moduleName, throwError)
+function MayronUI:ImportModule(moduleName)
     local registryInfo = registeredModules[moduleName];
     
     if (not registryInfo) then
@@ -251,6 +251,7 @@ function MayronUI:RegisterModule(moduleName, initializeOnDemand)
     -- must add it to the registeredModules table before calling parent constructor!
     registeredModules[moduleName] = {};
     registeredModules[moduleName].instance = moduleInstance;
+    registeredModules[moduleName].class = ModuleClass;
 
     moduleInstance:Super(moduleName, initializeOnDemand); -- call parent constructor
 

@@ -1,13 +1,10 @@
-------------------------
--- Setup namespaces
-------------------------
 local _, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-
+local DataTextModuleClass = namespace.DataTextModuleClass;
 local dataTextModule = MayronUI:ImportModule("DataText");
 
 dataTextModule.ConfigData = 
-{   
+{               
     name = L["Data Text"],
     type = "menu",
     module = "DataText",
@@ -23,16 +20,16 @@ dataTextModule.ConfigData =
                 L["DataText buttons, as well as the background bar, will not be displayed."]),
             type = "check",
             requiresReload = true,
-            dbPath = "enabled",
+            appendDbPath = "enabled",
         },
         {   name = L["Block in Combat"],
             tooltip = L["Prevents you from using data text modules while in combat."],
             type = "check",
-            dbPath = "blockInCombat",
+            appendDbPath = "blockInCombat",
         },
         {   name = L["Auto Hide Menu in Combat"],
             type = "check",
-            dbPath = "popup.hideInCombat",
+            appendDbPath = "popup.hideInCombat",
         },
         {   type = "divider"
         },
@@ -43,7 +40,7 @@ dataTextModule.ConfigData =
             min = 0,
             max = 5,
             default = 1,
-            dbPath = "spacing",
+            appendDbPath = "spacing",
         },
         {   name = L["Font Size"],
             type = "slider",
@@ -52,19 +49,19 @@ dataTextModule.ConfigData =
             min = 8,
             max = 18,
             default = 11,
-            dbPath = "fontSize",
+            appendDbPath = "fontSize",
         },
         {   name = L["Menu Width"],
             type = "textfield",
             valueType = "number",
             tooltip = L["Default value is "].."200",
-            dbPath = "popup.width",
+            appendDbPath = "popup.width",
         },
         {   name = L["Max Menu Height"],
             type = "textfield",
             valueType = "number",
             tooltip = L["Default value is "].."250",
-            dbPath = "popup.maxHeight",
+            appendDbPath = "popup.maxHeight",
         },
         {   type = "divider"
         },
@@ -73,7 +70,7 @@ dataTextModule.ConfigData =
             tooltip = L["The frame strata of the entire DataText bar."],
             options = tk.Constants.FRAME_STRATA_VALUES,
             default = "MEDIUM",
-            dbPath = "frameStrata"
+            appendDbPath = "frameStrata"
         },
         {   type = "slider",
             name = L["Bar Level"],
@@ -82,42 +79,45 @@ dataTextModule.ConfigData =
             max = 50,
             step = 1,
             default = 30,
-            dbPath = "frameLevel"
+            appendDbPath = "frameLevel"
         },
         {   name = L["Data Text Modules"],
             type = "title",
         },
         {   type = "loop",
-            args = namespace.dataTextLabels,
-            func = function(id, label, dbDataTextName)
-                local child = {   
+            loops = 10, -- TODO: This can remai nat 10, don't need duplicate label and svName references!
+            func = function(id)
+
+                local child = {
                     name = tk.Strings:JoinWithSpace("Button", id),
                     type = "dropdown",
-                    dbPath = "profile.datatext.displayOrder",
-                    GetValue = function(_, currentValue)
-                        -- TODO: Rethink this?
-                        local currentValue = db.profile.datatext.displayOrder[id];
+                    dbPath = string.format("profile.datatext.displayOrder[%s]", id),
+                    GetOptions = function()
+                        local options = {};
 
-                        for _, dbDataTextName in ipairs(namespace.dataTextLabels) do
-                            if (dbDataTextName[2] == currentValue) then
-                                return label;
-                            end
+                        for svName, label in pairs(namespace.dataTextLabels) do 
+                            options[label] = svName;
                         end
+                        
+                        return options;                        
                     end,
-                    SetValue = function(path, _, value)
+                    GetValue = function(path, svName)
+                        -- return label
+                        return namespace.dataTextLabels[svName];
+                    end,
+                    SetValue = function(path, _, svName) -- TODO: Maybe switch old value with new value?
                         -- TODO: Passes in nil!
-                        tk:Print(value);
-                       -- db:SetPathValue(db.profile, string.format("datatext.displayOrder.%s", dbDataTextName), id);
+                        -- TODO: dropdown labels must be unique values (if I change durability to guild, then guild must change to blank)
+                       -- db:SetPathValue(db.profile, path, svName);
                     end,
-                    options = namespace.dataTextLabels
-                };                
+                };
 
                 if (id == 1) then
                     child.paddingTop = 0;
                 end
 
                 return child;
-            end,
+            end
         },
         {   type = "title",
             name = L["Module Options"]
@@ -125,7 +125,7 @@ dataTextModule.ConfigData =
         {   type = "submenu",
             module = "DataText",
             name = L["Performance"],
-            dbPath = "profile.datatext.performance",
+            appendDbPath = "performance",
             children = {
                 {   name = L["Show FPS"],
                     type = "check",
@@ -150,47 +150,47 @@ dataTextModule.ConfigData =
         {   type = "submenu",
             name = L["Money"],
             module = "DataText",
-            dbPath = "profile.datatext.currency",
+            appendDbPath = "currency",
             children = {
                 {   name = L["Show Copper"],
                     type = "check",
-                    dbPath = "showCopper",
+                    appendDbPath = "showCopper",
                 },
                 {   type = "divider"
                 },
                 {   name = L["Show Silver"],
                     type = "check",
-                    dbPath = "showSilver",
+                    appendDbPath = "showSilver",
                 },
                 {   type = "divider"
                 },
                 {   name = L["Show Gold"],
                     type = "check",
-                    dbPath = "showGold",
+                    appendDbPath = "showGold",
                 },
                 {   type = "divider"
                 },
                 {   name = L["Show Realm Name"],
                     type = "check",
-                    dbPath = "showRealm",
+                    appendDbPath = "showRealm",
                 },
             }
         },
         {   type = "submenu",
             name = "Inventory",
             module = "DataText",
-            dbPath = "profile.datatext.inventory",
+            appendDbPath = "inventory",
             children = {
                 {   name = L["Show Total Slots"],
                     type = "check",
-                    dbPath = "showTotalSlots",
+                    appendDbPath = "showTotalSlots",
                 },
                 {   type = "divider"
                 },
                 {   name = L["Show Used Slots"],
                     type = "radio",
                     group = 1,
-                    dbPath = "slotsToShow",
+                    appendDbPath = "slotsToShow",
                     GetValue = function(path, value)
                         return value == "used";
                     end,
@@ -201,7 +201,7 @@ dataTextModule.ConfigData =
                 {   name = L["Show Free Slots"],
                     type = "radio",
                     group = 1,
-                    dbPath = "slotsToShow",
+                    appendDbPath = "slotsToShow",
                     GetValue = function(path, value)
                         return value == "free";
                     end,
@@ -217,19 +217,96 @@ dataTextModule.ConfigData =
         {   type = "submenu",
             module = "DataText",
             name = L["Guild"],
-            dbPath = "profile.datatext.guild",
+            appendDbPath = "guild",
             children = {
                 {   type = "check",
                     name = L["Show Self"],
                     tooltip = L["Show your character in the guild list."],
-                    dbPath = "showSelf"
+                    appendDbPath = "showSelf"
                 },
                 {   type = "check",
                     name = L["Show Tooltips"],
                     tooltip = L["Show guild info tooltips when the cursor is over guild members in the guild list."],
-                    dbPath = "showTooltips"
+                    appendDbPath = "showTooltips"
                 }
             }
         }
     }
 };
+
+function DataTextModuleClass:OnConfigUpdate(data, list, value)
+    local key = list:PopFront();
+
+    if (key) then
+        tk:Print("KEY:", key, " VALUE:", value)
+        return;
+    end
+
+    if (key == "profile" and list:PopFront() == "datatext") then
+        key = list:PopFront();
+        if (key == "enabled") then
+            self:PositionDataItems();
+
+        elseif (key == "performance") then
+            self:ForceUpdate("performance");
+
+        elseif (key == "money") then
+            self:ForceUpdate("money");
+
+        elseif (key == "bags") then
+            self:ForceUpdate("bags");
+
+        elseif (key == "guild") then
+            if (list:PopFront() == "show_tooltips") then
+                items.guild.update_required = true;
+            end
+
+        elseif (key == "menu_width") then
+            data.popup:SetWidth(value);
+
+        elseif (key == "popup.maxHeight") then
+            data.slideController:Start();
+            
+        elseif (key == "fontSize") then
+            local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
+
+            for id, btn in tk.ipairs(data.DataModules) do
+                btn:GetFontString():SetFont(font, value);
+
+                if (btn.seconds) then
+                    btn.seconds:SetFont(font, value);
+                end
+
+                if (btn.minutes) then
+                    btn.minutes:SetFont(font, value);
+                end
+
+                if (btn.milliseconds) then
+                    btn.milliseconds:SetFont(font, value);
+                end
+            end
+
+        elseif (key == "spacing") then
+            self:PositionDataItems();
+
+        elseif (key == "blockInCombat") then
+            if (data.blocker and not value) then
+                data.blocker:Hide();
+
+            elseif (value) then
+                data:CreateBlocker();
+            end
+
+        elseif (key == "hideMenuInCombat") then
+            if (tk.InCombatLockdown() and value and data.popup:IsVisible()) then
+                data.slideController:Start();
+            end
+
+        elseif (key == "frame_strata") then
+            data.bar:SetFrameStrata(value);
+
+        elseif (key == "frame_level") then
+            data.bar:SetFrameLevel(value);
+        end
+    end
+end
