@@ -1,7 +1,85 @@
 local _, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-local DataTextModuleClass = namespace.DataTextModuleClass;
+local C_DataTextModule = namespace.C_DataTextModule;
 local dataTextModule = MayronUI:ImportModule("DataText");
+
+function C_DataTextModule:OnConfigUpdate(data, list, value)
+    local key = list:PopFront();
+
+    if (key) then
+        tk:Print("KEY:", key, " VALUE:", value)
+        return;
+    end
+
+    if (key == "profile" and list:PopFront() == "datatext") then
+        key = list:PopFront();
+        if (key == "enabled") then
+            self:PositionDataItems();
+
+        elseif (key == "performance") then
+            self:ForceUpdate("performance");
+
+        elseif (key == "money") then
+            self:ForceUpdate("money");
+
+        elseif (key == "bags") then
+            self:ForceUpdate("bags");
+
+        elseif (key == "guild") then
+            if (list:PopFront() == "show_tooltips") then
+                items.guild.update_required = true;
+            end
+
+        elseif (key == "menu_width") then
+            data.popup:SetWidth(value);
+
+        elseif (key == "popup.maxHeight") then
+            data.slideController:Start();
+            
+        elseif (key == "fontSize") then
+            local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
+
+            for id, btn in tk.ipairs(data.DataModules) do
+                btn:GetFontString():SetFont(font, value);
+
+                if (btn.seconds) then
+                    btn.seconds:SetFont(font, value);
+                end
+
+                if (btn.minutes) then
+                    btn.minutes:SetFont(font, value);
+                end
+
+                if (btn.milliseconds) then
+                    btn.milliseconds:SetFont(font, value);
+                end
+            end
+
+        elseif (key == "spacing") then
+            self:PositionDataItems();
+
+        elseif (key == "blockInCombat") then
+            if (data.blocker and not value) then
+                data.blocker:Hide();
+
+            elseif (value) then
+                data:CreateBlocker();
+            end
+
+        elseif (key == "hideMenuInCombat") then
+            if (tk.InCombatLockdown() and value and data.popup:IsVisible()) then
+                data.slideController:Start();
+            end
+
+        elseif (key == "frame_strata") then
+            data.bar:SetFrameStrata(value);
+
+        elseif (key == "frame_level") then
+            data.bar:SetFrameLevel(value);
+        end
+    end
+end
+
 
 dataTextModule.ConfigData = 
 {               
@@ -233,80 +311,3 @@ dataTextModule.ConfigData =
         }
     }
 };
-
-function DataTextModuleClass:OnConfigUpdate(data, list, value)
-    local key = list:PopFront();
-
-    if (key) then
-        tk:Print("KEY:", key, " VALUE:", value)
-        return;
-    end
-
-    if (key == "profile" and list:PopFront() == "datatext") then
-        key = list:PopFront();
-        if (key == "enabled") then
-            self:PositionDataItems();
-
-        elseif (key == "performance") then
-            self:ForceUpdate("performance");
-
-        elseif (key == "money") then
-            self:ForceUpdate("money");
-
-        elseif (key == "bags") then
-            self:ForceUpdate("bags");
-
-        elseif (key == "guild") then
-            if (list:PopFront() == "show_tooltips") then
-                items.guild.update_required = true;
-            end
-
-        elseif (key == "menu_width") then
-            data.popup:SetWidth(value);
-
-        elseif (key == "popup.maxHeight") then
-            data.slideController:Start();
-            
-        elseif (key == "fontSize") then
-            local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
-
-            for id, btn in tk.ipairs(data.DataModules) do
-                btn:GetFontString():SetFont(font, value);
-
-                if (btn.seconds) then
-                    btn.seconds:SetFont(font, value);
-                end
-
-                if (btn.minutes) then
-                    btn.minutes:SetFont(font, value);
-                end
-
-                if (btn.milliseconds) then
-                    btn.milliseconds:SetFont(font, value);
-                end
-            end
-
-        elseif (key == "spacing") then
-            self:PositionDataItems();
-
-        elseif (key == "blockInCombat") then
-            if (data.blocker and not value) then
-                data.blocker:Hide();
-
-            elseif (value) then
-                data:CreateBlocker();
-            end
-
-        elseif (key == "hideMenuInCombat") then
-            if (tk.InCombatLockdown() and value and data.popup:IsVisible()) then
-                data.slideController:Start();
-            end
-
-        elseif (key == "frame_strata") then
-            data.bar:SetFrameStrata(value);
-
-        elseif (key == "frame_level") then
-            data.bar:SetFrameLevel(value);
-        end
-    end
-end

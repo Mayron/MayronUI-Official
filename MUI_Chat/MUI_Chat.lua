@@ -4,14 +4,17 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 -- Register and Import ---------
 
-local ChatClass = MayronUI:RegisterModule("Chat");
-namespace.ChatClass = ChatClass;
+local C_ChatModule = MayronUI:RegisterModule("Chat");
+namespace.C_ChatModule = C_ChatModule;
 
 -- Load Database Defaults --------------
 
 db:AddToDefaults("profile.chat", {
 	enabled = true,
+	swapInCombat = false,
+	layout = "DPS", -- default layout
 	chatFrames = {
+		-- these tables will contain the templateMuiChatFrame data (using SetParent)
 		TOPLEFT = {
 			enabled = true,
 		},
@@ -25,7 +28,6 @@ db:AddToDefaults("profile.chat", {
 			enabled = false,
 		}
 	},
-	layout = "DPS", -- default layout
     editBox = {
         yOffset = -8,
         height = 27,
@@ -119,7 +121,7 @@ end
 
 -- Chat Module -------------------
 
-function ChatClass:OnInitialize(data)
+function C_ChatModule:OnInitialize(data)
 	data.sv = db.profile.chat;	
 
     tk.StaticPopupDialogs["MUI_Link"] = {
@@ -172,67 +174,6 @@ function ChatClass:OnInitialize(data)
 			end
 		end
 	end
-end
-
---TODO
-function ChatClass:OnConfigUpdate(data, list, value)
-	local key = list:PopFront();
-	
-    if (key == "profile" and list:PopFront() == "chat") then
-		key = list:PopFront();
-		
-        if (key == "data") then
-			local chatID = list:PopFront();
-			
-            if (chatID) then
-				local cf = chat.chatFrames[self:GetChatNameById(chatID)];
-				
-				if (not cf) then 
-					return; 
-				end
-
-                if (list:PopFront() == "buttons") then
-					local buttonSetId, buttonID = list:PopFront(), list:PopFront();
-					
-                    if (buttonSetId and buttonSetId == 1 and buttonID) then
-                        if (buttonID == 1) then
-                            cf.left:SetText(value);
-                        elseif (buttonID == 2) then
-                            cf.middle:SetText(value);
-                        elseif (buttonID == 3) then
-                            cf.right:SetText(value);
-                        end
-                    end
-                end
-			end			
-        elseif (key == "editBox") then
-            key = list:PopFront();
-            if (key == "yOffset") then
-                ChatFrame1EditBox:SetPoint("TOPLEFT", ChatFrame1, "BOTTOMLEFT", -3, value);
-				ChatFrame1EditBox:SetPoint("TOPRIGHT", ChatFrame1, "BOTTOMRIGHT", 3, value);
-				
-            elseif (key == "height") then
-				ChatFrame1EditBox:SetHeight(value);
-				
-            elseif (key == "border" or key == "inset" or key == "borderSize") then
-                local r, g, b, a = ChatFrame1EditBox:GetBackdropColor();
-				local inset = (key == "inset" and value) or self.sv.editBox.inset;
-				
-                local backdrop = {
-                    bgFile = "Interface\\Buttons\\WHITE8X8",
-                    insets = {left = inset, right = inset, top = inset, bottom = inset};
-				};
-				
-                backdrop.edgeFile = tk.Constants.LSM:Fetch("border", (key == "border" and value) or self.sv.editBox.border);
-				backdrop.edgeSize = (key == "borderSize" and value) or self.sv.editBox.borderSize;
-				
-                ChatFrame1EditBox:SetBackdrop(backdrop);
-                ChatFrame1EditBox:SetBackdropColor(r, g, b, a);
-            elseif (key == "backdropColor") then
-                ChatFrame1EditBox:SetBackdropColor(value.r, value.g, value.b, value.a);
-            end
-        end
-    end
 end
 
 --------------------------

@@ -1,6 +1,6 @@
 -- Setup namespaces ------------------
 local addOnName, namespace = ...;
-local ChatClass = namespace.ChatClass;
+local C_ChatModule = namespace.C_ChatModule;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 --------------------------------------
 
@@ -16,7 +16,7 @@ local function ToggleButton_OnEvent(self, event)
     end
 end
 
-local function TogglButton_OnClick(self)
+local function ToggleButton_OnClick(self)
     local compactFrame = CompactRaidFrameManager.displayFrame;
 
     -- toggle compact raid frame manager
@@ -46,13 +46,13 @@ local function CreateToggleButton()
     btn:RegisterEvent("GROUP_ROSTER_UPDATE");
     btn:RegisterEvent("PLAYER_ENTERING_WORLD");
 
-    btn:SetScript("OnClick", TogglButton_OnClick);
+    btn:SetScript("OnClick", ToggleButton_OnClick);
     btn:SetScript("OnEvent", ToggleButton_OnEvent);
 
     return btn;
 end
 
-function ChatClass:SetUpRaidFrameManager(data)
+function C_ChatModule:SetUpRaidFrameManager(data)
     -- Hide Blizzard Compact Manager:
     CompactRaidFrameManager:DisableDrawLayer("ARTWORK");
     CompactRaidFrameManager:EnableMouse(false);

@@ -145,7 +145,6 @@ function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
 
             if (tk:Equals(mainValue, subValue, true)) then
                 -- remove it!
-                tk:Print("remove:", subValue);
                 mainTable[mainIndex] = nil;
                 totalRemoved = totalRemoved + 1;
                 break;
@@ -169,6 +168,12 @@ function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
     end
 
     return totalRemoved;
+end
+
+function tk.Tables:AddAll(tbl, ...)
+    for _, value in self:IterateArgs(...) do
+        table.insert(tbl, value);
+    end
 end
 
 function tk.Tables:Fill(tbl, ...)

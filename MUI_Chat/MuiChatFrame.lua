@@ -2,7 +2,7 @@
 
 -- Setup namespaces ------------------
 local addOnName, namespace = ...;
-local ChatClass = namespace.ChatClass;
+local C_ChatModule = namespace.C_ChatModule;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local MEDIA = "Interface\\AddOns\\MUI_Chat\\media\\";
@@ -156,9 +156,9 @@ local function RepositionChatFrame(muiChatFrame, anchorName)
 	end
 end
 
--- ChatClass -------------------
+-- C_ChatModule -------------------
 
-function ChatClass:ShowMuiChatFrame(data, anchorName) -- lets assume it's enabled!
+function C_ChatModule:ShowMuiChatFrame(data, anchorName) -- lets assume it's enabled!
 	-- remove all spaces and convert to upper
 	anchorName = anchorName:gsub("%s+", ""):upper();
 

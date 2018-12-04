@@ -2,7 +2,7 @@
 
 -- Setup namespaces ------------------
 local addOnName, namespace = ...;
-local ChatClass = namespace.ChatClass;
+local C_ChatModule = namespace.C_ChatModule;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 --------------------------------------
 
@@ -100,7 +100,7 @@ local function Tab_OnLeave(self)
 	end
 end
 
-function ChatClass:SetUpBlizzardChatFrame(data, chatFrameID)
+function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameID)
 	local chatFrameName = string.format("ChatFrame%d", chatFrameID);
 
 	local chatFrame = _G[chatFrameName];

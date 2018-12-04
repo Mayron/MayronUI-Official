@@ -25,8 +25,8 @@ local SlideController = obj:Import("MayronUI.Widgets.SlideController");
 
 -- Register Modules --------------------
 
-local DataTextModuleClass = MayronUI:RegisterModule("DataText");
-namespace.DataTextModuleClass = DataTextModuleClass;
+local C_DataTextModule = MayronUI:RegisterModule("DataText");
+namespace.C_DataTextModule = C_DataTextModule;
 
 -- Load Database Defaults --------------
 
@@ -55,9 +55,9 @@ db:AddToDefaults("profile.datatext", {
     }
 });
 
--- DataTextModuleClass Functions -------------------
+-- C_DataTextModule Functions -------------------
 
-function DataTextModuleClass:OnInitialize(data)
+function C_DataTextModule:OnInitialize(data)
     data.sv = db.profile.datatext; -- database saved variables table
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
@@ -69,7 +69,7 @@ function DataTextModuleClass:OnInitialize(data)
     end    
 end
 
-function DataTextModuleClass:OnEnable(data)
+function C_DataTextModule:OnEnable(data)
     -- the main bar containing all data text buttons
     data.bar = tk:PopFrame("Frame", data.buiContainer);
     data.bar:SetHeight(data.sv.height);
@@ -129,7 +129,7 @@ function DataTextModuleClass:OnEnable(data)
 end
 
 Engine:DefineParams("IDataTextModule");
-function DataTextModuleClass:RegisterDataModule(data, dataModule)
+function C_DataTextModule:RegisterDataModule(data, dataModule)
     local dataModuleName = dataModule:GetObjectType(); -- get's name of object/module
     data.DataModules[dataModuleName] = dataModule;
     
@@ -145,7 +145,7 @@ end
 
 Engine:DefineParams("IDataTextModule", "?string");
 Engine:DefineReturns("Button");
-function DataTextModuleClass:CreateDataTextButton(data, dataModule, btnText)
+function C_DataTextModule:CreateDataTextButton(data, dataModule, btnText)
     local btn = CreateFrame("Button");
     btn:SetNormalTexture(tk.Constants.MEDIA.."mui_bar");
     btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
@@ -162,7 +162,7 @@ function DataTextModuleClass:CreateDataTextButton(data, dataModule, btnText)
     return btn;
 end
 
-function DataTextModuleClass:PositionDataItems(data)
+function C_DataTextModule:PositionDataItems(data)
     local displayOrders = db.profile.datatext.displayOrder:ToTable();
     data.OrderedButtons = {};
 
@@ -207,7 +207,7 @@ end
 
 Engine:DefineParams("Frame");
 -- Attach current dataTextModule scroll child onto shared popup and hide previous scroll child
-function DataTextModuleClass:ChangeMenuContent(data, content)
+function C_DataTextModule:ChangeMenuContent(data, content)
     local oldContent = data.popup:GetScrollChild();
 
     if (oldContent) then 
@@ -223,7 +223,7 @@ function DataTextModuleClass:ChangeMenuContent(data, content)
 end
 
 Engine:DefineParams("table");
-function DataTextModuleClass:ClearLabels(data, labels)
+function C_DataTextModule:ClearLabels(data, labels)
     if (not labels) then 
         return; 
     end
@@ -242,7 +242,7 @@ Engine:DefineParams("IDataTextModule");
 Engine:DefineReturns("number");
 -- returned the total height of all labels
 -- total height is used to controll the dynamic scrollbar
-function DataTextModuleClass:PositionLabels(data, dataModule)    
+function C_DataTextModule:PositionLabels(data, dataModule)    
     local totalLabelsShown = dataModule.TotalLabelsShown;
     local labelHeight = data.sv.popup.itemHeight;
 
@@ -300,12 +300,13 @@ function DataTextModuleClass:PositionLabels(data, dataModule)
 end
 
 Engine:DefineParams("IDataTextModule", "Button");
-function DataTextModuleClass:ClickModuleButton(data, dataModule, dataTextButton, button, ...)
+function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, button, ...)
     GameTooltip:Hide();
     dataModule:Update(data);
     data.slideController:Stop();
 
-    local buttonDisplayOrder = dataModule:GetDisplayOrder();
+    local displayOrders = db.profile.datatext.displayOrder:ToTable();              
+    local buttonDisplayOrder = tk.Tables:GetIndex(displayOrders, dataModule.SavedVariableName);
 
     if (data.lastButtonID == buttonDisplayOrder and data.lastButton == button and data.popup:IsShown()) then       
         -- clicked on same dataTextModule button so close the popup!
@@ -373,16 +374,16 @@ function DataTextModuleClass:ClickModuleButton(data, dataModule, dataTextButton,
 end
 
 Engine:DefineParams("string");
-function DataTextModuleClass:ForceUpdate(data, dataModuleName)    
+function C_DataTextModule:ForceUpdate(data, dataModuleName)    
     data.DataModules[dataModuleName]:Update();
 end
 
 Engine:DefineReturns("boolean");
-function DataTextModuleClass:IsShown(data)    
+function C_DataTextModule:IsShown(data)    
     return (data.bar and data.bar:IsShown()) or false;
 end
 
 Engine:DefineReturns("Frame");
-function DataTextModuleClass:GetDataTextBar(data)    
+function C_DataTextModule:GetDataTextBar(data)    
     return data.bar;
 end

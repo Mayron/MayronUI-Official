@@ -1,6 +1,6 @@
 -- Setup namespaces ------------------
 local addOnName, namespace = ...;
-local ChatClass = namespace.ChatClass;
+local C_ChatModule = namespace.C_ChatModule;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local LAYOUT_MESSAGE = 
@@ -114,10 +114,10 @@ local function LayoutButton_OnMouseUp(self, chat, btnPressed)
 	end
 end
 
--- ChatClass ------------------------
+-- C_ChatModule ------------------------
 
 -- First function to be called!
-function ChatClass:SetUpLayoutSwitcher(data, layoutButton)
+function C_ChatModule:SetUpLayoutSwitcher(data, layoutButton)
 	local layoutName = data.sv.layout;
 	local firstCharacter = layoutName:sub(1, 1):upper();
 	data.layoutButton = layoutButton;
@@ -132,7 +132,7 @@ function ChatClass:SetUpLayoutSwitcher(data, layoutButton)
 end
 
 
-function ChatClass:SetViewingLayout(data, layoutName)
+function C_ChatModule:SetViewingLayout(data, layoutName)
 	if (not layoutName) then
 		for key, layoutData in db.global.chat.layouts:Iterate() do
 			if (layoutData) then
@@ -149,7 +149,7 @@ function ChatClass:SetViewingLayout(data, layoutName)
 	end
 end
 
-function ChatClass:GetNumLayouts(data)
+function C_ChatModule:GetNumLayouts(data)
 	local n = 0;
 
 	for layoutName, layoutData in db.global.chat.layouts:Iterate() do
@@ -161,7 +161,7 @@ function ChatClass:GetNumLayouts(data)
 	return n;
 end
 
-function ChatClass:UpdateAddOnWindow(data)
+function C_ChatModule:UpdateAddOnWindow(data)
 	if (not data.addonWindow) then return; end
 
 	local layoutData = db.global.chat.layouts[data.viewingLayout];
@@ -193,7 +193,7 @@ function ChatClass:UpdateAddOnWindow(data)
 	-- end
 end
 
-function ChatClass:CreateNewAddOnProfile(data, self, addOnName, dbObject, dropdown)
+function C_ChatModule:CreateNewAddOnProfile(data, self, addOnName, dbObject, dropdown)
 	local newProfileLabel = string.format("Create New %s Profile:", addOnName);
 	dropdown:SetLabel(db.global.chat.layouts[data.viewingLayout][addOnName]);
 
@@ -242,7 +242,7 @@ function ChatClass:CreateNewAddOnProfile(data, self, addOnName, dbObject, dropdo
 	StaticPopup_Show("MUI_NewProfileLayout");
 end
 
-function ChatClass:CreateLayout(data)
+function C_ChatModule:CreateLayout(data)
 	if (StaticPopupDialogs["MUI_CreateLayout"]) then
 		StaticPopup_Show("MUI_CreateLayout");
 		return
@@ -282,7 +282,7 @@ function ChatClass:CreateLayout(data)
 	StaticPopup_Show("MUI_CreateLayout");
 end
 
-function ChatClass:RenameLayout(data)
+function C_ChatModule:RenameLayout(data)
 	if (StaticPopupDialogs["MUI_RenameLayout"]) then
 		StaticPopup_Show("MUI_RenameLayout");
 		return;
@@ -321,7 +321,7 @@ function ChatClass:RenameLayout(data)
 	StaticPopup_Show("MUI_RenameLayout");
 end
 
-function ChatClass:DeleteLayout(data)
+function C_ChatModule:DeleteLayout(data)
 	if (StaticPopupDialogs["MUI_DeleteLayout"]) then
 		StaticPopup_Show("MUI_DeleteLayout");
 		return;
@@ -351,7 +351,7 @@ function ChatClass:DeleteLayout(data)
 	StaticPopup_Show("MUI_DeleteLayout");
 end
 
-function ChatClass:CreateScrollFrameRowContent(data, dbObject, addOnName)
+function C_ChatModule:CreateScrollFrameRowContent(data, dbObject, addOnName)
 	local scrollFrame = data.addonWindow.dynamicFrame:GetFrame();
 	local addOnProfiles = dbObject:GetProfiles();
 	local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, scrollFrame);
@@ -382,7 +382,7 @@ function ChatClass:CreateScrollFrameRowContent(data, dbObject, addOnName)
 	return checkButton, dropdown;		
 end
 
-function ChatClass:ShowLayoutTool(data)
+function C_ChatModule:ShowLayoutTool(data)
 	if (data.layoutTool) then
 		data.layoutTool:Show();
 		self:UpdateAddOnWindow();
@@ -476,7 +476,7 @@ function ChatClass:ShowLayoutTool(data)
 	UIFrameFadeIn(data.layoutTool, 0.3, 0, 1);
 end
 
-function ChatClass:SwitchLayouts(data, layoutName, layoutData)	
+function C_ChatModule:SwitchLayouts(data, layoutName, layoutData)	
 	data.sv.layout = layoutName;
 
 	local firstCharacter = layoutName:sub(1, 1):upper();

@@ -1,6 +1,6 @@
 -- Setup namespaces ------------------
 local addOnName, namespace = ...;
-local ChatClass = namespace.ChatClass;
+local C_ChatModule = namespace.C_ChatModule;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 --------------------------------------
 
@@ -159,7 +159,7 @@ local function ChatButton_OnClick(self)
     clickHandlers[text]();
 end
 
-function ChatClass:SetUpButtonHandler(data, muiChatFrame, buttonSettings)
+function C_ChatModule:SetUpButtonHandler(data, muiChatFrame, buttonSettings)
     em:CreateEventHandler("MODIFIER_STATE_CHANGED", function()
         if (data.sv.swapInCombat or not InCombatLockdown()) then
             local updated = false;
