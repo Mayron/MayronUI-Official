@@ -1,4 +1,5 @@
 --luacheck: ignore MayronUI
+--luacheck: ignore self
 
 local unpack = _G.unpack;
 
@@ -102,7 +103,7 @@ end
 
 -- Updates the database based on the dbPath config value, or using SetValue,
 -- and then calls "OnConfigUpdate" for the module that the config value belongs to.
---@param widget: The created widget frame passed when calling SetValue to add custom 
+--@param widget: The created widget frame passed when calling SetValue to add custom
 --      graphical changes to represent the new value (such as disabling the widget)
 function ConfigModule:SetDatabaseValue(data, widget, widgetConfigTable, value)
 
@@ -194,7 +195,7 @@ end
 
 Engine:DefineParams("table");
 function ConfigModule:RenderSelectedMenu(data, menuConfigTable)
-    if (not (menuConfigTable and type(menuConfigTable.children) == "table")) then 
+    if (not (menuConfigTable and type(menuConfigTable.children) == "table")) then
         return;
     end
 
