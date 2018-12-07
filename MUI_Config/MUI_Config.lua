@@ -1,6 +1,10 @@
+--luacheck: ignore MayronUI
+
+local unpack = _G.unpack;
+
 -- Setup Namespaces ------------------
 local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local MENU_BUTTON_HEIGHT = 40;
 
@@ -15,13 +19,13 @@ namespace.ConfigModule = ConfigModule;
 -- Local functions -------------------
 
 local function ToolTip_OnEnter(frame)
-    GameTooltip:SetOwner(frame, "ANCHOR_RIGHT", 0, 2);
-    GameTooltip:AddLine(frame.tooltip);
-    GameTooltip:Show();
+    _G.GameTooltip:SetOwner(frame, "ANCHOR_RIGHT", 0, 2);
+    _G.GameTooltip:AddLine(frame.tooltip);
+    _G.GameTooltip:Show();
 end
 
-local function ToolTip_OnLeave(frame)
-    GameTooltip:Hide();
+local function ToolTip_OnLeave()
+    _G.GameTooltip:Hide();
 end
 
 local function MenuButton_OnClick(menuButton)
@@ -30,7 +34,7 @@ local function MenuButton_OnClick(menuButton)
         menuButton:SetChecked(true);
         return;
     end
-    
+
     local configModule = MayronUI:ImportModule("Config");
     configModule:OpenMenu(menuButton.module:GetModuleName());
 end
@@ -45,27 +49,28 @@ namespace.SubMenuButton_OnClick = SubMenuButton_OnClick;
 -- ConfigModule -------------------
 
 function ConfigModule:OnInitialize(data)
-    if (not MayronUI:IsInstalled()) then 
+    if (not MayronUI:IsInstalled()) then
         tk:Print("Please install the UI and try again.");
-        return; 
+        return;
     end
 
-    data.configData = {}; 
+    data.configData = {};
 end
 
 function ConfigModule:Show(data)
     if (not data.window) then
         local menuListScrollChild = self:SetUpWindow();
-        self:SetUpMenuButtons(menuListScrollChild);        
+        self:SetUpMenuButtons(menuListScrollChild);
     end
 
     data.window:Show();
 end
 
-function ConfigModule:OnProfileChange(data) end
+
+function ConfigModule:OnProfileChange() end
 
 Engine:DefineParams("table");
-function ConfigModule:GetDatabaseValue(data, configTable)  
+function ConfigModule:GetDatabaseValue(_, configTable)
 
     if (tk.Strings:IsNilOrWhiteSpace(configTable.dbPath)) then
         return configTable.GetValue and configTable.GetValue();
@@ -90,7 +95,7 @@ function ConfigModule:GetDatabaseValue(data, configTable)
 
     if (configTable.GetValue) then
         value = configTable.GetValue(path, value);
-    end   
+    end
 
     return value;
 end
@@ -109,13 +114,13 @@ function ConfigModule:SetDatabaseValue(data, widget, widgetConfigTable, value)
             oldValue = db:ParsePathValue(widgetConfigTable.dbPath);
         end
 
-        widgetConfigTable.SetValue(path, value, oldValue, widget);
+        widgetConfigTable.SetValue(widgetConfigTable.dbPath, value, oldValue, widget);
     else
         -- dbPath is required if not using a custom SetValue function!
-        tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.dbPath), 
-            "%s is missing database path address element (dbPath) in config data.", childData.name);
-            
-        db:SetPathValue(widgetConfigTable.dbPath, value);      
+        tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.dbPath),
+            "%s is missing database path address element (dbPath) in config data.", widgetConfigTable.name);
+
+        db:SetPathValue(widgetConfigTable.dbPath, value);
     end
 
     if (widgetConfigTable.requiresReload) then
@@ -131,14 +136,14 @@ function ConfigModule:SetDatabaseValue(data, widget, widgetConfigTable, value)
         module = MayronUI:ImportModule(data.selectedButton.moduleName);
     end
 
-    local list = tk.Tables:ConvertPathToKeys(widgetConfigTable.dbPath);    
+    local list = tk.Tables:ConvertPathToKeys(widgetConfigTable.dbPath);
 
     -- Trigger Module Update via OnConfigUpdate:
     module:OnConfigUpdate(list, value);
 end
 
 Engine:DefineParams("string", "?Button");
-function ConfigModule:OpenMenu(data, moduleName, subMenuButton) 
+function ConfigModule:OpenMenu(data, moduleName, subMenuButton)
     local menuButton;
 
     if (not subMenuButton) then
@@ -146,7 +151,7 @@ function ConfigModule:OpenMenu(data, moduleName, subMenuButton)
 
         data.history:Clear();
         data.windowName:SetText(tk.Strings.Empty);
-        data.window.back:SetEnabled(false);        
+        data.window.back:SetEnabled(false);
     else
         menuButton = subMenuButton;
 
@@ -156,7 +161,7 @@ function ConfigModule:OpenMenu(data, moduleName, subMenuButton)
     end
 
     self:SetSelectedButton(menuButton);
-    PlaySound(tk.Constants.CLICK);
+    _G.PlaySound(tk.Constants.CLICK);
 end
 
 Engine:DefineParams("CheckButton|Button");
@@ -177,19 +182,21 @@ function ConfigModule:SetSelectedButton(data, menuButton)
     elseif (menuButton.configTable) then
         -- it is a sub-menu!
         self:RenderSelectedMenu(menuButton.configTable);
-        menuButton.configTable = nil;        
+        menuButton.configTable = nil;
     end
 
     collectgarbage("collect");
 
     -- fade menu in...
-    data.selectedButton.menu:Show();    
-    UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);    
+    data.selectedButton.menu:Show();
+    _G.UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
 end
 
 Engine:DefineParams("table");
 function ConfigModule:RenderSelectedMenu(data, menuConfigTable)
-    if (not (menuConfigTable and type(menuConfigTable.children) == "table")) then return end
+    if (not (menuConfigTable and type(menuConfigTable.children) == "table")) then 
+        return;
+    end
 
     data.tempMenuConfigTable = menuConfigTable;
 
@@ -200,8 +207,8 @@ function ConfigModule:RenderSelectedMenu(data, menuConfigTable)
             local widgetChildren = namespace.WidgetHandlers.loop:Run(
                 data.selectedButton.menu:GetFrame(), widgetConfigTable);
 
-            for _, widgetConfigTable in ipairs(widgetChildren) do
-                data.selectedButton.menu:AddChildren(self:SetUpWidget(widgetConfigTable));
+            for _, subWidgetConfigTable in ipairs(widgetChildren) do
+                data.selectedButton.menu:AddChildren(self:SetUpWidget(subWidgetConfigTable));
             end
 
             -- the table was previously popped
@@ -210,14 +217,14 @@ function ConfigModule:RenderSelectedMenu(data, menuConfigTable)
             data.selectedButton.menu:AddChildren(self:SetUpWidget(widgetConfigTable));
         end
     end
-    
+
     if (data.tempMenuConfigTable.groups) then
         for _, group in ipairs(data.tempMenuConfigTable.groups) do
             tk:GroupCheckButtons(unpack(group));
         end
     end
-        
-    data.tempMenuConfigTable = nil;    
+
+    data.tempMenuConfigTable = nil;
 end
 
 Engine:DefineParams("table");
@@ -226,11 +233,12 @@ function ConfigModule:ApplyTempData(data, configTable)
 
     if (not tk.Strings:IsNilOrWhiteSpace(data.tempMenuConfigTable.dbPath) and
         not tk.Strings:IsNilOrWhiteSpace(configTable.appendDbPath)) then
-    
+
         -- append the widget config table's dbPath value onto it!
-        configTable.dbPath = tk.Strings:Join(".", data.tempMenuConfigTable.dbPath, configTable.appendDbPath);
+        configTable.dbPath = tk.Strings:Join(".",
+            data.tempMenuConfigTable.dbPath, configTable.appendDbPath);
     end
-    
+
     if (type(data.tempMenuConfigTable.inherit) == "table") then
         -- Inherit all key and value pairs from a parent table by injecting them into childData
         local metaTable = tk.Tables:PopWrapper();
@@ -239,8 +247,11 @@ function ConfigModule:ApplyTempData(data, configTable)
     end
 
     if (configTable.type == "radio" and configTable.groupName) then
-        local tempRadioButtonGroup = tk.Tables:GetTable(data.tempMenuConfigTable, "groups", configTable.groupName);
-        table.insert(tempRadioButtonGroup, widget.btn);
+        local tempRadioButtonGroup = tk.Tables:GetTable(
+            data.tempMenuConfigTable, "groups", configTable.groupName);
+
+        -- TODO: Error - widget is a nil value!
+        -- table.insert(tempRadioButtonGroup, widget.btn);
     end
 end
 
@@ -263,7 +274,7 @@ function ConfigModule:ShowReloadMessage(data)
     data.warningLabel:SetText(data.warningLabel.reloadText);
 end
 
-function ConfigModule:ShowRestartMessage()
+function ConfigModule:ShowRestartMessage(data)
     data.warningLabel:SetText(data.warningLabel.restartText);
 end
 
@@ -302,13 +313,13 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
     self:ApplyTempData(widgetConfigTable);
 
     local widgetType = widgetConfigTable.type;
-    
+
     -- treat the widget like a check button (except when grouping the check buttons)
     if (widgetType == "radio") then
         widgetType = "check";
     end
-    
-    obj:Assert(namespace.WidgetHandlers[widgetType], 
+
+    obj:Assert(namespace.WidgetHandlers[widgetType],
         "Unsupported widget type '%s' found in config data", widgetType or "nil");
 
     if (widgetConfigTable.OnInitialize) then
@@ -318,7 +329,7 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
     end
 
     local currentValue = self:GetDatabaseValue(widgetConfigTable);
-    
+
     -- create the widget!
     local widget = namespace.WidgetHandlers[widgetType]:Run(
         data.selectedButton.menu:GetFrame(), widgetConfigTable, currentValue);
@@ -353,8 +364,8 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
 end
 
 function ConfigModule:SetUpWindow(data)
-    if (data.window) then 
-        return; 
+    if (data.window) then
+        return
     end
 
     data.history = LinkedListClass();
@@ -378,9 +389,9 @@ function ConfigModule:SetUpWindow(data)
     data.window:GetColumn(1):SetFixed(200);
     data.window:GetRow(1):SetFixed(80);
     data.window:GetRow(3):SetFixed(50);
-    data.window:SetScript("OnShow", function(self)
+    data.window:SetScript("OnShow", function()
         -- fade in when shown
-        UIFrameFadeIn(self, 0.3, 0, 1);
+        _G.UIFrameFadeIn(self, 0.3, 0, 1);
     end);
 
     local topbar = data.window:CreateCell();
@@ -430,7 +441,7 @@ function ConfigModule:SetUpWindow(data)
             data.windowName:SetText(previousMenuButton.text:GetText());
         end
 
-        PlaySound(tk.Constants.CLICK);
+        _G.PlaySound(tk.Constants.CLICK);
     end);
 
     data.windowName = topbar:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
@@ -439,14 +450,18 @@ function ConfigModule:SetUpWindow(data)
     tk:ApplyThemeColor(data.window.back.arrow);
     data.window.back:SetEnabled(false);
 
-    data.window.profiles = gui:CreateButton(tk.Constants.AddOnStyle, topbar:GetFrame(), L["Reload UI"]); -- will change to profiles another time
+    data.window.profiles = gui:CreateButton(
+        tk.Constants.AddOnStyle, topbar:GetFrame(), L["Reload UI"]);
+
     data.window.profiles:SetPoint("RIGHT", topbar:GetFrame(), "RIGHT");
     data.window.profiles:SetScript("OnClick", function()
-        ReloadUI();
+        _G.ReloadUI();
         tk.PlaySound(tk.Constants.CLICK);
     end);
 
-    data.window.installer = gui:CreateButton(tk.Constants.AddOnStyle, topbar:GetFrame(), L["MUI Installer"]);
+    data.window.installer = gui:CreateButton(
+        tk.Constants.AddOnStyle, topbar:GetFrame(), L["MUI Installer"]);
+
     data.window.installer:SetPoint("RIGHT", data.window.profiles, "LEFT", -10, 0);
 
     data.window.installer:SetScript("OnClick", function()
@@ -455,28 +470,28 @@ function ConfigModule:SetUpWindow(data)
         tk.PlaySound(tk.Constants.CLICK);
     end);
 
-    tk:SetFullWidth(scrollChild);     
+    tk:SetFullWidth(scrollChild);
 
     return scrollChild;
 end
 
 -- Loads all config data from individual modules and places them as a graphical menu
-function ConfigModule:SetUpMenuButtons(data, menuListScrollChild)   
-    local id = 0; 
+function ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
+    local id = 0;
 
     data.menuButtons = {};
 
     -- contains all menu buttons in the left scroll frame of the main config window
     local scrollChildHeight = menuListScrollChild:GetHeight() + MENU_BUTTON_HEIGHT;
-    menuListScrollChild:SetHeight(scrollChildHeight);    
-    
-    for _, module in MayronUI:IterateModules() do        
-        
+    menuListScrollChild:SetHeight(scrollChildHeight);
+
+    for _, module in MayronUI:IterateModules() do
+
         if (module.ConfigData) then
             local moduleName = module:GetModuleName();
-            id = id + 1;         
+            id = id + 1;
 
-            local menuButton = CreateFrame("CheckButton", nil, menuListScrollChild);
+            local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
             data.menuButtons[id] = menuButton
             data.menuButtons[moduleName] = menuButton;
             menuButton.module = module;
