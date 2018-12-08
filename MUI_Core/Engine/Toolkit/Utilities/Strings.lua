@@ -1,3 +1,4 @@
+-- luacheck: ignore MayronUI self 143
 local _, core = ...;
 core.Toolkit = core.Toolkit or {};
 
@@ -30,8 +31,8 @@ function tk.Strings:Contains(fullString, subString)
     end
 end
 
-function tk.Strings:IsNilOrWhiteSpace(strValue)       
-    if (strValue == nil) then 
+function tk.Strings:IsNilOrWhiteSpace(strValue)
+    if (strValue == nil) then
         return true;
     end
 
@@ -67,7 +68,7 @@ function tk.Strings:FormatReadableNumber(number)
 end
 
 --@param text - any text you wish to colour code
-function tk.Strings:GetHexColoredText(text, hex)    
+function tk.Strings:GetHexColoredText(text, hex)
     return string.format("|cff%s%s|r", hex, text);
 end
 
@@ -83,7 +84,7 @@ function tk.Strings:GetThemeColoredText(text)
 end
 
 function tk.Strings:GetClassColoredText(className, text)
-    className = className or (select(2, UnitClass("player")));
+    className = className or (select(2, _G.UnitClass("player")));
     text = text or className;
 
     className = className:gsub("%s+", tk.Strings.Empty);
@@ -92,7 +93,7 @@ function tk.Strings:GetClassColoredText(className, text)
     return self:GetHexColoredText(text, tk.Constants.CLASS_RGB_COLORS[className].hex);
 end
 
-function tk.Strings:Concat(...) 
+function tk.Strings:Concat(...)
     local wrapper = tk.Tables:PopWrapper(...);
     local value = table.concat(wrapper, tk.Strings.Empty);
     tk.Tables:PushWrapper(wrapper);
@@ -104,9 +105,9 @@ function tk.Strings:Join(separator, ...)
 
     tk:Assert(#wrapper > 0, "List of values to join cannot be empty.");
 
-    
     local value = table.concat(wrapper, separator);
     tk.Tables:PushWrapper(wrapper);
+
     return value;
 end
 

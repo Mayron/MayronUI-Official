@@ -1,9 +1,10 @@
+-- luacheck: ignore MayronUI self 143
 -- @Description: Handles the MUI Chat Frame artwork that wraps around the blizzard Chat Frames
 
 -- Setup namespaces ------------------
-local addOnName, namespace = ...;
+local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 
 local MEDIA = "Interface\\AddOns\\MUI_Chat\\media\\";
 --------------------------------------
@@ -35,7 +36,7 @@ local function CreateChatFrameButtons(sideBar, anchorName)
 			butonMediaFile = string.format("%ssideButton", MEDIA);
 		else
 			-- use "middle" button texture
-			butonMediaFile = string.format("%smiddleButton", MEDIA);		
+			butonMediaFile = string.format("%smiddleButton", MEDIA);
 		end
 
 		btn:SetNormalTexture(butonMediaFile);
@@ -44,7 +45,7 @@ local function CreateChatFrameButtons(sideBar, anchorName)
 		if (buttonID == 3) then
 			-- flip last button texture horizontally
 			btn:GetNormalTexture():SetTexCoord(1, 0, 0, 1);
-			btn:GetHighlightTexture():SetTexCoord(1, 0, 0, 1);		
+			btn:GetHighlightTexture():SetTexCoord(1, 0, 0, 1);
 		end
 
 		if (tk.Strings:Contains(anchorName, "BOTTOM")) then
@@ -54,12 +55,12 @@ local function CreateChatFrameButtons(sideBar, anchorName)
 				-- flip last button texture horizontally
 				btn:GetNormalTexture():SetTexCoord(1, 0, 1, 0);
 				btn:GetHighlightTexture():SetTexCoord(1, 0, 1, 0);
-			else 
+			else
 				btn:GetNormalTexture():SetTexCoord(0, 1, 1, 0);
 				btn:GetHighlightTexture():SetTexCoord(0, 1, 1, 0);
 			end
 		end
-	end	
+	end
 
 	return buttons;
 end
@@ -105,11 +106,11 @@ local function CreateChatFrame(anchorName)
 	muiChatFrame.layoutButton:SetHighlightTexture(string.format("%slayoutButton", MEDIA));
 
 	tk:ApplyThemeColor(
-		muiChatFrame.layoutButton:GetNormalTexture(), 
+		muiChatFrame.layoutButton:GetNormalTexture(),
 		muiChatFrame.layoutButton:GetHighlightTexture()
 	);
 
-	muiChatFrame.buttons = CreateChatFrameButtons(muiChatFrame.sidebar, anchorName);	
+	muiChatFrame.buttons = CreateChatFrameButtons(muiChatFrame.sidebar, anchorName);
 
 	return muiChatFrame;
 end
@@ -128,23 +129,23 @@ local function RepositionChatFrame(muiChatFrame, anchorName)
 		muiChatFrame.buttons[1]:SetPoint("BOTTOMLEFT", muiChatFrame.tabs, "TOPLEFT", -46, 2);
 		muiChatFrame.tabs:ClearAllPoints();
 		muiChatFrame.tabs:SetPoint(anchorName, muiChatFrame.sidebar, "TOPLEFT", 0, -12);
-		muiChatFrame.tabs:SetTexCoord(1, 0, 0, 1);		
+		muiChatFrame.tabs:SetTexCoord(1, 0, 0, 1);
 
 	elseif (tk.Strings:Contains(anchorName, "BOTTOM")) then
 		muiChatFrame.tabs:Hide(); -- TODO: Should be configurable!
 		muiChatFrame.sidebar:SetPoint(anchorName, muiChatFrame, anchorName, 0 , 10);
 
 		if (anchorName == "BOTTOMLEFT") then
-			muiChatFrame:SetPoint(anchorName, tk.UIParent, anchorName, 2, 2);			
+			muiChatFrame:SetPoint(anchorName, tk.UIParent, anchorName, 2, 2);
 			muiChatFrame.window:SetPoint(anchorName, muiChatFrame.sidebar, "BOTTOMRIGHT", 2, 12);
 			muiChatFrame.window.texture:SetTexCoord(0, 1, 1, 0);
-			muiChatFrame.buttons[1]:SetPoint("BOTTOMLEFT", muiChatFrame.sidebar, "BOTTOMRIGHT", 0, -10);			
+			muiChatFrame.buttons[1]:SetPoint("BOTTOMLEFT", muiChatFrame.sidebar, "BOTTOMRIGHT", 0, -10);
 
 		elseif (anchorName == "BOTTOMRIGHT") then
 			muiChatFrame:SetPoint(anchorName, tk.UIParent, anchorName, -2, 2);
 			muiChatFrame.window:SetPoint(anchorName, muiChatFrame.sidebar, "BOTTOMLEFT", -2, 12);
-			muiChatFrame.window.texture:SetTexCoord(1, 0, 1, 0);			
-			muiChatFrame.buttons[1]:SetPoint("BOTTOMLEFT", muiChatFrame.window, "BOTTOMLEFT", -36, -22);			
+			muiChatFrame.window.texture:SetTexCoord(1, 0, 1, 0);
+			muiChatFrame.buttons[1]:SetPoint("BOTTOMLEFT", muiChatFrame.window, "BOTTOMLEFT", -36, -22);
 		end
 	end
 
@@ -166,23 +167,23 @@ function C_ChatModule:ShowMuiChatFrame(data, anchorName) -- lets assume it's ena
 	local muiChatFrame = data.chatFrames[anchorName];
 
 	if (not muiChatFrame) then
-		muiChatFrame = CreateChatFrame(anchorName);	
+		muiChatFrame = CreateChatFrame(anchorName);
 		data.chatFrames[anchorName] = muiChatFrame;
 
-		obj:Assert(obj:IsType(muiChatFrame, "Frame"), 
+		obj:Assert(obj:IsType(muiChatFrame, "Frame"),
 			"Could not find chat frame at anchor point '%s'", anchorName);
 
 		if (anchorName ~= "TOPLEFT") then
 			RepositionChatFrame(muiChatFrame, anchorName);
 		end
-			
-		-- chat channel button
-		ChatFrameChannelButton:ClearAllPoints();
-		ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
-		ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
 
-		ChatFrameChannelButton.ClearAllPoints = tk.Constants.DUMMY_FUNC;
-		ChatFrameChannelButton.SetPoint = tk.Constants.DUMMY_FUNC;
+		-- chat channel button
+		_G.ChatFrameChannelButton:ClearAllPoints();
+		_G.ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
+		_G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
+
+		_G.ChatFrameChannelButton.ClearAllPoints = tk.Constants.DUMMY_FUNC;
+		_G.ChatFrameChannelButton.SetPoint = tk.Constants.DUMMY_FUNC;
 
 		self:SetUpLayoutSwitcher(muiChatFrame.layoutButton);
 	end

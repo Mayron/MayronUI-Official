@@ -1,9 +1,10 @@
+-- luacheck: ignore MayronUI self 143
 -- @Description: Controls the Blizzard Chat Frame changes (not the MUI Chat Frame!)
 
 -- Setup namespaces ------------------
-local addOnName, namespace = ...;
+local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local tk = MayronUI:GetCoreComponents();
 --------------------------------------
 
 local function GetChatLink(text, id, url)
@@ -20,7 +21,7 @@ local function NewAddMessage(self, text, ...)
 end
 
 local function OnHyperLinkLeave()
-	GameTooltip:Hide();
+	_G.GameTooltip:Hide();
 end
 
 local function OnHyperlinkEnter(self, linkData)
@@ -29,11 +30,11 @@ local function OnHyperlinkEnter(self, linkData)
 	-- TODO: missing type for new community link?
 	if (linkType == "item" or linkType == "spell" or linkType == "enchant" or
 			linkType == "quest" or linkType == "talent" or linkType == "glyph" or
-			linkType == "unit" or linkType == "achievement") then 
+			linkType == "unit" or linkType == "achievement") then
 
-		GameTooltip:SetOwner(self, "ANCHOR_CURSOR");
-		GameTooltip:SetHyperlink(linkData);
-		GameTooltip:Show();
+		_G.GameTooltip:SetOwner(self, "ANCHOR_CURSOR");
+		_G.GameTooltip:SetHyperlink(linkData);
+		_G.GameTooltip:Show();
 	end
 end
 
@@ -41,14 +42,14 @@ local function OnHyperlinkClick(self, linkData, link, button)
 	local linkType, value = linkData:match("(%a+):(.+)");
 
 	if (linkType == "url") then
-		local popup = StaticPopup_Show("MUI_Link");
+		local popup = _G.StaticPopup_Show("MUI_Link");
 		local editbox = _G[ string.format("%sEditBox", popup:GetName()) ];
 
 		editbox:SetText(value);
 		editbox:SetFocus();
 		editbox:HighlightText();
 	else
-		SetItemRef(linkData, link, button, self);
+		_G.SetItemRef(linkData, link, button, self);
 	end
 end
 
@@ -70,8 +71,8 @@ end
 
 local function Tab_OnClick(self)
 	self.ChatFrame:ScrollToBottom();
-	
-	for chatFrameID = 1, NUM_CHAT_WINDOWS do
+
+	for chatFrameID = 1, _G.NUM_CHAT_WINDOWS do
 		local tab = tk._G[ string.format("ChatFrame%dTab", chatFrameID) ];
 		local tabLabel = tab:GetFontString();
 
@@ -91,7 +92,7 @@ end
 local function Tab_OnLeave(self)
 	local tabLabel = self:GetFontString();
 
-	if (self.ChatFrame == SELECTED_CHAT_FRAME) then
+	if (self.ChatFrame == _G.SELECTED_CHAT_FRAME) then
 		-- tab label should be white if selected
 		tabLabel:SetTextColor(1, 1, 1, 1);
 	else
@@ -100,7 +101,7 @@ local function Tab_OnLeave(self)
 	end
 end
 
-function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameID)
+function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
 	local chatFrameName = string.format("ChatFrame%d", chatFrameID);
 
 	local chatFrame = _G[chatFrameName];
@@ -109,15 +110,15 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameID)
 
 	_G[string.format("%sEditBox", chatFrameName)]:SetAltArrowKeyMode(false);
 
-	if (chatFrameID ~= 2) then 
+	if (chatFrameID ~= 2) then
 		-- if not combat log...
 		chatFrame.oldAddMessage = chatFrame.AddMessage;
 		chatFrame.AddMessage = NewAddMessage;
 		chatFrame:SetScript("OnHyperLinkEnter", OnHyperlinkEnter);
 		chatFrame:SetScript("OnHyperLinkLeave", OnHyperLinkLeave);
 		chatFrame:SetScript("OnHyperlinkClick", OnHyperlinkClick);
-	end		
-	
+	end
+
 	local tab = _G[string.format("%sTab", chatFrameName)];
 	tab.ChatFrame = chatFrame; -- needed for scripts
 
@@ -128,18 +129,18 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameID)
 	tab:SetScript("OnLeave", Tab_OnLeave);
 	Tab_OnLeave(tab); -- run script to set correct label color
 
-	local tabLabel = tab:GetFontString();		
+	local tabLabel = tab:GetFontString();
 	tabLabel:ClearAllPoints();
 	tabLabel:SetPoint("CENTER", tab, "CENTER");
 
 	local btn = _G[ string.format("%sButtonFrame", chatFrameName) ];
-	btn:ClearAllPoints();		
+	btn:ClearAllPoints();
 	btn:DisableDrawLayer("BACKGROUND");
 	btn:DisableDrawLayer("BORDER");
-	btn:EnableMouse(false);		
-	btn:SetPoint("BOTTOM", tab, "BOTTOM", 0, -2);		
-	btn:SetSize(tab:GetWidth() - 10, 20);	
-	
+	btn:EnableMouse(false);
+	btn:SetPoint("BOTTOM", tab, "BOTTOM", 0, -2);
+	btn:SetSize(tab:GetWidth() - 10, 20);
+
 	btn.EnableMouse = tk.Constants.DUMMY_FUNC;
 
 	tk:KillAllElements(

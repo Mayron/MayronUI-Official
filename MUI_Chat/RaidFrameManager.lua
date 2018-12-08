@@ -1,15 +1,18 @@
+-- luacheck: ignore MayronUI self 143
 -- Setup namespaces ------------------
-local addOnName, namespace = ...;
+local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local tk = MayronUI:GetCoreComponents();
+
+local CompactRaidFrameManager = _G.CompactRaidFrameManager;
 --------------------------------------
 
-local function ToggleButton_OnEvent(self, event)
-    if (not tk.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then 
-        return; 
+local function ToggleButton_OnEvent(self)
+    if (not tk.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
+        return
     end
 
-    if (GetNumGroupMembers() > 0 and IsInGroup()) then
+    if (_G.GetNumGroupMembers() > 0 and _G.IsInGroup()) then
         self:Show();
     else
         self:Hide();
@@ -75,7 +78,7 @@ function C_ChatModule:SetUpRaidFrameManager(data)
     tk:MakeMovable(compactFrame);
 
     -- Create background frame to go behind blizzard's compact frame
-    local backgroundFrame = tk.CreateFrame("Frame", nil, compactFrame);    
+    local backgroundFrame = tk.CreateFrame("Frame", nil, compactFrame);
     backgroundFrame:SetAllPoints(true);
     tk:SetBackground(backgroundFrame, 0, 0, 0);
 

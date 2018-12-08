@@ -1,32 +1,31 @@
-------------------------
--- Setup namespaces
-------------------------
+-- luacheck: ignore MayronUI self 143
 local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 
 local C_ChatModule = namespace.C_ChatModule;
 local chatModule = MayronUI:ImportModule("Chat");
 
 --TODO
-function C_ChatModule:OnConfigUpdate(data, list, value)
+function C_ChatModule:OnConfigUpdate(_, list, value)
 	local key = list:PopFront();
-	
+
     if (key == "profile" and list:PopFront() == "chat") then
 		key = list:PopFront();
-		
+
         if (key == "data") then
 			local chatID = list:PopFront();
-			
+
             if (chatID) then
+                --TODO: chat is incorrect!
 				local cf = chat.chatFrames[self:GetChatNameById(chatID)];
-				
-				if (not cf) then 
-					return; 
+
+				if (not cf) then
+					return
 				end
 
                 if (list:PopFront() == "buttons") then
 					local buttonSetId, buttonID = list:PopFront(), list:PopFront();
-					
+
                     if (buttonSetId and buttonSetId == 1 and buttonID) then
                         if (buttonID == 1) then
                             cf.left:SetText(value);
@@ -37,32 +36,34 @@ function C_ChatModule:OnConfigUpdate(data, list, value)
                         end
                     end
                 end
-			end			
+			end
         elseif (key == "editBox") then
             key = list:PopFront();
+
             if (key == "yOffset") then
-                ChatFrame1EditBox:SetPoint("TOPLEFT", ChatFrame1, "BOTTOMLEFT", -3, value);
-				ChatFrame1EditBox:SetPoint("TOPRIGHT", ChatFrame1, "BOTTOMRIGHT", 3, value);
-				
+                _G.ChatFrame1EditBox:SetPoint("TOPLEFT", _G.ChatFrame1, "BOTTOMLEFT", -3, value);
+				_G.ChatFrame1EditBox:SetPoint("TOPRIGHT", _G.ChatFrame1, "BOTTOMRIGHT", 3, value);
+
             elseif (key == "height") then
-				ChatFrame1EditBox:SetHeight(value);
-				
+				_G.ChatFrame1EditBox:SetHeight(value);
+
             elseif (key == "border" or key == "inset" or key == "borderSize") then
-                local r, g, b, a = ChatFrame1EditBox:GetBackdropColor();
+                local r, g, b, a = _G.ChatFrame1EditBox:GetBackdropColor();
 				local inset = (key == "inset" and value) or self.sv.editBox.inset;
-				
+
                 local backdrop = {
                     bgFile = "Interface\\Buttons\\WHITE8X8",
                     insets = {left = inset, right = inset, top = inset, bottom = inset};
 				};
-				
-                backdrop.edgeFile = tk.Constants.LSM:Fetch("border", (key == "border" and value) or self.sv.editBox.border);
+
+                backdrop.edgeFile = tk.Constants.LSM:Fetch(
+                    "border", (key == "border" and value) or self.sv.editBox.border);
 				backdrop.edgeSize = (key == "borderSize" and value) or self.sv.editBox.borderSize;
-				
-                ChatFrame1EditBox:SetBackdrop(backdrop);
-                ChatFrame1EditBox:SetBackdropColor(r, g, b, a);
+
+                _G.ChatFrame1EditBox:SetBackdrop(backdrop);
+                _G.ChatFrame1EditBox:SetBackdropColor(r, g, b, a);
             elseif (key == "backdropColor") then
-                ChatFrame1EditBox:SetBackdropColor(value.r, value.g, value.b, value.a);
+                _G.ChatFrame1EditBox:SetBackdropColor(value.r, value.g, value.b, value.a);
             end
         end
     end
@@ -72,28 +73,28 @@ local function CreateButtonConfigData(dbPath, buttonID)
     local configData = {};
 
     if (buttonID == 1) then
-        table.insert(configData, {   
+        table.insert(configData, {
             name = L["Standard Chat Buttons"],
             type = "title"
         });
     else
-        table.insert(configData, {   
+        table.insert(configData, {
             name = string.format("Chat Buttons with Modifier Key %d", buttonID),
             type = "title"
         });
     end
 
-    table.insert(configData, {   
+    table.insert(configData, {
         name = L["Left Button"],
         dbPath = string.format("%s.buttons[%d][1]", dbPath, buttonID)
     });
 
-    table.insert(configData, {   
+    table.insert(configData, {
         name = L["Middle Button"],
         dbPath = string.format("%s.buttons[%d][2]", dbPath, buttonID)
     });
 
-    table.insert(configData, {   
+    table.insert(configData, {
         name = L["Right Button"],
         dbPath = string.format("%s.buttons[%d][3]", dbPath, buttonID)
     });
@@ -102,7 +103,7 @@ local function CreateButtonConfigData(dbPath, buttonID)
     table.insert(configData, { type = "divider" });
 
     if (buttonID == 1) then
-        return unpack(configData);
+        return _G.unpack(configData);
     end
 
     for _, modKey in tk.Tables:IterateArgs(L["Control"], L["Shift"], L["Alt"]) do
@@ -118,25 +119,25 @@ local function CreateButtonConfigData(dbPath, buttonID)
                 return currentValue and currentValue:find(modKeyFirstChar);
             end,
 
-            SetValue = function(dbPath, oldValue, newValue)
-                value = value and modKeyFirstChar;
+            SetValue = function(valueDbPath, oldValue, newValue)
+                newValue = newValue and modKeyFirstChar;
 
-                if (not value and oldValue and oldValue:find(modKeyFirstChar)) then
+                if (not newValue and oldValue and oldValue:find(modKeyFirstChar)) then
                     newValue = oldValue:gsub("S", tk.Strings.Empty); -- remove it
-                    db:SetPathValue(dbPath, newValue);
+                    db:SetPathValue(valueDbPath, newValue);
                 else
-                    newValue = (oldValue and tk.Strings:Join(oldValue, value)) or newValue; -- add it
-                    db:SetPathValue(dbPath, newValue);
+                    newValue = (oldValue and tk.Strings:Join(oldValue, newValue)) or newValue; -- add it
+                    db:SetPathValue(valueDbPath, newValue);
                 end
             end
         });
 
     end
 
-    return unpack(configData);
+    return _G.unpack(configData);
 end
 
-chatModule.ConfigData = 
+chatModule.ConfigData =
 {
     name = "Chat",
     type = "category",
@@ -192,12 +193,12 @@ chatModule.ConfigData =
             tooltip = L["Allow the use of modifier keys to swap chat buttons while in combat."],
             dbPath = "profile.chat.swapInCombat",
         },
-        {   type = "divider" 
+        {   type = "divider"
         },
         {   type = "loop",
             args = {"TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT"},
 
-            func = function(id, chatFrameName)
+            func = function(_, chatFrameName)
                 local dbPath = string.format("profile.chat.chatFrames.%s", chatFrameName);
                 local chatFrameLabel;
 
@@ -213,7 +214,7 @@ chatModule.ConfigData =
                     chatFrameLabel = tk.Strings:JoinWithSpace(chatFrameLabel, "Right");
                 end
 
-                local configData =  
+                local configData =
                 {
                     name = tk.Strings:JoinWithSpace(chatFrameLabel, L["Options"]),
                     type = "submenu",

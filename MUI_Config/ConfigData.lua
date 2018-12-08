@@ -1,9 +1,10 @@
-local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+-- luacheck: ignore MayronUI self
+
+local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 local configModule = MayronUI:ImportModule("Config");
 
-configModule.ConfigData = 
-{   
+configModule.ConfigData =
+{
     name = L["General"],
     type = "category",
     children = {
@@ -16,17 +17,17 @@ configModule.ConfigData =
         {   name = L["Display Lua Errors"],
             type = "check",
             GetValue = function()
-                return tonumber(GetCVar("ScriptErrors")) == 1;
+                return tonumber(_G.GetCVar("ScriptErrors")) == 1;
             end,
             SetValue = function(value)
                 if (value) then
-                    SetCVar("ScriptErrors","1");
+                    _G.SetCVar("ScriptErrors","1");
                 else
-                    SetCVar("ScriptErrors","0");
+                    _G.SetCVar("ScriptErrors","0");
                 end
             end
         },
-        {   type = "divider" 
+        {   type = "divider"
         },
         {   name = L["Master Font"],
             type = "dropdown",
@@ -220,18 +221,18 @@ configModule.ConfigData =
                 dbPath = "profile.bottomui.actionbar_panel.animate_speed",
             },
             {   name = L["Retract Height"],
-                tooltip = L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."].."\n\n"..
-                            L["Minimum value is "].."40".."\n\n"..
-                            L["Default value is "].."44",
+                tooltip = tk.Strings:Join(
+                    L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."],
+                    "\n\n", L["Minimum value is "], "40", "\n\n", L["Default value is "], "44"),
                 type = "textfield",
                 valueType = "number",
                 min = 40,
                 dbPath = "profile.bottomui.actionbar_panel.retract_height"
             },
             {   name = L["Expand Height"],
-                tooltip = L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."].."\n\n"..
-                            L["Minimum value is "].."40".."\n\n"..
-                            L["Default value is "].."80",
+                tooltip = tk.Strings:Join(
+                    L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."],
+                    "\n\n", L["Minimum value is "], "40", "\n\n", L["Default value is "], "80"),
                 type = "textfield",
                 valueType = "number",
                 min = 40,
@@ -455,7 +456,7 @@ configModule.ConfigData =
                 end
             },
         }
-    },    
+    },
     {   name = L["Side Bar"],
         type = "category",
         module = "SideBar",

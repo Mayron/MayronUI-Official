@@ -1,5 +1,4 @@
---luacheck: ignore MayronUI
---luacheck: ignore self
+-- luacheck: ignore MayronUI self 143
 
 local unpack = _G.unpack;
 
@@ -228,34 +227,6 @@ function ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     data.tempMenuConfigTable = nil;
 end
 
-Engine:DefineParams("table");
-function ConfigModule:ApplyTempData(data, configTable)
-    tk:Assert(type(data.tempMenuConfigTable) == "table", "Invalid temp data for '%s'", configTable.name);
-
-    if (not tk.Strings:IsNilOrWhiteSpace(data.tempMenuConfigTable.dbPath) and
-        not tk.Strings:IsNilOrWhiteSpace(configTable.appendDbPath)) then
-
-        -- append the widget config table's dbPath value onto it!
-        configTable.dbPath = tk.Strings:Join(".",
-            data.tempMenuConfigTable.dbPath, configTable.appendDbPath);
-    end
-
-    if (type(data.tempMenuConfigTable.inherit) == "table") then
-        -- Inherit all key and value pairs from a parent table by injecting them into childData
-        local metaTable = tk.Tables:PopWrapper();
-        metaTable.__index = data.tempMenuConfigTable.inherit;
-        setmetatable(configTable, metaTable);
-    end
-
-    if (configTable.type == "radio" and configTable.groupName) then
-        local tempRadioButtonGroup = tk.Tables:GetTable(
-            data.tempMenuConfigTable, "groups", configTable.groupName);
-
-        -- TODO: Error - widget is a nil value!
-        -- table.insert(tempRadioButtonGroup, widget.btn);
-    end
-end
-
 Engine:DefineReturns("DynamicFrame");
 -- @param menuFrame: the dynamic frame representing the module's config data
 function ConfigModule:CreateMenu(data)
@@ -311,7 +282,24 @@ end
 
 Engine:DefineParams("table");
 function ConfigModule:SetUpWidget(data, widgetConfigTable)
-    self:ApplyTempData(widgetConfigTable);
+
+    tk:Assert(type(data.tempMenuConfigTable) == "table",
+        "Invalid temp data for '%s'", widgetConfigTable.name);
+
+    if (not tk.Strings:IsNilOrWhiteSpace(data.tempMenuConfigTable.dbPath) and
+        not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.appendDbPath)) then
+
+        -- append the widget config table's dbPath value onto it!
+        widgetConfigTable.dbPath = tk.Strings:Join(".",
+            data.tempMenuConfigTable.dbPath, widgetConfigTable.appendDbPath);
+    end
+
+    if (type(data.tempMenuConfigTable.inherit) == "table") then
+        -- Inherit all key and value pairs from a parent table by injecting them into childData
+        local metaTable = tk.Tables:PopWrapper();
+        metaTable.__index = data.tempMenuConfigTable.inherit;
+        setmetatable(widgetConfigTable, metaTable);
+    end
 
     local widgetType = widgetConfigTable.type;
 
@@ -343,6 +331,13 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
     if (tk:ValueIsEither(widgetType, "title", "divider", "fontstring")) then
         -- takes up the full width of the config window!
         tk:SetFullWidth(widget, 10);
+    end
+
+    if (widgetConfigTable.type == "radio" and widgetConfigTable.groupName) then
+        local tempRadioButtonGroup = tk.Tables:GetTable(
+            data.tempMenuConfigTable, "groups", widgetConfigTable.groupName);
+
+        table.insert(tempRadioButtonGroup, widget.btn);
     end
 
     if (widgetConfigTable.tooltip) then

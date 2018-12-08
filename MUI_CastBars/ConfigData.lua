@@ -1,9 +1,5 @@
-------------------------
--- Setup namespaces
-------------------------
-local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-
+-- luacheck: ignore MayronUI self 143 631
+local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 local castBarsModule = MayronUI:ImportModule("CastBars");
 
 local Map = {};
@@ -30,7 +26,7 @@ local function UnlockCastBar(button, data)
         castbar:HookScript("OnDragStart", function()
             db:SetPathValue("profile.castbars."..data.castbar_name..".anchor_to_SUF", false);
             Map.suf_anchor_checkbuttons[data.castbar_name]:SetChecked(false);
-            
+
             for _, textfield in tk.pairs(Map.position_textfields[data.castbar_name]) do
                 textfield:SetEnabled(true);
             end
@@ -79,8 +75,8 @@ local function UnlockCastBar(button, data)
     end
 end
 
-castBarsModule.ConfigData = 
-{   
+castBarsModule.ConfigData =
+{
     name = "Cast Bars",
     type = "category",
     module = "CastBars",
@@ -156,10 +152,12 @@ castBarsModule.ConfigData =
                 "player", "target", "focus", "mirror"
             },
             func = function(_, name)
-                local cap_name = L[name:gsub("^%l", tk.string.upper)];
-                return 
-                {   
-                    name = cap_name,
+                local castBarName = L[name:gsub("^%l", tk.string.upper)];
+                local castBar = tk._G[string.format("MUI_%sCastBar", castBarName)];
+
+                return
+                {
+                    name = castBarName,
                     type = "submenu",
                     OnLoad = function()
                         Map.position_textfields[name] = {};
@@ -188,13 +186,14 @@ castBarsModule.ConfigData =
                                 Map.suf_anchor_checkbuttons[name] = container.btn;
                             end,
                             enabled = name ~= "mirror",
-                            tooltip = tk.string.format(L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."], cap_name),
+                            tooltip = tk.string.format(
+                                L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."], castBarName),
                             dbPath = "profile.castbars."..name..".anchor_to_SUF",
                             SetValue = function(path, _, new, button)
                                 local unitframe = tk._G["SUFUnit"..name];
                                 if (new and not (unitframe and unitframe.portrait)) then
                                     button:SetChecked(false);
-                                    tk:Print(tk.string.format(L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."], cap_name));
+                                    tk:Print(tk.string.format(L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."], castBarName));
                                     return;
                                 end
                                 db:SetPathValue(path, new);
@@ -275,11 +274,16 @@ castBarsModule.ConfigData =
                             end,
                             GetValue = function()
                                 local value = db:ParsePathValue("profile.castbars."..name..".position");
+
                                 if (value) then
                                     return value.point;
                                 else
-                                    local castbar = tk._G["MUI_"..cap_name.."CastBar"];
-                                    if (not castbar) then return "disabled"; end
+                                    local castbar = tk._G[string.format("MUI_%sCastBar", castBarName)];
+
+                                    if (not castbar) then
+                                        return "disabled";
+                                    end
+
                                     return (tk.select(1, castbar:GetPoint()));
                                 end
                             end
@@ -292,16 +296,21 @@ castBarsModule.ConfigData =
                                 if (db.profile.castbars[name].anchor_to_SUF) then
                                     container.widget.field:SetEnabled(false);
                                 end
+
                                 Map.position_textfields[name].relativeFrame = container.widget.field;
                             end,
                             GetValue = function()
                                 local value = db:ParsePathValue("profile.castbars."..name..".position");
+
                                 if (value) then
                                     return value.relativeFrame;
+
                                 else
-                                    local castbar = tk._G["MUI_"..cap_name.."CastBar"];
-                                    if (not castbar) then return "disabled"; end
-                                    return (tk.select(2, castbar:GetPoint())):GetName();
+                                    if (not castBar) then
+                                        return "disabled";
+                                    end
+
+                                    return (tk.select(2, castBar:GetPoint())):GetName();
                                 end
                             end
                         },
@@ -317,12 +326,16 @@ castBarsModule.ConfigData =
                             end,
                             GetValue = function()
                                 local value = db:ParsePathValue("profile.castbars."..name..".position");
+
                                 if (value) then
                                     return value.relativePoint;
                                 else
-                                    local castbar = tk._G["MUI_"..cap_name.."CastBar"];
-                                    if (not castbar) then return "disabled"; end
-                                    return (tk.select(3, castbar:GetPoint()));
+
+                                    if (not castBar) then
+                                        return "disabled";
+                                     end
+
+                                    return (tk.select(3, castBar:GetPoint()));
                                 end
                             end
                         },
@@ -336,16 +349,20 @@ castBarsModule.ConfigData =
                                 if (db.profile.castbars[name].anchor_to_SUF) then
                                     container.widget.field:SetEnabled(false);
                                 end
+
                                 Map.position_textfields[name].x = container.widget.field;
                             end,
                             GetValue = function()
                                 local value = db:ParsePathValue("profile.castbars."..name..".position");
+
                                 if (value) then
                                     return value.x;
                                 else
-                                    local castbar = tk._G["MUI_"..cap_name.."CastBar"];
-                                    if (not castbar) then return "disabled"; end
-                                    return (tk.select(4, castbar:GetPoint()));
+                                    if (not castBar) then
+                                        return "disabled";
+                                    end
+
+                                    return (tk.select(4, castBar:GetPoint()));
                                 end
                             end
                         },
@@ -361,12 +378,13 @@ castBarsModule.ConfigData =
                             end,
                             GetValue = function()
                                 local value = db:ParsePathValue("profile.castbars."..name..".position");
+
                                 if (value) then
                                     return value.y;
                                 else
-                                    local castbar = tk._G["MUI_"..cap_name.."CastBar"];
-                                    if (not castbar) then return "disabled"; end
-                                    return (tk.select(5, castbar:GetPoint()));
+                                    if (not castBar) then
+                                        return "disabled"; end
+                                    return (tk.select(5, castBar:GetPoint()));
                                 end
                             end
                         },
