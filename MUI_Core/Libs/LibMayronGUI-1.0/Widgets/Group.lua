@@ -1,5 +1,9 @@
-local Lib = LibStub:GetLibrary("LibMayronGUI");
-if (not Lib) then return; end
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
+
+if (not Lib) then
+    return
+end
 
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
@@ -9,8 +13,8 @@ local Panel = Private.Panel;
 ---------------------------------
 
 local function GetGroup(groupID, groupType, panel, panelData)
-    if (not panelData.grid) then 
-        return false; 
+    if (not panelData.grid) then
+        return false;
     end
 
     local cellsList = {};
@@ -23,7 +27,7 @@ local function GetGroup(groupID, groupType, panel, panelData)
         end
     end
 
-    local cellsLinkedList = Private.LinkedList(unpack(cellsList));
+    local cellsLinkedList = Private.LinkedList(_G.unpack(cellsList));
     return Group(groupID, groupType, cellsLinkedList, panel);
 end
 
@@ -42,7 +46,7 @@ function Group:__Construct(data, groupID, groupType, cellsLinkedList, panel)
     data.Panel = panel;
 end
 
-function Group:SetScale(data, scale) 
+function Group:SetScale(data, scale)
     local panelData = data:GetFriendData(data.Panel);
 
     if (data.Type == "row") then

@@ -1,16 +1,18 @@
-local addonName = ...;
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:NewLibrary("LibMayronGUI", 1.0);
 
-local Lib = LibStub:NewLibrary("LibMayronGUI", 1.0);
-if (not Lib) then return; end
+if (not Lib) then
+    return
+end
 
-local obj = LibStub:GetLibrary("LibMayronObjects");
+local obj = _G.LibStub:GetLibrary("LibMayronObjects");
 local Private = {};
 
 Lib.WidgetsPackage = obj:CreatePackage("Widgets", "MayronUI");
 Lib.Objects = obj;
 Lib.Private = Private;
 
-Private.DUMMY_FRAME = CreateFrame("Frame");
+Private.DUMMY_FRAME = _G.CreateFrame("Frame");
 Private.DUMMY_FUNC = function() end;
 Private.FrameWrapper = obj:Import("Framework.System.FrameWrapper");
 Private.LinkedList = obj:Import("Framework.System.Collections.LinkedList");
@@ -18,13 +20,13 @@ Private.LinkedList = obj:Import("Framework.System.Collections.LinkedList");
 -----------------------------
 
 function Private.ToolTip_OnEnter(frame)
-    GameTooltip:SetOwner(frame, "ANCHOR_TOP", 0, 2);
-    GameTooltip:AddLine(frame.tooltip);
-    GameTooltip:Show();
+    _G.GameTooltip:SetOwner(frame, "ANCHOR_TOP", 0, 2);
+    _G.GameTooltip:AddLine(frame.tooltip);
+    _G.GameTooltip:Show();
 end
 
-function Private.ToolTip_OnLeave(frame)
-    GameTooltip:Hide();
+function Private.ToolTip_OnLeave()
+    _G.GameTooltip:Hide();
 end
 
 -- adjusts the size of all cellsList
@@ -105,7 +107,7 @@ end
 
 -- reanchors all cells to the correct cellsList passed on their positions
 function Private:AnchorCells(data)
-    if (not data.cells or not data.grid) then 
+    if (not data.cells or not data.grid) then
         return false;
     end
 
@@ -113,12 +115,12 @@ function Private:AnchorCells(data)
     local takenCells = {};
 
     for id, cell in data.cells:Iterate() do
-        if (not cellsList[id]) then 
-            break; 
+        if (not cellsList[id]) then
+            break
         end
 
-        while (takenCells[id]) do 
-            id = id + 1; 
+        while (takenCells[id]) do
+            id = id + 1;
         end
 
         local cellData = data:GetFriendData(cell);
@@ -126,8 +128,8 @@ function Private:AnchorCells(data)
         local cellHeight = cellData.height or 1;
 
         local endCell = (id - 1) + ((cellHeight - 1) * data.width) + cellWidth;
-        if (endCell > #cellsList or endCell <= 0) then 
-            endCell = #cellsList; 
+        if (endCell > #cellsList or endCell <= 0) then
+            endCell = #cellsList;
         end
 
         cellData.startAnchor = cellsList[id];
@@ -140,7 +142,7 @@ function Private:AnchorCells(data)
         local right = (cellData.insets and cellData.insets.right) or 0;
         local bottom = (cellData.insets and cellData.insets.bottom) or 0;
         local left = (cellData.insets and cellData.insets.left) or 0;
-        
+
         cellData.frame:SetPoint("TOPLEFT", cellData.startAnchor, "TOPLEFT", left, -top);
         cellData.frame:SetPoint("BOTTOMRIGHT", cellData.endAnchor, "BOTTOMRIGHT", -right, bottom);
         cellData.frame:SetFrameLevel(3);
@@ -152,7 +154,7 @@ end
 function Private:SetBackground(frame, ...)
     local texture = frame:CreateTexture(nil, "BACKGROUND");
     texture:SetAllPoints(frame);
-    
+
     if (#{...} > 1) then
        texture:SetColorTexture(...);
     else
@@ -172,7 +174,7 @@ do
         local frame = frames[objectType] and frames[objectType][#frames];
 
         if (not frame) then
-            frame = CreateFrame(objectType);
+            frame = _G.CreateFrame(objectType);
         else
             frames[objectType][#frames] = nil;
         end
@@ -185,7 +187,7 @@ do
 
     function Private:PushFrame(frame)
         if (not frame.GetObjectType) then
-             return; 
+             return
         end
 
         local objectType = frame:GetObjectType();
@@ -224,7 +226,7 @@ function Private:MakeMovable(frame, dragger, movable)
     dragger:HookScript("OnDragStart", function()
         if (frame:IsMovable()) then
             local x, y = frame:GetCenter();
-            frame:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y);
+            frame:SetPoint("CENTER", _G.UIParent, "BOTTOMLEFT", x, y);
             frame:StartMoving();
         end
     end);
@@ -254,7 +256,7 @@ function Private:SetFullWidth(frame, rightPadding)
     rightPadding = rightPadding or 0;
 
     if (not frame:GetParent()) then
-        tk.hooksecurefunc(frame, "SetParent", function()
+        _G.hooksecurefunc(frame, "SetParent", function()
             frame:GetParent():HookScript("OnSizeChanged", function(_, width)
                 frame:SetWidth(width - rightPadding);
             end);
@@ -286,23 +288,23 @@ do
     function Private:HideLayers(frame, value)
         local layerTypes = {};
 
-        if (bit.band(value, self.LayerTypes.BACKGROUND) ~= 0) then
+        if (_G.bit.band(value, self.LayerTypes.BACKGROUND) ~= 0) then
             table.insert(layerTypes, "BACKGROUND");
         end
 
-        if (bit.band(value, self.LayerTypes.BORDER) ~= 0) then
+        if (_G.bit.band(value, self.LayerTypes.BORDER) ~= 0) then
             table.insert(layerTypes, "BORDER");
         end
 
-        if (bit.band(value, self.LayerTypes.ARTWORK) ~= 0) then
+        if (_G.bit.band(value, self.LayerTypes.ARTWORK) ~= 0) then
             table.insert(layerTypes, "ARTWORK");
         end
 
-        if (bit.band(value, self.LayerTypes.OVERLAY) ~= 0) then
+        if (_G.bit.band(value, self.LayerTypes.OVERLAY) ~= 0) then
             table.insert(layerTypes, "OVERLAY");
         end
 
-        if (bit.band(value, self.LayerTypes.HIGHLIGHT) ~= 0) then
+        if (_G.bit.band(value, self.LayerTypes.HIGHLIGHT) ~= 0) then
             table.insert(layerTypes, "HIGHLIGHT");
         end
 
@@ -312,11 +314,11 @@ do
     function Private:HideTextures(frame, layers)
         for layer = 1, (#layers) do
 
-            for regionIndex = 1, frame:GetNumRegions() do                
+            for regionIndex = 1, frame:GetNumRegions() do
                 local region = select(regionIndex, frame:GetRegions());
 
-                if (not region) then 
-                    return; 
+                if (not region) then
+                    return
                 end
 
                 if (region:GetObjectType() == "Texture" and region:GetDrawLayer() == layers[layer]) then
@@ -325,7 +327,6 @@ do
                     region.Show = self.DUMMY_FUNC;
                     region.SetTexture = self.DUMMY_FUNC;
                 end
-
             end
         end
     end

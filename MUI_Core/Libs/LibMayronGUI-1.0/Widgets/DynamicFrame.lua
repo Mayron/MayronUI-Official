@@ -1,24 +1,23 @@
-local Lib = LibStub:GetLibrary("LibMayronGUI");
-if (not Lib) then return; end
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
+
+if (not Lib) then
+    return
+end
 
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
-
 local DynamicFrame = WidgetsPackage:CreateClass("DynamicFrame", Private.FrameWrapper);
 ---------------------------------
----------------------------------
 
-    -- need to show scroll bar if height is too much!
-    --local children = {}; use EmptyTable and some MoveToTable function for better performance
-
-local function OnSizeChanged(self, width, height)
+local function OnSizeChanged(self, width)
     width = math.ceil(width);
 
     local scrollChild = self:GetScrollChild();
     local anchor = select(1, scrollChild:GetChildren());
 
-    if (not anchor) then 
-        return; 
+    if (not anchor) then
+        return
     end
 
     local totalRowWidth = 0; -- used to make new rows
@@ -26,7 +25,7 @@ local function OnSizeChanged(self, width, height)
     local totalHeight = 0; -- used to dynamically set the ScrollChild's height so that is can be visible
     local previousChild;
 
-    for id, child in pairs({scrollChild:GetChildren()}) do
+    for id, child in pairs({ scrollChild:GetChildren() }) do
         child:ClearAllPoints();
         totalRowWidth = totalRowWidth + child:GetWidth();
 
@@ -40,7 +39,7 @@ local function OnSizeChanged(self, width, height)
                 child:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", self.padding, -self.padding);
                 totalHeight = totalHeight + self.padding;
             else
-                local yOffset = (largestHeightInPreviousRow - anchor:GetHeight());                    
+                local yOffset = (largestHeightInPreviousRow - anchor:GetHeight());
                 yOffset = ((yOffset > 0 and yOffset) or 0) + self.spacing;
 
                 child:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -(yOffset));
@@ -70,7 +69,7 @@ local function OnSizeChanged(self, width, height)
     scrollChild:SetHeight(totalHeight);
 
     if (self.parentScrollFrame) then
-        local parent = self.parentScrollFrame;            
+        local parent = self.parentScrollFrame;
         OnSizeChanged(parent, parent:GetWidth(), parent:GetHeight());
     end
 end
@@ -96,7 +95,7 @@ function DynamicFrame:AddChildren(data, ...)
     local width, height = data.frame:GetSize();
 
     if (width == 0 and height == 0) then
-        data.frame:SetSize(UIParent:GetWidth(), UIParent:GetHeight());
+        data.frame:SetSize(_G.UIParent:GetWidth(), _G.UIParent:GetHeight());
     end
 
     for _, child in pairs({...}) do
@@ -106,7 +105,7 @@ function DynamicFrame:AddChildren(data, ...)
     OnSizeChanged(data.frame, data.frame:GetWidth(), data.frame:GetHeight());
 end
 
-function DynamicFrame:GetChildren(data, n, rawget)
+function DynamicFrame:GetChildren(data)
     return data.scrollChild:GetChildren();
 end
 

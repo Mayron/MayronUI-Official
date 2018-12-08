@@ -1,8 +1,11 @@
-local Lib = LibStub:GetLibrary("LibMayronGUI");
-if (not Lib) then return; end
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
+
+if (not Lib) then
+    return
+end
 
 local WidgetsPackage = Lib.WidgetsPackage;
-local Private = Lib.Private;
 
 local SlideController = WidgetsPackage:CreateClass("SlideController");
 
@@ -29,14 +32,14 @@ function SlideController:Start(data, forceState)
     local step = math.abs(data.step);
 
     if (forceState) then
-        step = (forceState == SlideController.Static.FORCE_RETRACT and -data.step) or data.step;
+        step = (forceState == SlideController.Static.FORCE_RETRACT and -step) or step;
     else
-        step = ((self:IsMaxExpanded()) and -data.step) or data.step;
+        step = ((self:IsMaxExpanded()) and -step) or step;
     end
 
     local function loop()
-        if (data.step == 0 or data.stop) then 
-            return; 
+        if (data.step == 0 or data.stop) then
+            return
         end
 
         local newHeight = math.floor(data.frame:GetHeight() + 0.5) + step;
@@ -44,17 +47,17 @@ function SlideController:Start(data, forceState)
 
         if ((step > 0 and newHeight < data.maxHeight) or
                 (step < 0 and newHeight > data.minHeight)) then
-            
+
             data.frame:SetHeight(newHeight);
-            C_Timer.After(0.02, loop);
+            _G.C_Timer.After(0.02, loop);
         else
-            data.frame:SetHeight(endHeight);            
+            data.frame:SetHeight(endHeight);
             self:Stop();
         end
     end
 
     data.frame:Show();
-    
+
     if (data.frame.ScrollFrame) then
         data.frame.ScrollFrame.animating = true;
     end
@@ -68,7 +71,7 @@ function SlideController:Start(data, forceState)
         end
     end
 
-    C_Timer.After(0.04, function()
+    _G.C_Timer.After(0.04, function()
         data.stop = nil;
         loop();
     end);
@@ -80,7 +83,7 @@ function SlideController:Stop(data)
     if (data.frame.ScrollFrame and data.frame.ScrollFrame.showScrollBar) then
         data.frame.ScrollFrame.showScrollBar:Show();
     end
-    
+
     if (data.frame.ScrollFrame) then
         data.frame.ScrollFrame.animating = false;
     end
@@ -129,7 +132,9 @@ end
 do
     local function AddDelay(func, delay)
         if (type(delay) == "number" and delay > 0) then
-            return function() C_Timer.After(0.02 * delay, func); end
+            return function()
+                _G.C_Timer.After(0.02 * delay, func);
+            end
         end
 
         return func;

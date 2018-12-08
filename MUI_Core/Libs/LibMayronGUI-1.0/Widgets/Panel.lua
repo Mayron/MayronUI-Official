@@ -1,5 +1,9 @@
-local Lib = LibStub:GetLibrary("LibMayronGUI");
-if (not Lib) then return; end
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
+
+if (not Lib) then
+    return
+end
 
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
@@ -14,8 +18,8 @@ function Lib:CreatePanel(frame, globalName)
     return Panel(frame, globalName);
 end
 
-function Panel:__Construct(data, frame, globalName)    
-    self:SetFrame(frame or CreateFrame("Frame", globalName, UIParent));
+function Panel:__Construct(data, frame, globalName)
+    self:SetFrame(frame or _G.CreateFrame("Frame", globalName, _G.UIParent));
     data.grid = Private.LinkedList();
     data.rowscale = {};
     data.columnscale = {};
@@ -54,10 +58,10 @@ function Panel:SetDimensions(data, width, height)
         elseif (squares[i]) then
             data.grid:Remove(squares[i]);
 
-        else 
-            break; 
+        else
+            break
         end
-        
+
         i = i + 1;
     end
 
@@ -81,8 +85,8 @@ function Panel:AddCells(data, ...)
 end
 
 function Panel:GetCells(data, n)
-    if (not data.cells) then 
-        return false; 
+    if (not data.cells) then
+        return false;
     end
     return data.cells:Unpack(n);
 end

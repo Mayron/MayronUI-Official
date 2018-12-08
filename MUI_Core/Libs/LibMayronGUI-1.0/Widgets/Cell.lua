@@ -1,5 +1,7 @@
-local Lib = LibStub:GetLibrary("LibMayronGUI");
-if (not Lib) then return; end
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
+
+if (not Lib) then return end
 
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
@@ -27,7 +29,7 @@ function Panel:CreateCell(data, frame)
     return Cell(frame);
 end
 
-function Cell:__Construct(data, frame) 
+function Cell:__Construct(_, frame)
     self:SetFrame(frame);
 end
 
@@ -40,7 +42,7 @@ function Cell:SetDimensions(data, width, height)
     data.height = height;
 
     if (data.panel) then
-        private:AnchorCells(Panel.Static:GetData(data.panel));
+        Private:AnchorCells(Panel.Static:GetData(data.panel));
     end
 end
 
@@ -69,7 +71,7 @@ function Cell:SetInsets(data, ...)
         };
     end
 
-    if (data.startAnchor and data.endEnchor) then        
+    if (data.startAnchor and data.endEnchor) then
         data.frame:SetPoint("TOPLEFT", data.startAnchor, "TOPLEFT", data.insets.left, -data.insets.top);
         data.frame:SetPoint("TOPLEFT", data.endEnchor, "TOPLEFT", -data.insets.right, data.insets.bottom);
     end

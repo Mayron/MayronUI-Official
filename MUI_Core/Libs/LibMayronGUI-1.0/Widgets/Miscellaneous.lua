@@ -1,18 +1,21 @@
-local Lib = LibStub:GetLibrary("LibMayronGUI");
-if (not Lib) then return; end
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-local WidgetsPackage = Lib.WidgetsPackage;
+if (not Lib) then
+    return
+end
+
 local Private = Lib.Private;
 ---------------------------------
 
 local function OnEnter(self)
-    GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT");
-    GameTooltip:AddLine(self.tooltip);
-    GameTooltip:Show();
+    _G.GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT");
+    _G.GameTooltip:AddLine(self.tooltip);
+    _G.GameTooltip:Show();
 end
 
 local function OnLeave(self)
-    GameTooltip:Hide();
+    _G.GameTooltip:Hide();
 end
 
 Lib.FONT_TYPES = {
@@ -43,29 +46,30 @@ Lib.FONT_TYPES = {
     CombatLogFont                   = "CombatLogFont",
 }
 
-function Lib:CreateDialogBox(style, parent, alphaType, frame, globalName)    
-    frame = frame or CreateFrame("Frame", globalName, parent or UIParent);
+function Lib:CreateDialogBox(style, parent, alphaType, frame, globalName)
+    frame = frame or _G.CreateFrame("Frame", globalName, parent or _G.UIParent);
     frame:EnableMouse(true);
-    
+
     alphaType = alphaType or "Medium";
     alphaType = alphaType:lower();
     alphaType = alphaType:gsub("^%l", string.upper);
 
-    local texture = style:GetTexture("DialogBoxBackground"); 
+    local texture = style:GetTexture("DialogBoxBackground");
     texture = string.format("%s%s", texture, alphaType);
 
     Lib:CreateGridTexture(frame, texture, 10, 6, 512, 512);
 
     -- apply the theme color for each Grid Cell
-    style:ApplyColor(nil, nil, frame.tl, frame.tr, frame.bl, frame.br, frame.t, frame.b, frame.l, frame.r, frame.c);  
+    style:ApplyColor(nil, nil, frame.tl, frame.tr, frame.bl, frame.br,
+        frame.t, frame.b, frame.l, frame.r, frame.c);
     frame:SetFrameStrata("DIALOG");
 
     return frame;
 end
 
 function Lib:CreatePopupDialog(name, text, hasEditBox, OnAccept)
-    if (not StaticPopupDialogs[name]) then
-        StaticPopupDialogs[name] = {
+    if (not _G.StaticPopupDialogs[name]) then
+        _G.StaticPopupDialogs[name] = {
             text = text,
             button1 = "Confirm",
             button2 = "Cancel",
@@ -79,11 +83,11 @@ function Lib:CreatePopupDialog(name, text, hasEditBox, OnAccept)
     end
 
     if (text) then
-        StaticPopupDialogs[name].text = text;
+        _G.StaticPopupDialogs[name].text = text;
     end
 
     if (OnAccept) then
-        StaticPopupDialogs[name].OnAccept = OnAccept;
+        _G.StaticPopupDialogs[name].OnAccept = OnAccept;
     end
 end
 
@@ -91,7 +95,7 @@ function Lib:CreateButton(style, parent, text, button)
     local r, g, b = style:GetColor();
     local backgroundTexture = style:GetTexture("ButtonTexture");
 
-    button = button or CreateFrame("Button", nil, parent);
+    button = button or _G.CreateFrame("Button", nil, parent);
     button:SetSize(150, 30);
     button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
 
@@ -99,9 +103,9 @@ function Lib:CreateButton(style, parent, text, button)
         button:SetText(text);
     end
 
-    local normal = Private:SetBackground(button, style:GetTexture("ButtonTexture") );
-    local highlight = Private:SetBackground(button, style:GetTexture("ButtonTexture") );
-    local disabled = Private:SetBackground(button, style:GetTexture("ButtonTexture") );
+    local normal = Private:SetBackground(button, backgroundTexture);
+    local highlight = Private:SetBackground(button, backgroundTexture);
+    local disabled = Private:SetBackground(button, backgroundTexture);
 
     normal:SetVertexColor(r * 0.6, g * 0.6, b * 0.6, 1);
     highlight:SetVertexColor(r, g, b, 0.2);
@@ -113,7 +117,7 @@ function Lib:CreateButton(style, parent, text, button)
 
     button:SetNormalFontObject("GameFontHighlight");
     button:SetDisabledFontObject("GameFontDisable");
-    
+
     return button;
 end
 
@@ -122,10 +126,10 @@ function Lib:CreateCheckButton(parent, text, radio, tooltip)
     container:SetSize(150, 30);
 
     if (radio) then
-        container.btn = CreateFrame("CheckButton", nil, container, "UIRadioButtonTemplate");
+        container.btn = _G.CreateFrame("CheckButton", nil, container, "UIRadioButtonTemplate");
         container.btn:SetSize(20, 20);
     else
-        container.btn = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
+        container.btn = _G.CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
         container.btn:SetSize(30, 30);
     end
 
@@ -165,7 +169,7 @@ do
     function Lib:AddTitleBar(style, frame, text)
         local texture = style:GetTexture("TitleBarBackground");
 
-        frame.titleBar = CreateFrame("Frame", nil, frame);
+        frame.titleBar = _G.CreateFrame("Frame", nil, frame);
         frame.titleBar:SetSize(260, 31);
         frame.titleBar:SetFrameLevel(50);
         frame.titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", -7, 11);
@@ -182,7 +186,7 @@ do
         Private:MakeMovable(frame, frame.titleBar);
         style:ApplyColor(nil, nil, frame.titleBar.bg);
 
-        hooksecurefunc(frame.titleBar.text, "SetText", TitleBar_SetWidth);
+        _G.hooksecurefunc(frame.titleBar.text, "SetText", TitleBar_SetWidth);
         frame.titleBar.text:SetText(text);
     end
 end
@@ -191,7 +195,7 @@ function Lib:AddResizer(style, frame)
     local normalTexture = style:GetTexture("DraggerTexture");
     local highlightTexture = style:GetTexture("DraggerTexture");
 
-    frame.dragger = CreateFrame("Button", nil, frame);
+    frame.dragger = _G.CreateFrame("Button", nil, frame);
     frame.dragger:SetSize(28, 28);
     frame.dragger:SetFrameLevel(50);
     frame.dragger:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 2);
@@ -201,11 +205,11 @@ function Lib:AddResizer(style, frame)
     Private:MakeResizable(frame, frame.dragger);
     style:ApplyColor(nil, nil, frame.dragger:GetNormalTexture());
     style:ApplyColor(nil, nil, frame.dragger:GetHighlightTexture());
-    
+
 end
 
 function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
-    frame.closeBtn = CreateFrame("Button", nil, frame);
+    frame.closeBtn = _G.CreateFrame("Button", nil, frame);
     frame.closeBtn:SetSize(28, 24);
     frame.closeBtn:SetFrameLevel(50);
     frame.closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1);
@@ -227,10 +231,10 @@ function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
     group.a2:SetToAlpha(-1);
 
     group:SetScript("OnFinished", function()
-        if (onHideCallback) then 
-            onHideCallback(); 
-        else 
-            frame:Hide(); 
+        if (onHideCallback) then
+            onHideCallback();
+        else
+            frame:Hide();
         end
     end);
 
@@ -238,8 +242,8 @@ function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
         group:Play();
 
         if (clickSoundFilePath) then
-            PlaySound(clickSoundFilePath);
-        end        
+            _G.PlaySound(clickSoundFilePath);
+        end
     end);
 end
 
@@ -247,15 +251,15 @@ function Lib:AddArrow(style, frame, direction, center)
     direction = direction or "UP";
     direction = direction:upper();
 
-    frame.arrow = CreateFrame("Frame", nil, frame);
+    frame.arrow = _G.CreateFrame("Frame", nil, frame);
     frame.arrow:SetSize(30, 24);
     frame.arrow.bg = frame.arrow:CreateTexture(nil, "ARTWORK");
     frame.arrow.bg:SetAllPoints(true);
 
     local texture = style:GetTexture("ArrowButtonTexture");
     frame.arrow.bg:SetTexture(texture);
-    style:ApplyColor(nil, nil, frame.arrow.bg);  
-    
+    style:ApplyColor(nil, nil, frame.arrow.bg);
+
     if (center) then
         frame.arrow:SetPoint("CENTER");
     end
@@ -264,8 +268,8 @@ function Lib:AddArrow(style, frame, direction, center)
         if (direction == "DOWN") then
             frame.arrow.bg:SetTexCoord(0, 1, 1, 0);
 
-            if (not center) then 
-                frame.arrow:SetPoint("TOP", frame, "BOTTOM", 0, -2); 
+            if (not center) then
+                frame.arrow:SetPoint("TOP", frame, "BOTTOM", 0, -2);
             end
         end
     end

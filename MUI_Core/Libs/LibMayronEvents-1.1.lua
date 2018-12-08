@@ -1,17 +1,17 @@
-local addonName, Core = ...;
+-- luacheck: ignore MayronUI self 143 631
+local addonName = ...;
 
-local Lib = LibStub:NewLibrary("LibMayronEvents", 1.1);
-if (not Lib) then return; end
+local Lib = _G.LibStub:NewLibrary("LibMayronEvents", 1.1);
 
-local error, assert, rawget, rawset = error, assert, rawget, rawset;
-local type, setmetatable, table, string = type, setmetatable, table, string;
-local getmetatable, unpack, select = getmetatable, unpack, select;
+if (not Lib) then
+    return
+end
 
 local Private = {};
 Private.eventsList = {};
-Private.eventTracker = CreateFrame("Frame");
+Private.eventTracker = _G.CreateFrame("Frame");
 
-local LibObjectLua = LibStub:GetLibrary("LibMayronObjects");
+local LibObjectLua = _G.LibStub:GetLibrary("LibMayronObjects");
 local EventsPackage = LibObjectLua:CreatePackage("Events", addonName);
 local Handler = EventsPackage:CreateClass("Handler");
 
@@ -25,7 +25,7 @@ function Handler:__Construct(data, eventName, callback)
 end
 
 function Handler:__Destruct(data)
-    table.remove(Private.eventsList[data.eventName], self:GetPriority());  
+    table.remove(Private.eventsList[data.eventName], self:GetPriority());
     Private:CleanEventTable(data.eventName);
 end
 
@@ -89,7 +89,7 @@ end
 function Lib:CreateEventHandler(eventName, callback, unit)
     Private.eventsList[eventName] = Private.eventsList[eventName] or {};
 
-    local handler = Handler(eventName, callback);  
+    local handler = Handler(eventName, callback);
     table.insert(Private.eventsList[eventName], handler);
 
     if (unit) then
@@ -107,24 +107,24 @@ end
 -- @return (Handler) - handler objects created for each event in eventNames
 function Lib:CreateEventHandlers(eventNames, callback, unit)
     local handlers = {};
-	
-    for id, event in ipairs({strsplit(",", eventNames)}) do	
-        event = strtrim(event);
-		
+
+    for id, event in ipairs({ _G.strsplit(",", eventNames) }) do
+        event = _G.strtrim(event);
+
 		if (#event > 0) then
 			handlers[id] = Lib:CreateEventHandler(event, callback, unit);
-		end		
+		end
     end
-	
-    return unpack(handlers);
+
+    return _G.unpack(handlers);
 end
 
 function Lib:TriggerEvent(eventName, ...)
-    if (Private:EventTableExists(eventName)) then        
+    if (Private:EventTableExists(eventName)) then
         for _, handler in pairs(Private.eventsList[eventName]) do
-            handler:Run(eventName, ...);        
+            handler:Run(eventName, ...);
         end
-    end    
+    end
 end
 
 function Lib:FindHandlerByKey(event, key)
@@ -156,31 +156,31 @@ Private.eventTracker:SetScript("OnEvent", function(_, ...)
     Private:CallHandlers(...)
 end);
 
--- Finds all handlers in eventsList and executes their  
+-- Finds all handlers in eventsList and executes their
 -- callback if registered with the eventName.
 function Private:CallHandlers(eventName, ...)
     if (not self:IsEventTableEmpty(eventName)) then
         local handlers = self.eventsList[eventName];
 
-        for id, handler in pairs(handlers) do            
+        for _, handler in pairs(handlers) do
             handler:Run(eventName, ...);
         end
     end
-    
-    self:CleanEventTable(event);
+
+    self:CleanEventTable(eventName);
 end
 
 function Private:CleanEventTable(eventName)
     if (self:EventTableExists(eventName)) then
         local activeHandlers = {};
         local handlers = self.eventsList[eventName];
-    
-        for id, handler in pairs(handlers) do            
+
+        for _, handler in pairs(handlers) do
             if (not handler:IsDestroyed()) then
                 table.insert(activeHandlers, handler);
             end
         end
-    
+
         self.eventsList[eventName] = activeHandlers;
 
         if self:IsEventTableEmpty(eventName) then

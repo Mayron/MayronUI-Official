@@ -1,21 +1,21 @@
-local Lib = LibStub:GetLibrary("LibMayronGUI");
-if (not Lib) then return; end
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-local WidgetsPackage = Lib.WidgetsPackage;
-local Private = Lib.Private;
----------------------------------
+if (not Lib) then
+    return
+end
 
 do
     local regions = {"tl", "tr", "bl", "br", "t", "b", "l", "r", "c"};
 
-    local function SetGridColor(self, r, g, b)        
+    local function SetGridColor(self, r, g, b)
         for _, key in ipairs(regions) do
             self[key]:SetVertexColor(r, g, b);
         end
     end
 
     -- Changed from gui: to Lib:
-    function Lib:CreateGridTexture(frame, texture, cornerSize, inset, 
+    function Lib:CreateGridTexture(frame, texture, cornerSize, inset,
                                    originalTextureWidth, originalTextureHeight)
 
         local smallWidth = cornerSize / originalTextureWidth;
@@ -53,7 +53,7 @@ do
         frame.c:SetPoint("TOPLEFT", frame.tl, "BOTTOMRIGHT");
         frame.c:SetPoint("BOTTOMRIGHT", frame.br, "TOPLEFT");
         frame.c:SetTexCoord(smallWidth, largeWidth, smallHeight, largeHeight);
-        
+
         frame.SetGridColor = SetGridColor;
     end
 end

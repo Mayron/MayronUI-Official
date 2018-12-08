@@ -1,10 +1,12 @@
-local Lib = LibStub:GetLibrary("LibMayronGUI");
-if (not Lib) then return; end
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-local LibObjectLua = LibStub:GetLibrary("LibMayronObjects");
+if (not Lib) then
+    return
+end
+
+local LibObjectLua = _G.LibStub:GetLibrary("LibMayronObjects");
 local WidgetsPackage = Lib.WidgetsPackage;
-local Private = Lib.Private;
-
 local Style = WidgetsPackage:CreateClass("Style");
 
 -- Local Functions ---------------
@@ -46,7 +48,7 @@ function Style:GetColor(data, colorName, disableUnpacking)
         return value;
     end
 
-    return unpack(value);
+    return _G.unpack(value);
 end
 
 WidgetsPackage:DefineParams("number", "?string");
@@ -71,12 +73,12 @@ WidgetsPackage:DefineParams("?string");
 WidgetsPackage:DefineReturns("?table");
 function Style:GetBackdrop(data, name)
     -- does not have a default (nil is returned if missing)
-    return Getter(data, "backdrop", name); 
+    return Getter(data, "backdrop", name);
 end
 
 WidgetsPackage:DefineParams("string", "?string");
 function Style:SetTexture(data, texture, name)
-    Setter(data, "texture", texture, name);    
+    Setter(data, "texture", texture, name);
 end
 
 WidgetsPackage:DefineParams("?string");
@@ -103,51 +105,50 @@ function Style:GetPadding(data, name, disableUnpacking)
         return value;
     end
 
-    return unpack(value);
+    return _G.unpack(value);
 end
 
 -- @param ... - A variable argument list of widgets (can have alpha value at the start of list)
-function Style:ApplyColor(data, colorName, alpha, ...)
+function Style:ApplyColor(_, colorName, alpha, ...)
     colorName = colorName or "default";
 
-    -- local storeWidgets = data.trackedColors and data.trackedColors[colorName];
     local r, g, b = self:GetColor(colorName);
 
     if (type(alpha) == "string") then
         alpha = self:GetAlpha(alpha);
-        
+
     elseif (not (alpha and type(alpha) == "number")) then
         alpha = 1;
     end
 
-    for id, element in pairs({...}) do  
+    for _, element in pairs({...}) do
 
         LibObjectLua:Assert(type(element) == "table" and element.GetObjectType,
             "Style.ApplyColor: Widget expected but received a %s value of %s", type(element), element);
 
         local objectType = element:GetObjectType();
-    
+
         if (objectType == "Texture") then
             local id = element:GetTexture();
-    
+
             if (id and id:match("Color-%a+")) then
                 element:SetColorTexture(r, g, b, alpha);
             else
                 element:SetVertexColor(r, g, b, alpha);
             end
-    
+
         elseif (objectType == "CheckButton") then
             element:GetCheckedTexture():SetColorTexture(r, g, b, alpha);
             element:GetHighlightTexture():SetColorTexture(r, g, b, alpha);
-    
+
         elseif (objectType == "Button") then
             element:GetNormalTexture():SetVertexColor(r, g, b, alpha);
             element:GetHighlightTexture():SetVertexColor(r, g, b, alpha);
 
-            if (element:GetDisabledTexture()) then                
+            if (element:GetDisabledTexture()) then
                 element:GetDisabledTexture():SetVertexColor(r * 0.3, g * 0.3, b * 0.3, 0.6);
             end
-    
+
         elseif (objectType == "FontString") then
             element:SetTextColor(r, g, b, alpha);
         end

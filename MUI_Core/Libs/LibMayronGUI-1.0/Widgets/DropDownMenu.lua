@@ -1,4 +1,5 @@
-local Lib = LibStub:GetLibrary("LibMayronGUI");
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 if (not Lib) then return; end
 
 local WidgetsPackage = Lib.WidgetsPackage;
@@ -6,7 +7,6 @@ local Private = Lib.Private;
 local obj = Lib.Objects;
 
 local SlideController = WidgetsPackage:Get("SlideController");
-local Style = WidgetsPackage:Get("Style");
 local DropDownMenu = WidgetsPackage:CreateClass("DropDownMenu", Private.FrameWrapper);
 
 DropDownMenu.Static.MAX_HEIGHT = 354;
@@ -15,8 +15,8 @@ DropDownMenu.Static.MAX_HEIGHT = 354;
 local dropdowns = {};
 
 -- @param exclude - for all except the excluded dropdown menu
-local function FoldAll(exclude)        
-    for i, dropdown in ipairs(dropdowns) do
+local function FoldAll(exclude)
+    for _, dropdown in ipairs(dropdowns) do
         if ((not exclude) or (exclude and exclude ~= dropdown)) then
             dropdown:Hide();
         end
@@ -39,26 +39,26 @@ end
 
 -- Lib Functions ------------------------
 
-function Lib:FoldAllDropDownMenus(exclude) 
-    FoldAll(exclude); 
+function Lib:FoldAllDropDownMenus(exclude)
+    FoldAll(exclude);
 end
 
--- @constructor    
-function Lib:CreateDropDown(style, parent, direction)   
+-- @constructor
+function Lib:CreateDropDown(style, parent, direction)
 
     if (not DropDownMenu.Static.Menu) then
-        DropDownMenu.Static.Menu = Lib:CreateScrollFrame(style, UIParent, "MUI_DropDownMenu");
-        DropDownMenu.Static.Menu:Hide(); 
+        DropDownMenu.Static.Menu = Lib:CreateScrollFrame(style, _G.UIParent, "MUI_DropDownMenu");
+        DropDownMenu.Static.Menu:Hide();
         DropDownMenu.Static.Menu:SetBackdrop(style:GetBackdrop("DropDownMenu"));
         DropDownMenu.Static.Menu:SetScript("OnHide", FoldAll);
 
         Private:SetBackground(DropDownMenu.Static.Menu, 0, 0, 0, 0.9);
-        table.insert(UISpecialFrames, "MUI_DropDownMenu");
+        table.insert(_G.UISpecialFrames, "MUI_DropDownMenu");
     end
 
     direction = direction or "DOWN";
-    direction = direction:upper();    
-    
+    direction = direction:upper();
+
     local dropDownContainer = Private:PopFrame("Frame", parent);
     dropDownContainer:SetSize(200, 30);
 
@@ -72,7 +72,7 @@ function Lib:CreateDropDown(style, parent, direction)
     dropDownContainer.toggleButton:SetPoint("TOPRIGHT", dropDownContainer, "TOPRIGHT");
     dropDownContainer.toggleButton:SetPoint("BOTTOMRIGHT", dropDownContainer, "BOTTOMRIGHT");
     dropDownContainer.toggleButton:SetScript("OnSizeChanged", OnSizeChanged);
-    
+
     dropDownContainer.toggleButton.arrow = dropDownContainer.toggleButton:CreateTexture(nil, "OVERLAY");
     dropDownContainer.toggleButton.arrow:SetTexture(style:GetTexture("ArrowButtonTexture"));
     dropDownContainer.toggleButton.arrow:SetAllPoints(true);
@@ -82,7 +82,7 @@ function Lib:CreateDropDown(style, parent, direction)
 
     dropDownContainer.toggleButton.child = dropDownContainer.child; -- needed for OnClick
     dropDownContainer.toggleButton:SetScript("OnClick", DropDownToggleButton_OnClick);
-    
+
     header:SetPoint("BOTTOMRIGHT", dropDownContainer.toggleButton, "BOTTOMLEFT", -2, 0);
 
     if (direction == "DOWN") then
@@ -98,11 +98,11 @@ function Lib:CreateDropDown(style, parent, direction)
         frame:Hide();
     end);
 
-    dropDownContainer.toggleButton.dropdown = DropDownMenu(header, direction, slideController, dropDownContainer, menu, style);    
+    dropDownContainer.toggleButton.dropdown = DropDownMenu(header, direction, slideController, dropDownContainer, style);
     table.insert(dropdowns, dropDownContainer.toggleButton.dropdown);
 
     -- enabled by default
-    dropDownContainer.toggleButton.dropdown:SetEnabled(true); 
+    dropDownContainer.toggleButton.dropdown:SetEnabled(true);
 
     return dropDownContainer.toggleButton.dropdown;
 end
@@ -110,13 +110,23 @@ end
 -----------------------------------
 -- DropDownMenu Object
 -----------------------------------
+local function ToolTip_OnEnter(frame)
+    _G.GameTooltip:SetOwner(frame, "ANCHOR_RIGHT", 0, 2);
+    _G.GameTooltip:AddLine(frame.tooltip);
+    _G.GameTooltip:Show();
+end
 
-function DropDownMenu:__Construct(data, header, direction, slideController, frame, menu, style)
+ local function ToolTip_OnLeave()
+    _G.GameTooltip:Hide();
+end
+
+
+function DropDownMenu:__Construct(data, header, direction, slideController, frame, style)
     data.header = header;
     data.direction = direction;
     data.slideController = slideController;
     data.frame = frame; -- must be called frame for GetFrame() to work!
-    data.menu = menu;
+    data.menu = DropDownMenu.Static.Menu;
     data.style = style;
     data.options = {};
 end
@@ -174,7 +184,7 @@ end
 WidgetsPackage:DefineParams("string");
 WidgetsPackage:DefineReturns("Button");
 function DropDownMenu:GetOptionByLabel(data, label)
-    for optionID, optionButton in ipairs(data.options) do
+    for _, optionButton in ipairs(data.options) do
         if (optionButton:GetText() == label) then
             return optionButton;
         end
@@ -234,19 +244,19 @@ function DropDownMenu:RemoveOptionByID(data, optionID)
     end
 end
 
-function DropDownMenu:AddOptions(data, func, optionsTable)
-    for id, optionValues in ipairs(optionsTable) do
+function DropDownMenu:AddOptions(_, func, optionsTable)
+    for _, optionValues in ipairs(optionsTable) do
         local label = optionValues[1];
-        self:AddOption(label, func, select(2, unpack(optionValues)));
+        self:AddOption(label, func, select(2, _G.unpack(optionValues)));
     end
 end
 
 function DropDownMenu:AddOption(data, label, func, ...)
-    local r, g, b = data.style:GetColor();  
-    local child = data.frame.child;   
+    local r, g, b = data.style:GetColor();
+    local child = data.frame.child;
     local height = 30;
 
-    local option = Private:PopFrame("Button", child);    
+    local option = Private:PopFrame("Button", child);
 
     if (#data.options == 0) then
         if (data.direction == "DOWN") then
@@ -259,7 +269,7 @@ function DropDownMenu:AddOption(data, label, func, ...)
 
     else
         local previousOption = data.options[#data.options];
-        
+
         if (data.direction == "DOWN") then
             option:SetPoint("TOPLEFT", previousOption, "BOTTOMLEFT", 0, -1);
             option:SetPoint("TOPRIGHT", previousOption, "BOTTOMRIGHT", 0, -1);
@@ -275,7 +285,7 @@ function DropDownMenu:AddOption(data, label, func, ...)
     table.insert(data.options, option);
 
     data.scrollHeight = height;
-    child:SetHeight(height);    
+    child:SetHeight(height);
 
     option:SetHeight(26);
     option:SetNormalFontObject("GameFontHighlight");
@@ -292,7 +302,7 @@ function DropDownMenu:AddOption(data, label, func, ...)
     option:GetNormalTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
     option:SetHighlightTexture(1);
     option:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
-      
+
     local args = {...};
     option:SetScript("OnClick", function()
         self:SetLabel(label, true);
@@ -304,16 +314,16 @@ function DropDownMenu:AddOption(data, label, func, ...)
             local tbl = func[1];
             local methodName = func[2];
 
-            tbl[methodName](tbl, self, unpack(args));
+            tbl[methodName](tbl, self, _G.unpack(args));
         else
-            func(self, unpack(args));
+            func(self, _G.unpack(args));
         end
     end);
 
     return option;
 end
 
-function DropDownMenu:SetEnabled(data, enabled)    
+function DropDownMenu:SetEnabled(data, enabled)
     data.frame.toggleButton:SetEnabled(enabled);
 
     if (enabled) then
@@ -322,7 +332,7 @@ function DropDownMenu:SetEnabled(data, enabled)
 
         DropDownMenu.Static.Menu:SetBackdropBorderColor(r, g, b);
 
-        data.header:SetBackdropBorderColor(r, g, b); 
+        data.header:SetBackdropBorderColor(r, g, b);
         data.header.bg:SetVertexColor(r, g, b, 0.6);
 
         data.frame.toggleButton:GetNormalTexture():SetVertexColor(r, g, b, 0.6);
@@ -330,7 +340,7 @@ function DropDownMenu:SetEnabled(data, enabled)
         data.frame.toggleButton:SetBackdropBorderColor(r, g, b);
 
         if (data.options) then
-            for id, option in ipairs(data.options) do
+            for _, option in ipairs(data.options) do
                 option:GetNormalTexture():SetColorTexture(r, g, b, 0.4);
                 option:GetHighlightTexture():SetColorTexture(r, g, b, 0.4);
             end
@@ -340,16 +350,17 @@ function DropDownMenu:SetEnabled(data, enabled)
             data.label:SetTextColor(1, 1, 1);
         end
     else
-        DropDownMenu.Static.Menu:Hide();       
-        DropDownMenu.Static.Menu:SetBackdropBorderColor(0.2, 0.2, 0.2); 
-        data.header.bg:SetVertexColor(0.2, 0.2, 0.2, 0.6);               
+        DropDownMenu.Static.Menu:Hide();
+        DropDownMenu.Static.Menu:SetBackdropBorderColor(0.2, 0.2, 0.2);
+        data.header.bg:SetVertexColor(0.2, 0.2, 0.2, 0.6);
         data.header:SetBackdropBorderColor(0.2, 0.2, 0.2);
         data.frame.toggleButton:GetNormalTexture():SetVertexColor(0.2, 0.2, 0.2, 0.6);
         data.frame.toggleButton:GetHighlightTexture():SetVertexColor(0.2, 0.2, 0.2, 0.7);
         data.frame.toggleButton:SetBackdropBorderColor(0.2, 0.2, 0.2);
         data.frame.toggleButton.arrow:SetAlpha(0.5);
 
-        style:ApplyColor(nil, 0.8, container.ScrollBar.thumb);
+        --TODO: This line needs to be tested...
+        data.style:ApplyColor(nil, 0.8, data.frame.ScrollBar.thumb);
 
         self:Toggle(false);
 
@@ -377,9 +388,9 @@ function DropDownMenu:IsExpanded(data)
 end
 
 function DropDownMenu:Toggle(data, show, clickSoundFilePath)
-    if (not data.options) then 
+    if (not data.options) then
         -- no list of options so nothing to toggle...
-        return; 
+        return
     end
 
     local step = #data.options * 4;
@@ -397,7 +408,7 @@ function DropDownMenu:Toggle(data, show, clickSoundFilePath)
     end
 
     if (show) then
-        local max_height = (data.scrollHeight < DropDownMenu.Static.MAX_HEIGHT) 
+        local max_height = (data.scrollHeight < DropDownMenu.Static.MAX_HEIGHT)
             and data.scrollHeight or DropDownMenu.Static.MAX_HEIGHT;
 
         DropDownMenu.Static.Menu:SetScrollChild(data.frame.child);
@@ -423,8 +434,8 @@ function DropDownMenu:Toggle(data, show, clickSoundFilePath)
     data.slideController:Start();
 
     if (clickSoundFilePath) then
-        PlaySound(clickSoundFilePath);
-    end   
+        _G.PlaySound(clickSoundFilePath);
+    end
 
     data.expanded = show;
 end

@@ -1,5 +1,9 @@
-local Lib = LibStub:GetLibrary("LibMayronGUI");
-if (not Lib) then return; end
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
+
+if (not Lib) then
+    return
+end
 
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
@@ -26,26 +30,26 @@ end
 function TextField:__Construct(data, style, tooltip)
     local r, g, b = style:GetColor();
     local backdrop = style:GetBackdrop("ButtonBackdrop");
-    data.frame = CreateFrame("Frame");
+    data.frame = _G.CreateFrame("Frame");
 
     data.frame:SetBackdrop(backdrop);
     data.frame:SetBackdropBorderColor(r, g, b, 0.8);
 
     Private:SetBackground(data.frame, 0, 0, 0, 0.2);
-    
-    data.editBox = CreateFrame("EditBox", nil, data.frame, "InputBoxTemplate");
+
+    data.editBox = _G.CreateFrame("EditBox", nil, data.frame, "InputBoxTemplate");
     data.editBox:SetPoint("TOPLEFT", data.frame, "TOPLEFT", 5, 0);
     data.editBox:SetPoint("BOTTOMRIGHT", data.frame, "BOTTOMRIGHT", -5, 0);
-    data.editBox:SetAutoFocus(false); 
+    data.editBox:SetAutoFocus(false);
 
     data.editBox:SetScript("OnEscapePressed", function()
-        data.editBox:ClearFocus();        
-        self:ApplyPreviousText();    
+        data.editBox:ClearFocus();
+        self:ApplyPreviousText();
     end);
 
     data.editBox:SetScript("OnEnable", OnEnable);
-    data.editBox:SetScript("OnDisable", OnDisable);    
-    
+    data.editBox:SetScript("OnDisable", OnDisable);
+
     Private:HideLayers(data.editBox, Private.LayerTypes.BACKGROUND);
 
     data.editBox.themeColor = {r, g, b};

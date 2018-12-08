@@ -1,5 +1,6 @@
-local Lib = LibStub:NewLibrary("LibMayronDB", 2.0);
-local Objects = LibStub:GetLibrary("LibMayronObjects");
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:NewLibrary("LibMayronDB", 2.0);
+local Objects = _G.LibStub:GetLibrary("LibMayronObjects");
 
 if (not Lib or not Objects) then return; end
 
@@ -10,11 +11,10 @@ local Helper = Framework:CreateClass("Helper");
 
 Observer.Static:AddFriendClass("Helper");
 
-local select, _G = select, _G;
-local tonumber, strsplit = tonumber, strsplit;
+local select, tonumber, strsplit = select, tonumber, _G.strsplit;
 
 -- OnAddOnLoadedListener
-local OnAddOnLoadedListener = CreateFrame("Frame");
+local OnAddOnLoadedListener = _G.CreateFrame("Frame");
 OnAddOnLoadedListener:RegisterEvent("ADDON_LOADED");
 OnAddOnLoadedListener.RegisteredDatabases = {};
 
@@ -22,13 +22,13 @@ OnAddOnLoadedListener:SetScript("OnEvent", function(self, _, addOnName)
     local database = OnAddOnLoadedListener.RegisteredDatabases[addOnName];
 
     if (database) then
-        database:Start();        
+        database:Start();
     end
 end);
 
 local function GetNextPath(path, key)
-    if (path ~= nil) then    
-        if (tonumber(key)) then            
+    if (path ~= nil) then
+        if (tonumber(key)) then
             return string.format("%s[%s]", path, key);
         else
             return string.format("%s.%s", path, key);
@@ -51,13 +51,13 @@ local function GetDatabasePathInfo(db, rootTableOrPath, pathOrValue)
 
     if (type(rootTableOrPath) == "table") then
         rootTable = rootTableOrPath;
-        path = pathOrValue;        
+        path = pathOrValue;
     else
         local rootTableType, realPath = rootTableOrPath:match("([^.]+).(.*)");
         rootTableType = rootTableType:gsub("%s", ""):lower();
 
         path = realPath;
-    
+
         if (rootTableType == "global") then
             rootTable = db.global;
         elseif (rootTableType == "profile") then
@@ -77,8 +77,8 @@ Creates the database but does not initialize it until after "ADDON_LOADED" event
 @param (string) addOnName: The name of the addon to listen out for. If supplied it will start the database
     automatically after the ADDON_LOADED event has fired (when the saved variable becomes accessible).
 @param (string) savedVariableName: The name of the saved variable to hold the database (defined in the toc file).
-@param (optional | boolean) manualStartUp: Set to true if you do not want the library to automatically start 
-    the database when the saved variable becomes accessible. 
+@param (optional | boolean) manualStartUp: Set to true if you do not want the library to automatically start
+    the database when the saved variable becomes accessible.
 
 @return (Database): The database object.
 ]]
@@ -92,7 +92,7 @@ function Lib:CreateDatabase(addOnName, savedVariableName, manualStartUp)
         else
             -- register to start when ready
             OnAddOnLoadedListener.RegisteredDatabases[addOnName] = database;
-        end        
+        end
     end
 
     return database;
@@ -109,14 +109,14 @@ function Database:__Construct(data, addOnName, savedVariableName)
     data.helper = Helper(self, data);
 
     -- holds all database defaults to check first before searching database
-    data.defaults = {}; 
+    data.defaults = {};
     data.defaults.global = {};
     data.defaults.profile = {};
 end
 
 --[[
-Hooks a callback function onto the "StartUp" event to be called when the database starts up 
-(i.e. when the saved variable becomes accessible). By default, this function is called by the library 
+Hooks a callback function onto the "StartUp" event to be called when the database starts up
+(i.e. when the saved variable becomes accessible). By default, this function is called by the library
 with 2 arguments: the database and the addOn name passed to Lib:CreateDatabase(...).
 
 @param (function) callback: The start up callback function
@@ -145,7 +145,7 @@ end
 
 --[[
 Starts the database. Should only be used when the saved variable is accessible (after the ADDON_LOADED event has fired).
-This is called automatically by the library when the saved variable becomes accessible unless manualStartUp was 
+This is called automatically by the library when the saved variable becomes accessible unless manualStartUp was
 set to true during the call to Lib:CreateDatabase(...).
 ]]
 function Database:Start(data)
@@ -178,14 +178,13 @@ function Database:Start(data)
 
     -- create Profile and Global accessible observers:
 
-    local currentProfile = self:GetCurrentProfile();
     self.profile = Observer(false, data);
     self.global = Observer(true, data);
 
     data.loaded = true;
 
     if (data.callbacks["OnStartUp"]) then
-        for _, callback in ipairs(data.callbacks["OnStartUp"]) do        
+        for _, callback in ipairs(data.callbacks["OnStartUp"]) do
             callback(self, data.addOnName);
         end
     end
@@ -217,24 +216,24 @@ end
 --[[
 Adds a value to a table relative to a path: rootTable.<path> = <value>
 
-@param (table or string) rootTableOrPath: The initial root table to search from OR a string that starts with 
+@param (table or string) rootTableOrPath: The initial root table to search from OR a string that starts with
     "global" or "profile" so that the rootTable can be calculated.
 @param (optional any) pathOrValue: a table path string (also called a path address) such as "myTable.mySubTable[2]"
-    OR if rootTable is a string representing the path then this is the value argument. 
-    If it is the path then this is converted to a sequence of tables which are added to the 
-    database if they do not already exist (myTable will be created if not found). 
+    OR if rootTable is a string representing the path then this is the value argument.
+    If it is the path then this is converted to a sequence of tables which are added to the
+    database if they do not already exist (myTable will be created if not found).
 @param (optional any): a value to assign to the table relative to the provided path string (is nil if the path argument is the value)
 ]]
 Framework:DefineParams("table|string");
 function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
-    local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue); 
+    local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue);
 
     if (rootTable.GetObjectType and rootTable:GetObjectType() == "Observer") then
         rootTable = rootTable:ToSavedVariable();
     end
 
     local lastTable, lastKey = data.helper:GetLastTableKeyPairs(rootTable, path);
-    
+
     if (lastKey and lastTable) then
         lastTable[lastKey] = value;
     end
@@ -244,7 +243,7 @@ end
 Searches a path address (table path string) and returns the located value if found.
 
 @param (table or string) rootTableOrPath: The root table to begin searching through using the path address.
-    OR a string that starts with "global" or "profile" so that the rootTable can be calculated. 
+    OR a string that starts with "global" or "profile" so that the rootTable can be calculated.
 @param (string) path: The path of the value to search for. Example: "myTable.mySubTable[2]"
     OR if rootTableOrPath is a string representing the path then this is nil.
 @return (any): The value found at the location specified by the path address.
@@ -253,12 +252,12 @@ Might return nil if the path address is invalid, or no value is located at the a
 Example: value = db:ParsePathValue(db.profile, "mySettings[" .. moduleName .. "][5]");
 ]]
 Framework:DefineParams("table|string", "?string");
-function Database:ParsePathValue(data, rootTableOrPath, pathOrNil)    
-    local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrNil);  
+function Database:ParsePathValue(_, rootTableOrPath, pathOrNil)
+    local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrNil);
 
     for _, key in ipairs({strsplit(".", path)}) do
 
-        if (rootTable == nil or type(rootTable) ~= "table") then 
+        if (rootTable == nil or type(rootTable) ~= "table") then
             break;
         end
 
@@ -283,11 +282,11 @@ function Database:ParsePathValue(data, rootTableOrPath, pathOrNil)
             end
 
             if (indexes and type(rootTable) == "table") then
-                for _, key in ipairs(indexes) do
-                    key = tonumber(key) or key;
-                    rootTable = rootTable[key];
+                for _, indexKey in ipairs(indexes) do
+                    indexKey = tonumber(indexKey) or indexKey;
+                    rootTable = rootTable[indexKey];
 
-                    if (rootTable == nil or type(rootTable) ~= "table") then 
+                    if (rootTable == nil or type(rootTable) ~= "table") then
                         break;
                     end
                 end
@@ -299,7 +298,7 @@ function Database:ParsePathValue(data, rootTableOrPath, pathOrNil)
 end
 
 --[[
-Sets the addon profile for the currently logged in character. 
+Sets the addon profile for the currently logged in character.
 Creates a new profile if the named profile does not exist.
 
 @param (string) name: The name of the profile to assign to the character.
@@ -312,10 +311,10 @@ function Database:SetProfile(data, profileName)
     local profileKey = data.helper:GetCurrentProfileKey();
     local oldProfileName = data.sv.profileKeys[profileKey] or "Default";
 
-    data.sv.profileKeys[profileKey] = profileName; 
-    
+    data.sv.profileKeys[profileKey] = profileName;
+
     if (data.callbacks["OnProfileChanged"]) then
-        for _, callback in ipairs(data.callbacks["OnProfileChanged"]) do        
+        for _, callback in ipairs(data.callbacks["OnProfileChanged"]) do
             callback(self, profileName, oldProfileName);
         end
     end
@@ -388,13 +387,13 @@ Helper function to reset a profile.
 @param (string) name: The name of the profile to reset.
 ]]
 Framework:DefineParams("string");
-function Database:ResetProfile(data, profileName)
+function Database:ResetProfile(_, profileName)
     self:RemoveProfile(profileName);
     self:SetProfile(profileName);
 end
 
 --[[
-Moves the profile to the bin. The profile cannot be accessed from the bin. 
+Moves the profile to the bin. The profile cannot be accessed from the bin.
 Use db:RestoreProfile(profileName) to restore the profile.
 
 @param (string) profileName: The name of the profile to move to the bin.
@@ -408,7 +407,7 @@ function Database:RemoveProfile(data, profileName)
         data.bin = data.bin or {};
         data.bin[profileName] = data.sv.profiles[profileName];
         data.sv.profiles[profileName] = nil;
-        
+
         if (self:GetCurrentProfile() == profileName) then
             self:SetProfile("Default");
             return true;
@@ -419,7 +418,7 @@ function Database:RemoveProfile(data, profileName)
 end
 
 --[[
-Profiles will remain in the bin until a reload of the UI occurs. 
+Profiles will remain in the bin until a reload of the UI occurs.
 If the bin contains a profile, this function can restore it.
 
 @param (string) name: The name of the profile located inside the bin.
@@ -430,7 +429,7 @@ function Database:RestoreProfile(data, profileName)
     if (data.bin) then
         local profile = data.bin[profileName];
 
-        if (profile) then            
+        if (profile) then
             profileName = data.helper:GetNewProfileName(profileName, data.sv.profiles);
             data.sv.profiles[profileName] = profile;
             data.bin[profileName] = nil;
@@ -451,7 +450,7 @@ to avoid clashing: 'example (2)'.
 ]]
 Framework:DefineParams("string", "string");
 function Database:RenameProfile(data, oldProfileName, newProfileName)
-    local newProfileName = data.helper:GetNewProfileName(newProfileName, data.sv.profiles);
+    newProfileName = data.helper:GetNewProfileName(newProfileName, data.sv.profiles);
     local profile = data.sv.profiles[oldProfileName];
 
     data.sv.profiles[oldProfileName] = nil;
@@ -466,8 +465,8 @@ function Database:RenameProfile(data, oldProfileName, newProfileName)
             if (profileKey == currentProfileKey) then
                 if (data.callbacks["OnProfileChanged"]) then
                     for _, value in ipairs(data.callbacks["OnProfileChanged"]) do
-                        local callback = value[1];            
-                        callback(newProfileName, select(2, unpack(value)));
+                        local callback = value[1];
+                        callback(newProfileName, select(2, _G.unpack(value)));
                     end
                 end
             end
@@ -491,9 +490,9 @@ function Database:AppendOnce(data, rootTable, path, value)
     local appendTable = data.sv.appended[tableType] or {};
     data.sv.appended[tableType] = appendTable;
 
-    if (appendTable[path]) then 
+    if (appendTable[path]) then
         -- already previously appended, cannot append again
-        return false; 
+        return false;
     end
 
     self:SetPathValue(rootTable, path, value);
@@ -507,13 +506,13 @@ end
 -------------------------
 
 --[[
-Do NOT call this manually! Should only be called by the library to create a new 
+Do NOT call this manually! Should only be called by the library to create a new
 observer that controls a database table.
 ]]
 Framework:DefineParams("boolean", "table");
 function Observer:__Construct(data, isGlobal, previousData)
     data.isGlobal = isGlobal;
-    data.helper = previousData.helper;       
+    data.helper = previousData.helper;
     data.sv = previousData.sv;
     data.defaults = previousData.defaults;
     data.internalTree = {};
@@ -521,23 +520,23 @@ function Observer:__Construct(data, isGlobal, previousData)
 end
 
 --[[
-When a new value is being added to the database, use the child observer's table if 
+When a new value is being added to the database, use the child observer's table if
 switched to using a parent observer. Also, add to the saved variable table if not a function.
 ]]
-Observer.Static:OnIndexChanging(function(self, data, key, value)
-    data.helper:HandlePathValueChange(data, key, value);    
+Observer.Static:OnIndexChanging(function(_, data, key, value)
+    data.helper:HandlePathValueChange(data, key, value);
     return true; -- prevent indexing
 end);
 
 --[[
 Pick from Observer's saved variable table, else parent table if not found, else defaults table.
-]] 
-Observer.Static:OnIndexed(function(self, data, key, realValue)    
+]]
+Observer.Static:OnIndexed(function(self, data, key, realValue)
     if (realValue ~= nil) then
         return realValue; -- it is an observer object value
     end
 
-    local foundValue;    
+    local foundValue;
     local svTable = self:ToSavedVariable();
 
     if (svTable) then
@@ -546,16 +545,16 @@ Observer.Static:OnIndexed(function(self, data, key, realValue)
     end
 
     -- check parent if still not found
-    if (foundValue == nil) then 
+    if (foundValue == nil) then
         if (data.parent) then
-            local svTable = data.parent:ToSavedVariable();           
+            local parentSvTable = data.parent:ToSavedVariable();
 
-            if (svTable ~= nil) then
+            if (parentSvTable ~= nil) then
                 local parentData = data:GetFriendData(data.parent);
-                
+
                 data.helper:SetUsingChild(data.isGlobal, data.path, data.parent);
                 -- it is possible to not have a svTable (might be dependent on defaults table)
-                foundValue = data.helper:GetNextValue(parentData, svTable, key);                
+                foundValue = data.helper:GetNextValue(parentData, parentSvTable, key);
             end
         end
     end
@@ -574,25 +573,25 @@ Observer.Static:OnIndexed(function(self, data, key, realValue)
         local defaults = data.parent:GetDefaults();
 
         if (defaults ~= nil) then
-            local parentData = data:GetFriendData(data.parent);            
-            foundValue = data.helper:GetNextValue(parentData, defaults, key);                
+            local parentData = data:GetFriendData(data.parent);
+            foundValue = data.helper:GetNextValue(parentData, defaults, key);
         end
     end
-    
+
     return foundValue;
 end);
 
 --[[
-Used to achieve database inheritance. If an observer cannot find a value, it uses the value found in the 
-parent table. Useful if many separate tables in the saved variables table should use the same set of 
+Used to achieve database inheritance. If an observer cannot find a value, it uses the value found in the
+parent table. Useful if many separate tables in the saved variables table should use the same set of
 changable values when the defaults table is not a suitable solution.
 
-@param (optional | Observer) parentObserver: Which observer should be used as the parent. 
+@param (optional | Observer) parentObserver: Which observer should be used as the parent.
     If this is nil, the parent is removed.
 Example: db.profile.aFrame:SetParent(db.global.frameTemplate)
 ]]
 Framework:DefineParams("?Observer");
-function Observer:SetParent(data, parentObserver)     
+function Observer:SetParent(data, parentObserver)
     data.parent = parentObserver;
 end
 
@@ -600,7 +599,7 @@ end
 @return (Observer): Returns the current Observer's parent.
 ]]
 Framework:DefineReturns("?Observer");
-function Observer:GetParent(data) 
+function Observer:GetParent(data)
     return data.parent;
 end
 
@@ -608,18 +607,19 @@ end
 @return (boolean): Returns true if the current Observer has a parent.
 ]]
 Framework:DefineReturns("boolean");
-function Observer:HasParent(data) 
+function Observer:HasParent(data)
     return data.parent ~= nil;
 end
 
 do
     local function Merge(mergeTable, tbl)
-        for key, value in pairs(tbl) do            
+        for key, value in pairs(tbl) do
             if (mergeTable[key] == nil) then
                 -- only add to mergeTable if value does not already exist
                 if (type(value) == "table") then
                     mergeTable[key] = {};
                     Merge(mergeTable[key], value);
+
                 else
                     mergeTable[key] = value;
                 end
@@ -628,7 +628,7 @@ do
     end
 
     --[[
-    Creates an immutable table containing all values from the underlining saved variables table, 
+    Creates an immutable table containing all values from the underlining saved variables table,
     parent table, and defaults table. Changing this table will not affect the saved variables table!
 
     @return (table): a table containing all merged values
@@ -646,7 +646,7 @@ do
         if (defaults) then
             Merge(merged, defaults);
         end
-    
+
         if (data.parent) then
             local parentTable = data.parent:ToSavedVariable();
 
@@ -654,7 +654,7 @@ do
                 Merge(merged, parentTable);
             end
         end
-        
+
         return merged;
     end
 end
@@ -667,17 +667,17 @@ Gets the underlining saved variables table. Default or parent values will not be
 function Observer:ToSavedVariable(data)
     local rootTable;
 
-    if (data.isGlobal) then      
+    if (data.isGlobal) then
         rootTable = data.sv.global;
-    else        
-        local currentProfile = data.database:GetCurrentProfile();        
-        rootTable = data.sv.profiles[currentProfile];        
+    else
+        local currentProfile = data.database:GetCurrentProfile();
+        rootTable = data.sv.profiles[currentProfile];
     end
 
-    if (data.path) then        
+    if (data.path) then
         rootTable = data.database:ParsePathValue(rootTable, data.path);
     end
-    
+
     return rootTable;
 end
 
@@ -698,12 +698,12 @@ function Observer:GetDefaults(data)
     if (data.path) then
         return data.database:ParsePathValue(rootTable, data.path);
     end
-    
+
     return rootTable;
 end
 
 --[[
-Usable in a for loop. Uses the merged table to iterate through key and value pairs of the default and 
+Usable in a for loop. Uses the merged table to iterate through key and value pairs of the default and
 saved variable table paired together using the Observer path address.
 
 Example:
@@ -711,7 +711,7 @@ Example:
         print(string.format("%s : %s", key, value))
     end
 ]]
-function Observer:Iterate(data)
+function Observer:Iterate()
     local merged = self:ToTable();
     return next, merged, nil;
 end
@@ -720,8 +720,8 @@ end
 @return (boolean): Whether the merged table is empty.
 ]]
 Framework:DefineReturns("boolean");
-function Observer:IsEmpty(data)
-    return self:GetLength(true) == 0;
+function Observer:IsEmpty()
+    return self:GetLength() == 0;
 end
 
 --[[
@@ -739,7 +739,7 @@ function Observer:Print(data, depth)
 
     if (path ~= nil) then
         tablePath = string.format("%s.%s", tablePath, path);
-    end    
+    end
 
     print(" ");
     print(string.format("db.%s = {", tablePath));
@@ -751,9 +751,8 @@ end
 --[[
 @return (int): The length of the merged table (Observer:ToTable()).
 ]]
-Framework:DefineParams("?boolean");
 Framework:DefineReturns("number");
-function Observer:GetLength(data, includeKeys)
+function Observer:GetLength()
     local length = 0;
 
     for _, _ in self:Iterate() do
@@ -768,7 +767,7 @@ Helper function to return the path address of the observer.
 @return (string): The path address
 ]]
 Framework:DefineReturns("?string");
-function Observer:GetPathAddress(data)    
+function Observer:GetPathAddress(data)
     return data.path;
 end
 -------------------------------------------------
@@ -804,7 +803,7 @@ do
             return true;
         end
 
-        for key, value in pairs(tbl) do
+        for _, value in pairs(tbl) do
             if (type(value) ~= "table" or not IsEmpty(value)) then
                 return false;
             end
@@ -858,15 +857,16 @@ do
                 end
 
                 if (indexes) then
-                    for _, key in ipairs(indexes) do
-                        key = tonumber(key) or key;
-                        lastKey = key;
-                        lastTable, nextTable = GetNextTable(nextTable, key);
+                    for _, indexKey in ipairs(indexes) do
+                        indexKey = tonumber(indexKey) or indexKey;
+                        lastKey = indexKey;
+                        lastTable, nextTable = GetNextTable(nextTable, indexKey);
 
                         if (cleaning and IsEmpty(nextTable)) then
                             if (type(lastTable) == "table") then
                                 lastTable[lastKey] = nil;
                             end
+
                             return nil;
                         end
                     end
@@ -875,7 +875,7 @@ do
         end
 
         return lastTable, lastKey;
-    end    
+    end
 end
 
 Framework:DefineParams("string", "table");
@@ -895,22 +895,22 @@ end
 
 Framework:DefineReturns("string");
 function Helper:GetCurrentProfileKey()
-    local playerName = UnitName("player");
-    local realm = GetRealmName():gsub("%s+", "");
+    local playerName = _G.UnitName("player");
+    local realm = _G.GetRealmName():gsub("%s+", "");
 
     return string.join("-", playerName, realm);
 end
 
 Framework:DefineParams("table", "table", "any") -- should be string or number
-function Helper:GetNextValue(data, previousObserverData, tbl, key)    
+function Helper:GetNextValue(data, previousObserverData, tbl, key)
     --tbl could be sv or defaults table
-    local nextValue = tbl[key]; 
+    local nextValue = tbl[key];
 
     if (type(nextValue) ~= "table") then
         return nextValue;
     end
 
-    local nextObserver = nextValue;    
+    local nextObserver = nextValue;
 
     if (not IsObserver(nextObserver)) then
         nextObserver = previousObserverData.internalTree[key];
@@ -943,8 +943,8 @@ function Helper:PrintTable(_, tbl, depth, n)
     n = n or 0;
     depth = depth or 4;
 
-    if (depth == 0) then 
-        return; 
+    if (depth == 0) then
+        return
     end
 
     if (n == 0) then
@@ -959,7 +959,7 @@ function Helper:PrintTable(_, tbl, depth, n)
                 print(string.rep(' ', n)..key.." = {");
                 self:PrintTable(value, depth - 1, n + 4);
                 print(string.rep(' ', n).."},");
-            else                
+            else
                 if (type(value) == "string") then
                     value = string.format("\"%s\"", value);
                 else
@@ -971,17 +971,17 @@ function Helper:PrintTable(_, tbl, depth, n)
         end
     end
 
-    if (n == 0) then 
-        print(" "); 
+    if (n == 0) then
+        print(" ");
     end
 end
 
 Framework:DefineParams("Observer");
 Framework:DefineReturns("string");
-function Helper:GetDatabaseRootTableName(data, observer) 
+function Helper:GetDatabaseRootTableName(data, observer)
     local observerData = data:GetFriendData(observer);
 
-    if (observerData.isGlobal) then 
+    if (observerData.isGlobal) then
         return "global";
     end
 
@@ -992,7 +992,7 @@ function Helper:GetDatabaseRootTableName(data, observer)
         return string.format("profile['%s']", currentProfile);
     else
         return string.format("profile.%s", currentProfile);
-    end    
+    end
 end
 
 do
@@ -1000,9 +1000,9 @@ do
 
     equals = function(value1, value2, shallowEquals)
         local type1 = type(value1);
-    
+
         if (type(value2) == type1) then
-    
+
             if (type1 == "table") then
                 if (shallowEquals) then
                     return tostring(value1) == tostring(value2);
@@ -1013,21 +1013,21 @@ do
                         end
                     end
                 end
-    
+
                 return true;
             elseif (type1 == "function") then
                 return tostring(value1) == tostring(value2);
             else
                 return value1 == value2;
-            end        
+            end
         end
-    
+
         return false;
     end
 
     Framework:DefineParams("table", "any", "?any");
     function Helper:HandlePathValueChange(data, observerData, key, value)
-        local path;    
+        local path;
         local defaultRootTable;
         local svRootTable;
         local isGlobal;
@@ -1035,7 +1035,7 @@ do
         if (observerData.usingChild) then
             path = observerData.usingChild.path;
             isGlobal = observerData.usingChild.isGlobal;
-        else            
+        else
             path = observerData.path;
             isGlobal = observerData.isGlobal;
         end
@@ -1043,14 +1043,14 @@ do
         if (isGlobal) then
             defaultRootTable = data.dbData.defaults.global;
             svRootTable = data.dbData.sv.global;
-        else            
+        else
             defaultRootTable = data.dbData.defaults.profile;
             svRootTable = data.database.profile:ToSavedVariable();
         end
 
         local indexingPath = GetNextPath(path, key);
         local defaultValue = data.database:ParsePathValue(defaultRootTable, indexingPath);
-        
+
         if (not equals(defaultValue, value)) then
             -- different from default value so add it
             data.database:SetPathValue(svRootTable, indexingPath, value);
@@ -1066,7 +1066,7 @@ Framework:DefineParams("boolean", "string", "Observer");
 function Helper:SetUsingChild(data, isGlobal, path, parentObserver)
     local parentObserverData = data:GetFriendData(parentObserver);
     local usingChild = parentObserverData.usingChild or {};
-    
+
     usingChild.isGlobal = isGlobal;
     usingChild.path = path;
 

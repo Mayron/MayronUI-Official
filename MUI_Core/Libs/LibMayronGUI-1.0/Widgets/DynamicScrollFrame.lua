@@ -1,7 +1,10 @@
-local Lib = LibStub:GetLibrary("LibMayronGUI");
-if (not Lib) then return; end
+-- luacheck: ignore MayronUI self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-local WidgetsPackage = Lib.WidgetsPackage;
+if (not Lib) then
+    return
+end
+
 local Private = Lib.Private;
 
 -- Local Functions ----------------
@@ -45,25 +48,24 @@ local function SetScrollChild(self, ...)
     self.ScrollFrame:SetScrollChild(...);
 end
 
--- Lib Methods ------------------  
+-- Lib Methods ------------------
 
 function Lib:CreateScrollFrame(style, parent, global)
-    local r, g, b = style:GetColor();
-    local container = CreateFrame("Frame", global, parent);
+    local container = _G.CreateFrame("Frame", global, parent);
     local padding = style:GetPadding(nil, true);
 
-    container.ScrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate");        
+    container.ScrollFrame = _G.CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate");
     container.ScrollFrame:SetAllPoints(true);
     container.ScrollFrame:EnableMouseWheel(true);
     container.ScrollFrame:SetClipsChildren(true);
     container.ScrollFrame:SetScript("OnMouseWheel", ScrollFrame_OnMouseWheel);
 
-    local child = CreateFrame("Frame", nil, container.ScrollFrame);
+    local child = _G.CreateFrame("Frame", nil, container.ScrollFrame);
     container.ScrollFrame:SetScrollChild(child);
 
     Private:SetFullWidth(child, padding.right);
 
-    -- ScrollBar ------------------    
+    -- ScrollBar ------------------
     container.ScrollBar = container.ScrollFrame.ScrollBar;
     container.ScrollBar:ClearAllPoints();
     container.ScrollBar:SetPoint("TOPLEFT", container.ScrollFrame, "TOPRIGHT", -7, -2);
@@ -78,11 +80,11 @@ function Lib:CreateScrollFrame(style, parent, global)
     Private:SetBackground(container.ScrollBar, 0, 0, 0, 0.2);
     Private:KillElement(container.ScrollBar.ScrollUpButton);
     Private:KillElement(container.ScrollBar.ScrollDownButton);
-    ----------------------------  
+    ----------------------------
 
     container.ScrollFrame:SetScript("OnShow", DynamicScrollBar_OnChange);
     container.ScrollFrame:HookScript("OnScrollRangeChanged", DynamicScrollBar_OnChange);
-    
+
     container.GetScrollChild = GetScrollChild;
     container.SetScrollChild = SetScrollChild;
 
