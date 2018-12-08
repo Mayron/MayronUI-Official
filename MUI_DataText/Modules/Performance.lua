@@ -1,9 +1,5 @@
--- Setup Namespaces ------------------
-
-local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-
-local LABEL_PATTERN = "|cffffffff%s|r";
+-- luacheck: ignore MayronUI self 143 631
+local tk, db, em, _, obj = MayronUI:GetCoreComponents();
 
 -- Register and Import Modules -------
 
@@ -36,22 +32,22 @@ function Performance:__Construct(data, sv, dataTextModule)
     data.sv = sv;
 
     -- set public instance properties
-    self.MenuContent = CreateFrame("Frame");
+    self.MenuContent = _G.CreateFrame("Frame");
     self.MenuLabels = {};
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
     self.HasRightMenu = false;
     self.SavedVariableName = "performance";
-    self.Button = dataTextModule:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton();
 end
 
-function Performance:Enable(data) 
+function Performance:Enable(data)
     data.sv.enabled = true;
 
     data.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
         if (not self.Button) then return; end
         self:Update();
-    end);  
+    end);
 end
 
 function Performance:Disable(data)
@@ -62,24 +58,24 @@ function Performance:Disable(data)
     end
 end
 
-function Performance:IsEnabled(data) 
+function Performance:IsEnabled(data)
     return data.sv.enabled;
 end
 
 function Performance:Update(data)
-    if (data.executed) then 
-        return; 
+    if (data.executed) then
+        return
     end
 
     data.executed = true;
 
     local function loop()
-        local _, _, latencyHome, latencyServer = GetNetStats();
+        local _, _, latencyHome, latencyServer = _G.GetNetStats();
 
         local label = "";
 
         if (data.sv.showFps) then
-            label = tk.string.format("|cffffffff%u|r fps", GetFramerate());
+            label = tk.string.format("|cffffffff%u|r fps", _G.GetFramerate());
         end
 
         if (data.sv.showHomeLatency) then
@@ -92,12 +88,10 @@ function Performance:Update(data)
 
         self.Button:SetText(label:trim());
 
-        if (not override) then
-            tk.C_Timer.After(3, loop);
-        end
+        tk.C_Timer.After(3, loop);
     end
 
     loop();
 end
 
-function Performance:Click(data) end
+function Performance:Click() end

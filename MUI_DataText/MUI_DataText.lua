@@ -141,9 +141,8 @@ function C_DataTextModule:RegisterDataModule(data, dataModule)
     self:PositionDataItems();
 end
 
-Engine:DefineParams("IDataTextModule", "?string");
 Engine:DefineReturns("Button");
-function C_DataTextModule:CreateDataTextButton(data, btnText)
+function C_DataTextModule:CreateDataTextButton(data)
     local btn = _G.CreateFrame("Button");
     btn:SetNormalTexture(tk.Constants.MEDIA.."mui_bar");
     btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
@@ -154,8 +153,7 @@ function C_DataTextModule:CreateDataTextButton(data, btnText)
     btn:SetNormalFontObject("MUI_FontNormal");
 
     local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
-    btn:SetText(btnText or tk.Strings.Space);
-    btn:GetFontString():SetFont(font, data.sv.fontSize);
+    btn:GetNormalFontObject():SetFont(font, data.sv.fontSize);
 
     return btn;
 end

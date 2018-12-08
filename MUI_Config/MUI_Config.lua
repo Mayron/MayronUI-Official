@@ -383,7 +383,7 @@ function ConfigModule:SetUpWindow(data)
     data.window:GetRow(3):SetFixed(50);
     data.window:SetScript("OnShow", function()
         -- fade in when shown
-        _G.UIFrameFadeIn(self, 0.3, 0, 1);
+        _G.UIFrameFadeIn(data.window, 0.3, 0, 1);
     end);
 
     local topbar = data.window:CreateCell();

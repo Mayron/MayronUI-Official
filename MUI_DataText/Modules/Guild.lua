@@ -93,7 +93,7 @@ function Guild:__Construct(data, sv, slideController, dataTextModule)
     self.HasRightMenu = false;
     self.SavedVariableName = "guild";
 
-    self.Button = dataTextModule:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton();
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 
     data.handler = em:CreateEventHandler("GUILD_ROSTER_UPDATE", function()

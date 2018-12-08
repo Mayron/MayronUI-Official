@@ -28,10 +28,7 @@ local function OnHyperlinkEnter(self, linkData)
 	local linkType = tk.string.split(":", linkData);
 
 	-- TODO: missing type for new community link?
-	if (linkType == "item" or linkType == "spell" or linkType == "enchant" or
-			linkType == "quest" or linkType == "talent" or linkType == "glyph" or
-			linkType == "unit" or linkType == "achievement") then
-
+	if (tk:ValueIsEither(linkType, "item", "spell", "enchant", "quest", "talent", "glyph", "unit", "achievement")) then
 		_G.GameTooltip:SetOwner(self, "ANCHOR_CURSOR");
 		_G.GameTooltip:SetHyperlink(linkData);
 		_G.GameTooltip:Show();

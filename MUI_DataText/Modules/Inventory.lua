@@ -53,7 +53,7 @@ function Inventory:__Construct(data, sv, slideController, dataTextModule)
     self.HasRightMenu = false;
     self.SavedVariableName = "inventory";
 
-    self.Button = dataTextModule:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton();
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
     self.Button:SetScript("OnEnter", button_OnEnter);
     self.Button:SetScript("OnLeave", button_OnLeave);

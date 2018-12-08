@@ -1,7 +1,5 @@
--- Setup Namespaces ------------------
-
-local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+-- luacheck: ignore MayronUI self 143 631
+local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 
 local LABEL_PATTERN = "|cffffffff%s|r mb";
 
@@ -21,12 +19,12 @@ db:AddToDefaults("profile.datatext.memory", {
 local function CreateLabel(contentFrame, popupWidth)
     local label = tk:PopFrame("Frame", contentFrame);
 
-    label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");   
+    label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     label.name:SetPoint("LEFT", 6, 0);
     label.name:SetPoint("Right", 6, 0);
     label.name:SetWidth(popupWidth * 0.6);
     label.name:SetWordWrap(false);
-    label.name:SetJustifyH("LEFT");    
+    label.name:SetJustifyH("LEFT");
 
     label.value = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     label.value:SetPoint("RIGHT", -10, 0);
@@ -58,24 +56,24 @@ function Memory:__Construct(data, sv, dataTextModule)
     data.sv = sv;
 
     -- set public instance properties
-    self.MenuContent = CreateFrame("Frame");
+    self.MenuContent = _G.CreateFrame("Frame");
     self.MenuLabels = {};
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
     self.SavedVariableName = "memory";
-    self.Button = dataTextModule:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton();
 end
 
-function Memory:IsEnabled(data) 
+function Memory:IsEnabled(data)
     return data.sv.enabled;
 end
 
-function Memory:Enable(data) 
+function Memory:Enable(data)
     data.sv.enabled = true;
 end
 
-function Memory:Disable(self)
+function Memory:Disable(data)
     if (data.handler) then
         data.handler:Destroy();
     end
@@ -84,23 +82,23 @@ function Memory:Disable(self)
 end
 
 function Memory:Update(data)
-    if (data.executed) then 
-        return; 
+    if (data.executed) then
+        return
     end
 
     data.executed = true;
 
     local function loop()
-        if (data.disabled) then 
-            return; 
+        if (data.disabled) then
+            return
         end
 
         -- Must update first!
-        UpdateAddOnMemoryUsage();
+        _G.UpdateAddOnMemoryUsage();
         local total = 0;
 
-        for i = 1, GetNumAddOns() do
-            total = total + GetAddOnMemoryUsage(i);
+        for i = 1, _G.GetNumAddOns() do
+            total = total + _G.GetAddOnMemoryUsage(i);
         end
 
         total = (total / 1000);
@@ -115,14 +113,12 @@ function Memory:Update(data)
 end
 
 function Memory:Click(data)
-    --tk.collectgarbage("collect");
-    
     local currentIndex = 0;
-    local sorted = {};    
+    local sorted = {};
 
-    for i = 1, GetNumAddOns() do
-        local _, addOnName = GetAddOnInfo(i);
-        local usage = GetAddOnMemoryUsage(i);
+    for i = 1, _G.GetNumAddOns() do
+        local _, addOnName = _G.GetAddOnInfo(i);
+        local usage = _G.GetAddOnMemoryUsage(i);
 
         if (usage > 1) then
             currentIndex = currentIndex + 1;
@@ -139,20 +135,20 @@ function Memory:Click(data)
                 value = string.format("%skb", value);
             end
 
-            addOnName = tk.Strings:RemoveColorCode(addOnName);        
+            addOnName = tk.Strings:RemoveColorCode(addOnName);
             addOnName = tk.Strings:SetOverflow(addOnName, 15);
 
             label.name:SetText(addOnName);
             label.value:SetText(value);
             label.usage = usage;
-        
-            tk.table.insert(sorted, label);            
+
+            tk.table.insert(sorted, label);
         end
     end
 
     table.sort(sorted, compare);
     tk.Tables:Empty(self.MenuLabels);
-    tk.Tables:Fill(self.MenuLabels, unpack(sorted));
+    tk.Tables:Fill(self.MenuLabels, _G.unpack(sorted));
 
     self.TotalLabelsShown = #self.MenuLabels;
 end

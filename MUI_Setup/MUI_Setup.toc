@@ -8,11 +8,8 @@ MUI_Setup.lua
 ## imports:
 Imports/AuraFrames.lua
 Imports/Bartender4.lua
-Imports/Bazooka.lua
 Imports/Grid.lua
 Imports/Masque.lua
-Imports/MikScrollingBattleText.lua
 Imports/Recount.lua
 Imports/ShadowedUnitFrames.lua
-Imports/SimplePowerBar.lua
 Imports/TipTac.lua

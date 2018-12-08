@@ -61,7 +61,7 @@ function Durability:__Construct(data, sv, dataTextModule)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
-    self.Button = dataTextModule:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton();
     self.SavedVariableName = "durability";
 end
 
@@ -112,7 +112,7 @@ function Durability:Update()
     local value = (durability_total / max_total) * 100;
 
     if (itemsEquipped) then
-        local realValue = tk.Numbers:ToPrecision(value, 2);
+        local realValue = tk.Numbers:ToPrecision(value, 1);
         local colored;
 
         if (value < 25) then

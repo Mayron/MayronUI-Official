@@ -68,7 +68,7 @@ function Currency:__Construct(data, sv, dataTextModule)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
-    self.Button = dataTextModule:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton();
     self.SavedVariableName = "currency";
 
     data.goldString = "|TInterface\\MoneyFrame\\UI-GoldIcon:14:14:2:0|t";

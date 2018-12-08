@@ -53,7 +53,7 @@ function CombatTimer:__Construct(data, dataTextModule, sv)
     local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
 
     -- create datatext button
-    self.Button = dataTextModule:CreateDataTextButton(self);
+    self.Button = dataTextModule:CreateDataTextButton();
 
     data.seconds = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
     data.seconds:SetFont(font, sv.fontSize);

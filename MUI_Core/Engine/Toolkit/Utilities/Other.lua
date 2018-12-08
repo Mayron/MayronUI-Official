@@ -13,7 +13,7 @@ function tk.Numbers:ToPrecision(number, precision)
 end
 
 function tk:ValueIsEither(value, ...)
-    for _, otherValue in pairs({...}) do
+    for _, otherValue in tk.Tables:IterateArgs(...) do
         if (self:Equals(value, otherValue)) then
             return true;
         end
