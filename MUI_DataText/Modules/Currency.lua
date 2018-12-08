@@ -1,7 +1,6 @@
--- Setup Namespaces ------------------
+-- luacheck: ignore MayronUI self 143 631
 
-local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
 -- Register and Import Modules -------
 
@@ -45,14 +44,14 @@ MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     sv:SetParent(dataTextData.sv);
 
     local coloredKey = tk.Strings:GetClassColoredText(nil, tk:GetPlayerKey());
-    
+
     -- saves info on the currency that each logged in character has
     if (not db:ParsePathValue(db.global, "datatext.currency.characters")) then
         db:SetPathValue(db.global, "datatext.currency.characters", {});
     end
-    
+
 	-- store character's money to be seen by other characters
-    db.global.datatext.currency.characters[coloredKey] = GetMoney();
+    db.global.datatext.currency.characters[coloredKey] = _G.GetMoney();
 
     if (sv.enabled) then
         local currency = Currency(sv, self);
@@ -64,7 +63,7 @@ function Currency:__Construct(data, sv, dataTextModule)
     data.sv = sv;
 
     -- set public instance properties
-    self.MenuContent = CreateFrame("Frame");
+    self.MenuContent = _G.CreateFrame("Frame");
     self.MenuLabels = {};
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
@@ -77,20 +76,20 @@ function Currency:__Construct(data, sv, dataTextModule)
     data.copperString = "|TInterface\\MoneyFrame\\UI-CopperIcon:14:14:2:0|t";
     data.showMenu = true;
 
-    local date = C_Calendar.GetDate();
+    local date = _G.C_Calendar.GetDate();
     local month = date["month"];
     local day = date["monthDay"];
 
     date = tk.string.format("%d-%d", day, month);
 
     if (not (data.sv.date and data.sv.date == date)) then
-        data.sv.todayCurrency = GetMoney();
+        data.sv.todayCurrency = _G.GetMoney();
         data.sv.date = date;
     end
 
     em:CreateEventHandler("PLAYER_MONEY", function()
-        if (not self.Button) then 
-            return; 
+        if (not self.Button) then
+            return
         end
 
         self:Update();
@@ -104,18 +103,18 @@ function Currency:__Construct(data, sv, dataTextModule)
     data.info[6] = self:GetFormattedCurrency(data.sv.todayCurrency);
     data.info[7] = tk:GetThemeColoredText(L["Today's profit"]..":");
     data.info[8] = nil;
-    data.info[9] = NORMAL_FONT_COLOR_CODE..L["Money per character"]..":".."|r";   
+    data.info[9] = tk.Strings:Concat(_G.NORMAL_FONT_COLOR_CODE..L["Money per character"], ":", "|r");
 end
 
-function Currency:IsEnabled(data) 
+function Currency:IsEnabled(data)
     return data.sv.enabled;
 end
 
 function Currency:Enable(data)
-    data.sv.enabled = true;     
+    data.sv.enabled = true;
 end
 
-function Currency:Disable(data) 
+function Currency:Disable(data)
     data.sv.enabled = false;
     em:FindHandlerByKey("PLAYER_MONEY", "money"):Destroy();
     data.showMenu = nil;
@@ -123,7 +122,7 @@ end
 
 Engine:DefineParams("number", "?string", "?boolean")
 function Currency:GetFormattedCurrency(data, currency, colorCode, hasLabel)
-    local text = "";  
+    local text = "";
     local gold = tk.math.floor(tk.math.abs(currency / 10000));
     local silver = tk.math.floor(tk.math.abs((currency / 100) % 100));
     local copper = tk.math.floor(tk.math.abs(currency % 100));
@@ -164,30 +163,30 @@ function Currency:GetFormattedCurrency(data, currency, colorCode, hasLabel)
 end
 
 function Currency:GetDifference(data)
-    local currency = GetMoney() - data.sv.todayCurrency;
+    local currency = _G.GetMoney() - data.sv.todayCurrency;
 
     if (currency >= 0) then
-        return self:GetFormattedCurrency(currency, GREEN_FONT_COLOR_CODE);
+        return self:GetFormattedCurrency(currency, _G.GREEN_FONT_COLOR_CODE);
 
     elseif (currency < 0) then
         currency = tk.math.abs(currency);
-        local result = self:GetFormattedCurrency(currency, RED_FONT_COLOR_CODE);
+        local result = self:GetFormattedCurrency(currency, _G.RED_FONT_COLOR_CODE);
 
-        return tk.string.format(RED_FONT_COLOR_CODE.."-%s".."|r", result);
+        return tk.string.format(_G.RED_FONT_COLOR_CODE.."-%s".."|r", result);
     end
 end
 
-function Currency:Update(data)
-    local currentCurrency = self:GetFormattedCurrency(GetMoney(), nil, true);
+function Currency:Update()
+    local currentCurrency = self:GetFormattedCurrency(_G.GetMoney(), nil, true);
 
     self.Button:SetText(currentCurrency);
     local colored_key = tk:GetClassColoredText(nil, tk:GetPlayerKey());
-    db.global.datatext.currency.characters[colored_key] = GetMoney();
+    db.global.datatext.currency.characters[colored_key] = _G.GetMoney();
 end
 
-function Currency:Click(data)    
+function Currency:Click(data)
     self.MenuLabels = self.MenuLabels or {};
-    data.info[2] = self:GetFormattedCurrency(GetMoney());
+    data.info[2] = self:GetFormattedCurrency(_G.GetMoney());
     data.info[6] = self:GetDifference();
 
     local r, g, b = tk:GetThemeColor();

@@ -1,6 +1,5 @@
--- Setup Namespaces ------------------
-
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+-- luacheck: ignore MayronUI self 143 631
+local obj = select(5, MayronUI:GetCoreComponents());
 
 -- Register and Import Modules -------
 

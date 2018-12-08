@@ -1,3 +1,4 @@
+-- luacheck: ignore MayronUI self 143 631
 local _, core = ...;
 core.Toolkit = core.Toolkit or {};
 
@@ -42,7 +43,7 @@ function tk:MakeMovable(frame, dragger, movable)
             local x, y = frame:GetCenter();
 
             frame:SetPoint("CENTER", tk.UIParent, "BOTTOMLEFT", x, y);
-            frame:StartMoving();            
+            frame:StartMoving();
         end
     end);
 
@@ -62,8 +63,8 @@ function tk:SavePosition(frame, db_path, override)
         relativeFrame = relativeFrame:GetName();
 
         if (not relativeFrame or relativeFrame and relativeFrame ~= "UIParent") then
-            if (not override) then 
-                return; 
+            if (not override) then
+                return
             end
 
             x, y = frame:GetCenter();
@@ -99,7 +100,7 @@ function tk:MakeResizable(frame, dragger)
 end
 
 function tk:KillElement(element)
-    element:Hide();    
+    element:Hide();
     element:SetParent(tk.Constants.DUMMY_FRAME);
     element:SetAllPoints(true);
     element.Show = tk.Constants.DUMMY_FUNC;
@@ -144,7 +145,7 @@ end
 
 -- weird
 function tk:SetClassColoredTexture(className, texture)
-    className = className or (tk.select(2, UnitClass("player")));
+    className = className or (tk.select(2, _G.UnitClass("player")));
     className = tk.string.upper(className);
     className = className:gsub("%s+", "");
     local c = self.Constants.CLASS_RGB_COLORS[className];
@@ -158,7 +159,7 @@ do
     -- first arg can be a number specifying the alpha value
     function tk:ApplyThemeColor(...)
         local alpha = (tk.select(1, ...));
-        
+
         -- first argument is "colorName"
         if (not (tk.type(alpha) == "number" and alpha)) then
             tk.Constants.AddOnStyle:ApplyColor(nil, 1, ...);
@@ -182,7 +183,7 @@ end
 function tk:SetBackground(frame, ...)
     local texture = frame:CreateTexture(nil, "BACKGROUND");
     texture:SetAllPoints(frame);
-    
+
     if (#{...} > 1) then
         texture:SetColorTexture(...);
     else
@@ -201,11 +202,10 @@ function tk:GroupCheckButtons(...)
 
         btn:HookScript("OnClick", function(self)
             if (self:GetChecked()) then
-                local id = self:GetID();
 
-                for i, btn in tk.ipairs(btns) do
-                    if (id ~= i) then
-                        btn:SetChecked(false);
+                for otherId, otherBtn in tk.ipairs(btns) do
+                    if (id ~= otherId) then
+                        otherBtn:SetChecked(false);
                     end
                 end
             end
@@ -214,7 +214,7 @@ function tk:GroupCheckButtons(...)
 end
 
 function tk:SetFontSize(fontstring, size)
-    local filename, fontHeight, flags = fontstring:GetFont();
+    local filename, _, flags = fontstring:GetFont();
     fontstring:SetFont(filename, size, flags);
 end
 
@@ -246,10 +246,10 @@ function tk:SetGameFont(font)
     };
 
     -- prevent weird font size bug
-    SystemFont_NamePlate:SetFont(font, 9); 
+    _G.SystemFont_NamePlate:SetFont(font, 9);
 
-    for _, f in tk.ipairs(fonts) do        
-        local _, size, outline = tk._G[f]:GetFont();        
+    for _, f in tk.ipairs(fonts) do
+        local _, size, outline = tk._G[f]:GetFont();
         tk._G[f]:SetFont(font, size, outline);
     end
 end
@@ -261,12 +261,17 @@ do
         parent = parent or self.UIParent;
         frameType = frameType or "Frame";
 
-        local frame = frames[frameType] and frames[frameType][#frames];
+        local frame;
+        local framesTable = frames[frameType];
+
+        if (type(framesTable) == "table" and #framesTable > 0) then
+            frame = framesTable and framesTable[#framesTable];
+        end
 
         if (not frame) then
-            frame = CreateFrame(frameType);
+            frame = _G.CreateFrame(frameType);
         else
-            frames[frameType][#frames] = nil;
+            framesTable[#framesTable] = nil;
         end
 
         frame:SetParent(parent);
@@ -276,8 +281,8 @@ do
     end
 
     function tk:PushFrame(frame)
-        if (not frame.GetObjectType) then 
-            return; 
+        if (not frame.GetObjectType) then
+            return
         end
 
         local frameType = frame:GetObjectType();
@@ -295,7 +300,7 @@ do
             region:SetAllPoints(true);
             region:Hide();
         end
-        
-        frames[objectType][#frames + 1] = frame;
+
+        table.insert(frames[frameType], frame);
     end
 end

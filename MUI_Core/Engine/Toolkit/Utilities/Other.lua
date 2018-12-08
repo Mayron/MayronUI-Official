@@ -1,3 +1,4 @@
+-- luacheck: ignore MayronUI self 143 631
 local _, core = ...;
 core.Toolkit = core.Toolkit or {};
 
@@ -32,14 +33,14 @@ end
 function tk:Print(...)
     local hex = select(4, self:GetThemeColor());
     local prefix = self.Strings:GetHexColoredText("MayronUI:", hex);
-    DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, tostringall(...)));
+    _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, _G.tostringall(...)));
 end
 
 do
     local modKeys = {
-        S = function() return IsShiftKeyDown(); end,
-        C = function() return IsControlKeyDown(); end,
-        A = function() return IsAltKeyDown(); end,
+        S = function() return _G.IsShiftKeyDown(); end,
+        C = function() return _G.IsControlKeyDown(); end,
+        A = function() return _G.IsAltKeyDown(); end,
     };
 
     function tk:IsModComboActive(strKey) -- "SC" - is shift and control down but not alt? (example)
@@ -66,23 +67,23 @@ do
 end
 
 function tk:GetDifficultyColor(level)
-    local difference = (level - UnitLevel("player"));
+    local difference = (level - _G.UnitLevel("player"));
     local color;
 
     if (difference >= 5) then
-        color = QuestDifficultyColors["impossible"];
+        color = _G.QuestDifficultyColors["impossible"];
 
     elseif (difference >= 3) then
-        color = QuestDifficultyColors["verydifficult"];
+        color = _G.QuestDifficultyColors["verydifficult"];
 
     elseif (difference >= -2 or level < 0) then
-        color = QuestDifficultyColors["difficult"];
+        color = _G.QuestDifficultyColors["difficult"];
 
-    elseif (-difference <= GetQuestGreenRange()) then
-        color = QuestDifficultyColors["standard"];
+    elseif (-difference <= _G.GetQuestGreenRange()) then
+        color = _G.QuestDifficultyColors["standard"];
 
     else
-        color = QuestDifficultyColors["trivial"];
+        color = _G.QuestDifficultyColors["trivial"];
 
     end
 
@@ -110,25 +111,25 @@ function tk:Equals(value1, value2, shallowEquals)
             return tk.tostring(value1) == tk.tostring(value2);
         else
             return value1 == value2;
-        end        
+        end
     end
 
     return false;
 end
 
 function tk:GetPlayerKey()
-    local key, realm = UnitName("player"), GetRealmName():gsub("%s+", "");
+    local key, realm = _G.UnitName("player"), _G.GetRealmName():gsub("%s+", "");
     key = realm and tk.string.join("-", key, realm);
     return key;
 end
 
 function tk:IsPlayerMaxLevel()
-    local lvl = UnitLevel("player");
+    local lvl = _G.UnitLevel("player");
 
-    if (IsTrialAccount()) then
+    if (_G.IsTrialAccount()) then
         return (lvl == 20);
     else
-        local id = GetAccountExpansionLevel();
+        local id = _G.GetAccountExpansionLevel();
 
         if (id == 0) then
             return (lvl == 60);
@@ -155,7 +156,7 @@ function tk:IsPlayerMaxLevel()
             return (lvl == 120);
         end
     end
-end 
+end
 
 local errorInfo = {};
 errorInfo.PREFIX = "|cff00ccffMayronUI: |r";
@@ -188,8 +189,8 @@ function tk:Assert(condition, errorMessage, ...)
 
     if ((select(1, ...)) ~= nil) then
         errorMessage = string.format(errorMessage, ...);
-    end     
-    
+    end
+
     local fullError = tk.Strings:Join(tk.Strings.Empty, errorInfo.PREFIX, errorMessage);
 
     if (errorInfo.silent) then
@@ -197,7 +198,7 @@ function tk:Assert(condition, errorMessage, ...)
         errorInfo.errorLog[#errorInfo.errorLog + 1] = pcall(function() error(fullError) end);
     else
         error(fullError);
-    end    
+    end
 end
 
 function tk:Error(errorMessage, ...)

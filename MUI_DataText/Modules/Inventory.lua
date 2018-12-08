@@ -1,9 +1,5 @@
--- Setup Namespaces ------------------
-
-local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-
-local LABEL_PATTERN = "|cffffffff%s|r";
+-- luacheck: ignore MayronUI self 143 631
+local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
 -- Register and Import Modules -------
 
@@ -21,15 +17,16 @@ db:AddToDefaults("profile.datatext.inventory", {
 -- Local Functions ----------------
 
 local function button_OnEnter(self)
-    GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
-    GameTooltip:SetText(L["Commands"]..":");
-    GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Left Click:"]), L["Toggle Bags"], r, g, b, 1, 1, 1);
-    GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Right Click:"]), L["Sort Bags"], r, g, b, 1, 1, 1);
-    GameTooltip:Show();
+    local r, g, b = tk:GetThemeColor();
+    _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
+    _G.GameTooltip:SetText(L["Commands"]..":");
+    _G.GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Left Click:"]), L["Toggle Bags"], r, g, b, 1, 1, 1);
+    _G.GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Right Click:"]), L["Sort Bags"], r, g, b, 1, 1, 1);
+    _G.GameTooltip:Show();
 end
 
 local function button_OnLeave()
-    GameTooltip:Hide();
+    _G.GameTooltip:Hide();
 end
 
 -- Inventory Module --------------
@@ -49,7 +46,7 @@ function Inventory:__Construct(data, sv, slideController, dataTextModule)
     data.slideController = slideController;
 
     -- set public instance properties
-    self.MenuContent = CreateFrame("Frame");
+    self.MenuContent = _G.CreateFrame("Frame");
     self.MenuLabels = {};
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
@@ -62,15 +59,15 @@ function Inventory:__Construct(data, sv, slideController, dataTextModule)
     self.Button:SetScript("OnLeave", button_OnLeave);
 
     data.handler = em:CreateEventHandler("BAG_UPDATE", function()
-        if (not self.Button) then 
-            return; 
+        if (not self.Button) then
+            return
         end
 
         self:Update(data);
     end);
 end
 
-function Inventory:Enable(data) 
+function Inventory:Enable(data)
     data.sv.enabled = true;
 end
 
@@ -82,7 +79,7 @@ function Inventory:Disable(data)
     end
 end
 
-function Inventory:IsEnabled(data) 
+function Inventory:IsEnabled(data)
     return data.sv.enabled;
 end
 
@@ -90,9 +87,9 @@ function Inventory:Update(data)
     local slots = 0;
     local totalSlots = 0;
 
-    for i = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-        totalSlots = totalSlots + (GetContainerNumSlots(i) or 0);
-        slots = slots + (GetContainerNumFreeSlots(i) or 0);
+    for i = _G.BACKPACK_CONTAINER, _G.NUM_BAG_SLOTS do
+        totalSlots = totalSlots + (_G.GetContainerNumSlots(i) or 0);
+        slots = slots + (_G.GetContainerNumFreeSlots(i) or 0);
     end
 
     if (data.sv.slotsToShow == "used") then
@@ -106,10 +103,10 @@ function Inventory:Update(data)
     end
 end
 
-function Inventory:Click(data, button)
+function Inventory:Click(_, button)
 	if (button == "LeftButton") then
-        ToggleAllBags();
+        _G.ToggleAllBags();
      elseif (button == "RightButton") then
-         SortBags();		
+        _G.SortBags();
      end
 end

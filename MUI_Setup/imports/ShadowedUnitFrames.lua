@@ -10994,6 +10994,6 @@ setup.import["ShadowedUnitFrames"] = function()
 		},
 	};
 	for k, v in pairs(settings) do
-		ShadowedUFDB[k] = v;
+		_G.ShadowedUFDB[k] = v;
 	end
 end

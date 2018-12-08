@@ -1,11 +1,10 @@
--- Setup namespaces ------------------
-local addOnName, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+-- luacheck: ignore MayronUI self 143
+local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 
 -- Register and Import ---------
 
-local Engine = obj:Import("MayronUI.Engine");
-local MiniMap = MayronUI:RegisterModule("MiniMap");
+local C_MiniMapModel = MayronUI:RegisterModule("MiniMap");
+local Minimap = _G.Minimap;
 
 -- Load Database Defaults --------------
 
@@ -29,7 +28,7 @@ do
 		local width = Minimap:GetWidth();
 		width = (tk.math.floor(width + 100.5) - 100);
 		Minimap:SetSize(width, width);
-		
+
 		if (not updateSizeText) then
 			Minimap.size:SetText("");
 		else
@@ -52,9 +51,9 @@ do
 	function Minimap_OnDragStop(data)
 		Minimap:StopMovingOrSizing();
 		updateSizeText = nil;
-		
-		Minimap_ZoomIn();
-		Minimap_ZoomOut();
+
+		_G.Minimap_ZoomIn();
+		_G.Minimap_ZoomOut();
 
 		data.sv.point, data.sv.relativeTo, data.sv.relativePoint, data.sv.x, data.sv.y = Minimap:GetPoint();
 		data.sv.x = tk.math.floor(data.sv.x + 0.5);
@@ -66,7 +65,7 @@ do
 	end
 end
 
-function MiniMap:OnInitialize(data)
+function C_MiniMapModel:OnInitialize(data)
 	data.sv = db.profile.minimap;
 
 	Minimap:ClearAllPoints();
@@ -76,68 +75,70 @@ function MiniMap:OnInitialize(data)
 	Minimap:SetScale(data.sv.scale);
 	Minimap:SetMaskTexture('Interface\\ChatFrame\\ChatFrameBackground'); -- make rectangle
 
-	tk:KillElement(MiniMapInstanceDifficulty);
-	tk:KillElement(GuildInstanceDifficulty);
-	MinimapBorder:Hide();
-	MinimapBorderTop:Hide();
-	MinimapZoomIn:Hide();
-	MinimapZoomOut:Hide();
-	MinimapZoneTextButton:Hide();
-	GameTimeFrame:Hide();
-	MiniMapWorldMapButton:Hide();
-	MinimapNorthTag:SetTexture("");
-	
+	tk:KillElement(_G.MiniMapInstanceDifficulty);
+	tk:KillElement(_G.GuildInstanceDifficulty);
+
+	_G.MinimapBorder:Hide();
+	_G.MinimapBorderTop:Hide();
+	_G.MinimapZoomIn:Hide();
+	_G.MinimapZoomOut:Hide();
+	_G.MinimapZoneTextButton:Hide();
+	_G.GameTimeFrame:Hide();
+	_G.MiniMapWorldMapButton:Hide();
+	_G.MinimapNorthTag:SetTexture("");
+
 	-- LFG Icon:
-	QueueStatusMinimapButton:SetParent(Minimap);
-	QueueStatusMinimapButton:ClearAllPoints();
-	QueueStatusMinimapButton:SetPoint("BOTTOMLEFT", -4, -4);
-	QueueStatusMinimapButtonBorder:Hide();
+	_G.QueueStatusMinimapButton:SetParent(Minimap);
+	_G.QueueStatusMinimapButton:ClearAllPoints();
+	_G.QueueStatusMinimapButton:SetPoint("BOTTOMLEFT", -4, -4);
+	_G.QueueStatusMinimapButtonBorder:Hide();
 
 	-- Clock:
-	TimeManagerClockButton:DisableDrawLayer("BORDER");
-	TimeManagerClockButton:ClearAllPoints();
-	TimeManagerClockButton:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 0, 0);
+	_G.TimeManagerClockButton:DisableDrawLayer("BORDER");
+	_G.TimeManagerClockButton:ClearAllPoints();
+	_G.TimeManagerClockButton:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 0, 0);
 
-	TimeManagerClockTicker:SetFontObject("GameFontNormal");
-	TimeManagerClockTicker:ClearAllPoints();
-	TimeManagerClockTicker:SetPoint("BOTTOMRIGHT", TimeManagerClockButton, "BOTTOMRIGHT", -5, 5);
-	TimeManagerClockTicker:SetJustifyH("RIGHT");
+	_G.TimeManagerClockTicker:SetFontObject("GameFontNormal");
+	_G.TimeManagerClockTicker:ClearAllPoints();
+	_G.TimeManagerClockTicker:SetPoint("BOTTOMRIGHT", _G.TimeManagerClockButton, "BOTTOMRIGHT", -5, 5);
+	_G.TimeManagerClockTicker:SetJustifyH("RIGHT");
 
-	tk:ApplyThemeColor(TimeManagerClockTicker);
-	TimeManagerClockTicker.SetTextColor = tk.Constants.DUMMY_FUNC;
+	tk:ApplyThemeColor(_G.TimeManagerClockTicker);
+	_G.TimeManagerClockTicker.SetTextColor = tk.Constants.DUMMY_FUNC;
 
 	-- Mail:
-	MiniMapMailFrame:ClearAllPoints();
-	MiniMapMailFrame:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 4, 4);
-	MiniMapMailFrame:SetAlpha(0.7);
-	MiniMapMailIcon:SetTexture("Interface\\AddOns\\MUI_MiniMap\\mail");
-	MiniMapMailBorder:Hide();
+	_G.MiniMapMailFrame:ClearAllPoints();
+	_G.MiniMapMailFrame:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 4, 4);
+	_G.MiniMapMailFrame:SetAlpha(0.7);
+	_G.MiniMapMailIcon:SetTexture("Interface\\AddOns\\MUI_MiniMap\\mail");
+	_G.MiniMapMailBorder:Hide();
 
-	MinimapCluster:ClearAllPoints();
-	MinimapCluster:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0);
-	MinimapCluster:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 0, 0);
+	_G.MinimapCluster:ClearAllPoints();
+	_G.MinimapCluster:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0);
+	_G.MinimapCluster:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 0, 0);
 
 	-- Mouse Wheel and "Blob" ring
 	Minimap:EnableMouseWheel(true);
 	Minimap:SetArchBlobRingScalar(0);
 	Minimap:SetQuestBlobRingScalar(0);
-	
+
 	Minimap.size = Minimap:CreateFontString(nil, "ARTWORK")
 	Minimap.size:SetFontObject("GameFontNormalLarge");
 	Minimap.size:SetPoint("TOP", Minimap, "BOTTOM", 0, 40);
-	
+
 	Minimap:SetResizable(true);
 	Minimap:SetMovable(true);
 	Minimap:SetMaxResize(400, 400);
 	Minimap:SetMinResize(120, 120);
 	Minimap:SetClampedToScreen(true);
 	Minimap:SetClampRectInsets(-3, 3, 3, -3);
-	
-	Minimap:SetBackdrop( { 
-		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark", 
+
+	Minimap:SetBackdrop({
+		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
 		edgeFile = tk.Constants.MEDIA.."borders\\skinner.tga",
 		edgeSize = 1,
 	});
+
 	Minimap:SetBackdropBorderColor(0, 0, 0);
 	Minimap:RegisterForDrag("LeftButton");
 
@@ -147,9 +148,9 @@ function MiniMap:OnInitialize(data)
 
 	Minimap:SetScript("OnMouseWheel", function(_, value)
 		if (value > 0) then
-			MinimapZoomIn:Click();
+			_G.MinimapZoomIn:Click();
 		elseif (value < 0) then
-			MinimapZoomOut:Click();
+			_G.MinimapZoomOut:Click();
 		end
 	end);
 
@@ -159,35 +160,35 @@ function MiniMap:OnInitialize(data)
 	end);
 
 	Minimap:SetScript("OnEnter", function(self)
-		if (data.sv.Tooltip) then 
+		if (data.sv.Tooltip) then
 			-- helper tooltip (can be hidden)
-			return; 
-		end 
+			return
+		end
 
-		GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -2)
-		GameTooltip:SetText("MUI MiniMap");  -- This sets the top line of text, in gold.
-		GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
-		GameTooltip:AddDoubleLine(L["SHIFT + Drag:"], L["Resize Minimap"], 1, 1, 1);
-		GameTooltip:AddDoubleLine(L["Left Click:"], L["Ping Minimap"], 1, 1, 1);
-		GameTooltip:AddDoubleLine(L["Middle Click:"], L["Show Tracking Menu"], 1, 1, 1);
-		GameTooltip:AddDoubleLine(L["Right Click:"], L["Show Menu"], 1, 1, 1);		
-		GameTooltip:AddDoubleLine(L["Mouse Wheel:"], L["Zoom in/out"], 1, 1, 1);
-		GameTooltip:AddDoubleLine(L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
-		GameTooltip:Show();
+		_G.GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -2)
+		_G.GameTooltip:SetText("MUI MiniMap");  -- This sets the top line of text, in gold.
+		_G.GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
+		_G.GameTooltip:AddDoubleLine(L["SHIFT + Drag:"], L["Resize Minimap"], 1, 1, 1);
+		_G.GameTooltip:AddDoubleLine(L["Left Click:"], L["Ping Minimap"], 1, 1, 1);
+		_G.GameTooltip:AddDoubleLine(L["Middle Click:"], L["Show Tracking Menu"], 1, 1, 1);
+		_G.GameTooltip:AddDoubleLine(L["Right Click:"], L["Show Menu"], 1, 1, 1);
+		_G.GameTooltip:AddDoubleLine(L["Mouse Wheel:"], L["Zoom in/out"], 1, 1, 1);
+		_G.GameTooltip:AddDoubleLine(L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
+		_G.GameTooltip:Show();
 	end);
-	
-	Minimap:HookScript("OnMouseDown", function(self, button)		
-		if ((IsAltKeyDown()) and (button == "LeftButton")) then
+
+	Minimap:HookScript("OnMouseDown", function(self, button)
+		if ((_G.IsAltKeyDown()) and (button == "LeftButton")) then
 			if (data.sv.Tooltip) then
 				data.sv.Tooltip = nil;
 				Minimap:GetScript("OnEnter")(Minimap);
 			else
 				data.sv.Tooltip = true;
-				GameTooltip:Hide();
+				_G.GameTooltip:Hide();
 			end
 		end
 	end);
-	
+
 	-- Calendar Button:
 	local eventBtn = tk.CreateFrame("Button", nil, Minimap);
     eventBtn:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, -18);
@@ -200,14 +201,14 @@ function MiniMap:OnInitialize(data)
         if (not tk._G["CalendarFrame"]) then
             tk.LoadAddOn("Blizzard_Calendar");
         end
-        Calendar_Toggle();
+        _G.Calendar_Toggle();
 	end)
 
     eventBtn:RegisterEvent('CALENDAR_UPDATE_PENDING_INVITES');
     eventBtn:RegisterEvent('CALENDAR_ACTION_PENDING');
     eventBtn:RegisterEvent('PLAYER_ENTERING_WORLD');
 	eventBtn:SetScript('OnEvent',function(self)
-		local numPendingInvites = C_Calendar.GetNumPendingInvites();
+		local numPendingInvites = _G.C_Calendar.GetNumPendingInvites();
 
 		if (numPendingInvites > 0) then
 			self:SetText(tk.string.format("%s (%i)", L["New Event!"], numPendingInvites));
@@ -225,61 +226,61 @@ function MiniMap:OnInitialize(data)
 				if (not tk._G["CalendarFrame"]) then
                     tk.LoadAddOn("Blizzard_Calendar");
                 end
-                Calendar_Toggle();
+                _G.Calendar_Toggle();
 			end
 		},
 		{	text = L["Customer Support"],
-			func = function() ToggleHelpFrame(); end
+			func = function() _G.ToggleHelpFrame(); end
 		},
 		{ 	text = L["Class Order Hall"].." / "..L["Garrison Report"],
-			func = function() GarrisonLandingPage_Toggle(); end
+			func = function() _G.GarrisonLandingPage_Toggle(); end
 		},
 		{ 	text = L["Tracking Menu"],
-			func = function()  
-				ToggleDropDownMenu(1, nil, MiniMapTrackingDropDown, "MiniMapTracking", 0, -5);
+			func = function()
+				_G.ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "MiniMapTracking", 0, -5);
 				tk.PlaySound(tk.Constants.CLICK);
-			end 
+			end
 		},
 		{ 	text = tk.Strings:GetThemeColoredText(L["MUI Config Menu"]),
-			func = function()  
+			func = function()
 				if (tk.InCombatLockdown()) then
 					tk:Print(L["Cannot access config menu while in combat."]);
 				else
 					MayronUI:TriggerCommand("config");
-				end				
-			end 
+				end
+			end
 		},
 		{ 	text = tk.Strings:GetThemeColoredText(L["MUI Installer"]),
 			func = function()
 				MayronUI:TriggerCommand("install");
-			end 
-		},				
+			end
+		},
 	};
 
 	if (tk.IsAddOnLoaded("Leatrix_Plus")) then
         tk.table.insert(menuList, {
             text = tk:GetHexColoredString("Leatrix Plus", "70db70"),
             func = function()
-                SlashCmdList["Leatrix_Plus"]()
+                _G.SlashCmdList["Leatrix_Plus"]()
             end
         });
 		tk.table.insert(menuList, {
             text = tk:GetHexColoredString(L["Music Player"], "70db70"),
             func = function()
-                SlashCmdList["Leatrix_Plus"]("play")
+                _G.SlashCmdList["Leatrix_Plus"]("play")
             end
         });
 	end
-	
+
     if (tk.IsAddOnLoaded("Recount")) then
         tk.table.insert(menuList,{
             text = "Toggle Recount",
             func = function()
-                if (Recount.MainWindow:IsShown()) then
-                    Recount.MainWindow:Hide();
+                if (_G.Recount.MainWindow:IsShown()) then
+                    _G.Recount.MainWindow:Hide();
                 else
-                    Recount.MainWindow:Show();
-                    Recount:RefreshMainWindow();
+                    _G.Recount.MainWindow:Show();
+                    _G.Recount:RefreshMainWindow();
                 end
             end
         });
@@ -290,17 +291,17 @@ function MiniMap:OnInitialize(data)
 
 	Minimap:SetScript("OnMouseUp", function(self, btn)
 		if (btn == "RightButton") then
-			EasyMenu(menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
+			_G.EasyMenu(menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
 
 		elseif (btn == "MiddleButton") then
-			ToggleDropDownMenu(1, nil, MiniMapTrackingDropDown, "Minimap", 0, 0);			
+			_G.ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "Minimap", 0, 0);
 			tk.PlaySound(tk.Constants.CLICK);
-			
+
 		else
 			self.oldMouseUp(self);
 		end
 	end);
-	
+
 	-- Difficulty Text:
 	local mode = tk.CreateFrame("Frame", nil, Minimap);
 	mode:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0);
@@ -308,14 +309,14 @@ function MiniMap:OnInitialize(data)
 
 	mode:RegisterEvent("PLAYER_ENTERING_WORLD");
 	mode:RegisterEvent("PLAYER_DIFFICULTY_CHANGED");
-	mode:RegisterEvent("GROUP_ROSTER_UPDATE");	
+	mode:RegisterEvent("GROUP_ROSTER_UPDATE");
 
 	mode.txt = mode:CreateFontString(nil, "OVERLAY", "MUI_FontNormal");
 	mode.txt:SetPoint("TOPRIGHT", mode, "TOPRIGHT", -5, -5);
 
 	mode:SetScript("OnEvent", function()
-		if ((IsInInstance())) then
-			local difficulty = tk.select(4, GetInstanceInfo());
+		if ((_G.IsInInstance())) then
+			local difficulty = tk.select(4, _G.GetInstanceInfo());
 
 			if (difficulty == "Heroic") then
 				difficulty = "H";
@@ -327,7 +328,7 @@ function MiniMap:OnInitialize(data)
 				difficulty = "";
 			end
 
-			local players = GetNumGroupMembers();
+			local players = _G.GetNumGroupMembers();
 			players = (players > 0 and players) or 1;
 			mode.txt:SetText(players .. difficulty); -- localization possible?
 		else
@@ -335,13 +336,13 @@ function MiniMap:OnInitialize(data)
 		end
 	end);
 
-	MiniMapTrackingBackground:Hide();
-	MiniMapTracking:Hide();
+	_G.MiniMapTrackingBackground:Hide();
+	_G.MiniMapTracking:Hide();
 
-	GarrisonLandingPageMinimapButton:SetSize(1, 1)
-	GarrisonLandingPageMinimapButton:SetAlpha(0);
-	GarrisonLandingPageMinimapButton:ClearAllPoints();
-	GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", tk.UIParent, "TOPRIGHT", 5, 5);
-	GarrisonLandingPageTutorialBox:Hide()
-	GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
+	_G.GarrisonLandingPageMinimapButton:SetSize(1, 1)
+	_G.GarrisonLandingPageMinimapButton:SetAlpha(0);
+	_G.GarrisonLandingPageMinimapButton:ClearAllPoints();
+	_G.GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", tk.UIParent, "TOPRIGHT", 5, 5);
+	_G.GarrisonLandingPageTutorialBox:Hide()
+	_G.GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
 end

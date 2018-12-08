@@ -66,6 +66,6 @@ setup.import["Recount"] = function()
 		},
     };
     for k, v in pairs(settings) do
-        RecountDB.profiles[k] = v;
+		_G.RecountDB.profiles[k] = v;
     end
 end

@@ -1,9 +1,5 @@
--- Setup Namespaces ------------------
-
-local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-
-local LABEL_PATTERN = "|cffffffff%s|r";
+-- luacheck: ignore MayronUI self 143 631
+local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
 local DURABILITY_SLOTS = {
     "HeadSlot", "ShoulderSlot", "ChestSlot", "WaistSlot", "LegsSlot", "FeetSlot",
@@ -22,11 +18,6 @@ db:AddToDefaults("profile.datatext.durability", {
 });
 
 -- Local Functions ----------------
-
-local function OnLabelClick(self)
-    ChatFrame_SendSmartTell(self.id);
-    DataText.slideController:Start();
-end
 
 local function CreateLabel(contentFrame, popupWidth)
     local label = tk:PopFrame("Frame", contentFrame);
@@ -65,7 +56,7 @@ function Durability:__Construct(data, sv, dataTextModule)
     data.sv = sv;
 
     -- set public instance properties
-    self.MenuContent = CreateFrame("Frame");
+    self.MenuContent = _G.CreateFrame("Frame");
     self.MenuLabels = {};
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
@@ -74,7 +65,7 @@ function Durability:__Construct(data, sv, dataTextModule)
     self.SavedVariableName = "durability";
 end
 
-function Durability:IsEnabled(data) 
+function Durability:IsEnabled(data)
     return data.sv.enabled;
 end
 
@@ -83,14 +74,14 @@ function Durability:Enable(data)
 
     data.showMenu = true;
     data.handler = em:CreateEventHandler("UPDATE_INVENTORY_DURABILITY", function()
-        if (notself.Button) then 
-            return; 
+        if (not self.Button) then
+            return
         end
 
         self:Update();
     end);
 
-    tk:KillElement(DurabilityFrame);
+    tk:KillElement(_G.DurabilityFrame);
 end
 
 function Durability:Disable(data)
@@ -103,13 +94,13 @@ function Durability:Disable(data)
     data.showMenu = nil;
 end;
 
-function Durability:Update(data)
+function Durability:Update()
     local durability_total, max_total = 0, 0;
     local itemsEquipped;
 
-    for i, slotName in tk.ipairs(DURABILITY_SLOTS) do
-        local id = GetInventorySlotInfo(slotName);
-        local durability, max = GetInventoryItemDurability(id);
+    for _, slotName in tk.ipairs(DURABILITY_SLOTS) do
+        local id = _G.GetInventorySlotInfo(slotName);
+        local durability, max = _G.GetInventoryItemDurability(id);
 
         if (durability) then
             durability_total = durability_total + durability;
@@ -125,16 +116,16 @@ function Durability:Update(data)
         local colored;
 
         if (value < 25) then
-            colored = tk.string.format("%s%s%%|r", RED_FONT_COLOR_CODE, realValue);
+            colored = tk.string.format("%s%s%%|r", _G.RED_FONT_COLOR_CODE, realValue);
 
         elseif (value < 40) then
-            colored = tk.string.format("%s%s%%|r", ORANGE_FONT_COLOR_CODE, realValue);
+            colored = tk.string.format("%s%s%%|r", _G.ORANGE_FONT_COLOR_CODE, realValue);
 
         elseif (value < 70) then
-            colored = tk.string.format("%s%s%%|r", YELLOW_FONT_COLOR_CODE, realValue);
+            colored = tk.string.format("%s%s%%|r", _G.YELLOW_FONT_COLOR_CODE, realValue);
 
         else
-            colored = tk.string.format("%s%s%%|r", HIGHLIGHT_FONT_COLOR_CODE, realValue);
+            colored = tk.string.format("%s%s%%|r", _G.HIGHLIGHT_FONT_COLOR_CODE, realValue);
         end
 
        self.Button:SetText(tk.string.format(L["Armor"]..": %s", colored));
@@ -148,15 +139,15 @@ function Durability:Click(data)
     local index = 0;
 
     for _, slotName in tk.ipairs(DURABILITY_SLOTS) do
-        local id = GetInventorySlotInfo(slotName);
-        local durability, max = GetInventoryItemDurability(id);
+        local id = _G.GetInventorySlotInfo(slotName);
+        local durability, max = _G.GetInventoryItemDurability(id);
 
         if (durability) then
             index = index + 1;
             totalLabelsShown = totalLabelsShown + 1;
 
             local value = (durability / max) * 100;
-            local alert = GetInventoryAlertStatus(id);
+            local alert = _G.GetInventoryAlertStatus(id);
 
             -- get or create new label
             local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.sv.popup.width);
@@ -164,13 +155,13 @@ function Durability:Click(data)
 
             slotName = slotName:gsub("Slot", "");
             slotName = tk.Strings:SplitByCamelCase(slotName);
-            
+
             label.name:SetText(L[slotName]);
 
             if (alert == 0) then
                 label.value:SetTextColor(1, 1, 1);
             else
-                local c = INVENTORY_ALERT_COLORS[alert];
+                local c = _G.INVENTORY_ALERT_COLORS[alert];
                 label.value:SetTextColor(c.r, c.g, c.b);
             end
 

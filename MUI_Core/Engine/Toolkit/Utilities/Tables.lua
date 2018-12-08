@@ -1,10 +1,11 @@
+-- luacheck: ignore MayronUI self 143 631
 local _, core = ...;
 core.Toolkit = core.Toolkit or {};
 
 local tk = core.Toolkit;
 tk.Tables = {};
 
-local obj = LibStub:GetLibrary("LibMayronObjects");
+local obj = _G.LibStub:GetLibrary("LibMayronObjects");
 local LinkedList = obj:Import("Framework.System.Collections.LinkedList");
 -----------------------------
 
@@ -18,32 +19,32 @@ end
 
 -- gets or creates table
 function tk.Tables:GetTable(rootTable, ...)
-    tk:Assert(type(rootTable) == "table", 
+    tk:Assert(type(rootTable) == "table",
         "tk.Tables.GetTable - invalid rootTable arg (table expected, got %s)", type(rootTable));
 
     local currentTable = rootTable;
 
     for _, key in self:IterateArgs(...) do
-        if (type(rootTable[key]) ~= "table") then
-            rootTable[key] = self:PopWrapper();
+        if (type(currentTable[key]) ~= "table") then
+            currentTable[key] = self:PopWrapper();
         end
-        
-        currentTable = rootTable[key];
+
+        currentTable = currentTable[key];
     end
 
-    return rootTable[key];
+    return currentTable;
 end
 
 function tk.Tables:Print(tbl, depth, n)
-    if (tk.type(tbl) ~= "table") then 
-        return; 
+    if (tk.type(tbl) ~= "table") then
+        return
     end
 
     n = n or 0;
     depth = depth or 4;
 
-    if (depth == 0) then 
-        return; 
+    if (depth == 0) then
+        return
     end
 
     if (n == 0) then
@@ -82,8 +83,8 @@ end
 
 function tk.Tables:GetIndex(tbl, value)
     for id, tblValue in pairs(tbl) do
-        if (tk:Equals(tblValue, value)) then 
-            return id; 
+        if (tk:Equals(tblValue, value)) then
+            return id;
         end
     end
 
@@ -113,15 +114,15 @@ function tk.Tables:IsEmpty(tbl)
 end
 
 -- remove all nil values from index portion of table
-function tk.Tables:CleanIndexes(tbl) 
+function tk.Tables:CleanIndexes(tbl)
     local tempIndexTable;
-    
+
     for index = 1, #tbl do
         local value = tbl[index];
 
         if (value ~= nil) then
             tempIndexTable = tempIndexTable or {};
-            tk.table.insert(tempIndexTable, value);  
+            tk.table.insert(tempIndexTable, value);
 
             tbl[index] = nil;
         end
@@ -136,7 +137,7 @@ end
 
 function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
     local totalRemoved = 0;
-    
+
     for subIndex = 1, #subTable do
         local subValue = subTable[subIndex];
 
@@ -200,9 +201,9 @@ function tk.Tables:Merge(...)
 end
 
 do
-    local args;
+    local argsList;
 
-    -- breaks apart a database path address (i.e. "db.profiles['value'][1]") 
+    -- breaks apart a database path address (i.e. "db.profiles['value'][1]")
     -- to a LinkedList containing all sections
     function tk.Tables:ConvertPathToKeys(path)
         argsList = argsList or LinkedList();
@@ -233,17 +234,17 @@ function tk.Tables:GetDBObject(addOnName)
         addon = tk._G[addOnName];
         okay = true;
     else
-        okay, addon = tk.pcall(function() 
-            LibStub("AceAddon-3.0"):GetAddon(addOnName) 
+        okay, addon = tk.pcall(function()
+            _G.LibStub("AceAddon-3.0"):GetAddon(addOnName)
         end);
     end
 
-    if (not okay) then 
-        return; 
+    if (not okay) then
+        return
     end
 
     if (addon and not addon.db) then
-        for dbname, tbl in tk.pairs(addon) do
+        for dbname, _ in tk.pairs(addon) do
 
             if (tk.string.find(dbname, "db")) then
                 if (tk.type(addon[dbname]) == "table") then
@@ -281,9 +282,9 @@ do
 
     local function iterator(wrapper, id)
         id = id + 1;
-        
+
         local arg = wrapper[id];
-        
+
         if (arg ~= nil) then
             return id, arg;
         else
@@ -294,7 +295,7 @@ do
 
     function tk.Tables:PopWrapper(...)
         local wrapper;
-        
+
         -- get wrapper before iterating
         if (#wrappers > 0) then
             wrapper = wrappers[#wrappers];
@@ -303,29 +304,29 @@ do
             -- empty table (incase tk.Tables:UnpackWrapper was used)
             for key, _ in pairs(wrapper) do
                 wrapper[key] = nil;
-            end  
+            end
         else
-            -- create new wrapper (required if a for-loop call to 
+            -- create new wrapper (required if a for-loop call to
             -- IterateArgs is nested inside another IterateArgs call)
             wrapper = {};
         end
 
         local arg;
-        local id = 0;        
+        local id = 0;
         local totalConsecutiveNils = 0;
-        
+
         -- fill wrapper
-        repeat    
-            id = id + 1;        
-            arg = (select(id, ...));            
-            
-            if (arg == nil) then                
+        repeat
+            id = id + 1;
+            arg = (select(id, ...));
+
+            if (arg == nil) then
                 totalConsecutiveNils = totalConsecutiveNils + 1;
             else
                 wrapper[id] = arg; -- add only non-nil values
                 totalConsecutiveNils = 0;
             end
-            
+
         -- repeat until we are comfortable that all arguments have been captured
         -- should not have a function call containing more than 10 consecutive nil args
         until (totalConsecutiveNils > 10);
@@ -336,17 +337,17 @@ do
     function tk.Tables:PushWrapper(wrapper)
         for key, _ in pairs(wrapper) do
             wrapper[key] = nil;
-        end            
-        
+        end
+
         wrappers[#wrappers + 1] = wrapper;
     end
 
     function tk.Tables:UnpackWrapper(wrapper)
-        wrappers[#wrappers + 1] = wrapper;     
-        return unpack(wrapper);
+        wrappers[#wrappers + 1] = wrapper;
+        return _G.unpack(wrapper);
     end
 
-    function tk.Tables:IterateArgs(...)    
+    function tk.Tables:IterateArgs(...)
         local wrapper = self:PopWrapper(...);
         return iterator, wrapper, 0;
     end

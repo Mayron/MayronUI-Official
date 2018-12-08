@@ -221,7 +221,7 @@ configModule.ConfigData =
                 dbPath = "profile.bottomui.actionbar_panel.animate_speed",
             },
             {   name = L["Retract Height"],
-                tooltip = tk.Strings:Join(
+                tooltip = tk.Strings:Concat(
                     L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."],
                     "\n\n", L["Minimum value is "], "40", "\n\n", L["Default value is "], "44"),
                 type = "textfield",
@@ -230,7 +230,7 @@ configModule.ConfigData =
                 dbPath = "profile.bottomui.actionbar_panel.retract_height"
             },
             {   name = L["Expand Height"],
-                tooltip = tk.Strings:Join(
+                tooltip = tk.Strings:Concat(
                     L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."],
                     "\n\n", L["Minimum value is "], "40", "\n\n", L["Default value is "], "80"),
                 type = "textfield",

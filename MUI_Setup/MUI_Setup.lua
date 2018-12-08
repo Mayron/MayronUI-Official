@@ -1,7 +1,8 @@
+-- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 namespace.import = {};
 
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local Private = {};
 
 -- Setup Objects -------------------------
@@ -23,7 +24,7 @@ local function ChangeTheme(self, value)
 
     elseif (db.profile.theme) then
         value = db.profile.theme.color:ToTable();
-    else 
+    else
         return;
     end
 
@@ -32,9 +33,9 @@ local function ChangeTheme(self, value)
     local window = setupModule:GetWindow();
     local r, g, b = tk:GetThemeColor();
     local frame = window:GetFrame();
-    
+
     tk:ApplyThemeColor(
-        frame.tl, frame.tr, frame.bl, frame.br, frame.t, 
+        frame.tl, frame.tr, frame.bl, frame.br, frame.t,
         frame.b, frame.l, frame.r, frame.c,
         frame.titleBar.bg,
         frame.closeBtn);
@@ -43,13 +44,13 @@ local function ChangeTheme(self, value)
     tk:ApplyThemeColor(0.5, frame.installTab, frame.customTab, frame.infoTab);
 
     frame = frame.submenu;
-    
+
     tk:ApplyThemeColor(
-        frame.tl, frame.tr, frame.bl, frame.br, frame.t, 
+        frame.tl, frame.tr, frame.bl, frame.br, frame.t,
         frame.b, frame.l, frame.r, frame.c);
 
     frame = window.submenu[window.customTab.type];
-    
+
     if (frame) then
         -- resets color
         frame.themeDropdown:SetEnabled(true);
@@ -63,7 +64,8 @@ local function ChangeTheme(self, value)
 
     frame = window.submenu[window.info.type];
     if (frame) then
-        f.info.ScrollBar.thumb:SetColorTexture(r, g, b, 0.8);
+        --TODO: Is this ever used?
+        window.info.ScrollBar.thumb:SetColorTexture(r, g, b, 0.8);
     end
 end
 
@@ -78,7 +80,7 @@ local function UpdateOptions(menuSection)
 	if (db.global.core.localization) then
 		menuSection.localization.cb.btn:SetChecked(db.global.core.localization);
     end
-    
+
     menuSection.themeDropdown:SetLabel("Theme");
 end
 
@@ -87,22 +89,22 @@ local function ChangeProfile(_, profileName)
     local window = setupModule:GetWindow();
 
     if (window) then
-        db:SetProfile(profileName);      
+        db:SetProfile(profileName);
         ChangeTheme();
         UpdateOptions(window.submenu[window.customTab.type]);
     end
 end
 
 local function ExpandSetupWindow()
-    if (not setupModule:IsExpanded()) then 
-        return; 
+    if (not setupModule:IsExpanded()) then
+        return
     end
 
     local window = setupModule:GetWindow();
     local width, height = window:GetSize();
 
-    if (width >= 900 and height >= 540) then 
-        return; 
+    if (width >= 900 and height >= 540) then
+        return
     end
 
     window:SetSize(width + 20, height + 12);
@@ -110,15 +112,15 @@ local function ExpandSetupWindow()
 end
 
 local function RetractSetupWindow()
-    if (setupModule:IsExpanded()) then 
-        return; 
+    if (setupModule:IsExpanded()) then
+        return
     end
 
     local window = setupModule:GetWindow();
     local width, height = window:GetSize();
 
-    if (width <= 750 and height <= 450) then 
-        return; 
+    if (width <= 750 and height <= 450) then
+        return
     end
 
     window:SetSize(width - 20, height - 12);
@@ -142,20 +144,21 @@ local function OnMenuButtonClick(self)
 
         submenu[self.type]:Show();
         setupModule:SetExpanded(true);
-        C_Timer.After(0.02, ExpandSetupWindow);
-        UIFrameFadeIn(submenu, 0.4, submenu:GetAlpha(), 1);
-        UIFrameFadeOut(window.banner.left, 0.4, window.banner.left:GetAlpha(), 0.5);
-        UIFrameFadeOut(window.banner.right, 0.4, window.banner.right:GetAlpha(), 0.5);
+
+        _G.C_Timer.After(0.02, ExpandSetupWindow);
+        _G.UIFrameFadeIn(submenu, 0.4, submenu:GetAlpha(), 1);
+        _G.UIFrameFadeOut(window.banner.left, 0.4, window.banner.left:GetAlpha(), 0.5);
+        _G.UIFrameFadeOut(window.banner.right, 0.4, window.banner.right:GetAlpha(), 0.5);
     else
         setupModule:SetExpanded(false);
-        C_Timer.After(0.02, RetractSetupWindow);
 
-        UIFrameFadeOut(submenu, 0.4, submenu:GetAlpha(), 0);
-        UIFrameFadeIn(window.banner.left, 0.4, window.banner.left:GetAlpha(), 1);
-        UIFrameFadeIn(window.banner.right, 0.4, window.banner.right:GetAlpha(), 1);
+        _G.C_Timer.After(0.02, RetractSetupWindow);
+        _G.UIFrameFadeOut(submenu, 0.4, submenu:GetAlpha(), 0);
+        _G.UIFrameFadeIn(window.banner.left, 0.4, window.banner.left:GetAlpha(), 1);
+        _G.UIFrameFadeIn(window.banner.right, 0.4, window.banner.right:GetAlpha(), 1);
     end
 
-    PlaySound(tk.Constants.CLICK);
+    _G.PlaySound(tk.Constants.CLICK);
 end
 
 -- Private Functions ---------------------------
@@ -186,9 +189,9 @@ function Private:LoadProfileMenu(menuSection)
     end
 
     menuSection.profileDropdown:AddOption(L["<new profile>"], function(self)
-        if (not StaticPopupDialogs["MUI_NewProfile"]) then
+        if (not _G.StaticPopupDialogs["MUI_NewProfile"]) then
 
-            StaticPopupDialogs["MUI_NewProfile"] = {
+            _G.StaticPopupDialogs["MUI_NewProfile"] = {
                 text = L["Create New Profile:"],
                 button1 = L["Confirm"],
                 button2 = L["Cancel"],
@@ -212,14 +215,14 @@ function Private:LoadProfileMenu(menuSection)
 
         end
 
-        StaticPopup_Show("MUI_NewProfile");
+        _G.StaticPopup_Show("MUI_NewProfile");
         self:SetLabel(db:GetCurrentProfile());
     end);
 
     menuSection.profileDropdown:AddOption(L["<remove profile>"], function(self)
-        if (not StaticPopupDialogs["MUI_RemoveProfile"]) then
+        if (not _G.StaticPopupDialogs["MUI_RemoveProfile"]) then
 
-            StaticPopupDialogs["MUI_RemoveProfile"] = {
+            _G.StaticPopupDialogs["MUI_RemoveProfile"] = {
                 text = L["Remove Profile:"],
                 button1 = L["Confirm"],
                 button2 = L["Cancel"],
@@ -243,7 +246,7 @@ function Private:LoadProfileMenu(menuSection)
             };
         end
 
-        StaticPopup_Show("MUI_RemoveProfile");
+        _G.StaticPopup_Show("MUI_RemoveProfile");
         self:Toggle(true);
         self:SetLabel(db:GetCurrentProfile());
     end);
@@ -270,26 +273,26 @@ function Private:LoadThemeMenu(menuSection)
         { tk.Strings:GetHexColoredText("Warlock", "9482C9"), "WARLOCK" },
         { tk.Strings:GetHexColoredText("Warrior", "C79C6E"), "WARRIOR" }
     });
-    
+
     menuSection.themeDropdown:AddOption(L["Custom Colour"], function()
         local colors = {};
-        ColorPickerFrame:SetColorRGB(1, 1, 1);        
-        ColorPickerFrame.previousValues = {1, 1, 1, 0};
-        
-        ColorPickerFrame.func = function()
-            colors.r, colors.g, colors.b = ColorPickerFrame:GetColorRGB();
+       _G.ColorPickerFrame:SetColorRGB(1, 1, 1);
+       _G.ColorPickerFrame.previousValues = {1, 1, 1, 0};
+
+       _G.ColorPickerFrame.func = function()
+            colors.r, colors.g, colors.b = _G.ColorPickerFrame:GetColorRGB();
             colors.hex = tk.string.format('%02x%02x%02x', colors.r * 255, colors.g * 255, colors.b * 255);
             ChangeTheme(nil, colors);
         end
 
-        ColorPickerFrame.cancelFunc = function(values)
+        _G.ColorPickerFrame.cancelFunc = function(values)
             colors.r, colors.g, colors.b = tk.unpack(values);
             colors.hex = tk.string.format('%02x%02x%02x', colors.r * 255, colors.g * 255, colors.b * 255);
             ChangeTheme(nil, colors);
         end
 
-        ColorPickerFrame:Hide(); -- run OnShow
-        ColorPickerFrame:Show();
+        _G.ColorPickerFrame:Hide(); -- run OnShow
+        _G.ColorPickerFrame:Show();
     end);
 
     menuSection.themeDropdown:SetLabel(L["Theme"]);
@@ -332,9 +335,9 @@ end
 
 function Private:LoadCustomMenu(menuSection)
     self:LoadThemeMenu(menuSection, tk.Constants.AddOnStyle);
-    self:LoadProfileMenu(menuSection, tk.Constants.AddOnStyle); 
-    
-    if (IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
+    self:LoadProfileMenu(menuSection, tk.Constants.AddOnStyle);
+
+    if (_G.IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
         self:LoadChatMenu(menuSection);
     end
 
@@ -343,7 +346,7 @@ function Private:LoadCustomMenu(menuSection)
     menuSection.scaleTitle:SetPoint("TOPLEFT", menuSection.themeTitle, "TOPRIGHT", 150, 0);
     menuSection.scaleTitle:SetText(L["Adjust the UI Scale:"]);
 
-    menuSection.scaler = CreateFrame("Slider", nil, menuSection, "OptionsSliderTemplate");
+    menuSection.scaler = _G.CreateFrame("Slider", nil, menuSection, "OptionsSliderTemplate");
     menuSection.scaler:SetPoint("TOPLEFT", menuSection.scaleTitle, "BOTTOMLEFT", 0, -10);
     menuSection.scaler:SetWidth(200);
     menuSection.scaler.tooltipText = L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"];
@@ -367,9 +370,9 @@ function Private:LoadCustomMenu(menuSection)
 
     menuSection.applyScaleBtn:SetScript("OnClick", function(self)
         self:Disable();
-        SetCVar("useUiScale", "1");
-        SetCVar("uiscale", db.global.core.uiScale);
-    end);    
+        _G.SetCVar("useUiScale", "1");
+        _G.SetCVar("uiscale", db.global.core.uiScale);
+    end);
 
     menuSection.scaler:SetScript("OnValueChanged", function(self, value)
         value = math.floor((value * 100) + 0.5) / 100;
@@ -377,7 +380,7 @@ function Private:LoadCustomMenu(menuSection)
         db.global.core.uiScale = value;
         menuSection.applyScaleBtn:Enable();
     end);
-	
+
 	-- Localization (currently in development)
 	-- menuSection.localization = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
     -- menuSection.localization:SetPoint("TOPLEFT", menuSection.chatTitle, "TOPRIGHT", 95, 0);
@@ -403,10 +406,10 @@ function Private:LoadCustomMenu(menuSection)
     gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", menuSection.addonContainer);
 
     local totalAddOnsLoaded = 0;
-    for id, addonData in db.global.core.addons:Iterate() do        
-        local alias, value, addonName = unpack(addonData);
+    for id, addonData in db.global.core.addons:Iterate() do
+        local alias, value, addonName = _G.unpack(addonData);
 
-        if (IsAddOnLoaded(addonName)) then
+        if (_G.IsAddOnLoaded(addonName)) then
             local cb = gui:CreateCheckButton(child, alias);
             totalAddOnsLoaded = totalAddOnsLoaded + 1;
 
@@ -436,19 +439,19 @@ function Private:LoadCustomMenu(menuSection)
     menuSection.installBtn = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, L["Install"]);
     menuSection.installBtn:SetPoint("TOPRIGHT", menuSection.addonContainer, "BOTTOMRIGHT", 0, -20);
 
-    menuSection.installBtn:SetScript("OnClick", function() 
+    menuSection.installBtn:SetScript("OnClick", function()
         setupModule:Install();
     end);
 
     menuSection.installBtn:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT", 18, 4);
-        GameTooltip:AddLine(tk.Strings:GetThemeColoredText(L["Warning:"]).." "..L["This will reload the UI!"]);
-        GameTooltip:SetFrameLevel(30);
-        GameTooltip:Show();
+        _G.GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT", 18, 4);
+        _G.GameTooltip:AddLine(tk.Strings:GetThemeColoredText(L["Warning:"]).." "..L["This will reload the UI!"]);
+        _G.GameTooltip:SetFrameLevel(30);
+        _G.GameTooltip:Show();
     end);
 
     menuSection.installBtn:SetScript("OnLeave", function(self)
-        GameTooltip:Hide();
+        _G.GameTooltip:Hide();
     end);
 
     UpdateOptions(menuSection);
@@ -457,7 +460,7 @@ end
 function Private:LoadInfoMenu(menuSection)
     local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
-    menuSection.info, menuSection.child = gui:CreateScrollFrame(tk.Constants.AddOnStyle, menuSection);   
+    menuSection.info, menuSection.child = gui:CreateScrollFrame(tk.Constants.AddOnStyle, menuSection);
     tk:SetFullWidth(menuSection.child);
     menuSection.child:SetHeight(900); -- can't use GetStringHeight
 
@@ -470,28 +473,28 @@ function Private:LoadInfoMenu(menuSection)
     menuSection.info.bg = tk:SetBackground(menuSection.info, 0, 0, 0, 0.5);
     menuSection.info.bg:ClearAllPoints();
     menuSection.info.bg:SetPoint("TOPLEFT", -10, 10);
-    menuSection.info.bg:SetPoint("BOTTOMRIGHT", 10, -10);      
+    menuSection.info.bg:SetPoint("BOTTOMRIGHT", 10, -10);
 
-    local content = menuSection.child:CreateFontString(nil, "OVERLAY", "GameFontHighlight");    
+    local content = menuSection.child:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     content:SetWordWrap(true);
     content:SetAllPoints(true);
     content:SetJustifyH("LEFT");
     content:SetJustifyV("TOP");
     content:SetText(Private.content);
     content:SetFont(font, 13); -- font size should be added to config and profile. I personally prefer 10 ;-)
-    content:SetSpacing(6);    
+    content:SetSpacing(6);
 end
 
 -- SetupClass -----------------------
 
-function SetupClass:OnInitialize(data)
+function SetupClass:OnInitialize()
     self:Show();
 end
 
-function SetupClass:Show(data)    
+function SetupClass:Show(data)
     if (data.window) then
         data.window:Show();
-        UIFrameFadeIn(data.window, 0.3, 0, 1);
+        _G.UIFrameFadeIn(data.window, 0.3, 0, 1);
         return;
     end
 
@@ -505,7 +508,7 @@ function SetupClass:Show(data)
 
     window.bg = tk:SetBackground(window, 0, 0, 0, 0.8); -- was 0.8 but set to 0.2 for testing
     window.bg:SetDrawLayer("BACKGROUND", -5);
-    window.bg:SetAllPoints(UIParent);
+    window.bg:SetAllPoints(_G.UIParent);
 
     -- turn window frame into a Panel
     window = Panel(window);
@@ -539,7 +542,7 @@ function SetupClass:Show(data)
     title:SetPoint("BOTTOMLEFT");
 
     local version = window.info:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
-    version:SetText(L["VERSION"].." "..GetAddOnMetadata("MUI_Core", "Version"));
+    version:SetText(tk.Strings:JoinWithSpace(L["VERSION"], _G.GetAddOnMetadata("MUI_Core", "Version")));
     version:SetPoint("BOTTOMLEFT", title, "TOPLEFT", 0, 4);
 
     window.submenu = gui:CreateDialogBox(tk.Constants.AddOnStyle, window.banner:GetFrame());
@@ -548,7 +551,7 @@ function SetupClass:Show(data)
     window.submenu:Hide();
 
     -- menu buttons:
-    local installTab = CreateFrame("CheckButton", nil, window.menu:GetFrame());
+    local installTab = _G.CreateFrame("CheckButton", nil, window.menu:GetFrame());
     installTab:SetNormalFontObject("GameFontHighlight");
     installTab:SetText(L["INSTALL"]);
     installTab:SetPoint("LEFT");
@@ -558,7 +561,7 @@ function SetupClass:Show(data)
     installTab:SetScript("OnClick", OnMenuButtonClick);
     installTab.type = "Install";
 
-    local customTab = CreateFrame("CheckButton", nil, window.menu:GetFrame());
+    local customTab = _G.CreateFrame("CheckButton", nil, window.menu:GetFrame());
     customTab:SetNormalFontObject("GameFontHighlight");
     customTab:SetText(L["CUSTOM INSTALL"]);
     customTab:SetPoint("LEFT", installTab, "RIGHT", 40, 0);
@@ -568,7 +571,7 @@ function SetupClass:Show(data)
     customTab:SetScript("OnClick", OnMenuButtonClick);
     customTab.type = "Custom";
 
-    local infoTab = CreateFrame("CheckButton", nil, window.menu:GetFrame());
+    local infoTab = _G.CreateFrame("CheckButton", nil, window.menu:GetFrame());
     infoTab:SetNormalFontObject("GameFontHighlight");
     infoTab:SetText(L["INFORMATION"]);
     infoTab:SetPoint("LEFT", customTab, "RIGHT", 40, 0);
@@ -586,44 +589,44 @@ function SetupClass:Show(data)
     data.window.installTab = installTab;
     data.window.customTab = customTab;
     data.window.infoTab = infoTab;
-    UIFrameFadeIn(data.window, 0.3, 0, 1);
+    _G.UIFrameFadeIn(data.window, 0.3, 0, 1);
 end
 
 function SetupClass:Install()
-    PlaySoundFile("Interface\\AddOns\\MUI_Setup\\install.ogg");
+    _G.PlaySoundFile("Interface\\AddOns\\MUI_Setup\\install.ogg");
 
     -- Chat Frame settings:
-    FCF_SetLocked(ChatFrame1, 1);
-    FCF_SetWindowAlpha(ChatFrame1, 0);
-    SetCVar("ScriptErrors","1");
-    SetChatWindowSize(1, 13);
-    SetCVar("chatStyle", "classic");
-    SetCVar("floatingCombatTextCombatDamage", "1");
-    SetCVar("floatingCombatTextCombatHealing", "1");
-    SetCVar("useUiScale", "1");
-    SetCVar("uiscale", db.global.core.uiScale);
+    _G.FCF_SetLocked(_G.ChatFrame1, 1);
+    _G.FCF_SetWindowAlpha(_G.ChatFrame1, 0);
+    _G.SetCVar("ScriptErrors","1");
+    _G.SetChatWindowSize(1, 13);
+    _G.SetCVar("chatStyle", "classic");
+    _G.SetCVar("floatingCombatTextCombatDamage", "1");
+    _G.SetCVar("floatingCombatTextCombatHealing", "1");
+    _G.SetCVar("useUiScale", "1");
+    _G.SetCVar("uiscale", db.global.core.uiScale);
 
-    ChatFrame1:SetUserPlaced(true);
-    ChatFrame1:ClearAllPoints();
+    _G.ChatFrame1:SetUserPlaced(true);
+    _G.ChatFrame1:ClearAllPoints();
 
-    if (IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
+    if (_G.IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
         if (db.profile.chat.chatFrames["TOPLEFT"].enabled) then
-            ChatFrame1:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 34, -55);
+            _G.ChatFrame1:SetPoint("TOPLEFT", _G.UIParent, "TOPLEFT", 34, -55);
 
         elseif (db.profile.chat.chatFrames["BOTTOMLEFT"].enabled) then
-            ChatFrame1:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 34, 30);
+            _G.ChatFrame1:SetPoint("BOTTOMLEFT", _G.UIParent, "BOTTOMLEFT", 34, 30);
         end
 
-        ChatFrame1:SetHeight(222);
-        ChatFrame1:SetWidth(375);
-        FCF_SavePositionAndDimensions(ChatFrame1);
+        _G.ChatFrame1:SetHeight(222);
+        _G.ChatFrame1:SetWidth(375);
+        _G.FCF_SavePositionAndDimensions(_G.ChatFrame1);
     end
 
     -- Export AddOn values to db:
     for id, addonData in db.global.core.addons:Iterate() do
-        local alias, value, addonName = unpack(addonData);
-        
-        if (value and IsAddOnLoaded(addonName)) then
+        local alias, value, addonName = _G.unpack(addonData);
+
+        if (value and _G.IsAddOnLoaded(addonName)) then
             namespace.import[addonName]();
             db.global.core.addons[id] = {alias, false, addonName};
         end
@@ -631,7 +634,7 @@ function SetupClass:Install()
 
     -- MayronUI profiles:
     -- Please keep Bazooka until MUI can handle those minimap icons itself :)
-    for id, name in ipairs({"AuraFrames", "Bartender4", "Bazooka", "Omen", "Recount"}) do
+    for _, name in ipairs({"AuraFrames", "Bartender4", "Recount"}) do
         if (_G[name]) then
             local path = tk.Tables:GetDBObject(name);
             if (path) then
@@ -643,7 +646,7 @@ function SetupClass:Install()
     end
 
     -- Default Profiles:
-    for id, name in ipairs({"Grid", "ShadowUF", "SimplePowerBar"}) do
+    for _, name in ipairs({"Grid", "ShadowUF"}) do
         if (_G[name]) then
             local path = tk.Tables:GetDBObject(name);
             if (path) then
@@ -655,12 +658,11 @@ function SetupClass:Install()
     end
 
     -- Register the UI as installed once everything else is successful!
-        
     if (not db.global.previouslyInstalled) then
         db.global.previouslyInstalled = true;
         db.global.tutorial = true;
     end
-    
+
     if (not db.global.installed) then
         --db.global.installed = db.global.installed or {}; -- won't work (Observer)
         db.global.installed = {};
@@ -669,7 +671,7 @@ function SetupClass:Install()
     db.global.installed[tk:GetPlayerKey()] = true;
     db.global.reanchor = true;
 
-    ReloadUI();
+    _G.ReloadUI();
 end
 
 function SetupClass:GetWindow(data)
@@ -680,7 +682,7 @@ function SetupClass:SetExpanded(data, expanded)
     data.expanded = expanded;
 end
 
-function SetupClass:IsExpanded(data, expanded)
+function SetupClass:IsExpanded(data)
     return data.window and data.expanded;
 end
 

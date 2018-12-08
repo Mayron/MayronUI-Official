@@ -239,7 +239,7 @@ setup.import["Bartender4"] = function()
 							["point"] = "TOP",
 						},
 						["version"] = 3,
-					},					
+					},
 				},
 			},
 			["APBar"] = {
@@ -410,6 +410,6 @@ setup.import["Bartender4"] = function()
 		},
 	};
 	for k, v in pairs(settings) do
-		Bartender4DB[k] = v;
+		_G.Bartender4DB[k] = v;
 	end
 end

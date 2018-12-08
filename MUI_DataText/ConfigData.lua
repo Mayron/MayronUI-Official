@@ -1,5 +1,6 @@
+-- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 local C_DataTextModule = namespace.C_DataTextModule;
 local dataTextModule = MayronUI:ImportModule("DataText");
 
@@ -27,7 +28,8 @@ function C_DataTextModule:OnConfigUpdate(data, list, value)
 
         elseif (key == "guild") then
             if (list:PopFront() == "show_tooltips") then
-                items.guild.update_required = true;
+                --TODO: items is not known!
+                -- items.guild.update_required = true;
             end
 
         elseif (key == "menu_width") then
@@ -35,11 +37,11 @@ function C_DataTextModule:OnConfigUpdate(data, list, value)
 
         elseif (key == "popup.maxHeight") then
             data.slideController:Start();
-            
+
         elseif (key == "fontSize") then
             local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
-            for id, btn in tk.ipairs(data.DataModules) do
+            for _, btn in tk.ipairs(data.DataModules) do
                 btn:GetFontString():SetFont(font, value);
 
                 if (btn.seconds) then
@@ -81,8 +83,8 @@ function C_DataTextModule:OnConfigUpdate(data, list, value)
 end
 
 
-dataTextModule.ConfigData = 
-{               
+dataTextModule.ConfigData =
+{
     name = L["Data Text"],
     type = "menu",
     module = "DataText",
@@ -173,17 +175,17 @@ dataTextModule.ConfigData =
                     GetOptions = function()
                         local options = {};
 
-                        for svName, label in pairs(namespace.dataTextLabels) do 
+                        for svName, label in pairs(namespace.dataTextLabels) do
                             options[label] = svName;
                         end
-                        
-                        return options;                        
+
+                        return options;
                     end,
-                    GetValue = function(path, svName)
+                    GetValue = function(_, svName)
                         -- return label
                         return namespace.dataTextLabels[svName];
                     end,
-                    SetValue = function(path, _, svName) -- TODO: Maybe switch old value with new value?
+                    SetValue = function() -- TODO: Maybe switch old value with new value?
                         -- TODO: Passes in nil!
                         -- TODO: dropdown labels must be unique values (if I change durability to guild, then guild must change to blank)
                        -- db:SetPathValue(db.profile, path, svName);
@@ -269,10 +271,10 @@ dataTextModule.ConfigData =
                     type = "radio",
                     group = 1,
                     appendDbPath = "slotsToShow",
-                    GetValue = function(path, value)
+                    GetValue = function(_, value)
                         return value == "used";
                     end,
-                    SetValue = function(path, oldValue, newValue)
+                    SetValue = function(path)
                         db:SetPathValue(db.Profile, path, "used");
                     end
                 },
@@ -280,10 +282,10 @@ dataTextModule.ConfigData =
                     type = "radio",
                     group = 1,
                     appendDbPath = "slotsToShow",
-                    GetValue = function(path, value)
+                    GetValue = function(_, value)
                         return value == "free";
                     end,
-                    SetValue = function(path, oldValue, newValue)
+                    SetValue = function(path, _, newValue)
                         if (newValue) then
                             -- TODO: ELSE?!?
                             db:SetPathValue(path, "free");

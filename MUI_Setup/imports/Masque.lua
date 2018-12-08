@@ -2656,6 +2656,6 @@ setup.import["Masque"] = function()
         },
     };
     for k, v in pairs(settings) do
-        MasqueDB.profiles[k] = v;
+        _G.MasqueDB.profiles[k] = v;
     end
 end

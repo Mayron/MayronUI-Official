@@ -172,6 +172,6 @@ setup.import["TipTac"] = function()
 		["reactColoredBackdrop"] = false,
 	};
     for k, v in pairs(settings) do
-        TipTac_Config[k] = v;
+        _G.TipTac_Config[k] = v;
     end
 end

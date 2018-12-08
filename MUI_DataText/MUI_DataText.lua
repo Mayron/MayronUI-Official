@@ -1,8 +1,6 @@
--- Setup Locals ------------------------
-
-local addOnName, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-local MAX_DATA_ITEMS = 10;
+-- luacheck: ignore MayronUI self 143 631
+local _, namespace = ...;
+local tk, db, em, gui, obj = MayronUI:GetCoreComponents();
 
 namespace.dataTextLabels = {
     -- svName = Label
@@ -64,9 +62,9 @@ function C_DataTextModule:OnInitialize(data)
     data.lastButtonClicked = ""; -- last data text button clicked on
     data.DataModules = {}; -- holds all data text modules
 
-    if (data.sv.enabled) then 
+    if (data.sv.enabled) then
         self:SetEnabled(true);
-    end    
+    end
 end
 
 function C_DataTextModule:OnEnable(data)
@@ -95,31 +93,31 @@ function C_DataTextModule:OnEnable(data)
     data.popup:Hide();
 
     -- controls the Esc key behaviour to close the popup (must use global name)
-    tk.table.insert(UISpecialFrames, "MUI_DataTextPopupMenu");
+    tk.table.insert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
 
-    if (data.sv.popup.hideInCombat) then	
+    if (data.sv.popup.hideInCombat) then
         em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
             tk._G["MUI_DataTextPopupMenu"]:Hide();
-        end);		
+        end);
     end
-	
+
     data.popup.ScrollBar:SetPoint("TOPLEFT", data.popup, "TOPRIGHT", -6, 1);
     data.popup.ScrollBar:SetPoint("BOTTOMRIGHT", data.popup, "BOTTOMRIGHT", -1, 1);
-     
+
     data.popup.bg = gui:CreateDialogBox(tk.Constants.AddOnStyle, data.popup, "High");
     data.popup.bg:SetPoint("TOPLEFT", 0, 2);
     data.popup.bg:SetPoint("BOTTOMRIGHT", 0, -2);
-    
+
     data.popup.bg:SetGridColor(0.4, 0.4, 0.4, 1);
-    data.popup.bg:SetFrameLevel(1);   
-    
+    data.popup.bg:SetFrameLevel(1);
+
     data.popup:SetScript("OnHide", function()
 		-- when popup is closed by user
         if (data.dropdowns) then
 		-- popup menu content has dropdown menu's
-            for _, dropdown in tk.ipairs(data.dropdowns) do			
+            for _, dropdown in tk.ipairs(data.dropdowns) do
 				gui:FoldAllDropDownMenus();
-                dropdown:GetFrame().menu:Hide(); 
+                dropdown:GetFrame().menu:Hide();
             end
         end
     end);
@@ -132,7 +130,7 @@ Engine:DefineParams("IDataTextModule");
 function C_DataTextModule:RegisterDataModule(data, dataModule)
     local dataModuleName = dataModule:GetObjectType(); -- get's name of object/module
     data.DataModules[dataModuleName] = dataModule;
-    
+
     local dataTextButton = dataModule.Button;
     dataTextButton:SetParent(data.bar);
 
@@ -140,13 +138,13 @@ function C_DataTextModule:RegisterDataModule(data, dataModule)
         self:ClickModuleButton(dataModule, dataTextButton, ...);
     end);
 
-    self:PositionDataItems();          
+    self:PositionDataItems();
 end
 
 Engine:DefineParams("IDataTextModule", "?string");
 Engine:DefineReturns("Button");
-function C_DataTextModule:CreateDataTextButton(data, dataModule, btnText)
-    local btn = CreateFrame("Button");
+function C_DataTextModule:CreateDataTextButton(data, btnText)
+    local btn = _G.CreateFrame("Button");
     btn:SetNormalTexture(tk.Constants.MEDIA.."mui_bar");
     btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
 
@@ -156,7 +154,7 @@ function C_DataTextModule:CreateDataTextButton(data, dataModule, btnText)
     btn:SetNormalFontObject("MUI_FontNormal");
 
     local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
-    btn:SetText(btnText or " ");
+    btn:SetText(btnText or tk.Strings.Space);
     btn:GetFontString():SetFont(font, data.sv.fontSize);
 
     return btn;
@@ -168,7 +166,7 @@ function C_DataTextModule:PositionDataItems(data)
 
     for _, dataModule in pairs(data.DataModules) do
         if (dataModule:IsEnabled()) then
-            local btn = dataModule.Button;                 
+            local btn = dataModule.Button;
             local dbName = dataModule.SavedVariableName;
             local displayOrder = tk.Tables:GetIndex(displayOrders, dbName);
 
@@ -182,14 +180,14 @@ function C_DataTextModule:PositionDataItems(data)
             data.OrderedButtons[displayOrder] = btn;
         end
     end
-    
+
     local itemWidth = data.buiContainer:GetWidth() / #data.OrderedButtons;
 
     for i, btn in ipairs(data.OrderedButtons) do
         btn:ClearAllPoints();
         btn:Show();
 
-        if (i == 1) then                
+        if (i == 1) then
             btn:SetPoint("BOTTOMLEFT", data.sv.spacing, 0);
             btn:SetPoint("TOPRIGHT", data.bar, "TOPLEFT", itemWidth - data.sv.spacing, - data.sv.spacing);
         else
@@ -210,7 +208,7 @@ Engine:DefineParams("Frame");
 function C_DataTextModule:ChangeMenuContent(data, content)
     local oldContent = data.popup:GetScrollChild();
 
-    if (oldContent) then 
+    if (oldContent) then
         oldContent:Hide();
     end
 
@@ -223,12 +221,12 @@ function C_DataTextModule:ChangeMenuContent(data, content)
 end
 
 Engine:DefineParams("table");
-function C_DataTextModule:ClearLabels(data, labels)
-    if (not labels) then 
-        return; 
+function C_DataTextModule:ClearLabels(_, labels)
+    if (not labels) then
+        return
     end
 
-    for id, label in ipairs(labels) do
+    for _, label in ipairs(labels) do
         if (label.name) then label.name:SetText(""); end
         if (label.value) then label.value:SetText(""); end
 
@@ -242,32 +240,32 @@ Engine:DefineParams("IDataTextModule");
 Engine:DefineReturns("number");
 -- returned the total height of all labels
 -- total height is used to controll the dynamic scrollbar
-function C_DataTextModule:PositionLabels(data, dataModule)    
+function C_DataTextModule:PositionLabels(data, dataModule)
     local totalLabelsShown = dataModule.TotalLabelsShown;
     local labelHeight = data.sv.popup.itemHeight;
 
-    if (totalLabelsShown == 0) then 
-        return 0; 
+    if (totalLabelsShown == 0) then
+        return 0;
     end
 
     local totalHeight = 0;
 
     for i = 1, totalLabelsShown do
-        local label = dataModule.MenuLabels[i];        
-        local labelType = type(label);       
+        local label = dataModule.MenuLabels[i];
+        local labelType = type(label);
 
         obj:Assert(labelType ~= "nil", "Invalid total labels to show.");
 
         if (labelType == "table" and label.GetObjectType) then
-            labelType = label:GetObjectType();            
-        end       
+            labelType = label:GetObjectType();
+        end
 
         if (labelType == "DropDownMenu") then
             label = label:GetFrame();
-            labelType = label:GetObjectType();            
+            labelType = label:GetObjectType();
         end
-        
-        obj:Assert(labelType == "Frame" or labelType == "Button", 
+
+        obj:Assert(labelType == "Frame" or labelType == "Button",
             "Invalid data-text label of type '%s' at index %s.", labelType, i);
 
         if (i == 1) then
@@ -289,6 +287,7 @@ function C_DataTextModule:PositionLabels(data, dataModule)
         else
             label:Show();
             totalHeight = totalHeight + labelHeight;
+
             if (i > 1) then
                 totalHeight = totalHeight + 2;
             end
@@ -301,14 +300,14 @@ end
 
 Engine:DefineParams("IDataTextModule", "Button");
 function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, button, ...)
-    GameTooltip:Hide();
+    _G.GameTooltip:Hide();
     dataModule:Update(data);
     data.slideController:Stop();
 
-    local displayOrders = db.profile.datatext.displayOrder:ToTable();              
+    local displayOrders = db.profile.datatext.displayOrder:ToTable();
     local buttonDisplayOrder = tk.Tables:GetIndex(displayOrders, dataModule.SavedVariableName);
 
-    if (data.lastButtonID == buttonDisplayOrder and data.lastButton == button and data.popup:IsShown()) then       
+    if (data.lastButtonID == buttonDisplayOrder and data.lastButton == button and data.popup:IsShown()) then
         -- clicked on same dataTextModule button so close the popup!
 
         -- if button was rapidly clicked on, reset alpha
@@ -331,7 +330,7 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     data.popup:ClearAllPoints();
 
     -- handle type of button click
-    if ((button == "RightButton" and not dataModule.HasRightMenu) or 
+    if ((button == "RightButton" and not dataModule.HasRightMenu) or
         (button == "LeftButton" and not dataModule.HasLeftMenu)) then
         -- execute dataTextModule specific click logic
         dataModule:Click(button, ...);
@@ -340,14 +339,14 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
 
     -- update content of popup based on which dataTextModule button was clicked
     self:ChangeMenuContent(dataModule.MenuContent);
-    self:ClearLabels(dataModule.MenuLabels);    
-    
+    self:ClearLabels(dataModule.MenuLabels);
+
     -- execute dataTextModule specific click logic
     dataModule:Click(button, ...);
 
     -- calculate new height based on number of labels to show
     local totalHeight = self:PositionLabels(dataModule) or data.sv.popup.maxHeight;
-    totalHeight = (totalHeight < data.sv.popup.maxHeight) and totalHeight or data.sv.popup.maxHeight;  
+    totalHeight = (totalHeight < data.sv.popup.maxHeight) and totalHeight or data.sv.popup.maxHeight;
 
     -- move popup menu higher if there are resource bars displayed
     local offset = data.resourceBars:GetHeight();
@@ -374,16 +373,16 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
 end
 
 Engine:DefineParams("string");
-function C_DataTextModule:ForceUpdate(data, dataModuleName)    
+function C_DataTextModule:ForceUpdate(data, dataModuleName)
     data.DataModules[dataModuleName]:Update();
 end
 
 Engine:DefineReturns("boolean");
-function C_DataTextModule:IsShown(data)    
+function C_DataTextModule:IsShown(data)
     return (data.bar and data.bar:IsShown()) or false;
 end
 
 Engine:DefineReturns("Frame");
-function C_DataTextModule:GetDataTextBar(data)    
+function C_DataTextModule:GetDataTextBar(data)
     return data.bar;
 end

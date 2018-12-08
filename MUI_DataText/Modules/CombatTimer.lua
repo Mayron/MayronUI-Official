@@ -1,7 +1,5 @@
--- Setup Namespaces ------------------
-
-local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+-- luacheck: ignore MayronUI self 143 631
+local tk, db, em, _, obj = MayronUI:GetCoreComponents();
 
 -- Objects ---------------------------
 
@@ -30,7 +28,7 @@ function CombatTimer:__Construct(data, dataTextModule, sv)
     data.sv = sv;
 
     -- set public instance properties
-    self.MenuContent = CreateFrame("Frame");
+    self.MenuContent = _G.CreateFrame("Frame");
     self.MenuLabels = {};
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
@@ -38,7 +36,7 @@ function CombatTimer:__Construct(data, dataTextModule, sv)
     self.SavedVariableName = "combatTimer";
 
     em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-        data.startTime = GetTime();
+        data.startTime = _G.GetTime();
         data.inCombat = true;
         data.executed = nil;
         self:Update();
@@ -51,7 +49,7 @@ function CombatTimer:__Construct(data, dataTextModule, sv)
         data.milliseconds:SetText(data.milliseconds.value or "00");
 
     end):SetKey("combat_timer");
-  
+
     local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
 
     -- create datatext button
@@ -59,7 +57,7 @@ function CombatTimer:__Construct(data, dataTextModule, sv)
 
     data.seconds = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
     data.seconds:SetFont(font, sv.fontSize);
-    
+
     data.minutes = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
     data.minutes:SetFont(font, sv.fontSize);
     data.minutes:SetJustifyH("RIGHT");
@@ -71,53 +69,51 @@ function CombatTimer:__Construct(data, dataTextModule, sv)
     data.minutes:SetText("00");
     data.seconds:SetText(":00:");
     data.milliseconds:SetText("00");
-    
+
     data.seconds:SetPoint("CENTER");
     data.minutes:SetPoint("RIGHT", data.seconds, "LEFT");
     data.milliseconds:SetPoint("LEFT", data.seconds, "RIGHT");
 end
 
-function CombatTimer:Click(data) end
+function CombatTimer:Click() end
 
-function CombatTimer:IsEnabled(data) 
+function CombatTimer:IsEnabled(data)
     return data.sv.enabled;
 end
 
-function CombatTimer:Enable(data) 
+function CombatTimer:Enable(data)
     data.sv.enabled = true;
 end
 
-function CombatTimer:Update(data) 
-    if (not override and data.executed) then 
-        return; 
+function CombatTimer:Update(data)
+    if (data.executed) then
+        return
     end
 
     data.executed = true;
 
     local function loop()
-        if (not data.inCombat) then 
-            return; 
+        if (not data.inCombat) then
+            return
         end
 
-        local s = (GetTime() - data.startTime);
+        local s = (_G.GetTime() - data.startTime);
 
         data.minutes.value = tk.string.format("%02d", (s/60)%60);
         data.seconds.value = tk.string.format(":%02d:", s%60);
         data.milliseconds.value = tk.string.format("%02d", (s*100)%100);
 
-        data.minutes:SetText(tk.string.format("%s%s|r", RED_FONT_COLOR_CODE, data.minutes.value));
-        data.seconds:SetText(tk.string.format("%s%s|r", RED_FONT_COLOR_CODE, data.seconds.value));
-        data.milliseconds:SetText(tk.string.format("%s%s|r", RED_FONT_COLOR_CODE, data.milliseconds.value));
+        data.minutes:SetText(tk.string.format("%s%s|r", _G.RED_FONT_COLOR_CODE, data.minutes.value));
+        data.seconds:SetText(tk.string.format("%s%s|r", _G.RED_FONT_COLOR_CODE, data.seconds.value));
+        data.milliseconds:SetText(tk.string.format("%s%s|r", _G.RED_FONT_COLOR_CODE, data.milliseconds.value));
 
-        if (not override) then
-            tk.C_Timer.After(0.05, loop);
-        end
+        tk.C_Timer.After(0.05, loop);
     end
 
     loop();
 end
 
-function CombatTimer:Disable(data) 
+function CombatTimer:Disable(data)
     data.sv.enabled = false;
 
     em:FindHandlerByKey("PLAYER_REGEN_DISABLED", "combatTimer"):Destroy();

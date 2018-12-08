@@ -126,7 +126,7 @@ local function CreateButtonConfigData(dbPath, buttonID)
                     newValue = oldValue:gsub("S", tk.Strings.Empty); -- remove it
                     db:SetPathValue(valueDbPath, newValue);
                 else
-                    newValue = (oldValue and tk.Strings:Join(oldValue, newValue)) or newValue; -- add it
+                    newValue = (oldValue and tk.Strings:Concat(oldValue, newValue)) or newValue; -- add it
                     db:SetPathValue(valueDbPath, newValue);
                 end
             end

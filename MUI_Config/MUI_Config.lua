@@ -1,8 +1,4 @@
 -- luacheck: ignore MayronUI self 143
-
-local unpack = _G.unpack;
-
--- Setup Namespaces ------------------
 local _, namespace = ...;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 
@@ -220,7 +216,7 @@ function ConfigModule:RenderSelectedMenu(data, menuConfigTable)
 
     if (data.tempMenuConfigTable.groups) then
         for _, group in ipairs(data.tempMenuConfigTable.groups) do
-            tk:GroupCheckButtons(unpack(group));
+            tk:GroupCheckButtons(_G.unpack(group));
         end
     end
 
