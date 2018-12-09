@@ -20,7 +20,7 @@ local C_TimerBarsModule = MayronUI:RegisterModule("TimerBars");
 
 -- Load Database Defaults --------------
 
-db:AddToDefaults("profile.timer_bars", {
+db:AddToDefaults("profile.timerBars", {
     field = {
         enabled = true,
         spark = true,
@@ -61,12 +61,6 @@ db:AddToDefaults("profile.timer_bars", {
     statusBarTexture = "MUI_StatusBar",
 });
 
--- TimerBars Functions -------------------
--------------------------------------------
-
---------------------
--- local Functions:
---------------------
 -- Creates a area where the TimerBars will fit in.
 local function CreateTimerField(sv, name)
     local globalName = tk.Strings:Concat("MUI_TimerBar", name, "Field");
@@ -107,9 +101,7 @@ local function CreateTimerField(sv, name)
     return frame;
 end
 
--- TODO: Not triggered yet
-local function C_TimerBar_OnEnter(self)
-	-- print("OnEnter triggered");
+local function TimerBar_OnEnter(self)
     if (self.spellID) then
         _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
         _G.GameTooltip:SetSpellByID(self.spellID);
@@ -117,8 +109,7 @@ local function C_TimerBar_OnEnter(self)
     end
 end
 
--- TODO: Not triggered yet
-local function C_TimerBar_OnLeave(self)
+local function TimerBar_OnLeave(self)
     _G.GameTooltip:Hide()
 end
 
@@ -253,12 +244,13 @@ function C_TimerBar:__Construct(data, sv)
 
     bar.slider:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", sv.statusBarTexture));
 
-    bar.slider.bg:SetColorTexture(sv.background_color.r, sv.background_color.g,
+    bar.slider.bg:SetColorTexture(
+        sv.background_color.r, sv.background_color.g,
         sv.background_color.b, sv.background_color.a);
 
-    if (sv.showTooltips) then
-        bar:SetScript("OnEnter", C_TimerBar_OnEnter);
-        bar:SetScript("OnLeave", C_TimerBar_OnLeave);
+    if (db.profile.timerBars.showTooltips) then
+        bar:SetScript("OnEnter", TimerBar_OnEnter);
+        bar:SetScript("OnLeave", TimerBar_OnLeave);
     else
         bar:SetScript("OnEnter", tk.Constants.DUMMY_FUNC);
         bar:SetScript("OnLeave", tk.Constants.DUMMY_FUNC);
@@ -677,9 +669,9 @@ end
 -- TimerBarsModule Functions:
 ---------------------
 function C_TimerBarsModule:OnInitialize(data)
-    data.sv = db.profile.timer_bars;
+    data.sv = db.profile.timerBars;
 
-	db:AppendOnce(db.profile, "timer_bars", {
+	db:AppendOnce(db.profile, "timerBars", {
 		fieldNames = {
 			"Player", "Target"
 		},
@@ -712,7 +704,8 @@ function C_TimerBarsModule:OnInitialize(data)
 
     for _, name in data.sv.fieldNames:Iterate() do
 		local sv = data.sv[name];
-		sv:SetParent(data.sv.field);
+        sv:SetParent(data.sv.field);
+
         local field = CreateTimerField(sv, name);
         local position = sv.position;
 

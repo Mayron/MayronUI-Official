@@ -148,7 +148,7 @@ function Memory:Click(data)
 
     table.sort(sorted, compare);
     tk.Tables:Empty(self.MenuLabels);
-    tk.Tables:Fill(self.MenuLabels, _G.unpack(sorted));
+    tk.Tables:AddAll(self.MenuLabels, _G.unpack(sorted));
 
     self.TotalLabelsShown = #self.MenuLabels;
 end
