@@ -1,156 +1,193 @@
 -- luacheck: ignore MayronUI self 143
--- @Description: Controls the Blizzard Chat Frame changes (not the MUI Chat Frame!)
+-- @Description: Handles the MUI Chat Frame artwork that wraps around the blizzard Chat Frames
 
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
-local tk = MayronUI:GetCoreComponents();
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
+
+local MEDIA = "Interface\\AddOns\\MUI_Chat\\media\\";
 --------------------------------------
 
-local function GetChatLink(text, id, url)
-	return tk.string.format("|H%s:%s|h|cffffe29e%s|r|h", id, url, text);
-end
+local function CreateChatFrameButtons(sideBar, anchorName)
+	local butonMediaFile;
+	local buttons = {};
 
-local function GetChatLinkWrapper(url)
-	return GetChatLink("["..url.."]", "url", url);
-end
+	for buttonID = 1, 3 do
+		local btn = tk:PopFrame("Button", sideBar:GetParent());
+		buttons[buttonID] = btn;
 
-local function NewAddMessage(self, text, ...)
-	if (not text) then return; end
-	self:oldAddMessage(text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLinkWrapper), ...);
-end
+		btn:SetSize(135, 20);
+		btn:SetNormalFontObject("MUI_FontSmall");
+		btn:SetHighlightFontObject("GameFontHighlightSmall");
+		btn:SetText(" ");
 
-local function OnHyperLinkLeave()
-	_G.GameTooltip:Hide();
-end
-
-local function OnHyperlinkEnter(self, linkData)
-	local linkType = tk.string.split(":", linkData);
-
-	-- TODO: missing type for new community link?
-	if (tk:ValueIsEither(linkType, "item", "spell", "enchant", "quest", "talent", "glyph", "unit", "achievement")) then
-		_G.GameTooltip:SetOwner(self, "ANCHOR_CURSOR");
-		_G.GameTooltip:SetHyperlink(linkData);
-		_G.GameTooltip:Show();
-	end
-end
-
-local function OnHyperlinkClick(self, linkData, link, button)
-	local linkType, value = linkData:match("(%a+):(.+)");
-
-	if (linkType == "url") then
-		local popup = _G.StaticPopup_Show("MUI_Link");
-		local editbox = _G[ string.format("%sEditBox", popup:GetName()) ];
-
-		editbox:SetText(value);
-		editbox:SetFocus();
-		editbox:HighlightText();
-	else
-		_G.SetItemRef(linkData, link, button, self);
-	end
-end
-
-local function ChatFrame_OnMouseWheel(self, direction)
-	if (tk:IsModComboActive("C")) then
-		if (direction == 1) then
-			self:ScrollToTop();
+		-- position button
+		if (buttonID == 1) then
+			btn:SetPoint("TOPLEFT", sideBar, "TOPRIGHT", 0, 10);
 		else
-			self:ScrollToBottom();
+			local previousButton = buttons[#buttons - 1];
+			btn:SetPoint("LEFT", previousButton, "RIGHT");
 		end
-	elseif (tk:IsModComboActive("S")) then
-		if (direction == 1) then
-			self:PageUp() ;
+
+		-- get button texture (first and last buttons share the same "side" texture)
+		if (buttonID == 1 or buttonID == 3) then
+			-- use "side" button texture
+			butonMediaFile = string.format("%ssideButton", MEDIA);
 		else
-			self:PageDown() ;
+			-- use "middle" button texture
+			butonMediaFile = string.format("%smiddleButton", MEDIA);
+		end
+
+		btn:SetNormalTexture(butonMediaFile);
+		btn:SetHighlightTexture(butonMediaFile);
+
+		if (buttonID == 3) then
+			-- flip last button texture horizontally
+			btn:GetNormalTexture():SetTexCoord(1, 0, 0, 1);
+			btn:GetHighlightTexture():SetTexCoord(1, 0, 0, 1);
+		end
+
+		if (tk.Strings:Contains(anchorName, "BOTTOM")) then
+			-- flip vertically
+
+			if (buttonID == 3) then
+				-- flip last button texture horizontally
+				btn:GetNormalTexture():SetTexCoord(1, 0, 1, 0);
+				btn:GetHighlightTexture():SetTexCoord(1, 0, 1, 0);
+			else
+				btn:GetNormalTexture():SetTexCoord(0, 1, 1, 0);
+				btn:GetHighlightTexture():SetTexCoord(0, 1, 1, 0);
+			end
 		end
 	end
+
+	return buttons;
 end
 
-local function Tab_OnClick(self)
-	self.ChatFrame:ScrollToBottom();
+--@param (string) anchorName: The anchor point for the chat frame (i.e. "TOPLEFT")
+local function CreateChatFrame(anchorName)
+	-- remove all spaces and convert to upper
+	anchorName = anchorName:gsub("%s+", ""):upper();
 
-	for chatFrameID = 1, _G.NUM_CHAT_WINDOWS do
-		local tab = tk._G[ string.format("ChatFrame%dTab", chatFrameID) ];
-		local tabLabel = tab:GetFontString();
+	local muiChatFrame = tk:PopFrame("Frame");
 
-		if (self == tab) then
-			tabLabel:SetTextColor(1, 1, 1, 1);
-		else
-			tk:ApplyThemeColor(tabLabel);
+    muiChatFrame:SetFrameStrata("LOW");
+    muiChatFrame:SetFrameLevel(1);
+	muiChatFrame:SetSize(358, 310);
+	muiChatFrame:SetPoint(anchorName, 2, -2);
+
+	muiChatFrame.sidebar = muiChatFrame:CreateTexture(nil, "ARTWORK");
+	muiChatFrame.sidebar:SetTexture(string.format("%ssidebar", MEDIA));
+	muiChatFrame.sidebar:SetSize(24, 300);
+	muiChatFrame.sidebar:SetPoint(anchorName, 0, -10);
+
+	muiChatFrame.tabs = muiChatFrame:CreateTexture(nil, "ARTWORK");
+	muiChatFrame.tabs:SetTexture(string.format("%stabs", MEDIA));
+	muiChatFrame.tabs:SetSize(358, 23);
+	muiChatFrame.tabs:SetPoint(anchorName, muiChatFrame.sidebar, "TOPRIGHT", 0, -12);
+
+	muiChatFrame.window = tk:PopFrame("Frame", muiChatFrame);
+	muiChatFrame.window:SetSize(367, 248);
+	muiChatFrame.window:SetPoint("TOPLEFT", muiChatFrame.tabs, "BOTTOMLEFT", 2, -2);
+
+	muiChatFrame.window.texture = muiChatFrame.window:CreateTexture(nil, "ARTWORK");
+	muiChatFrame.window.texture:SetTexture(string.format("%swindow", MEDIA));
+	muiChatFrame.window.texture:SetAllPoints(true);
+
+	muiChatFrame.layoutButton = tk:PopFrame("Button", muiChatFrame);
+	muiChatFrame.layoutButton:SetNormalFontObject("MUI_FontSmall");
+	muiChatFrame.layoutButton:SetHighlightFontObject("GameFontHighlightSmall");
+	muiChatFrame.layoutButton:SetText(" ");
+	muiChatFrame.layoutButton:GetFontString():SetPoint("CENTER", 1, 0);
+	muiChatFrame.layoutButton:SetSize(21, 120);
+	muiChatFrame.layoutButton:SetPoint("LEFT", muiChatFrame.sidebar, "LEFT");
+	muiChatFrame.layoutButton:SetNormalTexture(string.format("%slayoutButton", MEDIA));
+	muiChatFrame.layoutButton:SetHighlightTexture(string.format("%slayoutButton", MEDIA));
+
+	tk:ApplyThemeColor(
+		muiChatFrame.layoutButton:GetNormalTexture(),
+		muiChatFrame.layoutButton:GetHighlightTexture()
+	);
+
+	muiChatFrame.buttons = CreateChatFrameButtons(muiChatFrame.sidebar, anchorName);
+
+	return muiChatFrame;
+end
+
+local function RepositionChatFrame(muiChatFrame, anchorName)
+	muiChatFrame:ClearAllPoints();
+	muiChatFrame.window:ClearAllPoints();
+	muiChatFrame.sidebar:ClearAllPoints();
+	muiChatFrame.buttons[1]:ClearAllPoints();
+
+	if (anchorName == "TOPRIGHT") then
+		muiChatFrame:SetPoint(anchorName, tk.UIParent, anchorName, -2, -2);
+		muiChatFrame.window:SetPoint(anchorName, muiChatFrame.tabs, "BOTTOMRIGHT", -2, -2);
+		muiChatFrame.window.texture:SetTexCoord(1, 0, 0, 1);
+		muiChatFrame.sidebar:SetPoint(anchorName, muiChatFrame, anchorName, 0 , -10);
+		muiChatFrame.buttons[1]:SetPoint("BOTTOMLEFT", muiChatFrame.tabs, "TOPLEFT", -46, 2);
+		muiChatFrame.tabs:ClearAllPoints();
+		muiChatFrame.tabs:SetPoint(anchorName, muiChatFrame.sidebar, "TOPLEFT", 0, -12);
+		muiChatFrame.tabs:SetTexCoord(1, 0, 0, 1);
+
+	elseif (tk.Strings:Contains(anchorName, "BOTTOM")) then
+		muiChatFrame.tabs:Hide(); -- TODO: Should be configurable!
+		muiChatFrame.sidebar:SetPoint(anchorName, muiChatFrame, anchorName, 0 , 10);
+
+		if (anchorName == "BOTTOMLEFT") then
+			muiChatFrame:SetPoint(anchorName, tk.UIParent, anchorName, 2, 2);
+			muiChatFrame.window:SetPoint(anchorName, muiChatFrame.sidebar, "BOTTOMRIGHT", 2, 12);
+			muiChatFrame.window.texture:SetTexCoord(0, 1, 1, 0);
+			muiChatFrame.buttons[1]:SetPoint("BOTTOMLEFT", muiChatFrame.sidebar, "BOTTOMRIGHT", 0, -10);
+
+		elseif (anchorName == "BOTTOMRIGHT") then
+			muiChatFrame:SetPoint(anchorName, tk.UIParent, anchorName, -2, 2);
+			muiChatFrame.window:SetPoint(anchorName, muiChatFrame.sidebar, "BOTTOMLEFT", -2, 12);
+			muiChatFrame.window.texture:SetTexCoord(1, 0, 1, 0);
+			muiChatFrame.buttons[1]:SetPoint("BOTTOMLEFT", muiChatFrame.window, "BOTTOMLEFT", -36, -22);
 		end
 	end
-end
 
-local function Tab_OnEnter(self)
-	-- set tab label white on mouse over
-	self:GetFontString():SetTextColor(1, 1, 1, 1);
-end
-
-local function Tab_OnLeave(self)
-	local tabLabel = self:GetFontString();
-
-	if (self.ChatFrame == _G.SELECTED_CHAT_FRAME) then
-		-- tab label should be white if selected
-		tabLabel:SetTextColor(1, 1, 1, 1);
-	else
-		-- else, set label to class color
-		tk:ApplyThemeColor(tabLabel);
+	if (tk.Strings:Contains(anchorName, "RIGHT")) then
+		muiChatFrame.layoutButton:SetPoint("LEFT", muiChatFrame.sidebar, "LEFT", 2, 0);
+		muiChatFrame.layoutButton:GetNormalTexture():SetTexCoord(1, 0, 0, 1);
+		muiChatFrame.layoutButton:GetHighlightTexture():SetTexCoord(1, 0, 0, 1);
+		muiChatFrame.sidebar:SetTexCoord(1, 0, 0, 1);
 	end
 end
 
-function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
-	local chatFrameName = string.format("ChatFrame%d", chatFrameID);
+-- C_ChatModule -------------------
 
-	local chatFrame = _G[chatFrameName];
-	chatFrame:SetFrameStrata("LOW");
-	chatFrame:HookScript("OnMouseWheel", ChatFrame_OnMouseWheel);
+function C_ChatModule:ShowMuiChatFrame(data, anchorName) -- lets assume it's enabled!
+	-- remove all spaces and convert to upper
+	anchorName = anchorName:gsub("%s+", ""):upper();
 
-	_G[string.format("%sEditBox", chatFrameName)]:SetAltArrowKeyMode(false);
+	data.chatFrames = data.chatFrames or {};
+	local muiChatFrame = data.chatFrames[anchorName];
 
-	if (chatFrameID ~= 2) then
-		-- if not combat log...
-		chatFrame.oldAddMessage = chatFrame.AddMessage;
-		chatFrame.AddMessage = NewAddMessage;
-		chatFrame:SetScript("OnHyperLinkEnter", OnHyperlinkEnter);
-		chatFrame:SetScript("OnHyperLinkLeave", OnHyperLinkLeave);
-		chatFrame:SetScript("OnHyperlinkClick", OnHyperlinkClick);
+	if (not muiChatFrame) then
+		muiChatFrame = CreateChatFrame(anchorName);
+		data.chatFrames[anchorName] = muiChatFrame;
+
+		obj:Assert(obj:IsType(muiChatFrame, "Frame"),
+			"Could not find chat frame at anchor point '%s'", anchorName);
+
+		if (anchorName ~= "TOPLEFT") then
+			RepositionChatFrame(muiChatFrame, anchorName);
+		end
+
+		-- chat channel button
+		_G.ChatFrameChannelButton:ClearAllPoints();
+		_G.ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
+		_G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
+
+		_G.ChatFrameChannelButton.ClearAllPoints = tk.Constants.DUMMY_FUNC;
+		_G.ChatFrameChannelButton.SetPoint = tk.Constants.DUMMY_FUNC;
+
+		self:SetUpLayoutSwitcher(muiChatFrame.layoutButton);
 	end
 
-	local tab = _G[string.format("%sTab", chatFrameName)];
-	tab.ChatFrame = chatFrame; -- needed for scripts
-
-	tab:SetHeight(16);
-	tab:SetFrameStrata("MEDIUM");
-	tab:HookScript("OnClick", Tab_OnClick);
-	tab:SetScript("OnEnter", Tab_OnEnter);
-	tab:SetScript("OnLeave", Tab_OnLeave);
-	Tab_OnLeave(tab); -- run script to set correct label color
-
-	local tabLabel = tab:GetFontString();
-	tabLabel:ClearAllPoints();
-	tabLabel:SetPoint("CENTER", tab, "CENTER");
-
-	local btn = _G[ string.format("%sButtonFrame", chatFrameName) ];
-	btn:ClearAllPoints();
-	btn:DisableDrawLayer("BACKGROUND");
-	btn:DisableDrawLayer("BORDER");
-	btn:EnableMouse(false);
-	btn:SetPoint("BOTTOM", tab, "BOTTOM", 0, -2);
-	btn:SetSize(tab:GetWidth() - 10, 20);
-
-	btn.EnableMouse = tk.Constants.DUMMY_FUNC;
-
-	tk:KillAllElements(
-		_G[ string.format("%sTabSelectedLeft", chatFrameName) ],
-		_G[ string.format("%sTabSelectedMiddle", chatFrameName) ],
-		_G[ string.format("%sTabSelectedRight", chatFrameName) ],
-		_G[ string.format("%sTabLeft", chatFrameName) ],
-		_G[ string.format("%sTabMiddle", chatFrameName) ],
-		_G[ string.format("%sTabRight", chatFrameName) ],
-		_G[ string.format("%sTabHighlightLeft", chatFrameName) ],
-		_G[ string.format("%sTabHighlightMiddle", chatFrameName) ],
-		_G[ string.format("%sTabHighlightRight", chatFrameName) ]
-    );
-
-    return chatFrame;
+	muiChatFrame:Show();
+	return muiChatFrame;
 end

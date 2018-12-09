@@ -4,10 +4,12 @@
 ## OptionalDeps: MUI_Config
 
 MUI_Chat.lua
-ChatFrame.lua
+
 ButtonHandlers.lua
-MuiChatFrame.lua
-RaidFrameManager.lua
+ChatFrame.lua
 LayoutSwitcher.lua
+
+BlizzardFrames/ChatFrame.lua
+BlizzardFrames/RaidFrameManager.lua
 
 MUI_Chat.config.lua
