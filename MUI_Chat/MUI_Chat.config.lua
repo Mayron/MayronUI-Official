@@ -1,8 +1,7 @@
-
---luacheck: happy 
+-- luacheck: ignore MayronUI self 143
 local _, namespace = ...;
 local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
-local A = 1; 
+
 local C_ChatModule = namespace.C_ChatModule;
 local chatModule = MayronUI:ImportModule("Chat");
 
@@ -108,27 +107,23 @@ function C_ChatModule:OnConfigUpdate(data, list, value)
 
         else
             -- could be chatframe name, like "TOPLEFT" etc...
-
-            --TODO: chat is incorrect!
             local chatFrame = data.chatFrames[self:GetChatNameById(key)];
-
-            if (not cf) then
-                return
-            end
+            if (not chatFrame) then return end
 
             if (list:PopFront() == "buttons") then
                 local buttonSetId, buttonID = list:PopFront(), list:PopFront();
 
                 if (buttonSetId and buttonSetId == 1 and buttonID) then
                     if (buttonID == 1) then
-                        cf.left:SetText(value);
+                        chatFrame.left:SetText(value);
                     elseif (buttonID == 2) then
-                        cf.middle:SetText(value);
+                        chatFrame.middle:SetText(value);
                     elseif (buttonID == 3) then
-                        cf.right:SetText(value);
+                        chatFrame.right:SetText(value);
                     end
                 end
             end
+        end
     end
 end
 

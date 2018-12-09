@@ -16,4 +16,4 @@ Modules\Memory.lua
 Modules\Performance.lua
 Modules\Specialization.lua
 
-ConfigData.lua
+MUI_DataText.config.lua

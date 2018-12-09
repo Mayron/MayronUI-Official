@@ -4,5 +4,5 @@
 ## LoadOnDemand: 1
 
 MUI_Config.lua
-ConfigData.lua
+MUI_Config.config.lua
 Widgets.lua
