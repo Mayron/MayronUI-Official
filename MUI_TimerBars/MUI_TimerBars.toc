@@ -3,4 +3,4 @@
 ## Dependencies: MUI_Core
 
 MUI_TimerBars.lua
-## ConfigData.lua
+## MUI_TimerBars.config.lua

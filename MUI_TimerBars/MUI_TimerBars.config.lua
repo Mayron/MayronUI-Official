@@ -10,7 +10,7 @@ local gui = core.GUI_Builder;
 local Map = {};
 Map.position_textfields = {};
 
-local L = LibStub ("AceLocale-3.0"):GetLocale ("MayronUI");
+local L = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 
 ----------------
 -- ListFrame
@@ -619,4 +619,205 @@ function TimerBars:GetConfig()
         }
     };
     return categories;
+end
+
+function TimerBarsModuleClass:OnConfigUpdate(list, value)
+    local key = list:PopFront();
+
+    if (key == "profile" and list:PopFront() == "timer_bars") then
+        key = list:PopFront();
+        local field = tk._G["MUI_TimerBar"..key.."Field"];
+
+        if (field) then
+            local name = key;
+            local data = TimerFieldClass.Static:GetData(TimerFieldClass[name]);
+
+            key = list:PopFront();
+            if (key == "position") then
+                key = list:PopFront();
+                local point, relativeFrame, relativePoint, x, y = field:GetPoint();
+                field:ClearAllPoints();
+                if (key == "point") then
+                    field:SetPoint(value, relativeFrame, relativePoint, x, y);
+
+                elseif (key == "relativeFrame") then
+                    field:SetPoint(point, tk._G[value], relativePoint, x, y);
+
+                elseif (key == "relativePoint") then
+                    field:SetPoint(point, relativeFrame, value, x, y);
+
+                elseif (key == "x") then
+                    field:SetPoint(point, relativeFrame, relativePoint, value, y);
+
+                elseif (key == "y") then
+                    field:SetPoint(point, relativeFrame, relativePoint, x, value);
+
+                end
+            elseif (key == "bar_width") then
+                field:SetWidth(value);
+                for _, bar in tk.pairs(data.total_bars) do
+                    bar.name:SetWidth(value - data.sv.bar_height - 50);
+                end
+
+            elseif (key == "bar_height") then
+                for _, bar in tk.pairs(data.total_bars) do
+                    bar:SetHeight(value);
+                    bar.icon:SetWidth(value);
+                end
+
+            elseif (key == "spacing") then
+                data.spacing = value;
+                TimerFieldClass[name]:PositionBars();
+
+            elseif (key == "buff_bar_color") then
+                data.buff_bar_color = value;
+
+                for _, bar in tk.pairs(data.total_bars) do
+                    if (bar.type == "BUFF") then
+                        bar.slider:SetStatusBarColor(value.r, value.g, value.b, value.a);
+                    end
+                end
+
+            elseif (key == "debuff_bar_color") then
+                data.debuff_bar_color = value;
+
+                for _, bar in tk.pairs(data.total_bars) do
+                    if (bar.type == "DEBUFF") then
+                        bar.slider:SetStatusBarColor(value.r, value.g, value.b, value.a);
+                    end
+                end
+
+            elseif (key == "background_color") then
+                for _, bar in tk.pairs(data.total_bars) do
+                    bar.slider.bg:SetColorTexture(value.r, value.g, value.b, value.a);
+                end
+
+            elseif (key == "show_icons") then
+                for _, bar in tk.pairs(data.total_bars) do
+                    bar.icon:SetShown(value);
+
+                    if (not value) then
+                        bar.slider:SetPoint("TOPLEFT");
+                        bar.slider:SetPoint("BOTTOMLEFT");
+
+                    else
+                        bar.slider:SetPoint("TOPLEFT", bar.icon, "TOPRIGHT");
+                        bar.slider:SetPoint("BOTTOMLEFT", bar.icon, "BOTTOMRIGHT");
+                    end
+                end
+
+            elseif (key == "spark") then
+                for _, bar in tk.pairs(data.total_bars) do
+                    if (bar.spark) then
+                        bar.spark:SetShown(value);
+
+                    elseif (value) then
+                        bar.spark = bar.slider:CreateTexture(nil, "OVERLAY");
+                        bar.spark:SetWidth(28);
+                        bar.spark:SetPoint("TOP", 0, 12);
+                        bar.spark:SetPoint("BOTTOM", 0, -12);
+                        bar.spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark");
+                        bar.spark:SetVertexColor(1, 1, 1);
+                        bar.spark:SetBlendMode("ADD");
+
+                    end
+                end
+
+            elseif (key == "direction") then
+                data.direction = value;
+                TimerFieldClass[name]:PositionBars();
+
+            elseif (key == "time") then
+                key = list:PopFront();
+                if (key == "show") then
+                    for _, bar in tk.pairs(data.total_bars) do
+                        bar.duration:SetShown(value);
+                    end
+
+                elseif (key == "font_size") then
+                    local font = tk.Constants.LSM:Fetch("font", data.sv.time.font);
+                    for _, bar in tk.pairs(data.total_bars) do
+                        bar.duration:SetFont(font, value);
+                    end
+
+                elseif (key == "font") then
+                    local font = tk.Constants.LSM:Fetch("font", value);
+                    for _, bar in tk.pairs(data.total_bars) do
+                        bar.duration:SetFont(font, data.sv.time.font_size);
+                    end
+
+                end
+            elseif (key == "spell_name") then
+                key = list:PopFront();
+                if (key == "show") then
+                    for _, bar in tk.pairs(data.total_bars) do
+                        bar.name:SetShown(value);
+                    end
+
+                elseif (key == "font_size") then
+                    local font = tk.Constants.LSM:Fetch("font", data.sv.spell_name.font);
+                    for _, bar in tk.pairs(data.total_bars) do
+                        bar.name:SetFont(font, value);
+                    end
+
+                elseif (key == "font") then
+                    local font = tk.Constants.LSM:Fetch("font", value);
+                    for _, bar in tk.pairs(data.total_bars) do
+                        bar.name:SetFont(font, data.sv.spell_name.font_size);
+                    end
+
+                end
+            elseif (key == "unit") then
+                data.unit = value;
+                if (value ~= "Player") then
+                    if (value == "Target") then
+                        TimerFieldClass[name]:RegisterEvent("PLAYER_TARGET_CHANGED");
+
+                    elseif (value == "TargetTarget") then
+                        TimerFieldClass[name]:RegisterEvent("UNIT_TARGET");
+
+                    elseif (value == "Focus") then
+                        TimerFieldClass[name]:RegisterEvent("PLAYER_FOCUS_CHANGED");
+
+                    elseif (value == "FocusTarget") then
+                        TimerFieldClass[name]:RegisterEvent("UNIT_TARGET");
+
+                    end
+                end
+
+            elseif (key == "enabled") then
+                TimerFieldClass[name]:SetEnabled(value);
+            end
+
+        elseif (key == "status_bar_texture") then
+            value = tk.Constants.LSM:Fetch("statusbar", value);
+            for _, field in tk.ipairs(private.fields) do
+                local data = TimerFieldClass.Static:GetData(field);
+                for _, bar in tk.pairs(data.total_bars) do
+                    bar.slider:SetStatusBarTexture(value);
+                end
+            end
+
+        elseif (key == "sort_by_time") then
+            for _, field in tk.ipairs(private.fields) do
+                field:PositionBars();
+            end
+
+        elseif (key == "show_tooltips") then
+            for _, field in tk.ipairs(private.fields) do
+                local data = TimerFieldClass.Static:GetData(field);
+
+                for _, bar in tk.pairs(data.total_bars) do
+                    if (value) then
+                        bar:SetScript("OnEnter", bar_OnEnter);
+                        bar:SetScript("OnLeave", bar_OnLeave);
+                    else
+                        bar:SetScript("OnEnter", tk.Constants.DUMMY_FUNC);
+                        bar:SetScript("OnLeave", tk.Constants.DUMMY_FUNC);
+                    end
+                end
+            end
+
+        end
+    end
 end
