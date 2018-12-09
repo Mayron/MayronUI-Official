@@ -46,7 +46,7 @@ local function IsObserver(value)
     return (type(value) == "table" and value.IsObjectType and value:IsObjectType("Observer"));
 end
 
-local function GetDatabasePathInfo(db, rootTableOrPath, pathOrValue)
+local function GetDatabasePathInfo(db, rootTableOrPath, pathOrValue, value)
     local rootTable, path;
 
     if (type(rootTableOrPath) == "table") then
@@ -57,6 +57,7 @@ local function GetDatabasePathInfo(db, rootTableOrPath, pathOrValue)
         rootTableType = rootTableType:gsub("%s", ""):lower();
 
         path = realPath;
+        value = pathOrValue;
 
         if (rootTableType == "global") then
             rootTable = db.global;
@@ -65,7 +66,7 @@ local function GetDatabasePathInfo(db, rootTableOrPath, pathOrValue)
         end
     end
 
-    return rootTable, path;
+    return rootTable, path, value;
 end
 
 ------------------------
@@ -226,7 +227,7 @@ Adds a value to a table relative to a path: rootTable.<path> = <value>
 ]]
 Framework:DefineParams("table|string");
 function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
-    local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue);
+    local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
 
     if (rootTable.GetObjectType and rootTable:GetObjectType() == "Observer") then
         rootTable = rootTable:ToSavedVariable();
@@ -234,9 +235,10 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
 
     local lastTable, lastKey = data.helper:GetLastTableKeyPairs(rootTable, path);
 
-    if (lastKey and lastTable) then
-        lastTable[lastKey] = value;
-    end
+    assert(type(lastTable) == "table" and (type(lastKey) == "string" or type(lastKey) == "number"),
+        "Database:SetPathValue failed to set value");
+
+    lastTable[lastKey] = realValue;
 end
 
 --[[

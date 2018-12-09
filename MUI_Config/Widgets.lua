@@ -1,5 +1,6 @@
+--luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local tk, _, _, gui = MayronUI:GetCoreComponents();
 
 local configModule = MayronUI:ImportModule("Config");
 
@@ -11,7 +12,7 @@ namespace.WidgetHandlers = WidgetHandlers;
 --------------
 WidgetHandlers.submenu = {};
 
-function WidgetHandlers.submenu:Run(parent, submenuConfigTable, value)
+function WidgetHandlers.submenu:Run(parent, submenuConfigTable)
     local btn = tk.CreateFrame("Button", nil, parent);
     btn:SetSize(250, 60);
 
@@ -45,7 +46,7 @@ end
 WidgetHandlers.loop = {};
 
 -- should return a table of children created during the loop
-function WidgetHandlers.loop:Run(parent, loopConfigTable)
+function WidgetHandlers.loop:Run(_, loopConfigTable)
     local children = tk.Tables:PopWrapper();
 
     if (loopConfigTable.loops) then
@@ -63,7 +64,7 @@ function WidgetHandlers.loop:Run(parent, loopConfigTable)
                 children[id] = loopConfigTable.func(id, tk.unpack(arg));
             else
                 children[id] = loopConfigTable.func(id, arg);
-            end        
+            end
         end
     end
 
@@ -100,7 +101,7 @@ end
 ----------------
 WidgetHandlers.title = {};
 
-function WidgetHandlers.title:Run(parent, widgetConfigTable, value)
+function WidgetHandlers.title:Run(parent, widgetConfigTable)
     local height = 20 + (widgetConfigTable.paddingTop or 10) + (widgetConfigTable.paddingBottom or 10);
     local f = tk:PopFrame("Frame", parent);
 
@@ -141,10 +142,10 @@ function WidgetHandlers.slider:Run(data, widgetConfigTable, value)
     slider.High:SetPoint("BOTTOMRIGHT", -5, -8);
 
     slider:SetSize(widgetConfigTable.width or 200, 20);
-    slider:SetScript("OnValueChanged", function(self, value)
-        value = tk.math.floor(value + 0.5);
-        self.Value:SetText(value);
-        configModule:SetDatabaseValue(self, widgetConfigTable, value);
+    slider:SetScript("OnValueChanged", function(self, sliderValue)
+        sliderValue = tk.math.floor(sliderValue + 0.5);
+        self.Value:SetText(sliderValue);
+        configModule:SetDatabaseValue(self, widgetConfigTable, sliderValue);
     end);
 
     slider = configModule:CreateElementContainerFrame(slider, widgetConfigTable);
@@ -157,7 +158,7 @@ end
 --------------
 WidgetHandlers.divider = {};
 
-function WidgetHandlers.divider:Run(data, widgetConfigTable, value)
+function WidgetHandlers.divider:Run(_, widgetConfigTable)
     local divider = tk:PopFrame("Frame");
     divider:SetHeight(widgetConfigTable.height or 1);
     return divider;
@@ -175,15 +176,15 @@ WidgetHandlers.dropdown = {};
 function WidgetHandlers.dropdown:Run(data, widgetConfigTable, value)
     local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, data.parent);
     local options = widgetConfigTable.options or widgetConfigTable:GetOptions();
-    
+
     for key, dropDownValue in pairs(options) do
         local option = dropdown:AddOption(key, DropDown_OnSelectedValue, widgetConfigTable, dropDownValue);
-        
+
         if (widgetConfigTable.fontPicker) then
-            option:GetFontString():SetFont(tk.Constants.LSM:Fetch("font", name), 11);
+            option:GetFontString():SetFont(tk.Constants.LSM:Fetch("font", key), 11);
         end
     end
-    
+
     dropdown:SetLabel(value, widgetConfigTable.tooltip);
 
     return configModule:CreateElementContainerFrame(dropdown, widgetConfigTable);
@@ -194,7 +195,7 @@ end
 --------------
 WidgetHandlers.button = {};
 
-function WidgetHandlers.button:Run(data, widgetConfigTable, value)
+function WidgetHandlers.button:Run(_, widgetConfigTable)
     local button = gui:CreateButton(tk.Constants.AddOnStyle, nil, widgetConfigTable.name);
 
     if (widgetConfigTable.width) then
@@ -217,7 +218,7 @@ end
 -----------------
 WidgetHandlers.frame = {};
 
-function WidgetHandlers.frame:Run(data, widgetConfigTable, value)
+function WidgetHandlers.frame:Run(_, widgetConfigTable)
     local frame = widgetConfigTable.frame or widgetConfigTable:GetFrame();
 
     if (widgetConfigTable.width) then
@@ -241,16 +242,18 @@ end
 WidgetHandlers.color = {};
 
 local function ShowColorPicker(r, g, b, a, changedCallback)
-    ColorPickerFrame:SetColorRGB(r, g, b);
-    ColorPickerFrame.hasOpacity, ColorPickerFrame.opacity = (a ~= nil), a;
-    ColorPickerFrame.previousValues = {r, g, b, a};
+    _G.ColorPickerFrame:SetColorRGB(r, g, b);
+    _G.ColorPickerFrame.hasOpacity = (a ~= nil);
+    _G.ColorPickerFrame.opacity = a;
+    _G.ColorPickerFrame.previousValues = {r, g, b, a};
 
-    ColorPickerFrame.func = changedCallback;
-    ColorPickerFrame.opacityFunc = changedCallback;
-    ColorPickerFrame.cancelFunc = changedCallback;
+    _G.ColorPickerFrame.func = changedCallback;
+    _G.ColorPickerFrame.opacityFunc = changedCallback;
+    _G.ColorPickerFrame.cancelFunc = changedCallback;
 
-    ColorPickerFrame:Hide(); -- Need to run the OnShow handler.
-    ColorPickerFrame:Show();
+    -- Need to run the OnShow handler:
+    _G.ColorPickerFrame:Hide();
+    _G.ColorPickerFrame:Show();
 end
 
 function WidgetHandlers.color:Run(data, widgetConfigTable, value)
@@ -278,21 +281,22 @@ function WidgetHandlers.color:Run(data, widgetConfigTable, value)
         if (restore) then
             c.r, c.g, c.b, c.a = tk.unpack(restore);
         else
-            c.r, c.g, c.b = ColorPickerFrame:GetColorRGB();
-            if (ColorPickerFrame.hasOpacity) then
-                c.a = OpacitySliderFrame:GetValue();
+            c.r, c.g, c.b = _G.ColorPickerFrame:GetColorRGB();
+
+            if (_G.ColorPickerFrame.hasOpacity) then
+                c.a = _G.OpacitySliderFrame:GetValue();
                 c.a = 1 - c.a;
             end
         end
-        
+
         configModule:SetDatabaseValue(container, widgetConfigTable, c);
         container.color:SetColorTexture(c.r, c.g, c.b);
     end
 
     container:SetScript("OnClick", function()
-        local value = configModule:GetValue(widgetConfigTable);
-        local a = value.a and (1 - value.a);
-        ShowColorPicker(value.r, value.g, value.b, a, container.func);
+        local refreshedValue = configModule:GetDatabaseValue(widgetConfigTable);
+        local a = refreshedValue.a and (1 - refreshedValue.a);
+        ShowColorPicker(refreshedValue.r, refreshedValue.g, refreshedValue.b, a, container.func);
     end);
 
     if (widgetConfigTable.tooltip) then
@@ -312,23 +316,23 @@ end
 ---------------
 WidgetHandlers.textfield = {};
 
-function WidgetHandlers.textfield:Run(data, widgetConfigTable, value)
+function WidgetHandlers.textfield:Run(_, widgetConfigTable, value)
     local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetConfigTable.tooltip);
     textField:SetText(value or "");
     textField:SetSize(widgetConfigTable.width or 150, widgetConfigTable.height or 26);
 
-    local editBox = textField:GetEditBox();
-
     textField:OnTextChanged(function(self, newText)
-        local value = tonumber(newText) or newText;
+        local newValue = tonumber(newText) or newText;
 
-        if (widgetConfigTable.valueType and type(value) ~= widgetConfigTable.valueType) then
-            self:ApplyPreviousText();
-        elseif (widgetConfigTable.min and widgetConfigTable.valueType == "number" and value < widgetConfigTable.min) then
-            self:ApplyPreviousText();
+        if (widgetConfigTable.valueType and type(newValue) ~= widgetConfigTable.valueType) then
+            textField:ApplyPreviousText();
+
+        elseif (widgetConfigTable.min and widgetConfigTable.valueType == "number" and newValue < widgetConfigTable.min) then
+            textField:ApplyPreviousText();
+
         else
-            self:SetPreviousText(value);
-            configModule:SetDatabaseValue(self, widgetConfigTable, value);
+            textField:SetText(newValue);
+            configModule:SetDatabaseValue(self, widgetConfigTable, newValue);
         end
     end);
 
@@ -340,18 +344,21 @@ end
 ----------------
 WidgetHandlers.fontstring = {};
 
-function WidgetHandlers.fontstring:Run(data, widgetConfigTable, value)
+function WidgetHandlers.fontstring:Run(_, widgetConfigTable)
     local divider = tk:PopFrame("Frame");
 
     divider.content = divider:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
     divider.content:SetAllPoints(true);
     divider.content:SetJustifyH("LEFT");
     divider.content:SetWordWrap(true);
+
     if (widgetConfigTable.subtype) then
         if (widgetConfigTable.subtype == "header") then
             divider.content:SetFontObject("MUI_FontLarge");
         end
     end
+
+    -- content??
     divider.content:SetText(widgetConfigTable.content);
     divider:SetHeight(widgetConfigTable.height or divider.content:GetStringHeight() + 16);
 

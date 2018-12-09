@@ -8,9 +8,9 @@ local MENU_BUTTON_HEIGHT = 40;
 
 local LinkedListClass = obj:Import("Framework.System.Collections.LinkedList");
 local Engine = obj:Import("MayronUI.Engine");
-local ConfigModule = MayronUI:RegisterModule("Config");
+local C_ConfigModule = MayronUI:RegisterModule("Config");
 
-namespace.ConfigModule = ConfigModule;
+namespace.C_ConfigModule = C_ConfigModule;
 
 -- Local functions -------------------
 
@@ -42,9 +42,9 @@ end
 
 namespace.SubMenuButton_OnClick = SubMenuButton_OnClick;
 
--- ConfigModule -------------------
+-- C_ConfigModule -------------------
 
-function ConfigModule:OnInitialize(data)
+function C_ConfigModule:OnInitialize(data)
     if (not MayronUI:IsInstalled()) then
         tk:Print("Please install the UI and try again.");
         return;
@@ -53,7 +53,7 @@ function ConfigModule:OnInitialize(data)
     data.configData = {};
 end
 
-function ConfigModule:Show(data)
+function C_ConfigModule:Show(data)
     if (not data.window) then
         local menuListScrollChild = self:SetUpWindow();
         self:SetUpMenuButtons(menuListScrollChild);
@@ -62,11 +62,10 @@ function ConfigModule:Show(data)
     data.window:Show();
 end
 
-
-function ConfigModule:OnProfileChange() end
+function C_ConfigModule:OnProfileChange() end
 
 Engine:DefineParams("table");
-function ConfigModule:GetDatabaseValue(_, configTable)
+function C_ConfigModule:GetDatabaseValue(_, configTable)
 
     if (tk.Strings:IsNilOrWhiteSpace(configTable.dbPath)) then
         return configTable.GetValue and configTable.GetValue();
@@ -98,9 +97,9 @@ end
 
 -- Updates the database based on the dbPath config value, or using SetValue,
 -- and then calls "OnConfigUpdate" for the module that the config value belongs to.
---@param widget: The created widget frame passed when calling SetValue to add custom
+-- @param widget: The created widget frame passed when calling SetValue to add custom
 --      graphical changes to represent the new value (such as disabling the widget)
-function ConfigModule:SetDatabaseValue(data, widget, widgetConfigTable, value)
+function C_ConfigModule:SetDatabaseValue(data, widget, widgetConfigTable, value)
 
     -- SetValue is a custom function to manually set the datbase config value
     if (widgetConfigTable.SetValue) then
@@ -139,7 +138,7 @@ function ConfigModule:SetDatabaseValue(data, widget, widgetConfigTable, value)
 end
 
 Engine:DefineParams("string", "?Button");
-function ConfigModule:OpenMenu(data, moduleName, subMenuButton)
+function C_ConfigModule:OpenMenu(data, moduleName, subMenuButton)
     local menuButton;
 
     if (not subMenuButton) then
@@ -161,7 +160,7 @@ function ConfigModule:OpenMenu(data, moduleName, subMenuButton)
 end
 
 Engine:DefineParams("CheckButton|Button");
-function ConfigModule:SetSelectedButton(data, menuButton)
+function C_ConfigModule:SetSelectedButton(data, menuButton)
     if (data.selectedButton) then
         -- hide old menu
         data.selectedButton.menu:Hide();
@@ -189,7 +188,7 @@ function ConfigModule:SetSelectedButton(data, menuButton)
 end
 
 Engine:DefineParams("table");
-function ConfigModule:RenderSelectedMenu(data, menuConfigTable)
+function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     if (not (menuConfigTable and type(menuConfigTable.children) == "table")) then
         return;
     end
@@ -225,7 +224,7 @@ end
 
 Engine:DefineReturns("DynamicFrame");
 -- @param menuFrame: the dynamic frame representing the module's config data
-function ConfigModule:CreateMenu(data)
+function C_ConfigModule:CreateMenu(data)
     -- else, create a new menu (dynamic frame) to based on the module's config data
     local menuParent = data.options:GetFrame();
     local menu = gui:CreateDynamicFrame(tk.Constants.AddOnStyle, menuParent, nil, 10);
@@ -238,17 +237,17 @@ function ConfigModule:CreateMenu(data)
     return menu;
 end
 
-function ConfigModule:ShowReloadMessage(data)
+function C_ConfigModule:ShowReloadMessage(data)
     data.warningLabel:SetText(data.warningLabel.reloadText);
 end
 
-function ConfigModule:ShowRestartMessage(data)
+function C_ConfigModule:ShowRestartMessage(data)
     data.warningLabel:SetText(data.warningLabel.restartText);
 end
 
 -- create container to wrap around a child element
 Engine:DefineParams("table", "table");
-function ConfigModule:CreateElementContainerFrame(data, widget, childData)
+function C_ConfigModule:CreateElementContainerFrame(data, widget, childData)
     local container = tk:PopFrame("Frame", data.parent);
 
     container:SetSize(childData.width or widget:GetWidth(), childData.height or widget:GetHeight());
@@ -277,7 +276,7 @@ function ConfigModule:CreateElementContainerFrame(data, widget, childData)
 end
 
 Engine:DefineParams("table");
-function ConfigModule:SetUpWidget(data, widgetConfigTable)
+function C_ConfigModule:SetUpWidget(data, widgetConfigTable)
 
     tk:Assert(type(data.tempMenuConfigTable) == "table",
         "Invalid temp data for '%s'", widgetConfigTable.name);
@@ -355,7 +354,7 @@ function ConfigModule:SetUpWidget(data, widgetConfigTable)
     return widget;
 end
 
-function ConfigModule:SetUpWindow(data)
+function C_ConfigModule:SetUpWindow(data)
     if (data.window) then
         return
     end
@@ -468,9 +467,7 @@ function ConfigModule:SetUpWindow(data)
 end
 
 -- Loads all config data from individual modules and places them as a graphical menu
-function ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
-    local id = 0;
-
+function C_ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
     data.menuButtons = {};
 
     -- contains all menu buttons in the left scroll frame of the main config window
@@ -481,12 +478,14 @@ function ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
 
         if (module.ConfigData) then
             local moduleName = module:GetModuleName();
-            id = id + 1;
-
             local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
-            data.menuButtons[id] = menuButton
+
             data.menuButtons[moduleName] = menuButton;
             menuButton.module = module;
+
+            table.insert(data.menuButtons, menuButton);
+            menuButton.id = module.ConfigData.id;
+            menuButton.name = module.ConfigData.name;
 
             menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
             menuButton.text:SetText(module.ConfigData.name);
@@ -507,23 +506,27 @@ function ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
             menuButton:SetHighlightTexture(highlight);
             menuButton:SetCheckedTexture(checked);
             menuButton:SetScript("OnClick", MenuButton_OnClick);
+        end
+    end
 
-            -- position menu button (and set active if it's the first menu button)
-            if (id == 1) then
-                -- first menu button (does not need to be anchored to a previous button)
-                menuButton:SetPoint("TOPLEFT", menuListScrollChild, "TOPLEFT");
-                menuButton:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT", -10, 0);
-                menuButton:SetChecked(true);
+    -- order and position buttons:
+    tk.Tables:OrderBy(data.menuButtons, "id", "name");
 
-                self:SetSelectedButton(menuButton);
-            else
-                local previousMenuButton = data.menuButtons[id - 1];
-                menuButton:SetPoint("TOPLEFT", previousMenuButton, "BOTTOMLEFT", 0, -5);
-                menuButton:SetPoint("TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
+    for id, btn in ipairs(data.menuButtons) do
+        if (id == 1) then
+            -- first menu button (does not need to be anchored to a previous button)
+            btn:SetPoint("TOPLEFT", menuListScrollChild, "TOPLEFT");
+            btn:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT", -10, 0);
+            btn:SetChecked(true);
 
-                -- make room for padding between buttons
-                menuListScrollChild:SetHeight(menuListScrollChild:GetHeight() + 5);
-            end
+            self:SetSelectedButton(btn);
+        else
+            local previousBtn = data.menuButtons[id - 1];
+            btn:SetPoint("TOPLEFT", previousBtn, "BOTTOMLEFT", 0, -5);
+            btn:SetPoint("TOPRIGHT", previousBtn, "BOTTOMRIGHT", 0, -5);
+
+            -- make room for padding between buttons
+            menuListScrollChild:SetHeight(menuListScrollChild:GetHeight() + 5);
         end
     end
 

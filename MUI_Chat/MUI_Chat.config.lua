@@ -71,7 +71,7 @@ db:AddToDefaults("global.chat", {
 
 --TODO
 function C_ChatModule:OnConfigUpdate(data, list, value)
-	local key = list:PopFront();
+    local key = list:PopFront();
 
     if (key == "profile" and list:PopFront() == "chat") then
 		key = list:PopFront();
@@ -199,7 +199,7 @@ end
 
 chatModule.ConfigData =
 {
-    name = "Chat",
+    name = "Chat Frames",
     type = "category",
     module = "Chat",
     children = {

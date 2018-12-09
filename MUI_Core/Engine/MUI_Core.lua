@@ -1,5 +1,4 @@
--- Setup  -----------------------------
-
+-- luacheck: ignore MayronUI LibStub self 143 631
 local addOnName, namespace = ...;
 
 namespace.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
@@ -17,9 +16,7 @@ local gui = namespace.GUIBuilder;
 local obj = namespace.Objects;
 local L = namespace.Locale;
 
-local commands = {};
 local registeredModules = {};
-local modulesInitialized = false;
 
 -- Objects  ---------------------------
 
@@ -33,7 +30,7 @@ db:AddToDefaults("global.core", {
     changeGameFont = true,
     font = "MUI_Font",
 	useLocalization = true,
-    addons = {    
+    addons = {
         {"Aura Frames", true, "AuraFrames"},
         {"Bartender4", true, "Bartender4"},
         {"Grid", true, "Grid"},
@@ -45,7 +42,8 @@ db:AddToDefaults("global.core", {
     }
 });
 
-local _, class = UnitClass("player");
+local _, class = _G.UnitClass("player");
+
 db:AddToDefaults("profile.theme", {
     color = {
         r = tk.Constants.CLASS_RGB_COLORS[class].r,
@@ -57,19 +55,19 @@ db:AddToDefaults("profile.theme", {
 
 -- Slash Commands ------------------
 
-commands = {
+local commands = {
     ["config"] = function()
-        if (not IsAddOnLoaded("MUI_Config")) then
-            EnableAddOn("MUI_Config");
+        if (not _G.IsAddOnLoaded("MUI_Config")) then
+            _G.EnableAddOn("MUI_Config");
 
-            if (not LoadAddOn("MUI_Config")) then
+            if (not _G.LoadAddOn("MUI_Config")) then
                 tk:Print(L["Failed to load MUI_Config. Possibly missing?"]);
                 return;
             end
         end
-            
-        local module = MayronUI:ImportModule("Config");  
-        
+
+        local module = MayronUI:ImportModule("Config");
+
         if (not module:IsInitialized()) then
             module:Initialize();
         end
@@ -77,10 +75,10 @@ commands = {
         module:Show();
 	end,
 	["install"] = function()
-        if (not IsAddOnLoaded("MUI_Setup")) then
-            EnableAddOn("MUI_Setup");
+        if (not _G.IsAddOnLoaded("MUI_Setup")) then
+            _G.EnableAddOn("MUI_Setup");
 
-            if (not LoadAddOn("MUI_Setup")) then
+            if (not _G.LoadAddOn("MUI_Setup")) then
                 tk:Print(L["Failed to load MUI_Setup. Possibly missing?"]);
                 return;
             end
@@ -103,7 +101,7 @@ Engine:DefineReturns("string", "?boolean");
 function BaseModule:__Construct(data, moduleName, initializeOnDemand)
     local registryInfo = registeredModules[moduleName];
     registeredModules[tostring(self)] = registryInfo;
-    
+
     registryInfo.moduleName = moduleName;
     registryInfo.initializeOnDemand = initializeOnDemand;
     registryInfo.initialized = false;
@@ -111,11 +109,11 @@ function BaseModule:__Construct(data, moduleName, initializeOnDemand)
     registryInfo.moduleData = data;
 end
 
-function BaseModule:Initialize(data, ...)    
+function BaseModule:Initialize(_, ...)
     if (self.OnInitialize) then
         self:OnInitialize(...);
     end
-    
+
     local registryInfo = registeredModules[tostring(self)];
     registryInfo.initialized = true;
 
@@ -128,17 +126,17 @@ function BaseModule:Initialize(data, ...)
 end
 
 Engine:DefineReturns("string");
-function BaseModule:GetModuleName(data)
+function BaseModule:GetModuleName(_)
     local registryInfo = registeredModules[tostring(self)];
     return registryInfo.moduleName;
 end
 
 Engine:DefineParams("boolean");
-function BaseModule:SetEnabled(data, enabled, ...)   
+function BaseModule:SetEnabled(data, enabled, ...)
     local registryInfo = registeredModules[tostring(self)];
     local hooks;
 
-    registryInfo.enabled = enabled;    
+    registryInfo.enabled = enabled;
 
     if (enabled) then
         if (self.OnEnable) then
@@ -162,25 +160,25 @@ function BaseModule:SetEnabled(data, enabled, ...)
 end
 
 Engine:DefineReturns("boolean");
-function BaseModule:IsInitialized(data)
+function BaseModule:IsInitialized()
     local registryInfo = registeredModules[tostring(self)];
     return registryInfo.initialized;
 end
 
 Engine:DefineReturns("boolean");
-function BaseModule:IsInitializedOnDemand(data)
+function BaseModule:IsInitializedOnDemand()
     local registryInfo = registeredModules[tostring(self)];
     return registryInfo.initializeOnDemand == true;
 end
 
 Engine:DefineReturns("boolean");
-function BaseModule:IsEnabled(data)
+function BaseModule:IsEnabled()
     local registryInfo = registeredModules[tostring(self)];
     return registryInfo.enabled;
 end
 
 -- Hook more functions to a module event. Useful if module is spread across multiple files
-function BaseModule:Hook(data, eventName, func)
+function BaseModule:Hook(_, eventName, func)
     local registryInfo = registeredModules[tostring(self)];
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
@@ -204,6 +202,10 @@ function MayronUI:PrintTable(tbl, depth)
     tk.Tables:Print(tbl, depth);
 end
 
+function MayronUI:Print(...)
+    tk:Print(...);
+end
+
 function MayronUI:IsInstalled()
 	return db.global.installed and db.global.installed[tk:GetPlayerKey()];
 end
@@ -224,7 +226,7 @@ function MayronUI:Hook(moduleName, eventName, func)
         -- addon is disabled so cannot hook
         return;
     end
-    
+
     registryInfo.hooks = registryInfo.hooks or {};
     registryInfo.hooks[eventName] = registryInfo.hooks[eventName] or {};
 
@@ -233,7 +235,7 @@ end
 
 function MayronUI:ImportModule(moduleName)
     local registryInfo = registeredModules[moduleName];
-    
+
     if (not registryInfo) then
         -- addon is disabled so cannot import module
         return nil;
@@ -242,7 +244,7 @@ function MayronUI:ImportModule(moduleName)
     return registryInfo and registryInfo.instance;
 end
 
--- @param (optional) initializeOnDemand - if true, must be initialized manually instead of 
+-- @param (optional) initializeOnDemand - if true, must be initialized manually instead of
 --   MayronUI automatically initializing module during PLAYER_ENTERING_WORLD event
 function MayronUI:RegisterModule(moduleName, initializeOnDemand)
     local ModuleClass = Engine:CreateClass(moduleName, BaseModule);
@@ -263,7 +265,7 @@ end
 
 function MayronUI:IterateModules()
     local id = 0;
-    
+
 	return function()
 		id = id + 1;
 		if (id <= #registeredModules) then
@@ -276,95 +278,94 @@ end
 
 local CoreModule = MayronUI:RegisterModule("Core");
 
-function CoreModule:OnInitialize(data)
-    for i = 1, NUM_CHAT_WINDOWS do
-        tk._G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
+function CoreModule:OnInitialize()
+    for i = 1, _G.NUM_CHAT_WINDOWS do
+        _G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
     end
 
-    tk._G["SLASH_MUI1"] = "/mui";
-	SlashCmdList.MUI = function(str)
+    _G["SLASH_MUI1"] = "/mui";
+	_G.SlashCmdList.MUI = function(str)
         local args = {};
-        
+
 		if (#str == 0) then
 			commands.help();
-			return;
+			return
         end
-        
-		for _, arg in ipairs({tk.string.split(' ', str)}) do
+
+		for _, arg in tk.Tables:IterateArgs(tk.string.split(' ', str)) do
 			if (#arg > 0) then
-                tk.table.insert(args, arg);
+                table.insert(args, arg);
 			end
         end
-        
+
         local path = commands;
-        
-		for id, arg in tk.ipairs(args) do
-            arg = tk.string.lower(arg);
-            
+
+		for id, arg in ipairs(args) do
+            arg = string.lower(arg);
+
 			if (path[arg]) then
-				if (tk.type(path[arg]) == "function") then
-					path[arg](tk.select(id + 1, tk.unpack(args)));
-                    return;
-                    
-				elseif (tk.type(path[arg]) == "table") then
+				if (type(path[arg]) == "function") then
+					path[arg](select(id + 1, tk.unpack(args)));
+                    return
+
+				elseif (type(path[arg]) == "table") then
                     path = path[arg];
-                    
+
 				else
 					commands.help();
-                    return;
-                    
-				end
+                    return
+
+                end
 			else
 				commands.help();
-                return;                
+                return
 			end
 		end
     end
-    
-    tk:Print(L["Welcome back"], UnitName("player").."!");
+
+    tk:Print(L["Welcome back"], _G.UnitName("player").."!");
 end
 
 local function PositionRecountWindow()
     if (db.global.reanchor) then
-        Recount_MainWindow:ClearAllPoints();
-        Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
-        Recount_MainWindow:SaveMainWindowPosition();
+        _G.Recount_MainWindow:ClearAllPoints();
+        _G.Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
+        _G.Recount_MainWindow:SaveMainWindowPosition();
 
         db.global.reanchor = nil;
     end
 
     -- Reskin Recount Window
-    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", Recount_MainWindow);
+    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", _G.Recount_MainWindow);
 
-    Recount_MainWindow:SetClampedToScreen(true);
-    Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
-    Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);    
+    _G.Recount_MainWindow:SetClampedToScreen(true);
+    _G.Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
+    _G.Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);
 end
 
 -- Initialize Modules after player enters world (not when DB starts!).
 -- Some dependencies, like Bartender, only load after this event.
 em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
-    
-    FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);    
+
+    _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
 
     if (not MayronUI:IsInstalled()) then
         MayronUI:TriggerCommand("install");
 		return;
     end
 
-    for id, module in MayronUI:IterateModules() do
+    for _, module in MayronUI:IterateModules() do
         local initializeOnDemand = module:IsInitializedOnDemand();
 
         if (not initializeOnDemand) then
             -- initialize a module if not set for manual initialization
             module:Initialize();
-        end            
-    end  
+        end
+    end
 
     -- TODO: This should be it's own Module
     namespace:SetupOrderHallBar();
 
-    MayronUI.ModulesInitialized = true;
     tk.collectgarbage("collect");
 end):SetAutoDestroy(true);
 

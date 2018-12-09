@@ -1,11 +1,12 @@
 -- luacheck: ignore MayronUI self
 
 local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
-local configModule = MayronUI:ImportModule("Config");
+local C_ConfigModule = MayronUI:ImportModule("Config");
 
-configModule.ConfigData =
+C_ConfigModule.ConfigData =
 {
     name = L["General"],
+    id = 1,
     type = "category",
     children = {
         {   name = L["Enable Master Font"],

@@ -11,9 +11,11 @@ local LinkedList = obj:Import("Framework.System.Collections.LinkedList");
 
 function tk.Tables:GetKeys(tbl, keys)
     keys = keys or {};
+
     for key, _ in tk.pairs(tbl) do
         tk.table.insert(keys, key);
     end
+
     return keys;
 end
 
@@ -102,8 +104,14 @@ function tk.Tables:GetFullSize(tbl)
     return size;
 end
 
+function tk.Tables:AddAll(tbl, ...)
+    for _, value in self:IterateArgs(...) do
+        table.insert(tbl, value);
+    end
+end
+
 function tk.Tables:Empty(tbl)
-    for key, _ in tk.pairs(tbl) do
+    for key, _ in pairs(tbl) do
         tbl[key] = nil;
     end
 end
@@ -169,19 +177,6 @@ function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
     end
 
     return totalRemoved;
-end
-
-function tk.Tables:AddAll(tbl, ...)
-    for _, value in self:IterateArgs(...) do
-        table.insert(tbl, value);
-    end
-end
-
-function tk.Tables:Fill(tbl, ...)
-    for key, value in self:IterateArgs(...) do
-        -- also includes indexes, so key could be a number
-        tbl[key] = value;
-    end
 end
 
 function tk.Tables:Merge(...)
@@ -327,8 +322,8 @@ do
                 totalConsecutiveNils = 0;
             end
 
-        -- repeat until we are comfortable that all arguments have been captured
-        -- should not have a function call containing more than 10 consecutive nil args
+        -- repeat until we are comfortable that all arguments have been captured.
+        -- should not have a function call containing more than 10 consecutive nil args!
         until (totalConsecutiveNils > 10);
 
         return wrapper;
@@ -350,5 +345,35 @@ do
     function tk.Tables:IterateArgs(...)
         local wrapper = self:PopWrapper(...);
         return iterator, wrapper, 0;
+    end
+end
+
+do
+    local orderByKeys;
+
+    local function compare(previous, current)
+
+        for _, key in ipairs(orderByKeys) do
+
+            if (current[key]) then
+
+                if (previous[key]) then
+                    return previous[key] < current[key];
+                else
+                    return false;
+                end
+
+            elseif (previous[key]) then
+                return true;
+            end
+        end
+
+        return false;
+    end
+
+    function tk.Tables:OrderBy(tbl, ...)
+        orderByKeys = self:PopWrapper(...);
+        table.sort(tbl, compare);
+        self:PushWrapper(orderByKeys);
     end
 end
