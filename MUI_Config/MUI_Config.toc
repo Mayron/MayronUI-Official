@@ -1,8 +1,0 @@
-## Interface: 80000
-## Title: |cff00ccffMUI|r Config
-## Dependencies: MUI_Core
-## LoadOnDemand: 1
-
-MUI_Config.lua
-MUI_Config.config.lua
-Widgets.lua
