@@ -10,4 +10,4 @@ MuiChatFrame.lua
 RaidFrameManager.lua
 LayoutSwitcher.lua
 
-ConfigData.lua
+MUI_Chat.config.lua
