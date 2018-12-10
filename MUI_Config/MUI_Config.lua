@@ -6,7 +6,7 @@ local MENU_BUTTON_HEIGHT = 40;
 
 -- Registers and Imports -------------
 
-local LinkedListClass = obj:Import("Framework.System.Collections.LinkedList");
+local C_LinkedList = obj:Import("Framework.System.Collections.LinkedList");
 local Engine = obj:Import("MayronUI.Engine");
 local C_ConfigModule = MayronUI:RegisterModule("Config");
 
@@ -139,17 +139,15 @@ end
 
 Engine:DefineParams("string", "?Button");
 function C_ConfigModule:OpenMenu(data, moduleName, subMenuButton)
-    local menuButton;
+    local menuButton = subMenuButton;
 
-    if (not subMenuButton) then
+    if (not menuButton) then
         menuButton = data.menuButtons[moduleName];
 
         data.history:Clear();
         data.windowName:SetText(tk.Strings.Empty);
         data.window.back:SetEnabled(false);
     else
-        menuButton = subMenuButton;
-
         data.history:AddToBack(data.selectedButton);
         data.windowName:SetText(subMenuButton.text:GetText());
         data.window.back:SetEnabled(true);
@@ -232,7 +230,7 @@ function C_ConfigModule:CreateMenu(data)
 
     -- add graphical dialog box to dynamic frame:
     gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "Low", menuScrollFrame);
-    menuScrollFrame:SetAllPoints(true); -- TODO is this needed?
+    menuScrollFrame:SetAllPoints(true);
 
     return menu;
 end
@@ -340,10 +338,9 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable)
         widget:SetScript("OnLeave", ToolTip_OnLeave);
     end
 
-    -- if (widgetConfigTable.disabled) then
-    --     -- why? does this not still need to be added?
-    --     return;
-    -- end
+    if (widgetConfigTable.disabled) then
+        return;
+    end
 
     -- setup complete, so run the OnLoad callback if one exists
     if (widgetConfigTable.OnLoad) then
@@ -359,7 +356,7 @@ function C_ConfigModule:SetUpWindow(data)
         return
     end
 
-    data.history = LinkedListClass();
+    data.history = C_LinkedList();
 
     data.window = gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, nil, "MUI_Config");
     data.window:SetFrameStrata("DIALOG");
@@ -380,6 +377,7 @@ function C_ConfigModule:SetUpWindow(data)
     data.window:GetColumn(1):SetFixed(200);
     data.window:GetRow(1):SetFixed(80);
     data.window:GetRow(3):SetFixed(50);
+
     data.window:SetScript("OnShow", function()
         -- fade in when shown
         _G.UIFrameFadeIn(data.window, 0.3, 0, 1);
@@ -441,23 +439,40 @@ function C_ConfigModule:SetUpWindow(data)
     tk:ApplyThemeColor(data.window.back.arrow);
     data.window.back:SetEnabled(false);
 
-    data.window.profiles = gui:CreateButton(
-        tk.Constants.AddOnStyle, topbar:GetFrame(), L["Reload UI"]);
+    -- profiles button
+    data.window.profilesBtn = gui:CreateButton(
+        tk.Constants.AddOnStyle, topbar:GetFrame(), "Profiles");
 
-    data.window.profiles:SetPoint("RIGHT", topbar:GetFrame(), "RIGHT");
-    data.window.profiles:SetScript("OnClick", function()
-        _G.ReloadUI();
+    data.window.profilesBtn:SetPoint("RIGHT", topbar:GetFrame(), "RIGHT");
+    data.window.profilesBtn:SetWidth(120);
+
+    data.window.profilesBtn:SetScript("OnClick", function()
+        self:ShowProfileManager();
         tk.PlaySound(tk.Constants.CLICK);
     end);
 
-    data.window.installer = gui:CreateButton(
-        tk.Constants.AddOnStyle, topbar:GetFrame(), L["MUI Installer"]);
+    -- installer buttons
+    data.window.installerBtn = gui:CreateButton(
+        tk.Constants.AddOnStyle, topbar:GetFrame(), "Installer");
 
-    data.window.installer:SetPoint("RIGHT", data.window.profiles, "LEFT", -10, 0);
+    data.window.installerBtn:SetPoint("RIGHT", data.window.profilesBtn, "LEFT", -10, 0);
+    data.window.installerBtn:SetWidth(120);
 
-    data.window.installer:SetScript("OnClick", function()
+    data.window.installerBtn:SetScript("OnClick", function()
         MayronUI:TriggerCommand("install");
         data.window:Hide();
+        tk.PlaySound(tk.Constants.CLICK);
+    end);
+
+    -- reload button
+    data.window.reloadBtn = gui:CreateButton(
+        tk.Constants.AddOnStyle, topbar:GetFrame(), L["Reload UI"]);
+
+    data.window.reloadBtn:SetPoint("RIGHT", data.window.installerBtn, "LEFT", -10, 0);
+    data.window.reloadBtn:SetWidth(120);
+
+    data.window.reloadBtn:SetScript("OnClick", function()
+        _G.ReloadUI();
         tk.PlaySound(tk.Constants.CLICK);
     end);
 

@@ -543,9 +543,11 @@ function C_TimerField:OnEvent(data, frame, event)
     end
 
     if (event == "COMBAT_LOG_EVENT_UNFILTERED") then
-        local payload = tk.Tables:PopWrapper(_G.CombatLogGetCurrentEventInfo());
 
-        if (event == "SPELL_AURA_APPLIED" or event == "SPELL_AURA_REFRESH" or event == "SPELL_CAST_SUCCESS") then
+        local payload = tk.Tables:PopWrapper(_G.CombatLogGetCurrentEventInfo());
+        local _, subEvent = _G.unpack(payload);
+
+        if (subEvent == "SPELL_AURA_APPLIED" or subEvent == "SPELL_AURA_REFRESH" or subEvent == "SPELL_CAST_SUCCESS") then
             local spellId, auraName, _, spellType = select(12, _G.unpack(payload));
 
             if (spellType == "BUFF") then
@@ -567,7 +569,7 @@ function C_TimerField:OnEvent(data, frame, event)
 				end
             end
 
-		elseif (event == "SPELL_AURA_APPLIED_DOSE") then
+		elseif (subEvent == "SPELL_AURA_APPLIED_DOSE") then
             local spellId, _, _, spellType = tk.select(12, _G.unpack(payload));
 
 			if (spellType == "BUFF") then
@@ -579,7 +581,7 @@ function C_TimerField:OnEvent(data, frame, event)
                 self:AddDebuff(debuffIndex);
             end
 
-        elseif (event == "SPELL_AURA_REMOVED") then
+        elseif (subEvent == "SPELL_AURA_REMOVED") then
             if (not _G.UnitExists(data.unit)) then
                 return;
             end
