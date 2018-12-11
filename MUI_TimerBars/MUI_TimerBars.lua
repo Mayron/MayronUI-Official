@@ -124,7 +124,7 @@ local function GetAuraIndexByName(auraName, unitName, unitAuraFunc)
     end
 
     for i = 1, 40 do
-        local debuffName = _G.UnitDebuff(unitName, i);
+        local debuffName = unitAuraFunc(unitName, i);
 
         if (not debuffName) then
             return 0;

@@ -418,7 +418,7 @@ function WidgetHandlers.fontstring:Run(parent, widgetConfigTable)
         container:SetWidth(widgetConfigTable.width);
 
     else
-        container:SetWidth(container.content:GetStringWidth() + 20);
+        container:SetWidth(container.content:GetStringWidth());
     end
 
     return container;
