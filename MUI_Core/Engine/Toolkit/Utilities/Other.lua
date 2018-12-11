@@ -189,6 +189,9 @@ function tk:Assert(condition, errorMessage, ...)
 
     if ((select(1, ...)) ~= nil) then
         errorMessage = string.format(errorMessage, ...);
+
+    elseif (tk.Strings:Contains(errorMessage, "%s")) then
+        errorMessage = string.format(errorMessage, "nil");
     end
 
     local fullError = tk.Strings:Join(tk.Strings.Empty, errorInfo.PREFIX, errorMessage);
@@ -203,4 +206,154 @@ end
 
 function tk:Error(errorMessage, ...)
     self:Assert(false, errorMessage, ...);
+end
+
+do
+    local POPUP_GLOBAL_NAME = "MUI_TOOLKIT_POPUP";
+
+    local function EditBox_OnEscapePressed(self)
+        local onCancel = self.popup.data.OnCancel;
+
+        if (onCancel) then
+            onCancel(self);
+        end
+
+        _G.StaticPopup_Hide(POPUP_GLOBAL_NAME);
+    end
+
+    local function EditBox_OnEnterPressed(self)
+        local validator = self.popup.data.OnValidate;
+        local onAccept = self.popup.data.OnAccept;
+
+        if (validator and not validator(self, self:GetText())) then
+            return;
+        end
+
+        if (onAccept) then
+            onAccept(self);
+        end
+
+        _G.StaticPopup_Hide(POPUP_GLOBAL_NAME);
+    end
+
+    local function EditBox_OnTextChanged(self, userInput)
+        local validator = self.popup.data.OnValidate;
+
+        if (not userInput or not validator) then
+            return;
+        end
+
+        local isValid = validator(self, self:GetText());
+        self.popup.button1:SetEnabled(isValid);
+    end
+
+    local function PopUp_OnShow(self)
+        -- if (not self.reskinned) then
+        --     tk:Reskin()
+        -- end
+
+        if (self.button1) then
+            self.button1:Enable();
+        end
+
+        if (self.button2) then
+            self.button2:Enable();
+        end
+
+        if (not self.editBox) then
+            return;
+        end
+
+        self.editBox.popup = self; -- refer back to popup in scripts below
+
+        if (self.data.editBoxText) then
+            self.editBox:SetText(self.data.editBoxText);
+            self.editBox:HighlightText();
+        end
+
+        self.editBox:SetFocus();
+
+        self.editBox:SetScript("OnEscapePressed", EditBox_OnEscapePressed);
+        self.editBox:SetScript("OnEnterPressed", EditBox_OnEnterPressed);
+        self.editBox:SetScript("OnTextChanged", EditBox_OnTextChanged);
+
+        EditBox_OnTextChanged(self.editBox, true); -- call it OnShow to enable/disable confirm button
+    end
+
+    local function GetPopup(message, subMessage)
+        local popup = _G.StaticPopupDialogs[POPUP_GLOBAL_NAME];
+
+        if (not popup) then
+            popup = {
+                preferredIndex = 3;
+                timeout = 0;
+                whileDead = 1;
+                hideOnEscape = 1;
+                maxLetters = 1024;
+                OnShow = PopUp_OnShow;
+                closeButton = true;
+                data = {};
+            };
+
+            _G.StaticPopupDialogs[POPUP_GLOBAL_NAME] = popup;
+        end
+
+        popup.text = message;
+        popup.subText = subMessage;
+
+        return popup;
+    end
+
+    function tk:ShowConfirmPopup(message, subMessage, onConfirm, confirmText, onCancel, cancelText, isWarning)
+        local popup = GetPopup(message, subMessage);
+
+        popup.hasEditBox = false;
+        popup.button1 = confirmText or "Confirm";
+        popup.button2 = cancelText or "Cancel";
+        popup.OnAccept = onConfirm;
+        popup.OnCancel = onCancel;
+
+        if (isWarning) then
+            popup.showAlert = true;
+        end
+
+        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+    end
+
+    function tk:ShowMessagePopup(message, subMessage, okayText, onOkay, isWarning)
+        local popup = GetPopup(message, subMessage);
+
+        popup.button1 = okayText or "Okay";
+        popup.button2 = nil;
+        popup.OnAccept = onOkay;
+        popup.OnCancel = nil;
+        popup.hasEditBox = false;
+
+        if (isWarning) then
+            popup.showAlert = true;
+        end
+
+        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+    end
+
+    function tk:ShowInputPopup(message, subMessage, editBoxText, onValidate, confirmText, onConfirm, cancelText, onCancel, isWarning)
+        local popup = GetPopup(message, subMessage);
+
+        popup.button1 = confirmText or "Confirm";
+        popup.button2 = cancelText or "Cancel";
+        popup.OnAccept = onConfirm;
+        popup.OnCancel = onCancel;
+        popup.hasEditBox = true;
+
+        if (isWarning) then
+            popup.showAlert = true;
+        end
+
+        popup.data.editBoxText = editBoxText;
+        popup.data.OnValidate = onValidate;
+        popup.data.OnAccept = onConfirm;
+        popup.data.OnCancel = onCancel;
+
+        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+    end
 end

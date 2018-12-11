@@ -83,7 +83,7 @@ function C_DataTextModule:OnConfigUpdate(data, list, value)
 end
 
 
-dataTextModule.ConfigData =
+dataTextModule.ConfigTable =
 {
     name = L["Data Text"],
     type = "menu",

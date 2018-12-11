@@ -1,11 +1,44 @@
 --luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
-local tk, _, _, gui = MayronUI:GetCoreComponents();
+local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 
+local C_ConfigModule = namespace.C_ConfigModule;
 local configModule = MayronUI:ImportModule("Config");
+local Engine = obj:Import("MayronUI.Engine");
 
 local WidgetHandlers = {};
 namespace.WidgetHandlers = WidgetHandlers;
+
+-- create container to wrap around a child element
+Engine:DefineParams("table", "table");
+function C_ConfigModule:CreateElementContainerFrame(_, widget, childData, parent)
+    local container = tk:PopFrame("Frame", parent);
+
+    container:SetSize(childData.width or widget:GetWidth(), childData.height or widget:GetHeight());
+    container.widget = widget;
+
+    widget:SetParent(container);
+
+    if (childData.name and tk:ValueIsEither(childData.type, "slider", "dropdown", "textfield")) then
+
+        container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+        container.name:SetPoint("TOPLEFT", 0, 0);
+        container.name:SetText(childData.name);
+
+        container:SetHeight(container:GetHeight() + container.name:GetStringHeight() + 5);
+
+        widget:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -5);
+
+        if (childData.type == "slider") then
+            container.name:SetPoint("TOPLEFT", 10, -5);
+            container:SetWidth(container:GetWidth() + 20);
+        end
+    else
+        widget:SetPoint("LEFT");
+    end
+
+    return container;
+end
 
 --------------
 -- Sub Menu
@@ -13,7 +46,7 @@ namespace.WidgetHandlers = WidgetHandlers;
 WidgetHandlers.submenu = {};
 
 function WidgetHandlers.submenu:Run(parent, submenuConfigTable)
-    local btn = tk.CreateFrame("Button", nil, parent);
+    local btn = tk:PopFrame("Button", parent);
     btn:SetSize(250, 60);
 
     btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -32,10 +65,11 @@ function WidgetHandlers.submenu:Run(parent, submenuConfigTable)
     btn:SetNormalTexture(btn.normal);
     btn:SetHighlightTexture(btn.highlight);
 
-    btn.configTable = submenuConfigTable;
-    btn.moduleName = submenuConfigTable.module;
+    btn.ConfigTable = submenuConfigTable;
+    btn.type = "submenu";
+    btn.name = submenuConfigTable.name;
 
-    btn:SetScript("OnClick", namespace.SubMenuButton_OnClick);
+    btn:SetScript("OnClick", namespace.MenuButton_OnClick);
 
     return btn;
 end
@@ -76,8 +110,8 @@ end
 ------------------
 WidgetHandlers.check = {};
 
-function WidgetHandlers.check:Run(data, widgetConfigTable, value)
-    local cb = gui:CreateCheckButton(data.parent, widgetConfigTable.name,
+function WidgetHandlers.check:Run(parent, widgetConfigTable, value)
+    local cb = gui:CreateCheckButton(parent, widgetConfigTable.name,
         widgetConfigTable.type == "radio", widgetConfigTable.tooltip);
 
     cb.btn:SetChecked(value);
@@ -103,18 +137,24 @@ WidgetHandlers.title = {};
 
 function WidgetHandlers.title:Run(parent, widgetConfigTable)
     local height = 20 + (widgetConfigTable.paddingTop or 10) + (widgetConfigTable.paddingBottom or 10);
-    local f = tk:PopFrame("Frame", parent);
+    local container = tk:PopFrame("Frame", parent);
 
-    f.text = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    f.text:SetText(widgetConfigTable.name);
-    f:SetHeight(f.text:GetStringHeight() + height);
+    container.text = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    container.text:SetText(widgetConfigTable.name);
+    container:SetHeight(container.text:GetStringHeight() + height);
 
-    local bg = tk:SetBackground(f, 0, 0, 0, 0.2);
+    if (widgetConfigTable.width) then
+        container:SetWidth(widgetConfigTable.width);
+    else
+        tk:SetFullWidth(container, 10);
+    end
+
+    local bg = tk:SetBackground(container, 0, 0, 0, 0.2);
     bg:SetPoint("TOPLEFT", 0, -(widgetConfigTable.paddingTop or 10));
     bg:SetPoint("BOTTOMRIGHT", 0, (widgetConfigTable.paddingBottom or 10));
-    f.text:SetAllPoints(bg);
+    container.text:SetAllPoints(bg);
 
-    return f;
+    return container;
 end
 
 --------------
@@ -122,8 +162,8 @@ end
 --------------
 WidgetHandlers.slider = {};
 
-function WidgetHandlers.slider:Run(data, widgetConfigTable, value)
-    local slider = tk.CreateFrame("Slider", nil, data.parent, "OptionsSliderTemplate");
+function WidgetHandlers.slider:Run(parent, widgetConfigTable, value)
+    local slider = tk.CreateFrame("Slider", nil, parent, "OptionsSliderTemplate");
     slider.tooltipText = widgetConfigTable.tooltip;
     slider:SetMinMaxValues(widgetConfigTable.min, widgetConfigTable.max);
     slider:SetValueStep(widgetConfigTable.step);
@@ -148,7 +188,7 @@ function WidgetHandlers.slider:Run(data, widgetConfigTable, value)
         configModule:SetDatabaseValue(self, widgetConfigTable, sliderValue);
     end);
 
-    slider = configModule:CreateElementContainerFrame(slider, widgetConfigTable);
+    slider = configModule:CreateElementContainerFrame(slider, widgetConfigTable, parent);
     slider:SetHeight(slider:GetHeight() + 5); -- make room for value text
     return slider;
 end
@@ -158,9 +198,12 @@ end
 --------------
 WidgetHandlers.divider = {};
 
-function WidgetHandlers.divider:Run(_, widgetConfigTable)
-    local divider = tk:PopFrame("Frame");
+function WidgetHandlers.divider:Run(parent, widgetConfigTable)
+    local divider = tk:PopFrame("Frame", parent);
     divider:SetHeight(widgetConfigTable.height or 1);
+
+    tk:SetFullWidth(divider, 10);
+
     return divider;
 end
 
@@ -173,8 +216,8 @@ end
 
 WidgetHandlers.dropdown = {};
 
-function WidgetHandlers.dropdown:Run(data, widgetConfigTable, value)
-    local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, data.parent);
+function WidgetHandlers.dropdown:Run(parent, widgetConfigTable, value)
+    local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
     local options = widgetConfigTable.options or widgetConfigTable:GetOptions();
 
     for key, dropDownValue in pairs(options) do
@@ -187,7 +230,7 @@ function WidgetHandlers.dropdown:Run(data, widgetConfigTable, value)
 
     dropdown:SetLabel(value, widgetConfigTable.tooltip);
 
-    return configModule:CreateElementContainerFrame(dropdown, widgetConfigTable);
+    return configModule:CreateElementContainerFrame(dropdown, widgetConfigTable, parent);
 end
 
 --------------
@@ -195,8 +238,9 @@ end
 --------------
 WidgetHandlers.button = {};
 
-function WidgetHandlers.button:Run(_, widgetConfigTable)
-    local button = gui:CreateButton(tk.Constants.AddOnStyle, nil, widgetConfigTable.name);
+function WidgetHandlers.button:Run(parent, widgetConfigTable)
+    local button = gui:CreateButton(tk.Constants.AddOnStyle, parent,
+        widgetConfigTable.name, nil, widgetConfigTable.tooltip);
 
     if (widgetConfigTable.width) then
         button:SetWidth(widgetConfigTable.width);
@@ -218,19 +262,22 @@ end
 -----------------
 WidgetHandlers.frame = {};
 
-function WidgetHandlers.frame:Run(_, widgetConfigTable)
-    local frame = widgetConfigTable.frame or widgetConfigTable:GetFrame();
+function WidgetHandlers.frame:Run(parent, widgetConfigTable)
+    local frame;
+
+    if (widgetConfigTable.GetFrame) then
+        frame = widgetConfigTable:GetFrame();
+    else
+        frame = widgetConfigTable.frame or tk:PopFrame("Frame", parent);
+    end
 
     if (widgetConfigTable.width) then
         frame:SetWidth(widgetConfigTable.width);
     else
-        tk:SetFullWidth(frame, 10);
+        tk:SetFullWidth(frame, 20);
     end
 
-    if (widgetConfigTable.height) then
-        frame:SetHeight(widgetConfigTable.height);
-    end
-
+    frame:SetHeight(widgetConfigTable.height or 60);
     tk:SetBackground(frame, 0, 0, 0, 0.2);
 
     return frame;
@@ -256,12 +303,16 @@ local function ShowColorPicker(r, g, b, a, changedCallback)
     _G.ColorPickerFrame:Show();
 end
 
-function WidgetHandlers.color:Run(data, widgetConfigTable, value)
-    local container = tk.CreateFrame("Button");
+function WidgetHandlers.color:Run(parent, widgetConfigTable, value)
+    local container = tk:PopFrame("Button", parent);
+
     container.name = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
     container.name:SetText(widgetConfigTable.name);
-    container:SetSize(widgetConfigTable.width or (container.name:GetStringWidth() + 44), widgetConfigTable.height or 30);
     container.name:SetJustifyH("LEFT");
+
+    container:SetSize(
+        widgetConfigTable.width or (container.name:GetStringWidth() + 44),
+        widgetConfigTable.height or 30);
 
     container.square = container:CreateTexture(nil, "BACKGROUND");
     container.square:SetSize(30, 30);
@@ -299,12 +350,6 @@ function WidgetHandlers.color:Run(data, widgetConfigTable, value)
         ShowColorPicker(refreshedValue.r, refreshedValue.g, refreshedValue.b, a, container.func);
     end);
 
-    if (widgetConfigTable.tooltip) then
-        container.tooltip = widgetConfigTable.tooltip;
-        container:SetScript("OnEnter", data.ToolTip_OnEnter);
-        container:SetScript("OnLeave", data.ToolTip_OnLeave);
-    end
-
     container.square:SetPoint("LEFT");
     container.color:SetPoint("CENTER", container.square, "CENTER");
     container.name:SetPoint("LEFT", container.square, "RIGHT", 4, 0);
@@ -316,8 +361,8 @@ end
 ---------------
 WidgetHandlers.textfield = {};
 
-function WidgetHandlers.textfield:Run(_, widgetConfigTable, value)
-    local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetConfigTable.tooltip);
+function WidgetHandlers.textfield:Run(parent, widgetConfigTable, value)
+    local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetConfigTable.tooltip, parent);
     textField:SetText(value or "");
     textField:SetSize(widgetConfigTable.width or 150, widgetConfigTable.height or 26);
 
@@ -336,7 +381,7 @@ function WidgetHandlers.textfield:Run(_, widgetConfigTable, value)
         end
     end);
 
-    return configModule:CreateElementContainerFrame(textField, widgetConfigTable);
+    return configModule:CreateElementContainerFrame(textField, widgetConfigTable, parent);
 end
 
 ----------------
@@ -344,23 +389,37 @@ end
 ----------------
 WidgetHandlers.fontstring = {};
 
-function WidgetHandlers.fontstring:Run(_, widgetConfigTable)
-    local divider = tk:PopFrame("Frame");
+function WidgetHandlers.fontstring:Run(parent, widgetConfigTable)
+    local container = tk:PopFrame("Frame", parent);
 
-    divider.content = divider:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
-    divider.content:SetAllPoints(true);
-    divider.content:SetJustifyH("LEFT");
-    divider.content:SetWordWrap(true);
+    container.content = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
+    container.content:SetAllPoints(true);
+    container.content:SetWordWrap(true);
+
+    if (widgetConfigTable.justify) then
+        container.content:SetJustifyH(widgetConfigTable.justify);
+    else
+        container.content:SetJustifyH("LEFT");
+    end
 
     if (widgetConfigTable.subtype) then
         if (widgetConfigTable.subtype == "header") then
-            divider.content:SetFontObject("MUI_FontLarge");
+            container.content:SetFontObject("MUI_FontLarge");
         end
     end
 
-    -- content??
-    divider.content:SetText(widgetConfigTable.content);
-    divider:SetHeight(widgetConfigTable.height or divider.content:GetStringHeight() + 16);
+    container:SetHeight(widgetConfigTable.height or 30);
+    container.content:SetText(widgetConfigTable.content);
 
-    return divider;
+    if (widgetConfigTable.fullWidth) then
+        tk:SetFullWidth(container, 10);
+
+    elseif (widgetConfigTable.width) then
+        container:SetWidth(widgetConfigTable.width);
+
+    else
+        container:SetWidth(container.content:GetStringWidth() + 20);
+    end
+
+    return container;
 end

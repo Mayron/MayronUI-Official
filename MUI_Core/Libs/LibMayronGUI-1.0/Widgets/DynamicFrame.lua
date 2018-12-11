@@ -79,8 +79,8 @@ function Lib:CreateDynamicFrame(style, parent, spacing, padding)
     local scroller, scrollChild = Lib:CreateScrollFrame(style, parent, nil, padding);
 
     scroller:HookScript("OnSizeChanged", OnSizeChanged);
-    scroller.spacing = spacing or 4;
-    scroller.padding = padding or 4;
+    scroller.spacing = spacing or 4; -- the spacing around each inner element
+    scroller.padding = padding or 4; -- the padding around the entire container (which holds all the elements)
 
     return DynamicFrame(scrollChild, scroller);
 end

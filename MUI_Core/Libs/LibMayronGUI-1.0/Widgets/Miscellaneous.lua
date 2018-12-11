@@ -91,16 +91,23 @@ function Lib:CreatePopupDialog(name, text, hasEditBox, OnAccept)
     end
 end
 
-function Lib:CreateButton(style, parent, text, button)
+function Lib:CreateButton(style, parent, text, button, tooltip)
     local r, g, b = style:GetColor();
     local backgroundTexture = style:GetTexture("ButtonTexture");
 
     button = button or _G.CreateFrame("Button", nil, parent);
     button:SetSize(150, 30);
     button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
+    button:SetBackdropBorderColor(r, g, b, 0.7);
 
     if (text) then
         button:SetText(text);
+    end
+
+    if (tooltip) then
+        button.tooltip = tooltip;
+        button:SetScript("OnEnter", OnEnter);
+        button:SetScript("OnLeave", OnLeave);
     end
 
     local normal = Private:SetBackground(button, backgroundTexture);

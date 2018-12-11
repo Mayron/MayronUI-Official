@@ -295,6 +295,7 @@ do
         if (#wrappers > 0) then
             wrapper = wrappers[#wrappers];
             wrappers[#wrappers] = nil;
+            wrappers[tostring(wrapper)] = nil;
 
             -- empty table (incase tk.Tables:UnpackWrapper was used)
             for key, _ in pairs(wrapper) do
@@ -334,11 +335,18 @@ do
             wrapper[key] = nil;
         end
 
-        wrappers[#wrappers + 1] = wrapper;
+        if (not wrappers[tostring(wrapper)]) then
+            wrappers[#wrappers + 1] = wrapper;
+            wrappers[tostring(wrapper)] = true;
+        end
     end
 
     function tk.Tables:UnpackWrapper(wrapper)
-        wrappers[#wrappers + 1] = wrapper;
+        if (not wrappers[tostring(wrapper)]) then
+            wrappers[#wrappers + 1] = wrapper;
+            wrappers[tostring(wrapper)] = true;
+        end
+
         return _G.unpack(wrapper);
     end
 

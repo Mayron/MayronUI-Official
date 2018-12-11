@@ -75,7 +75,7 @@ local function UnlockCastBar(button, data)
     end
 end
 
-castBarsModule.ConfigData =
+castBarsModule.ConfigTable =
 {
     name = "Cast Bars",
     type = "category",

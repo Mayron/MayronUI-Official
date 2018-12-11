@@ -25,38 +25,31 @@ local function ToolTip_OnLeave()
 end
 
 local function MenuButton_OnClick(menuButton)
-    if (not menuButton:GetChecked()) then
+    if (menuButton:IsObjectType("CheckButton") and not menuButton:GetChecked()) then
         -- should not be allowed to uncheck a menu button by clicking it a second time!
         menuButton:SetChecked(true);
         return;
     end
 
     local configModule = MayronUI:ImportModule("Config");
-    configModule:OpenMenu(menuButton.module:GetModuleName());
+    configModule:OpenMenu(menuButton);
 end
 
-local function SubMenuButton_OnClick(subMenuButton)
-    local configModule = MayronUI:ImportModule("Config");
-    configModule:OpenMenu(subMenuButton.moduleName, subMenuButton);
-end
-
-namespace.SubMenuButton_OnClick = SubMenuButton_OnClick;
+namespace.MenuButton_OnClick = MenuButton_OnClick;
 
 -- C_ConfigModule -------------------
 
-function C_ConfigModule:OnInitialize(data)
+function C_ConfigModule:OnInitialize()
     if (not MayronUI:IsInstalled()) then
         tk:Print("Please install the UI and try again.");
         return;
     end
-
-    data.configData = {};
 end
 
 function C_ConfigModule:Show(data)
     if (not data.window) then
         local menuListScrollChild = self:SetUpWindow();
-        self:SetUpMenuButtons(menuListScrollChild);
+        self:SetUpSideMenu(menuListScrollChild);
     end
 
     data.window:Show();
@@ -137,20 +130,19 @@ function C_ConfigModule:SetDatabaseValue(data, widget, widgetConfigTable, value)
     module:OnConfigUpdate(list, value);
 end
 
-Engine:DefineParams("string", "?Button");
-function C_ConfigModule:OpenMenu(data, moduleName, subMenuButton)
-    local menuButton = subMenuButton;
+Engine:DefineParams("CheckButton|Button");
+function C_ConfigModule:OpenMenu(data, menuButton)
 
-    if (not menuButton) then
-        menuButton = data.menuButtons[moduleName];
-
+    if (menuButton.type == "menu") then
         data.history:Clear();
-        data.windowName:SetText(tk.Strings.Empty);
         data.window.back:SetEnabled(false);
-    else
+
+    elseif (menuButton.type == "submenu") then
         data.history:AddToBack(data.selectedButton);
-        data.windowName:SetText(subMenuButton.text:GetText());
         data.window.back:SetEnabled(true);
+
+    else
+        tk:Error("Menu or Sub-Menu expected, got '%s'.", menuButton.type);
     end
 
     self:SetSelectedButton(menuButton);
@@ -167,21 +159,24 @@ function C_ConfigModule:SetSelectedButton(data, menuButton)
     menuButton.menu = menuButton.menu or self:CreateMenu();
     data.selectedButton = menuButton;
 
-    if (menuButton.module and menuButton.module.ConfigData) then
-        -- use config data to render widgets and then remove config data
-        self:RenderSelectedMenu(menuButton.module.ConfigData);
-        menuButton.module.ConfigData = nil;
-
-    elseif (menuButton.configTable) then
+    if (menuButton.ConfigTable) then
         -- it is a sub-menu!
-        self:RenderSelectedMenu(menuButton.configTable);
-        menuButton.configTable = nil;
+        self:RenderSelectedMenu(menuButton.ConfigTable);
+
+        tk.Tables:PushWrapper(menuButton.ConfigTable);
+        menuButton.ConfigTable = nil;
+
+        if (menuButton.module) then
+            menuButton.module.ConfigTable = nil;
+        end
     end
 
     collectgarbage("collect");
 
     -- fade menu in...
     data.selectedButton.menu:Show();
+    data.windowName:SetText(menuButton.name);
+
     _G.UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
 end
 
@@ -206,6 +201,31 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
 
             -- the table was previously popped
             tk.Tables:PushWrapper(widgetChildren);
+
+        elseif (widgetConfigTable.type == "frame") then
+            local frame = self:SetUpWidget(widgetConfigTable);
+
+            if (widgetConfigTable.children) then
+                -- add children of frame directly onto frame to group them together
+                -- allows for more control over the positioning of elements
+                local previousFrame = frame;
+
+                for _, subWidgetConfigTable in ipairs(widgetConfigTable.children) do
+                    local frameWidget = self:SetUpWidget(subWidgetConfigTable, frame);
+                    local xOffset = subWidgetConfigTable.xOffset or 10;
+                    local yOffset = subWidgetConfigTable.yOffset or 0;
+
+                    if (previousFrame == frame) then
+                        frameWidget:SetPoint("LEFT", previousFrame, "LEFT", xOffset, yOffset);
+                    else
+                        frameWidget:SetPoint("BOTTOMLEFT", previousFrame, "BOTTOMRIGHT", xOffset, yOffset);
+                    end
+
+                    previousFrame = frameWidget;
+                end
+            end
+
+            data.selectedButton.menu:AddChildren(frame);
         else
             data.selectedButton.menu:AddChildren(self:SetUpWidget(widgetConfigTable));
         end
@@ -225,7 +245,7 @@ Engine:DefineReturns("DynamicFrame");
 function C_ConfigModule:CreateMenu(data)
     -- else, create a new menu (dynamic frame) to based on the module's config data
     local menuParent = data.options:GetFrame();
-    local menu = gui:CreateDynamicFrame(tk.Constants.AddOnStyle, menuParent, nil, 10);
+    local menu = gui:CreateDynamicFrame(tk.Constants.AddOnStyle, menuParent, 10, 10);
     local menuScrollFrame = menu:GetFrame();
 
     -- add graphical dialog box to dynamic frame:
@@ -243,38 +263,9 @@ function C_ConfigModule:ShowRestartMessage(data)
     data.warningLabel:SetText(data.warningLabel.restartText);
 end
 
--- create container to wrap around a child element
-Engine:DefineParams("table", "table");
-function C_ConfigModule:CreateElementContainerFrame(data, widget, childData)
-    local container = tk:PopFrame("Frame", data.parent);
-
-    container:SetSize(childData.width or widget:GetWidth(), childData.height or widget:GetHeight());
-    container.widget = widget;
-
-    widget:SetParent(container);
-
-    if (childData.name and tk:ValueIsEither(childData.type, "slider", "dropdown", "textfield")) then
-
-        container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-        container.name:SetPoint("TOPLEFT", 0, -5);
-        container.name:SetText(childData.name);
-        container:SetHeight(container:GetHeight() + container.name:GetStringHeight() + 15);
-
-        widget:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -5);
-
-        if (childData.type == "slider") then
-            container.name:SetPoint("TOPLEFT", 10, -5);
-            container:SetWidth(container:GetWidth() + 20);
-        end
-    else
-        widget:SetPoint("LEFT");
-    end
-
-    return container;
-end
-
-Engine:DefineParams("table");
-function C_ConfigModule:SetUpWidget(data, widgetConfigTable)
+Engine:DefineParams("table", "?Frame");
+function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
+    parent = parent or data.selectedButton.menu:GetFrame();
 
     tk:Assert(type(data.tempMenuConfigTable) == "table",
         "Invalid temp data for '%s'", widgetConfigTable.name);
@@ -313,30 +304,27 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable)
     local currentValue = self:GetDatabaseValue(widgetConfigTable);
 
     -- create the widget!
-    local widget = namespace.WidgetHandlers[widgetType]:Run(
-        data.selectedButton.menu:GetFrame(), widgetConfigTable, currentValue);
+    local widget = namespace.WidgetHandlers[widgetType]:Run(parent, widgetConfigTable, currentValue);
 
     if (widgetConfigTable.devMode) then
         -- highlight the widget in dev mode.
         tk:SetBackground(widget, math.random(), math.random(), math.random());
     end
 
-    if (tk:ValueIsEither(widgetType, "title", "divider", "fontstring")) then
-        -- takes up the full width of the config window!
-        tk:SetFullWidth(widget, 10);
-    end
-
     if (widgetConfigTable.type == "radio" and widgetConfigTable.groupName) then
+        -- get groups[groupName] value from tempRadioButtonGroup
         local tempRadioButtonGroup = tk.Tables:GetTable(
             data.tempMenuConfigTable, "groups", widgetConfigTable.groupName);
 
         table.insert(tempRadioButtonGroup, widget.btn);
     end
 
-    if (widgetConfigTable.tooltip) then
-        widget:SetScript("OnEnter", ToolTip_OnEnter);
-        widget:SetScript("OnLeave", ToolTip_OnLeave);
-    end
+    -- TODO: LibMayronGUI should be able to handle this for MOST widgets
+    -- if (widgetConfigTable.tooltip) then
+    --     widget.tooltip = widgetConfigTable.tooltip;
+    --     widget:SetScript("OnEnter", ToolTip_OnEnter);
+    --     widget:SetScript("OnLeave", ToolTip_OnLeave);
+    -- end
 
     if (widgetConfigTable.disabled) then
         return;
@@ -423,11 +411,11 @@ function C_ConfigModule:SetUpWindow(data)
         self:SetSelectedButton(menuButton);
 
         if (data.history:GetSize() == 0) then
-            data.windowName:SetText("");
+            data.windowName:SetText(menuButton.name);
             backButton:SetEnabled(false);
         else
             local previousMenuButton = data.history:GetBack();
-            data.windowName:SetText(previousMenuButton.text:GetText());
+            data.windowName:SetText(previousMenuButton.name);
         end
 
         _G.PlaySound(tk.Constants.CLICK);
@@ -482,7 +470,7 @@ function C_ConfigModule:SetUpWindow(data)
 end
 
 -- Loads all config data from individual modules and places them as a graphical menu
-function C_ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
+function C_ConfigModule:SetUpSideMenu(data, menuListScrollChild)
     data.menuButtons = {};
 
     -- contains all menu buttons in the left scroll frame of the main config window
@@ -491,19 +479,21 @@ function C_ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
 
     for _, module in MayronUI:IterateModules() do
 
-        if (module.ConfigData) then
+        if (module.ConfigTable) then
             local moduleName = module:GetModuleName();
             local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
 
             data.menuButtons[moduleName] = menuButton;
-            menuButton.module = module;
-
             table.insert(data.menuButtons, menuButton);
-            menuButton.id = module.ConfigData.id;
-            menuButton.name = module.ConfigData.name;
+
+            menuButton.ConfigTable = module.ConfigTable;
+            menuButton.module = module;
+            menuButton.id = module.ConfigTable.id;
+            menuButton.type = "menu";
+            menuButton.name = module.ConfigTable.name;
 
             menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-            menuButton.text:SetText(module.ConfigData.name);
+            menuButton.text:SetText(module.ConfigTable.name); -- the model name as a readable button label
             menuButton.text:SetJustifyH("LEFT");
             menuButton.text:SetPoint("TOPLEFT", 10, 0);
             menuButton.text:SetPoint("BOTTOMRIGHT");
@@ -527,18 +517,18 @@ function C_ConfigModule:SetUpMenuButtons(data, menuListScrollChild)
     -- order and position buttons:
     tk.Tables:OrderBy(data.menuButtons, "id", "name");
 
-    for id, btn in ipairs(data.menuButtons) do
+    for id, menuButton in ipairs(data.menuButtons) do
         if (id == 1) then
             -- first menu button (does not need to be anchored to a previous button)
-            btn:SetPoint("TOPLEFT", menuListScrollChild, "TOPLEFT");
-            btn:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT", -10, 0);
-            btn:SetChecked(true);
+            menuButton:SetPoint("TOPLEFT", menuListScrollChild, "TOPLEFT");
+            menuButton:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT", -10, 0);
+            menuButton:SetChecked(true);
 
-            self:SetSelectedButton(btn);
+            self:SetSelectedButton(menuButton);
         else
-            local previousBtn = data.menuButtons[id - 1];
-            btn:SetPoint("TOPLEFT", previousBtn, "BOTTOMLEFT", 0, -5);
-            btn:SetPoint("TOPRIGHT", previousBtn, "BOTTOMRIGHT", 0, -5);
+            local previousMenuButton = data.menuButtons[id - 1];
+            menuButton:SetPoint("TOPLEFT", previousMenuButton, "BOTTOMLEFT", 0, -5);
+            menuButton:SetPoint("TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
 
             -- make room for padding between buttons
             menuListScrollChild:SetHeight(menuListScrollChild:GetHeight() + 5);

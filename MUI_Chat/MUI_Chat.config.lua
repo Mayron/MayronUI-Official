@@ -129,47 +129,47 @@ end
 
 -- Config Data ----------------------
 
-local function CreateButtonConfigData(dbPath, buttonID)
-    local configData = {};
+local function CreateButtonConfigTable(dbPath, buttonID)
+    local configTable = {};
 
     if (buttonID == 1) then
-        table.insert(configData, {
+        table.insert(configTable, {
             name = L["Standard Chat Buttons"],
             type = "title"
         });
     else
-        table.insert(configData, {
+        table.insert(configTable, {
             name = string.format("Chat Buttons with Modifier Key %d", buttonID),
             type = "title"
         });
     end
 
-    table.insert(configData, {
+    table.insert(configTable, {
         name = L["Left Button"],
         dbPath = string.format("%s.buttons[%d][1]", dbPath, buttonID)
     });
 
-    table.insert(configData, {
+    table.insert(configTable, {
         name = L["Middle Button"],
         dbPath = string.format("%s.buttons[%d][2]", dbPath, buttonID)
     });
 
-    table.insert(configData, {
+    table.insert(configTable, {
         name = L["Right Button"],
         dbPath = string.format("%s.buttons[%d][3]", dbPath, buttonID)
     });
 
 
-    table.insert(configData, { type = "divider" });
+    table.insert(configTable, { type = "divider" });
 
     if (buttonID == 1) then
-        return _G.unpack(configData);
+        return _G.unpack(configTable);
     end
 
     for _, modKey in tk.Tables:IterateArgs(L["Control"], L["Shift"], L["Alt"]) do
         local modKeyFirstChar = string.sub(modKey, 1, 1);
 
-        table.insert(configData, {
+        table.insert(configTable, {
             name = modKey,
             height = 40,
             type = "check",
@@ -194,10 +194,10 @@ local function CreateButtonConfigData(dbPath, buttonID)
 
     end
 
-    return _G.unpack(configData);
+    return _G.unpack(configTable);
 end
 
-chatModule.ConfigData =
+chatModule.ConfigTable =
 {
     name = "Chat Frames",
     type = "category",
@@ -274,7 +274,7 @@ chatModule.ConfigData =
                     chatFrameLabel = tk.Strings:JoinWithSpace(chatFrameLabel, "Right");
                 end
 
-                local configData =
+                local ConfigTable =
                 {
                     name = tk.Strings:JoinWithSpace(chatFrameLabel, L["Options"]),
                     type = "submenu",
@@ -293,10 +293,10 @@ chatModule.ConfigData =
                 };
 
                 for i = 1, 3 do
-                    tk.Tables:AddAll(configData.children, CreateButtonConfigData(dbPath, i));
+                    tk.Tables:AddAll(ConfigTable.children, CreateButtonConfigTable(dbPath, i));
                 end
 
-                return configData;
+                return ConfigTable;
             end
         },
     }

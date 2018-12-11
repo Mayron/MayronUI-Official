@@ -3,7 +3,7 @@
 local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 local C_ConfigModule = MayronUI:ImportModule("Config");
 
-C_ConfigModule.ConfigData =
+C_ConfigModule.ConfigTable =
 {
     name = L["General"],
     id = 1,

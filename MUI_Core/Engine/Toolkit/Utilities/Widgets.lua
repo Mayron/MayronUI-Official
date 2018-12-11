@@ -181,14 +181,18 @@ do
 end
 
 function tk:SetBackground(frame, ...)
+    local args = tk.Tables:PopWrapper(...);
     local texture = frame:CreateTexture(nil, "BACKGROUND");
+
     texture:SetAllPoints(frame);
 
-    if (#{...} > 1) then
+    if (#args > 1) then
         texture:SetColorTexture(...);
     else
         texture:SetTexture(...);
     end
+
+    tk.Tables:PushWrapper(args);
 
     return texture;
 end
@@ -196,7 +200,7 @@ end
 function tk:GroupCheckButtons(...)
     local btns = {};
 
-    for id, btn in ipairs({...}) do
+    for id, btn in tk.Tables:IterateArgs(...) do
         btn:SetID(id);
         tk.table.insert(btns, btn);
 
@@ -258,7 +262,7 @@ do
     local frames = {};
 
     function tk:PopFrame(frameType, parent)
-        parent = parent or self.UIParent;
+        parent = parent or _G.UIParent;
         frameType = frameType or "Frame";
 
         local frame;

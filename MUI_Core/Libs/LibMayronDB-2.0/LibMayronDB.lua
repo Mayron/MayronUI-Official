@@ -444,6 +444,23 @@ function Database:RestoreProfile(data, profileName)
 end
 
 --[[
+Gets all profiles that can be restored from the bin
+@return (table): An index table containing the names of all profiles in the bin
+]]
+Framework:DefineReturns("table");
+function Database:GetProfilesInBin(data)
+    local profilesInBin = {};
+
+    if (data.bin) then
+        for profileName, _ in pairs(data.bin) do
+            table.insert(profilesInBin, profileName);
+        end
+    end
+
+    return profilesInBin;
+end
+
+--[[
 Renames an existing profile to a new profile name. If the new name already exists, it appends a number
 to avoid clashing: 'example (2)'.
 

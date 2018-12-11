@@ -153,7 +153,10 @@ end
 -- Helper Functions
 function Private:SetBackground(frame, ...)
     local texture = frame:CreateTexture(nil, "BACKGROUND");
-    texture:SetAllPoints(frame);
+
+    -- make room for the border!
+    texture:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1);
+    texture:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1);
 
     if (#{...} > 1) then
        texture:SetColorTexture(...);

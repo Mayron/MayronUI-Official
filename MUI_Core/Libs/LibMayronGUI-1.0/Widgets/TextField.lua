@@ -11,8 +11,8 @@ local Private = Lib.Private;
 local TextField = WidgetsPackage:CreateClass("TextField", Private.FrameWrapper);
 ------------------------------------
 
-function Lib:CreateTextField(style, tooltip)
-    return TextField(style, tooltip);
+function Lib:CreateTextField(style, tooltip, parent)
+    return TextField(style, tooltip, parent);
 end
 
 local function OnEnable(self)
@@ -27,11 +27,11 @@ local function OnDisable(self)
     self:SetAlpha(0.4);
 end
 
-function TextField:__Construct(data, style, tooltip)
+function TextField:__Construct(data, style, tooltip, parent)
     local r, g, b = style:GetColor();
     local backdrop = style:GetBackdrop("ButtonBackdrop");
-    data.frame = _G.CreateFrame("Frame");
 
+    data.frame = Private:PopFrame("Frame", parent);
     data.frame:SetBackdrop(backdrop);
     data.frame:SetBackdropBorderColor(r, g, b, 0.8);
 

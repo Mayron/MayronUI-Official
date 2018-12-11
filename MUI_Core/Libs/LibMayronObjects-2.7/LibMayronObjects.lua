@@ -1116,8 +1116,11 @@ end
 
 function Core:Assert(condition, errorMessage, ...)
     if (not condition) then
-        if ( (select(1, ...)) ) then
+        if ((select(1, ...)) ~= nil) then
             errorMessage = string.format(errorMessage, ...);
+
+        elseif (string.match(errorMessage, "%s")) then
+            errorMessage = string.format(errorMessage, "nil");
         end
 
         if (self.silent) then
