@@ -259,15 +259,15 @@ function C_MiniMapModel:OnInitialize(data)
 
 	if (tk.IsAddOnLoaded("Leatrix_Plus")) then
         tk.table.insert(menuList, {
-            text = tk:GetHexColoredString("Leatrix Plus", "70db70"),
+            text = tk.Strings:GetHexColoredText("Leatrix Plus", "70db70"),
             func = function()
-                _G.SlashCmdList["Leatrix_Plus"]()
+                _G.SlashCmdList["Leatrix_Plus"]();
             end
         });
 		tk.table.insert(menuList, {
-            text = tk:GetHexColoredString(L["Music Player"], "70db70"),
+            text = tk.Strings:GetHexColoredText(L["Music Player"], "70db70"),
             func = function()
-                _G.SlashCmdList["Leatrix_Plus"]("play")
+                _G.SlashCmdList["Leatrix_Plus"]("play");
             end
         });
 	end

@@ -257,10 +257,6 @@ function C_TimerBar:__Construct(data, sv)
     end
 end
 
-function C_TimerBar:GetFrame(data)
-    return data.bar;
-end
-
 ------------------------
 -- C_TimerField Functions
 ------------------------
@@ -290,14 +286,16 @@ do
                     bar:SetPoint("BOTTOMLEFT");
                     bar:SetPoint("BOTTOMRIGHT");
                 else
-                    -- local previous = data.activeBars[id - 1];
-                    -- bar:SetPoint("BOTTOMLEFT", previous.frame, "TOPLEFT", 0, data.spacing);
-					-- bar:SetPoint("BOTTOMRIGHT", previous.frame, "TOPRIGHT", 0, data.spacing);
+                    local previous = data.activeBars[id - 1];
+                    previous = previous:GetFrame();
+
+                    bar:SetPoint("BOTTOMLEFT", previous, "TOPLEFT", 0, data.spacing);
+					bar:SetPoint("BOTTOMRIGHT", previous, "TOPRIGHT", 0, data.spacing);
                     -- Could not get a working reference to previous bar
 
-					local yOffset = (data.spacing + data.sv.barHeight) * (id-1);
-					bar:SetPoint("BOTTOMLEFT", 0, yOffset);
-					bar:SetPoint("BOTTOMRIGHT", 0, yOffset);
+					-- local yOffset = (data.spacing + data.sv.barHeight) * (id-1);
+					-- bar:SetPoint("BOTTOMLEFT", 0, yOffset);
+					-- bar:SetPoint("BOTTOMRIGHT", 0, yOffset);
                 end
 
             elseif (direction == "DOWN") then

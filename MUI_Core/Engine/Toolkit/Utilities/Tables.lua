@@ -19,7 +19,14 @@ function tk.Tables:GetKeys(tbl, keys)
     return keys;
 end
 
--- gets or creates table
+-- gets or creates a table:
+-- example:
+-- tbl = tbl or {};
+-- tbl[key] = tbl[key] or {};
+-- tbl[key][anotherKey] = tbl[key][anotherKey] or {};
+-- local value = tbl[key][anotherKey];
+
+-- can be replaced with: local value = tk.Tables:GetTable(tbl, key, anotherKey);
 function tk.Tables:GetTable(rootTable, ...)
     tk:Assert(type(rootTable) == "table",
         "tk.Tables.GetTable - invalid rootTable arg (table expected, got %s)", type(rootTable));
