@@ -131,7 +131,7 @@ function Style:ApplyColor(_, colorName, alpha, ...)
         if (objectType == "Texture") then
             local id = element:GetTexture();
 
-            if (id and id:match("Color-%a+")) then
+            if (id and (id:match("Color-%a+") or id:match("Interface\\Buttons"))) then
                 element:SetColorTexture(r, g, b, alpha);
             else
                 element:SetVertexColor(r, g, b, alpha);

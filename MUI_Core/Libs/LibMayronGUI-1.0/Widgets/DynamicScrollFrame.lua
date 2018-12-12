@@ -74,13 +74,13 @@ function Lib:CreateScrollFrame(style, parent, global)
     container.ScrollBar.thumb = container.ScrollBar:GetThumbTexture();
     style:ApplyColor(nil, 0.8, container.ScrollBar.thumb);
     container.ScrollBar.thumb:SetSize(5, 50);
-
     container.ScrollBar:Hide();
 
     Private:SetBackground(container.ScrollBar, 0, 0, 0, 0.2);
     Private:KillElement(container.ScrollBar.ScrollUpButton);
     Private:KillElement(container.ScrollBar.ScrollDownButton);
     ----------------------------
+
 
     container.ScrollFrame:SetScript("OnShow", DynamicScrollBar_OnChange);
     container.ScrollFrame:HookScript("OnScrollRangeChanged", DynamicScrollBar_OnChange);
