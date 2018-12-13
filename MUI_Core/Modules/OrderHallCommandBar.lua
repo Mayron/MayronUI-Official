@@ -1,15 +1,15 @@
-local _, namespace = ...;
-local em = namespace.EventManager;
-local tk = namespace.Toolkit;
-local gui = namespace.GUIBuilder;
+-- luacheck: ignore MayronUI self 143 631
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
+local _, namespace = ...;
 local private = {};
+
+local OrderHallCommandBar = _G.OrderHallCommandBar;
+
 private.troops = {};
 
-local IsAddOnLoaded = IsAddOnLoaded;
-
 function namespace:SetupOrderHallBar()
-    if (IsAddOnLoaded("Blizzard_OrderHallUI")) then
+    if (_G.IsAddOnLoaded("Blizzard_OrderHallUI")) then
 
         private:ReskinCommandBar();
         tk.hooksecurefunc(OrderHallCommandBar, "RefreshCategories", private.EnumerateTroops);

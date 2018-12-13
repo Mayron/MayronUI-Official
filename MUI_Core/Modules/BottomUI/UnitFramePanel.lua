@@ -1,25 +1,5 @@
--- Setup Namespaces ----------------------
-
-local addOnName, namespace = ...;
-
-local em = namespace.EventManager;
-local tk = namespace.Toolkit;
-local db = namespace.Database;
-local gui = namespace.GUIBuilder;
-local obj = namespace.Objects;
-local L = namespace.Locale;
-
--- Constants -----------------------------
-
-local REPUTATION_BAR_ID = "Reputation";
-local EXPERIENCE_BAR_ID = "XP";
-local ARTIFACT_BAR_ID = "Artifact";
-local RESOURCE_BAR_NAMES = {"Artifact", "Reputation", "XP"};
-
--- Setup Objects -------------------------
-
-local FrameWrapper = obj:Import("Framework.System.FrameWrapper");
-local BottomUIPackage = obj:CreatePackage("BottomUI", addonName);
+-- luacheck: ignore MayronUI self 143 631
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 -- Register Modules ----------------------
 
@@ -29,7 +9,6 @@ local UnitFramePanelClass = MayronUI:RegisterModule("BottomUI_UnitFramePanel", t
 
 db:AddToDefaults("profile.unitPanels", {
     enabled = true,
-    controlGrid = true,
     controlGrid = true,
     unitWidth = 325,
     height = 75,
@@ -47,46 +26,46 @@ db:AddToDefaults("profile.unitPanels", {
 -- SUF Functions -------------------------
 
 local function DetachShadowedUnitFrames()
-    local currentProfile = ShadowUF.db:GetCurrentProfile();
-    local SUF = ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
+    local currentProfile = _G.ShadowUF.db:GetCurrentProfile();
+    local SUF = _G.ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
 
     SUF["point"] = "TOP"; SUF["anchorTo"] = "UIParent";
     SUF["relativePoint"] = "TOP"; SUF["x"] = 0; SUF["y"] = -40;
 end
 
 local function AttachShadowedUnitFrames(rightPanel)
-    local currentProfile = ShadowUF.db:GetCurrentProfile();
+    local currentProfile = _G.ShadowUF.db:GetCurrentProfile();
     local anchorTo = "UIParent";
 
     if (tk._G["MUI_UnitPanelCenter"]) then
         anchorTo = "MUI_UnitPanelCenter";
     end
 
-    local SUF = ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
+    local SUF = _G.ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
     SUF["point"] = "TOP"; SUF["anchorTo"] = anchorTo;
     SUF["relativePoint"] = "TOP"; SUF["x"] = 0; SUF["y"] = -40;
 
-    if (SUFUnitplayer) then
-        SUFUnitplayer:SetFrameStrata("MEDIUM");
+    if (_G.SUFUnitplayer) then
+        _G.SUFUnitplayer:SetFrameStrata("MEDIUM");
     end
 
-    if (SUFUnittarget) then
-        SUFUnittarget:SetFrameStrata("MEDIUM");
+    if (_G.SUFUnittarget) then
+        _G.SUFUnittarget:SetFrameStrata("MEDIUM");
         rightPanel:SetFrameStrata("LOW");
     end
 
-    if (SUFUnittargettarget) then
-        SUFUnittargettarget:SetFrameStrata("MEDIUM");
+    if (_G.SUFUnittargettarget) then
+        _G.SUFUnittargettarget:SetFrameStrata("MEDIUM");
     end
 
-    ShadowUF.Layout:Reload();
+    _G.ShadowUF.Layout:Reload();
 end
 
--- UnitFramePanel Module ----------------- 
+-- UnitFramePanel Module -----------------
 
 function UnitFramePanelClass:OnInitialize(data, buiContainer, subModules)
     data.sv = db.profile.unitPanels;
-    data.buiContainer = buiContainer;    
+    data.buiContainer = buiContainer;
     data.ActionBarPanel = subModules.ActionBarPanel;
 
     if (data.sv.enabled) then
@@ -97,8 +76,8 @@ function UnitFramePanelClass:OnInitialize(data, buiContainer, subModules)
 end
 
 function UnitFramePanelClass:OnEnable(data)
-    if (data.left) then 
-        return;         
+    if (data.left) then
+        return;
     end
 
     local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
@@ -107,7 +86,7 @@ function UnitFramePanelClass:OnEnable(data)
     obj:Assert(actionBarPanel, "ActionBarPanel cannot be loaded.");
 
     data.left = tk.CreateFrame("Frame", "MUI_UnitPanelLeft", data.buiContainer);
-    data.right = tk.CreateFrame("Frame", "MUI_UnitPanelRight", SUFUnittarget or data.buiContainer);
+    data.right = tk.CreateFrame("Frame", "MUI_UnitPanelRight", _G.SUFUnittarget or data.buiContainer);
     data.center = tk.CreateFrame("Frame", "MUI_UnitPanelCenter", data.right);
 
     data.left:SetFrameStrata("BACKGROUND");
@@ -175,7 +154,7 @@ function UnitFramePanelClass:OnEnable(data)
     data.target.bg:SetTexCoord(1, 0, 0, 1); -- flip horizontally
 
     data.target.text = data.target:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    data.target.text:SetParent(SUFUnittarget or data.buiContainer);
+    data.target.text:SetParent(_G.SUFUnittarget or data.buiContainer);
     data.target.text:SetFont(font, data.sv.unitNames.fontSize);
     data.target.text:SetJustifyH("RIGHT");
     data.target.text:SetWidth(data.target:GetWidth() - 25);
@@ -183,7 +162,7 @@ function UnitFramePanelClass:OnEnable(data)
     data.target.text:SetPoint("RIGHT", data.target, "RIGHT", -15, 0);
 
     em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
-        if (UnitExists("target")) then
+        if (_G.UnitExists("target")) then
             self:UpdateUnitNameText("target");
         end
     end);
@@ -197,7 +176,7 @@ function UnitFramePanelClass:OnEnable(data)
         end
 
         em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
-            if (UnitExists("target")) then
+            if (_G.UnitExists("target")) then
                 if (data.right:GetParent() == data.buiContainer) then
                     data.right:Show();
                 end
@@ -206,8 +185,8 @@ function UnitFramePanelClass:OnEnable(data)
                 data.right.bg:SetTexture(tk.Constants.MEDIA.."bottom_ui\\Double");
 
                 if (data.sv.unitNames.targetClassColored) then
-                    if (UnitIsPlayer("target")) then
-                        local _, class = UnitClass("target");
+                    if (_G.UnitIsPlayer("target")) then
+                        local _, class = _G.UnitClass("target");
                         tk:SetClassColoredTexture(class, data.target.bg);
                     else
                         tk:ApplyThemeColor(data.sv.alpha, data.target.bg);
@@ -226,8 +205,8 @@ function UnitFramePanelClass:OnEnable(data)
         end);
 
         em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
-            if (not UnitExists("target")) then
-                data.target.text:SetText("");
+            if (not _G.UnitExists("target")) then
+                data.target.text:SetText(tk.Strings.Empty);
                 if (data.right:GetParent() == data.buiContainer) then
                     data.right:Hide();
                 end
@@ -243,11 +222,11 @@ function UnitFramePanelClass:OnEnable(data)
         if (data.sv.unitNames.targetClassColored) then
             em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
 
-                if (UnitExists("target")) then
+                if (_G.UnitExists("target")) then
                     if (data.sv.unitNames.targetClassColored) then
 
-                        if (UnitIsPlayer("target")) then
-                            local _, class = UnitClass("target");
+                        if (_G.UnitIsPlayer("target")) then
+                            local _, class = _G.UnitClass("target");
                             tk:SetClassColoredTexture(class, data.target.bg);
                         else
                             tk:ApplyThemeColor(data.sv.alpha, data.target.bg);
@@ -261,11 +240,11 @@ function UnitFramePanelClass:OnEnable(data)
         end
     end
 
-    tk:ApplyThemeColor(data.sv.alpha, 
-        data.left.bg, 
-        data.center.bg, 
-        data.right.bg, 
-        data.player.bg, 
+    tk:ApplyThemeColor(data.sv.alpha,
+        data.left.bg,
+        data.center.bg,
+        data.right.bg,
+        data.player.bg,
         data.target.bg
     );
 
@@ -273,8 +252,8 @@ function UnitFramePanelClass:OnEnable(data)
 
     if (tk.IsAddOnLoaded("ShadowedUnitFrames") and data.sv.controlGrid) then
         AttachShadowedUnitFrames(data.right);
-        
-        tk.hooksecurefunc(ShadowUF, "ProfilesChanged", function()
+
+        tk.hooksecurefunc(_G.ShadowUF, "ProfilesChanged", function()
             AttachShadowedUnitFrames(data.right);
         end);
 
@@ -283,36 +262,35 @@ function UnitFramePanelClass:OnEnable(data)
     end
 
     if (tk.IsAddOnLoaded("Grid") and data.sv.controlGrid) then
-        if (Grid.db:GetCurrentProfile() == "MayronUIH") then
-            GridLayoutFrame:ClearAllPoints();
-            GridLayoutFrame:SetPoint("BOTTOMRIGHT", data.target, "TOPRIGHT", -9, 0);
+        if (_G.Grid.db:GetCurrentProfile() == "MayronUIH") then
+            _G.GridLayoutFrame:ClearAllPoints();
+            _G.GridLayoutFrame:SetPoint("BOTTOMRIGHT", data.target, "TOPRIGHT", -9, 0);
         end
 
-        tk.hooksecurefunc(Grid.db, "SetProfile", function()
-            if (Grid.db:GetCurrentProfile() == "MayronUIH") then
-                GridLayoutFrame:ClearAllPoints();
-                GridLayoutFrame:SetPoint("BOTTOMRIGHT", data.target, "TOPRIGHT", -9, 0);
+        tk.hooksecurefunc(_G.Grid.db, "SetProfile", function()
+            if (_G.Grid.db:GetCurrentProfile() == "MayronUIH") then
+                _G.GridLayoutFrame:ClearAllPoints();
+                _G.GridLayoutFrame:SetPoint("BOTTOMRIGHT", data.target, "TOPRIGHT", -9, 0);
             end
         end);
     end
 end
 
 function UnitFramePanelClass:UpdateUnitNameText(data, unitType, unitLevel)
-    local name = UnitName(unitType);
+    unitLevel = unitLevel or _G.UnitLevel(unitType);
+    local name = _G.UnitName(unitType);
 
     if (#name > 22) then
-        name = name:sub(1, 22):trim();
-        name = name.."...";
+        name = tk.Strings:Concat(name:sub(1, 22):trim(), "...");
     end
 
-    local unitLevel = unitLevel or UnitLevel(unitType);
-    local _, class = UnitClass(unitType); -- not sure if this works..
-    local classif = UnitClassification(unitType);
+    local _, class = _G.UnitClass(unitType); -- not sure if this works..
+    local classif = _G.UnitClassification(unitType);
 
     if (tonumber(unitLevel) < 1) then
         unitLevel = "boss";
 
-    elseif (classif == "elite" or classif == "rareelite") then 
+    elseif (classif == "elite" or classif == "rareelite") then
         unitLevel = tk.tostring(unitLevel).."+";
     end
 
@@ -324,15 +302,16 @@ function UnitFramePanelClass:UpdateUnitNameText(data, unitType, unitLevel)
         if (classif == "worldboss") then
             unitLevel = tk.Strings:GetRGBColoredText(unitLevel, 0.25, 0.75, 0.25); -- yellow
         else
-            local color = tk:GetDifficultyColor(UnitLevel(unitType));
+            local color = tk:GetDifficultyColor(_G.UnitLevel(unitType));
+
             unitLevel = tk.Strings:GetRGBColoredText(unitLevel, color.r, color.g, color.b);
-            name = (UnitIsPlayer(unitType) and tk.Strings:GetClassColoredText(class, name)) or name;
+            name = (_G.UnitIsPlayer(unitType) and tk.Strings:GetClassColoredText(class, name)) or name;
         end
 
-    else        
+    else
         unitLevel = tk.Strings:GetRGBColoredText(unitLevel, 1, 0.8, 0);
 
-        if (UnitAffectingCombat("player")) then
+        if (_G.UnitAffectingCombat("player")) then
             name = tk.Strings:GetRGBColoredText(name, 1, 0, 0);
         else
             name = tk.Strings:GetClassColoredText(class, name);
@@ -343,17 +322,16 @@ function UnitFramePanelClass:UpdateUnitNameText(data, unitType, unitLevel)
 end
 
 function UnitFramePanelClass:SetupSUFPortraitGradients(data)
-    if (not tk.IsAddOnLoaded("ShadowedUnitFrames")) then 
-        return; 
+    if (not _G.IsAddOnLoaded("ShadowedUnitFrames")) then
+        return;
     end
 
     local sv = db.profile.bottomui.gradients;
 
     if (sv.enabled) then
         data.gradients = data.gradients or {};
-        local r, g, b = tk:GetThemeColor();
 
-        for id, unitID in ipairs({"player", "target"}) do
+        for _, unitID in ipairs({"player", "target"}) do
             local parent = tk._G["SUFUnit"..unitID];
 
             if (parent and parent.portrait) then
@@ -372,12 +350,12 @@ function UnitFramePanelClass:SetupSUFPortraitGradients(data)
 
                     if (unitID == "target") then
                         em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
-                            if (UnitExists("target")) then
+                            if (_G.UnitExists("target")) then
                                 local from = sv.from;
                                 local to = sv.to;
 
-                                if (UnitIsPlayer("target") and sv.targetClassColored) then
-                                    local _, class = UnitClass("target");                                    
+                                if (_G.UnitIsPlayer("target") and sv.targetClassColored) then
+                                    local _, class = _G.UnitClass("target");
                                     class = tk.string.upper(class);
                                     class = class:gsub("%s+", "");
 
@@ -399,10 +377,10 @@ function UnitFramePanelClass:SetupSUFPortraitGradients(data)
                 local from = sv.from;
                 local to = sv.to;
 
-                if (unitID == "target" and UnitExists("target") 
-                        and UnitIsPlayer("target") and sv.targetClassColored) then
+                if (unitID == "target" and _G.UnitExists("target")
+                        and _G.UnitIsPlayer("target") and sv.targetClassColored) then
 
-                    local _, class = UnitClass("target");
+                    local _, class = _G.UnitClass("target");
                     class = tk.string.upper(class);
                     class = class:gsub("%s+", "");
 
@@ -423,8 +401,8 @@ function UnitFramePanelClass:SetupSUFPortraitGradients(data)
         end
 
     elseif (data.gradients) then
-        for _, frame in tk.pairs(data.gradients) do 
-            frame:Hide(); 
+        for _, frame in tk.pairs(data.gradients) do
+            frame:Hide();
         end
-    end    
+    end
 end

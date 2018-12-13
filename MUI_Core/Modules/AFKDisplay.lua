@@ -1,11 +1,5 @@
--- Setup namespaces ------------
-
-local _, namespace = ...;
-local em = namespace.EventManager;
-local tk = namespace.Toolkit;
-local db = namespace.Database;
-local L = namespace.Locale;
-
+-- luacheck: ignore MayronUI self 143 631
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local Private = {};
 
 -- Register Module ------------
@@ -51,7 +45,7 @@ Private.races = { -- lower = lower model
         Male = {
             value = -0.4,
             hoverValue = -0.3,
-        }, 
+        },
         Female = {
             value = -0.4,
             hoverValue = -0.4,
@@ -61,7 +55,7 @@ Private.races = { -- lower = lower model
         Male = {
             value = -0.4,
             hoverValue = -0.3,
-        }, 
+        },
         Female = {
             value = -0.4,
             hoverValue = -0.4,
@@ -284,10 +278,10 @@ function Animator:TransitionValue()
 end
 
 local function PositionModel(model, hovering, falling)
-    local gender = UnitSex("player");
+    local gender = _G.UnitSex("player");
     gender = (gender == 2) and "Male" or "Female";
 
-    local race = (tk.select(2, UnitRace("player"))):gsub("%s+", "");
+    local race = (tk.select(2, _G.UnitRace("player"))):gsub("%s+", "");
     local tbl = Private.races[race][gender];
     local value = (hovering and tbl.hoverValue) or tbl.value;
 
@@ -318,8 +312,8 @@ local function PositionModel(model, hovering, falling)
 end
 
 function Private:StartFalling()
-    if (not Private.display.modelFrame) then 
-        return; 
+    if (not Private.display.modelFrame) then
+        return;
     end
 
     local f = Private.display.modelFrame;
@@ -340,8 +334,8 @@ function Private:StartFalling()
 end
 
 function Private:StartRotating()
-    if (not Private.display.modelFrame) then 
-        return; 
+    if (not Private.display.modelFrame) then
+        return;
     end
 
     local f = Private.display.modelFrame;
@@ -391,7 +385,7 @@ function Private:CreatePlayerModel()
     end)
 
     f:SetScript("OnEnter", function()
-        SetCursor("Interface\\CURSOR\\UI-Cursor-Move.blp");
+        _G.SetCursor("Interface\\CURSOR\\UI-Cursor-Move.blp");
     end)
 
     f.model:SetScript("OnAnimFinished", function(self)
@@ -429,11 +423,11 @@ do
     end
 
     function Private:CreateDisplay()
-        if (self.display) then 
-            return self.display; 
+        if (self.display) then
+            return self.display;
         end
 
-        local f = tk.CreateFrame("Frame", "MUI_AFKFrame", WorldFrame);
+        local f = tk.CreateFrame("Frame", "MUI_AFKFrame", _G.WorldFrame);
         f:SetPoint("BOTTOMLEFT", tk.UIParent, "BOTTOMLEFT", 0, -100);
         f:SetPoint("BOTTOMRIGHT", tk.UIParent, "BOTTOMRIGHT", 0, -100);
         f:SetHeight(150);
@@ -441,7 +435,7 @@ do
         f.bg = tk:SetBackground(f, tk.Constants.MEDIA.."bottom_ui\\Single");
         tk:SetThemeColor(f.bg);
 
-        tk.UIParent:HookScript("OnShow", function()
+        _G.UIParent:HookScript("OnShow", function()
             AfkDisplay:Toggle(false);
         end);
 
@@ -453,17 +447,15 @@ do
         f.name:SetPoint("TOPRIGHT", -100, -14);
 
         local specType;
-        if (GetSpecialization()) then
-            specType = (tk.select(2, GetSpecializationInfo(GetSpecialization()))).." ";
+        if (_G.GetSpecialization()) then
+            specType = (select(2, _G.GetSpecializationInfo(_G.GetSpecialization()))).." ";
         else
             specType = "";
         end
 
-        local name = tk.string.format("%s - %s\nLevel %u, "..tk:GetClassColoredString(nil, specType..UnitClass("player")),
-            UnitPVPName("player"),
-            GetRealmName(),
-            UnitLevel("player")
-        );
+        local name = tk.Strings:Concat(_G.UnitPVPName("player"), " - ",
+            _G.GetRealmName(), "\nLevel ", _G.UnitLevel("player"), ", ",
+            tk:GetClassColoredString(nil, tk.Strings:Concat(specType, _G.UnitClass("player"))));
 
         f.name:SetText(name);
 
@@ -522,11 +514,11 @@ end
 function AfkDisplay:OnEnable(data)
     if (data.handler) then
         data.handler = em:CreateEventHandler("PLAYER_FLAGS_CHANGED", function(_, _, unitID)
-            if (unitID ~= "player" or not data.sv.enabled) then 
-                return; 
+            if (unitID ~= "player" or not data.sv.enabled) then
+                return;
             end
 
-            self:Toggle(UnitIsAFK(unitID));
+            self:Toggle(_G.UnitIsAFK(unitID));
         end);
 
         em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
@@ -536,7 +528,7 @@ function AfkDisplay:OnEnable(data)
 end
 
 function AfkDisplay:Toggle(data, show)
-    if (tk.InCombatLockdown() or (AuctionFrame and AuctionFrame:IsVisible())) then
+    if (tk.InCombatLockdown() or (_G.AuctionFrame and _G.AuctionFrame:IsVisible())) then
         if (Private.display) then
             Private.display:Hide();
         end
@@ -546,12 +538,12 @@ function AfkDisplay:Toggle(data, show)
 
     if (show) then
         tk.UIParent:Hide();
-        MoveViewLeftStart(0.01);
+        _G.MoveViewLeftStart(0.01);
 
         if (not Private.display) then
             Private.display = Private:CreateDisplay();
 
-            if (ddata.sv.playerModel) then
+            if (data.sv.playerModel) then
                 Private.display.modelFrame = Private:CreatePlayerModel();
             end
         end
@@ -565,8 +557,8 @@ function AfkDisplay:Toggle(data, show)
         tk.UIParent:Show();
 
         if (data.sv.rotateCamera) then
-            MoveViewLeftStop();
-            SetCVar("cameraView", "0"); -- to remove bug
+            _G.MoveViewLeftStop();
+            _G.SetCVar("cameraView", "0"); -- to remove bug
         end
 
         if (Private.display) then

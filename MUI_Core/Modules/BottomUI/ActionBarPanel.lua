@@ -1,12 +1,5 @@
-local addOnName, namespace = ...;
-
--- Setup Namespace ----------------------
-local em = namespace.EventManager;
-local tk = namespace.Toolkit;
-local db = namespace.Database;
-local gui = namespace.GUIBuilder;
-local obj = namespace.Objects;
-local L = namespace.Locale;
+-- luacheck: ignore MayronUI self 143 631
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 -- Register and Import Modules -----------
 
@@ -53,17 +46,17 @@ local function LoadTutorial(panel)
     frame.text:SetPoint("TOPLEFT", 10, -20);
     frame.text:SetPoint("BOTTOMRIGHT", -10, 10);
     frame.text:SetText(
-        "Press and hold the "..tk.Strings:GetThemeColoredText("Control").." key while out of "..
-                "combat to show the "..tk.Strings:GetThemeColoredText("Expand").." button.\n\n"..
-                "Click the Expand button to show a second row of action buttons!"
+        tk.Strings:JoinWithSpace("Press and hold the", tk.Strings:GetThemeColoredText("Control"),
+            "key while out of combat to show the", tk.Strings:GetThemeColoredText("Expand"),
+            "button.\n\n Click the Expand button to show a second row of action buttons!")
     );
-   
+
     em:CreateEventHandler("MODIFIER_STATE_CHANGED", function(self)
         if (tk:IsModComboActive("C")) then
             frame.text:SetText(
-                "Once expanded, you can press and hold the same key while out of "..
-                        "combat to show the "..tk.Strings:GetThemeColoredText("Retract").." button.\n\n"..
-                        "Pressing this will hide the second row of action buttons."
+                tk.Strings:JoinWithSpace("Once expanded, you can press and hold the same key while out of",
+                    "combat to show the", tk.Strings:GetThemeColoredText("Retract"),
+                    "button.\n\n Pressing this will hide the second row of action buttons.")
             );
 
             if (not frame:IsShown()) then
@@ -84,7 +77,7 @@ local function ToggleBartenderBar(btBar, show, bartenderControl)
     end
 end
 
--- ActionBarPanelClass ----------------- 
+-- ActionBarPanelClass -----------------
 
 function ActionBarPanelClass:OnInitialize(data, buiContainer, subModules)
     data.sv = db.profile.actionBarPanel;
@@ -95,16 +88,16 @@ function ActionBarPanelClass:OnInitialize(data, buiContainer, subModules)
 
     if (data.sv.enabled) then
         self:SetEnabled(true);
-    end   
+    end
 end
 
 function ActionBarPanelClass:OnEnable(data)
-    if (data.panel) then 
-        return; 
+    if (data.panel) then
+        return;
     end
 
     local barsContainer = data.ResourceBars:GetBarContainer();
-    data.panel = tk.CreateFrame("Frame", "MUI_ActionBarPanel", data.buiContainer);    
+    data.panel = tk.CreateFrame("Frame", "MUI_ActionBarPanel", data.buiContainer);
     data.panel:SetPoint("BOTTOMLEFT", barsContainer, "TOPLEFT", 0, -1);
     data.panel:SetPoint("BOTTOMRIGHT", barsContainer, "TOPRIGHT", 0, -1);
     data.panel:SetFrameLevel(10);
@@ -165,13 +158,13 @@ function ActionBarPanelClass:OnEnable(data)
     highlightTexture:SetPoint("TOPLEFT", 1, -1);
     highlightTexture:SetPoint("BOTTOMRIGHT", -1, 1);
 
-    expandBtn.glow = expandBtn:CreateTexture(nil, "BACKGROUND");    
+    expandBtn.glow = expandBtn:CreateTexture(nil, "BACKGROUND");
     expandBtn.glow:SetTexture(tk.Constants.MEDIA.."bottom_ui\\glow");
     expandBtn.glow:SetSize(db.profile.bottomui.width, 60);
     expandBtn.glow:SetBlendMode("ADD");
     expandBtn.glow:SetPoint("BOTTOM", 0, 1);
     tk:ApplyThemeColor(expandBtn.glow);
-    
+
     local glowScaler = expandBtn.glow:CreateAnimationGroup();
 
     glowScaler.anim = glowScaler:CreateAnimation("Scale");
@@ -190,8 +183,8 @@ function ActionBarPanelClass:OnEnable(data)
     expandBtn:SetScript("OnClick", function(self)
         self:Hide();
 
-        if (tk.InCombatLockdown()) then 
-            return; 
+        if (tk.InCombatLockdown()) then
+            return;
         end
 
         tk.PlaySound(tk.Constants.CLICK);
@@ -232,15 +225,15 @@ function ActionBarPanelClass:OnEnable(data)
         expandBtnFader:Stop();
 
         glowScaler:Play();
-        expandBtnFader:Play(); 
+        expandBtnFader:Play();
     end);
 
-    em:CreateEventHandler("PLAYER_REGEN_DISABLED", function() 
-        expandBtn:Hide(); 
+    em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
+        expandBtn:Hide();
     end);
 
     if (db.global.tutorial) then
-        LoadTutorial(data.panel);        
+        LoadTutorial(data.panel);
     end
 end
 
@@ -249,18 +242,18 @@ function ActionBarPanelClass:GetPanel(data)
 end
 
 function ActionBarPanelClass:PositionBartenderBars(data)
-    if (not (data.BTBar1 or data.BTBar2 or data.BTBar3 or data.BTBar4)) then 
-        return; 
+    if (not (data.BTBar1 or data.BTBar2 or data.BTBar3 or data.BTBar4)) then
+        return;
     end
 
     if (tk.IsAddOnLoaded("Bartender4") and data.bartenderControl) then
         local height = data.ResourceBars:GetHeight() - 3;
-        local dataTextModule = MayronUI:ImportModule("DataText");        
+        local dataTextModule = MayronUI:ImportModule("DataText");
 
         if (dataTextModule and dataTextModule:IsShown()) then
             local bar = dataTextModule:GetDataTextBar();
             height = height + ((bar and bar:GetHeight()) or 0);
-        end                
+        end
 
         data.BTBar1.config.position.y = 39 + height;
         data.BTBar2.config.position.y = 39 + height;
@@ -281,10 +274,10 @@ function ActionBarPanelClass:SetBartenderBars(data)
         local bar3 = data.sv.bartender[3]:match("%d+");
         local bar4 = data.sv.bartender[4]:match("%d+");
 
-        Bartender4:GetModule("ActionBars"):EnableBar(bar1);
-        Bartender4:GetModule("ActionBars"):EnableBar(bar2);
-        Bartender4:GetModule("ActionBars"):EnableBar(bar3);
-        Bartender4:GetModule("ActionBars"):EnableBar(bar4);
+        _G.Bartender4:GetModule("ActionBars"):EnableBar(bar1);
+        _G.Bartender4:GetModule("ActionBars"):EnableBar(bar2);
+        _G.Bartender4:GetModule("ActionBars"):EnableBar(bar3);
+        _G.Bartender4:GetModule("ActionBars"):EnableBar(bar4);
 
         data.BTBar1 = tk._G["BT4Bar"..tk.tostring(bar1)];
         data.BTBar2 = tk._G["BT4Bar"..tk.tostring(bar2)];

@@ -1,13 +1,7 @@
-local addOnName, namespace = ...;
+-- luacheck: ignore MayronUI self 143 631
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 -- Setup Namespaces ----------------------
-
-local em = namespace.EventManager;
-local tk = namespace.Toolkit;
-local db = namespace.Database;
-local gui = namespace.GUIBuilder;
-local obj = namespace.Objects;
-local L = namespace.Locale;
 
 local Private = {}; -- needed for dynamically loading correct bar
 
@@ -21,12 +15,12 @@ local ARTIFACT_BAR_ID = "artifact";
 -- Setup Objects -------------------------
 
 local Engine = obj:Import("MayronUI.Engine");
-local BottomUIPackage = obj:CreatePackage("BottomUI", addOnName);
-local ResourceBarClass = BottomUIPackage:CreateClass("ResourceBar", "Framework.System.FrameWrapper");
+local BottomUIPackage = obj:Import("MayronUI.Packages.BottomUI");
+local C_ResourceBar = BottomUIPackage:CreateClass("ResourceBar", "Framework.System.FrameWrapper");
 
 -- Register and Import Modules -----------
 
-local ResourceBarsClass = MayronUI:RegisterModule("BottomUI_ResourceBars", true);
+local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", true);
 local containerModule = MayronUI:ImportModule("BottomUI_Container");
 
 -- Load Database Defaults ----------------
@@ -54,13 +48,13 @@ db:AddToDefaults("profile.resourceBars", {
 
 -- Private Functions ---------------------
 
-function Private.experienceBar_OnSetup(resourceBar, data)
+function Private.experienceBar_OnSetup(self, data)
     if (tk:IsPlayerMaxLevel()) then
-        ResourceBarsClass:DisableBar(EXPERIENCE_BAR_ID);
+        self:SetEnabled(false);
         return;
     end
 
-    data.BlizzardBar = MainMenuExpBar;
+    data.BlizzardBar = _G.MainMenuExpBar;
 
     data.rested = tk.CreateFrame("StatusBar", nil, data.frame);
     data.rested:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", "MUI_StatusBar"));
@@ -75,21 +69,23 @@ function Private.experienceBar_OnSetup(resourceBar, data)
     data.statusbar.texture:SetVertexColor(r * 0.8, g * 0.8, b  * 0.8);
 
     em:CreateEventHandler("PLAYER_LEVEL_UP", function(handler, _, level)
-        if (GetMaxPlayerLevel() == level) then
-            ResourceBarsClass:DisableBar(EXPERIENCE_BAR_ID);
+        if (_G.GetMaxPlayerLevel() == level) then
+
+            self:SetEnabled(false);
             em:FindHandlerByKey("PLAYER_XP_UPDATE", "xp_bar_update"):Destroy();
             handler:Destroy();
+
         end
     end);
 
     local handler = em:CreateEventHandler("PLAYER_XP_UPDATE", function()
-        local currentValue = UnitXP("player");
-        local maxValue = UnitXPMax("player");
-        local exhaustValue = GetXPExhaustion();
+        local currentValue = _G.UnitXP("player");
+        local maxValue = _G.UnitXPMax("player");
+        local exhaustValue = _G.GetXPExhaustion();
 
         data.statusbar:SetMinMaxValues(0, maxValue);
         data.statusbar:SetValue(currentValue);
-        data.rested:SetMinMaxValues(0, maxValue);        
+        data.rested:SetMinMaxValues(0, maxValue);
         data.rested:SetValue(exhaustValue and (exhaustValue + currentValue) or 0);
 
         if (data.statusbar.text) then
@@ -107,26 +103,26 @@ end
 
 function Private.experienceBar_ShowText()
     local handler = em:FindHandlerByKey("PLAYER_XP_UPDATE", "xp_bar_update");
-    if (handler) then 
-        handler:Run(); 
+    if (handler) then
+        handler:Run();
     end
 end
 
-function Private.artifactBar_OnSetup(resourceBar, data)
-    data.BlizzardBar = ArtifactWatchBar;
+function Private.artifactBar_OnSetup(_, data)
+    data.BlizzardBar = _G.ArtifactWatchBar;
     data.statusbar.texture = data.statusbar:GetStatusBarTexture();
     data.statusbar.texture:SetVertexColor(0.9, 0.8, 0.6, 1);
 
     local handler = em:CreateEventHandler("ARTIFACT_XP_UPDATE", function()
-        local totalXP, pointsSpent, _, _, _, _, _, _, tier = tk.select(5, C_ArtifactUI.GetEquippedArtifactInfo());
-        local _, currentValue, maxValue = ArtifactBarGetNumArtifactTraitsPurchasableFromXP(pointsSpent, totalXP, tier);
-        
+        local totalXP, pointsSpent, _, _, _, _, _, _, tier = tk.select(5, _G.C_ArtifactUI.GetEquippedArtifactInfo());
+        local _, currentValue, maxValue = _G.ArtifactBarGetNumArtifactTraitsPurchasableFromXP(pointsSpent, totalXP, tier);
+
         data.statusbar:SetMinMaxValues(0, maxValue);
         data.statusbar:SetValue(currentValue);
 
         if (data.statusbar.text) then
-            if currentValue > 0 and maxValue == 0 then 
-                maxValue = currentValue 
+            if currentValue > 0 and maxValue == 0 then
+                maxValue = currentValue;
             end
 
             local percent = (currentValue / maxValue) * 100;
@@ -140,97 +136,99 @@ function Private.artifactBar_OnSetup(resourceBar, data)
     handler:SetKey("artifact_bar_update");
 
     em:CreateEventHandler("UNIT_INVENTORY_CHANGED", function()
-        local equipped = HasArtifactEquipped();
-        local bar = self:GetBar(barName);
+        local equipped = _G.HasArtifactEquipped();
+        local bar = self:GetBar(data.barName);
 
         bar:SetEnabled(not equipped and data.enabled);
 
-        if (equipped) then 
-            handler:Run(); 
+        if (equipped) then
+            handler:Run();
         end
     end):Run();
 end
 
 function Private.artifactBar_ShowText()
     local handler = em:FindHandlerByKey("ARTIFACT_XP_UPDATE", "artifact_bar_update");
-    if (handler) then 
-        handler:Run(); 
+    if (handler) then
+        handler:Run();
     end
 end
 
-function Private.reputationBar_OnSetup(resourceBar, data)
+function Private.reputationBar_OnSetup(self, data)
     data.statusbar:HookScript("OnEnter", function(self)
-        local factionName, standingID, minValue, maxValue, currentValue = GetWatchedFactionInfo();
-		
-        if (standingID < 8) then 
+        local factionName, standingID, minValue, maxValue, currentValue = _G.GetWatchedFactionInfo();
+
+        if (standingID < 8) then
 			maxValue = maxValue - minValue;
-			
-			if (maxValue > 0) then			
+
+			if (maxValue > 0) then
 				currentValue = currentValue - minValue;
 				local percent = (currentValue / maxValue) * 100;
-				
+
 				currentValue = tk.Strings:FormatReadableNumber(currentValue);
 				maxValue = tk.Strings:FormatReadableNumber(maxValue);
-				
+
 				local text = tk.string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
-				
-				GameTooltip:SetOwner(self, "ANCHOR_TOP");
-				GameTooltip:AddLine(text, 1, 1, 1);
-				GameTooltip:Show();
+
+				_G.GameTooltip:SetOwner(self, "ANCHOR_TOP");
+				_G.GameTooltip:AddLine(text, 1, 1, 1);
+				_G.GameTooltip:Show();
 			end
 		end
     end);
-	
+
     data.statusbar:HookScript("OnLeave", function(self)
-        GameTooltip:Hide();
+        _G.GameTooltip:Hide();
     end);
 
     data.statusbar.texture = data.statusbar:GetStatusBarTexture();
     data.statusbar.texture:SetVertexColor(0.16, 0.6, 0.16, 1);
 
     local handler = em:CreateEventHandlers("UPDATE_FACTION, PLAYER_REGEN_ENABLED", function()
-        local factionName, standingID, minValue, maxValue, currentValue = GetWatchedFactionInfo();
-		
-		if (not InCombatLockdown()) then
-			if (not factionName or standingID == 8) then		
-				ResourceBarsClass:DisableBar(data.barName);
-				return;			
-			elseif (not data.enabled) then		
-				ResourceBarsClass:EnableBar(data.barName);			
+        local factionName, standingID, minValue, maxValue, currentValue = _G.GetWatchedFactionInfo();
+
+		if (not _G.InCombatLockdown()) then
+			if (not factionName or standingID == 8) then
+                self:SetEnabled(false);
+                return;
+
+			elseif (not data.enabled) then
+				self:SetEnabled(true);
 			end
 		end
-		
+
         maxValue = maxValue - minValue;
         currentValue = currentValue - minValue;
-		
+
         data.statusbar:SetMinMaxValues(0, maxValue);
         data.statusbar:SetValue(currentValue);
-		
-        if (data.statusbar.text) then		
+
+        if (data.statusbar.text) then
             local percent = (currentValue / maxValue) * 100;
             currentValue = tk.Strings:FormatReadableNumber(currentValue);
             maxValue = tk.Strings:FormatReadableNumber(maxValue);
-			
+
             local text = tk.string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
-            data.statusbar.text:SetText(text);			
-        end		
+            data.statusbar.text:SetText(text);
+        end
     end);
-	
+
     handler:SetKey("reputation_bar_update");
     handler:Run();
 end
 
 function Private.reputationBar_ShowText()
     local handler = em:FindHandlerByKey("UPDATE_FACTION", "reputation_bar_update");
-    if (handler) then 
-        handler:Run(); 
+    if (handler) then
+        handler:Run();
     end
 end
 
--- ResourceBarClass ---------------------------
+-- C_ResourceBar ---------------------------
 
-BottomUIPackage:DefineParams("Frame", "string");
-function ResourceBarClass:__Construct(data, barsContainer, barName)
+BottomUIPackage:DefineParams("BottomUI_ResourceBars", "Frame", "string");
+function C_ResourceBar:__Construct(data, barsModule, barsContainer, barName)
+    data.module = barsModule;
     data.barName = barName;
     data.enabled = true;
     data.sv = db.profile.resourceBars[barName.."Bar"];
@@ -290,51 +288,55 @@ function ResourceBarClass:__Construct(data, barsContainer, barName)
 end
 
 BottomUIPackage:DefineReturns("number");
-function ResourceBarClass:GetHeight(data)
+function C_ResourceBar:GetHeight(data)
     return data.frame:GetHeight();
 end
 
 BottomUIPackage:DefineReturns("boolean");
-function ResourceBarClass:IsEnabled(data) 
-    return data.enabled; 
+function C_ResourceBar:IsEnabled(data)
+    return data.enabled;
 end
 
 BottomUIPackage:DefineParams("boolean");
-function ResourceBarClass:SetEnabled(data, enabled)
+function C_ResourceBar:SetEnabled(data, enabled)
     data.enabled = enabled;
     data.frame:SetShown(enabled);
-    ResourceBarsClass:UpdateContainer();
+    data.module:UpdateContainer();
 end
 
--- ResourceBarsClass -------------------
-function ResourceBarsClass:OnInitialize(data, buiContainer)
+-- C_ResourceBarsModule -------------------
+function C_ResourceBarsModule:OnInitialize(data, buiContainer)
     data.buiContainer = buiContainer;
     data.sv = db.profile.resourceBars;
     self:SetEnabled(true); -- set module enabled (not bar)
 end
 
-function ResourceBarsClass:OnEnable(data)
+function C_ResourceBarsModule:OnEnable(data)
     data.barsContainer = tk.CreateFrame("Frame", "MUI_ResourceBars", data.buiContainer);
-    data.barsContainer:SetFrameStrata("MEDIUM");    
+    data.barsContainer:SetFrameStrata("MEDIUM");
     data.barsContainer:SetPoint("BOTTOMLEFT", data.buiContainer, "TOPLEFT", 0, -1);
     data.barsContainer:SetPoint("BOTTOMRIGHT", data.buiContainer, "TOPRIGHT", 0, -1);
 
     data.bars = {};
+
     for _, barName in tk.ipairs(BAR_NAMES) do
         if (data.sv[barName.."Bar"].enabled) then
             local enabled = false;
-            
+
             if (barName == ARTIFACT_BAR_ID) then
-                enabled = HasArtifactEquipped();        
+                enabled = _G.HasArtifactEquipped();
+
             elseif (barName == REPUTATION_BAR_ID) then
-                enabled = GetWatchedFactionInfo();        
+                enabled = _G.GetWatchedFactionInfo();
+
             elseif (barName == EXPERIENCE_BAR_ID) then
-                enabled = not tk:IsPlayerMaxLevel();
+                enabled = true; --not tk:IsPlayerMaxLevel();
+                -- TODO THIS!
             end
-            
+
             if (enabled) then
                 -- Create Resource Bar here! (enabled by default!)
-                data.bars[barName] = ResourceBarClass(data.barsContainer, barName);                
+                data.bars[barName] = C_ResourceBar(self, data.barsContainer, barName);
             end
         end
     end
@@ -348,11 +350,11 @@ function ResourceBarsClass:OnEnable(data)
     end);
 end
 
-function ResourceBarsClass:UpdateContainer(data)
+function C_ResourceBarsModule:UpdateContainer(data)
     local height = 0;
     local previousBar;
 
-    for id, barName in tk.ipairs(BAR_NAMES) do
+    for _, barName in tk.ipairs(BAR_NAMES) do
         if (data.bars[barName]) then
             local bar = data.bars[barName];
 
@@ -375,7 +377,7 @@ function ResourceBarsClass:UpdateContainer(data)
         end
     end
 
-    if (height == 0) then 
+    if (height == 0) then
         height = 1;
     end
 
@@ -384,17 +386,17 @@ function ResourceBarsClass:UpdateContainer(data)
 end
 
 Engine:DefineReturns("number");
-function ResourceBarsClass:GetHeight(data)
+function C_ResourceBarsModule:GetHeight(data)
     return data.barsContainer:GetHeight();
 end
 
 Engine:DefineParams("string");
 Engine:DefineReturns("Frame");
-function ResourceBarsClass:GetBar(data, barName)
+function C_ResourceBarsModule:GetBar(data, barName)
     return data.bars[barName];
 end
 
-function ResourceBarsClass:CreateBlocker(data, dataTextSvTable, dataTextBar)
+function C_ResourceBarsModule:CreateBlocker(data, dataTextSvTable, dataTextBar)
     if (not data.blocker) then
 
         data.blocker = tk:PopFrame("Frame", data.barsContainer);
@@ -421,6 +423,6 @@ function ResourceBarsClass:CreateBlocker(data, dataTextSvTable, dataTextBar)
 end
 
 Engine:DefineReturns("Frame");
-function ResourceBarsClass:GetBarContainer(data)
+function C_ResourceBarsModule:GetBarContainer(data)
     return data.barsContainer;
 end
