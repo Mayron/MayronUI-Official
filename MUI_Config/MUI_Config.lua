@@ -80,8 +80,10 @@ end
 
 -- Updates the database based on the dbPath config value, or using SetValue,
 -- and then calls "OnConfigUpdate" for the module that the config value belongs to.
--- @param widget: The created widget frame passed when calling SetValue to add custom
+-- @param widget: The created widget frame which is used when calling SetValue to add custom
 --      graphical changes to represent the new value (such as disabling the widget)
+
+Engine:DefineParams("Frame", "table");
 function C_ConfigModule:SetDatabaseValue(data, widget, widgetConfigTable, value)
 
     -- SetValue is a custom function to manually set the datbase config value

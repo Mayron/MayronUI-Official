@@ -84,9 +84,11 @@ function TextField:GetEditBox(data)
     return data.editBox;
 end
 
-function TextField:OnTextChanged(data, callback)
+function TextField:OnTextChanged(data, callback, ...)
+    local args = {...};
+
     data.editBox:SetScript("OnEnterPressed", function()
         data.editBox:ClearFocus();
-        callback(self, data.editBox:GetText(), data.previousText);
+        callback(self, data.editBox:GetText(), data.previousText, _G.unpack(args));
     end);
 end

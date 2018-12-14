@@ -40,6 +40,20 @@ function C_ConfigModule:CreateElementContainerFrame(_, widget, childData, parent
     return container;
 end
 
+local function GetValue(configTable, attributeName, ...)
+    if (configTable[attributeName] ~= nil) then
+        return configTable[attributeName];
+    end
+
+    local funcName = tk.Strings:Concat(
+        "Get", attributeName:gsub("^%l", string.upper)
+    );
+
+    if (type(configTable[funcName]) == "function") then
+        return configTable[funcName](configTable, ...);
+    end
+end
+
 --------------
 -- Sub Menu
 --------------
@@ -135,13 +149,23 @@ end
 ----------------
 WidgetHandlers.title = {};
 
-function WidgetHandlers.title:Run(parent, widgetConfigTable)
-    local height = 20 + (widgetConfigTable.paddingTop or 10) + (widgetConfigTable.paddingBottom or 10);
-    local container = tk:PopFrame("Frame", parent);
+-- supported title config attributes:
+-- name - the container name (a visible fontstring that shows in the GUI)
+-- paddingTop - space between top of background and top of name
+-- paddingBottom - space between bottom of background and bottom of name
+-- width - overrides using a full width (100% width of the container) with a fixed width value
 
+function WidgetHandlers.title:Run(parent, widgetConfigTable)
+    local container = tk:PopFrame("Frame", parent);
     container.text = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     container.text:SetText(widgetConfigTable.name);
-    container:SetHeight(container.text:GetStringHeight() + height);
+
+    local topPadding = (widgetConfigTable.paddingTop or 10);
+    local bottomPadding = (widgetConfigTable.paddingBottom or 10);
+    local textHeight = container.text:GetStringHeight();
+    local height = 20 + textHeight + topPadding + bottomPadding;
+
+    container:SetHeight(height);
 
     if (widgetConfigTable.width) then
         container:SetWidth(widgetConfigTable.width);
@@ -149,10 +173,17 @@ function WidgetHandlers.title:Run(parent, widgetConfigTable)
         tk:SetFullWidth(container, 10);
     end
 
-    local bg = tk:SetBackground(container, 0, 0, 0, 0.2);
-    bg:SetPoint("TOPLEFT", 0, -(widgetConfigTable.paddingTop or 10));
-    bg:SetPoint("BOTTOMRIGHT", 0, (widgetConfigTable.paddingBottom or 10));
-    container.text:SetAllPoints(bg);
+    local background = tk:SetBackground(container, 0, 0, 0, 0.2);
+
+    --TODO: Surely, (0, 0) should be including topPadding, if topPadding is
+    --TODO: included as part of the height...
+    -- background:SetPoint("TOPLEFT", 0, -topPadding);
+    -- background:SetPoint("BOTTOMRIGHT", 0, bottomPadding);
+
+    -- TODO: Should I not just use: (?)
+    background:SetAllPoints(true);
+
+    container.text:SetAllPoints(background);
 
     return container;
 end
@@ -359,27 +390,42 @@ end
 ---------------
 -- Text Field
 ---------------
+
+local function TextField_OnTextChanged(self, value, _, configTable)
+    -- perform validation based on valueType
+    local isValue = true;
+
+    -- ensure database stores a number, instead of a string containing a number
+    value = tonumber(value) or value;
+
+    if (configTable.valueType == "number" and configTable.min ~= nil) then
+        isValue = value >= configTable.min;
+    end
+
+    if (not isValue) then
+        self:ApplyPreviousText();
+    else
+        self:SetText(value);
+        configModule:SetDatabaseValue(self:GetFrame(), configTable, value);
+    end
+end
+
 WidgetHandlers.textfield = {};
+
+-- supported textield config attributes:
+-- tooltip - the fontstring text to display
+-- width - Can be used to change the font object. Supports "header" only (for now).
+-- height - overrides the default horizontal justification ("LEFT")
+-- valueType - overrides the default height of 30
+-- min - overrides the default fixed with value (the width of the fontstring)
 
 function WidgetHandlers.textfield:Run(parent, widgetConfigTable, value)
     local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetConfigTable.tooltip, parent);
     textField:SetText(value or "");
     textField:SetSize(widgetConfigTable.width or 150, widgetConfigTable.height or 26);
 
-    textField:OnTextChanged(function(self, newText)
-        local newValue = tonumber(newText) or newText;
-
-        if (widgetConfigTable.valueType and type(newValue) ~= widgetConfigTable.valueType) then
-            textField:ApplyPreviousText();
-
-        elseif (widgetConfigTable.min and widgetConfigTable.valueType == "number" and newValue < widgetConfigTable.min) then
-            textField:ApplyPreviousText();
-
-        else
-            textField:SetText(newValue);
-            configModule:SetDatabaseValue(self, widgetConfigTable, newValue);
-        end
-    end);
+    -- passes in textField (not data.editBox);
+    textField:OnTextChanged(TextField_OnTextChanged, widgetConfigTable);
 
     return configModule:CreateElementContainerFrame(textField, widgetConfigTable, parent);
 end
@@ -388,6 +434,14 @@ end
 -- Font String
 ----------------
 WidgetHandlers.fontstring = {};
+
+-- supported fontstring config attributes:
+-- content - the fontstring text to display
+-- subType - Can be used to change the font object. Supports "header" only (for now).
+-- justify - overrides the default horizontal justification ("LEFT")
+-- height - overrides the default height of 30
+-- width - overrides the default fixed with value (the width of the fontstring)
+-- fullWidth - overrides the default fixed width value (and ignores width attribute if used)
 
 function WidgetHandlers.fontstring:Run(parent, widgetConfigTable)
     local container = tk:PopFrame("Frame", parent);
@@ -404,12 +458,15 @@ function WidgetHandlers.fontstring:Run(parent, widgetConfigTable)
 
     if (widgetConfigTable.subtype) then
         if (widgetConfigTable.subtype == "header") then
+            --TODO: What about gold or yellow for a warning message?
             container.content:SetFontObject("MUI_FontLarge");
         end
     end
 
     container:SetHeight(widgetConfigTable.height or 30);
-    container.content:SetText(widgetConfigTable.content);
+
+    local content = GetValue(widgetConfigTable, "content");
+    container.content:SetText(content);
 
     if (widgetConfigTable.fullWidth) then
         tk:SetFullWidth(container, 10);

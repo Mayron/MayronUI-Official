@@ -29,16 +29,19 @@ db:AddToDefaults("global.core", {
     uiScale = 0.7,
     changeGameFont = true,
     font = "MUI_Font",
-	useLocalization = true,
-    addons = {
-        {"Aura Frames", true, "AuraFrames"},
-        {"Bartender4", true, "Bartender4"},
-        {"Grid", true, "Grid"},
-        {"Masque", true, "Masque"},
-        {"Mik Scrolling Battle Text", false, "MikScrollingBattleText"},
-        {"Recount", true, "Recount"},
-        {"Shadowed Unit Frames", true, "ShadowedUnitFrames"},
-        {"TipTac", true, "TipTac"},
+    useLocalization = true,
+    setup = {
+        profilePerCharacter = true,
+        addons = {
+            {"Aura Frames", true, "AuraFrames"},
+            {"Bartender4", true, "Bartender4"},
+            {"Grid", true, "Grid"},
+            {"Masque", true, "Masque"},
+            {"Mik Scrolling Battle Text", false, "MikScrollingBattleText"},
+            {"Recount", true, "Recount"},
+            {"Shadowed Unit Frames", true, "ShadowedUnitFrames"},
+            {"TipTac", true, "TipTac"},
+        }
     }
 });
 
