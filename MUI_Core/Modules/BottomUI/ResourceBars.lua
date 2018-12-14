@@ -15,7 +15,10 @@ local ARTIFACT_BAR_ID = "artifact";
 -- Setup Objects -------------------------
 
 local Engine = obj:Import("MayronUI.Engine");
-local BottomUIPackage = obj:Import("MayronUI.Packages.BottomUI");
+
+local BottomUIPackage = obj:CreatePackage("BottomUI");
+Engine:AddSubPackage(BottomUIPackage);
+
 local C_ResourceBar = BottomUIPackage:CreateClass("ResourceBar", "Framework.System.FrameWrapper");
 
 -- Register and Import Modules -----------

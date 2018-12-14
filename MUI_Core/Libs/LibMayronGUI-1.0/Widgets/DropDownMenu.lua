@@ -101,9 +101,6 @@ function Lib:CreateDropDown(style, parent, direction)
     dropDownContainer.toggleButton.dropdown = DropDownMenu(header, direction, slideController, dropDownContainer, style);
     table.insert(dropdowns, dropDownContainer.toggleButton.dropdown);
 
-    -- enabled by default
-    dropDownContainer.toggleButton.dropdown:SetEnabled(true);
-
     return dropDownContainer.toggleButton.dropdown;
 end
 
@@ -125,10 +122,14 @@ function DropDownMenu:__Construct(data, header, direction, slideController, fram
     data.header = header;
     data.direction = direction;
     data.slideController = slideController;
+    data.scrollHeight = 0;
     data.frame = frame; -- must be called frame for GetFrame() to work!
     data.menu = DropDownMenu.Static.Menu;
     data.style = style;
     data.options = {};
+
+    -- disabled by default (until an option is added)
+    self:SetEnabled(false);
 end
 
 function DropDownMenu:GetMenu(data)
@@ -154,6 +155,7 @@ function DropDownMenu:SetLabel(data, text, tooltip)
     end
 
     data.label:SetText(text);
+
     if (not data.header.custom) then
         if (tooltip) then
             self:SetToolTip(tooltip);
@@ -242,6 +244,10 @@ function DropDownMenu:RemoveOptionByID(data, optionID)
     if (DropDownMenu.Static.Menu:IsShown()) then
         DropDownMenu.Static.Menu:SetHeight(height);
     end
+
+    if (#data.options == 0) then
+        self:SetEnabled(false);
+    end
 end
 
 function DropDownMenu:AddOptions(_, func, optionsTable)
@@ -320,6 +326,8 @@ function DropDownMenu:AddOption(data, label, func, ...)
         end
     end);
 
+    self:SetEnabled(true);
+
     return option;
 end
 
@@ -330,8 +338,6 @@ function DropDownMenu:SetEnabled(data, enabled)
         local r, g, b = data.style:GetColor();
         r = r * 0.7; g = g * 0.7; b = b * 0.7;
 
-        DropDownMenu.Static.Menu:SetBackdropBorderColor(r, g, b);
-
         data.header:SetBackdropBorderColor(r, g, b);
         data.header.bg:SetVertexColor(r, g, b, 0.6);
 
@@ -339,30 +345,20 @@ function DropDownMenu:SetEnabled(data, enabled)
         data.frame.toggleButton:GetHighlightTexture():SetVertexColor(r, g, b, 0.3);
         data.frame.toggleButton:SetBackdropBorderColor(r, g, b);
 
-        if (data.options) then
-            for _, option in ipairs(data.options) do
-                option:GetNormalTexture():SetColorTexture(r, g, b, 0.4);
-                option:GetHighlightTexture():SetColorTexture(r, g, b, 0.4);
-            end
-        end
+        data.frame.toggleButton.arrow:SetAlpha(1);
 
         if (data.label) then
             data.label:SetTextColor(1, 1, 1);
         end
     else
-        DropDownMenu.Static.Menu:Hide();
-        DropDownMenu.Static.Menu:SetBackdropBorderColor(0.2, 0.2, 0.2);
-        data.header.bg:SetVertexColor(0.2, 0.2, 0.2, 0.6);
-        data.header:SetBackdropBorderColor(0.2, 0.2, 0.2);
+        data.header.bg:SetVertexColor(0.4, 0.4, 0.4, 0.6);
+        data.header:SetBackdropBorderColor(0.4, 0.4, 0.4);
+
         data.frame.toggleButton:GetNormalTexture():SetVertexColor(0.2, 0.2, 0.2, 0.6);
         data.frame.toggleButton:GetHighlightTexture():SetVertexColor(0.2, 0.2, 0.2, 0.7);
         data.frame.toggleButton:SetBackdropBorderColor(0.2, 0.2, 0.2);
+
         data.frame.toggleButton.arrow:SetAlpha(0.5);
-
-        --TODO: This line needs to be tested...
-        data.style:ApplyColor(nil, 0.8, data.frame.ScrollBar.thumb);
-
-        self:Toggle(false);
 
         if (data.label) then
             data.label:SetTextColor(0.5, 0.5, 0.5);
@@ -408,14 +404,14 @@ function DropDownMenu:Toggle(data, show, clickSoundFilePath)
     end
 
     if (show) then
-        local max_height = (data.scrollHeight < DropDownMenu.Static.MAX_HEIGHT)
+        local maxHeight = (data.scrollHeight < DropDownMenu.Static.MAX_HEIGHT)
             and data.scrollHeight or DropDownMenu.Static.MAX_HEIGHT;
 
         DropDownMenu.Static.Menu:SetScrollChild(data.frame.child);
         DropDownMenu.Static.Menu:SetHeight(1);
 
         data.frame.child:Show();
-        data.slideController:SetMaxHeight(max_height);
+        data.slideController:SetMaxHeight(maxHeight);
 
         if (data.direction == "DOWN") then
             data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0.2);

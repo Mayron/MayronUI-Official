@@ -47,7 +47,15 @@ local configTable = {
                     type = "dropdown",
                     tooltip = "Choose the currently active profile.",
                     GetOptions = function()
-                        return db:GetProfiles();
+                        local profiles = db:GetProfiles();
+                        local options = tk.Tables:PopWrapper();
+
+                        -- key and value should both be the profile name:
+                        for _, profileName in ipairs(profiles) do
+                            options[profileName] = profileName;
+                        end
+
+                        return options;
                     end,
                     requiresRestart = true, -- TODO: this will eventually be replaced with OnProfileChange
                     SetValue = function()
@@ -107,7 +115,7 @@ local configTable = {
         {
             name = "Restore a Profile:",
             type = "dropdown",
-            tooltip = "Removed profiles can be restored up until the UI is reloaded, then they are lost forever.",
+            tooltip = "Profiles that have been removed are stored in the bin until the UI is reloaded.\n\nOnce the UI reloads, the removed profiles are permanently deleted.",
             GetOptions = function()
                 return db:GetProfilesInBin();
             end,

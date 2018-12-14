@@ -2,10 +2,6 @@
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local _, namespace = ...;
 
--- Setup Objects -------------------------
-
--- local BottomUIPackage = obj:CreatePackage("BottomUI", "MayronUI.Packages");
-
 -- Register and Import Modules -----------
 
 local C_Container = MayronUI:RegisterModule("BottomUI_Container");

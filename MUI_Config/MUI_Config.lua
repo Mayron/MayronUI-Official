@@ -14,16 +14,6 @@ namespace.C_ConfigModule = C_ConfigModule;
 
 -- Local functions -------------------
 
--- local function ToolTip_OnEnter(frame)
---     _G.GameTooltip:SetOwner(frame, "ANCHOR_RIGHT", 0, 2);
---     _G.GameTooltip:AddLine(frame.tooltip);
---     _G.GameTooltip:Show();
--- end
-
--- local function ToolTip_OnLeave()
---     _G.GameTooltip:Hide();
--- end
-
 local function MenuButton_OnClick(menuButton)
     if (menuButton:IsObjectType("CheckButton") and not menuButton:GetChecked()) then
         -- should not be allowed to uncheck a menu button by clicking it a second time!

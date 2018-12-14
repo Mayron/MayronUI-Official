@@ -291,11 +291,11 @@ function UnitFramePanelClass:UpdateUnitNameText(data, unitType, unitLevel)
         unitLevel = "boss";
 
     elseif (classif == "elite" or classif == "rareelite") then
-        unitLevel = tk.tostring(unitLevel).."+";
+        unitLevel = tostring(unitLevel).."+";
     end
 
     if (classif == "rareelite" or classif == "rare") then
-        unitLevel = "|cffff66ff"..unitLevel.."|r";
+        unitLevel = tk.Strings:Concat("|cffff66ff", unitLevel, "|r");
     end
 
     if (unitType ~= "player") then
@@ -331,7 +331,7 @@ function UnitFramePanelClass:SetupSUFPortraitGradients(data)
     if (sv.enabled) then
         data.gradients = data.gradients or {};
 
-        for _, unitID in ipairs({"player", "target"}) do
+        for _, unitID in tk.Tables:IterateArgs("player", "target") do
             local parent = tk._G["SUFUnit"..unitID];
 
             if (parent and parent.portrait) then
@@ -361,10 +361,12 @@ function UnitFramePanelClass:SetupSUFPortraitGradients(data)
 
                                     local c = tk.Constants.CLASS_RGB_COLORS[class];
 
-                                    frame.texture:SetGradientAlpha("VERTICAL", to.r, to.g, to.b, to.a,
+                                    frame.texture:SetGradientAlpha("VERTICAL",
+                                        to.r, to.g, to.b, to.a,
                                         c.r, c.g, c.b, from.a);
                                 else
-                                    frame.texture:SetGradientAlpha("VERTICAL", to.r, to.g, to.b, to.a,
+                                    frame.texture:SetGradientAlpha("VERTICAL",
+                                        to.r, to.g, to.b, to.a,
                                         from.r, from.g, from.b, from.a);
                                 end
                             end
