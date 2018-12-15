@@ -1,8 +1,9 @@
 -- luacheck: ignore MayronUI self 143
-local _, core = ...;
-core.Toolkit = core.Toolkit or {};
+local _, namespace = ...;
 
-local tk = core.Toolkit;
+local obj = namespace.Objects;
+local tk = namespace.Toolkit;
+
 tk.Strings = {};
 
 tk.Strings.Empty = "";
@@ -93,20 +94,24 @@ function tk.Strings:GetClassColoredText(className, text)
     return self:GetHexColoredText(text, tk.Constants.CLASS_RGB_COLORS[className].hex);
 end
 
+function tk.Strings:SetTextColor(text, colorKey)
+    return tk.Constants.BLIZZARD_COLORS[colorKey:upper()]:WrapTextInColorCode(text);
+end
+
 function tk.Strings:Concat(...)
-    local wrapper = tk.Tables:PopWrapper(...);
+    local wrapper = obj:PopWrapper(...);
     local value = table.concat(wrapper, tk.Strings.Empty);
-    tk.Tables:PushWrapper(wrapper);
+    obj:PushWrapper(wrapper);
     return value;
 end
 
 function tk.Strings:Join(separator, ...)
-    local wrapper = tk.Tables:PopWrapper(...);
+    local wrapper = obj:PopWrapper(...);
 
     tk:Assert(#wrapper > 0, "List of values to join cannot be empty.");
 
     local value = table.concat(wrapper, separator);
-    tk.Tables:PushWrapper(wrapper);
+    obj:PushWrapper(wrapper);
 
     return value;
 end

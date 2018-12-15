@@ -5,6 +5,7 @@ if (not Lib) then return end
 
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
+local obj = Lib.Objects;
 
 local Cell = WidgetsPackage:CreateClass("Cell", Private.FrameWrapper);
 local Panel = Private.Panel;
@@ -47,7 +48,8 @@ function Cell:SetDimensions(data, width, height)
 end
 
 function Cell:SetInsets(data, ...)
-    local args = {...};
+    local args = obj:PopWrapper(...);
+
     if (#args == 1) then
         data.insets = {
             top = args[1],
@@ -70,6 +72,8 @@ function Cell:SetInsets(data, ...)
             left = args[4]
         };
     end
+
+    obj:PushWrapper(args);
 
     if (data.startAnchor and data.endEnchor) then
         data.frame:SetPoint("TOPLEFT", data.startAnchor, "TOPLEFT", data.insets.left, -data.insets.top);

@@ -1,6 +1,6 @@
 -- luacheck: ignore MayronUI self 143
 local _, namespace = ...;
-local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
+local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 
 local C_ChatModule = namespace.C_ChatModule;
 local chatModule = MayronUI:ImportModule("Chat");
@@ -166,7 +166,7 @@ local function CreateButtonConfigTable(dbPath, buttonID)
         return _G.unpack(configTable);
     end
 
-    for _, modKey in tk.Tables:IterateArgs(L["Control"], L["Shift"], L["Alt"]) do
+    for _, modKey in obj:IterateArgs(L["Control"], L["Shift"], L["Alt"]) do
         local modKeyFirstChar = string.sub(modKey, 1, 1);
 
         table.insert(configTable, {

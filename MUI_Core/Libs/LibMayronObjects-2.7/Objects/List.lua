@@ -1,4 +1,4 @@
-local Lib = LibStub:GetLibrary("LibMayronObjects");
+local Lib = _G.LibStub:GetLibrary("LibMayronObjects");
 local Collections = Lib:Import("Framework.System.Collections");
 local List = Collections:CreateClass("List");
 ---------------------------------------

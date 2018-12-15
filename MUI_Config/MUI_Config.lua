@@ -62,11 +62,8 @@ function C_ConfigModule:GetDatabaseValue(_, configTable)
     end
 
     if (configTable.type == "color") then
-        value = {};
-        value.r = db:ParsePathValue(string.format("%s.r", path));
-        value.g = db:ParsePathValue(string.format("%s.g", path));
-        value.b = db:ParsePathValue(string.format("%s.b", path));
-        value.a = db:ParsePathValue(string.format("%s.a", path));
+        local color = db:ParsePathValue(path);
+        value = { r = color.r, g = color.g, b = color.b, a = color.a };
     else
         value = db:ParsePathValue(path);
     end
@@ -155,7 +152,7 @@ function C_ConfigModule:SetSelectedButton(data, menuButton)
         -- it is a sub-menu!
         self:RenderSelectedMenu(menuButton.ConfigTable);
 
-        tk.Tables:PushWrapper(menuButton.ConfigTable);
+        obj:PushWrapper(menuButton.ConfigTable);
         menuButton.ConfigTable = nil;
 
         if (menuButton.module) then
@@ -192,7 +189,7 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
             end
 
             -- the table was previously popped
-            tk.Tables:PushWrapper(widgetChildren);
+            obj:PushWrapper(widgetChildren);
 
         elseif (widgetConfigTable.type == "frame") then
             local frame = self:SetUpWidget(widgetConfigTable);
@@ -204,13 +201,11 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
 
                 for _, subWidgetConfigTable in ipairs(widgetConfigTable.children) do
                     local frameWidget = self:SetUpWidget(subWidgetConfigTable, frame);
-                    local xOffset = subWidgetConfigTable.xOffset or 10;
-                    local yOffset = subWidgetConfigTable.yOffset or 0;
 
                     if (previousFrame == frame) then
-                        frameWidget:SetPoint("LEFT", previousFrame, "LEFT", xOffset, yOffset);
+                        frameWidget:SetPoint("TOPLEFT", previousFrame, "TOPLEFT", 10, -10);
                     else
-                        frameWidget:SetPoint("BOTTOMLEFT", previousFrame, "BOTTOMRIGHT", xOffset, yOffset);
+                        frameWidget:SetPoint("BOTTOMLEFT", previousFrame, "BOTTOMRIGHT", 10, 0);
                     end
 
                     previousFrame = frameWidget;
@@ -272,7 +267,7 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
 
     if (type(data.tempMenuConfigTable.inherit) == "table") then
         -- Inherit all key and value pairs from a parent table by injecting them into childData
-        local metaTable = tk.Tables:PopWrapper();
+        local metaTable = obj:PopWrapper();
         metaTable.__index = data.tempMenuConfigTable.inherit;
         setmetatable(widgetConfigTable, metaTable);
     end
@@ -284,7 +279,7 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
         widgetType = "check";
     end
 
-    obj:Assert(namespace.WidgetHandlers[widgetType],
+    tk:Assert(namespace.WidgetHandlers[widgetType],
         "Unsupported widget type '%s' found in config data", widgetType or "nil");
 
     if (widgetConfigTable.OnInitialize) then
@@ -310,13 +305,6 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
 
         table.insert(tempRadioButtonGroup, widget.btn);
     end
-
-    -- TODO: LibMayronGUI should be able to handle this for MOST widgets
-    -- if (widgetConfigTable.tooltip) then
-    --     widget.tooltip = widgetConfigTable.tooltip;
-    --     widget:SetScript("OnEnter", ToolTip_OnEnter);
-    --     widget:SetScript("OnLeave", ToolTip_OnLeave);
-    -- end
 
     if (widgetConfigTable.disabled) then
         return;

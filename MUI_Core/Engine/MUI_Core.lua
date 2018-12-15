@@ -4,16 +4,15 @@ local addOnName, namespace = ...;
 namespace.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
 namespace.EventManager = LibStub:GetLibrary("LibMayronEvents");
 namespace.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
-namespace.Objects = LibStub:GetLibrary("LibMayronObjects");
 namespace.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 
 MayronUI = {};
 
 local db = namespace.Database;
 local em = namespace.EventManager;
-local tk = namespace.Toolkit;
+local tk = namespace.Toolkit; -- initialized in Toolkit/Other.lua
 local gui = namespace.GUIBuilder;
-local obj = namespace.Objects;
+local obj = namespace.Objects; -- initialized in Toolkit/Other.lua
 local L = namespace.Locale;
 
 local registeredModules = {};
@@ -295,7 +294,7 @@ function CoreModule:OnInitialize()
 			return
         end
 
-		for _, arg in tk.Tables:IterateArgs(tk.string.split(' ', str)) do
+		for _, arg in obj:IterateArgs(tk.string.split(' ', str)) do
 			if (#arg > 0) then
                 table.insert(args, arg);
 			end
@@ -393,15 +392,17 @@ db:OnStartUp(function(self)
 
     tk.Constants.AddOnStyle = Style();
     -- tk.Constants.AddOnStyle:EnableColorUpdates();
-    tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.backdrop, "DropDownMenu");
-    tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.backdrop, "ButtonBackdrop");
+    tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");
+    tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "ButtonBackdrop");
     tk.Constants.AddOnStyle:SetTexture(tk.Constants.MEDIA.."mui_bar", "ButtonTexture");
     tk.Constants.AddOnStyle:SetTexture(tk.Constants.MEDIA.."reskin\\arrow_down", "ArrowButtonTexture")
     tk.Constants.AddOnStyle:SetTexture(tk.Constants.MEDIA.."dialog_box\\Texture-", "DialogBoxBackground");
     tk.Constants.AddOnStyle:SetTexture(tk.Constants.MEDIA.."dialog_box\\TitleBar", "TitleBarBackground");
     tk.Constants.AddOnStyle:SetTexture(tk.Constants.MEDIA.."dialog_box\\CloseButton", "CloseButtonBackground");
     tk.Constants.AddOnStyle:SetTexture(tk.Constants.MEDIA.."dialog_box\\DragRegion", "DraggerTexture");
+    tk.Constants.AddOnStyle:SetTexture(tk.Constants.MEDIA.."textfield", "TextField");
     tk.Constants.AddOnStyle:SetColor(r, g, b);
+    tk.Constants.AddOnStyle:SetColor(r * 0.7, g * 0.7, b * 0.7, "Widget");
 
     -- Load Media using LibSharedMedia --------------
 

@@ -1,12 +1,11 @@
 -- luacheck: ignore MayronUI self 143 631
 local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-if (not Lib) then
-    return
-end
+if (not Lib) then return end
 
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
+local obj = Lib.Objects;
 
 local Group = WidgetsPackage:CreateClass("Group", Private.FrameWrapper);
 local Panel = Private.Panel;
@@ -17,7 +16,7 @@ local function GetGroup(groupID, groupType, panel, panelData)
         return false;
     end
 
-    local cellsList = {};
+    local cellsList = obj:PopWrapper();
 
     for position, cell in panelData.grid:Iterate() do
         local column, row = Private:GetCoords(position, panelData.width, panelData.height);
@@ -28,6 +27,8 @@ local function GetGroup(groupID, groupType, panel, panelData)
     end
 
     local cellsLinkedList = Private.LinkedList(_G.unpack(cellsList));
+
+    obj:PushWrapper(cellsList);
     return Group(groupID, groupType, cellsLinkedList, panel);
 end
 

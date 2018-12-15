@@ -1,5 +1,5 @@
 -- luacheck: ignore MayronUI self 143 631
-
+local addOnName = ...;
 local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 2.7);
 
 if (not Lib) then
@@ -8,7 +8,7 @@ end
 
 local error, rawset = error, rawset;
 local type, setmetatable, table, string = type, setmetatable, table, string;
-local getmetatable, unpack, select = getmetatable, _G.unpack, select;
+local getmetatable, select = getmetatable, select;
 
 -- holds class, instance, and interface controllers
 -- used for controlling behaviour of these "entities"
@@ -28,6 +28,7 @@ local Core = {}; -- holds all private Lib core functions for internal use
 Core.Lib = Lib;
 Core.PREFIX = "|cffffcc00LibMayronObjects: |r"; -- this is used when printing out errors
 Core.ExportedPackages = {}; -- contains all exported packages
+Core.DebugMode = false;
 
 --[[
 -- need a reference for this to hack around the manual exporting process
@@ -38,8 +39,6 @@ local Package;
 -------------------------------------
 -- Helper functions
 -------------------------------------
-local helper = {};
-
 do
     local wrappers = {};
 
@@ -52,19 +51,20 @@ do
             return id, arg;
         else
             -- reached end of wrapper so finish looping and clean up
-            helper:PushWrapper(wrapper);
+            Lib:PushWrapper(wrapper);
         end
     end
 
-    function helper:PopWrapper(...)
+    function Lib:PopWrapper(...)
         local wrapper;
 
         -- get wrapper before iterating
         if (#wrappers > 0) then
             wrapper = wrappers[#wrappers];
             wrappers[#wrappers] = nil;
+            wrappers[tostring(wrapper)] = nil;
 
-            -- empty table (incase helper:UnpackWrapper was used)
+            -- empty table (incase tk.Tables:UnpackWrapper was used)
             for key, _ in pairs(wrapper) do
                 wrapper[key] = nil;
             end
@@ -90,27 +90,43 @@ do
                 totalConsecutiveNils = 0;
             end
 
-        -- repeat until we are comfortable that all arguments have been captured
-        -- should not have a function call containing more than 10 consecutive nil args
+        -- repeat until we are comfortable that all arguments have been captured.
+        -- should not have a function call containing more than 10 consecutive nil args!
         until (totalConsecutiveNils > 10);
 
         return wrapper;
     end
 
-    function helper:PushWrapper(wrapper)
+    function Lib:PushWrapper(wrapper, pushSubTables)
+        if (type(wrapper) ~= "table") then return end
+
+        setmetatable(wrapper, nil);
+
         for key, _ in pairs(wrapper) do
+
+            if (pushSubTables and type(wrapper[key]) == "table") then
+                self:PushWrapper(wrapper[key]);
+            end
+
             wrapper[key] = nil;
         end
 
-        wrappers[#wrappers + 1] = wrapper;
+        if (not wrappers[tostring(wrapper)]) then
+            wrappers[#wrappers + 1] = wrapper;
+            wrappers[tostring(wrapper)] = true;
+        end
     end
 
-    function helper:UnpackWrapper(wrapper)
-        wrappers[#wrappers + 1] = wrapper;
-        return unpack(wrapper);
+    function Lib:UnpackWrapper(wrapper)
+        if (not wrappers[tostring(wrapper)]) then
+            wrappers[#wrappers + 1] = wrapper;
+            wrappers[tostring(wrapper)] = true;
+        end
+
+        return _G.unpack(wrapper);
     end
 
-    function helper:IterateArgs(...)
+    function Lib:IterateArgs(...)
         local wrapper = self:PopWrapper(...);
         return iterator, wrapper, 0;
     end
@@ -142,7 +158,7 @@ end
 function Lib:Import(namespace, silent)
     local entity;
     local currentNamespace = "";
-    local nodes = {_G.strsplit(".", namespace)};
+    local nodes = Lib:PopWrapper(_G.strsplit(".", namespace));
 
     for id, key in ipairs(nodes) do
         Core:Assert(not Core:IsStringNilOrWhiteSpace(key), "Import - bad argument #1 (invalid entity name).");
@@ -166,6 +182,8 @@ function Lib:Import(namespace, silent)
         end
     end
 
+    Lib:PushWrapper(nodes);
+
     if (not silent) then
         local controller = Core:GetController(entity, true);
 
@@ -187,7 +205,7 @@ function Lib:Export(package, namespace)
     Core:Assert(classController and classController.IsPackage, "Export - bad argument #1 (package expected)");
     Core:Assert(not Core:IsStringNilOrWhiteSpace(namespace), "Export - bad argument #2 (invalid namespace)")
 
-    for id, key in helper:IterateArgs(_G.strsplit(".", namespace)) do
+    for id, key in self:IterateArgs(_G.strsplit(".", namespace)) do
         Core:Assert(not Core:IsStringNilOrWhiteSpace(key), "Export - bad argument #2 (invalid namespace).");
         key = key:gsub("%s+", "");
 
@@ -250,6 +268,10 @@ function Lib:IsType(value, expectedTypeName)
     return Core:IsMatchingType(value, expectedTypeName);
 end
 
+function Lib:SetDebugMode(debug)
+    Core.DebugMode = debug;
+end
+
 -------------------------------------
 -- ProxyStack
 -------------------------------------
@@ -269,7 +291,7 @@ end
 
 function ProxyStack:Pop()
     if (#self == 0) then
-        return nil;
+        return Lib:PopWrapper();
     end
 
     local proxyObject = self[#self];
@@ -285,14 +307,17 @@ end
 -- @param controller (table) - the entities meta-data (stores validation rules and more).
 -- @return proxyFunc (function) - the proxy function is returned and called instead of the real function.
 local function CreateProxyObject(proxyEntity, key, entity, controller)
-    local proxyObject = ProxyStack:Pop() or {};
+    local proxyObject = ProxyStack:Pop();
 
     proxyObject.Object = proxyEntity;
     proxyObject.Key = key;
     proxyObject.Controller = controller;
     proxyObject.Self = entity;
 
+    -- we need multiple Run functions in case 1 function calls another (Run is never removed after being assigned)
     proxyObject.Run = proxyObject.Run or function(_, ...)
+        -- Validate parameters passed to function
+
         local definition, errorMessage = Core:GetParamsDefinition(proxyObject);
         Core:ValidateFunctionCall(definition, errorMessage, ...);
 
@@ -313,7 +338,8 @@ local function CreateProxyObject(proxyEntity, key, entity, controller)
             "Invalid instance private data found when calling %s.%s: %s",
             proxyObject.Controller.EntityName, proxyObject.Key, tostring(proxyObject.PrivateData));
 
-        local returnValues = helper:PopWrapper(
+        -- Validate return values received after calling the function
+        local returnValues = Lib:PopWrapper(
             Core:ValidateFunctionCall(definition, errorMessage,
                 proxyObject.Object[proxyObject.Key](proxyObject.Self, proxyObject.PrivateData, ...)
             )
@@ -331,11 +357,11 @@ local function CreateProxyObject(proxyEntity, key, entity, controller)
         ProxyStack:Push(proxyObject);
 
         if (#returnValues == 0) then
-            helper:PushWrapper(returnValues);
+            Lib:PushWrapper(returnValues);
             return nil; -- fixes returning nil instead of nothing
         end
 
-        return helper:UnpackWrapper(returnValues);
+        return Lib:UnpackWrapper(returnValues);
     end
 
     ProxyStack.FuncStrings[tostring(proxyObject.Run)] = proxyObject;
@@ -352,92 +378,22 @@ end
 -------------------------------------
 -- Core Functions
 -------------------------------------
-function Core:CreateClass(package, packageData, className, parentClass, ...)
-    local class                 = {}; -- stores real table indexes (once proxy has completed evaluating data)
-    local proxyClass            = {}; -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Class instead)
-    local proxyClassMT          = {}; -- acts as a filter to protect invalid keys from being indexed into Class
-    local definitions           = {}; -- function definitions for params and return values
-    local friends               = {}; -- friend classes can access instance private data of this class
-    local classController       = {}; -- holds special Lib data to control class
-    local rawProxyClassString   = tostring(proxyClass);
 
-    classController.IsClass     = true;
-    classController.EntityName  = className;
-    classController.Entity      = proxyClass;
-    classController.Definitions = definitions;
-    classController.Friends     = friends;
-    classController.Class       = class;
-
-    -- protected table for assigning Static functions
-    proxyClass.Static = {};
-
-    if (package and packageData) then
-        -- link new class to package
-        classController.Package = package;
-        classController.PackageData = packageData;
-        packageData.entities[className] = proxyClass;
-    else
-        -- creating the Package class (cannot assign it to a package instance as Package class does not exist!)
-        classController.IsPackage = true;
-    end
-
-    if (className:match("<") and className:match(">")) then
-        classController.IsGenericType = true;
-        classController.GenericTypes = self:GetGenericTypesFromClassName(className);
-    end
-
-    self:SetParentClass(classController, parentClass);
-    self:SetInterfaces(classController, ...);
-
-    -- ProxyClass functions --------------------------
-
-    proxyClass.Static.AddFriendClass = function(_, friendClassName)
-        friends[friendClassName] = true;
-    end
-
-    proxyClass.Static.IsFriendClass = function(_, friendClassName)
-        if (friendClassName == className) then
-            return true;
-        end
-
-        return friends[friendClassName];
-    end
-
-    proxyClass.Static.OnIndexChanged = function(_, callback)
-        classController.indexChangedCallback = callback;
-    end
-
-    proxyClass.Static.OnIndexChanging = function(_, callback)
-        classController.indexChangingCallback = callback;
-    end
-
-    proxyClass.Static.OnIndexed = function(_, callback)
-        classController.indexedCallback = callback;
-    end
-
-    proxyClass.Static.OnIndexing = function(_, callback)
-        classController.indexingCallback = callback;
-    end
-
-    proxyClass.Of = function(_, ...)
-        Core:Assert(classController.IsGenericType, "%s is not a generic class", className);
-        classController.TempRealGenericTypes = {...}; -- holds real type names
-
-        for id, realType in ipairs(classController.TempRealGenericTypes) do
-            -- remove spaces
-            classController.TempRealGenericTypes[id] = (realType:gsub("%s+", ""));
-        end
-
-        return proxyClass;
-    end
+do
+    local proxyClassMT = {}; -- acts as a filter to protect invalid keys from being indexed into Class
 
     -- ProxyClassMT meta-methods ------------------------
-    proxyClassMT.__call = function(_, ...)
-        return self:CreateInstance(classController, ...);
+    proxyClassMT.__call = function(self, ...)
+        local classController = Core:GetController(self);
+        return Core:CreateInstance(classController, ...);
     end
 
-    proxyClassMT.__index = function(_, key)
-        self:Assert(not classController.Indexing,
+    proxyClassMT.__index = function(self, key)
+        local classController = Core:GetController(self);
+        local className = classController.EntityName;
+        local class = classController.Class;
+
+        Core:Assert(not classController.Indexing,
             "'%s' attempted to re-index itself during the same index request with key '%s'.", className, key);
 
         -- start indexing process (used to detect if an index loop has occured in error)
@@ -447,7 +403,7 @@ function Core:CreateClass(package, packageData, className, parentClass, ...)
 
         if (type(value) == "function") then
             -- get a proxy function object to validate function params and return values
-            value = CreateProxyObject(class, key, proxyClass, classController);
+            value = CreateProxyObject(class, key, self, classController);
 
         elseif (value == nil) then
             -- no real value stored in Class
@@ -458,7 +414,7 @@ function Core:CreateClass(package, packageData, className, parentClass, ...)
                 if (type(value) == "function") then
                     -- need to update the "self" reference to use this class, not the parent!
                     local proxyObject = GetStoredProxyObject(value);
-                    proxyObject.Self = proxyClass;
+                    proxyObject.Self = self;
                 end
             end
 
@@ -466,7 +422,7 @@ function Core:CreateClass(package, packageData, className, parentClass, ...)
                 -- note: cannot check if frame has key here...
                 -- if value is still not found and object has a GetFrame method (usually
                 -- from inheriting FrameWrapper) then index the frame
-                value = CreateProxyObject(class, "GetFrame", proxyClass, classController);
+                value = CreateProxyObject(class, "GetFrame", self, classController);
             end
         end
 
@@ -476,7 +432,7 @@ function Core:CreateClass(package, packageData, className, parentClass, ...)
             local childController = Core:GetController(child);
             local proxyObject = GetStoredProxyObject(value);
 
-            proxyObject.PrivateData = self:GetPrivateInstanceData(child, childController);
+            proxyObject.PrivateData = Core:GetPrivateInstanceData(child, childController);
         end
 
         -- end indexing process (used to detect if an index loop has occured in error)
@@ -485,71 +441,137 @@ function Core:CreateClass(package, packageData, className, parentClass, ...)
         return value;
     end
 
-    proxyClassMT.__newindex = function(_, key, value)
+    proxyClassMT.__newindex = function(self, key, value)
+        local classController = Core:GetController(self);
+        local className = classController.EntityName;
+        local class = classController.Class;
+
         if (key == "Static") then
             -- not allowed to override "Static" Class property!
-            self:Error("%s.Static property is protected.", className);
+            Core:Error("%s.Static property is protected.", className);
             return;
         end
 
         if (classController.IsProtected) then
-            self:Error("%s is protected.", className);
+            Core:Error("%s is protected.", className);
         end
 
         if (type(value) == "function") then
             -- Adds temporary definition info to ClassController.Definitions table
-            self:AttachFunctionDefinition(classController, key);
+            Core:AttachFunctionDefinition(classController, key);
         end
 
         class[key] = value;
     end
 
-    proxyClassMT.__tostring = function()
-        return rawProxyClassString:gsub("table", string.format("<Class> %s", className));
+    -- proxyClassMT.__tostring = function(self)
+    --     setmetatable(self, nil);
+
+    --     local classController = Core:GetController(self);
+    --     local className = classController.EntityName;
+    --     local str = tostring(self):gsub("table", string.format("<Class> %s", className));
+
+    --     setmetatable(self, proxyClassMT);
+
+    --     return str;
+    -- end
+
+    function Core:CreateClass(package, packageData, className, parentClass, ...)
+        local class                 = Lib:PopWrapper(); -- stores real table indexes (once proxy has completed evaluating data)
+        local proxyClass            = Lib:PopWrapper(); -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Class instead)
+        local definitions           = Lib:PopWrapper(); -- function definitions for params and return values
+        local friends               = Lib:PopWrapper(); -- friend classes can access instance private data of this class
+        local classController       = Lib:PopWrapper(); -- holds special Lib data to control class
+
+        classController.IsClass     = true;
+        classController.EntityName  = className;
+        classController.Entity      = proxyClass;
+        classController.Definitions = definitions;
+        classController.Friends     = friends;
+        classController.Class       = class;
+
+        -- protected table for assigning Static functions
+        proxyClass.Static = Lib:PopWrapper();
+
+        if (package and packageData) then
+            -- link new class to package
+            classController.Package = package;
+            classController.PackageData = packageData;
+            packageData.entities[className] = proxyClass;
+        else
+            -- creating the Package class (cannot assign it to a package instance as Package class does not exist!)
+            classController.IsPackage = true;
+        end
+
+        if (className:match("<") and className:match(">")) then
+            classController.IsGenericType = true;
+            classController.GenericTypes = self:GetGenericTypesFromClassName(className);
+        end
+
+        self:SetParentClass(classController, parentClass);
+        self:SetInterfaces(classController, ...);
+
+        -- ProxyClass functions --------------------------
+
+        proxyClass.Static.AddFriendClass = function(_, friendClassName)
+            friends[friendClassName] = true;
+        end
+
+        proxyClass.Static.IsFriendClass = function(_, friendClassName)
+            if (friendClassName == className) then
+                return true;
+            end
+
+            return friends[friendClassName];
+        end
+
+        proxyClass.Static.OnIndexChanged = function(_, callback)
+            classController.indexChangedCallback = callback;
+        end
+
+        proxyClass.Static.OnIndexChanging = function(_, callback)
+            classController.indexChangingCallback = callback;
+        end
+
+        proxyClass.Static.OnIndexed = function(_, callback)
+            classController.indexedCallback = callback;
+        end
+
+        proxyClass.Static.OnIndexing = function(_, callback)
+            classController.indexingCallback = callback;
+        end
+
+        proxyClass.Of = function(_, ...)
+            Core:Assert(classController.IsGenericType, "%s is not a generic class", className);
+            classController.TempRealGenericTypes = Lib:PopWrapper(...); -- holds real type names
+
+            for id, realType in ipairs(classController.TempRealGenericTypes) do
+                -- remove spaces
+                classController.TempRealGenericTypes[id] = (realType:gsub("%s+", ""));
+            end
+
+            return proxyClass;
+        end
+
+        AllControllers[tostring(proxyClass)] = classController;
+        setmetatable(proxyClass, proxyClassMT);
+
+        return proxyClass;
     end
-
-    -----------------------------------------------
-
-    setmetatable(proxyClass, proxyClassMT);
-    AllControllers[tostring(proxyClass)] = classController;
-    return proxyClass;
 end
 
-function Core:CreateInstance(classController, ...)
-    local instance                  = {}; -- stores real table indexes (once proxy has completed evaluating data)
-    local proxyInstance             = {}; -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Instance instead)
-    local proxyInstanceMT           = {}; -- acts as a filter to protect invalid keys from being indexed into Instance
-    local privateData               = {}; -- private instance data passed to function calls (the 2nd argument)
-    local instanceController        = {};-- holds special Lib data to control instance
-    local rawProxyInstanceString    = tostring(proxyInstance);
+do
+    local proxyInstanceMT = {}; -- acts as a filter to protect invalid keys from being indexed into Instance
 
-    instanceController.PrivateData = privateData;
-
-    -- required for Destroy() cleanup
-    instanceController.Instance = instance;
-
-    -- interfaceController requires knowledge of many classController settings
-    setmetatable(instanceController, {__index = classController});
-
-    if (classController.IsGenericType) then
-        -- renames EntiyName for instance controller, and creates "RealGenericTypes" instance controller property
-        self:ApplyGenericTypesToInstance(instanceController, classController)
-    end
-
-    privateData.GetFriendData = function(_, friendInstance)
-        local friendClassName = friendInstance:GetObjectType();
-        local friendClass = classController.PackageData.entities[friendClassName]; -- must be in same package!
-
-        if (friendClass and friendClass.Static:IsFriendClass(classController.EntityName)) then
-            return self:GetPrivateInstanceData(friendInstance);
-        end
-    end
-
-    proxyInstanceMT.__index = function(_, key)
+    proxyInstanceMT.__index = function(self, key)
+        local instanceController = Core:GetController(self);
+        local classController = instanceController.classController;
+        local instance = instanceController.Instance;
+        local privateData = instanceController.PrivateData;
         local value;
 
         if (classController.indexingCallback) then
-            value = classController.indexingCallback(proxyInstance, instanceController.PrivateData, key);
+            value = classController.indexingCallback(self, instanceController.PrivateData, key);
         end
 
         -- check if instance property
@@ -558,12 +580,12 @@ function Core:CreateInstance(classController, ...)
         end
 
         if (value == nil) then
-            -- check if class property (Static) or class function
+            -- check if proxyClass has key
             value = classController.Entity[key];
 
             if (value and type(value) == "function") then
                 local proxyObject = GetStoredProxyObject(value);
-                proxyObject.Self = proxyInstance; -- switch ProxyClass reference to proxyInstance
+                proxyObject.Self = self; -- switch ProxyClass reference to proxyInstance
                 proxyObject.PrivateData = privateData; -- set PrivateData to be injected into function call
 
                 if (proxyObject.Key == "GetFrame" and key ~= "GetFrame") then
@@ -592,20 +614,24 @@ function Core:CreateInstance(classController, ...)
         end
 
         if (classController.indexedCallback) then
-            value = classController.indexedCallback(proxyInstance, instanceController.PrivateData, key, value);
+            value = classController.indexedCallback(self, instanceController.PrivateData, key, value);
         end
 
         return value;
     end
 
-    proxyInstanceMT.__newindex = function(_, key, value)
-        self:Assert(not classController.Class[key],
+    proxyInstanceMT.__newindex = function(self, key, value)
+        local instanceController = Core:GetController(self);
+        local classController = instanceController.classController;
+        local instance = instanceController.Instance;
+
+        Core:Assert(not classController.Class[key],
             "Cannot override class-level property '%s.%s' from an instance.", classController.EntityName, key);
 
-        self:Assert(type(value) ~= "function", "Functions must be added to a class, not an instance.");
+        Core:Assert(type(value) ~= "function", "Functions must be added to a class, not an instance.");
 
         if (classController.indexChangingCallback) then
-            local preventIndexing = classController.indexChangingCallback(proxyInstance, instanceController.PrivateData, key, value);
+            local preventIndexing = classController.indexChangingCallback(self, instanceController.PrivateData, key, value);
 
             if (preventIndexing) then
                 -- do not continue indexing
@@ -616,59 +642,100 @@ function Core:CreateInstance(classController, ...)
         instance[key] = value;
 
         -- if reassigning an instance property, should check that new value is valid
-        if (instanceController.IsConstructed) then
+        if (instanceController.IsConstructed and type(classController.Interfaces) == "table") then
             Core:ValidateImplementedProperties(instance, classController.Interfaces, classController.EntityName);
         end
 
         if (classController.indexChangedCallback) then
-            classController.indexChangedCallback(proxyInstance, instanceController.PrivateData, key, value);
+            classController.indexChangedCallback(self, instanceController.PrivateData, key, value);
         end
     end
 
-    proxyInstanceMT.__gc = function()
-        proxyInstance:Destroy();
+    proxyInstanceMT.__gc = function(self)
+        self:Destroy();
     end
 
-    proxyInstanceMT.__tostring = function()
-        return rawProxyInstanceString:gsub("table", string.format("<Instance> %s", classController.EntityName));
-    end
+    -- proxyInstanceMT.__tostring = function(self)
+    --     setmetatable(self, nil);
 
-    setmetatable(proxyInstance, proxyInstanceMT);
-    AllControllers[tostring(proxyInstance)] = instanceController;
+    --     local instanceController = Core:GetController(self);
+    --     local className = instanceController.classController.EntityName;
+    --     local str = tostring(self):gsub("table", string.format("<Instance> %s", className));
 
-    -- Clone or Create Instance here:
-    if (classController.CloneFrom) then
-        local otherInstance = classController.CloneFrom;
-        local otherController = self:GetController(otherInstance);
-        local otherInstanceData = self:GetPrivateInstanceData(otherInstance, otherController);
+    --     setmetatable(self, proxyInstanceMT);
 
-        self:Assert(otherInstanceData, "Invalid Clone Object.");
-        self:CopyTableValues(otherInstanceData, privateData);
-        classController.CloneFrom = nil;
-    else
-        if (classController.Class.__Construct) then
-            -- call custom constructor here!
-            proxyInstance:__Construct(...);
+    --     return str;
+    -- end
+
+    function Core:CreateInstance(classController, ...)
+        local instance              = Lib:PopWrapper(); -- stores real table indexes (once proxy has completed evaluating data)
+        local instanceController    = Lib:PopWrapper();-- holds special Lib data to control instance
+        local privateData           = Lib:PopWrapper(); -- private instance data passed to function calls (the 2nd argument)
+        local proxyInstance         = Lib:PopWrapper(); -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Instance instead)
+
+        instanceController.PrivateData = privateData;
+        instanceController.Instance = instance;
+        instanceController.classController = classController;
+
+        -- interfaceController requires knowledge of many classController settings
+        local instanceControllerMT = Lib:PopWrapper();
+        instanceControllerMT.__index = classController;
+
+        setmetatable(instanceController, instanceControllerMT);
+
+        if (classController.IsGenericType) then
+            -- renames EntiyName for instance controller, and creates "RealGenericTypes" instance controller property
+            self:ApplyGenericTypesToInstance(instanceController, classController)
         end
 
-        Core:ValidateImplementedProperties(instance, classController.Interfaces, classController.EntityName);
-        Core:ValidateImplementedFunctions(classController);
-    end
+        privateData.GetFriendData = function(_, friendInstance)
+            local friendClassName = friendInstance:GetObjectType();
+            local friendClass = classController.PackageData.entities[friendClassName]; -- must be in same package!
 
-    instanceController.IsConstructed = true;
-    return proxyInstance;
+            if (friendClass and friendClass.Static:IsFriendClass(classController.EntityName)) then
+                return self:GetPrivateInstanceData(friendInstance);
+            end
+        end
+
+        AllControllers[tostring(proxyInstance)] = instanceController;
+        setmetatable(proxyInstance, proxyInstanceMT);
+
+        -- Clone or Create Instance here:
+        if (classController.CloneFrom) then
+            local otherInstance = classController.CloneFrom;
+            local otherController = self:GetController(otherInstance);
+            local otherInstanceData = self:GetPrivateInstanceData(otherInstance, otherController);
+
+            self:Assert(otherInstanceData, "Invalid Clone Object.");
+            self:CopyTableValues(otherInstanceData, privateData);
+            classController.CloneFrom = nil;
+        else
+            if (classController.Class.__Construct) then
+                -- call custom constructor here!
+                proxyInstance:__Construct(...);
+            end
+
+            if (type(classController.Interfaces) == "table") then
+                Core:ValidateImplementedProperties(instance, classController.Interfaces, classController.EntityName);
+                Core:ValidateImplementedFunctions(classController);
+            end
+        end
+
+        instanceController.IsConstructed = true;
+        return proxyInstance;
+    end
 end
 
 function Core:CreateInterface(packageData, interfaceName)
-    local Interface                           = {};
-    local InterfaceMT                         = {};
-    local InterfaceController                 = {};
+    local Interface                           = Lib:PopWrapper();
+    local InterfaceMT                         = Lib:PopWrapper();
+    local InterfaceController                 = Lib:PopWrapper();
 
     InterfaceController.Entity                = Interface; -- reference to the real interface
     InterfaceController.EntityName            = interfaceName; -- class and interface controllers are grouped together so we use "Entity" name
     InterfaceController.Protected             = false; -- true if functions and properties are to be protected
-    InterfaceController.Definitions           = {}; -- holds interface function definitions
-    InterfaceController.PropertyDefinitions   = {}; -- property definitions work differently so store in different table
+    InterfaceController.Definitions           = Lib:PopWrapper(); -- holds interface function definitions
+    InterfaceController.PropertyDefinitions   = Lib:PopWrapper(); -- property definitions work differently so store in different table
     InterfaceController.IsInterface           = true; -- to distinguish between a class and an interface controller
     InterfaceController.PackageData           = packageData; -- used for when attaching function definitions
 
@@ -690,8 +757,9 @@ function Core:CreateInterface(packageData, interfaceName)
         rawset(interface, key, value);
     end
 
-    setmetatable(Interface, InterfaceMT);
     AllControllers[tostring(Interface)] = InterfaceController;
+    setmetatable(Interface, InterfaceMT);
+
     return Interface;
 end
 
@@ -725,7 +793,7 @@ end
 function Core:ApplyGenericTypesToInstance(instanceController, classController)
     -- Move all specified generic type definitions from "Of()" to instance controller
     if (not classController.TempRealGenericTypes) then
-        classController.TempRealGenericTypes = {};
+        classController.TempRealGenericTypes = Lib.PopWrapper();
 
         for id, _ in ipairs(classController.GenericTypes) do
             -- assign default type to alias generic type keys ("K" = "number")
@@ -740,6 +808,8 @@ function Core:ApplyGenericTypesToInstance(instanceController, classController)
     end
 
     instanceController.RealGenericTypes = classController.TempRealGenericTypes;
+
+    Lib:PushWrapper(classController.TempRealGenericTypes);
     classController.TempRealGenericTypes = nil;
 
     -- change instance name to use real types
@@ -773,7 +843,7 @@ function Core:AttachFunctionDefinition(controller, newFuncKey)
         return;
     end
 
-    if (controller.IsClass) then
+    if (controller.IsClass and type(controller.Interfaces) == "table") then
         local interfaceController;
 
         -- check if user is trying to redefine interface function (not allowed)
@@ -809,9 +879,8 @@ function Core:AttachFunctionDefinition(controller, newFuncKey)
 end
 
 function Core:SetInterfaces(classController, ...)
-	classController.Interfaces = {};
 
-    for id, interface in helper:IterateArgs(...) do
+    for id, interface in Lib:IterateArgs(...) do
         if (type(interface) == "string") then
             interface = Lib:Import(interface);
         end
@@ -819,6 +888,7 @@ function Core:SetInterfaces(classController, ...)
         local interfaceController = self:GetController(interface);
 
         if (interfaceController and interfaceController.IsInterface) then
+            classController.Interfaces = classController.Interfaces or Lib:PopWrapper();
             table.insert(classController.Interfaces, interface);
         else
             self:Error("Core.SetInterfaces: bad argument #%d (invalid interface)", id);
@@ -881,7 +951,7 @@ end
 function Core:PathExists(root, path)
     self:Assert(root, "Core.PathExists - bad argument #1 (invalid root).");
 
-    for _, key in helper:IterateArgs(_G.strsplit(".", path)) do
+    for _, key in Lib:IterateArgs(_G.strsplit(".", path)) do
         if (not root[key]) then
             return false;
         end
@@ -892,9 +962,16 @@ function Core:PathExists(root, path)
     return true;
 end
 
-function Core:GetController(entity, silent)
-    if (AllControllers[tostring(entity)]) then
-        return AllControllers[tostring(entity)];
+-- @param proxyEntity = proxyInstance or proxyClass but can also be an Interface
+function Core:GetController(proxyEntity, silent)
+    local mt = getmetatable(proxyEntity);
+
+    setmetatable(proxyEntity, nil);
+    local controller = AllControllers[tostring(proxyEntity)];
+    setmetatable(proxyEntity, mt);
+
+    if (controller) then
+        return controller;
     end
 
     if (not silent) then
@@ -914,10 +991,6 @@ end
 
 -- Call this after using the constructor to make sure properties have been implemented
 function Core:ValidateImplementedProperties(Instance, interfaces, className)
-    if (not interfaces) then
-        return;
-    end
-
     local errorFound;
     local errorMessage;
     local realValue;
@@ -994,7 +1067,7 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
 
         if (defValue:find("|")) then
 
-            for _, signleDefValue in helper:IterateArgs(_G.strsplit("|", defValue)) do
+            for _, signleDefValue in Lib:IterateArgs(_G.strsplit("|", defValue)) do
                 signleDefValue = string.gsub(signleDefValue, "%s", "");
                 errorFound = self:ValidateValue(signleDefValue, realValue);
 
@@ -1048,8 +1121,11 @@ do
     end
 
     function Core:GetParamsDefinition(proxyObject)
-        local errorMessage = string.format("bad argument ## to '%s.%s'", proxyObject.Controller.EntityName, proxyObject.Key);
         local funcDef = proxyObject.Controller.Definitions[proxyObject.Key];
+
+        if (not (funcDef or proxyObject.Controller.Interfaces)) then
+            return;
+        end
 
         if (not funcDef) then
             funcDef = GetFunctionDefinitionFromInterface(proxyObject.Controller.Interfaces, proxyObject.Key);
@@ -1062,6 +1138,12 @@ do
             paramDefs = self:ReplaceGenericTypes(proxyObject.Controller, proxyObject.Self, paramDefs);
         end
 
+        if (not paramDefs) then
+            return;
+        end
+
+        local errorMessage = string.format("bad argument ## to '%s.%s'", proxyObject.Controller.EntityName, proxyObject.Key);
+
         return paramDefs, errorMessage;
     end
 
@@ -1069,7 +1151,7 @@ do
         local errorMessage = string.format("bad return value ## to '%s.%s'", proxyObject.Controller.EntityName, proxyObject.Key);
         local funcDef = proxyObject.Controller.Definitions[proxyObject.Key];
 
-        if (not funcDef) then
+        if (not funcDef and proxyObject.Controller.Interfaces) then
             funcDef = GetFunctionDefinitionFromInterface(proxyObject.Controller.Interfaces, proxyObject.Key);
         end
 
@@ -1086,7 +1168,7 @@ end
 
 function Core:ReplaceGenericTypes(controller, instance, defTable)
     local instanceController = Core:GetController(instance);
-    local realDefTable = {}; -- Replaced all generic types with real types
+    local realDefTable = Lib:PopWrapper(); -- Replaced all generic types with real types
 
     self:Assert(controller.GenericTypes and instanceController.RealGenericTypes,
         "Failed to find generic type info for class %s", controller.EntityName);
@@ -1132,6 +1214,19 @@ function Core:Assert(condition, errorMessage, ...)
     end
 end
 
+function Core:Print(...)
+    if (self.DebugMode) then
+        _G.DEFAULT_CHAT_FRAME:AddMessage(string.join("", self.PREFIX, _G.tostringall(...)));
+    end
+end
+
+function Core:PrintUsage()
+    if (self.DebugMode) then
+        _G.UpdateAddOnMemoryUsage();
+        self:Print("Usage: ", _G.GetAddOnMemoryUsage(addOnName));
+    end
+end
+
 function Core:Error(errorMessage, ...)
     self:Assert(false, errorMessage, ...);
 end
@@ -1147,15 +1242,19 @@ function Core:IsMatchingType(value, expectedTypeName)
         return (expectedTypeName == type(value));
     end
 
-    if (not (type(value) == "table" and value.GetObjectType)) then
+    if (type(value) ~= "table") then
         return false;
     end
 
-    if (expectedTypeName == value:GetObjectType()) then
-        return true;
-    end
-
     local controller = self:GetController(value, true);
+
+    if (not controller) then
+        if (value.GetObjectType and expectedTypeName == value:GetObjectType()) then
+            return true;
+        end
+
+        return false;
+    end
 
     while (value and controller) do
 
@@ -1395,33 +1494,30 @@ function Object:Clone()
 	return instance;
 end
 
-function Object:IsDestroyed()
-    return false;
-end
-
-do
-    local function IsDestroyedDummyFunc()
-        return true;
+function Object:Destroy()
+    if (self.__Destruct) then
+        self:__Destruct();
     end
 
-    function Object:Destroy()
-        local instanceKey = tostring(self);
+    local instanceController = Core:GetController(self);
+    setmetatable(self, nil);
 
-        if (self.__Destruct) then
-            self:__Destruct();
-        end
+    -- remove reference to instance controller
+    local instanceKey = tostring(self);
+    AllControllers[instanceKey] = nil;
 
-        local instanceController = Core:GetController(self);
-        setmetatable(self, nil);
+    -- destroy real instance
+    Lib:PushWrapper(instanceController.Instance);
+    instanceController.Instance = nil;
 
-        Core:EmptyTable(instanceController.Instance);
-        Core:EmptyTable(instanceController.PrivateData);
-        Core:EmptyTable(AllControllers[instanceKey]);
+    -- destroy instance private data
+    Lib:PushWrapper(instanceController.PrivateData);
+    instanceController.PrivateData = nil;
 
-        instanceController.Instance = nil;
-        instanceController.PrivateData = nil;
-        AllControllers[instanceKey] = nil;
+    -- destroy instance controller
+    Lib:PushWrapper(instanceController);
 
-        self.IsDestroyed = IsDestroyedDummyFunc
-    end
+    -- destroy proxy instance
+    Core:EmptyTable(self);
+    self.IsDestroyed = true;
 end

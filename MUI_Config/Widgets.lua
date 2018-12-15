@@ -45,13 +45,14 @@ local function GetValue(configTable, attributeName, ...)
         return configTable[attributeName];
     end
 
-    local funcName = tk.Strings:Concat(
-        "Get", attributeName:gsub("^%l", string.upper)
-    );
+    local funcName = tk.Strings:Concat("Get", (attributeName:gsub("^%l", string.upper)));
 
     if (type(configTable[funcName]) == "function") then
         return configTable[funcName](configTable, ...);
     end
+
+    tk:Error("Required attribute '%s' missing for %s widget in config table '%s'.",
+        attributeName, configTable.type, configTable.name);
 end
 
 --------------
@@ -95,7 +96,7 @@ WidgetHandlers.loop = {};
 
 -- should return a table of children created during the loop
 function WidgetHandlers.loop:Run(_, loopConfigTable)
-    local children = tk.Tables:PopWrapper();
+    local children = obj:PopWrapper();
 
     if (loopConfigTable.loops) then
         -- rather than args, you specify the number of times to loop
@@ -157,32 +158,24 @@ WidgetHandlers.title = {};
 
 function WidgetHandlers.title:Run(parent, widgetConfigTable)
     local container = tk:PopFrame("Frame", parent);
-    container.text = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    container.text = container:CreateFontString(nil, "OVERLAY", "MUI_FontLarge");
     container.text:SetText(widgetConfigTable.name);
 
     local topPadding = (widgetConfigTable.paddingTop or 10);
     local bottomPadding = (widgetConfigTable.paddingBottom or 10);
     local textHeight = container.text:GetStringHeight();
-    local height = 20 + textHeight + topPadding + bottomPadding;
+    local height = textHeight + topPadding + bottomPadding;
 
     container:SetHeight(height);
 
     if (widgetConfigTable.width) then
         container:SetWidth(widgetConfigTable.width);
     else
-        tk:SetFullWidth(container, 10);
+        tk:SetFullWidth(container, 22);
     end
 
     local background = tk:SetBackground(container, 0, 0, 0, 0.2);
-
-    --TODO: Surely, (0, 0) should be including topPadding, if topPadding is
-    --TODO: included as part of the height...
-    -- background:SetPoint("TOPLEFT", 0, -topPadding);
-    -- background:SetPoint("BOTTOMRIGHT", 0, bottomPadding);
-
-    -- TODO: Should I not just use: (?)
     background:SetAllPoints(true);
-
     container.text:SetAllPoints(background);
 
     return container;
@@ -213,6 +206,7 @@ function WidgetHandlers.slider:Run(parent, widgetConfigTable, value)
     slider.High:SetPoint("BOTTOMRIGHT", -5, -8);
 
     slider:SetSize(widgetConfigTable.width or 200, 20);
+
     slider:SetScript("OnValueChanged", function(self, sliderValue)
         sliderValue = tk.math.floor(sliderValue + 0.5);
         self.Value:SetText(sliderValue);
@@ -220,7 +214,7 @@ function WidgetHandlers.slider:Run(parent, widgetConfigTable, value)
     end);
 
     slider = configModule:CreateElementContainerFrame(slider, widgetConfigTable, parent);
-    slider:SetHeight(slider:GetHeight() + 5); -- make room for value text
+    slider:SetHeight(slider:GetHeight() + 20); -- make room for value text
     return slider;
 end
 
@@ -249,7 +243,7 @@ WidgetHandlers.dropdown = {};
 
 function WidgetHandlers.dropdown:Run(parent, widgetConfigTable, value)
     local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
-    local options = widgetConfigTable.options or widgetConfigTable:GetOptions();
+    local options = GetValue(widgetConfigTable, "options");
 
     for key, dropDownValue in pairs(options) do
         local option = dropdown:AddOption(key, DropDown_OnSelectedValue, widgetConfigTable, dropDownValue);
@@ -259,7 +253,9 @@ function WidgetHandlers.dropdown:Run(parent, widgetConfigTable, value)
         end
     end
 
-    dropdown:SetLabel(value, widgetConfigTable.tooltip);
+    dropdown:SetLabel(value);
+    dropdown:SetTooltip(widgetConfigTable.tooltip);
+    dropdown:SetDisabledTooltip(widgetConfigTable.disabledTooltip);
 
     return configModule:CreateElementContainerFrame(dropdown, widgetConfigTable, parent);
 end
@@ -308,7 +304,10 @@ function WidgetHandlers.frame:Run(parent, widgetConfigTable)
         tk:SetFullWidth(frame, 20);
     end
 
-    frame:SetHeight(widgetConfigTable.height or 60);
+    frame.originalHeight = widgetConfigTable.height or 60; -- needed for fontstring resizing
+    -- frame:SetScript("OnSizeChanged", Frame_OnSizeChanged);
+
+    frame:SetHeight(frame.originalHeight);
     tk:SetBackground(frame, 0, 0, 0, 0.2);
 
     return frame;
@@ -422,7 +421,6 @@ WidgetHandlers.textfield = {};
 function WidgetHandlers.textfield:Run(parent, widgetConfigTable, value)
     local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetConfigTable.tooltip, parent);
     textField:SetText(value or "");
-    textField:SetSize(widgetConfigTable.width or 150, widgetConfigTable.height or 26);
 
     -- passes in textField (not data.editBox);
     textField:OnTextChanged(TextField_OnTextChanged, widgetConfigTable);
@@ -435,13 +433,35 @@ end
 ----------------
 WidgetHandlers.fontstring = {};
 
+local function FontString_OnSizeChanged(self)
+    if (self.runningScript) then
+        return;
+    end
+
+    self.runningScript = true;
+    local expectedHeight = self.content:GetStringHeight() + 20;
+
+    if (expectedHeight ~= self:GetHeight()) then
+        self:SetHeight(expectedHeight);
+    end
+
+    -- TODO: The parent should be in Frame_OnSizeChanged
+    local parent = self:GetParent();
+
+    if (parent.originalHeight and parent.originalHeight < expectedHeight and expectedHeight ~= parent:GetHeight()) then
+        parent:SetHeight(expectedHeight);
+    end
+
+    self.runningScript = nil;
+end
+
 -- supported fontstring config attributes:
 -- content - the fontstring text to display
 -- subType - Can be used to change the font object. Supports "header" only (for now).
 -- justify - overrides the default horizontal justification ("LEFT")
 -- height - overrides the default height of 30
--- width - overrides the default fixed with value (the width of the fontstring)
--- fullWidth - overrides the default fixed width value (and ignores width attribute if used)
+-- width - overrides the default width (and ignores the fixedWidth attribute) with a specific width
+-- fixedWidth - overrides the default container width with the natural width of the fontstring
 
 function WidgetHandlers.fontstring:Run(parent, widgetConfigTable)
     local container = tk:PopFrame("Frame", parent);
@@ -458,24 +478,26 @@ function WidgetHandlers.fontstring:Run(parent, widgetConfigTable)
 
     if (widgetConfigTable.subtype) then
         if (widgetConfigTable.subtype == "header") then
-            --TODO: What about gold or yellow for a warning message?
             container.content:SetFontObject("MUI_FontLarge");
         end
     end
 
-    container:SetHeight(widgetConfigTable.height or 30);
-
     local content = GetValue(widgetConfigTable, "content");
     container.content:SetText(content);
 
-    if (widgetConfigTable.fullWidth) then
-        tk:SetFullWidth(container, 10);
-
-    elseif (widgetConfigTable.width) then
-        container:SetWidth(widgetConfigTable.width);
-
+    if (widgetConfigTable.height) then
+        container:SetHeight(widgetConfigTable.height);
     else
+        container:SetHeight(container.content:GetStringHeight());
+        container:SetScript("OnSizeChanged", FontString_OnSizeChanged);
+    end
+
+    if (widgetConfigTable.width) then
+        container:SetWidth(widgetConfigTable.width);
+    elseif (widgetConfigTable.fixedWidth) then
         container:SetWidth(container.content:GetStringWidth());
+    else
+        tk:SetFullWidth(container, 20);
     end
 
     return container;

@@ -226,7 +226,7 @@ castBarsModule.ConfigTable =
                                 if (db.profile.castbars[name].anchor_to_SUF) then
                                     container.widget.field:SetEnabled(false);
                                 end
-                                tk.table.insert(Map.width_textfields[name], container.widget.field);
+                                table.insert(Map.width_textfields[name], container.widget.field);
                             end,
                             dbPath = tk.Strings:Concat("profile.castbars.", name, ".width")
                         },
@@ -238,7 +238,7 @@ castBarsModule.ConfigTable =
                                 if (db.profile.castbars[name].anchor_to_SUF) then
                                     container.widget.field:SetEnabled(false);
                                 end
-                                tk.table.insert(Map.height_textfields[name], container.widget.field);
+                                table.insert(Map.height_textfields[name], container.widget.field);
                             end,
                             dbPath = tk.Strings:Concat("profile.castbars.", name, ".height")
                         },

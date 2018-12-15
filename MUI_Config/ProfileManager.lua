@@ -1,6 +1,6 @@
 --luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
-local tk, db = MayronUI:GetCoreComponents();
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local C_ConfigModule = namespace.C_ConfigModule;
 -- local configModule = MayronUI:ImportModule("Config");
@@ -35,7 +35,7 @@ end
 -- Get all profiles and convert them to a list of options for use with dropdown menus
 local function GetProfileOptions()
     local profiles = db:GetProfiles();
-    local options = tk.Tables:PopWrapper();
+    local options = obj:PopWrapper();
 
     -- key and value should both be the profile name:
     for _, profileName in ipairs(profiles) do
@@ -47,34 +47,29 @@ end
 
 -- TODO: does not use a module so cannot call OnConfigUpdate (will this cause an error?)
 local configTable = {
-    name = "MUI Profile Manager",
-    id = 1,
-    type = "category",
+    id      = 1;
+    name    = "MUI Profile Manager";
+    type    = "category";
     children =
     {
         {
-            type = "fontstring",
-            content = "You can manage character profiles here.\n\nBy default, each character has its own unique profile."
+            content = "You can manage character profiles here.\n\nBy default, each character has its own unique profile.";
+            type    = "fontstring";
         },
         {
-            type = "divider"
-        },
-        {
-            type = "fontstring",
+            type = "fontstring";
+
             GetContent = function()
                 return tk.Strings:JoinWithSpace(
                     "Current profile:",
-                    tk.Strings:SetColor(db:GetCurrentProfile(), "gold")
-                )
+                    tk.Strings:SetTextColor(db:GetCurrentProfile(), "GOLD"));
             end,
         },
         {
-            type = "divider"
-        },
-        {
-            name = "Reset Profile",
-            type = "button",
-            tooltip = "Reset currently active profile back to default settings.",
+            name    = "Reset Profile";
+            tooltip = "Reset currently active profile back to default settings.";
+            type    = "button";
+
             OnClick = function()
                 local profileName = db:GetCurrentProfile();
                 local popupMessage = string.format(
@@ -82,11 +77,12 @@ local configTable = {
 
                 tk:ShowConfirmPopup(popupMessage, nil, nil, ResetProfile, nil, nil, true);
             end,
-        },
+        };
         {
-            name = "Delete Profile",
-            type = "button",
-            tooltip = "Delete currently active profile.",
+            name    = "Delete Profile";
+            tooltip = "Delete currently active profile.";
+            type    = "button";
+
             OnClick = function()
                 local profileName = db:GetCurrentProfile();
                 local popupMessage = string.format("Are you sure you want to delete profile '%s'?", profileName);
@@ -97,35 +93,41 @@ local configTable = {
         },
         {
             type = "frame",
+            height = 65;
             children =
             {
                 {
-                    name = "Choose Profile:",
-                    type = "dropdown",
-                    tooltip = "Choose the currently active profile.",
-                    GetOptions = GetProfileOptions,
-                    requiresRestart = true, -- TODO: this will eventually be replaced with OnProfileChange
+                    GetOptions        = GetProfileOptions;
+                    name              = "Choose Profile:";
+                    requiresRestart   = true; -- TODO: this will eventually be replaced with OnProfileChange
+                    tooltip           = "Choose the currently active profile.";
+                    type              = "dropdown";
+
                     SetValue = function()
 
-                    end,
+                    end;
+
                     GetValue = function()
                         return db:GetCurrentProfile();
-                    end
+                    end;
                 },
                 {
-                    type = "fontstring",
-                    justify = "CENTER",
-                    content = " or "
+                    content       = " or ";
+                    fixedWidth    = true;
+                    height        = 34;
+                    justify       = "CENTER";
+                    type          = "fontstring";
                 },
                 {
-                    name = "New Profile",
-                    type = "button",
-                    width = 100,
-                    tooltip = "Create a new profile.",
+                    name    = "New Profile";
+                    tooltip = "Create a new profile.";
+                    type    = "button";
+                    width   = 100;
+
                     OnClick = function()
                         local popupMessage = "Enter a new unique profile name:";
                         tk:ShowInputPopup(popupMessage, nil, nil, ValidateNewProfileName, nil, CreateNewProfile);
-                    end,
+                    end;
                 },
             }
         },
@@ -133,54 +135,54 @@ local configTable = {
             type = "divider"
         },
         {
-            name = "Restore a Profile:",
-            type = "dropdown",
-            tooltip = "Profiles that have been removed are stored in the bin until the UI is reloaded.\n\nOnce the UI reloads, the removed profiles are permanently deleted.",
+            type              = "dropdown";
+            name              = "Restore a Profile:";
+            tooltip           = tk.Strings:Join("\n\n", "Profiles that have been removed are stored in the bin until the UI is reloaded.",
+                                    "Once the UI reloads, the removed profiles are permanently deleted.");
+            disabledTooltip   = "No profiles found in the profile bin (not able to restore any profiles).";
+
             GetOptions = function()
                 return db:GetProfilesInBin();
-            end,
+            end;
+
+            GetValue = function()
+                return "Select a profile";
+            end;
+
             SetValue = function(_, profileName)
                 local popupMessage = string.format("Are you sure you want to restore profile '%s'?", profileName);
 
                 tk:ShowConfirmPopup(popupMessage, nil, nil, RestoreProfile, nil, nil, true);
-            end,
+            end;
+        },
+        {
+            name    = "Default Profile Behaviour";
+            type    = "title";
+        },
+        {
+            content = tk.Strings:JoinWithSpace("By default, each new character will be automatically assigned a unique character",
+                                        "profile instead of a single default profile.\n\nProfiles are automatically assigned",
+                                        "only after installing the UI on a new character.");
+            type    = "fontstring";
+        },
+        {
+            type = "divider"
+        },
+        {
+            dbProfile   = "global.core.setup.profilePerCharacter";
+            name        = "Profile Per Character";
+            tooltip     = "If enabled, new characters will be assigned a unique character profile instead of a single default profile.";
+            type        = "check";
+        },
+        {
+            GetOptions    = GetProfileOptions;
+            name          = "Default Profile:";
+            tooltip       = "Choose the default profile to assign to new character's during installation.";
+            type          = "dropdown";
+
             GetValue = function()
-                return "Select a profile";
-            end
-        },
-        {
-            type = "title",
-            name = "Default Profile Behaviour"
-        },
-        {
-            type = "frame",
-            children =
-            {
-                {
-                    type = "fontstring",
-                    content = "By default, each new character will be automatically assigned a unique character profile instead of a single default profile.\n\nPofiles are automatically assigned only after installing the UI on a new character.",
-                },
-                {
-                    type = "checkbox",
-                    name = "Profile Per Character",
-                    tooltip = "If enabled, new characters will be assigned a unique character profile instead of a single default profile.",
-                    dbProfile = "global.core.setup.profilePerCharacter"
-                },
-                {
-                    type = "fontstring",
-                    justify = "CENTER",
-                    content = " or "
-                },
-                {
-                    name = "Choose Profile:",
-                    type = "dropdown",
-                    tooltip = "Choose the currently active profile.",
-                    GetOptions = GetProfileOptions,
-                    GetValue = function()
-                        -- return db:GetCurrentProfile();
-                    end
-                },
-            }
+                -- return db:GetCurrentProfile();
+            end;
         },
     }
 }

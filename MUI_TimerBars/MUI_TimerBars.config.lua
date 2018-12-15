@@ -92,7 +92,7 @@ do
             item.btn:SetHighlightTexture(tk.Constants.MEDIA.."dialog_box\\CloseButton", "ADD");
             tk:SetThemeColor(item.btn);
         end
-        tk.table.insert(data.items, item);
+        table.insert(data.items, item);
         data.tracking[name] = true;
         item.spellID = spellID;
         item.name:SetText(name);
@@ -102,7 +102,7 @@ end
 
 function ListFrame:RemoveItem(data, item, name)
     local index = tk:GetIndex(data.items, item);
-    tk.table.remove(data.items, index);
+    table.remove(data.items, index);
     data.tracking[name] = nil;
     data.unused = data.unused or tk:CreateStack();
     data.unused:Push(item);
@@ -124,7 +124,7 @@ do
             items = items:GetTable();
             tk:EmptyTable(names);
             names = tk:GetKeyTable(items, names);
-            tk.table.sort(names, compare);
+            table.sort(names, compare);
 
             for _, name in tk.pairs(names) do
                 self:AddItem(name, items[name]);

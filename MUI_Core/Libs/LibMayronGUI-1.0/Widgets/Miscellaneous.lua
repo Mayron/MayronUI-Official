@@ -1,11 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
 local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-if (not Lib) then
-    return
-end
+if (not Lib) then return end
 
 local Private = Lib.Private;
+local obj = Lib.Objects;
 ---------------------------------
 
 local function OnEnter(self)
@@ -44,7 +43,7 @@ Lib.FONT_TYPES = {
     ErrorFont                       = "ErrorFont",
     TextStatusBarText               = "TextStatusBarText",
     CombatLogFont                   = "CombatLogFont",
-}
+};
 
 function Lib:CreateDialogBox(style, parent, alphaType, frame, globalName)
     frame = frame or _G.CreateFrame("Frame", globalName, parent or _G.UIParent);
@@ -67,65 +66,59 @@ function Lib:CreateDialogBox(style, parent, alphaType, frame, globalName)
     return frame;
 end
 
-function Lib:CreatePopupDialog(name, text, hasEditBox, OnAccept)
-    if (not _G.StaticPopupDialogs[name]) then
-        _G.StaticPopupDialogs[name] = {
-            text = text,
-            button1 = "Confirm",
-            button2 = "Cancel",
-            timeout = 0,
-            whileDead = true,
-            hideOnEscape = true,
-            hasEditBox = hasEditBox,
-            preferredIndex = 3,
-            OnAccept = OnAccept, -- dialog param
-        };
+do
+    local function Button_OnEanble(self)
+        local r, g, b = _G.unpack(self.enabledBackdrop);
+        self:SetBackdropBorderColor(r, g, b, 0.7);
     end
 
-    if (text) then
-        _G.StaticPopupDialogs[name].text = text;
+    local function Button_OnDisable(self)
+        local r, g, b = _G.DISABLED_FONT_COLOR:GetRGB();
+        self:SetBackdropBorderColor(r, g, b, 0.6);
     end
 
-    if (OnAccept) then
-        _G.StaticPopupDialogs[name].OnAccept = OnAccept;
+    function Lib:CreateButton(style, parent, text, button, tooltip)
+        local r, g, b = style:GetColor();
+        local backgroundTexture = style:GetTexture("ButtonTexture");
+
+        button = button or _G.CreateFrame("Button", nil, parent);
+        button:SetSize(150, 30);
+        button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
+        button:SetBackdropBorderColor(r, g, b, 0.7);
+        button.enabledBackdrop = obj:PopWrapper(r, g, b);
+
+        if (text) then
+            button:SetText(text);
+        end
+
+        if (tooltip) then
+            button.tooltip = tooltip;
+            button:SetScript("OnEnter", OnEnter);
+            button:SetScript("OnLeave", OnLeave);
+        end
+
+        local normal = Private:SetBackground(button, backgroundTexture);
+        local highlight = Private:SetBackground(button, backgroundTexture);
+        local disabled = Private:SetBackground(button, backgroundTexture);
+
+        normal:SetVertexColor(r * 0.6, g * 0.6, b * 0.6, 1);
+        highlight:SetVertexColor(r, g, b, 0.2);
+
+        r, g, b = _G.DISABLED_FONT_COLOR:GetRGB();
+        disabled:SetVertexColor(r, g, b, 0.6);
+
+        button:SetNormalTexture(normal);
+        button:SetHighlightTexture(highlight);
+        button:SetDisabledTexture(disabled);
+
+        button:SetNormalFontObject("GameFontHighlight");
+        button:SetDisabledFontObject("GameFontDisable");
+
+        button:SetScript("OnEnable", Button_OnEanble);
+        button:SetScript("OnDisable", Button_OnDisable);
+
+        return button;
     end
-end
-
-function Lib:CreateButton(style, parent, text, button, tooltip)
-    local r, g, b = style:GetColor();
-    local backgroundTexture = style:GetTexture("ButtonTexture");
-
-    button = button or _G.CreateFrame("Button", nil, parent);
-    button:SetSize(150, 30);
-    button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
-    button:SetBackdropBorderColor(r, g, b, 0.7);
-
-    if (text) then
-        button:SetText(text);
-    end
-
-    if (tooltip) then
-        button.tooltip = tooltip;
-        button:SetScript("OnEnter", OnEnter);
-        button:SetScript("OnLeave", OnLeave);
-    end
-
-    local normal = Private:SetBackground(button, backgroundTexture);
-    local highlight = Private:SetBackground(button, backgroundTexture);
-    local disabled = Private:SetBackground(button, backgroundTexture);
-
-    normal:SetVertexColor(r * 0.6, g * 0.6, b * 0.6, 1);
-    highlight:SetVertexColor(r, g, b, 0.2);
-    disabled:SetVertexColor(r * 0.3, g * 0.3, b * 0.3, 1);
-
-    button:SetNormalTexture(normal);
-    button:SetHighlightTexture(highlight);
-    button:SetDisabledTexture(disabled);
-
-    button:SetNormalFontObject("GameFontHighlight");
-    button:SetDisabledFontObject("GameFontDisable");
-
-    return button;
 end
 
 function Lib:CreateCheckButton(parent, text, radio, tooltip)
@@ -212,7 +205,6 @@ function Lib:AddResizer(style, frame)
     Private:MakeResizable(frame, frame.dragger);
     style:ApplyColor(nil, nil, frame.dragger:GetNormalTexture());
     style:ApplyColor(nil, nil, frame.dragger:GetHighlightTexture());
-
 end
 
 function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
@@ -260,11 +252,12 @@ function Lib:AddArrow(style, frame, direction, center)
 
     frame.arrow = _G.CreateFrame("Frame", nil, frame);
     frame.arrow:SetSize(30, 24);
-    frame.arrow.bg = frame.arrow:CreateTexture(nil, "ARTWORK");
-    frame.arrow.bg:SetAllPoints(true);
 
     local texture = style:GetTexture("ArrowButtonTexture");
+    frame.arrow.bg = frame.arrow:CreateTexture(nil, "ARTWORK");
+    frame.arrow.bg:SetAllPoints(true);
     frame.arrow.bg:SetTexture(texture);
+
     style:ApplyColor(nil, nil, frame.arrow.bg);
 
     if (center) then

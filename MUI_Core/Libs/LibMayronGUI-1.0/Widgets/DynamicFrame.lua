@@ -8,6 +8,8 @@ end
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
 local DynamicFrame = WidgetsPackage:CreateClass("DynamicFrame", Private.FrameWrapper);
+local obj = Lib.Objects;
+
 ---------------------------------
 
 local function OnSizeChanged(self, width)
@@ -17,7 +19,7 @@ local function OnSizeChanged(self, width)
     local anchor = select(1, scrollChild:GetChildren());
 
     if (not anchor) then
-        return
+        return;
     end
 
     local totalRowWidth = 0; -- used to make new rows
@@ -25,7 +27,7 @@ local function OnSizeChanged(self, width)
     local totalHeight = 0; -- used to dynamically set the ScrollChild's height so that is can be visible
     local previousChild;
 
-    for id, child in pairs({ scrollChild:GetChildren() }) do
+    for id, child in obj:IterateArgs(scrollChild:GetChildren()) do
         child:ClearAllPoints();
         totalRowWidth = totalRowWidth + child:GetWidth();
 
@@ -98,7 +100,7 @@ function DynamicFrame:AddChildren(data, ...)
         data.frame:SetSize(_G.UIParent:GetWidth(), _G.UIParent:GetHeight());
     end
 
-    for _, child in pairs({...}) do
+    for _, child in obj:IterateArgs(...) do
         child:SetParent(data.scrollChild);
     end
 

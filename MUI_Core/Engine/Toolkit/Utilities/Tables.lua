@@ -1,11 +1,11 @@
 -- luacheck: ignore MayronUI self 143 631
-local _, core = ...;
-core.Toolkit = core.Toolkit or {};
+local _, namespace = ...;
 
-local tk = core.Toolkit;
+local obj = namespace.Objects;
+local tk = namespace.Toolkit;
+
 tk.Tables = {};
 
-local obj = _G.LibStub:GetLibrary("LibMayronObjects");
 local LinkedList = obj:Import("Framework.System.Collections.LinkedList");
 -----------------------------
 
@@ -33,9 +33,9 @@ function tk.Tables:GetTable(rootTable, ...)
 
     local currentTable = rootTable;
 
-    for _, key in self:IterateArgs(...) do
+    for _, key in obj:IterateArgs(...) do
         if (type(currentTable[key]) ~= "table") then
-            currentTable[key] = self:PopWrapper();
+            currentTable[key] = obj:PopWrapper();
         end
 
         currentTable = currentTable[key];
@@ -112,7 +112,7 @@ function tk.Tables:GetFullSize(tbl)
 end
 
 function tk.Tables:AddAll(tbl, ...)
-    for _, value in self:IterateArgs(...) do
+    for _, value in obj:IterateArgs(...) do
         table.insert(tbl, value);
     end
 end
@@ -189,7 +189,7 @@ end
 function tk.Tables:Merge(...)
     local merged = {};
 
-    for _, tbl in self:IterateArgs(...) do
+    for _, tbl in obj:IterateArgs(...) do
         for key, value in tk.pairs(tbl) do
             if (merged[key] and (tk.type(merged[key]) == "table") and (tk.type(value) == "table")) then
                 merged[key] = self:Merge(merged[key], value);
@@ -211,7 +211,7 @@ do
         argsList = argsList or LinkedList();
         argsList:Clear();
 
-        for _, key in self:IterateArgs(tk.strsplit(".", path)) do
+        for _, key in obj:IterateArgs(tk.strsplit(".", path)) do
             local firstKey = tk.strsplit("[", key);
 
             argsList:AddToBack(tk.tonumber(firstKey) or firstKey);
@@ -280,90 +280,6 @@ function tk.Tables:GetLastPathKey(path)
 end
 
 do
-    local wrappers = {};
-
-    local function iterator(wrapper, id)
-        id = id + 1;
-
-        local arg = wrapper[id];
-
-        if (arg ~= nil) then
-            return id, arg;
-        else
-            -- reached end of wrapper so finish looping and clean up
-            tk.Tables:PushWrapper(wrapper);
-        end
-    end
-
-    function tk.Tables:PopWrapper(...)
-        local wrapper;
-
-        -- get wrapper before iterating
-        if (#wrappers > 0) then
-            wrapper = wrappers[#wrappers];
-            wrappers[#wrappers] = nil;
-            wrappers[tostring(wrapper)] = nil;
-
-            -- empty table (incase tk.Tables:UnpackWrapper was used)
-            for key, _ in pairs(wrapper) do
-                wrapper[key] = nil;
-            end
-        else
-            -- create new wrapper (required if a for-loop call to
-            -- IterateArgs is nested inside another IterateArgs call)
-            wrapper = {};
-        end
-
-        local arg;
-        local id = 0;
-        local totalConsecutiveNils = 0;
-
-        -- fill wrapper
-        repeat
-            id = id + 1;
-            arg = (select(id, ...));
-
-            if (arg == nil) then
-                totalConsecutiveNils = totalConsecutiveNils + 1;
-            else
-                wrapper[id] = arg; -- add only non-nil values
-                totalConsecutiveNils = 0;
-            end
-
-        -- repeat until we are comfortable that all arguments have been captured.
-        -- should not have a function call containing more than 10 consecutive nil args!
-        until (totalConsecutiveNils > 10);
-
-        return wrapper;
-    end
-
-    function tk.Tables:PushWrapper(wrapper)
-        for key, _ in pairs(wrapper) do
-            wrapper[key] = nil;
-        end
-
-        if (not wrappers[tostring(wrapper)]) then
-            wrappers[#wrappers + 1] = wrapper;
-            wrappers[tostring(wrapper)] = true;
-        end
-    end
-
-    function tk.Tables:UnpackWrapper(wrapper)
-        if (not wrappers[tostring(wrapper)]) then
-            wrappers[#wrappers + 1] = wrapper;
-            wrappers[tostring(wrapper)] = true;
-        end
-
-        return _G.unpack(wrapper);
-    end
-
-    function tk.Tables:IterateArgs(...)
-        local wrapper = self:PopWrapper(...);
-        return iterator, wrapper, 0;
-    end
-end
-
-do
     local orderByKeys;
 
     local function compare(previous, current)
@@ -387,8 +303,8 @@ do
     end
 
     function tk.Tables:OrderBy(tbl, ...)
-        orderByKeys = self:PopWrapper(...);
+        orderByKeys = obj:PopWrapper(...);
         table.sort(tbl, compare);
-        self:PushWrapper(orderByKeys);
+        obj:PushWrapper(orderByKeys);
     end
 end

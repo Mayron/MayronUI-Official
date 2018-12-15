@@ -1,15 +1,14 @@
 -- luacheck: ignore MayronUI self 143 631
 local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-if (not Lib) then
-    return
-end
+if (not Lib) then return end
 
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
-
+local obj = Lib.Objects;
 local TextField = WidgetsPackage:CreateClass("TextField", Private.FrameWrapper);
 ------------------------------------
+
 
 function Lib:CreateTextField(style, tooltip, parent)
     return TextField(style, tooltip, parent);
@@ -17,25 +16,25 @@ end
 
 local function OnEnable(self)
     local frame = self:GetParent();
-    frame:SetBackdropBorderColor(self.themeColor.r, self.themeColor.g, self.themeColor.b, 0.8);
+    frame.bg:SetVertexColor(self.themeColor.r, self.themeColor.g, self.themeColor.b);
     self:SetAlpha(1);
 end
 
 local function OnDisable(self)
     local frame = self:GetParent();
-    frame:SetBackdropBorderColor(0.5, 0.5, 0.5, 0.8);
-    self:SetAlpha(0.4);
+    local r, g, b = _G.DISABLED_FONT_COLOR:GetRGB();
+    frame.bg:SetVertexColor(r, g, b);
+    self:SetAlpha(0.7);
 end
 
 function TextField:__Construct(data, style, tooltip, parent)
     local r, g, b = style:GetColor();
-    local backdrop = style:GetBackdrop("ButtonBackdrop");
-
     data.frame = Private:PopFrame("Frame", parent);
-    data.frame:SetBackdrop(backdrop);
-    data.frame:SetBackdropBorderColor(r, g, b, 0.8);
+    data.frame:SetSize(155, 30);
 
-    Private:SetBackground(data.frame, 0, 0, 0, 0.2);
+    local background = style:GetTexture("TextField");
+    data.frame.bg = Private:SetBackground(data.frame, background);
+    data.frame.bg:SetVertexColor(r, g, b);
 
     data.editBox = _G.CreateFrame("EditBox", nil, data.frame, "InputBoxTemplate");
     data.editBox:SetPoint("TOPLEFT", data.frame, "TOPLEFT", 5, 0);
@@ -52,7 +51,7 @@ function TextField:__Construct(data, style, tooltip, parent)
 
     Private:HideLayers(data.editBox, Private.LayerTypes.BACKGROUND);
 
-    data.editBox.themeColor = {r, g, b};
+    data.editBox.themeColor = obj:PopWrapper(r, g, b);
 
     if (tooltip) then
         data.editBox.tooltip = tooltip;
@@ -85,7 +84,7 @@ function TextField:GetEditBox(data)
 end
 
 function TextField:OnTextChanged(data, callback, ...)
-    local args = {...};
+    local args = obj:PopWrapper(...);
 
     data.editBox:SetScript("OnEnterPressed", function()
         data.editBox:ClearFocus();

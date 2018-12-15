@@ -176,7 +176,7 @@ function Private:CleanEventTable(eventName)
         local handlers = self.eventsList[eventName];
 
         for _, handler in pairs(handlers) do
-            if (not handler:IsDestroyed()) then
+            if (not handler.IsDestroyed) then
                 table.insert(activeHandlers, handler);
             end
         end

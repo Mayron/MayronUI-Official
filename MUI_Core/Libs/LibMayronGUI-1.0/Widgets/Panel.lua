@@ -1,14 +1,13 @@
 -- luacheck: ignore MayronUI self 143 631
 local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-if (not Lib) then
-    return
-end
+if (not Lib) then return end
 
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
-
+local obj = Lib.Objects;
 local Panel = WidgetsPackage:CreateClass("Panel", Private.FrameWrapper);
+
 Panel.Static:AddFriendClass("Group");
 Private.Panel = Panel;
 ---------------------------------
@@ -21,8 +20,8 @@ end
 function Panel:__Construct(data, frame, globalName)
     self:SetFrame(frame or _G.CreateFrame("Frame", globalName, _G.UIParent));
     data.grid = Private.LinkedList();
-    data.rowscale = {};
-    data.columnscale = {};
+    data.rowscale = obj:PopWrapper();
+    data.columnscale = obj:PopWrapper();
 
     data.frame:HookScript("OnSizeChanged", function()
         Private:OnSizeChanged(data);
@@ -34,7 +33,7 @@ function Panel:GetDimensions(data)
 end
 
 function Panel:SetDimensions(data, width, height)
-    local squares = {data.grid:Unpack()};
+    local squares = obj:PopWrapper(data.grid:Unpack());
     local i = 1;
 
     data.width = width;
@@ -57,14 +56,14 @@ function Panel:SetDimensions(data, width, height)
 
         elseif (squares[i]) then
             data.grid:Remove(squares[i]);
-
         else
-            break
+            break;
         end
 
         i = i + 1;
     end
 
+    obj:PushWrapper(squares);
     Private:SetupGrid(data);
 end
 
@@ -75,7 +74,7 @@ end
 function Panel:AddCells(data, ...)
     data.cells = data.cells or Private.LinkedList();
 
-    for _, cell in pairs({...}) do
+    for _, cell in obj:IterateArgs(...) do
         data.cells:AddToBack(cell);
         cell:SetPanel(self);
     end

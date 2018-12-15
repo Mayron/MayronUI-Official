@@ -1,10 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
 local Lib = _G.LibStub:NewLibrary("LibMayronDB", 2.0);
-local Objects = _G.LibStub:GetLibrary("LibMayronObjects");
+local obj = _G.LibStub:GetLibrary("LibMayronObjects");
 
-if (not Lib or not Objects) then return; end
+if (not Lib or not obj) then return; end
 
-local Framework = Objects:CreatePackage("LibMayronDB");
+local Framework = obj:CreatePackage("LibMayronDB");
 local Database = Framework:CreateClass("Database");
 local Observer = Framework:CreateClass("Observer");
 local Helper = Framework:CreateClass("Helper");
@@ -16,7 +16,7 @@ local select, tonumber, strsplit = select, tonumber, _G.strsplit;
 -- OnAddOnLoadedListener
 local OnAddOnLoadedListener = _G.CreateFrame("Frame");
 OnAddOnLoadedListener:RegisterEvent("ADDON_LOADED");
-OnAddOnLoadedListener.RegisteredDatabases = {};
+OnAddOnLoadedListener.RegisteredDatabases = obj:PopWrapper();
 
 OnAddOnLoadedListener:SetScript("OnEvent", function(self, _, addOnName)
     local database = OnAddOnLoadedListener.RegisteredDatabases[addOnName];
@@ -106,13 +106,13 @@ Framework:DefineParams("string", "string");
 function Database:__Construct(data, addOnName, savedVariableName)
     data.addOnName = addOnName;
     data.svName = savedVariableName;
-    data.callbacks = {};
+    data.callbacks = obj:PopWrapper();
     data.helper = Helper(self, data);
 
     -- holds all database defaults to check first before searching database
-    data.defaults = {};
-    data.defaults.global = {};
-    data.defaults.profile = {};
+    data.defaults = obj:PopWrapper();
+    data.defaults.global = obj:PopWrapper();
+    data.defaults.profile = obj:PopWrapper();
 end
 
 --[[
@@ -124,7 +124,7 @@ with 2 arguments: the database and the addOn name passed to Lib:CreateDatabase(.
 ]]
 Framework:DefineParams("function");
 function Database:OnStartUp(data, callback)
-    local startUpCallbacks = data.callbacks["OnStartUp"] or {};
+    local startUpCallbacks = data.callbacks["OnStartUp"] or obj:PopWrapper();
     data.callbacks["OnStartUp"] = startUpCallbacks;
 
     table.insert(startUpCallbacks, callback);
@@ -138,7 +138,7 @@ Hooks a callback function onto the "ProfileChanged" event to be called when the 
 ]]
 Framework:DefineParams("function");
 function Database:OnProfileChanged(data, callback)
-    local profileChangedCallback = data.callbacks["OnProfileChanged"] or {};
+    local profileChangedCallback = data.callbacks["OnProfileChanged"] or obj:PopWrapper();
     data.callbacks["OnProfileChanged"] = profileChangedCallback;
 
     table.insert(profileChangedCallback, callback);
@@ -158,24 +158,24 @@ function Database:Start(data)
     OnAddOnLoadedListener.RegisteredDatabases[data.addOnName] = nil;
 
     -- create Saved Variable if it has never been created before
-    _G[data.svName] = _G[data.svName] or {};
+    _G[data.svName] = _G[data.svName] or obj:PopWrapper();
     data.sv = _G[data.svName];
     data.svName = nil; -- no longer needed once it is loaded
 
     -- create root profiles table if it does not exist
-    data.sv.profiles = data.sv.profiles or {};
+    data.sv.profiles = data.sv.profiles or obj:PopWrapper();
 
     -- create root global table if it does not exist
-    data.sv.global = data.sv.global or {};
+    data.sv.global = data.sv.global or obj:PopWrapper();
 
     -- create profileKeys table if it does not exist
-    data.sv.profileKeys = data.sv.profileKeys or {};
+    data.sv.profileKeys = data.sv.profileKeys or obj:PopWrapper();
 
     -- create appended table if it does not exist
-    data.sv.appended = data.sv.appended or {};
+    data.sv.appended = data.sv.appended or obj:PopWrapper();
 
     -- create Default profile if it does not exist
-    data.sv.profiles.Default = data.sv.profiles.Default or {};
+    data.sv.profiles.Default = data.sv.profiles.Default or obj:PopWrapper();
 
     -- create Profile and Global accessible observers:
 
@@ -257,7 +257,7 @@ Framework:DefineParams("table|string", "?string");
 function Database:ParsePathValue(_, rootTableOrPath, pathOrNil)
     local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrNil);
 
-    for _, key in ipairs({strsplit(".", path)}) do
+    for _, key in obj:IterateArgs(strsplit(".", path)) do
 
         if (rootTable == nil or type(rootTable) ~= "table") then
             break;
@@ -307,7 +307,7 @@ Creates a new profile if the named profile does not exist.
 ]]
 Framework:DefineParams("string");
 function Database:SetProfile(data, profileName)
-    local profile = data.sv.profiles[profileName] or {};
+    local profile = data.sv.profiles[profileName] or obj:PopWrapper();
     data.sv.profiles[profileName] = profile;
 
     local profileKey = data.helper:GetCurrentProfileKey();
@@ -335,7 +335,7 @@ end
 @return (table): A table containing string profile names for all profiles associated with the addon.
 --]]
 function Database:GetProfiles(data)
-    local profiles = {};
+    local profiles = obj:PopWrapper();
 
     for profileName, _ in pairs(data.sv.profiles) do
         table.insert(profiles, profileName);
@@ -354,7 +354,7 @@ Each loop returns values: id, profileName, profile
 ]]
 function Database:IterateProfiles(data)
     local id = 0;
-    local profileNames = {};
+    local profileNames = obj:PopWrapper();
 
     for name, _ in pairs(data.sv.profiles) do
         table.insert(profileNames, name);
@@ -506,7 +506,7 @@ Framework:DefineReturns("boolean");
 function Database:AppendOnce(data, rootTable, path, value)
     local tableType = data.helper:GetDatabaseRootTableName(rootTable);
 
-    local appendTable = data.sv.appended[tableType] or {};
+    local appendTable = data.sv.appended[tableType] or obj:PopWrapper();
     data.sv.appended[tableType] = appendTable;
 
     if (appendTable[path]) then
@@ -636,7 +636,7 @@ do
             if (mergeTable[key] == nil) then
                 -- only add to mergeTable if value does not already exist
                 if (type(value) == "table") then
-                    mergeTable[key] = {};
+                    mergeTable[key] = obj:PopWrapper();
                     Merge(mergeTable[key], value);
 
                 else
@@ -654,7 +654,7 @@ do
     ]]
     Framework:DefineReturns("table");
     function Observer:ToTable(data)
-        local merged = {};
+        local merged = obj:PopWrapper();
         local svTable = self:ToSavedVariable();
         local defaults = self:GetDefaults();
 
@@ -809,15 +809,13 @@ do
 
         if (tbl[key] == nil) then
             if (parsing) then return nil; end
-            tbl[key] = {};
+            tbl[key] = obj:PopWrapper();
         end
 
         return previous, tbl[key];
     end
 
-    local IsEmpty;
-
-    IsEmpty = function(tbl)
+    local function IsEmpty(tbl)
         if (tbl == nil) then
             return true;
         end
@@ -836,7 +834,7 @@ do
         local nextTable = rootTable;
         local lastTable, lastKey;
 
-        for _, key in ipairs({strsplit(".", path)}) do
+        for _, key in obj:IterateArgs(strsplit(".", path)) do
             if (tonumber(key)) then
                 key = tonumber(key);
                 lastKey = key;
@@ -853,7 +851,7 @@ do
                 local indexes;
 
                 if (key:find("%b[]")) then
-                    indexes = {};
+                    indexes = obj:PopWrapper();
 
                     for index in key:gmatch("(%b[])") do
                         index = index:match("%[(.+)%]");
@@ -889,6 +887,8 @@ do
                             return nil;
                         end
                     end
+
+                    obj:PushWrapper(indexes);
                 end
             end
         end
@@ -951,6 +951,7 @@ function Helper:GetNextValue(data, previousObserverData, tbl, key)
         local nextChildPath = GetNextPath(previousObserverData.usingChild.path, key);
         self:SetUsingChild(previousObserverData.usingChild.isGlobal, nextChildPath, nextObserver);
     else
+        obj:PushWrapper(nextObserverData.usingChild);
         nextObserverData.usingChild = nil;
     end
 
@@ -1015,9 +1016,7 @@ function Helper:GetDatabaseRootTableName(data, observer)
 end
 
 do
-    local equals;
-
-    equals = function(value1, value2, shallowEquals)
+    local function equals(value1, value2, shallowEquals)
         local type1 = type(value1);
 
         if (type(value2) == type1) then
@@ -1084,7 +1083,7 @@ end
 Framework:DefineParams("boolean", "string", "Observer");
 function Helper:SetUsingChild(data, isGlobal, path, parentObserver)
     local parentObserverData = data:GetFriendData(parentObserver);
-    local usingChild = parentObserverData.usingChild or {};
+    local usingChild = parentObserverData.usingChild or obj:PopWrapper();
 
     usingChild.isGlobal = isGlobal;
     usingChild.path = path;

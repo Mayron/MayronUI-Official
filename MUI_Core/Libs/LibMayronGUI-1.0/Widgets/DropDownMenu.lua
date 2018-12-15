@@ -50,14 +50,12 @@ function Lib:CreateDropDown(style, parent, direction)
         DropDownMenu.Static.Menu = Lib:CreateScrollFrame(style, _G.UIParent, "MUI_DropDownMenu");
         DropDownMenu.Static.Menu:Hide();
         DropDownMenu.Static.Menu:SetBackdrop(style:GetBackdrop("DropDownMenu"));
+        DropDownMenu.Static.Menu:SetBackdropBorderColor(style:GetColor("Widget"));
         DropDownMenu.Static.Menu:SetScript("OnHide", FoldAll);
 
         Private:SetBackground(DropDownMenu.Static.Menu, 0, 0, 0, 0.9);
         table.insert(_G.UISpecialFrames, "MUI_DropDownMenu");
     end
-
-    direction = direction or "DOWN";
-    direction = direction:upper();
 
     local dropDownContainer = Private:PopFrame("Frame", parent);
     dropDownContainer:SetSize(200, 30);
@@ -85,6 +83,8 @@ function Lib:CreateDropDown(style, parent, direction)
 
     header:SetPoint("BOTTOMRIGHT", dropDownContainer.toggleButton, "BOTTOMLEFT", -2, 0);
 
+    direction = (direction or "DOWN"):upper();
+
     if (direction == "DOWN") then
         dropDownContainer.toggleButton.arrow:SetTexCoord(0, 1, 0.2, 1);
     elseif (direction == "UP") then
@@ -109,7 +109,13 @@ end
 -----------------------------------
 local function ToolTip_OnEnter(frame)
     _G.GameTooltip:SetOwner(frame, "ANCHOR_RIGHT", 0, 2);
-    _G.GameTooltip:AddLine(frame.tooltip);
+
+    if (frame.isEnabled) then
+        _G.GameTooltip:AddLine(frame.tooltip);
+    else
+        _G.GameTooltip:AddLine(frame.disabledTooltip);
+    end
+
     _G.GameTooltip:Show();
 end
 
@@ -126,7 +132,13 @@ function DropDownMenu:__Construct(data, header, direction, slideController, fram
     data.frame = frame; -- must be called frame for GetFrame() to work!
     data.menu = DropDownMenu.Static.Menu;
     data.style = style;
-    data.options = {};
+    data.options = obj:PopWrapper();
+
+    data.label = data.header:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    data.label:SetPoint("LEFT", 10, 0);
+    data.label:SetPoint("RIGHT", -10, 0);
+    data.label:SetWordWrap(false);
+    data.label:SetJustifyH("LEFT");
 
     -- disabled by default (until an option is added)
     self:SetEnabled(false);
@@ -136,34 +148,28 @@ function DropDownMenu:GetMenu(data)
     return data.menu;
 end
 
-function DropDownMenu:SetToolTip(data, tooltip)
-    if (not data.header.tooltip) then
-        data.header:SetScript("OnEnter", ToolTip_OnEnter);
-        data.header:SetScript("OnLeave", ToolTip_OnLeave);
+do
+    local function ApplyTooltipScripts(header)
+        if (not (header.tooltip or header.disabledTooltip)) then
+            header:SetScript("OnEnter", ToolTip_OnEnter);
+            header:SetScript("OnLeave", ToolTip_OnLeave);
+        end
     end
-    data.header.tooltip = tooltip;
+
+    function DropDownMenu:SetTooltip(data, tooltip)
+        ApplyTooltipScripts(data.header);
+        data.header.tooltip = tooltip;
+    end
+
+    function DropDownMenu:SetDisabledTooltip(data, disabledTooltip)
+        ApplyTooltipScripts(data.header);
+        data.header.disabledTooltip = disabledTooltip;
+    end
 end
 
 -- tooltip means that the tooltip should be the same as the label
-function DropDownMenu:SetLabel(data, text, tooltip)
-    if (not data.label) then
-        data.label = data.header:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-        data.label:SetPoint("LEFT", 10, 0);
-        data.label:SetPoint("RIGHT", -10, 0);
-        data.label:SetWordWrap(false);
-        data.label:SetJustifyH("LEFT");
-    end
-
+function DropDownMenu:SetLabel(data, text)
     data.label:SetText(text);
-
-    if (not data.header.custom) then
-        if (tooltip) then
-            self:SetToolTip(tooltip);
-            data.header.custom = true;
-        else
-            self:SetToolTip(text);
-        end
-    end
 end
 
 function DropDownMenu:GetLabel(data)
@@ -309,7 +315,7 @@ function DropDownMenu:AddOption(data, label, func, ...)
     option:SetHighlightTexture(1);
     option:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
 
-    local args = {...};
+    local args = obj:PopWrapper(...);
     option:SetScript("OnClick", function()
         self:SetLabel(label, true);
         self:Toggle(false);
@@ -333,10 +339,10 @@ end
 
 function DropDownMenu:SetEnabled(data, enabled)
     data.frame.toggleButton:SetEnabled(enabled);
+    data.header.isEnabled = enabled; -- required for using the correct tooltip
 
     if (enabled) then
-        local r, g, b = data.style:GetColor();
-        r = r * 0.7; g = g * 0.7; b = b * 0.7;
+        local r, g, b = data.style:GetColor("Widget");
 
         data.header:SetBackdropBorderColor(r, g, b);
         data.header.bg:SetVertexColor(r, g, b, 0.6);
@@ -346,23 +352,17 @@ function DropDownMenu:SetEnabled(data, enabled)
         data.frame.toggleButton:SetBackdropBorderColor(r, g, b);
 
         data.frame.toggleButton.arrow:SetAlpha(1);
-
-        if (data.label) then
-            data.label:SetTextColor(1, 1, 1);
-        end
+        data.label:SetTextColor(1, 1, 1);
     else
-        data.header.bg:SetVertexColor(0.4, 0.4, 0.4, 0.6);
-        data.header:SetBackdropBorderColor(0.4, 0.4, 0.4);
+        local r, g, b = _G.DISABLED_FONT_COLOR:GetRGB();
 
-        data.frame.toggleButton:GetNormalTexture():SetVertexColor(0.2, 0.2, 0.2, 0.6);
-        data.frame.toggleButton:GetHighlightTexture():SetVertexColor(0.2, 0.2, 0.2, 0.7);
-        data.frame.toggleButton:SetBackdropBorderColor(0.2, 0.2, 0.2);
+        data.header:SetBackdropBorderColor(r, g, b);
+        data.header.bg:SetVertexColor(r, g, b, 0.6);
+
+        data.frame.toggleButton:SetBackdropBorderColor(r, g, b);
 
         data.frame.toggleButton.arrow:SetAlpha(0.5);
-
-        if (data.label) then
-            data.label:SetTextColor(0.5, 0.5, 0.5);
-        end
+        data.label:SetTextColor(r, g, b);
     end
 end
 

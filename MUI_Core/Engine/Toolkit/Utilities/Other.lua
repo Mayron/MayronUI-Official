@@ -1,8 +1,12 @@
--- luacheck: ignore MayronUI self 143 631
-local _, core = ...;
-core.Toolkit = core.Toolkit or {};
+-- luacheck: ignore MayronUI LibStub self 143 631
+local _, namespace = ...;
 
-local tk = core.Toolkit;
+namespace.Objects = LibStub:GetLibrary("LibMayronObjects");
+namespace.Toolkit = {};
+
+local obj = namespace.Objects;
+local tk = namespace.Toolkit;
+
 tk.Numbers = {};
 
 function tk.Numbers:ToPrecision(number, precision)
@@ -13,7 +17,7 @@ function tk.Numbers:ToPrecision(number, precision)
 end
 
 function tk:ValueIsEither(value, ...)
-    for _, otherValue in tk.Tables:IterateArgs(...) do
+    for _, otherValue in obj:IterateArgs(...) do
         if (self:Equals(value, otherValue)) then
             return true;
         end
@@ -24,7 +28,7 @@ end
 
 function tk:UnpackIfTable(value)
     if (type(value) == "table") then
-        return tk.Tables:UnpackWrapper(value);
+        return obj:UnpackWrapper(value);
     else
         return value;
     end

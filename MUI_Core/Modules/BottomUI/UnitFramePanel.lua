@@ -331,7 +331,7 @@ function UnitFramePanelClass:SetupSUFPortraitGradients(data)
     if (sv.enabled) then
         data.gradients = data.gradients or {};
 
-        for _, unitID in tk.Tables:IterateArgs("player", "target") do
+        for _, unitID in obj:IterateArgs("player", "target") do
             local parent = tk._G["SUFUnit"..unitID];
 
             if (parent and parent.portrait) then

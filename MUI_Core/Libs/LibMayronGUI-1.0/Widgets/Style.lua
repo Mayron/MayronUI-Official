@@ -1,13 +1,12 @@
 -- luacheck: ignore MayronUI self 143 631
 local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-if (not Lib) then
-    return
-end
+if (not Lib) then return end
 
 local LibObjectLua = _G.LibStub:GetLibrary("LibMayronObjects");
 local WidgetsPackage = Lib.WidgetsPackage;
 local Style = WidgetsPackage:CreateClass("Style");
+local obj = Lib.Objects;
 
 -- Local Functions ---------------
 
@@ -21,7 +20,7 @@ local function Getter(data, tblKey, name, defaultValue)
 end
 
 local function Setter(data, tblKey, value, name)
-    data[tblKey] = data[tblKey] or {};
+    data[tblKey] = data[tblKey] or obj:PopWrapper();
     name = name or "default";
     data[tblKey][name:lower()] = value;
 end
@@ -30,25 +29,23 @@ end
 
 WidgetsPackage:DefineParams("number", "number", "number", "?string");
 function Style:SetColor(data, red, green, blue, colorName)
-    Setter(data, "color", {red, green, blue}, colorName);
+    local color = _G.CreateColor(red, green, blue);
+    Setter(data, "color", color, colorName);
 end
 
 WidgetsPackage:DefineParams("?string", "?boolean");
-WidgetsPackage:DefineReturns("?any", "?number", "?number");
+WidgetsPackage:DefineReturns("table|number", "?number", "?number");
 --@param (optional) name - the name used to identify and get the correct color previously set
---@param (optional) disableUnpacking - whether the returned color table values should be unpacked
---@return - a table containing the r, g, b color values (or all color values unpacked)
-function Style:GetColor(data, colorName, disableUnpacking)
-    local value = Getter(data, "color", colorName, {1, 1, 1});
+--@param (boolean) returnTable - if true, returns the full blizzard color object, else (by default) returns r, g, b, a unpacked values
+--@return - a Blizzard Color object  containing the r, g, b color values and a few helper functions, or r, g, b, a unpacked values
+function Style:GetColor(data, colorName, returnTable)
+    local color = Getter(data, "color", colorName, _G.HIGHLIGHT_FONT_COLOR);
 
-    if (disableUnpacking) then
-        value.r = value[1];
-        value.g = value[2];
-        value.b = value[3];
-        return value;
+    if (returnTable) then
+        return color;
+    else
+        return color:GetRGBA();
     end
-
-    return _G.unpack(value);
 end
 
 WidgetsPackage:DefineParams("number", "?string");
@@ -121,7 +118,7 @@ function Style:ApplyColor(_, colorName, alpha, ...)
         alpha = 1;
     end
 
-    for _, element in pairs({...}) do
+    for _, element in obj:IterateArgs(...) do
 
         LibObjectLua:Assert(type(element) == "table" and element.GetObjectType,
             "Style.ApplyColor: Widget expected but received a %s value of %s", type(element), element);
@@ -154,10 +151,3 @@ function Style:ApplyColor(_, colorName, alpha, ...)
         end
     end
 end
-
--- updated widgets previously applied with a color if color changes and updates them
--- function Style:EnableColorUpdates(data, colorName)
---     colorName = colorName or "default";
---     data.trackedColors = data.trackedColors or {};
---     data.trackedColors[colorName] = {};
--- end

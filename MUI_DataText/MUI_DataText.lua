@@ -60,7 +60,8 @@ function C_DataTextModule:OnInitialize(data)
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
     data.lastButtonClicked = ""; -- last data text button clicked on
-    data.DataModules = {}; -- holds all data text modules
+    data.DataModules = obj:PopWrapper(); -- holds all data text modules
+    data.displayOrders = db.profile.datatext.displayOrder:ToTable();
 
     if (data.sv.enabled) then
         self:SetEnabled(true);
@@ -115,7 +116,7 @@ function C_DataTextModule:OnEnable(data)
 		-- when popup is closed by user
         if (data.dropdowns) then
 		-- popup menu content has dropdown menu's
-            for _, dropdown in tk.ipairs(data.dropdowns) do
+            for _, dropdown in ipairs(data.dropdowns) do
 				gui:FoldAllDropDownMenus();
                 dropdown:GetFrame().menu:Hide();
             end
@@ -158,44 +159,47 @@ function C_DataTextModule:CreateDataTextButton(data)
     return btn;
 end
 
+-- this is called each time a datatext module is registered
 function C_DataTextModule:PositionDataItems(data)
-    local displayOrders = db.profile.datatext.displayOrder:ToTable();
-    data.OrderedButtons = {};
+    data.orderedButtons = data.orderedButtons or obj:PopWrapper();
+    data.positionedButtons = data.positionedButtons or obj:PopWrapper();
 
     for _, dataModule in pairs(data.DataModules) do
         if (dataModule:IsEnabled()) then
             local btn = dataModule.Button;
             local dbName = dataModule.SavedVariableName;
-            local displayOrder = tk.Tables:GetIndex(displayOrders, dbName);
+            local displayOrder = tk.Tables:GetIndex(data.displayOrders, dbName);
 
             btn._module = dataModule; -- temporary
 
             if (not displayOrder) then
-                displayOrder = #displayOrders;
-                db.profile.datatext.displayOrder[displayOrder] = dbName;
-            end
+                dataModule:SetEnabled(false);
 
-            data.OrderedButtons[displayOrder] = btn;
+            elseif (not data.positionedButtons[dbName]) then
+                table.insert(data.orderedButtons, btn);
+                data.positionedButtons[dbName] = true;
+            end
         end
     end
 
-    local itemWidth = data.buiContainer:GetWidth() / #data.OrderedButtons;
+    local itemWidth = data.buiContainer:GetWidth() / #data.orderedButtons;
+    local previousButton;
 
-    for i, btn in ipairs(data.OrderedButtons) do
+    for _, btn in ipairs(data.orderedButtons) do
         btn:ClearAllPoints();
         btn:Show();
 
-        if (i == 1) then
+        if (not previousButton) then
             btn:SetPoint("BOTTOMLEFT", data.sv.spacing, 0);
             btn:SetPoint("TOPRIGHT", data.bar, "TOPLEFT", itemWidth - data.sv.spacing, - data.sv.spacing);
         else
-            local previousBtn = data.OrderedButtons[i - 1];
-            btn:SetPoint("TOPLEFT", previousBtn, "TOPRIGHT", data.sv.spacing, 0);
-            btn:SetPoint("BOTTOMRIGHT", previousBtn, "BOTTOMRIGHT", itemWidth, 0);
+            btn:SetPoint("TOPLEFT", previousButton, "TOPRIGHT", data.sv.spacing, 0);
+            btn:SetPoint("BOTTOMRIGHT", previousButton, "BOTTOMRIGHT", itemWidth, 0);
         end
 
         btn._module:Update();
         btn._module = nil; -- remove temporary _module ref
+        previousButton = btn;
     end
 
     data.popup:Hide();
@@ -302,8 +306,7 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     dataModule:Update(data);
     data.slideController:Stop();
 
-    local displayOrders = db.profile.datatext.displayOrder:ToTable();
-    local buttonDisplayOrder = tk.Tables:GetIndex(displayOrders, dataModule.SavedVariableName);
+    local buttonDisplayOrder = tk.Tables:GetIndex(data.displayOrders, dataModule.SavedVariableName);
 
     if (data.lastButtonID == buttonDisplayOrder and data.lastButton == button and data.popup:IsShown()) then
         -- clicked on same dataTextModule button so close the popup!
@@ -336,6 +339,7 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     end
 
     -- update content of popup based on which dataTextModule button was clicked
+
     self:ChangeMenuContent(dataModule.MenuContent);
     self:ClearLabels(dataModule.MenuLabels);
 
@@ -350,7 +354,7 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     local offset = data.resourceBars:GetHeight();
 
     -- update positioning of popup menu based on dataTextModule button's location
-    if (buttonDisplayOrder == #data.OrderedButtons) then
+    if (buttonDisplayOrder == #data.orderedButtons) then
         -- if button was the last button displayed on the data-text bar
         data.popup:SetPoint("BOTTOMRIGHT", dataTextButton, "TOPRIGHT", -1, offset + 2);
     elseif (buttonDisplayOrder == 1) then

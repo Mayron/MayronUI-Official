@@ -148,7 +148,7 @@ dataTextModule.ConfigTable =
         {   type = "dropdown",
             name = L["Bar Strata"],
             tooltip = L["The frame strata of the entire DataText bar."],
-            options = tk.Constants.FRAME_STRATA_VALUES,
+            options = tk.Constants.FRAME_STRATAS,
             default = "MEDIUM",
             appendDbPath = "frameStrata"
         },

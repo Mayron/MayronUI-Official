@@ -1,9 +1,8 @@
 -- luacheck: ignore MayronUI self 143 631
-local _, core = ...;
-core.Toolkit = core.Toolkit or {};
+local _, namespace = ...;
 
-local tk = core.Toolkit;
------------------------------
+local obj = namespace.Objects;
+local tk = namespace.Toolkit;
 
 function tk:SetFullWidth(frame, rightPadding)
     rightPadding = rightPadding or 0;
@@ -81,7 +80,7 @@ function tk:SavePosition(frame, db_path, override)
         x = x, y = y
     };
 
-    core.Database:SetPathValue(db_path, positions);
+    namespace.Database:SetPathValue(db_path, positions);
     return positions;
 end
 
@@ -169,19 +168,19 @@ do
     end
 
     function tk:GetThemeColor()
-        color = color or core.Database.profile.theme.color;
+        color = color or namespace.Database.profile.theme.color;
         return color.r, color.g, color.b, color.hex;
     end
 
     function tk:UpdateThemeColor(value)
         color = tk.Constants.CLASS_RGB_COLORS[value] or value;
-        core.Database.profile.theme.color = color;
+        namespace.Database.profile.theme.color = color;
         tk.Constants.AddOnStyle:SetColor(color.r, color.g, color.b);
     end
 end
 
 function tk:SetBackground(frame, ...)
-    local args = tk.Tables:PopWrapper(...);
+    local args = obj:PopWrapper(...);
     local texture = frame:CreateTexture(nil, "BACKGROUND");
 
     texture:SetAllPoints(frame);
@@ -192,7 +191,7 @@ function tk:SetBackground(frame, ...)
         texture:SetTexture(...);
     end
 
-    tk.Tables:PushWrapper(args);
+    obj:PushWrapper(args);
 
     return texture;
 end
@@ -200,7 +199,7 @@ end
 function tk:GroupCheckButtons(...)
     local btns = {};
 
-    for id, btn in tk.Tables:IterateArgs(...) do
+    for id, btn in obj:IterateArgs(...) do
         btn:SetID(id);
         tk.table.insert(btns, btn);
 
