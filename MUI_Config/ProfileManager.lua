@@ -188,6 +188,10 @@ local configTable = {
 }
 
 function C_ConfigModule:ShowProfileManager(data)
+    if (not data.window or not data.window:IsShown()) then
+        self:Show();
+    end
+
     local menuButton = data.window.profilesBtn;
 
     if (not menuButton.name) then

@@ -1,5 +1,5 @@
 -- luacheck: ignore MayronUI self 143 631
-local Lib = _G.LibStub:NewLibrary("LibMayronDB", 2.0);
+local Lib = _G.LibStub:NewLibrary("LibMayronDB", 2.2);
 local obj = _G.LibStub:GetLibrary("LibMayronObjects");
 
 if (not Lib or not obj) then return; end

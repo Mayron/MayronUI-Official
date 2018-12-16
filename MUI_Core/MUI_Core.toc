@@ -1,13 +1,13 @@
-## Interface: 80000
-## Title: |cff00ccffMUI|r Core
+## Interface: 80100
+## Title: |cff00ccffMUI|r Core |cff00ccff[beta]|r
 ## SavedVariables: MayronUIdb
-## Version: 5.3.1
+## Version: 6.0.0
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 
 ## libs:
 Libs\LibStub.lua
-Libs\LibMayronObjects-2.7\LibMayronObjects.xml
-Libs\LibMayronDB-2.0\LibMayronDB.lua
+Libs\LibMayronObjects-2.8\LibMayronObjects.xml
+Libs\LibMayronDB-2.2\LibMayronDB.lua
 Libs\LibMayronEvents-1.1.lua
 Libs\LibMayronGUI-1.0\LibMayronGUI.xml
 Libs\LibSharedMedia-3.0\CallbackHandler-1.0.lua

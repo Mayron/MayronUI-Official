@@ -54,24 +54,24 @@ tk.Constants = {
         TOOLTIP             = "TOOLTIP";
     };
 
-    CLASS_RGB_COLORS = {
-        DEATHKNIGHT   = {r = 196/255, g = 31/255, b = 59/255, hex = "C41F3B"};
-        DEMONHUNTER   = {r = 163/255, g = 48/255, b = 201/255, hex = "A330C9"};
-        DRUID         = {r = 1, g = 125/255, b = 10/255, hex = "FF7D0A"};
-        HUNTER        = {r = 171/255, g = 212/255, b = 115/255, hex = "ABD473"};
-        MAGE          = {r = 105/255, g = 204/255, b = 240/255, hex = "69CCF0"};
-        MONK          = {r = 0, g = 1, b = 150/255, hex = "00FF96"},
-        PALADIN       = {r = 245/255, g = 140/255, b = 186/255, hex = "F58CBA"};
-        PRIEST        = {r = 1, g = 1, b = 1, hex = "FFFFFF"},
-        ROGUE         = {r = 1, g = 245/255, b = 105/255, hex = "FFF569"};
-        SHAMAN        = {r = 0, g = 112/255, b = 222/255, hex = "0070DE"};
-        WARLOCK       = {r = 148/255, g = 130/255, b = 201/255, hex = "9482C9"};
-        WARRIOR       = {r = 199/255, g = 156/255, b = 110/255, hex = "C79C6E"};
+    CLASS_COLORS = {
+        DEATHKNIGHT   = _G.CreateColor(196/255, 31/255,59/255);
+        DEMONHUNTER   = _G.CreateColor(163/255, 48/255, 201/255);
+        DRUID         = _G.CreateColor(1, 125/255, 10/255);
+        HUNTER        = _G.CreateColor(171/255, 212/255, 115/255);
+        MAGE          = _G.CreateColor(105/255, 204/255, 240/255);
+        MONK          = _G.CreateColor(0, 1, 150/255),
+        PALADIN       = _G.CreateColor(245/255, 140/255, 186/255);
+        PRIEST        = _G.CreateColor(1, 1, 1);
+        ROGUE         = _G.CreateColor(1, 245/255, 105/255);
+        SHAMAN        = _G.CreateColor(0, 112/255, 222/255);
+        WARLOCK       = _G.CreateColor(148/255, 130/255, 201/255);
+        WARRIOR       = _G.CreateColor(199/255, 156/255, 110/255);
     };
 
     -- Blizzard global colors are tables containing r, g, b, keys and functions such as:
     -- GetRGB(), GetRGBA(), WrapTextInColorCode(), GenerateHexColor(), and more...
-    BLIZZARD_COLORS = {
+    COLORS = {
         ARTIFACT_GOLD   = _G.ARTIFACT_BAR_COLOR;
         BATTLE_NET_BLUE = _G.BATTLENET_FONT_COLOR;
         BLACK           = _G.BLACK_FONT_COLOR;

@@ -1,6 +1,6 @@
 -- luacheck: ignore MayronUI self 143 631
 local addOnName = ...;
-local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 2.7);
+local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 2.8);
 
 if (not Lib) then
     return

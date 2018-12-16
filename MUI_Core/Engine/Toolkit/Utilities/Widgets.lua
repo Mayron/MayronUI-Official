@@ -147,36 +147,46 @@ function tk:SetClassColoredTexture(className, texture)
     className = className or (tk.select(2, _G.UnitClass("player")));
     className = tk.string.upper(className);
     className = className:gsub("%s+", "");
-    local c = self.Constants.CLASS_RGB_COLORS[className];
-    texture:SetVertexColor(c.r, c.g, c.b, texture:GetAlpha());
+    local color = self.Constants.CLASS_COLORS[className];
+    texture:SetVertexColor(color.r, color.g, color.b, texture:GetAlpha());
 end
 
-do
-    local color;
+-- apply theme color to a vararg list of elements
+-- first arg can be a number specifying the alpha value
+function tk:ApplyThemeColor(...)
+    local alpha = (tk.select(1, ...));
 
-    -- apply theme color to a vararg list of elements
-    -- first arg can be a number specifying the alpha value
-    function tk:ApplyThemeColor(...)
-        local alpha = (tk.select(1, ...));
+    -- first argument is "colorName"
+    if (not (tk.type(alpha) == "number" and alpha)) then
+        tk.Constants.AddOnStyle:ApplyColor(nil, 1, ...);
+    else
+        tk.Constants.AddOnStyle:ApplyColor(nil, ...);
+    end
+end
 
-        -- first argument is "colorName"
-        if (not (tk.type(alpha) == "number" and alpha)) then
-            tk.Constants.AddOnStyle:ApplyColor(nil, 1, ...);
-        else
-            tk.Constants.AddOnStyle:ApplyColor(nil, ...);
-        end
+function tk:GetThemeColor(returnTable)
+    if (tk.Constants.AddOnStyle) then
+        return tk.Constants.AddOnStyle:GetColor(nil, returnTable);
     end
 
-    function tk:GetThemeColor()
-        color = color or namespace.Database.profile.theme.color;
-        return color.r, color.g, color.b, color.hex;
-    end
+    local color = namespace.Database.profile.theme.color;
+    return color.r, color.g, color.b, color.hex;
+end
 
-    function tk:UpdateThemeColor(value)
-        color = tk.Constants.CLASS_RGB_COLORS[value] or value;
-        namespace.Database.profile.theme.color = color;
-        tk.Constants.AddOnStyle:SetColor(color.r, color.g, color.b);
-    end
+function tk:UpdateThemeColor(value)
+    local color = tk.Constants.CLASS_COLORS[value] or value;
+
+    local colorValues = obj:PopWrapper();
+    colorValues.r = color.r;
+    colorValues.g = color.g;
+    colorValues.b = color.b;
+    colorValues.hex = color:GenerateHexColor();
+
+    -- update database
+    namespace.Database.profile.theme.color = colorValues;
+
+    -- update Constant Style Object
+    tk.Constants.AddOnStyle:SetColor(color.r, color.g, color.b);
 end
 
 function tk:SetBackground(frame, ...)

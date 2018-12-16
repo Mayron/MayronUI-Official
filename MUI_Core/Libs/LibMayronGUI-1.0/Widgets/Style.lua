@@ -35,12 +35,11 @@ end
 
 WidgetsPackage:DefineParams("?string", "?boolean");
 WidgetsPackage:DefineReturns("table|number", "?number", "?number");
---@param (optional) name - the name used to identify and get the correct color previously set
+--@param (optional) colorName - the name used to identify and get the correct color previously set
 --@param (boolean) returnTable - if true, returns the full blizzard color object, else (by default) returns r, g, b, a unpacked values
 --@return - a Blizzard Color object  containing the r, g, b color values and a few helper functions, or r, g, b, a unpacked values
 function Style:GetColor(data, colorName, returnTable)
     local color = Getter(data, "color", colorName, _G.HIGHLIGHT_FONT_COLOR);
-
     if (returnTable) then
         return color;
     else

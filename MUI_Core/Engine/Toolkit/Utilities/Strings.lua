@@ -52,7 +52,7 @@ end
 function tk.Strings:SetOverflow(str, maxChars)
     if (#str > maxChars) then
         str = string.sub(str, 1, maxChars);
-        str = string.join(self.Empty, str, "...");
+        str = string.join(self.Empty, str:trim(), "...");
     end
 
     return str;
@@ -68,20 +68,19 @@ function tk.Strings:FormatReadableNumber(number)
     return tk.string.gsub(number, "^(-?%d+)(%d%d%d)", '%1,%2');
 end
 
---@param text - any text you wish to colour code
-function tk.Strings:GetHexColoredText(text, hex)
-    return string.format("|cff%s%s|r", hex, text);
+function tk.Strings:GetThemeColoredText(text)
+    local themeColor = tk:GetThemeColor(true);
+    return themeColor:WrapTextInColorCode(text);
 end
 
 function tk.Strings:GetRGBColoredText(text, r, g, b)
-    r = r * 255; g = g * 255; b = b * 255;
-    local hex = string.format("%02x%02x%02x", r, g, b):upper();
-    return self:GetHexColoredText(text, hex);
+    local color = _G.CreateColor(r, g, b);
+    return color:WrapTextInColorCode(text);
 end
 
-function tk.Strings:GetThemeColoredText(text)
-    local r, g, b = tk:GetThemeColor();
-    return self:GetRGBColoredText(text, r, g, b);
+--@param text - any text you wish to colour code
+function tk.Strings:GetHexColoredText(text, hex)
+    return string.format("|cff%s%s|r", hex, text);
 end
 
 function tk.Strings:GetClassColoredText(className, text)
@@ -89,13 +88,13 @@ function tk.Strings:GetClassColoredText(className, text)
     text = text or className;
 
     className = className:gsub("%s+", tk.Strings.Empty);
-    className = string.upper(className);
+    className = className:upper();
 
-    return self:GetHexColoredText(text, tk.Constants.CLASS_RGB_COLORS[className].hex);
+    return tk.Constants.CLASS_COLORS[className]:WrapTextInColorCode(text);
 end
 
 function tk.Strings:SetTextColor(text, colorKey)
-    return tk.Constants.BLIZZARD_COLORS[colorKey:upper()]:WrapTextInColorCode(text);
+    return tk.Constants.COLORS[colorKey:upper()]:WrapTextInColorCode(text);
 end
 
 function tk.Strings:Concat(...)

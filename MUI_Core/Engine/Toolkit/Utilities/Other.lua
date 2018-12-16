@@ -35,8 +35,7 @@ function tk:UnpackIfTable(value)
 end
 
 function tk:Print(...)
-    local hex = select(4, self:GetThemeColor());
-    local prefix = self.Strings:GetHexColoredText("MayronUI:", hex);
+    local prefix = self.Strings:GetThemeColoredText("MayronUI:");
     _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, _G.tostringall(...)));
 end
 

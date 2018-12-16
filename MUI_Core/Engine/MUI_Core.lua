@@ -45,57 +45,86 @@ db:AddToDefaults("global.core", {
 });
 
 local _, class = _G.UnitClass("player");
+local classColor = tk.Constants.CLASS_COLORS[class];
 
 db:AddToDefaults("profile.theme", {
     color = {
-        r = tk.Constants.CLASS_RGB_COLORS[class].r,
-        g = tk.Constants.CLASS_RGB_COLORS[class].g,
-        b = tk.Constants.CLASS_RGB_COLORS[class].b,
-        hex = tk.Constants.CLASS_RGB_COLORS[class].hex
+        r     = classColor.r;
+        g     = classColor.g;
+        b     = classColor.b;
+        hex   = classColor:GenerateHexColor();
     },
 });
 
 -- Slash Commands ------------------
 
-local commands = {
-    ["config"] = function()
-        if (not _G.IsAddOnLoaded("MUI_Config")) then
-            _G.EnableAddOn("MUI_Config");
+local function GetMuiConfigModule()
+    if (not _G.IsAddOnLoaded("MUI_Config")) then
+        _G.EnableAddOn("MUI_Config");
 
-            if (not _G.LoadAddOn("MUI_Config")) then
-                tk:Print(L["Failed to load MUI_Config. Possibly missing?"]);
-                return;
-            end
+        if (not _G.LoadAddOn("MUI_Config")) then
+            tk:Print(L["Failed to load MUI_Config. Possibly missing?"]);
+            return;
         end
+    end
 
-        local module = MayronUI:ImportModule("Config");
+    local configModule = MayronUI:ImportModule("Config");
 
-        if (not module:IsInitialized()) then
-            module:Initialize();
+    if (not configModule:IsInitialized()) then
+        configModule:Initialize();
+    end
+
+    return configModule;
+end
+
+local commands = {};
+
+commands.config = function()
+    GetMuiConfigModule():Show();
+end
+
+commands.install = function()
+    if (not _G.IsAddOnLoaded("MUI_Setup")) then
+        _G.EnableAddOn("MUI_Setup");
+
+        if (not _G.LoadAddOn("MUI_Setup")) then
+            tk:Print(L["Failed to load MUI_Setup. Possibly missing?"]);
+            return;
         end
+    end
 
-        module:Show();
-	end,
-	["install"] = function()
-        if (not _G.IsAddOnLoaded("MUI_Setup")) then
-            _G.EnableAddOn("MUI_Setup");
+    MayronUI:ImportModule("MUI_Setup"):Show();
+end
 
-            if (not _G.LoadAddOn("MUI_Setup")) then
-                tk:Print(L["Failed to load MUI_Setup. Possibly missing?"]);
-                return;
-            end
+commands.profile = function(subCommand, profileName)
+    if (not tk.Strings:IsNilOrWhiteSpace(subCommand)) then
+        subCommand = subCommand:lower();
+
+        if (subCommand:lower() == "set" and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
+            db:SetProfile(profileName);
+
+        elseif (subCommand:lower() == "current") then
+            local currentProfile = db:GetCurrentProfile();
+            currentProfile = tk.Strings:SetTextColor(currentProfile, "gold");
+            tk:Print("Current Profile:", currentProfile);
+        else
+            commands.help();
         end
+    else
+        GetMuiConfigModule():ShowProfileManager();
+    end
+end
 
-        MayronUI:ImportModule("MUI_Setup"):Show();
-	end,
-	["help"] = function()
-		tk.print(" ");
-		tk:Print(L["List of slash commands:"])
-		tk:Print("|cff00cc66/mui config|r - "..L["shows config menu"]);
-		tk:Print("|cff00cc66/mui install|r - "..L["shows setup menu"]);
-        tk.print(" ");
-	end
-};
+commands.help = function()
+    print(" ");
+    tk:Print(L["List of slash commands:"])
+    tk:Print("|cff00cc66/mui config|r - "..L["shows config menu"]);
+    tk:Print("|cff00cc66/mui install|r - "..L["shows setup menu"]);
+    tk:Print("|cff00cc66/mui profile|r - shows profile manager");
+    tk:Print("|cff00cc66/mui profile set <profile_name>|r - set profile");
+    tk:Print("|cff00cc66/mui profile current|r - show current profile in chat");
+    print(" ");
+end
 
 -- BaseModule Object -------------------
 
@@ -216,8 +245,8 @@ function MayronUI:GetCoreComponents()
     return tk, db, em, gui, obj, L;
 end
 
-function MayronUI:TriggerCommand(commandName)
-    commands[commandName:lower()]();
+function MayronUI:TriggerCommand(commandName, ...)
+    commands[commandName:lower()](...);
 end
 
 -- Hook more functions to a module event. Useful if module is spread across multiple files
@@ -287,12 +316,13 @@ function CoreModule:OnInitialize()
 
     _G["SLASH_MUI1"] = "/mui";
 	_G.SlashCmdList.MUI = function(str)
-        local args = {};
 
 		if (#str == 0) then
 			commands.help();
 			return
         end
+
+        local args = obj:PopWrapper();
 
 		for _, arg in obj:IterateArgs(tk.string.split(' ', str)) do
 			if (#arg > 0) then
@@ -322,7 +352,9 @@ function CoreModule:OnInitialize()
 				commands.help();
                 return
 			end
-		end
+        end
+
+        obj:PushWrapper(args);
     end
 
     tk:Print(L["Welcome back"], _G.UnitName("player").."!");
