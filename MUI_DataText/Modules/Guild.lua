@@ -59,7 +59,8 @@ do
 
         if (not onLabelClickFunc) then
             onLabelClickFunc = function(self)
-                _G.ChatFrame_SendSmartTell(self.id);
+                _G.ChatFrame1EditBox:SetAttribute("tellTarget", self.id);
+                _G.ChatMenu_SetChatType(_G.ChatFrame1, "SMART_WHISPER");
                 slideController:Start(slideController.Static.FORCE_RETRACT);
             end
         end
