@@ -13,7 +13,7 @@ tk.StaticPopupDialogs, tk.StaticPopup_Show, tk.GetTime = StaticPopupDialogs, Sta
 tk.SetCVar, tk.GetCVar = SetCVar, GetCVar;
 
 tk.Constants = {
-    MEDIA = "Interface\\addons\\MUI_Core\\Media\\";
+    ASSETS_FOLDER = "Interface\\addons\\MUI_Core\\Assets";
     CLICK = 856;
     DUMMY_FUNC = function() end;
     DUMMY_FRAME = _G.CreateFrame("Frame");

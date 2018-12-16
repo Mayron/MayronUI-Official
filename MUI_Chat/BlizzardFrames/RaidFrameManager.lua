@@ -38,7 +38,7 @@ end
 local function CreateToggleButton()
     local btn = tk.CreateFrame("Button", nil, tk.UIParent);
     btn:SetSize(14, 120);
-    btn:SetNormalTexture(tk.Constants.MEDIA.."other\\SideButton");
+    btn:SetNormalTexture(tk:GetAssetFilePath("Textures\\SideBar\\SideButton"));
     btn:SetNormalFontObject("MUI_FontSmall");
     btn:SetHighlightFontObject("GameFontHighlightSmall");
     btn:SetText(">");

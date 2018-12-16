@@ -9,23 +9,23 @@ local SlideController = gui.WidgetsPackage:Get("SlideController");
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.actionBarPanel", {
-    enabled = true,
-    expanded = false,
-    modKey = "C",
-    retractHeight = 44,
-    expandHeight = 80,
-    animateSpeed = 6,
-    alpha = 1,
-    texture = tk.Constants.MEDIA.."bottom_ui\\actionbar_panel",
+    enabled         = true;
+    expanded        = false;
+    modKey          = "C";
+    retractHeight   = 44;
+    expandHeight    = 80;
+    animateSpeed    = 6;
+    alpha           = 1;
+    texture         = tk:GetAssetFilePath("Textures\\BottomUI\\ActionBarPanel");
 
     -- second row (both bar 9 and 10 are used to make the 2nd row (20 buttons)
     bartender = {
-        control = true,
-        [1] = "Bar 1",
-        [2] = "Bar 7",
-        [3] = "Bar 9",
-        [4] = "Bar 10",
-    }
+        control   = true,
+        [1]       = "Bar 1";
+        [2]       = "Bar 7";
+        [3]       = "Bar 9";
+        [4]       = "Bar 10";
+    };
 });
 
 -- Local Functions -----------------------
@@ -159,7 +159,7 @@ function ActionBarPanelClass:OnEnable(data)
     highlightTexture:SetPoint("BOTTOMRIGHT", -1, 1);
 
     expandBtn.glow = expandBtn:CreateTexture(nil, "BACKGROUND");
-    expandBtn.glow:SetTexture(tk.Constants.MEDIA.."bottom_ui\\glow");
+    expandBtn.glow:SetTexture(tk:GetAssetFilePath("Textures\\BottomUI\\GlowEffect"));
     expandBtn.glow:SetSize(db.profile.bottomui.width, 60);
     expandBtn.glow:SetBlendMode("ADD");
     expandBtn.glow:SetPoint("BOTTOM", 0, 1);

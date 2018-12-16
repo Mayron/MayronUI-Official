@@ -110,13 +110,11 @@ function C_UnitFramePanel:OnEnable(data)
     data.target:SetSize(width, height);
 
     -- Set Textures
-    --TODO: We can CLIP IT!
-    data.player.bg = tk:SetBackground(data.player, tk.Constants.MEDIA.."bottom_ui\\Names");
-
-    data.center.bg = tk:SetBackground(data.center, tk.Constants.MEDIA.."bottom_ui\\Center");
-
-    data.target.bg = tk:SetBackground(data.target, tk.Constants.MEDIA.."bottom_ui\\Names");
-    data.target.bg:SetTexCoord(1, 0, 0, 1); -- flip horizontally
+    local nameTextureFilePath = tk:GetAssetFilePath("Textures\\BottomUI\\NamePanel");
+    data.player.bg = tk:SetBackground(data.player, nameTextureFilePath);
+    data.target.bg = tk:SetBackground(data.target, nameTextureFilePath);
+    data.center.bg = tk:SetBackground(data.center, tk:GetAssetFilePath("Textures\\BottomUI\\Center"));
+    tk:FlipTexture(data.target.bg, "HORIZONTAL");
 
     -- Set FontStrings
     local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
@@ -165,16 +163,7 @@ function C_UnitFramePanel:OnEnable(data)
         end
     end);
 
-    --TODO: Rename to "IsSymmetric"
     self:SetSymmetrical(data.settings.isSymmetric);
-
-    tk:ApplyThemeColor(data.settings.alpha,
-        data.left.bg,
-        data.center.bg,
-        data.right.bg,
-        data.player.bg,
-        data.target.bg
-    );
 
     if (_G.IsAddOnLoaded("ShadowedUnitFrames") and data.settings.controlGrid) then
         AttachShadowedUnitFrames(data.right);
@@ -202,65 +191,56 @@ function C_UnitFramePanel:OnEnable(data)
     end
 end
 
-function C_UnitFramePanel:SetSymmetrical(data, isSymmetric)
-    if (isSymmetric) then
-        data.left.bg = tk:SetBackground(data.left, tk.Constants.MEDIA.."bottom_ui\\Single");
-        data.right.bg = tk:SetBackground(data.right, tk.Constants.MEDIA.."bottom_ui\\Single");
+do
+    local doubleTextureFilePath = tk:GetAssetFilePath("Textures\\BottomUI\\Double");
+    local singleTextureFilePath = tk:GetAssetFilePath("Textures\\BottomUI\\Single");
 
+    local function SwitchToSingle(data)
+        data.target.text:SetText(tk.Strings.Empty);
+
+        -- If the parent is not SUF it won't hide automatically!
         if (data.right:GetParent() == data.buiContainer) then
             data.right:Hide();
         end
 
-        em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
-            if (_G.UnitExists("target")) then
-                if (data.right:GetParent() == data.buiContainer) then
-                    data.right:Show();
-                end
+        data.left.bg:SetAlpha(0);
+        data.left.noTargetBg:SetAlpha(data.settings.alpha);
+    end
 
-                data.left.bg:SetTexture(tk.Constants.MEDIA.."bottom_ui\\Double");
-                data.right.bg:SetTexture(tk.Constants.MEDIA.."bottom_ui\\Double");
+    function C_UnitFramePanel:SetSymmetrical(data, isSymmetric)
+        data.right.bg = tk:SetBackground(data.right, doubleTextureFilePath);
+        data.left.bg = tk:SetBackground(data.left, doubleTextureFilePath);
 
-                if (data.settings.unitNames.targetClassColored) then
-                    if (_G.UnitIsPlayer("target")) then
-                        local _, class = _G.UnitClass("target");
-                        tk:SetClassColoredTexture(class, data.target.bg);
-                    else
-                        tk:ApplyThemeColor(data.settings.alpha, data.target.bg);
-                    end
-                end
-            else
-                data.target.text:SetText("");
+        tk:ApplyThemeColor(data.settings.alpha,
+            data.left.bg,
+            data.center.bg,
+            data.right.bg,
+            data.player.bg,
+            data.target.bg
+        );
 
-                if (data.right:GetParent() == data.buiContainer) then
-                    data.right:Hide();
-                end
+        if (isSymmetric) then
+            data.left.noTargetBg = tk:SetBackground(data.left, singleTextureFilePath);
+            tk:ApplyThemeColor(data.settings.alpha, data.left.noTargetBg);
 
-                data.left.bg:SetTexture(tk.Constants.MEDIA.."bottom_ui\\Single");
-                data.right.bg:SetTexture(tk.Constants.MEDIA.."bottom_ui\\Single");
-            end
-        end);
-
-        em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
             if (not _G.UnitExists("target")) then
-                data.target.text:SetText(tk.Strings.Empty);
-                if (data.right:GetParent() == data.buiContainer) then
-                    data.right:Hide();
-                end
-                data.left.bg:SetTexture(tk.Constants.MEDIA.."bottom_ui\\Single");
-                data.right.bg:SetTexture(tk.Constants.MEDIA.."bottom_ui\\Single");
+                SwitchToSingle(data);
             end
-        end);
-    else
-        data.left.bg = tk:SetBackground(data.left, tk.Constants.MEDIA.."bottom_ui\\Double");
-        data.right.bg = tk:SetBackground(data.right, tk.Constants.MEDIA.."bottom_ui\\Double");
-        data.right:SetParent(data.buiContainer);
 
-        if (data.settings.unitNames.targetClassColored) then
+            if (data.right:GetParent() == data.buiContainer) then
+                data.right:Hide();
+            end
+
             em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
-
                 if (_G.UnitExists("target")) then
-                    if (data.settings.unitNames.targetClassColored) then
+                    if (data.right:GetParent() == data.buiContainer) then
+                        data.right:Show();
+                    end
 
+                    data.left.bg:SetAlpha(data.settings.alpha);
+                    data.left.noTargetBg:SetAlpha(0);
+
+                    if (data.settings.unitNames.targetClassColored) then
                         if (_G.UnitIsPlayer("target")) then
                             local _, class = _G.UnitClass("target");
                             tk:SetClassColoredTexture(class, data.target.bg);
@@ -268,15 +248,42 @@ function C_UnitFramePanel:SetSymmetrical(data, isSymmetric)
                             tk:ApplyThemeColor(data.settings.alpha, data.target.bg);
                         end
                     end
-
                 else
-                    tk:ApplyThemeColor(data.settings.alpha, data.target.bg);
+                    SwitchToSingle(data);
                 end
             end);
-        end
-    end
 
-    data.right.bg:SetTexCoord(1, 0, 0, 1);
+            em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
+                if (not _G.UnitExists("target")) then
+                    SwitchToSingle(data);
+                end
+            end);
+        else
+            data.right:SetParent(data.buiContainer);
+
+            if (data.settings.unitNames.targetClassColored) then
+                em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
+
+                    if (_G.UnitExists("target")) then
+                        if (data.settings.unitNames.targetClassColored) then
+
+                            if (_G.UnitIsPlayer("target")) then
+                                local _, class = _G.UnitClass("target");
+                                tk:SetClassColoredTexture(class, data.target.bg);
+                            else
+                                tk:ApplyThemeColor(data.settings.alpha, data.target.bg);
+                            end
+                        end
+
+                    else
+                        tk:ApplyThemeColor(data.settings.alpha, data.target.bg);
+                    end
+                end);
+            end
+        end
+
+        data.right.bg:SetTexCoord(1, 0, 0, 1);
+    end
 end
 
 function C_UnitFramePanel:RepositionPanels(data)

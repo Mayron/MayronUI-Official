@@ -98,6 +98,35 @@ function tk:MakeResizable(frame, dragger)
     end);
 end
 
+function tk:FlipTexture(texture, direction)
+    direction = direction:trim():upper();
+
+    if (direction == "VERTICAL") then
+        texture:SetTexCoord(0, 1, 1, 0);
+    elseif (direction == "HORIZONTAL") then
+        texture:SetTexCoord(1, 0, 0, 1);
+    end
+end
+
+function tk:ClipTexture(texture, sideName, amount)
+    sideName = sideName:trim():upper();
+
+    local left, right, top, bottom = texture:GetTexCoord();
+
+    if (sideName == "LEFT") then
+        texture:SetTexCoord(amount, right, top, bottom);
+
+    elseif (sideName == "RIGHT") then
+        texture:SetTexCoord(left, 1 - amount, top, bottom);
+
+    elseif (sideName == "TOP") then
+        texture:SetTexCoord(left, right, amount, bottom);
+
+    elseif (sideName == "BOTTOM") then
+        texture:SetTexCoord(left, right, top, 1 - amount);
+    end
+end
+
 function tk:KillElement(element)
     element:Hide();
     element:SetParent(tk.Constants.DUMMY_FRAME);
@@ -142,7 +171,6 @@ function tk:HookOnce(func)
     return wrapper;
 end
 
--- weird
 function tk:SetClassColoredTexture(className, texture)
     className = className or (tk.select(2, _G.UnitClass("player")));
     className = tk.string.upper(className);
@@ -198,7 +226,7 @@ function tk:SetBackground(frame, ...)
     if (#args > 1) then
         texture:SetColorTexture(...);
     else
-        texture:SetTexture(...);
+        texture:SetTexture(args[1]);
     end
 
     obj:PushWrapper(args);
@@ -207,16 +235,16 @@ function tk:SetBackground(frame, ...)
 end
 
 function tk:GroupCheckButtons(...)
-    local btns = {};
+    local btns = obj:PopWrapper();
 
     for id, btn in obj:IterateArgs(...) do
         btn:SetID(id);
-        tk.table.insert(btns, btn);
+        table.insert(btns, btn);
 
         btn:HookScript("OnClick", function(self)
             if (self:GetChecked()) then
 
-                for otherId, otherBtn in tk.ipairs(btns) do
+                for otherId, otherBtn in ipairs(btns) do
                     if (id ~= otherId) then
                         otherBtn:SetChecked(false);
                     end

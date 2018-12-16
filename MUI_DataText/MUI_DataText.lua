@@ -145,10 +145,11 @@ end
 Engine:DefineReturns("Button");
 function C_DataTextModule:CreateDataTextButton(data)
     local btn = _G.CreateFrame("Button");
-    btn:SetNormalTexture(tk.Constants.MEDIA.."mui_bar");
+    local btnTextureFilePath = tk.Constants.AddOnStyle:GetTexture("ButtonTexture");
+    btn:SetNormalTexture(btnTextureFilePath);
     btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
 
-    btn:SetHighlightTexture(tk.Constants.MEDIA.."mui_bar");
+    btn:SetHighlightTexture(btnTextureFilePath);
     btn:GetHighlightTexture():SetVertexColor(0.08, 0.08, 0.08);
 
     btn:SetNormalFontObject("MUI_FontNormal");

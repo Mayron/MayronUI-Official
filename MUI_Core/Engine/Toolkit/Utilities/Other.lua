@@ -39,6 +39,10 @@ function tk:Print(...)
     _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, _G.tostringall(...)));
 end
 
+function tk:GetAssetFilePath(filePath)
+    return string.format("%s\\%s", tk.Constants.ASSETS_FOLDER, filePath);
+end
+
 do
     local modKeys = {
         S = function() return _G.IsShiftKeyDown(); end,

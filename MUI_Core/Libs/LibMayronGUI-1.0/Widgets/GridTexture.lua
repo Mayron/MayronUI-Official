@@ -12,10 +12,8 @@ do
         end
     end
 
-    -- Changed from gui: to Lib:
-    function Lib:CreateGridTexture(frame, texture, cornerSize, inset,
-                                   originalTextureWidth, originalTextureHeight)
-
+    -- Places the borders of a texture into their own sections to ensure they do not stretch when the frame is resized.
+    function Lib:CreateGridTexture(frame, texture, cornerSize, inset, originalTextureWidth, originalTextureHeight)
         local smallWidth = cornerSize / originalTextureWidth;
         local largeWidth = 1 - smallWidth;
         local smallHeight = cornerSize / originalTextureHeight;

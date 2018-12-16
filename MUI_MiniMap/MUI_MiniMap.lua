@@ -135,7 +135,7 @@ function C_MiniMapModel:OnInitialize(data)
 
 	Minimap:SetBackdrop({
 		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
-		edgeFile = tk.Constants.MEDIA.."borders\\skinner.tga",
+		edgeFile = tk:GetAssetFilePath("Borders\\Solid.tga"),
 		edgeSize = 1,
 	});
 
@@ -273,7 +273,7 @@ function C_MiniMapModel:OnInitialize(data)
 	end
 
     if (tk.IsAddOnLoaded("Recount")) then
-        tk.table.insert(menuList,{
+        tk.table.insert(menuList, {
             text = "Toggle Recount",
             func = function()
                 if (_G.Recount.MainWindow:IsShown()) then

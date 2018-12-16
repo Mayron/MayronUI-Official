@@ -477,22 +477,26 @@ function SideBar:CreateSideBar(data)
         return;
     end
 
+    local sideButtonTexturePath = tk:GetAssetFilePath("Textures\\SideBar\\SideButton");
+    local sideBarTexturePath = tk:GetAssetFilePath("Textures\\SideBar\\SideBarPanel");
+
     data.panel = tk.CreateFrame("Frame", "MUI_SideBar", tk.UIParent);
     data.panel:SetPoint("RIGHT", 0, data.sv.yOffset);
 
-    gui:CreateGridTexture(data.panel, tk.Constants.MEDIA.."bottom_ui\\sidebar_panel", 20, nil, 45, 749);
+    --TODO: Is this needed?
+    gui:CreateGridTexture(data.panel, sideBarTexturePath, 20, nil, 45, 749);
 
     data.expand = tk.CreateFrame("Button", nil, tk.UIParent);
     data.expand:SetNormalFontObject("MUI_FontSmall");
     data.expand:SetHighlightFontObject("GameFontHighlightSmall");
-    data.expand:SetNormalTexture(tk.Constants.MEDIA.."other\\SideButton");
+    data.expand:SetNormalTexture(sideButtonTexturePath);
     data.expand:SetSize(data.sv.buttons.width, data.sv.buttons.height);
     data.expand:SetText("<");
 
     data.retract = tk.CreateFrame("Button", nil, tk.UIParent);
     data.retract:SetNormalFontObject("MUI_FontSmall");
     data.retract:SetHighlightFontObject("GameFontHighlightSmall");
-    data.retract:SetNormalTexture(tk.Constants.MEDIA.."other\\SideButton");
+    data.retract:SetNormalTexture(sideButtonTexturePath);
     data.retract:SetSize(data.sv.buttons.width, data.sv.buttons.height);
     data.retract:SetText(">");
 
