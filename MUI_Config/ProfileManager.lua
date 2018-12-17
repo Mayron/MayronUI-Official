@@ -74,7 +74,6 @@ local configTable = {
                 local profileName = db:GetCurrentProfile();
                 local popupMessage = string.format(
                     "Are you sure you want to reset profile '%s' back to default settings?", profileName);
-
                 tk:ShowConfirmPopup(popupMessage, nil, nil, ResetProfile, nil, nil, true);
             end,
         };
@@ -137,8 +136,9 @@ local configTable = {
         {
             type              = "dropdown";
             name              = "Restore a Profile:";
-            tooltip           = tk.Strings:Join("\n\n", "Profiles that have been removed are stored in the bin until the UI is reloaded.",
-                                    "Once the UI reloads, the removed profiles are permanently deleted.");
+            tooltip           = tk.Strings:Join(
+                "\n\n", "Profiles that have been removed are stored in the bin until the UI is reloaded.",
+                "Once the UI reloads, the removed profiles are permanently deleted.");
             disabledTooltip   = "No profiles found in the profile bin (not able to restore any profiles).";
 
             GetOptions = function()
@@ -150,8 +150,8 @@ local configTable = {
             end;
 
             SetValue = function(_, profileName)
-                local popupMessage = string.format("Are you sure you want to restore profile '%s'?", profileName);
-
+                local popupMessage = string.format(
+                    "Are you sure you want to restore profile '%s'?", profileName);
                 tk:ShowConfirmPopup(popupMessage, nil, nil, RestoreProfile, nil, nil, true);
             end;
         },
@@ -160,9 +160,10 @@ local configTable = {
             type    = "title";
         },
         {
-            content = tk.Strings:JoinWithSpace("By default, each new character will be automatically assigned a unique character",
-                                        "profile instead of a single default profile.\n\nProfiles are automatically assigned",
-                                        "only after installing the UI on a new character.");
+            content = tk.Strings:JoinWithSpace(
+                "By default, each new character will be automatically assigned a unique character",
+                "profile instead of a single default profile.\n\nProfiles are automatically assigned",
+                "only after installing the UI on a new character.");
             type    = "fontstring";
         },
         {

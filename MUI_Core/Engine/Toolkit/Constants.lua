@@ -26,7 +26,7 @@ tk.Constants = {
     LSM = _G.LibStub("LibSharedMedia-3.0");
 
     BACKDROP = {
-        edgeFile = "interface\\addons\\MUI_Core\\Media\\borders\\skinner",
+        edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
         edgeSize = 1,
     };
 

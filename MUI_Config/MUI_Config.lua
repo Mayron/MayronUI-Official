@@ -380,7 +380,7 @@ function C_ConfigModule:SetUpWindow(data)
     data.window.back:SetPoint("LEFT");
     data.window.back:SetWidth(50);
     data.window.back.arrow = data.window.back:CreateTexture(nil, "OVERLAY");
-    data.window.back.arrow:SetTexture(tk.Constants.MEDIA.."other\\arrow_side");
+    data.window.back.arrow:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\SideArrow"));
     data.window.back.arrow:SetSize(16, 14);
     data.window.back.arrow:SetPoint("CENTER", -1, 0);
 

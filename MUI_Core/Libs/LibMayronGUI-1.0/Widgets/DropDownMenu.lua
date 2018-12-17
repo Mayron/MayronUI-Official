@@ -72,8 +72,9 @@ function Lib:CreateDropDown(style, parent, direction)
     dropDownContainer.toggleButton:SetScript("OnSizeChanged", OnSizeChanged);
 
     dropDownContainer.toggleButton.arrow = dropDownContainer.toggleButton:CreateTexture(nil, "OVERLAY");
-    dropDownContainer.toggleButton.arrow:SetTexture(style:GetTexture("ArrowButtonTexture"));
-    dropDownContainer.toggleButton.arrow:SetAllPoints(true);
+    dropDownContainer.toggleButton.arrow:SetTexture(style:GetTexture("SmallArrow"));
+    dropDownContainer.toggleButton.arrow:SetPoint("CENTER");
+    dropDownContainer.toggleButton.arrow:SetSize(16, 16);
 
     dropDownContainer.child = Private:PopFrame("Frame", DropDownMenu.Static.Menu);
     Private:SetFullWidth(dropDownContainer.child);
@@ -86,9 +87,9 @@ function Lib:CreateDropDown(style, parent, direction)
     direction = (direction or "DOWN"):upper();
 
     if (direction == "DOWN") then
-        dropDownContainer.toggleButton.arrow:SetTexCoord(0, 1, 0.2, 1);
+        dropDownContainer.toggleButton.arrow:SetTexCoord(1, 0, 1, 0);
     elseif (direction == "UP") then
-        dropDownContainer.toggleButton.arrow:SetTexCoord(1, 0, 1, 0.2);
+        dropDownContainer.toggleButton.arrow:SetTexCoord(0, 1, 0, 1);
     end
 
     local slideController = SlideController(DropDownMenu.Static.Menu);
@@ -372,10 +373,9 @@ function DropDownMenu:Hide(data)
     data.frame.child:Hide();
 
     if (data.direction == "DOWN") then
-        data.frame.toggleButton.arrow:SetTexCoord(0, 1, 0.2, 1);
-
+        data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0);
     elseif (data.direction == "UP") then
-        data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0.2);
+        data.frame.toggleButton.arrow:SetTexCoord(0, 1, 0, 1);
     end
 end
 
@@ -414,15 +414,15 @@ function DropDownMenu:Toggle(data, show, clickSoundFilePath)
         data.slideController:SetMaxHeight(maxHeight);
 
         if (data.direction == "DOWN") then
-            data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0.2);
+            data.frame.toggleButton.arrow:SetTexCoord(0, 1, 0, 1);
         elseif (data.direction == "UP") then
-            data.frame.toggleButton.arrow:SetTexCoord(0, 1, 0.2, 1);
+            data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0);
         end
     else
         if (data.direction == "DOWN") then
-            data.frame.toggleButton.arrow:SetTexCoord(0, 1, 0.2, 1);
+            data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0);
         elseif (data.direction == "UP") then
-            data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0.2);
+            data.frame.toggleButton.arrow:SetTexCoord(0, 1, 0, 1);
         end
     end
 

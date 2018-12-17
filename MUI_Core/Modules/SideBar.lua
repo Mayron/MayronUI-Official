@@ -483,7 +483,6 @@ function SideBar:CreateSideBar(data)
     data.panel = tk.CreateFrame("Frame", "MUI_SideBar", tk.UIParent);
     data.panel:SetPoint("RIGHT", 0, data.sv.yOffset);
 
-    --TODO: Is this needed?
     gui:CreateGridTexture(data.panel, sideBarTexturePath, 20, nil, 45, 749);
 
     data.expand = tk.CreateFrame("Button", nil, tk.UIParent);
