@@ -17,19 +17,21 @@ db:AddToDefaults("profile.datatext.performance", {
 
 -- Performance Module --------------
 
-MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self)
     local sv = db.profile.datatext.performance;
-    sv:SetParent(dataTextData.sv);
+    sv:SetParent(db.profile.datatext);
 
-    if (sv.enabled) then
-        local performance = Performance(sv, self);
+    local settings = sv:ToTable();
+
+    if (settings.enabled) then
+        local performance = Performance(settings, self);
         self:RegisterDataModule(performance);
         performance:Enable();
     end
 end);
 
-function Performance:__Construct(data, sv, dataTextModule)
-    data.sv = sv;
+function Performance:__Construct(data, settings, dataTextModule)
+    data.settings = settings;
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
@@ -42,7 +44,8 @@ function Performance:__Construct(data, sv, dataTextModule)
 end
 
 function Performance:Enable(data)
-    data.sv.enabled = true;
+    db.profile.datatext.performance.enabled = true;
+    data.settings.enabled = true;
 
     data.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
         if (not self.Button) then return; end
@@ -51,7 +54,8 @@ function Performance:Enable(data)
 end
 
 function Performance:Disable(data)
-    data.sv.enabled = false;
+    db.profile.datatext.performance.enabled = false;
+    data.settings.enabled = false;
 
     if (data.handler) then
         data.handler:Destroy();
@@ -59,7 +63,7 @@ function Performance:Disable(data)
 end
 
 function Performance:IsEnabled(data)
-    return data.sv.enabled;
+    return data.settings.enabled;
 end
 
 function Performance:Update(data)
@@ -74,15 +78,15 @@ function Performance:Update(data)
 
         local label = "";
 
-        if (data.sv.showFps) then
+        if (data.settings.showFps) then
             label = tk.string.format("|cffffffff%u|r fps", _G.GetFramerate());
         end
 
-        if (data.sv.showHomeLatency) then
+        if (data.settings.showHomeLatency) then
             label = tk.string.format("%s |cffffffff%u|r ms", label, latencyHome);
         end
 
-        if (data.sv.showServerLatency) then
+        if (data.settings.showServerLatency) then
             label = tk.string.format("%s |cffffffff%u|r ms", label, latencyServer);
         end
 

@@ -55,6 +55,7 @@ do
 		_G.Minimap_ZoomIn();
 		_G.Minimap_ZoomOut();
 
+		--TODO: Problem - too much sv and setting values are changed. Would be easier to implement :SaveChanges()
 		data.sv.point, data.sv.relativeTo, data.sv.relativePoint, data.sv.x, data.sv.y = Minimap:GetPoint();
 		data.sv.x = tk.math.floor(data.sv.x + 0.5);
 		data.sv.y = tk.math.floor(data.sv.y + 0.5);
@@ -66,13 +67,13 @@ do
 end
 
 function C_MiniMapModel:OnInitialize(data)
-	data.sv = db.profile.minimap;
+	data.settings = db.profile.minimap:ToTable();
 
 	Minimap:ClearAllPoints();
-	Minimap:SetPoint(data.sv.point, tk.UIParent, data.sv.relativePoint, data.sv.x, data.sv.y);
-	Minimap:SetWidth(data.sv.width);
-	Minimap:SetHeight(data.sv.height);
-	Minimap:SetScale(data.sv.scale);
+	Minimap:SetPoint(data.settings.point, tk.UIParent, data.settings.relativePoint, data.settings.x, data.settings.y);
+	Minimap:SetWidth(data.settings.width);
+	Minimap:SetHeight(data.settings.height);
+	Minimap:SetScale(data.settings.scale);
 	Minimap:SetMaskTexture('Interface\\ChatFrame\\ChatFrameBackground'); -- make rectangle
 
 	tk:KillElement(_G.MiniMapInstanceDifficulty);

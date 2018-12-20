@@ -48,16 +48,18 @@ end
 
 MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.friends;
-    sv:SetParent(dataTextData.sv);
+    sv:SetParent(db.profile.datatext);
 
-    if (sv.enabled) then
-        local friends = Friends(sv, dataTextData.slideController, self);
+    local settings = sv:ToTable();
+
+    if (settings.enabled) then
+        local friends = Friends(settings, dataTextData.slideController, self);
         self:RegisterDataModule(friends);
     end
 end);
 
-function Friends:__Construct(data, sv, slideController, dataTextModule)
-    data.sv = sv;
+function Friends:__Construct(data, settings, slideController, dataTextModule)
+    data.settings = settings;
     data.slideController = slideController;
 
     -- set public instance properties
@@ -80,11 +82,14 @@ function Friends:__Construct(data, sv, slideController, dataTextModule)
 end
 
 function Friends:Enable(data)
-    data.sv.enabled = true;
+    db.profile.datatext.friends.enabled = true;
+    data.settings.enabled = true;
 end
 
 function Friends:Disable(data)
-    data.sv.enabled = false;
+    db.profile.datatext.friends.enabled = false;
+    data.settings.enabled = false;
+
     if (data.handler) then
         data.handler:Destroy();
     end
@@ -93,7 +98,7 @@ function Friends:Disable(data)
 end
 
 function Friends:IsEnabled(data)
-    return data.sv.enabled;
+    return data.settings.enabled;
 end
 
 function Friends:Update(data)
@@ -163,8 +168,13 @@ function Friends:Click(data, button)
         if (online) then
             local classFileName = tk:GetIndex(tk.Constants.LOCALIZED_CLASS_NAMES, class) or class;
 
-            status = (status == " <Away>" and " |cffffe066[AFK]|r") or
-                     (status == " <DND>" and " |cffff3333[DND]|r") or "";
+            if (status:trim() == "<Away") then
+                status = " |cffffe066[AFK]|r";
+            elseif (status:trim() == "<DND>") then
+                status = " |cffff3333[DND]|r";
+            else
+                status = tk.Strings.Empty;
+            end
 
             totalLabelsShown = totalLabelsShown + 1;
 

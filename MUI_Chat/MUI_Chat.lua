@@ -91,13 +91,13 @@ function C_ChatModule:OnInitialize(data)
 	end
 
 	for anchorName, _ in data.sv.chatFrames:Iterate() do
-		local chatFrameData = data.sv.chatFrames[anchorName];
+		local chatFrameSV = data.sv.chatFrames[anchorName];
 
-		if (chatFrameData.enabled) then
-			chatFrameData:SetParent(data.sv.templateMuiChatFrame);
+		if (chatFrameSV.enabled) then
+			chatFrameSV:SetParent(data.sv.templateMuiChatFrame);
 
 			local muiChatFrame = self:ShowMuiChatFrame(anchorName);
-			self:SetUpButtonHandler(muiChatFrame, chatFrameData.buttons);
+			self:SetUpButtonHandler(muiChatFrame, chatFrameSV.buttons);
 
 			if (anchorName == "TOPLEFT") then
 				if (tk.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then

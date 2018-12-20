@@ -14,18 +14,20 @@ db:AddToDefaults("profile.datatext.combatTimer", {
 
 -- CombatTimer Module ----------------
 
-MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self)
     local sv = db.profile.datatext.combatTimer;
-    sv:SetParent(dataTextData.sv);
+    sv:SetParent(db.profile.datatext); --TODO: will this cause a loop?
 
-    if (sv.enabled) then
-        local combatTimer = CombatTimer(self, sv);
+    local settings = sv:ToTable();
+
+    if (settings.enabled) then
+        local combatTimer = CombatTimer(self, settings);
         self:RegisterDataModule(combatTimer);
     end
 end);
 
-function CombatTimer:__Construct(data, dataTextModule, sv)
-    data.sv = sv;
+function CombatTimer:__Construct(data, dataTextModule, settings)
+    data.settings = settings;
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
@@ -56,14 +58,14 @@ function CombatTimer:__Construct(data, dataTextModule, sv)
     self.Button = dataTextModule:CreateDataTextButton();
 
     data.seconds = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
-    data.seconds:SetFont(font, sv.fontSize);
+    data.seconds:SetFont(font, data.settings.fontSize);
 
     data.minutes = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
-    data.minutes:SetFont(font, sv.fontSize);
+    data.minutes:SetFont(font, data.settings.fontSize);
     data.minutes:SetJustifyH("RIGHT");
 
     data.milliseconds = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
-    data.milliseconds:SetFont(font, sv.fontSize);
+    data.milliseconds:SetFont(font, data.settings.fontSize);
     data.milliseconds:SetJustifyH("LEFT");
 
     data.minutes:SetText("00");
@@ -78,11 +80,24 @@ end
 function CombatTimer:Click() end
 
 function CombatTimer:IsEnabled(data)
-    return data.sv.enabled;
+    return data.settings.enabled;
 end
 
 function CombatTimer:Enable(data)
-    data.sv.enabled = true;
+    db.profile.datatext.combatTimer.enabled = true;
+    data.settings.enabled = true;
+end
+
+function CombatTimer:Disable(data)
+    db.profile.datatext.combatTimer.enabled = false;
+    data.settings.enabled = false;
+
+    em:FindHandlerByKey("PLAYER_REGEN_DISABLED", "combatTimer"):Destroy();
+    em:FindHandlerByKey("PLAYER_REGEN_ENABLED", "combatTimer"):Destroy();
+
+    data.minutes:SetText("");
+    data.seconds:SetText("");
+    data.milliseconds:SetText("");
 end
 
 function CombatTimer:Update(data)
@@ -111,15 +126,4 @@ function CombatTimer:Update(data)
     end
 
     loop();
-end
-
-function CombatTimer:Disable(data)
-    data.sv.enabled = false;
-
-    em:FindHandlerByKey("PLAYER_REGEN_DISABLED", "combatTimer"):Destroy();
-    em:FindHandlerByKey("PLAYER_REGEN_ENABLED", "combatTimer"):Destroy();
-
-    data.minutes:SetText("");
-    data.seconds:SetText("");
-    data.milliseconds:SetText("");
 end

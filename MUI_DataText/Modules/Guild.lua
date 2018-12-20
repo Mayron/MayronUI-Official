@@ -74,16 +74,18 @@ end
 
 MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.guild;
-    sv:SetParent(dataTextData.sv);
+    sv:SetParent(db.profile.datatext);
 
-    if (sv.enabled) then
-        local guild = Guild(sv, dataTextData.slideController, self);
+    local settings = sv:ToTable();
+
+    if (settings.enabled) then
+        local guild = Guild(settings, dataTextData.slideController, self);
         self:RegisterDataModule(guild);
     end
 end);
 
-function Guild:__Construct(data, sv, slideController, dataTextModule)
-    data.sv = sv;
+function Guild:__Construct(data, settings, slideController, dataTextModule)
+    data.settings = settings;
     data.slideController = slideController;
 
     -- set public instance properties
@@ -104,14 +106,18 @@ function Guild:__Construct(data, sv, slideController, dataTextModule)
 end
 
 function Guild:IsEnabled(data)
-    return data.sv.enabled;
+    return data.settings.enabled;
 end
 
 function Guild:Enable(data)
-    data.sv.enabled = true;
+    db.profile.datatext.guild.enabled = true;
+    data.settings.enabled = true;
 end
 
 function Guild:Disable(data)
+    db.profile.datatext.guild.enabled = false;
+    data.settings.enabled = false;
+
     if (data.handler) then
         data.handler:Destroy();
     end
@@ -126,7 +132,7 @@ function Guild:Update(data)
         _G.GuildRoster(); -- Must get data from server first!
 
         local _, _, numOnlineAndMobile = _G.GetNumGuildMembers();
-        numOnlineAndMobile = (not data.sv.showSelf and numOnlineAndMobile - 1) or numOnlineAndMobile;
+        numOnlineAndMobile = (not data.settings.showSelf and numOnlineAndMobile - 1) or numOnlineAndMobile;
 
         -- data.showMenu = (numOnlineAndMobile ~= 0);
         self.Button:SetText(tk.string.format(LABEL_PATTERN, numOnlineAndMobile));
@@ -154,18 +160,24 @@ function Guild:Click(data, button)
     for i = 1, (_G.GetNumGuildMembers()) do
         local fullName, _, _, level, _, _, _, _, online, status, classFileName = _G.GetGuildRosterInfo(i);
 
-        if (online and (data.sv.showSelf or fullName ~= playerName)) then
+        if (online and (data.settings.showSelf or fullName ~= playerName)) then
             totalLabelsShown = totalLabelsShown + 1;
 
-            --TODO: Not used!
-            -- local status = (status == 1 and " |cffffe066[AFK]|r") or (status == 2 and " |cffff3333[DND]|r") or "";
+            if (status == 1) then
+                status = " |cffffe066[AFK]|r";
+            elseif (status == 2) then
+                status = " |cffff3333[DND]|r";
+            else
+                status = tk.Strings.Empty;
+            end
+
             local label = self.MenuLabels[totalLabelsShown] or
-                CreateLabel(self.MenuContent, data.sv.popup.width, data.slideController, data.sv.showTooltips);
+                CreateLabel(self.MenuContent, data.settings.popup.width, data.slideController, data.settings.showTooltips);
 
             self.MenuLabels[totalLabelsShown] = label;
 
             label.id = fullName; -- used for messaging
-            fullName = tk.strsplit("-", fullName);
+            fullName = _G.strsplit("-", fullName);
 
             label:SetNormalTexture(1);
             label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);

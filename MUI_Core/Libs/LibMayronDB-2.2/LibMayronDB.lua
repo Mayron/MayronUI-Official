@@ -645,6 +645,46 @@ do
         end
     end
 
+    local trackerMT = {};
+
+    local function SaveChanges(self)
+        --TODO!
+    end
+
+    local function CreateTracker(data, changes)
+        local tracker = obj:PopWrapper();
+        tracker._data = data;
+        tracker._changes = changes or obj:PopWrapper();
+        tracker.SaveChanges = SaveChanges;
+
+        return setmetatable(data, trackerMT);
+    end
+
+    trackerMT.__index = function(self, key)
+        local value = self._data[key];
+
+        if (type(value) == "table") then
+            return CreateTracker(value, self._changes);
+        else
+            return value;
+        end
+    end
+
+    trackerMT.__newindex = function(self, key, value)
+        local dbPath = string.format("%s.%s", self._dbPath, key);
+
+        if (type(value) == nil) then
+            value = "nil";
+        end
+
+        --TODO:
+        -- if (is different from self._data) then
+            self._changes[dbPath] = value;
+        -- else
+        --     self._changes[dbPath] = nil;
+        -- end
+    end
+
     --[[
     Creates an immutable table containing all values from the underlining saved variables table,
     parent table, and defaults table. Changing this table will not affect the saved variables table!
@@ -673,7 +713,7 @@ do
             end
         end
 
-        return merged;
+        return CreateTracker(merged);
     end
 end
 

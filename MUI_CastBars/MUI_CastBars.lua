@@ -220,8 +220,8 @@ end
 
 -- C_CastBar ----------------------
 
-function C_CastBar:__Construct(data, sv, unitID, bar)
-    data.sv = sv;
+function C_CastBar:__Construct(data, settings, unitID, bar)
+    data.settings = settings;
     data.unitID = unitID;
     data.frame = bar;
 
@@ -324,9 +324,9 @@ end
 function C_CastBar:UpdateAppearance(data)
     data.frame.statusbar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", appearance.texture));
 
-    data.frame:SetSize(data.sv.width, data.sv.height);
-    data.frame:SetFrameStrata(data.sv.frameStrata);
-    data.frame:SetFrameLevel(data.sv.frameLevel);
+    data.frame:SetSize(data.settings.width, data.settings.height);
+    data.frame:SetFrameStrata(data.settings.frameStrata);
+    data.frame:SetFrameLevel(data.settings.frameLevel);
 
     data.frame.statusbar:ClearAllPoints();
     data.frame.statusbar:SetPoint("TOPLEFT", appearance.inset, -appearance.inset);
@@ -347,7 +347,7 @@ function C_CastBar:UpdateAppearance(data)
     data.frame:SetBackdropBorderColor(appearance.colors.border.r, appearance.colors.border.g,
         appearance.colors.border.b, appearance.colors.border.a);
 
-    if (not data.latency_bar and data.unitID == "player" and data.sv.showLatency) then
+    if (not data.latency_bar and data.unitID == "player" and data.settings.showLatency) then
         data.latency_bar = data.frame.statusbar:CreateTexture(nil, "BACKGROUND");
         data.latency_bar:SetColorTexture(
             appearance.colors.latency.r,
@@ -359,7 +359,7 @@ function C_CastBar:UpdateAppearance(data)
         data.latency_bar:SetPoint("BOTTOMRIGHT");
     end
 
-    if (not data.icon and data.sv.showIcon) then
+    if (not data.icon and data.settings.showIcon) then
         data.square = tk.CreateFrame("Frame", nil, data.frame);
         data.square:SetPoint("TOPRIGHT", data.frame, "TOPLEFT", -2, 0);
         data.square:SetPoint("BOTTOMRIGHT", data.frame, "BOTTOMLEFT", -2, 0);
@@ -374,12 +374,12 @@ function C_CastBar:UpdateAppearance(data)
     end
 
     if (data.square) then
-        if (data.sv.anchorToSUF) then
+        if (data.settings.anchorToSUF) then
             local unitframe = tk._G["SUFUnit"..data.unitID:lower()];
             local sufAnchor = unitframe and unitframe.portrait;
             data.square:SetWidth(sufAnchor:GetHeight() + 2);
         else
-            data.square:SetWidth(data.sv.height);
+            data.square:SetWidth(data.settings.height);
         end
     end
 end
@@ -432,7 +432,7 @@ function C_CastBar:StartCasting(data, channelling)
     end
 
     if (data.latency_bar and data.latency and data.latency > 0) then
-        if (data.sv.showLatency) then
+        if (data.settings.showLatency) then
             local width = tk.math.floor(data.frame.statusbar:GetWidth() + 0.5);
             local percent = (_G.GetTime() - data.latency);
             local latency_width = (width * percent);
@@ -472,20 +472,24 @@ function C_CastBar:PositionCastBar(data)
     data.frame:ClearAllPoints();
 
     local unitframe = _G[ string.format("SUFUnit%s", data.unitID:lower()) ];
-    local anchorToSUF = _G.IsAddOnLoaded("ShadowedUnitFrames") and data.sv.anchorToSUF;
+    local anchorToSUF = _G.IsAddOnLoaded("ShadowedUnitFrames") and data.settings.anchorToSUF;
     local sufAnchor = unitframe and unitframe.portrait;
 
     if (not (anchorToSUF and sufAnchor)) then
         -- manual position...
-        data.sv.anchorToSUF = false;
 
-        if (not data.sv.position) then
+        if (data.settings.anchorToSUF) then
+            db.profile.castbars[data.UnitID].anchorToSUF = false;
+            data.settings.anchorToSUF = false;
+        end
+
+        if (not data.settings.position) then
             data.frame:SetPoint("CENTER");
         else
-            local point = data.sv.position.point;
-            local relativeFrame = data.sv.position.relativeFrame;
-            local relativePoint = data.sv.position.relativePoint;
-            local x, y = data.sv.position.x, data.sv.position.y;
+            local point = data.settings.position.point;
+            local relativeFrame = data.settings.position.relativeFrame;
+            local relativePoint = data.settings.position.relativePoint;
+            local x, y = data.settings.position.x, data.settings.position.y;
 
             if (point and relativeFrame and relativePoint and x and y) then
                 data.frame:SetPoint(point, _G[relativeFrame], relativePoint, x, y);
@@ -501,101 +505,107 @@ function C_CastBar:PositionCastBar(data)
 end
 
 -- C_CastBarsModule -----------------------
+local CreateCastBar;
 
-local function CreateCastBar(unitID, sv)
-    local globalName = string.format("MUI_%sCastBar", unitID:gsub("^%l", string.upper));
-	local bar = _G.CreateFrame("Frame", globalName, _G.UIParent);
-    bar:SetAlpha(0);
+do
+    local function CreateBarFrame(unitID)
+        local globalName = string.format("MUI_%sCastBar", unitID:gsub("^%l", string.upper));
+        local bar = _G.CreateFrame("Frame", globalName, _G.UIParent);
+        bar:SetAlpha(0);
 
-    bar.statusbar = _G.CreateFrame("StatusBar", nil, bar);
-    bar.statusbar:SetValue(0);
+        bar.statusbar = _G.CreateFrame("StatusBar", nil, bar);
+        bar.statusbar:SetValue(0);
 
-    bar.statusbar.bg = tk:SetBackground(bar.statusbar,
-        appearance.colors.backdrop.r,
-        appearance.colors.backdrop.g,
-        appearance.colors.backdrop.b,
-        appearance.colors.backdrop.a);
+        bar.statusbar.bg = tk:SetBackground(bar.statusbar,
+            appearance.colors.backdrop.r,
+            appearance.colors.backdrop.g,
+            appearance.colors.backdrop.b,
+            appearance.colors.backdrop.a);
 
-    if (unitID == "mirror") then
-        _G.MirrorTimer1:SetAlpha(0);
-        _G.MirrorTimer1.SetAlpha = tk.Constants.DUMMY_FUNC;
-    elseif (unitID == "player") then
-        _G.CastingBarFrame:UnregisterAllEvents();
-        _G.CastingBarFrame:Hide();
-    end
-
-	bar.name = bar.statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-	bar.name:SetPoint("LEFT", 4, 0);
-	bar.name:SetWidth(150);
-	bar.name:SetWordWrap(false);
-	bar.name:SetJustifyH("LEFT");
-
-	bar.duration = bar.statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-	bar.duration:SetPoint("RIGHT", -4, 0);
-	bar.duration:SetJustifyH("RIGHT");
-
-    if (unitID == "mirror") then
-        bar:RegisterEvent("MIRROR_TIMER_PAUSE");
-        bar:RegisterEvent("MIRROR_TIMER_START");
-        bar:RegisterEvent("MIRROR_TIMER_STOP");
-    else
-        bar:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", unitID);
-        bar:RegisterUnitEvent("UNIT_SPELLCAST_DELAYED", unitID);
-        bar:RegisterUnitEvent("UNIT_SPELLCAST_START", unitID);
-        bar:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTIBLE", unitID);
-        bar:RegisterUnitEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE", unitID);
-        bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", unitID);
-        bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", unitID);
-        bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_UPDATE", unitID);
-
-        if (unitID == "target") then
-            bar:RegisterEvent("PLAYER_TARGET_CHANGED");
-        elseif (unitID == "focus") then
-            bar:RegisterEvent("PLAYER_FOCUS_CHANGED");
+        if (unitID == "mirror") then
+            _G.MirrorTimer1:SetAlpha(0);
+            _G.MirrorTimer1.SetAlpha = tk.Constants.DUMMY_FUNC;
         elseif (unitID == "player") then
-            bar:RegisterEvent("UNIT_SPELLCAST_SENT");
+            _G.CastingBarFrame:UnregisterAllEvents();
+            _G.CastingBarFrame:Hide();
         end
-    end
 
-    bar.enabled = sv.enabled;
+        bar.name = bar.statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+        bar.name:SetPoint("LEFT", 4, 0);
+        bar.name:SetWidth(150);
+        bar.name:SetWordWrap(false);
+        bar.name:SetJustifyH("LEFT");
 
-    local castBar = C_CastBar(sv, unitID, bar);
-    local castBarData = castBar.tempData;
-    castBar.tempData = nil;
+        bar.duration = bar.statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+        bar.duration:SetPoint("RIGHT", -4, 0);
+        bar.duration:SetJustifyH("RIGHT");
 
-    castBar:UpdateAppearance();
-    castBar:PositionCastBar();
+        if (unitID == "mirror") then
+            bar:RegisterEvent("MIRROR_TIMER_PAUSE");
+            bar:RegisterEvent("MIRROR_TIMER_START");
+            bar:RegisterEvent("MIRROR_TIMER_STOP");
+        else
+            bar:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", unitID);
+            bar:RegisterUnitEvent("UNIT_SPELLCAST_DELAYED", unitID);
+            bar:RegisterUnitEvent("UNIT_SPELLCAST_START", unitID);
+            bar:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTIBLE", unitID);
+            bar:RegisterUnitEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE", unitID);
+            bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", unitID);
+            bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", unitID);
+            bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_UPDATE", unitID);
 
-    local totalElapsed = 0;
-    bar:SetScript("OnUpdate", function(_, elapsed)
-        if (bar:GetAlpha() > 0) then
-            totalElapsed = totalElapsed + elapsed;
-
-            if (bar.enabled and totalElapsed > 0.01) then
-                castBar:Update(elapsed);
-                totalElapsed = 0;
+            if (unitID == "target") then
+                bar:RegisterEvent("PLAYER_TARGET_CHANGED");
+            elseif (unitID == "focus") then
+                bar:RegisterEvent("PLAYER_FOCUS_CHANGED");
+            elseif (unitID == "player") then
+                bar:RegisterEvent("UNIT_SPELLCAST_SENT");
             end
         end
-    end);
+    end
 
-    bar:SetScript("OnEvent", function(self, eventName, ...)
-        if (not sv.enabled) then
-            return
-        end
+    CreateCastBar = function(unitID, settings)
+        local bar = CreateBarFrame(unitID);
+        bar.enabled = settings.enabled;
 
-		if (eventName == "PLAYER_FOCUS_CHANGED") then
-			eventName = "PLAYER_TARGET_CHANGED";
-        end
+        local castBar = C_CastBar(settings, unitID, bar);
+        local castBarData = castBar.tempData;
+        castBar.tempData = nil;
 
-        Events[eventName](Events, castBar, castBarData, ...);
-    end);
+        castBar:UpdateAppearance();
+        castBar:PositionCastBar();
 
-    return castBar;
+        local totalElapsed = 0;
+        bar:SetScript("OnUpdate", function(_, elapsed)
+            if (bar:GetAlpha() > 0) then
+                totalElapsed = totalElapsed + elapsed;
+
+                if (bar.enabled and totalElapsed > 0.01) then
+                    castBar:Update(elapsed);
+                    totalElapsed = 0;
+                end
+            end
+        end);
+
+        bar:SetScript("OnEvent", function(self, eventName, ...)
+            if (not settings.enabled) then
+                return;
+            end
+
+            if (eventName == "PLAYER_FOCUS_CHANGED") then
+                eventName = "PLAYER_TARGET_CHANGED";
+            end
+
+            Events[eventName](Events, castBar, castBarData, ...);
+        end);
+
+        return castBar;
+    end
 end
 
 function C_CastBarsModule:OnInitialize(data)
     data.sv = db.profile.castbars;
-    appearance = data.sv.appearance;
+    appearance = data.sv.appearance:ToTable();
 
     local r, g, b = tk:GetThemeColor();
     db:AddToDefaults("profile.castbars.appearance.colors.normal", {
@@ -605,12 +615,14 @@ function C_CastBarsModule:OnInitialize(data)
         a = 0.7
     });
 
-	for _, name in ipairs({"player", "target", "focus", "mirror"}) do
+	for _, name in obj:IterateArgs("player", "target", "focus", "mirror") do
         local sv = data.sv[name];
         sv:SetParent(data.sv.templateCastBar);
 
-		if (sv.enabled) then
-            namespace.bars[name] = CreateCastBar(name, sv);
+        local settings = sv:ToTable();
+
+		if (settings.enabled) then
+            namespace.bars[name] = CreateCastBar(name, settings);
 		end
 	end
 end

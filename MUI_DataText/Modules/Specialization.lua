@@ -93,17 +93,19 @@ end
 
 MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.specialization;
-    sv:SetParent(dataTextData.sv);
+    sv:SetParent(db.profile.datatext);
 
-    if (sv.enabled) then
-        local specialization = Specialization(sv, dataTextData.bar, dataTextData.slideController, self);
+    local settings = sv:ToTable();
+
+    if (settings.enabled) then
+        local specialization = Specialization(settings, dataTextData.bar, dataTextData.slideController, self);
         self:RegisterDataModule(specialization);
         specialization:Enable();
     end
 end);
 
-function Specialization:__Construct(data, sv, dataTextBar, slideController, dataTextModule)
-    data.sv = sv;
+function Specialization:__Construct(data, settings, dataTextBar, slideController, dataTextModule)
+    data.settings = settings;
     data.dataTextBar = dataTextBar;
     data.slideController = slideController;
     data.dropdowns = {};
@@ -121,7 +123,8 @@ function Specialization:__Construct(data, sv, dataTextBar, slideController, data
 end
 
 function Specialization:Enable(data)
-    data.sv.enabled = true;
+    db.profile.datatext.specialization.enabled = true;
+    data.settings.enabled = true;
 
     self.Button:SetScript("OnEnter", Button_OnEnter);
     self.Button:SetScript("OnLeave", Button_OnLeave);
@@ -134,14 +137,14 @@ function Specialization:Enable(data)
         if (unitID == "player") then
             self:Update();
 
-            if (not data.sv.sets) then
-                return
+            if (not data.settings.sets) then
+                return;
             end
 
             local _, specializationName = _G.GetSpecializationInfo(_G.GetSpecialization());
 
-            if (data.sv.sets[specializationName]) then
-                local equipmentSetId = data.sv.sets[specializationName];
+            if (data.settings.sets[specializationName]) then
+                local equipmentSetId = data.settings.sets[specializationName];
 
                 if (equipmentSetId ~= nil) then
                     _G.C_EquipmentSet.UseEquipmentSet(equipmentSetId);
@@ -152,11 +155,12 @@ function Specialization:Enable(data)
 end
 
 function Specialization:IsEnabled(data)
-    return data.sv.enabled;
+    return data.settings.enabled;
 end
 
 function Specialization:Disable(data)
-    data.sv.enabled = false;
+    db.profile.datatext.specialization.enabled = false;
+    data.settings.enabled = false;
 
     em:FindHandlerByKey("spec_1"):Destroy();
     em:FindHandlerByKey("spec_2"):Destroy();
@@ -195,7 +199,7 @@ function Specialization:GetLabel(data, index)
     label = tk:PopFrame("Button", self.MenuContent);
     label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     label.name:SetPoint("LEFT", 6, 0);
-    label.name:SetWidth(data.sv.popup.width - 10);
+    label.name:SetWidth(data.settings.popup.width - 10);
     label.name:SetWordWrap(false);
     label.name:SetJustifyH("LEFT");
 
@@ -243,8 +247,8 @@ end
 
 -- show specialization selection with dropdown menus
 function Specialization:HandleLeftClick(data)
-    local popupWidth = data.sv.popup.width;
-    local sets = data.sv.sets;
+    local popupWidth = data.settings.popup.width;
+    local sets = data.settings.sets;
     local totalLabelsShown = 1; -- including title
 
     for i = 1, _G.GetNumSpecializations() do

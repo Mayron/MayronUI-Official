@@ -56,14 +56,13 @@ db:AddToDefaults("profile.datatext", {
 -- C_DataTextModule Functions -------------------
 
 function C_DataTextModule:OnInitialize(data)
-    data.sv = db.profile.datatext; -- database saved variables table
+    data.settings = db.profile.datatext:ToTable(); -- a non-database table containing database settings
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
     data.lastButtonClicked = ""; -- last data text button clicked on
     data.DataModules = obj:PopWrapper(); -- holds all data text modules
-    data.displayOrders = db.profile.datatext.displayOrder:ToTable();
 
-    if (data.sv.enabled) then
+    if (data.settings.enabled) then
         self:SetEnabled(true);
     end
 end
@@ -71,11 +70,11 @@ end
 function C_DataTextModule:OnEnable(data)
     -- the main bar containing all data text buttons
     data.bar = tk:PopFrame("Frame", data.buiContainer);
-    data.bar:SetHeight(data.sv.height);
+    data.bar:SetHeight(data.settings.height);
     data.bar:SetPoint("BOTTOMLEFT");
     data.bar:SetPoint("BOTTOMRIGHT");
-    data.bar:SetFrameStrata(data.sv.frameStrata);
-    data.bar:SetFrameLevel(data.sv.frameLevel);
+    data.bar:SetFrameStrata(data.settings.frameStrata);
+    data.bar:SetFrameLevel(data.settings.frameLevel);
 
     data.resourceBars:SetPoint("BOTTOMLEFT", data.bar, "TOPLEFT", 0, -1);
     data.resourceBars:SetPoint("BOTTOMRIGHT", data.bar, "TOPRIGHT", 0, -1);
@@ -88,7 +87,7 @@ function C_DataTextModule:OnEnable(data)
     -- create the popup menu (displayed when a data item button is clicked)
     -- each data text module has its own frame to be used as the scroll child
     data.popup = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.buiContainer, "MUI_DataTextPopupMenu");
-	data.popup:SetWidth(data.sv.popup.width);
+	data.popup:SetWidth(data.settings.popup.width);
     data.popup:SetFrameStrata("DIALOG");
     data.popup:EnableMouse(true);
     data.popup:Hide();
@@ -96,7 +95,7 @@ function C_DataTextModule:OnEnable(data)
     -- controls the Esc key behaviour to close the popup (must use global name)
     tk.table.insert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
 
-    if (data.sv.popup.hideInCombat) then
+    if (data.settings.popup.hideInCombat) then
         em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
             tk._G["MUI_DataTextPopupMenu"]:Hide();
         end);
@@ -155,7 +154,7 @@ function C_DataTextModule:CreateDataTextButton(data)
     btn:SetNormalFontObject("MUI_FontNormal");
 
     local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
-    btn:GetNormalFontObject():SetFont(font, data.sv.fontSize);
+    btn:GetNormalFontObject():SetFont(font, data.settings.fontSize);
 
     return btn;
 end
@@ -169,7 +168,7 @@ function C_DataTextModule:PositionDataItems(data)
         if (dataModule:IsEnabled()) then
             local btn = dataModule.Button;
             local dbName = dataModule.SavedVariableName;
-            local displayOrder = tk.Tables:GetIndex(data.displayOrders, dbName);
+            local displayOrder = tk.Tables:GetIndex(data.settings.displayOrders, dbName);
 
             btn._module = dataModule; -- temporary
 
@@ -191,10 +190,10 @@ function C_DataTextModule:PositionDataItems(data)
         btn:Show();
 
         if (not previousButton) then
-            btn:SetPoint("BOTTOMLEFT", data.sv.spacing, 0);
-            btn:SetPoint("TOPRIGHT", data.bar, "TOPLEFT", itemWidth - data.sv.spacing, - data.sv.spacing);
+            btn:SetPoint("BOTTOMLEFT", data.settings.spacing, 0);
+            btn:SetPoint("TOPRIGHT", data.bar, "TOPLEFT", itemWidth - data.settings.spacing, - data.settings.spacing);
         else
-            btn:SetPoint("TOPLEFT", previousButton, "TOPRIGHT", data.sv.spacing, 0);
+            btn:SetPoint("TOPLEFT", previousButton, "TOPRIGHT", data.settings.spacing, 0);
             btn:SetPoint("BOTTOMRIGHT", previousButton, "BOTTOMRIGHT", itemWidth, 0);
         end
 
@@ -245,7 +244,7 @@ Engine:DefineReturns("number");
 -- total height is used to controll the dynamic scrollbar
 function C_DataTextModule:PositionLabels(data, dataModule)
     local totalLabelsShown = dataModule.TotalLabelsShown;
-    local labelHeight = data.sv.popup.itemHeight;
+    local labelHeight = data.settings.popup.itemHeight;
 
     if (totalLabelsShown == 0) then
         return 0;
@@ -307,7 +306,7 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     dataModule:Update(data);
     data.slideController:Stop();
 
-    local buttonDisplayOrder = tk.Tables:GetIndex(data.displayOrders, dataModule.SavedVariableName);
+    local buttonDisplayOrder = tk.Tables:GetIndex(data.settings.displayOrders, dataModule.SavedVariableName);
 
     if (data.lastButtonID == buttonDisplayOrder and data.lastButton == button and data.popup:IsShown()) then
         -- clicked on same dataTextModule button so close the popup!
@@ -348,8 +347,8 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     dataModule:Click(button, ...);
 
     -- calculate new height based on number of labels to show
-    local totalHeight = self:PositionLabels(dataModule) or data.sv.popup.maxHeight;
-    totalHeight = (totalHeight < data.sv.popup.maxHeight) and totalHeight or data.sv.popup.maxHeight;
+    local totalHeight = self:PositionLabels(dataModule) or data.settings.popup.maxHeight;
+    totalHeight = (totalHeight < data.settings.popup.maxHeight) and totalHeight or data.settings.popup.maxHeight;
 
     -- move popup menu higher if there are resource bars displayed
     local offset = data.resourceBars:GetHeight();

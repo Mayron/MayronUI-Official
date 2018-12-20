@@ -68,22 +68,12 @@ function tk.Strings:FormatReadableNumber(number)
     return tk.string.gsub(number, "^(-?%d+)(%d%d%d)", '%1,%2');
 end
 
-function tk.Strings:GetThemeColoredText(text)
-    local themeColor = tk:GetThemeColor(true);
-    return themeColor:WrapTextInColorCode(text);
-end
-
-function tk.Strings:GetRGBColoredText(text, r, g, b)
-    local color = _G.CreateColor(r, g, b);
-    return color:WrapTextInColorCode(text);
-end
-
 --@param text - any text you wish to colour code
-function tk.Strings:GetHexColoredText(text, hex)
+function tk.Strings:SetTextColorByHexCode(text, hex)
     return string.format("|cff%s%s|r", hex, text);
 end
 
-function tk.Strings:GetClassColoredText(className, text)
+function tk.Strings:SetTextColorByClass(text, className)
     className = className or (select(2, _G.UnitClass("player")));
     text = text or className;
 
@@ -93,7 +83,17 @@ function tk.Strings:GetClassColoredText(className, text)
     return tk.Constants.CLASS_COLORS[className]:WrapTextInColorCode(text);
 end
 
-function tk.Strings:SetTextColor(text, colorKey)
+function tk.Strings:SetTextColorByTheme(text)
+    local themeColor = tk:GetThemeColor(true);
+    return themeColor:WrapTextInColorCode(text);
+end
+
+function tk.Strings:SetTextColorByRGB(text, r, g, b)
+    local color = _G.CreateColor(r, g, b);
+    return color:WrapTextInColorCode(text);
+end
+
+function tk.Strings:SetTextColorByKey(text, colorKey)
     return tk.Constants.COLORS[colorKey:upper()]:WrapTextInColorCode(text);
 end
 

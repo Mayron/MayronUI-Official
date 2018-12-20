@@ -33,16 +33,18 @@ end
 
 MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.inventory;
-    sv:SetParent(dataTextData.sv);
+    sv:SetParent(db.profile.datatext);
 
-    if (sv.enabled) then
-        local inventory = Inventory(sv, dataTextData.slideController, self);
+    local settings = sv:ToTable();
+
+    if (settings.enabled) then
+        local inventory = Inventory(settings, dataTextData.slideController, self);
         self:RegisterDataModule(inventory);
     end
 end);
 
-function Inventory:__Construct(data, sv, slideController, dataTextModule)
-    data.sv = sv;
+function Inventory:__Construct(data, settings, slideController, dataTextModule)
+    data.settings = settings;
     data.slideController = slideController;
 
     -- set public instance properties
@@ -68,11 +70,13 @@ function Inventory:__Construct(data, sv, slideController, dataTextModule)
 end
 
 function Inventory:Enable(data)
-    data.sv.enabled = true;
+    db.profile.datatext.inventory.enabled = true;
+    data.settings.enabled = true;
 end
 
 function Inventory:Disable(data)
-    data.sv.enabled = false;
+    db.profile.datatext.inventory.enabled = false;
+    data.settings.enabled = false;
 
     if (data.handler) then
         data.handler:Destroy();
@@ -80,7 +84,7 @@ function Inventory:Disable(data)
 end
 
 function Inventory:IsEnabled(data)
-    return data.sv.enabled;
+    return data.settings.enabled;
 end
 
 function Inventory:Update(data)
@@ -92,11 +96,11 @@ function Inventory:Update(data)
         slots = slots + (_G.GetContainerNumFreeSlots(i) or 0);
     end
 
-    if (data.sv.slotsToShow == "used") then
+    if (data.settings.slotsToShow == "used") then
         slots = totalSlots - slots;
     end
 
-    if (data.sv.showTotalSlots) then
+    if (data.settings.showTotalSlots) then
         self.Button:SetText(tk.string.format(L["Bags"]..": |cffffffff%u / %u|r", slots, totalSlots));
     else
         self.Button:SetText(tk.string.format(L["Bags"]..": |cffffffff%u|r", slots));

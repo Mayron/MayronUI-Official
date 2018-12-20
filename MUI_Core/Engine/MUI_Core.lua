@@ -305,7 +305,7 @@ function MayronUI:IterateModules()
 	end
 end
 
--- Register MUICore Module ---------------------
+-- Register Core Module ---------------------
 
 local C_CoreModule = MayronUI:RegisterModule("Core");
 
@@ -403,12 +403,25 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
     tk.collectgarbage("collect");
 end):SetAutoDestroy(true);
 
+-- Database Event callbacks --------------------
+
 db:OnProfileChange(function(self, newProfileName)
     for _, module in MayronUI:IterateModules() do
+        local registryInfo = registeredModules[tostring(module)];
+        local hooks = registryInfo.hooks and registryInfo.hooks.OnProfileChange;
+
         if (module.OnProfileChange) then
             module:OnProfileChange(newProfileName);
         end
+
+        if (hooks) then
+            for _, func in ipairs(hooks) do
+                func(module, registryInfo.moduleData);
+            end
+        end
     end
+
+    tk:Print("Profile changed to: ", tk.Strings:SetTextColorByKey(newProfileName, "GOLDS"));
 end);
 
 db:OnStartUp(function(self)

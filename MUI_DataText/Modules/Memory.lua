@@ -42,18 +42,20 @@ end
 
 -- Memory Module --------------
 
-MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self)
     local sv = db.profile.datatext.memory;
-    sv:SetParent(dataTextData.sv);
+    sv:SetParent(db.profile.datatext);
 
-    if (sv.enabled) then
-        local memory = Memory(sv, self);
+    local settings = sv:ToTable();
+
+    if (settings.enabled) then
+        local memory = Memory(settings, self);
         self:RegisterDataModule(memory);
     end
 end);
 
-function Memory:__Construct(data, sv, dataTextModule)
-    data.sv = sv;
+function Memory:__Construct(data, settings, dataTextModule)
+    data.settings = settings;
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
@@ -66,14 +68,18 @@ function Memory:__Construct(data, sv, dataTextModule)
 end
 
 function Memory:IsEnabled(data)
-    return data.sv.enabled;
+    return data.settings.enabled;
 end
 
 function Memory:Enable(data)
-    data.sv.enabled = true;
+    db.profile.datatext.memory.enabled = true;
+    data.settings.enabled = true;
 end
 
 function Memory:Disable(data)
+    db.profile.datatext.memory.enabled = false;
+    data.settings.enabled = false;
+
     if (data.handler) then
         data.handler:Destroy();
     end
@@ -123,7 +129,9 @@ function Memory:Click(data)
         if (usage > 1) then
             currentIndex = currentIndex + 1;
 
-            local label = self.MenuLabels[currentIndex] or CreateLabel(self.MenuContent, data.sv.popup.width);
+            local label = self.MenuLabels[currentIndex] or
+                CreateLabel(self.MenuContent, data.settings.popup.width);
+
             local value;
 
             if (usage > 1000) then

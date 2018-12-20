@@ -42,18 +42,20 @@ end
 
 -- Durability Module --------------
 
-MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataText", "OnInitialize", function(self)
     local sv = db.profile.datatext.durability;
-    sv:SetParent(dataTextData.sv);
+    sv:SetParent(db.profile.datatext);
 
-    if (sv.enabled) then
-        local durability = Durability(sv, self);
+    local settings = sv:ToTable();
+
+    if (settings.enabled) then
+        local durability = Durability(settings, self);
         self:RegisterDataModule(durability);
     end
 end);
 
-function Durability:__Construct(data, sv, dataTextModule)
-    data.sv = sv;
+function Durability:__Construct(data, settings, dataTextModule)
+    data.settings = settings;
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
@@ -66,11 +68,12 @@ function Durability:__Construct(data, sv, dataTextModule)
 end
 
 function Durability:IsEnabled(data)
-    return data.sv.enabled;
+    return data.settings.enabled;
 end
 
 function Durability:Enable(data)
-    data.sv.enabled = true;
+    db.profile.datatext.durability.enabled = true;
+    data.settings.enabled = true;
 
     data.showMenu = true;
     data.handler = em:CreateEventHandler("UPDATE_INVENTORY_DURABILITY", function()
@@ -85,7 +88,8 @@ function Durability:Enable(data)
 end
 
 function Durability:Disable(data)
-    data.sv.enabled = false;
+    db.profile.datatext.durability.enabled = false;
+    data.settings.enabled = false;
 
     if (data.handler) then
         data.handler:Destroy();
@@ -150,7 +154,9 @@ function Durability:Click(data)
             local alert = _G.GetInventoryAlertStatus(id);
 
             -- get or create new label
-            local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.sv.popup.width);
+            local label = self.MenuLabels[totalLabelsShown] or
+                CreateLabel(self.MenuContent, data.settings.popup.width);
+
             self.MenuLabels[totalLabelsShown] = label;
 
             slotName = slotName:gsub("Slot", "");
