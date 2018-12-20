@@ -404,7 +404,7 @@ function C_ConfigModule:SetUpWindow(data)
     data.windowName = topbar:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
     data.windowName:SetPoint("LEFT", data.window.back, "RIGHT", 10, 0);
 
-    tk:ApplyThemeColor(data.window.back.arrow);
+    -- tk:ApplyThemeColor(data.window.back.arrow);
     data.window.back:SetEnabled(false);
 
     -- profiles button

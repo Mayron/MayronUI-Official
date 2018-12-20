@@ -214,6 +214,7 @@ function BaseModule:Hook(_, eventName, func)
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
+--TODO: Should call this from MUI_Config
 -- Engine:DefineParams("LinkedList", "any");
 -- function BaseModule:ConfigUpdate(data, linkedList, newValue)
 --     registeredModules[tostring(self)].configUpdateCallback(self, data, linkedList, newValue);
@@ -258,10 +259,9 @@ function MayronUI:Hook(moduleName, eventName, func)
         return;
     end
 
-    registryInfo.hooks = registryInfo.hooks or {};
-    registryInfo.hooks[eventName] = registryInfo.hooks[eventName] or {};
+    local eventHooks = tk.Table:GetTable(registryInfo, "hooks", eventName);
 
-    table.insert(registryInfo.hooks[eventName], func);
+    table.insert(eventHooks, func);
 end
 
 function MayronUI:ImportModule(moduleName)
@@ -307,9 +307,9 @@ end
 
 -- Register MUICore Module ---------------------
 
-local CoreModule = MayronUI:RegisterModule("Core");
+local C_CoreModule = MayronUI:RegisterModule("Core");
 
-function CoreModule:OnInitialize()
+function C_CoreModule:OnInitialize()
     for i = 1, _G.NUM_CHAT_WINDOWS do
         _G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
     end
@@ -402,6 +402,14 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
 
     tk.collectgarbage("collect");
 end):SetAutoDestroy(true);
+
+db:OnProfileChange(function(self, newProfileName)
+    for _, module in MayronUI:IterateModules() do
+        if (module.OnProfileChange) then
+            module:OnProfileChange(newProfileName);
+        end
+    end
+end);
 
 db:OnStartUp(function(self)
     MayronUI.db = self;

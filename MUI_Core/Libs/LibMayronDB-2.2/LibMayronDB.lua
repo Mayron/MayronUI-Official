@@ -13,7 +13,6 @@ Observer.Static:AddFriendClass("Helper");
 
 local select, tonumber, strsplit = select, tonumber, _G.strsplit;
 
--- OnAddOnLoadedListener
 local OnAddOnLoadedListener = _G.CreateFrame("Frame");
 OnAddOnLoadedListener:RegisterEvent("ADDON_LOADED");
 OnAddOnLoadedListener.RegisteredDatabases = obj:PopWrapper();
@@ -137,9 +136,9 @@ Hooks a callback function onto the "ProfileChanged" event to be called when the 
 @param (function) callback: The profile changing callback function
 ]]
 Framework:DefineParams("function");
-function Database:OnProfileChanged(data, callback)
-    local profileChangedCallback = data.callbacks["OnProfileChanged"] or obj:PopWrapper();
-    data.callbacks["OnProfileChanged"] = profileChangedCallback;
+function Database:OnProfileChange(data, callback)
+    local profileChangedCallback = data.callbacks["OnProfileChange"] or obj:PopWrapper();
+    data.callbacks["OnProfileChange"] = profileChangedCallback;
 
     table.insert(profileChangedCallback, callback);
 end
@@ -315,8 +314,8 @@ function Database:SetProfile(data, profileName)
 
     data.sv.profileKeys[profileKey] = profileName;
 
-    if (data.callbacks["OnProfileChanged"]) then
-        for _, callback in ipairs(data.callbacks["OnProfileChanged"]) do
+    if (data.callbacks["OnProfileChange"]) then
+        for _, callback in ipairs(data.callbacks["OnProfileChange"]) do
             callback(self, profileName, oldProfileName);
         end
     end
@@ -482,8 +481,8 @@ function Database:RenameProfile(data, oldProfileName, newProfileName)
             data.sv.profileKeys[profileKey] = newProfileName;
 
             if (profileKey == currentProfileKey) then
-                if (data.callbacks["OnProfileChanged"]) then
-                    for _, value in ipairs(data.callbacks["OnProfileChanged"]) do
+                if (data.callbacks["OnProfileChange"]) then
+                    for _, value in ipairs(data.callbacks["OnProfileChange"]) do
                         local callback = value[1];
                         callback(newProfileName, select(2, _G.unpack(value)));
                     end
