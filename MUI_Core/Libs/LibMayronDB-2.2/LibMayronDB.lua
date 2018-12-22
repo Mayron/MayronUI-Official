@@ -41,6 +41,36 @@ local function GetNextPath(path, key)
     end
 end
 
+local function Equals(value1, value2, shallowEquals)
+    local type1 = type(value1);
+
+    if (type(value2) == type1) then
+
+        if (type1 == "table") then
+
+            if (tostring(value1) == tostring(value2)) then
+                return true;
+            elseif (shallowEquals) then
+                return false;
+            else
+                for id, value in pairs(value1) do
+                    if (not Equals(value, value2[id])) then
+                        return false;
+                    end
+                end
+            end
+
+            return true;
+        elseif (type1 == "function") then
+            return tostring(value1) == tostring(value2);
+        else
+            return value1 == value2;
+        end
+    end
+
+    return false;
+end
+
 local function IsObserver(value)
     return (type(value) == "table" and value.IsObjectType and value:IsObjectType("Observer"));
 end
@@ -533,7 +563,7 @@ function Observer:__Construct(data, isGlobal, previousData)
     data.helper = previousData.helper;
     data.sv = previousData.sv;
     data.defaults = previousData.defaults;
-    data.internalTree = {};
+    data.internalTree = obj:PopWrapper();
     data.database = data.helper:GetDatabase();
 end
 
@@ -648,41 +678,60 @@ do
     local trackerMT = {};
 
     local function SaveChanges(self)
-        --TODO!
+        local tracker = self.__tracker;
+
+        for dbPath, value in pairs(tracker.changes) do
+            if (value == "nil") then
+                value = nil;
+            end
+
+           tracker.database:SetPathValue(dbPath, value);
+        end
+
+        obj:PushWrapper(tracker.changes);
     end
 
-    local function CreateTracker(data, changes)
+    local function CreateTracker(key, tbl, previousTbl)
+        local proxyTracker = obj:PopWrapper();
         local tracker = obj:PopWrapper();
-        tracker._data = data;
-        tracker._changes = changes or obj:PopWrapper();
-        tracker.SaveChanges = SaveChanges;
 
-        return setmetatable(data, trackerMT);
+        proxyTracker.__tracker = tracker;
+
+        if (previousTbl) then
+            local previousTracker = previousTbl.__tracker;
+            tracker.dbPath = string.format("%s.%s", previousTracker.dbPath, key);
+            tracker.changes = previousTracker.changes;
+        else
+            tracker.dbPath = key;
+            tracker.changes = obj:PopWrapper();
+        end
+
+        tracker.data = tbl;
+        proxyTracker.SaveChanges = SaveChanges;
+
+        return setmetatable(proxyTracker, trackerMT);
     end
 
     trackerMT.__index = function(self, key)
-        local value = self._data[key];
+        local nextValue = self._data[key];
 
-        if (type(value) == "table") then
-            return CreateTracker(value, self._changes);
+        if (type(nextValue) == "table") then
+            return CreateTracker(key, nextValue, self._changes);
         else
-            return value;
+            return nextValue;
         end
     end
 
     trackerMT.__newindex = function(self, key, value)
         local dbPath = string.format("%s.%s", self._dbPath, key);
+        local currentValue = self._data[key];
 
-        if (type(value) == nil) then
-            value = "nil";
-        end
+        if (currentValue ~= nil and value == nil) then
+            self._changes[dbPath] = "nil";
 
-        --TODO:
-        -- if (is different from self._data) then
+        elseif (not Equals(currentValue, value)) then
             self._changes[dbPath] = value;
-        -- else
-        --     self._changes[dbPath] = nil;
-        -- end
+        end
     end
 
     --[[
@@ -713,7 +762,7 @@ do
             end
         end
 
-        return CreateTracker(merged);
+        return CreateTracker(data.path, merged);
     end
 end
 
@@ -1054,68 +1103,39 @@ function Helper:GetDatabaseRootTableName(data, observer)
     end
 end
 
-do
-    local function equals(value1, value2, shallowEquals)
-        local type1 = type(value1);
+Framework:DefineParams("table", "any", "?any");
+function Helper:HandlePathValueChange(data, observerData, key, value)
+    local path;
+    local defaultRootTable;
+    local svRootTable;
+    local isGlobal;
 
-        if (type(value2) == type1) then
-
-            if (type1 == "table") then
-                if (shallowEquals) then
-                    return tostring(value1) == tostring(value2);
-                else
-                    for id, value in pairs(value1) do
-                        if (not equals(value, value2[id])) then
-                            return false;
-                        end
-                    end
-                end
-
-                return true;
-            elseif (type1 == "function") then
-                return tostring(value1) == tostring(value2);
-            else
-                return value1 == value2;
-            end
-        end
-
-        return false;
+    if (observerData.usingChild) then
+        path = observerData.usingChild.path;
+        isGlobal = observerData.usingChild.isGlobal;
+    else
+        path = observerData.path;
+        isGlobal = observerData.isGlobal;
     end
 
-    Framework:DefineParams("table", "any", "?any");
-    function Helper:HandlePathValueChange(data, observerData, key, value)
-        local path;
-        local defaultRootTable;
-        local svRootTable;
-        local isGlobal;
+    if (isGlobal) then
+        defaultRootTable = data.dbData.defaults.global;
+        svRootTable = data.dbData.sv.global;
+    else
+        defaultRootTable = data.dbData.defaults.profile;
+        svRootTable = data.database.profile:ToSavedVariable();
+    end
 
-        if (observerData.usingChild) then
-            path = observerData.usingChild.path;
-            isGlobal = observerData.usingChild.isGlobal;
-        else
-            path = observerData.path;
-            isGlobal = observerData.isGlobal;
-        end
+    local indexingPath = GetNextPath(path, key);
+    local defaultValue = data.database:ParsePathValue(defaultRootTable, indexingPath);
 
-        if (isGlobal) then
-            defaultRootTable = data.dbData.defaults.global;
-            svRootTable = data.dbData.sv.global;
-        else
-            defaultRootTable = data.dbData.defaults.profile;
-            svRootTable = data.database.profile:ToSavedVariable();
-        end
-
-        local indexingPath = GetNextPath(path, key);
-        local defaultValue = data.database:ParsePathValue(defaultRootTable, indexingPath);
-
-        if (not equals(defaultValue, value)) then
-            -- different from default value so add it
-            data.database:SetPathValue(svRootTable, indexingPath, value);
-        else
-            -- same as default value so remove it from saved variables table
-            data.database:SetPathValue(svRootTable, indexingPath, nil);
-            self:GetLastTableKeyPairs(svRootTable, indexingPath, true, true); -- clean
-        end
+    if (not Equals(defaultValue, value)) then
+        -- different from default value so add it
+        data.database:SetPathValue(svRootTable, indexingPath, value);
+    else
+        -- same as default value so remove it from saved variables table
+        data.database:SetPathValue(svRootTable, indexingPath, nil);
+        self:GetLastTableKeyPairs(svRootTable, indexingPath, true, true); -- clean
     end
 end
 
