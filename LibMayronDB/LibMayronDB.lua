@@ -672,22 +672,23 @@ do
         end
     end
 
-    local trackerMT = {};
-
     local function SaveChanges(self)
         local totalChanges = 0;
         local tracker = self.__tracker;
 
-        for dbPath, value in pairs(tracker.changes) do
+        for path, value in pairs(tracker.rootData.changes) do
             if (value == "nil") then
                 value = nil;
             end
 
-            tracker.database:SetPathValue(dbPath, value);
+            local fullPath = string.format("%s.%s", tracker.rootData.observerPath, path);
+            tracker.rootData.database:SetPathValue(fullPath, value);
+            tracker.rootData.database:SetPathValue(tracker.rootData.root, path, value);
+
             totalChanges = totalChanges + 1;
         end
 
-        obj:EmptyTable(tracker.changes);
+        obj:EmptyTable(tracker.rootData.changes);
         return totalChanges;
     end
 
@@ -695,56 +696,18 @@ do
         local tracker = self.__tracker;
         local pendingChanges = 0;
 
-        for _, _ in pairs(tracker.changes) do
+        for _, _ in pairs(tracker.rootData.changes) do
             pendingChanges = pendingChanges + 1;
         end
 
         return pendingChanges;
     end
 
-    local function ResetChildren(tracker)
-        if (tracker.children) then
-            for _, child in pairs(tracker.children) do
-                ResetChildren(child.__tracker);
-                obj:PushWrapper(child);
-            end
-
-            obj:PushWrapper(tracker.children);
-            tracker.children = nil;
-        end
+    local function ResetChanges(self)
+        obj:EmptyTable(self.__tracker.rootData.changes);
     end
 
-    local function Reset(self)
-        local tracker = self.__tracker;
-
-        ResetChildren(tracker);
-        obj:EmptyTable(tracker.changes);
-
-        -- Regenerate data:
-        -- cannot empty in case it is used elsewhere
-        tracker.data = obj:PopWrapper();
-
-        local observer = tracker.observer;
-        local svTable = observer:ToSavedVariable();
-        local defaults = observer:GetDefaults();
-        local parent = observer:GetParent();
-
-        if (defaults) then
-            AddTable(defaults, tracker.data);
-        end
-
-        if (parent) then
-            local parentTable = parent:ToSavedVariable();
-
-            if (parentTable) then
-                AddTable(parentTable, tracker.data);
-            end
-        end
-
-        if (svTable) then
-            AddTable(svTable, tracker.data);
-        end
-    end
+    local trackerMT = {};
 
     local function CreateTracker(key, tbl, previousTracker)
         local proxyTracker = obj:PopWrapper();
@@ -753,20 +716,15 @@ do
         proxyTracker.__tracker = tracker;
 
         if (previousTracker) then
-            tracker.dbPath = string.format("%s.%s", previousTracker.dbPath, key);
-            tracker.changes = previousTracker.changes;
-            tracker.observer = previousTracker.observer;
-            tracker.database = previousTracker.database;
-
-            tracker.data = tbl;
-        else
-            tracker.dbPath = key;
-            tracker.changes = obj:PopWrapper();
+            tracker.rootData = previousTracker.rootData;
+            tracker.path = GetNextPath(previousTracker.path, key);
         end
+
+        tracker.data = tbl;
 
         -- available functions:
         proxyTracker.SaveChanges = SaveChanges;
-        proxyTracker.Reset = Reset;
+        proxyTracker.ResetChanges = ResetChanges;
         proxyTracker.GetTotalPendingChanges = GetTotalPendingChanges;
 
         return setmetatable(proxyTracker, trackerMT);
@@ -775,6 +733,15 @@ do
     trackerMT.__index = function(self, key)
         local tracker = self.__tracker;
         local nextValue = tracker.data[key];
+        local path = GetNextPath(tracker.path, key);
+
+        if (tracker.rootData.changes[path] ~= nil) then
+            nextValue = tracker.rootData.changes[path];
+
+            if (nextValue == "nil") then
+                nextValue = nil;
+            end
+        end
 
         if (type(nextValue) == "table") then
             if (tracker.children and tracker.children[key]) then
@@ -794,22 +761,24 @@ do
 
     trackerMT.__newindex = function(self, key, value)
         local tracker = self.__tracker;
-        local dbPath = string.format("%s.%s", tracker.dbPath, key);
+        local path = GetNextPath(tracker.path, key);
         local currentValue = tracker.data[key];
 
         if (currentValue ~= nil and value == nil) then
-            tracker.changes[dbPath] = "nil";
+            tracker.rootData.changes[path] = "nil";
 
         elseif (not Equals(currentValue, value)) then
-            tracker.changes[dbPath] = value;
-        end
+            tracker.rootData.changes[path] = value;
 
-        tracker.data[key] = value;
+        else
+            tracker.rootData.changes[path] = nil;
+        end
     end
 
     trackerMT.__gc = function(self)
         setmetatable(self, nil);
-        obj:PushWrapper(self.__tracker.changes);
+        obj:PushWrapper(self.__tracker.rootData.changes);
+        obj:PushWrapper(self.__tracker.rootData);
         obj:PushWrapper(self.__tracker);
     end
 
@@ -821,19 +790,43 @@ do
     ]]
     Framework:DefineReturns("table");
     function Observer:ToTable(data)
-        local path;
+        local merged = obj:PopWrapper();
+        local svTable = self:ToSavedVariable();
+        local defaults = self:GetDefaults();
+        local parent = self:GetParent();
 
-        if (data.isGlobal) then
-            path = string.format("%s.%s", "global", data.path);
-        else
-            path = string.format("%s.%s", "profile", data.path);
+        if (defaults) then
+            AddTable(defaults, merged);
         end
 
-        local proxyTracker = CreateTracker(path);
-        proxyTracker.__tracker.database = data.database;
-        proxyTracker.__tracker.observer = self;
+        if (parent) then
+            local parentTable = parent:ToSavedVariable();
 
-        proxyTracker:Reset();
+            if (parentTable) then
+                AddTable(parentTable, merged);
+            end
+        end
+
+        if (svTable) then
+            AddTable(svTable, merged);
+        end
+
+        local observerPath;
+
+        if (data.isGlobal) then
+            observerPath = string.format("%s.%s", "global", data.path);
+        else
+            observerPath = string.format("%s.%s", "profile", data.path);
+        end
+
+        local proxyTracker = CreateTracker(nil, merged);
+        local tracker = proxyTracker.__tracker;
+
+        tracker.rootData = obj:PopWrapper();
+        tracker.rootData.changes = obj:PopWrapper();
+        tracker.rootData.root = merged;
+        tracker.rootData.database = data.database;
+        tracker.rootData.observerPath = observerPath;
 
         return proxyTracker;
     end

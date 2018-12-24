@@ -504,7 +504,7 @@ local function ToTableAndSavingChanges_Test4(self) -- luacheck: ignore
     local pendingChanges = tbl:GetTotalPendingChanges();
     assert(pendingChanges == 1);
 
-    tbl:Reset();
+    tbl:ResetChanges();
     assert(tbl.options.option3.value1 == "not changed");
 
     pendingChanges = tbl:GetTotalPendingChanges();
@@ -525,6 +525,59 @@ local function ToTableAndSavingChanges_Test4(self) -- luacheck: ignore
     print("ToTableAndSavingChanges_Test4 Successful!");
 end
 
+local function ToTableAndSavingChanges_Test5(self) -- luacheck: ignore
+    print("ToTableAndSavingChanges_Test5 Started");
+
+    self.profile.root = {
+        level1 = {
+            val = 1;
+            level2 = {
+                val = 2;
+                level3 = {
+                    val = 3;
+                    level4 = {
+                        val = 4;
+                    }
+                }
+            };
+        }
+    };
+
+    local tbl = self.profile.root:ToTable();
+
+    tbl.level1.val = 80;
+    tbl.level1.level2.val = 70;
+    tbl.level1.level2.level3.val = 60;
+
+    local level4 = tbl.level1.level2.level3.level4;
+    level4.val = 50;
+
+    local pendingChanges = tbl:GetTotalPendingChanges();
+    assert(pendingChanges == 4);
+
+    tbl.level1.val = 1;
+    tbl.level1.level2.val = 2;
+    tbl.level1.level2.level3.val = 3;
+    level4.val = 4;
+
+    pendingChanges = tbl:GetTotalPendingChanges();
+    assert(pendingChanges == 0, string.format("0 expected, got %s", pendingChanges));
+
+    tbl:ResetChanges();
+
+    level4.val = 900;
+
+    pendingChanges = tbl:GetTotalPendingChanges();
+    assert(pendingChanges == 1, string.format("1 expected, got %s", pendingChanges));
+
+    level4.val = 4;
+
+    pendingChanges = tbl:GetTotalPendingChanges();
+    assert(pendingChanges == 0, string.format("0 expected, got %s", pendingChanges));
+
+    print("ToTableAndSavingChanges_Test5 Successful!");
+end
+
 db:OnStartUp(function(...) -- luacheck: ignore
     TestDB = {};
 
@@ -542,4 +595,5 @@ db:OnStartUp(function(...) -- luacheck: ignore
     -- ToTableAndSavingChanges_Test2(...);
     -- ToTableAndSavingChanges_Test3(...);
     -- ToTableAndSavingChanges_Test4(...);
+    -- ToTableAndSavingChanges_Test5(...);
 end);
