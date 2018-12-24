@@ -3,5 +3,7 @@
 
 # Except AddOns prefixed with "MUI_"
 !/MUI_*
+!/LibMayronDB
+!/LibMayronObjects
 
 !.gitignore
