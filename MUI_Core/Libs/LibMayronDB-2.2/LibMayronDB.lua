@@ -678,6 +678,7 @@ do
     local trackerMT = {};
 
     local function SaveChanges(self)
+        local totalChanges = 0;
         local tracker = self.__tracker;
 
         for dbPath, value in pairs(tracker.changes) do
@@ -686,19 +687,20 @@ do
             end
 
            tracker.database:SetPathValue(dbPath, value);
+           totalChanges = totalChanges + 1;
         end
 
         obj:PushWrapper(tracker.changes);
+        return totalChanges;
     end
 
-    local function CreateTracker(key, tbl, previousTbl)
+    local function CreateTracker(key, tbl, database, previousTracker)
         local proxyTracker = obj:PopWrapper();
         local tracker = obj:PopWrapper();
 
         proxyTracker.__tracker = tracker;
 
-        if (previousTbl) then
-            local previousTracker = previousTbl.__tracker;
+        if (previousTracker) then
             tracker.dbPath = string.format("%s.%s", previousTracker.dbPath, key);
             tracker.changes = previousTracker.changes;
         else
@@ -706,6 +708,7 @@ do
             tracker.changes = obj:PopWrapper();
         end
 
+        tracker.database = database;
         tracker.data = tbl;
         proxyTracker.SaveChanges = SaveChanges;
 
@@ -713,24 +716,26 @@ do
     end
 
     trackerMT.__index = function(self, key)
-        local nextValue = self._data[key];
+        local tracker = self.__tracker;
+        local nextValue = tracker.data[key];
 
         if (type(nextValue) == "table") then
-            return CreateTracker(key, nextValue, self._changes);
+            return CreateTracker(key, nextValue, tracker.database, tracker);
         else
             return nextValue;
         end
     end
 
     trackerMT.__newindex = function(self, key, value)
-        local dbPath = string.format("%s.%s", self._dbPath, key);
-        local currentValue = self._data[key];
+        local tracker = self.__tracker;
+        local dbPath = string.format("%s.%s", tracker.dbPath, key);
+        local currentValue = tracker.data[key];
 
         if (currentValue ~= nil and value == nil) then
-            self._changes[dbPath] = "nil";
+            tracker.changes[dbPath] = "nil";
 
         elseif (not Equals(currentValue, value)) then
-            self._changes[dbPath] = value;
+            tracker.changes[dbPath] = value;
         end
     end
 
@@ -762,7 +767,7 @@ do
             end
         end
 
-        return CreateTracker(data.path, merged);
+        return CreateTracker(data.path, merged, data.database);
     end
 end
 
