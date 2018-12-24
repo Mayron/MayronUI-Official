@@ -660,17 +660,14 @@ function Observer:HasParent(data)
 end
 
 do
-    local function Merge(mergeTable, tbl)
-        for key, value in pairs(tbl) do
-            if (mergeTable[key] == nil) then
-                -- only add to mergeTable if value does not already exist
-                if (type(value) == "table") then
-                    mergeTable[key] = obj:PopWrapper();
-                    Merge(mergeTable[key], value);
-
-                else
-                    mergeTable[key] = value;
-                end
+    -- Adds all key and value pairs from fromTable onto toTable
+    local function AddTable(fromTable, toTable)
+        for key, value in pairs(fromTable) do
+            if (type(value) == "table") then
+                toTable[key] = toTable[key] or obj:PopWrapper();
+                AddTable(value, toTable[key]);
+            else
+                toTable[key] = value;
             end
         end
     end
@@ -686,11 +683,11 @@ do
                 value = nil;
             end
 
-           tracker.database:SetPathValue(dbPath, value);
-           totalChanges = totalChanges + 1;
+            tracker.database:SetPathValue(dbPath, value);
+            totalChanges = totalChanges + 1;
         end
 
-        obj:PushWrapper(tracker.changes);
+        obj:EmptyTable(tracker.changes);
         return totalChanges;
     end
 
@@ -737,6 +734,14 @@ do
         elseif (not Equals(currentValue, value)) then
             tracker.changes[dbPath] = value;
         end
+
+        tracker.data[key] = value;
+    end
+
+    trackerMT.__gc = function(self)
+        setmetatable(self, nil);
+        obj:PushWrapper(self.__tracker.changes);
+        obj:PushWrapper(self.__tracker);
     end
 
     --[[
@@ -751,23 +756,31 @@ do
         local svTable = self:ToSavedVariable();
         local defaults = self:GetDefaults();
 
-        if (svTable) then
-            Merge(merged, svTable);
-        end
-
         if (defaults) then
-            Merge(merged, defaults);
+            AddTable(defaults, merged);
         end
 
         if (data.parent) then
             local parentTable = data.parent:ToSavedVariable();
 
             if (parentTable) then
-                Merge(merged, parentTable);
+                AddTable(parentTable, merged);
             end
         end
 
-        return CreateTracker(data.path, merged, data.database);
+        if (svTable) then
+            AddTable(svTable, merged);
+        end
+
+        local path;
+
+        if (data.isGlobal) then
+            path = string.format("%s.%s", "global", data.path);
+        else
+            path = string.format("%s.%s", "profile", data.path);
+        end
+
+        return CreateTracker(path, merged, data.database);
     end
 end
 
@@ -1052,41 +1065,8 @@ function Helper:GetNextValue(data, previousObserverData, tbl, key)
 end
 
 Framework:DefineParams("table", "?number");
-function Helper:PrintTable(_, tbl, depth, n)
-    n = n or 0;
-    depth = depth or 4;
-
-    if (depth == 0) then
-        return
-    end
-
-    if (n == 0) then
-        print(" ");
-    end
-
-    for key, value in pairs(tbl) do
-        if (key and type(key) == "number" or type(key) == "string") then
-            key = string.format("[\"%s\"]", key);
-
-            if (type(value) == "table") then
-                print(string.rep(' ', n)..key.." = {");
-                self:PrintTable(value, depth - 1, n + 4);
-                print(string.rep(' ', n).."},");
-            else
-                if (type(value) == "string") then
-                    value = string.format("\"%s\"", value);
-                else
-                    value = tostring(value);
-                end
-
-                print(string.rep(' ', n)..key.." = "..value..",");
-            end
-        end
-    end
-
-    if (n == 0) then
-        print(" ");
-    end
+function Helper:PrintTable(_, tbl, depth)
+    obj:PrintTable(tbl, depth, 0);
 end
 
 Framework:DefineParams("Observer");

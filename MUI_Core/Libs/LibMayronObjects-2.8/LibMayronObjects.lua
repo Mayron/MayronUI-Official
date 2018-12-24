@@ -268,6 +268,50 @@ function Lib:IsType(value, expectedTypeName)
     return Core:IsMatchingType(value, expectedTypeName);
 end
 
+function Lib:EmptyTable(tbl)
+    for key, _ in pairs(tbl) do
+        tbl[key] = nil;
+    end
+end
+
+function Lib:PrintTable(tbl, depth, n)
+    n = n or 0;
+    depth = depth or 4;
+
+    if (depth == 0) then
+        return
+    end
+
+    if (n == 0) then
+        print(" ");
+    end
+
+    for key, value in pairs(tbl) do
+        if (key and type(key) == "number" or type(key) == "string") then
+            key = string.format("[\"%s\"]", key);
+
+            if (type(value) == "table") then
+                print(string.rep(' ', n)..key.." = {");
+                self:PrintTable(value, depth - 1, n + 4);
+                print(string.rep(' ', n).."},");
+            else
+                if (type(value) == "string") then
+                    value = string.format("\"%s\"", value);
+                else
+                    value = tostring(value);
+                end
+
+                print(string.rep(' ', n)..key.." = "..value..",");
+            end
+        end
+    end
+
+    if (n == 0) then
+        print(" ");
+    end
+end
+
+
 function Lib:SetDebugMode(debug)
     Core.DebugMode = debug;
 end
@@ -763,12 +807,6 @@ function Core:CreateInterface(packageData, interfaceName)
     return Interface;
 end
 
-function Core:EmptyTable(tbl)
-    for key, _ in pairs(tbl) do
-        tbl[key] = nil;
-    end
-end
-
 -- returns comma-separated string list of generic type placeholders (example: "K,V,V2")
 function Core:GetGenericTypesFromClassName(className)
     local sections = { _G.strsplit("<", className) };
@@ -1231,67 +1269,76 @@ function Core:Error(errorMessage, ...)
     self:Assert(false, errorMessage, ...);
 end
 
-function Core:IsMatchingType(value, expectedTypeName)
-    if (value == nil) then
-        return expectedTypeName == "nil";
-    end
+do
+    local tableType = "table";
+    local numberType = "number";
+    local functionType = "function";
+    local booleanType = "boolean";
+    local stringType = "string";
+    local nilType = "nil";
 
-    -- check if basic type
-    if (expectedTypeName == "table" or expectedTypeName == "number" or expectedTypeName == "function"
-                                    or expectedTypeName == "boolean" or expectedTypeName == "string") then
-        return (expectedTypeName == type(value));
-    end
-
-    if (type(value) ~= "table") then
-        return false;
-    end
-
-    local controller = self:GetController(value, true);
-
-    if (not controller) then
-        if (value.GetObjectType and expectedTypeName == value:GetObjectType()) then
-            return true;
+    function Core:IsMatchingType(value, expectedTypeName)
+        if (value == nil) then
+            return expectedTypeName == nilType;
         end
 
-        return false;
-    end
-
-    while (value and controller) do
-
-        if (expectedTypeName == controller.EntityName) then
-            return true; -- Object or Widget matches!
+        -- check if basic type
+        if (expectedTypeName == tableType or expectedTypeName == numberType or expectedTypeName == functionType
+                                        or expectedTypeName == booleanType or expectedTypeName == stringType) then
+            return (expectedTypeName == type(value));
         end
 
-        -- check all interface types
-        for _, interface in ipairs(controller.Interfaces) do
-            local interfaceController = self:GetController(interface);
+        if (type(value) ~= tableType) then
+            return false;
+        end
 
-            if (expectedTypeName == interfaceController.EntityName) then
-                return true; -- interface name matches!
+        local controller = self:GetController(value, true);
+
+        if (not controller) then
+            if (value.GetObjectType and expectedTypeName == value:GetObjectType()) then
+                return true;
             end
+
+            return false;
         end
 
-        value = controller.ParentClass;
-        controller = self:GetController(value, true); -- fail silently
+        while (value and controller) do
+
+            if (expectedTypeName == controller.EntityName) then
+                return true; -- Object or Widget matches!
+            end
+
+            -- check all interface types
+            for _, interface in ipairs(controller.Interfaces) do
+                local interfaceController = self:GetController(interface);
+
+                if (expectedTypeName == interfaceController.EntityName) then
+                    return true; -- interface name matches!
+                end
+            end
+
+            value = controller.ParentClass;
+            controller = self:GetController(value, true); -- fail silently
+        end
+
+        return false;
     end
 
-    return false;
-end
+    function Core:GetValueType(value)
+        if (value == nil) then
+            return nilType;
+        end
 
-function Core:GetValueType(value)
-    if (value == nil) then
-        return "nil";
+        local valueType = type(value);
+
+        if (valueType ~= tableType) then
+            return valueType;
+        elseif (value.GetObjectType) then
+            return value:GetObjectType();
+        end
+
+        return tableType;
     end
-
-    local valueType = type(value);
-
-    if (valueType ~= "table") then
-        return valueType;
-    elseif (value.GetObjectType) then
-        return value:GetObjectType();
-    end
-
-    return "table";
 end
 
 ---------------------------------
@@ -1518,6 +1565,6 @@ function Object:Destroy()
     Lib:PushWrapper(instanceController);
 
     -- destroy proxy instance
-    Core:EmptyTable(self);
+    Lib:EmptyTable(self);
     self.IsDestroyed = true;
 end

@@ -1,7 +1,9 @@
---luacheck: ignore TestDB LibStub
+--luacheck: ignore TestDB LibStub obj
 local Lib = LibStub:GetLibrary("LibMayronDB");
+
 if (not Lib) then return; end
 
+local obj = _G.LibStub:GetLibrary("LibMayronObjects");
 local db = Lib:CreateDatabase("LibMayronDB", "TestDB");
 
 local function OnStartUp_Test1(self, addOnName) -- luacheck: ignore
@@ -16,7 +18,7 @@ end
 local function ChangeProfile_Test1(self) -- luacheck: ignore
     print("ChangeProfile_Test1 Started");
 
-    db:OnProfileChanged(function(_, newProfileName, oldProfileName)
+    db:OnProfileChange(function(_, newProfileName, oldProfileName)
         if (newProfileName == "ChangeProfile_Test1") then
             assert(oldProfileName == "Default");
         elseif (newProfileName == "Default") then
@@ -308,11 +310,12 @@ local function Equals(value1, value2, shallowEquals)
 
             if (tostring(value1) == tostring(value2)) then
                 return true;
+
             elseif (shallowEquals) then
                 return false;
             else
-                for id, value in pairs(value1) do
-                    if (not Equals(value, value2[id])) then
+                for key, value in pairs(value1) do
+                    if (not Equals(value, value2[key])) then
                         return false;
                     end
                 end
@@ -332,129 +335,154 @@ end
 local function ToTableAndSavingChanges_Test3(self) -- luacheck: ignore
     print("ToTableAndSavingChanges_Test3 Started");
 
+    -- It seems that when a new table is assigned to child, it removes all other values
     -- Arrange
     local expectedTable = {
-        option1 = true;
-        option2 = "def";
-        option3 = false;
-        option4 = {
-            value1 = 650;
-            value2 = 900;
-            value3 = 30;
-        };
-        events = {
-            eventIds = {1, 2, 3, 4, 5},
-            ["auto load"] = false
-        },
-        modules = {
+        parentTbl2 = {
             module1 = true;
             module2 = true;
             module3 = false;
         };
-        childOptions = {
-            subModule1 = true;
-            subModule2 = {
+        defaults = {
+            default1 = true;
+            default2 = "def";
+            default3 = {
+                value1 = 650;
+            };
+            default4 = {
+                value1 = 10;
+                value2 = 900;
+                value3 = 30;
+            };
+        };
+        -- all ok!
+        childTbl = {
+            child2 = {
                 1, 2, 3
-            }
-        }
+            };
+            child1 = true;
+        };
+        parentTbl1 = {
+            value1 = {
+                4,
+                5,
+                3,
+            },
+            ["auto load"] = false
+        };
     };
 
-    self:AddToDefaults("profile.root.options", {
-        option1 = true;
-        option2 = "abc";
-        option3 = false;
-        option4 = {
+    self:AddToDefaults("profile.root.defaults", {
+        default1 = true;
+        default2 = "abc";
+        default3 = false;
+        default4 = {
             value1 = 10;
             value2 = 20;
             value3 = 30;
         }
     });
 
-    self.profile.root = {
-        option2 = "def";
-        option4 = {
-            value1 = 650;
+    self.profile.myParent = {
+        defaults = {
+            default2 = "def";
+            default3 = {
+                value1 = 650;
+            };
         };
-        events = {
-            eventIds = {1, 2, 3};
+
+        parentTbl1 = {
+            value1 = {1, 2, 3};
             ["auto load"] = true;
         },
-        modules = {
+
+        parentTbl2 = {
             module1 = true;
             module2 = false;
             module3 = false;
         }
     };
 
-    self.profile.myChild = {
-        option4 = {
-            value2 = 900;
+    self.profile.root = {
+        defaults = {
+            default4 = {
+                value2 = 900;
+            };
         };
-        events = {
-            eventIds = {4, 5};
+
+        parentTbl1 = {
+            value1 = {4, 5};
             ["auto load"] = false;
-        },
-        modules = {
+        };
+
+        parentTbl2 = {
             module1 = true;
             module2 = true;
         };
-        childOptions = {
-            subModule1 = true;
-            subModule2 = {
+
+        childTbl = {
+            child1 = true;
+            child2 = {
                 1, 2, 3
             }
         }
     };
 
-    self.profile.myChild:SetParent(self.profile.root);
-    local tbl = self.profile.myChild:ToTable();
+    self.profile.root:SetParent(self.profile.myParent);
+    local tbl = self.profile.root:ToTable();
 
     ------------------------------------------------
     -- Act and Assert:
 
     -- Table should merge child, parent, and default tables together in that priority order
-    assert(Equals(tbl, expectedTable), "Tables are not equal!");
+    assert(Equals(tbl.__tracker.data, expectedTable), "Tables are not equal!");
 
     -- set value to same value should result in no change required
-    tbl.option4.value3 = 30;
+    tbl.defaults.default4.value3 = 30;
+    assert(tbl.defaults.default4.value3 == 30);
+
     -- assert that database value is still the same (before saving)
-    assert(self.profile.myChild.option4.value3 == 30);
+    assert(self.profile.root.defaults.default4.value3 == 30);
 
     -- save changes
     local totalChanges = tbl:SaveChanges();
 
     -- assert that database value is still the same (after saving)
     assert(totalChanges == 0);
-    assert(self.profile.myChild.option4.value3 == 30);
+    assert(self.profile.root.defaults.default4.value3 == 30);
 
     -- set value to a different value
-    tbl.option4.value3 = 789;
+    tbl.defaults.default4.value3 = 789;
+    assert(tbl.defaults.default4.value3 == 789);
+
     -- assert that database value is still the same (before saving)
-    assert(self.profile.myChild.option4.value3 == 30);
+    assert(self.profile.root.defaults.default4.value3 == 30);
 
     -- save changes
     totalChanges = tbl:SaveChanges();
 
     -- assert that database value has changed (after saving)
     assert(totalChanges == 1);
-    assert(self.profile.myChild.option4.value3 == 789);
+    assert(self.profile.root.defaults.default4.value3 == 789);
 
     -- set value back to original value
-    tbl.option4.value3 = 30;
+    tbl.defaults.default4.value3 = 30;
+    assert(tbl.defaults.default4.value3 == 30);
+
     -- assert that database value is still the previous value (before saving)
-    assert(self.profile.myChild.option4.value3 == 789);
+    assert(self.profile.root.defaults.default4.value3 == 789);
 
     -- save changes
     totalChanges = tbl:SaveChanges();
 
     -- assert that database value is back to the default value and removed from database (after saving)
     assert(totalChanges == 1);
-    assert(self.profile.myChild.option4.value3 == 30);
+    assert(self.profile.root.defaults.default4.value3 == 30);
 
     print("ToTableAndSavingChanges_Test3 Successful!");
 end
 
-db:OnStartUp(function(...)
+db:OnStartUp(function(...) -- luacheck: ignore
     TestDB = {};
 
     -- OnStartUp_Test1(...);
@@ -467,7 +495,7 @@ db:OnStartUp(function(...)
     -- UpdatingSameValueMultipleTimes_Test1(...);
     -- CleaningUpWithNilValue_Test1(...);
     -- UsingBothParentAndDefaults_Test1(...);
-    ToTableAndSavingChanges_Test1(...);
-    --ToTableAndSavingChanges_Test2(...);
-    --ToTableAndSavingChanges_Test3(...);
+    -- ToTableAndSavingChanges_Test1(...);
+    -- ToTableAndSavingChanges_Test2(...);
+    -- ToTableAndSavingChanges_Test3(...);
 end);
