@@ -330,20 +330,20 @@ function C_UnitFramePanel:UpdateUnitNameText(data, unitType)
 
     if (unitType ~= "player") then
         if (classification == "worldboss") then
-            unitLevel = tk.Strings:GetRGBColoredText(unitLevel, 0.25, 0.75, 0.25); -- yellow
+            unitLevel = tk.Strings:SetTextColorByRGB(unitLevel, 0.25, 0.75, 0.25); -- yellow
         else
             local color = tk:GetDifficultyColor(_G.UnitLevel(unitType));
 
-            unitLevel = tk.Strings:GetRGBColoredText(unitLevel, color.r, color.g, color.b);
-            name = (_G.UnitIsPlayer(unitType) and tk.Strings:GetClassColoredText(class, name)) or name;
+            unitLevel = tk.Strings:SetTextColorByRGB(unitLevel, color.r, color.g, color.b);
+            name = (_G.UnitIsPlayer(unitType) and tk.Strings:SetTextColorByClass(name, class)) or name;
         end
     else
-        unitLevel = tk.Strings:GetRGBColoredText(unitLevel, 1, 0.8, 0);
+        unitLevel = tk.Strings:SetTextColorByRGB(unitLevel, 1, 0.8, 0);
 
         if (_G.UnitAffectingCombat("player")) then
-            name = tk.Strings:GetRGBColoredText(name, 1, 0, 0);
+            name = tk.Strings:SetTextColorByRGB(name, 1, 0, 0);
         else
-            name = tk.Strings:GetClassColoredText(class, name);
+            name = tk.Strings:SetTextColorByClass(name, class);
         end
     end
 

@@ -80,6 +80,7 @@ function tk.Strings:SetTextColorByClass(text, className)
     className = className:gsub("%s+", tk.Strings.Empty);
     className = className:upper();
 
+    tk:Assert(tk.Constants.CLASS_COLORS[className], "Unknown class name '%s'.", className);
     return tk.Constants.CLASS_COLORS[className]:WrapTextInColorCode(text);
 end
 

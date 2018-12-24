@@ -46,8 +46,8 @@ local function LoadTutorial(panel)
     frame.text:SetPoint("TOPLEFT", 10, -20);
     frame.text:SetPoint("BOTTOMRIGHT", -10, 10);
     frame.text:SetText(
-        tk.Strings:JoinWithSpace("Press and hold the", tk.Strings:GetThemeColoredText("Control"),
-            "key while out of combat to show the", tk.Strings:GetThemeColoredText("Expand"),
+        tk.Strings:JoinWithSpace("Press and hold the", tk.Strings:SetTextColorByTheme("Control"),
+            "key while out of combat to show the", tk.Strings:SetTextColorByTheme("Expand"),
             "button.\n\n Click the Expand button to show a second row of action buttons!")
     );
 
@@ -55,7 +55,7 @@ local function LoadTutorial(panel)
         if (tk:IsModComboActive("C")) then
             frame.text:SetText(
                 tk.Strings:JoinWithSpace("Once expanded, you can press and hold the same key while out of",
-                    "combat to show the", tk.Strings:GetThemeColoredText("Retract"),
+                    "combat to show the", tk.Strings:SetTextColorByTheme("Retract"),
                     "button.\n\n Pressing this will hide the second row of action buttons.")
             );
 

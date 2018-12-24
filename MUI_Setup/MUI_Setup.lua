@@ -64,7 +64,6 @@ local function ChangeTheme(self, value)
 
     frame = window.submenu[window.info.type];
     if (frame) then
-        --TODO: Is this ever used?
         window.info.ScrollBar.thumb:SetColorTexture(r, g, b, 0.8);
     end
 end
@@ -166,7 +165,7 @@ end
 function Private:LoadInstallMenu(menuSection)
     menuSection.message = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
     menuSection.message:SetPoint("CENTER", 0, 20);
-    menuSection.message:SetText(tk.Strings:GetThemeColoredText("Warning:").." This will reload the UI!");
+    menuSection.message:SetText(tk.Strings:SetTextColorByTheme("Warning:").." This will reload the UI!");
 
     menuSection.installBtn = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "Install");
     menuSection.installBtn:SetPoint("CENTER", 0, -20);
@@ -260,18 +259,18 @@ function Private:LoadThemeMenu(menuSection)
     menuSection.themeDropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, menuSection);
 
     menuSection.themeDropdown:AddOptions(ChangeTheme, {
-        { tk.Strings:GetHexColoredText("Death Knight", "C41F3B"), "DEATHKNIGHT" },
-        { tk.Strings:GetHexColoredText("Demon Hunter", "A330C9"), "DEMONHUNTER" },
-        { tk.Strings:GetHexColoredText("Druid", "FF7D0A"), "DRUID" },
-        { tk.Strings:GetHexColoredText("Hunter", "ABD473"), "HUNTER" },
-        { tk.Strings:GetHexColoredText("Mage", "69CCF0"), "MAGE" },
-        { tk.Strings:GetHexColoredText("Monk", "00FF96"), "MONK" },
-        { tk.Strings:GetHexColoredText("Paladin", "F58CBA"), "PALADIN" },
-        { tk.Strings:GetHexColoredText("Priest", "FFFFFF"), "PRIEST" },
-        { tk.Strings:GetHexColoredText("Rogue", "FFF569"), "ROGUE" },
-        { tk.Strings:GetHexColoredText("Shaman", "0070DE"), "SHAMAN" },
-        { tk.Strings:GetHexColoredText("Warlock", "9482C9"), "WARLOCK" },
-        { tk.Strings:GetHexColoredText("Warrior", "C79C6E"), "WARRIOR" }
+        { tk.Strings:SetTextColorByHexCode("Death Knight", "C41F3B"), "DEATHKNIGHT" },
+        { tk.Strings:SetTextColorByHexCode("Demon Hunter", "A330C9"), "DEMONHUNTER" },
+        { tk.Strings:SetTextColorByHexCode("Druid", "FF7D0A"), "DRUID" },
+        { tk.Strings:SetTextColorByHexCode("Hunter", "ABD473"), "HUNTER" },
+        { tk.Strings:SetTextColorByHexCode("Mage", "69CCF0"), "MAGE" },
+        { tk.Strings:SetTextColorByHexCode("Monk", "00FF96"), "MONK" },
+        { tk.Strings:SetTextColorByHexCode("Paladin", "F58CBA"), "PALADIN" },
+        { tk.Strings:SetTextColorByHexCode("Priest", "FFFFFF"), "PRIEST" },
+        { tk.Strings:SetTextColorByHexCode("Rogue", "FFF569"), "ROGUE" },
+        { tk.Strings:SetTextColorByHexCode("Shaman", "0070DE"), "SHAMAN" },
+        { tk.Strings:SetTextColorByHexCode("Warlock", "9482C9"), "WARLOCK" },
+        { tk.Strings:SetTextColorByHexCode("Warrior", "C79C6E"), "WARRIOR" }
     });
 
     menuSection.themeDropdown:AddOption(L["Custom Colour"], function()
@@ -406,16 +405,17 @@ function Private:LoadCustomMenu(menuSection)
     gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", menuSection.addonContainer);
 
     local totalAddOnsLoaded = 0;
-    for id, addonData in db.global.core.addons:Iterate() do
-        local alias, value, addonName = _G.unpack(addonData);
 
-        if (_G.IsAddOnLoaded(addonName)) then
+    for id, addOnData in db.global.core.setup.addOns:Iterate() do
+        local alias, value, addOnName = _G.unpack(addOnData);
+
+        if (_G.IsAddOnLoaded(addOnName)) then
             local cb = gui:CreateCheckButton(child, alias);
             totalAddOnsLoaded = totalAddOnsLoaded + 1;
 
             cb.btn:SetChecked(value);
             cb.btn:SetScript("OnClick", function(self)
-                db.global.core.addons[id] = {alias, self:GetChecked(), addonName};
+                db.global.core.setup.addOns[id] = obj:PopWrapper(alias, self:GetChecked(), addOnName);
             end);
 
             if (not previous) then
@@ -623,12 +623,12 @@ function SetupClass:Install()
     end
 
     -- Export AddOn values to db:
-    for id, addonData in db.global.core.addons:Iterate() do
+    for id, addonData in db.global.core.setup.addOns:Iterate() do
         local alias, value, addonName = _G.unpack(addonData);
 
         if (value and _G.IsAddOnLoaded(addonName)) then
             namespace.import[addonName]();
-            db.global.core.addons[id] = {alias, false, addonName};
+            db.global.core.setup.addOns[id] = {alias, false, addonName};
         end
     end
 

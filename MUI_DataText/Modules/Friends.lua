@@ -82,13 +82,13 @@ function Friends:__Construct(data, settings, slideController, dataTextModule)
 end
 
 function Friends:Enable(data)
-    db.profile.datatext.friends.enabled = true;
     data.settings.enabled = true;
+    data.settings:SaveChanges();
 end
 
 function Friends:Disable(data)
-    db.profile.datatext.friends.enabled = false;
     data.settings.enabled = false;
+    data.settings:SaveChanges();
 
     if (data.handler) then
         data.handler:Destroy();

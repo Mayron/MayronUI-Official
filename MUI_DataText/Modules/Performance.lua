@@ -44,8 +44,8 @@ function Performance:__Construct(data, settings, dataTextModule)
 end
 
 function Performance:Enable(data)
-    db.profile.datatext.performance.enabled = true;
     data.settings.enabled = true;
+    data.settings:SaveChanges();
 
     data.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
         if (not self.Button) then return; end
@@ -54,8 +54,8 @@ function Performance:Enable(data)
 end
 
 function Performance:Disable(data)
-    db.profile.datatext.performance.enabled = false;
     data.settings.enabled = false;
+    data.settings:SaveChanges();
 
     if (data.handler) then
         data.handler:Destroy();

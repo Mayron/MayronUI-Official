@@ -42,7 +42,7 @@ db:AddToDefaults("profile.datatext", {
 		width = 200,
 		itemHeight = 26 -- the height of each list item in the popup menu
     },
-    displayOrder = {
+    displayOrders = {
         "durability",
         "friends",
         "guild",
@@ -165,15 +165,20 @@ function C_DataTextModule:PositionDataItems(data)
     data.positionedButtons = data.positionedButtons or obj:PopWrapper();
 
     for _, dataModule in pairs(data.DataModules) do
+
         if (dataModule:IsEnabled()) then
             local btn = dataModule.Button;
             local dbName = dataModule.SavedVariableName;
+            --TODO: Bug = Cannot iterate a tracking table!
             local displayOrder = tk.Tables:GetIndex(data.settings.displayOrders, dbName);
+
+            tk.Tables:Print(data.settings.displayOrders);
+            tk:Print("ok: ", displayOrder);
 
             btn._module = dataModule; -- temporary
 
             if (not displayOrder) then
-                dataModule:SetEnabled(false);
+                --dataModule:Disable();
 
             elseif (not data.positionedButtons[dbName]) then
                 table.insert(data.orderedButtons, btn);

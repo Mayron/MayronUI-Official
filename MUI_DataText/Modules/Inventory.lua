@@ -70,13 +70,13 @@ function Inventory:__Construct(data, settings, slideController, dataTextModule)
 end
 
 function Inventory:Enable(data)
-    db.profile.datatext.inventory.enabled = true;
     data.settings.enabled = true;
+    data.settings:SaveChanges();
 end
 
 function Inventory:Disable(data)
-    db.profile.datatext.inventory.enabled = false;
     data.settings.enabled = false;
+    data.settings:SaveChanges();
 
     if (data.handler) then
         data.handler:Destroy();

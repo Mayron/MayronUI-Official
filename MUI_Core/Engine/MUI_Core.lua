@@ -31,7 +31,7 @@ db:AddToDefaults("global.core", {
     useLocalization = true,
     setup = {
         profilePerCharacter = true,
-        addons = {
+        addOns = {
             {"Aura Frames", true, "AuraFrames"},
             {"Bartender4", true, "Bartender4"},
             {"Grid", true, "Grid"},
@@ -259,7 +259,7 @@ function MayronUI:Hook(moduleName, eventName, func)
         return;
     end
 
-    local eventHooks = tk.Table:GetTable(registryInfo, "hooks", eventName);
+    local eventHooks = tk.Tables:GetTable(registryInfo, "hooks", eventName);
 
     table.insert(eventHooks, func);
 end

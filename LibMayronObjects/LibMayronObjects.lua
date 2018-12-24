@@ -1283,8 +1283,10 @@ do
         end
 
         -- check if basic type
-        if (expectedTypeName == tableType or expectedTypeName == numberType or expectedTypeName == functionType
-                                        or expectedTypeName == booleanType or expectedTypeName == stringType) then
+        if (expectedTypeName == tableType or expectedTypeName == numberType
+            or expectedTypeName == functionType or expectedTypeName == booleanType
+            or expectedTypeName == stringType) then
+
             return (expectedTypeName == type(value));
         end
 

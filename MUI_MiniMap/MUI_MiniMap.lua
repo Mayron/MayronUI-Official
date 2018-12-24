@@ -3,7 +3,7 @@ local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 
 -- Register and Import ---------
 
-local C_MiniMapModel = MayronUI:RegisterModule("MiniMap");
+local C_MiniMapModule = MayronUI:RegisterModule("MiniMap");
 local Minimap = _G.Minimap;
 
 -- Load Database Defaults --------------
@@ -55,18 +55,21 @@ do
 		_G.Minimap_ZoomIn();
 		_G.Minimap_ZoomOut();
 
-		--TODO: Problem - too much sv and setting values are changed. Would be easier to implement :SaveChanges()
-		data.sv.point, data.sv.relativeTo, data.sv.relativePoint, data.sv.x, data.sv.y = Minimap:GetPoint();
-		data.sv.x = tk.math.floor(data.sv.x + 0.5);
-		data.sv.y = tk.math.floor(data.sv.y + 0.5);
+		data.settings.point, data.settings.relativeTo, data.settings.relativePoint,
+			data.settings.x, data.settings.y = Minimap:GetPoint();
 
-		data.sv.width, data.sv.height = Minimap:GetSize();
-		data.sv.width = math.floor(data.sv.width + 0.5);
-		data.sv.height = data.sv.width;
+		data.settings.x = tk.math.floor(data.settings.x + 0.5);
+		data.settings.y = tk.math.floor(data.settings.y + 0.5);
+
+		data.settings.width, data.settings.height = Minimap:GetSize();
+		data.settings.width = math.floor(data.settings.width + 0.5);
+		data.settings.height = data.settings.width;
+
+		data.settings:SaveChanges();
 	end
 end
 
-function C_MiniMapModel:OnInitialize(data)
+function C_MiniMapModule:OnInitialize(data)
 	data.settings = db.profile.minimap:ToTable();
 
 	Minimap:ClearAllPoints();
@@ -161,7 +164,7 @@ function C_MiniMapModel:OnInitialize(data)
 	end);
 
 	Minimap:SetScript("OnEnter", function(self)
-		if (data.sv.Tooltip) then
+		if (data.settings.Tooltip) then
 			-- helper tooltip (can be hidden)
 			return
 		end
@@ -180,13 +183,15 @@ function C_MiniMapModel:OnInitialize(data)
 
 	Minimap:HookScript("OnMouseDown", function(self, button)
 		if ((_G.IsAltKeyDown()) and (button == "LeftButton")) then
-			if (data.sv.Tooltip) then
-				data.sv.Tooltip = nil;
+			if (data.settings.Tooltip) then
+				data.settings.Tooltip = nil;
 				Minimap:GetScript("OnEnter")(Minimap);
 			else
-				data.sv.Tooltip = true;
+				data.settings.Tooltip = true;
 				_G.GameTooltip:Hide();
 			end
+
+			data.settings:SaveChanges();
 		end
 	end);
 
@@ -242,7 +247,7 @@ function C_MiniMapModel:OnInitialize(data)
 				tk.PlaySound(tk.Constants.CLICK);
 			end
 		},
-		{ 	text = tk.Strings:GetThemeColoredText(L["MUI Config Menu"]),
+		{ 	text = tk.Strings:SetTextColorByTheme(L["MUI Config Menu"]),
 			func = function()
 				if (tk.InCombatLockdown()) then
 					tk:Print(L["Cannot access config menu while in combat."]);
@@ -251,7 +256,7 @@ function C_MiniMapModel:OnInitialize(data)
 				end
 			end
 		},
-		{ 	text = tk.Strings:GetThemeColoredText(L["MUI Installer"]),
+		{ 	text = tk.Strings:SetTextColorByTheme(L["MUI Installer"]),
 			func = function()
 				MayronUI:TriggerCommand("install");
 			end

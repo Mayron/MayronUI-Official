@@ -72,13 +72,13 @@ function Memory:IsEnabled(data)
 end
 
 function Memory:Enable(data)
-    db.profile.datatext.memory.enabled = true;
     data.settings.enabled = true;
+    data.settings:SaveChanges();
 end
 
 function Memory:Disable(data)
-    db.profile.datatext.memory.enabled = false;
     data.settings.enabled = false;
+    data.settings:SaveChanges();
 
     if (data.handler) then
         data.handler:Destroy();

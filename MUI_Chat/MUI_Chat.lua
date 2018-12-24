@@ -64,7 +64,9 @@ function C_ChatModule:OnInitialize(data)
 	data.sv = db.profile.chat;
 
     tk.StaticPopupDialogs["MUI_Link"] = {
-		text = tk.Strings:GetThemeColoredText("MayronUI").."\n(CTRL+C to Copy, CTRL+V to Paste)",
+		text = tk.Strings:Join("\n",
+			tk.Strings:SetTextColorByTheme("MayronUI"),
+			"(CTRL+C to Copy, CTRL+V to Paste)"),
 		button1 = "Close",
 		hasEditBox = 1,
 		maxLetters = 1024,

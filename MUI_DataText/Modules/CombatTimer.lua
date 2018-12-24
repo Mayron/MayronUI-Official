@@ -84,13 +84,13 @@ function CombatTimer:IsEnabled(data)
 end
 
 function CombatTimer:Enable(data)
-    db.profile.datatext.combatTimer.enabled = true;
     data.settings.enabled = true;
+    data.settings:SaveChanges();
 end
 
 function CombatTimer:Disable(data)
-    db.profile.datatext.combatTimer.enabled = false;
     data.settings.enabled = false;
+    data.settings:SaveChanges();
 
     em:FindHandlerByKey("PLAYER_REGEN_DISABLED", "combatTimer"):Destroy();
     em:FindHandlerByKey("PLAYER_REGEN_ENABLED", "combatTimer"):Destroy();

@@ -72,8 +72,8 @@ function Durability:IsEnabled(data)
 end
 
 function Durability:Enable(data)
-    db.profile.datatext.durability.enabled = true;
     data.settings.enabled = true;
+    data.settings:SaveChanges();
 
     data.showMenu = true;
     data.handler = em:CreateEventHandler("UPDATE_INVENTORY_DURABILITY", function()
@@ -88,8 +88,8 @@ function Durability:Enable(data)
 end
 
 function Durability:Disable(data)
-    db.profile.datatext.durability.enabled = false;
     data.settings.enabled = false;
+    data.settings:SaveChanges();
 
     if (data.handler) then
         data.handler:Destroy();

@@ -112,13 +112,13 @@ function Currency:IsEnabled(data)
 end
 
 function Currency:Enable(data)
-    db.profile.datatext.currency.enabled = true;
     data.settings.enabled = true;
+    data.settings:SaveChanges();
 end
 
 function Currency:Disable(data)
-    db.profile.datatext.currency.enabled = false;
     data.settings.enabled = false;
+    data.settings:SaveChanges();
     em:FindHandlerByKey("PLAYER_MONEY", "money"):Destroy();
     data.showMenu = nil;
 end

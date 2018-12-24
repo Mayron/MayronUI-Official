@@ -786,10 +786,11 @@ do
     Creates an immutable table containing all values from the underlining saved variables table,
     parent table, and defaults table. Changing this table will not affect the saved variables table!
 
+    @param disableTracking (boolean) - If true, disable tracking which means it is fully disconnected from the database.
     @return (table): a table containing all merged values
     ]]
-    Framework:DefineReturns("table");
-    function Observer:ToTable(data)
+    Framework:DefineReturns("table", "?boolean");
+    function Observer:ToTable(data, disableTracking)
         local merged = obj:PopWrapper();
         local svTable = self:ToSavedVariable();
         local defaults = self:GetDefaults();
@@ -817,6 +818,10 @@ do
             observerPath = string.format("%s.%s", "global", data.path);
         else
             observerPath = string.format("%s.%s", "profile", data.path);
+        end
+
+        if (disableTracking) then
+            return merged;
         end
 
         local proxyTracker = CreateTracker(nil, merged);
@@ -885,7 +890,7 @@ Example:
     end
 ]]
 function Observer:Iterate()
-    local merged = self:ToTable();
+    local merged = self:ToTable(true);
     return next, merged, nil;
 end
 
@@ -906,7 +911,7 @@ Example: db.profile.aModule:Print()
 ]]
 Framework:DefineParams("?number");
 function Observer:Print(data, depth)
-    local merged = self:ToTable();
+    local merged = self:ToTable(true);
     local tablePath = data.helper:GetDatabaseRootTableName(self);
     local path = (data.usingChild and data.usingChild.path) or data.path;
 

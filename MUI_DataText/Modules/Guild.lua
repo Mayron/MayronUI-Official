@@ -110,13 +110,13 @@ function Guild:IsEnabled(data)
 end
 
 function Guild:Enable(data)
-    db.profile.datatext.guild.enabled = true;
     data.settings.enabled = true;
+    data.settings:SaveChanges();
 end
 
 function Guild:Disable(data)
-    db.profile.datatext.guild.enabled = false;
     data.settings.enabled = false;
+    data.settings:SaveChanges();
 
     if (data.handler) then
         data.handler:Destroy();

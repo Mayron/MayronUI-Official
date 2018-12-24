@@ -122,9 +122,17 @@ function Specialization:__Construct(data, settings, dataTextBar, slideController
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 end
 
+function Specialization:IsEnabled(data)
+    return data.settings.enabled;
+end
+
 function Specialization:Enable(data)
-    db.profile.datatext.specialization.enabled = true;
+    if (data.settings.enabled) then
+        return;
+    end
+
     data.settings.enabled = true;
+    data.settings:SaveChanges();
 
     self.Button:SetScript("OnEnter", Button_OnEnter);
     self.Button:SetScript("OnLeave", Button_OnLeave);
@@ -154,13 +162,13 @@ function Specialization:Enable(data)
     end):SetKey("spec_2");
 end
 
-function Specialization:IsEnabled(data)
-    return data.settings.enabled;
-end
-
 function Specialization:Disable(data)
-    db.profile.datatext.specialization.enabled = false;
+    if (not data.settings.enabled) then
+        return;
+    end
+
     data.settings.enabled = false;
+    data.settings:SaveChanges();
 
     em:FindHandlerByKey("spec_1"):Destroy();
     em:FindHandlerByKey("spec_2"):Destroy();
