@@ -482,6 +482,49 @@ local function ToTableAndSavingChanges_Test3(self) -- luacheck: ignore
     print("ToTableAndSavingChanges_Test3 Successful!");
 end
 
+local function ToTableAndSavingChanges_Test4(self) -- luacheck: ignore
+    print("ToTableAndSavingChanges_Test4 Started");
+
+    self.profile.root = {
+        options = {
+            option1 = true;
+            option2 = 123;
+            option3 = {
+                value1 = "not changed";
+            }
+        }
+    };
+
+    local tbl = self.profile.root:ToTable();
+
+    tbl.options.option3.value1 = "test";
+    assert(tbl.options.option3.value1 == "test");
+    assert(self.profile.root.options.option3.value1 == "not changed");
+
+    local pendingChanges = tbl:GetTotalPendingChanges();
+    assert(pendingChanges == 1);
+
+    tbl:Reset();
+    assert(tbl.options.option3.value1 == "not changed");
+
+    pendingChanges = tbl:GetTotalPendingChanges();
+    assert(pendingChanges == 0);
+
+    tbl.options.option3.value1 = "different test";
+
+    pendingChanges = tbl:GetTotalPendingChanges();
+    assert(pendingChanges == 1);
+
+    tbl:SaveChanges();
+
+    pendingChanges = tbl:GetTotalPendingChanges();
+    assert(pendingChanges == 0);
+    assert(tbl.options.option3.value1 == "different test");
+    assert(self.profile.root.options.option3.value1 == "different test");
+
+    print("ToTableAndSavingChanges_Test4 Successful!");
+end
+
 db:OnStartUp(function(...) -- luacheck: ignore
     TestDB = {};
 
@@ -498,4 +541,5 @@ db:OnStartUp(function(...) -- luacheck: ignore
     -- ToTableAndSavingChanges_Test1(...);
     -- ToTableAndSavingChanges_Test2(...);
     -- ToTableAndSavingChanges_Test3(...);
+    -- ToTableAndSavingChanges_Test4(...);
 end);

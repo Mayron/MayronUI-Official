@@ -691,7 +691,62 @@ do
         return totalChanges;
     end
 
-    local function CreateTracker(key, tbl, database, previousTracker)
+    local function GetTotalPendingChanges(self)
+        local tracker = self.__tracker;
+        local pendingChanges = 0;
+
+        for _, _ in pairs(tracker.changes) do
+            pendingChanges = pendingChanges + 1;
+        end
+
+        return pendingChanges;
+    end
+
+    local function ResetChildren(tracker)
+        if (tracker.children) then
+            for _, child in pairs(tracker.children) do
+                ResetChildren(child.__tracker);
+                obj:PushWrapper(child);
+            end
+
+            obj:PushWrapper(tracker.children);
+            tracker.children = nil;
+        end
+    end
+
+    local function Reset(self)
+        local tracker = self.__tracker;
+
+        ResetChildren(tracker);
+        obj:EmptyTable(tracker.changes);
+
+        -- Regenerate data:
+        -- cannot empty in case it is used elsewhere
+        tracker.data = obj:PopWrapper();
+
+        local observer = tracker.observer;
+        local svTable = observer:ToSavedVariable();
+        local defaults = observer:GetDefaults();
+        local parent = observer:GetParent();
+
+        if (defaults) then
+            AddTable(defaults, tracker.data);
+        end
+
+        if (parent) then
+            local parentTable = parent:ToSavedVariable();
+
+            if (parentTable) then
+                AddTable(parentTable, tracker.data);
+            end
+        end
+
+        if (svTable) then
+            AddTable(svTable, tracker.data);
+        end
+    end
+
+    local function CreateTracker(key, tbl, previousTracker)
         local proxyTracker = obj:PopWrapper();
         local tracker = obj:PopWrapper();
 
@@ -700,14 +755,19 @@ do
         if (previousTracker) then
             tracker.dbPath = string.format("%s.%s", previousTracker.dbPath, key);
             tracker.changes = previousTracker.changes;
+            tracker.observer = previousTracker.observer;
+            tracker.database = previousTracker.database;
+
+            tracker.data = tbl;
         else
             tracker.dbPath = key;
             tracker.changes = obj:PopWrapper();
         end
 
-        tracker.database = database;
-        tracker.data = tbl;
+        -- available functions:
         proxyTracker.SaveChanges = SaveChanges;
+        proxyTracker.Reset = Reset;
+        proxyTracker.GetTotalPendingChanges = GetTotalPendingChanges;
 
         return setmetatable(proxyTracker, trackerMT);
     end
@@ -717,7 +777,16 @@ do
         local nextValue = tracker.data[key];
 
         if (type(nextValue) == "table") then
-            return CreateTracker(key, nextValue, tracker.database, tracker);
+            if (tracker.children and tracker.children[key]) then
+                return tracker.children[key];
+            end
+
+            tracker.children = tracker.children or obj:PopWrapper();
+
+            local childTracker = CreateTracker(key, nextValue, tracker);
+            tracker.children[key] = childTracker;
+
+            return childTracker;
         else
             return nextValue;
         end
@@ -752,26 +821,6 @@ do
     ]]
     Framework:DefineReturns("table");
     function Observer:ToTable(data)
-        local merged = obj:PopWrapper();
-        local svTable = self:ToSavedVariable();
-        local defaults = self:GetDefaults();
-
-        if (defaults) then
-            AddTable(defaults, merged);
-        end
-
-        if (data.parent) then
-            local parentTable = data.parent:ToSavedVariable();
-
-            if (parentTable) then
-                AddTable(parentTable, merged);
-            end
-        end
-
-        if (svTable) then
-            AddTable(svTable, merged);
-        end
-
         local path;
 
         if (data.isGlobal) then
@@ -780,7 +829,13 @@ do
             path = string.format("%s.%s", "profile", data.path);
         end
 
-        return CreateTracker(path, merged, data.database);
+        local proxyTracker = CreateTracker(path);
+        proxyTracker.__tracker.database = data.database;
+        proxyTracker.__tracker.observer = self;
+
+        proxyTracker:Reset();
+
+        return proxyTracker;
     end
 end
 
