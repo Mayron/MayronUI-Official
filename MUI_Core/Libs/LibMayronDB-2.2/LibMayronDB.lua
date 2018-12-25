@@ -661,17 +661,52 @@ end
 
 do
     -- Adds all key and value pairs from fromTable onto toTable
-    local function AddTable(fromTable, toTable)
+    local function AddTable(fromTable, toTable, replace)
         for key, value in pairs(fromTable) do
             if (type(value) == "table") then
-                toTable[key] = toTable[key] or obj:PopWrapper();
-                AddTable(value, toTable[key]);
+
+                if (replace or toTable[key] == nil) then
+                    toTable[key] = obj:PopWrapper();
+                end
+
+                AddTable(value, toTable[key], replace);
             else
                 toTable[key] = value;
             end
         end
     end
 
+    local copyTable_MT = {};
+
+    do
+        local function PushAllChildren(self)
+            for _, value in pairs(self) do
+                if (type(value) == "table") then
+                    PushAllChildren(value);
+                end
+            end
+
+            obj:PushWrapper(self);
+        end
+
+        copyTable_MT.__gc = function(self)
+            setmetatable(self, nil);
+            PushAllChildren(self);
+        end
+    end
+
+    -- gets the basic, untracked table with no tracking capabilities
+    local function GetTable(self)
+        local realTable = self.__tracker.data;
+        local copyTable = obj:PopWrapper();
+
+        AddTable(realTable, copyTable, true);
+        setmetatable(copyTable, copyTable_MT);
+
+        return copyTable;
+    end
+
+    -- apply all table changes and saves changes to the database
     local function SaveChanges(self)
         local totalChanges = 0;
         local tracker = self.__tracker;
@@ -692,6 +727,7 @@ do
         return totalChanges;
     end
 
+    -- returns the total number of changes waiting to be saved to the database using SaveChanges()
     local function GetTotalPendingChanges(self)
         local tracker = self.__tracker;
         local pendingChanges = 0;
@@ -703,6 +739,7 @@ do
         return pendingChanges;
     end
 
+    -- Removes all changes
     local function ResetChanges(self)
         obj:EmptyTable(self.__tracker.rootData.changes);
     end
@@ -726,6 +763,7 @@ do
         proxyTracker.SaveChanges = SaveChanges;
         proxyTracker.ResetChanges = ResetChanges;
         proxyTracker.GetTotalPendingChanges = GetTotalPendingChanges;
+        proxyTracker.GetTable = GetTable;
 
         return setmetatable(proxyTracker, trackerMT);
     end
@@ -786,11 +824,10 @@ do
     Creates an immutable table containing all values from the underlining saved variables table,
     parent table, and defaults table. Changing this table will not affect the saved variables table!
 
-    @param disableTracking (boolean) - If true, disable tracking which means it is fully disconnected from the database.
     @return (table): a table containing all merged values
     ]]
-    Framework:DefineReturns("table", "?boolean");
-    function Observer:ToTable(data, disableTracking)
+    Framework:DefineReturns("table");
+    function Observer:ToTable()
         local merged = obj:PopWrapper();
         local svTable = self:ToSavedVariable();
         local defaults = self:GetDefaults();
@@ -812,6 +849,22 @@ do
             AddTable(svTable, merged);
         end
 
+        return merged;
+    end
+
+    --[[
+    Creates a table containing all values from the underlining saved variables table,
+    parent table, and defaults table and tracks all changes but does not apply them
+    until SaveChanges() is called
+
+    @return (table): a tracking table containing all merged values and some helper methods
+    ]]
+    Framework:DefineReturns("table");
+    function Observer:ToTracker(data)
+        local tbl = self:ToTable();
+        local proxyTracker = CreateTracker(nil, tbl);
+        local tracker = proxyTracker.__tracker;
+
         local observerPath;
 
         if (data.isGlobal) then
@@ -820,16 +873,9 @@ do
             observerPath = string.format("%s.%s", "profile", data.path);
         end
 
-        if (disableTracking) then
-            return merged;
-        end
-
-        local proxyTracker = CreateTracker(nil, merged);
-        local tracker = proxyTracker.__tracker;
-
         tracker.rootData = obj:PopWrapper();
         tracker.rootData.changes = obj:PopWrapper();
-        tracker.rootData.root = merged;
+        tracker.rootData.root = tbl;
         tracker.rootData.database = data.database;
         tracker.rootData.observerPath = observerPath;
 

@@ -229,8 +229,8 @@ local function UsingBothParentAndDefaults_Test1(self) -- luacheck: ignore
     print("UsingBothParentAndDefaults_Test1 Successful!");
 end
 
-local function ToTableAndSavingChanges_Test1(self) -- luacheck: ignore
-    print("ToTableAndSavingChanges_Test1 Started");
+local function ToTrackerAndSavingChanges_Test1(self) -- luacheck: ignore
+    print("ToTrackerAndSavingChanges_Test1 Started");
 
     self:SetPathValue(self.profile, "root", {
         key1 = {
@@ -248,7 +248,7 @@ local function ToTableAndSavingChanges_Test1(self) -- luacheck: ignore
         };
     });
 
-    local tbl = self.profile.root:ToTable();
+    local tbl = self.profile.root:ToTracker();
 
     tbl.key3.option1.new = "test";
 
@@ -258,11 +258,11 @@ local function ToTableAndSavingChanges_Test1(self) -- luacheck: ignore
 
     assert(self.profile.root.key3.option1.new == "test");
 
-    print("ToTableAndSavingChanges_Test1 Successful!");
+    print("ToTrackerAndSavingChanges_Test1 Successful!");
 end
 
-local function ToTableAndSavingChanges_Test2(self) -- luacheck: ignore
-    print("ToTableAndSavingChanges_Test2 Started");
+local function ToTrackerAndSavingChanges_Test2(self) -- luacheck: ignore
+    print("ToTrackerAndSavingChanges_Test2 Started");
 
     self:SetPathValue(self.profile, "root", {
         key1 = {
@@ -279,7 +279,7 @@ local function ToTableAndSavingChanges_Test2(self) -- luacheck: ignore
         };
     });
 
-    local tbl = self.profile.root:ToTable();
+    local tbl = self.profile.root:ToTracker();
 
     tbl.key3.option1.existingValue = "test";
 
@@ -297,7 +297,7 @@ local function ToTableAndSavingChanges_Test2(self) -- luacheck: ignore
 
     assert(self.profile.root.key3.option1.existingValue == nil);
 
-    print("ToTableAndSavingChanges_Test2 Successful!");
+    print("ToTrackerAndSavingChanges_Test2 Successful!");
 end
 
 -- Taken from LibMayronDB.lua
@@ -332,8 +332,8 @@ local function Equals(value1, value2, shallowEquals)
     return false;
 end
 
-local function ToTableAndSavingChanges_Test3(self) -- luacheck: ignore
-    print("ToTableAndSavingChanges_Test3 Started");
+local function ToTrackerAndSavingChanges_Test3(self) -- luacheck: ignore
+    print("ToTrackerAndSavingChanges_Test3 Started");
 
     -- It seems that when a new table is assigned to child, it removes all other values
     -- Arrange
@@ -429,7 +429,7 @@ local function ToTableAndSavingChanges_Test3(self) -- luacheck: ignore
     };
 
     self.profile.root:SetParent(self.profile.myParent);
-    local tbl = self.profile.root:ToTable();
+    local tbl = self.profile.root:ToTracker();
 
     ------------------------------------------------
     -- Act and Assert:
@@ -479,11 +479,11 @@ local function ToTableAndSavingChanges_Test3(self) -- luacheck: ignore
     assert(totalChanges == 1);
     assert(self.profile.root.defaults.default4.value3 == 30);
 
-    print("ToTableAndSavingChanges_Test3 Successful!");
+    print("ToTrackerAndSavingChanges_Test3 Successful!");
 end
 
-local function ToTableAndSavingChanges_Test4(self) -- luacheck: ignore
-    print("ToTableAndSavingChanges_Test4 Started");
+local function ToTrackerAndSavingChanges_Test4(self) -- luacheck: ignore
+    print("ToTrackerAndSavingChanges_Test4 Started");
 
     self.profile.root = {
         options = {
@@ -495,7 +495,7 @@ local function ToTableAndSavingChanges_Test4(self) -- luacheck: ignore
         }
     };
 
-    local tbl = self.profile.root:ToTable();
+    local tbl = self.profile.root:ToTracker();
 
     tbl.options.option3.value1 = "test";
     assert(tbl.options.option3.value1 == "test");
@@ -522,11 +522,11 @@ local function ToTableAndSavingChanges_Test4(self) -- luacheck: ignore
     assert(tbl.options.option3.value1 == "different test");
     assert(self.profile.root.options.option3.value1 == "different test");
 
-    print("ToTableAndSavingChanges_Test4 Successful!");
+    print("ToTrackerAndSavingChanges_Test4 Successful!");
 end
 
-local function ToTableAndSavingChanges_Test5(self) -- luacheck: ignore
-    print("ToTableAndSavingChanges_Test5 Started");
+local function ToTrackerAndSavingChanges_Test5(self) -- luacheck: ignore
+    print("ToTrackerAndSavingChanges_Test5 Started");
 
     self.profile.root = {
         level1 = {
@@ -543,7 +543,7 @@ local function ToTableAndSavingChanges_Test5(self) -- luacheck: ignore
         }
     };
 
-    local tbl = self.profile.root:ToTable();
+    local tbl = self.profile.root:ToTracker();
 
     tbl.level1.val = 80;
     tbl.level1.level2.val = 70;
@@ -575,7 +575,7 @@ local function ToTableAndSavingChanges_Test5(self) -- luacheck: ignore
     pendingChanges = tbl:GetTotalPendingChanges();
     assert(pendingChanges == 0, string.format("0 expected, got %s", pendingChanges));
 
-    print("ToTableAndSavingChanges_Test5 Successful!");
+    print("ToTrackerAndSavingChanges_Test5 Successful!");
 end
 
 db:OnStartUp(function(...) -- luacheck: ignore
@@ -591,9 +591,9 @@ db:OnStartUp(function(...) -- luacheck: ignore
     -- UpdatingSameValueMultipleTimes_Test1(...);
     -- CleaningUpWithNilValue_Test1(...);
     -- UsingBothParentAndDefaults_Test1(...);
-    -- ToTableAndSavingChanges_Test1(...);
-    -- ToTableAndSavingChanges_Test2(...);
-    -- ToTableAndSavingChanges_Test3(...);
-    -- ToTableAndSavingChanges_Test4(...);
-    -- ToTableAndSavingChanges_Test5(...);
+    -- ToTrackerAndSavingChanges_Test1(...);
+    -- ToTrackerAndSavingChanges_Test2(...);
+    -- ToTrackerAndSavingChanges_Test3(...);
+    -- ToTrackerAndSavingChanges_Test4(...);
+    -- ToTrackerAndSavingChanges_Test5(...);
 end);
