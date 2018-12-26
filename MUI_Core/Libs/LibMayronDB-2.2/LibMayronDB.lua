@@ -659,250 +659,6 @@ function Observer:HasParent(data)
     return data.parent ~= nil;
 end
 
-do
-    -- Adds all key and value pairs from fromTable onto toTable
-    local function AddTable(fromTable, toTable, replace)
-        for key, value in pairs(fromTable) do
-            if (type(value) == "table") then
-
-                if (replace or toTable[key] == nil) then
-                    toTable[key] = obj:PopWrapper();
-                end
-
-                AddTable(value, toTable[key], replace);
-            else
-                toTable[key] = value;
-            end
-        end
-    end
-
-    local copyTable_MT = {};
-
-    do
-        local function PushAllChildren(self)
-            for _, value in pairs(self) do
-                if (type(value) == "table") then
-                    PushAllChildren(value);
-                end
-            end
-
-            obj:PushWrapper(self);
-        end
-
-        copyTable_MT.__gc = function(self)
-            setmetatable(self, nil);
-            PushAllChildren(self);
-        end
-    end
-
-    -- gets the basic, untracked table with no tracking capabilities
-    local function GetTable(self)
-        local realTable = self.__tracker.data;
-        local copyTable = obj:PopWrapper();
-
-        AddTable(realTable, copyTable, true);
-        setmetatable(copyTable, copyTable_MT);
-
-        return copyTable;
-    end
-
-    -- apply all table changes and saves changes to the database
-    local function SaveChanges(self)
-        local totalChanges = 0;
-        local tracker = self.__tracker;
-
-        for path, value in pairs(tracker.rootData.changes) do
-            if (value == "nil") then
-                value = nil;
-            end
-
-            local fullPath = string.format("%s.%s", tracker.rootData.observerPath, path);
-            tracker.rootData.database:SetPathValue(fullPath, value);
-            tracker.rootData.database:SetPathValue(tracker.rootData.root, path, value);
-
-            totalChanges = totalChanges + 1;
-        end
-
-        obj:EmptyTable(tracker.rootData.changes);
-        return totalChanges;
-    end
-
-    -- returns the total number of changes waiting to be saved to the database using SaveChanges()
-    local function GetTotalPendingChanges(self)
-        local tracker = self.__tracker;
-        local pendingChanges = 0;
-
-        for _, _ in pairs(tracker.rootData.changes) do
-            pendingChanges = pendingChanges + 1;
-        end
-
-        return pendingChanges;
-    end
-
-    -- Removes all changes
-    local function ResetChanges(self)
-        obj:EmptyTable(self.__tracker.rootData.changes);
-    end
-
-    local trackerMT = {};
-
-    local function CreateTracker(key, tbl, previousTracker)
-        local proxyTracker = obj:PopWrapper();
-        local tracker = obj:PopWrapper();
-
-        proxyTracker.__tracker = tracker;
-
-        if (previousTracker) then
-            tracker.rootData = previousTracker.rootData;
-            tracker.path = GetNextPath(previousTracker.path, key);
-        end
-
-        tracker.data = tbl;
-
-        -- available functions:
-        proxyTracker.SaveChanges = SaveChanges;
-        proxyTracker.ResetChanges = ResetChanges;
-        proxyTracker.GetTotalPendingChanges = GetTotalPendingChanges;
-        proxyTracker.GetTable = GetTable;
-
-        return setmetatable(proxyTracker, trackerMT);
-    end
-
-    trackerMT.__index = function(self, key)
-        local tracker = self.__tracker;
-        local nextValue = tracker.data[key];
-        local path = GetNextPath(tracker.path, key);
-
-        if (tracker.rootData.changes[path] ~= nil) then
-            nextValue = tracker.rootData.changes[path];
-
-            if (nextValue == "nil") then
-                nextValue = nil;
-            end
-        end
-
-        if (type(nextValue) == "table") then
-            if (tracker.children and tracker.children[key]) then
-                return tracker.children[key];
-            end
-
-            tracker.children = tracker.children or obj:PopWrapper();
-
-            local childTracker = CreateTracker(key, nextValue, tracker);
-            tracker.children[key] = childTracker;
-
-            return childTracker;
-        else
-            return nextValue;
-        end
-    end
-
-    trackerMT.__newindex = function(self, key, value)
-        local tracker = self.__tracker;
-        local path = GetNextPath(tracker.path, key);
-        local currentValue = tracker.data[key];
-
-        if (currentValue ~= nil and value == nil) then
-            tracker.rootData.changes[path] = "nil";
-
-        elseif (not Equals(currentValue, value)) then
-            tracker.rootData.changes[path] = value;
-
-        else
-            tracker.rootData.changes[path] = nil;
-        end
-    end
-
-    trackerMT.__gc = function(self)
-        setmetatable(self, nil);
-        obj:PushWrapper(self.__tracker.rootData.changes);
-        obj:PushWrapper(self.__tracker.rootData);
-        obj:PushWrapper(self.__tracker);
-    end
-
-    local readOnlyTable_MT = {};
-
-    readOnlyTable_MT.__newindex = function(_, key)
-        error(string.format("Failed to aggin key '%s' to read only table.", key));
-    end
-
-    local function ApplyReadOnlyMetatable(tbl)
-        for _, value in pairs(tbl) do
-            if (type(value) == "table") then
-                ApplyReadOnlyMetatable(value);
-            end
-        end
-
-        setmetatable(tbl, readOnlyTable_MT);
-    end
-
-    --[[
-    Creates an immutable table containing all values from the underlining saved variables table,
-    parent table, and defaults table. Changing this table will not affect the saved variables table!
-
-    @return (table): a table containing all merged values
-    ]]
-    Framework:DefineReturns("table");
-    function Observer:ToReadOnlyTable()
-        local merged = obj:PopWrapper();
-        local svTable = self:ToSavedVariable();
-        local defaults = self:GetDefaults();
-        local parent = self:GetParent();
-
-        if (defaults) then
-            AddTable(defaults, merged);
-        end
-
-        if (parent) then
-            local parentTable = parent:ToSavedVariable();
-
-            if (parentTable) then
-                AddTable(parentTable, merged);
-            end
-        end
-
-        if (svTable) then
-            AddTable(svTable, merged);
-        end
-
-        if (type(merged) == "table") then
-            ApplyReadOnlyMetatable(merged);
-        end
-
-        return merged;
-    end
-
-    --[[
-    Creates a table containing all values from the underlining saved variables table,
-    parent table, and defaults table and tracks all changes but does not apply them
-    until SaveChanges() is called
-
-    @return (table): a tracking table containing all merged values and some helper methods
-    ]]
-    Framework:DefineReturns("table");
-    function Observer:ToTracker(data)
-        local tbl = self:ToTable();
-        local proxyTracker = CreateTracker(nil, tbl);
-        local tracker = proxyTracker.__tracker;
-
-        local observerPath;
-
-        if (data.isGlobal) then
-            observerPath = string.format("%s.%s", "global", data.path);
-        else
-            observerPath = string.format("%s.%s", "profile", data.path);
-        end
-
-        tracker.rootData = obj:PopWrapper();
-        tracker.rootData.changes = obj:PopWrapper();
-        tracker.rootData.root = tbl;
-        tracker.rootData.database = data.database;
-        tracker.rootData.observerPath = observerPath;
-
-        return proxyTracker;
-    end
-end
-
 --[[
 Gets the underlining saved variables table. Default or parent values will not be included in this!
 
@@ -1013,6 +769,255 @@ Helper function to return the path address of the observer.
 Framework:DefineReturns("?string");
 function Observer:GetPathAddress(data)
     return data.path;
+end
+
+do
+    -- local functions
+    local AddTable, CreateTracker, ApplyReadOnlyMetatable;
+    -- tracker methods
+    local SaveChanges, GetTotalPendingChanges, ResetChanges, ToReadOnlyTable;
+    -- read-only table methods
+    local ToTracker;
+
+    local trackerMT = {};
+    local readOnlyTable_MT = {};
+    local trackers = {};
+    local readOnlyData = {};
+
+    -- Local Functions:
+
+    -- Adds all key and value pairs from fromTable onto toTable
+    AddTable = function(fromTable, toTable, replace)
+        for key, value in pairs(fromTable) do
+            if (type(value) == "table") then
+
+                if (replace or toTable[key] == nil) then
+                    toTable[key] = obj:PopWrapper();
+                end
+
+                AddTable(value, toTable[key], replace);
+            else
+                toTable[key] = value;
+            end
+        end
+    end
+
+    CreateTracker = function(key, tbl, previousTracker)
+        local tracker = obj:PopWrapper();
+        local data = readOnlyData[tostring(tbl)];
+        local observerPath;
+
+        if (data.isGlobal) then
+            observerPath = string.format("%s.%s", "global", data.path);
+        else
+            observerPath = string.format("%s.%s", "profile", data.path);
+        end
+
+        tracker.rootData = obj:PopWrapper();
+        tracker.rootData.changes = obj:PopWrapper();
+        tracker.rootData.root = tbl;
+        tracker.rootData.database = data.database;
+        tracker.rootData.observerPath = observerPath;
+        tracker.data = tbl;
+
+        if (previousTracker) then
+            tracker.rootData = previousTracker.rootData;
+            tracker.path = GetNextPath(previousTracker.path, key);
+        end
+
+        local proxyTracker = obj:PopWrapper();
+
+        -- available functions:
+        proxyTracker.SaveChanges = SaveChanges;
+        proxyTracker.ResetChanges = ResetChanges;
+        proxyTracker.GetTotalPendingChanges = GetTotalPendingChanges;
+        proxyTracker.ToReadOnlyTable = ToReadOnlyTable;
+
+        -- add tracker to storage
+        trackers[tostring(proxyTracker)] = tracker;
+
+        return setmetatable(proxyTracker, trackerMT);
+    end
+
+    ApplyReadOnlyMetatable = function(tbl)
+        for _, value in pairs(tbl) do
+            if (type(value) == "table") then
+                ApplyReadOnlyMetatable(value);
+            end
+        end
+
+        setmetatable(tbl, readOnlyTable_MT);
+    end
+
+    -- Tracker Methods:
+
+    -- apply all table changes and saves changes to the database
+    SaveChanges = function(self)
+        local totalChanges = 0;
+        local tracker = self.__tracker;
+
+        for path, value in pairs(tracker.rootData.changes) do
+            if (value == "nil") then
+                value = nil;
+            end
+
+            local fullPath = string.format("%s.%s", tracker.rootData.observerPath, path);
+            tracker.rootData.database:SetPathValue(fullPath, value);
+            tracker.rootData.database:SetPathValue(tracker.rootData.root, path, value);
+
+            totalChanges = totalChanges + 1;
+        end
+
+        obj:EmptyTable(tracker.rootData.changes);
+        return totalChanges;
+    end
+
+    -- returns the total number of changes waiting to be saved to the database using SaveChanges()
+    GetTotalPendingChanges = function(self)
+        local tracker = self.__tracker;
+        local pendingChanges = 0;
+
+        for _, _ in pairs(tracker.rootData.changes) do
+            pendingChanges = pendingChanges + 1;
+        end
+
+        return pendingChanges;
+    end
+
+    ResetChanges = function(self)
+        obj:EmptyTable(self.__tracker.rootData.changes);
+    end
+
+    ToReadOnlyTable = function(self)
+        local readOnlyTable = readOnlyData[tostring(self)].tbl;
+        readOnlyTable.ToTracker = ToTracker;
+
+        return readOnlyTable;
+    end
+
+    -- Read-Only Table Methods:
+
+    ToTracker = function(self)
+        local tracker = trackers[tostring(self)];
+
+        if (tracker ~= nil) then
+            return tracker;
+        end
+
+        return CreateTracker(nil, self);
+    end
+
+    -- Meta-methods:
+
+    trackerMT.__index = function(self, key)
+        local tracker = self.__tracker;
+        local nextValue = tracker.data[key];
+        local path = GetNextPath(tracker.path, key);
+
+        if (tracker.rootData.changes[path] ~= nil) then
+            nextValue = tracker.rootData.changes[path];
+
+            if (nextValue == "nil") then
+                nextValue = nil;
+            end
+        end
+
+        if (type(nextValue) == "table") then
+            if (tracker.children and tracker.children[key]) then
+                return tracker.children[key];
+            end
+
+            tracker.children = tracker.children or obj:PopWrapper();
+
+            local childTracker = CreateTracker(key, nextValue, tracker);
+            tracker.children[key] = childTracker;
+
+            return childTracker;
+        else
+            return nextValue;
+        end
+    end
+
+    trackerMT.__newindex = function(self, key, value)
+        local tracker = self.__tracker;
+        local path = GetNextPath(tracker.path, key);
+        local currentValue = tracker.data[key];
+
+        if (currentValue ~= nil and value == nil) then
+            tracker.rootData.changes[path] = "nil";
+
+        elseif (not Equals(currentValue, value)) then
+            tracker.rootData.changes[path] = value;
+
+        else
+            tracker.rootData.changes[path] = nil;
+        end
+    end
+
+    trackerMT.__gc = function(self)
+        setmetatable(self, nil);
+        obj:PushWrapper(self.__tracker.rootData.changes);
+        obj:PushWrapper(self.__tracker.rootData);
+        obj:PushWrapper(self.__tracker);
+    end
+
+    readOnlyTable_MT.__newindex = function(_, key)
+        error(string.format("Failed to add key '%s' to read-only table.", key));
+    end
+
+    --[[
+    Creates an immutable table containing all values from the underlining saved variables table,
+    parent table, and defaults table. Changing this table will not affect the saved variables table!
+
+    @return (table): a table containing all merged values
+    ]]
+    Framework:DefineReturns("table");
+    function Observer:ToReadOnlyTable(data)
+        local merged = obj:PopWrapper();
+        local svTable = self:ToSavedVariable();
+        local defaults = self:GetDefaults();
+        local parent = self:GetParent();
+
+        if (defaults) then
+            AddTable(defaults, merged);
+        end
+
+        if (parent) then
+            local parentTable = parent:ToSavedVariable();
+
+            if (parentTable) then
+                AddTable(parentTable, merged);
+            end
+        end
+
+        if (svTable) then
+            AddTable(svTable, merged);
+        end
+
+        if (type(merged) == "table") then
+            ApplyReadOnlyMetatable(merged);
+        end
+
+        local key = tostring(merged);
+        readOnlyData[key] = obj:PopWrapper();
+        readOnlyData[key].data = data;
+        readOnlyData[key].tbl = merged;
+
+        return merged;
+    end
+
+    --[[
+    Creates a table containing all values from the underlining saved variables table,
+    parent table, and defaults table and tracks all changes but does not apply them
+    until SaveChanges() is called
+
+    @return (table): a tracking table containing all merged values and some helper methods
+    ]]
+    Framework:DefineReturns("table");
+    function Observer:ToTracker()
+        local tbl = self:ToReadOnlyTable();
+        return CreateTracker(nil, tbl);
+    end
 end
 -------------------------------------------------
 -- Helper Class (only for Library developers)
