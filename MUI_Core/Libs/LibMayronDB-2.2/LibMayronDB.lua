@@ -820,6 +820,22 @@ do
         obj:PushWrapper(self.__tracker);
     end
 
+    local readOnlyTable_MT = {};
+
+    readOnlyTable_MT.__newindex = function(_, key)
+        error(string.format("Failed to aggin key '%s' to read only table.", key));
+    end
+
+    local function ApplyReadOnlyMetatable(tbl)
+        for _, value in pairs(tbl) do
+            if (type(value) == "table") then
+                ApplyReadOnlyMetatable(value);
+            end
+        end
+
+        setmetatable(tbl, readOnlyTable_MT);
+    end
+
     --[[
     Creates an immutable table containing all values from the underlining saved variables table,
     parent table, and defaults table. Changing this table will not affect the saved variables table!
@@ -827,7 +843,7 @@ do
     @return (table): a table containing all merged values
     ]]
     Framework:DefineReturns("table");
-    function Observer:ToTable()
+    function Observer:ToReadOnlyTable()
         local merged = obj:PopWrapper();
         local svTable = self:ToSavedVariable();
         local defaults = self:GetDefaults();
@@ -847,6 +863,10 @@ do
 
         if (svTable) then
             AddTable(svTable, merged);
+        end
+
+        if (type(merged) == "table") then
+            ApplyReadOnlyMetatable(merged);
         end
 
         return merged;
