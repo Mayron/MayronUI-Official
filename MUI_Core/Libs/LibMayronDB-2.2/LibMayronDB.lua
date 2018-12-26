@@ -712,7 +712,7 @@ Example:
     end
 ]]
 function Observer:Iterate()
-    local merged = self:ToTable(true);
+    local merged = self:ToReadOnlyTable();
     return next, merged, nil;
 end
 
@@ -733,7 +733,7 @@ Example: db.profile.aModule:Print()
 ]]
 Framework:DefineParams("?number");
 function Observer:Print(data, depth)
-    local merged = self:ToTable(true);
+    local merged = self:ToReadOnlyTable();
     local tablePath = data.helper:GetDatabaseRootTableName(self);
     local path = (data.usingChild and data.usingChild.path) or data.path;
 
@@ -749,7 +749,7 @@ function Observer:Print(data, depth)
 end
 
 --[[
-@return (int): The length of the merged table (Observer:ToTable()).
+@return (int): The length of the merged table (Observer:ToReadOnlyTable()).
 ]]
 Framework:DefineReturns("number");
 function Observer:GetLength()
@@ -775,14 +775,11 @@ do
     -- local functions
     local AddTable, CreateTracker, ApplyReadOnlyMetatable;
     -- tracker methods
-    local SaveChanges, GetTotalPendingChanges, ResetChanges, ToReadOnlyTable;
-    -- read-only table methods
-    local ToTracker;
+    local SaveChanges, GetTotalPendingChanges, ResetChanges, ToReadOnlyTable, Iterate;
 
+    local trackers = {};
     local trackerMT = {};
     local readOnlyTable_MT = {};
-    local trackers = {};
-    local readOnlyData = {};
 
     -- Local Functions:
 
@@ -804,20 +801,10 @@ do
 
     CreateTracker = function(key, tbl, previousTracker)
         local tracker = obj:PopWrapper();
-        local data = readOnlyData[tostring(tbl)];
-        local observerPath;
-
-        if (data.isGlobal) then
-            observerPath = string.format("%s.%s", "global", data.path);
-        else
-            observerPath = string.format("%s.%s", "profile", data.path);
-        end
 
         tracker.rootData = obj:PopWrapper();
         tracker.rootData.changes = obj:PopWrapper();
         tracker.rootData.root = tbl;
-        tracker.rootData.database = data.database;
-        tracker.rootData.observerPath = observerPath;
         tracker.data = tbl;
 
         if (previousTracker) then
@@ -826,15 +813,14 @@ do
         end
 
         local proxyTracker = obj:PopWrapper();
+        trackers[tostring(proxyTracker)] = tracker;
 
         -- available functions:
         proxyTracker.SaveChanges = SaveChanges;
         proxyTracker.ResetChanges = ResetChanges;
         proxyTracker.GetTotalPendingChanges = GetTotalPendingChanges;
         proxyTracker.ToReadOnlyTable = ToReadOnlyTable;
-
-        -- add tracker to storage
-        trackers[tostring(proxyTracker)] = tracker;
+        proxyTracker.Iterate = Iterate;
 
         return setmetatable(proxyTracker, trackerMT);
     end
@@ -854,7 +840,7 @@ do
     -- apply all table changes and saves changes to the database
     SaveChanges = function(self)
         local totalChanges = 0;
-        local tracker = self.__tracker;
+        local tracker = trackers[tostring(self)];
 
         for path, value in pairs(tracker.rootData.changes) do
             if (value == "nil") then
@@ -874,7 +860,7 @@ do
 
     -- returns the total number of changes waiting to be saved to the database using SaveChanges()
     GetTotalPendingChanges = function(self)
-        local tracker = self.__tracker;
+        local tracker = trackers[tostring(self)];
         local pendingChanges = 0;
 
         for _, _ in pairs(tracker.rootData.changes) do
@@ -885,32 +871,23 @@ do
     end
 
     ResetChanges = function(self)
-        obj:EmptyTable(self.__tracker.rootData.changes);
+        local tracker = trackers[tostring(self)];
+        obj:EmptyTable(tracker.rootData.changes);
     end
 
     ToReadOnlyTable = function(self)
-        local readOnlyTable = readOnlyData[tostring(self)].tbl;
-        readOnlyTable.ToTracker = ToTracker;
-
-        return readOnlyTable;
+        return trackers[tostring(self)].data;
     end
 
-    -- Read-Only Table Methods:
-
-    ToTracker = function(self)
+    Iterate = function(self)
         local tracker = trackers[tostring(self)];
-
-        if (tracker ~= nil) then
-            return tracker;
-        end
-
-        return CreateTracker(nil, self);
+        return next, tracker.data, nil;
     end
 
     -- Meta-methods:
 
     trackerMT.__index = function(self, key)
-        local tracker = self.__tracker;
+        local tracker = trackers[tostring(self)];
         local nextValue = tracker.data[key];
         local path = GetNextPath(tracker.path, key);
 
@@ -939,7 +916,7 @@ do
     end
 
     trackerMT.__newindex = function(self, key, value)
-        local tracker = self.__tracker;
+        local tracker = trackers[tostring(self)];
         local path = GetNextPath(tracker.path, key);
         local currentValue = tracker.data[key];
 
@@ -955,10 +932,12 @@ do
     end
 
     trackerMT.__gc = function(self)
+        local tracker = trackers[tostring(self)];
+        trackers[tostring(self)] = nil;
         setmetatable(self, nil);
-        obj:PushWrapper(self.__tracker.rootData.changes);
-        obj:PushWrapper(self.__tracker.rootData);
-        obj:PushWrapper(self.__tracker);
+        obj:PushWrapper(tracker.rootData.changes);
+        obj:PushWrapper(tracker.rootData);
+        obj:PushWrapper(tracker);
     end
 
     readOnlyTable_MT.__newindex = function(_, key)
@@ -972,7 +951,7 @@ do
     @return (table): a table containing all merged values
     ]]
     Framework:DefineReturns("table");
-    function Observer:ToReadOnlyTable(data)
+    function Observer:ToReadOnlyTable()
         local merged = obj:PopWrapper();
         local svTable = self:ToSavedVariable();
         local defaults = self:GetDefaults();
@@ -998,11 +977,6 @@ do
             ApplyReadOnlyMetatable(merged);
         end
 
-        local key = tostring(merged);
-        readOnlyData[key] = obj:PopWrapper();
-        readOnlyData[key].data = data;
-        readOnlyData[key].tbl = merged;
-
         return merged;
     end
 
@@ -1014,9 +988,20 @@ do
     @return (table): a tracking table containing all merged values and some helper methods
     ]]
     Framework:DefineReturns("table");
-    function Observer:ToTracker()
-        local tbl = self:ToReadOnlyTable();
-        return CreateTracker(nil, tbl);
+    function Observer:ToTracker(data)
+        local tracker =  CreateTracker(nil, self:ToReadOnlyTable());
+        local observerPath;
+
+        if (data.isGlobal) then
+            observerPath = string.format("%s.%s", "global", data.path);
+        else
+            observerPath = string.format("%s.%s", "profile", data.path);
+        end
+
+        tracker.rootData.observerPath = observerPath;
+        tracker.rootData.database = data.database;
+
+        return tracker;
     end
 end
 -------------------------------------------------
