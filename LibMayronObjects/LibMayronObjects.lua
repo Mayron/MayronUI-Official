@@ -508,17 +508,17 @@ do
         class[key] = value;
     end
 
-    -- proxyClassMT.__tostring = function(self)
-    --     setmetatable(self, nil);
+    proxyClassMT.__tostring = function(self)
+        setmetatable(self, nil);
 
-    --     local classController = Core:GetController(self);
-    --     local className = classController.EntityName;
-    --     local str = tostring(self):gsub("table", string.format("<Class> %s", className));
+        local classController = AllControllers[tostring(self)];
+        local className = classController.EntityName;
+        local str = tostring(self):gsub("table", string.format("<Class> %s", className));
 
-    --     setmetatable(self, proxyClassMT);
+        setmetatable(self, proxyClassMT);
 
-    --     return str;
-    -- end
+        return str;
+    end
 
     function Core:CreateClass(package, packageData, className, parentClass, ...)
         local class                 = Lib:PopWrapper(); -- stores real table indexes (once proxy has completed evaluating data)
@@ -699,17 +699,17 @@ do
         self:Destroy();
     end
 
-    -- proxyInstanceMT.__tostring = function(self)
-    --     setmetatable(self, nil);
+    proxyInstanceMT.__tostring = function(self)
+        setmetatable(self, nil);
 
-    --     local instanceController = Core:GetController(self);
-    --     local className = instanceController.classController.EntityName;
-    --     local str = tostring(self):gsub("table", string.format("<Instance> %s", className));
+        local instanceController = AllControllers[tostring(self)];
+        local className = instanceController.classController.EntityName;
+        local str = tostring(self):gsub("table", string.format("<Instance> %s", className));
 
-    --     setmetatable(self, proxyInstanceMT);
+        setmetatable(self, proxyInstanceMT);
 
-    --     return str;
-    -- end
+        return str;
+    end
 
     function Core:CreateInstance(classController, ...)
         local instance              = Lib:PopWrapper(); -- stores real table indexes (once proxy has completed evaluating data)

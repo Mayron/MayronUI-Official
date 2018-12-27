@@ -1,0 +1,19 @@
+trackerData = tracker/read-only/observer data
+
+
+Current:
+trackerData.rootData ...
+	- changes
+	- root
+	- observerPath
+	- database
+trackerData.data
+trackerData.path
+trackerData.chilren -- not sure if needed if all trackers are stored in allTrackerData
+
+New:
+
+trackerData.path
+trackerData.observer -- can use observer:GetDatabase() if needed
+trackerData.tbl
+trackerData.tracker

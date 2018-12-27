@@ -660,6 +660,14 @@ function Observer:HasParent(data)
 end
 
 --[[
+@return (boolean): RHelper method to get database reference in case it is hard to access
+]]
+Framework:DefineReturns("Database");
+function Observer:GetDatabase(data)
+    return data.database;
+end
+
+--[[
 Gets the underlining saved variables table. Default or parent values will not be included in this!
 
 @return (table): the underlining saved variables table.
@@ -775,10 +783,12 @@ do
     -- local functions, ToTable
     local AddTable, ConvertObserverToTable, CreateTracker, ApplyReadOnlyMetatable;
     -- tracker methods
-    local SaveChanges, GetTotalPendingChanges, ResetChanges, ToReadOnlyTable, Iterate;
+    local SaveChanges, ToObserver, GetTotalPendingChanges, ResetChanges, ToReadOnlyTable, Iterate;
 
-    local trackers = {};
-    local trackerMT = {};
+    local readOnlyTableData = {};
+    local tracker_MT = {};
+
+    local readOnlyParent = {};
     local readOnlyTable_MT = {};
 
     -- Local Functions:
@@ -850,10 +860,11 @@ do
         proxyTracker.GetTotalPendingChanges = GetTotalPendingChanges;
         proxyTracker.ToReadOnlyTable = ToReadOnlyTable;
         proxyTracker.Iterate = Iterate;
+        proxyTracker.ToObserver = ToObserver;
 
-        trackers[tostring(proxyTracker)] = tracker;
+        readOnlyTableData[tostring(proxyTracker)] = tracker;
 
-        return setmetatable(proxyTracker, trackerMT);
+        return setmetatable(proxyTracker, tracker_MT);
     end
 
     ApplyReadOnlyMetatable = function(tbl)
@@ -871,7 +882,7 @@ do
     -- apply all table changes and saves changes to the database
     SaveChanges = function(self)
         local totalChanges = 0;
-        local tracker = trackers[tostring(self)];
+        local tracker = readOnlyTableData[tostring(self)];
 
         for path, value in pairs(tracker.rootData.changes) do
             if (value == "nil") then
@@ -891,7 +902,7 @@ do
 
     -- returns the total number of changes waiting to be saved to the database using SaveChanges()
     GetTotalPendingChanges = function(self)
-        local tracker = trackers[tostring(self)];
+        local tracker = readOnlyTableData[tostring(self)];
         local pendingChanges = 0;
 
         for _, _ in pairs(tracker.rootData.changes) do
@@ -902,12 +913,12 @@ do
     end
 
     ResetChanges = function(self)
-        local tracker = trackers[tostring(self)];
+        local tracker = readOnlyTableData[tostring(self)];
         obj:EmptyTable(tracker.rootData.changes);
     end
 
     ToReadOnlyTable = function(self)
-        local tbl = trackers[tostring(self)].data;
+        local tbl = readOnlyTableData[tostring(self)].data;
 
         if (type(tbl) == "table") then
             ApplyReadOnlyMetatable(tbl);
@@ -916,15 +927,29 @@ do
         return tbl;
     end
 
+    function ToObserver(self)
+        return readOnlyTableData[tostring(self)].observer;
+    end
+
     Iterate = function(self)
-        local tracker = trackers[tostring(self)];
+        local tracker = readOnlyTableData[tostring(self)];
         return next, tracker.data, nil;
+    end
+
+    -- Read-Only Table Methods:
+
+    function readOnlyParent:ToTracker(self)
+
+    end
+
+    function readOnlyParent:ToObserver(self)
+
     end
 
     -- Meta-methods:
 
-    trackerMT.__index = function(self, key)
-        local tracker = trackers[tostring(self)];
+    tracker_MT.__index = function(self, key)
+        local tracker = readOnlyTableData[tostring(self)];
         local nextValue = tracker.data[key];
         local path = GetNextPath(tracker.path, key);
 
@@ -952,8 +977,8 @@ do
         end
     end
 
-    trackerMT.__newindex = function(self, key, value)
-        local tracker = trackers[tostring(self)];
+    tracker_MT.__newindex = function(self, key, value)
+        local tracker = readOnlyTableData[tostring(self)];
         local path = GetNextPath(tracker.path, key);
         local currentValue = tracker.data[key];
 
@@ -968,14 +993,16 @@ do
         end
     end
 
-    trackerMT.__gc = function(self)
-        local tracker = trackers[tostring(self)];
-        trackers[tostring(self)] = nil;
+    tracker_MT.__gc = function(self)
+        local tracker = readOnlyTableData[tostring(self)];
+        readOnlyTableData[tostring(self)] = nil;
         setmetatable(self, nil);
         obj:PushWrapper(tracker.rootData.changes);
         obj:PushWrapper(tracker.rootData);
         obj:PushWrapper(tracker);
     end
+
+    readOnlyTable_MT.__index = readOnlyParent;
 
     readOnlyTable_MT.__newindex = function(_, key)
         error(string.format("Failed to add key '%s' to read-only table.", key));
@@ -1013,18 +1040,19 @@ do
     ]]
     Framework:DefineReturns("table", "?table");
     function Observer:ToTracker(data, reusableTable)
-        local proxyTracker = CreateTracker(nil, ConvertObserverToTable(self, reusableTable));
-        local observerPath;
+        local readOnlyTable = ConvertObserverToTable(self, reusableTable);
+        local proxyTracker = CreateTracker(nil, readOnlyTable);
+        local path;
 
         if (data.isGlobal) then
-            observerPath = string.format("%s.%s", "global", data.path);
+            path = string.format("%s.%s", "global", data.path);
         else
-            observerPath = string.format("%s.%s", "profile", data.path);
+            path = string.format("%s.%s", "profile", data.path);
         end
 
-        local tracker = trackers[tostring(proxyTracker)];
-        tracker.rootData.observerPath = observerPath;
-        tracker.rootData.database = data.database;
+        local tblData = readOnlyTableData[tostring(readOnlyTable)];
+        tblData.path = path;
+        tblData.observer = self;
 
         return proxyTracker;
     end
