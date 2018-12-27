@@ -27,7 +27,7 @@ do
         fullName = tk.strsplit("-", fullName);
 
         _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
-        _G.GameTooltip:AddLine(tk.Strings:GetClassColoredText(classFileName, fullName));
+        _G.GameTooltip:AddLine(tk.Strings:SetTextColorByClass(classFileName, fullName));
         _G.GameTooltip:AddDoubleLine(L["Zone"]..":", zone, nil, nil, nil, 1, 1, 1);
         _G.GameTooltip:AddDoubleLine(L["Rank"]..":", rank, nil, nil, nil, 1, 1, 1);
 
@@ -76,7 +76,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.guild;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTable();
+    local settings = sv:ToTracker();
 
     if (settings.enabled) then
         local guild = Guild(settings, dataTextData.slideController, self);
@@ -192,7 +192,7 @@ function Guild:Click(data, button)
             label.guildRosterInfo = { _G.GetGuildRosterInfo(i) };
 
             label.name:SetText(tk.string.format("%s%s %s",
-                tk.Strings:GetClassColoredText(classFileName, fullName), status, level));
+                tk.Strings:SetTextColorByClass(classFileName, fullName), status, level));
         end
     end
 

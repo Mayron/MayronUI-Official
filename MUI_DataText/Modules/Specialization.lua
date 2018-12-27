@@ -20,8 +20,8 @@ local function Button_OnEnter(self)
 
     _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
     _G.GameTooltip:SetText(L["Commands"]..":")
-    _G.GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
-    _G.GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Right Click:"]), L["Choose Loot Spec"], r, g, b, 1, 1, 1);
+    _G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
+    _G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]), L["Choose Loot Spec"], r, g, b, 1, 1, 1);
     _G.GameTooltip:Show();
 end
 
@@ -95,7 +95,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.specialization;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTable();
+    local settings = sv:ToTracker();
 
     if (settings.enabled) then
         local specialization = Specialization(settings, dataTextData.bar, dataTextData.slideController, self);
@@ -339,7 +339,7 @@ end
 function Specialization:Click(_, button)
     if (_G.UnitLevel("player") < 10) then
         tk:Print(L["Must be level 10 or higher to use Talents."]);
-        return;
+        return true;
     end
 
     local r, g, b = tk:GetThemeColor();
@@ -349,11 +349,11 @@ function Specialization:Click(_, button)
     title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
 
     if (button == "LeftButton") then
-        title.name:SetText(tk.Strings:GetRGBColoredText(L["Choose Spec"]..":", r, g, b));
+        title.name:SetText(tk.Strings:SetTextColorByRGB(L["Choose Spec"]..":", r, g, b));
         self.TotalLabelsShown = self:HandleLeftClick();
 
     elseif (button == "RightButton") then
-        title.name:SetText(tk.Strings:GetRGBColoredText(L["Choose Loot Spec"]..":", r, g, b));
+        title.name:SetText(tk.Strings:SetTextColorByRGB(L["Choose Loot Spec"]..":", r, g, b));
         self.TotalLabelsShown = self:HandleRightClick();
     end
 end

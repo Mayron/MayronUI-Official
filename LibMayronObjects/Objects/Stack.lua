@@ -1,7 +1,7 @@
-local Lib = LibStub:GetLibrary("LibMayronObjects");
+-- luacheck: ignore self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronObjects");
 local Collections = Lib:Import("Framework.System.Collections");
 local Stack = Collections:CreateClass("Stack");
- ---------------------------------------
 
 function Stack:__Construct(data, OnNew, OnPush, OnPop)
     data.tbl = {};
@@ -43,7 +43,7 @@ function Stack:IsEmpty(data)
 end
 
 function Stack:ForEach(data, func, ...)
-    for _, item in tk.ipairs(data.tbl) do
+    for _, item in ipairs(data.tbl) do
         func(item, ...);
     end
 end

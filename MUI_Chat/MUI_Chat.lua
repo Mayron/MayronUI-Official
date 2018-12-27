@@ -61,7 +61,7 @@ end
 -- Chat Module -------------------
 
 function C_ChatModule:OnInitialize(data)
-	data.sv = db.profile.chat;
+	data.settings = db.profile.chat:ToReadOnlyTable();
 
     tk.StaticPopupDialogs["MUI_Link"] = {
 		text = tk.Strings:Join("\n",
@@ -78,7 +78,7 @@ function C_ChatModule:OnInitialize(data)
 	};
 
 	KillElements();
-	ReskinEditBox(data.sv.editBox:ToTable());
+	ReskinEditBox(data.settings.editBox);
 
 	local changeGameFont = db.global.core.changeGameFont;
 	local muiFont = tk.Constants.LSM:Fetch("font", db.global.core.font);
@@ -92,14 +92,15 @@ function C_ChatModule:OnInitialize(data)
         end
 	end
 
-	for anchorName, _ in data.sv.chatFrames:Iterate() do
-		local chatFrameSV = data.sv.chatFrames[anchorName];
+	for anchorName, _ in pairs(data.settings.chatFrames) do
+		local chatFrameSettings = data.settings.chatFrames[anchorName];
 
-		if (chatFrameSV.enabled) then
-			chatFrameSV:SetParent(data.sv.templateMuiChatFrame);
+		if (chatFrameSettings.enabled) then
+			db.profile.chat.chatFrames[anchorName]:SetParent(db.profile.chat.templateMuiChatFrame);
+			chatFrameSettings = db.profile.chat.chatFrames[anchorName]:ToReadOnlyTable();
 
 			local muiChatFrame = self:ShowMuiChatFrame(anchorName);
-			self:SetUpButtonHandler(muiChatFrame, chatFrameSV.buttons);
+			self:SetUpButtonHandler(muiChatFrame, chatFrameSettings.buttons);
 
 			if (anchorName == "TOPLEFT") then
 				if (tk.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then

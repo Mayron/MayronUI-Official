@@ -50,7 +50,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.friends;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTable();
+    local settings = sv:ToTracker();
 
     if (settings.enabled) then
         local friends = Friends(settings, dataTextData.slideController, self);

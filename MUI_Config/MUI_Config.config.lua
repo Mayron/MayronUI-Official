@@ -1,109 +1,12 @@
--- luacheck: ignore MayronUI self
+-- luacheck: ignore MayronUI self 143 631
 
 local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 local C_ConfigModule = MayronUI:ImportModule("Config");
 
 C_ConfigModule.ConfigTable =
 {
-    name = L["General"],
-    id = 1,
-    type = "category",
-    children = {
-        {   name = L["Enable Master Font"],
-            tooltip = L["Uncheck to prevent MUI from changing the game font."],
-            requiresRestart = true,
-            dbPath = "global.core.changeGameFont",
-            type = "check",
-        },
-        {   name = L["Display Lua Errors"],
-            type = "check",
-            GetValue = function()
-                return tonumber(_G.GetCVar("ScriptErrors")) == 1;
-            end,
-            SetValue = function(value)
-                if (value) then
-                    _G.SetCVar("ScriptErrors","1");
-                else
-                    _G.SetCVar("ScriptErrors","0");
-                end
-            end
-        },
-        {   type = "divider"
-        },
-        {   name = L["Master Font"],
-            type = "dropdown",
-            options = tk.Constants.LSM:List("font"),
-            dbPath = "global.core.font",
-            requiresRestart = true,
-            fontPicker = true,
-        },
-        {   type = "divider"
-        },
-        {   name = L["Set Theme Color"],
-            type = "color",
-            tooltip = L["Warning: This will NOT change the color of CastBars!"],
-            dbPath = "profile.theme.color",
-            requiresReload = true,
-            SetValue = function(_, _, value)
-                value.hex = tk.string.format('%02x%02x%02x', value.r * 255, value.g * 255, value.b * 255);
-                db.profile.theme.color = value;
-                db.profile["profile.bottomui.gradients"] = nil;
-            end
-        },
-        {   name = L["Objective (Quest) Tracker"],
-            type = "title"
-        },
-        {   name = "Enable",
-            tooltip = L["Disable this to stop MUI from controlling the Objective Tracker."],
-            type = "check",
-            dbPath = "profile.sidebar.objective_tracker.enabled",
-            module = "SideBar",
-            requiresReload = true,
-        },
-        {   name = "Anchor to Side Bar",
-            tooltip = "Anchor the Objective Tracker to the action bar container on the right side of the screen.",
-            type = "check",
-            dbPath = "profile.sidebar.objective_tracker.anchored_to_sidebars",
-            module = "SideBar",
-        },
-        {   type = "divider",
-        },
-        {   name = L["Set Width"],
-            type = "textfield",
-            tooltip = L["Adjust the width of the Objective Tracker."].."\n\n"..
-                        L["Default value is "].."250",
-            dbPath = "profile.sidebar.objective_tracker.width",
-            valueType = "number",
-            module = "SideBar",
-        },
-        {   name = L["Set Height"],
-            type = "textfield",
-            tooltip = L["Adjust the height of the Objective Tracker."].."\n\n"..
-                        L["Default value is "].."600",
-            dbPath = "profile.sidebar.objective_tracker.height",
-            valueType = "number",
-            module = "SideBar",
-        },
-        {   name = L["X-Offset"],
-            type = "textfield",
-            tooltip = L["Adjust the horizontal positioning of the Objective Tracker."].."\n\n"..
-                        L["Default value is "].."-30",
-            dbPath = "profile.sidebar.objective_tracker.xOffset",
-            valueType = "number",
-            module = "SideBar",
-        },
-        {   name = L["Y-Offset"],
-            type = "textfield",
-            tooltip = L["Adjust the vertical positioning of the Objective Tracker."].."\n\n"..
-                        L["Default value is "].."0",
-            dbPath = "profile.sidebar.objective_tracker.yOffset",
-            valueType = "number",
-            module = "SideBar",
-        }
-    },
     {   name = L["Bottom UI Panels"],
         module = "BottomUI",
-        type = "category",
         children = {
             {   name = L["General Options"],
                 type = "title",
@@ -111,9 +14,8 @@ C_ConfigModule.ConfigTable =
             },
             {   name = L["Container Width"],
                 type = "slider",
-                tooltip = L["Adjust the width of the Bottom UI container."].."\n\n"..
-                            L["Minimum value is "].."680".."\n\n"..
-                            L["Default value is "].."750",
+                tooltip = tk.Strings.Concat(L["Adjust the width of the Bottom UI container."], "\n\n",
+                    L["Minimum value is "], "680", "\n\n", L["Default value is "], "750"),
                 step = 5,
                 min = 680,
                 max = 1200,
@@ -153,9 +55,8 @@ C_ConfigModule.ConfigTable =
                 step = 5,
                 min = 200,
                 max = 550,
-                tooltip = L["Adjust the width of the unit frame background panels."].."\n\n"..
-                            L["Minimum value is "].."200".."\n\n"..
-                            L["Default value is "].."325",
+                tooltip = tk.Strings:Concat(L["Adjust the width of the unit frame background panels."], "\n\n",
+                    L["Minimum value is "], "200", "\n\n", L["Default value is "], "325"),
                 dbPath = "profile.bottomui.unit_panels.unit_width",
             },
             {   name = L["Name Panels"],
@@ -163,8 +64,8 @@ C_ConfigModule.ConfigTable =
             },
             {   name = L["Width"],
                 type = "slider",
-                tooltip = L["Adjust the width of the unit name background panels."].."\n\n"..
-                            L["Default value is "].."235",
+                tooltip = tk.Strings:Concat(L["Adjust the width of the unit name background panels."], "\n\n",
+                    L["Default value is "], "235"),
                 step = 5,
                 min = 150,
                 max = 350,
@@ -172,8 +73,8 @@ C_ConfigModule.ConfigTable =
             },
             {   name = L["Height"],
                 type = "slider",
-                tooltip = L["Adjust the height of the unit name background panels."].."\n\n"..
-                            L["Default value is "].."20",
+                tooltip = tk.Strings:Concat(L["Adjust the height of the unit name background panels."], "\n\n",
+                    L["Default value is "], "20"),
                 step = 1,
                 min = 16,
                 max = 30,
@@ -181,8 +82,7 @@ C_ConfigModule.ConfigTable =
             },
             {   name = L["X-Offset"],
                 type = "slider",
-                tooltip = L["Move the unit name panels further in or out."].."\n\n"..
-                            L["Default value is "].."24",
+                tooltip = tk.Strings:Concat(L["Move the unit name panels further in or out."], "\n\n", L["Default value is "], "24"),
                 step = 1,
                 min = -100,
                 max = 100,
@@ -190,8 +90,7 @@ C_ConfigModule.ConfigTable =
             },
             {   name = L["Font Size"],
                 type = "slider",
-                tooltip = L["Set the font size of unit names."].."\n\n"..
-                            L["Default value is "].."11",
+                tooltip = tk.Strings:Concat(L["Set the font size of unit names."], "\n\n", L["Default value is "], "11"),
                 step = 1,
                 min = 8,
                 max = 18,
@@ -213,9 +112,8 @@ C_ConfigModule.ConfigTable =
             },
             {   name = L["Animation Speed"],
                 type = "slider",
-                tooltip = L["The speed of the Expand and Retract transitions."].."\n\n"..
-                            L["The higher the value, the quicker the speed."].."\n\n"..
-                            L["Default value is "].."6",
+                tooltip = tk.Strings:Concat(L["The speed of the Expand and Retract transitions."], "\n\n",
+                    L["The higher the value, the quicker the speed."], "\n\n", L["Default value is "], "6"),
                 step = 1,
                 min = 1,
                 max = 10,
@@ -459,7 +357,6 @@ C_ConfigModule.ConfigTable =
         }
     },
     {   name = L["Side Bar"],
-        type = "category",
         module = "SideBar",
         children =  {
             {   name = L["Width (With 1 Bar)"],
@@ -572,6 +469,102 @@ C_ConfigModule.ConfigTable =
                 dbPath = "profile.sidebar.buttons.height",
                 valueType = "number",
             },
+        }
+    },
+    {   name = L["General"],
+        id = 1,
+        children = {
+            {   name = L["Enable Master Font"],
+                tooltip = L["Uncheck to prevent MUI from changing the game font."],
+                requiresRestart = true,
+                dbPath = "global.core.changeGameFont",
+                type = "check",
+            },
+            {   name = L["Display Lua Errors"],
+                type = "check",
+                GetValue = function()
+                    return tonumber(_G.GetCVar("ScriptErrors")) == 1;
+                end,
+                SetValue = function(value)
+                    if (value) then
+                        _G.SetCVar("ScriptErrors","1");
+                    else
+                        _G.SetCVar("ScriptErrors","0");
+                    end
+                end
+            },
+            {   type = "divider"
+            },
+            {   name = L["Master Font"],
+                type = "dropdown",
+                options = tk.Constants.LSM:List("font"),
+                dbPath = "global.core.font",
+                requiresRestart = true,
+                fontPicker = true,
+            },
+            {   type = "divider"
+            },
+            {   name = L["Set Theme Color"],
+                type = "color",
+                tooltip = L["Warning: This will NOT change the color of CastBars!"],
+                dbPath = "profile.theme.color",
+                requiresReload = true,
+                SetValue = function(_, _, value)
+                    value.hex = tk.string.format('%02x%02x%02x', value.r * 255, value.g * 255, value.b * 255);
+                    db.profile.theme.color = value;
+                    db.profile["profile.bottomui.gradients"] = nil;
+                end
+            },
+            {   name = L["Objective (Quest) Tracker"],
+                type = "title"
+            },
+            {   name = "Enable",
+                tooltip = L["Disable this to stop MUI from controlling the Objective Tracker."],
+                type = "check",
+                dbPath = "profile.sidebar.objective_tracker.enabled",
+                module = "SideBar",
+                requiresReload = true,
+            },
+            {   name = "Anchor to Side Bar",
+                tooltip = "Anchor the Objective Tracker to the action bar container on the right side of the screen.",
+                type = "check",
+                dbPath = "profile.sidebar.objective_tracker.anchored_to_sidebars",
+                module = "SideBar",
+            },
+            {   type = "divider",
+            },
+            {   name = L["Set Width"],
+                type = "textfield",
+                tooltip = L["Adjust the width of the Objective Tracker."].."\n\n"..
+                            L["Default value is "].."250",
+                dbPath = "profile.sidebar.objective_tracker.width",
+                valueType = "number",
+                module = "SideBar",
+            },
+            {   name = L["Set Height"],
+                type = "textfield",
+                tooltip = L["Adjust the height of the Objective Tracker."].."\n\n"..
+                            L["Default value is "].."600",
+                dbPath = "profile.sidebar.objective_tracker.height",
+                valueType = "number",
+                module = "SideBar",
+            },
+            {   name = L["X-Offset"],
+                type = "textfield",
+                tooltip = L["Adjust the horizontal positioning of the Objective Tracker."].."\n\n"..
+                            L["Default value is "].."-30",
+                dbPath = "profile.sidebar.objective_tracker.xOffset",
+                valueType = "number",
+                module = "SideBar",
+            },
+            {   name = L["Y-Offset"],
+                type = "textfield",
+                tooltip = L["Adjust the vertical positioning of the Objective Tracker."].."\n\n"..
+                            L["Default value is "].."0",
+                dbPath = "profile.sidebar.objective_tracker.yOffset",
+                valueType = "number",
+                module = "SideBar",
+            }
         }
     }
 };

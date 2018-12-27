@@ -18,7 +18,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self)
     local sv = db.profile.datatext.combatTimer;
     sv:SetParent(db.profile.datatext); --TODO: will this cause a loop?
 
-    local settings = sv:ToTable();
+    local settings = sv:ToTracker();
 
     if (settings.enabled) then
         local combatTimer = CombatTimer(self, settings);
@@ -52,7 +52,7 @@ function CombatTimer:__Construct(data, dataTextModule, settings)
 
     end):SetKey("combat_timer");
 
-    local font = tk.Constants.LSM:Fetch("font", db.global.Core.font);
+    local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
     -- create datatext button
     self.Button = dataTextModule:CreateDataTextButton();

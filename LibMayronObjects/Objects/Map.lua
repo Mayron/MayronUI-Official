@@ -1,8 +1,8 @@
-local Lib = LibStub:GetLibrary("LibMayronObjects");
+-- luacheck: ignore self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronObjects");
 local Collections = Lib:Import("Framework.System.Collections");
 local Map = Collections:CreateClass("Map");
 local List = Collections:Get("List");
- ---------------------------------------
 
 Collections:DefineParams("?table");
 function Map:__Construct(data, tbl)
@@ -16,25 +16,25 @@ function Map:__Construct(data, tbl)
 end
 
 function Map:Add(data, key, value)
-    Core:Assert(not data.values[key], "Map.Add - key '%s' already exists.", key);
+    Lib:Assert(not data.values[key], "Map.Add - key '%s' already exists.", key);
     data.values[key] = value;
 end
 
-function Map:AddAll(data, keyValues)
+function Map:AddAll(_, keyValues)
     for key, value in pairs(keyValues) do
         self:Add(key, value);
-    end    
+    end
 end
 
 function Map:Remove(data, key)
-    Core:Assert(data.values[key], "Map.Add: key '%s' not found.", key);
+    Lib:Assert(data.values[key], "Map.Add: key '%s' not found.", key);
     data.values[key] = nil;
 end
 
-function Map:RemoveAll(data, keys)
+function Map:RemoveAll(_, keys)
     for _, key in ipairs(keys) do
         self:Remove(key);
-    end    
+    end
 end
 
 function Map:RetainAll(data, keys)
@@ -51,7 +51,7 @@ function Map:RetainAll(data, keys)
         if (not keyExists) then
             self:Remove(key);
         end
-    end    
+    end
 end
 
 function Map:RemoveByValue(data, value)
@@ -91,7 +91,7 @@ function Map:Filter(data, predicate)
 end
 
 function Map:Select(data, predicate)
-    local selected = {};
+    local selected = Lib:PopWrapper();
 
     for key, value in pairs(data.values) do
         if (predicate(key, value)) then
@@ -108,7 +108,7 @@ function Map:Empty(data)
     end
 end
 
-function Map:IsEmpty(data)
+function Map:IsEmpty(_)
     return self:Size() == 0;
 end
 
@@ -117,7 +117,7 @@ function Map:Size(data)
     for _, _ in pairs(data.values) do
         size = size + 1;
     end
-    return size;    
+    return size;
 end
 
 function Map:ToTable(data)
@@ -130,7 +130,7 @@ function Map:ToTable(data)
     return copy;
 end
 
-function Map:GetValueList(data, ...)
+function Map:GetValueList(data)
     local list = List();
     for _, value in pairs(data.values) do
         list:Add(value);
@@ -138,7 +138,7 @@ function Map:GetValueList(data, ...)
     return list;
 end
 
-function Map:GetKeyList(data, ...)
+function Map:GetKeyList(data)
     local list = List();
     for key, _ in pairs(data.values) do
         list:Add(key);

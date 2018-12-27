@@ -78,7 +78,6 @@ end
 castBarsModule.ConfigTable =
 {
     name = "Cast Bars",
-    type = "category",
     module = "CastBars",
     children = {
         {   name = L["Appearance"],

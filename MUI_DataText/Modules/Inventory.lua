@@ -20,8 +20,8 @@ local function button_OnEnter(self)
     local r, g, b = tk:GetThemeColor();
     _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
     _G.GameTooltip:SetText(L["Commands"]..":");
-    _G.GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Left Click:"]), L["Toggle Bags"], r, g, b, 1, 1, 1);
-    _G.GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText(L["Right Click:"]), L["Sort Bags"], r, g, b, 1, 1, 1);
+    _G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Toggle Bags"], r, g, b, 1, 1, 1);
+    _G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]), L["Sort Bags"], r, g, b, 1, 1, 1);
     _G.GameTooltip:Show();
 end
 
@@ -35,7 +35,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.inventory;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTable();
+    local settings = sv:ToTracker();
 
     if (settings.enabled) then
         local inventory = Inventory(settings, dataTextData.slideController, self);

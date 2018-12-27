@@ -69,7 +69,7 @@ function tk.Strings:FormatReadableNumber(number)
 end
 
 --@param text - any text you wish to colour code
-function tk.Strings:SetTextColorByHexCode(text, hex)
+function tk.Strings:SetTextColorByHex(text, hex)
     return string.format("|cff%s%s|r", hex, text);
 end
 

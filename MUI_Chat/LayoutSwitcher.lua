@@ -69,10 +69,10 @@ local function LayoutButton_OnEnter(self)
 
 	_G.GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 8, -38);
 	_G.GameTooltip:SetText("MUI Layout Button");
-	_G.GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText("Left Click:"), "Switch Layout", 1, 1, 1);
-	_G.GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText("Middle Click:"), "Toggle Blizzard Speech Menu", 1, 1, 1);
-	_G.GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText("Right Click:"), "Show Layout Config Tool", 1, 1, 1);
-	_G.GameTooltip:AddDoubleLine(tk.Strings:GetThemeColoredText("ALT + Left Click:"), "Toggle Tooltip", 1, 0, 0, 1, 0, 0);
+	_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme("Left Click:"), "Switch Layout", 1, 1, 1);
+	_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme("Middle Click:"), "Toggle Blizzard Speech Menu", 1, 1, 1);
+	_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme("Right Click:"), "Show Layout Config Tool", 1, 1, 1);
+	_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme("ALT + Left Click:"), "Toggle Tooltip", 1, 0, 0, 1, 0, 0);
 	_G.GameTooltip:Show();
 end
 
@@ -98,7 +98,7 @@ local function LayoutButton_OnMouseUp(self, chat, menu, btnPressed)
 			chat:SwitchLayouts(layoutName, layoutData);
 
 			tk.PlaySound(tk.Constants.CLICK);
-			tk:Print(tk.Strings:GetRGBColoredText(layoutName, 0, 1, 0), "Layout enabled!");
+			tk:Print(tk.Strings:SetTextColorByRGB(layoutName, 0, 1, 0), "Layout enabled!");
 		end
 
 	elseif (btnPressed == "RightButton") then
@@ -119,7 +119,7 @@ end
 
 -- First function to be called!
 function C_ChatModule:SetUpLayoutSwitcher(data, layoutButton)
-	local layoutName = data.sv.layout;
+	local layoutName = data.settings.layout;
 	local firstCharacter = layoutName:sub(1, 1):upper();
 	data.layoutButton = layoutButton;
 
@@ -391,7 +391,7 @@ function C_ChatModule:ShowLayoutTool(data)
 		return;
 	end
 
-	data.viewingLayout = data.sv.layout;
+	data.viewingLayout = data.settings.layout;
 
 	data.layoutTool = gui:CreateDialogBox(tk.Constants.AddOnStyle);
 	data.layoutTool:SetSize(700, 400);
@@ -478,7 +478,7 @@ function C_ChatModule:ShowLayoutTool(data)
 end
 
 function C_ChatModule:SwitchLayouts(data, layoutName, layoutData)
-	data.sv.layout = layoutName;
+	db.profile.chat.layout = layoutName;
 
 	local firstCharacter = layoutName:sub(1, 1):upper();
 	data.layoutButton:SetText(firstCharacter);

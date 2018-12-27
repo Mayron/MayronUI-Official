@@ -23,7 +23,7 @@ local function ChangeTheme(self, value)
         db.profile["profile.bottomui.gradients"] = nil;
 
     elseif (db.profile.theme) then
-        value = db.profile.theme.color:ToTable();
+        value = db.profile.theme.color:ToReadOnlyTable();
     else
         return;
     end
@@ -259,18 +259,18 @@ function Private:LoadThemeMenu(menuSection)
     menuSection.themeDropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, menuSection);
 
     menuSection.themeDropdown:AddOptions(ChangeTheme, {
-        { tk.Strings:SetTextColorByHexCode("Death Knight", "C41F3B"), "DEATHKNIGHT" },
-        { tk.Strings:SetTextColorByHexCode("Demon Hunter", "A330C9"), "DEMONHUNTER" },
-        { tk.Strings:SetTextColorByHexCode("Druid", "FF7D0A"), "DRUID" },
-        { tk.Strings:SetTextColorByHexCode("Hunter", "ABD473"), "HUNTER" },
-        { tk.Strings:SetTextColorByHexCode("Mage", "69CCF0"), "MAGE" },
-        { tk.Strings:SetTextColorByHexCode("Monk", "00FF96"), "MONK" },
-        { tk.Strings:SetTextColorByHexCode("Paladin", "F58CBA"), "PALADIN" },
-        { tk.Strings:SetTextColorByHexCode("Priest", "FFFFFF"), "PRIEST" },
-        { tk.Strings:SetTextColorByHexCode("Rogue", "FFF569"), "ROGUE" },
-        { tk.Strings:SetTextColorByHexCode("Shaman", "0070DE"), "SHAMAN" },
-        { tk.Strings:SetTextColorByHexCode("Warlock", "9482C9"), "WARLOCK" },
-        { tk.Strings:SetTextColorByHexCode("Warrior", "C79C6E"), "WARRIOR" }
+        { tk.Strings:SetTextColorByHex("Death Knight", "C41F3B"), "DEATHKNIGHT" },
+        { tk.Strings:SetTextColorByHex("Demon Hunter", "A330C9"), "DEMONHUNTER" },
+        { tk.Strings:SetTextColorByHex("Druid", "FF7D0A"), "DRUID" },
+        { tk.Strings:SetTextColorByHex("Hunter", "ABD473"), "HUNTER" },
+        { tk.Strings:SetTextColorByHex("Mage", "69CCF0"), "MAGE" },
+        { tk.Strings:SetTextColorByHex("Monk", "00FF96"), "MONK" },
+        { tk.Strings:SetTextColorByHex("Paladin", "F58CBA"), "PALADIN" },
+        { tk.Strings:SetTextColorByHex("Priest", "FFFFFF"), "PRIEST" },
+        { tk.Strings:SetTextColorByHex("Rogue", "FFF569"), "ROGUE" },
+        { tk.Strings:SetTextColorByHex("Shaman", "0070DE"), "SHAMAN" },
+        { tk.Strings:SetTextColorByHex("Warlock", "9482C9"), "WARLOCK" },
+        { tk.Strings:SetTextColorByHex("Warrior", "C79C6E"), "WARRIOR" }
     });
 
     menuSection.themeDropdown:AddOption(L["Custom Colour"], function()
@@ -445,7 +445,7 @@ function Private:LoadCustomMenu(menuSection)
 
     menuSection.installBtn:SetScript("OnEnter", function(self)
         _G.GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT", 18, 4);
-        _G.GameTooltip:AddLine(tk.Strings:GetThemeColoredText(L["Warning:"]).." "..L["This will reload the UI!"]);
+        _G.GameTooltip:AddLine(tk.Strings:SetTextColorByTheme(L["Warning:"]).." "..L["This will reload the UI!"]);
         _G.GameTooltip:SetFrameLevel(30);
         _G.GameTooltip:Show();
     end);

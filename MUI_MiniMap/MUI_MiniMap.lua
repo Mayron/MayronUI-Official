@@ -70,7 +70,7 @@ do
 end
 
 function C_MiniMapModule:OnInitialize(data)
-	data.settings = db.profile.minimap:ToTable();
+	data.settings = db.profile.minimap:ToReadOnlyTable();
 
 	Minimap:ClearAllPoints();
 	Minimap:SetPoint(data.settings.point, tk.UIParent, data.settings.relativePoint, data.settings.x, data.settings.y);
@@ -265,13 +265,13 @@ function C_MiniMapModule:OnInitialize(data)
 
 	if (tk.IsAddOnLoaded("Leatrix_Plus")) then
         tk.table.insert(menuList, {
-            text = tk.Strings:GetHexColoredText("Leatrix Plus", "70db70"),
+            text = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70"),
             func = function()
                 _G.SlashCmdList["Leatrix_Plus"]();
             end
         });
 		tk.table.insert(menuList, {
-            text = tk.Strings:GetHexColoredText(L["Music Player"], "70db70"),
+            text = tk.Strings:SetTextColorByHex(L["Music Player"], "70db70"),
             func = function()
                 _G.SlashCmdList["Leatrix_Plus"]("play");
             end

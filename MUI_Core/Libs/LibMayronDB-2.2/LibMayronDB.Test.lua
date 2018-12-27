@@ -90,7 +90,7 @@ local function UsingParentObserver_Test2(self) -- luacheck: ignore
 
     -- this should use SetPathValue to build path into child table
     self.profile.myChild.events.MyEvent1 = false;
-    assert(self.profile.myChild:ToSavedVariable().events.MyEvent1 == false, "Should be set!");
+    assert(self.profile.myChild:GetSavedVariable().events.MyEvent1 == false, "Should be set!");
     self.profile.myParent = nil;
     self.profile.myChild = nil;
 
@@ -118,7 +118,7 @@ local function UsingParentObserver_Test3(self) -- luacheck: ignore
     self.profile.myParent.events.MyEvent1 = {message = "hello"}; -- correctly assigns value to parent
 
     assert(self.profile.myChild.events.MyEvent1 == false, "Should still equal false!");
-    assert(self.profile.myParent.events.MyEvent1:ToSavedVariable().message == "hello", "Should only change parent");
+    assert(self.profile.myParent.events.MyEvent1:GetSavedVariable().message == "hello", "Should only change parent");
 
     print("UsingParentObserver_Test3 Successful!");
 end
@@ -140,7 +140,7 @@ local function UpdatingToDefaultValueShouldRemoveSavedVariableValue_Test1(self) 
     self.profile.subtable.options.option4.value2 = 5000;
 
     -- does not work first time (must be using internalTree to mess things up)
-    local options = self.profile.subtable.options:ToSavedVariable();
+    local options = self.profile.subtable.options:GetSavedVariable();
     assert(type(options) == "table", "Should be a table but got "..tostring(options));
     assert(options.option4.value2 == 5000, "Should be true.");
 
@@ -435,7 +435,7 @@ local function ToTrackerAndSavingChanges_Test3(self) -- luacheck: ignore
     -- Act and Assert:
 
     -- Table should merge child, parent, and default tables together in that priority order
-    assert(Equals(tbl.__tracker.data, expectedTable), "Tables are not equal!");
+    assert(Equals(tbl:ToReadOnlyTable(), expectedTable), "Tables are not equal!");
 
     -- set value to same value should result in no change required
     tbl.defaults.default4.value3 = 30;
@@ -581,6 +581,7 @@ end
 db:OnStartUp(function(...) -- luacheck: ignore
     TestDB = {};
 
+    -- /console scriptErrors 1 - to display Lua errors
     -- OnStartUp_Test1(...);
     -- ChangeProfile_Test1(...);
     -- NewProfileIndex_Test1(...);

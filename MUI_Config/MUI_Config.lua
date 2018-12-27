@@ -79,7 +79,6 @@ end
 -- and then calls "OnConfigUpdate" for the module that the config value belongs to.
 -- @param widget: The created widget frame which is used when calling SetValue to add custom
 --      graphical changes to represent the new value (such as disabling the widget)
-
 Engine:DefineParams("Frame", "table");
 function C_ConfigModule:SetDatabaseValue(data, widget, widgetConfigTable, value)
 
@@ -449,71 +448,82 @@ function C_ConfigModule:SetUpWindow(data)
     return scrollChild;
 end
 
--- Loads all config data from individual modules and places them as a graphical menu
-function C_ConfigModule:SetUpSideMenu(data, menuListScrollChild)
-    data.menuButtons = {};
+do
+local function CreateCheckButtonFromMenuTable(data, menuTable, module, menuListScrollChild)
+    local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
 
-    -- contains all menu buttons in the left scroll frame of the main config window
-    local scrollChildHeight = menuListScrollChild:GetHeight() + MENU_BUTTON_HEIGHT;
-    menuListScrollChild:SetHeight(scrollChildHeight);
+    data.menuButtons[menuTable.name] = menuButton;
+    table.insert(data.menuButtons, menuButton);
 
-    for _, module in MayronUI:IterateModules() do
+    menuButton.ConfigTable = menuTable;
+    menuButton.id = menuTable.id;
+    menuButton.type = "menu";
+    menuButton.name = menuTable.name;
+    menuButton.module = module;
 
-        if (module.ConfigTable) then
-            local moduleName = module:GetModuleName();
-            local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
+    menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    menuButton.text:SetText(menuTable.name); -- the model name as a readable button label
+    menuButton.text:SetJustifyH("LEFT");
+    menuButton.text:SetPoint("TOPLEFT", 10, 0);
+    menuButton.text:SetPoint("BOTTOMRIGHT");
 
-            data.menuButtons[moduleName] = menuButton;
-            table.insert(data.menuButtons, menuButton);
+    local normal = tk:SetBackground(menuButton, 1, 1, 1, 0);
+    local highlight = tk:SetBackground(menuButton, 1, 1, 1, 0);
+    local checked = tk:SetBackground(menuButton, 1, 1, 1, 0);
 
-            menuButton.ConfigTable = module.ConfigTable;
-            menuButton.module = module;
-            menuButton.id = module.ConfigTable.id;
-            menuButton.type = "menu";
-            menuButton.name = module.ConfigTable.name;
+    -- first argument is the alpha
+    tk:ApplyThemeColor(0.3, normal, highlight);
+    tk:ApplyThemeColor(0.6, checked);
 
-            menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-            menuButton.text:SetText(module.ConfigTable.name); -- the model name as a readable button label
-            menuButton.text:SetJustifyH("LEFT");
-            menuButton.text:SetPoint("TOPLEFT", 10, 0);
-            menuButton.text:SetPoint("BOTTOMRIGHT");
+    menuButton:SetSize(250, MENU_BUTTON_HEIGHT);
+    menuButton:SetNormalTexture(normal);
+    menuButton:SetHighlightTexture(highlight);
+    menuButton:SetCheckedTexture(checked);
+    menuButton:SetScript("OnClick", MenuButton_OnClick);
+end
 
-            local normal = tk:SetBackground(menuButton, 1, 1, 1, 0);
-            local highlight = tk:SetBackground(menuButton, 1, 1, 1, 0);
-            local checked = tk:SetBackground(menuButton, 1, 1, 1, 0);
+    -- Loads all config data from individual modules and places them as a graphical menu
+    function C_ConfigModule:SetUpSideMenu(data, menuListScrollChild)
+        data.menuButtons = {};
 
-            -- first argument is the alpha
-            tk:ApplyThemeColor(0.3, normal, highlight);
-            tk:ApplyThemeColor(0.6, checked);
+        -- contains all menu buttons in the left scroll frame of the main config window
+        local scrollChildHeight = menuListScrollChild:GetHeight() + MENU_BUTTON_HEIGHT;
+        menuListScrollChild:SetHeight(scrollChildHeight);
 
-            menuButton:SetSize(250, MENU_BUTTON_HEIGHT);
-            menuButton:SetNormalTexture(normal);
-            menuButton:SetHighlightTexture(highlight);
-            menuButton:SetCheckedTexture(checked);
-            menuButton:SetScript("OnClick", MenuButton_OnClick);
+        for _, module in MayronUI:IterateModules() do
+
+            if (module.ConfigTable) then
+                if (#module.ConfigTable == 0) then
+                    CreateCheckButtonFromMenuTable(data, module.ConfigTable, module, menuListScrollChild);
+                else
+                    for _, menuTable in ipairs(module.ConfigTable) do
+                        CreateCheckButtonFromMenuTable(data, menuTable, module, menuListScrollChild);
+                    end
+                end
+            end
         end
-    end
 
-    -- order and position buttons:
-    tk.Tables:OrderBy(data.menuButtons, "id", "name");
+        -- order and position buttons:
+        tk.Tables:OrderBy(data.menuButtons, "id", "name");
 
-    for id, menuButton in ipairs(data.menuButtons) do
-        if (id == 1) then
-            -- first menu button (does not need to be anchored to a previous button)
-            menuButton:SetPoint("TOPLEFT", menuListScrollChild, "TOPLEFT");
-            menuButton:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT", -10, 0);
-            menuButton:SetChecked(true);
+        for id, menuButton in ipairs(data.menuButtons) do
+            if (id == 1) then
+                -- first menu button (does not need to be anchored to a previous button)
+                menuButton:SetPoint("TOPLEFT", menuListScrollChild, "TOPLEFT");
+                menuButton:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT", -10, 0);
+                menuButton:SetChecked(true);
 
-            self:SetSelectedButton(menuButton);
-        else
-            local previousMenuButton = data.menuButtons[id - 1];
-            menuButton:SetPoint("TOPLEFT", previousMenuButton, "BOTTOMLEFT", 0, -5);
-            menuButton:SetPoint("TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
+                self:SetSelectedButton(menuButton);
+            else
+                local previousMenuButton = data.menuButtons[id - 1];
+                menuButton:SetPoint("TOPLEFT", previousMenuButton, "BOTTOMLEFT", 0, -5);
+                menuButton:SetPoint("TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
 
-            -- make room for padding between buttons
-            menuListScrollChild:SetHeight(menuListScrollChild:GetHeight() + 5);
+                -- make room for padding between buttons
+                menuListScrollChild:SetHeight(menuListScrollChild:GetHeight() + 5);
+            end
         end
-    end
 
-    tk:GroupCheckButtons(tk.unpack(data.menuButtons));
+        tk:GroupCheckButtons(tk.unpack(data.menuButtons));
+    end
 end

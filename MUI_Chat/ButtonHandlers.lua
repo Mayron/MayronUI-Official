@@ -162,10 +162,10 @@ end
 
 function C_ChatModule:SetUpButtonHandler(data, muiChatFrame, buttonSettings)
     em:CreateEventHandler("MODIFIER_STATE_CHANGED", function()
-        if (data.sv.swapInCombat or not _G.InCombatLockdown()) then
+        if (data.settings.swapInCombat or not _G.InCombatLockdown()) then
             local updated = false;
 
-            for _, info in buttonSettings:Iterate() do
+            for _, info in pairs(buttonSettings) do
                 if (info.key and tk:IsModComboActive(info.key)) then
                     muiChatFrame.buttons[1]:SetText(info[1]);
                     muiChatFrame.buttons[2]:SetText(info[2]);

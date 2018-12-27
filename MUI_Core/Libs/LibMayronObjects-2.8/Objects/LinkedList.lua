@@ -1,13 +1,13 @@
-local Lib = LibStub:GetLibrary("LibMayronObjects");
+-- luacheck: ignore self 143 631
+local Lib = _G.LibStub:GetLibrary("LibMayronObjects");
 local Collections = Lib:CreatePackage("Collections", "Framework.System");
 local LinkedList = Collections:CreateClass("LinkedList");
 
 local Node = {};
 local LinkedListData = {};
----------------------------------------
 
-function LinkedList:__Construct(data, ...)  
-    for _, value in pairs({...}) do
+function LinkedList:__Construct(data, ...)
+    for _, value in Lib:IterateArgs(...) do
         self:AddToBack(value);
     end
 
@@ -139,7 +139,7 @@ function LinkedList:Unpack(_, n)
         end
     end
 
-    return unpack(values);
+    return _G.unpack(values);
 end
 
 function LinkedList:Iterate(data, backwards)
@@ -158,10 +158,10 @@ function LinkedList:Iterate(data, backwards)
             local value = node.value;
             id = id + step;
 
-            if (backwards) then 
+            if (backwards) then
                 node = node.prev;
-            else 
-                node = node.next; 
+            else
+                node = node.next;
             end
 
             return id, value;
@@ -191,7 +191,7 @@ function Node:Destroy()
     self.linkedListData.size = (self.linkedListData.size or 0) - 1;
 end
 
-function Node:new(linkedList, value)    
+function Node:new(linkedList, value)
     local node = {};
     node.value = value;
     node.linkedListData = LinkedListData[tostring(linkedList)];

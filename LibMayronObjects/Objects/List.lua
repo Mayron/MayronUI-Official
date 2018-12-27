@@ -1,10 +1,10 @@
+-- luacheck: ignore self 143 631
 local Lib = _G.LibStub:GetLibrary("LibMayronObjects");
 local Collections = Lib:Import("Framework.System.Collections");
 local List = Collections:CreateClass("List");
----------------------------------------
 
 function List:__Construct(data, ...)
-    data.values = {};
+    data.values = Lib:PopWrapper();
     self:AddAll(...);
 end
 
@@ -89,8 +89,8 @@ function List:Get(data, index)
     return data.values[index];
 end
 
-function List:Contains(data, value)    
-    for index, value2 in ipairs(data.values) do
+function List:Contains(data, value)
+    for _, value2 in ipairs(data.values) do
         if (value2 == value) then
             return true;
         end
@@ -112,30 +112,39 @@ function List:Size(data)
     return #data.values;
 end
 
-function List:ToTable(data)
-    local copy = {};
-
-    for index, value in ipairs(data.values) do
-        copy[index] = value;
+do
+    local function AddTable(fromTable, toTable)
+        for index, value in ipairs(fromTable) do
+            if (type(value) == "table") then
+                toTable[index] = Lib:PopWrapper();
+                AddTable(value, toTable[index]);
+            else
+                toTable[index] = value;
+            end
+        end
     end
 
-    return copy;
+    function List:ToTable(data)
+        local copy = Lib:PopWrapper();
+        AddTable(data.values, copy);
+        return copy;
+    end
 end
 
 function List:AddAll(data, ...)
-    for _, value in pairs({...}) do
+    for _, value in Lib:IterateArgs(...) do
         table.insert(data.values, value);
-    end    
+    end
 end
 
-function List:RemoveAll(data, ...)
-    for _, value in pairs({...}) do
+function List:RemoveAll(_, ...)
+    for _, value in Lib:IterateArgs(...) do
         self:RemoveByValue(value);
     end
 end
 
-function List:RetainAll(data, ...)
-    for _, value in pairs({...}) do
+function List:RetainAll(_, ...)
+    for _, value in Lib:IterateArgs(...) do
         if (not self:Contains(value)) then
             self:RemoveByValue(value);
         end

@@ -479,7 +479,7 @@ function C_CastBar:PositionCastBar(data)
         -- manual position...
 
         if (data.settings.anchorToSUF) then
-            db.profile.castbars[data.UnitID].anchorToSUF = false;
+            db.profile.castbars[data.unitID].anchorToSUF = false;
             data.settings.anchorToSUF = false;
         end
 
@@ -562,6 +562,8 @@ do
                 bar:RegisterEvent("UNIT_SPELLCAST_SENT");
             end
         end
+
+        return bar;
     end
 
     CreateCastBar = function(unitID, settings)
@@ -603,9 +605,8 @@ do
     end
 end
 
-function C_CastBarsModule:OnInitialize(data)
-    data.sv = db.profile.castbars;
-    appearance = data.sv.appearance:ToTable();
+function C_CastBarsModule:OnInitialize()
+    appearance = db.profile.castbars.appearance:ToReadOnlyTable();
 
     local r, g, b = tk:GetThemeColor();
     db:AddToDefaults("profile.castbars.appearance.colors.normal", {
@@ -616,10 +617,10 @@ function C_CastBarsModule:OnInitialize(data)
     });
 
 	for _, name in obj:IterateArgs("player", "target", "focus", "mirror") do
-        local sv = data.sv[name];
-        sv:SetParent(data.sv.templateCastBar);
+        local sv = db.profile.castbars[name];
+        sv:SetParent(db.profile.castbars.templateCastBar);
 
-        local settings = sv:ToTable();
+        local settings = sv:ToReadOnlyTable();
 
 		if (settings.enabled) then
             namespace.bars[name] = CreateCastBar(name, settings);

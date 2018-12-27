@@ -56,7 +56,7 @@ db:AddToDefaults("profile.datatext", {
 -- C_DataTextModule Functions -------------------
 
 function C_DataTextModule:OnInitialize(data)
-    data.settings = db.profile.datatext:ToTable(); -- a non-database table containing database settings
+    data.settings = db.profile.datatext:ToReadOnlyTable(); -- a non-database table containing database settings
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
     data.lastButtonClicked = ""; -- last data text button clicked on
@@ -169,11 +169,7 @@ function C_DataTextModule:PositionDataItems(data)
         if (dataModule:IsEnabled()) then
             local btn = dataModule.Button;
             local dbName = dataModule.SavedVariableName;
-            --TODO: Bug = Cannot iterate a tracking table!
             local displayOrder = tk.Tables:GetIndex(data.settings.displayOrders, dbName);
-
-            tk.Tables:Print(data.settings.displayOrders);
-            tk:Print("ok: ", displayOrder);
 
             btn._module = dataModule; -- temporary
 
@@ -349,7 +345,11 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     self:ClearLabels(dataModule.MenuLabels);
 
     -- execute dataTextModule specific click logic
-    dataModule:Click(button, ...);
+    local cannotExpand = dataModule:Click(button, ...);
+
+    if (cannotExpand) then
+        return;
+    end
 
     -- calculate new height based on number of labels to show
     local totalHeight = self:PositionLabels(dataModule) or data.settings.popup.maxHeight;

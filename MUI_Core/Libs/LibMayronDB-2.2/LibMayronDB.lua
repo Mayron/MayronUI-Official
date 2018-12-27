@@ -259,7 +259,7 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
 
     if (rootTable.GetObjectType and rootTable:GetObjectType() == "Observer") then
-        rootTable = rootTable:ToSavedVariable();
+        rootTable = rootTable:GetSavedVariable();
     end
 
     local lastTable, lastKey = data.helper:GetLastTableKeyPairs(rootTable, path);
@@ -585,7 +585,7 @@ Observer.Static:OnIndexed(function(self, data, key, realValue)
     end
 
     local foundValue;
-    local svTable = self:ToSavedVariable();
+    local svTable = self:GetSavedVariable();
 
     if (svTable) then
         -- convert saved variable table into an Observer
@@ -595,7 +595,7 @@ Observer.Static:OnIndexed(function(self, data, key, realValue)
     -- check parent if still not found
     if (foundValue == nil) then
         if (data.parent) then
-            local parentSvTable = data.parent:ToSavedVariable();
+            local parentSvTable = data.parent:GetSavedVariable();
 
             if (parentSvTable ~= nil) then
                 local parentData = data:GetFriendData(data.parent);
@@ -664,7 +664,7 @@ Gets the underlining saved variables table. Default or parent values will not be
 
 @return (table): the underlining saved variables table.
 ]]
-function Observer:ToSavedVariable(data)
+function Observer:GetSavedVariable(data)
     local rootTable;
 
     if (data.isGlobal) then
@@ -772,8 +772,8 @@ function Observer:GetPathAddress(data)
 end
 
 do
-    -- local functions
-    local AddTable, CreateTracker, ApplyReadOnlyMetatable;
+    -- local functions, ToTable
+    local AddTable, ConvertObserverToTable, CreateTracker, ApplyReadOnlyMetatable;
     -- tracker methods
     local SaveChanges, GetTotalPendingChanges, ResetChanges, ToReadOnlyTable, Iterate;
 
@@ -783,20 +783,50 @@ do
 
     -- Local Functions:
 
-    -- Adds all key and value pairs from fromTable onto toTable
-    AddTable = function(fromTable, toTable, replace)
+    -- Adds all key and value pairs from fromTable onto toTable (replaces other non-table values)
+    AddTable = function(fromTable, toTable)
         for key, value in pairs(fromTable) do
             if (type(value) == "table") then
 
-                if (replace or toTable[key] == nil) then
+                if (type(toTable[key]) ~= "table") then
                     toTable[key] = obj:PopWrapper();
                 end
 
-                AddTable(value, toTable[key], replace);
+                AddTable(value, toTable[key]);
             else
                 toTable[key] = value;
             end
         end
+    end
+
+    ConvertObserverToTable = function(observer, reusableTable)
+        local merged = reusableTable or obj:PopWrapper();
+        local svTable = observer:GetSavedVariable();
+        local defaults = observer:GetDefaults();
+        local parent = observer:GetParent();
+
+        if (type(reusableTable) == "table") then
+            obj:EmptyTable(reusableTable);
+            setmetatable(reusableTable, nil);
+        end
+
+        if (defaults) then
+            AddTable(defaults, merged);
+        end
+
+        if (parent) then
+            local parentTable = ConvertObserverToTable(parent);
+
+            if (parentTable) then
+                AddTable(parentTable, merged);
+            end
+        end
+
+        if (svTable) then
+            AddTable(svTable, merged);
+        end
+
+        return merged;
     end
 
     CreateTracker = function(key, tbl, previousTracker)
@@ -813,7 +843,6 @@ do
         end
 
         local proxyTracker = obj:PopWrapper();
-        trackers[tostring(proxyTracker)] = tracker;
 
         -- available functions:
         proxyTracker.SaveChanges = SaveChanges;
@@ -821,6 +850,8 @@ do
         proxyTracker.GetTotalPendingChanges = GetTotalPendingChanges;
         proxyTracker.ToReadOnlyTable = ToReadOnlyTable;
         proxyTracker.Iterate = Iterate;
+
+        trackers[tostring(proxyTracker)] = tracker;
 
         return setmetatable(proxyTracker, trackerMT);
     end
@@ -876,7 +907,13 @@ do
     end
 
     ToReadOnlyTable = function(self)
-        return trackers[tostring(self)].data;
+        local tbl = trackers[tostring(self)].data;
+
+        if (type(tbl) == "table") then
+            ApplyReadOnlyMetatable(tbl);
+        end
+
+        return tbl;
     end
 
     Iterate = function(self)
@@ -948,36 +985,20 @@ do
     Creates an immutable table containing all values from the underlining saved variables table,
     parent table, and defaults table. Changing this table will not affect the saved variables table!
 
+    @param (optional table) reusableTable - Can use an already existing table instead of creating a new one.
+        This table will be emptied before being used.
+
     @return (table): a table containing all merged values
     ]]
-    Framework:DefineReturns("table");
-    function Observer:ToReadOnlyTable()
-        local merged = obj:PopWrapper();
-        local svTable = self:ToSavedVariable();
-        local defaults = self:GetDefaults();
-        local parent = self:GetParent();
+    Framework:DefineReturns("table", "?table");
+    function Observer:ToReadOnlyTable(_, reusableTable)
+        local tbl = ConvertObserverToTable(self, reusableTable);
 
-        if (defaults) then
-            AddTable(defaults, merged);
+        if (type(tbl) == "table") then
+            ApplyReadOnlyMetatable(tbl);
         end
 
-        if (parent) then
-            local parentTable = parent:ToSavedVariable();
-
-            if (parentTable) then
-                AddTable(parentTable, merged);
-            end
-        end
-
-        if (svTable) then
-            AddTable(svTable, merged);
-        end
-
-        if (type(merged) == "table") then
-            ApplyReadOnlyMetatable(merged);
-        end
-
-        return merged;
+        return tbl;
     end
 
     --[[
@@ -985,11 +1006,14 @@ do
     parent table, and defaults table and tracks all changes but does not apply them
     until SaveChanges() is called
 
+    @param (optional table) reusableTable - Can use an already existing table instead of creating a new one.
+        This table will be emptied before being used.
+
     @return (table): a tracking table containing all merged values and some helper methods
     ]]
-    Framework:DefineReturns("table");
-    function Observer:ToTracker(data)
-        local tracker =  CreateTracker(nil, self:ToReadOnlyTable());
+    Framework:DefineReturns("table", "?table");
+    function Observer:ToTracker(data, reusableTable)
+        local proxyTracker = CreateTracker(nil, ConvertObserverToTable(self, reusableTable));
         local observerPath;
 
         if (data.isGlobal) then
@@ -998,10 +1022,11 @@ do
             observerPath = string.format("%s.%s", "profile", data.path);
         end
 
+        local tracker = trackers[tostring(proxyTracker)];
         tracker.rootData.observerPath = observerPath;
         tracker.rootData.database = data.database;
 
-        return tracker;
+        return proxyTracker;
     end
 end
 -------------------------------------------------
@@ -1217,7 +1242,7 @@ function Helper:HandlePathValueChange(data, observerData, key, value)
         svRootTable = data.dbData.sv.global;
     else
         defaultRootTable = data.dbData.defaults.profile;
-        svRootTable = data.database.profile:ToSavedVariable();
+        svRootTable = data.database.profile:GetSavedVariable();
     end
 
     local indexingPath = GetNextPath(path, key);

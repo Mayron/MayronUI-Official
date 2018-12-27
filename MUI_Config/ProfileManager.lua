@@ -62,7 +62,7 @@ local configTable = {
             GetContent = function()
                 return tk.Strings:JoinWithSpace(
                     "Current profile:",
-                    tk.Strings:SetTextColor(db:GetCurrentProfile(), "GOLD"));
+                    tk.Strings:SetTextColorByKey(db:GetCurrentProfile(), "GOLD"));
             end,
         },
         {

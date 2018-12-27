@@ -43,7 +43,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self)
     local sv = db.profile.datatext.currency;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTable();
+    local settings = sv:ToTracker();
     local coloredKey = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
 
     -- saves info on the currency that each logged in character has
@@ -86,23 +86,24 @@ function Currency:__Construct(data, settings, dataTextModule)
     if (not (data.settings.date and data.settings.date == date)) then
         data.settings.todayCurrency = _G.GetMoney();
         data.settings.date = date;
+        data.settings:SaveChanges();
     end
 
     em:CreateEventHandler("PLAYER_MONEY", function()
         if (not self.Button) then
-            return
+            return;
         end
 
         self:Update();
     end):SetKey("money");
 
     data.info = {};
-    data.info[1] = tk:GetThemeColoredText(L["Current Money"]..":");
+    data.info[1] = tk.Strings:SetTextColorByTheme(L["Current Money"]..":");
     data.info[2] = nil;
-    data.info[3] = tk:GetThemeColoredText(L["Start of the day"]..":");
+    data.info[3] = tk.Strings:SetTextColorByTheme(L["Start of the day"]..":");
     data.info[4] = nil;
     data.info[6] = self:GetFormattedCurrency(data.settings.todayCurrency);
-    data.info[7] = tk:GetThemeColoredText(L["Today's profit"]..":");
+    data.info[7] = tk.Strings:SetTextColorByTheme(L["Today's profit"]..":");
     data.info[8] = nil;
     data.info[9] = tk.Strings:Concat(_G.NORMAL_FONT_COLOR_CODE..L["Money per character"], ":", "|r");
 end
@@ -183,7 +184,7 @@ function Currency:Update()
     local currentCurrency = self:GetFormattedCurrency(_G.GetMoney(), nil, true);
 
     self.Button:SetText(currentCurrency);
-    local colored_key = tk:GetClassColoredText(nil, tk:GetPlayerKey());
+    local colored_key = tk:SetTextColorByClass(nil, tk:GetPlayerKey());
     db.global.datatext.currency.characters[colored_key] = _G.GetMoney();
 end
 
