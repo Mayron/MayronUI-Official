@@ -449,38 +449,38 @@ function C_ConfigModule:SetUpWindow(data)
 end
 
 do
-local function CreateCheckButtonFromMenuTable(data, menuTable, module, menuListScrollChild)
-    local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
+    local function CreateCheckButtonFromMenuTable(data, menuTable, module, menuListScrollChild)
+        local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
 
-    data.menuButtons[menuTable.name] = menuButton;
-    table.insert(data.menuButtons, menuButton);
+        data.menuButtons[menuTable.name] = menuButton;
+        table.insert(data.menuButtons, menuButton);
 
-    menuButton.ConfigTable = menuTable;
-    menuButton.id = menuTable.id;
-    menuButton.type = "menu";
-    menuButton.name = menuTable.name;
-    menuButton.module = module;
+        menuButton.ConfigTable = menuTable;
+        menuButton.id = menuTable.id;
+        menuButton.type = "menu";
+        menuButton.name = menuTable.name;
+        menuButton.module = module;
 
-    menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    menuButton.text:SetText(menuTable.name); -- the model name as a readable button label
-    menuButton.text:SetJustifyH("LEFT");
-    menuButton.text:SetPoint("TOPLEFT", 10, 0);
-    menuButton.text:SetPoint("BOTTOMRIGHT");
+        menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+        menuButton.text:SetText(menuTable.name); -- the model name as a readable button label
+        menuButton.text:SetJustifyH("LEFT");
+        menuButton.text:SetPoint("TOPLEFT", 10, 0);
+        menuButton.text:SetPoint("BOTTOMRIGHT");
 
-    local normal = tk:SetBackground(menuButton, 1, 1, 1, 0);
-    local highlight = tk:SetBackground(menuButton, 1, 1, 1, 0);
-    local checked = tk:SetBackground(menuButton, 1, 1, 1, 0);
+        local normal = tk:SetBackground(menuButton, 1, 1, 1, 0);
+        local highlight = tk:SetBackground(menuButton, 1, 1, 1, 0);
+        local checked = tk:SetBackground(menuButton, 1, 1, 1, 0);
 
-    -- first argument is the alpha
-    tk:ApplyThemeColor(0.3, normal, highlight);
-    tk:ApplyThemeColor(0.6, checked);
+        -- first argument is the alpha
+        tk:ApplyThemeColor(0.3, normal, highlight);
+        tk:ApplyThemeColor(0.6, checked);
 
-    menuButton:SetSize(250, MENU_BUTTON_HEIGHT);
-    menuButton:SetNormalTexture(normal);
-    menuButton:SetHighlightTexture(highlight);
-    menuButton:SetCheckedTexture(checked);
-    menuButton:SetScript("OnClick", MenuButton_OnClick);
-end
+        menuButton:SetSize(250, MENU_BUTTON_HEIGHT);
+        menuButton:SetNormalTexture(normal);
+        menuButton:SetHighlightTexture(highlight);
+        menuButton:SetCheckedTexture(checked);
+        menuButton:SetScript("OnClick", MenuButton_OnClick);
+    end
 
     -- Loads all config data from individual modules and places them as a graphical menu
     function C_ConfigModule:SetUpSideMenu(data, menuListScrollChild)
