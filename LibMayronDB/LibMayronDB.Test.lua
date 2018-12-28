@@ -435,7 +435,7 @@ local function ToTrackerAndSavingChanges_Test3(self) -- luacheck: ignore
     -- Act and Assert:
 
     -- Table should merge child, parent, and default tables together in that priority order
-    assert(Equals(tbl:ToReadOnlyTable(), expectedTable), "Tables are not equal!");
+    assert(Equals(tbl:ToBasicTable(), expectedTable), "Tables are not equal!");
 
     -- set value to same value should result in no change required
     tbl.defaults.default4.value3 = 30;
@@ -578,6 +578,53 @@ local function ToTrackerAndSavingChanges_Test5(self) -- luacheck: ignore
     print("ToTrackerAndSavingChanges_Test5 Successful!");
 end
 
+local function ToBasicTable_Test1(self) -- luacheck: ignore
+    print("ToBasicTable_Test1 Started");
+
+    self.profile.root = {
+        testValue = 12;
+    };
+
+    local tbl = self.profile.root:ToBasicTable();
+
+    tbl.testValue = 100;
+
+    assert(tbl.testValue == 100);
+
+    local tracker = tbl:ToTracker();
+
+    assert(tracker.testValue == 100);
+    assert(tracker:GetTotalPendingChanges() == 0);
+    assert(self.profile.root.testValue == 12);
+
+    tracker.testValue = 55;
+    assert(tracker:GetTotalPendingChanges() == 1);
+    assert(self.profile.root.testValue == 12);
+
+    tracker:SaveChanges();
+    assert(tracker:GetTotalPendingChanges() == 0);
+    assert(tracker.testValue == 55);
+    assert(self.profile.root.testValue == 55);
+
+    local observer = tracker:ToObserver();
+    assert(observer.testValue == 55);
+    assert(self.profile.root.testValue == 55);
+    assert(tracker.testValue == 55);
+
+    observer.testValue = 4;
+    assert(self.profile.root.testValue == 4);
+
+    -- need a Refresh(); -- get new values from database and update basicTable
+    tracker.testValue = 900;
+    assert(tracker.testValue == 900);
+    assert(tbl.testValue == 55); -- udoes not update basicTable until SaveChanges()
+
+    tracker:SaveChanges();
+    assert(tbl.testValue == 900); -- udoes not update basicTable until SaveChanges()
+
+    print("ToBasicTable_Test1 Successful!");
+end
+
 db:OnStartUp(function(...) -- luacheck: ignore
     TestDB = {};
 
@@ -597,4 +644,5 @@ db:OnStartUp(function(...) -- luacheck: ignore
     -- ToTrackerAndSavingChanges_Test3(...);
     -- ToTrackerAndSavingChanges_Test4(...);
     -- ToTrackerAndSavingChanges_Test5(...);
+    ToBasicTable_Test1(...);
 end);
