@@ -56,7 +56,7 @@ db:AddToDefaults("profile.datatext", {
 -- C_DataTextModule Functions -------------------
 
 function C_DataTextModule:OnInitialize(data)
-    data.settings = db.profile.datatext:ToReadOnlyTable(); -- a non-database table containing database settings
+    data.settings = db.profile.datatext:ToBasicTable(); -- a non-database table containing database settings
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
     data.lastButtonClicked = ""; -- last data text button clicked on

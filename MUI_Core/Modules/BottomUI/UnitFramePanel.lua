@@ -64,7 +64,7 @@ end
 -- UnitFramePanel Module -----------------
 
 function C_UnitFramePanel:OnInitialize(data, buiContainer, subModules)
-    data.settings = db.profile.unitPanels:ToReadOnlyTable();
+    data.settings = db.profile.unitPanels:ToBasicTable();
 
     data.buiContainer = buiContainer;
     data.ActionBarPanel = subModules.ActionBarPanel;
@@ -355,7 +355,7 @@ function C_UnitFramePanel:SetupSUFPortraitGradients(data)
         return;
     end
 
-    local settings = db.profile.bottomui.gradients:ToReadOnlyTable();
+    local settings = db.profile.bottomui.gradients:ToBasicTable();
 
     if (settings.enabled) then
         data.gradients = data.gradients or {};

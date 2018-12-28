@@ -61,7 +61,7 @@ end
 -- Chat Module -------------------
 
 function C_ChatModule:OnInitialize(data)
-	data.settings = db.profile.chat:ToReadOnlyTable();
+	data.settings = db.profile.chat:ToBasicTable();
 
     tk.StaticPopupDialogs["MUI_Link"] = {
 		text = tk.Strings:Join("\n",
@@ -97,7 +97,7 @@ function C_ChatModule:OnInitialize(data)
 
 		if (chatFrameSettings.enabled) then
 			db.profile.chat.chatFrames[anchorName]:SetParent(db.profile.chat.templateMuiChatFrame);
-			chatFrameSettings = db.profile.chat.chatFrames[anchorName]:ToReadOnlyTable();
+			chatFrameSettings = db.profile.chat.chatFrames[anchorName]:ToBasicTable();
 
 			local muiChatFrame = self:ShowMuiChatFrame(anchorName);
 			self:SetUpButtonHandler(muiChatFrame, chatFrameSettings.buttons);

@@ -23,7 +23,7 @@ local function ChangeTheme(self, value)
         db.profile["profile.bottomui.gradients"] = nil;
 
     elseif (db.profile.theme) then
-        value = db.profile.theme.color:ToReadOnlyTable();
+        value = db.profile.theme.color:ToBasicTable();
     else
         return;
     end

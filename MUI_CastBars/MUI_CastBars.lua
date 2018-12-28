@@ -606,7 +606,7 @@ do
 end
 
 function C_CastBarsModule:OnInitialize()
-    appearance = db.profile.castbars.appearance:ToReadOnlyTable();
+    appearance = db.profile.castbars.appearance:ToBasicTable();
 
     local r, g, b = tk:GetThemeColor();
     db:AddToDefaults("profile.castbars.appearance.colors.normal", {
@@ -620,7 +620,7 @@ function C_CastBarsModule:OnInitialize()
         local sv = db.profile.castbars[name];
         sv:SetParent(db.profile.castbars.templateCastBar);
 
-        local settings = sv:ToReadOnlyTable();
+        local settings = sv:ToBasicTable();
 
 		if (settings.enabled) then
             namespace.bars[name] = CreateCastBar(name, settings);
