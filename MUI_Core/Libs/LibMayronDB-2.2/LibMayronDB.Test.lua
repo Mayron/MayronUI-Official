@@ -624,13 +624,7 @@ local function ToBasicTable_Test1(self) -- luacheck: ignore
     observer.testValue = 4;
     assert(self.profile.root.testValue == 4);
 
-    tracker:RemoveChanges();
-    assert(tracker.testValue == 55);
-    assert(tbl.testValue == 55);
-
-    tracker:Refresh();
-    observer.testValue = 4;
-    assert(self.profile.root.testValue == 4);
+    tracker:ResetChanges();
     assert(tracker.testValue == 55);
     assert(tbl.testValue == 55);
 

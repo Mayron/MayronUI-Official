@@ -917,7 +917,7 @@ do
 
     function Refresh(tracker)
         local data = _metaData[tostring(tracker)];
-        local basicTable = ConvertObserverToBasicTable(self, data.basicTable);
+        local basicTable = ConvertObserverToBasicTable(data.observer, data.basicTable);
         setmetatable(basicTable, basicTable_MT);
     end
 
