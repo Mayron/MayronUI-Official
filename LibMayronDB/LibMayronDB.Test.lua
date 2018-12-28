@@ -607,20 +607,36 @@ local function ToBasicTable_Test1(self) -- luacheck: ignore
     assert(self.profile.root.testValue == 55);
 
     local observer = tracker:ToObserver();
+    assert(tbl:ToObserver() == observer);
+
     assert(observer.testValue == 55);
     assert(self.profile.root.testValue == 55);
     assert(tracker.testValue == 55);
 
-    observer.testValue = 4;
-    assert(self.profile.root.testValue == 4);
-
-    -- need a Refresh(); -- get new values from database and update basicTable
     tracker.testValue = 900;
     assert(tracker.testValue == 900);
     assert(tbl.testValue == 55); -- udoes not update basicTable until SaveChanges()
 
-    tracker:SaveChanges();
-    assert(tbl.testValue == 900); -- udoes not update basicTable until SaveChanges()
+    tracker:Refresh();
+    assert(tracker.testValue == 900);
+    assert(tbl.testValue == 55);
+
+    observer.testValue = 4;
+    assert(self.profile.root.testValue == 4);
+
+    tracker:RemoveChanges();
+    assert(tracker.testValue == 55);
+    assert(tbl.testValue == 55);
+
+    tracker:Refresh();
+    observer.testValue = 4;
+    assert(self.profile.root.testValue == 4);
+    assert(tracker.testValue == 55);
+    assert(tbl.testValue == 55);
+
+    tracker:Refresh();
+    assert(tracker.testValue == 4);
+    assert(tbl.testValue == 4);
 
     print("ToBasicTable_Test1 Successful!");
 end

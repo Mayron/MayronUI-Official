@@ -660,6 +660,14 @@ function Observer:HasParent(data)
 end
 
 --[[
+@return (boolean): RHelper method to get database reference in case it is hard to access
+]]
+Framework:DefineReturns("Database");
+function Observer:GetDatabase(data)
+    return data.database;
+end
+
+--[[
 Gets the underlining saved variables table. Default or parent values will not be included in this!
 
 @return (table): the underlining saved variables table.
@@ -712,7 +720,7 @@ Example:
     end
 ]]
 function Observer:Iterate()
-    local merged = self:ToReadOnlyTable();
+    local merged = self:ToBasicTable();
     return next, merged, nil;
 end
 
@@ -733,7 +741,7 @@ Example: db.profile.aModule:Print()
 ]]
 Framework:DefineParams("?number");
 function Observer:Print(data, depth)
-    local merged = self:ToReadOnlyTable();
+    local merged = self:ToBasicTable();
     local tablePath = data.helper:GetDatabaseRootTableName(self);
     local path = (data.usingChild and data.usingChild.path) or data.path;
 
@@ -749,7 +757,7 @@ function Observer:Print(data, depth)
 end
 
 --[[
-@return (int): The length of the merged table (Observer:ToReadOnlyTable()).
+@return (int): The length of the merged table (Observer:ToBasicTable()).
 ]]
 Framework:DefineReturns("number");
 function Observer:GetLength()
@@ -764,172 +772,215 @@ end
 
 --[[
 Helper function to return the path address of the observer.
+
+@param (optional boolean) includeTableType - includes "global" or "profile" at the start of path address if true
 @return (string): The path address
 ]]
+Framework:DefineParams("?boolean")
 Framework:DefineReturns("?string");
-function Observer:GetPathAddress(data)
-    return data.path;
+function Observer:GetPathAddress(data, includeTableType)
+    local path = data.path;
+
+    if (includeTableType) then
+        if (data.isGlobal) then
+            path = string.format("%s.%s", "global", path);
+        else
+            path = string.format("%s.%s", "profile", path);
+        end
+    end
+
+    return path;
 end
 
 do
     -- local functions, ToTable
-    local AddTable, ConvertObserverToTable, CreateTracker, ApplyReadOnlyMetatable;
+    local ConvertObserverToBasicTable, CreateTrackerFromTable;
     -- tracker methods
-    local SaveChanges, GetTotalPendingChanges, ResetChanges, ToReadOnlyTable, Iterate;
+    local SaveChanges, Refresh, ToObserver, GetTotalPendingChanges, ResetChanges, ToBasicTable, Iterate;
 
-    local trackers = {};
-    local trackerMT = {};
-    local readOnlyTable_MT = {};
+    local _metaData = {};
+    local tracker_MT = {};
+    local BasicTableParent = {};
+    local basicTable_MT = {__index = BasicTableParent};
 
     -- Local Functions:
+    do
+        -- Adds all key and value pairs from fromTable onto toTable (replaces other non-table values)
+        local function AddTable(fromTable, toTable)
+            for key, value in pairs(fromTable) do
+                if (type(value) == "table") then
 
-    -- Adds all key and value pairs from fromTable onto toTable (replaces other non-table values)
-    AddTable = function(fromTable, toTable)
-        for key, value in pairs(fromTable) do
-            if (type(value) == "table") then
+                    if (type(toTable[key]) ~= "table") then
+                        toTable[key] = obj:PopWrapper();
+                    end
 
-                if (type(toTable[key]) ~= "table") then
-                    toTable[key] = obj:PopWrapper();
+                    AddTable(value, toTable[key]);
+                else
+                    toTable[key] = value;
                 end
-
-                AddTable(value, toTable[key]);
-            else
-                toTable[key] = value;
-            end
-        end
-    end
-
-    ConvertObserverToTable = function(observer, reusableTable)
-        local merged = reusableTable or obj:PopWrapper();
-        local svTable = observer:GetSavedVariable();
-        local defaults = observer:GetDefaults();
-        local parent = observer:GetParent();
-
-        if (type(reusableTable) == "table") then
-            obj:EmptyTable(reusableTable);
-            setmetatable(reusableTable, nil);
-        end
-
-        if (defaults) then
-            AddTable(defaults, merged);
-        end
-
-        if (parent) then
-            local parentTable = ConvertObserverToTable(parent);
-
-            if (parentTable) then
-                AddTable(parentTable, merged);
             end
         end
 
-        if (svTable) then
-            AddTable(svTable, merged);
-        end
+        function ConvertObserverToBasicTable(observer, reusableTable)
+            local merged = reusableTable or obj:PopWrapper();
+            local svTable = observer:GetSavedVariable();
+            local defaults = observer:GetDefaults();
+            local parent = observer:GetParent();
 
-        return merged;
+            if (type(reusableTable) == "table") then
+                obj:EmptyTable(reusableTable);
+                setmetatable(reusableTable, nil);
+            end
+
+            if (defaults) then
+                AddTable(defaults, merged);
+            end
+
+            if (parent) then
+                local parentTable = ConvertObserverToBasicTable(parent);
+
+                if (parentTable) then
+                    AddTable(parentTable, merged);
+                end
+            end
+
+            if (svTable) then
+                AddTable(svTable, merged);
+            end
+
+            return merged;
+        end
     end
 
-    CreateTracker = function(key, tbl, previousTracker)
+    function CreateTrackerFromTable(observer, tbl, previousTracker, nextPath)
         local tracker = obj:PopWrapper();
 
-        tracker.rootData = obj:PopWrapper();
-        tracker.rootData.changes = obj:PopWrapper();
-        tracker.rootData.root = tbl;
-        tracker.data = tbl;
+        -- available functions:
+        tracker.SaveChanges = SaveChanges;
+        tracker.ResetChanges = ResetChanges;
+        tracker.Refresh = Refresh;
+        tracker.GetTotalPendingChanges = GetTotalPendingChanges;
+        tracker.Iterate = Iterate;
+        tracker.ToBasicTable = ToBasicTable;
+        tracker.ToObserver = ToObserver;
+
+        -- set tracker data:
+        local data = _metaData[tostring(tbl)] or obj:PopWrapper();
+        _metaData[tostring(tracker)] = data;
 
         if (previousTracker) then
-            tracker.rootData = previousTracker.rootData;
-            tracker.path = GetNextPath(previousTracker.path, key);
+            local previousData = _metaData[tostring(previousTracker)];
+            data.changes = previousData.changes;
+            data.path = nextPath;
+        else
+            data.changes = obj:PopWrapper();
+            data.path = "";
         end
 
-        local proxyTracker = obj:PopWrapper();
+        data.tracker = setmetatable(tracker, tracker_MT);
+        data.basicTable = tbl;
+        data.observer = observer;
 
-        -- available functions:
-        proxyTracker.SaveChanges = SaveChanges;
-        proxyTracker.ResetChanges = ResetChanges;
-        proxyTracker.GetTotalPendingChanges = GetTotalPendingChanges;
-        proxyTracker.ToReadOnlyTable = ToReadOnlyTable;
-        proxyTracker.Iterate = Iterate;
-
-        trackers[tostring(proxyTracker)] = tracker;
-
-        return setmetatable(proxyTracker, trackerMT);
-    end
-
-    ApplyReadOnlyMetatable = function(tbl)
-        for _, value in pairs(tbl) do
-            if (type(value) == "table") then
-                ApplyReadOnlyMetatable(value);
-            end
-        end
-
-        setmetatable(tbl, readOnlyTable_MT);
+        return data.tracker;
     end
 
     -- Tracker Methods:
 
     -- apply all table changes and saves changes to the database
-    SaveChanges = function(self)
+    function SaveChanges(tracker)
+        local data = _metaData[tostring(tracker)];
+        local observerPath = data.observer:GetPathAddress(true);
+        local database = data.observer:GetDatabase();
         local totalChanges = 0;
-        local tracker = trackers[tostring(self)];
+        local fullPath;
 
-        for path, value in pairs(tracker.rootData.changes) do
+        for path, value in pairs(data.changes) do
             if (value == "nil") then
                 value = nil;
             end
 
-            local fullPath = string.format("%s.%s", tracker.rootData.observerPath, path);
-            tracker.rootData.database:SetPathValue(fullPath, value);
-            tracker.rootData.database:SetPathValue(tracker.rootData.root, path, value);
+            fullPath = string.format("%s.%s", observerPath, path);
+
+            -- save change to real saved variable database
+            database:SetPathValue(fullPath, value);
+
+            -- save change to basic table
+            database:SetPathValue(data.basicTable, path, value);
 
             totalChanges = totalChanges + 1;
         end
 
-        obj:EmptyTable(tracker.rootData.changes);
+        obj:EmptyTable(data.changes);
+
         return totalChanges;
     end
 
+    function Refresh(tracker)
+        local data = _metaData[tostring(tracker)];
+        local basicTable = ConvertObserverToBasicTable(self, data.basicTable);
+        setmetatable(basicTable, basicTable_MT);
+    end
+
     -- returns the total number of changes waiting to be saved to the database using SaveChanges()
-    GetTotalPendingChanges = function(self)
-        local tracker = trackers[tostring(self)];
+    function GetTotalPendingChanges(tracker)
+        local data = _metaData[tostring(tracker)];
         local pendingChanges = 0;
 
-        for _, _ in pairs(tracker.rootData.changes) do
+        for _, _ in pairs(data.changes) do
             pendingChanges = pendingChanges + 1;
         end
 
         return pendingChanges;
     end
 
-    ResetChanges = function(self)
-        local tracker = trackers[tostring(self)];
-        obj:EmptyTable(tracker.rootData.changes);
+    function ResetChanges(tracker)
+        local data = _metaData[tostring(tracker)];
+        obj:EmptyTable(data.changes);
     end
 
-    ToReadOnlyTable = function(self)
-        local tbl = trackers[tostring(self)].data;
+    function ToBasicTable(tracker)
+        local data = _metaData[tostring(tracker)];
+        return data.basicTable;
+    end
 
-        if (type(tbl) == "table") then
-            ApplyReadOnlyMetatable(tbl);
+    function ToObserver(tracker)
+        local data = _metaData[tostring(tracker)];
+        return data.observer;
+    end
+
+    function Iterate(tracker)
+        local data = _metaData[tostring(tracker)];
+        return next, data.basicTable, nil;
+    end
+
+    -- Basic Table Methods:
+
+    function BasicTableParent:ToTracker()
+        local data = _metaData[tostring(self)];
+        local tracker = data.tracker;
+
+        if (not tracker) then
+            tracker = CreateTrackerFromTable(data.observer, self);
         end
 
-        return tbl;
+        return tracker;
     end
 
-    Iterate = function(self)
-        local tracker = trackers[tostring(self)];
-        return next, tracker.data, nil;
+    function BasicTableParent:ToObserver()
+        local data = _metaData[tostring(self)];
+        return data.observer;
     end
 
     -- Meta-methods:
 
-    trackerMT.__index = function(self, key)
-        local tracker = trackers[tostring(self)];
-        local nextValue = tracker.data[key];
-        local path = GetNextPath(tracker.path, key);
+    tracker_MT.__index = function(tracker, key)
+        local data = _metaData[tostring(tracker)];
+        local nextValue = data.basicTable[key];
+        local nextPath = GetNextPath(data.path, key);
 
-        if (tracker.rootData.changes[path] ~= nil) then
-            nextValue = tracker.rootData.changes[path];
+        -- if it has not yet been saved but has been updated, use this value instead!
+        if (data.changes[nextPath] ~= nil) then
+            nextValue = data.changes[nextPath];
 
             if (nextValue == "nil") then
                 nextValue = nil;
@@ -937,48 +988,44 @@ do
         end
 
         if (type(nextValue) == "table") then
-            if (tracker.children and tracker.children[key]) then
-                return tracker.children[key];
+            -- create new tracker if one does not already exist!
+            local basicTable = nextValue; -- easier readability
+            local nextTracker = _metaData[tostring(basicTable)];
+
+            if (not nextTracker) then
+                nextValue = CreateTrackerFromTable(data.observer, basicTable, tracker, nextPath);
             end
-
-            tracker.children = tracker.children or obj:PopWrapper();
-
-            local childTracker = CreateTracker(key, nextValue, tracker);
-            tracker.children[key] = childTracker;
-
-            return childTracker;
-        else
-            return nextValue;
         end
+
+        return nextValue;
     end
 
-    trackerMT.__newindex = function(self, key, value)
-        local tracker = trackers[tostring(self)];
-        local path = GetNextPath(tracker.path, key);
-        local currentValue = tracker.data[key];
+    tracker_MT.__newindex = function(tracker, key, value)
+        local data = _metaData[tostring(tracker)];
+        local newIndexPath = GetNextPath(data.path, key);
+        local currentValue = data.basicTable[key];
 
         if (currentValue ~= nil and value == nil) then
-            tracker.rootData.changes[path] = "nil";
+            -- so that SaveChanges() knows to set this to nil
+            -- (else the key would be removed from changes table)
+            data.changes[newIndexPath] = "nil";
 
-        elseif (not Equals(currentValue, value)) then
-            tracker.rootData.changes[path] = value;
-
+        elseif (Equals(currentValue, value)) then
+            -- value reverted back to original value before SaveChanges() was called
+            -- so remove the pending change.
+            data.changes[newIndexPath] = nil;
         else
-            tracker.rootData.changes[path] = nil;
+            -- record the pending change
+            data.changes[newIndexPath] = value;
         end
     end
 
-    trackerMT.__gc = function(self)
-        local tracker = trackers[tostring(self)];
-        trackers[tostring(self)] = nil;
+    tracker_MT.__gc = function(self)
+        local data = _metaData[tostring(self)];
+        _metaData[tostring(self)] = nil;
         setmetatable(self, nil);
-        obj:PushWrapper(tracker.rootData.changes);
-        obj:PushWrapper(tracker.rootData);
-        obj:PushWrapper(tracker);
-    end
-
-    readOnlyTable_MT.__newindex = function(_, key)
-        error(string.format("Failed to add key '%s' to read-only table.", key));
+        obj:PushWrapper(data);
+        obj:PushWrapper(self);
     end
 
     --[[
@@ -991,14 +1038,17 @@ do
     @return (table): a table containing all merged values
     ]]
     Framework:DefineReturns("table", "?table");
-    function Observer:ToReadOnlyTable(_, reusableTable)
-        local tbl = ConvertObserverToTable(self, reusableTable);
+    function Observer:ToBasicTable(_, reusableTable)
+        local basicTable = ConvertObserverToBasicTable(self, reusableTable);
+        setmetatable(basicTable, basicTable_MT);
 
-        if (type(tbl) == "table") then
-            ApplyReadOnlyMetatable(tbl);
-        end
+        -- create basic table data:
+        _metaData[tostring(basicTable)] = obj:PopWrapper();
 
-        return tbl;
+        local data = _metaData[tostring(basicTable)];
+        data.observer = self; -- needed for ToObserver()
+
+        return basicTable;
     end
 
     --[[
@@ -1012,21 +1062,9 @@ do
     @return (table): a tracking table containing all merged values and some helper methods
     ]]
     Framework:DefineReturns("table", "?table");
-    function Observer:ToTracker(data, reusableTable)
-        local proxyTracker = CreateTracker(nil, ConvertObserverToTable(self, reusableTable));
-        local observerPath;
-
-        if (data.isGlobal) then
-            observerPath = string.format("%s.%s", "global", data.path);
-        else
-            observerPath = string.format("%s.%s", "profile", data.path);
-        end
-
-        local tracker = trackers[tostring(proxyTracker)];
-        tracker.rootData.observerPath = observerPath;
-        tracker.rootData.database = data.database;
-
-        return proxyTracker;
+    function Observer:ToTracker(_, reusableTable)
+        local tbl = ConvertObserverToBasicTable(self, reusableTable);
+        return CreateTrackerFromTable(self, tbl);
     end
 end
 -------------------------------------------------

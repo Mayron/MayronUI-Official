@@ -796,7 +796,7 @@ do
     -- local functions, ToTable
     local ConvertObserverToBasicTable, CreateTrackerFromTable;
     -- tracker methods
-    local SaveChanges, ToObserver, GetTotalPendingChanges, ResetChanges, ToBasicTable, Iterate;
+    local SaveChanges, Refresh, ToObserver, GetTotalPendingChanges, ResetChanges, ToBasicTable, Iterate;
 
     local _metaData = {};
     local tracker_MT = {};
@@ -858,6 +858,7 @@ do
         -- available functions:
         tracker.SaveChanges = SaveChanges;
         tracker.ResetChanges = ResetChanges;
+        tracker.Refresh = Refresh;
         tracker.GetTotalPendingChanges = GetTotalPendingChanges;
         tracker.Iterate = Iterate;
         tracker.ToBasicTable = ToBasicTable;
@@ -886,11 +887,11 @@ do
     -- Tracker Methods:
 
     -- apply all table changes and saves changes to the database
-    function SaveChanges(self)
-        local totalChanges = 0;
-        local data = _metaData[tostring(self)];
+    function SaveChanges(tracker)
+        local data = _metaData[tostring(tracker)];
         local observerPath = data.observer:GetPathAddress(true);
         local database = data.observer:GetDatabase();
+        local totalChanges = 0;
         local fullPath;
 
         for path, value in pairs(data.changes) do
@@ -912,6 +913,12 @@ do
         obj:EmptyTable(data.changes);
 
         return totalChanges;
+    end
+
+    function Refresh(tracker)
+        local data = _metaData[tostring(tracker)];
+        local basicTable = ConvertObserverToBasicTable(self, data.basicTable);
+        setmetatable(basicTable, basicTable_MT);
     end
 
     -- returns the total number of changes waiting to be saved to the database using SaveChanges()
