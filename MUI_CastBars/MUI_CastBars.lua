@@ -14,6 +14,7 @@ local C_CastBar = Engine:CreateClass("CastBar", "Framework.System.FrameWrapper")
 -- Register Modules --------------------
 
 local C_CastBarsModule = MayronUI:RegisterModule("CastBars");
+namespace.C_CastBarsModule = C_CastBarsModule;
 
 -- Load Database Defaults --------------
 

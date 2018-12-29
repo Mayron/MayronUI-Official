@@ -9,12 +9,7 @@ local C_Container = MayronUI:RegisterModule("BottomUI_Container");
 -- Add Database Defaults -----------------
 
 db:AddToDefaults("profile.bottomui", {
-    width = 750,
-    gradients = {
-        enabled = true,
-        height = 24,
-        target_class_colored = true,
-    }
+    width = 750;
 });
 
 -- C_Container ------------------
@@ -24,18 +19,12 @@ function C_Container:OnInitialize(data)
         return;
     end
 
-    db = namespace.Database; -- why?
-    data.sv = db.profile.bottomui;
+    db = namespace.Database; -- TODO: is this needed now?
+    data.settings = db.profile.bottomui:ToUntrackedTable();
     data.container = tk.CreateFrame("Frame", "MUI_BottomContainer", tk.UIParent);
     data.container:SetPoint("BOTTOM", 0, -1);
-    data.container:SetSize(data.sv.width, 1);
+    data.container:SetSize(data.settings.width, 1);
     data.container:SetFrameStrata("LOW");
-
-    local r, g, b = tk:GetThemeColor();
-    db:AppendOnce(db.profile, "bottomui.gradients", {
-        from = {r = r, g = g, b = b, a = 0.5},
-        to = {r = 0, g = 0, b = 0, a = 0}
-    });
 
     em:CreateEventHandler("PET_BATTLE_OVER", function()
         data.container:Show();
@@ -76,7 +65,9 @@ function C_Container:UpdateContainer(data)
     data.subModules.ActionBarPanel:PositionBartenderBars();
 end
 
--- function C_Container:OnConfigUpdate(data, list, value)
+function C_Container:OnConfigUpdate(data, list, value)
+    list:Print();
+end
     -- local unitFramePanel = data.subModules["UnitFramePanel"];
     -- local key = list:PopFront();
 
@@ -135,7 +126,7 @@ end
     --                 unit.player.text:SetFont(font, value);
     --                 unit.target.text:SetFont(font, value);
 
-    --             elseif (key == "target_class_colored") then
+    --             elseif (key == "targetClassColored") then
     --                 if (UnitIsPlayer("target") and value) then
     --                     local _, class = UnitClass("target");
     --                     tk:SetClassColoredTexture(class, unit.target.bg);

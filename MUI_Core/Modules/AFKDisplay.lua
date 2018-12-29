@@ -4,7 +4,7 @@ local Private = {};
 
 -- Register Module ------------
 
-local AfkDisplay = MayronUI:RegisterModule("AfkDisplay");
+local C_AfkDisplayModule = MayronUI:RegisterModule("AfkDisplay");
 
 -- Add Database Defaults ------
 
@@ -40,7 +40,7 @@ function Private:ResetDataText()
 end
 
 -- prevents cutting of models
-Private.races = { -- lower = lower model
+Private.Races = { -- lower values = lower model
     Human = {
         Male = {
             value = -0.4,
@@ -282,7 +282,7 @@ local function PositionModel(model, hovering, falling)
     gender = (gender == 2) and "Male" or "Female";
 
     local race = (tk.select(2, _G.UnitRace("player"))):gsub("%s+", "");
-    local tbl = Private.races[race][gender];
+    local tbl = Private.Races[race][gender];
     local value = (hovering and tbl.hoverValue) or tbl.value;
 
     model:SetPoint("BOTTOM");
@@ -436,7 +436,8 @@ do
         tk:SetThemeColor(f.bg);
 
         _G.UIParent:HookScript("OnShow", function()
-            AfkDisplay:Toggle(false);
+            local afkDisplay = MayronUI:ImportModule("AfkDisplay");
+            afkDisplay:SetShown(false);
         end);
 
         f.time = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge");
@@ -462,8 +463,11 @@ do
         f.titleButton = tk:PopFrame("Button", f);
         f.titleButton:SetSize(250, 22);
         f.titleButton:SetPoint("BOTTOM", f.bg, "TOP", 0, -1);
-        f.titleButton:SetNormalTexture(tk.Constants.MEDIA.."bottom_ui\\Names");
-        f.titleButton:SetHighlightTexture(tk.Constants.MEDIA.."bottom_ui\\Names");
+
+        local nameTexturePath = tk:GetAssetFilePath("Textures\\BottomUI\\NamePanel");
+        f.titleButton:SetNormalTexture(nameTexturePath);
+        f.titleButton:SetHighlightTexture(nameTexturePath);
+
         tk:SetThemeColor(0.8, f.titleButton);
         f.titleButton:SetNormalFontObject("MUI_FontNormal");
         f.titleButton:SetHighlightFontObject("GameFontHighlight");
@@ -501,33 +505,33 @@ do
     end
 end
 
--- AfkDisplay Module -----------
+-- C_AfkDisplayModule Module -----------
 
-function AfkDisplay:OnInitialize(data)
-    data.sv = db.global.afkDisplay;
+function C_AfkDisplayModule:OnInitialize(data)
+    data.settings = db.global.afkDisplay:ToUntrackedTable();
 
-    if (data.sv.enabled) then
+    if (data.settings.enabled) then
         self:SetEnabled(true);
     end
 end
 
-function AfkDisplay:OnEnable(data)
-    if (data.handler) then
+function C_AfkDisplayModule:OnEnable(data)
+    if (not data.handler) then
         data.handler = em:CreateEventHandler("PLAYER_FLAGS_CHANGED", function(_, _, unitID)
-            if (unitID ~= "player" or not data.sv.enabled) then
+            if (unitID ~= "player" or not data.settings.enabled) then
                 return;
             end
 
-            self:Toggle(_G.UnitIsAFK(unitID));
+            self:SetShown(_G.UnitIsAFK(unitID));
         end);
 
         em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-            self:Toggle(false);
+            self:SetShown(false);
         end);
     end
 end
 
-function AfkDisplay:Toggle(data, show)
+function C_AfkDisplayModule:SetShown(data, show)
     if (tk.InCombatLockdown() or (_G.AuctionFrame and _G.AuctionFrame:IsVisible())) then
         if (Private.display) then
             Private.display:Hide();
@@ -543,7 +547,7 @@ function AfkDisplay:Toggle(data, show)
         if (not Private.display) then
             Private.display = Private:CreateDisplay();
 
-            if (data.sv.playerModel) then
+            if (data.settings.playerModel) then
                 Private.display.modelFrame = Private:CreatePlayerModel();
             end
         end
@@ -552,11 +556,10 @@ function AfkDisplay:Toggle(data, show)
         PositionModel(Private.display.modelFrame.model);
         Private:ResetDataText();
         Private:StartTimer();
-
     else
-        tk.UIParent:Show();
+        _G.UIParent:Show();
 
-        if (data.sv.rotateCamera) then
+        if (data.settings.rotateCamera) then
             _G.MoveViewLeftStop();
             _G.SetCVar("cameraView", "0"); -- to remove bug
         end

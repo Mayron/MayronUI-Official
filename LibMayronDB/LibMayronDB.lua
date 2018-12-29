@@ -540,6 +540,10 @@ function Database:AppendOnce(data, rootTable, path, value)
 
     if (appendTable[path]) then
         -- already previously appended, cannot append again
+        if (type(value) == "table") then
+            obj:PushWrapper(value, true);
+        end
+
         return false;
     end
 

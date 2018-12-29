@@ -3,24 +3,29 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 
 -- Register Modules ----------------------
 
-local C_UnitFramePanel = MayronUI:RegisterModule("BottomUI_UnitFramePanel", true);
+local C_UnitFramePanel = MayronUI:RegisterModule("BottomUI_UnitPanels", true);
 
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.unitPanels", {
-    enabled = true,
-    controlGrid = true,
-    unitWidth = 325,
-    height = 75,
-    isSymmetric = true,
-    alpha = 0.8,
+    enabled       = true;
+    controlGrid   = true;
+    unitWidth     = 325;
+    height        = 75;
+    isSymmetric   = true;
+    alpha         = 0.8;
     unitNames = {
-        width = 235,
-        height = 20,
-        fontSize = 11,
-        targetClassColored = true,
-        xOffset = 24,
-    }
+        width                 = 235;
+        height                = 20;
+        fontSize              = 11;
+        targetClassColored    = true;
+        xOffset               = 24;
+    };
+    sufGradients = {
+        enabled               = true;
+        height                = 24;
+        targetClassColored    = true;
+    };
 });
 
 -- SUF Functions -------------------------
@@ -355,9 +360,15 @@ function C_UnitFramePanel:SetupSUFPortraitGradients(data)
         return;
     end
 
-    local settings = db.profile.bottomui.gradients:GetUntrackedTable();
+    local r, g, b = tk:GetThemeColor();
+    db:AppendOnce(db.profile, "unitPanels.sufGradients", {
+        from = {r = r, g = g, b = b, a = 0.5},
+        to = {r = 0, g = 0, b = 0, a = 0}
+    });
 
-    if (settings.enabled) then
+    local gradientSettings = data.settings.sufGradients;
+
+    if (gradientSettings.enabled) then
         data.gradients = data.gradients or {};
 
         for _, unitID in obj:IterateArgs("player", "target") do
@@ -380,10 +391,10 @@ function C_UnitFramePanel:SetupSUFPortraitGradients(data)
                     if (unitID == "target") then
                         em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
                             if (_G.UnitExists("target")) then
-                                local from = settings.from;
-                                local to = settings.to;
+                                local from = gradientSettings.from;
+                                local to = gradientSettings.to;
 
-                                if (_G.UnitIsPlayer("target") and settings.targetClassColored) then
+                                if (_G.UnitIsPlayer("target") and gradientSettings.targetClassColored) then
                                     local _, class = _G.UnitClass("target");
                                     class = tk.string.upper(class);
                                     class = class:gsub("%s+", "");
@@ -403,10 +414,10 @@ function C_UnitFramePanel:SetupSUFPortraitGradients(data)
                     end
                 end
 
-                frame:SetSize(100, settings.height);
+                frame:SetSize(100, gradientSettings.height);
 
-                local from = settings.from;
-                local to = settings.to;
+                local from = gradientSettings.from;
+                local to = gradientSettings.to;
 
                 if (unitID == "target" and _G.UnitExists("target")
                         and _G.UnitIsPlayer("target") and settings.targetClassColored) then

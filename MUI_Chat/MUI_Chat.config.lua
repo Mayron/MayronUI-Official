@@ -3,7 +3,6 @@ local _, namespace = ...;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 
 local C_ChatModule = namespace.C_ChatModule;
-local chatModule = MayronUI:ImportModule("Chat");
 
 -- Defaults ----------------------
 
@@ -197,107 +196,108 @@ local function CreateButtonConfigTable(dbPath, buttonID)
     return _G.unpack(configTable);
 end
 
-chatModule.ConfigTable =
-{
-    name = "Chat Frames",
-    type = "category",
-    module = "Chat",
-    children = {
-        {   name = L["Edit Box (Message Input Box)"],
-            type = "title",
-            paddingTop = 0
-        },
-        {   name = L["Y-Offset"],
-            type = "textfield",
-            valueType = "number",
-            tooltip = "Set the vertical positioning of the edit box.\n\nDefault is -8.",
-            dbPath = "profile.chat.editBox.yOffset"
-        },
-        {   name = L["Height"],
-            type = "textfield",
-            valueType = "number",
-            tooltip = "The height of the edit box.\n\nDefault is 27.",
-            dbPath = "profile.chat.editBox.height"
-        },
-        { type = "divider",
-        },
-        {   name = L["Border"],
-            type = "dropdown",
-            options = tk.Constants.LSM:List("border"),
-            dbPath = "profile.chat.editBox.border",
-        },
-        {   name = L["Background Color"],
-            type = "color",
-            height = 64,
-            dbPath = "profile.chat.editBox.backdropColor"
-        },
-        { type = "divider",
-        },
-        {   name = L["Border Size"],
-            type = "textfield",
-            valueType = "number",
-            tooltip = L["Set the border size.\n\nDefault is 1."],
-            dbPath = "profile.chat.editBox.borderSize"
-        },
-        {   name = L["Backdrop Inset"],
-            type = "textfield",
-            valueType = "number",
-            tooltip = L["Set the spacing between the background and the border.\n\nDefault is 0."],
-            dbPath = "profile.chat.editBox.inset"
-        },
-        {   name = L["Chat Frame Options"],
-            type = "title",
-        },
-        {   name = L["Button Swapping in Combat"],
-            type = "check",
-            tooltip = L["Allow the use of modifier keys to swap chat buttons while in combat."],
-            dbPath = "profile.chat.swapInCombat",
-        },
-        {   type = "divider"
-        },
-        {   type = "loop",
-            args = {"TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT"},
+function C_ChatModule:GetConfigTable()
+    return {
+        name = "Chat Frames",
+        type = "category",
+        module = "Chat",
+        children = {
+            {   name = L["Edit Box (Message Input Box)"],
+                type = "title",
+                paddingTop = 0
+            },
+            {   name = L["Y-Offset"],
+                type = "textfield",
+                valueType = "number",
+                tooltip = "Set the vertical positioning of the edit box.\n\nDefault is -8.",
+                dbPath = "profile.chat.editBox.yOffset"
+            },
+            {   name = L["Height"],
+                type = "textfield",
+                valueType = "number",
+                tooltip = "The height of the edit box.\n\nDefault is 27.",
+                dbPath = "profile.chat.editBox.height"
+            },
+            { type = "divider",
+            },
+            {   name = L["Border"],
+                type = "dropdown",
+                options = tk.Constants.LSM:List("border"),
+                dbPath = "profile.chat.editBox.border",
+            },
+            {   name = L["Background Color"],
+                type = "color",
+                height = 64,
+                dbPath = "profile.chat.editBox.backdropColor"
+            },
+            { type = "divider",
+            },
+            {   name = L["Border Size"],
+                type = "textfield",
+                valueType = "number",
+                tooltip = L["Set the border size.\n\nDefault is 1."],
+                dbPath = "profile.chat.editBox.borderSize"
+            },
+            {   name = L["Backdrop Inset"],
+                type = "textfield",
+                valueType = "number",
+                tooltip = L["Set the spacing between the background and the border.\n\nDefault is 0."],
+                dbPath = "profile.chat.editBox.inset"
+            },
+            {   name = L["Chat Frame Options"],
+                type = "title",
+            },
+            {   name = L["Button Swapping in Combat"],
+                type = "check",
+                tooltip = L["Allow the use of modifier keys to swap chat buttons while in combat."],
+                dbPath = "profile.chat.swapInCombat",
+            },
+            {   type = "divider"
+            },
+            {   type = "loop",
+                args = {"TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT"},
 
-            func = function(_, chatFrameName)
-                local dbPath = string.format("profile.chat.chatFrames.%s", chatFrameName);
-                local chatFrameLabel;
+                func = function(_, chatFrameName)
+                    local dbPath = string.format("profile.chat.chatFrames.%s", chatFrameName);
+                    local chatFrameLabel;
 
-                if (tk.Strings:Contains(chatFrameName, "TOP")) then
-                    chatFrameLabel = "Top";
-                else
-                    chatFrameLabel = "Bottom";
-                end
+                    if (tk.Strings:Contains(chatFrameName, "TOP")) then
+                        chatFrameLabel = "Top";
+                    else
+                        chatFrameLabel = "Bottom";
+                    end
 
-                if (tk.Strings:Contains(chatFrameName, "LEFT")) then
-                    chatFrameLabel = tk.Strings:JoinWithSpace(chatFrameLabel, "Left");
-                else
-                    chatFrameLabel = tk.Strings:JoinWithSpace(chatFrameLabel, "Right");
-                end
+                    if (tk.Strings:Contains(chatFrameName, "LEFT")) then
+                        chatFrameLabel = tk.Strings:JoinWithSpace(chatFrameLabel, "Left");
+                    else
+                        chatFrameLabel = tk.Strings:JoinWithSpace(chatFrameLabel, "Right");
+                    end
 
-                local ConfigTable =
-                {
-                    name = tk.Strings:JoinWithSpace(chatFrameLabel, L["Options"]),
-                    type = "submenu",
-                    module = "Chat",
-                    inherit = {
-                        type = "dropdown",
-                        options = namespace.ButtonNames,
-                    },
-                    children = { -- shame I can't loop this
-                        {   name = L["Enable Chat Frame"],
-                            type = "check",
-                            requires_reload = true,
-                            dbPath = string.format("%s.enabled", dbPath),
+                    local ConfigTable =
+                    {
+                        name = tk.Strings:JoinWithSpace(chatFrameLabel, L["Options"]),
+                        type = "submenu",
+                        module = "Chat",
+                        inherit = {
+                            type = "dropdown",
+                            options = namespace.ButtonNames,
                         },
-                    }
-                };
+                        children = { -- shame I can't loop this
+                            {   name = L["Enable Chat Frame"],
+                                type = "check",
+                                requires_reload = true,
+                                dbPath = string.format("%s.enabled", dbPath),
+                            },
+                        }
+                    };
 
-                for i = 1, 3 do
-                    tk.Tables:AddAll(ConfigTable.children, CreateButtonConfigTable(dbPath, i));
+                    for i = 1, 3 do
+                        tk.Tables:AddAll(ConfigTable.children, CreateButtonConfigTable(dbPath, i));
+                    end
+
+                    return ConfigTable;
                 end
-
-                return ConfigTable;
-            end
-        },
-    }
-};
+            },
+        }
+    };
+end

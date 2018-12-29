@@ -60,7 +60,6 @@ function C_ConfigModule:OnProfileChange() end
 
 Engine:DefineParams("table");
 function C_ConfigModule:GetDatabaseValue(_, configTable)
-
     if (tk.Strings:IsNilOrWhiteSpace(configTable.dbPath)) then
         return configTable.GetValue and configTable.GetValue();
     end
@@ -157,15 +156,15 @@ function C_ConfigModule:SetSelectedButton(data, menuButton)
     menuButton.menu = menuButton.menu or self:CreateMenu();
     data.selectedButton = menuButton;
 
-    if (menuButton.ConfigTable) then
+    if (menuButton.configTable) then
         -- it is a sub-menu!
-        self:RenderSelectedMenu(menuButton.ConfigTable);
+        self:RenderSelectedMenu(menuButton.configTable);
 
-        obj:PushWrapper(menuButton.ConfigTable);
-        menuButton.ConfigTable = nil;
+        obj:PushWrapper(menuButton.configTable);
+        menuButton.configTable = nil;
 
         if (menuButton.module) then
-            menuButton.module.ConfigTable = nil;
+            menuButton.module.configTable = nil;
         end
     end
 
@@ -465,20 +464,20 @@ function C_ConfigModule:SetUpWindow(data)
 end
 
 do
-    local function CreateCheckButtonFromMenuTable(data, menuTable, module, menuListScrollChild)
+    local function CreateCheckButtonFromMenuTable(data, menuConfigTable, module, menuListScrollChild)
         local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
 
-        data.menuButtons[menuTable.name] = menuButton;
+        data.menuButtons[menuConfigTable.name] = menuButton;
         table.insert(data.menuButtons, menuButton);
 
-        menuButton.ConfigTable = menuTable;
-        menuButton.id = menuTable.id;
+        menuButton.configTable = menuConfigTable;
+        menuButton.id = menuConfigTable.id;
         menuButton.type = "menu";
-        menuButton.name = menuTable.name;
+        menuButton.name = menuConfigTable.name;
         menuButton.module = module;
 
         menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-        menuButton.text:SetText(menuTable.name); -- the model name as a readable button label
+        menuButton.text:SetText(menuConfigTable.name); -- the model name as a readable button label
         menuButton.text:SetJustifyH("LEFT");
         menuButton.text:SetPoint("TOPLEFT", 10, 0);
         menuButton.text:SetPoint("BOTTOMRIGHT");
@@ -508,11 +507,13 @@ do
 
         for _, module in MayronUI:IterateModules() do
 
-            if (module.ConfigTable) then
-                if (#module.ConfigTable == 0) then
-                    CreateCheckButtonFromMenuTable(data, module.ConfigTable, module, menuListScrollChild);
+            if (module.GetConfigTable) then
+                local configTable = module:GetConfigTable();
+
+                if (#configTable == 0) then
+                    CreateCheckButtonFromMenuTable(data, configTable, module, menuListScrollChild);
                 else
-                    for _, menuTable in ipairs(module.ConfigTable) do
+                    for _, menuTable in ipairs(configTable) do
                         CreateCheckButtonFromMenuTable(data, menuTable, module, menuListScrollChild);
                     end
                 end

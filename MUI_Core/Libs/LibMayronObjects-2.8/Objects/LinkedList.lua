@@ -29,6 +29,11 @@ function LinkedList:ToString()
     return name..str.."]";
 end
 
+function LinkedList:Print()
+    local str = self:ToString();
+    print(str);
+end
+
 function LinkedList:Clear()
     while (self:RemoveFront()) do end
 end

@@ -305,6 +305,16 @@ function MayronUI:IterateModules()
 	end
 end
 
+function MayronUI:GetModuleNames()
+    local moduleNamesList = obj:PopWrapper();
+
+    for _, moduleName in MayronUI:IterateModules() do
+        table.insert(moduleNamesList, moduleName);
+    end
+
+    return moduleNamesList;
+end
+
 -- Register Core Module ---------------------
 
 local C_CoreModule = MayronUI:RegisterModule("Core");
