@@ -95,7 +95,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.specialization;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTracker();
+    local settings = sv:GetTrackedTable();
 
     if (settings.enabled) then
         local specialization = Specialization(settings, dataTextData.bar, dataTextData.slideController, self);

@@ -56,7 +56,7 @@ db:AddToDefaults("profile.datatext", {
 -- C_DataTextModule Functions -------------------
 
 function C_DataTextModule:OnInitialize(data)
-    data.settings = db.profile.datatext:ToBasicTable(); -- a non-database table containing database settings
+    data.settings = db.profile.datatext:GetUntrackedTable(); -- a non-database table containing database settings
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
     data.lastButtonClicked = ""; -- last data text button clicked on
@@ -173,11 +173,8 @@ function C_DataTextModule:PositionDataItems(data)
 
             btn._module = dataModule; -- temporary
 
-            if (not displayOrder) then
-                --dataModule:Disable();
-
-            elseif (not data.positionedButtons[dbName]) then
-                table.insert(data.orderedButtons, btn);
+            if (displayOrder and not data.positionedButtons[dbName]) then
+                table.insert(data.orderedButtons, displayOrder, btn);
                 data.positionedButtons[dbName] = true;
             end
         end
@@ -328,7 +325,7 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
 
     -- a different dataTextModule button was clicked on!
     -- reset popup...
-    -- data.popup:Hide();
+    data.popup:Hide();
     data.popup:ClearAllPoints();
 
     -- handle type of button click
@@ -340,7 +337,6 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     end
 
     -- update content of popup based on which dataTextModule button was clicked
-
     self:ChangeMenuContent(dataModule.MenuContent);
     self:ClearLabels(dataModule.MenuLabels);
 

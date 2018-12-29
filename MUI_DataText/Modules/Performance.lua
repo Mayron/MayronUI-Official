@@ -21,7 +21,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self)
     local sv = db.profile.datatext.performance;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTracker();
+    local settings = sv:GetTrackedTable();
 
     if (settings.enabled) then
         local performance = Performance(settings, self);

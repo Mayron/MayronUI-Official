@@ -720,7 +720,7 @@ Example:
     end
 ]]
 function Observer:Iterate()
-    local merged = self:ToBasicTable();
+    local merged = self:GetUntrackedTable();
     return next, merged, nil;
 end
 
@@ -741,7 +741,7 @@ Example: db.profile.aModule:Print()
 ]]
 Framework:DefineParams("?number");
 function Observer:Print(data, depth)
-    local merged = self:ToBasicTable();
+    local merged = self:GetUntrackedTable();
     local tablePath = data.helper:GetDatabaseRootTableName(self);
     local path = (data.usingChild and data.usingChild.path) or data.path;
 
@@ -757,7 +757,7 @@ function Observer:Print(data, depth)
 end
 
 --[[
-@return (int): The length of the merged table (Observer:ToBasicTable()).
+@return (int): The length of the merged table (Observer:GetUntrackedTable()).
 ]]
 Framework:DefineReturns("number");
 function Observer:GetLength()
@@ -794,9 +794,9 @@ end
 
 do
     -- local functions, ToTable
-    local ConvertObserverToBasicTable, CreateTrackerFromTable;
+    local ConvertObserverGetUntrackedTable, CreateTrackerFromTable;
     -- tracker methods
-    local SaveChanges, Refresh, ToObserver, GetTotalPendingChanges, ResetChanges, ToBasicTable, Iterate;
+    local SaveChanges, Refresh, GetObserver, GetTotalPendingChanges, ResetChanges, GetUntrackedTable, Iterate;
 
     local _metaData = {};
     local tracker_MT = {};
@@ -821,7 +821,7 @@ do
             end
         end
 
-        function ConvertObserverToBasicTable(observer, reusableTable)
+        function ConvertObserverGetUntrackedTable(observer, reusableTable)
             local merged = reusableTable or obj:PopWrapper();
             local svTable = observer:GetSavedVariable();
             local defaults = observer:GetDefaults();
@@ -837,7 +837,7 @@ do
             end
 
             if (parent) then
-                local parentTable = ConvertObserverToBasicTable(parent);
+                local parentTable = ConvertObserverGetUntrackedTable(parent);
 
                 if (parentTable) then
                     AddTable(parentTable, merged);
@@ -861,8 +861,8 @@ do
         tracker.Refresh = Refresh;
         tracker.GetTotalPendingChanges = GetTotalPendingChanges;
         tracker.Iterate = Iterate;
-        tracker.ToBasicTable = ToBasicTable;
-        tracker.ToObserver = ToObserver;
+        tracker.GetUntrackedTable = GetUntrackedTable;
+        tracker.GetObserver = GetObserver;
 
         -- set tracker data:
         local data = _metaData[tostring(tbl)] or obj:PopWrapper();
@@ -917,7 +917,7 @@ do
 
     function Refresh(tracker)
         local data = _metaData[tostring(tracker)];
-        local basicTable = ConvertObserverToBasicTable(data.observer, data.basicTable);
+        local basicTable = ConvertObserverGetUntrackedTable(data.observer, data.basicTable);
         setmetatable(basicTable, basicTable_MT);
     end
 
@@ -938,12 +938,12 @@ do
         obj:EmptyTable(data.changes);
     end
 
-    function ToBasicTable(tracker)
+    function GetUntrackedTable(tracker)
         local data = _metaData[tostring(tracker)];
         return data.basicTable;
     end
 
-    function ToObserver(tracker)
+    function GetObserver(tracker)
         local data = _metaData[tostring(tracker)];
         return data.observer;
     end
@@ -955,7 +955,7 @@ do
 
     -- Basic Table Methods:
 
-    function BasicTableParent:ToTracker()
+    function BasicTableParent:GetTrackedTable()
         local data = _metaData[tostring(self)];
         local tracker = data.tracker;
 
@@ -966,7 +966,7 @@ do
         return tracker;
     end
 
-    function BasicTableParent:ToObserver()
+    function BasicTableParent:GetObserver()
         local data = _metaData[tostring(self)];
         return data.observer;
     end
@@ -1038,15 +1038,15 @@ do
     @return (table): a table containing all merged values
     ]]
     Framework:DefineReturns("table", "?table");
-    function Observer:ToBasicTable(_, reusableTable)
-        local basicTable = ConvertObserverToBasicTable(self, reusableTable);
+    function Observer:GetUntrackedTable(_, reusableTable)
+        local basicTable = ConvertObserverGetUntrackedTable(self, reusableTable);
         setmetatable(basicTable, basicTable_MT);
 
         -- create basic table data:
         _metaData[tostring(basicTable)] = obj:PopWrapper();
 
         local data = _metaData[tostring(basicTable)];
-        data.observer = self; -- needed for ToObserver()
+        data.observer = self; -- needed for GetObserver()
 
         return basicTable;
     end
@@ -1062,8 +1062,8 @@ do
     @return (table): a tracking table containing all merged values and some helper methods
     ]]
     Framework:DefineReturns("table", "?table");
-    function Observer:ToTracker(_, reusableTable)
-        local tbl = ConvertObserverToBasicTable(self, reusableTable);
+    function Observer:GetTrackedTable(_, reusableTable)
+        local tbl = ConvertObserverGetUntrackedTable(self, reusableTable);
         return CreateTrackerFromTable(self, tbl);
     end
 end

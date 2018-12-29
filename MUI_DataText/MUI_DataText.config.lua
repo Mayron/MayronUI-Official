@@ -96,7 +96,7 @@ dataTextModule.ConfigTable =
         },
         {   name = L["Enabled"],
             tooltip = tk.Strings:Concat(
-                L["If unchecked, the entire DataText module will be disabled and all"], "\n", 
+                L["If unchecked, the entire DataText module will be disabled and all"], "\n",
                 L["DataText buttons, as well as the background bar, will not be displayed."]),
             type = "check",
             requiresReload = true,

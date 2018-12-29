@@ -4,6 +4,56 @@ local _, namespace = ...;
 local obj = namespace.Objects;
 local tk = namespace.Toolkit;
 
+function tk:SetFontSize(fontString, size)
+    local fontPath, _, flags = fontString:GetFont();
+    fontString:SetFont(fontPath, size, flags);
+end
+
+do
+    local function GeneralTooltip_OnLeave(self)
+        _G.GameTooltip:Hide();
+    end
+
+    local function BasicTooltip_OnEnter(self)
+        _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
+        _G.GameTooltip:AddLine(self.text);
+        _G.GameTooltip:Show();
+    end
+
+    local function MultipleLinesTooltip_OnEnter(self)
+        _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
+
+        for _, line in ipairs(self.lines) do
+
+            if (line.text) then
+                _G.GameTooltip:AddLine(line.text);
+
+            elseif (line.leftText and line.rightText) then
+                _G.GameTooltip:AddDoubleLine(line.leftText, line.rightText, nil, nil, nil, 1, 1, 1);
+            end
+
+            obj:PushWrapper(line);
+        end
+
+        obj:PushWrapper(self.lines);
+        _G.GameTooltip:Show();
+    end
+
+    function tk:SetBasicTooltip(widget, text)
+        widget.text = text;
+
+        widget:SetScript("OnEnter", BasicTooltip_OnEnter);
+        widget:SetScript("OnLeave", GeneralTooltip_OnLeave);
+    end
+
+    function tk:SetMultipleLinesTooltip(widget, tooltipData)
+        widget.tooltip = tooltipData;
+
+        widget:SetScript("OnEnter", MultipleLinesTooltip_OnEnter);
+        widget:SetScript("OnLeave", GeneralTooltip_OnLeave);
+    end
+end
+
 function tk:SetFullWidth(frame, rightPadding)
     rightPadding = rightPadding or 0;
 

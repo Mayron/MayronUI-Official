@@ -330,8 +330,8 @@ function C_TimerField:__Construct(data, sv, name, frame)
 		data.enabled = sv.enabled;
 
         -- auras to track from database:
-		data.buffs = sv.buffs:ToBasicTable(); -- a copy of the data as (new references)
-        data.debuffs = sv.debuffs:ToBasicTable(); -- a copy of the data (new references)
+		data.buffs = sv.buffs:GetUntrackedTable(); -- a copy of the data as (new references)
+        data.debuffs = sv.debuffs:GetUntrackedTable(); -- a copy of the data (new references)
 
         --todo: might need to change this?
         data.activeBars = {}; -- store bars by order using id
@@ -350,8 +350,8 @@ function C_TimerField:__Construct(data, sv, name, frame)
         data.unit = sv.unit; -- what unit is being tracked?
         data.direction = sv.direction; -- up or down?
         data.spacing = sv.spacing;
-        data.debuffBarColor = sv.debuffBarColor:ToBasicTable();
-        data.buffBarColor = sv.buffBarColor:ToBasicTable();
+        data.debuffBarColor = sv.debuffBarColor:GetUntrackedTable();
+        data.buffBarColor = sv.buffBarColor:GetUntrackedTable();
     end
 
 	self:Scan();

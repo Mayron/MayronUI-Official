@@ -229,8 +229,8 @@ local function UsingBothParentAndDefaults_Test1(self) -- luacheck: ignore
     print("UsingBothParentAndDefaults_Test1 Successful!");
 end
 
-local function ToTrackerAndSavingChanges_Test1(self) -- luacheck: ignore
-    print("ToTrackerAndSavingChanges_Test1 Started");
+local function GetTrackedTableAndSavingChanges_Test1(self) -- luacheck: ignore
+    print("GetTrackedTableAndSavingChanges_Test1 Started");
 
     self:SetPathValue(self.profile, "root", {
         key1 = {
@@ -248,7 +248,7 @@ local function ToTrackerAndSavingChanges_Test1(self) -- luacheck: ignore
         };
     });
 
-    local tbl = self.profile.root:ToTracker();
+    local tbl = self.profile.root:GetTrackedTable();
 
     tbl.key3.option1.new = "test";
 
@@ -258,11 +258,11 @@ local function ToTrackerAndSavingChanges_Test1(self) -- luacheck: ignore
 
     assert(self.profile.root.key3.option1.new == "test");
 
-    print("ToTrackerAndSavingChanges_Test1 Successful!");
+    print("GetTrackedTableAndSavingChanges_Test1 Successful!");
 end
 
-local function ToTrackerAndSavingChanges_Test2(self) -- luacheck: ignore
-    print("ToTrackerAndSavingChanges_Test2 Started");
+local function GetTrackedTableAndSavingChanges_Test2(self) -- luacheck: ignore
+    print("GetTrackedTableAndSavingChanges_Test2 Started");
 
     self:SetPathValue(self.profile, "root", {
         key1 = {
@@ -279,7 +279,7 @@ local function ToTrackerAndSavingChanges_Test2(self) -- luacheck: ignore
         };
     });
 
-    local tbl = self.profile.root:ToTracker();
+    local tbl = self.profile.root:GetTrackedTable();
 
     tbl.key3.option1.existingValue = "test";
 
@@ -297,7 +297,7 @@ local function ToTrackerAndSavingChanges_Test2(self) -- luacheck: ignore
 
     assert(self.profile.root.key3.option1.existingValue == nil);
 
-    print("ToTrackerAndSavingChanges_Test2 Successful!");
+    print("GetTrackedTableAndSavingChanges_Test2 Successful!");
 end
 
 -- Taken from LibMayronDB.lua
@@ -332,8 +332,8 @@ local function Equals(value1, value2, shallowEquals)
     return false;
 end
 
-local function ToTrackerAndSavingChanges_Test3(self) -- luacheck: ignore
-    print("ToTrackerAndSavingChanges_Test3 Started");
+local function GetTrackedTableAndSavingChanges_Test3(self) -- luacheck: ignore
+    print("GetTrackedTableAndSavingChanges_Test3 Started");
 
     -- It seems that when a new table is assigned to child, it removes all other values
     -- Arrange
@@ -429,13 +429,13 @@ local function ToTrackerAndSavingChanges_Test3(self) -- luacheck: ignore
     };
 
     self.profile.root:SetParent(self.profile.myParent);
-    local tbl = self.profile.root:ToTracker();
+    local tbl = self.profile.root:GetTrackedTable();
 
     ------------------------------------------------
     -- Act and Assert:
 
     -- Table should merge child, parent, and default tables together in that priority order
-    assert(Equals(tbl:ToBasicTable(), expectedTable), "Tables are not equal!");
+    assert(Equals(tbl:GetUntrackedTable(), expectedTable), "Tables are not equal!");
 
     -- set value to same value should result in no change required
     tbl.defaults.default4.value3 = 30;
@@ -479,11 +479,11 @@ local function ToTrackerAndSavingChanges_Test3(self) -- luacheck: ignore
     assert(totalChanges == 1);
     assert(self.profile.root.defaults.default4.value3 == 30);
 
-    print("ToTrackerAndSavingChanges_Test3 Successful!");
+    print("GetTrackedTableAndSavingChanges_Test3 Successful!");
 end
 
-local function ToTrackerAndSavingChanges_Test4(self) -- luacheck: ignore
-    print("ToTrackerAndSavingChanges_Test4 Started");
+local function GetTrackedTableAndSavingChanges_Test4(self) -- luacheck: ignore
+    print("GetTrackedTableAndSavingChanges_Test4 Started");
 
     self.profile.root = {
         options = {
@@ -495,7 +495,7 @@ local function ToTrackerAndSavingChanges_Test4(self) -- luacheck: ignore
         }
     };
 
-    local tbl = self.profile.root:ToTracker();
+    local tbl = self.profile.root:GetTrackedTable();
 
     tbl.options.option3.value1 = "test";
     assert(tbl.options.option3.value1 == "test");
@@ -522,11 +522,11 @@ local function ToTrackerAndSavingChanges_Test4(self) -- luacheck: ignore
     assert(tbl.options.option3.value1 == "different test");
     assert(self.profile.root.options.option3.value1 == "different test");
 
-    print("ToTrackerAndSavingChanges_Test4 Successful!");
+    print("GetTrackedTableAndSavingChanges_Test4 Successful!");
 end
 
-local function ToTrackerAndSavingChanges_Test5(self) -- luacheck: ignore
-    print("ToTrackerAndSavingChanges_Test5 Started");
+local function GetTrackedTableAndSavingChanges_Test5(self) -- luacheck: ignore
+    print("GetTrackedTableAndSavingChanges_Test5 Started");
 
     self.profile.root = {
         level1 = {
@@ -543,7 +543,7 @@ local function ToTrackerAndSavingChanges_Test5(self) -- luacheck: ignore
         }
     };
 
-    local tbl = self.profile.root:ToTracker();
+    local tbl = self.profile.root:GetTrackedTable();
 
     tbl.level1.val = 80;
     tbl.level1.level2.val = 70;
@@ -575,23 +575,23 @@ local function ToTrackerAndSavingChanges_Test5(self) -- luacheck: ignore
     pendingChanges = tbl:GetTotalPendingChanges();
     assert(pendingChanges == 0, string.format("0 expected, got %s", pendingChanges));
 
-    print("ToTrackerAndSavingChanges_Test5 Successful!");
+    print("GetTrackedTableAndSavingChanges_Test5 Successful!");
 end
 
-local function ToBasicTable_Test1(self) -- luacheck: ignore
-    print("ToBasicTable_Test1 Started");
+local function GetUntrackedTable_Test1(self) -- luacheck: ignore
+    print("GetUntrackedTable_Test1 Started");
 
     self.profile.root = {
         testValue = 12;
     };
 
-    local tbl = self.profile.root:ToBasicTable();
+    local tbl = self.profile.root:GetTrackedTable();
 
     tbl.testValue = 100;
 
     assert(tbl.testValue == 100);
 
-    local tracker = tbl:ToTracker();
+    local tracker = tbl:GetTrackedTable();
 
     assert(tracker.testValue == 100);
     assert(tracker:GetTotalPendingChanges() == 0);
@@ -606,8 +606,8 @@ local function ToBasicTable_Test1(self) -- luacheck: ignore
     assert(tracker.testValue == 55);
     assert(self.profile.root.testValue == 55);
 
-    local observer = tracker:ToObserver();
-    assert(tbl:ToObserver() == observer);
+    local observer = tracker:GetObserver();
+    assert(tbl:GetObserver() == observer);
 
     assert(observer.testValue == 55);
     assert(self.profile.root.testValue == 55);
@@ -632,7 +632,7 @@ local function ToBasicTable_Test1(self) -- luacheck: ignore
     assert(tracker.testValue == 4);
     assert(tbl.testValue == 4);
 
-    print("ToBasicTable_Test1 Successful!");
+    print("GetUntrackedTable_Test1 Successful!");
 end
 
 db:OnStartUp(function(...) -- luacheck: ignore
@@ -649,10 +649,10 @@ db:OnStartUp(function(...) -- luacheck: ignore
     -- UpdatingSameValueMultipleTimes_Test1(...);
     -- CleaningUpWithNilValue_Test1(...);
     -- UsingBothParentAndDefaults_Test1(...);
-    -- ToTrackerAndSavingChanges_Test1(...);
-    -- ToTrackerAndSavingChanges_Test2(...);
-    -- ToTrackerAndSavingChanges_Test3(...);
-    -- ToTrackerAndSavingChanges_Test4(...);
-    -- ToTrackerAndSavingChanges_Test5(...);
-    -- ToBasicTable_Test1(...);
+    -- GetTrackedTableAndSavingChanges_Test1(...);
+    -- GetTrackedTableAndSavingChanges_Test2(...);
+    -- GetTrackedTableAndSavingChanges_Test3(...);
+    -- GetTrackedTableAndSavingChanges_Test4(...);
+    -- GetTrackedTableAndSavingChanges_Test5(...);
+    -- GetUntrackedTable_Test1(...);
 end);

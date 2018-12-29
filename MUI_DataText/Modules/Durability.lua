@@ -46,7 +46,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self)
     local sv = db.profile.datatext.durability;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTracker();
+    local settings = sv:GetTrackedTable();
 
     if (settings.enabled) then
         local durability = Durability(settings, self);

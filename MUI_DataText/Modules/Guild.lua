@@ -76,7 +76,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.guild;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTracker();
+    local settings = sv:GetTrackedTable();
 
     if (settings.enabled) then
         local guild = Guild(settings, dataTextData.slideController, self);
@@ -151,7 +151,7 @@ function Guild:Click(data, button)
     end
 
     if (not _G.IsInGuild()) then
-        return
+        return true;
     end
 
     local totalLabelsShown = 0;

@@ -159,10 +159,13 @@ WidgetHandlers.title = {};
 function WidgetHandlers.title:Run(parent, widgetConfigTable)
     local container = tk:PopFrame("Frame", parent);
     container.text = container:CreateFontString(nil, "OVERLAY", "MUI_FontLarge");
+    tk:SetFontSize(container.text, 14);
     container.text:SetText(widgetConfigTable.name);
 
-    local topPadding = (widgetConfigTable.paddingTop or 10);
-    local bottomPadding = (widgetConfigTable.paddingBottom or 10);
+    local marginTop = widgetConfigTable.marginTop or 10;
+    local marginBottom = widgetConfigTable.marginBottom or 10;
+    local topPadding = (widgetConfigTable.paddingTop or (marginTop + 10));
+    local bottomPadding = (widgetConfigTable.paddingBottom or (marginBottom + 10));
     local textHeight = container.text:GetStringHeight();
     local height = textHeight + topPadding + bottomPadding;
 
@@ -175,7 +178,9 @@ function WidgetHandlers.title:Run(parent, widgetConfigTable)
     end
 
     local background = tk:SetBackground(container, 0, 0, 0, 0.2);
-    background:SetAllPoints(true);
+    background:ClearAllPoints();
+    background:SetPoint("TOPLEFT", 0, -marginTop);
+    background:SetPoint("BOTTOMRIGHT", 0, marginBottom);
     container.text:SetAllPoints(background);
 
     return container;

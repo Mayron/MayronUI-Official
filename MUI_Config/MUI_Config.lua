@@ -25,6 +25,17 @@ local function MenuButton_OnClick(menuButton)
     configModule:OpenMenu(menuButton);
 end
 
+local function SetBackButtonEnabled(backBtn, enabled)
+    backBtn:SetEnabled(enabled);
+
+    if (enabled) then
+        tk:ApplyThemeColor(backBtn.arrow);
+    else
+        local r, g, b = tk.Constants.COLORS.GRAY:GetRGB();
+        backBtn.arrow:SetVertexColor(r, g, b, 1);
+    end
+end
+
 namespace.MenuButton_OnClick = MenuButton_OnClick;
 
 -- C_ConfigModule -------------------
@@ -123,12 +134,11 @@ function C_ConfigModule:OpenMenu(data, menuButton)
 
     if (menuButton.type == "menu") then
         data.history:Clear();
-        data.window.back:SetEnabled(false);
+        SetBackButtonEnabled(data.window.back, false);
 
     elseif (menuButton.type == "submenu") then
         data.history:AddToBack(data.selectedButton);
-        data.window.back:SetEnabled(true);
-
+        SetBackButtonEnabled(data.window.back, true);
     else
         tk:Error("Menu or Sub-Menu expected, got '%s'.", menuButton.type);
     end
@@ -180,15 +190,22 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
 
         if (widgetConfigTable.type == "loop") then
             -- run the loop to gather widget children
-            local widgetChildren = namespace.WidgetHandlers.loop:Run(
+            local loopResults = namespace.WidgetHandlers.loop:Run(
                 data.selectedButton.menu:GetFrame(), widgetConfigTable);
 
-            for _, subWidgetConfigTable in ipairs(widgetChildren) do
-                data.selectedButton.menu:AddChildren(self:SetUpWidget(subWidgetConfigTable));
+            for _, result in ipairs(loopResults) do
+
+                if (not result.type and #result > 1) then
+                    for _, subWidgetConfigTable in ipairs(result) do
+                        data.selectedButton.menu:AddChildren(self:SetUpWidget(subWidgetConfigTable));
+                    end
+                else
+                    data.selectedButton.menu:AddChildren(self:SetUpWidget(result));
+                end
             end
 
             -- the table was previously popped
-            obj:PushWrapper(widgetChildren);
+            obj:PushWrapper(loopResults);
 
         elseif (widgetConfigTable.type == "frame") then
             local frame = self:SetUpWidget(widgetConfigTable);
@@ -279,7 +296,8 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
     end
 
     tk:Assert(namespace.WidgetHandlers[widgetType],
-        "Unsupported widget type '%s' found in config data", widgetType or "nil");
+        "Unsupported widget type '%s' found in config data for config table '%s'.",
+        widgetType or "nil", widgetConfigTable.name or "nil");
 
     if (widgetConfigTable.OnInitialize) then
         -- do disabled widgets need to be initialized?
@@ -391,7 +409,7 @@ function C_ConfigModule:SetUpWindow(data)
 
         if (data.history:GetSize() == 0) then
             data.windowName:SetText(menuButton.name);
-            backButton:SetEnabled(false);
+            SetBackButtonEnabled(backButton, false);
         else
             local previousMenuButton = data.history:GetBack();
             data.windowName:SetText(previousMenuButton.name);
@@ -402,9 +420,7 @@ function C_ConfigModule:SetUpWindow(data)
 
     data.windowName = topbar:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
     data.windowName:SetPoint("LEFT", data.window.back, "RIGHT", 10, 0);
-
-    -- tk:ApplyThemeColor(data.window.back.arrow);
-    data.window.back:SetEnabled(false);
+    SetBackButtonEnabled(data.window.back, false);
 
     -- profiles button
     data.window.profilesBtn = gui:CreateButton(

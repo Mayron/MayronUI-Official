@@ -8,10 +8,6 @@ C_ConfigModule.ConfigTable =
     {   name = L["Bottom UI Panels"],
         module = "BottomUI",
         children = {
-            {   name = L["General Options"],
-                type = "title",
-                padding_top = 0
-            },
             {   name = L["Container Width"],
                 type = "slider",
                 tooltip = tk.Strings.Concat(L["Adjust the width of the Bottom UI container."], "\n\n",
@@ -26,7 +22,7 @@ C_ConfigModule.ConfigTable =
                 padding_top = 0
             },
             {   name = L["Enable Unit Panels"],
-                dbPath = "profile.bottomui.unit_panels.enabled",
+                dbPath = "profile.unitPanels.enabled",
                 requiresReload = true,
                 type = "check",
             },
@@ -34,19 +30,19 @@ C_ConfigModule.ConfigTable =
                 tooltip = L["Previously called 'Classic Mode'."],
                 type = "check",
                 requiresReload = true,
-                dbPath = "profile.bottomui.unit_panels.classicMode"
+                dbPath = "profile.unitPanels.isSymmetric"
             },
             {   name = L["Allow MUI to Control Unit Frames"],
                 tooltip = L["TT_MUI_CONTROL_SUF"],
                 type = "check",
                 requiresReload = true,
-                dbPath = "profile.bottomui.unit_panels.control_SUF"
+                dbPath = "profile.unitPanels.control_SUF"
             },
             {   name = L["Allow MUI to Control Grid"],
                 tooltip = L["TT_MUI_CONTROL_GRID"],
                 type = "check",
                 requiresReload = true,
-                dbPath = "profile.bottomui.unit_panels.control_Grid"
+                dbPath = "profile.unitPanels.controlGrid"
             },
             {   type = "divider",
             },
@@ -57,7 +53,7 @@ C_ConfigModule.ConfigTable =
                 max = 550,
                 tooltip = tk.Strings:Concat(L["Adjust the width of the unit frame background panels."], "\n\n",
                     L["Minimum value is "], "200", "\n\n", L["Default value is "], "325"),
-                dbPath = "profile.bottomui.unit_panels.unit_width",
+                dbPath = "profile.unitPanels.unitWidth",
             },
             {   name = L["Name Panels"],
                 type = "title",
@@ -69,7 +65,7 @@ C_ConfigModule.ConfigTable =
                 step = 5,
                 min = 150,
                 max = 350,
-                dbPath = "profile.bottomui.unit_panels.unit_names.width",
+                dbPath = "profile.unitPanels.unitNames.width",
             },
             {   name = L["Height"],
                 type = "slider",
@@ -78,7 +74,7 @@ C_ConfigModule.ConfigTable =
                 step = 1,
                 min = 16,
                 max = 30,
-                dbPath = "profile.bottomui.unit_panels.unit_names.height",
+                dbPath = "profile.unitPanels.unitNames.height",
             },
             {   name = L["X-Offset"],
                 type = "slider",
@@ -86,7 +82,7 @@ C_ConfigModule.ConfigTable =
                 step = 1,
                 min = -100,
                 max = 100,
-                dbPath = "profile.bottomui.unit_panels.unit_names.xOffset",
+                dbPath = "profile.unitPanels.unitNames.xOffset",
             },
             {   name = L["Font Size"],
                 type = "slider",
@@ -94,19 +90,19 @@ C_ConfigModule.ConfigTable =
                 step = 1,
                 min = 8,
                 max = 18,
-                dbPath = "profile.bottomui.unit_panels.unit_names.fontSize",
+                dbPath = "profile.unitPanels.unitNames.fontSize",
             },
             {   name = L["Target Class Colored"],
                 type = "check",
                 height = 50,
-                dbPath = "profile.bottomui.unit_panels.unit_names.target_class_colored"
+                dbPath = "profile.unitPanels.unitNames.targetClassColored"
             },
             {   name = L["Action Bar Panel"],
                 type = "title",
                 padding_top = 0
             },
             {   name = L["Enable Action Bar Panel"],
-                dbPath = "profile.bottomui.actionbar_panel.enabled",
+                dbPath = "profile.actionBarPanel.enabled",
                 requiresReload = true,
                 type = "check",
             },
@@ -117,7 +113,7 @@ C_ConfigModule.ConfigTable =
                 step = 1,
                 min = 1,
                 max = 10,
-                dbPath = "profile.bottomui.actionbar_panel.animate_speed",
+                dbPath = "profile.actionBarPanel.animate_speed",
             },
             {   name = L["Retract Height"],
                 tooltip = tk.Strings:Concat(
@@ -126,7 +122,7 @@ C_ConfigModule.ConfigTable =
                 type = "textfield",
                 valueType = "number",
                 min = 40,
-                dbPath = "profile.bottomui.actionbar_panel.retract_height"
+                dbPath = "profile.actionBarPanel.retractHeight"
             },
             {   name = L["Expand Height"],
                 tooltip = tk.Strings:Concat(
@@ -135,7 +131,7 @@ C_ConfigModule.ConfigTable =
                 type = "textfield",
                 valueType = "number",
                 min = 40,
-                dbPath = "profile.bottomui.actionbar_panel.expand_height"
+                dbPath = "profile.actionBarPanel.expand_height"
             },
             {   type = "fontstring",
                 content = "Modifier keys used to show Expand/Retract buttons:"
@@ -144,18 +140,18 @@ C_ConfigModule.ConfigTable =
                 height = 40,
                 min_width = true,
                 type = "check",
-                dbPath = "profile.bottomui.actionbar_panel.mod_key",
-                GetValue = function(_, current_value)
-                    return current_value:find("C");
+                dbPath = "profile.actionBarPanel.modKey",
+                GetValue = function(_, currentValue)
+                    return currentValue:find("C");
                 end,
-                SetValue = function(dbPath, old_value, value)
+                SetValue = function(dbPath, oldValue, value)
                     value = value and "C";
                     if (not value) then
-                        if (old_value:find("C")) then
-                            value = old_value:gsub("C", "")
+                        if (oldValue:find("C")) then
+                            value = oldValue:gsub("C", "");
                         end
                     else
-                        value = old_value..value;
+                        value = oldValue..value;
                     end
                     db:SetPathValue(dbPath, value);
                 end
@@ -164,7 +160,7 @@ C_ConfigModule.ConfigTable =
                 height = 40,
                 min_width = true,
                 type = "check",
-                dbPath = "profile.bottomui.actionbar_panel.mod_key",
+                dbPath = "profile.actionBarPanel.modKey",
                 GetValue = function(_, current_value)
                     return current_value:find("S");
                 end,
@@ -184,7 +180,7 @@ C_ConfigModule.ConfigTable =
                 height = 40,
                 min_width = true,
                 type = "check",
-                dbPath = "profile.bottomui.actionbar_panel.mod_key",
+                dbPath = "profile.actionBarPanel.modKey",
                 GetValue = function(_, current_value)
                     return current_value:find("A");
                 end,
@@ -238,7 +234,7 @@ C_ConfigModule.ConfigTable =
             {   name = L["Target Class Colored"],
                 tooltip = L["TT_MUI_USE_TARGET_CLASS_COLOR"],
                 type = "check",
-                dbPath = "profile.bottomui.gradients.target_class_colored",
+                dbPath = "profile.bottomui.gradients.targetClassColored",
             },
             {   name = L["Bartender Action Bars"],
                 type = "title",
@@ -246,7 +242,7 @@ C_ConfigModule.ConfigTable =
             {   name = L["Allow MUI to Control Selected Bartender Bars"],
                 type = "check",
                 tooltip = L["TT_MUI_CONTROL_BARTENDER"],
-                dbPath = "profile.bottomui.actionbar_panel.bartender.control"
+                dbPath = "profile.actionBarPanel.bartender.control"
             },
             {   type = "fontstring",
                 content = L["Row 1"],
@@ -254,7 +250,7 @@ C_ConfigModule.ConfigTable =
             },
             {   name = L["First Bartender Bar"],
                 type = "dropdown",
-                dbPath = "profile.bottomui.actionbar_panel.bartender[1]",
+                dbPath = "profile.actionBarPanel.bartender[1]",
                 options = {
                     "Bar 1",
                     "Bar 2",
@@ -268,7 +264,7 @@ C_ConfigModule.ConfigTable =
                 }
             },
             {   name = L["Second Bartender Bar"],
-                dbPath = "profile.bottomui.actionbar_panel.bartender[2]",
+                dbPath = "profile.actionBarPanel.bartender[2]",
                 type = "dropdown",
                 options = {
                     "Bar 1",
@@ -287,7 +283,7 @@ C_ConfigModule.ConfigTable =
                 subtype = "header",
             },
             {   name = L["First Bartender Bar"],
-                dbPath = "profile.bottomui.actionbar_panel.bartender[3]",
+                dbPath = "profile.actionBarPanel.bartender[3]",
                 type = "dropdown",
                 options = {
                     "Bar 1",
@@ -302,7 +298,7 @@ C_ConfigModule.ConfigTable =
                 }
             },
             {   name = L["Second Bartender Bar"],
-                dbPath = "profile.bottomui.actionbar_panel.bartender[4]",
+                dbPath = "profile.actionBarPanel.bartender[4]",
                 type = "dropdown",
                 options = {
                     "Bar 1",
@@ -317,22 +313,23 @@ C_ConfigModule.ConfigTable =
                 }
             },
             {   type = "loop",
-                args = {"Artifact", "Reputation", "XP"},
+                args = {"Artifact", "Reputation", "Experience"},
                 func = function(_, name)
                     local key = name:lower().."Bar";
                     local child = {
+                        name = "gazoorp";
                         {   name = L[name].." "..L["Bar"],
                             type = "title",
                         },
                         {   name = L["Enabled"],
                             type = "check",
                             tooltip = L["Default value is "]..L["true"],
-                            dbPath = "profile.bottomui."..key..".enabled",
+                            dbPath = "profile.resourceBars."..key..".enabled",
                         },
                         {   name = L["Show Text"],
                             type = "check",
                             tooltip = L["Default value is "]..L["false"],
-                            dbPath = "profile.bottomui."..key..".show_text",
+                            dbPath = "profile.resourceBars."..key..".show_text",
                         },
                         {   name = L["Height"],
                             type = "slider",
@@ -340,7 +337,7 @@ C_ConfigModule.ConfigTable =
                             min = 4,
                             max = 30,
                             tooltip = L["Default value is "].."8",
-                            dbPath = "profile.bottomui."..key..".height",
+                            dbPath = "profile.resourceBars."..key..".height",
                         },
                         {   name = L["Font Size"],
                             type = "slider",
@@ -348,7 +345,7 @@ C_ConfigModule.ConfigTable =
                             min = 8,
                             max = 18,
                             tooltip = L["Default value is "].."10",
-                            dbPath = "profile.bottomui."..key..".font_size",
+                            dbPath = "profile.resourceBars."..key..".font_size",
                         },
                     };
                     return child;

@@ -427,14 +427,16 @@ end);
 db:OnStartUp(function(self)
     MayronUI.db = self;
     local r, g, b = tk:GetThemeColor();
-    local myFont = tk.CreateFont("MUI_FontNormal");
 
+    local myFont = _G.CreateFont("MUI_FontNormal");
     myFont:SetFontObject("GameFontNormal");
     myFont:SetTextColor(r, g, b);
-    myFont = tk.CreateFont("MUI_FontSmall");
+
+    myFont = _G.CreateFont("MUI_FontSmall");
     myFont:SetFontObject("GameFontNormalSmall");
     myFont:SetTextColor(r, g, b);
-    myFont = tk.CreateFont("MUI_FontLarge");
+
+    myFont = _G.CreateFont("MUI_FontLarge");
     myFont:SetFontObject("GameFontNormalLarge");
     myFont:SetTextColor(r, g, b);
 

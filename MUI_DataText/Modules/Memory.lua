@@ -46,7 +46,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self)
     local sv = db.profile.datatext.memory;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTracker();
+    local settings = sv:GetTrackedTable();
 
     if (settings.enabled) then
         local memory = Memory(settings, self);
@@ -120,10 +120,10 @@ end
 
 function Memory:Click(data)
     local currentIndex = 0;
-    local sorted = {};
+    local sorted = obj:PopWrapper();
 
     for i = 1, _G.GetNumAddOns() do
-        local _, addOnName = _G.GetAddOnInfo(i);
+        local _, addOnName, addOnDescription = _G.GetAddOnInfo(i);
         local usage = _G.GetAddOnMemoryUsage(i);
 
         if (usage > 1) then
@@ -143,12 +143,16 @@ function Memory:Click(data)
                 value = string.format("%skb", value);
             end
 
-            addOnName = tk.Strings:RemoveColorCode(addOnName);
-            addOnName = tk.Strings:SetOverflow(addOnName, 15);
+            -- Set a max length for addon names so they fit correctly.
+            -- Had issue ignoringthe color code so I took this out for now.
+            -- addOnName = tk.Strings:RemoveColorCode(addOnName);
+            -- addOnName = tk.Strings:SetOverflow(addOnName, 15);
 
             label.name:SetText(addOnName);
             label.value:SetText(value);
             label.usage = usage;
+
+            tk:SetBasicTooltip(label, addOnDescription);
 
             tk.table.insert(sorted, label);
         end
@@ -157,6 +161,7 @@ function Memory:Click(data)
     table.sort(sorted, compare);
     tk.Tables:Empty(self.MenuLabels);
     tk.Tables:AddAll(self.MenuLabels, _G.unpack(sorted));
+    obj:PushWrapper(sorted);
 
     self.TotalLabelsShown = #self.MenuLabels;
 end

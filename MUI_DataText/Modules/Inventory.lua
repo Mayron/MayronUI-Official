@@ -35,7 +35,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.inventory;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTracker();
+    local settings = sv:GetTrackedTable();
 
     if (settings.enabled) then
         local inventory = Inventory(settings, dataTextData.slideController, self);

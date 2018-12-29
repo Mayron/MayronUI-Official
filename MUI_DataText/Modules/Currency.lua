@@ -43,7 +43,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self)
     local sv = db.profile.datatext.currency;
     sv:SetParent(db.profile.datatext);
 
-    local settings = sv:ToTracker();
+    local settings = sv:GetTrackedTable();
     local coloredKey = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
 
     -- saves info on the currency that each logged in character has

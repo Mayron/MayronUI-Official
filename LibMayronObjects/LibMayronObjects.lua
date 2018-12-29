@@ -41,6 +41,19 @@ local Package;
 -------------------------------------
 do
     local wrappers = {};
+    local cleanTimerActive = false;
+    local delay = false;
+
+    local function CleanWrappers()
+        if (delay) then
+            delay = false;
+            _G.C_Timer.After(10, CleanWrappers);
+            return;
+        end
+
+        Lib:EmptyTable(wrappers);
+        _G.collectgarbage("collect");
+    end
 
     local function iterator(wrapper, id)
         id = id + 1;
@@ -55,8 +68,21 @@ do
         end
     end
 
+    local function PushWrapper(wrapper)
+        if (not wrappers[tostring(wrapper)]) then
+            wrappers[#wrappers + 1] = wrapper;
+            wrappers[tostring(wrapper)] = true;
+        end
+
+        if (not cleanTimerActive) then
+            cleanTimerActive = true;
+            _G.C_Timer.After(30, CleanWrappers);
+        end
+    end
+
     function Lib:PopWrapper(...)
         local wrapper;
+        delay = true;
 
         -- get wrapper before iterating
         if (#wrappers > 0) then
@@ -99,7 +125,6 @@ do
 
     function Lib:PushWrapper(wrapper, pushSubTables)
         if (type(wrapper) ~= "table") then return end
-
         setmetatable(wrapper, nil);
 
         for key, _ in pairs(wrapper) do
@@ -111,18 +136,12 @@ do
             wrapper[key] = nil;
         end
 
-        if (not wrappers[tostring(wrapper)]) then
-            wrappers[#wrappers + 1] = wrapper;
-            wrappers[tostring(wrapper)] = true;
-        end
+        PushWrapper(wrapper);
     end
 
     function Lib:UnpackWrapper(wrapper)
-        if (not wrappers[tostring(wrapper)]) then
-            wrappers[#wrappers + 1] = wrapper;
-            wrappers[tostring(wrapper)] = true;
-        end
-
+        if (type(wrapper) ~= "table") then return end
+        PushWrapper(wrapper);
         return _G.unpack(wrapper);
     end
 
