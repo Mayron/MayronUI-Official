@@ -129,11 +129,12 @@ end
 -- BaseModule Object -------------------
 
 Engine:DefineReturns("string", "?boolean");
-function BaseModule:__Construct(data, moduleName, initializeOnDemand)
-    local registryInfo = registeredModules[moduleName];
+function BaseModule:__Construct(data, moduleKey, moduleName, initializeOnDemand)
+    local registryInfo = registeredModules[moduleKey];
     registeredModules[tostring(self)] = registryInfo;
 
-    registryInfo.moduleName = moduleName;
+    registryInfo.moduleName = moduleName or moduleKey;
+    registryInfo.moduleKey = moduleKey;
     registryInfo.initializeOnDemand = initializeOnDemand;
     registryInfo.initialized = false;
     registryInfo.enabled = false;
@@ -160,6 +161,12 @@ Engine:DefineReturns("string");
 function BaseModule:GetModuleName(_)
     local registryInfo = registeredModules[tostring(self)];
     return registryInfo.moduleName;
+end
+
+Engine:DefineReturns("string");
+function BaseModule:GetModuleKey(_)
+    local registryInfo = registeredModules[tostring(self)];
+    return registryInfo.moduleKey;
 end
 
 Engine:DefineParams("boolean");
@@ -277,16 +284,16 @@ end
 
 -- @param (optional) initializeOnDemand - if true, must be initialized manually instead of
 --   MayronUI automatically initializing module during PLAYER_ENTERING_WORLD event
-function MayronUI:RegisterModule(moduleName, initializeOnDemand)
-    local ModuleClass = Engine:CreateClass(moduleName, BaseModule);
+function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
+    local ModuleClass = Engine:CreateClass(moduleKey, BaseModule);
     local moduleInstance = ModuleClass();
 
     -- must add it to the registeredModules table before calling parent constructor!
-    registeredModules[moduleName] = {};
-    registeredModules[moduleName].instance = moduleInstance;
-    registeredModules[moduleName].class = ModuleClass;
+    registeredModules[moduleKey] = {};
+    registeredModules[moduleKey].instance = moduleInstance;
+    registeredModules[moduleKey].class = ModuleClass;
 
-    moduleInstance:Super(moduleName, initializeOnDemand); -- call parent constructor
+    moduleInstance:Super(moduleKey, moduleName, initializeOnDemand); -- call parent constructor
 
     -- Make it easy to iterate through modules
     table.insert(registeredModules, moduleInstance);
@@ -305,14 +312,34 @@ function MayronUI:IterateModules()
 	end
 end
 
+function MayronUI:GetModules()
+    local moduleList = obj:PopWrapper();
+
+    for _, module in MayronUI:IterateModules() do
+        table.insert(moduleList, module);
+    end
+
+    return moduleList;
+end
+
 function MayronUI:GetModuleNames()
     local moduleNamesList = obj:PopWrapper();
 
-    for _, moduleName in MayronUI:IterateModules() do
-        table.insert(moduleNamesList, moduleName);
+    for _, module in MayronUI:IterateModules() do
+        table.insert(moduleNamesList, module:GetModuleName());
     end
 
     return moduleNamesList;
+end
+
+function MayronUI:GetModuleKeys()
+    local moduleKeysList = obj:PopWrapper();
+
+    for _, module in MayronUI:IterateModules() do
+        table.insert(moduleKeysList, module:GetModuleKey());
+    end
+
+    return moduleKeysList;
 end
 
 -- Register Core Module ---------------------

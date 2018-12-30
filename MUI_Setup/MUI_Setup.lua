@@ -11,7 +11,7 @@ local Panel = obj:Import("MayronUI.Widgets.Panel");
 
 -- Register and Import Modules -----------
 
-local SetupClass = MayronUI:RegisterModule("MUI_Setup");
+local SetupClass = MayronUI:RegisterModule("MUI_Setup", "Setup");
 local setupModule = MayronUI:ImportModule("MUI_Setup");
 
 -- Local Functions -----------------------
@@ -538,7 +538,7 @@ function SetupClass:Show(data)
     window.info:SetInsets(20);
 
     local title = window.info:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-    title:SetText("MAYRONUI GEN5");
+    title:SetText(_G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"):upper());
     title:SetPoint("BOTTOMLEFT");
 
     local version = window.info:CreateFontString(nil, "ARTWORK", "GameFontHighlight");

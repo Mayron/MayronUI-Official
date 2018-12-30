@@ -6,7 +6,7 @@ local ObjectiveTrackerFrame = _G.ObjectiveTrackerFrame;
 
 -- Register and Import Modules -----------
 
-local SideBar = MayronUI:RegisterModule("SideBar");
+local SideBar = MayronUI:RegisterModule("SideBar", "Side Action Bar");
 
 -- Add Database Defaults -----------------
 

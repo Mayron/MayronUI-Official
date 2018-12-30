@@ -10,11 +10,17 @@ local Private = Lib.Private;
 -- Local Functions ----------------
 
 local function DynamicScrollBar_OnChange(self)
-    local scrollChild = self:GetScrollChild();
-    local scrollChildHeight = math.floor(scrollChild:GetHeight() + 0.5);
-    local scrollFrameHeight = math.floor(self:GetHeight() + 0.5);
 
-    if (scrollChild and scrollChildHeight > scrollFrameHeight) then
+    if (not self.ScrollFrame) then
+        -- TODO: Not sure why this is sometimes nil
+        return;
+    end
+
+    local scrollChild = self.ScrollFrame:GetScrollChild();
+    local scrollChildHeight = math.floor(scrollChild:GetHeight() + 0.5);
+    local containerHeight = math.floor(self:GetHeight() + 0.5);
+
+    if (scrollChild and scrollChildHeight > containerHeight) then
         if (self.animating) then
             self.ScrollBar:Hide();
             self.showScrollBar = self.ScrollBar;
@@ -40,29 +46,20 @@ local function ScrollFrame_OnMouseWheel(self, step)
     self:SetVerticalScroll(newvalue);
 end
 
-local function GetScrollChild(self)
-    return self.ScrollFrame:GetScrollChild();
-end
-
-local function SetScrollChild(self, ...)
-    self.ScrollFrame:SetScrollChild(...);
-end
-
 -- Lib Methods ------------------
 
+-- Creates a scroll frame inside a container frame
 function Lib:CreateScrollFrame(style, parent, global)
     local container = _G.CreateFrame("Frame", global, parent);
-    local padding = style:GetPadding(nil, true);
-
     container.ScrollFrame = _G.CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate");
     container.ScrollFrame:SetAllPoints(true);
     container.ScrollFrame:EnableMouseWheel(true);
     container.ScrollFrame:SetClipsChildren(true);
-    container.ScrollFrame:SetScript("OnMouseWheel", ScrollFrame_OnMouseWheel);
 
     local child = _G.CreateFrame("Frame", nil, container.ScrollFrame);
     container.ScrollFrame:SetScrollChild(child);
 
+    local padding = style:GetPadding(nil, true);
     Private:SetFullWidth(child, padding.right);
 
     -- ScrollBar ------------------
@@ -81,12 +78,11 @@ function Lib:CreateScrollFrame(style, parent, global)
     Private:KillElement(container.ScrollBar.ScrollDownButton);
     ----------------------------
 
+    container:SetScript("OnShow", DynamicScrollBar_OnChange);
+    container:HookScript("OnSizeChanged", DynamicScrollBar_OnChange);
 
-    container.ScrollFrame:SetScript("OnShow", DynamicScrollBar_OnChange);
+    container.ScrollFrame:SetScript("OnMouseWheel", ScrollFrame_OnMouseWheel);
     container.ScrollFrame:HookScript("OnScrollRangeChanged", DynamicScrollBar_OnChange);
 
-    container.GetScrollChild = GetScrollChild;
-    container.SetScrollChild = SetScrollChild;
-
-    return container, child;
+    return container;
 end

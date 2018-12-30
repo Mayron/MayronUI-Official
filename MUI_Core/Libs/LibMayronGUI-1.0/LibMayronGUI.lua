@@ -90,11 +90,11 @@ end
 
 -- Builds a table of indexes representing each grid square on the panel and
 -- marks indexes as true if a cell is positioned over that square
-function Private:BuildPattern(start_pos, end_pos, width, height, pattern)
-    local startColumn, startRow = self:GetCoords(start_pos, width, height);
-    local endColumn, endRow = self:GetCoords(end_pos, width, height);
+function Private:BuildPattern(startPos, endPos, width, height, pattern)
+    local startColumn, startRow = self:GetCoords(startPos, width, height);
+    local endColumn, endRow = self:GetCoords(endPos, width, height);
 
-    for id = start_pos, end_pos do
+    for id = startPos, endPos do
         local x, y = self:GetCoords(id, width, height);
 
         if (x >= startColumn and x <= endColumn) then
@@ -111,8 +111,8 @@ function Private:AnchorCells(data)
         return false;
     end
 
-    local cellsList = {data.grid:Unpack()};
-    local takenCells = {};
+    local cellsList = obj:PopWrapper(data.grid:Unpack());
+    local takenCells = obj:PopWrapper();
 
     for id, cell in data.cells:Iterate() do
         if (not cellsList[id]) then
@@ -148,6 +148,9 @@ function Private:AnchorCells(data)
         cellData.frame:SetFrameLevel(3);
         cellData.frame:SetParent(cellsList[id]);
     end
+
+    obj:PushWrapper(cellsList);
+    obj:PushWrapper(takenCells);
 end
 
 -- Helper Functions
@@ -158,7 +161,7 @@ function Private:SetBackground(frame, ...)
     texture:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1);
     texture:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1);
 
-    if (#{...} > 1) then
+    if (obj:LengthOfArgs(...) > 1) then
        texture:SetColorTexture(...);
     else
         texture:SetTexture(...);
@@ -195,16 +198,16 @@ do
 
         local objectType = frame:GetObjectType();
 
-        frames[objectType] = frames[objectType] or {};
+        frames[objectType] = frames[objectType] or obj:PopWrapper();
         frame:SetParent(self.DUMMY_FRAME);
         frame:SetAllPoints(true);
         frame:Hide();
 
-        for _, child in pairs({frame:GetChildren()}) do
+        for _, child in obj:IterateArgs(frame:GetChildren()) do
             self:PushFrame(child);
         end
 
-        for _, region in pairs({frame:GetRegions()}) do
+        for _, region in obj:IterateArgs(frame:GetRegions()) do
             region:SetParent(self.DUMMY_FRAME);
             region:SetAllPoints(true);
             region:Hide();
@@ -321,7 +324,7 @@ do
                 local region = select(regionIndex, frame:GetRegions());
 
                 if (not region) then
-                    return
+                    return;
                 end
 
                 if (region:GetObjectType() == "Texture" and region:GetDrawLayer() == layers[layer]) then

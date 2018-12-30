@@ -30,15 +30,15 @@ end
 function TextField:__Construct(data, style, tooltip, parent)
     local r, g, b = style:GetColor();
     data.frame = Private:PopFrame("Frame", parent);
-    data.frame:SetSize(155, 30);
+    data.frame:SetSize(150, 28);
 
     local background = style:GetTexture("TextField");
     data.frame.bg = Private:SetBackground(data.frame, background);
     data.frame.bg:SetVertexColor(r, g, b);
 
     data.editBox = _G.CreateFrame("EditBox", nil, data.frame, "InputBoxTemplate");
-    data.editBox:SetPoint("TOPLEFT", data.frame, "TOPLEFT", 5, 0);
-    data.editBox:SetPoint("BOTTOMRIGHT", data.frame, "BOTTOMRIGHT", -5, 0);
+    data.editBox:SetPoint("TOPLEFT", data.frame, "TOPLEFT", 8, 0);
+    data.editBox:SetPoint("BOTTOMRIGHT", data.frame, "BOTTOMRIGHT", -8, 0);
     data.editBox:SetAutoFocus(false);
 
     data.editBox:SetScript("OnEscapePressed", function()
@@ -90,4 +90,6 @@ function TextField:OnTextChanged(data, callback, ...)
         data.editBox:ClearFocus();
         callback(self, data.editBox:GetText(), data.previousText, _G.unpack(args));
     end);
+    --http://wowwiki.wikia.com/wiki/UIOBJECT_EditBox
+    --OnTextChanged
 end

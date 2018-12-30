@@ -9,7 +9,7 @@ local obj = Lib.Objects;
 local SlideController = WidgetsPackage:Get("SlideController");
 local DropDownMenu = WidgetsPackage:CreateClass("DropDownMenu", Private.FrameWrapper);
 
-DropDownMenu.Static.MAX_HEIGHT = 354;
+DropDownMenu.Static.MAX_HEIGHT = 200;
 
 -- Local Functions -------------------------------
 local dropdowns = {};
@@ -58,7 +58,7 @@ function Lib:CreateDropDown(style, parent, direction)
     end
 
     local dropDownContainer = Private:PopFrame("Frame", parent);
-    dropDownContainer:SetSize(200, 30);
+    dropDownContainer:SetSize(178, 28);
 
     local header = Private:PopFrame("Frame", dropDownContainer);
     header:SetAllPoints(true);
@@ -66,7 +66,7 @@ function Lib:CreateDropDown(style, parent, direction)
     header.bg = Private:SetBackground(header, style:GetTexture("ButtonTexture"));
 
     dropDownContainer.toggleButton = self:CreateButton(style, dropDownContainer);
-    dropDownContainer.toggleButton:SetSize(30, 30);
+    dropDownContainer.toggleButton:SetSize(28, 28);
     dropDownContainer.toggleButton:SetPoint("TOPRIGHT", dropDownContainer, "TOPRIGHT");
     dropDownContainer.toggleButton:SetPoint("BOTTOMRIGHT", dropDownContainer, "BOTTOMRIGHT");
     dropDownContainer.toggleButton:SetScript("OnSizeChanged", OnSizeChanged);
@@ -407,7 +407,7 @@ function DropDownMenu:Toggle(data, show, clickSoundFilePath)
         local maxHeight = (data.scrollHeight < DropDownMenu.Static.MAX_HEIGHT)
             and data.scrollHeight or DropDownMenu.Static.MAX_HEIGHT;
 
-        DropDownMenu.Static.Menu:SetScrollChild(data.frame.child);
+        DropDownMenu.Static.Menu.ScrollFrame:SetScrollChild(data.frame.child);
         DropDownMenu.Static.Menu:SetHeight(1);
 
         data.frame.child:Show();

@@ -23,7 +23,7 @@ local C_ResourceBar = BottomUIPackage:CreateClass("ResourceBar", "Framework.Syst
 
 -- Register and Import Modules -----------
 
-local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", true);
+local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", "Resource Bars", true);
 local containerModule = MayronUI:ImportModule("BottomUI_Container");
 
 -- Load Database Defaults ----------------

@@ -16,7 +16,7 @@ local C_TimerField = Engine:CreateClass("TimerField", "Framework.System.FrameWra
 
 -- Register Modules --------------------
 
-local C_TimerBarsModule = MayronUI:RegisterModule("TimerBars");
+local C_TimerBarsModule = MayronUI:RegisterModule("TimerBars", "Timer Bars");
 
 -- Load Database Defaults --------------
 

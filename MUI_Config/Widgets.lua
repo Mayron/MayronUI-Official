@@ -2,20 +2,28 @@
 local _, namespace = ...;
 local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 
-local C_ConfigModule = namespace.C_ConfigModule;
 local configModule = MayronUI:ImportModule("Config");
-local Engine = obj:Import("MayronUI.Engine");
 
 local WidgetHandlers = {};
 namespace.WidgetHandlers = WidgetHandlers;
 
+local function TransferDatabaseInfo(widget, childData)
+    -- Required for Saving to Database:
+    widget.dbPath = childData.dbPath;
+    widget.SetValue = childData.SetValue;
+    widget.requiresReload = childData.requiresReload;
+    widget.requiresRestart = childData.requiresRestart;
+    widget.module = childData.module;
+end
+
 -- create container to wrap around a child element
-Engine:DefineParams("table", "table");
-function C_ConfigModule:CreateElementContainerFrame(_, widget, childData, parent)
+local function CreateElementContainerFrame(widget, childData, parent)
     local container = tk:PopFrame("Frame", parent);
 
     container:SetSize(childData.width or widget:GetWidth(), childData.height or widget:GetHeight());
-    container.widget = widget;
+    container.widget = widget; -- Is This needed?
+
+    TransferDatabaseInfo(widget, childData);
 
     widget:SetParent(container);
 
@@ -26,13 +34,7 @@ function C_ConfigModule:CreateElementContainerFrame(_, widget, childData, parent
         container.name:SetText(childData.name);
 
         container:SetHeight(container:GetHeight() + container.name:GetStringHeight() + 5);
-
         widget:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -5);
-
-        if (childData.type == "slider") then
-            container.name:SetPoint("TOPLEFT", 10, -5);
-            container:SetWidth(container:GetWidth() + 20);
-        end
     else
         widget:SetPoint("LEFT");
     end
@@ -107,15 +109,11 @@ function WidgetHandlers.loop:Run(_, loopConfigTable)
     elseif (loopConfigTable.args) then
         for id, arg in tk.ipairs(loopConfigTable.args) do
             -- func returns the children data to be loaded
-
-            if (type(arg) == "table") then
-                -- for each iteration, there might be many args to be injected into the loop function
-                children[id] = loopConfigTable.func(id, tk.unpack(arg));
-            else
-                children[id] = loopConfigTable.func(id, arg);
-            end
+            children[id] = loopConfigTable.func(id, arg);
         end
     end
+
+    tk.Tables:CleanIndexes(children);
 
     return children;
 end
@@ -126,23 +124,27 @@ end
 WidgetHandlers.check = {};
 
 function WidgetHandlers.check:Run(parent, widgetConfigTable, value)
-    local cb = gui:CreateCheckButton(parent, widgetConfigTable.name,
+    local checkButton = gui:CreateCheckButton(parent, widgetConfigTable.name,
         widgetConfigTable.type == "radio", widgetConfigTable.tooltip);
 
-    cb.btn:SetChecked(value);
-    cb.btn:SetScript("OnClick", function(self)
-        configModule:SetDatabaseValue(self, widgetConfigTable, self:GetChecked());
+    TransferDatabaseInfo(checkButton, widgetConfigTable);
+
+    checkButton.btn:SetChecked(value);
+    checkButton.btn:SetScript("OnClick", function(self)
+        configModule:SetDatabaseValue(self, self:GetChecked());
     end);
 
     if (widgetConfigTable.width) then
-        cb:SetWidth(widgetConfigTable.width);
+        checkButton:SetWidth(widgetConfigTable.width);
     else
-        cb:SetWidth(cb.btn:GetWidth() + 20 + cb.btn.text:GetStringWidth());
+        checkButton:SetWidth(checkButton.btn:GetWidth() + 20 + checkButton.btn.text:GetStringWidth());
     end
+
     if (widgetConfigTable.height) then
-        cb:SetHeight(widgetConfigTable.height);
+        checkButton:SetHeight(widgetConfigTable.height);
     end
-    return cb;
+
+    return checkButton;
 end
 
 ----------------
@@ -193,6 +195,8 @@ WidgetHandlers.slider = {};
 
 function WidgetHandlers.slider:Run(parent, widgetConfigTable, value)
     local slider = tk.CreateFrame("Slider", nil, parent, "OptionsSliderTemplate");
+    TransferDatabaseInfo(slider, widgetConfigTable);
+
     slider.tooltipText = widgetConfigTable.tooltip;
     slider:SetMinMaxValues(widgetConfigTable.min, widgetConfigTable.max);
     slider:SetValueStep(widgetConfigTable.step);
@@ -205,20 +209,20 @@ function WidgetHandlers.slider:Run(parent, widgetConfigTable, value)
 
     slider.Low:SetText(widgetConfigTable.min);
     slider.Low:ClearAllPoints();
-    slider.Low:SetPoint("BOTTOMLEFT", 5, -8);
+    slider.Low:SetPoint("BOTTOMLEFT", 9, -8);
     slider.High:SetText(widgetConfigTable.max);
     slider.High:ClearAllPoints();
     slider.High:SetPoint("BOTTOMRIGHT", -5, -8);
 
-    slider:SetSize(widgetConfigTable.width or 200, 20);
+    slider:SetSize(widgetConfigTable.width or 150, 20);
 
     slider:SetScript("OnValueChanged", function(self, sliderValue)
         sliderValue = tk.math.floor(sliderValue + 0.5);
         self.Value:SetText(sliderValue);
-        configModule:SetDatabaseValue(self, widgetConfigTable, sliderValue);
+        configModule:SetDatabaseValue(self, sliderValue);
     end);
 
-    slider = configModule:CreateElementContainerFrame(slider, widgetConfigTable, parent);
+    slider = CreateElementContainerFrame(slider, widgetConfigTable, parent);
     slider:SetHeight(slider:GetHeight() + 20); -- make room for value text
     return slider;
 end
@@ -240,8 +244,8 @@ end
 -------------------
 -- Drop Down Menu
 -------------------
-local function DropDown_OnSelectedValue(widget, widgetConfigTable, value)
-    configModule:SetDatabaseValue(widget, widgetConfigTable, value);
+local function DropDown_OnSelectedValue(self, value)
+    configModule:SetDatabaseValue(self, value);
 end
 
 WidgetHandlers.dropdown = {};
@@ -249,9 +253,10 @@ WidgetHandlers.dropdown = {};
 function WidgetHandlers.dropdown:Run(parent, widgetConfigTable, value)
     local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
     local options = GetValue(widgetConfigTable, "options");
+    TransferDatabaseInfo(dropdown, widgetConfigTable);
 
     for key, dropDownValue in pairs(options) do
-        local option = dropdown:AddOption(key, DropDown_OnSelectedValue, widgetConfigTable, dropDownValue);
+        local option = dropdown:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
 
         if (widgetConfigTable.fontPicker) then
             option:GetFontString():SetFont(tk.Constants.LSM:Fetch("font", key), 11);
@@ -262,7 +267,7 @@ function WidgetHandlers.dropdown:Run(parent, widgetConfigTable, value)
     dropdown:SetTooltip(widgetConfigTable.tooltip);
     dropdown:SetDisabledTooltip(widgetConfigTable.disabledTooltip);
 
-    return configModule:CreateElementContainerFrame(dropdown, widgetConfigTable, parent);
+    return CreateElementContainerFrame(dropdown, widgetConfigTable, parent);
 end
 
 --------------
@@ -340,6 +345,7 @@ end
 
 function WidgetHandlers.color:Run(parent, widgetConfigTable, value)
     local container = tk:PopFrame("Button", parent);
+    TransferDatabaseInfo(container, widgetConfigTable);
 
     container.name = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
     container.name:SetText(widgetConfigTable.name);
@@ -375,7 +381,7 @@ function WidgetHandlers.color:Run(parent, widgetConfigTable, value)
             end
         end
 
-        configModule:SetDatabaseValue(container, widgetConfigTable, c);
+        configModule:SetDatabaseValue(container, c);
         container.color:SetColorTexture(c.r, c.g, c.b);
     end
 
@@ -395,22 +401,32 @@ end
 -- Text Field
 ---------------
 
-local function TextField_OnTextChanged(self, value, _, configTable)
+local function TextField_OnTextChanged(self, value)
     -- perform validation based on valueType
     local isValue = true;
 
     -- ensure database stores a number, instead of a string containing a number
     value = tonumber(value) or value;
 
-    if (configTable.valueType == "number" and configTable.min ~= nil) then
-        isValue = value >= configTable.min;
+    if (self.valueType == "number") then
+
+        if (type(value) ~= "number") then
+            isValue = false;
+        else
+            if (self.min and value < self.min) then
+                isValue = false;
+            end
+            if (self.max and value > self.max) then
+                isValue = false;
+            end
+        end
     end
 
     if (not isValue) then
-        self:ApplyPreviousText();
+        self:ApplyPreviousText(); -- TODO: This is setting ""
     else
         self:SetText(value);
-        configModule:SetDatabaseValue(self:GetFrame(), configTable, value);
+        configModule:SetDatabaseValue(self:GetFrame(), value);
     end
 end
 
@@ -425,12 +441,20 @@ WidgetHandlers.textfield = {};
 
 function WidgetHandlers.textfield:Run(parent, widgetConfigTable, value)
     local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetConfigTable.tooltip, parent);
+
+    local frame = textField:GetFrame();
+    frame.valueType = widgetConfigTable.valueType;
+    frame.min = widgetConfigTable.min;
+    frame.max = widgetConfigTable.max;
+
+    TransferDatabaseInfo(frame, widgetConfigTable);
+
     textField:SetText(value or "");
 
     -- passes in textField (not data.editBox);
     textField:OnTextChanged(TextField_OnTextChanged, widgetConfigTable);
 
-    return configModule:CreateElementContainerFrame(textField, widgetConfigTable, parent);
+    return CreateElementContainerFrame(textField, widgetConfigTable, parent);
 end
 
 ----------------

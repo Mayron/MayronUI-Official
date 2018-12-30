@@ -4,7 +4,7 @@ local Private = {};
 
 -- Register Module ------------
 
-local C_AfkDisplayModule = MayronUI:RegisterModule("AfkDisplay");
+local C_AfkDisplayModule = MayronUI:RegisterModule("AfkDisplay", "AFK Display");
 
 -- Add Database Defaults ------
 
@@ -432,8 +432,8 @@ do
         f:SetPoint("BOTTOMRIGHT", tk.UIParent, "BOTTOMRIGHT", 0, -100);
         f:SetHeight(150);
 
-        f.bg = tk:SetBackground(f, tk.Constants.MEDIA.."bottom_ui\\Single");
-        tk:SetThemeColor(f.bg);
+        f.bg = tk:SetBackground(f, tk:GetAssetFilePath("Textures\\BottomUI\\Single"));
+        tk:ApplyThemeColor(f.bg);
 
         _G.UIParent:HookScript("OnShow", function()
             local afkDisplay = MayronUI:ImportModule("AfkDisplay");
@@ -456,7 +456,7 @@ do
 
         local name = tk.Strings:Concat(_G.UnitPVPName("player"), " - ",
             _G.GetRealmName(), "\nLevel ", _G.UnitLevel("player"), ", ",
-            tk:GetClassColoredString(nil, tk.Strings:Concat(specType, _G.UnitClass("player"))));
+            tk.Strings:SetTextColorByClass(tk.Strings:Concat(specType, (select(1, _G.UnitClass("player"))))));
 
         f.name:SetText(name);
 
@@ -468,7 +468,7 @@ do
         f.titleButton:SetNormalTexture(nameTexturePath);
         f.titleButton:SetHighlightTexture(nameTexturePath);
 
-        tk:SetThemeColor(0.8, f.titleButton);
+        tk:ApplyThemeColor(0.8, f.titleButton);
         f.titleButton:SetNormalFontObject("MUI_FontNormal");
         f.titleButton:SetHighlightFontObject("GameFontHighlight");
         f.titleButton:SetText("MayronUI Gen5");
@@ -508,7 +508,7 @@ end
 -- C_AfkDisplayModule Module -----------
 
 function C_AfkDisplayModule:OnInitialize(data)
-    data.settings = db.global.afkDisplay:ToUntrackedTable();
+    data.settings = db.global.afkDisplay:GetUntrackedTable();
 
     if (data.settings.enabled) then
         self:SetEnabled(true);

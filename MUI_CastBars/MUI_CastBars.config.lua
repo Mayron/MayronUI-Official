@@ -83,7 +83,7 @@ function C_CastBarsModule:GetConfigTable()
         children = {
             {   name = L["Appearance"],
                 type = "title",
-                padding_top = 0,
+                marginTop = 0;
             },
             {   type = "divider"
             },

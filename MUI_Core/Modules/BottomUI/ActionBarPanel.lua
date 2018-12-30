@@ -3,7 +3,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 
 -- Register and Import Modules -----------
 
-local ActionBarPanelClass = MayronUI:RegisterModule("BottomUI_ActionBarPanel", true);
+local ActionBarPanelClass = MayronUI:RegisterModule("BottomUI_ActionBarPanel", "Action Bar Panel", true);
 local SlideController = gui.WidgetsPackage:Get("SlideController");
 
 -- Load Database Defaults ----------------
@@ -80,13 +80,13 @@ end
 -- ActionBarPanelClass -----------------
 
 function ActionBarPanelClass:OnInitialize(data, buiContainer, subModules)
-    data.sv = db.profile.actionBarPanel;
-    data.bartenderControl = data.sv.bartender.control;
+    data.settings = db.profile.actionBarPanel:GetUntrackedTable();
+    data.bartenderControl = data.settings.bartender.control;
     data.buiContainer = buiContainer;
     data.ResourceBars = subModules.ResourceBars;
     data.DataText = subModules.DataText;
 
-    if (data.sv.enabled) then
+    if (data.settings.enabled) then
         self:SetEnabled(true);
     end
 end
@@ -104,20 +104,25 @@ function ActionBarPanelClass:OnEnable(data)
 
     self:SetBartenderBars();
 
-    if (data.sv.expanded) then
-        data.panel:SetHeight(data.sv.expandHeight);
-        ToggleBartenderBar(data.BTBar3, true, data.bartenderControl);
-        ToggleBartenderBar(data.BTBar4, true, data.bartenderControl);
-    else
-        data.panel:SetHeight(data.sv.retractHeight);
-        ToggleBartenderBar(data.BTBar3, false, data.bartenderControl);
-        ToggleBartenderBar(data.BTBar4, false, data.bartenderControl);
-    end
+    -- Must be called each time it is shown to avoid AFK bug
+    data.panel:SetScript("OnShow", function()
+        if (data.settings.expanded) then
+            data.panel:SetHeight(data.settings.expandHeight);
+            ToggleBartenderBar(data.BTBar3, true, data.bartenderControl);
+            ToggleBartenderBar(data.BTBar4, true, data.bartenderControl);
+        else
+            data.panel:SetHeight(data.settings.retractHeight);
+            ToggleBartenderBar(data.BTBar3, false, data.bartenderControl);
+            ToggleBartenderBar(data.BTBar4, false, data.bartenderControl);
+        end
+    end);
+
+    data.panel:GetScript("OnShow")();
 
     data.slideController = SlideController(data.panel);
-    data.slideController:SetMinHeight(data.sv.retractHeight);
-    data.slideController:SetMaxHeight(data.sv.expandHeight);
-    data.slideController:SetStepValue(data.sv.animateSpeed);
+    data.slideController:SetMinHeight(data.settings.retractHeight);
+    data.slideController:SetMaxHeight(data.settings.expandHeight);
+    data.slideController:SetStepValue(data.settings.animateSpeed);
 
     data.slideController:OnStartExpand(function()
         ToggleBartenderBar(data.BTBar3, true, data.bartenderControl);
@@ -136,7 +141,7 @@ function ActionBarPanelClass:OnEnable(data)
         ToggleBartenderBar(data.BTBar4, false, data.bartenderControl);
     end);
 
-    gui:CreateGridTexture(data.panel, data.sv.texture, 20, nil, 749, 45);
+    gui:CreateGridTexture(data.panel, data.settings.texture, 20, nil, 749, 45);
 
     -- expand button:
     local expandBtn = gui:CreateButton(tk.Constants.AddOnStyle, data.panel, " ");
@@ -189,7 +194,7 @@ function ActionBarPanelClass:OnEnable(data)
 
         tk.PlaySound(tk.Constants.CLICK);
 
-        local expanded = data.sv.expanded;
+        local expanded = data.settings.expanded;
 
         if (expanded) then
             data.slideController:Start(SlideController.Static.FORCE_RETRACT);
@@ -197,7 +202,7 @@ function ActionBarPanelClass:OnEnable(data)
             data.slideController:Start(SlideController.Static.FORCE_EXPAND);
         end
 
-        data.sv.expanded = not expanded;
+        data.settings.expanded = not expanded;
     end);
 
     expandBtnFader:SetScript("OnFinished", function()
@@ -210,12 +215,12 @@ function ActionBarPanelClass:OnEnable(data)
     end);
 
     em:CreateEventHandler("MODIFIER_STATE_CHANGED", function()
-        if (not tk:IsModComboActive(data.sv.modKey) or tk.InCombatLockdown()) then
+        if (not tk:IsModComboActive(data.settings.modKey) or tk.InCombatLockdown()) then
             expandBtn:Hide();
             return;
         end
 
-        if (data.sv.expanded) then
+        if (data.settings.expanded) then
             expandBtn:SetText("Retract");
         else
             expandBtn:SetText("Expand");
@@ -269,10 +274,10 @@ end
 function ActionBarPanelClass:SetBartenderBars(data)
     if (tk.IsAddOnLoaded("Bartender4") and data.bartenderControl) then
 
-        local bar1 = data.sv.bartender[1]:match("%d+");
-        local bar2 = data.sv.bartender[2]:match("%d+");
-        local bar3 = data.sv.bartender[3]:match("%d+");
-        local bar4 = data.sv.bartender[4]:match("%d+");
+        local bar1 = data.settings.bartender[1]:match("%d+");
+        local bar2 = data.settings.bartender[2]:match("%d+");
+        local bar3 = data.settings.bartender[3]:match("%d+");
+        local bar4 = data.settings.bartender[4]:match("%d+");
 
         _G.Bartender4:GetModule("ActionBars"):EnableBar(bar1);
         _G.Bartender4:GetModule("ActionBars"):EnableBar(bar2);

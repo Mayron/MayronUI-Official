@@ -4,7 +4,7 @@ local _, namespace = ...;
 
 -- Register and Import Modules -----------
 
-local C_Container = MayronUI:RegisterModule("BottomUI_Container");
+local C_Container = MayronUI:RegisterModule("BottomUI_Container", "Main Container");
 
 -- Add Database Defaults -----------------
 
@@ -20,7 +20,7 @@ function C_Container:OnInitialize(data)
     end
 
     db = namespace.Database; -- TODO: is this needed now?
-    data.settings = db.profile.bottomui:ToUntrackedTable();
+    data.settings = db.profile.bottomui:GetUntrackedTable();
     data.container = tk.CreateFrame("Frame", "MUI_BottomContainer", tk.UIParent);
     data.container:SetPoint("BOTTOM", 0, -1);
     data.container:SetSize(data.settings.width, 1);
@@ -54,11 +54,11 @@ function C_Container:OnInitialize(data)
 
     data.subModules.ResourceBars = MayronUI:ImportModule("BottomUI_ResourceBars");
     data.subModules.ActionBarPanel = MayronUI:ImportModule("BottomUI_ActionBarPanel");
-    data.subModules.UnitFramePanel = MayronUI:ImportModule("BottomUI_UnitFramePanel");
+    data.subModules.UnitPanels = MayronUI:ImportModule("BottomUI_UnitPanels");
 
     data.subModules.ResourceBars:Initialize(data.container, data.subModules);
     data.subModules.ActionBarPanel:Initialize(data.container, data.subModules);
-    data.subModules.UnitFramePanel:Initialize(data.container, data.subModules);
+    data.subModules.UnitPanels:Initialize(data.container, data.subModules);
 end
 
 function C_Container:UpdateContainer(data)
@@ -68,7 +68,7 @@ end
 function C_Container:OnConfigUpdate(data, list, value)
     list:Print();
 end
-    -- local unitFramePanel = data.subModules["UnitFramePanel"];
+    -- local UnitPanels = data.subModules["UnitPanels"];
     -- local key = list:PopFront();
 
     -- if (key == "profile" and list:PopFront() == "bottomui") then
@@ -87,7 +87,7 @@ end
 
     --             -- TODO: Might be difficult...
     --             if (not unit.gradients and value) then
-    --                 unitFramePanel:SetupSUFPortraitGradients();
+    --                 UnitPanels:SetupSUFPortraitGradients();
 
     --             else
     --                 for _, frame in tk.pairs(unit.gradients) do

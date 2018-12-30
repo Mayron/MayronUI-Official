@@ -23,7 +23,7 @@ local SlideController = obj:Import("MayronUI.Widgets.SlideController");
 
 -- Register Modules --------------------
 
-local C_DataTextModule = MayronUI:RegisterModule("DataText");
+local C_DataTextModule = MayronUI:RegisterModule("DataText", "Data Text Bar");
 namespace.C_DataTextModule = C_DataTextModule;
 
 -- Load Database Defaults --------------
@@ -206,7 +206,7 @@ end
 Engine:DefineParams("Frame");
 -- Attach current dataTextModule scroll child onto shared popup and hide previous scroll child
 function C_DataTextModule:ChangeMenuContent(data, content)
-    local oldContent = data.popup:GetScrollChild();
+    local oldContent = data.popup.ScrollFrame:GetScrollChild();
 
     if (oldContent) then
         oldContent:Hide();
@@ -216,7 +216,7 @@ function C_DataTextModule:ChangeMenuContent(data, content)
     content:SetSize(data.popup:GetWidth(), 10);
 
     -- attach scroll child to menu frame container
-    data.popup:SetScrollChild(content);
+    data.popup.ScrollFrame:SetScrollChild(content);
     content:Show();
 end
 

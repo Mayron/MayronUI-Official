@@ -204,7 +204,7 @@ function C_ChatModule:GetConfigTable()
         children = {
             {   name = L["Edit Box (Message Input Box)"],
                 type = "title",
-                paddingTop = 0
+                marginTop = 0;
             },
             {   name = L["Y-Offset"],
                 type = "textfield",

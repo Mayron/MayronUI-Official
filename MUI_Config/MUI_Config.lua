@@ -87,45 +87,50 @@ end
 
 -- Updates the database based on the dbPath config value, or using SetValue,
 -- and then calls "OnConfigUpdate" for the module that the config value belongs to.
--- @param widget: The created widget frame which is used when calling SetValue to add custom
---      graphical changes to represent the new value (such as disabling the widget)
-Engine:DefineParams("Frame", "table");
-function C_ConfigModule:SetDatabaseValue(data, widget, widgetConfigTable, value)
+-- @param widget: The created widget frame
+Engine:DefineParams("Frame");
+function C_ConfigModule:SetDatabaseValue(data, widget, value)
 
     -- SetValue is a custom function to manually set the datbase config value
-    if (widgetConfigTable.SetValue) then
+    if (widget.SetValue) then
         local oldValue;
 
-        if (not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.dbPath)) then
-            oldValue = db:ParsePathValue(widgetConfigTable.dbPath);
+        if (not tk.Strings:IsNilOrWhiteSpace(widget.dbPath)) then
+            oldValue = db:ParsePathValue(widget.dbPath);
         end
 
-        widgetConfigTable.SetValue(widgetConfigTable.dbPath, value, oldValue, widget);
+        widget.SetValue(widget.dbPath, value, oldValue, widget);
     else
         -- dbPath is required if not using a custom SetValue function!
-        tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.dbPath),
-            "%s is missing database path address element (dbPath) in config data.", widgetConfigTable.name);
+        if (widget.name and widget.name.IsObjectType and widget.name:IsObjectType("FontString")) then
+            tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widget.dbPath),
+                "%s is missing database path address element (dbPath) in config data.", widget.name:GetText());
+        else
+            tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widget.dbPath),
+                "Unknown config data is missing database path address element (dbPath).");
+        end
 
-        db:SetPathValue(widgetConfigTable.dbPath, value);
+        db:SetPathValue(widget.dbPath, value);
     end
 
-    if (widgetConfigTable.requiresReload) then
+    if (widget.requiresReload) then
         self:ShowReloadMessage();
-    elseif (widgetConfigTable.requiresRestart) then
+    elseif (widget.requiresRestart) then
         self:ShowRestartMessage();
     end
 
     local module = data.selectedButton.module;
 
-    if (not module and data.selectedButton.moduleName) then
-        -- it's a sub menu!
-        module = MayronUI:ImportModule(data.selectedButton.moduleName);
+    if (not module and widget.module) then
+        module = MayronUI:ImportModule(widget.module);
     end
 
-    local list = tk.Tables:ConvertPathToKeys(widgetConfigTable.dbPath);
+    if (module) then
+        local list = tk.Tables:ConvertPathToKeys(widget.dbPath);
 
-    -- Trigger Module Update via OnConfigUpdate:
-    module:OnConfigUpdate(list, value);
+        -- Trigger Module Update via OnConfigUpdate:
+        module:OnConfigUpdate(list, value);
+    end
 end
 
 Engine:DefineParams("CheckButton|Button");
@@ -160,7 +165,7 @@ function C_ConfigModule:SetSelectedButton(data, menuButton)
         -- it is a sub-menu!
         self:RenderSelectedMenu(menuButton.configTable);
 
-        obj:PushWrapper(menuButton.configTable);
+        obj:PushWrapper(menuButton.configTable, true);
         menuButton.configTable = nil;
 
         if (menuButton.module) then
@@ -258,10 +263,12 @@ function C_ConfigModule:CreateMenu(data)
 end
 
 function C_ConfigModule:ShowReloadMessage(data)
+    data.warningIcon:Show();
     data.warningLabel:SetText(data.warningLabel.reloadText);
 end
 
 function C_ConfigModule:ShowRestartMessage(data)
+    data.warningIcon:Show();
     data.warningLabel:SetText(data.warningLabel.restartText);
 end
 
@@ -371,23 +378,41 @@ function C_ConfigModule:SetUpWindow(data)
     topbar:SetInsets(25, 14, 2, 10);
     topbar:SetDimensions(2, 1);
 
-    local menuList, scrollChild = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.window:GetFrame());
-    menuList.ScrollBar:SetPoint("TOPLEFT", menuList.ScrollFrame, "TOPRIGHT", -5, 0);
-    menuList.ScrollBar:SetPoint("BOTTOMRIGHT", menuList.ScrollFrame, "BOTTOMRIGHT", 0, 0);
-    menuList = data.window:CreateCell(menuList);
-    menuList:SetInsets(2, 10, 10, 10);
-    menuList:SetDimensions(1, 2);
+    local menuListContainer = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.window:GetFrame(), "SIDEBAR");
+    menuListContainer.ScrollBar:SetPoint("TOPLEFT", menuListContainer.ScrollFrame, "TOPRIGHT", -5, 0);
+    menuListContainer.ScrollBar:SetPoint("BOTTOMRIGHT", menuListContainer.ScrollFrame, "BOTTOMRIGHT", 0, 0);
+
+    local menuListCell = data.window:CreateCell(menuListContainer);
+    menuListCell:SetInsets(2, 10, 10, 10);
 
     data.options = data.window:CreateCell();
     data.options:SetInsets(2, 14, 2, 2);
 
+    local versionCell = data.window:CreateCell();
+    versionCell:SetInsets(10, 10, 10, 10);
+
+    versionCell.text = versionCell:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    versionCell.text:SetText(tk.Strings:Concat(
+        _G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"), " [", _G.GetAddOnMetadata("MUI_Core", "Version"), "]")
+    );
+    versionCell.text:SetPoint("BOTTOMLEFT");
+
     local bottombar = data.window:CreateCell();
-    bottombar:SetInsets(2, 30, 10, 2);
-    data.window:AddCells(topbar, menuList, data.options, bottombar);
+    bottombar:SetDimensions(2, 1);
+    bottombar:SetInsets(10, 30, 10, 0);
+
+    data.window:AddCells(topbar, menuListCell, data.options, versionCell, bottombar);
+
+    data.warningIcon = bottombar:CreateTexture(nil, "ARTWORK");
+    data.warningIcon:SetSize(20, 20);
+    data.warningIcon:SetPoint("LEFT");
+    data.warningIcon:SetTexture(_G.STATICPOPUP_TEXTURE_ALERT);
+    data.warningIcon:Hide();
 
     data.warningLabel = bottombar:CreateFontString(nil, "OVERLAY", "GameFontNormal");
-    data.warningLabel:SetPoint("LEFT");
-    data.warningLabel:SetText("");
+    data.warningLabel:SetPoint("LEFT", data.warningIcon, "RIGHT", 10, 0);
+    data.warningLabel:SetText(tk.Strings.Empty);
+
     data.warningLabel.reloadText = L["The UI requires reloading to apply changes."];
     data.warningLabel.restartText = L["Some changes require a client restart to take effect."];
 
@@ -429,6 +454,7 @@ function C_ConfigModule:SetUpWindow(data)
     data.window.profilesBtn:SetWidth(120);
 
     data.window.profilesBtn:SetScript("OnClick", function()
+        data.selectedButton:SetChecked(false);
         self:ShowProfileManager();
         tk.PlaySound(tk.Constants.CLICK);
     end);
@@ -458,13 +484,20 @@ function C_ConfigModule:SetUpWindow(data)
         tk.PlaySound(tk.Constants.CLICK);
     end);
 
-    tk:SetFullWidth(scrollChild);
+    local menuListScrollChild = menuListContainer.ScrollFrame:GetScrollChild();
+    tk:SetFullWidth(menuListScrollChild);
 
-    return scrollChild;
+    return menuListScrollChild;
 end
 
 do
-    local function CreateCheckButtonFromMenuTable(data, menuConfigTable, module, menuListScrollChild)
+    local function CreateCheckButtonFromMenuTable(data, menuConfigTable, menuListScrollChild)
+        local module;
+
+        if (menuConfigTable.module) then
+            module = MayronUI:ImportModule(menuConfigTable.module);
+        end
+
         local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
 
         data.menuButtons[menuConfigTable.name] = menuButton;
@@ -511,10 +544,10 @@ do
                 local configTable = module:GetConfigTable();
 
                 if (#configTable == 0) then
-                    CreateCheckButtonFromMenuTable(data, configTable, module, menuListScrollChild);
+                    CreateCheckButtonFromMenuTable(data, configTable, menuListScrollChild);
                 else
                     for _, menuTable in ipairs(configTable) do
-                        CreateCheckButtonFromMenuTable(data, menuTable, module, menuListScrollChild);
+                        CreateCheckButtonFromMenuTable(data, menuTable, menuListScrollChild);
                     end
                 end
             end

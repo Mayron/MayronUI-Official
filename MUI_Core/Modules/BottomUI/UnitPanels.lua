@@ -3,7 +3,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 
 -- Register Modules ----------------------
 
-local C_UnitFramePanel = MayronUI:RegisterModule("BottomUI_UnitPanels", true);
+local C_UnitPanels = MayronUI:RegisterModule("BottomUI_UnitPanels", "Unit Panels", true);
 
 -- Load Database Defaults ----------------
 
@@ -66,9 +66,9 @@ local function AttachShadowedUnitFrames(rightPanel)
     _G.ShadowUF.Layout:Reload();
 end
 
--- UnitFramePanel Module -----------------
+-- UnitPanels Module -----------------
 
-function C_UnitFramePanel:OnInitialize(data, buiContainer, subModules)
+function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
     data.settings = db.profile.unitPanels:GetUntrackedTable();
 
     data.buiContainer = buiContainer;
@@ -81,7 +81,7 @@ function C_UnitFramePanel:OnInitialize(data, buiContainer, subModules)
     self:SetupSUFPortraitGradients();
 end
 
-function C_UnitFramePanel:OnEnable(data)
+function C_UnitPanels:OnEnable(data)
     if (data.left) then
         return;
     end
@@ -212,7 +212,7 @@ do
         data.left.noTargetBg:SetAlpha(data.settings.alpha);
     end
 
-    function C_UnitFramePanel:SetSymmetrical(data, isSymmetric)
+    function C_UnitPanels:SetSymmetrical(data, isSymmetric)
         data.right.bg = tk:SetBackground(data.right, doubleTextureFilePath);
         data.left.bg = tk:SetBackground(data.left, doubleTextureFilePath);
 
@@ -291,7 +291,7 @@ do
     end
 end
 
-function C_UnitFramePanel:RepositionPanels(data)
+function C_UnitPanels:RepositionPanels(data)
     local actionBarPanel = data.ActionBarPanel:GetPanel();
 
     if (actionBarPanel) then
@@ -314,7 +314,7 @@ function C_UnitFramePanel:RepositionPanels(data)
     end
 end
 
-function C_UnitFramePanel:UpdateUnitNameText(data, unitType)
+function C_UnitPanels:UpdateUnitNameText(data, unitType)
     local unitLevel = _G.UnitLevel(unitType);
 
     local name = _G.UnitName(unitType);
@@ -355,7 +355,7 @@ function C_UnitFramePanel:UpdateUnitNameText(data, unitType)
     data[unitType].text:SetText(tk.string.format("%s %s", name, unitLevel));
 end
 
-function C_UnitFramePanel:SetupSUFPortraitGradients(data)
+function C_UnitPanels:SetupSUFPortraitGradients(data)
     if (not _G.IsAddOnLoaded("ShadowedUnitFrames")) then
         return;
     end
@@ -420,7 +420,7 @@ function C_UnitFramePanel:SetupSUFPortraitGradients(data)
                 local to = gradientSettings.to;
 
                 if (unitID == "target" and _G.UnitExists("target")
-                        and _G.UnitIsPlayer("target") and settings.targetClassColored) then
+                        and _G.UnitIsPlayer("target") and gradientSettings.targetClassColored) then
 
                     local _, class = _G.UnitClass("target");
                     class = tk.string.upper(class);

@@ -2,7 +2,6 @@
 local _, namespace = ...;
 local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 local C_DataTextModule = namespace.C_DataTextModule;
-local dataTextModule = MayronUI:ImportModule("DataText");
 
 function C_DataTextModule:OnConfigUpdate(data, list, value)
     local key = list:PopFront();
@@ -84,14 +83,14 @@ end
 
 function C_DataTextModule:GetConfigTable()
     return {
-        name = L["Data Text"],
+        name = "Data Text Bar",
         type = "menu",
         module = "DataText",
         dbPath = "profile.datatext",
         children =  {
             {   name = L["General Data Text Options"],
                 type = "title",
-                padding_top = 0,
+                marginTop = 0;
             },
             {   name = L["Enabled"],
                 tooltip = tk.Strings:Concat(

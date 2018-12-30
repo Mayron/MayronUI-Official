@@ -136,7 +136,7 @@ function tk.Tables:CleanIndexes(tbl)
         local value = tbl[index];
 
         if (value ~= nil) then
-            tempIndexTable = tempIndexTable or {};
+            tempIndexTable = tempIndexTable or obj:PopWrapper();
             tk.table.insert(tempIndexTable, value);
 
             tbl[index] = nil;
@@ -147,6 +147,8 @@ function tk.Tables:CleanIndexes(tbl)
         for index = 1, #tempIndexTable do
             tbl[index] = tempIndexTable[index];
         end
+
+        obj:PushWrapper(tempIndexTable);
     end
 end
 

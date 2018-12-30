@@ -15,7 +15,7 @@ local obj = Lib.Objects;
 local function OnSizeChanged(self, width)
     width = math.ceil(width);
 
-    local scrollChild = self:GetScrollChild();
+    local scrollChild = self.ScrollFrame:GetScrollChild();
     local anchor = select(1, scrollChild:GetChildren());
 
     if (not anchor) then
@@ -78,18 +78,18 @@ end
 
 -- Helper constructor!
 function Lib:CreateDynamicFrame(style, parent, spacing, padding)
-    local scroller, scrollChild = Lib:CreateScrollFrame(style, parent, nil, padding);
+    local scrollFrameContainer = Lib:CreateScrollFrame(style, parent, nil, padding);
 
-    scroller:HookScript("OnSizeChanged", OnSizeChanged);
-    scroller.spacing = spacing or 4; -- the spacing around each inner element
-    scroller.padding = padding or 4; -- the padding around the entire container (which holds all the elements)
+    scrollFrameContainer:HookScript("OnSizeChanged", OnSizeChanged);
+    scrollFrameContainer.spacing = spacing or 4; -- the spacing around each inner element
+    scrollFrameContainer.padding = padding or 4; -- the padding around the entire container (which holds all the elements)
 
-    return DynamicFrame(scrollChild, scroller);
+    return DynamicFrame(scrollFrameContainer);
 end
 
-function DynamicFrame:__Construct(data, scrollChild, frame)
-    data.scrollChild = scrollChild;
-    data.frame = frame;
+function DynamicFrame:__Construct(data, scrollFrameContainer)
+    data.scrollChild = scrollFrameContainer.ScrollFrame:GetScrollChild();
+    data.frame = scrollFrameContainer;
 end
 
 -- adds children to ScrollChild of the ScrollFrame

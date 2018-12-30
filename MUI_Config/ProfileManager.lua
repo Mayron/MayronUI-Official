@@ -158,6 +158,7 @@ local configTable = {
         {
             name    = "Default Profile Behaviour";
             type    = "title";
+            marginBottom = 0;
         },
         {
             content = tk.Strings:JoinWithSpace(
@@ -196,7 +197,7 @@ function C_ConfigModule:ShowProfileManager(data)
     local menuButton = data.window.profilesBtn;
 
     if (not menuButton.name) then
-        menuButton.ConfigTable = configTable;
+        menuButton.configTable = configTable;
         menuButton.type = "submenu";
         menuButton.name = configTable.name;
     end

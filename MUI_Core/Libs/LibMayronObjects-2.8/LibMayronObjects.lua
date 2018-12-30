@@ -156,6 +156,16 @@ do
         local wrapper = self:PopWrapper(...);
         return iterator, wrapper, 0;
     end
+
+    function Lib:LengthOfArgs(...)
+        local length = 0;
+
+        for _, _ in self:IterateArgs(...) do
+            length = length + 1;
+        end
+
+        return length;
+    end
 end
 
 --------------------------------------------
@@ -1328,17 +1338,22 @@ function Core:IsMatchingType(value, expectedTypeName)
             return true; -- Object or Widget matches!
         end
 
-        -- check all interface types
-        for _, interface in ipairs(controller.Interfaces) do
-            local interfaceController = self:GetController(interface);
+        if (type(controller.Interfaces) == tableType) then
+            -- check all interface types
+            for _, interface in ipairs(controller.Interfaces) do
+                local interfaceController = self:GetController(interface);
 
-            if (expectedTypeName == interfaceController.EntityName) then
-                return true; -- interface name matches!
+                if (expectedTypeName == interfaceController.EntityName) then
+                    return true; -- interface name matches!
+                end
             end
         end
 
         value = controller.ParentClass;
-        controller = self:GetController(value, true); -- fail silently
+
+        if (type(value) == tableType) then
+            controller = self:GetController(value, true); -- fail silently
+        end
     end
 
     return false;
