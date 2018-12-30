@@ -65,8 +65,18 @@ function C_Container:UpdateContainer(data)
     data.subModules.ActionBarPanel:PositionBartenderBars();
 end
 
-function C_Container:OnConfigUpdate(data, list, value)
-    list:Print();
+function C_Container:OnConfigUpdate(data, dbPath, value)
+    if (dbPath == "profile.bottomui.width") then
+        data.container:SetWidth(value);
+
+        if (_G.IsAddOnLoaded("MUI_DataText")) then
+            local dataTextModule = MayronUI:ImportModule("DataText");
+
+            if (dataTextModule:IsEnabled()) then
+                dataTextModule:PositionDataTextButtons();
+            end
+        end
+    end
 end
     -- local UnitPanels = data.subModules["UnitPanels"];
     -- local key = list:PopFront();

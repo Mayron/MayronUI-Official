@@ -101,8 +101,8 @@ function C_ConfigModule:GetConfigTable()
                 }
             }
         },
-        {   name = L["Bottom UI Panels"],
-            module = "BottomUI_Container",
+        {   name = L["Bottom UI Panels"];
+            module = "BottomUI_Container";
             children = {
                 {   name = "Main Container Width:",
                     type = "textfield",
@@ -115,6 +115,7 @@ function C_ConfigModule:GetConfigTable()
                     type = "title"
                 },
                 {   name = L["Enable Unit Panels"],
+                    module = "BottomUI_UnitPanels",
                     dbPath = "profile.unitPanels.enabled",
                     requiresReload = true,
                     type = "check",
@@ -229,291 +230,298 @@ function C_ConfigModule:GetConfigTable()
                 },
             }
         },
-        {   name = "Side Action Bars",
-            module = "SideBar",
+        {   name = "Action Bars";
+            module = "BottomUI_ActionBarPanel";
             children =  {
-                {   name = L["Width (With 1 Bar)"],
-                    type = "textfield",
-                    tooltip = L["Default value is "].."46",
-                    valueType = "number",
-                    dbPath = "profile.sidebar.retract_width"
-                },
-                {   name = L["Width (With 2 Bars)"],
-                    tooltip = L["Default value is "].."83",
-                    type = "textfield",
-                    valueType = "number",
-                    dbPath = "profile.sidebar.expand_width"
-                },
-                {   type = "divider",
-                },
-                {   name = L["Height"],
-                    tooltip = L["Default value is "].."486",
-                    type = "textfield",
-                    valueType = "number",
-                    dbPath = "profile.sidebar.height"
-                },
-                {   name = L["Y-Offset"],
-                    tooltip = L["Default value is "].."40",
-                    type = "textfield",
-                    valueType = "number",
-                    dbPath = "profile.sidebar.yOffset"
-                },
-                {   type = "divider",
-                },
-                {   name = L["Animation Speed"],
-                    type = "slider",
-                    tooltip = L["The speed of the Expand and Retract transitions."].."\n\n"..
-                                L["The higher the value, the quicker the speed."].."\n\n"..
-                                L["Default value is "].."6.",
-                    step = 1,
-                    min = 1,
-                    max = 10,
-                    dbPath = "profile.sidebar.animate_speed"
-                },
-                {   name = L["Bartender Action Bars"],
-                    type = "title",
-                },
-                {   name = L["Allow MUI to Control Selected Bartender Bars"],
-                    type = "check",
-                    dbPath = "profile.sidebar.bartender.control",
-                    tooltip = L["TT_MUI_CONTROL_BARTENDER"],
-                },
-                {   type = "divider",
-                },
-                {   name = L["First Bartender Bar"],
-                    dbPath = "profile.sidebar.bartender[1]",
-                    type = "dropdown",
-                    options = {
-                        "Bar 1",
-                        "Bar 2",
-                        "Bar 3",
-                        "Bar 4",
-                        "Bar 5",
-                        "Bar 6",
-                        "Bar 7",
-                        "Bar 8",
-                        "Bar 9",
-                    }
-                },
-                {   name = L["Second Bartender Bar"],
-                    dbPath = "profile.sidebar.bartender[2]",
-                    type = "dropdown",
-                    options = {
-                        "Bar 1",
-                        "Bar 2",
-                        "Bar 3",
-                        "Bar 4",
-                        "Bar 5",
-                        "Bar 6",
-                        "Bar 7",
-                        "Bar 8",
-                        "Bar 9",
-                    }
-                },
-                {   name = L["Expand and Retract Buttons"],
-                    type = "title"
-                },
-                {   name = L["Hide in Combat"],
-                    type = "check",
-                    height = 60,
-                    dbPath = "profile.sidebar.buttons.hide_in_combat",
-                },
-                {   name = L["Show When"],
-                    type = "dropdown",
-                    dbPath = "profile.sidebar.buttons.show_when",
-                    options = {
-                        L["Never"],
-                        L["Always"],
-                        L["On Mouse-over"]
-                    },
-                },
-                {   type = "divider",
-                },
-                {   name = L["Width"],
-                    type = "textfield",
-                    tooltip = L["Default value is "].."15",
-                    dbPath = "profile.sidebar.buttons.width",
-                    valueType = "number",
-                },
-                {   name = L["Height"],
-                    type = "textfield",
-                    tooltip = L["Default value is "].."100",
-                    dbPath = "profile.sidebar.buttons.height",
-                    valueType = "number",
-                },
-            }
-        },
-        {   name = "Bottom Action Bars",
-            children = {
-                {   name = L["Animation Speed"],
-                    type = "slider",
-                    tooltip = tk.Strings:Concat(L["The speed of the Expand and Retract transitions."], "\n\n",
-                        L["The higher the value, the quicker the speed."], "\n\n", L["Default value is "], "6"),
-                    step = 1,
-                    min = 1,
-                    max = 10,
-                    dbPath = "profile.actionBarPanel.animate_speed",
-                },
-                {   name = L["Retract Height"],
-                    tooltip = tk.Strings:Concat(
-                        L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."],
-                        "\n\n", L["Minimum value is "], "40", "\n\n", L["Default value is "], "44"),
-                    type = "textfield",
-                    valueType = "number",
-                    min = 40,
-                    dbPath = "profile.actionBarPanel.retractHeight"
-                },
-                {   name = L["Expand Height"],
-                    tooltip = tk.Strings:Concat(
-                        L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."],
-                        "\n\n", L["Minimum value is "], "40", "\n\n", L["Default value is "], "80"),
-                    type = "textfield",
-                    valueType = "number",
-                    min = 40,
-                    dbPath = "profile.actionBarPanel.expand_height"
-                },
-                {   type = "fontstring",
-                    content = "Modifier key/s used to show Expand/Retract button:"
-                },
-                {   name = L["Control"],
-                    height = 40,
-                    min_width = true,
-                    type = "check",
-                    dbPath = "profile.actionBarPanel.modKey",
-                    GetValue = function(_, currentValue)
-                        return currentValue:find("C");
-                    end,
-                    SetValue = function(dbPath, oldValue, value)
-                        value = value and "C";
-                        if (not value) then
-                            if (oldValue:find("C")) then
-                                value = oldValue:gsub("C", "");
+                {   name = "Bottom Action Bars",
+                    type = "submenu",
+                    children = {
+                        {   name = L["Animation Speed"],
+                            type = "slider",
+                            tooltip = tk.Strings:Concat(L["The speed of the Expand and Retract transitions."], "\n\n",
+                                L["The higher the value, the quicker the speed."], "\n\n", L["Default value is "], "6"),
+                            step = 1,
+                            min = 1,
+                            max = 10,
+                            dbPath = "profile.actionBarPanel.animate_speed",
+                        },
+                        {   name = L["Retract Height"],
+                            tooltip = tk.Strings:Concat(
+                                L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."],
+                                "\n\n", L["Minimum value is "], "40", "\n\n", L["Default value is "], "44"),
+                            type = "textfield",
+                            valueType = "number",
+                            min = 40,
+                            dbPath = "profile.actionBarPanel.retractHeight"
+                        },
+                        {   name = L["Expand Height"],
+                            tooltip = tk.Strings:Concat(
+                                L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."],
+                                "\n\n", L["Minimum value is "], "40", "\n\n", L["Default value is "], "80"),
+                            type = "textfield",
+                            valueType = "number",
+                            min = 40,
+                            dbPath = "profile.actionBarPanel.expand_height"
+                        },
+                        {   type = "fontstring",
+                            content = "Modifier key/s used to show Expand/Retract button:"
+                        },
+                        {   name = L["Control"],
+                            height = 40,
+                            min_width = true,
+                            type = "check",
+                            dbPath = "profile.actionBarPanel.modKey",
+                            GetValue = function(_, currentValue)
+                                return currentValue:find("C");
+                            end,
+                            SetValue = function(dbPath, oldValue, value)
+                                value = value and "C";
+                                if (not value) then
+                                    if (oldValue:find("C")) then
+                                        value = oldValue:gsub("C", "");
+                                    end
+                                else
+                                    value = oldValue..value;
+                                end
+                                db:SetPathValue(dbPath, value);
                             end
-                        else
-                            value = oldValue..value;
-                        end
-                        db:SetPathValue(dbPath, value);
-                    end
-                },
-                {   name = L["Shift"],
-                    height = 40,
-                    min_width = true,
-                    type = "check",
-                    dbPath = "profile.actionBarPanel.modKey",
-                    GetValue = function(_, current_value)
-                        return current_value:find("S");
-                    end,
-                    SetValue = function(dbPath, old_value, value)
-                        value = value and "S";
-                        if (not value) then
-                            if (old_value:find("S")) then
-                                value = old_value:gsub("S", "")
+                        },
+                        {   name = L["Shift"],
+                            height = 40,
+                            min_width = true,
+                            type = "check",
+                            dbPath = "profile.actionBarPanel.modKey",
+                            GetValue = function(_, current_value)
+                                return current_value:find("S");
+                            end,
+                            SetValue = function(dbPath, old_value, value)
+                                value = value and "S";
+                                if (not value) then
+                                    if (old_value:find("S")) then
+                                        value = old_value:gsub("S", "")
+                                    end
+                                else
+                                    value = old_value..value;
+                                end
+                                db:SetPathValue(dbPath, value);
                             end
-                        else
-                            value = old_value..value;
-                        end
-                        db:SetPathValue(dbPath, value);
-                    end
-                },
-                {   name = L["Alt"],
-                    height = 40,
-                    min_width = true,
-                    type = "check",
-                    dbPath = "profile.actionBarPanel.modKey",
-                    GetValue = function(_, current_value)
-                        return current_value:find("A");
-                    end,
-                    SetValue = function(dbPath, old_value, value) -- the path and the new value
-                        value = value and "A";
-                        if (not value) then
-                            if (old_value:find("A")) then
-                                value = old_value:gsub("A", "");
+                        },
+                        {   name = L["Alt"],
+                            height = 40,
+                            min_width = true,
+                            type = "check",
+                            dbPath = "profile.actionBarPanel.modKey",
+                            GetValue = function(_, current_value)
+                                return current_value:find("A");
+                            end,
+                            SetValue = function(dbPath, old_value, value) -- the path and the new value
+                                value = value and "A";
+                                if (not value) then
+                                    if (old_value:find("A")) then
+                                        value = old_value:gsub("A", "");
+                                    end
+                                else
+                                    value = old_value..value;
+                                end
+                                db:SetPathValue(dbPath, value);
                             end
-                        else
-                            value = old_value..value;
-                        end
-                        db:SetPathValue(dbPath, value);
-                    end
-                },
-                {   name = L["Bartender Action Bars"],
-                    type = "title",
-                },
-                {   name = L["Allow MUI to Control Selected Bartender Bars"],
-                    type = "check",
-                    tooltip = L["TT_MUI_CONTROL_BARTENDER"],
-                    dbPath = "profile.actionBarPanel.bartender.control"
-                },
-                {   type = "fontstring",
-                    content = L["Row 1"],
-                    subtype = "header",
-                },
-                {   name = L["First Bartender Bar"],
-                    type = "dropdown",
-                    dbPath = "profile.actionBarPanel.bartender[1]",
-                    options = {
-                        "Bar 1",
-                        "Bar 2",
-                        "Bar 3",
-                        "Bar 4",
-                        "Bar 5",
-                        "Bar 6",
-                        "Bar 7",
-                        "Bar 8",
-                        "Bar 9",
+                        },
+                        {   name = L["Bartender Action Bars"],
+                            type = "title",
+                        },
+                        {   name = L["Allow MUI to Control Selected Bartender Bars"],
+                            type = "check",
+                            tooltip = L["TT_MUI_CONTROL_BARTENDER"],
+                            dbPath = "profile.actionBarPanel.bartender.control"
+                        },
+                        {   type = "fontstring",
+                            content = L["Row 1"],
+                            subtype = "header",
+                        },
+                        {   name = L["First Bartender Bar"],
+                            type = "dropdown",
+                            dbPath = "profile.actionBarPanel.bartender[1]",
+                            options = {
+                                "Bar 1",
+                                "Bar 2",
+                                "Bar 3",
+                                "Bar 4",
+                                "Bar 5",
+                                "Bar 6",
+                                "Bar 7",
+                                "Bar 8",
+                                "Bar 9",
+                            }
+                        },
+                        {   name = L["Second Bartender Bar"],
+                            dbPath = "profile.actionBarPanel.bartender[2]",
+                            type = "dropdown",
+                            options = {
+                                "Bar 1",
+                                "Bar 2",
+                                "Bar 3",
+                                "Bar 4",
+                                "Bar 5",
+                                "Bar 6",
+                                "Bar 7",
+                                "Bar 8",
+                                "Bar 9",
+                            }
+                        },
+                        {   type = "fontstring",
+                            content = L["Row 2"],
+                            subtype = "header",
+                        },
+                        {   name = L["First Bartender Bar"],
+                            dbPath = "profile.actionBarPanel.bartender[3]",
+                            type = "dropdown",
+                            options = {
+                                "Bar 1",
+                                "Bar 2",
+                                "Bar 3",
+                                "Bar 4",
+                                "Bar 5",
+                                "Bar 6",
+                                "Bar 7",
+                                "Bar 8",
+                                "Bar 9",
+                            }
+                        },
+                        {   name = L["Second Bartender Bar"],
+                            dbPath = "profile.actionBarPanel.bartender[4]",
+                            type = "dropdown",
+                            options = {
+                                "Bar 1",
+                                "Bar 2",
+                                "Bar 3",
+                                "Bar 4",
+                                "Bar 5",
+                                "Bar 6",
+                                "Bar 7",
+                                "Bar 8",
+                                "Bar 9",
+                            }
+                        }
                     }
-                },
-                {   name = L["Second Bartender Bar"],
-                    dbPath = "profile.actionBarPanel.bartender[2]",
-                    type = "dropdown",
-                    options = {
-                        "Bar 1",
-                        "Bar 2",
-                        "Bar 3",
-                        "Bar 4",
-                        "Bar 5",
-                        "Bar 6",
-                        "Bar 7",
-                        "Bar 8",
-                        "Bar 9",
-                    }
-                },
-                {   type = "fontstring",
-                    content = L["Row 2"],
-                    subtype = "header",
-                },
-                {   name = L["First Bartender Bar"],
-                    dbPath = "profile.actionBarPanel.bartender[3]",
-                    type = "dropdown",
-                    options = {
-                        "Bar 1",
-                        "Bar 2",
-                        "Bar 3",
-                        "Bar 4",
-                        "Bar 5",
-                        "Bar 6",
-                        "Bar 7",
-                        "Bar 8",
-                        "Bar 9",
-                    }
-                },
-                {   name = L["Second Bartender Bar"],
-                    dbPath = "profile.actionBarPanel.bartender[4]",
-                    type = "dropdown",
-                    options = {
-                        "Bar 1",
-                        "Bar 2",
-                        "Bar 3",
-                        "Bar 4",
-                        "Bar 5",
-                        "Bar 6",
-                        "Bar 7",
-                        "Bar 8",
-                        "Bar 9",
+                };
+                {   name = "Side Action Bars",
+                    type = "submenu",
+                    children = {
+                        {   name = L["Width (With 1 Bar)"],
+                            type = "textfield",
+                            tooltip = L["Default value is "].."46",
+                            valueType = "number",
+                            dbPath = "profile.sidebar.retract_width"
+                        },
+                        {   name = L["Width (With 2 Bars)"],
+                            tooltip = L["Default value is "].."83",
+                            type = "textfield",
+                            valueType = "number",
+                            dbPath = "profile.sidebar.expand_width"
+                        },
+                        {   type = "divider",
+                        },
+                        {   name = L["Height"],
+                            tooltip = L["Default value is "].."486",
+                            type = "textfield",
+                            valueType = "number",
+                            dbPath = "profile.sidebar.height"
+                        },
+                        {   name = L["Y-Offset"],
+                            tooltip = L["Default value is "].."40",
+                            type = "textfield",
+                            valueType = "number",
+                            dbPath = "profile.sidebar.yOffset"
+                        },
+                        {   type = "divider",
+                        },
+                        {   name = L["Animation Speed"],
+                            type = "slider",
+                            tooltip = L["The speed of the Expand and Retract transitions."].."\n\n"..
+                                        L["The higher the value, the quicker the speed."].."\n\n"..
+                                        L["Default value is "].."6.",
+                            step = 1,
+                            min = 1,
+                            max = 10,
+                            dbPath = "profile.sidebar.animate_speed"
+                        },
+                        {   name = L["Bartender Action Bars"],
+                            type = "title",
+                        },
+                        {   name = L["Allow MUI to Control Selected Bartender Bars"],
+                            type = "check",
+                            dbPath = "profile.sidebar.bartender.control",
+                            tooltip = L["TT_MUI_CONTROL_BARTENDER"],
+                        },
+                        {   type = "divider",
+                        },
+                        {   name = L["First Bartender Bar"],
+                            dbPath = "profile.sidebar.bartender[1]",
+                            type = "dropdown",
+                            options = {
+                                "Bar 1",
+                                "Bar 2",
+                                "Bar 3",
+                                "Bar 4",
+                                "Bar 5",
+                                "Bar 6",
+                                "Bar 7",
+                                "Bar 8",
+                                "Bar 9",
+                            }
+                        },
+                        {   name = L["Second Bartender Bar"],
+                            dbPath = "profile.sidebar.bartender[2]",
+                            type = "dropdown",
+                            options = {
+                                "Bar 1",
+                                "Bar 2",
+                                "Bar 3",
+                                "Bar 4",
+                                "Bar 5",
+                                "Bar 6",
+                                "Bar 7",
+                                "Bar 8",
+                                "Bar 9",
+                            }
+                        },
+                        {   name = L["Expand and Retract Buttons"],
+                            type = "title"
+                        },
+                        {   name = L["Hide in Combat"],
+                            type = "check",
+                            height = 60,
+                            dbPath = "profile.sidebar.buttons.hide_in_combat",
+                        },
+                        {   name = L["Show When"],
+                            type = "dropdown",
+                            dbPath = "profile.sidebar.buttons.show_when",
+                            options = {
+                                L["Never"],
+                                L["Always"],
+                                L["On Mouse-over"]
+                            },
+                        },
+                        {   type = "divider",
+                        },
+                        {   name = L["Width"],
+                            type = "textfield",
+                            tooltip = L["Default value is "].."15",
+                            dbPath = "profile.sidebar.buttons.width",
+                            valueType = "number",
+                        },
+                        {   name = L["Height"],
+                            type = "textfield",
+                            tooltip = L["Default value is "].."100",
+                            dbPath = "profile.sidebar.buttons.height",
+                            valueType = "number",
+                        }
                     }
                 }
             }
         },
         {   name = "Resource Bars";
+            module = "BottomUI_ResourceBars";
             children = {
                 {   type = "loop",
                     args = {"Artifact", "Reputation", "Experience"},

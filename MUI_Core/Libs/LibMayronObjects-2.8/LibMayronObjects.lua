@@ -131,19 +131,31 @@ do
     end
 
     function Lib:PushWrapper(wrapper, pushSubTables)
-        if (type(wrapper) ~= tableType) then return end
-        setmetatable(wrapper, nil);
+        if (type(wrapper) ~= tableType) then
+            return;
+        end
+
+        local push = true;
 
         for key, _ in pairs(wrapper) do
-
             if (pushSubTables and type(wrapper[key]) == tableType) then
-                self:PushWrapper(wrapper[key], true);
+
+                if (type(pushSubTables) == functionType) then
+                    push = pushSubTables(wrapper[key]);
+                end
+
+                if (push) then
+                    self:PushWrapper(wrapper[key], pushSubTables);
+                end
             end
 
             wrapper[key] = nil;
         end
 
-        PushWrapper(wrapper);
+        if (push) then
+            setmetatable(wrapper, nil);
+            PushWrapper(wrapper);
+        end
     end
 
     function Lib:UnpackWrapper(wrapper)

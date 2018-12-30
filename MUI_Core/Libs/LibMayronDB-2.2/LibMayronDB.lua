@@ -140,6 +140,7 @@ function Database:__Construct(data, addOnName, savedVariableName)
 
     -- holds all database defaults to check first before searching database
     data.defaults = obj:PopWrapper();
+    data.updateFunctions = obj:PopWrapper();
     data.defaults.global = obj:PopWrapper();
     data.defaults.profile = obj:PopWrapper();
 end
@@ -238,9 +239,35 @@ Adds a value to the database defaults table relative to the path: defaults.<path
 @param (string): a database path string, such as "myTable.mySubTable[2]"
 @param (any): a value to assign to the database defaults table using the path
 ]]
-Framework:DefineParams("string", "?any");
+Framework:DefineParams("string", "any");
 function Database:AddToDefaults(data, path, value)
     self:SetPathValue(data.defaults, path, value);
+end
+
+--[[
+Add a table of update callback functions to trigger when a database value changes
+
+@param (string): a database path string, such as "myTable.mySubTable[2]"
+@param (table|function): aa table containing functions, or a function, to attach to a database path
+]]
+Framework:DefineParams("string", "table|function");
+function Database:RegisterUpdateFunctions(data, path, value)
+    self:SetPathValue(data.updateFunctions, path, value);
+end
+
+--[[
+Trigger an update function located by the path argument and pass any arguments to the function
+
+@param (string): a database path string, such as "myTable.mySubTable[2]"
+]]
+Framework:DefineParams("string");
+function Database:TriggerUpdateFunction(data, path, ...)
+    print("TriggerUpdateFunction: "..tostring(path))
+    local updateFunction = self:ParsePathValue(data.updateFunctions, path);
+
+    if (type(updateFunction) == "function") then
+        updateFunction(...);
+    end
 end
 
 --[[
@@ -257,6 +284,13 @@ Adds a value to a table relative to a path: rootTable.<path> = <value>
 Framework:DefineParams("table|string");
 function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
+    local updateFunctionRoot;
+
+    if (rootTable == self.global) then
+        updateFunctionRoot = "global";
+    elseif (rootTable == self.profile) then
+        updateFunctionRoot = "profile";
+    end
 
     if (rootTable.GetObjectType and rootTable:GetObjectType() == "Observer") then
         rootTable = rootTable:GetSavedVariable();
@@ -268,6 +302,11 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
         "Database:SetPathValue failed to set value");
 
     lastTable[lastKey] = realValue;
+
+    if (updateFunctionRoot) then
+        local updateFunctionPath = string.format("%s.%s", updateFunctionRoot, path);
+        self:TriggerUpdateFunction(updateFunctionPath, realValue);
+    end
 end
 
 --[[

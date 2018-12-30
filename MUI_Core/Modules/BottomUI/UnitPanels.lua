@@ -8,25 +8,77 @@ local C_UnitPanels = MayronUI:RegisterModule("BottomUI_UnitPanels", "Unit Panels
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.unitPanels", {
-    enabled       = true;
-    controlGrid   = true;
-    unitWidth     = 325;
-    height        = 75;
-    isSymmetric   = true;
-    alpha         = 0.8;
+    enabled = true;
+    controlGrid = true;
+    unitWidth = 325;
+    height = 75;
+    isSymmetric = true;
+    alpha = 0.8;
     unitNames = {
-        width                 = 235;
-        height                = 20;
-        fontSize              = 11;
-        targetClassColored    = true;
-        xOffset               = 24;
+        width = 235;
+        height = 20;
+        fontSize = 11;
+        targetClassColored = true;
+        xOffset = 24;
     };
     sufGradients = {
-        enabled               = true;
-        height                = 24;
-        targetClassColored    = true;
+        enabled = true;
+        height = 24;
+        targetClassColored = true;
     };
 });
+
+function C_UnitPanels:RegisterUpdateFunctions(data)
+    db:RegisterUpdateFunctions("profile.unitPanels", {
+        enabled = function(value)
+            print("WORKED!")
+            print("value: "..tostring(value))
+        end;
+        controlGrid = function(value)
+            
+        end;
+        unitWidth = function(value)
+            
+        end;
+        height = function(value)
+            
+        end;
+        isSymmetric = function(value)
+            
+        end;
+        alpha = function(value)
+            
+        end;
+        unitNames = {
+            width = function(value)
+            
+            end;
+            height = function(value)
+            
+            end;
+            fontSize = function(value)
+            
+            end;
+            targetClassColored = function(value)
+            
+            end;
+            xOffset = function(value)
+            
+            end;
+        };
+        sufGradients = {
+            enabled = function(value)
+            
+            end;
+            height = function(value)
+            
+            end;
+            targetClassColored = function(value)
+            
+            end;
+        };
+    });
+end
 
 -- SUF Functions -------------------------
 
@@ -79,6 +131,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
     end
 
     self:SetupSUFPortraitGradients();
+    self:RegisterUpdateFunctions();
 end
 
 function C_UnitPanels:OnEnable(data)

@@ -16,7 +16,7 @@ db:AddToDefaults("profile.datatext.combatTimer", {
 
 MayronUI:Hook("DataText", "OnInitialize", function(self)
     local sv = db.profile.datatext.combatTimer;
-    sv:SetParent(db.profile.datatext); --TODO: will this cause a loop?
+    sv:SetParent(db.profile.datatext);
 
     local settings = sv:GetTrackedTable();
 

@@ -138,7 +138,9 @@ function C_DataTextModule:RegisterDataModule(data, dataModule)
         self:ClickModuleButton(dataModule, dataTextButton, ...);
     end);
 
-    self:PositionDataItems();
+    self:OrderDataTextButtons();
+    self:PositionDataTextButtons();
+    data.popup:Hide();
 end
 
 Engine:DefineReturns("Button");
@@ -160,7 +162,7 @@ function C_DataTextModule:CreateDataTextButton(data)
 end
 
 -- this is called each time a datatext module is registered
-function C_DataTextModule:PositionDataItems(data)
+function C_DataTextModule:OrderDataTextButtons(data)
     data.orderedButtons = data.orderedButtons or obj:PopWrapper();
     data.positionedButtons = data.positionedButtons or obj:PopWrapper();
 
@@ -171,15 +173,18 @@ function C_DataTextModule:PositionDataItems(data)
             local dbName = dataModule.SavedVariableName;
             local displayOrder = tk.Tables:GetIndex(data.settings.displayOrders, dbName);
 
-            btn._module = dataModule; -- temporary
-
             if (displayOrder and not data.positionedButtons[dbName]) then
+                -- ensure that buttons are only ordered once!
                 table.insert(data.orderedButtons, displayOrder, btn);
                 data.positionedButtons[dbName] = true;
+
+                dataModule:Update();
             end
         end
     end
+end
 
+function C_DataTextModule:PositionDataTextButtons(data)
     local itemWidth = data.buiContainer:GetWidth() / #data.orderedButtons;
     local previousButton;
 
@@ -195,12 +200,8 @@ function C_DataTextModule:PositionDataItems(data)
             btn:SetPoint("BOTTOMRIGHT", previousButton, "BOTTOMRIGHT", itemWidth, 0);
         end
 
-        btn._module:Update();
-        btn._module = nil; -- remove temporary _module ref
         previousButton = btn;
     end
-
-    data.popup:Hide();
 end
 
 Engine:DefineParams("Frame");

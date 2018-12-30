@@ -61,7 +61,7 @@ function TextField:__Construct(data, style, tooltip, parent)
 end
 
 function TextField:SetText(data, text)
-    data.previousText = data.editBox:GetText();
+    data.previousText = text;
     data.editBox:SetText(text);
 end
 
@@ -90,6 +90,4 @@ function TextField:OnTextChanged(data, callback, ...)
         data.editBox:ClearFocus();
         callback(self, data.editBox:GetText(), data.previousText, _G.unpack(args));
     end);
-    --http://wowwiki.wikia.com/wiki/UIOBJECT_EditBox
-    --OnTextChanged
 end

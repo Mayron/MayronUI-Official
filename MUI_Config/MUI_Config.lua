@@ -88,7 +88,7 @@ end
 -- Updates the database based on the dbPath config value, or using SetValue,
 -- and then calls "OnConfigUpdate" for the module that the config value belongs to.
 -- @param widget: The created widget frame
-Engine:DefineParams("Frame");
+Engine:DefineParams("table");
 function C_ConfigModule:SetDatabaseValue(data, widget, value)
 
     -- SetValue is a custom function to manually set the datbase config value
@@ -126,10 +126,8 @@ function C_ConfigModule:SetDatabaseValue(data, widget, value)
     end
 
     if (module) then
-        local list = tk.Tables:ConvertPathToKeys(widget.dbPath);
-
         -- Trigger Module Update via OnConfigUpdate:
-        module:OnConfigUpdate(list, value);
+        module:OnConfigUpdate(widget.dbPath, value);
     end
 end
 
@@ -151,35 +149,40 @@ function C_ConfigModule:OpenMenu(data, menuButton)
     _G.PlaySound(tk.Constants.CLICK);
 end
 
-Engine:DefineParams("CheckButton|Button");
-function C_ConfigModule:SetSelectedButton(data, menuButton)
-    if (data.selectedButton) then
-        -- hide old menu
-        data.selectedButton.menu:Hide();
+do
+    local function CleanTablesIfNotSubmenu(tbl)
+        return (tbl.type ~= "submenu");
     end
 
-    menuButton.menu = menuButton.menu or self:CreateMenu();
-    data.selectedButton = menuButton;
-
-    if (menuButton.configTable) then
-        -- it is a sub-menu!
-        self:RenderSelectedMenu(menuButton.configTable);
-
-        obj:PushWrapper(menuButton.configTable, true);
-        menuButton.configTable = nil;
-
-        if (menuButton.module) then
-            menuButton.module.configTable = nil;
+    Engine:DefineParams("CheckButton|Button");
+    function C_ConfigModule:SetSelectedButton(data, menuButton)
+        if (data.selectedButton) then
+            -- hide old menu
+            data.selectedButton.menu:Hide();
         end
+
+        menuButton.menu = menuButton.menu or self:CreateMenu();
+        data.selectedButton = menuButton;
+
+        if (menuButton.configTable) then
+            self:RenderSelectedMenu(menuButton.configTable);
+
+            obj:PushWrapper(menuButton.configTable, CleanTablesIfNotSubmenu);
+            menuButton.configTable = nil;
+
+            if (menuButton.module) then
+                menuButton.module.configTable = nil;
+            end
+        end
+
+        collectgarbage("collect");
+
+        -- fade menu in...
+        data.selectedButton.menu:Show();
+        data.windowName:SetText(menuButton.name);
+
+        _G.UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
     end
-
-    collectgarbage("collect");
-
-    -- fade menu in...
-    data.selectedButton.menu:Show();
-    data.windowName:SetText(menuButton.name);
-
-    _G.UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
 end
 
 Engine:DefineParams("table");
@@ -491,7 +494,7 @@ function C_ConfigModule:SetUpWindow(data)
 end
 
 do
-    local function CreateCheckButtonFromMenuTable(data, menuConfigTable, menuListScrollChild)
+    local function AddMenuButton(menuButtons, menuConfigTable, menuListScrollChild)
         local module;
 
         if (menuConfigTable.module) then
@@ -499,14 +502,10 @@ do
         end
 
         local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
-
-        data.menuButtons[menuConfigTable.name] = menuButton;
-        table.insert(data.menuButtons, menuButton);
-
         menuButton.configTable = menuConfigTable;
         menuButton.id = menuConfigTable.id;
-        menuButton.type = "menu";
         menuButton.name = menuConfigTable.name;
+        menuButton.type = "menu";
         menuButton.module = module;
 
         menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -528,6 +527,9 @@ do
         menuButton:SetHighlightTexture(highlight);
         menuButton:SetCheckedTexture(checked);
         menuButton:SetScript("OnClick", MenuButton_OnClick);
+
+        menuButtons[menuConfigTable.name] = menuButton;
+        table.insert(menuButtons, menuButton);
     end
 
     -- Loads all config data from individual modules and places them as a graphical menu
@@ -544,10 +546,10 @@ do
                 local configTable = module:GetConfigTable();
 
                 if (#configTable == 0) then
-                    CreateCheckButtonFromMenuTable(data, configTable, menuListScrollChild);
+                    AddMenuButton(data.menuButtons, configTable, menuListScrollChild);
                 else
-                    for _, menuTable in ipairs(configTable) do
-                        CreateCheckButtonFromMenuTable(data, menuTable, menuListScrollChild);
+                    for _, menuConfigTable in ipairs(configTable) do
+                        AddMenuButton(data.menuButtons, menuConfigTable, menuListScrollChild);
                     end
                 end
             end

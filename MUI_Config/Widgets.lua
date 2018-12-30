@@ -82,7 +82,7 @@ function WidgetHandlers.submenu:Run(parent, submenuConfigTable)
     btn:SetNormalTexture(btn.normal);
     btn:SetHighlightTexture(btn.highlight);
 
-    btn.ConfigTable = submenuConfigTable;
+    btn.configTable = submenuConfigTable;
     btn.type = "submenu";
     btn.name = submenuConfigTable.name;
 
@@ -124,27 +124,27 @@ end
 WidgetHandlers.check = {};
 
 function WidgetHandlers.check:Run(parent, widgetConfigTable, value)
-    local checkButton = gui:CreateCheckButton(parent, widgetConfigTable.name,
+    local cbContainer = gui:CreateCheckButton(parent, widgetConfigTable.name,
         widgetConfigTable.type == "radio", widgetConfigTable.tooltip);
 
-    TransferDatabaseInfo(checkButton, widgetConfigTable);
+    TransferDatabaseInfo(cbContainer.btn, widgetConfigTable);
 
-    checkButton.btn:SetChecked(value);
-    checkButton.btn:SetScript("OnClick", function(self)
+    cbContainer.btn:SetChecked(value);
+    cbContainer.btn:SetScript("OnClick", function(self)
         configModule:SetDatabaseValue(self, self:GetChecked());
     end);
 
     if (widgetConfigTable.width) then
-        checkButton:SetWidth(widgetConfigTable.width);
+        cbContainer:SetWidth(widgetConfigTable.width);
     else
-        checkButton:SetWidth(checkButton.btn:GetWidth() + 20 + checkButton.btn.text:GetStringWidth());
+        cbContainer:SetWidth(cbContainer.btn:GetWidth() + 20 + cbContainer.btn.text:GetStringWidth());
     end
 
     if (widgetConfigTable.height) then
-        checkButton:SetHeight(widgetConfigTable.height);
+        cbContainer:SetHeight(widgetConfigTable.height);
     end
 
-    return checkButton;
+    return cbContainer;
 end
 
 ----------------
@@ -437,7 +437,8 @@ WidgetHandlers.textfield = {};
 -- width - Can be used to change the font object. Supports "header" only (for now).
 -- height - overrides the default horizontal justification ("LEFT")
 -- valueType - overrides the default height of 30
--- min - overrides the default fixed with value (the width of the fontstring)
+-- min - minimum value allowed
+-- max - maximum value allowed
 
 function WidgetHandlers.textfield:Run(parent, widgetConfigTable, value)
     local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetConfigTable.tooltip, parent);

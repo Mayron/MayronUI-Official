@@ -199,7 +199,6 @@ end
 function C_ChatModule:GetConfigTable()
     return {
         name = "Chat Frames",
-        type = "category",
         module = "Chat",
         children = {
             {   name = L["Edit Box (Message Input Box)"],
