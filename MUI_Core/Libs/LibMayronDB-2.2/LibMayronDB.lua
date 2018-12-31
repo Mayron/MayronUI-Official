@@ -247,26 +247,41 @@ end
 --[[
 Add a table of update callback functions to trigger when a database value changes
 
-@param (string): a database path string, such as "myTable.mySubTable[2]"
-@param (table|function): aa table containing functions, or a function, to attach to a database path
+@param (string) path: a database path string, such as "myTable.mySubTable[2]"
+@param (table|function) value: a table containing functions, or a function, to attach to a database path
+@param (optional function) manualFunc: when TriggerUpdateFunction is called, the manualFunc will be called and is
+    passed the update function to allow the user to decide how it should be called.
 ]]
-Framework:DefineParams("string", "table|function");
-function Database:RegisterUpdateFunctions(data, path, value)
-    self:SetPathValue(data.updateFunctions, path, value);
+Framework:DefineParams("string", "table|function", "?function");
+function Database:RegisterUpdateFunctions(data, path, value, manualFunc)
+    if (manualFunc) then
+        local manualTable = obj:PopWrapper();
+        manualTable.manualFunc = manualFunc;
+        manualTable.value = value;
+        self:SetPathValue(data.updateFunctions, path, manualTable);
+    else
+        self:SetPathValue(data.updateFunctions, path, value);
+    end
 end
 
 --[[
 Trigger an update function located by the path argument and pass any arguments to the function
 
-@param (string): a database path string, such as "myTable.mySubTable[2]"
+@param (string) path: a database path string, such as "myTable.mySubTable[2]"
+@param (optional any) newValue: the new value assigned to the database
 ]]
 Framework:DefineParams("string");
-function Database:TriggerUpdateFunction(data, path, ...)
-    print("TriggerUpdateFunction: "..tostring(path))
-    local updateFunction = self:ParsePathValue(data.updateFunctions, path);
+function Database:TriggerUpdateFunction(data, path, newValue)
+    local result = self:ParsePathValue(data.updateFunctions, path);
 
-    if (type(updateFunction) == "function") then
-        updateFunction(...);
+    if (obj:IsType(result, obj.Types.Table) and result.manualFunc) then
+        -- manually control how to execute the update function
+        if (obj:IsType(result.value, obj.Types.Function)) then
+            result.manualFunc(result.value, newValue);
+        end
+
+    elseif (obj:IsType(result, obj.Types.Function)) then
+        result(newValue);
     end
 end
 

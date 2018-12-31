@@ -364,3 +364,60 @@ do
         _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
 end
+
+do
+    local callbacks = {};
+
+    function tk:HookFunc(tbl, methodName, callback, ...)
+        if (type(tbl) ~= "table" and type(tbl) == "string") then
+            local realGlobalMethodName = tbl;
+            local realCallback = methodName;
+            local firstArg = callback;
+            local key = string.format("%s|%s", realGlobalMethodName, realCallback);
+
+            local callbackWrapper = function(...)
+                local callbackData = callbacks[key];
+
+                if (type(callbackData) == "table") then
+                    -- pass to callback function all custom args and then the real hooksecurefunc args
+                    callbackData[1](select(2, _G.unpack(callbackData)), ...);
+                end
+            end
+
+            callbacks[key] = obj:PopWrapper(realCallback, firstArg, ...);
+            _G.hooksecurefunc(realGlobalMethodName, callbackWrapper);
+        else
+            local key = string.format("%s|%s|%s", tbl, methodName, callback);
+
+            local callbackWrapper = function(...)
+                local callbackData = callbacks[key];
+
+                if (type(callbackData) == "table") then
+                    -- pass to callback function all custom args and then the real hooksecurefunc args
+                    callbackData[1](select(2, _G.unpack(callbackData)), ...);
+                end
+            end
+
+            callbacks[key] = obj:PopWrapper(callback, ...);
+            _G.hooksecurefunc(tbl, methodName, callbackWrapper);
+        end
+    end
+
+    function tk:UnhookFunc(tbl, methodName, callback)
+        local key;
+
+        if (type(tbl) ~= "table" and type(tbl) == "string") then
+            local realGlobalMethodName = tbl;
+            local realCallback = methodName;
+            key = string.format("%s|%s", realGlobalMethodName, realCallback);
+        else
+            key = string.format("%s|%s|%s", tbl, methodName, callback);
+        end
+
+        if (type(callbacks[key]) == "table") then
+            obj:PushWrapper(callbacks[key]);
+        end
+
+        callbacks[key] = nil;
+    end
+end

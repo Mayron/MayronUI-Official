@@ -1,5 +1,6 @@
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local Private = {};
 
 -- Register Modules ----------------------
 
@@ -9,7 +10,17 @@ local C_UnitPanels = MayronUI:RegisterModule("BottomUI_UnitPanels", "Unit Panels
 
 db:AddToDefaults("profile.unitPanels", {
     enabled = true;
-    controlGrid = true;
+    grid = {
+        anchorGrid = true; -- anchor Grid Frame to top of Unit Panels
+        point = "BOTTOMRIGHT";
+        anchorFrame = "Target";
+        xOffset = -9;
+        yOffset = 0;
+        gridProfiles = {
+            "MayronUIH"
+        }
+    };
+    controlSUF = true;
     unitWidth = 325;
     height = 75;
     isSymmetric = true;
@@ -28,110 +39,116 @@ db:AddToDefaults("profile.unitPanels", {
     };
 });
 
-function C_UnitPanels:RegisterUpdateFunctions(data)
-    db:RegisterUpdateFunctions("profile.unitPanels", {
-        enabled = function(value)
-            print("WORKED!")
-            print("value: "..tostring(value))
-        end;
-        controlGrid = function(value)
-            
-        end;
-        unitWidth = function(value)
-            
-        end;
-        height = function(value)
-            
-        end;
-        isSymmetric = function(value)
-            
-        end;
-        alpha = function(value)
-            
-        end;
-        unitNames = {
-            width = function(value)
-            
-            end;
-            height = function(value)
-            
-            end;
-            fontSize = function(value)
-            
-            end;
-            targetClassColored = function(value)
-            
-            end;
-            xOffset = function(value)
-            
-            end;
-        };
-        sufGradients = {
-            enabled = function(value)
-            
-            end;
-            height = function(value)
-            
-            end;
-            targetClassColored = function(value)
-            
-            end;
-        };
-    });
-end
-
--- SUF Functions -------------------------
-
-local function DetachShadowedUnitFrames()
-    local currentProfile = _G.ShadowUF.db:GetCurrentProfile();
-    local SUF = _G.ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
-
-    SUF["point"] = "TOP"; SUF["anchorTo"] = "UIParent";
-    SUF["relativePoint"] = "TOP"; SUF["x"] = 0; SUF["y"] = -40;
-end
-
-local function AttachShadowedUnitFrames(rightPanel)
-    local currentProfile = _G.ShadowUF.db:GetCurrentProfile();
-    local anchorTo = "UIParent";
-
-    if (tk._G["MUI_UnitPanelCenter"]) then
-        anchorTo = "MUI_UnitPanelCenter";
-    end
-
-    local SUF = _G.ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
-    SUF["point"] = "TOP"; SUF["anchorTo"] = anchorTo;
-    SUF["relativePoint"] = "TOP"; SUF["x"] = 0; SUF["y"] = -40;
-
-    if (_G.SUFUnitplayer) then
-        _G.SUFUnitplayer:SetFrameStrata("MEDIUM");
-    end
-
-    if (_G.SUFUnittarget) then
-        _G.SUFUnittarget:SetFrameStrata("MEDIUM");
-        rightPanel:SetFrameStrata("LOW");
-    end
-
-    if (_G.SUFUnittargettarget) then
-        _G.SUFUnittargettarget:SetFrameStrata("MEDIUM");
-    end
-
-    _G.ShadowUF.Layout:Reload();
-end
-
 -- UnitPanels Module -----------------
 
 function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
-    data.settings = db.profile.unitPanels:GetUntrackedTable();
-
     data.buiContainer = buiContainer;
     data.ActionBarPanel = subModules.ActionBarPanel;
 
-    if (data.settings.enabled) then
-        self:SetEnabled(true);
-    end
+    data.settings = db.profile.unitPanels:ToUntrackedTable();
+    data.updateFunctions = {
+        enabled = function(value)
+            data.settings.enabled = value;
+            self:SetEnabled(value);
+        end;
 
-    self:SetupSUFPortraitGradients();
-    self:RegisterUpdateFunctions();
+        grid = {
+            anchorGrid = function(value)
+                data.settings.grid.anchorGrid = value;
+                if (not _G.IsAddOnLoaded("Grid")) then return; end
+
+                if (not value) then
+                    Private.AnchorGridFrame(data.settings.grid);
+                    tk:HookFunc(_G.Grid.db, "SetProfile", Private.AnchorGridFrame, data.settings.grid);
+                else
+                    tk:UnhookFunc(_G.Grid.db, "SetProfile", Private.AnchorGridFrame);
+                end
+            end;
+        };
+
+        controlSUF = function(value)
+            data.settings.controlSUF = value;
+            if (not _G.IsAddOnLoaded("ShadowedUnitFrames")) then return; end
+
+            if (not value) then
+                local handler = em:FindHandlerByKey("DetachSufOnLogout");
+
+                if (handler) then
+                    handler:Destroy();
+                    Private.DetachShadowedUnitFrames();
+                    tk:UnhookFunc(_G.ShadowUF, "ProfilesChanged", Private.AttachShadowedUnitFrames);
+                    tk:UnhookFunc("ReloadUI", Private.DetachShadowedUnitFrames);
+                end
+            else
+                Private.AttachShadowedUnitFrames(data.right);
+                tk:HookFunc(_G.ShadowUF, "ProfilesChanged", Private.AttachShadowedUnitFrames, data.right);
+                tk:HookFunc("ReloadUI", Private.DetachShadowedUnitFrames);
+                em:CreateEventHandler("PLAYER_LOGOUT", Private.DetachShadowedUnitFrames):SetKey("DetachSufOnLogout");
+            end
+        end;
+
+        unitWidth = function(value)
+            data.settings.unitWidth = value;
+
+            data.left:SetSize(value, 180);
+            data.right:SetSize(value, 180)
+        end;
+
+        height = function(value)
+            data.settings.height = value;
+        end;
+
+        isSymmetric = function(value)
+            data.settings.isSymmetric = value;
+            self:SetSymmetrical(data.settings.isSymmetric);
+        end;
+
+        alpha = function(value)
+            data.settings.alpha = value;
+        end;
+
+        unitNames = {
+            width = function(value)
+                data.settings.unitNames.widgth = value;
+            end;
+
+            height = function(value)
+                data.settings.unitNames.height = value;
+            end;
+
+            fontSize = function(value)
+                data.settings.unitNames.fontSize = value;
+            end;
+
+            targetClassColored = function(value)
+                data.settings.unitNames.targetClassColored = value;
+            end;
+
+            xOffset = function(value)
+                data.settings.unitNames.xOffset = value;
+            end;
+        };
+
+        sufGradients = {
+            enabled = function(value)
+                data.settings.sufGradients.enabled = value;
+            end;
+
+            height = function(value)
+                data.settings.sufGradients.height = value;
+            end;
+
+            targetClassColored = function(value)
+                data.settings.sufGradients.targetClassColored = value;
+            end;
+        };
+    };
+
+    db:RegisterUpdateFunctions("profile.unitPanels", data.updateFunctions, function(func, value)
+        if (self:IsEnabled()) then
+            func(value);
+        end
+    end);
 end
 
 function C_UnitPanels:OnEnable(data)
@@ -139,6 +156,7 @@ function C_UnitPanels:OnEnable(data)
         return;
     end
 
+    self:SetupSUFPortraitGradients();
     data.left = tk.CreateFrame("Frame", "MUI_UnitPanelLeft", data.buiContainer);
     data.right = tk.CreateFrame("Frame", "MUI_UnitPanelRight", _G.SUFUnittarget or data.buiContainer);
     data.center = tk.CreateFrame("Frame", "MUI_UnitPanelCenter", data.right);
@@ -146,9 +164,6 @@ function C_UnitPanels:OnEnable(data)
     data.left:SetFrameStrata("BACKGROUND");
     data.center:SetFrameStrata("BACKGROUND");
     data.right:SetFrameStrata("BACKGROUND");
-
-    data.left:SetSize(data.settings.unitWidth, 180);
-    data.right:SetSize(data.settings.unitWidth, 180);
 
     data.center:SetPoint("TOPLEFT", data.left, "TOPRIGHT");
     data.center:SetPoint("TOPRIGHT", data.right, "TOPLEFT");
@@ -220,33 +235,6 @@ function C_UnitPanels:OnEnable(data)
             self:UpdateUnitNameText("target");
         end
     end);
-
-    self:SetSymmetrical(data.settings.isSymmetric);
-
-    if (_G.IsAddOnLoaded("ShadowedUnitFrames") and data.settings.controlGrid) then
-        AttachShadowedUnitFrames(data.right);
-
-        _G.hooksecurefunc(_G.ShadowUF, "ProfilesChanged", function()
-            AttachShadowedUnitFrames(data.right);
-        end);
-
-        _G.hooksecurefunc("ReloadUI", DetachShadowedUnitFrames);
-        em:CreateEventHandler("PLAYER_LOGOUT", DetachShadowedUnitFrames);
-    end
-
-    if (_G.IsAddOnLoaded("Grid") and data.settings.controlGrid) then
-        if (_G.Grid.db:GetCurrentProfile() == "MayronUIH") then
-            _G.GridLayoutFrame:ClearAllPoints();
-            _G.GridLayoutFrame:SetPoint("BOTTOMRIGHT", data.target, "TOPRIGHT", -9, 0);
-        end
-
-        _G.hooksecurefunc(_G.Grid.db, "SetProfile", function()
-            if (_G.Grid.db:GetCurrentProfile() == "MayronUIH") then
-                _G.GridLayoutFrame:ClearAllPoints();
-                _G.GridLayoutFrame:SetPoint("BOTTOMRIGHT", data.target, "TOPRIGHT", -9, 0);
-            end
-        end);
-    end
 end
 
 do
@@ -499,5 +487,51 @@ function C_UnitPanels:SetupSUFPortraitGradients(data)
         for _, frame in tk.pairs(data.gradients) do
             frame:Hide();
         end
+    end
+end
+
+-- Private Functions -------------------------
+
+function Private.DetachShadowedUnitFrames()
+    local currentProfile = _G.ShadowUF.db:GetCurrentProfile();
+    local SUF = _G.ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
+
+    SUF["point"] = "TOP"; SUF["anchorTo"] = "UIParent";
+    SUF["relativePoint"] = "TOP"; SUF["x"] = 0; SUF["y"] = -40;
+end
+
+function Private.AttachShadowedUnitFrames(rightPanel)
+    local currentProfile = _G.ShadowUF.db:GetCurrentProfile();
+    local anchorTo = "UIParent";
+
+    if (tk._G["MUI_UnitPanelCenter"]) then
+        anchorTo = "MUI_UnitPanelCenter";
+    end
+
+    local SUF = _G.ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
+    SUF["point"] = "TOP"; SUF["anchorTo"] = anchorTo;
+    SUF["relativePoint"] = "TOP"; SUF["x"] = 0; SUF["y"] = -40;
+
+    if (_G.SUFUnitplayer) then
+        _G.SUFUnitplayer:SetFrameStrata("MEDIUM");
+    end
+
+    if (_G.SUFUnittarget) then
+        _G.SUFUnittarget:SetFrameStrata("MEDIUM");
+        rightPanel:SetFrameStrata("LOW");
+    end
+
+    if (_G.SUFUnittargettarget) then
+        _G.SUFUnittargettarget:SetFrameStrata("MEDIUM");
+    end
+
+    _G.ShadowUF.Layout:Reload();
+end
+
+function Private.AnchorGridFrame(settings)
+    if (tk.Tables:Contains(settings.gridProfiles, _G.Grid.db:GetCurrentProfile())) then
+        _G.GridLayoutFrame:ClearAllPoints();
+        _G.GridLayoutFrame:SetPoint(settings.point, settings.target,
+            "TOPRIGHT", settings.xOffset, settings.yOffset);
     end
 end

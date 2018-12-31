@@ -221,19 +221,10 @@ function BaseModule:Hook(_, eventName, func)
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
---TODO: Should call this from MUI_Config
--- Engine:DefineParams("LinkedList", "any");
--- function BaseModule:ConfigUpdate(data, linkedList, newValue)
---     registeredModules[tostring(self)].configUpdateCallback(self, data, linkedList, newValue);
-
---     -- Call any other functions attached to this modules OnConfigUpdate event
---     local hooks = registeredModules[tostring(self)].hooks["OnConfigUpdate"];
---     if (hooks) then
---         for _, func in ipairs(hooks) do
---             func(self, data);
---         end
---     end
--- end
+Engine:DefineReturns("?table");
+function BaseModule:GetUpdateFunctions(data)
+    return data.updateFunctions, data.settings;
+end
 
 -- MayronUI Functions ---------------------
 
@@ -397,69 +388,83 @@ function C_CoreModule:OnInitialize()
     tk:Print(L["Welcome back"], _G.UnitName("player").."!");
 end
 
-local function PositionRecountWindow()
-    if (db.global.reanchor) then
-        _G.Recount_MainWindow:ClearAllPoints();
-        _G.Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
-        _G.Recount_MainWindow:SaveMainWindowPosition();
-
-        db.global.reanchor = nil;
-    end
-
-    -- Reskin Recount Window
-    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", _G.Recount_MainWindow);
-
-    _G.Recount_MainWindow:SetClampedToScreen(true);
-    _G.Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
-    _G.Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);
-end
-
--- Initialize Modules after player enters world (not when DB starts!).
--- Some dependencies, like Bartender, only load after this event.
-em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
-
-    _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
-
-    if (not MayronUI:IsInstalled()) then
-        MayronUI:TriggerCommand("install");
-		return;
-    end
-
-    for _, module in MayronUI:IterateModules() do
-        local initializeOnDemand = module:IsInitializedOnDemand();
-
-        if (not initializeOnDemand) then
-            -- initialize a module if not set for manual initialization
-            module:Initialize();
-        end
-    end
-
-    -- TODO: This should be it's own Module
-    namespace:SetupOrderHallBar();
-
-    tk.collectgarbage("collect");
-end):SetAutoDestroy(true);
-
--- Database Event callbacks --------------------
-
-db:OnProfileChange(function(self, newProfileName)
-    for _, module in MayronUI:IterateModules() do
-        local registryInfo = registeredModules[tostring(module)];
-        local hooks = registryInfo.hooks and registryInfo.hooks.OnProfileChange;
-
-        if (module.OnProfileChange) then
-            module:OnProfileChange(newProfileName);
-        end
-
-        if (hooks) then
-            for _, func in ipairs(hooks) do
-                func(module, registryInfo.moduleData);
+do
+    local function ExecuteAllUpdateFunctions(functionTable, settingsTable)
+        for key, value in pairs(functionTable) do
+            if (obj:IsType(value, obj.Types.Table)) then
+                value(settingsTable);
+            elseif (obj:IsType(value, obj.Types.Function)) then
+                ExecuteAllUpdateFunctions(functionTable[key], settingsTable[key]);
             end
         end
     end
 
-    tk:Print("Profile changed to: ", tk.Strings:SetTextColorByKey(newProfileName, "GOLDS"));
-end);
+    -- Initialize Modules after player enters world (not when DB starts!).
+    -- Some dependencies, like Bartender, only load after this event.
+    em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
+        _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
+
+        if (not MayronUI:IsInstalled()) then
+            MayronUI:TriggerCommand("install");
+            return;
+        end
+
+        for _, module in MayronUI:IterateModules() do
+            local initializeOnDemand = module:IsInitializedOnDemand();
+
+            if (not initializeOnDemand) then
+                -- initialize a module if not set for manual initialization
+                module:Initialize();
+
+                local functionsTable, settingsTable = module:GetUpdateFunctions();
+
+                -- only call OnEnable after initialization, NOT OnDisable (because it was never enabled!)
+                if (settingsTable.enabled) then
+                    -- enable the module and trigger "OnEnable" function
+                    module:SetEnabled(true);
+
+                    if (obj:IsType(functionsTable, obj.Types.Table)) then
+                        local enabledUpdateFunction = functionsTable.enabled;
+                        functionsTable.enabled = nil; -- no need to call this function (if it exists) because SetEnabled was called
+                        ExecuteAllUpdateFunctions(functionsTable, settingsTable);
+                        functionsTable.enabled = enabledUpdateFunction;
+                    end
+                end
+            end
+        end
+
+        -- TODO: This should be it's own Module
+        namespace:SetupOrderHallBar();
+
+        tk.collectgarbage("collect");
+    end):SetAutoDestroy(true);
+
+    -- Database Event callbacks --------------------
+
+    db:OnProfileChange(function(self, newProfileName)
+        for _, module in MayronUI:IterateModules() do
+            local registryInfo = registeredModules[tostring(module)];
+            local hooks = registryInfo.hooks and registryInfo.hooks.OnProfileChange;
+            local functionsTable, settingsTable = module:GetUpdateFunctions();
+
+            if (obj:IsType(functionsTable, obj.Types.Table)) then
+                ExecuteAllUpdateFunctions(functionsTable, settingsTable);
+            end
+
+            if (module.OnProfileChange) then
+                module:OnProfileChange(newProfileName);
+            end
+
+            if (hooks) then
+                for _, func in ipairs(hooks) do
+                    func(module, registryInfo.moduleData);
+                end
+            end
+        end
+
+        tk:Print("Profile changed to: ", tk.Strings:SetTextColorByKey(newProfileName, "GOLDS"));
+    end);
+end
 
 db:OnStartUp(function(self)
     MayronUI.db = self;
@@ -515,7 +520,20 @@ db:OnStartUp(function(self)
     end
 
     if (tk.IsAddOnLoaded("Recount")) then
-        PositionRecountWindow();
+        if (db.global.reanchor) then
+            _G.Recount_MainWindow:ClearAllPoints();
+            _G.Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
+            _G.Recount_MainWindow:SaveMainWindowPosition();
+
+            db.global.reanchor = nil;
+        end
+
+        -- Reskin Recount Window
+        gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", _G.Recount_MainWindow);
+
+        _G.Recount_MainWindow:SetClampedToScreen(true);
+        _G.Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
+        _G.Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);
     end
 
     tk.collectgarbage("collect");
