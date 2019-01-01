@@ -3,20 +3,43 @@ local addOnName = ...;
 local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 2.8);
 
 if (not Lib) then
-    return
+    return;
 end
 
 local error, rawset = error, rawset;
 local type, setmetatable, table, string = type, setmetatable, table, string;
 local getmetatable, select = getmetatable, select;
 
-Lib.Types = {};
-Lib.Types.Table = "table";
-Lib.Types.Number = "number";
-Lib.Types.Function = "function";
-Lib.Types.Boolean = "boolean";
-Lib.Types.String = "string";
-Lib.Types.Nil = "nil";
+local tableType = "table";
+local numberType = "number";
+local functionType = "function";
+local booleanType = "boolean";
+local stringType = "string";
+local nilType = "nil";
+
+function Lib:IsTable(value)
+    return type(value) == tableType;
+end
+
+function Lib:IsNumber(value)
+    return type(value) == numberType;
+end
+
+function Lib:IsFunction(value)
+    return type(value) == functionType;
+end
+
+function Lib:IsBoolean(value)
+    return type(value) == booleanType;
+end
+
+function Lib:IsString(value)
+    return type(value) == stringType;
+end
+
+function Lib:IsNil(value)
+    return type(value) == nilType;
+end
 
 -- holds class, instance, and interface controllers
 -- used for controlling behaviour of these "entities"
@@ -132,16 +155,16 @@ do
     end
 
     function Lib:PushWrapper(wrapper, pushSubTables)
-        if (type(wrapper) ~= Lib.Types.Table) then
+        if (not self:IsTable(wrapper)) then
             return;
         end
 
         local push = true;
 
         for key, _ in pairs(wrapper) do
-            if (pushSubTables and type(wrapper[key]) == Lib.Types.Table) then
+            if (pushSubTables and self:IsTable(wrapper[key])) then
 
-                if (type(pushSubTables) == Lib.Types.Function) then
+                if (self:IsFunction(pushSubTables)) then
                     push = pushSubTables(wrapper[key]);
                 end
 
@@ -160,7 +183,7 @@ do
     end
 
     function Lib:UnpackWrapper(wrapper)
-        if (type(wrapper) ~= Lib.Types.Table) then return end
+        if (not self:IsTable(wrapper)) then return end
         PushWrapper(wrapper);
         return _G.unpack(wrapper);
     end
@@ -336,15 +359,15 @@ function Lib:PrintTable(tbl, depth, n)
     end
 
     for key, value in pairs(tbl) do
-        if (key and type(key) == Lib.Types.Number or type(key) == Lib.Types.String) then
+        if (key and self:IsNumber(key) or self:IsString(key)) then
             key = string.format("[\"%s\"]", key);
 
-            if (type(value) == Lib.Types.Table) then
+            if (self:IsTable(value)) then
                 print(string.rep(' ', n)..key.." = {");
                 self:PrintTable(value, depth - 1, n + 4);
                 print(string.rep(' ', n).."},");
             else
-                if (type(value) == Lib.Types.String) then
+                if (self:IsString(value)) then
                     value = string.format("\"%s\"", value);
                 else
                     value = tostring(value);
@@ -427,7 +450,7 @@ local function CreateProxyObject(proxyEntity, key, entity, controller)
 
         definition, errorMessage = Core:GetReturnsDefinition(proxyObject);
 
-        Core:Assert(type(proxyObject.PrivateData) == Lib.Types.Table and not proxyObject.PrivateData.GetObjectType,
+        Core:Assert(Lib:IsTable(proxyObject.PrivateData) and not proxyObject.PrivateData.GetObjectType,
             "Invalid instance private data found when calling %s.%s: %s",
             proxyObject.Controller.EntityName, proxyObject.Key, tostring(proxyObject.PrivateData));
 
@@ -494,7 +517,7 @@ do
 
         local value = class[key]; -- get the real value
 
-        if (type(value) == Lib.Types.Function) then
+        if (Lib:IsFunction(value)) then
             -- get a proxy function object to validate function params and return values
             value = CreateProxyObject(class, key, self, classController);
 
@@ -504,7 +527,7 @@ do
                 -- search parent class instead
                 value = classController.ParentClass[key];
 
-                if (type(value) == Lib.Types.Function) then
+                if (Lib:IsFunction(value)) then
                     -- need to update the "self" reference to use this class, not the parent!
                     local proxyObject = GetStoredProxyObject(value);
                     proxyObject.Self = self;
@@ -519,7 +542,7 @@ do
             end
         end
 
-        if (classController.UsingChild and type(value) == Lib.Types.Function) then
+        if (classController.UsingChild and Lib:IsFunction(value)) then
             -- if Object:Parent() was used, call parent function with the child as the reference
             local child = classController.UsingChild;
             local childController = Core:GetController(child);
@@ -549,7 +572,7 @@ do
             Core:Error("%s is protected.", className);
         end
 
-        if (type(value) == Lib.Types.Function) then
+        if (Lib:IsFunction(value)) then
             -- Adds temporary definition info to ClassController.Definitions table
             Core:AttachFunctionDefinition(classController, key);
         end
@@ -562,7 +585,7 @@ do
 
         local classController = AllControllers[tostring(self)];
         local className = classController.EntityName;
-        local str = tostring(self):gsub(Lib.Types.Table, string.format("<Class> %s", className));
+        local str = tostring(self):gsub(tableType, string.format("<Class> %s", className));
 
         setmetatable(self, proxyClassMT);
 
@@ -676,7 +699,7 @@ do
             -- check if proxyClass has key
             value = classController.Entity[key];
 
-            if (value and type(value) == Lib.Types.Function) then
+            if (value and Lib:IsFunction(value)) then
                 local proxyObject = GetStoredProxyObject(value);
                 proxyObject.Self = self; -- switch ProxyClass reference to proxyInstance
                 proxyObject.PrivateData = privateData; -- set PrivateData to be injected into function call
@@ -685,13 +708,14 @@ do
                     -- ProxyClass changed key to GetFrame during __index meta-method call
                     local frame = value(); -- call the proxyObject.Run function here to get the frame
 
-                        Core:Assert(type(frame) == Lib.Types.Table and frame.GetObjectType,
-                        "attempt to index %s.%s (a nil value) and no data.frame property was found.", classController.EntityName, key);
+                        Core:Assert(Lib:IsTable(frame) and frame.GetObjectType,
+                            "attempt to index %s.%s (a nil value) and no data.frame property was found.",
+                            classController.EntityName, key);
 
                         if (frame[key]) then
                         -- if the frame has the key we are trying to get...
 
-                        if (type(frame[key]) == Lib.Types.Function) then
+                        if (Lib:IsFunction(frame[key])) then
                             value = function(_, ...)
                                 -- call the frame (a blizzard widget) here
                                 return frame[key](frame, ...);
@@ -721,7 +745,7 @@ do
         Core:Assert(not classController.Class[key],
             "Cannot override class-level property '%s.%s' from an instance.", classController.EntityName, key);
 
-        Core:Assert(type(value) ~= Lib.Types.Function, "Functions must be added to a class, not an instance.");
+        Core:Assert(not Lib:IsFunction(value), "Functions must be added to a class, not an instance.");
 
         if (classController.indexChangingCallback) then
             local preventIndexing = classController.indexChangingCallback(self, instanceController.PrivateData, key, value);
@@ -735,7 +759,7 @@ do
         instance[key] = value;
 
         -- if reassigning an instance property, should check that new value is valid
-        if (instanceController.IsConstructed and type(classController.Interfaces) == Lib.Types.Table) then
+        if (instanceController.IsConstructed and Lib:IsTable(classController.Interfaces)) then
             Core:ValidateImplementedProperties(instance, classController.Interfaces, classController.EntityName);
         end
 
@@ -753,7 +777,7 @@ do
 
         local instanceController = AllControllers[tostring(self)];
         local className = instanceController.classController.EntityName;
-        local str = tostring(self):gsub(Lib.Types.Table, string.format("<Instance> %s", className));
+        local str = tostring(self):gsub(tableType, string.format("<Instance> %s", className));
 
         setmetatable(self, proxyInstanceMT);
 
@@ -808,7 +832,7 @@ do
                 proxyInstance:__Construct(...);
             end
 
-            if (type(classController.Interfaces) == Lib.Types.Table) then
+            if (Lib:IsTable(classController.Interfaces)) then
                 Core:ValidateImplementedProperties(instance, classController.Interfaces, classController.EntityName);
                 Core:ValidateImplementedFunctions(classController);
             end
@@ -844,7 +868,7 @@ function Core:CreateInterface(packageData, interfaceName)
     end
 
     InterfaceMT.__newindex = function(interface, key, value)
-        if (type(value) == Lib.Types.Function) then
+        if (Lib:IsFunction(value)) then
             self:AttachFunctionDefinition(InterfaceController, key);
         end
         rawset(interface, key, value);
@@ -883,7 +907,7 @@ function Core:ApplyGenericTypesToInstance(instanceController, classController)
         classController.TempRealGenericTypes = Lib.PopWrapper();
 
         for id, _ in ipairs(classController.GenericTypes) do
-            -- assign default type to alias generic type keys ("K" = Lib.Types.Number)
+            -- assign default type to alias generic type keys ("K" = "number")
             classController.TempRealGenericTypes[id] = "any";
         end
 
@@ -930,7 +954,7 @@ function Core:AttachFunctionDefinition(controller, newFuncKey)
         return;
     end
 
-    if (controller.IsClass and type(controller.Interfaces) == Lib.Types.Table) then
+    if (controller.IsClass and Lib:IsTable(controller.Interfaces)) then
         local interfaceController;
 
         -- check if user is trying to redefine interface function (not allowed)
@@ -968,7 +992,7 @@ end
 function Core:SetInterfaces(classController, ...)
 
     for id, interface in Lib:IterateArgs(...) do
-        if (type(interface) == Lib.Types.String) then
+        if (Lib:IsString(interface)) then
             interface = Lib:Import(interface);
         end
 
@@ -985,10 +1009,10 @@ end
 
 -- Helper function to copy key/value pairs from copiedTable to receiverTable
 function Core:CopyTableValues(copiedTable, receiverTable)
-    receiverTable = receiverTable or {};
+    receiverTable = receiverTable or Lib:PopWrapper();
 
     for key, value in pairs(copiedTable) do
-        if (type(value) == Lib.Types.Table) then
+        if (Lib:IsTable(value)) then
             receiverTable[key] = self:CopyTableValues(value);
         else
             receiverTable[key] = value;
@@ -1000,7 +1024,7 @@ end
 
 function Core:IsStringNilOrWhiteSpace(strValue)
     if (strValue) then
-        Core:Assert(type(strValue) == Lib.Types.String,
+        Core:Assert(Lib:IsString(strValue),
             "Core.IsStringNilOrWhiteSpace - bad argument #1 (string expected, got %s)", type(strValue));
 
         strValue = strValue:gsub("%s+", "");
@@ -1016,10 +1040,10 @@ end
 function Core:SetParentClass(classController, parentClass)
     if (parentClass) then
 
-		if (type(parentClass) == Lib.Types.String and not self:IsStringNilOrWhiteSpace(parentClass)) then
+		if (Lib:IsString(parentClass) and not self:IsStringNilOrWhiteSpace(parentClass)) then
             classController.ParentClass = Lib:Import(parentClass);
 
-		elseif (type(parentClass) == Lib.Types.Table and parentClass.Static) then
+		elseif (Lib:IsTable(parentClass) and parentClass.Static) then
             classController.ParentClass = parentClass;
 
 		end
@@ -1070,7 +1094,7 @@ function Core:GetPrivateInstanceData(instance, instanceController)
     instanceController = instanceController or self:GetController(instance);
     local data = instanceController.PrivateData;
 
-    self:Assert(type(data) == Lib.Types.Table and not data.GetObjectType,
+    self:Assert(Lib:IsTable(data) and not data.GetObjectType,
         "Invalid instance private data for entity %s.", instanceController.EntityName);
 
     return data;
@@ -1112,7 +1136,7 @@ function Core:ValidateImplementedFunctions(classController)
     for _, interface in ipairs(classController.Interfaces) do
         for key, value in pairs(interface) do
 
-            if (type(value) == Lib.Types.Function and key ~= "DefineProperty") then
+            if (Lib:IsFunction(value) and key ~= "DefineProperty") then
                 Core:Assert(classController.Class[key],
                     "Class '%s' does not implement interface function '%s'.", classController.EntityName, key);
             end
@@ -1123,7 +1147,7 @@ end
 function Core:ValidateValue(defValue, realValue)
     local errorFound;
 
-    self:Assert(type(defValue) == Lib.Types.String and not self:IsStringNilOrWhiteSpace(defValue),
+    self:Assert(Lib:IsString(defValue) and not self:IsStringNilOrWhiteSpace(defValue),
         "Invalid definition found; expected a string containing the expected type of an argument or return value.");
 
     if (defValue:find("^?")) then
@@ -1289,11 +1313,11 @@ function Core:Assert(condition, errorMessage, ...)
             errorMessage = string.format(errorMessage, ...);
 
         elseif (string.match(errorMessage, "%s")) then
-            errorMessage = string.format(errorMessage, Lib.Types.Nil);
+            errorMessage = string.format(errorMessage, nilType);
         end
 
         if (self.silent) then
-            self.errorLog = self.errorLog or {};
+            self.errorLog = self.errorLog or Lib:PopWrapper();
             self.errorLog[#self.errorLog + 1] = pcall(function() error(self.PREFIX .. errorMessage) end);
         else
             error(self.PREFIX .. errorMessage);
@@ -1320,18 +1344,18 @@ end
 
 function Core:IsMatchingType(value, expectedTypeName)
     if (value == nil) then
-        return expectedTypeName == Lib.Types.Nil;
+        return expectedTypeName == nilType;
     end
 
     -- check if basic type
-    if (expectedTypeName == Lib.Types.Table or expectedTypeName == Lib.Types.Number
-        or expectedTypeName == Lib.Types.Function or expectedTypeName == Lib.Types.Boolean
-        or expectedTypeName == Lib.Types.String) then
+    if (expectedTypeName == tableType or expectedTypeName == numberType
+        or expectedTypeName == functionType or expectedTypeName == booleanType
+        or expectedTypeName == stringType) then
 
         return (expectedTypeName == type(value));
     end
 
-    if (type(value) ~= Lib.Types.Table) then
+    if (not Lib:IsTable(value)) then
         return false;
     end
 
@@ -1351,7 +1375,7 @@ function Core:IsMatchingType(value, expectedTypeName)
             return true; -- Object or Widget matches!
         end
 
-        if (type(controller.Interfaces) == Lib.Types.Table) then
+        if (Lib:IsTable(controller.Interfaces)) then
             -- check all interface types
             for _, interface in ipairs(controller.Interfaces) do
                 local interfaceController = self:GetController(interface);
@@ -1364,7 +1388,7 @@ function Core:IsMatchingType(value, expectedTypeName)
 
         value = controller.ParentClass;
 
-        if (type(value) == Lib.Types.Table) then
+        if (Lib:IsTable(value)) then
             controller = self:GetController(value, true); -- fail silently
         end
     end
@@ -1374,18 +1398,18 @@ end
 
 function Core:GetValueType(value)
     if (value == nil) then
-        return Lib.Types.Nil;
+        return nilType;
     end
 
     local valueType = type(value);
 
-    if (valueType ~= Lib.Types.Table) then
+    if (not Lib:IsTable(valueType)) then
         return valueType;
     elseif (value.GetObjectType) then
         return value:GetObjectType();
     end
 
-    return Lib.Types.Table;
+    return tableType;
 end
 
 ---------------------------------
@@ -1525,7 +1549,7 @@ function Object:IsObjectType(_, objectName)
 end
 
 function Object:Equals(data, other)
-	if (type(other) ~= Lib.Types.Table or not other.GetObjectType) then
+	if (not Lib:IsTable(other) or not other.GetObjectType) then
 		return false;
     end
 

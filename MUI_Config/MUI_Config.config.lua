@@ -142,6 +142,8 @@ function C_ConfigModule:GetConfigTable()
                 },
                 {   name = L["Unit Panel Width"],
                     type = "textfield",
+                    module = "BottomUI_UnitPanels",
+                    min = 200,
                     valueType = "number",
                     tooltip = tk.Strings:Concat(L["Adjust the width of the unit frame background panels."], "\n\n",
                         L["Minimum value is "], "200", "\n\n", L["Default value is "], "325"),

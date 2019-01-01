@@ -253,14 +253,18 @@ Add a table of update callback functions to trigger when a database value change
     passed the update function to allow the user to decide how it should be called.
 ]]
 Framework:DefineParams("string", "table|function", "?function");
-function Database:RegisterUpdateFunctions(data, path, value, manualFunc)
+function Database:RegisterUpdateFunctions(data, path, updateFunctions, manualFunc)
     if (manualFunc) then
         local manualTable = obj:PopWrapper();
         manualTable.manualFunc = manualFunc;
-        manualTable.value = value;
+        manualTable.value = updateFunctions;
         self:SetPathValue(data.updateFunctions, path, manualTable);
+
+        MayronUI:Print(path);
+        MayronUI:Print(updateFunctions.unitWidth)
+        MayronUI:Print(data.updateFunctions.profile.unitPanels.unitWidth);
     else
-        self:SetPathValue(data.updateFunctions, path, value);
+        self:SetPathValue(data.updateFunctions, path, updateFunctions);
     end
 end
 
@@ -274,13 +278,13 @@ Framework:DefineParams("string");
 function Database:TriggerUpdateFunction(data, path, newValue)
     local result = self:ParsePathValue(data.updateFunctions, path);
 
-    if (obj:IsType(result, obj.Types.Table) and result.manualFunc) then
+    if (obj:IsTable(result) and result.manualFunc) then
         -- manually control how to execute the update function
-        if (obj:IsType(result.value, obj.Types.Function)) then
+        if (obj:IsFunction(result.value)) then
             result.manualFunc(result.value, newValue);
         end
 
-    elseif (obj:IsType(result, obj.Types.Function)) then
+    elseif (obj:IsFunction(result)) then
         result(newValue);
     end
 end
@@ -594,7 +598,7 @@ function Database:AppendOnce(data, rootTable, path, value)
 
     if (appendTable[path]) then
         -- already previously appended, cannot append again
-        if (type(value) == "table") then
+        if (obj:IsTable(value)) then
             obj:PushWrapper(value, true);
         end
 

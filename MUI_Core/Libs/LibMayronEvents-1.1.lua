@@ -11,8 +11,8 @@ local Private = {};
 Private.eventsList = {};
 Private.eventTracker = _G.CreateFrame("Frame");
 
-local LibObjectLua = _G.LibStub:GetLibrary("LibMayronObjects");
-local EventsPackage = LibObjectLua:CreatePackage("Events", addonName);
+local obj = _G.LibStub:GetLibrary("LibMayronObjects");
+local EventsPackage = obj:CreatePackage("Events", addonName);
 local Handler = EventsPackage:CreateClass("Handler");
 
 ------------------------
@@ -87,7 +87,7 @@ end
 -- @param unit (boolean) - whether the event is a unit event
 -- @return (Handler) - handler object created for the registered event
 function Lib:CreateEventHandler(eventName, callback, unit)
-    Private.eventsList[eventName] = Private.eventsList[eventName] or {};
+    Private.eventsList[eventName] = Private.eventsList[eventName] or obj:PopWrapper();
 
     local handler = Handler(eventName, callback);
     table.insert(Private.eventsList[eventName], handler);
@@ -106,9 +106,9 @@ end
 -- @param unit (boolean) - whether the events are unit events
 -- @return (Handler) - handler objects created for each event in eventNames
 function Lib:CreateEventHandlers(eventNames, callback, unit)
-    local handlers = {};
+    local handlers = obj:PopWrapper();
 
-    for id, event in ipairs({ _G.strsplit(",", eventNames) }) do
+    for id, event in obj:IterateArgs(_G.strsplit(",", eventNames)) do
         event = _G.strtrim(event);
 
 		if (#event > 0) then
@@ -116,7 +116,7 @@ function Lib:CreateEventHandlers(eventNames, callback, unit)
 		end
     end
 
-    return _G.unpack(handlers);
+    return obj:UnpackWrapper(handlers);
 end
 
 function Lib:TriggerEvent(eventName, ...)
@@ -127,11 +127,31 @@ function Lib:TriggerEvent(eventName, ...)
     end
 end
 
-function Lib:FindHandlerByKey(event, key)
-    if (Private:EventTableExists(event)) then
+function Lib:FindHandlerByKey(key, event)
+    if (obj:IsString(event) and Private:EventTableExists(event)) then
         for _, handler in pairs(Private.eventsList[event]) do
-            if (handler:GetKey() == key) then
+            if (key == handler:GetKey()) then
                 return handler;
+            end
+        end
+    else
+        for _, handlerTable in pairs(Private.eventsList) do
+            for _, handler in ipairs(handlerTable) do
+                if (key == handler:GetKey()) then
+                    return handler;
+                end
+            end
+        end
+    end
+end
+
+function Lib:DestroyHandlersByKey(...)
+    for _, key in obj:IterateArgs(...) do
+        for _, handlerTable in pairs(Private.eventsList) do
+            for _, handler in ipairs(handlerTable) do
+                if (key == handler:GetKey()) then
+                    handler:Destroy();
+                end
             end
         end
     end
@@ -172,7 +192,7 @@ end
 
 function Private:CleanEventTable(eventName)
     if (self:EventTableExists(eventName)) then
-        local activeHandlers = {};
+        local activeHandlers = obj:PopWrapper();
         local handlers = self.eventsList[eventName];
 
         for _, handler in pairs(handlers) do
@@ -182,6 +202,7 @@ function Private:CleanEventTable(eventName)
         end
 
         self.eventsList[eventName] = activeHandlers;
+        obj:PushWrapper(handlers);
 
         if self:IsEventTableEmpty(eventName) then
             self.eventsList[eventName] = nil;

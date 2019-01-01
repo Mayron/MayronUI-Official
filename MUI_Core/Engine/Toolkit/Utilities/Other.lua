@@ -373,7 +373,7 @@ do
             local realGlobalMethodName = tbl;
             local realCallback = methodName;
             local firstArg = callback;
-            local key = string.format("%s|%s", realGlobalMethodName, realCallback);
+            local key = string.format("%s|%s", realGlobalMethodName, tostring(realCallback));
 
             local callbackWrapper = function(...)
                 local callbackData = callbacks[key];
@@ -387,7 +387,7 @@ do
             callbacks[key] = obj:PopWrapper(realCallback, firstArg, ...);
             _G.hooksecurefunc(realGlobalMethodName, callbackWrapper);
         else
-            local key = string.format("%s|%s|%s", tbl, methodName, callback);
+            local key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
 
             local callbackWrapper = function(...)
                 local callbackData = callbacks[key];
@@ -409,9 +409,9 @@ do
         if (type(tbl) ~= "table" and type(tbl) == "string") then
             local realGlobalMethodName = tbl;
             local realCallback = methodName;
-            key = string.format("%s|%s", realGlobalMethodName, realCallback);
+            key = string.format("%s|%s", realGlobalMethodName, tostring(realCallback));
         else
-            key = string.format("%s|%s|%s", tbl, methodName, callback);
+            key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
         end
 
         if (type(callbacks[key]) == "table") then

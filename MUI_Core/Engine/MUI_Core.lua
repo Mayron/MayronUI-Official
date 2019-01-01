@@ -128,6 +128,26 @@ end
 
 -- BaseModule Object -------------------
 
+local function ExecuteAllUpdateFunctions(functionTable, settingsTable)
+    -- if an enabled function is found, execute it first!
+    if (settingsTable.enabled ~= nil and obj:IsFunction(functionTable.enabled)) then
+        functionTable.enabled(settingsTable.enabled);
+    end
+
+    for key, functionValue in pairs(functionTable) do
+        if (functionValue ~= functionTable.enabled) then
+            local settingsValue = settingsTable[key];
+
+            if (obj:IsFunction(functionValue)) then
+                functionValue(settingsValue);
+
+            elseif (obj:IsTable(functionValue) and obj:IsTable(settingsValue)) then
+                ExecuteAllUpdateFunctions(functionValue, settingsValue);
+            end
+        end
+    end
+end
+
 Engine:DefineReturns("string", "?boolean");
 function BaseModule:__Construct(data, moduleKey, moduleName, initializeOnDemand)
     local registryInfo = registeredModules[moduleKey];
@@ -148,6 +168,12 @@ function BaseModule:Initialize(_, ...)
 
     local registryInfo = registeredModules[tostring(self)];
     registryInfo.initialized = true;
+
+    local functionsTable, settingsTable = self:GetUpdateFunctions();
+
+    if (functionsTable ~= nil and settingsTable ~= nil) then
+        ExecuteAllUpdateFunctions(functionsTable, settingsTable);
+    end
 
     -- Call any other functions attached to this modules OnInitialize event
     if (registryInfo.hooks and registryInfo.hooks.OnInitialize) then
@@ -221,7 +247,7 @@ function BaseModule:Hook(_, eventName, func)
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
-Engine:DefineReturns("?table");
+Engine:DefineReturns("?table", "?table");
 function BaseModule:GetUpdateFunctions(data)
     return data.updateFunctions, data.settings;
 end
@@ -388,83 +414,56 @@ function C_CoreModule:OnInitialize()
     tk:Print(L["Welcome back"], _G.UnitName("player").."!");
 end
 
-do
-    local function ExecuteAllUpdateFunctions(functionTable, settingsTable)
-        for key, value in pairs(functionTable) do
-            if (obj:IsType(value, obj.Types.Table)) then
-                value(settingsTable);
-            elseif (obj:IsType(value, obj.Types.Function)) then
-                ExecuteAllUpdateFunctions(functionTable[key], settingsTable[key]);
+-- Initialize Modules after player enters world (not when DB starts!).
+-- Some dependencies, like Bartender, only load after this event.
+em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
+    _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
+
+    if (not MayronUI:IsInstalled()) then
+        MayronUI:TriggerCommand("install");
+        return;
+    end
+
+    for _, module in MayronUI:IterateModules() do
+        local initializeOnDemand = module:IsInitializedOnDemand();
+
+        if (not initializeOnDemand) then
+            -- initialize a module if not set for manual initialization
+            module:Initialize();
+        end
+    end
+
+    -- TODO: This should be it's own Module
+    namespace:SetupOrderHallBar();
+
+    tk.collectgarbage("collect");
+end):SetAutoDestroy(true);
+
+-- Database Event callbacks --------------------
+
+db:OnProfileChange(function(self, newProfileName)
+    for _, module in MayronUI:IterateModules() do
+        local registryInfo = registeredModules[tostring(module)];
+        local hooks = registryInfo.hooks and registryInfo.hooks.OnProfileChange;
+        local functionsTable, settingsTable = module:GetUpdateFunctions();
+
+        if (functionsTable ~= nil and settingsTable ~= nil) then
+            ExecuteAllUpdateFunctions(functionsTable, settingsTable);
+        end
+
+        if (module.OnProfileChange) then
+            module:OnProfileChange(newProfileName);
+        end
+
+        if (hooks) then
+            for _, func in ipairs(hooks) do
+                func(module, registryInfo.moduleData);
             end
         end
     end
 
-    -- Initialize Modules after player enters world (not when DB starts!).
-    -- Some dependencies, like Bartender, only load after this event.
-    em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
-        _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
-
-        if (not MayronUI:IsInstalled()) then
-            MayronUI:TriggerCommand("install");
-            return;
-        end
-
-        for _, module in MayronUI:IterateModules() do
-            local initializeOnDemand = module:IsInitializedOnDemand();
-
-            if (not initializeOnDemand) then
-                -- initialize a module if not set for manual initialization
-                module:Initialize();
-
-                local functionsTable, settingsTable = module:GetUpdateFunctions();
-
-                -- only call OnEnable after initialization, NOT OnDisable (because it was never enabled!)
-                if (settingsTable.enabled) then
-                    -- enable the module and trigger "OnEnable" function
-                    module:SetEnabled(true);
-
-                    if (obj:IsType(functionsTable, obj.Types.Table)) then
-                        local enabledUpdateFunction = functionsTable.enabled;
-                        functionsTable.enabled = nil; -- no need to call this function (if it exists) because SetEnabled was called
-                        ExecuteAllUpdateFunctions(functionsTable, settingsTable);
-                        functionsTable.enabled = enabledUpdateFunction;
-                    end
-                end
-            end
-        end
-
-        -- TODO: This should be it's own Module
-        namespace:SetupOrderHallBar();
-
-        tk.collectgarbage("collect");
-    end):SetAutoDestroy(true);
-
-    -- Database Event callbacks --------------------
-
-    db:OnProfileChange(function(self, newProfileName)
-        for _, module in MayronUI:IterateModules() do
-            local registryInfo = registeredModules[tostring(module)];
-            local hooks = registryInfo.hooks and registryInfo.hooks.OnProfileChange;
-            local functionsTable, settingsTable = module:GetUpdateFunctions();
-
-            if (obj:IsType(functionsTable, obj.Types.Table)) then
-                ExecuteAllUpdateFunctions(functionsTable, settingsTable);
-            end
-
-            if (module.OnProfileChange) then
-                module:OnProfileChange(newProfileName);
-            end
-
-            if (hooks) then
-                for _, func in ipairs(hooks) do
-                    func(module, registryInfo.moduleData);
-                end
-            end
-        end
-
-        tk:Print("Profile changed to: ", tk.Strings:SetTextColorByKey(newProfileName, "GOLDS"));
-    end);
-end
+    tk:Print("Profile changed to: ", tk.Strings:SetTextColorByKey(newProfileName, "GOLDS"));
+end);
 
 db:OnStartUp(function(self)
     MayronUI.db = self;
