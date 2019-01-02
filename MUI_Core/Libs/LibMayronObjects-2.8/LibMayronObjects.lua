@@ -1,4 +1,4 @@
--- luacheck: ignore MayronUI self 143 631
+-- luacheck: ignore self 143 631
 local addOnName = ...;
 local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 2.8);
 
@@ -313,7 +313,7 @@ end
 -- empties the error log table.
 function Lib:FlushErrorLog()
     if (Core.errorLog) then
-        Core:EmptyTable(Core.errorLog);
+        Lib:EmptyTable(Core.errorLog);
     end
 end
 
@@ -402,7 +402,7 @@ function ProxyStack:Push(proxyObject)
     proxyObject.key           = nil;
     proxyObject.self          = nil;
     proxyObject.privateData   = nil;
-    proxyObject.Controller    = nil;
+    proxyObject.controller    = nil;
 end
 
 function ProxyStack:Pop()
@@ -427,7 +427,7 @@ local function CreateProxyObject(proxyEntity, key, entity, controller)
 
     proxyObject.Object = proxyEntity;
     proxyObject.key = key;
-    proxyObject.Controller = controller;
+    proxyObject.controller = controller;
     proxyObject.self = entity;
 
     -- we need multiple Run functions in case 1 function calls another (Run is never removed after being assigned)
@@ -439,12 +439,12 @@ local function CreateProxyObject(proxyEntity, key, entity, controller)
 
         if (not proxyObject.privateData) then
 
-            if (proxyObject.Controller.isInterface) then
+            if (proxyObject.controller.isInterface) then
                 Core:Error("%s.%s is an interface function and must be implemented and invoked by an instance object.",
-                    proxyObject.Controller.name, proxyObject.key);
+                    proxyObject.controller.objectName, proxyObject.key);
             else
                 Core:Error("%s.%s is a non static function and must be invoked by an instance object.",
-                    proxyObject.Controller.name, proxyObject.key);
+                    proxyObject.controller.objectName, proxyObject.key);
             end
         end
 
@@ -452,7 +452,7 @@ local function CreateProxyObject(proxyEntity, key, entity, controller)
 
         Core:Assert(Lib:IsTable(proxyObject.privateData) and not proxyObject.privateData.GetObjectType,
             "Invalid instance private data found when calling %s.%s: %s",
-            proxyObject.Controller.name, proxyObject.key, tostring(proxyObject.privateData));
+            proxyObject.controller.objectName, proxyObject.key, tostring(proxyObject.privateData));
 
         -- Validate return values received after calling the function
         local returnValues = Lib:PopWrapper(
@@ -590,17 +590,17 @@ do
     end
 
     function Core:CreateClass(package, packageData, className, parentClass, ...)
-        local class                 = Lib:PopWrapper(); -- stores real table indexes (once proxy has completed evaluating data)
-        local proxyClass            = Lib:PopWrapper(); -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Class instead)
-        local definitions           = Lib:PopWrapper(); -- function definitions for params and return values
-        local friends               = Lib:PopWrapper(); -- friend classes can access instance private data of this class
-        local classController       = Lib:PopWrapper(); -- holds special Lib data to control class
+        local class            = Lib:PopWrapper(); -- stores real table indexes (once proxy has completed evaluating data)
+        local proxyClass       = Lib:PopWrapper(); -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Class instead)
+        local definitions      = Lib:PopWrapper(); -- function definitions for params and return values
+        local friends          = Lib:PopWrapper(); -- friend classes can access instance private data of this class
+        local classController  = Lib:PopWrapper(); -- holds special Lib data to control class
 
-        classController.isClass     = true;
-        classController.objectName  = className;
-        classController.proxy      = proxyClass;
+        classController.isClass = true;
+        classController.objectName = className;
+        classController.proxy = proxyClass;
         classController.definitions = definitions;
-        classController.class       = class;
+        classController.class = class;
 
         -- protected table for assigning Static functions
         proxyClass.Static = Lib:PopWrapper();
@@ -610,59 +610,60 @@ do
             classController.package = package; -- only used for GetPackage()
             classController.packageData = packageData;
             packageData.entities[className] = proxyClass;
+
+            if (className:match("<") and className:match(">")) then
+                classController.isGenericType = true;
+                classController.genericTypes = self:GetGenericTypesFromClassName(className);
+            end
+
+            self:SetParentClass(classController, parentClass);
+            self:SetInterfaces(classController, ...);
+
+            -- ProxyClass functions --------------------------
+
+            proxyClass.Static.AddFriendClass = function(_, friendClassName)
+                friends[friendClassName] = true;
+            end
+
+            proxyClass.Static.IsFriendClass = function(_, friendClassName)
+                if (friendClassName == className) then
+                    return true;
+                end
+
+                return friends[friendClassName];
+            end
+
+            proxyClass.Static.OnIndexChanged = function(_, callback)
+                classController.indexChangedCallback = callback;
+            end
+
+            proxyClass.Static.OnIndexChanging = function(_, callback)
+                classController.indexChangingCallback = callback;
+            end
+
+            proxyClass.Static.OnIndexed = function(_, callback)
+                classController.indexedCallback = callback;
+            end
+
+            proxyClass.Static.OnIndexing = function(_, callback)
+                classController.indexingCallback = callback;
+            end
+
+            proxyClass.Of = function(_, ...)
+                Core:Assert(classController.isGenericType, "%s is not a generic class", className);
+                classController.tempRealGenericTypes = Lib:PopWrapper(...); -- holds real type names
+
+                for id, realType in ipairs(classController.tempRealGenericTypes) do
+                    -- remove spaces
+                    classController.tempRealGenericTypes[id] = (realType:gsub("%s+", ""));
+                end
+
+                return proxyClass;
+            end
         else
-            -- creating the Package class (cannot assign it to a package instance as Package class does not exist!)
+            -- creating the Package class (cannot assign it to a package
+            -- instance as Package class does not exist!)
             classController.IsPackage = true;
-        end
-
-        if (className:match("<") and className:match(">")) then
-            classController.isGenericType = true;
-            classController.GenericTypes = self:GetGenericTypesFromClassName(className);
-        end
-
-        self:SetParentClass(classController, parentClass);
-        self:SetInterfaces(classController, ...);
-
-        -- ProxyClass functions --------------------------
-
-        proxyClass.Static.AddFriendClass = function(_, friendClassName)
-            friends[friendClassName] = true;
-        end
-
-        proxyClass.Static.IsFriendClass = function(_, friendClassName)
-            if (friendClassName == className) then
-                return true;
-            end
-
-            return friends[friendClassName];
-        end
-
-        proxyClass.Static.OnIndexChanged = function(_, callback)
-            classController.indexChangedCallback = callback;
-        end
-
-        proxyClass.Static.OnIndexChanging = function(_, callback)
-            classController.indexChangingCallback = callback;
-        end
-
-        proxyClass.Static.OnIndexed = function(_, callback)
-            classController.indexedCallback = callback;
-        end
-
-        proxyClass.Static.OnIndexing = function(_, callback)
-            classController.indexingCallback = callback;
-        end
-
-        proxyClass.Of = function(_, ...)
-            Core:Assert(classController.isGenericType, "%s is not a generic class", className);
-            classController.TempRealGenericTypes = Lib:PopWrapper(...); -- holds real type names
-
-            for id, realType in ipairs(classController.TempRealGenericTypes) do
-                -- remove spaces
-                classController.TempRealGenericTypes[id] = (realType:gsub("%s+", ""));
-            end
-
-            return proxyClass;
         end
 
         AllControllers[tostring(proxyClass)] = classController;
@@ -681,7 +682,7 @@ do
         -- ProxyClass changed key to GetFrame during __index meta-method call
         local frame = value(); -- call the proxyObject.Run function here to get the frame
 
-        Core:Assert(Lib:IsTable(frame) and frame.GetObjectType, missingFrameErrorMessage, classController.name, key);
+        Core:Assert(Lib:IsTable(frame) and frame.GetObjectType, missingFrameErrorMessage, classController.objectName, key);
 
         if (frame[key]) then
             -- if the frame has the key we are trying to get...
@@ -716,7 +717,8 @@ do
             value = instanceController.instance[key];
 
             if (Lib:IsFunction(value)) then
-                local proxyObject = CreateProxyObject(instanceController.instance, key, self, classController);
+                value = CreateProxyObject(instanceController.instance, key, self, classController);
+                local proxyObject = GetStoredProxyObject(value);
                 proxyObject.privateData = privateData; -- set PrivateData to be injected into function call
 
                 if (proxyObject.key == GetFrame and key ~= GetFrame) then
@@ -753,7 +755,7 @@ do
         local instance = instanceController.instance;
 
         Core:Assert(not classController.class[key],
-            "Cannot override class-level property '%s.%s' from an instance.", classController.name, key);
+            "Cannot override class-level property '%s.%s' from an instance.", classController.objectName, key);
 
         Core:Assert(not Lib:IsFunction(value), "Functions must be added to a class, not an instance.");
 
@@ -796,15 +798,17 @@ do
 
     function Core:CreateInstance(classController, ...)
         local instance              = Lib:PopWrapper(); -- stores real table indexes (once proxy has completed evaluating data)
-        local instanceController    = Lib:PopWrapper();-- holds special Lib data to control instance
+        local instanceController    = Lib:PopWrapper(); -- holds special Lib data to control instance
         local privateData           = Lib:PopWrapper(); -- private instance data passed to function calls (the 2nd argument)
         local proxyInstance         = Lib:PopWrapper(); -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Instance instead)
+        local definitions           = Lib:PopWrapper();
 
         instanceController.privateData = privateData;
         instanceController.instance = instance;
         instanceController.classController = classController;
+        instanceController.definitions = definitions;
 
-        self:InheritFunctions(instance, instanceController, classController.class);
+        self:InheritFunctions(instance, definitions, classController);
 
         -- interfaceController requires knowledge of many classController settings
         local instanceControllerMT = Lib:PopWrapper();
@@ -855,14 +859,14 @@ do
 end
 
 function Core:CreateInterface(packageData, interfaceName, interfaceDefinition)
-    local interface                           = Lib:PopWrapper();
-    local interfaceController                 = Lib:PopWrapper();
+    local interface                  = Lib:PopWrapper();
+    local interfaceController        = Lib:PopWrapper();
 
-    interfaceController.proxy                 = interface; -- reference to the interface (might not be needed)
-    interfaceController.objectName            = interfaceName; -- class and interface controllers are grouped together so we use "Entity" name
-    interfaceController.definition            = interfaceDefinition -- holds interface definitions
-    interfaceController.isInterface           = true; -- to distinguish between a class and an interface controller
-    interfaceController.packageData           = packageData; -- used for when attaching function definitions
+    interfaceController.proxy        = interface; -- reference to the interface (might not be needed)
+    interfaceController.objectName   = interfaceName; -- class and interface controllers are grouped together so we use "Entity" name
+    interfaceController.definition   = interfaceDefinition -- holds interface definitions
+    interfaceController.isInterface  = true; -- to distinguish between a class and an interface controller
+    interfaceController.packageData  = packageData; -- used for when attaching function definitions
 
     AllControllers[tostring(interface)] = interfaceController;
 
@@ -892,46 +896,45 @@ end
 
 function Core:ApplyGenericTypesToInstance(instanceController, classController)
     -- Move all specified generic type definitions from "Of()" to instance controller
-    if (not classController.TempRealGenericTypes) then
-        classController.TempRealGenericTypes = Lib.PopWrapper();
+    if (not classController.tempRealGenericTypes) then
+        classController.tempRealGenericTypes = Lib.PopWrapper();
 
-        for id, _ in ipairs(classController.GenericTypes) do
+        for id, _ in ipairs(classController.genericTypes) do
             -- assign default type to alias generic type keys ("K" = "number")
-            classController.TempRealGenericTypes[id] = "any";
+            classController.tempRealGenericTypes[id] = "any";
         end
 
-    elseif (#classController.TempRealGenericTypes < #classController.GenericTypes) then
+    elseif (#classController.tempRealGenericTypes < #classController.genericTypes) then
 
-        for id = (#classController.TempRealGenericTypes + 1), #classController.GenericTypes do
-            classController.TempRealGenericTypes[id] = "any";
+        for id = (#classController.tempRealGenericTypes + 1), #classController.genericTypes do
+            classController.tempRealGenericTypes[id] = "any";
         end
     end
 
-    instanceController.RealGenericTypes = classController.TempRealGenericTypes;
-
-    Lib:PushWrapper(classController.TempRealGenericTypes);
-    classController.TempRealGenericTypes = nil;
+    instanceController.realGenericTypes = Core:CopyTableValues(classController.tempRealGenericTypes);
+    Lib:PushWrapper(classController.tempRealGenericTypes);
+    classController.tempRealGenericTypes = nil;
 
     -- change instance name to use real types
     local className = classController.objectName;
     local redefinedInstanceName = (select(1, _G.strsplit("<", className))).."<";
 
-    for id, realType in ipairs(instanceController.RealGenericTypes) do
-        if (id < #instanceController.RealGenericTypes) then
+    for id, realType in ipairs(instanceController.realGenericTypes) do
+        if (id < #instanceController.realGenericTypes) then
             redefinedInstanceName = string.format("%s%s, ", redefinedInstanceName, realType);
         else
             redefinedInstanceName = string.format("%s%s>", redefinedInstanceName, realType);
         end
     end
 
-    instanceController.objectName= redefinedInstanceName;
+    instanceController.objectName = redefinedInstanceName;
 end
 
 -- Attempt to add definitions for new function Index (params and returns)
 --@param controller - an instance or class controller
 --@param newFuncKey - the new key being indexed into Class (pointing to a function value)
 function Core:AttachFunctionDefinition(controller, newFuncKey)
-    if (not controller.packageData or controller.objectName== "Package") then
+    if (not controller.packageData or controller.objectName == "Package") then
         return;
     end
 
@@ -950,8 +953,11 @@ function Core:AttachFunctionDefinition(controller, newFuncKey)
         for _, interface in ipairs(controller.interfaces) do
             interfaceController = self:GetController(interface);
 
-            self:Assert(not interfaceController.definitions[newFuncKey],
-                "%s cannot redefine interface function '%s'", controller.name, newFuncKey);
+            if (interfaceController.definition) then
+                print(newFuncKey);
+                self:Assert(not interfaceController.definition[newFuncKey],
+                    "%s cannot redefine interface function '%s'", controller.objectName, newFuncKey);
+            end
         end
     end
 
@@ -975,13 +981,12 @@ function Core:AttachFunctionDefinition(controller, newFuncKey)
     controller.packageData.tempReturnDefs = nil;
 
     self:Assert(not controller.definitions[newFuncKey],
-        "%s.%s Definition already exists.", controller.name, newFuncKey);
+        "%s.%s Definition already exists.", controller.objectName, newFuncKey);
 
     controller.definitions[newFuncKey] = funcDefinition;
 end
 
 function Core:SetInterfaces(classController, ...)
-
     for id, interface in Lib:IterateArgs(...) do
         if (Lib:IsString(interface)) then
             interface = Lib:Import(interface);
@@ -996,43 +1001,46 @@ function Core:SetInterfaces(classController, ...)
             self:Error("Core.SetInterfaces: bad argument #%d (invalid interface)", id);
         end
 
-        -- Move interface definition into class
-        for key, definition in pairs(interfaceController.definition) do
-            if (Lib:IsString(definition)) then
-                if (definition == functionType) then
+        if (Lib:IsTable(interfaceController.definition)) then
+            -- Move interface definition into class
+            for key, definition in pairs(interfaceController.definition) do
+                if (Lib:IsString(definition)) then
+                    if (definition == functionType) then
+                        -- a function with no defined params nor return types
+                        self:AttachFunctionDefinition(classController, key);
+                    else
+                        classController.propertyDefinitions = classController.propertyDefinitions or Lib:PopWrapper();
+                        classController.propertyDefinitions[key] = definition;
+                    end
+
+                elseif (Lib:IsTable(definition) and definition.type == functionType) then
+                    local paramDefs = Core:CopyTableValues(definition.params);
+                    local returnDefs = Core:CopyTableValues(definition.returns);
+
+                    classController.package:DefineParams(paramDefs);
+                    classController.package:DefineReturns(returnDefs);
+
                     self:AttachFunctionDefinition(classController, key);
-                else
-                    classController.propertyDefinitions = classController.propertyDefinitions or Lib:PopWrapper();
-                    classController.propertyDefinitions[key] = definition;
                 end
-
-            elseif (Lib:IsTable(definition) and definition.type == functionType) then
-                local paramDefs = definition.params;
-                local returnDefs = definition.returns;
-
-                classController.package:DefineParams(Lib:UnpackWrapper(paramDefs));
-                classController.package:DefineReturns(Lib:UnpackWrapper(returnDefs));
-
-                self:AttachFunctionDefinition(classController, definition);
             end
         end
     end
 end
 
+local invalidClassValueErrorMessage = "Class '%s' does not implement interface function '%s'.";
 function Core:InheritFunctions(instance, definitions, classController)
     for funcKey, funcDefinition in pairs(classController.definitions) do
         local implementedFunc = classController.class[funcKey];
 
-        Core:Assert(Lib:IsFunction(implementedFunc),
-            "Class '%s' does not implement interface function '%s'.", classController.objectName, funcKey);
+        Core:Assert(Lib:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
 
         -- copy function references with definitions
-        rawset(instance, funcKey, implementedFunc);
+        instance[funcKey] = implementedFunc;
         definitions[funcKey] = funcDefinition;
     end
 
-    if (classController.parent) then
-        local parentClassController = self:GetController(classController.parent);
+    if (classController.parentClass) then
+        local parentClassController = self:GetController(classController.parentClass);
         self:InheritFunctions(instance, definitions, parentClassController);
     end
 end
@@ -1193,9 +1201,9 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
 
         if (defValue:find("|")) then
 
-            for _, signleDefValue in Lib:IterateArgs(_G.strsplit("|", defValue)) do
-                signleDefValue = string.gsub(signleDefValue, "%s", "");
-                errorFound = self:ValidateValue(signleDefValue, realValue);
+            for _, singleDefValue in Lib:IterateArgs(_G.strsplit("|", defValue)) do
+                singleDefValue = string.gsub(singleDefValue, "%s", "");
+                errorFound = self:ValidateValue(singleDefValue, realValue);
 
                 if (not errorFound) then
                     break;
@@ -1234,57 +1242,59 @@ do
         for _, interface in ipairs(interfaces) do
             interfaceController = Core:GetController(interface);
 
-            for key, interfaceFuncDef in pairs(interfaceController.definitions) do
-                if (key == funcKey) then
-                    -- use the first matching function definition (should not be more than 1)
-                    return interfaceFuncDef;
+            if (Lib:IsTable(interfaceController.definition)) then
+                for key, interfaceFuncDef in pairs(interfaceController.definition) do
+                    if (key == funcKey) then
+                        -- use the first matching function definition (should not be more than 1)
+                        return interfaceFuncDef;
+                    end
                 end
             end
         end
     end
 
     function Core:GetParamsDefinition(proxyObject)
-        local funcDef = proxyObject.Controller.definitions[proxyObject.key];
+        local funcDef = proxyObject.controller.definitions[proxyObject.key];
 
-        if (not (funcDef or proxyObject.Controller.interfaces)) then
+        if (not (funcDef or proxyObject.controller.interfaces)) then
             return;
         end
 
         if (not funcDef) then
-            funcDef = GetFunctionDefinitionFromInterface(proxyObject.Controller.interfaces, proxyObject.key);
+            funcDef = GetFunctionDefinitionFromInterface(proxyObject.controller.interfaces, proxyObject.key);
         end
 
         local paramDefs = funcDef and funcDef.paramDefs;
 
-        if (paramDefs and proxyObject.Controller.isGenericType) then
-            -- if params contain generic type placeholders (example: DefineParams("T"))
-            paramDefs = self:ReplaceGenericTypes(proxyObject.Controller, proxyObject.self, paramDefs);
+        if (paramDefs and proxyObject.controller.isGenericType) then
+            paramDefs = self:ReplaceGenericTypes(proxyObject.controller, proxyObject.self, paramDefs);
+            Lib:PrintTable(proxyObject.controller);
         end
 
         if (not paramDefs) then
             return;
         end
 
-        local errorMessage = string.format(paramErrorMessage, proxyObject.Controller.name, proxyObject.key);
+        local errorMessage = string.format(paramErrorMessage, proxyObject.controller.objectName, proxyObject.key);
 
         return paramDefs, errorMessage;
     end
 
     function Core:GetReturnsDefinition(proxyObject)
-        local funcDef = proxyObject.Controller.definitions[proxyObject.key];
+        local funcDef = proxyObject.controller.definitions[proxyObject.key];
 
-        if (not funcDef and proxyObject.Controller.interfaces) then
-            funcDef = GetFunctionDefinitionFromInterface(proxyObject.Controller.interfaces, proxyObject.key);
+        if (not funcDef and proxyObject.controller.interfaces) then
+            funcDef = GetFunctionDefinitionFromInterface(proxyObject.controller.interfaces, proxyObject.key);
         end
 
         local returnDefs = funcDef and funcDef.returnDefs;
 
-        if (returnDefs and proxyObject.Controller.isGenericType) then
+        if (returnDefs and proxyObject.controller.isGenericType) then
             -- if params contain generic type placeholders (example: DefineParams("T"))
-            returnDefs = self:ReplaceGenericTypes(proxyObject.Controller, proxyObject.self, returnDefs);
+            returnDefs = self:ReplaceGenericTypes(proxyObject.controller, proxyObject.self, returnDefs);
         end
 
-        local errorMessage = string.format(returnErrorMessage, proxyObject.Controller.name, proxyObject.key);
+        local errorMessage = string.format(returnErrorMessage, proxyObject.controller.objectName, proxyObject.key);
 
         return returnDefs, errorMessage;
     end
@@ -1294,10 +1304,10 @@ function Core:ReplaceGenericTypes(controller, instance, defTable)
     local instanceController = Core:GetController(instance);
     local realDefTable = Lib:PopWrapper(); -- Replaced all generic types with real types
 
-    self:Assert(controller.GenericTypes and instanceController.RealGenericTypes,
+    self:Assert(controller.genericTypes and instanceController.realGenericTypes,
         "Failed to find generic type info for class %s", controller.objectName);
 
-    for id, genericType in ipairs(controller.GenericTypes) do
+    for id, genericType in ipairs(controller.genericTypes) do
         -- replace all references to generic type with real type:
         for defId, value in ipairs(defTable) do
             local optional = false;
@@ -1309,9 +1319,9 @@ function Core:ReplaceGenericTypes(controller, instance, defTable)
 
             if (value == genericType) then
                 if (optional) then
-                    realDefTable[defId] = string.format("?%s", instanceController.RealGenericTypes[id]);
+                    realDefTable[defId] = string.format("?%s", instanceController.realGenericTypes[id]);
                 else
-                    realDefTable[defId] = instanceController.RealGenericTypes[id];
+                    realDefTable[defId] = instanceController.realGenericTypes[id];
                 end
             end
         end
@@ -1487,7 +1497,7 @@ end
 
 -- temporarily store return definitions to be applied to next new indexed function
 function Package:DefineReturns(data, ...)
-    data.tempReturnDefs = Lib:PushWrapper(...);
+    data.tempReturnDefs = Lib:PopWrapper(...);
 end
 
 -- prevents other functions being added or modified
@@ -1538,24 +1548,28 @@ function Object:IsObjectType(_, objectName)
 		return true;
     end
 
-    -- check if any interfaces being implemented is of type objectName
-    for _, interface in ipairs(controller.interfaces) do
-        local interfaceController = Core:GetController(interface);
+    if (controller.interfaces) then
+        -- check if any interfaces being implemented is of type objectName
+        for _, interface in ipairs(controller.interfaces) do
+            local interfaceController = Core:GetController(interface);
 
-        if (interfaceController.objectName == objectName) then
-            return true;
+            if (interfaceController.objectName == objectName) then
+                return true;
+            end
         end
     end
 
-    -- check if any parent class is of type objectName
-    controller = Core:GetController(controller.parentClass);
-
-    while (controller) do
-        if (controller.objectName == objectName) then
-            return true;
-        end
-
+    if (controller.parentClass) then
+        -- check if any parent class is of type objectName
         controller = Core:GetController(controller.parentClass);
+
+        while (controller) do
+            if (controller.objectName == objectName) then
+                return true;
+            end
+
+            controller = Core:GetController(controller.parentClass);
+        end
     end
 
 	return false;
