@@ -90,7 +90,6 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
 
         unitWidth = function(value)
             data.settings.unitWidth = value;
-            print("Ok!")
 
             data.left:SetSize(value, 180);
             data.right:SetSize(value, 180)
@@ -200,7 +199,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
     };
 
     db:RegisterUpdateFunctions("profile.unitPanels", data.updateFunctions, function(func, value)
-        if (self:IsEnabled()) then
+        if (self:IsEnabled() or func == data.updateFunctions.enabled) then
             func(value);
         end
     end);
@@ -208,6 +207,9 @@ end
 
 function C_UnitPanels:OnEnable(data)
     if (data.left) then
+        data.left:Show();
+        data.right:Show();
+        data.center:Show();
         return;
     end
 
@@ -254,6 +256,16 @@ function C_UnitPanels:SetupUnitNames(data)
 
     tk:FlipTexture(data.target.bg, "HORIZONTAL");
     self:UpdateUnitNameText("player");
+end
+
+function C_UnitPanels:OnDisable(data)
+    if (not data.left) then return; end
+
+    data.left:Hide();
+    data.right:Hide();
+    data.center:Hide();
+
+    --    self:SetUnitNamesEnabled(false);
 end
 
 function C_UnitPanels:SetUnitNamesEnabled(data, enabled)

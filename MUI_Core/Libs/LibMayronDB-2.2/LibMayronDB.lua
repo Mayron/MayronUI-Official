@@ -141,6 +141,7 @@ function Database:__Construct(data, addOnName, savedVariableName)
     -- holds all database defaults to check first before searching database
     data.defaults = obj:PopWrapper();
     data.updateFunctions = obj:PopWrapper();
+    data.manualUpdateFunctions = obj:PopWrapper();
     data.defaults.global = obj:PopWrapper();
     data.defaults.profile = obj:PopWrapper();
 end
@@ -254,18 +255,8 @@ Add a table of update callback functions to trigger when a database value change
 ]]
 Framework:DefineParams("string", "table|function", "?function");
 function Database:RegisterUpdateFunctions(data, path, updateFunctions, manualFunc)
-    if (manualFunc) then
-        local manualTable = obj:PopWrapper();
-        manualTable.manualFunc = manualFunc;
-        manualTable.value = updateFunctions;
-        self:SetPathValue(data.updateFunctions, path, manualTable);
-
-        MayronUI:Print(path);
-        MayronUI:Print(updateFunctions.unitWidth)
-        MayronUI:Print(data.updateFunctions.profile.unitPanels.unitWidth);
-    else
-        self:SetPathValue(data.updateFunctions, path, updateFunctions);
-    end
+    self:SetPathValue(data.updateFunctions, path, updateFunctions);
+    data.manualUpdateFunctions[path] = manualFunc;
 end
 
 --[[
@@ -276,16 +267,19 @@ Trigger an update function located by the path argument and pass any arguments t
 ]]
 Framework:DefineParams("string");
 function Database:TriggerUpdateFunction(data, path, newValue)
-    local result = self:ParsePathValue(data.updateFunctions, path);
+    local updateFunc = self:ParsePathValue(data.updateFunctions, path);
 
-    if (obj:IsTable(result) and result.manualFunc) then
-        -- manually control how to execute the update function
-        if (obj:IsFunction(result.value)) then
-            result.manualFunc(result.value, newValue);
+    if (obj:IsFunction(updateFunc)) then
+        local manualFunc;
+
+        while (manualFunc == nil and path:find("[.[]")) do
+            manualFunc = data.manualUpdateFunctions[path];
+            path = path:match('(.+)[.[]');
         end
 
-    elseif (obj:IsFunction(result)) then
-        result(newValue);
+        if (obj:IsFunction(manualFunc)) then
+            manualFunc(updateFunc, newValue);
+        end
     end
 end
 
