@@ -53,6 +53,26 @@ db:AddToDefaults("profile.datatext", {
     }
 });
 
+-- IDataTextModule ------------------------------
+
+Engine:CreateInterface("IDataTextModule", {
+    -- properties:
+    MenuContent = "Frame";
+    MenuLabels = "table";
+    TotalLabelsShown = "number";
+    HasLeftMenu = "boolean";
+    HasRightMenu = "boolean";
+    Button = "Button";
+    SavedVariableName = "string";
+
+    -- functions:
+    Update = "function";
+    Click = "function";
+    IsEnabled = {type = "function"; returns = "boolean"};
+    Disable = "function";
+    Enable = "function";
+});
+
 -- C_DataTextModule Functions -------------------
 
 function C_DataTextModule:OnInitialize(data)
