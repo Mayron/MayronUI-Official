@@ -2,6 +2,13 @@
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local Private = {};
 
+local C_Timer, InCombatLockdown, WorldFrame, GetSpecializationInfo = _G.C_Timer, _G.InCombatLockdown, _G.WorldFrame, _G.GetSpecializationInfo;
+local UIParent, CreateFrame, UnitIsAFK = _G.UIParent, _G.CreateFrame, _G.UnitIsAFK;
+local MoveViewLeftStop, SetCVar, MoveViewLeftStart = _G.MoveViewLeftStop, _G.SetCVar, _G.MoveViewLeftStart;
+local UnitSex, UnitRace, SetCursor, GetSpecialization = _G.UnitSex, _G.UnitRace, _G.SetCursor, _G.GetSpecialization;
+local UnitPVPName, GetRealmName, UnitLevel, UnitClass = _G.UnitPVPName, _G.GetRealmName, _G.UnitLevel, _G.UnitClass;
+
+
 -- Register Module ------------
 
 local C_AfkDisplayModule = MayronUI:RegisterModule("AfkDisplay", "AFK Display");
@@ -20,13 +27,13 @@ db:AddToDefaults("global.afkDisplay", {
 function Private:StartTimer()
     if (Private.display:IsShown()) then
         Private.time = Private.time or 0;
-        local time = tk.string.format("%.2d:%.2d", (Private.time / 60) % 60, (Private.time % 60));
+        local time = string.format("%.2d:%.2d", (Private.time / 60) % 60, (Private.time % 60));
         Private.time = Private.time + 1;
         Private.display.time:SetText(time);
 
         -- Update dataFrame:
         --MUI_AFKFrame.dataFrame.CenterFrame.text:SetText(GameTime_GetTime(false))
-        tk.C_Timer.After(1, Private.StartTimer);
+        C_Timer.After(1, Private.StartTimer);
     end
 end
 
@@ -274,16 +281,17 @@ function Animator:TransitionValue()
     end
 
     Animator.model:SetPosition(-0.3, 0, yValue + Animator.step);
-    tk.C_Timer.After(0.01, Animator.TransitionValue);
+    C_Timer.After(0.01, Animator.TransitionValue);
 end
 
-local function PositionModel(model, hovering, falling)
-    local gender = _G.UnitSex("player");
+function Private:PositionModel(hovering, falling)
+    local gender = UnitSex("player");
     gender = (gender == 2) and "Male" or "Female";
 
-    local race = (tk.select(2, _G.UnitRace("player"))):gsub("%s+", "");
+    local race = (select(2, UnitRace("player"))):gsub("%s+", "");
     local tbl = Private.Races[race][gender];
     local value = (hovering and tbl.hoverValue) or tbl.value;
+    local model = self.display.modelFrame.model;
 
     model:SetPoint("BOTTOM");
 
@@ -300,11 +308,11 @@ local function PositionModel(model, hovering, falling)
 
     if (difference > 0) then
         Animator.step = 0.03;
-        tk.C_Timer.After(0.01, Animator.TransitionValue);
+        C_Timer.After(0.01, Animator.TransitionValue);
 
     elseif (difference < 0) then
         Animator.step = -0.03;
-        tk.C_Timer.After(0.01, Animator.TransitionValue);
+        C_Timer.After(0.01, Animator.TransitionValue);
 
     else
         model:SetPosition(-0.3, 0, value);
@@ -321,11 +329,11 @@ function Private:StartFalling()
 
     if (y > Private.Y_POSITION) then
         f:SetPoint(p, rf, rp, x, y - 10) -- 10 is the step value
-        tk.C_Timer.After(0.01, Private.StartFalling);
+        C_Timer.After(0.01, Private.StartFalling);
     else
         if (y < Private.Y_POSITION) then
             f:SetPoint(p, rf, rp, x, Private.Y_POSITION);
-            PositionModel(Private.display.modelFrame.model, nil, true);
+            Private:PositionModel(nil, true);
         end
 
         f.model:SetAnimation(39);
@@ -338,14 +346,14 @@ function Private:StartRotating()
         return;
     end
 
-    local f = Private.display.modelFrame;
+    local modelFrame = Private.display.modelFrame;
 
-    if (f.model.dragging) then
-        local scaledScreenWidth = tk.UIParent:GetWidth() * tk.UIParent:GetScale();
-        local modelPoint = f:GetLeft() + ((f:GetWidth()) / 2);
+    if (modelFrame.model.dragging) then
+        local scaledScreenWidth = UIParent:GetWidth() * UIParent:GetScale();
+        local modelPoint = modelFrame:GetLeft() + ((modelFrame:GetWidth()) / 2);
 
         local rotation = (scaledScreenWidth - modelPoint) - (scaledScreenWidth * 0.5);
-        f.model:SetFacing(rotation / 1000);
+        modelFrame.model:SetFacing(rotation / 1000);
 
         local justify = Private.display.name:GetJustifyH();
 
@@ -362,7 +370,7 @@ function Private:StartRotating()
                 Private.display.name:SetPoint("TOPRIGHT", -100, -14);
             end
         end
-        tk.C_Timer.After(0.01, Private.StartRotating);
+        C_Timer.After(0.01, Private.StartRotating);
     end
 end
 
@@ -370,12 +378,12 @@ function Private:CreatePlayerModel()
     local scale = db.global.afkDisplay.modelScale;
     Private.Y_POSITION = 100;
 
-    local f = tk.CreateFrame("Frame", nil, self.display);
+    local f = CreateFrame("Frame", nil, self.display);
     f:SetSize(200, 500 * scale);
     f:SetPoint("BOTTOMLEFT", self.display, "BOTTOMLEFT", 100, Private.Y_POSITION)
     tk:MakeMovable(f);
 
-    f.model = tk.CreateFrame("PlayerModel", nil, f);
+    f.model = CreateFrame("PlayerModel", nil, f);
     f.model:SetSize(600 * scale, 700 * scale);
     f.model:SetUnit("player");
     f.model:SetFacing(0.4);
@@ -385,7 +393,7 @@ function Private:CreatePlayerModel()
     end)
 
     f:SetScript("OnEnter", function()
-        _G.SetCursor("Interface\\CURSOR\\UI-Cursor-Move.blp");
+        SetCursor("Interface\\CURSOR\\UI-Cursor-Move.blp");
     end)
 
     f.model:SetScript("OnAnimFinished", function(self)
@@ -400,7 +408,7 @@ function Private:CreatePlayerModel()
         self:SetClampedToScreen(true);
         self.model.dragging = true;
         self.model:SetAnimation(38);
-        PositionModel(Private.display.modelFrame.model, true);
+        Private:PositionModel(true);
         Private:StartRotating();
     end)
 
@@ -419,7 +427,7 @@ end
 do
     local function IncrementCounter(self)
         self.f.num = (self.f.num or 0) + 1;
-        self.f:SetText(tk.string.format(self.f.label, self.f.num));
+        self.f:SetText(string.format(self.f.label, self.f.num));
     end
 
     function Private:CreateDisplay()
@@ -427,81 +435,81 @@ do
             return self.display;
         end
 
-        local f = tk.CreateFrame("Frame", "MUI_AFKFrame", _G.WorldFrame);
-        f:SetPoint("BOTTOMLEFT", tk.UIParent, "BOTTOMLEFT", 0, -100);
-        f:SetPoint("BOTTOMRIGHT", tk.UIParent, "BOTTOMRIGHT", 0, -100);
-        f:SetHeight(150);
+        local display = CreateFrame("Frame", "MUI_AFKFrame", WorldFrame);
+        display:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, -100);
+        display:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, -100);
+        display:SetHeight(150);
 
-        f.bg = tk:SetBackground(f, tk:GetAssetFilePath("Textures\\BottomUI\\Single"));
-        tk:ApplyThemeColor(f.bg);
+        display.bg = tk:SetBackground(display, tk:GetAssetFilePath("Textures\\BottomUI\\Single"));
+        tk:ApplyThemeColor(display.bg);
 
-        _G.UIParent:HookScript("OnShow", function()
+        UIParent:HookScript("OnShow", function()
             local afkDisplay = MayronUI:ImportModule("AfkDisplay");
             afkDisplay:SetShown(false);
         end);
 
-        f.time = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge");
-        f.time:SetPoint("TOP", 0, -16);
+        display.time = display:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge");
+        display.time:SetPoint("TOP", 0, -16);
 
-        f.name = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-        f.name:SetJustifyH("RIGHT");
-        f.name:SetPoint("TOPRIGHT", -100, -14);
+        display.name = display:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+        display.name:SetJustifyH("RIGHT");
+        display.name:SetPoint("TOPRIGHT", -100, -14);
 
         local specType;
-        if (_G.GetSpecialization()) then
-            specType = (select(2, _G.GetSpecializationInfo(_G.GetSpecialization()))).." ";
+        if (GetSpecialization()) then
+            specType = (select(2, GetSpecializationInfo(GetSpecialization()))).." ";
         else
             specType = "";
         end
 
-        local name = tk.Strings:Concat(_G.UnitPVPName("player"), " - ",
-            _G.GetRealmName(), "\nLevel ", _G.UnitLevel("player"), ", ",
-            tk.Strings:SetTextColorByClass(tk.Strings:Concat(specType, (select(1, _G.UnitClass("player"))))));
+        local name = tk.Strings:Concat(UnitPVPName("player"), " - ",
+            GetRealmName(), "\nLevel ", UnitLevel("player"), ", ",
+            tk.Strings:SetTextColorByClass(tk.Strings:Concat(specType, (select(1, UnitClass("player"))))));
 
-        f.name:SetText(name);
+        display.name:SetText(name);
 
-        f.titleButton = tk:PopFrame("Button", f);
-        f.titleButton:SetSize(250, 22);
-        f.titleButton:SetPoint("BOTTOM", f.bg, "TOP", 0, -1);
+        display.titleButton = tk:PopFrame("Button", display);
+        display.titleButton:SetSize(250, 22);
+        display.titleButton:SetPoint("BOTTOM", display.bg, "TOP", 0, -1);
 
         local nameTexturePath = tk:GetAssetFilePath("Textures\\BottomUI\\NamePanel");
-        f.titleButton:SetNormalTexture(nameTexturePath);
-        f.titleButton:SetHighlightTexture(nameTexturePath);
+        display.titleButton:SetNormalTexture(nameTexturePath);
+        display.titleButton:SetHighlightTexture(nameTexturePath);
 
-        tk:ApplyThemeColor(0.8, f.titleButton);
-        f.titleButton:SetNormalFontObject("MUI_FontNormal");
-        f.titleButton:SetHighlightFontObject("GameFontHighlight");
-        f.titleButton:SetText("MayronUI Gen5");
+        tk:ApplyThemeColor(0.8, display.titleButton);
+        display.titleButton:SetNormalFontObject("MUI_FontNormal");
+        display.titleButton:SetHighlightFontObject("GameFontHighlight");
+        display.titleButton:SetText("MayronUI Gen5");
 
-        f.dataFrame = tk:PopFrame("Frame", f);
-        f.dataFrame:SetPoint("TOPLEFT", tk.UIParent, "BOTTOMLEFT", 0, 30);
-        f.dataFrame:SetPoint("BOTTOMRIGHT", tk.UIParent, "BOTTOMRIGHT");
+        display.dataFrame = tk:PopFrame("Frame", display);
+        display.dataFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 30);
+        display.dataFrame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT");
 
-        f.dataFrame.center = tk:PopFrame("Button", f.dataFrame);
-        f.dataFrame.center:SetSize(100, 20);
-        f.dataFrame.center:SetPoint("CENTER");
-        f.dataFrame.center:SetNormalFontObject("GameFontHighlight");
+        display.dataFrame.center = tk:PopFrame("Button", display.dataFrame);
+        display.dataFrame.center:SetSize(100, 20);
+        display.dataFrame.center:SetPoint("CENTER");
+        display.dataFrame.center:SetNormalFontObject("GameFontHighlight");
 
-        f.dataFrame.left = tk:PopFrame("Button", f.dataFrame);
-        f.dataFrame.left:SetSize(100, 20);
-        f.dataFrame.left:SetPoint("RIGHT", f.dataFrame.center, "LEFT", -20, 0);
-        f.dataFrame.left:SetNormalFontObject("GameFontHighlight");
+        display.dataFrame.left = tk:PopFrame("Button", display.dataFrame);
+        display.dataFrame.left:SetSize(100, 20);
+        display.dataFrame.left:SetPoint("RIGHT", display.dataFrame.center, "LEFT", -20, 0);
+        display.dataFrame.left:SetNormalFontObject("GameFontHighlight");
 
-        f.dataFrame.right = tk:PopFrame("Button", f.dataFrame);
-        f.dataFrame.right:SetSize(100, 20);
-        f.dataFrame.right:SetPoint("LEFT", f.dataFrame.center, "RIGHT", 20, 0);
-        f.dataFrame.right:SetNormalFontObject("GameFontHighlight");
+        display.dataFrame.right = tk:PopFrame("Button", display.dataFrame);
+        display.dataFrame.right:SetSize(100, 20);
+        display.dataFrame.right:SetPoint("LEFT", display.dataFrame.center, "RIGHT", 20, 0);
+        display.dataFrame.right:SetNormalFontObject("GameFontHighlight");
 
-        f.dataFrame.left:SetText(L["Whispers"]..": 0");
-        f.dataFrame.right:SetText(L["Guild Chat"]..": 0");
-        f.dataFrame.right.label = L["Guild Chat"]..": %u";
-        f.dataFrame.left.label = L["Whispers"]..": %u";
+        display.dataFrame.left:SetText(L["Whispers"]..": 0");
+        display.dataFrame.right:SetText(L["Guild Chat"]..": 0");
+        display.dataFrame.right.label = L["Guild Chat"]..": %u";
+        display.dataFrame.left.label = L["Whispers"]..": %u";
 
-        em:CreateEventHandler("CHAT_MSG_WHISPER", IncrementCounter).f = f.dataFrame.left;
-        em:CreateEventHandler("CHAT_MSG_BN_WHISPER", IncrementCounter).f = f.dataFrame.left;
-        em:CreateEventHandler("CHAT_MSG_GUILD", IncrementCounter).f = f.dataFrame.right;
+        em:CreateEventHandler("CHAT_MSG_WHISPER", IncrementCounter).f = display.dataFrame.left;
+        em:CreateEventHandler("CHAT_MSG_BN_WHISPER", IncrementCounter).f = display.dataFrame.left;
+        em:CreateEventHandler("CHAT_MSG_GUILD", IncrementCounter).f = display.dataFrame.right;
 
-        return f;
+        return display;
     end
 end
 
@@ -522,7 +530,7 @@ function C_AfkDisplayModule:OnEnable(data)
                 return;
             end
 
-            self:SetShown(_G.UnitIsAFK(unitID));
+            self:SetShown(UnitIsAFK(unitID));
         end);
 
         em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
@@ -532,7 +540,9 @@ function C_AfkDisplayModule:OnEnable(data)
 end
 
 function C_AfkDisplayModule:SetShown(data, show)
-    if (tk.InCombatLockdown() or (_G.AuctionFrame and _G.AuctionFrame:IsVisible())) then
+    if (InCombatLockdown() or (_G.AuctionFrame and _G.AuctionFrame:IsVisible())) then
+        -- Do not show AFK Display (even if player is AFK)
+        -- if player is using the Auction house or player is in combat
         if (Private.display) then
             Private.display:Hide();
         end
@@ -541,8 +551,9 @@ function C_AfkDisplayModule:SetShown(data, show)
     end
 
     if (show) then
-        tk.UIParent:Hide();
-        _G.MoveViewLeftStart(0.01);
+        -- Hide UIParent and show AFK Display
+        UIParent:Hide();
+        MoveViewLeftStart(0.01);
 
         if (not Private.display) then
             Private.display = Private:CreateDisplay();
@@ -553,15 +564,16 @@ function C_AfkDisplayModule:SetShown(data, show)
         end
 
         Private.display:Show();
-        PositionModel(Private.display.modelFrame.model);
+        Private:PositionModel();
         Private:ResetDataText();
         Private:StartTimer();
     else
-        _G.UIParent:Show();
+        -- Hide AFK Display and show UIParent
+        UIParent:Show();
 
         if (data.settings.rotateCamera) then
-            _G.MoveViewLeftStop();
-            _G.SetCVar("cameraView", "0"); -- to remove bug
+            MoveViewLeftStop();
+            SetCVar("cameraView", "0");
         end
 
         if (Private.display) then
