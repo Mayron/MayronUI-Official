@@ -26,23 +26,26 @@ db:AddToDefaults("global.afkDisplay", {
 function Private:StartTimer()
     if (Private.display:IsShown()) then
         Private.time = Private.time or 0;
+
         local time = string.format("%.2d:%.2d", (Private.time / 60) % 60, (Private.time % 60));
         Private.time = Private.time + 1;
         Private.display.time:SetText(time);
 
-        -- Update dataFrame:
-        --MUI_AFKFrame.dataFrame.CenterFrame.text:SetText(GameTime_GetTime(false))
         C_Timer.After(1, Private.StartTimer);
     end
 end
 
 function Private:ResetDataText()
     self.time = 0;
-    local f = self.display.dataFrame;
-    f.left.num = 0;
-    f.left:SetText(tk.string.format(f.left.label, f.left.num));
-    f.right.num = 0;
-    f.right:SetText(tk.string.format(f.right.label, f.right.num));
+    local dataFrame = self.display.dataFrame;
+
+    local leftText = string.format(dataFrame.left.label, dataFrame.left.num);
+    dataFrame.left.num = 0;
+    dataFrame.left:SetText(leftText);
+
+    local rightText = string.format(dataFrame.right.label, dataFrame.right.num);
+    dataFrame.right.num = 0;
+    dataFrame.right:SetText(rightText);
 end
 
 -- prevents cutting of models
@@ -319,24 +322,25 @@ function Private:PositionModel(hovering, falling)
 end
 
 function Private:StartFalling()
-    if (not Private.display.modelFrame) then
+    local modelFrame = Private.display.modelFrame;
+
+    if (not modelFrame) then
         return;
     end
 
-    local f = Private.display.modelFrame;
-    local p, rf, rp, x, y = f:GetPoint();
+    local point, relativeFrame, relativePoint, xOffset, yOffset = modelFrame:GetPoint();
 
-    if (y > Private.Y_POSITION) then
-        f:SetPoint(p, rf, rp, x, y - 10) -- 10 is the step value
+    if (yOffset > Private.Y_POSITION) then
+        modelFrame:SetPoint(point, relativeFrame, relativePoint, xOffset, yOffset - 10); -- 10 is the step value
         C_Timer.After(0.01, Private.StartFalling);
     else
-        if (y < Private.Y_POSITION) then
-            f:SetPoint(p, rf, rp, x, Private.Y_POSITION);
+        if (yOffset < Private.Y_POSITION) then
+            modelFrame:SetPoint(point, relativeFrame, relativePoint, xOffset, Private.Y_POSITION);
             Private:PositionModel(nil, true);
         end
 
-        f.model:SetAnimation(39);
-        f.model.dragging = nil;
+        modelFrame.model:SetAnimation(39);
+        modelFrame.model.dragging = nil;
     end
 end
 
