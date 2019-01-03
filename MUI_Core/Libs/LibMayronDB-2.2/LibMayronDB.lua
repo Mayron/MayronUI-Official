@@ -259,6 +259,13 @@ function Database:RegisterUpdateFunctions(data, path, updateFunctions, manualFun
     data.manualUpdateFunctions[path] = manualFunc;
 end
 
+Framework:DefineParams("string");
+Framework:DefineReturns("table|function");
+function Database:GetRegisteredUpdateFunctions(data, path)
+    return self:ParsePathValue(data.updateFunctions, path);
+end
+
+
 --[[
 Trigger an update function located by the path argument and pass any arguments to the function
 

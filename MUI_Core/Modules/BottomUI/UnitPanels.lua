@@ -1,4 +1,5 @@
--- luacheck: ignore MayronUI self 143 631
+-- luacheck: ignore self 143 631
+local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local Private = {};
 
@@ -264,8 +265,6 @@ function C_UnitPanels:OnDisable(data)
     data.left:Hide();
     data.right:Hide();
     data.center:Hide();
-
-    --    self:SetUnitNamesEnabled(false);
 end
 
 function C_UnitPanels:SetUnitNamesEnabled(data, enabled)

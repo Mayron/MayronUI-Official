@@ -1137,7 +1137,6 @@ function Core:GetController(proxyEntity, silent)
 end
 
 function Core:GetPrivateInstanceData(instance, instanceController)
-    
     instanceController = instanceController or self:GetController(instance);
     local data = instanceController.privateData;
 

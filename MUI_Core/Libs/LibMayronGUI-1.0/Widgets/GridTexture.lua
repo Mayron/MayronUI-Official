@@ -12,6 +12,18 @@ do
         end
     end
 
+    local function SetGridTexture(self, texture)
+        for _, key in ipairs(regions) do
+            self[key]:SetTexture(texture);
+        end
+    end
+
+    local function SetGridCornerSize(self, cornerSize)
+        for _, key in ipairs(regions) do
+            self[key]:SetSize(cornerSize, cornerSize);
+        end
+    end
+
     -- Places the borders of a texture into their own sections to ensure they do not stretch when the frame is resized.
     function Lib:CreateGridTexture(frame, texture, cornerSize, inset, originalTextureWidth, originalTextureHeight)
         local smallWidth = cornerSize / originalTextureWidth;
@@ -51,5 +63,7 @@ do
         frame.c:SetTexCoord(smallWidth, largeWidth, smallHeight, largeHeight);
 
         frame.SetGridColor = SetGridColor;
+        frame.SetGridTexture = SetGridTexture;
+        frame.SetGridCornerSize = SetGridCornerSize;
     end
 end

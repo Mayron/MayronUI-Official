@@ -249,7 +249,13 @@ end
 
 Engine:DefineReturns("?table", "?table");
 function BaseModule:GetUpdateFunctions(data)
-    return data.updateFunctions, data.settings;
+    local updateFunctions = data.updateFunctions;
+
+    if (data.updateFunctionsRootPath) then
+        updateFunctions = db:GetRegisteredUpdateFunctions(data.updateFunctionsRootPath);
+    end
+
+    return updateFunctions, data.settings;
 end
 
 -- MayronUI Functions ---------------------
