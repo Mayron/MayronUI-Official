@@ -1,11 +1,13 @@
 -- luacheck: ignore self 143
 local MayronUI = _G.MayronUI;
 local _, namespace = ...;
-local tk, db, em = MayronUI:GetCoreComponents();
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local ChatFrame1EditBox = _G.ChatFrame1EditBox;
 local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS;
 local hooksecurefunc, IsCombatLog = _G.hooksecurefunc, _G.IsCombatLog;
+
+-- TODO: Need to get the updated data.settings table from BaseModule somehow
 
 --------------------------
 -- Blizzard Globals
