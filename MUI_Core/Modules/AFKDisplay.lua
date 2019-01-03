@@ -265,59 +265,62 @@ Private.Races = { -- lower values = lower model
 ----------------------------
 -- Model Related Functions
 ----------------------------
-local Animator = {};
-function Animator:TransitionValue()
-    local _, _, yValue = Animator.model:GetPosition();
+do
+    local Animator = {};
 
-    if (Animator.step > 0) then
-        if (yValue >= Animator.endValue) then
-            Animator.model:SetPosition(-0.3, 0, Animator.endValue);
+    function Animator:TransitionValue()
+        local _, _, yValue = Animator.model:GetPosition();
+
+        if (Animator.step > 0) then
+            if (yValue >= Animator.endValue) then
+                Animator.model:SetPosition(-0.3, 0, Animator.endValue);
+                return;
+            end
+
+        else
+            if (yValue <= Animator.endValue) then
+                Animator.model:SetPosition(-0.3, 0, Animator.endValue);
+                return;
+            end
+        end
+
+        Animator.model:SetPosition(-0.3, 0, yValue + Animator.step);
+        C_Timer.After(0.01, Animator.TransitionValue);
+    end
+
+    function Private:PositionModel(hovering, falling)
+        local gender = UnitSex("player");
+        gender = (gender == 2) and "Male" or "Female";
+
+        local race = (select(2, UnitRace("player"))):gsub("%s+", "");
+        local tbl = Private.Races[race][gender];
+        local value = (hovering and tbl.hoverValue) or tbl.value;
+        local model = self.display.modelFrame.model;
+
+        model:SetPoint("BOTTOM");
+
+        if (not falling) then
+            model:SetPosition(-0.3, 0, value);
             return;
         end
 
-    else
-        if (yValue <= Animator.endValue) then
-            Animator.model:SetPosition(-0.3, 0, Animator.endValue);
-            return;
+        local _, _, yValue = model:GetPosition();
+        local difference = value - yValue;
+
+        Animator.endValue = value;
+        Animator.model = model;
+
+        if (difference > 0) then
+            Animator.step = 0.03;
+            C_Timer.After(0.01, Animator.TransitionValue);
+
+        elseif (difference < 0) then
+            Animator.step = -0.03;
+            C_Timer.After(0.01, Animator.TransitionValue);
+
+        else
+            model:SetPosition(-0.3, 0, value);
         end
-    end
-
-    Animator.model:SetPosition(-0.3, 0, yValue + Animator.step);
-    C_Timer.After(0.01, Animator.TransitionValue);
-end
-
-function Private:PositionModel(hovering, falling)
-    local gender = UnitSex("player");
-    gender = (gender == 2) and "Male" or "Female";
-
-    local race = (select(2, UnitRace("player"))):gsub("%s+", "");
-    local tbl = Private.Races[race][gender];
-    local value = (hovering and tbl.hoverValue) or tbl.value;
-    local model = self.display.modelFrame.model;
-
-    model:SetPoint("BOTTOM");
-
-    if (not falling) then
-        model:SetPosition(-0.3, 0, value);
-        return;
-    end
-
-    local _, _, yValue = model:GetPosition();
-    local difference = value - yValue;
-
-    Animator.endValue = value;
-    Animator.model = model;
-
-    if (difference > 0) then
-        Animator.step = 0.03;
-        C_Timer.After(0.01, Animator.TransitionValue);
-
-    elseif (difference < 0) then
-        Animator.step = -0.03;
-        C_Timer.After(0.01, Animator.TransitionValue);
-
-    else
-        model:SetPosition(-0.3, 0, value);
     end
 end
 
@@ -373,6 +376,7 @@ function Private:StartRotating()
                 Private.display.name:SetPoint("TOPRIGHT", -100, -14);
             end
         end
+
         C_Timer.After(0.01, Private.StartRotating);
     end
 end
@@ -381,25 +385,25 @@ function Private:CreatePlayerModel()
     local scale = db.global.afkDisplay.modelScale;
     Private.Y_POSITION = 100;
 
-    local f = CreateFrame("Frame", nil, self.display);
-    f:SetSize(200, 500 * scale);
-    f:SetPoint("BOTTOMLEFT", self.display, "BOTTOMLEFT", 100, Private.Y_POSITION)
-    tk:MakeMovable(f);
+    local modelFrame = CreateFrame("Frame", nil, self.display);
+    modelFrame:SetSize(200, 500 * scale);
+    modelFrame:SetPoint("BOTTOMLEFT", self.display, "BOTTOMLEFT", 100, Private.Y_POSITION);
+    tk:MakeMovable(modelFrame);
 
-    f.model = CreateFrame("PlayerModel", nil, f);
-    f.model:SetSize(600 * scale, 700 * scale);
-    f.model:SetUnit("player");
-    f.model:SetFacing(0.4);
+    modelFrame.model = CreateFrame("PlayerModel", nil, modelFrame);
+    modelFrame.model:SetSize(600 * scale, 700 * scale);
+    modelFrame.model:SetUnit("player");
+    modelFrame.model:SetFacing(0.4);
 
-    f:SetScript("OnMouseUp", function(self)
+    modelFrame:SetScript("OnMouseUp", function(self)
         self.model:SetAnimation(8);
-    end)
+    end);
 
-    f:SetScript("OnEnter", function()
+    modelFrame:SetScript("OnEnter", function()
         SetCursor("Interface\\CURSOR\\UI-Cursor-Move.blp");
     end)
 
-    f.model:SetScript("OnAnimFinished", function(self)
+    modelFrame.model:SetScript("OnAnimFinished", function(self)
         if (self.dragging) then
             self:SetAnimation(38);
         else
@@ -407,7 +411,7 @@ function Private:CreatePlayerModel()
         end
     end)
 
-    f:HookScript("OnDragStart", function(self)
+    modelFrame:HookScript("OnDragStart", function(self)
         self:SetClampedToScreen(true);
         self.model.dragging = true;
         self.model:SetAnimation(38);
@@ -415,16 +419,17 @@ function Private:CreatePlayerModel()
         Private:StartRotating();
     end)
 
-    f:HookScript("OnDragStop", function(self)
+    modelFrame:HookScript("OnDragStop", function(self)
         self:SetClampedToScreen(false) -- so it can fall lower off the screen
-        local left = self:GetLeft()
-        local bottom = self:GetBottom()
-        self:ClearAllPoints()
-        self:SetPoint("BOTTOMLEFT", Private.display, "BOTTOMLEFT", left, bottom)
+        local left = self:GetLeft();
+        local bottom = self:GetBottom();
+
+        self:ClearAllPoints();
+        self:SetPoint("BOTTOMLEFT", Private.display, "BOTTOMLEFT", left, bottom);
         Private:StartFalling();
     end);
 
-    return f;
+    return modelFrame;
 end
 
 do
@@ -438,7 +443,7 @@ do
             return self.display;
         end
 
-        local display = CreateFrame("Frame", "MUI_AFKFrame", WorldFrame);
+        local display = CreateFrame("Frame", "MUI_AFKDisplayFrame", WorldFrame);
         display:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, -100);
         display:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, -100);
         display:SetHeight(150);
@@ -462,7 +467,7 @@ do
         if (GetSpecialization()) then
             specType = (select(2, GetSpecializationInfo(GetSpecialization()))).." ";
         else
-            specType = "";
+            specType = tk.Strings.Empty;
         end
 
         local name = tk.Strings:Concat(UnitPVPName("player"), " - ",
