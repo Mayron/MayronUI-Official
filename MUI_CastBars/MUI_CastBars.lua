@@ -2,7 +2,7 @@
 local _, namespace = ...;
 namespace.bars = {};
 
-local tk, db, _, _, obj = MayronUI:GetCoreComponents();
+local tk, db, _, _, obj = MayronUI:GetAllComponents();
 local appearance;
 local GetSpellInfo = _G.GetSpellInfo;
 

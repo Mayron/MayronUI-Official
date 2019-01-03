@@ -1,6 +1,6 @@
 -- luacheck: ignore MayronUI self 143
 local _, namespace = ...;
-local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
+local tk, db, _, _, obj, L = MayronUI:GetAllComponents();
 
 local C_ChatModule = namespace.C_ChatModule;
 

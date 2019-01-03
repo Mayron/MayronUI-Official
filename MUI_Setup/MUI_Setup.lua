@@ -2,7 +2,7 @@
 local _, namespace = ...;
 namespace.import = {};
 
-local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
+local tk, db, _, gui, obj, L = MayronUI:GetAllComponents();
 local Private = {};
 
 -- Setup Objects -------------------------

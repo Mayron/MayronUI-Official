@@ -1,6 +1,6 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local tk, db, em, gui, obj, L = MayronUI:GetAllComponents(); -- luacheck: ignore
 local Private = {};
 
 local CreateFrame, InCombatLockdown, PlaySound = _G.CreateFrame, _G.InCombatLockdown, _G.PlaySound;

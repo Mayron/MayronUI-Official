@@ -1,6 +1,6 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
-local tk, db, em, gui, obj = MayronUI:GetCoreComponents();
+local tk, db, em, gui, obj = MayronUI:GetAllComponents();
 
 namespace.dataTextLabels = {
     -- svName = Label

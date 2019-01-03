@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143
 -- Setup namespaces ------------------
 local _, namespace = ...;
-local tk, db, em = MayronUI:GetCoreComponents();
+local tk, db, em = MayronUI:GetAllComponents();
 
 -- Register and Import ---------
 

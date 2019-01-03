@@ -1,6 +1,6 @@
 -- luacheck: ignore MayronUI self 143
 local _, namespace = ...;
-local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
+local tk, db, _, gui, obj, L = MayronUI:GetAllComponents();
 
 local MENU_BUTTON_HEIGHT = 40;
 

@@ -1,20 +1,33 @@
 -- luacheck: ignore MayronUI LibStub self 143 631
 local addOnName, namespace = ...;
 
-namespace.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
-namespace.EventManager = LibStub:GetLibrary("LibMayronEvents");
-namespace.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
-namespace.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
-
 MayronUI = {};
 
-local db = namespace.Database;
-local em = namespace.EventManager;
-local tk = namespace.Toolkit; -- initialized in Toolkit/Other.lua
-local gui = namespace.GUIBuilder;
-local obj = namespace.Objects; -- initialized in Toolkit/Other.lua
-local L = namespace.Locale;
+namespace.components = {
+    Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
+    EventManager = LibStub:GetLibrary("LibMayronEvents");
+    GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
+    Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
+};
 
+function MayronUI:GetAllComponents()
+    return _G.unpack(namespace.components);
+end
+
+function MayronUI:GetComponent(componentName)
+    return namespace.components[componentName];
+end
+
+function MayronUI:AddComponent(componentName, component)
+    namespace.components[componentName] = component;
+    table.insert(namespace.components, component);
+end
+
+for _, component in pairs(namespace.components) do
+    table.insert(namespace.components, component);
+end
+
+local tk, db, em, gui, obj, L = MayronUI:GetAllComponents();
 local registeredModules = {};
 
 -- Objects  ---------------------------
@@ -270,10 +283,6 @@ end
 
 function MayronUI:IsInstalled()
 	return db.global.installed and db.global.installed[tk:GetPlayerKey()];
-end
-
-function MayronUI:GetCoreComponents()
-    return tk, db, em, gui, obj, L;
 end
 
 function MayronUI:TriggerCommand(commandName, ...)

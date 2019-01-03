@@ -2,7 +2,7 @@
 
 local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
-local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
+local tk, _, em, _, _, L = MayronUI:GetAllComponents();
 
 namespace.ButtonNames = {
     L["Character"],

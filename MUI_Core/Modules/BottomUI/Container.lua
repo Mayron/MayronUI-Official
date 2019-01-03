@@ -1,6 +1,6 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local tk, db, em, gui, obj, L = MayronUI:GetAllComponents(); -- luacheck: ignore
 local _, namespace = ...;
 
 local TalkingHeadFrame, C_PetBattles = _G.TalkingHeadFrame, _G.C_PetBattles;

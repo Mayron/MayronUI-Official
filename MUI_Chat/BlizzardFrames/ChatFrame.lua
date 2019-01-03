@@ -4,7 +4,7 @@
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
-local tk = MayronUI:GetCoreComponents();
+local tk = MayronUI:GetAllComponents();
 --------------------------------------
 
 local function GetChatLink(text, id, url)
