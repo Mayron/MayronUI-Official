@@ -15,10 +15,10 @@ local C_AfkDisplayModule = MayronUI:RegisterModule("AfkDisplay", "AFK Display");
 -- Add Database Defaults ------
 
 db:AddToDefaults("global.afkDisplay", {
-    enabled = true,
-    rotateCamera = true,
-    playerModel = true,
-    modelScale = 1,
+    enabled       = true;
+    rotateCamera  = true;
+    playerModel   = true;
+    modelScale    = 1;
 });
 
 -- Private functions ---------
