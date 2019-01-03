@@ -314,7 +314,7 @@ local function Interfaces_Test3() -- luacheck: ignore
     TestPackage:DefineParams("string"); -- attempt to redefine - should not be allowed!
     function DummyClass:DoSomething() end
 
-    assert(lib:GetNumErrors() == 1); -- TODO: PROBLEM!
+    assert(lib:GetNumErrors() == 1);
     lib:FlushErrorLog();
     lib:SetSilentErrors(false);
 
@@ -484,8 +484,9 @@ local function DefineProperty_Test1() -- luacheck: ignore
 
     local TestPackage = lib:CreatePackage("DefineProperty_Test1", "Test");
 
-    local IDummyClass = TestPackage:CreateInterface("IDummyClass");
-    IDummyClass:DefineProperty("MyBoolean", "boolean");
+    local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
+        MyBoolean = "boolean";
+    });
 
     local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyClass);
 
@@ -504,8 +505,9 @@ local function DefineProperty_Test2() -- luacheck: ignore
 
     local TestPackage = lib:CreatePackage("DefineProperty_Test2", "Test");
 
-    local IDummyClass = TestPackage:CreateInterface("IDummyClass");
-    IDummyClass:DefineProperty("MyBoolean", "boolean");
+    local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
+        MyBoolean = "boolean";
+    });
 
     local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyClass);
 
@@ -524,8 +526,9 @@ local function DefineProperty_Test3() -- luacheck: ignore
 
     local TestPackage = lib:CreatePackage("DefineProperty_Test3", "Test");
 
-    local IDummyClass = TestPackage:CreateInterface("IDummyClass");
-    IDummyClass:DefineProperty("MyBoolean", "boolean");
+    local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
+        MyBoolean = "boolean";
+    });
 
     local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyClass);
 
@@ -549,8 +552,9 @@ local function DefineProperty_Test4() -- luacheck: ignore
 
     local TestPackage = lib:CreatePackage("DefineProperty_Test4", "Test");
 
-    local IDummyClass = TestPackage:CreateInterface("IDummyClass");
-    IDummyClass:DefineProperty("MyBoolean", "?boolean");
+    local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
+        MyBoolean = "?boolean";
+    });
 
     local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyClass);
 
@@ -564,8 +568,9 @@ local function DefineProperty_Test5() -- luacheck: ignore
 
     local TestPackage = lib:CreatePackage("DefineProperty_Test5", "Test");
 
-    local IDummyClass = TestPackage:CreateInterface("IDummyClass");
-    IDummyClass:DefineProperty("MyBoolean", "?boolean");
+    local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
+        MyBoolean = "?boolean";
+    });
 
     local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyClass);
 
@@ -589,8 +594,9 @@ local function DefineProperty_Test6() -- luacheck: ignore
 
     local TestPackage = lib:CreatePackage("DefineProperty_Test6", "Test");
 
-    local IDummyClass = TestPackage:CreateInterface("IDummyClass");
-    IDummyClass:DefineProperty("MyBoolean", "boolean");
+    local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
+        MyBoolean = "boolean";
+    });
 
     local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyClass);
 
@@ -608,6 +614,30 @@ local function DefineProperty_Test6() -- luacheck: ignore
     lib:SetSilentErrors(false);
 
     print("DefineProperty_Test6 Successful!");
+end
+
+local function Get_DefinedProperty_After_Setting_Test1() -- luacheck: ignore
+    print("Get_DefinedProperty_After_Setting_Test1 Started");
+
+    local TestPackage = lib:CreatePackage("Get_DefinedProperty_After_Setting_Test1", "Test");
+
+    local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
+        MyString = "string";
+    });
+
+    local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyClass);
+
+    function DummyClass:__Construct()
+        self.MyString = "test value";
+
+		local value = self.MyString;
+		assert(value == "test value");
+    end
+
+    local dummyClassInstance = DummyClass();
+	assert(dummyClassInstance.MyString == "test value");
+
+    print("Get_DefinedProperty_After_Setting_Test1 Successful!");
 end
 
 local function GenericClasses_Test1()  -- luacheck: ignore
@@ -687,29 +717,6 @@ local function GenericClasses_Test4() -- luacheck: ignore
     print("GenericClasses_Test4 Successful!");
 end
 
-local function Get_DefinedProperty_After_Setting_Test1() -- luacheck: ignore
-    print("Get_DefinedProperty_After_Setting_Test1 Started");
-
-    local TestPackage = lib:CreatePackage("Get_DefinedProperty_After_Setting_Test1", "Test");
-
-    local IDummyClass = TestPackage:CreateInterface("IDummyClass");
-    IDummyClass:DefineProperty("MyString", "string");
-
-    local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyClass);
-
-    function DummyClass:__Construct()
-        self.MyString = "test value";
-
-		local value = self.MyString;
-		assert(value == "test value");
-    end
-
-    local dummyClassInstance = DummyClass();
-	assert(dummyClassInstance.MyString == "test value");
-
-    print("Get_DefinedProperty_After_Setting_Test1 Successful!");
-end
-
 local function GetObjectType_In_Constructor_Test1() -- luacheck: ignore
     print("GetObjectType_In_Constructor_Test1 Started");
 
@@ -765,18 +772,17 @@ end
 -- UsingParent_Test1();
 -- SubPackages_Test1();
 -- Inheritance_Test2();
-
 -- Interfaces_Test1();
 -- Interfaces_Test2();
-Interfaces_Test3();
+-- Interfaces_Test3();
 
 -- DefineProperty_Test1();
 -- DefineProperty_Test2();
 -- DefineProperty_Test3();
 -- DefineProperty_Test4();
 -- DefineProperty_Test5();
--- DefineProperty_Test6();
--- Get_DefinedProperty_After_Setting_Test1();
+DefineProperty_Test6();
+Get_DefinedProperty_After_Setting_Test1();
 
 -- GenericClasses_Test1();
 -- GenericClasses_Test2();

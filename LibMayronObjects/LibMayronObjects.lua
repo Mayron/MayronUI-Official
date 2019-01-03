@@ -772,7 +772,7 @@ do
 
         -- if reassigning an instance property, should check that new value is valid
         if (instanceController.isConstructed and Lib:IsTable(classController.interfaces)) then
-            Core:ValidateImplementedProperties(instance, classController.interfaces, classController.objectName);
+            Core:ValidateImplementedInterfaces(instance, classController.interfaces, classController.objectName);
         end
 
         if (classController.indexChangedCallback) then
@@ -849,7 +849,7 @@ do
             end
 
             if (Lib:IsTable(classController.interfaces)) then
-                Core:ValidateImplementedProperties(instance, classController);
+                Core:ValidateImplementedInterfaces(instance, classController);
             end
         end
 
@@ -933,57 +933,55 @@ end
 -- Attempt to add definitions for new function Index (params and returns)
 --@param controller - an instance or class controller
 --@param newFuncKey - the new key being indexed into Class (pointing to a function value)
-function Core:AttachFunctionDefinition(controller, newFuncKey)
+function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
     if (not controller.packageData or controller.objectName == "Package") then
         return;
     end
 
     -- temporary definition info (received from DefineParams and DefineReturns function calls)
-    local paramDefs = controller.packageData.tempParamDefs;
-    local returnDefs = controller.packageData.tempReturnDefs;
-
-    if (not paramDefs and not returnDefs) then
-        return;
-    end
-
-    if (controller.isClass and Lib:IsTable(controller.interfaces)) then
-        local interfaceController;
-
-        -- check if user is trying to redefine interface function (not allowed)
-        for _, interface in ipairs(controller.interfaces) do
-            interfaceController = self:GetController(interface);
-
-            if (interfaceController.definition) then
-                print(newFuncKey);
-                self:Assert(not interfaceController.definition[newFuncKey],
-                    "%s cannot redefine interface function '%s'", controller.objectName, newFuncKey);
-            end
-        end
-    end
+    local tempParamDefs = controller.packageData.tempParamDefs;
+    local tempReturnDefs = controller.packageData.tempReturnDefs;
 
     -- holds definition for the new function
     local funcDefinition;
 
-    if (paramDefs and #paramDefs > 0) then
+    if (tempParamDefs and #tempParamDefs > 0) then
         funcDefinition = Lib:PopWrapper();
-        funcDefinition.paramDefs = Core:CopyTableValues(paramDefs);
+        funcDefinition.paramDefs = Core:CopyTableValues(tempParamDefs);
+        Lib:PushWrapper(tempParamDefs);
     end
 
-    if (returnDefs and #returnDefs > 0) then
+    if (tempReturnDefs and #tempReturnDefs > 0) then
         funcDefinition = funcDefinition or Lib:PopWrapper();
-        funcDefinition.returnDefs = Core:CopyTableValues(returnDefs);
+        funcDefinition.returnDefs = Core:CopyTableValues(tempReturnDefs);
+        Lib:PushWrapper(tempReturnDefs);
     end
 
     -- remove temporary definitions once implemented
-    Lib:PushWrapper(paramDefs);
-    Lib:PushWrapper(returnDefs);
     controller.packageData.tempParamDefs = nil;
     controller.packageData.tempReturnDefs = nil;
 
-    self:Assert(not controller.definitions[newFuncKey],
-        "%s.%s Definition already exists.", controller.objectName, newFuncKey);
+    if (fromInterface) then
+        controller.interfaceDefinitions = controller.interfaceDefinitions or Lib:PopWrapper();
 
-    controller.definitions[newFuncKey] = funcDefinition;
+        self:Assert(not controller.definitions[newFuncKey],
+            "%s found multiple definitions for interface function '%s'.", controller.objectName, newFuncKey);
+
+        controller.interfaceDefinitions[newFuncKey] = funcDefinition;
+    else
+        self:Assert(not controller.definitions[newFuncKey],
+            "%s cannot redefine function '%s'.", controller.objectName, newFuncKey);
+
+        if (Lib:IsTable(controller.interfaceDefinitions)) then
+
+            if (controller.interfaceDefinitions[newFuncKey]) then
+                self:Assert(not funcDefinition, "%s cannot redefine interface function '%s'.", controller.objectName, newFuncKey);
+                controller.interfaceDefinitions[newFuncKey] = nil;
+            end
+        end
+
+        controller.definitions[newFuncKey] = funcDefinition;
+    end
 end
 
 function Core:SetInterfaces(classController, ...)
@@ -994,54 +992,63 @@ function Core:SetInterfaces(classController, ...)
 
         local interfaceController = self:GetController(interface);
 
-        if (interfaceController and interfaceController.isInterface) then
-            classController.interfaces = classController.interfaces or Lib:PopWrapper();
-            table.insert(classController.interfaces, interface);
-        else
-            self:Error("Core.SetInterfaces: bad argument #%d (invalid interface)", id);
-        end
+        self:Assert(interfaceController and interfaceController.isInterface,
+            "Core.SetInterfaces: bad argument #%d (invalid interface)", id);
 
         if (Lib:IsTable(interfaceController.definition)) then
-            -- Move interface definition into class
+            -- Copy interface definition into class
             for key, definition in pairs(interfaceController.definition) do
                 if (Lib:IsString(definition)) then
                     if (definition == functionType) then
                         -- a function with no defined params nor return types
-                        self:AttachFunctionDefinition(classController, key);
+                        classController.interfaceDefinitions = classController.interfaceDefinitions or Lib:PopWrapper();
+                        classController.interfaceDefinitions[key] = true;
                     else
                         classController.propertyDefinitions = classController.propertyDefinitions or Lib:PopWrapper();
                         classController.propertyDefinitions[key] = definition;
                     end
 
                 elseif (Lib:IsTable(definition) and definition.type == functionType) then
-                    local paramDefs = Core:CopyTableValues(definition.params);
-                    local returnDefs = Core:CopyTableValues(definition.returns);
+                    if (Lib:IsTable(definition.params)) then
+                        local paramDefs = Core:CopyTableValues(definition.params);
+                        classController.package:DefineParams(paramDefs);
+                    end
 
-                    classController.package:DefineParams(paramDefs);
-                    classController.package:DefineReturns(returnDefs);
+                    if (Lib:IsTable(definition.returns)) then
+                        local returnDefs = Core:CopyTableValues(definition.returns);
+                        classController.package:DefineReturns(returnDefs);
+                    end
 
-                    self:AttachFunctionDefinition(classController, key);
+                    self:AttachFunctionDefinition(classController, key, true);
                 end
             end
         end
+
+        -- Add interface to class only after definition has been copied to class (else it will think
+        -- that we are trying to redefine an interface definition and will error).
+        classController.interfaces = classController.interfaces or Lib:PopWrapper();
+        table.insert(classController.interfaces, interface);
     end
 end
 
-local invalidClassValueErrorMessage = "Class '%s' does not implement interface function '%s'.";
-function Core:InheritFunctions(instance, definitions, classController)
-    for funcKey, funcDefinition in pairs(classController.definitions) do
-        local implementedFunc = classController.class[funcKey];
+do
+    local invalidClassValueErrorMessage = "Class '%s' does not implement interface function '%s'.";
 
-        Core:Assert(Lib:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
+    function Core:InheritFunctions(instance, definitions, classController)
+        for funcKey, funcDefinition in pairs(classController.definitions) do
+            local implementedFunc = classController.class[funcKey];
 
-        -- copy function references with definitions
-        instance[funcKey] = implementedFunc;
-        definitions[funcKey] = funcDefinition;
-    end
+            Core:Assert(Lib:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
 
-    if (classController.parentClass) then
-        local parentClassController = self:GetController(classController.parentClass);
-        self:InheritFunctions(instance, definitions, parentClassController);
+            -- copy function references with definitions
+            instance[funcKey] = implementedFunc;
+            definitions[funcKey] = funcDefinition;
+        end
+
+        if (classController.parentClass) then
+            local parentClassController = self:GetController(classController.parentClass);
+            self:InheritFunctions(instance, definitions, parentClassController);
+        end
     end
 end
 
@@ -1062,9 +1069,7 @@ end
 
 function Core:IsStringNilOrWhiteSpace(strValue)
     if (strValue) then
-        Core:Assert(Lib:IsString(strValue),
-            "Core.IsStringNilOrWhiteSpace - bad argument #1 (string expected, got %s)", type(strValue));
-
+        Core:Assert(Lib:IsString(strValue), "Core.IsStringNilOrWhiteSpace - bad argument #1 (string expected, got %s)", type(strValue));
         strValue = strValue:gsub("%s+", "");
 
         if (#strValue > 0) then
@@ -1083,7 +1088,6 @@ function Core:SetParentClass(classController, parentClass)
 
 		elseif (Lib:IsTable(parentClass) and parentClass.Static) then
             classController.parentClass = parentClass;
-
 		end
 
         self:Assert(classController.parentClass, "Core.SetParentClass - bad argument #2 (invalid parent class).");
@@ -1139,17 +1143,24 @@ function Core:GetPrivateInstanceData(instance, instanceController)
 end
 
 -- Call this after using the constructor to make sure properties have been implemented
-function Core:ValidateImplementedProperties(instance, classController)
+function Core:ValidateImplementedInterfaces(instance, classController)
+    if (Lib:IsTable(classController.interfaceDefinitions)) then
+        for funcName, _ in pairs(classController.interfaceDefinitions) do
+            self:Assert(classController.interfaceDefinitions == nil,
+                "%s is missing an implementation for interface function '%s'.", classController.objectName, funcName);
+        end
+
+        classController.interfaceDefinitions = nil; -- no longer needed
+    end
+
     if (not Lib:IsTable(classController.propertyDefinitions)) then
         return;
     end
 
-    local errorFound;
-    local errorMessage;
-    local realValue;
-    local message = string.format("bad property value '%s.##'", classController.EntityName);
+    local errorFound, errorMessage, realValue;
+    local message = string.format("bad property value '%s.##'", classController.objectName);
 
-    for propertyName, propertyType in ipairs(classController.propertyDefinitions) do
+    for propertyName, propertyType in pairs(classController.propertyDefinitions) do
         realValue = instance[propertyName];
 
         if (propertyType:find("^?")) then
@@ -1157,6 +1168,9 @@ function Core:ValidateImplementedProperties(instance, classController)
             propertyType = propertyType:sub(2, #propertyType);
             errorFound = (realValue ~= nil) and (propertyType ~= "any" and not self:IsMatchingType(realValue, propertyType));
         else
+            print(propertyName);
+            print(propertyType);
+            print(realValue); -- this is true (should be the actual value!)
             errorFound = (realValue == nil) or (propertyType ~= "any" and not self:IsMatchingType(realValue, propertyType));
         end
 
@@ -1236,39 +1250,17 @@ do
     local returnErrorMessage = "bad return value ## to '%s.%s'";
     local paramErrorMessage = "bad argument ## to '%s.%s'";
 
-    local function GetFunctionDefinitionFromInterface(interfaces, funcKey)
-        local interfaceController;
-
-        for _, interface in ipairs(interfaces) do
-            interfaceController = Core:GetController(interface);
-
-            if (Lib:IsTable(interfaceController.definition)) then
-                for key, interfaceFuncDef in pairs(interfaceController.definition) do
-                    if (key == funcKey) then
-                        -- use the first matching function definition (should not be more than 1)
-                        return interfaceFuncDef;
-                    end
-                end
-            end
-        end
-    end
-
     function Core:GetParamsDefinition(proxyObject)
         local funcDef = proxyObject.controller.definitions[proxyObject.key];
 
-        if (not (funcDef or proxyObject.controller.interfaces)) then
-            return;
-        end
-
         if (not funcDef) then
-            funcDef = GetFunctionDefinitionFromInterface(proxyObject.controller.interfaces, proxyObject.key);
+            return;
         end
 
         local paramDefs = funcDef and funcDef.paramDefs;
 
         if (paramDefs and proxyObject.controller.isGenericType) then
             paramDefs = self:ReplaceGenericTypes(proxyObject.controller, proxyObject.self, paramDefs);
-            Lib:PrintTable(proxyObject.controller);
         end
 
         if (not paramDefs) then
@@ -1283,8 +1275,8 @@ do
     function Core:GetReturnsDefinition(proxyObject)
         local funcDef = proxyObject.controller.definitions[proxyObject.key];
 
-        if (not funcDef and proxyObject.controller.interfaces) then
-            funcDef = GetFunctionDefinitionFromInterface(proxyObject.controller.interfaces, proxyObject.key);
+        if (not funcDef) then
+            return;
         end
 
         local returnDefs = funcDef and funcDef.returnDefs;
@@ -1479,11 +1471,11 @@ function Package:CreateClass(data, className, parentClass, ...)
     return class;
 end
 
-function Package:CreateInterface(data, interfaceName)
+function Package:CreateInterface(data, interfaceName, interfaceDefinition)
     Core:Assert(not data.entities[interfaceName],
         "Entity '%s' already exists in this package.", interfaceName);
 
-    local interface = Core:CreateInterface(data, interfaceName);
+    local interface = Core:CreateInterface(data, interfaceName, interfaceDefinition);
     data.entities[interfaceName] = interface;
     self[interfaceName] = interface;
 
