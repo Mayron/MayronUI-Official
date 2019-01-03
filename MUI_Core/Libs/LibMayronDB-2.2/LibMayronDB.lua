@@ -261,10 +261,9 @@ end
 
 Framework:DefineParams("string");
 Framework:DefineReturns("table|function");
-function Database:GetRegisteredUpdateFunctions(data, path)
+function Database:GetUpdateFunctions(data, path)
     return self:ParsePathValue(data.updateFunctions, path);
 end
-
 
 --[[
 Trigger an update function located by the path argument and pass any arguments to the function

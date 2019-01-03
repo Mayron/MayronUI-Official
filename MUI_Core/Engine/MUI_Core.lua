@@ -174,7 +174,7 @@ function BaseModule:__Construct(data, moduleKey, moduleName, initializeOnDemand)
     registryInfo.moduleData = data;
 end
 
-function BaseModule:Initialize(_, ...)
+function BaseModule:Initialize(data, ...)
     if (self.OnInitialize) then
         self:OnInitialize(...);
     end
@@ -182,10 +182,13 @@ function BaseModule:Initialize(_, ...)
     local registryInfo = registeredModules[tostring(self)];
     registryInfo.initialized = true;
 
-    local functionsTable, settingsTable = self:GetUpdateFunctions();
-
-    if (functionsTable ~= nil and settingsTable ~= nil) then
-        ExecuteAllUpdateFunctions(functionsTable, settingsTable);
+    -- execute all update functions
+    if (obj:IsTable(data.updateFunctionPaths)) then
+        for  _, path in ipairs(data.updateFunctionPaths) do
+            local functionsTable = db:GetUpdateFunctions(path);
+            local settingsTable = db:ParsePathValue(path):GetuntrackedTable();
+            ExecuteAllUpdateFunctions(functionsTable, settingsTable);
+        end
     end
 
     -- Call any other functions attached to this modules OnInitialize event
@@ -260,15 +263,16 @@ function BaseModule:Hook(_, eventName, func)
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
-Engine:DefineReturns("?table", "?table");
-function BaseModule:GetUpdateFunctions(data)
-    local updateFunctions = data.updateFunctions;
+Engine:DefineReturns("string", "table|function");
+function BaseModule:RegisterUpdateFunctions(data, path, updateFunctions)
+    data.updateFunctionPaths = data.updateFunctionPaths or obj:PopWrapper();
+    table.insert(data.updateFunctionPaths, path);
 
-    if (data.updateFunctionsRootPath) then
-        updateFunctions = db:GetRegisteredUpdateFunctions(data.updateFunctionsRootPath);
-    end
-
-    return updateFunctions, data.settings;
+    db:RegisterUpdateFunctions(path, updateFunctions, function(func, value)
+        if (self:IsEnabled() or func == data.updateFunctions.enabled) then
+            func(value);
+        end
+    end);
 end
 
 -- MayronUI Functions ---------------------

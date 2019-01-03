@@ -29,28 +29,28 @@ namespace.C_DataTextModule = C_DataTextModule;
 -- Load Database Defaults --------------
 
 db:AddToDefaults("profile.datatext", {
-    enabled = true,
-    frameStrata = "MEDIUM",
-    frameLevel = 20,
-    height = 24, -- height of data bar (width is the size of bottomUI container!)
-    spacing = 1,
-    fontSize = 11,
-    blockInCombat = true,
+    enabled       = true;
+    frameStrata   = "MEDIUM";
+    frameLevel    = 20,
+    height        = 24; -- height of data bar (width is the size of bottomUI container!)
+    spacing       = 1;
+    fontSize      = 11;
+    blockInCombat = true;
 	popup = {
-		hideInCombat = true,
-		maxHeight = 250,
-		width = 200,
-		itemHeight = 26 -- the height of each list item in the popup menu
-    },
+		hideInCombat = true;
+		maxHeight    = 250;
+		width        = 200;
+		itemHeight   = 26; -- the height of each list item in the popup menu
+    };
     displayOrders = {
-        "durability",
-        "friends",
-        "guild",
-        "inventory",
-        "memory",
-        "performance",
-        "specialization",
-    }
+        "durability";
+        "friends";
+        "guild";
+        "inventory";
+        "memory";
+        "performance";
+        "specialization";
+    };
 });
 
 -- IDataTextModule ------------------------------
@@ -76,15 +76,37 @@ Engine:CreateInterface("IDataTextModule", {
 -- C_DataTextModule Functions -------------------
 
 function C_DataTextModule:OnInitialize(data)
-    data.settings = db.profile.datatext:GetUntrackedTable(); -- a non-database table containing database settings
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
     data.lastButtonClicked = ""; -- last data text button clicked on
     data.DataModules = obj:PopWrapper(); -- holds all data text modules
+    data.settings = db.profile.datatext:GetUntrackedTable(); -- a non-database table containing database settings
 
-    if (data.settings.enabled) then
-        self:SetEnabled(true);
-    end
+
+    self:RegisterUpdateFunctions("profile.unitPanels", {
+        enabled       = true;
+        frameStrata   = "MEDIUM";
+        frameLevel    = 20,
+        height        = 24; -- height of data bar (width is the size of bottomUI container!)
+        spacing       = 1;
+        fontSize      = 11;
+        blockInCombat = true;
+        popup = {
+            hideInCombat = true;
+            maxHeight    = 250;
+            width        = 200;
+            itemHeight   = 26; -- the height of each list item in the popup menu
+        };
+        displayOrders = {
+            "durability";
+            "friends";
+            "guild";
+            "inventory";
+            "memory";
+            "performance";
+            "specialization";
+        };
+    });
 end
 
 function C_DataTextModule:OnEnable(data)

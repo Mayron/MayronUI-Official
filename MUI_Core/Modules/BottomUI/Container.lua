@@ -1,7 +1,6 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetAllComponents(); -- luacheck: ignore
-local _, namespace = ...;
 
 local TalkingHeadFrame, C_PetBattles = _G.TalkingHeadFrame, _G.C_PetBattles;
 local IsAddOnLoaded, CreateFrame, UIParent = _G.IsAddOnLoaded, _G.CreateFrame, _G.UIParent;
@@ -23,14 +22,9 @@ function C_Container:OnInitialize(data)
         return;
     end
 
-    db = namespace.Database; -- TODO: is this needed now?
-
-    data.updateFunctionsRootPath = "profile.actionBarPanel";
-    db:RegisterUpdateFunctions(data.updateFunctionsRegistryKey, {
-        width = function(value)
+    self:RegisterUpdateFunction("profile.actionBarPanel.width", function(value)
             data.container:SetSize(value, 1);
-        end;
-    });
+    end);
 
     data.container = CreateFrame("Frame", "MUI_BottomContainer", UIParent);
     data.container:SetPoint("BOTTOM", 0, -1);
