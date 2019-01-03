@@ -771,8 +771,12 @@ do
         instance[key] = value;
 
         -- if reassigning an instance property, should check that new value is valid
-        if (instanceController.isConstructed and Lib:IsTable(classController.interfaces)) then
-            Core:ValidateImplementedInterfaces(instance, classController.interfaces, classController.objectName);
+        if (instanceController.isConstructed and Lib:IsTable(classController.propertyDefinitions)) then
+            local propertyDefinition = classController.propertyDefinitions[key];
+
+            if (propertyDefinition) then
+                self:ValidateImplementedInterfaceProperty(key, propertyDefinition, value, classController.objectName);
+            end
         end
 
         if (classController.indexChangedCallback) then
@@ -1133,6 +1137,7 @@ function Core:GetController(proxyEntity, silent)
 end
 
 function Core:GetPrivateInstanceData(instance, instanceController)
+    
     instanceController = instanceController or self:GetController(instance);
     local data = instanceController.privateData;
 
@@ -1140,6 +1145,27 @@ function Core:GetPrivateInstanceData(instance, instanceController)
         "Invalid instance private data for entity %s.", instanceController.objectName);
 
     return data;
+end
+
+function Core:ValidateImplementedInterfaceProperty(propertyName, propertyDefinition, realValue, className)
+    local errorFound;
+    local message = string.format("bad property value '%s.##'", className);
+
+    if (propertyDefinition:find("^?")) then
+        -- it's optional:
+        propertyDefinition = propertyDefinition:sub(2, #propertyDefinition);
+        errorFound = (realValue ~= nil) and (propertyDefinition ~= "any" and not self:IsMatchingType(realValue, propertyDefinition));
+    else
+        print(propertyName);
+        print(propertyDefinition);
+        print(realValue); -- this is true (should be the actual value!)
+        errorFound = (realValue == nil) or (propertyDefinition ~= "any" and not self:IsMatchingType(realValue, propertyDefinition));
+    end
+
+    local errorMessage = string.format(message .. " (%s expected, got %s)", propertyDefinition, self:GetValueType(realValue));
+    errorMessage = errorMessage:gsub("##", propertyName);
+
+    self:Assert(not errorFound, errorMessage);
 end
 
 -- Call this after using the constructor to make sure properties have been implemented
@@ -1157,27 +1183,9 @@ function Core:ValidateImplementedInterfaces(instance, classController)
         return;
     end
 
-    local errorFound, errorMessage, realValue;
-    local message = string.format("bad property value '%s.##'", classController.objectName);
-
-    for propertyName, propertyType in pairs(classController.propertyDefinitions) do
-        realValue = instance[propertyName];
-
-        if (propertyType:find("^?")) then
-            -- it's optional:
-            propertyType = propertyType:sub(2, #propertyType);
-            errorFound = (realValue ~= nil) and (propertyType ~= "any" and not self:IsMatchingType(realValue, propertyType));
-        else
-            print(propertyName);
-            print(propertyType);
-            print(realValue); -- this is true (should be the actual value!)
-            errorFound = (realValue == nil) or (propertyType ~= "any" and not self:IsMatchingType(realValue, propertyType));
-        end
-
-        errorMessage = string.format(message .. " (%s expected, got %s)", propertyType, self:GetValueType(realValue));
-        errorMessage = errorMessage:gsub("##", propertyName);
-
-        self:Assert(not errorFound, errorMessage);
+    for propertyName, propertyDefinition in pairs(classController.propertyDefinitions) do
+        local realValue = instance[propertyName];
+        self:ValidateImplementedInterfaceProperty(propertyName, propertyDefinition, realValue, classController.objectName);
     end
 end
 
