@@ -1,5 +1,5 @@
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, gui, obj, L = MayronUI:GetAllComponents(); -- luacheck: ignore
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local _, namespace = ...;
 local OrderHallCommandBar = _G.OrderHallCommandBar;

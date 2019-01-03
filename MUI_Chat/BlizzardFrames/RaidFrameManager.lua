@@ -2,7 +2,7 @@
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
-local tk = MayronUI:GetAllComponents();
+local tk = MayronUI:GetCoreComponents();
 
 local CompactRaidFrameManager = _G.CompactRaidFrameManager;
 --------------------------------------

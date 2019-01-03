@@ -10,8 +10,15 @@ namespace.components = {
     Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 };
 
-function MayronUI:GetAllComponents()
-    return _G.unpack(namespace.components);
+local tk  = namespace.components.Toolkit;
+local db  = namespace.components.Database;
+local em  = namespace.components.EventManager;
+local gui = namespace.components.GUIBuilder;
+local obj = namespace.components.Objects;
+local L   = namespace.components.Locale;
+
+function MayronUI:GetCoreComponents()
+    return tk, db, em, gui, obj, L;
 end
 
 function MayronUI:GetComponent(componentName)
@@ -20,14 +27,8 @@ end
 
 function MayronUI:AddComponent(componentName, component)
     namespace.components[componentName] = component;
-    table.insert(namespace.components, component);
 end
 
-for _, component in pairs(namespace.components) do
-    table.insert(namespace.components, component);
-end
-
-local tk, db, em, gui, obj, L = MayronUI:GetAllComponents();
 local registeredModules = {};
 
 -- Objects  ---------------------------
@@ -141,26 +142,6 @@ end
 
 -- BaseModule Object -------------------
 
-local function ExecuteAllUpdateFunctions(functionTable, settingsTable)
-    -- if an enabled function is found, execute it first!
-    if (settingsTable.enabled ~= nil and obj:IsFunction(functionTable.enabled)) then
-        functionTable.enabled(settingsTable.enabled);
-    end
-
-    for key, functionValue in pairs(functionTable) do
-        if (functionValue ~= functionTable.enabled) then
-            local settingsValue = settingsTable[key];
-
-            if (obj:IsFunction(functionValue)) then
-                functionValue(settingsValue);
-
-            elseif (obj:IsTable(functionValue) and obj:IsTable(settingsValue)) then
-                ExecuteAllUpdateFunctions(functionValue, settingsValue);
-            end
-        end
-    end
-end
-
 Engine:DefineReturns("string", "?boolean");
 function BaseModule:__Construct(data, moduleKey, moduleName, initializeOnDemand)
     local registryInfo = registeredModules[moduleKey];
@@ -174,7 +155,7 @@ function BaseModule:__Construct(data, moduleKey, moduleName, initializeOnDemand)
     registryInfo.moduleData = data;
 end
 
-function BaseModule:Initialize(data, ...)
+function BaseModule:Initialize(_, ...)
     if (self.OnInitialize) then
         self:OnInitialize(...);
     end
@@ -183,13 +164,7 @@ function BaseModule:Initialize(data, ...)
     registryInfo.initialized = true;
 
     -- execute all update functions
-    if (obj:IsTable(data.updateFunctionPaths)) then
-        for  _, path in ipairs(data.updateFunctionPaths) do
-            local functionsTable = db:GetUpdateFunctions(path);
-            local settingsTable = db:ParsePathValue(path):GetuntrackedTable();
-            ExecuteAllUpdateFunctions(functionsTable, settingsTable);
-        end
-    end
+    self:ExecuteAllUpdateFunctions(self);
 
     -- Call any other functions attached to this modules OnInitialize event
     if (registryInfo.hooks and registryInfo.hooks.OnInitialize) then
@@ -273,6 +248,38 @@ function BaseModule:RegisterUpdateFunctions(data, path, updateFunctions)
             func(value);
         end
     end);
+end
+
+do
+    local function ExecuteAllUpdateFunctions(functionTable, settingsTable)
+        -- if an enabled function is found, execute it first!
+        if (settingsTable.enabled ~= nil and obj:IsFunction(functionTable.enabled)) then
+            functionTable.enabled(settingsTable.enabled);
+        end
+
+        for key, functionValue in pairs(functionTable) do
+            if (functionValue ~= functionTable.enabled) then
+                local settingsValue = settingsTable[key];
+
+                if (obj:IsFunction(functionValue)) then
+                    functionValue(settingsValue);
+
+                elseif (obj:IsTable(functionValue) and obj:IsTable(settingsValue)) then
+                    ExecuteAllUpdateFunctions(functionValue, settingsValue);
+                end
+            end
+        end
+    end
+
+    function BaseModule:ExecuteAllUpdateFunctions(data)
+        if (obj:IsTable(data.updateFunctionPaths)) then
+            for  _, path in ipairs(data.updateFunctionPaths) do
+                local functionsTable = db:GetUpdateFunctions(path);
+                local settingsTable = db:ParsePathValue(path):GetuntrackedTable();
+                ExecuteAllUpdateFunctions(functionsTable, settingsTable);
+            end
+        end
+    end
 end
 
 -- MayronUI Functions ---------------------
@@ -464,11 +471,8 @@ db:OnProfileChange(function(self, newProfileName)
     for _, module in MayronUI:IterateModules() do
         local registryInfo = registeredModules[tostring(module)];
         local hooks = registryInfo.hooks and registryInfo.hooks.OnProfileChange;
-        local functionsTable, settingsTable = module:GetUpdateFunctions();
 
-        if (functionsTable ~= nil and settingsTable ~= nil) then
-            ExecuteAllUpdateFunctions(functionsTable, settingsTable);
-        end
+        module:ExecuteAllUpdateFunctions();
 
         if (module.OnProfileChange) then
             module:OnProfileChange(newProfileName);

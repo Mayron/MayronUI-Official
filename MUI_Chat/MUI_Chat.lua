@@ -1,7 +1,27 @@
--- luacheck: ignore MayronUI self 143
--- Setup namespaces ------------------
+-- luacheck: ignore self 143
+local MayronUI = _G.MayronUI;
 local _, namespace = ...;
-local tk, db, em = MayronUI:GetAllComponents();
+local tk, db, em = MayronUI:GetCoreComponents();
+
+local ChatFrame1EditBox = _G.ChatFrame1EditBox;
+local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS;
+local hooksecurefunc, IsCombatLog = _G.hooksecurefunc, _G.IsCombatLog;
+
+--------------------------
+-- Blizzard Globals
+--------------------------
+_G.CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA = 1;
+_G.CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA = 1;
+_G.CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA = 1;
+_G.CHAT_FRAME_TAB_SELECTED_MOUSEOVER_ALPHA = 1;
+_G.CHAT_FRAME_TAB_NORMAL_MOUSEOVER_ALPHA = 1;
+_G.CHAT_FRAME_TAB_ALERTING_MOUSEOVER_ALPHA = 1;
+_G.CHAT_TAB_SHOW_DELAY = 1;
+_G.CHAT_TAB_HIDE_DELAY = 1;
+_G.CHAT_FRAME_FADE_TIME = 1;
+_G.CHAT_FRAME_FADE_OUT_TIME = 1;
+_G.DEFAULT_CHATFRAME_ALPHA = 0;
+_G.CHAT_FONT_HEIGHTS = obj:PopWrapper(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 
 -- Register and Import ---------
 
@@ -27,9 +47,9 @@ local function KillElements()
 	end
 
 	tk:KillAllElements(
-		_G.ChatFrame1EditBox.focusLeft,
-		_G.ChatFrame1EditBox.focusRight,
-		_G.ChatFrame1EditBox.focusMid,
+		ChatFrame1EditBox.focusLeft,
+		ChatFrame1EditBox.focusRight,
+		ChatFrame1EditBox.focusMid,
 		_G.ChatFrame1EditBoxLeft,
 		_G.ChatFrame1EditBoxMid,
 		_G.ChatFrame1EditBoxRight,
@@ -39,8 +59,8 @@ local function KillElements()
 end
 
 local function ReskinEditBox(editBoxSettings)
-    _G.ChatFrame1EditBox:SetPoint("TOPLEFT", _G.ChatFrame1, "BOTTOMLEFT", -3, editBoxSettings.yOffset);
-	_G.ChatFrame1EditBox:SetPoint("TOPRIGHT", _G.ChatFrame1, "BOTTOMRIGHT", 3, editBoxSettings.yOffset);
+    ChatFrame1EditBox:SetPoint("TOPLEFT", _G.ChatFrame1, "BOTTOMLEFT", -3, editBoxSettings.yOffset);
+	ChatFrame1EditBox:SetPoint("TOPRIGHT", _G.ChatFrame1, "BOTTOMRIGHT", 3, editBoxSettings.yOffset);
 
 	-- Set Edit Box Backdrop
     local inset = editBoxSettings.inset;
@@ -50,12 +70,12 @@ local function ReskinEditBox(editBoxSettings)
 	};
 
     backdrop.edgeFile = tk.Constants.LSM:Fetch("border", editBoxSettings.border);
-    backdrop.edgeSize = editBoxSettings.borderSize;
-	_G.ChatFrame1EditBox:SetBackdrop(backdrop);
+	backdrop.edgeSize = editBoxSettings.borderSize;
 
     local c = editBoxSettings.backdropColor;
-	_G.ChatFrame1EditBox:SetBackdropColor(c.r, c.g, c.b, c.a);
-	_G.ChatFrame1EditBox:SetHeight(editBoxSettings.height);
+	ChatFrame1EditBox:SetBackdrop(backdrop);
+	ChatFrame1EditBox:SetBackdropColor(c.r, c.g, c.b, c.a);
+	ChatFrame1EditBox:SetHeight(editBoxSettings.height);
 end
 
 -- Chat Module -------------------
@@ -83,7 +103,7 @@ function C_ChatModule:OnInitialize(data)
 	local changeGameFont = db.global.core.changeGameFont;
 	local muiFont = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
-	for chatFrameID = 1, _G.NUM_CHAT_WINDOWS do
+	for chatFrameID = 1, NUM_CHAT_WINDOWS do
 		local chatFrame = self:SetUpBlizzardChatFrame(chatFrameID);
 
         if (changeGameFont) then
@@ -118,27 +138,13 @@ function C_ChatModule:OnInitialize(data)
 	end
 end
 
---------------------------
--- Blizzard Globals
---------------------------
-_G.CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA = 1;
-_G.CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA = 1;
-_G.CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA = 1;
-_G.CHAT_FRAME_TAB_SELECTED_MOUSEOVER_ALPHA = 1;
-_G.CHAT_FRAME_TAB_NORMAL_MOUSEOVER_ALPHA = 1;
-_G.CHAT_FRAME_TAB_ALERTING_MOUSEOVER_ALPHA = 1;
-_G.CHAT_TAB_SHOW_DELAY = 1;
-_G.CHAT_TAB_HIDE_DELAY = 1;
-_G.CHAT_FRAME_FADE_TIME = 1;
-_G.CHAT_FRAME_FADE_OUT_TIME = 1;
-_G.DEFAULT_CHATFRAME_ALPHA = 0;
-_G.CHAT_FONT_HEIGHTS = {8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18};
-
 ----------------------------------
 -- Override Blizzard Functions:
 ----------------------------------
+local ChatFrame1Tab = _G.ChatFrame1Tab;
+
 local function RepositionChatTab()
-	_G.ChatFrame1Tab:SetPoint("LEFT", 16, 0);
+	ChatFrame1Tab:SetPoint("LEFT", 16, 0);
 end
 
 -- override with a dummy function
@@ -152,10 +158,10 @@ function FCF_SetTabPosition(chatFrame)
 	if (not chatFrame.isDocked) then
 		chatFrameTab:ClearAllPoints();
 
-		if (_G.IsCombatLog(chatFrame)) then
-            chatFrameTab:SetPoint("BOTTOMLEFT", _G["CombatLogQuickButtonFrame_Custom"], "TOPLEFT", 15, 10);
+		if (IsCombatLog(chatFrame)) then
+			chatFrameTab:SetPoint("BOTTOMLEFT", _G["CombatLogQuickButtonFrame_Custom"], "TOPLEFT", 15, 10);
 		else
-            chatFrameTab:SetPoint("BOTTOMLEFT", chatFrame, "TOPLEFT", 15, 10);
+			chatFrameTab:SetPoint("BOTTOMLEFT", chatFrame, "TOPLEFT", 15, 10);
 		end
 	end
 
@@ -165,13 +171,13 @@ function FCF_SetTabPosition(chatFrame)
     minButton:Hide();
 end
 
-_G.hooksecurefunc("FCFTab_OnUpdate", RepositionChatTab);
-_G.hooksecurefunc("FCF_DockUpdate", RepositionChatTab);
-_G.hooksecurefunc("FCFDockScrollFrame_JumpToTab", RepositionChatTab);
-_G.hooksecurefunc("ChatEdit_UpdateHeader", function()
-	local chatType = _G.ChatFrame1EditBox:GetAttribute("chatType");
+hooksecurefunc("FCFTab_OnUpdate", RepositionChatTab);
+hooksecurefunc("FCF_DockUpdate", RepositionChatTab);
+hooksecurefunc("FCFDockScrollFrame_JumpToTab", RepositionChatTab);
+hooksecurefunc("ChatEdit_UpdateHeader", function()
+	local chatType = ChatFrame1EditBox:GetAttribute("chatType");
 	local r, g, b = _G.GetMessageTypeColor(chatType);
-	_G.ChatFrame1EditBox:SetBackdropBorderColor(r, g, b, 1);
+	ChatFrame1EditBox:SetBackdropBorderColor(r, g, b, 1);
 end);
 
 -- probably not needed
@@ -184,6 +190,6 @@ tk.hooksecurefunc("FCF_OpenTemporaryWindow", function()
 end);
 
 -- must be before chat is initialized!
-for i = 1, _G.NUM_CHAT_WINDOWS do
-    tk._G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
+for i = 1, NUM_CHAT_WINDOWS do
+    _G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
 end

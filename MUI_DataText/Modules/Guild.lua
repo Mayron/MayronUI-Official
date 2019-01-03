@@ -1,5 +1,5 @@
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, _, obj, L = MayronUI:GetAllComponents();
+local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
 local LABEL_PATTERN = L["Guild"]..": |cffffffff%u|r";
 

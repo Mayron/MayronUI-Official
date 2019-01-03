@@ -1,5 +1,5 @@
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, _, obj = MayronUI:GetAllComponents();
+local tk, db, em, _, obj = MayronUI:GetCoreComponents();
 
 -- Register and Import Modules -------
 

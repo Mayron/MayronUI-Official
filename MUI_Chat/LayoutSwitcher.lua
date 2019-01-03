@@ -2,7 +2,7 @@
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
-local tk, db, _, gui = MayronUI:GetAllComponents();
+local tk, db, _, gui = MayronUI:GetCoreComponents();
 
 local LAYOUT_MESSAGE =
 [[Customize which addOn/s should change to which profile/s for each layout,

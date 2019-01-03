@@ -1,6 +1,6 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
-local tk, db, em, gui, obj, L = MayronUI:GetAllComponents(); -- luacheck: ignore
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local InCombatLockdown, CreateFrame = _G.InCombatLockdown, _G.CreateFrame;
 local HasArtifactEquipped, GetWatchedFactionInfo = _G.HasArtifactEquipped, _G.GetWatchedFactionInfo;

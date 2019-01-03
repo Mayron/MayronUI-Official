@@ -4,7 +4,7 @@
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
-local tk, _, _, _, obj = MayronUI:GetAllComponents();
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 
 local MEDIA = "Interface\\AddOns\\MUI_Chat\\media\\";
 --------------------------------------

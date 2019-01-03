@@ -1,5 +1,5 @@
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, _, obj, L = MayronUI:GetAllComponents();
+local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
 local LABEL_PATTERN = L["Friends"]..": |cffffffff%u|r";
 local convert = {WTCG = "HS", Pro = "OW"};
