@@ -8,7 +8,6 @@ local MoveViewLeftStop, SetCVar, MoveViewLeftStart = _G.MoveViewLeftStop, _G.Set
 local UnitSex, UnitRace, SetCursor, GetSpecialization = _G.UnitSex, _G.UnitRace, _G.SetCursor, _G.GetSpecialization;
 local UnitPVPName, GetRealmName, UnitLevel, UnitClass = _G.UnitPVPName, _G.GetRealmName, _G.UnitLevel, _G.UnitClass;
 
-
 -- Register Module ------------
 
 local C_AfkDisplayModule = MayronUI:RegisterModule("AfkDisplay", "AFK Display");
