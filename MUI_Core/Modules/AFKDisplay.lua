@@ -1,4 +1,5 @@
--- luacheck: ignore MayronUI self 143 631
+-- luacheck: ignore self 143 631
+local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local Private = {};
 
@@ -10,11 +11,11 @@ local UnitPVPName, GetRealmName, UnitLevel, UnitClass = _G.UnitPVPName, _G.GetRe
 
 -- Register Module ------------
 
-local C_AfkDisplayModule = MayronUI:RegisterModule("AfkDisplay", "AFK Display");
+local C_AFKDisplayModule = MayronUI:RegisterModule("AFKDisplay", "AFK Display");
 
 -- Add Database Defaults ------
 
-db:AddToDefaults("global.afkDisplay", {
+db:AddToDefaults("global.AFKDisplay", {
     enabled       = true;
     rotateCamera  = true;
     playerModel   = true;
@@ -22,18 +23,6 @@ db:AddToDefaults("global.afkDisplay", {
 });
 
 -- Private functions ---------
-
-function Private:StartTimer()
-    if (Private.display:IsShown()) then
-        Private.time = Private.time or 0;
-
-        local time = string.format("%.2d:%.2d", (Private.time / 60) % 60, (Private.time % 60));
-        Private.time = Private.time + 1;
-        Private.display.time:SetText(time);
-
-        C_Timer.After(1, Private.StartTimer);
-    end
-end
 
 function Private:ResetDataText()
     self.time = 0;
@@ -382,7 +371,7 @@ function Private:StartRotating()
 end
 
 function Private:CreatePlayerModel()
-    local scale = db.global.afkDisplay.modelScale;
+    local scale = db.global.AFKDisplay.modelScale;
     Private.Y_POSITION = 100;
 
     local modelFrame = CreateFrame("Frame", nil, self.display);
@@ -452,8 +441,8 @@ do
         tk:ApplyThemeColor(display.bg);
 
         UIParent:HookScript("OnShow", function()
-            local afkDisplay = MayronUI:ImportModule("AfkDisplay");
-            afkDisplay:SetShown(false);
+            local AFKDisplay = MayronUI:ImportModule("AFKDisplay");
+            AFKDisplay:SetShown(false);
         end);
 
         display.time = display:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge");
@@ -521,17 +510,17 @@ do
     end
 end
 
--- C_AfkDisplayModule Module -----------
+-- C_AFKDisplayModule Module -----------
 
-function C_AfkDisplayModule:OnInitialize(data)
-    data.settings = db.global.afkDisplay:GetUntrackedTable();
+function C_AFKDisplayModule:OnInitialize(data)
+    data.settings = db.global.AFKDisplay:GetUntrackedTable();
 
     if (data.settings.enabled) then
         self:SetEnabled(true);
     end
 end
 
-function C_AfkDisplayModule:OnEnable(data)
+function C_AFKDisplayModule:OnEnable(data)
     if (not data.handler) then
         data.handler = em:CreateEventHandler("PLAYER_FLAGS_CHANGED", function(_, _, unitID)
             if (unitID ~= "player" or not data.settings.enabled) then
@@ -547,45 +536,59 @@ function C_AfkDisplayModule:OnEnable(data)
     end
 end
 
-function C_AfkDisplayModule:SetShown(data, show)
-    if (InCombatLockdown() or (_G.AuctionFrame and _G.AuctionFrame:IsVisible())) then
-        -- Do not show AFK Display (even if player is AFK)
-        -- if player is using the Auction house or player is in combat
-        if (Private.display) then
-            Private.display:Hide();
-        end
+do
+    local function StartTimer()
+        if (Private.display:IsShown()) then
+            Private.time = Private.time or 0;
 
-        return;
+            local time = string.format("%.2d:%.2d", (Private.time / 60) % 60, (Private.time % 60));
+            Private.time = Private.time + 1;
+            Private.display.time:SetText(time);
+
+            C_Timer.After(1, StartTimer);
+        end
     end
 
-    if (show) then
-        -- Hide UIParent and show AFK Display
-        UIParent:Hide();
-        MoveViewLeftStart(0.01);
-
-        if (not Private.display) then
-            Private.display = Private:CreateDisplay();
-
-            if (data.settings.playerModel) then
-                Private.display.modelFrame = Private:CreatePlayerModel();
+    function C_AFKDisplayModule:SetShown(data, show)
+        if (InCombatLockdown() or (_G.AuctionFrame and _G.AuctionFrame:IsVisible())) then
+            -- Do not show AFK Display (even if player is AFK)
+            -- if player is using the Auction house or player is in combat
+            if (Private.display) then
+                Private.display:Hide();
             end
+
+            return;
         end
 
-        Private.display:Show();
-        Private:PositionModel();
-        Private:ResetDataText();
-        Private:StartTimer();
-    else
-        -- Hide AFK Display and show UIParent
-        UIParent:Show();
+        if (show) then
+            -- Hide UIParent and show AFK Display
+            UIParent:Hide();
+            MoveViewLeftStart(0.01);
 
-        if (data.settings.rotateCamera) then
-            MoveViewLeftStop();
-            SetCVar("cameraView", "0");
-        end
+            if (not Private.display) then
+                Private.display = Private:CreateDisplay();
 
-        if (Private.display) then
-            Private.display:Hide();
+                if (data.settings.playerModel) then
+                    Private.display.modelFrame = Private:CreatePlayerModel();
+                end
+            end
+
+            Private.display:Show();
+            Private:PositionModel();
+            Private:ResetDataText();
+            StartTimer();
+        else
+            -- Hide AFK Display and show UIParent
+            UIParent:Show();
+
+            if (data.settings.rotateCamera) then
+                MoveViewLeftStop();
+                SetCVar("cameraView", "0");
+            end
+
+            if (Private.display) then
+                Private.display:Hide();
+            end
         end
     end
 end
