@@ -4,7 +4,6 @@
 ## OptionalDeps: MUI_Config
 
 MUI_DataText.lua
-IDataTextModule.lua
 
 Modules\CombatTimer.lua
 Modules\Currency.lua

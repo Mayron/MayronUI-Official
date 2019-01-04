@@ -254,6 +254,10 @@ local function Interfaces_Test2() -- luacheck: ignore
     local p = Panel();
     p:Create(12);
 
+    -- should be able to execute interface functions with no definition!
+    p:Update();
+    p:Destroy();
+
     print("Interfaces_Test2 Successful!");
 end
 
@@ -283,6 +287,24 @@ local function Interfaces_Test3() -- luacheck: ignore
     end);
 
     print("Interfaces_Test3 Successful!");
+end
+
+local function NotImplementedInterfaceFunction_Test1() -- luacheck: ignore
+    print("NotImplementedInterfaceFunction_Test1 Started");
+
+    local TestPackage = lib:CreatePackage("NotImplementedInterfaceFunction_Test1");
+
+    local IDummyInterface = TestPackage:CreateInterface("IDummyInterface", {
+        DoSomething = "function";
+    });
+
+    local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyInterface);
+
+    VerifyExpectedErrors(1, function()
+        DummyClass(); -- has no implementation for "DoSomething" so should fail!
+    end);
+
+    print("NotImplementedInterfaceFunction_Test1 Successful!");
 end
 
 local function Inheritance_Test1() -- luacheck: ignore
@@ -861,6 +883,7 @@ end
 -- Interfaces_Test1();
 -- Interfaces_Test2();
 -- Interfaces_Test3();
+-- NotImplementedInterfaceFunction_Test1();
 -- DefineProperty_Test1();
 -- DefineProperty_Test2();
 -- DefineProperty_Test3();

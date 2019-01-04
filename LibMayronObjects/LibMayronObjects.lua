@@ -1000,7 +1000,10 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
             end
         end
 
-        controller.definitions[newFuncKey] = funcDefinition;
+        if (Lib:IsTable(funcDefinition)) then
+            -- might be an interface function with no definition (prevent adding boolean 'true')
+            controller.definitions[newFuncKey] = funcDefinition;
+        end
     end
 end
 
@@ -1188,6 +1191,7 @@ end
 function Core:ValidateImplementedInterfaces(instance, classController)
     if (Lib:IsTable(classController.interfaceDefinitions)) then
         for funcName, _ in pairs(classController.interfaceDefinitions) do
+            -- iterate over interface definitions just to throw a single error each time
             self:Assert(classController.interfaceDefinitions == nil,
                 "%s is missing an implementation for interface function '%s'.", classController.objectName, funcName);
         end

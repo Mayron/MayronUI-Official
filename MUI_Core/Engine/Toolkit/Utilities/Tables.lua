@@ -45,39 +45,7 @@ function tk.Tables:GetTable(rootTable, ...)
 end
 
 function tk.Tables:Print(tbl, depth, n)
-    if (tk.type(tbl) ~= "table") then
-        return
-    end
-
-    n = n or 0;
-    depth = depth or 4;
-
-    if (depth == 0) then
-        return
-    end
-
-    if (n == 0) then
-        print(" ");
-    end
-
-    for key, value in pairs(tbl) do
-        if (key and type(key) == "number" or type(key) == "string") then
-            key = "[\""..key.."\"]";
-
-            if (tk.type(value) == "table") then
-                print(string.rep(' ', n)..key.." = {");
-                self:Print(value, depth - 1, n + 4);
-                print(string.rep(' ', n).."}");
-
-            else
-                print(string.rep(' ', n)..key.." = "..tostring(value));
-            end
-        end
-    end
-
-    if (n == 0) then
-        print(" ");
-    end
+    obj:PrintTable(tbl, depth, n);
 end
 
 function tk.Tables:Contains(tbl, value)

@@ -82,29 +82,63 @@ function C_DataTextModule:OnInitialize(data)
     data.DataModules = obj:PopWrapper(); -- holds all data text modules
 
     self:RegisterUpdateFunctions(db.profile.datatext, {
-        enabled       = true;
-        frameStrata   = "MEDIUM";
-        frameLevel    = 20,
-        height        = 24; -- height of data bar (width is the size of bottomUI container!)
-        spacing       = 1;
-        fontSize      = 11;
-        blockInCombat = true;
+        enabled = function(value)
+            self:SetEnabled(value);
+        end;
+
+        frameStrata = function(value)
+            
+        end;
+
+        frameLevel = function(value)
+            
+        end;
+
+        height = function(value)
+            
+        end;
+
+        spacing = function(value)
+            
+        end;
+
+        fontSize = function(value)
+            
+        end;
+
+        blockInCombat = function(value)
+            
+        end;
+
         popup = {
-            hideInCombat = true;
-            maxHeight    = 250;
-            width        = 200;
-            itemHeight   = 26; -- the height of each list item in the popup menu
+            hideInCombat = function(value)
+            
+            end;
+
+            maxHeight = function(value)
+            
+            end;
+
+            width = function(value)
+            
+            end;
+
+            itemHeight = function(value)
+            
+            end;
         };
-        displayOrders = {
-            "durability";
-            "friends";
-            "guild";
-            "inventory";
-            "memory";
-            "performance";
-            "specialization";
-        };
-    });
+        
+        -- TODO: Not sure what to do about this... (maybe displayOrders = function(path/key, value) ?)
+        -- displayOrders = {
+        --     "durability";
+        --     "friends";
+        --     "guild";
+        --     "inventory";
+        --     "memory";
+        --     "performance";
+        --     "specialization";
+        -- };
+    }, true);
 end
 
 function C_DataTextModule:OnEnable(data)
@@ -115,14 +149,17 @@ function C_DataTextModule:OnEnable(data)
     data.bar:SetPoint("BOTTOMRIGHT");
     data.bar:SetFrameStrata(data.settings.frameStrata);
     data.bar:SetFrameLevel(data.settings.frameLevel);
+    tk:SetBackground(data.bar, 0, 0, 0);
 
     data.resourceBars:SetPoint("BOTTOMLEFT", data.bar, "TOPLEFT", 0, -1);
     data.resourceBars:SetPoint("BOTTOMRIGHT", data.bar, "TOPRIGHT", 0, -1);
 
+    --TODO: Should set this up first as though ActionBarPanel was disabled...
     local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
-    actionBarPanelModule:PositionBartenderBars(data);
 
-    tk:SetBackground(data.bar, 0, 0, 0);
+    if (actionBarPanelModule:IsEnabled()) then
+        actionBarPanelModule:SetupAllBartenderBars(data);
+    end
 
     -- create the popup menu (displayed when a data item button is clicked)
     -- each data text module has its own frame to be used as the scroll child
@@ -164,23 +201,22 @@ function C_DataTextModule:OnEnable(data)
 
 	-- provides more intelligent scrolling (+ controls visibility of scrollbar)
     data.slideController = SlideController(data.popup);
+
+    self:OrderDataTextButtons();
+    self:PositionDataTextButtons();
 end
 
+--TODO: Problem - this gets called each time a module is loaded - loops over all models when ordering buttons  many times!
 Engine:DefineParams("IDataTextModule");
 function C_DataTextModule:RegisterDataModule(data, dataModule)
     local dataModuleName = dataModule:GetObjectType(); -- get's name of object/module
     data.DataModules[dataModuleName] = dataModule;
 
     local dataTextButton = dataModule.Button;
-    dataTextButton:SetParent(data.bar);
 
     dataTextButton:SetScript("OnClick", function(_, ...)
         self:ClickModuleButton(dataModule, dataTextButton, ...);
     end);
-
-    self:OrderDataTextButtons();
-    self:PositionDataTextButtons();
-    data.popup:Hide();
 end
 
 Engine:DefineReturns("Button");
@@ -206,9 +242,10 @@ function C_DataTextModule:OrderDataTextButtons(data)
     data.orderedButtons = data.orderedButtons or obj:PopWrapper();
     data.positionedButtons = data.positionedButtons or obj:PopWrapper();
 
-    for _, dataModule in pairs(data.DataModules) do
+    for key, dataModule in pairs(data.DataModules) do
 
         if (dataModule:IsEnabled()) then
+            print(key)
             local btn = dataModule.Button;
             local dbName = dataModule.SavedVariableName;
             local displayOrder = tk.Tables:GetIndex(data.settings.displayOrders, dbName);
@@ -229,6 +266,7 @@ function C_DataTextModule:PositionDataTextButtons(data)
     local previousButton;
 
     for _, btn in ipairs(data.orderedButtons) do
+        btn:SetParent(data.bar);
         btn:ClearAllPoints();
         btn:Show();
 

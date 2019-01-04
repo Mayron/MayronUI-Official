@@ -23,14 +23,15 @@ db:AddToDefaults("profile.actionBarPanel", {
     animateSpeed    = 6;
     texture         = tk:GetAssetFilePath("Textures\\BottomUI\\ActionBarPanel");
     cornerSize      = 20;
-
-    -- second row (both bar 9 and 10 are used to make the 2nd row (20 buttons)
     bartender = {
         control   = true,
-        [1]       = "Bar 1";
-        [2]       = "Bar 7";
-        [3]       = "Bar 9";
-        [4]       = "Bar 10";
+        -- 1 and 2 = bottom bartender action bars
+        -- 3 and 4 = expanded, extra bartender action bars
+        -- values are the bartender bar IDs
+        [1]       = 1;
+        [2]       = 7;
+        [3]       = 9;
+        [4]       = 10;
     };
 });
 
@@ -42,7 +43,7 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
     data.DataText = subModules.DataText;
     Private.data = data;
 
-    data.updateFunctions = {
+    self:RegisterUpdateFunctions(db.profile.actionBarPanel, {
         enabled = function(value)
             data.settings.enabled = value;
             self:SetEnabled(value);
@@ -85,47 +86,36 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
 
         texture = function(value)
             data.settings.texture = value;
-            data.pane:SetGridTexture(value);
+            data.panel:SetGridTexture(value);
         end;
 
         cornerSize = function(value)
             data.settings.cornerSize = value;
-            data.pane:SetGridCornerSize(value);
+            data.panel:SetGridCornerSize(value);
         end;
 
         bartender = {
             control = function(value)
                 data.settings.bartender.control = value;
-                self:SetupBartenderBars(value);
             end;
 
-            [1] = function(value)
-                data.settings.bartender[1]  = value;
-                self:SetupBartenderBars(value);
+            [1] = function(bartenderBarID)
+                self:SetupBartenderBar(1, bartenderBarID);
             end;
 
-            [2] = function(value)
-                data.settings.bartender[2]  = value;
-                self:SetupBartenderBars(value);
+            [2] = function(bartenderBarID)
+                self:SetupBartenderBar(2, bartenderBarID);
             end;
 
-            [3] = function(value)
-                data.settings.bartender[3]  = value;
-                self:SetupBartenderBars(value);
+            [3] = function(bartenderBarID)
+                self:SetupBartenderBar(3, bartenderBarID);
             end;
 
-            [4] = function(value)
-                data.settings.bartender[4]  = value;
-                self:SetupBartenderBars(value);
+            [4] = function(bartenderBarID)
+                self:SetupBartenderBar(4, bartenderBarID);
             end;
         };
-    };
-
-    db:RegisterUpdateFunctions(db.profile.actionBarPanel, data.updateFunctions, function(func, value)
-        if (self:IsEnabled() or func == data.updateFunctions.enabled) then
-            func(value);
-        end
-    end);
+    });
 end
 
 function C_ActionBarPanel:OnEnable(data)
@@ -133,44 +123,51 @@ function C_ActionBarPanel:OnEnable(data)
         return;
     end
 
-    local barsContainer = data.ResourceBars:GetBarContainer();
     data.panel = CreateFrame("Frame", "MUI_ActionBarPanel", data.buiContainer);
-    data.panel:SetPoint("BOTTOMLEFT", barsContainer, "TOPLEFT", 0, -1);
-    data.panel:SetPoint("BOTTOMRIGHT", barsContainer, "TOPRIGHT", 0, -1);
-    data.panel:SetFrameLevel(10);
 
-    -- Must be called each time it is shown to avoid AFK bug
+    if (data.ResourceBars:IsEnabled()) then
+        local barsContainer = data.ResourceBars:GetBarContainer();
+        data.panel:SetPoint("BOTTOMLEFT", barsContainer, "TOPLEFT", 0, -1);
+        data.panel:SetPoint("BOTTOMRIGHT", barsContainer, "TOPRIGHT", 0, -1);
+    else
+        data.panel:SetPoint("BOTTOMLEFT", data.buiContainer, "BOTTOMLEFT");
+        data.panel:SetPoint("BOTTOMRIGHT", data.buiContainer, "BOTTOMRIGHT");
+    end
+
+    data.panel:SetFrameLevel(10);
+    data.slideController = SlideController(data.panel);
+
     data.panel:SetScript("OnShow", function()
+        if (not (data.Bar3 and data.Bar4)) then
+            return;
+        end
+
         if (data.settings.expanded) then
             data.panel:SetHeight(data.settings.expandHeight);
-            Private:ToggleBartenderBar(data.BT4Bar3, true);
-            Private:ToggleBartenderBar(data.BT4Bar4, true);
+            Private:ToggleBartenderBar(data.Bar3, true);
+            Private:ToggleBartenderBar(data.Bar4, true);
         else
             data.panel:SetHeight(data.settings.retractHeight);
-            Private:ToggleBartenderBar(data.BT4Bar3, false);
-            Private:ToggleBartenderBar(data.BT4Bar4, false);
+            Private:ToggleBartenderBar(data.Bar3, false);
+            Private:ToggleBartenderBar(data.Bar4, false);
         end
     end);
 
-    data.panel:GetScript("OnShow")();
-
-    data.slideController = SlideController(data.panel);
-
     data.slideController:OnStartExpand(function()
-        Private:ToggleBartenderBar(data.BT4Bar3, true);
-        Private:ToggleBartenderBar(data.BT4Bar4, true);
-        UIFrameFadeIn(data.BT4Bar3, 0.3, 0, 1);
-        UIFrameFadeIn(data.BT4Bar4, 0.3, 0, 1);
+        Private:ToggleBartenderBar(data.Bar3, true);
+        Private:ToggleBartenderBar(data.Bar4, true);
+        UIFrameFadeIn(data.Bar3, 0.3, 0, 1);
+        UIFrameFadeIn(data.Bar4, 0.3, 0, 1);
     end, 5);
 
     data.slideController:OnStartRetract(function()
-        UIFrameFadeOut(data.BT4Bar3, 0.1, 1, 0);
-        UIFrameFadeOut(data.BT4Bar4, 0.1, 1, 0);
+        UIFrameFadeOut(data.Bar3, 0.1, 1, 0);
+        UIFrameFadeOut(data.Bar4, 0.1, 1, 0);
     end);
 
     data.slideController:OnEndRetract(function()
-        Private:ToggleBartenderBar(data.BT4Bar3, false);
-        Private:ToggleBartenderBar(data.BT4Bar4, false);
+        Private:ToggleBartenderBar(data.Bar3, false);
+        Private:ToggleBartenderBar(data.Bar4, false);
     end);
 
     gui:CreateGridTexture(data.panel, data.settings.texture,
@@ -226,7 +223,6 @@ function C_ActionBarPanel:OnEnable(data)
         end
 
         PlaySound(tk.Constants.CLICK);
-
         local expanded = data.settings.expanded;
 
         if (expanded) then
@@ -278,35 +274,44 @@ end
 function C_ActionBarPanel:GetPanel(data)
     return data.panel;
 end
-function C_ActionBarPanel:SetupBartenderBars(data, bartenderControl)
-    if (not (IsAddOnLoaded("Bartender4") and bartenderControl)) then
+
+function C_ActionBarPanel:SetupBartenderBar(data, barID, bartenderBarID)
+    if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
         return;
     end
 
+    -- get bar
+    _G.Bartender4:GetModule("ActionBars"):EnableBar(bartenderBarID);
+
+    local globalBartenderName = string.format("BT4Bar%d", tostring(bartenderBarID));
+    local bar = _G[globalBartenderName];
+
+    -- calculate height
     local height = data.ResourceBars:GetHeight() - 3;
     local dataTextModule = MayronUI:ImportModule("DataText");
 
     if (dataTextModule and dataTextModule:IsShown()) then
-        local bar = dataTextModule:GetDataTextBar();
-        height = height + ((bar and bar:GetHeight()) or 0);
+        local dataTextBar = dataTextModule:GetDataTextBar();
+        height = height + ((dataTextBar and dataTextBar:GetHeight()) or 0);
     end
 
-    for i = 1, 4 do
-        local bt4BarNumber = data.settings.bartender[i]:match("%d+");
-        _G.Bartender4:GetModule("ActionBars"):EnableBar(bt4BarNumber);
+    if (barID <= 2) then
+        Private:ToggleBartenderBar(bar, true);
+        bar.config.position.y = 39 + height;
+    else
+        bar.config.position.y = 74 + height;
 
-        local barName = string.format("BT4Bar%d", tostring(bt4BarNumber));
-        local bar = _G[barName]; -- TODO: is bar and bar the same?
+        -- Bar 3 and 4 are needed for expanding/retracting
+        local barName = string.format("Bar%d", tostring(barID));
         data[barName] = bar;
+    end
 
-        if (i <= 2) then
-            Private:ToggleBartenderBar(bar, true);
-            bar.config.position.y = 39 + height;
-        else
-            bar.config.position.y = 74 + height;
-        end
+    bar:LoadPosition();
+end
 
-        bar:LoadPosition();
+function C_ActionBarPanel:SetupAllBartenderBars(data)
+    for i = 1, 4 do
+        self:SetupBartenderBar(i, data.settings.bartender[i]);
     end
 end
 

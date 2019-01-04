@@ -3,7 +3,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local TalkingHeadFrame, C_PetBattles = _G.TalkingHeadFrame, _G.C_PetBattles;
-local IsAddOnLoaded, CreateFrame, UIParent = _G.IsAddOnLoaded, _G.CreateFrame, _G.UIParent;
+local CreateFrame, UIParent = _G.CreateFrame, _G.UIParent;
 
 -- Register and Import Modules -----------
 
@@ -21,10 +21,6 @@ function C_Container:OnInitialize(data)
     if (not MayronUI:IsInstalled()) then
         return;
     end
-
-    self:RegisterUpdateFunction(function(value)
-        data.container:SetSize(value, 1);
-    end);
 
     data.container = CreateFrame("Frame", "MUI_BottomContainer", UIParent);
     data.container:SetPoint("BOTTOM", 0, -1);
@@ -64,22 +60,11 @@ function C_Container:OnInitialize(data)
     data.subModules.ResourceBars:Initialize(data.container, data.subModules);
     data.subModules.ActionBarPanel:Initialize(data.container, data.subModules);
     data.subModules.UnitPanels:Initialize(data.container, data.subModules);
-end
 
-function C_Container:UpdateContainer(data)
-    data.subModules.ActionBarPanel:PositionBartenderBars();
-end
+    self:RegisterUpdateFunction("profile.bottomui.width", function(value)
+        data.container:SetSize(value, 1);
+    end);
 
-function C_Container:OnConfigUpdate(data, dbPath, value)
-    if (dbPath == "profile.bottomui.width") then
-        data.container:SetWidth(value);
-
-        if (IsAddOnLoaded("MUI_DataText")) then
-            local dataTextModule = MayronUI:ImportModule("DataText");
-
-            if (dataTextModule:IsEnabled()) then
-                dataTextModule:PositionDataTextButtons();
-            end
-        end
-    end
+    data.container:SetSize(data.setting, 1);
+    self:SetEnabled(true);
 end

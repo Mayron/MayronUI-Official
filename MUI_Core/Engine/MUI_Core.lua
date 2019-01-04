@@ -161,15 +161,15 @@ function BaseModule:Initialize(_, ...)
     local registryInfo = registeredModules[tostring(self)];
     registryInfo.initialized = true;
 
-    -- execute all update functions
-    self:ExecuteAllUpdateFunctions(self);
-
     -- Call any other functions attached to this modules OnInitialize event
     if (registryInfo.hooks and registryInfo.hooks.OnInitialize) then
         for _, func in ipairs(registryInfo.hooks.OnInitialize) do
             func(self, registryInfo.moduleData);
         end
     end
+
+    -- execute all update functions
+    self:ExecuteAllUpdateFunctions(self);
 end
 
 Engine:DefineReturns("string");
@@ -237,17 +237,26 @@ function BaseModule:Hook(_, eventName, func)
 end
 
 Engine:DefineParams("string", "function");
-function BaseModule:RegisterUpdateFunction(_, path, updateFunction)
+function BaseModule:RegisterUpdateFunction(data, path, updateFunction)
+    data.setting = db:ParsePathValue(path);
+    data.updateFunction = updateFunction;
     db:RegisterUpdateFunctions(path, updateFunction);
 end
 
-Engine:DefineParams("Observer", "table|function");
-function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions)
+Engine:DefineParams("Observer", "table", "?boolean");
+function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions, untracked)
     local path = observer:GetPathAddress();
-    data.settings = observer:GetUntrackedTable(); -- a non-database table containing database settings
+    data.updateFunctions = updateFunctions;
 
-    -- data.updateFunctionPaths = data.updateFunctionPaths or obj:PopWrapper();
-    -- table.insert(data.updateFunctionPaths, path);
+    if (untracked) then
+        data.settings = observer:GetUntrackedTable(); -- disconnected from database
+    else
+        data.settings = observer:GetTrackedTable(); -- can save changes
+
+        em:CreateEventHandler("PLAYER_LOGOUT", function()
+            data.settings:SaveChanges();
+        end);
+    end
 
     db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, valuePath)
         -- update settings:
@@ -256,9 +265,9 @@ function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions)
 
         local settingPath = valuePath:gsub(path..".", "");
 
-        if (self:IsEnabled() or func == data.updateFunctions.enabled) then
-            func(value);
-        end
+        -- if (self:IsEnabled() or func == data.updateFunctions.enabled) then
+        --     func(value);
+        -- end
     end);
 end
 
@@ -284,12 +293,10 @@ do
     end
 
     function BaseModule:ExecuteAllUpdateFunctions(data)
-        if (obj:IsTable(data.updateFunctionPaths)) then
-            for  _, path in ipairs(data.updateFunctionPaths) do
-                local functionsTable = db:GetUpdateFunctions(path);
-                local settingsTable = db:ParsePathValue(path):GetuntrackedTable();
-                ExecuteAllUpdateFunctions(functionsTable, settingsTable);
-            end
+        if (obj:IsTable(data.updateFunctions)) then
+            ExecuteAllUpdateFunctions(data.updateFunctions, data.settings);
+        elseif (data.updateFunction) then
+            data.updateFunction(data.setting);
         end
     end
 end

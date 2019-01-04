@@ -31,11 +31,11 @@ local C_ResourceBar = BottomUIPackage:CreateClass("ResourceBar", "Framework.Syst
 -- Register and Import Modules -----------
 
 local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", "Resource Bars", true);
-local containerModule = MayronUI:ImportModule("BottomUI_Container");
 
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.resourceBars", {
+    enabled = true,
     experienceBar = {
         enabled = true,
         height = 8,
@@ -55,6 +55,284 @@ db:AddToDefaults("profile.resourceBars", {
         fontSize = 8,
     }
 });
+
+-- C_ResourceBarsModule -------------------
+function C_ResourceBarsModule:OnInitialize(data, buiContainer)
+    data.buiContainer = buiContainer;
+
+    self:RegisterUpdateFunctions(db.profile.resourceBars, {
+        experienceBar = {
+            enabled = function(value)
+                data.settings.experienceBar.enabled = value;
+                self:SetEnabled(true);
+            end;
+
+            height = function(value)
+                data.settings.experienceBar.height = value;
+            end;
+
+            alwaysShowText = function(value)
+                data.settings.experienceBar.alwaysShowText = value;
+            end;
+
+            fontSize = function(value)
+                data.settings.experienceBar.fontSize = value;
+            end;
+        },
+        reputationBar = {
+            enabled = function(value)
+                data.settings.reputationBar.enabled = value;
+            end;
+
+            height = function(value)
+                data.settings.reputationBar.height = value;
+            end;
+
+            alwaysShowText = function(value)
+                data.settings.reputationBar.alwaysShowText = value;
+            end;
+
+            fontSize = function(value)
+                data.settings.reputationBar.fontSize = value;
+            end;
+        },
+        artifactBar = {
+            enabled = function(value)
+                data.settings.artifactBar.enabled = value;
+            end;
+
+            height = function(value)
+                data.settings.artifactBar.height = value;
+            end;
+
+            alwaysShowText = function(value)
+                data.settings.artifactBar.alwaysShowText = value;
+            end;
+
+            fontSize = function(value)
+                data.settings.artifactBar.fontSize = value;
+            end;
+        }
+    });
+end
+
+function C_ResourceBarsModule:OnEnable(data)
+    data.barsContainer = CreateFrame("Frame", "MUI_ResourceBars", data.buiContainer);
+    data.barsContainer:SetFrameStrata("MEDIUM");
+    data.barsContainer:SetPoint("BOTTOMLEFT", data.buiContainer, "TOPLEFT", 0, -1);
+    data.barsContainer:SetPoint("BOTTOMRIGHT", data.buiContainer, "TOPRIGHT", 0, -1);
+
+    data.bars = obj:PopWrapper();
+
+    for _, barName in ipairs(BAR_NAMES) do
+        if (data.settings[barName.."Bar"].enabled) then
+            local enabled = false;
+
+            if (barName == ARTIFACT_BAR_ID) then
+                enabled = HasArtifactEquipped();
+
+            elseif (barName == REPUTATION_BAR_ID) then
+                enabled = GetWatchedFactionInfo();
+
+            elseif (barName == EXPERIENCE_BAR_ID) then
+                enabled = not tk:IsPlayerMaxLevel();
+            end
+
+            if (enabled) then
+                -- Create Resource Bar here! (enabled by default!)
+                data.bars[barName] = C_ResourceBar(self, data.barsContainer, barName);
+            end
+        end
+    end
+
+    self:UpdateContainer();
+
+    MayronUI:Hook("DataText", "OnEnable", function(_, dataTextModuleData)
+        if (db.profile.datatext.blockInCombat) then
+            self:CreateBlocker(dataTextModuleData.settings, dataTextModuleData.bar);
+        end
+    end);
+end
+
+function C_ResourceBarsModule:UpdateContainer(data)
+    local height = 0;
+    local previousBar;
+
+    for _, barName in ipairs(BAR_NAMES) do
+        if (data.bars[barName]) then
+            local bar = data.bars[barName];
+
+            if (bar:IsEnabled()) then
+                bar:ClearAllPoints();
+
+                if (not previousBar) then
+                    bar:SetPoint("BOTTOMLEFT");
+                    bar:SetPoint("BOTTOMRIGHT");
+                else
+                    local frame = previousBar:GetFrame();
+                    bar:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 0, -1);
+                    bar:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", 0, -1);
+                    height = height - 1;
+                end
+
+                height = height + bar:GetHeight();
+                previousBar = bar;
+            end
+        end
+    end
+
+    if (height == 0) then
+        height = 1;
+    end
+
+    data.barsContainer:SetHeight(height);
+end
+
+Engine:DefineReturns("number");
+function C_ResourceBarsModule:GetHeight(data)
+    return data.barsContainer:GetHeight();
+end
+
+Engine:DefineParams("string");
+Engine:DefineReturns("Frame");
+function C_ResourceBarsModule:GetBar(data, barName)
+    return data.bars[barName];
+end
+
+function C_ResourceBarsModule:CreateBlocker(data, dataTextsettingsTable, dataTextBar)
+    if (not data.blocker) then
+
+        data.blocker = tk:PopFrame("Frame", data.barsContainer);
+        data.blocker:SetPoint("TOPLEFT");
+        data.blocker:SetPoint("BOTTOMRIGHT", dataTextBar, "BOTTOMRIGHT");
+        data.blocker:EnableMouse(true);
+        data.blocker:SetFrameStrata("DIALOG");
+        data.blocker:SetFrameLevel(20);
+        data.blocker:Hide();
+
+        em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
+            if (not dataTextsettingsTable.blockInCombat) then return; end
+            data.blocker:Show();
+        end);
+
+        em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
+            data.blocker:Hide();
+        end);
+    end
+
+    if (InCombatLockdown()) then
+        data.blocker:Show();
+    end
+end
+
+Engine:DefineReturns("Frame");
+function C_ResourceBarsModule:GetBarContainer(data)
+    return data.barsContainer;
+end
+
+-- C_ResourceBar ---------------------------
+
+BottomUIPackage:DefineParams("BottomUI_ResourceBars", "Frame", "string");
+function C_ResourceBar:__Construct(data, barsModule, barsContainer, barName)
+    data.module = barsModule;
+    data.barName = barName;
+    data.enabled = true;
+    data.settings = db.profile.resourceBars[barName.."Bar"]:GetUntrackedTable();
+
+    local texture = tk.Constants.LSM:Fetch("statusbar", "MUI_StatusBar");
+    local frame = CreateFrame("Frame", "MUI_"..data.barName.."Bar", barsContainer);
+
+    frame:SetBackdrop(tk.Constants.backdrop);
+    frame:SetBackdropBorderColor(0, 0, 0);
+    frame.bg = tk:SetBackground(frame, texture);
+    frame.bg:SetVertexColor(0.08, 0.08, 0.08);
+    frame:SetHeight(data.settings.height);
+
+    local statusbar = CreateFrame("StatusBar", nil, frame);
+    statusbar:SetStatusBarTexture(texture);
+    statusbar:SetOrientation("HORIZONTAL");
+    statusbar:SetPoint("TOPLEFT", 1, -1);
+    statusbar:SetPoint("BOTTOMRIGHT", -1, 1);
+
+    statusbar.texture = statusbar:GetStatusBarTexture();
+
+    statusbar:SetScript("OnEnter", function(self)
+        self.texture:SetBlendMode("ADD");
+        if (data.blizzardBar) then
+            data.blizzardBar:GetScript("OnEnter")(data.blizzardBar);
+        end
+    end);
+
+    statusbar:SetScript("OnLeave", function(self)
+        self.texture:SetBlendMode("BLEND");
+        if (data.blizzardBar) then
+            data.blizzardBar:GetScript("OnLeave")(data.blizzardBar);
+        end
+    end);
+
+    statusbar.text = statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
+    statusbar.text:SetPoint("CENTER");
+    tk:SetFontSize(statusbar.text, data.settings.fontSize);
+
+    if (not data.settings.alwaysShowText) then
+        statusbar.text:Hide();
+
+        statusbar:SetScript("OnEnter", function(self)
+            self.text:Show();
+        end);
+
+        statusbar:SetScript("OnLeave", function(self)
+            self.text:Hide();
+        end);
+    end
+
+    data.frame = frame;
+    data.statusbar = statusbar;
+
+    Private[data.barName.."Bar_ShowText"](self, data);
+    Private[barName.."Bar_OnSetup"](self, data);
+end
+
+BottomUIPackage:DefineParams("table");
+function C_ResourceBar:Update(data, settings)
+    data.settings = settings;
+
+    data.frame:SetHeight(data.settings.height);
+    tk:SetFontSize(data.statusbar.text, data.settings.fontSize);
+
+    if (data.settings.alwaysShowText) then
+        data.statusbar.text:Show();
+        data.statusbar:SetScript("OnEnter", tk.Constants.DUMMY_FUNC);
+        data.statusbar:SetScript("OnLeave", tk.Constants.DUMMY_FUNC);
+    else
+        data.statusbar.text:Hide();
+
+        data.statusbar:SetScript("OnEnter", function(self)
+            self.text:Show();
+        end);
+
+        data.statusbar:SetScript("OnLeave", function(self)
+            self.text:Hide();
+        end);
+    end
+end
+
+BottomUIPackage:DefineReturns("number");
+function C_ResourceBar:GetHeight(data)
+    return data.frame:GetHeight();
+end
+
+BottomUIPackage:DefineReturns("boolean");
+function C_ResourceBar:IsEnabled(data)
+    return data.enabled;
+end
+
+BottomUIPackage:DefineParams("boolean");
+function C_ResourceBar:SetEnabled(data, enabled)
+    data.enabled = enabled;
+    data.frame:SetShown(enabled);
+    data.module:UpdateContainer();
+end
 
 -- Private Functions ---------------------
 
@@ -232,207 +510,4 @@ function Private.reputationBar_ShowText()
     if (handler) then
         handler:Run();
     end
-end
-
--- C_ResourceBar ---------------------------
-
-BottomUIPackage:DefineParams("BottomUI_ResourceBars", "Frame", "string");
-function C_ResourceBar:__Construct(data, barsModule, barsContainer, barName)
-    data.module = barsModule;
-    data.barName = barName;
-    data.enabled = true;
-    data.sv = db.profile.resourceBars[barName.."Bar"];
-
-    local texture = tk.Constants.LSM:Fetch("statusbar", "MUI_StatusBar");
-    local frame = CreateFrame("Frame", "MUI_"..data.barName.."Bar", barsContainer);
-
-    frame:SetBackdrop(tk.Constants.backdrop);
-    frame:SetBackdropBorderColor(0, 0, 0);
-    frame.bg = tk:SetBackground(frame, texture);
-    frame.bg:SetVertexColor(0.08, 0.08, 0.08);
-    frame:SetHeight(data.sv.height);
-
-    local statusbar = CreateFrame("StatusBar", nil, frame);
-    statusbar:SetStatusBarTexture(texture);
-    statusbar:SetOrientation("HORIZONTAL");
-    statusbar:SetPoint("TOPLEFT", 1, -1);
-    statusbar:SetPoint("BOTTOMRIGHT", -1, 1);
-
-    statusbar.texture = statusbar:GetStatusBarTexture();
-
-    statusbar:SetScript("OnEnter", function(self)
-        self.texture:SetBlendMode("ADD");
-        if (data.blizzardBar) then
-            data.blizzardBar:GetScript("OnEnter")(data.blizzardBar);
-        end
-    end);
-
-    statusbar:SetScript("OnLeave", function(self)
-        self.texture:SetBlendMode("BLEND");
-        if (data.blizzardBar) then
-            data.blizzardBar:GetScript("OnLeave")(data.blizzardBar);
-        end
-    end);
-
-    statusbar.text = statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
-    statusbar.text:SetPoint("CENTER");
-    tk:SetFontSize(statusbar.text, data.sv.fontSize);
-
-    if (not data.sv.alwaysShowText) then
-        statusbar.text:Hide();
-
-        statusbar:SetScript("OnEnter", function(self)
-            self.text:Show();
-        end);
-
-        statusbar:SetScript("OnLeave", function(self)
-            self.text:Hide();
-        end);
-    end
-
-    data.frame = frame;
-    data.statusbar = statusbar;
-
-    Private[data.barName.."Bar_ShowText"](self, data);
-    Private[barName.."Bar_OnSetup"](self, data);
-end
-
-BottomUIPackage:DefineReturns("number");
-function C_ResourceBar:GetHeight(data)
-    return data.frame:GetHeight();
-end
-
-BottomUIPackage:DefineReturns("boolean");
-function C_ResourceBar:IsEnabled(data)
-    return data.enabled;
-end
-
-BottomUIPackage:DefineParams("boolean");
-function C_ResourceBar:SetEnabled(data, enabled)
-    data.enabled = enabled;
-    data.frame:SetShown(enabled);
-    data.module:UpdateContainer();
-end
-
--- C_ResourceBarsModule -------------------
-function C_ResourceBarsModule:OnInitialize(data, buiContainer)
-    data.buiContainer = buiContainer;
-    data.sv = db.profile.resourceBars;
-    self:SetEnabled(true); -- set module enabled (not bar)
-end
-
-function C_ResourceBarsModule:OnEnable(data)
-    data.barsContainer = CreateFrame("Frame", "MUI_ResourceBars", data.buiContainer);
-    data.barsContainer:SetFrameStrata("MEDIUM");
-    data.barsContainer:SetPoint("BOTTOMLEFT", data.buiContainer, "TOPLEFT", 0, -1);
-    data.barsContainer:SetPoint("BOTTOMRIGHT", data.buiContainer, "TOPRIGHT", 0, -1);
-
-    data.bars = obj:PopWrapper();
-
-    for _, barName in ipairs(BAR_NAMES) do
-        if (data.sv[barName.."Bar"].enabled) then
-            local enabled = false;
-
-            if (barName == ARTIFACT_BAR_ID) then
-                enabled = HasArtifactEquipped();
-
-            elseif (barName == REPUTATION_BAR_ID) then
-                enabled = GetWatchedFactionInfo();
-
-            elseif (barName == EXPERIENCE_BAR_ID) then
-                enabled = true; --not tk:IsPlayerMaxLevel();
-                -- TODO THIS!
-            end
-
-            if (enabled) then
-                -- Create Resource Bar here! (enabled by default!)
-                data.bars[barName] = C_ResourceBar(self, data.barsContainer, barName);
-            end
-        end
-    end
-
-    self:UpdateContainer();
-
-    MayronUI:Hook("DataText", "OnEnable", function(_, dataTextModuleData)
-        if (db.profile.datatext.blockInCombat) then
-            self:CreateBlocker(dataTextModuleData.sv, dataTextModuleData.bar);
-        end
-    end);
-end
-
-function C_ResourceBarsModule:UpdateContainer(data)
-    local height = 0;
-    local previousBar;
-
-    for _, barName in ipairs(BAR_NAMES) do
-        if (data.bars[barName]) then
-            local bar = data.bars[barName];
-
-            if (bar:IsEnabled()) then
-                bar:ClearAllPoints();
-
-                if (not previousBar) then
-                    bar:SetPoint("BOTTOMLEFT");
-                    bar:SetPoint("BOTTOMRIGHT");
-                else
-                    local frame = previousBar:GetFrame();
-                    bar:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 0, -1);
-                    bar:SetPoint("BOTTOMRIGHT", frame, "TOPRIGHT", 0, -1);
-                    height = height - 1;
-                end
-
-                height = height + bar:GetHeight();
-                previousBar = bar;
-            end
-        end
-    end
-
-    if (height == 0) then
-        height = 1;
-    end
-
-    data.barsContainer:SetHeight(height);
-    containerModule:UpdateContainer();
-end
-
-Engine:DefineReturns("number");
-function C_ResourceBarsModule:GetHeight(data)
-    return data.barsContainer:GetHeight();
-end
-
-Engine:DefineParams("string");
-Engine:DefineReturns("Frame");
-function C_ResourceBarsModule:GetBar(data, barName)
-    return data.bars[barName];
-end
-
-function C_ResourceBarsModule:CreateBlocker(data, dataTextSvTable, dataTextBar)
-    if (not data.blocker) then
-
-        data.blocker = tk:PopFrame("Frame", data.barsContainer);
-        data.blocker:SetPoint("TOPLEFT");
-        data.blocker:SetPoint("BOTTOMRIGHT", dataTextBar, "BOTTOMRIGHT");
-        data.blocker:EnableMouse(true);
-        data.blocker:SetFrameStrata("DIALOG");
-        data.blocker:SetFrameLevel(20);
-        data.blocker:Hide();
-
-        em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-            if (not dataTextSvTable.blockInCombat) then return; end
-            data.blocker:Show();
-        end);
-
-        em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
-            data.blocker:Hide();
-        end);
-    end
-
-    if (InCombatLockdown()) then
-        data.blocker:Show();
-    end
-end
-
-Engine:DefineReturns("Frame");
-function C_ResourceBarsModule:GetBarContainer(data)
-    return data.barsContainer;
 end

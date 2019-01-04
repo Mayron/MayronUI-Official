@@ -47,7 +47,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
     data.buiContainer = buiContainer;
     data.ActionBarPanel = subModules.ActionBarPanel;
 
-    data.updateFunctions = {
+    self:RegisterUpdateFunctions(db.profile.unitPanels, {
         enabled = function(value)
             data.settings.enabled = value;
             self:SetEnabled(value);
@@ -196,13 +196,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
                 end
             end;
         };
-    };
-
-    db:RegisterUpdateFunctions(db.profile.unitPanels, data.updateFunctions, function(func, value)
-        if (self:IsEnabled() or func == data.updateFunctions.enabled) then
-            func(value);
-        end
-    end);
+    });
 end
 
 function C_UnitPanels:OnEnable(data)
