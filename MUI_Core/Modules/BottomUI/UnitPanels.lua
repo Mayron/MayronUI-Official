@@ -46,7 +46,6 @@ db:AddToDefaults("profile.unitPanels", {
 function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
     data.buiContainer = buiContainer;
     data.ActionBarPanel = subModules.ActionBarPanel;
-    data.settings = db.profile.unitPanels:GetUntrackedTable();
 
     data.updateFunctions = {
         enabled = function(value)
@@ -199,7 +198,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
         };
     };
 
-    db:RegisterUpdateFunctions("profile.unitPanels", data.updateFunctions, function(func, value)
+    db:RegisterUpdateFunctions(db.profile.unitPanels, data.updateFunctions, function(func, value)
         if (self:IsEnabled() or func == data.updateFunctions.enabled) then
             func(value);
         end

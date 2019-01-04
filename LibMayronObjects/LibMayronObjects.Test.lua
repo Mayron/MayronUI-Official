@@ -1,6 +1,18 @@
 -- luacheck: ignore self 143 631
 local lib = _G.LibStub:GetLibrary("LibMayronObjects");
 
+local function VerifyExpectedErrors(expectedErrors, test)
+    lib:SetSilentErrors(true);
+
+    test();
+
+    assert(lib:GetNumErrors() == expectedErrors, string.format(
+        "Should throw %s errors but got %d", expectedErrors, lib:GetNumErrors()));
+
+    lib:FlushErrorLog();
+    lib:SetSilentErrors(false);
+end
+
 local function HelloWorld_Test1() -- luacheck: ignore
     print("HelloWorld_Test1 Started");
 
@@ -35,49 +47,6 @@ local function HelloWorld_Test1() -- luacheck: ignore
     instance:Destroy();
 
     print("HelloWorld_Test1 Successful!");
-end
-
-local function Inheritance_Test1() -- luacheck: ignore
-    print("Inheritance_Test1 Started");
-
-    local TestPackage = lib:CreatePackage("Inheritance_Test1", "Test");
-    local Parent = TestPackage:CreateClass("Parent");
-
-    --local Child = TestPackage:CreateClass("Child", "Parent"); -- invalid namespace (it's not been exported as expected!)
-    local Child = TestPackage:CreateClass("Child", Parent); -- this works (as expected) - doesn't need exporting first
-
-    function Parent.Static:Move()
-        print("moving");
-    end
-
-    function Parent:Talk(data)
-        assert(data.Dialog == "I am a child!");
-    end
-
-    -- never gets called
-    function Child:__Construct(data)
-        data.Dialog = "I am a child!";
-    end
-
-    function Parent:__Construct(data)
-        data.Dialog = "I am a parent.";
-    end
-
-    local child = Child();
-
-    assert(child:GetObjectType() == "Child");
-
-    assert(child:IsObjectType("Child"));
-    assert(child:IsObjectType("Parent"));
-
-    local child2 = child:Clone();
-    assert(child:Equals(child2));
-
-    child:Talk();
-
-    child:Destroy();
-
-    print("Inheritance_Test1 Successful!");
 end
 
 local function DefineParams_Test1() -- luacheck: ignore
@@ -143,20 +112,13 @@ local function DefineReturns_Test1() -- luacheck: ignore
     p:Func1();
     p:Func2();
 
-    lib:SetSilentErrors(true);
-
-    p:Func3(); -- should fail!
-    p:Func4(); -- should fail!
-
-    assert(lib:GetNumErrors() == 2, string.format(
-        "Should throw 2 errors but got %d", lib:GetNumErrors()));
-
-    lib:FlushErrorLog();
-    lib:SetSilentErrors(false);
+    VerifyExpectedErrors(2, function()
+        p:Func3(); -- should fail!
+        p:Func4(); -- should fail!
+    end);
 
     print("DefineReturns_Test1 Successful!");
 end
-
 
 local function DefineParams_Test2() -- luacheck: ignore
 	print("DefineParams_Test2 Started");
@@ -309,30 +271,74 @@ local function Interfaces_Test3() -- luacheck: ignore
 
     local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyInterface);
 
-    lib:SetSilentErrors(true);
-
-    TestPackage:DefineParams("string"); -- attempt to redefine - should not be allowed!
-    function DummyClass:DoSomething() end
-
-    assert(lib:GetNumErrors() == 1);
-    lib:FlushErrorLog();
-    lib:SetSilentErrors(false);
+    VerifyExpectedErrors(1, function()
+        TestPackage:DefineParams("string"); -- attempt to redefine - should not be allowed! (Not working!)
+        function DummyClass:DoSomething() end
+    end);
 
     local dummyInstance = DummyClass();
-    dummyInstance:DoSomething("redefined");
+
+    VerifyExpectedErrors(1, function()
+        dummyInstance:DoSomething("redefined"); -- still using interface definition
+    end);
 
     print("Interfaces_Test3 Successful!");
+end
+
+local function Inheritance_Test1() -- luacheck: ignore
+    print("Inheritance_Test1 Started");
+
+    local TestPackage = lib:CreatePackage("Inheritance_Test1", "Test");
+    local Parent = TestPackage:CreateClass("Parent");
+
+    --local Child = TestPackage:CreateClass("Child", "Parent"); -- invalid namespace (it's not been exported as expected!)
+    local Child = TestPackage:CreateClass("Child", Parent); -- this works (as expected) - doesn't need exporting first
+
+    function Parent.Static:Move()
+        print("moving");
+    end
+
+    function Parent:Talk(data)
+        assert(data.Dialog == "I am a child!");
+    end
+
+    -- never gets called
+    function Child:__Construct(data)
+        data.Dialog = "I am a child!";
+    end
+
+    function Parent:__Construct(data)
+        data.Dialog = "I am a parent.";
+    end
+
+    local child = Child();
+
+    assert(child:GetObjectType() == "Child");
+
+    assert(child:IsObjectType("Child"));
+    assert(child:IsObjectType("Parent"));
+
+    local child2 = child:Clone();
+    assert(child:Equals(child2));
+
+    child:Talk();
+
+    child:Destroy();
+
+    print("Inheritance_Test1 Successful!");
 end
 
 local function Inheritance_Test2() -- luacheck: ignore
 	print("Inheritance_Test2 Started");
     local TestPackage = lib:CreatePackage("Inheritance_Test2");
 
-    local IInterface = TestPackage:CreateInterface("IInterface");
-
-    TestPackage:DefineParams("string");
-    TestPackage:DefineReturns("number");
-    function IInterface:Run() end
+    local IInterface = TestPackage:CreateInterface("IInterface", {
+        Run = {
+            type = "function";
+            params = {"string"};
+            returns = {"number"};
+        }
+    });
 
     local SuperParent = TestPackage:CreateClass("SuperParent", nil, IInterface);
 
@@ -345,9 +351,86 @@ local function Inheritance_Test2() -- luacheck: ignore
     local SuperChild = TestPackage:CreateClass("SuperChild", Child);
 
     local instance = SuperChild();
-    instance:Run("hello");
+    local value = instance:Run("hello");
+
+    assert(value == 123, "Value does not equal 123");
 
 	print("Inheritance_Test2 Successful!");
+end
+
+local function Inheritance_Test3() -- luacheck: ignore
+	print("Inheritance_Test3 Started");
+    local TestPackage = lib:CreatePackage("Inheritance_Test3");
+
+    local Parent = TestPackage:CreateClass("Parent");
+
+    TestPackage:DefineParams("string");
+    TestPackage:DefineReturns("number");
+    function Parent:Run()
+        return "hello";
+    end
+
+    local Child = TestPackage:CreateClass("Child", Parent);
+
+    VerifyExpectedErrors(2, function()
+        local instance = Child();
+        instance:Run(123); -- passing a string instead of a number
+    end);
+
+	print("Inheritance_Test3 Successful!");
+end
+
+local function Inheritance_Test4() -- luacheck: ignore
+	print("Inheritance_Test4 Started");
+    local TestPackage = lib:CreatePackage("Inheritance_Test4");
+
+    local IInterface = TestPackage:CreateInterface("IInterface", {
+        Run = {
+            type = "function";
+            params = {"string"};
+            returns = {"number"};
+        }
+    });
+
+    local SuperParent = TestPackage:CreateClass("SuperParent", nil, IInterface);
+
+    function SuperParent:Run()
+        return "hello";
+    end
+
+    local Parent = TestPackage:CreateClass("Parent", SuperParent);
+    local Child = TestPackage:CreateClass("Child", Parent);
+    local SuperChild = TestPackage:CreateClass("SuperChild", Child);
+
+    VerifyExpectedErrors(2, function()
+        local instance = SuperChild();
+        instance:Run(123);
+    end);
+
+	print("Inheritance_Test4 Successful!");
+end
+
+local function Inheritance_Test5() -- luacheck: ignore
+	print("Inheritance_Test5 Started");
+    local TestPackage = lib:CreatePackage("Inheritance_Test5");
+
+    local Parent = TestPackage:CreateClass("Parent");
+
+    TestPackage:DefineParams("string");
+    TestPackage:DefineReturns("number");
+    function Parent:Run()
+        return "hello";
+    end
+
+    local Child = TestPackage:CreateClass("Child", Parent);
+    local SubChild = TestPackage:CreateClass("SubChild", Child);
+
+    VerifyExpectedErrors(2, function()
+        local instance = SubChild();
+        instance:Run(123);
+    end);
+
+	print("Inheritance_Test5 Successful!");
 end
 
 local function UsingParent_Test1() -- luacheck: ignore
@@ -763,7 +846,6 @@ end
 ---------------------------------
 
 -- HelloWorld_Test1();
--- Inheritance_Test1();
 -- DefineParams_Test1();
 -- DefineReturns_Test1();
 -- DefineParams_Test2();
@@ -771,19 +853,21 @@ end
 -- DuplicateClass_Test1();
 -- UsingParent_Test1();
 -- SubPackages_Test1();
+-- Inheritance_Test1();
 -- Inheritance_Test2();
+-- Inheritance_Test3();
+-- Inheritance_Test4();
+-- Inheritance_Test5();
 -- Interfaces_Test1();
 -- Interfaces_Test2();
 -- Interfaces_Test3();
-
 -- DefineProperty_Test1();
 -- DefineProperty_Test2();
 -- DefineProperty_Test3();
 -- DefineProperty_Test4();
 -- DefineProperty_Test5();
-DefineProperty_Test6();
-Get_DefinedProperty_After_Setting_Test1();
-
+-- DefineProperty_Test6();
+-- Get_DefinedProperty_After_Setting_Test1();
 -- GenericClasses_Test1();
 -- GenericClasses_Test2();
 -- GenericClasses_Test3();

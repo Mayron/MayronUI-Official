@@ -3,12 +3,10 @@ local addOnName, namespace = ...;
 
 MayronUI = {};
 
-namespace.components = {
-    Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
-    EventManager = LibStub:GetLibrary("LibMayronEvents");
-    GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
-    Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
-};
+namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
+namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
+namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
+namespace.components.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 
 local tk  = namespace.components.Toolkit;
 local db  = namespace.components.Database;
@@ -33,7 +31,7 @@ local registeredModules = {};
 
 -- Objects  ---------------------------
 
-local Engine = namespace.Objects:CreatePackage("Engine", "MayronUI");
+local Engine = obj:CreatePackage("Engine", "MayronUI");
 local BaseModule = Engine:CreateClass("BaseModule");
 
 -- Load Database Defaults -------------
@@ -238,12 +236,21 @@ function BaseModule:Hook(_, eventName, func)
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
-Engine:DefineReturns("string", "table|function");
-function BaseModule:RegisterUpdateFunctions(data, path, updateFunctions)
-    data.updateFunctionPaths = data.updateFunctionPaths or obj:PopWrapper();
-    table.insert(data.updateFunctionPaths, path);
+Engine:DefineParams("Observer", "table|function");
+function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions)
+    print(observer); -- TODO: Not working!
+    local path = observer:GetPathAddress();
+    data.settings = observer:GetUntrackedTable();
 
-    db:RegisterUpdateFunctions(path, updateFunctions, function(func, value)
+
+    -- data.updateFunctionPaths = data.updateFunctionPaths or obj:PopWrapper();
+    -- table.insert(data.updateFunctionPaths, path);
+
+    db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, valuePath)
+        -- update settings:
+        print(path)
+        print(valuePath);
+
         if (self:IsEnabled() or func == data.updateFunctions.enabled) then
             func(value);
         end

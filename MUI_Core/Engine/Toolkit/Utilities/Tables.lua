@@ -1,8 +1,8 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 
-local obj = namespace.Objects;
-local tk = namespace.Toolkit;
+local obj = namespace.components.Objects;
+local tk = namespace.components.Toolkit;
 
 tk.Tables = {};
 

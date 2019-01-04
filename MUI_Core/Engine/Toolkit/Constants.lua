@@ -1,5 +1,5 @@
-local _, Core = ...;
-local tk = Core.Toolkit;
+local _, namespace = ...;
+local tk = namespace.components.Toolkit;
 
 tk.UIParent, tk._G, tk.hooksecurefunc, tk.tostringall = UIParent, _G, hooksecurefunc, tostringall;
 tk.table, tk.string, tk.math, tk.tostring, tk.tonumber, tk.date = table, string, math, tostring, tonumber, date;
@@ -20,7 +20,7 @@ tk.Constants = {
     LOCALIZED_CLASS_NAMES = {};
 
     FONT = function()
-        return tk.Constants.LSM:Fetch("font", Core.Database.global.core.font);
+        return tk.Constants.LSM:Fetch("font", namespace.components.Database.global.core.font);
     end;
 
     LSM = _G.LibStub("LibSharedMedia-3.0");

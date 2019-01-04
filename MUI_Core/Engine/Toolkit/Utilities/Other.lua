@@ -1,11 +1,12 @@
 -- luacheck: ignore MayronUI LibStub self 143 631
 local _, namespace = ...;
 
-namespace.Objects = LibStub:GetLibrary("LibMayronObjects");
-namespace.Toolkit = {};
+namespace.components = {};
+namespace.components.Objects = LibStub:GetLibrary("LibMayronObjects");
+namespace.components.Toolkit = {};
 
-local obj = namespace.Objects;
-local tk = namespace.Toolkit;
+local obj = namespace.components.Objects;
+local tk = namespace.components.Toolkit;
 
 tk.Numbers = {};
 

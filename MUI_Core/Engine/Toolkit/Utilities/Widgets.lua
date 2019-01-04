@@ -1,8 +1,8 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 
-local obj = namespace.Objects;
-local tk = namespace.Toolkit;
+local obj = namespace.components.Objects;
+local tk = namespace.components.Toolkit;
 
 function tk:SetFontSize(fontString, size)
     local fontPath, _, flags = fontString:GetFont();
@@ -247,7 +247,7 @@ function tk:GetThemeColor(returnTable)
         return tk.Constants.AddOnStyle:GetColor(nil, returnTable);
     end
 
-    local color = namespace.Database.profile.theme.color;
+    local color = namespace.components.Database.profile.theme.color;
     return color.r, color.g, color.b, color.hex;
 end
 

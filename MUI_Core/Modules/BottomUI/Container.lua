@@ -22,8 +22,8 @@ function C_Container:OnInitialize(data)
         return;
     end
 
-    self:RegisterUpdateFunction("profile.actionBarPanel.width", function(value)
-            data.container:SetSize(value, 1);
+    self:RegisterUpdateFunctions("profile.actionBarPanel.width", function(value)
+        data.container:SetSize(value, 1);
     end);
 
     data.container = CreateFrame("Frame", "MUI_BottomContainer", UIParent);

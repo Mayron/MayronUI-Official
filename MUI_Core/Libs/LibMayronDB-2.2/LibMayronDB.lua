@@ -277,14 +277,17 @@ function Database:TriggerUpdateFunction(data, path, newValue)
 
     if (obj:IsFunction(updateFunc)) then
         local manualFunc;
+        local manualFunctionPath = path;
 
-        while (manualFunc == nil and path:find("[.[]")) do
-            manualFunc = data.manualUpdateFunctions[path];
-            path = path:match('(.+)[.[]');
+        while (manualFunc == nil and manualFunctionPath:find("[.[]")) do
+            manualFunc = data.manualUpdateFunctions[manualFunctionPath];
+            manualFunctionPath = manualFunctionPath:match('(.+)[.[]');
         end
 
         if (obj:IsFunction(manualFunc)) then
-            manualFunc(updateFunc, newValue);
+            manualFunc(updateFunc, newValue, path);
+        else
+            updateFunc(newValue);
         end
     end
 end
