@@ -22,7 +22,7 @@ function C_Container:OnInitialize(data)
         return;
     end
 
-    self:RegisterUpdateFunctions("profile.actionBarPanel.width", function(value)
+    self:RegisterUpdateFunction(function(value)
         data.container:SetSize(value, 1);
     end);
 

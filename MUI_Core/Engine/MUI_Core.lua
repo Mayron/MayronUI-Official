@@ -236,12 +236,15 @@ function BaseModule:Hook(_, eventName, func)
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
+Engine:DefineParams("string", "function");
+function BaseModule:RegisterUpdateFunction(_, path, updateFunction)
+    db:RegisterUpdateFunctions(path, updateFunction);
+end
+
 Engine:DefineParams("Observer", "table|function");
 function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions)
-    print(observer); -- TODO: Not working!
     local path = observer:GetPathAddress();
-    data.settings = observer:GetUntrackedTable();
-
+    data.settings = observer:GetUntrackedTable(); -- a non-database table containing database settings
 
     -- data.updateFunctionPaths = data.updateFunctionPaths or obj:PopWrapper();
     -- table.insert(data.updateFunctionPaths, path);
@@ -250,6 +253,8 @@ function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions)
         -- update settings:
         print(path)
         print(valuePath);
+
+        local settingPath = valuePath:gsub(path..".", "");
 
         if (self:IsEnabled() or func == data.updateFunctions.enabled) then
             func(value);

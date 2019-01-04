@@ -80,10 +80,8 @@ function C_DataTextModule:OnInitialize(data)
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
     data.lastButtonClicked = ""; -- last data text button clicked on
     data.DataModules = obj:PopWrapper(); -- holds all data text modules
-    data.settings = db.profile.datatext:GetUntrackedTable(); -- a non-database table containing database settings
 
-
-    self:RegisterUpdateFunctions("profile.unitPanels", {
+    self:RegisterUpdateFunctions(db.profile.datatext, {
         enabled       = true;
         frameStrata   = "MEDIUM";
         frameLevel    = 20,

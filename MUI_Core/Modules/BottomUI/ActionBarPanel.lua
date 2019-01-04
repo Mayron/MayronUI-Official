@@ -42,7 +42,6 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
     data.DataText = subModules.DataText;
     Private.data = data;
 
-    data.settings = db.profile.actionBarPanel:GetUntrackedTable();
     data.updateFunctions = {
         enabled = function(value)
             data.settings.enabled = value;
@@ -122,7 +121,7 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
         };
     };
 
-    db:RegisterUpdateFunctions("profile.actionBarPanel", data.updateFunctions, function(func, value)
+    db:RegisterUpdateFunctions(db.profile.actionBarPanel, data.updateFunctions, function(func, value)
         if (self:IsEnabled() or func == data.updateFunctions.enabled) then
             func(value);
         end
