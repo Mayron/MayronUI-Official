@@ -140,6 +140,8 @@ function Database:__Construct(data, addOnName, savedVariableName)
 
     -- holds all database defaults to check first before searching database
     data.defaults = obj:PopWrapper();
+    data.updateFunctions = obj:PopWrapper();
+    data.manualUpdateFunctions = obj:PopWrapper();
     data.defaults.global = obj:PopWrapper();
     data.defaults.profile = obj:PopWrapper();
 end
@@ -238,9 +240,56 @@ Adds a value to the database defaults table relative to the path: defaults.<path
 @param (string): a database path string, such as "myTable.mySubTable[2]"
 @param (any): a value to assign to the database defaults table using the path
 ]]
-Framework:DefineParams("string", "?any");
+Framework:DefineParams("string", "any");
 function Database:AddToDefaults(data, path, value)
     self:SetPathValue(data.defaults, path, value);
+end
+
+--[[
+Add a table of update callback functions to trigger when a database value changes
+
+@param (string) path: a database path string, such as "myTable.mySubTable[2]"
+@param (table|function) value: a table containing functions, or a function, to attach to a database path
+@param (optional function) manualFunc: when TriggerUpdateFunction is called, the manualFunc will be called and is
+    passed the update function to allow the user to decide how it should be called.
+]]
+Framework:DefineParams("string", "table|function", "?function");
+function Database:RegisterUpdateFunctions(data, path, updateFunctions, manualFunc)
+    self:SetPathValue(data.updateFunctions, path, updateFunctions);
+    data.manualUpdateFunctions[path] = manualFunc;
+end
+
+Framework:DefineParams("string");
+Framework:DefineReturns("table|function");
+function Database:GetUpdateFunctions(data, path)
+    return self:ParsePathValue(data.updateFunctions, path);
+end
+
+--[[
+Trigger an update function located by the path argument and pass any arguments to the function
+
+@param (string) path: a database path string, such as "myTable.mySubTable[2]"
+@param (optional any) newValue: the new value assigned to the database
+]]
+Framework:DefineParams("string");
+function Database:TriggerUpdateFunction(data, path, newValue)
+    local updateFunc = self:ParsePathValue(data.updateFunctions, path);
+
+    if (obj:IsFunction(updateFunc)) then
+        local manualFunc;
+        local manualFunctionPath = path;
+
+        while (manualFunc == nil and manualFunctionPath:find("[.[]")) do
+            manualFunc = data.manualUpdateFunctions[manualFunctionPath];
+            manualFunctionPath = manualFunctionPath:match('(.+)[.[]');
+        end
+
+        if (obj:IsFunction(manualFunc)) then
+            manualFunc(updateFunc, newValue, path);
+        else
+            updateFunc(newValue);
+        end
+    end
 end
 
 --[[
@@ -257,6 +306,25 @@ Adds a value to a table relative to a path: rootTable.<path> = <value>
 Framework:DefineParams("table|string");
 function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
+    local updateFunctionRoot;
+
+    if (rootTable == self.global) then
+        updateFunctionRoot = "global";
+
+    elseif (rootTable == self.profile) then
+        updateFunctionRoot = "profile";
+
+    elseif (data.sv) then
+        if (rootTable == data.sv.global) then
+            updateFunctionRoot = "global";
+        else
+            local currentProfile = self:GetCurrentProfile();
+
+            if (rootTable == data.sv.profiles[currentProfile]) then
+                updateFunctionRoot = "profile";
+            end
+        end
+    end
 
     if (rootTable.GetObjectType and rootTable:GetObjectType() == "Observer") then
         rootTable = rootTable:GetSavedVariable();
@@ -268,6 +336,11 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
         "Database:SetPathValue failed to set value");
 
     lastTable[lastKey] = realValue;
+
+    if (updateFunctionRoot) then
+        local updateFunctionPath = string.format("%s.%s", updateFunctionRoot, path);
+        self:TriggerUpdateFunction(updateFunctionPath, realValue);
+    end
 end
 
 --[[
@@ -540,7 +613,7 @@ function Database:AppendOnce(data, rootTable, path, value)
 
     if (appendTable[path]) then
         -- already previously appended, cannot append again
-        if (type(value) == "table") then
+        if (obj:IsTable(value)) then
             obj:PushWrapper(value, true);
         end
 
@@ -777,15 +850,15 @@ end
 --[[
 Helper function to return the path address of the observer.
 
-@param (optional boolean) includeTableType - includes "global" or "profile" at the start of path address if true
+@param (optional boolean) excludeTableType - excludes "global" or "profile" at the start of path address if true
 @return (string): The path address
 ]]
 Framework:DefineParams("?boolean")
 Framework:DefineReturns("?string");
-function Observer:GetPathAddress(data, includeTableType)
+function Observer:GetPathAddress(data, excludeTableType)
     local path = data.path;
 
-    if (includeTableType) then
+    if (not excludeTableType) then
         if (data.isGlobal) then
             path = string.format("%s.%s", "global", path);
         else

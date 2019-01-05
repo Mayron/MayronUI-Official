@@ -117,13 +117,11 @@ function C_ConfigModule:GetConfigTable()
                 {   name = L["Enable Unit Panels"],
                     module = "BottomUI_UnitPanels",
                     dbPath = "profile.unitPanels.enabled",
-                    requiresReload = true,
                     type = "check",
                 },
                 {   name = L["Symmetric Unit Panels"],
                     tooltip = L["Previously called 'Classic Mode'."],
                     type = "check",
-                    requiresReload = true,
                     dbPath = "profile.unitPanels.isSymmetric"
                 },
                 {   name = L["Allow MUI to Control Unit Frames"],

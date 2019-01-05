@@ -49,13 +49,11 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
 
     self:RegisterUpdateFunctions(db.profile.unitPanels, {
         enabled = function(value)
-            data.settings.enabled = value;
             self:SetEnabled(value);
         end;
 
         grid = {
             anchorGrid = function(value)
-                data.settings.grid.anchorGrid = value;
                 if (not _G.IsAddOnLoaded("Grid")) then return; end
 
                 if (not value) then
@@ -68,7 +66,6 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
         };
 
         controlSUF = function(value)
-            data.settings.controlSUF = value;
             if (not _G.IsAddOnLoaded("ShadowedUnitFrames")) then return; end
 
             if (not value) then
@@ -89,49 +86,40 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
         end;
 
         unitWidth = function(value)
-            data.settings.unitWidth = value;
-
             data.left:SetSize(value, 180);
             data.right:SetSize(value, 180)
         end;
 
-        height = function(value)
-            data.settings.height = value;
-
+        height = function()
             self:RepositionPanels();
         end;
 
         isSymmetric = function(value)
-            data.settings.isSymmetric = value;
-            self:SetSymmetrical(data.settings.isSymmetric);
+            self:SetSymmetrical(value);
         end;
 
         alpha = function(value)
-            data.settings.alpha = value;
-
             if (data.left.noTargetBg) then
                 -- if not symmetric then this will not exist
-                data.left.noTargetBg:SetAlpha(data.settings.alpha);
+                data.left.noTargetBg:SetAlpha(value);
             end
 
-            data.left.bg:SetAlpha(data.settings.alpha);
-            data.center.bg:SetAlpha(data.settings.alpha);
-            data.right.bg:SetAlpha(data.settings.alpha);
+            data.left.bg:SetAlpha(value);
+            data.center.bg:SetAlpha(value);
+            data.right.bg:SetAlpha(value);
 
             if (data.player and data.target) then
-                data.player.bg:SetAlpha(data.settings.alpha);
-                data.target.bg:SetAlpha(data.settings.alpha);
+                data.player.bg:SetAlpha(value);
+                data.target.bg:SetAlpha(value);
             end
         end;
 
         unitNames = {
             enabled = function(value)
-                data.settings.unitNames.enabled = value;
                 self:SetUnitNamesEnabled(value);
             end;
 
             width = function(value)
-                data.settings.unitNames.width = value;
                 data.player:SetSize(value, data.settings.unitNames.height);
                 data.target:SetSize(value, data.settings.unitNames.height);
                 data.player.text:SetWidth(value - 25);
@@ -139,30 +127,21 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
             end;
 
             height = function(value)
-                data.settings.unitNames.height = value;
                 data.player:SetSize(data.settings.unitNames.width, value);
                 data.target:SetSize(data.settings.unitNames.width, value);
             end;
 
             fontSize = function(value)
-                data.settings.unitNames.fontSize = value;
                 local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
                 data.player.text:SetFont(font, value);
                 data.target.text:SetFont(font, value);
             end;
 
-            targetClassColored = function(value)
-                data.settings.unitNames.targetClassColored = value;
-
-                if (data.settings.isSymmetric) then
-                    Private.EnableSymmetry(data);
-                else
-                    Private.DisableSymmetry(data);
-                end
+            targetClassColored = function()
+                self:SetSymmetrical(data.settings.isSymmetric);
             end;
 
             xOffset = function(value)
-                data.settings.unitNames.xOffset = value;
                 data.player:SetPoint("BOTTOMLEFT", data.left, "TOPLEFT", value, 0);
                 data.target:SetPoint("BOTTOMRIGHT", data.right, "TOPRIGHT", -(value), 0);
             end;
@@ -170,13 +149,10 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
 
         sufGradients = {
             enabled = function(value)
-                data.settings.sufGradients.enabled = value;
                 self:SetPortraitGradientsEnabled(value);
             end;
 
             height = function(value)
-                data.settings.sufGradients.height = value;
-
                 if (data.settings.sufGradients.enabled and data.gradients) then
                     for _, frame in tk.pairs(data.gradients) do
                         frame:SetSize(100, value);
@@ -184,9 +160,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
                 end
             end;
 
-            targetClassColored = function(value)
-                data.settings.sufGradients.targetClassColored = value;
-
+            targetClassColored = function()
                 if (data.settings.sufGradients.enabled) then
                     local handler = em:FindHandlerByKey("TargetGradient", "PLAYER_TARGET_CHANGED");
 
@@ -328,15 +302,17 @@ do
     local doubleTextureFilePath = tk:GetAssetFilePath("Textures\\BottomUI\\Double");
 
     function C_UnitPanels:SetSymmetrical(data, isSymmetric)
-        data.left.bg = tk:SetBackground(data.left, doubleTextureFilePath);
-        data.right.bg = tk:SetBackground(data.right, doubleTextureFilePath);
-        data.right.bg:SetTexCoord(1, 0, 0, 1);
+        if (not data.left.bg) then
+            data.left.bg = tk:SetBackground(data.left, doubleTextureFilePath);
+            data.right.bg = tk:SetBackground(data.right, doubleTextureFilePath);
+            data.right.bg:SetTexCoord(1, 0, 0, 1);
 
-        tk:ApplyThemeColor(data.settings.alpha,
-            data.left.bg,
-            data.center.bg,
-            data.right.bg
-        );
+            tk:ApplyThemeColor(data.settings.alpha,
+                data.left.bg,
+                data.center.bg,
+                data.right.bg
+            );
+        end
 
         if (isSymmetric) then
             Private.EnableSymmetry(data);
@@ -564,7 +540,7 @@ do
         data.left.noTargetBg:SetAlpha(data.settings.alpha);
     end
 
-    function Private.EnableSymmetry(data)
+    function Private.DisableSymmetry(data)
         tk:ApplyThemeColor(data.settings.alpha, data.left.noTargetBg);
 
         if (not data.left.noTargetBg) then
@@ -575,35 +551,37 @@ do
             data.right:Hide();
         end
 
-        local handler = em:FindHandlerByKey("EnableSymmetry_PLAYER_TARGET_CHANGED");
+        local handler = em:FindHandlerByKey("DisableSymmetry_PLAYER_TARGET_CHANGED");
 
         if (not handler) then
             handler = em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
-                if (_G.UnitExists("target")) then
-                    if (data.right:GetParent() == data.buiContainer) then
-                        data.right:Show();
-                    end
-
-                    data.left.bg:SetAlpha(data.settings.alpha);
-                    data.left.noTargetBg:SetAlpha(0);
-
-                    if (data.settings.unitNames.targetClassColored) then
-                        if (_G.UnitIsPlayer("target")) then
-                            local _, class = _G.UnitClass("target");
-                            tk:SetClassColoredTexture(class, data.target.bg);
-                        else
-                            tk:ApplyThemeColor(data.settings.alpha, data.target.bg);
-                        end
-                    end
-                else
+                if (not _G.UnitExists("target")) then
                     SwitchToSingle(data);
+                    return;
+                end
+
+                if (data.right:GetParent() == data.buiContainer) then
+                    data.right:Show();
+                end
+
+                data.left.bg:SetAlpha(data.settings.alpha);
+                data.left.noTargetBg:SetAlpha(0);
+
+                if (data.settings.unitNames.targetClassColored) then
+                    if (_G.UnitIsPlayer("target")) then
+                        local _, class = _G.UnitClass("target");
+                        tk:SetClassColoredTexture(class, data.target.bg);
+                    else
+                        tk:ApplyThemeColor(data.settings.alpha, data.target.bg);
+                    end
                 end
             end);
 
-            handler:SetKey("EnableSymmetry_PLAYER_TARGET_CHANGED");
+            handler:SetKey("DisableSymmetry_TargetChanges");
         end
 
-        handler = em:FindHandlerByKey("EnableSymmetry_EnteringWorld", "PLAYER_ENTERING_WORLD");
+        handler:Run();
+        handler = em:FindHandlerByKey("DisableSymmetry_EnteringWorld", "PLAYER_ENTERING_WORLD");
 
         if (not handler) then
             handler = em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
@@ -612,17 +590,16 @@ do
                 end
             end);
 
-            handler:SetKey("EnableSymmetry_EnteringWorld");
+            handler:SetKey("DisableSymmetry_EnteringWorld");
         end
 
-        handler:Run();
-        em:DestroyHandlersByKey("DisableSymmetry_TargetChanged");
+        em:DestroyHandlersByKey("EnableSymmetry_TargetChanged");
     end
 
-    function Private.DisableSymmetry(data)
+    function Private.EnableSymmetry(data)
         data.right:SetParent(data.buiContainer);
 
-        local handler = em:FindHandlerByKey("DisableSymmetry_TargetChanged", "PLAYER_TARGET_CHANGED");
+        local handler = em:FindHandlerByKey("EnableSymmetry_TargetChanged", "PLAYER_TARGET_CHANGED");
 
         if (not data.settings.unitNames.targetClassColored) then
             if (handler) then
@@ -643,10 +620,10 @@ do
                 end
             end);
 
-            handler:SetKey("DisableSymmetry_TargetChanged");
+            handler:SetKey("EnableSymmetry_TargetChanged");
         end
 
         handler:Run();
-        em:DestroyHandlersByKey("EnableSymmetry_PLAYER_ENTERING_WORLD", "EnableSymmetry_EnteringWorld");
+        em:DestroyHandlersByKey("DisableSymmetry_TargetChanges", "DisableSymmetry_EnteringWorld");
     end
 end

@@ -242,10 +242,9 @@ function C_DataTextModule:OrderDataTextButtons(data)
     data.orderedButtons = data.orderedButtons or obj:PopWrapper();
     data.positionedButtons = data.positionedButtons or obj:PopWrapper();
 
-    for key, dataModule in pairs(data.DataModules) do
+    for _, dataModule in pairs(data.DataModules) do
 
         if (dataModule:IsEnabled()) then
-            print(key)
             local btn = dataModule.Button;
             local dbName = dataModule.SavedVariableName;
             local displayOrder = tk.Tables:GetIndex(data.settings.displayOrders, dbName);

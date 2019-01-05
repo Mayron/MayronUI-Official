@@ -63,6 +63,7 @@ function C_Container:OnInitialize(data)
 
     self:RegisterUpdateFunction("profile.bottomui.width", function(value)
         data.container:SetSize(value, 1);
+        --MayronUI.db.profile.bottomui.width
     end);
 
     data.container:SetSize(data.setting, 1);

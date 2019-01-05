@@ -243,31 +243,20 @@ function BaseModule:RegisterUpdateFunction(data, path, updateFunction)
     db:RegisterUpdateFunctions(path, updateFunction);
 end
 
-Engine:DefineParams("Observer", "table", "?boolean");
-function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions, untracked)
+Engine:DefineParams("Observer", "table");
+function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions)
     local path = observer:GetPathAddress();
     data.updateFunctions = updateFunctions;
-
-    if (untracked) then
-        data.settings = observer:GetUntrackedTable(); -- disconnected from database
-    else
-        data.settings = observer:GetTrackedTable(); -- can save changes
-
-        em:CreateEventHandler("PLAYER_LOGOUT", function()
-            data.settings:SaveChanges();
-        end);
-    end
+    data.settings = observer:GetUntrackedTable(); -- disconnected from database
 
     db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, valuePath)
         -- update settings:
-        print(path)
-        print(valuePath);
-
         local settingPath = valuePath:gsub(path..".", "");
+        db:SetPathValue(data.settings, settingPath, value);
 
-        -- if (self:IsEnabled() or func == data.updateFunctions.enabled) then
-        --     func(value);
-        -- end
+        if (self:IsEnabled() or func == data.updateFunctions.enabled) then
+            func(value);
+        end
     end);
 end
 

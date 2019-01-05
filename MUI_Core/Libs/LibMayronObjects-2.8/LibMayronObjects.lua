@@ -757,8 +757,6 @@ do
         Core:Assert(not classController.class[key],
             "Cannot override class-level property '%s.%s' from an instance.", classController.objectName, key);
 
-        Core:Assert(not Lib:IsFunction(value), "Functions must be added to a class, not an instance.");
-
         if (classController.indexChangingCallback) then
             local preventIndexing = classController.indexChangingCallback(self, instanceController.privateData, key, value);
 

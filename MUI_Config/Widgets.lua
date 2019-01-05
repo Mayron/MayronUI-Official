@@ -195,7 +195,6 @@ WidgetHandlers.slider = {};
 
 function WidgetHandlers.slider:Run(parent, widgetConfigTable, value)
     local slider = tk.CreateFrame("Slider", nil, parent, "OptionsSliderTemplate");
-    TransferDatabaseInfo(slider, widgetConfigTable);
 
     slider.tooltipText = widgetConfigTable.tooltip;
     slider:SetMinMaxValues(widgetConfigTable.min, widgetConfigTable.max);
@@ -253,7 +252,7 @@ WidgetHandlers.dropdown = {};
 function WidgetHandlers.dropdown:Run(parent, widgetConfigTable, value)
     local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
     local options = GetValue(widgetConfigTable, "options");
-    TransferDatabaseInfo(dropdown, widgetConfigTable);
+    TransferDatabaseInfo(dropdown, widgetConfigTable); -- Problem
 
     for key, dropDownValue in pairs(options) do
         local option = dropdown:AddOption(key, DropDown_OnSelectedValue, dropDownValue);

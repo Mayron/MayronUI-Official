@@ -310,8 +310,20 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
 
     if (rootTable == self.global) then
         updateFunctionRoot = "global";
+
     elseif (rootTable == self.profile) then
         updateFunctionRoot = "profile";
+
+    elseif (data.sv) then
+        if (rootTable == data.sv.global) then
+            updateFunctionRoot = "global";
+        else
+            local currentProfile = self:GetCurrentProfile();
+
+            if (rootTable == data.sv.profiles[currentProfile]) then
+                updateFunctionRoot = "profile";
+            end
+        end
     end
 
     if (rootTable.GetObjectType and rootTable:GetObjectType() == "Observer") then
@@ -838,15 +850,15 @@ end
 --[[
 Helper function to return the path address of the observer.
 
-@param (optional boolean) includeTableType - includes "global" or "profile" at the start of path address if true
+@param (optional boolean) excludeTableType - excludes "global" or "profile" at the start of path address if true
 @return (string): The path address
 ]]
 Framework:DefineParams("?boolean")
 Framework:DefineReturns("?string");
-function Observer:GetPathAddress(data, includeTableType)
+function Observer:GetPathAddress(data, excludeTableType)
     local path = data.path;
 
-    if (includeTableType) then
+    if (not excludeTableType) then
         if (data.isGlobal) then
             path = string.format("%s.%s", "global", path);
         else

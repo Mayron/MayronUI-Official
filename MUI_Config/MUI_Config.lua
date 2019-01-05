@@ -71,12 +71,12 @@ function C_ConfigModule:GetDatabaseValue(_, configTable)
         path = path();
     end
 
-    if (configTable.type == "color") then
-        local color = db:ParsePathValue(path);
-        value = { r = color.r, g = color.g, b = color.b, a = color.a };
-    else
+    -- if (configTable.type == "color") then
+    --     local color = db:ParsePathValue(path);
+    --     value = { r = color.r, g = color.g, b = color.b, a = color.a };
+    -- else
         value = db:ParsePathValue(path);
-    end
+    -- end
 
     if (configTable.GetValue) then
         value = configTable.GetValue(path, value);
@@ -86,10 +86,9 @@ function C_ConfigModule:GetDatabaseValue(_, configTable)
 end
 
 -- Updates the database based on the dbPath config value, or using SetValue,
--- and then calls "OnConfigUpdate" for the module that the config value belongs to.
 -- @param widget: The created widget frame
 Engine:DefineParams("table");
-function C_ConfigModule:SetDatabaseValue(data, widget, value)
+function C_ConfigModule:SetDatabaseValue(_, widget, value)
 
     -- SetValue is a custom function to manually set the datbase config value
     if (widget.SetValue) then
@@ -118,17 +117,6 @@ function C_ConfigModule:SetDatabaseValue(data, widget, value)
     elseif (widget.requiresRestart) then
         self:ShowRestartMessage();
     end
-
-    local module = data.selectedButton.module;
-
-    if (not module and widget.module) then
-        module = MayronUI:ImportModule(widget.module);
-    end
-
-    if (module) then
-        -- Trigger Module Update via OnConfigUpdate:
-        module:OnConfigUpdate(widget.dbPath, value);
-    end
 end
 
 Engine:DefineParams("CheckButton|Button");
@@ -146,7 +134,6 @@ function C_ConfigModule:OpenMenu(data, menuButton)
     end
 
     self:SetSelectedButton(menuButton);
-    _G.PlaySound(tk.Constants.CLICK);
 end
 
 do
@@ -163,6 +150,10 @@ do
 
         menuButton.menu = menuButton.menu or self:CreateMenu();
         data.selectedButton = menuButton;
+
+        if (menuButton:IsObjectType("CheckButton")) then
+            menuButton:SetChecked(true);
+        end
 
         if (menuButton.configTable) then
             self:RenderSelectedMenu(menuButton.configTable);
@@ -182,6 +173,7 @@ do
         data.windowName:SetText(menuButton.name);
 
         _G.UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
+        _G.PlaySound(tk.Constants.CLICK);
     end
 end
 
@@ -441,8 +433,6 @@ function C_ConfigModule:SetUpWindow(data)
             local previousMenuButton = data.history:GetBack();
             data.windowName:SetText(previousMenuButton.name);
         end
-
-        _G.PlaySound(tk.Constants.CLICK);
     end);
 
     data.windowName = topbar:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
@@ -457,9 +447,11 @@ function C_ConfigModule:SetUpWindow(data)
     data.window.profilesBtn:SetWidth(120);
 
     data.window.profilesBtn:SetScript("OnClick", function()
-        data.selectedButton:SetChecked(false);
+        if (data.selectedButton:IsObjectType("CheckButton")) then
+            data.selectedButton:SetChecked(false);
+        end
+
         self:ShowProfileManager();
-        tk.PlaySound(tk.Constants.CLICK);
     end);
 
     -- installer buttons
