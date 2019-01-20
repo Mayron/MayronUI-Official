@@ -15,9 +15,6 @@ local Private = {}; -- needed for dynamically loading correct bar
 -- Constants -----------------------------
 
 local BAR_NAMES = {"reputation", "experience", "artifact"};
-local REPUTATION_BAR_ID = "reputation";
-local EXPERIENCE_BAR_ID = "experience";
-local ARTIFACT_BAR_ID = "artifact";
 
 -- Setup Objects -------------------------
 
@@ -60,97 +57,113 @@ db:AddToDefaults("profile.resourceBars", {
 function C_ResourceBarsModule:OnInitialize(data, buiContainer)
     data.buiContainer = buiContainer;
 
+    local setupOptions = {
+        first = {
+            "enabled";
+            "experienceBar.enabled";
+            "reputationBar.enabled";
+            "artifactBar.enabled";
+        }
+    };
+
+    local function UpdateExperienceBar()
+        if (data.bars and data.bars["experience"]) then
+            data.bars["experience"]:Update();
+        end
+    end
+
+    local function UpdateReputationBar()
+        if (data.bars and data.bars["reputation"]) then
+            data.bars["reputation"]:Update();
+        end
+    end
+
+    local function UpdateArtifactBar()
+        if (data.bars and data.bars["artifact"]) then
+            data.bars["artifact"]:Update();
+        end
+    end
+
     self:RegisterUpdateFunctions(db.profile.resourceBars, {
+        enabled = function(value)
+            self:SetEnabled(value);
+        end;
+
         experienceBar = {
             enabled = function(value)
-                data.settings.experienceBar.enabled = value;
-                self:SetEnabled(true);
+                if (not tk:IsPlayerMaxLevel() and data.barsContainer) then
+                    if (not data.bars["experience"]) then
+                        if (value) then
+                            data.bars["experience"] = C_ResourceBar(self, data, "experience");
+                            self:UpdateContainer();
+                        end
+                    else
+                        data.bars["experience"]:SetEnabled(value);
+                    end
+                end
             end;
 
-            height = function(value)
-                data.settings.experienceBar.height = value;
-            end;
+            height = UpdateExperienceBar;
+            alwaysShowText = UpdateExperienceBar;
+            fontSize = UpdateExperienceBar;
+        };
 
-            alwaysShowText = function(value)
-                data.settings.experienceBar.alwaysShowText = value;
-            end;
-
-            fontSize = function(value)
-                data.settings.experienceBar.fontSize = value;
-            end;
-        },
         reputationBar = {
             enabled = function(value)
-                data.settings.reputationBar.enabled = value;
+                if (not GetWatchedFactionInfo() and data.barsContainer) then
+                    if (not data.bars["reputation"]) then
+                        if (value) then
+                            data.bars["reputation"] = C_ResourceBar(self, data, "reputation");
+                            self:UpdateContainer();
+                        end
+                    else
+                        data.bars["reputation"]:SetEnabled(value);
+                    end
+                end
             end;
 
-            height = function(value)
-                data.settings.reputationBar.height = value;
-            end;
+            height = UpdateReputationBar;
+            alwaysShowText = UpdateReputationBar;
+            fontSize = UpdateReputationBar;
+        };
 
-            alwaysShowText = function(value)
-                data.settings.reputationBar.alwaysShowText = value;
-            end;
-
-            fontSize = function(value)
-                data.settings.reputationBar.fontSize = value;
-            end;
-        },
         artifactBar = {
             enabled = function(value)
-                data.settings.artifactBar.enabled = value;
+                if (not HasArtifactEquipped() and data.barsContainer) then
+                    if (not data.bars["artifact"]) then
+                        if (value) then
+                            data.bars["artifact"] = C_ResourceBar(self, data, "artifact");
+                            self:UpdateContainer();
+                        end
+                    else
+                        data.bars["artifact"]:SetEnabled(value);
+                    end
+                end
             end;
 
-            height = function(value)
-                data.settings.artifactBar.height = value;
-            end;
-
-            alwaysShowText = function(value)
-                data.settings.artifactBar.alwaysShowText = value;
-            end;
-
-            fontSize = function(value)
-                data.settings.artifactBar.fontSize = value;
-            end;
-        }
-    });
+            height = UpdateArtifactBar;
+            alwaysShowText = UpdateArtifactBar;
+            fontSize = UpdateArtifactBar;
+        };
+    }, setupOptions);
 end
 
 function C_ResourceBarsModule:OnEnable(data)
+    if (data.barsContainer) then
+        data.barsContainer:Show(); -- TODO: Needs to be tested
+        return;
+    end
+
     data.barsContainer = CreateFrame("Frame", "MUI_ResourceBars", data.buiContainer);
     data.barsContainer:SetFrameStrata("MEDIUM");
     data.barsContainer:SetPoint("BOTTOMLEFT", data.buiContainer, "TOPLEFT", 0, -1);
     data.barsContainer:SetPoint("BOTTOMRIGHT", data.buiContainer, "TOPRIGHT", 0, -1);
-
     data.bars = obj:PopWrapper();
 
-    for _, barName in ipairs(BAR_NAMES) do
-        if (data.settings[barName.."Bar"].enabled) then
-            local enabled = false;
-
-            if (barName == ARTIFACT_BAR_ID) then
-                enabled = HasArtifactEquipped();
-
-            elseif (barName == REPUTATION_BAR_ID) then
-                enabled = GetWatchedFactionInfo();
-
-            elseif (barName == EXPERIENCE_BAR_ID) then
-                enabled = not tk:IsPlayerMaxLevel();
-            end
-
-            if (enabled) then
-                -- Create Resource Bar here! (enabled by default!)
-                data.bars[barName] = C_ResourceBar(self, data.barsContainer, barName);
-            end
-        end
-    end
-
-    self:UpdateContainer();
-
-    MayronUI:Hook("DataText", "OnEnable", function(_, dataTextModuleData)
-        if (db.profile.datatext.blockInCombat) then
-            self:CreateBlocker(dataTextModuleData.settings, dataTextModuleData.bar);
-        end
+    MayronUI:Hook("DataText", "OnEnable", function(dataTextModule, dataTextModuleData)
+        dataTextModule:RegisterUpdateFunction("profile.datatext.blockInCombat", function(value)
+            self:SetBlockerEnabled(value, dataTextModuleData.bar); -- TODO: Should I call this instantly here?
+        end);
     end);
 end
 
@@ -190,7 +203,11 @@ end
 
 Engine:DefineReturns("number");
 function C_ResourceBarsModule:GetHeight(data)
-    return data.barsContainer:GetHeight();
+    if (data.barsContainer) then
+        return data.barsContainer:GetHeight();
+    end
+
+    return 0;
 end
 
 Engine:DefineParams("string");
@@ -199,9 +216,8 @@ function C_ResourceBarsModule:GetBar(data, barName)
     return data.bars[barName];
 end
 
-function C_ResourceBarsModule:CreateBlocker(data, dataTextsettingsTable, dataTextBar)
-    if (not data.blocker) then
-
+function C_ResourceBarsModule:SetBlockerEnabled(data, enabled, dataTextBar)
+    if (not data.blocker and enabled) then
         data.blocker = tk:PopFrame("Frame", data.barsContainer);
         data.blocker:SetPoint("TOPLEFT");
         data.blocker:SetPoint("BOTTOMRIGHT", dataTextBar, "BOTTOMRIGHT");
@@ -209,19 +225,27 @@ function C_ResourceBarsModule:CreateBlocker(data, dataTextsettingsTable, dataTex
         data.blocker:SetFrameStrata("DIALOG");
         data.blocker:SetFrameLevel(20);
         data.blocker:Hide();
+    end
 
-        em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-            if (not dataTextsettingsTable.blockInCombat) then return; end
+    if (enabled) then
+        em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "Blocker_RegenEnabled", function()
+            data.blocker:Hide();
+        end);
+
+        em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "Blocker_RegenDisabled", function()
             data.blocker:Show();
         end);
 
-        em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
-            data.blocker:Hide();
-        end);
-    end
+        if (InCombatLockdown()) then
+            data.blocker:Show();
+        end
+    else
+        em:DestroyHandlerByKey("Blocker_RegenEnabled");
+        em:DestroyHandlerByKey("Blocker_RegenDisabled");
 
-    if (InCombatLockdown()) then
-        data.blocker:Show();
+        if (data.blocker) then
+            data.blocker:Hide();
+        end
     end
 end
 
@@ -232,15 +256,15 @@ end
 
 -- C_ResourceBar ---------------------------
 
-BottomUIPackage:DefineParams("BottomUI_ResourceBars", "Frame", "string");
-function C_ResourceBar:__Construct(data, barsModule, barsContainer, barName)
+BottomUIPackage:DefineParams("BottomUI_ResourceBars", "table", "string");
+function C_ResourceBar:__Construct(data, barsModule, moduleData, barName)
     data.module = barsModule;
     data.barName = barName;
     data.enabled = true;
-    data.settings = db.profile.resourceBars[barName.."Bar"]:GetUntrackedTable();
+    data.settings = moduleData.settings[barName.."Bar"];
 
     local texture = tk.Constants.LSM:Fetch("statusbar", "MUI_StatusBar");
-    local frame = CreateFrame("Frame", "MUI_"..data.barName.."Bar", barsContainer);
+    local frame = CreateFrame("Frame", "MUI_"..data.barName.."Bar", moduleData.barsContainer);
 
     frame:SetBackdrop(tk.Constants.backdrop);
     frame:SetBackdropBorderColor(0, 0, 0);
@@ -293,27 +317,28 @@ function C_ResourceBar:__Construct(data, barsModule, barsContainer, barName)
     Private[barName.."Bar_OnSetup"](self, data);
 end
 
-BottomUIPackage:DefineParams("table");
-function C_ResourceBar:Update(data, settings)
-    data.settings = settings;
+do
+    local function OnEnter(self)
+        self.text:Show();
+    end
 
-    data.frame:SetHeight(data.settings.height);
-    tk:SetFontSize(data.statusbar.text, data.settings.fontSize);
+    local function OnLeave(self)
+        self.text:Hide();
+    end
 
-    if (data.settings.alwaysShowText) then
-        data.statusbar.text:Show();
-        data.statusbar:SetScript("OnEnter", tk.Constants.DUMMY_FUNC);
-        data.statusbar:SetScript("OnLeave", tk.Constants.DUMMY_FUNC);
-    else
-        data.statusbar.text:Hide();
+    function C_ResourceBar:Update(data)
+        data.frame:SetHeight(data.settings.height);
+        tk:SetFontSize(data.statusbar.text, data.settings.fontSize);
 
-        data.statusbar:SetScript("OnEnter", function(self)
-            self.text:Show();
-        end);
-
-        data.statusbar:SetScript("OnLeave", function(self)
-            self.text:Hide();
-        end);
+        if (data.settings.alwaysShowText) then
+            data.statusbar.text:Show();
+            data.statusbar:SetScript("OnEnter", tk.Constants.DUMMY_FUNC);
+            data.statusbar:SetScript("OnLeave", tk.Constants.DUMMY_FUNC);
+        else
+            data.statusbar.text:Hide();
+            data.statusbar:SetScript("OnEnter", OnEnter);
+            data.statusbar:SetScript("OnLeave", OnLeave);
+        end
     end
 end
 
@@ -396,19 +421,19 @@ function Private.experienceBar_ShowText()
     end
 end
 
-function Private.artifactBar_OnSetup(_, data)
-    data.blizzardBar = _G.ArtifactWatchBar;
-    data.statusbar.texture = data.statusbar:GetStatusBarTexture();
-    data.statusbar.texture:SetVertexColor(0.9, 0.8, 0.6, 1);
+do
+    local function OnArtifactXPUpdate(statusbar)
+        if (not HasArtifactEquipped()) then
+            return;
+        end
 
-    local handler = em:CreateEventHandler("ARTIFACT_XP_UPDATE", function()
         local totalXP, pointsSpent, _, _, _, _, _, _, tier = select(5, C_ArtifactUI.GetEquippedArtifactInfo());
         local _, currentValue, maxValue = GetNumPurchasableArtifactTraits(pointsSpent, totalXP, tier);
 
-        data.statusbar:SetMinMaxValues(0, maxValue);
-        data.statusbar:SetValue(currentValue);
+        statusbar:SetMinMaxValues(0, maxValue);
+        statusbar:SetValue(currentValue);
 
-        if (data.statusbar.text) then
+        if (statusbar.text) then
             if currentValue > 0 and maxValue == 0 then
                 maxValue = currentValue;
             end
@@ -418,25 +443,23 @@ function Private.artifactBar_OnSetup(_, data)
             maxValue = tk.Strings:FormatReadableNumber(maxValue);
 
             local text = string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
-            data.statusbar.text:SetText(text);
+            statusbar.text:SetText(text);
         end
-    end);
-    handler:SetKey("artifact_bar_update");
+    end
 
-    em:CreateEventHandler("UNIT_INVENTORY_CHANGED", function()
-        local equipped = HasArtifactEquipped();
-        local bar = self:GetBar(data.barName);
+    function Private.artifactBar_OnSetup(_, data)
+        data.blizzardBar = _G.ArtifactWatchBar;
+        data.statusbar.texture = data.statusbar:GetStatusBarTexture();
+        data.statusbar.texture:SetVertexColor(0.9, 0.8, 0.6, 1);
 
-        bar:SetEnabled(not equipped and data.enabled);
-
-        if (equipped) then
-            handler:Run();
-        end
-    end):Run();
+        em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, nil, data.statusbar);
+        em:CreateEventHandler("UNIT_INVENTORY_CHANGED", OnArtifactXPUpdate, nil, data.statusbar);
+        OnArtifactXPUpdate(data.statusbar);
+    end
 end
 
 function Private.artifactBar_ShowText()
-    local handler = em:FindHandlerByKey("ARTIFACT_XP_UPDATE", "artifact_bar_update");
+    local handler = em:FindHandlerByKey("ArtifactXP_Update");
     if (handler) then
         handler:Run();
     end

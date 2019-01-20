@@ -156,12 +156,13 @@ function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
     return totalRemoved;
 end
 
+-- copy all values from multiple tables into a new table
 function tk.Tables:Merge(...)
-    local merged = {};
+    local merged = obj:PopWrapper();
 
     for _, tbl in obj:IterateArgs(...) do
-        for key, value in tk.pairs(tbl) do
-            if (merged[key] and (tk.type(merged[key]) == "table") and (tk.type(value) == "table")) then
+        for key, value in pairs(tbl) do
+            if (obj:IsTable(merged[key]) and obj:IsTable(value)) then
                 merged[key] = self:Merge(merged[key], value);
             else
                 merged[key] = value;
@@ -170,6 +171,18 @@ function tk.Tables:Merge(...)
     end
 
     return merged;
+end
+
+-- move values from one table to another table
+function tk.Tables:Fill(tbl, otherTbl, preserveOldValue)
+    for key, value in pairs(otherTbl) do
+        if (obj:IsTable(tbl[key]) and obj:IsTable(value)) then
+            self:Fill(tbl[key], value);
+
+        elseif (not preserveOldValue or obj:IsNil(tbl[key])) then
+            tbl[key] = value;
+        end
+    end
 end
 
 do

@@ -236,57 +236,139 @@ function BaseModule:Hook(_, eventName, func)
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
-Engine:DefineParams("string", "function");
-function BaseModule:RegisterUpdateFunction(data, path, updateFunction)
-    data.setting = db:ParsePathValue(path);
-    data.updateFunction = updateFunction;
-    db:RegisterUpdateFunctions(path, updateFunction);
-end
-
-Engine:DefineParams("Observer", "table");
-function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions)
+Engine:DefineParams("Observer", "table", "?table");
+function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions, setupOptions)
     local path = observer:GetPathAddress();
-    data.updateFunctions = updateFunctions;
-    data.settings = observer:GetUntrackedTable(); -- disconnected from database
 
-    db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, valuePath)
-        -- update settings:
-        local settingPath = valuePath:gsub(path..".", "");
-        db:SetPathValue(data.settings, settingPath, value);
+    if (not data.updateFunctions) then
+        data.updateFunctions = updateFunctions;
+        data.settings = observer:GetUntrackedTable(); -- disconnected from database
+        data.setupOptions = setupOptions;
 
-        if (self:IsEnabled() or func == data.updateFunctions.enabled) then
-            func(value);
-        end
-    end);
+        db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, valuePath)
+            -- update settings:
+            local settingPath = valuePath:gsub(path..".", "");
+            db:SetPathValue(data.settings, settingPath, value);
+
+            if (self:IsEnabled() or func == data.updateFunctions.enabled) then
+                func(value);
+            end
+        end);
+    else
+        -- append new update functions
+        tk.Tables:Fill(data.updateFunctions, updateFunctions);
+        tk.Tables:Fill(data.setupOptions, setupOptions);
+    end
 end
 
 do
-    local function ExecuteAllUpdateFunctions(functionTable, settingsTable)
-        -- if an enabled function is found, execute it first!
-        if (settingsTable.enabled ~= nil and obj:IsFunction(functionTable.enabled)) then
-            functionTable.enabled(settingsTable.enabled);
+    local function GetBlocked(setupOptions, path, executedTable)
+        if (setupOptions and setupOptions.dependencies) then
+            for dependencyValue, dependency in pairs(setupOptions.dependencies) do
+                if (path:match(dependencyValue) and not executedTable[dependency]) then
+                    return true;
+                end
+            end
         end
 
-        for key, functionValue in pairs(functionTable) do
-            if (functionValue ~= functionTable.enabled) then
-                local settingsValue = settingsTable[key];
+        return false;
+    end
 
+    local function GetIgnored(setupOptions, path)
+        if (setupOptions and setupOptions.ignore) then
+            for _, ignoreValue in ipairs(setupOptions.ignore) do
+                if (setupOptions.first and setupOptions.first[path]) then
+                    return true;
+                end
+
+                if (setupOptions.last and setupOptions.last[path]) then
+                    return true;
+                end
+
+                if (path:match(ignoreValue)) then
+                    return true;
+                end
+            end
+        end
+
+        return false;
+    end
+
+    local function ExecuteOrdered(orderKey, executedTable, setupOptions, functionTable, settingsTable)
+        if (not (setupOptions and setupOptions[orderKey])) then
+            return false;
+        end
+
+        for _, orderedPath in ipairs(setupOptions[orderKey]) do
+            local updateFunc = db:ParsePathValue(functionTable, orderedPath);
+            local settingsValue = db:ParsePathValue(settingsTable, orderedPath);
+
+            tk:Print("executed: ", orderedPath);
+            updateFunc(settingsValue);
+            executedTable[orderedPath] = true;
+        end
+    end
+
+    local function ExecuteAllUpdateFunctions(functionTable, settingsTable, setupOptions, previousKey, executedTable, blockedTable)
+        for key, functionValue in pairs(functionTable) do
+            local path = key;
+            local settingsValue = settingsTable[key];
+
+            if (previousKey) then
+                path = string.format("%s.%s", previousKey, key);
+            end
+
+            local blocked = GetBlocked(setupOptions, path, executedTable);
+
+            if (blocked) then
+                blockedTable[path] = obj:PopWrapper(functionValue, settingsValue);
+            end
+
+            local ignored = GetIgnored(setupOptions, path);
+
+            if (not (ignored or blocked)) then
                 if (obj:IsFunction(functionValue)) then
-                    functionValue(settingsValue);
+                    if (not executedTable[path]) then
+                        tk:Print("executed: ", path);
+                        functionValue(settingsValue);
+                        executedTable[path] = true;
+                    end
 
                 elseif (obj:IsTable(functionValue) and obj:IsTable(settingsValue)) then
-                    ExecuteAllUpdateFunctions(functionValue, settingsValue);
+                    ExecuteAllUpdateFunctions(functionValue, settingsValue, setupOptions, key, executedTable, blockedTable);
                 end
             end
         end
     end
 
     function BaseModule:ExecuteAllUpdateFunctions(data)
+        print("-- Module Name: " .. self:GetModuleName() .. " --------------------");
+        local executedTable = obj:PopWrapper();
+        local blockedTable = obj:PopWrapper();
+
         if (obj:IsTable(data.updateFunctions)) then
-            ExecuteAllUpdateFunctions(data.updateFunctions, data.settings);
-        elseif (data.updateFunction) then
-            data.updateFunction(data.setting);
+            ExecuteOrdered("first", executedTable, data.setupOptions, data.updateFunctions, data.settings);
+            ExecuteAllUpdateFunctions(data.updateFunctions, data.settings, data.setupOptions, nil, executedTable, blockedTable);
+
+            local blockedValues = false;
+
+            repeat
+                for path, blockedValue in pairs(blockedTable) do
+                    local blocked = GetBlocked(data.setupOptions, path, executedTable);
+
+                    if (not blocked) then
+                        blockedValue[1](blockedValue[2]);
+                    else
+                        blockedValues = true;
+                    end
+                end
+            until (not blockedValues);
+
+            ExecuteOrdered("last", executedTable, data.setupOptions, data.updateFunctions, data.settings);
         end
+
+        obj:PushWrapper(executedTable);
+        obj:PushWrapper(blockedTable);
     end
 end
 
@@ -565,6 +647,14 @@ db:OnStartUp(function(self)
         _G.Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
         _G.Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);
     end
+
+    obj:SetErrorHandler(function(errorMessage, stack, locals)
+        local hideErrorFrame = not _G.GetCVarBool("scriptErrors");
+        _G.ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
+        _G.ScriptErrorsFrame.Title:SetText("MayronUI Error");
+        _G.ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
+        _G.ScriptErrorsFrame.Title.SetText = function() end;
+    end);
 
     tk.collectgarbage("collect");
 end);

@@ -163,7 +163,7 @@ function C_ChatModule:ShowMuiChatFrame(data, anchorName) -- lets assume it's ena
 	-- remove all spaces and convert to upper
 	anchorName = anchorName:gsub("%s+", ""):upper();
 
-	data.chatFrames = data.chatFrames or {};
+	data.chatFrames = data.chatFrames or obj:PopWrapper();
 	local muiChatFrame = data.chatFrames[anchorName];
 
 	if (not muiChatFrame) then

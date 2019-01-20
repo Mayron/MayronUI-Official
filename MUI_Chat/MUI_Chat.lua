@@ -129,7 +129,7 @@ function C_ChatModule:OnInitialize(data)
 					self:SetUpRaidFrameManager(muiChatFrame);
 				else
 					-- if it is not loaded, create a callback to trigger when it is loaded
-					em:CreateEventHandler("ADDON_LOADED", function(_, name)
+					em:CreateEventHandler("ADDON_LOADED", nil, nil, function(_, name)
 						if (name == "Blizzard_CompactRaidFrames") then
 							self:SetUpRaidFrameManager(muiChatFrame);
 						end

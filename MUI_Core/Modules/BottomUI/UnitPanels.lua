@@ -76,12 +76,13 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
                     Private.DetachShadowedUnitFrames();
                     tk:UnhookFunc(_G.ShadowUF, "ProfilesChanged", Private.AttachShadowedUnitFrames);
                     tk:UnhookFunc("ReloadUI", Private.DetachShadowedUnitFrames);
+                    print("Ok")
                 end
             else
                 Private.AttachShadowedUnitFrames(data.right);
                 tk:HookFunc(_G.ShadowUF, "ProfilesChanged", Private.AttachShadowedUnitFrames, data.right);
                 tk:HookFunc("ReloadUI", Private.DetachShadowedUnitFrames);
-                em:CreateEventHandler("PLAYER_LOGOUT", Private.DetachShadowedUnitFrames):SetKey("DetachSufOnLogout");
+                em:CreateEventHandlerWithKey("PLAYER_LOGOUT", "DetachSufOnLogout", Private.DetachShadowedUnitFrames);
             end
         end;
 
@@ -203,6 +204,7 @@ function C_UnitPanels:OnEnable(data)
 end
 
 function C_UnitPanels:SetupUnitNames(data)
+
     local nameTextureFilePath = tk:GetAssetFilePath("Textures\\BottomUI\\NamePanel");
 
     data.player = _G.CreateFrame("Frame", "MUI_PlayerName", data.left);
@@ -485,6 +487,8 @@ function Private.DetachShadowedUnitFrames()
 
     SUF["point"] = "TOP"; SUF["anchorTo"] = "UIParent";
     SUF["relativePoint"] = "TOP"; SUF["x"] = 0; SUF["y"] = -40;
+
+    _G.ShadowUF.Layout:Reload();
 end
 
 function Private.AttachShadowedUnitFrames(rightPanel)
@@ -531,73 +535,74 @@ do
             data.target.text:SetText(tk.Strings.Empty);
         end
 
-        -- If the parent is not SUF it won't hide automatically!
-        if (data.right:GetParent() == data.buiContainer) then
-            data.right:Hide();
-        end
-
+        data.right:SetAlpha(0);
         data.left.bg:SetAlpha(0);
         data.left.noTargetBg:SetAlpha(data.settings.alpha);
     end
 
     function Private.DisableSymmetry(data)
-        tk:ApplyThemeColor(data.settings.alpha, data.left.noTargetBg);
-
         if (not data.left.noTargetBg) then
+            -- create single texture
             data.left.noTargetBg = tk:SetBackground(data.left, singleTextureFilePath);
+            tk:ApplyThemeColor(data.settings.alpha, data.left.noTargetBg);
         end
 
-        if (data.right:GetParent() == data.buiContainer) then
-            data.right:Hide();
-        end
-
+        data.right:SetParent(data.buiContainer);
         local handler = em:FindHandlerByKey("DisableSymmetry_PLAYER_TARGET_CHANGED");
 
         if (not handler) then
-            handler = em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
-                if (not _G.UnitExists("target")) then
-                    SwitchToSingle(data);
-                    return;
-                end
+            handler = em:CreateEventHandlerWithKey("PLAYER_TARGET_CHANGED", "DisableSymmetry_TargetChanges",
+                function()
+                    if (not _G.UnitExists("target")) then
+                        SwitchToSingle(data);
+                        return;
+                    end
 
-                if (data.right:GetParent() == data.buiContainer) then
-                    data.right:Show();
-                end
+                    -- if data.right is not attached to SUF, show it manually!
+                    if (data.right:GetParent() == data.buiContainer) then
+                        data.right:SetAlpha(1);
+                    end
 
-                data.left.bg:SetAlpha(data.settings.alpha);
-                data.left.noTargetBg:SetAlpha(0);
+                    data.left.bg:SetAlpha(data.settings.alpha);
+                    data.left.noTargetBg:SetAlpha(0);
 
-                if (data.settings.unitNames.targetClassColored) then
-                    if (_G.UnitIsPlayer("target")) then
-                        local _, class = _G.UnitClass("target");
-                        tk:SetClassColoredTexture(class, data.target.bg);
-                    else
-                        tk:ApplyThemeColor(data.settings.alpha, data.target.bg);
+                    if (data.settings.unitNames.targetClassColored) then
+                        if (_G.UnitIsPlayer("target")) then
+                            local _, class = _G.UnitClass("target");
+                            tk:SetClassColoredTexture(class, data.target.bg);
+                        else
+                            tk:ApplyThemeColor(data.settings.alpha, data.target.bg);
+                        end
                     end
                 end
-            end);
-
-            handler:SetKey("DisableSymmetry_TargetChanges");
+            );
         end
 
         handler:Run();
         handler = em:FindHandlerByKey("DisableSymmetry_EnteringWorld", "PLAYER_ENTERING_WORLD");
 
         if (not handler) then
-            handler = em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
-                if (not _G.UnitExists("target")) then
-                    SwitchToSingle(data);
+            em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "DisableSymmetry_EnteringWorld",
+                function()
+                    if (not _G.UnitExists("target")) then
+                        SwitchToSingle(data);
+                    end
                 end
-            end);
-
-            handler:SetKey("DisableSymmetry_EnteringWorld");
+            );
         end
 
         em:DestroyHandlersByKey("EnableSymmetry_TargetChanged");
     end
 
     function Private.EnableSymmetry(data)
+        if (data.left.noTargetBg) then
+            -- create single texture
+            data.left.noTargetBg:SetAlpha(0);
+        end
+
         data.right:SetParent(data.buiContainer);
+        data.right:SetAlpha(1);
+        data.left.bg:SetAlpha(data.settings.alpha);
 
         local handler = em:FindHandlerByKey("EnableSymmetry_TargetChanged", "PLAYER_TARGET_CHANGED");
 
@@ -611,6 +616,7 @@ do
 
         if (not handler) then
             handler = em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
+                if (not data.target) then return; end
                 local targetClassColored = data.settings.unitNames.targetClassColored;
 
                 if (targetClassColored and _G.UnitExists("target") and _G.UnitIsPlayer("target")) then

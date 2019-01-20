@@ -28,10 +28,10 @@ db:AddToDefaults("profile.actionBarPanel", {
         -- 1 and 2 = bottom bartender action bars
         -- 3 and 4 = expanded, extra bartender action bars
         -- values are the bartender bar IDs
-        [1]       = 1;
-        [2]       = 7;
-        [3]       = 9;
-        [4]       = 10;
+        [1] = 1;
+        [2] = 7;
+        [3] = 9;
+        [4] = 10;
     };
 });
 
@@ -42,6 +42,12 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
     data.ResourceBars = subModules.ResourceBars;
     data.DataText = subModules.DataText;
     Private.data = data;
+
+    -- local setupOptions = {
+    --     dependencies = {
+    --         ["bartender.%d"] = "bartender.control";
+    --     };
+    -- };
 
     self:RegisterUpdateFunctions(db.profile.actionBarPanel, {
         enabled = function(value)
@@ -95,10 +101,6 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
         end;
 
         bartender = {
-            control = function(value)
-                data.settings.bartender.control = value;
-            end;
-
             [1] = function(bartenderBarID)
                 self:SetupBartenderBar(1, bartenderBarID);
             end;

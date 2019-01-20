@@ -32,6 +32,11 @@ function tk.Strings:Contains(fullString, subString)
     end
 end
 
+function tk.Strings:GetStringBetween(strValue, firstPart, secondPart)
+    local pattern = string.format("%s%s%s", firstPart, "(.-)", secondPart);
+    return string.match(strValue, pattern);
+end
+
 function tk.Strings:IsNilOrWhiteSpace(strValue)
     if (strValue == nil) then
         return true;

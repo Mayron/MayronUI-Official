@@ -144,6 +144,15 @@ function WidgetHandlers.check:Run(parent, widgetConfigTable, value)
         cbContainer:SetHeight(widgetConfigTable.height);
     end
 
+    if (widgetConfigTable.enabled) then
+        if (obj:IsFunction(widgetConfigTable.enabled)) then
+            local enabled = widgetConfigTable:enabled();
+            cbContainer.btn:SetEnabled(enabled);
+        else
+            cbContainer.btn:SetEnabled(widgetConfigTable.enabled);
+        end
+    end
+
     return cbContainer;
 end
 

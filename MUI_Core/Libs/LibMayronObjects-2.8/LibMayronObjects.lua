@@ -332,6 +332,10 @@ function Lib:Error(errorMessage, ...)
     Core:Error(errorMessage, ...);
 end
 
+function Lib:SetErrorHandler(errorHandler)
+    Core.errorHandler = errorHandler;
+end
+
 -- Helper function to check if value is a specified type
 -- @param value: The value to check the type of (can be nil)
 -- @param expectedTypeName: The exact type to check for (can be ObjectType)
@@ -1324,6 +1328,12 @@ function Core:Assert(condition, errorMessage, ...)
         if (self.silent) then
             self.errorLog = self.errorLog or Lib:PopWrapper();
             self.errorLog[#self.errorLog + 1] = pcall(function() error(self.PREFIX .. errorMessage) end);
+
+        elseif (Lib:IsFunction(self.errorHandler)) then
+            local level = _G.DEBUGLOCALS_LEVEL;
+            local stack = _G.debugstack(level);
+            local locals = _G.debuglocals(level);
+            self.errorHandler(errorMessage, stack, locals);
         else
             error(self.PREFIX .. errorMessage);
         end

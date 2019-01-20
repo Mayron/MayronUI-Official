@@ -4,11 +4,14 @@ local addonName = ...;
 local Lib = _G.LibStub:NewLibrary("LibMayronEvents", 1.1);
 
 if (not Lib) then
-    return
+    return;
 end
+
+local unpack = _G.unpack;
 
 local Private = {};
 Private.eventsList = {};
+Private.eventKeys = {};
 Private.eventTracker = _G.CreateFrame("Frame");
 
 local obj = _G.LibStub:GetLibrary("LibMayronObjects");
@@ -53,12 +56,22 @@ function Handler:SetAutoDestroy(data, autoDestroy)
     data.autoDestroy = autoDestroy;
 end
 
+function Handler:SetCallbackArgs(data, ...)
+    if (data.args) then
+        obj:PushWrapper(data.args);
+    end
+
+    data.args = obj:PopWrapper(...);
+end
+
 function Handler:SetKey(data, key)
     if (not key) then
         data.key = tostring(self);
     else
         data.key = key;
     end
+
+    Private.eventKeys[key] = self;
 end
 
 function Handler:GetKey(data)
@@ -67,8 +80,13 @@ end
 
 function Handler:Run(data, eventName, ...)
     if (data.callback) then
-        -- execute event callback
-        data.callback(self, eventName, ...);
+        if (data.args) then
+            -- execute event callback
+            data.callback(self, eventName, unpack(data.args), ...);
+        else
+            -- execute event callback
+            data.callback(self, eventName, ...);
+        end
     end
 
     if (data.autoDestroy) then
@@ -86,11 +104,12 @@ end
 -- @param callback (function) - function to call when the event triggers
 -- @param unit (boolean) - whether the event is a unit event
 -- @return (Handler) - handler object created for the registered event
-function Lib:CreateEventHandler(eventName, callback, unit)
+function Lib:CreateEventHandler(eventName, callback, unit, ...)
     Private.eventsList[eventName] = Private.eventsList[eventName] or obj:PopWrapper();
 
     local handler = Handler(eventName, callback);
     table.insert(Private.eventsList[eventName], handler);
+    handler:SetCallbackArgs(...);
 
     if (unit) then
         Private.eventTracker:RegisterUnitEvent(eventName, unit);
@@ -101,18 +120,24 @@ function Lib:CreateEventHandler(eventName, callback, unit)
     return handler;
 end
 
+function Lib:CreateEventHandlerWithKey(eventName, key, callback, unit, ...)
+    local handler = self:CreateEventHandler(eventName, callback, unit, ...);
+    handler:SetKey(key);
+    return handler;
+end
+
 -- @param eventNames (string) - comma separated string list of event names
 -- @param callback (function) - function to call when any of the events trigger
 -- @param unit (boolean) - whether the events are unit events
 -- @return (Handler) - handler objects created for each event in eventNames
-function Lib:CreateEventHandlers(eventNames, callback, unit)
+function Lib:CreateEventHandlers(eventNames, callback, unit, ...)
     local handlers = obj:PopWrapper();
 
     for id, event in obj:IterateArgs(_G.strsplit(",", eventNames)) do
         event = _G.strtrim(event);
 
 		if (#event > 0) then
-			handlers[id] = Lib:CreateEventHandler(event, callback, unit);
+			handlers[id] = Lib:CreateEventHandler(event, callback, unit, ...);
 		end
     end
 
@@ -127,45 +152,35 @@ function Lib:TriggerEvent(eventName, ...)
     end
 end
 
-function Lib:FindHandlerByKey(key, event)
-    if (obj:IsString(event) and Private:EventTableExists(event)) then
-        for _, handler in pairs(Private.eventsList[event]) do
-            if (key == handler:GetKey()) then
-                return handler;
-            end
-        end
-    else
-        for _, handlerTable in pairs(Private.eventsList) do
-            for _, handler in ipairs(handlerTable) do
-                if (key == handler:GetKey()) then
-                    return handler;
-                end
-            end
-        end
-    end
+function Lib:HandlerExists(key)
+    return (Private.eventKeys[key] ~= nil);
 end
 
 function Lib:DestroyHandlersByKey(...)
     for _, key in obj:IterateArgs(...) do
-        for _, handlerTable in pairs(Private.eventsList) do
-            for _, handler in ipairs(handlerTable) do
-                if (key == handler:GetKey()) then
-                    handler:Destroy();
-                end
-            end
-        end
+        self:DestroyHandlerByKey(key);
     end
 end
 
-function Lib:FindHandlerByPriority(event, priority)
-    if (Private:EventTableExists(event)) then
-        return Private.eventsList[event][priority];
+function Lib:DestroyHandlerByKey(key)
+    if (self:HandlerExists(key)) then
+        Private.eventKeys[key]:Destroy();
     end
 end
 
-function Lib:GetNumEventHandlers(event)
-    if (Private:EventTableExists(event)) then
-        return #Private.eventsList[event];
+function Lib:FindHandlerByKey(key)
+    return Private.eventKeys[key];
+end
+
+function Lib:FindHandlerByEventPriority(eventName, priority)
+    if (Private:EventTableExists(eventName)) then
+        return Private.eventsList[eventName][priority];
+    end
+end
+
+function Lib:GetNumHandlersByEvent(eventName)
+    if (Private:EventTableExists(eventName)) then
+        return #Private.eventsList[eventName];
     end
 end
 
@@ -173,12 +188,12 @@ end
 -- Private API
 ------------------------
 Private.eventTracker:SetScript("OnEvent", function(_, ...)
-    Private:CallHandlers(...)
+    Private:CallHandlersByEvent(...);
 end);
 
 -- Finds all handlers in eventsList and executes their
 -- callback if registered with the eventName.
-function Private:CallHandlers(eventName, ...)
+function Private:CallHandlersByEvent(eventName, ...)
     if (not self:IsEventTableEmpty(eventName)) then
         local handlers = self.eventsList[eventName];
 

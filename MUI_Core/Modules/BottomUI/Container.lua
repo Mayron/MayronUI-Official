@@ -61,11 +61,12 @@ function C_Container:OnInitialize(data)
     data.subModules.ActionBarPanel:Initialize(data.container, data.subModules);
     data.subModules.UnitPanels:Initialize(data.container, data.subModules);
 
-    self:RegisterUpdateFunction("profile.bottomui.width", function(value)
-        data.container:SetSize(value, 1);
-        --MayronUI.db.profile.bottomui.width
-    end);
+    self:RegisterUpdateFunctions(db.profile.bottomui, {
+        width = function(value)
+            data.container:SetSize(value, 1);
+        end;
+    });
 
-    data.container:SetSize(data.setting, 1);
+    data.container:SetSize(data.settings.width, 1);
     self:SetEnabled(true);
 end

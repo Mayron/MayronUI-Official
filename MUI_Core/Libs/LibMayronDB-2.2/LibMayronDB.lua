@@ -289,6 +289,8 @@ function Database:TriggerUpdateFunction(data, path, newValue)
         else
             updateFunc(newValue);
         end
+    else
+        -- print(path) -- TODO: Eventually remove this!
     end
 end
 
@@ -1046,6 +1048,26 @@ do
     function BasicTableParent:GetObserver()
         local data = _metaData[tostring(self)];
         return data.observer;
+    end
+
+    do
+        local function UpdateUntrackedTable(currentTable, updatedTable)
+            for updatedKey, updatedValue in pairs(updatedTable) do
+                if (obj:IsTable(currentTable[updatedKey]) and obj:IsTable(updatedValue)) then
+                    UpdateUntrackedTable(currentTable[updatedKey], updatedValue);
+                else
+                    currentTable[updatedKey] = updatedValue;
+                end
+            end
+
+            obj:PushWrapper(updatedTable);
+        end
+
+        function BasicTableParent:Refresh()
+            local data = _metaData[tostring(self)];
+            local updatedTable = data.observer:GetUntrackedTable();
+            UpdateUntrackedTable(self, updatedTable);
+        end
     end
 
     -- Meta-methods:

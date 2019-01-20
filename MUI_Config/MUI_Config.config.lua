@@ -127,14 +127,15 @@ function C_ConfigModule:GetConfigTable()
                 {   name = L["Allow MUI to Control Unit Frames"],
                     tooltip = L["TT_MUI_CONTROL_SUF"],
                     type = "check",
-                    requiresReload = true,
-                    dbPath = "profile.unitPanels.control_SUF"
+                    dbPath = "profile.unitPanels.controlSUF"
                 },
                 {   name = L["Allow MUI to Control Grid"],
                     tooltip = L["TT_MUI_CONTROL_GRID"],
                     type = "check",
-                    requiresReload = true,
-                    dbPath = "profile.unitPanels.controlGrid"
+                    dbPath = "profile.unitPanels.controlGrid",
+                    enabled = function()
+                        return _G.IsAddOnLoaded("Grid") and _G.GridLayoutFrame;
+                    end
                 },
                 {   type = "divider",
                 },

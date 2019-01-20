@@ -138,7 +138,7 @@ function C_DataTextModule:OnInitialize(data)
         --     "performance";
         --     "specialization";
         -- };
-    }, true);
+    });
 end
 
 function C_DataTextModule:OnEnable(data)
@@ -170,7 +170,7 @@ function C_DataTextModule:OnEnable(data)
     data.popup:Hide();
 
     -- controls the Esc key behaviour to close the popup (must use global name)
-    tk.table.insert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
+    table.insert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
 
     if (data.settings.popup.hideInCombat) then
         em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
@@ -393,7 +393,7 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
         data.slideController:Start(SlideController.Static.FORCE_RETRACT);
 
         --tk.UIFrameFadeOut(data.popup, 0.3, data.popup:GetAlpha(), 0);
-        tk.PlaySound(tk.Constants.CLICK);
+        _G.PlaySound(tk.Constants.CLICK);
         return;
     end
 
@@ -449,8 +449,8 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     data.slideController:SetMaxHeight(totalHeight);
     data.slideController:Start(SlideController.Static.FORCE_EXPAND);
 
-    tk.UIFrameFadeIn(data.popup, 0.3, 0, 1);
-    tk.PlaySound(tk.Constants.CLICK);
+    _G.UIFrameFadeIn(data.popup, 0.3, 0, 1);
+    _G.PlaySound(tk.Constants.CLICK);
 end
 
 Engine:DefineParams("string");
