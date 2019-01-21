@@ -8,10 +8,6 @@ local UnitXP, UnitXPMax, GetXPExhaustion = _G.UnitXP, _G.UnitXPMax, _G.GetXPExha
 local C_ArtifactUI, GameTooltip = _G.C_ArtifactUI, _G.GameTooltip;
 local GetNumPurchasableArtifactTraits = _G.ArtifactBarGetNumArtifactTraitsPurchasableFromXP;
 
--- Setup Namespaces ----------------------
-
-local Private = {}; -- needed for dynamically loading correct bar
-
 -- Constants -----------------------------
 
 local BAR_NAMES = {"reputation", "experience", "artifact"};
@@ -23,7 +19,10 @@ local Engine = obj:Import("MayronUI.Engine");
 local BottomUIPackage = obj:CreatePackage("BottomUI");
 Engine:AddSubPackage(BottomUIPackage);
 
-local C_ResourceBar = BottomUIPackage:CreateClass("ResourceBar", "Framework.System.FrameWrapper");
+local C_BaseResourceBar = BottomUIPackage:CreateClass("BaseResourceBar", "Framework.System.FrameWrapper");
+local C_ExperienceBar = BottomUIPackage:CreateClass("ExperienceBar", C_BaseResourceBar);
+local C_ReputationBar = BottomUIPackage:CreateClass("ReputationBar", C_BaseResourceBar);
+local C_ArtifactBar = BottomUIPackage:CreateClass("ArtifactBar", C_BaseResourceBar);
 
 -- Register and Import Modules -----------
 
@@ -59,10 +58,12 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
 
     local setupOptions = {
         first = {
-            "enabled";
             "experienceBar.enabled";
             "reputationBar.enabled";
             "artifactBar.enabled";
+        };
+        ignore = {
+            ".*"; -- ignore everything else
         }
     };
 
@@ -94,8 +95,7 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
                 if (not tk:IsPlayerMaxLevel() and data.barsContainer) then
                     if (not data.bars["experience"]) then
                         if (value) then
-                            data.bars["experience"] = C_ResourceBar(self, data, "experience");
-                            self:UpdateContainer();
+                            data.bars["experience"] = C_ExperienceBar(self, data);
                         end
                     else
                         data.bars["experience"]:SetEnabled(value);
@@ -113,8 +113,7 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
                 if (not GetWatchedFactionInfo() and data.barsContainer) then
                     if (not data.bars["reputation"]) then
                         if (value) then
-                            data.bars["reputation"] = C_ResourceBar(self, data, "reputation");
-                            self:UpdateContainer();
+                            data.bars["reputation"] = C_ReputationBar(self, data);
                         end
                     else
                         data.bars["reputation"]:SetEnabled(value);
@@ -132,8 +131,7 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
                 if (not HasArtifactEquipped() and data.barsContainer) then
                     if (not data.bars["artifact"]) then
                         if (value) then
-                            data.bars["artifact"] = C_ResourceBar(self, data, "artifact");
-                            self:UpdateContainer();
+                            data.bars["artifact"] = C_ArtifactBar(self, data);
                         end
                     else
                         data.bars["artifact"]:SetEnabled(value);
@@ -149,6 +147,7 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
 end
 
 function C_ResourceBarsModule:OnEnable(data)
+    print("OK")
     if (data.barsContainer) then
         data.barsContainer:Show(); -- TODO: Needs to be tested
         return;
@@ -257,7 +256,7 @@ end
 -- C_ResourceBar ---------------------------
 
 BottomUIPackage:DefineParams("BottomUI_ResourceBars", "table", "string");
-function C_ResourceBar:__Construct(data, barsModule, moduleData, barName)
+function C_BaseResourceBar:__Construct(data, barsModule, moduleData, barName)
     data.module = barsModule;
     data.barName = barName;
     data.enabled = true;
@@ -279,6 +278,8 @@ function C_ResourceBar:__Construct(data, barsModule, moduleData, barName)
     statusbar:SetPoint("BOTTOMRIGHT", -1, 1);
 
     statusbar.texture = statusbar:GetStatusBarTexture();
+    statusbar.text = statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
+    statusbar.text:SetPoint("CENTER");
 
     statusbar:SetScript("OnEnter", function(self)
         self.texture:SetBlendMode("ADD");
@@ -294,27 +295,9 @@ function C_ResourceBar:__Construct(data, barsModule, moduleData, barName)
         end
     end);
 
-    statusbar.text = statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
-    statusbar.text:SetPoint("CENTER");
-    tk:SetFontSize(statusbar.text, data.settings.fontSize);
-
-    if (not data.settings.alwaysShowText) then
-        statusbar.text:Hide();
-
-        statusbar:SetScript("OnEnter", function(self)
-            self.text:Show();
-        end);
-
-        statusbar:SetScript("OnLeave", function(self)
-            self.text:Hide();
-        end);
-    end
-
     data.frame = frame;
     data.statusbar = statusbar;
-
-    Private[data.barName.."Bar_ShowText"](self, data);
-    Private[barName.."Bar_OnSetup"](self, data);
+    self:SetEnabled(true);
 end
 
 do
@@ -326,7 +309,7 @@ do
         self.text:Hide();
     end
 
-    function C_ResourceBar:Update(data)
+    function C_BaseResourceBar:Update(data)
         data.frame:SetHeight(data.settings.height);
         tk:SetFontSize(data.statusbar.text, data.settings.fontSize);
 
@@ -343,29 +326,47 @@ do
 end
 
 BottomUIPackage:DefineReturns("number");
-function C_ResourceBar:GetHeight(data)
+function C_BaseResourceBar:GetHeight(data)
     return data.frame:GetHeight();
 end
 
 BottomUIPackage:DefineReturns("boolean");
-function C_ResourceBar:IsEnabled(data)
+function C_BaseResourceBar:IsEnabled(data)
     return data.enabled;
 end
 
 BottomUIPackage:DefineParams("boolean");
-function C_ResourceBar:SetEnabled(data, enabled)
+function C_BaseResourceBar:SetEnabled(data, enabled)
     data.enabled = enabled;
     data.frame:SetShown(enabled);
+    self:Update();
     data.module:UpdateContainer();
 end
 
--- Private Functions ---------------------
+-- C_ExperienceBar ----------------------
 
-function Private.experienceBar_OnSetup(self, data)
-    if (tk:IsPlayerMaxLevel()) then
-        self:SetEnabled(false);
-        return;
+local function OnExperienceBarUpdate(_, _, statusbar, rested)
+    local currentValue = UnitXP("player");
+    local maxValue = UnitXPMax("player");
+    local exhaustValue = GetXPExhaustion();
+
+    statusbar:SetMinMaxValues(0, maxValue);
+    statusbar:SetValue(currentValue);
+    rested:SetMinMaxValues(0, maxValue);
+    rested:SetValue(exhaustValue and (exhaustValue + currentValue) or 0);
+
+    if (statusbar.text) then
+        local percent = (currentValue / maxValue) * 100;
+        currentValue = tk.Strings:FormatReadableNumber(currentValue);
+        maxValue = tk.Strings:FormatReadableNumber(maxValue);
+        local text = tk.string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
+        statusbar.text:SetText(text);
     end
+end
+
+BottomUIPackage:DefineParams("BottomUI_ResourceBars", "table");
+function C_ExperienceBar:__Construct(data, barsModule, moduleData)
+    self:Super(barsModule, moduleData, "experience");
 
     data.blizzardBar = _G.MainMenuExpBar;
 
@@ -383,89 +384,24 @@ function Private.experienceBar_OnSetup(self, data)
 
     em:CreateEventHandler("PLAYER_LEVEL_UP", function(handler, _, level)
         if (tk:GetMaxPlayerLevel() == level) then
-
             self:SetEnabled(false);
-            em:FindHandlerByKey("PLAYER_XP_UPDATE", "xp_bar_update"):Destroy();
+            em:DestroyHandlerByKey("ExperienceBar_Update");
             handler:Destroy();
-
         end
     end);
 
-    local handler = em:CreateEventHandler("PLAYER_XP_UPDATE", function()
-        local currentValue = UnitXP("player");
-        local maxValue = UnitXPMax("player");
-        local exhaustValue = GetXPExhaustion();
+    em:CreateEventHandlerWithKey("PLAYER_XP_UPDATE", "ExperienceBar_Update",
+        OnExperienceBarUpdate, nil, data.statusbar, data.rested);
 
-        data.statusbar:SetMinMaxValues(0, maxValue);
-        data.statusbar:SetValue(currentValue);
-        data.rested:SetMinMaxValues(0, maxValue);
-        data.rested:SetValue(exhaustValue and (exhaustValue + currentValue) or 0);
-
-        if (data.statusbar.text) then
-            local percent = (currentValue / maxValue) * 100;
-            currentValue = tk.Strings:FormatReadableNumber(currentValue);
-            maxValue = tk.Strings:FormatReadableNumber(maxValue);
-            local text = tk.string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
-            data.statusbar.text:SetText(text);
-        end
-    end);
-
-    handler:SetKey("xp_bar_update");
-    handler:Run();
+    OnExperienceBarUpdate(nil, nil, data.statusbar, data.rested);
 end
 
-function Private.experienceBar_ShowText()
-    local handler = em:FindHandlerByKey("PLAYER_XP_UPDATE", "xp_bar_update");
-    if (handler) then
-        handler:Run();
-    end
-end
+-- C_ReputationBar ----------------------
 
-do
-    local function OnArtifactXPUpdate(statusbar)
-        if (not HasArtifactEquipped()) then
-            return;
-        end
+BottomUIPackage:DefineParams("BottomUI_ResourceBars", "table");
+function C_ReputationBar:__Construct(data, barsModule, moduleData)
+    self:Super(barsModule, moduleData, "reputation");
 
-        local totalXP, pointsSpent, _, _, _, _, _, _, tier = select(5, C_ArtifactUI.GetEquippedArtifactInfo());
-        local _, currentValue, maxValue = GetNumPurchasableArtifactTraits(pointsSpent, totalXP, tier);
-
-        statusbar:SetMinMaxValues(0, maxValue);
-        statusbar:SetValue(currentValue);
-
-        if (statusbar.text) then
-            if currentValue > 0 and maxValue == 0 then
-                maxValue = currentValue;
-            end
-
-            local percent = (currentValue / maxValue) * 100;
-            currentValue = tk.Strings:FormatReadableNumber(currentValue);
-            maxValue = tk.Strings:FormatReadableNumber(maxValue);
-
-            local text = string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
-            statusbar.text:SetText(text);
-        end
-    end
-
-    function Private.artifactBar_OnSetup(_, data)
-        data.blizzardBar = _G.ArtifactWatchBar;
-        data.statusbar.texture = data.statusbar:GetStatusBarTexture();
-        data.statusbar.texture:SetVertexColor(0.9, 0.8, 0.6, 1);
-
-        em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, nil, data.statusbar);
-        em:CreateEventHandler("UNIT_INVENTORY_CHANGED", OnArtifactXPUpdate, nil, data.statusbar);
-        OnArtifactXPUpdate(data.statusbar);
-    end
-end
-
-function Private.artifactBar_ShowText()
-    local handler = em:FindHandlerByKey("ArtifactXP_Update");
-    if (handler) then
-        handler:Run();
-    end
-end
-
-function Private.reputationBar_OnSetup(self, data)
     data.statusbar:HookScript("OnEnter", function(self)
         local factionName, standingID, minValue, maxValue, currentValue = GetWatchedFactionInfo();
 
@@ -495,7 +431,7 @@ function Private.reputationBar_OnSetup(self, data)
     data.statusbar.texture = data.statusbar:GetStatusBarTexture();
     data.statusbar.texture:SetVertexColor(0.16, 0.6, 0.16, 1);
 
-    local handler = em:CreateEventHandlers("UPDATE_FACTION, PLAYER_REGEN_ENABLED", function()
+    em:CreateEventHandlers("UPDATE_FACTION, PLAYER_REGEN_ENABLED", function()
         local factionName, standingID, minValue, maxValue, currentValue = GetWatchedFactionInfo();
 
 		if (not InCombatLockdown()) then
@@ -522,15 +458,45 @@ function Private.reputationBar_OnSetup(self, data)
             local text = tk.string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
             data.statusbar.text:SetText(text);
         end
-    end);
-
-    handler:SetKey("reputation_bar_update");
-    handler:Run();
+    end):Run();
 end
 
-function Private.reputationBar_ShowText()
-    local handler = em:FindHandlerByKey("UPDATE_FACTION", "reputation_bar_update");
-    if (handler) then
-        handler:Run();
+-- C_ArtifactBar ----------------------
+
+local function OnArtifactXPUpdate(_, _, statusbar)
+    if (not HasArtifactEquipped()) then
+        return;
     end
+
+    local totalXP, pointsSpent, _, _, _, _, _, _, tier = select(5, C_ArtifactUI.GetEquippedArtifactInfo());
+    local _, currentValue, maxValue = GetNumPurchasableArtifactTraits(pointsSpent, totalXP, tier);
+
+    statusbar:SetMinMaxValues(0, maxValue);
+    statusbar:SetValue(currentValue);
+
+    if (statusbar.text) then
+        if currentValue > 0 and maxValue == 0 then
+            maxValue = currentValue;
+        end
+
+        local percent = (currentValue / maxValue) * 100;
+        currentValue = tk.Strings:FormatReadableNumber(currentValue);
+        maxValue = tk.Strings:FormatReadableNumber(maxValue);
+
+        local text = string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
+        statusbar.text:SetText(text);
+    end
+end
+
+BottomUIPackage:DefineParams("BottomUI_ResourceBars", "table");
+function C_ArtifactBar:__Construct(data, barsModule, moduleData)
+    self:Super(barsModule, moduleData, "artifact");
+
+    data.blizzardBar = _G.ArtifactWatchBar;
+    data.statusbar.texture = data.statusbar:GetStatusBarTexture();
+    data.statusbar.texture:SetVertexColor(0.9, 0.8, 0.6, 1);
+
+    em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, nil, data.statusbar);
+    em:CreateEventHandler("UNIT_INVENTORY_CHANGED", OnArtifactXPUpdate, nil, data.statusbar);
+    OnArtifactXPUpdate(nil, nil, data.statusbar);
 end

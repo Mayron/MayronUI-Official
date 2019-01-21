@@ -167,9 +167,6 @@ function BaseModule:Initialize(_, ...)
             func(self, registryInfo.moduleData);
         end
     end
-
-    -- execute all update functions
-    self:ExecuteAllUpdateFunctions(self);
 end
 
 Engine:DefineReturns("string");
@@ -191,10 +188,22 @@ function BaseModule:SetEnabled(data, enabled, ...)
 
     registryInfo.enabled = enabled;
 
+    if (data.settings) then
+        -- do not need to manually create an enabled update function to change this!
+        data.settings.enabled = enabled;
+    end
+
     if (enabled) then
+        if (data.updateFunctions and not data.executingAllUpdateFunctions) then
+            -- execute all update functions if enabled setting changed
+            self:ExecuteAllUpdateFunctions(self);
+        end
+
         if (self.OnEnable) then
             self:OnEnable(...);
+            print(self:GetModuleName())
         end
+
         -- Call any other functions attached to this modules OnEnable event
         hooks = registryInfo.hooks and registryInfo.hooks.OnEnable;
     else
@@ -285,8 +294,18 @@ do
                     return true;
                 end
 
-                if (path:match(ignoreValue)) then
-                    return true;
+                if (tk.Strings:StartsWith(ignoreValue, "~")) then
+                    -- invert to ignore if it does not match pattern
+                    ignoreValue = ignoreValue:sub(2, #ignoreValue);
+
+                    if (not path:match(ignoreValue)) then
+                        return true;
+                    end
+                else
+
+                    if (path:match(ignoreValue)) then
+                        return true;
+                    end
                 end
             end
         end
@@ -295,6 +314,11 @@ do
     end
 
     local function ExecuteOrdered(orderKey, executedTable, setupOptions, functionTable, settingsTable)
+        if (functionTable.enabled) then
+            functionTable.enabled(settingsTable.enabled);
+            executedTable.enabled = true;
+        end
+
         if (not (setupOptions and setupOptions[orderKey])) then
             return false;
         end
@@ -342,33 +366,36 @@ do
     end
 
     function BaseModule:ExecuteAllUpdateFunctions(data)
+        if (not obj:IsTable(data.updateFunctions)) then return; end
+
+        data.executingAllUpdateFunctions = true;
+
         print("-- Module Name: " .. self:GetModuleName() .. " --------------------");
         local executedTable = obj:PopWrapper();
         local blockedTable = obj:PopWrapper();
 
-        if (obj:IsTable(data.updateFunctions)) then
-            ExecuteOrdered("first", executedTable, data.setupOptions, data.updateFunctions, data.settings);
-            ExecuteAllUpdateFunctions(data.updateFunctions, data.settings, data.setupOptions, nil, executedTable, blockedTable);
+        ExecuteOrdered("first", executedTable, data.setupOptions, data.updateFunctions, data.settings);
+        ExecuteAllUpdateFunctions(data.updateFunctions, data.settings, data.setupOptions, nil, executedTable, blockedTable);
 
-            local blockedValues = false;
+        local blockedValues = false;
 
-            repeat
-                for path, blockedValue in pairs(blockedTable) do
-                    local blocked = GetBlocked(data.setupOptions, path, executedTable);
+        repeat
+            for path, blockedValue in pairs(blockedTable) do
+                local blocked = GetBlocked(data.setupOptions, path, executedTable);
 
-                    if (not blocked) then
-                        blockedValue[1](blockedValue[2]);
-                    else
-                        blockedValues = true;
-                    end
+                if (not blocked) then
+                    blockedValue[1](blockedValue[2]);
+                else
+                    blockedValues = true;
                 end
-            until (not blockedValues);
+            end
+        until (not blockedValues);
 
-            ExecuteOrdered("last", executedTable, data.setupOptions, data.updateFunctions, data.settings);
-        end
+        ExecuteOrdered("last", executedTable, data.setupOptions, data.updateFunctions, data.settings);
 
         obj:PushWrapper(executedTable);
         obj:PushWrapper(blockedTable);
+        data.executingAllUpdateFunctions = nil;
     end
 end
 
@@ -549,10 +576,17 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
         end
     end
 
+    for _, module in MayronUI:IterateModules() do
+        if (module:IsInitialized()) then
+            -- execute all update functions
+            module:ExecuteAllUpdateFunctions();
+        end
+    end
+
     -- TODO: This should be it's own Module
     namespace:SetupOrderHallBar();
 
-    tk.collectgarbage("collect");
+    collectgarbage("collect");
 end):SetAutoDestroy(true);
 
 -- Database Event callbacks --------------------

@@ -32,6 +32,14 @@ function tk.Strings:Contains(fullString, subString)
     end
 end
 
+function tk.Strings:StartsWith(strValue, start)
+    return strValue:sub(1, #start) == start;
+end
+
+function tk.Strings:EndsWith(strValue, ending)
+    return strValue:sub(-#ending) == ending;
+end
+
 function tk.Strings:GetStringBetween(strValue, firstPart, secondPart)
     local pattern = string.format("%s%s%s", firstPart, "(.-)", secondPart);
     return string.match(strValue, pattern);

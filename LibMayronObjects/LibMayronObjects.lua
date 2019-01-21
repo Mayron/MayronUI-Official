@@ -332,6 +332,10 @@ function Lib:Error(errorMessage, ...)
     Core:Error(errorMessage, ...);
 end
 
+function Lib:SetErrorHandler(errorHandler)
+    Core.errorHandler = errorHandler;
+end
+
 -- Helper function to check if value is a specified type
 -- @param value: The value to check the type of (can be nil)
 -- @param expectedTypeName: The exact type to check for (can be ObjectType)
@@ -383,7 +387,6 @@ function Lib:PrintTable(tbl, depth, n)
     end
 end
 
-
 function Lib:SetDebugMode(debug)
     Core.DebugMode = debug;
 end
@@ -398,7 +401,7 @@ end
 function ProxyStack:Push(proxyObject)
     self[#self + 1] = proxyObject;
 
-    proxyObject.Object        = nil;
+    proxyObject.object        = nil;
     proxyObject.key           = nil;
     proxyObject.self          = nil;
     proxyObject.privateData   = nil;
@@ -417,28 +420,26 @@ function ProxyStack:Pop()
 end
 
 -- intercepts function calls on classes and instance objects and returns a proxy function used for validation.
--- @param proxyEntity (table) - a table containing all functions assigned to a class or interface.
+-- @param object (table) - a table containing all functions assigned to a class or interface.
 -- @param key (string) - the function name/key being called.
 -- @param entity (table) - the instance or class object originally being called with the function name/key.
 -- @param controller (table) - the entities meta-data (stores validation rules and more).
 -- @return proxyFunc (function) - the proxy function is returned and called instead of the real function.
-local function CreateProxyObject(proxyEntity, key, entity, controller)
+local function CreateProxyObject(object, key, entity, controller)
     local proxyObject = ProxyStack:Pop();
 
-    proxyObject.Object = proxyEntity;
+    proxyObject.object = object;
     proxyObject.key = key;
     proxyObject.controller = controller;
     proxyObject.self = entity;
 
     -- we need multiple Run functions in case 1 function calls another (Run is never removed after being assigned)
-    proxyObject.Run = proxyObject.Run or function(_, ...)
+    proxyObject.run = proxyObject.run or function(_, ...)
         -- Validate parameters passed to function
-
         local definition, errorMessage = Core:GetParamsDefinition(proxyObject);
         Core:ValidateFunctionCall(definition, errorMessage, ...);
 
         if (not proxyObject.privateData) then
-
             if (proxyObject.controller.isInterface) then
                 Core:Error("%s.%s is an interface function and must be implemented and invoked by an instance object.",
                     proxyObject.controller.objectName, proxyObject.key);
@@ -457,7 +458,7 @@ local function CreateProxyObject(proxyEntity, key, entity, controller)
         -- Validate return values received after calling the function
         local returnValues = Lib:PopWrapper(
             Core:ValidateFunctionCall(definition, errorMessage,
-                proxyObject.Object[proxyObject.key](proxyObject.self, proxyObject.privateData, ...)
+                proxyObject.object[proxyObject.key](proxyObject.self, proxyObject.privateData, ...)
             )
         );
 
@@ -480,8 +481,8 @@ local function CreateProxyObject(proxyEntity, key, entity, controller)
         return Lib:UnpackWrapper(returnValues);
     end
 
-    ProxyStack.funcStrings[tostring(proxyObject.Run)] = proxyObject;
-    return proxyObject.Run;
+    ProxyStack.funcStrings[tostring(proxyObject.run)] = proxyObject;
+    return proxyObject.run;
 end
 
 -- Needed for editing the proxyObject properties because ProxyStack:Pop only returns the runnable function
@@ -812,6 +813,11 @@ do
 
         self:InheritFunctions(instanceController, classController);
 
+        if (classController.isGenericType) then
+            -- renames EntiyName for instance controller, and creates "RealGenericTypes" instance controller property
+            instanceController.objectName = self:ApplyGenericTypesToInstance(instanceController.definitions, classController);
+        end
+
         -- interfaceController requires knowledge of many classController settings
         local instanceControllerMT = Lib:PopWrapper();
         instanceControllerMT.__index = classController;
@@ -1054,6 +1060,10 @@ do
     local invalidClassValueErrorMessage = "Class '%s' does not implement interface function '%s'.";
 
     function Core:InheritFunctions(instanceController, classController)
+        if (classController.parentClass) then
+            local parentClassController = self:GetController(classController.parentClass);
+            self:InheritFunctions(instanceController, parentClassController);
+        end
 
         for funcKey, funcDefinition in pairs(classController.definitions) do
             local implementedFunc = classController.class[funcKey];
@@ -1062,16 +1072,6 @@ do
             -- copy function references with definitions
             instanceController.instance[funcKey] = implementedFunc;
             instanceController.definitions[funcKey] = funcDefinition;
-
-            if (classController.isGenericType) then
-                -- renames EntiyName for instance controller, and creates "RealGenericTypes" instance controller property
-                instanceController.objectName = self:ApplyGenericTypesToInstance(instanceController.definitions, classController);
-            end
-        end
-
-        if (classController.parentClass) then
-            local parentClassController = self:GetController(classController.parentClass);
-            self:InheritFunctions(instanceController, parentClassController);
         end
     end
 end
@@ -1324,6 +1324,12 @@ function Core:Assert(condition, errorMessage, ...)
         if (self.silent) then
             self.errorLog = self.errorLog or Lib:PopWrapper();
             self.errorLog[#self.errorLog + 1] = pcall(function() error(self.PREFIX .. errorMessage) end);
+
+        elseif (Lib:IsFunction(self.errorHandler)) then
+            local level = _G.DEBUGLOCALS_LEVEL;
+            local stack = _G.debugstack(level);
+            local locals = _G.debuglocals(level);
+            self.errorHandler(errorMessage, stack, locals);
         else
             error(self.PREFIX .. errorMessage);
         end
@@ -1578,10 +1584,17 @@ end
 -- Call parent constructor
 function Object:Super(data, ...)
     local controller = Core:GetController(self);
+
+    if (controller.UsingParent) then
+        controller = Core:GetController(controller.UsingParent);
+    end
+
+    controller.UsingParent = controller.parentClass;
     local parentController = Core:GetController(controller.parentClass);
 
     if (parentController.class.__Construct) then
         parentController.class.__Construct(self, data, ...);
+        controller.UsingParent = nil;
     end
 end
 
@@ -1589,6 +1602,7 @@ function Object:GetParentClass()
 	return Core:GetController(self).parentClass;
 end
 
+--TODO: Needs to be tested!
 -- can be used to call Parent methods (self and data reference origin child object)
 function Object:Parent()
     local controller = Core:GetController(self);

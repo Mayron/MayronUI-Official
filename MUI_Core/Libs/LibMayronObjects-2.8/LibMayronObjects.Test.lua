@@ -455,6 +455,43 @@ local function Inheritance_Test5() -- luacheck: ignore
 	print("Inheritance_Test5 Successful!");
 end
 
+local function Inheritance_Test6() -- luacheck: ignore
+	print("Inheritance_Test6 Started");
+    local TestPackage = lib:CreatePackage("Inheritance_Test6");
+    local Parent = TestPackage:CreateClass("Parent");
+    local allExecuted = 0;
+
+    TestPackage:DefineParams("string", "table", "number");
+    function Parent:__Construct(data, strValue, tblValue, numValue)
+        assert(data.subClassMessage == "successful");
+        assert(strValue == "test");
+        assert(tblValue.value == "test");
+        assert(numValue == 123);
+        allExecuted = allExecuted + 1;
+    end
+
+    local Child = TestPackage:CreateClass("Child", Parent);
+    local SubChild = TestPackage:CreateClass("SubChild", Child);
+
+    TestPackage:DefineParams("string", "table");
+    function Child:__Construct(_, strValue, tblValue)
+        self:Super(strValue, tblValue, 123); -- same reference, so it will call SubClass
+        allExecuted = allExecuted + 1;
+    end
+
+    TestPackage:DefineParams("string");
+    function SubChild:__Construct(data, strValue)
+        data.subClassMessage = "successful";
+        self:Super(strValue, {value = strValue});
+        allExecuted = allExecuted + 1;
+    end
+
+    SubChild("test");
+    assert(allExecuted == 3);
+
+	print("Inheritance_Test6 Successful!");
+end
+
 local function UsingParent_Test1() -- luacheck: ignore
 	print("UsingParent_Test1 Started");
     local TestPackage = lib:CreatePackage("UsingParent_Test1");
@@ -880,6 +917,7 @@ end
 -- Inheritance_Test3();
 -- Inheritance_Test4();
 -- Inheritance_Test5();
+-- Inheritance_Test6();
 -- Interfaces_Test1();
 -- Interfaces_Test2();
 -- Interfaces_Test3();
