@@ -43,30 +43,12 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
     data.DataText = subModules.DataText;
     Private.data = data;
 
-    -- local setupOptions = {
-    --     dependencies = {
-    --         ["bartender.%d"] = "bartender.control";
-    --     };
-    -- };
-
     self:RegisterUpdateFunctions(db.profile.actionBarPanel, {
-        enabled = function(value)
-            data.settings.enabled = value;
-            self:SetEnabled(value);
-        end;
-
-        expanded = function(value)
-            data.settings.expanded = value;
+        expanded = function()
             data.panel:GetScript("OnShow")();
         end;
 
-        modKey = function(value)
-            data.settings.modKey = value;
-        end;
-
         retractHeight = function(value)
-            data.settings.retractHeight = value;
-
             if (not data.settings.expanded) then
                 data.panel:SetHeight(value);
             end
@@ -75,8 +57,6 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
         end;
 
         expandHeight = function(value)
-            data.settings.expandHeight = value;
-
             if (data.settings.expanded) then
                 data.panel:SetHeight(value);
             end
@@ -85,18 +65,14 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
         end;
 
         animateSpeed = function(value)
-            data.settings.animateSpeed = value;
-
             data.slideController:SetStepValue(value);
         end;
 
         texture = function(value)
-            data.settings.texture = value;
             data.panel:SetGridTexture(value);
         end;
 
         cornerSize = function(value)
-            data.settings.cornerSize = value;
             data.panel:SetGridCornerSize(value);
         end;
 
@@ -118,6 +94,10 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
             end;
         };
     });
+
+    if (data.settings.enabled) then
+        self:SetEnabled(true);
+    end
 end
 
 function C_ActionBarPanel:OnEnable(data)

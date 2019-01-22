@@ -48,7 +48,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self)
 
     -- saves info on the currency that each logged in character has
     if (not db:ParsePathValue(db.global, "datatext.currency.characters")) then
-        db:SetPathValue(db.global, "datatext.currency.characters", {});
+        db:SetPathValue(db.global, "datatext.currency.characters", obj:PopWrapper());
     end
 
 	-- store character's money to be seen by other characters
@@ -65,7 +65,7 @@ function Currency:__Construct(data, settings, dataTextModule)
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
-    self.MenuLabels = {};
+    self.MenuLabels = obj:PopWrapper();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
@@ -86,7 +86,7 @@ function Currency:__Construct(data, settings, dataTextModule)
     if (not (data.settings.date and data.settings.date == date)) then
         data.settings.todayCurrency = _G.GetMoney();
         data.settings.date = date;
-        data.settings:SaveChanges();
+        data.settings:SaveChanges(); --TODO: Causes error: attempt to index local 'rootTable' (a nil value)
     end
 
     em:CreateEventHandler("PLAYER_MONEY", function()

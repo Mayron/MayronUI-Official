@@ -79,76 +79,70 @@ function C_DataTextModule:OnInitialize(data)
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
     data.lastButtonClicked = ""; -- last data text button clicked on
+    data.buttons = obj:PopWrapper();
     data.DataModules = obj:PopWrapper(); -- holds all data text modules
 
     self:RegisterUpdateFunctions(db.profile.datatext, {
-        enabled = function(value)
-            self:SetEnabled(value);
-        end;
-
         frameStrata = function(value)
-            
+            data.bar:SetFrameStrata(value);
         end;
 
         frameLevel = function(value)
-            
+            data.bar:SetFrameLevel(value);
         end;
 
         height = function(value)
-            
+            data.bar:SetHeight(value);
         end;
 
-        spacing = function(value)
-            
+        spacing = function()
+            self:PositionDataTextButtons();
         end;
 
         fontSize = function(value)
-            
+            for _, btn in ipairs(data.buttons) do
+                local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
+                btn:GetNormalFontObject():SetFont(font, value);
+            end
         end;
 
         blockInCombat = function(value)
-            
+            -- TODO!
         end;
 
         popup = {
             hideInCombat = function(value)
-            
-            end;
-
-            maxHeight = function(value)
-            
+                if (value) then
+                    em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "hideInCombat_RegenDisabled", function()
+                        _G["MUI_DataTextPopupMenu"]:Hide();
+                    end);
+                else
+                    em:DestroyHandlerByKey("hideInCombat_RegenDisabled");
+                end
             end;
 
             width = function(value)
-            
-            end;
-
-            itemHeight = function(value)
-            
+                data.popup:SetWidth(value);
             end;
         };
-        
+
         -- TODO: Not sure what to do about this... (maybe displayOrders = function(path/key, value) ?)
-        -- displayOrders = {
-        --     "durability";
-        --     "friends";
-        --     "guild";
-        --     "inventory";
-        --     "memory";
-        --     "performance";
-        --     "specialization";
-        -- };
+        displayOrders = function()
+            self:OrderDataTextButtons();
+        end;
     });
+
+    if (data.settings.enabled) then
+        self:SetEnabled(true);
+    end
 end
 
 function C_DataTextModule:OnEnable(data)
     -- the main bar containing all data text buttons
     data.bar = tk:PopFrame("Frame", data.buiContainer);
-    data.bar:SetHeight(data.settings.height);
     data.bar:SetPoint("BOTTOMLEFT");
     data.bar:SetPoint("BOTTOMRIGHT");
-    data.bar:SetFrameStrata(data.settings.frameStrata);
-    data.bar:SetFrameLevel(data.settings.frameLevel);
+
     tk:SetBackground(data.bar, 0, 0, 0);
 
     data.resourceBars:SetPoint("BOTTOMLEFT", data.bar, "TOPLEFT", 0, -1);
@@ -164,19 +158,12 @@ function C_DataTextModule:OnEnable(data)
     -- create the popup menu (displayed when a data item button is clicked)
     -- each data text module has its own frame to be used as the scroll child
     data.popup = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.buiContainer, "MUI_DataTextPopupMenu");
-	data.popup:SetWidth(data.settings.popup.width);
     data.popup:SetFrameStrata("DIALOG");
     data.popup:EnableMouse(true);
     data.popup:Hide();
 
     -- controls the Esc key behaviour to close the popup (must use global name)
     table.insert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
-
-    if (data.settings.popup.hideInCombat) then
-        em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-            tk._G["MUI_DataTextPopupMenu"]:Hide();
-        end);
-    end
 
     data.popup.ScrollBar:SetPoint("TOPLEFT", data.popup, "TOPRIGHT", -6, 1);
     data.popup.ScrollBar:SetPoint("BOTTOMRIGHT", data.popup, "BOTTOMRIGHT", -1, 1);
@@ -201,9 +188,6 @@ function C_DataTextModule:OnEnable(data)
 
 	-- provides more intelligent scrolling (+ controls visibility of scrollbar)
     data.slideController = SlideController(data.popup);
-
-    self:OrderDataTextButtons();
-    self:PositionDataTextButtons();
 end
 
 --TODO: Problem - this gets called each time a module is loaded - loops over all models when ordering buttons  many times!
@@ -228,12 +212,9 @@ function C_DataTextModule:CreateDataTextButton(data)
 
     btn:SetHighlightTexture(btnTextureFilePath);
     btn:GetHighlightTexture():SetVertexColor(0.08, 0.08, 0.08);
-
     btn:SetNormalFontObject("MUI_FontNormal");
 
-    local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
-    btn:GetNormalFontObject():SetFont(font, data.settings.fontSize);
-
+    table.insert(data.buttons, btn);
     return btn;
 end
 

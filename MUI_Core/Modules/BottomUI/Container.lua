@@ -67,6 +67,5 @@ function C_Container:OnInitialize(data)
         end;
     });
 
-    data.container:SetSize(data.settings.width, 1);
     self:SetEnabled(true);
 end

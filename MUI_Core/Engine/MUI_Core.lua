@@ -194,14 +194,14 @@ function BaseModule:SetEnabled(data, enabled, ...)
     end
 
     if (enabled) then
-        if (data.updateFunctions and not data.executingAllUpdateFunctions) then
-            -- execute all update functions if enabled setting changed
-            self:ExecuteAllUpdateFunctions(self);
-        end
-
         if (self.OnEnable) then
             self:OnEnable(...);
-            print(self:GetModuleName())
+            tk:Print("Enabled: ", self:GetModuleName())
+        end
+
+        if (data.updateFunctions and not data.ignoreUpdateFunctions) then
+            -- execute all update functions if enabled setting changed
+            self:ExecuteAllUpdateFunctions(self);
         end
 
         -- Call any other functions attached to this modules OnEnable event
@@ -245,14 +245,47 @@ function BaseModule:Hook(_, eventName, func)
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
-Engine:DefineParams("Observer", "table", "?table");
-function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions, setupOptions)
-    local path = observer:GetPathAddress();
+do
+    local ignoreEnabledOption = { ignore = { "^enabled$" } };
 
-    if (not data.updateFunctions) then
-        data.updateFunctions = updateFunctions;
-        data.settings = observer:GetUntrackedTable(); -- disconnected from database
-        data.setupOptions = setupOptions;
+    Engine:DefineParams("Observer", "table", "?table");
+    function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions, setupOptions)
+        local path = observer:GetPathAddress();
+
+        if (not data.settings) then
+            data.settings = observer:GetUntrackedTable(); -- disconnected from database
+        end
+
+        if (not data.setupOptions) then
+            data.setupOptions = setupOptions;
+        elseif (setupOptions) then
+            tk.Tables:Fill(data.setupOptions, setupOptions);
+        end
+
+        if (not data.updateFunctions) then
+            data.updateFunctions = updateFunctions;
+        else
+            -- append new update functions
+            tk.Tables:Fill(data.updateFunctions, updateFunctions);
+        end
+
+        if (data.settings.enabled) then
+            if (data.setupOptions) then
+                if (data.setupOptions.ignore) then
+                    if (not tk.Tables:Contains(data.setupOptions.ignore, "^enabled$")) then
+                        table.insert(data.setupOptions.ignore, "^enabled$");
+                    end
+                else
+                    data.setupOptions.ignore = ignoreEnabledOption.ignore;
+                end
+            else
+                data.setupOptions = ignoreEnabledOption;
+            end
+
+            data.updateFunctions.enabled = function(value)
+                self:SetEnabled(value);
+            end
+        end
 
         db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, valuePath)
             -- update settings:
@@ -263,18 +296,17 @@ function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions, set
                 func(value);
             end
         end);
-    else
-        -- append new update functions
-        tk.Tables:Fill(data.updateFunctions, updateFunctions);
-        tk.Tables:Fill(data.setupOptions, setupOptions);
     end
 end
 
 do
+    local MAX_BLOCKS = 20;
+
     local function GetBlocked(setupOptions, path, executedTable)
         if (setupOptions and setupOptions.dependencies) then
             for dependencyValue, dependency in pairs(setupOptions.dependencies) do
-                if (path:match(dependencyValue) and not executedTable[dependency]) then
+                if (path ~= dependency and path:match(dependencyValue) and not executedTable[dependency]) then
+
                     return true;
                 end
             end
@@ -294,18 +326,8 @@ do
                     return true;
                 end
 
-                if (tk.Strings:StartsWith(ignoreValue, "~")) then
-                    -- invert to ignore if it does not match pattern
-                    ignoreValue = ignoreValue:sub(2, #ignoreValue);
-
-                    if (not path:match(ignoreValue)) then
-                        return true;
-                    end
-                else
-
-                    if (path:match(ignoreValue)) then
-                        return true;
-                    end
+                if (path:match(ignoreValue)) then
+                    return true;
                 end
             end
         end
@@ -314,11 +336,6 @@ do
     end
 
     local function ExecuteOrdered(orderKey, executedTable, setupOptions, functionTable, settingsTable)
-        if (functionTable.enabled) then
-            functionTable.enabled(settingsTable.enabled);
-            executedTable.enabled = true;
-        end
-
         if (not (setupOptions and setupOptions[orderKey])) then
             return false;
         end
@@ -378,6 +395,7 @@ do
         ExecuteAllUpdateFunctions(data.updateFunctions, data.settings, data.setupOptions, nil, executedTable, blockedTable);
 
         local blockedValues = false;
+        local totalRepeats = 0;
 
         repeat
             for path, blockedValue in pairs(blockedTable) do
@@ -389,6 +407,10 @@ do
                     blockedValues = true;
                 end
             end
+
+            totalRepeats = totalRepeats + 1;
+
+            obj:Assert(totalRepeats < MAX_BLOCKS, "Cyclic dependency found");
         until (not blockedValues);
 
         ExecuteOrdered("last", executedTable, data.setupOptions, data.updateFunctions, data.settings);
@@ -576,13 +598,6 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
         end
     end
 
-    for _, module in MayronUI:IterateModules() do
-        if (module:IsInitialized()) then
-            -- execute all update functions
-            module:ExecuteAllUpdateFunctions();
-        end
-    end
-
     -- TODO: This should be it's own Module
     namespace:SetupOrderHallBar();
 
@@ -688,6 +703,8 @@ db:OnStartUp(function(self)
         _G.ScriptErrorsFrame.Title:SetText("MayronUI Error");
         _G.ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
         _G.ScriptErrorsFrame.Title.SetText = function() end;
+        _G.ScriptErrorsFrame.DisplayMessage = function() end;
+        error();
     end);
 
     tk.collectgarbage("collect");

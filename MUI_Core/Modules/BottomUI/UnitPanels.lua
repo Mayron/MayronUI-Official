@@ -47,11 +47,13 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
     data.buiContainer = buiContainer;
     data.ActionBarPanel = subModules.ActionBarPanel;
 
-    self:RegisterUpdateFunctions(db.profile.unitPanels, {
-        enabled = function(value)
-            self:SetEnabled(value);
-        end;
+    local setupOptions = {
+        dependencies = {
+            ["unitNames[.].*"] = "unitNames.enabled";
+        };
+    };
 
+    self:RegisterUpdateFunctions(db.profile.unitPanels, {
         grid = {
             anchorGrid = function(value)
                 if (not _G.IsAddOnLoaded("Grid")) then return; end
@@ -171,7 +173,11 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
                 end
             end;
         };
-    });
+    }, setupOptions);
+
+    if (data.settings.enabled) then
+        self:SetEnabled(true);
+    end
 end
 
 function C_UnitPanels:OnEnable(data)
@@ -203,7 +209,7 @@ function C_UnitPanels:OnEnable(data)
     data.center.bg = tk:SetBackground(data.center, tk:GetAssetFilePath("Textures\\BottomUI\\Center"));
 end
 
-function C_UnitPanels:SetupUnitNames(data)
+function C_UnitPanels:SetUpUnitNames(data)
 
     local nameTextureFilePath = tk:GetAssetFilePath("Textures\\BottomUI\\NamePanel");
 
@@ -239,7 +245,7 @@ end
 function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
     if (enabled) then
         if (not (data.player and data.target)) then
-            self:SetupUnitNames(data);
+            self:SetUpUnitNames(data);
         end
 
         data.player:Show();

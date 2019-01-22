@@ -86,10 +86,6 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
     end
 
     self:RegisterUpdateFunctions(db.profile.resourceBars, {
-        enabled = function(value)
-            self:SetEnabled(value);
-        end;
-
         experienceBar = {
             enabled = function(value)
                 if (not tk:IsPlayerMaxLevel() and data.barsContainer) then
@@ -144,6 +140,10 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
             fontSize = UpdateArtifactBar;
         };
     }, setupOptions);
+
+    if (data.settings.enabled) then
+        self:SetEnabled(true);
+    end
 end
 
 function C_ResourceBarsModule:OnEnable(data)
@@ -160,9 +160,11 @@ function C_ResourceBarsModule:OnEnable(data)
     data.bars = obj:PopWrapper();
 
     MayronUI:Hook("DataText", "OnEnable", function(dataTextModule, dataTextModuleData)
-        dataTextModule:RegisterUpdateFunction("profile.datatext.blockInCombat", function(value)
-            self:SetBlockerEnabled(value, dataTextModuleData.bar); -- TODO: Should I call this instantly here?
-        end);
+        dataTextModule:RegisterUpdateFunctions(db.profile.datatext, {
+            blockInCombat = function(value)
+                self:SetBlockerEnabled(value, dataTextModuleData.bar); -- TODO: Should I call this instantly here?
+            end;
+        });
     end);
 end
 
