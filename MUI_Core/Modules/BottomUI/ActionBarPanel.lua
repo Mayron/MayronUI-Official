@@ -1,7 +1,6 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-local Private = {};
 
 local CreateFrame, InCombatLockdown, PlaySound = _G.CreateFrame, _G.InCombatLockdown, _G.PlaySound;
 local UIFrameFadeIn, UIFrameFadeOut = _G.UIFrameFadeIn, _G.UIFrameFadeOut;
@@ -35,13 +34,61 @@ db:AddToDefaults("profile.actionBarPanel", {
     };
 });
 
+-- local functions ------------------
+
+local function LoadTutorial(panel)
+    local frame = tk:PopFrame("Frame", panel);
+
+    frame:SetFrameStrata("TOOLTIP");
+    frame:SetSize(250, 130);
+    frame:SetPoint("BOTTOM", panel, "TOP", 0, 100);
+
+    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
+    gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
+    gui:AddArrow(tk.Constants.AddOnStyle, frame, "DOWN");
+
+    frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    frame.text:SetWordWrap(true);
+    frame.text:SetPoint("TOPLEFT", 10, -20);
+    frame.text:SetPoint("BOTTOMRIGHT", -10, 10);
+    frame.text:SetText(
+        tk.Strings:JoinWithSpace("Press and hold the", tk.Strings:SetTextColorByTheme("Control"),
+            "key while out of combat to show the", tk.Strings:SetTextColorByTheme("Expand"),
+            "button.\n\n Click the Expand button to show a second row of action buttons!")
+    );
+
+    em:CreateEventHandler("MODIFIER_STATE_CHANGED", function(self)
+        if (tk:IsModComboActive("C")) then
+            frame.text:SetText(
+                tk.Strings:JoinWithSpace("Once expanded, you can press and hold the same key while out of",
+                    "combat to show the", tk.Strings:SetTextColorByTheme("Retract"),
+                    "button.\n\n Pressing this will hide the second row of action buttons.")
+            );
+
+            if (not frame:IsShown()) then
+                UIFrameFadeIn(frame, 0.5, 0, 1);
+                frame:Show();
+            end
+
+            db.global.tutorial = nil;
+            self:Destroy();
+        end
+    end);
+end
+
+local function ToggleBartenderBar(controlBartender, bt4Bar, show)
+    if (IsAddOnLoaded("Bartender4") and controlBartender) then
+        bt4Bar:SetConfigAlpha((show and 1) or 0);
+        bt4Bar:SetVisibilityOption("always", not show);
+    end
+end
+
 -- C_ActionBarPanel -----------------
 
 function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
     data.buiContainer = buiContainer;
     data.ResourceBars = subModules.ResourceBars;
     data.DataText = subModules.DataText;
-    Private.data = data;
 
     self:RegisterUpdateFunctions(db.profile.actionBarPanel, {
         expanded = function()
@@ -124,20 +171,22 @@ function C_ActionBarPanel:OnEnable(data)
             return;
         end
 
+        local controlBartender = data.settings.bartender.control;
+
         if (data.settings.expanded) then
             data.panel:SetHeight(data.settings.expandHeight);
-            Private:ToggleBartenderBar(data.Bar3, true);
-            Private:ToggleBartenderBar(data.Bar4, true);
+            ToggleBartenderBar(controlBartender, data.Bar3, true);
+            ToggleBartenderBar(controlBartender, data.Bar4, true);
         else
             data.panel:SetHeight(data.settings.retractHeight);
-            Private:ToggleBartenderBar(data.Bar3, false);
-            Private:ToggleBartenderBar(data.Bar4, false);
+            ToggleBartenderBar(controlBartender, data.Bar3, false);
+            ToggleBartenderBar(controlBartender, data.Bar4, false);
         end
     end);
 
     data.slideController:OnStartExpand(function()
-        Private:ToggleBartenderBar(data.Bar3, true);
-        Private:ToggleBartenderBar(data.Bar4, true);
+        ToggleBartenderBar(data.settings.bartender.control, data.Bar3, true);
+        ToggleBartenderBar(data.settings.bartender.control, data.Bar4, true);
         UIFrameFadeIn(data.Bar3, 0.3, 0, 1);
         UIFrameFadeIn(data.Bar4, 0.3, 0, 1);
     end, 5);
@@ -148,8 +197,8 @@ function C_ActionBarPanel:OnEnable(data)
     end);
 
     data.slideController:OnEndRetract(function()
-        Private:ToggleBartenderBar(data.Bar3, false);
-        Private:ToggleBartenderBar(data.Bar4, false);
+        ToggleBartenderBar(data.settings.bartender.control, data.Bar3, false);
+        ToggleBartenderBar(data.settings.bartender.control, data.Bar4, false);
     end);
 
     gui:CreateGridTexture(data.panel, data.settings.texture,
@@ -249,7 +298,7 @@ function C_ActionBarPanel:OnEnable(data)
     end);
 
     if (db.global.tutorial) then
-        Private:LoadTutorial();
+        LoadTutorial(data.panel);
     end
 end
 
@@ -278,7 +327,7 @@ function C_ActionBarPanel:SetupBartenderBar(data, barID, bartenderBarID)
     end
 
     if (barID <= 2) then
-        Private:ToggleBartenderBar(bar, true);
+        ToggleBartenderBar(data.settings.bartender.control, bar, true);
         bar.config.position.y = 39 + height;
     else
         bar.config.position.y = 74 + height;
@@ -294,54 +343,5 @@ end
 function C_ActionBarPanel:SetupAllBartenderBars(data)
     for i = 1, 4 do
         self:SetupBartenderBar(i, data.settings.bartender[i]);
-    end
-end
-
--- Private Functions ---------------
-
-function Private:LoadTutorial()
-    local frame = tk:PopFrame("Frame", self.data.panel);
-
-    frame:SetFrameStrata("TOOLTIP");
-    frame:SetSize(250, 130);
-    frame:SetPoint("BOTTOM", self.data.panel, "TOP", 0, 100);
-
-    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
-    gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
-    gui:AddArrow(tk.Constants.AddOnStyle, frame, "DOWN");
-
-    frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    frame.text:SetWordWrap(true);
-    frame.text:SetPoint("TOPLEFT", 10, -20);
-    frame.text:SetPoint("BOTTOMRIGHT", -10, 10);
-    frame.text:SetText(
-        tk.Strings:JoinWithSpace("Press and hold the", tk.Strings:SetTextColorByTheme("Control"),
-            "key while out of combat to show the", tk.Strings:SetTextColorByTheme("Expand"),
-            "button.\n\n Click the Expand button to show a second row of action buttons!")
-    );
-
-    em:CreateEventHandler("MODIFIER_STATE_CHANGED", function(self)
-        if (tk:IsModComboActive("C")) then
-            frame.text:SetText(
-                tk.Strings:JoinWithSpace("Once expanded, you can press and hold the same key while out of",
-                    "combat to show the", tk.Strings:SetTextColorByTheme("Retract"),
-                    "button.\n\n Pressing this will hide the second row of action buttons.")
-            );
-
-            if (not frame:IsShown()) then
-                UIFrameFadeIn(frame, 0.5, 0, 1);
-                frame:Show();
-            end
-
-            db.global.tutorial = nil;
-            self:Destroy();
-        end
-    end);
-end
-
-function Private:ToggleBartenderBar(bt4Bar, show)
-    if (IsAddOnLoaded("Bartender4") and self.data.settings.bartender.control) then
-        bt4Bar:SetConfigAlpha((show and 1) or 0);
-        bt4Bar:SetVisibilityOption("always", not show);
     end
 end

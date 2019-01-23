@@ -21,34 +21,28 @@ local Handler = EventsPackage:CreateClass("Handler");
 ------------------------
 -- Handler Prototype
 ------------------------
-function Handler:__Construct(data, eventName, callback)
-    data.eventName = eventName;
+function Handler:__Construct(data, eventName, callback, unit, ...)
     data.callback = callback;
     data.key = tostring(self);
+    data.events = obj:PopWrapper();
+    self:SetCallbackArgs(...);
+
+    self:AppendEvent(eventName, unit);
 end
 
 function Handler:__Destruct(data)
-    table.remove(Private.eventsList[data.eventName], self:GetPriority());
-    Private:CleanEventTable(data.eventName);
-end
-
-function Handler:SetPriority(data, priority)
-    local handlers = Private.eventsList[data.eventName];
-    local old_priority = self:GetPriority();
-
-    table.remove(handlers, old_priority);
-    table.insert(handlers, priority, self);
-end
-
-function Handler:GetPriority(data)
-    for priority, handler in pairs(Private.eventsList[data.eventName]) do
-        if (handler:GetKey() == data.key) then
-            return priority;
+    for _, eventName in ipairs(data.events) do
+        for id, handler in ipairs(Private.eventsList[eventName]) do
+            if (handler == self) then
+                table.remove(Private.eventsList[eventName], id);
+                Private:CleanEventTable(data.eventName);
+                break;
+            end
         end
     end
 end
 
-function Handler:GetEventName(data)
+function Handler:GetEventNames(data)
     return data.eventName;
 end
 
@@ -57,6 +51,10 @@ function Handler:SetAutoDestroy(data, autoDestroy)
 end
 
 function Handler:SetCallbackArgs(data, ...)
+    if (obj:LengthOfArgs(...) == 0) then
+        return;
+    end
+
     if (data.args) then
         obj:PushWrapper(data.args);
     end
@@ -78,14 +76,21 @@ function Handler:GetKey(data)
     return data.key;
 end
 
-function Handler:Run(data, eventName, ...)
+function Handler:Run(data, ...)
     if (data.callback) then
         if (data.args) then
             -- execute event callback
-            data.callback(self, eventName, unpack(data.args), ...);
+            local args = obj:PopWrapper(unpack(data.args));
+
+            for _, value in obj:IterateArgs(...) do
+                table.insert(args, value);
+            end
+
+            data.callback(self, data.eventName, unpack(args));
+            obj:PushWrapper(args);
         else
             -- execute event callback
-            data.callback(self, eventName, ...);
+            data.callback(self, data.eventName, ...);
         end
     end
 
@@ -97,24 +102,42 @@ function Handler:Run(data, eventName, ...)
     return false;
 end
 
-------------------------
--- Lib API
-------------------------
--- @param eventName (string) - the name of the event to register
--- @param callback (function) - function to call when the event triggers
--- @param unit (boolean) - whether the event is a unit event
--- @return (Handler) - handler object created for the registered event
-function Lib:CreateEventHandler(eventName, callback, unit, ...)
-    Private.eventsList[eventName] = Private.eventsList[eventName] or obj:PopWrapper();
-
-    local handler = Handler(eventName, callback);
-    table.insert(Private.eventsList[eventName], handler);
-    handler:SetCallbackArgs(...);
-
+function Handler:AppendEvent(data, eventName, unit)
     if (unit) then
         Private.eventTracker:RegisterUnitEvent(eventName, unit);
     else
         Private.eventTracker:RegisterEvent(eventName);
+    end
+
+    table.insert(data.events, eventName);
+
+    Private.eventsList[eventName] = Private.eventsList[eventName] or obj:PopWrapper();
+    table.insert(Private.eventsList[eventName], self);
+end
+
+------------------------
+-- Lib API
+------------------------
+-- @param eventName (string) - the name of the event to register
+--      (or a comma separated list of event names to attach to 1 handler)
+-- @param callback (function) - function to call when the event triggers
+-- @param unit (boolean) - whether the event is a unit event
+-- @return (Handler) - handler object created for the registered event
+function Lib:CreateEventHandler(eventName, callback, unit, ...)
+    local handler;
+
+    if (eventName:find(",")) then
+        for _, event in obj:IterateArgs(_G.strsplit(",", eventName)) do
+            event = _G.strtrim(event);
+
+            if (not handler) then
+                handler = Handler(event, callback, unit, ...);
+            else
+                handler:AppendEvent(event, unit);
+            end
+        end
+    else
+        handler = Handler(eventName, callback, ...);
     end
 
     return handler;
@@ -126,28 +149,10 @@ function Lib:CreateEventHandlerWithKey(eventName, key, callback, unit, ...)
     return handler;
 end
 
--- @param eventNames (string) - comma separated string list of event names
--- @param callback (function) - function to call when any of the events trigger
--- @param unit (boolean) - whether the events are unit events
--- @return (Handler) - handler objects created for each event in eventNames
-function Lib:CreateEventHandlers(eventNames, callback, unit, ...)
-    local handlers = obj:PopWrapper();
-
-    for id, event in obj:IterateArgs(_G.strsplit(",", eventNames)) do
-        event = _G.strtrim(event);
-
-		if (#event > 0) then
-			handlers[id] = Lib:CreateEventHandler(event, callback, unit, ...);
-		end
-    end
-
-    return obj:UnpackWrapper(handlers);
-end
-
 function Lib:TriggerEvent(eventName, ...)
     if (Private:EventTableExists(eventName)) then
         for _, handler in pairs(Private.eventsList[eventName]) do
-            handler:Run(eventName, ...);
+            handler:Run(...);
         end
     end
 end
@@ -172,12 +177,6 @@ function Lib:FindHandlerByKey(key)
     return Private.eventKeys[key];
 end
 
-function Lib:FindHandlerByEventPriority(eventName, priority)
-    if (Private:EventTableExists(eventName)) then
-        return Private.eventsList[eventName][priority];
-    end
-end
-
 function Lib:GetNumHandlersByEvent(eventName)
     if (Private:EventTableExists(eventName)) then
         return #Private.eventsList[eventName];
@@ -198,7 +197,7 @@ function Private:CallHandlersByEvent(eventName, ...)
         local handlers = self.eventsList[eventName];
 
         for _, handler in pairs(handlers) do
-            handler:Run(eventName, ...);
+            handler:Run(...);
         end
     end
 

@@ -397,10 +397,12 @@ function Private:LoadCustomMenu(menuSection)
     menuSection.injectTitle:SetPoint("TOPLEFT", menuSection.scaleTitle, "TOPRIGHT", 110, 0);
     menuSection.injectTitle:SetText(L["AddOn Settings to Override:"]);
 
-    local child, previous;
-    menuSection.addonContainer, child = gui:CreateScrollFrame(tk.Constants.AddOnStyle, menuSection, nil);
+    local previous;
+    menuSection.addonContainer = gui:CreateScrollFrame(tk.Constants.AddOnStyle, menuSection, nil);
     menuSection.addonContainer:SetPoint("TOPLEFT", menuSection.injectTitle, "BOTTOMLEFT", 0, -20);
     menuSection.addonContainer:SetPoint("BOTTOMRIGHT", -20, 70);
+
+    local scrollChild = menuSection.addonContainer.ScrollFrame:GetScrollChild();
 
     gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", menuSection.addonContainer);
 
@@ -410,7 +412,7 @@ function Private:LoadCustomMenu(menuSection)
         local alias, value, addOnName = _G.unpack(addOnData);
 
         if (_G.IsAddOnLoaded(addOnName)) then
-            local cb = gui:CreateCheckButton(child, alias);
+            local cb = gui:CreateCheckButton(scrollChild, alias);
             totalAddOnsLoaded = totalAddOnsLoaded + 1;
 
             cb.btn:SetChecked(value);
@@ -419,12 +421,12 @@ function Private:LoadCustomMenu(menuSection)
             end);
 
             if (not previous) then
-                cb:SetPoint("TOPLEFT", child, "TOPLEFT", 10, -10);
+                cb:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 10, -10);
             else
                 cb:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -10);
             end
 
-            child:SetHeight(child:GetHeight() + cb:GetHeight() + 10);
+            scrollChild:SetHeight(scrollChild:GetHeight() + cb:GetHeight() + 10);
             previous = cb;
         end
     end

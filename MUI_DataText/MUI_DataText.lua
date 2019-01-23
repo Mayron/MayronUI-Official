@@ -106,10 +106,6 @@ function C_DataTextModule:OnInitialize(data)
             end
         end;
 
-        blockInCombat = function(value)
-            -- TODO!
-        end;
-
         popup = {
             hideInCombat = function(value)
                 if (value) then

@@ -10,7 +10,7 @@ function tk:SetFontSize(fontString, size)
 end
 
 do
-    local function GeneralTooltip_OnLeave(self)
+    function tk.GeneralTooltip_OnLeave()
         _G.GameTooltip:Hide();
     end
 
@@ -43,14 +43,14 @@ do
         widget.text = text;
 
         widget:SetScript("OnEnter", BasicTooltip_OnEnter);
-        widget:SetScript("OnLeave", GeneralTooltip_OnLeave);
+        widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
     end
 
     function tk:SetMultipleLinesTooltip(widget, tooltipData)
         widget.tooltip = tooltipData;
 
         widget:SetScript("OnEnter", MultipleLinesTooltip_OnEnter);
-        widget:SetScript("OnLeave", GeneralTooltip_OnLeave);
+        widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
     end
 end
 

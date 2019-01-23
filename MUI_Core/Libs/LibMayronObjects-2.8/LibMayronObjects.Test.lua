@@ -535,6 +535,109 @@ local function UsingParent_Test1() -- luacheck: ignore
 	print("UsingParent_Test1 Successful!");
 end
 
+local function UsingParent_Test2() -- luacheck: ignore
+	print("UsingParent_Test2 Started");
+    local TestPackage = lib:CreatePackage("UsingParent_Test2");
+
+    local SuperParent = TestPackage:CreateClass("SuperParent");
+    local Parent = TestPackage:CreateClass("Parent", SuperParent);
+    local Child = TestPackage:CreateClass("Child", Parent);
+    local SuperChild = TestPackage:CreateClass("SuperChild", Child);
+    local totalCalled = 0;
+
+    TestPackage:DefineParams("string")
+    function SuperParent:Print(data, message, num)
+        message = "SuperParent --> "..message;
+        assert(message == "SuperParent --> Parent --> Child --> SuperChild --> Success!");
+        assert(num == nil);
+        assert(data.origin == "SuperChild");
+        totalCalled = totalCalled + 1;
+    end
+
+    TestPackage:DefineParams("string")
+    function Parent:Print(data, message, num)
+        self:Parent():Print("Parent --> "..message);
+        assert(num == nil);
+        assert(data.origin == "SuperChild");
+        totalCalled = totalCalled + 1;
+    end
+
+    TestPackage:DefineParams("string", "number")
+    function Child:Print(data, message, num)
+        assert(num == 5);
+        self:Parent():Print("Child --> "..message);
+        assert(data.origin == "SuperChild");
+        totalCalled = totalCalled + 1;
+    end
+
+    TestPackage:DefineParams("string", "number")
+    function SuperChild:Print(data, message, num)
+        self:Parent():Print("SuperChild --> "..message, num + 3);
+        assert(data.origin == "SuperChild");
+        totalCalled = totalCalled + 1;
+    end
+
+    function SuperChild:__Construct(data)
+        data.origin = "SuperChild";
+    end
+
+    local superChild = SuperChild();
+    superChild:Print("Success!", 2);
+    assert(totalCalled == 4, string.format("Not all methods were called!: %d", totalCalled));
+
+	print("UsingParent_Test2 Successful!");
+end
+
+local function UsingParent_Test3() -- luacheck: ignore
+	print("UsingParent_Test3 Started");
+    local TestPackage = lib:CreatePackage("UsingParent_Test3");
+
+    local SuperParent = TestPackage:CreateClass("SuperParent");
+    local Parent = TestPackage:CreateClass("Parent", SuperParent);
+    local Child = TestPackage:CreateClass("Child", Parent);
+    local SuperChild = TestPackage:CreateClass("SuperChild", Child);
+    local totalCalled = 0;
+
+    TestPackage:DefineParams("string")
+    function SuperParent:Print(data, message, num)
+        message = "SuperParent --> "..message;
+        assert(message == "SuperParent --> Parent --> Child --> SuperChild --> Success!");
+        assert(num == nil);
+        assert(data.origin == "SuperChild");
+        totalCalled = totalCalled + 1;
+    end
+
+    function Parent:Print(data, message, num)
+        self:Parent():Print("Parent --> "..message);
+        assert(num == nil);
+        assert(data.origin == "SuperChild");
+        totalCalled = totalCalled + 1;
+    end
+
+    function Child:Print(data, message, num)
+        assert(num == 5);
+        self:Parent():Print("Child --> "..message);
+        assert(data.origin == "SuperChild");
+        totalCalled = totalCalled + 1;
+    end
+
+    function SuperChild:Print(data, message, num)
+        self:Parent():Print("SuperChild --> "..message, num + 3);
+        assert(data.origin == "SuperChild");
+        totalCalled = totalCalled + 1;
+    end
+
+    function SuperChild:__Construct(data)
+        data.origin = "SuperChild";
+    end
+
+    local superChild = SuperChild();
+    superChild:Print("Success!", 2);
+    assert(totalCalled == 4, string.format("Not all methods were called!: %d", totalCalled));
+
+	print("UsingParent_Test3 Successful!");
+end
+
 local function SubPackages_Test1() -- luacheck: ignore
     print("SubPackages_Test1 Started");
 
@@ -911,6 +1014,8 @@ end
 -- ImportPackage_Test1();
 -- DuplicateClass_Test1();
 -- UsingParent_Test1();
+-- UsingParent_Test2();
+UsingParent_Test3();
 -- SubPackages_Test1();
 -- Inheritance_Test1();
 -- Inheritance_Test2();
