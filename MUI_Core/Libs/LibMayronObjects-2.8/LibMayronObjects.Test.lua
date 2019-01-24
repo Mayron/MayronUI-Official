@@ -1015,7 +1015,7 @@ end
 -- DuplicateClass_Test1();
 -- UsingParent_Test1();
 -- UsingParent_Test2();
-UsingParent_Test3();
+-- UsingParent_Test3();
 -- SubPackages_Test1();
 -- Inheritance_Test1();
 -- Inheritance_Test2();

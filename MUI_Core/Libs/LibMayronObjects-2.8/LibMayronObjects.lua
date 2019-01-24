@@ -1065,13 +1065,22 @@ do
             self:InheritFunctions(instanceController, parentClassController);
         end
 
-        for funcKey, funcDefinition in pairs(classController.definitions) do
+        -- check that class implements interface functions:
+        for funcKey, _ in pairs(classController.definitions) do
             local implementedFunc = classController.class[funcKey];
             Core:Assert(Lib:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
+        end
 
-            -- copy function references with definitions
-            instanceController.instance[funcKey] = implementedFunc;
-            instanceController.definitions[funcKey] = funcDefinition;
+        for funcKey, implementedFunc in pairs(classController.class) do
+            Core:Assert(Lib:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
+
+            if (Lib:IsFunction(implementedFunc)) then
+                local funcDefinition = classController.definitions[funcKey];
+
+                -- copy function references with definitions
+                instanceController.instance[funcKey] = implementedFunc;
+                instanceController.definitions[funcKey] = funcDefinition;
+            end
         end
     end
 end

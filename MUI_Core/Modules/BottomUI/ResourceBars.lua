@@ -330,7 +330,7 @@ end
 
 BottomUIPackage:DefineParams("boolean");
 function C_BaseResourceBar:SetEnabled(data, enabled)
-    print(data.barName)
+    print("self: "..tostring(self))
     if (enabled) then
         if (not data.statusbar) then
             self:CreateBar();
