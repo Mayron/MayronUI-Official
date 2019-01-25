@@ -31,7 +31,7 @@ function Handler:__Construct(data, eventName, callback, unit, ...)
 end
 
 function Handler:__Destruct(data)
-    for _, eventName in ipairs(data.events) do
+    for eventName, _ in pairs(data.events) do
         for id, handler in ipairs(Private.eventsList[eventName]) do
             if (handler == self) then
                 table.remove(Private.eventsList[eventName], id);
@@ -43,7 +43,21 @@ function Handler:__Destruct(data)
 end
 
 function Handler:GetEventNames(data)
-    return data.eventName;
+    local eventNames = obj:PopWrapper();
+
+    for eventName, _ in pairs(data.events) do
+        table.insert(eventNames, eventName);
+    end
+
+    return eventNames;
+end
+
+function Handler:SetEventCallbackEnabled(data, eventName, enabled)
+    data.events[eventName] = enabled;
+end
+
+function Handler:IsEventCallbackEnabled(data, eventName)
+    return data.events[eventName];
 end
 
 function Handler:SetAutoDestroy(data, autoDestroy)
@@ -60,6 +74,10 @@ function Handler:SetCallbackArgs(data, ...)
     end
 
     data.args = obj:PopWrapper(...);
+
+    if (DALKD) then
+        obj:PrintTable(data.args);
+    end
 end
 
 function Handler:SetKey(data, key)
@@ -81,6 +99,8 @@ function Handler:Run(data, ...)
         if (data.args) then
             -- execute event callback
             local args = obj:PopWrapper(unpack(data.args));
+
+            obj:PrintTable(args);
 
             for _, value in obj:IterateArgs(...) do
                 table.insert(args, value);
@@ -109,7 +129,7 @@ function Handler:AppendEvent(data, eventName, unit)
         Private.eventTracker:RegisterEvent(eventName);
     end
 
-    table.insert(data.events, eventName);
+    data.events[eventName] = true;
 
     Private.eventsList[eventName] = Private.eventsList[eventName] or obj:PopWrapper();
     table.insert(Private.eventsList[eventName], self);
@@ -144,8 +164,13 @@ function Lib:CreateEventHandler(eventName, callback, unit, ...)
 end
 
 function Lib:CreateEventHandlerWithKey(eventName, key, callback, unit, ...)
-    local handler = self:CreateEventHandler(eventName, callback, unit, ...);
-    handler:SetKey(key);
+    local handler = self:FindHandlerByKey(key);
+
+    if (not handler) then
+        handler = self:CreateEventHandler(eventName, callback, unit, ...);
+        handler:SetKey(key);
+    end
+
     return handler;
 end
 
@@ -175,6 +200,10 @@ end
 
 function Lib:FindHandlerByKey(key)
     return Private.eventKeys[key];
+end
+
+function Lib:FindHandlersByEvent(eventName)
+    return Private.eventsList[eventName];
 end
 
 function Lib:GetNumHandlersByEvent(eventName)

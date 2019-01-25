@@ -7,10 +7,11 @@ local HasArtifactEquipped, GetWatchedFactionInfo = _G.HasArtifactEquipped, _G.Ge
 local UnitXP, UnitXPMax, GetXPExhaustion = _G.UnitXP, _G.UnitXPMax, _G.GetXPExhaustion;
 local C_ArtifactUI, GameTooltip = _G.C_ArtifactUI, _G.GameTooltip;
 local GetNumPurchasableArtifactTraits = _G.ArtifactBarGetNumArtifactTraitsPurchasableFromXP;
+local C_AzeriteItem = _G.C_AzeriteItem;
 
 -- Constants -----------------------------
 
-local BAR_NAMES = {"reputation", "experience", "artifact"};
+local BAR_NAMES = {"reputation", "experience", "Azerite", "artifact"};
 
 -- Setup Objects -------------------------
 
@@ -22,6 +23,7 @@ Engine:AddSubPackage(BottomUIPackage);
 local C_BaseResourceBar = BottomUIPackage:CreateClass("BaseResourceBar", "Framework.System.FrameWrapper");
 local C_ExperienceBar = BottomUIPackage:CreateClass("ExperienceBar", C_BaseResourceBar);
 local C_ReputationBar = BottomUIPackage:CreateClass("ReputationBar", C_BaseResourceBar);
+local C_AzeriteBar = BottomUIPackage:CreateClass("AzeriteBar", C_BaseResourceBar);
 local C_ArtifactBar = BottomUIPackage:CreateClass("ArtifactBar", C_BaseResourceBar);
 
 -- Register and Import Modules -----------
@@ -31,25 +33,31 @@ local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", "R
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.resourceBars", {
-    enabled = true,
+    enabled = true;
     experienceBar = {
-        enabled = true,
-        height = 8,
-        alwaysShowText = false,
-        fontSize = 8,
-    },
+        enabled = true;
+        height = 8;
+        alwaysShowText = false;
+        fontSize = 8;
+    };
     reputationBar = {
-        enabled = true,
-        height = 8,
-        alwaysShowText = false,
-        fontSize = 8,
-    },
+        enabled = true;
+        height = 8;
+        alwaysShowText = false;
+        fontSize = 8;
+    };
     artifactBar = {
-        enabled = true,
-        height = 8,
-        alwaysShowText = false,
-        fontSize = 8,
-    }
+        enabled = true;
+        height = 8;
+        alwaysShowText = false;
+        fontSize = 8;
+    };
+    azeriteBar = {
+        enabled = true;
+        height = 8;
+        alwaysShowText = false;
+        fontSize = 8;
+    };
 });
 
 -- C_ResourceBarsModule -------------------
@@ -330,7 +338,6 @@ end
 
 BottomUIPackage:DefineParams("boolean");
 function C_BaseResourceBar:SetEnabled(data, enabled)
-    print("self: "..tostring(self))
     if (enabled) then
         if (not data.statusbar) then
             self:CreateBar();
@@ -362,11 +369,9 @@ local function OnExperienceBarUpdate(_, _, statusbar, rested)
     statusbar.text:SetText(text);
 end
 
-local function OnExperienceBarLevelUp(handler, _, level)
+local function OnExperienceBarLevelUp(_, _, self, level)
     if (tk:GetMaxPlayerLevel() == level) then
         self:SetEnabled(false);
-        em:DestroyHandlerByKey("OnExperienceBarUpdate");
-        handler:Destroy();
     end
 end
 
@@ -378,9 +383,11 @@ end
 
 BottomUIPackage:DefineParams("boolean");
 function C_ExperienceBar:SetEnabled(data, enabled)
-    self:Parent():SetEnabled(enabled);
+    enabled = enabled and not tk:IsPlayerMaxLevel();
 
     if (enabled) then
+        self.Parent:SetEnabled(enabled);
+
         if (data.notCreated) then
             data.rested = CreateFrame("StatusBar", nil, data.frame);
             data.rested:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", "MUI_StatusBar"));
@@ -395,22 +402,37 @@ function C_ExperienceBar:SetEnabled(data, enabled)
             data.statusbar.texture:SetVertexColor(r * 0.8, g * 0.8, b  * 0.8);
             data.notCreated = nil;
         end
-
-        em:CreateEventHandler("PLAYER_LEVEL_UP", "OnExperienceBarLevelUp", OnExperienceBarLevelUp, nil);
-        em:CreateEventHandlerWithKey("PLAYER_XP_UPDATE", "OnExperienceBarUpdate",
-            OnExperienceBarUpdate, nil, data.statusbar, data.rested);
-
-        OnExperienceBarUpdate(nil, nil, data.statusbar, data.rested);
     else
+        -- destroy as it can never be re-enabled
         em:DestroyHandlerByKey("OnExperienceBarLevelUp");
         em:DestroyHandlerByKey("OnExperienceBarUpdate");
+    end
+
+    if (enabled) then
+        em:CreateEventHandlerWithKey("PLAYER_LEVEL_UP", "OnExperienceBarLevelUp", OnExperienceBarLevelUp, nil, self);
+        -- TODO: data.rested is not being passed in!
+        DALKD = true;
+        -- em:CreateEventHandlerWithKey("PLAYER_XP_UPDATE", "OnExperienceBarUpdate", OnExperienceBarUpdate, nil, data.statusbar, data.rested);
+        em:CreateEventHandlerWithKey("PLAYER_XP_UPDATE", "OnExperienceBarUpdate", OnExperienceBarUpdate, nil, "YES", "NO"); -- TODO: YES is skipped!
+        DALKD = false;
+        OnExperienceBarUpdate(nil, nil, data.statusbar, data.rested);
     end
 end
 
 -- C_ReputationBar ----------------------
 
-local function OnReputationBarUpdate(statusbar)
-    local factionName, _, minValue, maxValue, currentValue = GetWatchedFactionInfo();
+local function OnReputationBarUpdate(_, _, bar, statusbar)
+    local factionName, standingID, minValue, maxValue, currentValue = GetWatchedFactionInfo();
+
+    if (not factionName or standingID == 8) then
+        if (bar:IsEnabled()) then
+            bar:SetEnabled(false);
+        end
+        return;
+
+    elseif (not bar:IsEnabled()) then
+        bar:SetEnabled(true);
+    end
 
     maxValue = maxValue - minValue;
     currentValue = currentValue - minValue;
@@ -457,9 +479,18 @@ end
 
 BottomUIPackage:DefineParams("boolean");
 function C_ReputationBar:SetEnabled(data, enabled)
-    self:Parent():SetEnabled(enabled);
+    local factionName, standingID = GetWatchedFactionInfo();
+
+    if (not factionName or standingID == 8) then
+        enabled = false;
+    end
+
+    em:CreateEventHandlerWithKey("UPDATE_FACTION, PLAYER_REGEN_ENABLED",
+        "OnReputationBarUpdate", OnReputationBarUpdate, nil, self, data.statusbar);
 
     if (enabled) then
+        self.Parent:SetEnabled(enabled);
+
         if (data.notCreated) then
             data.statusbar:HookScript("OnEnter", ReputationBar_OnEnter);
             data.statusbar:HookScript("OnLeave", tk.GeneralTooltip_OnLeave);
@@ -468,26 +499,108 @@ function C_ReputationBar:SetEnabled(data, enabled)
             data.statusbar.texture:SetVertexColor(0.16, 0.6, 0.16, 1);
             data.notCreated = nil;
         end
+    end
+end
 
-        em:CreateEventHandler("UPDATE_FACTION, PLAYER_REGEN_ENABLED",
-            "OnReputationBarUpdate", OnReputationBarUpdate, nil, data.statusbar);
-    else
-        em:DestroyHandlerByKey("OnReputationBarUpdate");
+-- C_AzeriteBar ----------------------
+
+local function OnAzeriteXPUpdate(_, _, bar, data)
+    if (not C_AzeriteItem.HasActiveAzeriteItem()) then
+        if (bar:IsEnabled()) then
+            bar:SetEnabled(false);
+        end
+
+        return;
+
+    elseif (not bar:IsEnabled()) then
+        bar:SetEnabled(true);
+    end
+
+    local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem();
+    local activeXP, totalXP = C_AzeriteItem.GetAzeriteItemXPInfo(azeriteItemLocation);
+
+    data.statusbar:SetMinMaxValues(0, totalXP);
+    data.statusbar:SetValue(activeXP);
+
+    if (data.statusbar.text) then
+        if (activeXP > 0 and totalXP == 0) then
+            totalXP = activeXP;
+        end
+
+        local percent = (activeXP / totalXP) * 100;
+
+        activeXP = tk:FormatNumberString(activeXP);
+        totalXP = tk:FormatNumberString(totalXP);
+
+        local text = tk.string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
+        data.statusbar.text:SetText(text);
+    end
+end
+
+local function AzeriteBar_OnEnter(self)
+    local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem();
+    local activeXP, totalXP = C_AzeriteItem.GetAzeriteItemXPInfo(azeriteItemLocation);
+
+    if (totalXP > 0) then
+        local percent = (activeXP / totalXP) * 100;
+        activeXP = tk:FormatNumberString(activeXP);
+        totalXP = tk:FormatNumberString(totalXP);
+        local text = tk.string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
+
+        GameTooltip:SetOwner(self, "ANCHOR_TOP");
+        GameTooltip:AddLine(text, 1, 1, 1);
+        GameTooltip:Show();
+    end
+end
+
+BottomUIPackage:DefineParams("BottomUI_ResourceBars", "table");
+function C_AzeriteBar:__Construct(data, barsModule, moduleData)
+    self:Super(barsModule, moduleData, "azerite");
+    data.blizzardBar = _G.AzeriteWatchBar;
+end
+
+BottomUIPackage:DefineParams("boolean");
+function C_AzeriteBar:SetEnabled(data, enabled)
+    enabled = enabled and C_AzeriteItem.HasActiveAzeriteItem();
+
+    em:CreateEventHandler("AZERITE_ITEM_EXPERIENCE_CHANGED", "AzeriteXP_Update", OnAzeriteXPUpdate, nil, self, data);
+    em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Azerite_OnInventoryChanged", OnAzeriteXPUpdate, nil, self, data);
+
+    if (enabled) then
+        self.Parent:SetEnabled(enabled);
+
+        if (data.notCreated) then
+            data.statusbar.texture = data.statusbar:GetStatusBarTexture();
+            data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
+
+            data.statusbar:HookScript("OnEnter", AzeriteBar_OnEnter);
+            data.statusbar:HookScript("OnLeave", tk.GeneralTooltip_OnLeave);
+            data.notCreated = nil;
+        end
+
+        OnAzeriteXPUpdate(nil, nil, data.statusbar);
     end
 end
 
 -- C_ArtifactBar ----------------------
 
-local function OnArtifactXPUpdate(_, _, statusbar)
+local function OnArtifactXPUpdate(_, _, bar, data)
     if (not HasArtifactEquipped()) then
+        if (bar:IsEnabled()) then
+            bar:SetEnabled(false);
+        end
+
         return;
+
+    elseif (not bar:IsEnabled()) then
+        bar:SetEnabled(true);
     end
 
     local totalXP, pointsSpent, _, _, _, _, _, _, tier = select(5, C_ArtifactUI.GetEquippedArtifactInfo());
     local _, currentValue, maxValue = GetNumPurchasableArtifactTraits(pointsSpent, totalXP, tier);
 
-    statusbar:SetMinMaxValues(0, maxValue);
-    statusbar:SetValue(currentValue);
+    data.statusbar:SetMinMaxValues(0, maxValue);
+    data.statusbar:SetValue(currentValue);
 
     if currentValue > 0 and maxValue == 0 then
         maxValue = currentValue;
@@ -498,7 +611,7 @@ local function OnArtifactXPUpdate(_, _, statusbar)
     maxValue = tk.Strings:FormatReadableNumber(maxValue);
 
     local text = string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
-    statusbar.text:SetText(text);
+    data.statusbar.text:SetText(text);
 end
 
 BottomUIPackage:DefineParams("BottomUI_ResourceBars", "table");
@@ -509,24 +622,20 @@ end
 
 BottomUIPackage:DefineParams("boolean");
 function C_ArtifactBar:SetEnabled(data, enabled)
+    enabled = enabled and HasArtifactEquipped();
 
-    print("sejilfgsdjk")
-    self:Parent():SetEnabled(enabled);
+    em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, nil, self, data);
+    em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Artifact_OnInventoryChanged", OnArtifactXPUpdate, nil, self, data);
 
     if (enabled) then
-        print("YES")
+        self.Parent:SetEnabled(enabled);
+
         if (data.notCreated) then
             data.statusbar.texture = data.statusbar:GetStatusBarTexture();
-            data.statusbar.texture:SetVertexColor(0.9, 0.8, 0.6, 1);
+            data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
             data.notCreated = nil;
-            print("YARRRHHH")
         end
 
-        em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, nil, data.statusbar);
-        em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Artifact_OnInventoryChanged", OnArtifactXPUpdate, nil, data.statusbar);
         OnArtifactXPUpdate(nil, nil, data.statusbar);
-    else
-        em:DestroyHandlerByKey("ArtifactXP_Update");
-        em:DestroyHandlerByKey("Artifact_OnInventoryChanged");
     end
 end

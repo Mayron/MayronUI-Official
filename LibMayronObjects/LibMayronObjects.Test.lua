@@ -333,6 +333,7 @@ local function Inheritance_Test1() -- luacheck: ignore
         data.Dialog = "I am a parent.";
     end
 
+    lib:SetDebugMode(true);
     local child = Child();
 
     assert(child:GetObjectType() == "Child");
@@ -531,25 +532,22 @@ local function UsingParent_Test1() -- luacheck: ignore
     end
 
     local superChild = SuperChild();
-
-    lib:SetDebugMode(true);
-
     local actualMessage = superChild:Print();
 
     assert(actualMessage == "This is SuperChild!",
         string.format("'This is SuperChild!' expected but got '%s'", actualMessage));
 
-    actualMessage = superChild:Parent():Print();
+    actualMessage = superChild.Parent:Print();
 
     assert(actualMessage == "This is Child!",
         string.format("'This is Child!' expected but got '%s'", actualMessage));
 
-    actualMessage = superChild:Parent():Parent():Print();
+    actualMessage = superChild.Parent.Parent:Print();
 
     assert(actualMessage == "This is Parent!",
         string.format("'This is Parent!' expected but got '%s'", actualMessage));
 
-    actualMessage = superChild:Parent():Parent():Parent():Print();
+    actualMessage = superChild.Parent.Parent.Parent:Print();
 
     assert(actualMessage == "This is SuperParent!",
         string.format("'This is SuperParent!' expected but got '%s'", actualMessage));
@@ -583,7 +581,7 @@ local function UsingParent_Test2() -- luacheck: ignore
         assert(num == nil);
         assert(data.origin == "SuperChild");
         totalCalled = totalCalled + 1;
-        self:Parent():Print("Parent --> "..message);
+        self.Parent:Print("Parent --> "..message);
     end
 
     TestPackage:DefineParams("string", "number")
@@ -593,14 +591,14 @@ local function UsingParent_Test2() -- luacheck: ignore
         totalCalled = totalCalled + 1;
 
         -- should use parent definitions
-        self:Parent():Print("Child --> "..message); -- TODO: Should have a default UseParentScope based on current scope
+        self.Parent:Print("Child --> "..message); -- TODO: Should have a default UseParentScope based on current scope
     end
 
     TestPackage:DefineParams("string", "number")
     function SuperChild:Print(data, message, num)
         assert(data.origin == "SuperChild");
         totalCalled = totalCalled + 1;
-        self:Parent():Print("SuperChild --> "..message, num + 3); -- TODO ERROR!!
+        self.Parent:Print("SuperChild --> "..message, num + 3); -- TODO ERROR!!
     end
 
     function SuperChild:__Construct(data)
@@ -634,7 +632,7 @@ local function UsingParent_Test3() -- luacheck: ignore
     end
 
     function Parent:Print(data, message, num)
-        self:Parent():Print("Parent --> "..message);
+        self.Parent:Print("Parent --> "..message);
         assert(num == nil);
         assert(data.origin == "SuperChild");
         totalCalled = totalCalled + 1;
@@ -642,13 +640,13 @@ local function UsingParent_Test3() -- luacheck: ignore
 
     function Child:Print(data, message, num)
         assert(num == 5);
-        self:Parent():Print("Child --> "..message);
+        self.Parent:Print("Child --> "..message);
         assert(data.origin == "SuperChild");
         totalCalled = totalCalled + 1;
     end
 
     function SuperChild:Print(data, message, num)
-        self:Parent():Print("SuperChild --> "..message, num + 3);
+        self.Parent:Print("SuperChild --> "..message, num + 3);
         assert(data.origin == "SuperChild");
         totalCalled = totalCalled + 1;
     end
@@ -664,15 +662,16 @@ local function UsingParent_Test3() -- luacheck: ignore
 	print("UsingParent_Test3 Successful!");
 end
 
-local function UsingParent_Test4() -- luacheck: ignore
-	print("UsingParent_Test4 Started");
-    local TestPackage = lib:CreatePackage("UsingParent_Test4");
+local function UsingParentWithVirtualFunction_Test4() -- luacheck: ignore
+	print("UsingParentWithVirtualFunction_Test4 Started");
+    local TestPackage = lib:CreatePackage("UsingParentWithVirtualFunction_Test4");
     local Parent = TestPackage:CreateClass("Parent");
     local Child = TestPackage:CreateClass("Child", Parent);
     local called = false;
 
     local expectedString;
 
+    TestPackage:DefineVirtual();
     TestPackage:DefineParams("string");
     function Parent:CallMe(_, _)
         error("Parent.CallMe should NOT be called!");
@@ -695,7 +694,7 @@ local function UsingParent_Test4() -- luacheck: ignore
     end
 
     function Child:Execute(data)
-        self:Parent():Execute();
+        self.Parent:Execute();
         assert(data.value == 123);
     end
 
@@ -706,7 +705,7 @@ local function UsingParent_Test4() -- luacheck: ignore
 
     assert(called == true, "Child:CallMe was never called!");
 
-	print("UsingParent_Test4 Successful!");
+	print("UsingParentWithVirtualFunction_Test4 Successful!");
 end
 
 local function SubPackages_Test1() -- luacheck: ignore
@@ -1084,10 +1083,10 @@ end
 -- DefineParams_Test2();
 -- ImportPackage_Test1();
 -- DuplicateClass_Test1();
-UsingParent_Test1();
-UsingParent_Test2();
-UsingParent_Test3();
-UsingParent_Test4();
+-- UsingParent_Test1();
+-- UsingParent_Test2();
+-- UsingParent_Test3();
+-- UsingParentWithVirtualFunction_Test4();
 -- SubPackages_Test1();
 -- Inheritance_Test1();
 -- Inheritance_Test2();

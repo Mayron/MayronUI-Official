@@ -456,19 +456,22 @@ local function CreateProxyObject(object, key, self, controller, privateData)
             "Invalid instance private data found when calling %s.%s: %s",
             proxyObject.controller.objectName, proxyObject.key, tostring(proxyObject.privateData));
 
-        -- if (Core.DebugMode) then
-        --     print("func: "..tostring(proxyObject.object[proxyObject.key])) -- TODO: This is nil!
-        --     print(proxyObject.controller.objectName);
-        --     print(proxyObject.key);
-        --     print(proxyObject.self);
-        -- end
-
         -- Validate return values received after calling the function
         local returnValues = Lib:PopWrapper(
             Core:ValidateFunctionCall(definition, errorMessage,
                 proxyObject.object[proxyObject.key](proxyObject.self, proxyObject.privateData, ...)
             )
         );
+
+        if (proxyObject.key ~= "Destroy") then
+            local instanceController = Core:GetController(proxyObject.self, true);
+
+            if (instanceController and Lib:IsTable(instanceController.UsingParentControllers)) then
+                -- might have been destroyed during the function call
+                Lib:PushWrapper(instanceController.UsingParentControllers);
+                instanceController.UsingParentControllers = nil;
+            end
+        end
 
         ProxyStack:Push(proxyObject);
 
@@ -539,6 +542,19 @@ do
                 -- if value is still not found and object has a GetFrame method (usually
                 -- from inheriting FrameWrapper) then index the frame
                 value = CreateProxyObject(class, "GetFrame", self, classController);
+            end
+        end
+
+        if (classController.UsingChild and Lib:IsFunction(value)) then
+            local isVirtual = classController.virtualFunctions and classController.virtualFunctions[key];
+
+            if (isVirtual) then
+                -- if Object:Parent() was used, call parent function with the child as the reference
+                local child = classController.UsingChild;
+                local childController = Core:GetController(child);
+                local proxyObject = GetStoredProxyObject(value);
+
+                proxyObject.privateData = Core:GetPrivateInstanceData(child, childController);
             end
         end
 
@@ -693,6 +709,30 @@ do
         return value;
     end
 
+    local function GetControllerForConcreteFunction(instanceController, key)
+        local selectedController;
+
+        if (instanceController.instance[key]) then
+            selectedController = instanceController;
+        end
+
+        for _, parentController in ipairs(instanceController.UsingParentControllers) do
+            if (parentController.class[key]) then
+                if (parentController.virtualFunctions and parentController.virtualFunctions[key]) then
+                    if (not selectedController) then
+                        return parentController;
+                    else
+                        return selectedController;
+                    end
+                else
+                    selectedController = parentController;
+                end
+            end
+        end
+
+        return selectedController;
+    end
+
     proxyInstanceMT.__index = function(self, key)
         local instanceController = Core:GetController(self);
         local classController = instanceController.classController;
@@ -704,31 +744,27 @@ do
         end
 
         if (key == "Parent") then
-            local parentController = Core:GetController(instanceController.parentProxyClass);
-
-            if (instanceController.UseParentScope) then
-                parentController = instanceController.UseParentScope;
+            if (instanceController.UsingParentControllers) then
+                local parentControllers = instanceController.UsingParentControllers;
+                local parentController = parentControllers[#parentControllers];
                 local nextParentController = Core:GetController(parentController.parentProxyClass);
-                instanceController.UseParentScope = nextParentController;
+
+                table.insert(instanceController.UsingParentControllers, nextParentController);
             else
-                -- TODO: Should be based on current scope!
-                instanceController.UseParentScope = parentController;
+                local parentController = Core:GetController(instanceController.parentProxyClass);
+                instanceController.UsingParentControllers = Lib:PopWrapper(parentController);
             end
 
-            return function()
-                return instanceController.proxy;
-            end
+            return instanceController.proxy;
         end
 
-        if (value == nil and instanceController.UseParentScope) then
-            local selectedParentController = instanceController.UseParentScope; -- needed to correct definitions
+        if (value == nil and instanceController.UsingParentControllers) then
+            local selectedParentController = GetControllerForConcreteFunction(instanceController, key);
 
             value = CreateProxyObject(
                 selectedParentController.class, -- object/scope
                 key, self, selectedParentController, privateData
             );
-
-            instanceController.UseParentScope = nil;
         end
 
         -- check if instance property
@@ -776,6 +812,10 @@ do
 
         Core:Assert(not classController.class[key],
             "Cannot override class-level property '%s.%s' from an instance.", classController.objectName, key);
+
+        if (instanceController.objectName ~= "Package") then
+            Core:Assert(key ~= "Parent", "Cannot override protected 'Parent' instance property.");
+        end
 
         if (classController.indexChangingCallback) then
             local preventIndexing = classController.indexChangingCallback(self, instanceController.privateData, key, value);
@@ -982,6 +1022,7 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
     -- temporary definition info (received from DefineParams and DefineReturns function calls)
     local tempParamDefs = controller.packageData.tempParamDefs;
     local tempReturnDefs = controller.packageData.tempReturnDefs;
+    local isVirtual = controller.packageData.isVirtual;
 
     -- holds definition for the new function
     local funcDefinition;
@@ -1001,6 +1042,7 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
     -- remove temporary definitions once implemented
     controller.packageData.tempParamDefs = nil;
     controller.packageData.tempReturnDefs = nil;
+    controller.packageData.isVirtual = nil;
 
     if (fromInterface) then
         controller.interfaceDefinitions = controller.interfaceDefinitions or Lib:PopWrapper();
@@ -1027,6 +1069,11 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
         if (Lib:IsTable(funcDefinition)) then
             -- might be an interface function with no definition (prevent adding boolean 'true')
             controller.definitions[newFuncKey] = funcDefinition;
+
+            if (isVirtual) then
+                controller.virtualFunctions = controller.virtualFunctions or Lib:PopWrapper();
+                controller.virtualFunctions[newFuncKey] = true;
+            end
         end
     end
 end
@@ -1507,6 +1554,11 @@ function Package:DefineReturns(data, ...)
     data.tempReturnDefs = Lib:PopWrapper(...);
 end
 
+-- Define the next class function as virtual
+function Package:DefineVirtual(data)
+    data.isVirtual = true;
+end
+
 -- prevents other functions being added or modified
 function Package:ProtectClass(_, class)
     local classController = Core:GetController(class);
@@ -1621,12 +1673,6 @@ function Object:GetParentClass()
 	return Core:GetController(self).parentProxyClass;
 end
 
--- function Object:Parent()
---     local controller = Core:GetController(self);
---     controller.UseParentScope = true;
---     return self;
--- end
-
 function Object:GetPackage()
 	return Core:GetController(self).package;
 end
@@ -1637,11 +1683,10 @@ end
 
 function Object:Clone()
     local instanceController = Core:GetController(self);
-    local classController = Core:GetController(instanceController.proxy);
-	classController.cloneFrom = self;
+	instanceController.classController.cloneFrom = self;
 
     -- Executes Class __call metamethod
-	local instance = instanceController.proxy();
+	local instance = instanceController.classController.proxy();
 
 	if (not self:Equals(instance)) then
         Core:Error("Clone data corrupted.");
