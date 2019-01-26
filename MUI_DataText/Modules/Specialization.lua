@@ -137,11 +137,11 @@ function Specialization:Enable(data)
     self.Button:SetScript("OnEnter", Button_OnEnter);
     self.Button:SetScript("OnLeave", Button_OnLeave);
 
-    em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
+    em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "spec_1", function()
         self:Update();
-    end):SetKey("spec_1");
+    end);
 
-    em:CreateEventHandler("PLAYER_SPECIALIZATION_CHANGED", function(_, _, unitID)
+    em:CreateEventHandlerWithKey("PLAYER_SPECIALIZATION_CHANGED", "spec_2", function(_, _, unitID)
         if (unitID == "player") then
             self:Update();
 
@@ -159,7 +159,7 @@ function Specialization:Enable(data)
                 end
             end
         end
-    end):SetKey("spec_2");
+    end);
 end
 
 function Specialization:Disable(data)
@@ -170,8 +170,8 @@ function Specialization:Disable(data)
     data.settings.enabled = false;
     data.settings:SaveChanges();
 
-    em:FindHandlerByKey("spec_1"):Destroy();
-    em:FindHandlerByKey("spec_2"):Destroy();
+    em:FindEventHandlerByKey("spec_1"):Destroy();
+    em:FindEventHandlerByKey("spec_2"):Destroy();
 
     self.Button:SetScript("OnEnter", nil);
     self.Button:SetScript("OnLeave", nil);

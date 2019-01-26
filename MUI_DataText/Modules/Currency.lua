@@ -77,27 +77,27 @@ function Currency:__Construct(data, settings, dataTextModule)
     data.copperString = "|TInterface\\MoneyFrame\\UI-CopperIcon:14:14:2:0|t";
     data.showMenu = true;
 
-    local date = _G.C_Calendar.GetDate();
-    local month = date["month"];
-    local day = date["monthDay"];
+    local calendarDate = _G.C_Calendar.GetDate();
+    local month = calendarDate["month"];
+    local day = calendarDate["monthDay"];
 
-    date = tk.string.format("%d-%d", day, month);
+    calendarDate = tk.string.format("%d-%d", day, month);
 
-    if (not (data.settings.date and data.settings.date == date)) then
+    if (not (data.settings.date and data.settings.date == calendarDate)) then
         data.settings.todayCurrency = _G.GetMoney();
-        data.settings.date = date;
-        data.settings:SaveChanges(); --TODO: Causes error: attempt to index local 'rootTable' (a nil value)
-    end
+        data.settings.date = calendarDate;
+        data.settings:SaveChanges();
+   end
 
-    em:CreateEventHandler("PLAYER_MONEY", function()
+    em:CreateEventHandlerWithKey("PLAYER_MONEY", "PlayerMoneyHandler", function()
         if (not self.Button) then
             return;
         end
 
         self:Update();
-    end):SetKey("money");
+    end);
 
-    data.info = {};
+    data.info = obj:PopWrapper();
     data.info[1] = tk.Strings:SetTextColorByTheme(L["Current Money"]..":");
     data.info[2] = nil;
     data.info[3] = tk.Strings:SetTextColorByTheme(L["Start of the day"]..":");
@@ -120,7 +120,7 @@ end
 function Currency:Disable(data)
     data.settings.enabled = false;
     data.settings:SaveChanges();
-    em:FindHandlerByKey("PLAYER_MONEY", "money"):Destroy();
+    em:FindEventHandlerByKey("PlayerMoneyHandler"):Destroy();
     data.showMenu = nil;
 end
 

@@ -140,7 +140,7 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
                 self:SetupBartenderBar(4, bartenderBarID);
             end;
         };
-    });
+    }, setupOptions);
 
     if (data.settings.enabled) then
         self:SetEnabled(true);

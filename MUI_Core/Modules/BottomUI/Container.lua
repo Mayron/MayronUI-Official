@@ -51,7 +51,7 @@ function C_Container:OnInitialize(data)
 
     -- Initialize Sub Modules -------------
 
-    data.subModules = {};
+    data.subModules = obj:PopWrapper();
 
     data.subModules.ResourceBars = MayronUI:ImportModule("BottomUI_ResourceBars");
     data.subModules.ActionBarPanel = MayronUI:ImportModule("BottomUI_ActionBarPanel");

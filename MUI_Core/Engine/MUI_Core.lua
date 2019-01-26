@@ -167,6 +167,18 @@ function BaseModule:Initialize(_, ...)
             func(self, registryInfo.moduleData);
         end
     end
+
+    if (self.OnInitialized) then
+        self:OnInitialized();
+    end
+
+    -- Call any other functions attached to this modules OnInitialized event
+    if (registryInfo.hooks and registryInfo.hooks.OnInitialized) then
+        for _, func in ipairs(registryInfo.hooks.OnInitialized) do
+            func(self, registryInfo.moduleData);
+        end
+    end
+
 end
 
 Engine:DefineReturns("string");
@@ -327,6 +339,7 @@ do
                 end
 
                 if (path:match(ignoreValue)) then
+                    print("path: "..path..", ignoreValue: "..ignoreValue);
                     return true;
                 end
             end

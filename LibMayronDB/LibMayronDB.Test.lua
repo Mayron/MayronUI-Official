@@ -8,6 +8,7 @@ local db = Lib:CreateDatabase("LibMayronDB", "TestDB");
 
 local function OnStartUp_Test1(self, addOnName) -- luacheck: ignore
     print("OnStartUp_Test1 Started");
+    TestDB = {};
 
     assert(addOnName == "LibMayronDB", "Invalid params!");
     assert(self:IsLoaded(), "Database not loaded!");
@@ -17,6 +18,7 @@ end
 
 local function ChangeProfile_Test1(self) -- luacheck: ignore
     print("ChangeProfile_Test1 Started");
+    TestDB = {};
 
     db:OnProfileChange(function(_, newProfileName, oldProfileName)
         if (newProfileName == "ChangeProfile_Test1") then
@@ -38,6 +40,7 @@ end
 
 local function NewProfileIndex_Test1(self) -- luacheck: ignore
     print("NewProfileIndex_Test1 Started");
+    TestDB = {};
 
     self:SetPathValue(self.profile, "hello[2].pigs", true);
     assert(self.profile.hello[2].pigs == true, "Failed to Index");
@@ -71,6 +74,7 @@ end
 
 local function UsingParentObserver_Test2(self) -- luacheck: ignore
     print("UsingParentObserver_Test2 Started");
+    TestDB = {};
 
     -- self.profile.hello[2].pigs = true;
 
@@ -99,6 +103,7 @@ end
 
 local function UsingParentObserver_Test3(self) -- luacheck: ignore
     print("UsingParentObserver_Test3 Started");
+    TestDB = {};
 
     self.profile.myParent = {
         events = {
@@ -125,6 +130,7 @@ end
 
 local function UpdatingToDefaultValueShouldRemoveSavedVariableValue_Test1(self) -- luacheck: ignore
     print("UpdatingToDefaultValueShouldRemoveSavedVariableValue_Test1 Started");
+    TestDB = {};
 
     self:AddToDefaults("profile.subtable.options", {
         option1 = true,
@@ -154,6 +160,7 @@ end
 
 local function UpdatingSameValueMultipleTimes_Test1(self) -- luacheck: ignore
     print("UpdatingSameValueMultipleTimes_Test1 Started");
+    TestDB = {};
 
     self:AddToDefaults("global.core", {
         value = 0.7,
@@ -177,6 +184,7 @@ end
 
 local function CleaningUpWithNilValue_Test1(self) -- luacheck: ignore
     print("CleaningUpWithNilValue_Test1 Started");
+    TestDB = {};
 
     self:SetPathValue(self.global, "core.subTable1.subTable2[".."hello".."][4]", {
         value = 100,
@@ -193,6 +201,7 @@ end
 
 local function UsingBothParentAndDefaults_Test1(self) -- luacheck: ignore
     print("UsingBothParentAndDefaults_Test1 Started");
+    TestDB = {};
 
     self:AddToDefaults("profile.myModule", {
         enabled = true,
@@ -231,6 +240,7 @@ end
 
 local function GetTrackedTableAndSavingChanges_Test1(self) -- luacheck: ignore
     print("GetTrackedTableAndSavingChanges_Test1 Started");
+    TestDB = {};
 
     self:SetPathValue(self.profile, "root", {
         key1 = {
@@ -263,6 +273,7 @@ end
 
 local function GetTrackedTableAndSavingChanges_Test2(self) -- luacheck: ignore
     print("GetTrackedTableAndSavingChanges_Test2 Started");
+    TestDB = {};
 
     self:SetPathValue(self.profile, "root", {
         key1 = {
@@ -334,6 +345,7 @@ end
 
 local function GetTrackedTableAndSavingChanges_Test3(self) -- luacheck: ignore
     print("GetTrackedTableAndSavingChanges_Test3 Started");
+    TestDB = {};
 
     -- It seems that when a new table is assigned to child, it removes all other values
     -- Arrange
@@ -484,6 +496,7 @@ end
 
 local function GetTrackedTableAndSavingChanges_Test4(self) -- luacheck: ignore
     print("GetTrackedTableAndSavingChanges_Test4 Started");
+    TestDB = {};
 
     self.profile.root = {
         options = {
@@ -527,6 +540,7 @@ end
 
 local function GetTrackedTableAndSavingChanges_Test5(self) -- luacheck: ignore
     print("GetTrackedTableAndSavingChanges_Test5 Started");
+    TestDB = {};
 
     self.profile.root = {
         level1 = {
@@ -580,12 +594,13 @@ end
 
 local function GetUntrackedTable_Test1(self) -- luacheck: ignore
     print("GetUntrackedTable_Test1 Started");
+    TestDB = {};
 
     self.profile.root = {
         testValue = 12;
     };
 
-    local tbl = self.profile.root:GetTrackedTable();
+    local tbl = self.profile.root:GetUntrackedTable();
 
     tbl.testValue = 100;
 
@@ -636,8 +651,6 @@ local function GetUntrackedTable_Test1(self) -- luacheck: ignore
 end
 
 db:OnStartUp(function(...) -- luacheck: ignore
-    TestDB = {};
-
     -- /console scriptErrors 1 - to display Lua errors
     -- OnStartUp_Test1(...);
     -- ChangeProfile_Test1(...);

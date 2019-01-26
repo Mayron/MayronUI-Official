@@ -10,6 +10,7 @@ local Observer = Framework:CreateClass("Observer");
 local Helper = Framework:CreateClass("Helper");
 
 Observer.Static:AddFriendClass("Helper");
+Observer.Static:AddFriendClass("Database");
 
 local select, tonumber, strsplit = select, tonumber, _G.strsplit;
 
@@ -41,7 +42,7 @@ local function GetNextPath(path, key)
     end
 end
 
-local function Equals(value1, value2, shallowEquals)
+local function IsEqual(value1, value2, shallowIsEqual)
     local type1 = type(value1);
 
     if (type(value2) == type1) then
@@ -50,11 +51,11 @@ local function Equals(value1, value2, shallowEquals)
 
             if (tostring(value1) == tostring(value2)) then
                 return true;
-            elseif (shallowEquals) then
+            elseif (shallowIsEqual) then
                 return false;
             else
                 for id, value in pairs(value1) do
-                    if (not Equals(value, value2[id])) then
+                    if (not IsEqual(value, value2[id])) then
                         return false;
                     end
                 end
@@ -275,20 +276,22 @@ Framework:DefineParams("string");
 function Database:TriggerUpdateFunction(data, path, newValue)
     local updateFunc = self:ParsePathValue(data.updateFunctions, path);
 
-    if (obj:IsFunction(updateFunc)) then
-        local manualFunc;
-        local manualFunctionPath = path;
+    if (not obj:IsFunction(updateFunc)) then
+        return;
+    end
 
-        while (manualFunc == nil and manualFunctionPath:find("[.[]")) do
-            manualFunc = data.manualUpdateFunctions[manualFunctionPath];
-            manualFunctionPath = manualFunctionPath:match('(.+)[.[]');
-        end
+    local manualFunc;
+    local manualFunctionPath = path;
 
-        if (obj:IsFunction(manualFunc)) then
-            manualFunc(updateFunc, newValue, path);
-        else
-            updateFunc(newValue);
-        end
+    while (manualFunc == nil and manualFunctionPath:find("[.[]")) do
+        manualFunc = data.manualUpdateFunctions[manualFunctionPath];
+        manualFunctionPath = manualFunctionPath:match('(.+)[.[]');
+    end
+
+    if (obj:IsFunction(manualFunc)) then
+        manualFunc(updateFunc, newValue, path);
+    else
+        updateFunc(newValue);
     end
 end
 
@@ -308,6 +311,8 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
     local updateFunctionRoot;
 
+    obj:Assert(obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
+
     if (rootTable == self.global) then
         updateFunctionRoot = "global";
 
@@ -326,20 +331,23 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
         end
     end
 
-    if (rootTable.GetObjectType and rootTable:GetObjectType() == "Observer") then
-        rootTable = rootTable:GetSavedVariable();
-    end
-
     local lastTable, lastKey = data.helper:GetLastTableKeyPairs(rootTable, path);
 
-    assert(type(lastTable) == "table" and (type(lastKey) == "string" or type(lastKey) == "number"),
+    assert(obj:IsTable(lastTable) and (obj:IsString(lastKey) or obj:IsNumber(lastKey)),
         "Database:SetPathValue failed to set value");
 
-    lastTable[lastKey] = realValue;
+    -- set value here!
+    if (lastTable.GetObjectType and lastTable:IsObjectType("Observer")) then
+        local observerData = data:GetFriendData(lastTable);
+        data.helper:HandlePathValueChange(observerData, lastKey, realValue);
 
-    if (updateFunctionRoot) then
-        local updateFunctionPath = string.format("%s.%s", updateFunctionRoot, path);
-        self:TriggerUpdateFunction(updateFunctionPath, realValue);
+        if (updateFunctionRoot) then
+            -- only run update function if the database saved variable table changes!
+            local updateFunctionPath = string.format("%s.%s", updateFunctionRoot, path);
+            self:TriggerUpdateFunction(updateFunctionPath, realValue);
+        end
+    else
+        lastTable[lastKey] = realValue;
     end
 end
 
@@ -904,7 +912,7 @@ do
             local defaults = observer:GetDefaults();
             local parent = observer:GetParent();
 
-            if (type(reusableTable) == "table") then
+            if (obj:IsTable(reusableTable)) then
                 obj:EmptyTable(reusableTable);
                 setmetatable(reusableTable, nil);
             end
@@ -951,7 +959,7 @@ do
             data.path = nextPath;
         else
             data.changes = obj:PopWrapper();
-            data.path = "";
+            data.path = nil;
         end
 
         data.tracker = setmetatable(tracker, tracker_MT);
@@ -966,7 +974,7 @@ do
     -- apply all table changes and saves changes to the database
     function SaveChanges(tracker)
         local data = _metaData[tostring(tracker)];
-        local observerPath = data.observer:GetPathAddress(true);
+        local observerPath = data.observer:GetPathAddress();
         local database = data.observer:GetDatabase();
         local totalChanges = 0;
         local fullPath;
@@ -1048,6 +1056,26 @@ do
         return data.observer;
     end
 
+    do
+        local function UpdateUntrackedTable(currentTable, updatedTable)
+            for updatedKey, updatedValue in pairs(updatedTable) do
+                if (obj:IsTable(currentTable[updatedKey]) and obj:IsTable(updatedValue)) then
+                    UpdateUntrackedTable(currentTable[updatedKey], updatedValue);
+                else
+                    currentTable[updatedKey] = updatedValue;
+                end
+            end
+
+            obj:PushWrapper(updatedTable);
+        end
+
+        function BasicTableParent:Refresh()
+            local data = _metaData[tostring(self)];
+            local updatedTable = data.observer:GetUntrackedTable();
+            UpdateUntrackedTable(self, updatedTable);
+        end
+    end
+
     -- Meta-methods:
 
     tracker_MT.__index = function(tracker, key)
@@ -1087,7 +1115,7 @@ do
             -- (else the key would be removed from changes table)
             data.changes[newIndexPath] = "nil";
 
-        elseif (Equals(currentValue, value)) then
+        elseif (IsEqual(currentValue, value)) then
             -- value reverted back to original value before SaveChanges() was called
             -- so remove the pending change.
             data.changes[newIndexPath] = nil;
@@ -1337,7 +1365,7 @@ function Helper:GetDatabaseRootTableName(data, observer)
     end
 end
 
-Framework:DefineParams("table", "any", "?any");
+Framework:DefineParams("table", "string|number", "?any");
 function Helper:HandlePathValueChange(data, observerData, key, value)
     local path;
     local defaultRootTable;
@@ -1363,7 +1391,7 @@ function Helper:HandlePathValueChange(data, observerData, key, value)
     local indexingPath = GetNextPath(path, key);
     local defaultValue = data.database:ParsePathValue(defaultRootTable, indexingPath);
 
-    if (not Equals(defaultValue, value)) then
+    if (not IsEqual(defaultValue, value)) then
         -- different from default value so add it
         data.database:SetPathValue(svRootTable, indexingPath, value);
     else

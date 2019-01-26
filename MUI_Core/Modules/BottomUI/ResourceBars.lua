@@ -238,8 +238,8 @@ function C_ResourceBarsModule:SetBlockerEnabled(data, enabled, dataTextBar)
             data.blocker:Show();
         end
     else
-        em:DestroyHandlerByKey("Blocker_RegenEnabled");
-        em:DestroyHandlerByKey("Blocker_RegenDisabled");
+        em:DestroyEventHandlerByKey("Blocker_RegenEnabled");
+        em:DestroyEventHandlerByKey("Blocker_RegenDisabled");
 
         if (data.blocker) then
             data.blocker:Hide();
@@ -404,17 +404,13 @@ function C_ExperienceBar:SetEnabled(data, enabled)
         end
     else
         -- destroy as it can never be re-enabled
-        em:DestroyHandlerByKey("OnExperienceBarLevelUp");
-        em:DestroyHandlerByKey("OnExperienceBarUpdate");
+        em:DestroyEventHandlerByKey("OnExperienceBarLevelUp");
+        em:DestroyEventHandlerByKey("OnExperienceBarUpdate");
     end
 
     if (enabled) then
-        em:CreateEventHandlerWithKey("PLAYER_LEVEL_UP", "OnExperienceBarLevelUp", OnExperienceBarLevelUp, nil, self);
-        -- TODO: data.rested is not being passed in!
-        DALKD = true;
-        -- em:CreateEventHandlerWithKey("PLAYER_XP_UPDATE", "OnExperienceBarUpdate", OnExperienceBarUpdate, nil, data.statusbar, data.rested);
-        em:CreateEventHandlerWithKey("PLAYER_XP_UPDATE", "OnExperienceBarUpdate", OnExperienceBarUpdate, nil, "YES", "NO"); -- TODO: YES is skipped!
-        DALKD = false;
+        em:CreateEventHandlerWithKey("PLAYER_LEVEL_UP", "OnExperienceBarLevelUp", OnExperienceBarLevelUp, self);
+        em:CreateEventHandlerWithKey("PLAYER_XP_UPDATE", "OnExperienceBarUpdate", OnExperienceBarUpdate, data.statusbar, data.rested);
         OnExperienceBarUpdate(nil, nil, data.statusbar, data.rested);
     end
 end
@@ -486,7 +482,7 @@ function C_ReputationBar:SetEnabled(data, enabled)
     end
 
     em:CreateEventHandlerWithKey("UPDATE_FACTION, PLAYER_REGEN_ENABLED",
-        "OnReputationBarUpdate", OnReputationBarUpdate, nil, self, data.statusbar);
+        "OnReputationBarUpdate", OnReputationBarUpdate, self, data.statusbar);
 
     if (enabled) then
         self.Parent:SetEnabled(enabled);
@@ -563,8 +559,8 @@ BottomUIPackage:DefineParams("boolean");
 function C_AzeriteBar:SetEnabled(data, enabled)
     enabled = enabled and C_AzeriteItem.HasActiveAzeriteItem();
 
-    em:CreateEventHandler("AZERITE_ITEM_EXPERIENCE_CHANGED", "AzeriteXP_Update", OnAzeriteXPUpdate, nil, self, data);
-    em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Azerite_OnInventoryChanged", OnAzeriteXPUpdate, nil, self, data);
+    em:CreateEventHandler("AZERITE_ITEM_EXPERIENCE_CHANGED", "AzeriteXP_Update", OnAzeriteXPUpdate, self, data);
+    em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Azerite_OnInventoryChanged", OnAzeriteXPUpdate, self, data);
 
     if (enabled) then
         self.Parent:SetEnabled(enabled);
@@ -624,8 +620,8 @@ BottomUIPackage:DefineParams("boolean");
 function C_ArtifactBar:SetEnabled(data, enabled)
     enabled = enabled and HasArtifactEquipped();
 
-    em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, nil, self, data);
-    em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Artifact_OnInventoryChanged", OnArtifactXPUpdate, nil, self, data);
+    em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, self, data);
+    em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Artifact_OnInventoryChanged", OnArtifactXPUpdate, self, data);
 
     if (enabled) then
         self.Parent:SetEnabled(enabled);

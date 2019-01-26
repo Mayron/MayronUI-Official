@@ -74,10 +74,6 @@ function Handler:SetCallbackArgs(data, ...)
     end
 
     data.args = obj:PopWrapper(...);
-
-    if (DALKD) then
-        obj:PrintTable(data.args);
-    end
 end
 
 function Handler:SetKey(data, key)
@@ -99,8 +95,6 @@ function Handler:Run(data, ...)
         if (data.args) then
             -- execute event callback
             local args = obj:PopWrapper(unpack(data.args));
-
-            obj:PrintTable(args);
 
             for _, value in obj:IterateArgs(...) do
                 table.insert(args, value);
@@ -143,7 +137,7 @@ end
 -- @param callback (function) - function to call when the event triggers
 -- @param unit (boolean) - whether the event is a unit event
 -- @return (Handler) - handler object created for the registered event
-function Lib:CreateEventHandler(eventName, callback, unit, ...)
+function Lib:CreateUnitEventHandler(eventName, callback, unit, ...)
     local handler;
 
     if (eventName:find(",")) then
@@ -157,21 +151,33 @@ function Lib:CreateEventHandler(eventName, callback, unit, ...)
             end
         end
     else
-        handler = Handler(eventName, callback, ...);
+        handler = Handler(eventName, callback, unit, ...);
     end
 
     return handler;
 end
 
-function Lib:CreateEventHandlerWithKey(eventName, key, callback, unit, ...)
-    local handler = self:FindHandlerByKey(key);
+function Lib:CreateEventHandler(eventName, callback, ...)
+    return self:CreateUnitEventHandler(eventName, callback, nil, ...);
+end
+
+-- @param eventName (string) - the name of the event to register
+--      (or a comma separated list of event names to attach to 1 handler)
+-- @param callback (function) - function to call when the event triggers
+-- @return (Handler) - handler object created for the registered event
+function Lib:CreateUnitEventHandlerWithKey(eventName, key, callback, unit, ...)
+    local handler = self:FindEventHandlerByKey(key);
 
     if (not handler) then
-        handler = self:CreateEventHandler(eventName, callback, unit, ...);
+        handler = self:CreateUnitEventHandler(eventName, callback, unit, ...);
         handler:SetKey(key);
     end
 
     return handler;
+end
+
+function Lib:CreateEventHandlerWithKey(eventName, key, callback, ...)
+    return self:CreateUnitEventHandlerWithKey(eventName, key, callback, nil, ...);
 end
 
 function Lib:TriggerEvent(eventName, ...)
@@ -186,27 +192,27 @@ function Lib:HandlerExists(key)
     return (Private.eventKeys[key] ~= nil);
 end
 
-function Lib:DestroyHandlersByKey(...)
+function Lib:DestroyEventHandlersByKey(...)
     for _, key in obj:IterateArgs(...) do
-        self:DestroyHandlerByKey(key);
+        self:DestroyEventHandlerByKey(key);
     end
 end
 
-function Lib:DestroyHandlerByKey(key)
+function Lib:DestroyEventHandlerByKey(key)
     if (self:HandlerExists(key)) then
         Private.eventKeys[key]:Destroy();
     end
 end
 
-function Lib:FindHandlerByKey(key)
+function Lib:FindEventHandlerByKey(key)
     return Private.eventKeys[key];
 end
 
-function Lib:FindHandlersByEvent(eventName)
+function Lib:FindEventHandlersByEvent(eventName)
     return Private.eventsList[eventName];
 end
 
-function Lib:GetNumHandlersByEvent(eventName)
+function Lib:GetNumEventHandlersByEvent(eventName)
     if (Private:EventTableExists(eventName)) then
         return #Private.eventsList[eventName];
     end

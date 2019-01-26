@@ -42,15 +42,14 @@ function CombatTimer:__Construct(data, dataTextModule, settings)
         data.inCombat = true;
         data.executed = nil;
         self:Update();
-    end):SetKey("combat_timer");
+    end);
 
     em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
         data.inCombat = nil;
         data.minutes:SetText(data.minutes.value or "00");
         data.seconds:SetText(data.seconds.value or ":00:");
         data.milliseconds:SetText(data.milliseconds.value or "00");
-
-    end):SetKey("combat_timer");
+    end);
 
     local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
@@ -92,8 +91,8 @@ function CombatTimer:Disable(data)
     data.settings.enabled = false;
     data.settings:SaveChanges();
 
-    em:FindHandlerByKey("PLAYER_REGEN_DISABLED", "combatTimer"):Destroy();
-    em:FindHandlerByKey("PLAYER_REGEN_ENABLED", "combatTimer"):Destroy();
+    em:FindEventHandlerByKey("PLAYER_REGEN_DISABLED", "combatTimer"):Destroy();
+    em:FindEventHandlerByKey("PLAYER_REGEN_ENABLED", "combatTimer"):Destroy();
 
     data.minutes:SetText("");
     data.seconds:SetText("");

@@ -347,7 +347,7 @@ end
 --                 end
 
 --             elseif (key == "hideInCombat") then
---                 local handler = em:FindHandlerByKey("PLAYER_REGEN_DISABLED", "SideBar_Buttons");
+--                 local handler = em:FindEventHandlerByKey("PLAYER_REGEN_DISABLED", "SideBar_Buttons");
 
 --                 if ((value and not handler) or handler:IsDestroyed()) then
 --                     em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
@@ -361,8 +361,8 @@ end
 --                     end):SetKey("SideBar_Buttons");
 
 --                 elseif (not value and handler) then
---                     em:FindHandlerByKey("PLAYER_REGEN_DISABLED", "SideBar_Buttons"):Destroy();
---                     em:FindHandlerByKey("PLAYER_REGEN_ENABLED", "SideBar_Buttons"):Destroy();
+--                     em:FindEventHandlerByKey("PLAYER_REGEN_DISABLED", "SideBar_Buttons"):Destroy();
+--                     em:FindEventHandlerByKey("PLAYER_REGEN_ENABLED", "SideBar_Buttons"):Destroy();
 --                 end
 
 --                 if (value and tk.InCombatLockdown()) then

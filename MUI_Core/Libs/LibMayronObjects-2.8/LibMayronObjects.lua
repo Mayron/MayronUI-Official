@@ -888,9 +888,10 @@ do
             local friendClassName = friendInstance:GetObjectType();
             local friendClass = classController.packageData.entities[friendClassName]; -- must be in same package!
 
-            if (friendClass and friendClass.Static:IsFriendClass(classController.objectName)) then
-                return self:GetPrivateInstanceData(friendInstance);
-            end
+            Lib:Assert(friendClass and friendClass.Static:IsFriendClass(classController.objectName),
+                "'%s' is not a friend class of '%s'", friendClassName, classController.objectName);
+
+            return self:GetPrivateInstanceData(friendInstance);
         end
 
         AllControllers[tostring(proxyInstance)] = instanceController;
@@ -1392,9 +1393,9 @@ function Core:Assert(condition, errorMessage, ...)
             self.errorLog[#self.errorLog + 1] = pcall(function() error(self.PREFIX .. errorMessage) end);
 
         elseif (Lib:IsFunction(self.errorHandler)) then
-            local level = _G.DEBUGLOCALS_LEVEL;
-            local stack = _G.debugstack(level);
-            local locals = _G.debuglocals(level);
+            -- local level = _G.DEBUGLOCALS_LEVEL;
+            local stack = _G.debugstack(3);
+            local locals = _G.debuglocals(3);
             self.errorHandler(errorMessage, stack, locals);
         else
             error(self.PREFIX .. errorMessage);

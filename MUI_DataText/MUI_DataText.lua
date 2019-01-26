@@ -82,6 +82,12 @@ function C_DataTextModule:OnInitialize(data)
     data.buttons = obj:PopWrapper();
     data.DataModules = obj:PopWrapper(); -- holds all data text modules
 
+    local setupOptions = {
+        dependencies = {
+            ["spacing"] = "displayOrders";
+        };
+    };
+
     self:RegisterUpdateFunctions(db.profile.datatext, {
         frameStrata = function(value)
             data.bar:SetFrameStrata(value);
@@ -93,6 +99,11 @@ function C_DataTextModule:OnInitialize(data)
 
         height = function(value)
             data.bar:SetHeight(value);
+            local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
+
+            if (actionBarPanelModule:IsEnabled()) then
+                actionBarPanelModule:SetupAllBartenderBars(data);
+            end
         end;
 
         spacing = function()
@@ -113,7 +124,7 @@ function C_DataTextModule:OnInitialize(data)
                         _G["MUI_DataTextPopupMenu"]:Hide();
                     end);
                 else
-                    em:DestroyHandlerByKey("hideInCombat_RegenDisabled");
+                    em:DestroyEventHandlerByKey("hideInCombat_RegenDisabled");
                 end
             end;
 
@@ -126,8 +137,10 @@ function C_DataTextModule:OnInitialize(data)
         displayOrders = function()
             self:OrderDataTextButtons();
         end;
-    });
+    }, setupOptions);
+end
 
+function C_DataTextModule:OnInitialized(data)
     if (data.settings.enabled) then
         self:SetEnabled(true);
     end
@@ -138,18 +151,10 @@ function C_DataTextModule:OnEnable(data)
     data.bar = tk:PopFrame("Frame", data.buiContainer);
     data.bar:SetPoint("BOTTOMLEFT");
     data.bar:SetPoint("BOTTOMRIGHT");
-
     tk:SetBackground(data.bar, 0, 0, 0);
 
     data.resourceBars:SetPoint("BOTTOMLEFT", data.bar, "TOPLEFT", 0, -1);
     data.resourceBars:SetPoint("BOTTOMRIGHT", data.bar, "TOPRIGHT", 0, -1);
-
-    --TODO: Should set this up first as though ActionBarPanel was disabled...
-    local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
-
-    if (actionBarPanelModule:IsEnabled()) then
-        actionBarPanelModule:SetupAllBartenderBars(data);
-    end
 
     -- create the popup menu (displayed when a data item button is clicked)
     -- each data text module has its own frame to be used as the scroll child
@@ -220,7 +225,6 @@ function C_DataTextModule:OrderDataTextButtons(data)
     data.positionedButtons = data.positionedButtons or obj:PopWrapper();
 
     for _, dataModule in pairs(data.DataModules) do
-
         if (dataModule:IsEnabled()) then
             local btn = dataModule.Button;
             local dbName = dataModule.SavedVariableName;

@@ -71,14 +71,13 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
             if (not _G.IsAddOnLoaded("ShadowedUnitFrames")) then return; end
 
             if (not value) then
-                local handler = em:FindHandlerByKey("DetachSufOnLogout");
+                local handler = em:FindEventHandlerByKey("DetachSufOnLogout");
 
                 if (handler) then
                     handler:Destroy();
                     Private.DetachShadowedUnitFrames();
                     tk:UnhookFunc(_G.ShadowUF, "ProfilesChanged", Private.AttachShadowedUnitFrames);
                     tk:UnhookFunc("ReloadUI", Private.DetachShadowedUnitFrames);
-                    print("Ok")
                 end
             else
                 Private.AttachShadowedUnitFrames(data.right);
@@ -165,7 +164,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
 
             targetClassColored = function()
                 if (data.settings.sufGradients.enabled) then
-                    local handler = em:FindHandlerByKey("TargetGradient", "PLAYER_TARGET_CHANGED");
+                    local handler = em:FindEventHandlerByKey("TargetGradient", "PLAYER_TARGET_CHANGED");
 
                     if (handler) then
                         handler:Run();
@@ -251,7 +250,7 @@ function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
         data.player:Show();
         data.target:Show();
 
-        local handler = em:FindHandlerByKey("PlayerUnitName_LevelUp", "PLAYER_LEVEL_UP");
+        local handler = em:FindEventHandlerByKey("PlayerUnitName_LevelUp", "PLAYER_LEVEL_UP");
 
         if (not handler and not tk:IsPlayerMaxLevel()) then
             handler = em:CreateEventHandler("PLAYER_LEVEL_UP", function(createdHandler)
@@ -265,7 +264,7 @@ function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
             handler:SetKey("PlayerUnitName_LevelUp");
         end
 
-        handler = em:FindHandlerByKey("PlayerUnitName_RegenEnabled", "PLAYER_REGEN_ENABLED");
+        handler = em:FindEventHandlerByKey("PlayerUnitName_RegenEnabled", "PLAYER_REGEN_ENABLED");
 
         if (not handler) then
             handler = em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
@@ -275,7 +274,7 @@ function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
             handler:SetKey("PlayerUnitName_RegenEnabled");
         end
 
-        handler = em:FindHandlerByKey("PlayerUnitName_RegenDisabled", "PLAYER_REGEN_DISABLED");
+        handler = em:FindEventHandlerByKey("PlayerUnitName_RegenDisabled", "PLAYER_REGEN_DISABLED");
 
         if (not handler) then
             handler = em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
@@ -285,7 +284,7 @@ function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
             handler:SetKey("PlayerUnitName_RegenDisabled");
         end
 
-        handler = em:FindHandlerByKey("PlayerUnitName_TargetChanged", "PLAYER_TARGET_CHANGED");
+        handler = em:FindEventHandlerByKey("PlayerUnitName_TargetChanged", "PLAYER_TARGET_CHANGED");
 
         if (not handler) then
             handler = em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
@@ -300,7 +299,7 @@ function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
         data.player:Hide();
         data.target:Hide();
 
-        em:DestroyHandlersByKey(
+        em:DestroyEventHandlersByKey(
             "PlayerUnitName_LevelUp", "PlayerUnitName_RegenEnabled",
             "PlayerUnitName_RegenDisabled", "PlayerUnitName_TargetChanged");
     end
@@ -432,7 +431,7 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
 
                 if (unitID == "target") then
                     local frame = data.gradients[unitID];
-                    local handler = em:FindHandlerByKey("TargetGradient", "PLAYER_TARGET_CHANGED");
+                    local handler = em:FindEventHandlerByKey("TargetGradient", "PLAYER_TARGET_CHANGED");
 
                     if (not handler) then
                         handler = em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
@@ -477,7 +476,7 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
             end
         end
 
-        local handler = em:FindHandlerByKey("TargetGradient", "PLAYER_TARGET_CHANGED");
+        local handler = em:FindEventHandlerByKey("TargetGradient", "PLAYER_TARGET_CHANGED");
 
         if (handler) then
             handler:Destroy();
@@ -554,50 +553,46 @@ do
         end
 
         data.right:SetParent(data.buiContainer);
-        local handler = em:FindHandlerByKey("DisableSymmetry_PLAYER_TARGET_CHANGED");
+        local handler = em:FindEventHandlerByKey("DisableSymmetry_PLAYER_TARGET_CHANGED");
 
         if (not handler) then
-            handler = em:CreateEventHandlerWithKey("PLAYER_TARGET_CHANGED", "DisableSymmetry_TargetChanges",
-                function()
-                    if (not _G.UnitExists("target")) then
-                        SwitchToSingle(data);
-                        return;
-                    end
+            handler = em:CreateEventHandlerWithKey("PLAYER_TARGET_CHANGED", "DisableSymmetry_TargetChanges", function()
+                if (not _G.UnitExists("target")) then
+                    SwitchToSingle(data);
+                    return;
+                end
 
-                    -- if data.right is not attached to SUF, show it manually!
-                    if (data.right:GetParent() == data.buiContainer) then
-                        data.right:SetAlpha(1);
-                    end
+                -- if data.right is not attached to SUF, show it manually!
+                if (data.right:GetParent() == data.buiContainer) then
+                    data.right:SetAlpha(1);
+                end
 
-                    data.left.bg:SetAlpha(data.settings.alpha);
-                    data.left.noTargetBg:SetAlpha(0);
+                data.left.bg:SetAlpha(data.settings.alpha);
+                data.left.noTargetBg:SetAlpha(0);
 
-                    if (data.settings.unitNames.targetClassColored) then
-                        if (_G.UnitIsPlayer("target")) then
-                            local _, class = _G.UnitClass("target");
-                            tk:SetClassColoredTexture(class, data.target.bg);
-                        else
-                            tk:ApplyThemeColor(data.settings.alpha, data.target.bg);
-                        end
+                if (data.settings.unitNames.targetClassColored) then
+                    if (_G.UnitIsPlayer("target")) then
+                        local _, class = _G.UnitClass("target");
+                        tk:SetClassColoredTexture(class, data.target.bg);
+                    else
+                        tk:ApplyThemeColor(data.settings.alpha, data.target.bg);
                     end
                 end
-            );
+            end);
         end
 
         handler:Run();
-        handler = em:FindHandlerByKey("DisableSymmetry_EnteringWorld", "PLAYER_ENTERING_WORLD");
+        handler = em:FindEventHandlerByKey("DisableSymmetry_EnteringWorld", "PLAYER_ENTERING_WORLD");
 
         if (not handler) then
-            em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "DisableSymmetry_EnteringWorld",
-                function()
-                    if (not _G.UnitExists("target")) then
-                        SwitchToSingle(data);
-                    end
+            em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "DisableSymmetry_EnteringWorld", function()
+                if (not _G.UnitExists("target")) then
+                    SwitchToSingle(data);
                 end
-            );
+            end);
         end
 
-        em:DestroyHandlersByKey("EnableSymmetry_TargetChanged");
+        em:DestroyEventHandlersByKey("EnableSymmetry_TargetChanged");
     end
 
     function Private.EnableSymmetry(data)
@@ -610,7 +605,7 @@ do
         data.right:SetAlpha(1);
         data.left.bg:SetAlpha(data.settings.alpha);
 
-        local handler = em:FindHandlerByKey("EnableSymmetry_TargetChanged", "PLAYER_TARGET_CHANGED");
+        local handler = em:FindEventHandlerByKey("EnableSymmetry_TargetChanged", "PLAYER_TARGET_CHANGED");
 
         if (not data.settings.unitNames.targetClassColored) then
             if (handler) then
@@ -636,6 +631,6 @@ do
         end
 
         handler:Run();
-        em:DestroyHandlersByKey("DisableSymmetry_TargetChanges", "DisableSymmetry_EnteringWorld");
+        em:DestroyEventHandlersByKey("DisableSymmetry_TargetChanges", "DisableSymmetry_EnteringWorld");
     end
 end
