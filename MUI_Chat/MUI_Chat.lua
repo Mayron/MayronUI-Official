@@ -7,8 +7,6 @@ local ChatFrame1EditBox = _G.ChatFrame1EditBox;
 local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS;
 local hooksecurefunc, IsCombatLog = _G.hooksecurefunc, _G.IsCombatLog;
 
--- TODO: Need to get the updated data.settings table from BaseModule somehow
-
 --------------------------
 -- Blizzard Globals
 --------------------------

@@ -70,7 +70,7 @@ do
 end
 
 function C_MiniMapModule:OnInitialize(data)
-	data.settings = db.profile.minimap:GetUntrackedTable();
+	data.settings = db.profile.minimap:GetTrackedTable();
 
 	Minimap:ClearAllPoints();
 	Minimap:SetPoint(data.settings.point, tk.UIParent, data.settings.relativePoint, data.settings.x, data.settings.y);

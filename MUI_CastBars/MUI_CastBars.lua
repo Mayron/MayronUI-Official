@@ -376,7 +376,7 @@ function C_CastBar:UpdateAppearance(data)
 
     if (data.square) then
         if (data.settings.anchorToSUF) then
-            local unitframe = tk._G["SUFUnit"..data.unitID:lower()];
+            local unitframe = _G["SUFUnit"..data.unitID:lower()];
             local sufAnchor = unitframe and unitframe.portrait;
             data.square:SetWidth(sufAnchor:GetHeight() + 2);
         else
@@ -607,15 +607,12 @@ do
 end
 
 function C_CastBarsModule:OnInitialize()
-    appearance = db.profile.castbars.appearance:GetUntrackedTable();
-
     local r, g, b = tk:GetThemeColor();
     db:AddToDefaults("profile.castbars.appearance.colors.normal", {
-        r = r,
-        g = g,
-        b = b,
-        a = 0.7
+        r = r, g = g, b = b, a = 0.7
     });
+
+    appearance = db.profile.castbars.appearance:GetUntrackedTable();
 
 	for _, name in obj:IterateArgs("player", "target", "focus", "mirror") do
         local sv = db.profile.castbars[name];

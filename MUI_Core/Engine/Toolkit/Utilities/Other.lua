@@ -131,39 +131,42 @@ function tk:GetPlayerKey()
     return key;
 end
 
-function tk:IsPlayerMaxLevel()
-    local lvl = _G.UnitLevel("player");
-
+function tk:GetMaxPlayerLevel()
     if (_G.IsTrialAccount()) then
-        return (lvl == 20);
+        return 20;
     else
         local id = _G.GetAccountExpansionLevel();
 
         if (id == 0) then
-            return (lvl == 60);
+            return 60;
 
         elseif (id == 1) then
-            return (lvl == 70);
+            return 70;
 
         elseif (id == 2) then
-            return (lvl == 80);
+            return 80;
 
         elseif (id == 3) then
-            return (lvl == 85);
+            return 85;
 
         elseif (id == 4) then
-            return (lvl == 90);
+            return 90;
 
         elseif (id == 5) then
-            return (lvl == 100);
+            return 100;
 
         elseif (id == 6) then
-            return (lvl == 110);
+            return 110;
 
         elseif (id == 7) then
-            return (lvl == 120);
+            return 120;
         end
     end
+end
+
+function tk:IsPlayerMaxLevel()
+    local playerLevel = _G.UnitLevel("player");
+    return (self:GetMaxPlayerLevel() == playerLevel);
 end
 
 local errorInfo = {};

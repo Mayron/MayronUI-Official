@@ -184,8 +184,8 @@ function Currency:Update()
     local currentCurrency = self:GetFormattedCurrency(_G.GetMoney(), nil, true);
 
     self.Button:SetText(currentCurrency);
-    local colored_key = tk:SetTextColorByClass(nil, tk:GetPlayerKey());
-    db.global.datatext.currency.characters[colored_key] = _G.GetMoney();
+    local coloredKey = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
+    db.global.datatext.currency.characters[coloredKey] = _G.GetMoney();
 end
 
 function Currency:Click(data)
