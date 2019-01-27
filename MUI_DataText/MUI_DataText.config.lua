@@ -85,7 +85,7 @@ function C_DataTextModule:GetConfigTable()
                 type = "title",
             },
             {   type = "loop",
-                loops = 10, -- TODO: This can remai nat 10, don't need duplicate label and svName references!
+                loops = 10, -- TODO: This can remain at 10, don't need duplicate label and svName references!
                 func = function(id)
 
                     local child = {

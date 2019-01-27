@@ -79,8 +79,8 @@ function C_DataTextModule:OnInitialize(data)
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
     data.lastButtonClicked = ""; -- last data text button clicked on
-    data.buttons = obj:PopWrapper();
-    data.DataModules = obj:PopWrapper(); -- holds all data text modules
+    data.buttons = obj:PopTable();
+    data.DataModules = obj:PopTable(); -- holds all data text modules
 
     local setupOptions = {
         dependencies = {
@@ -221,10 +221,11 @@ end
 
 -- this is called each time a datatext module is registered
 function C_DataTextModule:OrderDataTextButtons(data)
-    data.orderedButtons = data.orderedButtons or obj:PopWrapper();
-    data.positionedButtons = data.positionedButtons or obj:PopWrapper();
+    data.orderedButtons = data.orderedButtons or obj:PopTable();
+    data.positionedButtons = data.positionedButtons or obj:PopTable();
 
     for _, dataModule in pairs(data.DataModules) do
+
         if (dataModule:IsEnabled()) then
             local btn = dataModule.Button;
             local dbName = dataModule.SavedVariableName;
@@ -232,9 +233,8 @@ function C_DataTextModule:OrderDataTextButtons(data)
 
             if (displayOrder and not data.positionedButtons[dbName]) then
                 -- ensure that buttons are only ordered once!
-                table.insert(data.orderedButtons, displayOrder, btn);
+                data.orderedButtons[displayOrder] = btn;
                 data.positionedButtons[dbName] = true;
-
                 dataModule:Update();
             end
         end
@@ -245,20 +245,25 @@ function C_DataTextModule:PositionDataTextButtons(data)
     local itemWidth = data.buiContainer:GetWidth() / #data.orderedButtons;
     local previousButton;
 
-    for _, btn in ipairs(data.orderedButtons) do
-        btn:SetParent(data.bar);
-        btn:ClearAllPoints();
-        btn:Show();
+    -- some indexes might have a nil value as display order is configurable by the user
+    for displayOrder = 1, #data.orderedButtons do
+        local btn = data.orderedButtons[displayOrder];
 
-        if (not previousButton) then
-            btn:SetPoint("BOTTOMLEFT", data.settings.spacing, 0);
-            btn:SetPoint("TOPRIGHT", data.bar, "TOPLEFT", itemWidth - data.settings.spacing, - data.settings.spacing);
-        else
-            btn:SetPoint("TOPLEFT", previousButton, "TOPRIGHT", data.settings.spacing, 0);
-            btn:SetPoint("BOTTOMRIGHT", previousButton, "BOTTOMRIGHT", itemWidth, 0);
+        if (obj:IsType(btn, "Button")) then
+            btn:SetParent(data.bar);
+            btn:ClearAllPoints();
+            btn:Show();
+
+            if (not previousButton) then
+                btn:SetPoint("BOTTOMLEFT", data.settings.spacing, 0);
+                btn:SetPoint("TOPRIGHT", data.bar, "TOPLEFT", itemWidth - data.settings.spacing, - data.settings.spacing);
+            else
+                btn:SetPoint("TOPLEFT", previousButton, "TOPRIGHT", data.settings.spacing, 0);
+                btn:SetPoint("BOTTOMRIGHT", previousButton, "BOTTOMRIGHT", itemWidth, 0);
+            end
+
+            previousButton = btn;
         end
-
-        previousButton = btn;
     end
 end
 

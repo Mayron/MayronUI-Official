@@ -6,6 +6,8 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 local ChatFrame1EditBox = _G.ChatFrame1EditBox;
 local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS;
 local hooksecurefunc, IsCombatLog = _G.hooksecurefunc, _G.IsCombatLog;
+local StaticPopupDialogs = _G.StaticPopupDialogs;
+local ChatFrame1Tab = _G.ChatFrame1Tab;
 
 --------------------------
 -- Blizzard Globals
@@ -21,16 +23,209 @@ _G.CHAT_TAB_HIDE_DELAY = 1;
 _G.CHAT_FRAME_FADE_TIME = 1;
 _G.CHAT_FRAME_FADE_OUT_TIME = 1;
 _G.DEFAULT_CHATFRAME_ALPHA = 0;
-_G.CHAT_FONT_HEIGHTS = obj:PopWrapper(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+_G.CHAT_FONT_HEIGHTS = obj:PopTable(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 
--- Register and Import ---------
+-- Objects ------------------
 
+local Engine = obj:Import("MayronUI.Engine");
+local C_ChatFrame = Engine:CreateClass("ChatFrame", "Framework.System.FrameWrapper");
 local C_ChatModule = MayronUI:RegisterModule("Chat");
+
+namespace.Engine = Engine;
 namespace.C_ChatModule = C_ChatModule;
+namespace.C_ChatFrame = C_ChatFrame;
 
--- Local Functions ---------------
+-- Defaults -----------------
 
-local function KillElements()
+db:AddToDefaults("profile.chat", {
+	enabled = true;
+	swapInCombat = false;
+	layout = "DPS"; -- default layout
+	chatFrames = {
+		-- these tables will contain the templateMuiChatFrame data (using SetParent)
+		TOPLEFT = {
+			enabled = true;
+		};
+		TOPRIGHT = {
+			enabled = false;
+		};
+		BOTTOMLEFT = {
+			enabled = false;
+		};
+		BOTTOMRIGHT = {
+			enabled = false;
+		};
+	};
+    editBox = {
+        yOffset = -8;
+        height = 27;
+        border = "Skinner";
+        inset = 0;
+        borderSize = 1;
+        backdropColor = {
+			r = 0;
+			g = 0;
+			b = 0;
+			a = 0.6;
+		};
+	};
+
+	__templateChatFrame = {
+		buttons = {
+			{   L["Character"];
+				L["Spell Book"];
+				L["Talents"];
+			};
+			{   key = "C"; -- CONTROL
+				L["Friends"];
+				L["Guild"];
+				L["Quest Log"];
+			};
+			{   key = "S"; -- SHIFT
+				L["Achievements"];
+				L["Collections Journal"];
+				L["Encounter Journal"];
+			};
+		};
+	};
+});
+
+db:AddToDefaults("global.chat", {
+	layouts = {
+		["DPS"] = {
+			["ShadowUF"] = "Default";
+			["Grid"] = "Default";
+		},
+		["Healer"] = {
+			["ShadowUF"] = "MayronUIH";
+			["Grid"] = "MayronUIH";
+		}
+	}
+});
+
+-- OnConfigUpdate ----------------------
+
+-- function C_ChatModule:OnConfigUpdate(data, list, value)
+--     local key = list:PopFront();
+
+--     if (key == "profile" and list:PopFront() == "chat") then
+-- 		key = list:PopFront();
+
+--         else
+--             -- could be chatframe name, like "TOPLEFT" etc...
+--             local chatFrame = data.chatFrames[self:GetChatNameById(key)];
+--             if (not chatFrame) then return end
+
+--             if (list:PopFront() == "buttons") then
+--                 local buttonSetId, buttonID = list:PopFront(), list:PopFront();
+
+--                 if (buttonSetId and buttonSetId == 1 and buttonID) then
+--                     if (buttonID == 1) then
+--                         chatFrame.left:SetText(value);
+--                     elseif (buttonID == 2) then
+--                         chatFrame.middle:SetText(value);
+--                     elseif (buttonID == 3) then
+--                         chatFrame.right:SetText(value);
+--                     end
+--                 end
+--             end
+--         end
+--     end
+-- end
+
+-- Chat Module -------------------
+
+function C_ChatModule:OnInitialize(data)
+	data.chatFrames = obj:PopTable();
+
+	local setupOptions = {
+		last = {
+			"editBox.backdropColor";
+		};
+	};
+
+	-- must be before data.settings gets initialised from RegisterUpdateFunctions
+	for _, anchorName in obj:IterateArgs("TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT") do
+		db.profile.chat.chatFrames[anchorName]:SetParent(db.profile.chat.__templateChatFrame);
+	end
+
+	self:RegisterUpdateFunctions(db.profile.chat, {
+		chatFrames = function(value)
+			for anchorName, settings in pairs(value) do
+				local muiChatFrame = data.chatFrames[anchorName];
+
+				if (settings.enabled and not muiChatFrame) then
+					muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
+				end
+
+				if (muiChatFrame) then
+					muiChatFrame:SetEnabled(settings.enabled);
+				end
+			end
+		end;
+
+		editBox = {
+			yOffset = function(value)
+				ChatFrame1EditBox:SetPoint("TOPLEFT", _G.ChatFrame1, "BOTTOMLEFT", -3, value);
+				ChatFrame1EditBox:SetPoint("TOPRIGHT", _G.ChatFrame1, "BOTTOMRIGHT", 3, value);
+			end;
+
+			height = function(value)
+				ChatFrame1EditBox:SetHeight(value);
+			end;
+
+			border = function(value)
+				data.editBoxBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", value);
+				ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+			end;
+
+			inset = function(value)
+				data.editBoxBackdrop.insets.left = value;
+				data.editBoxBackdrop.insets.right = value;
+				data.editBoxBackdrop.insets.top = value;
+				data.editBoxBackdrop.insets.bottom = value;
+				ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+			end;
+
+			borderSize = function(value)
+				data.editBoxBackdrop.edgeSize = value;
+				ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+			end;
+
+			backdropColor = function(value)
+				ChatFrame1EditBox:SetBackdropColor(value.r, value.g, value.b, value.a);
+			end;
+		};
+	}, setupOptions);
+
+	MayronUI:PrintTable(data.settings);
+
+	self:SetEnabled(true);
+end
+
+----------------------------------
+-- Override Blizzard Functions:
+----------------------------------
+
+function C_ChatModule:OnEnable(data)
+	StaticPopupDialogs["MUI_Link"] = {
+		text = tk.Strings:Join(
+			"\n", tk.Strings:SetTextColorByTheme("MayronUI"), "(CTRL+C to Copy, CTRL+V to Paste)"
+		);
+		button1 = "Close";
+		hasEditBox = true;
+		maxLetters = 1024;
+		editBoxWidth = 350;
+		hideOnEscape = 1;
+		timeout = 0;
+		whileDead = 1;
+		preferredIndex = 3;
+	};
+
+	data.editBoxBackdrop = obj:PopTable();
+	data.editBoxBackdrop.bgFile = "Interface\\Buttons\\WHITE8X8";
+	data.editBoxBackdrop.insets = obj:PopTable();
+
 	-- Kill all blizzard unwanted elements (textures, fontstrings, frames, etc...)
 	for i = 1, 20 do
 		local staticPopupEditBox = string.format("StaticPopup%dEditBox", i);
@@ -47,58 +242,10 @@ local function KillElements()
 	end
 
 	tk:KillAllElements(
-		ChatFrame1EditBox.focusLeft,
-		ChatFrame1EditBox.focusRight,
-		ChatFrame1EditBox.focusMid,
-		_G.ChatFrame1EditBoxLeft,
-		_G.ChatFrame1EditBoxMid,
-		_G.ChatFrame1EditBoxRight,
-		_G.ChatFrameMenuButton,
-		_G.QuickJoinToastButton
+		ChatFrame1EditBox.focusLeft, ChatFrame1EditBox.focusRight, ChatFrame1EditBox.focusMid,
+		_G.ChatFrame1EditBoxLeft, _G.ChatFrame1EditBoxMid, _G.ChatFrame1EditBoxRight,
+		_G.ChatFrameMenuButton,	_G.QuickJoinToastButton
 	);
-end
-
-local function ReskinEditBox(editBoxSettings)
-    ChatFrame1EditBox:SetPoint("TOPLEFT", _G.ChatFrame1, "BOTTOMLEFT", -3, editBoxSettings.yOffset);
-	ChatFrame1EditBox:SetPoint("TOPRIGHT", _G.ChatFrame1, "BOTTOMRIGHT", 3, editBoxSettings.yOffset);
-
-	-- Set Edit Box Backdrop
-    local inset = editBoxSettings.inset;
-    local backdrop = {
-        bgFile = "Interface\\Buttons\\WHITE8X8",
-        insets = {left = inset, right = inset, top = inset, bottom = inset};
-	};
-
-    backdrop.edgeFile = tk.Constants.LSM:Fetch("border", editBoxSettings.border);
-	backdrop.edgeSize = editBoxSettings.borderSize;
-
-    local c = editBoxSettings.backdropColor;
-	ChatFrame1EditBox:SetBackdrop(backdrop);
-	ChatFrame1EditBox:SetBackdropColor(c.r, c.g, c.b, c.a);
-	ChatFrame1EditBox:SetHeight(editBoxSettings.height);
-end
-
--- Chat Module -------------------
-
-function C_ChatModule:OnInitialize(data)
-	data.settings = db.profile.chat:GetUntrackedTable();
-
-    tk.StaticPopupDialogs["MUI_Link"] = {
-		text = tk.Strings:Join("\n",
-			tk.Strings:SetTextColorByTheme("MayronUI"),
-			"(CTRL+C to Copy, CTRL+V to Paste)"),
-		button1 = "Close",
-		hasEditBox = 1,
-		maxLetters = 1024,
-		editBoxWidth = 350,
-		hideOnEscape = 1,
-		timeout = 0,
-		whileDead = 1,
-		preferredIndex = 3,
-	};
-
-	KillElements();
-	ReskinEditBox(data.settings.editBox);
 
 	local changeGameFont = db.global.core.changeGameFont;
 	local muiFont = tk.Constants.LSM:Fetch("font", db.global.core.font);
@@ -111,37 +258,9 @@ function C_ChatModule:OnInitialize(data)
             chatFrame:SetFont(muiFont, fontSize, outline);
         end
 	end
-
-	for anchorName, _ in pairs(data.settings.chatFrames) do
-		local chatFrameSettings = data.settings.chatFrames[anchorName];
-
-		if (chatFrameSettings.enabled) then
-			db.profile.chat.chatFrames[anchorName]:SetParent(db.profile.chat.templateMuiChatFrame);
-			chatFrameSettings = db.profile.chat.chatFrames[anchorName]:GetUntrackedTable();
-
-			local muiChatFrame = self:ShowMuiChatFrame(anchorName);
-			self:SetUpButtonHandler(muiChatFrame, chatFrameSettings.buttons);
-
-			if (anchorName == "TOPLEFT") then
-				if (tk.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
-					self:SetUpRaidFrameManager(muiChatFrame);
-				else
-					-- if it is not loaded, create a callback to trigger when it is loaded
-					em:CreateEventHandler("ADDON_LOADED", function(_, name)
-						if (name == "Blizzard_CompactRaidFrames") then
-							self:SetUpRaidFrameManager(muiChatFrame);
-						end
-					end):SetAutoDestroy(true);
-				end
-			end
-		end
-	end
 end
 
-----------------------------------
--- Override Blizzard Functions:
-----------------------------------
-local ChatFrame1Tab = _G.ChatFrame1Tab;
+-- Override Blizzard Stuff -----------------------
 
 local function RepositionChatTab()
 	ChatFrame1Tab:SetPoint("LEFT", 16, 0);
@@ -181,7 +300,7 @@ hooksecurefunc("ChatEdit_UpdateHeader", function()
 end);
 
 -- probably not needed
-tk.hooksecurefunc("FCF_OpenTemporaryWindow", function()
+hooksecurefunc("FCF_OpenTemporaryWindow", function()
 	local chat =_G.FCF_GetCurrentChatFrame();
 
 	if (chat) then

@@ -111,8 +111,8 @@ function Private:AnchorCells(data)
         return false;
     end
 
-    local cellsList = obj:PopWrapper(data.grid:Unpack());
-    local takenCells = obj:PopWrapper();
+    local cellsList = obj:PopTable(data.grid:Unpack());
+    local takenCells = obj:PopTable();
 
     for id, cell in data.cells:Iterate() do
         if (not cellsList[id]) then
@@ -149,8 +149,8 @@ function Private:AnchorCells(data)
         cellData.frame:SetParent(cellsList[id]);
     end
 
-    obj:PushWrapper(cellsList);
-    obj:PushWrapper(takenCells);
+    obj:PushTable(cellsList);
+    obj:PushTable(takenCells);
 end
 
 -- Helper Functions
@@ -198,7 +198,7 @@ do
 
         local objectType = frame:GetObjectType();
 
-        frames[objectType] = frames[objectType] or obj:PopWrapper();
+        frames[objectType] = frames[objectType] or obj:PopTable();
         frame:SetParent(self.DUMMY_FRAME);
         frame:SetAllPoints(true);
         frame:Hide();

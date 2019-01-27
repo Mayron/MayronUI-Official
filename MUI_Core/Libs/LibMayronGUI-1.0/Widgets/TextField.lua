@@ -51,7 +51,7 @@ function TextField:__Construct(data, style, tooltip, parent)
 
     Private:HideLayers(data.editBox, Private.LayerTypes.BACKGROUND);
 
-    data.editBox.themeColor = obj:PopWrapper(r, g, b);
+    data.editBox.themeColor = obj:PopTable(r, g, b);
 
     if (tooltip) then
         data.editBox.tooltip = tooltip;
@@ -84,7 +84,7 @@ function TextField:GetEditBox(data)
 end
 
 function TextField:OnTextChanged(data, callback, ...)
-    local args = obj:PopWrapper(...);
+    local args = obj:PopTable(...);
 
     data.editBox:SetScript("OnEnterPressed", function()
         data.editBox:ClearFocus();

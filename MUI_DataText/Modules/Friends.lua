@@ -4,6 +4,9 @@ local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 local LABEL_PATTERN = L["Friends"]..": |cffffffff%u|r";
 local convert = {WTCG = "HS", Pro = "OW"};
 
+local ToggleFriendsFrame, GetNumFriends, GetFriendInfo = _G.ToggleFriendsFrame, _G.GetNumFriends, _G.GetFriendInfo;
+local BNGetNumFriends, BNGetFriendInfo = _G.BNGetNumFriends, _G.BNGetFriendInfo;
+
 -- Register and Import Modules -------
 
 local Engine = obj:Import("MayronUI.Engine");
@@ -64,7 +67,7 @@ function Friends:__Construct(data, settings, slideController, dataTextModule)
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
-    self.MenuLabels = {};
+    self.MenuLabels = obj:PopTable();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
@@ -104,14 +107,14 @@ end
 function Friends:Update(data)
     local total_online = 0;
 
-    for i = 1, _G.BNGetNumFriends() do
-        if ((select(8, _G.BNGetFriendInfo(i)))) then
+    for i = 1, BNGetNumFriends() do
+        if ((select(8, BNGetFriendInfo(i)))) then
             total_online = total_online + 1;
         end
     end
 
-    for i = 1, _G.GetNumFriends() do
-        if ((tk.select(5, _G.GetFriendInfo(i)))) then
+    for i = 1, GetNumFriends() do
+        if ((tk.select(5, GetFriendInfo(i)))) then
             total_online = total_online + 1;
         end
     end
@@ -122,20 +125,20 @@ end
 
 function Friends:Click(data, button)
     if (button == "RightButton") then
-        _G.ToggleFriendsFrame();
-        return
+        ToggleFriendsFrame();
+        return;
     end
 
-    if (tk.select(2, _G.GetNumFriends()) == 0 and tk.select(2, _G.BNGetNumFriends()) == 0) then
-        return;
+    if (select(2, GetNumFriends()) == 0 and tk.select(2, BNGetNumFriends()) == 0) then
+        return true;
     end
 
     local r, g, b = tk:GetThemeColor();
     local totalLabelsShown = 0;
 
     -- Battle.Net friends
-    for i = 1, _G.BNGetNumFriends() do
-        local _, realName, _, _, _, _, client, online, _, isAFK, isDND = _G.BNGetFriendInfo(i);
+    for i = 1, BNGetNumFriends() do
+        local _, realName, _, _, _, _, client, online, _, isAFK, isDND = BNGetFriendInfo(i);
 
         if (online) then
             totalLabelsShown = totalLabelsShown + 1;
@@ -162,8 +165,8 @@ function Friends:Click(data, button)
     end
 
     -- WoW Friends (non-Battle.Net)
-    for i = 1, _G.GetNumFriends() do
-        local name, level, class, _, online, status = _G.GetFriendInfo(i);
+    for i = 1, GetNumFriends() do
+        local name, level, class, _, online, status = GetFriendInfo(i);
 
         if (online) then
             local classFileName = tk:GetIndex(tk.Constants.LOCALIZED_CLASS_NAMES, class) or class;

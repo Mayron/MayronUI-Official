@@ -4,7 +4,7 @@ local Collections = Lib:Import("Framework.System.Collections");
 local List = Collections:CreateClass("List");
 
 function List:__Construct(data, ...)
-    data.values = Lib:PopWrapper();
+    data.values = Lib:PopTable();
     self:AddAll(...);
 end
 
@@ -116,7 +116,7 @@ do
     local function AddTable(fromTable, toTable)
         for index, value in ipairs(fromTable) do
             if (type(value) == "table") then
-                toTable[index] = Lib:PopWrapper();
+                toTable[index] = Lib:PopTable();
                 AddTable(value, toTable[index]);
             else
                 toTable[index] = value;
@@ -125,7 +125,7 @@ do
     end
 
     function List:ToTable(data)
-        local copy = Lib:PopWrapper();
+        local copy = Lib:PopTable();
         AddTable(data.values, copy);
         return copy;
     end

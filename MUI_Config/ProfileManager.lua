@@ -35,7 +35,7 @@ end
 -- Get all profiles and convert them to a list of options for use with dropdown menus
 local function GetProfileOptions()
     local profiles = db:GetProfiles();
-    local options = obj:PopWrapper();
+    local options = obj:PopTable();
 
     -- key and value should both be the profile name:
     for _, profileName in ipairs(profiles) do

@@ -32,10 +32,10 @@ do
                 _G.GameTooltip:AddDoubleLine(line.leftText, line.rightText, nil, nil, nil, 1, 1, 1);
             end
 
-            obj:PushWrapper(line);
+            obj:PushTable(line);
         end
 
-        obj:PushWrapper(self.lines);
+        obj:PushTable(self.lines);
         _G.GameTooltip:Show();
     end
 
@@ -254,7 +254,7 @@ end
 function tk:UpdateThemeColor(value)
     local color = tk.Constants.CLASS_COLORS[value] or value;
 
-    local colorValues = obj:PopWrapper();
+    local colorValues = obj:PopTable();
     colorValues.r = color.r;
     colorValues.g = color.g;
     colorValues.b = color.b;
@@ -268,7 +268,7 @@ function tk:UpdateThemeColor(value)
 end
 
 function tk:SetBackground(frame, ...)
-    local args = obj:PopWrapper(...);
+    local args = obj:PopTable(...);
     local texture = frame:CreateTexture(nil, "BACKGROUND");
 
     texture:SetAllPoints(frame);
@@ -279,13 +279,13 @@ function tk:SetBackground(frame, ...)
         texture:SetTexture(args[1]);
     end
 
-    obj:PushWrapper(args);
+    obj:PushTable(args);
 
     return texture;
 end
 
 function tk:GroupCheckButtons(...)
-    local btns = obj:PopWrapper();
+    local btns = obj:PopTable();
 
     for id, btn in obj:IterateArgs(...) do
         btn:SetID(id);

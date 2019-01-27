@@ -98,7 +98,7 @@ WidgetHandlers.loop = {};
 
 -- should return a table of children created during the loop
 function WidgetHandlers.loop:Run(_, loopConfigTable)
-    local children = obj:PopWrapper();
+    local children = obj:PopTable();
 
     if (loopConfigTable.loops) then
         -- rather than args, you specify the number of times to loop

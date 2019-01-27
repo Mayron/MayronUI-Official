@@ -20,7 +20,7 @@ local function Getter(data, tblKey, name, defaultValue)
 end
 
 local function Setter(data, tblKey, value, name)
-    data[tblKey] = data[tblKey] or obj:PopWrapper();
+    data[tblKey] = data[tblKey] or obj:PopTable();
     name = name or "default";
     data[tblKey][name:lower()] = value;
 end

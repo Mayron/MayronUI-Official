@@ -133,7 +133,7 @@ function DropDownMenu:__Construct(data, header, direction, slideController, fram
     data.frame = frame; -- must be called frame for GetFrame() to work!
     data.menu = DropDownMenu.Static.Menu;
     data.style = style;
-    data.options = obj:PopWrapper();
+    data.options = obj:PopTable();
 
     data.label = data.header:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     data.label:SetPoint("LEFT", 10, 0);
@@ -316,7 +316,7 @@ function DropDownMenu:AddOption(data, label, func, ...)
     option:SetHighlightTexture(1);
     option:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
 
-    local args = obj:PopWrapper(...);
+    local args = obj:PopTable(...);
     option:SetScript("OnClick", function()
         self:SetLabel(label, true);
         self:Toggle(false);

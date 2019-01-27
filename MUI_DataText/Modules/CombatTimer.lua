@@ -31,7 +31,7 @@ function CombatTimer:__Construct(data, dataTextModule, settings)
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
-    self.MenuLabels = obj:PopWrapper();
+    self.MenuLabels = obj:PopTable();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
     self.HasRightMenu = false;

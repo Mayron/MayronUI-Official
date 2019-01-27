@@ -542,7 +542,7 @@ function C_TimerField:OnEvent(data, frame, event)
 
     if (event == "COMBAT_LOG_EVENT_UNFILTERED") then
 
-        local payload = obj:PopWrapper(_G.CombatLogGetCurrentEventInfo());
+        local payload = obj:PopTable(_G.CombatLogGetCurrentEventInfo());
         local _, subEvent = _G.unpack(payload);
 
         if (subEvent == "SPELL_AURA_APPLIED" or subEvent == "SPELL_AURA_REFRESH" or subEvent == "SPELL_CAST_SUCCESS") then
@@ -590,7 +590,7 @@ function C_TimerField:OnEvent(data, frame, event)
             self:RemoveBar(bar);
         end
 
-        obj:PushWrapper(payload);
+        obj:PushTable(payload);
     elseif (event == "PLAYER_ENTERING_WORLD") then
         if (not _G.UnitExists(data.unit)) then
             frame:Hide();

@@ -29,7 +29,7 @@ end
 
 function tk:UnpackIfTable(value)
     if (type(value) == "table") then
-        return obj:UnpackWrapper(value);
+        return obj:UnpackTable(value);
     else
         return value;
     end
@@ -259,10 +259,6 @@ do
     end
 
     local function PopUp_OnShow(self)
-        -- if (not self.reskinned) then
-        --     tk:Reskin()
-        -- end
-
         if (self.button1) then
             self.button1:Enable();
         end
@@ -388,7 +384,7 @@ do
                 end
             end
 
-            callbacks[key] = obj:PopWrapper(realCallback, firstArg, ...);
+            callbacks[key] = obj:PopTable(realCallback, firstArg, ...);
             _G.hooksecurefunc(realGlobalMethodName, callbackWrapper);
         else
             local key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
@@ -402,7 +398,7 @@ do
                 end
             end
 
-            callbacks[key] = obj:PopWrapper(callback, ...);
+            callbacks[key] = obj:PopTable(callback, ...);
             _G.hooksecurefunc(tbl, methodName, callbackWrapper);
         end
     end
@@ -419,7 +415,7 @@ do
         end
 
         if (type(callbacks[key]) == "table") then
-            obj:PushWrapper(callbacks[key]);
+            obj:PushTable(callbacks[key]);
         end
 
         callbacks[key] = nil;

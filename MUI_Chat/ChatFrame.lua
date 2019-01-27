@@ -3,30 +3,82 @@
 
 -- Setup namespaces ------------------
 local _, namespace = ...;
-local C_ChatModule = namespace.C_ChatModule;
-local tk, _, _, _, obj = MayronUI:GetCoreComponents();
+local Engine = namespace.Engine;
+local C_ChatFrame = namespace.C_ChatFrame;
+local tk, _, em, _, obj = MayronUI:GetCoreComponents();
 
 local MEDIA = "Interface\\AddOns\\MUI_Chat\\media\\";
---------------------------------------
 
-local function CreateChatFrameButtons(sideBar, anchorName)
+-- C_ChatFrame -----------------------
+
+Engine:DefineParams("string", "Chat", "table");
+function C_ChatFrame:__Construct(data, anchorName, chatModule, chatModuleSettings)
+	data.anchorName = anchorName;
+	data.chatModule = chatModule;
+	data.chatModuleSettings = chatModuleSettings;
+	data.settings = chatModuleSettings.chatFrames[anchorName];
+
+	-- local muiChatFrame = self:ShowMuiChatFrame(anchorName);
+	-- self:SetUpButtonHandler(muiChatFrame, settings.buttons);
+
+	if (anchorName == "TOPLEFT") then
+		if (tk.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
+			chatModule:SetUpRaidFrameManager();
+		else
+			-- if it is not loaded, create a callback to trigger when it is loaded
+			em:CreateEventHandler("ADDON_LOADED", function(_, name)
+				if (name == "Blizzard_CompactRaidFrames") then
+					chatModule:SetUpRaidFrameManager();
+				end
+			end):SetAutoDestroy(true);
+		end
+	end
+end
+
+Engine:DefineParams("boolean");
+function C_ChatFrame:SetEnabled(data, enabled)
+	if (not data.frame and enabled) then
+		data.frame = self:CreateFrame();
+
+		if (data.anchorName ~= "TOPLEFT") then
+			self:Reposition();
+		end
+
+		-- chat channel button
+		_G.ChatFrameChannelButton:ClearAllPoints();
+		_G.ChatFrameChannelButton:SetPoint("TOPLEFT", data.frame.sidebar, "TOPLEFT", -1, -10);
+		_G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
+
+		_G.ChatFrameChannelButton.ClearAllPoints = tk.Constants.DUMMY_FUNC;
+		_G.ChatFrameChannelButton.SetPoint = tk.Constants.DUMMY_FUNC;
+
+		data.chatModule:SetUpLayoutSwitcher(data.frame.layoutButton);
+	end
+
+	if (data.frame) then
+		data.frame:SetShown(enabled);
+	end
+end
+
+Engine:DefineParams("Texture");
+function C_ChatFrame:CreateButtons(data, sideBar)
 	local butonMediaFile;
-	local buttons = {};
+	data.buttons = obj:PopTable();
 
 	for buttonID = 1, 3 do
 		local btn = tk:PopFrame("Button", sideBar:GetParent());
-		buttons[buttonID] = btn;
+		data.buttons[buttonID] = btn;
 
 		btn:SetSize(135, 20);
 		btn:SetNormalFontObject("MUI_FontSmall");
 		btn:SetHighlightFontObject("GameFontHighlightSmall");
-		btn:SetText(" ");
+		btn:SetText(tk.Strings.Empty);
 
 		-- position button
 		if (buttonID == 1) then
 			btn:SetPoint("TOPLEFT", sideBar, "TOPRIGHT", 0, 10);
 		else
-			local previousButton = buttons[#buttons - 1];
+			local previousButton = data.buttons[#data.buttons - 1];
 			btn:SetPoint("LEFT", previousButton, "RIGHT");
 		end
 
@@ -48,7 +100,7 @@ local function CreateChatFrameButtons(sideBar, anchorName)
 			btn:GetHighlightTexture():SetTexCoord(1, 0, 0, 1);
 		end
 
-		if (tk.Strings:Contains(anchorName, "BOTTOM")) then
+		if (tk.Strings:Contains(data.anchorName, "BOTTOM")) then
 			-- flip vertically
 
 			if (buttonID == 3) then
@@ -62,30 +114,28 @@ local function CreateChatFrameButtons(sideBar, anchorName)
 		end
 	end
 
-	return buttons;
+	self:SetUpButtonHandler();
 end
 
 --@param (string) anchorName: The anchor point for the chat frame (i.e. "TOPLEFT")
-local function CreateChatFrame(anchorName)
-	-- remove all spaces and convert to upper
-	anchorName = anchorName:gsub("%s+", ""):upper();
-
+Engine:DefineReturns("Frame");
+function C_ChatFrame:CreateFrame(data)
 	local muiChatFrame = tk:PopFrame("Frame");
 
     muiChatFrame:SetFrameStrata("LOW");
     muiChatFrame:SetFrameLevel(1);
 	muiChatFrame:SetSize(358, 310);
-	muiChatFrame:SetPoint(anchorName, 2, -2);
+	muiChatFrame:SetPoint(data.anchorName, 2, -2);
 
 	muiChatFrame.sidebar = muiChatFrame:CreateTexture(nil, "ARTWORK");
 	muiChatFrame.sidebar:SetTexture(string.format("%ssidebar", MEDIA));
 	muiChatFrame.sidebar:SetSize(24, 300);
-	muiChatFrame.sidebar:SetPoint(anchorName, 0, -10);
+	muiChatFrame.sidebar:SetPoint(data.anchorName, 0, -10);
 
 	muiChatFrame.tabs = muiChatFrame:CreateTexture(nil, "ARTWORK");
 	muiChatFrame.tabs:SetTexture(string.format("%stabs", MEDIA));
 	muiChatFrame.tabs:SetSize(358, 23);
-	muiChatFrame.tabs:SetPoint(anchorName, muiChatFrame.sidebar, "TOPRIGHT", 0, -12);
+	muiChatFrame.tabs:SetPoint(data.anchorName, muiChatFrame.sidebar, "TOPRIGHT", 0, -12);
 
 	muiChatFrame.window = tk:PopFrame("Frame", muiChatFrame);
 	muiChatFrame.window:SetSize(367, 248);
@@ -110,84 +160,49 @@ local function CreateChatFrame(anchorName)
 		muiChatFrame.layoutButton:GetHighlightTexture()
 	);
 
-	muiChatFrame.buttons = CreateChatFrameButtons(muiChatFrame.sidebar, anchorName);
+	muiChatFrame.buttons = self:CreateButtons(muiChatFrame.sidebar);
 
 	return muiChatFrame;
 end
 
-local function RepositionChatFrame(muiChatFrame, anchorName)
-	muiChatFrame:ClearAllPoints();
-	muiChatFrame.window:ClearAllPoints();
-	muiChatFrame.sidebar:ClearAllPoints();
-	muiChatFrame.buttons[1]:ClearAllPoints();
+function C_ChatFrame:Reposition(data)
+	data.frame:ClearAllPoints();
+	data.frame.window:ClearAllPoints();
+	data.frame.sidebar:ClearAllPoints();
+	data.frame.buttons[1]:ClearAllPoints();
 
-	if (anchorName == "TOPRIGHT") then
-		muiChatFrame:SetPoint(anchorName, tk.UIParent, anchorName, -2, -2);
-		muiChatFrame.window:SetPoint(anchorName, muiChatFrame.tabs, "BOTTOMRIGHT", -2, -2);
-		muiChatFrame.window.texture:SetTexCoord(1, 0, 0, 1);
-		muiChatFrame.sidebar:SetPoint(anchorName, muiChatFrame, anchorName, 0 , -10);
-		muiChatFrame.buttons[1]:SetPoint("BOTTOMLEFT", muiChatFrame.tabs, "TOPLEFT", -46, 2);
-		muiChatFrame.tabs:ClearAllPoints();
-		muiChatFrame.tabs:SetPoint(anchorName, muiChatFrame.sidebar, "TOPLEFT", 0, -12);
-		muiChatFrame.tabs:SetTexCoord(1, 0, 0, 1);
+	if (data.anchorName == "TOPRIGHT") then
+		data.frame:SetPoint(data.anchorName, _G.UIParent, data.anchorName, -2, -2);
+		data.frame.window:SetPoint(data.anchorName, data.frame.tabs, "BOTTOMRIGHT", -2, -2);
+		data.frame.window.texture:SetTexCoord(1, 0, 0, 1);
+		data.frame.sidebar:SetPoint(data.anchorName, data.frame, data.anchorName, 0 , -10);
+		data.frame.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.tabs, "TOPLEFT", -46, 2);
+		data.frame.tabs:ClearAllPoints();
+		data.frame.tabs:SetPoint(data.anchorName, data.frame.sidebar, "TOPLEFT", 0, -12);
+		data.frame.tabs:SetTexCoord(1, 0, 0, 1);
 
-	elseif (tk.Strings:Contains(anchorName, "BOTTOM")) then
-		muiChatFrame.tabs:Hide(); -- TODO: Should be configurable!
-		muiChatFrame.sidebar:SetPoint(anchorName, muiChatFrame, anchorName, 0 , 10);
+	elseif (tk.Strings:Contains(data.anchorName, "BOTTOM")) then
+		data.frame.tabs:Hide(); -- TODO: Should be configurable!
+		data.frame.sidebar:SetPoint(data.anchorName, data.frame, data.anchorName, 0 , 10);
 
-		if (anchorName == "BOTTOMLEFT") then
-			muiChatFrame:SetPoint(anchorName, tk.UIParent, anchorName, 2, 2);
-			muiChatFrame.window:SetPoint(anchorName, muiChatFrame.sidebar, "BOTTOMRIGHT", 2, 12);
-			muiChatFrame.window.texture:SetTexCoord(0, 1, 1, 0);
-			muiChatFrame.buttons[1]:SetPoint("BOTTOMLEFT", muiChatFrame.sidebar, "BOTTOMRIGHT", 0, -10);
+		if (data.anchorName == "BOTTOMLEFT") then
+			data.frame:SetPoint(data.anchorName, tk.UIParent, data.anchorName, 2, 2);
+			data.frame.window:SetPoint(data.anchorName, data.frame.sidebar, "BOTTOMRIGHT", 2, 12);
+			data.frame.window.texture:SetTexCoord(0, 1, 1, 0);
+			data.frame.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.sidebar, "BOTTOMRIGHT", 0, -10);
 
-		elseif (anchorName == "BOTTOMRIGHT") then
-			muiChatFrame:SetPoint(anchorName, tk.UIParent, anchorName, -2, 2);
-			muiChatFrame.window:SetPoint(anchorName, muiChatFrame.sidebar, "BOTTOMLEFT", -2, 12);
-			muiChatFrame.window.texture:SetTexCoord(1, 0, 1, 0);
-			muiChatFrame.buttons[1]:SetPoint("BOTTOMLEFT", muiChatFrame.window, "BOTTOMLEFT", -36, -22);
+		elseif (data.anchorName == "BOTTOMRIGHT") then
+			data.frame:SetPoint(data.anchorName, tk.UIParent, data.anchorName, -2, 2);
+			data.frame.window:SetPoint(data.anchorName, data.frame.sidebar, "BOTTOMLEFT", -2, 12);
+			data.frame.window.texture:SetTexCoord(1, 0, 1, 0);
+			data.frame.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.window, "BOTTOMLEFT", -36, -22);
 		end
 	end
 
-	if (tk.Strings:Contains(anchorName, "RIGHT")) then
-		muiChatFrame.layoutButton:SetPoint("LEFT", muiChatFrame.sidebar, "LEFT", 2, 0);
-		muiChatFrame.layoutButton:GetNormalTexture():SetTexCoord(1, 0, 0, 1);
-		muiChatFrame.layoutButton:GetHighlightTexture():SetTexCoord(1, 0, 0, 1);
-		muiChatFrame.sidebar:SetTexCoord(1, 0, 0, 1);
+	if (tk.Strings:Contains(data.anchorName, "RIGHT")) then
+		data.frame.layoutButton:SetPoint("LEFT", data.frame.sidebar, "LEFT", 2, 0);
+		data.frame.layoutButton:GetNormalTexture():SetTexCoord(1, 0, 0, 1);
+		data.frame.layoutButton:GetHighlightTexture():SetTexCoord(1, 0, 0, 1);
+		data.frame.sidebar:SetTexCoord(1, 0, 0, 1);
 	end
-end
-
--- C_ChatModule -------------------
-
-function C_ChatModule:ShowMuiChatFrame(data, anchorName) -- lets assume it's enabled!
-	-- remove all spaces and convert to upper
-	anchorName = anchorName:gsub("%s+", ""):upper();
-
-	data.chatFrames = data.chatFrames or obj:PopWrapper();
-	local muiChatFrame = data.chatFrames[anchorName];
-
-	if (not muiChatFrame) then
-		muiChatFrame = CreateChatFrame(anchorName);
-		data.chatFrames[anchorName] = muiChatFrame;
-
-		obj:Assert(obj:IsType(muiChatFrame, "Frame"),
-			"Could not find chat frame at anchor point '%s'", anchorName);
-
-		if (anchorName ~= "TOPLEFT") then
-			RepositionChatFrame(muiChatFrame, anchorName);
-		end
-
-		-- chat channel button
-		_G.ChatFrameChannelButton:ClearAllPoints();
-		_G.ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
-		_G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
-
-		_G.ChatFrameChannelButton.ClearAllPoints = tk.Constants.DUMMY_FUNC;
-		_G.ChatFrameChannelButton.SetPoint = tk.Constants.DUMMY_FUNC;
-
-		self:SetUpLayoutSwitcher(muiChatFrame.layoutButton);
-	end
-
-	muiChatFrame:Show();
-	return muiChatFrame;
 end

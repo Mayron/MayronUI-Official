@@ -48,7 +48,7 @@ function Cell:SetDimensions(data, width, height)
 end
 
 function Cell:SetInsets(data, ...)
-    local args = obj:PopWrapper(...);
+    local args = obj:PopTable(...);
 
     if (#args == 1) then
         data.insets = {
@@ -73,7 +73,7 @@ function Cell:SetInsets(data, ...)
         };
     end
 
-    obj:PushWrapper(args);
+    obj:PushTable(args);
 
     if (data.startAnchor and data.endEnchor) then
         data.frame:SetPoint("TOPLEFT", data.startAnchor, "TOPLEFT", data.insets.left, -data.insets.top);

@@ -375,7 +375,7 @@ do
             local blocked = GetBlocked(setupOptions, path, executedTable);
 
             if (blocked) then
-                blockedTable[path] = obj:PopWrapper(functionValue, settingsValue);
+                blockedTable[path] = obj:PopTable(functionValue, settingsValue);
             end
 
             local ignored = GetIgnored(setupOptions, path);
@@ -401,8 +401,8 @@ do
         data.executingAllUpdateFunctions = true;
 
         print("-- Module Name: " .. self:GetModuleName() .. " --------------------");
-        local executedTable = obj:PopWrapper();
-        local blockedTable = obj:PopWrapper();
+        local executedTable = obj:PopTable();
+        local blockedTable = obj:PopTable();
 
         ExecuteOrdered("first", executedTable, data.setupOptions, data.updateFunctions, data.settings);
         ExecuteAllUpdateFunctions(data.updateFunctions, data.settings, data.setupOptions, nil, executedTable, blockedTable);
@@ -428,8 +428,8 @@ do
 
         ExecuteOrdered("last", executedTable, data.setupOptions, data.updateFunctions, data.settings);
 
-        obj:PushWrapper(executedTable);
-        obj:PushWrapper(blockedTable);
+        obj:PushTable(executedTable);
+        obj:PushTable(blockedTable);
         data.executingAllUpdateFunctions = nil;
     end
 end
@@ -508,7 +508,7 @@ function MayronUI:IterateModules()
 end
 
 function MayronUI:GetModules()
-    local moduleList = obj:PopWrapper();
+    local moduleList = obj:PopTable();
 
     for _, module in MayronUI:IterateModules() do
         table.insert(moduleList, module);
@@ -518,7 +518,7 @@ function MayronUI:GetModules()
 end
 
 function MayronUI:GetModuleNames()
-    local moduleNamesList = obj:PopWrapper();
+    local moduleNamesList = obj:PopTable();
 
     for _, module in MayronUI:IterateModules() do
         table.insert(moduleNamesList, module:GetModuleName());
@@ -528,7 +528,7 @@ function MayronUI:GetModuleNames()
 end
 
 function MayronUI:GetModuleKeys()
-    local moduleKeysList = obj:PopWrapper();
+    local moduleKeysList = obj:PopTable();
 
     for _, module in MayronUI:IterateModules() do
         table.insert(moduleKeysList, module:GetModuleKey());
@@ -554,7 +554,7 @@ function C_CoreModule:OnInitialize()
 			return
         end
 
-        local args = obj:PopWrapper();
+        local args = obj:PopTable();
 
 		for _, arg in obj:IterateArgs(tk.string.split(' ', str)) do
 			if (#arg > 0) then
@@ -586,7 +586,7 @@ function C_CoreModule:OnInitialize()
 			end
         end
 
-        obj:PushWrapper(args);
+        obj:PushTable(args);
     end
 
     tk:Print(L["Welcome back"], _G.UnitName("player").."!");

@@ -112,19 +112,19 @@ function tk.Strings:SetTextColorByKey(text, colorKey)
 end
 
 function tk.Strings:Concat(...)
-    local wrapper = obj:PopWrapper(...);
+    local wrapper = obj:PopTable(...);
     local value = table.concat(wrapper, tk.Strings.Empty);
-    obj:PushWrapper(wrapper);
+    obj:PushTable(wrapper);
     return value;
 end
 
 function tk.Strings:Join(separator, ...)
-    local wrapper = obj:PopWrapper(...);
+    local wrapper = obj:PopTable(...);
 
     tk:Assert(#wrapper > 0, "List of values to join cannot be empty.");
 
     local value = table.concat(wrapper, separator);
-    obj:PushWrapper(wrapper);
+    obj:PushTable(wrapper);
 
     return value;
 end

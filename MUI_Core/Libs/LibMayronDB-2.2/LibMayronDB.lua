@@ -16,7 +16,7 @@ local select, tonumber, strsplit = select, tonumber, _G.strsplit;
 
 local OnAddOnLoadedListener = _G.CreateFrame("Frame");
 OnAddOnLoadedListener:RegisterEvent("ADDON_LOADED");
-OnAddOnLoadedListener.RegisteredDatabases = obj:PopWrapper();
+OnAddOnLoadedListener.RegisteredDatabases = obj:PopTable();
 
 OnAddOnLoadedListener:SetScript("OnEvent", function(self, _, addOnName)
     local database = OnAddOnLoadedListener.RegisteredDatabases[addOnName];
@@ -42,38 +42,37 @@ local function GetNextPath(path, key)
     end
 end
 
-local function IsEqual(value1, value2, shallowIsEqual)
-    local type1 = type(value1);
+local function IsEqual(leftValue, rightValue, shallow)
+    local leftType = type(leftValue);
 
-    if (type(value2) == type1) then
+    if (leftType == type(rightValue)) then
+        if (leftType == "table") then
 
-        if (type1 == "table") then
-
-            if (tostring(value1) == tostring(value2)) then
+            if (shallow and tostring(leftValue) == tostring(rightValue)) then
                 return true;
-            elseif (shallowIsEqual) then
-                return false;
             else
-                for id, value in pairs(value1) do
-                    if (not IsEqual(value, value2[id])) then
+                for key, value in pairs(leftValue) do
+                    if (not IsEqual(value, rightValue[key])) then
+                        return false;
+                    end
+                end
+
+                for key, value in pairs(rightValue) do
+                    if (not IsEqual(value, leftValue[key])) then
                         return false;
                     end
                 end
             end
 
             return true;
-        elseif (type1 == "function") then
-            return tostring(value1) == tostring(value2);
+        elseif (leftType == "function") then
+            return tostring(leftValue) == tostring(rightValue);
         else
-            return value1 == value2;
+            return leftValue == rightValue;
         end
     end
 
     return false;
-end
-
-local function IsObserver(value)
-    return (type(value) == "table" and value.IsObjectType and value:IsObjectType("Observer"));
 end
 
 local function GetDatabasePathInfo(db, rootTableOrPath, pathOrValue, value)
@@ -136,15 +135,15 @@ Framework:DefineParams("string", "string");
 function Database:__Construct(data, addOnName, savedVariableName)
     data.addOnName = addOnName;
     data.svName = savedVariableName;
-    data.callbacks = obj:PopWrapper();
+    data.callbacks = obj:PopTable();
     data.helper = Helper(self, data);
 
     -- holds all database defaults to check first before searching database
-    data.defaults = obj:PopWrapper();
-    data.updateFunctions = obj:PopWrapper();
-    data.manualUpdateFunctions = obj:PopWrapper();
-    data.defaults.global = obj:PopWrapper();
-    data.defaults.profile = obj:PopWrapper();
+    data.defaults = obj:PopTable();
+    data.updateFunctions = obj:PopTable();
+    data.manualUpdateFunctions = obj:PopTable();
+    data.defaults.global = obj:PopTable();
+    data.defaults.profile = obj:PopTable();
 end
 
 --[[
@@ -156,7 +155,7 @@ with 2 arguments: the database and the addOn name passed to Lib:CreateDatabase(.
 ]]
 Framework:DefineParams("function");
 function Database:OnStartUp(data, callback)
-    local startUpCallbacks = data.callbacks["OnStartUp"] or obj:PopWrapper();
+    local startUpCallbacks = data.callbacks["OnStartUp"] or obj:PopTable();
     data.callbacks["OnStartUp"] = startUpCallbacks;
 
     table.insert(startUpCallbacks, callback);
@@ -170,7 +169,7 @@ Hooks a callback function onto the "ProfileChanged" event to be called when the 
 ]]
 Framework:DefineParams("function");
 function Database:OnProfileChange(data, callback)
-    local profileChangedCallback = data.callbacks["OnProfileChange"] or obj:PopWrapper();
+    local profileChangedCallback = data.callbacks["OnProfileChange"] or obj:PopTable();
     data.callbacks["OnProfileChange"] = profileChangedCallback;
 
     table.insert(profileChangedCallback, callback);
@@ -190,24 +189,24 @@ function Database:Start(data)
     OnAddOnLoadedListener.RegisteredDatabases[data.addOnName] = nil;
 
     -- create Saved Variable if it has never been created before
-    _G[data.svName] = _G[data.svName] or obj:PopWrapper();
+    _G[data.svName] = _G[data.svName] or obj:PopTable();
     data.sv = _G[data.svName];
     data.svName = nil; -- no longer needed once it is loaded
 
     -- create root profiles table if it does not exist
-    data.sv.profiles = data.sv.profiles or obj:PopWrapper();
+    data.sv.profiles = data.sv.profiles or obj:PopTable();
 
     -- create root global table if it does not exist
-    data.sv.global = data.sv.global or obj:PopWrapper();
+    data.sv.global = data.sv.global or obj:PopTable();
 
     -- create profileKeys table if it does not exist
-    data.sv.profileKeys = data.sv.profileKeys or obj:PopWrapper();
+    data.sv.profileKeys = data.sv.profileKeys or obj:PopTable();
 
     -- create appended table if it does not exist
-    data.sv.appended = data.sv.appended or obj:PopWrapper();
+    data.sv.appended = data.sv.appended or obj:PopTable();
 
     -- create Default profile if it does not exist
-    data.sv.profiles.Default = data.sv.profiles.Default or obj:PopWrapper();
+    data.sv.profiles.Default = data.sv.profiles.Default or obj:PopTable();
 
     -- create Profile and Global accessible observers:
 
@@ -417,7 +416,7 @@ Creates a new profile if the named profile does not exist.
 ]]
 Framework:DefineParams("string");
 function Database:SetProfile(data, profileName)
-    local profile = data.sv.profiles[profileName] or obj:PopWrapper();
+    local profile = data.sv.profiles[profileName] or obj:PopTable();
     data.sv.profiles[profileName] = profile;
 
     local profileKey = data.helper:GetCurrentProfileKey();
@@ -445,7 +444,7 @@ end
 @return (table): A table containing string profile names for all profiles associated with the addon.
 --]]
 function Database:GetProfiles(data)
-    local profiles = obj:PopWrapper();
+    local profiles = obj:PopTable();
 
     for profileName, _ in pairs(data.sv.profiles) do
         table.insert(profiles, profileName);
@@ -464,7 +463,7 @@ Each loop returns values: id, profileName, profile
 ]]
 function Database:IterateProfiles(data)
     local id = 0;
-    local profileNames = obj:PopWrapper();
+    local profileNames = obj:PopTable();
 
     for name, _ in pairs(data.sv.profiles) do
         table.insert(profileNames, name);
@@ -616,13 +615,13 @@ Framework:DefineReturns("boolean");
 function Database:AppendOnce(data, rootTable, path, value)
     local tableType = data.helper:GetDatabaseRootTableName(rootTable);
 
-    local appendTable = data.sv.appended[tableType] or obj:PopWrapper();
+    local appendTable = data.sv.appended[tableType] or obj:PopTable();
     data.sv.appended[tableType] = appendTable;
 
     if (appendTable[path]) then
         -- already previously appended, cannot append again
         if (obj:IsTable(value)) then
-            obj:PushWrapper(value, true);
+            obj:PushTable(value, true);
         end
 
         return false;
@@ -648,7 +647,7 @@ function Observer:__Construct(data, isGlobal, previousData)
     data.helper = previousData.helper;
     data.sv = previousData.sv;
     data.defaults = previousData.defaults;
-    data.internalTree = obj:PopWrapper();
+    data.internalTree = obj:PopTable();
     data.database = data.helper:GetDatabase();
 end
 
@@ -836,7 +835,7 @@ function Observer:Print(data, depth)
 
     print(" ");
     print(string.format("db.%s = {", tablePath));
-    data.helper:PrintTable(merged, depth, 4);
+    data.helper:PrintTable(merged, depth);
     print("};");
     print(" ");
 end
@@ -879,7 +878,7 @@ end
 
 do
     -- local functions, ToTable
-    local ConvertObserverGetUntrackedTable, CreateTrackerFromTable;
+    local ConvertObserverToUntrackedTable, CreateTrackerFromTable;
     -- tracker methods
     local SaveChanges, Refresh, GetObserver, GetTotalPendingChanges, ResetChanges, GetUntrackedTable, Iterate;
 
@@ -891,26 +890,77 @@ do
     -- Local Functions:
     do
         -- Adds all key and value pairs from fromTable onto toTable (replaces other non-table values)
-        local function AddTable(fromTable, toTable)
+        local function AddTable(fromTable, toTable, protectedTable)
             for key, value in pairs(fromTable) do
-                if (type(value) == "table") then
+                if (obj:IsTable(value)) then
+                    if (not (obj:IsString(key) and key:match("^__template"))) then
 
-                    if (type(toTable[key]) ~= "table") then
-                        toTable[key] = obj:PopWrapper();
+                        -- ignore template default values
+                        if (not obj:IsTable(toTable[key])) then
+                            toTable[key] = obj:PopTable();
+                        end
+
+                        if (obj:IsTable(protectedTable)) then
+                            AddTable(value, toTable[key], protectedTable[key]);
+                        else
+                            AddTable(value, toTable[key]);
+                        end
                     end
-
-                    AddTable(value, toTable[key]);
-                else
+                elseif (protectedTable == nil or (obj:IsTable(protectedTable) and protectedTable[key] == nil)) then
                     toTable[key] = value;
                 end
             end
         end
 
-        function ConvertObserverGetUntrackedTable(observer, reusableTable)
-            local merged = reusableTable or obj:PopWrapper();
+        local function AddParentTables(observer, merged, protectedTable, previousPaths)
+            for key, _ in pairs(merged) do
+                local child = observer[key];
+                local nextProtectedTable;
+
+                if (obj:IsTable(protectedTable)) then
+                    nextProtectedTable = protectedTable[key];
+                end
+
+                if (obj:IsType(child, "Observer")) then
+                    local childPath = child:GetPathAddress();
+                    local continue = true;
+
+                    for _, previousPath in ipairs(previousPaths) do
+                        if (childPath == previousPath) then
+                            continue = false;
+                            break;
+                        end
+                    end
+
+                    if (continue) then
+                        AddParentTables(child, merged[key], nextProtectedTable, previousPaths);
+                    end
+                end
+            end
+
+            local parent = observer:GetParent();
+
+            if (parent) then
+                local parentTable = ConvertObserverToUntrackedTable(parent, nil, previousPaths);
+
+                if (parentTable and obj:IsTable(protectedTable) or protectedTable == nil) then
+                    AddTable(parentTable, merged, protectedTable);
+                end
+            end
+        end
+
+        function ConvertObserverToUntrackedTable(observer, reusableTable, previousPaths)
+            local merged = reusableTable or obj:PopTable();
             local svTable = observer:GetSavedVariable();
             local defaults = observer:GetDefaults();
-            local parent = observer:GetParent();
+            local firstIteration;
+
+            if (not previousPaths) then
+                firstIteration = true;
+                previousPaths = obj:PopTable();
+            end
+
+            table.insert(previousPaths, observer:GetPathAddress());
 
             if (obj:IsTable(reusableTable)) then
                 obj:EmptyTable(reusableTable);
@@ -921,16 +971,14 @@ do
                 AddTable(defaults, merged);
             end
 
-            if (parent) then
-                local parentTable = ConvertObserverGetUntrackedTable(parent);
-
-                if (parentTable) then
-                    AddTable(parentTable, merged);
-                end
-            end
-
             if (svTable) then
                 AddTable(svTable, merged);
+            end
+
+            AddParentTables(observer, merged, svTable, previousPaths);
+
+            if (firstIteration) then
+                obj:PushTable(previousPaths);
             end
 
             return merged;
@@ -938,7 +986,7 @@ do
     end
 
     function CreateTrackerFromTable(observer, tbl, previousTracker, nextPath)
-        local tracker = obj:PopWrapper();
+        local tracker = obj:PopTable();
 
         -- available functions:
         tracker.SaveChanges = SaveChanges;
@@ -950,7 +998,7 @@ do
         tracker.GetObserver = GetObserver;
 
         -- set tracker data:
-        local data = _metaData[tostring(tbl)] or obj:PopWrapper();
+        local data = _metaData[tostring(tbl)] or obj:PopTable();
         _metaData[tostring(tracker)] = data;
 
         if (previousTracker) then
@@ -958,7 +1006,7 @@ do
             data.changes = previousData.changes;
             data.path = nextPath;
         else
-            data.changes = obj:PopWrapper();
+            data.changes = obj:PopTable();
             data.path = nil;
         end
 
@@ -1002,7 +1050,7 @@ do
 
     function Refresh(tracker)
         local data = _metaData[tostring(tracker)];
-        local basicTable = ConvertObserverGetUntrackedTable(data.observer, data.basicTable);
+        local basicTable = ConvertObserverToUntrackedTable(data.observer, data.basicTable);
         setmetatable(basicTable, basicTable_MT);
     end
 
@@ -1066,7 +1114,7 @@ do
                 end
             end
 
-            obj:PushWrapper(updatedTable);
+            obj:PushTable(updatedTable);
         end
 
         function BasicTableParent:Refresh()
@@ -1129,8 +1177,8 @@ do
         local data = _metaData[tostring(self)];
         _metaData[tostring(self)] = nil;
         setmetatable(self, nil);
-        obj:PushWrapper(data);
-        obj:PushWrapper(self);
+        obj:PushTable(data);
+        obj:PushTable(self);
     end
 
     --[[
@@ -1144,11 +1192,11 @@ do
     ]]
     Framework:DefineReturns("table", "?table");
     function Observer:GetUntrackedTable(_, reusableTable)
-        local basicTable = ConvertObserverGetUntrackedTable(self, reusableTable);
+        local basicTable = ConvertObserverToUntrackedTable(self, reusableTable);
         setmetatable(basicTable, basicTable_MT);
 
         -- create basic table data:
-        _metaData[tostring(basicTable)] = obj:PopWrapper();
+        _metaData[tostring(basicTable)] = obj:PopTable();
 
         local data = _metaData[tostring(basicTable)];
         data.observer = self; -- needed for GetObserver()
@@ -1168,7 +1216,7 @@ do
     ]]
     Framework:DefineReturns("table", "?table");
     function Observer:GetTrackedTable(_, reusableTable)
-        local tbl = ConvertObserverGetUntrackedTable(self, reusableTable);
+        local tbl = ConvertObserverToUntrackedTable(self, reusableTable);
         return CreateTrackerFromTable(self, tbl);
     end
 end
@@ -1192,7 +1240,7 @@ do
 
         if (tbl[key] == nil) then
             if (parsing) then return nil; end
-            tbl[key] = obj:PopWrapper();
+            tbl[key] = obj:PopTable();
         end
 
         return previous, tbl[key];
@@ -1234,7 +1282,7 @@ do
                 local indexes;
 
                 if (key:find("%b[]")) then
-                    indexes = obj:PopWrapper();
+                    indexes = obj:PopTable();
 
                     for index in key:gmatch("(%b[])") do
                         index = index:match("%[(.+)%]");
@@ -1271,7 +1319,7 @@ do
                         end
                     end
 
-                    obj:PushWrapper(indexes);
+                    obj:PushTable(indexes);
                 end
             end
         end
@@ -1308,13 +1356,13 @@ function Helper:GetNextValue(data, previousObserverData, tbl, key)
     --tbl could be sv or defaults table
     local nextValue = tbl[key];
 
-    if (type(nextValue) ~= "table") then
+    if (not obj:IsTable(nextValue)) then
         return nextValue;
     end
 
     local nextObserver = nextValue;
 
-    if (not IsObserver(nextObserver)) then
+    if (not obj:IsType(nextObserver, "Observer")) then
         nextObserver = previousObserverData.internalTree[key];
 
         if (not nextObserver) then
@@ -1334,7 +1382,7 @@ function Helper:GetNextValue(data, previousObserverData, tbl, key)
         local nextChildPath = GetNextPath(previousObserverData.usingChild.path, key);
         self:SetUsingChild(previousObserverData.usingChild.isGlobal, nextChildPath, nextObserver);
     else
-        obj:PushWrapper(nextObserverData.usingChild);
+        obj:PushTable(nextObserverData.usingChild);
         nextObserverData.usingChild = nil;
     end
 
@@ -1343,7 +1391,7 @@ end
 
 Framework:DefineParams("table", "?number");
 function Helper:PrintTable(_, tbl, depth)
-    obj:PrintTable(tbl, depth, 0);
+    obj:PrintTable(tbl, depth, 4);
 end
 
 Framework:DefineParams("Observer");
@@ -1404,7 +1452,7 @@ end
 Framework:DefineParams("boolean", "string", "Observer");
 function Helper:SetUsingChild(data, isGlobal, path, parentObserver)
     local parentObserverData = data:GetFriendData(parentObserver);
-    local usingChild = parentObserverData.usingChild or obj:PopWrapper();
+    local usingChild = parentObserverData.usingChild or obj:PopTable();
 
     usingChild.isGlobal = isGlobal;
     usingChild.path = path;

@@ -120,7 +120,7 @@ end
 
 function Memory:Click(data)
     local currentIndex = 0;
-    local sorted = obj:PopWrapper();
+    local sorted = obj:PopTable();
 
     for i = 1, _G.GetNumAddOns() do
         local _, addOnName, addOnDescription = _G.GetAddOnInfo(i);
@@ -161,7 +161,7 @@ function Memory:Click(data)
     table.sort(sorted, compare);
     tk.Tables:Empty(self.MenuLabels);
     tk.Tables:AddAll(self.MenuLabels, _G.unpack(sorted));
-    obj:PushWrapper(sorted);
+    obj:PushTable(sorted);
 
     self.TotalLabelsShown = #self.MenuLabels;
 end

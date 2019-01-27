@@ -20,8 +20,8 @@ end
 function Panel:__Construct(data, frame, globalName)
     self:SetFrame(frame or _G.CreateFrame("Frame", globalName, _G.UIParent));
     data.grid = Private.LinkedList();
-    data.rowscale = obj:PopWrapper();
-    data.columnscale = obj:PopWrapper();
+    data.rowscale = obj:PopTable();
+    data.columnscale = obj:PopTable();
 
     data.frame:HookScript("OnSizeChanged", function()
         Private:OnSizeChanged(data);
@@ -33,7 +33,7 @@ function Panel:GetDimensions(data)
 end
 
 function Panel:SetDimensions(data, width, height)
-    local squares = obj:PopWrapper(data.grid:Unpack());
+    local squares = obj:PopTable(data.grid:Unpack());
     local i = 1;
 
     data.width = width;
@@ -63,7 +63,7 @@ function Panel:SetDimensions(data, width, height)
         i = i + 1;
     end
 
-    obj:PushWrapper(squares);
+    obj:PushTable(squares);
     Private:SetupGrid(data);
 end
 

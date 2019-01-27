@@ -35,7 +35,7 @@ function tk.Tables:GetTable(rootTable, ...)
 
     for _, key in obj:IterateArgs(...) do
         if (type(currentTable[key]) ~= "table") then
-            currentTable[key] = obj:PopWrapper();
+            currentTable[key] = obj:PopTable();
         end
 
         currentTable = currentTable[key];
@@ -104,7 +104,7 @@ function tk.Tables:CleanIndexes(tbl)
         local value = tbl[index];
 
         if (value ~= nil) then
-            tempIndexTable = tempIndexTable or obj:PopWrapper();
+            tempIndexTable = tempIndexTable or obj:PopTable();
             tk.table.insert(tempIndexTable, value);
 
             tbl[index] = nil;
@@ -116,7 +116,7 @@ function tk.Tables:CleanIndexes(tbl)
             tbl[index] = tempIndexTable[index];
         end
 
-        obj:PushWrapper(tempIndexTable);
+        obj:PushTable(tempIndexTable);
     end
 end
 
@@ -158,7 +158,7 @@ end
 
 -- copy all values from multiple tables into a new table
 function tk.Tables:Merge(...)
-    local merged = obj:PopWrapper();
+    local merged = obj:PopTable();
 
     for _, tbl in obj:IterateArgs(...) do
         for key, value in pairs(tbl) do
@@ -286,8 +286,8 @@ do
     end
 
     function tk.Tables:OrderBy(tbl, ...)
-        orderByKeys = obj:PopWrapper(...);
+        orderByKeys = obj:PopTable(...);
         table.sort(tbl, compare);
-        obj:PushWrapper(orderByKeys);
+        obj:PushTable(orderByKeys);
     end
 end

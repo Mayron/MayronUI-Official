@@ -141,7 +141,7 @@ function C_ResourceBarsModule:OnEnable(data)
     data.barsContainer:SetPoint("BOTTOMLEFT", data.buiContainer, "TOPLEFT", 0, -1);
     data.barsContainer:SetPoint("BOTTOMRIGHT", data.buiContainer, "TOPRIGHT", 0, -1);
 
-    data.bars = obj:PopWrapper();
+    data.bars = obj:PopTable();
     data.bars.experience = C_ExperienceBar(self, data);
     data.bars.reputation = C_ReputationBar(self, data);
     data.bars.artifact = C_ArtifactBar(self, data);

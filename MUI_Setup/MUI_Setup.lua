@@ -417,7 +417,7 @@ function Private:LoadCustomMenu(menuSection)
 
             cb.btn:SetChecked(value);
             cb.btn:SetScript("OnClick", function(self)
-                db.global.core.setup.addOns[id] = obj:PopWrapper(alias, self:GetChecked(), addOnName);
+                db.global.core.setup.addOns[id] = obj:PopTable(alias, self:GetChecked(), addOnName);
             end);
 
             if (not previous) then

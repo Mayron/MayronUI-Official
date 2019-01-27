@@ -420,7 +420,7 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
     end
 
     if (enabled) then
-        data.gradients = data.gradients or obj:PopWrapper();
+        data.gradients = data.gradients or obj:PopTable();
 
         for _, unitID in obj:IterateArgs("player", "target") do
             local parent = _G["SUFUnit"..unitID];

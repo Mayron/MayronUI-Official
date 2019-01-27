@@ -158,7 +158,7 @@ do
         if (menuButton.configTable) then
             self:RenderSelectedMenu(menuButton.configTable);
 
-            obj:PushWrapper(menuButton.configTable, CleanTablesIfNotSubmenu);
+            obj:PushTable(menuButton.configTable, CleanTablesIfNotSubmenu);
             menuButton.configTable = nil;
 
             if (menuButton.module) then
@@ -204,7 +204,7 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
             end
 
             -- the table was previously popped
-            obj:PushWrapper(loopResults);
+            obj:PushTable(loopResults);
 
         elseif (widgetConfigTable.type == "frame") then
             local frame = self:SetUpWidget(widgetConfigTable);
@@ -284,7 +284,7 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
 
     if (type(data.tempMenuConfigTable.inherit) == "table") then
         -- Inherit all key and value pairs from a parent table by injecting them into childData
-        local metaTable = obj:PopWrapper();
+        local metaTable = obj:PopTable();
         metaTable.__index = data.tempMenuConfigTable.inherit;
         setmetatable(widgetConfigTable, metaTable);
     end

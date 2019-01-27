@@ -24,7 +24,7 @@ local Handler = EventsPackage:CreateClass("Handler");
 function Handler:__Construct(data, eventName, callback, unit, ...)
     data.callback = callback;
     data.key = tostring(self);
-    data.events = obj:PopWrapper();
+    data.events = obj:PopTable();
     self:SetCallbackArgs(...);
 
     self:AppendEvent(eventName, unit);
@@ -43,7 +43,7 @@ function Handler:__Destruct(data)
 end
 
 function Handler:GetEventNames(data)
-    local eventNames = obj:PopWrapper();
+    local eventNames = obj:PopTable();
 
     for eventName, _ in pairs(data.events) do
         table.insert(eventNames, eventName);
@@ -70,10 +70,10 @@ function Handler:SetCallbackArgs(data, ...)
     end
 
     if (data.args) then
-        obj:PushWrapper(data.args);
+        obj:PushTable(data.args);
     end
 
-    data.args = obj:PopWrapper(...);
+    data.args = obj:PopTable(...);
 end
 
 function Handler:SetKey(data, key)
@@ -94,14 +94,14 @@ function Handler:Run(data, ...)
     if (data.callback) then
         if (data.args) then
             -- execute event callback
-            local args = obj:PopWrapper(unpack(data.args));
+            local args = obj:PopTable(unpack(data.args));
 
             for _, value in obj:IterateArgs(...) do
                 table.insert(args, value);
             end
 
             data.callback(self, data.eventName, unpack(args));
-            obj:PushWrapper(args);
+            obj:PushTable(args);
         else
             -- execute event callback
             data.callback(self, data.eventName, ...);
@@ -125,7 +125,7 @@ function Handler:AppendEvent(data, eventName, unit)
 
     data.events[eventName] = true;
 
-    Private.eventsList[eventName] = Private.eventsList[eventName] or obj:PopWrapper();
+    Private.eventsList[eventName] = Private.eventsList[eventName] or obj:PopTable();
     table.insert(Private.eventsList[eventName], self);
 end
 
@@ -241,7 +241,7 @@ end
 
 function Private:CleanEventTable(eventName)
     if (self:EventTableExists(eventName)) then
-        local activeHandlers = obj:PopWrapper();
+        local activeHandlers = obj:PopTable();
         local handlers = self.eventsList[eventName];
 
         for _, handler in pairs(handlers) do
@@ -251,7 +251,7 @@ function Private:CleanEventTable(eventName)
         end
 
         self.eventsList[eventName] = activeHandlers;
-        obj:PushWrapper(handlers);
+        obj:PushTable(handlers);
 
         if self:IsEventTableEmpty(eventName) then
             self.eventsList[eventName] = nil;

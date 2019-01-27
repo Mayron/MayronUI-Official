@@ -48,7 +48,7 @@ MayronUI:Hook("DataText", "OnInitialize", function(self)
 
     -- saves info on the currency that each logged in character has
     if (not db:ParsePathValue(db.global, "datatext.currency.characters")) then
-        db:SetPathValue(db.global, "datatext.currency.characters", obj:PopWrapper());
+        db:SetPathValue(db.global, "datatext.currency.characters", obj:PopTable());
     end
 
 	-- store character's money to be seen by other characters
@@ -65,7 +65,7 @@ function Currency:__Construct(data, settings, dataTextModule)
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
-    self.MenuLabels = obj:PopWrapper();
+    self.MenuLabels = obj:PopTable();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
@@ -97,7 +97,7 @@ function Currency:__Construct(data, settings, dataTextModule)
         self:Update();
     end);
 
-    data.info = obj:PopWrapper();
+    data.info = obj:PopTable();
     data.info[1] = tk.Strings:SetTextColorByTheme(L["Current Money"]..":");
     data.info[2] = nil;
     data.info[3] = tk.Strings:SetTextColorByTheme(L["Start of the day"]..":");

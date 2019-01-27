@@ -85,7 +85,7 @@ do
         button:SetSize(150, 30);
         button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
         button:SetBackdropBorderColor(r, g, b, 0.7);
-        button.enabledBackdrop = obj:PopWrapper(r, g, b);
+        button.enabledBackdrop = obj:PopTable(r, g, b);
 
         if (text) then
             button:SetText(text);

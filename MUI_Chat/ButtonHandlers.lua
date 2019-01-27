@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143
 
 local _, namespace = ...;
-local C_ChatModule = namespace.C_ChatModule;
+local C_ChatFrame = namespace.C_ChatFrame;
 local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
 
 namespace.ButtonNames = {
@@ -160,31 +160,34 @@ local function ChatButton_OnClick(self)
     clickHandlers[text]();
 end
 
-function C_ChatModule:SetUpButtonHandler(data, muiChatFrame, buttonSettings)
-    em:CreateEventHandler("MODIFIER_STATE_CHANGED", function()
-        if (data.settings.swapInCombat or not _G.InCombatLockdown()) then
-            local updated = false;
+local function ChatFrame_OnModifierStateChanged(_, _, data)
+    if (data.chatModuleSettings.swapInCombat or not _G.InCombatLockdown()) then
+        local updated = false;
 
-            for _, info in pairs(buttonSettings) do
-                if (info.key and tk:IsModComboActive(info.key)) then
-                    muiChatFrame.buttons[1]:SetText(info[1]);
-                    muiChatFrame.buttons[2]:SetText(info[2]);
-                    muiChatFrame.buttons[3]:SetText(info[3]);
-                    updated = true;
-                    break;
-                end
-            end
-
-            if (not updated) then
-                local info = buttonSettings[1];
-                muiChatFrame.buttons[1]:SetText(info[1]);
-                muiChatFrame.buttons[2]:SetText(info[2]);
-                muiChatFrame.buttons[3]:SetText(info[3]);
+        for _, info in pairs(data.settings.buttons) do
+            if (info.key and tk:IsModComboActive(info.key)) then
+                data.buttons[1]:SetText(info[1]);
+                data.buttons[2]:SetText(info[2]);
+                data.buttons[3]:SetText(info[3]);
+                updated = true;
+                break;
             end
         end
-    end):Run();
 
-    muiChatFrame.buttons[1]:SetScript("OnClick", ChatButton_OnClick);
-    muiChatFrame.buttons[2]:SetScript("OnClick", ChatButton_OnClick);
-    muiChatFrame.buttons[3]:SetScript("OnClick", ChatButton_OnClick);
+        if (not updated) then
+            local info = data.settings.buttons[1];
+            data.buttons[1]:SetText(info[1]);
+            data.buttons[2]:SetText(info[2]);
+            data.buttons[3]:SetText(info[3]);
+        end
+    end
+end
+
+function C_ChatFrame:SetUpButtonHandler(data)
+    em:CreateEventHandlerWithKey("MODIFIER_STATE_CHANGED", "ChatFrame_OnModifierStateChanged",
+        ChatFrame_OnModifierStateChanged, data):Run();
+
+    data.buttons[1]:SetScript("OnClick", ChatButton_OnClick);
+    data.buttons[2]:SetScript("OnClick", ChatButton_OnClick);
+    data.buttons[3]:SetScript("OnClick", ChatButton_OnClick);
 end

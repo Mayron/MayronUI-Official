@@ -91,7 +91,7 @@ function Map:Filter(data, predicate)
 end
 
 function Map:Select(data, predicate)
-    local selected = Lib:PopWrapper();
+    local selected = Lib:PopTable();
 
     for key, value in pairs(data.values) do
         if (predicate(key, value)) then

@@ -205,17 +205,8 @@ local function UsingBothParentAndDefaults_Test1(self) -- luacheck: ignore
 
     self:AddToDefaults("profile.myModule", {
         enabled = true,
-        frameStrata = "MEDIUM",
-        frameLevel = 20,
-        height = 24,
-        spacing = 1,
-        fontSize = 11,
-        combatBlock = true,
         popup = {
-            hideInCombat = true,
-            maxHeight = 250,
             width = 200,
-            itemHeight = 26
         }
     });
 
@@ -229,7 +220,9 @@ local function UsingBothParentAndDefaults_Test1(self) -- luacheck: ignore
     local subSv = self.profile.myModule.mySubModule;
 
     subSv:SetParent(sv);
-    subSv:Print() -- should print all parent defaults
+
+    -- this is an important test to validate no cyclic function calls (stack overflow)
+    subSv:Print(); -- should print all parent defaults
 
     local width = subSv.popup.width;
 
@@ -306,37 +299,39 @@ local function GetTrackedTableAndSavingChanges_Test2(self) -- luacheck: ignore
 
     tbl:SaveChanges();
 
-    assert(self.profile.root.key3.option1.existingValue == nil);
+    assert(self.profile.root.key3 == nil); -- cleaned empty tables
 
     print("GetTrackedTableAndSavingChanges_Test2 Successful!");
 end
 
 -- Taken from LibMayronDB.lua
-local function Equals(value1, value2, shallowEquals)
-    local type1 = type(value1);
+local function IsEqual(leftValue, rightValue, shallow)
+    local leftType = type(leftValue);
 
-    if (type(value2) == type1) then
+    if (leftType == type(rightValue)) then
+        if (leftType == "table") then
 
-        if (type1 == "table") then
-
-            if (tostring(value1) == tostring(value2)) then
+            if (shallow and tostring(leftValue) == tostring(rightValue)) then
                 return true;
-
-            elseif (shallowEquals) then
-                return false;
             else
-                for key, value in pairs(value1) do
-                    if (not Equals(value, value2[key])) then
+                for key, value in pairs(leftValue) do
+                    if (not IsEqual(value, rightValue[key])) then
+                        return false;
+                    end
+                end
+
+                for key, value in pairs(rightValue) do
+                    if (not IsEqual(value, leftValue[key])) then
                         return false;
                     end
                 end
             end
 
             return true;
-        elseif (type1 == "function") then
-            return tostring(value1) == tostring(value2);
+        elseif (leftType == "function") then
+            return tostring(leftValue) == tostring(rightValue);
         else
-            return value1 == value2;
+            return leftValue == rightValue;
         end
     end
 
@@ -353,12 +348,12 @@ local function GetTrackedTableAndSavingChanges_Test3(self) -- luacheck: ignore
         parentTbl2 = {
             module1 = true;
             module2 = true;
-            module3 = false;
+            module3 = false; -- missing! -- this is from the parent
         };
         defaults = {
             default1 = true;
             default2 = "def";
-            default3 = {
+            default3 = { -- "false" -- ignores parent in favour of defaults
                 value1 = 650;
             };
             default4 = {
@@ -367,7 +362,6 @@ local function GetTrackedTableAndSavingChanges_Test3(self) -- luacheck: ignore
                 value3 = 30;
             };
         };
-        -- all ok!
         childTbl = {
             child2 = {
                 1, 2, 3
@@ -447,7 +441,9 @@ local function GetTrackedTableAndSavingChanges_Test3(self) -- luacheck: ignore
     -- Act and Assert:
 
     -- Table should merge child, parent, and default tables together in that priority order
-    assert(Equals(tbl:GetUntrackedTable(), expectedTable), "Tables are not equal!");
+    local untrackedTbl = tbl:GetUntrackedTable();
+
+    assert(IsEqual(untrackedTbl, expectedTable), "Tables are not equal!");
 
     -- set value to same value should result in no change required
     tbl.defaults.default4.value3 = 30;
@@ -650,6 +646,57 @@ local function GetUntrackedTable_Test1(self) -- luacheck: ignore
     print("GetUntrackedTable_Test1 Successful!");
 end
 
+local function GetUntrackedTable_WithChildObservers_ThatHaveParents_Test1(self) -- luacheck: ignore
+    print("GetUntrackedTable_WithChildObservers_ThatHaveParents_Test1 Started");
+    TestDB = {};
+
+    self:AddToDefaults("profile.root", {
+        __templateFrame = {
+            defaultValue = 123;
+            defaultTable = {
+                "abc";
+            };
+        }
+    });
+
+    self.profile.root = {
+        testValue = 12;
+        frames = {
+            left = {
+                enabled = true;
+            };
+            right = {
+                enabled = false;
+            };
+        }
+    };
+
+    -- parent applied to a svTable
+    self.profile.root.frames.left:SetParent(self.profile.root.__templateFrame);
+    self.profile.root.frames.right:SetParent(self.profile.root.__templateFrame);
+
+    assert(self.profile.root.frames.left.enabled == true);
+    assert(self.profile.root.frames.left.defaultValue == 123);
+    assert(self.profile.root.frames.left.defaultTable[1] == "abc");
+
+    assert(self.profile.root.frames.right.enabled == false);
+    assert(self.profile.root.frames.right.defaultValue == 123);
+    assert(self.profile.root.frames.right.defaultTable[1] == "abc");
+
+    local tbl = self.profile.root:GetUntrackedTable();
+
+    obj:PrintTable(tbl);
+    assert(tbl.frames.left.enabled == true);
+    assert(tbl.frames.left.defaultValue == 123);
+    assert(tbl.frames.left.defaultTable[1] == "abc");
+
+    assert(tbl.frames.right.enabled == false);
+    assert(tbl.frames.right.defaultValue == 123);
+    assert(tbl.frames.right.defaultTable[1] == "abc");
+
+    print("GetUntrackedTable_WithChildObservers_ThatHaveParents_Test1 Successful!");
+end
+
 db:OnStartUp(function(...) -- luacheck: ignore
     -- /console scriptErrors 1 - to display Lua errors
     -- OnStartUp_Test1(...);
@@ -668,4 +715,5 @@ db:OnStartUp(function(...) -- luacheck: ignore
     -- GetTrackedTableAndSavingChanges_Test4(...);
     -- GetTrackedTableAndSavingChanges_Test5(...);
     -- GetUntrackedTable_Test1(...);
+    -- GetUntrackedTable_WithChildObservers_ThatHaveParents_Test1(...);
 end);

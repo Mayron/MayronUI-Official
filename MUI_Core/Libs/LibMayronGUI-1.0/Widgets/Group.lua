@@ -16,7 +16,7 @@ local function GetGroup(groupID, groupType, panel, panelData)
         return false;
     end
 
-    local cellsList = obj:PopWrapper();
+    local cellsList = obj:PopTable();
 
     for position, cell in panelData.grid:Iterate() do
         local column, row = Private:GetCoords(position, panelData.width, panelData.height);
@@ -28,7 +28,7 @@ local function GetGroup(groupID, groupType, panel, panelData)
 
     local cellsLinkedList = Private.LinkedList(_G.unpack(cellsList));
 
-    obj:PushWrapper(cellsList);
+    obj:PushTable(cellsList);
     return Group(groupID, groupType, cellsLinkedList, panel);
 end
 
