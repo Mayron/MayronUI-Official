@@ -348,12 +348,12 @@ local function GetTrackedTableAndSavingChanges_Test3(self) -- luacheck: ignore
         parentTbl2 = {
             module1 = true;
             module2 = true;
-            module3 = false; -- missing! -- this is from the parent
+            module3 = false;
         };
         defaults = {
             default1 = true;
-            default2 = "def";
-            default3 = { -- "false" -- ignores parent in favour of defaults
+            default2 = "abc";
+            default3 = {
                 value1 = 650;
             };
             default4 = {
@@ -380,7 +380,7 @@ local function GetTrackedTableAndSavingChanges_Test3(self) -- luacheck: ignore
 
     self:AddToDefaults("profile.root.defaults", {
         default1 = true;
-        default2 = "abc";
+        default2 = "abc"; -- should be picked over parent default
         default3 = false;
         default4 = {
             value1 = 10;
@@ -391,7 +391,7 @@ local function GetTrackedTableAndSavingChanges_Test3(self) -- luacheck: ignore
 
     self.profile.myParent = {
         defaults = {
-            default2 = "def";
+            default2 = "def"; -- should be ignored in favour of child default
             default3 = {
                 value1 = 650;
             };
@@ -442,6 +442,8 @@ local function GetTrackedTableAndSavingChanges_Test3(self) -- luacheck: ignore
 
     -- Table should merge child, parent, and default tables together in that priority order
     local untrackedTbl = tbl:GetUntrackedTable();
+
+    obj:PrintTable(untrackedTbl);
 
     assert(IsEqual(untrackedTbl, expectedTable), "Tables are not equal!");
 
@@ -697,6 +699,107 @@ local function GetUntrackedTable_WithChildObservers_ThatHaveParents_Test1(self) 
     print("GetUntrackedTable_WithChildObservers_ThatHaveParents_Test1 Successful!");
 end
 
+local function CyclicParentToChild_Test1(self) -- luacheck: ignore
+    print("CyclicParentToChild_Test1 Started");
+    TestDB = {};
+
+    self:AddToDefaults("profile.module", {
+        enabled = true;
+        width = 20,
+        height = 24;
+        values = {
+            value1 = true;
+        };
+        general = {
+            "component1";
+            "component2";
+        };
+    });
+
+    self:AddToDefaults("profile.module.component", {
+        enabled = false,
+        value = "test",
+    });
+
+    local sv = self.profile.module.component;
+    sv:SetParent(self.profile.module);
+
+    local settings = sv:GetTrackedTable();
+
+    obj:PrintTable(settings:GetUntrackedTable());
+
+    -- parent value should be ignored in favour of child (self.profile.module.component)
+    assert(settings.enabled == false);
+
+    assert(settings.value == "test");
+    assert(settings.width == 20);
+    assert(settings.height == 24);
+    assert(settings.values.value1 == true);
+    assert(settings.general[1] == "component1");
+    assert(settings.general[2] == "component2");
+
+    print("CyclicParentToChild_Test1 Successful!");
+end
+
+local function CyclicParentToChild_Test2(self) -- luacheck: ignore
+    print("CyclicParentToChild_Test2 Started");
+    TestDB = {};
+
+    self:AddToDefaults("profile.module", {
+        enabled = true;
+        width = 20,
+        height = 24;
+        values = {
+            value1 = true;
+        };
+        general = {
+            "component1";
+            "component2";
+        };
+    });
+
+    self:AddToDefaults("profile.module.component1", {
+        value = 1,
+    });
+
+    self:AddToDefaults("profile.module.component2", {
+        value = 2,
+    });
+
+    self:AddToDefaults("profile.module.component3", {
+        value = 3,
+    });
+
+    self:AddToDefaults("profile.module.component4", {
+        value = 4,
+    });
+
+    -- self.profile.root.frames.left:SetParent(self.profile.root.__templateFrame);
+    -- self.profile.root.frames.right:SetParent(self.profile.root.__templateFrame);
+    -- local tbl = self.profile.root:GetUntrackedTable();
+
+    self.profile.module.component1:SetParent(self.profile.module);
+    self.profile.module.component2:SetParent(self.profile.module);
+    self.profile.module.component3:SetParent(self.profile.module);
+    self.profile.module.component4:SetParent(self.profile.module);
+
+    -- IMPORTANT: Do not scan children of a parent! But can scan own chilren parents!
+
+    -- should ignore any sibbling or any node higher up that isn't an explicit parent
+    local settings = self.profile.module.component4:GetTrackedTable();
+
+    obj:PrintTable(settings:GetUntrackedTable());
+
+    assert(settings.value == 4);
+    assert(settings.width == 20);
+    assert(settings.height == 24);
+    assert(settings.values.value1 == true);
+    assert(settings.general[1] == "component1");
+    assert(settings.general[2] == "component2");
+
+    print("CyclicParentToChild_Test2 Successful!");
+end
+
 db:OnStartUp(function(...) -- luacheck: ignore
     -- /console scriptErrors 1 - to display Lua errors
     -- OnStartUp_Test1(...);
@@ -715,5 +818,7 @@ db:OnStartUp(function(...) -- luacheck: ignore
     -- GetTrackedTableAndSavingChanges_Test4(...);
     -- GetTrackedTableAndSavingChanges_Test5(...);
     -- GetUntrackedTable_Test1(...);
-    -- GetUntrackedTable_WithChildObservers_ThatHaveParents_Test1(...);
+    -- GetUntrackedTable_WithChildObservers_ThatHaveParents_Test1(...); -- important
+    -- CyclicParentToChild_Test1(...);
+    -- CyclicParentToChild_Test2(...);  -- important
 end);

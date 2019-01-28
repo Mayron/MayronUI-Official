@@ -890,7 +890,7 @@ do
     -- Local Functions:
     do
         -- Adds all key and value pairs from fromTable onto toTable (replaces other non-table values)
-        local function AddTable(fromTable, toTable, protectedTable)
+        local function AddTable(fromTable, toTable, doNotReplace)
             for key, value in pairs(fromTable) do
                 if (obj:IsTable(value)) then
                     if (not (obj:IsString(key) and key:match("^__template"))) then
@@ -900,67 +900,44 @@ do
                             toTable[key] = obj:PopTable();
                         end
 
-                        if (obj:IsTable(protectedTable)) then
-                            AddTable(value, toTable[key], protectedTable[key]);
-                        else
-                            AddTable(value, toTable[key]);
-                        end
+                        AddTable(value, toTable[key], doNotReplace);
                     end
-                elseif (protectedTable == nil or (obj:IsTable(protectedTable) and protectedTable[key] == nil)) then
+                elseif (not doNotReplace or (doNotReplace and toTable[key] == nil)) then
                     toTable[key] = value;
                 end
             end
         end
 
-        local function AddParentTables(observer, merged, protectedTable, previousPaths)
-            for key, _ in pairs(merged) do
-                local child = observer[key];
-                local nextProtectedTable;
+        local function AddParentTables(observer, merged, isParent)
+            if (not isParent) then
+                for key, _ in pairs(merged) do
+                    -- own child parents only...
+                    local child = observer[key];
 
-                if (obj:IsTable(protectedTable)) then
-                    nextProtectedTable = protectedTable[key];
-                end
-
-                if (obj:IsType(child, "Observer")) then
-                    local childPath = child:GetPathAddress();
-                    local continue = true;
-
-                    for _, previousPath in ipairs(previousPaths) do
-                        if (childPath == previousPath) then
-                            continue = false;
-                            break;
-                        end
-                    end
-
-                    if (continue) then
-                        AddParentTables(child, merged[key], nextProtectedTable, previousPaths);
+                    if (obj:IsType(child, "Observer")) then
+                        -- avoid unnecessary table/tree scanning:
+                        AddParentTables(child, merged[key]);
                     end
                 end
             end
 
             local parent = observer:GetParent();
-
+            -- parent might have been added before but it needs to be applied to different unrelated nodes.
+            -- if the parent is also the parent of a child element contained inside itself
+            -- then we need to check for this.
             if (parent) then
-                local parentTable = ConvertObserverToUntrackedTable(parent, nil, previousPaths);
+                local parentTable = ConvertObserverToUntrackedTable(parent, nil, true);
 
-                if (parentTable and obj:IsTable(protectedTable) or protectedTable == nil) then
-                    AddTable(parentTable, merged, protectedTable);
+                if (parentTable) then
+                    AddTable(parentTable, merged, true);
                 end
             end
         end
 
-        function ConvertObserverToUntrackedTable(observer, reusableTable, previousPaths)
+        function ConvertObserverToUntrackedTable(observer, reusableTable, isParent)
             local merged = reusableTable or obj:PopTable();
             local svTable = observer:GetSavedVariable();
             local defaults = observer:GetDefaults();
-            local firstIteration;
-
-            if (not previousPaths) then
-                firstIteration = true;
-                previousPaths = obj:PopTable();
-            end
-
-            table.insert(previousPaths, observer:GetPathAddress());
 
             if (obj:IsTable(reusableTable)) then
                 obj:EmptyTable(reusableTable);
@@ -975,11 +952,7 @@ do
                 AddTable(svTable, merged);
             end
 
-            AddParentTables(observer, merged, svTable, previousPaths);
-
-            if (firstIteration) then
-                obj:PushTable(previousPaths);
-            end
+            AddParentTables(observer, merged, isParent);
 
             return merged;
         end
