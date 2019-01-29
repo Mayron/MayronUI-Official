@@ -67,7 +67,7 @@ function C_ConfigModule:GetDatabaseValue(_, configTable)
     local path = configTable.dbPath;
     local value;
 
-    if (type(path) == "function") then
+    if (obj:IsFunction(path)) then
         path = path();
     end
 
@@ -75,7 +75,17 @@ function C_ConfigModule:GetDatabaseValue(_, configTable)
     --     local color = db:ParsePathValue(path);
     --     value = { r = color.r, g = color.g, b = color.b, a = color.a };
     -- else
-        value = db:ParsePathValue(path);
+
+        if (configTable.name == "Left Button") then
+            DEBUGGING = true;
+            value = db:ParsePathValue(path);
+            DEBUGGING = nil;
+            print(configTable.dbPath);
+            print(path);
+            print(value); -- TODO: This is Nil!
+        else
+            value = db:ParsePathValue(path);
+        end
     -- end
 
     if (configTable.GetValue) then

@@ -301,7 +301,7 @@ do
 
         db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, valuePath)
             -- update settings:
-            local settingPath = valuePath:gsub(path..".", "");
+            local settingPath = valuePath:gsub(path..".", tk.Strings.Empty);
             db:SetPathValue(data.settings, settingPath, value);
 
             if (self:IsEnabled() or func == data.updateFunctions.enabled) then

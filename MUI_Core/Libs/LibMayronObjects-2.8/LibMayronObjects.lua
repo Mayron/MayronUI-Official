@@ -353,10 +353,11 @@ end
 
 function Lib:PrintTable(tbl, depth, n)
     n = n or 0;
-    depth = depth or 4;
+    depth = depth or 5;
 
     if (depth == 0) then
-        return
+        print(string.rep(' ', n).."...");
+        return;
     end
 
     if (n == 0) then
@@ -368,9 +369,13 @@ function Lib:PrintTable(tbl, depth, n)
             key = string.format("[\"%s\"]", key);
 
             if (self:IsTable(value)) then
-                print(string.rep(' ', n)..key.." = {");
-                self:PrintTable(value, depth - 1, n + 4);
-                print(string.rep(' ', n).."},");
+                if (next(value)) then
+                    print(string.rep(' ', n)..key.." = {");
+                    self:PrintTable(value, depth - 1, n + 4);
+                    print(string.rep(' ', n).."},");
+                else
+                    print(string.rep(' ', n)..key.." = {},");
+                end
             else
                 if (self:IsString(value)) then
                     value = string.format("\"%s\"", value);

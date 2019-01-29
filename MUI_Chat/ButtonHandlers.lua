@@ -2,6 +2,7 @@
 
 local _, namespace = ...;
 local C_ChatFrame = namespace.C_ChatFrame;
+local Engine = namespace.Engine;
 local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
 
 namespace.ButtonNames = {
@@ -162,28 +163,20 @@ end
 
 local function ChatFrame_OnModifierStateChanged(_, _, data)
     if (data.chatModuleSettings.swapInCombat or not _G.InCombatLockdown()) then
-        local updated = false;
-
-        for _, info in pairs(data.settings.buttons) do
-            if (info.key and tk:IsModComboActive(info.key)) then
-                data.buttons[1]:SetText(info[1]);
-                data.buttons[2]:SetText(info[2]);
-                data.buttons[3]:SetText(info[3]);
-                updated = true;
-                break;
+        for _, buttonStateData in ipairs(data.settings.buttons) do
+            if (not buttonStateData.key or (buttonStateData.key and tk:IsModComboActive(buttonStateData.key))) then
+                data.buttons[1]:SetText(buttonStateData[1]);
+                data.buttons[2]:SetText(buttonStateData[2]);
+                data.buttons[3]:SetText(buttonStateData[3]);
             end
-        end
-
-        if (not updated) then
-            local info = data.settings.buttons[1];
-            data.buttons[1]:SetText(info[1]);
-            data.buttons[2]:SetText(info[2]);
-            data.buttons[3]:SetText(info[3]);
         end
     end
 end
 
-function C_ChatFrame:SetUpButtonHandler(data)
+Engine:DefineParams("table")
+function C_ChatFrame:SetUpButtonHandler(data, buttonSettings)
+    data.settings.buttons = buttonSettings;
+
     em:CreateEventHandlerWithKey("MODIFIER_STATE_CHANGED", "ChatFrame_OnModifierStateChanged",
         ChatFrame_OnModifierStateChanged, data):Run();
 

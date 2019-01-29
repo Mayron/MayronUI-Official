@@ -223,6 +223,7 @@ end
 function C_DataTextModule:OrderDataTextButtons(data)
     data.orderedButtons = data.orderedButtons or obj:PopTable();
     data.positionedButtons = data.positionedButtons or obj:PopTable();
+    data.totalActiveButtons = 0;
 
     for _, dataModule in pairs(data.DataModules) do
 
@@ -235,6 +236,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
                 -- ensure that buttons are only ordered once!
                 data.orderedButtons[displayOrder] = btn;
                 data.positionedButtons[dbName] = true;
+                data.totalActiveButtons = data.totalActiveButtons + 1;
                 dataModule:Update();
             end
         end
@@ -242,7 +244,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
 end
 
 function C_DataTextModule:PositionDataTextButtons(data)
-    local itemWidth = data.buiContainer:GetWidth() / #data.orderedButtons;
+    local itemWidth = data.buiContainer:GetWidth() / data.totalActiveButtons;
     local previousButton;
 
     -- some indexes might have a nil value as display order is configurable by the user

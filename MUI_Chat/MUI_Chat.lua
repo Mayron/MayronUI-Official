@@ -156,10 +156,12 @@ function C_ChatModule:OnInitialize(data)
 
 				if (settings.enabled and not muiChatFrame) then
 					muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
+					data.chatFrames[anchorName] = muiChatFrame;
 				end
 
 				if (muiChatFrame) then
 					muiChatFrame:SetEnabled(settings.enabled);
+					muiChatFrame:SetUpButtonHandler(settings.buttons);
 				end
 			end
 		end;
@@ -197,8 +199,6 @@ function C_ChatModule:OnInitialize(data)
 			end;
 		};
 	}, setupOptions);
-
-	MayronUI:PrintTable(data.settings);
 
 	self:SetEnabled(true);
 end

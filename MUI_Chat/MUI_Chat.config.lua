@@ -155,7 +155,8 @@ function C_ChatModule:GetConfigTable()
                         module = "Chat",
                         inherit = {
                             type = "dropdown",
-                            options = namespace.ButtonNames,
+                            options = namespace.ButtonNames;
+                            valueLabels = true;
                         },
                         children = { -- shame I can't loop this
                             {   name = L["Enable Chat Frame"],

@@ -272,25 +272,40 @@ Trigger an update function located by the path argument and pass any arguments t
 @param (optional any) newValue: the new value assigned to the database
 ]]
 Framework:DefineParams("string");
-function Database:TriggerUpdateFunction(data, path, newValue)
-    local updateFunc = self:ParsePathValue(data.updateFunctions, path);
+function Database:TriggerUpdateFunction(data, updatePath, newValue, rootTable, path)
+    local valuePath = path;
+    local selectedValue = newValue;
+    local updateFunctionPath = updatePath;
+    local updateFunction = self:ParsePathValue(data.updateFunctions, updatePath);
 
-    if (not obj:IsFunction(updateFunc)) then
+    while (not obj:IsFunction(updateFunction) and valuePath:find("[.[]")) do
+        updateFunctionPath = updateFunctionPath:match('(.+)[.[]');
+        valuePath = valuePath:match('(.+)[.[]');
+
+        updateFunction = self:ParsePathValue(data.updateFunctions, updateFunctionPath);
+        selectedValue = self:ParsePathValue(rootTable, valuePath);
+    end
+
+    if (not obj:IsFunction(updateFunction)) then
         return;
     end
 
-    local manualFunc;
-    local manualFunctionPath = path;
+    if (obj:IsType(selectedValue, "Observer")) then
+        selectedValue = selectedValue:GetUntrackedTable();
+    end
 
-    while (manualFunc == nil and manualFunctionPath:find("[.[]")) do
-        manualFunc = data.manualUpdateFunctions[manualFunctionPath];
+    local manualFunction;
+    local manualFunctionPath = updatePath;
+
+    while (not obj:IsFunction(manualFunction) and manualFunctionPath:find("[.[]")) do
+        manualFunction = data.manualUpdateFunctions[manualFunctionPath];
         manualFunctionPath = manualFunctionPath:match('(.+)[.[]');
     end
 
-    if (obj:IsFunction(manualFunc)) then
-        manualFunc(updateFunc, newValue, path);
+    if (obj:IsFunction(manualFunction)) then
+        manualFunction(updateFunction, selectedValue, updateFunctionPath);
     else
-        updateFunc(newValue);
+        updateFunction(selectedValue, updateFunctionPath);
     end
 end
 
@@ -311,6 +326,7 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     local updateFunctionRoot;
 
     obj:Assert(obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
+    obj:Assert(path and not path:find("__template"), "Invalid path address '%s'.", path);
 
     if (rootTable == self.global) then
         updateFunctionRoot = "global";
@@ -336,14 +352,14 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
         "Database:SetPathValue failed to set value");
 
     -- set value here!
-    if (lastTable.GetObjectType and lastTable:IsObjectType("Observer")) then
+    if (lastTable.IsObjectType and lastTable:IsObjectType("Observer")) then
         local observerData = data:GetFriendData(lastTable);
         data.helper:HandlePathValueChange(observerData, lastKey, realValue);
 
         if (updateFunctionRoot) then
             -- only run update function if the database saved variable table changes!
             local updateFunctionPath = string.format("%s.%s", updateFunctionRoot, path);
-            self:TriggerUpdateFunction(updateFunctionPath, realValue);
+            self:TriggerUpdateFunction(updateFunctionPath, realValue, rootTable, path);
         end
     else
         lastTable[lastKey] = realValue;
@@ -367,9 +383,8 @@ function Database:ParsePathValue(_, rootTableOrPath, pathOrNil)
     local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrNil);
 
     for _, key in obj:IterateArgs(strsplit(".", path)) do
-
-        if (rootTable == nil or type(rootTable) ~= "table") then
-            break;
+        if (rootTable == nil or not obj:IsTable(rootTable)) then
+            return nil;
         end
 
         if (tonumber(key)) then
@@ -392,13 +407,13 @@ function Database:ParsePathValue(_, rootTableOrPath, pathOrNil)
                 rootTable = rootTable[key];
             end
 
-            if (indexes and type(rootTable) == "table") then
+            if (indexes and obj:IsTable(rootTable)) then
                 for _, indexKey in ipairs(indexes) do
                     indexKey = tonumber(indexKey) or indexKey;
                     rootTable = rootTable[indexKey];
 
-                    if (rootTable == nil or type(rootTable) ~= "table") then
-                        break;
+                    if (rootTable == nil or not obj:IsTable(rootTable)) then
+                        return nil;
                     end
                 end
             end

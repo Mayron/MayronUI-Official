@@ -18,9 +18,6 @@ function C_ChatFrame:__Construct(data, anchorName, chatModule, chatModuleSetting
 	data.chatModuleSettings = chatModuleSettings;
 	data.settings = chatModuleSettings.chatFrames[anchorName];
 
-	-- local muiChatFrame = self:ShowMuiChatFrame(anchorName);
-	-- self:SetUpButtonHandler(muiChatFrame, settings.buttons);
-
 	if (anchorName == "TOPLEFT") then
 		if (tk.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
 			chatModule:SetUpRaidFrameManager();
@@ -113,8 +110,6 @@ function C_ChatFrame:CreateButtons(data, sideBar)
 			end
 		end
 	end
-
-	self:SetUpButtonHandler();
 end
 
 --@param (string) anchorName: The anchor point for the chat frame (i.e. "TOPLEFT")
@@ -160,7 +155,7 @@ function C_ChatFrame:CreateFrame(data)
 		muiChatFrame.layoutButton:GetHighlightTexture()
 	);
 
-	muiChatFrame.buttons = self:CreateButtons(muiChatFrame.sidebar);
+	self:CreateButtons(muiChatFrame.sidebar);
 
 	return muiChatFrame;
 end

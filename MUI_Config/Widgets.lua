@@ -264,7 +264,13 @@ function WidgetHandlers.dropdown:Run(parent, widgetConfigTable, value)
     TransferDatabaseInfo(dropdown, widgetConfigTable); -- Problem
 
     for key, dropDownValue in pairs(options) do
-        local option = dropdown:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
+        local option;
+
+        if (widgetConfigTable.valueLabels) then
+            option = dropdown:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
+        else
+            option = dropdown:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
+        end
 
         if (widgetConfigTable.fontPicker) then
             option:GetFontString():SetFont(tk.Constants.LSM:Fetch("font", key), 11);

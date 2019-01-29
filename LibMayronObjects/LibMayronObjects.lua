@@ -353,10 +353,11 @@ end
 
 function Lib:PrintTable(tbl, depth, n)
     n = n or 0;
-    depth = depth or 4;
+    depth = depth or 5;
 
     if (depth == 0) then
-        return
+        print(string.rep(' ', n).."...");
+        return;
     end
 
     if (n == 0) then
