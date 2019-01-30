@@ -13,7 +13,8 @@ namespace.dataTextLabels = {
     ["memory"]            = "Memory",
     ["performance"]       = "Performance",
     ["specialization"]    = "Specialization",
-    ["none"]              = "None"
+    ["none"]              = "None";
+    ["disabled"]          = "Disabled"
 };
 
 -- Objects -----------------------------

@@ -462,7 +462,9 @@ end
 function Private:LoadInfoMenu(menuSection)
     local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
-    menuSection.info, menuSection.child = gui:CreateScrollFrame(tk.Constants.AddOnStyle, menuSection);
+    menuSection.info = gui:CreateScrollFrame(tk.Constants.AddOnStyle, menuSection);
+    menuSection.child = menuSection.info.ScrollFrame:GetScrollChild();
+
     tk:SetFullWidth(menuSection.child);
     menuSection.child:SetHeight(900); -- can't use GetStringHeight
 

@@ -314,6 +314,7 @@ do
             data.right.bg = tk:SetBackground(data.right, doubleTextureFilePath);
             data.right.bg:SetTexCoord(1, 0, 0, 1);
 
+            -- TODO: Should be configurable using theme color (need a callback "OnRegisteredPropertyUpdate")
             tk:ApplyThemeColor(data.settings.alpha,
                 data.left.bg,
                 data.center.bg,

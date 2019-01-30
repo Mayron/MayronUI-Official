@@ -339,7 +339,6 @@ do
                 end
 
                 if (path:match(ignoreValue)) then
-                    print("path: "..path..", ignoreValue: "..ignoreValue);
                     return true;
                 end
             end

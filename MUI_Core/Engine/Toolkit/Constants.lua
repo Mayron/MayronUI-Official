@@ -42,6 +42,19 @@ tk.Constants = {
         "TOOLTIP";
     };
 
+    ORDERED_POINTS = {
+        -- Index table ordered by strata level
+        "LEFT";
+        "CENTER";
+        "RIGHT";
+        "TOP";
+        "BOTTOM";
+        "TOPLEFT";
+        "TOPRIGHT";
+        "BOTTOMLEFT";
+        "BOTTOMRIGHT";
+    };
+
     FRAME_STRATAS = {
         -- hash-table (key/value pair) version:
         BACKGROUND          = "BACKGROUND";

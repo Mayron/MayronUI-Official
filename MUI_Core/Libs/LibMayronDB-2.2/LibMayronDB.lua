@@ -137,7 +137,6 @@ function Database:__Construct(data, addOnName, savedVariableName)
     data.svName = savedVariableName;
     data.callbacks = obj:PopTable();
     data.helper = Helper(self, data);
-
     -- holds all database defaults to check first before searching database
     data.defaults = obj:PopTable();
     data.updateFunctions = obj:PopTable();
@@ -381,55 +380,59 @@ Example: value = db:ParsePathValue(db.profile, "mySettings[" .. moduleName .. "]
 Framework:DefineParams("table|string", "?string");
 function Database:ParsePathValue(_, rootTableOrPath, pathOrNil)
     local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrNil);
+    local values = obj:PopTable(_G.strsplit(".", path));
+    local length = #values;
+    local iterations = 0;
 
-    for _, key in obj:IterateArgs(strsplit(".", path)) do
+    for _, key in ipairs(values) do
         if (rootTable == nil or not obj:IsTable(rootTable)) then
-            return nil;
+            break;
         end
 
         if (tonumber(key)) then
             key = tonumber(key);
             rootTable = rootTable[key];
+            iterations = iterations + 1;
         else
             local indexes;
 
             if (key:find("%b[]")) then
                 indexes = {};
+
                 for index in key:gmatch("(%b[])") do
                     index = index:match("%[(.+)%]");
                     table.insert(indexes, index);
                 end
+
+                length = length + #indexes;
             end
 
-            key = strsplit("[", key);
+            key = _G.strsplit("[", key);
 
             if (#key > 0) then
                 rootTable = rootTable[key];
+                iterations = iterations + 1;
             end
 
             if (indexes and obj:IsTable(rootTable)) then
                 for _, indexKey in ipairs(indexes) do
                     indexKey = tonumber(indexKey) or indexKey;
                     rootTable = rootTable[indexKey];
+                    iterations = iterations + 1;
 
                     if (rootTable == nil or not obj:IsTable(rootTable)) then
-
-                        if (DEBUGGING) then
-                            print("Failed2: "..tostring(key).." : "..tostring(indexKey).." : "..tostring(path))
-                        end
-
-                        return nil;
+                        break;
                     end
                 end
             end
         end
     end
 
-    if (DEBUGGING and rootTable == nil) then
-        print("Failed3: "..tostring(path))
+    if (iterations == length) then
+        return rootTable;
     end
 
-    return rootTable;
+    return nil;
 end
 
 --[[
@@ -730,6 +733,7 @@ Observer.Static:OnIndexed(function(self, data, key, realValue)
 
         if (defaults ~= nil) then
             local parentData = data:GetFriendData(data.parent);
+            data.helper:SetUsingChild(data.isGlobal, data.path, data.parent);
             foundValue = data.helper:GetNextValue(parentData, defaults, key);
         end
     end
@@ -938,7 +942,7 @@ do
                     -- own child parents only...
                     local child = observer[key];
 
-                    if (obj:IsType(child, "Observer")) then
+                    if (obj:IsType(child, "Observer") and obj:IsTable(merged[key])) then
                         -- avoid unnecessary table/tree scanning:
                         AddParentTables(child, merged[key]);
                     end
@@ -1373,6 +1377,10 @@ function Helper:GetNextValue(data, previousObserverData, tbl, key)
     local nextPath = GetNextPath(previousObserverData.path, key);
     local nextObserverData = data:GetFriendData(nextObserver);
     nextObserverData.path = nextPath;
+
+    if (previousObserverData.parent) then
+        nextObserverData.parent = previousObserverData.parent[key];
+    end
 
     -- get next child path in use
     if (previousObserverData.usingChild) then

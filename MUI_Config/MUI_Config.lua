@@ -61,35 +61,30 @@ function C_ConfigModule:OnProfileChange() end
 Engine:DefineParams("table");
 function C_ConfigModule:GetDatabaseValue(_, configTable)
     if (tk.Strings:IsNilOrWhiteSpace(configTable.dbPath)) then
-        return configTable.GetValue and configTable.GetValue();
+        return configTable.GetValue and configTable:GetValue();
     end
 
-    local path = configTable.dbPath;
-    local value;
-
-    if (obj:IsFunction(path)) then
-        path = path();
+    if (obj:IsFunction(configTable.dbPath)) then
+        configTable.dbPath = configTable.dbPath();
     end
 
-    -- if (configTable.type == "color") then
-    --     local color = db:ParsePathValue(path);
-    --     value = { r = color.r, g = color.g, b = color.b, a = color.a };
-    -- else
+    local value = db:ParsePathValue(configTable.dbPath);
 
-        if (configTable.name == "Left Button") then
-            DEBUGGING = true;
-            value = db:ParsePathValue(path);
-            DEBUGGING = nil;
-            print(configTable.dbPath);
-            print(path);
-            print(value); -- TODO: This is Nil!
-        else
-            value = db:ParsePathValue(path);
-        end
-    -- end
+    if (obj:IsTable(value) and value.GetUntrackedTable) then
+        value = value:GetTrackedTable();
+    end
 
     if (configTable.GetValue) then
-        value = configTable.GetValue(path, value);
+        value = configTable:GetValue(value);
+    end
+
+    if (value == nil) then
+        if (configTable.GetValue) then
+            obj:Error("nil config value retrieved from database path '%s' (using GetValue on '%s')",
+                configTable.dbPath, configTable.name);
+        else
+            obj:Error("nil config value retrieved from database path '%s'", configTable.dbPath);
+        end
     end
 
     return value;

@@ -154,6 +154,48 @@ local function UsingParentDefaults_Test1(self) -- luacheck: ignore
     print("UsingParentDefaults_Test1 Successful!");
 end
 
+local function UsingParentDefaults_Test2(self) -- luacheck: ignore
+    print("UsingParentDefaults_Test2 Started");
+
+
+    db:AddToDefaults("profile.chat", {
+        chatFrames = {
+            -- these tables will contain the templateMuiChatFrame data (using SetParent)
+            TOPLEFT = {
+                enabled = true;
+            };
+        };
+
+        __templateChatFrame = {
+            buttons = {
+                {   "Character";
+                    "Spell Book";
+                    "Talents";
+                };
+                {   "Friends";
+                    "Guild";
+                    "Quest Log";
+                };
+                {   "Achievements";
+                    "Collections Journal";
+                    "Encounter Journal";
+                };
+            };
+        };
+    });
+
+    self.profile.chat.chatFrames.TOPLEFT:SetParent(self.profile.chat.__templateChatFrame);
+
+    assert(self.profile.chat.chatFrames.TOPLEFT.buttons[1][1] == "Character");
+
+    self.profile.chat.chatFrames.TOPLEFT.buttons[1][1] = "Bag";
+
+    assert(self.profile.chat.chatFrames.TOPLEFT.buttons[1][1] == "Bag");
+    assert(self.profile.chat.chatFrames.TOPLEFT.buttons[2][1] == "Friends"); -- buttons is now in SV but [2] is missing
+
+    print("UsingParentDefaults_Test2 Successful!");
+end
+
 local function UpdatingToDefaultValueShouldRemoveSavedVariableValue_Test1(self) -- luacheck: ignore
     print("UpdatingToDefaultValueShouldRemoveSavedVariableValue_Test1 Started");
 
@@ -814,6 +856,7 @@ local function CyclicParentToChild_Test2(self) -- luacheck: ignore
 end
 
 db:OnStartUp(function(...) -- luacheck: ignore
+
     -- /console scriptErrors 1 - to display Lua errors
     -- OnStartUp_Test1(...);
     -- ChangeProfile_Test1(...);
@@ -822,6 +865,7 @@ db:OnStartUp(function(...) -- luacheck: ignore
     -- UsingParentObserver_Test2(...);
     -- UsingParentObserver_Test3(...);
     -- UsingParentDefaults_Test1(...);
+    -- UsingParentDefaults_Test2(...);
     -- UpdatingToDefaultValueShouldRemoveSavedVariableValue_Test1(...);
     -- UpdatingSameValueMultipleTimes_Test1(...);
     -- CleaningUpWithNilValue_Test1(...);

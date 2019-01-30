@@ -52,7 +52,11 @@ local function CreateButtonConfigTable(dbPath, buttonID)
             dbPath = string.format("%s.buttons[%d].key", dbPath, buttonID),
 
             GetValue = function(_, currentValue)
-                return currentValue and currentValue:find(modKeyFirstChar);
+                if (currentValue:find(modKeyFirstChar)) then
+                    return true;
+                end
+
+                return false;
             end,
 
             SetValue = function(valueDbPath, oldValue, newValue)
@@ -156,12 +160,11 @@ function C_ChatModule:GetConfigTable()
                         inherit = {
                             type = "dropdown",
                             options = namespace.ButtonNames;
-                            valueLabels = true;
                         },
                         children = { -- shame I can't loop this
                             {   name = L["Enable Chat Frame"],
                                 type = "check",
-                                requires_reload = true,
+                                requiresReload = true,
                                 dbPath = string.format("%s.enabled", dbPath),
                             },
                         }

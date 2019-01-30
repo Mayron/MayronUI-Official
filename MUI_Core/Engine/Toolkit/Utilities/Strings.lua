@@ -130,5 +130,5 @@ function tk.Strings:Join(separator, ...)
 end
 
 function tk.Strings:JoinWithSpace(...)
-    return self:Join(tk.Strings.Space, ...);
+    return tk.Strings:Join(tk.Strings.Space, ...);
 end

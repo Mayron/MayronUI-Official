@@ -53,8 +53,8 @@ local function GetValue(configTable, attributeName, ...)
         return configTable[funcName](configTable, ...);
     end
 
-    tk:Error("Required attribute '%s' missing for %s widget in config table '%s'.",
-        attributeName, configTable.type, configTable.name);
+    obj:Error("Required attribute '%s' missing for %s widget in config table '%s' using database path '%s'",
+        attributeName, configTable.type, configTable.name, configTable.dbPath);
 end
 
 --------------
@@ -144,13 +144,15 @@ function WidgetHandlers.check:Run(parent, widgetConfigTable, value)
         cbContainer:SetHeight(widgetConfigTable.height);
     end
 
-    if (widgetConfigTable.enabled) then
-        if (obj:IsFunction(widgetConfigTable.enabled)) then
-            local enabled = widgetConfigTable:enabled();
-            cbContainer.btn:SetEnabled(enabled);
-        else
-            cbContainer.btn:SetEnabled(widgetConfigTable.enabled);
-        end
+    if (obj:IsFunction(widgetConfigTable.enabled)) then
+        local enabled = widgetConfigTable:enabled();
+        cbContainer.btn:SetEnabled(enabled);
+
+    elseif (widgetConfigTable.enabled ~= nil) then
+        cbContainer.btn:SetEnabled(widgetConfigTable.enabled);
+
+    else
+        cbContainer.btn:SetEnabled(true);
     end
 
     return cbContainer;
@@ -266,7 +268,7 @@ function WidgetHandlers.dropdown:Run(parent, widgetConfigTable, value)
     for key, dropDownValue in pairs(options) do
         local option;
 
-        if (widgetConfigTable.valueLabels) then
+        if (tonumber(key) or widgetConfigTable.useNumberedKeys) then
             option = dropdown:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
         else
             option = dropdown:AddOption(key, DropDown_OnSelectedValue, dropDownValue);

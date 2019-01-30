@@ -91,7 +91,7 @@ function C_DataTextModule:GetConfigTable()
                     local child = {
                         name = tk.Strings:JoinWithSpace("Button", id),
                         type = "dropdown",
-                        dbPath = string.format("profile.datatext.displayOrder[%s]", id),
+                        dbPath = string.format("profile.datatext.displayOrders[%s]", id),
                         GetOptions = function()
                             local options = {};
 
@@ -102,6 +102,10 @@ function C_DataTextModule:GetConfigTable()
                             return options;
                         end,
                         GetValue = function(_, svName)
+                            if (svName == nil) then
+                                svName = "disabled";
+                            end
+
                             -- return label
                             return namespace.dataTextLabels[svName];
                         end,
