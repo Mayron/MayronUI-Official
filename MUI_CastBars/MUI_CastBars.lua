@@ -19,7 +19,7 @@ namespace.C_CastBarsModule = C_CastBarsModule;
 -- Load Database Defaults --------------
 
 db:AddToDefaults("profile.castbars", {
-    templateCastBar = {
+    __templateCastBar = {
         enabled = true,
         width = 250,
         height = 27,
@@ -348,16 +348,16 @@ function C_CastBar:UpdateAppearance(data)
     data.frame:SetBackdropBorderColor(appearance.colors.border.r, appearance.colors.border.g,
         appearance.colors.border.b, appearance.colors.border.a);
 
-    if (not data.latency_bar and data.unitID == "player" and data.settings.showLatency) then
-        data.latency_bar = data.frame.statusbar:CreateTexture(nil, "BACKGROUND");
-        data.latency_bar:SetColorTexture(
+    if (not data.latencyBar and data.unitID == "player" and data.settings.showLatency) then
+        data.latencyBar = data.frame.statusbar:CreateTexture(nil, "BACKGROUND");
+        data.latencyBar:SetColorTexture(
             appearance.colors.latency.r,
             appearance.colors.latency.g,
             appearance.colors.latency.b,
             appearance.colors.latency.a
         );
-        data.latency_bar:SetPoint("TOPRIGHT");
-        data.latency_bar:SetPoint("BOTTOMRIGHT");
+        data.latencyBar:SetPoint("TOPRIGHT");
+        data.latencyBar:SetPoint("BOTTOMRIGHT");
     end
 
     if (not data.icon and data.settings.showIcon) then
@@ -432,7 +432,7 @@ function C_CastBar:StartCasting(data, channelling)
 		data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
     end
 
-    if (data.latency_bar and data.latency and data.latency > 0) then
+    if (data.latencyBar and data.latency and data.latency > 0) then
         if (data.settings.showLatency) then
             local width = tk.math.floor(data.frame.statusbar:GetWidth() + 0.5);
             local percent = (_G.GetTime() - data.latency);
@@ -441,13 +441,13 @@ function C_CastBar:StartCasting(data, channelling)
             if (latency_width >= width) then latency_width = 1; end
             if (latency_width == 0) then latency_width = 1; end
             if (latency_width == 1) then
-                data.latency_bar:Hide();
+                data.latencyBar:Hide();
             else
-                data.latency_bar:Show();
+                data.latencyBar:Show();
             end
-            data.latency_bar:SetWidth(latency_width);
+            data.latencyBar:SetWidth(latency_width);
         else
-            data.latency_bar:Hide();
+            data.latencyBar:Hide();
         end
     end
 
@@ -606,22 +606,87 @@ do
     end
 end
 
-function C_CastBarsModule:OnInitialize()
+function C_CastBarsModule:OnInitialize(data)
     local r, g, b = tk:GetThemeColor();
+
     db:AddToDefaults("profile.castbars.appearance.colors.normal", {
         r = r, g = g, b = b, a = 0.7
     });
 
     appearance = db.profile.castbars.appearance:GetUntrackedTable();
 
+    local setupOptions = {
+        groups = {
+            ["__groupPosition"] = {
+                "%.(position|anchorToSUF)$";
+            };
+        };
+    };
+
+    self:RegisterUpdateFunctions("profile.castbars", {
+        appearance = {
+            texture = function(value)
+                
+            end;
+
+            border = function(value)
+                
+            end;
+
+            borderSize = function(value)
+                
+            end;
+
+            inset = function(value)
+                
+            end;
+
+            colors = {
+                finished = function(value)
+                
+                end;
+
+                interrupted = function(value)
+                
+                end;
+
+                border = function(value)
+                
+                end;
+
+                backdrop = function(value)
+                
+                end;
+
+                latency = function(value)
+                
+                end;
+            };
+        };
+
+        __groupPosition = function(value, key)
+            if (data.bars[key]) then
+                data.bars[key]:PositionCastBar();
+            end
+        end;
+        player = {
+            showLatency = function(value)
+                
+            end;
+        };
+        mirror = {
+
+        };
+    }, setupOptions);
+
 	for _, name in obj:IterateArgs("player", "target", "focus", "mirror") do
         local sv = db.profile.castbars[name];
-        sv:SetParent(db.profile.castbars.templateCastBar);
+        sv:SetParent(db.profile.castbars.__templateCastBar);
 
         local settings = sv:GetUntrackedTable();
 
 		if (settings.enabled) then
-            namespace.bars[name] = CreateCastBar(name, settings);
+            data.bars[name] = CreateCastBar(name, settings);
 		end
 	end
 end
@@ -690,8 +755,8 @@ function C_CastBarsModule:OnConfigUpdate(data, list, value)
                     if (castbar) then
                         local otherData = C_CastBar.Static:GetData(castbar);
 
-                        if (otherData.latency_bar) then
-                            otherData.latency_bar:SetColorTexture(value.r, value.g, value.b, value.a);
+                        if (otherData.latencyBar) then
+                            otherData.latencyBar:SetColorTexture(value.r, value.g, value.b, value.a);
                         end
                     end
                 end

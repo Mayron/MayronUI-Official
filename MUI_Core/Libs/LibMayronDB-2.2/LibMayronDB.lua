@@ -276,17 +276,15 @@ function Database:TriggerUpdateFunction(data, updatePath, newValue, rootTable, p
     local selectedValue = newValue;
     local updateFunctionPath = updatePath;
     local updateFunction = self:ParsePathValue(data.updateFunctions, updatePath);
+    local lastKey;
 
     while (not obj:IsFunction(updateFunction) and valuePath:find("[.[]")) do
         updateFunctionPath = updateFunctionPath:match('(.+)[.[]');
         valuePath = valuePath:match('(.+)[.[]');
+        lastKey = valuePath:match("^.*[.[]([^]]*)]?") or valuePath;
 
         updateFunction = self:ParsePathValue(data.updateFunctions, updateFunctionPath);
         selectedValue = self:ParsePathValue(rootTable, valuePath);
-    end
-
-    if (not obj:IsFunction(updateFunction)) then
-        return;
     end
 
     if (obj:IsType(selectedValue, "Observer")) then
@@ -302,9 +300,10 @@ function Database:TriggerUpdateFunction(data, updatePath, newValue, rootTable, p
     end
 
     if (obj:IsFunction(manualFunction)) then
-        manualFunction(updateFunction, selectedValue, updateFunctionPath);
-    else
-        updateFunction(selectedValue, updateFunctionPath);
+        manualFunction(updateFunction, selectedValue, lastKey, updateFunctionPath);
+
+    elseif (obj:IsFunction(updateFunction)) then
+        updateFunction(selectedValue, lastKey, updateFunctionPath);
     end
 end
 

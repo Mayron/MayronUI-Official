@@ -71,6 +71,10 @@ function Lib:IsNil(value)
     return type(value) == Lib.Types.Nil;
 end
 
+function Lib:IsStringNilOrWhiteSpace(value)
+    return Core:IsStringNilOrWhiteSpace(value);
+end
+
 -- Helper function to check if value is a specified type
 -- @param value: The value to check the type of (can be nil)
 -- @param expectedTypeName: The exact type to check for (can be ObjectType)

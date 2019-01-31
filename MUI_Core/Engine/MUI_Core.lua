@@ -257,8 +257,29 @@ function BaseModule:Hook(_, eventName, func)
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
+local function FindMatchingGroupName(groups, path)
+    for groupName, pathPatterns in pairs(groups) do
+        for _, pathPattern in ipairs(pathPatterns) do
+
+            if (pathPattern:find("%(.*|.*%)")) then
+                local optionalKeys = pathPattern:match("(%(.*|.*%)).*");
+
+                for key in string.gmatch(optionalKeys, "([^(|)]+)") do
+                    local concretePath = pathPattern:gsub("%(.*|.*%)", key);
+
+                    if (not obj:IsStringNilOrWhiteSpace(concretePath) and path:match(concretePath)) then
+                        return groupName;
+                    end
+                end
+            end
+        end
+    end
+
+    return nil;
+end
+
 do
-    local ignoreEnabledOption = { ignore = { "^enabled$" } };
+    local ignoreEnabledOption = { ignore = { "^enabled$", "^__group" } };
 
     Engine:DefineParams("Observer", "table", "?table");
     function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions, setupOptions)
@@ -287,6 +308,10 @@ do
                     if (not tk.Tables:Contains(data.setupOptions.ignore, "^enabled$")) then
                         table.insert(data.setupOptions.ignore, "^enabled$");
                     end
+
+                    if (not tk.Tables:Contains(data.setupOptions.ignore, "^__group")) then
+                        table.insert(data.setupOptions.ignore, "^__group");
+                    end
                 else
                     data.setupOptions.ignore = ignoreEnabledOption.ignore;
                 end
@@ -299,13 +324,22 @@ do
             end
         end
 
-        db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, valuePath)
+        db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, key, valuePath)
             -- update settings:
             local settingPath = valuePath:gsub(path..".", tk.Strings.Empty);
             db:SetPathValue(data.settings, settingPath, value);
 
             if (self:IsEnabled() or func == data.updateFunctions.enabled) then
-                func(value);
+
+                if (func ~= nil) then
+                    func(value, key, valuePath);
+                elseif (data.setupOptions.groups) then
+                    local foundGroupName = FindMatchingGroupName(data.setupOptions.groups, valuePath);
+
+                    if (foundGroupName and obj:IsFunction(updateFunctions[foundGroupName])) then
+                        updateFunctions[foundGroupName](value, key, valuePath);
+                    end
+                end
             end
         end);
     end
@@ -364,6 +398,12 @@ do
 
     local function ExecuteAllUpdateFunctions(functionTable, settingsTable, setupOptions, previousKey, executedTable, blockedTable)
         for key, functionValue in pairs(functionTable) do
+
+            -- if (key:find("^__group.+")) then
+
+            -- end
+
+
             local path = key;
             local settingsValue = settingsTable[key];
 
@@ -371,19 +411,22 @@ do
                 path = string.format("%s.%s", previousKey, key);
             end
 
+
+
             local blocked = GetBlocked(setupOptions, path, executedTable);
 
             if (blocked) then
-                blockedTable[path] = obj:PopTable(functionValue, settingsValue);
+                blockedTable[path] = obj:PopTable(functionValue, settingsValue, key, path);
             end
 
             local ignored = GetIgnored(setupOptions, path);
 
             if (not (ignored or blocked)) then
                 if (obj:IsFunction(functionValue)) then
+
                     if (not executedTable[path]) then
                         tk:Print("executed: ", path);
-                        functionValue(settingsValue);
+                        functionValue(settingsValue, key, path);
                         executedTable[path] = true;
                     end
 
@@ -414,7 +457,7 @@ do
                 local blocked = GetBlocked(data.setupOptions, path, executedTable);
 
                 if (not blocked) then
-                    blockedValue[1](blockedValue[2]);
+                    blockedValue[1](select(2, _G.unpack(blockedValue)));
                 else
                     blockedValues = true;
                 end
