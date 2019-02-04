@@ -31,7 +31,7 @@ end
 
 -- Inventory Module --------------
 
-MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataTextModule", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.inventory;
     sv:SetParent(db.profile.datatext);
 

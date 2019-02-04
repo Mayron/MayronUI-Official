@@ -1,6 +1,8 @@
 -- luacheck: ignore self 143 631
-local Lib = _G.LibStub:GetLibrary("LibMayronObjects");
+local Lib = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type Objects
 local Collections = Lib:CreatePackage("Collections", "Framework.System");
+
+---@class LinkedList : Object
 local LinkedList = Collections:CreateClass("LinkedList");
 
 local Node = {};
@@ -14,6 +16,11 @@ function LinkedList:__Construct(data, ...)
     LinkedListData[tostring(self)] = data;
 end
 
+function LinkedList:__Destruct()
+    self:Clear();
+end
+
+---@return string @A string containing the items of the LinkedList.
 function LinkedList:ToString()
     local name = tostring(self):gsub("table", "LinkedList");
     local str = " [";
@@ -29,23 +36,29 @@ function LinkedList:ToString()
     return name..str.."]";
 end
 
+---A helper function to print the LinkedList (which shows all items in the LinkedList).
 function LinkedList:Print()
     local str = self:ToString();
     print(str);
 end
 
+---Removes all items in the LinkedList.
 function LinkedList:Clear()
     while (self:RemoveFront()) do end
 end
 
+---@return number @The total number of items contained inside the LinkedList.
 function LinkedList:GetSize(data)
     return data.size;
 end
 
+---@return boolean @If true, the LinkedList contains no items.
 function LinkedList:IsEmpty(data)
     return data.front == nil;
 end
 
+---Add a value to the back of the LinkedList.
+---@param value any @The value to be added.
 function LinkedList:AddToBack(data, value)
     local node = Node:new(self, value);
 
@@ -61,6 +74,8 @@ function LinkedList:AddToBack(data, value)
     data.size = (data.size or 0) + 1;
 end
 
+---Add a value to the front of the LinkedList.
+---@param value any @The value to be added.
 function LinkedList:AddToFront(data, value)
     local node = Node:new(self, value);
 
@@ -76,6 +91,8 @@ function LinkedList:AddToFront(data, value)
     data.size = (data.size or 0) + 1;
 end
 
+---Removes the value found at the front of the LinkedList
+---@return boolean @Whether a value was found and then removed (will be false if LinkedList is empty).
 function LinkedList:RemoveFront(data)
     if (not data.front) then return false; end
     data.front:Destroy();
@@ -83,6 +100,8 @@ function LinkedList:RemoveFront(data)
     return true;
 end
 
+---Removes the value found at the back of the LinkedList
+---@return boolean @Whether a value was found and then removed (will be false if LinkedList is empty).
 function LinkedList:RemoveBack(data)
     if (not data.back) then return false; end
     data.back:Destroy();
@@ -90,6 +109,8 @@ function LinkedList:RemoveBack(data)
     return true;
 end
 
+---Iterates through the LinkedList comparing all items with the supplied value and removes the first item found that matches the value.
+---@return boolean @Whether a matching value was found and then removed (will be false if the LinkedList contains no matching value).
 function LinkedList:Remove(data, value)
     local node = data.front;
 
@@ -104,6 +125,7 @@ function LinkedList:Remove(data, value)
     return false;
 end
 
+---@return any @The first value at the front of the LinkedList.
 function LinkedList:GetFront(data, node)
     if (node) then
         return data.front;
@@ -112,6 +134,7 @@ function LinkedList:GetFront(data, node)
     end
 end
 
+---@return any @The first value at the back of the LinkedList.
 function LinkedList:GetBack(data, node)
     if (node) then
         return data.back;
@@ -120,6 +143,8 @@ function LinkedList:GetBack(data, node)
     end
 end
 
+---Removes the value found at the front of the LinkedList and also returns the removed value.
+---@return any @The first value at the back of the LinkedList.
 function LinkedList:PopFront()
     local value = self:GetFront();
     self:RemoveFront();
@@ -127,6 +152,8 @@ function LinkedList:PopFront()
     return value;
 end
 
+---Removes the value found at the back of the LinkedList and also returns the removed value.
+---@return any @The last value at the back of the LinkedList.
 function LinkedList:PopBack()
     local value = self:GetBack();
     self:RemoveBack();
@@ -134,19 +161,23 @@ function LinkedList:PopBack()
     return value;
 end
 
+---Returns all values in the LinkedList.
+---@param n number @(optional) The maximum number of items to unpack from the front of the LinkedList.
 function LinkedList:Unpack(_, n)
     n = n or 1;
-    local values = {};
+    local values = Lib:PopTable();
 
     for id, value in self:Iterate() do
         if (n <= id) then
-            table.insert(values, value);
+            _G.table.insert(values, value);
         end
     end
 
-    return _G.unpack(values);
+    return Lib:UnpackTable(values);
 end
 
+---Iterate through the values in the LinkedList.
+---@param backwards boolean @(optional) If true, values are iterated from the back of the LinkedList to the front.
 function LinkedList:Iterate(data, backwards)
     local node, id, step;
 
@@ -194,14 +225,19 @@ function Node:Destroy()
     end
 
     self.linkedListData.size = (self.linkedListData.size or 0) - 1;
+    Lib:PushTable(self);
 end
 
-function Node:new(linkedList, value)
-    local node = {};
-    node.value = value;
-    node.linkedListData = LinkedListData[tostring(linkedList)];
+do
+    local mt = { __index = Node };
 
-    return setmetatable(node, {__index = Node});
+    function Node:new(linkedList, value)
+        local node = Lib:PopTable();
+        node.value = value;
+        node.linkedListData = LinkedListData[tostring(linkedList)];
+
+        return setmetatable(node, mt);
+    end
 end
 
 function Node:GetObjectType()

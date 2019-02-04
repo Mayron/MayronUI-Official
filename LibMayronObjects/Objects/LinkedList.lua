@@ -14,6 +14,12 @@ function LinkedList:__Construct(data, ...)
     LinkedListData[tostring(self)] = data;
 end
 
+function LinkedList:__Destruct()
+    print("TAT")
+    self:Clear();
+end
+
+--TODO: Cannot be used automatically, must be explicitly called.
 function LinkedList:ToString()
     local name = tostring(self):gsub("table", "LinkedList");
     local str = " [";

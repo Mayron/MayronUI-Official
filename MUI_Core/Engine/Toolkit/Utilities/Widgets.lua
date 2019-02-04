@@ -2,7 +2,7 @@
 local _, namespace = ...;
 
 local obj = namespace.components.Objects;
-local tk = namespace.components.Toolkit;
+local tk = namespace.components.Toolkit; ---@type Toolkit
 
 function tk:SetFontSize(fontString, size)
     local fontPath, _, flags = fontString:GetFont();

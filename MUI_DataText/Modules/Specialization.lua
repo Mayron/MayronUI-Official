@@ -91,7 +91,7 @@ end
 
 -- Specialization Module --------------
 
-MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataTextModule", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.specialization;
     sv:SetParent(db.profile.datatext);
 

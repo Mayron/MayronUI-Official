@@ -4,14 +4,18 @@
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local Engine = namespace.Engine;
-local C_ChatFrame = namespace.C_ChatFrame;
 local tk, _, em, _, obj = MayronUI:GetCoreComponents();
-
 local MEDIA = "Interface\\AddOns\\MUI_Chat\\media\\";
+
+---@class ChatFrame;
+local C_ChatFrame = namespace.C_ChatFrame;
 
 -- C_ChatFrame -----------------------
 
-Engine:DefineParams("string", "Chat", "table");
+Engine:DefineParams("string", "ChatModule", "table");
+---@param anchorName string position of chat frame (i.e. "TOPLEFT")
+---@param chatModule ChatModule
+---@param chatModuleSettings table
 function C_ChatFrame:__Construct(data, anchorName, chatModule, chatModuleSettings)
 	data.anchorName = anchorName;
 	data.chatModule = chatModule;
@@ -33,6 +37,7 @@ function C_ChatFrame:__Construct(data, anchorName, chatModule, chatModuleSetting
 end
 
 Engine:DefineParams("boolean");
+---@param enabled boolean enable/disable the chat frame
 function C_ChatFrame:SetEnabled(data, enabled)
 	if (not data.frame and enabled) then
 		data.frame = self:CreateFrame();
@@ -58,6 +63,7 @@ function C_ChatFrame:SetEnabled(data, enabled)
 end
 
 Engine:DefineParams("Texture");
+---@param sideBar Texture used to position the chat frame buttons relative to the side bar
 function C_ChatFrame:CreateButtons(data, sideBar)
 	local butonMediaFile;
 	data.buttons = obj:PopTable();
@@ -112,8 +118,8 @@ function C_ChatFrame:CreateButtons(data, sideBar)
 	end
 end
 
---@param (string) anchorName: The anchor point for the chat frame (i.e. "TOPLEFT")
 Engine:DefineReturns("Frame");
+---@return Frame returns an MUI chat frame
 function C_ChatFrame:CreateFrame(data)
 	local muiChatFrame = tk:PopFrame("Frame");
 

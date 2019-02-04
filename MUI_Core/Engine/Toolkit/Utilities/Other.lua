@@ -6,7 +6,7 @@ namespace.components.Objects = LibStub:GetLibrary("LibMayronObjects");
 namespace.components.Toolkit = {};
 
 local obj = namespace.components.Objects;
-local tk = namespace.components.Toolkit;
+local tk = namespace.components.Toolkit; ---@type Toolkit
 
 tk.Numbers = {};
 

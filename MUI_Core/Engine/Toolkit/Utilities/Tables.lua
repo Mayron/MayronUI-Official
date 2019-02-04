@@ -1,12 +1,12 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 
-local obj = namespace.components.Objects;
-local tk = namespace.components.Toolkit;
+local obj = namespace.components.Objects; ---@type Objects
+local tk = namespace.components.Toolkit; ---@type Toolkit
 
 tk.Tables = {};
 
-local LinkedList = obj:Import("Framework.System.Collections.LinkedList");
+local LinkedList = obj:Import("Framework.System.Collections.LinkedList"); ---@type LinkedList
 -----------------------------
 
 function tk.Tables:GetKeys(tbl, keys)
@@ -44,8 +44,11 @@ function tk.Tables:GetTable(rootTable, ...)
     return currentTable;
 end
 
-function tk.Tables:Print(tbl, depth, n)
-    obj:PrintTable(tbl, depth, n);
+---A helper function to print a table's contents.
+---@param tbl table @The table to print.
+---@param depth number @The depth of sub-tables to traverse through and print.
+function tk.Tables:Print(tbl, depth)
+    obj:PrintTable(tbl, depth);
 end
 
 function tk.Tables:Contains(tbl, value)
@@ -188,9 +191,10 @@ end
 do
     local argsList;
 
-    -- breaks apart a database path address (i.e. "db.profiles['value'][1]")
-    -- to a LinkedList containing all sections
-    function tk.Tables:ConvertPathToKeys(path)
+    ---Breaks apart a table path string to a LinkedList containing all keys.
+    ---@param path string @A table path such as "db.profiles['value'][1]".
+    ---@return LinkedList @A LinkedList of keys.
+    function tk.Tables:ConvertPathToKeysList(path)
         argsList = argsList or LinkedList();
         argsList:Clear();
 

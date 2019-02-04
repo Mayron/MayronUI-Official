@@ -8,22 +8,26 @@ namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
 namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.components.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 
-local tk  = namespace.components.Toolkit;
-local db  = namespace.components.Database;
-local em  = namespace.components.EventManager;
-local gui = namespace.components.GUIBuilder;
-local obj = namespace.components.Objects;
-local L   = namespace.components.Locale;
+local tk  = namespace.components.Toolkit; ---@type Toolkit
+local db  = namespace.components.Database; ---@type Database
+local em  = namespace.components.EventManager; ---@type EventManager
+local gui = namespace.components.GUIBuilder; ---@type GUIBuilder
+local obj = namespace.components.Objects; ---@type Objects
+local L   = namespace.components.Locale; ---@type Locale
 
+---Gets the core components of MayronUI
+---@return Toolkit, Database, EventManager, GUIBuilder, Objects, Locale
 function MayronUI:GetCoreComponents()
     return tk, db, em, gui, obj, L;
 end
 
+---Get a single component registered with the MayronUI Engine
 function MayronUI:GetComponent(componentName)
     return namespace.components[componentName];
 end
 
-function MayronUI:AddComponent(componentName, component)
+---Register a custom component with the MayronUI Engine
+function MayronUI:RegisterComponent(componentName, component)
     namespace.components[componentName] = component;
 end
 
@@ -31,7 +35,10 @@ local registeredModules = {};
 
 -- Objects  ---------------------------
 
+---@class Engine : Package
 local Engine = obj:CreatePackage("Engine", "MayronUI");
+
+---@class BaseModule : Object
 local BaseModule = Engine:CreateClass("BaseModule");
 
 -- Load Database Defaults -------------
@@ -141,6 +148,10 @@ end
 -- BaseModule Object -------------------
 
 Engine:DefineReturns("string", "?boolean");
+---Should only be called by the register module method!
+---@param moduleKey string @The key used to register the module to MayronUI.
+---@param moduleName string @The human-friendly name of the module to be used in-game (such as on the config window).
+---@param initializeOnDemand boolean @(optional) If true, the module will not be initialized on start up automatically and can only be initialized by manually calling "Initialize()" on the module.
 function BaseModule:__Construct(data, moduleKey, moduleName, initializeOnDemand)
     local registryInfo = registeredModules[moduleKey];
     registeredModules[tostring(self)] = registryInfo;
@@ -153,6 +164,7 @@ function BaseModule:__Construct(data, moduleKey, moduleName, initializeOnDemand)
     registryInfo.moduleData = data;
 end
 
+---Initialize the module manually (on demand) or is called by MayronUI on startup.
 function BaseModule:Initialize(_, ...)
     if (self.OnInitialize) then
         self:OnInitialize(...);
@@ -178,22 +190,24 @@ function BaseModule:Initialize(_, ...)
             func(self, registryInfo.moduleData);
         end
     end
-
 end
 
 Engine:DefineReturns("string");
+---@return string @Returns the human-friendly name of the module to be used in-game (such as on the config window).
 function BaseModule:GetModuleName(_)
     local registryInfo = registeredModules[tostring(self)];
     return registryInfo.moduleName;
 end
 
 Engine:DefineReturns("string");
+---@return string @Returns the key used to register the module to MayronUI.
 function BaseModule:GetModuleKey(_)
     local registryInfo = registeredModules[tostring(self)];
     return registryInfo.moduleKey;
 end
 
 Engine:DefineParams("boolean");
+---@param enabled boolean
 function BaseModule:SetEnabled(data, enabled, ...)
     local registryInfo = registeredModules[tostring(self)];
     local hooks;
@@ -234,41 +248,47 @@ function BaseModule:SetEnabled(data, enabled, ...)
 end
 
 Engine:DefineReturns("boolean");
+---@return boolean @Returns true if the module has already been initialized.
 function BaseModule:IsInitialized()
     local registryInfo = registeredModules[tostring(self)];
     return registryInfo.initialized;
 end
 
 Engine:DefineReturns("boolean");
+---Returns whether the module should be initialized automatically on start up or manually.
+---@return boolean @If true, the module should be initialized on demand (manually) when required.
 function BaseModule:IsInitializedOnDemand()
     local registryInfo = registeredModules[tostring(self)];
     return registryInfo.initializeOnDemand == true;
 end
 
 Engine:DefineReturns("boolean");
+---@return boolean @Returns true if the module is enabled.
 function BaseModule:IsEnabled()
     local registryInfo = registeredModules[tostring(self)];
     return registryInfo.enabled;
 end
 
--- Hook more functions to a module event. Useful if module is spread across multiple files
+---Hook more functions to a module event. Useful if module is spread across multiple files
 function BaseModule:Hook(_, eventName, func)
     local registryInfo = registeredModules[tostring(self)];
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
-local function FindMatchingGroupName(groups, path)
-    for groupName, pathPatterns in pairs(groups) do
-        for _, pathPattern in ipairs(pathPatterns) do
+local function FindMatchingGroupFunction(groups, path)
+    for functionKey, groupPatterns in pairs(groups.groupPatterns) do
+        for _, pattern in ipairs(groupPatterns) do
+            if (path:find(pattern)) then
+                return groups.groupFunctions[functionKey];
 
-            if (pathPattern:find("%(.*|.*%)")) then
-                local optionalKeys = pathPattern:match("(%(.*|.*%)).*");
+            elseif (pattern:find("%(.*|.*%)")) then
+                local optionalKeys = pattern:match("(%(.*|.*%)).*");
 
                 for key in string.gmatch(optionalKeys, "([^(|)]+)") do
-                    local concretePath = pathPattern:gsub("%(.*|.*%)", key);
+                    local concretePath = pattern:gsub("%(.*|.*%)", key);
 
                     if (not obj:IsStringNilOrWhiteSpace(concretePath) and path:match(concretePath)) then
-                        return groupName;
+                        return groups.groupFunctions[functionKey];
                     end
                 end
             end
@@ -278,10 +298,31 @@ local function FindMatchingGroupName(groups, path)
     return nil;
 end
 
+local function ExecuteUpdateFunction(updateFunction, setupOptions, value, path, executedTable)
+    if (not obj:IsFunction(updateFunction) and setupOptions and setupOptions.groups) then
+        updateFunction = FindMatchingGroupFunction(setupOptions.groups, path);
+    end
+
+    if (obj:IsFunction(updateFunction)) then
+        local keysList = tk.Tables:ConvertPathToKeysList(path);
+
+        tk:Print("executed: ", path);
+        updateFunction(value, keysList);
+
+        if (obj:IsTable(executedTable)) then
+            executedTable[path] = true;
+        end
+    end
+end
+
 do
-    local ignoreEnabledOption = { ignore = { "^enabled$", "^__group" } };
+    local ignoreEnabledOption = { ignore = { "^enabled$" } };
 
     Engine:DefineParams("Observer", "table", "?table");
+    ---Executed when a profile is loaded and the UI needs to apply changes (this includes loading the initial profile on start up)
+    ---@param observer Observer The database observer node to attach the update functions to
+    ---@param updateFunctions table A table containing update functions mapped to settings
+    ---@param setupOptions table|nil An optional table containing options to control how update
     function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions, setupOptions)
         local path = observer:GetPathAddress();
 
@@ -309,9 +350,9 @@ do
                         table.insert(data.setupOptions.ignore, "^enabled$");
                     end
 
-                    if (not tk.Tables:Contains(data.setupOptions.ignore, "^__group")) then
-                        table.insert(data.setupOptions.ignore, "^__group");
-                    end
+                    -- if (not tk.Tables:Contains(data.setupOptions.ignore, "^__group")) then
+                    --     table.insert(data.setupOptions.ignore, "^__group");
+                    -- end
                 else
                     data.setupOptions.ignore = ignoreEnabledOption.ignore;
                 end
@@ -324,22 +365,13 @@ do
             end
         end
 
-        db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, key, valuePath)
+        db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, valuePath)
             -- update settings:
             local settingPath = valuePath:gsub(path..".", tk.Strings.Empty);
             db:SetPathValue(data.settings, settingPath, value);
 
             if (self:IsEnabled() or func == data.updateFunctions.enabled) then
-
-                if (func ~= nil) then
-                    func(value, key, valuePath);
-                elseif (data.setupOptions.groups) then
-                    local foundGroupName = FindMatchingGroupName(data.setupOptions.groups, valuePath);
-
-                    if (foundGroupName and obj:IsFunction(updateFunctions[foundGroupName])) then
-                        updateFunctions[foundGroupName](value, key, valuePath);
-                    end
-                end
+                ExecuteUpdateFunction(func, data.setupOptions, value, valuePath);
             end
         end);
     end
@@ -352,7 +384,6 @@ do
         if (setupOptions and setupOptions.dependencies) then
             for dependencyValue, dependency in pairs(setupOptions.dependencies) do
                 if (path ~= dependency and path:match(dependencyValue) and not executedTable[dependency]) then
-
                     return true;
                 end
             end
@@ -390,28 +421,18 @@ do
             local updateFunc = db:ParsePathValue(functionTable, orderedPath);
             local settingsValue = db:ParsePathValue(settingsTable, orderedPath);
 
-            tk:Print("executed: ", orderedPath);
-            updateFunc(settingsValue);
-            executedTable[orderedPath] = true;
+            ExecuteUpdateFunction(updateFunc, setupOptions, settingsValue, orderedPath, executedTable);
         end
     end
 
     local function ExecuteAllUpdateFunctions(functionTable, settingsTable, setupOptions, previousKey, executedTable, blockedTable)
-        for key, functionValue in pairs(functionTable) do
-
-            -- if (key:find("^__group.+")) then
-
-            -- end
-
-
+        for key, settingsValue in pairs(settingsTable) do
             local path = key;
-            local settingsValue = settingsTable[key];
+            local functionValue = functionTable[key];
 
             if (previousKey) then
                 path = string.format("%s.%s", previousKey, key);
             end
-
-
 
             local blocked = GetBlocked(setupOptions, path, executedTable);
 
@@ -422,16 +443,10 @@ do
             local ignored = GetIgnored(setupOptions, path);
 
             if (not (ignored or blocked)) then
-                if (obj:IsFunction(functionValue)) then
-
-                    if (not executedTable[path]) then
-                        tk:Print("executed: ", path);
-                        functionValue(settingsValue, key, path);
-                        executedTable[path] = true;
-                    end
-
-                elseif (obj:IsTable(functionValue) and obj:IsTable(settingsValue)) then
+                if (obj:IsTable(functionValue) and obj:IsTable(settingsValue)) then
                     ExecuteAllUpdateFunctions(functionValue, settingsValue, setupOptions, key, executedTable, blockedTable);
+                else
+                    ExecuteUpdateFunction(functionValue, setupOptions, settingsValue, path, executedTable);
                 end
             end
         end
@@ -478,25 +493,34 @@ end
 
 -- MayronUI Functions ---------------------
 
+---A helper function to print a table's contents using the MayronUI prefix in the chat frame.
+---@param tbl table @The table to print.
+---@param depth number @The depth of sub-tables to traverse through and print.
 function MayronUI:PrintTable(tbl, depth)
     tk.Tables:Print(tbl, depth);
 end
 
+---A helper function to print a variable argument list using the MayronUI prefix in the chat frame.
 function MayronUI:Print(...)
     tk:Print(...);
 end
 
+---@return boolean @Returns true if MayronUI has been previously installing (usually using MUI_Setup).
 function MayronUI:IsInstalled()
 	return db.global.installed and db.global.installed[tk:GetPlayerKey()];
 end
 
+---@param commandName string @Trigger a MayronUI registered slash command (can optionally pass in arguments)
 function MayronUI:TriggerCommand(commandName, ...)
     commands[commandName:lower()](...);
 end
 
--- Hook more functions to a module event. Useful if module is spread across multiple files
-function MayronUI:Hook(moduleName, eventName, func)
-    local registryInfo = registeredModules[moduleName];
+---Hook more functions to a module event. Useful if module is spread across multiple files.
+---@param moduleKey string @The unique key associated with the registered module.
+---@param eventName string @The name of the module event to hook (i.e. "OnInitialize", "OnEnable", etc...).
+---@param func function @A callback function to execute when the module's event is triggered.
+function MayronUI:Hook(moduleKey, eventName, func)
+    local registryInfo = registeredModules[moduleKey];
 
     if (not registryInfo) then
         -- addon is disabled so cannot hook
@@ -508,8 +532,9 @@ function MayronUI:Hook(moduleName, eventName, func)
     table.insert(eventHooks, func);
 end
 
-function MayronUI:ImportModule(moduleName)
-    local registryInfo = registeredModules[moduleName];
+---@param moduleKey string @The unique key associated with the registered module.
+function MayronUI:ImportModule(moduleKey)
+    local registryInfo = registeredModules[moduleKey];
 
     if (not registryInfo) then
         -- addon is disabled so cannot import module
@@ -519,14 +544,17 @@ function MayronUI:ImportModule(moduleName)
     return registryInfo and registryInfo.instance;
 end
 
--- @param (optional) initializeOnDemand - if true, must be initialized manually instead of
---   MayronUI automatically initializing module during PLAYER_ENTERING_WORLD event
+---MayronUI automatically initializes modules during the "PLAYER_ENTERING_WORLD" event unless initializeOnDemand is true.
+---@param moduleKey string @A unique key used to register the module to MayronUI.
+---@param moduleName string @A human-friendly name of the module to be used in-game (such as on the config window).
+---@param initializeOnDemand boolean @(optional) If true, must be initialized manually instead of
+---@return Class @Returns a new module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
     local ModuleClass = Engine:CreateClass(moduleKey, BaseModule);
     local moduleInstance = ModuleClass();
 
     -- must add it to the registeredModules table before calling parent constructor!
-    registeredModules[moduleKey] = {};
+    registeredModules[moduleKey] = obj:PopTable();
     registeredModules[moduleKey].instance = moduleInstance;
     registeredModules[moduleKey].class = ModuleClass;
 
@@ -538,6 +566,7 @@ function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
     return ModuleClass;
 end
 
+---@return fun(): number, BaseModule @An iterator function to iterate through registered modules.
 function MayronUI:IterateModules()
     local id = 0;
 

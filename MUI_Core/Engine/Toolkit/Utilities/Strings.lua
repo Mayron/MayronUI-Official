@@ -2,7 +2,7 @@
 local _, namespace = ...;
 
 local obj = namespace.components.Objects;
-local tk = namespace.components.Toolkit;
+local tk = namespace.components.Toolkit; ---@type Toolkit
 
 tk.Strings = {};
 
@@ -12,15 +12,15 @@ tk.Strings.Space = " ";
 
 do
     local function split(char)
-        return " " .. char
+        return tk.Strings.Space .. char;
     end
 
     local function trim1(s)
-        return (s:gsub("^%s*(.-)%s*$", "%1"))
+        return (s:gsub("^%s*(.-)%s*$", "%1"));
     end
 
     function tk.Strings:SplitByCamelCase(str)
-        return trim1(str:gsub("[A-Z]", split):gsub("^.", string.upper))
+        return trim1(str:gsub("[A-Z]", split):gsub("^.", string.upper));
     end
 end
 

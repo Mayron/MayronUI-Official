@@ -14,7 +14,7 @@ db:AddToDefaults("profile.datatext.combatTimer", {
 
 -- CombatTimer Module ----------------
 
-MayronUI:Hook("DataText", "OnInitialize", function(self)
+MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
     local sv = db.profile.datatext.combatTimer;
     sv:SetParent(db.profile.datatext);
 

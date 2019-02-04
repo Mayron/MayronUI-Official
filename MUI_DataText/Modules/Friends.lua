@@ -49,7 +49,7 @@ end
 
 -- Friends Module --------------
 
-MayronUI:Hook("DataText", "OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataTextModule", "OnInitialize", function(self, dataTextData)
     local sv = db.profile.datatext.friends;
     sv:SetParent(db.profile.datatext);
 

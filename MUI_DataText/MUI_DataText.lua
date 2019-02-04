@@ -24,7 +24,9 @@ local SlideController = obj:Import("MayronUI.Widgets.SlideController");
 
 -- Register Modules --------------------
 
-local C_DataTextModule = MayronUI:RegisterModule("DataText", "Data Text Bar");
+---@class DataTextModule : BaseModule
+local C_DataTextModule = MayronUI:RegisterModule("DataTextModule", "Data Text Bar");
+
 namespace.C_DataTextModule = C_DataTextModule;
 
 -- Load Database Defaults --------------
@@ -56,8 +58,17 @@ db:AddToDefaults("profile.datatext", {
 
 -- IDataTextModule ------------------------------
 
+---@class IDataTextModule : Object
+---@field MenuContent Frame The frame containing all popup menu content
+---@field MenuLabels table A table containing all menu labels to show
+---@field TotalLabelsShown number The total menu labels to show on the popup menu
+---@field HasLeftMenu boolean True if the data-text button has a left click action
+---@field HasRightMenu boolean True if the data-text button has a right click action
+---@field Button Button The data-text button widget
+---@field SavedVariableName string The database key associated with the data text module
+
 Engine:CreateInterface("IDataTextModule", {
-    -- properties:
+    -- fields:
     MenuContent = "Frame";
     MenuLabels = "table";
     TotalLabelsShown = "number";
@@ -79,7 +90,6 @@ Engine:CreateInterface("IDataTextModule", {
 function C_DataTextModule:OnInitialize(data)
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
-    data.lastButtonClicked = ""; -- last data text button clicked on
     data.buttons = obj:PopTable();
     data.DataModules = obj:PopTable(); -- holds all data text modules
 
@@ -134,7 +144,6 @@ function C_DataTextModule:OnInitialize(data)
             end;
         };
 
-        -- TODO: Not sure what to do about this... (maybe displayOrders = function(path/key, value) ?)
         displayOrders = function()
             self:OrderDataTextButtons();
         end;
@@ -192,8 +201,8 @@ function C_DataTextModule:OnEnable(data)
     data.slideController = SlideController(data.popup);
 end
 
---TODO: Problem - this gets called each time a module is loaded - loops over all models when ordering buttons  many times!
 Engine:DefineParams("IDataTextModule");
+---@param dataModule IDataTextModule
 function C_DataTextModule:RegisterDataModule(data, dataModule)
     local dataModuleName = dataModule:GetObjectType(); -- get's name of object/module
     data.DataModules[dataModuleName] = dataModule;
@@ -271,7 +280,8 @@ function C_DataTextModule:PositionDataTextButtons(data)
 end
 
 Engine:DefineParams("Frame");
--- Attach current dataTextModule scroll child onto shared popup and hide previous scroll child
+---Attach current dataTextModule scroll child onto shared popup and hide previous scroll child
+---@param content Frame
 function C_DataTextModule:ChangeMenuContent(data, content)
     local oldContent = data.popup.ScrollFrame:GetScrollChild();
 
@@ -305,8 +315,9 @@ end
 
 Engine:DefineParams("IDataTextModule");
 Engine:DefineReturns("number");
--- returned the total height of all labels
--- total height is used to controll the dynamic scrollbar
+---Total height is used to control the dynamic scrollbar
+---@param dataModule IDataTextModule
+---@return number the total height of all labels
 function C_DataTextModule:PositionLabels(data, dataModule)
     local totalLabelsShown = dataModule.TotalLabelsShown;
     local labelHeight = data.settings.popup.itemHeight;
@@ -366,14 +377,17 @@ function C_DataTextModule:PositionLabels(data, dataModule)
 end
 
 Engine:DefineParams("IDataTextModule", "Button");
-function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, button, ...)
+---@param dataModule IDataTextModule The data-text module associated with the data-text button clicked on by the user
+---@param dataTextButton Button The data-text button clicked on by the user
+---@param buttonName string The name of the button clicked on (i.e. "LeftButton" or "RightButton")
+function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, buttonName, ...)
     _G.GameTooltip:Hide();
     dataModule:Update(data);
     data.slideController:Stop();
 
     local buttonDisplayOrder = tk.Tables:GetIndex(data.settings.displayOrders, dataModule.SavedVariableName);
 
-    if (data.lastButtonID == buttonDisplayOrder and data.lastButton == button and data.popup:IsShown()) then
+    if (data.lastButtonID == buttonDisplayOrder and data.lastButton == buttonName and data.popup:IsShown()) then
         -- clicked on same dataTextModule button so close the popup!
 
         -- if button was rapidly clicked on, reset alpha
@@ -388,7 +402,7 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
 
     -- update last button ID that was clicked (use display order for this)
     data.lastButtonID = buttonDisplayOrder;
-    data.lastButton = button;
+    data.lastButton = buttonName;
 
     -- a different dataTextModule button was clicked on!
     -- reset popup...
@@ -396,10 +410,10 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     data.popup:ClearAllPoints();
 
     -- handle type of button click
-    if ((button == "RightButton" and not dataModule.HasRightMenu) or
-        (button == "LeftButton" and not dataModule.HasLeftMenu)) then
+    if ((buttonName == "RightButton" and not dataModule.HasRightMenu) or
+        (buttonName == "LeftButton" and not dataModule.HasLeftMenu)) then
         -- execute dataTextModule specific click logic
-        dataModule:Click(button, ...);
+        dataModule:Click(buttonName, ...);
         return;
     end
 
@@ -408,7 +422,7 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     self:ClearLabels(dataModule.MenuLabels);
 
     -- execute dataTextModule specific click logic
-    local cannotExpand = dataModule:Click(button, ...);
+    local cannotExpand = dataModule:Click(buttonName, ...);
 
     if (cannotExpand) then
         return;

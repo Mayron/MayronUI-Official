@@ -319,7 +319,7 @@ function C_ActionBarPanel:SetupBartenderBar(data, barID, bartenderBarID)
 
     -- calculate height
     local height = data.ResourceBars:GetHeight() - 3;
-    local dataTextModule = MayronUI:ImportModule("DataText");
+    local dataTextModule = MayronUI:ImportModule("DataTextModule");
 
     if (dataTextModule and dataTextModule:IsShown()) then
         local dataTextBar = dataTextModule:GetDataTextBar();

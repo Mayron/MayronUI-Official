@@ -4,9 +4,16 @@ local obj = _G.LibStub:GetLibrary("LibMayronObjects");
 
 if (not Lib or not obj) then return; end
 
+---@class Framework : Package
 local Framework = obj:CreatePackage("LibMayronDB");
+
+---@class Database : Object
 local Database = Framework:CreateClass("Database");
+
+---@class Observer : Object
 local Observer = Framework:CreateClass("Observer");
+
+---@class Helper : Object
 local Helper = Framework:CreateClass("Helper");
 
 Observer.Static:AddFriendClass("Helper");
@@ -101,17 +108,14 @@ end
 ------------------------
 -- Database API
 ------------------------
---[[
-Creates the database but does not initialize it until after "ADDON_LOADED" event (unless manualStartUp is set to true).
 
-@param (string) addOnName: The name of the addon to listen out for. If supplied it will start the database
-    automatically after the ADDON_LOADED event has fired (when the saved variable becomes accessible).
-@param (string) savedVariableName: The name of the saved variable to hold the database (defined in the toc file).
-@param (optional | boolean) manualStartUp: Set to true if you do not want the library to automatically start
-    the database when the saved variable becomes accessible.
-
-@return (Database): The database object.
-]]
+---Creates the database but does not initialize it until after "ADDON_LOADED" event (unless manualStartUp is set to true).
+---@param addOnName string @The name of the addon to listen out for. If supplied it will start the database
+---    automatically after the ADDON_LOADED event has fired (when the saved variable becomes accessible).
+---@param savedVariableName string @The name of the saved variable to hold the database (defined in the toc file).
+---@param manualStartUp boolean @(optional) Set to true if you do not want the library to automatically start
+---    the database when the saved variable becomes accessible.
+---@return Database @The database object.
 function Lib:CreateDatabase(addOnName, savedVariableName, manualStartUp)
     local database = Database(addOnName, savedVariableName);
 
@@ -128,10 +132,9 @@ function Lib:CreateDatabase(addOnName, savedVariableName, manualStartUp)
     return database;
 end
 
---[[
-Do NOT call this manually! Should only be called by Lib:CreateDatabase(...)
-]]
+
 Framework:DefineParams("string", "string");
+---Do NOT call this manually! Should only be called by Lib:CreateDatabase(...)
 function Database:__Construct(data, addOnName, savedVariableName)
     data.addOnName = addOnName;
     data.svName = savedVariableName;
@@ -145,14 +148,11 @@ function Database:__Construct(data, addOnName, savedVariableName)
     data.defaults.profile = obj:PopTable();
 end
 
---[[
-Hooks a callback function onto the "StartUp" event to be called when the database starts up
-(i.e. when the saved variable becomes accessible). By default, this function is called by the library
-with 2 arguments: the database and the addOn name passed to Lib:CreateDatabase(...).
-
-@param (function) callback: The start up callback function
-]]
 Framework:DefineParams("function");
+---Hooks a callback function onto the "StartUp" event to be called when the database starts up
+---(i.e. when the saved variable becomes accessible). By default, this function is called by the library
+---with 2 arguments: the database and the addOn name passed to Lib:CreateDatabase(...).
+---@param callback function @The start up callback function
 function Database:OnStartUp(data, callback)
     local startUpCallbacks = data.callbacks["OnStartUp"] or obj:PopTable();
     data.callbacks["OnStartUp"] = startUpCallbacks;
@@ -160,13 +160,10 @@ function Database:OnStartUp(data, callback)
     table.insert(startUpCallbacks, callback);
 end
 
---[[
-Hooks a callback function onto the "ProfileChanged" event to be called when the database changes profile
-(i.e. only changed by the user using db:SetProfile() or db:RemoveProfile(currentProfile)).
-
-@param (function) callback: The profile changing callback function
-]]
 Framework:DefineParams("function");
+---Hooks a callback function onto the "ProfileChanged" event to be called when the database changes profile
+---(i.e. only changed by the user using db:SetProfile() or db:RemoveProfile(currentProfile)).
+---@param callback function @The profile changing callback function
 function Database:OnProfileChange(data, callback)
     local profileChangedCallback = data.callbacks["OnProfileChange"] or obj:PopTable();
     data.callbacks["OnProfileChange"] = profileChangedCallback;
@@ -174,11 +171,9 @@ function Database:OnProfileChange(data, callback)
     table.insert(profileChangedCallback, callback);
 end
 
---[[
-Starts the database. Should only be used when the saved variable is accessible (after the ADDON_LOADED event has fired).
-This is called automatically by the library when the saved variable becomes accessible unless manualStartUp was
-set to true during the call to Lib:CreateDatabase(...).
-]]
+---Starts the database. Should only be used when the saved variable is accessible (after the ADDON_LOADED event has fired).
+---This is called automatically by the library when the saved variable becomes accessible unless manualStartUp was
+---set to true during the call to Lib:CreateDatabase(...).
 function Database:Start(data)
     if (data.loaded) then
         -- previously started and loaded
@@ -223,36 +218,26 @@ function Database:Start(data)
     data.callbacks["OnStartUp"] = nil;
 end
 
---[[
-Returns true if the database has been successfully started and loaded.
-
-@return (boolean): indicates if the database is loaded.
-]]
 Framework:DefineReturns("boolean");
+---Returns true if the database has been successfully started and loaded.
+---@return boolean @indicates if the database is loaded.
 function Database:IsLoaded(data)
     return data.loaded == true;
 end
 
---[[
-Adds a value to the database defaults table relative to the path: defaults.<path> = <value>
-
-@param (string): a database path string, such as "myTable.mySubTable[2]"
-@param (any): a value to assign to the database defaults table using the path
-]]
 Framework:DefineParams("string", "any");
+---Adds a value to the database defaults table relative to the path: defaults.<path> = <value>
+---@param path string @A database path string, such as "myTable.mySubTable[2]"
+---@param value any @A value to assign to the database defaults table using the path
 function Database:AddToDefaults(data, path, value)
     self:SetPathValue(data.defaults, path, value);
 end
 
---[[
-Add a table of update callback functions to trigger when a database value changes
-
-@param (string) path: a database path string, such as "myTable.mySubTable[2]"
-@param (table|function) value: a table containing functions, or a function, to attach to a database path
-@param (optional function) manualFunc: when TriggerUpdateFunction is called, the manualFunc will be called and is
-    passed the update function to allow the user to decide how it should be called.
-]]
 Framework:DefineParams("string", "table|function", "?function");
+---Add a table of update callback functions to trigger when a database value changes
+---@param path string @A database path string, such as "myTable.mySubTable[2]".
+---@param updateFunctions table|function @A table containing functions, or a function, to attach to a database path.
+---@param manualFunc function @When TriggerUpdateFunction is called, the manualFunc will be called and is passed the update function to allow the user to decide how it should be called.
 function Database:RegisterUpdateFunctions(data, path, updateFunctions, manualFunc)
     self:SetPathValue(data.updateFunctions, path, updateFunctions);
     data.manualUpdateFunctions[path] = manualFunc;
@@ -260,28 +245,26 @@ end
 
 Framework:DefineParams("string");
 Framework:DefineReturns("table|function");
+---Add a table of update callback functions to trigger when a database value changes
+---@param path string @A database path string, such as "myTable.mySubTable[2]".
+---@return table|function @A table containing update functions, or a single update function, associated with the database path.
 function Database:GetUpdateFunctions(data, path)
     return self:ParsePathValue(data.updateFunctions, path);
 end
 
---[[
-Trigger an update function located by the path argument and pass any arguments to the function
-
-@param (string) path: a database path string, such as "myTable.mySubTable[2]"
-@param (optional any) newValue: the new value assigned to the database
-]]
 Framework:DefineParams("string");
+---Triggers an update function located by the path argument and pass any arguments to the function
+---@param path string @A database path string, such as "myTable.mySubTable[2]".
+---@param newValue any @(optilna) The new value assigned to the database.
 function Database:TriggerUpdateFunction(data, updatePath, newValue, rootTable, path)
     local valuePath = path;
     local selectedValue = newValue;
     local updateFunctionPath = updatePath;
     local updateFunction = self:ParsePathValue(data.updateFunctions, updatePath);
-    local lastKey;
 
     while (not obj:IsFunction(updateFunction) and valuePath:find("[.[]")) do
         updateFunctionPath = updateFunctionPath:match('(.+)[.[]');
         valuePath = valuePath:match('(.+)[.[]');
-        lastKey = valuePath:match("^.*[.[]([^]]*)]?") or valuePath;
 
         updateFunction = self:ParsePathValue(data.updateFunctions, updateFunctionPath);
         selectedValue = self:ParsePathValue(rootTable, valuePath);
@@ -300,25 +283,18 @@ function Database:TriggerUpdateFunction(data, updatePath, newValue, rootTable, p
     end
 
     if (obj:IsFunction(manualFunction)) then
-        manualFunction(updateFunction, selectedValue, lastKey, updateFunctionPath);
+        manualFunction(updateFunction, selectedValue, updateFunctionPath);
 
     elseif (obj:IsFunction(updateFunction)) then
-        updateFunction(selectedValue, lastKey, updateFunctionPath);
+        updateFunction(selectedValue, updateFunctionPath);
     end
 end
 
---[[
-Adds a value to a table relative to a path: rootTable.<path> = <value>
-
-@param (table or string) rootTableOrPath: The initial root table to search from OR a string that starts with
-    "global" or "profile" so that the rootTable can be calculated.
-@param (optional any) pathOrValue: a table path string (also called a path address) such as "myTable.mySubTable[2]"
-    OR if rootTable is a string representing the path then this is the value argument.
-    If it is the path then this is converted to a sequence of tables which are added to the
-    database if they do not already exist (myTable will be created if not found).
-@param (optional any): a value to assign to the table relative to the provided path string (is nil if the path argument is the value)
-]]
 Framework:DefineParams("table|string");
+---Adds a value to a table relative to a path: rootTable.<path> = <value>
+---@param rootTableOrPath table|string @The initial root table to search from OR a string that starts with "global" or "profile" so that the rootTable can be calculated.
+---@param pathOrValue any @(optional) A table path string (also called a path address), such as "myTable.mySubTable[2]", or if rootTable is a string representing the path then this is the value argument. If it is the path then this is converted to a sequence of tables which are added to the database if they do not already exist (myTable will be created if not found).
+---@param value any @(optional) A value to assign to the table relative to the provided path string (is nil if the path argument is the value)
 function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
     local updateFunctionRoot;
@@ -364,19 +340,11 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     end
 end
 
---[[
-Searches a path address (table path string) and returns the located value if found.
-
-@param (table or string) rootTableOrPath: The root table to begin searching through using the path address.
-    OR a string that starts with "global" or "profile" so that the rootTable can be calculated.
-@param (string) path: The path of the value to search for. Example: "myTable.mySubTable[2]"
-    OR if rootTableOrPath is a string representing the path then this is nil.
-@return (any): The value found at the location specified by the path address.
-Might return nil if the path address is invalid, or no value is located at the address.
-
-Example: value = db:ParsePathValue(db.profile, "mySettings[" .. moduleName .. "][5]");
-]]
 Framework:DefineParams("table|string", "?string");
+---Searches a path address (table path string) and returns the located value if found. Example: value = db:ParsePathValue(db.profile, "mySettings[" .. moduleName .. "][5]");
+---@param rootTableOrPath table|string @The root table to begin searching through using the path address. OR a string that starts with "global" or "profile" so that the rootTable can be calculated.
+---@param pathOrNil string|nil @(optional) The path of the value to search for(example: "myTable.mySubTable[2]"), or if rootTableOrPath is a string representing the path then this is nil.
+---@return any @The value found at the location specified by the path address. Might return nil if the path address is invalid, or no value is located at the address.
 function Database:ParsePathValue(_, rootTableOrPath, pathOrNil)
     local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrNil);
     local values = obj:PopTable(_G.strsplit(".", path));
@@ -434,13 +402,9 @@ function Database:ParsePathValue(_, rootTableOrPath, pathOrNil)
     return nil;
 end
 
---[[
-Sets the addon profile for the currently logged in character.
-Creates a new profile if the named profile does not exist.
-
-@param (string) name: The name of the profile to assign to the character.
-]]
 Framework:DefineParams("string");
+---Sets the addon profile for the currently logged in character. Creates a new profile if the named profile does not exist.
+---@param profileName string @The name of the profile to assign to the character.
 function Database:SetProfile(data, profileName)
     local profile = data.sv.profiles[profileName] or obj:PopTable();
     data.sv.profiles[profileName] = profile;
@@ -457,18 +421,15 @@ function Database:SetProfile(data, profileName)
     end
 end
 
---[[
-@return (string): The current profile associated with the currently logged in character.
-]]
 Framework:DefineReturns("string");
+---@return string @The current profile associated with the currently logged in character.
 function Database:GetCurrentProfile(data)
     local profileKey = data.helper:GetCurrentProfileKey();
     return data.sv.profileKeys[profileKey] or "Default";
 end
 
---[[
-@return (table): A table containing string profile names for all profiles associated with the addon.
---]]
+Framework:DefineReturns("table");
+---@return table @A table containing string profile names for all profiles associated with the addon.
 function Database:GetProfiles(data)
     local profiles = obj:PopTable();
 
@@ -479,14 +440,8 @@ function Database:GetProfiles(data)
     return profiles;
 end
 
---[[
-Usable in a for loop to loop through all profiles associated with the AddOn.
-Each loop returns values: id, profileName, profile
-
-    - (int) id: current loop iteration
-    - (string) profileName: the name of the profile
-    - (table) profile: the profile data
-]]
+---Usable in a for loop to loop through all profiles associated with the AddOn.
+---@return function @An iterable function that returns a number (the current loop id), a profile name, and a table containing the profile data
 function Database:IterateProfiles(data)
     local id = 0;
     local profileNames = obj:PopTable();
@@ -504,9 +459,7 @@ function Database:IterateProfiles(data)
     end
 end
 
---[[
-@return (int): The number of profiles associated with the database.
-]]
+---@return int @The number of profiles associated with the database.
 Framework:DefineReturns("number");
 function Database:GetNumProfiles(data)
     local n = 0;
@@ -518,26 +471,19 @@ function Database:GetNumProfiles(data)
     return n;
 end
 
---[[
-Helper function to reset a profile.
-
-@param (string) name: The name of the profile to reset.
-]]
 Framework:DefineParams("string");
+---Helper function to reset a profile.
+---@param profileName string @The name of the profile to reset.
 function Database:ResetProfile(_, profileName)
     self:RemoveProfile(profileName);
     self:SetProfile(profileName);
 end
 
---[[
-Moves the profile to the bin. The profile cannot be accessed from the bin.
-Use db:RestoreProfile(profileName) to restore the profile.
-
-@param (string) profileName: The name of the profile to move to the bin.
-@return (boolean): Returns true if the profile was changed due to removing the current profile
-]]
 Framework:DefineParams("string");
 Framework:DefineReturns("boolean");
+---Moves the profile to the bin. The profile cannot be accessed from the bin. Use db:RestoreProfile(profileName) to restore the profile.
+---@param profileName string @The name of the profile to move to the bin.
+---@return boolean @Returns true if the profile was changed due to removing the current profile.
 function Database:RemoveProfile(data, profileName)
      if (data.sv.profiles[profileName]) then
 
@@ -554,14 +500,10 @@ function Database:RemoveProfile(data, profileName)
     return false;
 end
 
---[[
-Profiles will remain in the bin until a reload of the UI occurs.
-If the bin contains a profile, this function can restore it.
-
-@param (string) name: The name of the profile located inside the bin.
-]]
 Framework:DefineParams("string");
 Framework:DefineReturns("boolean");
+---Profiles will remain in the bin until a reload of the UI occurs. If the bin contains a profile, this function can restore it.
+---@param profileName string @The name of the profile located inside the bin.
 function Database:RestoreProfile(data, profileName)
     if (data.bin) then
         local profile = data.bin[profileName];
@@ -578,11 +520,9 @@ function Database:RestoreProfile(data, profileName)
     return false;
 end
 
---[[
-Gets all profiles that can be restored from the bin
-@return (table): An index table containing the names of all profiles in the bin
-]]
 Framework:DefineReturns("table");
+---Gets all profiles that can be restored from the bin.
+---@return table @An index table containing the names of all profiles in the bin.
 function Database:GetProfilesInBin(data)
     local profilesInBin = {};
 
@@ -595,14 +535,11 @@ function Database:GetProfilesInBin(data)
     return profilesInBin;
 end
 
---[[
-Renames an existing profile to a new profile name. If the new name already exists, it appends a number
-to avoid clashing: 'example (2)'.
-
-@param (string) oldProfileName: The old profile name.
-@param (string) newProfileName: The new profile name.
-]]
 Framework:DefineParams("string", "string");
+---Renames an existing profile to a new profile name. If the new name already exists, it appends a number
+---to avoid clashing: 'example (2)'.
+---@param oldProfileName string @The old profile name.
+---@param newProfileName string @The new profile name.
 function Database:RenameProfile(data, oldProfileName, newProfileName)
     newProfileName = data.helper:GetNewProfileName(newProfileName, data.sv.profiles);
     local profile = data.sv.profiles[oldProfileName];
@@ -628,16 +565,13 @@ function Database:RenameProfile(data, oldProfileName, newProfileName)
     end
 end
 
---[[
-Adds a new value to the saved variable table only once. Registers the added value with a registration key.
-
-@param (Observer) rootTable: The root database table (observer) to append the value to relative to the path address provided.
-@param (string) path: The path address to specify where the value should be appended to.
-@param (any) value: The value to be added.
-@return (boolean): Returns whether the value was successfully added.
-]]
 Framework:DefineParams("Observer", "string", "any");
 Framework:DefineReturns("boolean");
+---Adds a new value to the saved variable table only once. Registers the added value with a registration key.
+---@param rootTable Observer @The root database table (observer) to append the value to relative to the path address provided.
+---@param path string @The path address to specify where the value should be appended to.
+---@param value any @The value to be added.
+---@return boolean @Returns whether the value was successfully added.
 function Database:AppendOnce(data, rootTable, path, value)
     local tableType = data.helper:GetDatabaseRootTableName(rootTable);
 
@@ -663,11 +597,10 @@ end
 -- Observer Class:
 -------------------------
 
---[[
-Do NOT call this manually! Should only be called by the library to create a new
-observer that controls a database table.
-]]
 Framework:DefineParams("boolean", "table");
+---Do NOT call this manually! Should only be called by the library to create a new observer that controls a database table.
+---@param isGlobal boolean @If true, the observer is associated with a global database path address.
+---@param previousData table @the previous observer data.
 function Observer:__Construct(data, isGlobal, previousData)
     data.isGlobal = isGlobal;
     data.helper = previousData.helper;
@@ -677,18 +610,13 @@ function Observer:__Construct(data, isGlobal, previousData)
     data.database = data.helper:GetDatabase();
 end
 
---[[
-When a new value is being added to the database, use the child observer's table if
-switched to using a parent observer. Also, add to the saved variable table if not a function.
-]]
+---When a new value is being added to the database, use the child observer's table if switched to using a parent observer. Also, add to the saved variable table if not a function.
 Observer.Static:OnIndexChanging(function(_, data, key, value)
     data.helper:HandlePathValueChange(data, key, value);
     return true; -- prevent indexing
 end);
 
---[[
-Pick from Observer's saved variable table, else parent table if not found, else defaults table.
-]]
+---Pick from Observer's saved variable table, else parent table if not found, else defaults table.
 Observer.Static:OnIndexed(function(self, data, key, realValue)
     if (realValue ~= nil) then
         return realValue; -- it is an observer object value
@@ -740,49 +668,36 @@ Observer.Static:OnIndexed(function(self, data, key, realValue)
     return foundValue;
 end);
 
---[[
-Used to achieve database inheritance. If an observer cannot find a value, it uses the value found in the
-parent table. Useful if many separate tables in the saved variables table should use the same set of
-changable values when the defaults table is not a suitable solution.
-
-@param (optional | Observer) parentObserver: Which observer should be used as the parent.
-    If this is nil, the parent is removed.
-Example: db.profile.aFrame:SetParent(db.global.frameTemplate)
-]]
 Framework:DefineParams("?Observer");
+---Used to achieve database inheritance. If an observer cannot find a value, it uses the value
+---found in the parent table. Useful if many separate tables in the saved variables table should
+---use the same set of changable values when the defaults table is not a suitable solution.
+---@param parentObserver Observer @(optional) Which observer should be used as the parent. If this is nil, the parent is removed (example: db.profile.aFrame:SetParent(db.global.frameTemplate)).
 function Observer:SetParent(data, parentObserver)
     data.parent = parentObserver;
 end
 
---[[
-@return (Observer): Returns the current Observer's parent.
-]]
 Framework:DefineReturns("?Observer");
+---@return Observer @Returns the current Observer's parent.
 function Observer:GetParent(data)
     return data.parent;
 end
 
---[[
-@return (boolean): Returns true if the current Observer has a parent.
-]]
 Framework:DefineReturns("boolean");
+---@return boolean @Returns true if the current Observer has a parent.
 function Observer:HasParent(data)
     return data.parent ~= nil;
 end
 
---[[
-@return (boolean): RHelper method to get database reference in case it is hard to access
-]]
 Framework:DefineReturns("Database");
+---@return boolean @Helper method to get database reference in case it is hard to access.
 function Observer:GetDatabase(data)
     return data.database;
 end
 
---[[
-Gets the underlining saved variables table. Default or parent values will not be included in this!
-
-@return (table): the underlining saved variables table.
-]]
+Framework:DefineReturns("?table");
+---Gets the underlining saved variables table. Default and parent values will not be included in this!
+---@return table @(possible nil) The underlining saved variables table.
 function Observer:GetSavedVariable(data)
     local rootTable;
 
@@ -800,11 +715,9 @@ function Observer:GetSavedVariable(data)
     return rootTable;
 end
 
---[[
-Gets the underlining saved variables table. Default or parent values will not be included in this!
-
-@return (table): the underlining saved variables table.
-]]
+Framework:DefineReturns("?table");
+---Gets the default database table associated with the observer. Real saved variable and parent values will not be included in this!
+---@return table|nil @(possible nil) The default table attached to the database observer if one exists.
 function Observer:GetDefaults(data)
     local rootTable;
 
@@ -821,36 +734,22 @@ function Observer:GetDefaults(data)
     return rootTable;
 end
 
---[[
-Usable in a for loop. Uses the merged table to iterate through key and value pairs of the default and
-saved variable table paired together using the Observer path address.
-
-Example:
-    for key, value in db.profile.aModule:Iterate() do
-        print(string.format("%s : %s", key, value))
-    end
-]]
+---Usable in a for loop. Uses the merged table to iterate through key and value pairs of the default and
+--- saved variable table paired together using the Observer path address.
 function Observer:Iterate()
     local merged = self:GetUntrackedTable();
     return next, merged, nil;
 end
 
---[[
-@return (boolean): Whether the merged table is empty.
-]]
 Framework:DefineReturns("boolean");
+---@return boolean @Whether the merged table is empty.
 function Observer:IsEmpty()
     return self:GetLength() == 0;
 end
 
---[[
-A helper function to print all contents of a table pointed to by the selected Observer.
-
-@param (optional | int) depth: The depth of tables to print before only printing table references.
-
-Example: db.profile.aModule:Print()
-]]
 Framework:DefineParams("?number");
+---A helper function to print all contents of a table pointed to by the selected Observer (example: db.profile.aModule:Print()).
+---@param depth number|nil @(optional) The depth of tables to print before only printing table references.
 function Observer:Print(data, depth)
     local merged = self:GetUntrackedTable();
     local tablePath = data.helper:GetDatabaseRootTableName(self);
@@ -867,10 +766,8 @@ function Observer:Print(data, depth)
     print(" ");
 end
 
---[[
-@return (int): The length of the merged table (Observer:GetUntrackedTable()).
-]]
 Framework:DefineReturns("number");
+---@return number @The length of the merged table (Observer:GetUntrackedTable()).
 function Observer:GetLength()
     local length = 0;
 
@@ -881,14 +778,11 @@ function Observer:GetLength()
     return length;
 end
 
---[[
-Helper function to return the path address of the observer.
-
-@param (optional boolean) excludeTableType - excludes "global" or "profile" at the start of path address if true
-@return (string): The path address
-]]
-Framework:DefineParams("?boolean")
+Framework:DefineParams("?boolean");
 Framework:DefineReturns("?string");
+---Helper function to return the path address of the observer.
+---@param excludeTableType boolean @(optional) Excludes "global" or "profile" at the start of path address if true.
+---@return string @The path address.
 function Observer:GetPathAddress(data, excludeTableType)
     local path = data.path;
 
@@ -1181,16 +1075,11 @@ do
         obj:PushTable(self);
     end
 
-    --[[
-    Creates an immutable table containing all values from the underlining saved variables table,
-    parent table, and defaults table. Changing this table will not affect the saved variables table!
-
-    @param (optional table) reusableTable - Can use an already existing table instead of creating a new one.
-        This table will be emptied before being used.
-
-    @return (table): a table containing all merged values
-    ]]
     Framework:DefineReturns("table", "?table");
+    ---Creates an immutable table containing all values from the underlining saved variables table,
+    ---parent table, and defaults table. Changing this table will not affect the saved variables table!
+    ---@param reusableTable table @Can use an already existing table instead of creating a new one. This table will be emptied before being used.
+    ---@return table @A table containing all merged values.
     function Observer:GetUntrackedTable(_, reusableTable)
         local basicTable = ConvertObserverToUntrackedTable(self, reusableTable);
         setmetatable(basicTable, basicTable_MT);
@@ -1204,17 +1093,12 @@ do
         return basicTable;
     end
 
-    --[[
-    Creates a table containing all values from the underlining saved variables table,
-    parent table, and defaults table and tracks all changes but does not apply them
-    until SaveChanges() is called
-
-    @param (optional table) reusableTable - Can use an already existing table instead of creating a new one.
-        This table will be emptied before being used.
-
-    @return (table): a tracking table containing all merged values and some helper methods
-    ]]
     Framework:DefineReturns("table", "?table");
+    ---Creates a table containing all values from the underlining saved variables table,
+    ---parent table, and defaults table and tracks all changes but does not apply them
+    ---until SaveChanges() is called.
+    ---@param reusableTable table @Can use an already existing table instead of creating a new one. This table will be emptied before being used.
+    ---@return table @A tracking table containing all merged values and some helper methods
     function Observer:GetTrackedTable(_, reusableTable)
         local tbl = ConvertObserverToUntrackedTable(self, reusableTable);
         return CreateTrackerFromTable(self, tbl);

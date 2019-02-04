@@ -42,7 +42,7 @@ end
 
 -- Durability Module --------------
 
-MayronUI:Hook("DataText", "OnInitialize", function(self)
+MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
     local sv = db.profile.datatext.durability;
     sv:SetParent(db.profile.datatext);
 

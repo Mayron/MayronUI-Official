@@ -1,6 +1,6 @@
 -- luacheck: ignore self 143 631
 local addOnName = ...;
-local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 2.8);
+local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 2.8); ---@type Objects
 
 if (not Lib) then
     return;
@@ -42,6 +42,8 @@ Core.DebugMode = false;
 -- need a reference for this to hack around the manual exporting process
 -- (exporting the package class but it's already a package...)
 --]]
+
+---@class Package
 local Package;
 
 -------------------------------------
@@ -124,6 +126,7 @@ do
         end
     end
 
+    ---@return table @An empty table
     function Lib:PopTable(...)
         local wrapper;
         delay = true;
@@ -167,6 +170,8 @@ do
         return wrapper;
     end
 
+    ---@param wrapper table @A table to be added to the stack. The table is emptied and detached from any meta-table
+    ---@param pushSubTables boolean @Whether sub tables found in the table should also be pushed to the stack
     function Lib:PushTable(wrapper, pushSubTables)
         if (not self:IsTable(wrapper)) then
             return;
@@ -195,8 +200,11 @@ do
         end
     end
 
+    ---@param wrapper table @A table to be unpacked and pushed to the stack to be emptied later.
     function Lib:UnpackTable(wrapper)
-        if (not self:IsTable(wrapper)) then return end
+        if (not self:IsTable(wrapper)) then
+            return;
+        end
         PushTable(wrapper);
         return _G.unpack(wrapper);
     end
@@ -206,6 +214,7 @@ do
         return iterator, wrapper, 0;
     end
 
+    ---@return number @The total number of arguments in the variable argument list passed to the method
     function Lib:LengthOfArgs(...)
         local length = 0;
 
@@ -220,9 +229,9 @@ end
 --------------------------------------------
 -- LibMayronObjects Functions
 --------------------------------------------
--- @param packageName (string) - the name of the package.
--- @param namespace (string) - the parent package namespace. Example: "Framework.System.package".
--- @return package (Package) - returns a package object.
+---@param packageName string @The name of the package.
+---@param namespace string @The parent package namespace. Example: "Framework.System.package".
+---@return Package @Returns a package object.
 function Lib:CreatePackage(packageName, namespace)
     local newPackage = Package(packageName);
 
@@ -236,10 +245,9 @@ function Lib:CreatePackage(packageName, namespace)
     return newPackage;
 end
 
--- @param namespace (string) - the entity namespace (required for locating it).
---      (an entity = a package, class or interface).
--- @param silent (boolean) - if true, no error will be triggered if the entity cannot be found.
--- @return entity (Package, or class/interface) - returns the found entity (or false if silent).
+---@param namespace string @The entity namespace (required for locating it). (an entity = a package, class or interface).
+---@param silent boolean @If true, no error will be triggered if the entity cannot be found.
+---@return Package|Class|Interface @Returns the found entity (or false if silent).
 function Lib:Import(namespace, silent)
     local entity;
     local currentNamespace = "";
@@ -281,8 +289,8 @@ function Lib:Import(namespace, silent)
     return entity;
 end
 
--- @param package (Package) - a package instance object.
--- @param namespace (string) - the package namespace (required for locating and importing it).
+---@param namespace string @The package namespace (required for locating and importing it).
+---@param package Package @A package instance object.
 function Lib:Export(package, namespace)
     local classController = Core:GetController(package);
     local parentPackage;
@@ -312,49 +320,62 @@ function Lib:Export(package, namespace)
     parentPackage:AddSubPackage(package);
 end
 
--- @param silent (boolean) - true if errors should be cause in the error log instead of triggering.
+---@param silent boolean @True if errors should be cause in the error log instead of triggering.
 function Lib:SetSilentErrors(silent)
     Core.silent = silent;
 end
 
--- @return errorLog (table) - contains index/string pairs of errors caught while in silent mode.
+---@return table @Contains index/string pairs of errors caught while in silent mode.
 function Lib:GetErrorLog()
     Core.errorLog = Core.errorLog or {};
     return Core.errorLog;
 end
 
--- empties the error log table.
+---Empties the error log table.
 function Lib:FlushErrorLog()
     if (Core.errorLog) then
         Lib:EmptyTable(Core.errorLog);
     end
 end
 
--- @return numErrors (number) - the total number of errors caught while in silent mode.
+---@return number @The total number of errors caught while in silent mode.
 function Lib:GetNumErrors()
     return (Core.errorLog and #Core.errorLog) or 0;
 end
 
--- Proxy function to allow outside users to use Core:Assert()
+---Proxy function to allow outside users to use Core:Assert()
+---@param condition boolean @A predicate to evaluate.
+---@param errorMessage string @An error message to throw if condition is evaluated to false.
+---@vararg any @A list of arguments to be inserted into the error message using string.format.
 function Lib:Assert(condition, errorMessage, ...)
     Core:Assert(condition, errorMessage, ...);
 end
 
--- Proxy function to allow outside users to use Core:Error()
+---Proxy function to allow outside users to use Core:Error()
+---@param errorMessage string @The error message to throw.
+---@vararg any @A list of arguments to be inserted into the error message using string.format.
 function Lib:Error(errorMessage, ...)
     Core:Error(errorMessage, ...);
 end
 
+---Attach an error handling function to call when an error occurs to be handled manually.
+---@param errorHandler function @The error handler callback function.
 function Lib:SetErrorHandler(errorHandler)
     Core.errorHandler = errorHandler;
 end
 
+---A helper function to empty a table.
+---@param tbl table @The table to empty.
 function Lib:EmptyTable(tbl)
     for key, _ in pairs(tbl) do
         tbl[key] = nil;
     end
 end
 
+---A helper function to print a table's contents.
+---@param tbl table @The table to print.
+---@param depth number @The depth of sub-tables to traverse through and print.
+---@param n number @Do NOT manually set this. This controls formatting through recursion.
 function Lib:PrintTable(tbl, depth, n)
     n = n or 0;
     depth = depth or 5;
@@ -397,6 +418,8 @@ function Lib:PrintTable(tbl, depth, n)
     end
 end
 
+---Do NOT use this unless you are a LibMayronObjects developer.
+---@param debug boolean @Set the Library to debug mode.
 function Lib:SetDebugMode(debug)
     Core.DebugMode = debug;
 end
@@ -1498,6 +1521,7 @@ end
 ---------------------------------
 -- Package Class
 ---------------------------------
+
 Package = Core:CreateClass(nil, nil, "Package");
 
 function Package:__Construct(data, packageName)
@@ -1509,6 +1533,7 @@ function Package:GetName(data)
     return data.packageName;
 end
 
+---@param subPackage Package
 function Package:AddSubPackage(data, subPackage)
     local subPackageName = subPackage:GetName();
     local subPackageData = Core:GetPrivateInstanceData(subPackage);
@@ -1524,21 +1549,33 @@ function Package:GetParentPackage(data)
     return data.parentPackage;
 end
 
+---@param entityName string the name of the entity to retrieve from the package
+---@param silent boolean if the entity cannot be found, do not throw an error if true
 function Package:Get(data, entityName, silent)
     Core:Assert(silent or data.entities[entityName],
         "Entity '%s' does not exist in this package.", entityName);
     return data.entities[entityName];
 end
 
-function Package:CreateClass(data, className, parentProxyClass, ...)
+---@param className string the name of the class to create for this package
+---@param parentClass Object a parent class to inherit from
+---@param ... Object|string a variable argument list of optional interface entities
+---(or interface names to be imported as entities) the newly created class should implement
+---@return Object the newly created class
+function Package:CreateClass(data, className, parentClass, ...)
     Core:Assert(not data.entities[className],
         "Class '%s' already exists in this package.", className);
 
-    local class = Core:CreateClass(self, data, className, parentProxyClass, ...);
+    local class = Core:CreateClass(self, data, className, parentClass, ...);
     self[className] = class;
+
     return class;
 end
 
+---@param interfaceName string the name of the interface to create for this package
+---@param interfaceDefinition table a table containing property and/or function names
+---with type definitions for property values, function parameters and return types.
+---@return Object the newly created interface
 function Package:CreateInterface(data, interfaceName, interfaceDefinition)
     Core:Assert(not data.entities[interfaceName],
         "Entity '%s' already exists in this package.", interfaceName);
@@ -1550,22 +1587,22 @@ function Package:CreateInterface(data, interfaceName, interfaceDefinition)
     return interface;
 end
 
--- temporarily store param definitions to be applied to next new indexed function
+---temporarily store param definitions to be applied to next new indexed function
 function Package:DefineParams(data, ...)
     data.tempParamDefs = Lib:PopTable(...);
 end
 
--- temporarily store return definitions to be applied to next new indexed function
+---temporarily store return definitions to be applied to next new indexed function
 function Package:DefineReturns(data, ...)
     data.tempReturnDefs = Lib:PopTable(...);
 end
 
--- Define the next class function as virtual
+---Define the next class function as virtual
 function Package:DefineVirtual(data)
     data.isVirtual = true;
 end
 
--- prevents other functions being added or modified
+---prevents other functions being added or modified
 function Package:ProtectClass(_, class)
     local classController = Core:GetController(class);
 
@@ -1573,14 +1610,18 @@ function Package:ProtectClass(_, class)
 	classController.isProtected = true;
 end
 
+---@return string the name of the package type
 function Package:GetObjectType()
     return "Package";
 end
 
+---@param objectName string the name of the Object
+---@return boolean returns true if the Object's type is a package
 function Package:IsObjectType(_, objectName)
     return "package" == string.lower(objectName);
 end
 
+---@return number the number of entities inside the package
 function Package:Size(data)
     local size = 0;
 
@@ -1600,12 +1641,16 @@ Core.ExportedPackages.Framework = FrameworkPackage;
 ---------------------------------------------
 -- Object Class
 ---------------------------------------------
+---@class Object
 local Object = SystemPackage:CreateClass("Object");
 
+---@return boolean gets the name of the object type
 function Object:GetObjectType()
 	return Core:GetController(self).objectName;
 end
 
+---@param objectName string the name of an Object's type
+---@return boolean returns true if objectName matches the name of the Object's type
 function Object:IsObjectType(_, objectName)
 	local controller = Core:GetController(self);
 
@@ -1658,7 +1703,7 @@ function Object:Equals(data, other)
 	return true;
 end
 
--- Call parent constructor
+---Call parent constructor
 function Object:Super(data, ...)
     local controller = Core:GetController(self);
 
@@ -1675,18 +1720,22 @@ function Object:Super(data, ...)
     end
 end
 
+---@return Object the parent class
 function Object:GetParentClass()
 	return Core:GetController(self).parentProxyClass;
 end
 
+---@return Package the package the object belongs to
 function Object:GetPackage()
 	return Core:GetController(self).package;
 end
 
+---@return Class the class the Object is built from
 function Object:GetClass()
 	return getmetatable(self).class;
 end
 
+---@return Object a clone of the Object instance
 function Object:Clone()
     local instanceController = Core:GetController(self);
 	instanceController.classController.cloneFrom = self;
@@ -1701,6 +1750,7 @@ function Object:Clone()
 	return instance;
 end
 
+---Destroy's the instance, erasing all private data in the process
 function Object:Destroy()
     if (self.__Destruct) then
         self:__Destruct();

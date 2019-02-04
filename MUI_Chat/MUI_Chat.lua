@@ -28,8 +28,12 @@ _G.CHAT_FONT_HEIGHTS = obj:PopTable(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 -- Objects ------------------
 
 local Engine = obj:Import("MayronUI.Engine");
+
+---@class ChatFrame
 local C_ChatFrame = Engine:CreateClass("ChatFrame", "Framework.System.FrameWrapper");
-local C_ChatModule = MayronUI:RegisterModule("Chat");
+
+---@class ChatModule
+local C_ChatModule = MayronUI:RegisterModule("ChatModule");
 
 namespace.Engine = Engine;
 namespace.C_ChatModule = C_ChatModule;
