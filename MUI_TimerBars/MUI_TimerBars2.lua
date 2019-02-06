@@ -267,7 +267,7 @@ function C_TimerField:__Construct(data, name, settings)
     data.expiredBarsStack = Stack:Of(C_TimerBar)(); -- this returns a class...
 
     data.expiredBarsStack:OnNewItem(function(auraId)
-        return C_TimerBar(settings, auraId);
+        return C_TimerBar(settings);
     end);
 
     data.expiredBarsStack:OnPushItem(function(bar)
@@ -275,7 +275,8 @@ function C_TimerField:__Construct(data, name, settings)
         bar:SetParent(tk.Constants.DUMMY_FRAME);
     end);
 
-    data.expiredBarsStack:OnPopItem(function(bar)
+    data.expiredBarsStack:OnPopItem(function(bar, auraId)
+        bar.AuraId = auraId;
         table.insert(data.activeBars, bar);
     end);
 end
@@ -502,13 +503,13 @@ end
 
 -- C_TimerBar ---------------------------
 
-Engine:DefineParams("table", "number");
+Engine:DefineParams("table");
 ---@param settings table @The config settings table.
 ---@param auraId number @The unique id of the aura used to find and update the aura.
-function C_TimerBar:__Construct(data, settings, auraId)
+function C_TimerBar:__Construct(data, settings)
 
     -- fields
-    self.AuraId = auraId;
+    self.AuraId = -1;
     self.ExpirationTime = -1;
     self.TimeRemaining = -1;
     self.IsVisible = false;
