@@ -119,11 +119,7 @@ db:AddToDefaults("profile.timerBars", {
     };
 });
 
--- Local Functions -------------------------
-
-local function SortByTimeRemaining(a, b)
-    return a.TimeRemaining > b.TimeRemaining;
-end
+-- Combat Log Event Script -------------------
 
 local function OnCombatLogEvent()
     local payload = obj:PopTable(CombatLogGetCurrentEventInfo());
@@ -266,7 +262,7 @@ function C_TimerField:__Construct(data, name, settings)
     ---@type Stack
     data.expiredBarsStack = Stack:Of(C_TimerBar)(); -- this returns a class...
 
-    data.expiredBarsStack:OnNewItem(function(auraId)
+    data.expiredBarsStack:OnNewItem(function()
         return C_TimerBar(settings);
     end);
 
@@ -362,60 +358,69 @@ local function RepositionBars(data)
     end
 end
 
-Engine:DefineParams("string");
-Engine:DefineReturns("Frame");
----@param name string @The name of the field to create (used as a substring in global frame name)
----@return Frame @Returns the created field (a Frame widget)
-function C_TimerField:CreateField(data, name)
-    local globalName = tk.Strings:Concat("MUI_", name, "TimerField");
-    local frame = CreateFrame("Frame", globalName);
+do
+    local function SortByTimeRemaining(a, b)
+        return a.TimeRemaining > b.TimeRemaining;
+    end
 
-    local fieldHeight = (data.settings.maxBars * (data.settings.barHeight + data.settings.barSpacing)) - data.settings.barSpacing;
-    frame:SetSize(data.settings.barWidth, fieldHeight);
+    Engine:DefineParams("string");
+    Engine:DefineReturns("Frame");
+    ---@param name string @The name of the field to create (used as a substring in global frame name)
+    ---@return Frame @Returns the created field (a Frame widget)
+    function C_TimerField:CreateField(data, name)
+        local globalName = tk.Strings:Concat("MUI_", name, "TimerField");
+        local frame = CreateFrame("Frame", globalName);
 
-	frame:SetScript("OnUpdate", function(_, elapsed)
-		data.timeSinceLastUpdate = data.timeSinceLastUpdate + elapsed;
+        local fieldHeight = (data.settings.maxBars * (data.settings.barHeight + data.settings.barSpacing)) - data.settings.barSpacing;
+        frame:SetSize(data.settings.barWidth, fieldHeight);
 
-        if (data.timeSinceLastUpdate > TIMER_FIELD_UPDATE_FREQUENCY) then
-            local currentTime = GetTime();
-            local activeBars = obj:PopTable();
+        frame:SetScript("OnUpdate", function(_, elapsed)
+            data.timeSinceLastUpdate = data.timeSinceLastUpdate + elapsed;
 
-            -- Remove expired bars:
-            for _, activeBar in ipairs(data.activeBars) do
-                if (activeBar.ExpirationTime < currentTime) then
-                    data.expiredBarsStack:Push(activeBar); -- remove bar here!
-                else
-                    table.insert(activeBars, activeBar);
+            if (data.timeSinceLastUpdate > TIMER_FIELD_UPDATE_FREQUENCY) then
+                local currentTime = GetTime();
+                local barRemoved;
+
+                repeat
+                    -- Remove expired bars:
+                    barRemoved = false;
+                    -- cannot use a new activeBars table (by inserting non-expired bars into it and replacing old table)
+                    -- because this would reverse the bar order which causes graphical issues if the time remaining of 2 bars is equal.
+                    for id, activeBar in ipairs(data.activeBars) do
+                        if (activeBar.ExpirationTime < currentTime) then
+                            data.expiredBarsStack:Push(activeBar); -- remove bar here!
+                            table.remove(data.activeBars, id);
+                            barRemoved = true;
+                            break;
+                        end
+                    end
+
+                until (not barRemoved);
+
+                table.sort(data.activeBars, SortByTimeRemaining);
+
+                ---@param bar TimerBar
+                for i, bar in ipairs(data.activeBars) do
+                    if (i <= data.settings.maxBars) then
+                        -- make visible
+                        bar:SetShown(true);
+                        bar:SetParent(data.frame);
+                    else
+                        -- make invisible
+                        bar:SetShown(false);
+                        bar:SetParent(tk.Constants.DUMMY_FRAME);
+                    end
+
+                    bar:UpdateTimeRemaining(currentTime);
                 end
+
+                RepositionBars(data);
+                data.timeSinceLastUpdate = 0;
             end
+        end);
 
-            -- update new list of active bars:
-            obj:PushTable(data.activeBars);
-            data.activeBars = activeBars;
-
-            table.sort(data.activeBars, SortByTimeRemaining);
-
-            ---@param bar TimerBar
-            for i, bar in ipairs(data.activeBars) do
-                if (i <= data.settings.maxBars) then
-                    -- make visible
-                    bar:SetShown(true);
-                    bar:SetParent(data.frame);
-                else
-                    -- make invisible
-                    bar:SetShown(false);
-                    bar:SetParent(tk.Constants.DUMMY_FRAME);
-                end
-
-                bar:UpdateTimeRemaining(currentTime);
-            end
-
-            RepositionBars(data);
-            data.timeSinceLastUpdate = 0;
-        end
-	end);
-
-    return frame;
+        return frame;
+    end
 end
 
 Engine:DefineParams("number");
