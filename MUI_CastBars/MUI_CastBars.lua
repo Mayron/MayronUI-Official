@@ -693,7 +693,6 @@ function C_CastBarsModule:OnInitialize(data)
                         castBar:SetHeight(value);
 
                     elseif (attribute == "frameStrata") then
-                        print(value)
                         castBar:SetFrameStrata(value);
 
                     elseif (attribute == "frameLevel") then

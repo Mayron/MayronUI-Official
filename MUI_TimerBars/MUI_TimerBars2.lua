@@ -328,7 +328,6 @@ function C_TimerField:PositionField(data)
     end
 end
 
---TODO: Memory leak for using FrameWrapper!
 ---Rearranges the TimerField active TimerBars after first being sorted by time remaining + bars being removed or added.
 local function RepositionBars(data)
     local p = tk.Constants.POINTS;
@@ -399,14 +398,12 @@ function C_TimerField:CreateField(data, name)
             for i, bar in ipairs(data.activeBars) do
                 if (i <= data.settings.maxBars) then
                     -- make visible
-                    --TODO: Memory leak:
-                    -- bar:SetShown(true);
-                    -- bar:SetParent(data.frame);
+                    bar:SetShown(true);
+                    bar:SetParent(data.frame);
                 else
                     -- make invisible
-                    --TODO: Memory leak:
-                    -- bar:SetShown(false);
-                    -- bar:SetParent(tk.Constants.DUMMY_FRAME);
+                    bar:SetShown(false);
+                    bar:SetParent(tk.Constants.DUMMY_FRAME);
                 end
 
                 bar:UpdateTimeRemaining(currentTime);
@@ -667,9 +664,8 @@ Engine:DefineParams("number", "?number");
 ---@param currentTime number @The current time using GetTime.
 ---@param totalDuration number @(optional) The total duration of the timer bar (used when the timer bar is first created to set the max value of the slider)
 function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
-    --TODO: Memory leak!:
-    -- self.TimeRemaining = self.ExpirationTime - currentTime;
-    -- obj:Assert(self.TimeRemaining >= 0); -- duration should have been checked in the frame OnUpdate script
+    self.TimeRemaining = self.ExpirationTime - currentTime;
+    obj:Assert(self.TimeRemaining >= 0); -- duration should have been checked in the frame OnUpdate script
 
     if (totalDuration) then
         -- Called from UpdateAura

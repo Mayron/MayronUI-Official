@@ -307,6 +307,69 @@ local function NotImplementedInterfaceFunction_Test1() -- luacheck: ignore
     print("NotImplementedInterfaceFunction_Test1 Successful!");
 end
 
+local function NotImplementedInterfaceProperty_Test1() -- luacheck: ignore
+    print("NotImplementedInterfaceProperty_Test1 Started");
+
+    local TestPackage = lib:CreatePackage("NotImplementedInterfaceProperty_Test1");
+
+    local IDummyInterface = TestPackage:CreateInterface("IDummyInterface", {
+        MyNumber = "number";
+    });
+
+    local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyInterface);
+
+    VerifyExpectedErrors(1, function()
+        DummyClass(); -- has no implementation for "DoSomething" so should fail!
+    end);
+
+    print("NotImplementedInterfaceProperty_Test1 Successful!");
+end
+
+local function NotImplementedInterfaceProperty_Test2() -- luacheck: ignore
+    print("NotImplementedInterfaceProperty_Test2 Started");
+
+    local TestPackage = lib:CreatePackage("NotImplementedInterfaceProperty_Test2");
+
+    local IDummyInterface = TestPackage:CreateInterface("IDummyInterface", {
+        MyNumber = "number";
+    });
+
+    local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyInterface);
+
+    function DummyClass:__Construct()
+
+    end
+
+    VerifyExpectedErrors(1, function()
+        DummyClass(); -- has no implementation for "DoSomething" so should fail!
+    end);
+
+    print("NotImplementedInterfaceProperty_Test2 Successful!");
+end
+
+local function NotImplementedInterfaceProperty_Test3() -- luacheck: ignore
+    print("NotImplementedInterfaceProperty_Test3 Started");
+
+    local TestPackage = lib:CreatePackage("NotImplementedInterfaceProperty_Test2");
+
+    local IDummyInterface = TestPackage:CreateInterface("IDummyInterface", {
+        MyNumber = "number";
+    });
+
+    local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyInterface);
+
+    function DummyClass:__Construct()
+        self.MyNumber = 123
+    end
+
+    local _ = DummyClass(); -- has no implementation for "DoSomething" so should fail!
+    VerifyExpectedErrors(1, function()
+        -- instance.MyNumber = "abc";
+    end);
+
+    print("NotImplementedInterfaceProperty_Test3 Successful!");
+end
+
 local function Inheritance_Test1() -- luacheck: ignore
     print("Inheritance_Test1 Started");
 
@@ -1073,6 +1136,81 @@ local function UsingMultipleDefinitionsForOneArgument_Test1() -- luacheck: ignor
     print("UsingMultipleDefinitionsForOneArgument_Test1 Successful!");
 end
 
+local function MemoryLeak_Test1() -- luacheck: ignore
+    print("MemoryLeak_Test1 Started");
+
+    local TestPackage = lib:CreatePackage("MemoryLeak_Test1");
+
+    local TestClass = TestPackage:CreateClass("TestClass", "Framework.System.FrameWrapper");
+
+    local frame = _G.CreateFrame("Frame");
+    local testInstance = TestClass();
+    testInstance:SetFrame(frame);
+
+    _G.UpdateAddOnMemoryUsage();
+    local before = _G.GetAddOnMemoryUsage("LibMayronObjects");
+
+    -- local _ = testInstance.SetParent;
+
+    for _ = 1, 500 do
+        testInstance:SetParent(_G.UIParent);
+        testInstance:ClearAllPoints();
+        testInstance:SetPoint("TOPLEFT");
+        testInstance:SetPoint("BOTTOMRIGHT");
+        testInstance:SetShown(true);
+        testInstance:SetShown(false);
+        testInstance:ClearAllPoints();
+    end
+
+    _G.UpdateAddOnMemoryUsage();
+    local after = _G.GetAddOnMemoryUsage("LibMayronObjects");
+    local difference = after - before; -- there will always be some difference due to popping a table to collect return values
+
+    assert(difference < 0.5, "difference: "..tostring(difference));
+
+    print("MemoryLeak_Test1 Successful!");
+end
+
+local function MemoryLeak_Test2() -- luacheck: ignore
+    print("MemoryLeak_Test2 Started");
+
+    local TestPackage = lib:CreatePackage("MemoryLeak_Test2");
+
+    local TestInterface = TestPackage:CreateInterface("TestInterface", {
+        TestProperty = "number";
+    })
+
+    local TestClass = TestPackage:CreateClass("TestClass", nil, TestInterface);
+
+    function TestClass:__Construct()
+        self.TestProperty = 123;
+    end
+
+    local testInstance = TestClass();
+
+    _G.UpdateAddOnMemoryUsage();
+    local before = _G.GetAddOnMemoryUsage("LibMayronObjects");
+
+    lib:SetDebugMode(true);
+
+    for _ = 1, 500 do
+        testInstance.TestProperty = testInstance.TestProperty + 1;
+    end
+
+    lib:SetDebugMode(false);
+
+    _G.UpdateAddOnMemoryUsage();
+
+    local after = _G.GetAddOnMemoryUsage("LibMayronObjects");
+    local difference = after - before; -- there will always be some difference due to popping a table to collect return values
+
+    print(difference);
+
+    assert(difference == 0, "difference: "..tostring(difference));
+
+    print("MemoryLeak_Test2 Successful!");
+end
+
 ---------------------------------
 -- Run Tests:
 ---------------------------------
@@ -1098,6 +1236,9 @@ end
 -- Interfaces_Test2();
 -- Interfaces_Test3();
 -- NotImplementedInterfaceFunction_Test1();
+-- NotImplementedInterfaceProperty_Test1();
+-- NotImplementedInterfaceProperty_Test2();
+-- NotImplementedInterfaceProperty_Test3();
 -- DefineProperty_Test1();
 -- DefineProperty_Test2();
 -- DefineProperty_Test3();
@@ -1111,3 +1252,5 @@ end
 -- GenericClasses_Test4();
 -- GetObjectType_In_Constructor_Test1();
 -- UsingMultipleDefinitionsForOneArgument_Test1();
+-- MemoryLeak_Test1();
+-- MemoryLeak_Test2();

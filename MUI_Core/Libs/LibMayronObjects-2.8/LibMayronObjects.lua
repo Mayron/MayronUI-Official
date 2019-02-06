@@ -74,8 +74,11 @@ function Lib:IsNil(value)
 end
 
 function Lib:IsObject(value)
-    local controller = Core:GetController(value, true);
-    return (controller ~= nil);
+    if (not Lib:IsTable(value)) then
+        return false;
+    end
+
+    return (Core:GetController(value, true) ~= nil);
 end
 
 function Lib:IsStringNilOrWhiteSpace(value)
@@ -474,6 +477,7 @@ local function CreateProxyObject(object, key, self, controller, privateData)
 
     -- we need multiple Run functions in case 1 function calls another (Run is never removed after being assigned)
     proxyObject.run = proxyObject.run or function(_, ...)
+
         -- Validate parameters passed to function
         local definition, errorMessage = Core:GetParamsDefinition(proxyObject);
         Core:ValidateFunctionCall(definition, errorMessage, ...);
@@ -547,15 +551,7 @@ do
 
     proxyClassMT.__index = function(self, key)
         local classController = Core:GetController(self);
-        local className = classController.objectName;
         local class = classController.class;
-
-        Core:Assert(not classController.indexing,
-            "'%s' attempted to re-index itself during the same index request with key '%s'.", className, key);
-
-        -- start indexing process (used to detect if an index loop has occured in error)
-        classController.indexing = true;
-
         local value = class[key]; -- get the real value
 
         if (Lib:IsFunction(value)) then
@@ -595,9 +591,6 @@ do
                 proxyObject.privateData = Core:GetPrivateInstanceData(child, childController);
             end
         end
-
-        -- end indexing process (used to detect if an index loop has occured in error)
-        classController.indexing = nil;
 
         return value;
     end
@@ -726,6 +719,12 @@ do
     local proxyInstanceMT = {}; -- acts as a filter to protect invalid keys from being indexed into Instance
     local missingFrameErrorMessage = "attempt to index %s.%s (a nil value) and no data.frame property was found.";
     local GetFrame = "GetFrame";
+    local innerValues = {};
+
+    local frameWrapperFunction = function(_, ...)
+        -- call the frame (a blizzard widget) here
+        return innerValues.frame[innerValues.key](innerValues.frame, ...);
+    end
 
     local function GetFrameWrapperFunction(classController, value, key)
         -- ProxyClass changed key to GetFrame during __index meta-method call
@@ -737,10 +736,9 @@ do
             -- if the frame has the key we are trying to get...
 
             if (Lib:IsFunction(frame[key])) then
-                value = function(_, ...)
-                    -- call the frame (a blizzard widget) here
-                    return frame[key](frame, ...);
-                end
+                innerValues.frame = frame;
+                innerValues.key = key;
+                value = frameWrapperFunction;
             else
                 value = frame[key];
             end
@@ -840,6 +838,7 @@ do
             end
         end
 
+
         if (classController.indexedCallback) then
             value = classController.indexedCallback(self, privateData, key, value);
         end
@@ -868,7 +867,7 @@ do
             end
         end
 
-        instance[key] = value;
+        instance[key] = value
 
         -- if reassigning an instance property, should check that new value is valid
         if (instanceController.isConstructed and Lib:IsTable(classController.propertyDefinitions)) then
@@ -1345,23 +1344,26 @@ function Core:GetPrivateInstanceData(instance, instanceController)
     return data;
 end
 
-function Core:ValidateImplementedInterfaceProperty(propertyName, propertyDefinition, realValue, className)
-    local errorFound;
-    local message = string.format("bad property value '%s.##'", className);
+do
+    local MESSAGE_PATTERN = "bad property value '%s.##' (%s expected, got %s)";
 
-    if (propertyDefinition:find("^?")) then
-        -- it's optional:
-        propertyDefinition = propertyDefinition:sub(2, #propertyDefinition);
-        errorFound = (realValue ~= nil) and (propertyDefinition ~= "any" and not self:IsMatchingType(realValue, propertyDefinition));
-    else
-        errorFound = (realValue == nil) or (propertyDefinition ~= "any" and not self:IsMatchingType(realValue, propertyDefinition));
+    function Core:ValidateImplementedInterfaceProperty(propertyName, propertyDefinition, realValue, className)
+        local errorFound;
+
+        if (propertyDefinition:find("^?")) then
+            -- it's optional:
+            propertyDefinition = propertyDefinition:sub(2, #propertyDefinition);
+            errorFound = (realValue ~= nil) and (propertyDefinition ~= "any" and not self:IsMatchingType(realValue, propertyDefinition));
+        else
+            errorFound = (realValue == nil) or (propertyDefinition ~= "any" and not self:IsMatchingType(realValue, propertyDefinition));
+        end
+
+        local valueType = self:GetValueType(realValue);
+        local errorMessage = string.format(MESSAGE_PATTERN, propertyDefinition, valueType, className);
+
+        errorMessage = errorMessage:gsub("##", propertyName);
+        self:Assert(not errorFound, errorMessage);
     end
-
-    local errorMessage = string.format(message .. " (%s expected, got %s (value: %s))",
-        propertyDefinition, self:GetValueType(realValue), tostring(realValue));
-    errorMessage = errorMessage:gsub("##", propertyName);
-
-    self:Assert(not errorFound, errorMessage);
 end
 
 ---Call this after using the constructor to make sure properties have been implemented
@@ -1662,8 +1664,9 @@ end
 ---with type definitions for property values, function parameters and return types.
 ---@return Object the newly created interface
 function Package:CreateInterface(data, interfaceName, interfaceDefinition)
-    Core:Assert(not data.entities[interfaceName],
-        "Entity '%s' already exists in this package.", interfaceName);
+    Core:Assert(Lib:IsString(interfaceName), "bad argument #1 to Package.CreateInterface (string expected, got %s)", type(interfaceName));
+    Core:Assert(Lib:IsTable(interfaceDefinition), "bad argument #2 to Package.CreateInterface (table expected, got %s)", type(interfaceDefinition));
+    Core:Assert(not data.entities[interfaceName], "Entity '%s' already exists in this package.", interfaceName);
 
     local interface = Core:CreateInterface(data, interfaceName, interfaceDefinition);
     data.entities[interfaceName] = interface;
