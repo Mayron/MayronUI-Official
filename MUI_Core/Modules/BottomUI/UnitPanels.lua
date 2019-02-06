@@ -47,6 +47,12 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
     data.buiContainer = buiContainer;
     data.ActionBarPanel = subModules.ActionBarPanel;
 
+    local r, g, b = tk:GetThemeColor();
+    db:AppendOnce(db.profile, "unitPanels.sufGradients", {
+        from = {r = r, g = g, b = b, a = 0.5},
+        to = {r = 0, g = 0, b = 0, a = 0}
+    });
+
     local setupOptions = {
         dependencies = {
             ["unitNames[.].*"] = "unitNames.enabled";
@@ -186,12 +192,6 @@ function C_UnitPanels:OnEnable(data)
         data.center:Show();
         return;
     end
-
-    local r, g, b = tk:GetThemeColor();
-    db:AppendOnce(db.profile, "unitPanels.sufGradients", {
-        from = {r = r, g = g, b = b, a = 0.5},
-        to = {r = 0, g = 0, b = 0, a = 0}
-    });
 
     data.left = _G.CreateFrame("Frame", "MUI_UnitPanelLeft", data.buiContainer);
     data.right = _G.CreateFrame("Frame", "MUI_UnitPanelRight", _G.SUFUnittarget or data.buiContainer);

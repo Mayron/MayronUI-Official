@@ -401,31 +401,36 @@ function C_ExperienceBar:SetEnabled(data, enabled)
             local r, g, b = tk:GetThemeColor();
             data.statusbar.texture:SetVertexColor(r * 0.8, g * 0.8, b  * 0.8);
             data.notCreated = nil;
+
+            em:CreateEventHandlerWithKey("PLAYER_LEVEL_UP", "OnExperienceBarLevelUp", OnExperienceBarLevelUp, self);
+            em:CreateEventHandlerWithKey("PLAYER_XP_UPDATE", "OnExperienceBarUpdate", OnExperienceBarUpdate, data.statusbar, data.rested);
+            OnExperienceBarUpdate(nil, nil, data.statusbar, data.rested);
         end
-    else
-        -- destroy as it can never be re-enabled
-        em:DestroyEventHandlerByKey("OnExperienceBarLevelUp");
-        em:DestroyEventHandlerByKey("OnExperienceBarUpdate");
     end
 
-    if (enabled) then
-        em:CreateEventHandlerWithKey("PLAYER_LEVEL_UP", "OnExperienceBarLevelUp", OnExperienceBarLevelUp, self);
-        em:CreateEventHandlerWithKey("PLAYER_XP_UPDATE", "OnExperienceBarUpdate", OnExperienceBarUpdate, data.statusbar, data.rested);
-        OnExperienceBarUpdate(nil, nil, data.statusbar, data.rested);
+    local handler = em:FindEventHandlerByKey("OnExperienceBarLevelUp");
+    local handler2 = em:FindEventHandlerByKey("OnExperienceBarUpdate");
+
+    if (handler) then
+        handler:SetEventCallbackEnabled("PLAYER_LEVEL_UP", enabled);
+    end
+
+    if (handler2) then
+        handler2:SetEventCallbackEnabled("PLAYER_XP_UPDATE", enabled);
     end
 end
 
 -- C_ReputationBar ----------------------
 
-local function OnReputationBarUpdate(_, _, bar, statusbar)
+local function OnReputationBarUpdate(_, _, bar, data)
     local factionName, standingID, minValue, maxValue, currentValue = GetWatchedFactionInfo();
 
     if (not factionName or standingID == 8) then
         if (bar:IsEnabled()) then
             bar:SetEnabled(false);
         end
-        return;
 
+        return;
     elseif (not bar:IsEnabled()) then
         bar:SetEnabled(true);
     end
@@ -433,16 +438,16 @@ local function OnReputationBarUpdate(_, _, bar, statusbar)
     maxValue = maxValue - minValue;
     currentValue = currentValue - minValue;
 
-    statusbar:SetMinMaxValues(0, maxValue);
-    statusbar:SetValue(currentValue);
+    data.statusbar:SetMinMaxValues(0, maxValue);
+    data.statusbar:SetValue(currentValue);
 
-    if (statusbar.text) then
+    if (data.statusbar.text) then
         local percent = (currentValue / maxValue) * 100;
         currentValue = tk.Strings:FormatReadableNumber(currentValue);
         maxValue = tk.Strings:FormatReadableNumber(maxValue);
 
         local text = tk.string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
-        statusbar.text:SetText(text);
+        data.statusbar.text:SetText(text);
     end
 end
 
@@ -481,9 +486,6 @@ function C_ReputationBar:SetEnabled(data, enabled)
         enabled = false;
     end
 
-    em:CreateEventHandlerWithKey("UPDATE_FACTION, PLAYER_REGEN_ENABLED",
-        "OnReputationBarUpdate", OnReputationBarUpdate, self, data.statusbar);
-
     if (enabled) then
         self.Parent:SetEnabled(enabled);
 
@@ -494,7 +496,17 @@ function C_ReputationBar:SetEnabled(data, enabled)
             data.statusbar.texture = data.statusbar:GetStatusBarTexture();
             data.statusbar.texture:SetVertexColor(0.16, 0.6, 0.16, 1);
             data.notCreated = nil;
+
+            em:CreateEventHandlerWithKey("UPDATE_FACTION, PLAYER_REGEN_ENABLED",
+                "OnReputationBarUpdate", OnReputationBarUpdate, self, data):Run();
         end
+    end
+
+    local handler = em:FindEventHandlerByKey("OnReputationBarUpdate");
+
+    if (handler) then
+        handler:SetEventCallbackEnabled("UPDATE_FACTION", enabled);
+        handler:SetEventCallbackEnabled("PLAYER_REGEN_ENABLED", enabled);
     end
 end
 
@@ -559,9 +571,6 @@ BottomUIPackage:DefineParams("boolean");
 function C_AzeriteBar:SetEnabled(data, enabled)
     enabled = enabled and C_AzeriteItem.HasActiveAzeriteItem();
 
-    em:CreateEventHandler("AZERITE_ITEM_EXPERIENCE_CHANGED", "AzeriteXP_Update", OnAzeriteXPUpdate, self, data);
-    em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Azerite_OnInventoryChanged", OnAzeriteXPUpdate, self, data);
-
     if (enabled) then
         self.Parent:SetEnabled(enabled);
 
@@ -574,7 +583,19 @@ function C_AzeriteBar:SetEnabled(data, enabled)
             data.notCreated = nil;
         end
 
-        OnAzeriteXPUpdate(nil, nil, data.statusbar);
+        em:CreateEventHandler("AZERITE_ITEM_EXPERIENCE_CHANGED", "AzeriteXP_Update", OnAzeriteXPUpdate, self, data);
+        em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Azerite_OnInventoryChanged", OnAzeriteXPUpdate, self, data):Run();
+    end
+
+    local handler = em:FindEventHandlerByKey("AzeriteXP_Update");
+    local handler2 = em:FindEventHandlerByKey("Azerite_OnInventoryChanged");
+
+    if (handler) then
+        handler:SetEventCallbackEnabled("AZERITE_ITEM_EXPERIENCE_CHANGED", enabled);
+    end
+
+    if (handler2) then
+        handler2:SetEventCallbackEnabled("UNIT_INVENTORY_CHANGED", enabled);
     end
 end
 
@@ -620,9 +641,6 @@ BottomUIPackage:DefineParams("boolean");
 function C_ArtifactBar:SetEnabled(data, enabled)
     enabled = enabled and HasArtifactEquipped();
 
-    em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, self, data);
-    em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Artifact_OnInventoryChanged", OnArtifactXPUpdate, self, data);
-
     if (enabled) then
         self.Parent:SetEnabled(enabled);
 
@@ -632,6 +650,18 @@ function C_ArtifactBar:SetEnabled(data, enabled)
             data.notCreated = nil;
         end
 
-        OnArtifactXPUpdate(nil, nil, data.statusbar);
+        em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, self, data);
+        em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Artifact_OnInventoryChanged", OnArtifactXPUpdate, self, data):Run();
+    end
+
+    local handler = em:FindEventHandlerByKey("ArtifactXP_Update");
+    local handler2 = em:FindEventHandlerByKey("Artifact_OnInventoryChanged");
+
+    if (handler) then
+        handler:SetEventCallbackEnabled("ARTIFACT_XP_UPDATE", enabled);
+    end
+
+    if (handler2) then
+        handler2:SetEventCallbackEnabled("UNIT_INVENTORY_CHANGED", enabled);
     end
 end

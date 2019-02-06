@@ -3,14 +3,14 @@ local _G, MayronUI = _G, _G.MayronUI;
 local tk, db, em, _, obj = MayronUI:GetCoreComponents();
 
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo;
-local select, unpack, CreateFrame = _G.select, _G.unpack, _G.CreateFrame;
+local unpack, CreateFrame = _G.unpack, _G.CreateFrame;
 local string, tonumber, date, pairs, ipairs = _G.string, _G.tonumber, _G.date, _G.pairs, _G.ipairs;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
-local table, tostring, GetTime, UnitAura = _G.table, _G.tostring, _G.GetTime, _G.UnitAura;
+local table, GetTime, UnitAura = _G.table, _G.GetTime, _G.UnitAura;
 
 local HELPFUL, HARMFUL, DEBUFF, BUFF, REMOVED, UP = "HELPFUL", "HARMFUL", "DEBUFF", "BUFF", "REMOVED", "UP";
 local TIMER_FIELD_UPDATE_FREQUENCY = 0.05;
-local INVALID_AURA_TYPE = "Invalid aura type '%s'.";
+local UNKNOWN_AURA_TYPE = "Unknown aura type '%s'.";
 local DEBUFF_MAX_DISPLAY = _G.DEBUFF_MAX_DISPLAY;
 local BUFF_MAX_DISPLAY = _G.BUFF_MAX_DISPLAY;
 local ICON_GAP = -1;
@@ -31,17 +31,15 @@ local SUB_EVENT_NAMES = {
 local Engine = obj:Import("MayronUI.Engine");
 
 ---@class ITimerBar : Object
----@field ExpirationTime number @The time when the timer bar expires (in seconds)
----@field IsVisible boolean @Whether the bar is visible and shown in the timer fields frame.
+---@field ExpirationTime number @The epoch marking the point in time when the timer bar is set to expire
+---@field TimeRemaining number @The actual time remaining in seconds
 ---@field AuraId boolean @The unique aura id used to identify the timer bar.
----@field Positioned boolean @Whether the bar needs to be positioned in the field.
 
 Engine:CreateInterface("ITimerBar", {
     -- fields:
     ExpirationTime = "number";
-    IsVisible = "boolean";
+    TimeRemaining = "number";
     AuraId = "number";
-    Positioned = "boolean";
 });
 
 ---@class TimerBar : ITimerBar
@@ -79,6 +77,7 @@ db:AddToDefaults("profile.timerBars", {
         border                = "Skinner";
         borderSize            = 1;
         colorDebuffsByType    = true;
+        colorStealOrPurge     = true;
 
         auraName = {
             show        = true;
@@ -86,7 +85,7 @@ db:AddToDefaults("profile.timerBars", {
             font        = "MUI_Font";
         };
 
-        duration = {
+        timeRemaining = {
             show        = true;
             fontSize    = 11;
             font        = "MUI_Font";
@@ -95,13 +94,13 @@ db:AddToDefaults("profile.timerBars", {
         filters = {
             onlyPlayerBuffs   = true;
             onlyPlayerDebuffs = true;
-            enableWhitelist   = false;
-            enableBlacklist   = false;
+            enableWhiteList   = false;
+            enableBlackList   = false;
 
-            whitelist = {
+            whiteList = {
 
             };
-            blacklist = {
+            blackList = {
 
             };
         };
@@ -111,8 +110,7 @@ db:AddToDefaults("profile.timerBars", {
             basicBuff             = { 0.1, 0.1, 0.1, 1 };
             basicDebuff           = { 0.76, 0.2, 0.2, 1 };
             border                = { 0.2, 0.2, 0.2, 1 };
-            canStealOrPurge       = { 1, 0, 1, 0.4 };
-            -- appliedByPlayer    = { 1, 1, 0, 0.4 };
+            canStealOrPurge       = { 1, 0.5, 0.25, 1 };
             magic                 = { 0.2, 0.6, 1, 1 };
             disease               = { 0.6, 0.4, 0, 1 };
             poison                = { 0.0, 0.6, 0, 1 };
@@ -123,23 +121,24 @@ db:AddToDefaults("profile.timerBars", {
 
 -- Local Functions -------------------------
 
-local function SortByExpirationTime(a, b)
-    return a.ExpirationTime > b.ExpirationTime;
+local function SortByTimeRemaining(a, b)
+    return a.TimeRemaining > b.TimeRemaining;
 end
 
 local function OnCombatLogEvent()
     local payload = obj:PopTable(CombatLogGetCurrentEventInfo());
-    local subEvent = (select(2, unpack(payload)));
+    local subEvent = payload[2];
 
     if (SUB_EVENT_NAMES[subEvent]) then
         -- guaranteed to always be the same for all registered events:
+        local sourceGuid = payload[4];
         local destGuid = payload[8];
         local auraId = payload[12];
         local auraName = payload[13];
-        -- local remainingPoints = (select(16, unpack(payload))); -- test with power shield
+        -- local remainingPoints = (select(16, unpack(payload))); -- TODO: test with power shield
 
         if (subEvent:find(REMOVED)) then
-            ---@param field TimerField
+            --@param field TimerField
             for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
                 field:RemoveAuraByID(auraId);
             end
@@ -152,14 +151,16 @@ local function OnCombatLogEvent()
                 auraType = payload[18];
             end
 
-            obj:Assert(auraType == BUFF or auraType == DEBUFF, "Unknown aura type '%s'.", auraType);
+            obj:Assert(auraType == BUFF or auraType == DEBUFF, UNKNOWN_AURA_TYPE, auraType);
 
             ---@param field TimerField
             for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
-                field:UpdateBarsByAura(destGuid, auraId, auraName, auraType, currentTime);
+                field:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType, currentTime);
             end
         end
     end
+
+    obj:PushTable(payload)
 end
 
 local function GetAuraInfo(unitName, auraId, auraName, auraType)
@@ -169,8 +170,6 @@ local function GetAuraInfo(unitName, auraId, auraName, auraType)
         maxAuras, filterName = DEBUFF_MAX_DISPLAY, HARMFUL;
     elseif (auraType == BUFF) then
         maxAuras, filterName = BUFF_MAX_DISPLAY, HELPFUL;
-    else
-        obj:Error(INVALID_AURA_TYPE, auraType);
     end
 
     for i = 1, maxAuras do
@@ -217,15 +216,11 @@ function C_TimerBarsModule:OnInitialize(data)
         end
     end
 
+    -- TODO: Need to add config functions
     local setupOptions = {
-
-
     };
 
     self:RegisterUpdateFunctions(db.profile.timerBars, {
-
-
-
     }, setupOptions);
 
 end
@@ -237,7 +232,6 @@ function C_TimerBarsModule:OnInitialized(data)
 end
 
 function C_TimerBarsModule:OnEnable(data)
-
     -- create all enabled fields
     for fieldName, field in pairs(data.fields) do
         if (obj:IsBoolean(field)) then
@@ -254,6 +248,7 @@ function C_TimerBarsModule:OnEnable(data)
 end
 
 Engine:DefineReturns("table");
+---@return table @A table containing all active TimerField objects.
 function C_TimerBarsModule:GetAllTimerFields(data)
     return data.fields;
 end
@@ -261,6 +256,7 @@ end
 -- C_TimerField ------------------------------
 
 Engine:DefineParams("string", "table");
+---@param name string @The name of the field (to be used in the global variable name). Usually it is the same as the unit name being tracked.
 function C_TimerField:__Construct(data, name, settings)
     data.name = name;
     data.settings = settings;
@@ -270,24 +266,22 @@ function C_TimerField:__Construct(data, name, settings)
     ---@type Stack
     data.expiredBarsStack = Stack:Of(C_TimerBar)(); -- this returns a class...
 
-    data.expiredBarsStack:OnNewItem(function(expirationTime, auraId)
-        return C_TimerBar(settings, expirationTime, auraId);
+    data.expiredBarsStack:OnNewItem(function(auraId)
+        return C_TimerBar(settings, auraId);
     end);
 
     data.expiredBarsStack:OnPushItem(function(bar)
-        bar:Print();
         bar:SetShown(false);
         bar:SetParent(tk.Constants.DUMMY_FRAME);
-        bar.IsVisible = false;
     end);
 
     data.expiredBarsStack:OnPopItem(function(bar)
-        bar.Positioned = false;
         table.insert(data.activeBars, bar);
     end);
 end
 
 Engine:DefineParams("boolean");
+---@param enabled boolean @Set to true to enable TimerField tracking.
 function C_TimerField:SetEnabled(data, enabled)
     data.enabled = enabled;
 
@@ -313,6 +307,7 @@ function C_TimerField:SetEnabled(data, enabled)
 end
 
 Engine:DefineReturns("boolean");
+---@return boolean @The enabled state of the TimerField.
 function C_TimerField:IsEnabled(data)
     if (obj:IsNil(data.enabled)) then
         return false;
@@ -321,6 +316,7 @@ function C_TimerField:IsEnabled(data)
     return data.enabled;
 end
 
+---Uses the position config settings to set the field's position on the UIParent.
 function C_TimerField:PositionField(data)
     data.frame:ClearAllPoints();
 
@@ -329,6 +325,40 @@ function C_TimerField:PositionField(data)
         data.frame:SetPoint(point, relativeFrame, relativePoint, xOffset, yOffset);
     else
         data.frame:SetPoint("CENTER");
+    end
+end
+
+--TODO: Memory leak for using FrameWrapper!
+---Rearranges the TimerField active TimerBars after first being sorted by time remaining + bars being removed or added.
+local function RepositionBars(data)
+    local p = tk.Constants.POINTS;
+    local activeBar, previousBarFrame;
+
+    for id = 1, data.settings.maxBars do
+        activeBar = data.activeBars[id];
+
+        if (activeBar) then
+            activeBar:ClearAllPoints();
+
+            if (data.settings.direction == UP) then
+                if (id > 1) then
+                    previousBarFrame = data.activeBars[id - 1]:GetFrame();
+                    activeBar:SetPoint(p.BOTTOMLEFT, previousBarFrame, p.TOPLEFT, 0, data.settings.barSpacing);
+                    activeBar:SetPoint(p.BOTTOMRIGHT, previousBarFrame, p.TOPRIGHT, 0, data.settings.barSpacing);
+                else
+                    activeBar:SetPoint(p.BOTTOMRIGHT, data.frame, p.BOTTOMRIGHT, 0, 0);
+                end
+            else
+                if (id > 1) then
+                    previousBarFrame = data.activeBars[id - 1]:GetFrame();
+                    activeBar:SetPoint(p.TOPLEFT, previousBarFrame, p.BOTTOMLEFT, 0, -data.settings.barSpacing);
+                    activeBar:SetPoint(p.TOPRIGHT, previousBarFrame, p.BOTTOMRIGHT, 0, -data.settings.barSpacing);
+                else
+                    activeBar:SetPoint(p.TOPLEFT, data.frame, p.BOTTOMLEFT, 0, 0);
+                    activeBar:SetPoint(p.TOPRIGHT, data.frame, p.BOTTOMRIGHT, 0, 0);
+                end
+            end
+        end
     end
 end
 
@@ -348,58 +378,41 @@ function C_TimerField:CreateField(data, name)
 
         if (data.timeSinceLastUpdate > TIMER_FIELD_UPDATE_FREQUENCY) then
             local currentTime = GetTime();
-            local sortedBars = obj:PopTable();
+            local activeBars = obj:PopTable();
 
-            -- update bars:
+            -- Remove expired bars:
             for _, activeBar in ipairs(data.activeBars) do
                 if (activeBar.ExpirationTime < currentTime) then
-                    data.expiredBarsStack:Push(activeBar);
+                    data.expiredBarsStack:Push(activeBar); -- remove bar here!
                 else
-                    table.insert(sortedBars, activeBar);
+                    table.insert(activeBars, activeBar);
                 end
             end
 
-            table.sort(data.activeBars, SortByExpirationTime);
-
-            local changed = false;
-
-            for id = 1, data.settings.maxBars do
-                if (sortedBars[id]) then
-                    if (not (sortedBars[id].Positioned and tostring(sortedBars[id]) == tostring(data.activeBars[id]))) then
-                        changed = true;
-                        break;
-                    end
-                end
-            end
-
+            -- update new list of active bars:
             obj:PushTable(data.activeBars);
-            data.activeBars = sortedBars;
+            data.activeBars = activeBars;
 
-            ---@param activeBar TimerBar
-            for i, activeBar in ipairs(data.activeBars) do
-                if (i <= data.settings.maxBars and not activeBar.IsVisible) then
-                    -- make visible
-                    activeBar:SetShown(true);
-                    activeBar:SetParent(data.frame);
-                    activeBar.IsVisible = true;
-                    changed = true;
-                elseif (i > data.settings.maxBars and activeBar.IsVisible) then
-                    -- make invisible
-                    activeBar:SetShown(false);
-                    activeBar:SetParent(tk.Constants.DUMMY_FRAME);
-                    activeBar.IsVisible = false;
-                    changed = true;
-                end
+            table.sort(data.activeBars, SortByTimeRemaining);
 
+            ---@param bar TimerBar
+            for i, bar in ipairs(data.activeBars) do
                 if (i <= data.settings.maxBars) then
-                    activeBar:UpdateDuration(activeBar.ExpirationTime - currentTime);
+                    -- make visible
+                    --TODO: Memory leak:
+                    -- bar:SetShown(true);
+                    -- bar:SetParent(data.frame);
+                else
+                    -- make invisible
+                    --TODO: Memory leak:
+                    -- bar:SetShown(false);
+                    -- bar:SetParent(tk.Constants.DUMMY_FRAME);
                 end
+
+                bar:UpdateTimeRemaining(currentTime);
             end
 
-            if (changed) then
-                self:RepositionBars();
-            end
-
+            RepositionBars(data);
             data.timeSinceLastUpdate = 0;
         end
 	end);
@@ -407,39 +420,8 @@ function C_TimerField:CreateField(data, name)
     return frame;
 end
 
-function C_TimerField:RepositionBars(data)
-    local p = tk.Constants.POINTS;
-    local activeBar;
-
-    for id = 1, data.settings.maxBars do
-        activeBar = data.activeBars[id];
-
-        if (activeBar) then
-            activeBar:ClearAllPoints();
-
-            if (data.settings.direction == UP) then
-                if (id > 1) then
-                    activeBar:SetPoint(p.BOTTOMLEFT, data.activeBars[id - 1], p.TOPLEFT, 0, data.settings.barSpacing);
-                    activeBar:SetPoint(p.BOTTOMRIGHT, data.activeBars[id - 1], p.TOPRIGHT, 0, data.settings.barSpacing);
-                else
-                    activeBar:SetPoint(p.BOTTOMRIGHT, data.frame, p.BOTTOMRIGHT, 0, 0);
-                end
-            else
-                if (id > 1) then
-                    activeBar:SetPoint(p.TOPLEFT, data.activeBars[id - 1], p.BOTTOMLEFT, 0, -data.settings.barSpacing);
-                    activeBar:SetPoint(p.TOPRIGHT, data.activeBars[id - 1], p.BOTTOMRIGHT, 0, -data.settings.barSpacing);
-                else
-                    activeBar:SetPoint(p.TOPLEFT, data.frame, p.BOTTOMLEFT, 0, 0);
-                    activeBar:SetPoint(p.TOPRIGHT, data.frame, p.BOTTOMRIGHT, 0, 0);
-                end
-            end
-
-            activeBar.Positioned = true;
-        end
-    end
-end
-
 Engine:DefineParams("number");
+---@param auraId number @The aura's unique id used to find and remove the aura.
 function C_TimerField:RemoveAuraByID(data, auraId)
     for _, activeBar in ipairs(data.activeBars) do
         if (auraId == activeBar.AuraId) then
@@ -448,18 +430,57 @@ function C_TimerField:RemoveAuraByID(data, auraId)
     end
 end
 
-Engine:DefineParams("string", "number", "string", "string", "number");
-function C_TimerField:UpdateBarsByAura(data, unitGuid, auraId, auraName, auraType, currentTime)
-    if (not (UnitExists(data.settings.unitName) and UnitGUID(data.settings.unitName) == unitGuid)) then
+-- TODO: Is auraName safe (localization issues if always in english?)
+local function IsFilteredOut(filters, sourceGuid, destGuid, auraName, auraType)
+    local filteredOut = false;
+
+    if (auraType == BUFF and filters.onlyPlayerBuffs and UnitGUID("player") ~= destGuid) then
+        filteredOut = true;
+    end
+
+    if (auraType == DEBUFF and filters.onlyPlayerDebuffs and UnitGUID("player") ~= sourceGuid) then
+        filteredOut = true;
+    end
+
+    if (filters.enableWhiteList and not filters.whiteList[auraName]) then
+        filteredOut = true;
+    end
+
+    if (filters.enableBlackList and filters.blackList[auraName]) then
+        filteredOut = true;
+    end
+
+    return filteredOut;
+end
+
+Engine:DefineParams("string", "string", "number", "string", "string", "number");
+---@param sourceGuid string @The globally unique identify (GUID) representing the source of the aura (the creature or player who casted the aura).
+---@param sourceGuid string @The globally unique identify (GUID) representing the destination of the aura (the creature or player who gained the aura).
+---@param auraId number @The unique id of the aura used to find and update the aura.
+---@param auraName number @The name of the aura used for filtering and updating the TimerBar name.
+---@param auraType string @The type of aura (must be either "BUFF" or "DEBUFF").
+---@param currentTime number @The result of GetTime shared by all timer bars being updated in the same field.
+function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraName, auraType, currentTime)
+    if (not (UnitExists(data.settings.unitName) and UnitGUID(data.settings.unitName) == destGuid)) then
         return; -- field cannot handle this aura
     end
 
-    -- TODO: Need to apply filters here
+    if (IsFilteredOut(data.settings.filters, sourceGuid, destGuid, auraName, auraType)) then
+        return;
+    end
+
     ---@type TimerBar
     local foundBar;
-    local auraInfo;
+    local auraInfo = GetAuraInfo(data.settings.unitName, auraId, auraName, auraType);
 
-    auraInfo = GetAuraInfo(data.settings.unitName, auraId, auraName, auraType);
+    if (not obj:IsTable(auraInfo)) then
+        -- some aura's do not return aura info from UnitAura (such as Windfury)
+        return;
+    elseif (not (auraInfo[6] and auraInfo[6] > 0)) then
+        -- some aura's do not have an expiration time so cannot be added to a timer bar (aura's that are fixed).
+        obj:PushTable(auraInfo);
+        return;
+    end
 
     -- first try to search for an existing one:
     for _, activeBar in ipairs(data.activeBars) do
@@ -469,34 +490,31 @@ function C_TimerField:UpdateBarsByAura(data, unitGuid, auraId, auraName, auraTyp
         end
     end
 
-    if (not obj:IsTable(auraInfo) and foundBar) then
-        obj:Error("Found a bar but no auraInfo???");
-    end
-
-    if (not obj:IsTable(auraInfo)) then
-        return; -- no aura found on unit and no bar tracking it
-    end
+    local expirationTime = auraInfo[6];
 
     if (not foundBar) then
         -- create a new timer bar
-        local expirationTime = auraInfo[6];
-        foundBar = data.expiredBarsStack:Pop(expirationTime, auraId);
+        foundBar = data.expiredBarsStack:Pop(auraId);
     end
 
-    -- TODO: Should I check if bar is expired here as well?
+    -- update expiration time outside of UpdateAura!
+    foundBar.ExpirationTime = expirationTime;
+
     foundBar:UpdateAura(auraInfo, currentTime, auraType);
 end
 
 -- C_TimerBar ---------------------------
 
 Engine:DefineParams("table", "number");
-function C_TimerBar:__Construct(data, settings, expirationTime, auraId)
+---@param settings table @The config settings table.
+---@param auraId number @The unique id of the aura used to find and update the aura.
+function C_TimerBar:__Construct(data, settings, auraId)
 
     -- fields
-    self.ExpirationTime = expirationTime;
-    self.IsVisible = false; -- let OnUpdate parent and position it
     self.AuraId = auraId;
-    self.Positioned = false;
+    self.ExpirationTime = -1;
+    self.TimeRemaining = -1;
+    self.IsVisible = false;
 
     data.settings = settings;
 
@@ -511,10 +529,12 @@ function C_TimerBar:__Construct(data, settings, expirationTime, auraId)
     self:SetBorderShown(settings.showBorders);
     self:SetSparkShown(settings.showSpark);
     self:SetAuraNameShown(settings.auraName.show);
-    self:SetDurationShown(settings.duration.show);
+    self:SetTimeRemainingShown(settings.timeRemaining.show);
     self:SetTooltipsEnabled(data.settings.showTooltips);
 end
 
+Engine:DefineParams("boolean");
+---@param shown boolean @Set to true to show the timer bar icon.
 function C_TimerBar:SetIconShown(data, shown)
     if (not data.iconFrame and shown) then
         data.iconFrame = CreateFrame("Frame", nil, data.frame);
@@ -545,6 +565,8 @@ do
         widget:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
     end
 
+    Engine:DefineParams("boolean");
+    ---@param shown boolean @Set to true to show borders.
     function C_TimerBar:SetBorderShown(data, shown)
         if (not data.backdrop and shown) then
             data.backdrop = obj:PopTable();
@@ -581,6 +603,8 @@ do
     end
 end
 
+Engine:DefineParams("boolean");
+---@param shown boolean @Set to true to show the timer bar spark effect.
 function C_TimerBar:SetSparkShown(data, shown)
     if (not data.spark and shown) then
         data.spark = data.slider:CreateTexture(nil, "OVERLAY");
@@ -593,6 +617,8 @@ function C_TimerBar:SetSparkShown(data, shown)
     data.showSpark = shown;
 end
 
+Engine:DefineParams("boolean");
+---@param shown boolean @Set to true to show the timer bar aura name.
 function C_TimerBar:SetAuraNameShown(data, shown)
     if (not data.auraName and shown) then
         data.auraName = data.slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall");
@@ -610,20 +636,24 @@ function C_TimerBar:SetAuraNameShown(data, shown)
     end
 end
 
-function C_TimerBar:SetDurationShown(data, shown)
-    if (not data.duration and shown) then
-        data.duration = data.slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall");
-        data.duration:SetPoint("RIGHT", -4, 0);
+Engine:DefineParams("boolean");
+---@param shown boolean @Set to true to show the timer bar's time remaining text.
+function C_TimerBar:SetTimeRemainingShown(data, shown)
+    if (not data.timeRemaining and shown) then
+        data.timeRemaining = data.slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall");
+        data.timeRemaining:SetPoint("RIGHT", -4, 0);
 
-        local font = tk.Constants.LSM:Fetch("font", data.settings.duration.font);
-        data.duration:SetFont(font, data.settings.duration.fontSize);
+        local font = tk.Constants.LSM:Fetch("font", data.settings.timeRemaining.font);
+        data.timeRemaining:SetFont(font, data.settings.timeRemaining.fontSize);
     end
 
-    if (data.duration) then
-        data.duration:SetShown(shown);
+    if (data.timeRemaining) then
+        data.timeRemaining:SetShown(shown);
     end
 end
 
+Engine:DefineParams("boolean");
+---@param shown boolean @Set to true to show the aura tooltip on mouse over.
 function C_TimerBar:SetTooltipsEnabled(data, enabled)
     if (enabled) then
         tk:SetAuraTooltip(data.frame);
@@ -634,21 +664,25 @@ function C_TimerBar:SetTooltipsEnabled(data, enabled)
 end
 
 Engine:DefineParams("number", "?number");
-function C_TimerBar:UpdateDuration(data, timeRemaining, totalDuration)
-    obj:Assert(timeRemaining >= 0); -- duration should have been checked in the frame OnUpdate script
+---@param currentTime number @The current time using GetTime.
+---@param totalDuration number @(optional) The total duration of the timer bar (used when the timer bar is first created to set the max value of the slider)
+function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
+    --TODO: Memory leak!:
+    -- self.TimeRemaining = self.ExpirationTime - currentTime;
+    -- obj:Assert(self.TimeRemaining >= 0); -- duration should have been checked in the frame OnUpdate script
 
     if (totalDuration) then
         -- Called from UpdateAura
         data.slider:SetMinMaxValues(0, totalDuration);
     end
 
-    data.slider:SetValue(timeRemaining);
+    data.slider:SetValue(self.TimeRemaining);
 
     if (data.spark and data.spark:IsShown()) then
         local _, max = data.slider:GetMinMaxValues();
         local offset = data.spark:GetWidth() / 2;
         local barWidth = data.slider:GetWidth();
-        local value = (timeRemaining / max) * barWidth - offset;
+        local value = (self.TimeRemaining / max) * barWidth - offset;
 
         if (value > barWidth - offset) then
             value = barWidth - offset;
@@ -657,35 +691,32 @@ function C_TimerBar:UpdateDuration(data, timeRemaining, totalDuration)
         data.spark:SetPoint("LEFT", value, 0);
     end
 
-    timeRemaining = string.format("%.1f", timeRemaining);
+    local timeRemainingText = string.format("%.1f", self.TimeRemaining);
 
-    if (tonumber(timeRemaining) > 3600) then
-        timeRemaining = date("%H:%M:%S", timeRemaining);
+    if (tonumber(timeRemainingText) > 3600) then
+        timeRemainingText = date("%H:%M:%S", timeRemainingText);
 
-    elseif (tonumber(timeRemaining) > 60) then
-        timeRemaining = date("%M:%S", timeRemaining);
+    elseif (tonumber(timeRemainingText) > 60) then
+        timeRemainingText = date("%M:%S", timeRemainingText);
     end
 
-    data.duration:SetText(timeRemaining);
+    data.timeRemaining:SetText(timeRemainingText);
 end
 
 Engine:DefineParams("table", "number", "string");
+---@param auraInfo table @A table containing a subset of the results from UnitAura.
+---@param currentTime number @The result of GetTime shared by all timer bars being updated in the same field.
+---@param auraType string @The type of aura (must be either "BUFF" or "DEBUFF").
 function C_TimerBar:UpdateAura(data, auraInfo, currentTime, auraType)
-    local auraName = auraInfo[1];
-    local iconPath = auraInfo[2];
-    local totalDuration = auraInfo[5];
-    local expirationTime = auraInfo[6];
+    local auraName        = auraInfo[1];
+    local iconPath        = auraInfo[2];
+    local debuffType      = auraInfo[4];
+    local totalDuration   = auraInfo[5];
+    local canStealOrPurge = auraInfo[8];
 
-    if (not totalDuration or expirationTime == 0) then
-        for i, value in ipairs(auraInfo) do
-            MayronUI:Print(i, ": ", value);
-        end
-
-        error("Weird bug");
-    end
-
-    self.ExpirationTime = expirationTime;
-    self:UpdateDuration(expirationTime - currentTime, totalDuration);
+    obj:PushTable(auraInfo);
+    data.frame.auraId = self.AuraId; -- this is needed for the tooltip mouse over
+    self:UpdateTimeRemaining(currentTime, totalDuration);
 
     if (data.icon) then
         data.icon:SetTexture(iconPath);
@@ -693,18 +724,17 @@ function C_TimerBar:UpdateAura(data, auraInfo, currentTime, auraType)
 
     data.auraName:SetText(auraName);
 
-    if (auraType == BUFF) then
-        data.slider:SetStatusBarColor(unpack(data.settings.colors.basicBuff));
-    elseif (auraType == DEBUFF) then
-        if (data.settings.colorDebuffsByType) then
-            local debuffType = string.lower(auraInfo[4]);
-            data.slider:SetStatusBarColor(unpack(data.settings.colors[debuffType]));
-        else
-            data.slider:SetStatusBarColor(unpack(data.settings.colors.basicDebuff));
+    if (data.settings.colorStealOrPurge and canStealOrPurge) then
+        data.slider:SetStatusBarColor(unpack(data.settings.colors.canStealOrPurge));
+    else
+        if (auraType == BUFF) then
+            data.slider:SetStatusBarColor(unpack(data.settings.colors.basicBuff));
+        elseif (auraType == DEBUFF) then
+            if (data.settings.colorDebuffsByType and obj:IsString(debuffType)) then
+                data.slider:SetStatusBarColor(unpack(data.settings.colors[string.lower(debuffType)]));
+            else
+                data.slider:SetStatusBarColor(unpack(data.settings.colors.basicDebuff));
+            end
         end
     end
-end
-
-function C_TimerBar:Print(data)
-    MayronUI:Print(tostring(data.auraName), tostring(self.ExpirationTime), tostring(GetTime()));
 end

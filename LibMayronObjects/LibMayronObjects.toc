@@ -1,0 +1,6 @@
+## Interface: 80100
+## Title: LibMayronObjects
+
+LibStub.lua
+LibMayronObjects.xml
+LibMayronObjects.Test.lua

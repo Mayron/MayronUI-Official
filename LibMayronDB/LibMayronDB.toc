@@ -1,0 +1,8 @@
+## Interface: 80100
+## Title: LibMayronDB
+## SavedVariables: TestDB
+## Dependencies: LibMayronObjects
+
+LibStub.lua
+LibMayronDB.lua
+LibMayronDB.Test.lua

@@ -112,9 +112,15 @@ function Handler:GetKey(data)
     return data.key;
 end
 
+EventsPackage:DefineParams("?string");
 EventsPackage:DefineReturns("boolean");
+---@param eventName string @The name of the event that triggered the handler (if supplied, the callback will only be executed if has not been disabled using SetEventCallbackEnabled).
 ---@return boolean @Returns true if the handler was destroyed during execution.
-function Handler:Run(data, ...)
+function Handler:Run(data, eventName, ...)
+    if (obj:IsString(eventName) and not data.events[eventName]) then
+        return; -- event callback has been disabled.
+    end
+
     if (data.callback) then
         if (data.args) then
             -- execute event callback
@@ -124,11 +130,11 @@ function Handler:Run(data, ...)
                 table.insert(args, value);
             end
 
-            data.callback(self, data.eventName, unpack(args));
+            data.callback(self, eventName, unpack(args));
             obj:PushTable(args);
         else
             -- execute event callback
-            data.callback(self, data.eventName, ...);
+            data.callback(self, eventName, ...);
         end
     end
 
@@ -216,7 +222,7 @@ end
 function Lib:TriggerEvent(eventName, ...)
     if (Private:EventTableExists(eventName)) then
         for _, handler in pairs(Private.eventsList[eventName]) do
-            handler:Run(...);
+            handler:Run(eventName, ...);
         end
     end
 end
@@ -278,7 +284,7 @@ function Private:CallHandlersByEvent(eventName, ...)
         local handlers = self.eventsList[eventName];
 
         for _, handler in pairs(handlers) do
-            handler:Run(...);
+            handler:Run(eventName, ...);
         end
     end
 
