@@ -179,11 +179,17 @@ end
 -- move values from one table to another table
 function tk.Tables:Fill(tbl, otherTbl, preserveOldValue)
     for key, value in pairs(otherTbl) do
+
         if (obj:IsTable(tbl[key]) and obj:IsTable(value)) then
             self:Fill(tbl[key], value);
 
         elseif (not preserveOldValue or obj:IsNil(tbl[key])) then
-            tbl[key] = value;
+            if (obj:IsTable(value)) then
+                tbl[key] = obj:PopTable();
+                self:Fill(tbl[key], value);
+            else
+                tbl[key] = value;
+            end
         end
     end
 end

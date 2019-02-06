@@ -2,7 +2,8 @@
 local _, namespace = ...;
 local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 
-local configModule = MayronUI:ImportModule("Config");
+
+local configModule = MayronUI:ImportModule("ConfigModule"); ---@type ConfigModule
 
 local WidgetHandlers = {};
 namespace.WidgetHandlers = WidgetHandlers;
@@ -348,7 +349,7 @@ local function ShowColorPicker(r, g, b, a, changedCallback)
     _G.ColorPickerFrame:SetColorRGB(r, g, b);
     _G.ColorPickerFrame.hasOpacity = (a ~= nil);
     _G.ColorPickerFrame.opacity = a;
-    _G.ColorPickerFrame.previousValues = {r, g, b, a};
+    _G.ColorPickerFrame.previousValues = obj:PopTable(r, g, b, a);
 
     _G.ColorPickerFrame.func = changedCallback;
     _G.ColorPickerFrame.opacityFunc = changedCallback;
@@ -357,6 +358,11 @@ local function ShowColorPicker(r, g, b, a, changedCallback)
     -- Need to run the OnShow handler:
     _G.ColorPickerFrame:Hide();
     _G.ColorPickerFrame:Show();
+end
+
+local function ColorWidget_OnClick(self)
+    local r, g, b, a = self.color:GetVertexColor();
+    ShowColorPicker(r, g, b, (a and (1 - a)), self.func);
 end
 
 function WidgetHandlers.color:Run(parent, widgetConfigTable, value)
@@ -384,28 +390,44 @@ function WidgetHandlers.color:Run(parent, widgetConfigTable, value)
         value and value.b or 0
     );
 
-    local c = value;
+    local loaded = false;
+    local c = obj:PopTable();
+    tk.Tables:Fill(c, value:GetUntrackedTable());
+
     container.func = function(restore)
         if (restore) then
-            c.r, c.g, c.b, c.a = tk.unpack(restore);
+            -- cancel button was pressed
+            c.r, c.g, c.b, c.a = _G.unpack(restore);
+            loaded = false;
         else
+            -- color picker was opened for the first time or okay button was pressed
             c.r, c.g, c.b = _G.ColorPickerFrame:GetColorRGB();
 
             if (_G.ColorPickerFrame.hasOpacity) then
                 c.a = _G.OpacitySliderFrame:GetValue();
                 c.a = 1 - c.a;
             end
-        end
 
-        configModule:SetDatabaseValue(container, c);
-        container.color:SetColorTexture(c.r, c.g, c.b);
+            if (not loaded and c.r == 1 and c.g == 1 and c.b == 1) then
+                loaded = true;
+                container.color:SetColorTexture(value.r, value.g, value.b, value.a);
+            else
+                -- update database:
+                value.r = c.r;
+                value.g = c.g;
+                value.b = c.b;
+                value.a = c.a;
+                value:SaveChanges();
+                container.color:SetColorTexture(c.r, c.g, c.b);
+
+                if (container.requiresReload) then
+                    configModule:ShowReloadMessage();
+                end
+            end
+        end
     end
 
-    container:SetScript("OnClick", function()
-        local refreshedValue = configModule:GetDatabaseValue(widgetConfigTable);
-        local a = refreshedValue.a and (1 - refreshedValue.a);
-        ShowColorPicker(refreshedValue.r, refreshedValue.g, refreshedValue.b, a, container.func);
-    end);
+    container:SetScript("OnClick", ColorWidget_OnClick);
 
     container.square:SetPoint("LEFT");
     container.color:SetPoint("CENTER", container.square, "CENTER");

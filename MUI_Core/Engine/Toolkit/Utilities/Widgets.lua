@@ -4,6 +4,9 @@ local _, namespace = ...;
 local obj = namespace.components.Objects;
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
+local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
+local GameTooltip, ipairs = _G.GameTooltip, _G.ipairs;
+
 function tk:SetFontSize(fontString, size)
     local fontPath, _, flags = fontString:GetFont();
     fontString:SetFont(fontPath, size, flags);
@@ -11,38 +14,53 @@ end
 
 do
     function tk.GeneralTooltip_OnLeave()
-        _G.GameTooltip:Hide();
+        GameTooltip:Hide();
     end
 
-    local function BasicTooltip_OnEnter(self)
-        _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
-        _G.GameTooltip:AddLine(self.text);
-        _G.GameTooltip:Show();
+    function tk.BasicTooltip_OnEnter(self)
+        GameTooltip:SetOwner(self, TOOLTIP_ANCHOR_POINT, 0, 2);
+        GameTooltip:AddLine(self.text);
+        GameTooltip:Show();
+    end
+
+    function tk.AuraTooltip_OnEnter(self)
+        if (self.auraId) then
+            GameTooltip:SetOwner(self, TOOLTIP_ANCHOR_POINT, 0, 2);
+            GameTooltip:SetSpellByID(self.auraId);
+            GameTooltip:Show();
+        end
     end
 
     local function MultipleLinesTooltip_OnEnter(self)
-        _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
+        GameTooltip:SetOwner(self, TOOLTIP_ANCHOR_POINT, 0, 2);
 
         for _, line in ipairs(self.lines) do
 
             if (line.text) then
-                _G.GameTooltip:AddLine(line.text);
+                GameTooltip:AddLine(line.text);
 
             elseif (line.leftText and line.rightText) then
-                _G.GameTooltip:AddDoubleLine(line.leftText, line.rightText, nil, nil, nil, 1, 1, 1);
+                GameTooltip:AddDoubleLine(line.leftText, line.rightText, nil, nil, nil, 1, 1, 1);
             end
 
             obj:PushTable(line);
         end
 
         obj:PushTable(self.lines);
-        _G.GameTooltip:Show();
+        GameTooltip:Show();
     end
 
     function tk:SetBasicTooltip(widget, text)
         widget.text = text;
 
-        widget:SetScript("OnEnter", BasicTooltip_OnEnter);
+        widget:SetScript("OnEnter", tk.BasicTooltip_OnEnter);
+        widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
+    end
+
+    function tk:SetAuraTooltip(widget, auraId)
+        widget.auraId = auraId;
+
+        widget:SetScript("OnEnter", tk.AuraTooltip_OnEnter);
         widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
     end
 

@@ -1,6 +1,6 @@
 -- luacheck: ignore MayronUI self 143 631
 local Lib = _G.LibStub:NewLibrary("LibMayronDB", 2.2);
-local obj = _G.LibStub:GetLibrary("LibMayronObjects");
+local obj = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type Objects
 
 if (not Lib or not obj) then return; end
 
@@ -300,7 +300,7 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     local updateFunctionRoot;
 
     obj:Assert(obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
-    obj:Assert(path and not path:find("__template"), "Invalid path address '%s'.", path);
+    obj:Assert(path and not (obj:IsObject(rootTable, "Observer") and path:find("__template")), "Invalid path address '%s'.", path);
 
     if (rootTable == self.global) then
         updateFunctionRoot = "global";
@@ -1034,7 +1034,7 @@ do
             end
         end
 
-        if (type(nextValue) == "table") then
+        if (obj:IsTable(nextValue)) then
             -- create new tracker if one does not already exist!
             local basicTable = nextValue; -- easier readability
             local nextTracker = _metaData[tostring(basicTable)];

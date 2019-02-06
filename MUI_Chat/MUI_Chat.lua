@@ -107,36 +107,6 @@ db:AddToDefaults("global.chat", {
 	}
 });
 
--- OnConfigUpdate ----------------------
-
--- function C_ChatModule:OnConfigUpdate(data, list, value)
---     local key = list:PopFront();
-
---     if (key == "profile" and list:PopFront() == "chat") then
--- 		key = list:PopFront();
-
---         else
---             -- could be chatframe name, like "TOPLEFT" etc...
---             local chatFrame = data.chatFrames[self:GetChatNameById(key)];
---             if (not chatFrame) then return end
-
---             if (list:PopFront() == "buttons") then
---                 local buttonSetId, buttonID = list:PopFront(), list:PopFront();
-
---                 if (buttonSetId and buttonSetId == 1 and buttonID) then
---                     if (buttonID == 1) then
---                         chatFrame.left:SetText(value);
---                     elseif (buttonID == 2) then
---                         chatFrame.middle:SetText(value);
---                     elseif (buttonID == 3) then
---                         chatFrame.right:SetText(value);
---                     end
---                 end
---             end
---         end
---     end
--- end
-
 -- Chat Module -------------------
 
 function C_ChatModule:OnInitialize(data)

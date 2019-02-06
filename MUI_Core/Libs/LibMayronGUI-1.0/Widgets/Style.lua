@@ -5,7 +5,11 @@ if (not Lib) then return end
 
 local LibObjectLua = _G.LibStub:GetLibrary("LibMayronObjects");
 local WidgetsPackage = Lib.WidgetsPackage;
+
+---@class Style : Object
 local Style = WidgetsPackage:CreateClass("Style");
+
+---@type Objects
 local obj = Lib.Objects;
 
 -- Local Functions ---------------
@@ -28,6 +32,10 @@ end
 -- Style Methods ----------------------
 
 WidgetsPackage:DefineParams("number", "number", "number", "?string");
+---@param red number
+---@param green boolean
+---@param blue boolean
+---@param colorName string @(optional) A unique set to assign to the color to be able to retrieve it (defaults to "default").
 function Style:SetColor(data, red, green, blue, colorName)
     local color = _G.CreateColor(red, green, blue);
     Setter(data, "color", color, colorName);
@@ -35,9 +43,9 @@ end
 
 WidgetsPackage:DefineParams("?string", "?boolean");
 WidgetsPackage:DefineReturns("table|number", "?number", "?number");
---@param (optional) colorName - the name used to identify and get the correct color previously set
---@param (boolean) returnTable - if true, returns the full blizzard color object, else (by default) returns r, g, b, a unpacked values
---@return - a Blizzard Color object  containing the r, g, b color values and a few helper functions, or r, g, b, a unpacked values
+---@param colorName string @(optional) The name used to identify and get the correct color previously set.
+---@param returnTable boolean @(optional) If true, returns the full blizzard color object, else (by default) returns r, g, b, a unpacked values.
+---@return Color @A Blizzard Color object  containing the r, g, b color values and a few helper functions, or r, g, b, a unpacked values.
 function Style:GetColor(data, colorName, returnTable)
     local color = Getter(data, "color", colorName, _G.HIGHLIGHT_FONT_COLOR);
     if (returnTable) then
@@ -48,48 +56,66 @@ function Style:GetColor(data, colorName, returnTable)
 end
 
 WidgetsPackage:DefineParams("number", "?string");
---@param alpha - the alpha value (0-1)
---@param (optional) name - the name used to identify and set the alpha value
+---@param alpha number @The alpha value (0-1).
+---@param name string @(optional) The name used to identify and set the alpha value.
 function Style:SetAlpha(data, alpha, name)
     Setter(data, "alpha", alpha, name);
 end
 
 WidgetsPackage:DefineParams("?string");
 WidgetsPackage:DefineReturns("number");
+---@param name string @(optional) The name used to identify and retrieve the alpha value.
+---@return number @The found alpha value.
 function Style:GetAlpha(data, name)
     return Getter(data, "alpha", name, 1);
 end
 
 WidgetsPackage:DefineParams("table", "?string");
+---@param backdrop table @The backdrop value.
+---@param name string @(optional) The name used to identify and set the backdrop value.
 function Style:SetBackdrop(data, backdrop, name)
     Setter(data, "backdrop", backdrop, name);
 end
 
 WidgetsPackage:DefineParams("?string");
 WidgetsPackage:DefineReturns("?table");
+---Does not have a default (nil is returned if missing)
+---@param name string @(optional) The name used to identify and retrieve the backdrop value.
+---@return table @The backdrop value.
 function Style:GetBackdrop(data, name)
-    -- does not have a default (nil is returned if missing)
     return Getter(data, "backdrop", name);
 end
 
 WidgetsPackage:DefineParams("string", "?string");
+---@param backdrop string @The texture value.
+---@param name string @(optional) The name used to identify and set the texture value.
 function Style:SetTexture(data, texture, name)
     Setter(data, "texture", texture, name);
 end
 
 WidgetsPackage:DefineParams("?string");
 WidgetsPackage:DefineReturns("string");
+---@param name string @(optional) The name used to identify and retrieve the texture value.
+---@return table @The texture value.
 function Style:GetTexture(data, name)
     return Getter(data, "texture", name);
 end
 
 WidgetsPackage:DefineParams("number", "number", "number", "number", "?string");
+---@param top number @The top padding value.
+---@param top number @The right padding value.
+---@param top number @The bottom padding value.
+---@param top number @The left padding value.
+---@param name string @(optional) The name used to identify and set the padding values.
 function Style:SetPadding(data, top, right, bottom, left, name)
     Setter(data, "padding", {top, right, bottom, left}, name);
 end
 
 WidgetsPackage:DefineParams("?string", "?boolean");
 WidgetsPackage:DefineReturns("table");
+---@param name string @(optional) The name used to identify and retrieve the padding values.
+---@param disableUnpacking boolean @(optional) If true, the table containing padding values will not be unpacked and instead the entire table will be returned.
+---@return number, number, number, number @If disableUnpacking is true, a table will be returned instead.
 function Style:GetPadding(data, name, disableUnpacking)
     local value = Getter(data, "padding", name, {0, 0, 0, 0});
 
@@ -104,7 +130,9 @@ function Style:GetPadding(data, name, disableUnpacking)
     return _G.unpack(value);
 end
 
--- @param ... - A variable argument list of widgets (can have alpha value at the start of list)
+---@param colorName string @The name of a color to get (using GetColor) to be applied to all widgets.
+---@param alpha number|Frame @(optional) An alpha value to be applied with the color for all widgets.
+---@param ... Frame @A variable argument list of widgets (can have alpha value at the start of list)
 function Style:ApplyColor(_, colorName, alpha, ...)
     colorName = colorName or "default";
 

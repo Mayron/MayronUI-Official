@@ -87,7 +87,7 @@ local function GetMuiConfigModule()
         end
     end
 
-    local configModule = MayronUI:ImportModule("Config");
+    local configModule = MayronUI:ImportModule("ConfigModule");
 
     if (not configModule:IsInitialized()) then
         configModule:Initialize();
@@ -222,7 +222,7 @@ function BaseModule:SetEnabled(data, enabled, ...)
     if (enabled) then
         if (self.OnEnable) then
             self:OnEnable(...);
-            tk:Print("Enabled: ", self:GetModuleName())
+            --tk:Print("Enabled: ", self:GetModuleName()) --todo: edit this back if needed
         end
 
         if (data.updateFunctions and not data.ignoreUpdateFunctions) then
@@ -306,13 +306,16 @@ local function ExecuteUpdateFunction(updateFunction, setupOptions, value, path, 
     if (obj:IsFunction(updateFunction)) then
         local keysList = tk.Tables:ConvertPathToKeysList(path);
 
-        tk:Print("executed: ", path);
+        --tk:Print("executed: ", path); --todo: edit this back if needed
         updateFunction(value, keysList);
 
         if (obj:IsTable(executedTable)) then
             executedTable[path] = true;
+            return true;
         end
     end
+
+    return false;
 end
 
 do
@@ -428,7 +431,11 @@ do
     local function ExecuteAllUpdateFunctions(functionTable, settingsTable, setupOptions, previousKey, executedTable, blockedTable)
         for key, settingsValue in pairs(settingsTable) do
             local path = key;
-            local functionValue = functionTable[key];
+            local functionValue;
+
+            if (obj:IsTable(functionTable)) then
+                functionValue = functionTable[key]
+            end
 
             if (previousKey) then
                 path = string.format("%s.%s", previousKey, key);
@@ -443,10 +450,16 @@ do
             local ignored = GetIgnored(setupOptions, path);
 
             if (not (ignored or blocked)) then
+                ---MayronUI:Print(tk.Strings:SetTextColorByKey("Excuting ", "ARTIFACT_GOLD"), path); --todo: edit this back if needed
+
                 if (obj:IsTable(functionValue) and obj:IsTable(settingsValue)) then
                     ExecuteAllUpdateFunctions(functionValue, settingsValue, setupOptions, key, executedTable, blockedTable);
                 else
-                    ExecuteUpdateFunction(functionValue, setupOptions, settingsValue, path, executedTable);
+                    local executed = ExecuteUpdateFunction(functionValue, setupOptions, settingsValue, path, executedTable);
+
+                    if (not executed and obj:IsTable(settingsValue)) then
+                        ExecuteAllUpdateFunctions(nil, settingsValue, setupOptions, key, executedTable, blockedTable);
+                    end
                 end
             end
         end
@@ -457,7 +470,7 @@ do
 
         data.executingAllUpdateFunctions = true;
 
-        print("-- Module Name: " .. self:GetModuleName() .. " --------------------");
+        ---print("-- Module Name: " .. self:GetModuleName() .. " --------------------"); --todo: edit this back if needed
         local executedTable = obj:PopTable();
         local blockedTable = obj:PopTable();
 

@@ -1,5 +1,6 @@
--- luacheck: ignore MayronUI self 143
+-- luacheck: ignore self 143 631
 local _, namespace = ...;
+local _G, MayronUI = _G, _G.MayronUI;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local MENU_BUTTON_HEIGHT = 40;
@@ -8,7 +9,9 @@ local MENU_BUTTON_HEIGHT = 40;
 
 local C_LinkedList = obj:Import("Framework.System.Collections.LinkedList");
 local Engine = obj:Import("MayronUI.Engine");
-local C_ConfigModule = MayronUI:RegisterModule("Config");
+
+---@class ConfigModule : BaseModule
+local C_ConfigModule = MayronUI:RegisterModule("ConfigModule");
 
 namespace.C_ConfigModule = C_ConfigModule;
 
@@ -21,7 +24,7 @@ local function MenuButton_OnClick(menuButton)
         return;
     end
 
-    local configModule = MayronUI:ImportModule("Config");
+    local configModule = MayronUI:ImportModule("ConfigModule");
     configModule:OpenMenu(menuButton);
 end
 
@@ -56,43 +59,44 @@ function C_ConfigModule:Show(data)
     data.window:Show();
 end
 
-function C_ConfigModule:OnProfileChange() end
-
 Engine:DefineParams("table");
-function C_ConfigModule:GetDatabaseValue(_, configTable)
-    if (tk.Strings:IsNilOrWhiteSpace(configTable.dbPath)) then
-        return configTable.GetValue and configTable:GetValue();
+---@param widgetConfigTable table @A widget config table used to construct part of the config menu.
+---@return any @A value from the database located by the dbPath value inside widgetConfigTable.
+function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
+    if (tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.dbPath)) then
+        return widgetConfigTable.GetValue and widgetConfigTable:GetValue();
     end
 
-    if (obj:IsFunction(configTable.dbPath)) then
-        configTable.dbPath = configTable.dbPath();
+    if (obj:IsFunction(widgetConfigTable.dbPath)) then
+        widgetConfigTable.dbPath = widgetConfigTable.dbPath();
     end
 
-    local value = db:ParsePathValue(configTable.dbPath);
+    local value = db:ParsePathValue(widgetConfigTable.dbPath);
 
     if (obj:IsTable(value) and value.GetUntrackedTable) then
         value = value:GetTrackedTable();
     end
 
-    if (configTable.GetValue) then
-        value = configTable:GetValue(value);
+    if (widgetConfigTable.GetValue) then
+        value = widgetConfigTable:GetValue(value);
     end
 
     if (value == nil) then
-        if (configTable.GetValue) then
+        if (widgetConfigTable.GetValue) then
             obj:Error("nil config value retrieved from database path '%s' (using GetValue on '%s')",
-                configTable.dbPath, configTable.name);
+                widgetConfigTable.dbPath, widgetConfigTable.name);
         else
-            obj:Error("nil config value retrieved from database path '%s'", configTable.dbPath);
+            obj:Error("nil config value retrieved from database path '%s'", widgetConfigTable.dbPath);
         end
     end
 
     return value;
 end
 
--- Updates the database based on the dbPath config value, or using SetValue,
--- @param widget: The created widget frame
 Engine:DefineParams("table");
+---Updates the database based on the dbPath config value, or using SetValue,
+---@param widget table @The created widger frame.
+---@param value any @The value to add to the database using the dbPath value attached to the widget table.
 function C_ConfigModule:SetDatabaseValue(_, widget, value)
 
     -- SetValue is a custom function to manually set the datbase config value
@@ -125,6 +129,7 @@ function C_ConfigModule:SetDatabaseValue(_, widget, value)
 end
 
 Engine:DefineParams("CheckButton|Button");
+---@param menuButton CheckButton|Button @The menu button clicked on associated with a menu.
 function C_ConfigModule:OpenMenu(data, menuButton)
 
     if (menuButton.type == "menu") then
@@ -147,6 +152,7 @@ do
     end
 
     Engine:DefineParams("CheckButton|Button");
+    ---@param menuButton CheckButton|Button @The menu button clicked on associated with a menu.
     function C_ConfigModule:SetSelectedButton(data, menuButton)
         if (data.selectedButton) then
             -- hide old menu
@@ -183,6 +189,7 @@ do
 end
 
 Engine:DefineParams("table");
+---@param menuConfigTable table @A table containing many widget config tables used to render a full menu.
 function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     if (not (menuConfigTable and type(menuConfigTable.children) == "table")) then
         return;
@@ -248,7 +255,7 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
 end
 
 Engine:DefineReturns("DynamicFrame");
--- @param menuFrame: the dynamic frame representing the module's config data
+---@return DynamicFrame @The dynamic frame which holds the menu frame and controls responsiveness and the scroll bar.
 function C_ConfigModule:CreateMenu(data)
     -- else, create a new menu (dynamic frame) to based on the module's config data
     local menuParent = data.options:GetFrame();
@@ -273,6 +280,9 @@ function C_ConfigModule:ShowRestartMessage(data)
 end
 
 Engine:DefineParams("table", "?Frame");
+---@param widgetConfigTable table @A widget config table used to control the rendering and behavior of a widget in the config menu.
+---@param parent Frame @(optional) A custom parent frame for the widget, else the parent will be the menu.
+---@return Frame @(possibly nil if widget is disabled) The created widget.
 function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
     parent = parent or data.selectedButton.menu:GetFrame();
 
@@ -529,7 +539,8 @@ do
         table.insert(menuButtons, menuButton);
     end
 
-    -- Loads all config data from individual modules and places them as a graphical menu
+    ---Loads all config data from individual modules and places them as a graphical menu
+    ---@param menuListScrollChild Frame @The frame that holds all menu buttons in the left scroll frame.
     function C_ConfigModule:SetUpSideMenu(data, menuListScrollChild)
         data.menuButtons = {};
 

@@ -25,7 +25,7 @@ local function UnlockCastBar(button, data)
     if (not data.hooked) then
         data.hooked = true;
         castbar:HookScript("OnDragStart", function()
-            db:SetPathValue("profile.castbars."..data.castbarName..".anchorToSUF", false);
+            db:SetPathValue("profile.castBars."..data.castbarName..".anchorToSUF", false);
             Map.sufAnchorCheckButtons[data.castbarName]:SetChecked(false);
 
             for _, textfield in tk.pairs(Map.positionTextFields[data.castbarName]) do
@@ -66,7 +66,7 @@ local function UnlockCastBar(button, data)
         castbar.moveLabel:Hide();
         castbar:SetAlpha(0);
 
-        local positions = tk:SavePosition(castbar, "profile.castbars."..data.castbarName..".position");
+        local positions = tk:SavePosition(castbar, "profile.castBars."..data.castbarName..".position");
 
         if (positions) then
             for key, textfield in tk.pairs(Map.positionTextFields[data.castbarName]) do
@@ -90,25 +90,25 @@ function C_CastBarsModule:GetConfigTable()
             {   name = L["Bar Texture"],
                 type = "dropdown",
                 options = tk.Constants.LSM:List("statusbar"),
-                dbPath = "profile.castbars.appearance.texture"
+                dbPath = "profile.castBars.appearance.texture"
             },
             {   name = L["Border"],
                 type = "dropdown",
                 options = tk.Constants.LSM:List("border"),
-                dbPath = "profile.castbars.appearance.border",
+                dbPath = "profile.castBars.appearance.border",
             },
             {   type = "divider"
             },
             {   name = L["Border Size"],
                 type = "textfield",
                 valueType = "number",
-                dbPath = "profile.castbars.appearance.borderSize"
+                dbPath = "profile.castBars.appearance.borderSize"
             },
             {   name = L["Frame Inset"],
                 type = "textfield",
                 valueType = "number",
-                tooltip = "Set the spacing between the status bar and the backdrop.",
-                dbPath = "profile.castbars.appearance.inset"
+                tooltip = "Set the spacing between the status bar and the background.",
+                dbPath = "profile.castBars.appearance.inset"
             },
             {   type = "fontstring",
                 content = L["Colors"],
@@ -117,32 +117,32 @@ function C_CastBarsModule:GetConfigTable()
             {   name = L["Normal Casting"],
                 type = "color",
                 width = 160,
-                dbPath = "profile.castbars.appearance.colors.normal"
+                dbPath = "profile.castBars.appearance.colors.normal"
             },
             {   name = L["Finished Casting"],
                 type = "color",
                 width = 160,
-                dbPath = "profile.castbars.appearance.colors.finished"
+                dbPath = "profile.castBars.appearance.colors.finished"
             },
             {   name = L["Interrupted"],
                 type = "color",
                 width = 160,
-                dbPath = "profile.castbars.appearance.colors.interrupted"
+                dbPath = "profile.castBars.appearance.colors.interrupted"
             },
             {   name = L["Latency"],
                 type = "color",
                 width = 160,
-                dbPath = "profile.castbars.appearance.colors.latency"
+                dbPath = "profile.castBars.appearance.colors.latency"
             },
             {   name = L["Border"],
                 type = "color",
                 width = 160,
-                dbPath = "profile.castbars.appearance.colors.border"
+                dbPath = "profile.castBars.appearance.colors.border"
             },
-            {   name = L["Backdrop"],
+            {   name = "Background",
                 type = "color",
                 width = 160,
-                dbPath = "profile.castbars.appearance.colors.backdrop"
+                dbPath = "profile.castBars.appearance.colors.background"
             },
             {   name = L["Individual Cast Bar Options"],
                 type = "title",
@@ -168,17 +168,17 @@ function C_CastBarsModule:GetConfigTable()
                         children = {
                             {   name = L["Enable Bar"],
                                 type = "check",
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".enabled"),
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".enabled"),
                             },
                             {   name = L["Show Icon"],
                                 type = "check",
                                 enabled = name ~= "mirror",
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".showIcon")
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".showIcon")
                             },
                             {   name = L["Show Latency Bar"],
                                 type = "check",
                                 enabled = name == "player",
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".showLatency");
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".showLatency");
 
                                 GetValue = function(self, value)
                                     if (self.enabled) then
@@ -196,7 +196,7 @@ function C_CastBarsModule:GetConfigTable()
                                 enabled = name ~= "mirror",
                                 tooltip = tk.string.format(
                                     L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."], castBarName),
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".anchorToSUF"),
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".anchorToSUF"),
                                 SetValue = function(path, _, new, button)
                                     local unitframe = _G["SUFUnit"..name];
                                     if (new and not (unitframe and unitframe.portrait)) then
@@ -231,38 +231,38 @@ function C_CastBarsModule:GetConfigTable()
                                 type = "textfield",
                                 valueType = "number",
                                 OnLoad = function(_, container)
-                                    if (db.profile.castbars[name].anchorToSUF) then
+                                    if (db.profile.castBars[name].anchorToSUF) then
                                         container.widget.field:SetEnabled(false);
                                     end
                                     table.insert(Map.widthTextFields[name], container.widget.field);
                                 end,
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".width")
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".width")
                             },
                             {   name = L["Height"],
                                 tooltip = L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."],
                                 type = "textfield",
                                 valueType = "number",
                                 OnLoad = function(_, container)
-                                    if (db.profile.castbars[name].anchorToSUF) then
+                                    if (db.profile.castBars[name].anchorToSUF) then
                                         container.widget.field:SetEnabled(false);
                                     end
                                     table.insert(Map.heightTextFields[name], container.widget.field);
                                 end,
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".height")
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".height")
                             },
                             {   type = "divider",
                             },
                             {   name = L["Frame Strata"],
                                 type = "dropdown",
                                 options = tk.Constants.ORDERED_FRAME_STRATAS,
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".frameStrata")
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".frameStrata")
                             },
                             {   name = L["Frame Level"],
                                 type = "slider",
                                 min = 1,
                                 max = 50,
                                 step = 1,
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".frameLevel")
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".frameLevel")
                             },
                             {   name = L["Manual Positioning"],
                                 type = "title",
@@ -273,15 +273,15 @@ function C_CastBarsModule:GetConfigTable()
                             {   name = L["Point"],
                                 type = "textfield",
                                 valueType = "string",
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".position.point"),
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".position.point"),
                                 OnLoad = function(_, container)
-                                    if (db.profile.castbars[name].anchorToSUF) then
+                                    if (db.profile.castBars[name].anchorToSUF) then
                                         container.widget.field:SetEnabled(false);
                                     end
                                     Map.positionTextFields[name].point = container.widget.field;
                                 end,
                                 GetValue = function()
-                                    local value = db:ParsePathValue(tk.Strings:Concat("profile.castbars.", name, ".position"));
+                                    local value = db:ParsePathValue(tk.Strings:Concat("profile.castBars.", name, ".position"));
 
                                     if (value) then
                                         return value.point;
@@ -299,16 +299,16 @@ function C_CastBarsModule:GetConfigTable()
                             {   name = L["Relative Frame"],
                                 type = "textfield",
                                 valueType = "string",
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".position.relativeFrame"),
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".position.relativeFrame"),
                                 OnLoad = function(_, container)
-                                    if (db.profile.castbars[name].anchorToSUF) then
+                                    if (db.profile.castBars[name].anchorToSUF) then
                                         container.widget.field:SetEnabled(false);
                                     end
 
                                     Map.positionTextFields[name].relativeFrame = container.widget.field;
                                 end,
                                 GetValue = function()
-                                    local value = db:ParsePathValue(tk.Strings:Concat("profile.castbars.", name, ".position"));
+                                    local value = db:ParsePathValue(tk.Strings:Concat("profile.castBars.", name, ".position"));
 
                                     if (value) then
                                         return value.relativeFrame;
@@ -325,15 +325,15 @@ function C_CastBarsModule:GetConfigTable()
                             {   name = L["Relative Point"],
                                 type = "textfield",
                                 valueType = "string",
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".position.relativePoint"),
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".position.relativePoint"),
                                 OnLoad = function(_, container)
-                                    if (db.profile.castbars[name].anchorToSUF) then
+                                    if (db.profile.castBars[name].anchorToSUF) then
                                         container.widget.field:SetEnabled(false);
                                     end
                                     Map.positionTextFields[name].relativePoint = container.widget.field;
                                 end,
                                 GetValue = function()
-                                    local value = db:ParsePathValue(tk.Strings:Concat("profile.castbars.", name, ".position"));
+                                    local value = db:ParsePathValue(tk.Strings:Concat("profile.castBars.", name, ".position"));
 
                                     if (value) then
                                         return value.relativePoint;
@@ -352,16 +352,16 @@ function C_CastBarsModule:GetConfigTable()
                             {   name = L["X-Offset"],
                                 type = "textfield",
                                 valueType = "number",
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".position.x"),
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".position.x"),
                                 OnLoad = function(_, container)
-                                    if (db.profile.castbars[name].anchorToSUF) then
+                                    if (db.profile.castBars[name].anchorToSUF) then
                                         container.widget.field:SetEnabled(false);
                                     end
 
                                     Map.positionTextFields[name].x = container.widget.field;
                                 end,
                                 GetValue = function()
-                                    local value = db:ParsePathValue(tk.Strings:Concat("profile.castbars.", name, ".position"));
+                                    local value = db:ParsePathValue(tk.Strings:Concat("profile.castBars.", name, ".position"));
 
                                     if (value) then
                                         return value.x;
@@ -377,15 +377,15 @@ function C_CastBarsModule:GetConfigTable()
                             {   name = L["Y-Offset"],
                                 type = "textfield",
                                 valueType = "number",
-                                dbPath = tk.Strings:Concat("profile.castbars.", name, ".position.y"),
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".position.y"),
                                 OnLoad = function(_, container)
-                                    if (db.profile.castbars[name].anchorToSUF) then
+                                    if (db.profile.castBars[name].anchorToSUF) then
                                         container.widget.field:SetEnabled(false);
                                     end
                                     Map.positionTextFields[name].y = container.widget.field;
                                 end,
                                 GetValue = function()
-                                    local value = db:ParsePathValue(tk.Strings:Concat("profile.castbars.", name, ".position"));
+                                    local value = db:ParsePathValue(tk.Strings:Concat("profile.castBars.", name, ".position"));
 
                                     if (value) then
                                         return value.y;

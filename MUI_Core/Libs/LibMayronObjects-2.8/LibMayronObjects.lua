@@ -73,6 +73,11 @@ function Lib:IsNil(value)
     return type(value) == Lib.Types.Nil;
 end
 
+function Lib:IsObject(value)
+    local controller = Core:GetController(value, true);
+    return (controller ~= nil);
+end
+
 function Lib:IsStringNilOrWhiteSpace(value)
     return Core:IsStringNilOrWhiteSpace(value);
 end
@@ -233,7 +238,7 @@ end
 ---@param namespace string @The parent package namespace. Example: "Framework.System.package".
 ---@return Package @Returns a package object.
 function Lib:CreatePackage(packageName, namespace)
-    local newPackage = Package(packageName);
+    local newPackage = Package(packageName, namespace);
 
     Core:Assert(newPackage ~= nil, "Failed to create new Package '%s'", packageName);
 
@@ -317,7 +322,7 @@ function Lib:Export(package, namespace)
     end
 
     -- add package to the last (parent) package specified in the namespace
-    parentPackage:AddSubPackage(package);
+    parentPackage:AddSubPackage(package, namespace);
 end
 
 ---@param silent boolean @True if errors should be cause in the error log instead of triggering.
@@ -691,10 +696,14 @@ do
 
             proxyClass.Of = function(_, ...)
                 Core:Assert(classController.isGenericType, "%s is not a generic class", className);
-                classController.tempRealGenericTypes = Lib:PopTable(...); -- holds real type names
+                classController.tempRealGenericTypes = Lib:PopTable();
 
-                for id, realType in ipairs(classController.tempRealGenericTypes) do
-                    -- remove spaces
+                for id, realType in Lib:IterateArgs(...) do
+                    if (Lib:IsObject(realType)) then
+                        local controller = Core:GetController(realType);
+                        realType = controller.objectName;
+                    end
+
                     classController.tempRealGenericTypes[id] = (realType:gsub("%s+", ""));
                 end
 
@@ -908,7 +917,8 @@ do
 
         if (classController.isGenericType) then
             -- renames EntiyName for instance controller, and creates "RealGenericTypes" instance controller property
-            instanceController.objectName = self:ApplyGenericTypesToInstance(instanceController.definitions, classController);
+            instanceController.objectName = self:ApplyGenericTypesToInstance(instanceController.definitions, classController); -- TODO: This is getting called twice for each instance and altering the class definition!
+            -- TODO: This is because originally each instance had a copy of the definition but now the class does and I am rewriting the class definition when I should just be altering the instance definition
         end
 
         -- interfaceController requires knowledge of many classController settings
@@ -991,63 +1001,107 @@ function Core:GetGenericTypesFromClassName(className)
     return genericTypes;
 end
 
-function Core:ApplyGenericTypesToInstance(definitions, classController)
-    local realTypes = classController.tempRealGenericTypes;
-    local genericTypes = classController.genericTypes;
+local function FillTable(tbl, otherTbl)
+    for key, value in pairs(otherTbl) do
 
-    if (not realTypes) then
-        -- Of() was not used, so treat generic types as "any"
-        realTypes = Lib:PopTable();
+        if (Lib:IsTable(tbl[key]) and Lib:IsTable(value)) then
+            FillTable(tbl[key], value);
 
-        for i = 1, #genericTypes do
-            realTypes[i] = "any";
-        end
-    end
-
-    for _, funcDefinition in pairs(definitions) do
-
-        if (Lib:IsTable(funcDefinition.paramDefs)) then
-            for defId, paramDef in ipairs(funcDefinition.paramDefs) do
-                for id, genericType in ipairs(genericTypes) do
-                    if (paramDef:match(genericType)) then
-                        funcDefinition.paramDefs[defId] = paramDef:gsub(genericType, realTypes[id]);
-                    end
-                end
-            end
-        end
-
-        if (Lib:IsTable(funcDefinition.returnDefs)) then
-            for defId, returnDef in ipairs(funcDefinition.returnDefs) do
-                for id, genericType in ipairs(genericTypes) do
-                    if (returnDef:match(genericType)) then
-                        funcDefinition.returnDefs[defId] = returnDef:gsub(genericType, realTypes[id]);
-                    end
-                end
-            end
-        end
-    end
-
-    -- change instance name to use real types
-    local className = classController.objectName;
-    local redefinedInstanceName = (select(1, _G.strsplit("<", className))).."<";
-
-    for id, realType in ipairs(realTypes) do
-        if (id < #realTypes) then
-            redefinedInstanceName = string.format("%s%s, ", redefinedInstanceName, realType);
+        elseif (Lib:IsTable(value)) then
+            tbl[key] = Lib:PopTable();
+            FillTable(tbl[key], value);
         else
-            redefinedInstanceName = string.format("%s%s>", redefinedInstanceName, realType);
+            tbl[key] = value;
+        end
+    end
+end
+
+do
+    local function TransformDefinitions(definitions, genericTypes, realTypes)
+        for funcKey, funcDefinition in pairs(definitions) do
+            local transformed = false;
+
+            -- iterate through parameter and return value definitions:
+            for i = 1, 2 do
+                local paramOrReturnTable;
+
+                if (i == 1) then
+                    paramOrReturnTable = funcDefinition.paramDefs;
+                else
+                    paramOrReturnTable = funcDefinition.returnDefs;
+                end
+
+                if (Lib:IsTable(paramOrReturnTable)) then
+                    for defId, definition in ipairs(paramOrReturnTable) do
+                        for id, genericType in ipairs(genericTypes) do
+
+                            if (definition:match(genericType)) then
+
+                                if (not transformed) then
+                                    -- make a deep copy of the class controller definition table for the instance to use:
+                                    local funcDefinitionCopy = Lib:PopTable();
+                                    FillTable(funcDefinitionCopy, funcDefinition);
+
+                                    definitions[funcKey] = funcDefinitionCopy;
+                                    funcDefinition = funcDefinitionCopy;
+
+                                    if (i == 1) then
+                                        paramOrReturnTable = funcDefinition.paramDefs;
+                                    else
+                                        paramOrReturnTable = funcDefinition.returnDefs;
+                                    end
+
+                                    transformed = true;
+                                end
+
+                                -- transform here:
+                                paramOrReturnTable[defId] = definition:gsub(genericType, realTypes[id]);
+                            end
+                        end
+                    end
+                end
+            end
         end
     end
 
-    Lib:PushTable(classController.tempRealGenericTypes);
-    classController.tempRealGenericTypes = nil;
+    function Core:ApplyGenericTypesToInstance(definitions, classController)
+        local realTypes = classController.tempRealGenericTypes;
+        local genericTypes = classController.genericTypes;
 
-    return redefinedInstanceName;
+        if (not realTypes) then
+            -- Of() was not used, so treat generic types as "any"
+            realTypes = Lib:PopTable();
+
+            for i = 1, #genericTypes do
+                realTypes[i] = "any";
+            end
+        end
+
+        -- change instance name to use real types
+        local className = classController.objectName;
+        local redefinedInstanceName = (select(1, _G.strsplit("<", className))).."<";
+
+        for id, realType in ipairs(realTypes) do
+            if (id < #realTypes) then
+                redefinedInstanceName = string.format("%s%s, ", redefinedInstanceName, realType);
+            else
+                redefinedInstanceName = string.format("%s%s>", redefinedInstanceName, realType);
+            end
+        end
+
+        TransformDefinitions(definitions, genericTypes, realTypes);
+
+        Lib:PushTable(classController.tempRealGenericTypes);
+        classController.tempRealGenericTypes = nil;
+
+        return redefinedInstanceName;
+    end
 end
 
 -- Attempt to add definitions for new function Index (params and returns)
---@param controller - an instance or class controller
---@param newFuncKey - the new key being indexed into Class (pointing to a function value)
+---@param controller table @An instance or class controller
+---@param newFuncKey number|string @The new key being indexed into Class (pointing to a function value)
+---@param fromInterface boolean @True if the function definition originates from an interface
 function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
     if (not controller.packageData or controller.objectName == "Package") then
         return;
@@ -1114,8 +1168,16 @@ end
 
 function Core:SetInterfaces(classController, ...)
     for id, interface in Lib:IterateArgs(...) do
+
         if (Lib:IsString(interface)) then
-            interface = Lib:Import(interface);
+            local interfaceName = interface;
+            interface = Lib:Import(interfaceName, true);
+
+            if (not interface) then
+                -- append full package name:
+                interfaceName = string.format("%s.%s", classController.packageData.fullPackageName, interfaceName);
+                interface = Lib:Import(interfaceName);
+            end
         end
 
         local interfaceController = self:GetController(interface);
@@ -1186,7 +1248,7 @@ do
     end
 end
 
--- Helper function to copy key/value pairs from copiedTable to receiverTable
+---Helper function to copy key/value pairs from copiedTable to receiverTable
 function Core:CopyTableValues(copiedTable, receiverTable)
     receiverTable = receiverTable or Lib:PopTable();
 
@@ -1218,7 +1280,13 @@ function Core:SetParentClass(classController, parentProxyClass)
     if (parentProxyClass) then
 
 		if (Lib:IsString(parentProxyClass) and not self:IsStringNilOrWhiteSpace(parentProxyClass)) then
-            classController.parentProxyClass = Lib:Import(parentProxyClass);
+            classController.parentProxyClass = Lib:Import(parentProxyClass, true);
+
+            if (not classController.parentProxyClass) then
+                -- append full package name:
+                parentProxyClass = string.format("%s.%s", classController.packageData.fullPackageName, parentProxyClass);
+                classController.parentProxyClass = Lib:Import(parentProxyClass);
+            end
 
 		elseif (Lib:IsTable(parentProxyClass) and parentProxyClass.Static) then
             classController.parentProxyClass = parentProxyClass;
@@ -1250,7 +1318,7 @@ function Core:PathExists(root, path)
     return true;
 end
 
--- @param proxyEntity = proxyInstance or proxyClass but can also be an Interface
+---@param proxyEntity table @Proxy instance or proxyClass but can also be an Interface
 function Core:GetController(proxyEntity, silent)
     local mt = getmetatable(proxyEntity);
 
@@ -1289,13 +1357,14 @@ function Core:ValidateImplementedInterfaceProperty(propertyName, propertyDefinit
         errorFound = (realValue == nil) or (propertyDefinition ~= "any" and not self:IsMatchingType(realValue, propertyDefinition));
     end
 
-    local errorMessage = string.format(message .. " (%s expected, got %s)", propertyDefinition, self:GetValueType(realValue));
+    local errorMessage = string.format(message .. " (%s expected, got %s (value: %s))",
+        propertyDefinition, self:GetValueType(realValue), tostring(realValue));
     errorMessage = errorMessage:gsub("##", propertyName);
 
     self:Assert(not errorFound, errorMessage);
 end
 
--- Call this after using the constructor to make sure properties have been implemented
+---Call this after using the constructor to make sure properties have been implemented
 function Core:ValidateImplementedInterfaces(instance, classController)
     if (Lib:IsTable(classController.interfaceDefinitions)) then
         for funcName, _ in pairs(classController.interfaceDefinitions) do
@@ -1369,7 +1438,8 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
         end
 
         if (errorFound) then
-            errorMessage = string.format("%s (%s expected, got %s)", errorMessage, defValue, self:GetValueType(realValue));
+            errorMessage = string.format("%s (%s expected, got %s (value: %s))",
+                errorMessage, defValue, self:GetValueType(realValue), tostring(realValue));
             errorMessage = errorMessage:gsub("##", "#" .. tostring(id));
             self:Error(errorMessage);
         end
@@ -1414,16 +1484,23 @@ end
 
 function Core:Assert(condition, errorMessage, ...)
     if (not condition) then
-        if ((select(1, ...)) ~= nil) then
-            errorMessage = string.format(errorMessage, ...);
+        if (errorMessage) then
 
-        elseif (string.match(errorMessage, "%s")) then
-            errorMessage = string.format(errorMessage, Lib.Types.Nil);
+            if ((select(1, ...)) ~= nil) then
+                errorMessage = string.format(errorMessage, ...);
+
+            elseif (string.match(errorMessage, "%s")) then
+                errorMessage = string.format(errorMessage, Lib.Types.Nil);
+            end
+        else
+            errorMessage = "condition failed";
         end
+
+        errorMessage = self.PREFIX .. errorMessage;
 
         if (self.silent) then
             self.errorLog = self.errorLog or Lib:PopTable();
-            self.errorLog[#self.errorLog + 1] = pcall(function() error(self.PREFIX .. errorMessage) end);
+            self.errorLog[#self.errorLog + 1] = pcall(function() error(errorMessage) end);
 
         elseif (Lib:IsFunction(self.errorHandler)) then
             -- local level = _G.DEBUGLOCALS_LEVEL;
@@ -1431,7 +1508,7 @@ function Core:Assert(condition, errorMessage, ...)
             local locals = _G.debuglocals(3);
             self.errorHandler(errorMessage, stack, locals);
         else
-            error(self.PREFIX .. errorMessage);
+            error(errorMessage);
         end
     end
 end
@@ -1524,9 +1601,16 @@ end
 
 Package = Core:CreateClass(nil, nil, "Package");
 
-function Package:__Construct(data, packageName)
+function Package:__Construct(data, packageName, namespace)
     data.packageName = packageName;
-    data.entities = {};
+
+    if (data.namespace) then
+        data.fullPackageName = string.format("%s.%s", namespace, packageName);
+    else
+        data.fullPackageName = packageName;
+    end
+
+    data.entities = Lib:PopTable();
 end
 
 function Package:GetName(data)
@@ -1543,6 +1627,7 @@ function Package:AddSubPackage(data, subPackage)
 
     data.entities[subPackageName] = subPackage;
     subPackageData.parentPackage = self;
+    subPackageData.fullPackageName = string.format("%s.%s", data.fullPackageName, subPackageData.packageName);
 end
 
 function Package:GetParentPackage(data)
@@ -1553,7 +1638,7 @@ end
 ---@param silent boolean if the entity cannot be found, do not throw an error if true
 function Package:Get(data, entityName, silent)
     Core:Assert(silent or data.entities[entityName],
-        "Entity '%s' does not exist in this package.", entityName);
+        "Entity '%s' does not exist in package '%s'.", entityName, data.fullPackageName);
     return data.entities[entityName];
 end
 

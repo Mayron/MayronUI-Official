@@ -48,7 +48,7 @@ function C_ConfigModule:GetConfigTable()
                     SetValue = function(_, _, value)
                         value.hex = tk.string.format('%02x%02x%02x', value.r * 255, value.g * 255, value.b * 255);
                         db.profile.theme.color = value;
-                        db.profile["profile.bottomui.gradients"] = nil;
+                        db.profile.bottomui.gradients = nil;
                     end
                 };
                 {   name    = L["Objective (Quest) Tracker"];

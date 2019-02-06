@@ -30,16 +30,16 @@ tk.Constants = {
         edgeSize = 1,
     };
 
-    ORDERED_FRAME_STRATAS = {
-        -- Index table ordered by strata level
-        "BACKGROUND";
-        "LOW";
-        "MEDIUM";
-        "HIGH";
-        "DIALOG";
-        "FULLSCREEN";
-        "FULLSCREEN_DIALOG";
-        "TOOLTIP";
+    POINTS = {
+        LEFT = "LEFT";
+        CENTER = "CENTER";
+        RIGHT = "RIGHT";
+        TOP = "TOP";
+        BOTTOM = "BOTTOM";
+        TOPLEFT = "TOPLEFT";
+        TOPRIGHT = "TOPRIGHT";
+        BOTTOMLEFT = "BOTTOMLEFT";
+        BOTTOMRIGHT = "BOTTOMRIGHT";
     };
 
     ORDERED_POINTS = {
@@ -53,6 +53,18 @@ tk.Constants = {
         "TOPRIGHT";
         "BOTTOMLEFT";
         "BOTTOMRIGHT";
+    };
+
+    ORDERED_FRAME_STRATAS = {
+        -- Index table ordered by strata level
+        "BACKGROUND";
+        "LOW";
+        "MEDIUM";
+        "HIGH";
+        "DIALOG";
+        "FULLSCREEN";
+        "FULLSCREEN_DIALOG";
+        "TOOLTIP";
     };
 
     FRAME_STRATAS = {
