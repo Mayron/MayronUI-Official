@@ -313,6 +313,10 @@ local function ExecuteUpdateFunction(updateFunction, setupOptions, value, path, 
             executedTable[path] = true;
             return true;
         end
+    elseif (obj:IsTable(updateFunction)) then
+        -- TODO: For TimerBars
+        print("Not a function: ", value);
+        print("Path: ", path);
     end
 
     return false;
@@ -352,10 +356,6 @@ do
                     if (not tk.Tables:Contains(data.setupOptions.ignore, "^enabled$")) then
                         table.insert(data.setupOptions.ignore, "^enabled$");
                     end
-
-                    -- if (not tk.Tables:Contains(data.setupOptions.ignore, "^__group")) then
-                    --     table.insert(data.setupOptions.ignore, "^__group");
-                    -- end
                 else
                     data.setupOptions.ignore = ignoreEnabledOption.ignore;
                 end
