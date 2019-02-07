@@ -47,11 +47,12 @@ Engine:CreateInterface("ITimerBar", {
     AuraId = "number";
 });
 
----@class TimerBar : ITimerBar
-local C_TimerBar = Engine:CreateClass("TimerBar", "Framework.System.FrameWrapper", "ITimerBar");
-
 ---@class TimerField : FrameWrapper
 local C_TimerField = Engine:CreateClass("TimerField", "Framework.System.FrameWrapper");
+
+---@class TimerBar : ITimerBar
+local C_TimerBar = Engine:CreateClass("TimerBar", "Framework.System.FrameWrapper", "ITimerBar");
+C_TimerBar.Static:AddFriendClass("TimerBarsModule");
 
 ---@type Stack
 local Stack = obj:Import("Framework.System.Collections.Stack<T>");
@@ -158,8 +159,18 @@ function C_TimerBarsModule:OnInitialize(data)
 
     -- TODO: Need to add config functions
     local setupOptions = {
+        ignore = {
+            "profile.timerBars.showBorders";
+            "profile.timerBars.borderSize";
+        };
+
         groups = {
             groupPatterns = {
+                BorderFunction = {
+                    "profile.timerBars.border";
+                    "profile.timerBars.showBorders";
+                    "profile.timerBars.borderSize";
+                };
                 FieldFunctions = {
                     "^profile%.timerBars%."; -- all settings that cannot be found use this group
                 };
@@ -167,9 +178,18 @@ function C_TimerBarsModule:OnInitialize(data)
             groupFunctions = {
                 -- For Field only settings (not shared):
 
+                BorderFunction = function()
+                    for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+                        for _, bar in pairs(field:GetAllTimerBars()) do
+                            bar:SetBorderShown(data.settings.showBorders);
+                        end
+                    end
+                end;
+
                 FieldFunctions = {
                     ---@param keysList LinkedList
                     enabled = function(value, keysList)
+                        keysList:Print();
                     end;
         
                     ---@param keysList LinkedList
@@ -252,25 +272,34 @@ function C_TimerBarsModule:OnInitialize(data)
     self:RegisterUpdateFunctions(db.profile.timerBars, {
         -- For shared settings:
 
-        sortByTimeRemaining = function(value)
-        end;
-
         showTooltips = function(value)
+            for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+                for _, bar in pairs(field:GetAllTimerBars()) do
+                    bar:SetTooltipsEnabled(value);
+                end
+            end
         end;
 
         statusBarTexture = function(value)
+            for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+                for _, bar in pairs(field:GetAllTimerBars()) do
+                    print(bar);
+                    local barData = data:GetFriendData(bar);
+                    barData.slider:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", value));
+                end
+            end
         end;
 
-        border = function(value)
-        end;
+        colors = function(value, keysList)
+            local colorName = keysList:PopBack();
 
-        showBorders = function(value)
-        end;
-
-        borderSize = function(value)
-        end;
-    
-        colors = function(value, path)
+            if (colorName == "border") then
+                setupOptions.groups.groupFunctions.BorderFunction();
+            else
+                for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+                    field:RecheckAuras();
+                end
+            end
         end;
     }, setupOptions);
 end
@@ -721,7 +750,7 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraN
 end
 
 ---Rechecks whether auras are still in use by the unit
-function C_TimerField:RecheckAuras(data, event)
+function C_TimerField:RecheckAuras(data)
     local currentTime = GetTime();
     local maxAuras, filterName, auraType;
 
@@ -755,6 +784,17 @@ function C_TimerField:RecheckAuras(data, event)
     end
 end
 
+Engine:DefineReturns("table");
+---@return table @A table containing all active, and non-active, timer bars.
+function C_TimerField:GetAllTimerBars(data)
+    local allBars = obj:PopTable();
+
+    tk.Tables:AddAll(allBars, unpack(data.activeBars));
+    tk.Tables:AddAll(allBars, data.expiredBarsStack:Unpack());
+
+    return allBars;
+end
+
 -- C_TimerBar ---------------------------
 
 Engine:DefineParams("table", "table");
@@ -782,7 +822,6 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
     self:SetSparkShown(settings.showSpark);
     self:SetAuraNameShown(settings.auraName.show);
     self:SetTimeRemainingShown(settings.timeRemaining.show);
-    self:SetTooltipsEnabled(data.sharedSettings.showTooltips);
 end
 
 Engine:DefineParams("boolean");
@@ -936,7 +975,7 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
         -- Called from UpdateAura
         data.slider:SetMinMaxValues(0, totalDuration);
     end
-    
+
     data.slider:SetValue(self.TimeRemaining);
 
     if (data.showSpark) then
@@ -952,7 +991,9 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
         data.spark:SetPoint("LEFT", value, 0);
     end
 
-    -- if (true) then return; end
+    if (not data.timeRemaining) then
+        return;
+    end
 
     local timeRemainingText = tk.Numbers:ToPrecision(self.TimeRemaining, 1);
 

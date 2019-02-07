@@ -13,6 +13,10 @@ function Stack:__Construct(data, ...)
     end
 end
 
+function Stack:Unpack(data)
+    return _G.unpack(data.tbl);
+end
+
 Collections:DefineParams("?function");
 ---@param generator function @A function to handle the generation of new items when popping from an empty stack (set to nil to remove generator).
 function Stack:OnNewItem(data, generator)
