@@ -170,14 +170,14 @@ function C_ChatFrame:Reposition(data)
 	data.frame:ClearAllPoints();
 	data.frame.window:ClearAllPoints();
 	data.frame.sidebar:ClearAllPoints();
-	data.frame.buttons[1]:ClearAllPoints();
+	data.buttons[1]:ClearAllPoints();
 
 	if (data.anchorName == "TOPRIGHT") then
 		data.frame:SetPoint(data.anchorName, _G.UIParent, data.anchorName, -2, -2);
 		data.frame.window:SetPoint(data.anchorName, data.frame.tabs, "BOTTOMRIGHT", -2, -2);
 		data.frame.window.texture:SetTexCoord(1, 0, 0, 1);
 		data.frame.sidebar:SetPoint(data.anchorName, data.frame, data.anchorName, 0 , -10);
-		data.frame.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.tabs, "TOPLEFT", -46, 2);
+		data.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.tabs, "TOPLEFT", -46, 2);
 		data.frame.tabs:ClearAllPoints();
 		data.frame.tabs:SetPoint(data.anchorName, data.frame.sidebar, "TOPLEFT", 0, -12);
 		data.frame.tabs:SetTexCoord(1, 0, 0, 1);
@@ -190,13 +190,13 @@ function C_ChatFrame:Reposition(data)
 			data.frame:SetPoint(data.anchorName, tk.UIParent, data.anchorName, 2, 2);
 			data.frame.window:SetPoint(data.anchorName, data.frame.sidebar, "BOTTOMRIGHT", 2, 12);
 			data.frame.window.texture:SetTexCoord(0, 1, 1, 0);
-			data.frame.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.sidebar, "BOTTOMRIGHT", 0, -10);
+			data.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.sidebar, "BOTTOMRIGHT", 0, -10);
 
 		elseif (data.anchorName == "BOTTOMRIGHT") then
 			data.frame:SetPoint(data.anchorName, tk.UIParent, data.anchorName, -2, 2);
 			data.frame.window:SetPoint(data.anchorName, data.frame.sidebar, "BOTTOMLEFT", -2, 12);
 			data.frame.window.texture:SetTexCoord(1, 0, 1, 0);
-			data.frame.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.window, "BOTTOMLEFT", -36, -22);
+			data.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.window, "BOTTOMLEFT", -36, -22);
 		end
 	end
 

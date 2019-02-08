@@ -93,9 +93,11 @@ function C_DataTextModule:OnInitialize(data)
     data.buttons = obj:PopTable();
     data.DataModules = obj:PopTable(); -- holds all data text modules
 
-    local setupOptions = {
-        dependencies = {
-            ["spacing"] = "displayOrders";
+    local options = {
+        onExecuteAll = {
+            dependencies = {
+                ["spacing"] = "displayOrders";
+            };
         };
     };
 
@@ -147,7 +149,7 @@ function C_DataTextModule:OnInitialize(data)
         displayOrders = function()
             self:OrderDataTextButtons();
         end;
-    }, setupOptions);
+    }, options);
 end
 
 function C_DataTextModule:OnInitialized(data)

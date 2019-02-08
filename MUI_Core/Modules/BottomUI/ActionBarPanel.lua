@@ -14,7 +14,7 @@ local SlideController = gui.WidgetsPackage:Get("SlideController");
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.actionBarPanel", {
-    enabled         = false;
+    enabled         = true;
     expanded        = false;
     modKey          = "C";
     retractHeight   = 44;
@@ -156,6 +156,7 @@ function C_ActionBarPanel:OnEnable(data)
 
     if (data.ResourceBars:IsEnabled()) then
         local barsContainer = data.ResourceBars:GetBarContainer();
+
         data.panel:SetPoint("BOTTOMLEFT", barsContainer, "TOPLEFT", 0, -1);
         data.panel:SetPoint("BOTTOMRIGHT", barsContainer, "TOPRIGHT", 0, -1);
     else

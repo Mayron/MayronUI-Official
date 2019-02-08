@@ -276,32 +276,26 @@ function BaseModule:Hook(_, eventName, func)
 end
 
 local function ExecuteUpdateFunction(path, updateFunction, setting, executed, onPre, onPost)
-    if (obj:IsFunction(updateFunction)) then
-        local keysList = tk.Tables:ConvertPathToKeysList(path);
+    local keysList = tk.Tables:ConvertPathToKeysList(path);
 
-        if (obj:IsFunction(onPre)) then
-            if (obj:IsFunction(onPost)) then
-                onPost(setting, keysList, updateFunction(setting, keysList, onPre(setting, keysList)));
-            else
-                updateFunction(setting, keysList, onPre(setting, keysList));
-            end
+    if (obj:IsFunction(onPre)) then
+        if (obj:IsFunction(onPost)) then
+            onPost(setting, keysList, updateFunction(setting, keysList, onPre(setting, keysList)));
         else
-            if (obj:IsFunction(onPost)) then
-                onPost(setting, keysList, updateFunction(setting, keysList));
-            else
-                updateFunction(setting, keysList);
-            end
+            updateFunction(setting, keysList, onPre(setting, keysList));
         end
-
-        if (obj:IsTable(executed)) then
-            -- if executing all settings then this is used
-            executed[path] = true;
+    else
+        if (obj:IsFunction(onPost)) then
+            onPost(setting, keysList, updateFunction(setting, keysList));
+        else
+            updateFunction(setting, keysList);
         end
-
-        return true;
     end
 
-    return false;
+    if (obj:IsTable(executed)) then
+        -- if executing all settings then this is used
+        executed[path] = true;
+    end
 end
 
 do
@@ -332,34 +326,33 @@ do
             tk.Tables:Fill(data.updateFunctions, updateFunctions);
         end
 
-        if (data.settings.enabled) then
-            if (data.options) then
-                if (data.options.onExecuteAll and data.options.onExecuteAll.ignore) then
-                    if (not tk.Tables:Contains(data.options.onExecuteAll.ignore, "^enabled$")) then
-                        table.insert(data.options.onExecuteAll.ignore, "^enabled$");
-                    end
-                elseif (data.options.onExecuteAll) then
-                    data.options.onExecuteAll.ignore = ignoreEnabledOption.onExecuteAll.ignore;
-                else
-                    data.options.onExecuteAll = ignoreEnabledOption.onExecuteAll;
+        if (data.options) then
+            if (data.options.onExecuteAll and data.options.onExecuteAll.ignore) then
+                if (not tk.Tables:Contains(data.options.onExecuteAll.ignore, "^enabled$")) then
+                    table.insert(data.options.onExecuteAll.ignore, "^enabled$");
                 end
+            elseif (data.options.onExecuteAll) then
+                data.options.onExecuteAll.ignore = ignoreEnabledOption.onExecuteAll.ignore;
             else
-                data.options = ignoreEnabledOption;
+                data.options.onExecuteAll = ignoreEnabledOption.onExecuteAll;
             end
+        else
+            data.options = ignoreEnabledOption;
+        end
 
+        if (data.settings.enabled) then
             data.updateFunctions.enabled = function(value)
                 self:SetEnabled(value);
             end
         end
 
-        db:RegisterUpdateFunctions(path, updateFunctions, function(func, value, valuePath)
+        db:RegisterUpdateFunctions(path, updateFunctions, function(updateFunction, value, valuePath)
             -- update settings:
             local settingPath = valuePath:gsub(path..".", tk.Strings.Empty);
             db:SetPathValue(data.settings, settingPath, value);
 
-            if (self:IsEnabled() or func == data.updateFunctions.enabled) then
-                --TODO: Fix
-                -- ExecuteUpdateFunction(func, data.options, value, valuePath);
+            if (self:IsEnabled() or updateFunction == data.updateFunctions.enabled) then
+                ExecuteUpdateFunction(valuePath, updateFunction, value);
             end
         end);
     end
@@ -402,7 +395,7 @@ do
     end
 
     local function GetBlocked(options, path, executed)
-        if (options and options.onExecuteAll and options.onExecuteAll.dependencies) then
+        if (options.onExecuteAll.dependencies) then
             for dependencyValue, dependency in pairs(options.onExecuteAll.dependencies) do
                 if (path ~= dependency and path:match(dependencyValue) and not executed[dependency]) then
                     return true;
@@ -418,53 +411,42 @@ do
             return false;
         end
 
-        if (options and options.first and options.first[path]) then
+        if (options.onExecuteAll.first and options.onExecuteAll.first[path]) then
             return true;
         end
 
-        if (options.last and options.last[path]) then
+        if (options.onExecuteAll.last and options.onExecuteAll.last[path]) then
             return true;
         end
 
-        if (options and options.onExecuteAll and options.onExecuteAll.ignore) then
-            for _, ignoreValue in ipairs(options.onExecuteAll.ignore) do
-                if (path:match(ignoreValue)) then
-                    return true;
-                end
+        for _, ignoreValue in ipairs(options.onExecuteAll.ignore) do
+            if (path:match(ignoreValue)) then
+                return true;
             end
         end
 
         return false;
     end
 
+    --"first", data.options, data.updateFunctions, data.settings, executedTable);
     local function ExecuteOrdered(orderKey, options, updateFunction, setting, executed)
-        if (not (options and options[orderKey])) then
+        if (not options.onExecuteAll[orderKey]) then
             return false;
         end
 
-        for _, path in ipairs(options[orderKey]) do
+        for _, path in ipairs(options.onExecuteAll[orderKey]) do
             -- both param.updateFunction and param.setitng will be tables
-            updateFunction = db:ParsePathValue(updateFunction, path);
-            setting = db:ParsePathValue(setting, path);
+            local currentUpdateFunction = db:ParsePathValue(updateFunction, path);
+            local currentSetting = db:ParsePathValue(setting, path);
+            local onPre, onPost;
 
-            ExecuteUpdateFunction(path, updateFunction, setting, executed);
+            if (currentUpdateFunction == nil) then
+                -- check if a group function can be used
+                currentUpdateFunction, onPre, onPost = FindMatchingGroupValue(path, options);
+            end
+
+            ExecuteUpdateFunction(path, currentUpdateFunction, currentSetting, executed, onPre, onPost);
         end
-    end
-
-    local function CanCallUpdateFunction(options, path, updateFunction, setting)
-        if (not obj:IsFunction(updateFunction)) then
-            return false;
-        end
-
-        if (not obj:IsTable(setting)) then
-            return true;
-        end
-
-        if (options.stopAt and HasMatchingPathPattern(path, options.stopAt)) then
-            return true;
-        end
-
-        return false;
     end
 
     local function ExecuteAllUpdateFunctions(options, updateFunctionsTable, settingsTable, executedTable, blockedTable, previousPath)
@@ -501,21 +483,14 @@ do
                 local blocked = GetBlocked(options, path, executedTable);
 
                 if (blocked) then
-                    blockedTable[path] = obj:PopTable(updateFunction, setting, key, path, onPre, onPost);
-                end
+                    blockedTable[path] = obj:PopTable(path, updateFunction, setting, executedTable, onPre, onPost);
 
-                if (CanCallUpdateFunction(options, path, updateFunction, setting)) then
-                    local executed = ExecuteUpdateFunction(path, updateFunction, setting, executedTable, onPre, onPost);
+                elseif (obj:IsFunction(updateFunction)) then -- CanCallUpdateFunction(options, path, updateFunction, setting)
+                    ExecuteUpdateFunction(path, updateFunction, setting, executedTable, onPre, onPost);
 
-                    if (executed) then
-                        -- MayronUI:Print(tk.Strings:SetTextColorByKey("Excuted: ", "ARTIFACT_GOLD"), path);
-                    else
-                        MayronUI:Print(tk.Strings:SetTextColorByKey("Failed: ", "DIM_RED"), path);
-                    end
                 elseif (obj:IsTable(setting)) then
-                    ExecuteAllUpdateFunctions(options, updateFunction, setting, executedTable, blocked, path);
+                    ExecuteAllUpdateFunctions(options, updateFunction, setting, executedTable, blockedTable, path);
                 end
-            else
             end
         end
     end
@@ -541,7 +516,7 @@ do
                 local blocked = GetBlocked(data.options, path, executedTable);
 
                 if (not blocked) then
-                    blockedValue[1](select(2, _G.unpack(blockedValue)));
+                    ExecuteUpdateFunction(_G.unpack(blockedValue));
                 else
                     blockedValues = true;
                 end

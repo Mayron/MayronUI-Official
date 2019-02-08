@@ -633,6 +633,7 @@ end
 -- C_CastBarsModule -----------------------
 
 function C_CastBarsModule:OnInitialize(data)
+    data.bars = obj:PopTable();
     local r, g, b = tk:GetThemeColor();
 
     db:AddToDefaults("profile.castBars.appearance.colors.normal", {
@@ -644,40 +645,32 @@ function C_CastBarsModule:OnInitialize(data)
         sv:SetParent(db.profile.castBars.__templateCastBar);
     end
 
-    local setupOptions = {
-        first = {
-            "player.enabled";
-            "target.enabled";
-            "focus.enabled";
-            "mirror.enabled";
-        };
-        dependencies = {
-            ["colors.border"] = "appearance.border";
+    local options = {
+        onExecuteAll = {
+            first = {
+                "player.enabled";
+                "target.enabled";
+                "focus.enabled";
+                "mirror.enabled";
+            };
+            dependencies = {
+                ["colors.border"] = "appearance.border";
+            };
         };
         groups = {
-            groupPatterns = {
-                PositionCastBar = {
-                    "(position|anchorToSUF)$";
-                };
-                UpdateCastBarTemplate = {
-                    "(width|height|frameStrata|frameLevel|showIcon)$";
-                };
-                EnableCastBar = {
-                    "^%a+%.enabled$";
-                };
-            };
-            groupFunctions = {
-                ---@param keysList LinkedList
-                PositionCastBar = function(_, keysList)
+            {
+                patterns = { "(position|anchorToSUF)$" };
+                value = function(_, keysList)
                     local barName = keysList:PopFront();
 
                     if (data.bars[barName]) then
                         data.bars[barName]:PositionCastBar();
                     end
                 end;
-
-                ---@param keysList LinkedList
-                UpdateCastBarTemplate = function(value, keysList)
+            };
+            {
+                patterns = { "(width|height|frameStrata|frameLevel|showIcon)$" };
+                value = function(value, keysList)
                     local barName = keysList:PopFront();
                     local attribute = keysList:PopFront();
                     local castBar = data.bars[barName]; ---@type CastBar
@@ -702,9 +695,10 @@ function C_CastBarsModule:OnInitialize(data)
                         castBar:SetIconEnabled(value);
                     end
                 end;
-
-                ---@param keysList LinkedList
-                EnableCastBar = function(value, keysList)
+            };
+            {
+                patterns = { "^%a+%.enabled$" };
+                value = function(value, keysList)
                     local barName = keysList:PopFront();
                     local castBar = data.bars[barName];
 
@@ -812,9 +806,7 @@ function C_CastBarsModule:OnInitialize(data)
                 end;
             };
         };
-    }, setupOptions);
-
-    data.bars = obj:PopTable();
+    }, options);
 
     self:SetEnabled(true);
 end

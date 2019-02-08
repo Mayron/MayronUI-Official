@@ -33,7 +33,7 @@ local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", "R
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.resourceBars", {
-    enabled = false;
+    enabled = true;
     experienceBar = {
         enabled = true;
         height = 8;
@@ -64,15 +64,17 @@ db:AddToDefaults("profile.resourceBars", {
 function C_ResourceBarsModule:OnInitialize(data, buiContainer)
     data.buiContainer = buiContainer;
 
-    local setupOptions = {
-        first = {
-            "experienceBar.enabled";
-            "reputationBar.enabled";
-            "artifactBar.enabled";
+    local options = {
+        onExecuteAll = {
+            first = {
+                "experienceBar.enabled";
+                "reputationBar.enabled";
+                "artifactBar.enabled";
+            };
+            ignore = {
+                ".*"; -- ignore everything else
+            };
         };
-        ignore = {
-            ".*"; -- ignore everything else
-        }
     };
 
     local function UpdateExperienceBar()
@@ -123,7 +125,7 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
             alwaysShowText = UpdateArtifactBar;
             fontSize = UpdateArtifactBar;
         };
-    }, setupOptions);
+    }, options);
 
     if (data.settings.enabled) then
         self:SetEnabled(true);
@@ -132,7 +134,7 @@ end
 
 function C_ResourceBarsModule:OnEnable(data)
     if (data.barsContainer) then
-        data.barsContainer:Show(); -- TODO: Needs to be tested
+        data.barsContainer:Show();
         return;
     end
 
@@ -146,7 +148,7 @@ function C_ResourceBarsModule:OnEnable(data)
     data.bars.reputation = C_ReputationBar(self, data);
     data.bars.artifact = C_ArtifactBar(self, data);
 
-    MayronUI:Hook("DataText", "OnEnable", function(dataTextModule, dataTextModuleData)
+    MayronUI:Hook("DataTextModule", "OnInitialize", function(dataTextModule, dataTextModuleData)
         dataTextModule:RegisterUpdateFunctions(db.profile.datatext, {
             blockInCombat = function(value)
                 self:SetBlockerEnabled(value, dataTextModuleData.bar);

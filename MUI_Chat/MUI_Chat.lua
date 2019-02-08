@@ -113,8 +113,10 @@ function C_ChatModule:OnInitialize(data)
 	data.chatFrames = obj:PopTable();
 
 	local setupOptions = {
-		last = {
-			"editBox.backdropColor";
+		onExecuteAll = {
+			last = {
+				"editBox.backdropColor";
+			};
 		};
 	};
 
@@ -130,6 +132,7 @@ function C_ChatModule:OnInitialize(data)
 
 				if (settings.enabled and not muiChatFrame) then
 					muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
+
 					data.chatFrames[anchorName] = muiChatFrame;
 				end
 

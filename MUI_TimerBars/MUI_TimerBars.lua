@@ -164,21 +164,12 @@ function C_TimerBarsModule:OnInitialize(data)
         end
     end
 
-    -- TODO: Need to add config functions
     local options = {
-
-        stopAt = {
-            "colors%..*"; -- saying to pass children in regardless of whether they're table values
-            "filters%..*"; -- saying to pass children in regardless of whether they're table values (a while card?)
-            "position"; --TODO: Needs to say USE THIS!
-        };
-
         onExecuteAll = {
             ignore = {
                 "filter";
             };
         };
-
         groups = {
             {
                 patterns = { tk.Strings:GeneratePathLengthPattern(2) }; -- all settings for update function paths of length 2 (i.e. fields like "Player.<setting>")
@@ -186,8 +177,7 @@ function C_TimerBarsModule:OnInitialize(data)
                 onPre = function(_, keysList)
                     local fieldName = keysList:PopFront();
                     local field = timerBarsModule:GetTimerField(fieldName);
-                    keysList:Print();
-                    return field;
+                    return field, fieldName;
                 end;
 
                 value = {
@@ -203,16 +193,20 @@ function C_TimerBarsModule:OnInitialize(data)
                         field:SetUnitID(value);
                     end;
 
-                    bar = function(_, keysList, field)
+                    bar = function(_, keysList, field, fieldName)
                         local key = keysList:PopBack();
+                        local maxBars = data.settings[fieldName].bar.maxBars;
+                        local barHeight = data.settings[fieldName].bar.height;
+                        local barWidth = data.settings[fieldName].bar.width;
+                        local spacing = data.settings[fieldName].bar.spacing;
 
-                        local fieldHeight = (data.settings.bar.maxBars * (data.settings.bar.height + data.settings.bar.spacing)) - data.settings.bar.spacing;
-                        field:SetSize(data.settings.bar.width, fieldHeight);
+                        local fieldHeight = (maxBars * (barHeight + spacing)) - spacing;
+                        field:SetSize(barWidth, fieldHeight);
 
                         if (key == "width" or key == "height") then
                             for _, bar in pairs(field:GetAllTimerBars()) do
-                                bar:SetSize(data.settings.bar.width, data.settings.bar.height);
-                                bar:SetAuraNameShown(data.settings.auraName.show);
+                                bar:SetSize(barWidth, barHeight);
+                                bar:SetAuraNameShown(data.settings[fieldName].auraName.show);
                             end
                         end
                     end;
@@ -233,19 +227,18 @@ function C_TimerBarsModule:OnInitialize(data)
                         field:RecheckAuras();
                     end;
 
-                    auraName = function(_, _, field)
+                    auraName = function(_, _, field, fieldName)
                         for _, bar in pairs(field:GetAllTimerBars()) do
-                            bar:SetAuraNameShown(data.settings.auraName.show);
+                            bar:SetAuraNameShown(data.settings[fieldName].auraName.show);
                         end
                     end;
 
-                    timeRemaining = function(_, _, field)
+                    timeRemaining = function(_, _, field, fieldName)
                         for _, bar in pairs(field:GetAllTimerBars()) do
-                            bar:SetTimeRemainingShown(data.settings.timeRemaining.show);
+                            bar:SetTimeRemainingShown(data.settings[fieldName].timeRemaining.show);
                         end
                     end;
 
-                    ---@param keysList LinkedList
                     filters = function(_, _, field)
                         field:RecheckAuras();
                     end;
@@ -317,7 +310,6 @@ function C_TimerBarsModule:OnEnable(data)
     -- create event handlers
     em:CreateEventHandlerWithKey("COMBAT_LOG_EVENT_UNFILTERED", "TimerBarsModule_OnCombatLogEvent", OnCombatLogEvent);
     em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "TimerBarsModule_CheckUnitAuras", CheckUnitAuras);
-    print("---------------------------------------")
 end
 
 Engine:DefineReturns("table");

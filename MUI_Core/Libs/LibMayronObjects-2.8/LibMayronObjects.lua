@@ -1440,8 +1440,13 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
         end
 
         if (errorFound) then
-            errorMessage = string.format("%s (%s expected, got %s (value: %s))",
-                errorMessage, defValue, self:GetValueType(realValue), tostring(realValue));
+            if (Lib:IsFunction(realValue) or (Lib:IsTable(realValue) and not Lib:IsObject(realValue))) then
+                errorMessage = string.format("%s (%s expected, got %s)",
+                    errorMessage, defValue, self:GetValueType(realValue));
+            else
+                errorMessage = string.format("%s (%s expected, got %s (value: %s))",
+                    errorMessage, defValue, self:GetValueType(realValue), tostring(realValue));
+            end
             errorMessage = errorMessage:gsub("##", "#" .. tostring(id));
             self:Error(errorMessage);
         end

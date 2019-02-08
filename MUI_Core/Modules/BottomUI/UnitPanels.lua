@@ -10,7 +10,7 @@ local C_UnitPanels = MayronUI:RegisterModule("BottomUI_UnitPanels", "Unit Panels
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.unitPanels", {
-    enabled = false;
+    enabled = true;
     grid = {
         anchorGrid = true; -- anchor Grid Frame to top of Unit Panels
         point = "BOTTOMRIGHT";
@@ -24,7 +24,7 @@ db:AddToDefaults("profile.unitPanels", {
     controlSUF = true;
     unitWidth = 325;
     height = 75;
-    isSymmetric = true;
+    isSymmetric = false;
     alpha = 0.8;
     unitNames = {
         enabled = true;
@@ -53,9 +53,11 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
         to = {r = 0, g = 0, b = 0, a = 0}
     });
 
-    local setupOptions = {
-        dependencies = {
-            ["unitNames[.].*"] = "unitNames.enabled";
+    local options = {
+        onExecuteAll = {
+            dependencies = {
+                ["unitNames[.].*"] = "unitNames.enabled";
+            };
         };
     };
 
@@ -178,7 +180,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
                 end
             end;
         };
-    }, setupOptions);
+    }, options);
 
     if (data.settings.enabled) then
         self:SetEnabled(true);
