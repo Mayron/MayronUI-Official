@@ -33,7 +33,7 @@ local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", "R
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.resourceBars", {
-    enabled = true;
+    enabled = false;
     experienceBar = {
         enabled = true;
         height = 8;

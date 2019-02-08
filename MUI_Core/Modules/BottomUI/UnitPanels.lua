@@ -10,7 +10,7 @@ local C_UnitPanels = MayronUI:RegisterModule("BottomUI_UnitPanels", "Unit Panels
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.unitPanels", {
-    enabled = true;
+    enabled = false;
     grid = {
         anchorGrid = true; -- anchor Grid Frame to top of Unit Panels
         point = "BOTTOMRIGHT";

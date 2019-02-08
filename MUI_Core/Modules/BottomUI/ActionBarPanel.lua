@@ -14,7 +14,7 @@ local SlideController = gui.WidgetsPackage:Get("SlideController");
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.actionBarPanel", {
-    enabled         = true;
+    enabled         = false;
     expanded        = false;
     modKey          = "C";
     retractHeight   = 44;

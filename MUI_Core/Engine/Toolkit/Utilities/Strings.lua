@@ -36,6 +36,21 @@ function tk.Strings:StartsWith(strValue, start)
     return strValue:sub(1, #start) == start;
 end
 
+function tk.Strings:GeneratePathLengthPattern(totalKeys)
+    local pattern = "^";
+
+    for i = 1, totalKeys do
+        if (i < totalKeys) then
+            pattern = pattern .. "[^.]+%.";
+        else
+            pattern = pattern .. "[^.]+";
+        end
+    end
+
+    pattern = pattern .. "$";
+    return pattern;
+end
+
 function tk.Strings:EndsWith(strValue, ending)
     return strValue:sub(-#ending) == ending;
 end

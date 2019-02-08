@@ -68,9 +68,12 @@ db:AddToDefaults("profile.timerBars", {
     sortByTimeRemaining   = true;
     showTooltips          = true;
     statusBarTexture      = "MUI_StatusBar";
-    border                = "Skinner";
-    showBorders           = true;
-    borderSize            = 1;
+
+    border = {
+        type = "Skinner";
+        size = 1;
+        show = true;
+    };
 
     colors = {
         background        = { 0, 0, 0, 0.6 };
@@ -85,13 +88,17 @@ db:AddToDefaults("profile.timerBars", {
     };
 
     __templateField = {
-        enabled               = true;
-        direction             = "UP"; -- or "DOWN"
-        unitID              = "player";
-        maxBars               = 10;
-        barHeight             = 22;
-        barWidth              = 213;
-        barSpacing            = 2;
+        enabled   = true;
+        direction = "UP"; -- or "DOWN"
+        unitID    = "player";
+
+        bar = {
+            width   = 213;
+            height  = 22;
+            spacing = 2;
+            maxBars = 10;
+        };
+
         showIcons             = true;
         showSpark             = true;
         colorDebuffsByType    = true;
@@ -158,111 +165,89 @@ function C_TimerBarsModule:OnInitialize(data)
     end
 
     -- TODO: Need to add config functions
-    local setupOptions = {
-        ignore = {
-            "profile.timerBars.showBorders";
-            "profile.timerBars.borderSize";
+    local options = {
+
+        stopAt = {
+            "colors%..*"; -- saying to pass children in regardless of whether they're table values
+            "filters%..*"; -- saying to pass children in regardless of whether they're table values (a while card?)
+            "position"; --TODO: Needs to say USE THIS!
+        };
+
+        onExecuteAll = {
+            ignore = {
+                "filter";
+            };
         };
 
         groups = {
-            groupPatterns = {
-                BorderFunction = {
-                    "profile.timerBars.border";
-                    "profile.timerBars.showBorders";
-                    "profile.timerBars.borderSize";
-                };
-                FieldFunctions = {
-                    "^profile%.timerBars%."; -- all settings that cannot be found use this group
-                };
-            };
-            groupFunctions = {
-                -- For Field only settings (not shared):
+            {
+                patterns = { tk.Strings:GeneratePathLengthPattern(2) }; -- all settings for update function paths of length 2 (i.e. fields like "Player.<setting>")
 
-                BorderFunction = function()
-                    for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
-                        for _, bar in pairs(field:GetAllTimerBars()) do
-                            bar:SetBorderShown(data.settings.showBorders);
-                        end
-                    end
+                onPre = function(_, keysList)
+                    local fieldName = keysList:PopFront();
+                    local field = timerBarsModule:GetTimerField(fieldName);
+                    keysList:Print();
+                    return field;
                 end;
 
-                FieldFunctions = {
-                    ---@param keysList LinkedList
-                    enabled = function(value, keysList)
-                        keysList:Print();
+                value = {
+                    enabled = function(value, _, field)
+                        field:SetEnabled(value);
                     end;
-        
-                    ---@param keysList LinkedList
-                    direction = function(value, keysList)
+
+                    position = function(_, _, field)
+                        field:PositionField();
                     end;
-        
-                    ---@param keysList LinkedList
-                    unitID = function(value, keysList)
+
+                    unitID = function(value, _, field)
+                        field:SetUnitID(value);
                     end;
-        
-                    ---@param keysList LinkedList
-                    maxBars = function(value, keysList)
+
+                    bar = function(_, keysList, field)
+                        local key = keysList:PopBack();
+
+                        local fieldHeight = (data.settings.bar.maxBars * (data.settings.bar.height + data.settings.bar.spacing)) - data.settings.bar.spacing;
+                        field:SetSize(data.settings.bar.width, fieldHeight);
+
+                        if (key == "width" or key == "height") then
+                            for _, bar in pairs(field:GetAllTimerBars()) do
+                                bar:SetSize(data.settings.bar.width, data.settings.bar.height);
+                                bar:SetAuraNameShown(data.settings.auraName.show);
+                            end
+                        end
                     end;
-        
-                    ---@param keysList LinkedList
-                    barHeight = function(value, keysList)
+
+                    showIcons = function(value, _, field)
+                        for _, bar in pairs(field:GetAllTimerBars()) do
+                            bar:SetIconShown(value);
+                        end
                     end;
-        
-                    ---@param keysList LinkedList
-                    barWidth = function(value, keysList)
+
+                    showSpark = function(value, _, field)
+                        for _, bar in pairs(field:GetAllTimerBars()) do
+                            bar:SetSparkShown(value);
+                        end
                     end;
-        
-                    ---@param keysList LinkedList
-                    barSpacing = function(value, keysList)
+
+                    colorDebuffsByType = function(_, _, field)
+                        field:RecheckAuras();
                     end;
-        
-                    ---@param keysList LinkedList
-                    showIcons = function(value, keysList)
+
+                    auraName = function(_, _, field)
+                        for _, bar in pairs(field:GetAllTimerBars()) do
+                            bar:SetAuraNameShown(data.settings.auraName.show);
+                        end
                     end;
-        
-                    ---@param keysList LinkedList
-                    showSpark = function(value, keysList)
+
+                    timeRemaining = function(_, _, field)
+                        for _, bar in pairs(field:GetAllTimerBars()) do
+                            bar:SetTimeRemainingShown(data.settings.timeRemaining.show);
+                        end
                     end;
-        
+
                     ---@param keysList LinkedList
-                    colorDebuffsByType = function(value, keysList)
-                    end;
-        
-                    ---@param keysList LinkedList
-                    colorStealOrPurge = function(value, keysList)
-                    end;
-            
-                    auraName = {
-                        ---@param keysList LinkedList
-                        show = function(value, keysList)
-                        end;
-        
-                        ---@param keysList LinkedList
-                        fontSize = function(value, keysList)
-                        end;
-        
-                        ---@param keysList LinkedList
-                        font = function(value, keysList)
-                        end;
-                    };
-            
-                    timeRemaining = {
-                        ---@param keysList LinkedList
-                        show = function(value, keysList)
-                        end;
-        
-                        ---@param keysList LinkedList
-                        fontSize = function(value, keysList)
-                        end;
-        
-                        ---@param keysList LinkedList
-                        font = function(value, keysList)
-                        end;
-                    };
-            
-                    ---@param keysList LinkedList
-                    filters = function(value, keysList)
-                        -- maybe refresh the field?
+                    filters = function(_, _, field)
+                        field:RecheckAuras();
                     end;
                 };
             };
@@ -270,8 +255,6 @@ function C_TimerBarsModule:OnInitialize(data)
     };
 
     self:RegisterUpdateFunctions(db.profile.timerBars, {
-        -- For shared settings:
-
         showTooltips = function(value)
             for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
                 for _, bar in pairs(field:GetAllTimerBars()) do
@@ -283,25 +266,32 @@ function C_TimerBarsModule:OnInitialize(data)
         statusBarTexture = function(value)
             for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
                 for _, bar in pairs(field:GetAllTimerBars()) do
-                    print(bar);
                     local barData = data:GetFriendData(bar);
                     barData.slider:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", value));
                 end
             end
         end;
 
-        colors = function(value, keysList)
+        colors = function(_, keysList)
             local colorName = keysList:PopBack();
 
             if (colorName == "border") then
-                setupOptions.groups.groupFunctions.BorderFunction();
+                options.groups[1].value();
             else
                 for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
                     field:RecheckAuras();
                 end
             end
         end;
-    }, setupOptions);
+
+        border = function()
+            for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+                for _, bar in pairs(field:GetAllTimerBars()) do
+                    bar:SetBorderShown(data.settings.border.show);
+                end
+            end
+        end;
+    }, options);
 end
 
 function C_TimerBarsModule:OnInitialized(data)
@@ -327,12 +317,20 @@ function C_TimerBarsModule:OnEnable(data)
     -- create event handlers
     em:CreateEventHandlerWithKey("COMBAT_LOG_EVENT_UNFILTERED", "TimerBarsModule_OnCombatLogEvent", OnCombatLogEvent);
     em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "TimerBarsModule_CheckUnitAuras", CheckUnitAuras);
+    print("---------------------------------------")
 end
 
 Engine:DefineReturns("table");
 ---@return table @A table containing all active TimerField objects.
 function C_TimerBarsModule:GetAllTimerFields(data)
     return data.fields;
+end
+
+Engine:DefineParams("string");
+Engine:DefineReturns("TimerField");
+---@return TimerField @The timer field whose name is fieldName.
+function C_TimerBarsModule:GetTimerField(data, fieldName)
+    return data.fields[fieldName];
 end
 
 -- Local Functions -------------------
@@ -470,6 +468,19 @@ function C_TimerField:GetUnitID(data)
     return unitID;
 end
 
+Engine:DefineParams("string");
+---@param unitID string @Set which unit ID to track.
+function C_TimerField:SetUnitID(data, unitID)
+    unitID = unitID:lower();
+    data.settings.unitID = unitID;
+
+    self:UnregisterAllEvents();
+    self:RegisterAllEvents();
+    self:RecheckAuras();
+
+    return unitID;
+end
+
 Engine:DefineParams("boolean");
 ---@param enabled boolean @Set to true to enable TimerField tracking.
 function C_TimerField:SetEnabled(data, enabled)
@@ -549,7 +560,12 @@ function C_TimerField:PositionField(data)
 
     if (obj:IsTable(data.settings.position)) then
         local point, relativeFrame, relativePoint, xOffset, yOffset = unpack(data.settings.position);
-        data.frame:SetPoint(point, relativeFrame, relativePoint, xOffset, yOffset);
+
+        if (_G[relativeFrame]) then
+            data.frame:SetPoint(point, _G[relativeFrame], relativePoint, xOffset, yOffset);
+        else
+            data.frame:SetPoint("CENTER");
+        end
     else
         data.frame:SetPoint("CENTER");
     end
@@ -561,7 +577,7 @@ do
         local p = tk.Constants.POINTS;
         local activeBar, previousBarFrame;
 
-        for id = 1, data.settings.maxBars do
+        for id = 1, data.settings.bar.maxBars do
             activeBar = data.activeBars[id];
 
             if (activeBar) then
@@ -570,16 +586,16 @@ do
                 if (data.settings.direction == UP) then
                     if (id > 1) then
                         previousBarFrame = data.activeBars[id - 1]:GetFrame();
-                        activeBar:SetPoint(p.BOTTOMLEFT, previousBarFrame, p.TOPLEFT, 0, data.settings.barSpacing);
-                        activeBar:SetPoint(p.BOTTOMRIGHT, previousBarFrame, p.TOPRIGHT, 0, data.settings.barSpacing);
+                        activeBar:SetPoint(p.BOTTOMLEFT, previousBarFrame, p.TOPLEFT, 0, data.settings.bar.spacing);
+                        activeBar:SetPoint(p.BOTTOMRIGHT, previousBarFrame, p.TOPRIGHT, 0, data.settings.bar.spacing);
                     else
                         activeBar:SetPoint(p.BOTTOMRIGHT, data.frame, p.BOTTOMRIGHT, 0, 0);
                     end
                 else
                     if (id > 1) then
                         previousBarFrame = data.activeBars[id - 1]:GetFrame();
-                        activeBar:SetPoint(p.TOPLEFT, previousBarFrame, p.BOTTOMLEFT, 0, -data.settings.barSpacing);
-                        activeBar:SetPoint(p.TOPRIGHT, previousBarFrame, p.BOTTOMRIGHT, 0, -data.settings.barSpacing);
+                        activeBar:SetPoint(p.TOPLEFT, previousBarFrame, p.BOTTOMLEFT, 0, -data.settings.bar.spacing);
+                        activeBar:SetPoint(p.TOPRIGHT, previousBarFrame, p.BOTTOMRIGHT, 0, -data.settings.bar.spacing);
                     else
                         activeBar:SetPoint(p.TOPLEFT, data.frame, p.BOTTOMLEFT, 0, 0);
                         activeBar:SetPoint(p.TOPRIGHT, data.frame, p.BOTTOMRIGHT, 0, 0);
@@ -601,8 +617,8 @@ do
         local globalName = tk.Strings:Concat("MUI_", name, "TimerField");
         local frame = CreateFrame("Frame", globalName);
 
-        local fieldHeight = (data.settings.maxBars * (data.settings.barHeight + data.settings.barSpacing)) - data.settings.barSpacing;
-        frame:SetSize(data.settings.barWidth, fieldHeight);
+        local fieldHeight = (data.settings.bar.maxBars * (data.settings.bar.height + data.settings.bar.spacing)) - data.settings.bar.spacing;
+        frame:SetSize(data.settings.bar.width, fieldHeight);
 
         frame:SetScript("OnUpdate", function(_, elapsed)
             data.timeSinceLastUpdate = data.timeSinceLastUpdate + elapsed;
@@ -637,7 +653,7 @@ do
                     ---@param bar TimerBar
                     for i, bar in ipairs(data.activeBars) do
                         if (changed) then
-                            if (i <= data.settings.maxBars) then
+                            if (i <= data.settings.bar.maxBars) then
                                 -- make visible
                                 bar:Show();
                                 bar:SetParent(data.frame);
@@ -811,14 +827,14 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
     data.sharedSettings = sharedSettings;
 
     data.frame = CreateFrame("Frame");
-    data.frame:SetSize(settings.barWidth, settings.barHeight);
+    data.frame:SetSize(settings.bar.width, settings.bar.height);
 
     data.slider = CreateFrame("StatusBar", nil, data.frame);
     data.slider:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", sharedSettings.statusBarTexture));
     data.slider.bg = tk:SetBackground(data.slider, unpack(sharedSettings.colors.background));
 
     self:SetIconShown(settings.showIcons);
-    self:SetBorderShown(sharedSettings.showBorders);
+    self:SetBorderShown(sharedSettings.border.show);
     self:SetSparkShown(settings.showSpark);
     self:SetAuraNameShown(settings.auraName.show);
     self:SetTimeRemainingShown(settings.timeRemaining.show);
@@ -827,24 +843,26 @@ end
 Engine:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar icon.
 function C_TimerBar:SetIconShown(data, shown)
-    if (not data.iconFrame and shown) then
-        data.iconFrame = CreateFrame("Frame", nil, data.frame);
-        data.iconFrame:SetWidth(data.settings.barHeight);
-
-        data.icon = data.iconFrame:CreateTexture(nil, "ARTWORK");
-        data.icon:SetTexCoord(0.1, 0.92, 0.08, 0.92);
+    if (not data.iconFrame and not shown) then
+        return;
     end
 
-    if (data.iconFrame) then
-        data.iconFrame:SetShown(shown);
+    if (shown) then
+        if (not data.iconFrame) then
+            data.iconFrame = CreateFrame("Frame", nil, data.frame);
 
-        if (shown) then
-            local barWidthWithIcon = data.settings.barWidth - data.settings.barHeight - ICON_GAP;
-            data.frame:SetWidth(barWidthWithIcon);
-        else
-            data.frame:SetSize(data.settings.barWidth);
+            data.icon = data.iconFrame:CreateTexture(nil, "ARTWORK");
+            data.icon:SetTexCoord(0.1, 0.92, 0.08, 0.92);
         end
+
+        local barWidthWithIcon = data.settings.bar.width - data.settings.bar.height - ICON_GAP;
+        data.frame:SetWidth(barWidthWithIcon);
+        data.iconFrame:SetWidth(data.settings.bar.height);
+    else
+        data.frame:SetWidth(data.settings.bar.width);
     end
+
+    data.iconFrame:SetShown(shown);
 end
 
 do
@@ -859,22 +877,30 @@ do
     Engine:DefineParams("boolean");
     ---@param shown boolean @Set to true to show borders.
     function C_TimerBar:SetBorderShown(data, shown)
-        if (not data.backdrop and shown) then
-            data.backdrop = obj:PopTable();
-            data.backdrop.edgeFile = tk.Constants.LSM:Fetch("border", data.sharedSettings.border);
-            data.backdrop.edgeSize = data.sharedSettings.borderSize;
+        if (not data.backdrop and not shown) then
+            return;
         end
 
-        local borderSize = 0;
+        local borderSize = 0; -- must be 0 in case it needs to be disabled
 
         if (shown) then
-            borderSize = data.sharedSettings.borderSize;
+            if (not data.backdrop) then
+                data.backdrop = obj:PopTable();
+            end
+
+            local borderType = data.sharedSettings.border.type;
+            local borderColor = data.sharedSettings.colors.border;
+            borderSize = data.sharedSettings.border.size;
+
+            data.backdrop.edgeFile = tk.Constants.LSM:Fetch("border", borderType);
+            data.backdrop.edgeSize = borderSize;
+
             data.frame:SetBackdrop(data.backdrop);
-            data.frame:SetBackdropBorderColor(unpack(data.sharedSettings.colors.border));
+            data.frame:SetBackdropBorderColor(unpack(borderColor));
 
             if (data.iconFrame) then
                 data.iconFrame:SetBackdrop(data.backdrop);
-                data.iconFrame:SetBackdropBorderColor(unpack(data.sharedSettings.colors.border));
+                data.iconFrame:SetBackdropBorderColor(unpack(borderColor));
             end
         else
             data.frame:SetBackdrop(nil);
@@ -897,7 +923,11 @@ end
 Engine:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar spark effect.
 function C_TimerBar:SetSparkShown(data, shown)
-    if (not data.spark and shown) then
+    if (not data.spark and not shown) then
+        return;
+    end
+
+    if (not data.spark) then
         data.spark = data.slider:CreateTexture(nil, "OVERLAY");
         data.spark:SetSize(26, 50);
         data.spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark");
@@ -907,46 +937,46 @@ function C_TimerBar:SetSparkShown(data, shown)
         data.spark:SetBlendMode("ADD");
     end
 
-    if (data.spark) then
-        data.spark:SetShown(shown);
-    end
-
+    data.spark:SetShown(shown);
     data.showSpark = shown;
 end
 
 Engine:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar aura name.
 function C_TimerBar:SetAuraNameShown(data, shown)
-    if (not data.auraName and shown) then
+    if (not data.auraName and not shown) then
+        return;
+    end
+
+    if (not data.auraName) then
         data.auraName = data.slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall");
         data.auraName:SetPoint("LEFT", 4, 0);
         data.auraName:SetJustifyH("LEFT");
         data.auraName:SetWordWrap(false);
-        data.auraName:SetWidth(data.settings.barWidth - data.settings.barHeight - 50);
-
-        local font = tk.Constants.LSM:Fetch("font", data.settings.auraName.font);
-        data.auraName:SetFont(font, data.settings.auraName.fontSize);
     end
 
-    if (data.auraName) then
-        data.auraName:SetShown(shown);
-    end
+    local font = tk.Constants.LSM:Fetch("font", data.settings.auraName.font);
+    data.auraName:SetFont(font, data.settings.auraName.fontSize);
+
+    data.auraName:SetWidth(data.settings.bar.width - data.settings.bar.height - 50);
+    data.auraName:SetShown(shown);
 end
 
 Engine:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar's time remaining text.
 function C_TimerBar:SetTimeRemainingShown(data, shown)
-    if (not data.timeRemaining and shown) then
+    if (not data.timeRemaining and not shown) then
+        return;
+    end
+
+    if (not data.timeRemaining) then
         data.timeRemaining = data.slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall");
         data.timeRemaining:SetPoint("RIGHT", -4, 0);
-
-        local font = tk.Constants.LSM:Fetch("font", data.settings.timeRemaining.font);
-        data.timeRemaining:SetFont(font, data.settings.timeRemaining.fontSize);
     end
 
-    if (data.timeRemaining) then
-        data.timeRemaining:SetShown(shown);
-    end
+    local font = tk.Constants.LSM:Fetch("font", data.settings.timeRemaining.font);
+    data.timeRemaining:SetFont(font, data.settings.timeRemaining.fontSize);
+    data.timeRemaining:SetShown(shown);
 end
 
 Engine:DefineParams("boolean");

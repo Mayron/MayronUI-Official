@@ -275,72 +275,54 @@ function BaseModule:Hook(_, eventName, func)
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
-local function FindMatchingGroupFunction(groups, path)
-    for functionKey, groupPatterns in pairs(groups.groupPatterns) do
-        for _, pattern in ipairs(groupPatterns) do
-            if (path:find(pattern)) then
-                return groups.groupFunctions[functionKey];
-
-            elseif (pattern:find("%(.*|.*%)")) then
-                local optionalKeys = pattern:match("(%(.*|.*%)).*");
-
-                for key in string.gmatch(optionalKeys, "([^(|)]+)") do
-                    local concretePath = pattern:gsub("%(.*|.*%)", key);
-
-                    if (not obj:IsStringNilOrWhiteSpace(concretePath) and path:match(concretePath)) then
-                        return groups.groupFunctions[functionKey];
-                    end
-                end
-            end
-        end
-    end
-
-    return nil;
-end
-
-local function ExecuteUpdateFunction(updateFunction, setupOptions, value, path, executedTable)
-    if (not obj:IsFunction(updateFunction) and setupOptions and setupOptions.groups) then
-        updateFunction = FindMatchingGroupFunction(setupOptions.groups, path);
-    end
-
+local function ExecuteUpdateFunction(path, updateFunction, setting, executed, onPre, onPost)
     if (obj:IsFunction(updateFunction)) then
         local keysList = tk.Tables:ConvertPathToKeysList(path);
 
-        --tk:Print("executed: ", path); --todo: edit this back if needed
-        updateFunction(value, keysList);
-
-        if (obj:IsTable(executedTable)) then
-            executedTable[path] = true;
-            return true;
+        if (obj:IsFunction(onPre)) then
+            if (obj:IsFunction(onPost)) then
+                onPost(setting, keysList, updateFunction(setting, keysList, onPre(setting, keysList)));
+            else
+                updateFunction(setting, keysList, onPre(setting, keysList));
+            end
+        else
+            if (obj:IsFunction(onPost)) then
+                onPost(setting, keysList, updateFunction(setting, keysList));
+            else
+                updateFunction(setting, keysList);
+            end
         end
-    elseif (obj:IsTable(updateFunction)) then
-        -- TODO: For TimerBars
-        print("Not a function: ", value);
-        print("Path: ", path);
+
+        if (obj:IsTable(executed)) then
+            -- if executing all settings then this is used
+            executed[path] = true;
+        end
+
+        return true;
     end
 
     return false;
 end
 
 do
-    local ignoreEnabledOption = { ignore = { "^enabled$" } };
+    local ignoreEnabledOption = { onExecuteAll = {ignore = { "^enabled$" } } };
 
     Engine:DefineParams("Observer", "table", "?table");
     ---Executed when a profile is loaded and the UI needs to apply changes (this includes loading the initial profile on start up)
     ---@param observer Observer The database observer node to attach the update functions to
     ---@param updateFunctions table A table containing update functions mapped to settings
-    ---@param setupOptions table|nil An optional table containing options to control how update
-    function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions, setupOptions)
+    ---@param options table|nil An optional table containing options to control how update
+    function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions, options)
         local path = observer:GetPathAddress();
 
         if (not data.settings) then
             data.settings = observer:GetUntrackedTable(); -- disconnected from database
         end
 
-        if (not data.setupOptions) then
-            data.setupOptions = setupOptions;
-        elseif (setupOptions) then
-            tk.Tables:Fill(data.setupOptions, setupOptions);
+        if (not data.options) then
+            data.options = options;
+        elseif (options) then
+            tk.Tables:Fill(data.options, options);
         end
 
         if (not data.updateFunctions) then
@@ -351,16 +333,18 @@ do
         end
 
         if (data.settings.enabled) then
-            if (data.setupOptions) then
-                if (data.setupOptions.ignore) then
-                    if (not tk.Tables:Contains(data.setupOptions.ignore, "^enabled$")) then
-                        table.insert(data.setupOptions.ignore, "^enabled$");
+            if (data.options) then
+                if (data.options.onExecuteAll and data.options.onExecuteAll.ignore) then
+                    if (not tk.Tables:Contains(data.options.onExecuteAll.ignore, "^enabled$")) then
+                        table.insert(data.options.onExecuteAll.ignore, "^enabled$");
                     end
+                elseif (data.options.onExecuteAll) then
+                    data.options.onExecuteAll.ignore = ignoreEnabledOption.onExecuteAll.ignore;
                 else
-                    data.setupOptions.ignore = ignoreEnabledOption.ignore;
+                    data.options.onExecuteAll = ignoreEnabledOption.onExecuteAll;
                 end
             else
-                data.setupOptions = ignoreEnabledOption;
+                data.options = ignoreEnabledOption;
             end
 
             data.updateFunctions.enabled = function(value)
@@ -374,7 +358,8 @@ do
             db:SetPathValue(data.settings, settingPath, value);
 
             if (self:IsEnabled() or func == data.updateFunctions.enabled) then
-                ExecuteUpdateFunction(func, data.setupOptions, value, valuePath);
+                --TODO: Fix
+                -- ExecuteUpdateFunction(func, data.options, value, valuePath);
             end
         end);
     end
@@ -383,10 +368,43 @@ end
 do
     local MAX_BLOCKS = 20;
 
-    local function GetBlocked(setupOptions, path, executedTable)
-        if (setupOptions and setupOptions.dependencies) then
-            for dependencyValue, dependency in pairs(setupOptions.dependencies) do
-                if (path ~= dependency and path:match(dependencyValue) and not executedTable[dependency]) then
+    local function HasMatchingPathPattern(path, patterns)
+        for _, pattern in ipairs(patterns) do
+            if (path:find(pattern)) then
+                return true;
+
+            elseif (pattern:find("%(.*|.*%)")) then
+                local optionalKeys = pattern:match("(%(.*|.*%)).*");
+
+                for key in string.gmatch(optionalKeys, "([^(|)]+)") do
+                    local concretePath = pattern:gsub("%(.*|.*%)", key);
+
+                    if (not obj:IsStringNilOrWhiteSpace(concretePath) and path:match(concretePath)) then
+                        return true;
+                    end
+                end
+            end
+        end
+
+        return false;
+    end
+
+    local function FindMatchingGroupValue(path, options)
+        if (options and options.groups) then
+            for _, groupOptions in pairs(options.groups) do
+                if (HasMatchingPathPattern(path, groupOptions.patterns)) then
+                    if (groupOptions.value) then
+                        return groupOptions.value, groupOptions.onPre, groupOptions.onPost;
+                    end
+                end
+            end
+        end
+    end
+
+    local function GetBlocked(options, path, executed)
+        if (options and options.onExecuteAll and options.onExecuteAll.dependencies) then
+            for dependencyValue, dependency in pairs(options.onExecuteAll.dependencies) do
+                if (path ~= dependency and path:match(dependencyValue) and not executed[dependency]) then
                     return true;
                 end
             end
@@ -395,17 +413,21 @@ do
         return false;
     end
 
-    local function GetIgnored(setupOptions, path)
-        if (setupOptions and setupOptions.ignore) then
-            for _, ignoreValue in ipairs(setupOptions.ignore) do
-                if (setupOptions.first and setupOptions.first[path]) then
-                    return true;
-                end
+    local function GetIgnored(options, path)
+        if (not options) then
+            return false;
+        end
 
-                if (setupOptions.last and setupOptions.last[path]) then
-                    return true;
-                end
+        if (options and options.first and options.first[path]) then
+            return true;
+        end
 
+        if (options.last and options.last[path]) then
+            return true;
+        end
+
+        if (options and options.onExecuteAll and options.onExecuteAll.ignore) then
+            for _, ignoreValue in ipairs(options.onExecuteAll.ignore) do
                 if (path:match(ignoreValue)) then
                     return true;
                 end
@@ -415,52 +437,85 @@ do
         return false;
     end
 
-    local function ExecuteOrdered(orderKey, executedTable, setupOptions, functionTable, settingsTable)
-        if (not (setupOptions and setupOptions[orderKey])) then
+    local function ExecuteOrdered(orderKey, options, updateFunction, setting, executed)
+        if (not (options and options[orderKey])) then
             return false;
         end
 
-        for _, orderedPath in ipairs(setupOptions[orderKey]) do
-            local updateFunc = db:ParsePathValue(functionTable, orderedPath);
-            local settingsValue = db:ParsePathValue(settingsTable, orderedPath);
+        for _, path in ipairs(options[orderKey]) do
+            -- both param.updateFunction and param.setitng will be tables
+            updateFunction = db:ParsePathValue(updateFunction, path);
+            setting = db:ParsePathValue(setting, path);
 
-            ExecuteUpdateFunction(updateFunc, setupOptions, settingsValue, orderedPath, executedTable);
+            ExecuteUpdateFunction(path, updateFunction, setting, executed);
         end
     end
 
-    local function ExecuteAllUpdateFunctions(functionTable, settingsTable, setupOptions, previousKey, executedTable, blockedTable)
-        for key, settingsValue in pairs(settingsTable) do
+    local function CanCallUpdateFunction(options, path, updateFunction, setting)
+        if (not obj:IsFunction(updateFunction)) then
+            return false;
+        end
+
+        if (not obj:IsTable(setting)) then
+            return true;
+        end
+
+        if (options.stopAt and HasMatchingPathPattern(path, options.stopAt)) then
+            return true;
+        end
+
+        return false;
+    end
+
+    local function ExecuteAllUpdateFunctions(options, updateFunctionsTable, settingsTable, executedTable, blockedTable, previousPath)
+        for key, setting in pairs(settingsTable) do
             local path = key;
-            local functionValue;
+            local updateFunction = updateFunctionsTable;
+            local onPre, onPost;
 
-            if (obj:IsTable(functionTable)) then
-                functionValue = functionTable[key]
+            if (previousPath) then
+                path = string.format("%s.%s", previousPath, key);
             end
 
-            if (previousKey) then
-                path = string.format("%s.%s", previousKey, key);
-            end
+            local ignored = GetIgnored(options, path);
 
-            local blocked = GetBlocked(setupOptions, path, executedTable);
+            if (not ignored) then
+                -- find next update function:
+                if (not obj:IsFunction(updateFunction)) then
+                    if (obj:IsTable(updateFunction)) then
+                        -- get next function value
+                        updateFunction = updateFunction[key];
+                    end
 
-            if (blocked) then
-                blockedTable[path] = obj:PopTable(functionValue, settingsValue, key, path);
-            end
+                    if (updateFunction == nil) then
+                        -- check if a group function can be used
+                        updateFunction, onPre, onPost = FindMatchingGroupValue(path, options);
 
-            local ignored = GetIgnored(setupOptions, path);
-
-            if (not (ignored or blocked)) then
-                ---MayronUI:Print(tk.Strings:SetTextColorByKey("Excuting ", "ARTIFACT_GOLD"), path); --todo: edit this back if needed
-
-                if (obj:IsTable(functionValue) and obj:IsTable(settingsValue)) then
-                    ExecuteAllUpdateFunctions(functionValue, settingsValue, setupOptions, key, executedTable, blockedTable);
-                else
-                    local executed = ExecuteUpdateFunction(functionValue, setupOptions, settingsValue, path, executedTable);
-
-                    if (not executed and obj:IsTable(settingsValue)) then
-                        ExecuteAllUpdateFunctions(nil, settingsValue, setupOptions, key, executedTable, blockedTable);
+                        if (obj:IsTable(updateFunction)) then
+                            updateFunction = updateFunction[key];
+                        end
                     end
                 end
+
+                ---MayronUI:Print(tk.Strings:SetTextColorByKey("Excuting ", "ARTIFACT_GOLD"), path); --todo: edit this back if needed
+                local blocked = GetBlocked(options, path, executedTable);
+
+                if (blocked) then
+                    blockedTable[path] = obj:PopTable(updateFunction, setting, key, path, onPre, onPost);
+                end
+
+                if (CanCallUpdateFunction(options, path, updateFunction, setting)) then
+                    local executed = ExecuteUpdateFunction(path, updateFunction, setting, executedTable, onPre, onPost);
+
+                    if (executed) then
+                        -- MayronUI:Print(tk.Strings:SetTextColorByKey("Excuted: ", "ARTIFACT_GOLD"), path);
+                    else
+                        MayronUI:Print(tk.Strings:SetTextColorByKey("Failed: ", "DIM_RED"), path);
+                    end
+                elseif (obj:IsTable(setting)) then
+                    ExecuteAllUpdateFunctions(options, updateFunction, setting, executedTable, blocked, path);
+                end
+            else
             end
         end
     end
@@ -474,15 +529,16 @@ do
         local executedTable = obj:PopTable();
         local blockedTable = obj:PopTable();
 
-        ExecuteOrdered("first", executedTable, data.setupOptions, data.updateFunctions, data.settings);
-        ExecuteAllUpdateFunctions(data.updateFunctions, data.settings, data.setupOptions, nil, executedTable, blockedTable);
+        --orderKey, options, updateFunction, setting, executed
+        ExecuteOrdered("first", data.options, data.updateFunctions, data.settings, executedTable);
+        ExecuteAllUpdateFunctions(data.options, data.updateFunctions, data.settings, executedTable, blockedTable);
 
         local blockedValues = false;
         local totalRepeats = 0;
 
         repeat
             for path, blockedValue in pairs(blockedTable) do
-                local blocked = GetBlocked(data.setupOptions, path, executedTable);
+                local blocked = GetBlocked(data.options, path, executedTable);
 
                 if (not blocked) then
                     blockedValue[1](select(2, _G.unpack(blockedValue)));
@@ -496,7 +552,7 @@ do
             obj:Assert(totalRepeats < MAX_BLOCKS, "Cyclic dependency found");
         until (not blockedValues);
 
-        ExecuteOrdered("last", executedTable, data.setupOptions, data.updateFunctions, data.settings);
+        ExecuteOrdered("last", data.options, data.updateFunctions, data.settings, executedTable);
 
         obj:PushTable(executedTable);
         obj:PushTable(blockedTable);
