@@ -11,7 +11,7 @@ local function CreateElementContainerFrame(widget, childData, parent)
     local container = tk:PopFrame("Frame", parent);
 
     container:SetSize(childData.width or widget:GetWidth(), childData.height or widget:GetHeight());
-    container.widget = widget; -- Is This needed?
+    container.widget = widget; -- Is this needed?
     widget:SetParent(container);
 
     if (childData.name and tk:ValueIsEither(childData.type, "slider", "dropdown", "textfield")) then
@@ -250,7 +250,7 @@ end
 -- Drop Down Menu
 -------------------
 local function DropDown_OnSelectedValue(self, value)
-    configModule:SetDatabaseValue(self, value);
+    configModule:SetDatabaseValue(self:GetParent(), value);
 end
 
 WidgetHandlers.dropdown = {};
@@ -298,7 +298,7 @@ function WidgetHandlers.button:Run(parent, widgetTable)
     end
 
     button:SetScript("OnClick", function(self)
-        widgetTable.OnClick(self, widgetTable);
+        self.OnClick(self);
     end);
 
     return button;

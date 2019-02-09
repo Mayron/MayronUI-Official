@@ -17,7 +17,7 @@ local obj = namespace.components.Objects; ---@type LibMayronObjects
 local L   = namespace.components.Locale; ---@type Locale
 
 ---Gets the core components of MayronUI
----@return Toolkit, Database, EventManager, LibMayronGUI, LibMayronObjects, Locale
+---@return Toolkit, LibMayronDB, LibMayronEvents, LibMayronGUI, LibMayronObjects, Locale
 function MayronUI:GetCoreComponents()
     return tk, db, em, gui, obj, L;
 end

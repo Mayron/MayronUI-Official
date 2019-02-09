@@ -65,12 +65,11 @@ function C_ConfigModule:GetConfigTable()
                     requiresRestart   = true;
                     fontPicker        = true;
                 };
-                {   type = "divider"
-                };
                 {   name              = L["Set Theme Color"];
                     type              = "color";
                     tooltip           = L["Warning: This will NOT change the color of CastBars!"];
                     dbPath            = "profile.theme.color";
+                    height            = 54;
                     requiresReload    = true;
 
                     SetValue = function(_, _, value)
@@ -79,56 +78,6 @@ function C_ConfigModule:GetConfigTable()
                         db.profile.bottomui.gradients = nil;
                     end
                 };
-                {   name    = L["Objective (Quest) Tracker"];
-                    type    = "title";
-                };
-                {   name              = "Enable";
-                    tooltip           = L["Disable this to stop MUI from controlling the Objective Tracker."];
-                    type              = "check";
-                    dbPath            = "profile.sidebar.objectiveTracker.enabled";
-                    module            = "SideBar";
-                    requiresReload    = true;
-                };
-                {   name    = "Anchor to Side Bar";
-                    tooltip = "Anchor the Objective Tracker to the action bar container on the right side of the screen.";
-                    type    = "check";
-                    dbPath  = "profile.sidebar.objectiveTracker.anchoredToSideBars";
-                    module  = "SideBar";
-                };
-                {   type = "divider";
-                };
-                {   name        = L["Set Width"];
-                    type        = "textfield";
-                    tooltip     = tk.Strings.Concat(L["Adjust the width of the Objective Tracker."],"\n\n",
-                                L["Default value is "], "250");
-                    dbPath      = "profile.sidebar.objectiveTracker.width";
-                    valueType   = "number";
-                    module      = "SideBar";
-                };
-                {   name        = L["Set Height"];
-                    type        = "textfield";
-                    tooltip     = tk.Strings.Concat(L["Adjust the height of the Objective Tracker."], "\n\n",
-                                L["Default value is "], "600");
-                    dbPath      = "profile.sidebar.objectiveTracker.height";
-                    valueType   = "number";
-                    module      = "SideBar";
-                };
-                {   name        = L["X-Offset"];
-                    type        = "textfield";
-                    tooltip     = tk.Strings.Concat(L["Adjust the horizontal positioning of the Objective Tracker."],
-                                    "\n\n", L["Default value is "], "-30");
-                    dbPath      = "profile.sidebar.objectiveTracker.xOffset";
-                    valueType   = "number";
-                    module      = "SideBar";
-                };
-                {   name        = L["Y-Offset"];
-                    type        = "textfield";
-                    tooltip     = tk.Strings.Concat(L["Adjust the vertical positioning of the Objective Tracker."], "\n\n",
-                                    L["Default value is "], "0");
-                    dbPath      = "profile.sidebar.objectiveTracker.yOffset";
-                    valueType   = "number";
-                    module      = "SideBar";
-                }
             }
         };
         {   name = L["Bottom UI Panels"];
@@ -564,6 +513,57 @@ function C_ConfigModule:GetConfigTable()
                     end
                 };
             }
-        }
+        };
+        {
+            name = "Objectives Tracker";
+            module = "SideBarModule";
+            children = {
+                {   name    = "Objectives Tracker";
+                    type    = "title";
+                };
+                {   name              = "Attach to Side Bar";
+                    tooltip           = L["Disable this to stop MUI from controlling the Objective Tracker."];
+                    type              = "check";
+                    dbPath            = "profile.sidebar.objectiveTracker.enabled";
+                    module            = "SideBarModule";
+                    requiresReload    = true;
+                };
+                {   name    = "Anchor to Side Bar";
+                    tooltip = "Anchor the Objective Tracker to the action bar container on the right side of the screen.";
+                    type    = "check";
+                    dbPath  = "profile.sidebar.objectiveTracker.anchoredToSideBars";
+                };
+                {   type = "divider";
+                };
+                {   name        = L["Set Width"];
+                    type        = "textfield";
+                    tooltip     = tk.Strings.Concat(L["Adjust the width of the Objective Tracker."],"\n\n",
+                                L["Default value is "], "250");
+                    dbPath      = "profile.sidebar.objectiveTracker.width";
+                    valueType   = "number";
+                };
+                {   name        = L["Set Height"];
+                    type        = "textfield";
+                    tooltip     = tk.Strings.Concat(L["Adjust the height of the Objective Tracker."], "\n\n",
+                                L["Default value is "], "600");
+                    dbPath      = "profile.sidebar.objectiveTracker.height";
+                    valueType   = "number";
+                };
+                {   name        = L["X-Offset"];
+                    type        = "textfield";
+                    tooltip     = tk.Strings.Concat(L["Adjust the horizontal positioning of the Objective Tracker."],
+                                    "\n\n", L["Default value is "], "-30");
+                    dbPath      = "profile.sidebar.objectiveTracker.xOffset";
+                    valueType   = "number";
+                };
+                {   name        = L["Y-Offset"];
+                    type        = "textfield";
+                    tooltip     = tk.Strings.Concat(L["Adjust the vertical positioning of the Objective Tracker."], "\n\n",
+                                    L["Default value is "], "0");
+                    dbPath      = "profile.sidebar.objectiveTracker.yOffset";
+                    valueType   = "number";
+                };
+            };
+        };
     };
 end

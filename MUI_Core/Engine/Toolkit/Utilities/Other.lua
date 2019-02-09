@@ -317,12 +317,14 @@ do
         popup.hasEditBox = false;
         popup.button1 = confirmText or "Confirm";
         popup.button2 = cancelText or "Cancel";
-        popup.OnAccept = onConfirm;
-        popup.OnCancel = onCancel;
 
         if (isWarning) then
             popup.showAlert = true;
         end
+
+        popup.data.OnAccept = onConfirm;
+        popup.data.OnCancel = onCancel;
+        popup.data.OnValidate = nil;
 
         _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
@@ -332,13 +334,15 @@ do
 
         popup.button1 = okayText or "Okay";
         popup.button2 = nil;
-        popup.OnAccept = onOkay;
-        popup.OnCancel = nil;
         popup.hasEditBox = false;
 
         if (isWarning) then
             popup.showAlert = true;
         end
+
+        popup.data.OnAccept = onOkay;
+        popup.data.OnCancel = nil;
+        popup.data.OnValidate = nil;
 
         _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
@@ -348,8 +352,6 @@ do
 
         popup.button1 = confirmText or "Confirm";
         popup.button2 = cancelText or "Cancel";
-        popup.OnAccept = onConfirm;
-        popup.OnCancel = onCancel;
         popup.hasEditBox = true;
 
         if (isWarning) then
@@ -357,9 +359,9 @@ do
         end
 
         popup.data.editBoxText = editBoxText;
-        popup.data.OnValidate = onValidate;
         popup.data.OnAccept = onConfirm;
         popup.data.OnCancel = onCancel;
+        popup.data.OnValidate = onValidate;
 
         _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end

@@ -17,13 +17,14 @@ local Engine = obj:Import("MayronUI.Engine");
 
 ---@class CastBarsModule : BaseModule
 local C_CastBarsModule = MayronUI:RegisterModule("CastBarsModule", "Cast Bars");
+namespace.C_CastBarsModule = C_CastBarsModule;
 
 ---@class CastBar : Object
 local C_CastBar = Engine:CreateClass("CastBar", "Framework.System.FrameWrapper");
 C_CastBar.Static:AddFriendClass("CastBarsModule");
 
 namespace.bars = obj:PopTable();
-namespace.C_CastBarsModule = C_CastBarsModule;
+
 
 -- Load Database Defaults --------------
 

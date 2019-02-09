@@ -6,63 +6,41 @@ local ObjectiveTrackerFrame = _G.ObjectiveTrackerFrame;
 
 -- Register and Import Modules -----------
 
-local SideBar = MayronUI:RegisterModule("SideBar", "Side Action Bar");
+local C_SideBar = MayronUI:RegisterModule("SideBarModule", "Side Action Bar");
 
 -- Add Database Defaults -----------------
 
 db:AddToDefaults("profile.sidebar", {
-    enabled = true,
-    height = 486,
-    retractWidth = 46,
-    expandWidth = 83,
-    animationSpeed = 6,
+    enabled = true;
+    height = 486;
+    retractWidth = 46;
+    expandWidth = 83;
+    animationSpeed = 6;
     yOffset = 40,
-    barsShown = 2, -- non-config GUI
-
-    objectiveTracker = {
-        enabled = true,
-        anchoredToSideBars = true,
-        width = 250,
-        height = 600,
-        xOffset = -30,
-        yOffset = 0
-    },
+    barsShown = 2; -- non-config GUI
 
     buttons = {
-        showWhen = "Always", -- can be mouseover or never
-        hideInCombat = false,
-        width = 15,
-        height = 100,
-    },
+        showWhen = "Always"; -- can be mouseover or never
+        hideInCombat = false;
+        width = 15;
+        height = 100;
+    };
 
     bartender = {
-        control = true,
-        [1] = "Bar 3", -- first bar
-        [2] = "Bar 4", -- second bar
-    }
+        control = true;
+        [1] = "Bar 3"; -- first bar
+        [2] = "Bar 4"; -- second bar
+    };
+
+    objectiveTracker = {
+        enabled = true;
+        anchoredToSideBars = true;
+        width = 250;
+        height = 600;
+        xOffset = -30;
+        yOffset = 0;
+    };
 });
-
--- Local Functions -----------------------
-
--- TODO: Used in ConfigUpdate
--- local function UpdateObjectiveTracker(objectiveContainer)
---     local sv = db.profile.sidebar.objectiveTracker;
---     objectiveContainer:ClearAllPoints();
-
---     if (sv.anchoredToSideBars) then
---         objectiveContainer:SetPoint("TOPRIGHT", sidebar.panel, "TOPLEFT", sv.xOffset, sv.yOffset);
---     else
---         objectiveContainer:SetPoint("CENTER", sv.xOffset, sv.yOffset);
---     end
--- end
-
--- local function Button_OnEnter(self)
---     self:SetAlpha(1);
--- end
-
--- local Button_OnLeave = function(self)
---     self:SetAlpha(0);
--- end
 
 -- Private Functions ---------------------
 
@@ -204,22 +182,99 @@ function Private:MoveFrameIn(sideBarModule, frame, bar1, controlBartender)
     tk.C_Timer.After(0.02, loop);
 end
 
--- SideBar Module -----------------------
+-- C_SideBar -----------------------
 
-function SideBar:OnInitialize(data)
-    data.sv = db.profile.sidebar;
+function C_SideBar:OnInitialize(data)
 
-    if (data.sv.enabled) then
+    local options = {
+        onExecuteAll = {
+            ignore = {
+                "retractWidth";
+                "yOffset";
+            };
+
+            dependencies = {
+                ["expandWidth"] = "bartender";
+            }
+        };
+    };
+
+    self:RegisterUpdateFunctions(db.profile.sidebar, {
+        height = function(value)
+            data.panel:SetHeight(value);
+        end;
+
+        retractWidth = function()
+            self:SetBarsShown(data.settings.barsShown);
+        end;
+
+        expandWidth = function()
+            self:SetBarsShown(data.settings.barsShown);
+        end;
+
+        animationSpeed = function(value)
+            Private.step = value;
+        end;
+
+        yOffset = function()
+            self:SetBarsShown(data.settings.barsShown);
+        end;
+
+        objectiveTracker = function()
+            self:SetObjectiveTrackerEnabled(data.settings.objectiveTracker.enabled);
+        end;
+
+        bartender = function()
+            self:SetBartenderBars();
+        end;
+
+        buttons = {
+            showWhen = function(value)
+                data.expand:SetShown(value ~= "Never");
+                data.retract:SetShown(value ~= "Never");
+
+                if (value == "On Mouse-over") then
+                    data.expand:SetAlpha(0);
+                    data.retract:SetAlpha(0);
+                    data.expand:SetScript("OnEnter", Private.OnEnter);
+                    data.expand:SetScript("OnLeave", Private.OnLeave);
+                    data.retract:SetScript("OnEnter", Private.OnEnter);
+                    data.retract:SetScript("OnLeave", Private.OnLeave);
+
+                else
+                    data.expand:SetScript("OnEnter", nil);
+                    data.expand:SetScript("OnLeave", nil);
+                    data.retract:SetScript("OnEnter", nil);
+                    data.retract:SetScript("OnLeave", nil);
+                    data.expand:SetAlpha(1);
+                    data.retract:SetAlpha(1);
+                end
+            end;
+
+            hideInCombat = function(value)
+                self:SetButtonsHideInCombat(value);
+            end;
+
+            width = function(value)
+                data.expand:SetSize(value, data.settings.buttons.height);
+                data.retract:SetSize(value, data.settings.buttons.height);
+            end;
+
+            height = function(value)
+                data.expand:SetSize(data.settings.buttons.width, value);
+                data.retract:SetSize(data.settings.buttons.width, value);
+            end;
+        };
+    }, options);
+
+    if (data.settings.enabled) then
         self:SetEnabled(true);
     end
 end
 
-function SideBar:OnEnable(data)
-    Private.step = data.sv.animationSpeed;
-
-    self:SetBartenderBars();
+function C_SideBar:OnEnable(data)
+    Private.step = data.settings.animationSpeed;
     self:CreateSideBar();
-    self:SetBarsShown(data.sv.barsShown);
 
     em:CreateEventHandler("PET_BATTLE_OPENING_START", function()
         data.panel:Hide();
@@ -228,31 +283,42 @@ function SideBar:OnEnable(data)
     em:CreateEventHandler("PET_BATTLE_CLOSE", function()
         data.panel:Show();
     end);
+end
 
-    if (data.sv.buttons.hideInCombat) then
+function C_SideBar:SetButtonsHideInCombat(data, hide)
+    if (hide) then
         em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
             data.expand:Hide();
             data.retract:Hide();
-        end):SetKey("SideBar_Buttons");
+        end):SetKey("SideBar_HideInCombat_RegenDisabled");
 
         em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
-            data.expand:SetShown(data.sv.barsShown ~= 2);
-            data.retract:SetShown(data.sv.barsShown ~= 0);
-        end):SetKey("SideBar_Buttons");
+            data.expand:SetShown(data.settings.barsShown ~= 2);
+            data.retract:SetShown(data.settings.barsShown ~= 0);
+        end):SetKey("SideBar_HideInCombat_RegenEnabled");
     end
 
-    if (data.sv.objectiveTracker.enabled) then
-        local sv = data.sv.objectiveTracker;
+    local handler = em:FindEventHandlerByKey("SideBar_HideInCombat_RegenEnabled");
 
+    if (handler) then
+        handler:SetEventCallbackEnabled("PLAYER_REGEN_ENABLED", not hide);
+    end
+
+    handler = em:FindEventHandlerByKey("SideBar_HideInCombat_RegenDisabled");
+
+    if (handler) then
+        handler:SetEventCallbackEnabled("PLAYER_REGEN_DISABLED", not hide);
+    end
+end
+
+function C_SideBar:SetObjectiveTrackerEnabled(data, enabled)
+    if (not enabled and not data.objectiveContainer) then
+        return;
+    end
+
+    if (not data.objectiveContainer) then
         -- holds and controls blizzard objectives tracker frame
         data.objectiveContainer = tk.CreateFrame("Frame", nil, tk.UIParent);
-        data.objectiveContainer:SetSize(sv.width, sv.height);
-
-        if (sv.anchoredToSideBars) then
-            data.objectiveContainer:SetPoint("TOPRIGHT", data.panel, "TOPLEFT", sv.xOffset, sv.yOffset);
-        else
-            data.objectiveContainer:SetPoint("CENTER", sv.xOffset, sv.yOffset);
-        end
 
         -- blizzard objective tracker frame global variable
         ObjectiveTrackerFrame:SetClampedToScreen(false);
@@ -264,122 +330,20 @@ function SideBar:OnEnable(data)
         ObjectiveTrackerFrame.SetPoint = tk.Constants.DUMMY_FUNC;
         ObjectiveTrackerFrame.SetAllPoints = tk.Constants.DUMMY_FUNC;
     end
+
+    local settings = data.settings.objectiveTracker;
+    data.objectiveContainer:SetSize(settings.width, settings.height);
+
+    if (settings.anchoredToSideBars) then
+        data.objectiveContainer:SetPoint("TOPRIGHT", data.panel, "TOPLEFT", settings.xOffset, settings.yOffset);
+    else
+        data.objectiveContainer:SetPoint("CENTER", settings.xOffset, settings.yOffset);
+    end
 end
-
--- function SideBar:OnConfigUpdate(list, value)
---     local key = list:PopFront();
-
---     if (key == "profile" and list:PopFront() == "sidebar") then
---         key = list:PopFront();
-
---         if (key == "objectiveTracker") then
---             key = list:PopFront();
-
---             if (key == "anchoredToSideBars" or key == "xOffset" or key == "yOffset") then
---                 UpdateObjectiveTracker(data.objectiveContainer);
-
---             elseif (key == "width") then
---                 data.objectiveContainer:SetWidth(value);
-
---             elseif (key == "height") then
---                 data.objectiveContainer:SetHeight(value);
---             end
-
---         elseif (key == "retractWidth") then
---             if (data.sv.barsShown == 1) then
---                 data.panel:SetWidth(value);
---             end
-
---         elseif (key == "expandWidth") then
---             if (data.sv.barsShown == 2) then
---                 data.panel:SetWidth(value);
---             end
-
---         elseif (key == "height") then
---             data.panel:SetHeight(value);
-
---         elseif (key == "yOffset") then
---             data.panel:SetPoint("RIGHT", 0, value);
-
---         elseif (key == "animationSpeed") then
---             Private.step = value;
-
---         elseif (key == "bartender") then
---             data:SetBartenderBars();
-
---         elseif (key == "buttons") then
---             key = list:PopFront();
-
---             if (key == "width") then
---                 data.expand:SetWidth(value);
---                 data.retract:SetWidth(value);
-
---             elseif (key == "height") then
---                 data.expand:SetHeight(value);
---                 data.retract:SetHeight(value);
-
---             elseif (key == "showWhen") then
---                 data.expand:SetShown(value ~= "Never");
---                 data.retract:SetShown(value ~= "Never");
-
---                 if (value == "On Mouse-over") then
---                     data.expand:SetAlpha(0);
---                     data.retract:SetAlpha(0);
---                     data.expand:SetScript("OnEnter", Private.OnEnter);
---                     data.expand:SetScript("OnLeave", Private.OnLeave);
---                     data.retract:SetScript("OnEnter", Private.OnEnter);
---                     data.retract:SetScript("OnLeave", Private.OnLeave);
-
---                 else
---                     data.expand:SetScript("OnEnter", nil);
---                     data.expand:SetScript("OnLeave", nil);
---                     data.retract:SetScript("OnEnter", nil);
---                     data.retract:SetScript("OnLeave", nil);
---                     data.expand:SetAlpha(1);
---                     data.retract:SetAlpha(1);
---                 end
-
---                 if (data.sv.barsShown == 2) then
---                     data.expand:Hide();
-
---                 elseif (data.sv.barsShown == 0) then
---                     data.retract:Hide();
---                 end
-
---             elseif (key == "hideInCombat") then
---                 local handler = em:FindEventHandlerByKey("PLAYER_REGEN_DISABLED", "SideBar_Buttons");
-
---                 if ((value and not handler) or handler:IsDestroyed()) then
---                     em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
---                         data.expand:Hide();
---                         data.retract:Hide();
---                     end):SetKey("SideBar_Buttons");
-
---                     em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
---                         data.expand:SetShown(data.sv.barsShown ~= 2);
---                         data.retract:SetShown(data.sv.barsShown ~= 0);
---                     end):SetKey("SideBar_Buttons");
-
---                 elseif (not value and handler) then
---                     em:FindEventHandlerByKey("PLAYER_REGEN_DISABLED", "SideBar_Buttons"):Destroy();
---                     em:FindEventHandlerByKey("PLAYER_REGEN_ENABLED", "SideBar_Buttons"):Destroy();
---                 end
-
---                 if (value and tk.InCombatLockdown()) then
---                     data.expand:Hide();
---                     data.retract:Hide();
---                 else
---                     data.expand:SetShown(data.sv.barsShown ~= 2);
---                     data.retract:SetShown(data.sv.barsShown ~= 0);
---                 end
---             end
---         end
---     end
--- end
 
 -- SideBar Object -------------------------
 
-function SideBar:Expand(data, expandAmount)
+function C_SideBar:Expand(data, expandAmount)
     if (tk.InCombatLockdown()) then
         return;
     end
@@ -388,16 +352,16 @@ function SideBar:Expand(data, expandAmount)
 
     if (expandAmount == 1) then
         data.expand:Hide();
-        Private:MoveFrameIn(self, data.panel, data.BTBar1, data.sv.bartender.control);
+        Private:MoveFrameIn(self, data.panel, data.BTBar1, data.settings.bartender.control);
 
     elseif (expandAmount == 2) then
         data.expand:Hide();
         data.retract:Hide();
-        Private:ExpandFrame(self, data.BTBar2, data.panel, data.sv.expandWidth);
+        Private:ExpandFrame(self, data.BTBar2, data.panel, data.settings.expandWidth);
     end
 end
 
-function SideBar:Retract(data, retractAmount)
+function C_SideBar:Retract(data, retractAmount)
     if (tk.InCombatLockdown()) then
         return;
     end
@@ -406,25 +370,25 @@ function SideBar:Retract(data, retractAmount)
 
     if (retractAmount == 1) then
         data.retract:Hide();
-        Private:RetractFrame(self, data.BTBar2, data.panel, data.sv.retractWidth);
+        Private:RetractFrame(self, data.BTBar2, data.panel, data.settings.retractWidth);
 
     elseif (retractAmount == 2) then
         data.expand:Hide();
         data.retract:Hide();
-        Private:MoveFrameOut(self, data.panel, data.BTBar1, data.sv.bartender.control);
+        Private:MoveFrameOut(self, data.panel, data.BTBar1, data.settings.bartender.control);
     end
 end
 
-function SideBar:SetBarsShown(data, numBarsShown)
-    data.sv.barsShown = numBarsShown;
+function C_SideBar:SetBarsShown(data, numBarsShown)
+    data.settings.barsShown = numBarsShown;
     data.expand:ClearAllPoints();
     data.retract:ClearAllPoints();
 
-    if (data.sv.barsShown == 2) then
+    if (data.settings.barsShown == 2) then
         Private:ToggleBartenderBar(data.BTBar2, true);
         Private:ToggleBartenderBar(data.BTBar1, true);
 
-        data.panel:SetSize(data.sv.expandWidth, data.sv.height);
+        data.panel:SetSize(data.settings.expandWidth, data.settings.height);
         data.retract:SetPoint("RIGHT", data.panel, "LEFT");
         data.expand:Hide();
         data.retract:Show();
@@ -433,10 +397,10 @@ function SideBar:SetBarsShown(data, numBarsShown)
             self:Retract(1);
         end);
 
-    elseif (data.sv.barsShown == 1) then
+    elseif (data.settings.barsShown == 1) then
         Private:ToggleBartenderBar(data.BTBar2, false);
         Private:ToggleBartenderBar(data.BTBar1, true);
-        data.panel:SetSize(data.sv.retractWidth, data.sv.height);
+        data.panel:SetSize(data.settings.retractWidth, data.settings.height);
         data.expand:SetPoint("RIGHT", data.panel, "LEFT", 0, 90);
         data.retract:SetPoint("RIGHT", data.panel, "LEFT", 0, -90);
         data.expand:Show();
@@ -450,12 +414,12 @@ function SideBar:SetBarsShown(data, numBarsShown)
             self:Retract(2);
         end);
 
-    elseif (data.sv.barsShown == 0) then
+    elseif (data.settings.barsShown == 0) then
         Private:ToggleBartenderBar(data.BTBar1, false);
         Private:ToggleBartenderBar(data.BTBar2, false);
         data.panel:ClearAllPoints();
-        data.panel:SetSize(data.sv.retractWidth, data.sv.height);
-        data.panel:SetPoint("RIGHT", tk.UIParent, "RIGHT", data.sv.retractWidth,data.sv.yOffset);
+        data.panel:SetSize(data.settings.retractWidth, data.settings.height);
+        data.panel:SetPoint("RIGHT", tk.UIParent, "RIGHT", data.settings.retractWidth ,data.settings.yOffset);
         data.panel:Hide();
         data.expand:Show();
         data.retract:Hide();
@@ -466,13 +430,13 @@ function SideBar:SetBarsShown(data, numBarsShown)
         end);
     end
 
-    if (data.sv.buttons.showWhen == "Never") then
+    if (data.settings.buttons.showWhen == "Never") then
         data.expand:Hide();
         data.retract:Hide();
     end
 end
 
-function SideBar:CreateSideBar(data)
+function C_SideBar:CreateSideBar(data)
     if (data.panel) then
         return;
     end
@@ -481,7 +445,7 @@ function SideBar:CreateSideBar(data)
     local sideBarTexturePath = tk:GetAssetFilePath("Textures\\SideBar\\SideBarPanel");
 
     data.panel = tk.CreateFrame("Frame", "MUI_SideBar", tk.UIParent);
-    data.panel:SetPoint("RIGHT", 0, data.sv.yOffset);
+    data.panel:SetPoint("RIGHT", 0, data.settings.yOffset);
 
     gui:CreateGridTexture(data.panel, sideBarTexturePath, 20, nil, 45, 749);
 
@@ -489,34 +453,27 @@ function SideBar:CreateSideBar(data)
     data.expand:SetNormalFontObject("MUI_FontSmall");
     data.expand:SetHighlightFontObject("GameFontHighlightSmall");
     data.expand:SetNormalTexture(sideButtonTexturePath);
-    data.expand:SetSize(data.sv.buttons.width, data.sv.buttons.height);
+    data.expand:SetSize(data.settings.buttons.width, data.settings.buttons.height);
     data.expand:SetText("<");
 
     data.retract = tk.CreateFrame("Button", nil, tk.UIParent);
     data.retract:SetNormalFontObject("MUI_FontSmall");
     data.retract:SetHighlightFontObject("GameFontHighlightSmall");
     data.retract:SetNormalTexture(sideButtonTexturePath);
-    data.retract:SetSize(data.sv.buttons.width, data.sv.buttons.height);
+    data.retract:SetSize(data.settings.buttons.width, data.settings.buttons.height);
     data.retract:SetText(">");
-
-    if (data.sv.buttons.showWhen == "On Mouse-over") then
-        data.expand:SetAlpha(0);
-        data.retract:SetAlpha(0);
-        data.expand:SetScript("OnEnter", Private.OnEnter);
-        data.expand:SetScript("OnLeave", Private.OnLeave);
-        data.retract:SetScript("OnEnter", Private.OnEnter);
-        data.retract:SetScript("OnLeave", Private.OnLeave);
-    end
 end
 
-function SideBar:SetBartenderBars(data)
-    if (tk.IsAddOnLoaded("Bartender4") and data.sv.bartender.control) then
-        local bar1 = data.sv.bartender[1]:match("%d+");
-        local bar2 = data.sv.bartender[2]:match("%d+");
-
-        _G.Bartender4:GetModule("ActionBars"):EnableBar(bar1);
-        _G.Bartender4:GetModule("ActionBars"):EnableBar(bar2);
-        data.BTBar1 = tk._G["BT4Bar"..tk.tostring(bar1)];
-        data.BTBar2 = tk._G["BT4Bar"..tk.tostring(bar2)];
+function C_SideBar:SetBartenderBars(data)
+    if (not (tk.IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
+        return;
     end
+
+    local bar1 = data.settings.bartender[1]:match("%d+");
+    local bar2 = data.settings.bartender[2]:match("%d+");
+
+    _G.Bartender4:GetModule("ActionBars"):EnableBar(bar1);
+    _G.Bartender4:GetModule("ActionBars"):EnableBar(bar2);
+    data.BTBar1 = tk._G["BT4Bar"..tk.tostring(bar1)];
+    data.BTBar2 = tk._G["BT4Bar"..tk.tostring(bar2)];
 end

@@ -58,7 +58,9 @@ do
     end
 
     function tk:SetAuraTooltip(widget, auraId)
-        widget.auraId = auraId;
+        if (auraId) then
+            widget.auraId = auraId;
+        end
 
         widget:SetScript("OnEnter", tk.AuraTooltip_OnEnter);
         widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);

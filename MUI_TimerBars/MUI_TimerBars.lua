@@ -1,4 +1,5 @@
 --luacheck: ignore self 143 631
+local _, namespace = ...;
 local _G, MayronUI = _G, _G.MayronUI;
 local tk, db, em, _, obj = MayronUI:GetCoreComponents();
 
@@ -59,6 +60,8 @@ local Stack = obj:Import("Framework.System.Collections.Stack<T>");
 
 ---@class TimerBarsModule : BaseModule
 local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", "Timer Bars");
+namespace.C_TimerBarsModule = C_TimerBarsModule;
+
 local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
 
 -- Database Defaults --------------
@@ -79,7 +82,7 @@ db:AddToDefaults("profile.timerBars", {
         background        = { 0, 0, 0, 0.6 };
         basicBuff         = { 0.1, 0.1, 0.1, 1 };
         basicDebuff       = { 0.76, 0.2, 0.2, 1 };
-        border            = { 0.2, 0.2, 0.2, 1 };
+        border            = { 0, 0, 0, 1 };
         canStealOrPurge   = { 1, 0.5, 0.25, 1 };
         magic             = { 0.2, 0.6, 1, 1 };
         disease           = { 0.6, 0.4, 0, 1 };
@@ -830,6 +833,7 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
     self:SetSparkShown(settings.showSpark);
     self:SetAuraNameShown(settings.auraName.show);
     self:SetTimeRemainingShown(settings.timeRemaining.show);
+    self:SetTooltipsEnabled(sharedSettings.showTooltips);
 end
 
 Engine:DefineParams("boolean");
