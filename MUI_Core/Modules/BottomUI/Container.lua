@@ -64,6 +64,12 @@ function C_Container:OnInitialize(data)
     self:RegisterUpdateFunctions(db.profile.bottomui, {
         width = function(value)
             data.container:SetSize(value, 1);
+
+            local dataTextModule = MayronUI:ImportModule("DataTextModule");
+
+            if (dataTextModule and dataTextModule:IsEnabled()) then
+                dataTextModule:PositionDataTextButtons();
+            end
         end;
     });
 

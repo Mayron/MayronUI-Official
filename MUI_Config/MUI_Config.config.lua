@@ -1,7 +1,35 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
-local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
+local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ConfigModule = namespace.C_ConfigModule;
+
+local function GetModKeyValue(modKey, currentValue)
+    if (obj:IsString(currentValue) and currentValue:find(modKey)) then
+        return true;
+    end
+
+    return false;
+end
+
+local function SetModKeyValue(modKey, dbPath, newValue, oldValue)
+    if (obj:IsString(oldValue) and oldValue:find(modKey)) then
+        -- remove modKey from current value before trying to append new value
+        oldValue = oldValue:gsub(modKey, tk.Strings.Empty);
+    end
+
+    if (newValue) then
+        newValue = modKey;
+
+        if (obj:IsString(oldValue)) then
+            newValue = oldValue .. newValue;
+        end
+    else
+        -- if check button is not checked (false) set back to oldValue that does not include modKey
+        newValue = oldValue;
+    end
+
+    db:SetPathValue(dbPath, newValue);
+end
 
 function C_ConfigModule:GetConfigTable()
     return {
@@ -20,7 +48,7 @@ function C_ConfigModule:GetConfigTable()
                     GetValue = function()
                         return tonumber(_G.GetCVar("ScriptErrors")) == 1;
                     end;
-                    SetValue = function(value)
+                    SetValue = function(_, value)
                         if (value) then
                             _G.SetCVar("ScriptErrors", "1");
                         else
@@ -271,79 +299,33 @@ function C_ConfigModule:GetConfigTable()
                         {   type    = "fontstring";
                             content = "Modifier key/s used to show Expand/Retract button:";
                         };
-                        {   name    = L["Control"];
-                            height  = 40;
-                            type    = "check";
-                            dbPath  = "profile.actionBarPanel.modKey";
+                        {
+                            type = "loop";
+                            args = { "C", "S", "A" };
+                            func = function(_, arg)
+                                local name = L["Alt"];
 
-                            GetValue = function(_, currentValue)
-                                if (currentValue:find("C")) then
-                                    return true;
+                                if (arg == "C") then
+                                    name = L["Control"];
+
+                                elseif (arg == "S") then
+                                    name = L["Shift"];
                                 end
 
-                                return false;
-                            end;
+                                return {
+                                    name    = name;
+                                    height  = 40;
+                                    type    = "check";
+                                    dbPath  = "profile.actionBarPanel.modKey";
 
-                            SetValue = function(dbPath, oldValue, value)
-                                value = value and "C";
-                                if (not value) then
-                                    if (oldValue:find("C")) then
-                                        value = oldValue:gsub("C", "");
+                                    GetValue = function(currentValue)
+                                        return GetModKeyValue(arg, currentValue);
+                                    end;
+
+                                    SetValue = function(dbPath, newValue, oldValue)
+                                        SetModKeyValue(arg, dbPath, newValue, oldValue);
                                     end
-                                else
-                                    value = oldValue..value;
-                                end
-                                db:SetPathValue(dbPath, value);
-                            end
-                        };
-                        {   name    = L["Shift"];
-                            height  = 40;
-                            type    = "check";
-                            dbPath  = "profile.actionBarPanel.modKey";
-
-                            GetValue = function(_, currentValue)
-                                if (currentValue:find("S")) then
-                                    return true;
-                                end
-
-                                return false;
-                            end;
-
-                            SetValue = function(dbPath, oldValue, value)
-                                value = value and "S";
-                                if (not value) then
-                                    if (oldValue:find("S")) then
-                                        value = oldValue:gsub("S", tk.Strings.Empty)
-                                    end
-                                else
-                                    value = oldValue .. value;
-                                end
-                                db:SetPathValue(dbPath, value);
-                            end
-                        };
-                        {   name    = L["Alt"];
-                            height  = 40;
-                            type    = "check";
-                            dbPath  = "profile.actionBarPanel.modKey";
-
-                            GetValue = function(_, currentValue)
-                                if (currentValue:find("A")) then
-                                    return true;
-                                end
-
-                                return false;
-                            end;
-
-                            SetValue = function(dbPath, oldValue, value) -- the path and the new value
-                                value = value and "A";
-                                if (not value) then
-                                    if (oldValue:find("A")) then
-                                        value = oldValue:gsub("A", tk.Strings.Empty);
-                                    end
-                                else
-                                    value = oldValue .. value;
-                                end
-                                db:SetPathValue(dbPath, value);
+                                };
                             end
                         };
                         {   name    = L["Bartender Action Bars"];

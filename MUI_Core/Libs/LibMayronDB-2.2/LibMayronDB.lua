@@ -1,6 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
+
+---@type LibMayronDB
 local Lib = _G.LibStub:NewLibrary("LibMayronDB", 2.2);
-local obj = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type Objects
+
+---@type LibMayronObjects
+local obj = _G.LibStub:GetLibrary("LibMayronObjects");
 
 if (not Lib or not obj) then return; end
 
@@ -252,30 +256,32 @@ function Database:GetUpdateFunctions(data, path)
     return self:ParsePathValue(data.updateFunctions, path);
 end
 
-Framework:DefineParams("string");
+Framework:DefineParams("table", "string");
 ---Triggers an update function located by the path argument and pass any arguments to the function
----@param path string @A database path string, such as "myTable.mySubTable[2]".
----@param newValue any @(optilna) The new value assigned to the database.
-function Database:TriggerUpdateFunction(data, updatePath, newValue, rootTable, path)
-    local valuePath = path;
+---@param svRootTable table @The database root saved variable table.
+---@param fullPath string @A database path string, such as "profile.myTable.mySubTable[2]" (includes root path).
+    --- This is needed to locate the updateFunction
+---@param newValue any @(optional) The new value assigned to the database.
+function Database:TriggerUpdateFunction(data, svRootTable, fullPath, newValue)
+    local originalPathOfValue = fullPath; -- cut off the root path name
+    local originalValue = newValue;
     local selectedValue = newValue;
-    local updateFunctionPath = updatePath;
-    local updateFunction = self:ParsePathValue(data.updateFunctions, updatePath);
+    local updateFunction = self:ParsePathValue(data.updateFunctions, fullPath);
+    local manualFunction;
 
-    while (not obj:IsFunction(updateFunction) and valuePath:find("[.[]")) do
+    -- used in while-loops for iteration only:
+    local updateFunctionPath = fullPath;
+    local pathOfValue = originalPathOfValue; -- used only in the while-loop
+    local manualFunctionPath = fullPath;
+
+    while (not obj:IsFunction(updateFunction) and pathOfValue:find("[.[]")) do
+        -- cut off the last key (traverse table backwards to find update function)
         updateFunctionPath = updateFunctionPath:match('(.+)[.[]');
-        valuePath = valuePath:match('(.+)[.[]');
+        pathOfValue = pathOfValue:match('(.+)[.[]');
 
         updateFunction = self:ParsePathValue(data.updateFunctions, updateFunctionPath);
-        selectedValue = self:ParsePathValue(rootTable, valuePath);
+        selectedValue = self:ParsePathValue(svRootTable, pathOfValue);
     end
-
-    if (obj:IsType(selectedValue, "Observer")) then
-        selectedValue = selectedValue:GetUntrackedTable();
-    end
-
-    local manualFunction;
-    local manualFunctionPath = updatePath;
 
     while (not obj:IsFunction(manualFunction) and manualFunctionPath:find("[.[]")) do
         manualFunction = data.manualUpdateFunctions[manualFunctionPath];
@@ -283,10 +289,10 @@ function Database:TriggerUpdateFunction(data, updatePath, newValue, rootTable, p
     end
 
     if (obj:IsFunction(manualFunction)) then
-        manualFunction(updateFunction, selectedValue, updateFunctionPath);
+        manualFunction(updateFunction, selectedValue, originalPathOfValue, originalValue);
 
     elseif (obj:IsFunction(updateFunction)) then
-        updateFunction(selectedValue, updateFunctionPath);
+        updateFunction(selectedValue, originalPathOfValue);
     end
 end
 
@@ -297,28 +303,9 @@ Framework:DefineParams("table|string");
 ---@param value any @(optional) A value to assign to the table relative to the provided path string (is nil if the path argument is the value)
 function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
-    local updateFunctionRoot;
 
     obj:Assert(obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
     obj:Assert(path and not (obj:IsObject(rootTable, "Observer") and path:find("__template")), "Invalid path address '%s'.", path);
-
-    if (rootTable == self.global) then
-        updateFunctionRoot = "global";
-
-    elseif (rootTable == self.profile) then
-        updateFunctionRoot = "profile";
-
-    elseif (data.sv) then
-        if (rootTable == data.sv.global) then
-            updateFunctionRoot = "global";
-        else
-            local currentProfile = self:GetCurrentProfile();
-
-            if (rootTable == data.sv.profiles[currentProfile]) then
-                updateFunctionRoot = "profile";
-            end
-        end
-    end
 
     local lastTable, lastKey = data.helper:GetLastTableKeyPairs(rootTable, path);
 
@@ -329,12 +316,6 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     if (lastTable.IsObjectType and lastTable:IsObjectType("Observer")) then
         local observerData = data:GetFriendData(lastTable);
         data.helper:HandlePathValueChange(observerData, lastKey, realValue);
-
-        if (updateFunctionRoot) then
-            -- only run update function if the database saved variable table changes!
-            local updateFunctionPath = string.format("%s.%s", updateFunctionRoot, path);
-            self:TriggerUpdateFunction(updateFunctionPath, realValue, rootTable, path);
-        end
     else
         lastTable[lastKey] = realValue;
     end
@@ -1302,11 +1283,8 @@ function Helper:GetDatabaseRootTableName(data, observer)
 end
 
 Framework:DefineParams("table", "string|number", "?any");
-function Helper:HandlePathValueChange(data, observerData, key, value)
-    local path;
-    local defaultRootTable;
-    local svRootTable;
-    local isGlobal;
+function Helper:HandlePathValueChange(data, observerData, key, newValue)
+    local path, defaultRootTable, svRootTable, isGlobal, dbTableRootName;
 
     if (observerData.usingChild) then
         path = observerData.usingChild.path;
@@ -1319,21 +1297,29 @@ function Helper:HandlePathValueChange(data, observerData, key, value)
     if (isGlobal) then
         defaultRootTable = data.dbData.defaults.global;
         svRootTable = data.dbData.sv.global;
+        dbTableRootName = "global";
     else
         defaultRootTable = data.dbData.defaults.profile;
         svRootTable = data.database.profile:GetSavedVariable();
+        dbTableRootName = "profile";
     end
 
-    local indexingPath = GetNextPath(path, key);
-    local defaultValue = data.database:ParsePathValue(defaultRootTable, indexingPath);
+    local valuePath = GetNextPath(path, key);
+    local defaultValue = data.database:ParsePathValue(defaultRootTable, valuePath);
 
-    if (not IsEqual(defaultValue, value)) then
+    if (not IsEqual(defaultValue, newValue)) then
         -- different from default value so add it
-        data.database:SetPathValue(svRootTable, indexingPath, value);
+        data.database:SetPathValue(svRootTable, valuePath, newValue);
     else
         -- same as default value so remove it from saved variables table
-        data.database:SetPathValue(svRootTable, indexingPath, nil);
-        self:GetLastTableKeyPairs(svRootTable, indexingPath, true, true); -- clean
+        data.database:SetPathValue(svRootTable, valuePath, nil);
+        self:GetLastTableKeyPairs(svRootTable, valuePath, true, true); -- clean
+    end
+
+    if (dbTableRootName) then
+        -- only run update function if the database saved variable table changes!
+        local fullPath = string.format("%s.%s", dbTableRootName, valuePath);
+        data.database:TriggerUpdateFunction(svRootTable, fullPath, newValue);
     end
 end
 

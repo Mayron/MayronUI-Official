@@ -1,5 +1,6 @@
 -- luacheck: ignore MayronUI LibStub self 143 631
 local addOnName, namespace = ...;
+local _G, LibStub = _G, _G.LibStub;
 
 MayronUI = {};
 
@@ -9,14 +10,14 @@ namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.components.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 
 local tk  = namespace.components.Toolkit; ---@type Toolkit
-local db  = namespace.components.Database; ---@type Database
-local em  = namespace.components.EventManager; ---@type EventManager
-local gui = namespace.components.GUIBuilder; ---@type GUIBuilder
-local obj = namespace.components.Objects; ---@type Objects
+local db  = namespace.components.Database; ---@type LibMayronDB
+local em  = namespace.components.EventManager; ---@type LibMayronEvents
+local gui = namespace.components.GUIBuilder; ---@type LibMayronGUI
+local obj = namespace.components.Objects; ---@type LibMayronObjects
 local L   = namespace.components.Locale; ---@type Locale
 
 ---Gets the core components of MayronUI
----@return Toolkit, Database, EventManager, GUIBuilder, Objects, Locale
+---@return Toolkit, Database, EventManager, LibMayronGUI, LibMayronObjects, Locale
 function MayronUI:GetCoreComponents()
     return tk, db, em, gui, obj, L;
 end
@@ -298,6 +299,39 @@ local function ExecuteUpdateFunction(path, updateFunction, setting, executed, on
     end
 end
 
+local function HasMatchingPathPattern(path, patterns)
+    for _, pattern in ipairs(patterns) do
+        if (path:find(pattern)) then
+            return true;
+
+        elseif (pattern:find("%(.*|.*%)")) then
+            local optionalKeys = pattern:match("(%(.*|.*%)).*");
+
+            for key in string.gmatch(optionalKeys, "([^(|)]+)") do
+                local concretePath = pattern:gsub("%(.*|.*%)", key);
+
+                if (not obj:IsStringNilOrWhiteSpace(concretePath) and path:match(concretePath)) then
+                    return true;
+                end
+            end
+        end
+    end
+
+    return false;
+end
+
+local function FindMatchingGroupValue(path, options)
+    if (options and options.groups) then
+        for _, groupOptions in pairs(options.groups) do
+            if (HasMatchingPathPattern(path, groupOptions.patterns)) then
+                if (groupOptions.value) then
+                    return groupOptions.value, groupOptions.onPre, groupOptions.onPost;
+                end
+            end
+        end
+    end
+end
+
 do
     local ignoreEnabledOption = { onExecuteAll = {ignore = { "^enabled$" } } };
 
@@ -307,20 +341,27 @@ do
     ---@param updateFunctions table A table containing update functions mapped to settings
     ---@param options table|nil An optional table containing options to control how update
     function BaseModule:RegisterUpdateFunctions(data, observer, updateFunctions, options)
-        local path = observer:GetPathAddress();
-
         if (not data.settings) then
             data.settings = observer:GetUntrackedTable(); -- disconnected from database
         end
 
-        if (not data.options) then
-            data.options = options;
-        elseif (options) then
-            tk.Tables:Fill(data.options, options);
+        if (obj:IsTable(options)) then
+            if (not data.options) then
+                data.options = options;
+
+            elseif (obj:IsTable(data.options)) then
+                tk.Tables:Fill(data.options, options);
+            end
         end
 
         if (not data.updateFunctions) then
             data.updateFunctions = updateFunctions;
+
+            if (data.settings.enabled) then
+                data.updateFunctions.enabled = function(value)
+                    self:SetEnabled(value);
+                end
+            end
         else
             -- append new update functions
             tk.Tables:Fill(data.updateFunctions, updateFunctions);
@@ -340,19 +381,34 @@ do
             data.options = ignoreEnabledOption;
         end
 
-        if (data.settings.enabled) then
-            data.updateFunctions.enabled = function(value)
-                self:SetEnabled(value);
+        local observerPath = observer:GetPathAddress();
+
+        -- updateFunctionPath is the located function (or table if no function found) path
+        -- originalPathOfValue is the original path LibMayronDB tried to find
+        db:RegisterUpdateFunctions(observerPath, updateFunctions, function(updateFunction, selectedValue, originalPathOfValue, originalValue)
+            local onPre, onPost;
+            local settingPath = originalPathOfValue:gsub(observerPath..".", tk.Strings.Empty);
+
+            if (obj:IsTable(updateFunction)) then
+                -- check if a group function can be used
+                updateFunction, onPre, onPost = FindMatchingGroupValue(originalPathOfValue, options);
+
+                if (obj:IsTable(updateFunction)) then
+                    local lastKey = originalPathOfValue:match("%.([^.]*)$");
+                    updateFunction = updateFunction[lastKey];
+                end
             end
-        end
 
-        db:RegisterUpdateFunctions(path, updateFunctions, function(updateFunction, value, valuePath)
-            -- update settings:
-            local settingPath = valuePath:gsub(path..".", tk.Strings.Empty);
-            db:SetPathValue(data.settings, settingPath, value);
+            if (obj:IsFunction(updateFunction)) then
+                -- update settings:
+                db:SetPathValue(data.settings, settingPath, selectedValue);
 
-            if (self:IsEnabled() or updateFunction == data.updateFunctions.enabled) then
-                ExecuteUpdateFunction(valuePath, updateFunction, value);
+                if (self:IsEnabled() or updateFunction == data.updateFunctions.enabled) then
+                    ExecuteUpdateFunction(originalPathOfValue, updateFunction, selectedValue, nil, onPre, onPost);
+                end
+            else
+                -- update settings:
+                db:SetPathValue(data.settings, settingPath, originalValue);
             end
         end);
     end
@@ -360,39 +416,6 @@ end
 
 do
     local MAX_BLOCKS = 20;
-
-    local function HasMatchingPathPattern(path, patterns)
-        for _, pattern in ipairs(patterns) do
-            if (path:find(pattern)) then
-                return true;
-
-            elseif (pattern:find("%(.*|.*%)")) then
-                local optionalKeys = pattern:match("(%(.*|.*%)).*");
-
-                for key in string.gmatch(optionalKeys, "([^(|)]+)") do
-                    local concretePath = pattern:gsub("%(.*|.*%)", key);
-
-                    if (not obj:IsStringNilOrWhiteSpace(concretePath) and path:match(concretePath)) then
-                        return true;
-                    end
-                end
-            end
-        end
-
-        return false;
-    end
-
-    local function FindMatchingGroupValue(path, options)
-        if (options and options.groups) then
-            for _, groupOptions in pairs(options.groups) do
-                if (HasMatchingPathPattern(path, groupOptions.patterns)) then
-                    if (groupOptions.value) then
-                        return groupOptions.value, groupOptions.onPre, groupOptions.onPost;
-                    end
-                end
-            end
-        end
-    end
 
     local function GetBlocked(options, path, executed)
         if (options.onExecuteAll.dependencies) then

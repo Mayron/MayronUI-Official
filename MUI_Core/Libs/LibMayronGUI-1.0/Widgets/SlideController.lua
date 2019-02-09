@@ -1,7 +1,9 @@
 -- luacheck: ignore MayronUI self 143 631
+
+---@type LibMayronGUI
 local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-if (not Lib) then return end
+if (not Lib) then return; end
 
 local WidgetsPackage = Lib.WidgetsPackage;
 local SlideController = WidgetsPackage:CreateClass("SlideController");

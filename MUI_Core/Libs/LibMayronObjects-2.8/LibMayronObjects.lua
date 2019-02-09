@@ -1,6 +1,8 @@
 -- luacheck: ignore self 143 631
 local addOnName = ...;
-local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 2.8); ---@type Objects
+
+---@type LibMayronObjects
+local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 2.8);
 
 if (not Lib) then
     return;
@@ -95,17 +97,11 @@ end
 
 do
     local wrappers = {};
-    local cleanTimerActive = false;
-    local delay = false;
+    local pendingClean;
 
     local function CleanWrappers()
-        if (delay) then
-            delay = false;
-            _G.C_Timer.After(10, CleanWrappers);
-            return;
-        end
-
         Lib:EmptyTable(wrappers);
+        pendingClean = nil;
         _G.collectgarbage("collect");
     end
 
@@ -128,16 +124,15 @@ do
             wrappers[tostring(wrapper)] = true;
         end
 
-        if (not cleanTimerActive) then
-            cleanTimerActive = true;
-            _G.C_Timer.After(30, CleanWrappers);
+        if (#wrappers >= 10 and not pendingClean) then
+            pendingClean = true;
+            _G.C_Timer.After(10, CleanWrappers);
         end
     end
 
     ---@return table @An empty table
     function Lib:PopTable(...)
         local wrapper;
-        delay = true;
 
         -- get wrapper before iterating
         if (#wrappers > 0) then

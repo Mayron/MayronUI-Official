@@ -39,6 +39,21 @@ local function SetBackButtonEnabled(backBtn, enabled)
     end
 end
 
+-- Preserve values before recycling childData table!
+local function TransferWidgetAttributes(widget, widgetTable)
+    widget.dbPath           = widgetTable.dbPath;
+    widget.name             = widgetTable.name;
+    widget.SetValue         = widgetTable.SetValue;
+    widget.requiresReload   = widgetTable.requiresReload;
+    widget.requiresRestart  = widgetTable.requiresRestart;
+    widget.module           = widgetTable.module;
+    widget.valueType        = widgetTable.valueType;
+    widget.min              = widgetTable.min;
+    widget.max              = widgetTable.max;
+
+    obj:PushTable(widgetTable);
+end
+
 namespace.MenuButton_OnClick = MenuButton_OnClick;
 
 -- C_ConfigModule -------------------
@@ -64,7 +79,7 @@ Engine:DefineParams("table");
 ---@return any @A value from the database located by the dbPath value inside widgetConfigTable.
 function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
     if (tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.dbPath)) then
-        return widgetConfigTable.GetValue and widgetConfigTable:GetValue();
+        return widgetConfigTable.GetValue and widgetConfigTable.GetValue(widgetConfigTable);
     end
 
     if (obj:IsFunction(widgetConfigTable.dbPath)) then
@@ -78,7 +93,7 @@ function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
     end
 
     if (widgetConfigTable.GetValue) then
-        value = widgetConfigTable:GetValue(value);
+        value = widgetConfigTable.GetValue(value, widgetConfigTable);
     end
 
     if (value == nil) then
@@ -97,7 +112,7 @@ Engine:DefineParams("table");
 ---Updates the database based on the dbPath config value, or using SetValue,
 ---@param widget table @The created widger frame.
 ---@param value any @The value to add to the database using the dbPath value attached to the widget table.
-function C_ConfigModule:SetDatabaseValue(_, widget, value)
+function C_ConfigModule:SetDatabaseValue(_, widget, newValue)
 
     -- SetValue is a custom function to manually set the datbase config value
     if (widget.SetValue) then
@@ -107,7 +122,7 @@ function C_ConfigModule:SetDatabaseValue(_, widget, value)
             oldValue = db:ParsePathValue(widget.dbPath);
         end
 
-        widget.SetValue(widget.dbPath, value, oldValue, widget);
+        widget.SetValue(widget.dbPath, newValue, oldValue, widget);
     else
         -- dbPath is required if not using a custom SetValue function!
         if (widget.name and widget.name.IsObjectType and widget.name:IsObjectType("FontString")) then
@@ -118,7 +133,7 @@ function C_ConfigModule:SetDatabaseValue(_, widget, value)
                 "Unknown config data is missing database path address element (dbPath).");
         end
 
-        db:SetPathValue(widget.dbPath, value);
+        db:SetPathValue(widget.dbPath, newValue);
     end
 
     if (widget.requiresReload) then
@@ -325,6 +340,7 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
 
     -- create the widget!
     local widget = namespace.WidgetHandlers[widgetType]:Run(parent, widgetConfigTable, currentValue);
+    TransferWidgetAttributes(widget, widgetConfigTable);
 
     if (widgetConfigTable.devMode) then
         -- highlight the widget in dev mode.

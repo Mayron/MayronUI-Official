@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 local addonName = ...;
 
----@class EventManager
+---@class LibMayronEvents
 local Lib = _G.LibStub:NewLibrary("LibMayronEvents", 1.1);
 
 if (not Lib) then

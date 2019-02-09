@@ -1,7 +1,8 @@
 -- luacheck: ignore MayronUI self 143 631
 local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-if (not Lib) then return end
+---@type LibMayronGUI
+if (not Lib) then return; end
 
 local LibObjectLua = _G.LibStub:GetLibrary("LibMayronObjects");
 local WidgetsPackage = Lib.WidgetsPackage;

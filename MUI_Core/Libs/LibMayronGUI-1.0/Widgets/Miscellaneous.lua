@@ -1,7 +1,9 @@
 -- luacheck: ignore MayronUI self 143 631
+
+---@type LibMayronGUI
 local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-if (not Lib) then return end
+if (not Lib) then return; end
 
 local Private = Lib.Private;
 local obj = Lib.Objects;
@@ -45,6 +47,12 @@ Lib.FONT_TYPES = {
     CombatLogFont                   = "CombatLogFont",
 };
 
+---@param style Style @The style Object to used to get the "DialogBoxBackground" texture for the dialog box background.
+---@param parent Frame @(optional) The parent frame to give the new frame if frame param is nil
+---@param alphaType string @(optional) the dialog box background type ("high", "medium", "low")
+---@param frame Frame @(optional) A frame to apply the dialog box background texture to (a new one is created if nil)
+---@param globalName string @(optional) A global name to give the new frame if frame param is nil
+---@return Frame @The new frame (or existing frame if the frame param was supplied).
 function Lib:CreateDialogBox(style, parent, alphaType, frame, globalName)
     frame = frame or _G.CreateFrame("Frame", globalName, parent or _G.UIParent);
     frame:EnableMouse(true);

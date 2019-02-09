@@ -1,8 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
+
+---@class LibMayronGUI
 local Lib = _G.LibStub:NewLibrary("LibMayronGUI", 1.0);
 
 if (not Lib) then
-    return
+    return;
 end
 
 local obj = _G.LibStub:GetLibrary("LibMayronObjects");
@@ -16,7 +18,6 @@ Private.DUMMY_FRAME = _G.CreateFrame("Frame");
 Private.DUMMY_FUNC = function() end;
 Private.FrameWrapper = obj:Import("Framework.System.FrameWrapper");
 Private.LinkedList = obj:Import("Framework.System.Collections.LinkedList");
------------------------------
 -----------------------------
 
 function Private.ToolTip_OnEnter(frame)
