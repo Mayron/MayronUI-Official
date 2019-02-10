@@ -371,18 +371,18 @@ do
     local callbacks = {};
 
     function tk:HookFunc(tbl, methodName, callback, ...)
-        if (type(tbl) ~= "table" and type(tbl) == "string") then
+        if (obj:IsString(tbl)) then
             local realGlobalMethodName = tbl;
             local realCallback = methodName;
             local firstArg = callback;
             local key = string.format("%s|%s", realGlobalMethodName, tostring(realCallback));
 
-            local callbackWrapper = function(...)
+            local callbackWrapper = function()
                 local callbackData = callbacks[key];
 
-                if (type(callbackData) == "table") then
+                if (obj:IsTable(callbackData)) then
                     -- pass to callback function all custom args and then the real hooksecurefunc args
-                    callbackData[1](select(2, _G.unpack(callbackData)), ...);
+                    callbackData[1](select(2, _G.unpack(callbackData)));
                 end
             end
 
@@ -391,12 +391,12 @@ do
         else
             local key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
 
-            local callbackWrapper = function(...)
+            local callbackWrapper = function()
                 local callbackData = callbacks[key];
 
-                if (type(callbackData) == "table") then
+                if (obj:IsTable(callbackData)) then
                     -- pass to callback function all custom args and then the real hooksecurefunc args
-                    callbackData[1](select(2, _G.unpack(callbackData)), ...);
+                    callbackData[1](select(2, _G.unpack(callbackData)));
                 end
             end
 
@@ -408,7 +408,7 @@ do
     function tk:UnhookFunc(tbl, methodName, callback)
         local key;
 
-        if (type(tbl) ~= "table" and type(tbl) == "string") then
+        if (obj:IsString(tbl)) then
             local realGlobalMethodName = tbl;
             local realCallback = methodName;
             key = string.format("%s|%s", realGlobalMethodName, tostring(realCallback));
@@ -416,7 +416,7 @@ do
             key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
         end
 
-        if (type(callbacks[key]) == "table") then
+        if (obj:IsTable(callbacks[key])) then
             obj:PushTable(callbacks[key]);
         end
 

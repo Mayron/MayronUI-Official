@@ -78,6 +78,25 @@ function C_ConfigModule:GetConfigTable()
                         db.profile.bottomui.gradients = nil;
                     end
                 };
+                {   type = "divider";
+                };
+                {   name              = "Movable Blizzard Frames";
+                    type              = "check";
+                    tooltip           = "Allows you to move Blizzard Frames";
+                    dbPath            = "global.movable.enabled";
+
+                    SetValue = function(dbPath, newValue)
+                        db:SetPathValue(dbPath, newValue);
+                        MayronUI:ImportModule("MovableFramesModule"):SetEnabled(newValue);
+                    end
+                };
+                {   name = "Reset Blizzard Frames";
+                    type = "button";
+                    tooltip = "Reset Blizzard frames back to their original position.";
+                    OnClick = function()
+                        MayronUI:ImportModule("MovableFramesModule"):ResetPositions();
+                    end
+                }
             }
         };
         {   name = L["Bottom UI Panels"];

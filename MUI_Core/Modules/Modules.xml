@@ -7,4 +7,5 @@
     <Script file="SideBar.lua"/>
     <Script file="AFKDisplay.lua"/>
     <Script file="OrderHallCommandBar.lua"/>
+    <Script file="MovableFrames.lua"/>
 </Ui>
