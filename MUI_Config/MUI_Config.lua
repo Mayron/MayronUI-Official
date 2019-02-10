@@ -90,11 +90,11 @@ function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
     local value = db:ParsePathValue(widgetConfigTable.dbPath);
 
     if (obj:IsTable(value) and value.GetUntrackedTable) then
-        value = value:GetTrackedTable();
+        value = value:GetUntrackedTable();
     end
 
     if (widgetConfigTable.GetValue) then
-        value = widgetConfigTable.GetValue(value, widgetConfigTable);
+        value = widgetConfigTable.GetValue(widgetConfigTable, value);
     end
 
     if (value == nil) then
@@ -207,7 +207,7 @@ end
 Engine:DefineParams("table");
 ---@param menuConfigTable table @A table containing many widget config tables used to render a full menu.
 function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
-    if (not (menuConfigTable and type(menuConfigTable.children) == "table")) then
+    if (not (menuConfigTable and obj:IsTable(menuConfigTable.children))) then
         return;
     end
 
@@ -301,8 +301,7 @@ Engine:DefineParams("table", "?Frame");
 function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
     parent = parent or data.selectedButton.menu:GetFrame();
 
-    tk:Assert(type(data.tempMenuConfigTable) == "table",
-        "Invalid temp data for '%s'", widgetConfigTable.name);
+    tk:Assert(obj:IsTable(data.tempMenuConfigTable), "Invalid temp data for '%s'", widgetConfigTable.name);
 
     if (not tk.Strings:IsNilOrWhiteSpace(data.tempMenuConfigTable.dbPath) and
         not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.appendDbPath)) then
@@ -310,9 +309,11 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
         -- append the widget config table's dbPath value onto it!
         widgetConfigTable.dbPath = tk.Strings:Join(".",
             data.tempMenuConfigTable.dbPath, widgetConfigTable.appendDbPath);
+
+        widgetConfigTable.appendDbPath = nil;
     end
 
-    if (type(data.tempMenuConfigTable.inherit) == "table") then
+    if (obj:IsTable(data.tempMenuConfigTable.inherit)) then
         -- Inherit all key and value pairs from a parent table by injecting them into childData
         local metaTable = obj:PopTable();
         metaTable.__index = data.tempMenuConfigTable.inherit;

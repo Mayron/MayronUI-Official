@@ -355,6 +355,10 @@ function WidgetHandlers.color(parent, widgetTable, value)
     container.color = container:CreateTexture(nil, "OVERLAY");
     container.color:SetSize(16, 16);
 
+    if (not (value.r and value.g and value.b)) then
+        value.r, value.g, value.b = _G.unpack(value);
+    end
+
     container.color:SetColorTexture(
         value and value.r or 0,
         value and value.g or 0,
@@ -363,7 +367,7 @@ function WidgetHandlers.color(parent, widgetTable, value)
 
     local loaded = false;
     local c = obj:PopTable();
-    tk.Tables:Fill(c, value:GetUntrackedTable());
+    tk.Tables:Fill(c, value);
 
     container.func = function(restore)
         if (restore) then

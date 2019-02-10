@@ -101,13 +101,13 @@ function C_DataTextModule:GetConfigTable()
 
                             return options;
                         end,
-                        GetValue = function(_, svName)
-                            if (svName == nil) then
-                                svName = "disabled";
+                        GetValue = function(_, value)
+                            if (value == nil) then
+                                value = "disabled";
                             end
 
                             -- return label
-                            return namespace.dataTextLabels[svName];
+                            return namespace.dataTextLabels[value];
                         end,
                         SetValue = function() -- TODO: Maybe switch old value with new value?
                             -- TODO: Passes in nil!
@@ -133,21 +133,21 @@ function C_DataTextModule:GetConfigTable()
                 children = {
                     {   name = L["Show FPS"],
                         type = "check",
-                        dbPath = "showFps",
+                        appendDbPath = "showFps",
                     },
                     {   type = "divider"
                     },
                     {   name = L["Show Server Latency (ms)"],
                         type = "check",
                         width = 230,
-                        dbPath = "showServerLatency",
+                        appendDbPath = "showServerLatency",
                     },
                     {   type = "divider"
                     },
                     {   name = L["Show Home Latency (ms)"],
                         type = "check",
                         width = 230,
-                        dbPath = "showHomeLatency",
+                        appendDbPath = "showHomeLatency",
                     },
                 }
             },
