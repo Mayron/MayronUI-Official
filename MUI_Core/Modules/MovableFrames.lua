@@ -126,7 +126,7 @@ function C_MovableFramesModule:OnInitialize(data)
 end
 
 do
-	local function UIParenl_OnShownChanged(self, settings, frames)
+	local function UIParent_OnShownChanged(self, settings, frames)
 		if (not settings.enabled) then
 			return;
 		end
@@ -139,8 +139,8 @@ do
 	end
 
 	function C_MovableFramesModule:OnEnable(data)
-		tk:HookFunc("ShowUIPanel", UIParenl_OnShownChanged, self, data.settings, data.frames);
-		tk:HookFunc("HideUIPanel", UIParenl_OnShownChanged, self, data.settings, data.frames);
+		tk:HookFunc("ShowUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
+		tk:HookFunc("HideUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
 
 		if (not data.handler) then
 			data.handler = em:CreateEventHandler("ADDON_LOADED", function(_, _, addOnName)
@@ -174,16 +174,16 @@ do
 	end
 
 	function C_MovableFramesModule:OnDisable()
-		tk:UnhookFunc("ShowUIPanel", UIParenl_OnShownChanged);
-		tk:UnhookFunc("HideUIPanel", UIParenl_OnShownChanged);
+		tk:UnhookFunc("ShowUIPanel", UIParent_OnShownChanged);
+		tk:UnhookFunc("HideUIPanel", UIParent_OnShownChanged);
 	end
 end
 
 Engine:DefineParams("Frame");
 function C_MovableFramesModule:RepositionFrame(data, frame)
-	-- if (not InCombatLockdown()) then
-	-- 	return;
-	-- end
+	if (InCombatLockdown()) then
+		return; -- otherwise taint issue!
+	end
 
 	local name = frame:GetName();
 
@@ -227,7 +227,7 @@ do
 			end
 		end
 
-		if (obj:IsFunction(self.oldOnDragStop)) then
+		if (obj:IsFunction(self.oldOnDragStop) and not InCombatLockdown()) then
 			self.oldOnDragStop(self, ...);
 		end
 	end
@@ -242,7 +242,7 @@ do
 			self:StartMoving();
 		end
 
-		if (obj:IsFunction(self.oldOnDragStop)) then
+		if (obj:IsFunction(self.oldOnDragStop) and not InCombatLockdown()) then
 			self.oldOnDragStop(self, ...);
 		end
 	end
