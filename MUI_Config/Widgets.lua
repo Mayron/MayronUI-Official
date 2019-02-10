@@ -35,7 +35,7 @@ local function GetValue(configTable, attributeName, ...)
 
     local funcName = tk.Strings:Concat("Get", (attributeName:gsub("^%l", string.upper)));
 
-    if (type(configTable[funcName]) == "function") then
+    if (obj:IsFunction(configTable[funcName])) then
         return configTable[funcName](configTable, ...);
     end
 
@@ -46,9 +46,7 @@ end
 --------------
 -- Sub Menu
 --------------
-WidgetHandlers.submenu = {};
-
-function WidgetHandlers.submenu:Run(parent, submenuConfigTable)
+function WidgetHandlers.submenu(parent, submenuConfigTable)
     local btn = tk:PopFrame("Button", parent);
     btn:SetSize(250, 60);
 
@@ -80,8 +78,6 @@ end
 ---------------------
 -- Loop (non-widget)
 ---------------------
-WidgetHandlers.loop = {};
-
 -- supported textield config attributes:
 -- loops - a number for the total number of loops to call the function
 -- args - an index table (no keys) of values to pass
@@ -91,7 +87,7 @@ WidgetHandlers.loop = {};
 -- the function should return 1 widget per execution
 
 -- should return a table of children created during the loop
-function WidgetHandlers.loop:Run(_, loopConfigTable)
+function WidgetHandlers.loop(_, loopConfigTable)
     local children = obj:PopTable();
 
     if (loopConfigTable.loops) then
@@ -115,10 +111,7 @@ end
 ------------------
 -- Check Button
 ------------------
-WidgetHandlers.check = {};
-
-function WidgetHandlers.check:Run(parent, widgetTable, value)
-
+function WidgetHandlers.check(parent, widgetTable, value)
     local cbContainer = gui:CreateCheckButton(
         parent, widgetTable.name,
         widgetTable.type == "radio",
@@ -156,15 +149,13 @@ end
 ----------------
 -- Title Frame
 ----------------
-WidgetHandlers.title = {};
-
 -- supported title config attributes:
 -- name - the container name (a visible fontstring that shows in the GUI)
 -- paddingTop - space between top of background and top of name
 -- paddingBottom - space between bottom of background and bottom of name
 -- width - overrides using a full width (100% width of the container) with a fixed width value
 
-function WidgetHandlers.title:Run(parent, widgetTable)
+function WidgetHandlers.title(parent, widgetTable)
     local container = tk:PopFrame("Frame", parent);
     container.text = container:CreateFontString(nil, "OVERLAY", "MUI_FontLarge");
     tk:SetFontSize(container.text, 14);
@@ -197,9 +188,7 @@ end
 --------------
 -- Slider
 --------------
-WidgetHandlers.slider = {};
-
-function WidgetHandlers.slider:Run(parent, widgetTable, value)
+function WidgetHandlers.slider(parent, widgetTable, value)
     local slider = tk.CreateFrame("Slider", nil, parent, "OptionsSliderTemplate");
 
     slider.tooltipText = widgetTable.tooltip;
@@ -235,9 +224,7 @@ end
 --------------
 -- Divider
 --------------
-WidgetHandlers.divider = {};
-
-function WidgetHandlers.divider:Run(parent, widgetTable)
+function WidgetHandlers.divider(parent, widgetTable)
     local divider = tk:PopFrame("Frame", parent);
     divider:SetHeight(widgetTable.height or 1);
 
@@ -253,9 +240,7 @@ local function DropDown_OnSelectedValue(self, value)
     configModule:SetDatabaseValue(self:GetParent(), value);
 end
 
-WidgetHandlers.dropdown = {};
-
-function WidgetHandlers.dropdown:Run(parent, widgetTable, value)
+function WidgetHandlers.dropdown(parent, widgetTable, value)
     local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
     local options = GetValue(widgetTable, "options");
 
@@ -283,9 +268,7 @@ end
 --------------
 -- Button
 --------------
-WidgetHandlers.button = {};
-
-function WidgetHandlers.button:Run(parent, widgetTable)
+function WidgetHandlers.button(parent, widgetTable)
     local button = gui:CreateButton(tk.Constants.AddOnStyle, parent,
         widgetTable.name, nil, widgetTable.tooltip);
 
@@ -307,9 +290,7 @@ end
 -----------------
 -- Frame
 -----------------
-WidgetHandlers.frame = {};
-
-function WidgetHandlers.frame:Run(parent, widgetTable)
+function WidgetHandlers.frame(parent, widgetTable)
     local frame;
 
     if (widgetTable.GetFrame) then
@@ -336,8 +317,6 @@ end
 -----------------
 -- Color Picker
 -----------------
-WidgetHandlers.color = {};
-
 local function ShowColorPicker(r, g, b, a, changedCallback)
     _G.ColorPickerFrame:SetColorRGB(r, g, b);
     _G.ColorPickerFrame.hasOpacity = (a ~= nil);
@@ -358,7 +337,7 @@ local function ColorWidget_OnClick(self)
     ShowColorPicker(r, g, b, (a and (1 - a)), self.func);
 end
 
-function WidgetHandlers.color:Run(parent, widgetTable, value)
+function WidgetHandlers.color(parent, widgetTable, value)
     local container = tk:PopFrame("Button", parent);
 
     container.name = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
@@ -440,7 +419,7 @@ local function TextField_OnTextChanged(self, value)
 
     if (self.valueType == "number") then
 
-        if (type(value) ~= "number") then
+        if (not obj:IsNumber(value)) then
             isValue = false;
         else
             if (self.min and value < self.min) then
@@ -453,14 +432,12 @@ local function TextField_OnTextChanged(self, value)
     end
 
     if (not isValue) then
-        self:ApplyPreviousText(); -- TODO: This is setting ""
+        self:ApplyPreviousText();
     else
         self:SetText(value);
         configModule:SetDatabaseValue(self:GetFrame(), value);
     end
 end
-
-WidgetHandlers.textfield = {};
 
 -- supported textield config attributes:
 -- tooltip - the fontstring text to display
@@ -470,7 +447,7 @@ WidgetHandlers.textfield = {};
 -- min - minimum value allowed
 -- max - maximum value allowed
 
-function WidgetHandlers.textfield:Run(parent, widgetTable, value)
+function WidgetHandlers.textfield(parent, widgetTable, value)
     local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetTable.tooltip, parent);
     textField:SetText(value or "");
 
@@ -483,8 +460,6 @@ end
 ----------------
 -- Font String
 ----------------
-WidgetHandlers.fontstring = {};
-
 local function FontString_OnSizeChanged(self)
     if (self.runningScript) then
         return;
@@ -497,7 +472,6 @@ local function FontString_OnSizeChanged(self)
         self:SetHeight(expectedHeight);
     end
 
-    -- TODO: The parent should be in Frame_OnSizeChanged
     local parent = self:GetParent();
 
     if (parent.originalHeight and parent.originalHeight < expectedHeight and expectedHeight ~= parent:GetHeight()) then
@@ -515,7 +489,7 @@ end
 -- width - overrides the default width (and ignores the fixedWidth attribute) with a specific width
 -- fixedWidth - overrides the default container width with the natural width of the fontstring
 
-function WidgetHandlers.fontstring:Run(parent, widgetTable)
+function WidgetHandlers.fontstring(parent, widgetTable)
     local container = tk:PopFrame("Frame", parent);
 
     container.content = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");

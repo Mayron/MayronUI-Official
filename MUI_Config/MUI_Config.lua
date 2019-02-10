@@ -217,8 +217,7 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
 
         if (widgetConfigTable.type == "loop") then
             -- run the loop to gather widget children
-            local loopResults = namespace.WidgetHandlers.loop:Run(
-                data.selectedButton.menu:GetFrame(), widgetConfigTable);
+            local loopResults = namespace.WidgetHandlers:loop(data.selectedButton.menu:GetFrame(), widgetConfigTable);
 
             for _, result in ipairs(loopResults) do
 
@@ -340,8 +339,11 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
     local currentValue = self:GetDatabaseValue(widgetConfigTable);
 
     -- create the widget!
-    local widget = namespace.WidgetHandlers[widgetType]:Run(parent, widgetConfigTable, currentValue);
-    TransferWidgetAttributes(widget, widgetConfigTable);
+    local widget = namespace.WidgetHandlers[widgetType](parent, widgetConfigTable, currentValue);
+
+    if (widgetType ~= "submenu") then
+        TransferWidgetAttributes(widget, widgetConfigTable);
+    end
 
     if (widgetConfigTable.devMode) then
         -- highlight the widget in dev mode.

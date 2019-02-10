@@ -48,6 +48,7 @@ function C_ConfigModule:GetConfigTable()
                     GetValue = function()
                         return tonumber(_G.GetCVar("ScriptErrors")) == 1;
                     end;
+
                     SetValue = function(_, value)
                         if (value) then
                             _G.SetCVar("ScriptErrors", "1");
