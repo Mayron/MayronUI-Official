@@ -1,30 +1,40 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
-local tk, db, _, gui, _, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local C_TimerBarsModule = namespace.C_TimerBarsModule;
 
--- local Map = {};
--- Map.position_textfields = {};
+-- contains field name / table pairs where each table holds the 5 config textfield widgets
+-- this is used to update the config menu view after moving the fields (by unlocking them)
+local position_TextFields = {};
 
 local function CreateNewFieldButton_OnClick(editBox)
     local text = editBox:GetText();
     local tbl = db.profile.timerBars.fieldNames:GetUntrackedTable();
 
     db:SetPathValue(db.profile, "timerBars.fieldNames["..(#tbl + 1).."]", text);
+    db:SetPathValue(db.profile, "timerBars."..text, obj:PopTable());
+
     tk:Print(tk.string.format(L["TimerBar field '%s' created."], text));
+    MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
 end
 
 local function RemoveFieldButton_OnClick(editBox)
     local text = editBox:GetText();
     local tbl = db.profile.timerBars.fieldNames:GetUntrackedTable();
-    local id = tk:GetIndex(tbl, text);
+    local id = tk.Tables:GetIndex(tbl, text);
 
     if (id) then
         db:SetPathValue(db.profile, "timerBars.fieldNames["..id.."]", nil);
-        MayronUI:ImportModule("Config"):ShowReloadMessage();
+        db:SetPathValue(db.profile, "timerBars."..text, nil);
+        MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
     else
         tk:Print(tk.string.format(L["TimerBar field '%s' does not exist."], text));
     end
+end
+
+local function TimerFieldPosition_OnLoad(configTable, container)
+    local positionIndex = configTable.dbPath:match("%[(%d)%]$");
+    position_TextFields[configTable.fieldName][tonumber(positionIndex)] = container.widget;
 end
 
 function C_TimerBarsModule:GetConfigTable()
@@ -77,13 +87,15 @@ function C_TimerBarsModule:GetConfigTable()
                 {   name = L["Create New Field"];
                     type = "button";
                     OnClick = function()
-                        tk:ShowInputPopup("Create New TimerBar Field", nil, "New Field Name", nil, nil, CreateNewFieldButton_OnClick);
+                        tk:ShowInputPopup("Create New TimerBar Field", "(requires reloading the UI to apply change)",
+                            "New Field Name", nil, nil, CreateNewFieldButton_OnClick);
                     end
                 };
                 {   name = L["Remove Field"];
                     type = "button";
                     OnClick = function()
-                        tk:ShowInputPopup("Remove TimerBar Field", nil, "Field Name", nil, nil, RemoveFieldButton_OnClick);
+                        tk:ShowInputPopup("Remove TimerBar Field", "(requires reloading the UI to apply change)",
+                            "Field Name", nil, nil, RemoveFieldButton_OnClick);
                     end
                 };
                 {   name = "Colors";
@@ -144,9 +156,9 @@ function C_TimerBarsModule:GetConfigTable()
                         return {
                             name = name;
                             type = "submenu";
-                            -- OnLoad = function()
-                            --     Map.position_textfields[name] = {};
-                            -- end;
+                            OnLoad = function()
+                                position_TextFields[name] = obj:PopTable();
+                            end;
                             module = "TimerBarsModule";
                             children = {
                                 {   name = L["Enable Field"];
@@ -155,33 +167,40 @@ function C_TimerBarsModule:GetConfigTable()
                                 };
                                 {   name = L["Unlock"];
                                     type = "button";
-                                    -- OnClick = function(widget)
-                                        -- widget.toggle = not widget.toggle;
-                                        -- local field = tk._G["MUI_TimerBar"..name.."Field"];
-                                        -- tk:MakeMovable(field; nil; widget.toggle);
-                                        -- if (widget.toggle) then
-                                        --     if (not field.move_indicator) then
-                                        --         local r; g; b = tk:GetThemeColor();
-                                        --         field.move_indicator = tk:SetBackground(field; r; g; b);
-                                        --         field.move_label = field:CreateFontString(nil; "BACKGROUND"; "GameFontHighlight");
-                                        --         field.move_label:SetText(tk.string.format(L["<%s Field>"]; name));
-                                        --         field.move_label:SetPoint("CENTER");
-                                        --     end
-                                        --     field.move_indicator:SetAlpha(0.4);
-                                        --     field.move_label:SetAlpha(0.8);
-                                        --     widget:SetText(L["Lock"]);
-                                        -- elseif (field.move_indicator) then
-                                        --     field.move_indicator:SetAlpha(0);
-                                        --     field.move_label:SetAlpha(0);
-                                        --     widget:SetText("Unlock");
-                                        --     local positions = tk:SavePosition(field; "profile.timerBars."..name..".position");
-                                        --     if (positions) then
-                                        --         for key; textfield in tk.pairs(Map.position_textfields[name]) do
-                                        --             textfield:SetText(positions[key]);
-                                        --         end
-                                        --     end
-                                        -- end
-                                    -- end
+                                    OnClick = function(button)
+                                        button.toggle = not button.toggle;
+                                        local field = _G["MUI_"..name.."TimerField"];
+
+                                        tk:MakeMovable(field, nil, button.toggle);
+
+                                        if (button.toggle) then
+                                            if (not field.moveIndicator) then
+                                                local r, g, b = tk:GetThemeColor();
+                                                field.moveIndicator = tk:SetBackground(field, r, g, b);
+                                                field.moveLabel = field:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
+                                                field.moveLabel:SetText(tk.string.format(L["<%s Field>"], name));
+                                                field.moveLabel:SetPoint("CENTER");
+                                            end
+
+                                            field.moveIndicator:SetAlpha(0.4);
+                                            field.moveLabel:SetAlpha(0.8);
+                                            button:SetText(L["Lock"]);
+
+                                        elseif (field.moveIndicator) then
+                                            field.moveIndicator:SetAlpha(0);
+                                            field.moveLabel:SetAlpha(0);
+                                            button:SetText("Unlock");
+
+                                            local positions = tk:SavePosition(field, "profile.timerBars."..name..".position");
+
+                                            if (positions) then
+                                                -- update the config menu view
+                                                for id, textField in ipairs(position_TextFields[name]) do
+                                                    textField:SetText(positions[id]);
+                                                end
+                                            end
+                                        end
+                                    end
                                 };
                                 {   type = "divider";
                                 };
@@ -207,7 +226,7 @@ function C_TimerBarsModule:GetConfigTable()
                                 };
                                 {   name = L["Manage Tracking Debuffs"];
                                     type = "button";
-                                    data = {name; "debuffs"};
+                                    data = { name, "debuffs" };
                                     width = 220;
                                     -- OnClick = CreateListFrame;
                                 };
@@ -221,23 +240,11 @@ function C_TimerBarsModule:GetConfigTable()
                                     dbPath = "profile.timerBars."..name..".direction";
                                     type = "radio";
                                     group = 1;
-                                    -- GetValue = function(_; current_value)
-                                    --     return current_value and current_value:find("UP");
-                                    -- end;
-                                    -- SetValue = function(dbPath; _; value)
-                                    --     db:SetPathValue(dbPath; value and "UP" or "DOWN");
-                                    -- end;
                                 };
                                 {   name = L["Down"];
                                     dbPath = "profile.timerBars."..name..".direction";
                                     type = "radio";
                                     group = 1;
-                                    -- GetValue = function(_; current_value)
-                                    --     return current_value and current_value:find("DOWN");
-                                    -- end;
-                                    -- SetValue = function(dbPath; _; value)
-                                    --     db:SetPathValue(dbPath; value and "DOWN" or "UP");
-                                    -- end;
                                 };
                                 {   type = "divider"
                                 };
@@ -278,104 +285,19 @@ function C_TimerBarsModule:GetConfigTable()
                                     subtype = "header";
                                     content = L["Manual Positioning"]
                                 };
-                                {   name = L["Point"];
-                                    type = "textfield";
-                                    valueType = "string";
-                                    dbPath = "profile.timerBars."..name..".position[1]";
-
-                                    -- OnLoad = function(_; container)
-                                    --     Map.position_textfields[name].point = container.widget.field;
-                                    -- end;
-
-                                    -- GetValue = function()
-                                    --     local value = db:ParsePathValue("profile.timerBars."..name..".position");
-                                    --     if (value) then
-                                    --         return value.point;
-                                    --     else
-                                    --         local field = tk._G["MUI_TimerBar"..name.."Field"];
-                                    --         if (not field) then return "disabled"; end
-                                    --         return (tk.select(1; field:GetPoint()));
-                                    --     end
-                                    -- end
-                                };
-                                {   name = L["Relative Frame"];
-                                    type = "textfield";
-                                    valueType = "string";
-                                    dbPath = "profile.timerBars."..name..".position[2]";
-                                    -- OnLoad = function(_; container)
-                                    --     Map.position_textfields[name].relativeFrame = container.widget.field;
-                                    -- end;
-                                    -- GetValue = function()
-                                    --     local value = db:ParsePathValue("profile.timerBars."..name..".position");
-                                    --     if (value) then
-                                    --         return value.relativeFrame;
-                                    --     else
-                                    --         local field = tk._G["MUI_TimerBar"..name.."Field"];
-                                    --         if (not field) then return "disabled"; end
-                                    --         return (tk.select(2; field:GetPoint())):GetName();
-                                    --     end
-                                    -- end
-                                };
-                                {   name = L["Relative Point"];
-                                    type = "textfield";
-                                    valueType = "string";
-                                    dbPath = "profile.timerBars."..name..".position[3]";
-
-                                    -- OnLoad = function(_; container)
-                                    --     Map.position_textfields[name].relativePoint = container.widget.field;
-                                    -- end;
-
-                                    -- GetValue = function()
-                                    --     local value = db:ParsePathValue("profile.timerBars."..name..".position");
-                                    --     if (value) then
-                                    --         return value.relativePoint;
-                                    --     else
-                                    --         local field = tk._G["MUI_TimerBar"..name.."Field"];
-                                    --         if (not field) then return "disabled"; end
-                                    --         return (tk.select(3; field:GetPoint()));
-                                    --     end
-                                    -- end
-                                };
-                                {   name = L["X-Offset"];
-                                    dbPath = "profile.timerBars."..name..".position[4]";
-
-                                    -- OnLoad = function(_; container)
-                                    --     Map.position_textfields[name].x = container.widget.field;
-                                    -- end;
-
-                                    type = "textfield";
-                                    valueType = "number";
-
-                                    -- GetValue = function()
-                                    --     local value = db:ParsePathValue("profile.timerBars."..name..".position");
-                                    --     if (value) then
-                                    --         return value.x;
-                                    --     else
-                                    --         local field = tk._G["MUI_TimerBar"..name.."Field"];
-                                    --         if (not field) then return "disabled"; end
-                                    --         return (tk.select(4; field:GetPoint()));
-                                    --     end
-                                    -- end
-                                };
-                                {   name = L["Y-Offset"];
-                                    dbPath = "profile.timerBars."..name..".position[5]";
-
-                                    -- OnLoad = function(_; container)
-                                    --     Map.position_textfields[name].y = container.widget.field;
-                                    -- end;
-
-                                    type = "textfield";
-                                    valueType = "number";
-                                    -- GetValue = function()
-                                    --     local value = db:ParsePathValue("profile.timerBars."..name..".position");
-                                    --     if (value) then
-                                    --         return value.y;
-                                    --     else
-                                    --         local field = tk._G["MUI_TimerBar"..name.."Field"];
-                                    --         if (not field) then return "disabled"; end
-                                    --         return (tk.select(5; field:GetPoint()));
-                                    --     end
-                                    -- end
+                                {
+                                    type = "loop";
+                                    loops = 5;
+                                    func = function(index)
+                                        return {
+                                            name = L["Point"];
+                                            type = "textfield";
+                                            valueType = "string";
+                                            dbPath = string.format("profile.timerBars.%s.position[%d]", name, index);
+                                            fieldName = name;
+                                            OnLoad = TimerFieldPosition_OnLoad;
+                                        };
+                                    end
                                 };
                                 {   name = L["Text Options"];
                                     type = "title";

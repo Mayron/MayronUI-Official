@@ -123,7 +123,7 @@ function tk:MakeMovable(frame, dragger, movable)
     end);
 end
 
-function tk:SavePosition(frame, db_path, override)
+function tk:SavePosition(frame, dbPath, override)
     local point, relativeFrame, relativePoint, x, y = frame:GetPoint();
 
     if (not relativeFrame) then
@@ -131,9 +131,9 @@ function tk:SavePosition(frame, db_path, override)
     else
         relativeFrame = relativeFrame:GetName();
 
-        if (not relativeFrame or relativeFrame and relativeFrame ~= "UIParent") then
+        if (not relativeFrame or (relativeFrame and relativeFrame ~= "UIParent")) then
             if (not override) then
-                return
+                return;
             end
 
             x, y = frame:GetCenter();
@@ -143,14 +143,8 @@ function tk:SavePosition(frame, db_path, override)
         end
     end
 
-    local positions = {
-        point = point,
-        relativeFrame = relativeFrame,
-        relativePoint = relativePoint,
-        x = x, y = y
-    };
-
-    namespace.Database:SetPathValue(db_path, positions);
+    local positions = obj:PopTable(point, relativeFrame, relativePoint, x , y);
+    namespace.components.Database:SetPathValue(dbPath, positions);
     return positions;
 end
 
@@ -281,7 +275,7 @@ function tk:UpdateThemeColor(value)
     colorValues.hex = color:GenerateHexColor();
 
     -- update database
-    namespace.Database.profile.theme.color = colorValues;
+    namespace.components.Database.profile.theme.color = colorValues;
 
     -- update Constant Style Object
     tk.Constants.AddOnStyle:SetColor(color.r, color.g, color.b);

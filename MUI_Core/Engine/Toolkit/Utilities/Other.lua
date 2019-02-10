@@ -223,25 +223,29 @@ do
     local POPUP_GLOBAL_NAME = "MUI_TOOLKIT_POPUP";
 
     local function EditBox_OnEscapePressed(self)
-        local onCancel = self.popup.data.OnCancel;
+        local popup = self.popup or self;
+        local editBox = popup.editBox;
+        local onCancel = popup.data.OnCancel;
 
         if (onCancel) then
-            onCancel(self);
+            onCancel(editBox, editBox:GetText());
         end
 
         _G.StaticPopup_Hide(POPUP_GLOBAL_NAME);
     end
 
     local function EditBox_OnEnterPressed(self)
-        local validator = self.popup.data.OnValidate;
-        local onAccept = self.popup.data.OnAccept;
+        local popup = self.popup or self;
+        local editBox = popup.editBox;
+        local validator = popup.data.OnValidate;
+        local onAccept = popup.data.OnAccept;
 
-        if (validator and not validator(self, self:GetText())) then
+        if (validator and not validator(editBox, editBox:GetText())) then
             return;
         end
 
         if (onAccept) then
-            onAccept(self);
+            onAccept(editBox, editBox:GetText());
         end
 
         _G.StaticPopup_Hide(POPUP_GLOBAL_NAME);
@@ -273,7 +277,7 @@ do
 
         self.editBox.popup = self; -- refer back to popup in scripts below
 
-        if (self.data.editBoxText) then
+        if (self.data and self.data.editBoxText) then
             self.editBox:SetText(self.data.editBoxText);
             self.editBox:HighlightText();
         end
@@ -299,7 +303,7 @@ do
                 maxLetters = 1024;
                 OnShow = PopUp_OnShow;
                 closeButton = true;
-                data = {};
+                data = obj:PopTable();
             };
 
             _G.StaticPopupDialogs[POPUP_GLOBAL_NAME] = popup;
@@ -317,6 +321,8 @@ do
         popup.hasEditBox = false;
         popup.button1 = confirmText or "Confirm";
         popup.button2 = cancelText or "Cancel";
+        popup.OnAccept = onConfirm;
+        popup.OnCancel = onCancel;
 
         if (isWarning) then
             popup.showAlert = true;
@@ -326,7 +332,7 @@ do
         popup.data.OnCancel = onCancel;
         popup.data.OnValidate = nil;
 
-        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+        _G.StaticPopup_Show(POPUP_GLOBAL_NAME);
     end
 
     function tk:ShowMessagePopup(message, subMessage, okayText, onOkay, isWarning)
@@ -335,16 +341,14 @@ do
         popup.button1 = okayText or "Okay";
         popup.button2 = nil;
         popup.hasEditBox = false;
+        popup.OnAccept = onOkay;
+        popup.OnCancel = nil;
 
         if (isWarning) then
             popup.showAlert = true;
         end
 
-        popup.data.OnAccept = onOkay;
-        popup.data.OnCancel = nil;
-        popup.data.OnValidate = nil;
-
-        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+        _G.StaticPopup_Show(POPUP_GLOBAL_NAME);
     end
 
     function tk:ShowInputPopup(message, subMessage, editBoxText, onValidate, confirmText, onConfirm, cancelText, onCancel, isWarning)
@@ -353,6 +357,8 @@ do
         popup.button1 = confirmText or "Confirm";
         popup.button2 = cancelText or "Cancel";
         popup.hasEditBox = true;
+        popup.OnAccept = EditBox_OnEnterPressed;
+        popup.OnCancel = EditBox_OnEscapePressed;
 
         if (isWarning) then
             popup.showAlert = true;

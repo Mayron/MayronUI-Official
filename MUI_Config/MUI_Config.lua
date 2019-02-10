@@ -342,10 +342,6 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
     -- create the widget!
     local widget = namespace.WidgetHandlers[widgetType](parent, widgetConfigTable, currentValue);
 
-    if (widgetType ~= "submenu") then
-        TransferWidgetAttributes(widget, widgetConfigTable);
-    end
-
     if (widgetConfigTable.devMode) then
         -- highlight the widget in dev mode.
         tk:SetBackground(widget, math.random(), math.random(), math.random());
@@ -365,8 +361,12 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
 
     -- setup complete, so run the OnLoad callback if one exists
     if (widgetConfigTable.OnLoad) then
-        widgetConfigTable.OnLoad(widgetConfigTable, widget);
+        widgetConfigTable.OnLoad(widgetConfigTable, widget, currentValue);
         widgetConfigTable.OnLoad = nil;
+    end
+
+    if (widgetType ~= "submenu") then
+        TransferWidgetAttributes(widget, widgetConfigTable);
     end
 
     return widget;

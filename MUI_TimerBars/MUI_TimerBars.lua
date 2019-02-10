@@ -94,6 +94,7 @@ db:AddToDefaults("profile.timerBars", {
         enabled   = true;
         direction = "UP"; -- or "DOWN"
         unitID    = "player";
+        position = { "CENTER", "UIParent", "CENTER", 0, 0 },
 
         bar = {
             width   = 213;

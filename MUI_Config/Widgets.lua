@@ -11,7 +11,7 @@ local function CreateElementContainerFrame(widget, childData, parent)
     local container = tk:PopFrame("Frame", parent);
 
     container:SetSize(childData.width or widget:GetWidth(), childData.height or widget:GetHeight());
-    container.widget = widget; -- Is this needed?
+    container.widget = widget; -- this is needed to access the widget from the container which is passed to some config functions (i.e. OnLoad)
     widget:SetParent(container);
 
     if (childData.name and tk:ValueIsEither(childData.type, "slider", "dropdown", "textfield")) then
