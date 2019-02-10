@@ -91,7 +91,8 @@ function C_ConfigModule:GetConfigTable()
                         MayronUI:ImportModule("MovableFramesModule"):SetEnabled(newValue);
                     end
                 };
-                {   name = "Reset Blizzard Frames";
+                {   name = "Reset Blizzard Frame Positions";
+                    width = 220;
                     type = "button";
                     tooltip = "Reset Blizzard frames back to their original position.";
                     OnClick = function()

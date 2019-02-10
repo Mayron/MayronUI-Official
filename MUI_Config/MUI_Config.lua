@@ -217,7 +217,7 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
 
         if (widgetConfigTable.type == "loop") then
             -- run the loop to gather widget children
-            local loopResults = namespace.WidgetHandlers:loop(data.selectedButton.menu:GetFrame(), widgetConfigTable);
+            local loopResults = namespace.WidgetHandlers.loop(data.selectedButton.menu:GetFrame(), widgetConfigTable);
 
             for _, result in ipairs(loopResults) do
 
