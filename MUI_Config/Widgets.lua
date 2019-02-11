@@ -1,7 +1,10 @@
 --luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
+local _G, MayronUI = _G, _G.MayronUI;
 local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 local configModule = MayronUI:ImportModule("ConfigModule"); ---@type ConfigModule
+
+local unpack, string, pairs, tonumber = _G.unpack, _G.string, _G.pairs, _G.tonumber;
 
 local WidgetHandlers = {};
 namespace.WidgetHandlers = WidgetHandlers;
@@ -268,23 +271,32 @@ end
 --------------
 -- Button
 --------------
-function WidgetHandlers.button(parent, widgetTable)
-    local button = gui:CreateButton(tk.Constants.AddOnStyle, parent,
-        widgetTable.name, nil, widgetTable.tooltip);
 
-    if (widgetTable.width) then
-        button:SetWidth(widgetTable.width);
+do
+    local function Button_OnClick(self)
+        if (obj:IsTable(self.data)) then
+            self.OnClick(self, unpack(self.data));
+        else
+            self.OnClick(self);
+        end
     end
 
-    if (widgetTable.height) then
-        button:SetHeight(widgetTable.height);
+    function WidgetHandlers.button(parent, widgetTable)
+        local button = gui:CreateButton(tk.Constants.AddOnStyle, parent,
+            widgetTable.name, nil, widgetTable.tooltip);
+
+        if (widgetTable.width) then
+            button:SetWidth(widgetTable.width);
+        end
+
+        if (widgetTable.height) then
+            button:SetHeight(widgetTable.height);
+        end
+
+        button:SetScript("OnClick", Button_OnClick);
+
+        return button;
     end
-
-    button:SetScript("OnClick", function(self)
-        self.OnClick(self);
-    end);
-
-    return button;
 end
 
 -----------------

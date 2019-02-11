@@ -7,3 +7,4 @@ MUI_Config.lua
 MUI_Config.config.lua
 Widgets.lua
 ProfileManager.lua
+Objects\ListFrame.lua

@@ -1,11 +1,17 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
+local _G, MayronUI = _G, _G.MayronUI;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local C_TimerBarsModule = namespace.C_TimerBarsModule;
+local pairs, tonumber, table = _G.pairs, _G.tonumber, _G.table;
+
+---@type ListFrame
+local C_ListFrame = obj:Import("MayronUI.Engine.ConfigTools.ListFrame");
 
 -- contains field name / table pairs where each table holds the 5 config textfield widgets
 -- this is used to update the config menu view after moving the fields (by unlocking them)
 local position_TextFields = {};
+local ShowListFrame;
 
 local function CreateNewFieldButton_OnClick(editBox)
     local text = editBox:GetText();
@@ -35,6 +41,47 @@ end
 local function TimerFieldPosition_OnLoad(configTable, container)
     local positionIndex = configTable.dbPath:match("%[(%d)%]$");
     position_TextFields[configTable.fieldName][tonumber(positionIndex)] = container.widget;
+end
+
+do
+    local function compare(a, b)
+        return a < b;
+    end
+
+    ---@param self ListFrame
+    ---@param dbPath string
+    local function ListFrame_OnShow(self, dbPath)
+        local auraNames = db:ParsePathValue(dbPath);
+
+        if (not obj:IsTable(auraNames)) then
+            return;
+        end
+
+        auraNames = auraNames:GetUntrackedTable();
+        table.sort(auraNames, compare);
+
+        for _, auraName in pairs(auraNames) do
+            self:AddItem(auraName);
+        end
+    end
+
+    function ShowListFrame(btn)
+        if (btn.listFrame) then
+            btn.listFrame:SetShown(true);
+            return;
+        end
+
+        btn.listFrame = C_ListFrame(btn.name, btn.dbPath);
+
+        -- TODO:
+        -- btn.listFrame:AddRowText(text)
+        -- btn.listFrame:AddTextFieldTooltip(text)
+
+        -----Possible scripts: OnTextChanged, OnRemoveItem, OnAddItem, OnItemEnter, OnShow
+        btn.listFrame:SetScript("OnItemEnter", tk.AuraTooltip_OnEnter);
+        btn.listFrame:SetScript("OnShow", ListFrame_OnShow);
+        btn.listFrame:SetShown(true);
+    end
 end
 
 function C_TimerBarsModule:GetConfigTable()
@@ -218,18 +265,6 @@ function C_TimerBarsModule:GetConfigTable()
                                 };
                                 {   type = "divider"
                                 };
-                                {   name = L["Manage Tracking Buffs"];
-                                    type = "button";
-                                    data = { name, "buffs" };
-                                    width = 220;
-                                    -- OnClick = CreateListFrame;
-                                };
-                                {   name = L["Manage Tracking Debuffs"];
-                                    type = "button";
-                                    data = { name, "debuffs" };
-                                    width = 220;
-                                    -- OnClick = CreateListFrame;
-                                };
                                 {   name = L["Appearance Options"];
                                     type = "title"
                                 };
@@ -367,6 +402,8 @@ function C_TimerBarsModule:GetConfigTable()
                                 };
                                 {   name = "Configure White List";
                                     type = "button";
+                                    dbPath = "profile.timerBars."..name..".filters.whiteList";
+                                    OnClick = ShowListFrame;
                                 };
                                 {   type = "divider";
                                 };
@@ -376,6 +413,8 @@ function C_TimerBarsModule:GetConfigTable()
                                 };
                                 {   name = "Configure Black List";
                                     type = "button";
+                                    dbPath = "profile.timerBars."..name..".filters.blackList";
+                                    OnClick = ShowListFrame;
                                 };
                             };
                         };
@@ -385,229 +424,3 @@ function C_TimerBarsModule:GetConfigTable()
         }
     };
 end
-
-----------------
--- ListFrame
-----------------
--- local ListFrame = tk:CreateProtectedPrototype("ListFrame"; true);
-
--- function ListFrame:Update(data)
---     if (not data.items) then return; end
-
---     for _; item in tk.ipairs(data.items) do
---         item:ClearAllPoints();
---         item:Hide();
---     end
-
---     local height = 0;
-
---     for id; item in tk.ipairs(data.items) do
-
---         if (id == 1) then
---             item:SetPoint("TOPLEFT");
---             item:SetPoint("TOPRIGHT"; 0; -30);
---             height = height + 30;
---         else
---             item:SetPoint("TOPLEFT"; data.items[id - 1]; "BOTTOMLEFT"; 0; -2);
---             item:SetPoint("TOPRIGHT"; data.items[id - 1]; "BOTTOMRIGHT"; 0; -32);
---             height = height + 32;
---         end
---         if (id % 2 ~= 0) then
---             tk:SetThemeColor(0.1; item.normal);
---         else
---             tk:SetThemeColor(0; item.normal);
---         end
---         data.frame:SetHeight(height);
---         item:Show();
---     end
--- end
-
--- do
---     local function Item_OnEnter(self)
---         if (self.spellID and tk.type(self.spellID) == "number") then
---             GameTooltip:SetOwner(self; "ANCHOR_TOPRIGHT"; 0; 2);
---             GameTooltip:SetSpellByID(self.spellID);
---             GameTooltip:Show();
---         end
---     end
-
---     local function Item_OnLeave(self)
---         GameTooltip:Hide()
---     end
-
---     function ListFrame:AddItem(data; name; spellID)
---         if (data.tracking[name]) then return; end
---         data.items = data.items or {};
-
---         data.btn_OnMouseUp = data.btn_OnMouseUp or function(btn)
---             local item = btn:GetParent();
---             self:RemoveItem(item; item.name:GetText());
---         end
-
---         local item = data.unused and data.unused:Pop();
---         if (not item) then
---             item = tk.CreateFrame("Button"; nil; data.frame);
---             item:SetScript("OnEnter"; Item_OnEnter);
---             item:SetScript("OnLeave"; Item_OnLeave);
---             item:SetSize(30; 30);
---             item.normal = tk:SetBackground(item; 0; 0; 0; 0);
---             item.highlight = tk:SetBackground(item; 1; 1; 1; 0.1);
---             item:SetNormalTexture(item.normal);
---             item:SetHighlightTexture(item.highlight);
---             item.name = item:CreateFontString(nil; "BACKGROUND"; "GameFontHighlight");
---             item.name:SetJustifyH("LEFT");
---             item.name:SetJustifyV("CENTER");
---             item.name:SetPoint("TOPLEFT"; 6; 0);
---             item.name:SetPoint("BOTTOMRIGHT"; -34; 0);
---             item.btn = tk.CreateFrame("Button"; nil; item);
---             item.btn:SetSize(28; 24);
---             item.btn:SetPoint("RIGHT"; -8; 0);
---             item.btn:SetNormalTexture(tk.Constants.MEDIA.."dialog_box\\CloseButton"; "BLEND");
---             item.btn:SetHighlightTexture(tk.Constants.MEDIA.."dialog_box\\CloseButton"; "ADD");
---             tk:SetThemeColor(item.btn);
---         end
---         table.insert(data.items; item);
---         data.tracking[name] = true;
---         item.spellID = spellID;
---         item.name:SetText(name);
---         item.btn:SetScript("OnMouseUp"; data.btn_OnMouseUp);
---     end
--- end
-
--- function ListFrame:RemoveItem(data; item; name)
---     local index = tk:GetIndex(data.items; item);
---     table.remove(data.items; index);
---     data.tracking[name] = nil;
---     data.unused = data.unused or tk:CreateStack();
---     data.unused:Push(item);
---     item:Hide();
---     item:ClearAllPoints();
---     db.profile.timerBars[data.name][data.type][name] = nil;
---     TimerBars:RefreshFields();
---     self:Update();
--- end
-
--- do
---     local function compare(a; b) return a < b; end
---     local names = {};
-
---     function ListFrame:ScanForItems(data)
---         local items = db.profile.timerBars[data.name][data.type];
-
---         if (items) then
---             items = items:GetTable();
---             tk:EmptyTable(names);
---             names = tk:GetKeyTable(items; names);
---             table.sort(names; compare);
-
---             for _; name in tk.pairs(names) do
---                 self:AddItem(name; items[name]);
---             end
-
---             self:Update();
---         end
---     end
--- end
-
--- local function CreateListFrame(_; self)
---     local name = self.data[1]; -- "Player"
---     local type = self.data[2]; -- "buffs" or "debuffs"
---     local manager = tk.string.format("%s%s%s"; name; (type):gsub("^%l"; tk.string.upper); "Manager");
-
---     if (not TimerBars[manager]) then
---         TimerBars[manager] = gui:CreateDialogBox(nil; "HIGH");
---         local panel = TimerBars[manager];
-
---         gui:AddTitleBar(panel; self.name);
---         gui:AddCloseButton(panel);
---         panel:SetSize(400; 300);
---         panel:SetPoint("CENTER");
---         panel:SetFrameStrata("DIALOG");
---         panel:SetFrameLevel(20);
---         panel = gui:CreatePanel(panel);
---         --self.listFrame:SetDevMode(true);
---         panel:SetDimensions(1; 4);
-
---         local row1 = panel:CreateCell();
---         row1.label = row1:CreateFontString(nil; "BACKGROUND"; "GameFontHighlight");
---         row1.label:SetText(tk.string.format(L["Enter the Name of a %s to Track:"]; (type == "buffs" and "Buff" or "Debuff")));
---         row1.label:SetPoint("LEFT");
---         row1:SetInsets(22; 5; 0; 5);
-
---         local row2 = panel:CreateCell();
---         row2.cb1 = gui:CreateCheckButton(row2:GetFrame();
---             tk.string.format(L["Only track your %s"]; type); nil;
--- 			tk.string.format(L["Only %s casted by you will be tracked."]; type));
-
---         row2.cb1:SetPoint("LEFT");
---         row2.cb1.btn:SetChecked(db.profile.timerBars[name]["only_player_"..type]);
-
---         row2.cb1.btn:SetScript("OnClick"; function(self)
---             db.profile.timerBars[name]["only_player_"..type] = self:GetChecked();
---             TimerBars:RefreshFields();
---         end);
-
---         row2.cb2 = gui:CreateCheckButton(row2:GetFrame();
---             tk.string.format(L["Track all %s"]; type); nil;
---             tk.string.format(L["Ignore the list of %s to track and track everything."]; type).."\n\n"..
--- 			tk.string.format(L["Enabling this will dynamically generate the list of %s to track."]; type));
-
---         row2.cb2:SetPoint("LEFT"; row2.cb1; "RIGHT"; 5; 0);
---         row2.cb2.btn:SetChecked(db.profile.timerBars[name]["track_all_"..type]);
-
---         row2.cb2.btn:SetScript("OnClick"; function(self)
---             db.profile.timerBars[name]["track_all_"..type] = self:GetChecked();
---             TimerBars:RefreshFields();
---         end);
-
---         local row3 = gui:CreateTextField();
---         row3.field:SetScript("OnEnterPressed"; function(field)
---             field:ClearFocus();
-
---             local value = field:GetText();
---             local spellID = tk.select(7; GetSpellInfo(value));
-
---             TimerBars[manager].list:AddItem(value; spellID);
-
---             local tbl = db.profile.timerBars[name];
-
---             if (not tbl[type]) then
---                 tbl[type] = {};
---             end
-
---             tbl[type][value] = spellID or true;
---             field:SetText("");
---             TimerBars:RefreshFields();
---             TimerBars[manager].list:Update();
---         end);
-
---         row3 = panel:CreateCell(row3);
---         row3:SetInsets(5);
-
---         local row4; child = gui:CreateScrollFrame();
---         row4.ScrollBar:SetPoint("TOPLEFT"; row4.ScrollFrame; "TOPRIGHT"; -5; 0);
---         row4.ScrollBar:SetPoint("BOTTOMRIGHT"; row4.ScrollFrame; "BOTTOMRIGHT"; 0; 0);
---         row4 = panel:CreateCell(row4);
---         row4:SetDimensions(2; 1);
---         row4:SetInsets(0; 5; 5; 5);
-
---         TimerBars[manager].list = ListFrame({
---             name = name;
---             type = type;
---             tracking = {};
---         }; child);
-
---         TimerBars[manager].list:ScanForItems();
-
---         TimerBars[manager].list:SetScript("OnShow"; function()
---             TimerBars[manager].list:ScanForItems();
---         end);
-
---         panel:GetRow(1):SetFixed(50);
---         panel:GetRow(2):SetFixed(36);
---         panel:GetRow(3):SetFixed(36);
---         panel:AddCells(row1; row2; row3; row4);
---     end
-
---     TimerBars[manager]:Show();
--- end

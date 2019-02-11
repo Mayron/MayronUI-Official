@@ -243,7 +243,8 @@ function C_TimerBarsModule:OnInitialize(data)
                         end
                     end;
 
-                    filters = function(_, _, field)
+                    filters = function(value, _, field)
+                        print("value: ", value)
                         field:RecheckAuras();
                     end;
                 };
