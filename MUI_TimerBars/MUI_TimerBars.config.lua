@@ -38,9 +38,14 @@ local function RemoveFieldButton_OnClick(editBox)
     end
 end
 
-local function TimerFieldPosition_OnLoad(configTable, container)
-    local positionIndex = configTable.dbPath:match("%[(%d)%]$");
-    position_TextFields[configTable.fieldName][tonumber(positionIndex)] = container.widget;
+local function ListFrame_OnAddItem(_, item, dbPath)
+    local fullPath = string.format("%s.%s", dbPath, item.name:GetText());
+    db:SetPathValue(fullPath, true);
+end
+
+local function ListFrame_OnRemoveItem(_, item, dbPath)
+    local fullPath = string.format("%s.%s", dbPath, item.name:GetText());
+    db:SetPathValue(fullPath, nil);
 end
 
 do
@@ -60,7 +65,7 @@ do
         auraNames = auraNames:GetUntrackedTable();
         table.sort(auraNames, compare);
 
-        for _, auraName in pairs(auraNames) do
+        for auraName, _ in pairs(auraNames) do
             self:AddItem(auraName);
         end
     end
@@ -73,15 +78,23 @@ do
 
         btn.listFrame = C_ListFrame(btn.name, btn.dbPath);
 
-        -- TODO:
-        -- btn.listFrame:AddRowText(text)
-        -- btn.listFrame:AddTextFieldTooltip(text)
+        if (btn.dbPath:find("white")) then
+            btn.listFrame:AddRowText("Enter an aura name to add to the whitelist:");
+        else
+            btn.listFrame:AddRowText("Enter an aura name to add to the blacklist:");
+        end
 
-        -----Possible scripts: OnTextChanged, OnRemoveItem, OnAddItem, OnItemEnter, OnShow
+        btn.listFrame:SetScript("OnAddItem", ListFrame_OnAddItem);
+        btn.listFrame:SetScript("OnRemoveItem", ListFrame_OnRemoveItem);
         btn.listFrame:SetScript("OnItemEnter", tk.AuraTooltip_OnEnter);
         btn.listFrame:SetScript("OnShow", ListFrame_OnShow);
         btn.listFrame:SetShown(true);
     end
+end
+
+local function TimerFieldPosition_OnLoad(configTable, container)
+    local positionIndex = configTable.dbPath:match("%[(%d)%]$");
+    position_TextFields[configTable.fieldName][tonumber(positionIndex)] = container.widget;
 end
 
 function C_TimerBarsModule:GetConfigTable()

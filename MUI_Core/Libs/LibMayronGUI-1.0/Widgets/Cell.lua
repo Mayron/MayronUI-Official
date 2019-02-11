@@ -32,7 +32,9 @@ function Panel:CreateCell(data, frame)
     return Cell(frame);
 end
 
-function Cell:__Construct(_, frame)
+function Cell:__Construct(data, frame)
+    data.width = 1;
+    data.height = 1;
     self:SetFrame(frame);
 end
 

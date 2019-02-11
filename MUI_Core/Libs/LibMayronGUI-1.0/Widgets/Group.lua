@@ -68,7 +68,9 @@ function Group:SetFixed(data, value)
     local panelData = data:GetFriendData(data.Panel);
 
     if (value and not panelData.fixedInfo) then
-        panelData.fixedInfo = {width = {}, height = {}};
+        panelData.fixedInfo = obj:PopTable();
+        panelData.fixedInfo.width = obj:PopTable();
+        panelData.fixedInfo.height = obj:PopTable();
     end
 
     for position, squares in panelData.grid:Iterate() do
@@ -89,7 +91,6 @@ function Group:SetFixed(data, value)
     elseif (data.Type == "row") then
         panelData.fixedInfo.height.total = (panelData.fixedInfo.height.total or 0) + value;
         panelData.fixedInfo.height.rows = (panelData.fixedInfo.height.rows or 0) + 1;
-
     end
 
     if (panelData.grid) then

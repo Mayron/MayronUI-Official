@@ -52,15 +52,7 @@ local function CreateListItem(listFrame, data)
     return item;
 end
 
-local function TextField_OnTextChanged(_, textValue, _, listFrame, data, ...)
-    if (obj:IsFunction(data.OnTextChanged)) then
-        data.OnTextChanged(listFrame, textValue, ...);
-    end
-
-    listFrame:Update();
-end
-
-local function UpdateListFrame(items, listFrame)
+local function UpdateListFrame(items, scrollChild)
     if (items == 0) then
         return;
     end
@@ -69,27 +61,35 @@ local function UpdateListFrame(items, listFrame)
 
     for id, item in ipairs(items) do
         item:ClearAllPoints();
-        item:Hide();
 
         if (id == 1) then
-            item:SetPoint("TOPLEFT");
-            item:SetPoint("TOPRIGHT", 0, -30);
+            item:SetPoint("TOPLEFT", 2, -1);
+            item:SetPoint("TOPRIGHT", -2, -30);
             height = height + 30;
         else
             item:SetPoint("TOPLEFT", items[id - 1], "BOTTOMLEFT", 0, -2);
-            item:SetPoint("TOPRIGHT", items[id - 1], "BOTTOMRIGHT", 0, -32);
+            item:SetPoint("TOPRIGHT", items[id - 1], "BOTTOMRIGHT", 0, -2);
             height = height + 32;
         end
 
         if (id % 2 ~= 0) then
-            tk:ApplyThemeColor(0.1, item.normal);
+            tk:ApplyThemeColor(0.2, item.normal);
         else
-            tk:ApplyThemeColor(0, item.normal);
+            tk:ApplyThemeColor(0.1, item.normal);
         end
 
-        listFrame:SetHeight(height);
+        scrollChild:SetHeight(height);
         item:Show();
     end
+end
+
+local function TextField_OnTextChanged(_, textValue, _, listFrame, data, ...)
+    if (obj:IsFunction(data.OnTextChanged)) then
+        data.OnTextChanged(listFrame, textValue, ...);
+    end
+
+    listFrame:AddItem(textValue);
+    data.textField:SetText(tk.Strings.Empty);
 end
 
 ConfigToolsPackage:DefineParams("string");
@@ -139,19 +139,23 @@ function C_ListFrame:SetShown(data, shown)
     data.listFrame:SetPoint("CENTER");
     data.listFrame:SetFrameStrata("DIALOG");
     data.listFrame:SetFrameLevel(20);
+    data.listFrame:Hide();
 
     local panel = gui:CreatePanel(data.listFrame);
-    panel:SetDimensions(1, 4);
-
     local row;
 
     if (obj:IsTable(data.rowText)) then
         local label;
 
-        for _, rowText in ipairs(data.rowText) do
+        for id, rowText in ipairs(data.rowText) do
             row = panel:CreateCell();
-            row:SetInsets(22, 5, 0, 5);
-            row:SetFixed(36);
+            row:SetDimensions(1, 1);
+
+            if (id == 1) then
+                row:SetInsets(22, 10, 0, 10);
+            else
+                row:SetInsets(5, 10, 0, 10);
+            end
 
             label = row:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
             label:SetText(rowText);
@@ -165,16 +169,25 @@ function C_ListFrame:SetShown(data, shown)
     data.textField:OnTextChanged(TextField_OnTextChanged, self, data, unpack(data.args));
 
     row = panel:CreateCell(data.textField);
-    row:SetInsets(5);
+    row:SetDimensions(1, 1);
+
+    if (#data.rows > 0) then
+        row:SetInsets(5, 10, 10, 10);
+    else
+        row:SetInsets(35, 5, 5, 5);
+    end
 
     data.rows[#data.rows + 1] = row;
 
     local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.listFrame);
+    data.scrollChild = container.ScrollFrame:GetScrollChild();
+
     container.ScrollBar:SetPoint("TOPLEFT", container.ScrollFrame, "TOPRIGHT", -5, 0);
     container.ScrollBar:SetPoint("BOTTOMRIGHT", container.ScrollFrame, "BOTTOMRIGHT", 0, 0);
+    tk:SetBackground(container, 0, 0, 0, 0.3);
 
     row = panel:CreateCell(container);
-    row:SetDimensions(2, 1);
+    row:SetDimensions(1, #data.rows + 3);
     row:SetInsets(0, 5, 5, 5);
 
     data.rows[#data.rows + 1] = row;
@@ -184,6 +197,8 @@ function C_ListFrame:SetShown(data, shown)
             data.OnShow(self, unpack(data.args));
         end
     end);
+
+    panel:SetDimensions(1, #data.rows + 3);
 
     panel:AddCells(unpack(data.rows));
     obj:PushTable(data.rows);
@@ -199,6 +214,7 @@ function C_ListFrame:AddItem(data, itemName)
     end
 
     local item = data.itemStack:Pop(self, data);
+    item:SetParent(data.scrollChild);
     item.name:SetText(itemName);
 
     table.insert(data.items, item);
@@ -208,7 +224,7 @@ function C_ListFrame:AddItem(data, itemName)
         data.OnAddItem(self, item, unpack(data.args));
     end
 
-    UpdateListFrame(data.items, data.listFrame);
+    UpdateListFrame(data.items, data.scrollChild);
 end
 
 local function RemoveItem(data, item, index)
@@ -224,7 +240,7 @@ local function RemoveItem(data, item, index)
         data.OnRemoveItem(self, item, unpack(data.args));
     end
 
-    UpdateListFrame(data.items, data.listFrame);
+    UpdateListFrame(data.items, data.scrollChild);
 end
 
 ConfigToolsPackage:DefineParams("Frame");

@@ -77,7 +77,12 @@ end
 
 function TextField:ApplyPreviousText(data)
     local currentText = data.editBox:GetText();
-    data.editBox:SetText(data.previousText);
+
+    if (data.previousText) then
+        data.editBox:SetText(data.previousText);
+    else
+        data.editBox:SetText("");
+    end
     data.previousText = currentText;
 end
 

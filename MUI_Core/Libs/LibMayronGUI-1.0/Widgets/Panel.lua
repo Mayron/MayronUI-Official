@@ -24,6 +24,8 @@ function Panel:__Construct(data, frame, globalName)
     data.grid = Private.LinkedList();
     data.rowscale = obj:PopTable();
     data.columnscale = obj:PopTable();
+    data.width = 1;
+    data.height = 1;
 
     data.frame:HookScript("OnSizeChanged", function()
         Private:OnSizeChanged(data);

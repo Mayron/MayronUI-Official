@@ -249,7 +249,7 @@ function tk:ApplyThemeColor(...)
     local alpha = (tk.select(1, ...));
 
     -- first argument is "colorName"
-    if (not (tk.type(alpha) == "number" and alpha)) then
+    if (not (obj:IsNumber(alpha) and alpha)) then
         tk.Constants.AddOnStyle:ApplyColor(nil, 1, ...);
     else
         tk.Constants.AddOnStyle:ApplyColor(nil, ...);

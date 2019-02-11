@@ -694,7 +694,6 @@ function C_TimerField:RemoveAllAuras(data)
     end
 end
 
--- TODO: Is auraName safe (localization issues if always in english?)
 local function IsFilteredOut(filters, sourceGuid, destGuid, auraName, auraType)
     local filteredOut = false;
 
