@@ -52,6 +52,7 @@ local function TransferWidgetAttributes(widget, widgetTable)
     widget.max              = widgetTable.max;
     widget.OnClick          = widgetTable.OnClick;
     widget.data             = widgetTable.data;
+    widget.useIndexes       = widgetTable.useIndexes;
 
     obj:PushTable(widgetTable);
 end

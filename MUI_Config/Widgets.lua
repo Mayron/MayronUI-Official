@@ -330,7 +330,6 @@ end
 -- Color Picker
 -----------------
 local function ShowColorPicker(r, g, b, a, changedCallback)
-    _G.ColorPickerFrame:SetColorRGB(r, g, b);
     _G.ColorPickerFrame.hasOpacity = (a ~= nil);
     _G.ColorPickerFrame.opacity = a;
     _G.ColorPickerFrame.previousValues = obj:PopTable(r, g, b, a);
@@ -344,13 +343,46 @@ local function ShowColorPicker(r, g, b, a, changedCallback)
     _G.ColorPickerFrame:Show();
 end
 
+local function ColorPickerOkayButton_OnClick(self)
+    local container = self:GetParent().container;
+
+    if (obj:IsTable(container)) then
+        container.value:SaveChanges();
+    end
+end
+
 local function ColorWidget_OnClick(self)
     local r, g, b, a = self.color:GetVertexColor();
     ShowColorPicker(r, g, b, (a and (1 - a)), self.func);
+    _G.ColorPickerFrame.container = self;
+
+    if (ColorPickerOkayButton_OnClick) then
+        _G.ColorPickerOkayButton:HookScript("OnClick", ColorPickerOkayButton_OnClick);
+        _G.ColorPickerOkayButton:HookScript("OnHide", function(self) self.container = nil; end);
+        ColorPickerOkayButton_OnClick = nil;
+    end
+end
+
+local function UpdateValue(useIndexes, value, c)
+    if (useIndexes) then
+        value[1] = c.r;
+        value[2] = c.g;
+        value[3] = c.b;
+        value[4] = c.a;
+    else
+        value.r = c.r;
+        value.g = c.g;
+        value.b = c.b;
+        value.a = c.a;
+    end
+
 end
 
 function WidgetHandlers.color(parent, widgetTable, value)
     local container = tk:PopFrame("Button", parent);
+    value = value:GetTrackedTable();
+
+    container.value = value;
 
     container.name = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
     container.name:SetText(widgetTable.name);
@@ -367,24 +399,21 @@ function WidgetHandlers.color(parent, widgetTable, value)
     container.color = container:CreateTexture(nil, "OVERLAY");
     container.color:SetSize(16, 16);
 
-    if (not (value.r and value.g and value.b)) then
-        value.r, value.g, value.b = _G.unpack(value);
-    end
-
     container.color:SetColorTexture(
-        value and value.r or 0,
-        value and value.g or 0,
-        value and value.b or 0
+        value and value.r or value[1] or 0,
+        value and value.g or value[2] or 0,
+        value and value.b or value[3] or 0
     );
 
     local loaded = false;
     local c = obj:PopTable();
+
     tk.Tables:Fill(c, value);
 
     container.func = function(restore)
         if (restore) then
             -- cancel button was pressed
-            c.r, c.g, c.b, c.a = _G.unpack(restore);
+            c.r, c.g, c.b, c.a = unpack(restore);
             loaded = false;
         else
             -- color picker was opened for the first time or okay button was pressed
@@ -397,14 +426,22 @@ function WidgetHandlers.color(parent, widgetTable, value)
 
             if (not loaded and c.r == 1 and c.g == 1 and c.b == 1) then
                 loaded = true;
-                container.color:SetColorTexture(value.r, value.g, value.b, value.a);
+
+                if (container.useIndexes) then
+                    c.r = value[1];
+                    c.g = value[2];
+                    c.b = value[3];
+                    c.a = value[4];
+                else
+                    c.r = value.r;
+                    c.g = value.g;
+                    c.b = value.b;
+                    c.a = value.a;
+                end
+
+                _G.ColorPickerFrame:SetColorRGB(c.r, c.g, c.b);
             else
-                -- update database:
-                value.r = c.r;
-                value.g = c.g;
-                value.b = c.b;
-                value.a = c.a;
-                value:SaveChanges();
+                UpdateValue(container.useIndexes, value, c);
                 container.color:SetColorTexture(c.r, c.g, c.b);
 
                 if (container.requiresReload) then
