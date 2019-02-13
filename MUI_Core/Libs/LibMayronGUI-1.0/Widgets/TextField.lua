@@ -18,7 +18,7 @@ end
 
 local function OnEnable(self)
     local frame = self:GetParent();
-    frame.bg:SetVertexColor(self.themeColor.r, self.themeColor.g, self.themeColor.b);
+    frame.bg:SetVertexColor(self.themeColor[1], self.themeColor[2], self.themeColor[3]);
     self:SetAlpha(1);
 end
 
@@ -60,6 +60,10 @@ function TextField:__Construct(data, style, tooltip, parent)
         data.editBox:SetScript("OnEnter", Private.ToolTip_OnEnter);
         data.editBox:SetScript("OnLeave", Private.ToolTip_OnLeave);
     end
+end
+
+function TextField:SetEnabled(data, enabled)
+    data.editBox:SetEnabled(enabled);
 end
 
 function TextField:SetText(data, text)

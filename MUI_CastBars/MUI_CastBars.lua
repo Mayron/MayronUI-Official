@@ -37,6 +37,7 @@ db:AddToDefaults("profile.castBars", {
         unlocked      = false;
         frameStrata   = "MEDIUM";
         frameLevel    = 20;
+        position = {"CENTER", "UIParent", "CENTER", 0,  0};
     };
     appearance = {
         texture       = "MUI_StatusBar";
@@ -51,21 +52,16 @@ db:AddToDefaults("profile.castBars", {
             latency     = {r = 1, g = 1, b = 1, a = 0.6};
         };
     };
-    player = {
+    Player = {
         anchorToSUF   = true;
         showLatency   = true;
     },
-    target = {
+    Target = {
         anchorToSUF = true;
     },
-    focus = {};
-    mirror = {
-        position = {
-            point           = "TOP";
-            relativeFrame   = "UIParent";
-            relativePoint   = "TOP";
-            x = 0; y = -200;
-        };
+    Focus = {};
+    Mirror = {
+        position = {"TOP", "UIParent", "TOP", 0,  -200};
     };
 });
 
@@ -259,12 +255,13 @@ end
 Engine:DefineParams("table", "table", "string");
 function C_CastBar:__Construct(data, settings, appearance, unitID)
     data.settings = settings;
-    data.unitID = unitID;
+    data.globalName = string.format("MUI_%sCastBar", unitID);
+    data.unitID = unitID:lower();
     data.appearance = appearance;
     data.backdrop = obj:PopTable();
 
     -- Needed for event functions
-    namespace.castBarData[unitID] = data;
+    namespace.castBarData[data.unitID] = data;
 end
 
 local function CastBarFrame_OnUpdate(self, elapsed)
@@ -287,24 +284,23 @@ local function CastBarFrame_OnEvent(self, eventName, ...)
 end
 
 do
-    local function CreateBarFrame(unitID, settings)
-        local globalName = string.format("MUI_%sCastBar", unitID:gsub("^%l", string.upper));
+    local function CreateBarFrame(unitID, settings, globalName)
         local bar = _G.CreateFrame("Frame", globalName, _G.UIParent);
         bar:SetAlpha(0);
 
         bar.statusbar = _G.CreateFrame("StatusBar", nil, bar);
         bar.statusbar:SetValue(0);
 
-        if (unitID == "player" and settings.showLatency) then
+        if (unitID == "Player" and settings.showLatency) then
             bar.latencyBar = bar.statusbar:CreateTexture(nil, "BACKGROUND");
             bar.latencyBar:SetPoint("TOPRIGHT");
             bar.latencyBar:SetPoint("BOTTOMRIGHT");
         end
 
-        if (unitID == "mirror") then
+        if (unitID == "Mirror") then
             _G.MirrorTimer1:SetAlpha(0);
             _G.MirrorTimer1.SetAlpha = tk.Constants.DUMMY_FUNC;
-        elseif (unitID == "player") then
+        elseif (unitID == "Player") then
             _G.CastingBarFrame:UnregisterAllEvents();
             _G.CastingBarFrame:Hide();
         end
@@ -337,7 +333,7 @@ do
 
         if (enabled) then
             if (not bar) then
-                bar = CreateBarFrame(data.unitID, data.settings);
+                bar = CreateBarFrame(data.unitID, data.settings, data.globalName);
                 data.frame = bar;
             end
 
@@ -392,7 +388,7 @@ function C_CastBar:Update(data)
         return;
     end
 
-    if (data.unitID == "mirror") then
+    if (data.unitID == "Mirror") then
         if (not data.paused or data.paused == 0) then
             for i = 1, _G.MIRRORTIMER_NUMTIMERS do
                 local _, _, _, _, _, label = _G.GetMirrorTimerInfo(i);
@@ -415,7 +411,7 @@ function C_CastBar:Update(data)
         if (data.startTime and not self:IsFinished()) then
             local difference = _G.GetTime() - data.startTime;
 
-            if (data.channelling or data.unitID == "mirror") then
+            if (data.channelling or data.unitID == "Mirror") then
                 data.frame.statusbar:SetValue(data.totalTime - difference);
             else
                 data.frame.statusbar:SetValue(difference);
@@ -594,30 +590,26 @@ end
 function C_CastBar:PositionCastBar(data)
     data.frame:ClearAllPoints();
 
-    local unitframe = _G[ string.format("SUFUnit%s", data.unitID:lower()) ];
     local anchorToSUF = IsAddOnLoaded("ShadowedUnitFrames") and data.settings.anchorToSUF;
+    local unitframe = _G[ string.format("SUFUnit%s", data.unitID:lower()) ];
     local sufAnchor = unitframe and unitframe.portrait;
 
     if (not (anchorToSUF and sufAnchor)) then
         -- manual position...
 
-        if (not data.settings.position) then
-            data.frame:SetPoint("CENTER");
+        local point = data.settings.position[1];
+        local relativeFrame = data.settings.position[2];
+        local relativePoint = data.settings.position[3];
+        local x, y = data.settings.position[4], data.settings.position[5];
+
+        if (point and relativeFrame and relativePoint and x and y) then
+            data.frame:SetPoint(point, _G[relativeFrame], relativePoint, x, y);
         else
-            local point = data.settings.position.point;
-            local relativeFrame = data.settings.position.relativeFrame;
-            local relativePoint = data.settings.position.relativePoint;
-            local x, y = data.settings.position.x, data.settings.position.y;
+            data.frame:SetPoint("CENTER");
+        end
 
-            if (point and relativeFrame and relativePoint and x and y) then
-                data.frame:SetPoint(point, _G[relativeFrame], relativePoint, x, y);
-            else
-                data.frame:SetPoint("CENTER");
-            end
-
-            if (data.sqaure) then
-                data.square:SetWidth(data.settings.height);
-            end
+        if (data.sqaure) then
+            data.square:SetWidth(data.settings.height);
         end
     elseif (sufAnchor) then
         -- anchor to ShadowedUnitFrames
@@ -641,7 +633,7 @@ function C_CastBarsModule:OnInitialize(data)
         r = r, g = g, b = b, a = 0.7
     });
 
-    for _, barName in obj:IterateArgs("player", "target", "focus", "mirror") do
+    for _, barName in obj:IterateArgs("Player", "Target", "Focus", "Mirror") do
         local sv = db.profile.castBars[barName]; ---@type Observer
         sv:SetParent(db.profile.castBars.__templateCastBar);
     end
@@ -649,10 +641,10 @@ function C_CastBarsModule:OnInitialize(data)
     local options = {
         onExecuteAll = {
             first = {
-                "player.enabled";
-                "target.enabled";
-                "focus.enabled";
-                "mirror.enabled";
+                "Player.enabled";
+                "Target.enabled";
+                "Focus.enabled";
+                "Mirror.enabled";
             };
             dependencies = {
                 ["colors.border"] = "appearance.border";
@@ -661,7 +653,9 @@ function C_CastBarsModule:OnInitialize(data)
         groups = {
             {
                 patterns = { "(position|anchorToSUF)$" };
-                value = function(_, keysList)
+                value = function(value, keysList)
+                    print(value) -- Always nil!!!
+                    keysList:Print();
                     local barName = keysList:PopFront();
 
                     if (data.bars[barName]) then

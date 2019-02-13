@@ -298,10 +298,14 @@ end
 
 Engine:DefineParams("table", "?Frame");
 ---@param widgetConfigTable table @A widget config table used to control the rendering and behavior of a widget in the config menu.
----@param parent Frame @(optional) A custom parent frame for the widget, else the parent will be the menu.
+---@param parent Frame @(optional) A custom parent frame for the widget, else the parent will be the menu scroll child.
 ---@return Frame @(possibly nil if widget is disabled) The created widget.
 function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
-    parent = parent or data.selectedButton.menu:GetFrame();
+
+    if (not parent) then
+        parent = data.selectedButton.menu:GetFrame();
+        parent = parent.ScrollFrame:GetScrollChild();
+    end
 
     tk:Assert(obj:IsTable(data.tempMenuConfigTable), "Invalid temp data for '%s'", widgetConfigTable.name);
 
@@ -341,7 +345,7 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
 
     local currentValue = self:GetDatabaseValue(widgetConfigTable);
 
-    -- create the widget!
+    -- create the widget (run the widget function)!
     local widget = namespace.WidgetHandlers[widgetType](parent, widgetConfigTable, currentValue);
 
     if (widgetConfigTable.devMode) then

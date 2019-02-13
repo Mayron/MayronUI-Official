@@ -10,17 +10,17 @@ local WidgetHandlers = {};
 namespace.WidgetHandlers = WidgetHandlers;
 
 -- create container to wrap around a child element
-local function CreateElementContainerFrame(widget, childData, parent)
+local function CreateElementContainerFrame(widget, widgetTable, parent)
     local container = tk:PopFrame("Frame", parent);
 
-    container:SetSize(childData.width or widget:GetWidth(), childData.height or widget:GetHeight());
+    container:SetSize(widgetTable.width or widget:GetWidth(), widgetTable.height or widget:GetHeight());
     container.widget = widget; -- this is needed to access the widget from the container which is passed to some config functions (i.e. OnLoad)
     widget:SetParent(container);
 
-    if (childData.name and tk:ValueIsEither(childData.type, "slider", "dropdown", "textfield")) then
+    if (widgetTable.name and tk:ValueIsEither(widgetTable.type, "slider", "dropdown", "textfield")) then
         container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
         container.name:SetPoint("TOPLEFT", 0, 0);
-        container.name:SetText(childData.name);
+        container.name:SetText(widgetTable.name);
 
         container:SetHeight(container:GetHeight() + container.name:GetStringHeight() + 5);
         widget:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -5);
@@ -244,16 +244,20 @@ local function DropDown_OnSelectedValue(self, value)
 end
 
 function WidgetHandlers.dropdown(parent, widgetTable, value)
-    local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
+    local container = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
+    container.dropdown:SetLabel(tostring(value));
+    container.dropdown:SetTooltip(widgetTable.tooltip);
+    container.dropdown:SetDisabledTooltip(widgetTable.disabledTooltip);
+
     local options = GetValue(widgetTable, "options");
 
     for key, dropDownValue in pairs(options) do
         local option;
 
         if (tonumber(key) or widgetTable.useNumberedKeys) then
-            option = dropdown:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
+            option = container.dropdown:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
         else
-            option = dropdown:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
+            option = container.dropdown:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
         end
 
         if (widgetTable.fontPicker) then
@@ -261,11 +265,7 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
         end
     end
 
-    dropdown:SetLabel(value);
-    dropdown:SetTooltip(widgetTable.tooltip);
-    dropdown:SetDisabledTooltip(widgetTable.disabledTooltip);
-
-    return CreateElementContainerFrame(dropdown, widgetTable, parent);
+    return CreateElementContainerFrame(container, widgetTable, parent);
 end
 
 --------------
@@ -502,7 +502,8 @@ end
 
 function WidgetHandlers.textfield(parent, widgetTable, value)
     local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetTable.tooltip, parent);
-    textField:SetText(value or "");
+
+    textField:SetText((value and tostring(value)) or "");
 
     -- passes in textField (not data.editBox);
     textField:OnTextChanged(TextField_OnTextChanged, widgetTable);

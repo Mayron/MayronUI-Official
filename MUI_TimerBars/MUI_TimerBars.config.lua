@@ -342,12 +342,11 @@ function C_TimerBarsModule:GetConfigTable()
                                     subtype = "header";
                                     content = L["Manual Positioning"]
                                 };
-                                {
-                                    type = "loop";
-                                    loops = 5;
-                                    func = function(index)
+                                {   type = "loop";
+                                    args = { L["Point"], L["Relative Frame"], L["Relative Point"], L["X-Offset"], L["Y-Offset"] };
+                                    func = function(index, arg)
                                         return {
-                                            name = L["Point"];
+                                            name = arg;
                                             type = "textfield";
                                             valueType = "string";
                                             dbPath = string.format("profile.timerBars.%s.position[%d]", name, index);

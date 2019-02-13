@@ -27,10 +27,10 @@ db:AddToDefaults("profile.actionBarPanel", {
         -- 1 and 2 = bottom bartender action bars
         -- 3 and 4 = expanded, extra bartender action bars
         -- values are the bartender bar IDs
-        [1] = 1;
-        [2] = 7;
-        [3] = 9;
-        [4] = 10;
+        [1] = "Bar 1";
+        [2] = "Bar 7";
+        [3] = "Bar 9";
+        [4] = "Bar 10";
     };
 });
 
@@ -312,10 +312,12 @@ function C_ActionBarPanel:SetupBartenderBar(data, barID, bartenderBarID)
         return;
     end
 
-    -- get bar
-    _G.Bartender4:GetModule("ActionBars"):EnableBar(bartenderBarID);
+    local barId = string.match(bartenderBarID, "Bar (%d+)");
 
-    local globalBartenderName = string.format("BT4Bar%d", tostring(bartenderBarID));
+    -- get bar
+    _G.Bartender4:GetModule("ActionBars"):EnableBar(barId);
+
+    local globalBartenderName = string.format("BT4Bar%d", barId);
     local bar = _G[globalBartenderName];
 
     -- calculate height

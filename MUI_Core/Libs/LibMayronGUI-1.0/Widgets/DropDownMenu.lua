@@ -60,11 +60,12 @@ function Lib:CreateDropDown(style, parent, direction)
         table.insert(_G.UISpecialFrames, "MUI_DropDownMenu");
     end
 
-    local dropDownContainer = Private:PopFrame("Frame", parent);
+    local dropDownContainer = _G.CreateFrame("Button", nil, parent);
     dropDownContainer:SetSize(178, 28);
 
-    local header = Private:PopFrame("Frame", dropDownContainer);
-    header:SetAllPoints(true);
+    local header = _G.CreateFrame("Button", nil, dropDownContainer);
+    header:SetPoint("TOPLEFT", dropDownContainer, "TOPLEFT");
+
     header:SetBackdrop(style:GetBackdrop("DropDownMenu"));
     header.bg = Private:SetBackground(header, style:GetTexture("ButtonTexture"));
 
@@ -102,10 +103,10 @@ function Lib:CreateDropDown(style, parent, direction)
         frame:Hide();
     end);
 
-    dropDownContainer.toggleButton.dropdown = DropDownMenu(header, direction, slideController, dropDownContainer, style);
-    table.insert(dropdowns, dropDownContainer.toggleButton.dropdown);
+    dropDownContainer.dropdown = DropDownMenu(style, header, direction, slideController, dropDownContainer);
+    table.insert(dropdowns, dropDownContainer);
 
-    return dropDownContainer.toggleButton.dropdown;
+    return dropDownContainer.dropdown;
 end
 
 -----------------------------------
@@ -127,8 +128,8 @@ end
     _G.GameTooltip:Hide();
 end
 
-
-function DropDownMenu:__Construct(data, header, direction, slideController, frame, style)
+WidgetsPackage:DefineParams("Style", "Frame", "string", "SlideController", "Frame")
+function DropDownMenu:__Construct(data, style, header, direction, slideController, frame)
     data.header = header;
     data.direction = direction;
     data.slideController = slideController;
@@ -146,6 +147,12 @@ function DropDownMenu:__Construct(data, header, direction, slideController, fram
 
     -- disabled by default (until an option is added)
     self:SetEnabled(false);
+end
+
+function DropDownMenu:SetParent(data, parent)
+    -- this is needed to fix setting a new parent bug
+    data.frame:SetParent(parent);
+    data.header:SetParent(parent);
 end
 
 function DropDownMenu:GetMenu(data)
@@ -171,11 +178,12 @@ do
     end
 end
 
--- tooltip means that the tooltip should be the same as the label
+WidgetsPackage:DefineParams("string");
 function DropDownMenu:SetLabel(data, text)
     data.label:SetText(text);
 end
 
+WidgetsPackage:DefineReturns("string");
 function DropDownMenu:GetLabel(data)
     return data.label and data.label:GetText();
 end
@@ -342,6 +350,10 @@ function DropDownMenu:AddOption(data, label, func, ...)
 end
 
 function DropDownMenu:SetEnabled(data, enabled)
+    if (data.header.isEnabled == enabled) then
+        return;
+    end
+
     data.frame.toggleButton:SetEnabled(enabled);
     data.header.isEnabled = enabled; -- required for using the correct tooltip
 

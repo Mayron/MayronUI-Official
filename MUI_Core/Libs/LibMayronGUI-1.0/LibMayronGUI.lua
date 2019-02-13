@@ -175,7 +175,7 @@ do
     local frames = {};
 
     function Private:PopFrame(objectType, parent)
-        parent = parent or self.UIParent;
+        parent = parent or _G.UIParent;
         objectType = objectType or "Frame";
 
         local frame = frames[objectType] and frames[objectType][#frames];
@@ -186,6 +186,7 @@ do
             frames[objectType][#frames] = nil;
         end
 
+        frame:ClearAllPoints(true);
         frame:SetParent(parent);
         frame:Show();
 
