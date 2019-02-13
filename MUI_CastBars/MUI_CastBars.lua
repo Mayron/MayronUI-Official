@@ -654,8 +654,8 @@ function C_CastBarsModule:OnInitialize(data)
             {
                 patterns = { "(position|anchorToSUF)$" };
                 value = function(value, keysList)
-                    print(value) -- Always nil!!!
-                    keysList:Print();
+                    -- print(value) -- Always nil!!!
+                    -- keysList:Print();
                     local barName = keysList:PopFront();
 
                     if (data.bars[barName]) then

@@ -389,6 +389,9 @@ do
             local onPre, onPost;
             local settingPath = originalPathOfValue:gsub(observerPath..".", tk.Strings.Empty);
 
+            -- db could not find "selectedValue"
+            MayronUI:Print("From db: ", updateFunction, selectedValue, originalPathOfValue, originalValue);
+
             if (obj:IsTable(updateFunction)) then
                 -- check if a group function can be used
                 updateFunction, onPre, onPost = FindMatchingGroupValue(originalPathOfValue, options);

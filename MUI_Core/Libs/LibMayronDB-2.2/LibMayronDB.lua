@@ -289,6 +289,7 @@ function Database:TriggerUpdateFunction(data, svRootTable, fullPath, newValue)
     end
 
     if (obj:IsFunction(manualFunction)) then
+        --TODO: Why could db find updateFunction (as a table) but NOT selectedValue??? for profile.castBars.Player.anchorToSUF
         manualFunction(updateFunction, selectedValue, originalPathOfValue, originalValue);
 
     elseif (obj:IsFunction(updateFunction)) then
