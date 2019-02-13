@@ -389,15 +389,14 @@ do
             local onPre, onPost;
             local settingPath = originalPathOfValue:gsub(observerPath..".", tk.Strings.Empty);
 
-            -- db could not find "selectedValue"
-            MayronUI:Print("From db: ", updateFunction, selectedValue, originalPathOfValue, originalValue);
+            if (not obj:IsFunction(updateFunction)) then
+                selectedValue = originalValue;
 
-            if (obj:IsTable(updateFunction)) then
                 -- check if a group function can be used
-                updateFunction, onPre, onPost = FindMatchingGroupValue(originalPathOfValue, options);
+                updateFunction, onPre, onPost = FindMatchingGroupValue(settingPath, options);
 
                 if (obj:IsTable(updateFunction)) then
-                    local lastKey = originalPathOfValue:match("%.([^.]*)$");
+                    local lastKey = settingPath:match("%.([^.]*)$");
                     updateFunction = updateFunction[lastKey];
                 end
             end
@@ -407,7 +406,7 @@ do
                 db:SetPathValue(data.settings, settingPath, selectedValue);
 
                 if (self:IsEnabled() or updateFunction == data.updateFunctions.enabled) then
-                    ExecuteUpdateFunction(originalPathOfValue, updateFunction, selectedValue, nil, onPre, onPost);
+                    ExecuteUpdateFunction(settingPath, updateFunction, selectedValue, nil, onPre, onPost);
                 end
             else
                 -- update settings:

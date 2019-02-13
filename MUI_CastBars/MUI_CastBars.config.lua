@@ -211,7 +211,6 @@ function C_CastBarsModule:GetConfigTable()
                                         return;
                                     end
 
-                                    MayronUI:Print(path, newValue); -- TODO: newValue is correct but it is passed to updateFunction as nil!
                                     db:SetPathValue(path, newValue);
 
                                     for _, textfield in ipairs(position_TextFields[name]) do

@@ -289,8 +289,12 @@ function Database:TriggerUpdateFunction(data, svRootTable, fullPath, newValue)
     end
 
     if (obj:IsFunction(manualFunction)) then
-        --TODO: Why could db find updateFunction (as a table) but NOT selectedValue??? for profile.castBars.Player.anchorToSUF
-        manualFunction(updateFunction, selectedValue, originalPathOfValue, originalValue);
+        if (obj:IsFunction(updateFunction)) then
+            -- could not find an update function
+            manualFunction(nil, nil, originalPathOfValue, originalValue);
+        else
+            manualFunction(updateFunction, selectedValue, originalPathOfValue, originalValue);
+        end
 
     elseif (obj:IsFunction(updateFunction)) then
         updateFunction(selectedValue, originalPathOfValue);

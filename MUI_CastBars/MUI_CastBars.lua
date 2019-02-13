@@ -653,9 +653,7 @@ function C_CastBarsModule:OnInitialize(data)
         groups = {
             {
                 patterns = { "(position|anchorToSUF)$" };
-                value = function(value, keysList)
-                    -- print(value) -- Always nil!!!
-                    -- keysList:Print();
+                value = function(_, keysList)
                     local barName = keysList:PopFront();
 
                     if (data.bars[barName]) then
