@@ -95,32 +95,34 @@ function tk:SetFullWidth(frame, rightPadding)
     end
 end
 
-function tk:MakeMovable(frame, dragger, movable)
-    if (movable == nil) then
-        movable = true;
+do
+    local function Dragger_OnDragStart(self)
+        if (self.frame:IsMovable()) then
+            self.frame:StartMoving();
+        end
     end
 
-    dragger = dragger or frame;
-    dragger:EnableMouse(movable);
-    dragger:RegisterForDrag("LeftButton");
-
-    frame:SetMovable(movable);
-    frame:SetClampedToScreen(true);
-
-    dragger:HookScript("OnDragStart", function()
-        if (frame:IsMovable()) then
-            local x, y = frame:GetCenter();
-
-            frame:SetPoint("CENTER", tk.UIParent, "BOTTOMLEFT", x, y);
-            frame:StartMoving();
+    local function Dragger_OnDragStop(self)
+        if (self.frame:IsMovable()) then
+            self.frame:StopMovingOrSizing();
         end
-    end);
+    end
 
-    dragger:HookScript("OnDragStop", function()
-        if (frame:IsMovable()) then
-            frame:StopMovingOrSizing();
+    function tk:MakeMovable(frame, dragger, movable)
+        if (movable == nil) then
+            movable = true;
         end
-    end);
+
+        dragger = dragger or frame;
+        dragger.frame = frame;
+
+        dragger:EnableMouse(movable);
+        dragger:RegisterForDrag("LeftButton");
+        frame:SetMovable(movable);
+        frame:SetClampedToScreen(true);
+        dragger:HookScript("OnDragStart", Dragger_OnDragStart);
+        dragger:HookScript("OnDragStop", Dragger_OnDragStop);
+    end
 end
 
 function tk:SavePosition(frame, dbPath, override)

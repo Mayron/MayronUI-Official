@@ -652,7 +652,7 @@ function C_CastBarsModule:OnInitialize(data)
         };
         groups = {
             {
-                patterns = { "(position|anchorToSUF)$" };
+                patterns = { "(position|anchorToSUF)%[?%d?%]?$" };
                 value = function(_, keysList)
                     local barName = keysList:PopFront();
 
@@ -662,7 +662,7 @@ function C_CastBarsModule:OnInitialize(data)
                 end;
             };
             {
-                patterns = { "(width|height|frameStrata|frameLevel|showIcon)$" };
+                patterns = { "(width|height|frameStrata|frameLevel|showIcon)" };
                 value = function(value, keysList)
                     local barName = keysList:PopFront();
                     local attribute = keysList:PopFront();

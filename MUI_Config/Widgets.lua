@@ -463,32 +463,32 @@ end
 -- Text Field
 ---------------
 
-local function TextField_OnTextChanged(self, value)
+local function TextField_OnTextChanged(textfield, value, _, container)
     -- perform validation based on valueType
     local isValue = true;
 
     -- ensure database stores a number, instead of a string containing a number
     value = tonumber(value) or value;
 
-    if (self.valueType == "number") then
+    if (container.valueType == "number") then
 
         if (not obj:IsNumber(value)) then
             isValue = false;
         else
-            if (self.min and value < self.min) then
+            if (container.min and value < container.min) then
                 isValue = false;
             end
-            if (self.max and value > self.max) then
+            if (container.max and value > container.max) then
                 isValue = false;
             end
         end
     end
 
     if (not isValue) then
-        self:ApplyPreviousText();
+        textfield:ApplyPreviousText();
     else
-        self:SetText(value);
-        configModule:SetDatabaseValue(self:GetFrame(), value);
+        textfield:SetText(value);
+        configModule:SetDatabaseValue(container, value);
     end
 end
 
@@ -504,11 +504,12 @@ function WidgetHandlers.textfield(parent, widgetTable, value)
     local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetTable.tooltip, parent);
 
     textField:SetText((value and tostring(value)) or "");
+    local container = CreateElementContainerFrame(textField, widgetTable, parent);
 
     -- passes in textField (not data.editBox);
-    textField:OnTextChanged(TextField_OnTextChanged, widgetTable);
+    textField:OnTextChanged(TextField_OnTextChanged, container);
 
-    return CreateElementContainerFrame(textField, widgetTable, parent);
+    return container;
 end
 
 ----------------

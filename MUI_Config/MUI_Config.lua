@@ -125,7 +125,7 @@ function C_ConfigModule:SetDatabaseValue(_, widget, newValue)
             oldValue = db:ParsePathValue(widget.dbPath);
         end
 
-        widget.SetValue(widget.dbPath, newValue, oldValue, widget);
+        widget.SetValue(widget.dbPath, newValue, oldValue, widget); -- TODO: Problem - widget actually has a SetValue! it's a blizzard slider!
     else
         -- dbPath is required if not using a custom SetValue function!
         if (widget.name and widget.name.IsObjectType and widget.name:IsObjectType("FontString")) then

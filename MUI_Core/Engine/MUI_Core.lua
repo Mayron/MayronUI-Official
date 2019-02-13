@@ -279,6 +279,8 @@ end
 local function ExecuteUpdateFunction(path, updateFunction, setting, executed, onPre, onPost)
     local keysList = tk.Tables:ConvertPathToKeysList(path);
 
+    keysList:Print();
+
     if (obj:IsFunction(onPre)) then
         if (obj:IsFunction(onPost)) then
             onPost(setting, keysList, updateFunction(setting, keysList, onPre(setting, keysList)));
@@ -754,6 +756,7 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
     -- TODO: This should be it's own Module
     namespace:SetupOrderHallBar();
 
+    print("-----------------------------------")
     collectgarbage("collect");
 end):SetAutoDestroy(true);
 
@@ -859,6 +862,4 @@ db:OnStartUp(function(self)
         _G.ScriptErrorsFrame.DisplayMessage = function() end;
         error();
     end);
-
-    tk.collectgarbage("collect");
 end);

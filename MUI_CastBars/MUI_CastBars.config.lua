@@ -8,8 +8,23 @@ local sufAnchor_CheckButtons = obj:PopTable();
 local width_TextFields = obj:PopTable();
 local height_TextFields = obj:PopTable();
 
-local function UnlockCastBar(button, data)
-    local name = data.castbarName:gsub("^%l", tk.string.upper);
+
+local function SetPositionTextFieldsEnabled(enabled, castBarName)
+    for _, textfield in ipairs(position_TextFields[castBarName]) do
+        textfield:SetEnabled(enabled);
+    end
+
+    for _, textfield in ipairs(width_TextFields[castBarName]) do
+        textfield:SetEnabled(enabled);
+    end
+
+    for _, textfield in ipairs(height_TextFields[castBarName]) do
+        textfield:SetEnabled(enabled);
+    end
+end
+
+local function UnlockCastBar(widget, castBarName)
+    local name = castBarName:gsub("^%l", string.upper);
     local castbar = _G[tk.Strings:Concat("MUI_", name, "CastBar")];
 
     castbar.unlocked = not castbar.unlocked;
@@ -21,30 +36,10 @@ local function UnlockCastBar(button, data)
 
     tk:MakeMovable(castbar, nil, castbar.unlocked);
 
-    if (not data.hooked) then
-        data.hooked = true;
-        castbar:HookScript("OnDragStart", function()
-            db:SetPathValue("profile.castBars."..data.castbarName..".anchorToSUF", false);
-            sufAnchor_CheckButtons[data.castbarName]:SetChecked(false);
-
-            for _, textfield in ipairs(position_TextFields[data.castbarName]) do
-                textfield:SetEnabled(true);
-            end
-
-            for _, textfield in ipairs(width_TextFields[data.castbarName]) do
-                textfield:SetEnabled(true);
-            end
-
-            for _, textfield in ipairs(height_TextFields[data.castbarName]) do
-                textfield:SetEnabled(true);
-            end
-        end);
-    end
-
     if (not castbar.moveIndicator) then
         castbar.moveIndicator = castbar.statusbar:CreateTexture(nil, "OVERLAY");
         castbar.moveIndicator:SetColorTexture(0, 0, 0, 0.6);
-        tk:SetThemeColor(0.6, castbar.moveIndicator);
+        tk:ApplyThemeColor(0.6, castbar.moveIndicator);
         castbar.moveIndicator:SetAllPoints(true);
         castbar.moveLabel = castbar.statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
         castbar.moveLabel:SetText(tk.Strings:Concat("<", name, " CastBar>"));
@@ -52,25 +47,29 @@ local function UnlockCastBar(button, data)
     end
 
     if (castbar.unlocked) then
-        button:SetText(L["Lock"]);
+        widget:SetText(L["Lock"]);
         castbar.moveIndicator:Show();
         castbar.moveLabel:Show();
         castbar:SetAlpha(1);
-        castbar.name:SetText("");
-        castbar.duration:SetText("");
+        castbar.name:SetText(tk.Strings.Empty);
+        castbar.duration:SetText(tk.Strings.Empty);
         castbar.statusbar:SetStatusBarColor(0, 0, 0, 0);
     else
-        button:SetText(L["Unlock"]);
+        widget:SetText(L["Unlock"]);
         castbar.moveIndicator:Hide();
         castbar.moveLabel:Hide();
         castbar:SetAlpha(0);
 
-        local positions = tk:SavePosition(castbar, "profile.castBars."..data.castbarName..".position");
+        local positions = tk:SavePosition(castbar, tk.Strings:Join(".", "profile.castBars", castBarName, "position"));
 
         if (positions) then
-            for key, textfield in tk.pairs(position_TextFields[data.castbarName]) do
+            for key, textfield in pairs(position_TextFields[castBarName]) do
                 textfield:SetText(positions[key]);
             end
+
+            SetPositionTextFieldsEnabled(true, castBarName);
+            sufAnchor_CheckButtons[castBarName]:SetChecked(false);
+            db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "anchorToSUF"), false);
         end
     end
 end
@@ -212,18 +211,7 @@ function C_CastBarsModule:GetConfigTable()
                                     end
 
                                     db:SetPathValue(path, newValue);
-
-                                    for _, textfield in ipairs(position_TextFields[name]) do
-                                        textfield:SetEnabled(not newValue);
-                                    end
-
-                                    for _, textfield in ipairs(width_TextFields[name]) do
-                                        textfield:SetEnabled(not newValue);
-                                    end
-
-                                    for _, textfield in ipairs(height_TextFields[name]) do
-                                        textfield:SetEnabled(not newValue);
-                                    end
+                                    SetPositionTextFieldsEnabled(not newValue, name);
                                 end
                             },
                             {   type = "divider",
@@ -231,7 +219,7 @@ function C_CastBarsModule:GetConfigTable()
                             },
                             {   name = L["Unlock"],
                                 type = "button",
-                                castbarName = name,
+                                data = { name },
                                 OnClick = UnlockCastBar
                             },
                             {   type = "divider"
