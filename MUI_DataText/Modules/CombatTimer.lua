@@ -6,27 +6,13 @@ local tk, db, em, _, obj = MayronUI:GetCoreComponents();
 local Engine = obj:Import("MayronUI.Engine");
 local CombatTimer = Engine:CreateClass("CombatTimer", nil, "MayronUI.Engine.IDataTextModule");
 
--- Load Database Defaults ------------
-
-db:AddToDefaults("profile.datatext.combatTimer", {
-    enabled = false
-});
-
 -- CombatTimer Module ----------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    local sv = db.profile.datatext.combatTimer;
-    sv:SetParent(db.profile.datatext);
-
-    local settings = sv:GetTrackedTable();
-
-    if (settings.enabled) then
-        local combatTimer = CombatTimer(self, settings);
-        self:RegisterDataModule(combatTimer);
-    end
+    self:RegisterDataModule("combatTimer", CombatTimer);
 end);
 
-function CombatTimer:__Construct(data, dataTextModule, settings)
+function CombatTimer:__Construct(data, settings, dataTextModule)
     data.settings = settings;
 
     -- set public instance properties
@@ -36,20 +22,6 @@ function CombatTimer:__Construct(data, dataTextModule, settings)
     self.HasLeftMenu = false;
     self.HasRightMenu = false;
     self.SavedVariableName = "combatTimer";
-
-    em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-        data.startTime = _G.GetTime();
-        data.inCombat = true;
-        data.executed = nil;
-        self:Update();
-    end);
-
-    em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
-        data.inCombat = nil;
-        data.minutes:SetText(data.minutes.value or "00");
-        data.seconds:SetText(data.seconds.value or ":00:");
-        data.milliseconds:SetText(data.milliseconds.value or "00");
-    end);
 
     local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
@@ -66,11 +38,6 @@ function CombatTimer:__Construct(data, dataTextModule, settings)
     data.milliseconds = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
     data.milliseconds:SetFont(font, data.settings.fontSize);
     data.milliseconds:SetJustifyH("LEFT");
-
-    data.minutes:SetText("00");
-    data.seconds:SetText(":00:");
-    data.milliseconds:SetText("00");
-
     data.seconds:SetPoint("CENTER");
     data.minutes:SetPoint("RIGHT", data.seconds, "LEFT");
     data.milliseconds:SetPoint("LEFT", data.seconds, "RIGHT");
@@ -79,24 +46,39 @@ end
 function CombatTimer:Click() end
 
 function CombatTimer:IsEnabled(data)
-    return data.settings.enabled;
+    return data.enabled;
 end
 
-function CombatTimer:Enable(data)
-    data.settings.enabled = true;
-    data.settings:SaveChanges();
-end
+function CombatTimer:SetEnabled(data, enabled)
+    data.enabled = false;
 
-function CombatTimer:Disable(data)
-    data.settings.enabled = false;
-    data.settings:SaveChanges();
+    if (not enabled) then
+        em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "DataText_CombatTimer_RegenDisabled", function()
+            data.startTime = _G.GetTime();
+            data.inCombat = true;
+            data.executed = nil;
+            self:Update();
+        end);
 
-    em:FindEventHandlerByKey("PLAYER_REGEN_DISABLED", "combatTimer"):Destroy();
-    em:FindEventHandlerByKey("PLAYER_REGEN_ENABLED", "combatTimer"):Destroy();
+        em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "DataText_CombatTimer_RegenEnabled", function()
+            data.inCombat = nil;
+            data.minutes:SetText(data.minutes.value or "00");
+            data.seconds:SetText(data.seconds.value or ":00:");
+            data.milliseconds:SetText(data.milliseconds.value or "00");
+        end);
 
-    data.minutes:SetText("");
-    data.seconds:SetText("");
-    data.milliseconds:SetText("");
+        data.minutes:SetText("00");
+        data.seconds:SetText(":00:");
+        data.milliseconds:SetText("00");
+    else
+        -- Destroy
+        em:DestroyEventHandlerByKey("DataText_CombatTimer_RegenDisabled");
+        em:DestroyEventHandlerByKey("DataText_CombatTimer_RegenEnabled");
+
+        data.minutes:SetText("");
+        data.seconds:SetText("");
+        data.milliseconds:SetText("");
+    end
 end
 
 function CombatTimer:Update(data)

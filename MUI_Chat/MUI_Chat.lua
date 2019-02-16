@@ -126,19 +126,44 @@ function C_ChatModule:OnInitialize(data)
 	end
 
 	self:RegisterUpdateFunctions(db.profile.chat, {
-		chatFrames = function(value)
-			for anchorName, settings in pairs(value) do
-				local muiChatFrame = data.chatFrames[anchorName];
+		chatFrames = function(value, keysList)
+			if (keysList:GetSize() == 1) then
+				for anchorName, settings in pairs(value) do
+					local muiChatFrame = data.chatFrames[anchorName];
 
-				if (settings.enabled and not muiChatFrame) then
-					muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
+					if (settings.enabled and not muiChatFrame) then
+						muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
 
-					data.chatFrames[anchorName] = muiChatFrame;
+						data.chatFrames[anchorName] = muiChatFrame;
+					end
+
+					if (muiChatFrame) then
+						muiChatFrame:SetEnabled(settings.enabled);
+						muiChatFrame:SetUpButtonHandler(settings.buttons);
+					end
 				end
+			else
+				keysList:PopFront();
+				local anchorName = keysList:PopFront();
+				local muiChatFrame = data.chatFrames[anchorName];
+				local settingName = keysList:PopFront();
 
-				if (muiChatFrame) then
-					muiChatFrame:SetEnabled(settings.enabled);
-					muiChatFrame:SetUpButtonHandler(settings.buttons);
+				if (settingName == "buttons") then
+					keysList:PopFront();
+					local buttonID= keysList:PopFront();
+
+					if (buttonID ~= "key") then
+						em:TriggerEventHandlerByKey(anchorName.."_OnModifierStateChanged");
+					end
+
+				elseif (settingName == "enabled") then
+					if (value and not muiChatFrame) then
+						muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
+
+						data.chatFrames[anchorName] = muiChatFrame;
+					end
+
+					muiChatFrame:SetEnabled(value);
 				end
 			end
 		end;

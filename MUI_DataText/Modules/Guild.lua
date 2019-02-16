@@ -11,7 +11,6 @@ local Guild = Engine:CreateClass("Guild", nil, "MayronUI.Engine.IDataTextModule"
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.guild", {
-    enabled = true,
     showSelf = true,
     showTooltips = true
 });
@@ -72,57 +71,47 @@ end
 
 -- Guild Module --------------
 
-MayronUI:Hook("DataTextModule", "OnInitialize", function(self, dataTextData)
-    local sv = db.profile.datatext.guild;
-    sv:SetParent(db.profile.datatext);
-
-    local settings = sv:GetTrackedTable();
-
-    if (settings.enabled) then
-        local guild = Guild(settings, dataTextData.slideController, self);
-        self:RegisterDataModule(guild);
-    end
+MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
+    self:RegisterDataModule("guild", Guild);
 end);
 
-function Guild:__Construct(data, settings, slideController, dataTextModule)
+function Guild:__Construct(data, settings, dataTextModule, slideController)
     data.settings = settings;
     data.slideController = slideController;
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
-    self.MenuLabels = {};
+    self.MenuLabels = obj:PopTable();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
     self.SavedVariableName = "guild";
 
     self.Button = dataTextModule:CreateDataTextButton();
-    self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-
-    data.handler = em:CreateEventHandler("GUILD_ROSTER_UPDATE", function()
-        if (not self.Button) then return; end
-        self:Update();
-    end);
 end
 
 function Guild:IsEnabled(data)
-    return data.settings.enabled;
+    return data.enabled;
 end
 
-function Guild:Enable(data)
-    data.settings.enabled = true;
-    data.settings:SaveChanges();
-end
+function Guild:SetEnabled(data, enabled)
+    data.enabled = enabled;
 
-function Guild:Disable(data)
-    data.settings.enabled = false;
-    data.settings:SaveChanges();
+    if (enabled) then
+        data.handler = em:CreateEventHandler("GUILD_ROSTER_UPDATE", function()
+            if (not self.Button) then return; end
+            self:Update();
+        end);
 
-    if (data.handler) then
-        data.handler:Destroy();
+        self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+    else
+        if (data.handler) then
+            data.handler:Destroy();
+            data.handler = nil;
+        end
+
+        self.Button:RegisterForClicks("LeftButtonUp");
     end
-
-    self.Button:RegisterForClicks("LeftButtonUp");
 end
 
 function Guild:Update(data)

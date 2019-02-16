@@ -15,7 +15,7 @@ local Friends = Engine:CreateClass("Friends", nil, "MayronUI.Engine.IDataTextMod
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.friends", {
-    enabled = true;
+    --TODO: Add settings...
 });
 
 -- Local Functions -------------------
@@ -49,19 +49,11 @@ end
 
 -- Friends Module --------------
 
-MayronUI:Hook("DataTextModule", "OnInitialize", function(self, dataTextData)
-    local sv = db.profile.datatext.friends;
-    sv:SetParent(db.profile.datatext);
-
-    local settings = sv:GetTrackedTable();
-
-    if (settings.enabled) then
-        local friends = Friends(settings, dataTextData.slideController, self);
-        self:RegisterDataModule(friends);
-    end
+MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
+    self:RegisterDataModule("friends", Friends);
 end);
 
-function Friends:__Construct(data, settings, slideController, dataTextModule)
+function Friends:__Construct(data, settings, dataTextModule, slideController)
     data.settings = settings;
     data.slideController = slideController;
 
@@ -74,53 +66,48 @@ function Friends:__Construct(data, settings, slideController, dataTextModule)
     self.SavedVariableName = "friends";
 
     self.Button = dataTextModule:CreateDataTextButton();
-    self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-
-    data.showMenu = nil;
-
-    data.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
-        if (not self.Button) then return; end
-        self:Update();
-    end);
 end
 
-function Friends:Enable(data)
-    data.settings.enabled = true;
-    data.settings:SaveChanges();
-end
+function Friends:SetEnabled(data, enabled)
+    data.enabled = enabled;
 
-function Friends:Disable(data)
-    data.settings.enabled = false;
-    data.settings:SaveChanges();
+    if (enabled) then
+        data.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
+            if (not self.Button) then return; end
+            self:Update();
+        end);
 
-    if (data.handler) then
-        data.handler:Destroy();
+        self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+    else
+        if (data.handler) then
+            data.handler:Destroy();
+            data.handler = nil;
+        end
+
+        self.Button:RegisterForClicks("LeftButtonUp");
     end
-
-    self.Button:RegisterForClicks("LeftButtonUp");
 end
 
 function Friends:IsEnabled(data)
-    return data.settings.enabled;
+    return data.enabled;
 end
 
-function Friends:Update(data)
-    local total_online = 0;
+function Friends:Update()
+    local totalOnline = 0;
 
     for i = 1, BNGetNumFriends() do
         if ((select(8, BNGetFriendInfo(i)))) then
-            total_online = total_online + 1;
+            totalOnline = totalOnline + 1;
         end
     end
 
     for i = 1, GetNumFriends() do
         if ((tk.select(5, GetFriendInfo(i)))) then
-            total_online = total_online + 1;
+            totalOnline = totalOnline + 1;
         end
     end
 
-    data.showMenu = (total_online ~= 0);
-    self.Button:SetText(tk.string.format(LABEL_PATTERN, total_online));
+    self.Button:SetText(tk.string.format(LABEL_PATTERN, totalOnline));
 end
 
 function Friends:Click(data, button)

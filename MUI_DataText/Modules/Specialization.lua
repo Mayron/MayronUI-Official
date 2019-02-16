@@ -9,7 +9,6 @@ local Specialization = Engine:CreateClass("Specialization", nil, "MayronUI.Engin
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.specialization", {
-    enabled = true,
     sets = {}
 });
 
@@ -57,7 +56,7 @@ local function CreateDropDown(contentFrame, popupWidth, dataTextBar, sets)
     local currentSpecializationName = tk.select(2, _G.GetSpecializationInfo(1));
     local currentEquipmentSetId = sets[currentSpecializationName];
 
-    if (type(currentEquipmentSetId) == "number" and currentEquipmentSetId >= 0 and currentEquipmentSetId <= 9) then
+    if (obj:IsNumber(currentEquipmentSetId) and currentEquipmentSetId >= 0 and currentEquipmentSetId <= 9) then
         local equipmentSetName = _G.C_EquipmentSet.GetEquipmentSetInfo(currentEquipmentSetId);
 
         if (equipmentSetName) then
@@ -91,24 +90,19 @@ end
 
 -- Specialization Module --------------
 
-MayronUI:Hook("DataTextModule", "OnInitialize", function(self, dataTextData)
+MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
     local sv = db.profile.datatext.specialization;
     sv:SetParent(db.profile.datatext);
 
     local settings = sv:GetTrackedTable();
-
-    if (settings.enabled) then
-        local specialization = Specialization(settings, dataTextData.bar, dataTextData.slideController, self);
-        self:RegisterDataModule(specialization);
-        specialization:Enable();
-    end
+    self:RegisterDataModule("specialization", Specialization, settings);
 end);
 
-function Specialization:__Construct(data, settings, dataTextBar, slideController, dataTextModule)
+function Specialization:__Construct(data, settings, dataTextModule, slideController, dataTextBar)
     data.settings = settings;
     data.dataTextBar = dataTextBar;
     data.slideController = slideController;
-    data.dropdowns = {};
+    data.dropdowns = obj:PopTable();
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
@@ -123,58 +117,46 @@ function Specialization:__Construct(data, settings, dataTextBar, slideController
 end
 
 function Specialization:IsEnabled(data)
-    return data.settings.enabled;
+    return data.enabled;
 end
 
-function Specialization:Enable(data)
-    if (data.settings.enabled) then
-        return;
-    end
+function Specialization:SetEnabled(data, enabled)
+    data.enabled = enabled;
 
-    data.settings.enabled = true;
-    data.settings:SaveChanges();
+    if (enabled) then
+        self.Button:SetScript("OnEnter", Button_OnEnter);
+        self.Button:SetScript("OnLeave", Button_OnLeave);
 
-    self.Button:SetScript("OnEnter", Button_OnEnter);
-    self.Button:SetScript("OnLeave", Button_OnLeave);
-
-    em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "spec_1", function()
-        self:Update();
-    end);
-
-    em:CreateEventHandlerWithKey("PLAYER_SPECIALIZATION_CHANGED", "spec_2", function(_, _, unitID)
-        if (unitID == "player") then
+        em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "DataText_Specialization_EnteringWorld", function()
             self:Update();
+        end);
 
-            if (not data.settings.sets) then
-                return;
-            end
+        em:CreateEventHandlerWithKey("PLAYER_SPECIALIZATION_CHANGED", "DataText_Specialization_SpecChanged", function(_, _, unitID)
+            if (unitID == "player") then
+                self:Update();
 
-            local _, specializationName = _G.GetSpecializationInfo(_G.GetSpecialization());
+                if (not data.settings.sets) then
+                    return;
+                end
 
-            if (data.settings.sets[specializationName]) then
-                local equipmentSetId = data.settings.sets[specializationName];
+                local _, specializationName = _G.GetSpecializationInfo(_G.GetSpecialization());
 
-                if (equipmentSetId ~= nil) then
-                    _G.C_EquipmentSet.UseEquipmentSet(equipmentSetId);
+                if (data.settings.sets[specializationName]) then
+                    local equipmentSetId = data.settings.sets[specializationName];
+
+                    if (equipmentSetId ~= nil) then
+                        _G.C_EquipmentSet.UseEquipmentSet(equipmentSetId);
+                    end
                 end
             end
-        end
-    end);
-end
+        end);
+    else
+        em:DestroyEventHandlerByKey("DataText_Specialization_EnteringWorld");
+        em:DestroyEventHandlerByKey("DataText_Specialization_SpecChanged");
 
-function Specialization:Disable(data)
-    if (not data.settings.enabled) then
-        return;
+        self.Button:SetScript("OnEnter", nil);
+        self.Button:SetScript("OnLeave", nil);
     end
-
-    data.settings.enabled = false;
-    data.settings:SaveChanges();
-
-    em:FindEventHandlerByKey("spec_1"):Destroy();
-    em:FindEventHandlerByKey("spec_2"):Destroy();
-
-    self.Button:SetScript("OnEnter", nil);
-    self.Button:SetScript("OnLeave", nil);
 end
 
 function Specialization:Update()

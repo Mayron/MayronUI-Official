@@ -68,9 +68,9 @@ function C_DataTextModule:GetConfigTable()
             {   type = "dropdown",
                 name = L["Bar Strata"],
                 tooltip = L["The frame strata of the entire DataText bar."],
-                options = tk.Constants.FRAME_STRATAS,
-                default = "MEDIUM",
-                appendDbPath = "frameStrata"
+                options = tk.Constants.ORDERED_FRAME_STRATAS,
+                disableSorting = true;
+                appendDbPath = "frameStrata";
             },
             {   type = "slider",
                 name = L["Bar Level"],
@@ -85,35 +85,35 @@ function C_DataTextModule:GetConfigTable()
                 type = "title",
             },
             {   type = "loop",
-                loops = 10, -- TODO: This can remain at 10, don't need duplicate label and svName references!
+                loops = 10,
                 func = function(id)
-
                     local child = {
-                        name = tk.Strings:JoinWithSpace("Button", id),
-                        type = "dropdown",
-                        dbPath = string.format("profile.datatext.displayOrders[%s]", id),
-                        GetOptions = function()
-                            local options = {};
+                        name = tk.Strings:JoinWithSpace("Button", id);
+                        type = "dropdown";
+                        dbPath = string.format("profile.datatext.displayOrders[%s]", id);
+                        options = namespace.dataTextLabels;
+                        labels = "values";
 
-                            for svName, label in pairs(namespace.dataTextLabels) do
-                                options[label] = svName;
-                            end
-
-                            return options;
-                        end,
                         GetValue = function(_, value)
                             if (value == nil) then
                                 value = "disabled";
                             end
 
-                            -- return label
                             return namespace.dataTextLabels[value];
-                        end,
-                        SetValue = function() -- TODO: Maybe switch old value with new value?
-                            -- TODO: Passes in nil!
-                            -- TODO: dropdown labels must be unique values (if I change durability to guild, then guild must change to blank)
-                        -- db:SetPathValue(db.profile, path, svName);
-                        end,
+                        end;
+
+                        SetValue = function(dbPath, newLabel)
+                            local newValue;
+
+                            for value, label in pairs(namespace.dataTextLabels) do
+                                if (newLabel == label) then
+                                    newValue = value;
+                                    break;
+                                end
+                            end
+
+                            db:SetPathValue(dbPath, newValue);
+                        end;
                     };
 
                     if (id == 1) then

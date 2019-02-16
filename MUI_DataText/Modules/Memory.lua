@@ -11,7 +11,7 @@ local Memory = Engine:CreateClass("Memory", nil, "MayronUI.Engine.IDataTextModul
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.memory", {
-    enabled = true
+    --TODO: Add settings...
 });
 
 -- Local Functions ----------------
@@ -43,23 +43,15 @@ end
 -- Memory Module --------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    local sv = db.profile.datatext.memory;
-    sv:SetParent(db.profile.datatext);
-
-    local settings = sv:GetTrackedTable();
-
-    if (settings.enabled) then
-        local memory = Memory(settings, self);
-        self:RegisterDataModule(memory);
-    end
+    self:RegisterDataModule("memory", Memory);
 end);
 
 function Memory:__Construct(data, settings, dataTextModule)
-    data.settings = settings;
+    data.settings =  settings;
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
-    self.MenuLabels = {};
+    self.MenuLabels = obj:PopTable();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
@@ -68,23 +60,11 @@ function Memory:__Construct(data, settings, dataTextModule)
 end
 
 function Memory:IsEnabled(data)
-    return data.settings.enabled;
+    return data.enabled;
 end
 
-function Memory:Enable(data)
-    data.settings.enabled = true;
-    data.settings:SaveChanges();
-end
-
-function Memory:Disable(data)
-    data.settings.enabled = false;
-    data.settings:SaveChanges();
-
-    if (data.handler) then
-        data.handler:Destroy();
-    end
-
-    self.Button:RegisterForClicks("LeftButtonUp");
+function Memory:SetEnabled(data, enabled)
+    data.enabled = enabled;
 end
 
 function Memory:Update(data)

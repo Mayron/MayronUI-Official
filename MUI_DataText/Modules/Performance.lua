@@ -9,7 +9,6 @@ local Performance = Engine:CreateClass("Performance", nil, "MayronUI.Engine.IDat
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.performance", {
-    enabled = true,
     showFps = true,
     showHomeLatency = true,
     showServerLatency = false
@@ -22,12 +21,7 @@ MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
     sv:SetParent(db.profile.datatext);
 
     local settings = sv:GetTrackedTable();
-
-    if (settings.enabled) then
-        local performance = Performance(settings, self);
-        self:RegisterDataModule(performance);
-        performance:Enable();
-    end
+    self:RegisterDataModule("performance", Performance, settings);
 end);
 
 function Performance:__Construct(data, settings, dataTextModule)
@@ -43,27 +37,23 @@ function Performance:__Construct(data, settings, dataTextModule)
     self.Button = dataTextModule:CreateDataTextButton();
 end
 
-function Performance:Enable(data)
-    data.settings.enabled = true;
-    data.settings:SaveChanges();
+function Performance:SetEnabled(data, enabled)
+    data.enabled = enabled;
 
-    data.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
-        if (not self.Button) then return; end
-        self:Update();
-    end);
-end
+    if (enabled) then
+        data.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
+            if (not self.Button) then return; end
+            self:Update();
+        end);
 
-function Performance:Disable(data)
-    data.settings.enabled = false;
-    data.settings:SaveChanges();
-
-    if (data.handler) then
+    elseif (data.handler) then
         data.handler:Destroy();
+        data.handler = nil;
     end
 end
 
 function Performance:IsEnabled(data)
-    return data.settings.enabled;
+    return data.enabled;
 end
 
 function Performance:Update(data)

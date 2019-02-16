@@ -124,30 +124,36 @@ function C_CastBarsModule:GetConfigTable()
             {   name = L["Normal Casting"],
                 type = "color",
                 width = 160,
+                hasOpacity = true;
                 dbPath = "profile.castBars.appearance.colors.normal"
             },
             {   name = L["Finished Casting"],
                 type = "color",
+                hasOpacity = true;
                 width = 160,
                 dbPath = "profile.castBars.appearance.colors.finished"
             },
             {   name = L["Interrupted"],
-                type = "color",
+                type = "color";
+                hasOpacity = true;
                 width = 160,
                 dbPath = "profile.castBars.appearance.colors.interrupted"
             },
             {   name = L["Latency"],
                 type = "color",
+                hasOpacity = true;
                 width = 160,
                 dbPath = "profile.castBars.appearance.colors.latency"
             },
             {   name = L["Border"],
                 type = "color",
+                hasOpacity = true;
                 width = 160,
                 dbPath = "profile.castBars.appearance.colors.border"
             },
             {   name = "Background",
                 type = "color",
+                hasOpacity = true;
                 width = 160,
                 dbPath = "profile.castBars.appearance.colors.background"
             },

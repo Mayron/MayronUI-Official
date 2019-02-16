@@ -59,14 +59,15 @@ local function CreateButtonConfigTable(dbPath, buttonID)
                 return false;
             end,
 
-            SetValue = function(valueDbPath, oldValue, newValue)
-                newValue = newValue and modKeyFirstChar;
-
-                if (not newValue and oldValue and oldValue:find(modKeyFirstChar)) then
-                    newValue = oldValue:gsub("S", tk.Strings.Empty); -- remove it
+            SetValue = function(valueDbPath, checked, oldValue)
+                if (checked) then
+                    -- add it
+                    local newValue = (oldValue and tk.Strings:Concat(oldValue, modKeyFirstChar)) or modKeyFirstChar;
                     db:SetPathValue(valueDbPath, newValue);
-                else
-                    newValue = (oldValue and tk.Strings:Concat(oldValue, newValue)) or newValue; -- add it
+
+                elseif (oldValue and oldValue:find(modKeyFirstChar)) then
+                    -- remove it
+                    local newValue = oldValue:gsub(modKeyFirstChar, tk.Strings.Empty);
                     db:SetPathValue(valueDbPath, newValue);
                 end
             end
@@ -107,6 +108,7 @@ function C_ChatModule:GetConfigTable()
             {   name = L["Background Color"],
                 type = "color",
                 height = 64,
+                hasOpacity = true;
                 dbPath = "profile.chat.editBox.backdropColor"
             },
             { type = "divider",
@@ -164,7 +166,6 @@ function C_ChatModule:GetConfigTable()
                         children = { -- shame I can't loop this
                             {   name = L["Enable Chat Frame"],
                                 type = "check",
-                                requiresReload = true,
                                 dbPath = string.format("%s.enabled", dbPath),
                             },
                         }

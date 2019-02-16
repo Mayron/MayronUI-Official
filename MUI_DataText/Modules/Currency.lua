@@ -12,8 +12,6 @@ local LABEL_PATTERN = "|cffffffff%s|r";
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.currency", {
-    enabled = false,
-
     -- todo: this needs to be more intelligent...
     showCopper = false,
     showSilver = false,
@@ -40,10 +38,7 @@ end
 -- Currency Module ----------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    local sv = db.profile.datatext.currency;
-    sv:SetParent(db.profile.datatext);
 
-    local settings = sv:GetTrackedTable();
     local coloredKey = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
 
     -- saves info on the currency that each logged in character has
@@ -51,13 +46,10 @@ MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
         db:SetPathValue(db.global, "datatext.currency.characters", obj:PopTable());
     end
 
-	-- store character's money to be seen by other characters
+    -- store character's money to be seen by other characters
     db.global.datatext.currency.characters[coloredKey] = _G.GetMoney();
 
-    if (settings.enabled) then
-        local currency = Currency(settings, self);
-        self:RegisterDataModule(currency);
-    end
+    self:RegisterDataModule("currency", Currency);
 end);
 
 function Currency:__Construct(data, settings, dataTextModule)
@@ -89,14 +81,6 @@ function Currency:__Construct(data, settings, dataTextModule)
         data.settings:SaveChanges();
    end
 
-    em:CreateEventHandlerWithKey("PLAYER_MONEY", "PlayerMoneyHandler", function()
-        if (not self.Button) then
-            return;
-        end
-
-        self:Update();
-    end);
-
     data.info = obj:PopTable();
     data.info[1] = tk.Strings:SetTextColorByTheme(L["Current Money"]..":");
     data.info[2] = nil;
@@ -109,19 +93,24 @@ function Currency:__Construct(data, settings, dataTextModule)
 end
 
 function Currency:IsEnabled(data)
-    return data.settings.enabled;
+    return data.enabled;
 end
 
-function Currency:Enable(data)
-    data.settings.enabled = true;
-    data.settings:SaveChanges();
-end
+function Currency:SetEnabled(data, enabled)
+    data.enabled = enabled;
 
-function Currency:Disable(data)
-    data.settings.enabled = false;
-    data.settings:SaveChanges();
-    em:FindEventHandlerByKey("PlayerMoneyHandler"):Destroy();
-    data.showMenu = nil;
+    if (enabled) then
+        em:CreateEventHandlerWithKey("PLAYER_MONEY", "PlayerMoneyHandler", function()
+            if (not self.Button) then
+                return;
+            end
+
+            self:Update();
+        end);
+    else
+        em:DestroyEventHandlerByKey("PlayerMoneyHandler");
+        data.showMenu = nil;
+    end
 end
 
 Engine:DefineParams("number", "?string", "?boolean")

@@ -165,8 +165,8 @@ function C_ConfigModule:OpenMenu(data, menuButton)
 end
 
 do
-    local function CleanTablesIfNotSubmenu(tbl)
-        return (tbl.type ~= "submenu");
+    local function CleanTablesPredicate(tbl, key)
+        return (tbl.type ~= "submenu" and key ~= "options");
     end
 
     Engine:DefineParams("CheckButton|Button");
@@ -187,7 +187,7 @@ do
         if (menuButton.configTable) then
             self:RenderSelectedMenu(menuButton.configTable);
 
-            obj:PushTable(menuButton.configTable, CleanTablesIfNotSubmenu);
+            obj:PushTable(menuButton.configTable, CleanTablesPredicate);
             menuButton.configTable = nil;
 
             if (menuButton.module) then

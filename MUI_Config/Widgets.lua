@@ -252,12 +252,16 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
     container.dropdown:SetTooltip(widgetTable.tooltip);
     container.dropdown:SetDisabledTooltip(widgetTable.disabledTooltip);
 
+    if (widgetTable.disableSorting) then
+        container.dropdown:SetSortingEnabled(false);
+    end
+
     local options = GetAttribute(widgetTable, "options");
 
     for key, dropDownValue in pairs(options) do
         local option;
 
-        if (tonumber(key) or widgetTable.useNumberedKeys) then
+        if (tonumber(key) or widgetTable.labels == "values") then
             option = container.dropdown:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
         else
             option = container.dropdown:AddOption(key, DropDown_OnSelectedValue, dropDownValue);

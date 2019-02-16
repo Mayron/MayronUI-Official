@@ -256,22 +256,18 @@ function Database:GetUpdateFunctions(data, path)
     return self:ParsePathValue(data.updateFunctions, path);
 end
 
-Framework:DefineParams("table", "string");
+Framework:DefineParams("string");
 ---Triggers an update function located by the path argument and pass any arguments to the function
----@param svRootTable table @The database root saved variable table.
 ---@param fullPath string @A database path string, such as "profile.myTable.mySubTable[2]" (includes root path).
     --- This is needed to locate the updateFunction
 ---@param newValue any @(optional) The new value assigned to the database.
-function Database:TriggerUpdateFunction(data, svRootTable, fullPath, newValue)
-    local originalPathOfValue = fullPath; -- cut off the root path name
-    local originalValue = newValue;
-    local selectedValue = newValue;
+function Database:TriggerUpdateFunction(data, fullPath, newValue)
     local updateFunction = self:ParsePathValue(data.updateFunctions, fullPath);
     local manualFunction;
 
     -- used in while-loops for iteration only:
     local updateFunctionPath = fullPath;
-    local pathOfValue = originalPathOfValue; -- used only in the while-loop
+    local pathOfValue = fullPath; -- used only in the while-loop
     local manualFunctionPath = fullPath;
 
     while (not obj:IsFunction(updateFunction) and pathOfValue:find("[.[]")) do
@@ -280,7 +276,6 @@ function Database:TriggerUpdateFunction(data, svRootTable, fullPath, newValue)
         pathOfValue = pathOfValue:match('(.+)[.[]');
 
         updateFunction = self:ParsePathValue(data.updateFunctions, updateFunctionPath);
-        selectedValue = self:ParsePathValue(svRootTable, pathOfValue);
     end
 
     while (not obj:IsFunction(manualFunction) and manualFunctionPath:find("[.[]")) do
@@ -291,13 +286,13 @@ function Database:TriggerUpdateFunction(data, svRootTable, fullPath, newValue)
     if (obj:IsFunction(manualFunction)) then
         if (obj:IsFunction(updateFunction)) then
             -- could not find an update function
-            manualFunction(updateFunction, selectedValue, originalPathOfValue, originalValue);
+            manualFunction(updateFunction, fullPath, newValue);
         else
-            manualFunction(nil, nil, originalPathOfValue, originalValue);
+            manualFunction(nil, fullPath, newValue);
         end
 
     elseif (obj:IsFunction(updateFunction)) then
-        updateFunction(selectedValue, originalPathOfValue);
+        updateFunction(newValue, fullPath);
     end
 end
 
@@ -1324,7 +1319,7 @@ function Helper:HandlePathValueChange(data, observerData, key, newValue)
     if (dbTableRootName) then
         -- only run update function if the database saved variable table changes!
         local fullPath = string.format("%s.%s", dbTableRootName, valuePath);
-        data.database:TriggerUpdateFunction(svRootTable, fullPath, newValue);
+        data.database:TriggerUpdateFunction(fullPath, newValue);
     end
 end
 

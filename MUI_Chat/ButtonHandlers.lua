@@ -177,7 +177,7 @@ Engine:DefineParams("table")
 function C_ChatFrame:SetUpButtonHandler(data, buttonSettings)
     data.settings.buttons = buttonSettings;
 
-    em:CreateEventHandlerWithKey("MODIFIER_STATE_CHANGED", "ChatFrame_OnModifierStateChanged",
+    em:CreateEventHandlerWithKey("MODIFIER_STATE_CHANGED", data.anchorName.."_OnModifierStateChanged",
         ChatFrame_OnModifierStateChanged, data):Run();
 
     data.buttons[1]:SetScript("OnClick", ChatButton_OnClick);

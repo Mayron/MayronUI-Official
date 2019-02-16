@@ -81,9 +81,50 @@ Engine:CreateInterface("IDataTextModule", {
     Update = "function";
     Click = "function";
     IsEnabled = {type = "function"; returns = "boolean"};
-    Disable = "function";
-    Enable = "function";
+    SetEnabled = "function";
+    __Construct = {type = "function", params = {"table", "DataTextModule", "SlideController", "Frame"}}
 });
+
+local function IsSubDataTextModuleEnabled(displayOrders, moduleName)
+    for _, enabledModuleName in ipairs(displayOrders) do
+        if (enabledModuleName == moduleName) then
+            return true;
+        end
+    end
+
+    return false;
+end
+
+local function DataModuleButton_OnClick(self, ...)
+    self.dataModule:ClickModuleButton(self.dataModule, self, ...);
+end
+
+local function CreateSubDataTextModule(dataTextModule, data, moduleClass, moduleName)
+    local sv = db.profile.datatext[moduleName];
+    local settings;
+
+    if (obj:IsTable(sv)) then
+        sv:SetParent(db.profile.datatext);
+        settings = sv:GetTrackedTable();
+    else
+        settings = data.settings;
+    end
+
+    local module = moduleClass(settings, dataTextModule, data.slideController, data.bar);
+
+    module.Button.dataModule = dataTextModule;
+    module.Button:SetScript("OnClick", DataModuleButton_OnClick);
+
+    data.dataModules[moduleName] = module;
+    data.unloadedModules[moduleName] = nil;
+
+    if (tk.Tables:IsEmpty(data.unloadedModules)) then
+        obj:PushTable(data.unloadedModules);
+        data.unloadedModules = nil;
+    end
+
+    return module;
+end
 
 -- C_DataTextModule Functions -------------------
 
@@ -91,7 +132,8 @@ function C_DataTextModule:OnInitialize(data)
     data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
     data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
     data.buttons = obj:PopTable();
-    data.DataModules = obj:PopTable(); -- holds all data text modules
+    data.dataModules = obj:PopTable(); -- holds all data text modules
+    data.unloadedModules = obj:PopTable();
 
     local options = {
         onExecuteAll = {
@@ -146,7 +188,28 @@ function C_DataTextModule:OnInitialize(data)
             end;
         };
 
-        displayOrders = function()
+        displayOrders = function(value, keysList)
+            if (obj:IsTable(data.unloadedModules)) then
+                if (keysList:GetSize() == 2) then
+                    local moduleName = value;
+                    local module = data.dataModules[moduleName];
+                    local moduleClass = data.unloadedModules[moduleName];
+
+                    if (not obj:IsObject(module, "IDataTextModule") and moduleClass) then
+                        module = CreateSubDataTextModule(self, data, moduleClass, moduleName);
+                    end
+
+                    module:SetEnabled(true);
+                end
+            elseif (keysList:GetSize() == 2) then
+                local moduleName = value;
+                local module = data.dataModules[moduleName];
+
+                if (module) then
+                    module:SetEnabled(true);
+                end
+            end
+
             self:OrderDataTextButtons();
         end;
     }, options);
@@ -158,7 +221,21 @@ function C_DataTextModule:OnInitialized(data)
     end
 end
 
+function C_DataTextModule:OnDisable(data)
+    data.bar:Hide();
+    data.popup:Hide();
+    data.resourceBars:SetPoint("BOTTOMLEFT", data.buiContainer, "TOPLEFT", 0, -1);
+    data.resourceBars:SetPoint("BOTTOMRIGHT", data.buiContainer, "TOPRIGHT", 0, -1);
+end
+
 function C_DataTextModule:OnEnable(data)
+    if (data.bar) then
+        data.bar:Show();
+        data.resourceBars:SetPoint("BOTTOMLEFT", data.bar, "TOPLEFT", 0, -1);
+        data.resourceBars:SetPoint("BOTTOMRIGHT", data.bar, "TOPRIGHT", 0, -1);
+        return;
+    end
+
     -- the main bar containing all data text buttons
     data.bar = tk:PopFrame("Frame", data.buiContainer);
     data.bar:SetPoint("BOTTOMLEFT");
@@ -203,17 +280,9 @@ function C_DataTextModule:OnEnable(data)
     data.slideController = SlideController(data.popup);
 end
 
-Engine:DefineParams("IDataTextModule");
----@param dataModule IDataTextModule
-function C_DataTextModule:RegisterDataModule(data, dataModule)
-    local dataModuleName = dataModule:GetObjectType(); -- get's name of object/module
-    data.DataModules[dataModuleName] = dataModule;
-
-    local dataTextButton = dataModule.Button;
-
-    dataTextButton:SetScript("OnClick", function(_, ...)
-        self:ClickModuleButton(dataModule, dataTextButton, ...);
-    end);
+Engine:DefineParams("string", "IDataTextModule");
+function C_DataTextModule:RegisterDataModule(data, moduleName, moduleClass)
+    data.unloadedModules[moduleName] = moduleClass;
 end
 
 Engine:DefineReturns("Button");
@@ -237,9 +306,19 @@ function C_DataTextModule:OrderDataTextButtons(data)
     data.positionedButtons = data.positionedButtons or obj:PopTable();
     data.totalActiveButtons = 0;
 
-    for _, dataModule in pairs(data.DataModules) do
+    for moduleName, moduleClass in pairs(data.unloadedModules) do
+        local isEnabled = IsSubDataTextModuleEnabled(data.settings.displayOrders, moduleName);
 
-        if (dataModule:IsEnabled()) then
+        if (isEnabled) then
+            local module = CreateSubDataTextModule(self, data, moduleClass, moduleName);
+            module:SetEnabled(true);
+        end
+    end
+
+    for moduleName, dataModule in pairs(data.dataModules) do
+        local isEnabled = IsSubDataTextModuleEnabled(data.settings.displayOrders, moduleName);
+
+        if (isEnabled) then
             local btn = dataModule.Button;
             local dbName = dataModule.SavedVariableName;
             local displayOrder = tk.Tables:GetIndex(data.settings.displayOrders, dbName);
@@ -251,6 +330,9 @@ function C_DataTextModule:OrderDataTextButtons(data)
                 data.totalActiveButtons = data.totalActiveButtons + 1;
                 dataModule:Update();
             end
+
+        elseif (dataModule:IsEnabled()) then
+            dataModule:SetEnabled(false);
         end
     end
 end
@@ -460,7 +542,8 @@ end
 
 Engine:DefineParams("string");
 function C_DataTextModule:ForceUpdate(data, dataModuleName)
-    data.DataModules[dataModuleName]:Update();
+    local dataModule = data.dataModules[dataModuleName];
+    dataModule:Update();
 end
 
 Engine:DefineReturns("boolean");

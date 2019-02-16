@@ -226,9 +226,10 @@ function BaseModule:SetEnabled(data, enabled, ...)
             --tk:Print("Enabled: ", self:GetModuleName()) --todo: edit this back if needed
         end
 
-        if (data.updateFunctions and not data.ignoreUpdateFunctions) then
+        if (data.updateFunctions and not data.firstTime) then
             -- execute all update functions if enabled setting changed
             self:ExecuteAllUpdateFunctions(self);
+            data.firstTime = true;
         end
 
         -- Call any other functions attached to this modules OnEnable event
@@ -387,13 +388,11 @@ do
 
         -- updateFunctionPath is the located function (or table if no function found) path
         -- originalPathOfValue is the original path LibMayronDB tried to find
-        db:RegisterUpdateFunctions(observerPath, updateFunctions, function(updateFunction, selectedValue, originalPathOfValue, originalValue)
+        db:RegisterUpdateFunctions(observerPath, data.updateFunctions, function(updateFunction, fullPath, newValue)
             local onPre, onPost;
-            local settingPath = originalPathOfValue:gsub(observerPath..".", tk.Strings.Empty);
+            local settingPath = fullPath:gsub(observerPath..".", tk.Strings.Empty);
 
             if (not obj:IsFunction(updateFunction)) then
-                selectedValue = originalValue;
-
                 -- check if a group function can be used
                 updateFunction, onPre, onPost = FindMatchingGroupValue(settingPath, options);
 
@@ -405,14 +404,14 @@ do
 
             if (obj:IsFunction(updateFunction)) then
                 -- update settings:
-                db:SetPathValue(data.settings, settingPath, selectedValue);
+                db:SetPathValue(data.settings, settingPath, newValue);
 
                 if (self:IsEnabled() or updateFunction == data.updateFunctions.enabled) then
-                    ExecuteUpdateFunction(settingPath, updateFunction, selectedValue, nil, onPre, onPost);
+                    ExecuteUpdateFunction(settingPath, updateFunction, newValue, nil, onPre, onPost);
                 end
             else
                 -- update settings:
-                db:SetPathValue(data.settings, settingPath, originalValue);
+                db:SetPathValue(data.settings, settingPath, newValue);
             end
         end);
     end

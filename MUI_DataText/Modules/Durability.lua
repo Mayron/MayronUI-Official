@@ -11,12 +11,6 @@ local DURABILITY_SLOTS = {
 local Engine = obj:Import("MayronUI.Engine");
 local Durability = Engine:CreateClass("Durability", nil, "MayronUI.Engine.IDataTextModule");
 
--- Load Database Defaults ------------
-
-db:AddToDefaults("profile.datatext.durability", {
-    enabled = true;
-});
-
 -- Local Functions ----------------
 
 local function CreateLabel(contentFrame, popupWidth)
@@ -43,15 +37,7 @@ end
 -- Durability Module --------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    local sv = db.profile.datatext.durability;
-    sv:SetParent(db.profile.datatext);
-
-    local settings = sv:GetTrackedTable();
-
-    if (settings.enabled) then
-        local durability = Durability(settings, self);
-        self:RegisterDataModule(durability);
-    end
+    self:RegisterDataModule("durability", Durability);
 end);
 
 function Durability:__Construct(data, settings, dataTextModule)
@@ -68,35 +54,28 @@ function Durability:__Construct(data, settings, dataTextModule)
 end
 
 function Durability:IsEnabled(data)
-    return data.settings.enabled;
+    return data.enabled;
 end
 
-function Durability:Enable(data)
-    data.settings.enabled = true;
-    data.settings:SaveChanges();
+function Durability:SetEnabled(data, enabled)
+    data.enabled = true;
 
-    data.showMenu = true;
-    data.handler = em:CreateEventHandler("UPDATE_INVENTORY_DURABILITY", function()
-        if (not self.Button) then
-            return
-        end
+    if (enabled) then
+        data.handler = em:CreateEventHandler("UPDATE_INVENTORY_DURABILITY", function()
+            if (not self.Button) then
+                return
+            end
 
-        self:Update();
-    end);
+            self:Update();
+        end);
 
-    tk:KillElement(_G.DurabilityFrame);
-end
+        tk:KillElement(_G.DurabilityFrame);
 
-function Durability:Disable(data)
-    data.settings.enabled = false;
-    data.settings:SaveChanges();
-
-    if (data.handler) then
+    elseif (data.handler) then
         data.handler:Destroy();
+        data.handler = nil;
     end
-
-    data.showMenu = nil;
-end;
+end
 
 function Durability:Update()
     local durability_total, max_total = 0, 0;

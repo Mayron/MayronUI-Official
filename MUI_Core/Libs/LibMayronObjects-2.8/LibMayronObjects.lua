@@ -174,7 +174,7 @@ do
     end
 
     ---@param wrapper table @A table to be added to the stack. The table is emptied and detached from any meta-table
-    ---@param pushSubTables boolean @Whether sub tables found in the table should also be pushed to the stack
+    ---@param pushSubTables boolean|function @Whether sub tables found in the table should also be pushed to the stack
     function Lib:PushTable(wrapper, pushSubTables)
         if (not self:IsTable(wrapper)) then
             return;
@@ -186,7 +186,7 @@ do
             if (pushSubTables and self:IsTable(wrapper[key])) then
 
                 if (self:IsFunction(pushSubTables)) then
-                    push = pushSubTables(wrapper[key]);
+                    push = pushSubTables(wrapper[key], key);
                 end
 
                 if (push) then

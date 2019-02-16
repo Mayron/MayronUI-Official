@@ -166,6 +166,14 @@ function DropDownMenu:GetMenu(data)
     return data.menu;
 end
 
+function DropDownMenu:SetSortingEnabled(data, enable)
+    if (enable) then
+        data.disableSorting = nil;
+    else
+        data.disableSorting = true;
+    end
+end
+
 do
     local function ApplyTooltipScripts(header)
         if (not (header.tooltip or header.disabledTooltip)) then
@@ -222,56 +230,14 @@ WidgetsPackage:DefineParams("string");
 function DropDownMenu:RemoveOptionByLabel(data, label)
     for optionID, optionButton in ipairs(data.options) do
         if (optionButton:GetText() == label) then
-            self:RemoveOptionByID(optionID);
-        end
-    end
-end
+            table.remove(data.options, optionID);
+            Private:PushFrame(optionButton);
+            self:RepositionOptions();
 
-WidgetsPackage:DefineParams("number");
-function DropDownMenu:RemoveOptionByID(data, optionID)
-    local optionToRemove = self:GetOption(optionID);
-
-    table.remove(data.options, optionID);
-    Private:PushFrame(optionToRemove);
-
-    local height = 30;
-    local child = data.frame.child;
-
-    -- reposition all options
-    for id, option in ipairs(data.options) do
-        option:ClearAllPoints();
-
-        if (id == 1) then
-            if (data.direction == "DOWN") then
-                option:SetPoint("TOPLEFT", 2, -2);
-                option:SetPoint("TOPRIGHT", -2, -2);
-            elseif (data.direction == "UP") then
-                option:SetPoint("BOTTOMLEFT", 2, 2);
-                option:SetPoint("BOTTOMRIGHT", -2, 2);
+            if (#data.options == 0) then
+                self:SetEnabled(false);
             end
-
-        else
-            if (data.direction == "DOWN") then
-                option:SetPoint("TOPLEFT", data.options[id - 1], "BOTTOMLEFT", 0, -1);
-                option:SetPoint("TOPRIGHT", data.options[id - 1], "BOTTOMRIGHT", 0, -1);
-            elseif (data.direction == "UP") then
-                option:SetPoint("BOTTOMLEFT", data.options[id - 1], "TOPLEFT", 0, 1);
-                option:SetPoint("BOTTOMRIGHT", data.options[id - 1], "TOPRIGHT", 0, 1);
-            end
-
-            height = height + 27;
         end
-    end
-
-    data.scrollHeight = height;
-    child:SetHeight(height);
-
-    if (DropDownMenu.Static.Menu:IsShown()) then
-        DropDownMenu.Static.Menu:SetHeight(height);
-    end
-
-    if (#data.options == 0) then
-        self:SetEnabled(false);
     end
 end
 
@@ -282,41 +248,61 @@ function DropDownMenu:AddOptions(_, func, optionsTable)
     end
 end
 
+do
+    local function SortByLabel(a, b)
+        return a:GetText() < b:GetText();
+    end
+
+    function DropDownMenu:RepositionOptions(data)
+        local child = data.frame.child;
+        local height = 30;
+
+        if (not data.disableSorting) then
+            table.sort(data.options, SortByLabel);
+        end
+
+        for _, option in ipairs(data.options) do
+            option:ClearAllPoints();
+        end
+
+        for id, option in ipairs(data.options) do
+            if (id == 1) then
+                if (data.direction == "DOWN") then
+                    option:SetPoint("TOPLEFT", 2, -2);
+                    option:SetPoint("TOPRIGHT", -2, -2);
+                elseif (data.direction == "UP") then
+                    option:SetPoint("BOTTOMLEFT", 2, 2);
+                    option:SetPoint("BOTTOMRIGHT", -2, 2);
+                end
+            else
+                local previousOption = data.options[id - 1];
+
+                if (data.direction == "DOWN") then
+                    option:SetPoint("TOPLEFT", previousOption, "BOTTOMLEFT", 0, -1);
+                    option:SetPoint("TOPRIGHT", previousOption, "BOTTOMRIGHT", 0, -1);
+                elseif (data.direction == "UP") then
+                    option:SetPoint("BOTTOMLEFT", previousOption, "TOPLEFT", 0, 1);
+                    option:SetPoint("BOTTOMRIGHT", previousOption, "TOPRIGHT", 0, 1);
+                end
+
+                height = child:GetHeight() + 27;
+            end
+        end
+
+        data.scrollHeight = height;
+        child:SetHeight(height);
+
+        if (DropDownMenu.Static.Menu:IsShown()) then
+            DropDownMenu.Static.Menu:SetHeight(height);
+        end
+    end
+end
+
 function DropDownMenu:AddOption(data, label, func, ...)
     local r, g, b = data.style:GetColor();
     local child = data.frame.child;
-    local height = 30;
 
     local option = Private:PopFrame("Button", child);
-
-    if (#data.options == 0) then
-        if (data.direction == "DOWN") then
-            option:SetPoint("TOPLEFT", 2, -2);
-            option:SetPoint("TOPRIGHT", -2, -2);
-        elseif (data.direction == "UP") then
-            option:SetPoint("BOTTOMLEFT", 2, 2);
-            option:SetPoint("BOTTOMRIGHT", -2, 2);
-        end
-
-    else
-        local previousOption = data.options[#data.options];
-
-        if (data.direction == "DOWN") then
-            option:SetPoint("TOPLEFT", previousOption, "BOTTOMLEFT", 0, -1);
-            option:SetPoint("TOPRIGHT", previousOption, "BOTTOMRIGHT", 0, -1);
-        elseif (data.direction == "UP") then
-            option:SetPoint("BOTTOMLEFT", previousOption, "TOPLEFT", 0, 1);
-            option:SetPoint("BOTTOMRIGHT", previousOption, "TOPRIGHT", 0, 1);
-        end
-
-        height = child:GetHeight() + 27;
-    end
-
-    -- insert option only after it has been positioned
-    table.insert(data.options, option);
-
-    data.scrollHeight = height;
-    child:SetHeight(height);
 
     option:SetHeight(26);
     option:SetNormalFontObject("GameFontHighlight");
@@ -351,6 +337,8 @@ function DropDownMenu:AddOption(data, label, func, ...)
         end
     end);
 
+    table.insert(data.options, option);
+    self:RepositionOptions();
     self:SetEnabled(true);
 
     return option;

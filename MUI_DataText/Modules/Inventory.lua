@@ -9,7 +9,6 @@ local Inventory = Engine:CreateClass("Inventory", nil, "MayronUI.Engine.IDataTex
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.inventory", {
-    enabled = true,
     showTotalSlots = false,
     slotsToShow = "free"
 });
@@ -31,60 +30,53 @@ end
 
 -- Inventory Module --------------
 
-MayronUI:Hook("DataTextModule", "OnInitialize", function(self, dataTextData)
-    local sv = db.profile.datatext.inventory;
-    sv:SetParent(db.profile.datatext);
-
-    local settings = sv:GetTrackedTable();
-
-    if (settings.enabled) then
-        local inventory = Inventory(settings, dataTextData.slideController, self);
-        self:RegisterDataModule(inventory);
-    end
+MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
+    self:RegisterDataModule("inventory", Inventory);
 end);
 
-function Inventory:__Construct(data, settings, slideController, dataTextModule)
+function Inventory:__Construct(data, settings, dataTextModule, slideController)
     data.settings = settings;
     data.slideController = slideController;
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
-    self.MenuLabels = {};
+    self.MenuLabels = obj:PopTable();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
     self.HasRightMenu = false;
     self.SavedVariableName = "inventory";
-
     self.Button = dataTextModule:CreateDataTextButton();
-    self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-    self.Button:SetScript("OnEnter", button_OnEnter);
-    self.Button:SetScript("OnLeave", button_OnLeave);
+end
 
-    data.handler = em:CreateEventHandler("BAG_UPDATE", function()
-        if (not self.Button) then
-            return
+function Inventory:SetEnabled(data, enabled)
+    data.enabled = enabled;
+
+    if (enabled) then
+        data.handler = em:CreateEventHandler("BAG_UPDATE", function()
+            if (not self.Button) then
+                return
+            end
+
+            self:Update(data);
+        end);
+
+        self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+        self.Button:SetScript("OnEnter", button_OnEnter);
+        self.Button:SetScript("OnLeave", button_OnLeave);
+    else
+        if (data.handler) then
+            data.handler:Destroy();
+            data.handler = nil;
         end
 
-        self:Update(data);
-    end);
-end
-
-function Inventory:Enable(data)
-    data.settings.enabled = true;
-    data.settings:SaveChanges();
-end
-
-function Inventory:Disable(data)
-    data.settings.enabled = false;
-    data.settings:SaveChanges();
-
-    if (data.handler) then
-        data.handler:Destroy();
+        self.Button:RegisterForClicks("LeftButtonUp");
+        self.Button:SetScript("OnEnter", nil);
+        self.Button:SetScript("OnLeave", nil);
     end
 end
 
 function Inventory:IsEnabled(data)
-    return data.settings.enabled;
+    return data.enabled;
 end
 
 function Inventory:Update(data)

@@ -219,16 +219,6 @@ function Lib:CreateEventHandlerWithKey(eventName, key, callback, ...)
     return self:CreateUnitEventHandlerWithKey(eventName, key, callback, nil, ...);
 end
 
----You can passs additional arguments, in a variable argument list, to this function which will be passed to each handler registered with the event.
----@param eventName string @The name of the event to trigger (this will cause all handlers registered with that event to execute).
-function Lib:TriggerEvent(eventName, ...)
-    if (Private:EventTableExists(eventName)) then
-        for _, handler in pairs(Private.eventsList[eventName]) do
-            handler:Run(eventName, ...);
-        end
-    end
-end
-
 ---@param key string @Check whether a handler with the specified key exists.
 ---@return boolean @If a handler is found, true is returned.
 function Lib:HandlerExists(key)
@@ -263,6 +253,20 @@ end
 ---@return table @A table containing all found handlers registered with the specified event name.
 function Lib:FindEventHandlersByEvent(eventName)
     return Private.eventsList[eventName];
+end
+
+---Find and trigger a handler with the specified key if found.
+---@param key string @The key name.
+---@return boolean @Returns true if a handler with the specified key was found and triggered.
+function Lib:TriggerEventHandlerByKey(key)
+    local handler = self:FindEventHandlerByKey(key);
+
+    if (handler) then
+        handler:Run();
+        return true;
+    end
+
+    return false;
 end
 
 ---@param eventName string @The event name.
