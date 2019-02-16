@@ -1,7 +1,9 @@
 -- luacheck: ignore self 143 631
-local MayronUI = _G.MayronUI;
+local _G, MayronUI = _G, _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local Private = {};
+
+local pairs, string, tonumber, tostring = _G.pairs, _G.string, _G.tonumber, _G.tostring;
 
 -- Register Modules ----------------------
 
@@ -19,11 +21,11 @@ db:AddToDefaults("profile.unitPanels", {
         yOffset = 0;
         gridProfiles = {
             "MayronUIH"
-        }
+        };
     };
     controlSUF = true;
     unitWidth = 325;
-    height = 75;
+    unitHeight = 75;
     isSymmetric = false;
     alpha = 0.8;
     unitNames = {
@@ -46,6 +48,7 @@ db:AddToDefaults("profile.unitPanels", {
 function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
     data.buiContainer = buiContainer;
     data.ActionBarPanel = subModules.ActionBarPanel;
+    data.ResourceBars = subModules.ResourceBars;
 
     local r, g, b = tk:GetThemeColor();
     db:AppendOnce(db.profile, "unitPanels.sufGradients", {
@@ -100,7 +103,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
             data.right:SetSize(value, 180)
         end;
 
-        height = function()
+        unitHeight = function()
             self:RepositionPanels();
         end;
 
@@ -164,7 +167,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
 
             height = function(value)
                 if (data.settings.sufGradients.enabled and data.gradients) then
-                    for _, frame in tk.pairs(data.gradients) do
+                    for _, frame in pairs(data.gradients) do
                         frame:SetSize(100, value);
                     end
                 end
@@ -316,7 +319,6 @@ do
             data.right.bg = tk:SetBackground(data.right, doubleTextureFilePath);
             data.right.bg:SetTexCoord(1, 0, 0, 1);
 
-            -- TODO: Should be configurable using theme color (need a callback "OnRegisteredPropertyUpdate")
             tk:ApplyThemeColor(data.settings.alpha,
                 data.left.bg,
                 data.center.bg,
@@ -334,25 +336,23 @@ end
 
 function C_UnitPanels:RepositionPanels(data)
     local actionBarPanel = data.ActionBarPanel:GetPanel();
+    local unitHeight = data.settings.unitHeight;
+    local anchorFrame = data.buiContainer;
 
-    if (actionBarPanel) then
-        data.left:SetPoint("TOPLEFT", actionBarPanel, "TOPLEFT", 0, data.settings.height);
-        data.right:SetPoint("TOPRIGHT", actionBarPanel, "TOPRIGHT", 0, data.settings.height);
+    if (actionBarPanel and data.ActionBarPanel:IsEnabled()) then
+        anchorFrame = actionBarPanel;
+    elseif (data.ResourceBars:IsEnabled()) then
+        anchorFrame= data.ResourceBars:GetBarContainer();
     else
-        -- Action Bar Panel is disabled...
-        local height = data.settings.height;
         local dataTextModule = MayronUI:ImportModule("DataText");
 
-        if (dataTextModule and dataTextModule:IsShown()) then
-            local dataTextBar = dataTextModule:GetDataTextBar();
-            data.left:SetPoint("TOPLEFT", dataTextBar, "TOPLEFT", 0, height);
-            data.right:SetPoint("TOPRIGHT", dataTextBar, "TOPRIGHT", 0, height);
-
-        else
-            data.left:SetPoint("TOPLEFT", data.buiContainer, "TOPLEFT", 0, height);
-            data.right:SetPoint("TOPRIGHT", data.buiContainer, "TOPRIGHT", 0, height);
+        if (dataTextModule:IsEnabled()) then
+            anchorFrame = dataTextModule:GetDataTextBar();
         end
     end
+
+    data.left:SetPoint("TOPLEFT", anchorFrame, "TOPLEFT", 0, unitHeight);
+    data.right:SetPoint("TOPRIGHT", anchorFrame, "TOPRIGHT", 0, unitHeight);
 end
 
 function C_UnitPanels:UpdateUnitNameText(data, unitType)
@@ -393,7 +393,7 @@ function C_UnitPanels:UpdateUnitNameText(data, unitType)
         end
     end
 
-    data[unitType].text:SetText(tk.string.format("%s %s", name, unitLevel));
+    data[unitType].text:SetText(string.format("%s %s", name, unitLevel));
 end
 
 function Private.CreateGradientFrame(data, parent)
@@ -434,10 +434,10 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
 
                 if (unitID == "target") then
                     local frame = data.gradients[unitID];
-                    local handler = em:FindEventHandlerByKey("TargetGradient", "PLAYER_TARGET_CHANGED");
+                    local handler = em:FindEventHandlerByKey("TargetGradient");
 
                     if (not handler) then
-                        handler = em:CreateEventHandler("PLAYER_TARGET_CHANGED", function()
+                        handler = em:CreateEventHandlerWithKey("PLAYER_TARGET_CHANGED", "TargetGradient", function()
                             if (not _G.UnitExists("target")) then
                                 return;
                             end
@@ -447,7 +447,7 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
 
                             if (_G.UnitIsPlayer("target") and data.settings.sufGradients.targetClassColored) then
                                 local _, class = _G.UnitClass("target");
-                                class = tk.string.upper(class);
+                                class = string.upper(class);
                                 class = class:gsub("%s+", "");
 
                                 local classColor = tk.Constants.CLASS_COLORS[class];
@@ -461,12 +461,12 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
                                     from.r, from.g, from.b, from.a);
                             end
                         end);
-
-                        handler:SetKey("TargetGradient");
                     end
 
                     handler:Run();
                 end
+
+                data.gradients[unitID]:Show();
 
             elseif (data.gradients[unitID]) then
                 data.gradients[unitID]:Hide();
@@ -474,12 +474,12 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
         end
     else
         if (data.gradients) then
-            for _, frame in tk.pairs(data.gradients) do
+            for _, frame in pairs(data.gradients) do
                 frame:Hide();
             end
         end
 
-        local handler = em:FindEventHandlerByKey("TargetGradient", "PLAYER_TARGET_CHANGED");
+        local handler = em:FindEventHandlerByKey("TargetGradient");
 
         if (handler) then
             handler:Destroy();
@@ -503,7 +503,7 @@ function Private.AttachShadowedUnitFrames(rightPanel)
     local currentProfile = _G.ShadowUF.db:GetCurrentProfile();
     local anchorTo = "UIParent";
 
-    if (tk._G["MUI_UnitPanelCenter"]) then
+    if (_G["MUI_UnitPanelCenter"]) then
         anchorTo = "MUI_UnitPanelCenter";
     end
 
@@ -556,7 +556,7 @@ do
         end
 
         data.right:SetParent(data.buiContainer);
-        local handler = em:FindEventHandlerByKey("DisableSymmetry_PLAYER_TARGET_CHANGED");
+        local handler = em:FindEventHandlerByKey("DisableSymmetry_TargetChanges");
 
         if (not handler) then
             handler = em:CreateEventHandlerWithKey("PLAYER_TARGET_CHANGED", "DisableSymmetry_TargetChanges", function()
@@ -585,9 +585,8 @@ do
         end
 
         handler:Run();
-        handler = em:FindEventHandlerByKey("DisableSymmetry_EnteringWorld", "PLAYER_ENTERING_WORLD");
 
-        if (not handler) then
+        if (not em:FindEventHandlerByKey("DisableSymmetry_EnteringWorld")) then
             em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "DisableSymmetry_EnteringWorld", function()
                 if (not _G.UnitExists("target")) then
                     SwitchToSingle(data);

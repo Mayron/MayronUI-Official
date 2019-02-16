@@ -2,7 +2,7 @@
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local Private = {};
-local ObjectiveTrackerFrame = _G.ObjectiveTrackerFrame;
+local ObjectiveTrackerFrame, InCombatLockdown = _G.ObjectiveTrackerFrame, _G.InCombatLockdown;
 
 -- Register and Import Modules -----------
 
@@ -182,6 +182,27 @@ function Private:MoveFrameIn(sideBarModule, frame, bar1, controlBartender)
     tk.C_Timer.After(0.02, loop);
 end
 
+local function UpdateSideButtonVisibility(barsShown, expandBtn, retractBtn)
+    if (barsShown == 0) then
+        expandBtn:Show();
+        retractBtn:Hide();
+    elseif (barsShown == 1) then
+        expandBtn:Show();
+        retractBtn:Show();
+    elseif (barsShown == 2) then
+        expandBtn:Hide();
+        retractBtn:Show();
+    end
+end
+
+local function SideButton_OnEnter(self)
+    self:SetAlpha(1);
+end
+
+local function SideButton_OnLeave(self)
+    self:SetAlpha(0);
+end
+
 -- C_SideBar -----------------------
 
 function C_SideBar:OnInitialize(data)
@@ -230,16 +251,23 @@ function C_SideBar:OnInitialize(data)
 
         buttons = {
             showWhen = function(value)
-                data.expand:SetShown(value ~= "Never");
-                data.retract:SetShown(value ~= "Never");
+                print("value:", value);
+
+                if (value == "Never") then
+                    data.expand:Hide();
+                    data.retract:Hide();
+                    return;
+                end
+
+                UpdateSideButtonVisibility(data.settings.barsShown, data.expand, data.retract);
 
                 if (value == "On Mouse-over") then
                     data.expand:SetAlpha(0);
                     data.retract:SetAlpha(0);
-                    data.expand:SetScript("OnEnter", Private.OnEnter);
-                    data.expand:SetScript("OnLeave", Private.OnLeave);
-                    data.retract:SetScript("OnEnter", Private.OnEnter);
-                    data.retract:SetScript("OnLeave", Private.OnLeave);
+                    data.expand:SetScript("OnEnter", SideButton_OnEnter);
+                    data.expand:SetScript("OnLeave", SideButton_OnLeave);
+                    data.retract:SetScript("OnEnter", SideButton_OnEnter);
+                    data.retract:SetScript("OnLeave", SideButton_OnLeave);
 
                 else
                     data.expand:SetScript("OnEnter", nil);
@@ -287,27 +315,32 @@ end
 
 function C_SideBar:SetButtonsHideInCombat(data, hide)
     if (hide) then
-        em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-            data.expand:Hide();
-            data.retract:Hide();
-        end):SetKey("SideBar_HideInCombat_RegenDisabled");
-
-        em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
+        em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "SideBar_HideInCombat_RegenEnabled", function()
             data.expand:SetShown(data.settings.barsShown ~= 2);
             data.retract:SetShown(data.settings.barsShown ~= 0);
-        end):SetKey("SideBar_HideInCombat_RegenEnabled");
+        end);
+
+        em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "SideBar_HideInCombat_RegenDisabled", function()
+            data.expand:Hide();
+            data.retract:Hide();
+        end);
     end
 
     local handler = em:FindEventHandlerByKey("SideBar_HideInCombat_RegenEnabled");
 
     if (handler) then
-        handler:SetEventCallbackEnabled("PLAYER_REGEN_ENABLED", not hide);
+        handler:SetEventCallbackEnabled("PLAYER_REGEN_ENABLED", hide);
     end
 
     handler = em:FindEventHandlerByKey("SideBar_HideInCombat_RegenDisabled");
 
     if (handler) then
-        handler:SetEventCallbackEnabled("PLAYER_REGEN_DISABLED", not hide);
+        handler:SetEventCallbackEnabled("PLAYER_REGEN_DISABLED", hide);
+    end
+
+    if (InCombatLockdown()) then
+        data.expand:SetShown(not hide);
+        data.retract:SetShown(not hide);
     end
 end
 
@@ -344,37 +377,33 @@ end
 -- SideBar Object -------------------------
 
 function C_SideBar:Expand(data, expandAmount)
-    if (tk.InCombatLockdown()) then
+    if (InCombatLockdown()) then
         return;
     end
 
     tk.PlaySound(tk.Constants.CLICK);
+    data.expand:Hide();
+    data.retract:Hide();
 
     if (expandAmount == 1) then
-        data.expand:Hide();
         Private:MoveFrameIn(self, data.panel, data.BTBar1, data.settings.bartender.control);
-
     elseif (expandAmount == 2) then
-        data.expand:Hide();
-        data.retract:Hide();
         Private:ExpandFrame(self, data.BTBar2, data.panel, data.settings.expandWidth);
     end
 end
 
 function C_SideBar:Retract(data, retractAmount)
-    if (tk.InCombatLockdown()) then
+    if (InCombatLockdown()) then
         return;
     end
 
     tk.PlaySound(tk.Constants.CLICK);
+    data.expand:Hide();
+    data.retract:Hide();
 
     if (retractAmount == 1) then
-        data.retract:Hide();
         Private:RetractFrame(self, data.BTBar2, data.panel, data.settings.retractWidth);
-
     elseif (retractAmount == 2) then
-        data.expand:Hide();
-        data.retract:Hide();
         Private:MoveFrameOut(self, data.panel, data.BTBar1, data.settings.bartender.control);
     end
 end
@@ -384,14 +413,14 @@ function C_SideBar:SetBarsShown(data, numBarsShown)
     data.expand:ClearAllPoints();
     data.retract:ClearAllPoints();
 
+    UpdateSideButtonVisibility(data.settings.barsShown, data.expand, data.retract);
+
     if (data.settings.barsShown == 2) then
         Private:ToggleBartenderBar(data.BTBar2, true);
         Private:ToggleBartenderBar(data.BTBar1, true);
 
         data.panel:SetSize(data.settings.expandWidth, data.settings.height);
         data.retract:SetPoint("RIGHT", data.panel, "LEFT");
-        data.expand:Hide();
-        data.retract:Show();
 
         data.retract:SetScript("OnClick", function()
             self:Retract(1);
@@ -403,8 +432,6 @@ function C_SideBar:SetBarsShown(data, numBarsShown)
         data.panel:SetSize(data.settings.retractWidth, data.settings.height);
         data.expand:SetPoint("RIGHT", data.panel, "LEFT", 0, 90);
         data.retract:SetPoint("RIGHT", data.panel, "LEFT", 0, -90);
-        data.expand:Show();
-        data.retract:Show();
 
         data.expand:SetScript("OnClick", function()
             self:Expand(2);
@@ -421,8 +448,6 @@ function C_SideBar:SetBarsShown(data, numBarsShown)
         data.panel:SetSize(data.settings.retractWidth, data.settings.height);
         data.panel:SetPoint("RIGHT", tk.UIParent, "RIGHT", data.settings.retractWidth ,data.settings.yOffset);
         data.panel:Hide();
-        data.expand:Show();
-        data.retract:Hide();
         data.expand:SetPoint("RIGHT");
 
         data.expand:SetScript("OnClick", function()

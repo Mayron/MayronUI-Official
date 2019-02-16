@@ -36,6 +36,7 @@ local function DropDownToggleButton_OnClick(self)
     FoldAll(self.dropdown);
 end
 
+-- can't remember why this is needed
 local function OnSizeChanged(self, _, height)
     self:SetWidth(height);
 end
@@ -44,6 +45,10 @@ end
 
 function Lib:FoldAllDropDownMenus(exclude)
     FoldAll(exclude);
+end
+
+local function DropDownContainer_OnHide()
+    DropDownMenu.Static.Menu:Hide();
 end
 
 -- @constructor
@@ -62,6 +67,7 @@ function Lib:CreateDropDown(style, parent, direction)
 
     local dropDownContainer = _G.CreateFrame("Button", nil, parent);
     dropDownContainer:SetSize(178, 28);
+    dropDownContainer:SetScript("OnHide", DropDownContainer_OnHide);
 
     local header = _G.CreateFrame("Button", nil, dropDownContainer);
     header:SetPoint("TOPLEFT", dropDownContainer, "TOPLEFT");
@@ -104,7 +110,8 @@ function Lib:CreateDropDown(style, parent, direction)
     end);
 
     dropDownContainer.dropdown = DropDownMenu(style, header, direction, slideController, dropDownContainer);
-    table.insert(dropdowns, dropDownContainer);
+    dropDownContainer.toggleButton.dropdown = dropDownContainer.dropdown; -- needed for OnClick
+    table.insert(dropdowns, dropDownContainer.dropdown);
 
     return dropDownContainer.dropdown;
 end

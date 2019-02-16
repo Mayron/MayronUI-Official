@@ -89,6 +89,7 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
     data.buiContainer = buiContainer;
     data.ResourceBars = subModules.ResourceBars;
     data.DataText = subModules.DataText;
+    data.UnitPanels = subModules.UnitPanels;
 
     self:RegisterUpdateFunctions(db.profile.actionBarPanel, {
         expanded = function()
@@ -147,8 +148,25 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
     end
 end
 
+function C_ActionBarPanel:OnDisable(data)
+    if (not data.panel) then
+        return;
+    end
+
+    data.panel:Hide();
+
+    if (data.UnitPanels:IsEnabled()) then
+        data.UnitPanels:RepositionPanels();
+    end
+end
+
 function C_ActionBarPanel:OnEnable(data)
     if (data.panel) then
+        data.panel:Show();
+
+        if (data.UnitPanels:IsEnabled()) then
+            data.UnitPanels:RepositionPanels();
+        end
         return;
     end
 
@@ -300,6 +318,10 @@ function C_ActionBarPanel:OnEnable(data)
 
     if (db.global.tutorial) then
         LoadTutorial(data.panel);
+    end
+
+    if (data.UnitPanels:IsEnabled()) then
+        data.UnitPanels:RepositionPanels();
     end
 end
 

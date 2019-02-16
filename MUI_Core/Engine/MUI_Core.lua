@@ -358,15 +358,15 @@ do
 
         if (not data.updateFunctions) then
             data.updateFunctions = updateFunctions;
-
-            if (data.settings.enabled) then
-                data.updateFunctions.enabled = function(value)
-                    self:SetEnabled(value);
-                end
-            end
         else
             -- append new update functions
             tk.Tables:Fill(data.updateFunctions, updateFunctions);
+        end
+
+        if (not data.updateFunctions.enabled and data.settings.enabled ~= nil) then
+            data.updateFunctions.enabled = function(value)
+                self:SetEnabled(value);
+            end
         end
 
         if (data.options) then

@@ -43,7 +43,7 @@ end
 local function TransferWidgetAttributes(widget, widgetTable)
     widget.dbPath           = widgetTable.dbPath;
     widget.name             = widgetTable.name;
-    widget.SetValue         = widgetTable.SetValue;
+    widget.__SetValue       = widgetTable.SetValue;
     widget.requiresReload   = widgetTable.requiresReload;
     widget.requiresRestart  = widgetTable.requiresRestart;
     widget.module           = widgetTable.module;
@@ -117,17 +117,17 @@ Engine:DefineParams("table");
 ---@param value any @The value to add to the database using the dbPath value attached to the widget table.
 function C_ConfigModule:SetDatabaseValue(_, widget, newValue)
 
-    -- SetValue is a custom function to manually set the datbase config value
-    if (widget.SetValue) then
+    -- __SetValue is a custom function to manually set the datbase config value
+    if (widget.__SetValue) then
         local oldValue;
 
         if (not tk.Strings:IsNilOrWhiteSpace(widget.dbPath)) then
             oldValue = db:ParsePathValue(widget.dbPath);
         end
 
-        widget.SetValue(widget.dbPath, newValue, oldValue, widget); -- TODO: Problem - widget actually has a SetValue! it's a blizzard slider!
+        widget.__SetValue(widget.dbPath, newValue, oldValue, widget);
     else
-        -- dbPath is required if not using a custom SetValue function!
+        -- dbPath is required if not using a custom __SetValue function!
         if (widget.name and widget.name.IsObjectType and widget.name:IsObjectType("FontString")) then
             tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widget.dbPath),
                 "%s is missing database path address element (dbPath) in config data.", widget.name:GetText());

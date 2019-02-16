@@ -291,9 +291,9 @@ function Database:TriggerUpdateFunction(data, svRootTable, fullPath, newValue)
     if (obj:IsFunction(manualFunction)) then
         if (obj:IsFunction(updateFunction)) then
             -- could not find an update function
-            manualFunction(nil, nil, originalPathOfValue, originalValue);
-        else
             manualFunction(updateFunction, selectedValue, originalPathOfValue, originalValue);
+        else
+            manualFunction(nil, nil, originalPathOfValue, originalValue);
         end
 
     elseif (obj:IsFunction(updateFunction)) then

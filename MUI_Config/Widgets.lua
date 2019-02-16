@@ -31,7 +31,7 @@ local function CreateElementContainerFrame(widget, widgetTable, parent)
     return container;
 end
 
-local function GetValue(configTable, attributeName, ...)
+local function GetAttribute(configTable, attributeName, ...)
     if (configTable[attributeName] ~= nil) then
         return configTable[attributeName];
     end
@@ -191,6 +191,13 @@ end
 --------------
 -- Slider
 --------------
+
+local function Slider_OnValueChanged(self, value)
+    value = math.floor(value + 0.5);
+    self.Value:SetText(value);
+    configModule:SetDatabaseValue(self:GetParent(), value);
+end
+
 function WidgetHandlers.slider(parent, widgetTable, value)
     local slider = tk.CreateFrame("Slider", nil, parent, "OptionsSliderTemplate");
 
@@ -213,15 +220,11 @@ function WidgetHandlers.slider(parent, widgetTable, value)
 
     slider:SetSize(widgetTable.width or 150, 20);
 
-    slider:SetScript("OnValueChanged", function(self, sliderValue)
-        sliderValue = tk.math.floor(sliderValue + 0.5);
-        self.Value:SetText(sliderValue);
-        configModule:SetDatabaseValue(self, sliderValue);
-    end);
+    slider:SetScript("OnValueChanged", Slider_OnValueChanged);
 
-    slider = CreateElementContainerFrame(slider, widgetTable, parent);
-    slider:SetHeight(slider:GetHeight() + 20); -- make room for value text
-    return slider;
+    local container = CreateElementContainerFrame(slider, widgetTable, parent);
+    container:SetHeight(container:GetHeight() + 20); -- make room for value text
+    return container;
 end
 
 --------------
@@ -249,7 +252,7 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
     container.dropdown:SetTooltip(widgetTable.tooltip);
     container.dropdown:SetDisabledTooltip(widgetTable.disabledTooltip);
 
-    local options = GetValue(widgetTable, "options");
+    local options = GetAttribute(widgetTable, "options");
 
     for key, dropDownValue in pairs(options) do
         local option;
@@ -329,133 +332,110 @@ end
 -----------------
 -- Color Picker
 -----------------
-local function ShowColorPicker(r, g, b, a, changedCallback)
-    _G.ColorPickerFrame.hasOpacity = (a ~= nil);
-    _G.ColorPickerFrame.opacity = a;
-    _G.ColorPickerFrame.previousValues = obj:PopTable(r, g, b, a);
-
-    _G.ColorPickerFrame.func = changedCallback;
-    _G.ColorPickerFrame.opacityFunc = changedCallback;
-    _G.ColorPickerFrame.cancelFunc = changedCallback;
-
-    -- Need to run the OnShow handler:
-    _G.ColorPickerFrame:Hide();
-    _G.ColorPickerFrame:Show();
-end
-
-local function ColorPickerOkayButton_OnClick(self)
-    local container = self:GetParent().container;
-
-    if (obj:IsTable(container)) then
-        container.value:SaveChanges();
+local function ColorWidget_SaveValue(container, r, g, b, a)
+    if (container.useIndexes) then
+        container.value[1] = r;
+        container.value[2] = g;
+        container.value[3] = b;
+        container.value[4] = a;
+    else
+        container.value.r = r;
+        container.value.g = g;
+        container.value.b = b;
+        container.value.a = a;
     end
+
+    container.r = r;
+    container.g = g;
+    container.b = b;
+
+    if (container.hasOpacity) then
+        container.opacity = 1.0 - a;
+    end
+
+    configModule:SetDatabaseValue(container, container.value);
 end
 
 local function ColorWidget_OnClick(self)
-    local r, g, b, a = self.color:GetVertexColor();
-    ShowColorPicker(r, g, b, (a and (1 - a)), self.func);
-    _G.ColorPickerFrame.container = self;
+    self.loaded = nil;
+    _G.OpenColorPicker(self);
 
-    if (ColorPickerOkayButton_OnClick) then
-        _G.ColorPickerOkayButton:HookScript("OnClick", ColorPickerOkayButton_OnClick);
-        _G.ColorPickerOkayButton:HookScript("OnHide", function(self) self.container = nil; end);
-        ColorPickerOkayButton_OnClick = nil;
+    if (self.hasOpacity) then
+        _G.OpacitySliderFrame:SetValue(self.opacity);
     end
 end
 
-local function UpdateValue(useIndexes, value, c)
-    if (useIndexes) then
-        value[1] = c.r;
-        value[2] = c.g;
-        value[3] = c.b;
-        value[4] = c.a;
-    else
-        value.r = c.r;
-        value.g = c.g;
-        value.b = c.b;
-        value.a = c.a;
+local function ColorWidget_OnValueChanged()
+    local container = _G.ColorPickerFrame.extraInfo;
+
+    if (_G.ColorPickerFrame:IsShown() or not container.loaded) then
+        -- do not update database until OkayButton clicked
+        container.loaded = true;
+        return;
     end
 
+    -- OkayButton was clicked so update database:
+    local r, g, b = _G.ColorPickerFrame:GetColorRGB();
+    local a;
+
+    if (container.hasOpacity) then
+        a = 1.0 - _G.OpacitySliderFrame:GetValue();
+    end
+
+    ColorWidget_SaveValue(container, r, g, b, a);
+    container.color:SetColorTexture(r, g, b, a or 1);
+
+    if (container.requiresReload) then
+        configModule:ShowReloadMessage();
+    end
 end
 
 function WidgetHandlers.color(parent, widgetTable, value)
     local container = tk:PopFrame("Button", parent);
-    value = value:GetTrackedTable();
+    container:SetScript("OnClick", ColorWidget_OnClick);
 
-    container.value = value;
+    -- create widget elements:
+    container.square = container:CreateTexture(nil, "BACKGROUND");
+    container.square:SetSize(30, 30);
+    container.square:SetTexture("Interface\\ChatFrame\\ChatFrameColorSwatch");
+    container.square:SetPoint("LEFT");
 
     container.name = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
     container.name:SetText(widgetTable.name);
     container.name:SetJustifyH("LEFT");
+    container.name:SetPoint("LEFT", container.square, "RIGHT", 4, 0);
+
+    container.color = container:CreateTexture(nil, "OVERLAY");
+    container.color:SetSize(16, 16);
+    container.color:SetPoint("CENTER", container.square, "CENTER");
 
     container:SetSize(
         widgetTable.width or (container.name:GetStringWidth() + 44),
         widgetTable.height or 30);
 
-    container.square = container:CreateTexture(nil, "BACKGROUND");
-    container.square:SetSize(30, 30);
-    container.square:SetTexture("Interface\\ChatFrame\\ChatFrameColorSwatch");
+    -- info options:
+    container.extraInfo = container;
+    container.swatchFunc = ColorWidget_OnValueChanged;
 
-    container.color = container:CreateTexture(nil, "OVERLAY");
-    container.color:SetSize(16, 16);
+    container.value = value;
+    container.r = value.r or value[1] or 0;
+    container.g = value.g or value[2] or 0;
+    container.b = value.b or value[3] or 0;
 
-    container.color:SetColorTexture(
-        value and value.r or value[1] or 0,
-        value and value.g or value[2] or 0,
-        value and value.b or value[3] or 0
-    );
+    if (widgetTable.hasOpacity) then
+        container.opacity = 1.0 - (value.a or value[4] or 0);
+        container.hasOpacity = true;
 
-    local loaded = false;
-    local c = obj:PopTable();
+        local blackBackground = container:CreateTexture(nil, "BORDER");
+        blackBackground:SetSize(16, 16);
+        blackBackground:SetPoint("CENTER", container.square, "CENTER");
+        blackBackground:SetColorTexture(0, 0, 0);
 
-    tk.Tables:Fill(c, value);
-
-    container.func = function(restore)
-        if (restore) then
-            -- cancel button was pressed
-            c.r, c.g, c.b, c.a = unpack(restore);
-            loaded = false;
-        else
-            -- color picker was opened for the first time or okay button was pressed
-            c.r, c.g, c.b = _G.ColorPickerFrame:GetColorRGB();
-
-            if (_G.ColorPickerFrame.hasOpacity) then
-                c.a = _G.OpacitySliderFrame:GetValue();
-                c.a = 1 - c.a;
-            end
-
-            if (not loaded and c.r == 1 and c.g == 1 and c.b == 1) then
-                loaded = true;
-
-                if (container.useIndexes) then
-                    c.r = value[1];
-                    c.g = value[2];
-                    c.b = value[3];
-                    c.a = value[4];
-                else
-                    c.r = value.r;
-                    c.g = value.g;
-                    c.b = value.b;
-                    c.a = value.a;
-                end
-
-                _G.ColorPickerFrame:SetColorRGB(c.r, c.g, c.b);
-            else
-                UpdateValue(container.useIndexes, value, c);
-                container.color:SetColorTexture(c.r, c.g, c.b);
-
-                if (container.requiresReload) then
-                    configModule:ShowReloadMessage();
-                end
-            end
-        end
+        container.color:SetColorTexture(container.r, container.g, container.b, 1.0 - container.opacity);
+    else
+        container.color:SetColorTexture(container.r, container.g, container.b);
     end
 
-    container:SetScript("OnClick", ColorWidget_OnClick);
-
-    container.square:SetPoint("LEFT");
-    container.color:SetPoint("CENTER", container.square, "CENTER");
-    container.name:SetPoint("LEFT", container.square, "RIGHT", 4, 0);
     return container;
 end
 
@@ -563,7 +543,7 @@ function WidgetHandlers.fontstring(parent, widgetTable)
         end
     end
 
-    local content = GetValue(widgetTable, "content");
+    local content = GetAttribute(widgetTable, "content");
     container.content:SetText(content);
 
     if (widgetTable.height) then

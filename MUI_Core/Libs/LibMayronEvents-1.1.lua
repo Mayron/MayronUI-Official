@@ -47,6 +47,8 @@ function Handler:__Destruct(data)
             end
         end
     end
+
+    Private.eventKeys[data.key] = nil;
 end
 
 ---@return table @Returns a table containing all event names registered with handler.
@@ -118,7 +120,7 @@ EventsPackage:DefineReturns("boolean");
 ---@return boolean @Returns true if the handler was destroyed during execution.
 function Handler:Run(data, eventName, ...)
     if (obj:IsString(eventName) and not data.events[eventName]) then
-        return; -- event callback has been disabled.
+        return false; -- event callback has been disabled.
     end
 
     if (data.callback) then
@@ -245,6 +247,7 @@ end
 function Lib:DestroyEventHandlerByKey(key)
     if (self:HandlerExists(key)) then
         Private.eventKeys[key]:Destroy();
+        Private.eventKeys[key] = nil;
     end
 end
 

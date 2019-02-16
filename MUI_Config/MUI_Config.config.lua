@@ -73,7 +73,7 @@ function C_ConfigModule:GetConfigTable()
                     height            = 54;
                     requiresReload    = true;
 
-                    SetValue = function(_, _, value)
+                    SetValue = function(_, value)
                         value.hex = tk.string.format('%02x%02x%02x', value.r * 255, value.g * 255, value.b * 255);
                         db.profile.theme.color = value;
                         db.profile.bottomui.gradients = nil;
@@ -149,6 +149,14 @@ function C_ConfigModule:GetConfigTable()
                         L["Minimum value is "], "200", "\n\n", L["Default value is "], "325");
                     dbPath      = "profile.unitPanels.unitWidth";
                 };
+                {   name        = "Unit Panel Height";
+                    type        = "textfield";
+                    module      = "BottomUI_UnitPanels";
+                    valueType   = "number";
+                    tooltip     = tk.Strings:Concat("Adjust the height of the unit frame background panels.",
+                        "\n\n", L["Default value is "], "75");
+                    dbPath      = "profile.unitPanels.unitHeight";
+                };
                 {   name    = L["Name Panels"];
                     type    = "title";
                 };
@@ -187,44 +195,37 @@ function C_ConfigModule:GetConfigTable()
                     height  = 50;
                     dbPath  = "profile.unitPanels.unitNames.targetClassColored";
                 };
-                {   name          = L["Action Bar Panel"];
-                    type          = "title";
-                    paddingTop    = 0;
-                };
-                {   name              = L["Enable Action Bar Panel"];
-                    dbPath            = "profile.actionBarPanel.enabled";
-                    requiresReload    = true;
-                    type              = "check";
-                };
                 {   name    = L["SUF Portrait Gradient"];
                     type    = "title";
                 };
                 {   name    = L["Enable Gradient Effect"];
                     type    = "check";
-                    tooltip = tk.Strings.Concat(L["If the SUF Player or Target portrait bars are enabled, a class"],
+                    tooltip = tk.Strings:Concat(L["If the SUF Player or Target portrait bars are enabled, a class"],
                         "\n", L["colored gradient will overlay it."]);
                     dbPath  = "profile.unitPanels.sufGradients.enabled";
                 };
                 {   name    = L["Height"];
                     type    = "textfield";
-                    tooltip = tk.Strings.Concat(L["The height of the gradient effect."], "\n\n", L["Default value is "], "24");
+                    tooltip = tk.Strings:Concat(L["The height of the gradient effect."], "\n\n", L["Default value is "], "24");
                     dbPath  = "profile.unitPanels.sufGradients.height";
                 };
                 {   type    = "fontstring";
                     content = L["Gradient Colors"];
                     subtype = "header";
                 };
-                {   name    = L["Start Color"];
-                    type    = "color";
-                    width   = 150;
-                    tooltip = L["What color the gradient should start as."];
-                    dbPath  = "profile.unitPanels.sufGradients.from";
+                {   name          = L["Start Color"];
+                    type          = "color";
+                    hasOpacity    = true;
+                    width         = 150;
+                    tooltip       = L["What color the gradient should start as."];
+                    dbPath        = "profile.unitPanels.sufGradients.from";
                 };
-                {   name    = L["End Color"];
-                    width   = 150;
-                    tooltip = L["What color the gradient should change into."];
-                    type    = "color";
-                    dbPath  = "profile.unitPanels.sufGradients.to";
+                {   name          = L["End Color"];
+                    width         = 150;
+                    tooltip       = L["What color the gradient should change into."];
+                    type          = "color";
+                    hasOpacity    = true;
+                    dbPath        = "profile.unitPanels.sufGradients.to";
                 };
                 {   name    = L["Target Class Colored"];
                     tooltip = L["TT_MUI_USE_TARGET_CLASS_COLOR"];
@@ -239,6 +240,13 @@ function C_ConfigModule:GetConfigTable()
                 {   name = "Bottom Action Bars";
                     type = "submenu";
                     children = {
+                        {   name              = L["Enable Action Bar Panel"];
+                            dbPath            = "profile.actionBarPanel.enabled";
+                            tooltip           = "Enable or disable the background panel";
+                            type              = "check";
+                        };
+                        {   type              = "divider";
+                        };
                         {   name    = L["Animation Speed"];
                             type    = "slider";
                             tooltip = tk.Strings:Concat(L["The speed of the Expand and Retract transitions."], "\n\n",
@@ -288,7 +296,7 @@ function C_ConfigModule:GetConfigTable()
                                     type    = "check";
                                     dbPath  = "profile.actionBarPanel.modKey";
 
-                                    GetValue = function(currentValue)
+                                    GetValue = function(_, currentValue)
                                         return GetModKeyValue(arg, currentValue);
                                     end;
 
