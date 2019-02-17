@@ -83,6 +83,20 @@ function Lib:IsObject(value)
     return (Core:GetController(value, true) ~= nil);
 end
 
+function Lib:IsWidget(value)
+    if (not Lib:IsTable(value)) then
+        return false;
+    end
+
+    local isObject = (Core:GetController(value, true) ~= nil);
+
+    if (isObject) then
+        return false;
+    end
+
+    return (value.GetObjectType ~= nil and value.GetName ~= nil);
+end
+
 function Lib:IsStringNilOrWhiteSpace(value)
     return Core:IsStringNilOrWhiteSpace(value);
 end
@@ -175,22 +189,30 @@ do
 
     ---@param wrapper table @A table to be added to the stack. The table is emptied and detached from any meta-table
     ---@param pushSubTables boolean|function @Whether sub tables found in the table should also be pushed to the stack
-    function Lib:PushTable(wrapper, pushSubTables)
-        if (not self:IsTable(wrapper)) then
+    function Lib:PushTable(wrapper, pushSubTables, path)
+        if (not self:IsTable(wrapper) or self:IsWidget(wrapper)) then
             return;
         end
 
         local push = true;
 
         for key, _ in pairs(wrapper) do
-            if (pushSubTables and self:IsTable(wrapper[key])) then
+            if (pushSubTables and self:IsTable(wrapper[key]) and not self:IsWidget(wrapper)) then
+
+                local nextPath;
+
+                if (path) then
+                    nextPath = string.format("%s.%s", path, tostring(key));
+                else
+                    nextPath = tostring(key);
+                end
 
                 if (self:IsFunction(pushSubTables)) then
-                    push = pushSubTables(wrapper[key], key);
+                    push = pushSubTables(wrapper, wrapper[key], key, nextPath);
                 end
 
                 if (push) then
-                    self:PushTable(wrapper[key], pushSubTables);
+                    self:PushTable(wrapper[key], pushSubTables, nextPath);
                 end
             end
 
@@ -493,6 +515,9 @@ local function CreateProxyObject(object, key, self, controller, privateData)
             "Invalid instance private data found when calling %s.%s: %s",
             proxyObject.controller.objectName, proxyObject.key, tostring(proxyObject.privateData));
 
+        Core:Assert(Lib:IsFunction(proxyObject.object[proxyObject.key]),
+            "Could not find function '%s' for object '%s'", proxyObject.key, proxyObject.controller.objectName);
+
         -- Validate return values received after calling the function
         local returnValues = Lib:PopTable(
             Core:ValidateFunctionCall(definition, errorMessage,
@@ -712,7 +737,6 @@ end
 
 do
     local proxyInstanceMT = {}; -- acts as a filter to protect invalid keys from being indexed into Instance
-    local missingFrameErrorMessage = "attempt to index %s.%s (a nil value) and no data.frame property was found.";
     local GetFrame = "GetFrame";
     local innerValues = {};
 
@@ -721,11 +745,14 @@ do
         return innerValues.frame[innerValues.key](innerValues.frame, ...);
     end
 
-    local function GetFrameWrapperFunction(classController, value, key)
+    local function GetFrameWrapperFunction(value, key)
         -- ProxyClass changed key to GetFrame during __index meta-method call
         local frame = value(); -- call the proxyObject.Run function here to get the frame
 
-        Core:Assert(Lib:IsTable(frame) and frame.GetObjectType, missingFrameErrorMessage, classController.objectName, key);
+        if (not (Lib:IsTable(frame) and frame.GetObjectType)) then
+            -- might be a property we are searching for, so do not throw an error!
+            return nil;
+        end
 
         if (frame[key]) then
             -- if the frame has the key we are trying to get...
@@ -796,10 +823,12 @@ do
         if (value == nil and instanceController.UsingParentControllers) then
             local selectedParentController = GetControllerForConcreteFunction(instanceController, key);
 
-            value = CreateProxyObject(
-                selectedParentController.class, -- object/scope
-                key, self, selectedParentController, privateData
-            );
+            if (selectedParentController and selectedParentController.class[key]) then
+                value = CreateProxyObject(
+                    selectedParentController.class, -- object/scope
+                    key, self, selectedParentController, privateData
+                );
+            end
         end
 
         -- check if instance property
@@ -813,7 +842,7 @@ do
                 proxyObject.privateData = privateData; -- set PrivateData to be injected into function call
 
                 if (proxyObject.key == GetFrame and key ~= GetFrame) then
-                    value = GetFrameWrapperFunction(classController, value, key)
+                    value = GetFrameWrapperFunction(value, key);
                 end
             end
         end
@@ -828,7 +857,7 @@ do
                 proxyObject.privateData = privateData; -- set PrivateData to be injected into function call
 
                 if (proxyObject.key == GetFrame and key ~= GetFrame) then
-                    value = GetFrameWrapperFunction(classController, value, key)
+                    value = GetFrameWrapperFunction(value, key);
                 end
             end
         end
@@ -843,6 +872,11 @@ do
 
     proxyInstanceMT.__newindex = function(self, key, value)
         local instanceController = Core:GetController(self);
+
+        if (instanceController.protectedProperties and instanceController.protectedProperties[key]) then
+            Core:Error("Failed to override protected instance property '%s' for object '%s'.", key, instanceController.objectName);
+        end
+
         local classController = instanceController.classController;
         local instance = instanceController.instance;
 
@@ -911,8 +945,7 @@ do
 
         if (classController.isGenericType) then
             -- renames EntiyName for instance controller, and creates "RealGenericTypes" instance controller property
-            instanceController.objectName = self:ApplyGenericTypesToInstance(instanceController.definitions, classController); -- TODO: This is getting called twice for each instance and altering the class definition!
-            -- TODO: This is because originally each instance had a copy of the definition but now the class does and I am rewriting the class definition when I should just be altering the instance definition
+            instanceController.objectName = self:ApplyGenericTypesToInstance(instanceController.definitions, classController);
         end
 
         -- interfaceController requires knowledge of many classController settings
@@ -1696,6 +1729,12 @@ function Package:ProtectClass(_, class)
 
     Core:Assert(classController and classController.isClass, "Package.ProtectClass - bad argument #1 (class not found).");
 	classController.isProtected = true;
+end
+
+function Package:ProtectProperty(_, instance, propertyName)
+    local instanceController = Core:GetController(instance);
+    instanceController.protectedProperties = instanceController.protectedProperties or Lib:PopTable();
+	instanceController.protectedProperties[propertyName] = true;
 end
 
 ---@return string the name of the package type

@@ -53,8 +53,6 @@ local function TransferWidgetAttributes(widget, widgetTable)
     widget.OnClick          = widgetTable.OnClick;
     widget.data             = widgetTable.data;
     widget.useIndexes       = widgetTable.useIndexes;
-
-    obj:PushTable(widgetTable);
 end
 
 namespace.MenuButton_OnClick = MenuButton_OnClick;
@@ -116,7 +114,6 @@ Engine:DefineParams("table");
 ---@param widget table @The created widger frame.
 ---@param value any @The value to add to the database using the dbPath value attached to the widget table.
 function C_ConfigModule:SetDatabaseValue(_, widget, newValue)
-
     -- __SetValue is a custom function to manually set the datbase config value
     if (widget.__SetValue) then
         local oldValue;
@@ -149,7 +146,6 @@ end
 Engine:DefineParams("CheckButton|Button");
 ---@param menuButton CheckButton|Button @The menu button clicked on associated with a menu.
 function C_ConfigModule:OpenMenu(data, menuButton)
-
     if (menuButton.type == "menu") then
         data.history:Clear();
         SetBackButtonEnabled(data.window.back, false);
@@ -165,7 +161,7 @@ function C_ConfigModule:OpenMenu(data, menuButton)
 end
 
 do
-    local function CleanTablesPredicate(tbl, key)
+    local function CleanTablesPredicate(_, tbl, key)
         return (tbl.type ~= "submenu" and key ~= "options");
     end
 
@@ -180,14 +176,15 @@ do
         menuButton.menu = menuButton.menu or self:CreateMenu();
         data.selectedButton = menuButton;
 
+
         if (menuButton:IsObjectType("CheckButton")) then
             menuButton:SetChecked(true);
         end
 
         if (menuButton.configTable) then
             self:RenderSelectedMenu(menuButton.configTable);
-
             obj:PushTable(menuButton.configTable, CleanTablesPredicate);
+
             menuButton.configTable = nil;
 
             if (menuButton.module) then
@@ -216,8 +213,8 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     data.tempMenuConfigTable = menuConfigTable;
 
     for _, widgetConfigTable in pairs(menuConfigTable.children) do
-
         if (widgetConfigTable.type == "loop") then
+
             -- run the loop to gather widget children
             local loopResults = namespace.WidgetHandlers.loop(data.selectedButton.menu:GetFrame(), widgetConfigTable);
 
@@ -263,9 +260,11 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     end
 
     if (data.tempMenuConfigTable.groups) then
-        for _, group in ipairs(data.tempMenuConfigTable.groups) do
-            tk:GroupCheckButtons(_G.unpack(group));
+        for _, group in pairs(data.tempMenuConfigTable.groups) do
+            tk:GroupCheckButtons(group);
         end
+
+        obj:PushTable(data.tempMenuConfigTable.groups);
     end
 
     data.tempMenuConfigTable = nil;
@@ -301,7 +300,6 @@ Engine:DefineParams("table", "?Frame");
 ---@param parent Frame @(optional) A custom parent frame for the widget, else the parent will be the menu scroll child.
 ---@return Frame @(possibly nil if widget is disabled) The created widget.
 function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
-
     if (not parent) then
         parent = data.selectedButton.menu:GetFrame();
         parent = parent.ScrollFrame:GetScrollChild();
@@ -610,6 +608,6 @@ do
             end
         end
 
-        tk:GroupCheckButtons(tk.unpack(data.menuButtons));
+        tk:GroupCheckButtons(data.menuButtons);
     end
 end

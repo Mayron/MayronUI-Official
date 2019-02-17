@@ -1,20 +1,20 @@
+local _, namespace = ...;
+
 -- luacheck: ignore MayronUI self 143 631
-
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
-
--- Register and Import Modules -------
-
-local Engine = obj:Import("MayronUI.Engine");
-local Currency = Engine:CreateClass("Currency", nil, "MayronUI.Engine.IDataTextModule");
-
+local ComponentsPackage = namespace.ComponentsPackage;
 local LABEL_PATTERN = "|cffffffff%s|r";
+
+-- Objects ---------------------------
+
+local Currency = ComponentsPackage:CreateClass("Currency", nil, "IDataTextComponent");
 
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.currency", {
     -- todo: this needs to be more intelligent...
-    showCopper = false,
-    showSilver = false,
+    showCopper = true,
+    showSilver = true,
     showGold = true,
 
     showRealm = false,
@@ -38,7 +38,6 @@ end
 -- Currency Module ----------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-
     local coloredKey = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
 
     -- saves info on the currency that each logged in character has
@@ -62,7 +61,6 @@ function Currency:__Construct(data, settings, dataTextModule)
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
     self.Button = dataTextModule:CreateDataTextButton();
-    self.SavedVariableName = "currency";
 
     data.goldString = "|TInterface\\MoneyFrame\\UI-GoldIcon:14:14:2:0|t";
     data.silverString = "|TInterface\\MoneyFrame\\UI-SilverIcon:14:14:2:0|t";
@@ -83,13 +81,12 @@ function Currency:__Construct(data, settings, dataTextModule)
 
     data.info = obj:PopTable();
     data.info[1] = tk.Strings:SetTextColorByTheme(L["Current Money"]..":");
-    data.info[2] = nil;
+    data.info[2] = nil; -- value of current money
     data.info[3] = tk.Strings:SetTextColorByTheme(L["Start of the day"]..":");
-    data.info[4] = nil;
-    data.info[6] = self:GetFormattedCurrency(data.settings.todayCurrency);
-    data.info[7] = tk.Strings:SetTextColorByTheme(L["Today's profit"]..":");
-    data.info[8] = nil;
-    data.info[9] = tk.Strings:Concat(_G.NORMAL_FONT_COLOR_CODE..L["Money per character"], ":", "|r");
+    data.info[4] = self:GetFormattedCurrency(data.settings.todayCurrency);
+    data.info[5] = tk.Strings:SetTextColorByTheme(L["Today's profit"]..":");
+    data.info[6] = nil; -- value of today's profile
+    data.info[7] = tk.Strings:Concat(_G.NORMAL_FONT_COLOR_CODE..L["Money per character"], ":", "|r");
 end
 
 function Currency:IsEnabled(data)
@@ -113,7 +110,7 @@ function Currency:SetEnabled(data, enabled)
     end
 end
 
-Engine:DefineParams("number", "?string", "?boolean")
+ComponentsPackage:DefineParams("number", "?string", "?boolean")
 function Currency:GetFormattedCurrency(data, currency, colorCode, hasLabel)
     local text = "";
     local gold = tk.math.floor(tk.math.abs(currency / 10000));
@@ -155,7 +152,8 @@ function Currency:GetFormattedCurrency(data, currency, colorCode, hasLabel)
     return tk.string.format(LABEL_PATTERN, text:trim());
 end
 
-function Currency:GetDifference(data)
+ComponentsPackage:DefineReturns("string");
+function Currency:GetTodaysProfit(data)
     local currency = _G.GetMoney() - data.settings.todayCurrency;
 
     if (currency >= 0) then
@@ -169,7 +167,11 @@ function Currency:GetDifference(data)
     end
 end
 
-function Currency:Update()
+function Currency:Update(data, refreshSettings)
+    if (refreshSettings) then
+        data.settings:Refresh();
+    end
+
     local currentCurrency = self:GetFormattedCurrency(_G.GetMoney(), nil, true);
 
     self.Button:SetText(currentCurrency);
@@ -178,26 +180,25 @@ function Currency:Update()
 end
 
 function Currency:Click(data)
-    self.MenuLabels = self.MenuLabels or {};
+    self.MenuLabels = self.MenuLabels or obj:PopTable();
     data.info[2] = self:GetFormattedCurrency(_G.GetMoney());
-    data.info[6] = self:GetDifference();
+    data.info[6] = self:GetTodaysProfit();
 
     local r, g, b = tk:GetThemeColor();
     local popupWidth = data.settings.popup.width;
     local totalLabelsShown = 0;
 
-    -- weird logic
-    for id, value in tk.ipairs(data.info) do
+    for id, value in ipairs(data.info) do
         self.MenuLabels[id] = self.MenuLabels[id] or CreateLabel(self.MenuContent, popupWidth);
         self.MenuLabels[id].value:SetText(value);
 
         if (id % 2 == 1) then
+            -- alternating colors for rows
             self.MenuLabels[id].bg:SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.2);
         end
 
         totalLabelsShown = id;
     end
-
 
     for characterName, value in db.global.datatext.currency.characters:Iterate() do
         totalLabelsShown = totalLabelsShown + 1;

@@ -1,10 +1,12 @@
+local _, namespace = ...;
+
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, _, obj = MayronUI:GetCoreComponents();
+local tk, db, em = MayronUI:GetCoreComponents();
+local ComponentsPackage = namespace.ComponentsPackage;
 
 -- Objects ---------------------------
 
-local Engine = obj:Import("MayronUI.Engine");
-local CombatTimer = Engine:CreateClass("CombatTimer", nil, "MayronUI.Engine.IDataTextModule");
+local CombatTimer = ComponentsPackage:CreateClass("CombatTimer", nil, "IDataTextComponent");
 
 -- CombatTimer Module ----------------
 
@@ -16,17 +18,12 @@ function CombatTimer:__Construct(data, settings, dataTextModule)
     data.settings = settings;
 
     -- set public instance properties
-    self.MenuContent = _G.CreateFrame("Frame");
-    self.MenuLabels = obj:PopTable();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
     self.HasRightMenu = false;
-    self.SavedVariableName = "combatTimer";
+    self.Button = dataTextModule:CreateDataTextButton();
 
     local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
-
-    -- create datatext button
-    self.Button = dataTextModule:CreateDataTextButton();
 
     data.seconds = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
     data.seconds:SetFont(font, data.settings.fontSize);
@@ -50,9 +47,9 @@ function CombatTimer:IsEnabled(data)
 end
 
 function CombatTimer:SetEnabled(data, enabled)
-    data.enabled = false;
+    data.enabled = enabled;
 
-    if (not enabled) then
+    if (enabled) then
         em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "DataText_CombatTimer_RegenDisabled", function()
             data.startTime = _G.GetTime();
             data.inCombat = true;
@@ -81,9 +78,13 @@ function CombatTimer:SetEnabled(data, enabled)
     end
 end
 
-function CombatTimer:Update(data)
+function CombatTimer:Update(data, refreshSettings)
+    if (refreshSettings) then
+        data.settings:Refresh();
+    end
+
     if (data.executed) then
-        return
+        return;
     end
 
     data.executed = true;

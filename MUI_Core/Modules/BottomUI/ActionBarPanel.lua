@@ -126,19 +126,19 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
 
         bartender = {
             [1] = function(bartenderBarID)
-                self:SetupBartenderBar(1, bartenderBarID);
+                self:SetUpBartenderBar(1, bartenderBarID);
             end;
 
             [2] = function(bartenderBarID)
-                self:SetupBartenderBar(2, bartenderBarID);
+                self:SetUpBartenderBar(2, bartenderBarID);
             end;
 
             [3] = function(bartenderBarID)
-                self:SetupBartenderBar(3, bartenderBarID);
+                self:SetUpBartenderBar(3, bartenderBarID);
             end;
 
             [4] = function(bartenderBarID)
-                self:SetupBartenderBar(4, bartenderBarID);
+                self:SetUpBartenderBar(4, bartenderBarID);
             end;
         };
     });
@@ -329,7 +329,7 @@ function C_ActionBarPanel:GetPanel(data)
     return data.panel;
 end
 
-function C_ActionBarPanel:SetupBartenderBar(data, barID, bartenderBarID)
+function C_ActionBarPanel:SetUpBartenderBar(data, barID, bartenderBarID)
     if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
         return;
     end
@@ -365,8 +365,8 @@ function C_ActionBarPanel:SetupBartenderBar(data, barID, bartenderBarID)
     bar:LoadPosition();
 end
 
-function C_ActionBarPanel:SetupAllBartenderBars(data)
+function C_ActionBarPanel:SetUpAllBartenderBars(data)
     for i = 1, 4 do
-        self:SetupBartenderBar(i, data.settings.bartender[i]);
+        self:SetUpBartenderBar(i, data.settings.bartender[i]);
     end
 end

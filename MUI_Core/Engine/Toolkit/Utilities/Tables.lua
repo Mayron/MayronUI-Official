@@ -103,14 +103,13 @@ end
 function tk.Tables:CleanIndexes(tbl)
     local tempIndexTable;
 
-    for index = 1, #tbl do
-        local value = tbl[index];
-
-        if (value ~= nil) then
-            tempIndexTable = tempIndexTable or obj:PopTable();
-            tk.table.insert(tempIndexTable, value);
-
-            tbl[index] = nil;
+    for index, value in pairs(tbl) do
+        if (obj:IsNumber(index)) then
+            if (value ~= nil) then
+                tempIndexTable = tempIndexTable or obj:PopTable();
+                tk.table.insert(tempIndexTable, value);
+                tbl[index] = nil;
+            end
         end
     end
 

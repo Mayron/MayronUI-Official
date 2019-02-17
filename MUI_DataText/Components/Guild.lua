@@ -1,12 +1,14 @@
+local _, namespace = ...;
+
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
+local ComponentsPackage = namespace.ComponentsPackage;
 
 local LABEL_PATTERN = L["Guild"]..": |cffffffff%u|r";
 
 -- Register and Import Modules -------
 
-local Engine = obj:Import("MayronUI.Engine");
-local Guild = Engine:CreateClass("Guild", nil, "MayronUI.Engine.IDataTextModule");
+local Guild = ComponentsPackage:CreateClass("Guild", nil, "IDataTextComponent");
 
 -- Load Database Defaults ------------
 
@@ -85,8 +87,6 @@ function Guild:__Construct(data, settings, dataTextModule, slideController)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
-    self.SavedVariableName = "guild";
-
     self.Button = dataTextModule:CreateDataTextButton();
 end
 
@@ -114,7 +114,11 @@ function Guild:SetEnabled(data, enabled)
     end
 end
 
-function Guild:Update(data)
+function Guild:Update(data, refreshSettings)
+    if (refreshSettings) then
+        data.settings:Refresh();
+    end
+
     if (not _G.IsInGuild()) then
         self.Button:SetText(L["No Guild"]);
     else

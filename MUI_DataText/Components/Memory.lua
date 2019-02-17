@@ -1,18 +1,13 @@
--- luacheck: ignore MayronUI self 143 631
-local tk, db, _, _, obj = MayronUI:GetCoreComponents();
+local _, namespace = ...;
 
+-- luacheck: ignore MayronUI self 143 631
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
+local ComponentsPackage = namespace.ComponentsPackage;
 local LABEL_PATTERN = "|cffffffff%s|r mb";
 
 -- Register and Import Modules -------
 
-local Engine = obj:Import("MayronUI.Engine");
-local Memory = Engine:CreateClass("Memory", nil, "MayronUI.Engine.IDataTextModule");
-
--- Load Database Defaults ------------
-
-db:AddToDefaults("profile.datatext.memory", {
-    --TODO: Add settings...
-});
+local Memory = ComponentsPackage:CreateClass("Memory", nil, "IDataTextComponent");
 
 -- Local Functions ----------------
 
@@ -55,7 +50,6 @@ function Memory:__Construct(data, settings, dataTextModule)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
-    self.SavedVariableName = "memory";
     self.Button = dataTextModule:CreateDataTextButton();
 end
 
@@ -67,7 +61,11 @@ function Memory:SetEnabled(data, enabled)
     data.enabled = enabled;
 end
 
-function Memory:Update(data)
+function Memory:Update(data, refreshSettings)
+    if (refreshSettings) then
+        data.settings:Refresh();
+    end
+
     if (data.executed) then
         return
     end

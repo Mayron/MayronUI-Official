@@ -251,8 +251,6 @@ function C_SideBar:OnInitialize(data)
 
         buttons = {
             showWhen = function(value)
-                print("value:", value);
-
                 if (value == "Never") then
                     data.expand:Hide();
                     data.retract:Hide();

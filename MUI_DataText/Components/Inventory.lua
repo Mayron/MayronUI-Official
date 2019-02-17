@@ -1,10 +1,12 @@
+local _, namespace = ...;
+
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
+local tk, db, em, _, _, L = MayronUI:GetCoreComponents();
+local ComponentsPackage = namespace.ComponentsPackage;
 
 -- Register and Import Modules -------
 
-local Engine = obj:Import("MayronUI.Engine");
-local Inventory = Engine:CreateClass("Inventory", nil, "MayronUI.Engine.IDataTextModule");
+local Inventory = ComponentsPackage:CreateClass("Inventory", nil, "IDataTextComponent");
 
 -- Load Database Defaults ------------
 
@@ -39,12 +41,9 @@ function Inventory:__Construct(data, settings, dataTextModule, slideController)
     data.slideController = slideController;
 
     -- set public instance properties
-    self.MenuContent = _G.CreateFrame("Frame");
-    self.MenuLabels = obj:PopTable();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
     self.HasRightMenu = false;
-    self.SavedVariableName = "inventory";
     self.Button = dataTextModule:CreateDataTextButton();
 end
 
@@ -79,7 +78,11 @@ function Inventory:IsEnabled(data)
     return data.enabled;
 end
 
-function Inventory:Update(data)
+function Inventory:Update(data, refreshSettings)
+    if (refreshSettings) then
+        data.settings:Refresh();
+    end
+
     local slots = 0;
     local totalSlots = 0;
 

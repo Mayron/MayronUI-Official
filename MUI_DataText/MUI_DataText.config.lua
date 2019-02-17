@@ -152,7 +152,7 @@ function C_DataTextModule:GetConfigTable()
                 }
             },
             {   type = "submenu",
-                name = L["Money"],
+                name = "Currency";
                 module = "DataText",
                 appendDbPath = "currency",
                 children = {
@@ -185,36 +185,37 @@ function C_DataTextModule:GetConfigTable()
                 module = "DataText",
                 appendDbPath = "inventory",
                 children = {
-                    {   name = L["Show Total Slots"],
-                        type = "check",
-                        appendDbPath = "showTotalSlots",
+                    {   name = L["Show Total Slots"];
+                        type = "check";
+                        appendDbPath = "showTotalSlots";
                     },
                     {   type = "divider"
                     },
-                    {   name = L["Show Used Slots"],
-                        type = "radio",
-                        group = 1,
-                        appendDbPath = "slotsToShow",
+                    {   name = L["Show Used Slots"];
+                        type = "radio";
+                        groupName = "inventory";
+                        appendDbPath = "slotsToShow";
+
                         GetValue = function(_, value)
                             return value == "used";
-                        end,
+                        end;
+
                         SetValue = function(path)
-                            db:SetPathValue(db.Profile, path, "used");
-                        end
+                            db:SetPathValue(path, "used");
+                        end;
                     },
-                    {   name = L["Show Free Slots"],
-                        type = "radio",
-                        group = 1,
-                        appendDbPath = "slotsToShow",
+                    {   name = L["Show Free Slots"];
+                        type = "radio";
+                        groupName = "inventory";
+                        appendDbPath = "slotsToShow";
+
                         GetValue = function(_, value)
                             return value == "free";
-                        end,
-                        SetValue = function(path, _, newValue)
-                            if (newValue) then
-                                -- TODO: ELSE?!?
-                                db:SetPathValue(path, "free");
-                            end
-                        end
+                        end;
+
+                        SetValue = function(path)
+                            db:SetPathValue(path, "free");
+                        end;
                     },
                 },
             },

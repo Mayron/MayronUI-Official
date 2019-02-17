@@ -1,10 +1,14 @@
+local _, namespace = ...;
+
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, _, obj = MayronUI:GetCoreComponents();
+local _, db, em = MayronUI:GetCoreComponents();
+local ComponentsPackage = namespace.ComponentsPackage;
+
+local C_Timer = _G.C_Timer;
 
 -- Register and Import Modules -------
 
-local Engine = obj:Import("MayronUI.Engine");
-local Performance = Engine:CreateClass("Performance", nil, "MayronUI.Engine.IDataTextModule");
+local Performance = ComponentsPackage:CreateClass("Performance", nil, "IDataTextComponent");
 
 -- Load Database Defaults ------------
 
@@ -26,14 +30,9 @@ end);
 
 function Performance:__Construct(data, settings, dataTextModule)
     data.settings = settings;
-
-    -- set public instance properties
-    self.MenuContent = _G.CreateFrame("Frame");
-    self.MenuLabels = {};
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = false;
     self.HasRightMenu = false;
-    self.SavedVariableName = "performance";
     self.Button = dataTextModule:CreateDataTextButton();
 end
 
@@ -56,9 +55,13 @@ function Performance:IsEnabled(data)
     return data.enabled;
 end
 
-function Performance:Update(data)
+function Performance:Update(data, refreshSettings)
+    if (refreshSettings) then
+        data.settings:Refresh();
+    end
+
     if (data.executed) then
-        return
+        return;
     end
 
     data.executed = true;
@@ -69,20 +72,20 @@ function Performance:Update(data)
         local label = "";
 
         if (data.settings.showFps) then
-            label = tk.string.format("|cffffffff%u|r fps", _G.GetFramerate());
+            label = string.format("|cffffffff%u|r fps", _G.GetFramerate());
         end
 
         if (data.settings.showHomeLatency) then
-            label = tk.string.format("%s |cffffffff%u|r ms", label, latencyHome);
+            label = string.format("%s |cffffffff%u|r ms", label, latencyHome);
         end
 
         if (data.settings.showServerLatency) then
-            label = tk.string.format("%s |cffffffff%u|r ms", label, latencyServer);
+            label = string.format("%s |cffffffff%u|r ms", label, latencyServer);
         end
 
         self.Button:SetText(label:trim());
 
-        tk.C_Timer.After(3, loop);
+        C_Timer.After(3, loop);
     end
 
     loop();

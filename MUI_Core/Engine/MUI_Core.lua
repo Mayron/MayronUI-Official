@@ -10,6 +10,9 @@ namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.components.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 
 local tk  = namespace.components.Toolkit; ---@type Toolkit
+
+-- namespace.components.Database = tk:CreateTableProtector(namespace.components.Database);
+
 local db  = namespace.components.Database; ---@type LibMayronDB
 local em  = namespace.components.EventManager; ---@type LibMayronEvents
 local gui = namespace.components.GUIBuilder; ---@type LibMayronGUI
@@ -223,7 +226,6 @@ function BaseModule:SetEnabled(data, enabled, ...)
     if (enabled) then
         if (self.OnEnable) then
             self:OnEnable(...);
-            --tk:Print("Enabled: ", self:GetModuleName()) --todo: edit this back if needed
         end
 
         if (data.updateFunctions and not data.firstTime) then
@@ -280,7 +282,7 @@ end
 local function ExecuteUpdateFunction(path, updateFunction, setting, executed, onPre, onPost)
     local keysList = tk.Tables:ConvertPathToKeysList(path);
 
-    keysList:Print();
+    -- keysList:Print(); -- TODO: Enable this to see what is being executed
 
     if (obj:IsFunction(onPre)) then
         if (obj:IsFunction(onPost)) then
@@ -392,9 +394,9 @@ do
             local onPre, onPost;
             local settingPath = fullPath:gsub(observerPath..".", tk.Strings.Empty);
 
-            if (not obj:IsFunction(updateFunction)) then
+            if (updateFunction == nil) then
                 -- check if a group function can be used
-                updateFunction, onPre, onPost = FindMatchingGroupValue(settingPath, options);
+                updateFunction, onPre, onPost = FindMatchingGroupValue(settingPath, data.options);
 
                 if (obj:IsTable(updateFunction)) then
                     local lastKey = settingPath:match("%.([^.]*)$");
@@ -471,6 +473,7 @@ do
                 currentUpdateFunction, onPre, onPost = FindMatchingGroupValue(path, options);
             end
 
+            obj:Assert(obj:IsFunction(currentUpdateFunction), "No update function exists for ordered path '%s'", path);
             ExecuteUpdateFunction(path, currentUpdateFunction, currentSetting, executed, onPre, onPost);
         end
     end
@@ -490,6 +493,7 @@ do
             if (not ignored) then
                 -- find next update function:
                 if (not obj:IsFunction(updateFunction)) then
+
                     if (obj:IsTable(updateFunction)) then
                         -- get next function value
                         updateFunction = updateFunction[key];

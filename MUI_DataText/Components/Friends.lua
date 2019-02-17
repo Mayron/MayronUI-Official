@@ -1,5 +1,8 @@
+local _, namespace = ...;
+
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
+local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
+local ComponentsPackage = namespace.ComponentsPackage;
 
 local LABEL_PATTERN = L["Friends"]..": |cffffffff%u|r";
 local convert = {WTCG = "HS", Pro = "OW"};
@@ -9,14 +12,7 @@ local BNGetNumFriends, BNGetFriendInfo = _G.BNGetNumFriends, _G.BNGetFriendInfo;
 
 -- Register and Import Modules -------
 
-local Engine = obj:Import("MayronUI.Engine");
-local Friends = Engine:CreateClass("Friends", nil, "MayronUI.Engine.IDataTextModule");
-
--- Load Database Defaults ------------
-
-db:AddToDefaults("profile.datatext.friends", {
-    --TODO: Add settings...
-});
+local Friends = ComponentsPackage:CreateClass("Friends", nil, "IDataTextComponent");
 
 -- Local Functions -------------------
 
@@ -63,8 +59,6 @@ function Friends:__Construct(data, settings, dataTextModule, slideController)
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
-    self.SavedVariableName = "friends";
-
     self.Button = dataTextModule:CreateDataTextButton();
 end
 
@@ -92,7 +86,11 @@ function Friends:IsEnabled(data)
     return data.enabled;
 end
 
-function Friends:Update()
+function Friends:Update(data, refreshSettings)
+    if (refreshSettings) then
+        data.settings:Refresh();
+    end
+
     local totalOnline = 0;
 
     for i = 1, BNGetNumFriends() do

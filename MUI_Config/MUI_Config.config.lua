@@ -505,7 +505,7 @@ function C_ConfigModule:GetConfigTable()
             children = {
                 {   type = "loop";
                     args = {"Artifact", "Reputation", "Experience"};
-                    func = function(_, name)
+                    func = function(id, name)
                         local key = name:lower().."Bar";
                         local child = {
                             {   name    = tk.Strings:JoinWithSpace(L[name], L["Bar"]);
@@ -538,6 +538,11 @@ function C_ConfigModule:GetConfigTable()
                                 dbPath  = tk.Strings:Concat("profile.resourceBars.", key, ".fontSize");
                             };
                         };
+
+                        if (id == 1) then
+                            child[1].marginTop = 0;
+                        end
+
                         return child;
                     end
                 };
@@ -547,10 +552,11 @@ function C_ConfigModule:GetConfigTable()
             name = "Objectives Tracker";
             module = "SideBarModule";
             children = {
-                {   name    = "Objectives Tracker";
-                    type    = "title";
+                {   name        = "Objectives Tracker";
+                    type        = "title";
+                    marginTop   = 0;
                 };
-                {   name              = "Attach to Side Bar";
+                {   name              = "Enable Changes";
                     tooltip           = L["Disable this to stop MUI from controlling the Objective Tracker."];
                     type              = "check";
                     dbPath            = "profile.sidebar.objectiveTracker.enabled";
@@ -566,28 +572,28 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   name        = L["Set Width"];
                     type        = "textfield";
-                    tooltip     = tk.Strings.Concat(L["Adjust the width of the Objective Tracker."],"\n\n",
+                    tooltip     = tk.Strings:Concat(L["Adjust the width of the Objective Tracker."],"\n\n",
                                 L["Default value is "], "250");
                     dbPath      = "profile.sidebar.objectiveTracker.width";
                     valueType   = "number";
                 };
                 {   name        = L["Set Height"];
                     type        = "textfield";
-                    tooltip     = tk.Strings.Concat(L["Adjust the height of the Objective Tracker."], "\n\n",
+                    tooltip     = tk.Strings:Concat(L["Adjust the height of the Objective Tracker."], "\n\n",
                                 L["Default value is "], "600");
                     dbPath      = "profile.sidebar.objectiveTracker.height";
                     valueType   = "number";
                 };
                 {   name        = L["X-Offset"];
                     type        = "textfield";
-                    tooltip     = tk.Strings.Concat(L["Adjust the horizontal positioning of the Objective Tracker."],
+                    tooltip     = tk.Strings:Concat(L["Adjust the horizontal positioning of the Objective Tracker."],
                                     "\n\n", L["Default value is "], "-30");
                     dbPath      = "profile.sidebar.objectiveTracker.xOffset";
                     valueType   = "number";
                 };
                 {   name        = L["Y-Offset"];
                     type        = "textfield";
-                    tooltip     = tk.Strings.Concat(L["Adjust the vertical positioning of the Objective Tracker."], "\n\n",
+                    tooltip     = tk.Strings:Concat(L["Adjust the vertical positioning of the Objective Tracker."], "\n\n",
                                     L["Default value is "], "0");
                     dbPath      = "profile.sidebar.objectiveTracker.yOffset";
                     valueType   = "number";

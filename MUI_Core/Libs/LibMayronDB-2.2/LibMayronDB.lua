@@ -89,7 +89,7 @@ end
 local function GetDatabasePathInfo(db, rootTableOrPath, pathOrValue, value)
     local rootTable, path;
 
-    if (type(rootTableOrPath) == "table") then
+    if (obj:IsTable(rootTableOrPath)) then
         rootTable = rootTableOrPath;
         path = pathOrValue;
     else
@@ -152,6 +152,10 @@ function Database:__Construct(data, addOnName, savedVariableName)
     data.defaults.profile = obj:PopTable();
 end
 
+function Database:__Destruct()
+    obj:Error("Database cannot be destroyed");
+end
+
 Framework:DefineParams("function");
 ---Hooks a callback function onto the "StartUp" event to be called when the database starts up
 ---(i.e. when the saved variable becomes accessible). By default, this function is called by the library
@@ -210,6 +214,9 @@ function Database:Start(data)
 
     self.profile = Observer(false, data);
     self.global = Observer(true, data);
+
+    Framework:ProtectProperty(self, "profile");
+    Framework:ProtectProperty(self, "global");
 
     data.loaded = true;
 
@@ -1333,3 +1340,6 @@ function Helper:SetUsingChild(data, isGlobal, path, parentObserver)
 
     parentObserverData.usingChild = usingChild;
 end
+
+Framework:ProtectClass(Database);
+Framework:ProtectClass(Observer);

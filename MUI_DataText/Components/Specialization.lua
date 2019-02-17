@@ -1,10 +1,12 @@
+local _, namespace = ...;
+
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local ComponentsPackage = namespace.ComponentsPackage;
 
 -- Register and Import Modules -------
 
-local Engine = obj:Import("MayronUI.Engine");
-local Specialization = Engine:CreateClass("Specialization", nil, "MayronUI.Engine.IDataTextModule");
+local Specialization = ComponentsPackage:CreateClass("Specialization", nil, "IDataTextComponent");
 
 -- Load Database Defaults ------------
 
@@ -43,18 +45,19 @@ local function SetLabelEnabled(label, enabled)
     end
 end
 
-local function SetEquipmentSet(_, specializationName, equipmentSetId)
-    db.profile.datatext.specialization.sets[specializationName] = equipmentSetId;
+local function SetEquipmentSet(_, settings, specializationName, equipmentSetId)
+    settings.sets[specializationName] = equipmentSetId;
+    settings:SaveChanges();
 end
 
-local function CreateDropDown(contentFrame, popupWidth, dataTextBar, sets)
+local function CreateDropDown(settings, contentFrame, popupWidth, dataTextBar)
     -- create dropdown to list all equipment sets per specialization:
     local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, contentFrame, "UP", dataTextBar);
     dropdown:SetWidth(popupWidth - 10);
     dropdown:Show();
 
     local currentSpecializationName = tk.select(2, _G.GetSpecializationInfo(1));
-    local currentEquipmentSetId = sets[currentSpecializationName];
+    local currentEquipmentSetId = settings.sets[currentSpecializationName];
 
     if (obj:IsNumber(currentEquipmentSetId) and currentEquipmentSetId >= 0 and currentEquipmentSetId <= 9) then
         local equipmentSetName = _G.C_EquipmentSet.GetEquipmentSetInfo(currentEquipmentSetId);
@@ -76,12 +79,12 @@ local function CreateDropDown(contentFrame, popupWidth, dataTextBar, sets)
 
             if (equipmentSetName) then
             -- label, click function, value (nil) and a list of args to pass to function (specName passed to C_EquipmentSet.SetEquipmentSet)
-                dropdown:AddOption(equipmentSetName, SetEquipmentSet, currentSpecializationName, equipmentSetId);
+                dropdown:AddOption(equipmentSetName, SetEquipmentSet, settings, currentSpecializationName, equipmentSetId);
             end
         end
 
         -- does not change to anything (the default)
-        dropdown:AddOption(L["<none>"], SetEquipmentSet, currentSpecializationName);
+        dropdown:AddOption(L["<none>"], SetEquipmentSet, settings, currentSpecializationName);
         dropdown.registered = true;  -- do not repeat this setup
     end
 
@@ -106,13 +109,12 @@ function Specialization:__Construct(data, settings, dataTextModule, slideControl
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
-    self.MenuLabels = {};
+    self.MenuLabels = obj:PopTable();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
     self.HasRightMenu = true;
-    self.SavedVariableName = "specialization";
-
     self.Button = dataTextModule:CreateDataTextButton();
+
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 end
 
@@ -159,7 +161,11 @@ function Specialization:SetEnabled(data, enabled)
     end
 end
 
-function Specialization:Update()
+function Specialization:Update(data, refreshSettings)
+    if (refreshSettings) then
+        data.settings:Refresh();
+    end
+
     if (not self.Button) then
         return
     end
@@ -238,7 +244,6 @@ end
 -- show specialization selection with dropdown menus
 function Specialization:HandleLeftClick(data)
     local popupWidth = data.settings.popup.width;
-    local sets = data.settings.sets;
     local totalLabelsShown = 1; -- including title
 
     for i = 1, _G.GetNumSpecializations() do
@@ -262,7 +267,7 @@ function Specialization:HandleLeftClick(data)
         label.name:SetText(specializationName);
 
         -- create dropdown
-        local dropdown = data.dropdowns[i] or CreateDropDown(self.MenuContent, popupWidth, data.dataTextBar, sets);
+        local dropdown = data.dropdowns[i] or CreateDropDown(data.settings, self.MenuContent, popupWidth, data.dataTextBar);
         data.dropdowns[i] = dropdown;
 
         -- treat dropdown menu as a label to position correctly

@@ -1,5 +1,8 @@
+local _, namespace = ...;
+
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
+local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
+local ComponentsPackage = namespace.ComponentsPackage;
 
 local DURABILITY_SLOTS = {
     "HeadSlot", "ShoulderSlot", "ChestSlot", "WaistSlot", "LegsSlot", "FeetSlot",
@@ -8,8 +11,7 @@ local DURABILITY_SLOTS = {
 
 -- Register and Import Modules -------
 
-local Engine = obj:Import("MayronUI.Engine");
-local Durability = Engine:CreateClass("Durability", nil, "MayronUI.Engine.IDataTextModule");
+local Durability = ComponentsPackage:CreateClass("Durability", nil, "IDataTextComponent");
 
 -- Local Functions ----------------
 
@@ -50,7 +52,6 @@ function Durability:__Construct(data, settings, dataTextModule)
     self.HasLeftMenu = true;
     self.HasRightMenu = false;
     self.Button = dataTextModule:CreateDataTextButton();
-    self.SavedVariableName = "durability";
 end
 
 function Durability:IsEnabled(data)
@@ -58,7 +59,7 @@ function Durability:IsEnabled(data)
 end
 
 function Durability:SetEnabled(data, enabled)
-    data.enabled = true;
+    data.enabled = enabled;
 
     if (enabled) then
         data.handler = em:CreateEventHandler("UPDATE_INVENTORY_DURABILITY", function()
@@ -77,7 +78,11 @@ function Durability:SetEnabled(data, enabled)
     end
 end
 
-function Durability:Update()
+function Durability:Update(data, refreshSettings)
+    if (refreshSettings) then
+        data.settings:Refresh();
+    end
+
     local durability_total, max_total = 0, 0;
     local itemsEquipped;
 

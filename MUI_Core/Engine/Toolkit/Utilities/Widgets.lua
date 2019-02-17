@@ -194,10 +194,14 @@ function tk:ClipTexture(texture, sideName, amount)
 end
 
 function tk:KillElement(element)
+    self:AttachToDummy(element);
+    element.Show = tk.Constants.DUMMY_FUNC;
+end
+
+function tk:AttachToDummy(element)
     element:Hide();
     element:SetParent(tk.Constants.DUMMY_FRAME);
     element:SetAllPoints(true);
-    element.Show = tk.Constants.DUMMY_FUNC;
 end
 
 function tk:KillAllElements(...)
@@ -300,23 +304,24 @@ function tk:SetBackground(frame, ...)
     return texture;
 end
 
-function tk:GroupCheckButtons(...)
-    local btns = obj:PopTable();
-
-    for id, btn in obj:IterateArgs(...) do
-        btn:SetID(id);
-        table.insert(btns, btn);
-
-        btn:HookScript("OnClick", function(self)
-            if (self:GetChecked()) then
-
-                for otherId, otherBtn in ipairs(btns) do
-                    if (id ~= otherId) then
-                        otherBtn:SetChecked(false);
-                    end
+do
+    local function RadioButton_OnClick(self)
+        if (self:GetChecked()) then
+            for otherId, otherBtn in ipairs(self.radioGroup) do
+                if (self:GetID() ~= otherId) then
+                    otherBtn:SetChecked(false);
                 end
             end
-        end);
+        end
+    end
+
+    function tk:GroupCheckButtons(btns)
+        for id, btn in ipairs(btns) do
+            btn:SetID(id);
+            btn.radioGroup = btns;
+
+            btn:HookScript("OnClick", RadioButton_OnClick);
+        end
     end
 end
 
