@@ -336,9 +336,12 @@ function C_SideBar:SetButtonsHideInCombat(data, hide)
         handler:SetEventCallbackEnabled("PLAYER_REGEN_DISABLED", hide);
     end
 
-    if (InCombatLockdown()) then
-        data.expand:SetShown(not hide);
-        data.retract:SetShown(not hide);
+    if (InCombatLockdown() and hide) then
+        data.expand:Hide();
+        data.retract:Hide();
+    else
+        data.expand:SetShown(data.settings.barsShown ~= 2);
+        data.retract:SetShown(data.settings.barsShown ~= 0);
     end
 end
 

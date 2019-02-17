@@ -6,7 +6,7 @@ local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 
 local GetSpellInfo, IsAddOnLoaded, UnitName = _G.GetSpellInfo, _G.IsAddOnLoaded, _G.UnitName;
 local UnitChannelInfo, UnitCastingInfo = _G.UnitChannelInfo, _G.UnitCastingInfo;
-local UIFrameFadeOut, select = _G.UIFrameFadeOut, _G.select;
+local UIFrameFadeOut, select, date = _G.UIFrameFadeOut, _G.select, _G.date;
 
 namespace.castBarData = obj:PopTable();
 
@@ -291,16 +291,16 @@ do
         bar.statusbar = _G.CreateFrame("StatusBar", nil, bar);
         bar.statusbar:SetValue(0);
 
-        if (unitID == "Player" and settings.showLatency) then
+        if (unitID == "player" and settings.showLatency) then
             bar.latencyBar = bar.statusbar:CreateTexture(nil, "BACKGROUND");
             bar.latencyBar:SetPoint("TOPRIGHT");
             bar.latencyBar:SetPoint("BOTTOMRIGHT");
         end
 
-        if (unitID == "Mirror") then
+        if (unitID == "mirror") then
             _G.MirrorTimer1:SetAlpha(0);
             _G.MirrorTimer1.SetAlpha = tk.Constants.DUMMY_FUNC;
-        elseif (unitID == "Player") then
+        elseif (unitID == "player") then
             _G.CastingBarFrame:UnregisterAllEvents();
             _G.CastingBarFrame:Hide();
         end
@@ -388,17 +388,17 @@ function C_CastBar:Update(data)
         return;
     end
 
-    if (data.unitID == "Mirror") then
+    if (data.unitID == "mirror") then
         if (not data.paused or data.paused == 0) then
             for i = 1, _G.MIRRORTIMER_NUMTIMERS do
                 local _, _, _, _, _, label = _G.GetMirrorTimerInfo(i);
 
                 if (label == data.frame.name:GetText()) then
                     local value = _G.MirrorTimer1StatusBar:GetValue();
-                    local duration = tk.string.format("%.1f", value);
+                    local duration = string.format("%.1f", value);
 
-                    if (tk.tonumber(duration) > 60) then
-                        duration = tk.date("%M:%S", duration);
+                    if (tonumber(duration) > 60) then
+                        duration = date("%M:%S", duration);
                     end
 
                     data.frame.duration:SetText(duration);
@@ -411,7 +411,7 @@ function C_CastBar:Update(data)
         if (data.startTime and not self:IsFinished()) then
             local difference = _G.GetTime() - data.startTime;
 
-            if (data.channelling or data.unitID == "Mirror") then
+            if (data.channelling or data.unitID == "mirror") then
                 data.frame.statusbar:SetValue(data.totalTime - difference);
             else
                 data.frame.statusbar:SetValue(difference);
@@ -430,11 +430,8 @@ function C_CastBar:Update(data)
             end
 
             data.frame.duration:SetText(duration);
-
-        elseif (data.unitID ~= "mirror") then
-            self:StopCasting();
         else
-            self:MIRROR_TIMER_STOP();
+            self:StopCasting();
         end
     end
 end
@@ -721,21 +718,25 @@ function C_CastBarsModule:OnInitialize(data)
 
             border = function(value)
                 local castBarData;
+                local color = data.settings.appearance.colors.border;
 
                 for _, castBar in _G.pairs(data.bars) do
                     castBarData = data:GetFriendData(castBar);
                     castBarData.backdrop.edgeFile = tk.Constants.LSM:Fetch("border", value);
                     castBarData.frame:SetBackdrop(castBarData.backdrop);
+                    castBarData.frame:SetBackdropBorderColor(color.r, color.g, color.b, color.a);
                 end
             end;
 
             borderSize = function(value)
                 local castBarData;
+                local color = data.settings.appearance.colors.border;
 
                 for _, castBar in _G.pairs(data.bars) do
                     castBarData = data:GetFriendData(castBar);
                     castBarData.backdrop.edgeSize = value;
                     castBarData.frame:SetBackdrop(castBarData.backdrop);
+                    castBarData.frame:SetBackdropBorderColor(color.r, color.g, color.b, color.a);
                 end
             end;
 
@@ -776,7 +777,6 @@ function C_CastBarsModule:OnInitialize(data)
                         if (castBarData.settings.showIcon) then
                             castBarData.square:SetBackdropBorderColor(value.r, value.g, value.b, value.a);
                         end
-
                     end
                 end;
 

@@ -3,13 +3,21 @@ local _, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local C_ConfigModule = namespace.C_ConfigModule;
--- local configModule = MayronUI:ImportModule("Config");
+local widgets = {};
 
-local function ValidateNewProfileName()
-    return false;
+local function ValidateNewProfileName(self, profileName)
+    if (#profileName == 0 or db:ProfileExists(profileName)) then
+        return false;
+    end
+
+    return true;
 end
 
 local function ValidateRemoveProfile(_, text)
+    if (db:GetCurrentProfile() == "Default") then
+        return false;
+    end
+
     return text == "DELETE";
 end
 
@@ -29,7 +37,7 @@ end
 
 local function RestoreProfile(_, profileName)
     db:RestoreProfile(profileName);
-    tk:Print("Profile ", profileName, "has been deleted.");
+    tk:Print("Profile ", profileName, "has been restored.");
 end
 
 -- Get all profiles and convert them to a list of options for use with dropdown menus
@@ -45,7 +53,7 @@ local function GetProfileOptions()
     return options;
 end
 
--- TODO: does not use a module so cannot call OnConfigUpdate (will this cause an error?)
+
 local configTable = {
     id      = 1;
     name    = "MUI Profile Manager";
@@ -79,8 +87,16 @@ local configTable = {
         };
         {
             name    = "Delete Profile";
-            tooltip = "Delete currently active profile.";
+            tooltip = "Delete currently active profile (cannot delete the 'Default' profile).";
             type    = "button";
+
+            OnLoad = function(_, widget)
+                if (db:GetCurrentProfile() == "Default") then
+                    widget:SetEnabled(false);
+                end
+
+                widgets.deleteProfileButton = widget;
+            end;
 
             OnClick = function()
                 local profileName = db:GetCurrentProfile();
@@ -98,12 +114,17 @@ local configTable = {
                 {
                     GetOptions        = GetProfileOptions;
                     name              = "Choose Profile:";
-                    requiresRestart   = true; -- TODO: this will eventually be replaced with OnProfileChange
                     tooltip           = "Choose the currently active profile.";
                     type              = "dropdown";
 
-                    SetValue = function()
+                    OnLoad = function(_, widget)
+                        widgets.chooseProfileDropDown = widget;
+                    end;
 
+                    SetValue = function(_, newValue)
+                        db:SetProfile(newValue);
+                        print(newValue == "Defaults");
+                        widgets.deleteProfileButton:SetEnabled(newValue ~= "Default");
                     end;
 
                     GetValue = function()

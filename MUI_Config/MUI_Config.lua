@@ -53,6 +53,13 @@ local function TransferWidgetAttributes(widget, widgetTable)
     widget.OnClick          = widgetTable.OnClick;
     widget.data             = widgetTable.data;
     widget.useIndexes       = widgetTable.useIndexes;
+
+    if (widgetTable.type == "frame") then
+        widget.children = widgetTable.children;
+    end
+
+    -- remove references to avoid clean up (else tables would be emptied)
+    tk.Tables:Empty(widgetTable);
 end
 
 namespace.MenuButton_OnClick = MenuButton_OnClick;
@@ -235,12 +242,12 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
         elseif (widgetConfigTable.type == "frame") then
             local frame = self:SetUpWidget(widgetConfigTable);
 
-            if (widgetConfigTable.children) then
+            if (frame.children) then
                 -- add children of frame directly onto frame to group them together
                 -- allows for more control over the positioning of elements
                 local previousFrame = frame;
 
-                for _, subWidgetConfigTable in ipairs(widgetConfigTable.children) do
+                for _, subWidgetConfigTable in ipairs(frame.children) do
                     local frameWidget = self:SetUpWidget(subWidgetConfigTable, frame);
 
                     if (previousFrame == frame) then

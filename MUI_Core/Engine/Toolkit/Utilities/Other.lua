@@ -332,7 +332,7 @@ do
         popup.data.OnCancel = onCancel;
         popup.data.OnValidate = nil;
 
-        _G.StaticPopup_Show(POPUP_GLOBAL_NAME);
+        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
 
     function tk:ShowMessagePopup(message, subMessage, okayText, onOkay, isWarning)
@@ -348,7 +348,7 @@ do
             popup.showAlert = true;
         end
 
-        _G.StaticPopup_Show(POPUP_GLOBAL_NAME);
+        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
 
     function tk:ShowInputPopup(message, subMessage, editBoxText, onValidate, confirmText, onConfirm, cancelText, onCancel, isWarning)

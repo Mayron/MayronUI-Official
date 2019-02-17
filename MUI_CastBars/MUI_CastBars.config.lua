@@ -27,6 +27,10 @@ local function UnlockCastBar(widget, castBarName)
     local name = castBarName:gsub("^%l", string.upper);
     local castbar = _G[tk.Strings:Concat("MUI_", name, "CastBar")];
 
+    if (not castbar) then -- might be disabled
+        return;
+    end
+
     castbar.unlocked = not castbar.unlocked;
 
     if (not castbar) then
@@ -163,10 +167,9 @@ function C_CastBarsModule:GetConfigTable()
             {   type = "loop",
                 args = { "Player", "Target", "Focus", "Mirror" },
                 func = function(_, name)
-                    local castBarName = L[name:gsub("^%l", tk.string.upper)];
                     return
                     {
-                        name = castBarName,
+                        name = name,
                         type = "submenu",
                         OnLoad = function()
                             position_TextFields[name] = obj:PopTable();
@@ -177,7 +180,8 @@ function C_CastBarsModule:GetConfigTable()
                         children = {
                             {   name = L["Enable Bar"],
                                 type = "check",
-                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".enabled"),
+                                requiresReload = true;
+                                dbPath = tk.Strings:Concat("profile.castBars.", name, ".enabled");
                             },
                             {   name = L["Show Icon"],
                                 type = "check",
@@ -186,7 +190,7 @@ function C_CastBarsModule:GetConfigTable()
                             },
                             {   name = L["Show Latency Bar"],
                                 type = "check",
-                                enabled = name == "player",
+                                enabled = name == "Player",
                                 dbPath = tk.Strings:Concat("profile.castBars.", name, ".showLatency");
 
                                 GetValue = function(self, value)
@@ -204,7 +208,7 @@ function C_CastBarsModule:GetConfigTable()
                                 end,
                                 enabled = name ~= "mirror",
                                 tooltip = tk.string.format(
-                                    L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."], castBarName),
+                                    L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."], name),
                                 dbPath = tk.Strings:Concat("profile.castBars.", name, ".anchorToSUF"),
 
                                 SetValue = function(path, newValue, _, container)
@@ -212,7 +216,7 @@ function C_CastBarsModule:GetConfigTable()
 
                                     if (newValue and not (unitframe and unitframe.portrait)) then
                                         container.btn:SetChecked(false);
-                                        tk:Print(tk.string.format(L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."], castBarName));
+                                        tk:Print(tk.string.format(L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."], name));
                                         return;
                                     end
 

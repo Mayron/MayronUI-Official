@@ -296,12 +296,28 @@ function C_TimerBarsModule:GetConfigTable()
                                 {   name = L["Up"];
                                     dbPath = "profile.timerBars."..name..".direction";
                                     type = "radio";
-                                    group = 1;
+                                    groupName = "TimerBars_Growth_"..name;
+
+                                    GetValue = function(_, value)
+                                        return value == "UP";
+                                    end;
+
+                                    SetValue = function(dbPath)
+                                        db:SetPathValue(dbPath, "UP");
+                                    end;
                                 };
                                 {   name = L["Down"];
                                     dbPath = "profile.timerBars."..name..".direction";
                                     type = "radio";
-                                    group = 1;
+                                    groupName = "TimerBars_Growth_"..name;
+
+                                    GetValue = function(_, value)
+                                        return value == "DOWN";
+                                    end;
+
+                                    SetValue = function(dbPath)
+                                        db:SetPathValue(dbPath, "DOWN");
+                                    end;
                                 };
                                 {   type = "divider"
                                 };

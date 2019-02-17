@@ -259,19 +259,21 @@ function C_ConfigModule:GetConfigTable()
                         {   name        = L["Retract Height"];
                             tooltip     = tk.Strings:Concat(
                                 L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."],
-                                "\n\n", L["Minimum value is "], "40", "\n\n", L["Default value is "], "44");
+                                "\n\n", L["Minimum value is "], "40", "\n\n", "Maximum value is ", "200", "\n\n", L["Default value is "], "44");
                             type        = "textfield";
                             valueType   = "number";
                             min         = 40;
+                            max         = 200;
                             dbPath      = "profile.actionBarPanel.retractHeight";
                         };
                         {   name        = L["Expand Height"];
                             tooltip     = tk.Strings:Concat(
                                 L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."],
-                                "\n\n", L["Minimum value is "], "40", "\n\n", L["Default value is "], "80");
+                                "\n\n", L["Minimum value is "], "40", "\n\n", "Maximum value is ", "200", "\n\n", L["Default value is "], "80");
                             type        = "textfield";
                             valueType   = "number";
                             min         = 40;
+                            max         = 200;
                             dbPath      = "profile.actionBarPanel.expandHeight";
                         };
                         {   type    = "fontstring";
@@ -470,7 +472,6 @@ function C_ConfigModule:GetConfigTable()
                         };
                         {   name    = L["Hide in Combat"];
                             type    = "check";
-                            height  = 60;
                             dbPath  = "profile.sidebar.buttons.hideInCombat";
                         };
                         {   name    = L["Show When"];
@@ -486,14 +487,20 @@ function C_ConfigModule:GetConfigTable()
                         };
                         {   name        = L["Width"];
                             type        = "textfield";
-                            tooltip     = L["Default value is "].."15";
+                            tooltip     = tk.Strings:Concat(L["Default value is "], "15.", "\n\n",
+                                            "Minimum value is 15.", "\n\n", "Maximum value is 30.");
                             dbPath      = "profile.sidebar.buttons.width";
+                            min         = 15;
+                            max         = 30;
                             valueType   = "number";
                         };
                         {   name        = L["Height"];
                             type        = "textfield";
-                            tooltip     = L["Default value is "].."100";
+                            tooltip     = tk.Strings:Concat(L["Default value is "], "100.", "\n\n",
+                                            "Minimum value is 50.", "\n\n", "Maximum value is 300.");
                             dbPath      = "profile.sidebar.buttons.height";
+                            min         = 50;
+                            max         = 300;
                             valueType   = "number";
                         }
                     }

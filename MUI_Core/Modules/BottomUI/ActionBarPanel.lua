@@ -125,6 +125,10 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
         end;
 
         bartender = {
+            control = function()
+                self:SetUpAllBartenderBars();
+            end;
+
             [1] = function(bartenderBarID)
                 self:SetUpBartenderBar(1, bartenderBarID);
             end;
@@ -204,15 +208,21 @@ function C_ActionBarPanel:OnEnable(data)
     end);
 
     data.slideController:OnStartExpand(function()
-        ToggleBartenderBar(data.settings.bartender.control, data.Bar3, true);
-        ToggleBartenderBar(data.settings.bartender.control, data.Bar4, true);
-        UIFrameFadeIn(data.Bar3, 0.3, 0, 1);
-        UIFrameFadeIn(data.Bar4, 0.3, 0, 1);
+        local controlBartender = data.settings.bartender.control;
+        ToggleBartenderBar(controlBartender, data.Bar3, true);
+        ToggleBartenderBar(controlBartender, data.Bar4, true);
+
+        if (controlBartender) then
+            UIFrameFadeIn(data.Bar3, 0.3, 0, 1);
+            UIFrameFadeIn(data.Bar4, 0.3, 0, 1);
+        end
     end, 5);
 
     data.slideController:OnStartRetract(function()
-        UIFrameFadeOut(data.Bar3, 0.1, 1, 0);
-        UIFrameFadeOut(data.Bar4, 0.1, 1, 0);
+        if (data.settings.bartender.control) then
+            UIFrameFadeOut(data.Bar3, 0.1, 1, 0);
+            UIFrameFadeOut(data.Bar4, 0.1, 1, 0);
+        end
     end);
 
     data.slideController:OnEndRetract(function()

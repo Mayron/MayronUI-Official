@@ -282,8 +282,6 @@ end
 local function ExecuteUpdateFunction(path, updateFunction, setting, executed, onPre, onPost)
     local keysList = tk.Tables:ConvertPathToKeysList(path);
 
-    -- keysList:Print(); -- TODO: Enable this to see what is being executed
-
     if (obj:IsFunction(onPre)) then
         if (obj:IsFunction(onPost)) then
             onPost(setting, keysList, updateFunction(setting, keysList, onPre(setting, keysList)));
@@ -509,7 +507,6 @@ do
                     end
                 end
 
-                ---MayronUI:Print(tk.Strings:SetTextColorByKey("Excuting ", "ARTIFACT_GOLD"), path); --todo: edit this back if needed
                 local blocked = GetBlocked(options, path, executedTable);
 
                 if (blocked) then
@@ -530,11 +527,9 @@ do
 
         data.executingAllUpdateFunctions = true;
 
-        ---print("-- Module Name: " .. self:GetModuleName() .. " --------------------"); --todo: edit this back if needed
         local executedTable = obj:PopTable();
         local blockedTable = obj:PopTable();
 
-        --orderKey, options, updateFunction, setting, executed
         ExecuteOrdered("first", data.options, data.updateFunctions, data.settings, executedTable);
         ExecuteAllUpdateFunctions(data.options, data.updateFunctions, data.settings, executedTable, blockedTable);
 
@@ -756,10 +751,8 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
         end
     end
 
-    -- TODO: This should be it's own Module
     namespace:SetupOrderHallBar();
 
-    print("-----------------------------------")
     collectgarbage("collect");
 end):SetAutoDestroy(true);
 
@@ -783,7 +776,10 @@ db:OnProfileChange(function(self, newProfileName)
         end
     end
 
-    tk:Print("Profile changed to: ", tk.Strings:SetTextColorByKey(newProfileName, "GOLDS"));
+    tk:Print("Profile changed to:", tk.Strings:SetTextColorByKey(newProfileName, "GOLD"));
+
+    tk:ShowConfirmPopup("Some settings will not be changed until the UI as been reloaded.",
+        "Would you like to reload the UI now?", _G.ReloadUI, "Reload UI", nil, "No", true);
 end);
 
 db:OnStartUp(function(self)

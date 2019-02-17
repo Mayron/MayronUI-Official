@@ -181,6 +181,9 @@ function C_ChatModule:OnInitialize(data)
 			border = function(value)
 				data.editBoxBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", value);
 				ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+
+				local color = data.settings.editBox.backdropColor;
+				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
 			end;
 
 			inset = function(value)
@@ -189,11 +192,17 @@ function C_ChatModule:OnInitialize(data)
 				data.editBoxBackdrop.insets.top = value;
 				data.editBoxBackdrop.insets.bottom = value;
 				ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+
+				local color = data.settings.editBox.backdropColor;
+				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
 			end;
 
 			borderSize = function(value)
 				data.editBoxBackdrop.edgeSize = value;
 				ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+
+				local color = data.settings.editBox.backdropColor;
+				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
 			end;
 
 			backdropColor = function(value)

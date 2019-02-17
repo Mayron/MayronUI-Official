@@ -75,7 +75,7 @@ function Lib:CreateDialogBox(style, parent, alphaType, frame, globalName)
 end
 
 do
-    local function Button_OnEanble(self)
+    local function Button_OnEnable(self)
         local r, g, b = _G.unpack(self.enabledBackdrop);
         self:SetBackdropBorderColor(r, g, b, 0.7);
     end
@@ -122,7 +122,7 @@ do
         button:SetNormalFontObject("GameFontHighlight");
         button:SetDisabledFontObject("GameFontDisable");
 
-        button:SetScript("OnEnable", Button_OnEanble);
+        button:SetScript("OnEnable", Button_OnEnable);
         button:SetScript("OnDisable", Button_OnDisable);
 
         return button;

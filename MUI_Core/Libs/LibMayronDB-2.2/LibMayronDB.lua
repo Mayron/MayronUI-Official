@@ -428,6 +428,14 @@ function Database:GetProfiles(data)
     return profiles;
 end
 
+Framework:DefineParams("string");
+Framework:DefineReturns("boolean");
+---@param profileName string @The name of the profile to check.
+---@return boolean @Returns true if the profile exists
+function Database:ProfileExists(data, profileName)
+    return data.sv.profiles[profileName] ~= nil;
+end
+
 ---Usable in a for loop to loop through all profiles associated with the AddOn.
 ---@return function @An iterable function that returns a number (the current loop id), a profile name, and a table containing the profile data
 function Database:IterateProfiles(data)
