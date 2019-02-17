@@ -11,8 +11,8 @@ local Panel = obj:Import("MayronUI.Widgets.Panel");
 
 -- Register and Import Modules -----------
 
-local SetupClass = MayronUI:RegisterModule("MUI_Setup", "Setup");
-local setupModule = MayronUI:ImportModule("MUI_Setup");
+local C_SetUpModule = MayronUI:RegisterModule("SetUpModule", "Setup");
+local setUpModule = MayronUI:ImportModule("SetUpModule");
 
 -- Local Functions -----------------------
 
@@ -30,7 +30,7 @@ local function ChangeTheme(self, value)
 
     tk:UpdateThemeColor(value);
 
-    local window = setupModule:GetWindow();
+    local window = setUpModule:GetWindow();
     local r, g, b = tk:GetThemeColor();
     local frame = window:GetFrame();
 
@@ -85,7 +85,7 @@ end
 
 -- first argument is the dropdown menu self reference
 local function ChangeProfile(_, profileName)
-    local window = setupModule:GetWindow();
+    local window = setUpModule:GetWindow();
 
     if (window) then
         db:SetProfile(profileName);
@@ -95,11 +95,11 @@ local function ChangeProfile(_, profileName)
 end
 
 local function ExpandSetupWindow()
-    if (not setupModule:IsExpanded()) then
+    if (not setUpModule:IsExpanded()) then
         return
     end
 
-    local window = setupModule:GetWindow();
+    local window = setUpModule:GetWindow();
     local width, height = window:GetSize();
 
     if (width >= 900 and height >= 540) then
@@ -111,11 +111,11 @@ local function ExpandSetupWindow()
 end
 
 local function RetractSetupWindow()
-    if (setupModule:IsExpanded()) then
+    if (setUpModule:IsExpanded()) then
         return
     end
 
-    local window = setupModule:GetWindow();
+    local window = setUpModule:GetWindow();
     local width, height = window:GetSize();
 
     if (width <= 750 and height <= 450) then
@@ -127,7 +127,7 @@ local function RetractSetupWindow()
 end
 
 local function OnMenuButtonClick(self)
-    local window = setupModule:GetWindow();
+    local window = setUpModule:GetWindow();
     local submenu = window.submenu;
 
     if (self:GetChecked()) then
@@ -142,14 +142,14 @@ local function OnMenuButtonClick(self)
         end
 
         submenu[self.type]:Show();
-        setupModule:SetExpanded(true);
+        setUpModule:SetExpanded(true);
 
         _G.C_Timer.After(0.02, ExpandSetupWindow);
         _G.UIFrameFadeIn(submenu, 0.4, submenu:GetAlpha(), 1);
         _G.UIFrameFadeOut(window.banner.left, 0.4, window.banner.left:GetAlpha(), 0.5);
         _G.UIFrameFadeOut(window.banner.right, 0.4, window.banner.right:GetAlpha(), 0.5);
     else
-        setupModule:SetExpanded(false);
+        setUpModule:SetExpanded(false);
 
         _G.C_Timer.After(0.02, RetractSetupWindow);
         _G.UIFrameFadeOut(submenu, 0.4, submenu:GetAlpha(), 0);
@@ -170,7 +170,7 @@ function Private:LoadInstallMenu(menuSection)
     menuSection.installBtn = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "Install");
     menuSection.installBtn:SetPoint("CENTER", 0, -20);
     menuSection.installBtn:SetScript("OnClick", function()
-        setupModule:Install();
+        setUpModule:Install();
     end);
 end
 
@@ -442,7 +442,7 @@ function Private:LoadCustomMenu(menuSection)
     menuSection.installBtn:SetPoint("TOPRIGHT", menuSection.addonContainer, "BOTTOMRIGHT", 0, -20);
 
     menuSection.installBtn:SetScript("OnClick", function()
-        setupModule:Install();
+        setUpModule:Install();
     end);
 
     menuSection.installBtn:SetScript("OnEnter", function(self)
@@ -489,13 +489,13 @@ function Private:LoadInfoMenu(menuSection)
     content:SetSpacing(6);
 end
 
--- SetupClass -----------------------
+-- C_SetUpModule -----------------------
 
-function SetupClass:OnInitialize()
+function C_SetUpModule:OnInitialize()
     self:Show();
 end
 
-function SetupClass:Show(data)
+function C_SetUpModule:Show(data)
     if (data.window) then
         data.window:Show();
         _G.UIFrameFadeIn(data.window, 0.3, 0, 1);
@@ -596,7 +596,7 @@ function SetupClass:Show(data)
     _G.UIFrameFadeIn(data.window, 0.3, 0, 1);
 end
 
-function SetupClass:Install()
+function C_SetUpModule:Install()
     _G.PlaySoundFile("Interface\\AddOns\\MUI_Setup\\install.ogg");
 
     -- Chat Frame settings:
@@ -637,10 +637,10 @@ function SetupClass:Install()
     end
 
     -- MayronUI profiles:
-    -- Please keep Bazooka until MUI can handle those minimap icons itself :)
-    for _, name in ipairs({"AuraFrames", "Bartender4", "Recount"}) do
+    for _, name in obj:IterateArgs("AuraFrames", "Bartender4", "Recount") do
         if (_G[name]) then
             local path = tk.Tables:GetDBObject(name);
+
             if (path) then
                 if (path:GetCurrentProfile() ~= "MayronUI") then
                     path:SetProfile("MayronUI");
@@ -650,7 +650,7 @@ function SetupClass:Install()
     end
 
     -- Default Profiles:
-    for _, name in ipairs({"Grid", "ShadowUF"}) do
+    for _, name in obj:IterateArgs("Grid", "ShadowUF") do
         if (_G[name]) then
             local path = tk.Tables:GetDBObject(name);
             if (path) then
@@ -678,15 +678,15 @@ function SetupClass:Install()
     _G.ReloadUI();
 end
 
-function SetupClass:GetWindow(data)
+function C_SetUpModule:GetWindow(data)
     return data.window;
 end
 
-function SetupClass:SetExpanded(data, expanded)
+function C_SetUpModule:SetExpanded(data, expanded)
     data.expanded = expanded;
 end
 
-function SetupClass:IsExpanded(data)
+function C_SetUpModule:IsExpanded(data)
     return data.window and data.expanded;
 end
 

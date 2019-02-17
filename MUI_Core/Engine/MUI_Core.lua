@@ -53,7 +53,7 @@ db:AddToDefaults("global.core", {
     font = "MUI_Font",
     useLocalization = true,
     setup = {
-        profilePerCharacter = true,
+        profilePerCharacter = true;
         addOns = {
             {"Aura Frames", true, "AuraFrames"},
             {"Bartender4", true, "Bartender4"},
@@ -116,20 +116,92 @@ commands.install = function()
         end
     end
 
-    MayronUI:ImportModule("MUI_Setup"):Show();
+    MayronUI:ImportModule("SetUpModule"):Show();
 end
 
-commands.profile = function(subCommand, profileName)
+local function ValidateNewProfileName(self, profileName)
+    if (#profileName == 0 or db:ProfileExists(profileName)) then
+        return false;
+    end
+
+    return true;
+end
+
+local function CreateNewProfile(_, profileName, callback)
+    db:SetProfile(profileName);
+
+    if (obj:IsFunction(callback)) then
+        callback();
+    end
+end
+
+local function ValidateRemoveProfile(_, text)
+    if (db:GetCurrentProfile() == "Default") then
+        return false;
+    end
+
+    return text == "DELETE";
+end
+
+local function RemoveProfile(_, _, profileName, callback)
+    db:RemoveProfile(profileName);
+    tk:Print("Profile", tk.Strings:SetTextColorByKey(profileName, "gold"), "has been deleted.");
+
+    if (obj:IsFunction(callback)) then
+        callback();
+    end
+end
+
+commands.profile = function(subCommand, profileName, callback)
     if (not tk.Strings:IsNilOrWhiteSpace(subCommand)) then
         subCommand = subCommand:lower();
 
-        if (subCommand:lower() == "set" and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
+        if (subCommand == "set" and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
             db:SetProfile(profileName);
 
-        elseif (subCommand:lower() == "current") then
+        elseif (subCommand == "delete" and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
+            if (profileName == "Default") then
+                tk:Print("Cannot delete the Default profile.");
+                return;
+            end
+
+            local popupMessage = string.format("Are you sure you want to delete profile '%s'?", profileName);
+            local subMessage = "Please type 'DELETE' to confirm:";
+
+            tk:ShowInputPopup(popupMessage, subMessage, nil, ValidateRemoveProfile, nil, RemoveProfile, nil, nil, true, profileName, callback);
+
+        elseif (subCommand == "new") then
+            local popupMessage = "Enter a new unique profile name:";
+            tk:ShowInputPopup(popupMessage, nil, nil, ValidateNewProfileName, nil, CreateNewProfile, nil, nil, nil, callback);
+
+        elseif (subCommand == "current") then
             local currentProfile = db:GetCurrentProfile();
-            currentProfile = tk.Strings:SetTextColor(currentProfile, "gold");
+            currentProfile = tk.Strings:SetTextColorByKey(currentProfile, "gold");
             tk:Print("Current Profile:", currentProfile);
+        else
+            commands.help();
+        end
+    else
+        commands.help();
+    end
+end
+
+commands.profiles = function(subCommand)
+    if (not tk.Strings:IsNilOrWhiteSpace(subCommand)) then
+        subCommand = subCommand:lower();
+
+        if (subCommand == "list") then
+            local allProfiles = tk.Strings.Empty;
+
+            for id, profile in db:IterateProfiles() do
+                if (id == 1) then
+                    allProfiles = tk.Strings:SetTextColorByKey(profile, "gold");
+                else
+                    allProfiles = tk.Strings:Join(", ", allProfiles, tk.Strings:SetTextColorByKey(profile, "gold"));
+                end
+            end
+
+            tk:Print("All Profiles:", allProfiles);
         else
             commands.help();
         end
@@ -143,8 +215,11 @@ commands.help = function()
     tk:Print(L["List of slash commands:"])
     tk:Print("|cff00cc66/mui config|r - "..L["shows config menu"]);
     tk:Print("|cff00cc66/mui install|r - "..L["shows setup menu"]);
-    tk:Print("|cff00cc66/mui profile|r - shows profile manager");
+    tk:Print("|cff00cc66/mui profiles list|r - list all MayronUI profiles");
+    tk:Print("|cff00cc66/mui profiles|r - shows profile manager");
     tk:Print("|cff00cc66/mui profile set <profile_name>|r - set profile");
+    tk:Print("|cff00cc66/mui profile delete <profile_name>|r - delete profile");
+    tk:Print("|cff00cc66/mui profile new|r - create new profile");
     tk:Print("|cff00cc66/mui profile current|r - show current profile in chat");
     print(" ");
 end
@@ -738,6 +813,11 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
     _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
 
     if (not MayronUI:IsInstalled()) then
+
+        if (db.global.core.setup.profilePerCharacter) then
+            db:SetProfile(tk:GetPlayerKey());
+        end
+
         MayronUI:TriggerCommand("install");
         return;
     end
@@ -759,6 +839,10 @@ end):SetAutoDestroy(true);
 -- Database Event callbacks --------------------
 
 db:OnProfileChange(function(self, newProfileName)
+    if (not MayronUI:IsInstalled()) then
+        return;
+    end
+
     for _, module in MayronUI:IterateModules() do
         local registryInfo = registeredModules[tostring(module)];
         local hooks = registryInfo.hooks and registryInfo.hooks.OnProfileChange;

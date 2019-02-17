@@ -285,7 +285,7 @@ do
                     option:SetPoint("BOTTOMRIGHT", previousOption, "TOPRIGHT", 0, 1);
                 end
 
-                height = child:GetHeight() + 27;
+                height = height + 27;
             end
         end
 
@@ -325,9 +325,11 @@ function DropDownMenu:AddOption(data, label, func, ...)
         self:SetLabel(label, true);
         self:Toggle(false);
 
-        if (not func) then return end
+        if (not func) then
+            return;
+        end
 
-        if (type(func) == "table") then
+        if (obj:IsTable(func)) then
             local tbl = func[1];
             local methodName = func[2];
 

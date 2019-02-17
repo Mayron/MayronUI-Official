@@ -1,7 +1,7 @@
 --luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, _, gui, obj = MayronUI:GetCoreComponents();
+local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 local configModule = MayronUI:ImportModule("ConfigModule"); ---@type ConfigModule
 
 local unpack, string, pairs, tonumber = _G.unpack, _G.string, _G.pairs, _G.tonumber;
@@ -115,7 +115,6 @@ end
 -- Check Button
 ------------------
 local function CheckButton_OnClick(self)
-    print("CheckButton_OnClick, db.SetPathValue:", db.SetPathValue);
     configModule:SetDatabaseValue(self:GetParent(), self:GetChecked());
 end
 

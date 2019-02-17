@@ -5,39 +5,9 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 local C_ConfigModule = namespace.C_ConfigModule;
 local widgets = {};
 
-local function ValidateNewProfileName(self, profileName)
-    if (#profileName == 0 or db:ProfileExists(profileName)) then
-        return false;
-    end
-
-    return true;
-end
-
-local function ValidateRemoveProfile(_, text)
-    if (db:GetCurrentProfile() == "Default") then
-        return false;
-    end
-
-    return text == "DELETE";
-end
-
-local function CreateNewProfile(_, profileName)
-    db:SetProfile(profileName);
-end
-
 local function ResetProfile(_, profileName)
     db:ResetProfile();
-    tk:Print("Profile ", profileName, "has been reset.");
-end
-
-local function RemoveProfile(_, profileName)
-    db:RemoveProfile(profileName);
-    tk:Print("Profile ", profileName, "has been deleted.");
-end
-
-local function RestoreProfile(_, profileName)
-    db:RestoreProfile(profileName);
-    tk:Print("Profile ", profileName, "has been restored.");
+    tk:Print("Profile", tk.Strings:SetTextColorByKey(profileName, "gold"), "has been reset.");
 end
 
 -- Get all profiles and convert them to a list of options for use with dropdown menus
@@ -100,10 +70,12 @@ local configTable = {
 
             OnClick = function()
                 local profileName = db:GetCurrentProfile();
-                local popupMessage = string.format("Are you sure you want to delete profile '%s'?", profileName);
-                local subMessage = "Please type 'DELETE' to confirm:";
-
-                tk:ShowInputPopup(popupMessage, subMessage, nil, ValidateRemoveProfile, nil, RemoveProfile, nil, nil, true);
+                MayronUI:TriggerCommand("profile", "delete", profileName, function()
+                    local currentProfile = db:GetCurrentProfile();
+                    widgets.chooseProfileDropDown:RemoveOptionByLabel(profileName);
+                    widgets.chooseProfileDropDown:SetLabel(currentProfile);
+                    widgets.deleteProfileButton:SetEnabled(currentProfile ~= "Default");
+                end);
             end,
         },
         {
@@ -117,13 +89,12 @@ local configTable = {
                     tooltip           = "Choose the currently active profile.";
                     type              = "dropdown";
 
-                    OnLoad = function(_, widget)
-                        widgets.chooseProfileDropDown = widget;
+                    OnLoad = function(_, container)
+                        widgets.chooseProfileDropDown = container.widget.dropdown;
                     end;
 
                     SetValue = function(_, newValue)
                         db:SetProfile(newValue);
-                        print(newValue == "Defaults");
                         widgets.deleteProfileButton:SetEnabled(newValue ~= "Default");
                     end;
 
@@ -145,36 +116,17 @@ local configTable = {
                     width   = 100;
 
                     OnClick = function()
-                        local popupMessage = "Enter a new unique profile name:";
-                        tk:ShowInputPopup(popupMessage, nil, nil, ValidateNewProfileName, nil, CreateNewProfile);
+                        MayronUI:TriggerCommand("profile", "new", nil, function()
+                            local currentProfile = db:GetCurrentProfile();
+                            widgets.chooseProfileDropDown:SetLabel(currentProfile);
+                            widgets.chooseProfileDropDown:AddOption(currentProfile, function()
+                                db:SetProfile(currentProfile);
+                                widgets.deleteProfileButton:SetEnabled(currentProfile ~= "Default");
+                            end);
+                        end);
                     end;
                 },
             }
-        },
-        {
-            type = "divider"
-        },
-        {
-            type              = "dropdown";
-            name              = "Restore a Profile:";
-            tooltip           = tk.Strings:Join(
-                "\n\n", "Profiles that have been removed are stored in the bin until the UI is reloaded.",
-                "Once the UI reloads, the removed profiles are permanently deleted.");
-            disabledTooltip   = "No profiles found in the profile bin (not able to restore any profiles).";
-
-            GetOptions = function()
-                return db:GetProfilesInBin();
-            end;
-
-            GetValue = function()
-                return "Select a profile";
-            end;
-
-            SetValue = function(_, profileName)
-                local popupMessage = string.format(
-                    "Are you sure you want to restore profile '%s'?", profileName);
-                tk:ShowConfirmPopup(popupMessage, nil, nil, RestoreProfile, nil, nil, true);
-            end;
         },
         {
             name    = "Default Profile Behaviour";
@@ -192,21 +144,11 @@ local configTable = {
             type = "divider"
         },
         {
-            dbProfile   = "global.core.setup.profilePerCharacter";
+            dbPath      = "global.core.setup.profilePerCharacter";
             name        = "Profile Per Character";
             tooltip     = "If enabled, new characters will be assigned a unique character profile instead of a single default profile.";
             type        = "check";
-        },
-        {
-            GetOptions    = GetProfileOptions;
-            name          = "Default Profile:";
-            tooltip       = "Choose the default profile to assign to new character's during installation.";
-            type          = "dropdown";
-
-            GetValue = function()
-                -- return db:GetCurrentProfile();
-            end;
-        },
+        }
     }
 }
 

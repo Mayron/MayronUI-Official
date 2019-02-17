@@ -245,7 +245,7 @@ do
         end
 
         if (onAccept) then
-            onAccept(editBox, editBox:GetText());
+            onAccept(editBox, editBox:GetText(), obj:UnpackTable(popup.data.args));
         end
 
         _G.StaticPopup_Hide(POPUP_GLOBAL_NAME);
@@ -351,7 +351,7 @@ do
         _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
 
-    function tk:ShowInputPopup(message, subMessage, editBoxText, onValidate, confirmText, onConfirm, cancelText, onCancel, isWarning)
+    function tk:ShowInputPopup(message, subMessage, editBoxText, onValidate, confirmText, onConfirm, cancelText, onCancel, isWarning, ...)
         local popup = GetPopup(message, subMessage);
 
         popup.button1 = confirmText or "Confirm";
@@ -368,6 +368,7 @@ do
         popup.data.OnAccept = onConfirm;
         popup.data.OnCancel = onCancel;
         popup.data.OnValidate = onValidate;
+        popup.data.args = obj:PopTable(...);
 
         _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
