@@ -28,7 +28,7 @@ do
         fullName = tk.strsplit("-", fullName);
 
         _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
-        _G.GameTooltip:AddLine(tk.Strings:SetTextColorByClass(classFileName, fullName));
+        _G.GameTooltip:AddLine(tk.Strings:SetTextColorByClass(fullName, classFileName));
         _G.GameTooltip:AddDoubleLine(L["Zone"]..":", zone, nil, nil, nil, 1, 1, 1);
         _G.GameTooltip:AddDoubleLine(L["Rank"]..":", rank, nil, nil, nil, 1, 1, 1);
 
@@ -185,7 +185,7 @@ function Guild:Click(data, button)
             label.guildRosterInfo = { _G.GetGuildRosterInfo(i) };
 
             label.name:SetText(tk.string.format("%s%s %s",
-                tk.Strings:SetTextColorByClass(classFileName, fullName), status, level));
+                tk.Strings:SetTextColorByClass(fullName, classFileName), status, level));
         end
     end
 
