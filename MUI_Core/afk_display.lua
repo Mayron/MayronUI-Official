@@ -72,7 +72,7 @@ private.races = { -- lower = lower model
             hoverValue = -0.4,
         }
     },
-    KulTiranHuman = {
+    KulTiran = {
         Male = {
             value = -0.4,
             hoverValue = -0.3,
