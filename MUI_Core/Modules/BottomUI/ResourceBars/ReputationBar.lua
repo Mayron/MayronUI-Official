@@ -53,7 +53,7 @@ local function ReputationBar_OnEnter(self)
             currentValue = tk.Strings:FormatReadableNumber(currentValue);
             maxValue = tk.Strings:FormatReadableNumber(maxValue);
 
-            local text = tk.string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
+            local text = string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
 
             GameTooltip:SetOwner(self, "ANCHOR_TOP");
             GameTooltip:AddLine(text, 1, 1, 1);

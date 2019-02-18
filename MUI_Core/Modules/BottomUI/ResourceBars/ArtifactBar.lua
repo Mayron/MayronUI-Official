@@ -2,7 +2,6 @@
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
-local HasArtifactEquipped = _G.HasArtifactEquipped;
 local C_ArtifactUI = _G.C_ArtifactUI;
 local GetNumPurchasableArtifactTraits = _G.ArtifactBarGetNumArtifactTraitsPurchasableFromXP;
 
@@ -51,7 +50,7 @@ end
 
 ResourceBarsPackage:DefineReturns("boolean");
 function C_ArtifactBar:CanUse()
-    return HasArtifactEquipped();
+    return _G.ArtifactBarMixin:ShouldBeVisible(); -- this is a static mixin method
 end
 
 ResourceBarsPackage:DefineParams("boolean");

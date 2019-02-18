@@ -176,6 +176,10 @@ function C_ActionBarPanel:OnEnable(data)
 
     data.panel = CreateFrame("Frame", "MUI_ActionBarPanel", data.buiContainer);
 
+    em:CreateEventHandler("PLAYER_LOGOUT", function()
+        db.profile.actionBarPanel.expanded = data.settings.expanded;
+    end);
+
     if (data.ResourceBars:IsEnabled()) then
         local barsContainer = data.ResourceBars:GetBarContainer();
 

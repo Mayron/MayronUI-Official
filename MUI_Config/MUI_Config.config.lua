@@ -511,11 +511,11 @@ function C_ConfigModule:GetConfigTable()
             module = "BottomUI_ResourceBars";
             children = {
                 {   type = "loop";
-                    args = {"Artifact", "Reputation", "Experience"};
+                    args = { "Artifact", "Azerite", "Experience", "Reputation" };
                     func = function(id, name)
                         local key = name:lower().."Bar";
                         local child = {
-                            {   name    = tk.Strings:JoinWithSpace(L[name], L["Bar"]);
+                            {   name    = tk.Strings:JoinWithSpace(name, L["Bar"]);
                                 type    = "title";
                             };
                             {   name    = L["Enabled"];
@@ -541,7 +541,7 @@ function C_ConfigModule:GetConfigTable()
                                 step    = 1;
                                 min     = 8;
                                 max     = 18;
-                                tooltip = L["Default value is "].."10";
+                                tooltip = L["Default value is "].."8";
                                 dbPath  = tk.Strings:Concat("profile.resourceBars.", key, ".fontSize");
                             };
                         };

@@ -228,7 +228,7 @@ function tk:HideFrameElements(frame, kill)
     end
 end
 
----@deprecated Use Other.lua HookFunc and UnhookFunc
+---deprecated - Use Other.lua HookFunc and UnhookFunc
 function tk:HookOnce(func)
     local execute = true;
 

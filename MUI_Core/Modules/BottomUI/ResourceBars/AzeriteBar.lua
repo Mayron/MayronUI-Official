@@ -34,10 +34,10 @@ local function OnAzeriteXPUpdate(_, _, bar, data)
 
         local percent = (activeXP / totalXP) * 100;
 
-        activeXP = tk:FormatNumberString(activeXP);
-        totalXP = tk:FormatNumberString(totalXP);
+        activeXP = tk.Strings:FormatReadableNumber(activeXP);
+        totalXP = tk.Strings:FormatReadableNumber(totalXP);
 
-        local text = tk.string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
+        local text = string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
         data.statusbar.text:SetText(text);
     end
 end
@@ -48,9 +48,9 @@ local function AzeriteBar_OnEnter(self)
 
     if (totalXP > 0) then
         local percent = (activeXP / totalXP) * 100;
-        activeXP = tk:FormatNumberString(activeXP);
-        totalXP = tk:FormatNumberString(totalXP);
-        local text = tk.string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
+        activeXP = tk.Strings:FormatReadableNumber(activeXP);
+        totalXP = tk.Strings:FormatReadableNumber(totalXP);
+        local text = string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
 
         GameTooltip:SetOwner(self, "ANCHOR_TOP");
         GameTooltip:AddLine(text, 1, 1, 1);
@@ -62,14 +62,13 @@ end
 -- C_AzeriteBar --------------------------
 
 ResourceBarsPackage:DefineParams("BottomUI_ResourceBars", "table");
-function C_AzeriteBar:__Construct(data, barsModule, moduleData)
+function C_AzeriteBar:__Construct(_, barsModule, moduleData)
     self:Super(barsModule, moduleData, "azerite");
-    data.blizzardBar = _G.AzeriteWatchBar;
 end
 
 ResourceBarsPackage:DefineReturns("boolean");
 function C_AzeriteBar:CanUse()
-    return C_AzeriteItem.HasActiveAzeriteItem();
+    return _G.AzeriteBarMixin:ShouldBeVisible(); -- this is a static mixin method
 end
 
 ResourceBarsPackage:DefineParams("boolean");
@@ -90,8 +89,8 @@ ResourceBarsPackage:DefineParams("boolean");
 function C_AzeriteBar:SetEnabled(data, enabled)
     if (enabled) then
         -- need to check when it's active
-        em:CreateEventHandler("AZERITE_ITEM_EXPERIENCE_CHANGED", "AzeriteXP_Update", OnAzeriteXPUpdate, self, data);
-        em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Azerite_OnInventoryChanged", OnAzeriteXPUpdate, self, data)
+        em:CreateEventHandlerWithKey("AZERITE_ITEM_EXPERIENCE_CHANGED", "AzeriteXP_Update", OnAzeriteXPUpdate, self, data);
+        em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Azerite_OnInventoryChanged", OnAzeriteXPUpdate, self, data);
 
         if (self:CanUse()) then
             if (not self:IsActive()) then

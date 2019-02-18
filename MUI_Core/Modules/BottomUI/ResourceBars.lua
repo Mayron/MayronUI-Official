@@ -6,7 +6,7 @@ local InCombatLockdown, CreateFrame = _G.InCombatLockdown, _G.CreateFrame;
 
 -- Constants -----------------------------
 
-local BAR_NAMES = {"reputation", "experience", "Azerite", "artifact"};
+local BAR_NAMES = {"reputation", "experience", "azerite", "artifact"};
 
 -- Setup Objects -------------------------
 
@@ -64,6 +64,7 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
                 "experienceBar.enabled";
                 "reputationBar.enabled";
                 "artifactBar.enabled";
+                "azeriteBar.enabled";
             };
             ignore = {
                 ".*"; -- ignore everything else
@@ -113,6 +114,15 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
             alwaysShowText = UpdateResourceBar;
             fontSize = UpdateResourceBar;
         };
+        azeriteBar = {
+            enabled = function(value)
+                data.bars.azerite:SetEnabled(value);
+            end;
+
+            height = UpdateResourceBar;
+            alwaysShowText = UpdateResourceBar;
+            fontSize = UpdateResourceBar;
+        };
     }, options);
 
     if (data.settings.enabled) then
@@ -152,6 +162,7 @@ function C_ResourceBarsModule:UpdateContainer(data)
     local previousFrame;
 
     for _, barName in ipairs(BAR_NAMES) do
+
 
         -- check if bar was ever enabled
         if (data.bars[barName]) then
@@ -278,20 +289,6 @@ function C_BaseResourceBar:CreateBar(data)
     statusbar.texture = statusbar:GetStatusBarTexture();
     statusbar.text = statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
     statusbar.text:SetPoint("CENTER");
-
-    statusbar:SetScript("OnEnter", function(self)
-        self.texture:SetBlendMode("ADD");
-        if (data.blizzardBar) then
-            data.blizzardBar:GetScript("OnEnter")(data.blizzardBar);
-        end
-    end);
-
-    statusbar:SetScript("OnLeave", function(self)
-        self.texture:SetBlendMode("BLEND");
-        if (data.blizzardBar) then
-            data.blizzardBar:GetScript("OnLeave")(data.blizzardBar);
-        end
-    end);
 
     data.frame = frame;
     data.statusbar = statusbar;
