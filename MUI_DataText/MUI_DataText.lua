@@ -200,7 +200,7 @@ function C_DataTextModule:OnInitialize(data)
         fontSize = function(value)
             for _, btn in ipairs(data.buttons) do
                 local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
-                btn:GetNormalFontObject():SetFont(font, value);
+                btn:GetFontString():SetFont(font, value);
             end
         end;
 

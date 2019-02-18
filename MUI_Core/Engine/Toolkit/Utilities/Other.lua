@@ -389,7 +389,11 @@ do
 
                 if (obj:IsTable(callbackData)) then
                     -- pass to callback function all custom args and then the real hooksecurefunc args
-                    callbackData[1](select(2, _G.unpack(callbackData)));
+                    local unhook = callbackData[1](select(2, _G.unpack(callbackData)));
+
+                    if (unhook) then
+                        tk:UnhookFunc(realGlobalMethodName, callbackData[1]);
+                    end
                 end
             end
 
@@ -403,7 +407,11 @@ do
 
                 if (obj:IsTable(callbackData)) then
                     -- pass to callback function all custom args and then the real hooksecurefunc args
-                    callbackData[1](select(2, _G.unpack(callbackData)));
+                    local unhook = callbackData[1](select(2, _G.unpack(callbackData)));
+
+                    if (unhook) then
+                        tk:UnhookFunc(tbl, methodName, callbackData[1]);
+                    end
                 end
             end
 

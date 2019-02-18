@@ -78,7 +78,7 @@ function tk:SetFullWidth(frame, rightPadding)
     rightPadding = rightPadding or 0;
 
     if (not frame:GetParent()) then
-        tk.hooksecurefunc(frame, "SetParent", function()
+        _G.hooksecurefunc(frame, "SetParent", function()
             frame:GetParent():HookScript("OnSizeChanged", function(_, width)
                 frame:SetWidth(width - rightPadding);
             end);
@@ -228,6 +228,7 @@ function tk:HideFrameElements(frame, kill)
     end
 end
 
+---@deprecated Use Other.lua HookFunc and UnhookFunc
 function tk:HookOnce(func)
     local execute = true;
 
@@ -274,6 +275,10 @@ end
 function tk:UpdateThemeColor(value)
     local color = tk.Constants.CLASS_COLORS[value] or value;
 
+    if (not color.GenerateHexColor) then
+        color = _G.CreateColor(color.r, color.g, color.b);
+    end
+
     local colorValues = obj:PopTable();
     colorValues.r = color.r;
     colorValues.g = color.g;
@@ -285,6 +290,7 @@ function tk:UpdateThemeColor(value)
 
     -- update Constant Style Object
     tk.Constants.AddOnStyle:SetColor(color.r, color.g, color.b);
+    tk.Constants.AddOnStyle:SetColor(color.r * 0.7, color.g * 0.7, color.b * 0.7, "Widget");
 end
 
 function tk:SetBackground(frame, ...)

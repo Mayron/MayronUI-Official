@@ -146,7 +146,7 @@ local configTable = {
         {
             dbPath      = "global.core.setup.profilePerCharacter";
             name        = "Profile Per Character";
-            tooltip     = "If enabled, new characters will be assigned a unique character profile instead of a single default profile.";
+            tooltip     = "If enabled, new characters will be assigned a unique character profile instead of the Default profile.";
             type        = "check";
         }
     }

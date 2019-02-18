@@ -139,16 +139,16 @@ function Style:ApplyColor(_, colorName, alpha, ...)
 
     local r, g, b = self:GetColor(colorName);
 
-    if (type(alpha) == "string") then
+    if (obj:IsString(alpha)) then
         alpha = self:GetAlpha(alpha);
 
-    elseif (not (alpha and type(alpha) == "number")) then
+    elseif (not (alpha and obj:IsNumber(alpha))) then
         alpha = 1;
     end
 
     for _, element in obj:IterateArgs(...) do
 
-        LibObjectLua:Assert(type(element) == "table" and element.GetObjectType,
+        LibObjectLua:Assert(obj:IsTable(element) and element.GetObjectType,
             "Style.ApplyColor: Widget expected but received a %s value of %s", type(element), element);
 
         local objectType = element:GetObjectType();
@@ -169,6 +169,7 @@ function Style:ApplyColor(_, colorName, alpha, ...)
         elseif (objectType == "Button") then
             element:GetNormalTexture():SetVertexColor(r, g, b, alpha);
             element:GetHighlightTexture():SetVertexColor(r, g, b, alpha);
+            element:SetBackdropBorderColor(r, g, b, 0.7);
 
             if (element:GetDisabledTexture()) then
                 element:GetDisabledTexture():SetVertexColor(r * 0.3, g * 0.3, b * 0.3, 0.6);

@@ -147,6 +147,11 @@ local function RemoveProfile(_, _, profileName, callback)
     db:RemoveProfile(profileName);
     tk:Print("Profile", tk.Strings:SetTextColorByKey(profileName, "gold"), "has been deleted.");
 
+    local playerKey = tk:GetPlayerKey();
+    if (db.global.core.setup.profilePerCharacter and db:ProfileExists(playerKey)) then
+        db:SetProfile(playerKey);
+    end
+
     if (obj:IsFunction(callback)) then
         callback();
     end
@@ -833,6 +838,23 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
 
     namespace:SetupOrderHallBar();
 
+    if (_G.IsAddOnLoaded("Recount")) then
+        if (db.global.reanchor) then
+            _G.Recount_MainWindow:ClearAllPoints();
+            _G.Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
+            _G.Recount_MainWindow:SaveMainWindowPosition();
+
+            db.global.reanchor = nil;
+        end
+
+        -- Reskin Recount Window
+        gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW",  _G.Recount_MainWindow);
+
+        _G.Recount_MainWindow:SetClampedToScreen(true);
+        _G.Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
+        _G.Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);
+    end
+
     collectgarbage("collect");
 end):SetAutoDestroy(true);
 
@@ -917,23 +939,6 @@ db:OnStartUp(function(self)
 
     if (self.global.core.changeGameFont ~= false) then
         tk:SetGameFont(media:Fetch("font", self.global.core.font));
-    end
-
-    if (tk.IsAddOnLoaded("Recount")) then
-        if (db.global.reanchor) then
-            _G.Recount_MainWindow:ClearAllPoints();
-            _G.Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
-            _G.Recount_MainWindow:SaveMainWindowPosition();
-
-            db.global.reanchor = nil;
-        end
-
-        -- Reskin Recount Window
-        gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", _G.Recount_MainWindow);
-
-        _G.Recount_MainWindow:SetClampedToScreen(true);
-        _G.Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
-        _G.Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);
     end
 
     obj:SetErrorHandler(function(errorMessage, stack, locals)

@@ -86,14 +86,11 @@ do
     end
 
     function Lib:CreateButton(style, parent, text, button, tooltip)
-        local r, g, b = style:GetColor();
         local backgroundTexture = style:GetTexture("ButtonTexture");
 
         button = button or _G.CreateFrame("Button", nil, parent);
         button:SetSize(150, 30);
         button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
-        button:SetBackdropBorderColor(r, g, b, 0.7);
-        button.enabledBackdrop = obj:PopTable(r, g, b);
 
         if (text) then
             button:SetText(text);
@@ -109,12 +106,6 @@ do
         local highlight = Private:SetBackground(button, backgroundTexture);
         local disabled = Private:SetBackground(button, backgroundTexture);
 
-        normal:SetVertexColor(r * 0.6, g * 0.6, b * 0.6, 1);
-        highlight:SetVertexColor(r, g, b, 0.2);
-
-        r, g, b = _G.DISABLED_FONT_COLOR:GetRGB();
-        disabled:SetVertexColor(r, g, b, 0.6);
-
         button:SetNormalTexture(normal);
         button:SetHighlightTexture(highlight);
         button:SetDisabledTexture(disabled);
@@ -125,7 +116,31 @@ do
         button:SetScript("OnEnable", Button_OnEnable);
         button:SetScript("OnDisable", Button_OnDisable);
 
+        self:UpdateButtonColor(button, style);
+
         return button;
+    end
+
+    function Lib:UpdateButtonColor(button, style)
+        local r, g, b = style:GetColor();
+        local normal = button:GetNormalTexture();
+        local highlight = button:GetHighlightTexture();
+        local disabled = button:GetDisabledTexture();
+
+        button:SetBackdropBorderColor(r, g, b, 0.7);
+        button.enabledBackdrop = obj:PopTable(r, g, b);
+
+        normal:SetVertexColor(r * 0.6, g * 0.6, b * 0.6, 1);
+        highlight:SetVertexColor(r, g, b, 0.2);
+
+        local dr, dg, db = _G.DISABLED_FONT_COLOR:GetRGB();
+        disabled:SetVertexColor(dr, dg, db, 0.6);
+
+        if (button:IsEnabled()) then
+            button:SetBackdropBorderColor(r, g, b, 0.7);
+        else
+            button:SetBackdropBorderColor(dr, dg, db, 0.6);
+        end
     end
 end
 

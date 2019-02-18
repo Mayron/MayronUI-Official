@@ -198,7 +198,7 @@ function DropDownMenu:SetLabel(data, text)
     data.label:SetText(text);
 end
 
-WidgetsPackage:DefineReturns("string");
+WidgetsPackage:DefineReturns("?string");
 function DropDownMenu:GetLabel(data)
     return data.label and data.label:GetText();
 end
@@ -346,15 +346,8 @@ function DropDownMenu:AddOption(data, label, func, ...)
     return option;
 end
 
-function DropDownMenu:SetEnabled(data, enabled)
-    if (data.header.isEnabled == enabled) then
-        return;
-    end
-
-    data.frame.toggleButton:SetEnabled(enabled);
-    data.header.isEnabled = enabled; -- required for using the correct tooltip
-
-    if (enabled) then
+function DropDownMenu:UpdateColor(data)
+    if (data.header.isEnabled) then
         local r, g, b = data.style:GetColor("Widget");
 
         data.header:SetBackdropBorderColor(r, g, b);
@@ -377,6 +370,26 @@ function DropDownMenu:SetEnabled(data, enabled)
         data.frame.toggleButton.arrow:SetAlpha(0.5);
         data.label:SetTextColor(r, g, b);
     end
+
+    DropDownMenu.Static.Menu:SetBackdropBorderColor(data.style:GetColor("Widget"));
+    Lib:UpdateScrollFrameColor(DropDownMenu.Static.Menu, data.style);
+
+    local r, g, b = data.style:GetColor();
+
+    for _, option in ipairs(data.options) do
+        option:GetNormalTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
+        option:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
+    end
+end
+
+function DropDownMenu:SetEnabled(data, enabled)
+    if (data.header.isEnabled == enabled) then
+        return;
+    end
+
+    data.frame.toggleButton:SetEnabled(enabled);
+    data.header.isEnabled = enabled; -- required for using the correct tooltip
+    self:UpdateColor();
 end
 
 -- Unlike Toggle(), this function hides the menu instantly (does not fold)

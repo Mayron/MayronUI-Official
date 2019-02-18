@@ -86,3 +86,7 @@ function Lib:CreateScrollFrame(style, parent, global)
 
     return container;
 end
+
+function Lib:UpdateScrollFrameColor(container, style)
+    style:ApplyColor(nil, 0.8, container.ScrollBar.thumb);
+end

@@ -53,12 +53,14 @@ local function ChangeTheme(self, value)
 
     if (frame) then
         -- resets color
-        frame.themeDropdown:SetEnabled(true);
-        frame.profileDropdown:SetEnabled(true);
+        frame.themeDropdown:UpdateColor();
+        frame.chooseProfileDropDown:UpdateColor();
 
-        -- experimental:
-        tk:ApplyThemeColor(frame.applyScaleBtn, frame.installBtn);
-        frame.applyScaleBtn:SetBackdropBorderColor(r, g, b);
+        gui:UpdateButtonColor(frame.applyScaleBtn, tk.Constants.AddOnStyle);
+        gui:UpdateButtonColor(frame.installButton, tk.Constants.AddOnStyle);
+        gui:UpdateButtonColor(frame.deleteProfileButton, tk.Constants.AddOnStyle);
+        gui:UpdateButtonColor(frame.newProfileButton, tk.Constants.AddOnStyle);
+
         frame.addonContainer:SetGridColor(r, g, b);
     end
 
@@ -68,21 +70,6 @@ local function ChangeTheme(self, value)
     end
 end
 
-local function UpdateOptions(menuSection)
-    if (tk.IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
-        menuSection.tl.btn:SetChecked(db.profile.chat.chatFrames["TOPLEFT"].enabled);
-        menuSection.bl.btn:SetChecked(db.profile.chat.chatFrames["BOTTOMLEFT"].enabled);
-        menuSection.br.btn:SetChecked(db.profile.chat.chatFrames["BOTTOMRIGHT"].enabled);
-        menuSection.tr.btn:SetChecked(db.profile.chat.chatFrames["TOPRIGHT"].enabled);
-    end
-
-	if (db.global.core.localization) then
-		menuSection.localization.cb.btn:SetChecked(db.global.core.localization);
-    end
-
-    menuSection.themeDropdown:SetLabel("Theme");
-end
-
 -- first argument is the dropdown menu self reference
 local function ChangeProfile(_, profileName)
     local window = setUpModule:GetWindow();
@@ -90,7 +77,6 @@ local function ChangeProfile(_, profileName)
     if (window) then
         db:SetProfile(profileName);
         ChangeTheme();
-        UpdateOptions(window.submenu[window.customTab.type]);
     end
 end
 
@@ -167,9 +153,9 @@ function Private:LoadInstallMenu(menuSection)
     menuSection.message:SetPoint("CENTER", 0, 20);
     menuSection.message:SetText(tk.Strings:SetTextColorByTheme("Warning:").." This will reload the UI!");
 
-    menuSection.installBtn = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "Install");
-    menuSection.installBtn:SetPoint("CENTER", 0, -20);
-    menuSection.installBtn:SetScript("OnClick", function()
+    menuSection.installButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "Install");
+    menuSection.installButton:SetPoint("CENTER", 0, -20);
+    menuSection.installButton:SetScript("OnClick", function()
         setUpModule:Install();
     end);
 end
@@ -179,75 +165,70 @@ function Private:LoadProfileMenu(menuSection)
     menuSection.profileTitle:SetPoint("TOPLEFT", menuSection.themeDropdown:GetFrame(), "BOTTOMLEFT", 0, -20);
     menuSection.profileTitle:SetText(L["Choose Profile:"]);
 
-    menuSection.profileDropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, menuSection);
-    menuSection.profileDropdown:SetLabel(db:GetCurrentProfile());
-    menuSection.profileDropdown:SetPoint("TOPLEFT", menuSection.profileTitle, "BOTTOMLEFT", 0, -10);
+    menuSection.chooseProfileDropDown = gui:CreateDropDown(tk.Constants.AddOnStyle, menuSection);
+    menuSection.chooseProfileDropDown:SetLabel(db:GetCurrentProfile());
+    menuSection.chooseProfileDropDown:SetPoint("TOPLEFT", menuSection.profileTitle, "BOTTOMLEFT", 0, -10);
 
     for _, name, _ in db:IterateProfiles() do
-        menuSection.profileDropdown:AddOption(name, ChangeProfile, name);
+        menuSection.chooseProfileDropDown:AddOption(name, ChangeProfile, name);
     end
 
-    menuSection.profileDropdown:AddOption(L["<new profile>"], function(self)
-        if (not _G.StaticPopupDialogs["MUI_NewProfile"]) then
+    menuSection.newProfileButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "New Profile");
+    menuSection.newProfileButton:SetPoint("TOPLEFT", menuSection.chooseProfileDropDown:GetFrame(), "BOTTOMLEFT", 0, -20);
 
-            _G.StaticPopupDialogs["MUI_NewProfile"] = {
-                text = L["Create New Profile:"],
-                button1 = L["Confirm"],
-                button2 = L["Cancel"],
-                timeout = 0,
-                whileDead = true,
-                hideOnEscape = true,
-                hasEditBox  = true,
-                preferredIndex = 3,
-                OnAccept = function(dialog)
-                    local newProfileName = dialog.editBox:GetText();
-
-                    if (#newProfileName > 0) then
-                        ChangeProfile(nil, newProfileName);
-                        menuSection.profileDropdown:AddOption(newProfileName, ChangeProfile, newProfileName);
-                        menuSection.profileDropdown:SetLabel(newProfileName);
-
-                        UpdateOptions(menuSection);
-                    end
-                end,
-            };
-
-        end
-
-        _G.StaticPopup_Show("MUI_NewProfile");
-        self:SetLabel(db:GetCurrentProfile());
+    menuSection.newProfileButton:SetScript("OnClick", function()
+        MayronUI:TriggerCommand("profile", "new", nil, function()
+            local currentProfile = db:GetCurrentProfile();
+            menuSection.chooseProfileDropDown:SetLabel(currentProfile);
+            menuSection.chooseProfileDropDown:AddOption(currentProfile, function()
+                ChangeProfile(nil, currentProfile);
+                menuSection.deleteProfileButton:SetEnabled(currentProfile ~= "Default");
+            end);
+        end);
     end);
 
-    menuSection.profileDropdown:AddOption(L["<remove profile>"], function(self)
-        if (not _G.StaticPopupDialogs["MUI_RemoveProfile"]) then
+    menuSection.deleteProfileButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "Delete Profile");
+    menuSection.deleteProfileButton:SetPoint("TOPLEFT", menuSection.newProfileButton, "BOTTOMLEFT", 0, -20);
+    menuSection.deleteProfileButton:SetEnabled(db:GetCurrentProfile() ~= "Default");
 
-            _G.StaticPopupDialogs["MUI_RemoveProfile"] = {
-                text = L["Remove Profile:"],
-                button1 = L["Confirm"],
-                button2 = L["Cancel"],
-                timeout = 0,
-                whileDead = true,
-                hideOnEscape = true,
-                hasEditBox  = true,
-                preferredIndex = 3,
-                OnAccept = function(dialog)
-                    local text = dialog.editBox:GetText();
-                    local changed = db:RemoveProfile(text);
+    menuSection.deleteProfileButton:SetScript("OnClick", function()
+        local profileName = db:GetCurrentProfile();
+        MayronUI:TriggerCommand("profile", "delete", profileName, function()
+            local currentProfile = db:GetCurrentProfile();
+            menuSection.chooseProfileDropDown:RemoveOptionByLabel(profileName);
+            menuSection.chooseProfileDropDown:SetLabel(currentProfile);
+            menuSection.deleteProfileButton:SetEnabled(currentProfile ~= "Default");
+        end);
+    end);
 
-                    menuSection.profileDropdown:RemoveOptionByLabel(text);
-                    menuSection.profileDropdown:SetLabel(db:GetCurrentProfile());
+    menuSection.profilePerCharacter = gui:CreateCheckButton(menuSection, "Profile Per Character", nil,
+        "If enabled, new characters will be assigned a unique character profile instead of the Default profile.");
 
-                    if (changed) then
-                        ChangeTheme();
-                        UpdateOptions(menuSection);
-                    end
-                end,
-            };
+    menuSection.profilePerCharacter:SetPoint("TOPLEFT", menuSection.deleteProfileButton, "BOTTOMLEFT", 0, -20);
+    menuSection.profilePerCharacter.btn:SetChecked(db.global.core.setup.profilePerCharacter);
+
+    menuSection.profilePerCharacter.btn:SetScript("OnClick", function(self)
+        local checked = self:GetChecked();
+        db:SetPathValue("global.core.setup.profilePerCharacter", checked);
+
+        if (checked) then
+            local profileName = tk:GetPlayerKey();
+
+            if (not menuSection.chooseProfileDropDown:GetOptionByLabel(profileName)) then
+                menuSection.chooseProfileDropDown:AddOption(profileName, function()
+                    menuSection.deleteProfileButton:SetEnabled(profileName ~= "Default");
+                    ChangeProfile(nil, profileName);
+                end);
+            end
+
+            menuSection.chooseProfileDropDown:SetLabel(profileName);
+            menuSection.deleteProfileButton:SetEnabled(true);
+            ChangeProfile(nil, profileName);
+        else
+            menuSection.chooseProfileDropDown:SetLabel("Default");
+            menuSection.deleteProfileButton:SetEnabled(false);
+            ChangeProfile(nil, "Default");
         end
-
-        _G.StaticPopup_Show("MUI_RemoveProfile");
-        self:Toggle(true);
-        self:SetLabel(db:GetCurrentProfile());
     end);
 end
 
@@ -298,47 +279,9 @@ function Private:LoadThemeMenu(menuSection)
     menuSection.themeDropdown:SetPoint("TOPLEFT", menuSection.themeTitle, "BOTTOMLEFT", 0, -10);
 end
 
-function Private:LoadChatMenu(menuSection)
-    menuSection.chatTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-    menuSection.chatTitle:SetPoint("TOPLEFT", menuSection.profileDropdown:GetFrame(), "BOTTOMLEFT", 0, -40);
-    menuSection.chatTitle:SetText(L["Enabled Chat Frames:"]);
-
-    menuSection.tl = gui:CreateCheckButton(menuSection, L["Top Left"]);
-    menuSection.tl:SetPoint("TOPLEFT", menuSection.chatTitle, "BOTTOMLEFT", 0, -10);
-
-    menuSection.tl.btn:SetScript("OnClick", function(self)
-        db.profile.chat.chatFrames["TOPLEFT"].enabled = self:GetChecked();
-    end);
-
-    menuSection.bl = gui:CreateCheckButton(menuSection, L["Bottom Left"]);
-    menuSection.bl:SetPoint("TOPLEFT", menuSection.tl, "BOTTOMLEFT", 0, -10);
-
-    menuSection.bl.btn:SetScript("OnClick", function(self)
-        db.profile.chat.chatFrames["BOTTOMLEFT"].enabled = self:GetChecked();
-    end);
-
-    menuSection.br = gui:CreateCheckButton(menuSection, L["Bottom Right"]);
-    menuSection.br:SetPoint("TOPLEFT", menuSection.bl, "BOTTOMLEFT", 0, -10);
-
-    menuSection.br.btn:SetScript("OnClick", function(self)
-        db.profile.chat.chatFrames["BOTTOMRIGHT"].enabled = self:GetChecked();
-    end);
-
-    menuSection.tr = gui:CreateCheckButton(menuSection, L["Top Right"]);
-    menuSection.tr:SetPoint("TOPLEFT", menuSection.br, "BOTTOMLEFT", 0, -10);
-
-    menuSection.tr.btn:SetScript("OnClick", function(self)
-        db.profile.chat.chatFrames["TOPRIGHT"].enabled = self:GetChecked();
-    end);
-end
-
 function Private:LoadCustomMenu(menuSection)
     self:LoadThemeMenu(menuSection, tk.Constants.AddOnStyle);
     self:LoadProfileMenu(menuSection, tk.Constants.AddOnStyle);
-
-    if (_G.IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
-        self:LoadChatMenu(menuSection);
-    end
 
     -- UI Scale
     menuSection.scaleTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
@@ -438,25 +381,23 @@ function Private:LoadCustomMenu(menuSection)
     end
 
     -- install button
-    menuSection.installBtn = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, L["Install"]);
-    menuSection.installBtn:SetPoint("TOPRIGHT", menuSection.addonContainer, "BOTTOMRIGHT", 0, -20);
+    menuSection.installButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, L["Install"]);
+    menuSection.installButton:SetPoint("TOPRIGHT", menuSection.addonContainer, "BOTTOMRIGHT", 0, -20);
 
-    menuSection.installBtn:SetScript("OnClick", function()
+    menuSection.installButton:SetScript("OnClick", function()
         setUpModule:Install();
     end);
 
-    menuSection.installBtn:SetScript("OnEnter", function(self)
+    menuSection.installButton:SetScript("OnEnter", function(self)
         _G.GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT", 18, 4);
         _G.GameTooltip:AddLine(tk.Strings:SetTextColorByTheme(L["Warning:"]).." "..L["This will reload the UI!"]);
         _G.GameTooltip:SetFrameLevel(30);
         _G.GameTooltip:Show();
     end);
 
-    menuSection.installBtn:SetScript("OnLeave", function(self)
+    menuSection.installButton:SetScript("OnLeave", function(self)
         _G.GameTooltip:Hide();
     end);
-
-    UpdateOptions(menuSection);
 end
 
 function Private:LoadInfoMenu(menuSection)
@@ -586,7 +527,7 @@ function C_SetUpModule:Show(data)
     infoTab.type = "Info";
 
     tk:ApplyThemeColor(0.5, installTab, customTab, infoTab);
-    tk:GroupCheckButtons(installTab, customTab, infoTab);
+    tk:GroupCheckButtons(obj:PopTable(installTab, customTab, infoTab));
 
     window:AddCells(window.menu, window.banner, window.info);
     data.window = window;

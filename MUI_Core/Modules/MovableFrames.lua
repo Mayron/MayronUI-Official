@@ -45,7 +45,16 @@ local BlizzardFrames = {
 		"GarrisonRecruiterFrame";
 	};
 
-	Blizzard_LookingForGuildUI = "LookingForGuildFrame";
+	Blizzard_LookingForGuildUI =
+	{
+		hooked = {
+			{
+				"LookingForGuildFrame", funcName = "LookingForGuildFrame_CreateUIElements";
+			}
+		};
+	};
+
+	Blizzard_Communities = "CommunitiesFrame";
 	Blizzard_VoidStorageUI = "VoidStorageFrame";
 	Blizzard_ItemAlterationUI = "TransmogrifyFrame";
 	Blizzard_GuildBankUI = "GuildBankFrame";
@@ -111,7 +120,30 @@ function C_MovableFramesModule:ExecuteMakeMovable(_, value, dontSave)
 
 	elseif (obj:IsTable(value)) then
 		for _, innerValue in ipairs(value) do
-			self:MakeMovable(GetFrame(innerValue), dontSave, value, value);
+			self:MakeMovable(GetFrame(innerValue), dontSave, value);
+		end
+
+		if (obj:IsTable(value.hooked)) then
+			for _, hookedTbl in ipairs(value.hooked) do
+
+				if (hookedTbl.tblName) then
+					tk:HookFunc(_G[hookedTbl.tblName], hookedTbl.funcName, function()
+						for _, frameName in ipairs(hookedTbl) do
+							self:MakeMovable(GetFrame(frameName), dontSave, value);
+						end
+
+						return true;
+					end);
+
+				else
+					tk:HookFunc(hookedTbl.funcName, function()
+						for _, frameName in ipairs(hookedTbl) do
+							self:MakeMovable(GetFrame(frameName), dontSave, value);
+						end
+						return true;
+					end);
+				end
+			end
 		end
 	end
 end
@@ -139,8 +171,7 @@ do
 	end
 
 	function C_MovableFramesModule:OnEnable(data)
-		tk:HookFunc("ShowUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
-		tk:HookFunc("HideUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
+		tk:HookFunc("UpdateUIPanelPositions", UIParent_OnShownChanged, self, data.settings, data.frames);
 
 		if (not data.handler) then
 			data.handler = em:CreateEventHandler("ADDON_LOADED", function(_, _, addOnName)
