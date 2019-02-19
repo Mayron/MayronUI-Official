@@ -55,15 +55,22 @@ db:AddToDefaults("profile.chat", {
 		};
 		BOTTOMLEFT = {
 			enabled = false;
+			tabBar = {
+				yOffset = -43;
+			};
 		};
 		BOTTOMRIGHT = {
 			enabled = false;
+			tabBar = {
+				yOffset = -43;
+			};
 		};
 	};
     editBox = {
         yOffset = -8;
         height = 27;
-        border = "Skinner";
+		border = "Skinner";
+		position = "TOP";
         inset = 0;
         borderSize = 1;
         backdropColor = {
@@ -90,6 +97,10 @@ db:AddToDefaults("profile.chat", {
 				L["Collections Journal"];
 				L["Encounter Journal"];
 			};
+		};
+		tabBar = {
+			show = true;
+			yOffset = -12;
 		};
 	};
 });
@@ -118,6 +129,28 @@ function C_ChatModule:OnInitialize(data)
 				"editBox.backdropColor";
 			};
 		};
+		groups = {
+			{
+				patterns = {
+					"editBox.position";
+					"editBox.yOffset";
+				};
+				value = function()
+					local yOffset = data.settings.editBox.yOffset;
+					local position = data.settings.editBox.position;
+					ChatFrame1EditBox:ClearAllPoints();
+
+					if (position == "TOP") then
+						ChatFrame1EditBox:SetPoint("BOTTOMLEFT", _G.ChatFrame1, "TOPLEFT", -3, yOffset);
+						ChatFrame1EditBox:SetPoint("BOTTOMRIGHT", _G.ChatFrame1, "TOPRIGHT", 3, yOffset);
+
+					elseif (position == "BOTTOM") then
+						ChatFrame1EditBox:SetPoint("TOPLEFT", _G.ChatFrame1, "BOTTOMLEFT", -3, yOffset);
+						ChatFrame1EditBox:SetPoint("TOPRIGHT", _G.ChatFrame1, "BOTTOMRIGHT", 3, yOffset);
+					end
+				end
+			}
+		}
 	};
 
 	-- must be before data.settings gets initialised from RegisterUpdateFunctions
@@ -139,7 +172,6 @@ function C_ChatModule:OnInitialize(data)
 
 					if (muiChatFrame) then
 						muiChatFrame:SetEnabled(settings.enabled);
-						muiChatFrame:SetUpButtonHandler(settings.buttons);
 					end
 				end
 			else
@@ -150,11 +182,14 @@ function C_ChatModule:OnInitialize(data)
 
 				if (settingName == "buttons") then
 					keysList:PopFront();
-					local buttonID= keysList:PopFront();
+					local buttonID = keysList:PopFront();
 
 					if (buttonID ~= "key") then
 						em:TriggerEventHandlerByKey(anchorName.."_OnModifierStateChanged");
 					end
+
+				elseif (settingName == "tabBar") then
+					muiChatFrame:SetUpTabBar(data.settings.chatFrames[anchorName].tabBar);
 
 				elseif (settingName == "enabled") then
 					if (value and not muiChatFrame) then
@@ -169,11 +204,6 @@ function C_ChatModule:OnInitialize(data)
 		end;
 
 		editBox = {
-			yOffset = function(value)
-				ChatFrame1EditBox:SetPoint("TOPLEFT", _G.ChatFrame1, "BOTTOMLEFT", -3, value);
-				ChatFrame1EditBox:SetPoint("TOPRIGHT", _G.ChatFrame1, "BOTTOMRIGHT", 3, value);
-			end;
-
 			height = function(value)
 				ChatFrame1EditBox:SetHeight(value);
 			end;

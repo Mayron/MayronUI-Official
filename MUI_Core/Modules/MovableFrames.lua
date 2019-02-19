@@ -172,6 +172,8 @@ do
 
 	function C_MovableFramesModule:OnEnable(data)
 		tk:HookFunc("UpdateUIPanelPositions", UIParent_OnShownChanged, self, data.settings, data.frames);
+		tk:HookFunc("ShowUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
+		tk:HookFunc("HideUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
 
 		if (not data.handler) then
 			data.handler = em:CreateEventHandler("ADDON_LOADED", function(_, _, addOnName)
@@ -205,6 +207,7 @@ do
 	end
 
 	function C_MovableFramesModule:OnDisable()
+		tk:UnhookFunc("UpdateUIPanelPositions", UIParent_OnShownChanged);
 		tk:UnhookFunc("ShowUIPanel", UIParent_OnShownChanged);
 		tk:UnhookFunc("HideUIPanel", UIParent_OnShownChanged);
 	end

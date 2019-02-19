@@ -206,7 +206,6 @@ do
 
         frame.titleBar = _G.CreateFrame("Frame", nil, frame);
         frame.titleBar:SetSize(260, 31);
-        frame.titleBar:SetFrameLevel(50);
         frame.titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", -7, 11);
         frame.titleBar.bg = frame.titleBar:CreateTexture("ARTWORK");
         frame.titleBar.bg:SetTexture(texture);
@@ -232,7 +231,6 @@ function Lib:AddResizer(style, frame)
 
     frame.dragger = _G.CreateFrame("Button", nil, frame);
     frame.dragger:SetSize(28, 28);
-    frame.dragger:SetFrameLevel(50);
     frame.dragger:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 2);
     frame.dragger:SetNormalTexture(normalTexture, "BLEND");
     frame.dragger:SetHighlightTexture(highlightTexture, "ADD");
@@ -245,7 +243,6 @@ end
 function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
     frame.closeBtn = _G.CreateFrame("Button", nil, frame);
     frame.closeBtn:SetSize(28, 24);
-    frame.closeBtn:SetFrameLevel(50);
     frame.closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1);
 
     local texture = style:GetTexture("CloseButtonBackground");

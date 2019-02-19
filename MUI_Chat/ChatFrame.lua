@@ -41,6 +41,7 @@ Engine:DefineParams("boolean");
 function C_ChatFrame:SetEnabled(data, enabled)
 	if (not data.frame and enabled) then
 		data.frame = self:CreateFrame();
+		self:SetUpTabBar(data.settings.tabBar);
 
 		if (data.anchorName ~= "TOPLEFT") then
 			self:Reposition();
@@ -59,17 +60,16 @@ function C_ChatFrame:SetEnabled(data, enabled)
 
 	if (data.frame) then
 		data.frame:SetShown(enabled);
+		self:SetUpButtonHandler(data.settings.buttons);
 	end
 end
 
-Engine:DefineParams("Texture");
----@param sideBar Texture used to position the chat frame buttons relative to the side bar
-function C_ChatFrame:CreateButtons(data, sideBar)
+function C_ChatFrame:CreateButtons(data)
 	local butonMediaFile;
 	data.buttons = obj:PopTable();
 
 	for buttonID = 1, 3 do
-		local btn = tk:PopFrame("Button", sideBar:GetParent());
+		local btn = tk:PopFrame("Button", data.buttonsBar);
 		data.buttons[buttonID] = btn;
 
 		btn:SetSize(135, 20);
@@ -79,7 +79,7 @@ function C_ChatFrame:CreateButtons(data, sideBar)
 
 		-- position button
 		if (buttonID == 1) then
-			btn:SetPoint("TOPLEFT", sideBar, "TOPRIGHT", 0, 10);
+			btn:SetPoint("TOPLEFT");
 		else
 			local previousButton = data.buttons[#data.buttons - 1];
 			btn:SetPoint("LEFT", previousButton, "RIGHT");
@@ -133,11 +133,6 @@ function C_ChatFrame:CreateFrame(data)
 	muiChatFrame.sidebar:SetSize(24, 300);
 	muiChatFrame.sidebar:SetPoint(data.anchorName, 0, -10);
 
-	muiChatFrame.tabs = muiChatFrame:CreateTexture(nil, "ARTWORK");
-	muiChatFrame.tabs:SetTexture(string.format("%stabs", MEDIA));
-	muiChatFrame.tabs:SetSize(358, 23);
-	muiChatFrame.tabs:SetPoint(data.anchorName, muiChatFrame.sidebar, "TOPRIGHT", 0, -12);
-
 	muiChatFrame.window = tk:PopFrame("Frame", muiChatFrame);
 	muiChatFrame.window:SetSize(367, 248);
 	muiChatFrame.window:SetPoint("TOPLEFT", muiChatFrame.tabs, "BOTTOMLEFT", 2, -2);
@@ -156,47 +151,67 @@ function C_ChatFrame:CreateFrame(data)
 	muiChatFrame.layoutButton:SetNormalTexture(string.format("%slayoutButton", MEDIA));
 	muiChatFrame.layoutButton:SetHighlightTexture(string.format("%slayoutButton", MEDIA));
 
+	data.buttonsBar = tk:PopFrame("Frame", muiChatFrame);
+	data.buttonsBar:SetSize(135 * 3, 20);
+	data.buttonsBar:SetPoint("TOPLEFT", 20, 0);
+
 	tk:ApplyThemeColor(
 		muiChatFrame.layoutButton:GetNormalTexture(),
 		muiChatFrame.layoutButton:GetHighlightTexture()
 	);
 
-	self:CreateButtons(muiChatFrame.sidebar);
+	self:CreateButtons();
 
 	return muiChatFrame;
+end
+
+function C_ChatFrame:SetUpTabBar(data, settings)
+	if (settings.show) then
+		if (not data.tabs) then
+			data.tabs = data.frame:CreateTexture(nil, "ARTWORK");
+			data.tabs:SetSize(358, 23);
+			data.tabs:SetTexture(string.format("%stabs", MEDIA));
+		end
+
+		data.tabs:ClearAllPoints();
+
+		if (tk.Strings:Contains(data.anchorName, "RIGHT")) then
+			data.tabs:SetPoint(data.anchorName, data.frame.sidebar, "TOPLEFT", 0, settings.yOffset);
+			data.tabs:SetTexCoord(1, 0, 0, 1);
+		else
+			data.tabs:SetPoint(data.anchorName, data.frame.sidebar, "TOPRIGHT", 0, settings.yOffset);
+		end
+	end
+
+	if (data.tabs) then
+		data.tabs:SetShown(settings.show);
+	end
 end
 
 function C_ChatFrame:Reposition(data)
 	data.frame:ClearAllPoints();
 	data.frame.window:ClearAllPoints();
 	data.frame.sidebar:ClearAllPoints();
-	data.buttons[1]:ClearAllPoints();
+	data.buttonsBar:ClearAllPoints();
 
 	if (data.anchorName == "TOPRIGHT") then
 		data.frame:SetPoint(data.anchorName, _G.UIParent, data.anchorName, -2, -2);
 		data.frame.window:SetPoint(data.anchorName, data.frame.tabs, "BOTTOMRIGHT", -2, -2);
 		data.frame.window.texture:SetTexCoord(1, 0, 0, 1);
 		data.frame.sidebar:SetPoint(data.anchorName, data.frame, data.anchorName, 0 , -10);
-		data.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.tabs, "TOPLEFT", -46, 2);
-		data.frame.tabs:ClearAllPoints();
-		data.frame.tabs:SetPoint(data.anchorName, data.frame.sidebar, "TOPLEFT", 0, -12);
-		data.frame.tabs:SetTexCoord(1, 0, 0, 1);
 
 	elseif (tk.Strings:Contains(data.anchorName, "BOTTOM")) then
-		data.frame.tabs:Hide(); -- TODO: Should be configurable!
 		data.frame.sidebar:SetPoint(data.anchorName, data.frame, data.anchorName, 0 , 10);
 
 		if (data.anchorName == "BOTTOMLEFT") then
 			data.frame:SetPoint(data.anchorName, tk.UIParent, data.anchorName, 2, 2);
 			data.frame.window:SetPoint(data.anchorName, data.frame.sidebar, "BOTTOMRIGHT", 2, 12);
 			data.frame.window.texture:SetTexCoord(0, 1, 1, 0);
-			data.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.sidebar, "BOTTOMRIGHT", 0, -10);
 
 		elseif (data.anchorName == "BOTTOMRIGHT") then
 			data.frame:SetPoint(data.anchorName, tk.UIParent, data.anchorName, -2, 2);
 			data.frame.window:SetPoint(data.anchorName, data.frame.sidebar, "BOTTOMLEFT", -2, 12);
 			data.frame.window.texture:SetTexCoord(1, 0, 1, 0);
-			data.buttons[1]:SetPoint("BOTTOMLEFT", data.frame.window, "BOTTOMLEFT", -36, -22);
 		end
 	end
 
@@ -205,5 +220,10 @@ function C_ChatFrame:Reposition(data)
 		data.frame.layoutButton:GetNormalTexture():SetTexCoord(1, 0, 0, 1);
 		data.frame.layoutButton:GetHighlightTexture():SetTexCoord(1, 0, 0, 1);
 		data.frame.sidebar:SetTexCoord(1, 0, 0, 1);
+		data.buttonsBar:SetPoint(data.anchorName, -20, 0);
+	else
+		data.buttonsBar:SetPoint(data.anchorName, 20, 0);
 	end
+
+	self:SetUpTabBar(data.settings.tabBar);
 end

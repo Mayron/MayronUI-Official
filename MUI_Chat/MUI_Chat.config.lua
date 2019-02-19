@@ -86,6 +86,32 @@ function C_ChatModule:GetConfigTable()
                 type = "title",
                 marginTop = 0;
             },
+            {   name = "Top";
+                type = "radio";
+                groupName = "editBox_tabPositions";
+                dbPath = "profile.chat.editBox.position";
+                GetValue = function(_, value)
+                    return value == "TOP";
+                end;
+
+                SetValue = function(path)
+                    db:SetPathValue(path, "TOP");
+                end;
+            },
+            {   name = "Bottom";
+                type = "radio";
+                groupName = "editBox_tabPositions";
+                dbPath = "profile.chat.editBox.position";
+                GetValue = function(_, value)
+                    return value == "BOTTOM";
+                end;
+
+                SetValue = function(path)
+                    db:SetPathValue(path, "BOTTOM");
+                end;
+            },
+            {   type = "divider";
+            };
             {   name = L["Y-Offset"],
                 type = "textfield",
                 valueType = "number",
@@ -168,6 +194,18 @@ function C_ChatModule:GetConfigTable()
                                 type = "check",
                                 dbPath = string.format("%s.enabled", dbPath),
                             },
+                            {   type = "divider";
+                            };
+                            {   name = "Show Tab Bar",
+                                tooltip = "This is the background bar that goes behind the tabs";
+                                type = "check",
+                                dbPath = string.format("%s.tabBar.show", dbPath),
+                            };
+                            {   name = "Tab Bar Y-Offset",
+                                type = "textfield",
+                                valueType = "number";
+                                dbPath = string.format("%s.tabBar.yOffset", dbPath),
+                            };
                         }
                     };
 

@@ -12,4 +12,5 @@
     <Script file="AFKDisplay.lua"/>
     <Script file="OrderHallCommandBar.lua"/>
     <Script file="MovableFrames.lua"/>
+    <Script file="Tutorial.lua"/>
 </Ui>

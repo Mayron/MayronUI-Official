@@ -615,6 +615,7 @@ function C_SetUpModule:Install()
 
     db.global.installed[tk:GetPlayerKey()] = true;
     db.global.reanchor = true;
+    db.profile.tutorial = true;
 
     _G.ReloadUI();
 end

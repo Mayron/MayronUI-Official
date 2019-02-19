@@ -5,7 +5,6 @@
     <Script file="Toolkit\Utilities\Strings.lua"/>
     <Script file="Toolkit\Utilities\Widgets.lua"/>
     <Script file="Toolkit\Constants.lua"/>
-    <Script file="Toolkit\Reskinner.lua"/>
 
     <Script file="MUI_Core.lua"/>
 </Ui>

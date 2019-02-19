@@ -10,9 +10,6 @@ namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.components.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 
 local tk  = namespace.components.Toolkit; ---@type Toolkit
-
--- namespace.components.Database = tk:CreateTableProtector(namespace.components.Database);
-
 local db  = namespace.components.Database; ---@type LibMayronDB
 local em  = namespace.components.EventManager; ---@type LibMayronEvents
 local gui = namespace.components.GUIBuilder; ---@type LibMayronGUI
