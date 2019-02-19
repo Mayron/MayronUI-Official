@@ -1,8 +1,12 @@
 -- luacheck: ignore MayronUI self 143 631
 local addonName = ...;
 
+local _G = _G;
+
 ---@class LibMayronEvents
 local Lib = _G.LibStub:NewLibrary("LibMayronEvents", 1.1);
+
+local pairs, ipairs, tostring = _G.pairs, _G.ipairs, _G.tostring;
 
 if (not Lib) then
     return;
@@ -267,6 +271,24 @@ function Lib:TriggerEventHandlerByKey(key)
     end
 
     return false;
+end
+
+---Find and trigger handler callbacks for the specified event name if found.
+---@param eventName string @The name of the even to trigger.
+---@return boolean @Returns true if a handler callback for the specified event was found and triggered.
+function Lib:TriggerEventHandlerByEvent(eventName)
+    local handlers = self:FindEventHandlersByEvent(eventName);
+    local executed = false;
+
+    if (obj:IsTable(handlers)) then
+        for _, handler in pairs(handlers) do
+            if (handler:Run(eventName)) then
+                executed = true;
+            end
+        end
+    end
+
+    return executed;
 end
 
 ---@param eventName string @The event name.

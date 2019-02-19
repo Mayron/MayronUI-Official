@@ -154,7 +154,7 @@ function Friends:Click(data, button)
         local name, level, class, _, online, status = GetFriendInfo(i);
 
         if (online) then
-            local classFileName = tk:GetIndex(tk.Constants.LOCALIZED_CLASS_NAMES, class) or class;
+            local classFileName = tk.Tables:GetIndex(tk.Constants.LOCALIZED_CLASS_NAMES, class) or class;
 
             if (status:trim() == "<Away") then
                 status = " |cffffe066[AFK]|r";
@@ -175,7 +175,7 @@ function Friends:Click(data, button)
             label:SetHighlightTexture(1);
             label:GetHighlightTexture():SetColorTexture(0.2, 0.2, 0.2, 0.4);
             label.name:SetText(tk.string.format("%s%s %s ",
-                tk:GetClassColoredString(classFileName, name), status, level));
+                tk.Strings:SetTextColorByClass(name, classFileName), status, level));
         end
     end
 

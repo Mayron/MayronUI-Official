@@ -651,6 +651,10 @@ The official homepage for MayronUI Gen6 is:
 |cff00ccff/bt|r - Bartender Settings (Action Bars)
 
 |cff00ccff> F.A.Q's|r
+|cff00ccffQ: Why do I have 2 raid frames showing?|r
+
+|cff90ee90A:|r One of them is the Blizzard raid frames (which can be hidden by pressing the arrow button the left of the screen) and the other is most likely the Grid raid frames.
+
 |cff00ccffQ: How do I open up the Calendar? / How do I toggle the Tracker?|r
 
 |cff90ee90A:|r Right click the Mini-Map and select the option to do this in the drop down menu.

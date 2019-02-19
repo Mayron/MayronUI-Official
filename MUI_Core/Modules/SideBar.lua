@@ -206,7 +206,6 @@ end
 -- C_SideBar -----------------------
 
 function C_SideBar:OnInitialize(data)
-
     local options = {
         onExecuteAll = {
             ignore = {
@@ -411,6 +410,8 @@ end
 
 function C_SideBar:SetBarsShown(data, numBarsShown)
     data.settings.barsShown = numBarsShown;
+    db.profile.sidebar.barsShown = numBarsShown;
+
     data.expand:ClearAllPoints();
     data.retract:ClearAllPoints();
 
