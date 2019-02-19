@@ -836,12 +836,12 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
     namespace:SetupOrderHallBar();
 
     if (_G.IsAddOnLoaded("Recount")) then
-        if (db.global.reanchor) then
+        if (db.global.reanchorRecount) then
             _G.Recount_MainWindow:ClearAllPoints();
             _G.Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
             _G.Recount_MainWindow:SaveMainWindowPosition();
 
-            db.global.reanchor = nil;
+            db.global.reanchorRecount = nil;
         end
 
         -- Reskin Recount Window

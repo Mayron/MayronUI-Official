@@ -52,7 +52,7 @@ db:AddToDefaults("profile.datatext", {
         "friends";
         "guild";
         "inventory";
-        "memory";
+        "currency";
         "performance";
         "specialization";
     };

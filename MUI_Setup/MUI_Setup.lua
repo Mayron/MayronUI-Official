@@ -407,7 +407,7 @@ function Private:LoadInfoMenu(menuSection)
     menuSection.child = menuSection.info.ScrollFrame:GetScrollChild();
 
     tk:SetFullWidth(menuSection.child);
-    menuSection.child:SetHeight(900); -- can't use GetStringHeight
+    menuSection.child:SetHeight(1200); -- can't use GetStringHeight
 
     menuSection.info:SetPoint("TOPLEFT", 40, -40);
     menuSection.info:SetPoint("BOTTOMRIGHT", -40, 40);
@@ -426,7 +426,7 @@ function Private:LoadInfoMenu(menuSection)
     content:SetJustifyH("LEFT");
     content:SetJustifyV("TOP");
     content:SetText(Private.content);
-    content:SetFont(font, 13); -- font size should be added to config and profile. I personally prefer 10 ;-)
+    content:SetFont(font, 13); -- font size should be added to config and profile
     content:SetSpacing(6);
 end
 
@@ -606,6 +606,7 @@ function C_SetUpModule:Install()
     if (not db.global.previouslyInstalled) then
         db.global.previouslyInstalled = true;
         db.global.tutorial = true;
+        db.profile.tutorial = true;
     end
 
     if (not db.global.installed) then
@@ -614,8 +615,7 @@ function C_SetUpModule:Install()
     end
 
     db.global.installed[tk:GetPlayerKey()] = true;
-    db.global.reanchor = true;
-    db.profile.tutorial = true;
+    db.global.reanchorRecount = true;
 
     _G.ReloadUI();
 end
@@ -633,27 +633,31 @@ function C_SetUpModule:IsExpanded(data)
 end
 
 Private.content = [[
-Thank you for using MayronUI Gen5!
+Thank you for using MayronUI Gen6!
+
+Please visit the community Discord server if you need additional help or wish to get involved with the project:
+|cff00ccffhttps://discord.gg/cJq5V3|r
+
+The official homepage for MayronUI Gen6 is:
+|cff00ccffhttps://www.wowinterface.com/downloads/info21221-MayronUIGen5.html|r
 
 |cff00ccff> SLASH COMMANDS|r
-|cff00ccff/mui config|r - Opens up the in-game MayronUI options menu which controls most of the Core features in the UI
-|cff00ccff/mui install|r - Opens up the Mayron Setup Window (older versions use "/install")
+|cff00ccff/mui|r - List all MayronUI slash commands (including "install", "config" and "profile" commands)
 |cff00ccff/rl|r - Reloads the UI
 |cff00ccff/tiptac|r - Show TipTac (Tooltips) AddOn settings
 |cff00ccff/ltp|r - Leatrix Plus settings (I recommend looking through them!)
 |cff00ccff/af|r - Aura Frames AddOn (for buffs and debuffs)
 |cff00ccff/suf|r - Settings for the Unit Frames (Shadowed Unit Frames)
 |cff00ccff/bt|r - Bartender Settings (Action Bars)
-|cff00ccff/fs|r - Shows Blizzard's FrameStack window.
 
 |cff00ccff> F.A.Q's|r
 |cff00ccffQ: How do I open up the Calendar? / How do I toggle the Tracker?|r
 
-|cff90ee90A:|r You need to right click on the mini-map and select the option to do this in the drop down menu.
+|cff90ee90A:|r Right click the Mini-Map and select the option to do this in the drop down menu.
 
 |cff00ccffQ: How can I see more action bars on the bottom of the UI like in the screen shots?|r
 
-|cff90ee90A:|r You need to press and hold the Control key while out of combat to show the Expand and Retract button and then press that.
+|cff90ee90A:|r You need to press and hold the Control key while out of combat to show the Expand and Retract button.
 
 |cff00ccffQ: How do I enable the Timestamps on the Chat Box?|r
 

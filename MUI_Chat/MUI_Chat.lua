@@ -70,7 +70,7 @@ db:AddToDefaults("profile.chat", {
         yOffset = -8;
         height = 27;
 		border = "Skinner";
-		position = "TOP";
+		position = "BOTTOM";
         inset = 0;
         borderSize = 1;
         backdropColor = {

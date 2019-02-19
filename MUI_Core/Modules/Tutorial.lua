@@ -16,18 +16,24 @@ function C_Tutorial:OnEnable()
     local frame = tk:PopFrame("Frame");
 
     frame:SetFrameStrata("TOOLTIP");
-    frame:SetSize(300, 180);
+    frame:SetSize(350, 215);
     frame:SetPoint("CENTER");
 
     gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
     gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
+
+    local title = tk.Strings:Concat("Version [", _G.GetAddOnMetadata("MUI_Core", "Version"), "]");
+    gui:AddTitleBar(tk.Constants.AddOnStyle, frame, title);
 
     frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     tk:SetFontSize(frame.text, 14);
     frame.text:SetWordWrap(true);
     frame.text:SetPoint("TOPLEFT", 10, -30);
     frame.text:SetPoint("BOTTOMRIGHT", -10, 80);
-    frame.text:SetText("Thank you for installing MayronUI\n\nYou can fully customise the UI in the MayronUI config menu:");
+    frame.text:SetText(tk.Strings:Join("\n\n",
+        "Thank you for installing ".. _G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"),
+        "You can fully customise the UI using the config menu:",
+        tk.Strings:SetTextColorByKey("(type '/mui' to list all slash commands)", "GOLD")));
 
     local configButton = gui:CreateButton(tk.Constants.AddOnStyle, frame, "Open Config Menu");
     configButton:SetPoint("TOP", frame.text, "BOTTOM", 0, -20);

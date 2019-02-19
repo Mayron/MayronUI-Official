@@ -1,9 +1,13 @@
 local _, namespace = ...;
+local _G, MayronUI = _G, _G.MayronUI;
 
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 local ComponentsPackage = namespace.ComponentsPackage;
 local LABEL_PATTERN = "|cffffffff%s|r";
+
+local tonumber, string, math = _G.tonumber, _G.string, _G.math;
+local GetMoney, ipairs, strsplit = _G.GetMoney, _G.ipairs, _G.strsplit;
 
 -- Objects ---------------------------
 
@@ -12,12 +16,11 @@ local Currency = ComponentsPackage:CreateClass("Currency", nil, "IDataTextCompon
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.currency", {
-    -- todo: this needs to be more intelligent...
-    showCopper = true,
-    showSilver = true,
-    showGold = true,
-
-    showRealm = false,
+    showCopper    = true;
+    showSilver    = true;
+    showGold      = true;
+    auto          = true;
+    showRealm     = false;
 });
 
 -- Local Functions ----------------
@@ -71,7 +74,7 @@ function Currency:__Construct(data, settings, dataTextModule)
     local month = calendarDate["month"];
     local day = calendarDate["monthDay"];
 
-    calendarDate = tk.string.format("%d-%d", day, month);
+    calendarDate = string.format("%d-%d", day, month);
 
     if (not (data.settings.date and data.settings.date == calendarDate)) then
         data.settings.todayCurrency = _G.GetMoney();
@@ -113,43 +116,63 @@ end
 ComponentsPackage:DefineParams("number", "?string", "?boolean")
 function Currency:GetFormattedCurrency(data, currency, colorCode, hasLabel)
     local text = "";
-    local gold = tk.math.floor(tk.math.abs(currency / 10000));
-    local silver = tk.math.floor(tk.math.abs((currency / 100) % 100));
-    local copper = tk.math.floor(tk.math.abs(currency % 100));
+    local gold = math.floor(math.abs(currency / 10000));
+    local silver = math.floor(math.abs((currency / 100) % 100));
+    local copper = math.floor(math.abs(currency % 100));
 
     colorCode = colorCode or "|cffffffff";
 
-    if (gold > 0 and (not hasLabel or data.settings.showGold)) then
-        if (tk.tonumber(gold) > 1000) then
-            gold = tk.string.gsub(gold, "^(-?%d+)(%d%d%d)", '%1,%2')
+    if (data.settings.auto) then
+        if (gold > 0) then
+            if (tonumber(gold) >= 1000) then
+                gold = string.gsub(gold, "^(-?%d+)(%d%d%d)", '%1,%2');
+                text = string.format("%s %s%s|r%s", text, colorCode, gold, data.goldString);
+                return string.format(LABEL_PATTERN, text:trim());
+            else
+                text = string.format("%s %s%s|r%s", text, colorCode, gold, data.goldString);
+            end
         end
 
-        text = tk.string.format("%s %s%s|r%s", text, colorCode, gold, data.goldString);
-    end
+        if (silver > 0) then
+            text = string.format("%s %s%s|r%s", text, colorCode, silver, data.silverString);
+        end
 
-    if (silver > 0 and (not hasLabel or data.settings.showSilver)) then
-        text = tk.string.format("%s %s%s|r%s", text, colorCode, silver, data.silverString);
-    end
+        if (gold < 100 and copper > 0) then
+            text = string.format("%s %s%s|r%s", text, colorCode, copper, data.copperString);
+        end
+    else
+        if (gold > 0 and (not hasLabel or data.settings.showGold)) then
+            if (tonumber(gold) >= 1000) then
+                gold = string.gsub(gold, "^(-?%d+)(%d%d%d)", '%1,%2')
+            end
 
-    if (copper > 0 and (not hasLabel or data.settings.showCopper)) then
-        text = tk.string.format("%s %s%s|r%s", text, colorCode, copper, data.copperString);
+            text = string.format("%s %s%s|r%s", text, colorCode, gold, data.goldString);
+        end
+
+        if (silver > 0 and (not hasLabel or data.settings.showSilver)) then
+            text = string.format("%s %s%s|r%s", text, colorCode, silver, data.silverString);
+        end
+
+        if (copper > 0 and (not hasLabel or data.settings.showCopper)) then
+            text = string.format("%s %s%s|r%s", text, colorCode, copper, data.copperString);
+        end
     end
 
     if (text == "") then
         if (data.settings.showGold or not hasLabel) then
-            text = tk.string.format("%d%s", 0, data.goldString);
+            text = string.format("%d%s", 0, data.goldString);
         end
 
         if (data.settings.showSilver or not hasLabel) then
-            text = tk.string.format("%s %d%s", text, 0, data.silverString);
+            text = string.format("%s %d%s", text, 0, data.silverString);
         end
 
         if (data.settings.showCopper or not hasLabel) then
-            text = tk.string.format("%s %d%s", text, 0, data.copperString);
+            text = string.format("%s %d%s", text, 0, data.copperString);
         end
     end
 
-    return tk.string.format(LABEL_PATTERN, text:trim());
+    return string.format(LABEL_PATTERN, text:trim());
 end
 
 ComponentsPackage:DefineReturns("string");
@@ -160,10 +183,10 @@ function Currency:GetTodaysProfit(data)
         return self:GetFormattedCurrency(currency, _G.GREEN_FONT_COLOR_CODE);
 
     elseif (currency < 0) then
-        currency = tk.math.abs(currency);
+        currency = math.abs(currency);
         local result = self:GetFormattedCurrency(currency, _G.RED_FONT_COLOR_CODE);
 
-        return tk.string.format(_G.RED_FONT_COLOR_CODE.."-%s".."|r", result);
+        return string.format(_G.RED_FONT_COLOR_CODE.."-%s".."|r", result);
     end
 end
 
@@ -172,11 +195,11 @@ function Currency:Update(data, refreshSettings)
         data.settings:Refresh();
     end
 
-    local currentCurrency = self:GetFormattedCurrency(_G.GetMoney(), nil, true);
+    local currentCurrency = self:GetFormattedCurrency(GetMoney(), nil, true);
 
     self.Button:SetText(currentCurrency);
     local coloredKey = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
-    db.global.datatext.currency.characters[coloredKey] = _G.GetMoney();
+    db.global.datatext.currency.characters[coloredKey] = GetMoney();
 end
 
 function Currency:Click(data)
@@ -208,7 +231,7 @@ function Currency:Click(data)
         if (data.settings.showRealm) then
             nameLabel.value:SetText(characterName);
         else
-            local name = tk.strsplit("-", characterName);
+            local name = strsplit("-", characterName);
             nameLabel.value:SetText(name);
         end
 

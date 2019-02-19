@@ -2,6 +2,7 @@
 local _, namespace = ...;
 local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 local C_DataTextModule = namespace.C_DataTextModule;
+local widgets = {};
 
 function C_DataTextModule:GetConfigTable()
     return {
@@ -156,21 +157,63 @@ function C_DataTextModule:GetConfigTable()
                 module = "DataText",
                 appendDbPath = "currency",
                 children = {
+                    {   name = "Automatic",
+                        type = "check",
+                        tooltip = "If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit.";
+                        appendDbPath = "auto",
+
+                        SetValue = function(dbPath, value)
+                            widgets.copperCheckButton:SetEnabled(not value);
+                            widgets.silverCheckButton:SetEnabled(not value);
+                            widgets.goldCheckButton:SetEnabled(not value);
+                            db:SetPathValue(dbPath, value);
+                        end;
+
+                        OnLoad = function(_, widget)
+                            widgets.automaticCheckButton = widget.btn;
+                        end;
+                    },
+                    {   type = "divider"
+                    },
                     {   name = L["Show Copper"],
                         type = "check",
-                        appendDbPath = "showCopper",
+                        appendDbPath = "showCopper";
+
+                        OnLoad = function(_, widget)
+                            widgets.copperCheckButton = widget.btn;
+
+                            if (widgets.automaticCheckButton:GetChecked()) then
+                                widget.btn:SetEnabled(false);
+                            end
+                        end;
                     },
                     {   type = "divider"
                     },
                     {   name = L["Show Silver"],
                         type = "check",
-                        appendDbPath = "showSilver",
+                        appendDbPath = "showSilver";
+
+                        OnLoad = function(_, widget)
+                            widgets.silverCheckButton = widget.btn;
+
+                            if (widgets.automaticCheckButton:GetChecked()) then
+                                widget.btn:SetEnabled(false);
+                            end
+                        end;
                     },
                     {   type = "divider"
                     },
                     {   name = L["Show Gold"],
                         type = "check",
-                        appendDbPath = "showGold",
+                        appendDbPath = "showGold";
+
+                        OnLoad = function(_, widget)
+                            widgets.goldCheckButton = widget.btn;
+
+                            if (widgets.automaticCheckButton:GetChecked()) then
+                                widget.btn:SetEnabled(false);
+                            end
+                        end;
                     },
                     {   type = "divider"
                     },
