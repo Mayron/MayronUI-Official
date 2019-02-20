@@ -65,7 +65,7 @@ function tk.Strings:IsNilOrWhiteSpace(strValue)
         return true;
     end
 
-    tk:Assert(type(strValue) == "string",
+    tk:Assert(obj:IsString(strValue),
         "tk.Strings.IsNilOrWhiteSpace - bad argument #1 (string expected, got %s)", type(strValue));
 
     strValue = strValue:gsub("%s+", "");

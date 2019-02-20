@@ -155,6 +155,19 @@ function C_ResourceBarsModule:OnEnable(data)
             end;
         });
     end);
+
+    em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "ResourceBars_HeightUpdate", function()
+        if (data.pendingHeightUpdate) then
+            data.barsContainer:SetHeight(data.pendingHeightUpdate);
+            data.pendingHeightUpdate = nil;
+
+            local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
+
+            if (actionBarPanelModule:IsEnabled()) then
+                actionBarPanelModule:SetUpAllBartenderBars(data);
+            end
+        end
+    end);
 end
 
 function C_ResourceBarsModule:UpdateContainer(data)
@@ -162,8 +175,6 @@ function C_ResourceBarsModule:UpdateContainer(data)
     local previousFrame;
 
     for _, barName in ipairs(BAR_NAMES) do
-
-
         -- check if bar was ever enabled
         if (data.bars[barName]) then
             local bar = data.bars[barName];
@@ -197,12 +208,10 @@ function C_ResourceBarsModule:UpdateContainer(data)
         height = 1;
     end
 
-    data.barsContainer:SetHeight(height);
+    data.pendingHeightUpdate = height;
 
-    local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
-
-    if (actionBarPanelModule:IsEnabled()) then
-        actionBarPanelModule:SetUpAllBartenderBars(data);
+    if (not InCombatLockdown()) then
+        em:TriggerEventHandlerByKey("ResourceBars_HeightUpdate");
     end
 end
 
@@ -340,6 +349,12 @@ end
 
 ResourceBarsPackage:DefineParams("boolean");
 function C_BaseResourceBar:SetActive(data, active)
+    if (data.activeState == active) then
+        return;
+    end
+
+    data.activeState = active;
+
     if (active) then
         if (not data.frame) then
             self:CreateBar();

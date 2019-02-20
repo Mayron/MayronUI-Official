@@ -491,25 +491,27 @@ end
 
 function Private.DetachShadowedUnitFrames()
     local currentProfile = _G.ShadowUF.db:GetCurrentProfile();
-    local SUF = _G.ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
+    local SUFTargetTarget = _G.ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
 
-    SUF["point"] = "TOP"; SUF["anchorTo"] = "UIParent";
-    SUF["relativePoint"] = "TOP"; SUF["x"] = 0; SUF["y"] = -40;
-
-    _G.ShadowUF.Layout:Reload();
+    SUFTargetTarget.point = "TOP";
+    SUFTargetTarget.anchorTo = "UIParent";
+    SUFTargetTarget.relativePoint = "TOP";
+    SUFTargetTarget.x = 100;
+    SUFTargetTarget.y = -100;
 end
 
 function Private.AttachShadowedUnitFrames(rightPanel)
-    local currentProfile = _G.ShadowUF.db:GetCurrentProfile();
-    local anchorTo = "UIParent";
-
-    if (_G["MUI_UnitPanelCenter"]) then
-        anchorTo = "MUI_UnitPanelCenter";
+    if (not _G["MUI_UnitPanelCenter"]) then
+        return;
     end
 
-    local SUF = _G.ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
-    SUF["point"] = "TOP"; SUF["anchorTo"] = anchorTo;
-    SUF["relativePoint"] = "TOP"; SUF["x"] = 0; SUF["y"] = -40;
+    local SUFTargetTarget = _G.ShadowUF.db.profile.positions.targettarget;
+
+    SUFTargetTarget.point = "TOP";
+    SUFTargetTarget.anchorTo = "MUI_UnitPanelCenter";
+    SUFTargetTarget.relativePoint = "TOP";
+    SUFTargetTarget.x = 0;
+    SUFTargetTarget.y = -40;
 
     if (_G.SUFUnitplayer) then
         _G.SUFUnitplayer:SetFrameStrata("MEDIUM");
@@ -524,7 +526,7 @@ function Private.AttachShadowedUnitFrames(rightPanel)
         _G.SUFUnittargettarget:SetFrameStrata("MEDIUM");
     end
 
-    _G.ShadowUF.Layout:Reload();
+    _G.ShadowUF.Layout:Reload("targettarget");
 end
 
 function Private.AnchorGridFrame(settings)
