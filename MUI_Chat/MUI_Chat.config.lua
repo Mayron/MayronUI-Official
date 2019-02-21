@@ -3,6 +3,13 @@ local _, namespace = ...;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ChatModule = namespace.C_ChatModule;
 
+local ChatFrameAnchorDropDownOptions = {
+    ["Top Left"] = "TOPLEFT";
+    ["Top Right"] = "TOPRIGHT";
+    ["Bottom Left"] = "BOTTOMLEFT";
+    ["Bottom Right"] = "BOTTOMRIGHT";
+};
+
 -- Config Data ----------------------
 
 local function CreateButtonConfigTable(dbPath, buttonID)
@@ -159,6 +166,13 @@ function C_ChatModule:GetConfigTable()
                 tooltip = L["Allow the use of modifier keys to swap chat buttons while in combat."],
                 dbPath = "profile.chat.swapInCombat",
             },
+            {   name = "Anchor Voice Chat Icons",
+                type = "dropdown",
+                -- requiresReload = true;
+                tooltip = "Select which chat frame the voice chat icons should be anchored to.",
+                options = ChatFrameAnchorDropDownOptions;
+                dbPath = "profile.chat.voiceChatIcons",
+            },
             {   type = "divider"
             },
             {   type = "loop",
@@ -168,16 +182,11 @@ function C_ChatModule:GetConfigTable()
                     local dbPath = string.format("profile.chat.chatFrames.%s", chatFrameName);
                     local chatFrameLabel;
 
-                    if (tk.Strings:Contains(chatFrameName, "TOP")) then
-                        chatFrameLabel = "Top";
-                    else
-                        chatFrameLabel = "Bottom";
-                    end
-
-                    if (tk.Strings:Contains(chatFrameName, "LEFT")) then
-                        chatFrameLabel = tk.Strings:JoinWithSpace(chatFrameLabel, "Left");
-                    else
-                        chatFrameLabel = tk.Strings:JoinWithSpace(chatFrameLabel, "Right");
+                    for key, value in pairs(ChatFrameAnchorDropDownOptions) do
+                        if (chatFrameName == value) then
+                            chatFrameLabel = key;
+                            break;
+                        end
                     end
 
                     local ConfigTable =

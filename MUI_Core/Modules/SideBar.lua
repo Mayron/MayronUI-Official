@@ -1,8 +1,12 @@
 -- luacheck: ignore MayronUI self 143 631
+local _G = _G;
+local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local Private = {};
-local ObjectiveTrackerFrame, InCombatLockdown = _G.ObjectiveTrackerFrame, _G.InCombatLockdown;
+local ObjectiveTrackerFrame, InCombatLockdown, IsInInstance = _G.ObjectiveTrackerFrame, _G.InCombatLockdown, _G.IsInInstance;
+local ObjectiveTracker_Collapse, ObjectiveTracker_Update, ObjectiveTracker_Expand =
+    _G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update, _G.ObjectiveTracker_Expand;
 
 -- Register and Import Modules -----------
 
@@ -34,6 +38,7 @@ db:AddToDefaults("profile.sidebar", {
 
     objectiveTracker = {
         enabled = true;
+        hideInInstance = true;
         anchoredToSideBars = true;
         width = 250;
         height = 600;
@@ -351,7 +356,7 @@ function C_SideBar:SetObjectiveTrackerEnabled(data, enabled)
 
     if (not data.objectiveContainer) then
         -- holds and controls blizzard objectives tracker frame
-        data.objectiveContainer = tk.CreateFrame("Frame", nil, tk.UIParent);
+        data.objectiveContainer = _G.CreateFrame("Frame", nil, tk.UIParent);
 
         -- blizzard objective tracker frame global variable
         ObjectiveTrackerFrame:SetClampedToScreen(false);
@@ -371,6 +376,34 @@ function C_SideBar:SetObjectiveTrackerEnabled(data, enabled)
         data.objectiveContainer:SetPoint("TOPRIGHT", data.panel, "TOPLEFT", settings.xOffset, settings.yOffset);
     else
         data.objectiveContainer:SetPoint("CENTER", settings.xOffset, settings.yOffset);
+    end
+
+    if (not data.settings.objectiveTracker.hideInInstance) then
+        em:DestroyEventHandlerByKey("ObjectiveTracker_InInstance");
+        print("Destroyed event")
+        return;
+    end
+
+    em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "ObjectiveTracker_InInstance", function()
+        local inInstance = IsInInstance();
+
+        if (inInstance) then
+            if (not ObjectiveTrackerFrame.collapsed) then
+                ObjectiveTracker_Collapse();
+                data.previouslyCollapsed = true;
+            end
+        else
+            if (ObjectiveTrackerFrame.collapsed and data.previouslyCollapsed) then
+                ObjectiveTracker_Expand();
+                ObjectiveTracker_Update();
+            end
+
+            data.previouslyCollapsed = nil;
+        end
+    end);
+
+    if (IsInInstance()) then
+        em:TriggerEventHandlerByKey("ObjectiveTracker_InInstance");
     end
 end
 

@@ -992,7 +992,14 @@ Engine:DefineParams("number", "?number");
 ---@param totalDuration number @(optional) The total duration of the timer bar (used when the timer bar is first created to set the max value of the slider)
 function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
     self.TimeRemaining = self.ExpirationTime - currentTime;
-    obj:Assert(self.TimeRemaining >= 0); -- duration should have been checked in the frame OnUpdate script
+
+     -- duration should have been checked in the frame OnUpdate script
+     -- Update: During a big 40 vs 40 PVP battleground, this condition failed!
+    -- obj:Assert(self.TimeRemaining >= 0);
+
+    if (self.TimeRemaining < 0) then
+        return; -- Let OnUpdate Script remove it!
+    end
 
     if (not data.frame:IsShown()) then
         return;

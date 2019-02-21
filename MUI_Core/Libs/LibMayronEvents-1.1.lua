@@ -103,12 +103,7 @@ end
 EventsPackage:DefineParams("string");
 ---@param key string @A unique key to easily find an event handler object using the library "find" functions.
 function Handler:SetKey(data, key)
-    if (not key) then
-        data.key = tostring(self);
-    else
-        data.key = key;
-    end
-
+    data.key = key;
     Private.eventKeys[key] = self;
 end
 
@@ -176,7 +171,8 @@ end
 ---@param unitName string @The name of the unit to register events to (i.e. RegisterUnitEvent).
 ---@return Handler @Handler object created for the registered event.
 function Lib:CreateUnitEventHandler(eventName, callback, unitName, ...)
-    local handler;
+    local key = tostring(callback);
+    local handler = self:FindEventHandlerByKey(key);
 
     if (eventName:find(",")) then
         for _, event in obj:IterateArgs(_G.strsplit(",", eventName)) do
@@ -188,10 +184,13 @@ function Lib:CreateUnitEventHandler(eventName, callback, unitName, ...)
                 handler:AppendEvent(event, unitName);
             end
         end
-    else
+    elseif (not handler) then
         handler = Handler(eventName, callback, unitName, ...);
+    else
+        handler:AppendEvent(eventName, unitName);
     end
 
+    handler:SetKey(key);
     return handler;
 end
 
@@ -205,13 +204,8 @@ end
 ---@param unitName string @The name of the unit to register events to.
 ---@return Handler @Handler object created for the registered event.
 function Lib:CreateUnitEventHandlerWithKey(eventName, key, callback, unitName, ...)
-    local handler = self:FindEventHandlerByKey(key);
-
-    if (not handler) then
-        handler = self:CreateUnitEventHandler(eventName, callback, unitName, ...);
-        handler:SetKey(key);
-    end
-
+    local handler = self:CreateUnitEventHandler(eventName, callback, unitName, ...);
+    handler:SetKey(key);
     return handler;
 end
 
@@ -347,5 +341,5 @@ end
 
 function Private:EventTableExists(eventName)
     return (self.eventsList and self.eventsList[eventName] and
-            type(self.eventsList[eventName]) == "table");
+            obj:IsTable(self.eventsList[eventName]));
 end

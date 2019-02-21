@@ -31,6 +31,19 @@ local function SetModKeyValue(modKey, dbPath, newValue, oldValue)
     db:SetPathValue(dbPath, newValue);
 end
 
+local BartenderActionBars = {
+    "Bar 1";
+    "Bar 2";
+    "Bar 3";
+    "Bar 4";
+    "Bar 5";
+    "Bar 6";
+    "Bar 7";
+    "Bar 8";
+    "Bar 9";
+    "Bar 10";
+};
+
 function C_ConfigModule:GetConfigTable()
     return {
         {   name = L["General"];
@@ -83,7 +96,7 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   name              = "Movable Blizzard Frames";
                     type              = "check";
-                    tooltip           = "Allows you to move Blizzard Frames";
+                    tooltip           = "Allows you to move Blizzard Frames outside of combat only.";
                     dbPath            = "global.movable.enabled";
 
                     SetValue = function(dbPath, newValue)
@@ -323,32 +336,12 @@ function C_ConfigModule:GetConfigTable()
                         {   name    = L["First Bartender Bar"];
                             type    = "dropdown";
                             dbPath  = "profile.actionBarPanel.bartender[1]";
-                            options = {
-                                "Bar 1";
-                                "Bar 2";
-                                "Bar 3";
-                                "Bar 4";
-                                "Bar 5";
-                                "Bar 6";
-                                "Bar 7";
-                                "Bar 8";
-                                "Bar 9";
-                            }
+                            options = BartenderActionBars;
                         };
                         {   name    = L["Second Bartender Bar"];
                             dbPath  = "profile.actionBarPanel.bartender[2]";
                             type    = "dropdown";
-                            options = {
-                                "Bar 1";
-                                "Bar 2";
-                                "Bar 3";
-                                "Bar 4";
-                                "Bar 5";
-                                "Bar 6";
-                                "Bar 7";
-                                "Bar 8";
-                                "Bar 9";
-                            }
+                            options = BartenderActionBars;
                         };
                         {   type    = "fontstring";
                             content = L["Row 2"];
@@ -357,32 +350,12 @@ function C_ConfigModule:GetConfigTable()
                         {   name    = L["First Bartender Bar"];
                             dbPath  = "profile.actionBarPanel.bartender[3]";
                             type    = "dropdown";
-                            options = {
-                                "Bar 1";
-                                "Bar 2";
-                                "Bar 3";
-                                "Bar 4";
-                                "Bar 5";
-                                "Bar 6";
-                                "Bar 7";
-                                "Bar 8";
-                                "Bar 9";
-                            }
+                            options = BartenderActionBars;
                         };
                         {   name    = L["Second Bartender Bar"];
                             dbPath  = "profile.actionBarPanel.bartender[4]";
                             type    = "dropdown";
-                            options = {
-                                "Bar 1";
-                                "Bar 2";
-                                "Bar 3";
-                                "Bar 4";
-                                "Bar 5";
-                                "Bar 6";
-                                "Bar 7";
-                                "Bar 8";
-                                "Bar 9";
-                            }
+                            options = BartenderActionBars;
                         }
                     }
                 };
@@ -440,32 +413,12 @@ function C_ConfigModule:GetConfigTable()
                         {   name    = L["First Bartender Bar"];
                             dbPath  = "profile.sidebar.bartender[1]";
                             type    = "dropdown";
-                            options = {
-                                "Bar 1";
-                                "Bar 2";
-                                "Bar 3";
-                                "Bar 4";
-                                "Bar 5";
-                                "Bar 6";
-                                "Bar 7";
-                                "Bar 8";
-                                "Bar 9";
-                            }
+                            options = BartenderActionBars;
                         };
                         {   name    = L["Second Bartender Bar"];
                             dbPath  = "profile.sidebar.bartender[2]";
                             type    = "dropdown";
-                            options = {
-                                "Bar 1";
-                                "Bar 2";
-                                "Bar 3";
-                                "Bar 4";
-                                "Bar 5";
-                                "Bar 6";
-                                "Bar 7";
-                                "Bar 8";
-                                "Bar 9";
-                            }
+                            options = BartenderActionBars;
                         };
                         {   name    = L["Expand and Retract Buttons"];
                             type    = "title"
@@ -567,7 +520,12 @@ function C_ConfigModule:GetConfigTable()
                     tooltip           = L["Disable this to stop MUI from controlling the Objective Tracker."];
                     type              = "check";
                     dbPath            = "profile.sidebar.objectiveTracker.enabled";
-                    module            = "SideBarModule";
+                    requiresReload    = true;
+                };
+                {   name              = "Hide in Instance";
+                    tooltip           = "If true, the objective tracker will collapse when entering an instance.";
+                    type              = "check";
+                    dbPath            = "profile.sidebar.objectiveTracker.hideInInstance";
                     requiresReload    = true;
                 };
                 {   name    = "Anchor to Side Bar";

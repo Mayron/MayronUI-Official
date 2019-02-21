@@ -3,9 +3,10 @@ local MayronUI = _G.MayronUI;
 local _, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
+local _G = _G;
 local ChatFrame1EditBox = _G.ChatFrame1EditBox;
 local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS;
-local hooksecurefunc, IsCombatLog = _G.hooksecurefunc, _G.IsCombatLog;
+local hooksecurefunc, IsCombatLog, pairs = _G.hooksecurefunc, _G.IsCombatLog, _G.pairs;
 local StaticPopupDialogs = _G.StaticPopupDialogs;
 local ChatFrame1Tab = _G.ChatFrame1Tab;
 
@@ -45,6 +46,7 @@ db:AddToDefaults("profile.chat", {
 	enabled = true;
 	swapInCombat = false;
 	layout = "DPS"; -- default layout
+	voiceChatIcons = "TOPLEFT";
 	chatFrames = {
 		-- these tables will contain the templateMuiChatFrame data (using SetParent)
 		TOPLEFT = {
@@ -159,6 +161,13 @@ function C_ChatModule:OnInitialize(data)
 	end
 
 	self:RegisterUpdateFunctions(db.profile.chat, {
+		voiceChatIcons = function(anchorName)
+			local muiChatFrame = data.chatFrames[anchorName];
+
+			if (muiChatFrame) then
+				muiChatFrame:SetEnabled(true);
+			end
+		end;
 		chatFrames = function(value, keysList)
 			if (keysList:GetSize() == 1) then
 				for anchorName, settings in pairs(value) do
@@ -166,10 +175,13 @@ function C_ChatModule:OnInitialize(data)
 
 					if (settings.enabled and not muiChatFrame) then
 						muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
-
 						data.chatFrames[anchorName] = muiChatFrame;
 					end
 
+				end
+
+				for anchorName, settings in pairs(value) do
+					local muiChatFrame = data.chatFrames[anchorName];
 					if (muiChatFrame) then
 						muiChatFrame:SetEnabled(settings.enabled);
 					end

@@ -48,19 +48,29 @@ function C_ChatFrame:SetEnabled(data, enabled)
 		end
 
 		-- chat channel button
-		_G.ChatFrameChannelButton:ClearAllPoints();
-		_G.ChatFrameChannelButton:SetPoint("TOPLEFT", data.frame.sidebar, "TOPLEFT", -1, -10);
-		_G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
-
-		_G.ChatFrameChannelButton.ClearAllPoints = tk.Constants.DUMMY_FUNC;
-		_G.ChatFrameChannelButton.SetPoint = tk.Constants.DUMMY_FUNC;
-
 		data.chatModule:SetUpLayoutSwitcher(data.frame.layoutButton);
 	end
 
 	if (data.frame) then
 		data.frame:SetShown(enabled);
+
+		if (enabled) then
 		self:SetUpButtonHandler(data.settings.buttons);
+		end
+
+		local muiChatFrame = _G["MUI_ChatFrame_" .. data.chatModuleSettings.voiceChatIcons];
+
+		if (not (muiChatFrame and muiChatFrame:IsShown()) and enabled) then
+			muiChatFrame = data.frame;
+		end
+
+		if (muiChatFrame and muiChatFrame == data.frame and enabled) then
+			_G.ChatFrameChannelButton:ClearAllPoints();
+			_G.ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
+			_G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
+			_G.ChatFrameToggleVoiceDeafenButton:DisableDrawLayer("ARTWORK");
+			_G.ChatFrameToggleVoiceMuteButton:DisableDrawLayer("ARTWORK");
+		end
 	end
 end
 
@@ -121,7 +131,7 @@ end
 Engine:DefineReturns("Frame");
 ---@return Frame returns an MUI chat frame
 function C_ChatFrame:CreateFrame(data)
-	local muiChatFrame = tk:PopFrame("Frame");
+	local muiChatFrame = _G.CreateFrame("Frame", "MUI_ChatFrame_" .. data.anchorName, _G.UIParent);
 
     muiChatFrame:SetFrameStrata("LOW");
     muiChatFrame:SetFrameLevel(1);

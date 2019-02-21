@@ -100,7 +100,7 @@ function WidgetHandlers.loop(_, loopConfigTable)
         end
 
     elseif (loopConfigTable.args) then
-        for id, arg in tk.ipairs(loopConfigTable.args) do
+        for id, arg in _G.ipairs(loopConfigTable.args) do
             -- func returns the children data to be loaded
             children[id] = loopConfigTable.func(id, arg);
         end
@@ -250,6 +250,7 @@ end
 
 function WidgetHandlers.dropdown(parent, widgetTable, value)
     local container = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
+
     container.dropdown:SetLabel(tostring(value));
     container.dropdown:SetTooltip(widgetTable.tooltip);
     container.dropdown:SetDisabledTooltip(widgetTable.disabledTooltip);
@@ -267,6 +268,10 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
             option = container.dropdown:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
         else
             option = container.dropdown:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
+
+            if (dropDownValue == value) then
+                container.dropdown:SetLabel(key);
+            end
         end
 
         if (widgetTable.fontPicker) then

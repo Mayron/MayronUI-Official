@@ -3,7 +3,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 
 local _, namespace = ...;
 local OrderHallCommandBar = _G.OrderHallCommandBar;
-local IsAddOnLoaded = _G.IsAddOnLoaded;
+local IsAddOnLoaded, hooksecurefunc = _G.IsAddOnLoaded, _G.hooksecurefunc;
 local troops = {};
 
 local function EnumerateTroops()
@@ -45,7 +45,7 @@ function namespace:SetupOrderHallBar()
         OrderHallCommandBar.AreaName:SetPoint("LEFT", OrderHallCommandBar.CurrencyIcon, "RIGHT", 10, 2);
         OrderHallCommandBar:SetWidth(OrderHallCommandBar.AreaName:GetStringWidth() + 500);
 
-        tk.hooksecurefunc(OrderHallCommandBar, "RefreshCategories", EnumerateTroops);
+        hooksecurefunc(OrderHallCommandBar, "RefreshCategories", EnumerateTroops);
     else
         em:CreateEventHandler("ADDON_LOADED", function(handler, _, name)
             if (name == "Blizzard_OrderHallUI" and OrderHallCommandBar) then
