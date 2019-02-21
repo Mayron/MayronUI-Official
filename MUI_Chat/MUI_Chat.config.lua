@@ -215,6 +215,11 @@ function C_ChatModule:GetConfigTable()
                                 valueType = "number";
                                 dbPath = string.format("%s.tabBar.yOffset", dbPath),
                             };
+                            {   name = "Window Y-Offset",
+                                type = "textfield",
+                                valueType = "number";
+                                dbPath = string.format("%s.window.yOffset", dbPath),
+                            };
                         }
                     };
 

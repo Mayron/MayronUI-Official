@@ -145,7 +145,7 @@ function C_ChatFrame:CreateFrame(data)
 
 	muiChatFrame.window = tk:PopFrame("Frame", muiChatFrame);
 	muiChatFrame.window:SetSize(367, 248);
-	muiChatFrame.window:SetPoint("TOPLEFT", muiChatFrame.tabs, "BOTTOMLEFT", 2, -2);
+	muiChatFrame.window:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPRIGHT", 2, data.settings.window.yOffset);
 
 	muiChatFrame.window.texture = muiChatFrame.window:CreateTexture(nil, "ARTWORK");
 	muiChatFrame.window.texture:SetTexture(string.format("%swindow", MEDIA));
@@ -206,21 +206,21 @@ function C_ChatFrame:Reposition(data)
 
 	if (data.anchorName == "TOPRIGHT") then
 		data.frame:SetPoint(data.anchorName, _G.UIParent, data.anchorName, -2, -2);
-		data.frame.window:SetPoint(data.anchorName, data.frame.tabs, "BOTTOMRIGHT", -2, -2);
-		data.frame.window.texture:SetTexCoord(1, 0, 0, 1);
 		data.frame.sidebar:SetPoint(data.anchorName, data.frame, data.anchorName, 0 , -10);
+		data.frame.window:SetPoint("TOPRIGHT", data.frame.sidebar, "TOPLEFT", -2, data.settings.window.yOffset);
+		data.frame.window.texture:SetTexCoord(1, 0, 0, 1);
 
 	elseif (tk.Strings:Contains(data.anchorName, "BOTTOM")) then
 		data.frame.sidebar:SetPoint(data.anchorName, data.frame, data.anchorName, 0 , 10);
 
 		if (data.anchorName == "BOTTOMLEFT") then
 			data.frame:SetPoint(data.anchorName, tk.UIParent, data.anchorName, 2, 2);
-			data.frame.window:SetPoint(data.anchorName, data.frame.sidebar, "BOTTOMRIGHT", 2, 12);
+			data.frame.window:SetPoint("BOTTOMLEFT", data.frame.sidebar, "BOTTOMRIGHT", 2, data.settings.window.yOffset);
 			data.frame.window.texture:SetTexCoord(0, 1, 1, 0);
 
 		elseif (data.anchorName == "BOTTOMRIGHT") then
 			data.frame:SetPoint(data.anchorName, tk.UIParent, data.anchorName, -2, 2);
-			data.frame.window:SetPoint(data.anchorName, data.frame.sidebar, "BOTTOMLEFT", -2, 12);
+			data.frame.window:SetPoint("BOTTOMRIGHT", data.frame.sidebar, "BOTTOMLEFT", -2, data.settings.window.yOffset);
 			data.frame.window.texture:SetTexCoord(1, 0, 1, 0);
 		end
 	end

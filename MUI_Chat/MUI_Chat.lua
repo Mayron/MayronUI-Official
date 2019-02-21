@@ -60,12 +60,18 @@ db:AddToDefaults("profile.chat", {
 			tabBar = {
 				yOffset = -43;
 			};
+			window = {
+				yOffset = 12;
+			}
 		};
 		BOTTOMRIGHT = {
 			enabled = false;
 			tabBar = {
 				yOffset = -43;
 			};
+			window = {
+				yOffset = 12;
+			}
 		};
 	};
     editBox = {
@@ -104,6 +110,9 @@ db:AddToDefaults("profile.chat", {
 			show = true;
 			yOffset = -12;
 		};
+		window = {
+			yOffset = -37;
+		}
 	};
 });
 
@@ -202,6 +211,14 @@ function C_ChatModule:OnInitialize(data)
 
 				elseif (settingName == "tabBar") then
 					muiChatFrame:SetUpTabBar(data.settings.chatFrames[anchorName].tabBar);
+
+				elseif (settingName == "window") then
+					local frame = muiChatFrame:GetFrame();
+
+					if (frame) then
+						local p, rf, rp, x = frame.window:GetPoint();
+						frame.window:SetPoint(p, rf, rp, x, value);
+					end
 
 				elseif (settingName == "enabled") then
 					if (value and not muiChatFrame) then
