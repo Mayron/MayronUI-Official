@@ -243,8 +243,7 @@ function C_TimerBarsModule:OnInitialize(data)
                         end
                     end;
 
-                    filters = function(value, _, field)
-                        print("value: ", value)
+                    filters = function(_, _, field)
                         field:RecheckAuras();
                     end;
                 };
@@ -352,7 +351,7 @@ function OnCombatLogEvent()
             -- guaranteed to always be the same for all registered events:
             local auraId = payload[12];
             local auraName = payload[13];
-            -- local remainingPoints = (select(16, unpack(payload))); -- TODO: test with power shield
+            -- local amount = payload[16]; -- TODO: test with power shield (not if event has "BROKEN" in its name)
 
             if (subEvent:find(REMOVED)) then
                 --@param field TimerField
@@ -661,7 +660,9 @@ do
                             end
                         end
 
-                        bar:UpdateTimeRemaining(currentTime);
+                        if (not bar.Updating) then
+                            bar:UpdateTimeRemaining(currentTime);
+                        end
                     end
 
                     if (changed) then
@@ -756,6 +757,7 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraN
     end
 
     -- update expiration time outside of UpdateAura!
+    foundBar.Updating = true;
     foundBar.ExpirationTime = expirationTime;
 
     foundBar:UpdateAura(auraInfo, currentTime, auraType);
@@ -1001,10 +1003,6 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
         return; -- Let OnUpdate Script remove it!
     end
 
-    if (not data.frame:IsShown()) then
-        return;
-    end
-
     if (totalDuration) then
         -- Called from UpdateAura
         data.slider:SetMinMaxValues(0, totalDuration);
@@ -1080,4 +1078,6 @@ function C_TimerBar:UpdateAura(data, auraInfo, currentTime, auraType)
             end
         end
     end
+
+    self.Updating  = nil;
 end

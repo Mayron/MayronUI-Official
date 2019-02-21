@@ -17,7 +17,7 @@ db:AddToDefaults("global.movable", {
 
 local BlizzardFrames = {
 	"QuestLogPopupDetailFrame", "InterfaceOptionsFrame", "QuestFrame", "GossipFrame", "DurabilityFrame",
-	"VehicleSeatIndicator", "FriendsFrame", "MailFrame", "SpellBookFrame", "PetitionFrame", "BankFrame",
+	"FriendsFrame", "MailFrame", "SpellBookFrame", "PetitionFrame", "BankFrame",
 	"TimeManagerFrame", "LFGDungeonReadyStatus", "RecruitAFriendFrame", "VideoOptionsFrame", "LFGDungeonReadyDialog",
 	"AddonList", "WorldStateScoreFrame", "LFDRoleCheckPopup", "PVPReadyDialog", "ChatConfigFrame", "GuildInviteFrame",
 	"LootFrame", "ReadyCheckFrame", "BonusRollMoneyWonFrame", "BonusRollFrame", "TradeFrame", "TabardFrame", "GuildRegistrarFrame",
