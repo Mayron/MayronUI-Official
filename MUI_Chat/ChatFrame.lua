@@ -55,7 +55,7 @@ function C_ChatFrame:SetEnabled(data, enabled)
 		data.frame:SetShown(enabled);
 
 		if (enabled) then
-		self:SetUpButtonHandler(data.settings.buttons);
+			self:SetUpButtonHandler(data.settings.buttons);
 		end
 
 		local muiChatFrame = _G["MUI_ChatFrame_" .. data.chatModuleSettings.voiceChatIcons];

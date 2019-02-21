@@ -636,7 +636,7 @@ Private.content = [[
 Thank you for using MayronUI Gen6!
 
 Please visit the community Discord server if you need additional help or wish to get involved with the project:
-|cff00ccffhttps://discord.gg/cJq5V3|r
+|cff00ccffhttps://discord.gg/8Kh3maU|r
 
 The official homepage for MayronUI Gen6 is:
 |cff00ccffhttps://www.wowinterface.com/downloads/info21221-MayronUIGen5.html|r
