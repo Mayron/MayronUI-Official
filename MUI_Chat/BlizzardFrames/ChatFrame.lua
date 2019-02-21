@@ -99,7 +99,7 @@ local function Tab_OnLeave(self)
 end
 
 function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
-	local chatFrameName = string.format("ChatFrame%d", chatFrameID);
+  local chatFrameName = string.format("ChatFrame%d", chatFrameID);
 
 	local chatFrame = _G[chatFrameName];
 	chatFrame:SetFrameStrata("LOW");
@@ -108,12 +108,12 @@ function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
 	_G[string.format("%sEditBox", chatFrameName)]:SetAltArrowKeyMode(false);
 
 	if (chatFrameID ~= 2) then
-		-- if not combat log...
-		chatFrame.oldAddMessage = chatFrame.AddMessage;
-		chatFrame.AddMessage = NewAddMessage;
-		chatFrame:SetScript("OnHyperLinkEnter", OnHyperlinkEnter);
-		chatFrame:SetScript("OnHyperLinkLeave", OnHyperLinkLeave);
-		chatFrame:SetScript("OnHyperlinkClick", OnHyperlinkClick);
+	-- if not combat log...
+	chatFrame.oldAddMessage = chatFrame.AddMessage;
+	chatFrame.AddMessage = NewAddMessage;
+	chatFrame:SetScript("OnHyperLinkEnter", OnHyperlinkEnter);
+	chatFrame:SetScript("OnHyperLinkLeave", OnHyperLinkLeave);
+	chatFrame:SetScript("OnHyperlinkClick", OnHyperlinkClick);
 	end
 
 	local tab = _G[string.format("%sTab", chatFrameName)];
@@ -141,16 +141,16 @@ function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
 	btn.EnableMouse = tk.Constants.DUMMY_FUNC;
 
 	tk:KillAllElements(
-		_G[ string.format("%sTabSelectedLeft", chatFrameName) ],
-		_G[ string.format("%sTabSelectedMiddle", chatFrameName) ],
-		_G[ string.format("%sTabSelectedRight", chatFrameName) ],
-		_G[ string.format("%sTabLeft", chatFrameName) ],
-		_G[ string.format("%sTabMiddle", chatFrameName) ],
-		_G[ string.format("%sTabRight", chatFrameName) ],
-		_G[ string.format("%sTabHighlightLeft", chatFrameName) ],
-		_G[ string.format("%sTabHighlightMiddle", chatFrameName) ],
-		_G[ string.format("%sTabHighlightRight", chatFrameName) ]
-    );
+	_G[ string.format("%sTabSelectedLeft", chatFrameName) ],
+	_G[ string.format("%sTabSelectedMiddle", chatFrameName) ],
+	_G[ string.format("%sTabSelectedRight", chatFrameName) ],
+	_G[ string.format("%sTabLeft", chatFrameName) ],
+	_G[ string.format("%sTabMiddle", chatFrameName) ],
+	_G[ string.format("%sTabRight", chatFrameName) ],
+	_G[ string.format("%sTabHighlightLeft", chatFrameName) ],
+	_G[ string.format("%sTabHighlightMiddle", chatFrameName) ],
+	_G[ string.format("%sTabHighlightRight", chatFrameName) ]
+	);
 
-    return chatFrame;
+	return chatFrame;
 end

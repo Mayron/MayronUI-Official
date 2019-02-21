@@ -167,11 +167,12 @@ end
 -- Lib API
 ------------------------
 ---@param eventName string @The name of the event to register (or a comma separated list of event names to attach to 1 handler).
+---@param key string @Assign a unique key to the handler to easily find it using the library "find" functions.
 ---@param callback function @Function to call when the event triggers.
----@param unitName string @The name of the unit to register events to (i.e. RegisterUnitEvent).
+---@param unitName string @The name of the unit to register events to.
 ---@return Handler @Handler object created for the registered event.
-function Lib:CreateUnitEventHandler(eventName, callback, unitName, ...)
-    local key = tostring(callback);
+function Lib:CreateUnitEventHandlerWithKey(eventName, key, callback, unitName, ...)
+    key = key or tostring(callback);
     local handler = self:FindEventHandlerByKey(key);
 
     if (eventName:find(",")) then
@@ -194,19 +195,12 @@ function Lib:CreateUnitEventHandler(eventName, callback, unitName, ...)
     return handler;
 end
 
-function Lib:CreateEventHandler(eventName, callback, ...)
-    return self:CreateUnitEventHandler(eventName, callback, nil, ...);
-end
-
 ---@param eventName string @The name of the event to register (or a comma separated list of event names to attach to 1 handler).
----@param key string @Assign a unique key to the handler to easily find it using the library "find" functions.
 ---@param callback function @Function to call when the event triggers.
----@param unitName string @The name of the unit to register events to.
+---@param unitName string @The name of the unit to register events to (i.e. RegisterUnitEvent).
 ---@return Handler @Handler object created for the registered event.
-function Lib:CreateUnitEventHandlerWithKey(eventName, key, callback, unitName, ...)
-    local handler = self:CreateUnitEventHandler(eventName, callback, unitName, ...);
-    handler:SetKey(key);
-    return handler;
+function Lib:CreateUnitEventHandler(eventName, callback, unitName, ...)
+    return self:CreateUnitEventHandlerWithKey(eventName, nil, callback, unitName, ...);
 end
 
 ---@param eventName string @The name of the event to register (or a comma separated list of event names to attach to 1 handler).
@@ -215,6 +209,13 @@ end
 ---@return Handler @Handler object created for the registered event.
 function Lib:CreateEventHandlerWithKey(eventName, key, callback, ...)
     return self:CreateUnitEventHandlerWithKey(eventName, key, callback, nil, ...);
+end
+
+---@param eventName string @The name of the event to register (or a comma separated list of event names to attach to 1 handler).
+---@param callback function @Function to call when the event triggers.
+---@return Handler @Handler object created for the registered event.
+function Lib:CreateEventHandler(eventName, callback, ...)
+    return self:CreateUnitEventHandlerWithKey(eventName, nil, callback, nil, ...);
 end
 
 ---@param key string @Check whether a handler with the specified key exists.

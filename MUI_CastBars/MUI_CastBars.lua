@@ -6,7 +6,7 @@ local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 
 local GetSpellInfo, IsAddOnLoaded, UnitName = _G.GetSpellInfo, _G.IsAddOnLoaded, _G.UnitName;
 local UnitChannelInfo, UnitCastingInfo = _G.UnitChannelInfo, _G.UnitCastingInfo;
-local UIFrameFadeOut, select, date = _G.UIFrameFadeOut, _G.select, _G.date;
+local UIFrameFadeIn, UIFrameFadeOut, select, date = _G.UIFrameFadeIn, _G.UIFrameFadeOut, _G.select, _G.date;
 
 namespace.castBarData = obj:PopTable();
 
@@ -133,7 +133,7 @@ function Events:MIRROR_TIMER_START(_, castBarData, ...)
 
     local c = castBarData.appearance.colors.normal;
     castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
-    tk.UIFrameFadeIn(castBarData.frame, 0.1, castBarData.frame:GetAlpha(), 1);
+    UIFrameFadeIn(castBarData.frame, 0.1, castBarData.frame:GetAlpha(), 1);
 end
 
 ---@param castBarData table
