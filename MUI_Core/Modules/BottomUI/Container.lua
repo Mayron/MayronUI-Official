@@ -57,9 +57,9 @@ function C_Container:OnInitialize(data)
     data.subModules.ActionBarPanel = MayronUI:ImportModule("BottomUI_ActionBarPanel");
     data.subModules.UnitPanels = MayronUI:ImportModule("BottomUI_UnitPanels");
 
-    data.subModules.ResourceBars:Initialize(data.container, data.subModules);
-    data.subModules.ActionBarPanel:Initialize(data.container, data.subModules);
-    data.subModules.UnitPanels:Initialize(data.container, data.subModules);
+    data.subModules.ResourceBars:Initialize(self, data.subModules);
+    data.subModules.ActionBarPanel:Initialize(self, data.subModules);
+    data.subModules.UnitPanels:Initialize(self, data.subModules);
 
     self:RegisterUpdateFunctions(db.profile.bottomui, {
         width = function(value)
@@ -74,4 +74,55 @@ function C_Container:OnInitialize(data)
     });
 
     self:SetEnabled(true);
+end
+
+function C_Container:OnEnable()
+    self:RepositionContent();
+end
+
+function C_Container:RepositionContent(data)
+    local dataTextModule = MayronUI:ImportModule("DataTextModule");
+    local actionBarPanel;
+    local anchorFrame = data.container;
+
+    if (dataTextModule and dataTextModule:IsEnabled()) then
+        anchorFrame = _G["MUI_DataTextBar"];
+    end
+
+    if (data.subModules.ResourceBars and data.subModules.ResourceBars:IsEnabled()) then
+        local resourceContainer = data:GetFriendData(data.subModules.ResourceBars).barsContainer;
+
+        -- position resourceContainer:
+        resourceContainer:ClearAllPoints();
+        resourceContainer:SetPoint("BOTTOMLEFT", anchorFrame, "TOPLEFT", 0, -1);
+        resourceContainer:SetPoint("BOTTOMRIGHT", anchorFrame, "TOPRIGHT", 0, -1);
+        anchorFrame = resourceContainer;
+    end
+
+    if (data.subModules.ActionBarPanel and data.subModules.ActionBarPanel:IsEnabled()) then
+        actionBarPanel = _G["MUI_ActionBarPanel"];
+
+        -- position actionBarPanel:
+        actionBarPanel:ClearAllPoints();
+        actionBarPanel:SetPoint("BOTTOMLEFT", anchorFrame, "TOPLEFT", 0, -1);
+        actionBarPanel:SetPoint("BOTTOMRIGHT", anchorFrame, "TOPRIGHT", 0, -1);
+        anchorFrame = actionBarPanel;
+    end
+
+    if (data.subModules.UnitPanels and data.subModules.UnitPanels:IsEnabled()) then
+        local unitHeight = db.profile.unitPanels.unitHeight;
+        local leftUnitPanel = _G["MUI_UnitPanelLeft"];
+        local rightUnitPanel = _G["MUI_UnitPanelRight"];
+
+        -- position unit panels:
+        leftUnitPanel:ClearAllPoints();
+        rightUnitPanel:ClearAllPoints();
+        leftUnitPanel:SetPoint("TOPLEFT", anchorFrame, "TOPLEFT", 0, unitHeight);
+        rightUnitPanel:SetPoint("TOPRIGHT", anchorFrame, "TOPRIGHT", 0, unitHeight);
+    end
+
+    -- Update Bartender Bars
+    if (actionBarPanel) then
+        data.subModules.ActionBarPanel:SetUpAllBartenderBars();
+    end
 end

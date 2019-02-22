@@ -45,10 +45,8 @@ db:AddToDefaults("profile.unitPanels", {
 
 -- UnitPanels Module -----------------
 
-function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
-    data.buiContainer = buiContainer;
-    data.ActionBarPanel = subModules.ActionBarPanel;
-    data.ResourceBars = subModules.ResourceBars;
+function C_UnitPanels:OnInitialize(data, containerModule)
+    data.containerModule = containerModule;
 
     local r, g, b = tk:GetThemeColor();
     db:AppendOnce(db.profile, "unitPanels.sufGradients", {
@@ -61,6 +59,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
             dependencies = {
                 ["unitNames[.].*"] = "unitNames.enabled";
             };
+            ignore = { "unitHeight" };
         };
     };
 
@@ -104,7 +103,7 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
         end;
 
         unitHeight = function()
-            self:RepositionPanels();
+            data.containerModule:RepositionContent();
         end;
 
         isSymmetric = function(value)
@@ -190,6 +189,15 @@ function C_UnitPanels:OnInitialize(data, buiContainer, subModules)
     end
 end
 
+function C_UnitPanels:OnDisable(data)
+    if (data.left) then
+        data.left:Hide();
+        data.right:Hide();
+        data.center:Hide();
+        return;
+    end
+end
+
 function C_UnitPanels:OnEnable(data)
     if (data.left) then
         data.left:Show();
@@ -198,8 +206,8 @@ function C_UnitPanels:OnEnable(data)
         return;
     end
 
-    data.left = _G.CreateFrame("Frame", "MUI_UnitPanelLeft", data.buiContainer);
-    data.right = _G.CreateFrame("Frame", "MUI_UnitPanelRight", _G.SUFUnittarget or data.buiContainer);
+    data.left = _G.CreateFrame("Frame", "MUI_UnitPanelLeft", _G["MUI_BottomContainer"]);
+    data.right = _G.CreateFrame("Frame", "MUI_UnitPanelRight", _G.SUFUnittarget or _G["MUI_BottomContainer"]);
     data.center = _G.CreateFrame("Frame", "MUI_UnitPanelCenter", data.right);
 
     data.left:SetFrameStrata("BACKGROUND");
@@ -227,7 +235,7 @@ function C_UnitPanels:SetUpUnitNames(data)
     data.target = _G.CreateFrame("Frame", "MUI_TargetName", data.right);
     data.target.bg = tk:SetBackground(data.target, nameTextureFilePath);
     data.target.text = data.target:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    data.target.text:SetParent(_G.SUFUnittarget or data.buiContainer);
+    data.target.text:SetParent(_G.SUFUnittarget or _G["MUI_BottomContainer"]);
     data.target.text:SetJustifyH("RIGHT");
     data.target.text:SetWordWrap(false);
     data.target.text:SetPoint("RIGHT", data.target, "RIGHT", -15, 0);
@@ -236,14 +244,6 @@ function C_UnitPanels:SetUpUnitNames(data)
 
     tk:FlipTexture(data.target.bg, "HORIZONTAL");
     self:UpdateUnitNameText("player");
-end
-
-function C_UnitPanels:OnDisable(data)
-    if (not data.left) then return; end
-
-    data.left:Hide();
-    data.right:Hide();
-    data.center:Hide();
 end
 
 function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
@@ -332,27 +332,6 @@ do
             Private.DisableSymmetry(data);
         end
     end
-end
-
-function C_UnitPanels:RepositionPanels(data)
-    local actionBarPanel = data.ActionBarPanel:GetPanel();
-    local unitHeight = data.settings.unitHeight;
-    local anchorFrame = data.buiContainer;
-
-    if (actionBarPanel and data.ActionBarPanel:IsEnabled()) then
-        anchorFrame = actionBarPanel;
-    elseif (data.ResourceBars:IsEnabled()) then
-        anchorFrame= data.ResourceBars:GetBarContainer();
-    else
-        local dataTextModule = MayronUI:ImportModule("DataText");
-
-        if (dataTextModule:IsEnabled()) then
-            anchorFrame = dataTextModule:GetDataTextBar();
-        end
-    end
-
-    data.left:SetPoint("TOPLEFT", anchorFrame, "TOPLEFT", 0, unitHeight);
-    data.right:SetPoint("TOPRIGHT", anchorFrame, "TOPRIGHT", 0, unitHeight);
 end
 
 function C_UnitPanels:UpdateUnitNameText(data, unitType)
@@ -557,7 +536,7 @@ do
             tk:ApplyThemeColor(data.settings.alpha, data.left.noTargetBg);
         end
 
-        data.right:SetParent(data.buiContainer);
+        data.right:SetParent(_G["MUI_BottomContainer"]);
         local handler = em:FindEventHandlerByKey("DisableSymmetry_TargetChanges");
 
         if (not handler) then
@@ -568,7 +547,7 @@ do
                 end
 
                 -- if data.right is not attached to SUF, show it manually!
-                if (data.right:GetParent() == data.buiContainer) then
+                if (data.right:GetParent() ==_G["MUI_BottomContainer"]) then
                     data.right:SetAlpha(1);
                 end
 
@@ -605,7 +584,7 @@ do
             data.left.noTargetBg:SetAlpha(0);
         end
 
-        data.right:SetParent(data.buiContainer);
+        data.right:SetParent(_G["MUI_BottomContainer"]);
         data.right:SetAlpha(1);
         data.left.bg:SetAlpha(data.settings.alpha);
 

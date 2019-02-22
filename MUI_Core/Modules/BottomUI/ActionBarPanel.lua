@@ -85,11 +85,8 @@ end
 
 -- C_ActionBarPanel -----------------
 
-function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
-    data.buiContainer = buiContainer;
-    data.ResourceBars = subModules.ResourceBars;
-    data.DataText = subModules.DataText;
-    data.UnitPanels = subModules.UnitPanels;
+function C_ActionBarPanel:OnInitialize(data, containerModule)
+    data.containerModule = containerModule;
 
     self:RegisterUpdateFunctions(db.profile.actionBarPanel, {
         expanded = function()
@@ -153,42 +150,25 @@ function C_ActionBarPanel:OnInitialize(data, buiContainer, subModules)
 end
 
 function C_ActionBarPanel:OnDisable(data)
-    if (not data.panel) then
+    if (data.panel) then
+        data.panel:Hide();
+        data.containerModule:RepositionContent();
         return;
-    end
-
-    data.panel:Hide();
-
-    if (data.UnitPanels:IsEnabled()) then
-        data.UnitPanels:RepositionPanels();
     end
 end
 
 function C_ActionBarPanel:OnEnable(data)
     if (data.panel) then
         data.panel:Show();
-
-        if (data.UnitPanels:IsEnabled()) then
-            data.UnitPanels:RepositionPanels();
-        end
+        data.containerModule:RepositionContent();
         return;
     end
 
-    data.panel = CreateFrame("Frame", "MUI_ActionBarPanel", data.buiContainer);
+    data.panel = CreateFrame("Frame", "MUI_ActionBarPanel", _G["MUI_BottomContainer"]);
 
     em:CreateEventHandler("PLAYER_LOGOUT", function()
         db.profile.actionBarPanel.expanded = data.settings.expanded;
     end);
-
-    if (data.ResourceBars:IsEnabled()) then
-        local barsContainer = data.ResourceBars:GetBarContainer();
-
-        data.panel:SetPoint("BOTTOMLEFT", barsContainer, "TOPLEFT", 0, -1);
-        data.panel:SetPoint("BOTTOMRIGHT", barsContainer, "TOPRIGHT", 0, -1);
-    else
-        data.panel:SetPoint("BOTTOMLEFT", data.buiContainer, "BOTTOMLEFT");
-        data.panel:SetPoint("BOTTOMRIGHT", data.buiContainer, "BOTTOMRIGHT");
-    end
 
     data.panel:SetFrameLevel(10);
     data.slideController = SlideController(data.panel);
@@ -238,7 +218,7 @@ function C_ActionBarPanel:OnEnable(data)
         data.settings.cornerSize, nil, 749, 45);
 
     -- expand button:
-    local expandBtn = gui:CreateButton(tk.Constants.AddOnStyle, data.panel, " ");
+    local expandBtn = gui:CreateButton(tk.Constants.AddOnStyle, data.panel, _G["MUI_BottomContainer"]);
     expandBtn:SetFrameStrata("HIGH");
     expandBtn:SetFrameLevel(20);
     expandBtn:SetSize(140, 20);
@@ -333,10 +313,6 @@ function C_ActionBarPanel:OnEnable(data)
     if (db.global.tutorial) then
         LoadTutorial(data.panel);
     end
-
-    if (data.UnitPanels:IsEnabled()) then
-        data.UnitPanels:RepositionPanels();
-    end
 end
 
 function C_ActionBarPanel:GetPanel(data)
@@ -356,9 +332,14 @@ function C_ActionBarPanel:SetUpBartenderBar(data, barID, bartenderBarID)
     local globalBartenderName = string.format("BT4Bar%d", barId);
     local bar = _G[globalBartenderName];
 
-    -- calculate height
-    local height = data.ResourceBars:GetHeight() - 3;
+    -- calculate height:
+    local height = 0;
+    local resourceBarsModule = MayronUI:ImportModule("BottomUI_ResourceBars");
     local dataTextModule = MayronUI:ImportModule("DataTextModule");
+
+    if (resourceBarsModule and resourceBarsModule:IsEnabled()) then
+        height = resourceBarsModule:GetHeight() - 3;
+    end
 
     if (dataTextModule and dataTextModule:IsShown()) then
         local dataTextBar = dataTextModule:GetDataTextBar();

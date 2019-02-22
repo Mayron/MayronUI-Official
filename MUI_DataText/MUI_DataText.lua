@@ -1,6 +1,9 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
+local _G, MayronUI = _G, _G.MayronUI;
 local tk, db, em, gui, obj = MayronUI:GetCoreComponents();
+
+local pairs, ipairs, table = _G.pairs, _G.ipairs, _G.table;
 
 namespace.dataTextLabels = {
     -- svName = Label
@@ -144,8 +147,6 @@ end
 -- C_DataTextModule Functions -------------------
 
 function C_DataTextModule:OnInitialize(data)
-    data.buiContainer = _G["MUI_BottomContainer"]; -- the entire BottomUI container frame
-    data.resourceBars = _G["MUI_ResourceBars"]; -- the resource bars container frame
     data.buttons = obj:PopTable();
     data.components = obj:PopTable(); -- holds all data text modules
     data.unloadedComponents = obj:PopTable();
@@ -234,32 +235,32 @@ function C_DataTextModule:OnInitialized(data)
 end
 
 function C_DataTextModule:OnDisable(data)
-    data.bar:Hide();
-    data.popup:Hide();
-    data.resourceBars:SetPoint("BOTTOMLEFT", data.buiContainer, "TOPLEFT", 0, -1);
-    data.resourceBars:SetPoint("BOTTOMRIGHT", data.buiContainer, "TOPRIGHT", 0, -1);
+    if (data.bar) then
+        data.bar:Hide();
+        data.popup:Hide();
+
+        local containerModule = MayronUI:ImportModule("BottomUI_Container");
+        containerModule:RepositionContent();
+    end
 end
 
 function C_DataTextModule:OnEnable(data)
     if (data.bar) then
         data.bar:Show();
-        data.resourceBars:SetPoint("BOTTOMLEFT", data.bar, "TOPLEFT", 0, -1);
-        data.resourceBars:SetPoint("BOTTOMRIGHT", data.bar, "TOPRIGHT", 0, -1);
+        local containerModule = MayronUI:ImportModule("BottomUI_Container");
+        containerModule:RepositionContent();
         return;
     end
 
     -- the main bar containing all data text buttons
-    data.bar = tk:PopFrame("Frame", data.buiContainer);
+    data.bar = _G.CreateFrame("Frame", "MUI_DataTextBar", _G["MUI_BottomContainer"]);
     data.bar:SetPoint("BOTTOMLEFT");
     data.bar:SetPoint("BOTTOMRIGHT");
     tk:SetBackground(data.bar, 0, 0, 0);
 
-    data.resourceBars:SetPoint("BOTTOMLEFT", data.bar, "TOPLEFT", 0, -1);
-    data.resourceBars:SetPoint("BOTTOMRIGHT", data.bar, "TOPRIGHT", 0, -1);
-
     -- create the popup menu (displayed when a data item button is clicked)
     -- each data text module has its own frame to be used as the scroll child
-    data.popup = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.buiContainer, "MUI_DataTextPopupMenu");
+    data.popup = gui:CreateScrollFrame(tk.Constants.AddOnStyle, _G["MUI_BottomContainer"], "MUI_DataTextPopupMenu");
     data.popup:SetFrameStrata("DIALOG");
     data.popup:EnableMouse(true);
     data.popup:Hide();
@@ -290,6 +291,9 @@ function C_DataTextModule:OnEnable(data)
 
 	-- provides more intelligent scrolling (+ controls visibility of scrollbar)
     data.slideController = SlideController(data.popup);
+
+    local containerModule = MayronUI:ImportModule("BottomUI_Container");
+    containerModule:RepositionContent();
 end
 
 Engine:DefineParams("string", "IDataTextComponent");
@@ -360,7 +364,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
 end
 
 function C_DataTextModule:PositionDataTextButtons(data)
-    local itemWidth = data.buiContainer:GetWidth() / data.totalActiveButtons;
+    local itemWidth = _G["MUI_BottomContainer"]:GetWidth() / data.totalActiveButtons;
     local previousButton, currentButton;
 
     -- some indexes might have a nil value as display order is configurable by the user
@@ -544,7 +548,11 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     totalHeight = (totalHeight < data.settings.popup.maxHeight) and totalHeight or data.settings.popup.maxHeight;
 
     -- move popup menu higher if there are resource bars displayed
-    local offset = data.resourceBars:GetHeight();
+    local offset = 0;
+
+    if (_G["MUI_ResourceBars"]) then
+        offset = _G["MUI_ResourceBars"]:GetHeight();
+    end
 
     -- update positioning of popup menu based on dataTextModule button's location
     if (buttonDisplayOrder == #data.orderedButtons) then

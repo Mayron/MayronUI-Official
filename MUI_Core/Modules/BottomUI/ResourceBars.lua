@@ -24,6 +24,8 @@ local C_ArtifactBar = ResourceBarsPackage:CreateClass("ArtifactBar", C_BaseResou
 
 local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", "Resource Bars", true);
 
+C_ResourceBarsModule.Static:AddFriendClass("BottomUI_Container");
+
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.resourceBars", {
@@ -55,8 +57,8 @@ db:AddToDefaults("profile.resourceBars", {
 });
 
 -- C_ResourceBarsModule -------------------
-function C_ResourceBarsModule:OnInitialize(data, buiContainer)
-    data.buiContainer = buiContainer;
+function C_ResourceBarsModule:OnInitialize(data, containerModule)
+    data.containerModule = containerModule;
 
     local options = {
         onExecuteAll = {
@@ -80,7 +82,7 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
         bar:Update();
 
         if (keysList:PopFront() == "height") then
-            self:UpdateContainer();
+            self:UpdateContainerHeight();
         end
     end
 
@@ -130,17 +132,24 @@ function C_ResourceBarsModule:OnInitialize(data, buiContainer)
     end
 end
 
+function C_ResourceBarsModule:OnDisable(data)
+    if (data.barsContainer) then
+        data.barsContainer:Hide();
+        data.containerModule:RepositionContent();
+        return;
+    end
+end
+
 function C_ResourceBarsModule:OnEnable(data)
     if (data.barsContainer) then
         data.barsContainer:Show();
+        data.containerModule:RepositionContent();
         return;
     end
 
-    data.barsContainer = CreateFrame("Frame", "MUI_ResourceBars", data.buiContainer);
+    data.barsContainer = CreateFrame("Frame", "MUI_ResourceBars", _G["MUI_BottomContainer"]);
     data.barsContainer:SetFrameStrata("MEDIUM");
-    data.barsContainer:SetPoint("BOTTOMLEFT", data.buiContainer, "TOPLEFT", 0, -1);
-    data.barsContainer:SetPoint("BOTTOMRIGHT", data.buiContainer, "TOPRIGHT", 0, -1);
-    data.barsContainer:SetHeight(1);
+    data.barsContainer:SetHeight(10);
 
     data.bars = obj:PopTable();
     data.bars.experience = C_ExperienceBar(self, data);
@@ -163,14 +172,14 @@ function C_ResourceBarsModule:OnEnable(data)
 
             local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
 
-            if (actionBarPanelModule:IsEnabled()) then
-                actionBarPanelModule:SetUpAllBartenderBars(data);
+            if (actionBarPanelModule and actionBarPanelModule:IsEnabled()) then
+                actionBarPanelModule:SetUpAllBartenderBars();
             end
         end
     end);
 end
 
-function C_ResourceBarsModule:UpdateContainer(data)
+function C_ResourceBarsModule:UpdateContainerHeight(data)
     local height = 0;
     local previousFrame;
 
@@ -363,5 +372,5 @@ function C_BaseResourceBar:SetActive(data, active)
         self:Update();
     end
 
-    data.module:UpdateContainer();
+    data.module:UpdateContainerHeight();
 end
