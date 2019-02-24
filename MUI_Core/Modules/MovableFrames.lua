@@ -77,7 +77,6 @@ local BlizzardFrames = {
 	Blizzard_InspectUI = "InspectFrame";
 	Blizzard_ItemSocketingUI = "ItemSocketingFrame";
 	Blizzard_ItemUpgradeUI = "ItemUpgradeFrame";
-	Blizzard_CompactRaidFrames = "CompactRaidFrameManager.displayFrame";
 	Blizzard_AzeriteUI = "AzeriteEmpoweredItemUI";
 
 	-- ["Blizzard_DeathRecap"] = function()

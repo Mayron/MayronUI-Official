@@ -1,18 +1,19 @@
 -- luacheck: ignore MayronUI self 143
 -- Setup namespaces ------------------
 local _, namespace = ...;
-local C_ChatModule = namespace.C_ChatModule;
-local tk = MayronUI:GetCoreComponents();
+local tk, _, _, gui = MayronUI:GetCoreComponents();
 
-local CompactRaidFrameManager = _G.CompactRaidFrameManager;
+local C_ChatModule = namespace.C_ChatModule;
+local CompactRaidFrameManager, GetNumGroupMembers = _G.CompactRaidFrameManager, _G.GetNumGroupMembers;
+local IsAddOnLoaded, CreateFrame = _G.IsAddOnLoaded, _G.CreateFrame;
 --------------------------------------
 
 local function ToggleButton_OnEvent(self)
-    if (not tk.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
-        return
+    if (not IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
+        return;
     end
 
-    if (_G.GetNumGroupMembers() > 0 and _G.IsInGroup()) then
+    if (GetNumGroupMembers() > 0) then
         self:Show();
     else
         self:Hide();
@@ -36,7 +37,7 @@ local function ToggleButton_OnClick(self)
 end
 
 local function CreateToggleButton()
-    local btn = tk.CreateFrame("Button", nil, tk.UIParent);
+    local btn = CreateFrame("Button", nil, _G.UIParent);
     btn:SetSize(14, 120);
     btn:SetNormalTexture(tk:GetAssetFilePath("Textures\\SideBar\\SideButton"));
     btn:SetNormalFontObject("MUI_FontSmall");
@@ -60,36 +61,28 @@ function C_ChatModule:SetUpRaidFrameManager(data)
     CompactRaidFrameManager:DisableDrawLayer("ARTWORK");
     CompactRaidFrameManager:EnableMouse(false);
     tk:KillElement(CompactRaidFrameManager.toggleButton);
+    _G.CompactRaidFrameManagerDisplayFrameHeaderDelineator:SetTexture("");
+    _G.CompactRaidFrameManagerDisplayFrameFilterOptionsFooterDelineator:SetTexture("");
+    _G.CompactRaidFrameManagerDisplayFrameHeaderBackground:Hide();
+
+    _G.CompactRaidFrameManagerDisplayFrameHeaderDelineator.SetTexture = tk.Constants.DUMMY_FUNC;
+    _G.CompactRaidFrameManagerDisplayFrameFilterOptionsFooterDelineator.SetTexture = tk.Constants.DUMMY_FUNC;
+    _G.CompactRaidFrameManagerDisplayFrameHeaderBackground.Show = tk.Constants.DUMMY_FUNC;
 
     -- button to toggle compact raid frame manager
     local btn = CreateToggleButton();
 
-    if (data.chatFrames.TopLeft) then
-        -- position below the top left chat frame if needed
-        btn:SetPoint("TOPLEFT", data.chatFrames.TopLeft, "BOTTOMLEFT", -2, -40);
-    else
-        btn:SetPoint("LEFT", tk.UIParent, "LEFT", -2, 64);
-    end
+    -- position below the top left chat frame if needed
+    btn:SetPoint("LEFT", _G.UIParent, "LEFT");
 
     local compactFrame = CompactRaidFrameManager.displayFrame;
     compactFrame:SetParent(btn);
     compactFrame:ClearAllPoints();
     compactFrame:SetPoint("TOPLEFT", btn, "TOPRIGHT", 5, 0);
+
+    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, compactFrame);
     tk:MakeMovable(compactFrame);
 
-    -- Create background frame to go behind blizzard's compact frame
-    local backgroundFrame = tk.CreateFrame("Frame", nil, compactFrame);
-    backgroundFrame:SetAllPoints(true);
-    tk:SetBackground(backgroundFrame, 0, 0, 0);
-
-    local newFrameLevel = compactFrame:GetFrameLevel() - 1;
-
-    if (newFrameLevel < 0) then
-        -- cannot be less than 0
-        backgroundFrame:SetFrameLevel(0);
-    else
-        backgroundFrame:SetFrameLevel(newFrameLevel);
-    end
-
-    btn:Hide(); -- hide by default
+    ToggleButton_OnEvent(btn);
+    data.raidFrameManager = true;
 end

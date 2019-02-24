@@ -452,19 +452,6 @@ do
         display.name:SetJustifyH("RIGHT");
         display.name:SetPoint("TOPRIGHT", -100, -14);
 
-        local specType;
-        if (GetSpecialization()) then
-            specType = (select(2, GetSpecializationInfo(GetSpecialization()))).." ";
-        else
-            specType = tk.Strings.Empty;
-        end
-
-        local name = tk.Strings:Concat(UnitPVPName("player"), " - ",
-            GetRealmName(), "\nLevel ", UnitLevel("player"), ", ",
-            tk.Strings:SetTextColorByClass(tk.Strings:Concat(specType, (select(1, UnitClass("player"))))));
-
-        display.name:SetText(name);
-
         display.titleButton = tk:PopFrame("Button", display);
         display.titleButton:SetSize(250, 22);
         display.titleButton:SetPoint("BOTTOM", display.bg, "TOP", 0, -1);
@@ -573,7 +560,21 @@ do
                 end
             end
 
+            -- Get Player Level + Spec and update text:
+            local specType;
+            if (GetSpecialization()) then
+                specType = (select(2, GetSpecializationInfo(GetSpecialization()))).." ";
+            else
+                specType = tk.Strings.Empty;
+            end
+
+            local name = tk.Strings:Concat(UnitPVPName("player"), " - ",
+                GetRealmName(), "\nLevel ", UnitLevel("player"), ", ",
+                tk.Strings:SetTextColorByClass(tk.Strings:Concat(specType, (select(1, UnitClass("player"))))));
+
+            Private.display.name:SetText(name);
             Private.display:Show();
+
             Private:PositionModel();
             Private:ResetDataText();
             StartTimer();

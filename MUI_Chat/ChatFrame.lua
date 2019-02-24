@@ -21,19 +21,6 @@ function C_ChatFrame:__Construct(data, anchorName, chatModule, chatModuleSetting
 	data.chatModule = chatModule;
 	data.chatModuleSettings = chatModuleSettings;
 	data.settings = chatModuleSettings.chatFrames[anchorName];
-
-	if (anchorName == "TOPLEFT") then
-		if (tk.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
-			chatModule:SetUpRaidFrameManager();
-		else
-			-- if it is not loaded, create a callback to trigger when it is loaded
-			em:CreateEventHandler("ADDON_LOADED", function(_, name)
-				if (name == "Blizzard_CompactRaidFrames") then
-					chatModule:SetUpRaidFrameManager();
-				end
-			end):SetAutoDestroy(true);
-		end
-	end
 end
 
 Engine:DefineParams("boolean");
@@ -45,6 +32,17 @@ function C_ChatFrame:SetEnabled(data, enabled)
 
 		if (data.anchorName ~= "TOPLEFT") then
 			self:Reposition();
+		end
+
+		if (_G.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
+			data.chatModule:SetUpRaidFrameManager();
+		else
+			-- if it is not loaded, create a callback to trigger when it is loaded
+			em:CreateEventHandler("ADDON_LOADED", function(_, name)
+				if (name == "Blizzard_CompactRaidFrames") then
+					data.chatModule:SetUpRaidFrameManager();
+				end
+			end):SetAutoDestroy(true);
 		end
 
 		-- chat channel button

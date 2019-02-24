@@ -4,6 +4,8 @@ local _G, LibStub = _G, _G.LibStub;
 
 MayronUI = {};
 
+local table, ipairs, pairs, select, string, unpack, print = _G.table, _G.ipairs, _G.pairs, _G.select, _G.string, _G.unpack, _G.print;
+
 namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
 namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
 namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
@@ -618,7 +620,7 @@ do
                 local blocked = GetBlocked(data.options, path, executedTable);
 
                 if (not blocked) then
-                    ExecuteUpdateFunction(_G.unpack(blockedValue));
+                    ExecuteUpdateFunction(unpack(blockedValue));
                 else
                     blockedValues = true;
                 end
@@ -768,7 +770,7 @@ function C_CoreModule:OnInitialize()
 
 		if (#str == 0) then
 			commands.help();
-			return
+			return;
         end
 
         local args = obj:PopTable();
@@ -785,21 +787,19 @@ function C_CoreModule:OnInitialize()
             arg = string.lower(arg);
 
 			if (path[arg]) then
-				if (type(path[arg]) == "function") then
-					path[arg](select(id + 1, tk.unpack(args)));
-                    return
+				if (obj:IsFunction(path[arg])) then
+					path[arg](select(id + 1, unpack(args)));
+                    return;
 
-				elseif (type(path[arg]) == "table") then
+				elseif (obj:IsTable(path[arg])) then
                     path = path[arg];
-
 				else
 					commands.help();
-                    return
-
+                    return;
                 end
 			else
 				commands.help();
-                return
+                return;
 			end
         end
 

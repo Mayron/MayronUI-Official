@@ -423,11 +423,11 @@ function C_TimerBarsModule:GetConfigTable()
                                 {   name = "Filters";
                                     type = "title";
                                 };
-                                {   name = "Show only Player Buffs";
+                                {   name = "Only show buffs applied by me";
                                     dbPath = "profile.timerBars."..name..".filters.onlyPlayerBuffs";
                                     type = "check";
                                 };
-                                {   name = "Show only Player Debuffs";
+                                {   name = "Only show debuffs applied by me";
                                     dbPath = "profile.timerBars."..name..".filters.onlyPlayerDebuffs";
                                     type = "check";
                                 };
