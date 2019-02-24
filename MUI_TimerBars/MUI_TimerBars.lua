@@ -455,7 +455,6 @@ function C_TimerField:__Construct(data, name, sharedSettings)
 
     data.expiredBarsStack:OnPushItem(function(bar)
         bar.ExpirationTime = -1;
-        bar.Remove = nil;
         bar:SetShown(false);
         bar:SetParent(tk.Constants.DUMMY_FRAME);
     end);
@@ -778,6 +777,7 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraN
     foundBar.Updating = true;
     foundBar.ExpirationTime = expirationTime;
     foundBar.AuraType = auraType;
+    foundBar.Remove = nil;
 
     foundBar:UpdateAura(auraInfo, currentTime, amount);
 end
