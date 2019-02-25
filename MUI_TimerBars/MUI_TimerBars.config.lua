@@ -109,7 +109,7 @@ function C_TimerBarsModule:GetConfigTable()
                 {   name    = L["Sort By Time Remaining"];
                     type    = "check";
                     width   = 220;
-                    dbPath  = "profile.timerBars.sortByTimeRemaining";
+                    dbPath  = "profile.timerBars.sortByExpirationTime";
                 };
                 {   name    = L["Show Tooltips On Mouseover"];
                     type    = "check";

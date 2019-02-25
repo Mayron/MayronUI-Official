@@ -68,7 +68,7 @@ local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
 
 db:AddToDefaults("profile.timerBars", {
     enabled = true;
-    sortByTimeRemaining   = true;
+    sortByExpirationTime   = true;
     showTooltips          = true;
     statusBarTexture      = "MUI_StatusBar";
 
@@ -615,8 +615,8 @@ do
         end
     end
 
-    local function SortByTimeRemaining(a, b)
-        return a.TimeRemaining > b.TimeRemaining;
+    local function SortByExpirationTime(a, b)
+        return a.ExpirationTime > b.ExpirationTime;
     end
 
     Engine:DefineParams("string");
@@ -636,7 +636,6 @@ do
             if (data.timeSinceLastUpdate > TIMER_FIELD_UPDATE_FREQUENCY) then
                 local currentTime = GetTime();
                 local barRemoved;
-                local changed = data.barAdded;
 
                 repeat
                     -- Remove expired bars:
@@ -644,13 +643,12 @@ do
                     -- cannot use a new activeBars table (by inserting non-expired bars into it and replacing old table)
                     -- because this would reverse the bar order which causes graphical issues if the time remaining of 2 bars is equal.
                     for id, activeBar in ipairs(data.activeBars) do
-                        activeBar:UpdateExpirationTime();
+                        activeBar:UpdateExpirationTime(currentTime);
 
                         if (activeBar.ExpirationTime < currentTime or activeBar.Remove) then
                             data.expiredBarsStack:Push(activeBar); -- remove bar here!
                             table.remove(data.activeBars, id);
                             barRemoved = true;
-                            changed = true;
                             break;
                         end
                     end
@@ -658,32 +656,29 @@ do
                 until (not barRemoved);
 
                 if (#data.activeBars > 0) then
-                    if (data.sharedSettings.sortByTimeRemaining and changed) then
-                        table.sort(data.activeBars, SortByTimeRemaining);
+                    if (data.sharedSettings.sortByExpirationTime) then
+                        table.sort(data.activeBars, SortByExpirationTime);
                     end
 
                     ---@param bar TimerBar
                     for i, bar in ipairs(data.activeBars) do
-                        if (changed) then
-                            if (i <= data.settings.bar.maxBars) then
-                                -- make visible
-                                bar:Show();
-                                bar:SetParent(data.frame);
-                            else
-                                -- make invisible
-                                bar:Hide();
-                                bar:SetParent(tk.Constants.DUMMY_FRAME);
-                            end
+                        if (i <= data.settings.bar.maxBars) then
+                            -- make visible
+                            bar:Show();
+                            bar:SetParent(data.frame);
+                        else
+                            -- make invisible
+                            bar:Hide();
+                            bar:SetParent(tk.Constants.DUMMY_FRAME);
                         end
+
 
                         if (not bar.Updating) then
                             bar:UpdateTimeRemaining(currentTime);
                         end
                     end
 
-                    if (changed) then
-                        RepositionBars(data);
-                    end
+                    RepositionBars(data);
                 end
 
                 data.barAdded = nil;
@@ -1112,11 +1107,13 @@ function C_TimerBar:UpdateAura(data, auraInfo, currentTime, amount)
     self.Updating  = nil;
 end
 
-function C_TimerBar:UpdateExpirationTime(data)
+Engine:DefineParams("number");
+function C_TimerBar:UpdateExpirationTime(data, currentTime)
     local auraInfo = GetAuraInfoByAuraID(data.settings.unitID, self.AuraId, self.AuraType);
 
     if (obj:IsTable(auraInfo)) then
         self.ExpirationTime = auraInfo[6];
+        self.TimeRemaining = auraInfo[6] - currentTime;
     else
         self.ExpirationTime = -1;
     end

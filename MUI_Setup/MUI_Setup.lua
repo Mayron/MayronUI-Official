@@ -254,7 +254,7 @@ function Private:LoadThemeMenu(menuSection)
         { tk.Strings:SetTextColorByHex("Warrior", "C79C6E"), "WARRIOR" }
     });
 
-    menuSection.themeDropdown:AddOption(L["Custom Colour"], function()
+    menuSection.themeDropdown:AddOption("Custom Color", function()
         local colors = {};
        _G.ColorPickerFrame:SetColorRGB(1, 1, 1);
        _G.ColorPickerFrame.previousValues = {1, 1, 1, 0};
