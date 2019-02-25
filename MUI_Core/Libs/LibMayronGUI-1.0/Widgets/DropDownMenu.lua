@@ -392,6 +392,10 @@ function DropDownMenu:SetEnabled(data, enabled)
     self:UpdateColor();
 end
 
+function DropDownMenu:SetHeaderShown(data, shown)
+    data.header:SetShown(shown);
+end
+
 -- Unlike Toggle(), this function hides the menu instantly (does not fold)
 function DropDownMenu:Hide(data)
     data.expanded = false;

@@ -28,13 +28,13 @@ end
 
 -- can be replaced with: local value = tk.Tables:GetTable(tbl, key, anotherKey);
 function tk.Tables:GetTable(rootTable, ...)
-    tk:Assert(type(rootTable) == "table",
+    tk:Assert(obj:IsTable(rootTable),
         "tk.Tables.GetTable - invalid rootTable arg (table expected, got %s)", type(rootTable));
 
     local currentTable = rootTable;
 
     for _, key in obj:IterateArgs(...) do
-        if (type(currentTable[key]) ~= "table") then
+        if (not obj:IsTable(currentTable[key])) then
             currentTable[key] = obj:PopTable();
         end
 

@@ -287,6 +287,7 @@ function Specialization:HandleLeftClick(data)
         dropdown:SetParent(label);
         dropdown:SetAllPoints(true);
         dropdown:Show();
+        dropdown:SetHeaderShown(true);
     end
 
     return totalLabelsShown;
@@ -307,6 +308,7 @@ function Specialization:HandleRightClick()
             frame:SetParent(tk.Constants.DUMMY_FRAME);
             frame:SetAllPoints(true);
             frame:Hide();
+            label.dropdown:SetHeaderShown(false);
             label.dropdown = nil;
         end
 

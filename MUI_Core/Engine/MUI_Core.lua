@@ -4,6 +4,7 @@ local _G, LibStub = _G, _G.LibStub;
 
 MayronUI = {};
 
+local MigrateToGen6;
 local table, ipairs, pairs, select, string, unpack, print = _G.table, _G.ipairs, _G.pairs, _G.select, _G.string, _G.unpack, _G.print;
 
 namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
@@ -887,6 +888,9 @@ end);
 
 db:OnStartUp(function(self)
     MayronUI.db = self;
+
+    MigrateToGen6();
+
     local r, g, b = tk:GetThemeColor();
 
     local myFont = _G.CreateFont("MUI_FontNormal");
@@ -948,3 +952,15 @@ db:OnStartUp(function(self)
         error();
     end);
 end);
+
+-- MUI Gen5 to Gen6 Migration:
+function MigrateToGen6()
+    local gen5 = _G.MUIdb;
+
+    if (not (obj:IsTable(gen5) and obj:IsTable(db:ParsePathValue(gen5, "global.core.addons")))) then
+        return;
+    end
+
+    local setup = tk.Tables:GetTable(_G.MayronUIdb.global, "core", "setup");
+    setup.addOns = gen5.global.core.addons;
+end

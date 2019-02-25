@@ -323,18 +323,6 @@ function Private:LoadCustomMenu(menuSection)
         menuSection.applyScaleBtn:Enable();
     end);
 
-	-- Localization (currently in development)
-	-- menuSection.localization = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-    -- menuSection.localization:SetPoint("TOPLEFT", menuSection.chatTitle, "TOPRIGHT", 95, 0);
-    -- menuSection.localization:SetText(L["Use Localization:"]);
-    -- menuSection.localization:Hide();
-
-	-- menuSection.localization.cb = gui:CreateCheckButton(menuSection, L["WoW Client: "]..GetLocale());
-	-- menuSection.localization.cb:SetPoint("TOPLEFT", menuSection.chatTitle, "TOPRIGHT", 95, -40);
-	-- menuSection.localization.cb.btn:SetScript("OnClick", function(self)
-	-- 	db.global.core.localization = self:GetChecked();
-	-- end);
-
     -- AddOn Settings to Inject
     menuSection.injectTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
     menuSection.injectTitle:SetPoint("TOPLEFT", menuSection.scaleTitle, "TOPRIGHT", 110, 0);
