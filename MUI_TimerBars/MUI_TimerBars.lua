@@ -255,6 +255,14 @@ function C_TimerBarsModule:OnInitialize(data)
         };
     };
 
+    local function UpdateBorders()
+        for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+            for _, bar in pairs(field:GetAllTimerBars()) do
+                bar:SetBorderShown(data.settings.border.show);
+            end
+        end
+    end
+
     self:RegisterUpdateFunctions(db.profile.timerBars, {
         showTooltips = function(value)
             for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
@@ -277,7 +285,16 @@ function C_TimerBarsModule:OnInitialize(data)
             local colorName = keysList:PopBack();
 
             if (colorName == "border") then
-                options.groups[1].value();
+                UpdateBorders();
+
+            elseif (colorName == "background") then
+                for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+                    for _, bar in pairs(field:GetAllTimerBars()) do
+                        local barData = data:GetFriendData(bar);
+                        barData.slider.bg:SetColorTexture(unpack(data.settings.colors.background));
+
+                    end
+                end
             else
                 for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
                     field:RecheckAuras();
@@ -285,13 +302,7 @@ function C_TimerBarsModule:OnInitialize(data)
             end
         end;
 
-        border = function()
-            for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
-                for _, bar in pairs(field:GetAllTimerBars()) do
-                    bar:SetBorderShown(data.settings.border.show);
-                end
-            end
-        end;
+        border = UpdateBorders;
     }, options);
 end
 
