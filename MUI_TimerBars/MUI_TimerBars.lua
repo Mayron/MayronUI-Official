@@ -9,7 +9,7 @@ local string, date, pairs, ipairs = _G.string, _G.date, _G.pairs, _G.ipairs;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
 local table, GetTime, UnitAura = _G.table, _G.GetTime, _G.UnitAura;
 
-local HELPFUL, HARMFUL, DEBUFF, BUFF, REMOVED, UP, BROKEN = "HELPFUL", "HARMFUL", "DEBUFF", "BUFF", "REMOVED", "UP", "BROKEN";
+local HELPFUL, HARMFUL, DEBUFF, BUFF, UP = "HELPFUL", "HARMFUL", "DEBUFF", "BUFF", "UP";
 local TIMER_FIELD_UPDATE_FREQUENCY = 0.05;
 local UNKNOWN_AURA_TYPE = "Unknown aura type '%s'.";
 local DEBUFF_MAX_DISPLAY = _G.DEBUFF_MAX_DISPLAY;
@@ -17,13 +17,9 @@ local BUFF_MAX_DISPLAY = _G.BUFF_MAX_DISPLAY;
 local ICON_GAP = -1;
 
 local SUB_EVENT_NAMES = {
+	SPELL_AURA_REFRESH        = "SPELL_AURA_REFRESH";
     SPELL_AURA_APPLIED        = "SPELL_AURA_APPLIED";
     SPELL_AURA_APPLIED_DOSE   = "SPELL_AURA_APPLIED_DOSE";
-    SPELL_AURA_BROKEN         = "SPELL_AURA_BROKEN";
-    SPELL_AURA_BROKEN_SPELL   = "SPELL_AURA_BROKEN_SPELL";
-    SPELL_AURA_REFRESH        = "SPELL_AURA_REFRESH";
-    SPELL_AURA_REMOVED        = "SPELL_AURA_REMOVED";
-    SPELL_AURA_REMOVED_DOSE   = "SPELL_AURA_REMOVED_DOSE";
     UNIT_DESTROYED            = "UNIT_DESTROYED";
     UNIT_DIED                 = "UNIT_DIED";
     UNIT_DISSIPATES           = "UNIT_DISSIPATES";
@@ -359,31 +355,14 @@ function OnCombatLogEvent()
             -- guaranteed to always be the same for all registered events:
             local auraId = payload[12];
             local auraName = payload[13];
-            local amount = 1;
+            local auraType = payload[15];
+            local amount = payload[16] or 1;
 
-            if (subEvent:find(REMOVED)) then
-                --@param field TimerField
-                for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
-                    field:RemoveAuraByID(auraId);
-                end
-            else
-                local auraType = payload[15];
+            obj:Assert(auraType == BUFF or auraType == DEBUFF, UNKNOWN_AURA_TYPE, auraType);
 
-                if (not subEvent:find(BROKEN)) then
-                    amount = payload[16] or 1;
-                end
-
-                if (subEvent == SUB_EVENT_NAMES.SPELL_AURA_BROKEN_SPELL) then
-                    -- this event has 3 extra args before auraType: extraSpellId, extraSpellName, extraSchool
-                    auraType = payload[18];
-                end
-
-                obj:Assert(auraType == BUFF or auraType == DEBUFF, UNKNOWN_AURA_TYPE, auraType);
-
-                ---@param field TimerField
-                for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
-                    field:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType, amount);
-                end
+            ---@param field TimerField
+            for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+                field:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType, amount);
             end
         end
     end
