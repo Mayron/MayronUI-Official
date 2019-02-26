@@ -356,13 +356,12 @@ function OnCombatLogEvent()
             local auraId = payload[12];
             local auraName = payload[13];
             local auraType = payload[15];
-            local amount = payload[16] or 1;
 
             obj:Assert(auraType == BUFF or auraType == DEBUFF, UNKNOWN_AURA_TYPE, auraType);
 
             ---@param field TimerField
             for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
-                field:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType, amount);
+                field:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType);
             end
         end
     end
@@ -710,14 +709,13 @@ local function IsFilteredOut(filters, sourceGuid, auraName, auraType)
     return filteredOut;
 end
 
-Engine:DefineParams("string", "string", "number", "string", "string", "number");
+Engine:DefineParams("string", "string", "number", "string", "string");
 ---@param sourceGuid string @The globally unique identify (GUID) representing the source of the aura (the creature or player who casted the aura).
 ---@param destGuid string @The globally unique identify (GUID) representing the destination of the aura (the creature or player who gained the aura).
 ---@param auraId number @The unique id of the aura used to find and update the aura.
 ---@param auraName number @The name of the aura used for filtering and updating the TimerBar name.
 ---@param auraType string @The type of aura (must be either "BUFF" or "DEBUFF").
----@param amount number @The amount of stacks for the aura
-function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraName, auraType, amount)
+function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraName, auraType)
     if (not (UnitGUID(data.settings.unitID) == destGuid and UnitExists(data.settings.unitID) and not UnitIsDeadOrGhost(data.settings.unitID))) then
         return; -- field cannot handle this aura
     end
@@ -751,7 +749,7 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraN
     foundBar.AuraType = auraType;
     foundBar.Remove = nil;
 
-    foundBar:UpdateAura(auraInfo, amount);
+    foundBar:UpdateAura(auraInfo);
 end
 
 ---Rechecks whether auras are still in use by the unit
@@ -772,12 +770,6 @@ function C_TimerField:RecheckAuras(data)
 
             if (CanTrackAura(auraInfo)) then
                 local auraName = auraInfo[1];
-                local amount = auraInfo[3];
-
-                if (amount == 0) then
-                    amount = 1;
-                end
-
                 local auraId = auraInfo[10];
                 local sourceUnit = auraInfo[7];
 
@@ -785,7 +777,7 @@ function C_TimerField:RecheckAuras(data)
                     local sourceGuid = UnitGUID(sourceUnit);
                     local destGuid = UnitGUID(data.settings.unitID);
 
-                    self:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType, amount);
+                    self:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType);
                 end
 
                 obj:PushTable(auraInfo);
@@ -1038,12 +1030,12 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
     end
 end
 
-Engine:DefineParams("table", "number");
+Engine:DefineParams("table");
 ---@param auraInfo table @A table containing a subset of the results from UnitAura.
----@param amount number @The amount of stacks for the aura.
-function C_TimerBar:UpdateAura(data, auraInfo, amount)
+function C_TimerBar:UpdateAura(data, auraInfo)
     local auraName        = auraInfo[1];
     local iconPath        = auraInfo[2];
+    local amount          = auraInfo[3];
     local debuffType      = auraInfo[4];
     local canStealOrPurge = auraInfo[8];
 
@@ -1055,7 +1047,7 @@ function C_TimerBar:UpdateAura(data, auraInfo, amount)
     end
 
     if (amount > 1) then
-        data.auraName:SetText(auraName .. " (" .. amount .. ")");
+        data.auraName:SetText(auraName .. " (" .. amount  .. ")");
     else
         data.auraName:SetText(auraName);
     end
