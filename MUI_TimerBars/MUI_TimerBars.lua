@@ -367,7 +367,6 @@ function OnCombatLogEvent()
                     field:RemoveAuraByID(auraId);
                 end
             else
-                local currentTime = GetTime();
                 local auraType = payload[15];
 
                 if (not subEvent:find(BROKEN)) then
@@ -383,7 +382,7 @@ function OnCombatLogEvent()
 
                 ---@param field TimerField
                 for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
-                    field:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType, currentTime, amount);
+                    field:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType, amount);
                 end
             end
         end
@@ -600,15 +599,13 @@ do
                     else
                         activeBar:SetPoint(p.BOTTOMRIGHT, data.frame, p.BOTTOMRIGHT, 0, 0);
                     end
+                elseif (id > 1) then
+                    previousBarFrame = data.activeBars[id - 1]:GetFrame();
+                    activeBar:SetPoint(p.TOPLEFT, previousBarFrame, p.BOTTOMLEFT, 0, -data.settings.bar.spacing);
+                    activeBar:SetPoint(p.TOPRIGHT, previousBarFrame, p.BOTTOMRIGHT, 0, -data.settings.bar.spacing);
                 else
-                    if (id > 1) then
-                        previousBarFrame = data.activeBars[id - 1]:GetFrame();
-                        activeBar:SetPoint(p.TOPLEFT, previousBarFrame, p.BOTTOMLEFT, 0, -data.settings.bar.spacing);
-                        activeBar:SetPoint(p.TOPRIGHT, previousBarFrame, p.BOTTOMRIGHT, 0, -data.settings.bar.spacing);
-                    else
-                        activeBar:SetPoint(p.TOPLEFT, data.frame, p.BOTTOMLEFT, 0, 0);
-                        activeBar:SetPoint(p.TOPRIGHT, data.frame, p.BOTTOMRIGHT, 0, 0);
-                    end
+                    activeBar:SetPoint(p.TOPLEFT, data.frame, p.BOTTOMLEFT, 0, 0);
+                    activeBar:SetPoint(p.TOPRIGHT, data.frame, p.BOTTOMRIGHT, 0, 0);
                 end
             end
         end
@@ -658,6 +655,14 @@ do
 
                 until (not barRemoved);
 
+                for _, bar in ipairs(data.activeBars) do
+                    bar:UpdateTimeRemaining(currentTime);
+                end
+
+                if (not changed) then
+                    return;
+                end
+
                 if (#data.activeBars > 0) then
                     if (data.sharedSettings.sortByExpirationTime) then
                         table.sort(data.activeBars, SortByExpirationTime);
@@ -674,15 +679,9 @@ do
                             bar:Hide();
                             bar:SetParent(tk.Constants.DUMMY_FRAME);
                         end
-
-                        if (not bar.Updating) then
-                            bar:UpdateTimeRemaining(currentTime);
-                        end
                     end
 
-                    if (changed) then
-                        RepositionBars(data);
-                    end
+                    RepositionBars(data);
                 end
 
                 data.barAdded = nil;
@@ -732,15 +731,14 @@ local function IsFilteredOut(filters, sourceGuid, auraName, auraType)
     return filteredOut;
 end
 
-Engine:DefineParams("string", "string", "number", "string", "string", "number", "number");
+Engine:DefineParams("string", "string", "number", "string", "string", "number");
 ---@param sourceGuid string @The globally unique identify (GUID) representing the source of the aura (the creature or player who casted the aura).
 ---@param destGuid string @The globally unique identify (GUID) representing the destination of the aura (the creature or player who gained the aura).
 ---@param auraId number @The unique id of the aura used to find and update the aura.
 ---@param auraName number @The name of the aura used for filtering and updating the TimerBar name.
 ---@param auraType string @The type of aura (must be either "BUFF" or "DEBUFF").
----@param currentTime number @The result of GetTime shared by all timer bars being updated in the same field.
 ---@param amount number @The amount of stacks for the aura
-function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraName, auraType, currentTime, amount)
+function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraName, auraType, amount)
     if (not (UnitGUID(data.settings.unitID) == destGuid and UnitExists(data.settings.unitID) and not UnitIsDeadOrGhost(data.settings.unitID))) then
         return; -- field cannot handle this aura
     end
@@ -765,25 +763,20 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraN
         end
     end
 
-    local expirationTime = auraInfo[6];
-
     if (not foundBar) then
         -- create a new timer bar
         foundBar = data.expiredBarsStack:Pop(auraId);
     end
 
     -- update expiration time outside of UpdateAura!
-    foundBar.Updating = true;
-    foundBar.ExpirationTime = expirationTime;
     foundBar.AuraType = auraType;
     foundBar.Remove = nil;
 
-    foundBar:UpdateAura(auraInfo, currentTime, amount);
+    foundBar:UpdateAura(auraInfo, amount);
 end
 
 ---Rechecks whether auras are still in use by the unit
 function C_TimerField:RecheckAuras(data)
-    local currentTime = GetTime();
     local maxAuras, filterName, auraType;
 
     self:RemoveAllAuras();
@@ -813,7 +806,7 @@ function C_TimerField:RecheckAuras(data)
                     local sourceGuid = UnitGUID(sourceUnit);
                     local destGuid = UnitGUID(data.settings.unitID);
 
-                    self:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType, currentTime, amount);
+                    self:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType, amount);
                 end
 
                 obj:PushTable(auraInfo);
@@ -1014,8 +1007,7 @@ end
 
 Engine:DefineParams("number", "?number");
 ---@param currentTime number @The current time using GetTime.
----@param totalDuration number @(optional) The total duration of the timer bar (used when the timer bar is first created to set the max value of the slider)
-function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
+function C_TimerBar:UpdateTimeRemaining(data, currentTime)
     local timeRemaining = self.ExpirationTime - currentTime;
 
      -- duration should have been checked in the frame OnUpdate script
@@ -1026,9 +1018,9 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
         return; -- Let OnUpdate Script remove it!
     end
 
-    if (totalDuration) then
+    if (self.TotalDuration) then
         -- Called from UpdateAura
-        data.slider:SetMinMaxValues(0, totalDuration);
+        data.slider:SetMinMaxValues(0, self.TotalDuration);
     end
 
     data.slider:SetValue(timeRemaining);
@@ -1067,20 +1059,17 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
     end
 end
 
-Engine:DefineParams("table", "number", "number");
+Engine:DefineParams("table", "number");
 ---@param auraInfo table @A table containing a subset of the results from UnitAura.
----@param currentTime number @The result of GetTime shared by all timer bars being updated in the same field.
 ---@param amount number @The amount of stacks for the aura.
-function C_TimerBar:UpdateAura(data, auraInfo, currentTime, amount)
+function C_TimerBar:UpdateAura(data, auraInfo, amount)
     local auraName        = auraInfo[1];
     local iconPath        = auraInfo[2];
     local debuffType      = auraInfo[4];
-    local totalDuration   = auraInfo[5];
     local canStealOrPurge = auraInfo[8];
 
     obj:PushTable(auraInfo);
     data.frame.auraId = self.AuraId; -- this is needed for the tooltip mouse over
-    self:UpdateTimeRemaining(currentTime, totalDuration);
 
     if (data.icon) then
         data.icon:SetTexture(iconPath);
@@ -1106,8 +1095,6 @@ function C_TimerBar:UpdateAura(data, auraInfo, currentTime, amount)
             end
         end
     end
-
-    self.Updating  = nil;
 end
 
 Engine:DefineReturns("boolean");
@@ -1116,6 +1103,7 @@ function C_TimerBar:UpdateExpirationTime(data)
     local old = self.ExpirationTime;
 
     if (obj:IsTable(auraInfo)) then
+        self.TotalDuration = auraInfo[5];
         self.ExpirationTime = auraInfo[6];
     else
         self.ExpirationTime = -1;
