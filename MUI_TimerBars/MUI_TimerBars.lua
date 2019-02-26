@@ -44,7 +44,6 @@ local Engine = obj:Import("MayronUI.Engine");
 Engine:CreateInterface("ITimerBar", {
     -- fields:
     ExpirationTime = "number";
-    TimeRemaining = "number";
     AuraId = "number";
 });
 
@@ -636,6 +635,7 @@ do
             if (data.timeSinceLastUpdate > TIMER_FIELD_UPDATE_FREQUENCY) then
                 local currentTime = GetTime();
                 local barRemoved;
+                local changed = data.barAdded;
 
                 repeat
                     -- Remove expired bars:
@@ -643,12 +643,15 @@ do
                     -- cannot use a new activeBars table (by inserting non-expired bars into it and replacing old table)
                     -- because this would reverse the bar order which causes graphical issues if the time remaining of 2 bars is equal.
                     for id, activeBar in ipairs(data.activeBars) do
-                        activeBar:UpdateExpirationTime(currentTime);
+                        if (activeBar:UpdateExpirationTime()) then
+                            changed = true;
+                        end
 
                         if (activeBar.ExpirationTime < currentTime or activeBar.Remove) then
                             data.expiredBarsStack:Push(activeBar); -- remove bar here!
                             table.remove(data.activeBars, id);
                             barRemoved = true;
+                            changed = true;
                             break;
                         end
                     end
@@ -672,13 +675,14 @@ do
                             bar:SetParent(tk.Constants.DUMMY_FRAME);
                         end
 
-
                         if (not bar.Updating) then
                             bar:UpdateTimeRemaining(currentTime);
                         end
                     end
 
-                    RepositionBars(data);
+                    if (changed) then
+                        RepositionBars(data);
+                    end
                 end
 
                 data.barAdded = nil;
@@ -839,7 +843,6 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
     -- fields
     self.AuraId = -1;
     self.ExpirationTime = -1;
-    self.TimeRemaining = -1;
 
     data.settings = settings;
     data.sharedSettings = sharedSettings;
@@ -1013,13 +1016,13 @@ Engine:DefineParams("number", "?number");
 ---@param currentTime number @The current time using GetTime.
 ---@param totalDuration number @(optional) The total duration of the timer bar (used when the timer bar is first created to set the max value of the slider)
 function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
-    self.TimeRemaining = self.ExpirationTime - currentTime;
+    local timeRemaining = self.ExpirationTime - currentTime;
 
      -- duration should have been checked in the frame OnUpdate script
      -- Update: During a big 40 vs 40 PVP battleground, this condition failed!
-    -- obj:Assert(self.TimeRemaining >= 0);
+    -- obj:Assert(timeRemaining >= 0);
 
-    if (self.TimeRemaining < 0) then
+    if (timeRemaining < 0) then
         return; -- Let OnUpdate Script remove it!
     end
 
@@ -1028,13 +1031,13 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
         data.slider:SetMinMaxValues(0, totalDuration);
     end
 
-    data.slider:SetValue(self.TimeRemaining);
+    data.slider:SetValue(timeRemaining);
 
     if (data.showSpark) then
         local _, max = data.slider:GetMinMaxValues();
         local offset = data.spark:GetWidth() / 2;
         local barWidth = data.slider:GetWidth();
-        local value = (self.TimeRemaining / max) * barWidth - offset;
+        local value = (timeRemaining / max) * barWidth - offset;
 
         if (value > barWidth - offset) then
             value = barWidth - offset;
@@ -1047,7 +1050,7 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime, totalDuration)
         return;
     end
 
-    local timeRemainingText = tk.Numbers:ToPrecision(self.TimeRemaining, 1);
+    local timeRemainingText = tk.Numbers:ToPrecision(timeRemaining, 1);
 
     if (data.timeRemainingText ~= timeRemainingText) then
         data.timeRemainingText = timeRemainingText;
@@ -1107,16 +1110,18 @@ function C_TimerBar:UpdateAura(data, auraInfo, currentTime, amount)
     self.Updating  = nil;
 end
 
-Engine:DefineParams("number");
-function C_TimerBar:UpdateExpirationTime(data, currentTime)
+Engine:DefineReturns("boolean");
+function C_TimerBar:UpdateExpirationTime(data)
     local auraInfo = GetAuraInfoByAuraID(data.settings.unitID, self.AuraId, self.AuraType);
+    local old = self.ExpirationTime;
 
     if (obj:IsTable(auraInfo)) then
         self.ExpirationTime = auraInfo[6];
-        self.TimeRemaining = auraInfo[6] - currentTime;
     else
         self.ExpirationTime = -1;
     end
 
     obj:PushTable(auraInfo);
+
+    return (old ~= self.ExpirationTime);
 end

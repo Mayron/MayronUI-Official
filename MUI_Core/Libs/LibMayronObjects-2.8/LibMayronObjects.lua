@@ -1387,7 +1387,7 @@ do
         end
 
         local valueType = self:GetValueType(realValue);
-        local errorMessage = string.format(MESSAGE_PATTERN, propertyDefinition, valueType, className);
+        local errorMessage = string.format(MESSAGE_PATTERN, className, propertyDefinition, valueType);
 
         errorMessage = errorMessage:gsub("##", propertyName);
         self:Assert(not errorFound, errorMessage);
