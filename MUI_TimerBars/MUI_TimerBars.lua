@@ -120,13 +120,8 @@ db:AddToDefaults("profile.timerBars", {
             onlyPlayerDebuffs = true;
             enableWhiteList   = false;
             enableBlackList   = false;
-
-            whiteList = {
-
-            };
-            blackList = {
-
-            };
+            whiteList         = {};
+            blackList         = {};
         };
     };
 });

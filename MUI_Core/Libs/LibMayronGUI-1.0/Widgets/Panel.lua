@@ -8,6 +8,8 @@ if (not Lib) then return; end
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
 local obj = Lib.Objects;
+
+---@class Panel : FrameWrapper
 local Panel = WidgetsPackage:CreateClass("Panel", Private.FrameWrapper);
 
 Panel.Static:AddFriendClass("Group");

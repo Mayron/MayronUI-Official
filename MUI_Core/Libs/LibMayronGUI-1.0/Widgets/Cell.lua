@@ -9,7 +9,10 @@ local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
 local obj = Lib.Objects;
 
+---@class Cell : FrameWrapper
 local Cell = WidgetsPackage:CreateClass("Cell", Private.FrameWrapper);
+
+---@type Panel
 local Panel = Private.Panel;
 
 Cell.Static:AddFriendClass("Panel");
@@ -84,18 +87,6 @@ function Cell:SetInsets(data, ...)
         data.frame:SetPoint("TOPLEFT", data.endEnchor, "TOPLEFT", -data.insets.right, data.insets.bottom);
     end
 end
-
--- TODO: This method is experimental. It breaks the order of cells!
--- TODO: Positions should be fixed onces set
--- function Cell:Destroy(data)
---     Panel.Static:GetData(data.panel).cells:Remove(self);
---     tk:PushFrame(data.frame);
---     data.frame = nil;
---     if (data.panel) then
---         private:AnchorCells(Panel.Static:GetData(data.panel));
---     end
---     data.panel = nil;
--- end
 
 function Cell:GetPanel(data)
     return data.panel;
