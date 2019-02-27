@@ -30,7 +30,7 @@ local function EnumerateTroops()
     OrderHallCommandBar:SetWidth(width);
 end
 
-function namespace:SetupOrderHallBar()
+function namespace:SetUpOrderHallBar()
     if (IsAddOnLoaded("Blizzard_OrderHallUI")) then
         tk:KillElement(OrderHallCommandBar.Background);
         tk:KillElement(OrderHallCommandBar.WorldMapButton);

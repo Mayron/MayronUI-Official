@@ -13,4 +13,5 @@
     <Script file="OrderHallCommandBar.lua"/>
     <Script file="MovableFrames.lua"/>
     <Script file="Tutorial.lua"/>
+    <Script file="BagnonChanges.lua"/>
 </Ui>

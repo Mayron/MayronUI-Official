@@ -1,6 +1,10 @@
 -- luacheck: ignore MayronUI LibStub self 143 631
 local _, namespace = ...;
 
+local _G = _G;
+local string, tostring, select, unpack = _G.string, _G.tostring, _G.select, _G.unpack;
+local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.pcall, _G.error;
+
 namespace.components = {};
 namespace.components.Objects = LibStub:GetLibrary("LibMayronObjects");
 namespace.components.Toolkit = {};
@@ -28,7 +32,7 @@ function tk:ValueIsEither(value, ...)
 end
 
 function tk:UnpackIfTable(value)
-    if (type(value) == "table") then
+    if (obj:IsTable(value)) then
         return obj:UnpackTable(value);
     else
         return value;
@@ -384,17 +388,22 @@ do
             local firstArg = callback;
             local key = string.format("%s|%s", realGlobalMethodName, tostring(realCallback));
 
-            local callbackWrapper = function()
+            local callbackWrapper = function(...)
                 local callbackData = callbacks[key];
+                local args = obj:PopTable();
+                tk.Tables:AddAll(args, select(2,unpack(callbackData)));
+                tk.Tables:AddAll(args, ...);
 
                 if (obj:IsTable(callbackData)) then
                     -- pass to callback function all custom args and then the real hooksecurefunc args
-                    local unhook = callbackData[1](select(2, _G.unpack(callbackData)));
+                    local unhook = callbackData[1](unpack(args));
 
                     if (unhook) then
                         tk:UnhookFunc(realGlobalMethodName, callbackData[1]);
                     end
                 end
+
+                obj:PushTable(args);
             end
 
             callbacks[key] = obj:PopTable(realCallback, firstArg, ...);
@@ -402,17 +411,22 @@ do
         else
             local key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
 
-            local callbackWrapper = function()
+            local callbackWrapper = function(...)
                 local callbackData = callbacks[key];
+                local args = obj:PopTable();
+                tk.Tables:AddAll(args, select(2,unpack(callbackData)));
+                tk.Tables:AddAll(args, ...);
 
                 if (obj:IsTable(callbackData)) then
                     -- pass to callback function all custom args and then the real hooksecurefunc args
-                    local unhook = callbackData[1](select(2, _G.unpack(callbackData)));
+                    local unhook = callbackData[1](unpack(args));
 
                     if (unhook) then
                         tk:UnhookFunc(tbl, methodName, callbackData[1]);
                     end
                 end
+
+                obj:PushTable(args);
             end
 
             callbacks[key] = obj:PopTable(callback, ...);

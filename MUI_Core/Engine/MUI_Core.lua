@@ -56,10 +56,11 @@ db:AddToDefaults("global.core", {
         profilePerCharacter = true;
         addOns = {
             {"Aura Frames", true, "AuraFrames"},
+            {"Bagnon", true, "Bagnon"},
             {"Bartender4", true, "Bartender4"},
             {"Grid", true, "Grid"},
             {"Masque", true, "Masque"},
-            {"Mik Scrolling Battle Text", false, "MikScrollingBattleText"},
+            {"Mik Scrolling Battle Text", true, "MikScrollingBattleText"},
             {"Recount", true, "Recount"},
             {"Shadowed Unit Frames", true, "ShadowedUnitFrames"},
             {"TipTac", true, "TipTac"},
@@ -834,7 +835,7 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
         end
     end
 
-    namespace:SetupOrderHallBar();
+    namespace:SetUpOrderHallBar();
 
     if (_G.IsAddOnLoaded("Recount")) then
         if (db.global.reanchorRecount) then
@@ -890,6 +891,7 @@ db:OnStartUp(function(self)
     MayronUI.db = self;
 
     MigrateToGen6();
+    namespace:SetUpBagnon();
 
     local r, g, b = tk:GetThemeColor();
 
@@ -963,4 +965,6 @@ function MigrateToGen6()
 
     local setup = tk.Tables:GetTable(_G.MayronUIdb.global, "core", "setup");
     setup.addOns = gen5.global.core.addons;
+
+    table.insert(setup.addOns, 2, {"Bagnon", true, "Bagnon"});
 end
