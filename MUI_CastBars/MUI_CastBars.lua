@@ -547,22 +547,21 @@ function C_CastBar:StartCasting(data, channelling)
 		data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
     end
 
-    if (data.latencyBar and data.latency and data.latency > 0) then
+    if (data.frame.latencyBar and data.latency and data.latency > 0) then
         if (data.settings.showLatency) then
             local width = tk.math.floor(data.frame.statusbar:GetWidth() + 0.5);
             local percent = (_G.GetTime() - data.latency);
-            local latency_width = (width * percent);
+            local latencyWidth = (width * percent);
 
-            if (latency_width >= width) then latency_width = 1; end
-            if (latency_width == 0) then latency_width = 1; end
-            if (latency_width == 1) then
-                data.latencyBar:Hide();
+            if (latencyWidth >= width or latencyWidth == 0) then
+                data.frame.latencyBar:Hide();
             else
-                data.latencyBar:Show();
+                data.frame.latencyBar:Show();
             end
-            data.latencyBar:SetWidth(latency_width);
+
+            data.frame.latencyBar:SetWidth(latencyWidth);
         else
-            data.latencyBar:Hide();
+            data.frame.latencyBar:Hide();
         end
     end
 
