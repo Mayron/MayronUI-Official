@@ -4,6 +4,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 local Private = {};
 
 local pairs, string, tonumber, tostring = _G.pairs, _G.string, _G.tonumber, _G.tostring;
+local UnitGUID = _G.UnitGUID;
 
 -- Register Modules ----------------------
 
@@ -258,8 +259,12 @@ function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
         local handler = em:FindEventHandlerByKey("PlayerUnitName_LevelUp", "PLAYER_LEVEL_UP");
 
         if (not handler and not tk:IsPlayerMaxLevel()) then
-            handler = em:CreateEventHandler("PLAYER_LEVEL_UP", function(createdHandler)
-                self:UpdateUnitNameText("player");
+            handler = em:CreateEventHandler("PLAYER_LEVEL_UP", function(createdHandler, _, newLevel)
+                self:UpdateUnitNameText("player", newLevel);
+
+                if (UnitGUID("player") == UnitGUID("target")) then
+                    self:UpdateUnitNameText("target", newLevel);
+                end
 
                 if (tk:IsPlayerMaxLevel()) then
                     createdHandler:Destroy();
@@ -334,8 +339,8 @@ do
     end
 end
 
-function C_UnitPanels:UpdateUnitNameText(data, unitType)
-    local unitLevel = _G.UnitLevel(unitType);
+function C_UnitPanels:UpdateUnitNameText(data, unitType, unitLevel)
+    unitLevel = unitLevel or _G.UnitLevel(unitType);
 
     local name = _G.UnitName(unitType);
     name = tk.Strings:SetOverflow(name, 22);
