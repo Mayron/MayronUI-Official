@@ -7,6 +7,7 @@ local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 local GetSpellInfo, IsAddOnLoaded, UnitName = _G.GetSpellInfo, _G.IsAddOnLoaded, _G.UnitName;
 local UnitChannelInfo, UnitCastingInfo = _G.UnitChannelInfo, _G.UnitCastingInfo;
 local UIFrameFadeIn, UIFrameFadeOut, select, date = _G.UIFrameFadeIn, _G.UIFrameFadeOut, _G.select, _G.date;
+local GetNetStats = _G.GetNetStats;
 
 namespace.castBarData = obj:PopTable();
 
@@ -245,11 +246,6 @@ function Events:UNIT_SPELLCAST_CHANNEL_UPDATE(castBar, castBarData)
     castBarData.frame.statusbar:SetMinMaxValues(0, endTime - castBarData.startTime);
 end
 
----@param castBarData table
-function Events:UNIT_SPELLCAST_SENT(_, castBarData)
-    castBarData.latency = _G.GetTime();
-end
-
 -- C_CastBar ----------------------
 
 Engine:DefineParams("table", "table", "string");
@@ -293,6 +289,7 @@ do
 
         if (unitID == "player" and settings.showLatency) then
             bar.latencyBar = bar.statusbar:CreateTexture(nil, "BACKGROUND");
+            -- bar.latencyBar = bar.statusbar:SetTexture(nil, "BACKGROUND");
             bar.latencyBar:SetPoint("TOPRIGHT");
             bar.latencyBar:SetPoint("BOTTOMRIGHT");
         end
@@ -357,8 +354,6 @@ do
                     bar:RegisterEvent("PLAYER_TARGET_CHANGED");
                 elseif (data.unitID == "focus") then
                     bar:RegisterEvent("PLAYER_FOCUS_CHANGED");
-                elseif (data.unitID == "player") then
-                    bar:RegisterEvent("UNIT_SPELLCAST_SENT");
                 end
             end
 
@@ -547,10 +542,10 @@ function C_CastBar:StartCasting(data, channelling)
 		data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
     end
 
-    if (data.frame.latencyBar and data.latency and data.latency > 0) then
+    if (data.frame.latencyBar) then
         if (data.settings.showLatency) then
             local width = tk.math.floor(data.frame.statusbar:GetWidth() + 0.5);
-            local percent = (_G.GetTime() - data.latency);
+            local percent = (select(4, GetNetStats()) / 1000);
             local latencyWidth = (width * percent);
 
             if (latencyWidth >= width or latencyWidth == 0) then
@@ -789,9 +784,9 @@ function C_CastBarsModule:OnInitialize(data)
                 end;
 
                 latency = function(value)
-                    local castBar = data.bars.player;
+                    local castBar = data.bars.Player;
 
-                    if (castBar and data.settings.player.showLatency) then
+                    if (castBar and data.settings.Player.showLatency) then
                         local castBarData = data:GetFriendData(castBar);
                         castBarData.frame.latencyBar:SetColorTexture(value.r, value.g, value.b, value.a);
                     end
