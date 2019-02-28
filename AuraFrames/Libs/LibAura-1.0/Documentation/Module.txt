@@ -1,0 +1,35 @@
+Start every module with the following code:
+
+
+  local LibAura = LibStub("LibAura-1.0");
+
+  local Major, Minor = "Example-1.0", 0;
+  local Module, OldMinor = LibAura:NewModule("Example-1.0", 0);
+
+  if not Module then return; end -- No upgrade needed.
+
+
+OldMinor will containt the old minor version of the module if it is a upgrade, otherwise it's nil. LibAura will create an table which you can extend with your own functions. The table also contains 4 variables that are used by LibAura to keep track of different things. The module may use those variables but is never allowed to change them! The following variables are defined on the module table by LibAura:
+
+  Module.Major -- The major version that is used with LibAura:NewModule
+  Module.Minor -- The minor version that is used with LibAura:NewModule (This is always your own minor version)
+  Module.Enabled -- If the module is enabled, see below for more explanation.
+  Module.UsedSources -- The number of active sources that are provided by this module.
+
+
+A module may implement an enable and a disable functions for preparing and cleaning up before the first RegisterModuleSource and after the last UnregisterModuleSource is called. The module can also read his own status from Module.Enabled.
+
+The following functions are used for enabling and disabling a module and are optional (not required to defined them):
+
+  function Module:Enable() -- Will be called before the first Module:ActivateSource().
+  function Module:Disable() -- Will be called after the last  Module:DeactivateSource().
+
+
+The following functions are required to be implemented by the module it self:
+
+  function Module:ActivateSource(Unit, Type) -- Will be called once for every new source that gains subscribers.
+  function Module:DeactivateSource(Unit, Type) -- Will be called once for every used source that lost all subscribers.
+  function Module:GetAuras(Unit, Type) -- Will be rarely called, but must provide a list of current aruas. This must be a indexed table. Also, when an invalid Unit or Type is queried, it still should return an empty table!
+
+
+

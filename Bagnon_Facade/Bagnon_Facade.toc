@@ -1,0 +1,10 @@
+## Interface: 80100
+## Title: Bagnon Facade
+## Notes: Allows Masque to skin Bagnon windows
+## Author: Jaliborc (João Cardoso)
+## X-Category: Inventory
+## X-License: GNU General Public License Version 3
+## Dependencies: Bagnon, Masque
+## Version: 8.1.0
+
+Bagnon_Facade.lua

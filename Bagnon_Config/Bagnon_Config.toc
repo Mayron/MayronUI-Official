@@ -1,0 +1,10 @@
+## Interface: 80100
+## Title: Bagnon Config
+## Author: Tuller and Jaliborc (João Cardoso)
+## Notes: An options menu for Bagnon
+## Dependencies: Bagnon
+## LoadOnDemand: 1
+## Version: 8.1.6
+
+main.lua
+common\Wildpants_Config.xml

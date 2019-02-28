@@ -1,0 +1,17 @@
+------------------------------------------------------------------------
+r494 | Draniuz | 2017-04-20 19:00:31 -0500 (Thu, 20 Apr 2017) | 2 lines
+Changed paths:
+   M /trunk/AuraFrames/AuraFrames.toc
+   M /trunk/AuraFrames/Modules/BarContainer/Prototype.lua
+   M /trunk/AuraFrames/Modules/ButtonContainer/Prototype.lua
+
+* Corrected toc version
+* Fixed an issue with cooldown animations for button and bar containers
+------------------------------------------------------------------------
+r493 | Draniuz | 2017-04-20 18:57:45 -0500 (Thu, 20 Apr 2017) | 1 line
+Changed paths:
+   M /trunk/AuraFramesConfig/AuraFramesConfig.toc
+
+* Corrected toc version
+------------------------------------------------------------------------
+

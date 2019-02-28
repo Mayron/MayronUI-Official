@@ -1,0 +1,43 @@
+Okay, now the fun part. People will always wine about addon memory. This is just because they don't know any better. For those people we have a nice trick. Look at the following code:
+
+  Module.StaticData = {
+    Data1 = {},
+    Data2 = {},
+    Data3 = {},
+  };
+
+The memory of the addon will increase but it doesn't slow anything down. Right. But it increase addon memory! And people will complain :( Take a look at the following code:
+
+  function Module:GetStaticData()
+  
+    return {
+      Data1 = {},
+      Data2 = {},
+      Data3 = {},
+    };
+  
+  end
+
+We still have the same static data. But if we want to access it, we need to call an additional function. So this is slower. Right. But wait, this is using lesser memory because we allocate memory only when we call that function. And after we used the data and we destroy any reference to the table that was returned by that function the garbage collector will clean up.
+
+Long story, short version: If static data is returned by a function then it will not count for the current memory usage.
+
+
+We use this trick a few times in a few modules. It's not faster but we also use it wisely :) On a few Module:Enable() functions we create the static data, so if we are not using the module then that there is no memory used and the global memory usage is lower.
+
+
+
+
+------------ even beter ------------
+
+  Module.StaticData;
+
+  function Module:GetStaticData()
+  
+    return Module.StaticData = Module.StaticData or {
+      Data1 = {},
+      Data2 = {},
+      Data3 = {},
+    };
+  
+  end

@@ -1,9 +1,0 @@
-## Interface: 80000
-## Title: |cff00ccffMUI|r Chat
-## Dependencies: MUI_Core
-## OptionalDeps: MUI_Config
-
-init.lua
-layout_switch.lua
-buttons.lua
-config.lua

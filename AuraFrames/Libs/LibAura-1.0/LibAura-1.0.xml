@@ -1,0 +1,24 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+
+  <Script file="LibAura-1.0.lua"/>
+  <Script file="Prototype.lua"/>
+  <Script file="UnitAuras.lua"/>
+  <Script file="WeaponEnchantments.lua"/>
+  <Script file="TestUnit.lua"/>
+  <Script file="Totems.lua"/>
+  <Script file="SpellCooldowns.lua"/>
+  <Script file="ItemCooldowns.lua"/>
+  <Script file="BossMods.lua"/>
+  <Script file="Stances.lua"/>
+  
+  <Script file="ItemProcData.lua"/>
+  <Script file="InternalCooldowns.lua"/>
+
+  <!--
+  <Script file="OldAuras.lua"/>
+  -->
+
+
+</Ui>

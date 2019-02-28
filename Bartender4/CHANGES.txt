@@ -1,0 +1,30 @@
+tag 9205cf425b3598071dace9f6da3aedbb32890e12 4.8.2
+Author:	Hendrik Leppkes <h.leppkes@gmail.com>
+Date:	Thu Jan 24 10:57:21 2019 +0100
+
+Tag as 4.8.2
+
+commit 1b1195b4931563163466f82f888ab5ba28e4d922
+Author: Hendrik Leppkes <h.leppkes@gmail.com>
+Date:   Thu Jan 24 10:56:10 2019 +0100
+
+    Hide stance visibility options when no stances exist
+
+commit 07bbfab8d720cfe9e771c88b7bb9d1182689271e
+Author: Hendrik Leppkes <h.leppkes@gmail.com>
+Date:   Thu Jan 24 10:53:59 2019 +0100
+
+    Remove ancient stance hacks
+
+commit 50507680c63fa8aa72b26bb2e8f6e2c8136d6da2
+Author: Hendrik Leppkes <h.leppkes@gmail.com>
+Date:   Thu Jan 24 10:52:49 2019 +0100
+
+    Remove pre-8.0 compat
+
+commit 97e1bf926764b417a41fc1c794822d81bf889f09
+Author: Hendrik Leppkes <h.leppkes@gmail.com>
+Date:   Thu Jan 24 10:48:55 2019 +0100
+
+    Update TOC to 8.1
+
