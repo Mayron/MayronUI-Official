@@ -1,8 +1,0 @@
-## Interface: 80000
-## Version: 18.08.12
-## Title: TipTacItemRef
-## Author: Aezay (Earthen Ring EU)
-## Notes: Improved ItemRefTooltip
-## OptionalDeps: TipTac
-LibItemString.lua
-ttItemRef.lua
