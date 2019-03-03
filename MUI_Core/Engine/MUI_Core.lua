@@ -913,7 +913,7 @@ db:OnStartUp(function(self)
     local Style = obj:Import("MayronUI.Widgets.Style");
 
     tk.Constants.AddOnStyle = Style();
-    -- tk.Constants.AddOnStyle:EnableColorUpdates();
+    tk.Constants.AddOnStyle:SetPadding(10, 10, 10, 10);
     tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");
     tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "ButtonBackdrop");
     tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\Button"), "ButtonTexture");

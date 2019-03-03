@@ -46,7 +46,7 @@ db:AddToDefaults("profile.chat", {
 	enabled = true;
 	swapInCombat = false;
 	layout = "DPS"; -- default layout
-	voiceChatIcons = "TOPLEFT";
+	chatIcons = "TOPLEFT";
 	chatFrames = {
 		-- these tables will contain the templateMuiChatFrame data (using SetParent)
 		TOPLEFT = {
@@ -170,7 +170,7 @@ function C_ChatModule:OnInitialize(data)
 	end
 
 	self:RegisterUpdateFunctions(db.profile.chat, {
-		voiceChatIcons = function(anchorName)
+		chatIcons = function(anchorName)
 			local muiChatFrame = data.chatFrames[anchorName];
 
 			if (muiChatFrame) then

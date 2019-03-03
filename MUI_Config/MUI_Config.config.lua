@@ -522,7 +522,7 @@ function C_ConfigModule:GetConfigTable()
                     dbPath            = "profile.sidebar.objectiveTracker.enabled";
                     requiresReload    = true;
                 };
-                {   name              = "Hide in Instance";
+                {   name              = "Collapse in Instance";
                     tooltip           = "If true, the objective tracker will collapse when entering an instance.";
                     type              = "check";
                     dbPath            = "profile.sidebar.objectiveTracker.hideInInstance";

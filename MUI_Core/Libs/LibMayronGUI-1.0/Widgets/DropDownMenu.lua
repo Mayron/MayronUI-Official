@@ -141,7 +141,7 @@ function DropDownMenu:__Construct(data, style, header, direction, slideControlle
     data.direction = direction;
     data.slideController = slideController;
     data.scrollHeight = 0;
-    data.frame = frame; -- must be called frame for GetFrame() to work!
+    data.frame = frame;
     data.menu = DropDownMenu.Static.Menu;
     data.style = style;
     data.options = obj:PopTable();
@@ -322,7 +322,7 @@ function DropDownMenu:AddOption(data, label, func, ...)
 
     local args = obj:PopTable(...);
     option:SetScript("OnClick", function()
-        self:SetLabel(label, true);
+        self:SetLabel(option:GetText(), true);
         self:Toggle(false);
 
         if (not func) then

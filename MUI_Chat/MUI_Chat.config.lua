@@ -166,12 +166,12 @@ function C_ChatModule:GetConfigTable()
                 tooltip = L["Allow the use of modifier keys to swap chat buttons while in combat."],
                 dbPath = "profile.chat.swapInCombat",
             },
-            {   name = "Anchor Voice Chat Icons",
+            {   name = "Anchor Chat Icons",
                 type = "dropdown",
                 -- requiresReload = true;
-                tooltip = "Select which chat frame the voice chat icons should be anchored to.",
+                tooltip = "Select which chat frame the chat icons should be anchored to.",
                 options = ChatFrameAnchorDropDownOptions;
-                dbPath = "profile.chat.voiceChatIcons",
+                dbPath = "profile.chat.chatIcons",
             },
             {   type = "divider"
             },

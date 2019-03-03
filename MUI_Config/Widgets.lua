@@ -178,7 +178,7 @@ function WidgetHandlers.title(parent, widgetTable)
     if (widgetTable.width) then
         container:SetWidth(widgetTable.width);
     else
-        tk:SetFullWidth(container, 22);
+        tk:SetFullWidth(container, 14);
     end
 
     local background = tk:SetBackground(container, 0, 0, 0, 0.2);

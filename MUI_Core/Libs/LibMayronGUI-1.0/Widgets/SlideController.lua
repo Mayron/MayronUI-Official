@@ -55,16 +55,16 @@ function SlideController:Start(data, forceState)
         end
     end
 
-    data.frame:Show();
-
     if (data.frame.ScrollFrame) then
         data.frame.ScrollFrame.animating = true;
     end
 
+    data.frame:Show();
+
     if (self:IsMaxExpanded() and data.onStartRetract) then
         data.onStartRetract(self, data.frame);
 
-    elseif (self:IsMaxRetracted() and data.onStartExpand) then
+    elseif (self:IsMaxRetracted()) then
         if (data.onStartExpand) then
             data.onStartExpand(self, data.frame);
         end
@@ -79,8 +79,8 @@ end
 function SlideController:Stop(data)
     data.stop = true;
 
-    if (data.frame.ScrollFrame and data.frame.ScrollFrame.showScrollBar) then
-        data.frame.ScrollFrame.showScrollBar:Show();
+    if (data.frame.ScrollFrame and data.frame.showScrollBar) then
+        data.frame.showScrollBar:Show();
     end
 
     if (data.frame.ScrollFrame) then

@@ -16,7 +16,7 @@ local function OnSizeChanged(self, width)
     width = math.ceil(width);
 
     local scrollChild = self.ScrollFrame:GetScrollChild();
-    local anchor = select(1, scrollChild:GetChildren());
+    local anchor = self.children[1];
 
     if (not anchor) then
         return;
@@ -27,7 +27,7 @@ local function OnSizeChanged(self, width)
     local totalHeight = 0; -- used to dynamically set the ScrollChild's height so that is can be visible
     local previousChild;
 
-    for id, child in obj:IterateArgs(scrollChild:GetChildren()) do
+    for id, child in ipairs(self.children) do
         child:ClearAllPoints();
         totalRowWidth = totalRowWidth + child:GetWidth();
 
@@ -46,7 +46,12 @@ local function OnSizeChanged(self, width)
 
                 child:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -(yOffset));
                 totalHeight = totalHeight + self.spacing;
-                anchor = child;
+
+                if (child.GetFrame) then
+                    anchor = child:GetFrame();
+                else
+                    anchor = child;
+                end
             end
 
             totalRowWidth = child:GetWidth();
@@ -69,16 +74,11 @@ local function OnSizeChanged(self, width)
 
     -- update ScrollChild Height dynamically:
     scrollChild:SetHeight(totalHeight);
-
-    if (self.parentScrollFrame) then
-        local parent = self.parentScrollFrame;
-        OnSizeChanged(parent, parent:GetWidth(), parent:GetHeight());
-    end
 end
 
 -- Helper constructor!
 function Lib:CreateDynamicFrame(style, parent, spacing, padding)
-    local scrollFrameContainer = Lib:CreateScrollFrame(style, parent, nil, padding);
+    local scrollFrameContainer = Lib:CreateScrollFrame(style, parent);
 
     scrollFrameContainer:HookScript("OnSizeChanged", OnSizeChanged);
     scrollFrameContainer.spacing = spacing or 4; -- the spacing around each inner element
@@ -90,6 +90,7 @@ end
 function DynamicFrame:__Construct(data, scrollFrameContainer)
     data.scrollChild = scrollFrameContainer.ScrollFrame:GetScrollChild();
     data.frame = scrollFrameContainer;
+    data.frame.children = obj:PopTable();
 end
 
 -- adds children to ScrollChild of the ScrollFrame
@@ -101,15 +102,13 @@ function DynamicFrame:AddChildren(data, ...)
     end
 
     for _, child in obj:IterateArgs(...) do
+        _G.table.insert(data.frame.children, child);
         child:SetParent(data.scrollChild);
     end
 
-    OnSizeChanged(data.frame, data.frame:GetWidth(), data.frame:GetHeight());
+    OnSizeChanged(data.frame, data.frame:GetWidth());
 end
 
 function DynamicFrame:GetChildren(data)
-    return data.scrollChild:GetChildren();
+    return _G.unpack(data.frame.children);
 end
-
--- TODO
--- function DynamicFrame:RemoveChild(data, child) end

@@ -5,8 +5,9 @@ local _G, MayronUI = _G, _G.MayronUI;
 local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 
 local GetSpellInfo, IsAddOnLoaded, UnitName = _G.GetSpellInfo, _G.IsAddOnLoaded, _G.UnitName;
-local UnitChannelInfo, UnitCastingInfo = _G.UnitChannelInfo, _G.UnitCastingInfo;
-local UIFrameFadeIn, UIFrameFadeOut, select, date = _G.UIFrameFadeIn, _G.UIFrameFadeOut, _G.select, _G.date;
+local UnitChannelInfo, UnitCastingInfo, CreateFrame = _G.UnitChannelInfo, _G.UnitCastingInfo, _G.CreateFrame;
+local UIFrameFadeIn, UIFrameFadeOut, select, date, math, tonumber, string, table, ipairs =
+    _G.UIFrameFadeIn, _G.UIFrameFadeOut, _G.select, _G.date, _G.math, _G.tonumber, _G.string, _G.table, _G.ipairs;
 local GetNetStats = _G.GetNetStats;
 
 namespace.castBarData = obj:PopTable();
@@ -75,7 +76,7 @@ function Ticks:Create(data)
     local tick = data.frame.statusbar:CreateTexture(nil, "OVERLAY");
     tick:SetSize(26, data.frame.statusbar:GetHeight() + 20);
     data.ticks = data.ticks or {};
-    tk.table.insert(data.ticks, tick);
+    table.insert(data.ticks, tick);
     tick:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark");
     tick:SetVertexColor(1, 1, 1);
     tick:SetBlendMode("ADD");
@@ -418,10 +419,10 @@ function C_CastBar:Update(data)
                 duration = 0;
             end
 
-            duration = tk.string.format("%.1f", duration);
+            duration = string.format("%.1f", duration);
 
-            if (tk.tonumber(duration) > 60) then
-                duration = tk.date("%M:%S", duration);
+            if (tonumber(duration) > 60) then
+                duration = date("%M:%S", duration);
             end
 
             data.frame.duration:SetText(duration);
@@ -435,7 +436,7 @@ Engine:DefineParams("number");
 ---@param numTicks number @The number of channelling ticks (when damage is applied)
 function C_CastBar:SetTicks(data, numTicks)
     if (data.ticks) then
-        for _, tick in tk.ipairs(data.ticks) do
+        for _, tick in ipairs(data.ticks) do
             tick:Hide();
         end
     end
@@ -476,7 +477,7 @@ function C_CastBar:SetIconEnabled(data, enabled)
     end
 
     if (not data.square) then
-        data.square = tk.CreateFrame("Frame", nil, data.frame);
+        data.square = CreateFrame("Frame", nil, data.frame);
         data.square:SetPoint("TOPRIGHT", data.frame, "TOPLEFT", -2, 0);
         data.square:SetPoint("BOTTOMRIGHT", data.frame, "BOTTOMLEFT", -2, 0);
 
@@ -500,7 +501,7 @@ function C_CastBar:StopCasting(data)
         data.fadingOut = true;
 
         if (not data.settings.unlocked) then
-            tk.UIFrameFadeOut(data.frame, 1, 1, 0);
+            UIFrameFadeOut(data.frame, 1, 1, 0);
         else
             data.frame.statusbar:SetValue(0);
             data.frame.name:SetText("");
@@ -544,7 +545,7 @@ function C_CastBar:StartCasting(data, channelling)
 
     if (data.frame.latencyBar) then
         if (data.settings.showLatency) then
-            local width = tk.math.floor(data.frame.statusbar:GetWidth() + 0.5);
+            local width = math.floor(data.frame.statusbar:GetWidth() + 0.5);
             local percent = (select(4, GetNetStats()) / 1000);
             local latencyWidth = (width * percent);
 
@@ -569,7 +570,7 @@ function C_CastBar:StartCasting(data, channelling)
         data.frame.statusbar:SetValue(0);
     end
 
-    tk.UIFrameFadeIn(data.frame, 0.1, 0, 1);
+    UIFrameFadeIn(data.frame, 0.1, 0, 1);
 
 	data.fadingOut = nil;
     data.channelling = channelling;
