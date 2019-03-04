@@ -12,8 +12,8 @@ local _G = _G;
 local C_ChatFrame = namespace.C_ChatFrame;
 local CreatePlayerStatusButton, CreateToggleEmoteButton, CreateCopyChatButton;
 
-local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string =
-	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string;
+local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string, table =
+	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string, _G.table;
 
 local FCF_GetButtonSide, DEFAULT_CHAT_FRAME, UIMenu_AddButton, FriendsFrame_SetOnlineStatus =
 	_G.FCF_GetButtonSide, _G.DEFAULT_CHAT_FRAME, _G.UIMenu_AddButton, _G.FriendsFrame_SetOnlineStatus;
@@ -346,29 +346,29 @@ do
 	end
 
 	local function RefreshChatText(editBox)
-		local text = "";
-		local totalMessages = DEFAULT_CHAT_FRAME:GetNumMessages();
+		local chatFrame = _G[string.format("ChatFrame%d", editBox.chatFrameID)];
+		local messages = obj:PopTable();
+		local totalMessages = chatFrame:GetNumMessages();
+		local message, r, g, b;
 
 		for i = 1, totalMessages do
-			local message, r, g, b = DEFAULT_CHAT_FRAME:GetMessageInfo(i);
+			message, r, g, b = chatFrame:GetMessageInfo(i);
 
 			if (obj:IsString(message)) then
 				message = ApplyColorToMessage(message, r, g, b);
-
-				if (i < totalMessages) then
-					text = text .. message .. "\n";
-				else
-					text = text .. message;
-				end
+				table.insert(messages, message);
 			end
 		end
 
-		-- Show Raid Frame Icons:
-		text = text:gsub("|T[^\\]+\\[^\\]+\\[Uu][Ii]%-[Rr][Aa][Ii][Dd][Tt][Aa][Rr][Gg][Ee][Tt][Ii][Nn][Gg][Ii][Cc][Oo][Nn]_(%d)[^|]+|t", "{rt%1}"); --luacheck: ignore
-		text = text:gsub("|T13700([1-8])[^|]+|t", "{rt%1}");
-		text = text:gsub("|T[^|]+|t", ""); -- remove remaining texture codes
+		local fullText = table.concat(messages, " \n", 1, #messages);
+		obj:PushTable(messages);
 
-		editBox:SetText(text);
+		-- Show Raid Frame Icons:
+		fullText = fullText:gsub("|T[^\\]+\\[^\\]+\\[Uu][Ii]%-[Rr][Aa][Ii][Dd][Tt][Aa][Rr][Gg][Ee][Tt][Ii][Nn][Gg][Ii][Cc][Oo][Nn]_(%d)[^|]+|t", "{rt%1}"); --luacheck: ignore
+		fullText = fullText:gsub("|T13700([1-8])[^|]+|t", "{rt%1}");
+		fullText = fullText:gsub("|T[^|]+|t", ""); -- remove remaining texture codes
+
+		editBox:SetText(fullText);
 	end
 
 	local function CreateChatTextFrame()
@@ -388,6 +388,7 @@ do
 		editBox:SetAutoFocus(false);
 		editBox:SetFontObject("GameFontHighlight");
 		editBox:SetHeight(200);
+		editBox.chatFrameID = 1;
 
 		editBox:SetScript("OnEscapePressed", function(self)
 			self:ClearFocus();
@@ -399,9 +400,29 @@ do
 		refreshButton:SetNormalTexture("Interface\\Buttons\\UI-RefreshButton");
 		refreshButton:SetHighlightAtlas("chatframe-button-highlight");
 		tk:SetBasicTooltip(refreshButton, "Refresh Chat Text");
+
 		refreshButton:SetScript("OnClick", function()
 			RefreshChatText(editBox);
 		end);
+
+		local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, frame);
+		local dropdownContainer = dropdown:GetFrame();
+		dropdownContainer:SetSize(150, 20);
+		dropdownContainer:SetPoint("TOPRIGHT", refreshButton, "TOPLEFT", -10, 0);
+
+		local function DropDown_OnOptionSelected(_, chatFrameID)
+			editBox.chatFrameID = chatFrameID;
+			RefreshChatText(editBox);
+		end
+
+		for chatFrameID = 1, _G.NUM_CHAT_WINDOWS do
+			local tab = _G[string.format("ChatFrame%dTab", chatFrameID)];
+			local tabText = tab.Text:GetText();
+
+			if (obj:IsString(tabText) and #tabText > 0 and tab:IsShown()) then
+				dropdown:AddOption(tabText, DropDown_OnOptionSelected, chatFrameID);
+			end
+		end
 
 		local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, frame, "MUI_CopyChatFrame", editBox);
 		container:SetPoint("TOPLEFT", 10, -30);
@@ -419,6 +440,7 @@ do
 		tk:SetBackground(container, 0, 0, 0, 0.4);
 
 		frame.editBox = editBox;
+		frame.dropdown = dropdown;
 		return frame;
 	end
 
@@ -439,6 +461,10 @@ do
 			-- get chat frame text:
 			RefreshChatText(self.chatTextFrame.editBox);
 			self.chatTextFrame:SetShown(not self.chatTextFrame:IsShown());
+
+			local tab = _G[string.format("ChatFrame%dTab", self.chatTextFrame.editBox.chatFrameID)];
+			local tabText = tab.Text:GetText();
+			self.chatTextFrame.dropdown:SetLabel(tabText);
 
 			self:GetScript("OnLeave")(self);
 		end);

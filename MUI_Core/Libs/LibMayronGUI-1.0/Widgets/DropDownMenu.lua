@@ -322,7 +322,7 @@ function DropDownMenu:AddOption(data, label, func, ...)
 
     local args = obj:PopTable(...);
     option:SetScript("OnClick", function()
-        self:SetLabel(option:GetText(), true);
+        self:SetLabel(option:GetText());
         self:Toggle(false);
 
         if (not func) then
