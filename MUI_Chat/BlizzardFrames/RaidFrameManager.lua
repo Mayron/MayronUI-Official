@@ -39,6 +39,7 @@ end
 local function CreateToggleButton()
     local btn = CreateFrame("Button", nil, _G.UIParent);
     btn:SetSize(14, 120);
+    btn:SetPoint("LEFT", _G.UIParent, "LEFT");
     btn:SetNormalTexture(tk:GetAssetFilePath("Textures\\SideBar\\SideButton"));
     btn:SetNormalFontObject("MUI_FontSmall");
     btn:SetHighlightFontObject("GameFontHighlightSmall");
@@ -71,9 +72,6 @@ function C_ChatModule:SetUpRaidFrameManager(data)
 
     -- button to toggle compact raid frame manager
     local btn = CreateToggleButton();
-
-    -- position below the top left chat frame if needed
-    btn:SetPoint("LEFT", _G.UIParent, "LEFT");
 
     local compactFrame = CompactRaidFrameManager.displayFrame;
     compactFrame:SetParent(btn);

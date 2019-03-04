@@ -363,11 +363,6 @@ do
 		local fullText = table.concat(messages, " \n", 1, #messages);
 		obj:PushTable(messages);
 
-		-- Show Raid Frame Icons:
-		fullText = fullText:gsub("|T[^\\]+\\[^\\]+\\[Uu][Ii]%-[Rr][Aa][Ii][Dd][Tt][Aa][Rr][Gg][Ee][Tt][Ii][Nn][Gg][Ii][Cc][Oo][Nn]_(%d)[^|]+|t", "{rt%1}"); --luacheck: ignore
-		fullText = fullText:gsub("|T13700([1-8])[^|]+|t", "{rt%1}");
-		fullText = fullText:gsub("|T[^|]+|t", ""); -- remove remaining texture codes
-
 		editBox:SetText(fullText);
 	end
 
