@@ -74,6 +74,11 @@ db:AddToDefaults("profile.chat", {
 			}
 		};
 	};
+	icons = {
+		copyChat = true;
+		emotes = true;
+		playerStatus = true;
+	};
     editBox = {
         yOffset = -8;
         height = 27;
@@ -177,6 +182,16 @@ function C_ChatModule:OnInitialize(data)
 				muiChatFrame:SetEnabled(true);
 			end
 		end;
+
+		icons = function()
+			local anchorName = data.settings.chatIcons;
+			local muiChatFrame = data.chatFrames[anchorName];
+
+			if (muiChatFrame) then
+				muiChatFrame:PositionSideBarIcons();
+			end
+		end;
+
 		chatFrames = function(value, keysList)
 			if (keysList:GetSize() == 1) then
 				for anchorName, settings in pairs(value) do
@@ -186,7 +201,6 @@ function C_ChatModule:OnInitialize(data)
 						muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
 						data.chatFrames[anchorName] = muiChatFrame;
 					end
-
 				end
 
 				for anchorName, settings in pairs(value) do

@@ -175,6 +175,20 @@ function C_ChatModule:GetConfigTable()
             },
             {   type = "divider"
             },
+            {   name = "Show Copy Chat Icon",
+                type = "check",
+                dbPath = "profile.chat.icons.copyChat",
+            },
+            {   name = "Show Emotes Icon",
+                type = "check",
+                dbPath = "profile.chat.icons.emotes",
+            },
+            {   name = "Show Player Status Icon",
+                type = "check",
+                dbPath = "profile.chat.icons.playerStatus",
+            },
+            {   type = "divider"
+            },
             {   type = "loop",
                 args = {"TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT"},
 

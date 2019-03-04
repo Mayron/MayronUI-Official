@@ -10,7 +10,7 @@ local _G = _G;
 
 ---@class ChatFrame;
 local C_ChatFrame = namespace.C_ChatFrame;
-local SetUpSideBarButtons, CreatePlayerStatusButton, CreateToggleEmoteButton, CreateCopyChatButton;
+local CreatePlayerStatusButton, CreateToggleEmoteButton, CreateCopyChatButton;
 
 local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string =
 	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string;
@@ -77,7 +77,7 @@ function C_ChatFrame:SetEnabled(data, enabled)
 		end
 
 		if (muiChatFrame and muiChatFrame == data.frame and enabled) then
-			SetUpSideBarButtons(muiChatFrame);
+			self:SetUpSideBarIcons();
 		end
 	end
 end
@@ -246,16 +246,7 @@ function C_ChatFrame:Reposition(data)
 	self:SetUpTabBar(data.settings.tabBar);
 end
 
-function SetUpSideBarButtons(muiChatFrame)
-	if (_G.MUI_PlayerStatusButton) then
-		_G.ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
-		_G.MUI_PlayerStatusButton:SetPoint("BOTTOMLEFT", muiChatFrame.sidebar, "BOTTOMLEFT", 1, 14);
-		return;
-	end
-
-	_G.ChatFrameChannelButton:ClearAllPoints();
-	_G.ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
-
+function C_ChatFrame:SetUpSideBarIcons()
 	_G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
 	_G.ChatFrameToggleVoiceDeafenButton:DisableDrawLayer("ARTWORK");
 	_G.ChatFrameToggleVoiceMuteButton:DisableDrawLayer("ARTWORK");
@@ -268,19 +259,58 @@ function SetUpSideBarButtons(muiChatFrame)
 	_G.ChatFrameToggleVoiceMuteButton:SetVisibilityQueryFunction(dummyFunc);
 	_G.ChatFrameToggleVoiceMuteButton:UpdateVisibleState();
 
-	-- bottom buttons:
-	local playerStatusButton = CreatePlayerStatusButton(muiChatFrame);
-	local toggleEmotesButton = CreateToggleEmoteButton(muiChatFrame, playerStatusButton);
-	CreateCopyChatButton(muiChatFrame, toggleEmotesButton);
+	self:PositionSideBarIcons();
 end
 
-function CreateToggleEmoteButton(muiChatFrame, anchorButton)
+do
+	local function PositionIcon(enabled, currentIcon, anchorIcon, frame, createFunc)
+		if (enabled) then
+			if (not currentIcon) then
+				currentIcon = createFunc(frame);
+			end
+
+			currentIcon:ClearAllPoints();
+
+			if (anchorIcon) then
+				currentIcon:SetPoint("BOTTOMLEFT", anchorIcon, "TOPLEFT", 0, 2);
+			else
+				currentIcon:SetPoint("BOTTOMLEFT", frame.sidebar, "BOTTOMLEFT", 1, 14);
+			end
+
+			currentIcon:Show();
+			return currentIcon;
+
+		elseif (currentIcon) then
+			currentIcon:Hide();
+		end
+
+		return anchorIcon;
+	end
+
+	function C_ChatFrame:PositionSideBarIcons(data)
+		_G.ChatFrameChannelButton:ClearAllPoints();
+		_G.ChatFrameChannelButton:SetPoint("TOPLEFT", data.frame.sidebar, "TOPLEFT", -1, -10);
+
+		local anchorIcon;
+
+		anchorIcon = PositionIcon(data.chatModuleSettings.icons.playerStatus,
+			_G.MUI_PlayerStatusButton, nil, data.frame, CreatePlayerStatusButton);
+
+		anchorIcon = PositionIcon(data.chatModuleSettings.icons.emotes,
+			_G.MUI_ToggleEmotesButton, anchorIcon, data.frame, CreateToggleEmoteButton);
+
+		PositionIcon(data.chatModuleSettings.icons.copyChat,
+			_G.MUI_CopyChatButton, anchorIcon, data.frame, CreateCopyChatButton);
+	end
+end
+
+function CreateToggleEmoteButton(muiChatFrame)
 	local toggleEmotesButton = _G.CreateFrame("Button", "MUI_ToggleEmotesButton", muiChatFrame);
 	toggleEmotesButton:SetSize(24, 24);
 	toggleEmotesButton:SetNormalTexture(string.format("%sspeechIcon", MEDIA));
 	toggleEmotesButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
 	toggleEmotesButton:SetHighlightAtlas("chatframe-button-highlight");
-	toggleEmotesButton:SetPoint("BOTTOMLEFT", anchorButton, "TOPLEFT", 0, 2);
+
 	tk:SetBasicTooltip(toggleEmotesButton, "Show Chat Menu");
 
 	toggleEmotesButton:SetScript("OnClick", function(self)
@@ -333,9 +363,10 @@ do
 			end
 		end
 
-		text = text:gsub("|T[^\\]+\\[^\\]+\\[Uu][Ii]%-[Rr][Aa][Ii][Dd][Tt][Aa][Rr][Gg][Ee][Tt][Ii][Nn][Gg][Ii][Cc][Oo][Nn]_(%d)[^|]+|t", "{rt%1}");
+		-- Show Raid Frame Icons:
+		text = text:gsub("|T[^\\]+\\[^\\]+\\[Uu][Ii]%-[Rr][Aa][Ii][Dd][Tt][Aa][Rr][Gg][Ee][Tt][Ii][Nn][Gg][Ii][Cc][Oo][Nn]_(%d)[^|]+|t", "{rt%1}"); --luacheck: ignore
 		text = text:gsub("|T13700([1-8])[^|]+|t", "{rt%1}");
-		text = text:gsub("|T[^|]+|t", "");
+		text = text:gsub("|T[^|]+|t", ""); -- remove remaining texture codes
 
 		editBox:SetText(text);
 	end
@@ -350,7 +381,7 @@ do
 		gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
 		gui:AddTitleBar(tk.Constants.AddOnStyle, frame, "Copy Chat Text");
 
-		local editBox = CreateFrame("EditBox", nil, frame);
+		local editBox = CreateFrame("EditBox", "MUI_CopyChatEditBox", frame);
 		editBox:SetMultiLine(true);
 		editBox:SetMaxLetters(99999);
 		editBox:EnableMouse(true);
@@ -391,13 +422,13 @@ do
 		return frame;
 	end
 
-	function CreateCopyChatButton(muiChatFrame, anchorButton)
+	function CreateCopyChatButton(muiChatFrame)
 		local copyChatButton = _G.CreateFrame("Button", "MUI_CopyChatButton", muiChatFrame);
 		copyChatButton:SetSize(24, 24);
 		copyChatButton:SetNormalTexture(string.format("%scopyIcon", MEDIA));
 		copyChatButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
 		copyChatButton:SetHighlightAtlas("chatframe-button-highlight");
-		copyChatButton:SetPoint("BOTTOMLEFT", anchorButton, "TOPLEFT", 0, 2);
+
 		tk:SetBasicTooltip(copyChatButton, "Copy Chat Text");
 
 		copyChatButton:SetScript("OnClick", function(self)
@@ -434,7 +465,6 @@ function CreatePlayerStatusButton(muiChatFrame)
 	end):Run();
 
 	playerStatusButton:SetHighlightAtlas("chatframe-button-highlight");
-	playerStatusButton:SetPoint("BOTTOMLEFT", muiChatFrame.sidebar, "BOTTOMLEFT", 1, 14);
 	tk:SetBasicTooltip(playerStatusButton, "Change Status");
 
 	local statusMenu = CreateFrame("Frame", "MUI_StatusMenu", muiChatFrame, "UIMenuTemplate");
