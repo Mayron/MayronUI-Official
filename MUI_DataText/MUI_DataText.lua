@@ -311,6 +311,10 @@ function C_DataTextModule:CreateDataTextButton(data)
     btn:SetHighlightTexture(btnTextureFilePath);
     btn:GetHighlightTexture():SetVertexColor(0.08, 0.08, 0.08);
     btn:SetNormalFontObject("MUI_FontNormal");
+    btn:SetText(" ");
+
+    local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
+    btn:GetFontString():SetFont(font, data.settings.fontSize);
 
     table.insert(data.buttons, btn);
     return btn;
