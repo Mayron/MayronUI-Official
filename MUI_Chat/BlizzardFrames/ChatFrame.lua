@@ -5,6 +5,9 @@
 local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
 local tk = MayronUI:GetCoreComponents();
+
+local _G = _G;
+local string = _G.string;
 --------------------------------------
 
 local function GetChatLink(text, id, url)
@@ -25,9 +28,8 @@ local function OnHyperLinkLeave()
 end
 
 local function OnHyperlinkEnter(self, linkData)
-	local linkType = tk.string.split(":", linkData);
+	local linkType = string.split(":", linkData);
 
-	-- TODO: missing type for new community link?
 	if (tk:ValueIsEither(linkType, "item", "spell", "enchant", "quest", "talent", "glyph", "unit", "achievement")) then
 		_G.GameTooltip:SetOwner(self, "ANCHOR_CURSOR");
 		_G.GameTooltip:SetHyperlink(linkData);
@@ -98,6 +100,23 @@ local function Tab_OnLeave(self)
 	end
 end
 
+local function RepositionNotificationFrame(chatFrame)
+	if (not chatFrame:GetName() == "ChatFrame1") then
+		return;
+	end
+
+	local tab = _G.ChatFrame1Tab;
+	local relativePoint = chatFrame:GetPoint();
+	_G.ChatAlertFrame:ClearAllPoints(); -- parent of BNToastFrame
+
+	if (relativePoint:find("TOP")) then
+		_G.ChatAlertFrame:SetPoint("TOPLEFT", chatFrame, "BOTTOMLEFT", 0, -50);
+
+	elseif (relativePoint:find("BOTTOM")) then
+		_G.ChatAlertFrame:SetPoint("BOTTOMLEFT", tab, "TOPLEFT", 0, 10);
+	end
+end
+
 function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
   local chatFrameName = string.format("ChatFrame%d", chatFrameID);
 
@@ -108,12 +127,12 @@ function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
 	_G[string.format("%sEditBox", chatFrameName)]:SetAltArrowKeyMode(false);
 
 	if (chatFrameID ~= 2) then
-	-- if not combat log...
-	chatFrame.oldAddMessage = chatFrame.AddMessage;
-	chatFrame.AddMessage = NewAddMessage;
-	chatFrame:SetScript("OnHyperLinkEnter", OnHyperlinkEnter);
-	chatFrame:SetScript("OnHyperLinkLeave", OnHyperLinkLeave);
-	chatFrame:SetScript("OnHyperlinkClick", OnHyperlinkClick);
+		-- if not combat log...
+		chatFrame.oldAddMessage = chatFrame.AddMessage;
+		chatFrame.AddMessage = NewAddMessage;
+		chatFrame:SetScript("OnHyperLinkEnter", OnHyperlinkEnter);
+		chatFrame:SetScript("OnHyperLinkLeave", OnHyperLinkLeave);
+		chatFrame:SetScript("OnHyperlinkClick", OnHyperlinkClick);
 	end
 
 	local tab = _G[string.format("%sTab", chatFrameName)];
@@ -141,16 +160,26 @@ function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
 	btn.EnableMouse = tk.Constants.DUMMY_FUNC;
 
 	tk:KillAllElements(
-	_G[ string.format("%sTabSelectedLeft", chatFrameName) ],
-	_G[ string.format("%sTabSelectedMiddle", chatFrameName) ],
-	_G[ string.format("%sTabSelectedRight", chatFrameName) ],
-	_G[ string.format("%sTabLeft", chatFrameName) ],
-	_G[ string.format("%sTabMiddle", chatFrameName) ],
-	_G[ string.format("%sTabRight", chatFrameName) ],
-	_G[ string.format("%sTabHighlightLeft", chatFrameName) ],
-	_G[ string.format("%sTabHighlightMiddle", chatFrameName) ],
-	_G[ string.format("%sTabHighlightRight", chatFrameName) ]
+		_G[ string.format("%sTabSelectedLeft", chatFrameName) ],
+		_G[ string.format("%sTabSelectedMiddle", chatFrameName) ],
+		_G[ string.format("%sTabSelectedRight", chatFrameName) ],
+		_G[ string.format("%sTabLeft", chatFrameName) ],
+		_G[ string.format("%sTabMiddle", chatFrameName) ],
+		_G[ string.format("%sTabRight", chatFrameName) ],
+		_G[ string.format("%sTabHighlightLeft", chatFrameName) ],
+		_G[ string.format("%sTabHighlightMiddle", chatFrameName) ],
+		_G[ string.format("%sTabHighlightRight", chatFrameName) ]
 	);
+
+	if (chatFrameName == "ChatFrame1") then
+		_G.hooksecurefunc("FCF_StopDragging", RepositionNotificationFrame);
+		RepositionNotificationFrame(chatFrame);
+
+		_G.BNToastFrame:ClearAllPoints();
+		_G.BNToastFrame:SetPoint("BOTTOMLEFT", _G.ChatAlertFrame, "BOTTOMLEFT", 0, 0);
+		_G.BNToastFrame.ClearAllPoints = tk.Constants.DUMMY_FUNC;
+		_G.BNToastFrame.SetPoint = tk.Constants.DUMMY_FUNC;
+	end
 
 	return chatFrame;
 end

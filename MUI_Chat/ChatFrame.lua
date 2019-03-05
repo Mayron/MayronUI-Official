@@ -10,10 +10,9 @@ local _G = _G;
 
 ---@class ChatFrame;
 local C_ChatFrame = namespace.C_ChatFrame;
-local CreatePlayerStatusButton, CreateToggleEmoteButton, CreateCopyChatButton;
 
-local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string, table =
-	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string, _G.table;
+local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string, table, pairs =
+	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string, _G.table, _G.pairs;
 
 local FCF_GetButtonSide, DEFAULT_CHAT_FRAME, UIMenu_AddButton, FriendsFrame_SetOnlineStatus =
 	_G.FCF_GetButtonSide, _G.DEFAULT_CHAT_FRAME, _G.UIMenu_AddButton, _G.FriendsFrame_SetOnlineStatus;
@@ -70,14 +69,23 @@ function C_ChatFrame:SetEnabled(data, enabled)
 			self:SetUpButtonHandler(data.settings.buttons);
 		end
 
-		local muiChatFrame = _G["MUI_ChatFrame_" .. data.chatModuleSettings.chatIcons];
+		local muiChatFrame = _G["MUI_ChatFrame_" .. data.chatModuleSettings.icons.anchor];
 
-		if (not (muiChatFrame and muiChatFrame:IsShown()) and enabled) then
+		if (not (muiChatFrame and muiChatFrame:IsShown())) then
 			muiChatFrame = data.frame;
 		end
 
-		if (muiChatFrame and muiChatFrame == data.frame and enabled) then
-			self:SetUpSideBarIcons();
+		if (muiChatFrame and muiChatFrame:IsShown()) then
+			C_ChatFrame.Static:SetUpSideBarIcons(data.chatModuleSettings, muiChatFrame);
+		else
+			for anchorName, _ in pairs(data.chatModule:GetChatFrames()) do
+				muiChatFrame = _G["MUI_ChatFrame_" .. anchorName];
+
+				if (muiChatFrame and muiChatFrame:IsShown()) then
+					C_ChatFrame.Static:SetUpSideBarIcons(data.chatModuleSettings, muiChatFrame);
+					break;
+				end
+			end
 		end
 	end
 end
@@ -246,7 +254,7 @@ function C_ChatFrame:Reposition(data)
 	self:SetUpTabBar(data.settings.tabBar);
 end
 
-function C_ChatFrame:SetUpSideBarIcons()
+function C_ChatFrame.Static:SetUpSideBarIcons(chatModuleSettings, muiChatFrame)
 	_G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
 	_G.ChatFrameToggleVoiceDeafenButton:DisableDrawLayer("ARTWORK");
 	_G.ChatFrameToggleVoiceMuteButton:DisableDrawLayer("ARTWORK");
@@ -259,10 +267,12 @@ function C_ChatFrame:SetUpSideBarIcons()
 	_G.ChatFrameToggleVoiceMuteButton:SetVisibilityQueryFunction(dummyFunc);
 	_G.ChatFrameToggleVoiceMuteButton:UpdateVisibleState();
 
-	self:PositionSideBarIcons();
+	self:PositionSideBarIcons(chatModuleSettings, muiChatFrame);
 end
 
 do
+	local CreatePlayerStatusButton, CreateToggleEmoteButton, CreateCopyChatButton;
+
 	local function PositionIcon(enabled, currentIcon, anchorIcon, frame, createFunc)
 		if (enabled) then
 			if (not currentIcon) then
@@ -270,6 +280,7 @@ do
 			end
 
 			currentIcon:ClearAllPoints();
+			currentIcon:SetParent(frame);
 
 			if (anchorIcon) then
 				currentIcon:SetPoint("BOTTOMLEFT", anchorIcon, "TOPLEFT", 0, 2);
@@ -287,242 +298,245 @@ do
 		return anchorIcon;
 	end
 
-	function C_ChatFrame:PositionSideBarIcons(data)
+	function C_ChatFrame.Static:PositionSideBarIcons(chatModuleSettings, muiChatFrame)
 		_G.ChatFrameChannelButton:ClearAllPoints();
-		_G.ChatFrameChannelButton:SetPoint("TOPLEFT", data.frame.sidebar, "TOPLEFT", -1, -10);
+		_G.ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
+		_G.ChatFrameChannelButton:SetParent(muiChatFrame);
+		_G.ChatFrameToggleVoiceDeafenButton:SetParent(muiChatFrame);
+		_G.ChatFrameToggleVoiceMuteButton:SetParent(muiChatFrame);
 
 		local anchorIcon;
 
-		anchorIcon = PositionIcon(data.chatModuleSettings.icons.playerStatus,
-			_G.MUI_PlayerStatusButton, nil, data.frame, CreatePlayerStatusButton);
+		anchorIcon = PositionIcon(chatModuleSettings.icons.playerStatus,
+			_G.MUI_PlayerStatusButton, nil, muiChatFrame, CreatePlayerStatusButton);
 
-		anchorIcon = PositionIcon(data.chatModuleSettings.icons.emotes,
-			_G.MUI_ToggleEmotesButton, anchorIcon, data.frame, CreateToggleEmoteButton);
+		anchorIcon = PositionIcon(chatModuleSettings.icons.emotes,
+			_G.MUI_ToggleEmotesButton, anchorIcon, muiChatFrame, CreateToggleEmoteButton);
 
-		PositionIcon(data.chatModuleSettings.icons.copyChat,
-			_G.MUI_CopyChatButton, anchorIcon, data.frame, CreateCopyChatButton);
+		PositionIcon(chatModuleSettings.icons.copyChat,
+			_G.MUI_CopyChatButton, anchorIcon, muiChatFrame, CreateCopyChatButton);
 	end
-end
 
-function CreateToggleEmoteButton(muiChatFrame)
-	local toggleEmotesButton = _G.CreateFrame("Button", "MUI_ToggleEmotesButton", muiChatFrame);
-	toggleEmotesButton:SetSize(24, 24);
-	toggleEmotesButton:SetNormalTexture(string.format("%sspeechIcon", MEDIA));
-	toggleEmotesButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
-	toggleEmotesButton:SetHighlightAtlas("chatframe-button-highlight");
+	function CreateToggleEmoteButton(muiChatFrame)
+		local toggleEmotesButton = _G.CreateFrame("Button", "MUI_ToggleEmotesButton", muiChatFrame);
+		toggleEmotesButton:SetSize(24, 24);
+		toggleEmotesButton:SetNormalTexture(string.format("%sspeechIcon", MEDIA));
+		toggleEmotesButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
+		toggleEmotesButton:SetHighlightAtlas("chatframe-button-highlight");
 
-	tk:SetBasicTooltip(toggleEmotesButton, "Show Chat Menu");
+		tk:SetBasicTooltip(toggleEmotesButton, "Show Chat Menu");
 
-	toggleEmotesButton:SetScript("OnClick", function(self)
-		ChatMenu:ClearAllPoints();
-
-		if (_G.FCF_GetButtonSide(_G.DEFAULT_CHAT_FRAME) == "right") then
+		toggleEmotesButton:SetScript("OnClick", function(self)
 			ChatMenu:ClearAllPoints();
-			ChatMenu:SetPoint("BOTTOMRIGHT", toggleEmotesButton, "TOPLEFT");
-		else
-			ChatMenu:ClearAllPoints();
-			ChatMenu:SetPoint("BOTTOMLEFT", toggleEmotesButton, "TOPRIGHT");
-		end
 
-		_G.ChatFrame_ToggleMenu();
-		self:GetScript("OnLeave")(self);
-	end);
-
-	return toggleEmotesButton;
-end
-
-do
-	local c = _G.CreateColor(1, 1, 1);
-
-	local function ApplyColorToMessage(message, r, g, b)
-		r, g, b = r or 1, g or 1, b or 1;
-		c:SetRGB(r, g, b);
-
-		local hex = "|c" .. c:GenerateHexColor();
-		message = message:gsub("|r", string.format("|r%s", hex));
-		message = string.format("%s%s|r", hex, message);
-
-		return message;
-	end
-
-	local function RefreshChatText(editBox)
-		local chatFrame = _G[string.format("ChatFrame%d", editBox.chatFrameID)];
-		local messages = obj:PopTable();
-		local totalMessages = chatFrame:GetNumMessages();
-		local message, r, g, b;
-
-		for i = 1, totalMessages do
-			message, r, g, b = chatFrame:GetMessageInfo(i);
-
-			if (obj:IsString(message)) then
-				message = ApplyColorToMessage(message, r, g, b);
-				table.insert(messages, message);
-			end
-		end
-
-		local fullText = table.concat(messages, " \n", 1, #messages);
-		obj:PushTable(messages);
-
-		editBox:SetText(fullText);
-	end
-
-	local function CreateChatTextFrame()
-		local frame = CreateFrame("Frame", nil, _G.UIParent);
-		frame:SetSize(600, 300);
-		frame:SetPoint("CENTER");
-		frame:Hide();
-
-		gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
-		gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
-		gui:AddTitleBar(tk.Constants.AddOnStyle, frame, "Copy Chat Text");
-
-		local editBox = CreateFrame("EditBox", "MUI_CopyChatEditBox", frame);
-		editBox:SetMultiLine(true);
-		editBox:SetMaxLetters(99999);
-		editBox:EnableMouse(true);
-		editBox:SetAutoFocus(false);
-		editBox:SetFontObject("GameFontHighlight");
-		editBox:SetHeight(200);
-		editBox.chatFrameID = 1;
-
-		editBox:SetScript("OnEscapePressed", function(self)
-			self:ClearFocus();
-		end);
-
-		local refreshButton = CreateFrame("Button", nil, frame);
-		refreshButton:SetSize(18, 18);
-		refreshButton:SetPoint("TOPRIGHT", frame.closeBtn, "TOPLEFT", -10, -3);
-		refreshButton:SetNormalTexture("Interface\\Buttons\\UI-RefreshButton");
-		refreshButton:SetHighlightAtlas("chatframe-button-highlight");
-		tk:SetBasicTooltip(refreshButton, "Refresh Chat Text");
-
-		refreshButton:SetScript("OnClick", function()
-			RefreshChatText(editBox);
-		end);
-
-		local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, frame);
-		local dropdownContainer = dropdown:GetFrame();
-		dropdownContainer:SetSize(150, 20);
-		dropdownContainer:SetPoint("TOPRIGHT", refreshButton, "TOPLEFT", -10, 0);
-
-		local function DropDown_OnOptionSelected(_, chatFrameID)
-			editBox.chatFrameID = chatFrameID;
-			RefreshChatText(editBox);
-		end
-
-		for chatFrameID = 1, _G.NUM_CHAT_WINDOWS do
-			local tab = _G[string.format("ChatFrame%dTab", chatFrameID)];
-			local tabText = tab.Text:GetText();
-
-			if (obj:IsString(tabText) and #tabText > 0 and tab:IsShown()) then
-				dropdown:AddOption(tabText, DropDown_OnOptionSelected, chatFrameID);
-			end
-		end
-
-		local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, frame, "MUI_CopyChatFrame", editBox);
-		container:SetPoint("TOPLEFT", 10, -30);
-		container:SetPoint("BOTTOMRIGHT", -10, 10);
-
-		container.ScrollFrame:ClearAllPoints();
-		container.ScrollFrame:SetPoint("TOPLEFT", 5, -5);
-		container.ScrollFrame:SetPoint("BOTTOMRIGHT", -5, 5);
-
-		container.ScrollFrame:HookScript("OnScrollRangeChanged", function(self)
-			local maxScroll = self:GetVerticalScrollRange();
-			self:SetVerticalScroll(maxScroll);
-		end);
-
-		tk:SetBackground(container, 0, 0, 0, 0.4);
-
-		frame.editBox = editBox;
-		frame.dropdown = dropdown;
-		return frame;
-	end
-
-	function CreateCopyChatButton(muiChatFrame)
-		local copyChatButton = _G.CreateFrame("Button", "MUI_CopyChatButton", muiChatFrame);
-		copyChatButton:SetSize(24, 24);
-		copyChatButton:SetNormalTexture(string.format("%scopyIcon", MEDIA));
-		copyChatButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
-		copyChatButton:SetHighlightAtlas("chatframe-button-highlight");
-
-		tk:SetBasicTooltip(copyChatButton, "Copy Chat Text");
-
-		copyChatButton:SetScript("OnClick", function(self)
-			if (not self.chatTextFrame) then
-				self.chatTextFrame = CreateChatTextFrame();
+			if (_G.FCF_GetButtonSide(_G.DEFAULT_CHAT_FRAME) == "right") then
+				ChatMenu:ClearAllPoints();
+				ChatMenu:SetPoint("BOTTOMRIGHT", toggleEmotesButton, "TOPLEFT");
+			else
+				ChatMenu:ClearAllPoints();
+				ChatMenu:SetPoint("BOTTOMLEFT", toggleEmotesButton, "TOPRIGHT");
 			end
 
-			-- get chat frame text:
-			RefreshChatText(self.chatTextFrame.editBox);
-			self.chatTextFrame:SetShown(not self.chatTextFrame:IsShown());
+			_G.ChatFrame_ToggleMenu();
+			self:GetScript("OnLeave")(self);
+		end);
 
-			local tab = _G[string.format("ChatFrame%dTab", self.chatTextFrame.editBox.chatFrameID)];
-			local tabText = tab.Text:GetText();
-			self.chatTextFrame.dropdown:SetLabel(tabText);
+		return toggleEmotesButton;
+	end
+
+	do
+		local c = _G.CreateColor(1, 1, 1);
+
+		local function ApplyColorToMessage(message, r, g, b)
+			r, g, b = r or 1, g or 1, b or 1;
+			c:SetRGB(r, g, b);
+
+			local hex = "|c" .. c:GenerateHexColor();
+			message = message:gsub("|r", string.format("|r%s", hex));
+			message = string.format("%s%s|r", hex, message);
+
+			return message;
+		end
+
+		local function RefreshChatText(editBox)
+			local chatFrame = _G[string.format("ChatFrame%d", editBox.chatFrameID)];
+			local messages = obj:PopTable();
+			local totalMessages = chatFrame:GetNumMessages();
+			local message, r, g, b;
+
+			for i = 1, totalMessages do
+				message, r, g, b = chatFrame:GetMessageInfo(i);
+
+				if (obj:IsString(message)) then
+					message = ApplyColorToMessage(message, r, g, b);
+					table.insert(messages, message);
+				end
+			end
+
+			local fullText = table.concat(messages, " \n", 1, #messages);
+			obj:PushTable(messages);
+
+			editBox:SetText(fullText);
+		end
+
+		local function CreateChatTextFrame()
+			local frame = CreateFrame("Frame", nil, _G.UIParent);
+			frame:SetSize(600, 300);
+			frame:SetPoint("CENTER");
+			frame:Hide();
+
+			gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
+			gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
+			gui:AddTitleBar(tk.Constants.AddOnStyle, frame, "Copy Chat Text");
+
+			local editBox = CreateFrame("EditBox", "MUI_CopyChatEditBox", frame);
+			editBox:SetMultiLine(true);
+			editBox:SetMaxLetters(99999);
+			editBox:EnableMouse(true);
+			editBox:SetAutoFocus(false);
+			editBox:SetFontObject("GameFontHighlight");
+			editBox:SetHeight(200);
+			editBox.chatFrameID = 1;
+
+			editBox:SetScript("OnEscapePressed", function(self)
+				self:ClearFocus();
+			end);
+
+			local refreshButton = CreateFrame("Button", nil, frame);
+			refreshButton:SetSize(18, 18);
+			refreshButton:SetPoint("TOPRIGHT", frame.closeBtn, "TOPLEFT", -10, -3);
+			refreshButton:SetNormalTexture("Interface\\Buttons\\UI-RefreshButton");
+			refreshButton:SetHighlightAtlas("chatframe-button-highlight");
+			tk:SetBasicTooltip(refreshButton, "Refresh Chat Text");
+
+			refreshButton:SetScript("OnClick", function()
+				RefreshChatText(editBox);
+			end);
+
+			local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, frame);
+			local dropdownContainer = dropdown:GetFrame();
+			dropdownContainer:SetSize(150, 20);
+			dropdownContainer:SetPoint("TOPRIGHT", refreshButton, "TOPLEFT", -10, 0);
+
+			local function DropDown_OnOptionSelected(_, chatFrameID)
+				editBox.chatFrameID = chatFrameID;
+				RefreshChatText(editBox);
+			end
+
+			for chatFrameID = 1, _G.NUM_CHAT_WINDOWS do
+				local tab = _G[string.format("ChatFrame%dTab", chatFrameID)];
+				local tabText = tab.Text:GetText();
+
+				if (obj:IsString(tabText) and #tabText > 0 and tab:IsShown()) then
+					dropdown:AddOption(tabText, DropDown_OnOptionSelected, chatFrameID);
+				end
+			end
+
+			local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, frame, "MUI_CopyChatFrame", editBox);
+			container:SetPoint("TOPLEFT", 10, -30);
+			container:SetPoint("BOTTOMRIGHT", -10, 10);
+
+			container.ScrollFrame:ClearAllPoints();
+			container.ScrollFrame:SetPoint("TOPLEFT", 5, -5);
+			container.ScrollFrame:SetPoint("BOTTOMRIGHT", -5, 5);
+
+			container.ScrollFrame:HookScript("OnScrollRangeChanged", function(self)
+				local maxScroll = self:GetVerticalScrollRange();
+				self:SetVerticalScroll(maxScroll);
+			end);
+
+			tk:SetBackground(container, 0, 0, 0, 0.4);
+
+			frame.editBox = editBox;
+			frame.dropdown = dropdown;
+			return frame;
+		end
+
+		function CreateCopyChatButton(muiChatFrame)
+			local copyChatButton = _G.CreateFrame("Button", "MUI_CopyChatButton", muiChatFrame);
+			copyChatButton:SetSize(24, 24);
+			copyChatButton:SetNormalTexture(string.format("%scopyIcon", MEDIA));
+			copyChatButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
+			copyChatButton:SetHighlightAtlas("chatframe-button-highlight");
+
+			tk:SetBasicTooltip(copyChatButton, "Copy Chat Text");
+
+			copyChatButton:SetScript("OnClick", function(self)
+				if (not self.chatTextFrame) then
+					self.chatTextFrame = CreateChatTextFrame();
+				end
+
+				-- get chat frame text:
+				RefreshChatText(self.chatTextFrame.editBox);
+				self.chatTextFrame:SetShown(not self.chatTextFrame:IsShown());
+
+				local tab = _G[string.format("ChatFrame%dTab", self.chatTextFrame.editBox.chatFrameID)];
+				local tabText = tab.Text:GetText();
+				self.chatTextFrame.dropdown:SetLabel(tabText);
+
+				self:GetScript("OnLeave")(self);
+			end);
+
+			return copyChatButton;
+		end
+	end
+
+	function CreatePlayerStatusButton(muiChatFrame)
+		local playerStatusButton = _G.CreateFrame("Button", "MUI_PlayerStatusButton", muiChatFrame);
+		playerStatusButton:SetSize(24, 24);
+
+		em:CreateEventHandler("BN_INFO_CHANGED", function()
+			local status = _G.FRIENDS_TEXTURE_ONLINE;
+			local _, _, _, _, bnetAFK, bnetDND = _G.BNGetInfo();
+
+			if (bnetAFK) then
+				status = _G.FRIENDS_TEXTURE_AFK;
+			elseif (bnetDND) then
+				status = _G.FRIENDS_TEXTURE_DND;
+			end
+
+			playerStatusButton:SetNormalTexture(status);
+		end):Run();
+
+		playerStatusButton:SetHighlightAtlas("chatframe-button-highlight");
+		tk:SetBasicTooltip(playerStatusButton, "Change Status");
+
+		local statusMenu = CreateFrame("Frame", "MUI_StatusMenu", muiChatFrame, "UIMenuTemplate");
+		UIMenu_Initialize(statusMenu);
+
+		local optionText = "\124T%s.tga:16:16:0:0\124t %s";
+		local availableText = string.format(optionText, FRIENDS_TEXTURE_ONLINE, FRIENDS_LIST_AVAILABLE);
+		local afkText = string.format(optionText, FRIENDS_TEXTURE_AFK, FRIENDS_LIST_AWAY);
+		local dndText = string.format(optionText, FRIENDS_TEXTURE_DND, FRIENDS_LIST_BUSY);
+
+		local function SetOnlineStatus(btn)
+			FriendsFrame_SetOnlineStatus(btn);
+			playerStatusButton:SetNormalTexture(btn.value);
+		end
+
+		--self, text, shortcut, func, nested, value
+		UIMenu_AddButton(statusMenu, availableText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_ONLINE);
+		UIMenu_AddButton(statusMenu, afkText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_AFK);
+		UIMenu_AddButton(statusMenu, dndText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_DND);
+		UIMenu_AutoSize(statusMenu);
+		statusMenu:Hide();
+
+		playerStatusButton:SetScript("OnClick", function(self)
+			statusMenu:SetShown(not statusMenu:IsShown());
+
+			if (statusMenu:IsShown()) then
+				if (FCF_GetButtonSide(DEFAULT_CHAT_FRAME) == "right") then
+					statusMenu:ClearAllPoints();
+					statusMenu:SetPoint("BOTTOMRIGHT", self, "TOPLEFT");
+				else
+					statusMenu:ClearAllPoints();
+					statusMenu:SetPoint("BOTTOMLEFT", self, "TOPRIGHT");
+				end
+			end
 
 			self:GetScript("OnLeave")(self);
 		end);
 
-		return copyChatButton;
+		return playerStatusButton;
 	end
-end
-
-function CreatePlayerStatusButton(muiChatFrame)
-	local playerStatusButton = _G.CreateFrame("Button", "MUI_PlayerStatusButton", muiChatFrame);
-	playerStatusButton:SetSize(24, 24);
-
-	em:CreateEventHandler("BN_INFO_CHANGED", function()
-		local status = _G.FRIENDS_TEXTURE_ONLINE;
-		local _, _, _, _, bnetAFK, bnetDND = _G.BNGetInfo();
-
-		if (bnetAFK) then
-			status = _G.FRIENDS_TEXTURE_AFK;
-		elseif (bnetDND) then
-			status = _G.FRIENDS_TEXTURE_DND;
-		end
-
-		playerStatusButton:SetNormalTexture(status);
-	end):Run();
-
-	playerStatusButton:SetHighlightAtlas("chatframe-button-highlight");
-	tk:SetBasicTooltip(playerStatusButton, "Change Status");
-
-	local statusMenu = CreateFrame("Frame", "MUI_StatusMenu", muiChatFrame, "UIMenuTemplate");
-	UIMenu_Initialize(statusMenu);
-
-	local optionText = "\124T%s.tga:16:16:0:0\124t %s";
-	local availableText = string.format(optionText, FRIENDS_TEXTURE_ONLINE, FRIENDS_LIST_AVAILABLE);
-	local afkText = string.format(optionText, FRIENDS_TEXTURE_AFK, FRIENDS_LIST_AWAY);
-	local dndText = string.format(optionText, FRIENDS_TEXTURE_DND, FRIENDS_LIST_BUSY);
-
-	local function SetOnlineStatus(btn)
-		FriendsFrame_SetOnlineStatus(btn);
-		playerStatusButton:SetNormalTexture(btn.value);
-	end
-
-	--self, text, shortcut, func, nested, value
-	UIMenu_AddButton(statusMenu, availableText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_ONLINE);
-	UIMenu_AddButton(statusMenu, afkText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_AFK);
-	UIMenu_AddButton(statusMenu, dndText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_DND);
-	UIMenu_AutoSize(statusMenu);
-	statusMenu:Hide();
-
-	playerStatusButton:SetScript("OnClick", function(self)
-		statusMenu:SetShown(not statusMenu:IsShown());
-
-		if (statusMenu:IsShown()) then
-			if (FCF_GetButtonSide(DEFAULT_CHAT_FRAME) == "right") then
-				statusMenu:ClearAllPoints();
-				statusMenu:SetPoint("BOTTOMRIGHT", self, "TOPLEFT");
-			else
-				statusMenu:ClearAllPoints();
-				statusMenu:SetPoint("BOTTOMLEFT", self, "TOPRIGHT");
-			end
-		end
-
-		self:GetScript("OnLeave")(self);
-	end);
-
-	return playerStatusButton;
 end

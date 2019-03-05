@@ -46,7 +46,6 @@ db:AddToDefaults("profile.chat", {
 	enabled = true;
 	swapInCombat = false;
 	layout = "DPS"; -- default layout
-	chatIcons = "TOPLEFT";
 	chatFrames = {
 		-- these tables will contain the templateMuiChatFrame data (using SetParent)
 		TOPLEFT = {
@@ -75,9 +74,10 @@ db:AddToDefaults("profile.chat", {
 		};
 	};
 	icons = {
-		copyChat = true;
-		emotes = true;
-		playerStatus = true;
+		anchor          = "TOPLEFT";
+		copyChat        = true;
+		emotes          = true;
+		playerStatus    = true;
 	};
     editBox = {
         yOffset = -8;
@@ -144,6 +144,9 @@ function C_ChatModule:OnInitialize(data)
 			last = {
 				"editBox.backdropColor";
 			};
+			ignore = {
+				"icons";
+			}
 		};
 		groups = {
 			{
@@ -165,7 +168,7 @@ function C_ChatModule:OnInitialize(data)
 						ChatFrame1EditBox:SetPoint("TOPRIGHT", _G.ChatFrame1, "BOTTOMRIGHT", 3, yOffset);
 					end
 				end
-			}
+			},
 		}
 	};
 
@@ -175,20 +178,12 @@ function C_ChatModule:OnInitialize(data)
 	end
 
 	self:RegisterUpdateFunctions(db.profile.chat, {
-		chatIcons = function(anchorName)
-			local muiChatFrame = data.chatFrames[anchorName];
-
-			if (muiChatFrame) then
-				muiChatFrame:SetEnabled(true);
-			end
-		end;
-
 		icons = function()
-			local anchorName = data.settings.chatIcons;
-			local muiChatFrame = data.chatFrames[anchorName];
+			local anchorName = data.settings.icons.anchor;
+			local muiChatFrame = _G["MUI_ChatFrame_" .. anchorName];
 
-			if (muiChatFrame) then
-				muiChatFrame:PositionSideBarIcons();
+			if (muiChatFrame and muiChatFrame:IsShown()) then
+				C_ChatFrame.Static:PositionSideBarIcons(data.settings, muiChatFrame);
 			end
 		end;
 
@@ -342,6 +337,11 @@ function C_ChatModule:OnEnable(data)
             chatFrame:SetFont(muiFont, fontSize, outline);
         end
 	end
+end
+
+Engine:DefineReturns("table");
+function C_ChatModule:GetChatFrames(data)
+	return data.chatFrames;
 end
 
 -- Override Blizzard Stuff -----------------------
