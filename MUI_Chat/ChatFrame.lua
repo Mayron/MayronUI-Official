@@ -273,6 +273,26 @@ end
 do
 	local CreatePlayerStatusButton, CreateToggleEmoteButton, CreateCopyChatButton;
 
+	local function PositionChatIconMenu(icon, menu)
+		local chatFrameName = icon:GetParent():GetName();
+		menu:ClearAllPoints();
+
+		if (chatFrameName:find("TOPLEFT")) then
+			menu:SetPoint("TOPLEFT", icon, "TOPRIGHT");
+
+		elseif (chatFrameName:find("TOPRIGHT")) then
+			menu:SetPoint("TOPRIGHT", icon, "TOPLEFT");
+
+		elseif (chatFrameName:find("BOTTOMLEFT")) then
+			menu:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT");
+
+		elseif (chatFrameName:find("BOTTOMRIGHT")) then
+			menu:SetPoint("BOTTOMRIGHT", icon, "BOTTOMLEFT");
+		end
+
+		icon:GetScript("OnLeave")(icon);
+	end
+
 	local function PositionIcon(enabled, currentIcon, anchorIcon, frame, createFunc)
 		if (enabled) then
 			if (not currentIcon) then
@@ -327,18 +347,8 @@ do
 		tk:SetBasicTooltip(toggleEmotesButton, "Show Chat Menu");
 
 		toggleEmotesButton:SetScript("OnClick", function(self)
-			ChatMenu:ClearAllPoints();
-
-			if (_G.FCF_GetButtonSide(_G.DEFAULT_CHAT_FRAME) == "right") then
-				ChatMenu:ClearAllPoints();
-				ChatMenu:SetPoint("BOTTOMRIGHT", toggleEmotesButton, "TOPLEFT");
-			else
-				ChatMenu:ClearAllPoints();
-				ChatMenu:SetPoint("BOTTOMLEFT", toggleEmotesButton, "TOPRIGHT");
-			end
-
+			PositionChatIconMenu(self, ChatMenu);
 			_G.ChatFrame_ToggleMenu();
-			self:GetScript("OnLeave")(self);
 		end);
 
 		return toggleEmotesButton;
@@ -525,16 +535,8 @@ do
 			statusMenu:SetShown(not statusMenu:IsShown());
 
 			if (statusMenu:IsShown()) then
-				if (FCF_GetButtonSide(DEFAULT_CHAT_FRAME) == "right") then
-					statusMenu:ClearAllPoints();
-					statusMenu:SetPoint("BOTTOMRIGHT", self, "TOPLEFT");
-				else
-					statusMenu:ClearAllPoints();
-					statusMenu:SetPoint("BOTTOMLEFT", self, "TOPRIGHT");
-				end
+				PositionChatIconMenu(self, statusMenu);
 			end
-
-			self:GetScript("OnLeave")(self);
 		end);
 
 		return playerStatusButton;

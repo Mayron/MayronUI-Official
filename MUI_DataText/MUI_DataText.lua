@@ -159,7 +159,7 @@ function C_DataTextModule:OnInitialize(data)
         };
         groups = {
             {
-                patterns = { ".*"};
+                patterns = {".*"};
 
                 value = function(_, keysList)
                     local componentName = keysList:PopFront();
