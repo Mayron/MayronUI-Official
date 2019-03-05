@@ -110,7 +110,7 @@ local function RepositionNotificationFrame(chatFrame)
 	_G.ChatAlertFrame:ClearAllPoints(); -- parent of BNToastFrame
 
 	if (relativePoint:find("TOP")) then
-		_G.ChatAlertFrame:SetPoint("TOPLEFT", chatFrame, "BOTTOMLEFT", 0, -50);
+		_G.ChatAlertFrame:SetPoint("TOPLEFT", chatFrame, "BOTTOMLEFT", 0, -60);
 
 	elseif (relativePoint:find("BOTTOM")) then
 		_G.ChatAlertFrame:SetPoint("BOTTOMLEFT", tab, "TOPLEFT", 0, 10);

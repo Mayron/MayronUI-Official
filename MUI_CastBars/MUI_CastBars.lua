@@ -289,8 +289,7 @@ do
         bar.statusbar:SetValue(0);
 
         if (unitID == "player" and settings.showLatency) then
-            bar.latencyBar = bar.statusbar:CreateTexture(nil, "BACKGROUND");
-            -- bar.latencyBar = bar.statusbar:SetTexture(nil, "BACKGROUND");
+            bar.latencyBar = bar.statusbar:CreateTexture(nil, "ARTWORK");
             bar.latencyBar:SetPoint("TOPRIGHT");
             bar.latencyBar:SetPoint("BOTTOMRIGHT");
         end
