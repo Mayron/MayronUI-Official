@@ -367,6 +367,21 @@ do
 			return message;
 		end
 
+		-- accountName cannot be used as |K breaks the editBox
+		local function ReplaceAccountNameCodeWithBattleTag(accountName)
+			for i = 1, 200 do
+				local _, otherAccountName, battleTag = _G.BNGetFriendInfoByID(i);
+
+				if (i > 50 and not otherAccountName) then
+					return "";
+				end
+
+				if (accountName == otherAccountName) then
+					return battleTag;
+				end
+			end
+		end
+
 		local function RefreshChatText(editBox)
 			local chatFrame = _G[string.format("ChatFrame%d", editBox.chatFrameID)];
 			local messages = obj:PopTable();
@@ -377,21 +392,7 @@ do
 				message, r, g, b = chatFrame:GetMessageInfo(i);
 
 				if (obj:IsString(message) and #message > 0) then
-					if (message:find("|K")) then
-						local presenceID = _G.tonumber(message:match("|Kq(%d+)|k"));
-
-						 -- accountName cannot be used as |K breaks the editBox
-						local _, _, battleTag = _G.BNGetFriendInfoByID(presenceID + 1);
-
-						if (message:find("|H")) then
-							message = message:gsub("|H(.*)|h", "[####]");
-						else
-							message = message:gsub("|Kq(%d+)|k", "####");
-						end
-
-						message = message:gsub("####", battleTag);
-					end
-
+					message = message:gsub("|Kq%d+|k", ReplaceAccountNameCodeWithBattleTag);
 					message = ApplyColorToMessage(message, r, g, b);
 					table.insert(messages, message);
 				end
