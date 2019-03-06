@@ -383,8 +383,13 @@ do
 						 -- accountName cannot be used as |K breaks the editBox
 						local _, _, battleTag = _G.BNGetFriendInfoByID(presenceID + 1);
 
-						message = message:gsub("|H(.*)|h", "[%%s]");
-						message = string.format(message, battleTag);
+						if (message:find("|H")) then
+							message = message:gsub("|H(.*)|h", "[####]");
+						else
+							message = message:gsub("|Kq(%d+)|k", "####");
+						end
+
+						message = message:gsub("####", battleTag);
 					end
 
 					message = ApplyColorToMessage(message, r, g, b);
