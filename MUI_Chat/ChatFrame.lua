@@ -14,8 +14,7 @@ local C_ChatFrame = namespace.C_ChatFrame;
 local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string, table, pairs =
 	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string, _G.table, _G.pairs;
 
-local FCF_GetButtonSide, DEFAULT_CHAT_FRAME, UIMenu_AddButton, FriendsFrame_SetOnlineStatus =
-	_G.FCF_GetButtonSide, _G.DEFAULT_CHAT_FRAME, _G.UIMenu_AddButton, _G.FriendsFrame_SetOnlineStatus;
+local UIMenu_AddButton, FriendsFrame_SetOnlineStatus = _G.UIMenu_AddButton, _G.FriendsFrame_SetOnlineStatus;
 
 local FRIENDS_TEXTURE_ONLINE, FRIENDS_TEXTURE_AFK, FRIENDS_TEXTURE_DND =
 	_G.FRIENDS_TEXTURE_ONLINE, _G.FRIENDS_TEXTURE_AFK, _G.FRIENDS_TEXTURE_DND;
@@ -377,7 +376,17 @@ do
 			for i = 1, totalMessages do
 				message, r, g, b = chatFrame:GetMessageInfo(i);
 
-				if (obj:IsString(message)) then
+				if (obj:IsString(message) and #message > 0) then
+					if (message:find("|K")) then
+						local presenceID = _G.tonumber(message:match("|Kq(%d+)|k"));
+
+						 -- accountName cannot be used as |K breaks the editBox
+						local _, _, battleTag = _G.BNGetFriendInfoByID(presenceID + 1);
+
+						message = message:gsub("|H(.*)|h", "[%%s]");
+						message = string.format(message, battleTag);
+					end
+
 					message = ApplyColorToMessage(message, r, g, b);
 					table.insert(messages, message);
 				end
