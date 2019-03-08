@@ -314,11 +314,15 @@ end
 
 do
     local function OnEnter(self)
-        self.text:Show();
+        self.texture:SetBlendMode("ADD");
+        _G.GameTooltip:SetOwner(self, "ANCHOR_TOP");
+        _G.GameTooltip:AddLine(self.text:GetText(), 1, 1, 1);
+        _G.GameTooltip:Show();
     end
 
     local function OnLeave(self)
-        self.text:Hide();
+        self.texture:SetBlendMode("BLEND");
+        _G.GameTooltip:Hide();
     end
 
     function C_BaseResourceBar:Update(data)

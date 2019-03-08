@@ -2,7 +2,7 @@
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
-local C_AzeriteItem, GameTooltip = _G.C_AzeriteItem, _G.GameTooltip;
+local C_AzeriteItem = _G.C_AzeriteItem;
 
 -- Setup Objects -------------------------
 
@@ -42,23 +42,6 @@ local function OnAzeriteXPUpdate(_, _, bar, data)
     end
 end
 
-local function AzeriteBar_OnEnter(self)
-    local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem();
-    local activeXP, totalXP = C_AzeriteItem.GetAzeriteItemXPInfo(azeriteItemLocation);
-
-    if (totalXP > 0) then
-        local percent = (activeXP / totalXP) * 100;
-        activeXP = tk.Strings:FormatReadableNumber(activeXP);
-        totalXP = tk.Strings:FormatReadableNumber(totalXP);
-        local text = string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
-
-        GameTooltip:SetOwner(self, "ANCHOR_TOP");
-        GameTooltip:AddLine(text, 1, 1, 1);
-        GameTooltip:Show();
-    end
-end
-
-
 -- C_AzeriteBar --------------------------
 
 ResourceBarsPackage:DefineParams("BottomUI_ResourceBars", "table");
@@ -79,8 +62,6 @@ function C_AzeriteBar:SetActive(data, active)
         data.statusbar.texture = data.statusbar:GetStatusBarTexture();
         data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
 
-        data.statusbar:HookScript("OnEnter", AzeriteBar_OnEnter);
-        data.statusbar:HookScript("OnLeave", tk.GeneralTooltip_OnLeave);
         data.notCreated = nil;
     end
 end

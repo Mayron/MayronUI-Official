@@ -3,7 +3,6 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local GetWatchedFactionInfo = _G.GetWatchedFactionInfo;
-local GameTooltip = _G.GameTooltip;
 
 -- Setup Objects -------------------------
 
@@ -40,28 +39,6 @@ local function OnReputationBarUpdate(_, _, bar, data)
     end
 end
 
-local function ReputationBar_OnEnter(self)
-    local factionName, standingID, minValue, maxValue, currentValue = GetWatchedFactionInfo();
-
-    if (standingID < 8) then
-        maxValue = maxValue - minValue;
-
-        if (maxValue > 0) then
-            currentValue = currentValue - minValue;
-            local percent = (currentValue / maxValue) * 100;
-
-            currentValue = tk.Strings:FormatReadableNumber(currentValue);
-            maxValue = tk.Strings:FormatReadableNumber(maxValue);
-
-            local text = string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
-
-            GameTooltip:SetOwner(self, "ANCHOR_TOP");
-            GameTooltip:AddLine(text, 1, 1, 1);
-            GameTooltip:Show();
-        end
-    end
-end
-
 -- C_ReputationBar -----------------------
 
 ResourceBarsPackage:DefineParams("BottomUI_ResourceBars", "table");
@@ -82,9 +59,6 @@ function C_ReputationBar:SetActive(data, active)
     self.Parent:SetActive(active);
 
     if (active and data.notCreated) then
-        data.statusbar:HookScript("OnEnter", ReputationBar_OnEnter);
-        data.statusbar:HookScript("OnLeave", tk.GeneralTooltip_OnLeave);
-
         data.statusbar.texture = data.statusbar:GetStatusBarTexture();
         data.statusbar.texture:SetVertexColor(0.16, 0.6, 0.16, 1);
         data.notCreated = nil;
