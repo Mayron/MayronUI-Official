@@ -147,30 +147,47 @@ function C_TimerBarsModule:OnInitialize(data)
 		};
     });
 
+    local first = obj:PopTable();
+
     if (obj:IsObject(db.profile.timerBars.fieldNames)) then
         for _, fieldName in db.profile.timerBars.fieldNames:Iterate() do
             local sv = db.profile.timerBars[fieldName];
             sv:SetParent(db.profile.timerBars.__templateField);
+            data.fields[fieldName] = sv.enabled;
 
             if (sv.enabled) then
-                data.fields[fieldName] = true;
+                table.insert(first, fieldName .. "." .. "enabled");
             end
         end
     end
 
     local options = {
         onExecuteAll = {
+            first = first;
             ignore = {
                 "filter";
             };
         };
+
         groups = {
             {
                 patterns = { tk.Strings:GeneratePathLengthPattern(2) }; -- all settings for update function paths of length 2 (i.e. fields like "Player.<setting>")
 
-                onPre = function(_, keysList)
+                onPre = function(value, keysList)
                     local fieldName = keysList:PopFront();
-                    local field = timerBarsModule:GetTimerField(fieldName);
+                    local field = data.fields[fieldName];
+                    local settingName = keysList:GetFront();
+
+                    if (obj:IsBoolean(field)) then
+                        if (not (field or (settingName == "enabled" and value))) then
+                            return nil;
+                        end
+
+                        -- create field (it is enabled)
+                        field = C_TimerField(fieldName, data.settings);
+                        data.fields[fieldName] = field; -- replace "true" with real object
+                    end
+
                     return field, fieldName;
                 end;
 
@@ -198,7 +215,7 @@ function C_TimerBarsModule:OnInitialize(data)
                         field:SetSize(barWidth, fieldHeight);
 
                         if (key == "width" or key == "height") then
-                            for _, bar in pairs(field:GetAllTimerBars()) do
+                            for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
                                 bar:SetSize(barWidth, barHeight);
                                 bar:SetAuraNameShown(data.settings[fieldName].auraName.show);
                             end
@@ -206,13 +223,13 @@ function C_TimerBarsModule:OnInitialize(data)
                     end;
 
                     showIcons = function(value, _, field)
-                        for _, bar in pairs(field:GetAllTimerBars()) do
+                        for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
                             bar:SetIconShown(value);
                         end
                     end;
 
                     showSpark = function(value, _, field)
-                        for _, bar in pairs(field:GetAllTimerBars()) do
+                        for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
                             bar:SetSparkShown(value);
                         end
                     end;
@@ -222,13 +239,13 @@ function C_TimerBarsModule:OnInitialize(data)
                     end;
 
                     auraName = function(_, _, field, fieldName)
-                        for _, bar in pairs(field:GetAllTimerBars()) do
+                        for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
                             bar:SetAuraNameShown(data.settings[fieldName].auraName.show);
                         end
                     end;
 
                     timeRemaining = function(_, _, field, fieldName)
-                        for _, bar in pairs(field:GetAllTimerBars()) do
+                        for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
                             bar:SetTimeRemainingShown(data.settings[fieldName].timeRemaining.show);
                         end
                     end;
@@ -240,19 +257,25 @@ function C_TimerBarsModule:OnInitialize(data)
                     onPre = function(_, keysList)
                         local fieldName = keysList:PopFront();
                         local field = timerBarsModule:GetTimerField(fieldName);
-                        return field, fieldName;
+
+                        if (obj:IsType(field, "TimerField")) then
+                            return field, fieldName;
+                        end
                     end;
 
                     value = function(_, _, field)
-                        field:RecheckAuras();
+
+                        if (field) then
+                            field:RecheckAuras();
+                        end
                     end;
             };
         };
     };
 
     local function UpdateBorders()
-        for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
-            for _, bar in pairs(field:GetAllTimerBars()) do
+        for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
+            for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
                 bar:SetBorderShown(data.settings.border.show);
             end
         end
@@ -260,16 +283,16 @@ function C_TimerBarsModule:OnInitialize(data)
 
     self:RegisterUpdateFunctions(db.profile.timerBars, {
         showTooltips = function(value)
-            for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
-                for _, bar in pairs(field:GetAllTimerBars()) do
+            for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
+                for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
                     bar:SetTooltipsEnabled(value);
                 end
             end
         end;
 
         statusBarTexture = function(value)
-            for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
-                for _, bar in pairs(field:GetAllTimerBars()) do
+            for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
+                for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
                     local barData = data:GetFriendData(bar);
                     barData.slider:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", value));
                 end
@@ -283,15 +306,15 @@ function C_TimerBarsModule:OnInitialize(data)
                 UpdateBorders();
 
             elseif (colorName == "background") then
-                for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
-                    for _, bar in pairs(field:GetAllTimerBars()) do
+                for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
+                    for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
                         local barData = data:GetFriendData(bar);
                         barData.slider.bg:SetColorTexture(unpack(data.settings.colors.background));
 
                     end
                 end
             else
-                for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+                for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
                     field:RecheckAuras();
                 end
             end
@@ -307,33 +330,27 @@ function C_TimerBarsModule:OnInitialized(data)
     end
 end
 
-function C_TimerBarsModule:OnEnable(data)
-    -- create all enabled fields
-    for fieldName, field in pairs(data.fields) do
-        if (obj:IsBoolean(field)) then
-            -- create field
-            field = C_TimerField(fieldName, data.settings);
-            data.fields[fieldName] = field; -- replace "true" with real object
-        end
-
-        if (data.settings[fieldName].enabled) then
-            field:SetEnabled(true);
-        end
-    end
-
+function C_TimerBarsModule:OnEnable()
     -- create event handlers
     em:CreateEventHandlerWithKey("COMBAT_LOG_EVENT_UNFILTERED", "TimerBarsModule_OnCombatLogEvent", OnCombatLogEvent);
     em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "TimerBarsModule_CheckUnitAuras", CheckUnitAuras);
 end
 
-Engine:DefineReturns("table");
----@return table @A table containing all active TimerField objects.
-function C_TimerBarsModule:GetAllTimerFields(data)
-    return data.fields;
+Engine:DefineReturns("?TimerField");
+function C_TimerBarsModule:GetEnabledTimerFields(data)
+    local fields = obj:PopTable();
+
+    for _, field in pairs(data.fields) do
+        if (not obj:IsBoolean(field)) then
+            table.insert(fields, field);
+        end
+    end
+
+    return obj:UnpackTable(fields);
 end
 
 Engine:DefineParams("string");
-Engine:DefineReturns("TimerField");
+Engine:DefineReturns("TimerField|boolean");
 ---@return TimerField @The timer field whose name is fieldName.
 function C_TimerBarsModule:GetTimerField(data, fieldName)
     return data.fields[fieldName];
@@ -350,7 +367,7 @@ function OnCombatLogEvent()
         local destGuid = payload[8];
 
         if (subEvent:find("UNIT")) then
-            for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+            for _, field in pairs(timerBarsModule:GetEnabledTimerFields()) do
                 local unitID = field:GetUnitID();
 
                 if (UnitGUID(destGuid) == unitID) then
@@ -366,7 +383,7 @@ function OnCombatLogEvent()
             obj:Assert(auraType == BUFF or auraType == DEBUFF, UNKNOWN_AURA_TYPE, auraType);
 
             ---@param field TimerField
-            for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+            for _, field in pairs(timerBarsModule:GetEnabledTimerFields()) do
                 field:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType);
             end
         end
@@ -376,7 +393,7 @@ function OnCombatLogEvent()
 end
 
 function CheckUnitAuras()
-    for _, field in pairs(timerBarsModule:GetAllTimerFields()) do
+    for _, field in pairs(timerBarsModule:GetEnabledTimerFields()) do
         field:RecheckAuras();
     end
 end
@@ -792,7 +809,7 @@ function C_TimerField:RecheckAuras(data)
     end
 end
 
-Engine:DefineReturns("table");
+Engine:DefineReturns("?TimerBar");
 ---@return table @A table containing all active, and non-active, timer bars.
 function C_TimerField:GetAllTimerBars(data)
     local allBars = obj:PopTable();
@@ -800,7 +817,7 @@ function C_TimerField:GetAllTimerBars(data)
     tk.Tables:AddAll(allBars, unpack(data.activeBars));
     tk.Tables:AddAll(allBars, data.expiredBarsStack:Unpack());
 
-    return allBars;
+    return obj:UnpackTable(allBars);
 end
 
 -- C_TimerBar ---------------------------

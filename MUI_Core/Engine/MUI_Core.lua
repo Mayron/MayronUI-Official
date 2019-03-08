@@ -361,14 +361,24 @@ function BaseModule:Hook(_, eventName, func)
 end
 
 local function ExecuteUpdateFunction(path, updateFunction, setting, executed, onPre, onPost)
+    if (obj:IsTable(executed) and executed[path]) then
+        return;
+    end
+
     local keysList = tk.Tables:ConvertPathToKeysList(path);
 
     if (obj:IsFunction(onPre)) then
-        if (obj:IsFunction(onPost)) then
-            onPost(setting, keysList, updateFunction(setting, keysList, onPre(setting, keysList)));
-        else
-            updateFunction(setting, keysList, onPre(setting, keysList));
+        local onPreResults = obj:PopTable(onPre(setting, keysList));
+
+        if (#onPreResults > 0) then
+            if (obj:IsFunction(onPost)) then
+                onPost(setting, keysList, updateFunction(setting, keysList, unpack(onPreResults)));
+            else
+                updateFunction(setting, keysList, unpack(onPreResults));
+            end
         end
+
+        obj:PushTable(onPreResults);
     else
         if (obj:IsFunction(onPost)) then
             onPost(setting, keysList, updateFunction(setting, keysList));
@@ -409,7 +419,14 @@ local function FindMatchingGroupValue(path, options)
         for _, groupOptions in pairs(options.groups) do
             if (HasMatchingPathPattern(path, groupOptions.patterns)) then
                 if (groupOptions.value) then
-                    return groupOptions.value, groupOptions.onPre, groupOptions.onPost;
+                    local updateFunction = groupOptions.value;
+
+                    if (obj:IsTable(updateFunction)) then
+                        local lastKey = path:match("%.([^.]*)$");
+                        updateFunction = updateFunction[lastKey];
+                    end
+
+                    return updateFunction, groupOptions.onPre, groupOptions.onPost;
                 end
             end
         end
@@ -476,11 +493,6 @@ do
             if (updateFunction == nil) then
                 -- check if a group function can be used
                 updateFunction, onPre, onPost = FindMatchingGroupValue(settingPath, data.options);
-
-                if (obj:IsTable(updateFunction)) then
-                    local lastKey = settingPath:match("%.([^.]*)$");
-                    updateFunction = updateFunction[lastKey];
-                end
             end
 
             if (obj:IsFunction(updateFunction)) then
@@ -513,7 +525,11 @@ do
         return false;
     end
 
-    local function GetIgnored(options, path)
+    local function GetIgnored(options, path, executedTable)
+        if (executedTable[path]) then
+            return true; -- been executed before
+        end
+
         if (not options) then
             return false;
         end
@@ -535,7 +551,7 @@ do
         return false;
     end
 
-    --"first", data.options, data.updateFunctions, data.settings, executedTable);
+    --"first", data.options, data.updateFunctions, data.settings, executedTable
     local function ExecuteOrdered(orderKey, options, updateFunction, setting, executed)
         if (not options.onExecuteAll[orderKey]) then
             return false;
@@ -567,7 +583,7 @@ do
                 path = string.format("%s.%s", previousPath, key);
             end
 
-            local ignored = GetIgnored(options, path);
+            local ignored = GetIgnored(options, path, executedTable);
 
             if (not ignored) then
                 -- find next update function:
@@ -581,10 +597,6 @@ do
                     if (updateFunction == nil) then
                         -- check if a group function can be used
                         updateFunction, onPre, onPost = FindMatchingGroupValue(path, options);
-
-                        if (obj:IsTable(updateFunction)) then
-                            updateFunction = updateFunction[key];
-                        end
                     end
                 end
 

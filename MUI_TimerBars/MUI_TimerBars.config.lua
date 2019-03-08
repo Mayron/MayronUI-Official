@@ -246,9 +246,13 @@ function C_TimerBarsModule:GetConfigTable()
                                 {   name = L["Unlock"];
                                     type = "button";
                                     OnClick = function(button)
-                                        button.toggle = not button.toggle;
                                         local field = _G["MUI_"..name.."TimerField"];
 
+                                        if (not (field and field:IsShown())) then
+                                            return;
+                                        end
+
+                                        button.toggle = not button.toggle;
                                         tk:MakeMovable(field, nil, button.toggle);
 
                                         if (button.toggle) then
