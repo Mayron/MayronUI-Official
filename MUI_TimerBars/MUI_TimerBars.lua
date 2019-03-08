@@ -204,8 +204,7 @@ function C_TimerBarsModule:OnInitialize(data)
                         field:SetUnitID(value);
                     end;
 
-                    bar = function(_, keysList, field, fieldName)
-                        local key = keysList:PopBack();
+                    bar = function(_, _, field, fieldName)
                         local maxBars = data.settings[fieldName].bar.maxBars;
                         local barHeight = data.settings[fieldName].bar.height;
                         local barWidth = data.settings[fieldName].bar.width;
@@ -214,11 +213,9 @@ function C_TimerBarsModule:OnInitialize(data)
                         local fieldHeight = (maxBars * (barHeight + spacing)) - spacing;
                         field:SetSize(barWidth, fieldHeight);
 
-                        if (key == "width" or key == "height") then
-                            for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
-                                bar:SetSize(barWidth, barHeight);
-                                bar:SetAuraNameShown(data.settings[fieldName].auraName.show);
-                            end
+                        for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
+                            bar:SetSize(barWidth, barHeight);
+                            bar:SetAuraNameShown(data.settings[fieldName].auraName.show);
                         end
                     end;
 
@@ -367,7 +364,7 @@ function OnCombatLogEvent()
         local destGuid = payload[8];
 
         if (subEvent:find("UNIT")) then
-            for _, field in pairs(timerBarsModule:GetEnabledTimerFields()) do
+            for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
                 local unitID = field:GetUnitID();
 
                 if (UnitGUID(destGuid) == unitID) then
@@ -383,7 +380,7 @@ function OnCombatLogEvent()
             obj:Assert(auraType == BUFF or auraType == DEBUFF, UNKNOWN_AURA_TYPE, auraType);
 
             ---@param field TimerField
-            for _, field in pairs(timerBarsModule:GetEnabledTimerFields()) do
+            for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
                 field:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType);
             end
         end
@@ -393,7 +390,7 @@ function OnCombatLogEvent()
 end
 
 function CheckUnitAuras()
-    for _, field in pairs(timerBarsModule:GetEnabledTimerFields()) do
+    for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
         field:RecheckAuras();
     end
 end
