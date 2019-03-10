@@ -18,7 +18,7 @@ local function CreateNewFieldButton_OnClick(editBox)
     local tbl = db.profile.timerBars.fieldNames:GetUntrackedTable();
 
     db:SetPathValue(db.profile, "timerBars.fieldNames["..(#tbl + 1).."]", text);
-    db:SetPathValue(db.profile, "timerBars."..text, obj:PopTable());
+    db:SetPathValue(db.profile, "timerBars.fields."..text, obj:PopTable());
 
     tk:Print(tk.string.format(L["TimerBar field '%s' created."], text));
     MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
@@ -31,7 +31,7 @@ local function RemoveFieldButton_OnClick(editBox)
 
     if (id) then
         db:SetPathValue(db.profile, "timerBars.fieldNames["..id.."]", nil);
-        db:SetPathValue(db.profile, "timerBars."..text, nil);
+        db:SetPathValue(db.profile, "timerBars.fields."..text, nil);
         MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
     else
         tk:Print(tk.string.format(L["TimerBar field '%s' does not exist."], text));
@@ -231,17 +231,21 @@ function C_TimerBarsModule:GetConfigTable()
                 {   type = "loop";
                     args = db.profile.timerBars.fieldNames:GetUntrackedTable();
                     func = function(_, name)
+                        local dbFieldPath = "profile.timerBars.fields."..name;
+
                         return {
                             name = name;
                             type = "submenu";
+
                             OnLoad = function()
                                 position_TextFields[name] = obj:PopTable();
                             end;
+
                             module = "TimerBarsModule";
                             children = {
                                 {   name = L["Enable Field"];
                                     type = "check";
-                                    dbPath = "profile.timerBars."..name..".enabled";
+                                    dbPath = dbFieldPath .. ".enabled";
                                 };
                                 {   name = L["Unlock"];
                                     type = "button";
@@ -273,7 +277,7 @@ function C_TimerBarsModule:GetConfigTable()
                                             field.moveLabel:SetAlpha(0);
                                             button:SetText("Unlock");
 
-                                            local positions = tk:SavePosition(field, "profile.timerBars."..name..".position");
+                                            local positions = tk:SavePosition(field, dbFieldPath .. ".position");
 
                                             if (positions) then
                                                 -- update the config menu view
@@ -289,7 +293,7 @@ function C_TimerBarsModule:GetConfigTable()
                                 {   name = L["Unit to Track"];
                                     type = "dropdown";
                                     tooltip = L["The unit who is affected by the spell."];
-                                    dbPath = "profile.timerBars."..name..".unitID";
+                                    dbPath = dbFieldPath .. ".unitID";
                                     options = {
                                         L["Player"];
                                         L["Target"];
@@ -307,7 +311,7 @@ function C_TimerBarsModule:GetConfigTable()
                                     type = "fontstring";
                                 };
                                 {   name = L["Up"];
-                                    dbPath = "profile.timerBars."..name..".direction";
+                                    dbPath = dbFieldPath .. ".direction";
                                     type = "radio";
                                     groupName = "TimerBars_Growth_"..name;
 
@@ -320,7 +324,7 @@ function C_TimerBarsModule:GetConfigTable()
                                     end;
                                 };
                                 {   name = L["Down"];
-                                    dbPath = "profile.timerBars."..name..".direction";
+                                    dbPath = dbFieldPath .. ".direction";
                                     type = "radio";
                                     groupName = "TimerBars_Growth_"..name;
 
@@ -336,21 +340,24 @@ function C_TimerBarsModule:GetConfigTable()
                                 };
                                 {   name = L["Bar Width"];
                                     type = "slider";
-                                    dbPath = "profile.timerBars."..name..".bar.width";
+                                    dbPath = dbFieldPath .. ".bar.width";
+                                    tooltip = tk.Strings:Concat(L["Default value is "], "213");
                                     step = 1;
                                     min = 100;
                                     max = 400;
                                 };
                                 {   name = L["Bar Height"];
                                     type = "slider";
-                                    dbPath = "profile.timerBars."..name..".bar.height";
+                                    dbPath = dbFieldPath .. ".bar.height";
+                                    tooltip = tk.Strings:Concat(L["Default value is "], "22");
                                     step = 1;
                                     min = 5;
                                     max = 50;
                                 };
                                 {   name = L["Bar Spacing"];
                                     type = "slider";
-                                    dbPath = "profile.timerBars."..name..".bar.spacing";
+                                    dbPath = dbFieldPath .. ".bar.spacing";
+                                    tooltip = tk.Strings:Concat(L["Default value is "], "2");
                                     step = 1;
                                     min = 0;
                                     max = 10;
@@ -359,11 +366,11 @@ function C_TimerBarsModule:GetConfigTable()
                                 };
                                 {   name = L["Show Icons"];
                                     type = "check";
-                                    dbPath = "profile.timerBars."..name..".showIcons";
+                                    dbPath = dbFieldPath .. ".showIcons";
                                 };
                                 {   name = L["Show Spark"];
                                     type = "check";
-                                    dbPath = "profile.timerBars."..name..".showSpark";
+                                    dbPath = dbFieldPath .. ".showSpark";
                                 };
                                 {   type = "divider"
                                 };
@@ -378,7 +385,7 @@ function C_TimerBarsModule:GetConfigTable()
                                             name = arg;
                                             type = "textfield";
                                             valueType = "string";
-                                            dbPath = string.format("profile.timerBars.%s.position[%d]", name, index);
+                                            dbPath = tk.Strings:Concat(dbFieldPath, ".position[", index, "]");
                                             fieldName = name;
                                             OnLoad = TimerFieldPosition_OnLoad;
                                         };
@@ -394,7 +401,7 @@ function C_TimerBarsModule:GetConfigTable()
                                 {   name = L["Show"];
                                     type = "check";
                                     height = 50;
-                                    dbPath = "profile.timerBars."..name..".timeRemaining.show";
+                                    dbPath = dbFieldPath .. ".timeRemaining.show";
                                 };
                                 {   name = L["Font Size"];
                                     type = "slider";
@@ -402,11 +409,11 @@ function C_TimerBarsModule:GetConfigTable()
                                     step = 1;
                                     min = 8;
                                     max = 22;
-                                    dbPath = "profile.timerBars."..name..".timeRemaining.fontSize";
+                                    dbPath = dbFieldPath .. ".timeRemaining.fontSize";
                                 };
                                 {   name = L["Font Type"];
                                     type = "dropdown";
-                                    dbPath = "profile.timerBars."..name..".timeRemaining.font";
+                                    dbPath = dbFieldPath .. ".timeRemaining.font";
                                     fontPicker = true;
                                     options = tk.Constants.LSM:List("font");
                                 };
@@ -417,7 +424,7 @@ function C_TimerBarsModule:GetConfigTable()
                                 {   name = L["Show"];
                                     type = "check";
                                     height = 50;
-                                    dbPath = "profile.timerBars."..name..".auraName.show";
+                                    dbPath = dbFieldPath .. ".auraName.show";
                                 };
                                 {   name = L["Font Size"];
                                     type = "slider";
@@ -425,11 +432,11 @@ function C_TimerBarsModule:GetConfigTable()
                                     step = 1;
                                     min = 8;
                                     max = 22;
-                                    dbPath = "profile.timerBars."..name..".auraName.fontSize";
+                                    dbPath = dbFieldPath .. ".auraName.fontSize";
                                 };
                                 {   name = L["Font Type"];
                                     type = "dropdown";
-                                    dbPath = "profile.timerBars."..name..".auraName.font";
+                                    dbPath = dbFieldPath .. ".auraName.font";
                                     fontPicker = true;
                                     options = tk.Constants.LSM:List("font");
                                 };
@@ -437,33 +444,33 @@ function C_TimerBarsModule:GetConfigTable()
                                     type = "title";
                                 };
                                 {   name = "Only show buffs applied by me";
-                                    dbPath = "profile.timerBars."..name..".filters.onlyPlayerBuffs";
+                                    dbPath = dbFieldPath .. ".filters.onlyPlayerBuffs";
                                     type = "check";
                                 };
                                 {   name = "Only show debuffs applied by me";
-                                    dbPath = "profile.timerBars."..name..".filters.onlyPlayerDebuffs";
+                                    dbPath = dbFieldPath .. ".filters.onlyPlayerDebuffs";
                                     type = "check";
                                 };
                                 {   type = "divider";
                                 };
                                 {   name = "Enable White List";
-                                    dbPath = "profile.timerBars."..name..".filters.enableWhiteList";
+                                    dbPath = dbFieldPath .. ".filters.enableWhiteList";
                                     type = "check";
                                 };
                                 {   name = "Configure White List";
                                     type = "button";
-                                    dbPath = "profile.timerBars."..name..".filters.whiteList";
+                                    dbPath = dbFieldPath .. ".filters.whiteList";
                                     OnClick = ShowListFrame;
                                 };
                                 {   type = "divider";
                                 };
                                 {   name = "Enable Black List";
-                                    dbPath = "profile.timerBars."..name..".filters.enableBlackList";
+                                    dbPath = dbFieldPath .. ".filters.enableBlackList";
                                     type = "check";
                                 };
                                 {   name = "Configure Black List";
                                     type = "button";
-                                    dbPath = "profile.timerBars."..name..".filters.blackList";
+                                    dbPath = dbFieldPath .. ".filters.blackList";
                                     OnClick = ShowListFrame;
                                 };
                             };

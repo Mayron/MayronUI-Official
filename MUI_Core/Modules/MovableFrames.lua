@@ -19,7 +19,7 @@ local BlizzardFrames = {
 	"QuestLogPopupDetailFrame", "InterfaceOptionsFrame", "QuestFrame", "GossipFrame", "DurabilityFrame",
 	"FriendsFrame", "MailFrame", "SpellBookFrame", "PetitionFrame", "BankFrame",
 	"TimeManagerFrame", "LFGDungeonReadyStatus", "RecruitAFriendFrame", "VideoOptionsFrame", "LFGDungeonReadyDialog",
-	"AddonList", "WorldStateScoreFrame", "LFDRoleCheckPopup", "PVPReadyDialog", "ChatConfigFrame", "GuildInviteFrame",
+	"AddonList", "WorldStateScoreFrame", "LFDRoleCheckPopup", "ChatConfigFrame", "GuildInviteFrame",
 	"LootFrame", "ReadyCheckFrame", "BonusRollMoneyWonFrame", "BonusRollFrame", "TradeFrame", "TabardFrame", "GuildRegistrarFrame",
 	"ItemTextFrame", "DressUpFrame", "GameMenuFrame", "TaxiFrame", "HelpFrame", "PVEFrame", "MerchantFrame",
 	"PetBattleFrame.ActiveAlly", "PetBattleFrame.ActiveEnemy", "ChannelFrame", "WorldMapFrame",

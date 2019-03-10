@@ -9,6 +9,8 @@ local string, date, pairs, ipairs = _G.string, _G.date, _G.pairs, _G.ipairs;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
 local table, GetTime, UnitAura = _G.table, _G.GetTime, _G.UnitAura;
 
+local RepositionBars;
+
 local HELPFUL, HARMFUL, DEBUFF, BUFF, UP = "HELPFUL", "HARMFUL", "DEBUFF", "BUFF", "UP";
 local TIMER_FIELD_UPDATE_FREQUENCY = 0.05;
 local UNKNOWN_AURA_TYPE = "Unknown aura type '%s'.";
@@ -45,6 +47,7 @@ Engine:CreateInterface("ITimerBar", {
 
 ---@class TimerField : FrameWrapper
 local C_TimerField = Engine:CreateClass("TimerField", "Framework.System.FrameWrapper");
+C_TimerField.Static:AddFriendClass("TimerBarsModule");
 
 ---@class TimerBar : ITimerBar
 local C_TimerBar = Engine:CreateClass("TimerBar", "Framework.System.FrameWrapper", "ITimerBar");
@@ -84,6 +87,8 @@ db:AddToDefaults("profile.timerBars", {
         poison            = { 0.0, 0.6, 0, 1 };
         curse             = { 0.6, 0.0, 1, 1 };
     };
+
+    fields = {};
 
     __templateField = {
         enabled   = true;
@@ -131,32 +136,43 @@ db:AddToDefaults("profile.timerBars", {
 function C_TimerBarsModule:OnInitialize(data)
     data.fields = obj:PopTable();
 
+    if (db.profile.timerBars.fields:IsEmpty()) then
+        for _, fieldName in db.profile.timerBars.fieldNames:Iterate() do
+            if (db.profile.timerBars[fieldName]) then
+                db.profile.timerBars.fields[fieldName] = db.profile.timerBars[fieldName]:GetSavedVariable();
+                db.profile.timerBars[fieldName] = nil;
+            end
+        end
+    end
+
     -- create 2 default (removable from database) TimerFields
-	db:AppendOnce(db.profile, "timerBars", {
-		fieldNames = {
+    db:AppendOnce(db.profile, "timerBars", {
+        fieldNames = {
             "Player";
             "Target";
-		};
-		Player = {
-			position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
-			unitID = "player";
-		};
-		Target = {
-			position = { "BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2 };
-			unitID = "target";
-		};
+        };
+        fields = {
+            Player = {
+                position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
+                unitID = "player";
+            };
+            Target = {
+                position = { "BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2 };
+                unitID = "target";
+            };
+        };
     });
 
     local first = obj:PopTable();
 
     if (obj:IsObject(db.profile.timerBars.fieldNames)) then
         for _, fieldName in db.profile.timerBars.fieldNames:Iterate() do
-            local sv = db.profile.timerBars[fieldName];
+            local sv = db.profile.timerBars.fields[fieldName];
             sv:SetParent(db.profile.timerBars.__templateField);
             data.fields[fieldName] = sv.enabled;
 
             if (sv.enabled) then
-                table.insert(first, fieldName .. "." .. "enabled");
+                table.insert(first, tk.Strings:Concat("fields.", fieldName, ".", "enabled"));
             end
         end
     end
@@ -171,9 +187,10 @@ function C_TimerBarsModule:OnInitialize(data)
 
         groups = {
             {
-                patterns = { tk.Strings:GeneratePathLengthPattern(2) }; -- all settings for update function paths of length 2 (i.e. fields like "Player.<setting>")
+                patterns = { "fields%.[^.]+%.[^.]+" }; -- (i.e. "fields.Player.<setting>")
 
                 onPre = function(value, keysList)
+                    keysList:PopFront();
                     local fieldName = keysList:PopFront();
                     local field = data.fields[fieldName];
                     local settingName = keysList:GetFront();
@@ -204,18 +221,30 @@ function C_TimerBarsModule:OnInitialize(data)
                         field:SetUnitID(value);
                     end;
 
-                    bar = function(_, _, field, fieldName)
-                        local maxBars = data.settings[fieldName].bar.maxBars;
-                        local barHeight = data.settings[fieldName].bar.height;
-                        local barWidth = data.settings[fieldName].bar.width;
-                        local spacing = data.settings[fieldName].bar.spacing;
+                    bar = function(_, keysList, field, fieldName)
+                        local key = keysList:PopBack();
+                        local fieldSettings = data.settings.fields[fieldName];
+                        local maxBars = fieldSettings.bar.maxBars;
+                        local barHeight = fieldSettings.bar.height;
+                        local barWidth = fieldSettings.bar.width;
+                        local spacing = fieldSettings.bar.spacing;
 
                         local fieldHeight = (maxBars * (barHeight + spacing)) - spacing;
                         field:SetSize(barWidth, fieldHeight);
 
-                        for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
-                            bar:SetSize(barWidth, barHeight);
-                            bar:SetAuraNameShown(data.settings[fieldName].auraName.show);
+                        if (key == "width" or key == "height") then
+                            for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
+                                if (key == "height") then
+                                    bar:SetHeight(barHeight);
+                                else
+                                    bar:SetAuraNameShown(fieldSettings.auraName.show);
+                                end
+
+                                bar:SetIconShown(fieldSettings.showIcons);
+                            end
+                        elseif (key == "spacing") then
+                            local fieldData = data:GetFriendData(field);
+                            RepositionBars(fieldData);
                         end
                     end;
 
@@ -237,13 +266,13 @@ function C_TimerBarsModule:OnInitialize(data)
 
                     auraName = function(_, _, field, fieldName)
                         for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
-                            bar:SetAuraNameShown(data.settings[fieldName].auraName.show);
+                            bar:SetAuraNameShown(data.settings.fields[fieldName].auraName.show);
                         end
                     end;
 
                     timeRemaining = function(_, _, field, fieldName)
                         for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
-                            bar:SetTimeRemainingShown(data.settings[fieldName].timeRemaining.show);
+                            bar:SetTimeRemainingShown(data.settings.fields[fieldName].timeRemaining.show);
                         end
                     end;
                 };
@@ -438,7 +467,7 @@ Engine:DefineParams("string", "table");
 function C_TimerField:__Construct(data, name, sharedSettings)
     data.name = name;
     data.sharedSettings = sharedSettings;
-    data.settings = sharedSettings[name];
+    data.settings = sharedSettings.fields[name];
     data.timeSinceLastUpdate = 0;
     data.activeBars = obj:PopTable();
 
@@ -579,7 +608,7 @@ end
 
 do
     ---Rearranges the TimerField active TimerBars after first being sorted by time remaining + bars being removed or added.
-    local function RepositionBars(data)
+    function RepositionBars(data)
         local p = tk.Constants.POINTS;
         local activeBar, previousBarFrame;
 

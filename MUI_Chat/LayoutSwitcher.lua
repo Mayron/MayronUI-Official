@@ -7,6 +7,7 @@ local tk, db, _, gui, obj = MayronUI:GetCoreComponents();
 
 local _G = _G;
 local ipairs, pairs, table, string = _G.ipairs, _G.pairs, _G.table, _G.string;
+local InCombatLockdown = _G.InCombatLockdown;
 
 local LAYOUT_MESSAGE =
 [[Customize which addOn/s should change to which profile/s for each layout,
@@ -90,6 +91,12 @@ local function LayoutButton_OnMouseUp(self, chat, btnPressed)
 	end
 
 	if (btnPressed == "LeftButton") then
+
+		if (InCombatLockdown()) then
+			tk:Print("Cannot switch layout while in combat.");
+			return;
+		end
+
 		local layoutName, layoutData = GetNextLayout();
 		chat:SwitchLayouts(layoutName, layoutData);
 

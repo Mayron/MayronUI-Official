@@ -422,8 +422,15 @@ local function FindMatchingGroupValue(path, options)
                     local updateFunction = groupOptions.value;
 
                     if (obj:IsTable(updateFunction)) then
-                        local lastKey = path:match("%.([^.]*)$");
-                        updateFunction = updateFunction[lastKey];
+                        for _, key in obj:IterateArgs(string.split(".", path)) do
+                            if (updateFunction[key]) then
+                                updateFunction = updateFunction[key];
+
+                                if (obj:IsFunction(updateFunction)) then
+                                    break;
+                                end
+                            end
+                        end
                     end
 
                     return updateFunction, groupOptions.onPre, groupOptions.onPost;

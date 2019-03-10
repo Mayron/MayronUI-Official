@@ -563,7 +563,7 @@ end
 
 Framework:DefineParams("Observer", "string", "any");
 Framework:DefineReturns("boolean");
----Adds a new value to the saved variable table only once. Registers the added value with a registration key.
+---Adds a new value to the saved variable table only once. Adds to a special appended history table.
 ---@param rootTable Observer @The root database table (observer) to append the value to relative to the path address provided.
 ---@param path string @The path address to specify where the value should be appended to.
 ---@param value any @The value to be added.
@@ -585,6 +585,28 @@ function Database:AppendOnce(data, rootTable, path, value)
 
     self:SetPathValue(rootTable, path, value);
     appendTable[path] = true;
+
+    return true;
+end
+
+Framework:DefineParams("Observer", "string");
+Framework:DefineReturns("boolean");
+---Removes the appended history.
+---@param rootTable Observer @The root database table (observer) to append the value to relative to the path address provided.
+---@param path string @The path address to specify where the value should be appended to.
+---@return boolean @Returns whether the value was successfully added.
+function Database:RemoveAppended(data, rootTable, path)
+    local tableType = data.helper:GetDatabaseRootTableName(rootTable);
+
+    local appendTable = data.sv.appended[tableType] or obj:PopTable();
+    data.sv.appended[tableType] = appendTable;
+
+    if (not appendTable[path]) then
+        return false;
+    end
+
+    self:SetPathValue(rootTable, path, nil);
+    appendTable[path] = nil;
 
     return true;
 end

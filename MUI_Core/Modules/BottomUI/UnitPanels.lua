@@ -474,18 +474,24 @@ end
 -- Private Functions -------------------------
 
 function Private.DetachShadowedUnitFrames()
-    local currentProfile = _G.ShadowUF.db:GetCurrentProfile();
-    local SUFTargetTarget = _G.ShadowedUFDB["profiles"][currentProfile]["positions"]["targettarget"];
+    for _, profileTable in pairs(_G.ShadowedUFDB.profiles) do
 
-    SUFTargetTarget.point = "TOP";
-    SUFTargetTarget.anchorTo = "UIParent";
-    SUFTargetTarget.relativePoint = "TOP";
-    SUFTargetTarget.x = 100;
-    SUFTargetTarget.y = -100;
+        if (obj:IsTable(profileTable) and obj:IsTable(profileTable.positions)) then
+            local p = profileTable.positions.targettarget;
+
+            if (obj:IsTable(p) and p.anchorTo == "MUI_UnitPanelCenter") then
+                p.point = "TOP";
+                p.anchorTo = "UIParent";
+                p.relativePoint = "TOP";
+                p.x = 100;
+                p.y = -100;
+            end
+        end
+    end
 end
 
 function Private.AttachShadowedUnitFrames(rightPanel)
-    if (not _G["MUI_UnitPanelCenter"]) then
+    if (not _G.MUI_UnitPanelCenter) then
         return;
     end
 
