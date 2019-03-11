@@ -4,11 +4,9 @@ local _, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local _G = _G;
-local ChatFrame1EditBox = _G.ChatFrame1EditBox;
-local NUM_CHAT_WINDOWS = _G.NUM_CHAT_WINDOWS;
-local hooksecurefunc, IsCombatLog, pairs = _G.hooksecurefunc, _G.IsCombatLog, _G.pairs;
-local StaticPopupDialogs = _G.StaticPopupDialogs;
-local ChatFrame1Tab = _G.ChatFrame1Tab;
+local ChatFrame1EditBox, NUM_CHAT_WINDOWS = _G.ChatFrame1EditBox, _G.NUM_CHAT_WINDOWS;
+local ChatFrame1Tab, InCombatLockdown, StaticPopupDialogs, hooksecurefunc, IsCombatLog, pairs =
+	_G.ChatFrame1Tab, _G.InCombatLockdown, _G.StaticPopupDialogs, _G.hooksecurefunc, _G.IsCombatLog, _G.pairs;
 
 --------------------------
 -- Blizzard Globals
@@ -40,12 +38,11 @@ namespace.Engine = Engine;
 namespace.C_ChatModule = C_ChatModule;
 namespace.C_ChatFrame = C_ChatFrame;
 
--- Defaults -----------------
+-- Database Defaults -----------------
 
 db:AddToDefaults("profile.chat", {
 	enabled = true;
 	swapInCombat = false;
-	layout = "DPS"; -- default layout
 	chatFrames = {
 		-- these tables will contain the templateMuiChatFrame data (using SetParent)
 		TOPLEFT = {
@@ -119,19 +116,6 @@ db:AddToDefaults("profile.chat", {
 			yOffset = -37;
 		}
 	};
-});
-
-db:AddToDefaults("global.chat", {
-	layouts = {
-		["DPS"] = {
-			["ShadowUF"] = "Default";
-			["Grid"] = "Default";
-		},
-		["Healer"] = {
-			["ShadowUF"] = "MayronUIH";
-			["Grid"] = "MayronUIH";
-		}
-	}
 });
 
 -- Chat Module -------------------
@@ -342,6 +326,114 @@ end
 Engine:DefineReturns("table");
 function C_ChatModule:GetChatFrames(data)
 	return data.chatFrames;
+end
+
+do
+	local function LayoutButton_OnEnter(self)
+		if (self.hideTooltip) then
+			return
+		end
+
+		_G.GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 8, -38);
+		_G.GameTooltip:SetText("MUI Layout Button");
+		_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme("Left Click:"), "Switch Layout", 1, 1, 1);
+		_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme("Right Click:"), "Show Layout Config Tool", 1, 1, 1);
+		_G.GameTooltip:Show();
+	end
+
+	local function LayoutButton_OnLeave()
+		_G.GameTooltip:Hide();
+	end
+
+	local function GetNextLayout()
+		local firstLayout, firstData;
+		local foundCurrentLayout;
+		local currentLayout = db.profile.layout;
+
+		for layoutName, layoutData in db.global.layouts:Iterate() do
+			if (obj:IsTable(layoutData)) then
+				if (not firstLayout) then
+					firstLayout = layoutName;
+					firstData = layoutData;
+				end
+
+				if (currentLayout == layoutName) then -- the next layout
+					foundCurrentLayout = true;
+
+				elseif (foundCurrentLayout) then
+					-- Found the next layout!
+					return layoutName, layoutData;
+				end
+			end
+		end
+
+		-- The next layout must be back to the first layout
+		return firstLayout, firstData;
+	end
+
+	local function LayoutButton_OnMouseUp(self, module, btnPressed)
+		if (not _G.MouseIsOver(self)) then
+			return;
+		end
+
+		if (btnPressed == "LeftButton") then
+
+			if (InCombatLockdown()) then
+				tk:Print("Cannot switch layout while in combat.");
+				return;
+			end
+
+			local layoutName, layoutData = GetNextLayout();
+			module:SwitchLayouts(layoutName, layoutData);
+
+			tk.PlaySound(tk.Constants.CLICK);
+			tk:Print(tk.Strings:SetTextColorByRGB(layoutName, 0, 1, 0), "Layout enabled!");
+			return layoutName;
+
+		elseif (btnPressed == "RightButton") then
+			MayronUI:TriggerCommand("layout");
+		end
+	end
+
+	Engine:DefineParams("Button");
+	function C_ChatModule:SetUpLayoutButton(data, layoutButton)
+		local layoutName = db.profile.layout;
+
+		layoutButton:SetText(layoutName:sub(1, 1):upper());
+
+		data.layoutButtons = data.layoutButtons or obj:PopTable();
+		table.insert(data.layoutButtons, layoutButton);
+
+		layoutButton:RegisterForClicks("LeftButtonDown", "RightButtonDown", "MiddleButtonDown");
+		layoutButton:SetScript("OnEnter", LayoutButton_OnEnter);
+		layoutButton:SetScript("OnLeave", LayoutButton_OnLeave);
+		layoutButton:SetScript("OnMouseUp", function(_, btnPressed)
+			local newLayoutName = LayoutButton_OnMouseUp(layoutButton, self, btnPressed);
+
+			if (obj:IsString(newLayoutName)) then
+				for _, btn in ipairs(data.layoutButtons) do
+					btn:SetText(newLayoutName:sub(1, 1):upper());
+				end
+			end
+		end);
+	end
+end
+
+Engine:DefineParams("string", "table");
+function C_ChatModule:SwitchLayouts(_, layoutName, layoutData)
+	db.profile.layout = layoutName;
+
+	-- Switch all assigned addons to new profile
+	for addOnName, profileName in pairs(layoutData) do
+		if (profileName) then
+			-- profileName could be false
+			local object = tk.Tables:GetDBObject(addOnName);
+
+			if (object) then
+				object:SetProfile(profileName);
+			end
+		end
+	end
 end
 
 -- Override Blizzard Stuff -----------------------

@@ -10,6 +10,18 @@ local function ResetProfile(_, profileName)
     tk:Print("Profile", tk.Strings:SetTextColorByKey(profileName, "gold"), "has been reset.");
 end
 
+local function CopyProfile(self, profileName)
+    local currentProfile = db:GetCurrentProfile();
+    db:CopyProfile(currentProfile, profileName);
+    tk:Print("Profile", tk.Strings:SetTextColorByKey(profileName, "gold"),
+        "has been copied into current profile", tk.Strings:SetTextColorByKey(currentProfile, "gold")..".");
+
+    tk:HookFunc(self, "Hide", function()
+        MayronUI:ShowReloadUIPopUp();
+        return true; -- unhook
+    end);
+end
+
 -- Get all profiles and convert them to a list of options for use with dropdown menus
 local function GetProfileOptions()
     local profiles = db:GetProfiles();
@@ -52,7 +64,7 @@ local configTable = {
                 local profileName = db:GetCurrentProfile();
                 local popupMessage = string.format(
                     "Are you sure you want to reset profile '%s' back to default settings?", profileName);
-                tk:ShowConfirmPopup(popupMessage, nil, nil, ResetProfile, nil, nil, true);
+                tk:ShowConfirmPopup(popupMessage, nil, ResetProfile, nil, nil, nil, true, profileName);
             end,
         };
         {
@@ -79,6 +91,34 @@ local configTable = {
             end,
         },
         {
+            type = "divider";
+        },
+        {
+            name    = "Copy From:";
+            tooltip = "Copy all settings from one profile to the active profile.";
+            type    = "dropdown";
+            width = 200;
+            GetOptions = GetProfileOptions;
+
+            SetValue = function(_, profileName, _, container)
+                if (db:GetCurrentProfile() == profileName) then
+                    container.widget.dropdown:SetLabel("Select profile");
+                    return;
+                end
+
+                local popupMessage = string.format(
+                    "Are you sure you want to overide all profile settings in '%s' for those in profile '%s'?",
+                    db:GetCurrentProfile(), profileName);
+
+                tk:ShowConfirmPopup(popupMessage, nil, CopyProfile, nil, nil, nil, true, profileName);
+                container.widget.dropdown:SetLabel("Select profile");
+            end;
+
+            GetValue = function()
+                return "Select profile";
+            end;
+        },
+        {
             type = "frame",
             height = 65;
             children =
@@ -88,12 +128,17 @@ local configTable = {
                     name              = "Choose Profile:";
                     tooltip           = "Choose the currently active profile.";
                     type              = "dropdown";
+                    width             = 200;
 
                     OnLoad = function(_, container)
                         widgets.chooseProfileDropDown = container.widget.dropdown;
                     end;
 
                     SetValue = function(_, newValue)
+                        if (db:GetCurrentProfile() == newValue) then
+                            return;
+                        end
+
                         db:SetProfile(newValue);
                         widgets.deleteProfileButton:SetEnabled(newValue ~= "Default");
                     end;

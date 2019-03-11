@@ -5,9 +5,6 @@ local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local C_TimerBarsModule = namespace.C_TimerBarsModule;
 local pairs, tonumber, table = _G.pairs, _G.tonumber, _G.table;
 
----@type ListFrame
-local C_ListFrame = obj:Import("MayronUI.Engine.ConfigTools.ListFrame");
-
 -- contains field name / table pairs where each table holds the 5 config textfield widgets
 -- this is used to update the config menu view after moving the fields (by unlocking them)
 local position_TextFields = {};
@@ -75,6 +72,9 @@ do
             btn.listFrame:SetShown(true);
             return;
         end
+
+        ---@type ListFrame
+        local C_ListFrame = obj:Import("MayronUI.Engine.ConfigTools.ListFrame");
 
         btn.listFrame = C_ListFrame(btn.name, btn.dbPath);
 

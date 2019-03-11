@@ -4,6 +4,7 @@ local _G, MayronUI = _G, _G.MayronUI;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local MENU_BUTTON_HEIGHT = 40;
+local PlaySound = _G.PlaySound;
 
 -- Registers and Imports -------------
 
@@ -14,8 +15,36 @@ local Engine = obj:Import("MayronUI.Engine");
 local C_ConfigModule = MayronUI:RegisterModule("ConfigModule");
 
 namespace.C_ConfigModule = C_ConfigModule;
+namespace.Engine = Engine;
 
 -- Local functions -------------------
+local CreateTopMenuButton;
+
+do
+    local menuButtons = {};
+
+    function CreateTopMenuButton(label, onClick, anchor)
+        local btn = gui:CreateButton(tk.Constants.AddOnStyle, nil, label);
+        btn:SetWidth(100);
+
+        if (anchor) then
+            btn:SetPoint("RIGHT", anchor, "RIGHT");
+            btn:SetParent(anchor);
+        else
+            btn:SetPoint("RIGHT", menuButtons[#menuButtons], "LEFT", -10, 0);
+            btn:SetParent(menuButtons[#menuButtons]);
+        end
+
+        btn:SetScript("OnClick", function()
+            onClick();
+            PlaySound(tk.Constants.CLICK);
+        end);
+
+        table.insert(menuButtons, btn);
+
+        return btn;
+    end
+end
 
 local function MenuButton_OnClick(menuButton)
     if (menuButton:IsObjectType("CheckButton") and not menuButton:GetChecked()) then
@@ -71,6 +100,8 @@ function C_ConfigModule:OnInitialize()
         tk:Print("Please install the UI and try again.");
         return;
     end
+
+    _G.DisableAddOn("MUI_Config"); -- disable for next time
 end
 
 function C_ConfigModule:Show(data)
@@ -485,45 +516,29 @@ function C_ConfigModule:SetUpWindow(data)
     data.windowName:SetPoint("LEFT", data.window.back, "RIGHT", 10, 0);
     SetBackButtonEnabled(data.window.back, false);
 
-    -- profiles button
-    data.window.profilesBtn = gui:CreateButton(
-        tk.Constants.AddOnStyle, topbar:GetFrame(), "Profiles");
-
-    data.window.profilesBtn:SetPoint("RIGHT", topbar:GetFrame(), "RIGHT");
-    data.window.profilesBtn:SetWidth(120);
-
-    data.window.profilesBtn:SetScript("OnClick", function()
+      -- profiles button
+      data.window.profilesBtn = CreateTopMenuButton("Profiles", function()
         if (data.selectedButton:IsObjectType("CheckButton")) then
             data.selectedButton:SetChecked(false);
         end
 
         self:ShowProfileManager();
+    end, topbar:GetFrame());
+
+    -- Layouts Button:
+    data.window.layoutsBtn = CreateTopMenuButton("Layouts", function()
+        MayronUI:TriggerCommand("layouts");
+        data.window:Hide();
     end);
 
     -- installer buttons
-    data.window.installerBtn = gui:CreateButton(
-        tk.Constants.AddOnStyle, topbar:GetFrame(), "Installer");
-
-    data.window.installerBtn:SetPoint("RIGHT", data.window.profilesBtn, "LEFT", -10, 0);
-    data.window.installerBtn:SetWidth(120);
-
-    data.window.installerBtn:SetScript("OnClick", function()
+    data.window.installerBtn = CreateTopMenuButton("Installer", function()
         MayronUI:TriggerCommand("install");
         data.window:Hide();
-        tk.PlaySound(tk.Constants.CLICK);
     end);
 
     -- reload button
-    data.window.reloadBtn = gui:CreateButton(
-        tk.Constants.AddOnStyle, topbar:GetFrame(), L["Reload UI"]);
-
-    data.window.reloadBtn:SetPoint("RIGHT", data.window.installerBtn, "LEFT", -10, 0);
-    data.window.reloadBtn:SetWidth(120);
-
-    data.window.reloadBtn:SetScript("OnClick", function()
-        _G.ReloadUI();
-        tk.PlaySound(tk.Constants.CLICK);
-    end);
+    data.window.reloadBtn = CreateTopMenuButton(L["Reload UI"], _G.ReloadUI);
 
     local menuListScrollChild = menuListContainer.ScrollFrame:GetScrollChild();
     tk:SetFullWidth(menuListScrollChild);

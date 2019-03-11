@@ -241,8 +241,9 @@ function C_SideBar:OnInitialize(data)
             Private.step = value;
         end;
 
-        yOffset = function()
-            self:SetBarsShown(data.settings.barsShown);
+        yOffset = function(value)
+            local p, rf, rp, x = data.panel:GetPoint();
+            data.panel:SetPoint(p, rf, rp, x, value);
         end;
 
         objectiveTracker = function()
@@ -479,8 +480,8 @@ function C_SideBar:SetBarsShown(data, numBarsShown)
     elseif (data.settings.barsShown == 0) then
         Private:ToggleBartenderBar(data.BTBar1, false);
         Private:ToggleBartenderBar(data.BTBar2, false);
-        data.panel:ClearAllPoints();
         data.panel:SetSize(data.settings.retractWidth, data.settings.height);
+        data.panel:ClearAllPoints();
         data.panel:SetPoint("RIGHT", tk.UIParent, "RIGHT", data.settings.retractWidth ,data.settings.yOffset);
         data.panel:Hide();
         data.expand:SetPoint("RIGHT");

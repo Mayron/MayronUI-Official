@@ -7,7 +7,6 @@ MUI_Chat.lua
 
 ButtonHandlers.lua
 ChatFrame.lua
-LayoutSwitcher.lua
 
 BlizzardFrames/ChatFrame.lua
 BlizzardFrames/RaidFrameManager.lua

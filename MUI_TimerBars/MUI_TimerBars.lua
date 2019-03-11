@@ -136,15 +136,6 @@ db:AddToDefaults("profile.timerBars", {
 function C_TimerBarsModule:OnInitialize(data)
     data.fields = obj:PopTable();
 
-    if (db.profile.timerBars.fields:IsEmpty()) then
-        for _, fieldName in db.profile.timerBars.fieldNames:Iterate() do
-            if (db.profile.timerBars[fieldName]) then
-                db.profile.timerBars.fields[fieldName] = db.profile.timerBars[fieldName]:GetSavedVariable();
-                db.profile.timerBars[fieldName] = nil;
-            end
-        end
-    end
-
     -- create 2 default (removable from database) TimerFields
     db:AppendOnce(db.profile, "timerBars", {
         fieldNames = {
@@ -162,6 +153,15 @@ function C_TimerBarsModule:OnInitialize(data)
             };
         };
     });
+
+    if (db.profile.timerBars.fields:IsEmpty()) then
+        for _, fieldName in db.profile.timerBars.fieldNames:Iterate() do
+            if (db.profile.timerBars[fieldName]) then
+                db.profile.timerBars.fields[fieldName] = db.profile.timerBars[fieldName]:GetSavedVariable();
+                db.profile.timerBars[fieldName] = nil;
+            end
+        end
+    end
 
     local first = obj:PopTable();
 

@@ -58,7 +58,7 @@ function C_ChatFrame:SetEnabled(data, enabled)
 		end
 
 		-- chat channel button
-		data.chatModule:SetUpLayoutSwitcher(data.frame.layoutButton);
+		data.chatModule:SetUpLayoutButton(data.frame.layoutButton);
 	end
 
 	if (data.frame) then

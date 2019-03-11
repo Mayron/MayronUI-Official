@@ -6,6 +6,7 @@ MayronUI = {};
 
 local MigrateToGen6;
 local table, ipairs, pairs, select, string, unpack, print = _G.table, _G.ipairs, _G.pairs, _G.select, _G.string, _G.unpack, _G.print;
+local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI = _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
 
 namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
 namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
@@ -47,26 +48,41 @@ local BaseModule = Engine:CreateClass("BaseModule");
 
 -- Load Database Defaults -------------
 
-db:AddToDefaults("global.core", {
-    uiScale = 0.7,
-    changeGameFont = true,
-    font = "MUI_Font",
-    useLocalization = true,
-    setup = {
-        profilePerCharacter = true;
-        addOns = {
-            {"Aura Frames", true, "AuraFrames"},
-            {"Bagnon", true, "Bagnon"},
-            {"Bartender4", true, "Bartender4"},
-            {"Grid", true, "Grid"},
-            {"Masque", true, "Masque"},
-            {"Mik Scrolling Battle Text", true, "MikScrollingBattleText"},
-            {"Recount", true, "Recount"},
-            {"Shadowed Unit Frames", true, "ShadowedUnitFrames"},
-            {"TipTac", true, "TipTac"},
-        }
-    }
+db:AddToDefaults("global", {
+    layouts = {
+        DPS = {
+            ["ShadowUF"] = "Default";
+            ["Grid"] = "Default";
+        };
+        Healer = {
+            ["ShadowUF"] = "MayronUIH";
+            ["Grid"] = "MayronUIH";
+        };
+    };
+
+    core = {
+        uiScale           = 0.7;
+        changeGameFont    = true;
+        font              = "MUI_Font";
+        useLocalization   = true;
+        setup = {
+            profilePerCharacter = true;
+            addOns = {
+                {"Aura Frames", true, "AuraFrames"};
+                {"Bagnon", true, "Bagnon"};
+                {"Bartender4", true, "Bartender4"};
+                {"Grid", true, "Grid"};
+                {"Masque", true, "Masque"};
+                {"Mik Scrolling Battle Text", true, "MikScrollingBattleText"};
+                {"Recount", true, "Recount"};
+                {"Shadowed Unit Frames", true, "ShadowedUnitFrames"};
+                {"TipTac", true, "TipTac"};
+            };
+        };
+    };
 });
+
+db:AddToDefaults("profile.layout", "DPS");
 
 local _, class = _G.UnitClass("player");
 local classColor = tk.Constants.CLASS_COLORS[class];
@@ -82,16 +98,21 @@ db:AddToDefaults("profile.theme", {
 
 -- Slash Commands ------------------
 
-local function GetMuiConfigModule()
-    if (not _G.IsAddOnLoaded("MUI_Config")) then
-        _G.EnableAddOn("MUI_Config");
+local function LoadMuiAddOn(name)
+    if (not IsAddOnLoaded(name)) then
+        EnableAddOn(name);
 
-        if (not _G.LoadAddOn("MUI_Config")) then
-            tk:Print(L["Failed to load MUI_Config. Possibly missing?"]);
-            return;
+        if (not LoadAddOn(name)) then
+            tk:Print(string.format("Failed to load %s. Possibly missing?", name));
+            return false;
         end
     end
 
+    return true;
+end
+
+local function GetMuiConfigModule()
+    if (not LoadMuiAddOn("MUI_Config")) then return; end
     local configModule = MayronUI:ImportModule("ConfigModule");
 
     if (not configModule:IsInitialized()) then
@@ -104,19 +125,21 @@ end
 local commands = {};
 
 commands.config = function()
-    GetMuiConfigModule():Show();
+    local module = GetMuiConfigModule()
+
+    if (module) then
+        module:Show();
+    end
+end
+
+commands.layouts = function()
+    if (not LoadMuiAddOn("MUI_Config")) then return; end
+    local layoutSwitcher = MayronUI:ImportModule("LayoutSwitcher");
+    layoutSwitcher:ShowLayoutTool();
 end
 
 commands.install = function()
-    if (not _G.IsAddOnLoaded("MUI_Setup")) then
-        _G.EnableAddOn("MUI_Setup");
-
-        if (not _G.LoadAddOn("MUI_Setup")) then
-            tk:Print(L["Failed to load MUI_Setup. Possibly missing?"]);
-            return;
-        end
-    end
-
+    if (not LoadMuiAddOn("MUI_Setup")) then return; end
     MayronUI:ImportModule("SetUpModule"):Show();
 end
 
@@ -221,6 +244,7 @@ commands.help = function()
     tk:Print(L["List of slash commands:"])
     tk:Print("|cff00cc66/mui config|r - "..L["shows config menu"]);
     tk:Print("|cff00cc66/mui install|r - "..L["shows setup menu"]);
+    tk:Print("|cff00cc66/mui layouts|r - show layout tool");
     tk:Print("|cff00cc66/mui profiles list|r - list all MayronUI profiles");
     tk:Print("|cff00cc66/mui profiles|r - shows profile manager");
     tk:Print("|cff00cc66/mui profile set <profile_name>|r - set profile");
@@ -669,6 +693,11 @@ function MayronUI:PrintTable(tbl, depth)
     tk.Tables:Print(tbl, depth);
 end
 
+function MayronUI:ShowReloadUIPopUp()
+    tk:ShowConfirmPopup("Some settings will not be changed until the UI has been reloaded.",
+        "Would you like to reload the UI now?", ReloadUI, "Reload UI", nil, "No", true);
+end
+
 ---A helper function to print a variable argument list using the MayronUI prefix in the chat frame.
 function MayronUI:Print(...)
     tk:Print(...);
@@ -874,6 +903,7 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
     end
 
     collectgarbage("collect");
+    DisableAddOn("MUI_Setup"); -- disable for next time
 end):SetAutoDestroy(true);
 
 -- Database Event callbacks --------------------
@@ -902,8 +932,7 @@ db:OnProfileChange(function(self, newProfileName)
 
     tk:Print("Profile changed to:", tk.Strings:SetTextColorByKey(newProfileName, "GOLD"));
 
-    tk:ShowConfirmPopup("Some settings will not be changed until the UI as been reloaded.",
-        "Would you like to reload the UI now?", _G.ReloadUI, "Reload UI", nil, "No", true);
+    MayronUI:ShowReloadUIPopUp();
 end);
 
 db:OnStartUp(function(self)

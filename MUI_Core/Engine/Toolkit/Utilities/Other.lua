@@ -4,6 +4,7 @@ local _, namespace = ...;
 local _G = _G;
 local string, tostring, select, unpack = _G.string, _G.tostring, _G.select, _G.unpack;
 local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.pcall, _G.error;
+local hooksecurefunc = _G.hooksecurefunc;
 
 namespace.components = {};
 namespace.components.Objects = LibStub:GetLibrary("LibMayronObjects");
@@ -295,6 +296,16 @@ do
         EditBox_OnTextChanged(self.editBox, true); -- call it OnShow to enable/disable confirm button
     end
 
+    local function PopUp_OnAccept(self)
+        if (self.data.OnAccept) then
+            if (self.hasEditBox) then
+                EditBox_OnEnterPressed(self);
+            else
+                self.data.OnAccept(self, obj:UnpackTable(self.data.args));
+            end
+        end
+    end
+
     local function GetPopup(message, subMessage)
         local popup = _G.StaticPopupDialogs[POPUP_GLOBAL_NAME];
 
@@ -319,13 +330,13 @@ do
         return popup;
     end
 
-    function tk:ShowConfirmPopup(message, subMessage, onConfirm, confirmText, onCancel, cancelText, isWarning)
+    function tk:ShowConfirmPopup(message, subMessage, onConfirm, confirmText, onCancel, cancelText, isWarning, ...)
         local popup = GetPopup(message, subMessage);
 
         popup.hasEditBox = false;
         popup.button1 = confirmText or "Confirm";
         popup.button2 = cancelText or "Cancel";
-        popup.OnAccept = onConfirm;
+        popup.OnAccept = PopUp_OnAccept;
         popup.OnCancel = onCancel;
 
         if (isWarning) then
@@ -333,13 +344,13 @@ do
         end
 
         popup.data.OnAccept = onConfirm;
-        popup.data.OnCancel = onCancel;
         popup.data.OnValidate = nil;
+        popup.data.args = obj:PopTable(...);
 
         _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
 
-    function tk:ShowMessagePopup(message, subMessage, okayText, onOkay, isWarning)
+    function tk:ShowMessagePopup(message, subMessage, okayText, onOkay, isWarning, ...)
         local popup = GetPopup(message, subMessage);
 
         popup.button1 = okayText or "Okay";
@@ -347,6 +358,7 @@ do
         popup.hasEditBox = false;
         popup.OnAccept = onOkay;
         popup.OnCancel = nil;
+        popup.data.args = obj:PopTable(...);
 
         if (isWarning) then
             popup.showAlert = true;
@@ -381,56 +393,52 @@ end
 do
     local callbacks = {};
 
+    local function CreateCallbackWrapper(key, tbl, methodName)
+        return function(...)
+            local callbackData = callbacks[key];
+
+            if (not callbackData) then
+                return; -- it has been unhooked
+            end
+
+            local args = obj:PopTable();
+            tk.Tables:AddAll(args, select(2, unpack(callbackData)));
+            tk.Tables:AddAll(args, ...);
+
+            if (obj:IsTable(callbackData)) then
+                -- pass to callback function all custom args and then the real hooksecurefunc args
+                local unhook = callbackData[1](unpack(args));
+
+                if (unhook) then
+                    if (tbl) then
+                        tk:UnhookFunc(tbl, methodName, callbackData[1]);
+                    else
+                        tk:UnhookFunc(methodName, callbackData[1]);
+                    end
+                end
+            end
+
+            obj:PushTable(args);
+        end
+    end
+
     function tk:HookFunc(tbl, methodName, callback, ...)
         if (obj:IsString(tbl)) then
             local realGlobalMethodName = tbl;
             local realCallback = methodName;
             local firstArg = callback;
+
             local key = string.format("%s|%s", realGlobalMethodName, tostring(realCallback));
-
-            local callbackWrapper = function(...)
-                local callbackData = callbacks[key];
-                local args = obj:PopTable();
-                tk.Tables:AddAll(args, select(2,unpack(callbackData)));
-                tk.Tables:AddAll(args, ...);
-
-                if (obj:IsTable(callbackData)) then
-                    -- pass to callback function all custom args and then the real hooksecurefunc args
-                    local unhook = callbackData[1](unpack(args));
-
-                    if (unhook) then
-                        tk:UnhookFunc(realGlobalMethodName, callbackData[1]);
-                    end
-                end
-
-                obj:PushTable(args);
-            end
+            local callbackWrapper = CreateCallbackWrapper(key, tbl, methodName);
 
             callbacks[key] = obj:PopTable(realCallback, firstArg, ...);
-            _G.hooksecurefunc(realGlobalMethodName, callbackWrapper);
+            hooksecurefunc(realGlobalMethodName, callbackWrapper);
         else
             local key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
-
-            local callbackWrapper = function(...)
-                local callbackData = callbacks[key];
-                local args = obj:PopTable();
-                tk.Tables:AddAll(args, select(2,unpack(callbackData)));
-                tk.Tables:AddAll(args, ...);
-
-                if (obj:IsTable(callbackData)) then
-                    -- pass to callback function all custom args and then the real hooksecurefunc args
-                    local unhook = callbackData[1](unpack(args));
-
-                    if (unhook) then
-                        tk:UnhookFunc(tbl, methodName, callbackData[1]);
-                    end
-                end
-
-                obj:PushTable(args);
-            end
+            local callbackWrapper = CreateCallbackWrapper(key, tbl, methodName);
 
             callbacks[key] = obj:PopTable(callback, ...);
-            _G.hooksecurefunc(tbl, methodName, callbackWrapper);
+            hooksecurefunc(tbl, methodName, callbackWrapper);
         end
     end
 

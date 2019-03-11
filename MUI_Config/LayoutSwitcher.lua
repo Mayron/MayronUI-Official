@@ -1,13 +1,12 @@
 -- luacheck: ignore MayronUI self 143
 -- Setup namespaces ------------------
 local _, namespace = ...;
-local C_ChatModule = namespace.C_ChatModule;
 local Engine = namespace.Engine;
 local tk, db, _, gui, obj = MayronUI:GetCoreComponents();
+local C_LayoutSwitcher = MayronUI:RegisterModule("LayoutSwitcher");
 
 local _G = _G;
-local ipairs, pairs, table, string = _G.ipairs, _G.pairs, _G.table, _G.string;
-local InCombatLockdown = _G.InCombatLockdown;
+local ipairs, table, string = _G.ipairs, _G.table, _G.string;
 
 local LAYOUT_MESSAGE =
 [[Customize which addOn/s should change to which profile/s for each layout,
@@ -16,13 +15,13 @@ as well as manage your existing layouts or create new ones.]];
 -- Local Functions -------------------
 
 local function SetAddOnProfilePair(_, viewingLayout, addOnName, profileName)
-	db:SetPathValue(db.global, string.format("chat.layouts.%s.%s", viewingLayout, addOnName), profileName);
+	db:SetPathValue(db.global, string.format("layouts.%s.%s", viewingLayout, addOnName), profileName);
 end
 
 local function GetSupportedAddOns()
 	local addOns = {"MayronUI"}; -- Add additional Supported AddOns here
 
-	if (tk.IsAddOnLoaded("ShadowedUnitFrames")) then
+	if (_G.IsAddOnLoaded("ShadowedUnitFrames")) then
 		table.insert(addOns, "ShadowUF");
 	end
 
@@ -43,105 +42,17 @@ local function GetSupportedAddOns()
 	return addOns;
 end
 
-local function GetNextLayout()
-	local firstLayout, firstData;
-	local foundCurrentLayout;
-	local currentLayout = db.profile.chat.layout;
-
-	for layoutName, layoutData in db.global.chat.layouts:Iterate() do
-		if (obj:IsTable(layoutData)) then
-			if (not firstLayout) then
-				firstLayout = layoutName;
-				firstData = layoutData;
-			end
-
-			if (currentLayout == layoutName) then -- the next layout
-				foundCurrentLayout = true;
-
-			elseif (foundCurrentLayout) then
-				-- Found the next layout!
-				return layoutName, layoutData;
-			end
-		end
-	end
-
-	-- The next layout must be back to the first layout
-	return firstLayout, firstData;
-end
-
-local function LayoutButton_OnEnter(self)
-	if (self.hideTooltip) then
-		return
-	end
-
-	_G.GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 8, -38);
-	_G.GameTooltip:SetText("MUI Layout Button");
-	_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme("Left Click:"), "Switch Layout", 1, 1, 1);
-	_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme("Right Click:"), "Show Layout Config Tool", 1, 1, 1);
-	_G.GameTooltip:Show();
-end
-
-local function LayoutButton_OnLeave()
-	_G.GameTooltip:Hide();
-end
-
-local function LayoutButton_OnMouseUp(self, chat, btnPressed)
-	if (not _G.MouseIsOver(self)) then
-		return;
-	end
-
-	if (btnPressed == "LeftButton") then
-
-		if (InCombatLockdown()) then
-			tk:Print("Cannot switch layout while in combat.");
-			return;
-		end
-
-		local layoutName, layoutData = GetNextLayout();
-		chat:SwitchLayouts(layoutName, layoutData);
-
-		tk.PlaySound(tk.Constants.CLICK);
-		tk:Print(tk.Strings:SetTextColorByRGB(layoutName, 0, 1, 0), "Layout enabled!");
-		return layoutName;
-
-	elseif (btnPressed == "RightButton") then
-		chat:ShowLayoutTool();
-	end
-end
-
--- C_ChatModule ------------------------
-
--- First function to be called!
-Engine:DefineParams("Button");
-function C_ChatModule:SetUpLayoutSwitcher(data, layoutButton)
-	local layoutName = data.settings.layout;
-
-	layoutButton:SetText(layoutName:sub(1, 1):upper());
-
-	data.layoutButtons = data.layoutButtons or obj:PopTable();
-	table.insert(data.layoutButtons, layoutButton);
-
-	layoutButton:RegisterForClicks("LeftButtonDown", "RightButtonDown", "MiddleButtonDown");
-	layoutButton:SetScript("OnEnter", LayoutButton_OnEnter);
-	layoutButton:SetScript("OnLeave", LayoutButton_OnLeave);
-	layoutButton:SetScript("OnMouseUp", function(_, btnPressed)
-		local newLayoutName = LayoutButton_OnMouseUp(layoutButton, self, btnPressed);
-
-		if (obj:IsString(newLayoutName)) then
-			for _, btn in ipairs(data.layoutButtons) do
-				btn:SetText(newLayoutName:sub(1, 1):upper());
-			end
-		end
-	end);
+-- C_LayoutSwitcher ------------------------
+function C_LayoutSwitcher:OnInitialize()
 end
 
 Engine:DefineParams("?DropDownMenu", "?string");
-function C_ChatModule:SetViewingLayout(data, dropdown, layoutName)
+function C_LayoutSwitcher:SetViewingLayout(data, dropdown, layoutName)
 	if (not layoutName) then
 		if (dropdown) then
 			layoutName = dropdown:GetLabel();
 		else
-			for key, layoutData in db.global.chat.layouts:Iterate() do
+			for key, layoutData in db.global.layouts:Iterate() do
 				if (layoutData) then
 					layoutName = key;
 					break;
@@ -152,16 +63,16 @@ function C_ChatModule:SetViewingLayout(data, dropdown, layoutName)
 
 	data.viewingLayout = layoutName;
 
-	if (db.global.chat.layouts[layoutName]) then
+	if (db.global.layouts[layoutName]) then
 		self:UpdateAddOnWindow();
 	end
 end
 
 Engine:DefineReturns("number");
-function C_ChatModule:GetNumLayouts()
+function C_LayoutSwitcher:GetNumLayouts()
 	local n = 0;
 
-	for _, layoutData in db.global.chat.layouts:Iterate() do
+	for _, layoutData in db.global.layouts:Iterate() do
 		if (layoutData) then
 			n = n + 1;
 		end
@@ -170,10 +81,10 @@ function C_ChatModule:GetNumLayouts()
 	return n;
 end
 
-function C_ChatModule:UpdateAddOnWindow(data)
+function C_LayoutSwitcher:UpdateAddOnWindow(data)
 	if (not data.addonWindow) then return; end
 
-	local layoutData = db.global.chat.layouts[data.viewingLayout];
+	local layoutData = db.global.layouts[data.viewingLayout];
 
 	if (not layoutData) then
 		self:SetViewingLayout();
@@ -204,9 +115,9 @@ function C_ChatModule:UpdateAddOnWindow(data)
 end
 
 Engine:DefineParams("DropDownMenu", "string", "table");
-function C_ChatModule:CreateNewAddOnProfile(data, dropdown, addOnName, dbObject)
+function C_LayoutSwitcher:CreateNewAddOnProfile(data, dropdown, addOnName, dbObject)
 	local newProfileLabel = string.format("Create New %s Profile:", addOnName);
-	dropdown:SetLabel(db.global.chat.layouts[data.viewingLayout][addOnName]);
+	dropdown:SetLabel(db.global.layouts[data.viewingLayout][addOnName]);
 
 	if (_G.StaticPopupDialogs["MUI_NewProfileLayout"]) then
 		_G.StaticPopupDialogs["MUI_NewProfileLayout"].text = newProfileLabel;
@@ -253,7 +164,7 @@ function C_ChatModule:CreateNewAddOnProfile(data, dropdown, addOnName, dbObject)
 	_G.StaticPopup_Show("MUI_NewProfileLayout");
 end
 
-function C_ChatModule:CreateLayout(data)
+function C_LayoutSwitcher:CreateLayout(data)
 	if (_G.StaticPopupDialogs["MUI_CreateLayout"]) then
 		_G.StaticPopup_Show("MUI_CreateLayout");
 		return;
@@ -278,8 +189,8 @@ function C_ChatModule:CreateLayout(data)
 		OnAccept = function(dialog)
 			local layout = dialog.editBox:GetText();
 
-			if (not db.global.chat.layouts[layout]) then
-				db.global.chat.layouts[layout] = obj:PopTable();
+			if (not db.global.layouts[layout]) then
+				db.global.layouts[layout] = obj:PopTable();
 
 				dropdown:AddOption(layout, {self, "SetViewingLayout"});
 				self:SetViewingLayout(nil, layout);
@@ -294,7 +205,7 @@ function C_ChatModule:CreateLayout(data)
 	_G.StaticPopup_Show("MUI_CreateLayout");
 end
 
-function C_ChatModule:RenameLayout(data)
+function C_LayoutSwitcher:RenameLayout(data)
 	if (_G.StaticPopupDialogs["MUI_RenameLayout"]) then
 		_G.StaticPopup_Show("MUI_RenameLayout");
 		return;
@@ -312,16 +223,16 @@ function C_ChatModule:RenameLayout(data)
 		OnAccept = function(dialog)
 			local layout = dialog.editBox:GetText();
 
-			if (db.global.chat.layouts[layout]) then
+			if (db.global.layouts[layout]) then
 				return;
 			end
 
 			local oldViewingLayout = data.viewingLayout;
-			local old = db.global.chat.layouts[data.viewingLayout];
+			local old = db.global.layouts[data.viewingLayout];
 
 			data.viewingLayout = layout;
-			db.global.chat.layouts[layout] = old:GetSavedVariable();
-			db.global.chat.layouts[oldViewingLayout] = false; -- might be a default layout
+			db.global.layouts[layout] = old:GetSavedVariable();
+			db.global.layouts[oldViewingLayout] = false; -- might be a default layout
 
 			local dropdown = data.layoutTool.dropdown;
 			local btn = dropdown:GetOptionByLabel(oldViewingLayout);
@@ -335,7 +246,7 @@ function C_ChatModule:RenameLayout(data)
 	_G.StaticPopup_Show("MUI_RenameLayout");
 end
 
-function C_ChatModule:DeleteLayout(data)
+function C_LayoutSwitcher:DeleteLayout(data)
 	if (_G.StaticPopupDialogs["MUI_DeleteLayout"]) then
 		_G.StaticPopup_Show("MUI_DeleteLayout");
 		return;
@@ -352,7 +263,7 @@ function C_ChatModule:DeleteLayout(data)
 		OnAccept = function()
 			local dropdown = data.layoutTool.dropdown;
 			dropdown:RemoveOptionByLabel(data.viewingLayout);
-			db.global.chat.layouts[data.viewingLayout] = false;
+			db.global.layouts[data.viewingLayout] = false;
 
 			self:SetViewingLayout();
 
@@ -367,7 +278,7 @@ end
 
 Engine:DefineParams("table", "string");
 Engine:DefineReturns("Frame", "DropDownMenu");
-function C_ChatModule:CreateScrollFrameRowContent(data, dbObject, addOnName)
+function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
 	local scrollFrame = data.addonWindow.dynamicFrame:GetFrame();
 	local addOnProfiles = dbObject:GetProfiles();
 	local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, scrollFrame);
@@ -398,7 +309,7 @@ function C_ChatModule:CreateScrollFrameRowContent(data, dbObject, addOnName)
 	return checkButton, dropdown;
 end
 
-function C_ChatModule:ShowLayoutTool(data)
+function C_LayoutSwitcher:ShowLayoutTool(data)
 	if (data.layoutTool) then
 		data.layoutTool:Show();
 		self:UpdateAddOnWindow();
@@ -406,7 +317,7 @@ function C_ChatModule:ShowLayoutTool(data)
 		return;
 	end
 
-	data.viewingLayout = data.settings.layout;
+	data.viewingLayout = db.profile.layout;
 
 	data.layoutTool = gui:CreateDialogBox(tk.Constants.AddOnStyle);
 	data.layoutTool:SetSize(700, 400);
@@ -467,7 +378,7 @@ function C_ChatModule:ShowLayoutTool(data)
 	data.menu.layoutsDropDown:SetPoint("TOPLEFT", data.menu.layoutsTitle, "BOTTOMLEFT", 0, -5);
 	data.layoutTool.dropdown = data.menu.layoutsDropDown
 
-	for key, layoutData in db.global.chat.layouts:Iterate() do
+	for key, layoutData in db.global.layouts:Iterate() do
 		if (layoutData) then
 			data.menu.layoutsDropDown:AddOption(key, {self, "SetViewingLayout"});
 		end
@@ -490,21 +401,4 @@ function C_ChatModule:ShowLayoutTool(data)
 
 	data.layoutTool:Show();
 	_G.UIFrameFadeIn(data.layoutTool, 0.3, 0, 1);
-end
-
-Engine:DefineParams("string", "table");
-function C_ChatModule:SwitchLayouts(_, layoutName, layoutData)
-	db.profile.chat.layout = layoutName;
-
-	-- Switch all assigned addons to new profile
-	for addOnName, profileName in pairs(layoutData) do
-		if (profileName) then
-			-- profileName could be false
-			local object = tk.Tables:GetDBObject(addOnName);
-
-			if (object) then
-				object:SetProfile(profileName);
-			end
-		end
-	end
 end

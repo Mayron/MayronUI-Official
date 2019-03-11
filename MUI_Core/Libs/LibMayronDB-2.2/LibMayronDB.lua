@@ -394,6 +394,10 @@ Framework:DefineParams("string");
 ---Sets the addon profile for the currently logged in character. Creates a new profile if the named profile does not exist.
 ---@param profileName string @The name of the profile to assign to the character.
 function Database:SetProfile(data, profileName)
+    if (self:GetCurrentProfile() == profileName) then
+        return;
+    end
+
     local profile = data.sv.profiles[profileName] or obj:PopTable();
     data.sv.profiles[profileName] = profile;
 
@@ -473,6 +477,22 @@ Framework:DefineParams("string");
 function Database:ResetProfile(_, profileName)
     self:RemoveProfile(profileName);
     self:SetProfile(profileName);
+end
+
+Framework:DefineParams("string");
+---Helper function to reset a profile.
+---@param profileName string @The name of the profile to reset.
+function Database:CopyProfile(data, profileName, copiedProfileName)
+    if (profileName == copiedProfileName) then
+        return;
+    end
+
+    if (data.sv.profiles[profileName] and data.sv.profiles[copiedProfileName]) then
+        data.bin = data.bin or {};
+        data.bin[profileName] = data.sv.profiles[profileName];
+        data.sv.profiles[profileName] = data.sv.profiles[copiedProfileName];
+        self:SetProfile(profileName);
+    end
 end
 
 Framework:DefineParams("string");

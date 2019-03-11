@@ -605,6 +605,7 @@ function C_SetUpModule:Install()
     db.global.installed[tk:GetPlayerKey()] = true;
     db.global.reanchorRecount = true;
 
+    _G.DisableAddOn("MUI_Setup");
     _G.ReloadUI();
 end
 

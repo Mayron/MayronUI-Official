@@ -69,8 +69,9 @@ function Lib:CreateDropDown(style, parent, direction)
     dropDownContainer:SetSize(178, 28);
     dropDownContainer:SetScript("OnHide", DropDownContainer_OnHide);
 
-    local header = _G.CreateFrame("Button", nil, dropDownContainer);
-    header:SetPoint("TOPLEFT", dropDownContainer, "TOPLEFT");
+    local header = _G.CreateFrame("Frame", nil, dropDownContainer);
+    header:SetFrameLevel(100)
+    header:SetPoint("TOPLEFT", dropDownContainer);
 
     header:SetBackdrop(style:GetBackdrop("DropDownMenu"));
     header.bg = Private:SetBackground(header, style:GetTexture("ButtonTexture"));
@@ -120,7 +121,7 @@ end
 -- DropDownMenu Object
 -----------------------------------
 local function ToolTip_OnEnter(frame)
-    _G.GameTooltip:SetOwner(frame, "ANCHOR_RIGHT", 0, 2);
+    _G.GameTooltip:SetOwner(frame, "ANCHOR_TOPLEFT", 0, 2);
 
     if (frame.isEnabled) then
         _G.GameTooltip:AddLine(frame.tooltip);
@@ -176,20 +177,18 @@ end
 
 do
     local function ApplyTooltipScripts(header)
-        if (not (header.tooltip or header.disabledTooltip)) then
-            header:SetScript("OnEnter", ToolTip_OnEnter);
-            header:SetScript("OnLeave", ToolTip_OnLeave);
-        end
+        header:SetScript("OnEnter", ToolTip_OnEnter);
+        header:SetScript("OnLeave", ToolTip_OnLeave);
     end
 
     function DropDownMenu:SetTooltip(data, tooltip)
-        ApplyTooltipScripts(data.header);
         data.header.tooltip = tooltip;
+        ApplyTooltipScripts(data.header);
     end
 
     function DropDownMenu:SetDisabledTooltip(data, disabledTooltip)
-        ApplyTooltipScripts(data.header);
         data.header.disabledTooltip = disabledTooltip;
+        ApplyTooltipScripts(data.header);
     end
 end
 

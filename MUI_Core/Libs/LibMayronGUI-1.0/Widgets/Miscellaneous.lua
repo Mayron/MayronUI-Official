@@ -15,7 +15,7 @@ local function OnEnter(self)
     _G.GameTooltip:Show();
 end
 
-local function OnLeave(self)
+local function OnLeave()
     _G.GameTooltip:Hide();
 end
 

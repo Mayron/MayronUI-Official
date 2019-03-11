@@ -15,7 +15,7 @@ local function CreateElementContainerFrame(widget, widgetTable, parent)
 
     container:SetSize(widgetTable.width or widget:GetWidth(), widgetTable.height or widget:GetHeight());
     container.widget = widget; -- this is needed to access the widget from the container which is passed to some config functions (i.e. OnLoad)
-    widget:SetParent(container);
+    widget.configContainer = container; -- mwidget must have access to container to use properties, such as SetValue() for dropdown menus
 
     if (widgetTable.name and tk:ValueIsEither(widgetTable.type, "slider", "dropdown", "textfield")) then
         container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -197,7 +197,7 @@ end
 local function Slider_OnValueChanged(self, value)
     value = math.floor(value + 0.5);
     self.Value:SetText(value);
-    configModule:SetDatabaseValue(self:GetParent(), value);
+    configModule:SetDatabaseValue(self.configContainer, value);
 end
 
 function WidgetHandlers.slider(parent, widgetTable, value)
@@ -245,15 +245,17 @@ end
 -- Drop Down Menu
 -------------------
 local function DropDown_OnSelectedValue(self, value)
-    configModule:SetDatabaseValue(self:GetParent(), value);
+    configModule:SetDatabaseValue(self.configContainer, value);
 end
 
 function WidgetHandlers.dropdown(parent, widgetTable, value)
     local container = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
 
+    if (widgetTable.width) then
+        container:SetWidth(widgetTable.width);
+    end
+
     container.dropdown:SetLabel(tostring(value));
-    container.dropdown:SetTooltip(widgetTable.tooltip);
-    container.dropdown:SetDisabledTooltip(widgetTable.disabledTooltip);
 
     if (widgetTable.disableSorting) then
         container.dropdown:SetSortingEnabled(false);
@@ -277,6 +279,14 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
         if (widgetTable.fontPicker) then
             option:GetFontString():SetFont(tk.Constants.LSM:Fetch("font", key), 11);
         end
+    end
+
+    if (widgetTable.tooltip) then
+        container.dropdown:SetTooltip(widgetTable.tooltip);
+    end
+
+    if (widgetTable.disabledTooltip) then
+        container.dropdown:SetDisabledTooltip(widgetTable.disabledTooltip);
     end
 
     return CreateElementContainerFrame(container, widgetTable, parent);
