@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 
 local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-local db = MayronUI:GetComponent("MUI_TimerBarsDatabase");
+local db = MayronUI:GetModuleComponent("MUI_TimerBars", "Database");
 local C_TimerBarsModule = MayronUI:GetModuleClass("TimerBarsModule");
 
 local _G, MayronUI = _G, _G.MayronUI;
@@ -14,7 +14,7 @@ local ShowListFrame;
 
 local function CreateNewFieldButton_OnClick(editBox)
     local text = editBox:GetText();
-    local tbl = db.profile.timerBars.fieldNames:GetUntrackedTable();
+    local tbl = db.profile.fieldNames:GetUntrackedTable();
 
     db:SetPathValue(db.profile, "timerBars.fieldNames["..(#tbl + 1).."]", text);
     db:SetPathValue(db.profile, "timerBars.fields."..text, obj:PopTable());
@@ -25,7 +25,7 @@ end
 
 local function RemoveFieldButton_OnClick(editBox)
     local text = editBox:GetText();
-    local tbl = db.profile.timerBars.fieldNames:GetUntrackedTable();
+    local tbl = db.profile.fieldNames:GetUntrackedTable();
     local id = tk.Tables:GetIndex(tbl, text);
 
     if (id) then
@@ -103,6 +103,7 @@ function C_TimerBarsModule:GetConfigTable()
     return {
         {   name    = "Timer Bars";
             module  = "TimerBarsModule";
+            dbName  = "MUI_TimerBars";
             children = {
                 {   name        = L["General Options"];
                     type        = "title";
@@ -111,18 +112,18 @@ function C_TimerBarsModule:GetConfigTable()
                 {   name    = L["Sort By Time Remaining"];
                     type    = "check";
                     width   = 220;
-                    dbPath  = "profile.timerBars.sortByExpirationTime";
+                    dbPath  = "profile.sortByExpirationTime";
                 };
                 {   name    = L["Show Tooltips On Mouseover"];
                     type    = "check";
                     width   = 230;
-                    dbPath  = "profile.timerBars.showTooltips";
+                    dbPath  = "profile.showTooltips";
                 };
                 {   type = "divider";
                 };
                 {   name    = L["Bar Texture"];
                     type    = "dropdown";
-                    dbPath  = "profile.timerBars.statusBarTexture";
+                    dbPath  = "profile.statusBarTexture";
                     options = tk.Constants.LSM:List("statusbar");
                 };
                 {   type = "divider";
@@ -130,16 +131,16 @@ function C_TimerBarsModule:GetConfigTable()
                 {   name    = "Show Borders";
                     type    = "check";
                     height = 55;
-                    dbPath  = "profile.timerBars.border.show";
+                    dbPath  = "profile.border.show";
                 };
                 {   name    = "Border Type";
                     type    = "dropdown";
-                    dbPath  = "profile.timerBars.border.type";
+                    dbPath  = "profile.border.type";
                     options = tk.Constants.LSM:List("border");
                 };
                 {   name    = "Border Size";
                     type    = "slider";
-                    dbPath  = "profile.timerBars.border.size";
+                    dbPath  = "profile.border.size";
                     min = 1;
                     max = 20;
                     step = 1;
@@ -168,28 +169,28 @@ function C_TimerBarsModule:GetConfigTable()
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.background";
+                    dbPath = "profile.colors.background";
                 };
                 {   name = L["Buff Bar Color"];
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.basicBuff";
+                    dbPath = "profile.colors.basicBuff";
                 };
                 {   name = L["Debuff Bar Color"];
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.basicDebuff";
+                    dbPath = "profile.colors.basicDebuff";
                 };
                 {   name = "Border Color";
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.border";
+                    dbPath = "profile.colors.border";
                 };
                 {   name = "Can Steal or Purge Color";
                     type = "color";
@@ -197,43 +198,43 @@ function C_TimerBarsModule:GetConfigTable()
                     useIndexes = true;
                     hasOpacity = true;
                     tooltip = "If an aura can be stolen or purged, show a different color";
-                    dbPath = "profile.timerBars.colors.canStealOrPurge";
+                    dbPath = "profile.colors.canStealOrPurge";
                 };
                 {   name = "Magic Debuff Color";
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.magic";
+                    dbPath = "profile.colors.magic";
                 };
                 {   name = "Disease Debuff Color";
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.disease";
+                    dbPath = "profile.colors.disease";
                 };
                 {   name = "Poison Debuff Color";
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.poison";
+                    dbPath = "profile.colors.poison";
                 };
                 {   name = "Curse Debuff Color";
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.curse";
+                    dbPath = "profile.colors.curse";
                 };
                 {   name = L["Existing Timer Bar Fields"];
                     type = "title";
                 };
                 {   type = "loop";
-                    args = db.profile.timerBars.fieldNames:GetUntrackedTable();
+                    args = db.profile.fieldNames:GetUntrackedTable();
                     func = function(_, name)
-                        local dbFieldPath = "profile.timerBars.fields."..name;
+                        local dbFieldPath = "profile.fields."..name;
 
                         return {
                             name = name;
@@ -244,6 +245,7 @@ function C_TimerBarsModule:GetConfigTable()
                             end;
 
                             module = "TimerBarsModule";
+                            dbName = "MUI_TimerBars";
                             children = {
                                 {   name = L["Enable Field"];
                                     type = "check";

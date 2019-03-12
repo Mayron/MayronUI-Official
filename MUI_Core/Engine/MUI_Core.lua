@@ -12,6 +12,7 @@ namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase
 namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
 namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.components.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
+namespace.components.Modules = {};
 
 local tk  = namespace.components.Toolkit; ---@type Toolkit
 local db  = namespace.components.Database; ---@type LibMayronDB
@@ -26,14 +27,21 @@ function MayronUI:GetCoreComponents()
     return tk, db, em, gui, obj, L;
 end
 
----Get a single component registered with the MayronUI Engine
-function MayronUI:GetComponent(componentName)
+function MayronUI:GetCoreComponent(componentName)
     return namespace.components[componentName];
 end
 
+---Get a single component registered with the MayronUI Engine
+function MayronUI:GetModuleComponent(moduleKey, componentName)
+    if (obj:IsTable(namespace.components.Modules[moduleKey])) then
+        return namespace.components.Modules[moduleKey][componentName];
+    end
+end
+
 ---Add/Register a custom component with the MayronUI Engine
-function MayronUI:AddComponent(componentName, component)
-    namespace.components[componentName] = component;
+function MayronUI:AddModuleComponent(moduleKey, componentName, component)
+    local components = tk.Tables:GetTable(namespace.components.Modules, moduleKey);
+    components[componentName] = component;
 end
 
 local registeredModules = {};

@@ -4,7 +4,7 @@ local _G, MayronUI = _G, _G.MayronUI;
 
 local tk, _, em, _, obj = MayronUI:GetCoreComponents();
 local db = _G.LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MUI_TimerBarsDb");
-MayronUI:AddComponent("MUI_TimerBarsDatabase", db);
+MayronUI:AddModuleComponent("MUI_TimerBars", "Database", db);
 
 _G.MUI_TimerBars = {}; -- Create new global
 
