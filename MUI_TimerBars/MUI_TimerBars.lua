@@ -135,13 +135,9 @@ db:AddToDefaults("profile", {
     };
 });
 
--- db:OnProfileChange(function(self, newProfileName)
---     --TODO: Not Yet Implemented
--- end);
-
 db:OnStartUp(function(self)
     _G.MUI_TimerBars.db = self;
-    MayronUI:Initialize(timerBarsModule);
+    timerBarsModule:Initialize();
 end);
 
 -- C_TimerBarsModule --------------------

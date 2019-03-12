@@ -220,13 +220,13 @@ function Database:Start(data)
 
     data.loaded = true;
 
-    if (data.callbacks["OnStartUp"]) then
-        for _, callback in ipairs(data.callbacks["OnStartUp"]) do
+    if (data.callbacks.OnStartUp) then
+        for _, callback in ipairs(data.callbacks.OnStartUp) do
             callback(self, data.addOnName);
         end
     end
 
-    data.callbacks["OnStartUp"] = nil;
+    data.callbacks.OnStartUp = nil;
 end
 
 Framework:DefineReturns("boolean");
@@ -837,9 +837,15 @@ function Observer:GetPathAddress(data, excludeTableType)
 
     if (not excludeTableType) then
         if (data.isGlobal) then
-            path = string.format("%s.%s", "global", path);
-        else
+            if (path) then
+                path = string.format("%s.%s", "global", path);
+            else
+                path = "global";
+            end
+        elseif (path) then
             path = string.format("%s.%s", "profile", path);
+        else
+            path = "profile";
         end
     end
 
