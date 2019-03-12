@@ -581,20 +581,24 @@ function Database:RenameProfile(data, oldProfileName, newProfileName)
     end
 end
 
-Framework:DefineParams("Observer", "string", "any");
+Framework:DefineParams("Observer", "?string", "?string", "table");
 Framework:DefineReturns("boolean");
 ---Adds a new value to the saved variable table only once. Adds to a special appended history table.
 ---@param rootTable Observer @The root database table (observer) to append the value to relative to the path address provided.
----@param path string @The path address to specify where the value should be appended to.
----@param value any @The value to be added.
+---@param path string @(Optional) The path address to specify where the value should be appended to.
+---@param appendKey string @(Optional) An optional key that can be used instead of the path for registering an appended value.
+---@param value table @The table of values to be appended to the database.
 ---@return boolean @Returns whether the value was successfully added.
-function Database:AppendOnce(data, rootTable, path, value)
+function Database:AppendOnce(data, rootTable, path, appendKey, value)
     local tableType = data.helper:GetDatabaseRootTableName(rootTable);
 
     local appendTable = data.sv.appended[tableType] or obj:PopTable();
     data.sv.appended[tableType] = appendTable;
 
-    if (appendTable[path]) then
+    appendKey = appendKey or path;
+    obj:Assert(appendKey, "Both path and appendKey args cannot be missing (at least one is required)");
+
+    if (appendTable[appendKey]) then
         -- already previously appended, cannot append again
         if (obj:IsTable(value)) then
             obj:PushTable(value, true);
@@ -603,9 +607,16 @@ function Database:AppendOnce(data, rootTable, path, value)
         return false;
     end
 
-    self:SetPathValue(rootTable, path, value);
-    appendTable[path] = true;
+    if (path) then
+        self:SetPathValue(rootTable, path, value);
 
+    elseif (obj:IsTable(value)) then
+        for k, v in pairs(value) do
+            rootTable[k] = v;
+        end
+    end
+
+    appendTable[appendKey] = true;
     return true;
 end
 

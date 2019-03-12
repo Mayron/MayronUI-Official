@@ -31,8 +31,8 @@ function MayronUI:GetComponent(componentName)
     return namespace.components[componentName];
 end
 
----Register a custom component with the MayronUI Engine
-function MayronUI:RegisterComponent(componentName, component)
+---Add/Register a custom component with the MayronUI Engine
+function MayronUI:AddComponent(componentName, component)
     namespace.components[componentName] = component;
 end
 
@@ -728,6 +728,19 @@ function MayronUI:Hook(moduleKey, eventName, func)
     local eventHooks = tk.Tables:GetTable(registryInfo, "hooks", eventName);
 
     table.insert(eventHooks, func);
+end
+
+---@param moduleKey string @The unique key associated with the registered module.
+---@return Class @Returns a module Class so that a module can be given additional methods and definitions where required.
+function MayronUI:GetModuleClass(moduleKey)
+    local registryInfo = registeredModules[moduleKey];
+
+    if (not registryInfo) then
+        -- addon is disabled so cannot import module
+        return nil;
+    end
+
+    return registryInfo and registryInfo.class;
 end
 
 ---@param moduleKey string @The unique key associated with the registered module.

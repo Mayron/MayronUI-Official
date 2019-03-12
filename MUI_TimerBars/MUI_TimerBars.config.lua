@@ -1,8 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
-local _, namespace = ...;
+
+local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local db = MayronUI:GetComponent("MUI_TimerBarsDatabase");
+local C_TimerBarsModule = MayronUI:GetModuleClass("TimerBarsModule");
+
 local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-local C_TimerBarsModule = namespace.C_TimerBarsModule;
 local pairs, tonumber, table = _G.pairs, _G.tonumber, _G.table;
 
 -- contains field name / table pairs where each table holds the 5 config textfield widgets

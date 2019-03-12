@@ -3,8 +3,8 @@ local addOnName, namespace = ...;
 local _G, MayronUI = _G, _G.MayronUI;
 
 local tk, _, em, _, obj = MayronUI:GetCoreComponents();
-
 local db = _G.LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MUI_TimerBarsDb");
+MayronUI:AddComponent("MUI_TimerBarsDatabase", db);
 
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo;
 local unpack, CreateFrame, UnitIsDeadOrGhost = _G.unpack, _G.CreateFrame, _G.UnitIsDeadOrGhost;
@@ -67,7 +67,7 @@ local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
 
 -- Database Defaults --------------
 
-db:AddToDefaults("profile.timerBars", {
+db:AddToDefaults("profile", {
     enabled = true;
     sortByExpirationTime   = true;
     showTooltips          = true;
@@ -140,9 +140,7 @@ function C_TimerBarsModule:OnInitialize(data)
     data.fields = obj:PopTable();
 
     -- create 2 default (removable from database) TimerFields
-
-    -- TODO: Might need a key as 2nd arg?:
-    db:AppendOnce(db.profile, {
+    db:AppendOnce(db.profile, nil, "defaultFields", {
         fieldNames = {
             "Player";
             "Target";
