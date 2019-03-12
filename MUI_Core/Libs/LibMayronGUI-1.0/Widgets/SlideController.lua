@@ -19,7 +19,7 @@ end
 WidgetsPackage:DefineParams("Frame", "?number");
 function SlideController:__Construct(data, frame, step)
     data.frame = frame;
-    data.step = step or 20;
+    data.step = step or 30;
     data.minHeight = 1;
     data.maxHeight = 200;
 
