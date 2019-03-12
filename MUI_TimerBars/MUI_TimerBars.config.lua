@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 
 local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-local db = MayronUI:GetModuleComponent("MUI_TimerBars", "Database");
+local db = MayronUI:GetModuleComponent("TimerBarsModule", "Database");
 local C_TimerBarsModule = MayronUI:GetModuleClass("TimerBarsModule");
 
 local _G, MayronUI = _G, _G.MayronUI;
@@ -101,9 +101,9 @@ end
 
 function C_TimerBarsModule:GetConfigTable()
     return {
-        {   name    = "Timer Bars";
-            module  = "TimerBarsModule";
-            dbName  = "MUI_TimerBars";
+        {   name              = "Timer Bars";
+            module            = "TimerBarsModule";
+            hasOwnDatabase    = true;
             children = {
                 {   name        = L["General Options"];
                     type        = "title";
@@ -237,19 +237,19 @@ function C_TimerBarsModule:GetConfigTable()
                         local dbFieldPath = "profile.fields."..name;
 
                         return {
-                            name = name;
-                            type = "submenu";
+                            name              = name;
+                            type              = "submenu";
+                            module            = "TimerBarsModule";
+                            hasOwnDatabase    = true;
 
                             OnLoad = function()
                                 position_TextFields[name] = obj:PopTable();
                             end;
 
-                            module = "TimerBarsModule";
-                            dbName = "MUI_TimerBars";
                             children = {
-                                {   name = L["Enable Field"];
-                                    type = "check";
-                                    dbPath = dbFieldPath .. ".enabled";
+                                {   name    = L["Enable Field"];
+                                    type    = "check";
+                                    dbPath  = dbFieldPath .. ".enabled";
                                 };
                                 {   name = L["Unlock"];
                                     type = "button";

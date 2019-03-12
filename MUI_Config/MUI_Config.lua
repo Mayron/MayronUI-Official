@@ -76,7 +76,7 @@ local function TransferWidgetAttributes(widget, widgetTable)
     widget.requiresReload   = widgetTable.requiresReload;
     widget.requiresRestart  = widgetTable.requiresRestart;
     widget.module           = widgetTable.module;
-    widget.dbName           = widgetTable.dbName;
+    widget.hasOwnDatabase   = widgetTable.hasOwnDatabase;
     widget.valueType        = widgetTable.valueType;
     widget.min              = widgetTable.min;
     widget.max              = widgetTable.max;
@@ -115,15 +115,19 @@ function C_ConfigModule:Show(data)
 end
 function C_ConfigModule:GetDatabase(data, tbl)
     local dbObject;
+    local dbName = "CoreModule";
 
     tbl = tbl or data.tempMenuConfigTable;
 
     if (tbl) then
-        local dbName = tbl.dbName or "MUI_Core";
-        dbObject = tk.Tables:GetDBObject(dbName);
+        if (tbl.hasOwnDatabase) then
+            dbName = tbl.module;
+        end
+
+        dbObject = MayronUI:GetModuleComponent(dbName, "Database");
     end
 
-    obj:Assert(dbObject, "Failed to get database object for database path '%s'", tbl.dbPath);
+    obj:Assert(dbObject, "Failed to get database object for module '%s'", dbName);
 
     return dbObject;
 end
@@ -170,6 +174,7 @@ Engine:DefineParams("table");
 ---@param value any @The value to add to the database using the dbPath value attached to the widget table.
 function C_ConfigModule:SetDatabaseValue(_, widget, newValue)
     local db = self:GetDatabase(widget);
+
     -- __SetValue is a custom function to manually set the datbase config value
     if (widget.__SetValue) then
         local oldValue;
@@ -217,8 +222,8 @@ function C_ConfigModule:OpenMenu(data, menuButton)
 end
 
 do
-    local function CleanTablesPredicate(_, tbl, key)
-        return (tbl.type ~= "submenu" and key ~= "options");
+    local function CleanTablesPredicate(_, _, key)
+        return (key ~= "options");
     end
 
     Engine:DefineParams("CheckButton|Button");
@@ -373,12 +378,20 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
         widgetConfigTable.appendDbPath = nil;
     end
 
-    if (obj:IsTable(data.tempMenuConfigTable.inherit)) then
-        -- Inherit all key and value pairs from a parent table by injecting them into childData
+    if (not obj:IsTable(data.tempMenuConfigTable.inherit)) then
+        data.tempMenuConfigTable.inherit = obj:PopTable();
+        data.tempMenuConfigTable.inherit.module = data.tempMenuConfigTable.module;
+        data.tempMenuConfigTable.inherit.hasOwnDatabase = data.tempMenuConfigTable.hasOwnDatabase;
+    end
+
+    if (not data.tempMenuConfigTable.inherit.__index) then
         local metaTable = obj:PopTable();
         metaTable.__index = data.tempMenuConfigTable.inherit;
-        setmetatable(widgetConfigTable, metaTable);
+        data.tempMenuConfigTable.inherit = metaTable;
     end
+
+    -- Inherit all key and value pairs from a menu table
+    setmetatable(widgetConfigTable, data.tempMenuConfigTable.inherit);
 
     local widgetType = widgetConfigTable.type;
 

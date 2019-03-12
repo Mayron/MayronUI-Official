@@ -4,7 +4,6 @@ local _G, MayronUI = _G, _G.MayronUI;
 
 local tk, _, em, _, obj = MayronUI:GetCoreComponents();
 local db = _G.LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MUI_TimerBarsDb");
-MayronUI:AddModuleComponent("MUI_TimerBars", "Database", db);
 
 _G.MUI_TimerBars = {}; -- Create new global
 
@@ -41,6 +40,7 @@ local Engine = obj:Import("MayronUI.Engine");
 
 ---@class TimerBarsModule : BaseModule
 local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", "Timer Bars", true); -- initialized on demand
+MayronUI:AddModuleComponent("TimerBarsModule", "Database", db);
 
 local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
 
@@ -165,16 +165,6 @@ function C_TimerBarsModule:OnInitialize(data)
             };
         };
     });
-
-    -- TODO: previous migration code - needs updating
-    -- if (db.profile.timerBars.fields:IsEmpty()) then
-    --     for _, fieldName in db.profile.timerBars.fieldNames:Iterate() do
-    --         if (db.profile.timerBars[fieldName]) then
-    --             db.profile.timerBars.fields[fieldName] = db.profile.timerBars[fieldName]:GetSavedVariable();
-    --             db.profile.timerBars[fieldName] = nil;
-    --         end
-    --     end
-    -- end
 
     local first = obj:PopTable();
 
