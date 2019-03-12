@@ -69,26 +69,35 @@ local function HasMatchingPathPattern(path, patterns)
 end
 
 local function FindMatchingGroupValue(path, options)
-    if (options and options.groups) then
-        for _, groupOptions in pairs(options.groups) do
-            if (HasMatchingPathPattern(path, groupOptions.patterns)) then
-                if (groupOptions.value) then
-                    local updateFunction = groupOptions.value;
+    if (not (options and options.groups)) then
+        return;
+    end
 
-                    if (obj:IsTable(updateFunction)) then
-                        for _, key in obj:IterateArgs(string.split(".", path)) do
-                            if (updateFunction[key]) then
-                                updateFunction = updateFunction[key];
+    path = path:gsub("%[", ".");
+    path = path:gsub("%]", "");
 
-                                if (obj:IsFunction(updateFunction)) then
-                                    break;
-                                end
+    for _, groupOptions in pairs(options.groups) do
+
+        if (HasMatchingPathPattern(path, groupOptions.patterns)) then
+
+            if (groupOptions.value) then
+                local updateFunction = groupOptions.value;
+
+                if (obj:IsTable(updateFunction)) then
+
+                    for _, key in obj:IterateArgs(string.split(".", path)) do
+
+                        if (updateFunction[key]) then
+                            updateFunction = updateFunction[key];
+
+                            if (obj:IsFunction(updateFunction)) then
+                                break;
                             end
                         end
                     end
-
-                    return updateFunction, groupOptions.onPre, groupOptions.onPost;
                 end
+
+                return updateFunction, groupOptions.onPre, groupOptions.onPost;
             end
         end
     end

@@ -99,16 +99,24 @@ do
     local function Dragger_OnDragStart(self)
         if (self.frame:IsMovable()) then
             self.frame:StartMoving();
+
+            if (obj:IsFunction(self.onDragStart)) then
+                self.onDragStart(self.frame, self.frame:GetPoint());
+            end
         end
     end
 
     local function Dragger_OnDragStop(self)
         if (self.frame:IsMovable()) then
             self.frame:StopMovingOrSizing();
+
+            if (obj:IsFunction(self.onDragStop)) then
+                self.onDragStop(self.frame, self.frame:GetPoint());
+            end
         end
     end
 
-    function tk:MakeMovable(frame, dragger, movable)
+    function tk:MakeMovable(frame, dragger, movable, onDragStart, onDragStop)
         if (movable == nil) then
             movable = true;
         end
@@ -120,6 +128,9 @@ do
         dragger:RegisterForDrag("LeftButton");
         frame:SetMovable(movable);
         frame:SetClampedToScreen(true);
+
+        dragger.onDragStart = onDragStart;
+        dragger.onDragStop = onDragStop;
         dragger:HookScript("OnDragStart", Dragger_OnDragStart);
         dragger:HookScript("OnDragStop", Dragger_OnDragStop);
     end
@@ -134,18 +145,16 @@ function tk:SavePosition(frame, override)
         relativeFrame = relativeFrame:GetName();
 
         if (not relativeFrame or (relativeFrame and relativeFrame ~= "UIParent")) then
-            if (not override) then
-                return;
+            if (override) then
+                x, y = frame:GetCenter();
+                point = "CENTER";
+                relativeFrame = "UIParent"; -- Do not want this to be UIParent in some cases
+                relativePoint = "BOTTOMLEFT";
             end
-
-            x, y = frame:GetCenter();
-            point = "CENTER";
-            relativeFrame = "UIParent"; -- Do not want this to be UIParent in some cases
-            relativePoint = "BOTTOMLEFT";
         end
     end
 
-    local positions = obj:PopTable(point, relativeFrame, relativePoint, x , y);
+    local positions = obj:PopTable(point, relativeFrame, relativePoint, x, y);
     return positions;
 end
 

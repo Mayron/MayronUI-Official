@@ -159,6 +159,15 @@ function C_TimerBarsModule:OnInitialize(data)
     data.fields = obj:PopTable();
 
     -- create 2 default (removable from database) TimerFields
+    local defaultTargetField = obj:PopTable();
+    defaultTargetField.unitID = "target";
+
+    if (db:GetCurrentProfile() == "Healer") then
+        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", 320, 2);
+    else
+        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2);
+    end
+
     db:AppendOnce(db.profile, nil, "defaultFields", {
         fieldNames = {
             "Player";
@@ -169,12 +178,11 @@ function C_TimerBarsModule:OnInitialize(data)
                 position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
                 unitID = "player";
             };
-            Target = {
-                position = { "BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2 };
-                unitID = "target";
-            };
+            Target = defaultTargetField;
         };
     });
+
+    obj:PushTable(defaultTargetField, true);
 
     local first = obj:PopTable();
 

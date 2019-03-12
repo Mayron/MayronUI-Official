@@ -10,6 +10,7 @@ local pairs, tonumber, table = _G.pairs, _G.tonumber, _G.table;
 -- contains field name / table pairs where each table holds the 5 config textfield widgets
 -- this is used to update the config menu view after moving the fields (by unlocking them)
 local position_TextFields = {};
+local savePositionButtons = {};
 local ShowListFrame;
 
 local function CreateNewFieldButton_OnClick(editBox)
@@ -97,6 +98,20 @@ end
 local function TimerFieldPosition_OnLoad(configTable, container)
     local positionIndex = configTable.dbPath:match("%[(%d)%]$");
     position_TextFields[configTable.fieldName][tonumber(positionIndex)] = container.widget;
+end
+
+local function Field_OnDragStop(field)
+    local positions = tk:SavePosition(field);
+    local fieldName = field:GetName():match("MUI_(.*)TimerField");
+
+    if (positions) then
+        -- update the config menu view
+        for id, textField in ipairs(position_TextFields[fieldName]) do
+            textField:SetText(positions[id]);
+        end
+    end
+
+    savePositionButtons[fieldName]:SetEnabled(true);
 end
 
 function C_TimerBarsModule:GetConfigTable()
@@ -261,7 +276,7 @@ function C_TimerBarsModule:GetConfigTable()
                                         end
 
                                         button.toggle = not button.toggle;
-                                        tk:MakeMovable(field, nil, button.toggle);
+                                        tk:MakeMovable(field, nil, button.toggle, nil, Field_OnDragStop);
 
                                         if (button.toggle) then
                                             if (not field.moveIndicator) then
@@ -280,17 +295,29 @@ function C_TimerBarsModule:GetConfigTable()
                                             field.moveIndicator:SetAlpha(0);
                                             field.moveLabel:SetAlpha(0);
                                             button:SetText("Unlock");
-
-                                            local positions = tk:SavePosition(field);
-                                            db:SetPathValue(dbFieldPath .. ".position", positions);
-
-                                            if (positions) then
-                                                -- update the config menu view
-                                                for id, textField in ipairs(position_TextFields[name]) do
-                                                    textField:SetText(positions[id]);
-                                                end
-                                            end
                                         end
+                                    end
+                                };
+                                {   name = "Save Position";
+                                    type = "button";
+
+                                    OnLoad = function(_, button)
+                                        savePositionButtons[name] = button;
+                                        button:SetEnabled(false);
+                                    end;
+
+                                    OnClick = function(_)
+                                        local field = _G["MUI_"..name.."TimerField"];
+
+                                        if (not (field and field:IsShown())) then
+                                            return;
+                                        end
+
+                                        local positions = tk:SavePosition(field);
+                                        db:SetPathValue(dbFieldPath .. ".position", positions);
+
+                                        Field_OnDragStop(field);
+                                        savePositionButtons[name]:SetEnabled(false);
                                     end
                                 };
                                 {   type = "divider";

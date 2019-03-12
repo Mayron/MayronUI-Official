@@ -63,11 +63,13 @@ db:AddToDefaults("global", {
     layouts = {
         DPS = {
             ["ShadowUF"] = "Default";
-            ["Grid"] = "Default";
+            ["MUI_TimerBars"] = "Default";
+            ["Grid"] = "Default"; -- no longer in UI pack but keep
         };
         Healer = {
             ["ShadowUF"] = "MayronUIH";
-            ["Grid"] = "MayronUIH";
+            ["MUI_TimerBars"] = "Healer";
+            ["Grid"] = "MayronUIH"; -- no longer in UI pack but keep
         };
     };
 
