@@ -710,7 +710,9 @@ end
 
 ---@param commandName string @Trigger a MayronUI registered slash command (can optionally pass in arguments)
 function MayronUI:TriggerCommand(commandName, ...)
-    commands[commandName:lower()](...);
+    commandName = commandName:lower();
+    obj:Assert(commands[commandName], "Unknown command name '%s'", commandName);
+    commands[commandName](...);
 end
 
 ---Hook more functions to a module event. Useful if module is spread across multiple files.

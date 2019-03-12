@@ -391,7 +391,7 @@ do
 			return layoutName;
 
 		elseif (btnPressed == "RightButton") then
-			MayronUI:TriggerCommand("layout");
+			MayronUI:TriggerCommand("layouts");
 		end
 	end
 
