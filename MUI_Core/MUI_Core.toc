@@ -6,7 +6,7 @@
 
 ## X-InterfaceName: MayronUI Gen6
 
-## libs:
+## Libraries:
 Libs\LibStub.lua
 Libs\LibMayronObjects-2.8\LibMayronObjects.xml
 Libs\LibMayronDB-2.2\LibMayronDB.lua
@@ -14,7 +14,7 @@ Libs\LibMayronEvents-1.1.lua
 Libs\LibMayronGUI-1.0\LibMayronGUI.xml
 Libs\LibSharedMedia-3.0\CallbackHandler-1.0.lua
 Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
-Libs\AceLocale-3.0\AceLocale-3.0.lua
+Libs\AceLocale-3.0.lua
 
 ## Localization
 Locales\Locales.xml

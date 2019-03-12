@@ -4,6 +4,8 @@ local _, namespace = ...;
 local obj = namespace.components.Objects; ---@type Objects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
+local pcall, pairs, strsplit = _G.pcall, _G.pairs, _G.strsplit;
+
 tk.Tables = {};
 
 local LinkedList = obj:Import("Framework.System.Collections.LinkedList"); ---@type LinkedList
@@ -203,8 +205,8 @@ do
         argsList = argsList or LinkedList();
         argsList:Clear();
 
-        for _, key in obj:IterateArgs(tk.strsplit(".", path)) do
-            local firstKey = tk.strsplit("[", key);
+        for _, key in obj:IterateArgs(strsplit(".", path)) do
+            local firstKey = strsplit("[", key);
 
             argsList:AddToBack(tk.tonumber(firstKey) or firstKey);
 
@@ -222,42 +224,53 @@ end
 
 -- gets the DB associated with the AddOn based on convention
 function tk.Tables:GetDBObject(addOnName)
-    local addon, okay;
+    local addon, okay, dbObject;
+
+    dbObject = _G.LibStub:GetLibrary("LibMayronDB"):GetDatabase(addOnName);
+
+    if (dbObject) then
+        return dbObject;
+    end
 
     if (_G[addOnName]) then
-        addon = tk._G[addOnName];
+        addon = _G[addOnName];
         okay = true;
     else
-        okay, addon = tk.pcall(function()
-            _G.LibStub("AceAddon-3.0"):GetAddon(addOnName)
-        end);
+        if (not dbObject) then
+            okay, addon = pcall(function()
+                _G.LibStub("AceAddon-3.0"):GetAddon(addOnName);
+            end);
+        end
     end
 
-    if (not okay) then
-        return
+    if (not (addon and okay)) then
+        return nil;
     end
 
-    if (addon and not addon.db) then
-        for dbname, _ in tk.pairs(addon) do
+    dbObject = addon.db;
 
-            if (tk.string.find(dbname, "db")) then
-                if (tk.type(addon[dbname]) == "table") then
+    if (not dbObject) then
 
-                    if (addon[dbname].profile) then
-                        return addon[dbname];
+        for dbName, _ in pairs(addon) do
+            if (dbName:find("db")) then
+
+                if (obj:IsTable(addon[dbName])) then
+                    if (addon[dbName].profile) then
+                        dbObject = addon[dbName];
+                        break;
                     end
                 end
             end
         end
+    end
 
-        return nil;
-    elseif (addon and addon.db) then
-        return addon.db;
+    if (dbObject and dbObject.profile and dbObject.SetProfile and dbObject.GetProfiles and dbObject.GetCurrentProfile) then
+        return dbObject;
     end
 end
 
 function tk.Tables:GetLastPathKey(path)
-    local list = LinkedList(tk.strsplit(".", path));
+    local list = LinkedList(strsplit(".", path));
     local key = list:GetBack();
 
     if (key:find("%b[]")) then

@@ -123,19 +123,47 @@ end
 function Lib:CreateDatabase(addOnName, savedVariableName, manualStartUp)
     local database = Database(addOnName, savedVariableName);
 
-    if (not manualStartUp) then
-        if (_G[savedVariableName]) then
-            -- already loaded
-            database:Start();
-        else
-            -- register to start when ready
-            OnAddOnLoadedListener.RegisteredDatabases[addOnName] = database;
-        end
+    if (not manualStartUp and _G[savedVariableName]) then
+        -- already loaded
+        database:Start();
     end
+
+    OnAddOnLoadedListener.RegisteredDatabases[addOnName] = database;
 
     return database;
 end
 
+---@return Database @The database object
+function Lib:GetDatabase(addOnName)
+    return OnAddOnLoadedListener.RegisteredDatabases[addOnName];
+end
+
+---Returns addOnName, db (the database object) for each registered database per iteration.
+function Lib:IterateDatabases()
+    local id = 0;
+    local databases = obj:PopTable();
+
+    for name, database in pairs(OnAddOnLoadedListener.RegisteredDatabases) do
+        table.insert(databases, obj:PopTable(name, database));
+    end
+
+    return function()
+        id = id + 1;
+
+        if (id <= #databases) then
+            local name, database = _G.unpack(databases[id]);
+            obj:PushTable(databases[id]);
+
+            if (id == #databases) then
+                obj:PushTable(databases);
+            end
+
+            return name, database;
+        end
+    end
+end
+
+-- Database Object: ------------------
 
 Framework:DefineParams("string", "string");
 ---Do NOT call this manually! Should only be called by Lib:CreateDatabase(...)
@@ -163,7 +191,7 @@ Framework:DefineParams("function");
 ---@param callback function @The start up callback function
 function Database:OnStartUp(data, callback)
     local startUpCallbacks = data.callbacks["OnStartUp"] or obj:PopTable();
-    data.callbacks["OnStartUp"] = startUpCallbacks;
+    data.callbacks.OnStartUp = startUpCallbacks;
 
     table.insert(startUpCallbacks, callback);
 end
@@ -187,8 +215,6 @@ function Database:Start(data)
         -- previously started and loaded
         return;
     end
-
-    OnAddOnLoadedListener.RegisteredDatabases[data.addOnName] = nil;
 
     -- create Saved Variable if it has never been created before
     _G[data.svName] = _G[data.svName] or obj:PopTable();
@@ -454,7 +480,14 @@ function Database:IterateProfiles(data)
         id = id + 1;
 
         if (id <= #profileNames) then
-            return id, profileNames[id], data.sv.profiles[profileNames[id]];
+            local profileName = profileNames[id];
+            local profileObject = data.sv.profiles[profileName];
+
+            if (id == #profileNames) then
+                obj:PushTable(profileNames);
+            end
+
+            return id, profileName, profileObject;
         end
     end
 end
