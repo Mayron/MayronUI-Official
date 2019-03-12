@@ -13,7 +13,7 @@ local string, date, pairs, ipairs = _G.string, _G.date, _G.pairs, _G.ipairs;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
 local table, GetTime, UnitAura = _G.table, _G.GetTime, _G.UnitAura;
 
-local RepositionBars;
+local RepositionBars, InjectDefaultSettings;
 
 local HELPFUL, HARMFUL, DEBUFF, BUFF, UP = "HELPFUL", "HARMFUL", "DEBUFF", "BUFF", "UP";
 local TIMER_FIELD_UPDATE_FREQUENCY = 0.05;
@@ -148,6 +148,7 @@ db:OnProfileChange(function(self)
         return;
     end
 
+    InjectDefaultSettings();
     timerBarsModule:RefreshSettings();
     timerBarsModule:ExecuteAllUpdateFunctions();
     timerBarsModule:TriggerEvent("OnProfileChange");
@@ -159,30 +160,7 @@ function C_TimerBarsModule:OnInitialize(data)
     data.fields = obj:PopTable();
 
     -- create 2 default (removable from database) TimerFields
-    local defaultTargetField = obj:PopTable();
-    defaultTargetField.unitID = "target";
-
-    if (db:GetCurrentProfile() == "Healer") then
-        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", 320, 2);
-    else
-        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2);
-    end
-
-    db:AppendOnce(db.profile, nil, "defaultFields", {
-        fieldNames = {
-            "Player";
-            "Target";
-        };
-        fields = {
-            Player = {
-                position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
-                unitID = "player";
-            };
-            Target = defaultTargetField;
-        };
-    });
-
-    obj:PushTable(defaultTargetField, true);
+    InjectDefaultSettings();
 
     local first = obj:PopTable();
 
@@ -231,10 +209,12 @@ function C_TimerBarsModule:OnInitialize(data)
 
                 value = {
                     enabled = function(value, _, field)
+                        -- print("value", value)
                         field:SetEnabled(value);
                     end;
 
-                    position = function(_, _, field)
+                    position = function(value, _, field)
+                        -- MayronUI:PrintTable(value);
                         field:PositionField();
                     end;
 
@@ -1146,4 +1126,29 @@ function C_TimerBar:UpdateExpirationTime(data)
     obj:PushTable(auraInfo);
 
     return (old ~= self.ExpirationTime);
+end
+
+function InjectDefaultSettings()
+    local defaultTargetField = obj:PopTable();
+    defaultTargetField.unitID = "target";
+
+    if (db:GetCurrentProfile() == "Healer") then
+        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", 320, 2);
+    else
+        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2);
+    end
+
+    db:AppendOnce(db.profile, nil, "defaultFields", {
+        fieldNames = {
+            "Player";
+            "Target";
+        };
+        fields = {
+            Player = {
+                position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
+                unitID = "player";
+            };
+            Target = defaultTargetField;
+        };
+    });
 end

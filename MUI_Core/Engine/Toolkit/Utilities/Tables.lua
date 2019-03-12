@@ -4,7 +4,8 @@ local _, namespace = ...;
 local obj = namespace.components.Objects; ---@type Objects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
-local pcall, pairs, strsplit = _G.pcall, _G.pairs, _G.strsplit;
+local pcall, pairs, strsplit, tonumber = _G.pcall, _G.pairs, _G.strsplit, _G.tonumber;
+local table = _G.table;
 
 tk.Tables = {};
 
@@ -14,8 +15,8 @@ local LinkedList = obj:Import("Framework.System.Collections.LinkedList"); ---@ty
 function tk.Tables:GetKeys(tbl, keys)
     keys = keys or {};
 
-    for key, _ in tk.pairs(tbl) do
-        tk.table.insert(keys, key);
+    for key, _ in pairs(tbl) do
+        table.insert(keys, key);
     end
 
     return keys;
@@ -77,7 +78,7 @@ end
 function tk.Tables:GetFullSize(tbl)
     local size = 0;
 
-    for _, _ in tk.pairs(tbl) do
+    for _, _ in pairs(tbl) do
         size = size + 1;
     end
 
@@ -109,7 +110,7 @@ function tk.Tables:CleanIndexes(tbl)
         if (obj:IsNumber(index)) then
             if (value ~= nil) then
                 tempIndexTable = tempIndexTable or obj:PopTable();
-                tk.table.insert(tempIndexTable, value);
+                table.insert(tempIndexTable, value);
                 tbl[index] = nil;
             end
         end
@@ -146,8 +147,8 @@ function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
         self:CleanIndexes(mainTable);
     end
 
-    for _, subValue in tk.pairs(subTable) do
-        for key, mainValue in tk.pairs(mainTable) do
+    for _, subValue in pairs(subTable) do
+        for key, mainValue in pairs(mainTable) do
             if (tk:Equals(mainValue, subValue)) then
                 -- remove it!
                 mainTable[key] = nil;
@@ -208,12 +209,12 @@ do
         for _, key in obj:IterateArgs(strsplit(".", path)) do
             local firstKey = strsplit("[", key);
 
-            argsList:AddToBack(tk.tonumber(firstKey) or firstKey);
+            argsList:AddToBack(tonumber(firstKey) or firstKey);
 
             if (key:find("%b[]")) then
                 for index in key:gmatch("(%b[])") do
                     local nextKey = index:match("%[(.+)%]");
-                    argsList:AddToBack(tk.tonumber(nextKey) or nextKey);
+                    argsList:AddToBack(tonumber(nextKey) or nextKey);
                 end
             end
         end
@@ -276,7 +277,7 @@ function tk.Tables:GetLastPathKey(path)
     if (key:find("%b[]")) then
         key = key:match(".+(%b[])");
         key = key:match("[(%d+)]");
-        key = tk.tonumber(key) or key; -- tonumber returns 0 if not convertible
+        key = tonumber(key) or key; -- tonumber returns 0 if not convertible
     end
 
     list:Destroy();
