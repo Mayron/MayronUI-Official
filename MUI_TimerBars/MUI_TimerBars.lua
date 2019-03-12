@@ -137,7 +137,10 @@ db:AddToDefaults("profile", {
 
 db:OnStartUp(function(self)
     _G.MUI_TimerBars.db = self;
-    timerBarsModule:Initialize();
+
+    MayronUI:Hook("CoreModule", "OnInitialized", function()
+        timerBarsModule:Initialize();
+    end);
 end);
 
 -- C_TimerBarsModule --------------------

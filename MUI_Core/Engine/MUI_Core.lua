@@ -821,13 +821,9 @@ end
 
 -- Register Core Module ---------------------
 
-local C_CoreModule = MayronUI:RegisterModule("Core");
+local C_CoreModule = MayronUI:RegisterModule("CoreModule", "MUI Core", true);
 
 function C_CoreModule:OnInitialize()
-    for i = 1, _G.NUM_CHAT_WINDOWS do
-        _G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
-    end
-
     _G["SLASH_MUI1"] = "/mui";
 	_G.SlashCmdList.MUI = function(str)
 
@@ -869,28 +865,9 @@ function C_CoreModule:OnInitialize()
         obj:PushTable(args);
     end
 
-    tk:Print(L["Welcome back"], _G.UnitName("player").."!");
-end
-
--- Initialize Modules after player enters world (not when DB starts!).
--- Some dependencies, like Bartender, only load after this event.
-em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
-    _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
-
-    if (not MayronUI:IsInstalled()) then
-
-        if (db.global.core.setup.profilePerCharacter) then
-            db:SetProfile(tk:GetPlayerKey());
-        end
-
-        MayronUI:TriggerCommand("install");
-        return;
-    end
-
+    -- Initialize all modules here!
     for _, module in MayronUI:IterateModules() do
-        local initializeOnDemand = module:IsInitializedOnDemand();
-
-        if (not initializeOnDemand) then
+        if (not module:IsInitializedOnDemand() and not module:IsInitialized()) then
             -- initialize a module if not set for manual initialization
             module:Initialize();
         end
@@ -915,8 +892,33 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
         _G.Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);
     end
 
+    tk:Print(L["Welcome back"], _G.UnitName("player").."!");
     collectgarbage("collect");
     DisableAddOn("MUI_Setup"); -- disable for next time
+end
+
+-- Initialize Modules after player enters world (not when DB starts!).
+-- Some dependencies, like Bartender, only load after this event.
+em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
+    for i = 1, _G.NUM_CHAT_WINDOWS do
+        _G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
+    end
+
+    _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
+
+    if (not MayronUI:IsInstalled()) then
+
+        if (db.global.core.setup.profilePerCharacter) then
+            db:SetProfile(tk:GetPlayerKey());
+        end
+
+        MayronUI:TriggerCommand("install");
+        return;
+    end
+
+    local coreModule = MayronUI:ImportModule("CoreModule");
+    coreModule:Initialize();
+
 end):SetAutoDestroy(true);
 
 -- Database Event callbacks --------------------
