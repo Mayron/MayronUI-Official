@@ -1,7 +1,10 @@
 --luacheck: ignore self 143 631
-local _, namespace = ...;
+local addOnName, namespace = ...;
 local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, em, _, obj = MayronUI:GetCoreComponents();
+
+local tk, _, em, _, obj = MayronUI:GetCoreComponents();
+
+local db = _G.LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MUI_TimerBarsDb");
 
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo;
 local unpack, CreateFrame, UnitIsDeadOrGhost = _G.unpack, _G.CreateFrame, _G.UnitIsDeadOrGhost;
@@ -137,7 +140,9 @@ function C_TimerBarsModule:OnInitialize(data)
     data.fields = obj:PopTable();
 
     -- create 2 default (removable from database) TimerFields
-    db:AppendOnce(db.profile, "timerBars", {
+
+    -- TODO: Might need a key as 2nd arg?:
+    db:AppendOnce(db.profile, {
         fieldNames = {
             "Player";
             "Target";
@@ -154,21 +159,22 @@ function C_TimerBarsModule:OnInitialize(data)
         };
     });
 
-    if (db.profile.timerBars.fields:IsEmpty()) then
-        for _, fieldName in db.profile.timerBars.fieldNames:Iterate() do
-            if (db.profile.timerBars[fieldName]) then
-                db.profile.timerBars.fields[fieldName] = db.profile.timerBars[fieldName]:GetSavedVariable();
-                db.profile.timerBars[fieldName] = nil;
-            end
-        end
-    end
+    -- TODO: previous migration code - needs updating
+    -- if (db.profile.timerBars.fields:IsEmpty()) then
+    --     for _, fieldName in db.profile.timerBars.fieldNames:Iterate() do
+    --         if (db.profile.timerBars[fieldName]) then
+    --             db.profile.timerBars.fields[fieldName] = db.profile.timerBars[fieldName]:GetSavedVariable();
+    --             db.profile.timerBars[fieldName] = nil;
+    --         end
+    --     end
+    -- end
 
     local first = obj:PopTable();
 
-    if (obj:IsObject(db.profile.timerBars.fieldNames)) then
-        for _, fieldName in db.profile.timerBars.fieldNames:Iterate() do
-            local sv = db.profile.timerBars.fields[fieldName];
-            sv:SetParent(db.profile.timerBars.__templateField);
+    if (obj:IsObject(db.profile.fieldNames)) then
+        for _, fieldName in db.profile.fieldNames:Iterate() do
+            local sv = db.profile.fields[fieldName];
+            sv:SetParent(db.profile.__templateField);
             data.fields[fieldName] = sv.enabled;
 
             if (sv.enabled) then
@@ -307,7 +313,7 @@ function C_TimerBarsModule:OnInitialize(data)
         end
     end
 
-    self:RegisterUpdateFunctions(db.profile.timerBars, {
+    self:RegisterUpdateFunctions(db.profile, {
         showTooltips = function(value)
             for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
                 for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do

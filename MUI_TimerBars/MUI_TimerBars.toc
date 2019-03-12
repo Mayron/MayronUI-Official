@@ -1,6 +1,7 @@
 ## Interface: 80100
 ## Title: |cff00ccffMUI|r Timer Bars
 ## Dependencies: MUI_Core
+## SavedVariables: MUI_TimerBarsDb
 
 MUI_TimerBars.lua
 MUI_TimerBars.config.lua
