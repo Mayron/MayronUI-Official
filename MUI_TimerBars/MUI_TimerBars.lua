@@ -1,10 +1,12 @@
 --luacheck: ignore self 143 631
-local addOnName, namespace = ...;
+local addOnName = ...;
 local _G, MayronUI = _G, _G.MayronUI;
 
 local tk, _, em, _, obj = MayronUI:GetCoreComponents();
 local db = _G.LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MUI_TimerBarsDb");
 MayronUI:AddComponent("MUI_TimerBarsDatabase", db);
+
+_G.MUI_TimerBars = {}; -- Create new global
 
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo;
 local unpack, CreateFrame, UnitIsDeadOrGhost = _G.unpack, _G.CreateFrame, _G.UnitIsDeadOrGhost;
@@ -37,6 +39,11 @@ local OnCombatLogEvent, CheckUnitAuras;
 ---@type Engine
 local Engine = obj:Import("MayronUI.Engine");
 
+---@class TimerBarsModule : BaseModule
+local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", "Timer Bars", true); -- initialized on demand
+
+local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
+
 ---@class ITimerBar : Object
 ---@field ExpirationTime number @The epoch marking the point in time when the timer bar is set to expire
 ---@field TimeRemaining number @The actual time remaining in seconds
@@ -59,17 +66,11 @@ C_TimerBar.Static:AddFriendClass("TimerBarsModule");
 ---@type Stack
 local Stack = obj:Import("Framework.System.Collections.Stack<T>");
 
----@class TimerBarsModule : BaseModule
-local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", "Timer Bars");
-namespace.C_TimerBarsModule = C_TimerBarsModule;
-
-local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
-
--- Database Defaults --------------
+-- Database: ---------------------------
 
 db:AddToDefaults("profile", {
-    enabled = true;
-    sortByExpirationTime   = true;
+    enabled               = true;
+    sortByExpirationTime  = true;
     showTooltips          = true;
     statusBarTexture      = "MUI_StatusBar";
 
@@ -133,6 +134,15 @@ db:AddToDefaults("profile", {
         };
     };
 });
+
+-- db:OnProfileChange(function(self, newProfileName)
+--     --TODO: Not Yet Implemented
+-- end);
+
+db:OnStartUp(function(self)
+    _G.MUI_TimerBars.db = self;
+    MayronUI:Initialize(timerBarsModule);
+end);
 
 -- C_TimerBarsModule --------------------
 
