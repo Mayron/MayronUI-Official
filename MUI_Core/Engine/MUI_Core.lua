@@ -395,6 +395,27 @@ function BaseModule:Hook(_, eventName, func)
     MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
+function BaseModule:TriggerEvent(_, eventName, ...)
+    local registryInfo = registeredModules[tostring(self)];
+    local hooks = registryInfo.hooks and registryInfo.hooks[eventName];
+
+    if (self[eventName]) then
+        self[eventName](self, ...);
+    end
+
+    if (hooks) then
+        for _, func in ipairs(hooks) do
+            func(self, registryInfo.moduleData);
+        end
+    end
+end
+
+function BaseModule:RefreshSettings(data)
+    if (data.settings) then
+        data.settings:Refresh();
+    end
+end
+
 -- MayronUI Functions ---------------------
 
 ---A helper function to print a table's contents using the MayronUI prefix in the chat frame.
@@ -643,18 +664,11 @@ db:OnProfileChange(function(self, newProfileName)
 
     for _, module in MayronUI:IterateModules() do
         local registryInfo = registeredModules[tostring(module)];
-        local hooks = registryInfo.hooks and registryInfo.hooks.OnProfileChange;
 
-        module:ExecuteAllUpdateFunctions();
-
-        if (module.OnProfileChange) then
-            module:OnProfileChange(newProfileName);
-        end
-
-        if (hooks) then
-            for _, func in ipairs(hooks) do
-                func(module, registryInfo.moduleData);
-            end
+        if (not MayronUI:GetModuleComponent(registryInfo.moduleKey, "Database")) then
+            module:RefreshSettings();
+            module:ExecuteAllUpdateFunctions();
+            module:TriggerEvent("OnProfileChange", newProfileName);
         end
     end
 

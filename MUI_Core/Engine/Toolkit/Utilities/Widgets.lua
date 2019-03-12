@@ -125,7 +125,7 @@ do
     end
 end
 
-function tk:SavePosition(frame, dbPath, override)
+function tk:SavePosition(frame, override)
     local point, relativeFrame, relativePoint, x, y = frame:GetPoint();
 
     if (not relativeFrame) then
@@ -146,7 +146,6 @@ function tk:SavePosition(frame, dbPath, override)
     end
 
     local positions = obj:PopTable(point, relativeFrame, relativePoint, x , y);
-    namespace.components.Database:SetPathValue(dbPath, positions);
     return positions;
 end
 

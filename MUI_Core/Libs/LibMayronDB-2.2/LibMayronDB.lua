@@ -389,8 +389,8 @@ function Database:SetProfile(data, profileName)
 
     data.sv.profileKeys[profileKey] = profileName;
 
-    if (data.callbacks["OnProfileChange"]) then
-        for _, callback in ipairs(data.callbacks["OnProfileChange"]) do
+    if (data.callbacks.OnProfileChange) then
+        for _, callback in ipairs(data.callbacks.OnProfileChange) do
             callback(self, profileName, oldProfileName);
         end
     end

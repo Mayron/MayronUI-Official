@@ -143,6 +143,16 @@ db:OnStartUp(function(self)
     end);
 end);
 
+db:OnProfileChange(function(self)
+    if (not MayronUI:IsInstalled()) then
+        return;
+    end
+
+    timerBarsModule:RefreshSettings();
+    timerBarsModule:ExecuteAllUpdateFunctions();
+    timerBarsModule:TriggerEvent("OnProfileChange");
+end);
+
 -- C_TimerBarsModule --------------------
 
 function C_TimerBarsModule:OnInitialize(data)
@@ -224,8 +234,7 @@ function C_TimerBarsModule:OnInitialize(data)
                         field:SetUnitID(value);
                     end;
 
-                    bar = function(_, keysList, field, fieldName)
-                        local key = keysList:PopBack();
+                    bar = function(_, _, field, fieldName)
                         local fieldSettings = data.settings.fields[fieldName];
                         local maxBars = fieldSettings.bar.maxBars;
                         local barHeight = fieldSettings.bar.height;
@@ -235,20 +244,14 @@ function C_TimerBarsModule:OnInitialize(data)
                         local fieldHeight = (maxBars * (barHeight + spacing)) - spacing;
                         field:SetSize(barWidth, fieldHeight);
 
-                        if (key == "width" or key == "height") then
-                            for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
-                                if (key == "height") then
-                                    bar:SetHeight(barHeight);
-                                else
-                                    bar:SetAuraNameShown(fieldSettings.auraName.show);
-                                end
-
-                                bar:SetIconShown(fieldSettings.showIcons);
-                            end
-                        elseif (key == "spacing") then
-                            local fieldData = data:GetFriendData(field);
-                            RepositionBars(fieldData);
+                        for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
+                            bar:SetHeight(barHeight);
+                            bar:SetAuraNameShown(fieldSettings.auraName.show);
+                            bar:SetIconShown(fieldSettings.showIcons);
                         end
+
+                        local fieldData = data:GetFriendData(field);
+                        RepositionBars(fieldData);
                     end;
 
                     showIcons = function(value, _, field)

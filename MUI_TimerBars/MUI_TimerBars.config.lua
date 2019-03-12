@@ -281,7 +281,8 @@ function C_TimerBarsModule:GetConfigTable()
                                             field.moveLabel:SetAlpha(0);
                                             button:SetText("Unlock");
 
-                                            local positions = tk:SavePosition(field, dbFieldPath .. ".position");
+                                            local positions = tk:SavePosition(field);
+                                            db:SetPathValue(dbFieldPath .. ".position", positions);
 
                                             if (positions) then
                                                 -- update the config menu view
