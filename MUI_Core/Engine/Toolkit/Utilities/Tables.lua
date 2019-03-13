@@ -4,6 +4,9 @@ local _, namespace = ...;
 local obj = namespace.components.Objects; ---@type Objects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
+local pcall, pairs, strsplit, tonumber = _G.pcall, _G.pairs, _G.strsplit, _G.tonumber;
+local table = _G.table;
+
 tk.Tables = {};
 
 local LinkedList = obj:Import("Framework.System.Collections.LinkedList"); ---@type LinkedList
@@ -12,8 +15,8 @@ local LinkedList = obj:Import("Framework.System.Collections.LinkedList"); ---@ty
 function tk.Tables:GetKeys(tbl, keys)
     keys = keys or {};
 
-    for key, _ in tk.pairs(tbl) do
-        tk.table.insert(keys, key);
+    for key, _ in pairs(tbl) do
+        table.insert(keys, key);
     end
 
     return keys;
@@ -75,7 +78,7 @@ end
 function tk.Tables:GetFullSize(tbl)
     local size = 0;
 
-    for _, _ in tk.pairs(tbl) do
+    for _, _ in pairs(tbl) do
         size = size + 1;
     end
 
@@ -107,7 +110,7 @@ function tk.Tables:CleanIndexes(tbl)
         if (obj:IsNumber(index)) then
             if (value ~= nil) then
                 tempIndexTable = tempIndexTable or obj:PopTable();
-                tk.table.insert(tempIndexTable, value);
+                table.insert(tempIndexTable, value);
                 tbl[index] = nil;
             end
         end
@@ -144,8 +147,8 @@ function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
         self:CleanIndexes(mainTable);
     end
 
-    for _, subValue in tk.pairs(subTable) do
-        for key, mainValue in tk.pairs(mainTable) do
+    for _, subValue in pairs(subTable) do
+        for key, mainValue in pairs(mainTable) do
             if (tk:Equals(mainValue, subValue)) then
                 -- remove it!
                 mainTable[key] = nil;
@@ -203,15 +206,15 @@ do
         argsList = argsList or LinkedList();
         argsList:Clear();
 
-        for _, key in obj:IterateArgs(tk.strsplit(".", path)) do
-            local firstKey = tk.strsplit("[", key);
+        for _, key in obj:IterateArgs(strsplit(".", path)) do
+            local firstKey = strsplit("[", key);
 
-            argsList:AddToBack(tk.tonumber(firstKey) or firstKey);
+            argsList:AddToBack(tonumber(firstKey) or firstKey);
 
             if (key:find("%b[]")) then
                 for index in key:gmatch("(%b[])") do
                     local nextKey = index:match("%[(.+)%]");
-                    argsList:AddToBack(tk.tonumber(nextKey) or nextKey);
+                    argsList:AddToBack(tonumber(nextKey) or nextKey);
                 end
             end
         end
@@ -222,48 +225,59 @@ end
 
 -- gets the DB associated with the AddOn based on convention
 function tk.Tables:GetDBObject(addOnName)
-    local addon, okay;
+    local addon, okay, dbObject;
+
+    dbObject = _G.LibStub:GetLibrary("LibMayronDB"):GetDatabase(addOnName);
+
+    if (dbObject) then
+        return dbObject;
+    end
 
     if (_G[addOnName]) then
-        addon = tk._G[addOnName];
+        addon = _G[addOnName];
         okay = true;
     else
-        okay, addon = tk.pcall(function()
-            _G.LibStub("AceAddon-3.0"):GetAddon(addOnName)
-        end);
+        if (not dbObject) then
+            okay, addon = pcall(function()
+                _G.LibStub("AceAddon-3.0"):GetAddon(addOnName);
+            end);
+        end
     end
 
-    if (not okay) then
-        return
+    if (not (addon and okay)) then
+        return nil;
     end
 
-    if (addon and not addon.db) then
-        for dbname, _ in tk.pairs(addon) do
+    dbObject = addon.db;
 
-            if (tk.string.find(dbname, "db")) then
-                if (tk.type(addon[dbname]) == "table") then
+    if (not dbObject) then
 
-                    if (addon[dbname].profile) then
-                        return addon[dbname];
+        for dbName, _ in pairs(addon) do
+            if (dbName:find("db")) then
+
+                if (obj:IsTable(addon[dbName])) then
+                    if (addon[dbName].profile) then
+                        dbObject = addon[dbName];
+                        break;
                     end
                 end
             end
         end
+    end
 
-        return nil;
-    elseif (addon and addon.db) then
-        return addon.db;
+    if (dbObject and dbObject.profile and dbObject.SetProfile and dbObject.GetProfiles and dbObject.GetCurrentProfile) then
+        return dbObject;
     end
 end
 
 function tk.Tables:GetLastPathKey(path)
-    local list = LinkedList(tk.strsplit(".", path));
+    local list = LinkedList(strsplit(".", path));
     local key = list:GetBack();
 
     if (key:find("%b[]")) then
         key = key:match(".+(%b[])");
         key = key:match("[(%d+)]");
-        key = tk.tonumber(key) or key; -- tonumber returns 0 if not convertible
+        key = tonumber(key) or key; -- tonumber returns 0 if not convertible
     end
 
     list:Destroy();

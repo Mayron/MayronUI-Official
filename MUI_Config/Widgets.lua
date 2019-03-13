@@ -61,6 +61,7 @@ function WidgetHandlers.submenu(parent, submenuConfigTable)
 
     btn.normal = tk:SetBackground(btn, 1, 1, 1, 0);
     btn.highlight = tk:SetBackground(btn, 1, 1, 1, 0);
+
     tk:ApplyThemeColor(btn.normal, btn.highlight);
 
     btn.normal:SetAlpha(0.3);

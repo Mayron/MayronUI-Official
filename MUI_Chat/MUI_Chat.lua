@@ -391,7 +391,7 @@ do
 			return layoutName;
 
 		elseif (btnPressed == "RightButton") then
-			MayronUI:TriggerCommand("layout");
+			MayronUI:TriggerCommand("layouts");
 		end
 	end
 
@@ -427,10 +427,10 @@ function C_ChatModule:SwitchLayouts(_, layoutName, layoutData)
 	for addOnName, profileName in pairs(layoutData) do
 		if (profileName) then
 			-- profileName could be false
-			local object = tk.Tables:GetDBObject(addOnName);
+			local dbObject = tk.Tables:GetDBObject(addOnName);
 
-			if (object) then
-				object:SetProfile(profileName);
+			if (dbObject) then
+				dbObject:SetProfile(profileName);
 			end
 		end
 	end

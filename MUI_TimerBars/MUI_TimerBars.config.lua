@@ -1,18 +1,21 @@
 -- luacheck: ignore MayronUI self 143 631
-local _, namespace = ...;
+
+local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local db = MayronUI:GetModuleComponent("TimerBarsModule", "Database");
+local C_TimerBarsModule = MayronUI:GetModuleClass("TimerBarsModule");
+
 local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-local C_TimerBarsModule = namespace.C_TimerBarsModule;
 local pairs, tonumber, table = _G.pairs, _G.tonumber, _G.table;
 
 -- contains field name / table pairs where each table holds the 5 config textfield widgets
 -- this is used to update the config menu view after moving the fields (by unlocking them)
 local position_TextFields = {};
+local savePositionButtons = {};
 local ShowListFrame;
 
 local function CreateNewFieldButton_OnClick(editBox)
     local text = editBox:GetText();
-    local tbl = db.profile.timerBars.fieldNames:GetUntrackedTable();
+    local tbl = db.profile.fieldNames:GetUntrackedTable();
 
     db:SetPathValue(db.profile, "timerBars.fieldNames["..(#tbl + 1).."]", text);
     db:SetPathValue(db.profile, "timerBars.fields."..text, obj:PopTable());
@@ -23,7 +26,7 @@ end
 
 local function RemoveFieldButton_OnClick(editBox)
     local text = editBox:GetText();
-    local tbl = db.profile.timerBars.fieldNames:GetUntrackedTable();
+    local tbl = db.profile.fieldNames:GetUntrackedTable();
     local id = tk.Tables:GetIndex(tbl, text);
 
     if (id) then
@@ -97,10 +100,25 @@ local function TimerFieldPosition_OnLoad(configTable, container)
     position_TextFields[configTable.fieldName][tonumber(positionIndex)] = container.widget;
 end
 
+local function Field_OnDragStop(field)
+    local positions = tk:SavePosition(field);
+    local fieldName = field:GetName():match("MUI_(.*)TimerField");
+
+    if (positions) then
+        -- update the config menu view
+        for id, textField in ipairs(position_TextFields[fieldName]) do
+            textField:SetText(positions[id]);
+        end
+    end
+
+    savePositionButtons[fieldName]:SetEnabled(true);
+end
+
 function C_TimerBarsModule:GetConfigTable()
     return {
-        {   name    = "Timer Bars";
-            module  = "TimerBarsModule";
+        {   name              = "Timer Bars";
+            module            = "TimerBarsModule";
+            hasOwnDatabase    = true;
             children = {
                 {   name        = L["General Options"];
                     type        = "title";
@@ -109,18 +127,18 @@ function C_TimerBarsModule:GetConfigTable()
                 {   name    = L["Sort By Time Remaining"];
                     type    = "check";
                     width   = 220;
-                    dbPath  = "profile.timerBars.sortByExpirationTime";
+                    dbPath  = "profile.sortByExpirationTime";
                 };
                 {   name    = L["Show Tooltips On Mouseover"];
                     type    = "check";
                     width   = 230;
-                    dbPath  = "profile.timerBars.showTooltips";
+                    dbPath  = "profile.showTooltips";
                 };
                 {   type = "divider";
                 };
                 {   name    = L["Bar Texture"];
                     type    = "dropdown";
-                    dbPath  = "profile.timerBars.statusBarTexture";
+                    dbPath  = "profile.statusBarTexture";
                     options = tk.Constants.LSM:List("statusbar");
                 };
                 {   type = "divider";
@@ -128,16 +146,16 @@ function C_TimerBarsModule:GetConfigTable()
                 {   name    = "Show Borders";
                     type    = "check";
                     height = 55;
-                    dbPath  = "profile.timerBars.border.show";
+                    dbPath  = "profile.border.show";
                 };
                 {   name    = "Border Type";
                     type    = "dropdown";
-                    dbPath  = "profile.timerBars.border.type";
+                    dbPath  = "profile.border.type";
                     options = tk.Constants.LSM:List("border");
                 };
                 {   name    = "Border Size";
                     type    = "slider";
-                    dbPath  = "profile.timerBars.border.size";
+                    dbPath  = "profile.border.size";
                     min = 1;
                     max = 20;
                     step = 1;
@@ -166,28 +184,28 @@ function C_TimerBarsModule:GetConfigTable()
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.background";
+                    dbPath = "profile.colors.background";
                 };
                 {   name = L["Buff Bar Color"];
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.basicBuff";
+                    dbPath = "profile.colors.basicBuff";
                 };
                 {   name = L["Debuff Bar Color"];
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.basicDebuff";
+                    dbPath = "profile.colors.basicDebuff";
                 };
                 {   name = "Border Color";
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.border";
+                    dbPath = "profile.colors.border";
                 };
                 {   name = "Can Steal or Purge Color";
                     type = "color";
@@ -195,57 +213,58 @@ function C_TimerBarsModule:GetConfigTable()
                     useIndexes = true;
                     hasOpacity = true;
                     tooltip = "If an aura can be stolen or purged, show a different color";
-                    dbPath = "profile.timerBars.colors.canStealOrPurge";
+                    dbPath = "profile.colors.canStealOrPurge";
                 };
                 {   name = "Magic Debuff Color";
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.magic";
+                    dbPath = "profile.colors.magic";
                 };
                 {   name = "Disease Debuff Color";
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.disease";
+                    dbPath = "profile.colors.disease";
                 };
                 {   name = "Poison Debuff Color";
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.poison";
+                    dbPath = "profile.colors.poison";
                 };
                 {   name = "Curse Debuff Color";
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    dbPath = "profile.timerBars.colors.curse";
+                    dbPath = "profile.colors.curse";
                 };
                 {   name = L["Existing Timer Bar Fields"];
                     type = "title";
                 };
                 {   type = "loop";
-                    args = db.profile.timerBars.fieldNames:GetUntrackedTable();
+                    args = db.profile.fieldNames:GetUntrackedTable();
                     func = function(_, name)
-                        local dbFieldPath = "profile.timerBars.fields."..name;
+                        local dbFieldPath = "profile.fields."..name;
 
                         return {
-                            name = name;
-                            type = "submenu";
+                            name              = name;
+                            type              = "submenu";
+                            module            = "TimerBarsModule";
+                            hasOwnDatabase    = true;
 
                             OnLoad = function()
                                 position_TextFields[name] = obj:PopTable();
                             end;
 
-                            module = "TimerBarsModule";
                             children = {
-                                {   name = L["Enable Field"];
-                                    type = "check";
-                                    dbPath = dbFieldPath .. ".enabled";
+                                {   name    = L["Enable Field"];
+                                    type    = "check";
+                                    dbPath  = dbFieldPath .. ".enabled";
                                 };
                                 {   name = L["Unlock"];
                                     type = "button";
@@ -257,7 +276,7 @@ function C_TimerBarsModule:GetConfigTable()
                                         end
 
                                         button.toggle = not button.toggle;
-                                        tk:MakeMovable(field, nil, button.toggle);
+                                        tk:MakeMovable(field, nil, button.toggle, nil, Field_OnDragStop);
 
                                         if (button.toggle) then
                                             if (not field.moveIndicator) then
@@ -276,16 +295,29 @@ function C_TimerBarsModule:GetConfigTable()
                                             field.moveIndicator:SetAlpha(0);
                                             field.moveLabel:SetAlpha(0);
                                             button:SetText("Unlock");
-
-                                            local positions = tk:SavePosition(field, dbFieldPath .. ".position");
-
-                                            if (positions) then
-                                                -- update the config menu view
-                                                for id, textField in ipairs(position_TextFields[name]) do
-                                                    textField:SetText(positions[id]);
-                                                end
-                                            end
                                         end
+                                    end
+                                };
+                                {   name = "Save Position";
+                                    type = "button";
+
+                                    OnLoad = function(_, button)
+                                        savePositionButtons[name] = button;
+                                        button:SetEnabled(false);
+                                    end;
+
+                                    OnClick = function(_)
+                                        local field = _G["MUI_"..name.."TimerField"];
+
+                                        if (not (field and field:IsShown())) then
+                                            return;
+                                        end
+
+                                        local positions = tk:SavePosition(field);
+                                        db:SetPathValue(dbFieldPath .. ".position", positions);
+
+                                        Field_OnDragStop(field);
+                                        savePositionButtons[name]:SetEnabled(false);
                                     end
                                 };
                                 {   type = "divider";

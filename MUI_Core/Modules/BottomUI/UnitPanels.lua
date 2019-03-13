@@ -50,7 +50,7 @@ function C_UnitPanels:OnInitialize(data, containerModule)
     data.containerModule = containerModule;
 
     local r, g, b = tk:GetThemeColor();
-    db:AppendOnce(db.profile, "unitPanels.sufGradients", {
+    db:AppendOnce(db.profile, "unitPanels.sufGradients", nil, {
         from = {r = r, g = g, b = b, a = 0.5},
         to = {r = 0, g = 0, b = 0, a = 0}
     });

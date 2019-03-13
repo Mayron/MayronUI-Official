@@ -582,6 +582,7 @@ function C_SetUpModule:Install()
     for _, name in obj:IterateArgs("Grid", "ShadowUF") do
         if (_G[name]) then
             local path = tk.Tables:GetDBObject(name);
+
             if (path) then
                 if (path:GetCurrentProfile() ~= "Default") then
                     path:SetProfile("Default");

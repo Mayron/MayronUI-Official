@@ -1,7 +1,11 @@
 --luacheck: ignore self 143 631
-local _, namespace = ...;
+local addOnName = ...;
 local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, em, _, obj = MayronUI:GetCoreComponents();
+
+local tk, _, em, _, obj = MayronUI:GetCoreComponents();
+local db = _G.LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MUI_TimerBarsDb");
+
+_G.MUI_TimerBars = {}; -- Create new global
 
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo;
 local unpack, CreateFrame, UnitIsDeadOrGhost = _G.unpack, _G.CreateFrame, _G.UnitIsDeadOrGhost;
@@ -9,7 +13,7 @@ local string, date, pairs, ipairs = _G.string, _G.date, _G.pairs, _G.ipairs;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
 local table, GetTime, UnitAura = _G.table, _G.GetTime, _G.UnitAura;
 
-local RepositionBars;
+local RepositionBars, InjectDefaultSettings;
 
 local HELPFUL, HARMFUL, DEBUFF, BUFF, UP = "HELPFUL", "HARMFUL", "DEBUFF", "BUFF", "UP";
 local TIMER_FIELD_UPDATE_FREQUENCY = 0.05;
@@ -34,6 +38,12 @@ local OnCombatLogEvent, CheckUnitAuras;
 ---@type Engine
 local Engine = obj:Import("MayronUI.Engine");
 
+---@class TimerBarsModule : BaseModule
+local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", "Timer Bars", true); -- initialized on demand
+MayronUI:AddModuleComponent("TimerBarsModule", "Database", db);
+
+local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
+
 ---@class ITimerBar : Object
 ---@field ExpirationTime number @The epoch marking the point in time when the timer bar is set to expire
 ---@field TimeRemaining number @The actual time remaining in seconds
@@ -56,17 +66,11 @@ C_TimerBar.Static:AddFriendClass("TimerBarsModule");
 ---@type Stack
 local Stack = obj:Import("Framework.System.Collections.Stack<T>");
 
----@class TimerBarsModule : BaseModule
-local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", "Timer Bars");
-namespace.C_TimerBarsModule = C_TimerBarsModule;
+-- Database: ---------------------------
 
-local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
-
--- Database Defaults --------------
-
-db:AddToDefaults("profile.timerBars", {
-    enabled = true;
-    sortByExpirationTime   = true;
+db:AddToDefaults("profile", {
+    enabled               = true;
+    sortByExpirationTime  = true;
     showTooltips          = true;
     statusBarTexture      = "MUI_StatusBar";
 
@@ -131,44 +135,39 @@ db:AddToDefaults("profile.timerBars", {
     };
 });
 
+db:OnStartUp(function(self)
+    _G.MUI_TimerBars.db = self;
+
+    MayronUI:Hook("CoreModule", "OnInitialized", function()
+        timerBarsModule:Initialize();
+    end);
+end);
+
+db:OnProfileChange(function(self)
+    if (not MayronUI:IsInstalled()) then
+        return;
+    end
+
+    InjectDefaultSettings();
+    timerBarsModule:RefreshSettings();
+    timerBarsModule:ExecuteAllUpdateFunctions();
+    timerBarsModule:TriggerEvent("OnProfileChange");
+end);
+
 -- C_TimerBarsModule --------------------
 
 function C_TimerBarsModule:OnInitialize(data)
     data.fields = obj:PopTable();
 
     -- create 2 default (removable from database) TimerFields
-    db:AppendOnce(db.profile, "timerBars", {
-        fieldNames = {
-            "Player";
-            "Target";
-        };
-        fields = {
-            Player = {
-                position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
-                unitID = "player";
-            };
-            Target = {
-                position = { "BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2 };
-                unitID = "target";
-            };
-        };
-    });
-
-    if (db.profile.timerBars.fields:IsEmpty()) then
-        for _, fieldName in db.profile.timerBars.fieldNames:Iterate() do
-            if (db.profile.timerBars[fieldName]) then
-                db.profile.timerBars.fields[fieldName] = db.profile.timerBars[fieldName]:GetSavedVariable();
-                db.profile.timerBars[fieldName] = nil;
-            end
-        end
-    end
+    InjectDefaultSettings();
 
     local first = obj:PopTable();
 
-    if (obj:IsObject(db.profile.timerBars.fieldNames)) then
-        for _, fieldName in db.profile.timerBars.fieldNames:Iterate() do
-            local sv = db.profile.timerBars.fields[fieldName];
-            sv:SetParent(db.profile.timerBars.__templateField);
+    if (obj:IsObject(db.profile.fieldNames)) then
+        for _, fieldName in db.profile.fieldNames:Iterate() do
+            local sv = db.profile.fields[fieldName];
+            sv:SetParent(db.profile.__templateField);
             data.fields[fieldName] = sv.enabled;
 
             if (sv.enabled) then
@@ -210,10 +209,12 @@ function C_TimerBarsModule:OnInitialize(data)
 
                 value = {
                     enabled = function(value, _, field)
+                        -- print("value", value)
                         field:SetEnabled(value);
                     end;
 
-                    position = function(_, _, field)
+                    position = function(value, _, field)
+                        -- MayronUI:PrintTable(value);
                         field:PositionField();
                     end;
 
@@ -221,8 +222,7 @@ function C_TimerBarsModule:OnInitialize(data)
                         field:SetUnitID(value);
                     end;
 
-                    bar = function(_, keysList, field, fieldName)
-                        local key = keysList:PopBack();
+                    bar = function(_, _, field, fieldName)
                         local fieldSettings = data.settings.fields[fieldName];
                         local maxBars = fieldSettings.bar.maxBars;
                         local barHeight = fieldSettings.bar.height;
@@ -232,20 +232,14 @@ function C_TimerBarsModule:OnInitialize(data)
                         local fieldHeight = (maxBars * (barHeight + spacing)) - spacing;
                         field:SetSize(barWidth, fieldHeight);
 
-                        if (key == "width" or key == "height") then
-                            for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
-                                if (key == "height") then
-                                    bar:SetHeight(barHeight);
-                                else
-                                    bar:SetAuraNameShown(fieldSettings.auraName.show);
-                                end
-
-                                bar:SetIconShown(fieldSettings.showIcons);
-                            end
-                        elseif (key == "spacing") then
-                            local fieldData = data:GetFriendData(field);
-                            RepositionBars(fieldData);
+                        for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
+                            bar:SetHeight(barHeight);
+                            bar:SetAuraNameShown(fieldSettings.auraName.show);
+                            bar:SetIconShown(fieldSettings.showIcons);
                         end
+
+                        local fieldData = data:GetFriendData(field);
+                        RepositionBars(fieldData);
                     end;
 
                     showIcons = function(value, _, field)
@@ -307,7 +301,7 @@ function C_TimerBarsModule:OnInitialize(data)
         end
     end
 
-    self:RegisterUpdateFunctions(db.profile.timerBars, {
+    self:RegisterUpdateFunctions(db.profile, {
         showTooltips = function(value)
             for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
                 for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
@@ -1132,4 +1126,29 @@ function C_TimerBar:UpdateExpirationTime(data)
     obj:PushTable(auraInfo);
 
     return (old ~= self.ExpirationTime);
+end
+
+function InjectDefaultSettings()
+    local defaultTargetField = obj:PopTable();
+    defaultTargetField.unitID = "target";
+
+    if (db:GetCurrentProfile() == "Healer") then
+        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", 320, 2);
+    else
+        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2);
+    end
+
+    db:AppendOnce(db.profile, nil, "defaultFields", {
+        fieldNames = {
+            "Player";
+            "Target";
+        };
+        fields = {
+            Player = {
+                position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
+                unitID = "player";
+            };
+            Target = defaultTargetField;
+        };
+    });
 end

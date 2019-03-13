@@ -70,7 +70,6 @@ function Lib:CreateDropDown(style, parent, direction)
     dropDownContainer:SetScript("OnHide", DropDownContainer_OnHide);
 
     local header = _G.CreateFrame("Frame", nil, dropDownContainer);
-    header:SetFrameLevel(100)
     header:SetPoint("TOPLEFT", dropDownContainer);
 
     header:SetBackdrop(style:GetBackdrop("DropDownMenu"));

@@ -69,13 +69,18 @@ function Lib:CreateScrollFrame(style, parent, global, child)
     -- ScrollBar ------------------
     container.ScrollBar = container.ScrollFrame.ScrollBar;
     container.ScrollBar:ClearAllPoints();
-    container.ScrollBar:SetPoint("TOPLEFT", container.ScrollFrame, "TOPRIGHT", -7, -2);
-    container.ScrollBar:SetPoint("BOTTOMRIGHT", container.ScrollFrame, "BOTTOMRIGHT", -2, 2);
+    container.ScrollBar:SetPoint("TOPLEFT", container.ScrollFrame, "TOPRIGHT", -8, 0);
+    container.ScrollBar:SetPoint("BOTTOMRIGHT", container.ScrollFrame, "BOTTOMRIGHT", 0, 0);
+
+    container.ScrollBar.ClearAllPoints = Private.DUMMY_FUNC;
+    container.ScrollBar.SetPoint = Private.DUMMY_FUNC;
     _G.hooksecurefunc(container.ScrollBar, "Show", HideIfAnimating);
 
     container.ScrollBar.thumb = container.ScrollBar:GetThumbTexture();
-    style:ApplyColor(nil, 0.8, container.ScrollBar.thumb);
-    container.ScrollBar.thumb:SetSize(5, 50);
+    container.ScrollBar.thumb:SetColorTexture(1, 1, 1); -- needed to remove old texture and color correctly in ApplyColor (patch 8.1.5)
+
+    style:ApplyColor(nil, 1, container.ScrollBar.thumb);
+    container.ScrollBar.thumb:SetSize(6, 50);
     container.ScrollBar:Hide();
 
     Private:SetBackground(container.ScrollBar, 0, 0, 0, 0.2);

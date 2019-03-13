@@ -1,7 +1,7 @@
 -- luacheck: ignore self 143 631
 local _, namespace = ...;
 local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
+local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local MENU_BUTTON_HEIGHT = 40;
 local PlaySound = _G.PlaySound;
@@ -76,6 +76,7 @@ local function TransferWidgetAttributes(widget, widgetTable)
     widget.requiresReload   = widgetTable.requiresReload;
     widget.requiresRestart  = widgetTable.requiresRestart;
     widget.module           = widgetTable.module;
+    widget.hasOwnDatabase   = widgetTable.hasOwnDatabase;
     widget.valueType        = widgetTable.valueType;
     widget.min              = widgetTable.min;
     widget.max              = widgetTable.max;
@@ -112,6 +113,25 @@ function C_ConfigModule:Show(data)
 
     data.window:Show();
 end
+function C_ConfigModule:GetDatabase(data, tbl)
+    local dbObject;
+    local dbName = "CoreModule";
+
+    tbl = tbl or data.tempMenuConfigTable;
+
+    if (tbl) then
+        if (tbl.hasOwnDatabase) then
+            dbName = tbl.module;
+        end
+
+        dbObject = MayronUI:GetModuleComponent(dbName, "Database");
+    end
+
+    obj:Assert(dbObject, "Failed to get database object for module '%s'", dbName);
+
+    return dbObject;
+end
+
 
 Engine:DefineParams("table");
 ---@param widgetConfigTable table @A widget config table used to construct part of the config menu.
@@ -125,6 +145,7 @@ function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
         widgetConfigTable.dbPath = widgetConfigTable.dbPath();
     end
 
+    local db = self:GetDatabase();
     local value = db:ParsePathValue(widgetConfigTable.dbPath);
 
     if (obj:IsTable(value) and value.GetUntrackedTable) then
@@ -152,6 +173,8 @@ Engine:DefineParams("table");
 ---@param widget table @The created widger frame.
 ---@param value any @The value to add to the database using the dbPath value attached to the widget table.
 function C_ConfigModule:SetDatabaseValue(_, widget, newValue)
+    local db = self:GetDatabase(widget);
+
     -- __SetValue is a custom function to manually set the datbase config value
     if (widget.__SetValue) then
         local oldValue;
@@ -199,8 +222,8 @@ function C_ConfigModule:OpenMenu(data, menuButton)
 end
 
 do
-    local function CleanTablesPredicate(_, tbl, key)
-        return (tbl.type ~= "submenu" and key ~= "options");
+    local function CleanTablesPredicate(_, _, key)
+        return (key ~= "options");
     end
 
     Engine:DefineParams("CheckButton|Button");
@@ -355,12 +378,20 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
         widgetConfigTable.appendDbPath = nil;
     end
 
-    if (obj:IsTable(data.tempMenuConfigTable.inherit)) then
-        -- Inherit all key and value pairs from a parent table by injecting them into childData
+    if (not obj:IsTable(data.tempMenuConfigTable.inherit)) then
+        data.tempMenuConfigTable.inherit = obj:PopTable();
+        data.tempMenuConfigTable.inherit.module = data.tempMenuConfigTable.module;
+        data.tempMenuConfigTable.inherit.hasOwnDatabase = data.tempMenuConfigTable.hasOwnDatabase;
+    end
+
+    if (not data.tempMenuConfigTable.inherit.__index) then
         local metaTable = obj:PopTable();
         metaTable.__index = data.tempMenuConfigTable.inherit;
-        setmetatable(widgetConfigTable, metaTable);
+        data.tempMenuConfigTable.inherit = metaTable;
     end
+
+    -- Inherit all key and value pairs from a menu table
+    setmetatable(widgetConfigTable, data.tempMenuConfigTable.inherit);
 
     local widgetType = widgetConfigTable.type;
 
@@ -450,7 +481,7 @@ function C_ConfigModule:SetUpWindow(data)
     topbar:SetInsets(25, 14, 2, 10);
     topbar:SetDimensions(2, 1);
 
-    local menuListContainer = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.window:GetFrame(), "SIDEBAR");
+    local menuListContainer = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.window:GetFrame(), "MUI_ConfigSideBar");
     menuListContainer.ScrollBar:SetPoint("TOPLEFT", menuListContainer.ScrollFrame, "TOPRIGHT", -5, 0);
     menuListContainer.ScrollBar:SetPoint("BOTTOMRIGHT", menuListContainer.ScrollFrame, "BOTTOMRIGHT", 0, 0);
 

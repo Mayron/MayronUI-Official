@@ -24,6 +24,7 @@ Observer.Static:AddFriendClass("Helper");
 Observer.Static:AddFriendClass("Database");
 
 local select, tonumber, strsplit = select, tonumber, _G.strsplit;
+local GetLastTableKeyPairs, GetNextPath, IsEqual, GetDatabasePathInfo;
 
 local OnAddOnLoadedListener = _G.CreateFrame("Frame");
 OnAddOnLoadedListener:RegisterEvent("ADDON_LOADED");
@@ -36,78 +37,6 @@ OnAddOnLoadedListener:SetScript("OnEvent", function(self, _, addOnName)
         database:Start();
     end
 end);
-
-local function GetNextPath(path, key)
-    if (path ~= nil) then
-        if (tonumber(key)) then
-            return string.format("%s[%s]", path, key);
-        else
-            return string.format("%s.%s", path, key);
-        end
-    else
-        if (tonumber(key)) then
-            key = string.format("[%s]", key);
-        end
-
-        return key;
-    end
-end
-
-local function IsEqual(leftValue, rightValue, shallow)
-    local leftType = type(leftValue);
-
-    if (leftType == type(rightValue)) then
-        if (leftType == "table") then
-
-            if (shallow and tostring(leftValue) == tostring(rightValue)) then
-                return true;
-            else
-                for key, value in pairs(leftValue) do
-                    if (not IsEqual(value, rightValue[key])) then
-                        return false;
-                    end
-                end
-
-                for key, value in pairs(rightValue) do
-                    if (not IsEqual(value, leftValue[key])) then
-                        return false;
-                    end
-                end
-            end
-
-            return true;
-        elseif (leftType == "function") then
-            return tostring(leftValue) == tostring(rightValue);
-        else
-            return leftValue == rightValue;
-        end
-    end
-
-    return false;
-end
-
-local function GetDatabasePathInfo(db, rootTableOrPath, pathOrValue, value)
-    local rootTable, path;
-
-    if (obj:IsTable(rootTableOrPath)) then
-        rootTable = rootTableOrPath;
-        path = pathOrValue;
-    else
-        local rootTableType, realPath = rootTableOrPath:match("([^.]+).(.*)");
-        rootTableType = rootTableType:gsub("%s", ""):lower();
-
-        path = realPath;
-        value = pathOrValue;
-
-        if (rootTableType == "global") then
-            rootTable = db.global;
-        elseif (rootTableType == "profile") then
-            rootTable = db.profile;
-        end
-    end
-
-    return rootTable, path, value;
-end
 
 ------------------------
 -- Database API
@@ -123,19 +52,117 @@ end
 function Lib:CreateDatabase(addOnName, savedVariableName, manualStartUp)
     local database = Database(addOnName, savedVariableName);
 
-    if (not manualStartUp) then
-        if (_G[savedVariableName]) then
-            -- already loaded
-            database:Start();
-        else
-            -- register to start when ready
-            OnAddOnLoadedListener.RegisteredDatabases[addOnName] = database;
-        end
+    if (not manualStartUp and _G[savedVariableName]) then
+        -- already loaded
+        database:Start();
     end
+
+    OnAddOnLoadedListener.RegisteredDatabases[addOnName] = database;
 
     return database;
 end
 
+---@return Database @The database object
+function Lib:GetDatabase(addOnName)
+    return OnAddOnLoadedListener.RegisteredDatabases[addOnName];
+end
+
+---Returns addOnName, db (the database object) for each registered database per iteration.
+function Lib:IterateDatabases()
+    local id = 0;
+    local databases = obj:PopTable();
+
+    for name, database in pairs(OnAddOnLoadedListener.RegisteredDatabases) do
+        table.insert(databases, obj:PopTable(name, database));
+    end
+
+    return function()
+        id = id + 1;
+
+        if (id <= #databases) then
+            local name, database = _G.unpack(databases[id]);
+            obj:PushTable(databases[id]);
+
+            if (id == #databases) then
+                obj:PushTable(databases);
+            end
+
+            return name, database;
+        end
+    end
+end
+
+function Lib:SetPathValue(rootTable, path, value)
+    obj:Assert(obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
+    obj:Assert(obj:IsString(path), "Invalid path address.");
+    obj:Assert(not obj:IsObject(rootTable, "Observer"), "Table required, found Observer");
+
+    local lastTable, lastKey = GetLastTableKeyPairs(rootTable, path);
+
+    assert(obj:IsTable(lastTable) and
+        (obj:IsString(lastKey) or obj:IsNumber(lastKey)), "Lib:SetPathValue failed to set value");
+
+    -- set value here!
+    lastTable[lastKey] = value;
+end
+
+function Lib:ParsePathValue(rootTable, path)
+    local values = obj:PopTable(_G.strsplit(".", path));
+    local length = #values;
+    local iterations = 0;
+
+    for _, key in ipairs(values) do
+        if (rootTable == nil or not obj:IsTable(rootTable)) then
+            break;
+        end
+
+        if (tonumber(key)) then
+            key = tonumber(key);
+            rootTable = rootTable[key];
+            iterations = iterations + 1;
+        else
+            local indexes;
+
+            if (key:find("%b[]")) then
+                indexes = {};
+
+                for index in key:gmatch("(%b[])") do
+                    index = index:match("%[(.+)%]");
+                    table.insert(indexes, index);
+                end
+
+                length = length + #indexes;
+            end
+
+            key = _G.strsplit("[", key);
+
+            if (#key > 0) then
+                rootTable = rootTable[key];
+                iterations = iterations + 1;
+            end
+
+            if (indexes and obj:IsTable(rootTable)) then
+                for _, indexKey in ipairs(indexes) do
+                    indexKey = tonumber(indexKey) or indexKey;
+                    rootTable = rootTable[indexKey];
+                    iterations = iterations + 1;
+
+                    if (rootTable == nil or not obj:IsTable(rootTable)) then
+                        break;
+                    end
+                end
+            end
+        end
+    end
+
+    if (iterations == length) then
+        return rootTable;
+    end
+
+    return nil;
+end
+
+-- Database Object: ------------------
 
 Framework:DefineParams("string", "string");
 ---Do NOT call this manually! Should only be called by Lib:CreateDatabase(...)
@@ -156,6 +183,13 @@ function Database:__Destruct()
     obj:Error("Database cannot be destroyed");
 end
 
+
+Framework:DefineReturns("string");
+---@return string @The name of the database (the addon name + saved variable name)
+function Database:GetDatabaseName(data)
+    return string.format("%s:%s", data.addOnName, data.svName);
+end
+
 Framework:DefineParams("function");
 ---Hooks a callback function onto the "StartUp" event to be called when the database starts up
 ---(i.e. when the saved variable becomes accessible). By default, this function is called by the library
@@ -163,7 +197,7 @@ Framework:DefineParams("function");
 ---@param callback function @The start up callback function
 function Database:OnStartUp(data, callback)
     local startUpCallbacks = data.callbacks["OnStartUp"] or obj:PopTable();
-    data.callbacks["OnStartUp"] = startUpCallbacks;
+    data.callbacks.OnStartUp = startUpCallbacks;
 
     table.insert(startUpCallbacks, callback);
 end
@@ -188,12 +222,9 @@ function Database:Start(data)
         return;
     end
 
-    OnAddOnLoadedListener.RegisteredDatabases[data.addOnName] = nil;
-
     -- create Saved Variable if it has never been created before
     _G[data.svName] = _G[data.svName] or obj:PopTable();
     data.sv = _G[data.svName];
-    data.svName = nil; -- no longer needed once it is loaded
 
     -- create root profiles table if it does not exist
     data.sv.profiles = data.sv.profiles or obj:PopTable();
@@ -220,13 +251,13 @@ function Database:Start(data)
 
     data.loaded = true;
 
-    if (data.callbacks["OnStartUp"]) then
-        for _, callback in ipairs(data.callbacks["OnStartUp"]) do
+    if (data.callbacks.OnStartUp) then
+        for _, callback in ipairs(data.callbacks.OnStartUp) do
             callback(self, data.addOnName);
         end
     end
 
-    data.callbacks["OnStartUp"] = nil;
+    data.callbacks.OnStartUp = nil;
 end
 
 Framework:DefineReturns("boolean");
@@ -285,9 +316,14 @@ function Database:TriggerUpdateFunction(data, fullPath, newValue)
         updateFunction = self:ParsePathValue(data.updateFunctions, updateFunctionPath);
     end
 
-    while (not obj:IsFunction(manualFunction) and manualFunctionPath:find("[.[]")) do
+    while (not obj:IsFunction(manualFunction)) do
         manualFunction = data.manualUpdateFunctions[manualFunctionPath];
-        manualFunctionPath = manualFunctionPath:match('(.+)[.[]');
+
+        if (manualFunctionPath:find("[.[]")) then
+            manualFunctionPath = manualFunctionPath:match('(.+)[.[]');
+        else
+            break;
+        end
     end
 
     if (obj:IsFunction(manualFunction)) then
@@ -310,11 +346,10 @@ Framework:DefineParams("table|string");
 ---@param value any @(optional) A value to assign to the table relative to the provided path string (is nil if the path argument is the value)
 function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
-
     obj:Assert(obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
     obj:Assert(path and not (obj:IsObject(rootTable, "Observer") and path:find("__template")), "Invalid path address '%s'.", path);
 
-    local lastTable, lastKey = data.helper:GetLastTableKeyPairs(rootTable, path);
+    local lastTable, lastKey = GetLastTableKeyPairs(rootTable, path);
 
     assert(obj:IsTable(lastTable) and (obj:IsString(lastKey) or obj:IsNumber(lastKey)),
         "Database:SetPathValue failed to set value");
@@ -335,59 +370,7 @@ Framework:DefineParams("table|string", "?string");
 ---@return any @The value found at the location specified by the path address. Might return nil if the path address is invalid, or no value is located at the address.
 function Database:ParsePathValue(_, rootTableOrPath, pathOrNil)
     local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrNil);
-    local values = obj:PopTable(_G.strsplit(".", path));
-    local length = #values;
-    local iterations = 0;
-
-    for _, key in ipairs(values) do
-        if (rootTable == nil or not obj:IsTable(rootTable)) then
-            break;
-        end
-
-        if (tonumber(key)) then
-            key = tonumber(key);
-            rootTable = rootTable[key];
-            iterations = iterations + 1;
-        else
-            local indexes;
-
-            if (key:find("%b[]")) then
-                indexes = {};
-
-                for index in key:gmatch("(%b[])") do
-                    index = index:match("%[(.+)%]");
-                    table.insert(indexes, index);
-                end
-
-                length = length + #indexes;
-            end
-
-            key = _G.strsplit("[", key);
-
-            if (#key > 0) then
-                rootTable = rootTable[key];
-                iterations = iterations + 1;
-            end
-
-            if (indexes and obj:IsTable(rootTable)) then
-                for _, indexKey in ipairs(indexes) do
-                    indexKey = tonumber(indexKey) or indexKey;
-                    rootTable = rootTable[indexKey];
-                    iterations = iterations + 1;
-
-                    if (rootTable == nil or not obj:IsTable(rootTable)) then
-                        break;
-                    end
-                end
-            end
-        end
-    end
-
-    if (iterations == length) then
-        return rootTable;
-    end
-
-    return nil;
+    return Lib:ParsePathValue(rootTable, path);
 end
 
 Framework:DefineParams("string");
@@ -406,8 +389,8 @@ function Database:SetProfile(data, profileName)
 
     data.sv.profileKeys[profileKey] = profileName;
 
-    if (data.callbacks["OnProfileChange"]) then
-        for _, callback in ipairs(data.callbacks["OnProfileChange"]) do
+    if (data.callbacks.OnProfileChange) then
+        for _, callback in ipairs(data.callbacks.OnProfileChange) do
             callback(self, profileName, oldProfileName);
         end
     end
@@ -454,7 +437,14 @@ function Database:IterateProfiles(data)
         id = id + 1;
 
         if (id <= #profileNames) then
-            return id, profileNames[id], data.sv.profiles[profileNames[id]];
+            local profileName = profileNames[id];
+            local profileObject = data.sv.profiles[profileName];
+
+            if (id == #profileNames) then
+                obj:PushTable(profileNames);
+            end
+
+            return id, profileName, profileObject;
         end
     end
 end
@@ -581,20 +571,24 @@ function Database:RenameProfile(data, oldProfileName, newProfileName)
     end
 end
 
-Framework:DefineParams("Observer", "string", "any");
+Framework:DefineParams("Observer", "?string", "?string", "table");
 Framework:DefineReturns("boolean");
 ---Adds a new value to the saved variable table only once. Adds to a special appended history table.
 ---@param rootTable Observer @The root database table (observer) to append the value to relative to the path address provided.
----@param path string @The path address to specify where the value should be appended to.
----@param value any @The value to be added.
+---@param path string @(Optional) The path address to specify where the value should be appended to.
+---@param appendKey string @(Optional) An optional key that can be used instead of the path for registering an appended value.
+---@param value table @The table of values to be appended to the database.
 ---@return boolean @Returns whether the value was successfully added.
-function Database:AppendOnce(data, rootTable, path, value)
+function Database:AppendOnce(data, rootTable, path, appendKey, value)
     local tableType = data.helper:GetDatabaseRootTableName(rootTable);
 
     local appendTable = data.sv.appended[tableType] or obj:PopTable();
     data.sv.appended[tableType] = appendTable;
 
-    if (appendTable[path]) then
+    appendKey = appendKey or path;
+    obj:Assert(appendKey, "Both path and appendKey args cannot be missing (at least one is required)");
+
+    if (appendTable[appendKey]) then
         -- already previously appended, cannot append again
         if (obj:IsTable(value)) then
             obj:PushTable(value, true);
@@ -603,9 +597,16 @@ function Database:AppendOnce(data, rootTable, path, value)
         return false;
     end
 
-    self:SetPathValue(rootTable, path, value);
-    appendTable[path] = true;
+    if (path) then
+        self:SetPathValue(rootTable, path, value);
 
+    elseif (obj:IsTable(value)) then
+        for k, v in pairs(value) do
+            rootTable[k] = v;
+        end
+    end
+
+    appendTable[appendKey] = true;
     return true;
 end
 
@@ -826,9 +827,15 @@ function Observer:GetPathAddress(data, excludeTableType)
 
     if (not excludeTableType) then
         if (data.isGlobal) then
-            path = string.format("%s.%s", "global", path);
-        else
+            if (path) then
+                path = string.format("%s.%s", "global", path);
+            else
+                path = "global";
+            end
+        elseif (path) then
             path = string.format("%s.%s", "profile", path);
+        else
+            path = "profile";
         end
     end
 
@@ -1156,98 +1163,9 @@ function Helper:GetDatabase(data)
     return data.database;
 end
 
-do
-    local function GetNextTable(tbl, key, parsing)
-        local previous = tbl;
-
-        if (tbl[key] == nil) then
-            if (parsing) then return nil; end
-            tbl[key] = obj:PopTable();
-        end
-
-        return previous, tbl[key];
-    end
-
-    local function IsEmpty(tbl)
-        if (tbl == nil) then
-            return true;
-        end
-
-        for _, value in pairs(tbl) do
-            if (type(value) ~= "table" or not IsEmpty(value)) then
-                return false;
-            end
-        end
-
-        return true;
-    end
-
-    Framework:DefineParams("table", "string", "?boolean", "?boolean");
-    function Helper:GetLastTableKeyPairs(_, rootTable, path, cleaning)
-        local nextTable = rootTable;
-        local lastTable, lastKey;
-
-        for _, key in obj:IterateArgs(strsplit(".", path)) do
-            if (tonumber(key)) then
-                key = tonumber(key);
-                lastKey = key;
-                lastTable, nextTable = GetNextTable(nextTable, key);
-
-                if (cleaning and IsEmpty(nextTable)) then
-                    if (type(lastTable) == "table") then
-                        lastTable[lastKey] = nil;
-                    end
-                    return nil;
-                end
-
-            elseif (key ~= "db") then
-                local indexes;
-
-                if (key:find("%b[]")) then
-                    indexes = obj:PopTable();
-
-                    for index in key:gmatch("(%b[])") do
-                        index = index:match("%[(.+)%]");
-                        table.insert(indexes, index);
-                    end
-                end
-
-                key = strsplit("[", key);
-
-                if (#key > 0) then
-                    lastKey = key;
-                    lastTable, nextTable = GetNextTable(nextTable, key);
-
-                    if (cleaning and IsEmpty(nextTable)) then
-                        if (type(lastTable) == "table") then
-                            lastTable[lastKey] = nil;
-                        end
-                        return nil;
-                    end
-                end
-
-                if (indexes) then
-                    for _, indexKey in ipairs(indexes) do
-                        indexKey = tonumber(indexKey) or indexKey;
-                        lastKey = indexKey;
-                        lastTable, nextTable = GetNextTable(nextTable, indexKey);
-
-                        if (cleaning and IsEmpty(nextTable)) then
-                            if (type(lastTable) == "table") then
-                                lastTable[lastKey] = nil;
-                            end
-
-                            return nil;
-                        end
-                    end
-
-                    obj:PushTable(indexes);
-                end
-            end
-        end
-
-        return lastTable, lastKey;
-    end
+Framework:DefineParams("table", "string", "?boolean", "?boolean");
+function Helper:GetLastTableKeyPairs(_, rootTable, path, cleaning) -- eventually replace this when static methods get strict typing
+    GetLastTableKeyPairs(rootTable, path, cleaning);
 end
 
 Framework:DefineParams("string", "table");
@@ -1370,7 +1288,7 @@ function Helper:HandlePathValueChange(data, observerData, key, newValue)
     else
         -- same as default value so remove it from saved variables table
         data.database:SetPathValue(svRootTable, valuePath, nil);
-        self:GetLastTableKeyPairs(svRootTable, valuePath, true, true); -- clean
+        self:GetLastTableKeyPairs(svRootTable, valuePath, true); -- clean
     end
 
     if (dbTableRootName) then
@@ -1393,3 +1311,170 @@ end
 
 Framework:ProtectClass(Database);
 Framework:ProtectClass(Observer);
+
+--- Local Functions ------------------
+
+function GetNextPath(path, key)
+    if (path ~= nil) then
+        if (tonumber(key)) then
+            return string.format("%s[%s]", path, key);
+        else
+            return string.format("%s.%s", path, key);
+        end
+    else
+        if (tonumber(key)) then
+            key = string.format("[%s]", key);
+        end
+
+        return key;
+    end
+end
+
+function IsEqual(leftValue, rightValue, shallow)
+    local leftType = type(leftValue);
+
+    if (leftType == type(rightValue)) then
+        if (leftType == "table") then
+
+            if (shallow and tostring(leftValue) == tostring(rightValue)) then
+                return true;
+            else
+                for key, value in pairs(leftValue) do
+                    if (not IsEqual(value, rightValue[key])) then
+                        return false;
+                    end
+                end
+
+                for key, value in pairs(rightValue) do
+                    if (not IsEqual(value, leftValue[key])) then
+                        return false;
+                    end
+                end
+            end
+
+            return true;
+        elseif (leftType == "function") then
+            return tostring(leftValue) == tostring(rightValue);
+        else
+            return leftValue == rightValue;
+        end
+    end
+
+    return false;
+end
+
+function GetDatabasePathInfo(db, rootTableOrPath, pathOrValue, value)
+    local rootTable, path;
+
+    if (obj:IsTable(rootTableOrPath)) then
+        rootTable = rootTableOrPath;
+        path = pathOrValue;
+    else
+        local rootTableType, realPath = rootTableOrPath:match("([^.]+).(.*)");
+        rootTableType = rootTableType:gsub("%s", ""):lower();
+
+        path = realPath;
+        value = pathOrValue;
+
+        if (rootTableType == "global") then
+            rootTable = db.global;
+        elseif (rootTableType == "profile") then
+            rootTable = db.profile;
+        end
+    end
+
+    return rootTable, path, value;
+end
+
+do
+    local function GetNextTable(tbl, key, parsing)
+        local previous = tbl;
+
+        if (tbl[key] == nil) then
+            if (parsing) then return nil; end
+            tbl[key] = obj:PopTable();
+        end
+
+        return previous, tbl[key];
+    end
+
+    local function IsEmpty(tbl)
+        if (tbl == nil) then
+            return true;
+        end
+
+        for _, value in pairs(tbl) do
+            if (type(value) ~= "table" or not IsEmpty(value)) then
+                return false;
+            end
+        end
+
+        return true;
+    end
+
+    function GetLastTableKeyPairs(rootTable, path, cleaning)
+        local nextTable = rootTable;
+        local lastTable, lastKey;
+
+        for _, key in obj:IterateArgs(strsplit(".", path)) do
+            if (tonumber(key)) then
+                key = tonumber(key);
+                lastKey = key;
+                lastTable, nextTable = GetNextTable(nextTable, key);
+
+                if (cleaning and IsEmpty(nextTable)) then
+                    if (type(lastTable) == "table") then
+                        lastTable[lastKey] = nil;
+                    end
+                    return nil;
+                end
+
+            elseif (key ~= "db") then
+                local indexes;
+
+                if (key:find("%b[]")) then
+                    indexes = obj:PopTable();
+
+                    for index in key:gmatch("(%b[])") do
+                        index = index:match("%[(.+)%]");
+                        table.insert(indexes, index);
+                    end
+                end
+
+                key = strsplit("[", key);
+
+                if (#key > 0) then
+                    lastKey = key;
+                    lastTable, nextTable = GetNextTable(nextTable, key);
+
+                    if (cleaning and IsEmpty(nextTable)) then
+                        if (type(lastTable) == "table") then
+                            lastTable[lastKey] = nil;
+                        end
+                        return nil;
+                    end
+                end
+
+                if (indexes) then
+                    for _, indexKey in ipairs(indexes) do
+                        indexKey = tonumber(indexKey) or indexKey;
+                        lastKey = indexKey;
+                        lastTable, nextTable = GetNextTable(nextTable, indexKey);
+
+                        if (cleaning and IsEmpty(nextTable)) then
+                            if (type(lastTable) == "table") then
+                                lastTable[lastKey] = nil;
+                            end
+
+                            return nil;
+                        end
+                    end
+
+                    obj:PushTable(indexes);
+                end
+            end
+        end
+
+        return lastTable, lastKey;
+    end
+end

@@ -99,16 +99,24 @@ do
     local function Dragger_OnDragStart(self)
         if (self.frame:IsMovable()) then
             self.frame:StartMoving();
+
+            if (obj:IsFunction(self.onDragStart)) then
+                self.onDragStart(self.frame, self.frame:GetPoint());
+            end
         end
     end
 
     local function Dragger_OnDragStop(self)
         if (self.frame:IsMovable()) then
             self.frame:StopMovingOrSizing();
+
+            if (obj:IsFunction(self.onDragStop)) then
+                self.onDragStop(self.frame, self.frame:GetPoint());
+            end
         end
     end
 
-    function tk:MakeMovable(frame, dragger, movable)
+    function tk:MakeMovable(frame, dragger, movable, onDragStart, onDragStop)
         if (movable == nil) then
             movable = true;
         end
@@ -120,12 +128,15 @@ do
         dragger:RegisterForDrag("LeftButton");
         frame:SetMovable(movable);
         frame:SetClampedToScreen(true);
+
+        dragger.onDragStart = onDragStart;
+        dragger.onDragStop = onDragStop;
         dragger:HookScript("OnDragStart", Dragger_OnDragStart);
         dragger:HookScript("OnDragStop", Dragger_OnDragStop);
     end
 end
 
-function tk:SavePosition(frame, dbPath, override)
+function tk:SavePosition(frame, override)
     local point, relativeFrame, relativePoint, x, y = frame:GetPoint();
 
     if (not relativeFrame) then
@@ -134,19 +145,16 @@ function tk:SavePosition(frame, dbPath, override)
         relativeFrame = relativeFrame:GetName();
 
         if (not relativeFrame or (relativeFrame and relativeFrame ~= "UIParent")) then
-            if (not override) then
-                return;
+            if (override) then
+                x, y = frame:GetCenter();
+                point = "CENTER";
+                relativeFrame = "UIParent"; -- Do not want this to be UIParent in some cases
+                relativePoint = "BOTTOMLEFT";
             end
-
-            x, y = frame:GetCenter();
-            point = "CENTER";
-            relativeFrame = "UIParent"; -- Do not want this to be UIParent in some cases
-            relativePoint = "BOTTOMLEFT";
         end
     end
 
-    local positions = obj:PopTable(point, relativeFrame, relativePoint, x , y);
-    namespace.components.Database:SetPathValue(dbPath, positions);
+    local positions = obj:PopTable(point, relativeFrame, relativePoint, x, y);
     return positions;
 end
 
@@ -243,7 +251,7 @@ function tk:HookOnce(func)
 end
 
 function tk:SetClassColoredTexture(className, texture)
-    className = className or (tk.select(2, _G.UnitClass("player")));
+    className = className or (select(2, _G.UnitClass("player")));
     className = tk.string.upper(className);
     className = className:gsub("%s+", "");
     local color = self.Constants.CLASS_COLORS[className];
@@ -253,7 +261,7 @@ end
 -- apply theme color to a vararg list of elements
 -- first arg can be a number specifying the alpha value
 function tk:ApplyThemeColor(...)
-    local alpha = (tk.select(1, ...));
+    local alpha = (select(1, ...));
 
     -- first argument is "colorName"
     if (not (obj:IsNumber(alpha) and alpha)) then
