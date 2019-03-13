@@ -251,7 +251,7 @@ function tk:HookOnce(func)
 end
 
 function tk:SetClassColoredTexture(className, texture)
-    className = className or (tk.select(2, _G.UnitClass("player")));
+    className = className or (select(2, _G.UnitClass("player")));
     className = tk.string.upper(className);
     className = className:gsub("%s+", "");
     local color = self.Constants.CLASS_COLORS[className];
@@ -261,7 +261,7 @@ end
 -- apply theme color to a vararg list of elements
 -- first arg can be a number specifying the alpha value
 function tk:ApplyThemeColor(...)
-    local alpha = (tk.select(1, ...));
+    local alpha = (select(1, ...));
 
     -- first argument is "colorName"
     if (not (obj:IsNumber(alpha) and alpha)) then
