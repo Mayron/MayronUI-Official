@@ -1129,7 +1129,6 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
         end
     end
 
-    -- this will be compared to the defaults table
     db:AppendOnce(db.profile, nil, "defaultFields", {
         fieldNames = {
             "Player";
