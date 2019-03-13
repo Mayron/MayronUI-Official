@@ -4,23 +4,19 @@
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
-local tk = MayronUI:GetCoreComponents();
+local tk = MayronUI:GetCoreComponent("Toolkit");
 
 local _G = _G;
 local string = _G.string;
 --------------------------------------
 
-local function GetChatLink(text, id, url)
-	return tk.string.format("|H%s:%s|h|cffffe29e%s|r|h", id, url, text);
-end
-
-local function GetChatLinkWrapper(url)
-	return GetChatLink("["..url.."]", "url", url);
+local function GetChatLink(url)
+	return string.format("|Hurl:%s|h|cffffe29e%s|r|h", url, "["..url.."]");
 end
 
 local function NewAddMessage(self, text, ...)
 	if (not text) then return; end
-	self:oldAddMessage(text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLinkWrapper), ...);
+	self:oldAddMessage(text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink), ...);
 end
 
 local function OnHyperLinkLeave()
