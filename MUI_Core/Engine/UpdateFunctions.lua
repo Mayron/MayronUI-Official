@@ -251,7 +251,7 @@ do
 
     local function ExecuteAllUpdateFunctions(options, updateFunctionsTable, settingsTable, executedTable, blockedTable, previousPath)
         for key, setting in pairs(settingsTable) do
-            local path = key;
+            local path = tostring(key);
             local updateFunction = updateFunctionsTable;
             local onPre, onPost;
 

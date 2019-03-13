@@ -1122,6 +1122,14 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
         defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2);
     end
 
+    if (obj:IsObject(db.profile.fieldNames)) then
+        for _, fieldName in db.profile.fieldNames:Iterate() do
+            local sv = db.profile.fields[fieldName];
+            sv:SetParent(nil); -- remove before comparison
+        end
+    end
+
+    -- this will be compared to the defaults table
     db:AppendOnce(db.profile, nil, "defaultFields", {
         fieldNames = {
             "Player";

@@ -597,13 +597,17 @@ function Database:AppendOnce(data, rootObserver, path, appendKey, value)
         return false;
     end
 
+    local sv = rootObserver:GetSavedVariable();
+
     if (path) then
-        self:SetPathValue(rootObserver, path, value);
+        self:SetPathValue(sv, path, value);
 
     elseif (obj:IsTable(value)) then
         for k, v in pairs(value) do
-            rootObserver[k] = v;
+            self:SetPathValue(sv, k, v);
         end
+    else
+        obj:Error("Injecting a non-table value requires the path argument");
     end
 
     appendTable[appendKey] = true;
@@ -1280,13 +1284,12 @@ function Helper:HandlePathValueChange(data, observerData, key, newValue)
     end
 
     local valuePath = GetNextPath(path, key);
-    local defaultValue = data.database:ParsePathValue(defaultRootTable, valuePath);
+    local defaultValue = data.database:ParsePathValue(defaultRootTable, valuePath); -- get "fields" from defaultRootTable
 
     if (not IsEqual(defaultValue, newValue)) then
         -- different from default value so add it
         data.database:SetPathValue(svRootTable, valuePath, newValue);
     else
-        -- same as default value so remove it from saved variables table
         data.database:SetPathValue(svRootTable, valuePath, nil);
         self:GetLastTableKeyPairs(svRootTable, valuePath, true); -- clean
     end
@@ -1340,14 +1343,18 @@ function IsEqual(leftValue, rightValue, shallow)
                 return true;
             else
                 for key, value in pairs(leftValue) do
-                    if (not IsEqual(value, rightValue[key])) then
-                        return false;
+                    if (not key:find("__template")) then
+                        if (not IsEqual(value, rightValue[key])) then
+                            return false;
+                        end
                     end
                 end
 
                 for key, value in pairs(rightValue) do
-                    if (not IsEqual(value, leftValue[key])) then
-                        return false;
+                    if (not key:find("__template")) then
+                        if (not IsEqual(value, leftValue[key])) then
+                            return false;
+                        end
                     end
                 end
             end
