@@ -222,8 +222,8 @@ function C_ConfigModule:OpenMenu(data, menuButton)
 end
 
 do
-    local function CleanTablesPredicate(_, _, key)
-        return (key ~= "options");
+    local function CleanTablesPredicate(_, tbl, key)
+        return (tbl.type ~= "submenu" and key ~= "options");
     end
 
     Engine:DefineParams("CheckButton|Button");

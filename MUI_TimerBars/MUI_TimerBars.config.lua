@@ -17,8 +17,8 @@ local function CreateNewFieldButton_OnClick(editBox)
     local text = editBox:GetText();
     local tbl = db.profile.fieldNames:GetUntrackedTable();
 
-    db:SetPathValue(db.profile, "timerBars.fieldNames["..(#tbl + 1).."]", text);
-    db:SetPathValue(db.profile, "timerBars.fields."..text, obj:PopTable());
+    db:SetPathValue(db.profile, "fieldNames["..(#tbl + 1).."]", text);
+    db:SetPathValue(db.profile, "fields."..text, obj:PopTable());
 
     tk:Print(tk.string.format(L["TimerBar field '%s' created."], text));
     MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
@@ -30,8 +30,8 @@ local function RemoveFieldButton_OnClick(editBox)
     local id = tk.Tables:GetIndex(tbl, text);
 
     if (id) then
-        db:SetPathValue(db.profile, "timerBars.fieldNames["..id.."]", nil);
-        db:SetPathValue(db.profile, "timerBars.fields."..text, nil);
+        db:SetPathValue(db.profile, "fieldNames["..id.."]", nil);
+        db:SetPathValue(db.profile, "fields."..text, nil);
         MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
     else
         tk:Print(tk.string.format(L["TimerBar field '%s' does not exist."], text));

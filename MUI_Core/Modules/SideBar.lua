@@ -372,6 +372,7 @@ function C_SideBar:SetObjectiveTrackerEnabled(data, enabled)
 
     local settings = data.settings.objectiveTracker;
     data.objectiveContainer:SetSize(settings.width, settings.height);
+    data.objectiveContainer:ClearAllPoints();
 
     if (settings.anchoredToSideBars) then
         data.objectiveContainer:SetPoint("TOPRIGHT", data.panel, "TOPLEFT", settings.xOffset, settings.yOffset);
