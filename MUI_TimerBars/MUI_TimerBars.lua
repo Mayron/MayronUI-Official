@@ -13,7 +13,7 @@ local string, date, pairs, ipairs = _G.string, _G.date, _G.pairs, _G.ipairs;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
 local table, GetTime, UnitAura = _G.table, _G.GetTime, _G.UnitAura;
 
-local RepositionBars, InjectDefaultSettings;
+local RepositionBars;
 
 local HELPFUL, HARMFUL, DEBUFF, BUFF, UP = "HELPFUL", "HARMFUL", "DEBUFF", "BUFF", "UP";
 local TIMER_FIELD_UPDATE_FREQUENCY = 0.05;
@@ -148,7 +148,7 @@ db:OnProfileChange(function(self)
         return;
     end
 
-    InjectDefaultSettings();
+    timerBarsModule:ApplyProfileSettings();
     timerBarsModule:RefreshSettings();
     timerBarsModule:ExecuteAllUpdateFunctions();
     timerBarsModule:TriggerEvent("OnProfileChange");
@@ -160,25 +160,9 @@ function C_TimerBarsModule:OnInitialize(data)
     data.fields = obj:PopTable();
 
     -- create 2 default (removable from database) TimerFields
-    InjectDefaultSettings();
-
-    local first = obj:PopTable();
-
-    if (obj:IsObject(db.profile.fieldNames)) then
-        for _, fieldName in db.profile.fieldNames:Iterate() do
-            local sv = db.profile.fields[fieldName];
-            sv:SetParent(db.profile.__templateField);
-            data.fields[fieldName] = sv.enabled;
-
-            if (sv.enabled) then
-                table.insert(first, tk.Strings:Concat("fields.", fieldName, ".", "enabled"));
-            end
-        end
-    end
-
-    local options = {
+    data.options = {
         onExecuteAll = {
-            first = first;
+            first = {}; -- this is updated in ApplyProfileSettings
             ignore = {
                 "filter";
             };
@@ -213,7 +197,7 @@ function C_TimerBarsModule:OnInitialize(data)
                         field:SetEnabled(value);
                     end;
 
-                    position = function(value, _, field)
+                    position = function(_, _, field)
                         -- MayronUI:PrintTable(value);
                         field:PositionField();
                     end;
@@ -293,6 +277,8 @@ function C_TimerBarsModule:OnInitialize(data)
         };
     };
 
+    self:ApplyProfileSettings();
+
     local function UpdateBorders()
         for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
             for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
@@ -341,7 +327,7 @@ function C_TimerBarsModule:OnInitialize(data)
         end;
 
         border = UpdateBorders;
-    }, options);
+    });
 end
 
 function C_TimerBarsModule:OnInitialized(data)
@@ -1128,7 +1114,7 @@ function C_TimerBar:UpdateExpirationTime(data)
     return (old ~= self.ExpirationTime);
 end
 
-function InjectDefaultSettings()
+function C_TimerBarsModule:ApplyProfileSettings(data)
     local defaultTargetField = obj:PopTable();
     defaultTargetField.unitID = "target";
 
@@ -1151,4 +1137,21 @@ function InjectDefaultSettings()
             Target = defaultTargetField;
         };
     });
+
+    tk.Tables:Empty(data.options.onExecuteAll.first);
+
+    if (obj:IsObject(db.profile.fieldNames)) then
+        for _, fieldName in db.profile.fieldNames:Iterate() do
+            local sv = db.profile.fields[fieldName];
+            sv:SetParent(db.profile.__templateField);
+
+            if (not obj:IsObject(data.fields[fieldName])) then
+                data.fields[fieldName] = sv.enabled;
+            end
+
+            if (sv.enabled) then
+                table.insert(data.options.onExecuteAll.first, tk.Strings:Concat("fields.", fieldName, ".", "enabled"));
+            end
+        end
+    end
 end

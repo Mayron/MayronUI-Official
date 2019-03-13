@@ -579,8 +579,8 @@ Framework:DefineReturns("boolean");
 ---@param appendKey string @(Optional) An optional key that can be used instead of the path for registering an appended value.
 ---@param value table @The table of values to be appended to the database.
 ---@return boolean @Returns whether the value was successfully added.
-function Database:AppendOnce(data, rootTable, path, appendKey, value)
-    local tableType = data.helper:GetDatabaseRootTableName(rootTable);
+function Database:AppendOnce(data, rootObserver, path, appendKey, value)
+    local tableType = data.helper:GetDatabaseRootTableName(rootObserver);
 
     local appendTable = data.sv.appended[tableType] or obj:PopTable();
     data.sv.appended[tableType] = appendTable;
@@ -598,11 +598,11 @@ function Database:AppendOnce(data, rootTable, path, appendKey, value)
     end
 
     if (path) then
-        self:SetPathValue(rootTable, path, value);
+        self:SetPathValue(rootObserver, path, value);
 
     elseif (obj:IsTable(value)) then
         for k, v in pairs(value) do
-            rootTable[k] = v;
+            rootObserver[k] = v;
         end
     end
 
