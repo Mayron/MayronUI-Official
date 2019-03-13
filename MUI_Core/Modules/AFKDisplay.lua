@@ -463,7 +463,7 @@ do
         tk:ApplyThemeColor(0.8, display.titleButton);
         display.titleButton:SetNormalFontObject("MUI_FontNormal");
         display.titleButton:SetHighlightFontObject("GameFontHighlight");
-        display.titleButton:SetText("MayronUI Gen5");
+        display.titleButton:SetText(_G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"));
 
         display.dataFrame = tk:PopFrame("Frame", display);
         display.dataFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 30);

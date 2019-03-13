@@ -1343,7 +1343,7 @@ function IsEqual(leftValue, rightValue, shallow)
                 return true;
             else
                 for key, value in pairs(leftValue) do
-                    if (not key:find("__template")) then
+                    if (not (obj:IsString(key) and key:match("^__template"))) then
                         if (not IsEqual(value, rightValue[key])) then
                             return false;
                         end
@@ -1351,7 +1351,7 @@ function IsEqual(leftValue, rightValue, shallow)
                 end
 
                 for key, value in pairs(rightValue) do
-                    if (not key:find("__template")) then
+                    if (not (obj:IsString(key) and key:match("^__template"))) then
                         if (not IsEqual(value, leftValue[key])) then
                             return false;
                         end
