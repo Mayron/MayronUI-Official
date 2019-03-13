@@ -193,12 +193,10 @@ function C_TimerBarsModule:OnInitialize(data)
 
                 value = {
                     enabled = function(value, _, field)
-                        -- print("value", value)
                         field:SetEnabled(value);
                     end;
 
                     position = function(_, _, field)
-                        -- MayronUI:PrintTable(value);
                         field:PositionField();
                     end;
 
