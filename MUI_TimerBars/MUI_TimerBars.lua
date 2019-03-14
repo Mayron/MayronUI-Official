@@ -42,6 +42,7 @@ local Engine = obj:Import("MayronUI.Engine");
 local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", "Timer Bars", true); -- initialized on demand
 MayronUI:AddModuleComponent("TimerBarsModule", "Database", db);
 
+---@type TimerBarsModule
 local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
 
 ---@class ITimerBar : Object
@@ -194,8 +195,7 @@ function C_TimerBarsModule:OnInitialize(data)
                 end;
 
                 value = {
-                    enabled = function(value, _, field, fieldName)
-                        print(fieldName, value)
+                    enabled = function(value, _, field)
                         field:SetEnabled(value);
                     end;
 
@@ -746,6 +746,11 @@ Engine:DefineParams("string", "string", "number", "string", "string");
 ---@param auraName number @The name of the aura used for filtering and updating the TimerBar name.
 ---@param auraType string @The type of aura (must be either "BUFF" or "DEBUFF").
 function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraName, auraType)
+    if (not data.settings.unitID) then
+        -- TimerField has been removed during profile swap and setting no longer exists
+        return;
+    end
+
     if (not (UnitGUID(data.settings.unitID) == destGuid and UnitExists(data.settings.unitID) and not UnitIsDeadOrGhost(data.settings.unitID))) then
         return; -- field cannot handle this aura
     end
