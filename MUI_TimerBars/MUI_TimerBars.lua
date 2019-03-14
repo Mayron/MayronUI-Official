@@ -178,8 +178,10 @@ function C_TimerBarsModule:OnInitialize(data)
                     local field = data.fields[fieldName];
                     local settingName = keysList:GetFront();
 
+                    -- this is where we create a TimerField if it is enabled
                     if (obj:IsBoolean(field)) then
                         if (not (field or (settingName == "enabled" and value))) then
+                            -- if not trying to enable a field because it is disabled, then do not continue
                             return nil;
                         end
 
@@ -192,11 +194,8 @@ function C_TimerBarsModule:OnInitialize(data)
                 end;
 
                 value = {
-                    enabled = function(value, _, field)
-                        if (value == nil) then
-                            value = false;
-                        end
-
+                    enabled = function(value, _, field, fieldName)
+                        print(fieldName, value)
                         field:SetEnabled(value);
                     end;
 
@@ -1160,6 +1159,15 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
 
             if (sv.enabled) then
                 table.insert(data.options.onExecuteAll.first, tk.Strings:Concat("fields.", fieldName, ".", "enabled"));
+            end
+        end
+
+        -- disable fields that are removed in the current profile but are active (previous profile uses them):
+        for fieldName, field in pairs(data.fields) do
+            if (not db.profile.fields[fieldName]) then
+                if (obj:IsObject(field)) then
+                    field:SetEnabled(false);
+                end
             end
         end
     end

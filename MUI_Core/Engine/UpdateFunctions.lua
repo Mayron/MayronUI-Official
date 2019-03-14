@@ -25,6 +25,10 @@ local function ExecuteUpdateFunction(path, updateFunction, setting, executed, on
         local onPreResults = obj:PopTable(onPre(setting, keysList));
 
         if (#onPreResults > 0) then
+
+            print("results:", unpack(onPreResults))
+
+
             if (obj:IsFunction(onPost)) then
                 onPost(setting, keysList, updateFunction(setting, keysList, unpack(onPreResults)));
             else
