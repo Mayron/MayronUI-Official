@@ -1,54 +1,55 @@
 -- luacheck: ignore MayronUI self 143 631
+local _, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
-local _, namespace = ...;
-local OrderHallCommandBar = _G.OrderHallCommandBar;
-local IsAddOnLoaded, hooksecurefunc = _G.IsAddOnLoaded, _G.hooksecurefunc;
+local IsAddOnLoaded, hooksecurefunc, table, ipairs = _G.IsAddOnLoaded, _G.hooksecurefunc, _G.table, _G.ipairs;
+local commandBar;
 local troops = {};
 
 local function EnumerateTroops()
-    local width = OrderHallCommandBar.AreaName:GetStringWidth() + 200;
+    local width = commandBar.AreaName:GetStringWidth() + 200;
     tk:EmptyTable(troops);
 
-    for frame in OrderHallCommandBar.categoryPool:EnumerateActive() do
-        tk.table.insert(troops, frame);
+    for frame in commandBar.categoryPool:EnumerateActive() do
+        table.insert(troops, frame);
     end
 
-    for id, frame in tk.ipairs(troops) do
+    for id, frame in ipairs(troops) do
         frame:ClearAllPoints();
         width = width + frame:GetSize() + 4;
 
         tk:KillElement(frame.TroopPortraitCover);
 
         if (id == 1) then
-            frame:SetPoint("RIGHT", OrderHallCommandBar, "RIGHT", -4, 0);
+            frame:SetPoint("RIGHT", commandBar, "RIGHT", -4, 0);
         else
             frame:SetPoint("RIGHT", troops[id - 1], "LEFT", -4, 0);
         end
     end
 
-    OrderHallCommandBar:SetWidth(width);
+    commandBar:SetWidth(width);
 end
 
 function namespace:SetUpOrderHallBar()
     if (IsAddOnLoaded("Blizzard_OrderHallUI")) then
-        tk:KillElement(OrderHallCommandBar.Background);
-        tk:KillElement(OrderHallCommandBar.WorldMapButton);
-        gui:CreateDialogBox(nil, "LOW", OrderHallCommandBar);
+        commandBar = _G.OrderHallCommandBar;
+        tk:KillElement(commandBar.Background);
+        tk:KillElement(commandBar.WorldMapButton);
+        gui:CreateDialogBox(nil, "LOW", commandBar);
 
-        OrderHallCommandBar:ClearAllPoints();
-        OrderHallCommandBar:SetPoint("TOP");
-        OrderHallCommandBar.SetPoint = tk.Constants.DUMMY_FUNC;
-        OrderHallCommandBar.ClearAllPoints = tk.Constants.DUMMY_FUNC;
-        OrderHallCommandBar.AreaName:ClearAllPoints();
-        OrderHallCommandBar.Currency:SetPoint("LEFT", OrderHallCommandBar.ClassIcon, "RIGHT", 10, 0);
-        OrderHallCommandBar.AreaName:SetPoint("LEFT", OrderHallCommandBar.CurrencyIcon, "RIGHT", 10, 2);
-        OrderHallCommandBar:SetWidth(OrderHallCommandBar.AreaName:GetStringWidth() + 500);
+        commandBar:ClearAllPoints();
+        commandBar:SetPoint("TOP");
+        commandBar.SetPoint = tk.Constants.DUMMY_FUNC;
+        commandBar.ClearAllPoints = tk.Constants.DUMMY_FUNC;
+        commandBar.AreaName:ClearAllPoints();
+        commandBar.Currency:SetPoint("LEFT", commandBar.ClassIcon, "RIGHT", 10, 0);
+        commandBar.AreaName:SetPoint("LEFT", commandBar.CurrencyIcon, "RIGHT", 10, 2);
+        commandBar:SetWidth(commandBar.AreaName:GetStringWidth() + 500);
 
-        hooksecurefunc(OrderHallCommandBar, "RefreshCategories", EnumerateTroops);
+        hooksecurefunc(commandBar, "RefreshCategories", EnumerateTroops);
     else
         em:CreateEventHandler("ADDON_LOADED", function(handler, _, name)
-            if (name == "Blizzard_OrderHallUI" and OrderHallCommandBar) then
+            if (name == "Blizzard_OrderHallUI") then
                 self:SetupOrderHallBar();
                 handler:Destroy();
             end
