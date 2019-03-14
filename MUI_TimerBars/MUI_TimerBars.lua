@@ -1121,13 +1121,38 @@ function C_TimerBar:UpdateExpirationTime(data)
 end
 
 function C_TimerBarsModule:ApplyProfileSettings(data)
-    local defaultTargetField = obj:PopTable();
-    defaultTargetField.unitID = "target";
 
     if (db:GetCurrentProfile() == "Healer") then
-        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", 320, 2);
+        -- Healer Layout/Profile
+        db:AppendOnce(db.profile, nil, "defaultFields", {
+            fieldNames = {
+                "Player";
+            };
+            fields = {
+                Player = {
+                    position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
+                    unitID = "player";
+                };
+            };
+        });
     else
-        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2);
+        -- DPS Layout/Default Profile
+        db:AppendOnce(db.profile, nil, "defaultFields", {
+            fieldNames = {
+                "Player";
+                "Target";
+            };
+            fields = {
+                Player = {
+                    position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
+                    unitID = "player";
+                };
+                Target = {
+                    position = { "BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2 },
+                    unitID = "target";
+                };
+            };
+        });
     end
 
     if (obj:IsObject(db.profile.fieldNames)) then
@@ -1136,20 +1161,6 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
             sv:SetParent(nil); -- remove before comparison
         end
     end
-
-    db:AppendOnce(db.profile, nil, "defaultFields", {
-        fieldNames = {
-            "Player";
-            "Target";
-        };
-        fields = {
-            Player = {
-                position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
-                unitID = "player";
-            };
-            Target = defaultTargetField;
-        };
-    });
 
     tk.Tables:Empty(data.options.onExecuteAll.first);
 
