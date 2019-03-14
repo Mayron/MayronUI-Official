@@ -1048,6 +1048,18 @@ do
     end
 
     do
+
+        local function RemoveNilTableValues(currentTable, updatedTable)
+            for currentKey, currentValue in pairs(currentTable) do
+                if (updatedTable[currentKey] == nil) then
+                    currentTable[currentKey] = nil;
+                elseif (obj:IsTable(updatedTable[currentKey]) and obj:IsTable(currentValue)) then
+                    RemoveNilTableValues(currentValue, updatedTable[currentKey]);
+                end
+            end
+        end
+
+        -- need to keep table references unchanged to prevent breaking modules
         local function UpdateUntrackedTable(currentTable, updatedTable)
             for updatedKey, updatedValue in pairs(updatedTable) do
                 if (obj:IsTable(currentTable[updatedKey]) and obj:IsTable(updatedValue)) then
@@ -1057,13 +1069,14 @@ do
                 end
             end
 
-            obj:PushTable(updatedTable);
+            RemoveNilTableValues(currentTable, updatedTable);
         end
 
         function BasicTableParent:Refresh()
             local data = _metaData[tostring(self)];
             local updatedTable = data.observer:GetUntrackedTable();
             UpdateUntrackedTable(self, updatedTable);
+            obj:PushTable(updatedTable, true);
         end
     end
 

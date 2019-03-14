@@ -193,6 +193,10 @@ function C_TimerBarsModule:OnInitialize(data)
 
                 value = {
                     enabled = function(value, _, field)
+                        if (value == nil) then
+                            value = false;
+                        end
+
                         field:SetEnabled(value);
                     end;
 
