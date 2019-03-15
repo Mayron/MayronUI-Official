@@ -5,6 +5,19 @@ local C_ChatFrame = namespace.C_ChatFrame;
 local Engine = namespace.Engine;
 local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
 
+local _G = _G;
+local LoadAddOn, ToggleCharacter, ToggleBackpack, OpenAllBags, ContainerFrame1, IsTrialAccount, IsInGuild,
+ToggleGuildFrame, ToggleFriendsFrame, ToggleHelpFrame, UnitLevel, TogglePVPUI, ToggleFrame, ToggleWorldMap,
+ToggleAchievementFrame, ToggleCalendar, ToggleLFDParentFrame, ToggleRaidFrame, ToggleEncounterJournal,
+ToggleQuestLog, UnitInBattleground, ToggleWorldStateScoreFrame =
+_G.LoadAddOn, _G.ToggleCharacter, _G.ToggleBackpack, _G.OpenAllBags, _G.ContainerFrame1, _G.IsTrialAccount,
+_G.IsInGuild, _G.ToggleGuildFrame, _G.ToggleFriendsFrame, _G.ToggleHelpFrame, _G.UnitLevel, _G.TogglePVPUI,
+_G.ToggleFrame, _G.ToggleWorldMap, _G.ToggleAchievementFrame, _G.ToggleCalendar, _G.ToggleLFDParentFrame,
+_G.ToggleRaidFrame, _G.ToggleEncounterJournal, _G.ToggleQuestLog, _G.UnitInBattleground, _G.ToggleWorldStateScoreFrame;
+
+local SpellBookFrame = _G.SpellBookFrame;
+local PlayerTalentFrame, CollectionsJournal, MacroFrame = _G.PlayerTalentFrame, _G.CollectionsJournal, _G.MacroFrame;
+
 namespace.ButtonNames = {
     L["Character"],
     L["Bags"],
@@ -33,127 +46,130 @@ local clickHandlers = {};
 
 -- Character
 clickHandlers[namespace.ButtonNames[1]] = function()
-    _G.ToggleCharacter("PaperDollFrame");
+    ToggleCharacter("PaperDollFrame");
 end
 
 -- Bags
 clickHandlers[namespace.ButtonNames[2]] = function()
-    if (_G.ContainerFrame1:IsVisible()) then
-        _G.ToggleBackpack();
+    if (ContainerFrame1:IsVisible()) then
+        ToggleBackpack();
     else
-        _G.OpenAllBags();
+        OpenAllBags();
     end
 end
 
 -- Friends
-clickHandlers[namespace.ButtonNames[3]] = _G.ToggleFriendsFrame;
+clickHandlers[namespace.ButtonNames[3]] = ToggleFriendsFrame;
 
 -- Guild
 clickHandlers[namespace.ButtonNames[4]] = function()
-    if (_G.IsTrialAccount()) then
+    if (IsTrialAccount()) then
         tk:Print(L["Starter Edition accounts cannot perform this action."]);
 
-    elseif (_G.IsInGuild()) then
-        _G.ToggleGuildFrame();
+    elseif (IsInGuild()) then
+        ToggleGuildFrame();
     end
 end
 
 -- Help Menu
-clickHandlers[namespace.ButtonNames[5]] = _G.ToggleHelpFrame;
+clickHandlers[namespace.ButtonNames[5]] = ToggleHelpFrame;
 
 -- PVP
 clickHandlers[namespace.ButtonNames[6]] = function()
-    if (_G.UnitLevel("player") < 10) then
+    if (UnitLevel("player") < 10) then
         tk:Print(L["Requires level 10+ to view the PVP window."]);
     else
-        _G.TogglePVPUI();
+        TogglePVPUI();
     end
 end
 
 -- Spell Book
 clickHandlers[namespace.ButtonNames[7]] = function()
-    _G.ToggleFrame(_G.SpellBookFrame);
+    ToggleFrame(SpellBookFrame);
 end
 
 -- Talents
 clickHandlers[namespace.ButtonNames[8]] = function()
-    if (_G.UnitLevel("player") < 10) then
+    if (UnitLevel("player") < 10) then
         tk:Print(L["Must be level 10 or higher to use Talents."]);
     else
-        if (not tk._G["PlayerTalentFrame"]) then
-            tk.LoadAddOn("Blizzard_TalentUI");
+        if (not PlayerTalentFrame) then
+            LoadAddOn("Blizzard_TalentUI");
+            PlayerTalentFrame = _G.PlayerTalentFrame;
         end
-        _G.ToggleFrame(_G.PlayerTalentFrame);
+        ToggleFrame(PlayerTalentFrame);
     end
 end
 
 -- Achievements
-clickHandlers[namespace.ButtonNames[9]] = _G.ToggleAchievementFrame;
+clickHandlers[namespace.ButtonNames[9]] = ToggleAchievementFrame;
 
--- Glyphs
+-- Glyphs -- TODO: I think this is broke
 clickHandlers[namespace.ButtonNames[10]] = function()
-    if (_G.UnitLevel("player") < 10) then
+    if (UnitLevel("player") < 10) then
         tk:Print(L["Requires level 10+ to view the Glyphs window."]);
     else
-		_G.ToggleFrame(_G.SpellBookFrame);
+		ToggleFrame(SpellBookFrame);
     end
 end
 
 -- Calendar
-clickHandlers[namespace.ButtonNames[11]] = _G.ToggleCalendar;
+clickHandlers[namespace.ButtonNames[11]] = ToggleCalendar;
 
 -- LFD
-clickHandlers[namespace.ButtonNames[12]] = _G.ToggleLFDParentFrame;
+clickHandlers[namespace.ButtonNames[12]] = ToggleLFDParentFrame;
 
 -- Raid
-clickHandlers[namespace.ButtonNames[13]] = _G.ToggleRaidFrame;
+clickHandlers[namespace.ButtonNames[13]] = ToggleRaidFrame;
 
 -- Encounter Journal
-clickHandlers[namespace.ButtonNames[14]] = _G.ToggleEncounterJournal;
+clickHandlers[namespace.ButtonNames[14]] = ToggleEncounterJournal;
 
 -- Collections Journal
 clickHandlers[namespace.ButtonNames[15]] = function()
-    if (not _G["CollectionsJournal"]) then
-        _G.LoadAddOn("Blizzard_Collections");
+    if (not CollectionsJournal) then
+        LoadAddOn("Blizzard_Collections");
+        CollectionsJournal = _G.CollectionsJournal;
     end
-    _G.ToggleFrame(_G.CollectionsJournal);
+    ToggleFrame(CollectionsJournal);
 end
 
 -- Macros
 clickHandlers[namespace.ButtonNames[16]] = function()
-    if (not _G.MacroFrame) then
-        _G.LoadAddOn("Blizzard_MacroUI");
+    if (not MacroFrame) then
+        LoadAddOn("Blizzard_MacroUI");
+        MacroFrame = _G.MacroFrame;
     end
-    _G.ToggleFrame(_G.MacroFrame);
+    ToggleFrame(MacroFrame);
 end
 
 -- World Map
 clickHandlers[namespace.ButtonNames[17]] = function()
-    _G.ToggleWorldMap();
+    ToggleWorldMap();
 end
 
 -- Quest Log
 clickHandlers[namespace.ButtonNames[18]] = function()
-    _G.ToggleQuestLog();
+    ToggleQuestLog();
 end
 
 -- Repuation
 clickHandlers[namespace.ButtonNames[19]] = function()
-    _G.ToggleCharacter("ReputationFrame");
+    ToggleCharacter("ReputationFrame");
 end
 
 -- PVP Score
 clickHandlers[namespace.ButtonNames[20]] = function()
-    if (not _G.UnitInBattleground("player")) then
+    if (not UnitInBattleground("player")) then
         tk:Print(L["Requires being inside a Battle Ground."]);
     else
-        _G.ToggleWorldStateScoreFrame();
+        ToggleWorldStateScoreFrame();
     end
 end
 
 -- Currency
 clickHandlers[namespace.ButtonNames[21]] = function()
-    _G.ToggleCharacter("TokenFrame");
+    ToggleCharacter("TokenFrame");
 end
 
 local function ChatButton_OnClick(self)

@@ -5,6 +5,10 @@ local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 local ComponentsPackage = namespace.ComponentsPackage;
 local LABEL_PATTERN = "|cffffffff%s|r mb";
 
+local _G = _G;
+local C_Timer, string, table, GetNumAddOns, GetAddOnInfo, GetAddOnMemoryUsage =
+_G.C_Timer, _G.string, _G.table, _G.GetNumAddOns, _G.GetAddOnInfo, _G.GetAddOnMemoryUsage;
+
 -- Register and Import Modules -------
 
 local Memory = ComponentsPackage:CreateClass("Memory", nil, "IDataTextComponent");
@@ -88,9 +92,9 @@ function Memory:Update(data, refreshSettings)
         total = (total / 1000);
         total = tk.Numbers:ToPrecision(total, 2);
 
-        self.Button:SetText(tk.string.format(LABEL_PATTERN, total));
+        self.Button:SetText(string.format(LABEL_PATTERN, total));
 
-        tk.C_Timer.After(10, loop);
+        C_Timer.After(10, loop);
     end
 
     loop();
@@ -100,9 +104,9 @@ function Memory:Click(data)
     local currentIndex = 0;
     local sorted = obj:PopTable();
 
-    for i = 1, _G.GetNumAddOns() do
-        local _, addOnName, addOnDescription = _G.GetAddOnInfo(i);
-        local usage = _G.GetAddOnMemoryUsage(i);
+    for i = 1, GetNumAddOns() do
+        local _, addOnName, addOnDescription = GetAddOnInfo(i);
+        local usage = GetAddOnMemoryUsage(i);
 
         if (usage > 1) then
             currentIndex = currentIndex + 1;
@@ -132,7 +136,7 @@ function Memory:Click(data)
 
             tk:SetBasicTooltip(label, addOnDescription);
 
-            tk.table.insert(sorted, label);
+            table.insert(sorted, label);
         end
     end
 

@@ -207,7 +207,7 @@ function C_CastBarsModule:GetConfigTable()
                                     sufAnchor_CheckButtons[name] = container.btn;
                                 end,
                                 enabled = name ~= "mirror",
-                                tooltip = tk.string.format(
+                                tooltip = string.format(
                                     L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."], name),
                                 dbPath = tk.Strings:Concat("profile.castBars.", name, ".anchorToSUF"),
 
@@ -216,7 +216,7 @@ function C_CastBarsModule:GetConfigTable()
 
                                     if (newValue and not (unitframe and unitframe.portrait)) then
                                         container.btn:SetChecked(false);
-                                        tk:Print(tk.string.format(L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."], name));
+                                        tk:Print(string.format(L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."], name));
                                         return;
                                     end
 

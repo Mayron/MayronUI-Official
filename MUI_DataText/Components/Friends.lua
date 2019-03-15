@@ -7,9 +7,11 @@ local ComponentsPackage = namespace.ComponentsPackage;
 local LABEL_PATTERN = L["Friends"]..": |cffffffff%u|r";
 local convert = {WTCG = "HS", Pro = "OW"};
 
+local _G = _G;
 local ToggleFriendsFrame, GetNumFriends, GetFriendInfo = _G.ToggleFriendsFrame, _G.GetNumFriends, _G.GetFriendInfo;
 local BNGetNumFriends, BNGetFriendInfo = _G.BNGetNumFriends, _G.BNGetFriendInfo;
-
+local string, CreateFrame, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1 =
+_G.string, _G.CreateFrame, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1;
 -- Register and Import Modules -------
 
 local Friends = ComponentsPackage:CreateClass("Friends", nil, "IDataTextComponent");
@@ -31,8 +33,8 @@ do
 
         if (not onLabelClickFunc) then
             onLabelClickFunc = function(self)
-                _G.ChatFrame1EditBox:SetAttribute("tellTarget", self.id);
-                _G.ChatMenu_SetChatType(_G.ChatFrame1, "SMART_WHISPER");
+                ChatFrame1EditBox:SetAttribute("tellTarget", self.id);
+                ChatMenu_SetChatType(ChatFrame1, "SMART_WHISPER");
                 slideController:Start(slideController.Static.FORCE_RETRACT);
             end
         end
@@ -54,7 +56,7 @@ function Friends:__Construct(data, settings, dataTextModule, slideController)
     data.slideController = slideController;
 
     -- set public instance properties
-    self.MenuContent = _G.CreateFrame("Frame");
+    self.MenuContent = CreateFrame("Frame");
     self.MenuLabels = obj:PopTable();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
@@ -100,12 +102,12 @@ function Friends:Update(data, refreshSettings)
     end
 
     for i = 1, GetNumFriends() do
-        if ((tk.select(5, GetFriendInfo(i)))) then
+        if ((select(5, GetFriendInfo(i)))) then
             totalOnline = totalOnline + 1;
         end
     end
 
-    self.Button:SetText(tk.string.format(LABEL_PATTERN, totalOnline));
+    self.Button:SetText(string.format(LABEL_PATTERN, totalOnline));
 end
 
 function Friends:Click(data, button)
@@ -114,7 +116,7 @@ function Friends:Click(data, button)
         return;
     end
 
-    if (select(2, GetNumFriends()) == 0 and tk.select(2, BNGetNumFriends()) == 0) then
+    if (select(2, GetNumFriends()) == 0 and select(2, BNGetNumFriends()) == 0) then
         return true;
     end
 
@@ -142,10 +144,10 @@ function Friends:Click(data, button)
                 client = "";
             else
                 client = convert[client] or client;
-                client = tk.string.format(" (%s)", client);
+                client = string.format(" (%s)", client);
             end
 
-            label.name:SetText(tk.string.format("%s%s%s", status , realName, client));
+            label.name:SetText(string.format("%s%s%s", status , realName, client));
         end
     end
 
@@ -174,7 +176,7 @@ function Friends:Click(data, button)
             label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);
             label:SetHighlightTexture(1);
             label:GetHighlightTexture():SetColorTexture(0.2, 0.2, 0.2, 0.4);
-            label.name:SetText(tk.string.format("%s%s %s ",
+            label.name:SetText(string.format("%s%s %s ",
                 tk.Strings:SetTextColorByClass(name, classFileName), status, level));
         end
     end

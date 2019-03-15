@@ -2,7 +2,7 @@
 local _, namespace = ...;
 
 local _G = _G;
-local string, tostring, select, unpack = _G.string, _G.tostring, _G.select, _G.unpack;
+local string, tostring, select, unpack, type = _G.string, _G.tostring, _G.select, _G.unpack, _G.type;
 local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.pcall, _G.error;
 local hooksecurefunc = _G.hooksecurefunc;
 
@@ -69,7 +69,7 @@ do
             end
         end
 
-        for key, value in tk.pairs(checked) do
+        for key, value in pairs(checked) do
             if (not value and modKeys[key]()) then
                 return false;
             end
@@ -104,9 +104,9 @@ function tk:GetDifficultyColor(level)
 end
 
 function tk:Equals(value1, value2, shallowEquals)
-    local type1 = tk.type(value1);
+    local type1 = type(value1);
 
-    if (tk.type(value2) == type1) then
+    if (type(value2) == type1) then
 
         if (type1 == "table") then
             if (shallowEquals) then
@@ -121,7 +121,7 @@ function tk:Equals(value1, value2, shallowEquals)
 
             return true;
         elseif (type1 == "function") then
-            return tk.tostring(value1) == tk.tostring(value2);
+            return tostring(value1) == tostring(value2);
         else
             return value1 == value2;
         end
@@ -132,7 +132,7 @@ end
 
 function tk:GetPlayerKey()
     local key, realm = _G.UnitName("player"), _G.GetRealmName():gsub("%s+", "");
-    key = realm and tk.string.join("-", key, realm);
+    key = realm and string.join("-", key, realm);
     return key;
 end
 
