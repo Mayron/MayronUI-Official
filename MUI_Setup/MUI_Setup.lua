@@ -5,6 +5,13 @@ namespace.import = {};
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local Private = {};
 
+local _G = _G;
+
+local PlaySoundFile, FCF_SetLocked, FCF_SetWindowAlpha, SetCVar, SetChatWindowSize, UIFrameFadeIn,
+C_Timer, UIFrameFadeOut, PlaySound, CreateFrame, IsAddOnLoaded, unpack, math, UIParent, GetAddOnMetadata, string =
+_G.PlaySoundFile, _G.FCF_SetLocked, _G.FCF_SetWindowAlpha, _G.SetCVar, _G.SetChatWindowSize, _G.UIFrameFadeIn, _G.C_Timer,
+_G.UIFrameFadeOut, _G.PlaySound, _G.CreateFrame, _G.IsAddOnLoaded, _G.unpack, _G.math, _G.UIParent, _G.GetAddOnMetadata, _G.string;
+
 -- Setup Objects -------------------------
 
 local Panel = obj:Import("MayronUI.Widgets.Panel");
@@ -93,7 +100,7 @@ local function ExpandSetupWindow()
     end
 
     window:SetSize(width + 20, height + 12);
-    tk.C_Timer.After(0.02, ExpandSetupWindow);
+    C_Timer.After(0.02, ExpandSetupWindow);
 end
 
 local function RetractSetupWindow()
@@ -109,7 +116,7 @@ local function RetractSetupWindow()
     end
 
     window:SetSize(width - 20, height - 12);
-    tk.C_Timer.After(0.02, RetractSetupWindow);
+    C_Timer.After(0.02, RetractSetupWindow);
 end
 
 local function OnMenuButtonClick(self)
@@ -130,20 +137,20 @@ local function OnMenuButtonClick(self)
         submenu[self.type]:Show();
         setUpModule:SetExpanded(true);
 
-        _G.C_Timer.After(0.02, ExpandSetupWindow);
-        _G.UIFrameFadeIn(submenu, 0.4, submenu:GetAlpha(), 1);
-        _G.UIFrameFadeOut(window.banner.left, 0.4, window.banner.left:GetAlpha(), 0.5);
-        _G.UIFrameFadeOut(window.banner.right, 0.4, window.banner.right:GetAlpha(), 0.5);
+        C_Timer.After(0.02, ExpandSetupWindow);
+        UIFrameFadeIn(submenu, 0.4, submenu:GetAlpha(), 1);
+        UIFrameFadeOut(window.banner.left, 0.4, window.banner.left:GetAlpha(), 0.5);
+        UIFrameFadeOut(window.banner.right, 0.4, window.banner.right:GetAlpha(), 0.5);
     else
         setUpModule:SetExpanded(false);
 
-        _G.C_Timer.After(0.02, RetractSetupWindow);
-        _G.UIFrameFadeOut(submenu, 0.4, submenu:GetAlpha(), 0);
-        _G.UIFrameFadeIn(window.banner.left, 0.4, window.banner.left:GetAlpha(), 1);
-        _G.UIFrameFadeIn(window.banner.right, 0.4, window.banner.right:GetAlpha(), 1);
+        C_Timer.After(0.02, RetractSetupWindow);
+        UIFrameFadeOut(submenu, 0.4, submenu:GetAlpha(), 0);
+        UIFrameFadeIn(window.banner.left, 0.4, window.banner.left:GetAlpha(), 1);
+        UIFrameFadeIn(window.banner.right, 0.4, window.banner.right:GetAlpha(), 1);
     end
 
-    _G.PlaySound(tk.Constants.CLICK);
+    PlaySound(tk.Constants.CLICK);
 end
 
 -- Private Functions ---------------------------
@@ -254,25 +261,26 @@ function Private:LoadThemeMenu(menuSection)
         { tk.Strings:SetTextColorByHex("Warrior", "C79C6E"), "WARRIOR" }
     });
 
+    local ColorPickerFrame = _G.ColorPickerFrame;
     menuSection.themeDropdown:AddOption("Custom Color", function()
         local colors = {};
-       _G.ColorPickerFrame:SetColorRGB(1, 1, 1);
-       _G.ColorPickerFrame.previousValues = {1, 1, 1, 0};
+       ColorPickerFrame:SetColorRGB(1, 1, 1);
+       ColorPickerFrame.previousValues = {1, 1, 1, 0};
 
-       _G.ColorPickerFrame.func = function()
-            colors.r, colors.g, colors.b = _G.ColorPickerFrame:GetColorRGB();
-            colors.hex = tk.string.format('%02x%02x%02x', colors.r * 255, colors.g * 255, colors.b * 255);
+       ColorPickerFrame.func = function()
+            colors.r, colors.g, colors.b = ColorPickerFrame:GetColorRGB();
+            colors.hex = string.format('%02x%02x%02x', colors.r * 255, colors.g * 255, colors.b * 255);
             ChangeTheme(nil, colors);
         end
 
-        _G.ColorPickerFrame.cancelFunc = function(values)
-            colors.r, colors.g, colors.b = tk.unpack(values);
-            colors.hex = tk.string.format('%02x%02x%02x', colors.r * 255, colors.g * 255, colors.b * 255);
+        ColorPickerFrame.cancelFunc = function(values)
+            colors.r, colors.g, colors.b = unpack(values);
+            colors.hex = string.format('%02x%02x%02x', colors.r * 255, colors.g * 255, colors.b * 255);
             ChangeTheme(nil, colors);
         end
 
-        _G.ColorPickerFrame:Hide(); -- run OnShow
-        _G.ColorPickerFrame:Show();
+        ColorPickerFrame:Hide(); -- run OnShow
+        ColorPickerFrame:Show();
     end);
 
     menuSection.themeDropdown:SetLabel(L["Theme"]);
@@ -288,7 +296,7 @@ function Private:LoadCustomMenu(menuSection)
     menuSection.scaleTitle:SetPoint("TOPLEFT", menuSection.themeTitle, "TOPRIGHT", 150, 0);
     menuSection.scaleTitle:SetText(L["Adjust the UI Scale:"]);
 
-    menuSection.scaler = _G.CreateFrame("Slider", nil, menuSection, "OptionsSliderTemplate");
+    menuSection.scaler = CreateFrame("Slider", nil, menuSection, "OptionsSliderTemplate");
     menuSection.scaler:SetPoint("TOPLEFT", menuSection.scaleTitle, "BOTTOMLEFT", 0, -10);
     menuSection.scaler:SetWidth(200);
     menuSection.scaler.tooltipText = L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"];
@@ -312,8 +320,8 @@ function Private:LoadCustomMenu(menuSection)
 
     menuSection.applyScaleBtn:SetScript("OnClick", function(self)
         self:Disable();
-        _G.SetCVar("useUiScale", "1");
-        _G.SetCVar("uiscale", db.global.core.uiScale);
+        SetCVar("useUiScale", "1");
+        SetCVar("uiscale", db.global.core.uiScale);
     end);
 
     menuSection.scaler:SetScript("OnValueChanged", function(self, value)
@@ -340,9 +348,9 @@ function Private:LoadCustomMenu(menuSection)
     local totalAddOnsLoaded = 0;
 
     for id, addOnData in db.global.core.setup.addOns:Iterate() do
-        local alias, value, addOnName = _G.unpack(addOnData);
+        local alias, value, addOnName = unpack(addOnData);
 
-        if (_G.IsAddOnLoaded(addOnName)) then
+        if (IsAddOnLoaded(addOnName)) then
             local cb = gui:CreateCheckButton(scrollChild, alias);
             totalAddOnsLoaded = totalAddOnsLoaded + 1;
 
@@ -376,15 +384,16 @@ function Private:LoadCustomMenu(menuSection)
         setUpModule:Install();
     end);
 
+    local GameTooltip = _G.GameTooltip;
     menuSection.installButton:SetScript("OnEnter", function(self)
-        _G.GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT", 18, 4);
-        _G.GameTooltip:AddLine(tk.Strings:SetTextColorByTheme(L["Warning:"]).." "..L["This will reload the UI!"]);
-        _G.GameTooltip:SetFrameLevel(30);
-        _G.GameTooltip:Show();
+        GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT", 18, 4);
+        GameTooltip:AddLine(tk.Strings:SetTextColorByTheme(L["Warning:"]).." "..L["This will reload the UI!"]);
+        GameTooltip:SetFrameLevel(30);
+        GameTooltip:Show();
     end);
 
     menuSection.installButton:SetScript("OnLeave", function(self)
-        _G.GameTooltip:Hide();
+        GameTooltip:Hide();
     end);
 end
 
@@ -427,7 +436,7 @@ end
 function C_SetUpModule:Show(data)
     if (data.window) then
         data.window:Show();
-        _G.UIFrameFadeIn(data.window, 0.3, 0, 1);
+        UIFrameFadeIn(data.window, 0.3, 0, 1);
         return;
     end
 
@@ -441,7 +450,7 @@ function C_SetUpModule:Show(data)
 
     window.bg = tk:SetBackground(window, 0, 0, 0, 0.8); -- was 0.8 but set to 0.2 for testing
     window.bg:SetDrawLayer("BACKGROUND", -5);
-    window.bg:SetAllPoints(_G.UIParent);
+    window.bg:SetAllPoints(UIParent);
 
     -- turn window frame into a Panel
     window = Panel(window);
@@ -471,11 +480,11 @@ function C_SetUpModule:Show(data)
     window.info:SetInsets(20);
 
     local title = window.info:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-    title:SetText(_G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"):upper());
+    title:SetText(GetAddOnMetadata("MUI_Core", "X-InterfaceName"):upper());
     title:SetPoint("BOTTOMLEFT");
 
     local version = window.info:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
-    version:SetText(tk.Strings:JoinWithSpace(L["VERSION"], _G.GetAddOnMetadata("MUI_Core", "Version")));
+    version:SetText(tk.Strings:JoinWithSpace(L["VERSION"], GetAddOnMetadata("MUI_Core", "Version")));
     version:SetPoint("BOTTOMLEFT", title, "TOPLEFT", 0, 4);
 
     window.submenu = gui:CreateDialogBox(tk.Constants.AddOnStyle, window.banner:GetFrame());
@@ -484,7 +493,7 @@ function C_SetUpModule:Show(data)
     window.submenu:Hide();
 
     -- menu buttons:
-    local installTab = _G.CreateFrame("CheckButton", nil, window.menu:GetFrame());
+    local installTab = CreateFrame("CheckButton", nil, window.menu:GetFrame());
     installTab:SetNormalFontObject("GameFontHighlight");
     installTab:SetText(L["INSTALL"]);
     installTab:SetPoint("LEFT");
@@ -494,7 +503,7 @@ function C_SetUpModule:Show(data)
     installTab:SetScript("OnClick", OnMenuButtonClick);
     installTab.type = "Install";
 
-    local customTab = _G.CreateFrame("CheckButton", nil, window.menu:GetFrame());
+    local customTab = CreateFrame("CheckButton", nil, window.menu:GetFrame());
     customTab:SetNormalFontObject("GameFontHighlight");
     customTab:SetText(L["CUSTOM INSTALL"]);
     customTab:SetPoint("LEFT", installTab, "RIGHT", 40, 0);
@@ -504,7 +513,7 @@ function C_SetUpModule:Show(data)
     customTab:SetScript("OnClick", OnMenuButtonClick);
     customTab.type = "Custom";
 
-    local infoTab = _G.CreateFrame("CheckButton", nil, window.menu:GetFrame());
+    local infoTab = CreateFrame("CheckButton", nil, window.menu:GetFrame());
     infoTab:SetNormalFontObject("GameFontHighlight");
     infoTab:SetText(L["INFORMATION"]);
     infoTab:SetPoint("LEFT", customTab, "RIGHT", 40, 0);
@@ -522,44 +531,46 @@ function C_SetUpModule:Show(data)
     data.window.installTab = installTab;
     data.window.customTab = customTab;
     data.window.infoTab = infoTab;
-    _G.UIFrameFadeIn(data.window, 0.3, 0, 1);
+    UIFrameFadeIn(data.window, 0.3, 0, 1);
 end
 
 function C_SetUpModule:Install()
-    _G.PlaySoundFile("Interface\\AddOns\\MUI_Setup\\install.ogg");
+    PlaySoundFile("Interface\\AddOns\\MUI_Setup\\install.ogg");
+    local ChatFrame1 = _G.ChatFrame1;
 
     -- Chat Frame settings:
-    _G.FCF_SetLocked(_G.ChatFrame1, 1);
-    _G.FCF_SetWindowAlpha(_G.ChatFrame1, 0);
-    _G.SetCVar("ScriptErrors","1");
-    _G.SetChatWindowSize(1, 13);
-    _G.SetCVar("chatStyle", "classic");
-    _G.SetCVar("floatingCombatTextCombatDamage", "1");
-    _G.SetCVar("floatingCombatTextCombatHealing", "1");
-    _G.SetCVar("useUiScale", "1");
-    _G.SetCVar("uiscale", db.global.core.uiScale);
+    FCF_SetLocked(ChatFrame1, 1);
+    FCF_SetWindowAlpha(ChatFrame1, 0);
+    SetCVar("ScriptErrors","1");
+    SetChatWindowSize(1, 13);
+    SetCVar("chatStyle", "classic");
+    SetCVar("floatingCombatTextCombatDamage", "1");
+    SetCVar("floatingCombatTextCombatHealing", "1");
+    SetCVar("useUiScale", "1");
+    SetCVar("uiscale", db.global.core.uiScale);
 
-    _G.ChatFrame1:SetUserPlaced(true);
-    _G.ChatFrame1:ClearAllPoints();
+    ChatFrame1:SetUserPlaced(true);
+    ChatFrame1:ClearAllPoints();
 
-    if (_G.IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
+    if (IsAddOnLoaded("MUI_Chat") and db.profile.chat) then
         if (db.profile.chat.chatFrames["TOPLEFT"].enabled) then
-            _G.ChatFrame1:SetPoint("TOPLEFT", _G.UIParent, "TOPLEFT", 34, -55);
+            ChatFrame1:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 34, -55);
 
         elseif (db.profile.chat.chatFrames["BOTTOMLEFT"].enabled) then
-            _G.ChatFrame1:SetPoint("BOTTOMLEFT", _G.UIParent, "BOTTOMLEFT", 34, 30);
+            ChatFrame1:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 34, 30);
         end
 
-        _G.ChatFrame1:SetHeight(222);
-        _G.ChatFrame1:SetWidth(375);
-        _G.FCF_SavePositionAndDimensions(_G.ChatFrame1);
+        ChatFrame1:SetHeight(222);
+        ChatFrame1:SetWidth(375);
+        _G.FCF_SavePositionAndDimensions(ChatFrame1);
     end
 
     -- Export AddOn values to db:
     for id, addonData in db.global.core.setup.addOns:Iterate() do
-        local alias, value, addonName = _G.unpack(addonData);
+        local alias, value, addonName = unpack(addonData);
 
-        if (value and _G.IsAddOnLoaded(addonName)) then
+        if (value and IsAddOnLoaded(addonName)) then
+            obj:Assert(obj:IsFunction(namespace.import[addonName]), "No import function for addOn '%s'", addonName);
             namespace.import[addonName]();
             db.global.core.setup.addOns[id] = {alias, false, addonName};
         end

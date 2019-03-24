@@ -102,6 +102,43 @@ function tk.Tables:IsEmpty(tbl)
     return size == 0;
 end
 
+function tk.Tables:GetFramePosition(frame, useKeys, override)
+    local point, relativeFrame, relativePoint, x, y = frame:GetPoint();
+
+    if (not relativeFrame) then
+        relativeFrame = frame:GetParent():GetName();
+    else
+        relativeFrame = relativeFrame:GetName();
+    end
+
+    if (override and (not relativeFrame or (relativeFrame and relativeFrame ~= "UIParent"))) then
+        x, y = frame:GetCenter();
+        point = "CENTER";
+        relativeFrame = "UIParent"; -- Do not want this to be UIParent in some cases
+        relativePoint = "BOTTOMLEFT";
+    end
+
+    local positions;
+
+    if (useKeys) then
+        positions = obj:PopTable();
+
+        positions.point = point;
+        positions.relativeFrame = relativeFrame;
+        positions.relativePoint = relativePoint;
+        positions.x = x;
+        positions.y = y;
+
+    else
+        positions = obj:PopTable(point, relativeFrame, relativePoint, x, y);
+    end
+
+    frame:ClearAllPoints();
+    frame:SetPoint(point, relativeFrame, relativePoint, x, y);
+
+    return positions;
+end
+
 -- remove all nil values from index portion of table
 function tk.Tables:CleanIndexes(tbl)
     local tempIndexTable;

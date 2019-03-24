@@ -233,8 +233,6 @@ function Private:MakeMovable(frame, dragger, movable)
 
     dragger:HookScript("OnDragStart", function()
         if (frame:IsMovable()) then
-            local x, y = frame:GetCenter();
-            frame:SetPoint("CENTER", _G.UIParent, "BOTTOMLEFT", x, y);
             frame:StartMoving();
         end
     end);

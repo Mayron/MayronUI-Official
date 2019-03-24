@@ -4,8 +4,9 @@ local _, namespace = ...;
 local obj = namespace.components.Objects;
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
+local _G = _G;
 local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
-local GameTooltip, ipairs = _G.GameTooltip, _G.ipairs;
+local GameTooltip, ipairs, CreateFrame, UIParent, string = _G.GameTooltip, _G.ipairs, _G.CreateFrame, _G.UIParent, _G.string;
 
 function tk:SetFontSize(fontString, size)
     local fontPath, _, flags = fontString:GetFont();
@@ -136,28 +137,6 @@ do
     end
 end
 
-function tk:SavePosition(frame, override)
-    local point, relativeFrame, relativePoint, x, y = frame:GetPoint();
-
-    if (not relativeFrame) then
-        relativeFrame = frame:GetParent():GetName();
-    else
-        relativeFrame = relativeFrame:GetName();
-
-        if (not relativeFrame or (relativeFrame and relativeFrame ~= "UIParent")) then
-            if (override) then
-                x, y = frame:GetCenter();
-                point = "CENTER";
-                relativeFrame = "UIParent"; -- Do not want this to be UIParent in some cases
-                relativePoint = "BOTTOMLEFT";
-            end
-        end
-    end
-
-    local positions = obj:PopTable(point, relativeFrame, relativePoint, x, y);
-    return positions;
-end
-
 function tk:MakeResizable(frame, dragger)
     dragger = dragger or frame;
     frame:SetResizable(true);
@@ -252,7 +231,7 @@ end
 
 function tk:SetClassColoredTexture(className, texture)
     className = className or (select(2, _G.UnitClass("player")));
-    className = tk.string.upper(className);
+    className = string.upper(className);
     className = className:gsub("%s+", "");
     local color = self.Constants.CLASS_COLORS[className];
     texture:SetVertexColor(color.r, color.g, color.b, texture:GetAlpha());
@@ -345,10 +324,10 @@ function tk:SetFontSize(fontstring, size)
 end
 
 function tk:SetGameFont(font)
-    tk._G["UNIT_NAME_FONT"] = font;
-    tk._G["NAMEPLATE_FONT"] = font;
-    tk._G["DAMAGE_TEXT_FONT"] = font;
-    tk._G["STANDARD_TEXT_FONT"] = font;
+    _G["UNIT_NAME_FONT"] = font;
+    _G["NAMEPLATE_FONT"] = font;
+    _G["DAMAGE_TEXT_FONT"] = font;
+    _G["STANDARD_TEXT_FONT"] = font;
 
     local fonts = {
         "SystemFont_Tiny", "SystemFont_Shadow_Small", "SystemFont_Small",
@@ -374,9 +353,9 @@ function tk:SetGameFont(font)
     -- prevent weird font size bug
     _G.SystemFont_NamePlate:SetFont(font, 9);
 
-    for _, f in tk.ipairs(fonts) do
-        local _, size, outline = tk._G[f]:GetFont();
-        tk._G[f]:SetFont(font, size, outline);
+    for _, f in ipairs(fonts) do
+        local _, size, outline = _G[f]:GetFont();
+        _G[f]:SetFont(font, size, outline);
     end
 end
 
@@ -384,7 +363,7 @@ do
     local frames = {};
 
     function tk:PopFrame(frameType, parent)
-        parent = parent or _G.UIParent;
+        parent = parent or UIParent;
         frameType = frameType or "Frame";
 
         local frame;
@@ -395,7 +374,7 @@ do
         end
 
         if (not frame) then
-            frame = _G.CreateFrame(frameType);
+            frame = CreateFrame(frameType);
         else
             framesTable[#framesTable] = nil;
         end

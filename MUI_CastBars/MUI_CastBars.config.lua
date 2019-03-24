@@ -8,6 +8,8 @@ local sufAnchor_CheckButtons = obj:PopTable();
 local width_TextFields = obj:PopTable();
 local height_TextFields = obj:PopTable();
 
+local _G = _G;
+local tostring = _G.tostring;
 
 local function SetPositionTextFieldsEnabled(enabled, castBarName)
     for _, textfield in ipairs(position_TextFields[castBarName]) do
@@ -64,16 +66,17 @@ local function UnlockCastBar(widget, castBarName)
         castbar.moveLabel:Hide();
         castbar:SetAlpha(0);
 
-        local positions = tk:SavePosition(castbar, tk.Strings:Join(".", "profile.castBars", castBarName, "position"));
+        local positions = tk.Tables:GetFramePosition(castbar);
 
         if (positions) then
-            for key, textfield in pairs(position_TextFields[castBarName]) do
-                textfield:SetText(positions[key]);
+            for index, textfield in ipairs(position_TextFields[castBarName]) do
+                textfield:SetText(tostring(positions[index]));
             end
 
             SetPositionTextFieldsEnabled(true, castBarName);
             sufAnchor_CheckButtons[castBarName]:SetChecked(false);
             db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "anchorToSUF"), false);
+            db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "position"), positions);
         end
     end
 end
@@ -207,7 +210,7 @@ function C_CastBarsModule:GetConfigTable()
                                     sufAnchor_CheckButtons[name] = container.btn;
                                 end,
                                 enabled = name ~= "mirror",
-                                tooltip = tk.string.format(
+                                tooltip = string.format(
                                     L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."], name),
                                 dbPath = tk.Strings:Concat("profile.castBars.", name, ".anchorToSUF"),
 
@@ -216,7 +219,7 @@ function C_CastBarsModule:GetConfigTable()
 
                                     if (newValue and not (unitframe and unitframe.portrait)) then
                                         container.btn:SetChecked(false);
-                                        tk:Print(tk.string.format(L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."], name));
+                                        tk:Print(string.format(L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."], name));
                                         return;
                                     end
 

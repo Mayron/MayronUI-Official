@@ -8,6 +8,8 @@ tk.Strings = {};
 
 tk.Strings.Empty = "";
 tk.Strings.Space = " ";
+
+local string = _G.string;
 -----------------------------
 
 do
@@ -93,7 +95,7 @@ end
 -- adds comma's to big numbers for easy readability for the player
 function tk.Strings:FormatReadableNumber(number)
     number = tostring(number);
-    return tk.string.gsub(number, "^(-?%d+)(%d%d%d)", '%1,%2');
+    return string.gsub(number, "^(-?%d+)(%d%d%d)", '%1,%2');
 end
 
 --@param text - any text you wish to colour code

@@ -57,9 +57,9 @@ local function ChatFrame_OnMouseWheel(self, direction)
 		end
 	elseif (tk:IsModComboActive("S")) then
 		if (direction == 1) then
-			self:PageUp() ;
+			self:PageUp();
 		else
-			self:PageDown() ;
+			self:PageDown();
 		end
 	end
 end
@@ -68,7 +68,7 @@ local function Tab_OnClick(self)
 	self.ChatFrame:ScrollToBottom();
 
 	for chatFrameID = 1, _G.NUM_CHAT_WINDOWS do
-		local tab = tk._G[ string.format("ChatFrame%dTab", chatFrameID) ];
+		local tab = _G[ string.format("ChatFrame%dTab", chatFrameID) ];
 		local tabLabel = tab:GetFontString();
 
 		if (self == tab) then

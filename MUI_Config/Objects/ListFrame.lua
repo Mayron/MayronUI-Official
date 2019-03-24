@@ -1,7 +1,7 @@
 -- luacheck: ignore self 143 631
 local _G, MayronUI = _G, _G.MayronUI;
 local tk, _, _, gui, obj, _ = MayronUI:GetCoreComponents();
-local unpack, ipairs = _G.unpack, _G.ipairs;
+local unpack, ipairs, CreateFrame = _G.unpack, _G.ipairs, _G.CreateFrame;
 local Button_OnClick;
 
 local ConfigToolsPackage = obj:CreatePackage("ConfigTools", "MayronUI.Engine");
@@ -13,7 +13,7 @@ local C_ListFrame = ConfigToolsPackage:CreateClass("ListFrame");
 local C_Stack = obj:Import("Framework.System.Collections.Stack<T>");
 
 local function CreateListItem(listFrame, data)
-    local item = tk.CreateFrame("Button");
+    local item = CreateFrame("Button");
     item:SetSize(30, 30);
 
     if (obj:IsFunction(data.OnItemEnter)) then
@@ -33,7 +33,7 @@ local function CreateListItem(listFrame, data)
     item.name:SetPoint("TOPLEFT", 6, 0);
     item.name:SetPoint("BOTTOMRIGHT", -34, 0);
 
-    item.btn = tk.CreateFrame("Button", nil, item);
+    item.btn = CreateFrame("Button", nil, item);
     item.btn:SetSize(28, 24);
     item.btn:SetPoint("RIGHT", -8, 0);
 

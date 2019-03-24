@@ -26,7 +26,7 @@ local function OnExperienceBarUpdate(handler, eventName, statusbar, rested) -- l
     currentValue = tk.Strings:FormatReadableNumber(currentValue);
     maxValue = tk.Strings:FormatReadableNumber(maxValue);
 
-    local text = tk.string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
+    local text = string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
     statusbar.text:SetText(text);
 end
 

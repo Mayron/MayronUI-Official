@@ -5,7 +5,7 @@ local db = MayronUI:GetModuleComponent("TimerBarsModule", "Database");
 local C_TimerBarsModule = MayronUI:GetModuleClass("TimerBarsModule");
 
 local _G, MayronUI = _G, _G.MayronUI;
-local pairs, tonumber, table = _G.pairs, _G.tonumber, _G.table;
+local pairs, tonumber, table, string = _G.pairs, _G.tonumber, _G.table, _G.string;
 
 -- contains field name / table pairs where each table holds the 5 config textfield widgets
 -- this is used to update the config menu view after moving the fields (by unlocking them)
@@ -20,7 +20,7 @@ local function CreateNewFieldButton_OnClick(editBox)
     db:SetPathValue(db.profile, "fieldNames["..(#tbl + 1).."]", text);
     db:SetPathValue(db.profile, "fields."..text, obj:PopTable());
 
-    tk:Print(tk.string.format(L["TimerBar field '%s' created."], text));
+    tk:Print(string.format(L["TimerBar field '%s' created."], text));
     MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
 end
 
@@ -34,7 +34,7 @@ local function RemoveFieldButton_OnClick(editBox)
         db:SetPathValue(db.profile, "fields."..text, nil);
         MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
     else
-        tk:Print(tk.string.format(L["TimerBar field '%s' does not exist."], text));
+        tk:Print(string.format(L["TimerBar field '%s' does not exist."], text));
     end
 end
 
@@ -101,7 +101,7 @@ local function TimerFieldPosition_OnLoad(configTable, container)
 end
 
 local function Field_OnDragStop(field)
-    local positions = tk:SavePosition(field);
+    local positions = tk.Tables:GetFramePosition(field);
     local fieldName = field:GetName():match("MUI_(.*)TimerField");
 
     if (positions) then
@@ -283,7 +283,7 @@ function C_TimerBarsModule:GetConfigTable()
                                                 local r, g, b = tk:GetThemeColor();
                                                 field.moveIndicator = tk:SetBackground(field, r, g, b);
                                                 field.moveLabel = field:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
-                                                field.moveLabel:SetText(tk.string.format(L["<%s Field>"], name));
+                                                field.moveLabel:SetText(string.format(L["<%s Field>"], name));
                                                 field.moveLabel:SetPoint("CENTER");
                                             end
 
@@ -313,7 +313,7 @@ function C_TimerBarsModule:GetConfigTable()
                                             return;
                                         end
 
-                                        local positions = tk:SavePosition(field);
+                                        local positions = tk.Tables:GetFramePosition(field);
                                         db:SetPathValue(dbFieldPath .. ".position", positions);
 
                                         Field_OnDragStop(field);

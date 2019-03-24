@@ -87,7 +87,7 @@ function C_ConfigModule:GetConfigTable()
                     requiresReload    = true;
 
                     SetValue = function(_, value)
-                        value.hex = tk.string.format('%02x%02x%02x', value.r * 255, value.g * 255, value.b * 255);
+                        value.hex = string.format('%02x%02x%02x', value.r * 255, value.g * 255, value.b * 255);
                         db.profile.theme.color = value;
                         db.profile.bottomui.gradients = nil;
                     end
