@@ -8,7 +8,7 @@ about: Create a report to help us debug
 
 You can find this out by opening up MUI Config menu (/mui config) and it will be in the bottom left corner (or in the MUI installer window).
 
-**If you are using an out of date version of the UI then please update to the latest version of the UI to see if this bug can be reproduced before posting this bug report.**
+**If you are using an out of date version of the UI then please update to the latest version of the UI to see if this bug can be reproduced before continuing.**
 
 **Describe the bug**
 
