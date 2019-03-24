@@ -7,6 +7,7 @@ MayronUI = {};
 local MigrateToGen6;
 local table, ipairs, select, string, unpack, print = _G.table, _G.ipairs, _G.select, _G.string, _G.unpack, _G.print;
 local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI = _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
+local strsplit = _G.strsplit;
 
 namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
 namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
@@ -86,7 +87,6 @@ db:AddToDefaults("global", {
                 {"Bartender4", true, "Bartender4"};
                 {"Grid", true, "Grid"};
                 {"Masque", true, "Masque"};
-                {"Mik Scrolling Battle Text", true, "MikScrollingBattleText"};
                 {"Recount", true, "Recount"};
                 {"Shadowed Unit Frames", true, "ShadowedUnitFrames"};
                 {"TipTac", true, "TipTac"};
@@ -570,7 +570,7 @@ function C_CoreModule:OnInitialize()
 
         local args = obj:PopTable();
 
-		for _, arg in obj:IterateArgs(tk.string.split(' ', str)) do
+		for _, arg in obj:IterateArgs(strsplit(' ', str)) do
 			if (#arg > 0) then
                 table.insert(args, arg);
 			end

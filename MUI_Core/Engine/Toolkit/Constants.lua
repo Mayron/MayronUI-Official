@@ -1,16 +1,8 @@
 local _, namespace = ...;
 local tk = namespace.components.Toolkit;
 
-tk.UIParent, tk._G, tk.hooksecurefunc, tk.tostringall = UIParent, _G, hooksecurefunc, tostringall;
-tk.table, tk.string, tk.math, tk.tostring, tk.tonumber, tk.date = table, string, math, tostring, tonumber, date;
-tk.rawset, tk.rawget, tk.setmetatable, tk.getmetatable = rawset, rawget, setmetatable, getmetatable;
-tk.pairs, tk.ipairs, tk.next, tk.type, tk.select, tk.unpack = pairs, ipairs, next, type, select, unpack;
-tk.collectgarbage, tk.print, tk.pcall, tk.C_Timer, tk.bit = collectgarbage, print, pcall, C_Timer, bit;
-tk.CreateFrame, tk.CreateFont, tk.strsplit, tk.PlaySound = CreateFrame, CreateFont, strsplit, PlaySound;
-tk.InCombatLockdown, tk.PlaySoundFile, tk.IsAddOnLoaded = InCombatLockdown, PlaySoundFile, IsAddOnLoaded;
-tk.LoadAddOn, tk.UIFrameFadeOut, tk.UIFrameFadeIn, tk.assert = LoadAddOn, UIFrameFadeOut, UIFrameFadeIn, assert;
-tk.StaticPopupDialogs, tk.StaticPopup_Show, tk.GetTime = StaticPopupDialogs, StaticPopup_Show, GetTime;
-tk.SetCVar, tk.GetCVar = SetCVar, GetCVar;
+local _G = _G;
+local CreateColor = _G.CreateColor;
 
 tk.Constants = {
     ASSETS_FOLDER = "Interface\\addons\\MUI_Core\\Assets";
@@ -80,18 +72,18 @@ tk.Constants = {
     };
 
     CLASS_COLORS = {
-        DEATHKNIGHT   = _G.CreateColor(196/255, 31/255,59/255);
-        DEMONHUNTER   = _G.CreateColor(163/255, 48/255, 201/255);
-        DRUID         = _G.CreateColor(1, 125/255, 10/255);
-        HUNTER        = _G.CreateColor(171/255, 212/255, 115/255);
-        MAGE          = _G.CreateColor(105/255, 204/255, 240/255);
-        MONK          = _G.CreateColor(0, 1, 150/255),
-        PALADIN       = _G.CreateColor(245/255, 140/255, 186/255);
-        PRIEST        = _G.CreateColor(1, 1, 1);
-        ROGUE         = _G.CreateColor(1, 245/255, 105/255);
-        SHAMAN        = _G.CreateColor(0, 112/255, 222/255);
-        WARLOCK       = _G.CreateColor(148/255, 130/255, 201/255);
-        WARRIOR       = _G.CreateColor(199/255, 156/255, 110/255);
+        DEATHKNIGHT   = CreateColor(196/255, 31/255,59/255);
+        DEMONHUNTER   = CreateColor(163/255, 48/255, 201/255);
+        DRUID         = CreateColor(1, 125/255, 10/255);
+        HUNTER        = CreateColor(171/255, 212/255, 115/255);
+        MAGE          = CreateColor(105/255, 204/255, 240/255);
+        MONK          = CreateColor(0, 1, 150/255),
+        PALADIN       = CreateColor(245/255, 140/255, 186/255);
+        PRIEST        = CreateColor(1, 1, 1);
+        ROGUE         = CreateColor(1, 245/255, 105/255);
+        SHAMAN        = CreateColor(0, 112/255, 222/255);
+        WARLOCK       = CreateColor(148/255, 130/255, 201/255);
+        WARRIOR       = CreateColor(199/255, 156/255, 110/255);
     };
 
     -- Blizzard global colors are tables containing r, g, b, keys and functions such as:

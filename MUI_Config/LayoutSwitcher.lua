@@ -141,7 +141,7 @@ function C_LayoutSwitcher:CreateNewAddOnProfile(data, dropdown, addOnName, dbObj
 			local currentProfile = dbObject:GetCurrentProfile();
 			local alreadyExists = false;
 
-			for _, profile in tk.ipairs(dbObject:GetProfiles()) do
+			for _, profile in ipairs(dbObject:GetProfiles()) do
 				if (profile == text) then
 					alreadyExists = true;
 					break;

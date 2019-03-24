@@ -42,6 +42,7 @@ local Engine = obj:Import("MayronUI.Engine");
 local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", "Timer Bars", true); -- initialized on demand
 MayronUI:AddModuleComponent("TimerBarsModule", "Database", db);
 
+---@type TimerBarsModule
 local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
 
 ---@class ITimerBar : Object
@@ -178,8 +179,10 @@ function C_TimerBarsModule:OnInitialize(data)
                     local field = data.fields[fieldName];
                     local settingName = keysList:GetFront();
 
+                    -- this is where we create a TimerField if it is enabled
                     if (obj:IsBoolean(field)) then
                         if (not (field or (settingName == "enabled" and value))) then
+                            -- if not trying to enable a field because it is disabled, then do not continue
                             return nil;
                         end
 
@@ -193,10 +196,6 @@ function C_TimerBarsModule:OnInitialize(data)
 
                 value = {
                     enabled = function(value, _, field)
-                        if (value == nil) then
-                            value = false;
-                        end
-
                         field:SetEnabled(value);
                     end;
 
@@ -747,6 +746,11 @@ Engine:DefineParams("string", "string", "number", "string", "string");
 ---@param auraName number @The name of the aura used for filtering and updating the TimerBar name.
 ---@param auraType string @The type of aura (must be either "BUFF" or "DEBUFF").
 function C_TimerField:UpdateBarsByAura(data, sourceGuid, destGuid, auraId, auraName, auraType)
+    if (not data.settings.unitID) then
+        -- TimerField has been removed during profile swap and setting no longer exists
+        return;
+    end
+
     if (not (UnitGUID(data.settings.unitID) == destGuid and UnitExists(data.settings.unitID) and not UnitIsDeadOrGhost(data.settings.unitID))) then
         return; -- field cannot handle this aura
     end
@@ -1117,13 +1121,38 @@ function C_TimerBar:UpdateExpirationTime(data)
 end
 
 function C_TimerBarsModule:ApplyProfileSettings(data)
-    local defaultTargetField = obj:PopTable();
-    defaultTargetField.unitID = "target";
 
     if (db:GetCurrentProfile() == "Healer") then
-        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", 320, 2);
+        -- Healer Layout/Profile
+        db:AppendOnce(db.profile, nil, "defaultFields", {
+            fieldNames = {
+                "Player";
+            };
+            fields = {
+                Player = {
+                    position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
+                    unitID = "player";
+                };
+            };
+        });
     else
-        defaultTargetField.position = obj:PopTable("BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2);
+        -- DPS Layout/Default Profile
+        db:AppendOnce(db.profile, nil, "defaultFields", {
+            fieldNames = {
+                "Player";
+                "Target";
+            };
+            fields = {
+                Player = {
+                    position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
+                    unitID = "player";
+                };
+                Target = {
+                    position = { "BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2 },
+                    unitID = "target";
+                };
+            };
+        });
     end
 
     if (obj:IsObject(db.profile.fieldNames)) then
@@ -1132,20 +1161,6 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
             sv:SetParent(nil); -- remove before comparison
         end
     end
-
-    db:AppendOnce(db.profile, nil, "defaultFields", {
-        fieldNames = {
-            "Player";
-            "Target";
-        };
-        fields = {
-            Player = {
-                position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
-                unitID = "player";
-            };
-            Target = defaultTargetField;
-        };
-    });
 
     tk.Tables:Empty(data.options.onExecuteAll.first);
 
@@ -1160,6 +1175,15 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
 
             if (sv.enabled) then
                 table.insert(data.options.onExecuteAll.first, tk.Strings:Concat("fields.", fieldName, ".", "enabled"));
+            end
+        end
+
+        -- disable fields that are removed in the current profile but are active (previous profile uses them):
+        for fieldName, field in pairs(data.fields) do
+            if (not db.profile.fields[fieldName]) then
+                if (obj:IsObject(field)) then
+                    field:SetEnabled(false);
+                end
             end
         end
     end

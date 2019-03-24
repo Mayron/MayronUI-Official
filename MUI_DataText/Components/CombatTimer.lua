@@ -4,6 +4,10 @@ local _, namespace = ...;
 local tk, db, em = MayronUI:GetCoreComponents();
 local ComponentsPackage = namespace.ComponentsPackage;
 
+local _G = _G;
+local GetTime, string, C_Timer = _G.GetTime, _G.string, _G.C_Timer;
+local RED_FONT_COLOR_CODE = _G.RED_FONT_COLOR_CODE;
+
 -- Objects ---------------------------
 
 local CombatTimer = ComponentsPackage:CreateClass("CombatTimer", nil, "IDataTextComponent");
@@ -51,7 +55,7 @@ function CombatTimer:SetEnabled(data, enabled)
 
     if (enabled) then
         em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "DataText_CombatTimer_RegenDisabled", function()
-            data.startTime = _G.GetTime();
+            data.startTime = GetTime();
             data.inCombat = true;
             data.executed = nil;
             self:Update();
@@ -94,17 +98,17 @@ function CombatTimer:Update(data, refreshSettings)
             return
         end
 
-        local s = (_G.GetTime() - data.startTime);
+        local s = (GetTime() - data.startTime);
 
-        data.minutes.value = tk.string.format("%02d", (s/60)%60);
-        data.seconds.value = tk.string.format(":%02d:", s%60);
-        data.milliseconds.value = tk.string.format("%02d", (s*100)%100);
+        data.minutes.value = string.format("%02d", (s/60)%60);
+        data.seconds.value = string.format(":%02d:", s%60);
+        data.milliseconds.value = string.format("%02d", (s*100)%100);
 
-        data.minutes:SetText(tk.string.format("%s%s|r", _G.RED_FONT_COLOR_CODE, data.minutes.value));
-        data.seconds:SetText(tk.string.format("%s%s|r", _G.RED_FONT_COLOR_CODE, data.seconds.value));
-        data.milliseconds:SetText(tk.string.format("%s%s|r", _G.RED_FONT_COLOR_CODE, data.milliseconds.value));
+        data.minutes:SetText(string.format("%s%s|r", RED_FONT_COLOR_CODE, data.minutes.value));
+        data.seconds:SetText(string.format("%s%s|r", RED_FONT_COLOR_CODE, data.seconds.value));
+        data.milliseconds:SetText(string.format("%s%s|r", RED_FONT_COLOR_CODE, data.milliseconds.value));
 
-        tk.C_Timer.After(0.05, loop);
+        C_Timer.After(0.05, loop);
     end
 
     loop();

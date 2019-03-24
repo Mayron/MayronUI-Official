@@ -8,7 +8,7 @@ local troops = {};
 
 local function EnumerateTroops()
     local width = commandBar.AreaName:GetStringWidth() + 200;
-    tk:EmptyTable(troops);
+    tk.Tables:Empty(troops);
 
     for frame in commandBar.categoryPool:EnumerateActive() do
         table.insert(troops, frame);
@@ -35,7 +35,7 @@ function namespace:SetUpOrderHallBar()
         commandBar = _G.OrderHallCommandBar;
         tk:KillElement(commandBar.Background);
         tk:KillElement(commandBar.WorldMapButton);
-        gui:CreateDialogBox(nil, "LOW", commandBar);
+        gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW", commandBar);
 
         commandBar:ClearAllPoints();
         commandBar:SetPoint("TOP");

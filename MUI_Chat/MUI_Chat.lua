@@ -5,8 +5,8 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 
 local _G = _G;
 local ChatFrame1EditBox, NUM_CHAT_WINDOWS = _G.ChatFrame1EditBox, _G.NUM_CHAT_WINDOWS;
-local ChatFrame1Tab, InCombatLockdown, StaticPopupDialogs, hooksecurefunc, IsCombatLog, pairs =
-	_G.ChatFrame1Tab, _G.InCombatLockdown, _G.StaticPopupDialogs, _G.hooksecurefunc, _G.IsCombatLog, _G.pairs;
+local ChatFrame1Tab, InCombatLockdown, StaticPopupDialogs, hooksecurefunc, IsCombatLog, pairs, PlaySound =
+_G.ChatFrame1Tab, _G.InCombatLockdown, _G.StaticPopupDialogs, _G.hooksecurefunc, _G.IsCombatLog, _G.pairs, _G.PlaySound;
 
 --------------------------
 -- Blizzard Globals
@@ -386,7 +386,7 @@ do
 			local layoutName, layoutData = GetNextLayout();
 			module:SwitchLayouts(layoutName, layoutData);
 
-			tk.PlaySound(tk.Constants.CLICK);
+			PlaySound(tk.Constants.CLICK);
 			tk:Print(tk.Strings:SetTextColorByRGB(layoutName, 0, 1, 0), "Layout enabled!");
 			return layoutName;
 

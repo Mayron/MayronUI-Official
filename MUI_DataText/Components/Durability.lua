@@ -9,6 +9,16 @@ local DURABILITY_SLOTS = {
     "WristSlot", "HandsSlot", "MainHandSlot", "SecondaryHandSlot"
 };
 
+local _G = _G;
+local ipairs, GetInventorySlotInfo, GetInventoryItemDurability, GetInventoryAlertStatus, CreateFrame, DurabilityFrame, string =
+_G.ipairs, _G.GetInventorySlotInfo, _G.GetInventoryItemDurability, _G.GetInventoryAlertStatus, _G.CreateFrame, _G.DurabilityFrame, _G.string;
+
+local RED_FONT_COLOR_CODE = _G.RED_FONT_COLOR_CODE;
+local ORANGE_FONT_COLOR_CODE = _G.ORANGE_FONT_COLOR_CODE;
+local YELLOW_FONT_COLOR_CODE = _G.YELLOW_FONT_COLOR_CODE;
+local HIGHLIGHT_FONT_COLOR_CODE = _G.HIGHLIGHT_FONT_COLOR_CODE;
+local INVENTORY_ALERT_COLORS = _G.INVENTORY_ALERT_COLORS;
+
 -- Register and Import Modules -------
 
 local Durability = ComponentsPackage:CreateClass("Durability", nil, "IDataTextComponent");
@@ -46,7 +56,7 @@ function Durability:__Construct(data, settings, dataTextModule)
     data.settings = settings;
 
     -- set public instance properties
-    self.MenuContent = _G.CreateFrame("Frame");
+    self.MenuContent = CreateFrame("Frame");
     self.MenuLabels = {};
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
@@ -70,7 +80,7 @@ function Durability:SetEnabled(data, enabled)
             self:Update();
         end);
 
-        tk:KillElement(_G.DurabilityFrame);
+        tk:KillElement(DurabilityFrame);
 
     elseif (data.handler) then
         data.handler:Destroy();
@@ -86,9 +96,9 @@ function Durability:Update(data, refreshSettings)
     local durability_total, max_total = 0, 0;
     local itemsEquipped;
 
-    for _, slotName in tk.ipairs(DURABILITY_SLOTS) do
-        local id = _G.GetInventorySlotInfo(slotName);
-        local durability, max = _G.GetInventoryItemDurability(id);
+    for _, slotName in ipairs(DURABILITY_SLOTS) do
+        local id = GetInventorySlotInfo(slotName);
+        local durability, max = GetInventoryItemDurability(id);
 
         if (durability) then
             durability_total = durability_total + durability;
@@ -104,19 +114,19 @@ function Durability:Update(data, refreshSettings)
         local colored;
 
         if (value < 25) then
-            colored = tk.string.format("%s%s%%|r", _G.RED_FONT_COLOR_CODE, realValue);
+            colored = string.format("%s%s%%|r", RED_FONT_COLOR_CODE, realValue);
 
         elseif (value < 40) then
-            colored = tk.string.format("%s%s%%|r", _G.ORANGE_FONT_COLOR_CODE, realValue);
+            colored = string.format("%s%s%%|r", ORANGE_FONT_COLOR_CODE, realValue);
 
         elseif (value < 70) then
-            colored = tk.string.format("%s%s%%|r", _G.YELLOW_FONT_COLOR_CODE, realValue);
+            colored = string.format("%s%s%%|r", YELLOW_FONT_COLOR_CODE, realValue);
 
         else
-            colored = tk.string.format("%s%s%%|r", _G.HIGHLIGHT_FONT_COLOR_CODE, realValue);
+            colored = string.format("%s%s%%|r", HIGHLIGHT_FONT_COLOR_CODE, realValue);
         end
 
-       self.Button:SetText(tk.string.format(L["Armor"]..": %s", colored));
+       self.Button:SetText(string.format(L["Armor"]..": %s", colored));
     else
        self.Button:SetText(L["Armor"]..": |cffffffffnone|r");
     end
@@ -126,16 +136,16 @@ function Durability:Click(data)
     local totalLabelsShown = 0;
     local index = 0;
 
-    for _, slotName in tk.ipairs(DURABILITY_SLOTS) do
-        local id = _G.GetInventorySlotInfo(slotName);
-        local durability, max = _G.GetInventoryItemDurability(id);
+    for _, slotName in ipairs(DURABILITY_SLOTS) do
+        local id = GetInventorySlotInfo(slotName);
+        local durability, max = GetInventoryItemDurability(id);
 
         if (durability) then
             index = index + 1;
             totalLabelsShown = totalLabelsShown + 1;
 
             local value = (durability / max) * 100;
-            local alert = _G.GetInventoryAlertStatus(id);
+            local alert = GetInventoryAlertStatus(id);
 
             -- get or create new label
             local label = self.MenuLabels[totalLabelsShown] or
@@ -151,11 +161,11 @@ function Durability:Click(data)
             if (alert == 0) then
                 label.value:SetTextColor(1, 1, 1);
             else
-                local c = _G.INVENTORY_ALERT_COLORS[alert];
+                local c = INVENTORY_ALERT_COLORS[alert];
                 label.value:SetTextColor(c.r, c.g, c.b);
             end
 
-            label.value:SetText(tk.string.format("%u%%", value));
+            label.value:SetText(string.format("%u%%", value));
         end
     end
 

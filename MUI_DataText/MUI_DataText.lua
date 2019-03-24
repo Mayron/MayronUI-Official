@@ -3,7 +3,8 @@ local _, namespace = ...;
 local _G, MayronUI = _G, _G.MayronUI;
 local tk, db, em, gui, obj = MayronUI:GetCoreComponents();
 
-local pairs, ipairs, table = _G.pairs, _G.ipairs, _G.table;
+local pairs, ipairs, table, GameTooltip, PlaySound = _G.pairs, _G.ipairs, _G.table, _G.GameTooltip, _G.PlaySound;
+local CreateFrame, UIFrameFadeIn = _G.CreateFrame, _G.UIFrameFadeIn;
 
 namespace.dataTextLabels = {
     -- svName = Label
@@ -253,7 +254,7 @@ function C_DataTextModule:OnEnable(data)
     end
 
     -- the main bar containing all data text buttons
-    data.bar = _G.CreateFrame("Frame", "MUI_DataTextBar", _G["MUI_BottomContainer"]);
+    data.bar = CreateFrame("Frame", "MUI_DataTextBar", _G["MUI_BottomContainer"]);
     data.bar:SetPoint("BOTTOMLEFT");
     data.bar:SetPoint("BOTTOMRIGHT");
     tk:SetBackground(data.bar, 0, 0, 0);
@@ -303,7 +304,7 @@ end
 
 Engine:DefineReturns("Button");
 function C_DataTextModule:CreateDataTextButton(data)
-    local btn = _G.CreateFrame("Button");
+    local btn = CreateFrame("Button");
     local btnTextureFilePath = tk.Constants.AddOnStyle:GetTexture("ButtonTexture");
     btn:SetNormalTexture(btnTextureFilePath);
     btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
@@ -495,7 +496,7 @@ Engine:DefineParams("IDataTextComponent", "Button");
 ---@param dataTextButton Button The data-text button clicked on by the user
 ---@param buttonName string The name of the button clicked on (i.e. "LeftButton" or "RightButton")
 function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, buttonName, ...)
-    _G.GameTooltip:Hide();
+    GameTooltip:Hide();
     dataModule:Update(data);
     data.slideController:Stop();
 
@@ -509,8 +510,7 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
         gui:FoldAllDropDownMenus(); -- fold any dropdown menus (slideController is not a dropdown menu)
         data.slideController:Start(SlideController.Static.FORCE_RETRACT);
 
-        --tk.UIFrameFadeOut(data.popup, 0.3, data.popup:GetAlpha(), 0);
-        _G.PlaySound(tk.Constants.CLICK);
+        PlaySound(tk.Constants.CLICK);
         return;
     end
 
@@ -575,8 +575,8 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     data.slideController:SetMaxHeight(totalHeight);
     data.slideController:Start(SlideController.Static.FORCE_EXPAND);
 
-    _G.UIFrameFadeIn(data.popup, 0.3, 0, 1);
-    _G.PlaySound(tk.Constants.CLICK);
+    UIFrameFadeIn(data.popup, 0.3, 0, 1);
+    PlaySound(tk.Constants.CLICK);
 end
 
 Engine:DefineParams("string");

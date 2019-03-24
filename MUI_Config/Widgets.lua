@@ -5,6 +5,7 @@ local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 local configModule = MayronUI:ImportModule("ConfigModule"); ---@type ConfigModule
 
 local unpack, string, pairs, tonumber = _G.unpack, _G.string, _G.pairs, _G.tonumber;
+local CreateFrame = _G.CreateFrame;
 
 local WidgetHandlers = {};
 namespace.WidgetHandlers = WidgetHandlers;
@@ -202,11 +203,11 @@ local function Slider_OnValueChanged(self, value)
 end
 
 function WidgetHandlers.slider(parent, widgetTable, value)
-    local slider = tk.CreateFrame("Slider", nil, parent, "OptionsSliderTemplate");
+    local slider = CreateFrame("Slider", nil, parent, "OptionsSliderTemplate");
 
     slider.tooltipText = widgetTable.tooltip;
     slider:SetMinMaxValues(widgetTable.min, widgetTable.max);
-    slider:SetValueStep(widgetTable.step);
+    slider:SetValueStep(widgetTable.step or 1);
     slider:SetObeyStepOnDrag(true);
 
     slider:SetValue(value or widgetTable.min);

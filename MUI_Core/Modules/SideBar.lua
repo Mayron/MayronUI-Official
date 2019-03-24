@@ -4,9 +4,12 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local Private = {};
-local ObjectiveTrackerFrame, InCombatLockdown, IsInInstance = _G.ObjectiveTrackerFrame, _G.InCombatLockdown, _G.IsInInstance;
-local ObjectiveTracker_Collapse, ObjectiveTracker_Update, ObjectiveTracker_Expand =
-    _G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update, _G.ObjectiveTracker_Expand;
+local ObjectiveTrackerFrame, InCombatLockdown, IsInInstance, IsAddOnLoaded, UIFrameFadeIn, UIFrameFadeOut,
+ObjectiveTracker_Collapse, ObjectiveTracker_Update, ObjectiveTracker_Expand, math, tostring, CreateFrame,
+C_Timer, UIParent, PlaySound =
+_G.ObjectiveTrackerFrame, _G.InCombatLockdown, _G.IsInInstance, _G.IsAddOnLoaded, _G.UIFrameFadeIn, _G.UIFrameFadeOut,
+_G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update, _G.ObjectiveTracker_Expand, _G.math,
+_G.tostring, _G.CreateFrame, _G.C_Timer, _G.UIParent, _G.PlaySound;
 
 -- Register and Import Modules -----------
 
@@ -50,7 +53,7 @@ db:AddToDefaults("profile.sidebar", {
 -- Private Functions ---------------------
 
 function Private:ToggleBartenderBar(bar, show)
-    if (tk.IsAddOnLoaded("Bartender4") and db.profile.sidebar.bartender.control) then
+    if (IsAddOnLoaded("Bartender4") and db.profile.sidebar.bartender.control) then
         bar:SetConfigAlpha((show and 1) or 0);
         bar:SetVisibilityOption("always", not show);
     end
@@ -64,15 +67,15 @@ function Private:ExpandFrame(sidebar, bar2, frame, maxWidth)
             counter = counter + 1;
 
             if (counter > 6) then
-                if (tk.IsAddOnLoaded("Bartender4") and db.profile.sidebar.bartender.control) then
-                    tk.UIFrameFadeIn(bar2, 0.2, bar2:GetAlpha(), 1);
+                if (IsAddOnLoaded("Bartender4") and db.profile.sidebar.bartender.control) then
+                    UIFrameFadeIn(bar2, 0.2, bar2:GetAlpha(), 1);
                 end
 
                 counter = false;
             end
         end
 
-        local width = tk.math.floor(frame:GetWidth() + 0.5);
+        local width = math.floor(frame:GetWidth() + 0.5);
 
         if (width < maxWidth and frame.expand) then
             if (width + Private.step > maxWidth) then
@@ -81,7 +84,7 @@ function Private:ExpandFrame(sidebar, bar2, frame, maxWidth)
                 frame:SetWidth(width + Private.step);
             end
 
-            tk.C_Timer.After(0.02, loop);
+            C_Timer.After(0.02, loop);
         else
             frame:SetWidth(maxWidth);
             Private:ToggleBartenderBar(bar2, true);
@@ -93,16 +96,16 @@ function Private:ExpandFrame(sidebar, bar2, frame, maxWidth)
     frame:Show();
     frame.expand = true;
     frame.animating = true;
-    tk.C_Timer.After(0.02, loop);
+    C_Timer.After(0.02, loop);
 end
 
 function Private:RetractFrame(sidebar, bar2, frame, minWidth)
     local function loop()
-        local width = tk.math.floor(frame:GetWidth() + 0.5);
+        local width = math.floor(frame:GetWidth() + 0.5);
 
         if (width > (Private.step + minWidth) and not frame.expand) then
             frame:SetWidth(width - Private.step);
-            tk.C_Timer.After(0.02, loop);
+            C_Timer.After(0.02, loop);
 
         else
             frame:SetWidth(minWidth);
@@ -115,21 +118,21 @@ function Private:RetractFrame(sidebar, bar2, frame, minWidth)
     frame.expand = nil;
     frame.animating = true;
 
-    if (tk.IsAddOnLoaded("Bartender4") and db.profile.sidebar.bartender.control) then
-        tk.UIFrameFadeOut(bar2, 0.1, bar2:GetAlpha(), 0);
+    if (IsAddOnLoaded("Bartender4") and db.profile.sidebar.bartender.control) then
+        UIFrameFadeOut(bar2, 0.1, bar2:GetAlpha(), 0);
     end
 
-    tk.C_Timer.After(0.02, loop);
+    C_Timer.After(0.02, loop);
 end
 
 function Private:MoveFrameOut(sideBarModule, frame, bar1, controlBartender)
     local function loop()
         local point, anchor, anchorPoint, xOffset, yOffset = frame:GetPoint();
-        local width = tk.math.floor(frame:GetWidth() + 0.5);
+        local width = math.floor(frame:GetWidth() + 0.5);
 
         if (xOffset < (width - Private.step) and not frame.moveIn) then
             frame:SetPoint(point, anchor, anchorPoint, xOffset + Private.step, yOffset);
-            tk.C_Timer.After(0.02, loop);
+            C_Timer.After(0.02, loop);
 
         else
             frame:SetPoint(point, anchor, anchorPoint, width, yOffset);
@@ -143,11 +146,11 @@ function Private:MoveFrameOut(sideBarModule, frame, bar1, controlBartender)
     frame.moveIn = nil;
     frame.animating = true;
 
-    if (tk.IsAddOnLoaded("Bartender4") and controlBartender) then
-        tk.UIFrameFadeOut(bar1, 0.1, bar1:GetAlpha(), 0);
+    if (IsAddOnLoaded("Bartender4") and controlBartender) then
+        UIFrameFadeOut(bar1, 0.1, bar1:GetAlpha(), 0);
     end
 
-    tk.C_Timer.After(0.02, loop);
+    C_Timer.After(0.02, loop);
 end
 
 function Private:MoveFrameIn(sideBarModule, frame, bar1, controlBartender)
@@ -158,8 +161,8 @@ function Private:MoveFrameIn(sideBarModule, frame, bar1, controlBartender)
             counter = counter + 1;
 
             if (counter > 8) then
-                if (tk.IsAddOnLoaded("Bartender4") and controlBartender) then
-                    tk.UIFrameFadeIn(bar1, 0.2, bar1:GetAlpha(), 1);
+                if (IsAddOnLoaded("Bartender4") and controlBartender) then
+                    UIFrameFadeIn(bar1, 0.2, bar1:GetAlpha(), 1);
                 end
 
                 counter = false;
@@ -167,11 +170,11 @@ function Private:MoveFrameIn(sideBarModule, frame, bar1, controlBartender)
         end
 
         local point, anchor, anchorPoint, xOffset, yOffset = frame:GetPoint();
-        xOffset = tk.math.floor(xOffset + 0.5);
+        xOffset = math.floor(xOffset + 0.5);
 
         if (xOffset > (0 + Private.step) and frame.moveIn) then
             frame:SetPoint(point, anchor, anchorPoint, xOffset - Private.step, yOffset);
-            tk.C_Timer.After(0.02, loop);
+            C_Timer.After(0.02, loop);
 
         else
             frame:SetPoint(point, anchor, anchorPoint, 0, yOffset);
@@ -184,7 +187,7 @@ function Private:MoveFrameIn(sideBarModule, frame, bar1, controlBartender)
     frame:Show();
     frame.moveIn = true;
     frame.animating = true;
-    tk.C_Timer.After(0.02, loop);
+    C_Timer.After(0.02, loop);
 end
 
 local function UpdateSideButtonVisibility(barsShown, expandBtn, retractBtn)
@@ -357,7 +360,7 @@ function C_SideBar:SetObjectiveTrackerEnabled(data, enabled)
 
     if (not data.objectiveContainer) then
         -- holds and controls blizzard objectives tracker frame
-        data.objectiveContainer = _G.CreateFrame("Frame", nil, tk.UIParent);
+        data.objectiveContainer = _G.CreateFrame("Frame", nil, UIParent);
 
         -- blizzard objective tracker frame global variable
         ObjectiveTrackerFrame:SetClampedToScreen(false);
@@ -416,7 +419,7 @@ function C_SideBar:Expand(data, expandAmount)
         return;
     end
 
-    tk.PlaySound(tk.Constants.CLICK);
+    PlaySound(tk.Constants.CLICK);
     data.expand:Hide();
     data.retract:Hide();
 
@@ -432,7 +435,7 @@ function C_SideBar:Retract(data, retractAmount)
         return;
     end
 
-    tk.PlaySound(tk.Constants.CLICK);
+    PlaySound(tk.Constants.CLICK);
     data.expand:Hide();
     data.retract:Hide();
 
@@ -483,7 +486,7 @@ function C_SideBar:SetBarsShown(data, numBarsShown)
         Private:ToggleBartenderBar(data.BTBar2, false);
         data.panel:SetSize(data.settings.retractWidth, data.settings.height);
         data.panel:ClearAllPoints();
-        data.panel:SetPoint("RIGHT", tk.UIParent, "RIGHT", data.settings.retractWidth ,data.settings.yOffset);
+        data.panel:SetPoint("RIGHT", UIParent, "RIGHT", data.settings.retractWidth ,data.settings.yOffset);
         data.panel:Hide();
         data.expand:SetPoint("RIGHT");
 
@@ -506,19 +509,19 @@ function C_SideBar:CreateSideBar(data)
     local sideButtonTexturePath = tk:GetAssetFilePath("Textures\\SideBar\\SideButton");
     local sideBarTexturePath = tk:GetAssetFilePath("Textures\\SideBar\\SideBarPanel");
 
-    data.panel = tk.CreateFrame("Frame", "MUI_SideBar", tk.UIParent);
+    data.panel = CreateFrame("Frame", "MUI_SideBar", UIParent);
     data.panel:SetPoint("RIGHT", 0, data.settings.yOffset);
 
     gui:CreateGridTexture(data.panel, sideBarTexturePath, 20, nil, 45, 749);
 
-    data.expand = tk.CreateFrame("Button", nil, tk.UIParent);
+    data.expand = CreateFrame("Button", nil, UIParent);
     data.expand:SetNormalFontObject("MUI_FontSmall");
     data.expand:SetHighlightFontObject("GameFontHighlightSmall");
     data.expand:SetNormalTexture(sideButtonTexturePath);
     data.expand:SetSize(data.settings.buttons.width, data.settings.buttons.height);
     data.expand:SetText("<");
 
-    data.retract = tk.CreateFrame("Button", nil, tk.UIParent);
+    data.retract = CreateFrame("Button", nil, UIParent);
     data.retract:SetNormalFontObject("MUI_FontSmall");
     data.retract:SetHighlightFontObject("GameFontHighlightSmall");
     data.retract:SetNormalTexture(sideButtonTexturePath);
@@ -527,7 +530,7 @@ function C_SideBar:CreateSideBar(data)
 end
 
 function C_SideBar:SetBartenderBars(data)
-    if (not (tk.IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
+    if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
         return;
     end
 
@@ -536,6 +539,6 @@ function C_SideBar:SetBartenderBars(data)
 
     _G.Bartender4:GetModule("ActionBars"):EnableBar(bar1);
     _G.Bartender4:GetModule("ActionBars"):EnableBar(bar2);
-    data.BTBar1 = tk._G["BT4Bar"..tk.tostring(bar1)];
-    data.BTBar2 = tk._G["BT4Bar"..tk.tostring(bar2)];
+    data.BTBar1 = _G["BT4Bar"..tostring(bar1)];
+    data.BTBar2 = _G["BT4Bar"..tostring(bar2)];
 end

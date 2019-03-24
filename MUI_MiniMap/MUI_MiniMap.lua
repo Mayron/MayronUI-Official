@@ -4,7 +4,15 @@ local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 -- Register and Import ---------
 
 local C_MiniMapModule = MayronUI:RegisterModule("MiniMap");
-local Minimap = _G.Minimap;
+
+local _G = _G;
+local Minimap, math, table, C_Timer, Minimap_ZoomIn, Minimap_ZoomOut, GameTooltip, IsAltKeyDown,
+CreateFrame, LoadAddOn, InCombatLockdown, IsAddOnLoaded, ToggleHelpFrame, GarrisonLandingPage_Toggle,
+ToggleDropDownMenu, PlaySound, EasyMenu, UIParent, select =
+_G.Minimap, _G.math, _G.table, _G.C_Timer, _G.Minimap_ZoomIn, _G.Minimap_ZoomOut, _G.GameTooltip,
+_G.IsAltKeyDown, _G.CreateFrame, _G.LoadAddOn, _G.InCombatLockdown, _G.IsAddOnLoaded,
+_G.ToggleHelpFrame, _G.GarrisonLandingPage_Toggle, _G.ToggleDropDownMenu,
+_G.PlaySound, _G.EasyMenu, _G.UIParent, _G.select;
 
 -- Load Database Defaults --------------
 
@@ -26,7 +34,7 @@ do
 
 	local function DragStep()
 		local width = Minimap:GetWidth();
-		width = (tk.math.floor(width + 100.5) - 100);
+		width = (math.floor(width + 100.5) - 100);
 		Minimap:SetSize(width, width);
 
 		if (not updateSizeText) then
@@ -35,7 +43,7 @@ do
 			Minimap.size:SetText(width.." x "..width);
 		end
 
-		tk.C_Timer.After(0.02, DragStep);
+		C_Timer.After(0.02, DragStep);
 	end
 
 	function Minimap_OnDragStart()
@@ -44,7 +52,7 @@ do
 		elseif (tk:IsModComboActive("S")) then
 			Minimap:StartSizing();
 			updateSizeText = true;
-			tk.C_Timer.After(0.1, DragStep);
+			C_Timer.After(0.1, DragStep);
 		end
 	end
 
@@ -52,14 +60,14 @@ do
 		Minimap:StopMovingOrSizing();
 		updateSizeText = nil;
 
-		_G.Minimap_ZoomIn();
-		_G.Minimap_ZoomOut();
+		Minimap_ZoomIn();
+		Minimap_ZoomOut();
 
 		data.settings.point, data.settings.relativeTo, data.settings.relativePoint,
 			data.settings.x, data.settings.y = Minimap:GetPoint();
 
-		data.settings.x = tk.math.floor(data.settings.x + 0.5);
-		data.settings.y = tk.math.floor(data.settings.y + 0.5);
+		data.settings.x = math.floor(data.settings.x + 0.5);
+		data.settings.y = math.floor(data.settings.y + 0.5);
 
 		data.settings.width, data.settings.height = Minimap:GetSize();
 		data.settings.width = math.floor(data.settings.width + 0.5);
@@ -73,7 +81,7 @@ function C_MiniMapModule:OnInitialize(data)
 	data.settings = db.profile.minimap:GetTrackedTable();
 
 	Minimap:ClearAllPoints();
-	Minimap:SetPoint(data.settings.point, tk.UIParent, data.settings.relativePoint, data.settings.x, data.settings.y);
+	Minimap:SetPoint(data.settings.point, _G.UIParent, data.settings.relativePoint, data.settings.x, data.settings.y);
 	Minimap:SetWidth(data.settings.width);
 	Minimap:SetHeight(data.settings.height);
 	Minimap:SetScale(data.settings.scale);
@@ -169,26 +177,26 @@ function C_MiniMapModule:OnInitialize(data)
 			return
 		end
 
-		_G.GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -2)
-		_G.GameTooltip:SetText("MUI MiniMap");  -- This sets the top line of text, in gold.
-		_G.GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
-		_G.GameTooltip:AddDoubleLine(L["SHIFT + Drag:"], L["Resize Minimap"], 1, 1, 1);
-		_G.GameTooltip:AddDoubleLine(L["Left Click:"], L["Ping Minimap"], 1, 1, 1);
-		_G.GameTooltip:AddDoubleLine(L["Middle Click:"], L["Show Tracking Menu"], 1, 1, 1);
-		_G.GameTooltip:AddDoubleLine(L["Right Click:"], L["Show Menu"], 1, 1, 1);
-		_G.GameTooltip:AddDoubleLine(L["Mouse Wheel:"], L["Zoom in/out"], 1, 1, 1);
-		_G.GameTooltip:AddDoubleLine(L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
-		_G.GameTooltip:Show();
+		GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -2)
+		GameTooltip:SetText("MUI MiniMap");  -- This sets the top line of text, in gold.
+		GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["SHIFT + Drag:"], L["Resize Minimap"], 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["Left Click:"], L["Ping Minimap"], 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["Middle Click:"], L["Show Tracking Menu"], 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["Right Click:"], L["Show Menu"], 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["Mouse Wheel:"], L["Zoom in/out"], 1, 1, 1);
+		GameTooltip:AddDoubleLine(L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
+		GameTooltip:Show();
 	end);
 
 	Minimap:HookScript("OnMouseDown", function(self, button)
-		if ((_G.IsAltKeyDown()) and (button == "LeftButton")) then
+		if ((IsAltKeyDown()) and (button == "LeftButton")) then
 			if (data.settings.Tooltip) then
 				data.settings.Tooltip = nil;
 				Minimap:GetScript("OnEnter")(Minimap);
 			else
 				data.settings.Tooltip = true;
-				_G.GameTooltip:Hide();
+				GameTooltip:Hide();
 			end
 
 			data.settings:SaveChanges();
@@ -196,7 +204,7 @@ function C_MiniMapModule:OnInitialize(data)
 	end);
 
 	-- Calendar Button:
-	local eventBtn = tk.CreateFrame("Button", nil, Minimap);
+	local eventBtn = CreateFrame("Button", nil, Minimap);
     eventBtn:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, -18);
     eventBtn:SetSize(100, 20);
     eventBtn:SetNormalFontObject("GameFontNormal");
@@ -204,8 +212,8 @@ function C_MiniMapModule:OnInitialize(data)
     eventBtn:Hide();
 
     eventBtn:SetScript("OnClick", function()
-        if (not tk._G["CalendarFrame"]) then
-            tk.LoadAddOn("Blizzard_Calendar");
+        if (not _G["CalendarFrame"]) then
+            LoadAddOn("Blizzard_Calendar");
         end
         _G.Calendar_Toggle();
 	end)
@@ -217,7 +225,7 @@ function C_MiniMapModule:OnInitialize(data)
 		local numPendingInvites = _G.C_Calendar.GetNumPendingInvites();
 
 		if (numPendingInvites > 0) then
-			self:SetText(tk.string.format("%s (%i)", L["New Event!"], numPendingInvites));
+			self:SetText(string.format("%s (%i)", L["New Event!"], numPendingInvites));
             self:Show();
 		else
 			self:SetText("");
@@ -229,27 +237,27 @@ function C_MiniMapModule:OnInitialize(data)
 	local menuList = {
 		{ 	text = L["Calendar"],
 			func = function()
-				if (not tk._G["CalendarFrame"]) then
-                    tk.LoadAddOn("Blizzard_Calendar");
+				if (not _G["CalendarFrame"]) then
+                    LoadAddOn("Blizzard_Calendar");
                 end
                 _G.Calendar_Toggle();
 			end
 		},
 		{	text = L["Customer Support"],
-			func = function() _G.ToggleHelpFrame(); end
+			func = ToggleHelpFrame;
 		},
 		{ 	text = L["Class Order Hall"].." / "..L["Garrison Report"],
-			func = function() _G.GarrisonLandingPage_Toggle(); end
+			func = GarrisonLandingPage_Toggle
 		},
 		{ 	text = L["Tracking Menu"],
 			func = function()
-				_G.ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "MiniMapTracking", 0, -5);
-				tk.PlaySound(tk.Constants.CLICK);
+				ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "MiniMapTracking", 0, -5);
+				PlaySound(tk.Constants.CLICK);
 			end
 		},
 		{ 	text = tk.Strings:SetTextColorByTheme(L["MUI Config Menu"]),
 			func = function()
-				if (tk.InCombatLockdown()) then
+				if (InCombatLockdown()) then
 					tk:Print(L["Cannot access config menu while in combat."]);
 				else
 					MayronUI:TriggerCommand("config");
@@ -263,14 +271,14 @@ function C_MiniMapModule:OnInitialize(data)
 		},
 	};
 
-	if (tk.IsAddOnLoaded("Leatrix_Plus")) then
-        tk.table.insert(menuList, {
+	if (IsAddOnLoaded("Leatrix_Plus")) then
+        table.insert(menuList, {
             text = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70"),
             func = function()
                 _G.SlashCmdList["Leatrix_Plus"]();
             end
         });
-		tk.table.insert(menuList, {
+		table.insert(menuList, {
             text = tk.Strings:SetTextColorByHex(L["Music Player"], "70db70"),
             func = function()
                 _G.SlashCmdList["Leatrix_Plus"]("play");
@@ -278,8 +286,8 @@ function C_MiniMapModule:OnInitialize(data)
         });
 	end
 
-    if (tk.IsAddOnLoaded("Recount")) then
-        tk.table.insert(menuList, {
+    if (IsAddOnLoaded("Recount")) then
+        table.insert(menuList, {
             text = "Toggle Recount",
             func = function()
                 if (_G.Recount.MainWindow:IsShown()) then
@@ -292,16 +300,16 @@ function C_MiniMapModule:OnInitialize(data)
         });
     end
 
-    local menuFrame = tk.CreateFrame("Frame", "MinimapRightClickMenu", tk.UIParent, "UIDropDownMenuTemplate")
+    local menuFrame = CreateFrame("Frame", "MinimapRightClickMenu", UIParent, "UIDropDownMenuTemplate")
 	Minimap.oldMouseUp = Minimap:GetScript("OnMouseUp");
 
 	Minimap:SetScript("OnMouseUp", function(self, btn)
 		if (btn == "RightButton") then
-			_G.EasyMenu(menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
+			EasyMenu(menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
 
 		elseif (btn == "MiddleButton") then
-			_G.ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "Minimap", 0, 0);
-			tk.PlaySound(tk.Constants.CLICK);
+			ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "Minimap", 0, 0);
+			PlaySound(tk.Constants.CLICK);
 
 		else
 			self.oldMouseUp(self);
@@ -309,7 +317,7 @@ function C_MiniMapModule:OnInitialize(data)
 	end);
 
 	-- Difficulty Text:
-	local mode = tk.CreateFrame("Frame", nil, Minimap);
+	local mode = CreateFrame("Frame", nil, Minimap);
 	mode:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0);
 	mode:SetSize(26, 18);
 
@@ -322,7 +330,7 @@ function C_MiniMapModule:OnInitialize(data)
 
 	mode:SetScript("OnEvent", function()
 		if ((_G.IsInInstance())) then
-			local difficulty = tk.select(4, _G.GetInstanceInfo());
+			local difficulty = select(4, _G.GetInstanceInfo());
 
 			if (difficulty == "Heroic") then
 				difficulty = "H";
@@ -348,7 +356,7 @@ function C_MiniMapModule:OnInitialize(data)
 	_G.GarrisonLandingPageMinimapButton:SetSize(1, 1)
 	_G.GarrisonLandingPageMinimapButton:SetAlpha(0);
 	_G.GarrisonLandingPageMinimapButton:ClearAllPoints();
-	_G.GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", tk.UIParent, "TOPRIGHT", 5, 5);
+	_G.GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", UIParent, "TOPRIGHT", 5, 5);
 	_G.GarrisonLandingPageTutorialBox:Hide()
 	_G.GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
 end

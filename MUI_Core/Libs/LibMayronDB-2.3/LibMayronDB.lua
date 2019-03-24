@@ -1048,7 +1048,6 @@ do
     end
 
     do
-
         local function RemoveNilTableValues(currentTable, updatedTable)
             for currentKey, currentValue in pairs(currentTable) do
                 if (updatedTable[currentKey] == nil) then
@@ -1076,7 +1075,7 @@ do
             local data = _metaData[tostring(self)];
             local updatedTable = data.observer:GetUntrackedTable();
             UpdateUntrackedTable(self, updatedTable);
-            obj:PushTable(updatedTable, true);
+            obj:PushTable(updatedTable);
         end
     end
 
