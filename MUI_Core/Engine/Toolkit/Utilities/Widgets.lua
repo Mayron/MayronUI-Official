@@ -137,28 +137,6 @@ do
     end
 end
 
-function tk:SavePosition(frame, override)
-    local point, relativeFrame, relativePoint, x, y = frame:GetPoint();
-
-    if (not relativeFrame) then
-        relativeFrame = frame:GetParent():GetName();
-    else
-        relativeFrame = relativeFrame:GetName();
-
-        if (not relativeFrame or (relativeFrame and relativeFrame ~= "UIParent")) then
-            if (override) then
-                x, y = frame:GetCenter();
-                point = "CENTER";
-                relativeFrame = "UIParent"; -- Do not want this to be UIParent in some cases
-                relativePoint = "BOTTOMLEFT";
-            end
-        end
-    end
-
-    local positions = obj:PopTable(point, relativeFrame, relativePoint, x, y);
-    return positions;
-end
-
 function tk:MakeResizable(frame, dragger)
     dragger = dragger or frame;
     frame:SetResizable(true);

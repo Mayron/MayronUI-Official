@@ -101,7 +101,7 @@ local function TimerFieldPosition_OnLoad(configTable, container)
 end
 
 local function Field_OnDragStop(field)
-    local positions = tk:SavePosition(field);
+    local positions = tk.Tables:GetFramePosition(field);
     local fieldName = field:GetName():match("MUI_(.*)TimerField");
 
     if (positions) then
@@ -313,7 +313,7 @@ function C_TimerBarsModule:GetConfigTable()
                                             return;
                                         end
 
-                                        local positions = tk:SavePosition(field);
+                                        local positions = tk.Tables:GetFramePosition(field);
                                         db:SetPathValue(dbFieldPath .. ".position", positions);
 
                                         Field_OnDragStop(field);
