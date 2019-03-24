@@ -16,7 +16,11 @@ A clear and concise description of what the bug is.
 
 **Were you in combat when the bug occured?**
 
+Yes/No
+
 **What were you doing when the bug occured (i.e. were you in a raid, in a battleground, etc?)**
+
+Please describe what your character was doing in WoW when the bug occured.
 
 **To Reproduce the bug**
 
