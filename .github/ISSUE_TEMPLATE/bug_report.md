@@ -14,6 +14,10 @@ You can find this out by opening up MUI Config menu (/mui config) and it will be
 
 A clear and concise description of what the bug is.
 
+**Were you in combat when the bug occured?**
+
+**What were you doing when the bug occured (i.e. were you in a raid, in a battleground, etc?)**
+
 **To Reproduce the bug**
 
 Steps to reproduce the behavior:
