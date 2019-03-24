@@ -207,7 +207,7 @@ function WidgetHandlers.slider(parent, widgetTable, value)
 
     slider.tooltipText = widgetTable.tooltip;
     slider:SetMinMaxValues(widgetTable.min, widgetTable.max);
-    slider:SetValueStep(widgetTable.step);
+    slider:SetValueStep(widgetTable.step or 1);
     slider:SetObeyStepOnDrag(true);
 
     slider:SetValue(value or widgetTable.min);
