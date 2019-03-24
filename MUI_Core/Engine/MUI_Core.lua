@@ -252,6 +252,10 @@ commands.profiles = function(subCommand)
     end
 end
 
+commands.version = function()
+    tk:Print("Version", _G.GetAddOnMetadata("MUI_Core", "Version"));
+end
+
 commands.help = function()
     print(" ");
     tk:Print(L["List of slash commands:"])
@@ -264,6 +268,7 @@ commands.help = function()
     tk:Print("|cff00cc66/mui profile delete <profile_name>|r - delete profile");
     tk:Print("|cff00cc66/mui profile new|r - create new profile");
     tk:Print("|cff00cc66/mui profile current|r - show current profile in chat");
+    tk:Print("|cff00cc66/mui version|r - show the version of MayronUI");
     print(" ");
 end
 
