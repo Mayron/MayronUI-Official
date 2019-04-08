@@ -48,7 +48,7 @@ end
 -- Friends Module --------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    self:RegisterDataModule("friends", Friends);
+    self:RegisterComponentClass("friends", Friends);
 end);
 
 function Friends:__Construct(data, settings, dataTextModule, slideController)

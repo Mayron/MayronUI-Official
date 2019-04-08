@@ -64,10 +64,17 @@ function tk.Tables:Contains(tbl, value)
     return false;
 end
 
-function tk.Tables:GetIndex(tbl, value)
+function tk.Tables:GetIndex(tbl, value, position)
+    local totalFound = 0;
+    position = position or 1;
+
     for id, tblValue in pairs(tbl) do
         if (tk:Equals(tblValue, value)) then
-            return id;
+            totalFound = totalFound + 1;
+
+            if (totalFound == position) then
+                return id;
+            end
         end
     end
 

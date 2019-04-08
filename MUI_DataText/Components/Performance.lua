@@ -25,7 +25,7 @@ MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
     sv:SetParent(db.profile.datatext);
 
     local settings = sv:GetTrackedTable();
-    self:RegisterDataModule("performance", Performance, settings);
+    self:RegisterComponentClass("performance", Performance, settings);
 end);
 
 function Performance:__Construct(data, settings, dataTextModule)

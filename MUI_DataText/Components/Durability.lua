@@ -49,7 +49,7 @@ end
 -- Durability Module --------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    self:RegisterDataModule("durability", Durability);
+    self:RegisterComponentClass("durability", Durability);
 end);
 
 function Durability:__Construct(data, settings, dataTextModule)

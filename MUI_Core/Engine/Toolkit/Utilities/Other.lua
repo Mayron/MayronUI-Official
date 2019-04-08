@@ -103,13 +103,13 @@ function tk:GetDifficultyColor(level)
     return color;
 end
 
-function tk:Equals(value1, value2, shallowEquals)
+function tk:Equals(value1, value2, deepEquals)
     local type1 = type(value1);
 
     if (type(value2) == type1) then
 
         if (type1 == "table") then
-            if (shallowEquals) then
+            if (not deepEquals) then
                 return tostring(value1) == tostring(value2);
             else
                 for id, value in pairs(value1) do

@@ -42,7 +42,7 @@ end
 -- Memory Module --------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    self:RegisterDataModule("memory", Memory);
+    self:RegisterComponentClass("memory", Memory);
 end);
 
 function Memory:__Construct(data, settings, dataTextModule)

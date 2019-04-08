@@ -51,7 +51,7 @@ MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
     -- store character's money to be seen by other characters
     db.global.datatext.currency.characters[coloredKey] = _G.GetMoney();
 
-    self:RegisterDataModule("currency", Currency);
+    self:RegisterComponentClass("currency", Currency);
 end);
 
 function Currency:__Construct(data, settings, dataTextModule)

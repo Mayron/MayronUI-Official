@@ -15,7 +15,7 @@ local CombatTimer = ComponentsPackage:CreateClass("CombatTimer", nil, "IDataText
 -- CombatTimer Module ----------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    self:RegisterDataModule("combatTimer", CombatTimer);
+    self:RegisterComponentClass("combatTimer", CombatTimer);
 end);
 
 function CombatTimer:__Construct(data, settings, dataTextModule)

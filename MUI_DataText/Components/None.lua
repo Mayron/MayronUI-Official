@@ -10,7 +10,7 @@ local None = ComponentsPackage:CreateClass("None", nil, "IDataTextComponent");
 -- CombatTimer Module ----------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    self:RegisterDataModule("none", None);
+    self:RegisterComponentClass("none", None);
 end);
 
 function None:__Construct(_, _, dataTextModule)

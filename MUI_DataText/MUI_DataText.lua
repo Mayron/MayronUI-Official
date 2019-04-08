@@ -3,7 +3,7 @@ local _, namespace = ...;
 local _G, MayronUI = _G, _G.MayronUI;
 local tk, db, em, gui, obj = MayronUI:GetCoreComponents();
 
-local pairs, ipairs, table, GameTooltip, PlaySound = _G.pairs, _G.ipairs, _G.table, _G.GameTooltip, _G.PlaySound;
+local ipairs, table, GameTooltip, PlaySound = _G.ipairs, _G.table, _G.GameTooltip, _G.PlaySound;
 local CreateFrame, UIFrameFadeIn = _G.CreateFrame, _G.UIFrameFadeIn;
 
 namespace.dataTextLabels = {
@@ -91,16 +91,6 @@ ComponentsPackage:CreateInterface("IDataTextComponent", {
     __Construct = {type = "function", params = {"table", "DataTextModule", "SlideController", "Frame"}}
 });
 
-local function IsComponentEnabled(displayOrders, moduleName)
-    for _, enabledModuleName in ipairs(displayOrders) do
-        if (enabledModuleName == moduleName) then
-            return true;
-        end
-    end
-
-    return false;
-end
-
 local function DataComponentButton_OnClick(self, ...)
     self.dataModule:ClickModuleButton(self.component, self, ...);
 end
@@ -123,34 +113,16 @@ local function CreateComponent(dataTextModule, data, componentClass, componentNa
     component.Button.component = component;
     component.Button:SetScript("OnClick", DataComponentButton_OnClick);
 
-    data.components[componentName] = component;
-    data.unloadedComponents[componentName] = nil;
-
     return component;
-end
-
-local function LoadEnabledComponents(dataTextModule, data)
-    for componentName, componentClass in pairs(data.unloadedComponents) do
-        local isEnabled = IsComponentEnabled(data.settings.displayOrders, componentName);
-
-        if (isEnabled) then
-            local component = CreateComponent(dataTextModule, data, componentClass, componentName);
-            component:SetEnabled(true);
-        end
-    end
-
-    if (tk.Tables:IsEmpty(data.unloadedComponents)) then
-        obj:PushTable(data.unloadedComponents);
-        data.unloadedComponents = nil;
-    end
 end
 
 -- C_DataTextModule Functions -------------------
 
 function C_DataTextModule:OnInitialize(data)
     data.buttons = obj:PopTable();
-    data.components = obj:PopTable(); -- holds all data text modules
-    data.unloadedComponents = obj:PopTable();
+    data.activeComponents = obj:PopTable(); -- holds all data text modules
+    data.inactiveComponents = obj:PopTable();
+    data.registeredComponentClasses = obj:PopTable();
 
     local options = {
         onExecuteAll = {
@@ -164,7 +136,7 @@ function C_DataTextModule:OnInitialize(data)
 
                 value = function(_, keysList)
                     local componentName = keysList:PopFront();
-                    local component = data.components[componentName];
+                    local component = data.activeComponents[componentName];
 
                     if (not component) then
                         -- filter out missing update functions (such as popup settings)
@@ -298,8 +270,8 @@ function C_DataTextModule:OnEnable(data)
 end
 
 Engine:DefineParams("string", "IDataTextComponent");
-function C_DataTextModule:RegisterDataModule(data, moduleName, moduleClass)
-    data.unloadedComponents[moduleName] = moduleClass;
+function C_DataTextModule:RegisterComponentClass(data, componentName, componentClass)
+    data.registeredComponentClasses[componentName] = componentClass;
 end
 
 Engine:DefineReturns("Button");
@@ -323,73 +295,81 @@ end
 
 -- this is called each time a datatext module is registered
 function C_DataTextModule:OrderDataTextButtons(data)
+    data.TotalActiveComponents = 0;
 
-    if (obj:IsTable(data.orderedButtons)) then
-        tk.Tables:Empty(data.orderedButtons);
-    else
-        data.orderedButtons = obj:PopTable();
-    end
-
-    if (obj:IsTable(data.positionedButtons)) then
-        tk.Tables:Empty(data.positionedButtons);
-    else
-        data.positionedButtons = obj:PopTable();
-    end
-
-    data.totalActiveButtons = 0;
-
-    if (obj:IsTable(data.unloadedComponents)) then
-        LoadEnabledComponents(self, data);
-    end
-
-    for componentName, component in pairs(data.components) do
-        local isEnabled = IsComponentEnabled(data.settings.displayOrders, componentName);
-
-        if (isEnabled) then
-            local btn = component.Button;
-            local dbName = component.SavedVariableName;
-            local displayOrder = tk.Tables:GetIndex(data.settings.displayOrders, dbName);
-
-            if (displayOrder and not data.positionedButtons[dbName]) then
-                -- ensure that buttons are only ordered once!
-                data.orderedButtons[displayOrder] = btn;
-                data.positionedButtons[dbName] = true;
-                data.totalActiveButtons = data.totalActiveButtons + 1;
-                component:Update();
-            end
-
-        elseif (component:IsEnabled()) then
+    -- disable all:
+    for _, component in ipairs(data.activeComponents) do
+        if (component ~= "disabled") then
             component:SetEnabled(false);
             tk:AttachToDummy(component.Button);
+
+            local componentName = component.SavedVariableName;
+            data.inactiveComponents[componentName] = data.inactiveComponents[componentName] or obj:PopTable();
+            table.insert(data.inactiveComponents[componentName], component);
         end
     end
 
-    -- remove gaps between display orders (some might be disabled)
-    tk.Tables:CleanIndexes(data.orderedButtons);
+    tk.Tables:Empty(data.activeComponents);
+
+    for _, componentName in ipairs(data.settings.displayOrders) do
+        if (componentName == "disabled") then
+            table.insert(data.activeComponents, "disabled");
+        else
+            local inactiveTable = data.inactiveComponents[componentName];
+
+            -- 1. Get component:
+            local component;
+
+            if (obj:IsTable(inactiveTable)) then
+                component = inactiveTable[#inactiveTable];
+                inactiveTable[#inactiveTable] = nil;
+            end
+
+            if (not component) then
+                local componentClass = data.registeredComponentClasses[componentName];
+
+                if (not componentClass) then
+                    MayronUI:Print(("Warning: Missing Data Text Module '%s'"):format(componentName));
+                else
+                    component = CreateComponent(self, data, componentClass, componentName);
+                end
+            end
+
+            -- 2. Activate component:
+            component:SetEnabled(true);
+            component:Update();
+
+            table.insert(data.activeComponents, component);
+            data.TotalActiveComponents = data.TotalActiveComponents + 1;
+            component.DisplayOrder = data.TotalActiveComponents;
+        end
+    end
 end
 
 function C_DataTextModule:PositionDataTextButtons(data)
-    local itemWidth = _G["MUI_BottomContainer"]:GetWidth() / data.totalActiveButtons;
+    local itemWidth = _G["MUI_BottomContainer"]:GetWidth() / data.TotalActiveComponents;
     local previousButton, currentButton;
 
     -- some indexes might have a nil value as display order is configurable by the user
-    for displayOrder = 1, #data.orderedButtons do
-        currentButton = data.orderedButtons[displayOrder];
+    for _, component in ipairs(data.activeComponents) do
+        if (component ~= "disabled") then
+            currentButton = component.Button;
 
-        if (obj:IsType(currentButton, "Button")) then
-            currentButton:SetParent(data.bar);
-            currentButton:ClearAllPoints();
+            if (obj:IsType(currentButton, "Button")) then
+                currentButton:SetParent(data.bar);
+                currentButton:ClearAllPoints();
 
-            if (not previousButton) then
-                currentButton:SetPoint("BOTTOMLEFT", data.settings.spacing, 0);
-                currentButton:SetPoint("TOPRIGHT", data.bar, "TOPLEFT", itemWidth - data.settings.spacing, - data.settings.spacing);
-            else
-                currentButton:SetPoint("TOPLEFT", previousButton, "TOPRIGHT", data.settings.spacing, 0);
-                currentButton:SetPoint("BOTTOMRIGHT", previousButton, "BOTTOMRIGHT", itemWidth, 0);
+                if (not previousButton) then
+                    currentButton:SetPoint("BOTTOMLEFT", data.settings.spacing, 0);
+                    currentButton:SetPoint("TOPRIGHT", data.bar, "TOPLEFT", itemWidth - data.settings.spacing, - data.settings.spacing);
+                else
+                    currentButton:SetPoint("TOPLEFT", previousButton, "TOPRIGHT", data.settings.spacing, 0);
+                    currentButton:SetPoint("BOTTOMRIGHT", previousButton, "BOTTOMRIGHT", itemWidth, 0);
+                end
+
+                currentButton:Show();
+                previousButton = currentButton;
             end
-
-            currentButton:Show();
-            previousButton = currentButton;
         end
     end
 end
@@ -495,12 +475,12 @@ Engine:DefineParams("IDataTextComponent", "Button");
 ---@param dataModule IDataTextComponent The data-text module associated with the data-text button clicked on by the user
 ---@param dataTextButton Button The data-text button clicked on by the user
 ---@param buttonName string The name of the button clicked on (i.e. "LeftButton" or "RightButton")
-function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, buttonName, ...)
+function C_DataTextModule:ClickModuleButton(data, component, dataTextButton, buttonName, ...)
     GameTooltip:Hide();
-    dataModule:Update(data);
+    component:Update(data);
     data.slideController:Stop();
 
-    local buttonDisplayOrder = tk.Tables:GetIndex(data.settings.displayOrders, dataModule.SavedVariableName);
+    local buttonDisplayOrder = component.DisplayOrder;
 
     if (data.lastButtonID == buttonDisplayOrder and data.lastButton == buttonName and data.popup:IsShown()) then
         -- clicked on same dataTextModule button so close the popup!
@@ -524,31 +504,31 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     data.popup:ClearAllPoints();
 
     -- handle type of button click
-    if ((buttonName == "RightButton" and not dataModule.HasRightMenu) or
-        (buttonName == "LeftButton" and not dataModule.HasLeftMenu)) then
+    if ((buttonName == "RightButton" and not component.HasRightMenu) or
+        (buttonName == "LeftButton" and not component.HasLeftMenu)) then
         -- execute dataTextModule specific click logic
-        dataModule:Click(buttonName, ...);
+        component:Click(buttonName, ...);
         return;
     end
 
     -- update content of popup based on which dataTextModule button was clicked
-    if (dataModule.MenuContent) then
-        self:ChangeMenuContent(dataModule.MenuContent);
+    if (component.MenuContent) then
+        self:ChangeMenuContent(component.MenuContent);
     end
 
-    if (dataModule.MenuLabels) then
-        self:ClearLabels(dataModule.MenuLabels);
+    if (component.MenuLabels) then
+        self:ClearLabels(component.MenuLabels);
     end
 
     -- execute dataTextModule specific click logic
-    local cannotExpand = dataModule:Click(buttonName, ...);
+    local cannotExpand = component:Click(buttonName, ...);
 
     if (cannotExpand) then
         return;
     end
 
     -- calculate new height based on number of labels to show
-    local totalHeight = self:PositionLabels(dataModule) or data.settings.popup.maxHeight;
+    local totalHeight = self:PositionLabels(component) or data.settings.popup.maxHeight;
     totalHeight = (totalHeight < data.settings.popup.maxHeight) and totalHeight or data.settings.popup.maxHeight;
 
     -- move popup menu higher if there are resource bars displayed
@@ -559,7 +539,7 @@ function C_DataTextModule:ClickModuleButton(data, dataModule, dataTextButton, bu
     end
 
     -- update positioning of popup menu based on dataTextModule button's location
-    if (buttonDisplayOrder == #data.orderedButtons) then
+    if (buttonDisplayOrder == data.TotalActiveComponents) then
         -- if button was the last button displayed on the data-text bar
         data.popup:SetPoint("BOTTOMRIGHT", dataTextButton, "TOPRIGHT", -1, offset + 2);
     elseif (buttonDisplayOrder == 1) then
@@ -581,7 +561,7 @@ end
 
 Engine:DefineParams("string");
 function C_DataTextModule:ForceUpdate(data, dataModuleName)
-    local dataModule = data.components[dataModuleName];
+    local dataModule = data.activeComponents[dataModuleName];
     dataModule:Update();
 end
 

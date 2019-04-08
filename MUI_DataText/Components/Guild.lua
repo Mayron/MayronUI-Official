@@ -80,7 +80,7 @@ end
 -- Guild Module --------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    self:RegisterDataModule("guild", Guild);
+    self:RegisterComponentClass("guild", Guild);
 end);
 
 function Guild:__Construct(data, settings, dataTextModule, slideController)

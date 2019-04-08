@@ -104,7 +104,7 @@ MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
     sv:SetParent(db.profile.datatext);
 
     local settings = sv:GetTrackedTable();
-    self:RegisterDataModule("specialization", Specialization, settings);
+    self:RegisterComponentClass("specialization", Specialization, settings);
 end);
 
 function Specialization:__Construct(data, settings, dataTextModule, slideController, dataTextBar)

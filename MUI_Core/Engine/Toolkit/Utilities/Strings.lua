@@ -135,6 +135,10 @@ function tk.Strings:Concat(...)
     return value;
 end
 
+function tk.Strings:GetSection(str, seperator, sectionNum)
+    return (select(sectionNum, string.split(seperator, str)));
+end
+
 function tk.Strings:Join(separator, ...)
     local wrapper = obj:PopTable(...);
 

@@ -37,7 +37,7 @@ end
 -- Inventory Module --------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    self:RegisterDataModule("inventory", Inventory);
+    self:RegisterComponentClass("inventory", Inventory);
 end);
 
 function Inventory:__Construct(data, settings, dataTextModule, slideController)
