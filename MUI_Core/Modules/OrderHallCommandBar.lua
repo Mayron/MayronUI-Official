@@ -50,7 +50,7 @@ function namespace:SetUpOrderHallBar()
     else
         em:CreateEventHandler("ADDON_LOADED", function(handler, _, name)
             if (name == "Blizzard_OrderHallUI") then
-                self:SetupOrderHallBar();
+                self:SetUpOrderHallBar();
                 handler:Destroy();
             end
         end);
