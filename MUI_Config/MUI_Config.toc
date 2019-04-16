@@ -1,7 +1,11 @@
-## Interface: 80000
+## Interface: 80100
 ## Title: |cff00ccffMUI|r Config
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
 
-init.lua
-config.lua
+MUI_Config.lua
+MUI_Config.config.lua
+Widgets.lua
+ProfileManager.lua
+LayoutSwitcher.lua
+Objects\ListFrame.lua

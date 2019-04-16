@@ -1,6 +1,0 @@
-## Interface: 80000
-## Title: |cff00ccffMUI|r Cast Bars
-## Dependencies: MUI_Core
-
-init.lua
-config.lua

@@ -1,9 +1,14 @@
-## Interface: 80000
+## Interface: 80100
 ## Title: |cff00ccffMUI|r Chat
 ## Dependencies: MUI_Core
 ## OptionalDeps: MUI_Config
 
-init.lua
-layout_switch.lua
-buttons.lua
-config.lua
+MUI_Chat.lua
+
+ButtonHandlers.lua
+ChatFrame.lua
+
+BlizzardFrames/ChatFrame.lua
+BlizzardFrames/RaidFrameManager.lua
+
+MUI_Chat.config.lua

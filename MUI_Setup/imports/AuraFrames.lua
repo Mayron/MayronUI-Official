@@ -658,6 +658,6 @@ setup.import["AuraFrames"] = function()
 		},
 	};
 	for k, v in pairs(settings) do
-		AuraFramesDB.profiles[k] = v;
+		_G.AuraFramesDB.profiles[k] = v;
 	end
 end

@@ -1,0 +1,17 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+    <Script file="BottomUI\Container.lua"/>
+    <Script file="BottomUI\UnitPanels.lua"/>
+    <Script file="BottomUI\ResourceBars.lua"/>
+    <Script file="BottomUI\ResourceBars\ExperienceBar.lua"/>
+    <Script file="BottomUI\ResourceBars\ReputationBar.lua"/>
+    <Script file="BottomUI\ResourceBars\ArtifactBar.lua"/>
+    <Script file="BottomUI\ResourceBars\AzeriteBar.lua"/>
+    <Script file="BottomUI\ActionBarPanel.lua"/>
+    <Script file="SideBar.lua"/>
+    <Script file="AFKDisplay.lua"/>
+    <Script file="OrderHallCommandBar.lua"/>
+    <Script file="MovableFrames.lua"/>
+    <Script file="Tutorial.lua"/>
+    <Script file="BagnonChanges.lua"/>
+</Ui>

@@ -1,33 +1,26 @@
-## Interface: 80000
+## Interface: 80100
 ## Title: |cff00ccffMUI|r Core
-## SavedVariables: MUIdb
-## Version: 5.3.3
+## SavedVariables: MayronUIdb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
+## Version: 6.0.5.4
 
-## libs:
-libs/LibStub.lua
-libs/LibMayronDB.lua
-libs/LibSharedMedia-3.0/CallbackHandler-1.0.lua
-libs/LibSharedMedia-3.0/LibSharedMedia-3.0.lua
-libs/AceLocale-3.0/AceLocale-3.0.lua 
+## X-InterfaceName: MayronUI Gen6
+
+## Libraries:
+Libs\LibStub.lua
+Libs\LibMayronObjects-2.8\LibMayronObjects.xml
+Libs\LibMayronDB-2.3\LibMayronDB.lua
+Libs\LibMayronEvents-1.1.lua
+Libs\LibMayronGUI-1.0\LibMayronGUI.xml
+Libs\LibSharedMedia-3.0\CallbackHandler-1.0.lua
+Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
+Libs\AceLocale-3.0.lua
 
 ## Localization
-locales/enUS.lua
-locales/deDE.lua
-locales/frFR.lua
+Locales\Locales.xml
 
-## MUI API's:
-APIs/toolkit.lua
-APIs/event_manager.lua
-APIs/gui_builder.lua
-APIs/reskinner.lua
+## Engine:
+Engine\MUI_Core.xml
 
-## initializer:
-init.lua
-
-## core modules:
-data_text.lua
-bottom_ui.lua
-afk_display.lua
-sidebar.lua
-OrderHallCommandBar.lua
+## Modules:
+Modules\Modules.xml

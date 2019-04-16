@@ -1,0 +1,19 @@
+## Interface: 80100
+## Title: |cff00ccffMUI|r DataText
+## Dependencies: MUI_Core
+## OptionalDeps: MUI_Config
+
+MUI_DataText.lua
+
+Components\CombatTimer.lua
+Components\Currency.lua
+Components\Durability.lua
+Components\Friends.lua
+Components\Guild.lua
+Components\Inventory.lua
+Components\Memory.lua
+Components\None.lua
+Components\Performance.lua
+Components\Specialization.lua
+
+MUI_DataText.config.lua

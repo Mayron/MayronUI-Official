@@ -1,0 +1,10 @@
+# Exclude everything by default
+/*
+
+# Except AddOns prefixed with "MUI_"
+!/MUI_*
+!/LibMayronDB
+!/LibMayronObjects
+
+!.github
+!.gitignore

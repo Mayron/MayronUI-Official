@@ -1,0 +1,6 @@
+## Interface: 80100
+## Title: |cff00ccffMUI|r Cast Bars
+## Dependencies: MUI_Core
+
+MUI_CastBars.lua
+MUI_CastBars.config.lua

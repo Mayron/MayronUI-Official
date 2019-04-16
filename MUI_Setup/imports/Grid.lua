@@ -780,6 +780,6 @@ setup.import["Grid"] = function()
 		},
 	};
 	for k, v in pairs(settings) do
-		GridDB[k] = v;
+		_G.GridDB[k] = v;
 	end
 end
