@@ -641,6 +641,7 @@ do
                 local currentTime = GetTime();
                 local barRemoved;
                 local changed = data.barAdded;
+				local auraInfo;
 
                 repeat
                     -- Remove expired bars:
@@ -678,6 +679,11 @@ do
 
                     ---@param bar TimerBar
                     for i, bar in ipairs(data.activeBars) do
+						auraInfo = GetAuraInfoByAuraID(self.field:GetUnitID(), bar.auraId, bar.AuraType);
+						if (CanTrackAura(auraInfo)) then
+							bar:UpdateAura(auraInfo);
+						end
+					
                         if (i <= data.settings.bar.maxBars) then
                             -- make visible
                             bar:Show();
