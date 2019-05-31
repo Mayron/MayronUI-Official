@@ -23,14 +23,6 @@ function C_MiniMapModule:GetConfigTable()
                 tooltip = tk.Strings:Join("\n", "Adjust the size of the minimap.", L["Default value is "].."200"),
                 appendDbPath = "size",
             };
-            {   name = "Height",
-                type = "slider",
-                valueType = "number",
-                min = 50;
-                max = 500;
-                tooltip = tk.Strings:Join("\n", "Adjust the height of the minimap.", L["Default value is "].."200"),
-                appendDbPath = "height",
-            };
             {   name = "Scale",
                 type = "slider",
                 valueType = "number",
