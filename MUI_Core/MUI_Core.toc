@@ -2,7 +2,7 @@
 ## Title: |cff00ccffMUI|r Core
 ## SavedVariables: MayronUIdb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
-## Version: 6.0.5.4
+## Version: 6.0.5.5
 
 ## X-InterfaceName: MayronUI Gen6
 

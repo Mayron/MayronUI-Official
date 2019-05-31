@@ -80,6 +80,7 @@ local function TransferWidgetAttributes(widget, widgetTable)
     widget.valueType        = widgetTable.valueType;
     widget.min              = widgetTable.min;
     widget.max              = widgetTable.max;
+    widget.step             = widgetTable.step;
     widget.OnClick          = widgetTable.OnClick;
     widget.data             = widgetTable.data;
     widget.useIndexes       = widgetTable.useIndexes;

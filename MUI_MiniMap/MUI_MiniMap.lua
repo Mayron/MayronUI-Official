@@ -1,9 +1,12 @@
 -- luacheck: ignore MayronUI self 143
+local _, namespace = ...;
 local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 
 -- Register and Import ---------
 
+---@class DataTextModule : BaseModule
 local C_MiniMapModule = MayronUI:RegisterModule("MiniMap");
+namespace.C_MiniMapModule = C_MiniMapModule;
 
 local _G = _G;
 local Minimap, math, table, C_Timer, Minimap_ZoomIn, Minimap_ZoomOut, GameTooltip, IsAltKeyDown,
@@ -14,16 +17,24 @@ _G.IsAltKeyDown, _G.CreateFrame, _G.LoadAddOn, _G.InCombatLockdown, _G.IsAddOnLo
 _G.ToggleHelpFrame, _G.GarrisonLandingPage_Toggle, _G.ToggleDropDownMenu,
 _G.PlaySound, _G.EasyMenu, _G.UIParent, _G.select;
 
+local zoneText = _G.MinimapZoneText;
+local zoneTextButton = _G.MinimapZoneTextButton;
+
 -- Load Database Defaults --------------
 
 db:AddToDefaults("profile.minimap", {
-	point = "TOPRIGHT";
-	relativePoint = "TOPRIGHT";
-	x = -4,
-	y = -4,
-	width = 200,
-	height = 200,
-	scale = 1,
+	point            = "TOPRIGHT";
+	relativePoint    = "TOPRIGHT";
+	x                = -4;
+	y                = -4;
+	size            = 200;
+	scale            = 1;
+	zoneText = {
+		show = false;
+		justify = "CENTER";
+		fontSize = 12;
+		yOffset = -4;
+	};
 });
 
 local Minimap_OnDragStart;
@@ -63,28 +74,59 @@ do
 		Minimap_ZoomIn();
 		Minimap_ZoomOut();
 
-		data.settings.point, data.settings.relativeTo, data.settings.relativePoint,
-			data.settings.x, data.settings.y = Minimap:GetPoint();
+		local tracker = data.settings:GetTrackedTable();
+		tracker.point, tracker.relativeTo, tracker.relativePoint, tracker.x, tracker.y = Minimap:GetPoint();
 
-		data.settings.x = math.floor(data.settings.x + 0.5);
-		data.settings.y = math.floor(data.settings.y + 0.5);
+		tracker.x = math.floor(tracker.x + 0.5);
+		tracker.y = math.floor(tracker.y + 0.5);
 
-		data.settings.width, data.settings.height = Minimap:GetSize();
-		data.settings.width = math.floor(data.settings.width + 0.5);
-		data.settings.height = data.settings.width;
+		tracker.size, tracker.size = Minimap:GetSize();
+		tracker.size = math.floor(tracker.size + 0.5);
 
-		data.settings:SaveChanges();
+		tracker:SaveChanges();
 	end
 end
 
-function C_MiniMapModule:OnInitialize(data)
-	data.settings = db.profile.minimap:GetTrackedTable();
+function C_MiniMapModule:OnInitialize()
+	self:RegisterUpdateFunctions(db.profile.minimap, {
+		size = function(value)
+			Minimap:SetSize(value, value);
 
+			Minimap_ZoomIn();
+			Minimap_ZoomOut();
+		end;
+
+		scale = function(value)
+			Minimap:SetScale(value);
+		end;
+
+        zoneText = {
+			show = function(value)
+				zoneTextButton:SetShown(value);
+            end;
+
+            justify = function(value)
+				zoneText:SetJustifyH(value);
+			end;
+
+			fontSize = function(value)
+				tk:SetFontSize(zoneText, value);
+			end;
+
+			yOffset = function(value)
+				zoneTextButton:ClearAllPoints();
+				zoneTextButton:SetPoint("TOPLEFT", 4, value);
+				zoneTextButton:SetPoint("BOTTOMRIGHT", _G.MinimapCluster, "TOPRIGHT", -4, -10 + value);
+            end;
+        };
+	});
+
+	self:SetEnabled(true); -- execute all update functions!
+end
+
+function C_MiniMapModule:OnInitialized(data)
 	Minimap:ClearAllPoints();
 	Minimap:SetPoint(data.settings.point, _G.UIParent, data.settings.relativePoint, data.settings.x, data.settings.y);
-	Minimap:SetWidth(data.settings.width);
-	Minimap:SetHeight(data.settings.height);
-	Minimap:SetScale(data.settings.scale);
 	Minimap:SetMaskTexture('Interface\\ChatFrame\\ChatFrameBackground'); -- make rectangle
 
 	tk:KillElement(_G.MiniMapInstanceDifficulty);
@@ -94,10 +136,14 @@ function C_MiniMapModule:OnInitialize(data)
 	_G.MinimapBorderTop:Hide();
 	_G.MinimapZoomIn:Hide();
 	_G.MinimapZoomOut:Hide();
-	_G.MinimapZoneTextButton:Hide();
 	_G.GameTimeFrame:Hide();
 	_G.MiniMapWorldMapButton:Hide();
 	_G.MinimapNorthTag:SetTexture("");
+
+	tk:ApplyThemeColor(zoneText);
+	zoneText.SetTextColor = tk.Constants.DUMMY_FUNC;
+	zoneText:ClearAllPoints();
+	zoneText:SetAllPoints(true);
 
 	-- LFG Icon:
 	_G.QueueStatusMinimapButton:SetParent(Minimap);
@@ -191,15 +237,17 @@ function C_MiniMapModule:OnInitialize(data)
 
 	Minimap:HookScript("OnMouseDown", function(self, button)
 		if ((IsAltKeyDown()) and (button == "LeftButton")) then
-			if (data.settings.Tooltip) then
-				data.settings.Tooltip = nil;
+			local tracker = data.setitngs:GetTrackedTable();
+
+			if (tracker.Tooltip) then
+				tracker.Tooltip = nil;
 				Minimap:GetScript("OnEnter")(Minimap);
 			else
-				data.settings.Tooltip = true;
+				tracker.Tooltip = true;
 				GameTooltip:Hide();
 			end
 
-			data.settings:SaveChanges();
+			tracker:SaveChanges();
 		end
 	end);
 

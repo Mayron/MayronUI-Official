@@ -197,15 +197,24 @@ end
 --------------
 
 local function Slider_OnValueChanged(self, value)
-    value = math.floor(value + 0.5);
+    value = tk.Numbers:ToPrecision(value, self.precision);
     self.Value:SetText(value);
     configModule:SetDatabaseValue(self.configContainer, value);
+end
+
+local function Slider_OnEnable(self)
+    self:SetAlpha(1);
+end
+
+local function Slider_OnDisable(self)
+    self:SetAlpha(0.7);
 end
 
 function WidgetHandlers.slider(parent, widgetTable, value)
     local slider = CreateFrame("Slider", nil, parent, "OptionsSliderTemplate");
 
     slider.tooltipText = widgetTable.tooltip;
+    slider.precision = widgetTable.precision or 1;
     slider:SetMinMaxValues(widgetTable.min, widgetTable.max);
     slider:SetValueStep(widgetTable.step or 1);
     slider:SetObeyStepOnDrag(true);
@@ -225,6 +234,8 @@ function WidgetHandlers.slider(parent, widgetTable, value)
     slider:SetSize(widgetTable.width or 150, 20);
 
     slider:SetScript("OnValueChanged", Slider_OnValueChanged);
+    slider:SetScript("OnEnable", Slider_OnEnable);
+    slider:SetScript("OnDisable", Slider_OnDisable);
 
     local container = CreateElementContainerFrame(slider, widgetTable, parent);
     container:SetHeight(container:GetHeight() + 20); -- make room for value text
