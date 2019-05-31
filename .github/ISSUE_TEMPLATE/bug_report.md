@@ -6,9 +6,15 @@ about: Create a report to help us debug
 
 **What version of MayronUI were you using when the bug occured?**
 
-You can find this out by opening up MUI Config menu (/mui config) and it will be in the bottom left corner (or in the MUI installer window).
+```
 
-**If you are using an out of date version of the UI then please update to the latest version of the UI to see if this bug can be reproduced before continuing.**
+You can find the version you are using by opening up MUI Config menu (/mui config) 
+and it will be in the bottom left corner (or in the MUI installer window (/mui install)).
+
+If you are using an out of date version of the UI then please update to 
+the latest version of the UI to see if this bug can be reproduced before continuing.
+
+```
 
 **Describe the bug**
 
@@ -18,7 +24,7 @@ A clear and concise description of what the bug is.
 
 Yes/No
 
-**What were you doing when the bug occured (i.e. were you in a raid, in a battleground, etc?)**
+**What were you doing when the bug occured (e.g. were you in a raid, in a battleground, etc...)**
 
 Please describe what your character was doing in WoW when the bug occured.
 
@@ -30,7 +36,7 @@ Steps to reproduce the behavior:
 3. Scroll down to '....'
 4. See error
 
-**(If applicable) Class, Level, Specialisation, Faction and Location**
+**(If applicable) Class, Level, Specialisation, Race, Faction and Location**
 
 What character were you playing on (class, level, faction, etc...) and where were you in the game when this occurred?
 
