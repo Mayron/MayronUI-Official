@@ -30,11 +30,11 @@ Steps to reproduce the behavior:
 3. Scroll down to '....'
 4. See error
 
-**(Optional) Class, Level, Faction and Location**
+**(If applicable) Class, Level, Specialisation, Faction and Location**
 
 What character were you playing on (class, level, faction, etc...) and where were you in the game when this occurred?
 
-**Screenshot/s (if necessary)**
+**(If applicable) Screenshot/s**
 
 If applicable, add screenshots to help explain your problem (you can drag and drop images into the textbox to upload them).
 
