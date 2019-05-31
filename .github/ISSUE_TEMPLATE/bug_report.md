@@ -8,8 +8,8 @@ about: Create a report to help us debug
 
 ```
 
-You can find the version by opening up MUI Config menu (/mui config) 
-and it will be in the bottom left corner (or in the MUI installer window).
+You can find the version you are using by opening up MUI Config menu (/mui config) 
+and it will be in the bottom left corner (or in the MUI installer window (/mui install)).
 
 If you are using an out of date version of the UI then please update to 
 the latest version of the UI to see if this bug can be reproduced before continuing.
