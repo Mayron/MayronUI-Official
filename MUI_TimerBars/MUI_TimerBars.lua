@@ -21,16 +21,6 @@ local UNKNOWN_AURA_TYPE = "Unknown aura type '%s'.";
 local DEBUFF_MAX_DISPLAY = _G.DEBUFF_MAX_DISPLAY;
 local BUFF_MAX_DISPLAY = _G.BUFF_MAX_DISPLAY;
 local ICON_GAP = -1;
-
-local SUB_EVENT_NAMES = {
-	SPELL_AURA_REFRESH        = "SPELL_AURA_REFRESH";
-    SPELL_AURA_APPLIED        = "SPELL_AURA_APPLIED";
-    SPELL_AURA_APPLIED_DOSE   = "SPELL_AURA_APPLIED_DOSE";
-    UNIT_DESTROYED            = "UNIT_DESTROYED";
-    UNIT_DIED                 = "UNIT_DIED";
-    UNIT_DISSIPATES           = "UNIT_DISSIPATES";
-};
-
 local OnCombatLogEvent, CheckUnitAuras;
 
 -- Objects -----------------------------
@@ -364,39 +354,50 @@ function C_TimerBarsModule:GetTimerField(data, fieldName)
 end
 
 -- Local Functions -------------------
+do
+    local SUB_EVENT_NAMES = {
+        SPELL_AURA_REFRESH        = "SPELL_AURA_REFRESH";
+        SPELL_AURA_APPLIED        = "SPELL_AURA_APPLIED";
+        SPELL_AURA_APPLIED_DOSE   = "SPELL_AURA_APPLIED_DOSE";
+        SPELL_AURA_REMOVED_DOSE   = "SPELL_AURA_REMOVED_DOSE";
+        UNIT_DESTROYED            = "UNIT_DESTROYED";
+        UNIT_DIED                 = "UNIT_DIED";
+        UNIT_DISSIPATES           = "UNIT_DISSIPATES";
+    };
 
-function OnCombatLogEvent()
-    local payload = obj:PopTable(CombatLogGetCurrentEventInfo());
-    local subEvent = payload[2];
+    function OnCombatLogEvent()
+        local payload = obj:PopTable(CombatLogGetCurrentEventInfo());
+        local subEvent = payload[2];
 
-    if (SUB_EVENT_NAMES[subEvent]) then
-        local sourceGuid = payload[4];
-        local destGuid = payload[8];
+        if (SUB_EVENT_NAMES[subEvent]) then
+            local sourceGuid = payload[4];
+            local destGuid = payload[8];
 
-        if (subEvent:find("UNIT")) then
-            for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
-                local unitID = field:GetUnitID();
+            if (subEvent:find("UNIT")) then
+                for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
+                    local unitID = field:GetUnitID();
 
-                if (UnitGUID(destGuid) == unitID) then
-                    field:Hide();
+                    if (UnitGUID(destGuid) == unitID) then
+                        field:Hide();
+                    end
+                end
+            else
+                -- guaranteed to always be the same for all registered events:
+                local auraId = payload[12];
+                local auraName = payload[13];
+                local auraType = payload[15];
+
+                obj:Assert(auraType == BUFF or auraType == DEBUFF, UNKNOWN_AURA_TYPE, auraType);
+
+                ---@param field TimerField
+                for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
+                    field:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType);
                 end
             end
-        else
-            -- guaranteed to always be the same for all registered events:
-            local auraId = payload[12];
-            local auraName = payload[13];
-            local auraType = payload[15];
-
-            obj:Assert(auraType == BUFF or auraType == DEBUFF, UNKNOWN_AURA_TYPE, auraType);
-
-            ---@param field TimerField
-            for _, field in obj:IterateArgs(timerBarsModule:GetEnabledTimerFields()) do
-                field:UpdateBarsByAura(sourceGuid, destGuid, auraId, auraName, auraType);
-            end
         end
-    end
 
-    obj:PushTable(payload)
+        obj:PushTable(payload)
+    end
 end
 
 function CheckUnitAuras()
