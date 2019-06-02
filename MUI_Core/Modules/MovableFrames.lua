@@ -301,6 +301,10 @@ do
 
 	Engine:DefineParams("Frame", "boolean", "?table");
 	function C_MovableFramesModule:MakeMovable(data, frame, dontSave, tbl)
+		if (InCombatLockdown()) then
+			return;
+		end
+
 		frame:SetMovable(true);
 		frame:EnableMouse(true);
 		frame:RegisterForDrag("LeftButton");

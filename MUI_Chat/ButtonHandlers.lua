@@ -9,14 +9,15 @@ local _G = _G;
 local LoadAddOn, ToggleCharacter, ToggleBackpack, OpenAllBags, ContainerFrame1, IsTrialAccount, IsInGuild,
 ToggleGuildFrame, ToggleFriendsFrame, ToggleHelpFrame, UnitLevel, TogglePVPUI, ToggleFrame, ToggleWorldMap,
 ToggleAchievementFrame, ToggleCalendar, ToggleLFDParentFrame, ToggleRaidFrame, ToggleEncounterJournal,
-ToggleQuestLog, UnitInBattleground, ToggleWorldStateScoreFrame =
+ToggleQuestLog, UnitInBattleground, ToggleWorldStateScoreFrame, ToggleCollectionsJournal =
 _G.LoadAddOn, _G.ToggleCharacter, _G.ToggleBackpack, _G.OpenAllBags, _G.ContainerFrame1, _G.IsTrialAccount,
 _G.IsInGuild, _G.ToggleGuildFrame, _G.ToggleFriendsFrame, _G.ToggleHelpFrame, _G.UnitLevel, _G.TogglePVPUI,
 _G.ToggleFrame, _G.ToggleWorldMap, _G.ToggleAchievementFrame, _G.ToggleCalendar, _G.ToggleLFDParentFrame,
-_G.ToggleRaidFrame, _G.ToggleEncounterJournal, _G.ToggleQuestLog, _G.UnitInBattleground, _G.ToggleWorldStateScoreFrame;
+_G.ToggleRaidFrame, _G.ToggleEncounterJournal, _G.ToggleQuestLog, _G.UnitInBattleground, _G.ToggleWorldStateScoreFrame,
+_G.ToggleCollectionsJournal;
 
 local SpellBookFrame = _G.SpellBookFrame;
-local PlayerTalentFrame, CollectionsJournal, MacroFrame = _G.PlayerTalentFrame, _G.CollectionsJournal, _G.MacroFrame;
+local PlayerTalentFrame, MacroFrame = _G.PlayerTalentFrame, _G.MacroFrame;
 
 namespace.ButtonNames = {
     L["Character"],
@@ -127,14 +128,10 @@ clickHandlers[namespace.ButtonNames[14]] = ToggleEncounterJournal;
 
 -- Collections Journal
 clickHandlers[namespace.ButtonNames[15]] = function()
-    if (not CollectionsJournal) then
-        LoadAddOn("Blizzard_Collections");
-        CollectionsJournal = _G.CollectionsJournal;
-    end
-    ToggleFrame(CollectionsJournal);
+    ToggleCollectionsJournal();
 end
 
--- Macros
+-- -- Macros
 clickHandlers[namespace.ButtonNames[16]] = function()
     if (not MacroFrame) then
         LoadAddOn("Blizzard_MacroUI");
@@ -173,8 +170,12 @@ clickHandlers[namespace.ButtonNames[21]] = function()
 end
 
 local function ChatButton_OnClick(self)
-    local text = self:GetText();
-    clickHandlers[text]();
+    if (_G.InCombatLockdown()) then
+        tk:Print("Cannot toggle menu while in combat.");
+        return;
+    end
+
+    clickHandlers[self:GetText()]();
 end
 
 local function ChatFrame_OnModifierStateChanged(_, _, data)
