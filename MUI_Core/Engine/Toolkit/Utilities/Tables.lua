@@ -296,8 +296,7 @@ function tk.Tables:GetDBObject(addOnName)
 
     if (not dbObject) then
         for dbName, dbTable in pairs(addon) do
-            -- removed condition: "and dbName:find("db")"
-            if (obj:IsTable(dbTable) and obj:IsString(dbName) and dbTable.profile) then
+            if (obj:IsTable(dbTable) and dbTable.profile and obj:IsString(dbName) and dbName:find("db")) then
                 dbObject = dbTable;
                 break;
             end
