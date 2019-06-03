@@ -33,7 +33,7 @@ local function OnHyperLinkEnter(self, linkData)
 	end
 end
 
-local function OnHyperLinkClick(self, linkData, text, button) -- self, linkData, text, button
+local function OnHyperLinkClick(self, linkData, text, button)
 	local linkType, value = linkData:match("(%a+):(.+)");
 
 	if (linkType == "url") then
@@ -43,10 +43,10 @@ local function OnHyperLinkClick(self, linkData, text, button) -- self, linkData,
 		editbox:SetText(value);
 		editbox:SetFocus();
 		editbox:HighlightText();
-	elseif (linkData ~= "weakauras") then
-		_G.SetItemRef(linkData, text, button, self);
-	else
+	elseif (linkData == "weakauras") then
 		_G.ChatFrame_OnHyperlinkShow(self, linkData, text, button);
+	else
+		_G.SetItemRef(linkData, text, button, self);
 	end
 end
 
