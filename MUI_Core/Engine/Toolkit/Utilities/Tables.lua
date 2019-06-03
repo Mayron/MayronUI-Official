@@ -295,16 +295,11 @@ function tk.Tables:GetDBObject(addOnName)
     dbObject = addon.db;
 
     if (not dbObject) then
-
-        for dbName, _ in pairs(addon) do
-            if (dbName:find("db")) then
-
-                if (obj:IsTable(addon[dbName])) then
-                    if (addon[dbName].profile) then
-                        dbObject = addon[dbName];
-                        break;
-                    end
-                end
+        for dbName, dbTable in pairs(addon) do
+            -- removed condition: "and dbName:find("db")"
+            if (obj:IsTable(dbTable) and obj:IsString(dbName) and dbTable.profile) then
+                dbObject = dbTable;
+                break;
             end
         end
     end
