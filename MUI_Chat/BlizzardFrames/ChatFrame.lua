@@ -23,7 +23,7 @@ local function OnHyperLinkLeave()
 	_G.GameTooltip:Hide();
 end
 
-local function OnHyperlinkEnter(self, linkData)
+local function OnHyperLinkEnter(self, linkData)
 	local linkType = string.split(":", linkData);
 
 	if (tk:ValueIsEither(linkType, "item", "spell", "enchant", "quest", "talent", "glyph", "unit", "achievement")) then
@@ -33,7 +33,7 @@ local function OnHyperlinkEnter(self, linkData)
 	end
 end
 
-local function OnHyperlinkClick(self, linkData, link, button)
+local function OnHyperLinkClick(self, linkData, text, button) -- self, linkData, text, button
 	local linkType, value = linkData:match("(%a+):(.+)");
 
 	if (linkType == "url") then
@@ -43,8 +43,10 @@ local function OnHyperlinkClick(self, linkData, link, button)
 		editbox:SetText(value);
 		editbox:SetFocus();
 		editbox:HighlightText();
+	elseif (linkData ~= "weakauras") then
+		_G.SetItemRef(linkData, text, button, self);
 	else
-		_G.SetItemRef(linkData, link, button, self);
+		_G.ChatFrame_OnHyperlinkShow(self, linkData, text, button);
 	end
 end
 
@@ -126,9 +128,9 @@ function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
 		-- if not combat log...
 		chatFrame.oldAddMessage = chatFrame.AddMessage;
 		chatFrame.AddMessage = NewAddMessage;
-		chatFrame:SetScript("OnHyperLinkEnter", OnHyperlinkEnter);
+		chatFrame:SetScript("OnHyperLinkEnter", OnHyperLinkEnter);
 		chatFrame:SetScript("OnHyperLinkLeave", OnHyperLinkLeave);
-		chatFrame:SetScript("OnHyperlinkClick", OnHyperlinkClick);
+		chatFrame:SetScript("OnHyperlinkClick", OnHyperLinkClick);
 	end
 
 	local tab = _G[string.format("%sTab", chatFrameName)];
