@@ -28,8 +28,13 @@ function MayronUI:GetCoreComponents()
     return tk, db, em, gui, obj, L;
 end
 
-function MayronUI:GetCoreComponent(componentName)
-    return namespace.components[componentName];
+function MayronUI:GetCoreComponent(componentName, silent)
+    tk:Assert(silent or obj:IsString(componentName), "Invalid component '%s'", componentName);
+
+    local component = namespace.components[componentName];
+    tk:Assert(silent or obj:IsTable(component), "Invalid component '%s'", componentName);
+
+    return component;
 end
 
 ---Get a single component registered with the MayronUI Engine
@@ -459,15 +464,7 @@ end
 ---@param eventName string @The name of the module event to hook (i.e. "OnInitialize", "OnEnable", etc...).
 ---@param func function @A callback function to execute when the module's event is triggered.
 function MayronUI:Hook(moduleKey, eventName, func)
-    local registryInfo = registeredModules[moduleKey];
-
-    if (not registryInfo) then
-        -- addon is disabled so cannot hook
-        return;
-    end
-
-    local eventHooks = tk.Tables:GetTable(registryInfo, "hooks", eventName);
-
+    local eventHooks = tk.Tables:GetTable(registeredModules, moduleKey, "hooks", eventName);
     table.insert(eventHooks, func);
 end
 
@@ -506,7 +503,7 @@ function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
     local moduleInstance = ModuleClass();
 
     -- must add it to the registeredModules table before calling parent constructor!
-    registeredModules[moduleKey] = obj:PopTable();
+    registeredModules[moduleKey] = registeredModules[moduleKey] or obj:PopTable();
     registeredModules[moduleKey].instance = moduleInstance;
     registeredModules[moduleKey].class = ModuleClass;
 
