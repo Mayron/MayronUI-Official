@@ -1,19 +1,16 @@
--- luacheck: ignore MayronUI self 143 631
+-- luacheck: ignore self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local Private = {};
-local ObjectiveTrackerFrame, InCombatLockdown, IsInInstance, IsAddOnLoaded, UIFrameFadeIn, UIFrameFadeOut,
-ObjectiveTracker_Collapse, ObjectiveTracker_Update, ObjectiveTracker_Expand, math, tostring, CreateFrame,
-C_Timer, UIParent, PlaySound =
-_G.ObjectiveTrackerFrame, _G.InCombatLockdown, _G.IsInInstance, _G.IsAddOnLoaded, _G.UIFrameFadeIn, _G.UIFrameFadeOut,
-_G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update, _G.ObjectiveTracker_Expand, _G.math,
+local InCombatLockdown, IsAddOnLoaded, UIFrameFadeIn, UIFrameFadeOut, math, tostring, CreateFrame,
+C_Timer, UIParent, PlaySound = _G.InCombatLockdown, _G.IsAddOnLoaded, _G.UIFrameFadeIn, _G.UIFrameFadeOut, _G.math,
 _G.tostring, _G.CreateFrame, _G.C_Timer, _G.UIParent, _G.PlaySound;
 
 -- Register and Import Modules -----------
 
-local C_SideBar = MayronUI:RegisterModule("SideBarModule", "Side Action Bar");
+local C_SideBarModule = MayronUI:RegisterModule("SideBarModule", "Side Action Bar");
 
 -- Add Database Defaults -----------------
 
@@ -37,16 +34,6 @@ db:AddToDefaults("profile.sidebar", {
         control = true;
         [1] = "Bar 3"; -- first bar
         [2] = "Bar 4"; -- second bar
-    };
-
-    objectiveTracker = {
-        enabled = true;
-        hideInInstance = true;
-        anchoredToSideBars = true;
-        width = 250;
-        height = 600;
-        xOffset = -30;
-        yOffset = 0;
     };
 });
 
@@ -211,9 +198,9 @@ local function SideButton_OnLeave(self)
     self:SetAlpha(0);
 end
 
--- C_SideBar -----------------------
+-- C_SideBarModule -----------------------
 
-function C_SideBar:OnInitialize(data)
+function C_SideBarModule:OnInitialize(data)
     local options = {
         onExecuteAll = {
             ignore = {
@@ -247,10 +234,6 @@ function C_SideBar:OnInitialize(data)
         yOffset = function(value)
             local p, rf, rp, x = data.panel:GetPoint();
             data.panel:SetPoint(p, rf, rp, x, value);
-        end;
-
-        objectiveTracker = function()
-            self:SetObjectiveTrackerEnabled(data.settings.objectiveTracker.enabled);
         end;
 
         bartender = function()
@@ -306,7 +289,7 @@ function C_SideBar:OnInitialize(data)
     end
 end
 
-function C_SideBar:OnEnable(data)
+function C_SideBarModule:OnEnable(data)
     Private.step = data.settings.animationSpeed;
     self:CreateSideBar();
 
@@ -319,7 +302,7 @@ function C_SideBar:OnEnable(data)
     end);
 end
 
-function C_SideBar:SetButtonsHideInCombat(data, hide)
+function C_SideBarModule:SetButtonsHideInCombat(data, hide)
     if (hide) then
         em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "SideBar_HideInCombat_RegenEnabled", function()
             data.expand:SetShown(data.settings.barsShown ~= 2);
@@ -353,68 +336,9 @@ function C_SideBar:SetButtonsHideInCombat(data, hide)
     end
 end
 
-function C_SideBar:SetObjectiveTrackerEnabled(data, enabled)
-    if (not enabled and not data.objectiveContainer) then
-        return;
-    end
-
-    if (not data.objectiveContainer) then
-        -- holds and controls blizzard objectives tracker frame
-        data.objectiveContainer = _G.CreateFrame("Frame", nil, UIParent);
-
-        -- blizzard objective tracker frame global variable
-        ObjectiveTrackerFrame:SetClampedToScreen(false);
-        ObjectiveTrackerFrame:SetParent(data.objectiveContainer);
-        ObjectiveTrackerFrame:SetAllPoints(true);
-
-        ObjectiveTrackerFrame.ClearAllPoints = tk.Constants.DUMMY_FUNC;
-        ObjectiveTrackerFrame.SetParent = tk.Constants.DUMMY_FUNC;
-        ObjectiveTrackerFrame.SetPoint = tk.Constants.DUMMY_FUNC;
-        ObjectiveTrackerFrame.SetAllPoints = tk.Constants.DUMMY_FUNC;
-    end
-
-    local settings = data.settings.objectiveTracker;
-    data.objectiveContainer:SetSize(settings.width, settings.height);
-    data.objectiveContainer:ClearAllPoints();
-
-    if (settings.anchoredToSideBars) then
-        data.objectiveContainer:SetPoint("TOPRIGHT", data.panel, "TOPLEFT", settings.xOffset, settings.yOffset);
-    else
-        data.objectiveContainer:SetPoint("CENTER", settings.xOffset, settings.yOffset);
-    end
-
-    if (not data.settings.objectiveTracker.hideInInstance) then
-        em:DestroyEventHandlerByKey("ObjectiveTracker_InInstance");
-        print("Destroyed event")
-        return;
-    end
-
-    em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "ObjectiveTracker_InInstance", function()
-        local inInstance = IsInInstance();
-
-        if (inInstance) then
-            if (not ObjectiveTrackerFrame.collapsed) then
-                ObjectiveTracker_Collapse();
-                data.previouslyCollapsed = true;
-            end
-        else
-            if (ObjectiveTrackerFrame.collapsed and data.previouslyCollapsed) then
-                ObjectiveTracker_Expand();
-                ObjectiveTracker_Update();
-            end
-
-            data.previouslyCollapsed = nil;
-        end
-    end);
-
-    if (IsInInstance()) then
-        em:TriggerEventHandlerByKey("ObjectiveTracker_InInstance");
-    end
-end
-
 -- SideBar Object -------------------------
 
-function C_SideBar:Expand(data, expandAmount)
+function C_SideBarModule:Expand(data, expandAmount)
     if (InCombatLockdown()) then
         return;
     end
@@ -430,7 +354,7 @@ function C_SideBar:Expand(data, expandAmount)
     end
 end
 
-function C_SideBar:Retract(data, retractAmount)
+function C_SideBarModule:Retract(data, retractAmount)
     if (InCombatLockdown()) then
         return;
     end
@@ -446,7 +370,7 @@ function C_SideBar:Retract(data, retractAmount)
     end
 end
 
-function C_SideBar:SetBarsShown(data, numBarsShown)
+function C_SideBarModule:SetBarsShown(data, numBarsShown)
     data.settings.barsShown = numBarsShown;
     db.profile.sidebar.barsShown = numBarsShown;
 
@@ -501,7 +425,7 @@ function C_SideBar:SetBarsShown(data, numBarsShown)
     end
 end
 
-function C_SideBar:CreateSideBar(data)
+function C_SideBarModule:CreateSideBar(data)
     if (data.panel) then
         return;
     end
@@ -529,7 +453,11 @@ function C_SideBar:CreateSideBar(data)
     data.retract:SetText(">");
 end
 
-function C_SideBar:SetBartenderBars(data)
+function C_SideBarModule:GetPanel(data)
+    return data.panel;
+end
+
+function C_SideBarModule:SetBartenderBars(data)
     if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
         return;
     end

@@ -8,6 +8,7 @@
     <Script file="BottomUI\ResourceBars\ArtifactBar.lua"/>
     <Script file="BottomUI\ResourceBars\AzeriteBar.lua"/>
     <Script file="BottomUI\ActionBarPanel.lua"/>
+    <Script file="ObjectiveTracker.lua"/>
     <Script file="SideBar.lua"/>
     <Script file="AFKDisplay.lua"/>
     <Script file="OrderHallCommandBar.lua"/>
