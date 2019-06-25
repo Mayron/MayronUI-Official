@@ -1,4 +1,4 @@
-## Interface: 80100
+## Interface: 80200
 ## Title: |cff00ccffMUI|r Timer Bars
 ## Dependencies: MUI_Core
 ## SavedVariables: MUI_TimerBarsDb

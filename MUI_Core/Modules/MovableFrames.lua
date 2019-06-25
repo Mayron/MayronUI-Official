@@ -108,7 +108,12 @@ local function GetFrame(frameName)
 		end
 	end
 
-	obj:Assert(obj:IsTable(frame), "Could not find frame '%s'", frameName);
+	-- TODO: Enable these type of errors in DevMode
+	-- obj:Assert(obj:IsTable(frame), "Could not find frame '%s'", frameName);
+
+	if (not obj:IsTable(frame)) then
+		return nil;
+	end
 
 	return frame;
 end
@@ -116,11 +121,11 @@ end
 Engine:DefineParams("string|table", "boolean");
 function C_MovableFramesModule:ExecuteMakeMovable(_, value, dontSave)
 	if (obj:IsString(value)) then
-		self:MakeMovable(GetFrame(value), dontSave);
+		self:MakeMovable(dontSave, GetFrame(value));
 
 	elseif (obj:IsTable(value)) then
 		for _, innerValue in ipairs(value) do
-			self:MakeMovable(GetFrame(innerValue), dontSave, value);
+			self:MakeMovable(dontSave, GetFrame(innerValue), value);
 		end
 
 		if (obj:IsTable(value.hooked)) then
@@ -129,7 +134,7 @@ function C_MovableFramesModule:ExecuteMakeMovable(_, value, dontSave)
 				if (hookedTbl.tblName) then
 					tk:HookFunc(_G[hookedTbl.tblName], hookedTbl.funcName, function()
 						for _, frameName in ipairs(hookedTbl) do
-							self:MakeMovable(GetFrame(frameName), dontSave, value);
+							self:MakeMovable(dontSave, GetFrame(frameName), value);
 						end
 
 						return true;
@@ -138,7 +143,7 @@ function C_MovableFramesModule:ExecuteMakeMovable(_, value, dontSave)
 				else
 					tk:HookFunc(hookedTbl.funcName, function()
 						for _, frameName in ipairs(hookedTbl) do
-							self:MakeMovable(GetFrame(frameName), dontSave, value);
+							self:MakeMovable(dontSave, GetFrame(frameName), value);
 						end
 						return true;
 					end);
@@ -299,9 +304,9 @@ do
 		end
 	end
 
-	Engine:DefineParams("Frame", "boolean", "?table");
-	function C_MovableFramesModule:MakeMovable(data, frame, dontSave, tbl)
-		if (InCombatLockdown()) then
+	Engine:DefineParams("boolean", "?Frame", "?table");
+	function C_MovableFramesModule:MakeMovable(data, dontSave, frame, tbl)
+		if (InCombatLockdown() or not frame) then
 			return;
 		end
 
@@ -327,20 +332,26 @@ do
 		if (tbl.subFrames) then
 			for _, subFrame in ipairs(tbl.subFrames) do
 				subFrame = GetFrame(subFrame);
-				subFrame:EnableMouse(true);
-				subFrame:RegisterForDrag("LeftButton");
-				subFrame.anchoredFrame = frame;
-				subFrame:SetScript("OnDragStart", SubFrame_OnDragStart);
-				subFrame:SetScript("OnDragStop", SubFrame_OnDragStop);
+
+				if (subFrame) then
+					subFrame:EnableMouse(true);
+					subFrame:RegisterForDrag("LeftButton");
+					subFrame.anchoredFrame = frame;
+					subFrame:SetScript("OnDragStart", SubFrame_OnDragStart);
+					subFrame:SetScript("OnDragStop", SubFrame_OnDragStop);
+				end
 			end
 		end
 
 		if (tbl.clickedFrames) then
 			for _, clickedFrame in ipairs(tbl.clickedFrames) do
 				clickedFrame = GetFrame(clickedFrame);
-				clickedFrame.module = self;
-				clickedFrame.anchoredFrame = frame;
-				clickedFrame:HookScript("OnClick", ClickedFrame_OnClick);
+
+				if (clickedFrame) then
+					clickedFrame.module = self;
+					clickedFrame.anchoredFrame = frame;
+					clickedFrame:HookScript("OnClick", ClickedFrame_OnClick);
+				end
 			end
 		end
 	end

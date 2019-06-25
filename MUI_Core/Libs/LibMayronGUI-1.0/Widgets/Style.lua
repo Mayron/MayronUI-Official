@@ -156,7 +156,7 @@ function Style:ApplyColor(_, colorName, alpha, ...)
         if (objectType == "Texture") then
             local id = element:GetTexture();
 
-            if (not id) then
+            if (not id or id == "FileData ID 0") then
                 element:SetColorTexture(r, g, b, alpha);
             else
                 element:SetVertexColor(r, g, b, alpha);
