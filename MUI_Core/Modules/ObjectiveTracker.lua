@@ -23,7 +23,8 @@ local function UpdateTextColor(block)
         local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
 
         if (questID == block.id) then
-            if (block.HeaderText) then -- received Lua error report from this not existing.
+            -- bonus quests do not have HeaderText
+            if (block.HeaderText) then
                 local difficultyColor = _G.GetQuestDifficultyColor(level, isScaling);
                 block.HeaderText:SetTextColor(difficultyColor.r, difficultyColor.g, difficultyColor.b);
                 block.HeaderText.colorStyle = difficultyColor;
@@ -141,6 +142,8 @@ function C_ObjectiveTracker:OnEnable(data)
     local minButton = ObjectiveTrackerFrame.HeaderMenu.MinimizeButton;
     local upButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\UpButton");
     local downButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\DownButton");
+
+    tk:ApplyThemeColor(minButton);
 
     minButton:SetSize(24, 20);
     minButton:GetNormalTexture():SetTexCoord(0, 1, 0, 1);

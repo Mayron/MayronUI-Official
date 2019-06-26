@@ -2,17 +2,12 @@ local _, setup = ...;
 
 setup.import["TipTac"] = function()
     local settings = {
-        ["fontFace"] = "Interface\\AddOns\\MUI_Core\\media\\font.ttf",
+        ["nameType"] = "title",
 		["showRealm"] = "none",
-		["colReactText4"] = "|cfff0ff00",
-		["barHeight"] = 10,
+		["classification_elite"] = "Level %s|cffffcc00 Elite",
+		["barHeight"] = 15,
 		["tipBackdropEdge"] = "Interface\\Buttons\\WHITE8X8",
-		["colReactBack1"] = {
-			0, -- [1]
-			0, -- [2]
-			0, -- [3]
-			1, -- [4]
-		},
+		["aurasAtBottom"] = false,
 		["backdropEdgeSize"] = 1,
 		["hideFactionText"] = true,
 		["powerBar"] = false,
@@ -22,7 +17,7 @@ setup.import["TipTac"] = function()
 			0, -- [1]
 			0, -- [2]
 			0, -- [3]
-			1, -- [4]
+			0.730000019073486, -- [4]
 		},
 		["tipBorderColor"] = {
 			0, -- [1]
@@ -30,7 +25,7 @@ setup.import["TipTac"] = function()
 			0, -- [3]
 			1, -- [4]
 		},
-		["noCooldownCount"] = false,
+		["powerBarText"] = "percent",
 		["colReactText1"] = "|cffc0c0c0",
 		["healthBarClassColor"] = true,
 		["barFontFlags"] = "OUTLINE",
@@ -44,18 +39,21 @@ setup.import["TipTac"] = function()
 		["enableChatHoverTips"] = false,
 		["colorGuildByReaction"] = true,
 		["barsCondenseValues"] = true,
-		["optionsBottom"] = 439.166687011719,
-		["colReactText3"] = "|cffff7f00",
-		["updateFreq"] = 0.5,
-		["classification_trivial"] = "|rLevel %s",
+		["optionsBottom"] = 448.309631347656,
 		["colReactBack2"] = {
 			0, -- [1]
 			0, -- [2]
 			0, -- [3]
-			1, -- [4]
+			0.730000019073486, -- [4]
 		},
-		["anchorFrameUnitType"] = "normal",
+		["reactColoredBackdrop"] = false,
+		["updateFreq"] = 0.5,
+		["classification_trivial"] = "|rLevel %s",
+		["anchorFrameUnitType"] = "mouse",
 		["showDebuffs"] = false,
+		["left"] = 1836.47619628906,
+		["anchorFrameUnitPoint"] = "BOTTOMLEFT",
+		["colReactText5"] = "|cff0dff00",
 		["manaBar"] = false,
 		["gradientColor"] = {
 			0.8, -- [1]
@@ -63,113 +61,118 @@ setup.import["TipTac"] = function()
 			0.8, -- [3]
 			0.200000047683716, -- [4]
 		},
-		["powerBarText"] = "percent",
-		["top"] = 24,
+		["showGuildRank"] = true,
+		["barFontFace"] = "Interface\\addons\\MUI_Core\\Assets\\Fonts\\MayronUI.ttf",
 		["fadeTime"] = 0,
 		["targetYouText"] = "YOU",
-		["gradientTip"] = false,
-		["showGuildRank"] = true,
+		["auraSize"] = 20,
+		["top"] = 24,
 		["itemQualityBorder"] = true,
-		["barFontFace"] = "Fonts\\FRIZQT__.TTF",
-		["anchorFrameUnitPoint"] = "BOTTOMRIGHT",
-		["colReactText5"] = "|cff0dff00",
-		["barFontSize"] = 10,
-		["gttScale"] = 0.949999988079071,
-		["colReactBack3"] = {
-			0, -- [1]
-			0, -- [2]
-			0, -- [3]
-			1, -- [4]
-		},
+		["gradientTip"] = false,
+		["showHiddenTipsOnShift"] = true,
 		["colReactBack4"] = {
 			0, -- [1]
 			0, -- [2]
 			0, -- [3]
-			1, -- [4]
+			0.730000019073486, -- [4]
 		},
-		["fontSizeDelta"] = 2,
+		["barFontSize"] = 12,
 		["selfAurasOnly"] = true,
-		["classColoredBorder"] = false,
+		["iconAnchor"] = "TOPLEFT",
+		["iconClass"] = false,
+		["fontSizeDelta"] = 2,
+		["if_iconSize"] = 42,
+		["showTalents"] = true,
+		["optionsLeft"] = 723.023986816406,
+		["iconFaction"] = false,
+		["overrideFade"] = true,
+		["colReactBack3"] = {
+			0, -- [1]
+			0, -- [2]
+			0, -- [3]
+			0.730000019073486, -- [4]
+		},
+		["preFadeTime"] = 0,
 		["colReactBack5"] = {
 			0, -- [1]
 			0, -- [2]
 			0, -- [3]
-			1, -- [4]
+			0.730000019073486, -- [4]
 		},
-		["showHiddenTipsOnShift"] = true,
-		["overrideFade"] = true,
-		["if_enable"] = true,
-		["preFadeTime"] = 0,
 		["hideWorldTips"] = true,
-		["if_iconSize"] = 42,
 		["reactText"] = false,
 		["showTarget"] = "last",
-		["showTalents"] = true,
+		["if_enable"] = true,
 		["tipBackdropBG"] = "Interface\\ChatFrame\\ChatFrameBackground",
-		["showUnitTip"] = true,
+		["classification_worldboss"] = "Level %s|cffff0000 Boss",
 		["tipColor"] = {
-			0.0784313725490196, -- [1]
-			0.0784313725490196, -- [2]
-			0.0784313725490196, -- [3]
-			0.910000003874302, -- [4]
+			0, -- [1]
+			0, -- [2]
+			0, -- [3]
+			0.730000019073486, -- [4]
 		},
 		["hideDefaultBar"] = true,
 		["healthBar"] = true,
 		["colRace"] = "|cffddeeaa",
 		["colReactText2"] = "|cffff1900",
-		["mouseOffsetX"] = 0,
-		["classification_normal"] = "Level %s",
-		["colLevel"] = "|cffffcc00",
-		["classification_worldboss"] = "Level %s|cffff0000 Boss",
-		["reactColoredBorder"] = true,
 		["anchorFrameTipType"] = "mouse",
+		["auraMaxRows"] = 3,
+		["colLevel"] = "|cffffcc00",
+		["showUnitTip"] = true,
+		["mouseOffsetX"] = 0,
+		["reactColoredBorder"] = true,
 		["colReactText6"] = "|cff00b9ff",
 		["classification_minus"] = "-%s ",
 		["mouseOffsetY"] = 0,
 		["colSameGuild"] = "|cffff32ff",
 		["modifyFonts"] = true,
-		["optionsLeft"] = 722.008056640625,
+		["iconCombat"] = false,
 		["fontSize"] = 12,
-		["anchorWorldTipType"] = "normal",
+		["anchorWorldTipType"] = "mouse",
 		["classification_rareelite"] = "Level %s|cffffaaff Rare Elite",
 		["colGuild"] = "|cff0869a9",
 		["showBuffs"] = false,
 		["manaBarText"] = "percent",
 		["showTargetedBy"] = false,
-		["barTexture"] = "Interface\\Addons\\Recount\\Textures\\statusbar\\Flat",
+		["barTexture"] = "Interface\\addons\\MUI_Core\\Assets\\Textures\\Widgets\\Button.tga",
 		["iconRaid"] = false,
-		["anchorWorldUnitPoint"] = "BOTTOMRIGHT",
-		["healthBarText"] = "percent",
+		["anchorWorldUnitPoint"] = "BOTTOMLEFT",
+		["classification_normal"] = "Level %s",
 		["backdropInsets"] = 0,
-		["auraMaxRows"] = 3,
+		["healthBarText"] = "percent",
 		["showPlayerGender"] = false,
 		["if_borderlessIcons"] = false,
-		["anchorWorldTipPoint"] = "BOTTOMRIGHT",
+		["anchorWorldTipPoint"] = "BOTTOMLEFT",
 		["colorNameByClass"] = true,
 		["talentFormat"] = 2,
-		["auraSize"] = 20,
-		["anchorWorldUnitType"] = "normal",
+		["classColoredBorder"] = false,
+		["anchorWorldUnitType"] = "mouse",
 		["healthBarColor"] = {
 			0.3, -- [1]
 			0.9, -- [2]
 			0.3, -- [3]
 			1, -- [4]
 		},
-		["iconFaction"] = false,
+		["gttScale"] = 0.949999988079071,
 		["hideUFTipsInCombat"] = true,
-		["classification_elite"] = "Level %s|cffffcc00 Elite",
-		["nameType"] = "title",
-		["aurasAtBottom"] = true,
-		["hideAllTipsInCombat"] = true,
+		["colReactText4"] = "|cfff0ff00",
+		["fontFace"] = "Interface\\addons\\MUI_Core\\Assets\\Fonts\\MayronUI.ttf",
+		["colReactBack1"] = {
+			0, -- [1]
+			0, -- [2]
+			0, -- [3]
+			0.730000019073486, -- [4]
+		},
+		["noCooldownCount"] = false,
 		["colReactBack6"] = {
 			0, -- [1]
 			0, -- [2]
 			0, -- [3]
-			1, -- [4]
+			0.730000019073486, -- [4]
 		},
-		["left"] = 1836.47619628906,
-		["anchorFrameTipPoint"] = "BOTTOM",
-		["reactColoredBackdrop"] = false,
+		["colReactText3"] = "|cffff7f00",
+		["anchorFrameTipPoint"] = "BOTTOMLEFT",
+		["hideAllTipsInCombat"] = true,
 	};
     for k, v in pairs(settings) do
         _G.TipTac_Config[k] = v;
