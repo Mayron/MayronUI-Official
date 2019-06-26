@@ -23,9 +23,12 @@ local function UpdateTextColor(block)
         local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
 
         if (questID == block.id) then
-            local difficultyColor = _G.GetQuestDifficultyColor(level, isScaling);
-            block.HeaderText:SetTextColor(difficultyColor.r, difficultyColor.g, difficultyColor.b);
-            block.HeaderText.colorStyle = difficultyColor;
+            if (block.HeaderText) then -- received Lua error report from this not existing.
+                local difficultyColor = _G.GetQuestDifficultyColor(level, isScaling);
+                block.HeaderText:SetTextColor(difficultyColor.r, difficultyColor.g, difficultyColor.b);
+                block.HeaderText.colorStyle = difficultyColor;
+            end
+
             break;
         end
     end
