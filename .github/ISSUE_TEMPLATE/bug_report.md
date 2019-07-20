@@ -29,10 +29,10 @@ the latest version of the UI to see if this bug can be reproduced before continu
 **5. What language is your WoW client set to (i.e. English, Deutsch)?**
 
 
-**6. (If applicable) Class, Level, Specialisation, Race, Faction and Location**
+**6. (If applicable) Class, Level, Specialisation, Race, Faction and Location:**
 
 
-**7. (If applicable) Screenshot/s**
+**7. (If applicable) Screenshot/s:**
 
 
 **8. Lua Error (if you have one):**
