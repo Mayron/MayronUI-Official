@@ -64,7 +64,16 @@ local BlizzardFrames = {
 	Blizzard_Calendar = "CalendarFrame";
 	Blizzard_GuildUI = "GuildFrame";
 	Blizzard_TradeSkillUI = "TradeSkillFrame";
-	Blizzard_EncounterJournal = "EncounterJournal";
+	Blizzard_EncounterJournal = {
+		"EncounterJournal",
+		onLoad = function()
+			local setPoint = _G.EncounterJournalTooltip.SetPoint;
+			_G.EncounterJournalTooltip.SetPoint = function(self, p, f, rp, x, y)
+				f:ClearAllPoints();
+				setPoint(self, p, f, rp, x, y);
+			end
+		end
+	};
 	Blizzard_ArchaeologyUI = "ArchaeologyFrame";
 	Blizzard_AchievementUI = {
 		"AchievementFrame";
@@ -78,21 +87,6 @@ local BlizzardFrames = {
 	Blizzard_ItemSocketingUI = "ItemSocketingFrame";
 	Blizzard_ItemUpgradeUI = "ItemUpgradeFrame";
 	Blizzard_AzeriteUI = "AzeriteEmpoweredItemUI";
-
-	-- ["Blizzard_DeathRecap"] = function()
-	-- end;
-	-- ["Blizzard_GlyphUI"] = function()
-	-- end;
-	-- ["Blizzard_PVPUI"] = function()
-	-- end;
-	-- ["Blizzard_ChallengesUI"] = function()
-	-- end;
-	-- ["Bagnon_GuildBank"] = function()
-	-- end;
-	-- ["Bagnon_VoidStorage"] = function()
-	-- end;
-	-- ["MasterPlan"] = function()
-	-- end;
 };
 
 local function GetFrame(frameName)
@@ -116,6 +110,16 @@ local function GetFrame(frameName)
 	end
 
 	return frame;
+end
+
+-- Function to fix the "Action[SetPoint] failed because[SetPoint would result in anchor family connection]" bugs
+local function FixAnchorFamilyConnections()
+	local displayFunc = _G.QuestInfo_Display;
+
+	_G.QuestInfo_Display = function(template, parentFrame, acceptButton, material, mapView)
+		_G.QuestInfoSealFrame:ClearAllPoints();
+		displayFunc(template, parentFrame, acceptButton, material, mapView);
+	end
 end
 
 Engine:DefineParams("string|table", "boolean");
@@ -150,6 +154,10 @@ function C_MovableFramesModule:ExecuteMakeMovable(_, value, dontSave)
 				end
 			end
 		end
+
+		if (obj:IsFunction(value.onLoad)) then
+			value.onLoad();
+		end
 	end
 end
 
@@ -179,6 +187,9 @@ do
 		tk:HookFunc("UpdateUIPanelPositions", UIParent_OnShownChanged, self, data.settings, data.frames);
 		tk:HookFunc("ShowUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
 		tk:HookFunc("HideUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
+
+		-- Fix for the "Action[SetPoint] failed because[SetPoint would result in anchor family connection]" bugs:
+		FixAnchorFamilyConnections();
 
 		if (not data.handler) then
 			data.handler = em:CreateEventHandler("ADDON_LOADED", function(_, _, addOnName)
