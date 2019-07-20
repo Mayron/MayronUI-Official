@@ -120,6 +120,12 @@ local function FixAnchorFamilyConnections()
 		_G.QuestInfoSealFrame:ClearAllPoints();
 		displayFunc(template, parentFrame, acceptButton, material, mapView);
 	end
+
+	local setPoint = _G.GameTooltip.SetPoint;
+	_G.GameTooltip.SetPoint = function(self, p, f, rp, x, y)
+		self:ClearAllPoints();
+		setPoint(self, p, f, rp, x, y);
+	end
 end
 
 Engine:DefineParams("string|table", "boolean");
