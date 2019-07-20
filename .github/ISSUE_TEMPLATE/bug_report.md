@@ -4,8 +4,6 @@ about: Create a report to help us debug
 
 ---
 
-**What language is your WoW client set to (i.e. English, Deutsch)?**
-
 **What version of MayronUI were you using when the bug occurred?**
 
 ``` NOTE:
@@ -16,37 +14,20 @@ If you are using an out of date version of the UI then please update to
 the latest version of the UI to see if this bug can be reproduced before continuing.
 ```
 
-**Describe the bug**
+**1. What is the bug? Please describe it in detail:**
 
-A clear and concise description of what the bug is.
+**2. Were you in combat when the bug occurred?**
 
-**Were you in combat when the bug occured?**
+**3. What were you doing at the time (e.g. were you in a raid, in a battleground, etc...)?**
 
-Yes/No
+**4. How can we replicate the bug (this will help us reproduce the problem when debugging)?**
 
-**What were you doing when the bug occured (e.g. were you in a raid, in a battleground, etc...)**
+**5. What language is your WoW client set to (i.e. English, Deutsch)?**
 
-Please describe what your character was doing in WoW when the bug occured.
+**6. (If applicable) Class, Level, Specialisation, Race, Faction and Location**
 
-**To Reproduce the bug**
+**7. (If applicable) Screenshot/s**
 
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+**8. Lua Error (if you have one):**
 
-**(If applicable) Class, Level, Specialisation, Race, Faction and Location**
-
-What character were you playing on (class, level, faction, etc...) and where were you in the game when this occurred?
-
-**(If applicable) Screenshot/s**
-
-If applicable, add screenshots to help explain your problem (you can drag and drop images into the textbox to upload them).
-
-**Lua Error (if you have one)**
-
-If applicable, do you have a Lua error to go with this bug report?
-
-**(Optional) Additional context**
-Add any other context about the problem here.
+**9. (Optional) Additional context:**
