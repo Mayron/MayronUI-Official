@@ -174,6 +174,34 @@ function tk:IsPlayerMaxLevel()
     return (self:GetMaxPlayerLevel() == playerLevel);
 end
 
+function tk:GetLocalizedUnitClassName(unit)
+    return select(2, _G.UnitClass(unit));
+end
+
+function tk:GetLocalizedClassName(className)
+    if (tk.Constants.LOCALIZED_CLASS_NAMES[className] or tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES[className]) then
+        -- already localized
+        return className;
+    end
+
+    local localizedName = tk.Tables:GetIndex(tk.Constants.LOCALIZED_CLASS_NAMES, className);
+
+    if (not localizedName) then
+        localizedName = tk.Tables:GetIndex(tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES, className);
+    end
+
+    tk:Assert(localizedName, "Unknown class name '%s'.", className);
+    return localizedName;
+end
+
+function tk:GetClassColor(className)
+    return _G.GetClassColorObj(tk:GetLocalizedClassName(className));
+end
+
+function tk:GetUnitClassColor(unit)
+    return _G.GetClassColorObj(tk:GetLocalizedUnitClassName(unit));
+end
+
 local errorInfo = {};
 errorInfo.PREFIX = "|cff00ccffMayronUI: |r";
 

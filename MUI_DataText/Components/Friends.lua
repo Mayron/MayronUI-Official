@@ -8,10 +8,12 @@ local LABEL_PATTERN = L["Friends"]..": |cffffffff%u|r";
 local convert = {WTCG = "HS", Pro = "OW"};
 
 local _G = _G;
-local ToggleFriendsFrame, GetNumFriends, GetFriendInfo = _G.ToggleFriendsFrame, _G.GetNumFriends, _G.GetFriendInfo;
+local ToggleFriendsFrame, C_FriendList = _G.ToggleFriendsFrame, _G.C_FriendList;
 local BNGetNumFriends, BNGetFriendInfo = _G.BNGetNumFriends, _G.BNGetFriendInfo;
 local string, CreateFrame, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1 =
 _G.string, _G.CreateFrame, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1;
+local select = _G.select;
+
 -- Register and Import Modules -------
 
 local Friends = ComponentsPackage:CreateClass("Friends", nil, "IDataTextComponent");
@@ -101,8 +103,8 @@ function Friends:Update(data, refreshSettings)
         end
     end
 
-    for i = 1, GetNumFriends() do
-        if ((select(5, GetFriendInfo(i)))) then
+    for i = 1, C_FriendList.GetNumFriends() do
+        if ((select(5, C_FriendList.GetFriendInfo(i)))) then
             totalOnline = totalOnline + 1;
         end
     end
@@ -116,7 +118,7 @@ function Friends:Click(data, button)
         return;
     end
 
-    if (select(2, GetNumFriends()) == 0 and select(2, BNGetNumFriends()) == 0) then
+    if (select(2, C_FriendList.GetNumFriends()) == 0 and select(2, BNGetNumFriends()) == 0) then
         return true;
     end
 
@@ -152,18 +154,18 @@ function Friends:Click(data, button)
     end
 
     -- WoW Friends (non-Battle.Net)
-    for i = 1, GetNumFriends() do
-        local name, level, class, _, online, status = GetFriendInfo(i);
+    for i = 1, C_FriendList.GetNumFriends() do
+        local friendInfo = C_FriendList.GetFriendInfoByIndex(i);
 
-        if (online) then
-            local classFileName = tk.Tables:GetIndex(tk.Constants.LOCALIZED_CLASS_NAMES, class) or class;
+        if (friendInfo.connected and not (friendInfo.className == "Unknown")) then
+            local classFileName = tk:GetLocalizedClassName(friendInfo.className);
 
-            if (status:trim() == "<Away") then
+            local status = tk.Strings.Empty;
+
+            if (friendInfo.afk) then
                 status = " |cffffe066[AFK]|r";
-            elseif (status:trim() == "<DND>") then
+            elseif (friendInfo.dnd) then
                 status = " |cffff3333[DND]|r";
-            else
-                status = tk.Strings.Empty;
             end
 
             totalLabelsShown = totalLabelsShown + 1;
@@ -171,13 +173,14 @@ function Friends:Click(data, button)
             local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.slideController);
             self.MenuLabels[totalLabelsShown] = label; -- old: numBNFriends + i
 
-            label.id = name;
+            label.id = friendInfo.name;
             label:SetNormalTexture(1);
             label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);
             label:SetHighlightTexture(1);
             label:GetHighlightTexture():SetColorTexture(0.2, 0.2, 0.2, 0.4);
-            label.name:SetText(string.format("%s%s %s ",
-                tk.Strings:SetTextColorByClass(name, classFileName), status, level));
+
+            local classText = tk.Strings:SetTextColorByClass(friendInfo.name, classFileName);
+            label.name:SetText(string.format("%s%s %s ", classText, status, friendInfo.level));
         end
     end
 

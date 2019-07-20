@@ -9,7 +9,9 @@ tk.Strings = {};
 tk.Strings.Empty = "";
 tk.Strings.Space = " ";
 
-local string = _G.string;
+local _G = _G;
+local string, table, tostring, type = _G.string, _G.table, _G.tostring, _G.type;
+local select, UnitClass = _G.select, _G.UnitClass;
 -----------------------------
 
 do
@@ -104,14 +106,14 @@ function tk.Strings:SetTextColorByHex(text, hex)
 end
 
 function tk.Strings:SetTextColorByClass(text, className)
-    className = className or (select(2, _G.UnitClass("player")));
     text = text or className;
+    className = className or (select(2, UnitClass("player")));
 
     className = className:gsub("%s+", tk.Strings.Empty);
     className = className:upper();
 
-    tk:Assert(tk.Constants.CLASS_COLORS[className], "Unknown class name '%s'.", className);
-    return tk.Constants.CLASS_COLORS[className]:WrapTextInColorCode(text);
+    local classColor = tk:GetClassColor(className);
+    return classColor:WrapTextInColorCode(text);
 end
 
 function tk.Strings:SetTextColorByTheme(text)

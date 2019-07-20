@@ -6,7 +6,7 @@ local tk = namespace.components.Toolkit; ---@type Toolkit
 
 local _G = _G;
 local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
-local GameTooltip, ipairs, CreateFrame, UIParent, string = _G.GameTooltip, _G.ipairs, _G.CreateFrame, _G.UIParent, _G.string;
+local GameTooltip, ipairs, CreateFrame, UIParent, select = _G.GameTooltip, _G.ipairs, _G.CreateFrame, _G.UIParent, _G.select;
 
 function tk:SetFontSize(fontString, size)
     local fontPath, _, flags = fontString:GetFont();
@@ -231,9 +231,7 @@ end
 
 function tk:SetClassColoredTexture(className, texture)
     className = className or (select(2, _G.UnitClass("player")));
-    className = string.upper(className);
-    className = className:gsub("%s+", "");
-    local color = self.Constants.CLASS_COLORS[className];
+    local color = tk:GetClassColor(className);
     texture:SetVertexColor(color.r, color.g, color.b, texture:GetAlpha());
 end
 
@@ -260,7 +258,7 @@ function tk:GetThemeColor(returnTable)
 end
 
 function tk:UpdateThemeColor(value)
-    local color = tk.Constants.CLASS_COLORS[value] or value;
+    local color = tk:GetClassColor(value);
 
     if (not color.GenerateHexColor) then
         color = _G.CreateColor(color.r, color.g, color.b);

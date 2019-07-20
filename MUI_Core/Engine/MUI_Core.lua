@@ -102,9 +102,7 @@ db:AddToDefaults("global", {
 
 db:AddToDefaults("profile.layout", "DPS");
 
-local _, class = _G.UnitClass("player");
-local classColor = tk.Constants.CLASS_COLORS[class];
-
+local classColor = tk:GetUnitClassColor("player");
 db:AddToDefaults("profile.theme", {
     color = {
         r     = classColor.r;
@@ -643,6 +641,7 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
     end
 
     _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
+    _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES, true);
 
     if (not MayronUI:IsInstalled()) then
 

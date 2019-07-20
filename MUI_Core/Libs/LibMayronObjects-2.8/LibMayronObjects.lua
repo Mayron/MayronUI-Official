@@ -8,9 +8,10 @@ if (not Lib) then
     return;
 end
 
-local error, unpack = error, _G.unpack;
-local type, setmetatable, table, string = type, setmetatable, table, string;
-local getmetatable, select = getmetatable, select;
+local _G = _G;
+local error, unpack = _G.error, _G.unpack;
+local type, setmetatable, table, string = _G.type, _G.setmetatable, _G.table, _G.string;
+local getmetatable, select, pcall = _G.getmetatable, _G.select, _G.pcall;
 
 Lib.Types = {};
 Lib.Types.Table    = "table";
@@ -360,6 +361,41 @@ end
 function Lib:FlushErrorLog()
     if (Core.errorLog) then
         Lib:EmptyTable(Core.errorLog);
+    end
+end
+
+if (not _G.try) then
+    local catchObj = {};
+
+    catchObj.catch = function(func)
+
+        if (not catchObj.ran) then
+            func(catchObj.errorMessage);
+        end
+
+        catchObj.ran = true;
+        catchObj.errorMessage = nil;
+    end
+
+    _G.try = function(func)
+        Lib:SetSilentErrors(true);
+        catchObj.ran = true;
+        catchObj.errorMessage = nil;
+
+        local initialNumErrors = Lib:GetNumErrors();
+        local ran, errorMessage = pcall(func);
+
+        if (not ran) then
+            Core:Error(errorMessage);
+        end
+
+        if (initialNumErrors < Lib:GetNumErrors()) then
+            catchObj.ran = false;
+            local log = Lib:GetErrorLog();
+            catchObj.errorMessage = log[#log];
+        end
+
+        return catchObj;
     end
 end
 
@@ -1535,7 +1571,7 @@ function Core:Assert(condition, errorMessage, ...)
 
         if (self.silent) then
             self.errorLog = self.errorLog or Lib:PopTable();
-            self.errorLog[#self.errorLog + 1] = pcall(function() error(errorMessage) end);
+            self.errorLog[#self.errorLog + 1] = select(2, pcall(function() error(errorMessage) end));
 
         elseif (Lib:IsFunction(self.errorHandler)) then
             -- local level = _G.DEBUGLOCALS_LEVEL;
