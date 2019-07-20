@@ -4,6 +4,8 @@ about: Create a report to help us debug
 
 ---
 
+**What language is your WoW client set to (i.e. English, Deutsch)?**
+
 **What version of MayronUI were you using when the bug occurred?**
 
 ``` NOTE:
