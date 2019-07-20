@@ -12,7 +12,7 @@ about: Create a report to help us debug
 > and it will be in the bottom left corner (or in the MUI installer window using `/mui install`).
 
 > If you are using an out of date version of the UI then please update to 
-> the latest version of the UI to see if this bug can be reproduced before continuing.
+> the latest version to see if this bug can be reproduced before continuing.
 
 1. **What is the bug? Please describe it in detail:**
 
