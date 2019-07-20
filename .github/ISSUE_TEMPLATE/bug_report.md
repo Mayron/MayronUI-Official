@@ -6,10 +6,10 @@ about: Create a report to help us debug
 
 **What version of MayronUI were you using when the bug occurred?**
 
-> You can find the version number by typing `/mui version` in-game.
+> You can find the version number using the chat command `/mui version` in-game.
 
-> If this does not work then you can open the MUI Config menu `/mui config` 
-> and it will be in the bottom left corner (or in the MUI installer window `/mui install`).
+> If this does not work then you can open the MUI Config menu using `/mui config` 
+> and it will be in the bottom left corner (or in the MUI installer window using `/mui install`).
 
 > If you are using an out of date version of the UI then please update to 
 > the latest version of the UI to see if this bug can be reproduced before continuing.
