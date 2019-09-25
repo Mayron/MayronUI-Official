@@ -554,6 +554,17 @@ local function CreateProxyObject(object, key, self, controller, privateData)
         Core:Assert(Lib:IsFunction(proxyObject.object[proxyObject.key]),
             "Could not find function '%s' for object '%s'", proxyObject.key, proxyObject.controller.objectName);
 
+        -- execute attributes:
+        local attributes = Core:GetAttributes(proxyObject);
+
+        if (Lib:IsTable(attributes)) then
+            for _, attribute in ipairs(attributes) do
+                if (not attribute:OnExecute(proxyObject.self, proxyObject.privateData, proxyObject.key, ...)) then
+                    return nil; -- if attribute returns false, do no move onto the next attribute and do not call function
+                end
+            end
+        end
+
         -- Validate return values received after calling the function
         local returnValues = Lib:PopTable(
             Core:ValidateFunctionCall(definition, errorMessage,
@@ -1173,6 +1184,7 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
     -- temporary definition info (received from DefineParams and DefineReturns function calls)
     local tempParamDefs = controller.packageData.tempParamDefs;
     local tempReturnDefs = controller.packageData.tempReturnDefs;
+    local tempAttributes = controller.packageData.tempAttributes;
     local isVirtual = controller.packageData.isVirtual;
 
     -- holds definition for the new function
@@ -1190,10 +1202,16 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
         Lib:PushTable(tempReturnDefs);
     end
 
+    if (tempAttributes and #tempAttributes > 0) then
+        funcDefinition = funcDefinition or Lib:PopTable();
+        funcDefinition.attributes = tempAttributes;
+    end
+
     -- remove temporary definitions once implemented
     controller.packageData.tempParamDefs = nil;
     controller.packageData.tempReturnDefs = nil;
     controller.packageData.isVirtual = nil;
+    controller.packageData.tempAttributes = nil;
 
     if (fromInterface) then
         controller.interfaceDefinitions = controller.interfaceDefinitions or Lib:PopTable();
@@ -1540,7 +1558,7 @@ do
             return;
         end
 
-        local errorMessage = string.format(errorMessagePattern, proxyObject.controller.objectName, proxyObject.key);
+        local errorMessage = errorMessagePattern and string.format(errorMessagePattern, proxyObject.controller.objectName, proxyObject.key);
         return definitions, errorMessage;
     end
 
@@ -1551,18 +1569,32 @@ do
     function Core:GetReturnsDefinition(proxyObject)
         return GetDefinitions(proxyObject, returnErrorMessage, "returnDefs");
     end
+
+    function Core:GetAttributes(proxyObject)
+        return GetDefinitions(proxyObject, returnErrorMessage, "attributes");
+    end
 end
 
 function Core:Assert(condition, errorMessage, ...)
     if (not condition) then
         if (errorMessage) then
+            local size = select("#", ...);
 
-            if ((select(1, ...)) ~= nil) then
-                errorMessage = string.format(errorMessage, ...);
+            if (size > 0) then
+                local args = Lib:PopTable(...);
+
+                for i = 1, size do
+                    if (args[i] == nil) then
+                        args[i] = Lib.Types.Nil;
+                    end
+                end
+
+                errorMessage = string.format(errorMessage, Lib:UnpackTable(args));
 
             elseif (string.match(errorMessage, "%s")) then
                 errorMessage = string.format(errorMessage, Lib.Types.Nil);
             end
+
         else
             errorMessage = "condition failed";
         end
@@ -1757,6 +1789,20 @@ end
 ---Define the next class function as virtual
 function Package:DefineVirtual(data)
     data.isVirtual = true;
+end
+
+function Package:SetAttribute(data, attributeClass, ...)
+    if (Lib:IsString(attributeClass)) then
+        attributeClass = Lib:Import(attributeClass);
+    end
+
+    local attribute = attributeClass(...);
+
+    if (Lib:IsTable(data.tempAttributes)) then
+        table.insert(data.tempAttributes, attribute);
+    else
+        data.tempAttributes = Lib:PopTable(attribute);
+    end
 end
 
 ---prevents other functions being added or modified

@@ -27,7 +27,6 @@ C_CastBar.Static:AddFriendClass("CastBarsModule");
 
 namespace.bars = obj:PopTable();
 
-
 -- Load Database Defaults --------------
 
 db:AddToDefaults("profile.castBars", {

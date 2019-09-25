@@ -311,7 +311,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
 
     tk.Tables:Empty(data.activeComponents);
 
-    for _, componentName in ipairs(data.settings.displayOrders) do
+    for _, componentName in pairs(data.settings.displayOrders) do
         if (componentName == "disabled") then
             table.insert(data.activeComponents, "disabled");
         else
@@ -329,7 +329,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
                 local componentClass = data.registeredComponentClasses[componentName];
 
                 if (not componentClass) then
-                    MayronUI:Print(("Warning: Missing Data Text Module '%s'"):format(componentName));
+                    MayronUI:Print(("Warning: Missing Data Text Module '%s'"):format(componentName or "Unknown"));
                 else
                     component = CreateComponent(self, data, componentClass, componentName);
                 end

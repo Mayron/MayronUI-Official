@@ -6,4 +6,5 @@
 	<Script file="Objects\Stack.lua"/>
 	<Script file="Objects\List.lua"/>
 	<Script file="Objects\Map.lua"/>
+	<Script file="Attributes\InCombatAttribute.lua"/>
 </Ui>

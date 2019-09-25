@@ -95,6 +95,7 @@ db:AddToDefaults("global", {
                 {"Recount", true, "Recount"};
                 {"Shadowed Unit Frames", true, "ShadowedUnitFrames"};
                 {"TipTac", true, "TipTac"};
+                {"Leatrix Plus", true, "Leatrix_Plus"};
             };
         };
     };
@@ -629,7 +630,7 @@ function C_CoreModule:OnInitialize()
     end
 
     tk:Print(L["Welcome back"], _G.UnitName("player").."!");
-    collectgarbage("collect");
+    _G.collectgarbage("collect");
     DisableAddOn("MUI_Setup"); -- disable for next time
 end
 
@@ -746,6 +747,8 @@ db:OnStartUp(function(self)
         _G.ScriptErrorsFrame.DisplayMessage = function() end;
         error();
     end);
+
+    tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
 end);
 
 -- MUI Gen5 to Gen6 Migration:

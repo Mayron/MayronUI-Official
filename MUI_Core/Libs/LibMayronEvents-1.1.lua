@@ -71,6 +71,7 @@ EventsPackage:DefineParams("string", "boolean");
 ---@param enabled boolean @Set to false to prevent event from triggering (without destroying it).
 function Handler:SetEventCallbackEnabled(data, eventName, enabled)
     data.events[eventName] = enabled;
+    return self;
 end
 
 EventsPackage:DefineParams("string", "boolean");
@@ -85,6 +86,7 @@ EventsPackage:DefineParams("boolean");
 ---@param autoDestroy boolean @If true, the handler will automatically be destroyed after the first time it is executed.
 function Handler:SetAutoDestroy(data, autoDestroy)
     data.autoDestroy = autoDestroy;
+    return self;
 end
 
 ---All variables passed to this function will be passed to the event handler function when the event is triggered.
@@ -98,6 +100,7 @@ function Handler:SetCallbackArgs(data, ...)
     end
 
     data.args = obj:PopTable(...);
+    return self;
 end
 
 EventsPackage:DefineParams("string");
@@ -105,6 +108,7 @@ EventsPackage:DefineParams("string");
 function Handler:SetKey(data, key)
     data.key = key;
     Private.eventKeys[key] = self;
+    return self;
 end
 
 EventsPackage:DefineReturns("?string");
@@ -161,6 +165,7 @@ function Handler:AppendEvent(data, eventName, unitName)
 
     Private.eventsList[eventName] = Private.eventsList[eventName] or obj:PopTable();
     table.insert(Private.eventsList[eventName], self);
+    return self;
 end
 
 ------------------------

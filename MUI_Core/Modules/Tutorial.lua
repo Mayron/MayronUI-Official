@@ -31,7 +31,7 @@ function C_Tutorial:OnEnable()
     frame.text:SetPoint("TOPLEFT", 10, -30);
     frame.text:SetPoint("BOTTOMRIGHT", -10, 80);
     frame.text:SetText(tk.Strings:Join("\n\n",
-        "Thank you for installing ".. _G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"),
+        "Thank you for installing ".. _G.GetAddOnMetadata("MUI_Core", "X-InterfaceName").."!",
         "You can fully customise the UI using the config menu:",
         tk.Strings:SetTextColorByKey("(type '/mui' to list all slash commands)", "GOLD")));
 

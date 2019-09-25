@@ -116,7 +116,7 @@ local function RepositionNotificationFrame(chatFrame)
 end
 
 function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
-  local chatFrameName = string.format("ChatFrame%d", chatFrameID);
+	local chatFrameName = string.format("ChatFrame%d", chatFrameID);
 
 	local chatFrame = _G[chatFrameName];
 	chatFrame:SetFrameStrata("LOW");

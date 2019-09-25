@@ -74,8 +74,12 @@ local function UnlockCastBar(widget, castBarName)
             end
 
             SetPositionTextFieldsEnabled(true, castBarName);
-            sufAnchor_CheckButtons[castBarName]:SetChecked(false);
-            db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "anchorToSUF"), false);
+
+            if (castBarName ~= "Mirror") then
+                sufAnchor_CheckButtons[castBarName]:SetChecked(false);
+                db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "anchorToSUF"), false);
+            end
+
             db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "position"), positions);
         end
     end
@@ -170,7 +174,7 @@ function C_CastBarsModule:GetConfigTable()
             {   type = "loop",
                 args = { "Player", "Target", "Focus", "Mirror" },
                 func = function(_, name)
-                    return
+                    local config =
                     {
                         name = name,
                         type = "submenu",
@@ -297,7 +301,15 @@ function C_CastBarsModule:GetConfigTable()
                                 end
                             };
                         }
-                    }
+                    };
+
+                    if (name == "Mirror") then
+                        config.children[2] = nil;
+                        config.children[3] = nil;
+                        config.children[4] = nil;
+                    end
+
+                    return config;
                 end,
             }
         }

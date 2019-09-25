@@ -509,17 +509,26 @@ end
 
 function C_AFKDisplayModule:OnEnable(data)
     if (not data.handler) then
-        data.handler = em:CreateEventHandler("PLAYER_FLAGS_CHANGED", function(_, _, unitID)
-            if (unitID ~= "player" or not data.settings.enabled) then
-                return;
-            end
+        data.handler = em:CreateEventHandlerWithKey("PLAYER_FLAGS_CHANGED", "afkDisplayFlagsChanged",
+            function(_, _, unitID)
+                if (unitID ~= "player" or not data.settings.enabled) then
+                    return;
+                end
 
-            self:SetShown(UnitIsAFK(unitID));
-        end);
+                self:SetShown(UnitIsAFK(unitID));
+            end);
 
-        em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-            self:SetShown(false);
-        end);
+        em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "afkDisplayRegenDisabled",
+            function()
+                self:SetShown(false);
+            end);
+    end
+end
+
+function C_AFKDisplayModule:OnDisable(data)
+    if (data.handler) then
+        em:DestroyEventHandlersByKey("afkDisplayFlagsChanged", "afkDisplayRegenDisabled");
+        data.handler = nil;
     end
 end
 

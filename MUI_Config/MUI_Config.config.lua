@@ -111,7 +111,19 @@ function C_ConfigModule:GetConfigTable()
                     OnClick = function()
                         MayronUI:ImportModule("MovableFramesModule"):ResetPositions();
                     end
-                }
+                };
+                {   type = "divider";
+                };
+                {   name              = "Show AFK Display";
+                    type              = "check";
+                    tooltip           = "Enable/disable the AFK Display";
+                    dbPath            = "global.AFKDisplay.enabled";
+
+                    SetValue = function(dbPath, newValue)
+                        db:SetPathValue(dbPath, newValue);
+                        MayronUI:ImportModule("AFKDisplay"):SetEnabled(newValue);
+                    end
+                };
             }
         };
         {   name = L["Bottom UI Panels"];

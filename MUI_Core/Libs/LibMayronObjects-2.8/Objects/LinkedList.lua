@@ -1,5 +1,5 @@
 -- luacheck: ignore self 143 631
-local Lib = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type Objects
+local Lib = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
 local Collections = Lib:CreatePackage("Collections", "Framework.System");
 
 ---@class LinkedList : Object

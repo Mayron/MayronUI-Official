@@ -1,7 +1,9 @@
-## Interface: 80200
+## Interface: 80205
 ## Title: |cff00ccffMUI|r Setup
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
+## OptionalDeps: Leatrix_Plus
+## Notes: Required to install MayronUI and inject AddOn settings
 
 MUI_Setup.lua
 
@@ -14,3 +16,4 @@ Imports/Masque.lua
 Imports/Recount.lua
 Imports/ShadowedUnitFrames.lua
 Imports/TipTac.lua
+Imports/LeatrixPlus.lua

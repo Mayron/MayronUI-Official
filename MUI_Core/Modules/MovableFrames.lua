@@ -23,7 +23,6 @@ local BlizzardFrames = {
 	"LootFrame", "ReadyCheckFrame", "BonusRollMoneyWonFrame", "BonusRollFrame", "TradeFrame", "TabardFrame", "GuildRegistrarFrame",
 	"ItemTextFrame", "DressUpFrame", "GameMenuFrame", "TaxiFrame", "HelpFrame", "PVEFrame", "MerchantFrame",
 	"PetBattleFrame.ActiveAlly", "PetBattleFrame.ActiveEnemy", "ChannelFrame", "WorldMapFrame",
-
 	{
 		"CharacterFrame";
 		clickedFrames = { "CharacterFrameTab1", "CharacterFrameTab2", "CharacterFrameTab3" };
@@ -253,9 +252,22 @@ function C_MovableFramesModule:RepositionFrame(data, frame)
 		return;
 	end
 
-	if (position[3]) then
+	local point, relFrameName, relPoint, xOffset, yOffset = unpack(position);
+	local relFrame;
+
+	if (obj:IsString(relFrameName)) then
+		relFrame = _G[relFrameName];
+
+	elseif (not relFrameName) then
+		relFrame = _G.UIParent;
+	else
+		relFrame = relFrameName;
+	end
+
+	if (relPoint and obj:IsWidget(relFrame)) then
 		frame:ClearAllPoints();
-		frame:SetPoint(unpack(position));
+		xpcall(function() frame:SetPoint(point, relFrame, relPoint, xOffset, yOffset) end,
+			function() obj:Error("Failed to SetPoint for frame %s using relative Frame: %s", name, relFrameName) end);
 	else
 		data.settings.positions[name] = nil;
 		db.global.movable.positions[name] = nil;

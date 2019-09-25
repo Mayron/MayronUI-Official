@@ -18,7 +18,7 @@ ObjectiveTracker_Expand, UIParent, hooksecurefunc, ipairs =
     _G.ObjectiveTrackerFrame, _G.IsInInstance, _G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update,
     _G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs;
 
-local function UpdateTextColor(block)
+local function UpdateQuestDifficultyColors(block)
     for questLogIndex = 1, _G.GetNumQuestLogEntries() do
         local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
 
@@ -132,12 +132,19 @@ function C_ObjectiveTracker:OnEnable(data)
     box:SetPoint("BOTTOMRIGHT", -5, 5);
     box:SetFrameStrata("BACKGROUND");
 
-    hooksecurefunc("ObjectiveTracker_Initialize", function()
+    if (obj:IsTable(ObjectiveTrackerFrame.MODULES_UI_ORDER)) then
         for _, module in ipairs(ObjectiveTrackerFrame.MODULES_UI_ORDER) do
-            module.Header.Background:Hide();
+            tk:KillElement(module.Header.Background);
             tk:ApplyThemeColor(module.Header.Text);
         end
-    end);
+    else
+        hooksecurefunc("ObjectiveTracker_Initialize", function()
+            for _, module in ipairs(ObjectiveTrackerFrame.MODULES_UI_ORDER) do
+                tk:KillElement(module.Header.Background);
+                tk:ApplyThemeColor(module.Header.Text);
+            end
+        end);
+    end
 
     local minButton = ObjectiveTrackerFrame.HeaderMenu.MinimizeButton;
     local upButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\UpButton");
@@ -174,12 +181,12 @@ function C_ObjectiveTracker:OnEnable(data)
     _G.hooksecurefunc(_G.QUEST_TRACKER_MODULE, "Update", function()
         local block = _G.ObjectiveTrackerBlocksFrame.QuestHeader.module.firstBlock;
         while (block) do
-            UpdateTextColor(block);
+            UpdateQuestDifficultyColors(block);
             block = block.nextBlock;
         end
     end);
 
     hooksecurefunc(_G.DEFAULT_OBJECTIVE_TRACKER_MODULE, "OnBlockHeaderLeave", function(self, block)
-        UpdateTextColor(block);
+        UpdateQuestDifficultyColors(block);
     end);
 end

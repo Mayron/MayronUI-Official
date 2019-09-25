@@ -6,7 +6,8 @@ local tk = namespace.components.Toolkit; ---@type Toolkit
 
 local _G = _G;
 local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
-local GameTooltip, ipairs, CreateFrame, UIParent, select = _G.GameTooltip, _G.ipairs, _G.CreateFrame, _G.UIParent, _G.select;
+local GameTooltip, ipairs, pairs, CreateFrame, UIParent, select =
+    _G.GameTooltip, _G.ipairs, _G.pairs, _G.CreateFrame, _G.UIParent, _G.select;
 
 function tk:SetFontSize(fontString, size)
     local fontPath, _, flags = fontString:GetFont();
@@ -285,7 +286,8 @@ function tk:SetBackground(frame, ...)
     texture:SetAllPoints(frame);
 
     if (#args > 1) then
-        texture:SetColorTexture(...);
+        texture:SetTexture(tk.Constants.SOLID_TEXTURE);
+        texture:SetVertexColor(...);
     else
         texture:SetTexture(args[1]);
     end
