@@ -76,11 +76,35 @@ function Performance:Update(data, refreshSettings)
         end
 
         if (data.settings.showHomeLatency) then
-            label = string.format("%s |cffffffff%u|r ms", label, latencyHome);
+		
+			if latencyHome <= 100 then
+				label = string.format("%s |cff32cd32%u|r ms", label, latencyHome);
+			end
+			
+			if latencyHome >= 101 and latencyHome <= 250 then
+				label = string.format("%s |cffffcc00%u|r ms", label, latencyHome);
+			end
+			
+			if latencyHome >=251 then		
+				label = string.format("%s |cffff0000%u|r ms", label, latencyHome);
+			end
+			
         end
 
         if (data.settings.showServerLatency) then
-            label = string.format("%s |cffffffff%u|r ms", label, latencyServer);
+            
+			if latencyServer <= 100 then
+				label = string.format("%s |cff32cd32%u|r ms", label, latencyServer);
+			end
+			
+			if latencyServer >= 101 and latencyServer <= 250 then
+				label = string.format("%s |cffffcc00%u|r ms", label, latencyServer);
+			end
+			
+			if latencyServer >= 251 then	
+				label = string.format("%s |cffff0000%u|r ms", label, latencyServer);
+			end
+			
         end
 
         self.Button:SetText(label:trim());
