@@ -266,7 +266,7 @@ function Specialization:HandleLeftClick(data)
 
         SetLabelEnabled(label, enabled);
 
-        if (enabled) then
+        if not (enabled) then
             specializationName = string.format("Current (%s)", specializationName);
         end
 
