@@ -219,13 +219,33 @@ Private.Races = { -- lower values = lower model
             hoverValue = -0.5,
         }
     },
+    Mechagnome = {
+        Male = {
+            value = -0.3,
+            hoverValue = -0.3,
+        },
+        Female = {
+            value = -0.3,
+            hoverValue = -0.3,
+        }
+    },
+    Vulpera = {
+        Male = {
+            value = -0.7,
+            hoverValue = -0.3,
+        },
+        Female = {
+            value = -0.7,
+            hoverValue = -0.4,
+        }
+    },
     ZandalariTroll = {
         Male = {
             value = -0.4,
             hoverValue = -0.2,
         },
         Female = {
-            value = -0.3,
+            value = -0.6,
             hoverValue = -0.5,
         }
     },
