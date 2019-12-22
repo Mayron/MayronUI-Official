@@ -137,6 +137,9 @@ function C_DataTextModule:GetConfigTable()
                 name = L["Performance"],
                 appendDbPath = "performance",
                 children = {
+                    {   type = "fontstring",
+                        content = "Changes to these settings will take effect after 0-3 seconds.";
+                    },
                     {   name = L["Show FPS"],
                         type = "check",
                         appendDbPath = "showFps",

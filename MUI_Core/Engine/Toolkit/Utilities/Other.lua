@@ -7,7 +7,7 @@ local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.p
 local hooksecurefunc = _G.hooksecurefunc;
 
 namespace.components = {};
-namespace.components.Objects = LibStub:GetLibrary("LibMayronObjects");
+namespace.components.Objects = LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
 namespace.components.Toolkit = {};
 
 local obj = namespace.components.Objects;

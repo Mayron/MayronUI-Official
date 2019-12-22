@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 
-local obj = namespace.components.Objects; ---@type Objects
+local obj = namespace.components.Objects; ---@type LibMayronObjects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
 local pcall, pairs, strsplit, tonumber = _G.pcall, _G.pairs, _G.strsplit, _G.tonumber;
@@ -78,7 +78,9 @@ end
 ---@param tbl table @The table to print.
 ---@param depth number @The depth of sub-tables to traverse through and print.
 function tk.Tables:Print(tbl, depth)
-    obj:PrintTable(tbl, depth);
+    if (obj:IsTable(tbl)) then
+        obj:PrintTable(tbl, depth);
+    end
 end
 
 function tk.Tables:Contains(tbl, value)
@@ -89,6 +91,17 @@ function tk.Tables:Contains(tbl, value)
     end
 
     return false;
+end
+
+-- gets the first value where the predicate returns true
+function tk.Tables:First(tbl, predicate)
+    for _, value in pairs(tbl) do
+        if (predicate(value)) then
+            return value;
+        end
+    end
+
+    return nil;
 end
 
 function tk.Tables:GetIndex(tbl, value, position)
