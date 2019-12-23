@@ -6,18 +6,16 @@ local Engine = namespace.Engine;
 local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
 
 local _G = _G;
-local LoadAddOn, ToggleCharacter, ToggleBackpack, OpenAllBags, ContainerFrame1, IsTrialAccount, IsInGuild,
-ToggleGuildFrame, ToggleFriendsFrame, ToggleHelpFrame, UnitLevel, TogglePVPUI, ToggleFrame, ToggleWorldMap,
-ToggleAchievementFrame, ToggleCalendar, ToggleLFDParentFrame, ToggleRaidFrame, ToggleEncounterJournal,
-ToggleQuestLog, UnitInBattleground, ToggleWorldStateScoreFrame, ToggleCollectionsJournal =
-_G.LoadAddOn, _G.ToggleCharacter, _G.ToggleBackpack, _G.OpenAllBags, _G.ContainerFrame1, _G.IsTrialAccount,
-_G.IsInGuild, _G.ToggleGuildFrame, _G.ToggleFriendsFrame, _G.ToggleHelpFrame, _G.UnitLevel, _G.TogglePVPUI,
-_G.ToggleFrame, _G.ToggleWorldMap, _G.ToggleAchievementFrame, _G.ToggleCalendar, _G.ToggleLFDParentFrame,
-_G.ToggleRaidFrame, _G.ToggleEncounterJournal, _G.ToggleQuestLog, _G.UnitInBattleground, _G.ToggleWorldStateScoreFrame,
-_G.ToggleCollectionsJournal;
+local LoadAddOn, IsTrialAccount, IsInGuild, UnitLevel, UnitInBattleground =
+_G.LoadAddOn, _G.IsTrialAccount, _G.IsInGuild, _G.UnitLevel, _G.UnitInBattleground;
 
-local SpellBookFrame = _G.SpellBookFrame;
-local PlayerTalentFrame, MacroFrame = _G.PlayerTalentFrame, _G.MacroFrame;
+-- GLOBALS:
+--[[ luacheck: ignore
+ToggleCharacter ContainerFrame1 ToggleBackpack OpenAllBags ToggleFrame SpellBookFrame PlayerTalentFrame MacroFrame
+ToggleFriendsFrame ToggleGuildFrame ToggleHelpFrame TogglePVPUI ToggleAchievementFrame ToggleCalendar ToggleQuestLog
+ToggleLFDParentFrame ToggleRaidFrame ToggleEncounterJournal ToggleCollectionsJournal ToggleWorldMap
+ToggleWorldStateScoreFrame
+]]
 
 namespace.ButtonNames = {
     L["Character"],
@@ -96,23 +94,14 @@ clickHandlers[namespace.ButtonNames[8]] = function()
     else
         if (not PlayerTalentFrame) then
             LoadAddOn("Blizzard_TalentUI");
-            PlayerTalentFrame = _G.PlayerTalentFrame;
         end
+
         ToggleFrame(PlayerTalentFrame);
     end
 end
 
 -- Achievements
 clickHandlers[namespace.ButtonNames[9]] = ToggleAchievementFrame;
-
--- Glyphs -- TODO: I think this is broke
-clickHandlers[namespace.ButtonNames[10]] = function()
-    if (UnitLevel("player") < 10) then
-        tk:Print(L["Requires level 10+ to view the Glyphs window."]);
-    else
-		ToggleFrame(SpellBookFrame);
-    end
-end
 
 -- Calendar
 clickHandlers[namespace.ButtonNames[11]] = ToggleCalendar;
@@ -135,8 +124,8 @@ end
 clickHandlers[namespace.ButtonNames[16]] = function()
     if (not MacroFrame) then
         LoadAddOn("Blizzard_MacroUI");
-        MacroFrame = _G.MacroFrame;
     end
+
     ToggleFrame(MacroFrame);
 end
 

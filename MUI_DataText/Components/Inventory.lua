@@ -5,8 +5,10 @@ local tk, db, em, _, _, L = MayronUI:GetCoreComponents();
 local ComponentsPackage = namespace.ComponentsPackage;
 
 local _G = _G;
-local string, GameTooltip, BACKPACK_CONTAINER, NUM_BAG_SLOTS, GetContainerNumSlots, GetContainerNumFreeSlots, ToggleAllBags, SortBags =
-_G.string, _G.GameTooltip, _G.BACKPACK_CONTAINER, _G.NUM_BAG_SLOTS, _G.GetContainerNumSlots, _G.GetContainerNumFreeSlots, _G.ToggleAllBags, _G.SortBags;
+local string, GetContainerNumSlots, GetContainerNumFreeSlots = _G.string, _G.GetContainerNumSlots, _G.GetContainerNumFreeSlots;
+
+-- GLOBALS:
+--[[ luacheck: ignore GameTooltip ToggleAllBags SortBags BACKPACK_CONTAINER NUM_BAG_SLOTS ]]
 
 -- Register and Import Modules -------
 
