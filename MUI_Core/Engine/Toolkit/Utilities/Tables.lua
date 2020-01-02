@@ -96,7 +96,11 @@ end
 -- gets the first value where the predicate returns true
 function tk.Tables:First(tbl, predicate)
     for _, value in pairs(tbl) do
-        if (predicate(value)) then
+        if (obj:IsFunction(predicate)) then
+            if (predicate(value)) then
+                return value;
+            end
+        elseif (value) then
             return value;
         end
     end
