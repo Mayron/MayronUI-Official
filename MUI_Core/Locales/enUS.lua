@@ -62,8 +62,10 @@ L["Alt"]= "Alt"
 L["Chat Buttons with Modifier Key 1"] = "Chat Buttons with Modifier Key 1";
 L["Chat Buttons with Modifier Key 2"] = "Chat Buttons with Modifier Key 2";
 L["Set the border size.\n\nDefault is 1."] = "Set the border size.\n\nDefault is 1.";
+L["Cannot toggle menu while in combat."]  = "Cannot toggle menu while in combat.";
+L["Cannot switch layouts while in combat."] = "Cannot switch layouts while in combat.";
 
-L["Set the spacing between the background and the border.\n\nDefault is 0."] 
+L["Set the spacing between the background and the border.\n\nDefault is 0."]
 = "Set the spacing between the background and the border.\n\nDefault is 0.";
 
 L["Allow the use of modifier keys to swap chat buttons while in combat."]

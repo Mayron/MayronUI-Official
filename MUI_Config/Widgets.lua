@@ -85,7 +85,7 @@ end
 ---------------------
 -- Loop (non-widget)
 ---------------------
--- supported textield config attributes:
+-- supported textfield config attributes:
 -- loops - a number for the total number of loops to call the function
 -- args - an index table (no keys) of values to pass
 -- func - the function to call with the loop id and arg (if using args)

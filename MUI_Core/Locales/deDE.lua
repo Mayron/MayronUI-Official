@@ -61,6 +61,8 @@ L["Alt"]							= "Alt";		-- Mod-Key!
 L["Chat Buttons with Modifier Key 1"]						= "Chat Schaltflächen - 1. Mod-Taste";
 L["Chat Buttons with Modifier Key 2"]						= "Chat Schaltflächen - 2. Mod-Taste";
 L["Set the border size.\n\nDefault is 1."]					= "Setzt die Randbreite.\n\nStandard ist 1.";
+L["Cannot toggle menu while in combat."] 					= "Das Menü kann im Kampf nicht umgeschaltet werden.";
+L["Cannot switch layouts while in combat."]					= "Layouts können im Kampf nicht gewechselt werden.";
 
 L["Set the spacing between the background and the border.\n\nDefault is 0."]					= "Setzt den Abstand zwischen Hintergrund und Rand.\n\nStandard ist 0.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."]						= "Erlaubt die Nutzung der Mod-Tasten zum wechseln der Chat-Schaltflächen, während man sich im Kampf befindet.";

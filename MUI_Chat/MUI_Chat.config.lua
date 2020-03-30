@@ -168,7 +168,6 @@ function C_ChatModule:GetConfigTable()
             },
             {   name = "Anchor Chat Icons",
                 type = "dropdown",
-                -- requiresReload = true;
                 tooltip = "Select which chat frame the chat icons should be anchored to.",
                 options = ChatFrameAnchorDropDownOptions;
                 dbPath = "profile.chat.icons.anchor",

@@ -2,7 +2,7 @@
 local addOnName = ...;
 
 ---@type LibMayronObjects
-local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 2.8);
+local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 3.01);
 
 if (not Lib) then
     return;
@@ -166,26 +166,17 @@ do
         end
 
         local arg;
-        local id = 0;
-        local totalConsecutiveNils = 0;
-
+        local length = select("#", ...);
         -- fill wrapper
-        repeat
-            id = id + 1;
-            arg = (select(id, ...));
+        for index = 1, length do
+            arg = (select(index, ...));
 
-            if (arg == nil) then
-                totalConsecutiveNils = totalConsecutiveNils + 1;
-            else
-                wrapper[id] = arg; -- add only non-nil values
-                totalConsecutiveNils = 0;
+            if (arg ~= nil) then
+                wrapper[index] = arg;
             end
+        end
 
-        -- repeat until we are comfortable that all arguments have been captured.
-        -- should not have a function call containing more than 10 consecutive nil args!
-        until (totalConsecutiveNils > 10);
-
-        return wrapper;
+        return wrapper, length;
     end
 
     ---@param wrapper table @A table to be added to the stack. The table is emptied and detached from any meta-table
@@ -227,28 +218,30 @@ do
     end
 
     ---@param wrapper table @A table to be unpacked and pushed to the stack to be emptied later.
-    function Lib:UnpackTable(wrapper)
+    ---@param doNotPushTable boolean @If true, the table will not be pushed
+    function Lib:UnpackTable(wrapper, doNotPushTable)
         if (not self:IsTable(wrapper)) then
             return;
         end
-        PushTable(wrapper);
-        return _G.unpack(wrapper);
+
+        local length = 1;
+
+        for id, _ in pairs(wrapper) do
+            if (id > length) then
+                length = id;
+            end
+        end
+
+        if (not doNotPushTable) then
+            PushTable(wrapper);
+        end
+
+        return unpack(wrapper, 1, length);
     end
 
     function Lib:IterateArgs(...)
         local wrapper = self:PopTable(...);
         return iterator, wrapper, 0;
-    end
-
-    ---@return number @The total number of arguments in the variable argument list passed to the method
-    function Lib:LengthOfArgs(...)
-        local length = 0;
-
-        for _, _ in self:IterateArgs(...) do
-            length = length + 1;
-        end
-
-        return length;
     end
 end
 
@@ -533,7 +526,7 @@ local function CreateProxyObject(object, key, self, controller, privateData)
 
         -- Validate parameters passed to function
         local definition, errorMessage = Core:GetParamsDefinition(proxyObject);
-        Core:ValidateFunctionCall(definition, errorMessage, ...);
+        local args = Core:ValidateFunctionCall(definition, errorMessage, ...);
 
         if (not proxyObject.privateData) then
             if (proxyObject.controller.isInterface) then
@@ -559,18 +552,17 @@ local function CreateProxyObject(object, key, self, controller, privateData)
 
         if (Lib:IsTable(attributes)) then
             for _, attribute in ipairs(attributes) do
-                if (not attribute:OnExecute(proxyObject.self, proxyObject.privateData, proxyObject.key, ...)) then
+                if (not attribute:OnExecute(proxyObject.self, proxyObject.privateData, proxyObject.key, Lib:UnpackTable(args, true))) then
+                    Lib:PushTable(args);
                     return nil; -- if attribute returns false, do no move onto the next attribute and do not call function
                 end
             end
         end
 
         -- Validate return values received after calling the function
-        local returnValues = Lib:PopTable(
-            Core:ValidateFunctionCall(definition, errorMessage,
-                proxyObject.object[proxyObject.key](proxyObject.self, proxyObject.privateData, ...)
-            )
-        );
+        local returnValues = Core:ValidateFunctionCall(definition, errorMessage,
+                -- call function here:
+                proxyObject.object[proxyObject.key](proxyObject.self, proxyObject.privateData, Lib:UnpackTable(args)));
 
         if (proxyObject.key ~= "Destroy") then
             local instanceController = Core:GetController(proxyObject.self, true);
@@ -1192,13 +1184,13 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
 
     if (tempParamDefs and #tempParamDefs > 0) then
         funcDefinition = Lib:PopTable();
-        funcDefinition.paramDefs = Core:CopyTableValues(tempParamDefs);
+        funcDefinition.paramDefs = Core:CopyTableValues(tempParamDefs, nil, true);
         Lib:PushTable(tempParamDefs);
     end
 
     if (tempReturnDefs and #tempReturnDefs > 0) then
         funcDefinition = funcDefinition or Lib:PopTable();
-        funcDefinition.returnDefs = Core:CopyTableValues(tempReturnDefs);
+        funcDefinition.returnDefs = Core:CopyTableValues(tempReturnDefs, nil, true);
         Lib:PushTable(tempReturnDefs);
     end
 
@@ -1330,11 +1322,11 @@ do
 end
 
 ---Helper function to copy key/value pairs from copiedTable to receiverTable
-function Core:CopyTableValues(copiedTable, receiverTable)
+function Core:CopyTableValues(copiedTable, receiverTable, shallowCopy)
     receiverTable = receiverTable or Lib:PopTable();
 
     for key, value in pairs(copiedTable) do
-        if (Lib:IsTable(value)) then
+        if (Lib:IsTable(value) and not shallowCopy) then
             receiverTable[key] = self:CopyTableValues(value);
         else
             receiverTable[key] = value;
@@ -1470,43 +1462,54 @@ function Core:ValidateImplementedInterfaces(instance, classController)
     end
 end
 
-function Core:ValidateValue(defValue, realValue)
+function Core:ValidateValue(definitionType, realType, defaultValue)
     local errorFound;
 
-    self:Assert(Lib:IsString(defValue) and not self:IsStringNilOrWhiteSpace(defValue),
+    self:Assert(Lib:IsString(definitionType) and not self:IsStringNilOrWhiteSpace(definitionType),
         "Invalid definition found; expected a string containing the expected type of an argument or return value.");
 
-    if (defValue:find("^?")) then
+    if (definitionType:find("^?") or defaultValue ~= nil) then
         -- it's optional so allow null values
-        -- remove "?" from front of string
-        defValue = defValue:sub(2, #defValue);
-        errorFound = (realValue ~= nil) and (defValue ~= "any" and not self:IsMatchingType(realValue, defValue));
+        if (definitionType:find("^?")) then
+            -- remove "?" from front of string
+            definitionType = definitionType:sub(2, #definitionType);
+        end
+
+        errorFound = (realType ~= nil) and (definitionType ~= "any" and not self:IsMatchingType(realType, definitionType));
     else
-        -- it is NOT optional so it cannot be null
-        errorFound = (realValue == nil) or (defValue ~= "any" and not self:IsMatchingType(realValue, defValue));
+        -- it is NOT optional so it cannot be nil
+        errorFound = (realType == nil) or (definitionType ~= "any" and not self:IsMatchingType(realType, definitionType));
     end
 
     return errorFound;
 end
 
 function Core:ValidateFunctionCall(definition, errorMessage, ...)
+    local values = Lib:PopTable(...);
+
     if (not definition) then
-        return ...;
+        return values;
     end
 
     local id = 1;
     local realValue = (select(1, ...));
-    local defValue;
+    local definitionType;
     local errorFound;
+    local defaultValue;
+    local defaultValues = Lib:PopTable();
 
     repeat
-        defValue = definition[id];
+        definitionType = definition[id];
 
-        if (defValue:find("|")) then
+        if (Lib:IsTable(definitionType)) then
+            defaultValue = definitionType[2];
+            definitionType = definitionType[1];
+        end
 
-            for _, singleDefValue in Lib:IterateArgs(_G.strsplit("|", defValue)) do
-                singleDefValue = string.gsub(singleDefValue, "%s", "");
-                errorFound = self:ValidateValue(singleDefValue, realValue);
+        if (definitionType:find("|")) then
+            for _, singleDefinitionType in Lib:IterateArgs(_G.strsplit("|", definitionType)) do
+                singleDefinitionType = string.gsub(singleDefinitionType, "%s", "");
+                errorFound = self:ValidateValue(singleDefinitionType, realValue);
 
                 if (not errorFound) then
                     break;
@@ -1514,31 +1517,62 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
             end
 
             if (errorFound) then
-                defValue = string.gsub(defValue, "%s", "");
-                defValue = string.gsub(defValue, "|", " or ");
+                definitionType = string.gsub(definitionType, "|", " or ");
             end
         else
-            errorFound = self:ValidateValue(defValue, realValue);
+            if (definitionType:find("=")) then
+                definitionType, defaultValue = _G.strsplit("=", definitionType);
+            end
+
+            errorFound = self:ValidateValue(definitionType, realValue, defaultValue);
         end
 
         if (errorFound) then
             if (Lib:IsFunction(realValue) or (Lib:IsTable(realValue) and not Lib:IsObject(realValue))) then
                 errorMessage = string.format("%s (%s expected, got %s)",
-                    errorMessage, defValue, self:GetValueType(realValue));
+                    errorMessage, definitionType, self:GetValueType(realValue));
             else
                 errorMessage = string.format("%s (%s expected, got %s (value: %s))",
-                    errorMessage, defValue, self:GetValueType(realValue), tostring(realValue));
+                    errorMessage, definitionType, self:GetValueType(realValue), tostring(realValue));
             end
+
             errorMessage = errorMessage:gsub("##", "#" .. tostring(id));
             self:Error(errorMessage);
         end
+
+        definitionType = string.gsub(definitionType, "%s", "");
+
+        if (definitionType:lower() == "number" and Lib:IsString(defaultValue)) then
+            defaultValue = string.gsub(defaultValue, "%s", "");
+            defaultValue = tonumber(defaultValue);
+        end
+
+        if (definitionType:lower() == "boolean" and Lib:IsString(defaultValue)) then
+            defaultValue = string.gsub(defaultValue, "%s", "");
+
+            if (defaultValue:lower() == "true") then
+                defaultValue = true;
+            else
+                defaultValue = false;
+            end
+        end
+
+        defaultValues[id] = defaultValue;
 
         id = id + 1;
         realValue = (select(id, ...));
 
     until (not definition[id]);
 
-    return ...;
+    for i = 1, #definition do
+        if (values[i] == nil) then
+            values[i] = defaultValues[i];
+        end
+    end
+
+    Lib:PushTable(defaultValues);
+
+    return values;
 end
 
 do
@@ -1751,6 +1785,7 @@ end
 ---(or interface names to be imported as entities) the newly created class should implement
 ---@return Object the newly created class
 function Package:CreateClass(data, className, parentClass, ...)
+    --print(className, select("#", ...))
     Core:Assert(not data.entities[className],
         "Class '%s' already exists in this package.", className);
 

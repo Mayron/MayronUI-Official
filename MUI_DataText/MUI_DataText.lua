@@ -3,7 +3,7 @@ local _, namespace = ...;
 local _G, MayronUI = _G, _G.MayronUI;
 local tk, db, em, gui, obj = MayronUI:GetCoreComponents();
 
-local ipairs, table, GameTooltip, PlaySound = _G.ipairs, _G.table, _G.GameTooltip, _G.PlaySound;
+local ipairs, pairs, table, GameTooltip, PlaySound = _G.ipairs, _G.pairs, _G.table, _G.GameTooltip, _G.PlaySound;
 local CreateFrame, UIFrameFadeIn = _G.CreateFrame, _G.UIFrameFadeIn;
 
 namespace.dataTextLabels = {

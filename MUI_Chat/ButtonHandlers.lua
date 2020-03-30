@@ -160,7 +160,7 @@ end
 
 local function ChatButton_OnClick(self)
     if (_G.InCombatLockdown()) then
-        tk:Print("Cannot toggle menu while in combat.");
+        tk:Print(L["Cannot toggle menu while in combat."]);
         return;
     end
 

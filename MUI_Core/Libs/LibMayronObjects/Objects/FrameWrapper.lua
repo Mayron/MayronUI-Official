@@ -1,5 +1,7 @@
 -- luacheck: ignore self 143 631
 local Lib = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
+
+if (Lib:Import("Framework.System.FrameWrapper", true)) then return end
 local SystemPackage = Lib:Import("Framework.System");
 
 ---@class FrameWrapper : Object

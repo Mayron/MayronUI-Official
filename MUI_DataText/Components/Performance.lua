@@ -93,7 +93,7 @@ function Performance:Update(data, refreshSettings)
         end
 
         if (data.settings.showHomeLatency) then
-			label = FormatLabelByLatency(label, latencyHome);
+            label = FormatLabelByLatency(label, latencyHome);
         end
         if (data.settings.showServerLatency) then
             label = FormatLabelByLatency(label, latencyServer);

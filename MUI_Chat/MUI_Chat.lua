@@ -379,7 +379,7 @@ do
 		if (btnPressed == "LeftButton") then
 
 			if (InCombatLockdown()) then
-				tk:Print("Cannot switch layout while in combat.");
+				tk:Print(L["Cannot switch layouts while in combat."]);
 				return;
 			end
 

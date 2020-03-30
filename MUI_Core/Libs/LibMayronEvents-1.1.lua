@@ -91,7 +91,7 @@ end
 
 ---All variables passed to this function will be passed to the event handler function when the event is triggered.
 function Handler:SetCallbackArgs(data, ...)
-    if (obj:LengthOfArgs(...) == 0) then
+    if (select("#", ...) == 0) then
         return;
     end
 

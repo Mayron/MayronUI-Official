@@ -469,11 +469,27 @@ function C_AuraArea:SetEnabled(data, enabled)
         data.frame:SetParent(UIParent);
         data.frame:ClearAllPoints();
 
+        local position;
+
         if (data.settings.statusBars.enabled) then
-            data.frame:SetPoint(unpack(data.settings.statusBars.position));
+            position = data.settings.statusBars.position;
+
+            if (not _G[position[2]]) then
+                position[2] = "UIParent";
+                -- save in database:
+                db.profile.auras[data.areaName].statusBars.position[2] = "UIParent";
+            end
         else
-            data.frame:SetPoint(unpack(data.settings.icons.position));
+            position = data.settings.icons.position;
+
+            if (not _G[position[2]]) then
+                position[2] = "UIParent";
+                -- save in database:
+                db.profile.auras[data.areaName].icons.position[2] = "UIParent";
+            end
         end
+
+        data.frame:SetPoint(unpack(position));
     else
         data.frame:SetScript("OnUpdate", nil);
         data.frame:SetParent(tk.Constants.DUMMY_FRAME);
@@ -603,8 +619,8 @@ end
 function C_AurasModule:OnInitialize(data)
     data.auraAreas = obj:PopTable();
 
-    for _, barName in obj:IterateArgs("Buffs", "Debuffs") do
-        local sv = db.profile.auras[barName]; ---@type Observer
+    for _, areaName in obj:IterateArgs("Buffs", "Debuffs") do
+        local sv = db.profile.auras[areaName]; ---@type Observer
         sv:SetParent(db.profile.auras.__templateAuraArea);
     end
 

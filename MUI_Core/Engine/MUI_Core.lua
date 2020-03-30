@@ -703,9 +703,10 @@ db:OnStartUp(function(self)
 
     -- To keep UI widget styles consistent ----------
     -- Can only use once Database is loaded...
-
+    ---@type Style
     local Style = obj:Import("MayronUI.Widgets.Style");
 
+    ---@type Style
     tk.Constants.AddOnStyle = Style();
     tk.Constants.AddOnStyle:SetPadding(10, 10, 10, 10);
     tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");

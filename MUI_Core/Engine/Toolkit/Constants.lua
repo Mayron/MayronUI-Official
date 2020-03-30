@@ -1,5 +1,5 @@
 local _, namespace = ...;
-local tk = namespace.components.Toolkit;
+local tk = namespace.components.Toolkit; ---@type Toolkit
 local _G = _G;
 
 tk.Constants = {
