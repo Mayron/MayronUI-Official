@@ -410,13 +410,18 @@ It will also control the fading in and out transitions
 of selected row 2 Bartender bars when expanding and
 retracting the MUI Action Bar Panel.]];
 
-L["TT_MUI_USE_TARGET_CLASS_COLOR"]	= 
-[[If checked, the target portrait gradient will use the target's class\n"..
-"color instead of using the 'Start Color' RGB values. It will\n"..
-"still use the Alpha and 'End Color' RGB values."]];
+L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
+[[If checked, the target portrait gradient will use the target's class
+color instead of using the 'Start Color' RGB values. It will
+still use the Alpha and 'End Color' RGB values.]];
 
-L["Show Overview"] = "Show Overview";
-L["Show Reset Options"] = "Show Reset Options";
-
-L ["Show Overview"] = "Afficher l'aperçu";
-L ["Show Reset Options"] = "Afficher les options de réinitialisation";
+L["Show Overview"] = "Afficher l'aperçu";
+L["Show Reset Options"] = "Afficher les options de réinitialisation";
+L["Reset All Characters"] = "Réinitialiser tous les caractères";
+L["Reset Options"] = "Options de réinitialisation";
+L["All currency data has been reset."] = "Toutes les données sur les devises ont été réinitialisées.";
+L["Currency data for %s has been reset."] = "Les données de devise pour %s ont été réinitialisées.";
+L["Are you sure you want to reset the currency data for all of your characters?"] =
+"Voulez-vous vraiment réinitialiser les données de devise pour tous vos personnages?";
+L["Are you sure you want to reset the currency data for %s?"] =
+"Voulez-vous vraiment réinitialiser les données de devise pour %s?";

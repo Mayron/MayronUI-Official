@@ -247,10 +247,10 @@ function Currency:GetLabel(data, index, btnEnabled)
     label:SetScript("OnClick", function()
         data.slideController:Start(data.slideController.Static.FORCE_RETRACT);
         if (label.isResetAll) then
-            tk:ShowConfirmPopup("Reset All Characters", "Are you sure you want to reset the currency data for all of your characters?", function()
+            tk:ShowConfirmPopup(L["Reset All Characters"], L["Are you sure you want to reset the currency data for all of your characters?"], function()
                 db.global.datatext.currency.characters = {};
                 self:Update(true);
-                tk:Print("All currency data has been reset.");
+                tk:Print(L["All currency data has been reset."]);
             end);
 
             return;
@@ -258,13 +258,14 @@ function Currency:GetLabel(data, index, btnEnabled)
 
         local characterName = (label.dbKey);
         local currentCharacterName = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
-        local message = ("Are you sure you want to reset the currency data for %s?"):format(characterName);
+        local message = L["Are you sure you want to reset the currency data for %s?"]:format(characterName);
+        local confirmMessage = L["Currency data for %s has been reset."]:format(characterName);
 
         if (characterName == currentCharacterName) then
             tk:ShowConfirmPopup(message, nil, function()
                 db:SetPathValue(db.profile, "datatext.currency.todayCurrency", GetMoney());
                 self:Update(true);
-                tk:Print(("Currency data for %s has been reset."):format(characterName));
+                tk:Print(confirmMessage);
             end);
 
             return;
@@ -273,7 +274,7 @@ function Currency:GetLabel(data, index, btnEnabled)
         tk:ShowConfirmPopup(message, nil, function()
             db.global.datatext.currency.characters[characterName] = nil;
             self:Update(true);
-            tk:Print(("Currency data for %s has been reset."):format(characterName));
+            tk:Print(confirmMessage);
         end);
     end);
 
@@ -338,7 +339,7 @@ function Currency:HandleRightClick(data)
 
     title:SetNormalTexture(1);
     title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
-    title.name:SetText(tk.Strings:SetTextColorByRGB("Reset Options", r, g, b));
+    title.name:SetText(tk.Strings:SetTextColorByRGB(L["Reset Options"], r, g, b));
 
     local totalLabelsShown = 1; -- start at 1 because the title label was added
 
@@ -359,7 +360,7 @@ function Currency:HandleRightClick(data)
     totalLabelsShown = totalLabelsShown + 1;
 
     local resetAll = self:GetLabel(totalLabelsShown, true);
-    resetAll.name:SetText(tk.Strings:SetTextColorByKey("Reset All Characters", "GOLD"));
+    resetAll.name:SetText(tk.Strings:SetTextColorByKey(L["Reset All Characters"], "GOLD"));
     resetAll.dbKey = nil;
     resetAll.isResetAll = true;
 

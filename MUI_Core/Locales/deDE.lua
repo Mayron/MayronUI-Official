@@ -398,18 +398,27 @@ L["TT_MUI_CONTROL_GRID"]			=
 [[|cff00ccffWichtig:|r Gild nur für das |cff00ccff'MayronUIH' Grid Profil |r (wird im Heiler-Layout benutzt)!
 
 Wenn aktiviert, wird MUI das Grid Fenster oberhalb des Zielfensters positionieren.
-Es wird automatisch die Positionen anpassen, wenn die untere Benutzeroberfläche 
+Es wird automatisch die Positionen anpassen, wenn die untere Benutzeroberfläche
 erweitert over verkleinert wird.]];
 
 L["TT_MUI_CONTROL_BARTENDER"]		=
-[[Wenn aktiviert, wird MUI die ausgewählten Bartender Leisten so verschieben, 
+[[Wenn aktiviert, wird MUI die ausgewählten Bartender Leisten so verschieben,
 das sie in die untere Benutzeroberfläche passen.
 
 Auch die ein-ausblende Animationen werden die repositionierung der Aktionsleisten berücksichtigen.]];
 
-L["TT_MUI_USE_TARGET_CLASS_COLOR"]	= 
+L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
 [[Wenn aktiviert, wird der Farbverlauf die Klassenfarben des Ziels statt die vordefinierten verwenden.
-Es werden aber weiterhin die Alphawerte und Endfarbe verwendet"]];
+Es werden aber weiterhin die Alphawerte und Endfarbe verwendet]];
 
-L ["Show Overview"] = "Übersicht anzeigen";
-L ["Show Reset Options"] = "Reset-Optionen anzeigen";
+L["Show Overview"] = "Übersicht anzeigen";
+L["Show Reset Options"] = "Reset-Optionen anzeigen";
+L["Reset All Characters"] = "Alle Zeichen zurücksetzen";
+L["Reset Options"] = "Optionen zurücksetzen";
+
+L["All currency data has been reset."] = "Alle Währungsdaten wurden zurückgesetzt.";
+L["Currency data for %s has been reset."] = "Währungsdaten für %s wurden zurückgesetzt.";
+L["Are you sure you want to reset the currency data for all of your characters?"] =
+"Sind Sie sicher, dass Sie die Währungsdaten für alle Ihre Zeichen zurücksetzen möchten?";
+L["Are you sure you want to reset the currency data for %s?"] =
+"Möchten Sie die Währungsdaten für %s wirklich zurücksetzen?";

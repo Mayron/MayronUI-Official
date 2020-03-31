@@ -439,10 +439,18 @@ It will also control the fading in and out transitions
 of selected row 2 Bartender bars when expanding and
 retracting the MUI Action Bar Panel.]];
 
-L["TT_MUI_USE_TARGET_CLASS_COLOR"]=
+L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
 [[If checked, the target portrait gradient will use the target's class
 color instead of using the 'Start Color' RGB values. It will
-still use the Alpha and 'End Color' RGB values."]];
+still use the Alpha and 'End Color' RGB values.]];
 
 L["Show Overview"] = "Show Overview";
 L["Show Reset Options"] = "Show Reset Options";
+L["Reset All Characters"] = "Reset All Characters";
+L["Reset Options"] = "Reset Options";
+L["All currency data has been reset."] = "All currency data has been reset.";
+L["Currency data for %s has been reset."] = "Currency data for %s has been reset.";
+L["Are you sure you want to reset the currency data for all of your characters?"] =
+"Are you sure you want to reset the currency data for all of your characters?";
+L["Are you sure you want to reset the currency data for %s?"] =
+"Are you sure you want to reset the currency data for %s?";
