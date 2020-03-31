@@ -3,6 +3,7 @@ name: Feature request
 about: Suggest an idea for this project
 
 ---
+**Is this feature request for Retail or Classic WoW?**
 
 **Is your feature request related to a problem? Please describe if necessary.**
 
