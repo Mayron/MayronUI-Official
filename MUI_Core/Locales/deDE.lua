@@ -410,3 +410,6 @@ Auch die ein-ausblende Animationen werden die repositionierung der Aktionsleiste
 L["TT_MUI_USE_TARGET_CLASS_COLOR"]	= 
 [[Wenn aktiviert, wird der Farbverlauf die Klassenfarben des Ziels statt die vordefinierten verwenden.
 Es werden aber weiterhin die Alphawerte und Endfarbe verwendet"]];
+
+L ["Show Overview"] = "Übersicht anzeigen";
+L ["Show Reset Options"] = "Reset-Optionen anzeigen";

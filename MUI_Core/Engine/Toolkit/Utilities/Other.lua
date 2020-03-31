@@ -97,7 +97,6 @@ function tk:GetDifficultyColor(level)
 
     else
         color = _G.QuestDifficultyColors["trivial"];
-
     end
 
     return color;
@@ -358,6 +357,16 @@ do
         return popup;
     end
 
+    local function StoreArgs(popup, ...)
+        if (obj:IsTable(popup.data.args)) then
+            obj:PushTable(popup.data.args);
+        end
+
+        if (select("#", ...) > 0) then
+            popup.data.args = obj:PopTable(...);
+        end
+    end
+
     function tk:ShowConfirmPopup(message, subMessage, onConfirm, confirmText, onCancel, cancelText, isWarning, ...)
         local popup = GetPopup(message, subMessage);
 
@@ -373,7 +382,7 @@ do
 
         popup.data.OnAccept = onConfirm;
         popup.data.OnValidate = nil;
-        popup.data.args = obj:PopTable(...);
+        StoreArgs(popup, ...);
 
         _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
@@ -386,7 +395,7 @@ do
         popup.hasEditBox = false;
         popup.OnAccept = onOkay;
         popup.OnCancel = nil;
-        popup.data.args = obj:PopTable(...);
+        StoreArgs(popup, ...);
 
         if (isWarning) then
             popup.showAlert = true;
@@ -412,7 +421,7 @@ do
         popup.data.OnAccept = onConfirm;
         popup.data.OnCancel = onCancel;
         popup.data.OnValidate = onValidate;
-        popup.data.args = obj:PopTable(...);
+        StoreArgs(popup, ...);
 
         _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end

@@ -8,6 +8,7 @@ local LABEL_PATTERN = "|cffffffff%s|r";
 
 local tonumber, string, math = _G.tonumber, _G.string, _G.math;
 local GetMoney, ipairs, strsplit = _G.GetMoney, _G.ipairs, _G.strsplit;
+local GameTooltip = _G.GameTooltip;
 
 -- Objects ---------------------------
 
@@ -25,17 +26,36 @@ db:AddToDefaults("profile.datatext.currency", {
 
 -- Local Functions ----------------
 
-local function CreateLabel(content, popupWidth)
-    local label = tk:PopFrame("Frame", content);
+---@param enabled boolean
+local function SetLabelEnabled(label, enabled)
+    if (not enabled) then
+        label:SetNormalTexture(1);
+        label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
+        label:SetHighlightTexture(nil);
+    else
+        local r, g, b = tk:GetThemeColor();
 
-    label.value = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    label.value:SetPoint("LEFT", 6, 0);
-    label.value:SetWidth(popupWidth);
-    label.value:SetWordWrap(false);
-    label.value:SetJustifyH("LEFT");
+        label:SetNormalTexture(1);
+        label:GetNormalTexture():SetColorTexture(r * 0.5, g * 0.5, b * 0.5, 0.4);
+        label:SetHighlightTexture(1);
+        label:GetHighlightTexture():SetColorTexture(r * 0.5, g * 0.5, b * 0.5, 0.5);
+    end
 
-    label.bg = tk:SetBackground(label, 0, 0, 0, 0.2);
-    return label;
+    label:SetEnabled(enabled);
+end
+
+local function Button_OnEnter(self)
+    local r, g, b = tk:GetThemeColor();
+
+    GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
+    GameTooltip:SetText(L["Commands"]..":")
+    GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Show Overview"], r, g, b, 1, 1, 1);
+    GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]), L["Show Reset Options"], r, g, b, 1, 1, 1);
+    GameTooltip:Show();
+end
+
+local function Button_OnLeave()
+    GameTooltip:Hide();
 end
 
 -- Currency Module ----------------
@@ -45,25 +65,28 @@ MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
 
     -- saves info on the currency that each logged in character has
     if (not db:ParsePathValue(db.global, "datatext.currency.characters")) then
+        db:SetPathValue(db.profile, "datatext.currency.todayCurrency", GetMoney());
         db:SetPathValue(db.global, "datatext.currency.characters", obj:PopTable());
     end
 
     -- store character's money to be seen by other characters
-    db.global.datatext.currency.characters[coloredKey] = _G.GetMoney();
+    db.global.datatext.currency.characters[coloredKey] = GetMoney();
 
     self:RegisterComponentClass("currency", Currency);
 end);
 
-function Currency:__Construct(data, settings, dataTextModule)
+function Currency:__Construct(data, settings, dataTextModule, slideController)
     data.settings = settings;
+    data.slideController = slideController;
 
     -- set public instance properties
     self.MenuContent = _G.CreateFrame("Frame");
     self.MenuLabels = obj:PopTable();
     self.TotalLabelsShown = 0;
     self.HasLeftMenu = true;
-    self.HasRightMenu = false;
+    self.HasRightMenu = true;
     self.Button = dataTextModule:CreateDataTextButton();
+    self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 
     data.goldString = "|TInterface\\MoneyFrame\\UI-GoldIcon:14:14:2:0|t";
     data.silverString = "|TInterface\\MoneyFrame\\UI-SilverIcon:14:14:2:0|t";
@@ -77,7 +100,7 @@ function Currency:__Construct(data, settings, dataTextModule)
     calendarDate = string.format("%d-%d", day, month);
 
     if (not (data.settings.date and data.settings.date == calendarDate)) then
-        data.settings.todayCurrency = _G.GetMoney();
+        data.settings.todayCurrency = GetMoney();
         data.settings.date = calendarDate;
         data.settings:SaveChanges();
    end
@@ -100,6 +123,9 @@ function Currency:SetEnabled(data, enabled)
     data.enabled = enabled;
 
     if (enabled) then
+        self.Button:SetScript("OnEnter", Button_OnEnter);
+        self.Button:SetScript("OnLeave", Button_OnLeave);
+
         em:CreateEventHandlerWithKey("PLAYER_MONEY", "PlayerMoneyHandler", function()
             if (not self.Button) then
                 return;
@@ -191,59 +217,160 @@ function Currency:GetTodaysProfit(data)
 end
 
 function Currency:Update(data, refreshSettings)
+    local money = GetMoney();
+    local currentCurrency = self:GetFormattedCurrency(money, nil, true);
+    local coloredKey = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
+
+    self.Button:SetText(currentCurrency);
+    db:SetPathValue(db.global, ("datatext.currency.characters.%s"):format(coloredKey), money);
+
     if (refreshSettings) then
         data.settings:Refresh();
     end
-
-    local currentCurrency = self:GetFormattedCurrency(GetMoney(), nil, true);
-
-    self.Button:SetText(currentCurrency);
-    local coloredKey = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
-    db.global.datatext.currency.characters[coloredKey] = GetMoney();
 end
 
-function Currency:Click(data)
+function Currency:GetLabel(data, index, btnEnabled)
+    local label = self.MenuLabels[index];
+
+    if (label) then
+        SetLabelEnabled(label, btnEnabled);
+        return label;
+    end
+
+    label = tk:PopFrame("Button", self.MenuContent);
+    label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    label.name:SetPoint("LEFT", 6, 0);
+    label.name:SetWidth(data.settings.popup.width - 10);
+    label.name:SetWordWrap(false);
+    label.name:SetJustifyH("LEFT");
+
+    label:SetScript("OnClick", function()
+        data.slideController:Start(data.slideController.Static.FORCE_RETRACT);
+        if (label.isResetAll) then
+            tk:ShowConfirmPopup("Reset All Characters", "Are you sure you want to reset the currency data for all of your characters?", function()
+                db.global.datatext.currency.characters = {};
+                self:Update(true);
+                tk:Print("All currency data has been reset.");
+            end);
+
+            return;
+        end
+
+        local characterName = (label.dbKey);
+        local currentCharacterName = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
+        local message = ("Are you sure you want to reset the currency data for %s?"):format(characterName);
+
+        if (characterName == currentCharacterName) then
+            tk:ShowConfirmPopup(message, nil, function()
+                db:SetPathValue(db.profile, "datatext.currency.todayCurrency", GetMoney());
+                self:Update(true);
+                tk:Print(("Currency data for %s has been reset."):format(characterName));
+            end);
+
+            return;
+        end
+
+        tk:ShowConfirmPopup(message, nil, function()
+            db.global.datatext.currency.characters[characterName] = nil;
+            self:Update(true);
+            tk:Print(("Currency data for %s has been reset."):format(characterName));
+        end);
+    end);
+
+    self.MenuLabels[index] = label;
+    SetLabelEnabled(label, btnEnabled);
+    return label;
+end
+
+function Currency:HandleLeftClick(data)
     self.MenuLabels = self.MenuLabels or obj:PopTable();
+
+    -- Update these 2 info values (check __Construct for a better understanding of what these are!)
     data.info[2] = self:GetFormattedCurrency(_G.GetMoney());
     data.info[6] = self:GetTodaysProfit();
 
     local r, g, b = tk:GetThemeColor();
-    local popupWidth = data.settings.popup.width;
-    local totalLabelsShown = 0;
+    local totalLabelsShown;
 
-    for id, value in ipairs(data.info) do
-        self.MenuLabels[id] = self.MenuLabels[id] or CreateLabel(self.MenuContent, popupWidth);
-        self.MenuLabels[id].value:SetText(value);
+    for id, infoName in ipairs(data.info) do
+        local label = self:GetLabel(id, false);
+        label.name:SetText(infoName); -- defined in __Construct
 
         if (id % 2 == 1) then
             -- alternating colors for rows
-            self.MenuLabels[id].bg:SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.2);
+            label:SetNormalTexture(1);
+            label:GetNormalTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.2);
         end
 
         totalLabelsShown = id;
     end
 
     for characterName, value in db.global.datatext.currency.characters:Iterate() do
+        -- The character's name
         totalLabelsShown = totalLabelsShown + 1;
-        local nameLabel = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, popupWidth);
-        self.MenuLabels[totalLabelsShown] = nameLabel;
+        local nameLabel = self:GetLabel(totalLabelsShown, false);
+        nameLabel:SetNormalTexture(1);
+        nameLabel:GetNormalTexture():SetColorTexture(0.2, 0.2, 0.2, 0.2);
 
         if (data.settings.showRealm) then
-            nameLabel.value:SetText(characterName);
+            nameLabel.name:SetText(characterName);
         else
             local name = strsplit("-", characterName);
-            nameLabel.value:SetText(name);
+            nameLabel.name:SetText(name);
         end
 
+        -- The character's currency
         totalLabelsShown = totalLabelsShown + 1;
-
-        local moneyLabel = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, popupWidth);
-        self.MenuLabels[totalLabelsShown] = moneyLabel;
-
-        moneyLabel.value:SetText(self:GetFormattedCurrency(value));
-        nameLabel.bg:SetColorTexture(0.2, 0.2, 0.2, 0.2);
-        moneyLabel.bg:SetColorTexture(0, 0, 0, 0.2);
+        local moneyLabel = self:GetLabel(totalLabelsShown, false);
+        moneyLabel:SetNormalTexture(1);
+        moneyLabel:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);
+        moneyLabel.name:SetText(self:GetFormattedCurrency(value));
     end
 
-    self.TotalLabelsShown = totalLabelsShown;
+    return totalLabelsShown;
+end
+
+function Currency:HandleRightClick(data)
+    self.MenuLabels = self.MenuLabels or obj:PopTable();
+
+    local r, g, b = tk:GetThemeColor();
+    local title = self:GetLabel(1, false);
+
+    title:SetNormalTexture(1);
+    title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
+    title.name:SetText(tk.Strings:SetTextColorByRGB("Reset Options", r, g, b));
+
+    local totalLabelsShown = 1; -- start at 1 because the title label was added
+
+    for characterName, _ in db.global.datatext.currency.characters:Iterate() do
+        totalLabelsShown = totalLabelsShown + 1;
+        local label = self:GetLabel(totalLabelsShown, true);
+        label.dbKey = characterName;
+        label.isResetAll = nil;
+
+        if (data.settings.showRealm) then
+            label.name:SetText(characterName);
+        else
+            local name = strsplit("-", characterName);
+            label.name:SetText(name);
+        end
+    end
+
+    totalLabelsShown = totalLabelsShown + 1;
+
+    local resetAll = self:GetLabel(totalLabelsShown, true);
+    resetAll.name:SetText(tk.Strings:SetTextColorByKey("Reset All Characters", "GOLD"));
+    resetAll.dbKey = nil;
+    resetAll.isResetAll = true;
+
+    return totalLabelsShown;
+end
+
+function Currency:Click(_, button)
+    if (button == "LeftButton") then
+        self.TotalLabelsShown = self:HandleLeftClick();
+
+    elseif (button == "RightButton") then
+        self.TotalLabelsShown = self:HandleRightClick();
+    end
 end

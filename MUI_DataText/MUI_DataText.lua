@@ -406,6 +406,9 @@ function C_DataTextModule:ClearLabels(_, labels)
         if (label.dropdown) then
             label.dropdown:Hide();
         end
+
+        label:ClearAllPoints();
+        label:Hide();
     end
 end
 
@@ -456,15 +459,11 @@ function C_DataTextModule:PositionLabels(data, dataModule)
             label:SetPoint("BOTTOMRIGHT", previousLabel, "BOTTOMRIGHT", 0, -(labelHeight + 2));
         end
 
-        if (totalLabelsShown and (i > totalLabelsShown)) then
-            label:Hide();
-        else
-            label:Show();
-            totalHeight = totalHeight + labelHeight;
+        label:Show();
+        totalHeight = totalHeight + labelHeight;
 
-            if (i > 1) then
-                totalHeight = totalHeight + 2;
-            end
+        if (i > 1) then
+            totalHeight = totalHeight + 2;
         end
     end
 

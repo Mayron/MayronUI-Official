@@ -443,3 +443,6 @@ L["TT_MUI_USE_TARGET_CLASS_COLOR"]=
 [[If checked, the target portrait gradient will use the target's class
 color instead of using the 'Start Color' RGB values. It will
 still use the Alpha and 'End Color' RGB values."]];
+
+L["Show Overview"] = "Show Overview";
+L["Show Reset Options"] = "Show Reset Options";
