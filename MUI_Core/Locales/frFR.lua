@@ -425,3 +425,26 @@ L["Are you sure you want to reset the currency data for all of your characters?"
 "Voulez-vous vraiment réinitialiser les données de devise pour tous vos personnages?";
 L["Are you sure you want to reset the currency data for %s?"] =
 "Voulez-vous vraiment réinitialiser les données de devise pour %s?";
+
+L["Change Status"] = "Change Status";
+L["Remove from Whitelist"] = "Remove from Whitelist";
+L["Add to Blacklist"] = "Add to Blacklist";
+
+L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."] =
+"Removing %s from the whitelist will hide this timer bar if the whitelist is enabled.";
+
+L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."] =
+"Adding %s to the blacklist will hide this timer bar if the blacklist is enabled.";
+
+L["Are you sure you want to do this?"] = "Are you sure you want to do this?";
+
+L["%s has been removed from the whitelist."] = "%s has been removed from the whitelist.";
+L["%s has been added to the blacklist."] = "%s has been added to the blacklist.";
+
+L["Filters"] = "Filters";
+L["Only show buffs applied by me"] = "Only show buffs applied by me";
+L["Only show debuffs applied by me"] = "Only show debuffs applied by me";
+L["Enable Whitelist"] = "Enable Whitelist";
+L["Configure Whitelist"] = "Configure Whitelist";
+L["Enable Blacklist"] = "Enable Blacklist";
+L["Configure Blacklist"] = "Configure Blacklist";

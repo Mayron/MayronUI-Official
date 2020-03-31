@@ -2,7 +2,9 @@
 local addOnName = ...;
 local _G, MayronUI = _G, _G.MayronUI;
 
-local tk, _, em, _, obj = MayronUI:GetCoreComponents();
+local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
+
+---@type Database
 local db = _G.LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MUI_TimerBarsDb");
 
 _G.MUI_TimerBars = {}; -- Create new global
@@ -44,6 +46,7 @@ Engine:CreateInterface("ITimerBar", {
     -- fields:
     ExpirationTime = "number";
     AuraId = "number";
+    FieldName = "?string";
 });
 
 ---@class TimerField : FrameWrapper
@@ -442,6 +445,100 @@ local function CanTrackAura(auraInfo)
     return true;
 end
 
+local TimerBar_OnClick;
+
+do
+    local optionsMenu, insertedFrame;
+    local params = obj:PopTable();
+
+    local function OptionSelected_Inner(enableListFieldName, message, listName, printMessage, value)
+        local enablePath = ("profile.fields.%s.filters.%s"):format(params.fieldName, enableListFieldName);
+        local enabled = db:ParsePathValue(enablePath);
+        local subMessage = L["Are you sure you want to do this?"];
+
+        local function onConfirm(self)
+            if (self.insertedFrame and self.insertedFrame.btn:GetChecked()) then
+                db:SetPathValue(enablePath, true);
+            end
+
+            db:SetPathValue(("profile.fields.%s.filters.%s.%s"):format(params.fieldName, listName, params.auraName), value);
+            tk:Print(printMessage:format(params.auraName));
+            params.timerBar.Remove = true;
+            timerBarsModule:RefreshSettings();
+        end
+
+        if (not enabled) then
+            if (not insertedFrame) then
+                insertedFrame = tk:PopFrame("Frame", self);
+                insertedFrame:SetSize(200, 30);
+
+                insertedFrame.btn = _G.CreateFrame("CheckButton", nil, insertedFrame, "UICheckButtonTemplate");
+                insertedFrame.btn:SetSize(30, 30);
+                insertedFrame.btn:SetPoint("LEFT");
+                insertedFrame.btn.text:SetFontObject("GameFontHighlight");
+                insertedFrame.btn.text:ClearAllPoints();
+                insertedFrame.btn.text:SetPoint("LEFT", insertedFrame.btn, "RIGHT", 5, 0);
+            end
+
+            insertedFrame.btn.text:SetText(("Also enable the %s"):format(listName:lower()));
+            insertedFrame.btn:SetChecked(true);
+        end
+
+        tk:ShowConfirmPopupWithInsertedFrame(insertedFrame, message, subMessage, onConfirm);
+    end
+
+    local function CreateOptionsMenu()
+        local options = CreateFrame("Frame", "MUI_TimerBarOptionsMenu", nil, "UIMenuTemplate");
+        _G.UIMenu_Initialize(options);
+
+        local function OptionSelected(whitelist)
+            local auraNameWithHexColor = tk.Strings:SetTextColorByKey(params.auraName, "GOLD");
+            options:Hide();
+
+            if (whitelist) then
+                local message = L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."]:format(auraNameWithHexColor);
+                local printMessage = L["%s has been removed from the whitelist."]:format(auraNameWithHexColor);
+                OptionSelected_Inner("enableWhiteList", message, "whiteList", printMessage, nil);
+            else
+                local message = L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."]:format(auraNameWithHexColor);
+                local printMessage = L["%s has been added to the blacklist."]:format(auraNameWithHexColor);
+                OptionSelected_Inner("enableBlackList", message, "blackList", printMessage, true);
+            end
+        end
+
+        local optionText = "\124T%s.tga:16:16:0:0\124t %s";
+        local blacklistText = string.format(optionText, "Interface\\COMMON\\Indicator-Green", L["Add to Blacklist"]);
+        local whitelistText = string.format(optionText, "Interface\\COMMON\\Indicator-Red", L["Remove from Whitelist"]);
+
+        --self, text, shortcut, func, nested, value
+        _G.UIMenu_AddButton(options, blacklistText, nil, function() OptionSelected(false) end);
+        _G.UIMenu_AddButton(options, whitelistText, nil, function() OptionSelected(true) end);
+        _G.UIMenu_AutoSize(options);
+        options:Hide();
+
+        return options;
+    end
+
+    function TimerBar_OnClick(self, button, timerBar)
+        if (button ~= "RightButton") then return; end
+        optionsMenu = optionsMenu or CreateOptionsMenu();
+        optionsMenu:SetParent(self);
+        optionsMenu:SetShown(not optionsMenu:IsShown());
+
+        obj:EmptyTable(params);
+
+        if (optionsMenu:IsShown()) then
+            params.auraId = self.auraId;
+            params.auraName = self.auraName
+            params.fieldName = timerBar.FieldName;
+            params.timerBar = timerBar;
+
+            optionsMenu:ClearAllPoints();
+            optionsMenu:SetPoint("BOTTOM", self, "TOP");
+        end
+    end
+end
+
 -- C_TimerField ------------------------------
 
 Engine:DefineParams("string", "table");
@@ -462,6 +559,7 @@ function C_TimerField:__Construct(data, name, sharedSettings)
 
     data.expiredBarsStack:OnPushItem(function(bar)
         bar.ExpirationTime = -1;
+        bar.FieldName = nil;
         bar:SetShown(false);
         bar:SetParent(tk.Constants.DUMMY_FRAME);
     end);
@@ -469,6 +567,7 @@ function C_TimerField:__Construct(data, name, sharedSettings)
     data.expiredBarsStack:OnPopItem(function(bar, auraId)
         data.barAdded = true; -- needed for controlling OnUpdate
         bar.AuraId = auraId;
+        bar.FieldName = name; -- Needed for right click options menu (used in dbPath)
         table.insert(data.activeBars, bar);
     end);
 end
@@ -847,12 +946,14 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
     data.settings = settings;
     data.sharedSettings = sharedSettings;
 
-    data.frame = CreateFrame("Frame");
+    data.frame = CreateFrame("Button");
     data.frame:SetSize(settings.bar.width, settings.bar.height);
+    data.frame:RegisterForClicks("RightButtonUp");
 
     data.slider = CreateFrame("StatusBar", nil, data.frame);
     data.slider:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", sharedSettings.statusBarTexture));
     data.slider.bg = tk:SetBackground(data.slider, unpack(sharedSettings.colors.background));
+    data.frame.slider = data.slider;
 
     self:SetIconShown(settings.showIcons);
     self:SetBorderShown(sharedSettings.border.show);
@@ -860,6 +961,10 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
     self:SetAuraNameShown(settings.auraName.show);
     self:SetTimeRemainingShown(settings.timeRemaining.show);
     self:SetTooltipsEnabled(sharedSettings.showTooltips);
+
+    data.frame:SetScript("OnClick", function(frame, button)
+        TimerBar_OnClick(frame, button, self, data);
+    end);
 end
 
 Engine:DefineParams("boolean");
@@ -1076,7 +1181,10 @@ function C_TimerBar:UpdateAura(data, auraInfo)
     local canStealOrPurge = auraInfo[8];
 
     obj:PushTable(auraInfo);
-    data.frame.auraId = self.AuraId; -- this is needed for the tooltip mouse over
+
+    -- this is needed for the tooltip mouse over + right click menu
+    data.frame.auraId = self.AuraId;
+    data.frame.auraName = auraName;
 
     if (data.icon) then
         data.icon:SetTexture(iconPath);

@@ -367,7 +367,7 @@ do
         end
     end
 
-    function tk:ShowConfirmPopup(message, subMessage, onConfirm, confirmText, onCancel, cancelText, isWarning, ...)
+    local function ShowConfirmPopup(message, subMessage, onConfirm, confirmText, onCancel, cancelText, isWarning, ...)
         local popup = GetPopup(message, subMessage);
 
         popup.hasEditBox = false;
@@ -384,7 +384,17 @@ do
         popup.data.OnValidate = nil;
         StoreArgs(popup, ...);
 
+        return popup;
+    end
+
+    function tk:ShowConfirmPopup(...)
+        local popup = ShowConfirmPopup(...);
         _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+    end
+
+    function tk:ShowConfirmPopupWithInsertedFrame(insertedFrame, ...)
+        local popup = ShowConfirmPopup(...);
+        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data, insertedFrame);
     end
 
     function tk:ShowMessagePopup(message, subMessage, okayText, onOkay, isWarning, ...)

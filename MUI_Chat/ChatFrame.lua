@@ -4,7 +4,7 @@
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local Engine = namespace.Engine;
-local tk, _, em, gui, obj = MayronUI:GetCoreComponents();
+local tk, _, em, gui, obj, L = MayronUI:GetCoreComponents();
 local MEDIA = "Interface\\AddOns\\MUI_Chat\\media\\";
 local _G = _G;
 
@@ -524,7 +524,7 @@ do
 		end):Run();
 
 		playerStatusButton:SetHighlightAtlas("chatframe-button-highlight");
-		tk:SetBasicTooltip(playerStatusButton, "Change Status");
+		tk:SetBasicTooltip(playerStatusButton, L["Change Status"]);
 
 		local statusMenu = CreateFrame("Frame", "MUI_StatusMenu", muiChatFrame, "UIMenuTemplate");
 		UIMenu_Initialize(statusMenu);
