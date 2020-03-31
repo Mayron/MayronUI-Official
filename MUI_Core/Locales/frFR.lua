@@ -426,25 +426,25 @@ L["Are you sure you want to reset the currency data for all of your characters?"
 L["Are you sure you want to reset the currency data for %s?"] =
 "Voulez-vous vraiment réinitialiser les données de devise pour %s?";
 
-L["Change Status"] = "Change Status";
-L["Remove from Whitelist"] = "Remove from Whitelist";
-L["Add to Blacklist"] = "Add to Blacklist";
+L["Change Status"] = "Changer le statut";
+L["Remove from Whitelist"] = "Supprimer de la liste blanche";
+L["Add to Blacklist"] = "Ajouter à la liste noire";
 
 L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."] =
-"Removing %s from the whitelist will hide this timer bar if the whitelist is enabled.";
+"La suppression de %s de la liste blanche masquera cette barre de temporisation si la liste blanche est activée.";
 
 L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."] =
-"Adding %s to the blacklist will hide this timer bar if the blacklist is enabled.";
+"L'ajout de %s à la liste noire masquera cette barre de temporisation si la liste noire est activée.";
 
-L["Are you sure you want to do this?"] = "Are you sure you want to do this?";
+L["Are you sure you want to do this?"] = "Es-tu sûr de vouloir faire ça?";
 
 L["%s has been removed from the whitelist."] = "%s has been removed from the whitelist.";
-L["%s has been added to the blacklist."] = "%s has been added to the blacklist.";
+L["%s has been added to the blacklist."] = "%s a été ajouté à la liste noire.";
 
-L["Filters"] = "Filters";
-L["Only show buffs applied by me"] = "Only show buffs applied by me";
-L["Only show debuffs applied by me"] = "Only show debuffs applied by me";
-L["Enable Whitelist"] = "Enable Whitelist";
-L["Configure Whitelist"] = "Configure Whitelist";
-L["Enable Blacklist"] = "Enable Blacklist";
-L["Configure Blacklist"] = "Configure Blacklist";
+L["Filters"] = "Filtres";
+L["Only show buffs applied by me"] = "Afficher uniquement les buffs appliqués par moi";
+L["Only show debuffs applied by me"] = "Afficher uniquement les debuffs appliqués par moi";
+L["Enable Whitelist"] = "Activer la liste blanche";
+L["Configure Whitelist"] = "Configurer la liste blanche";
+L["Enable Blacklist"] = "Activer la liste noire";
+L["Configure Blacklist"] = "Configurer la liste noire";

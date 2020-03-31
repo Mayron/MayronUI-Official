@@ -1,4 +1,4 @@
-## Interface: 80205
+## Interface: 80300
 ## Title: |cff00ccffMUI|r MiniMap
 ## Dependencies: MUI_Core
 ## Notes: Replaces the Blizzard Minimap with one tailored for MayronUI

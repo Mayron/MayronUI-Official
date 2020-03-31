@@ -413,7 +413,7 @@ Es werden aber weiterhin die Alphawerte und Endfarbe verwendet]];
 
 L["Show Overview"] = "Übersicht anzeigen";
 L["Show Reset Options"] = "Reset-Optionen anzeigen";
-L["Reset All Characters"] = "Alle Zeichen zurücksetzen";
+L["Reset All Characters"] = "Alle Chars zurücksetzen";
 L["Reset Options"] = "Optionen zurücksetzen";
 
 L["All currency data has been reset."] = "Alle Währungsdaten wurden zurückgesetzt.";
@@ -423,25 +423,25 @@ L["Are you sure you want to reset the currency data for all of your characters?"
 L["Are you sure you want to reset the currency data for %s?"] =
 "Möchten Sie die Währungsdaten für %s wirklich zurücksetzen?";
 
-L["Change Status"] = "Change Status";
-L["Remove from Whitelist"] = "Remove from Whitelist";
-L["Add to Blacklist"] = "Add to Blacklist";
+L["Change Status"] = "Status ändern";
+L["Remove from Whitelist"] = "Aus der Whitelist entfernen";
+L["Add to Blacklist"] = "Zur Blacklist hinzufügen";
 
 L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."] =
-"Removing %s from the whitelist will hide this timer bar if the whitelist is enabled.";
+"Durch Entfernen von %s aus der Whitelist wird diese Zeitleiste ausgeblendet, wenn die Whitelist aktiviert ist.";
 
 L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."] =
-"Adding %s to the blacklist will hide this timer bar if the blacklist is enabled.";
+"Durch Hinzufügen von %s zur Blacklist wird diese Zeitleiste ausgeblendet, wenn die Blacklist aktiviert ist.";
 
-L["Are you sure you want to do this?"] = "Are you sure you want to do this?";
+L["Are you sure you want to do this?"] = "Sind Sie sicher, dass Sie dies tun möchten?";
 
-L["%s has been removed from the whitelist."] = "%s has been removed from the whitelist.";
-L["%s has been added to the blacklist."] = "%s has been added to the blacklist.";
+L["%s has been removed from the whitelist."] = "%s wurde aus der Whitelist entfernt.";
+L["%s has been added to the blacklist."] = "%s wurde der Blacklist hinzugefügt.";
 
 L["Filters"] = "Filters";
-L["Only show buffs applied by me"] = "Only show buffs applied by me";
-L["Only show debuffs applied by me"] = "Only show debuffs applied by me";
-L["Enable Whitelist"] = "Enable Whitelist";
-L["Configure Whitelist"] = "Configure Whitelist";
-L["Enable Blacklist"] = "Enable Blacklist";
-L["Configure Blacklist"] = "Configure Blacklist";
+L["Only show buffs applied by me"] = "Nur von mir angewendete Buffs anzeigen";
+L["Only show debuffs applied by me"] = "Nur von mir angewendete Debuffs anzeigen";
+L["Enable Whitelist"] = "Whitelist aktivieren";
+L["Configure Whitelist"] = "Konfigurieren Sie die Whitelist";
+L["Enable Blacklist"] = "Blacklist aktivieren";
+L["Configure Blacklist"] = "Blacklist konfigurieren";

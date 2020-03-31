@@ -1,4 +1,4 @@
-## Interface: 80205
+## Interface: 80300
 ## Title: |cff00ccffMUI|r DataText
 ## Dependencies: MUI_Core
 ## OptionalDeps: MUI_Config
