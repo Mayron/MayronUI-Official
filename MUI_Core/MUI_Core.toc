@@ -3,7 +3,7 @@
 ## SavedVariables: MayronUIdb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
-## Version: 6.0.8
+## Version: 6.0.9
 
 ## X-InterfaceName: MayronUI Gen6
 
