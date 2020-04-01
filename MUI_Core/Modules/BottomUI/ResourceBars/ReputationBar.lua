@@ -34,7 +34,7 @@ local function OnReputationBarUpdate(_, _, bar, data)
         currentValue = tk.Strings:FormatReadableNumber(currentValue);
         maxValue = tk.Strings:FormatReadableNumber(maxValue);
 
-        local text = string.format("%s: %s / %s (%d%%)", factionName, currentValue, maxValue, percent);
+        local text = string.format("%s: %s / %s (%s%%)", factionName, currentValue, maxValue, percent);
         data.statusbar.text:SetText(text);
     end
 end
