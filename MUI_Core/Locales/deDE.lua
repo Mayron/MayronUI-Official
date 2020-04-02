@@ -112,7 +112,7 @@ L["Money per character"]			= "Vermögen je Charakter";
 
 -- afk
 L["Guild Chat"]						= "Gildenchat";
-L["Whispers"]						= "Geflüstertes";
+L["Whispers"]						= "Private Nachrichten";
 
 -- MUI Castbar
 L[" CastBar not enabled."]			= " Castbar ist nicht aktiviert.";
@@ -416,12 +416,12 @@ L["Show Reset Options"] = "Reset-Optionen anzeigen";
 L["Reset All Characters"] = "Alle Chars zurücksetzen";
 L["Reset Options"] = "Optionen zurücksetzen";
 
-L["All currency data has been reset."] = "Alle Währungsdaten wurden zurückgesetzt.";
-L["Currency data for %s has been reset."] = "Währungsdaten für %s wurden zurückgesetzt.";
+L["All currency data has been reset."] = "Alle Währungen wurden zurückgesetzt.";
+L["Currency data for %s has been reset."] = "Währung für %s wurden zurückgesetzt.";
 L["Are you sure you want to reset the currency data for all of your characters?"] =
-"Sind Sie sicher, dass Sie die Währungsdaten für alle Ihre Zeichen zurücksetzen möchten?";
+"Sind Sie sicher, dass Sie die Währungen für alle Ihre Chars zurücksetzen möchten?";
 L["Are you sure you want to reset the currency data for %s?"] =
-"Möchten Sie die Währungsdaten für %s wirklich zurücksetzen?";
+"Möchten Sie die Währung für %s wirklich zurücksetzen?";
 
 L["Change Status"] = "Status ändern";
 L["Remove from Whitelist"] = "Aus der Whitelist entfernen";
