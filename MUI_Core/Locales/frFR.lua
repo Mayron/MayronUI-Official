@@ -1,23 +1,12 @@
-local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "frFR") 
-if not L then return end 
---[[
-To enable a translation, you need to uncomment the responsible line.
-See https://www.lua.org/pil/1.3.html	for information of how to comment in LUA
- 
-To change the value fill in the translation on the right side of the equal sign.
-Example:
-	L["Hello!"] 						= "Hi!";local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "frFR") 
+local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "frFR");
 if not L then return end
+
 --[[
-To enable a translation, you need to uncomment the responsible line.
-See https://www.lua.org/pil/1.3.html	for information of how to comment in LUA
- 
 To change the value fill in the translation on the right side of the equal sign.
 Example:
-	L["Hello!"] 						= "Hi!";
-	
-The spaces are not needed. They are just for alignment.
+	L["Hello!"] = "Hi!";
 ]]
+
 -- French translations go here
 -- MUI Chat
 L["Hello!"]							= "Bonjour!"
@@ -66,14 +55,17 @@ L["Shift"]							= "Maj";	-- Mod-Key!
 L["Ctrg"]							= "Ctrg";		-- Mod-Key!
 L["Alt"]							= "Alt";		-- Mod-Key!
 
-L["Chat Buttons with Modifier Key 1"]						= "Boutons du chat avec la touche de modification 1";
-L["Chat Buttons with Modifier Key 2"]						= "Boutons du chat avec la touche de modification 2";
-L["Set the border size.\n\nDefault is 1."]					= "Définissez la taille de la bordure.\n\nLa valeur par défaut est 1.";
-L["Cannot toggle menu while in combat."] 					= "Impossible de basculer de menu lorsque vous êtes en combat.";
-L["Cannot switch layouts while in combat."]					= "Impossible de changer de disposotion lorsque vous êtes en combat.";
+L["Chat Buttons with Modifier Key 1"]			= "Boutons du chat avec la touche de modification 1";
+L["Chat Buttons with Modifier Key 2"]			= "Boutons du chat avec la touche de modification 2";
+L["Set the border size.\n\nDefault is 1."]		= "Définissez la taille de la bordure.\n\nLa valeur par défaut est 1.";
+L["Cannot toggle menu while in combat."] 		= "Impossible de basculer de menu lorsque vous êtes en combat.";
+L["Cannot switch layouts while in combat."]		= "Impossible de changer de disposotion lorsque vous êtes en combat.";
 
-L["Set the spacing between the background and the border.\n\nDefault is 0."]					= "Définissez l'espacement entre l'arrière-plan et la bordure.\n\nLa valeur par défaut est 0.";
-L["Allow the use of modifier keys to swap chat buttons while in combat."]						= "Autorisez l'utilisation des touches de modification pour échanger les boutons du chat pendant le combat.";
+L["Set the spacing between the background and the border.\n\nDefault is 0."]
+	= "Définissez l'espacement entre l'arrière-plan et la bordure.\n\nLa valeur par défaut est 0.";
+
+L["Allow the use of modifier keys to swap chat buttons while in combat."]
+	= "Autorisez l'utilisation des touches de modification pour échanger les boutons du chat pendant le combat.";
 
 -- MUI Core
 L["Failed to load MUI_Config. Possibly missing?"]			= "Impossible de lancer MUI_Config. Fichier manquant?";
@@ -157,10 +149,17 @@ L["Target"]							= "Cible";
 L["Focus"]							= "Focus";
 L["Mirror"]							= "Miroir";
 
-L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."]	= "Si activé la barre de sort sera fixée à la barre de portrait de %s (si elle existe)";
-L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."]					= "La barre de portrait de %s a besoin d'être activé pour utiliser cette fonctionnalité";
-L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."]					= "Prend seulement effet si la barre de sort n'est pas ancrée à une barre de portrait de SUF";
-L["Manual positioning only works if the CastBar is not anchored to a SUF Portrait Bar."]		= "Le positionnement manuel ne fonctionne uniquement que si la barre de sort n'est pas ancrée à une barre de portrait de SUF";
+L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."]
+	= "Si activé la barre de sort sera fixée à la barre de portrait de %s (si elle existe)";
+
+L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."]
+	= "La barre de portrait de %s a besoin d'être activé pour utiliser cette fonctionnalité";
+
+L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."]
+	= "Prend seulement effet si la barre de sort n'est pas ancrée à une barre de portrait de SUF";
+
+L["Manual positioning only works if the CastBar is not anchored to a SUF Portrait Bar."]
+	= "Le positionnement manuel ne fonctionne uniquement que si la barre de sort n'est pas ancrée à une barre de portrait de SUF";
 
 -- MUI Minimap
 L["CTRL + Drag:"]					= "CTRL + Déplacer:";
@@ -184,7 +183,8 @@ L["MUI Config Menu"]				= "Menu de configuration MUI";
 L["MUI Installer"]					= "Installateur MUI";
 L["Music Player"]					= "Lecteur de musique";
 
-L["Cannot access config menu while in combat."]				= "Vous ne pouvez pas accéder au menu de configuration lorsque vous êtes en combat.";
+L["Cannot access config menu while in combat."]
+	= "Vous ne pouvez pas accéder au menu de configuration lorsque vous êtes en combat.";
 
 -- MUI Setup
 L["Choose Theme:"]					= "Choix du thème:";
@@ -216,7 +216,8 @@ L["Setup Menu"]						= "Menu d'installation";
 L["VERSION"]						= "VERSION";
 
 
-L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"]	= "Cela garantira que les cadres sont correctement positionnés pour correspondre à l'échelle de l'interface utilisateur lors de l'installation.\n\nLa valeur par défaut est 0.7";
+L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"]
+	= "Cela garantira que les cadres sont correctement positionnés pour correspondre à l'échelle de l'interface utilisateur lors de l'installation.\n\nLa valeur par défaut est 0.7";
 
 -- MUI TimerBar
 L["Only track your %s"]				= "Traquer uniquement vos %s";
@@ -258,12 +259,12 @@ L["Default is 11"]					= "La valeur par défaut est 11";
 L["Font Type"]						= "Police";
 L["Spell Name Text"]				= "Nom du sort";
 
-L["Enter the Name of a %s to Track:"]															= "Entrer le nom du %s à traquer:";
-L["Only %s casted by you will be tracked."]														= "Uniquement l'incantation %s effectuée par vous sera traquée";
-L["Ignore the list of %s to track and track everything."]										= "Ignorer la liste des %s à traquer et tout traquer ";
-L["Enabling this will dynamically generate the list of %s to track."]							= "Activer ceci générera dynamiquement la liste des %s à traquer";
-L["The unit who is affected by the spell."]														= "L'unité affectée par le sort.";
-L["The field's vertical growth direction:"]														= "La direction de croissance verticale du champ:";
+L["Enter the Name of a %s to Track:"]									= "Entrer le nom du %s à traquer:";
+L["Only %s casted by you will be tracked."]								= "Uniquement l'incantation %s effectuée par vous sera traquée";
+L["Ignore the list of %s to track and track everything."]				= "Ignorer la liste des %s à traquer et tout traquer ";
+L["Enabling this will dynamically generate the list of %s to track."]	= "Activer ceci générera dynamiquement la liste des %s à traquer";
+L["The unit who is affected by the spell."]								= "L'unité affectée par le sort.";
+L["The field's vertical growth direction:"]								= "La direction de croissance verticale du champ:";
 
 -- MUI Config
 L["Reload UI"]						= "Recharger l'interface utilisateur";
@@ -453,10 +454,8 @@ L["Enable Whitelist"] = "Activer la liste blanche";
 L["Configure Whitelist"] = "Configurer la liste blanche";
 L["Enable Blacklist"] = "Activer la liste noire";
 L["Configure Blacklist"] = "Configurer la liste noire";
-	
-The spaces are not needed. They are just for alignment.
-]]
--- French translations go here
+
+-- The spaces are not needed. They are just for alignment.
 -- MUI Chat
 L["Hello!"]							= "Bonjour!"
 L["Character"]						= "Personnage";
@@ -894,3 +893,71 @@ L["Enable Whitelist"] = "Activer la liste blanche";
 L["Configure Whitelist"] = "Configurer la liste blanche";
 L["Enable Blacklist"] = "Activer la liste noire";
 L["Configure Blacklist"] = "Configurer la liste noire";
+
+
+L["MUI_Setup_InfoTab"] = [[
+Visit our Discord community:
+%s
+
+The official homepage for MayronUI Gen6 is:
+%s
+
+The official GitHub repo:
+%s
+
+Become a Patreon and earn exclusive benefits within the community:
+%s
+
+Visit Mayron's official YouTube channel:
+%s
+
+
+|cff00ccff> SLASH COMMANDS|r
+
+|cff00ccff/mui|r - List all MayronUI slash commands (including "install", "config" and "profile" commands)
+|cff00ccff/rl|r - Reloads the UI
+|cff00ccff/tiptac|r - Show TipTac (Tooltips) AddOn settings
+|cff00ccff/ltp|r - Leatrix Plus settings (I recommend looking through them!)
+|cff00ccff/suf|r - Settings for the Unit Frames (Shadowed Unit Frames)
+|cff00ccff/bt|r - Bartender Settings (Action Bars)
+
+|cff00ccff> F.A.Q's|r
+
+|cff00ccffQ: How do I open up the Calendar? / How do I toggle the Tracker?|r
+
+|cff90ee90A:|r Right click the Mini-Map and select the option to do this in the drop down menu.
+
+|cff00ccffQ: How can I see more action bars on the bottom of the UI like in the screen shots?|r
+
+|cff90ee90A:|r You need to press and hold the Control key while out of combat to show the Expand and Retract button.
+
+|cff00ccffQ: How do I enable the Timestamps on the Chat Box?|r
+
+|cff90ee90A:|r I removed this feature when Blizzard added this themselves in the Blizzard Interface Options. Go to the Interface in-game menu and go to "Social" then there is a drop down menu with the title "Chat Timestamps". Change this from "None" to a format that suits you.
+
+|cff00ccffQ: How do I turn off/on Auto Quest? Or how do I turn on auto repair?|r
+
+|cff90ee90A:|r That is controlled by Leatrix Plus (Leatrix Plus also offers many other useful features and is worth checking out!). You can open the Leatrix Plus menu to view these by right clicking the Minimap and selecting Leatrix Plus or by typing "/ltp".
+
+|cff00ccffQ: The tooltip shows over my spells when I hover my mouse cursor over them, how can I move it to the Bottom Right corner like the other tooltips do?|r
+
+|cff90ee90A:|r Type "/tiptac" and go to the Anchors page from the list on the left. Where it says "Frame Tip Type" you will see a drop down menu on the right. Change it from "Mouse Anchor" to "Normal Anchor".
+]]
+
+L["MUI_Setup_CreditsTab"] = [[
+Special thanks goes to the following MayronUI community members for their contributions towards the project (see the information tab for the link to join our Discord community):
+
+|cff00ccff> Patreons|r
+%s
+
+|cff00ccff> Development and Bug Fixes|r
+%s
+
+|cff00ccff> Translation Support|r
+%s
+
+|cff00ccff> Community Support Team|r
+%s
+
+And of course, thank you to the authors of the non-MayronUI AddOns included in this UI pack.
+]]

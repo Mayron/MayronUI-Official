@@ -1,15 +1,12 @@
-local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "deDE") 
+local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "deDE");
 if not L then return end
+
 --[[
-To enable a translation, you need to uncomment the responsible line.
-See https://www.lua.org/pil/1.3.html	for information of how to comment in LUA
- 
 To change the value fill in the translation on the right side of the equal sign.
 Example:
-	L["Hello!"] 						= "Hi!";
-	
-The spaces are not needed. They are just for alignment.
+	L["Hello!"] = "Hi!";
 ]]
+
 -- German translations go here
 -- MUI Chat
 L["Hello!"] 						= "Hallo!";
@@ -250,12 +247,12 @@ L["Default is 11"]					= "Standard ist 11";
 L["Font Type"]						= "Schriftart";
 L["Spell Name Text"]				= "Text: Zaubername";
 
-L["Enter the Name of a %s to Track:"]															= "Gebe den Namen eines %s ein um ihn zu überwachen.";
-L["Only %s casted by you will be tracked."]														= "Nur die %s von dir werden überwacht";
-L["Ignore the list of %s to track and track everything."]										= "Ignoriere die Liste der %s und überwache alles.";
-L["Enabling this will dynamically generate the list of %s to track."]							= "Bei aktivierung werden dynamisch alle %s erfasst und überwacht.";
-L["The unit who is affected by the spell."]														= "Die Einheit die vom Zauber betroffen ist.";
-L["The field's vertical growth direction:"]														= "Die Richtung in der die Leiste wachsen wird.";
+L["Enter the Name of a %s to Track:"]									= "Gebe den Namen eines %s ein um ihn zu überwachen.";
+L["Only %s casted by you will be tracked."]								= "Nur die %s von dir werden überwacht";
+L["Ignore the list of %s to track and track everything."]				= "Ignoriere die Liste der %s und überwache alles.";
+L["Enabling this will dynamically generate the list of %s to track."]	= "Bei aktivierung werden dynamisch alle %s erfasst und überwacht.";
+L["The unit who is affected by the spell."]								= "Die Einheit die vom Zauber betroffen ist.";
+L["The field's vertical growth direction:"]								= "Die Richtung in der die Leiste wachsen wird.";
 
 -- MUI Config
 L["Reload UI"]						= "UI neu laden";
@@ -445,3 +442,71 @@ L["Enable Whitelist"] = "Whitelist aktivieren";
 L["Configure Whitelist"] = "Konfigurieren Sie die Whitelist";
 L["Enable Blacklist"] = "Blacklist aktivieren";
 L["Configure Blacklist"] = "Blacklist konfigurieren";
+
+
+L["MUI_Setup_InfoTab"] = [[
+Visit our Discord community:
+%s
+
+The official homepage for MayronUI Gen6 is:
+%s
+
+The official GitHub repo:
+%s
+
+Become a Patreon and earn exclusive benefits within the community:
+%s
+
+Visit Mayron's official YouTube channel:
+%s
+
+
+|cff00ccff> SLASH COMMANDS|r
+
+|cff00ccff/mui|r - List all MayronUI slash commands (including "install", "config" and "profile" commands)
+|cff00ccff/rl|r - Reloads the UI
+|cff00ccff/tiptac|r - Show TipTac (Tooltips) AddOn settings
+|cff00ccff/ltp|r - Leatrix Plus settings (I recommend looking through them!)
+|cff00ccff/suf|r - Settings for the Unit Frames (Shadowed Unit Frames)
+|cff00ccff/bt|r - Bartender Settings (Action Bars)
+
+|cff00ccff> F.A.Q's|r
+
+|cff00ccffQ: How do I open up the Calendar? / How do I toggle the Tracker?|r
+
+|cff90ee90A:|r Right click the Mini-Map and select the option to do this in the drop down menu.
+
+|cff00ccffQ: How can I see more action bars on the bottom of the UI like in the screen shots?|r
+
+|cff90ee90A:|r You need to press and hold the Control key while out of combat to show the Expand and Retract button.
+
+|cff00ccffQ: How do I enable the Timestamps on the Chat Box?|r
+
+|cff90ee90A:|r I removed this feature when Blizzard added this themselves in the Blizzard Interface Options. Go to the Interface in-game menu and go to "Social" then there is a drop down menu with the title "Chat Timestamps". Change this from "None" to a format that suits you.
+
+|cff00ccffQ: How do I turn off/on Auto Quest? Or how do I turn on auto repair?|r
+
+|cff90ee90A:|r That is controlled by Leatrix Plus (Leatrix Plus also offers many other useful features and is worth checking out!). You can open the Leatrix Plus menu to view these by right clicking the Minimap and selecting Leatrix Plus or by typing "/ltp".
+
+|cff00ccffQ: The tooltip shows over my spells when I hover my mouse cursor over them, how can I move it to the Bottom Right corner like the other tooltips do?|r
+
+|cff90ee90A:|r Type "/tiptac" and go to the Anchors page from the list on the left. Where it says "Frame Tip Type" you will see a drop down menu on the right. Change it from "Mouse Anchor" to "Normal Anchor".
+]]
+
+L["MUI_Setup_CreditsTab"] = [[
+Special thanks goes to the following MayronUI community members for their contributions towards the project (see the information tab for the link to join our Discord community):
+
+|cff00ccff> Patreons|r
+%s
+
+|cff00ccff> Development and Bug Fixes|r
+%s
+
+|cff00ccff> Translation Support|r
+%s
+
+|cff00ccff> Community Support Team|r
+%s
+
+And of course, thank you to the authors of the non-MayronUI AddOns included in this UI pack.
+]]
