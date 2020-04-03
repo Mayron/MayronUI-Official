@@ -1,18 +1,14 @@
-local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "enUS", true)
+local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "enUS", true);
 if not L then return end
+
 --[[
-To enable a translation, you need to uncomment the responsible line.
-See https://www.lua.org/pil/1.3.htmlfor information of how to comment in LUA
- 
 To change the value fill in the translation on the right side of the equal sign.
 Example:
-L["Hello!"] = "Hi!";
-
-The spaces are not needed. They are just for alignment.
+	L["Hello!"] = "Hi!";
 ]]
--- english translations go here
--- MUI Chat
 
+-- English translations go here
+-- MUI Chat
 L["Hello!"] = "Hello!"
 L["Character"]= "Character"
 L["Bags"]= "Bags"

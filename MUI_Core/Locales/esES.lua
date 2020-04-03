@@ -208,7 +208,7 @@ L["Setup Menu"]						= "Menu configuración";
 L["VERSION"]						= "Versión";
 
 L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"]
-	= "Hace que ajusten los marcos con la interfaz del usuario durante la instalacion. \n\n La configuración por defecto es 0.7";
+	= "Hace que ajusten los marcos con la interfaz del usuario durante la instalacion.\n\nLa configuración por defecto es 0.7";
 
 -- MUI TimerBar
 L["Only track your %s"]				= "Mostrar solo %s";
@@ -387,7 +387,6 @@ L["The UI requires reloading to apply changes."]			= "Requiere reiniciar la inte
 -- L["If the SUF Player or Target portrait bars are enabled, a class"]								= "";
 -- L["colored gradient will overlay it."]															= "";
 
-
 L["TT_MUI_CONTROL_SUF"] =
 [[Si está activado, MUI moverá los fotogramas de la unidad sombreada adecuadamente a su IU.
 
@@ -441,7 +440,6 @@ Sin embargo, los valores alfa y el color final todavía estaran en uso]];
 -- L["Configure Whitelist"] = "";
 -- L["Enable Blacklist"] = "";
 -- L["Configure Blacklist"] = "";
-
 
 L["MUI_Setup_InfoTab"] = [[
 Visit our Discord community:
