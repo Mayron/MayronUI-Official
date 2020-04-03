@@ -230,8 +230,8 @@ end
 function tk:Assert(condition, errorMessage, ...)
     if (condition) then return end
 
-    if ((select(1, ...)) ~= nil) then
-        errorMessage = string.format(errorMessage, ...);
+    if ((select("#", ...)) >= 1) then
+        errorMessage = string.format(errorMessage, _G.tostringall(...));
 
     elseif (tk.Strings:Contains(errorMessage, "%s")) then
         errorMessage = string.format(errorMessage, "nil");

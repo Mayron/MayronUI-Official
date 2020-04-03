@@ -521,6 +521,7 @@ do
 
     function TimerBar_OnClick(self, button, timerBar)
         if (button ~= "RightButton") then return; end
+        self:GetScript("OnLeave")(self);
         optionsMenu = optionsMenu or CreateOptionsMenu();
         optionsMenu:SetParent(self);
         optionsMenu:SetShown(not optionsMenu:IsShown());

@@ -259,7 +259,13 @@ function tk:GetThemeColor(returnTable)
 end
 
 function tk:UpdateThemeColor(value)
-    local color = tk:GetClassColor(value);
+    local color;
+
+    if (obj:IsTable(value) and value.r and value.g and value.b) then
+        color = value;
+    else
+        color = tk:GetClassColor(value);
+    end
 
     if (not color.GenerateHexColor) then
         color = _G.CreateColor(color.r, color.g, color.b);

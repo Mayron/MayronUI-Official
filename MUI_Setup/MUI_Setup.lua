@@ -7,6 +7,18 @@ local Private = {};
 
 local _G = _G;
 
+local tabText = {
+    -- This should use the locales!
+    L["INSTALL"], L["CUSTOM INSTALL"], L["INFORMATION"], "CREDITS"
+};
+
+local tabNames = {
+    [L["INSTALL"]] = "Install";
+    [L["CUSTOM INSTALL"]] = "Custom";
+    [L["INFORMATION"]] = "Info";
+    ["CREDITS"] = "Credits";
+};
+
 local PlaySoundFile, FCF_SetLocked, FCF_SetWindowAlpha, SetCVar, SetChatWindowSize, UIFrameFadeIn,
 C_Timer, UIFrameFadeOut, PlaySound, CreateFrame, IsAddOnLoaded, unpack, math, UIParent, GetAddOnMetadata, string =
 _G.PlaySoundFile, _G.FCF_SetLocked, _G.FCF_SetWindowAlpha, _G.SetCVar, _G.SetChatWindowSize, _G.UIFrameFadeIn, _G.C_Timer,
@@ -48,7 +60,7 @@ local function ChangeTheme(self, value)
         frame.closeBtn);
 
     frame = window;
-    tk:ApplyThemeColor(0.5, frame.installTab, frame.customTab, frame.infoTab);
+    tk:ApplyThemeColor(0.5, unpack(frame.tabs));
 
     frame = frame.submenu;
 
@@ -56,7 +68,7 @@ local function ChangeTheme(self, value)
         frame.tl, frame.tr, frame.bl, frame.br, frame.t,
         frame.b, frame.l, frame.r, frame.c);
 
-    frame = window.submenu[window.customTab.type];
+    frame = window.submenu["Custom"];
 
     if (frame) then
         -- resets color
@@ -71,9 +83,11 @@ local function ChangeTheme(self, value)
         frame.addonContainer:SetGridColor(r, g, b);
     end
 
-    frame = window.submenu[window.info.type];
-    if (frame) then
-        window.info.ScrollBar.thumb:SetColorTexture(r, g, b, 0.8);
+    for _, tabName in pairs(tabNames) do
+        local menu = window.submenu[tabName];
+        if (menu and menu.scrollBar) then
+            menu.scrollBar.thumb:SetColorTexture(r, g, b);
+        end
     end
 end
 
@@ -128,13 +142,14 @@ local function OnMenuButtonClick(self)
             frame:Hide();
         end
 
-        if (not submenu[self.type]) then
-            submenu[self.type] = tk:PopFrame("Frame", submenu);
-            submenu[self.type]:SetAllPoints(true);
-            Private["Load"..self.type.."Menu"](Private, submenu[self.type]);
+        local tabName = tabNames[self:GetText()];
+        if (not submenu[tabName]) then
+            submenu[tabName] = tk:PopFrame("Frame", submenu);
+            submenu[tabName]:SetAllPoints(true);
+            Private["Load"..tabName.."Menu"](Private, submenu[tabName]);
         end
 
-        submenu[self.type]:Show();
+        submenu[tabName]:Show();
         setUpModule:SetExpanded(true);
 
         C_Timer.After(0.02, ExpandSetupWindow);
@@ -400,34 +415,97 @@ end
 function Private:LoadInfoMenu(menuSection)
     local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
-    menuSection.info = gui:CreateScrollFrame(tk.Constants.AddOnStyle, menuSection);
-    menuSection.child = menuSection.info.ScrollFrame:GetScrollChild();
+    local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, menuSection);
+    menuSection.child = container.ScrollFrame:GetScrollChild();
+    menuSection.scrollBar = container.ScrollBar;
 
     tk:SetFullWidth(menuSection.child);
-    menuSection.child:SetHeight(1200); -- can't use GetStringHeight
+    menuSection.child:SetHeight(1000);
 
-    menuSection.info:SetPoint("TOPLEFT", 40, -40);
-    menuSection.info:SetPoint("BOTTOMRIGHT", -40, 40);
+    container:SetPoint("TOPLEFT", 40, -40);
+    container:SetPoint("BOTTOMRIGHT", -40, 40);
 
-    menuSection.info.ScrollBar:SetPoint("TOPLEFT", menuSection.info.ScrollFrame, "TOPRIGHT", -5, 0);
-    menuSection.info.ScrollBar:SetPoint("BOTTOMRIGHT", menuSection.info.ScrollFrame, "BOTTOMRIGHT", 0, 0);
+    menuSection.scrollBar:SetPoint("TOPLEFT", container.ScrollFrame, "TOPRIGHT", -5, 0);
+    menuSection.scrollBar:SetPoint("BOTTOMRIGHT", container.ScrollFrame, "BOTTOMRIGHT", 0, 0);
 
-    menuSection.info.bg = tk:SetBackground(menuSection.info, 0, 0, 0, 0.5);
-    menuSection.info.bg:ClearAllPoints();
-    menuSection.info.bg:SetPoint("TOPLEFT", -10, 10);
-    menuSection.info.bg:SetPoint("BOTTOMRIGHT", 10, -10);
+    container.bg = tk:SetBackground(container, 0, 0, 0, 0.5);
+    container.bg:ClearAllPoints();
+    container.bg:SetPoint("TOPLEFT", -10, 10);
+    container.bg:SetPoint("BOTTOMRIGHT", 10, -10);
+
+    local content = CreateFrame("EditBox", nil, menuSection.child);
+    content:SetMultiLine(true);
+    content:SetMaxLetters(99999);
+    content:EnableMouse(true);
+    content:SetAutoFocus(false);
+    content:SetFontObject("GameFontHighlight");
+    content:SetFont(font, 13);
+    content:SetAllPoints(true);
+    content:SetText(Private.info);
+    content:SetScript("OnEscapePressed", function(self) self:ClearFocus(); end);
+    content:SetScript("OnTextChanged", function(self) self:SetText(Private.info); end);
+end
+
+
+function Private:LoadCreditsMenu(menuSection)
+    local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
+
+    local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, menuSection);
+    menuSection.child = container.ScrollFrame:GetScrollChild();
+    menuSection.scrollBar = container.ScrollBar;
+
+    tk:SetFullWidth(menuSection.child);
+    menuSection.child:SetHeight(600); -- can't use GetStringHeight
+
+    container:SetPoint("TOPLEFT", 40, -40);
+    container:SetPoint("BOTTOMRIGHT", -40, 40);
+
+    menuSection.scrollBar:SetPoint("TOPLEFT", menuSection.scrollBar, "TOPRIGHT", -5, 0);
+    menuSection.scrollBar:SetPoint("BOTTOMRIGHT", menuSection.scrollBar, "BOTTOMRIGHT", 0, 0);
+
+    container.bg = tk:SetBackground(container, 0, 0, 0, 0.5);
+    container.bg:ClearAllPoints();
+    container.bg:SetPoint("TOPLEFT", -10, 10);
+    container.bg:SetPoint("BOTTOMRIGHT", 10, -10);
 
     local content = menuSection.child:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     content:SetWordWrap(true);
     content:SetAllPoints(true);
     content:SetJustifyH("LEFT");
     content:SetJustifyV("TOP");
-    content:SetText(Private.content);
+    content:SetText(Private.credits);
     content:SetFont(font, 13); -- font size should be added to config and profile
     content:SetSpacing(6);
 end
 
 -- C_SetUpModule -----------------------
+local function GetInfoLinks(...)
+    local links = obj:PopTable(...);
+
+    for i, name in ipairs(links) do
+        links[i] = ("|cffffff9a%s|r"):format(GetAddOnMetadata("MUI_Core", name));
+    end
+
+    return obj:UnpackTable(links);
+end
+
+local function GetCreditsSections(...)
+    local sections = obj:PopTable(...);
+
+    for s, sectionName in ipairs(sections) do
+        local names = (GetAddOnMetadata("MUI_Core", sectionName));
+        names = obj:PopTable(strsplit(",", names))
+
+        for i, name in ipairs(names) do
+            names[i] = string.format("|TInterface\\Challenges\\ChallengeMode_Medal_Gold:18:18:0:-4|t %s", strtrim(name));
+        end
+
+        sections[s] = strjoin("\n", unpack(names));
+        obj:PushTable(names);
+    end
+
+    return obj:UnpackTable(sections);
+end
 
 function C_SetUpModule:OnInitialize()
     self:Show();
@@ -440,7 +518,13 @@ function C_SetUpModule:Show(data)
         return;
     end
 
-    local window = gui:CreateDialogBox(tk.Constants.AddOnStyle);
+    Private.info = L["MUI_Setup_InfoTab"]:format(GetInfoLinks(
+        "X-Discord", "X-Home-Page", "X-GitHub-Repo", "X-Patreon", "X-YouTube"));
+
+    Private.credits = L["MUI_Setup_CreditsTab"]:format(GetCreditsSections(
+        "X-Patreons", "X-Development-and-Bug-Fixes", "X-Translation-Support", "X-Community-Support-Team"))
+
+    local window = gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, nil, "MUI_Setup");
     window:SetSize(750, 485); -- change this!
     window:SetPoint("CENTER");
     window:SetFrameStrata("DIALOG");
@@ -493,44 +577,32 @@ function C_SetUpModule:Show(data)
     window.submenu:Hide();
 
     -- menu buttons:
-    local installTab = CreateFrame("CheckButton", nil, window.menu:GetFrame());
-    installTab:SetNormalFontObject("GameFontHighlight");
-    installTab:SetText(L["INSTALL"]);
-    installTab:SetPoint("LEFT");
-    installTab:SetCheckedTexture(1);
-    installTab:SetHighlightTexture(1);
-    installTab:SetSize(installTab:GetFontString():GetWidth() + 50, 30);
-    installTab:SetScript("OnClick", OnMenuButtonClick);
-    installTab.type = "Install";
+    local tabs = {};
 
-    local customTab = CreateFrame("CheckButton", nil, window.menu:GetFrame());
-    customTab:SetNormalFontObject("GameFontHighlight");
-    customTab:SetText(L["CUSTOM INSTALL"]);
-    customTab:SetPoint("LEFT", installTab, "RIGHT", 40, 0);
-    customTab:SetCheckedTexture(1);
-    customTab:SetHighlightTexture(1);
-    customTab:SetSize(customTab:GetFontString():GetWidth() + 50, 30);
-    customTab:SetScript("OnClick", OnMenuButtonClick);
-    customTab.type = "Custom";
+    for i, text in ipairs(tabText) do
+        local tab = CreateFrame("CheckButton", nil, window.menu:GetFrame());
+        tab:SetNormalFontObject("GameFontHighlight");
+        tab:SetText(text);
+        tab:SetCheckedTexture(1);
+        tab:SetHighlightTexture(1);
+        tab:SetSize(tab:GetFontString():GetWidth() + 50, 30);
+        tab:SetScript("OnClick", OnMenuButtonClick);
 
-    local infoTab = CreateFrame("CheckButton", nil, window.menu:GetFrame());
-    infoTab:SetNormalFontObject("GameFontHighlight");
-    infoTab:SetText(L["INFORMATION"]);
-    infoTab:SetPoint("LEFT", customTab, "RIGHT", 40, 0);
-    infoTab:SetCheckedTexture(1);
-    infoTab:SetHighlightTexture(1);
-    infoTab:SetSize(infoTab:GetFontString():GetWidth() + 50, 30);
-    infoTab:SetScript("OnClick", OnMenuButtonClick);
-    infoTab.type = "Info";
+        if (i == 1) then
+            tab:SetPoint("LEFT");
+        else
+            tab:SetPoint("LEFT", tabs[i - 1], "RIGHT", 30, 0);
+        end
 
-    tk:ApplyThemeColor(0.5, installTab, customTab, infoTab);
-    tk:GroupCheckButtons(obj:PopTable(installTab, customTab, infoTab));
+        tabs[i] = tab;
+    end
+
+    tk:ApplyThemeColor(0.5, unpack(tabs));
+    tk:GroupCheckButtons(tabs);
 
     window:AddCells(window.menu, window.banner, window.info);
     data.window = window;
-    data.window.installTab = installTab;
-    data.window.customTab = customTab;
-    data.window.infoTab = infoTab;
+    data.window.tabs = tabs;
     UIFrameFadeIn(data.window, 0.3, 0, 1);
 end
 
@@ -632,42 +704,3 @@ end
 function C_SetUpModule:IsExpanded(data)
     return data.window and data.expanded;
 end
-
-Private.content = [[
-Thank you for using MayronUI Gen6!
-
-Please visit the community Discord server if you need additional help or wish to get involved with the project:
-|cff00ccffhttps://discord.gg/8Kh3maU|r
-
-The official homepage for MayronUI Gen6 is:
-|cff00ccffhttps://www.wowinterface.com/downloads/info21221-MayronUIGen5.html|r
-
-|cff00ccff> SLASH COMMANDS|r
-|cff00ccff/mui|r - List all MayronUI slash commands (including "install", "config" and "profile" commands)
-|cff00ccff/rl|r - Reloads the UI
-|cff00ccff/tiptac|r - Show TipTac (Tooltips) AddOn settings
-|cff00ccff/ltp|r - Leatrix Plus settings (I recommend looking through them!)
-|cff00ccff/suf|r - Settings for the Unit Frames (Shadowed Unit Frames)
-|cff00ccff/bt|r - Bartender Settings (Action Bars)
-
-|cff00ccff> F.A.Q's|r
-|cff00ccffQ: How do I open up the Calendar? / How do I toggle the Tracker?|r
-
-|cff90ee90A:|r Right click the Mini-Map and select the option to do this in the drop down menu.
-
-|cff00ccffQ: How can I see more action bars on the bottom of the UI like in the screen shots?|r
-
-|cff90ee90A:|r You need to press and hold the Control key while out of combat to show the Expand and Retract button.
-
-|cff00ccffQ: How do I enable the Timestamps on the Chat Box?|r
-
-|cff90ee90A:|r I removed this feature when Blizzard added this themselves in the Blizzard Interface Options. Go to the Interface in-game menu and go to "Social" then there is a drop down menu with the title "Chat Timestamps". Change this from "None" to a format that suits you.
-
-|cff00ccffQ: How do I turn off/on Auto Quest? Or how do I turn on auto repair?|r
-
-|cff90ee90A:|r That is controlled by Leatrix Plus (Leatrix Plus also offers many other useful features and is worth checking out!). You can open the Leatrix Plus menu to view these by right clicking the Minimap and selecting Leatrix Plus or by typing "/ltp".
-
-|cff00ccffQ: The tooltip shows over my spells when I hover my mouse cursor over them, how can I move it to the Bottom Right corner like the other tooltips do?|r
-
-|cff90ee90A:|r Type "/tiptac" and go to the Anchors page from the list on the left. Where it says "Frame Tip Type" you will see a drop down menu on the right. Change it from "Mouse Anchor" to "Normal Anchor".
-]]

@@ -662,7 +662,7 @@ end):SetAutoDestroy(true);
 -- Database Event callbacks --------------------
 
 db:OnProfileChange(function(self, newProfileName)
-    if (not MayronUI:IsInstalled()) then
+    if (not MayronUI:IsInstalled() or (_G["MUI_Setup"] and _G["MUI_Setup"]:IsShown())) then
         return;
     end
 

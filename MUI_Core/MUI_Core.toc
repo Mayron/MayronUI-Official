@@ -4,10 +4,25 @@
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
 ## Version: 6.0.9
-
 ## X-InterfaceName: MayronUI Gen6
 
+## Links:
+## ------------------------------------------------
+## X-Discord: https://discord.gg/8Kh3maU
+## X-Home-Page: https://www.wowinterface.com/downloads/info21221-MayronUIGen6.html
+## X-GitHub-Repo: https://github.com/Mayron/MayronUI-Official
+## X-Patreon: https://www.patreon.com/mayronWoW
+## X-YouTube: https://www.youtube.com/channel/UCCu-NuBYVi7yokZmKBCBvHw
+
+## Credits:
+## ------------------------------------------------
+## X-Community-Support-Team: Monster/ Alizmer [GER]
+## X-Patreons: Orangepaw3, LaidbackLuke, Korallis, pbb
+## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux
+## X-Development-and-Bug-Fixes: Monkey, Gargnash, BeetleJooce
+
 ## Libraries:
+## ------------------------------------------------
 Libs\LibStub.lua
 Libs\LibMayronObjects\LibMayronObjects.xml
 Libs\LibMayronDB-2.3\LibMayronDB.lua
@@ -18,10 +33,13 @@ Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
 Libs\AceLocale-3.0.lua
 
 ## Localization
+## ------------------------------------------------
 Locales\Locales.xml
 
 ## Engine:
+## ------------------------------------------------
 Engine\MUI_Core.xml
 
 ## Modules:
+## ------------------------------------------------
 Modules\Modules.xml

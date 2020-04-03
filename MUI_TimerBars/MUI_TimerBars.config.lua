@@ -327,11 +327,11 @@ function C_TimerBarsModule:GetConfigTable()
                                     tooltip = L["The unit who is affected by the spell."];
                                     dbPath = dbFieldPath .. ".unitID";
                                     options = {
-                                        L["Player"];
-                                        L["Target"];
-                                        L["TargetTarget"];
-                                        L["Focus"];
-                                        L["FocusTarget"]
+                                        [L["Player"]] = "Player";
+                                        [L["Target"]] = "Target";
+                                        [L["TargetTarget"]] = "TargetTarget";
+                                        [L["Focus"]] = "Focus";
+                                        [L["FocusTarget"]] = "FocusTarget"
                                     };
                                 };
                                 {   type = "divider"
