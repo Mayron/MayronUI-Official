@@ -381,9 +381,9 @@ L["If unchecked, the entire DataText module will be disabled and all"]							= "
 L["DataText buttons, as well as the background bar, will not be displayed."]					= "Die DataText box, sowie der Hindergrund wird ebenfalls ausgeblendet.";
 L["Prevents you from using data text modules while in combat."]									= "Verhindert die benutzung der DataText Elemente während dem Kampf.";
 L["This is useful for 'clickers'."]																= "Das ist besonders für die Benutzer mit einer Vorliebe für Maussteuerung hilfreich.";
-L["If the SUF Player or Target portrait bars are enabled, a class"]								= "Wenn die SUF Spieler oder Ziel Portais aktiv sind,";
-L["colored gradient will overlay it."]															= "wird ein Farbverlauf mit den Klassenfarben darüber gelegt.";
 
+L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."]
+	= "Wenn die SUF Spieler oder Ziel Portais aktiv sind, wird ein Farbverlauf mit den Klassenfarben darüber gelegt.";
 
 L["TT_MUI_CONTROL_SUF"]				=
 [[Wenn aktiviert, wird MUI die Shadowed Unit Frames passend in sein UI verschieben.

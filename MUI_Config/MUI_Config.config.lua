@@ -225,8 +225,7 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   name    = L["Enable Gradient Effect"];
                     type    = "check";
-                    tooltip = tk.Strings:Concat(L["If the SUF Player or Target portrait bars are enabled, a class"],
-                        "\n", L["colored gradient will overlay it."]);
+                    tooltip = L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."];
                     dbPath  = "profile.unitPanels.sufGradients.enabled";
                 };
                 {   name    = L["Height"];

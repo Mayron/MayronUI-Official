@@ -1,16 +1,13 @@
-local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "ptBR") 
+local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "ptBR");
 if not L then return end
+
 --[[
-To enable a translation, you need to uncomment the responsible line.
-See https://www.lua.org/pil/1.3.html	for information of how to comment in LUA
- 
 To change the value fill in the translation on the right side of the equal sign.
 Example:
-	L["Hello!"] 						= "Hi!";
-	
-The spaces are not needed. They are just for alignment.
+	L["Hello!"] = "Hi!";
 ]]
--- German translations go here
+
+-- translations go here
 -- MUI Chat
 L["Hello!"] 						= "Olá!";
 L["Character"]						= "Personagem";
@@ -384,9 +381,9 @@ L["If unchecked, the entire DataText module will be disabled and all"]							= "
 L["DataText buttons, as well as the background bar, will not be displayed."]					= "Os Botões DataText, assim como a Barra de Fundo, não vão estar visíveis.";
 L["Prevents you from using data text modules while in combat."]									= "Previne usar os modulos de Data Text quando em combate.";
 L["This is useful for 'clickers'."]																= "Util para 'clickers'.";
-L["If the SUF Player or Target portrait bars are enabled, a class"]								= "Se o Retrato SUF do Personagem/Alvo está activo, a classe"; *THE ORIGINAL SENTENCE SEEMS INCOMPLETE/CUT SHORT*
-L["colored gradient will overlay it."]															= "degradé colorido vai sobrepor";
 
+L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."]
+	= "Se o Retrato SUF do Personagem/Alvo está activo, a classe degradé colorido vai sobrepor";
 
 L["TT_MUI_CONTROL_SUF"]				=
 [[If enabled, MUI will reposition the Shadowed Unit

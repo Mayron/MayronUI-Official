@@ -407,10 +407,9 @@ L["Prevents you from using data text modules while in combat."]
 = "Prevents you from using data text modules while in combat.";
 L["This is useful for 'clickers'."]
 = "This is useful for 'clickers'.";
-L["If the SUF Player or Target portrait bars are enabled, a class"]
-= "If the SUF Player or Target portrait bars are enabled, a class";
-L["colored gradient will overlay it."]
-= "colored gradient will overlay it.";
+
+L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."]
+	= "If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it.";
 
 L["TT_MUI_CONTROL_SUF"]=
 [[If enabled, MUI will reposition the Shadowed Unit

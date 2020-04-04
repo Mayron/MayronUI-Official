@@ -393,8 +393,9 @@ L["If unchecked, the entire DataText module will be disabled and all"]							= "
 L["DataText buttons, as well as the background bar, will not be displayed."]					= "Les boutons des textes de données, ainsi que la barre d'arrière-plan, ne seront pas affichés.";
 L["Prevents you from using data text modules while in combat."]									= "Vous empêche d'utiliser des modules de texte de données pendant le combat.";
 L["This is useful for 'clickers'."]																= "Ceci est utile pour les 'clickers'.";
-L["If the SUF Player or Target portrait bars are enabled, a class"]								= "Si les barres de portraits SUF du joueur ou de la cible sont activées, une classe";
-L["colored gradient will overlay it."]															= "Le dégradé coloré le superposera.";
+
+L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."]
+	= "Si les barres de portraits SUF du joueur ou de la cible sont activées, une classe Le dégradé coloré le superposera.";
 
 L["TT_MUI_CONTROL_SUF"]				=
 [[If enabled, MUI will reposition the Shadowed Unit

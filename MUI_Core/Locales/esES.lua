@@ -384,8 +384,7 @@ L["The UI requires reloading to apply changes."]			= "Requiere reiniciar la inte
 -- L["DataText buttons, as well as the background bar, will not be displayed."]					= "";
 -- L["Prevents you from using data text modules while in combat."]									= "";
 -- L["This is useful for 'clickers'."]																= "";
--- L["If the SUF Player or Target portrait bars are enabled, a class"]								= "";
--- L["colored gradient will overlay it."]															= "";
+-- L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."]								= "";													= "";
 
 L["TT_MUI_CONTROL_SUF"] =
 [[Si está activado, MUI moverá los fotogramas de la unidad sombreada adecuadamente a su IU.
