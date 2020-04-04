@@ -18,7 +18,7 @@
 ## ------------------------------------------------
 ## X-Community-Support-Team: Monster/ Alizmer [GER]
 ## X-Patreons: Orangepaw3, LaidbackLuke, Korallis, pbb
-## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux
+## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma
 ## X-Development-and-Bug-Fixes: Monkey, Gargnash, BeetleJooce
 
 ## Libraries:
