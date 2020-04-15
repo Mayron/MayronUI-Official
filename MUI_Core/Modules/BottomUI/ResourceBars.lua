@@ -22,7 +22,7 @@ local C_ArtifactBar = ResourceBarsPackage:CreateClass("ArtifactBar", C_BaseResou
 
 -- Register and Import Modules -----------
 
-local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", "Resource Bars", true);
+local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", L["Resource Bars"], true);
 
 C_ResourceBarsModule.Static:AddFriendClass("BottomUI_Container");
 

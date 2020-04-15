@@ -76,7 +76,7 @@ local function CreateDropDown(settings, contentFrame, popupWidth, dataTextBar, s
 
     if (not dropdown:GetLabel()) then
         -- if no associated equipment set, set default label
-        dropdown:SetLabel("Equipment Set");
+        dropdown:SetLabel(L["Equipment Set"]);
     end
 
     if (not dropdown.registered) then
@@ -267,7 +267,7 @@ function Specialization:HandleLeftClick(data)
         SetLabelEnabled(label, enabled);
 
         if not (enabled) then
-            specializationName = string.format("Current (%s)", specializationName);
+            specializationName = string.format(L["Current"] .. " (%s)", specializationName);
         end
 
         label.name:SetText(specializationName);
@@ -321,7 +321,7 @@ function Specialization:HandleRightClick()
 
         if (label.specializationID == 0) then
             local specializationName = select(2, GetSpecializationInfo(GetSpecialization()));
-            label.name:SetText(string.format("Current (%s)", specializationName));
+            label.name:SetText(string.format(L["Current"] .. " (%s)", specializationName));
         else
             local specializationName = select(2, GetSpecializationInfo(label.specializationID));
             label.name:SetText(specializationName);

@@ -2,16 +2,14 @@
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local Engine = namespace.Engine;
-local tk, db, _, gui, obj = MayronUI:GetCoreComponents();
+local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local C_LayoutSwitcher = MayronUI:RegisterModule("LayoutSwitcher");
 
 local _G = _G;
 local ipairs, table, string = _G.ipairs, _G.table, _G.string;
 local LibStub, IsAddOnLoaded = _G.LibStub, _G.IsAddOnLoaded;
 
-local LAYOUT_MESSAGE =
-[[Customize which addOn/s should change to which profile/s for each layout,
-as well as manage your existing layouts or create new ones.]];
+local LAYOUT_MESSAGE = L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."];
 
 -- Local Functions -------------------
 
@@ -126,8 +124,8 @@ function C_LayoutSwitcher:CreateNewAddOnProfile(data, dropdown, addOnName, dbObj
 
 	_G.StaticPopupDialogs["MUI_NewProfileLayout"] = {
 		text = newProfileLabel,
-		button1 = "Confirm",
-		button2 = "Cancel",
+		button1 = L["Confirm"],
+		button2 = L["Cancel"],
 		timeout = 0,
 		whileDead = true,
 		hideOnEscape = true,
@@ -175,16 +173,16 @@ function C_LayoutSwitcher:CreateLayout(data)
 	local totalLayouts = self:GetNumLayouts();
 
 	_G.StaticPopupDialogs["MUI_CreateLayout"] = {
-		text = "Name of New Layout:",
-		button1 = "Confirm",
-		button2 = "Cancel",
+		text = L["Name of New Layout"]..": ",
+		button1 = L["Confirm"],
+		button2 = L["Cancel"],
 		timeout = 0,
 		whileDead = true,
 		hideOnEscape = true,
 		hasEditBox  = true,
 		preferredIndex = 3,
 		OnShow = function (dialog)
-			dialog.editBox:SetText("Layout "..(length + 1));
+			dialog.editBox:SetText(L["Layout"].." "..(length + 1));
 		end,
 		OnAccept = function(dialog)
 			local layout = dialog.editBox:GetText();
@@ -212,9 +210,9 @@ function C_LayoutSwitcher:RenameLayout(data)
 	end
 
 	_G.StaticPopupDialogs["MUI_RenameLayout"] = {
-		text = "Rename Layout:",
-		button1 = "Confirm",
-		button2 = "Cancel",
+		text = L["Rename Layout"]..":",
+		button1 = L["Confirm"],
+		button2 = L["Cancel"],
 		timeout = 0,
 		whileDead = true,
 		hideOnEscape = true,
@@ -253,13 +251,13 @@ function C_LayoutSwitcher:DeleteLayout(data)
 	end
 
 	_G.StaticPopupDialogs["MUI_DeleteLayout"] = {
-		button1 = "Confirm",
-		button2 = "Cancel",
+		button1 = L["Confirm"],
+		button2 = L["Cancel"],
 		timeout = 0,
 		whileDead = true,
 		hideOnEscape = true,
 		preferredIndex = 3,
-		text = string.format("Are you sure you want to delete Layout \"%s\"?", data.viewingLayout),
+		text = string.format(L["Are you sure you want to delete Layout '%s'?"], data.viewingLayout),
 		OnAccept = function()
 			local dropdown = data.layoutTool.dropdown;
 			dropdown:RemoveOptionByLabel(data.viewingLayout);
@@ -288,7 +286,7 @@ function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
 
 	-- setup addOn dropdown menus with options
 	dropdown:SetLabel(dbObject:GetCurrentProfile());
-	dropdown:AddOption("<New Profile>", {self, "CreateNewAddOnProfile"}, addOnName, dbObject);
+	dropdown:AddOption("<"..L["New Profile"]..">", {self, "CreateNewAddOnProfile"}, addOnName, dbObject);
 
 	for _, profileName in ipairs(addOnProfiles) do
 		dropdown:AddOption(profileName, SetAddOnProfilePair, data.viewingLayout, addOnName, profileName);
@@ -323,7 +321,7 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 	data.layoutTool:SetSize(700, 400);
 	data.layoutTool:SetPoint("CENTER");
 
-	gui:AddTitleBar(tk.Constants.AddOnStyle, data.layoutTool, "MUI Layout Tool");
+	gui:AddTitleBar(tk.Constants.AddOnStyle, data.layoutTool, L["MUI Layout Tool"]);
 	gui:AddCloseButton(tk.Constants.AddOnStyle, data.layoutTool);
 
 	-- convert to panel
@@ -370,7 +368,7 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 
 	-- Add menu content:
 	data.menu.layoutsTitle = data.menu:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-	data.menu.layoutsTitle:SetText("Layouts:");
+	data.menu.layoutsTitle:SetText(L["Layouts"]..":");
 	data.menu.layoutsTitle:SetPoint("TOPLEFT", 35, -35);
 
 	data.menu.layoutsDropDown = gui:CreateDropDown(tk.Constants.AddOnStyle, data.menu:GetFrame());
@@ -384,15 +382,15 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 		end
 	end
 
-	data.menu.createButton = gui:CreateButton(tk.Constants.AddOnStyle, data.menu:GetFrame(), "Create New Layout");
+	data.menu.createButton = gui:CreateButton(tk.Constants.AddOnStyle, data.menu:GetFrame(), L["Create New Layout"]);
 	data.menu.createButton:SetPoint("TOP", data.menu.layoutsDropDown:GetFrame(), "BOTTOM", 0, -20);
 	data.menu.createButton:SetScript("OnClick", function() self:CreateLayout() end);
 
-	data.menu.renameButton = gui:CreateButton(tk.Constants.AddOnStyle, data.menu:GetFrame(), "Rename Layout");
+	data.menu.renameButton = gui:CreateButton(tk.Constants.AddOnStyle, data.menu:GetFrame(), L["Rename Layout"]);
 	data.menu.renameButton:SetPoint("TOP", data.menu.createButton, "BOTTOM", 0, -20);
 	data.menu.renameButton:SetScript("OnClick", function() self:RenameLayout() end);
 
-	data.menu.deleteButton = gui:CreateButton(tk.Constants.AddOnStyle, data.menu:GetFrame(), "Delete Layout");
+	data.menu.deleteButton = gui:CreateButton(tk.Constants.AddOnStyle, data.menu:GetFrame(), L["Delete Layout"]);
 	data.menu.deleteButton:SetPoint("TOP", data.menu.renameButton, "BOTTOM", 0, -20);
 	data.menu.deleteButton:SetScript("OnClick", function() self:DeleteLayout() end);
 	data.layoutTool.deleteButton = data.menu.deleteButton;

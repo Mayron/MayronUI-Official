@@ -8,7 +8,7 @@ local IsAddOnLoaded = _G.IsAddOnLoaded;
 
 -- Register and Import Modules -----------
 
-local C_ActionBarPanel = MayronUI:RegisterModule("BottomUI_ActionBarPanel", "Action Bar Panel", true);
+local C_ActionBarPanel = MayronUI:RegisterModule("BottomUI_ActionBarPanel", L["Action Bar Panel"], true);
 local SlideController = gui.WidgetsPackage:Get("SlideController");
 
 -- Load Database Defaults ----------------
@@ -51,13 +51,14 @@ local function LoadTutorial(panel)
     frame.text:SetWordWrap(true);
     frame.text:SetPoint("TOPLEFT", 20, -20);
     frame.text:SetPoint("BOTTOMRIGHT", -20, 10);
-    frame.text:SetText(tk.Strings:JoinWithSpace(
-        "Press and hold the", tk.Strings:SetTextColorByTheme("Control"),
-        "key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."));
+
+    local tutorialMessage = L["Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."];
+    tutorialMessage:format(tk.Strings:SetTextColorByTheme("Control"));
+    frame.text:SetText(tutorialMessage);
 
     em:CreateEventHandler("MODIFIER_STATE_CHANGED", function(self)
         if (tk:IsModComboActive("C")) then
-            frame.text:SetText("You can repeat this step at any time (while out of combat) to hide it.");
+            frame.text:SetText(L["You can repeat this step at any time (while out of combat) to hide it."]);
             frame:SetHeight(90);
 
             if (not frame:IsShown()) then

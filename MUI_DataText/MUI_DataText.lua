@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, em, gui, obj = MayronUI:GetCoreComponents();
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local ipairs, pairs, table, GameTooltip, PlaySound = _G.ipairs, _G.pairs, _G.table, _G.GameTooltip, _G.PlaySound;
 local CreateFrame, UIFrameFadeIn = _G.CreateFrame, _G.UIFrameFadeIn;
@@ -30,7 +30,7 @@ local SlideController = obj:Import("MayronUI.Widgets.SlideController");
 -- Register Modules --------------------
 
 ---@class DataTextModule : BaseModule
-local C_DataTextModule = MayronUI:RegisterModule("DataTextModule", "Data Text Bar");
+local C_DataTextModule = MayronUI:RegisterModule("DataTextModule", L["Data Text Bar"]);
 
 namespace.C_DataTextModule = C_DataTextModule;
 namespace.ComponentsPackage = ComponentsPackage;

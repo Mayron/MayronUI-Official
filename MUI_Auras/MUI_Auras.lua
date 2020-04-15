@@ -2,7 +2,7 @@ local _, namespace = ...;
 
 -- luacheck: ignore self 143
 local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, em, _, obj = MayronUI:GetCoreComponents();
+local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
 local GetTime, select, SecondsToTimeAbbrev, GetWeaponEnchantInfo, UnitAura, ipairs, CreateFrame, unpack, math,
     GetInventoryItemTexture, string, BUFF_MAX_DISPLAY, DEBUFF_MAX_DISPLAY, UIParent, table = _G.GetTime, _G.select,
@@ -19,7 +19,7 @@ local ARGS_PER_ITEM = 4;
 local Engine = obj:Import("MayronUI.Engine");
 
 ---@class AurasModule : BaseModule
-local C_AurasModule = MayronUI:RegisterModule("AurasModule", "Auras (Buffs & Debuffs)");
+local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"]);
 namespace.C_AurasModule = C_AurasModule;
 
 ---@class C_AuraArea : Object

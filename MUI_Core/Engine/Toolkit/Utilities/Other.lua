@@ -5,13 +5,16 @@ local _G = _G;
 local string, tostring, select, unpack, type = _G.string, _G.tostring, _G.select, _G.unpack, _G.type;
 local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.pcall, _G.error;
 local hooksecurefunc = _G.hooksecurefunc;
+local LibStub = _G.LibStub;
 
 namespace.components = {};
 namespace.components.Objects = LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
+namespace.components.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 namespace.components.Toolkit = {};
 
 local obj = namespace.components.Objects;
 local tk = namespace.components.Toolkit; ---@type Toolkit
+local L = namespace.components.Locale;
 
 tk.Numbers = {};
 
@@ -371,8 +374,8 @@ do
         local popup = GetPopup(message, subMessage);
 
         popup.hasEditBox = false;
-        popup.button1 = confirmText or "Confirm";
-        popup.button2 = cancelText or "Cancel";
+        popup.button1 = confirmText or L["Confirm"];
+        popup.button2 = cancelText or L["Cancel"];
         popup.OnAccept = PopUp_OnAccept;
         popup.OnCancel = onCancel;
 
@@ -400,7 +403,7 @@ do
     function tk:ShowMessagePopup(message, subMessage, okayText, onOkay, isWarning, ...)
         local popup = GetPopup(message, subMessage);
 
-        popup.button1 = okayText or "Okay";
+        popup.button1 = okayText or L["Okay"];
         popup.button2 = nil;
         popup.hasEditBox = false;
         popup.OnAccept = onOkay;
@@ -417,8 +420,8 @@ do
     function tk:ShowInputPopup(message, subMessage, editBoxText, onValidate, confirmText, onConfirm, cancelText, onCancel, isWarning, ...)
         local popup = GetPopup(message, subMessage);
 
-        popup.button1 = confirmText or "Confirm";
-        popup.button2 = cancelText or "Cancel";
+        popup.button1 = confirmText or L["Confirm"];
+        popup.button2 = cancelText or L["Cancel"];
         popup.hasEditBox = true;
         popup.OnAccept = EditBox_OnEnterPressed;
         popup.OnCancel = EditBox_OnEscapePressed;

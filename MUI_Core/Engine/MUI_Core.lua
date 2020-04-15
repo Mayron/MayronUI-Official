@@ -12,7 +12,6 @@ local strsplit = _G.strsplit;
 namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
 namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
 namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
-namespace.components.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 namespace.components.Modules = {};
 
 local tk  = namespace.components.Toolkit; ---@type Toolkit
@@ -481,11 +480,13 @@ function MayronUI:GetModuleClass(moduleKey)
 end
 
 ---@param moduleKey string @The unique key associated with the registered module.
-function MayronUI:ImportModule(moduleKey)
+---@param silent boolean @If silent, this function will return nil if the module cannot be found, else it will throw an error
+function MayronUI:ImportModule(moduleKey, silent)
     local registryInfo = registeredModules[moduleKey];
 
     if (not registryInfo) then
         -- addon is disabled so cannot import module
+        obj:Assert(silent, "Failed to import module '%s'. Has it been registered?", moduleKey);
         return nil;
     end
 

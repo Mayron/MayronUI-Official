@@ -32,7 +32,6 @@ end
 
 function C_AurasModule:GetConfigTable(data)
     return {
-        name = "Auras (Buffs & Debuffs)",
         type = "menu",
         module = "AurasModule",
         children =  {
@@ -43,7 +42,7 @@ function C_AurasModule:GetConfigTable(data)
 
                     local tbl = {
                         type = "submenu",
-                        name = name;
+                        name = L[name];
                         dbPath = "profile.auras."..name,
 
                         OnLoad = function()
@@ -51,17 +50,20 @@ function C_AurasModule:GetConfigTable(data)
                         end;
 
                         children = {
-                            {   name = "Enabled",
+                            {   name = L["Enabled"],
                                 type = "check",
                                 appendDbPath = "enabled",
                             },
-                            {   name = "Layout Type";
+                            {   name = L["Layout Type"];
                                 requiresReload = true;
                                 type = "dropdown";
                                 appendDbPath = "statusBars.enabled";
-                                options = { "Icons", "Status Bars" };
+                                options = { --TODO: Can this be {"", ""} ?
+                                    [L["Icons"]] = "Icons",
+                                    [L["Status Bars"]] = "Status Bars"
+                                };
                                 GetValue = function(_, value)
-                                    return (not value and "Icons") or "Status Bars";
+                                    return (not value and L["Icons"]) or L["Status Bars"];
                                 end;
                                 SetValue = function(_, value)
                                     value = value == "Status Bars";
@@ -102,7 +104,7 @@ function C_AurasModule:GetConfigTable(data)
                                     end
                                 end
                             };
-                            {   name = "Save Position";
+                            {   name = L["Save Position"];
                                 type = "button";
 
                                 OnLoad = function(_, button)
@@ -132,7 +134,7 @@ function C_AurasModule:GetConfigTable(data)
                                 end
                             };
                             {   type = "check";
-                                name = "Show Pulse Effect";
+                                name = L["Show Pulse Effect"];
                                 appendDbPath = "showPulseEffect";
                             };
                             {   name = L["Manual Positioning"],
@@ -160,7 +162,7 @@ function C_AurasModule:GetConfigTable(data)
                                 end
                             };
                             {   type = "title";
-                                name = "Icon Options";
+                                name = L["Icon Options"];
                             };
                             {   type = "condition";
                                 func = function()
@@ -168,35 +170,35 @@ function C_AurasModule:GetConfigTable(data)
                                 end;
                                 onFalse = {
                                     {   type = "fontstring";
-                                        content = "Icon options are disabled when using status bars.";
+                                        content = L["Icon options are disabled when using status bars."];
                                     }
                                 };
                                 onTrue = {
                                     {   type = "slider";
-                                        name = "Icon Size";
+                                        name = L["Icon Size"];
                                         appendDbPath = "icons.auraSize";
                                         min = 20;
                                         max = 100;
                                     };
-                                    {   name = "Column Spacing",
+                                    {   name = L["Column Spacing"],
                                         type = "slider",
                                         appendDbPath = "icons.colSpacing",
                                         min = 1,
                                         max = 50;
                                     },
-                                    {   name = "Row Spacing",
+                                    {   name = L["Row Spacing"],
                                         type = "slider",
                                         appendDbPath = "icons.rowSpacing",
                                         min = 1,
                                         max = 50;
                                     };
-                                    {   name = "Icons per Row";
+                                    {   name = L["Icons per Row"];
                                         type = "slider";
                                         appendDbPath = "icons.perRow";
                                         min = 1;
                                         max = name == "Buffs" and _G.BUFF_MAX_DISPLAY or _G.DEBUFF_MAX_DISPLAY;
                                     };
-                                    {   name = "Growth Direction",
+                                    {   name = L["Growth Direction"],
                                         type = "dropdown",
                                         appendDbPath = "icons.growDirection",
                                         options = { Left = "LEFT", Right = "RIGHT" }
@@ -204,7 +206,7 @@ function C_AurasModule:GetConfigTable(data)
                                 };
                             };
                             {   type = "title";
-                                name = "Status Bar Options";
+                                name = L["Status Bar Options"];
                             };
                             {   type = "condition";
                                 func = function()
@@ -212,7 +214,7 @@ function C_AurasModule:GetConfigTable(data)
                                 end;
                                 onFalse = {
                                     {   type = "fontstring";
-                                        content = "Status bar options are disabled when using icons.";
+                                        content = L["Status bar options are disabled when using icons."];
                                     }
                                 };
                                 onTrue = {
@@ -222,44 +224,44 @@ function C_AurasModule:GetConfigTable(data)
                                         appendDbPath = "statusBars.barTexture";
                                     };
                                     {   type = "textfield";
-                                        name = "Bar Width";
+                                        name = L["Bar Width"];
                                         appendDbPath = "statusBars.width";
                                         valueType = "number";
                                         min = 100;
                                         max = 400;
                                     };
                                     {   type = "textfield";
-                                        name = "Bar Height";
+                                        name = L["Bar Height"];
                                         appendDbPath = "statusBars.height";
                                         valueType = "number";
                                         min = 10;
                                         max = 80;
                                     };
-                                    {   name = "Spacing",
+                                    {   name = L["Spacing"],
                                         type = "slider",
                                         appendDbPath = "statusBars.spacing",
                                         min = 0,
                                         max = 50;
                                     },
                                     {   type = "slider";
-                                        name = "Icon Gap";
+                                        name = L["Icon Gap"];
                                         appendDbPath = "statusBars.iconGap";
                                         min = 0;
                                         max = 10;
                                     };
-                                    {   name = "Growth Direction",
+                                    {   name = L["Growth Direction"],
                                         type = "dropdown",
                                         appendDbPath = "statusBars.growDirection",
                                         options = { Up = "UP", Down = "DOWN" }
                                     };
-                                    {   name = "Show Spark",
+                                    {   name = L["Show Spark"],
                                         type = "check",
                                         appendDbPath = "statusBars.showSpark",
                                     };
                                 };
                             };
                             {   type = "title";
-                                name = "Text";
+                                name = L["Text"];
                             };
                             {   type = "loop";
                                 args = { "Time Remaining", "Count", "Aura Name" },
@@ -285,20 +287,20 @@ function C_AurasModule:GetConfigTable(data)
                                     return {
                                         {   type = "fontstring";
                                             subtype = "header";
-                                            content = textName;
+                                            content = L[textName];
                                         };
                                         {   type = "textfield";
-                                            name = "X-Offset";
+                                            name = L["X-Offset"];
                                             appendDbPath = xOffsetDbPath;
                                             valueType = "number";
                                         };
                                         {   type = "textfield";
-                                            name = "Y-Offset";
+                                            name = L["Y-Offset"];
                                             appendDbPath = yOffsetDbPath;
                                             valueType = "number";
                                         };
                                         {   type = "slider";
-                                            name = "Font Size";
+                                            name = L["Font Size"];
                                             appendDbPath = textSizeDbPath;
                                             min = 8;
                                             max = 24;
@@ -307,23 +309,23 @@ function C_AurasModule:GetConfigTable(data)
                                 end;
                             };
                             {   type = "title";
-                                name = "Border";
+                                name = L["Border"];
                             };
                             {   type = "dropdown";
-                                name = "Border Type";
+                                name = L["Border Type"];
                                 options = tk.Constants.LSM:List("border");
                                 appendDbPath = "border.type";
                             };
                             {   type = "slider";
-                                name = "Border Size";
+                                name = L["Border Size"];
                                 appendDbPath = "border.size";
                                 min = 1;
                                 max = 10;
                             };
                             {   type = "title";
-                                name = "Colors";
+                                name = L["Colors"];
                             };
-                            {   name = "Basic " .. name;
+                            {   name = L["Basic %s"]:format(L[name]);
                                 type = "color";
                                 width = 200;
                                 useIndexes = true;
@@ -335,7 +337,7 @@ function C_AurasModule:GetConfigTable(data)
                                 end;
                                 onTrue = {
                                     {
-                                        name = "Weapon Enchants",
+                                        name = L["Weapon Enchants"],
                                         type = "color",
                                         width = 200;
                                         useIndexes = true;
@@ -343,25 +345,25 @@ function C_AurasModule:GetConfigTable(data)
                                     }
                                 };
                                 onFalse = {
-                                    {   name = "Magic Debuff";
+                                    {   name = L["Magic Debuff"];
                                         type = "color";
                                         width = 200;
                                         useIndexes = true;
                                         appendDbPath = "colors.magic";
                                     };
-                                    {   name = "Disease Debuff";
+                                    {   name = L["Disease Debuff"];
                                         type = "color";
                                         width = 200;
                                         useIndexes = true;
                                         appendDbPath = "colors.disease";
                                     };
-                                    {   name = "Poison Debuff";
+                                    {   name = L["Poison Debuff"];
                                         type = "color";
                                         width = 200;
                                         useIndexes = true;
                                         appendDbPath = "colors.poison";
                                     };
-                                    {   name = "Curse Debuff";
+                                    {   name = L["Curse Debuff"];
                                         type = "color";
                                         width = 200;
                                         useIndexes = true;
@@ -374,14 +376,14 @@ function C_AurasModule:GetConfigTable(data)
                                     return statusBarsEnabled;
                                 end;
                                 onTrue = {
-                                    {   name = "Bar Background";
+                                    {   name = L["Bar Background"];
                                         type = "color";
                                         width = 200;
                                         useIndexes = true;
                                         hasOpacity = true;
                                         appendDbPath = "colors.statusBarBackground";
                                     };
-                                    {   name = "Bar Border";
+                                    {   name = L["Bar Border"];
                                         type = "color";
                                         width = 200;
                                         useIndexes = true;

@@ -9,14 +9,14 @@ local _G = _G;
 
 local tabText = {
     -- This should use the locales!
-    L["INSTALL"], L["CUSTOM INSTALL"], L["INFORMATION"], "CREDITS"
+    L["INSTALL"], L["CUSTOM INSTALL"], L["INFORMATION"], L["CREDITS"]
 };
 
 local tabNames = {
     [L["INSTALL"]] = "Install";
     [L["CUSTOM INSTALL"]] = "Custom";
     [L["INFORMATION"]] = "Info";
-    ["CREDITS"] = "Credits";
+    [L["CREDITS"]] = "Credits";
 };
 
 local PlaySoundFile, FCF_SetLocked, FCF_SetWindowAlpha, SetCVar, SetChatWindowSize, UIFrameFadeIn,
@@ -30,7 +30,7 @@ local Panel = obj:Import("MayronUI.Widgets.Panel");
 
 -- Register and Import Modules -----------
 
-local C_SetUpModule = MayronUI:RegisterModule("SetUpModule", "Setup");
+local C_SetUpModule = MayronUI:RegisterModule("SetUpModule", L["Setup"]);
 local setUpModule = MayronUI:ImportModule("SetUpModule");
 
 -- Local Functions -----------------------

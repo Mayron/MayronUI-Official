@@ -10,7 +10,7 @@ _G.tostring, _G.CreateFrame, _G.C_Timer, _G.UIParent, _G.PlaySound;
 
 -- Register and Import Modules -----------
 
-local C_SideBarModule = MayronUI:RegisterModule("SideBarModule", "Side Action Bar");
+local C_SideBarModule = MayronUI:RegisterModule("SideBarModule", L["Side Action Bar"]);
 
 -- Add Database Defaults -----------------
 

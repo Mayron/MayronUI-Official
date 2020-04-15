@@ -99,7 +99,7 @@ namespace.MenuButton_OnClick = MenuButton_OnClick;
 
 function C_ConfigModule:OnInitialize()
     if (not MayronUI:IsInstalled()) then
-        tk:Print("Please install the UI and try again.");
+        tk:Print(L["Please install the UI and try again."]);
         return;
     end
 
@@ -254,7 +254,7 @@ do
             end
         end
 
-        collectgarbage("collect");
+        _G.collectgarbage("collect");
 
         -- fade menu in...
         data.selectedButton.menu:Show();
@@ -553,7 +553,7 @@ function C_ConfigModule:SetUpWindow(data)
     SetBackButtonEnabled(data.window.back, false);
 
       -- profiles button
-      data.window.profilesBtn = CreateTopMenuButton("Profiles", function()
+      data.window.profilesBtn = CreateTopMenuButton(L["Profiles"], function()
         if (data.selectedButton:IsObjectType("CheckButton")) then
             data.selectedButton:SetChecked(false);
         end
@@ -562,13 +562,13 @@ function C_ConfigModule:SetUpWindow(data)
     end, topbar:GetFrame());
 
     -- Layouts Button:
-    data.window.layoutsBtn = CreateTopMenuButton("Layouts", function()
+    data.window.layoutsBtn = CreateTopMenuButton(L["Layouts"], function()
         MayronUI:TriggerCommand("layouts");
         data.window:Hide();
     end);
 
     -- installer buttons
-    data.window.installerBtn = CreateTopMenuButton("Installer", function()
+    data.window.installerBtn = CreateTopMenuButton(L["Installer"], function()
         MayronUI:TriggerCommand("install");
         data.window:Hide();
     end);
@@ -583,8 +583,18 @@ function C_ConfigModule:SetUpWindow(data)
 end
 
 do
+    ---@param module BaseModule
+    ---@param name string
+    local function GetMenuButtonText(module, name)
+        if (module) then
+            return module:GetModuleName();
+        else
+            return name;
+        end
+    end
+
     local function AddMenuButton(menuButtons, menuConfigTable, menuListScrollChild)
-        local module;
+        local module; ---@type BaseModule
 
         if (menuConfigTable.module) then
             module = MayronUI:ImportModule(menuConfigTable.module);
@@ -593,12 +603,14 @@ do
         local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
         menuButton.configTable = menuConfigTable;
         menuButton.id = menuConfigTable.id;
-        menuButton.name = menuConfigTable.name;
         menuButton.type = "menu";
         menuButton.module = module;
-
         menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-        menuButton.text:SetText(menuConfigTable.name); -- the model name as a readable button label
+
+        local menuText = GetMenuButtonText(module, menuConfigTable.name);
+        menuButton.name = menuText; -- this is needed for ordering the buttons
+
+        menuButton.text:SetText(menuText);
         menuButton.text:SetJustifyH("LEFT");
         menuButton.text:SetPoint("TOPLEFT", 10, 0);
         menuButton.text:SetPoint("BOTTOMRIGHT");
@@ -618,7 +630,7 @@ do
         menuButton:SetCheckedTexture(checked);
         menuButton:SetScript("OnClick", MenuButton_OnClick);
 
-        menuButtons[menuConfigTable.name] = menuButton;
+        menuButtons[menuText] = menuButton;
         table.insert(menuButtons, menuButton);
     end
 

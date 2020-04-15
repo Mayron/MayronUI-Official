@@ -31,7 +31,7 @@ local OnCombatLogEvent, CheckUnitAuras;
 local Engine = obj:Import("MayronUI.Engine");
 
 ---@class TimerBarsModule : BaseModule
-local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", "Timer Bars", true); -- initialized on demand
+local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", L["Timer Bars"], true); -- initialized on demand
 MayronUI:AddModuleComponent("TimerBarsModule", "Database", db);
 
 ---@type TimerBarsModule
@@ -480,7 +480,7 @@ do
                 insertedFrame.btn.text:SetPoint("LEFT", insertedFrame.btn, "RIGHT", 5, 0);
             end
 
-            insertedFrame.btn.text:SetText(("Also enable the %s"):format(listName:lower()));
+            insertedFrame.btn.text:SetText(L["Also enable the %s"]:format(listName:lower()));
             insertedFrame.btn:SetChecked(true);
         end
 

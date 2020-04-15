@@ -1,6 +1,6 @@
 --luacheck: ignore self 143 631
 local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, em, _, obj = MayronUI:GetCoreComponents();
+local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
 local InCombatLockdown, unpack = _G.InCombatLockdown, _G.unpack; -- luacheck: ignore
 
@@ -8,7 +8,7 @@ local InCombatLockdown, unpack = _G.InCombatLockdown, _G.unpack; -- luacheck: ig
 local Engine = obj:Import("MayronUI.Engine");
 
 ---@class MovableModule : BaseModule
-local C_MovableFramesModule = MayronUI:RegisterModule("MovableFramesModule", "Movable Frames");
+local C_MovableFramesModule = MayronUI:RegisterModule("MovableFramesModule", L["Movable Frames"]);
 
 db:AddToDefaults("global.movable", {
 	enabled = true;

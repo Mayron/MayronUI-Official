@@ -6,7 +6,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 ---@class ObjectiveTrackerModule : BaseModule
-local C_ObjectiveTracker = MayronUI:RegisterModule("ObjectiveTrackerModule", "Objective Tracker", true);
+local C_ObjectiveTracker = MayronUI:RegisterModule("ObjectiveTrackerModule", L["Objective Tracker"], true);
 
 
 MayronUI:Hook("SideBarModule", "OnInitialize", function(sideBarModule)

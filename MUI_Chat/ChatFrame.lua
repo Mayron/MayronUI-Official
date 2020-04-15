@@ -343,7 +343,7 @@ do
 		toggleEmotesButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
 		toggleEmotesButton:SetHighlightAtlas("chatframe-button-highlight");
 
-		tk:SetBasicTooltip(toggleEmotesButton, "Show Chat Menu");
+		tk:SetBasicTooltip(toggleEmotesButton, L["Show Chat Menu"]);
 
 		toggleEmotesButton:SetScript("OnClick", function(self)
 			PositionChatIconMenu(self, ChatMenu);
@@ -412,7 +412,7 @@ do
 
 			gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
 			gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
-			gui:AddTitleBar(tk.Constants.AddOnStyle, frame, "Copy Chat Text");
+			gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Copy Chat Text"]);
 
 			local editBox = CreateFrame("EditBox", "MUI_CopyChatEditBox", frame);
 			editBox:SetMultiLine(true);
@@ -484,7 +484,7 @@ do
 			copyChatButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
 			copyChatButton:SetHighlightAtlas("chatframe-button-highlight");
 
-			tk:SetBasicTooltip(copyChatButton, "Copy Chat Text");
+			tk:SetBasicTooltip(copyChatButton, L["Copy Chat Text"]);
 
 			copyChatButton:SetScript("OnClick", function(self)
 				if (not self.chatTextFrame) then

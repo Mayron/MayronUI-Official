@@ -5,7 +5,7 @@ local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 -- Register and Import ---------
 
 ---@class DataTextModule : BaseModule
-local C_MiniMapModule = MayronUI:RegisterModule("MiniMap");
+local C_MiniMapModule = MayronUI:RegisterModule("MiniMap", L["Mini Map"]);
 namespace.C_MiniMapModule = C_MiniMapModule;
 
 local _G = _G;
