@@ -3,7 +3,7 @@
 ## SavedVariables: MayronUIdb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
-## Version: 6.0.10
+## Version: 6.0.11
 ## X-InterfaceName: MayronUI Gen6
 
 ## Links:
@@ -18,7 +18,7 @@
 ## ------------------------------------------------
 ## X-Community-Support-Team: Monster/ Alizmer [GER]
 ## X-Patreons: Orangepaw3, LaidbackLuke, Korallis, pbb
-## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma
+## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma, EarlGrey
 ## X-Development-and-Bug-Fixes: Monkey, Gargnash, BeetleJooce
 
 ## Libraries:

@@ -2,7 +2,7 @@
 local _, namespace = ...;
 
 local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, _, _, obj = MayronUI:GetCoreComponents();
+local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 
 local GetSpellInfo, IsAddOnLoaded, UnitName = _G.GetSpellInfo, _G.IsAddOnLoaded, _G.UnitName;
 local UnitChannelInfo, UnitCastingInfo, CreateFrame = _G.UnitChannelInfo, _G.UnitCastingInfo, _G.CreateFrame;
@@ -18,7 +18,7 @@ namespace.castBarData = obj:PopTable();
 local Engine = obj:Import("MayronUI.Engine");
 
 ---@class CastBarsModule : BaseModule
-local C_CastBarsModule = MayronUI:RegisterModule("CastBarsModule", "Cast Bars");
+local C_CastBarsModule = MayronUI:RegisterModule("CastBarsModule", L["Cast Bars"]);
 namespace.C_CastBarsModule = C_CastBarsModule;
 
 ---@class CastBar : Object

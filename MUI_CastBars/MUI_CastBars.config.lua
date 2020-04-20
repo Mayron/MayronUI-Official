@@ -96,8 +96,7 @@ end
 
 function C_CastBarsModule:GetConfigTable()
     return {
-        name = "Cast Bars",
-        module = "CastBars",
+        module = "CastBarsModule",
         children = {
             {   name = L["Appearance"],
                 type = "title",
@@ -125,7 +124,7 @@ function C_CastBarsModule:GetConfigTable()
             {   name = L["Frame Inset"],
                 type = "textfield",
                 valueType = "number",
-                tooltip = "Set the spacing between the status bar and the background.",
+                tooltip = L["Set the spacing between the status bar and the background."],
                 dbPath = "profile.castBars.appearance.inset"
             },
             {   type = "fontstring",
@@ -176,7 +175,7 @@ function C_CastBarsModule:GetConfigTable()
                 func = function(_, name)
                     local config =
                     {
-                        name = name,
+                        name = L[name],
                         type = "submenu",
                         OnLoad = function()
                             position_TextFields[name] = obj:PopTable();

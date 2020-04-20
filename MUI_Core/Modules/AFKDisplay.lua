@@ -11,7 +11,7 @@ local UnitPVPName, GetRealmName, UnitLevel, UnitClass = _G.UnitPVPName, _G.GetRe
 
 -- Register Module ------------
 
-local C_AFKDisplayModule = MayronUI:RegisterModule("AFKDisplay", "AFK Display");
+local C_AFKDisplayModule = MayronUI:RegisterModule("AFKDisplay", L["AFK Display"]);
 
 -- Add Database Defaults ------
 

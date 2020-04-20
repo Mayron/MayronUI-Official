@@ -8,7 +8,7 @@ local UnitGUID = _G.UnitGUID;
 
 -- Register Modules ----------------------
 
-local C_UnitPanels = MayronUI:RegisterModule("BottomUI_UnitPanels", "Unit Panels", true);
+local C_UnitPanels = MayronUI:RegisterModule("BottomUI_UnitPanels", L["Unit Panels"], true);
 
 -- Load Database Defaults ----------------
 
