@@ -1,7 +1,8 @@
-## Interface: 80200
+## Interface: 80300
 ## Title: |cff00ccffMUI|r Timer Bars
 ## Dependencies: MUI_Core
 ## SavedVariables: MUI_TimerBarsDb
+## Notes: Adds timer bars to track unit buffs and debuffs
 
 MUI_TimerBars.lua
 MUI_TimerBars.config.lua

@@ -8,7 +8,7 @@ local IsAddOnLoaded = _G.IsAddOnLoaded;
 
 -- Register and Import Modules -----------
 
-local C_ActionBarPanel = MayronUI:RegisterModule("BottomUI_ActionBarPanel", "Action Bar Panel", true);
+local C_ActionBarPanel = MayronUI:RegisterModule("BottomUI_ActionBarPanel", L["Action Bar Panel"], true);
 local SlideController = gui.WidgetsPackage:Get("SlideController");
 
 -- Load Database Defaults ----------------
@@ -49,21 +49,17 @@ local function LoadTutorial(panel)
 
     frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     frame.text:SetWordWrap(true);
-    frame.text:SetPoint("TOPLEFT", 10, -20);
-    frame.text:SetPoint("BOTTOMRIGHT", -10, 10);
-    frame.text:SetText(
-        tk.Strings:JoinWithSpace("Press and hold the", tk.Strings:SetTextColorByTheme("Control"),
-            "key while out of combat to show the", tk.Strings:SetTextColorByTheme("Expand"),
-            "button.\n\n Click the Expand button to show a second row of action buttons!")
-    );
+    frame.text:SetPoint("TOPLEFT", 20, -20);
+    frame.text:SetPoint("BOTTOMRIGHT", -20, 10);
+
+    local tutorialMessage = L["Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."];
+    tutorialMessage:format(tk.Strings:SetTextColorByTheme("Control"));
+    frame.text:SetText(tutorialMessage);
 
     em:CreateEventHandler("MODIFIER_STATE_CHANGED", function(self)
         if (tk:IsModComboActive("C")) then
-            frame.text:SetText(
-                tk.Strings:JoinWithSpace("Once expanded, you can press and hold the same key while out of",
-                    "combat to show the", tk.Strings:SetTextColorByTheme("Retract"),
-                    "button.\n\n Pressing this will hide the second row of action buttons.")
-            );
+            frame.text:SetText(L["You can repeat this step at any time (while out of combat) to hide it."]);
+            frame:SetHeight(90);
 
             if (not frame:IsShown()) then
                 UIFrameFadeIn(frame, 0.5, 0, 1);
@@ -221,25 +217,33 @@ function C_ActionBarPanel:OnEnable(data)
     local expandBtn = gui:CreateButton(tk.Constants.AddOnStyle, data.panel, _G["MUI_BottomContainer"]);
     expandBtn:SetFrameStrata("HIGH");
     expandBtn:SetFrameLevel(20);
-    expandBtn:SetSize(140, 20);
+    expandBtn:SetSize(120, 28);
     expandBtn:SetBackdrop(tk.Constants.backdrop);
     expandBtn:SetBackdropBorderColor(0, 0, 0);
     expandBtn:SetPoint("BOTTOM", data.panel, "TOP", 0, -1);
     expandBtn:Hide();
 
-    local normalTexture = expandBtn:GetNormalTexture();
-    normalTexture:ClearAllPoints();
-    normalTexture:SetPoint("TOPLEFT", 1, -1);
-    normalTexture:SetPoint("BOTTOMRIGHT", -1, 1);
+    expandBtn:SetScript("OnEnter", function(self)
+        local r, g, b = self.icon:GetVertexColor();
+        self.icon:SetVertexColor(r * 1.2, g * 1.2, b * 1.2);
+    end);
 
-    local highlightTexture = expandBtn:GetHighlightTexture();
-    highlightTexture:ClearAllPoints();
-    highlightTexture:SetPoint("TOPLEFT", 1, -1);
-    highlightTexture:SetPoint("BOTTOMRIGHT", -1, 1);
+    expandBtn:SetScript("OnLeave", function(self)
+        tk:ApplyThemeColor(self.icon);
+    end);
+
+    expandBtn.icon = expandBtn:CreateTexture(nil, "OVERLAY");
+    expandBtn.icon:SetSize(16, 10);
+    expandBtn.icon:SetPoint("CENTER");
+    expandBtn.icon:SetTexture(tk:GetAssetFilePath("Textures\\BottomUI\\Arrow"));
+    tk:ApplyThemeColor(expandBtn.icon);
+
+    local normalTexture = expandBtn:GetNormalTexture();
+    normalTexture:SetVertexColor(0.15, 0.15, 0.15, 1);
 
     expandBtn.glow = expandBtn:CreateTexture(nil, "BACKGROUND");
     expandBtn.glow:SetTexture(tk:GetAssetFilePath("Textures\\BottomUI\\GlowEffect"));
-    expandBtn.glow:SetSize(db.profile.bottomui.width, 60);
+    expandBtn.glow:SetSize(db.profile.bottomui.width, 80);
     expandBtn.glow:SetBlendMode("ADD");
     expandBtn.glow:SetPoint("BOTTOM", 0, 1);
     tk:ApplyThemeColor(expandBtn.glow);
@@ -294,9 +298,9 @@ function C_ActionBarPanel:OnEnable(data)
         end
 
         if (data.settings.expanded) then
-            expandBtn:SetText("Retract");
+            expandBtn.icon:SetTexCoord(0, 1, 1, 0);
         else
-            expandBtn:SetText("Expand");
+            expandBtn.icon:SetTexCoord(1, 0, 0, 1);
         end
 
         -- force call OnFinished callback

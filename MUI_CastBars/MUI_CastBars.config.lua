@@ -74,8 +74,12 @@ local function UnlockCastBar(widget, castBarName)
             end
 
             SetPositionTextFieldsEnabled(true, castBarName);
-            sufAnchor_CheckButtons[castBarName]:SetChecked(false);
-            db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "anchorToSUF"), false);
+
+            if (castBarName ~= "Mirror") then
+                sufAnchor_CheckButtons[castBarName]:SetChecked(false);
+                db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "anchorToSUF"), false);
+            end
+
             db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "position"), positions);
         end
     end
@@ -92,8 +96,7 @@ end
 
 function C_CastBarsModule:GetConfigTable()
     return {
-        name = "Cast Bars",
-        module = "CastBars",
+        module = "CastBarsModule",
         children = {
             {   name = L["Appearance"],
                 type = "title",
@@ -121,7 +124,7 @@ function C_CastBarsModule:GetConfigTable()
             {   name = L["Frame Inset"],
                 type = "textfield",
                 valueType = "number",
-                tooltip = "Set the spacing between the status bar and the background.",
+                tooltip = L["Set the spacing between the status bar and the background."],
                 dbPath = "profile.castBars.appearance.inset"
             },
             {   type = "fontstring",
@@ -170,9 +173,9 @@ function C_CastBarsModule:GetConfigTable()
             {   type = "loop",
                 args = { "Player", "Target", "Focus", "Mirror" },
                 func = function(_, name)
-                    return
+                    local config =
                     {
-                        name = name,
+                        name = L[name],
                         type = "submenu",
                         OnLoad = function()
                             position_TextFields[name] = obj:PopTable();
@@ -297,7 +300,15 @@ function C_CastBarsModule:GetConfigTable()
                                 end
                             };
                         }
-                    }
+                    };
+
+                    if (name == "Mirror") then
+                        config.children[2] = nil;
+                        config.children[3] = nil;
+                        config.children[4] = nil;
+                    end
+
+                    return config;
                 end,
             }
         }

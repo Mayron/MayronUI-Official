@@ -23,7 +23,7 @@ local Helper = Framework:CreateClass("Helper");
 Observer.Static:AddFriendClass("Helper");
 Observer.Static:AddFriendClass("Database");
 
-local select, tonumber, strsplit = select, tonumber, _G.strsplit;
+local select, tonumber, strsplit = _G.select, _G.tonumber, _G.strsplit;
 local GetLastTableKeyPairs, GetNextPath, IsEqual, GetDatabasePathInfo;
 
 local OnAddOnLoadedListener = _G.CreateFrame("Frame");
@@ -73,7 +73,8 @@ function Lib:IterateDatabases()
     local databases = obj:PopTable();
 
     for name, database in pairs(OnAddOnLoadedListener.RegisteredDatabases) do
-        table.insert(databases, obj:PopTable(name, database));
+        local value = obj:PopTable(name, database);
+        table.insert(databases, value);
     end
 
     return function()
@@ -183,7 +184,6 @@ function Database:__Destruct()
     obj:Error("Database cannot be destroyed");
 end
 
-
 Framework:DefineReturns("string");
 ---@return string @The name of the database (the addon name + saved variable name)
 function Database:GetDatabaseName(data)
@@ -242,7 +242,6 @@ function Database:Start(data)
     data.sv.profiles.Default = data.sv.profiles.Default or obj:PopTable();
 
     -- create Profile and Global accessible observers:
-
     self.profile = Observer(false, data);
     self.global = Observer(true, data);
 
@@ -346,6 +345,7 @@ Framework:DefineParams("table|string");
 ---@param value any @(optional) A value to assign to the table relative to the provided path string (is nil if the path argument is the value)
 function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
     local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
+
     obj:Assert(obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
     obj:Assert(path and not (obj:IsObject(rootTable, "Observer") and path:find("__template")), "Invalid path address '%s'.", path);
 
@@ -1407,14 +1407,11 @@ end
 
 do
     local function GetNextTable(tbl, key, parsing)
-        local previous = tbl;
-
-        if (tbl[key] == nil) then
-            if (parsing) then return nil; end
+        if (tbl[key] == nil and not parsing) then
             tbl[key] = obj:PopTable();
         end
 
-        return previous, tbl[key];
+        return tbl, tbl[key];
     end
 
     local function IsEmpty(tbl)
@@ -1423,7 +1420,7 @@ do
         end
 
         for _, value in pairs(tbl) do
-            if (type(value) ~= "table" or not IsEmpty(value)) then
+            if (not obj:IsTable(value) or not IsEmpty(value)) then
                 return false;
             end
         end
@@ -1431,20 +1428,35 @@ do
         return true;
     end
 
+    local function IsCleaning(cleaning, nextTable, lastTable, lastKey)
+        if (cleaning and IsEmpty(nextTable)) then
+            if (obj:IsTable(lastTable)) then
+                obj:PushTable(lastTable[lastKey]);
+                lastTable[lastKey] = nil;
+            end
+
+            return true;
+        end
+
+        return false;
+    end
+
     function GetLastTableKeyPairs(rootTable, path, cleaning)
         local nextTable = rootTable;
         local lastTable, lastKey;
+        local isLastPart, isLastIndex;
+        local pathParts = obj:PopTable(strsplit(".", path));
 
-        for _, key in obj:IterateArgs(strsplit(".", path)) do
+        for i, key in ipairs(pathParts) do
+            isLastPart = i == #pathParts;
+
             if (tonumber(key)) then
                 key = tonumber(key);
                 lastKey = key;
-                lastTable, nextTable = GetNextTable(nextTable, key);
+                lastTable, nextTable = GetNextTable(nextTable, key, isLastPart);
 
-                if (cleaning and IsEmpty(nextTable)) then
-                    if (type(lastTable) == "table") then
-                        lastTable[lastKey] = nil;
-                    end
+                if (IsCleaning(cleaning, nextTable, lastTable, lastKey)) then
+                    obj:PushTable(pathParts);
                     return nil;
                 end
 
@@ -1464,27 +1476,28 @@ do
 
                 if (#key > 0) then
                     lastKey = key;
-                    lastTable, nextTable = GetNextTable(nextTable, key);
+                    lastTable, nextTable = GetNextTable(nextTable, key, isLastPart and (indexes and #indexes == 0));
 
-                    if (cleaning and IsEmpty(nextTable)) then
-                        if (type(lastTable) == "table") then
-                            lastTable[lastKey] = nil;
+                    if (IsCleaning(cleaning, nextTable, lastTable, lastKey)) then
+                        if (obj:IsTable(indexes)) then
+                            obj:PushTable(indexes);
                         end
+
+                        obj:PushTable(pathParts);
                         return nil;
                     end
                 end
 
                 if (indexes) then
-                    for _, indexKey in ipairs(indexes) do
+                    for i2, indexKey in ipairs(indexes) do
+                        isLastIndex = i2 == #indexes;
                         indexKey = tonumber(indexKey) or indexKey;
                         lastKey = indexKey;
-                        lastTable, nextTable = GetNextTable(nextTable, indexKey);
+                        lastTable, nextTable = GetNextTable(nextTable, indexKey, isLastPart and isLastIndex);
 
-                        if (cleaning and IsEmpty(nextTable)) then
-                            if (type(lastTable) == "table") then
-                                lastTable[lastKey] = nil;
-                            end
-
+                        if (IsCleaning(cleaning, nextTable, lastTable, lastKey)) then
+                            obj:PushTable(indexes);
+                            obj:PushTable(pathParts);
                             return nil;
                         end
                     end
@@ -1493,6 +1506,8 @@ do
                 end
             end
         end
+
+        obj:PushTable(pathParts);
 
         return lastTable, lastKey;
     end

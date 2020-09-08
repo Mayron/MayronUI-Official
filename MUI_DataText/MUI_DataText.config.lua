@@ -6,9 +6,8 @@ local widgets = {};
 
 function C_DataTextModule:GetConfigTable()
     return {
-        name = "Data Text Bar",
         type = "menu",
-        module = "DataText",
+        module = "DataTextModule",
         dbPath = "profile.datatext",
         children =  {
             {   name = L["General Data Text Options"],
@@ -55,7 +54,7 @@ function C_DataTextModule:GetConfigTable()
                 valueType = "number",
                 min = 10;
                 max = 50;
-                tooltip = tk.Strings:Join("\n", "Adjust the height of the datatext bar.", L["Default value is "].."24"),
+                tooltip = tk.Strings:Join("\n", L["Adjust the height of the datatext bar."], L["Default value is "].."24"),
                 appendDbPath = "height",
             },
             {   name = L["Menu Width"],
@@ -137,6 +136,9 @@ function C_DataTextModule:GetConfigTable()
                 name = L["Performance"],
                 appendDbPath = "performance",
                 children = {
+                    {   type = "fontstring",
+                        content = L["Changes to these settings will take effect after 0-3 seconds."];
+                    },
                     {   name = L["Show FPS"],
                         type = "check",
                         appendDbPath = "showFps",
@@ -158,13 +160,13 @@ function C_DataTextModule:GetConfigTable()
                 }
             },
             {   type = "submenu",
-                name = "Currency";
+                name = L["Currency"];
                 module = "DataText",
                 appendDbPath = "currency",
                 children = {
-                    {   name = "Automatic",
+                    {   name = L["Automatic"],
                         type = "check",
-                        tooltip = "If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit.";
+                        tooltip = L["If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit."];
                         appendDbPath = "auto",
 
                         SetValue = function(dbPath, value)
@@ -229,7 +231,7 @@ function C_DataTextModule:GetConfigTable()
                 }
             },
             {   type = "submenu",
-                name = "Inventory",
+                name = L["Inventory"],
                 module = "DataText",
                 appendDbPath = "inventory",
                 children = {

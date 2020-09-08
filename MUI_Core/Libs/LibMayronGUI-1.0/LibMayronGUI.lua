@@ -162,7 +162,7 @@ function Private:SetBackground(frame, ...)
     texture:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1);
     texture:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 1);
 
-    if (obj:LengthOfArgs(...) > 1) then
+    if (select("#", ...) > 1) then
        texture:SetColorTexture(...);
     else
         texture:SetTexture(...);

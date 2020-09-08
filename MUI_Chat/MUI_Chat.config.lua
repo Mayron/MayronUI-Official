@@ -4,10 +4,10 @@ local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ChatModule = namespace.C_ChatModule;
 
 local ChatFrameAnchorDropDownOptions = {
-    ["Top Left"] = "TOPLEFT";
-    ["Top Right"] = "TOPRIGHT";
-    ["Bottom Left"] = "BOTTOMLEFT";
-    ["Bottom Right"] = "BOTTOMRIGHT";
+    [L["Top Left"]] = "TOPLEFT";
+    [L["Top Right"]] = "TOPRIGHT";
+    [L["Bottom Left"]] = "BOTTOMLEFT";
+    [L["Bottom Right"]] = "BOTTOMRIGHT";
 };
 
 -- Config Data ----------------------
@@ -22,7 +22,7 @@ local function CreateButtonConfigTable(dbPath, buttonID)
         });
     else
         table.insert(configTable, {
-            name = string.format("Chat Buttons with Modifier Key %d", buttonID),
+            name = string.format(L["Chat Buttons with Modifier Key %d"], buttonID),
             type = "title"
         });
     end
@@ -86,8 +86,7 @@ end
 
 function C_ChatModule:GetConfigTable()
     return {
-        name = "Chat Frames",
-        module = "Chat",
+        module = "ChatModule",
         children = {
             {   name = L["Edit Box (Message Input Box)"],
                 type = "title",
@@ -122,13 +121,16 @@ function C_ChatModule:GetConfigTable()
             {   name = L["Y-Offset"],
                 type = "textfield",
                 valueType = "number",
-                tooltip = "Set the vertical positioning of the edit box.\n\nDefault is -8.",
+                tooltip = tk.Strings:Join(
+                    L["Set the vertical positioning of the edit box."],
+                    "\n\n", L["Default value is "], "-8."),
                 dbPath = "profile.chat.editBox.yOffset"
             },
             {   name = L["Height"],
                 type = "textfield",
                 valueType = "number",
-                tooltip = "The height of the edit box.\n\nDefault is 27.",
+                tooltip = tk.Strings:Join(
+                    L["The height of the edit box."], "\n\n", L["Default value is "], "27."),
                 dbPath = "profile.chat.editBox.height"
             },
             { type = "divider",
@@ -166,24 +168,23 @@ function C_ChatModule:GetConfigTable()
                 tooltip = L["Allow the use of modifier keys to swap chat buttons while in combat."],
                 dbPath = "profile.chat.swapInCombat",
             },
-            {   name = "Anchor Chat Icons",
+            {   name = L["Anchor Chat Icons"],
                 type = "dropdown",
-                -- requiresReload = true;
-                tooltip = "Select which chat frame the chat icons should be anchored to.",
+                tooltip = L["Select which chat frame the chat icons should be anchored to."],
                 options = ChatFrameAnchorDropDownOptions;
                 dbPath = "profile.chat.icons.anchor",
             },
             {   type = "divider"
             },
-            {   name = "Show Copy Chat Icon",
+            {   name = L["Show Copy Chat Icon"],
                 type = "check",
                 dbPath = "profile.chat.icons.copyChat",
             },
-            {   name = "Show Emotes Icon",
+            {   name = L["Show Emotes Icon"],
                 type = "check",
                 dbPath = "profile.chat.icons.emotes",
             },
-            {   name = "Show Player Status Icon",
+            {   name = L["Show Player Status Icon"],
                 type = "check",
                 dbPath = "profile.chat.icons.playerStatus",
             },
@@ -219,17 +220,17 @@ function C_ChatModule:GetConfigTable()
                             },
                             {   type = "divider";
                             };
-                            {   name = "Show Tab Bar",
-                                tooltip = "This is the background bar that goes behind the tabs";
+                            {   name = L["Show Tab Bar"],
+                                tooltip = L["This is the background bar that goes behind the tabs."];
                                 type = "check",
                                 dbPath = string.format("%s.tabBar.show", dbPath),
                             };
-                            {   name = "Tab Bar Y-Offset",
+                            {   name = tk.Strings:JoinWithSpace(L["Tab Bar"], L["Y-Offset"]),
                                 type = "textfield",
                                 valueType = "number";
                                 dbPath = string.format("%s.tabBar.yOffset", dbPath),
                             };
-                            {   name = "Window Y-Offset",
+                            {   name = tk.Strings:JoinWithSpace(L["Window"], L["Y-Offset"]),
                                 type = "textfield",
                                 valueType = "number";
                                 dbPath = string.format("%s.window.yOffset", dbPath),

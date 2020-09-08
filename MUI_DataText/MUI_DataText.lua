@@ -1,9 +1,9 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, em, gui, obj = MayronUI:GetCoreComponents();
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
-local ipairs, table, GameTooltip, PlaySound = _G.ipairs, _G.table, _G.GameTooltip, _G.PlaySound;
+local ipairs, pairs, table, GameTooltip, PlaySound = _G.ipairs, _G.pairs, _G.table, _G.GameTooltip, _G.PlaySound;
 local CreateFrame, UIFrameFadeIn = _G.CreateFrame, _G.UIFrameFadeIn;
 
 namespace.dataTextLabels = {
@@ -30,7 +30,7 @@ local SlideController = obj:Import("MayronUI.Widgets.SlideController");
 -- Register Modules --------------------
 
 ---@class DataTextModule : BaseModule
-local C_DataTextModule = MayronUI:RegisterModule("DataTextModule", "Data Text Bar");
+local C_DataTextModule = MayronUI:RegisterModule("DataTextModule", L["Data Text Bar"]);
 
 namespace.C_DataTextModule = C_DataTextModule;
 namespace.ComponentsPackage = ComponentsPackage;
@@ -136,7 +136,8 @@ function C_DataTextModule:OnInitialize(data)
 
                 value = function(_, keysList)
                     local componentName = keysList:PopFront();
-                    local component = data.activeComponents[componentName];
+                    local component = tk.Tables:First(data.activeComponents,
+                        function(c) return c.SavedVariableName == componentName end);
 
                     if (not component) then
                         -- filter out missing update functions (such as popup settings)
@@ -311,7 +312,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
 
     tk.Tables:Empty(data.activeComponents);
 
-    for _, componentName in ipairs(data.settings.displayOrders) do
+    for _, componentName in pairs(data.settings.displayOrders) do
         if (componentName == "disabled") then
             table.insert(data.activeComponents, "disabled");
         else
@@ -329,7 +330,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
                 local componentClass = data.registeredComponentClasses[componentName];
 
                 if (not componentClass) then
-                    MayronUI:Print(("Warning: Missing Data Text Module '%s'"):format(componentName));
+                    MayronUI:Print(("Warning: Missing Data Text Module '%s'"):format(componentName or "Unknown"));
                 else
                     component = CreateComponent(self, data, componentClass, componentName);
                 end
@@ -405,6 +406,9 @@ function C_DataTextModule:ClearLabels(_, labels)
         if (label.dropdown) then
             label.dropdown:Hide();
         end
+
+        label:ClearAllPoints();
+        label:Hide();
     end
 end
 
@@ -455,15 +459,11 @@ function C_DataTextModule:PositionLabels(data, dataModule)
             label:SetPoint("BOTTOMRIGHT", previousLabel, "BOTTOMRIGHT", 0, -(labelHeight + 2));
         end
 
-        if (totalLabelsShown and (i > totalLabelsShown)) then
-            label:Hide();
-        else
-            label:Show();
-            totalHeight = totalHeight + labelHeight;
+        label:Show();
+        totalHeight = totalHeight + labelHeight;
 
-            if (i > 1) then
-                totalHeight = totalHeight + 2;
-            end
+        if (i > 1) then
+            totalHeight = totalHeight + 2;
         end
     end
 

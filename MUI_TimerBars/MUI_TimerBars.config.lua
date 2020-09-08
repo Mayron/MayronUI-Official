@@ -82,9 +82,9 @@ do
         btn.listFrame = C_ListFrame(btn.name, btn.dbPath);
 
         if (btn.dbPath:find("white")) then
-            btn.listFrame:AddRowText("Enter an aura name to add to the whitelist:");
+            btn.listFrame:AddRowText(L["Enter an aura name to add to the whitelist:"]);
         else
-            btn.listFrame:AddRowText("Enter an aura name to add to the blacklist:");
+            btn.listFrame:AddRowText(L["Enter an aura name to add to the blacklist:"]);
         end
 
         btn.listFrame:SetScript("OnAddItem", ListFrame_OnAddItem);
@@ -116,7 +116,7 @@ end
 
 function C_TimerBarsModule:GetConfigTable()
     return {
-        {   name              = "Timer Bars";
+        {
             module            = "TimerBarsModule";
             hasOwnDatabase    = true;
             children = {
@@ -143,17 +143,17 @@ function C_TimerBarsModule:GetConfigTable()
                 };
                 {   type = "divider";
                 };
-                {   name    = "Show Borders";
+                {   name    = L["Show Borders"];
                     type    = "check";
                     height = 55;
                     dbPath  = "profile.border.show";
                 };
-                {   name    = "Border Type";
+                {   name    = L["Border Type"];
                     type    = "dropdown";
                     dbPath  = "profile.border.type";
                     options = tk.Constants.LSM:List("border");
                 };
-                {   name    = "Border Size";
+                {   name    = L["Border Size"];
                     type    = "slider";
                     dbPath  = "profile.border.size";
                     min = 1;
@@ -176,7 +176,7 @@ function C_TimerBarsModule:GetConfigTable()
                             "Field Name", nil, nil, RemoveFieldButton_OnClick);
                     end
                 };
-                {   name = "Colors";
+                {   name = L["Colors"];
                     type = "title";
                 };
                 {   name = L["Background Color"];
@@ -200,43 +200,43 @@ function C_TimerBarsModule:GetConfigTable()
                     hasOpacity = true;
                     dbPath = "profile.colors.basicDebuff";
                 };
-                {   name = "Border Color";
+                {   name = L["Border"];
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
                     dbPath = "profile.colors.border";
                 };
-                {   name = "Can Steal or Purge Color";
+                {   name = L["Can Steal or Purge"];
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
-                    tooltip = "If an aura can be stolen or purged, show a different color";
+                    tooltip = L["If an aura can be stolen or purged, show a different color."];
                     dbPath = "profile.colors.canStealOrPurge";
                 };
-                {   name = "Magic Debuff Color";
+                {   name = L["Magic Debuff"];
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
                     dbPath = "profile.colors.magic";
                 };
-                {   name = "Disease Debuff Color";
+                {   name = L["Disease Debuff"];
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
                     dbPath = "profile.colors.disease";
                 };
-                {   name = "Poison Debuff Color";
+                {   name = L["Poison Debuff"];
                     type = "color";
                     width = 220;
                     useIndexes = true;
                     hasOpacity = true;
                     dbPath = "profile.colors.poison";
                 };
-                {   name = "Curse Debuff Color";
+                {   name = L["Curse Debuff"];
                     type = "color";
                     width = 220;
                     useIndexes = true;
@@ -327,11 +327,11 @@ function C_TimerBarsModule:GetConfigTable()
                                     tooltip = L["The unit who is affected by the spell."];
                                     dbPath = dbFieldPath .. ".unitID";
                                     options = {
-                                        L["Player"];
-                                        L["Target"];
-                                        L["TargetTarget"];
-                                        L["Focus"];
-                                        L["FocusTarget"]
+                                        [L["Player"]] = "Player";
+                                        [L["Target"]] = "Target";
+                                        [L["TargetTarget"]] = "TargetTarget";
+                                        [L["Focus"]] = "Focus";
+                                        [L["FocusTarget"]] = "FocusTarget"
                                     };
                                 };
                                 {   type = "divider"
@@ -472,35 +472,35 @@ function C_TimerBarsModule:GetConfigTable()
                                     fontPicker = true;
                                     options = tk.Constants.LSM:List("font");
                                 };
-                                {   name = "Filters";
+                                {   name = L["Filters"];
                                     type = "title";
                                 };
-                                {   name = "Only show buffs applied by me";
+                                {   name = L["Only show buffs applied by me"];
                                     dbPath = dbFieldPath .. ".filters.onlyPlayerBuffs";
                                     type = "check";
                                 };
-                                {   name = "Only show debuffs applied by me";
+                                {   name = L["Only show debuffs applied by me"];
                                     dbPath = dbFieldPath .. ".filters.onlyPlayerDebuffs";
                                     type = "check";
                                 };
                                 {   type = "divider";
                                 };
-                                {   name = "Enable White List";
+                                {   name = L["Enable Whitelist"];
                                     dbPath = dbFieldPath .. ".filters.enableWhiteList";
                                     type = "check";
                                 };
-                                {   name = "Configure White List";
+                                {   name = L["Configure Whitelist"];
                                     type = "button";
                                     dbPath = dbFieldPath .. ".filters.whiteList";
                                     OnClick = ShowListFrame;
                                 };
                                 {   type = "divider";
                                 };
-                                {   name = "Enable Black List";
+                                {   name = L["Enable Blacklist"];
                                     dbPath = dbFieldPath .. ".filters.enableBlackList";
                                     type = "check";
                                 };
-                                {   name = "Configure Black List";
+                                {   name = L["Configure Blacklist"];
                                     type = "button";
                                     dbPath = dbFieldPath .. ".filters.blackList";
                                     OnClick = ShowListFrame;

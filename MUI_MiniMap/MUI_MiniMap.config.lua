@@ -6,36 +6,35 @@ local widgets = {};
 
 function C_MiniMapModule:GetConfigTable()
     return {
-        name = "Mini-Map",
         type = "menu",
         module = "MiniMap",
         dbPath = "profile.minimap",
         children =  {
-            {   name = "Mini-Map Options",
+            {   name = L["Mini-Map Options"],
                 type = "title",
                 marginTop = 0;
             };
-            {   name = "Size",
+            {   name = L["Size"],
                 type = "slider",
                 valueType = "number",
                 min = 120;
                 max = 400;
-                tooltip = tk.Strings:Join("\n", "Adjust the size of the minimap.", L["Default value is "].."200"),
+                tooltip = tk.Strings:Join("\n", L["Adjust the size of the minimap."], L["Default value is "].."200"),
                 appendDbPath = "size",
             };
-            {   name = "Scale",
+            {   name = L["Scale"],
                 type = "slider",
                 valueType = "number",
                 min = 0.5;
                 step = 0.1;
                 max = 3;
-                tooltip = tk.Strings:Join("\n", "Adjust the scale of the minimap.", L["Default value is "].."1"),
+                tooltip = tk.Strings:Join("\n", L["Adjust the scale of the minimap."], L["Default value is "].."1"),
                 appendDbPath = "scale",
             };
-            {   name = "Zone Text",
+            {   name = L["Zone Text"],
                 type = "title",
             },
-            {   name = "Show",
+            {   name = L["Show"],
                 type = "check",
                 appendDbPath = "zoneText.show";
 
@@ -54,7 +53,7 @@ function C_MiniMapModule:GetConfigTable()
             },
             {   name = L["Font Size"],
                 type = "slider",
-                tooltip = tk.Strings:Join("\n", "Adjust the font size of the zone text.", L["Default value is "].."12"),
+                tooltip = tk.Strings:Join("\n", L["Adjust the font size of the zone text."], L["Default value is "].."12"),
                 min = 8,
                 max = 18,
                 appendDbPath = "zoneText.fontSize",
@@ -64,7 +63,7 @@ function C_MiniMapModule:GetConfigTable()
                     container.widget:SetEnabled(widgets.showCheckButton:GetChecked());
                 end;
             },
-            {   name = "Y-Offset",
+            {   name = L["Y-Offset"],
                 type = "textfield",
                 valueType = "number",
                 tooltip = L["Default value is "].."-4";
@@ -76,7 +75,7 @@ function C_MiniMapModule:GetConfigTable()
                 end;
             };
             {   type = "dropdown",
-                name = "Justify Text",
+                name = L["Justify Text"],
                 options = { Left = "LEFT", Right = "RIGHT", Center = "CENTER" },
                 appendDbPath = "zoneText.justify";
                 tooltip = L["Default value is "].."Center";

@@ -1,5 +1,5 @@
 local _, namespace = ...;
-local tk = namespace.components.Toolkit;
+local tk = namespace.components.Toolkit; ---@type Toolkit
 local _G = _G;
 
 tk.Constants = {
@@ -9,6 +9,7 @@ tk.Constants = {
     DUMMY_FRAME = _G.CreateFrame("Frame");
     LOCALIZED_CLASS_NAMES = {};
     LOCALIZED_CLASS_FEMALE_NAMES = {};
+    SOLID_TEXTURE = "Interface\\addons\\MUI_Core\\Assets\\Textures\\Widgets\\Solid";
 
     FONT = function()
         return tk.Constants.LSM:Fetch("font", namespace.components.Database.global.core.font);

@@ -3,6 +3,7 @@ name: Bug report
 about: Create a report to help us debug
 
 ---
+**Is this bug from Retail or Classic WoW?**
 
 **What version of MayronUI were you using when the bug occurred?**
 

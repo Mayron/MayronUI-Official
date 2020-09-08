@@ -60,8 +60,10 @@ function WidgetHandlers.submenu(parent, submenuConfigTable)
     btn.text:SetPoint("TOPLEFT", 10, 0);
     btn.text:SetPoint("BOTTOMRIGHT");
 
-    btn.normal = tk:SetBackground(btn, 1, 1, 1, 0);
-    btn.highlight = tk:SetBackground(btn, 1, 1, 1, 0);
+    local filePath = tk:GetAssetFilePath("Textures\\Widgets\\Solid");
+
+    btn.normal = tk:SetBackground(btn, filePath);
+    btn.highlight = tk:SetBackground(btn, filePath);
 
     tk:ApplyThemeColor(btn.normal, btn.highlight);
 
@@ -83,7 +85,7 @@ end
 ---------------------
 -- Loop (non-widget)
 ---------------------
--- supported textield config attributes:
+-- supported textfield config attributes:
 -- loops - a number for the total number of loops to call the function
 -- args - an index table (no keys) of values to pass
 -- func - the function to call with the loop id and arg (if using args)
@@ -111,6 +113,19 @@ function WidgetHandlers.loop(_, loopConfigTable)
     tk.Tables:CleanIndexes(children);
 
     return children;
+end
+
+----------------
+-- Condition
+----------------
+function WidgetHandlers.condition(_, widgetTable)
+    local result = widgetTable.func();
+
+    if (result) then
+        return widgetTable.onTrue;
+    else
+        return widgetTable.onFalse;
+    end
 end
 
 ------------------
@@ -195,7 +210,6 @@ end
 --------------
 -- Slider
 --------------
-
 local function Slider_OnValueChanged(self, value)
     value = tk.Numbers:ToPrecision(value, self.precision);
     self.Value:SetText(value);
@@ -308,7 +322,6 @@ end
 --------------
 -- Button
 --------------
-
 do
     local function Button_OnClick(self)
         if (obj:IsTable(self.data)) then
@@ -476,7 +489,6 @@ end
 ---------------
 -- Text Field
 ---------------
-
 local function TextField_OnTextChanged(textfield, value, _, container)
     -- perform validation based on valueType
     local isValue = true;

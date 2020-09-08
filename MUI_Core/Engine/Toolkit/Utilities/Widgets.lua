@@ -1,12 +1,13 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 
-local obj = namespace.components.Objects;
+local obj = namespace.components.Objects; ---@type LibMayronObjects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
 local _G = _G;
 local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
-local GameTooltip, ipairs, CreateFrame, UIParent, select = _G.GameTooltip, _G.ipairs, _G.CreateFrame, _G.UIParent, _G.select;
+local GameTooltip, ipairs, pairs, CreateFrame, UIParent, select =
+    _G.GameTooltip, _G.ipairs, _G.pairs, _G.CreateFrame, _G.UIParent, _G.select;
 
 function tk:SetFontSize(fontString, size)
     local fontPath, _, flags = fontString:GetFont();
@@ -258,7 +259,13 @@ function tk:GetThemeColor(returnTable)
 end
 
 function tk:UpdateThemeColor(value)
-    local color = tk:GetClassColor(value);
+    local color;
+
+    if (obj:IsTable(value) and value.r and value.g and value.b) then
+        color = value;
+    else
+        color = tk:GetClassColor(value);
+    end
 
     if (not color.GenerateHexColor) then
         color = _G.CreateColor(color.r, color.g, color.b);
@@ -285,7 +292,8 @@ function tk:SetBackground(frame, ...)
     texture:SetAllPoints(frame);
 
     if (#args > 1) then
-        texture:SetColorTexture(...);
+        texture:SetTexture(tk.Constants.SOLID_TEXTURE);
+        texture:SetVertexColor(...);
     else
         texture:SetTexture(args[1]);
     end

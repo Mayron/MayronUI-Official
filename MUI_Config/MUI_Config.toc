@@ -1,7 +1,8 @@
-## Interface: 80200
+## Interface: 80300
 ## Title: |cff00ccffMUI|r Config
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
+## Notes: Enables the in-game MayronUI configuration menu
 
 MUI_Config.lua
 MUI_Config.config.lua

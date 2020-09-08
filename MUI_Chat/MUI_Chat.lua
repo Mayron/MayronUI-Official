@@ -32,7 +32,7 @@ local Engine = obj:Import("MayronUI.Engine");
 local C_ChatFrame = Engine:CreateClass("ChatFrame", "Framework.System.FrameWrapper");
 
 ---@class ChatModule
-local C_ChatModule = MayronUI:RegisterModule("ChatModule");
+local C_ChatModule = MayronUI:RegisterModule("ChatModule", L["Chat Frames"]);
 
 namespace.Engine = Engine;
 namespace.C_ChatModule = C_ChatModule;
@@ -273,7 +273,7 @@ end
 function C_ChatModule:OnEnable(data)
 	StaticPopupDialogs["MUI_Link"] = {
 		text = tk.Strings:Join(
-			"\n", tk.Strings:SetTextColorByTheme("MayronUI"), "(CTRL+C to Copy, CTRL+V to Paste)"
+			"\n", tk.Strings:SetTextColorByTheme("MayronUI"), L["(CTRL+C to Copy, CTRL+V to Paste)"]
 		);
 		button1 = "Close";
 		hasEditBox = true;
@@ -335,9 +335,9 @@ do
 		end
 
 		_G.GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 8, -38);
-		_G.GameTooltip:SetText("MUI Layout Button");
-		_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme("Left Click:"), "Switch Layout", 1, 1, 1);
-		_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme("Right Click:"), "Show Layout Config Tool", 1, 1, 1);
+		_G.GameTooltip:SetText(L["MUI Layout Button"]);
+		_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Switch Layout"], 1, 1, 1);
+		_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]), L["Show Layout Config Tool"], 1, 1, 1);
 		_G.GameTooltip:Show();
 	end
 
@@ -379,7 +379,7 @@ do
 		if (btnPressed == "LeftButton") then
 
 			if (InCombatLockdown()) then
-				tk:Print("Cannot switch layout while in combat.");
+				tk:Print(L["Cannot switch layouts while in combat."]);
 				return;
 			end
 
@@ -387,7 +387,7 @@ do
 			module:SwitchLayouts(layoutName, layoutData);
 
 			PlaySound(tk.Constants.CLICK);
-			tk:Print(tk.Strings:SetTextColorByRGB(layoutName, 0, 1, 0), "Layout enabled!");
+			tk:Print(tk.Strings:SetTextColorByRGB(layoutName, 0, 1, 0), L["Layout enabled!"]);
 			return layoutName;
 
 		elseif (btnPressed == "RightButton") then

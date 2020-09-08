@@ -1,0 +1,12 @@
+## Interface: 80300
+## Title: LibMayronObjects
+## Notes: An OOP framework for Lua in World of Warcraft
+## Version: 3.0.1
+
+## Works with classic and retail, just update the toc version number if using as a standalone AddOn
+
+LibStub.lua
+LibMayronObjects.xml
+
+## Uncomment this for testing:
+## LibMayronObjects.Test.lua

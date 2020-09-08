@@ -5,6 +5,7 @@ local _, db, em = MayronUI:GetCoreComponents();
 local ComponentsPackage = namespace.ComponentsPackage;
 
 local C_Timer = _G.C_Timer;
+local GetNetStats, GetFramerate = _G.GetNetStats, _G.GetFramerate;
 
 -- Register and Import Modules -------
 
@@ -55,6 +56,22 @@ function Performance:IsEnabled(data)
     return data.enabled;
 end
 
+local function FormatLabelByLatency(label, latency)
+    if (latency <= 100) then
+        label = string.format("%s |cff32cd32%u|r ms", label, latency);
+    end
+
+    if (latency >= 101 and latency <= 250) then
+        label = string.format("%s |cffffcc00%u|r ms", label, latency);
+    end
+
+    if (latency >= 251) then
+        label = string.format("%s |cffff0000%u|r ms", label, latency);
+    end
+
+    return label;
+end
+
 function Performance:Update(data, refreshSettings)
     if (refreshSettings) then
         data.settings:Refresh();
@@ -67,20 +84,19 @@ function Performance:Update(data, refreshSettings)
     data.executed = true;
 
     local function loop()
-        local _, _, latencyHome, latencyServer = _G.GetNetStats();
+        local _, _, latencyHome, latencyServer = GetNetStats();
 
         local label = "";
 
         if (data.settings.showFps) then
-            label = string.format("|cffffffff%u|r fps", _G.GetFramerate());
+            label = string.format("|cffffffff%u|r fps", GetFramerate());
         end
 
         if (data.settings.showHomeLatency) then
-            label = string.format("%s |cffffffff%u|r ms", label, latencyHome);
+            label = FormatLabelByLatency(label, latencyHome);
         end
-
         if (data.settings.showServerLatency) then
-            label = string.format("%s |cffffffff%u|r ms", label, latencyServer);
+            label = FormatLabelByLatency(label, latencyServer);
         end
 
         self.Button:SetText(label:trim());

@@ -11,7 +11,7 @@ local UnitPVPName, GetRealmName, UnitLevel, UnitClass = _G.UnitPVPName, _G.GetRe
 
 -- Register Module ------------
 
-local C_AFKDisplayModule = MayronUI:RegisterModule("AFKDisplay", "AFK Display");
+local C_AFKDisplayModule = MayronUI:RegisterModule("AFKDisplay", L["AFK Display"]);
 
 -- Add Database Defaults ------
 
@@ -219,13 +219,33 @@ Private.Races = { -- lower values = lower model
             hoverValue = -0.5,
         }
     },
+    Mechagnome = {
+        Male = {
+            value = -0.3,
+            hoverValue = -0.3,
+        },
+        Female = {
+            value = -0.3,
+            hoverValue = -0.3,
+        }
+    },
+    Vulpera = {
+        Male = {
+            value = -0.7,
+            hoverValue = -0.3,
+        },
+        Female = {
+            value = -0.7,
+            hoverValue = -0.4,
+        }
+    },
     ZandalariTroll = {
         Male = {
             value = -0.4,
             hoverValue = -0.2,
         },
         Female = {
-            value = -0.3,
+            value = -0.6,
             hoverValue = -0.5,
         }
     },
@@ -509,17 +529,26 @@ end
 
 function C_AFKDisplayModule:OnEnable(data)
     if (not data.handler) then
-        data.handler = em:CreateEventHandler("PLAYER_FLAGS_CHANGED", function(_, _, unitID)
-            if (unitID ~= "player" or not data.settings.enabled) then
-                return;
-            end
+        data.handler = em:CreateEventHandlerWithKey("PLAYER_FLAGS_CHANGED", "afkDisplayFlagsChanged",
+            function(_, _, unitID)
+                if (unitID ~= "player" or not data.settings.enabled) then
+                    return;
+                end
 
-            self:SetShown(UnitIsAFK(unitID));
-        end);
+                self:SetShown(UnitIsAFK(unitID));
+            end);
 
-        em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
-            self:SetShown(false);
-        end);
+        em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "afkDisplayRegenDisabled",
+            function()
+                self:SetShown(false);
+            end);
+    end
+end
+
+function C_AFKDisplayModule:OnDisable(data)
+    if (data.handler) then
+        em:DestroyEventHandlersByKey("afkDisplayFlagsChanged", "afkDisplayRegenDisabled");
+        data.handler = nil;
     end
 end
 

@@ -4,7 +4,7 @@
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local Engine = namespace.Engine;
-local tk, _, em, gui, obj = MayronUI:GetCoreComponents();
+local tk, _, em, gui, obj, L = MayronUI:GetCoreComponents();
 local MEDIA = "Interface\\AddOns\\MUI_Chat\\media\\";
 local _G = _G;
 
@@ -343,7 +343,7 @@ do
 		toggleEmotesButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
 		toggleEmotesButton:SetHighlightAtlas("chatframe-button-highlight");
 
-		tk:SetBasicTooltip(toggleEmotesButton, "Show Chat Menu");
+		tk:SetBasicTooltip(toggleEmotesButton, L["Show Chat Menu"]);
 
 		toggleEmotesButton:SetScript("OnClick", function(self)
 			PositionChatIconMenu(self, ChatMenu);
@@ -412,7 +412,7 @@ do
 
 			gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
 			gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
-			gui:AddTitleBar(tk.Constants.AddOnStyle, frame, "Copy Chat Text");
+			gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Copy Chat Text"]);
 
 			local editBox = CreateFrame("EditBox", "MUI_CopyChatEditBox", frame);
 			editBox:SetMultiLine(true);
@@ -484,7 +484,7 @@ do
 			copyChatButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
 			copyChatButton:SetHighlightAtlas("chatframe-button-highlight");
 
-			tk:SetBasicTooltip(copyChatButton, "Copy Chat Text");
+			tk:SetBasicTooltip(copyChatButton, L["Copy Chat Text"]);
 
 			copyChatButton:SetScript("OnClick", function(self)
 				if (not self.chatTextFrame) then
@@ -524,7 +524,7 @@ do
 		end):Run();
 
 		playerStatusButton:SetHighlightAtlas("chatframe-button-highlight");
-		tk:SetBasicTooltip(playerStatusButton, "Change Status");
+		tk:SetBasicTooltip(playerStatusButton, L["Change Status"]);
 
 		local statusMenu = CreateFrame("Frame", "MUI_StatusMenu", muiChatFrame, "UIMenuTemplate");
 		UIMenu_Initialize(statusMenu);

@@ -94,9 +94,9 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   type = "divider";
                 };
-                {   name              = "Movable Blizzard Frames";
+                {   name              = L["Movable Blizzard Frames"];
                     type              = "check";
-                    tooltip           = "Allows you to move Blizzard Frames outside of combat only.";
+                    tooltip           = L["Allows you to move Blizzard Frames outside of combat only."];
                     dbPath            = "global.movable.enabled";
 
                     SetValue = function(dbPath, newValue)
@@ -104,24 +104,35 @@ function C_ConfigModule:GetConfigTable()
                         MayronUI:ImportModule("MovableFramesModule"):SetEnabled(newValue);
                     end
                 };
-                {   name = "Reset Blizzard Frame Positions";
+                {   name = L["Reset Blizzard Frame Positions"];
                     width = 220;
                     type = "button";
-                    tooltip = "Reset Blizzard frames back to their original position.";
+                    tooltip = L["Reset Blizzard frames back to their original position."];
                     OnClick = function()
                         MayronUI:ImportModule("MovableFramesModule"):ResetPositions();
                     end
-                }
+                };
+                {   type = "divider";
+                };
+                {   name              = L["Show AFK Display"];
+                    type              = "check";
+                    tooltip           = L["Enable/disable the AFK Display"];
+                    dbPath            = "global.AFKDisplay.enabled";
+
+                    SetValue = function(dbPath, newValue)
+                        db:SetPathValue(dbPath, newValue);
+                        MayronUI:ImportModule("AFKDisplay"):SetEnabled(newValue);
+                    end
+                };
             }
         };
-        {   name = L["Bottom UI Panels"];
-            module = "BottomUI_Container";
+        {   module = "BottomUI_Container";
             children = {
-                {   name        = "Main Container Width:";
+                {   name        = L["Main Container Width:"];
                     type        = "textfield";
                     valueType   = "number";
                     tooltip     = tk.Strings:Concat(
-                        "Adjust the width of the main container.", "\n\n", L["Default value is "], "750");
+                        L["Adjust the width of the main container."], "\n\n", L["Default value is "], "750");
                     dbPath      = "profile.bottomui.width";
                 };
                 {   name    = L["Unit Panels"];
@@ -162,11 +173,11 @@ function C_ConfigModule:GetConfigTable()
                         L["Minimum value is "], "200", "\n\n", L["Default value is "], "325");
                     dbPath      = "profile.unitPanels.unitWidth";
                 };
-                {   name        = "Unit Panel Height";
+                {   name        = L["Unit Panel Height"];
                     type        = "textfield";
                     module      = "BottomUI_UnitPanels";
                     valueType   = "number";
-                    tooltip     = tk.Strings:Concat("Adjust the height of the unit frame background panels.",
+                    tooltip     = tk.Strings:Concat(L["Adjust the height of the unit frame background panels."],
                         "\n\n", L["Default value is "], "75");
                     dbPath      = "profile.unitPanels.unitHeight";
                 };
@@ -213,8 +224,7 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   name    = L["Enable Gradient Effect"];
                     type    = "check";
-                    tooltip = tk.Strings:Concat(L["If the SUF Player or Target portrait bars are enabled, a class"],
-                        "\n", L["colored gradient will overlay it."]);
+                    tooltip = L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."];
                     dbPath  = "profile.unitPanels.sufGradients.enabled";
                 };
                 {   name    = L["Height"];
@@ -247,15 +257,14 @@ function C_ConfigModule:GetConfigTable()
                 };
             }
         };
-        {   name = "Action Bars";
-            module = "BottomUI_ActionBarPanel";
+        {   module = "BottomUI_ActionBarPanel";
             children =  {
-                {   name = "Bottom Action Bars";
+                {   name = L["Bottom Action Bars"];
                     type = "submenu";
                     children = {
                         {   name              = L["Enable Action Bar Panel"];
                             dbPath            = "profile.actionBarPanel.enabled";
-                            tooltip           = "Enable or disable the background panel";
+                            tooltip           = L["Enable or disable the background panel"];
                             type              = "check";
                         };
                         {   type              = "divider";
@@ -290,7 +299,7 @@ function C_ConfigModule:GetConfigTable()
                             dbPath      = "profile.actionBarPanel.expandHeight";
                         };
                         {   type    = "fontstring";
-                            content = "Modifier key/s used to show Expand/Retract button:";
+                            content = L["Modifier key/s used to show Expand/Retract button:"];
                         };
                         {
                             type = "loop";
@@ -359,7 +368,7 @@ function C_ConfigModule:GetConfigTable()
                         }
                     }
                 };
-                {   name = "Side Action Bars";
+                {   name = L["Side Action Bars"];
                     type = "submenu";
                     children = {
                         {   name        = L["Width (With 1 Bar)"];
@@ -431,9 +440,9 @@ function C_ConfigModule:GetConfigTable()
                             type    = "dropdown";
                             dbPath  = "profile.sidebar.buttons.showWhen";
                             options = {
-                                L["Never"];
-                                L["Always"];
-                                L["On Mouse-over"]
+                                [L["Never"]] = "Never";
+                                [L["Always"]] = "Always";
+                                [L["On Mouse-over"]] = "On Mouse-over"
                             };
                         };
                         {   type = "divider";
@@ -441,7 +450,7 @@ function C_ConfigModule:GetConfigTable()
                         {   name        = L["Width"];
                             type        = "textfield";
                             tooltip     = tk.Strings:Concat(L["Default value is "], "15.", "\n\n",
-                                            "Minimum value is 15.", "\n\n", "Maximum value is 30.");
+                                            L["Minimum value is"], " ", 15, "\n\n", L["Maximum value is"], " ", 30);
                             dbPath      = "profile.sidebar.buttons.width";
                             min         = 15;
                             max         = 30;
@@ -450,7 +459,7 @@ function C_ConfigModule:GetConfigTable()
                         {   name        = L["Height"];
                             type        = "textfield";
                             tooltip     = tk.Strings:Concat(L["Default value is "], "100.", "\n\n",
-                                            "Minimum value is 50.", "\n\n", "Maximum value is 300.");
+                                            L["Minimum value is"], " ", 50, "\n\n", L["Maximum value is"], " ", 300);
                             dbPath      = "profile.sidebar.buttons.height";
                             min         = 50;
                             max         = 300;
@@ -468,7 +477,7 @@ function C_ConfigModule:GetConfigTable()
                     func = function(id, name)
                         local key = name:lower().."Bar";
                         local child = {
-                            {   name    = tk.Strings:JoinWithSpace(name, L["Bar"]);
+                            {   name    = tk.Strings:JoinWithSpace(L[name], L["Bar"]);
                                 type    = "title";
                             };
                             {   name    = L["Enabled"];
@@ -509,26 +518,25 @@ function C_ConfigModule:GetConfigTable()
             }
         };
         {
-            name = "Objectives Tracker";
             module = "SideBarModule";
             children = {
-                {   name        = "Objectives Tracker";
+                {   name        = L["Objective Tracker"];
                     type        = "title";
                     marginTop   = 0;
                 };
-                {   name              = "Enable Changes";
+                {   name              = L["Enable Changes"];
                     tooltip           = L["Disable this to stop MUI from controlling the Objective Tracker."];
                     type              = "check";
                     dbPath            = "profile.objectiveTracker.enabled";
                     requiresReload    = true;
                 };
-                {   name              = "Collapse in Instance";
-                    tooltip           = "If true, the objective tracker will collapse when entering an instance.";
+                {   name              = L["Collapse in Instance"];
+                    tooltip           = L["If true, the objective tracker will collapse when entering an instance."];
                     type              = "check";
                     dbPath            = "profile.objectiveTracker.hideInInstance";
                 };
-                {   name    = "Anchor to Side Bar";
-                    tooltip = "Anchor the Objective Tracker to the action bar container on the right side of the screen.";
+                {   name    = L["Anchor to Side Bar"];
+                    tooltip = L["Anchor the Objective Tracker to the action bar container on the right side of the screen."];
                     type    = "check";
                     dbPath  = "profile.objectiveTracker.anchoredToSideBars";
                 };

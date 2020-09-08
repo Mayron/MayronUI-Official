@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 
-local obj = namespace.components.Objects; ---@type Objects
+local obj = namespace.components.Objects; ---@type LibMayronObjects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
 local pcall, pairs, strsplit, tonumber = _G.pcall, _G.pairs, _G.strsplit, _G.tonumber;
@@ -20,6 +20,33 @@ function tk.Tables:GetKeys(tbl, keys)
     end
 
     return keys;
+end
+
+function tk.Tables:GetSize(tbl, includeIndices, includeKeys)
+    local size = 0;
+
+    includeIndices = (includeIndices == nil and true) or includeIndices;
+    includeKeys = (includeKeys == nil and true) or includeKeys;
+
+    if (includeIndices and includeKeys) then
+        for _, _ in pairs(tbl) do
+            size = size + 1;
+        end
+
+    elseif (includeIndices and not includeKeys) then
+        for _, _ in ipairs(tbl) do
+            size = size + 1;
+        end
+
+    elseif (not includeIndices and includeKeys) then
+        for key, _ in pairs(tbl) do
+            if (type(key) == "string") then
+                size = size + 1;
+            end
+        end
+    end
+
+    return size;
 end
 
 -- gets or creates a table:
@@ -51,7 +78,9 @@ end
 ---@param tbl table @The table to print.
 ---@param depth number @The depth of sub-tables to traverse through and print.
 function tk.Tables:Print(tbl, depth)
-    obj:PrintTable(tbl, depth);
+    if (obj:IsTable(tbl)) then
+        obj:PrintTable(tbl, depth);
+    end
 end
 
 function tk.Tables:Contains(tbl, value)
@@ -62,6 +91,21 @@ function tk.Tables:Contains(tbl, value)
     end
 
     return false;
+end
+
+-- gets the first value where the predicate returns true
+function tk.Tables:First(tbl, predicate)
+    for _, value in pairs(tbl) do
+        if (obj:IsFunction(predicate)) then
+            if (predicate(value)) then
+                return value;
+            end
+        elseif (value) then
+            return value;
+        end
+    end
+
+    return nil;
 end
 
 function tk.Tables:GetIndex(tbl, value, position)
@@ -81,15 +125,12 @@ function tk.Tables:GetIndex(tbl, value, position)
     return nil;
 end
 
--- includes both the index length and the hash table length
-function tk.Tables:GetFullSize(tbl)
-    local size = 0;
-
-    for _, _ in pairs(tbl) do
-        size = size + 1;
+function tk.Tables:IndexOf(tbl, value)
+    for id, otherValue in ipairs(tbl) do
+        if (value == otherValue) then
+            return id;
+        end
     end
-
-    return size;
 end
 
 function tk.Tables:AddAll(tbl, ...)
@@ -105,7 +146,7 @@ function tk.Tables:Empty(tbl)
 end
 
 function tk.Tables:IsEmpty(tbl)
-    local size = self:GetFullSize(tbl);
+    local size = self:GetSize(tbl);
     return size == 0;
 end
 

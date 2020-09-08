@@ -12,7 +12,6 @@ local strsplit = _G.strsplit;
 namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
 namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
 namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
-namespace.components.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 namespace.components.Modules = {};
 
 local tk  = namespace.components.Toolkit; ---@type Toolkit
@@ -95,6 +94,7 @@ db:AddToDefaults("global", {
                 {"Recount", true, "Recount"};
                 {"Shadowed Unit Frames", true, "ShadowedUnitFrames"};
                 {"TipTac", true, "TipTac"};
+                {"Leatrix Plus", true, "Leatrix_Plus"};
             };
         };
     };
@@ -480,11 +480,13 @@ function MayronUI:GetModuleClass(moduleKey)
 end
 
 ---@param moduleKey string @The unique key associated with the registered module.
-function MayronUI:ImportModule(moduleKey)
+---@param silent boolean @If silent, this function will return nil if the module cannot be found, else it will throw an error
+function MayronUI:ImportModule(moduleKey, silent)
     local registryInfo = registeredModules[moduleKey];
 
     if (not registryInfo) then
         -- addon is disabled so cannot import module
+        obj:Assert(silent, "Failed to import module '%s'. Has it been registered?", moduleKey);
         return nil;
     end
 
@@ -629,7 +631,7 @@ function C_CoreModule:OnInitialize()
     end
 
     tk:Print(L["Welcome back"], _G.UnitName("player").."!");
-    collectgarbage("collect");
+    _G.collectgarbage("collect");
     DisableAddOn("MUI_Setup"); -- disable for next time
 end
 
@@ -661,7 +663,7 @@ end):SetAutoDestroy(true);
 -- Database Event callbacks --------------------
 
 db:OnProfileChange(function(self, newProfileName)
-    if (not MayronUI:IsInstalled()) then
+    if (not MayronUI:IsInstalled() or (_G["MUI_Setup"] and _G["MUI_Setup"]:IsShown())) then
         return;
     end
 
@@ -702,9 +704,10 @@ db:OnStartUp(function(self)
 
     -- To keep UI widget styles consistent ----------
     -- Can only use once Database is loaded...
-
+    ---@type Style
     local Style = obj:Import("MayronUI.Widgets.Style");
 
+    ---@type Style
     tk.Constants.AddOnStyle = Style();
     tk.Constants.AddOnStyle:SetPadding(10, 10, 10, 10);
     tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");
@@ -746,6 +749,8 @@ db:OnStartUp(function(self)
         _G.ScriptErrorsFrame.DisplayMessage = function() end;
         error();
     end);
+
+    tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
 end);
 
 -- MUI Gen5 to Gen6 Migration:

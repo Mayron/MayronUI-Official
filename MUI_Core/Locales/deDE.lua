@@ -1,15 +1,12 @@
-local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "deDE") 
+local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "deDE");
 if not L then return end
+
 --[[
-To enable a translation, you need to uncomment the responsible line.
-See https://www.lua.org/pil/1.3.html	for information of how to comment in LUA
- 
 To change the value fill in the translation on the right side of the equal sign.
 Example:
-	L["Hello!"] 						= "Hi!";
-	
-The spaces are not needed. They are just for alignment.
+	L["Hello!"] = "Hi!";
 ]]
+
 -- German translations go here
 -- MUI Chat
 L["Hello!"] 						= "Hallo!";
@@ -61,6 +58,8 @@ L["Alt"]							= "Alt";		-- Mod-Key!
 L["Chat Buttons with Modifier Key 1"]						= "Chat Schaltflächen - 1. Mod-Taste";
 L["Chat Buttons with Modifier Key 2"]						= "Chat Schaltflächen - 2. Mod-Taste";
 L["Set the border size.\n\nDefault is 1."]					= "Setzt die Randbreite.\n\nStandard ist 1.";
+L["Cannot toggle menu while in combat."] 					= "Das Menü kann im Kampf nicht umgeschaltet werden.";
+L["Cannot switch layouts while in combat."]					= "Layouts können im Kampf nicht gewechselt werden.";
 
 L["Set the spacing between the background and the border.\n\nDefault is 0."]					= "Setzt den Abstand zwischen Hintergrund und Rand.\n\nStandard ist 0.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."]						= "Erlaubt die Nutzung der Mod-Tasten zum wechseln der Chat-Schaltflächen, während man sich im Kampf befindet.";
@@ -110,7 +109,7 @@ L["Money per character"]			= "Vermögen je Charakter";
 
 -- afk
 L["Guild Chat"]						= "Gildenchat";
-L["Whispers"]						= "Geflüstertes";
+L["Whispers"]						= "Private Nachrichten";
 
 -- MUI Castbar
 L[" CastBar not enabled."]			= " Castbar ist nicht aktiviert.";
@@ -248,12 +247,12 @@ L["Default is 11"]					= "Standard ist 11";
 L["Font Type"]						= "Schriftart";
 L["Spell Name Text"]				= "Text: Zaubername";
 
-L["Enter the Name of a %s to Track:"]															= "Gebe den Namen eines %s ein um ihn zu überwachen.";
-L["Only %s casted by you will be tracked."]														= "Nur die %s von dir werden überwacht";
-L["Ignore the list of %s to track and track everything."]										= "Ignoriere die Liste der %s und überwache alles.";
-L["Enabling this will dynamically generate the list of %s to track."]							= "Bei aktivierung werden dynamisch alle %s erfasst und überwacht.";
-L["The unit who is affected by the spell."]														= "Die Einheit die vom Zauber betroffen ist.";
-L["The field's vertical growth direction:"]														= "Die Richtung in der die Leiste wachsen wird.";
+L["Enter the Name of a %s to Track:"]									= "Gebe den Namen eines %s ein um ihn zu überwachen.";
+L["Only %s casted by you will be tracked."]								= "Nur die %s von dir werden überwacht";
+L["Ignore the list of %s to track and track everything."]				= "Ignoriere die Liste der %s und überwache alles.";
+L["Enabling this will dynamically generate the list of %s to track."]	= "Bei aktivierung werden dynamisch alle %s erfasst und überwacht.";
+L["The unit who is affected by the spell."]								= "Die Einheit die vom Zauber betroffen ist.";
+L["The field's vertical growth direction:"]								= "Die Richtung in der die Leiste wachsen wird.";
 
 -- MUI Config
 L["Reload UI"]						= "UI neu laden";
@@ -382,9 +381,9 @@ L["If unchecked, the entire DataText module will be disabled and all"]							= "
 L["DataText buttons, as well as the background bar, will not be displayed."]					= "Die DataText box, sowie der Hindergrund wird ebenfalls ausgeblendet.";
 L["Prevents you from using data text modules while in combat."]									= "Verhindert die benutzung der DataText Elemente während dem Kampf.";
 L["This is useful for 'clickers'."]																= "Das ist besonders für die Benutzer mit einer Vorliebe für Maussteuerung hilfreich.";
-L["If the SUF Player or Target portrait bars are enabled, a class"]								= "Wenn die SUF Spieler oder Ziel Portais aktiv sind,";
-L["colored gradient will overlay it."]															= "wird ein Farbverlauf mit den Klassenfarben darüber gelegt.";
 
+L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."]
+	= "Wenn die SUF Spieler oder Ziel Portais aktiv sind, wird ein Farbverlauf mit den Klassenfarben darüber gelegt.";
 
 L["TT_MUI_CONTROL_SUF"]				=
 [[Wenn aktiviert, wird MUI die Shadowed Unit Frames passend in sein UI verschieben.
@@ -396,15 +395,303 @@ L["TT_MUI_CONTROL_GRID"]			=
 [[|cff00ccffWichtig:|r Gild nur für das |cff00ccff'MayronUIH' Grid Profil |r (wird im Heiler-Layout benutzt)!
 
 Wenn aktiviert, wird MUI das Grid Fenster oberhalb des Zielfensters positionieren.
-Es wird automatisch die Positionen anpassen, wenn die untere Benutzeroberfläche 
+Es wird automatisch die Positionen anpassen, wenn die untere Benutzeroberfläche
 erweitert over verkleinert wird.]];
 
 L["TT_MUI_CONTROL_BARTENDER"]		=
-[[Wenn aktiviert, wird MUI die ausgewählten Bartender Leisten so verschieben, 
+[[Wenn aktiviert, wird MUI die ausgewählten Bartender Leisten so verschieben,
 das sie in die untere Benutzeroberfläche passen.
 
 Auch die ein-ausblende Animationen werden die repositionierung der Aktionsleisten berücksichtigen.]];
 
-L["TT_MUI_USE_TARGET_CLASS_COLOR"]	= 
+L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
 [[Wenn aktiviert, wird der Farbverlauf die Klassenfarben des Ziels statt die vordefinierten verwenden.
-Es werden aber weiterhin die Alphawerte und Endfarbe verwendet"]];
+Es werden aber weiterhin die Alphawerte und Endfarbe verwendet]];
+
+L["Show Overview"] = "Übersicht anzeigen";
+L["Show Reset Options"] = "Reset-Optionen anzeigen";
+L["Reset All Characters"] = "Alle Chars zurücksetzen";
+L["Reset Options"] = "Optionen zurücksetzen";
+
+L["All currency data has been reset."] = "Alle Währungen wurden zurückgesetzt.";
+L["Currency data for %s has been reset."] = "Währung für %s wurden zurückgesetzt.";
+L["Are you sure you want to reset the currency data for all of your characters?"] =
+"Sind Sie sicher, dass Sie die Währungen für alle Ihre Chars zurücksetzen möchten?";
+L["Are you sure you want to reset the currency data for %s?"] =
+"Möchten Sie die Währung für %s wirklich zurücksetzen?";
+
+L["Change Status"] = "Status ändern";
+L["Remove from Whitelist"] = "Aus der Whitelist entfernen";
+L["Add to Blacklist"] = "Zur Blacklist hinzufügen";
+
+L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."] =
+"Durch Entfernen von %s aus der Whitelist wird diese Zeitleiste ausgeblendet, wenn die Whitelist aktiviert ist.";
+
+L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."] =
+"Durch Hinzufügen von %s zur Blacklist wird diese Zeitleiste ausgeblendet, wenn die Blacklist aktiviert ist.";
+
+L["Are you sure you want to do this?"] = "Sind Sie sicher, dass Sie dies tun möchten?";
+
+L["%s has been removed from the whitelist."] = "%s wurde aus der Whitelist entfernt.";
+L["%s has been added to the blacklist."] = "%s wurde der Blacklist hinzugefügt.";
+
+L["Filters"] = "Filters";
+L["Only show buffs applied by me"] = "Nur von mir angewendete Buffs anzeigen";
+L["Only show debuffs applied by me"] = "Nur von mir angewendete Debuffs anzeigen";
+L["Enable Whitelist"] = "Whitelist aktivieren";
+L["Configure Whitelist"] = "Konfigurieren Sie die Whitelist";
+L["Enable Blacklist"] = "Blacklist aktivieren";
+L["Configure Blacklist"] = "Blacklist konfigurieren";
+
+--------------------------------
+---TODO: This needs translating:
+--------------------------------
+
+L["MUI_Setup_InfoTab"] = [[
+Visit our Discord community:
+%s
+
+The official homepage for MayronUI Gen6 is:
+%s
+
+The official GitHub repo:
+%s
+
+Become a Patreon and earn exclusive benefits within the community:
+%s
+
+Visit Mayron's official YouTube channel:
+%s
+
+
+|cff00ccff> SLASH COMMANDS|r
+
+|cff00ccff/mui|r - List all MayronUI slash commands (including "install", "config" and "profile" commands)
+|cff00ccff/rl|r - Reloads the UI
+|cff00ccff/tiptac|r - Show TipTac (Tooltips) AddOn settings
+|cff00ccff/ltp|r - Leatrix Plus settings (I recommend looking through them!)
+|cff00ccff/suf|r - Settings for the Unit Frames (Shadowed Unit Frames)
+|cff00ccff/bt|r - Bartender Settings (Action Bars)
+
+|cff00ccff> F.A.Q's|r
+
+|cff00ccffQ: How do I open up the Calendar? / How do I toggle the Tracker?|r
+
+|cff90ee90A:|r Right click the Mini-Map and select the option to do this in the drop down menu.
+
+|cff00ccffQ: How can I see more action bars on the bottom of the UI like in the screen shots?|r
+
+|cff90ee90A:|r You need to press and hold the Control key while out of combat to show the Expand and Retract button.
+
+|cff00ccffQ: How do I enable the Timestamps on the Chat Box?|r
+
+|cff90ee90A:|r I removed this feature when Blizzard added this themselves in the Blizzard Interface Options. Go to the Interface in-game menu and go to "Social" then there is a drop down menu with the title "Chat Timestamps". Change this from "None" to a format that suits you.
+
+|cff00ccffQ: How do I turn off/on Auto Quest? Or how do I turn on auto repair?|r
+
+|cff90ee90A:|r That is controlled by Leatrix Plus (Leatrix Plus also offers many other useful features and is worth checking out!). You can open the Leatrix Plus menu to view these by right clicking the Minimap and selecting Leatrix Plus or by typing "/ltp".
+
+|cff00ccffQ: The tooltip shows over my spells when I hover my mouse cursor over them, how can I move it to the Bottom Right corner like the other tooltips do?|r
+
+|cff90ee90A:|r Type "/tiptac" and go to the Anchors page from the list on the left. Where it says "Frame Tip Type" you will see a drop down menu on the right. Change it from "Mouse Anchor" to "Normal Anchor".
+]]
+
+L["MUI_Setup_CreditsTab"] = [[
+Special thanks goes to the following MayronUI community members for their contributions towards the project (see the information tab for the link to join our Discord community):
+
+|cff00ccff> Patreons|r
+%s
+
+|cff00ccff> Development and Bug Fixes|r
+%s
+
+|cff00ccff> Translation Support|r
+%s
+
+|cff00ccff> Community Support Team|r
+%s
+
+And of course, thank you to the authors of the non-MayronUI AddOns included in this UI pack.
+]]
+
+-- TODO: These are all newly added since 6.0.11:
+--------------------------------------------------------------------------------------------
+----- Do not touch the placeholders: %s, %d
+----- Do not touch the line break syntax: \n
+
+L["Cast Bars"]                                      = "Cast Bars";
+L["Auras (Buffs & Debuffs)"]                        = "Auras (Buffs & Debuffs)";
+L["(CTRL+C to Copy, CTRL+V to Paste)"]              = "(CTRL+C to Copy, CTRL+V to Paste)";
+L["Copy Chat Text"]                                 = "Copy Chat Text";
+L["Data Text Bar"]                                  = "Data Text Bar";
+L["Setup"]                                          = "Setup";
+L["Timer Bars"]                                     = "Timer Bars";
+L["MUI Profile Manager"]                            = "MUI Profile Manager";
+L["Current profile"]                                = "Current profile";
+L["Reset Profile"]                                  = "Reset Profile";
+L["Delete Profile"]                                 = "Delete Profile";
+L["Copy From"]                                      = "Copy From";
+L["Select profile"]                                 = "Select profile";
+L["Choose Profile"]                                 = "Choose Profile";
+L["Choose the currently active profile."]           = "Choose the currently active profile.";
+L["New Profile"]                                    = "New Profile";
+L["Create a new profile."]                          = "Create a new profile.";
+L["Default Profile Behaviour"]                      = "Default Profile Behaviour";
+L["Name of New Layout"]                             = "Name of New Layout";
+L["Layout"]                                         = "Layout";
+L["Rename Layout"]                                  = "Rename Layout";
+L["Are you sure you want to delete Layout '%s'?"]   = "Are you sure you want to delete Layout '%s'?";
+L["MUI Layout Tool"]                                = "MUI Layout Tool";
+L["Layouts"]                                        = "Layouts";
+L["Create New Layout"]                              = "Create New Layout";
+L["Delete Layout"]                                  = "Delete Layout";
+L["Chat Buttons with Modifier Key %d"]              = "Chat Buttons with Modifier Key %d";
+L["Please install the UI and try again."]           = "Please install the UI and try again.";
+L["Chat Frames"]                                    = "Chat Frames";
+L["Mini-Map Options"]                               = "Mini-Map Options";
+L["Adjust the size of the minimap."]                = "Adjust the size of the minimap.";
+L["Adjust the scale of the minimap."]               = "Adjust the scale of the minimap.";
+L["Zone Text"]                                      = "Zone Text";
+L["Scale"]                                          = "Scale";
+L["Size"]                                           = "Size";
+L["Adjust the font size of the zone text."]         = "Adjust the font size of the zone text.";
+L["Okay"]                        					= "Okay";
+
+L["Profile %s has been copied into current profile %s."] 
+	= "Profile %s has been copied into current profile %s.";
+
+L["You can manage character profiles here.\n\nBy default, each character has its own unique profile."]
+	= "You can manage character profiles here.\n\nBy default, each character has its own unique profile.";
+
+L["Reset currently active profile back to default settings."] 
+	= "Reset currently active profile back to default settings.";
+
+L["Are you sure you want to reset profile '%s' back to default settings?"] 
+	= "Are you sure you want to reset profile '%s' back to default settings?";
+
+L["Delete currently active profile (cannot delete the 'Default' profile)."] 
+	= "Delete currently active profile (cannot delete the 'Default' profile).";
+
+L["Copy all settings from one profile to the active profile."] 
+	= "Copy all settings from one profile to the active profile.";
+
+L["Are you sure you want to overide all profile settings in '%s' for those in profile '%s'?"] 
+	= "Are you sure you want to overide all profile settings in '%s' for those in profile '%s'?";
+
+L["By default, each new character will be automatically assigned a unique character profile instead of a single default profile.\n\nProfiles are automatically assigned only after installing the UI on a new character."] 
+	= "By default, each new character will be automatically assigned a unique character profile instead of a single default profile.\n\nProfiles are automatically assigned only after installing the UI on a new character.";
+
+L["Profile Per Character"] = "Profile Per Character";
+
+L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."] 
+	= "If enabled, new characters will be assigned a unique character profile instead of the Default profile.";
+
+L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] 
+	= "Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones.";
+
+L["Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."] 
+	= "Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons.";
+
+L["Thank you for installing %s!\n\nYou can fully customise the UI using the config menu:"]
+	= "Thank you for installing %s!\n\nYou can fully customise the UI using the config menu:";
+
+L["Anchor the Objective Tracker to the action bar container on the right side of the screen."]
+	= "Anchor the Objective Tracker to the action bar container on the right side of the screen.";
+
+L["You can repeat this step at any time (while out of combat) to hide it."]
+		= "You can repeat this step at any time (while out of combat) to hide it.";
+
+L["If true, the objective tracker will collapse when entering an instance."] 
+	= "If true, the objective tracker will collapse when entering an instance.";
+
+L["If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit."]
+	= "If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit.";
+
+L["Also enable the %s"]                                               = "Also enable the %s";
+L["Current"]                                                          = "Current";
+L["Equipment Set"]                                                    = "Equipment Set";
+L["Installer"]                                                        = "Installer";
+L["Profiles"]                                                         = "Profiles";
+L["AFK Display"]                                                      = "AFK Display";
+L["Movable Frames"]                                                   = "Movable Frames";
+L["Objective Tracker"]                                                = "Objective Tracker";
+L["Side Action Bar"]                                                  = "Side Action Bar";
+L["(type '/mui' to list all slash commands)"] 						  = "(type '/mui' to list all slash commands)";
+L["Version"]                                                          = "Version";
+L["Main Container"]                                                   = "Main Container";
+L["Resource Bars"]                                                    = "Resource Bars";
+L["Mini Map"]                                                         = "Mini Map";
+L["Movable Blizzard Frames"]                                          = "Movable Blizzard Frames";
+L["Allows you to move Blizzard Frames outside of combat only."]       = "Allows you to move Blizzard Frames outside of combat only.";
+L["Reset Blizzard frames back to their original position."]           = "Reset Blizzard frames back to their original position.";
+L["Reset Blizzard Frame Positions"]                                   = "Reset Blizzard Frame Positions";
+L["Enable/disable the AFK Display"] 								  = "Enable/disable the AFK Display";
+L["Show AFK Display"]                                                 = "Show AFK Display";
+L["Adjust the width of the main container."]                          = "Adjust the width of the main container.";
+L["Adjust the height of the unit frame background panels."]           = "Adjust the height of the unit frame background panels.";
+L["Unit Panel Height"]                                                = "Unit Panel Height";
+L["Main Container Width:"]                                            = "Main Container Width:";
+L["Enable or disable the background panel"]                           = "Enable or disable the background panel";
+L["Modifier key/s used to show Expand/Retract button:"] 			  = "Modifier key/s used to show Expand/Retract button:";
+L["Side Action Bars"]                                                 = "Side Action Bars";
+L["Minimum value is"]                                                 = "Minimum value is";
+L["Maximum value is"]                                                 = "Maximum value is";
+L["Enable Changes"]                                                   = "Enable Changes";
+L["Collapse in Instance"]                                             = "Collapse in Instance";
+L["CREDITS"]                                                          = "CREDITS";
+L["Buffs"]                                                            = "Buffs";
+L["Debuffs"]                                                          = "Debuffs";
+L["Layout Type"]                                                      = "Layout Type";
+L["Save Position"]                                                    = "Save Position";
+L["Show Pulse Effect"]                                                = "Show Pulse Effect";
+L["Icon Options"]                                                     = "Icon Options";
+L["Icon options are disabled when using status bars."]                = "Icon options are disabled when using status bars.";
+L["Icon Size"]                                                        = "Icon Size";
+L["Column Spacing"]                                                   = "Column Spacing";
+L["Row Spacing"]                                                      = "Row Spacing";
+L["Icons per Row"]                                                    = "Icons per Row";
+L["Growth Direction"]                                                 = "Growth Direction";
+L["Status Bar Options"]                                               = "Status Bar Options";
+L["Status bar options are disabled when using icons."]                = "Status bar options are disabled when using icons.";
+L["Icon Gap"]                                                         = "Icon Gap";
+L["Text"]                                                             = "Text";
+L["Time Remaining"]                                                   = "Time Remaining";
+L["Count"]                                                            = "Count";
+L["Aura Name"]                                                        = "Aura Name";
+L["Border Type"]                                                      = "Border Type";
+L["Basic %s"]                                                         = "Basic %s";
+L["Weapon Enchants"]                                                  = "Weapon Enchants";
+L["Magic Debuff"]                                                     = "Magic Debuff";
+L["Disease Debuff"]                                                   = "Disease Debuff";
+L["Poison Debuff"]                                                    = "Poison Debuff";
+L["Curse Debuff"]                                                     = "Curse Debuff";
+L["Bar Background"]                                                   = "Bar Background";
+L["Bar Border"]                                                       = "Bar Border";
+L["Icons"]                                                            = "Icons";
+L["Status Bars"]                                                      = "Status Bars";
+L["Bottom Action Bars"]                                               = "Bottom Action Bars";
+L["Can Steal or Purge"]                                               = "Can Steal or Purge";
+L["If an aura can be stolen or purged, show a different color."]      = "If an aura can be stolen or purged, show a different color.";
+L["Show Borders"]                                                     = "Show Borders";
+L["Enter an aura name to add to the whitelist:"]                      = "Enter an aura name to add to the whitelist:";
+L["Enter an aura name to add to the blacklist:"]                      = "Enter an aura name to add to the blacklist:";
+L["Automatic"]                                                        = "Automatic";
+L["Inventory"]                                                        = "Inventory";
+L["Changes to these settings will take effect after 0-3 seconds."]    = "Changes to these settings will take effect after 0-3 seconds.";
+L["Adjust the height of the datatext bar."]                           = "Adjust the height of the datatext bar.";
+L["Justify Text"]                                                     = "Justify Text";
+L["Set the spacing between the status bar and the background."]       = "Set the spacing between the status bar and the background.";
+L["Anchor Chat Icons"]                                                = "Anchor Chat Icons";
+L["Select which chat frame the chat icons should be anchored to."]    = "Select which chat frame the chat icons should be anchored to.";
+L["The height of the edit box."]                                      = "The height of the edit box.";
+L["Set the vertical positioning of the edit box."]                    = "Set the vertical positioning of the edit box.";
+L["Show Player Status Icon"]                                          = "Show Player Status Icon";
+L["Show Emotes Icon"]                                                 = "Show Emotes Icon";
+L["Show Copy Chat Icon"]                                              = "Show Copy Chat Icon";
+L["This is the background bar that goes behind the tabs."]            = "This is the background bar that goes behind the tabs.";
+L["Show Tab Bar"]                                                     = "Show Tab Bar";
+L["Tab Bar"]                                                          = "Tab Bar";
+L["Window"]                                                           = "Window";
+L["Layout enabled!"]                                                  = "Layout enabled!";
+L["Show Chat Menu"]                                                   = "Show Chat Menu";
+L["Azerite"] 														  = "Azerite";

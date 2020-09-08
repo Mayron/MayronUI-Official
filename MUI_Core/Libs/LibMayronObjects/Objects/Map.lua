@@ -1,6 +1,10 @@
 -- luacheck: ignore self 143 631
-local Lib = _G.LibStub:GetLibrary("LibMayronObjects");
+local Lib = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
+
+if (Lib:Import("Framework.System.Collections.Map", true)) then return end
 local Collections = Lib:Import("Framework.System.Collections");
+
+---@class Map : Object
 local Map = Collections:CreateClass("Map");
 local List = Collections:Get("List");
 
