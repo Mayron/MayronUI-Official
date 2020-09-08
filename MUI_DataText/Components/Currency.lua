@@ -72,7 +72,7 @@ function Currency:__Construct(data, settings, dataTextModule)
 
     local calendarDate = _G.C_Calendar.GetDate();
     local month = calendarDate["month"];
-    local day = calendarDate["monthDay"];
+    local day = calendarDate["day"];
 
     calendarDate = string.format("%d-%d", day, month);
 
