@@ -10,6 +10,7 @@ local _G = _G;
 
 ---@class ChatFrame;
 local C_ChatFrame = namespace.C_ChatFrame;
+local C_BattleNet = _G.C_BattleNet;
 
 local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string, table, pairs =
 	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string, _G.table, _G.pairs;
@@ -148,8 +149,8 @@ Engine:DefineReturns("Frame");
 function C_ChatFrame:CreateFrame(data)
 	local muiChatFrame = _G.CreateFrame("Frame", "MUI_ChatFrame_" .. data.anchorName, _G.UIParent);
 
-    muiChatFrame:SetFrameStrata("LOW");
-    muiChatFrame:SetFrameLevel(1);
+  muiChatFrame:SetFrameStrata("LOW");
+  muiChatFrame:SetFrameLevel(1);
 	muiChatFrame:SetSize(358, 310);
 	muiChatFrame:SetPoint(data.anchorName, 2, -2);
 
@@ -372,13 +373,13 @@ do
 			for i = 1, 200 do
 				local friendInfo = C_BattleNet.GetAccountInfoByID(i);
 
-				if(friendInfo ~= nil) then
+				if (friendInfo ~= nil) then
 					if (i > 50 and not friendInfo.accountName) then
 						return "";
 					end
 
 					if (accountName == friendInfo.accountName) then
-						return battleTag;
+						return friendInfo.battleTag;
 					end
 				end
 			end
@@ -406,7 +407,7 @@ do
 			editBox:SetText(fullText);
 		end
 
-		local function CreateChatTextFrame()
+		local function CreateCopyChatTextAreaFrame()
 			local frame = CreateFrame("Frame", nil, _G.UIParent);
 			frame:SetSize(600, 300);
 			frame:SetPoint("CENTER");
@@ -440,6 +441,7 @@ do
 				RefreshChatText(editBox);
 			end);
 
+      -- TODO: This is missing a border
 			local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, frame);
 			local dropdownContainer = dropdown:GetFrame();
 			dropdownContainer:SetSize(150, 20);
@@ -490,7 +492,7 @@ do
 
 			copyChatButton:SetScript("OnClick", function(self)
 				if (not self.chatTextFrame) then
-					self.chatTextFrame = CreateChatTextFrame();
+					self.chatTextFrame = CreateCopyChatTextAreaFrame();
 				end
 
 				-- get chat frame text:

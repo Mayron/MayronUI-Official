@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 90001
 ## Title: |cff00ccffMUI|r Chat
 ## Dependencies: MUI_Core
 ## OptionalDeps: MUI_Config

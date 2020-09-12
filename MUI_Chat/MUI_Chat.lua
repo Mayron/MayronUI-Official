@@ -75,15 +75,15 @@ db:AddToDefaults("profile.chat", {
 		copyChat        = true;
 		emotes          = true;
 		playerStatus    = true;
-	};
-    editBox = {
-        yOffset = -8;
-        height = 27;
+  };
+  editBox = {
+    yOffset = -8;
+    height = 27;
 		border = "Skinner";
 		position = "BOTTOM";
-        inset = 0;
-        borderSize = 1;
-        backdropColor = {
+    inset = 0;
+    borderSize = 1;
+    backdropColor = {
 			r = 0;
 			g = 0;
 			b = 0;
@@ -93,16 +93,19 @@ db:AddToDefaults("profile.chat", {
 
 	__templateChatFrame = {
 		buttons = {
-			{   L["Character"];
+			{
+        L["Character"];
 				L["Spell Book"];
 				L["Talents"];
 			};
-			{   key = "C"; -- CONTROL
+			{
+        key = "C"; -- CONTROL
 				L["Friends"];
 				L["Guild"];
 				L["Quest Log"];
 			};
-			{   key = "S"; -- SHIFT
+			{
+        key = "S"; -- SHIFT
 				L["Achievements"];
 				L["Collections Journal"];
 				L["Encounter Journal"];
@@ -231,11 +234,11 @@ function C_ChatModule:OnInitialize(data)
 			end;
 
 			border = function(value)
-				data.editBoxBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", value);
+        data.editBoxBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", value);
 				ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
 
 				local color = data.settings.editBox.backdropColor;
-				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
+        ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
 			end;
 
 			inset = function(value)
@@ -316,10 +319,10 @@ function C_ChatModule:OnEnable(data)
 	for chatFrameID = 1, NUM_CHAT_WINDOWS do
 		local chatFrame = self:SetUpBlizzardChatFrame(chatFrameID);
 
-        if (changeGameFont) then
-            local _, fontSize, outline = _G.FCF_GetChatWindowInfo(chatFrame:GetID());
-            chatFrame:SetFont(muiFont, fontSize, outline);
-        end
+    if (changeGameFont) then
+        local _, fontSize, outline = _G.FCF_GetChatWindowInfo(chatFrame:GetID());
+        chatFrame:SetFont(muiFont, fontSize, outline);
+    end
 	end
 end
 
@@ -471,7 +474,7 @@ hooksecurefunc("FCF_DockUpdate", RepositionChatTab);
 hooksecurefunc("FCFDockScrollFrame_JumpToTab", RepositionChatTab);
 hooksecurefunc("ChatEdit_UpdateHeader", function()
 	local chatType = ChatFrame1EditBox:GetAttribute("chatType");
-	local r, g, b = _G.GetMessageTypeColor(chatType);
+  local r, g, b = _G.GetMessageTypeColor(chatType);
 	ChatFrame1EditBox:SetBackdropBorderColor(r, g, b, 1);
 end);
 
@@ -486,9 +489,9 @@ end);
 
 -- must be before chat is initialized!
 for i = 1, NUM_CHAT_WINDOWS do
-	_G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
-	local editBox = _G["ChatFrame"..i.."EditBox"]
-	Mixin(editBox, BackdropTemplateMixin);
-	editBox:OnBackdropLoaded();
-	editBox:SetScript("OnSizeChanged", editBox.OnBackdropSizeChanged);
+  _G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
+  local editBox = _G["ChatFrame"..i.."EditBox"];
+  Mixin(editBox, BackdropTemplateMixin);
+  editBox:OnBackdropLoaded();
+  editBox:SetScript("OnSizeChanged", editBox.OnBackdropSizeChanged);
 end

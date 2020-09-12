@@ -1,9 +1,9 @@
-## Interface: 80300
+## Interface: 90001
 ## Title: |cff00ccffMUI|r Core
 ## SavedVariables: MayronUIdb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
-## Version: 6.0.11
+## Version: 6.0.12
 ## X-InterfaceName: MayronUI Gen6
 
 ## Links:

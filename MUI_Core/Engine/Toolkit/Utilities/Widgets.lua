@@ -342,7 +342,7 @@ function tk:SetGameFont(font)
         "SystemFont_Shadow_Large_Outline", "SystemFont_Shadow_Med2", "SystemFont_Shadow_Large",
         "SystemFont_Shadow_Large2", "SystemFont_Shadow_Huge1", "SystemFont_Huge2",
         "SystemFont_Shadow_Huge2", "SystemFont_Shadow_Huge3", "SystemFont_World",
-        "SystemFont_World_ThickOutline", "SystemFont_Shadow_Outline_Huge2", "SystemFont_Med1",
+        "SystemFont_World_ThickOutline", "SystemFont_Med1",
         "SystemFont_WTF2", "SystemFont_Outline_WTF2", "GameTooltipHeader", "System_IME",
 
         -- other:
@@ -360,8 +360,12 @@ function tk:SetGameFont(font)
     _G.SystemFont_NamePlate:SetFont(font, 9);
 
     for _, f in ipairs(fonts) do
-        local _, size, outline = _G[f]:GetFont();
-        _G[f]:SetFont(font, size, outline);
+        local fontObject = _G[f];
+
+        if (fontObject) then
+          local _, size, outline = fontObject:GetFont();
+          fontObject:SetFont(font, size, outline);
+        end
     end
 end
 

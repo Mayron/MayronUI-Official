@@ -157,15 +157,6 @@ function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
         value = widgetConfigTable.GetValue(widgetConfigTable, value);
     end
 
-    if (value == nil) then
-        if (widgetConfigTable.GetValue) then
-            obj:Error("nil config value retrieved from database path '%s' (using GetValue on '%s')",
-                widgetConfigTable.dbPath, widgetConfigTable.name);
-        else
-            obj:Error("nil config value retrieved from database path '%s'", widgetConfigTable.dbPath);
-        end
-    end
-
     return value;
 end
 

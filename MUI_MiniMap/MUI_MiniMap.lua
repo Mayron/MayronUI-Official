@@ -409,6 +409,4 @@ function C_MiniMapModule:OnInitialized(data)
 	_G.GarrisonLandingPageMinimapButton:SetAlpha(0);
 	_G.GarrisonLandingPageMinimapButton:ClearAllPoints();
 	_G.GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", UIParent, "TOPRIGHT", 5, 5);
-	_G.GarrisonLandingPageTutorialBox:Hide()
-	_G.GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
 end
