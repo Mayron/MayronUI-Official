@@ -22,14 +22,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Luacheck
-        run: |
-          sudo apt-get install luarocks
-          luarocks install --local argparse
-          luacheck install --local luafilesystem
-          luarocks install --local luacheck
-          /home/runner/.luarocks/bin/luacheck . --no-color -q
-
       - name: Create Classic Package
         run: curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh | bash -s -- -g 1.13.5 -m .pkgmeta-classic
         env:
