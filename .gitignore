@@ -5,6 +5,7 @@
 !/MUI_*
 !/LibMayronDB
 !/LibMayronObjects
+!.pkg*
 
 !.github
 !.gitignore
