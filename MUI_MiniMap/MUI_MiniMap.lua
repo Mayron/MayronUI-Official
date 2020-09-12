@@ -191,6 +191,10 @@ function C_MiniMapModule:OnInitialized(data)
 	Minimap:SetClampedToScreen(true);
 	Minimap:SetClampRectInsets(-3, 3, 3, -3);
 
+	Mixin(Minimap, BackdropTemplateMixin);
+	Minimap:OnBackdropLoaded();
+	Minimap:SetScript("OnSizeChanged", Minimap.OnBackdropSizeChanged);
+
 	Minimap:SetBackdrop({
 		bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
 		edgeFile = tk:GetAssetFilePath("Borders\\Solid.tga"),

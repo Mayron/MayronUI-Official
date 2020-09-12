@@ -88,7 +88,7 @@ do
     function Lib:CreateButton(style, parent, text, button, tooltip)
         local backgroundTexture = style:GetTexture("ButtonTexture");
 
-        button = button or _G.CreateFrame("Button", nil, parent);
+        button = button or _G.CreateFrame("Button", nil, parent, BackdropTemplateMixin and "BackdropTemplate");
         button:SetSize(150, 30);
         button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
 

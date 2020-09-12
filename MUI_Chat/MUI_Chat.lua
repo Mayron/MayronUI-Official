@@ -486,5 +486,9 @@ end);
 
 -- must be before chat is initialized!
 for i = 1, NUM_CHAT_WINDOWS do
-    _G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
+	_G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
+	local editBox = _G["ChatFrame"..i.."EditBox"]
+	Mixin(editBox, BackdropTemplateMixin);
+	editBox:OnBackdropLoaded();
+	editBox:SetScript("OnSizeChanged", editBox.OnBackdropSizeChanged);
 end

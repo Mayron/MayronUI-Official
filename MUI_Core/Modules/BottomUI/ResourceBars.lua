@@ -290,7 +290,7 @@ end
 
 function C_BaseResourceBar:CreateBar(data)
     local texture = tk.Constants.LSM:Fetch("statusbar", "MUI_StatusBar");
-    local frame = CreateFrame("Frame", "MUI_"..data.barName.."Bar", data.barsContainer);
+    local frame = CreateFrame("Frame", "MUI_"..data.barName.."Bar", data.barsContainer, BackdropTemplateMixin and "BackdropTemplate");
 
     frame:SetBackdrop(tk.Constants.backdrop);
     frame:SetBackdropBorderColor(0, 0, 0);

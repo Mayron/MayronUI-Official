@@ -281,7 +281,7 @@ end
 
 do
     local function CreateBarFrame(unitID, settings, globalName)
-        local bar = _G.CreateFrame("Frame", globalName, _G.UIParent);
+        local bar = _G.CreateFrame("Frame", globalName, _G.UIParent, BackdropTemplateMixin and "BackdropTemplate");
         bar:SetAlpha(0);
 
         bar.statusbar = _G.CreateFrame("StatusBar", nil, bar);

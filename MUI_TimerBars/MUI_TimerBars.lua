@@ -730,7 +730,7 @@ do
     ---@return Frame @Returns the created field (a Frame widget)
     function C_TimerField:CreateField(data, name)
         local globalName = tk.Strings:Concat("MUI_", name, "TimerField");
-        local frame = CreateFrame("Frame", globalName);
+        local frame = CreateFrame("Frame", globalName, nil, BackdropTemplateMixin and "BackdropTemplate");
 
         local fieldHeight = (data.settings.bar.maxBars * (data.settings.bar.height + data.settings.bar.spacing)) - data.settings.bar.spacing;
         frame:SetSize(data.settings.bar.width, fieldHeight);
@@ -947,7 +947,7 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
     data.settings = settings;
     data.sharedSettings = sharedSettings;
 
-    data.frame = CreateFrame("Button");
+    data.frame = CreateFrame("Button", nil, nil, BackdropTemplateMixin and "BackdropTemplate");
     data.frame:SetSize(settings.bar.width, settings.bar.height);
     data.frame:RegisterForClicks("RightButtonUp");
 
@@ -977,7 +977,7 @@ function C_TimerBar:SetIconShown(data, shown)
 
     if (shown) then
         if (not data.iconFrame) then
-            data.iconFrame = CreateFrame("Frame", nil, data.frame);
+            data.iconFrame = CreateFrame("Frame", nil, data.frame, BackdropTemplateMixin and "BackdropTemplate");
 
             data.icon = data.iconFrame:CreateTexture(nil, "ARTWORK");
             data.icon:SetTexCoord(0.1, 0.92, 0.08, 0.92);

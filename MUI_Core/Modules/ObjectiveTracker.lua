@@ -4,6 +4,7 @@
 local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local C_QuestLog = _G.C_QuestLog;
 
 ---@class ObjectiveTrackerModule : BaseModule
 local C_ObjectiveTracker = MayronUI:RegisterModule("ObjectiveTrackerModule", L["Objective Tracker"], true);
@@ -19,13 +20,13 @@ ObjectiveTracker_Expand, UIParent, hooksecurefunc, ipairs =
     _G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs;
 
 local function UpdateQuestDifficultyColors(block)
-    for questLogIndex = 1, _G.GetNumQuestLogEntries() do
-        local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
+    for questLogIndex = 1, C_QuestLog.GetNumQuestLogEntries() do
+        local questInfo = C_QuestLog.GetInfo(questLogIndex);
 
-        if (questID == block.id) then
+        if (questInfo.questID == block.id) then
             -- bonus quests do not have HeaderText
             if (block.HeaderText) then
-                local difficultyColor = _G.GetQuestDifficultyColor(level, isScaling);
+                local difficultyColor = _G.GetQuestDifficultyColor(questInfo.level, questInfo.isScaling);
                 block.HeaderText:SetTextColor(difficultyColor.r, difficultyColor.g, difficultyColor.b);
                 block.HeaderText.colorStyle = difficultyColor;
             end

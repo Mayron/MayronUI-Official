@@ -169,7 +169,10 @@ function Style:ApplyColor(_, colorName, alpha, ...)
         elseif (objectType == "Button") then
             element:GetNormalTexture():SetVertexColor(r, g, b, alpha);
             element:GetHighlightTexture():SetVertexColor(r, g, b, alpha);
-            element:SetBackdropBorderColor(r, g, b, 0.7);
+
+            if (element.SetBackdropBorderColor ~= nil) then 
+                element:SetBackdropBorderColor(r, g, b, 0.7); 
+            end
 
             if (element:GetDisabledTexture()) then
                 element:GetDisabledTexture():SetVertexColor(r * 0.3, g * 0.3, b * 0.3, 0.6);

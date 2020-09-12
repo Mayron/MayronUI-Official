@@ -56,6 +56,9 @@ function Lib:CreateDropDown(style, parent, direction)
 
     if (not DropDownMenu.Static.Menu) then
         DropDownMenu.Static.Menu = Lib:CreateScrollFrame(style, _G.UIParent, "MUI_DropDownMenu");
+        Mixin(DropDownMenu.Static.Menu, BackdropTemplateMixin);
+        DropDownMenu.Static.Menu:OnBackdropLoaded();
+        DropDownMenu.Static.Menu:SetScript("OnSizeChanged", DropDownMenu.Static.Menu.OnBackdropSizeChanged);
         DropDownMenu.Static.Menu:Hide();
         DropDownMenu.Static.Menu:SetBackdrop(style:GetBackdrop("DropDownMenu"));
         DropDownMenu.Static.Menu:SetBackdropBorderColor(style:GetColor("Widget"));
@@ -69,7 +72,7 @@ function Lib:CreateDropDown(style, parent, direction)
     dropDownContainer:SetSize(178, 28);
     dropDownContainer:SetScript("OnHide", DropDownContainer_OnHide);
 
-    local header = _G.CreateFrame("Frame", nil, dropDownContainer);
+    local header = _G.CreateFrame("Frame", nil, dropDownContainer, BackdropTemplateMixin and "BackdropTemplate");
     header:SetPoint("TOPLEFT", dropDownContainer);
 
     header:SetBackdrop(style:GetBackdrop("DropDownMenu"));

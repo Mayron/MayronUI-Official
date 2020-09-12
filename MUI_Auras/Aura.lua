@@ -74,7 +74,7 @@ function C_Aura:__Construct(data, parent, settings, auraID, filter)
     btn:SetScript("OnEnter", AuraButton_OnEnter);
     btn:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
 
-    btn.iconFrame = CreateFrame("Frame", nil, btn);
+    btn.iconFrame = CreateFrame("Frame", nil, btn, BackdropTemplateMixin and "BackdropTemplate");
     btn.iconTexture = btn.iconFrame:CreateTexture(nil, "ARTWORK");
     btn.iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
 
@@ -99,7 +99,7 @@ function C_Aura:SetUpStatusBar(data)
     btn.iconFrame:SetPoint("TOPLEFT");
     btn.iconFrame:SetPoint("BOTTOMLEFT");
 
-    btn.statusBarFrame = CreateFrame("Frame", nil, btn);
+    btn.statusBarFrame = CreateFrame("Frame", nil, btn, BackdropTemplateMixin and "BackdropTemplate");
     btn.statusBarFrame:SetPoint("TOPLEFT", btn.iconFrame, "TOPRIGHT", statusBars.iconGap, 0);
     btn.statusBarFrame:SetPoint("BOTTOMRIGHT");
 
