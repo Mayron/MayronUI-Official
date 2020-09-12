@@ -53,7 +53,7 @@ local function LoadTutorial(panel)
     frame.text:SetPoint("BOTTOMRIGHT", -20, 10);
 
     local tutorialMessage = L["Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."];
-    tutorialMessage:format(tk.Strings:SetTextColorByTheme("Control"));
+    tutorialMessage = tutorialMessage:format(tk.Strings:SetTextColorByTheme("Control"));
     frame.text:SetText(tutorialMessage);
 
     em:CreateEventHandler("MODIFIER_STATE_CHANGED", function(self)
