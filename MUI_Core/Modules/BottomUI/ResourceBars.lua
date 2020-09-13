@@ -13,13 +13,15 @@ local BAR_NAMES = {"reputation", "experience", "azerite", "artifact"};
 local Engine = obj:Import("MayronUI.Engine");
 
 local ResourceBarsPackage = obj:CreatePackage("ResourceBars", "MayronUI");
-
 local C_BaseResourceBar = ResourceBarsPackage:CreateClass("BaseResourceBar", "Framework.System.FrameWrapper");
 local C_ExperienceBar = ResourceBarsPackage:CreateClass("ExperienceBar", C_BaseResourceBar);
 local C_ReputationBar = ResourceBarsPackage:CreateClass("ReputationBar", C_BaseResourceBar);
-local C_AzeriteBar = ResourceBarsPackage:CreateClass("AzeriteBar", C_BaseResourceBar);
-local C_ArtifactBar = ResourceBarsPackage:CreateClass("ArtifactBar", C_BaseResourceBar);
+local C_AzeriteBar, C_ArtifactBar;
 
+if (tk:IsRetail()) then
+  C_AzeriteBar = ResourceBarsPackage:CreateClass("AzeriteBar", C_BaseResourceBar);
+  C_ArtifactBar = ResourceBarsPackage:CreateClass("ArtifactBar", C_BaseResourceBar);
+end
 -- Register and Import Modules -----------
 
 local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", L["Resource Bars"], true);
@@ -60,20 +62,6 @@ db:AddToDefaults("profile.resourceBars", {
 function C_ResourceBarsModule:OnInitialize(data, containerModule)
     data.containerModule = containerModule;
 
-    local options = {
-        onExecuteAll = {
-            first = {
-                "experienceBar.enabled";
-                "reputationBar.enabled";
-                "artifactBar.enabled";
-                "azeriteBar.enabled";
-            };
-            ignore = {
-                ".*"; -- ignore everything else
-            };
-        };
-    };
-
     local function UpdateResourceBar(_, keysList)
         local barName = keysList:PopFront();
         barName = barName:gsub("Bar", tk.Strings.Empty);
@@ -86,46 +74,65 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
         end
     end
 
-    self:RegisterUpdateFunctions(db.profile.resourceBars, {
-        experienceBar = {
-            enabled = function(value)
-                data.bars.experience:SetEnabled(value);
-            end;
-
-            height = UpdateResourceBar;
-            alwaysShowText = UpdateResourceBar;
-            fontSize = UpdateResourceBar;
+    local options = {
+      onExecuteAll = {
+        first = {
+          "experienceBar.enabled";
+          "reputationBar.enabled";
         };
-
-        reputationBar = {
-            enabled = function(value)
-                data.bars.reputation:SetEnabled(value);
-            end;
-
-            height = UpdateResourceBar;
-            alwaysShowText = UpdateResourceBar;
-            fontSize = UpdateResourceBar;
+        ignore = {
+            ".*"; -- ignore everything else
         };
+      };
+    };
 
-        artifactBar = {
-            enabled = function(value)
-                data.bars.artifact:SetEnabled(value);
-            end;
+    local updateFuncs = {
+      experienceBar = {
+        enabled = function(value)
+            data.bars.experience:SetEnabled(value);
+        end;
 
-            height = UpdateResourceBar;
-            alwaysShowText = UpdateResourceBar;
-            fontSize = UpdateResourceBar;
-        };
-        azeriteBar = {
-            enabled = function(value)
-                data.bars.azerite:SetEnabled(value);
-            end;
+        height = UpdateResourceBar;
+        alwaysShowText = UpdateResourceBar;
+        fontSize = UpdateResourceBar;
+      };
 
-            height = UpdateResourceBar;
-            alwaysShowText = UpdateResourceBar;
-            fontSize = UpdateResourceBar;
-        };
-    }, options);
+      reputationBar = {
+        enabled = function(value)
+            data.bars.reputation:SetEnabled(value);
+        end;
+
+        height = UpdateResourceBar;
+        alwaysShowText = UpdateResourceBar;
+        fontSize = UpdateResourceBar;
+      };
+    };
+
+    if (tk:IsRetail()) then
+      updateFuncs.artifactBar = {
+        enabled = function(value)
+            data.bars.artifact:SetEnabled(value);
+        end;
+
+        height = UpdateResourceBar;
+        alwaysShowText = UpdateResourceBar;
+        fontSize = UpdateResourceBar;
+      };
+      updateFuncs.azeriteBar = {
+        enabled = function(value)
+            data.bars.azerite:SetEnabled(value);
+        end;
+
+        height = UpdateResourceBar;
+        alwaysShowText = UpdateResourceBar;
+        fontSize = UpdateResourceBar;
+      };
+
+      table.insert(options.onExecuteAll.first, "artifactBar.enabled");
+      table.insert(options.onExecuteAll.first, "azeriteBar.enabled");
+    end
+
+    self:RegisterUpdateFunctions(db.profile.resourceBars, updateFuncs, options);
 
     if (data.settings.enabled) then
         self:SetEnabled(true);
@@ -141,42 +148,45 @@ function C_ResourceBarsModule:OnDisable(data)
 end
 
 function C_ResourceBarsModule:OnEnable(data)
-    if (data.barsContainer) then
-        data.barsContainer:Show();
-        data.containerModule:RepositionContent();
-        return;
-    end
+  if (data.barsContainer) then
+    data.barsContainer:Show();
+    data.containerModule:RepositionContent();
+    return;
+  end
 
-    data.barsContainer = CreateFrame("Frame", "MUI_ResourceBars", _G["MUI_BottomContainer"]);
-    data.barsContainer:SetFrameStrata("MEDIUM");
-    data.barsContainer:SetHeight(10);
+  data.barsContainer = CreateFrame("Frame", "MUI_ResourceBars", _G["MUI_BottomContainer"]);
+  data.barsContainer:SetFrameStrata("MEDIUM");
+  data.barsContainer:SetHeight(10);
 
-    data.bars = obj:PopTable();
-    data.bars.experience = C_ExperienceBar(self, data);
-    data.bars.reputation = C_ReputationBar(self, data);
+  data.bars = obj:PopTable();
+  data.bars.experience = C_ExperienceBar(self, data);
+  data.bars.reputation = C_ReputationBar(self, data);
+
+  if (tk:IsRetail()) then
     data.bars.artifact = C_ArtifactBar(self, data);
     data.bars.azerite = C_AzeriteBar(self, data);
+  end
 
-    MayronUI:Hook("DataTextModule", "OnInitialize", function(dataTextModule, dataTextModuleData)
-        dataTextModule:RegisterUpdateFunctions(db.profile.datatext, {
-            blockInCombat = function(value)
-                self:SetBlockerEnabled(value, dataTextModuleData.bar);
-            end;
-        });
-    end);
+  MayronUI:Hook("DataTextModule", "OnInitialize", function(dataTextModule, dataTextModuleData)
+    dataTextModule:RegisterUpdateFunctions(db.profile.datatext, {
+      blockInCombat = function(value)
+        self:SetBlockerEnabled(value, dataTextModuleData.bar);
+      end;
+    });
+  end);
 
-    em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "ResourceBars_HeightUpdate", function()
-        if (data.pendingHeightUpdate) then
-            data.barsContainer:SetHeight(data.pendingHeightUpdate);
-            data.pendingHeightUpdate = nil;
+  em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "ResourceBars_HeightUpdate", function()
+    if (data.pendingHeightUpdate) then
+      data.barsContainer:SetHeight(data.pendingHeightUpdate);
+      data.pendingHeightUpdate = nil;
 
-            local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
+      local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
 
-            if (actionBarPanelModule and actionBarPanelModule:IsEnabled()) then
-                actionBarPanelModule:SetUpAllBartenderBars();
-            end
-        end
-    end);
+      if (actionBarPanelModule and actionBarPanelModule:IsEnabled()) then
+          actionBarPanelModule:SetUpAllBartenderBars();
+      end
+    end
+  end);
 end
 
 function C_ResourceBarsModule:UpdateContainerHeight(data)

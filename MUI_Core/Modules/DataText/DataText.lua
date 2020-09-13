@@ -6,21 +6,6 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local ipairs, pairs, table, GameTooltip, PlaySound = _G.ipairs, _G.pairs, _G.table, _G.GameTooltip, _G.PlaySound;
 local CreateFrame, UIFrameFadeIn = _G.CreateFrame, _G.UIFrameFadeIn;
 
-namespace.dataTextLabels = {
-    -- svName = Label
-    ["combatTimer"]       = "Combat Timer",
-    ["currency"]          = "Currency",
-    ["durability"]        = "Durability",
-    ["friends"]           = "Friends",
-    ["guild"]             = "Guild",
-    ["inventory"]         = "Inventory",
-    ["memory"]            = "Memory",
-    ["performance"]       = "Performance",
-    ["specialization"]    = "Specialization",
-    ["none"]              = "None";
-    ["disabled"]          = "Disabled"
-};
-
 -- Objects -----------------------------
 
 local Engine = obj:Import("MayronUI.Engine");
@@ -36,31 +21,50 @@ namespace.C_DataTextModule = C_DataTextModule;
 namespace.ComponentsPackage = ComponentsPackage;
 
 -- Load Database Defaults --------------
+namespace.dataTextLabels = {
+    -- svName = Label
+    ["combatTimer"]       = "Combat Timer",
+    ["currency"]          = "Currency",
+    ["durability"]        = "Durability",
+    ["friends"]           = "Friends",
+    ["guild"]             = "Guild",
+    ["inventory"]         = "Inventory",
+    ["memory"]            = "Memory",
+    ["performance"]       = "Performance",
+    ["none"]              = "None";
+    ["disabled"]          = "Disabled"
+};
 
-db:AddToDefaults("profile.datatext", {
-    enabled       = true;
-    frameStrata   = "MEDIUM";
-    frameLevel    = 20,
-    height        = 24; -- height of data bar (width is the size of bottomUI container!)
-    spacing       = 1;
-    fontSize      = 11;
-    blockInCombat = true;
-	popup = {
-		hideInCombat = true;
-		maxHeight    = 250;
-		width        = 200;
-		itemHeight   = 26; -- the height of each list item in the popup menu
-    };
-    displayOrders = {
-        "durability";
-        "friends";
-        "guild";
-        "inventory";
-        "currency";
-        "performance";
-        "specialization";
-    };
-});
+local defaults = {
+  enabled       = true;
+  frameStrata   = "MEDIUM";
+  frameLevel    = 20,
+  height        = 24; -- height of data bar (width is the size of bottomUI container!)
+  spacing       = 1;
+  fontSize      = 11;
+  blockInCombat = true;
+  popup = {
+    hideInCombat = true;
+    maxHeight    = 250;
+    width        = 200;
+    itemHeight   = 26; -- the height of each list item in the popup menu
+  };
+  displayOrders = {
+    "durability";
+    "friends";
+    "guild";
+    "inventory";
+    "currency";
+    "performance";
+  };
+};
+
+if (tk:IsRetail()) then
+  namespace.dataTextLabels["specialization"] = "Specialization";
+  table.insert(defaults.displayOrders, "specialization");
+end
+
+db:AddToDefaults("profile.datatext", defaults);
 
 -- IDataTextComponent ------------------------------
 
@@ -203,19 +207,19 @@ function C_DataTextModule:OnInitialize(data)
 end
 
 function C_DataTextModule:OnInitialized(data)
-    if (data.settings.enabled) then
-        self:SetEnabled(true);
-    end
+  if (data.settings.enabled) then
+      self:SetEnabled(true);
+  end
 end
 
 function C_DataTextModule:OnDisable(data)
-    if (data.bar) then
-        data.bar:Hide();
-        data.popup:Hide();
+  if (data.bar) then
+    data.bar:Hide();
+    data.popup:Hide();
 
-        local containerModule = MayronUI:ImportModule("BottomUI_Container");
-        containerModule:RepositionContent();
-    end
+    local containerModule = MayronUI:ImportModule("BottomUI_Container");
+    containerModule:RepositionContent();
+  end
 end
 
 function C_DataTextModule:OnEnable(data)

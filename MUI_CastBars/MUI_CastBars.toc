@@ -1,7 +1,0 @@
-## Interface: 80300
-## Title: |cff00ccffMUI|r Cast Bars
-## Dependencies: MUI_Core
-## Notes: Replaces the Blizzard cast bars with one tailored for MayronUI
-
-MUI_CastBars.lua
-MUI_CastBars.config.lua

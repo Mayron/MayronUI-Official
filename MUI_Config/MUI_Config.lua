@@ -588,8 +588,12 @@ do
         local module; ---@type BaseModule
 
         if (menuConfigTable.module) then
-            module = MayronUI:ImportModule(menuConfigTable.module);
+            module = MayronUI:ImportModule(menuConfigTable.module, true);
         end
+
+        -- Some modules might be unavailable for different wow clients.
+        -- i.e. ObjectiveTrackerModule is not available in classic.
+        if (not module) then return end
 
         local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
         menuButton.configTable = menuConfigTable;

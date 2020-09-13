@@ -9,4 +9,4 @@ MUI_Config.config.lua
 Widgets.lua
 ProfileManager.lua
 LayoutSwitcher.lua
-Objects\ListFrame.lua
+ListFrame.lua

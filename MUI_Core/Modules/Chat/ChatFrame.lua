@@ -1,12 +1,13 @@
 -- luacheck: ignore MayronUI self 143
--- @Description: Handles the MUI Chat Frame artwork that wraps around the blizzard Chat Frames
+---@type MayronUI
+local MayronUI = _G.MayronUI;
 
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local Engine = namespace.Engine;
 local tk, _, em, gui, obj, L = MayronUI:GetCoreComponents();
-local MEDIA = "Interface\\AddOns\\MUI_Chat\\media\\";
-local _G = _G;
+
+local MEDIA = tk:GetAssetFilePath("Textures\\Chat\\");
 
 ---@class ChatFrame;
 local C_ChatFrame = namespace.C_ChatFrame;
@@ -254,17 +255,20 @@ function C_ChatFrame:Reposition(data)
 end
 
 function C_ChatFrame.Static:SetUpSideBarIcons(chatModuleSettings, muiChatFrame)
-	_G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
-	_G.ChatFrameToggleVoiceDeafenButton:DisableDrawLayer("ARTWORK");
-	_G.ChatFrameToggleVoiceMuteButton:DisableDrawLayer("ARTWORK");
+  _G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
 
-	local dummyFunc = function() return true; end
+  if (tk:IsRetail()) then
+    _G.ChatFrameToggleVoiceDeafenButton:DisableDrawLayer("ARTWORK");
+    _G.ChatFrameToggleVoiceMuteButton:DisableDrawLayer("ARTWORK");
 
-	_G.ChatFrameToggleVoiceDeafenButton:SetVisibilityQueryFunction(dummyFunc);
-	_G.ChatFrameToggleVoiceDeafenButton:UpdateVisibleState();
+    local dummyFunc = function() return true; end
 
-	_G.ChatFrameToggleVoiceMuteButton:SetVisibilityQueryFunction(dummyFunc);
-	_G.ChatFrameToggleVoiceMuteButton:UpdateVisibleState();
+    _G.ChatFrameToggleVoiceDeafenButton:SetVisibilityQueryFunction(dummyFunc);
+    _G.ChatFrameToggleVoiceDeafenButton:UpdateVisibleState();
+
+    _G.ChatFrameToggleVoiceMuteButton:SetVisibilityQueryFunction(dummyFunc);
+    _G.ChatFrameToggleVoiceMuteButton:UpdateVisibleState();
+  end
 
 	self:PositionSideBarIcons(chatModuleSettings, muiChatFrame);
 end
@@ -318,11 +322,16 @@ do
 	end
 
 	function C_ChatFrame.Static:PositionSideBarIcons(chatModuleSettings, muiChatFrame)
-		_G.ChatFrameChannelButton:ClearAllPoints();
-		_G.ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
-		_G.ChatFrameChannelButton:SetParent(muiChatFrame);
-		_G.ChatFrameToggleVoiceDeafenButton:SetParent(muiChatFrame);
-		_G.ChatFrameToggleVoiceMuteButton:SetParent(muiChatFrame);
+    _G.ChatFrameChannelButton:ClearAllPoints();
+    _G.ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
+    _G.ChatFrameChannelButton:SetParent(muiChatFrame);
+
+    if (tk:IsRetail()) then
+      _G.ChatFrameToggleVoiceDeafenButton:SetParent(muiChatFrame);
+      _G.ChatFrameToggleVoiceMuteButton:SetParent(muiChatFrame);
+    else
+      tk:KillElement(_G.ChatFrameMenuButton);
+    end
 
 		local anchorIcon;
 

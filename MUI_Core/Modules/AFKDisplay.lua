@@ -10,265 +10,263 @@ local UnitSex, UnitRace, SetCursor, GetSpecialization = _G.UnitSex, _G.UnitRace,
 local UnitPVPName, GetRealmName, UnitLevel, UnitClass = _G.UnitPVPName, _G.GetRealmName, _G.UnitLevel, _G.UnitClass;
 
 -- Register Module ------------
-
 local C_AFKDisplayModule = MayronUI:RegisterModule("AFKDisplay", L["AFK Display"]);
 
 -- Add Database Defaults ------
-
 db:AddToDefaults("global.AFKDisplay", {
-    enabled       = true;
-    rotateCamera  = true;
-    playerModel   = true;
-    modelScale    = 1;
+  enabled       = true;
+  rotateCamera  = true;
+  playerModel   = true;
+  modelScale    = 1;
 });
 
 -- Private functions ---------
 
 function Private:ResetDataText()
-    self.time = 0;
-    local dataFrame = self.display.dataFrame;
+  self.time = 0;
+  local dataFrame = self.display.dataFrame;
 
-    local leftText = string.format(dataFrame.left.label, dataFrame.left.num);
-    dataFrame.left.num = 0;
-    dataFrame.left:SetText(leftText);
+  local leftText = string.format(dataFrame.left.label, dataFrame.left.num);
+  dataFrame.left.num = 0;
+  dataFrame.left:SetText(leftText);
 
-    local rightText = string.format(dataFrame.right.label, dataFrame.right.num);
-    dataFrame.right.num = 0;
-    dataFrame.right:SetText(rightText);
+  local rightText = string.format(dataFrame.right.label, dataFrame.right.num);
+  dataFrame.right.num = 0;
+  dataFrame.right:SetText(rightText);
 end
 
 -- prevents cutting of models
 Private.Races = { -- lower values = lower model
-    Human = {
-        Male = {
-            value = -0.4,
-            hoverValue = -0.3,
-        },
-        Female = {
-            value = -0.4,
-            hoverValue = -0.4,
-        }
+  Human = {
+    Male = {
+      value = -0.4,
+      hoverValue = -0.3,
     },
-    KulTiran = {
-        Male = {
-            value = -0.4,
-            hoverValue = -0.3,
-        },
-        Female = {
-            value = -0.4,
-            hoverValue = -0.4,
-        }
+    Female = {
+      value = -0.4,
+      hoverValue = -0.4,
+    }
+  },
+  KulTiran = {
+    Male = {
+      value = -0.4,
+      hoverValue = -0.3,
     },
-    Dwarf = {
-        Male = {
-            value = -0.3,
-            hoverValue = -0.2,
-        },
-        Female = {
-            value = -0.4,
-            hoverValue = -0.3,
-        }
+    Female = {
+      value = -0.4,
+      hoverValue = -0.4,
+  }
+  },
+  Dwarf = {
+    Male = {
+      value = -0.3,
+      hoverValue = -0.2,
     },
-    DarkIronDwarf = {
-        Male = {
-            value = -0.3,
-            hoverValue = -0.2,
-        },
-        Female = {
-            value = -0.4,
-            hoverValue = -0.3,
-        }
+    Female = {
+      value = -0.4,
+      hoverValue = -0.3,
+    }
+  },
+  DarkIronDwarf = {
+    Male = {
+      value = -0.3,
+      hoverValue = -0.2,
     },
-    NightElf = {
-        Male = {
-            value = -0.5,
-            hoverValue = -0.6,
-        },
-        Female = {
-            value = -0.4,
-            hoverValue = -0.6,
-        }
+    Female = {
+      value = -0.4,
+      hoverValue = -0.3,
+    }
+  },
+  NightElf = {
+    Male = {
+      value = -0.5,
+      hoverValue = -0.6,
     },
-    VoidElf = {
-        Male = {
-            value = -0.5,
-            hoverValue = -0.6,
-        },
-        Female = {
-            value = -0.4,
-            hoverValue = -0.6,
-        }
+    Female = {
+      value = -0.4,
+      hoverValue = -0.6,
+    }
+  },
+  VoidElf = {
+    Male = {
+      value = -0.5,
+      hoverValue = -0.6,
     },
-    Gnome = {
-        Male = {
-            value = -0.3,
-            hoverValue = -0.3,
-        },
-        Female = {
-            value = -0.3,
-            hoverValue = -0.3,
-        }
+    Female = {
+      value = -0.4,
+      hoverValue = -0.6,
+    }
+  },
+  Gnome = {
+    Male = {
+      value = -0.3,
+      hoverValue = -0.3,
     },
-    Draenei = {
-        Male = {
-            value = -0.4,
-            hoverValue = -0.7,
-        },
-        Female = {
-            value = -0.5,
-            hoverValue = -0.7,
-        }
+    Female = {
+      value = -0.3,
+      hoverValue = -0.3,
+    }
+  },
+  Draenei = {
+    Male = {
+      value = -0.4,
+      hoverValue = -0.7,
     },
-    LightforgedDraenei = {
-        Male = {
-            value = -0.4,
-            hoverValue = -0.7,
-        },
-        Female = {
-            value = -0.5,
-            hoverValue = -0.7,
-        }
+    Female = {
+      value = -0.5,
+      hoverValue = -0.7,
+    }
+  },
+  LightforgedDraenei = {
+    Male = {
+      value = -0.4,
+      hoverValue = -0.7,
     },
-    Worgen = {
-        Male = {
-            value = -0.4,
-            hoverValue = -0.4,
-        },
-        Female = {
-            value = -0.4,
-            hoverValue = -0.4,
-        }
+    Female = {
+      value = -0.5,
+      hoverValue = -0.7,
+    }
+  },
+  Worgen = {
+    Male = {
+      value = -0.4,
+      hoverValue = -0.4,
     },
-    Pandaren = {
-        Male = {
-            value = -0.6,
-            hoverValue = -0.9,
-        },
-        Female = {
-            value = -0.4,
-            hoverValue = -0.3,
-        }
+    Female = {
+      value = -0.4,
+      hoverValue = -0.4,
+    }
+  },
+  Pandaren = {
+    Male = {
+      value = -0.6,
+      hoverValue = -0.9,
     },
-    Orc = {
-        Male = {
-            value = -0.4,
-            hoverValue = -0.4,
-        },
-        Female = {
-            value = -0.5,
-            hoverValue = -0.4,
-        }
+    Female = {
+      value = -0.4,
+      hoverValue = -0.3,
+    }
+  },
+  Orc = {
+    Male = {
+      value = -0.4,
+      hoverValue = -0.4,
     },
-    MagharOrc = {
-        Male = {
-            value = -0.4,
-            hoverValue = -0.4,
-        },
-        Female = {
-            value = -0.5,
-            hoverValue = -0.4,
-        }
+    Female = {
+      value = -0.5,
+      hoverValue = -0.4,
+    }
+  },
+  MagharOrc = {
+    Male = {
+      value = -0.4,
+      hoverValue = -0.4,
     },
-    Scourge = {
-        Male = {
-            value = -0.4,
-            hoverValue = -0.6,
-        },
-        Female = {
-            value = -0.4,
-            hoverValue = -0.4,
-        }
+    Female = {
+      value = -0.5,
+      hoverValue = -0.4,
+    }
+  },
+  Scourge = {
+    Male = {
+      value = -0.4,
+      hoverValue = -0.6,
     },
-    Tauren = {
-        Male = {
-            value = -0.3,
-            hoverValue = -0.4,
-        },
-        Female = {
-            value = -0.6,
-            hoverValue = -0.4,
-        }
+    Female = {
+      value = -0.4,
+      hoverValue = -0.4,
+    }
+  },
+  Tauren = {
+    Male = {
+      value = -0.3,
+      hoverValue = -0.4,
     },
-    HighmountainTauren = {
-        Male = {
-            value = -0.3,
-            hoverValue = -0.4,
-        },
-        Female = {
-            value = -0.6,
-            hoverValue = -0.4,
-        }
+    Female = {
+      value = -0.6,
+      hoverValue = -0.4,
+    }
+  },
+  HighmountainTauren = {
+    Male = {
+      value = -0.3,
+      hoverValue = -0.4,
     },
-    Nightborne = {
-        Male = {
-            value = -0.5,
-            hoverValue = -0.6,
-        },
-        Female = {
-            value = -0.4,
-            hoverValue = -0.6,
-        }
+    Female = {
+      value = -0.6,
+      hoverValue = -0.4,
+    }
+  },
+  Nightborne = {
+    Male = {
+      value = -0.5,
+      hoverValue = -0.6,
     },
-    Troll = {
-        Male = {
-            value = -0.4,
-            hoverValue = -0.2,
-        },
-        Female = {
-            value = -0.3,
-            hoverValue = -0.5,
-        }
+    Female = {
+      value = -0.4,
+      hoverValue = -0.6,
+    }
+  },
+  Troll = {
+    Male = {
+      value = -0.4,
+      hoverValue = -0.2,
     },
-    Mechagnome = {
-        Male = {
-            value = -0.3,
-            hoverValue = -0.3,
-        },
-        Female = {
-            value = -0.3,
-            hoverValue = -0.3,
-        }
+    Female = {
+      value = -0.3,
+      hoverValue = -0.5,
+    }
+  },
+  Mechagnome = {
+    Male = {
+      value = -0.3,
+      hoverValue = -0.3,
     },
-    Vulpera = {
-        Male = {
-            value = -0.7,
-            hoverValue = -0.3,
-        },
-        Female = {
-            value = -0.7,
-            hoverValue = -0.4,
-        }
+    Female = {
+      value = -0.3,
+      hoverValue = -0.3,
+    }
+  },
+  Vulpera = {
+    Male = {
+      value = -0.7,
+      hoverValue = -0.3,
     },
-    ZandalariTroll = {
-        Male = {
-            value = -0.4,
-            hoverValue = -0.2,
-        },
-        Female = {
-            value = -0.6,
-            hoverValue = -0.5,
-        }
+    Female = {
+      value = -0.7,
+      hoverValue = -0.4,
+    }
+  },
+  ZandalariTroll = {
+    Male = {
+      value = -0.4,
+      hoverValue = -0.2,
     },
-    BloodElf = {
-        Male = {
-            value = -0.5,
-            hoverValue = -0.8,
-        },
-        Female = {
-            value = -0.4,
-            hoverValue = -0.9,
-        }
+    Female = {
+      value = -0.6,
+      hoverValue = -0.5,
+    }
+  },
+  BloodElf = {
+    Male = {
+      value = -0.5,
+      hoverValue = -0.8,
     },
-    Goblin = {
-        Male = {
-            value = -0.3,
-            hoverValue = -0.3,
-        },
-        Female = {
-            value = -0.3,
-            hoverValue = -0.3,
-        }
+    Female = {
+      value = -0.4,
+      hoverValue = -0.9,
+    }
+  },
+  Goblin = {
+    Male = {
+      value = -0.3,
+      hoverValue = -0.3,
     },
+    Female = {
+      value = -0.3,
+      hoverValue = -0.3,
+    }
+  },
 };
 
 ----------------------------
@@ -591,7 +589,7 @@ do
 
             -- Get Player Level + Spec and update text:
             local specType;
-            if (GetSpecialization()) then
+            if (GetSpecialization) then
                 specType = (select(2, GetSpecializationInfo(GetSpecialization()))).." ";
             else
                 specType = tk.Strings.Empty;

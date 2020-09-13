@@ -1,6 +1,7 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+if (tk:IsClassic()) then return end
 
 local C_ArtifactUI = _G.C_ArtifactUI;
 local GetNumPurchasableArtifactTraits = _G.ArtifactBarGetNumArtifactTraitsPurchasableFromXP;
@@ -11,7 +12,6 @@ local ResourceBarsPackage = obj:Import("MayronUI.ResourceBars");
 local C_ArtifactBar = ResourceBarsPackage:Get("ArtifactBar");
 
 -- Local Functions -----------------------
-
 local function OnArtifactXPUpdate(_, _, bar, data)
     if (not bar:CanUse()) then
         bar:SetActive(false);
@@ -66,32 +66,32 @@ end
 
 ResourceBarsPackage:DefineParams("boolean");
 function C_ArtifactBar:SetEnabled(data, enabled)
-    if (enabled) then
-        -- need to check when it's active
-        em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, self, data);
-        em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Artifact_OnInventoryChanged", OnArtifactXPUpdate, self, data);
+  if (enabled) then
+    -- need to check when it's active
+    em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, self, data);
+    em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Artifact_OnInventoryChanged", OnArtifactXPUpdate, self, data);
 
-        if (self:CanUse()) then
-            if (not self:IsActive()) then
-                self:SetActive(true);
-            end
+    if (self:CanUse()) then
+      if (not self:IsActive()) then
+          self:SetActive(true);
+      end
 
-            -- must be triggered AFTER it has been created!
-            em:TriggerEventHandlerByKey("Artifact_OnInventoryChanged");
-        end
-
-    elseif (self:IsActive()) then
-        self:SetActive(false);
+      -- must be triggered AFTER it has been created!
+      em:TriggerEventHandlerByKey("Artifact_OnInventoryChanged");
     end
 
-    local handler = em:FindEventHandlerByKey("ArtifactXP_Update");
-    local handler2 = em:FindEventHandlerByKey("Artifact_OnInventoryChanged");
+  elseif (self:IsActive()) then
+    self:SetActive(false);
+  end
 
-    if (handler) then
-        handler:SetEventCallbackEnabled("ARTIFACT_XP_UPDATE", enabled);
-    end
+  local handler = em:FindEventHandlerByKey("ArtifactXP_Update");
+  local handler2 = em:FindEventHandlerByKey("Artifact_OnInventoryChanged");
 
-    if (handler2) then
-        handler2:SetEventCallbackEnabled("UNIT_INVENTORY_CHANGED", enabled);
-    end
+  if (handler) then
+      handler:SetEventCallbackEnabled("ARTIFACT_XP_UPDATE", enabled);
+  end
+
+  if (handler2) then
+      handler2:SetEventCallbackEnabled("UNIT_INVENTORY_CHANGED", enabled);
+  end
 end

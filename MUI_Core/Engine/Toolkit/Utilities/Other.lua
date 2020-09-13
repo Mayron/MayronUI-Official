@@ -138,6 +138,14 @@ function tk:GetPlayerKey()
     return key;
 end
 
+function tk:IsRetail()
+  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE;
+end
+
+function tk:IsClassic()
+  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC;
+end
+
 function tk:GetMaxPlayerLevel()
     if (_G.IsTrialAccount()) then
         return 20;

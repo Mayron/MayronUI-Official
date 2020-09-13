@@ -10,6 +10,15 @@ function C_MiniMapModule:GetConfigTable()
         module = "MiniMap",
         dbPath = "profile.minimap",
         children =  {
+            {   name = L["Enabled"],
+                tooltip = "If checked, this module will be enabled.",
+                type = "check",
+                requiresReload = true,
+                appendDbPath = "enabled",
+            },
+            {
+              type = "divider"
+            },
             {   name = L["Mini-Map Options"],
                 type = "title",
                 marginTop = 0;

@@ -3,6 +3,8 @@ local _G, MayronUI = _G, _G.MayronUI;
 
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+if (tk:IsClassic()) then return end
+
 local ComponentsPackage = namespace.ComponentsPackage;
 
 local select, GetSpecializationInfo, C_EquipmentSet = _G.select, _G.GetSpecializationInfo, _G.C_EquipmentSet;

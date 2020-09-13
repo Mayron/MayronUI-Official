@@ -1,6 +1,7 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+if (tk:IsClassic()) then return end
 
 local C_AzeriteItem = _G.C_AzeriteItem;
 

@@ -120,6 +120,15 @@ function C_TimerBarsModule:GetConfigTable()
             module            = "TimerBarsModule";
             hasOwnDatabase    = true;
             children = {
+                {   name = L["Enabled"],
+                    tooltip = "If checked, this module will be enabled.",
+                    type = "check",
+                    requiresReload = true,
+                    dbPath = "profile.enabled",
+                },
+                {
+                  type = "divider"
+                },
                 {   name        = L["General Options"];
                     type        = "title";
                     marginTop   = 0;

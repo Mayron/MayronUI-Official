@@ -23,18 +23,19 @@ local zoneTextButton = _G.MinimapZoneTextButton;
 -- Load Database Defaults --------------
 
 db:AddToDefaults("profile.minimap", {
-	point            = "TOPRIGHT";
-	relativePoint    = "TOPRIGHT";
-	x                = -4;
-	y                = -4;
-	size            = 200;
-	scale            = 1;
-	zoneText = {
-		show = false;
-		justify = "CENTER";
-		fontSize = 12;
-		yOffset = -4;
-	};
+  enabled = true;
+  point = "TOPRIGHT";
+  relativePoint = "TOPRIGHT";
+  x = -4;
+  y = -4;
+  size = 200;
+  scale = 1;
+  zoneText = {
+    show = false;
+    justify = "CENTER";
+    fontSize = 12;
+    yOffset = -4;
+  };
 });
 
 local Minimap_OnDragStart;
@@ -100,7 +101,7 @@ function C_MiniMapModule:OnInitialize()
 			Minimap:SetScale(value);
 		end;
 
-        zoneText = {
+    zoneText = {
 			show = function(value)
 				zoneTextButton:SetShown(value);
             end;
@@ -116,21 +117,22 @@ function C_MiniMapModule:OnInitialize()
 			yOffset = function(value)
 				zoneTextButton:ClearAllPoints();
 				zoneTextButton:SetPoint("TOPLEFT", 4, value);
-				zoneTextButton:SetPoint("BOTTOMRIGHT", _G.MinimapCluster, "TOPRIGHT", -4, -10 + value);
-            end;
-        };
-	});
-
-	self:SetEnabled(true); -- execute all update functions!
+        zoneTextButton:SetPoint("BOTTOMRIGHT", _G.MinimapCluster, "TOPRIGHT", -4, -10 + value);
+        end;
+    };
+  });
 end
 
 function C_MiniMapModule:OnInitialized(data)
+  if (data.settings.enabled) then
+    self:SetEnabled(true);
+  end
+end
+
+function C_MiniMapModule:OnEnable(data)
 	Minimap:ClearAllPoints();
 	Minimap:SetPoint(data.settings.point, _G.UIParent, data.settings.relativePoint, data.settings.x, data.settings.y);
 	Minimap:SetMaskTexture('Interface\\ChatFrame\\ChatFrameBackground'); -- make rectangle
-
-	tk:KillElement(_G.MiniMapInstanceDifficulty);
-	tk:KillElement(_G.GuildInstanceDifficulty);
 
 	_G.MinimapBorder:Hide();
 	_G.MinimapBorderTop:Hide();
@@ -138,18 +140,30 @@ function C_MiniMapModule:OnInitialized(data)
 	_G.MinimapZoomOut:Hide();
 	_G.GameTimeFrame:Hide();
 	_G.MiniMapWorldMapButton:Hide();
-	_G.MinimapNorthTag:SetTexture("");
+  _G.MinimapNorthTag:SetTexture("");
+
+  if (_G.MinimapToggleButton) then
+    tk:KillElement(_G.MinimapToggleButton);
+  end
 
 	tk:ApplyThemeColor(zoneText);
 	zoneText.SetTextColor = tk.Constants.DUMMY_FUNC;
 	zoneText:ClearAllPoints();
-	zoneText:SetAllPoints(true);
+  zoneText:SetAllPoints(true);
 
-	-- LFG Icon:
-	_G.QueueStatusMinimapButton:SetParent(Minimap);
-	_G.QueueStatusMinimapButton:ClearAllPoints();
-	_G.QueueStatusMinimapButton:SetPoint("BOTTOMLEFT", -4, -4);
-	_G.QueueStatusMinimapButtonBorder:Hide();
+  if (tk:IsRetail()) then
+    tk:KillElement(_G.MiniMapInstanceDifficulty);
+    tk:KillElement(_G.GuildInstanceDifficulty);
+
+      -- LFG Icon:
+    _G.QueueStatusMinimapButton:SetParent(Minimap);
+    _G.QueueStatusMinimapButton:ClearAllPoints();
+    _G.QueueStatusMinimapButton:SetPoint("BOTTOMLEFT", -4, -4);
+    _G.QueueStatusMinimapButtonBorder:Hide();
+
+    Minimap:SetArchBlobRingScalar(0);
+    Minimap:SetQuestBlobRingScalar(0);
+  end
 
 	-- Clock:
 	_G.TimeManagerClockButton:DisableDrawLayer("BORDER");
@@ -175,11 +189,7 @@ function C_MiniMapModule:OnInitialized(data)
 	_G.MinimapCluster:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0);
 	_G.MinimapCluster:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 0, 0);
 
-	-- Mouse Wheel and "Blob" ring
 	Minimap:EnableMouseWheel(true);
-	Minimap:SetArchBlobRingScalar(0);
-	Minimap:SetQuestBlobRingScalar(0);
-
 	Minimap.size = Minimap:CreateFontString(nil, "ARTWORK")
 	Minimap.size:SetFontObject("GameFontNormalLarge");
 	Minimap.size:SetPoint("TOP", Minimap, "BOTTOM", 0, 40);
@@ -251,8 +261,9 @@ function C_MiniMapModule:OnInitialized(data)
 		end
 	end);
 
-	-- Calendar Button:
-	local eventBtn = CreateFrame("Button", nil, Minimap);
+  -- Calendar Button:
+  if (tk:IsRetail()) then
+    local eventBtn = CreateFrame("Button", nil, Minimap);
     eventBtn:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, -18);
     eventBtn:SetSize(100, 20);
     eventBtn:SetNormalFontObject("GameFontNormal");
@@ -260,151 +271,162 @@ function C_MiniMapModule:OnInitialized(data)
     eventBtn:Hide();
 
     eventBtn:SetScript("OnClick", function()
-        if (not _G["CalendarFrame"]) then
-            LoadAddOn("Blizzard_Calendar");
-        end
-        _G.Calendar_Toggle();
-	end)
+      if (not _G["CalendarFrame"]) then
+          LoadAddOn("Blizzard_Calendar");
+      end
+      _G.Calendar_Toggle();
+    end);
 
     eventBtn:RegisterEvent('CALENDAR_UPDATE_PENDING_INVITES');
     eventBtn:RegisterEvent('CALENDAR_ACTION_PENDING');
     eventBtn:RegisterEvent('PLAYER_ENTERING_WORLD');
-	eventBtn:SetScript('OnEvent',function(self)
-		local numPendingInvites = _G.C_Calendar.GetNumPendingInvites();
+    eventBtn:SetScript('OnEvent',function(self)
+      local numPendingInvites = _G.C_Calendar.GetNumPendingInvites();
 
-		if (numPendingInvites > 0) then
-			self:SetText(string.format("%s (%i)", L["New Event!"], numPendingInvites));
-            self:Show();
-		else
-			self:SetText("");
-            self:Hide();
-		end
-	end);
+      if (numPendingInvites > 0) then
+        self:SetText(string.format("%s (%i)", L["New Event!"], numPendingInvites));
+        self:Show();
+      else
+        self:SetText("");
+        self:Hide();
+      end
+    end);
+  end
 
 	-- Drop down List:
-	local menuList = {
-		{ 	text = L["Calendar"],
-			func = function()
-				if (not _G["CalendarFrame"]) then
-                    LoadAddOn("Blizzard_Calendar");
-                end
-                _G.Calendar_Toggle();
-			end
-		},
-		{	text = L["Customer Support"],
-			func = ToggleHelpFrame;
-		},
-		{ 	text = L["Class Order Hall"].." / "..L["Garrison Report"],
-			func = GarrisonLandingPage_Toggle
-		},
-		{ 	text = L["Tracking Menu"],
-			func = function()
-				ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "MiniMapTracking", 0, -5);
-				PlaySound(tk.Constants.CLICK);
-			end
-		},
-		{ 	text = tk.Strings:SetTextColorByTheme(L["MUI Config Menu"]),
-			func = function()
-				if (InCombatLockdown()) then
-					tk:Print(L["Cannot access config menu while in combat."]);
-				else
-					MayronUI:TriggerCommand("config");
-				end
-			end
-		},
-		{ 	text = tk.Strings:SetTextColorByTheme(L["MUI Installer"]),
-			func = function()
-				MayronUI:TriggerCommand("install");
-			end
-		},
-	};
+  local menuList = {};
+
+  if (tk:IsRetail()) then
+    table.insert(menuList, {
+      text = L["Calendar"],
+      func = function()
+        if (not _G["CalendarFrame"]) then
+          LoadAddOn("Blizzard_Calendar");
+        end
+        _G.Calendar_Toggle();
+      end
+    });
+
+    table.insert(menuList, {
+      text = L["Class Order Hall"].." / "..L["Garrison Report"],
+      func = GarrisonLandingPage_Toggle
+    });
+
+    table.insert(menuList, {
+      text = L["Tracking Menu"],
+      func = function()
+        ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "MiniMapTracking", 0, -5);
+        PlaySound(tk.Constants.CLICK);
+      end
+    });
+  end
+
+  table.insert(menuList, {
+    text = tk.Strings:SetTextColorByTheme(L["MUI Config Menu"]),
+    func = function()
+      if (InCombatLockdown()) then
+        tk:Print(L["Cannot access config menu while in combat."]);
+      else
+        MayronUI:TriggerCommand("config");
+      end
+    end
+  });
+
+  table.insert(menuList, {
+    text = tk.Strings:SetTextColorByTheme(L["MUI Installer"]),
+    func = function()
+      MayronUI:TriggerCommand("install");
+    end
+  });
 
 	if (IsAddOnLoaded("Leatrix_Plus")) then
-        table.insert(menuList, {
-            text = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70"),
-            func = function()
-                _G.SlashCmdList["Leatrix_Plus"]();
-            end
-        });
+    table.insert(menuList, {
+      text = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70"),
+      func = function()
+        _G.SlashCmdList["Leatrix_Plus"]();
+      end
+    });
+
 		table.insert(menuList, {
-            text = tk.Strings:SetTextColorByHex(L["Music Player"], "70db70"),
-            func = function()
-                _G.SlashCmdList["Leatrix_Plus"]("play");
-            end
-        });
+      text = tk.Strings:SetTextColorByHex(L["Music Player"], "70db70"),
+      func = function()
+        _G.SlashCmdList["Leatrix_Plus"]("play");
+      end
+    });
 	end
 
-    if (IsAddOnLoaded("Recount")) then
-        table.insert(menuList, {
-            text = "Toggle Recount",
-            func = function()
-                if (_G.Recount.MainWindow:IsShown()) then
-                    _G.Recount.MainWindow:Hide();
-                else
-                    _G.Recount.MainWindow:Show();
-                    _G.Recount:RefreshMainWindow();
-                end
-            end
-        });
-    end
+  if (IsAddOnLoaded("Recount")) then
+      table.insert(menuList, {
+        text = "Toggle Recount",
+        func = function()
+          if (_G.Recount.MainWindow:IsShown()) then
+            _G.Recount.MainWindow:Hide();
+          else
+            _G.Recount.MainWindow:Show();
+            _G.Recount:RefreshMainWindow();
+          end
+        end
+      });
+  end
 
-    local menuFrame = CreateFrame("Frame", "MinimapRightClickMenu", UIParent, "UIDropDownMenuTemplate")
+  local menuFrame = CreateFrame("Frame", "MinimapRightClickMenu", UIParent, "UIDropDownMenuTemplate")
 	Minimap.oldMouseUp = Minimap:GetScript("OnMouseUp");
 
 	Minimap:SetScript("OnMouseUp", function(self, btn)
 		if (btn == "RightButton") then
 			EasyMenu(menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
 
-		elseif (btn == "MiddleButton") then
+		elseif (tk:IsRetail() and btn == "MiddleButton") then
 			ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "Minimap", 0, 0);
 			PlaySound(tk.Constants.CLICK);
-
 		else
 			self.oldMouseUp(self);
 		end
 	end);
 
-	-- Difficulty Text:
-	local mode = CreateFrame("Frame", nil, Minimap);
-	mode:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0);
-	mode:SetSize(26, 18);
+  -- Difficulty Text:
+  if (tk:IsRetail()) then
+    local mode = CreateFrame("Frame", nil, Minimap);
+    mode:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT", 0, 0);
+    mode:SetSize(26, 18);
 
-	mode:RegisterEvent("PLAYER_ENTERING_WORLD");
-	mode:RegisterEvent("PLAYER_DIFFICULTY_CHANGED");
-	mode:RegisterEvent("GROUP_ROSTER_UPDATE");
+    mode:RegisterEvent("PLAYER_ENTERING_WORLD");
+    mode:RegisterEvent("PLAYER_DIFFICULTY_CHANGED");
+    mode:RegisterEvent("GROUP_ROSTER_UPDATE");
 
-	mode.txt = mode:CreateFontString(nil, "OVERLAY", "MUI_FontNormal");
-	mode.txt:SetPoint("TOPRIGHT", mode, "TOPRIGHT", -5, -5);
+    mode.txt = mode:CreateFontString(nil, "OVERLAY", "MUI_FontNormal");
+    mode.txt:SetPoint("TOPRIGHT", mode, "TOPRIGHT", -5, -5);
 
-	mode:SetScript("OnEvent", function()
-		if ((_G.IsInInstance())) then
-			local difficulty = select(4, _G.GetInstanceInfo());
+    mode:SetScript("OnEvent", function()
+      if ((_G.IsInInstance())) then
+        local difficulty = select(4, _G.GetInstanceInfo());
 
-			if (difficulty == "Heroic") then
-				difficulty = "H";
-			elseif (difficulty == "Mythic") then
-				difficulty = "M";
-			elseif (difficulty == "Looking For Raid") then
-				difficulty = "RF";
-			else
-				difficulty = "";
-			end
+        if (difficulty == "Heroic") then
+          difficulty = "H";
+        elseif (difficulty == "Mythic") then
+          difficulty = "M";
+        elseif (difficulty == "Looking For Raid") then
+          difficulty = "RF";
+        else
+          difficulty = "";
+        end
 
-			local players = _G.GetNumGroupMembers();
-			players = (players > 0 and players) or 1;
-			mode.txt:SetText(players .. difficulty); -- localization possible?
-		else
-			mode.txt:SetText("");
-		end
-	end);
+        local players = _G.GetNumGroupMembers();
+        players = (players > 0 and players) or 1;
+        mode.txt:SetText(players .. difficulty); -- localization possible?
+      else
+        mode.txt:SetText("");
+      end
+    end);
 
-	_G.MiniMapTrackingBackground:Hide();
-	_G.MiniMapTracking:Hide();
+    _G.MiniMapTrackingBackground:Hide();
+    _G.MiniMapTracking:Hide();
 
-	_G.GarrisonLandingPageMinimapButton:SetSize(1, 1)
-	_G.GarrisonLandingPageMinimapButton:SetAlpha(0);
-	_G.GarrisonLandingPageMinimapButton:ClearAllPoints();
-	_G.GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", UIParent, "TOPRIGHT", 5, 5);
-	_G.GarrisonLandingPageTutorialBox:Hide()
-	_G.GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
+    _G.GarrisonLandingPageMinimapButton:SetSize(1, 1)
+    _G.GarrisonLandingPageMinimapButton:SetAlpha(0);
+    _G.GarrisonLandingPageMinimapButton:ClearAllPoints();
+    _G.GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", UIParent, "TOPRIGHT", 5, 5);
+    _G.GarrisonLandingPageTutorialBox:Hide()
+    _G.GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
+  end
 end

@@ -166,8 +166,12 @@ function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
 		_G[ string.format("%sTabRight", chatFrameName) ],
 		_G[ string.format("%sTabHighlightLeft", chatFrameName) ],
 		_G[ string.format("%sTabHighlightMiddle", chatFrameName) ],
-		_G[ string.format("%sTabHighlightRight", chatFrameName) ]
-	);
+    _G[ string.format("%sTabHighlightRight", chatFrameName) ],
+    _G[ string.format("%sButtonFrameUpButton", chatFrameName) ],
+    _G[ string.format("%sButtonFrameDownButton", chatFrameName) ],
+    _G[ string.format("%sButtonFrameMinimizeButton", chatFrameName) ],
+    _G[ string.format("%sButtonFrame", chatFrameName) ]
+  );
 
 	if (chatFrameName == "ChatFrame1") then
 		_G.hooksecurefunc("FCF_StopDragging", RepositionNotificationFrame);

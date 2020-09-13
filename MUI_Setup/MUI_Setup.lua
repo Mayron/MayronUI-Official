@@ -8,15 +8,15 @@ local Private = {};
 local _G = _G;
 
 local tabText = {
-    -- This should use the locales!
-    L["INSTALL"], L["CUSTOM INSTALL"], L["INFORMATION"], L["CREDITS"]
+  -- This should use the locales!
+  L["INSTALL"], L["CUSTOM INSTALL"], L["INFORMATION"], L["CREDITS"]
 };
 
 local tabNames = {
-    [L["INSTALL"]] = "Install";
-    [L["CUSTOM INSTALL"]] = "Custom";
-    [L["INFORMATION"]] = "Info";
-    [L["CREDITS"]] = "Credits";
+  [L["INSTALL"]] = "Install";
+  [L["CUSTOM INSTALL"]] = "Custom";
+  [L["INFORMATION"]] = "Info";
+  [L["CREDITS"]] = "Credits";
 };
 
 local PlaySoundFile, FCF_SetLocked, FCF_SetWindowAlpha, SetCVar, SetChatWindowSize, UIFrameFadeIn,
@@ -617,7 +617,11 @@ function C_SetUpModule:Install()
     SetChatWindowSize(1, 13);
     SetCVar("chatStyle", "classic");
     SetCVar("floatingCombatTextCombatDamage", "1");
-    SetCVar("floatingCombatTextCombatHealing", "1");
+
+    if (tk:IsRetail()) then
+      SetCVar("floatingCombatTextCombatHealing", "1");
+    end
+
     SetCVar("useUiScale", "1");
     SetCVar("uiscale", db.global.core.uiScale);
 

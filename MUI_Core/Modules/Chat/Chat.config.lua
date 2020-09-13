@@ -4,90 +4,99 @@ local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ChatModule = namespace.C_ChatModule;
 
 local ChatFrameAnchorDropDownOptions = {
-    [L["Top Left"]] = "TOPLEFT";
-    [L["Top Right"]] = "TOPRIGHT";
-    [L["Bottom Left"]] = "BOTTOMLEFT";
-    [L["Bottom Right"]] = "BOTTOMRIGHT";
+  [L["Top Left"]] = "TOPLEFT";
+  [L["Top Right"]] = "TOPRIGHT";
+  [L["Bottom Left"]] = "BOTTOMLEFT";
+  [L["Bottom Right"]] = "BOTTOMRIGHT";
 };
 
 -- Config Data ----------------------
 
 local function CreateButtonConfigTable(dbPath, buttonID)
-    local configTable = {};
+  local configTable = {};
 
-    if (buttonID == 1) then
-        table.insert(configTable, {
-            name = L["Standard Chat Buttons"],
-            type = "title"
-        });
-    else
-        table.insert(configTable, {
-            name = string.format(L["Chat Buttons with Modifier Key %d"], buttonID),
-            type = "title"
-        });
-    end
-
+  if (buttonID == 1) then
     table.insert(configTable, {
-        name = L["Left Button"],
-        dbPath = string.format("%s.buttons[%d][1]", dbPath, buttonID)
+    name = L["Standard Chat Buttons"],
+    type = "title"
     });
-
+  else
     table.insert(configTable, {
-        name = L["Middle Button"],
-        dbPath = string.format("%s.buttons[%d][2]", dbPath, buttonID)
+    name = string.format(L["Chat Buttons with Modifier Key %d"], buttonID),
+    type = "title"
     });
+  end
 
-    table.insert(configTable, {
-        name = L["Right Button"],
-        dbPath = string.format("%s.buttons[%d][3]", dbPath, buttonID)
-    });
+  table.insert(configTable, {
+  name = L["Left Button"],
+  dbPath = string.format("%s.buttons[%d][1]", dbPath, buttonID)
+  });
 
+  table.insert(configTable, {
+  name = L["Middle Button"],
+  dbPath = string.format("%s.buttons[%d][2]", dbPath, buttonID)
+  });
 
-    table.insert(configTable, { type = "divider" });
+  table.insert(configTable, {
+  name = L["Right Button"],
+  dbPath = string.format("%s.buttons[%d][3]", dbPath, buttonID)
+  });
 
-    if (buttonID == 1) then
-        return _G.unpack(configTable);
-    end
+  table.insert(configTable, { type = "divider" });
 
-    for _, modKey in obj:IterateArgs(L["Control"], L["Shift"], L["Alt"]) do
-        local modKeyFirstChar = string.sub(modKey, 1, 1);
-
-        table.insert(configTable, {
-            name = modKey,
-            height = 40,
-            type = "check",
-            dbPath = string.format("%s.buttons[%d].key", dbPath, buttonID),
-
-            GetValue = function(_, currentValue)
-                if (currentValue:find(modKeyFirstChar)) then
-                    return true;
-                end
-
-                return false;
-            end,
-
-            SetValue = function(valueDbPath, checked, oldValue)
-                if (checked) then
-                    -- add it
-                    local newValue = (oldValue and tk.Strings:Concat(oldValue, modKeyFirstChar)) or modKeyFirstChar;
-                    db:SetPathValue(valueDbPath, newValue);
-
-                elseif (oldValue and oldValue:find(modKeyFirstChar)) then
-                    -- remove it
-                    local newValue = oldValue:gsub(modKeyFirstChar, tk.Strings.Empty);
-                    db:SetPathValue(valueDbPath, newValue);
-                end
-            end
-        });
-    end
-
+  if (buttonID == 1) then
     return _G.unpack(configTable);
+  end
+
+  for _, modKey in obj:IterateArgs(L["Control"], L["Shift"], L["Alt"]) do
+    local modKeyFirstChar = string.sub(modKey, 1, 1);
+
+    table.insert(configTable, {
+    name = modKey,
+    height = 40,
+    type = "check",
+    dbPath = string.format("%s.buttons[%d].key", dbPath, buttonID),
+
+    GetValue = function(_, currentValue)
+      if (currentValue:find(modKeyFirstChar)) then
+        return true;
+      end
+
+      return false;
+    end,
+
+    SetValue = function(valueDbPath, checked, oldValue)
+      if (checked) then
+        -- add it
+        local newValue = (oldValue and tk.Strings:Concat(oldValue, modKeyFirstChar)) or modKeyFirstChar;
+        db:SetPathValue(valueDbPath, newValue);
+
+      elseif (oldValue and oldValue:find(modKeyFirstChar)) then
+        -- remove it
+        local newValue = oldValue:gsub(modKeyFirstChar, tk.Strings.Empty);
+        db:SetPathValue(valueDbPath, newValue);
+      end
+    end
+    });
+  end
+
+  return _G.unpack(configTable);
 end
 
 function C_ChatModule:GetConfigTable()
     return {
         module = "ChatModule",
+        dbPath = "profile.chat",
         children = {
+            {   name = L["Enabled"],
+                tooltip = "If checked, this module will be enabled.",
+                type = "check",
+                requiresReload = true,
+                appendDbPath = "enabled",
+            },
+            {
+              type = "divider"
+            },
             {   name = L["Edit Box (Message Input Box)"],
                 type = "title",
                 marginTop = 0;

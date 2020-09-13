@@ -1,9 +1,0 @@
-## Interface: 80300
-## Title: |cff00ccffMUI|r Auras
-## Dependencies: MUI_Core
-## OptionalDeps: MUI_Config
-## Notes: Replaces the Blizzard buff and debuff frames with ones tailored for MayronUI
-
-Aura.lua
-MUI_Auras.lua
-MUI_Auras.config.lua

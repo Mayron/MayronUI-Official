@@ -371,6 +371,14 @@ function C_ConfigModule:GetConfigTable()
                 {   name = L["Side Action Bars"];
                     type = "submenu";
                     children = {
+                        {   name = "Enable Side Bar Panel",
+                            tooltip = L["Enable or disable the background panel"];
+                            type = "check",
+                            dbPath = "profile.sidebar.enabled",
+                        },
+                        {
+                          type = "divider"
+                        },
                         {   name        = L["Width (With 1 Bar)"];
                             type        = "textfield";
                             tooltip     = L["Default value is "].."46";
@@ -475,6 +483,10 @@ function C_ConfigModule:GetConfigTable()
                 {   type = "loop";
                     args = { "Artifact", "Azerite", "Experience", "Reputation" };
                     func = function(id, name)
+                        if (tk:IsClassic() and (name == "Artifact" or name == "Azerite")) then
+                          return;
+                        end
+
                         local key = name:lower().."Bar";
                         local child = {
                             {   name    = tk.Strings:JoinWithSpace(L[name], L["Bar"]);
@@ -518,7 +530,7 @@ function C_ConfigModule:GetConfigTable()
             }
         };
         {
-            module = "SideBarModule";
+            module = "ObjectiveTrackerModule";
             children = {
                 {   name        = L["Objective Tracker"];
                     type        = "title";

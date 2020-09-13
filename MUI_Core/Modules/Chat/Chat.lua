@@ -39,18 +39,19 @@ namespace.C_ChatModule = C_ChatModule;
 namespace.C_ChatFrame = C_ChatFrame;
 
 -- Database Defaults -----------------
-
-db:AddToDefaults("profile.chat", {
+local defaults = {
 	enabled = true;
 	swapInCombat = false;
 	chatFrames = {
 		-- these tables will contain the templateMuiChatFrame data (using SetParent)
 		TOPLEFT = {
 			enabled = true;
-		};
+    };
+
 		TOPRIGHT = {
 			enabled = false;
-		};
+    };
+
 		BOTTOMLEFT = {
 			enabled = false;
 			tabBar = {
@@ -59,7 +60,8 @@ db:AddToDefaults("profile.chat", {
 			window = {
 				yOffset = 12;
 			}
-		};
+    };
+
 		BOTTOMRIGHT = {
 			enabled = false;
 			tabBar = {
@@ -69,54 +71,72 @@ db:AddToDefaults("profile.chat", {
 				yOffset = 12;
 			}
 		};
-	};
+  };
+
 	icons = {
-		anchor          = "TOPLEFT";
-		copyChat        = true;
-		emotes          = true;
-		playerStatus    = true;
-	};
-    editBox = {
-        yOffset = -8;
-        height = 27;
-		border = "Skinner";
-		position = "BOTTOM";
-        inset = 0;
-        borderSize = 1;
-        backdropColor = {
-			r = 0;
-			g = 0;
-			b = 0;
-			a = 0.6;
-		};
-	};
+		anchor       = "TOPLEFT";
+		copyChat     = true;
+		emotes       = true;
+		playerStatus = true;
+  };
+
+  editBox = {
+    yOffset = -8;
+    height = 27;
+    border = "Skinner";
+    position = "BOTTOM";
+    inset = 0;
+    borderSize = 1;
+    backdropColor = {
+      r = 0;
+      g = 0;
+      b = 0;
+      a = 0.6;
+    };
+  };
 
 	__templateChatFrame = {
-		buttons = {
-			{   L["Character"];
-				L["Spell Book"];
-				L["Talents"];
-			};
-			{   key = "C"; -- CONTROL
-				L["Friends"];
-				L["Guild"];
-				L["Quest Log"];
-			};
-			{   key = "S"; -- SHIFT
-				L["Achievements"];
-				L["Collections Journal"];
-				L["Encounter Journal"];
-			};
-		};
+    buttons = {
+      {
+        L["Character"];
+        L["Spell Book"];
+        L["Talents"];
+      };
+      {
+        key = "C"; -- CONTROL
+        L["Friends"];
+        L["Guild"];
+        L["Quest Log"];
+      };
+      {
+        key = "S"; -- SHIFT
+        L["Achievements"];
+        L["Collections Journal"];
+        L["Encounter Journal"];
+      };
+    };
+
 		tabBar = {
 			show = true;
 			yOffset = -12;
-		};
+    };
+
 		window = {
 			yOffset = -37;
 		}
 	};
-});
+};
+
+if (tk:IsClassic()) then
+  defaults.__templateChatFrame.buttons[3] = {
+    key = "S"; -- SHIFT
+    L["Reputation"];
+    L["Macros"];
+    "Skills";
+  };
+end
+
+db:AddToDefaults("profile.chat", defaults);
 
 -- Chat Module -------------------
 
@@ -262,15 +282,72 @@ function C_ChatModule:OnInitialize(data)
 			end;
 		};
 	}, setupOptions);
-
-	self:SetEnabled(true);
 end
 
 ----------------------------------
 -- Override Blizzard Functions:
 ----------------------------------
+function C_ChatModule:OnInitialized(data)
+  if (data.settings.enabled) then
+    -- Override Blizzard Stuff -----------------------
+    local function RepositionChatTab()
+      ChatFrame1Tab:SetPoint("LEFT", 16, 0);
+    end
+
+    -- override with a dummy function
+    --luacheck: ignore FCFTab_UpdateColors
+    function FCFTab_UpdateColors() end
+
+    --luacheck: ignore FCF_SetTabPosition
+    function FCF_SetTabPosition(chatFrame)
+      local chatFrameTab = _G[string.format("%sTab", chatFrame:GetName())];
+
+      if (not chatFrame.isDocked) then
+        chatFrameTab:ClearAllPoints();
+
+        if (IsCombatLog(chatFrame)) then
+          chatFrameTab:SetPoint("BOTTOMLEFT", _G["CombatLogQuickButtonFrame_Custom"], "TOPLEFT", 15, 10);
+        else
+          chatFrameTab:SetPoint("BOTTOMLEFT", chatFrame, "TOPLEFT", 15, 10);
+        end
+      end
+
+      RepositionChatTab();
+
+      local minButton = _G[string.format("%sButtonFrameMinimizeButton", chatFrame:GetName())];
+        minButton:Hide();
+    end
+
+    hooksecurefunc("FCFTab_OnUpdate", RepositionChatTab);
+    hooksecurefunc("FCF_DockUpdate", RepositionChatTab);
+    hooksecurefunc("FCFDockScrollFrame_JumpToTab", RepositionChatTab);
+    hooksecurefunc("ChatEdit_UpdateHeader", function()
+      local chatType = ChatFrame1EditBox:GetAttribute("chatType");
+      local r, g, b = _G.GetMessageTypeColor(chatType);
+      ChatFrame1EditBox:SetBackdropBorderColor(r, g, b, 1);
+    end);
+
+    -- probably not needed
+    hooksecurefunc("FCF_OpenTemporaryWindow", function()
+      local chat =_G.FCF_GetCurrentChatFrame();
+
+      if (chat) then
+        chat:SetClampRectInsets(0, 0, 0, 0);
+      end
+    end);
+
+    -- must be before chat is initialized!
+    for i = 1, NUM_CHAT_WINDOWS do
+        _G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
+    end
+
+    self:SetEnabled(true);
+  end
+end
 
 function C_ChatModule:OnEnable(data)
+  if (data.editBoxBackdrop) then return end
+
 	StaticPopupDialogs["MUI_Link"] = {
 		text = tk.Strings:Join(
 			"\n", tk.Strings:SetTextColorByTheme("MayronUI"), L["(CTRL+C to Copy, CTRL+V to Paste)"]
@@ -314,12 +391,12 @@ function C_ChatModule:OnEnable(data)
 	local muiFont = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
 	for chatFrameID = 1, NUM_CHAT_WINDOWS do
-		local chatFrame = self:SetUpBlizzardChatFrame(chatFrameID);
+    local chatFrame = self:SetUpBlizzardChatFrame(chatFrameID);
 
-        if (changeGameFont) then
-            local _, fontSize, outline = _G.FCF_GetChatWindowInfo(chatFrame:GetID());
-            chatFrame:SetFont(muiFont, fontSize, outline);
-        end
+    if (changeGameFont) then
+      local _, fontSize, outline = _G.FCF_GetChatWindowInfo(chatFrame:GetID());
+      chatFrame:SetFont(muiFont, fontSize, outline);
+    end
 	end
 end
 
@@ -434,57 +511,4 @@ function C_ChatModule:SwitchLayouts(_, layoutName, layoutData)
 			end
 		end
 	end
-end
-
--- Override Blizzard Stuff -----------------------
-
-local function RepositionChatTab()
-	ChatFrame1Tab:SetPoint("LEFT", 16, 0);
-end
-
--- override with a dummy function
---luacheck: ignore FCFTab_UpdateColors
-function FCFTab_UpdateColors() end
-
---luacheck: ignore FCF_SetTabPosition
-function FCF_SetTabPosition(chatFrame)
-	local chatFrameTab = _G[string.format("%sTab", chatFrame:GetName())];
-
-	if (not chatFrame.isDocked) then
-		chatFrameTab:ClearAllPoints();
-
-		if (IsCombatLog(chatFrame)) then
-			chatFrameTab:SetPoint("BOTTOMLEFT", _G["CombatLogQuickButtonFrame_Custom"], "TOPLEFT", 15, 10);
-		else
-			chatFrameTab:SetPoint("BOTTOMLEFT", chatFrame, "TOPLEFT", 15, 10);
-		end
-	end
-
-	RepositionChatTab();
-
-	local minButton = _G[string.format("%sButtonFrameMinimizeButton", chatFrame:GetName())];
-    minButton:Hide();
-end
-
-hooksecurefunc("FCFTab_OnUpdate", RepositionChatTab);
-hooksecurefunc("FCF_DockUpdate", RepositionChatTab);
-hooksecurefunc("FCFDockScrollFrame_JumpToTab", RepositionChatTab);
-hooksecurefunc("ChatEdit_UpdateHeader", function()
-	local chatType = ChatFrame1EditBox:GetAttribute("chatType");
-	local r, g, b = _G.GetMessageTypeColor(chatType);
-	ChatFrame1EditBox:SetBackdropBorderColor(r, g, b, 1);
-end);
-
--- probably not needed
-hooksecurefunc("FCF_OpenTemporaryWindow", function()
-	local chat =_G.FCF_GetCurrentChatFrame();
-
-	if (chat) then
-		chat:SetClampRectInsets(0, 0, 0, 0);
-	end
-end);
-
--- must be before chat is initialized!
-for i = 1, NUM_CHAT_WINDOWS do
-    _G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
 end
