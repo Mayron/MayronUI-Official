@@ -182,7 +182,7 @@ function C_MiniMapModule:OnEnable(data)
 	_G.MiniMapMailFrame:ClearAllPoints();
 	_G.MiniMapMailFrame:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 4, 4);
 	_G.MiniMapMailFrame:SetAlpha(0.7);
-	_G.MiniMapMailIcon:SetTexture("Interface\\AddOns\\MUI_MiniMap\\mail");
+	_G.MiniMapMailIcon:SetTexture(tk:GetAssetFilePath("Textures\\mail"));
 	_G.MiniMapMailBorder:Hide();
 
 	_G.MinimapCluster:ClearAllPoints();
