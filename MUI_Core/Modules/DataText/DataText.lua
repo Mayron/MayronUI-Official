@@ -390,6 +390,13 @@ function C_DataTextModule:ChangeMenuContent(data, content)
     end
 
     content:SetParent(data.popup);
+
+    if (content.customWidth) then
+      data.popup:SetSize(content.customWidth, 10);
+    else
+      data.popup:SetSize(data.settings.popup.width, 10);
+    end
+
     content:SetSize(data.popup:GetWidth(), 10);
 
     -- attach scroll child to menu frame container

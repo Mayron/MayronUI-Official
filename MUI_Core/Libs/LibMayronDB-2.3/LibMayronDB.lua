@@ -50,9 +50,10 @@ end);
 ---@param savedVariableName string @The name of the saved variable to hold the database (defined in the toc file).
 ---@param manualStartUp boolean @(optional) Set to true if you do not want the library to automatically start
 ---    the database when the saved variable becomes accessible.
+---@param databaseName string @(optional) Assign a (user-friendly) name for the database.
 ---@return Database @The database object.
-function Lib:CreateDatabase(addOnName, savedVariableName, manualStartUp)
-  local database = Database(addOnName, savedVariableName);
+function Lib:CreateDatabase(addOnName, savedVariableName, manualStartUp, databaseName)
+  local database = Database(addOnName, savedVariableName, databaseName);
 
   if (not manualStartUp and _G[savedVariableName]) then
     -- already loaded
@@ -68,10 +69,19 @@ function Lib:CreateDatabase(addOnName, savedVariableName, manualStartUp)
 end
 
 ---@return Database @The database object
-function Lib:GetDatabase(savedVariableName)
+function Lib:GetDatabaseBySavedVariableName(savedVariableName)
   for _, addOnDatabases in pairs(OnAddOnLoadedListener.RegisteredDatabases) do
     if (addOnDatabases[savedVariableName]) then
       return addOnDatabases[savedVariableName];
+    end
+  end
+end
+
+---@return Database @The database object
+function Lib:GetDatabaseByName(databaseName)
+  for _, database in self:IterateDatabases() do
+    if (database:GetDatabaseName() == databaseName) then
+      return database;
     end
   end
 end
@@ -176,11 +186,12 @@ end
 
 -- Database Object: ------------------
 
-Framework:DefineParams("string", "string");
+Framework:DefineParams("string", "string", "?string");
 ---Do NOT call this manually! Should only be called by Lib:CreateDatabase(...)
-function Database:__Construct(data, addOnName, savedVariableName)
+function Database:__Construct(data, addOnName, savedVariableName, databaseName)
   data.addOnName = addOnName;
   data.svName = savedVariableName;
+  data.databaseName = databaseName;
   data.callbacks = obj:PopTable();
   data.helper = Helper(self, data);
   -- holds all database defaults to check first before searching database
@@ -195,9 +206,16 @@ function Database:__Destruct()
   obj:Error("Database cannot be destroyed");
 end
 
+Framework:DefineParams("string");
+---@param name string @The name of the database
+function Database:SetDatabaseName(data, name)
+  data.databaseName = name;
+end
+
 Framework:DefineReturns("string");
----@return string @The name of the database (the addon name + saved variable name)
+---@return string @The name of the database
 function Database:GetDatabaseName(data)
+  if (data.databaseName) then return data.databaseName; end
   return string.format("%s:%s", data.addOnName, data.svName);
 end
 

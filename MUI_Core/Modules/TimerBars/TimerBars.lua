@@ -5,8 +5,11 @@ local MayronUI = _G.MayronUI;
 local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
 local LibStub = _G.LibStub;
 
+---@type LibMayronDB
+local LibMayronDB = LibStub:GetLibrary("LibMayronDB");
+
 ---@type Database
-local db = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MUI_TimerBarsDb");
+local db = LibMayronDB:CreateDatabase(addOnName, "MUI_TimerBarsDb", nil, "MUI TimerBars");
 
 _G.MUI_TimerBars = {}; -- Create new global
 
@@ -124,6 +127,8 @@ db:AddToDefaults("profile", {
     };
 
     filters = {
+      showBuffs = true;
+      showDebuffs = true;
       onlyPlayerBuffs   = true;
       onlyPlayerDebuffs = true;
       enableWhiteList   = false;
@@ -163,7 +168,7 @@ function C_TimerBarsModule:OnInitialize(data)
     onExecuteAll = {
       first = {}; -- this is updated in ApplyProfileSettings
       ignore = {
-        "filter";
+        "filters";
       };
     };
 
@@ -252,25 +257,13 @@ function C_TimerBarsModule:OnInitialize(data)
               bar:SetTimeRemainingShown(data.settings.fields[fieldName].timeRemaining.show);
             end
           end;
+
+          filters = function(_, _, field)
+            if (field) then
+              field:RecheckAuras();
+            end
+          end;
         };
-      };
-      {
-        patterns = { "^[^.]+%.filters%.[^.]+$" };
-
-        onPre = function(_, keysList)
-          local fieldName = keysList:PopFront();
-          local field = timerBarsModule:GetTimerField(fieldName);
-
-          if (obj:IsType(field, "TimerField")) then
-            return field, fieldName;
-          end
-        end;
-
-        value = function(_, _, field)
-          if (field) then
-            field:RecheckAuras();
-          end
-        end;
       };
     };
   };
@@ -835,25 +828,31 @@ function C_TimerField:RemoveAllAuras(data)
 end
 
 local function IsFilteredOut(filters, sourceGuid, auraName, auraType)
-  local filteredOut = false;
+  if (auraType == BUFF and not filters.showBuffs) then
+    return true;
+  end
+
+  if (auraType == DEBUFF and not filters.showDebuffs) then
+    return true;
+  end
 
   if (auraType == BUFF and filters.onlyPlayerBuffs and UnitGUID("player") ~= sourceGuid) then
-    filteredOut = true;
+    return true;
   end
 
   if (auraType == DEBUFF and filters.onlyPlayerDebuffs and UnitGUID("player") ~= sourceGuid) then
-    filteredOut = true;
+    return true;
   end
 
   if (filters.enableWhiteList and not filters.whiteList[auraName]) then
-    filteredOut = true;
+    return true;
   end
 
   if (filters.enableBlackList and filters.blackList[auraName]) then
-    filteredOut = true;
+    return true;
   end
 
-  return filteredOut;
+  return false;
 end
 
 Engine:DefineParams("string", "string", "number", "string", "string");

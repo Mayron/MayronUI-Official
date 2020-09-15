@@ -5,8 +5,7 @@ local Engine = namespace.Engine;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local C_LayoutSwitcher = MayronUI:RegisterModule("LayoutSwitcher");
 
-local _G = _G;
-local ipairs, table, string = _G.ipairs, _G.table, _G.string;
+local ipairs, string = _G.ipairs, _G.string;
 local LibStub, IsAddOnLoaded = _G.LibStub, _G.IsAddOnLoaded;
 
 local LAYOUT_MESSAGE = L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."];
@@ -18,28 +17,32 @@ local function SetAddOnProfilePair(_, viewingLayout, addOnName, profileName)
 end
 
 local function GetSupportedAddOns()
-	local addOns = obj:PopTable(); -- Add additional Supported AddOns here
+  local addOns = obj:PopTable(); -- Add additional Supported AddOns here
 
-	for addOnName in LibStub:GetLibrary("LibMayronDB"):IterateDatabases() do
-		table.insert(addOns, addOnName);
-	end
+  ---@type LibMayronDB
+  local LibMayronDB = LibStub:GetLibrary("LibMayronDB");
 
+  for _, database in LibMayronDB:IterateDatabases() do
+    addOns[database:GetDatabaseName()] = database;
+  end
+
+  -- local dbObject = tk.Tables:GetDBObject(addOnName);
 	for addOnName, status in LibStub("AceAddon-3.0"):IterateAddonStatus() do
 		if (status) then
 			local dbObject = tk.Tables:GetDBObject(addOnName);
 
 			if (dbObject) then
-				table.insert(addOns, addOnName);
+        addOns[addOnName] = dbObject;
 			end
 		end
 	end
 
 	-- does not use AceAddon and AceDB does not contain AddOn Name
 	if (IsAddOnLoaded("ShadowedUnitFrames")) then
-		table.insert(addOns, "ShadowUF");
-	end
+    addOns["ShadowUF"] = tk.Tables:GetDBObject("ShadowUF");
+  end
 
-	return obj:UnpackTable(addOns);
+	return addOns;
 end
 
 -- C_LayoutSwitcher ------------------------
@@ -82,7 +85,7 @@ end
 function C_LayoutSwitcher:UpdateAddOnWindow(data)
 	if (not data.addonWindow) then return; end
 
-	local layoutData = db.global.layouts[data.viewingLayout];
+  local layoutData = db.global.layouts[data.viewingLayout];
 
 	if (not layoutData) then
 		self:SetViewingLayout();
@@ -99,7 +102,7 @@ function C_LayoutSwitcher:UpdateAddOnWindow(data)
 			checked = layoutData[addOnName];
 			child.btn:SetChecked(checked);
 		else
-			-- dropdownmenu
+      -- dropdownmenu
 			local object = tk.Tables:GetDBObject(addOnName);
 			child:SetEnabled(checked);
 
@@ -280,7 +283,7 @@ function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
 	local scrollFrame = data.addonWindow.dynamicFrame:GetFrame();
 	local addOnProfiles = dbObject:GetProfiles();
 	local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, scrollFrame);
-	local checkButton = gui:CreateCheckButton(scrollFrame, addOnName);
+  local checkButton = gui:CreateCheckButton(scrollFrame, addOnName);
 
 	checkButton:SetSize(186, dropdown:GetHeight());
 
@@ -354,16 +357,15 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 
 	data.layoutTool:AddCells(data.description, data.addonWindow, data.menu);
 
-	-- Add ScrollFrame content:
-	for _, addOnName in obj:IterateArgs(GetSupportedAddOns()) do
-		local dbObject = tk.Tables:GetDBObject(addOnName);
+  local supportedAddOns = GetSupportedAddOns();
 
-		if (dbObject) then
-			local checkButton, dropdown = self:CreateScrollFrameRowContent(dbObject, addOnName);
-			data.addonWindow.dynamicFrame:AddChildren(checkButton, dropdown);
-		end
+	-- Add ScrollFrame content:
+	for addOnName, dbObject in pairs(supportedAddOns) do
+    local checkButton, dropdown = self:CreateScrollFrameRowContent(dbObject, addOnName);
+    data.addonWindow.dynamicFrame:AddChildren(checkButton, dropdown);
 	end
 
+  obj:PushTable(supportedAddOns);
 	self:UpdateAddOnWindow();
 
 	-- Add menu content:

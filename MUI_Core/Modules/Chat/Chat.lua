@@ -448,7 +448,6 @@ do
 		end
 
 		if (btnPressed == "LeftButton") then
-
 			if (InCombatLockdown()) then
 				tk:Print(L["Cannot switch layouts while in combat."]);
 				return;
@@ -456,10 +455,7 @@ do
 
 			local layoutName, layoutData = GetNextLayout();
 			module:SwitchLayouts(layoutName, layoutData);
-
 			PlaySound(tk.Constants.CLICK);
-			tk:Print(tk.Strings:SetTextColorByRGB(layoutName, 0, 1, 0), L["Layout enabled!"]);
-			return layoutName;
 
 		elseif (btnPressed == "RightButton") then
 			MayronUI:TriggerCommand("layouts");
@@ -479,23 +475,23 @@ do
 		layoutButton:SetScript("OnEnter", LayoutButton_OnEnter);
 		layoutButton:SetScript("OnLeave", LayoutButton_OnLeave);
 		layoutButton:SetScript("OnMouseUp", function(_, btnPressed)
-			local newLayoutName = LayoutButton_OnMouseUp(layoutButton, self, btnPressed);
-
-			if (obj:IsString(newLayoutName)) then
-				for _, btn in ipairs(data.layoutButtons) do
-					btn:SetText(newLayoutName:sub(1, 1):upper());
-				end
-			end
+			LayoutButton_OnMouseUp(layoutButton, self, btnPressed);
 		end);
 	end
 end
 
-Engine:DefineParams("string", "table");
-function C_ChatModule:SwitchLayouts(_, layoutName, layoutData)
-	db.profile.layout = layoutName;
+Engine:DefineParams("string", "?table");
+function C_ChatModule:SwitchLayouts(data, layoutName, layoutData)
+  if (InCombatLockdown()) then
+    tk:Print(L["Cannot switch layouts while in combat."]);
+    return;
+  end
+
+  db.profile.layout = layoutName;
+  layoutData = layoutData or db.global.layouts:GetUntrackedTable()[layoutName];
 
 	-- Switch all assigned addons to new profile
-	for addOnName, profileName in pairs(layoutData) do
+  for addOnName, profileName in pairs(layoutData) do
 		if (profileName) then
 			-- profileName could be false
 			local dbObject = tk.Tables:GetDBObject(addOnName);
@@ -504,7 +500,13 @@ function C_ChatModule:SwitchLayouts(_, layoutName, layoutData)
 				dbObject:SetProfile(profileName);
 			end
 		end
-	end
+  end
+
+  for _, btn in ipairs(data.layoutButtons) do
+    btn:SetText(layoutName:sub(1, 1):upper());
+  end
+
+  tk:Print(tk.Strings:SetTextColorByRGB(layoutName, 0, 1, 0), L["Layout enabled!"]);
 end
 
 -- must be before chat is initialized!

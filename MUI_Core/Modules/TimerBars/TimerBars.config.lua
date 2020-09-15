@@ -484,10 +484,23 @@ function C_TimerBarsModule:GetConfigTable()
                                 {   name = L["Filters"];
                                     type = "title";
                                 };
+                                {   name = "Show Buffs";
+                                    dbPath = dbFieldPath .. ".filters.showBuffs";
+                                    type = "check";
+                                    width = 150;
+                                };
                                 {   name = L["Only show buffs applied by me"];
                                     dbPath = dbFieldPath .. ".filters.onlyPlayerBuffs";
                                     type = "check";
                                 };
+                                {   type = "divider";
+                                };
+                                {   name = "Show Debuffs";
+                                    dbPath = dbFieldPath .. ".filters.showDebuffs";
+                                    type = "check";
+                                    width = 150;
+                                };
+
                                 {   name = L["Only show debuffs applied by me"];
                                     dbPath = dbFieldPath .. ".filters.onlyPlayerDebuffs";
                                     type = "check";
@@ -497,6 +510,7 @@ function C_TimerBarsModule:GetConfigTable()
                                 {   name = L["Enable Whitelist"];
                                     dbPath = dbFieldPath .. ".filters.enableWhiteList";
                                     type = "check";
+                                    width = 155;
                                 };
                                 {   name = L["Configure Whitelist"];
                                     type = "button";
@@ -508,6 +522,7 @@ function C_TimerBarsModule:GetConfigTable()
                                 {   name = L["Enable Blacklist"];
                                     dbPath = dbFieldPath .. ".filters.enableBlackList";
                                     type = "check";
+                                    width = 155;
                                 };
                                 {   name = L["Configure Blacklist"];
                                     type = "button";

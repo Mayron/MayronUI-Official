@@ -4,6 +4,8 @@
 -- Setup namespaces ------------------
 local _, namespace = ...;
 local C_ChatModule = namespace.C_ChatModule;
+
+---@type Toolkit
 local tk = MayronUI:GetCoreComponent("Toolkit");
 
 local _G = _G;

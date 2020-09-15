@@ -9,7 +9,7 @@ local table, ipairs, select, string, unpack, print = _G.table, _G.ipairs, _G.sel
 local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI = _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
 local strsplit = _G.strsplit;
 
-namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
+namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI");
 namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
 namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.components.Modules = {};

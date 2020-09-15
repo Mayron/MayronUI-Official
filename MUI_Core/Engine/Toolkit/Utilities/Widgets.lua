@@ -4,10 +4,11 @@ local _, namespace = ...;
 local obj = namespace.components.Objects; ---@type LibMayronObjects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
-local _G = _G;
 local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
-local GameTooltip, ipairs, pairs, CreateFrame, UIParent, select =
-_G.GameTooltip, _G.ipairs, _G.pairs, _G.CreateFrame, _G.UIParent, _G.select;
+local GameTooltip, ipairs, hooksecurefunc, CreateFrame, UIParent, select =
+_G.GameTooltip, _G.ipairs, _G.hooksecurefunc, _G.CreateFrame, _G.UIParent, _G.select;
+local CreateColor = _G.CreateColor;
+local UnitClass = _G.UnitClass;
 
 function tk:SetFontSize(fontString, size)
   local fontPath, _, flags = fontString:GetFont();
@@ -80,7 +81,7 @@ function tk:SetFullWidth(frame, rightPadding)
   rightPadding = rightPadding or 0;
 
   if (not frame:GetParent()) then
-    _G.hooksecurefunc(frame, "SetParent", function()
+    hooksecurefunc(frame, "SetParent", function()
       frame:GetParent():HookScript("OnSizeChanged", function(_, width)
         frame:SetWidth(width - rightPadding);
       end);
@@ -182,6 +183,7 @@ function tk:ClipTexture(texture, sideName, amount)
 end
 
 function tk:KillElement(element)
+  if (not element) then return end
   self:AttachToDummy(element);
   element.Show = tk.Constants.DUMMY_FUNC;
 end
@@ -193,13 +195,13 @@ function tk:AttachToDummy(element)
 end
 
 function tk:KillAllElements(...)
-  for _, element in ipairs({...}) do
+  for _, element in obj:IterateArgs(...) do
     self:KillElement(element);
   end
 end
 
 function tk:HideFrameElements(frame, kill)
-  for _, child in pairs({frame:GetChildren()}) do
+  for _, child in obj:IterateArgs(frame:GetChildren()) do
     if (kill) then
       self:KillElement(child);
     else
@@ -207,7 +209,7 @@ function tk:HideFrameElements(frame, kill)
     end
   end
 
-  for _, region in pairs({frame:GetRegions()}) do
+  for _, region in obj:IterateArgs(frame:GetRegions()) do
     if (kill) then
       self:KillElement(region);
     else
@@ -231,7 +233,7 @@ function tk:HookOnce(func)
 end
 
 function tk:SetClassColoredTexture(className, texture)
-  className = className or (select(2, _G.UnitClass("player")));
+  className = className or (select(2, UnitClass("player")));
   local color = tk:GetClassColor(className);
   texture:SetVertexColor(color.r, color.g, color.b, texture:GetAlpha());
 end
@@ -268,7 +270,7 @@ function tk:UpdateThemeColor(value)
   end
 
   if (not color.GenerateHexColor) then
-    color = _G.CreateColor(color.r, color.g, color.b);
+    color = CreateColor(color.r, color.g, color.b);
   end
 
   local colorValues = obj:PopTable();

@@ -282,10 +282,10 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
         container:SetWidth(widgetTable.width);
     end
 
-    container.dropdown:SetLabel(tostring(value));
+    container:SetLabel(tostring(value));
 
     if (widgetTable.disableSorting) then
-        container.dropdown:SetSortingEnabled(false);
+        container:SetSortingEnabled(false);
     end
 
     local options = GetAttribute(widgetTable, "options");
@@ -294,12 +294,12 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
         local option;
 
         if (tonumber(key) or widgetTable.labels == "values") then
-            option = container.dropdown:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
+            option = container:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
         else
-            option = container.dropdown:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
+            option = container:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
 
             if (dropDownValue == value) then
-                container.dropdown:SetLabel(key);
+                container:SetLabel(key);
             end
         end
 
@@ -309,11 +309,11 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
     end
 
     if (widgetTable.tooltip) then
-        container.dropdown:SetTooltip(widgetTable.tooltip);
+        container:SetTooltip(widgetTable.tooltip);
     end
 
     if (widgetTable.disabledTooltip) then
-        container.dropdown:SetDisabledTooltip(widgetTable.disabledTooltip);
+        container:SetDisabledTooltip(widgetTable.disabledTooltip);
     end
 
     return CreateElementContainerFrame(container, widgetTable, parent);
