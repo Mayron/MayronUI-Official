@@ -369,7 +369,7 @@ function C_MiniMapModule:OnEnable(data)
       });
   end
 
-  local menuFrame = CreateFrame("Frame", "MinimapRightClickMenu", UIParent, "UIDropDownMenuTemplate")
+  local menuFrame = CreateFrame("Frame", "MinimapRightClickMenu", UIParent, "UIDropDownMenuTemplate");
 	Minimap.oldMouseUp = Minimap:GetScript("OnMouseUp");
 
 	Minimap:SetScript("OnMouseUp", function(self, btn)

@@ -305,6 +305,8 @@ end
 
 ---Initialize the module manually (on demand) or is called by MayronUI on startup.
 function BaseModule:Initialize(_, ...)
+  if (self:IsInitialized()) then return end
+
   if (self.OnInitialize) then
     self:OnInitialize(...);
   end

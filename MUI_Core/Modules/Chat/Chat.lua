@@ -288,61 +288,55 @@ end
 -- Override Blizzard Functions:
 ----------------------------------
 function C_ChatModule:OnInitialized(data)
-  if (data.settings.enabled) then
-    -- Override Blizzard Stuff -----------------------
-    local function RepositionChatTab()
-      ChatFrame1Tab:SetPoint("LEFT", 16, 0);
-    end
-
-    -- override with a dummy function
-    --luacheck: ignore FCFTab_UpdateColors
-    function FCFTab_UpdateColors() end
-
-    --luacheck: ignore FCF_SetTabPosition
-    function FCF_SetTabPosition(chatFrame)
-      local chatFrameTab = _G[string.format("%sTab", chatFrame:GetName())];
-
-      if (not chatFrame.isDocked) then
-        chatFrameTab:ClearAllPoints();
-
-        if (IsCombatLog(chatFrame)) then
-          chatFrameTab:SetPoint("BOTTOMLEFT", _G["CombatLogQuickButtonFrame_Custom"], "TOPLEFT", 15, 10);
-        else
-          chatFrameTab:SetPoint("BOTTOMLEFT", chatFrame, "TOPLEFT", 15, 10);
-        end
-      end
-
-      RepositionChatTab();
-
-      local minButton = _G[string.format("%sButtonFrameMinimizeButton", chatFrame:GetName())];
-        minButton:Hide();
-    end
-
-    hooksecurefunc("FCFTab_OnUpdate", RepositionChatTab);
-    hooksecurefunc("FCF_DockUpdate", RepositionChatTab);
-    hooksecurefunc("FCFDockScrollFrame_JumpToTab", RepositionChatTab);
-    hooksecurefunc("ChatEdit_UpdateHeader", function()
-      local chatType = ChatFrame1EditBox:GetAttribute("chatType");
-      local r, g, b = _G.GetMessageTypeColor(chatType);
-      ChatFrame1EditBox:SetBackdropBorderColor(r, g, b, 1);
-    end);
-
-    -- probably not needed
-    hooksecurefunc("FCF_OpenTemporaryWindow", function()
-      local chat =_G.FCF_GetCurrentChatFrame();
-
-      if (chat) then
-        chat:SetClampRectInsets(0, 0, 0, 0);
-      end
-    end);
-
-    -- must be before chat is initialized!
-    for i = 1, NUM_CHAT_WINDOWS do
-        _G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
-    end
-
-    self:SetEnabled(true);
+  if (not data.settings.enabled) then return end
+  -- Override Blizzard Stuff -----------------------
+  local function RepositionChatTab()
+    ChatFrame1Tab:SetPoint("LEFT", 16, 0);
   end
+
+  -- override with a dummy function
+  --luacheck: ignore FCFTab_UpdateColors
+  function FCFTab_UpdateColors() end
+
+  --luacheck: ignore FCF_SetTabPosition
+  function FCF_SetTabPosition(chatFrame)
+    local chatFrameTab = _G[string.format("%sTab", chatFrame:GetName())];
+
+    if (not chatFrame.isDocked) then
+      chatFrameTab:ClearAllPoints();
+
+      if (IsCombatLog(chatFrame)) then
+        chatFrameTab:SetPoint("BOTTOMLEFT", _G["CombatLogQuickButtonFrame_Custom"], "TOPLEFT", 15, 10);
+      else
+        chatFrameTab:SetPoint("BOTTOMLEFT", chatFrame, "TOPLEFT", 15, 10);
+      end
+    end
+
+    RepositionChatTab();
+
+    local minButton = _G[string.format("%sButtonFrameMinimizeButton", chatFrame:GetName())];
+      minButton:Hide();
+  end
+
+  hooksecurefunc("FCFTab_OnUpdate", RepositionChatTab);
+  hooksecurefunc("FCF_DockUpdate", RepositionChatTab);
+  hooksecurefunc("FCFDockScrollFrame_JumpToTab", RepositionChatTab);
+  hooksecurefunc("ChatEdit_UpdateHeader", function()
+    local chatType = ChatFrame1EditBox:GetAttribute("chatType");
+    local r, g, b = _G.GetMessageTypeColor(chatType);
+    ChatFrame1EditBox:SetBackdropBorderColor(r, g, b, 1);
+  end);
+
+  -- probably not needed
+  hooksecurefunc("FCF_OpenTemporaryWindow", function()
+    local chat =_G.FCF_GetCurrentChatFrame();
+
+    if (chat) then
+      chat:SetClampRectInsets(0, 0, 0, 0);
+    end
+  end);
+
+  self:SetEnabled(true);
 end
 
 function C_ChatModule:OnEnable(data)
@@ -387,17 +381,17 @@ function C_ChatModule:OnEnable(data)
 		_G.ChatFrameMenuButton,	_G.QuickJoinToastButton
 	);
 
-	local changeGameFont = db.global.core.changeGameFont;
-	local muiFont = tk.Constants.LSM:Fetch("font", db.global.core.font);
+  local changeGameFont = db.global.core.changeGameFont;
+  local muiFont = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
-	for chatFrameID = 1, NUM_CHAT_WINDOWS do
+  for chatFrameID = 1, NUM_CHAT_WINDOWS do
     local chatFrame = self:SetUpBlizzardChatFrame(chatFrameID);
 
     if (changeGameFont) then
       local _, fontSize, outline = _G.FCF_GetChatWindowInfo(chatFrame:GetID());
       chatFrame:SetFont(muiFont, fontSize, outline);
     end
-	end
+  end
 end
 
 Engine:DefineReturns("table");
@@ -511,4 +505,9 @@ function C_ChatModule:SwitchLayouts(_, layoutName, layoutData)
 			end
 		end
 	end
+end
+
+-- must be before chat is initialized!
+for i = 1, NUM_CHAT_WINDOWS do
+  _G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
 end
