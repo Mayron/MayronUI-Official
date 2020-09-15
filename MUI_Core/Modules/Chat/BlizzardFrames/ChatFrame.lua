@@ -158,6 +158,9 @@ function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
 	btn.EnableMouse = tk.Constants.DUMMY_FUNC;
 
 	tk:KillAllElements(
+    _G[ string.format("%sEditBoxLeft", chatFrameName) ],
+		_G[ string.format("%sEditBoxMid", chatFrameName) ],
+		_G[ string.format("%sEditBoxRight", chatFrameName) ],
 		_G[ string.format("%sTabSelectedLeft", chatFrameName) ],
 		_G[ string.format("%sTabSelectedMiddle", chatFrameName) ],
 		_G[ string.format("%sTabSelectedRight", chatFrameName) ],
