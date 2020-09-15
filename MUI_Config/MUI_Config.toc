@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 11305
 ## Title: |cff00ccffMUI|r Config
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1

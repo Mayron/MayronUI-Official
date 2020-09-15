@@ -1,10 +1,10 @@
-## Interface: 80300
+## Interface: 11305
 ## Title: |cff00ccffMUI|r Core
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
 ## Version: 6.1.0
-## X-InterfaceName: MayronUI Gen6
+## X-InterfaceName: MayronUI Classic
 
 ## Links:
 ## ------------------------------------------------
