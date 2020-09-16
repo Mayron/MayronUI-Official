@@ -120,16 +120,16 @@ end
 -- DropDownMenu Object
 -----------------------------------
 local function ToolTip_OnEnter(frame)
-  print("hello")
-  _G.GameTooltip:SetOwner(frame, "ANCHOR_TOPLEFT", 0, 2);
+  local tooltip = _G.GameTooltip;
+  tooltip:SetOwner(frame, "ANCHOR_TOPLEFT", 0, 2);
 
   if (frame.isEnabled) then
-    _G.GameTooltip:AddLine(frame.tooltip);
+    tooltip:AddLine(frame.tooltip);
   else
-    _G.GameTooltip:AddLine(frame.disabledTooltip);
+    tooltip:AddLine(frame.disabledTooltip);
   end
 
-  _G.GameTooltip:Show();
+  tooltip:Show();
 end
 
 local function ToolTip_OnLeave()
@@ -176,19 +176,19 @@ function DropDownMenu:SetSortingEnabled(data, enable)
 end
 
 do
-  local function ApplyTooltipScripts(header)
-    header:SetScript("OnEnter", ToolTip_OnEnter);
-    header:SetScript("OnLeave", ToolTip_OnLeave);
+  local function ApplyTooltipScripts(f)
+    f:SetScript("OnEnter", ToolTip_OnEnter);
+    f:SetScript("OnLeave", ToolTip_OnLeave);
   end
 
   function DropDownMenu:SetTooltip(data, tooltip)
-    data.header.tooltip = tooltip;
-    ApplyTooltipScripts(data.header);
+    data.frame.tooltip = tooltip;
+    ApplyTooltipScripts(data.frame);
   end
 
   function DropDownMenu:SetDisabledTooltip(data, disabledTooltip)
-    data.header.disabledTooltip = disabledTooltip;
-    ApplyTooltipScripts(data.header);
+    data.frame.disabledTooltip = disabledTooltip;
+    ApplyTooltipScripts(data.frame);
   end
 end
 
@@ -346,7 +346,7 @@ function DropDownMenu:AddOption(data, label, func, ...)
 end
 
 function DropDownMenu:UpdateColor(data)
-  if (data.header.isEnabled) then
+  if (data.frame.isEnabled) then
     local r, g, b = data.style:GetColor("Widget");
 
     data.header:SetBackdropBorderColor(r, g, b);
@@ -382,12 +382,12 @@ function DropDownMenu:UpdateColor(data)
 end
 
 function DropDownMenu:SetEnabled(data, enabled)
-  if (data.header.isEnabled == enabled) then
+  if (data.frame.isEnabled == enabled) then
     return;
   end
 
   data.frame.toggleButton:SetEnabled(enabled);
-  data.header.isEnabled = enabled; -- required for using the correct tooltip
+  data.frame.isEnabled = enabled; -- required for using the correct tooltip
   self:UpdateColor();
 end
 

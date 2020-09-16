@@ -1,5 +1,5 @@
 local _, namespace = ...;
-local _G, MayronUI = _G, _G.MayronUI;
+local MayronUI = _G.MayronUI;
 
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
@@ -66,8 +66,8 @@ local function CreateEquipmentSetDropDown(settings, contentFrame, popupWidth, da
   dropdown:SetWidth(popupWidth - 10);
   dropdown:Show();
 
-  local currentSpecializationName = select(2, GetSpecializationInfo(specializationID));
-  local currentEquipmentSetId = settings.sets[currentSpecializationName];
+  local specName = select(2, GetSpecializationInfo(specializationID));
+  local currentEquipmentSetId = settings.sets[specName];
 
   if (obj:IsNumber(currentEquipmentSetId) and currentEquipmentSetId >= 0 and currentEquipmentSetId <= 9) then
     local equipmentSetName = C_EquipmentSet.GetEquipmentSetInfo(currentEquipmentSetId);
@@ -89,12 +89,13 @@ local function CreateEquipmentSetDropDown(settings, contentFrame, popupWidth, da
 
       if (equipmentSetName) then
         -- label, click function, value (nil) and a list of args to pass to function (specName passed to C_EquipmentSet.SetEquipmentSet)
-        dropdown:AddOption(equipmentSetName, SetEquipmentSet, settings, currentSpecializationName, equipmentSetId);
+        dropdown:AddOption(equipmentSetName, SetEquipmentSet, settings, specName, equipmentSetId);
       end
     end
 
     -- does not change to anything (the default)
-    dropdown:AddOption(L["<none>"], SetEquipmentSet, settings, currentSpecializationName);
+    dropdown:AddOption(L["<none>"], SetEquipmentSet, settings, specName);
+    dropdown:SetTooltip("Select the equipment set to use when the " .. specName .. " class specialization is active.");
     dropdown.registered = true;  -- do not repeat this setup
   end
 
@@ -134,9 +135,8 @@ local function CreateLayoutDropDown(settings, contentFrame, popupWidth, dataText
 
     -- does not change to anything (the default)
     dropdown:AddOption(L["<none>"], SetLayout, settings, specName);
+    dropdown:SetTooltip("Select the UI layout to use when the " .. specName .. " class specialization is active.");
 
-    -- TODO: Tooltips not working....
-    -- dropdown:SetTooltip("Select the UI layout to use when the " .. specName .. " class specialization is active.");
     dropdown.registered = true;  -- do not repeat this setup
   end
 
@@ -163,7 +163,7 @@ function Specialization:__Construct(data, settings, dataTextModule, slideControl
 
   -- set public instance properties
   self.MenuContent = CreateFrame("Frame");
-  self.MenuContent.customWidth = 230;
+  self.MenuContent.minWidth = 230;
 
   self.MenuLabels = obj:PopTable();
   self.TotalLabelsShown = 0;
