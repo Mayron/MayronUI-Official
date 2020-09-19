@@ -3,16 +3,13 @@ name: Feature request
 about: Suggest an idea for this project
 
 ---
-**Is this feature request for Retail or Classic WoW?**
+### Is this feature request for Retail or Classic WoW?
 
-**Is your feature request related to a problem? Please describe if necessary.**
 
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+### Describe the feature you would like to see
+*A clear and concise description of what you want and why it would be useful*
 
-**Describe the solution you would like to see**
 
-A clear and concise description of what you want to happen.
+### (Optional) Additional context
+*Add any other context or screenshots about the feature request here.*
 
-**Additional context**
-
-Add any other context or screenshots about the feature request here.
