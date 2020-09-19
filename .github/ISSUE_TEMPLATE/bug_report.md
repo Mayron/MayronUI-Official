@@ -7,7 +7,7 @@ about: Create a report to help us debug
 
 
 ### What version of MayronUI were you using when the bug occurred?
-*You can find the version number using the in-game chat command `/mui version`.*
+> *You can find the version number using the in-game chat command `/mui version`.*
 
 
 ### What is the bug? Please describe it in detail:
@@ -17,7 +17,7 @@ about: Create a report to help us debug
 
 
 ### If applicable, what were you doing at the time?
-*Were you in a raid, in a battleground, etc...*
+> *Were you in a raid, in a battleground, etc...*
 
 
 ### If not obvious, how can we replicate the bug?
@@ -27,5 +27,5 @@ about: Create a report to help us debug
 
 
 ### (Optional) Additional context:
-*Add any other context or screenshots about the bug here if you think it would help.*
+> *Add any other context or screenshots about the bug here if you think it would help.*
 
