@@ -24,7 +24,9 @@ about: Create a report to help us debug
 
 
 ### Lua Error (if you have one):
-
+```lua
+-- paste Lua error here
+```
 
 ### (Optional) Additional context:
 > *Add any other context or screenshots about the bug here if you think it would help.*
