@@ -27,5 +27,5 @@ about: Create a report to help us debug
 
 
 ### (Optional) Additional context:
-*i.e. screenshots or anything you think will help us*
+*Add any other context or screenshots about the feature request here.*
 
