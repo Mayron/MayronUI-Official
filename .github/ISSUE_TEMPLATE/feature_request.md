@@ -11,5 +11,5 @@ about: Suggest an idea for this project
 
 
 ### (Optional) Additional context
-*Add any other context or screenshots about the feature request here.*
+*Add any other context or screenshots about the feature request here if you think it would help.*
 
