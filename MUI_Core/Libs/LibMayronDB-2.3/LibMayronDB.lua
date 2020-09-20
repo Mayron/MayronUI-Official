@@ -406,17 +406,18 @@ Framework:DefineParams("string");
 ---Sets the addon profile for the currently logged in character. Creates a new profile if the named profile does not exist.
 ---@param profileName string @The name of the profile to assign to the character.
 function Database:SetProfile(data, profileName)
-  if (self:GetCurrentProfile() == profileName) then
-    return;
-  end
-
   local profile = data.sv.profiles[profileName] or obj:PopTable();
   data.sv.profiles[profileName] = profile;
 
   local profileKey = data.helper:GetCurrentProfileKey();
   local oldProfileName = data.sv.profileKeys[profileKey] or "Default";
-
   data.sv.profileKeys[profileKey] = profileName;
+
+  if (obj:IsTable(data.appended)) then
+    for _, params in ipairs(data.appended) do
+      self:AppendOnce(obj:UnpackTable(params));
+    end
+  end
 
   if (data.callbacks.OnProfileChange) then
     for _, callback in ipairs(data.callbacks.OnProfileChange) do
@@ -490,11 +491,19 @@ function Database:GetNumProfiles(data)
   return n;
 end
 
-Framework:DefineParams("string");
+Framework:DefineParams("?string");
 ---Helper function to reset a profile.
----@param profileName string @The name of the profile to reset.
-function Database:ResetProfile(_, profileName)
-  self:RemoveProfile(profileName);
+---@param profileName string @(Optional) The name of the profile to reset. If nil, uses current profile.
+function Database:ResetProfile(data, profileName)
+  profileName = profileName or self:GetCurrentProfile();
+  data.sv.appended["profile."..profileName] = nil;
+
+  if (data.sv.profiles[profileName]) then
+    data.bin = data.bin or obj:PopTable();
+    data.bin[profileName] = data.sv.profiles[profileName];
+    data.sv.profiles[profileName] = nil;
+  end
+
   self:SetProfile(profileName);
 end
 
@@ -502,12 +511,10 @@ Framework:DefineParams("string");
 ---Helper function to reset a profile.
 ---@param profileName string @The name of the profile to reset.
 function Database:CopyProfile(data, profileName, copiedProfileName)
-  if (profileName == copiedProfileName) then
-    return;
-  end
+if (profileName == copiedProfileName) then return end
 
   if (data.sv.profiles[profileName] and data.sv.profiles[copiedProfileName]) then
-    data.bin = data.bin or {};
+    data.bin = data.bin or obj:PopTable();
     data.bin[profileName] = data.sv.profiles[profileName];
     data.sv.profiles[profileName] = data.sv.profiles[copiedProfileName];
     self:SetProfile(profileName);
@@ -520,8 +527,10 @@ Framework:DefineReturns("boolean");
 ---@param profileName string @The name of the profile to move to the bin.
 ---@return boolean @Returns true if the profile was changed due to removing the current profile.
 function Database:RemoveProfile(data, profileName)
+  data.sv.appended["profile."..profileName] = nil;
+
   if (data.sv.profiles[profileName]) then
-    data.bin = data.bin or {};
+    data.bin = data.bin or obj:PopTable();
     data.bin[profileName] = data.sv.profiles[profileName];
     data.sv.profiles[profileName] = nil;
 
@@ -545,7 +554,7 @@ function Database:RestoreProfile(data, profileName)
     if (profile) then
       profileName = data.helper:GetNewProfileName(profileName, data.sv.profiles);
       data.sv.profiles[profileName] = profile;
-      data.bin[profileName] = nil;
+      obj:PushTable(data.bin[profileName]);
 
       return true;
     end
@@ -587,8 +596,8 @@ function Database:RenameProfile(data, oldProfileName, newProfileName)
     if (profileName == oldProfileName) then
       data.sv.profileKeys[profileKey] = newProfileName;
 
-      if (profileKey == currentProfileKey and data.callbacks["OnProfileChange"]) then
-        for _, value in ipairs(data.callbacks["OnProfileChange"]) do
+      if (profileKey == currentProfileKey and data.callbacks.OnProfileChange) then
+        for _, value in ipairs(data.callbacks.OnProfileChange) do
           local callback = value[1];
           callback(newProfileName, select(2, unpack(value)));
         end
@@ -600,19 +609,26 @@ end
 Framework:DefineParams("Observer", "?string", "?string", "table");
 Framework:DefineReturns("boolean");
 ---Adds a new value to the saved variable table only once. Adds to a special appended history table.
----@param rootTable Observer @The root database table (observer) to append the value to relative to the path address provided.
+---@param rootObserver Observer @The root database table (observer) to append the value to relative to the path address provided.
 ---@param path string @(Optional) The path address to specify where the value should be appended to.
 ---@param appendKey string @(Optional) An optional key that can be used instead of the path for registering an appended value.
 ---@param value table @The table of values to be appended to the database.
 ---@return boolean @Returns whether the value was successfully added.
 function Database:AppendOnce(data, rootObserver, path, appendKey, value)
   local tableType = data.helper:GetDatabaseRootTableName(rootObserver);
-
   local appendTable = data.sv.appended[tableType] or obj:PopTable();
+
   data.sv.appended[tableType] = appendTable;
 
   appendKey = appendKey or path;
   obj:Assert(appendKey, "Both path and appendKey args cannot be missing (at least one is required)");
+
+  data.appended = data.appended or obj:PopTable();
+
+  if (not data.appended[appendKey]) then
+    -- this is needed for profile switching to reinject if not injected for a given profile
+    data.appended[tableType] = obj:PopTable(rootObserver, path, appendKey, value);
+  end
 
   if (appendTable[appendKey]) then
     -- already previously appended, cannot append again
@@ -678,7 +694,8 @@ function Observer:__Construct(data, isGlobal, previousData)
   data.database = data.helper:GetDatabase();
 end
 
----When a new value is being added to the database, use the child observer's table if switched to using a parent observer. Also, add to the saved variable table if not a function.
+---When a new value is being added to the database, use the child observer's table 
+---if switched to using a parent observer. Also, add to the saved variable table if not a function.
 Observer.Static:OnIndexChanging(function(_, data, key, value)
   data.helper:HandlePathValueChange(data, key, value);
   return true; -- prevent indexing

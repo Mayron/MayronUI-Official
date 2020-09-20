@@ -448,7 +448,7 @@ end
 
 function MayronUI:ShowReloadUIPopUp()
   tk:ShowConfirmPopup("Some settings will not be changed until the UI has been reloaded.",
-  "Would you like to reload the UI now?", ReloadUI, "Reload UI", nil, "No", true);
+    "Would you like to reload the UI now?", ReloadUI, "Reload UI", nil, "No", true);
 end
 
 ---A helper function to print a variable argument list using the MayronUI prefix in the chat frame.
@@ -672,8 +672,8 @@ end):SetAutoDestroy(true);
 
 -- Database Event callbacks --------------------
 
-db:OnProfileChange(function(self, newProfileName)
-  if (not MayronUI:IsInstalled() or (_G["MUI_Setup"] and _G["MUI_Setup"]:IsShown())) then
+db:OnProfileChange(function(self, newProfileName, oldProfileName)
+  if (not MayronUI:IsInstalled() or (_G.MUI_Setup and _G.MUI_Setup:IsShown())) then
     return;
   end
 
@@ -687,7 +687,12 @@ db:OnProfileChange(function(self, newProfileName)
     end
   end
 
-  tk:Print("Profile changed to:", tk.Strings:SetTextColorByKey(newProfileName, "GOLD"));
+  if (oldProfileName == newProfileName) then
+    tk:Print("Profile", tk.Strings:SetTextColorByKey(newProfileName, "gold"), "has been reset.");
+  else
+    tk:Print("Profile changed to:", tk.Strings:SetTextColorByKey(newProfileName, "GOLD"));
+  end
+
   MayronUI:ShowReloadUIPopUp();
 end);
 

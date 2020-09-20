@@ -5,9 +5,12 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 local C_ConfigModule = namespace.C_ConfigModule;
 local widgets = {};
 
-local function ResetProfile(_, profileName)
-    db:ResetProfile();
-    tk:Print("Profile", tk.Strings:SetTextColorByKey(profileName, "gold"), "has been reset.");
+local function ResetProfile(self)
+  db:ResetProfile();
+  tk:HookFunc(self, "Hide", function()
+    MayronUI:ShowReloadUIPopUp();
+    return true; -- unhook
+  end);
 end
 
 local function CopyProfile(self, profileName)
@@ -23,8 +26,8 @@ local function CopyProfile(self, profileName)
     tk:Print(copyProfileMessage);
 
     tk:HookFunc(self, "Hide", function()
-        MayronUI:ShowReloadUIPopUp();
-        return true; -- unhook
+      MayronUI:ShowReloadUIPopUp();
+      return true; -- unhook
     end);
 end
 
@@ -70,7 +73,7 @@ local configTable = {
                 local profileName = db:GetCurrentProfile();
                 local popupMessage = string.format(
                     L["Are you sure you want to reset profile '%s' back to default settings?"], profileName);
-                tk:ShowConfirmPopup(popupMessage, nil, ResetProfile, nil, nil, nil, true, profileName);
+                tk:ShowConfirmPopup(popupMessage, nil, ResetProfile, nil, nil, nil, true);
             end,
         };
         {
