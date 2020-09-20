@@ -247,7 +247,7 @@ function C_MiniMapModule:OnEnable(data)
 
 	Minimap:HookScript("OnMouseDown", function(self, button)
 		if ((IsAltKeyDown()) and (button == "LeftButton")) then
-			local tracker = data.setitngs:GetTrackedTable();
+			local tracker = data.settings:GetTrackedTable();
 
 			if (tracker.Tooltip) then
 				tracker.Tooltip = nil;

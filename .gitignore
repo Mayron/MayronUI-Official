@@ -1,6 +1,6 @@
 # Exclude everything by default
 /*
-.toc
+*.toc
 
 # Except AddOns prefixed with "MUI_"
 !/MUI_*
