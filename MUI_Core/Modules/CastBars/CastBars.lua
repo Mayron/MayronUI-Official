@@ -203,6 +203,14 @@ function Events:UNIT_SPELLCAST_STOP(castBar, castBarData, unitID)
   castBar:StopCasting();
 end
 
+---@param castBar CastBar
+---@param castBarData table
+function Events:UNIT_SPELLCAST_SUCCEEDED(_, castBarData)
+  castBarData.frame.statusbar:SetValue(select(2, castBarData.frame.statusbar:GetMinMaxValues()));
+  local c = castBarData.appearance.colors.finished;
+  castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+end
+
 ---@param castBarData table
 function Events:UNIT_SPELLCAST_INTERRUPTIBLE(_, castBarData)
   local c = castBarData.appearance.colors.normal;
@@ -393,6 +401,7 @@ do
         if (data.unitID == "player" or not LibCC) then
           bar:RegisterUnitEvent("UNIT_SPELLCAST_START", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_STOP", data.unitID);
+          bar:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_DELAYED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", data.unitID);
@@ -406,6 +415,7 @@ do
           end
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_START", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_STOP", wrapper);
+          LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_SUCCEEDED", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_INTERRUPTED", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_DELAYED", wrapper);
 
