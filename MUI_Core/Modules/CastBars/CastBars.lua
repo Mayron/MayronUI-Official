@@ -176,12 +176,31 @@ end
 
 ---@param castBar CastBar
 ---@param castBarData table
-function Events:UNIT_SPELLCAST_INTERRUPTED(castBar, castBarData)
-  castBarData.frame.statusbar:SetValue(select(2, castBarData.frame.statusbar:GetMinMaxValues()))
-  castBar:StopCasting();
+function Events:UNIT_SPELLCAST_INTERRUPTED(_, castBarData)
+  if (UnitCastingInfo(castBarData.unitID) or UnitChannelInfo(castBarData.unitID)) then
+    return;
+  end
 
+  castBarData.frame.statusbar:SetValue(select(2, castBarData.frame.statusbar:GetMinMaxValues()));
+  castBarData.interrupted = true;
   local c = castBarData.appearance.colors.interrupted;
   castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+end
+
+---@param castBar CastBar
+---@param castBarData table
+function Events:UNIT_SPELLCAST_STOP(castBar, castBarData, unitID)
+  if (UnitCastingInfo(castBarData.unitID)) then
+    self:UNIT_SPELLCAST_START(castBar, castBarData, unitID);
+    return;
+  end
+
+  if (UnitChannelInfo(castBarData.unitID)) then
+    self:UNIT_SPELLCAST_CHANNEL_START(castBar, castBarData, unitID);
+    return;
+  end
+
+  castBar:StopCasting();
 end
 
 ---@param castBarData table
@@ -300,12 +319,14 @@ local function CastBarFrame_OnUpdate(self, elapsed)
   end
 end
 
-local function CastBarFrame_OnEvent(self, eventName, ...)
+local function CastBarFrame_OnEvent(bar, eventName, ...)
   if (eventName == "PLAYER_FOCUS_CHANGED") then
     eventName = "PLAYER_TARGET_CHANGED";
   end
 
-  Events[eventName](Events, self.castBar, namespace.castBarData[self.unitID] , ...);
+  if (Events[eventName]) then
+    Events[eventName](Events, bar.castBar, namespace.castBarData[bar.unitID], ...);
+  end
 end
 
 do
@@ -369,18 +390,25 @@ do
         bar:RegisterEvent("MIRROR_TIMER_START");
         bar:RegisterEvent("MIRROR_TIMER_STOP");
       else
-        if (data.unitId == "player" or not LibCC) then
+        if (data.unitID == "player" or not LibCC) then
           bar:RegisterUnitEvent("UNIT_SPELLCAST_START", data.unitID);
+          bar:RegisterUnitEvent("UNIT_SPELLCAST_STOP", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_DELAYED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_UPDATE", data.unitID);
         else
-          local wrapper = function(...) CastBarFrame_OnEvent(bar, ...); end;
+          local wrapper = function(event, unitID, ...)
+            if (unitID == data.unitID) then
+              CastBarFrame_OnEvent(bar, event, unitID, ...);
+            end
+          end
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_START", wrapper);
+          LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_STOP", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_INTERRUPTED", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_DELAYED", wrapper);
+
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_CHANNEL_START", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_CHANNEL_STOP", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_CHANNEL_UPDATE", wrapper);
@@ -535,9 +563,12 @@ function C_CastBar:StopCasting(data)
     data.startTime = nil;
     data.unitName = nil;
 
-    local c = data.appearance.colors.finished;
+    if (not data.interrupted) then
+      local c = data.appearance.colors.finished;
+      data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+    end
 
-    data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+    data.interrupted = nil;
     data.fadingOut = true;
 
     if (not data.settings.unlocked) then
@@ -672,14 +703,24 @@ function C_CastBarsModule:OnInitialize(data)
     end
   end
 
+  local first = {
+    "Player.enabled";
+    "Target.enabled";
+    "Mirror.enabled";
+  };
+
+  local ignore;
+
+  if (tk:IsRetail()) then
+    first[4] = "Focus.enabled";
+  else
+    ignore = { "Focus.enabled" };
+  end
+
   local options = {
     onExecuteAll = {
-      first = {
-        "Player.enabled";
-        "Target.enabled";
-        "Focus.enabled";
-        "Mirror.enabled";
-      };
+      first = first;
+      ignore = ignore;
       dependencies = {
         ["colors.border"] = "appearance.border";
       };
