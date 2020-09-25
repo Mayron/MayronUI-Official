@@ -91,7 +91,7 @@ function C_ChatModule:GetConfigTable()
             {   name = L["Enabled"],
                 tooltip = "If checked, this module will be enabled.",
                 type = "check",
-                requiresReload = true,
+                requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
                 appendDbPath = "enabled",
             },
             {

@@ -102,7 +102,7 @@ function C_CastBarsModule:GetConfigTable()
             {   name = L["Enabled"],
                 tooltip = "If checked, this module will be enabled.",
                 type = "check",
-                requiresReload = true,
+                requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
                 appendDbPath = "enabled",
             },
             {
@@ -198,7 +198,7 @@ function C_CastBarsModule:GetConfigTable()
                       {
                         name = L["Enable Bar"],
                         type = "check",
-                        requiresReload = true;
+                        requiresReload = true; -- TODO: Can this be reverted?
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".enabled");
                       },
                       {

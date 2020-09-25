@@ -19,7 +19,7 @@ function C_DataTextModule:GetConfigTable()
                     L["If unchecked, the entire DataText module will be disabled and all"], "\n",
                     L["DataText buttons, as well as the background bar, will not be displayed."]),
                 type = "check",
-                requiresReload = true,
+                requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
                 appendDbPath = "enabled",
             },
             {   name = L["Block in Combat"],
