@@ -379,15 +379,29 @@ do
 		-- accountName cannot be used as |K breaks the editBox
 		local function ReplaceAccountNameCodeWithBattleTag(accountName)
 			for i = 1, 200 do
-				local _, otherAccountName, battleTag = _G.BNGetFriendInfoByID(i);
+        if (_G.BNGetFriendInfoByID) then
+          local _, otherAccountName, battleTag = _G.BNGetFriendInfoByID(i);
 
-				if (i > 50 and not otherAccountName) then
-					return "";
-				end
+          if (i > 50 and not otherAccountName) then
+            return "";
+          end
 
-				if (accountName == otherAccountName) then
-					return battleTag;
-				end
+          if (accountName == otherAccountName) then
+            return battleTag;
+          end
+        elseif (_G.C_BattleNet and _G.C_BattleNet.GetAccountInfoByID) then
+          local friendInfo = _G.C_BattleNet.GetAccountInfoByID(i);
+
+          if (obj:IsTable(friendInfo)) then
+            if (i > 50 and not friendInfo.accountName) then
+              return "";
+            end
+
+            if (accountName == friendInfo.accountName) then
+              return friendInfo.battleTag;
+            end
+          end
+        end
 			end
 		end
 

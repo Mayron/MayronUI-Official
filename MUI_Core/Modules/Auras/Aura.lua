@@ -1,7 +1,7 @@
 local _, namespace = ...;
 
 -- luacheck: ignore self 143
-local _G, MayronUI = _G, _G.MayronUI;
+local MayronUI = _G.MayronUI;
 local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 
 local unpack, CreateFrame, InCombatLockdown, CancelUnitBuff, GameTooltip, UnitAura =
@@ -74,7 +74,7 @@ function C_Aura:__Construct(data, parent, settings, auraID, filter)
     btn:SetScript("OnEnter", AuraButton_OnEnter);
     btn:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
 
-    btn.iconFrame = CreateFrame("Frame", nil, btn);
+    btn.iconFrame = CreateFrame("Frame", nil, btn, _G.BackdropTemplateMixin and "BackdropTemplate");
     btn.iconTexture = btn.iconFrame:CreateTexture(nil, "ARTWORK");
     btn.iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
 

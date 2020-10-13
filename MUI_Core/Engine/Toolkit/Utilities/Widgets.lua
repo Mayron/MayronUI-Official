@@ -362,8 +362,12 @@ function tk:SetGameFont(font)
   _G.SystemFont_NamePlate:SetFont(font, 9);
 
   for _, f in ipairs(fonts) do
-    local _, size, outline = _G[f]:GetFont();
-    _G[f]:SetFont(font, size, outline);
+    local fontString = _G[f];
+
+    if (fontString) then
+      local _, size, outline = fontString:GetFont();
+      fontString:SetFont(font, size, outline);
+    end
   end
 end
 
@@ -377,7 +381,7 @@ do
     local frame;
     local framesTable = frames[frameType];
 
-    if (type(framesTable) == "table" and #framesTable > 0) then
+    if (obj:IsTable(framesTable) and #framesTable > 0) then
       frame = framesTable and framesTable[#framesTable];
     end
 

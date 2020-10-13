@@ -5,6 +5,9 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
 if (not Lib) then return; end
 
+local CreateFrame, string, hooksecurefunc, PlaySound, unpack =
+  _G.CreateFrame, _G.string, _G.hooksecurefunc, _G.PlaySound, _G.unpack;
+
 local Private = Lib.Private;
 local obj = Lib.Objects;
 ---------------------------------
@@ -54,7 +57,7 @@ Lib.FONT_TYPES = {
 ---@param globalName string @(optional) A global name to give the new frame if frame param is nil
 ---@return Frame @The new frame (or existing frame if the frame param was supplied).
 function Lib:CreateDialogBox(style, parent, alphaType, frame, globalName)
-    frame = frame or _G.CreateFrame("Frame", globalName, parent or _G.UIParent);
+    frame = frame or CreateFrame("Frame", globalName, parent or _G.UIParent);
     frame:EnableMouse(true);
 
     alphaType = alphaType or "Medium";
@@ -76,7 +79,7 @@ end
 
 do
     local function Button_OnEnable(self)
-        local r, g, b = _G.unpack(self.enabledBackdrop);
+        local r, g, b = unpack(self.enabledBackdrop);
         self:SetBackdropBorderColor(r, g, b, 0.7);
     end
 
@@ -88,7 +91,9 @@ do
     function Lib:CreateButton(style, parent, text, button, tooltip)
         local backgroundTexture = style:GetTexture("ButtonTexture");
 
-        button = button or _G.CreateFrame("Button", nil, parent);
+        button = button or CreateFrame("Button", nil, parent,
+          _G.BackdropTemplateMixin and "BackdropTemplate");
+
         button:SetSize(150, 30);
         button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
 
@@ -158,10 +163,10 @@ do
         container:SetSize(150, 30);
 
         if (radio) then
-            container.btn = _G.CreateFrame("CheckButton", nil, container, "UIRadioButtonTemplate");
+            container.btn = CreateFrame("CheckButton", nil, container, "UIRadioButtonTemplate");
             container.btn:SetSize(20, 20);
         else
-            container.btn = _G.CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
+            container.btn = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
             container.btn:SetSize(30, 30);
         end
 
@@ -176,7 +181,7 @@ do
         container.btn.text:ClearAllPoints();
         container.btn.text:SetPoint("LEFT", container.btn, "RIGHT", 5, 0);
 
-        _G.hooksecurefunc(container.btn, "SetEnabled", CheckButton_OnSetEnabled);
+        hooksecurefunc(container.btn, "SetEnabled", CheckButton_OnSetEnabled);
 
         if (text) then
             container.btn.text:SetText(text);
@@ -204,7 +209,7 @@ do
     function Lib:AddTitleBar(style, frame, text)
         local texture = style:GetTexture("TitleBarBackground");
 
-        frame.titleBar = _G.CreateFrame("Frame", nil, frame);
+        frame.titleBar = CreateFrame("Frame", nil, frame);
         frame.titleBar:SetSize(260, 31);
         frame.titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", -7, 11);
         frame.titleBar.bg = frame.titleBar:CreateTexture("ARTWORK");
@@ -220,7 +225,7 @@ do
         Private:MakeMovable(frame, frame.titleBar);
         style:ApplyColor(nil, nil, frame.titleBar.bg);
 
-        _G.hooksecurefunc(frame.titleBar.text, "SetText", TitleBar_SetWidth);
+        hooksecurefunc(frame.titleBar.text, "SetText", TitleBar_SetWidth);
         frame.titleBar.text:SetText(text);
     end
 end
@@ -229,7 +234,7 @@ function Lib:AddResizer(style, frame)
     local normalTexture = style:GetTexture("DraggerTexture");
     local highlightTexture = style:GetTexture("DraggerTexture");
 
-    frame.dragger = _G.CreateFrame("Button", nil, frame);
+    frame.dragger = CreateFrame("Button", nil, frame);
     frame.dragger:SetSize(28, 28);
     frame.dragger:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 2);
     frame.dragger:SetNormalTexture(normalTexture, "BLEND");
@@ -241,7 +246,7 @@ function Lib:AddResizer(style, frame)
 end
 
 function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
-    frame.closeBtn = _G.CreateFrame("Button", nil, frame);
+    frame.closeBtn = CreateFrame("Button", nil, frame);
     frame.closeBtn:SetSize(28, 24);
     frame.closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1);
 
@@ -273,7 +278,7 @@ function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
         group:Play();
 
         if (clickSoundFilePath) then
-            _G.PlaySound(clickSoundFilePath);
+            PlaySound(clickSoundFilePath);
         end
     end);
 end
@@ -282,7 +287,7 @@ function Lib:AddArrow(style, frame, direction, center)
     direction = direction or "UP";
     direction = direction:upper();
 
-    frame.arrow = _G.CreateFrame("Frame", nil, frame);
+    frame.arrow = CreateFrame("Frame", nil, frame);
     frame.arrow:SetSize(30, 24);
 
     local texture = style:GetTexture("ArrowButtonTexture");

@@ -57,8 +57,17 @@ end
 function Lib:CreateDropDown(style, parent, direction)
 
   if (not DropDownMenu.Static.Menu) then
-    DropDownMenu.Static.Menu = Lib:CreateScrollFrame(style, _G.UIParent, "MUI_DropDownMenu");
+    DropDownMenu.Static.Menu = Lib:CreateScrollFrame(
+      style, _G.UIParent, "MUI_DropDownMenu", _G.BackdropTemplateMixin and "BackdropTemplate");
+
     DropDownMenu.Static.Menu:Hide();
+
+    if (_G.BackdropTemplateMixin) then
+			_G.Mixin(DropDownMenu.Static.Menu, _G.BackdropTemplateMixin);
+			DropDownMenu.Static.Menu:OnBackdropLoaded();
+			DropDownMenu.Static.Menu:SetScript("OnSizeChanged", DropDownMenu.Static.Menu.OnBackdropSizeChanged);
+    end
+
     DropDownMenu.Static.Menu:SetBackdrop(style:GetBackdrop("DropDownMenu"));
     DropDownMenu.Static.Menu:SetBackdropBorderColor(style:GetColor("Widget"));
     DropDownMenu.Static.Menu:SetScript("OnHide", FoldAll);

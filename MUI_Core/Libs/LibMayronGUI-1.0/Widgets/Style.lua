@@ -10,7 +10,7 @@ local WidgetsPackage = Lib.WidgetsPackage;
 ---@class Style : Object
 local Style = WidgetsPackage:CreateClass("Style");
 
----@type Objects
+---@type LibMayronObjects
 local obj = Lib.Objects;
 
 -- Local Functions ---------------
@@ -169,7 +169,10 @@ function Style:ApplyColor(_, colorName, alpha, ...)
         elseif (objectType == "Button") then
             element:GetNormalTexture():SetVertexColor(r, g, b, alpha);
             element:GetHighlightTexture():SetVertexColor(r, g, b, alpha);
-            element:SetBackdropBorderColor(r, g, b, 0.7);
+
+            if (obj:IsFunction(element.SetBackdropBorderColor)) then
+              element:SetBackdropBorderColor(r, g, b, 0.7);
+            end
 
             if (element:GetDisabledTexture()) then
                 element:GetDisabledTexture():SetVertexColor(r * 0.3, g * 0.3, b * 0.3, 0.6);

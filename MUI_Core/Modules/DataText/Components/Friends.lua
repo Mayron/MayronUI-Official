@@ -95,20 +95,7 @@ function Friends:Update(data, refreshSettings)
         data.settings:Refresh();
     end
 
-    local totalOnline = 0;
-
-    for i = 1, BNGetNumFriends() do
-        if ((select(8, BNGetFriendInfo(i)))) then
-            totalOnline = totalOnline + 1;
-        end
-    end
-
-    for i = 1, C_FriendList.GetNumFriends() do
-        if ((select(5, C_FriendList.GetFriendInfo(i)))) then
-            totalOnline = totalOnline + 1;
-        end
-    end
-
+    local totalOnline = C_FriendList.GetNumOnlineFriends() + (select(2, BNGetNumFriends()));
     self.Button:SetText(string.format(LABEL_PATTERN, totalOnline));
 end
 

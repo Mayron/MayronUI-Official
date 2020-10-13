@@ -339,7 +339,7 @@ end
 
 do
   local function CreateBarFrame(unitID, settings, globalName)
-    local bar = CreateFrame("Frame", globalName, _G.UIParent);
+    local bar = CreateFrame("Frame", globalName, _G.UIParent, _G.BackdropTemplateMixin and "BackdropTemplate");
     bar:SetAlpha(0);
 
     bar.statusbar = CreateFrame("StatusBar", nil, bar);
