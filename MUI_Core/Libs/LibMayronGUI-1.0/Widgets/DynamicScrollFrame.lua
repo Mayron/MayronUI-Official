@@ -6,9 +6,10 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 if (not Lib) then return; end
 
 local Private = Lib.Private;
+local CreateFrame, hooksecurefunc = _G.CreateFrame, _G.hooksecurefunc;
+local math = _G.math;
 
 -- Local Functions ----------------
-
 local function HideIfAnimating(self)
     if (self:GetParent().animating) then
         self:Hide();
@@ -54,13 +55,13 @@ end
 
 -- Creates a scroll frame inside a container frame
 function Lib:CreateScrollFrame(style, parent, global, child)
-    local container = _G.CreateFrame("Frame", global, parent);
-    container.ScrollFrame = _G.CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate");
+    local container = CreateFrame("Frame", global, parent);
+    container.ScrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate");
     container.ScrollFrame:SetAllPoints(true);
     container.ScrollFrame:EnableMouseWheel(true);
     container.ScrollFrame:SetClipsChildren(true);
 
-    child = child or _G.CreateFrame("Frame", nil, container.ScrollFrame);
+    child = child or CreateFrame("Frame", nil, container.ScrollFrame);
     container.ScrollFrame:SetScrollChild(child);
 
     local padding = style:GetPadding(nil, true);
@@ -74,7 +75,7 @@ function Lib:CreateScrollFrame(style, parent, global, child)
 
     container.ScrollBar.ClearAllPoints = Private.DUMMY_FUNC;
     container.ScrollBar.SetPoint = Private.DUMMY_FUNC;
-    _G.hooksecurefunc(container.ScrollBar, "Show", HideIfAnimating);
+    hooksecurefunc(container.ScrollBar, "Show", HideIfAnimating);
 
     container.ScrollBar.thumb = container.ScrollBar:GetThumbTexture();
     container.ScrollBar.thumb:SetColorTexture(1, 1, 1); -- needed to remove old texture and color correctly in ApplyColor (patch 8.1.5)

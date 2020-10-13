@@ -81,10 +81,9 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   name              = L["Set Theme Color"];
                     type              = "color";
-                    tooltip           = L["Warning: This will NOT change the color of CastBars!"];
                     dbPath            = "profile.theme.color";
                     height            = 54;
-                    requiresReload    = true;
+                    requiresReload    = true; -- TODO: This might not need to restart.
 
                     SetValue = function(_, value)
                         value.hex = string.format('%02x%02x%02x', value.r * 255, value.g * 255, value.b * 255);
@@ -371,6 +370,14 @@ function C_ConfigModule:GetConfigTable()
                 {   name = L["Side Action Bars"];
                     type = "submenu";
                     children = {
+                        {   name = "Enable Side Bar Panel",
+                            tooltip = L["Enable or disable the background panel"];
+                            type = "check",
+                            dbPath = "profile.sidebar.enabled",
+                        },
+                        {
+                          type = "divider"
+                        },
                         {   name        = L["Width (With 1 Bar)"];
                             type        = "textfield";
                             tooltip     = L["Default value is "].."46";
@@ -475,6 +482,10 @@ function C_ConfigModule:GetConfigTable()
                 {   type = "loop";
                     args = { "Artifact", "Azerite", "Experience", "Reputation" };
                     func = function(id, name)
+                        if (tk:IsClassic() and (name == "Artifact" or name == "Azerite")) then
+                          return;
+                        end
+
                         local key = name:lower().."Bar";
                         local child = {
                             {   name    = tk.Strings:JoinWithSpace(L[name], L["Bar"]);
@@ -518,7 +529,7 @@ function C_ConfigModule:GetConfigTable()
             }
         };
         {
-            module = "SideBarModule";
+            module = "ObjectiveTrackerModule";
             children = {
                 {   name        = L["Objective Tracker"];
                     type        = "title";
@@ -528,7 +539,7 @@ function C_ConfigModule:GetConfigTable()
                     tooltip           = L["Disable this to stop MUI from controlling the Objective Tracker."];
                     type              = "check";
                     dbPath            = "profile.objectiveTracker.enabled";
-                    requiresReload    = true;
+                    requiresReload    = true; -- TODO: Change this to "global" and then I don't need to restart.
                 };
                 {   name              = L["Collapse in Instance"];
                     tooltip           = L["If true, the objective tracker will collapse when entering an instance."];

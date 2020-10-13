@@ -26,27 +26,29 @@ function C_Container:OnInitialize(data)
     data.container:SetPoint("BOTTOM", 0, -1);
     data.container:SetFrameStrata("LOW");
 
-    em:CreateEventHandler("PET_BATTLE_OVER", function()
-        data.container:Show();
-    end);
+    if (tk:IsRetail()) then
+      em:CreateEventHandler("PET_BATTLE_OVER", function()
+          data.container:Show();
+      end);
 
-    em:CreateEventHandler("PET_BATTLE_OPENING_START", function()
-        data.container:Hide();
-    end);
+      em:CreateEventHandler("PET_BATTLE_OPENING_START", function()
+          data.container:Hide();
+      end);
 
-    em:CreateEventHandler("TALKINGHEAD_REQUESTED", function()
-        if (TalkingHeadFrame) then
-            TalkingHeadFrame:ClearAllPoints();
-            TalkingHeadFrame:SetParent(UIParent);
-            TalkingHeadFrame:SetPoint("BOTTOM", 0, 250);
-            TalkingHeadFrame.ClearAllPoints = tk.Constants.DUMMY_FUNC;
-            TalkingHeadFrame.SetParent = tk.Constants.DUMMY_FUNC;
-            TalkingHeadFrame.SetPoint = tk.Constants.DUMMY_FUNC;
-        end
-    end);
+      em:CreateEventHandler("TALKINGHEAD_REQUESTED", function()
+          if (TalkingHeadFrame) then
+              TalkingHeadFrame:ClearAllPoints();
+              TalkingHeadFrame:SetParent(UIParent);
+              TalkingHeadFrame:SetPoint("BOTTOM", 0, 250);
+              TalkingHeadFrame.ClearAllPoints = tk.Constants.DUMMY_FUNC;
+              TalkingHeadFrame.SetParent = tk.Constants.DUMMY_FUNC;
+              TalkingHeadFrame.SetPoint = tk.Constants.DUMMY_FUNC;
+          end
+      end);
 
-    if (C_PetBattles.IsInBattle()) then
-        data.container:Hide();
+      if (C_PetBattles.IsInBattle()) then
+          data.container:Hide();
+      end
     end
 
     -- Initialize Sub Modules -------------

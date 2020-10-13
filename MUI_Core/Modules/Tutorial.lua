@@ -33,7 +33,7 @@ function C_Tutorial:OnEnable()
     frame.text:SetPoint("BOTTOMRIGHT", -10, 80);
 
     local tutorialMessage = L["Thank you for installing %s!\n\nYou can fully customise the UI using the config menu:"];
-    tutorialMessage:format(_G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"));
+    tutorialMessage = tutorialMessage:format(_G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"));
 
     local subMessage = tk.Strings:SetTextColorByKey(L["(type '/mui' to list all slash commands)"], "GOLD");
 

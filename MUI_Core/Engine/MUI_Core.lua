@@ -1,15 +1,15 @@
 -- luacheck: ignore MayronUI LibStub self 143 631
 local addOnName, namespace = ...;
-local _G, LibStub = _G, _G.LibStub;
+local LibStub = _G.LibStub;
 
-MayronUI = {};
-
-local MigrateToGen6;
+---@class MayronUI
+_G.MayronUI = {};
+local MayronUI = _G.MayronUI;
 local table, ipairs, select, string, unpack, print = _G.table, _G.ipairs, _G.select, _G.string, _G.unpack, _G.print;
 local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI = _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
 local strsplit = _G.strsplit;
 
-namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb");
+namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI");
 namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
 namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.components.Modules = {};
@@ -21,35 +21,42 @@ local gui = namespace.components.GUIBuilder; ---@type LibMayronGUI
 local obj = namespace.components.Objects; ---@type LibMayronObjects
 local L   = namespace.components.Locale; ---@type Locale
 
+if (tk:IsClassic()) then
+  -- remove the Shaman Pink class color back to retail.
+  local shamanColor = _G.RAID_CLASS_COLORS["SHAMAN"];
+  shamanColor:SetRGB(0.0, 0.44, 0.87);
+  shamanColor.colorStr = shamanColor:GenerateHexColor();
+end
+
 ---Gets the core components of MayronUI
 ---@return Toolkit, LibMayronDB, LibMayronEvents, LibMayronGUI, LibMayronObjects, Locale
 function MayronUI:GetCoreComponents()
-    return tk, db, em, gui, obj, L;
+  return tk, db, em, gui, obj, L;
 end
 
 function MayronUI:GetCoreComponent(componentName, silent)
-    tk:Assert(silent or obj:IsString(componentName), "Invalid component '%s'", componentName);
+  tk:Assert(silent or obj:IsString(componentName), "Invalid component '%s'", componentName);
 
-    local component = namespace.components[componentName];
-    tk:Assert(silent or obj:IsTable(component), "Invalid component '%s'", componentName);
+  local component = namespace.components[componentName];
+  tk:Assert(silent or obj:IsTable(component), "Invalid component '%s'", componentName);
 
-    return component;
+  return component;
 end
 
 ---Get a single component registered with the MayronUI Engine
 function MayronUI:GetModuleComponent(moduleKey, componentName)
-    if (obj:IsTable(namespace.components.Modules[moduleKey])) then
-        return namespace.components.Modules[moduleKey][componentName];
+  if (obj:IsTable(namespace.components.Modules[moduleKey])) then
+    return namespace.components.Modules[moduleKey][componentName];
 
-    elseif (not moduleKey or moduleKey == "CoreModule") then
-        return self:GetCoreComponent(componentName);
-    end
+  elseif (not moduleKey or moduleKey == "CoreModule") then
+    return self:GetCoreComponent(componentName);
+  end
 end
 
 ---Add/Register a custom component with the MayronUI Engine
 function MayronUI:AddModuleComponent(moduleKey, componentName, component)
-    local components = tk.Tables:GetTable(namespace.components.Modules, moduleKey);
-    components[componentName] = component;
+  local components = tk.Tables:GetTable(namespace.components.Modules, moduleKey);
+  components[componentName] = component;
 end
 
 local registeredModules = {};
@@ -65,214 +72,216 @@ local BaseModule = Engine:CreateClass("BaseModule");
 -- Load Database Defaults -------------
 
 db:AddToDefaults("global", {
-    layouts = {
-        DPS = {
-            ["ShadowUF"] = "Default";
-            ["MUI_TimerBars"] = "Default";
-            ["Grid"] = "Default"; -- no longer in UI pack but keep
-        };
-        Healer = {
-            ["ShadowUF"] = "MayronUIH";
-            ["MUI_TimerBars"] = "Healer";
-            ["Grid"] = "MayronUIH"; -- no longer in UI pack but keep
-        };
+  layouts = {
+    DPS = {
+      ["ShadowUF"] = "Default";
+      ["MUI_TimerBars"] = "Default";
+      ["Grid"] = "Default"; -- no longer in UI pack but keep
     };
+    Healer = {
+      ["ShadowUF"] = "MayronUIH";
+      ["MUI_TimerBars"] = "Healer";
+      ["Grid"] = "MayronUIH"; -- no longer in UI pack but keep
+    };
+  };
 
-    core = {
-        uiScale           = 0.7;
-        changeGameFont    = true;
-        font              = "MUI_Font";
-        useLocalization   = true;
-        setup = {
-            profilePerCharacter = true;
-            addOns = {
-                {"Aura Frames", true, "AuraFrames"};
-                {"Bagnon", true, "Bagnon"};
-                {"Bartender4", true, "Bartender4"};
-                {"Grid", true, "Grid"};
-                {"Masque", true, "Masque"};
-                {"Recount", true, "Recount"};
-                {"Shadowed Unit Frames", true, "ShadowedUnitFrames"};
-                {"TipTac", true, "TipTac"};
-                {"Leatrix Plus", true, "Leatrix_Plus"};
-            };
-        };
+  core = {
+    uiScale           = 0.7;
+    changeGameFont    = true;
+    font              = "MUI_Font";
+    useLocalization   = true;
+    setup = {
+      profilePerCharacter = true;
+      addOns = {
+        {"Aura Frames", true, "AuraFrames"};
+        {"Bagnon", true, "Bagnon"};
+        {"Bartender4", true, "Bartender4"};
+        {"Grid", true, "Grid"};
+        {"Masque", true, "Masque"};
+        {"Recount", true, "Recount"};
+        {"Shadowed Unit Frames", true, "ShadowedUnitFrames"};
+        {"TipTac", true, "TipTac"};
+        {"Leatrix Plus", true, "Leatrix_Plus"};
+      };
     };
+  };
 });
 
 db:AddToDefaults("profile.layout", "DPS");
 
 local classColor = tk:GetUnitClassColor("player");
 db:AddToDefaults("profile.theme", {
-    color = {
-        r     = classColor.r;
-        g     = classColor.g;
-        b     = classColor.b;
-        hex   = classColor:GenerateHexColor();
-    },
+  color = {
+    r     = classColor.r;
+    g     = classColor.g;
+    b     = classColor.b;
+    hex   = classColor:GenerateHexColor();
+  },
 });
 
 -- Slash Commands ------------------
 
 local function LoadMuiAddOn(name)
-    if (not IsAddOnLoaded(name)) then
-        EnableAddOn(name);
+  if (not IsAddOnLoaded(name)) then
+    EnableAddOn(name);
 
-        if (not LoadAddOn(name)) then
-            tk:Print(string.format("Failed to load %s. Possibly missing?", name));
-            return false;
-        end
+    if (not LoadAddOn(name)) then
+      tk:Print(string.format("Failed to load %s. Possibly missing?", name));
+      return false;
     end
+  end
 
-    return true;
+  return true;
 end
 
 local function GetMuiConfigModule()
-    if (not LoadMuiAddOn("MUI_Config")) then return; end
-    local configModule = MayronUI:ImportModule("ConfigModule");
+  if (not LoadMuiAddOn("MUI_Config")) then return; end
+  local configModule = MayronUI:ImportModule("ConfigModule");
 
-    if (not configModule:IsInitialized()) then
-        configModule:Initialize();
-    end
+  if (not configModule:IsInitialized()) then
+    configModule:Initialize();
+  end
 
-    return configModule;
+  return configModule;
 end
 
 local commands = {};
 
 commands.config = function()
-    local module = GetMuiConfigModule()
+  local module = GetMuiConfigModule()
 
-    if (module) then
-        module:Show();
-    end
+  if (module) then
+    module:Show();
+  end
 end
 
 commands.layouts = function()
-    if (not LoadMuiAddOn("MUI_Config")) then return; end
-    local layoutSwitcher = MayronUI:ImportModule("LayoutSwitcher");
-    layoutSwitcher:ShowLayoutTool();
+  if (not LoadMuiAddOn("MUI_Config")) then return; end
+  local layoutSwitcher = MayronUI:ImportModule("LayoutSwitcher");
+  layoutSwitcher:ShowLayoutTool();
 end
 
 commands.install = function()
-    if (not LoadMuiAddOn("MUI_Setup")) then return; end
-    MayronUI:ImportModule("SetUpModule"):Show();
+  if (not LoadMuiAddOn("MUI_Setup")) then return; end
+  MayronUI:ImportModule("SetUpModule"):Show();
 end
 
 local function ValidateNewProfileName(self, profileName)
-    if (#profileName == 0 or db:ProfileExists(profileName)) then
-        return false;
-    end
+  if (#profileName == 0 or db:ProfileExists(profileName)) then
+    return false;
+  end
 
-    return true;
+  return true;
 end
 
 local function CreateNewProfile(_, profileName, callback)
-    db:SetProfile(profileName);
+  db:SetProfile(profileName);
 
-    if (obj:IsFunction(callback)) then
-        callback();
-    end
+  if (obj:IsFunction(callback)) then
+    callback();
+  end
 end
 
 local function ValidateRemoveProfile(_, text)
-    if (db:GetCurrentProfile() == "Default") then
-        return false;
-    end
+  if (db:GetCurrentProfile() == "Default") then
+    return false;
+  end
 
-    return text == "DELETE";
+  return text == "DELETE";
 end
 
 local function RemoveProfile(_, _, profileName, callback)
-    db:RemoveProfile(profileName);
-    tk:Print("Profile", tk.Strings:SetTextColorByKey(profileName, "gold"), "has been deleted.");
+  db:RemoveProfile(profileName);
+  tk:Print("Profile", tk.Strings:SetTextColorByKey(profileName, "gold"), "has been deleted.");
 
-    local playerKey = tk:GetPlayerKey();
-    if (db.global.core.setup.profilePerCharacter and db:ProfileExists(playerKey)) then
-        db:SetProfile(playerKey);
-    end
+  local playerKey = tk:GetPlayerKey();
+  if (db.global.core.setup.profilePerCharacter and db:ProfileExists(playerKey)) then
+    db:SetProfile(playerKey);
+  end
 
-    if (obj:IsFunction(callback)) then
-        callback();
-    end
+  if (obj:IsFunction(callback)) then
+    callback();
+  end
 end
 
 commands.profile = function(subCommand, profileName, callback)
-    if (not tk.Strings:IsNilOrWhiteSpace(subCommand)) then
-        subCommand = subCommand:lower();
+  if (not tk.Strings:IsNilOrWhiteSpace(subCommand)) then
+    subCommand = subCommand:lower();
 
-        if (subCommand == "set" and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
-            db:SetProfile(profileName);
+    if (subCommand == "set" and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
+      db:SetProfile(profileName);
 
-        elseif (subCommand == "delete" and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
-            if (profileName == "Default") then
-                tk:Print("Cannot delete the Default profile.");
-                return;
-            end
+    elseif (subCommand == "delete" and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
+      if (profileName == "Default") then
+        tk:Print("Cannot delete the Default profile.");
+        return;
+      end
 
-            local popupMessage = string.format("Are you sure you want to delete profile '%s'?", profileName);
-            local subMessage = "Please type 'DELETE' to confirm:";
+      local popupMessage = string.format("Are you sure you want to delete profile '%s'?", profileName);
+      local subMessage = "Please type 'DELETE' to confirm:";
 
-            tk:ShowInputPopup(popupMessage, subMessage, nil, ValidateRemoveProfile, nil, RemoveProfile, nil, nil, true, profileName, callback);
+      tk:ShowInputPopup(popupMessage, subMessage, nil, ValidateRemoveProfile, nil, RemoveProfile, nil, nil, true, profileName, callback);
 
-        elseif (subCommand == "new") then
-            local popupMessage = "Enter a new unique profile name:";
-            tk:ShowInputPopup(popupMessage, nil, nil, ValidateNewProfileName, nil, CreateNewProfile, nil, nil, nil, callback);
+    elseif (subCommand == "new") then
+      local popupMessage = "Enter a new unique profile name:";
+      tk:ShowInputPopup(popupMessage, nil, nil, ValidateNewProfileName, nil, CreateNewProfile, nil, nil, nil, callback);
 
-        elseif (subCommand == "current") then
-            local currentProfile = db:GetCurrentProfile();
-            currentProfile = tk.Strings:SetTextColorByKey(currentProfile, "gold");
-            tk:Print("Current Profile:", currentProfile);
-        else
-            commands.help();
-        end
+    elseif (subCommand == "current") then
+      local currentProfile = db:GetCurrentProfile();
+      currentProfile = tk.Strings:SetTextColorByKey(currentProfile, "gold");
+      tk:Print("Current Profile:", currentProfile);
     else
-        commands.help();
+      commands.help();
     end
+
+  else
+    commands.help();
+  end
 end
 
 commands.profiles = function(subCommand)
-    if (not tk.Strings:IsNilOrWhiteSpace(subCommand)) then
-        subCommand = subCommand:lower();
+  if (not tk.Strings:IsNilOrWhiteSpace(subCommand)) then
+    subCommand = subCommand:lower();
 
-        if (subCommand == "list") then
-            local allProfiles = tk.Strings.Empty;
+    if (subCommand == "list") then
+      local allProfiles = tk.Strings.Empty;
 
-            for id, profile in db:IterateProfiles() do
-                if (id == 1) then
-                    allProfiles = tk.Strings:SetTextColorByKey(profile, "gold");
-                else
-                    allProfiles = tk.Strings:Join(", ", allProfiles, tk.Strings:SetTextColorByKey(profile, "gold"));
-                end
-            end
-
-            tk:Print("All Profiles:", allProfiles);
+      for id, profile in db:IterateProfiles() do
+        if (id == 1) then
+          allProfiles = tk.Strings:SetTextColorByKey(profile, "gold");
         else
-            commands.help();
+          allProfiles = tk.Strings:Join(", ", allProfiles, tk.Strings:SetTextColorByKey(profile, "gold"));
         end
+      end
+
+      tk:Print("All Profiles:", allProfiles);
     else
-        GetMuiConfigModule():ShowProfileManager();
+      commands.help();
     end
+
+  else
+    GetMuiConfigModule():ShowProfileManager();
+  end
 end
 
 commands.version = function()
-    tk:Print("Version", _G.GetAddOnMetadata("MUI_Core", "Version"));
+  tk:Print("Version", _G.GetAddOnMetadata("MUI_Core", "Version"));
 end
 
 commands.help = function()
-    print(" ");
-    tk:Print(L["List of slash commands:"])
-    tk:Print("|cff00cc66/mui config|r - "..L["shows config menu"]);
-    tk:Print("|cff00cc66/mui install|r - "..L["shows setup menu"]);
-    tk:Print("|cff00cc66/mui layouts|r - show layout tool");
-    tk:Print("|cff00cc66/mui profiles list|r - list all MayronUI profiles");
-    tk:Print("|cff00cc66/mui profiles|r - shows profile manager");
-    tk:Print("|cff00cc66/mui profile set <profile_name>|r - set profile");
-    tk:Print("|cff00cc66/mui profile delete <profile_name>|r - delete profile");
-    tk:Print("|cff00cc66/mui profile new|r - create new profile");
-    tk:Print("|cff00cc66/mui profile current|r - show current profile in chat");
-    tk:Print("|cff00cc66/mui version|r - show the version of MayronUI");
-    print(" ");
+  print(" ");
+  tk:Print(L["List of slash commands:"])
+  tk:Print("|cff00cc66/mui config|r - "..L["shows config menu"]);
+  tk:Print("|cff00cc66/mui install|r - "..L["shows setup menu"]);
+  tk:Print("|cff00cc66/mui layouts|r - show layout tool");
+  tk:Print("|cff00cc66/mui profiles list|r - list all MayronUI profiles");
+  tk:Print("|cff00cc66/mui profiles|r - shows profile manager");
+  tk:Print("|cff00cc66/mui profile set <profile_name>|r - set profile");
+  tk:Print("|cff00cc66/mui profile delete <profile_name>|r - delete profile");
+  tk:Print("|cff00cc66/mui profile new|r - create new profile");
+  tk:Print("|cff00cc66/mui profile current|r - show current profile in chat");
+  tk:Print("|cff00cc66/mui version|r - show the version of MayronUI");
+  print(" ");
 end
 
 -- BaseModule Object -------------------
@@ -283,147 +292,149 @@ Engine:DefineReturns("string", "?boolean");
 ---@param moduleName string @The human-friendly name of the module to be used in-game (such as on the config window).
 ---@param initializeOnDemand boolean @(optional) If true, the module will not be initialized on start up automatically and can only be initialized by manually calling "Initialize()" on the module.
 function BaseModule:__Construct(data, moduleKey, moduleName, initializeOnDemand)
-    local registryInfo = registeredModules[moduleKey];
-    registeredModules[tostring(self)] = registryInfo;
+  local registryInfo = registeredModules[moduleKey];
+  registeredModules[tostring(self)] = registryInfo;
 
-    registryInfo.moduleName = moduleName or moduleKey;
-    registryInfo.moduleKey = moduleKey;
-    registryInfo.initializeOnDemand = initializeOnDemand;
-    registryInfo.initialized = false;
-    registryInfo.enabled = false;
-    registryInfo.moduleData = data;
+  registryInfo.moduleName = moduleName or moduleKey;
+  registryInfo.moduleKey = moduleKey;
+  registryInfo.initializeOnDemand = initializeOnDemand;
+  registryInfo.initialized = false;
+  registryInfo.enabled = false;
+  registryInfo.moduleData = data;
 end
 
 ---Initialize the module manually (on demand) or is called by MayronUI on startup.
 function BaseModule:Initialize(_, ...)
-    if (self.OnInitialize) then
-        self:OnInitialize(...);
-    end
+  if (self:IsInitialized()) then return end
 
-    local registryInfo = registeredModules[tostring(self)];
-    registryInfo.initialized = true;
+  if (self.OnInitialize) then
+    self:OnInitialize(...);
+  end
 
-    -- Call any other functions attached to this modules OnInitialize event
-    if (registryInfo.hooks and registryInfo.hooks.OnInitialize) then
-        for _, func in ipairs(registryInfo.hooks.OnInitialize) do
-            func(self, registryInfo.moduleData);
-        end
-    end
+  local registryInfo = registeredModules[tostring(self)];
+  registryInfo.initialized = true;
 
-    if (self.OnInitialized) then
-        self:OnInitialized();
+  -- Call any other functions attached to this modules OnInitialize event
+  if (registryInfo.hooks and registryInfo.hooks.OnInitialize) then
+    for _, func in ipairs(registryInfo.hooks.OnInitialize) do
+      func(self, registryInfo.moduleData);
     end
+  end
 
-    -- Call any other functions attached to this modules OnInitialized event
-    if (registryInfo.hooks and registryInfo.hooks.OnInitialized) then
-        for _, func in ipairs(registryInfo.hooks.OnInitialized) do
-            func(self, registryInfo.moduleData);
-        end
+  if (self.OnInitialized) then
+    self:OnInitialized();
+  end
+
+  -- Call any other functions attached to this modules OnInitialized event
+  if (registryInfo.hooks and registryInfo.hooks.OnInitialized) then
+    for _, func in ipairs(registryInfo.hooks.OnInitialized) do
+      func(self, registryInfo.moduleData);
     end
+  end
 end
 
 Engine:DefineReturns("string");
 ---@return string @Returns the human-friendly name of the module to be used in-game (such as on the config window).
 function BaseModule:GetModuleName(_)
-    local registryInfo = registeredModules[tostring(self)];
-    return registryInfo.moduleName;
+  local registryInfo = registeredModules[tostring(self)];
+  return registryInfo.moduleName;
 end
 
 Engine:DefineReturns("string");
 ---@return string @Returns the key used to register the module to MayronUI.
 function BaseModule:GetModuleKey(_)
-    local registryInfo = registeredModules[tostring(self)];
-    return registryInfo.moduleKey;
+  local registryInfo = registeredModules[tostring(self)];
+  return registryInfo.moduleKey;
 end
 
 Engine:DefineParams("boolean");
 ---@param enabled boolean
 function BaseModule:SetEnabled(data, enabled, ...)
-    local registryInfo = registeredModules[tostring(self)];
-    local hooks;
+  local registryInfo = registeredModules[tostring(self)];
+  local hooks;
 
-    registryInfo.enabled = enabled;
+  registryInfo.enabled = enabled;
 
-    if (data.settings) then
-        -- do not need to manually create an enabled update function to change this!
-        data.settings.enabled = enabled;
+  if (data.settings) then
+    -- do not need to manually create an enabled update function to change this!
+    data.settings.enabled = enabled;
+  end
+
+  if (enabled) then
+    if (self.OnEnable) then
+      self:OnEnable(...);
     end
 
-    if (enabled) then
-        if (self.OnEnable) then
-            self:OnEnable(...);
-        end
-
-        if (data.updateFunctions and not data.firstTime) then
-            -- execute all update functions if enabled setting changed
-            self:ExecuteAllUpdateFunctions(self);
-            data.firstTime = true;
-        end
-
-        -- Call any other functions attached to this modules OnEnable event
-        hooks = registryInfo.hooks and registryInfo.hooks.OnEnable;
-    else
-        if (self.OnDisable) then
-            self:OnDisable(...);
-        end
-        -- Call any other functions attached to this modules OnDisable event
-        hooks = registryInfo.hooks and registryInfo.hooks.OnDisable;
+    if (data.updateFunctions and not data.firstTime) then
+      -- execute all update functions if enabled setting changed
+      self:ExecuteAllUpdateFunctions(self);
+      data.firstTime = true;
     end
 
-    if (hooks) then
-        for _, func in ipairs(hooks) do
-            func(self, data);
-        end
+    -- Call any other functions attached to this modules OnEnable event
+    hooks = registryInfo.hooks and registryInfo.hooks.OnEnable;
+  else
+    if (self.OnDisable) then
+      self:OnDisable(...);
     end
+    -- Call any other functions attached to this modules OnDisable event
+    hooks = registryInfo.hooks and registryInfo.hooks.OnDisable;
+  end
+
+  if (hooks) then
+    for _, func in ipairs(hooks) do
+      func(self, data);
+    end
+  end
 end
 
 Engine:DefineReturns("boolean");
 ---@return boolean @Returns true if the module has already been initialized.
 function BaseModule:IsInitialized()
-    local registryInfo = registeredModules[tostring(self)];
-    return registryInfo.initialized;
+  local registryInfo = registeredModules[tostring(self)];
+  return registryInfo.initialized;
 end
 
 Engine:DefineReturns("boolean");
 ---Returns whether the module should be initialized automatically on start up or manually.
 ---@return boolean @If true, the module should be initialized on demand (manually) when required.
 function BaseModule:IsInitializedOnDemand()
-    local registryInfo = registeredModules[tostring(self)];
-    return registryInfo.initializeOnDemand == true;
+  local registryInfo = registeredModules[tostring(self)];
+  return registryInfo.initializeOnDemand == true;
 end
 
 Engine:DefineReturns("boolean");
 ---@return boolean @Returns true if the module is enabled.
 function BaseModule:IsEnabled()
-    local registryInfo = registeredModules[tostring(self)];
-    return registryInfo.enabled;
+  local registryInfo = registeredModules[tostring(self)];
+  return registryInfo.enabled;
 end
 
 ---Hook more functions to a module event. Useful if module is spread across multiple files
 function BaseModule:Hook(_, eventName, func)
-    local registryInfo = registeredModules[tostring(self)];
-    MayronUI:Hook(registryInfo.moduleName, eventName, func);
+  local registryInfo = registeredModules[tostring(self)];
+  MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
 function BaseModule:TriggerEvent(_, eventName, ...)
-    local registryInfo = registeredModules[tostring(self)];
-    local hooks = registryInfo.hooks and registryInfo.hooks[eventName];
+  local registryInfo = registeredModules[tostring(self)];
+  local hooks = registryInfo.hooks and registryInfo.hooks[eventName];
 
-    if (self[eventName]) then
-        self[eventName](self, ...);
-    end
+  if (self[eventName]) then
+    self[eventName](self, ...);
+  end
 
-    if (hooks) then
-        for _, func in ipairs(hooks) do
-            func(self, registryInfo.moduleData);
-        end
+  if (hooks) then
+    for _, func in ipairs(hooks) do
+      func(self, registryInfo.moduleData);
     end
+  end
 end
 
 function BaseModule:RefreshSettings(data)
-    if (data.settings) then
-        data.settings:Refresh();
-    end
+  if (data.settings) then
+    data.settings:Refresh();
+  end
 end
 
 -- MayronUI Functions ---------------------
@@ -432,29 +443,29 @@ end
 ---@param tbl table @The table to print.
 ---@param depth number @The depth of sub-tables to traverse through and print.
 function MayronUI:PrintTable(tbl, depth)
-    tk.Tables:Print(tbl, depth);
+  tk.Tables:Print(tbl, depth);
 end
 
 function MayronUI:ShowReloadUIPopUp()
-    tk:ShowConfirmPopup("Some settings will not be changed until the UI has been reloaded.",
-        "Would you like to reload the UI now?", ReloadUI, "Reload UI", nil, "No", true);
+  tk:ShowConfirmPopup("Some settings will not be changed until the UI has been reloaded.",
+    "Would you like to reload the UI now?", ReloadUI, "Reload UI", nil, "No", true);
 end
 
 ---A helper function to print a variable argument list using the MayronUI prefix in the chat frame.
 function MayronUI:Print(...)
-    tk:Print(...);
+  tk:Print(...);
 end
 
 ---@return boolean @Returns true if MayronUI has been previously installing (usually using MUI_Setup).
 function MayronUI:IsInstalled()
-	return db.global.installed and db.global.installed[tk:GetPlayerKey()];
+  return db.global.installed and db.global.installed[tk:GetPlayerKey()];
 end
 
 ---@param commandName string @Trigger a MayronUI registered slash command (can optionally pass in arguments)
 function MayronUI:TriggerCommand(commandName, ...)
-    commandName = commandName:lower();
-    obj:Assert(commands[commandName], "Unknown command name '%s'", commandName);
-    commands[commandName](...);
+  commandName = commandName:lower();
+  obj:Assert(commands[commandName], "Unknown command name '%s'", commandName);
+  commands[commandName](...);
 end
 
 ---Hook more functions to a module event. Useful if module is spread across multiple files.
@@ -462,35 +473,35 @@ end
 ---@param eventName string @The name of the module event to hook (i.e. "OnInitialize", "OnEnable", etc...).
 ---@param func function @A callback function to execute when the module's event is triggered.
 function MayronUI:Hook(moduleKey, eventName, func)
-    local eventHooks = tk.Tables:GetTable(registeredModules, moduleKey, "hooks", eventName);
-    table.insert(eventHooks, func);
+  local eventHooks = tk.Tables:GetTable(registeredModules, moduleKey, "hooks", eventName);
+  table.insert(eventHooks, func);
 end
 
 ---@param moduleKey string @The unique key associated with the registered module.
 ---@return Class @Returns a module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:GetModuleClass(moduleKey)
-    local registryInfo = registeredModules[moduleKey];
+  local registryInfo = registeredModules[moduleKey];
 
-    if (not registryInfo) then
-        -- addon is disabled so cannot import module
-        return nil;
-    end
+  if (not registryInfo) then
+    -- addon is disabled so cannot import module
+    return nil;
+  end
 
-    return registryInfo and registryInfo.class;
+  return registryInfo and registryInfo.class;
 end
 
 ---@param moduleKey string @The unique key associated with the registered module.
 ---@param silent boolean @If silent, this function will return nil if the module cannot be found, else it will throw an error
 function MayronUI:ImportModule(moduleKey, silent)
-    local registryInfo = registeredModules[moduleKey];
+  local registryInfo = registeredModules[moduleKey];
 
-    if (not registryInfo) then
-        -- addon is disabled so cannot import module
-        obj:Assert(silent, "Failed to import module '%s'. Has it been registered?", moduleKey);
-        return nil;
-    end
+  if (not registryInfo) then
+    -- addon is disabled so cannot import module
+    obj:Assert(silent, "Failed to import module '%s'. Has it been registered?", moduleKey);
+    return nil;
+  end
 
-    return registryInfo and registryInfo.instance;
+  return registryInfo and registryInfo.instance;
 end
 
 ---MayronUI automatically initializes modules during the "PLAYER_ENTERING_WORLD" event unless initializeOnDemand is true.
@@ -499,270 +510,256 @@ end
 ---@param initializeOnDemand boolean @(optional) If true, must be initialized manually instead of
 ---@return Class @Returns a new module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
-    local ModuleClass = Engine:CreateClass(moduleKey, BaseModule);
-    local moduleInstance = ModuleClass();
+  local ModuleClass = Engine:CreateClass(moduleKey, BaseModule);
+  local moduleInstance = ModuleClass();
 
-    -- must add it to the registeredModules table before calling parent constructor!
-    registeredModules[moduleKey] = registeredModules[moduleKey] or obj:PopTable();
-    registeredModules[moduleKey].instance = moduleInstance;
-    registeredModules[moduleKey].class = ModuleClass;
+  -- must add it to the registeredModules table before calling parent constructor!
+  registeredModules[moduleKey] = registeredModules[moduleKey] or obj:PopTable();
+  registeredModules[moduleKey].instance = moduleInstance;
+  registeredModules[moduleKey].class = ModuleClass;
 
-    moduleInstance:Super(moduleKey, moduleName, initializeOnDemand); -- call parent constructor
+  moduleInstance:Super(moduleKey, moduleName, initializeOnDemand); -- call parent constructor
 
-    -- Make it easy to iterate through modules
-    table.insert(registeredModules, moduleInstance);
+  -- Make it easy to iterate through modules
+  table.insert(registeredModules, moduleInstance);
 
-    return ModuleClass;
+  return ModuleClass;
 end
 
 ---@return fun(): number, BaseModule @An iterator function to iterate through registered modules.
 function MayronUI:IterateModules()
-    local id = 0;
+  local id = 0;
 
-	return function()
-		id = id + 1;
-		if (id <= #registeredModules) then
-			return id, registeredModules[id];
-		end
-	end
+  return function()
+    id = id + 1;
+    if (id <= #registeredModules) then
+      return id, registeredModules[id];
+    end
+  end
 end
 
 function MayronUI:GetModules()
-    local moduleList = obj:PopTable();
+  local moduleList = obj:PopTable();
 
-    for _, module in MayronUI:IterateModules() do
-        table.insert(moduleList, module);
-    end
+  for _, module in MayronUI:IterateModules() do
+    table.insert(moduleList, module);
+  end
 
-    return moduleList;
+  return moduleList;
 end
 
 function MayronUI:GetModuleNames()
-    local moduleNamesList = obj:PopTable();
+  local moduleNamesList = obj:PopTable();
 
-    for _, module in MayronUI:IterateModules() do
-        table.insert(moduleNamesList, module:GetModuleName());
-    end
+  for _, module in MayronUI:IterateModules() do
+    table.insert(moduleNamesList, module:GetModuleName());
+  end
 
-    return moduleNamesList;
+  return moduleNamesList;
 end
 
 function MayronUI:GetModuleKeys()
-    local moduleKeysList = obj:PopTable();
+  local moduleKeysList = obj:PopTable();
 
-    for _, module in MayronUI:IterateModules() do
-        table.insert(moduleKeysList, module:GetModuleKey());
-    end
+  for _, module in MayronUI:IterateModules() do
+    table.insert(moduleKeysList, module:GetModuleKey());
+  end
 
-    return moduleKeysList;
+  return moduleKeysList;
 end
 
 -- Register Core Module ---------------------
-
 local C_CoreModule = MayronUI:RegisterModule("CoreModule", "MUI Core", true);
 
 function C_CoreModule:OnInitialize()
-    _G["SLASH_MUI1"] = "/mui";
-	_G.SlashCmdList.MUI = function(str)
+  _G["SLASH_MUI1"] = "/mui";
+  _G.SlashCmdList.MUI = function(str)
 
-		if (#str == 0) then
-			commands.help();
-			return;
-        end
+  if (#str == 0) then
+    commands.help();
+    return;
+  end
 
-        local args = obj:PopTable();
+  local args = obj:PopTable();
 
-		for _, arg in obj:IterateArgs(strsplit(' ', str)) do
-			if (#arg > 0) then
-                table.insert(args, arg);
-			end
-        end
+  for _, arg in obj:IterateArgs(strsplit(' ', str)) do
+    if (#arg > 0) then
+      table.insert(args, arg);
+    end
+  end
 
-        local path = commands;
+  local path = commands;
 
-		for id, arg in ipairs(args) do
-            arg = string.lower(arg);
+  for id, arg in ipairs(args) do
+    arg = string.lower(arg);
 
-			if (path[arg]) then
-				if (obj:IsFunction(path[arg])) then
-					path[arg](select(id + 1, unpack(args)));
-                    return;
+    if (path[arg]) then
+      if (obj:IsFunction(path[arg])) then
+        path[arg](select(id + 1, unpack(args)));
+        return;
 
-				elseif (obj:IsTable(path[arg])) then
-                    path = path[arg];
-				else
-					commands.help();
-                    return;
-                end
-			else
-				commands.help();
-                return;
-			end
-        end
+      elseif (obj:IsTable(path[arg])) then
+        path = path[arg];
+      else
+        commands.help();
+        return;
+      end
 
-        obj:PushTable(args);
+    else
+      commands.help();
+      return;
     end
 
-    -- Initialize all modules here!
-    for _, module in MayronUI:IterateModules() do
-        if (not module:IsInitializedOnDemand() and not module:IsInitialized()) then
-            -- initialize a module if not set for manual initialization
-            module:Initialize();
-        end
+  end
+    obj:PushTable(args);
+  end
+
+  -- Initialize all modules here!
+  for _, module in MayronUI:IterateModules() do
+    if (not module:IsInitializedOnDemand() and not module:IsInitialized()) then
+      -- initialize a module if not set for manual initialization
+      module:Initialize();
+    end
+  end
+
+  namespace:SetUpOrderHallBar();
+
+  if (_G.IsAddOnLoaded("Recount")) then
+    if (db.global.reanchorRecount) then
+      _G.Recount_MainWindow:ClearAllPoints();
+      _G.Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
+      _G.Recount_MainWindow:SaveMainWindowPosition();
+
+      db.global.reanchorRecount = nil;
     end
 
-    namespace:SetUpOrderHallBar();
+    -- Reskin Recount Window
+    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW",  _G.Recount_MainWindow);
 
-    if (_G.IsAddOnLoaded("Recount")) then
-        if (db.global.reanchorRecount) then
-            _G.Recount_MainWindow:ClearAllPoints();
-            _G.Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
-            _G.Recount_MainWindow:SaveMainWindowPosition();
+    _G.Recount_MainWindow:SetClampedToScreen(true);
+    _G.Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
+    _G.Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);
+  end
 
-            db.global.reanchorRecount = nil;
-        end
-
-        -- Reskin Recount Window
-        gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW",  _G.Recount_MainWindow);
-
-        _G.Recount_MainWindow:SetClampedToScreen(true);
-        _G.Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
-        _G.Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);
-    end
-
-    tk:Print(L["Welcome back"], _G.UnitName("player").."!");
-    _G.collectgarbage("collect");
-    DisableAddOn("MUI_Setup"); -- disable for next time
+  tk:Print(L["Welcome back"], _G.UnitName("player").."!");
+  _G.collectgarbage("collect");
+  DisableAddOn("MUI_Setup"); -- disable for next time
 end
 
 -- Initialize Modules after player enters world (not when DB starts!).
 -- Some dependencies, like Bartender, only load after this event.
 em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
-    for i = 1, _G.NUM_CHAT_WINDOWS do
-        _G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
+  for i = 1, _G.NUM_CHAT_WINDOWS do
+    _G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
+  end
+
+  _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
+  _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES, true);
+
+  if (not MayronUI:IsInstalled()) then
+    if (db.global.core.setup.profilePerCharacter) then
+      db:SetProfile(tk:GetPlayerKey());
     end
 
-    _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
-    _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES, true);
+    MayronUI:TriggerCommand("install");
+    return;
+  end
 
-    if (not MayronUI:IsInstalled()) then
-
-        if (db.global.core.setup.profilePerCharacter) then
-            db:SetProfile(tk:GetPlayerKey());
-        end
-
-        MayronUI:TriggerCommand("install");
-        return;
-    end
-
-    local coreModule = MayronUI:ImportModule("CoreModule");
-    coreModule:Initialize();
+  local coreModule = MayronUI:ImportModule("CoreModule");
+  coreModule:Initialize();
 
 end):SetAutoDestroy(true);
 
 -- Database Event callbacks --------------------
 
-db:OnProfileChange(function(self, newProfileName)
-    if (not MayronUI:IsInstalled() or (_G["MUI_Setup"] and _G["MUI_Setup"]:IsShown())) then
-        return;
+db:OnProfileChange(function(self, newProfileName, oldProfileName)
+  if (not MayronUI:IsInstalled() or (_G.MUI_Setup and _G.MUI_Setup:IsShown())) then
+    return;
+  end
+
+  for _, module in MayronUI:IterateModules() do
+    local registryInfo = registeredModules[tostring(module)];
+
+    if (not MayronUI:GetModuleComponent(registryInfo.moduleKey, "Database")) then
+      module:RefreshSettings();
+      module:ExecuteAllUpdateFunctions();
+      module:TriggerEvent("OnProfileChange", newProfileName);
     end
+  end
 
-    for _, module in MayronUI:IterateModules() do
-        local registryInfo = registeredModules[tostring(module)];
-
-        if (not MayronUI:GetModuleComponent(registryInfo.moduleKey, "Database")) then
-            module:RefreshSettings();
-            module:ExecuteAllUpdateFunctions();
-            module:TriggerEvent("OnProfileChange", newProfileName);
-        end
-    end
-
+  if (oldProfileName == newProfileName) then
+    tk:Print("Profile", tk.Strings:SetTextColorByKey(newProfileName, "gold"), "has been reset.");
+  else
     tk:Print("Profile changed to:", tk.Strings:SetTextColorByKey(newProfileName, "GOLD"));
+  end
 
-    MayronUI:ShowReloadUIPopUp();
+  MayronUI:ShowReloadUIPopUp();
 end);
 
 db:OnStartUp(function(self)
-    MayronUI.db = self;
+  MayronUI.db = self;
+  namespace:SetUpBagnon();
 
-    MigrateToGen6();
-    namespace:SetUpBagnon();
+  local r, g, b = tk:GetThemeColor();
 
-    local r, g, b = tk:GetThemeColor();
+  local myFont = _G.CreateFont("MUI_FontNormal");
+  myFont:SetFontObject("GameFontNormal");
+  myFont:SetTextColor(r, g, b);
 
-    local myFont = _G.CreateFont("MUI_FontNormal");
-    myFont:SetFontObject("GameFontNormal");
-    myFont:SetTextColor(r, g, b);
+  myFont = _G.CreateFont("MUI_FontSmall");
+  myFont:SetFontObject("GameFontNormalSmall");
+  myFont:SetTextColor(r, g, b);
 
-    myFont = _G.CreateFont("MUI_FontSmall");
-    myFont:SetFontObject("GameFontNormalSmall");
-    myFont:SetTextColor(r, g, b);
+  myFont = _G.CreateFont("MUI_FontLarge");
+  myFont:SetFontObject("GameFontNormalLarge");
+  myFont:SetTextColor(r, g, b);
 
-    myFont = _G.CreateFont("MUI_FontLarge");
-    myFont:SetFontObject("GameFontNormalLarge");
-    myFont:SetTextColor(r, g, b);
+  -- To keep UI widget styles consistent ----------
+  -- Can only use once Database is loaded...
+  ---@type Style
+  local Style = obj:Import("MayronUI.Widgets.Style");
 
-    -- To keep UI widget styles consistent ----------
-    -- Can only use once Database is loaded...
-    ---@type Style
-    local Style = obj:Import("MayronUI.Widgets.Style");
+  ---@type Style
+  tk.Constants.AddOnStyle = Style();
+  tk.Constants.AddOnStyle:SetPadding(10, 10, 10, 10);
+  tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");
+  tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "ButtonBackdrop");
+  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\Button"), "ButtonTexture");
+  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\GraphicalArrow"), "ArrowButtonTexture");
+  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\SmallArrow"), "SmallArrow");
+  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\Texture-"), "DialogBoxBackground");
+  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\TitleBar"), "TitleBarBackground");
+  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "CloseButtonBackground");
+  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\DragRegion"), "DraggerTexture");
+  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\TextField"), "TextField");
+  tk.Constants.AddOnStyle:SetColor(r, g, b);
+  tk.Constants.AddOnStyle:SetColor(r * 0.7, g * 0.7, b * 0.7, "Widget");
 
-    ---@type Style
-    tk.Constants.AddOnStyle = Style();
-    tk.Constants.AddOnStyle:SetPadding(10, 10, 10, 10);
-    tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");
-    tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "ButtonBackdrop");
-    tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\Button"), "ButtonTexture");
-    tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\GraphicalArrow"), "ArrowButtonTexture");
-    tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\SmallArrow"), "SmallArrow");
-    tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\Texture-"), "DialogBoxBackground");
-    tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\TitleBar"), "TitleBarBackground");
-    tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "CloseButtonBackground");
-    tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\DragRegion"), "DraggerTexture");
-    tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\TextField"), "TextField");
-    tk.Constants.AddOnStyle:SetColor(r, g, b);
-    tk.Constants.AddOnStyle:SetColor(r * 0.7, g * 0.7, b * 0.7, "Widget");
+  -- Load Media using LibSharedMedia --------------
+  local media = tk.Constants.LSM;
 
-    -- Load Media using LibSharedMedia --------------
+  media:Register(media.MediaType.FONT, "MUI_Font", tk:GetAssetFilePath("Fonts\\MayronUI.ttf"));
+  media:Register(media.MediaType.FONT, "Imagine", tk:GetAssetFilePath("Fonts\\Imagine.ttf"));
+  media:Register(media.MediaType.FONT, "Prototype", tk:GetAssetFilePath("Fonts\\Prototype.ttf"));
+  media:Register(media.MediaType.STATUSBAR, "MUI_StatusBar", tk:GetAssetFilePath("Textures\\Widgets\\Button.tga"));
+  media:Register(media.MediaType.BORDER, "Skinner", tk:GetAssetFilePath("Borders\\Solid.tga"));
+  media:Register(media.MediaType.BORDER, "Glow", tk:GetAssetFilePath("Borders\\Glow.tga"));
 
-    local media = tk.Constants.LSM;
+  -- Set Master Game Font Here! -------------------
 
-    media:Register(media.MediaType.FONT, "MUI_Font", tk:GetAssetFilePath("Fonts\\MayronUI.ttf"));
-    media:Register(media.MediaType.FONT, "Imagine", tk:GetAssetFilePath("Fonts\\Imagine.ttf"));
-    media:Register(media.MediaType.FONT, "Prototype", tk:GetAssetFilePath("Fonts\\Prototype.ttf"));
-    media:Register(media.MediaType.STATUSBAR, "MUI_StatusBar", tk:GetAssetFilePath("Textures\\Widgets\\Button.tga"));
-    media:Register(media.MediaType.BORDER, "Skinner", tk:GetAssetFilePath("Borders\\Solid.tga"));
-    media:Register(media.MediaType.BORDER, "Glow", tk:GetAssetFilePath("Borders\\Glow.tga"));
+  if (self.global.core.changeGameFont ~= false) then
+    tk:SetGameFont(media:Fetch("font", self.global.core.font));
+  end
 
-    -- Set Master Game Font Here! -------------------
+  obj:SetErrorHandler(function(errorMessage, stack, locals)
+    local hideErrorFrame = not _G.GetCVarBool("scriptErrors");
+    _G.ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
+    _G.ScriptErrorsFrame.Title:SetText("MayronUI Error");
+    _G.ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
+    _G.ScriptErrorsFrame.Title.SetText = function() end;
+    _G.ScriptErrorsFrame.DisplayMessage = function() end;
+    error();
+  end);
 
-    if (self.global.core.changeGameFont ~= false) then
-        tk:SetGameFont(media:Fetch("font", self.global.core.font));
-    end
-
-    obj:SetErrorHandler(function(errorMessage, stack, locals)
-        local hideErrorFrame = not _G.GetCVarBool("scriptErrors");
-        _G.ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
-        _G.ScriptErrorsFrame.Title:SetText("MayronUI Error");
-        _G.ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
-        _G.ScriptErrorsFrame.Title.SetText = function() end;
-        _G.ScriptErrorsFrame.DisplayMessage = function() end;
-        error();
-    end);
-
-    tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
+  tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
 end);
-
--- MUI Gen5 to Gen6 Migration:
-function MigrateToGen6()
-    local gen5 = _G.MUIdb;
-
-    if (not (obj:IsTable(gen5) and obj:IsTable(db:ParsePathValue(gen5, "global.core.addons")))) then
-        return;
-    end
-
-    local setup = tk.Tables:GetTable(_G.MayronUIdb.global, "core", "setup");
-    setup.addOns = gen5.global.core.addons;
-
-    table.insert(setup.addOns, 2, {"Bagnon", true, "Bagnon"});
-end

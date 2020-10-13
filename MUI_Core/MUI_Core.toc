@@ -1,9 +1,9 @@
-## Interface: 90001
+## Interface: 80300
 ## Title: |cff00ccffMUI|r Core
-## SavedVariables: MayronUIdb
+## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
-## Version: 6.0.12
+## Version: 6.1.3
 ## X-InterfaceName: MayronUI Gen6
 
 ## Links:
@@ -31,6 +31,9 @@ Libs\LibMayronGUI-1.0\LibMayronGUI.xml
 Libs\LibSharedMedia-3.0\CallbackHandler-1.0.lua
 Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
 Libs\AceLocale-3.0.lua
+Libs\SortBags.lua
+Libs\LibClassicCasterino.lua
+Libs\LibClassicDurations\LibClassicDurations.xml
 
 ## Localization
 ## ------------------------------------------------

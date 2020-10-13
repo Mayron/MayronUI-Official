@@ -8,6 +8,7 @@
     <Script file="BottomUI\ResourceBars\ArtifactBar.lua"/>
     <Script file="BottomUI\ResourceBars\AzeriteBar.lua"/>
     <Script file="BottomUI\ActionBarPanel.lua"/>
+	
     <Script file="ObjectiveTracker.lua"/>
     <Script file="SideBar.lua"/>
     <Script file="AFKDisplay.lua"/>
@@ -15,4 +16,37 @@
     <Script file="MovableFrames.lua"/>
     <Script file="Tutorial.lua"/>
     <Script file="BagnonChanges.lua"/>
+	
+	<Script file="Auras\Aura.lua"/>
+	<Script file="Auras\Auras.lua"/>
+	<Script file="Auras\Auras.config.lua"/>
+	
+	<Script file="CastBars\CastBars.lua"/>
+	<Script file="CastBars\CastBars.config.lua"/>
+	
+	<Script file="Chat\Chat.lua"/>
+	<Script file="Chat\ButtonHandlers.lua"/>
+	<Script file="Chat\ChatFrame.lua"/>
+	<Script file="Chat\BlizzardFrames\ChatFrame.lua"/>
+	<Script file="Chat\BlizzardFrames\RaidFrameManager.lua"/>
+	<Script file="Chat\Chat.config.lua"/>
+	
+	<Script file="DataText\DataText.lua"/>
+	<Script file="DataText\Components\CombatTimer.lua"/>
+	<Script file="DataText\Components\Currency.lua"/>
+	<Script file="DataText\Components\Durability.lua"/>
+	<Script file="DataText\Components\Friends.lua"/>
+	<Script file="DataText\Components\Guild.lua"/>
+	<Script file="DataText\Components\Inventory.lua"/>
+	<Script file="DataText\Components\Memory.lua"/>
+	<Script file="DataText\Components\None.lua"/>
+	<Script file="DataText\Components\Performance.lua"/>
+	<Script file="DataText\Components\Specialization.lua"/>
+	<Script file="DataText\DataText.config.lua"/>
+	
+	<Script file="MiniMap\MiniMap.lua"/>
+	<Script file="MiniMap\MiniMap.config.lua"/>
+	
+	<Script file="TimerBars\TimerBars.lua"/>
+	<Script file="TimerBars\TimerBars.config.lua"/>
 </Ui>

@@ -138,6 +138,14 @@ function tk:GetPlayerKey()
     return key;
 end
 
+function tk:IsRetail()
+  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE;
+end
+
+function tk:IsClassic()
+  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC;
+end
+
 function tk:GetMaxPlayerLevel()
     if (_G.IsTrialAccount()) then
         return 20;
@@ -371,28 +379,28 @@ do
     end
 
     local function ShowConfirmPopup(message, subMessage, onConfirm, confirmText, onCancel, cancelText, isWarning, ...)
-        local popup = GetPopup(message, subMessage);
+      local popup = GetPopup(message, subMessage);
 
-        popup.hasEditBox = false;
-        popup.button1 = confirmText or L["Confirm"];
-        popup.button2 = cancelText or L["Cancel"];
-        popup.OnAccept = PopUp_OnAccept;
-        popup.OnCancel = onCancel;
+      popup.hasEditBox = false;
+      popup.button1 = confirmText or L["Confirm"];
+      popup.button2 = cancelText or L["Cancel"];
+      popup.OnAccept = PopUp_OnAccept;
+      popup.OnCancel = onCancel;
 
-        if (isWarning) then
-            popup.showAlert = true;
-        end
+      if (isWarning) then
+          popup.showAlert = true;
+      end
 
-        popup.data.OnAccept = onConfirm;
-        popup.data.OnValidate = nil;
-        StoreArgs(popup, ...);
+      popup.data.OnAccept = onConfirm;
+      popup.data.OnValidate = nil;
+      StoreArgs(popup, ...);
 
-        return popup;
+      return popup;
     end
 
     function tk:ShowConfirmPopup(...)
-        local popup = ShowConfirmPopup(...);
-        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+      local popup = ShowConfirmPopup(...);
+      _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
 
     function tk:ShowConfirmPopupWithInsertedFrame(insertedFrame, ...)
@@ -457,14 +465,18 @@ do
 
             if (obj:IsTable(callbackData)) then
                 -- pass to callback function all custom args and then the real hooksecurefunc args
-                local unhook = callbackData[1](unpack(args));
+                local callback = callbackData[1];
 
-                if (unhook) then
-                    if (tbl) then
-                        tk:UnhookFunc(tbl, methodName, callbackData[1]);
-                    else
-                        tk:UnhookFunc(methodName, callbackData[1]);
-                    end
+                if (obj:IsFunction(callback)) then
+                  local unhook = callbackData[1](unpack(args));
+
+                  if (unhook) then
+                      if (tbl) then
+                          tk:UnhookFunc(tbl, methodName, callbackData[1]);
+                      else
+                          tk:UnhookFunc(methodName, callbackData[1]);
+                      end
+                  end
                 end
             end
 
@@ -473,23 +485,23 @@ do
     end
 
     function tk:HookFunc(tbl, methodName, callback, ...)
-        if (obj:IsString(tbl)) then
-            local realGlobalMethodName = tbl;
-            local realCallback = methodName;
-            local firstArg = callback;
+      if (obj:IsString(tbl)) then
+        local realGlobalMethodName = tbl;
+        local realCallback = methodName;
+        local firstArg = callback;
 
-            local key = string.format("%s|%s", realGlobalMethodName, tostring(realCallback));
-            local callbackWrapper = CreateCallbackWrapper(key, tbl, methodName);
+        local key = string.format("%s|%s", realGlobalMethodName, tostring(realCallback));
+        local callbackWrapper = CreateCallbackWrapper(key, tbl, methodName);
 
-            callbacks[key] = obj:PopTable(realCallback, firstArg, ...);
-            hooksecurefunc(realGlobalMethodName, callbackWrapper);
-        else
-            local key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
-            local callbackWrapper = CreateCallbackWrapper(key, tbl, methodName);
+        callbacks[key] = obj:PopTable(realCallback, firstArg, ...);
+        hooksecurefunc(realGlobalMethodName, callbackWrapper);
+      else
+        local key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
+        local callbackWrapper = CreateCallbackWrapper(key, tbl, methodName);
 
-            callbacks[key] = obj:PopTable(callback, ...);
-            hooksecurefunc(tbl, methodName, callbackWrapper);
-        end
+        callbacks[key] = obj:PopTable(callback, ...);
+        hooksecurefunc(tbl, methodName, callbackWrapper);
+      end
     end
 
     function tk:UnhookFunc(tbl, methodName, callback)
