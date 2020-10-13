@@ -501,6 +501,7 @@ function C_ChatModule:SwitchLayouts(data, layoutName, layoutData)
 			end
 		end
   end
+
   for _, btn in ipairs(data.layoutButtons) do
     btn:SetText(layoutName:sub(1, 1):upper());
   end
@@ -511,6 +512,7 @@ end
 -- must be before chat is initialized!
 for i = 1, NUM_CHAT_WINDOWS do
   _G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
+<<<<<<< HEAD:MUI_Core/Modules/Chat/Chat.lua
   local editBox = _G["ChatFrame"..i.."EditBox"];
 
   if (_G.BackdropTemplateMixin) then
@@ -518,4 +520,6 @@ for i = 1, NUM_CHAT_WINDOWS do
     editBox:OnBackdropLoaded();
     editBox:SetScript("OnSizeChanged", editBox.OnBackdropSizeChanged);
   end
+=======
+>>>>>>> a4aa579125a6a6f939cdc7a06135d27f12bdb1a6:MUI_Chat/MUI_Chat.lua
 end

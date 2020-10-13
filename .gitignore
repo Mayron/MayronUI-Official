@@ -1,10 +1,12 @@
 # Exclude everything by default
 /*
+*.toc
 
 # Except AddOns prefixed with "MUI_"
 !/MUI_*
 !/LibMayronDB
 !/LibMayronObjects
+!.pkg*
 
 !.github
 !.gitignore

@@ -9,6 +9,10 @@ if (tk:IsClassic()) then return end
 ---@class ObjectiveTrackerModule : BaseModule
 local C_ObjectiveTracker = MayronUI:RegisterModule("ObjectiveTrackerModule", L["Objective Tracker"], true);
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a4aa579125a6a6f939cdc7a06135d27f12bdb1a6
 MayronUI:Hook("SideBarModule", "OnEnable", function(sideBarModule)
   MayronUI:ImportModule("ObjectiveTrackerModule"):Initialize(sideBarModule);
 end);
@@ -18,6 +22,7 @@ ObjectiveTracker_Expand, UIParent, hooksecurefunc, ipairs =
 _G.ObjectiveTrackerFrame, _G.IsInInstance, _G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update,
 _G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs;
 
+<<<<<<< HEAD
 local GetQuestDifficultyColor = _G.GetQuestDifficultyColor;
 local C_QuestLog = _G.C_QuestLog;
 
@@ -42,18 +47,33 @@ local function UpdateQuestDifficultyColors(block)
     end
 
   elseif (_G.GetNumQuestLogEntries) then
-      for questLogIndex = 1, _G.GetNumQuestLogEntries() do
-          local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
+    for questLogIndex = 1, _G.GetNumQuestLogEntries() do
+      local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
 
-          if (questID == block.id) then
-            -- bonus quests do not have HeaderText
-              if (block.HeaderText) then
-                SetHeaderColor(block.HeaderText, level, isScaling);
-              end
-            break;
+      if (questID == block.id) then
+        -- bonus quests do not have HeaderText
+          if (block.HeaderText) then
+            SetHeaderColor(block.HeaderText, level, isScaling);
           end
+        break;
       end
-   end
+=======
+local function UpdateQuestDifficultyColors(block)
+  for questLogIndex = 1, _G.GetNumQuestLogEntries() do
+    local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
+
+    if (questID == block.id) then
+      -- bonus quests do not have HeaderText
+        if (block.HeaderText) then
+          local difficultyColor = _G.GetQuestDifficultyColor(level, isScaling);
+          block.HeaderText:SetTextColor(difficultyColor.r, difficultyColor.g, difficultyColor.b);
+          block.HeaderText.colorStyle = difficultyColor;
+        end
+
+      break;
+>>>>>>> a4aa579125a6a6f939cdc7a06135d27f12bdb1a6
+    end
+  end
 end
 
 db:AddToDefaults("profile.objectiveTracker", {

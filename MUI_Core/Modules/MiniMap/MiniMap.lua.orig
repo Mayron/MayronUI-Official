@@ -189,7 +189,9 @@ function C_MiniMapModule:OnEnable(data)
 	_G.MinimapCluster:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0);
 	_G.MinimapCluster:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 0, 0);
 
+<<<<<<< HEAD:MUI_Core/Modules/MiniMap/MiniMap.lua
   Minimap:EnableMouseWheel(true);
+
   if (_G.BackdropTemplateMixin) then
     _G.Mixin(Minimap, _G.BackdropTemplateMixin);
     Minimap:OnBackdropLoaded();
@@ -197,6 +199,10 @@ function C_MiniMapModule:OnEnable(data)
   end
 
 	Minimap.size = Minimap:CreateFontString(nil, "ARTWORK");
+=======
+	Minimap:EnableMouseWheel(true);
+	Minimap.size = Minimap:CreateFontString(nil, "ARTWORK")
+>>>>>>> a4aa579125a6a6f939cdc7a06135d27f12bdb1a6:MUI_MiniMap/MUI_MiniMap.lua
 	Minimap.size:SetFontObject("GameFontNormalLarge");
 	Minimap.size:SetPoint("TOP", Minimap, "BOTTOM", 0, 40);
 
@@ -432,10 +438,15 @@ function C_MiniMapModule:OnEnable(data)
     _G.GarrisonLandingPageMinimapButton:SetAlpha(0);
     _G.GarrisonLandingPageMinimapButton:ClearAllPoints();
     _G.GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", UIParent, "TOPRIGHT", 5, 5);
+<<<<<<< HEAD:MUI_Core/Modules/MiniMap/MiniMap.lua
 
     if (_G.GarrisonLandingPageTutorialBox) then
       _G.GarrisonLandingPageTutorialBox:Hide()
       _G.GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
     end
+=======
+    _G.GarrisonLandingPageTutorialBox:Hide()
+    _G.GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
+>>>>>>> a4aa579125a6a6f939cdc7a06135d27f12bdb1a6:MUI_MiniMap/MUI_MiniMap.lua
   end
 end
