@@ -95,10 +95,17 @@ function Currency:__Construct(data, settings, dataTextModule, slideController)
 
   local calendarDate;
 
-  if (_G.C_Calendar) then
-    calendarDate = _G.C_Calendar.GetDate()
+  if (_G.C_Calendar.GetDate) then
+    calendarDate = _G.C_Calendar:GetDate();
+
+  elseif (_G.C_DateAndTime.GetTodaysDate) then
+    calendarDate = _G.C_DateAndTime:GetTodaysDate();
+
+  elseif (_G.C_DateAndTime.GetCurrentCalendarTime) then
+    calendarDate = _G.C_DateAndTime:GetCurrentCalendarTime();
+
   else
-    calendarDate = _G.C_DateAndTime:GetTodaysDate()
+    obj:Error("Failed to call calendar API");
   end
 
   local month = calendarDate["month"];

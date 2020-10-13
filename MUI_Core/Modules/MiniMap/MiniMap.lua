@@ -10,11 +10,11 @@ namespace.C_MiniMapModule = C_MiniMapModule;
 
 local _G = _G;
 local Minimap, math, table, C_Timer, Minimap_ZoomIn, Minimap_ZoomOut, GameTooltip, IsAltKeyDown,
-CreateFrame, LoadAddOn, InCombatLockdown, IsAddOnLoaded, ToggleHelpFrame, GarrisonLandingPage_Toggle,
+CreateFrame, LoadAddOn, InCombatLockdown, IsAddOnLoaded, GarrisonLandingPage_Toggle,
 ToggleDropDownMenu, PlaySound, EasyMenu, UIParent, select =
 _G.Minimap, _G.math, _G.table, _G.C_Timer, _G.Minimap_ZoomIn, _G.Minimap_ZoomOut, _G.GameTooltip,
 _G.IsAltKeyDown, _G.CreateFrame, _G.LoadAddOn, _G.InCombatLockdown, _G.IsAddOnLoaded,
-_G.ToggleHelpFrame, _G.GarrisonLandingPage_Toggle, _G.ToggleDropDownMenu,
+_G.GarrisonLandingPage_Toggle, _G.ToggleDropDownMenu,
 _G.PlaySound, _G.EasyMenu, _G.UIParent, _G.select;
 
 local zoneText = _G.MinimapZoneText;
@@ -189,8 +189,14 @@ function C_MiniMapModule:OnEnable(data)
 	_G.MinimapCluster:SetPoint("TOPLEFT", Minimap, "TOPLEFT", 0, 0);
 	_G.MinimapCluster:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 0, 0);
 
-	Minimap:EnableMouseWheel(true);
-	Minimap.size = Minimap:CreateFontString(nil, "ARTWORK")
+  Minimap:EnableMouseWheel(true);
+  if (_G.BackdropTemplateMixin) then
+    _G.Mixin(Minimap, _G.BackdropTemplateMixin);
+    Minimap:OnBackdropLoaded();
+    Minimap:SetScript("OnSizeChanged", Minimap.OnBackdropSizeChanged);
+  end
+
+	Minimap.size = Minimap:CreateFontString(nil, "ARTWORK");
 	Minimap.size:SetFontObject("GameFontNormalLarge");
 	Minimap.size:SetPoint("TOP", Minimap, "BOTTOM", 0, 40);
 
@@ -426,7 +432,10 @@ function C_MiniMapModule:OnEnable(data)
     _G.GarrisonLandingPageMinimapButton:SetAlpha(0);
     _G.GarrisonLandingPageMinimapButton:ClearAllPoints();
     _G.GarrisonLandingPageMinimapButton:SetPoint("BOTTOMLEFT", UIParent, "TOPRIGHT", 5, 5);
-    _G.GarrisonLandingPageTutorialBox:Hide()
-    _G.GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
+
+    if (_G.GarrisonLandingPageTutorialBox) then
+      _G.GarrisonLandingPageTutorialBox:Hide()
+      _G.GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
+    end
   end
 end

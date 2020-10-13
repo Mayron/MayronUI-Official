@@ -6,11 +6,12 @@ local ComponentsPackage = namespace.ComponentsPackage;
 
 local LABEL_PATTERN = L["Guild"]..": |cffffffff%u|r";
 
-local _G = _G;
 local strsplit, unpack, CreateFrame, GameTooltip, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1,
-IsInGuild, GuildRoster, GetNumGuildMembers, GetGuildRosterInfo, IsTrialAccount, ToggleGuildFrame =
+IsInGuild, GetNumGuildMembers, GetGuildRosterInfo, IsTrialAccount, ToggleGuildFrame =
 _G.strsplit, _G.unpack, _G.CreateFrame, _G.GameTooltip, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1,
-_G.IsInGuild, _G.GuildRoster, _G.GetNumGuildMembers, _G.GetGuildRosterInfo, _G.IsTrialAccount, _G.ToggleGuildFrame;
+_G.IsInGuild, _G.GetNumGuildMembers, _G.GetGuildRosterInfo, _G.IsTrialAccount, _G.ToggleGuildFrame;
+
+local GuildRoster = _G.GuildRoster or (_G.C_GuildInfo and _G.C_GuildInfo.GuildRoster);
 
 -- Register and Import Modules -------
 

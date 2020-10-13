@@ -501,7 +501,6 @@ function C_ChatModule:SwitchLayouts(data, layoutName, layoutData)
 			end
 		end
   end
-
   for _, btn in ipairs(data.layoutButtons) do
     btn:SetText(layoutName:sub(1, 1):upper());
   end
@@ -512,4 +511,11 @@ end
 -- must be before chat is initialized!
 for i = 1, NUM_CHAT_WINDOWS do
   _G["ChatFrame"..i]:SetClampRectInsets(0, 0, 0, 0);
+  local editBox = _G["ChatFrame"..i.."EditBox"];
+
+  if (_G.BackdropTemplateMixin) then
+    _G.Mixin(editBox, _G.BackdropTemplateMixin);
+    editBox:OnBackdropLoaded();
+    editBox:SetScript("OnSizeChanged", editBox.OnBackdropSizeChanged);
+  end
 end
