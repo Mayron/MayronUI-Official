@@ -398,15 +398,19 @@ do
         bar:RegisterEvent("MIRROR_TIMER_START");
         bar:RegisterEvent("MIRROR_TIMER_STOP");
       else
-        if (data.unitID == "player" or not LibCC) then
+        if (tk:IsRetail() or data.unitID == "player") then
           bar:RegisterUnitEvent("UNIT_SPELLCAST_START", data.unitID);
-          bar:RegisterUnitEvent("UNIT_SPELLCAST_STOP", data.unitID);
-          bar:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_DELAYED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_UPDATE", data.unitID);
+
+          if (tk:IsClassic()) then
+              -- These 2 are unnecessary in retail for some reason, and cause problems if enabled
+              bar:RegisterUnitEvent("UNIT_SPELLCAST_STOP", data.unitID);
+              bar:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", data.unitID);
+          end
         else
           local wrapper = function(event, unitID, ...)
             if (unitID == data.unitID) then
