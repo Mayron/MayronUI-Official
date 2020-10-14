@@ -1,11 +1,10 @@
 -- luacheck: ignore MayronUI LibStub self 143 631
 local _, namespace = ...;
-
-local _G = _G;
 local string, tostring, select, unpack, type = _G.string, _G.tostring, _G.select, _G.unpack, _G.type;
 local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.pcall, _G.error;
-local hooksecurefunc = _G.hooksecurefunc;
-local LibStub = _G.LibStub;
+local hooksecurefunc, UnitLevel, UnitClass = _G.hooksecurefunc, _G.UnitLevel, _G.UnitClass;
+local LibStub, IsTrialAccount = _G.LibStub, _G.IsTrialAccount;
+local UnitQuestTrivialLevelRange, GetQuestGreenRange = _G.UnitQuestTrivialLevelRange, _G.GetQuestGreenRange;
 
 namespace.components = {};
 namespace.components.Objects = LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
@@ -82,27 +81,41 @@ do
     end
 end
 
-function tk:GetDifficultyColor(level)
-    local difference = (level - _G.UnitLevel("player"));
+do
+  local function GetPlayerLevelRange()
+    if (GetQuestGreenRange) then
+      return GetQuestGreenRange();
+    end
+
+    if (UnitQuestTrivialLevelRange) then
+      return UnitQuestTrivialLevelRange("player");
+    end
+
+    return 5;
+  end
+
+  function tk:GetDifficultyColor(level)
+    local difference = (level - UnitLevel("player"));
     local color;
 
     if (difference >= 5) then
-        color = _G.QuestDifficultyColors["impossible"];
+      color = _G.QuestDifficultyColors["impossible"];
 
     elseif (difference >= 3) then
-        color = _G.QuestDifficultyColors["verydifficult"];
+      color = _G.QuestDifficultyColors["verydifficult"];
 
     elseif (difference >= -2 or level < 0) then
-        color = _G.QuestDifficultyColors["difficult"];
+      color = _G.QuestDifficultyColors["difficult"];
 
-    elseif (-difference <= _G.GetQuestGreenRange()) then
-        color = _G.QuestDifficultyColors["standard"];
+    elseif (-difference <= GetPlayerLevelRange()) then
+      color = _G.QuestDifficultyColors["standard"];
 
     else
-        color = _G.QuestDifficultyColors["trivial"];
+      color = _G.QuestDifficultyColors["trivial"];
     end
 
     return color;
+  end
 end
 
 function tk:Equals(value1, value2, deepEquals)
@@ -147,45 +160,16 @@ function tk:IsClassic()
 end
 
 function tk:GetMaxPlayerLevel()
-    if (_G.IsTrialAccount()) then
-        return 20;
-    else
-        local id = _G.GetAccountExpansionLevel();
-
-        if (id == 0) then
-            return 60;
-
-        elseif (id == 1) then
-            return 70;
-
-        elseif (id == 2) then
-            return 80;
-
-        elseif (id == 3) then
-            return 85;
-
-        elseif (id == 4) then
-            return 90;
-
-        elseif (id == 5) then
-            return 100;
-
-        elseif (id == 6) then
-            return 110;
-
-        elseif (id == 7) then
-            return 120;
-        end
-    end
+  return IsTrialAccount() and 20 or 60;
 end
 
 function tk:IsPlayerMaxLevel()
-    local playerLevel = _G.UnitLevel("player");
+    local playerLevel = UnitLevel("player");
     return (self:GetMaxPlayerLevel() == playerLevel);
 end
 
 function tk:GetLocalizedUnitClassName(unit)
-    return select(2, _G.UnitClass(unit));
+    return select(2, UnitClass(unit));
 end
 
 function tk:GetLocalizedClassName(className)
