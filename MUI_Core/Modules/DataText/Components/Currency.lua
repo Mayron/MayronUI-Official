@@ -96,16 +96,17 @@ function Currency:__Construct(data, settings, dataTextModule, slideController)
 
   local calendarDate;
 
-  if (C_Calendar and C_Calendar.GetDate) then
-    calendarDate = C_Calendar:GetDate();
-
-  elseif (C_DateAndTime and C_DateAndTime.GetTodaysDate) then
+  if (C_DateAndTime and C_DateAndTime.GetTodaysDate) then
     -- classic uses this
     calendarDate = C_DateAndTime:GetTodaysDate();
 
   elseif (C_DateAndTime and C_DateAndTime.GetCurrentCalendarTime) then
+    -- retail uses this
     calendarDate = C_DateAndTime:GetCurrentCalendarTime();
 
+  elseif (C_Calendar and C_Calendar.GetDate) then
+    -- old version (shouldn't work)
+    calendarDate = C_Calendar:GetDate();
   else
     obj:Error("Failed to call calendar API");
   end
