@@ -483,7 +483,15 @@ function C_ConfigModule:GetConfigTable()
                     args = { "Artifact", "Azerite", "Experience", "Reputation" };
                     func = function(id, name)
                         if (tk:IsClassic() and (name == "Artifact" or name == "Azerite")) then
-                          return;
+                          return
+                        end
+
+                        if (name == "Azerite" and not _G.AzeriteBarMixin:ShouldBeVisible()) then
+                          return
+                        end
+
+                        if (name == "Artifact" and not _G.ArtifactBarMixin:ShouldBeVisible()) then
+                          return
                         end
 
                         local key = name:lower().."Bar";

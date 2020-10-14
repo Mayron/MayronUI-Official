@@ -52,7 +52,7 @@ end
 
 ResourceBarsPackage:DefineReturns("boolean");
 function C_AzeriteBar:CanUse()
-    return _G.AzeriteBarMixin:ShouldBeVisible(); -- this is a static mixin method
+    return _G.AzeriteBarMixin:ShouldBeVisible() == true; -- this is a static mixin method
 end
 
 ResourceBarsPackage:DefineParams("boolean");

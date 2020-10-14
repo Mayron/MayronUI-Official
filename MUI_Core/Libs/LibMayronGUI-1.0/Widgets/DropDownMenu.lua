@@ -57,17 +57,15 @@ end
 function Lib:CreateDropDown(style, parent, direction)
 
   if (not DropDownMenu.Static.Menu) then
-    DropDownMenu.Static.Menu = Lib:CreateScrollFrame(
-      style, _G.UIParent, "MUI_DropDownMenu", _G.BackdropTemplateMixin and "BackdropTemplate");
-
-    DropDownMenu.Static.Menu:Hide();
+    DropDownMenu.Static.Menu = Lib:CreateScrollFrame(style, _G.UIParent, "MUI_DropDownMenu");
 
     if (_G.BackdropTemplateMixin) then
-        _G.Mixin(DropDownMenu.Static.Menu, _G.BackdropTemplateMixin);
-        DropDownMenu.Static.Menu:OnBackdropLoaded();DropDownMenu.Static.Menu:OnBackdropLoaded();
-        DropDownMenu.Static.Menu:SetScript("OnSizeChanged", DropDownMenu.Static.Menu.OnBackdropSizeChanged);
+      _G.Mixin(DropDownMenu.Static.Menu, _G.BackdropTemplateMixin);
+      DropDownMenu.Static.Menu:OnBackdropLoaded();DropDownMenu.Static.Menu:OnBackdropLoaded();
+      DropDownMenu.Static.Menu:SetScript("OnSizeChanged", DropDownMenu.Static.Menu.OnBackdropSizeChanged);
     end
 
+    DropDownMenu.Static.Menu:Hide();
     DropDownMenu.Static.Menu:SetBackdrop(style:GetBackdrop("DropDownMenu"));
     DropDownMenu.Static.Menu:SetBackdropBorderColor(style:GetColor("Widget"));
     DropDownMenu.Static.Menu:SetScript("OnHide", FoldAll);
@@ -97,7 +95,7 @@ function Lib:CreateDropDown(style, parent, direction)
   dropDownContainer.toggleButton.child = dropDownContainer.child; -- needed for OnClick
   dropDownContainer.toggleButton:SetScript("OnClick", DropDownToggleButton_OnClick);
 
-  local header = CreateFrame("Frame", nil, dropDownContainer);
+  local header = CreateFrame("Frame", nil, dropDownContainer, _G.BackdropTemplateMixin and "BackdropTemplate");
   header:SetPoint("TOPLEFT", dropDownContainer);
   header:SetPoint("BOTTOMRIGHT", dropDownContainer.toggleButton, "BOTTOMLEFT", -2, 0);
   header:SetBackdrop(style:GetBackdrop("DropDownMenu"));

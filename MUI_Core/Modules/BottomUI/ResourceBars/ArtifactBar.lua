@@ -50,7 +50,7 @@ end
 
 ResourceBarsPackage:DefineReturns("boolean");
 function C_ArtifactBar:CanUse()
-    return _G.ArtifactBarMixin:ShouldBeVisible(); -- this is a static mixin method
+    return _G.ArtifactBarMixin:ShouldBeVisible() == true; -- this is a static mixin method
 end
 
 ResourceBarsPackage:DefineParams("boolean");
