@@ -61,7 +61,7 @@ function Lib:CreateDropDown(style, parent, direction)
 
     if (_G.BackdropTemplateMixin) then
       _G.Mixin(DropDownMenu.Static.Menu, _G.BackdropTemplateMixin);
-      DropDownMenu.Static.Menu:OnBackdropLoaded();DropDownMenu.Static.Menu:OnBackdropLoaded();
+      DropDownMenu.Static.Menu:OnBackdropLoaded();
       DropDownMenu.Static.Menu:SetScript("OnSizeChanged", DropDownMenu.Static.Menu.OnBackdropSizeChanged);
     end
 
