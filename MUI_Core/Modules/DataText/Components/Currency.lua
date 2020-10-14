@@ -1,5 +1,5 @@
 local _, namespace = ...;
-local _G, MayronUI = _G, _G.MayronUI;
+local MayronUI = _G.MayronUI;
 
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
@@ -9,6 +9,7 @@ local LABEL_PATTERN = "|cffffffff%s|r";
 local tonumber, string, math = _G.tonumber, _G.string, _G.math;
 local GetMoney, ipairs, strsplit = _G.GetMoney, _G.ipairs, _G.strsplit;
 local GameTooltip = _G.GameTooltip;
+local C_Calendar, C_DateAndTime = _G.C_Calendar, _G.C_DateAndTime;
 
 -- Objects ---------------------------
 
@@ -95,14 +96,15 @@ function Currency:__Construct(data, settings, dataTextModule, slideController)
 
   local calendarDate;
 
-  if (_G.C_Calendar.GetDate) then
-    calendarDate = _G.C_Calendar:GetDate();
+  if (C_Calendar and C_Calendar.GetDate) then
+    calendarDate = C_Calendar:GetDate();
 
-  elseif (_G.C_DateAndTime.GetTodaysDate) then
-    calendarDate = _G.C_DateAndTime:GetTodaysDate();
+  elseif (C_DateAndTime and C_DateAndTime.GetTodaysDate) then
+    -- classic uses this
+    calendarDate = C_DateAndTime:GetTodaysDate();
 
-  elseif (_G.C_DateAndTime.GetCurrentCalendarTime) then
-    calendarDate = _G.C_DateAndTime:GetCurrentCalendarTime();
+  elseif (C_DateAndTime and C_DateAndTime.GetCurrentCalendarTime) then
+    calendarDate = C_DateAndTime:GetCurrentCalendarTime();
 
   else
     obj:Error("Failed to call calendar API");
