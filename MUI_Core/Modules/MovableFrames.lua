@@ -78,8 +78,9 @@ local BlizzardFrames = {
 	Blizzard_AchievementUI = {
 		"AchievementFrame";
 		subFrames = {"AchievementFrameHeader"};
-	};
-	Blizzard_AuctionUI = "AuctionFrame";
+  };
+  Blizzard_AuctionUI = "AuctionFrame";
+	Blizzard_AuctionHouseUI = "AuctionHouseFrame";
 	Blizzard_TrainerUI = "ClassTrainerFrame";
 	Blizzard_Collections = "CollectionsJournal";
 	Blizzard_GuildControlUI = "GuildControlUI";
@@ -198,8 +199,8 @@ do
 		FixAnchorFamilyConnections();
 
 		if (not data.handler) then
-			data.handler = em:CreateEventHandler("ADDON_LOADED", function(_, _, addOnName)
-				if (BlizzardFrames[addOnName]) then
+      data.handler = em:CreateEventHandler("ADDON_LOADED", function(_, _, addOnName)
+        if (BlizzardFrames[addOnName]) then
 					self:ExecuteMakeMovable(BlizzardFrames[addOnName], false);
 					BlizzardFrames[addOnName] = nil;
 				end
