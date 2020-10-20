@@ -38,10 +38,9 @@ end
 ---@param instance Object
 function InCombatAttribute:OnExecute(data, instance, _, funcName, ...)
     if (InCombatLockdown()) then
-
         if (data.executeLater) then
             functionCalls:Push(Lib:PopTable(instance, funcName, ...));
-            return;
+            return false;
         end
 
         if (data.silent) then

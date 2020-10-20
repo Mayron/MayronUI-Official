@@ -359,7 +359,7 @@ end
 
 ---Proxy function to allow outside users to use Core:Assert()
 ---@param condition boolean @A predicate to evaluate.
----@param errorMessage string @An error message to throw if condition is evaluated to false.
+---@param errorMessage string @(Optional) An error message to throw if condition is evaluated to false.
 ---@vararg any @A list of arguments to be inserted into the error message using string.format.
 function Lib:Assert(condition, errorMessage, ...)
   Core:Assert(condition, errorMessage, ...);
