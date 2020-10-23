@@ -3,7 +3,6 @@ local MayronUI = _G.MayronUI;
 local _, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
-local _G = _G;
 local ChatFrame1EditBox, NUM_CHAT_WINDOWS = _G.ChatFrame1EditBox, _G.NUM_CHAT_WINDOWS;
 local ChatFrame1Tab, InCombatLockdown, StaticPopupDialogs, hooksecurefunc, IsCombatLog, pairs, PlaySound =
 _G.ChatFrame1Tab, _G.InCombatLockdown, _G.StaticPopupDialogs, _G.hooksecurefunc, _G.IsCombatLog, _G.pairs, _G.PlaySound;
@@ -250,9 +249,10 @@ function C_ChatModule:OnInitialize(data)
 				ChatFrame1EditBox:SetHeight(value);
 			end;
 
-			border = function(value)
-				data.editBoxBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", value);
-				ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+      border = function(value)
+        data.editBoxBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", value);
+        ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+        ChatFrame1EditBox:OnBackdropLoaded();
 
 				local color = data.settings.editBox.backdropColor;
 				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
@@ -263,7 +263,8 @@ function C_ChatModule:OnInitialize(data)
 				data.editBoxBackdrop.insets.right = value;
 				data.editBoxBackdrop.insets.top = value;
 				data.editBoxBackdrop.insets.bottom = value;
-				ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+        ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+        ChatFrame1EditBox:OnBackdropLoaded();
 
 				local color = data.settings.editBox.backdropColor;
 				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
@@ -271,14 +272,16 @@ function C_ChatModule:OnInitialize(data)
 
 			borderSize = function(value)
 				data.editBoxBackdrop.edgeSize = value;
-				ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+        ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
+        ChatFrame1EditBox:OnBackdropLoaded();
 
 				local color = data.settings.editBox.backdropColor;
 				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
 			end;
 
 			backdropColor = function(value)
-				ChatFrame1EditBox:SetBackdropColor(value.r, value.g, value.b, value.a);
+        ChatFrame1EditBox:SetBackdropColor(value.r, value.g, value.b, value.a);
+        ChatFrame1EditBox:OnBackdropLoaded();
 			end;
 		};
 	}, setupOptions);
@@ -356,7 +359,11 @@ function C_ChatModule:OnEnable(data)
 		preferredIndex = 3;
 	};
 
-	data.editBoxBackdrop = obj:PopTable();
+  data.editBoxBackdrop = obj:PopTable();
+
+  -- default setup
+  data.editBoxBackdrop.edgeFile = tk.Constants.BACKDROP.edgeFile;
+  data.editBoxBackdrop.edgeSize = tk.Constants.BACKDROP.edgeSize;
 	data.editBoxBackdrop.bgFile = "Interface\\Buttons\\WHITE8X8";
 	data.editBoxBackdrop.insets = obj:PopTable();
 

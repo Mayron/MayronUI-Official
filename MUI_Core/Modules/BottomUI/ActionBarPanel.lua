@@ -212,7 +212,7 @@ function C_ActionBarPanel:OnEnable(data)
   expandBtn:SetFrameStrata("HIGH");
   expandBtn:SetFrameLevel(20);
   expandBtn:SetSize(120, 28);
-  expandBtn:SetBackdrop(tk.Constants.backdrop);
+  expandBtn:SetBackdrop(tk.Constants.BACKDROP);
   expandBtn:SetBackdropBorderColor(0, 0, 0);
   expandBtn:SetPoint("BOTTOM", data.panel, "TOP", 0, -1);
   expandBtn:Hide();

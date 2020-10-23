@@ -355,7 +355,7 @@ function tk:SetGameFont(font)
     "SystemFont_Outline_Small", "SystemFont_Shadow_Med3", "Tooltip_Med", "Tooltip_Small",
     "ZoneTextString", "SubZoneTextString", "PVPInfoTextString", "PVPArenaTextString",
     "CombatTextFont", "FriendsFont_Normal", "FriendsFont_Small", "FriendsFont_Large",
-    "FriendsFont_UserText",
+    "FriendsFont_UserText", "Fancy22Font",
   };
 
   -- prevent weird font size bug

@@ -1,8 +1,10 @@
 --luacheck: ignore self 143 631
-local _G, MayronUI = _G, _G.MayronUI;
-local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
+local MayronUI = _G.MayronUI;
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
-local InCombatLockdown, unpack = _G.InCombatLockdown, _G.unpack; -- luacheck: ignore
+local InCombatLockdown, unpack = _G.InCombatLockdown, _G.unpack;
+local UIFrameFadeIn, UIFrameFadeOut = _G.UIFrameFadeIn, _G.UIFrameFadeOut;
+local pairs, ipairs, table, xpcall = _G.pairs, _G.ipairs, _G.table, _G.xpcall;
 
 ---@type Engine
 local Engine = obj:Import("MayronUI.Engine");
@@ -63,7 +65,8 @@ local BlizzardFrames = {
 	Blizzard_BindingUI = "KeyBindingFrame";
 	Blizzard_Calendar = "CalendarFrame";
 	Blizzard_GuildUI = "GuildFrame";
-	Blizzard_TradeSkillUI = "TradeSkillFrame";
+  Blizzard_TradeSkillUI = "TradeSkillFrame";
+  Blizzard_TalkingHeadUI = "TalkingHeadFrame";
 	Blizzard_EncounterJournal = {
 		"EncounterJournal",
 		onLoad = function()
@@ -170,7 +173,65 @@ end
 
 function C_MovableFramesModule:OnInitialize(data)
 	data.settings = db.global.movable:GetUntrackedTable();
-	data.frames = obj:PopTable();
+  data.frames = obj:PopTable();
+
+  _G.UIPARENT_MANAGED_FRAME_POSITIONS.TalkingHeadFrame = nil;
+  em:CreateEventHandler("ADDON_LOADED", function(self, _, addOnName)
+    ---@type Handler
+    local handler = self;
+
+    if (addOnName == "Blizzard_TalkingHeadUI") then
+      handler:Destroy();
+
+      local f = _G.TalkingHeadFrame;
+      local overlay = f.MainFrame.Overlay;
+
+      -- Reposition talking head frame to top of screen
+      f:ClearAllPoints();
+      f:SetPoint("TOP", 0, -50);
+      f:SetScript("OnShow", nil);
+      f:SetScript("OnHide", nil);
+
+      for i, alertSubSystem in pairs(_G.AlertFrame.alertFrameSubSystems) do
+        if (alertSubSystem.anchorFrame == f) then
+          table.remove(_G.AlertFrame.alertFrameSubSystems, i)
+          break;
+        end
+      end
+
+      if (not _G.BackdropTemplateMixin) then return end
+      -- code below is used reskinning of the talking head frame
+
+      -- uncomment this out for development to prevent closing of frame
+      -- _G.TalkingHeadFrame_Close = tk.Constants.DUMMY_FUNC;
+      f.PortraitFrame:DisableDrawLayer("OVERLAY");
+      f.MainFrame.Model:DisableDrawLayer("BACKGROUND");
+      f.BackgroundFrame:DisableDrawLayer("BACKGROUND");
+
+      _G.Mixin(overlay, _G.BackdropTemplateMixin);
+      overlay:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
+      overlay:SetBackdropColor(0, 0, 0, 0.5);
+      overlay:SetBackdropBorderColor(tk.Constants.AddOnStyle:GetColor("Widget"));
+      overlay:SetSize(118, 122)
+      overlay:SetPoint("TOPLEFT", 20, -16);
+
+      local bg = gui:CreateDialogBox(tk.Constants.AddOnStyle, f.BackgroundFrame, "LOW", nil, "MUI_TEST");
+      bg:SetPoint("TOPLEFT", 14, -10);
+      bg:SetPoint("BOTTOMRIGHT", -10, 10);
+      bg:SetFrameStrata("HIGH");
+      bg:SetFrameLevel(1);
+
+      tk:HookFunc("TalkingHeadFrame_FadeinFrames", function()
+        UIFrameFadeIn(overlay, 0.75, 0, 1);
+        UIFrameFadeIn(bg, 0.75, 0, 1);
+      end);
+
+      tk:HookFunc("TalkingHeadFrame_FadeoutFrames", function()
+        UIFrameFadeOut(overlay, 1, 1, 0);
+        UIFrameFadeOut(bg, 1, 1, 0);
+      end);
+    end
+  end);
 
 	if (db.global.movable.enabled) then
 		self:SetEnabled(true);

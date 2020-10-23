@@ -1,7 +1,4 @@
-
-
 -- luacheck: ignore self 143 631
-local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 if (tk:IsClassic()) then return end
@@ -127,6 +124,38 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
   end
 end
 
+local upButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\UpButton");
+local downButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\DownButton");
+
+local function ReskinMinifyButton(btn, module)
+  tk:ApplyThemeColor(btn);
+
+  btn:SetSize(20, 20);
+  btn:GetNormalTexture():SetTexCoord(0, 1, 0, 1);
+  btn:GetPushedTexture():SetTexCoord(0, 1, 0, 1);
+  btn:GetHighlightTexture():SetTexCoord(0, 1, 0, 1);
+
+  btn:GetNormalTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
+  btn:GetPushedTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
+  btn:GetHighlightTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
+
+  btn:GetNormalTexture().SetRotation = tk.Constants.DUMMY_FUNC;
+  btn:GetPushedTexture().SetRotation = tk.Constants.DUMMY_FUNC;
+  btn:GetHighlightTexture().SetRotation = tk.Constants.DUMMY_FUNC;
+
+  hooksecurefunc("ObjectiveTracker_Update", function()
+    if (module.collapsed) then
+      btn:SetNormalTexture(downButtonTexture, "BLEND");
+      btn:SetPushedTexture(downButtonTexture, "BLEND");
+      btn:SetHighlightTexture(downButtonTexture, "ADD");
+    else
+      btn:SetNormalTexture(upButtonTexture, "BLEND");
+      btn:SetPushedTexture(upButtonTexture, "BLEND");
+      btn:SetHighlightTexture(upButtonTexture, "ADD");
+    end
+  end);
+end
+
 function C_ObjectiveTracker:OnEnable(data)
   if (data.objectiveContainer) then return end
 
@@ -157,50 +186,29 @@ function C_ObjectiveTracker:OnEnable(data)
     for _, module in ipairs(ObjectiveTrackerFrame.MODULES_UI_ORDER) do
       tk:KillElement(module.Header.Background);
       tk:ApplyThemeColor(module.Header.Text);
+      if (module.Header.MinimizeButton) then
+        ReskinMinifyButton(module.Header.MinimizeButton, module);
+      end
     end
   else
     hooksecurefunc("ObjectiveTracker_Initialize", function()
       for _, module in ipairs(ObjectiveTrackerFrame.MODULES_UI_ORDER) do
         tk:KillElement(module.Header.Background);
         tk:ApplyThemeColor(module.Header.Text);
+
+        if (module.Header.MinimizeButton) then
+          ReskinMinifyButton(module.Header.MinimizeButton, module);
+        end
       end
     end);
   end
 
   local minButton = ObjectiveTrackerFrame.HeaderMenu.MinimizeButton;
-  local upButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\UpButton");
-  local downButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\DownButton");
+  ReskinMinifyButton(minButton, ObjectiveTrackerFrame);
 
-  tk:ApplyThemeColor(minButton);
-
-  minButton:SetSize(24, 20);
-  minButton:GetNormalTexture():SetTexCoord(0, 1, 0, 1);
-  minButton:GetPushedTexture():SetTexCoord(0, 1, 0, 1);
-  minButton:GetHighlightTexture():SetTexCoord(0, 1, 0, 1);
-
-  minButton:GetNormalTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
-  minButton:GetPushedTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
-  minButton:GetHighlightTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
-
-  minButton:GetNormalTexture().SetRotation = tk.Constants.DUMMY_FUNC;
-  minButton:GetPushedTexture().SetRotation = tk.Constants.DUMMY_FUNC;
-  minButton:GetHighlightTexture().SetRotation = tk.Constants.DUMMY_FUNC;
-
-  -- because "ObjectiveTracker_MinimizeButton_OnClick" did not work (weird)
-  hooksecurefunc("ObjectiveTracker_Update", function()
-    if (ObjectiveTrackerFrame.collapsed) then
-      minButton:SetNormalTexture(downButtonTexture, "BLEND");
-      minButton:SetPushedTexture(downButtonTexture, "BLEND");
-      minButton:SetHighlightTexture(downButtonTexture, "ADD");
-    else
-      minButton:SetNormalTexture(upButtonTexture, "BLEND");
-      minButton:SetPushedTexture(upButtonTexture, "BLEND");
-      minButton:SetHighlightTexture(upButtonTexture, "ADD");
-    end
-  end);
-
-  _G.hooksecurefunc(_G.QUEST_TRACKER_MODULE, "Update", function()
+  hooksecurefunc(_G.QUEST_TRACKER_MODULE, "Update", function()
     local block = _G.ObjectiveTrackerBlocksFrame.QuestHeader.module.firstBlock;
+
     while (block) do
       UpdateQuestDifficultyColors(block);
       block = block.nextBlock;

@@ -22,6 +22,12 @@ tk.Constants = {
         edgeSize = 1,
     };
 
+    BACKDROP_WITH_BACKGROUND = {
+      bgFile = "interface\\addons\\MUI_Core\\Assets\\Textures\\Widgets\\Solid",
+      edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
+      edgeSize = 1,
+  };
+
     POINTS = {
         LEFT = "LEFT";
         CENTER = "CENTER";

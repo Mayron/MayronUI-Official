@@ -303,7 +303,7 @@ function C_BaseResourceBar:CreateBar(data)
     local frame = CreateFrame("Frame", "MUI_"..data.barName.."Bar", data.barsContainer,
       _G.BackdropTemplateMixin and "BackdropTemplate");
 
-    frame:SetBackdrop(tk.Constants.backdrop);
+    frame:SetBackdrop(tk.Constants.BACKDROP);
     frame:SetBackdropBorderColor(0, 0, 0);
     frame.bg = tk:SetBackground(frame, texture);
     frame.bg:SetVertexColor(0.08, 0.08, 0.08);
