@@ -139,6 +139,12 @@ db:AddToDefaults("profile.chat", defaults);
 
 -- Chat Module -------------------
 
+local function LoadEditBoxBackdrop() 
+  if (obj:IsFunction(ChatFrame1EditBox.OnBackdropLoaded)) then
+    LoadEditBoxBackdrop();
+  end
+end
+
 function C_ChatModule:OnInitialize(data)
 	data.chatFrames = obj:PopTable();
 
@@ -252,7 +258,7 @@ function C_ChatModule:OnInitialize(data)
       border = function(value)
         data.editBoxBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", value);
         ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
-        ChatFrame1EditBox:OnBackdropLoaded();
+        LoadEditBoxBackdrop();
 
 				local color = data.settings.editBox.backdropColor;
 				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
@@ -264,7 +270,7 @@ function C_ChatModule:OnInitialize(data)
 				data.editBoxBackdrop.insets.top = value;
 				data.editBoxBackdrop.insets.bottom = value;
         ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
-        ChatFrame1EditBox:OnBackdropLoaded();
+        LoadEditBoxBackdrop();
 
 				local color = data.settings.editBox.backdropColor;
 				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
@@ -273,7 +279,7 @@ function C_ChatModule:OnInitialize(data)
 			borderSize = function(value)
 				data.editBoxBackdrop.edgeSize = value;
         ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
-        ChatFrame1EditBox:OnBackdropLoaded();
+        LoadEditBoxBackdrop();
 
 				local color = data.settings.editBox.backdropColor;
 				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
@@ -281,7 +287,7 @@ function C_ChatModule:OnInitialize(data)
 
 			backdropColor = function(value)
         ChatFrame1EditBox:SetBackdropColor(value.r, value.g, value.b, value.a);
-        ChatFrame1EditBox:OnBackdropLoaded();
+        LoadEditBoxBackdrop();
 			end;
 		};
 	}, setupOptions);
