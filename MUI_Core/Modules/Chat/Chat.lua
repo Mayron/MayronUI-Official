@@ -139,9 +139,9 @@ db:AddToDefaults("profile.chat", defaults);
 
 -- Chat Module -------------------
 
-local function LoadEditBoxBackdrop() 
+local function LoadEditBoxBackdrop()
   if (obj:IsFunction(ChatFrame1EditBox.OnBackdropLoaded)) then
-    LoadEditBoxBackdrop();
+    ChatFrame1EditBox:OnBackdropLoaded();
   end
 end
 
@@ -419,9 +419,14 @@ do
 		end
 
 		_G.GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 8, -38);
-		_G.GameTooltip:SetText(L["MUI Layout Button"]);
-		_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Switch Layout"], 1, 1, 1);
-		_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]), L["Show Layout Config Tool"], 1, 1, 1);
+    _G.GameTooltip:SetText(L["MUI Layout Button"]);
+
+		_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(
+      L["Left Click:"]), L["Switch Layout"], 1, 1, 1);
+
+		_G.GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(
+      L["Right Click:"]), L["Show Layout Config Tool"], 1, 1, 1);
+
 		_G.GameTooltip:Show();
 	end
 

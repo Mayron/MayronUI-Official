@@ -177,60 +177,56 @@ function C_MovableFramesModule:OnInitialize(data)
 
   _G.UIPARENT_MANAGED_FRAME_POSITIONS.TalkingHeadFrame = nil;
   em:CreateEventHandler("ADDON_LOADED", function(self, _, addOnName)
-    ---@type Handler
-    local handler = self;
+    if (addOnName ~= "Blizzard_TalkingHeadUI") then return end
 
-    if (addOnName == "Blizzard_TalkingHeadUI") then
-      handler:Destroy();
+    self:Destroy();
+    local f = _G.TalkingHeadFrame;
 
-      local f = _G.TalkingHeadFrame;
-      local overlay = f.MainFrame.Overlay;
+    -- Reposition talking head frame to top of screen
+    f:ClearAllPoints();
+    f:SetPoint("TOP", 0, -50);
+    f:SetScript("OnShow", nil);
+    f:SetScript("OnHide", nil);
 
-      -- Reposition talking head frame to top of screen
-      f:ClearAllPoints();
-      f:SetPoint("TOP", 0, -50);
-      f:SetScript("OnShow", nil);
-      f:SetScript("OnHide", nil);
-
-      for i, alertSubSystem in pairs(_G.AlertFrame.alertFrameSubSystems) do
-        if (alertSubSystem.anchorFrame == f) then
-          table.remove(_G.AlertFrame.alertFrameSubSystems, i)
-          break;
-        end
+    for i, alertSubSystem in pairs(_G.AlertFrame.alertFrameSubSystems) do
+      if (alertSubSystem.anchorFrame == f) then
+        table.remove(_G.AlertFrame.alertFrameSubSystems, i);
+        break;
       end
-
-      if (not _G.BackdropTemplateMixin) then return end
-      -- code below is used reskinning of the talking head frame
-
-      -- uncomment this out for development to prevent closing of frame
-      -- _G.TalkingHeadFrame_Close = tk.Constants.DUMMY_FUNC;
-      f.PortraitFrame:DisableDrawLayer("OVERLAY");
-      f.MainFrame.Model:DisableDrawLayer("BACKGROUND");
-      f.BackgroundFrame:DisableDrawLayer("BACKGROUND");
-
-      _G.Mixin(overlay, _G.BackdropTemplateMixin);
-      overlay:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
-      overlay:SetBackdropColor(0, 0, 0, 0.5);
-      overlay:SetBackdropBorderColor(tk.Constants.AddOnStyle:GetColor("Widget"));
-      overlay:SetSize(118, 122)
-      overlay:SetPoint("TOPLEFT", 20, -16);
-
-      local bg = gui:CreateDialogBox(tk.Constants.AddOnStyle, f.BackgroundFrame, "LOW", nil, "MUI_TEST");
-      bg:SetPoint("TOPLEFT", 14, -10);
-      bg:SetPoint("BOTTOMRIGHT", -10, 10);
-      bg:SetFrameStrata("HIGH");
-      bg:SetFrameLevel(1);
-
-      tk:HookFunc("TalkingHeadFrame_FadeinFrames", function()
-        UIFrameFadeIn(overlay, 0.75, 0, 1);
-        UIFrameFadeIn(bg, 0.75, 0, 1);
-      end);
-
-      tk:HookFunc("TalkingHeadFrame_FadeoutFrames", function()
-        UIFrameFadeOut(overlay, 1, 1, 0);
-        UIFrameFadeOut(bg, 1, 1, 0);
-      end);
     end
+
+    if (not _G.BackdropTemplateMixin) then return end
+    -- code below is used reskinning of the talking head frame
+
+    -- uncomment this out for development to prevent closing of frame
+    -- _G.TalkingHeadFrame_Close = tk.Constants.DUMMY_FUNC;
+    f.PortraitFrame:DisableDrawLayer("OVERLAY");
+    f.MainFrame.Model:DisableDrawLayer("BACKGROUND");
+    f.BackgroundFrame:DisableDrawLayer("BACKGROUND");
+
+    local overlay = f.MainFrame.Overlay;
+    _G.Mixin(overlay, _G.BackdropTemplateMixin);
+    overlay:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
+    overlay:SetBackdropColor(0, 0, 0, 0.5);
+    overlay:SetBackdropBorderColor(tk.Constants.AddOnStyle:GetColor("Widget"));
+    overlay:SetSize(118, 122)
+    overlay:SetPoint("TOPLEFT", 20, -16);
+
+    local bg = gui:CreateDialogBox(tk.Constants.AddOnStyle, f.BackgroundFrame, "LOW", nil, "MUI_TEST");
+    bg:SetPoint("TOPLEFT", 14, -10);
+    bg:SetPoint("BOTTOMRIGHT", -10, 10);
+    bg:SetFrameStrata("HIGH");
+    bg:SetFrameLevel(1);
+
+    tk:HookFunc("TalkingHeadFrame_FadeinFrames", function()
+      UIFrameFadeIn(overlay, 0.75, 0, 1);
+      UIFrameFadeIn(bg, 0.75, 0, 1);
+    end);
+
+    tk:HookFunc("TalkingHeadFrame_FadeoutFrames", function()
+      UIFrameFadeOut(overlay, 1, 1, 0);
+      UIFrameFadeOut(bg, 1, 1, 0);
+    end);
   end);
 
 	if (db.global.movable.enabled) then
