@@ -103,7 +103,6 @@ function Currency:__Construct(data, settings, dataTextModule, slideController)
   elseif (C_DateAndTime and C_DateAndTime.GetCurrentCalendarTime) then
     -- retail uses this
     calendarDate = C_DateAndTime:GetCurrentCalendarTime();
-    print("Ok")
 
   elseif (C_Calendar and C_Calendar.GetDate) then
     -- old version (shouldn't work)
@@ -114,10 +113,7 @@ function Currency:__Construct(data, settings, dataTextModule, slideController)
 
   local month = calendarDate["month"];
   local day = calendarDate["monthDay"] or calendarDate["day"];
-
   local date = string.format("%d-%d", day, month);
-
-  obj:PrintTable(calendarDate)
 
   if (not (data.settings.date and data.settings.date == date)) then
     data.settings.todayCurrency = GetMoney();
