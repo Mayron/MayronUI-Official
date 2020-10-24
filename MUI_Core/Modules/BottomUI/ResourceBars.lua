@@ -3,6 +3,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local InCombatLockdown, CreateFrame = _G.InCombatLockdown, _G.CreateFrame;
+local ipairs = _G.ipairs;
 
 -- Constants -----------------------------
 
@@ -156,7 +157,7 @@ function C_ResourceBarsModule:OnEnable(data)
 
   data.barsContainer = CreateFrame("Frame", "MUI_ResourceBars", _G["MUI_BottomContainer"]);
   data.barsContainer:SetFrameStrata("MEDIUM");
-  data.barsContainer:SetHeight(10);
+  data.barsContainer:SetHeight(1);
 
   data.bars = obj:PopTable();
   data.bars.experience = C_ExperienceBar(self, data);
