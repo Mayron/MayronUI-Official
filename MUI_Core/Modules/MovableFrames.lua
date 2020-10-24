@@ -171,6 +171,30 @@ function C_MovableFramesModule:ExecuteMakeMovable(_, value, dontSave)
 	end
 end
 
+local function CreateFadingAnimations(f)
+  f.fadeIn = f:CreateAnimationGroup();
+  local alpha = f.fadeIn:CreateAnimation("Alpha");
+  alpha:SetSmoothing("IN");
+  alpha:SetDuration(0.75);
+  alpha:SetFromAlpha(-1);
+  alpha:SetToAlpha(1);
+
+  f.fadeIn:SetScript("OnFinished", function()
+    f:SetAlpha(1);
+  end);
+
+  f.fadeOut = f:CreateAnimationGroup();
+  alpha = f.fadeOut:CreateAnimation("Alpha");
+  alpha:SetSmoothing("OUT");
+  alpha:SetDuration(1);
+  alpha:SetFromAlpha(1);
+  alpha:SetToAlpha(-1);
+
+  f.fadeOut:SetScript("OnFinished", function()
+    f:SetAlpha(0);
+  end);
+end
+
 function C_MovableFramesModule:OnInitialize(data)
 	data.settings = db.global.movable:GetUntrackedTable();
   data.frames = obj:PopTable();
@@ -218,14 +242,21 @@ function C_MovableFramesModule:OnInitialize(data)
     bg:SetFrameStrata("HIGH");
     bg:SetFrameLevel(1);
 
-    tk:HookFunc("TalkingHeadFrame_FadeinFrames", function()
-      UIFrameFadeIn(overlay, 0.75, 0, 1);
-      UIFrameFadeIn(bg, 0.75, 0, 1);
+    CreateFadingAnimations(overlay);
+    CreateFadingAnimations(bg);
+
+    tk:HookFunc("TalkingHeadFrame_PlayCurrent", function()
+      overlay.fadeOut:Stop();
+      bg.fadeOut:Stop();
+      overlay.fadeIn:Play();
+      bg.fadeIn:Play();
     end);
 
-    tk:HookFunc("TalkingHeadFrame_FadeoutFrames", function()
-      UIFrameFadeOut(overlay, 1, 1, 0);
-      UIFrameFadeOut(bg, 1, 1, 0);
+    tk:HookFunc("TalkingHeadFrame_Close", function()
+      overlay.fadeIn:Stop();
+      bg.fadeIn:Stop();
+      overlay.fadeOut:Play();
+      bg.fadeOut:Play();
     end);
   end);
 
