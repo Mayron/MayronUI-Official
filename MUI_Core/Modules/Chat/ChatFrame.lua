@@ -367,16 +367,18 @@ do
 	do
 		local c = _G.CreateColor(1, 1, 1);
 
-		local function ApplyColorToMessage(message, r, g, b)
-			r, g, b = r or 1, g or 1, b or 1;
+    local function ApplyColorToMessage(message, r, g, b)
+      if (not (r and g and b)) then return message; end
+
 			c:SetRGB(r, g, b);
 
-			local hex = "|c" .. c:GenerateHexColor();
-			message = message:gsub("|r", string.format("|r%s", hex));
-			message = string.format("%s%s|r", hex, message);
+      local hex = "|c" .. c:GenerateHexColor();
+
+      message = message:gsub("|c.-|r", function(code) return string.format("|r%s%s", code, hex) end);
+      message = string.format("%s%s|r", hex, message);
 
 			return message;
-		end
+    end
 
 		-- accountNameCode cannot be used as |K breaks the editBox
     local function ReplaceAccountNameCodeWithBattleTag(accountNameCode)
@@ -402,7 +404,7 @@ do
             end
 
             if (accountNameCode == friendInfo.accountName) then
-              return friendInfo.battleTag;
+              return (select(1, strsplit("#", friendInfo.battleTag)));
             end
           end
         end
@@ -413,20 +415,19 @@ do
 			local chatFrame = _G[string.format("ChatFrame%d", editBox.chatFrameID)];
 			local messages = obj:PopTable();
 			local totalMessages = chatFrame:GetNumMessages();
-			local message, r, g, b;
+      local message, r, g, b;
 
 			for i = 1, totalMessages do
-				message, r, g, b = chatFrame:GetMessageInfo(i);
+        message, r, g, b = chatFrame:GetMessageInfo(i);
 
         if (obj:IsString(message) and #message > 0) then
-          MayronUI.db.global.test = message;
-
           -- |Km26|k (BSAp) or |Kq%d+|k
-					message = message:gsub("|K.*|k", ReplaceAccountNameCodeWithBattleTag);
-					message = ApplyColorToMessage(message, r, g, b);
+          message = message:gsub("|K.*|k", ReplaceAccountNameCodeWithBattleTag);
+          message = ApplyColorToMessage(message, r, g, b);
+
 					table.insert(messages, message);
 				end
-			end
+      end
 
 			local fullText = table.concat(messages, " \n", 1, #messages);
 			obj:PushTable(messages);

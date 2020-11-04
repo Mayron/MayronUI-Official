@@ -2,6 +2,8 @@ local _, namespace = ...;
 
 -- luacheck: ignore MayronUI self 143 631
 local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
+
+---@type Package
 local ComponentsPackage = namespace.ComponentsPackage;
 
 local LABEL_PATTERN = L["Friends"]..": |cffffffff%u|r";
@@ -107,7 +109,82 @@ function Friends:Update(data, refreshSettings)
     self.Button:SetText(string.format(LABEL_PATTERN, totalOnline));
 end
 
-function Friends:Click(data, button)
+ComponentsPackage:DefineReturns("number");
+function Friends:CheckBattleNetFriendsList(data)
+  local r, g, b = tk:GetThemeColor();
+  local totalLabelsShown = 0;
+
+  for i = 1, BNGetNumFriends() do
+    local friendInfo = _G.C_BattleNet.GetFriendAccountInfo(i);
+    local gameInfo = friendInfo.gameAccountInfo;
+
+    if (gameInfo and gameInfo.isOnline) then
+        totalLabelsShown = totalLabelsShown + 1;
+
+        local status = (friendInfo.isAFK and "|cffffe066[AFK] |r") or (friendInfo.isDND and "|cffff3333[DND] |r") or "";
+        local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.slideController);
+        self.MenuLabels[totalLabelsShown] = label;
+
+        label.id = friendInfo.accountName;
+        label:SetNormalTexture(1);
+        label:GetNormalTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.2);
+        label:SetHighlightTexture(1);
+        label:GetHighlightTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.4);
+
+        local client;
+
+        if (friendInfo.gameAccountInfo) then
+          client = friendInfo.gameAccountInfo.clientProgram or "App";
+        end
+
+        client = convert[client] or client;
+        client = string.format(" (%s)", client);
+
+        local friendLabel = string.format("%s%s%s", status , label.id, client);
+        label.name:SetText(friendLabel);
+    end
+  end
+
+  return totalLabelsShown;
+end
+
+ComponentsPackage:DefineParams("number");
+ComponentsPackage:DefineReturns("number");
+function Friends:CheckWowFriendsList(data, totalLabelsShown)
+  for i = 1, C_FriendList.GetNumFriends() do
+    local friendInfo = C_FriendList.GetFriendInfoByIndex(i);
+
+    if (friendInfo.connected and not (friendInfo.className == "Unknown")) then
+        local classFileName = tk:GetLocalizedClassName(friendInfo.className);
+
+        local status = tk.Strings.Empty;
+
+        if (friendInfo.afk) then
+            status = " |cffffe066[AFK]|r";
+        elseif (friendInfo.dnd) then
+            status = " |cffff3333[DND]|r";
+        end
+
+        totalLabelsShown = totalLabelsShown + 1;
+
+        local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.slideController);
+        self.MenuLabels[totalLabelsShown] = label; -- old: numBNFriends + i
+
+        label.id = friendInfo.name;
+        label:SetNormalTexture(1);
+        label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);
+        label:SetHighlightTexture(1);
+        label:GetHighlightTexture():SetColorTexture(0.2, 0.2, 0.2, 0.4);
+
+        local classText = tk.Strings:SetTextColorByClass(friendInfo.name, classFileName);
+        label.name:SetText(string.format("%s%s %s ", classText, status, friendInfo.level));
+    end
+  end
+
+  return totalLabelsShown;
+end
+
+function Friends:Click(_, button)
     if (button == "RightButton") then
         ToggleFriendsFrame();
         return;
@@ -117,71 +194,9 @@ function Friends:Click(data, button)
         return true;
     end
 
-    local r, g, b = tk:GetThemeColor();
-    local totalLabelsShown = 0;
-
     -- Battle.Net friends
-    for i = 1, BNGetNumFriends() do
-        -- local _, realName, _, _, _, _, client, online, _, isAFK, isDND = BNGetFriendInfo(i);
-        local friendInfo = _G.C_BattleNet.GetFriendAccountInfo(i);
-        local gameInfo = friendInfo.gameAccountInfo;
-
-        if (gameInfo and gameInfo.isOnline) then
-            totalLabelsShown = totalLabelsShown + 1;
-
-            local status = (friendInfo.isAFK and "|cffffe066[AFK] |r") or (friendInfo.isDND and "|cffff3333[DND] |r") or "";
-            local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.slideController);
-            self.MenuLabels[totalLabelsShown] = label;
-
-            label.id = friendInfo.accountName;
-            label:SetNormalTexture(1);
-            label:GetNormalTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.2);
-            label:SetHighlightTexture(1);
-            label:GetHighlightTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.4);
-
-            local client;
-
-            if (friendInfo.gameAccountInfo) then
-              client = friendInfo.gameAccountInfo.clientProgram or "App";
-            end
-
-            client = convert[client] or client;
-            client = string.format(" (%s)", client);
-
-            label.name:SetText(string.format("%s%s%s", status , label.id, client));
-        end
-    end
+    local totalLabelsShown = self:CheckBattleNetFriendsList();
 
     -- WoW Friends (non-Battle.Net)
-    for i = 1, C_FriendList.GetNumFriends() do
-        local friendInfo = C_FriendList.GetFriendInfoByIndex(i);
-
-        if (friendInfo.connected and not (friendInfo.className == "Unknown")) then
-            local classFileName = tk:GetLocalizedClassName(friendInfo.className);
-
-            local status = tk.Strings.Empty;
-
-            if (friendInfo.afk) then
-                status = " |cffffe066[AFK]|r";
-            elseif (friendInfo.dnd) then
-                status = " |cffff3333[DND]|r";
-            end
-
-            totalLabelsShown = totalLabelsShown + 1;
-
-            local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.slideController);
-            self.MenuLabels[totalLabelsShown] = label; -- old: numBNFriends + i
-
-            label.id = friendInfo.name;
-            label:SetNormalTexture(1);
-            label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);
-            label:SetHighlightTexture(1);
-            label:GetHighlightTexture():SetColorTexture(0.2, 0.2, 0.2, 0.4);
-
-            local classText = tk.Strings:SetTextColorByClass(friendInfo.name, classFileName);
-            label.name:SetText(string.format("%s%s %s ", classText, status, friendInfo.level));
-        end
-    end
-
-    self.TotalLabelsShown = totalLabelsShown;
+    self.TotalLabelsShown = self:CheckWowFriendsList(totalLabelsShown);
 end
