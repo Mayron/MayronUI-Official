@@ -5,11 +5,19 @@ local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
 local ComponentsPackage = namespace.ComponentsPackage;
 
 local LABEL_PATTERN = L["Friends"]..": |cffffffff%u|r";
-local convert = {WTCG = "HS", Pro = "OW"};
+local convert = {
+  WTCG = "HS",
+  Pro = "OW",
+  BSAp = "App",
+  VIPR = "COD",
+  ODIN = "COD",
+  LAZR = "COD",
+  ZEUS = "COD",
+};
 
 local _G = _G;
 local ToggleFriendsFrame, C_FriendList = _G.ToggleFriendsFrame, _G.C_FriendList;
-local BNGetNumFriends, BNGetFriendInfo = _G.BNGetNumFriends, _G.BNGetFriendInfo;
+local BNGetNumFriends = _G.BNGetNumFriends;
 local string, CreateFrame, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1 =
 _G.string, _G.CreateFrame, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1;
 local select = _G.select;
@@ -114,29 +122,33 @@ function Friends:Click(data, button)
 
     -- Battle.Net friends
     for i = 1, BNGetNumFriends() do
-        local _, realName, _, _, _, _, client, online, _, isAFK, isDND = BNGetFriendInfo(i);
+        -- local _, realName, _, _, _, _, client, online, _, isAFK, isDND = BNGetFriendInfo(i);
+        local friendInfo = _G.C_BattleNet.GetFriendAccountInfo(i);
+        local gameInfo = friendInfo.gameAccountInfo;
 
-        if (online) then
+        if (gameInfo and gameInfo.isOnline) then
             totalLabelsShown = totalLabelsShown + 1;
 
-            local status = (isAFK and "|cffffe066[AFK] |r") or (isDND and "|cffff3333[DND] |r") or "";
+            local status = (friendInfo.isAFK and "|cffffe066[AFK] |r") or (friendInfo.isDND and "|cffff3333[DND] |r") or "";
             local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.slideController);
             self.MenuLabels[totalLabelsShown] = label;
 
-            label.id = realName;
+            label.id = friendInfo.accountName;
             label:SetNormalTexture(1);
             label:GetNormalTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.2);
             label:SetHighlightTexture(1);
             label:GetHighlightTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.4);
 
-            if (not client or client == "App") then
-                client = "";
-            else
-                client = convert[client] or client;
-                client = string.format(" (%s)", client);
+            local client;
+
+            if (friendInfo.gameAccountInfo) then
+              client = friendInfo.gameAccountInfo.clientProgram or "App";
             end
 
-            label.name:SetText(string.format("%s%s%s", status , realName, client));
+            client = convert[client] or client;
+            client = string.format(" (%s)", client);
+
+            label.name:SetText(string.format("%s%s%s", status , label.id, client));
         end
     end
 
