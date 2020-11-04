@@ -21,7 +21,9 @@ local FRIENDS_TEXTURE_ONLINE, FRIENDS_TEXTURE_AFK, FRIENDS_TEXTURE_DND =
 	_G.FRIENDS_TEXTURE_ONLINE, _G.FRIENDS_TEXTURE_AFK, _G.FRIENDS_TEXTURE_DND;
 
 local FRIENDS_LIST_AVAILABLE, FRIENDS_LIST_AWAY, FRIENDS_LIST_BUSY =
-	_G.FRIENDS_LIST_AVAILABLE, _G.FRIENDS_LIST_AWAY, _G.FRIENDS_LIST_BUSY;
+  _G.FRIENDS_LIST_AVAILABLE, _G.FRIENDS_LIST_AWAY, _G.FRIENDS_LIST_BUSY;
+
+local strsplit, select = _G.strsplit, _G.select;
 
 -- C_ChatFrame -----------------------
 
@@ -376,19 +378,21 @@ do
 			return message;
 		end
 
-		-- accountName cannot be used as |K breaks the editBox
-		local function ReplaceAccountNameCodeWithBattleTag(accountName)
+		-- accountNameCode cannot be used as |K breaks the editBox
+    local function ReplaceAccountNameCodeWithBattleTag(accountNameCode)
 			for i = 1, 200 do
         if (_G.BNGetFriendInfoByID) then
-          local _, otherAccountName, battleTag = _G.BNGetFriendInfoByID(i);
+          -- otherAccountNameCode will be a code such as |Km24|k
+          local _, otherAccountNameCode, battleTag = _G.BNGetFriendInfoByID(i);
 
-          if (i > 50 and not otherAccountName) then
+          if (i > 50 and not otherAccountNameCode) then
             return "";
           end
 
-          if (accountName == otherAccountName) then
-            return battleTag;
+          if (accountNameCode == otherAccountNameCode) then
+            return (select(1, strsplit("#", battleTag)));
           end
+
         elseif (_G.C_BattleNet and _G.C_BattleNet.GetAccountInfoByID) then
           local friendInfo = _G.C_BattleNet.GetAccountInfoByID(i);
 
@@ -397,7 +401,7 @@ do
               return "";
             end
 
-            if (accountName == friendInfo.accountName) then
+            if (accountNameCode == friendInfo.accountName) then
               return friendInfo.battleTag;
             end
           end
@@ -414,8 +418,11 @@ do
 			for i = 1, totalMessages do
 				message, r, g, b = chatFrame:GetMessageInfo(i);
 
-				if (obj:IsString(message) and #message > 0) then
-					message = message:gsub("|Kq%d+|k", ReplaceAccountNameCodeWithBattleTag);
+        if (obj:IsString(message) and #message > 0) then
+          MayronUI.db.global.test = message;
+
+          -- |Km26|k (BSAp) or |Kq%d+|k
+					message = message:gsub("|K.*|k", ReplaceAccountNameCodeWithBattleTag);
 					message = ApplyColorToMessage(message, r, g, b);
 					table.insert(messages, message);
 				end
