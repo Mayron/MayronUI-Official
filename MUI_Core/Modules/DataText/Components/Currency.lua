@@ -233,16 +233,16 @@ function Currency:GetTodaysProfit(data)
 end
 
 function Currency:Update(data, refreshSettings)
+  if (refreshSettings) then
+    data.settings:Refresh();
+  end
+
   local money = GetMoney();
   local currentCurrency = self:GetFormattedCurrency(money, nil, true);
   local coloredKey = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
 
   self.Button:SetText(currentCurrency);
   db:SetPathValue(db.global, ("datatext.currency.characters.%s"):format(coloredKey), money);
-
-  if (refreshSettings) then
-    data.settings:Refresh();
-  end
 end
 
 function Currency:GetLabel(data, index, btnEnabled)

@@ -114,6 +114,9 @@ function C_ConfigModule:Show(data)
 
     data.window:Show();
 end
+
+Engine:DefineReturns("Database");
+---@return Database
 function C_ConfigModule:GetDatabase(data, tbl)
     local dbObject;
     local dbName = "CoreModule";

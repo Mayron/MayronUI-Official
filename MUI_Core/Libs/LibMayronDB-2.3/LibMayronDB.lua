@@ -25,7 +25,7 @@ Observer.Static:AddFriendClass("Database");
 
 local select, tonumber, strsplit = _G.select, _G.tonumber, _G.strsplit;
 local GetLastTableKeyPairs, GetNextPath, IsEqual, GetDatabasePathInfo;
-local ipairs, pairs, table, unpack = _G.ipairs, _G.pairs, _G.table, _G.unpack;
+local ipairs, pairs, table, unpack, assert = _G.ipairs, _G.pairs, _G.table, _G.unpack, _G.assert;
 
 local OnAddOnLoadedListener = _G.CreateFrame("Frame");
 OnAddOnLoadedListener:RegisterEvent("ADDON_LOADED");

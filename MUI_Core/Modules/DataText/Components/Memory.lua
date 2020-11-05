@@ -70,9 +70,7 @@ function Memory:Update(data, refreshSettings)
         data.settings:Refresh();
     end
 
-    if (data.executed) then
-        return
-    end
+    if (data.executed) then return end
 
     data.executed = true;
 

@@ -17,9 +17,8 @@ local convert = {
   ZEUS = "COD",
 };
 
-local _G = _G;
 local ToggleFriendsFrame, C_FriendList = _G.ToggleFriendsFrame, _G.C_FriendList;
-local BNGetNumFriends = _G.BNGetNumFriends;
+local BNGetNumFriends, BNGetFriendInfo = _G.BNGetNumFriends, _G.BNGetFriendInfo;
 local string, CreateFrame, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1 =
 _G.string, _G.CreateFrame, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1;
 local select = _G.select;
@@ -115,27 +114,37 @@ function Friends:CheckBattleNetFriendsList(data)
   local totalLabelsShown = 0;
 
   for i = 1, BNGetNumFriends() do
-    local friendInfo = _G.C_BattleNet.GetFriendAccountInfo(i);
-    local gameInfo = friendInfo.gameAccountInfo;
+    local isOnline, isDND, isAFK, accountName, client;
 
-    if (gameInfo and gameInfo.isOnline) then
+    if (BNGetFriendInfo) then
+      _, accountName, _, _, _, _, client, isOnline, _, isAFK, isDND = BNGetFriendInfo(i);
+    else
+      local friendInfo = _G.C_BattleNet.GetFriendAccountInfo(i);
+      local gameInfo = friendInfo.gameAccountInfo;
+
+      isDND = friendInfo.isDND;
+      isAFK = friendInfo.isAFK;
+      accountName = friendInfo.accountName;
+      client = "App";
+
+      if (obj:IsTable(gameInfo)) then
+        isOnline = gameInfo.isOnline;
+        client = gameInfo.clientProgram;
+      end
+    end
+
+    if (isOnline) then
         totalLabelsShown = totalLabelsShown + 1;
 
-        local status = (friendInfo.isAFK and "|cffffe066[AFK] |r") or (friendInfo.isDND and "|cffff3333[DND] |r") or "";
+        local status = (isAFK and "|cffffe066[AFK] |r") or (isDND and "|cffff3333[DND] |r") or "";
         local label = self.MenuLabels[totalLabelsShown] or CreateLabel(self.MenuContent, data.slideController);
         self.MenuLabels[totalLabelsShown] = label;
 
-        label.id = friendInfo.accountName;
+        label.id = accountName;
         label:SetNormalTexture(1);
         label:GetNormalTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.2);
         label:SetHighlightTexture(1);
         label:GetHighlightTexture():SetColorTexture(r * 0.4, g * 0.4, b * 0.4, 0.4);
-
-        local client;
-
-        if (friendInfo.gameAccountInfo) then
-          client = friendInfo.gameAccountInfo.clientProgram or "App";
-        end
 
         client = convert[client] or client;
         client = string.format(" (%s)", client);
