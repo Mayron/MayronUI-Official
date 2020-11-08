@@ -123,6 +123,46 @@ function C_ConfigModule:GetConfigTable()
                         MayronUI:ImportModule("AFKDisplay"):SetEnabled(newValue);
                     end
                 };
+                {   type = "title";
+                    client = "retail";
+                    name = "Talking Head Frame"
+                };
+                {   type = "fontstring";
+                    client = "retail";
+                    content = "This is the animated character portrait frame that shows when an NPC is talking to you."
+                };
+                {   name = "Top of Screen";
+                    type = "radio";
+                    groupName = "talkingHead_position";
+                    dbPath = "global.movable.talkingHead.position";
+                    height = 50;
+                    GetValue = function(_, value)
+                        return value == "TOP";
+                    end;
+
+                    SetValue = function(path)
+                        db:SetPathValue(path, "TOP");
+                    end;
+                },
+                {   name = "Bottom of Screen";
+                    type = "radio";
+                    groupName = "talkingHead_position";
+                    dbPath = "global.movable.talkingHead.position";
+                    height = 50;
+                    GetValue = function(_, value)
+                        return value == "BOTTOM";
+                    end;
+
+                    SetValue = function(path)
+                        db:SetPathValue(path, "BOTTOM");
+                    end;
+                },
+                {
+                  name        = L["Y-Offset"];
+                  type        = "textfield";
+                  valueType   = "number";
+                  dbPath      = "global.movable.talkingHead.yOffset";
+                }
             }
         };
         {   module = "BottomUI_Container";

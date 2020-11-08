@@ -1,10 +1,12 @@
 -- luacheck: ignore self 143 631
 local _, namespace = ...;
-local _G, MayronUI = _G, _G.MayronUI;
+local MayronUI = _G.MayronUI;
 local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local MENU_BUTTON_HEIGHT = 40;
-local PlaySound = _G.PlaySound;
+local pairs, ipairs, table = _G.pairs, _G.ipairs, _G.table;
+local DisableAddOn, collectgarbage, UIFrameFadeIn, CreateFrame, PlaySound, GetAddOnMetadata
+ = _G.DisableAddOn, _G.collectgarbage, _G.UIFrameFadeIn, _G.CreateFrame, _G.PlaySound, _G.GetAddOnMetadata;
 
 -- Registers and Imports -------------
 
@@ -103,7 +105,7 @@ function C_ConfigModule:OnInitialize()
         return;
     end
 
-    _G.DisableAddOn("MUI_Config"); -- disable for next time
+    DisableAddOn("MUI_Config"); -- disable for next time
 end
 
 function C_ConfigModule:Show(data)
@@ -248,14 +250,14 @@ do
             end
         end
 
-        _G.collectgarbage("collect");
+        collectgarbage("collect");
 
         -- fade menu in...
         data.selectedButton.menu:Show();
         data.windowName:SetText(menuButton.name);
 
-        _G.UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
-        _G.PlaySound(tk.Constants.CLICK);
+        UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
+        PlaySound(tk.Constants.CLICK);
     end
 end
 
@@ -445,238 +447,236 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
 end
 
 function C_ConfigModule:SetUpWindow(data)
-    if (data.window) then
-        return
+  if (data.window) then return end
+
+  data.history = C_LinkedList();
+
+  data.window = gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, nil, "MUI_Config");
+  data.window:SetFrameStrata("DIALOG");
+  data.window:Hide();
+  data.window:SetMinResize(600, 400);
+  data.window:SetMaxResize(1200, 800);
+  data.window:SetSize(800, 500);
+  data.window:SetPoint("CENTER");
+
+  gui:AddTitleBar(tk.Constants.AddOnStyle, data.window, "MUI Config");
+  gui:AddResizer(tk.Constants.AddOnStyle, data.window);
+  gui:AddCloseButton(tk.Constants.AddOnStyle, data.window);
+
+  -- convert container to a panel
+  data.window = gui:CreatePanel(data.window);
+  data.window:SetDevMode(false); -- shows or hides the red frame info overlays
+  data.window:SetDimensions(2, 3);
+  data.window:GetColumn(1):SetFixed(200);
+  data.window:GetRow(1):SetFixed(80);
+  data.window:GetRow(3):SetFixed(50);
+
+  data.window:SetScript("OnShow", function()
+    -- fade in when shown
+    UIFrameFadeIn(data.window, 0.3, 0, 1);
+  end);
+
+  local topbar = data.window:CreateCell();
+  topbar:SetInsets(25, 14, 2, 10);
+  topbar:SetDimensions(2, 1);
+
+  local menuListContainer = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.window:GetFrame(), "MUI_ConfigSideBar");
+  menuListContainer.ScrollBar:SetPoint("TOPLEFT", menuListContainer.ScrollFrame, "TOPRIGHT", -5, 0);
+  menuListContainer.ScrollBar:SetPoint("BOTTOMRIGHT", menuListContainer.ScrollFrame, "BOTTOMRIGHT", 0, 0);
+
+  local menuListCell = data.window:CreateCell(menuListContainer);
+  menuListCell:SetInsets(2, 10, 10, 10);
+
+  data.options = data.window:CreateCell();
+  data.options:SetInsets(2, 14, 2, 2);
+
+  local versionCell = data.window:CreateCell();
+  versionCell:SetInsets(10, 10, 10, 10);
+
+  versionCell.text = versionCell:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+  versionCell.text:SetText(tk.Strings:Concat(
+    GetAddOnMetadata("MUI_Core", "X-InterfaceName"), " [", GetAddOnMetadata("MUI_Core", "Version"), "]"));
+
+  versionCell.text:SetPoint("BOTTOMLEFT");
+
+  local bottombar = data.window:CreateCell();
+  bottombar:SetDimensions(2, 1);
+  bottombar:SetInsets(10, 30, 10, 0);
+
+  data.window:AddCells(topbar, menuListCell, data.options, versionCell, bottombar);
+
+  data.warningIcon = bottombar:CreateTexture(nil, "ARTWORK");
+  data.warningIcon:SetSize(20, 20);
+  data.warningIcon:SetPoint("LEFT");
+  data.warningIcon:SetTexture(_G.STATICPOPUP_TEXTURE_ALERT);
+  data.warningIcon:Hide();
+
+  data.warningLabel = bottombar:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+  data.warningLabel:SetPoint("LEFT", data.warningIcon, "RIGHT", 10, 0);
+  data.warningLabel:SetText(tk.Strings.Empty);
+
+  data.warningLabel.reloadText = L["The UI requires reloading to apply changes."];
+  data.warningLabel.restartText = L["Some changes require a client restart to take effect."];
+
+  -- forward and back buttons
+  data.window.back = gui:CreateButton(tk.Constants.AddOnStyle, topbar:GetFrame());
+  data.window.back:SetPoint("LEFT");
+  data.window.back:SetWidth(50);
+  data.window.back.arrow = data.window.back:CreateTexture(nil, "OVERLAY");
+  data.window.back.arrow:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\SideArrow"));
+  data.window.back.arrow:SetSize(16, 14);
+  data.window.back.arrow:SetPoint("CENTER", -1, 0);
+
+  data.window.back:SetScript("OnClick", function(backButton)
+    local menuButton = data.history:GetBack();
+    data.history:RemoveBack();
+
+    self:SetSelectedButton(menuButton);
+
+    if (data.history:GetSize() == 0) then
+      data.windowName:SetText(menuButton.name);
+      SetBackButtonEnabled(backButton, false);
+    else
+      local previousMenuButton = data.history:GetBack();
+      data.windowName:SetText(previousMenuButton.name);
+    end
+  end);
+
+  data.windowName = topbar:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
+  data.windowName:SetPoint("LEFT", data.window.back, "RIGHT", 10, 0);
+  SetBackButtonEnabled(data.window.back, false);
+
+  -- profiles button
+  data.window.profilesBtn = CreateTopMenuButton(L["Profiles"], function()
+    if (data.selectedButton:IsObjectType("CheckButton")) then
+        data.selectedButton:SetChecked(false);
     end
 
-    data.history = C_LinkedList();
+    self:ShowProfileManager();
+  end, topbar:GetFrame());
 
-    data.window = gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, nil, "MUI_Config");
-    data.window:SetFrameStrata("DIALOG");
+  -- Layouts Button:
+  data.window.layoutsBtn = CreateTopMenuButton(L["Layouts"], function()
+    MayronUI:TriggerCommand("layouts");
     data.window:Hide();
-    data.window:SetMinResize(600, 400);
-    data.window:SetMaxResize(1200, 800);
-    data.window:SetSize(800, 500);
-    data.window:SetPoint("CENTER");
+  end);
 
-    gui:AddTitleBar(tk.Constants.AddOnStyle, data.window, "MUI Config");
-    gui:AddResizer(tk.Constants.AddOnStyle, data.window);
-    gui:AddCloseButton(tk.Constants.AddOnStyle, data.window);
+  -- installer buttons
+  data.window.installerBtn = CreateTopMenuButton(L["Installer"], function()
+    MayronUI:TriggerCommand("install");
+    data.window:Hide();
+  end);
 
-    -- convert container to a panel
-    data.window = gui:CreatePanel(data.window);
-    data.window:SetDevMode(false); -- shows or hides the red frame info overlays
-    data.window:SetDimensions(2, 3);
-    data.window:GetColumn(1):SetFixed(200);
-    data.window:GetRow(1):SetFixed(80);
-    data.window:GetRow(3):SetFixed(50);
+  -- reload button
+  data.window.reloadBtn = CreateTopMenuButton(L["Reload UI"], _G.ReloadUI);
 
-    data.window:SetScript("OnShow", function()
-        -- fade in when shown
-        _G.UIFrameFadeIn(data.window, 0.3, 0, 1);
-    end);
+  local menuListScrollChild = menuListContainer.ScrollFrame:GetScrollChild();
+  tk:SetFullWidth(menuListScrollChild);
 
-    local topbar = data.window:CreateCell();
-    topbar:SetInsets(25, 14, 2, 10);
-    topbar:SetDimensions(2, 1);
-
-    local menuListContainer = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.window:GetFrame(), "MUI_ConfigSideBar");
-    menuListContainer.ScrollBar:SetPoint("TOPLEFT", menuListContainer.ScrollFrame, "TOPRIGHT", -5, 0);
-    menuListContainer.ScrollBar:SetPoint("BOTTOMRIGHT", menuListContainer.ScrollFrame, "BOTTOMRIGHT", 0, 0);
-
-    local menuListCell = data.window:CreateCell(menuListContainer);
-    menuListCell:SetInsets(2, 10, 10, 10);
-
-    data.options = data.window:CreateCell();
-    data.options:SetInsets(2, 14, 2, 2);
-
-    local versionCell = data.window:CreateCell();
-    versionCell:SetInsets(10, 10, 10, 10);
-
-    versionCell.text = versionCell:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    versionCell.text:SetText(tk.Strings:Concat(
-        _G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"), " [", _G.GetAddOnMetadata("MUI_Core", "Version"), "]")
-    );
-    versionCell.text:SetPoint("BOTTOMLEFT");
-
-    local bottombar = data.window:CreateCell();
-    bottombar:SetDimensions(2, 1);
-    bottombar:SetInsets(10, 30, 10, 0);
-
-    data.window:AddCells(topbar, menuListCell, data.options, versionCell, bottombar);
-
-    data.warningIcon = bottombar:CreateTexture(nil, "ARTWORK");
-    data.warningIcon:SetSize(20, 20);
-    data.warningIcon:SetPoint("LEFT");
-    data.warningIcon:SetTexture(_G.STATICPOPUP_TEXTURE_ALERT);
-    data.warningIcon:Hide();
-
-    data.warningLabel = bottombar:CreateFontString(nil, "OVERLAY", "GameFontNormal");
-    data.warningLabel:SetPoint("LEFT", data.warningIcon, "RIGHT", 10, 0);
-    data.warningLabel:SetText(tk.Strings.Empty);
-
-    data.warningLabel.reloadText = L["The UI requires reloading to apply changes."];
-    data.warningLabel.restartText = L["Some changes require a client restart to take effect."];
-
-    -- forward and back buttons
-    data.window.back = gui:CreateButton(tk.Constants.AddOnStyle, topbar:GetFrame());
-    data.window.back:SetPoint("LEFT");
-    data.window.back:SetWidth(50);
-    data.window.back.arrow = data.window.back:CreateTexture(nil, "OVERLAY");
-    data.window.back.arrow:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\SideArrow"));
-    data.window.back.arrow:SetSize(16, 14);
-    data.window.back.arrow:SetPoint("CENTER", -1, 0);
-
-    data.window.back:SetScript("OnClick", function(backButton)
-        local menuButton = data.history:GetBack();
-        data.history:RemoveBack();
-
-        self:SetSelectedButton(menuButton);
-
-        if (data.history:GetSize() == 0) then
-            data.windowName:SetText(menuButton.name);
-            SetBackButtonEnabled(backButton, false);
-        else
-            local previousMenuButton = data.history:GetBack();
-            data.windowName:SetText(previousMenuButton.name);
-        end
-    end);
-
-    data.windowName = topbar:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-    data.windowName:SetPoint("LEFT", data.window.back, "RIGHT", 10, 0);
-    SetBackButtonEnabled(data.window.back, false);
-
-      -- profiles button
-      data.window.profilesBtn = CreateTopMenuButton(L["Profiles"], function()
-        if (data.selectedButton:IsObjectType("CheckButton")) then
-            data.selectedButton:SetChecked(false);
-        end
-
-        self:ShowProfileManager();
-    end, topbar:GetFrame());
-
-    -- Layouts Button:
-    data.window.layoutsBtn = CreateTopMenuButton(L["Layouts"], function()
-        MayronUI:TriggerCommand("layouts");
-        data.window:Hide();
-    end);
-
-    -- installer buttons
-    data.window.installerBtn = CreateTopMenuButton(L["Installer"], function()
-        MayronUI:TriggerCommand("install");
-        data.window:Hide();
-    end);
-
-    -- reload button
-    data.window.reloadBtn = CreateTopMenuButton(L["Reload UI"], _G.ReloadUI);
-
-    local menuListScrollChild = menuListContainer.ScrollFrame:GetScrollChild();
-    tk:SetFullWidth(menuListScrollChild);
-
-    return menuListScrollChild;
+  return menuListScrollChild;
 end
 
 do
     ---@param module BaseModule
     ---@param name string
     local function GetMenuButtonText(module, name)
-        if (module) then
-            return module:GetModuleName();
-        else
-            return name;
-        end
+      if (module) then
+        return module:GetModuleName();
+      else
+        return name;
+      end
     end
 
     local function AddMenuButton(menuButtons, menuConfigTable, menuListScrollChild)
-        local module; ---@type BaseModule
+    if (menuConfigTable.client == "retail" and not tk:IsRetail()) then return end
+    if (menuConfigTable.client == "classic" and not tk:IsClassic()) then return end
 
-        if (menuConfigTable.module) then
-            module = MayronUI:ImportModule(menuConfigTable.module, true);
-        end
+    local module; ---@type BaseModule might be nil for some menus (e.g. General menu has no module)
 
-        -- Some modules might be unavailable for different wow clients.
-        -- i.e. ObjectiveTrackerModule is not available in classic.
-        if (not module) then return end
-
-        local menuButton = _G.CreateFrame("CheckButton", nil, menuListScrollChild);
-        menuButton.configTable = menuConfigTable;
-        menuButton.id = menuConfigTable.id;
-        menuButton.type = "menu";
-        menuButton.module = module;
-        menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-
-        local menuText = GetMenuButtonText(module, menuConfigTable.name);
-        menuButton.name = menuText; -- this is needed for ordering the buttons
-
-        menuButton.text:SetText(menuText);
-        menuButton.text:SetJustifyH("LEFT");
-        menuButton.text:SetPoint("TOPLEFT", 10, 0);
-        menuButton.text:SetPoint("BOTTOMRIGHT");
-
-        local filePath = tk:GetAssetFilePath("Textures\\Widgets\\Solid");
-        local normal = tk:SetBackground(menuButton, filePath);
-        local highlight = tk:SetBackground(menuButton, filePath);
-        local checked = tk:SetBackground(menuButton, filePath);
-
-        -- first argument is the alpha
-        tk:ApplyThemeColor(0.3, normal, highlight);
-        tk:ApplyThemeColor(0.6, checked);
-
-        menuButton:SetSize(250, MENU_BUTTON_HEIGHT);
-        menuButton:SetNormalTexture(normal);
-        menuButton:SetHighlightTexture(highlight);
-        menuButton:SetCheckedTexture(checked);
-        menuButton:SetScript("OnClick", MenuButton_OnClick);
-
-        menuButtons[menuText] = menuButton;
-        table.insert(menuButtons, menuButton);
+    if (menuConfigTable.module) then
+      module = MayronUI:ImportModule(menuConfigTable.module, true);
     end
 
-    ---Loads all config data from individual modules and places them as a graphical menu
-    ---@param menuListScrollChild Frame @The frame that holds all menu buttons in the left scroll frame.
-    function C_ConfigModule:SetUpSideMenu(data, menuListScrollChild)
-        data.menuButtons = {};
+    local menuButton = CreateFrame("CheckButton", nil, menuListScrollChild);
+    menuButton.configTable = menuConfigTable;
+    menuButton.id = menuConfigTable.id;
+    menuButton.type = "menu";
+    menuButton.module = module;
+    menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
 
-        -- contains all menu buttons in the left scroll frame of the main config window
-        local scrollChildHeight = menuListScrollChild:GetHeight() + MENU_BUTTON_HEIGHT;
-        menuListScrollChild:SetHeight(scrollChildHeight);
+    local menuText = GetMenuButtonText(module, menuConfigTable.name);
+    menuButton.name = menuText; -- this is needed for ordering the buttons
 
-        for _, module in MayronUI:IterateModules() do
+    menuButton.text:SetText(menuText);
+    menuButton.text:SetJustifyH("LEFT");
+    menuButton.text:SetPoint("TOPLEFT", 10, 0);
+    menuButton.text:SetPoint("BOTTOMRIGHT");
 
-            if (module.GetConfigTable) then
-                local configTable = module:GetConfigTable();
+    local filePath = tk:GetAssetFilePath("Textures\\Widgets\\Solid");
+    local normal = tk:SetBackground(menuButton, filePath);
+    local highlight = tk:SetBackground(menuButton, filePath);
+    local checked = tk:SetBackground(menuButton, filePath);
 
-                if (#configTable == 0) then
-                    AddMenuButton(data.menuButtons, configTable, menuListScrollChild);
-                else
-                    for _, menuConfigTable in ipairs(configTable) do
-                        AddMenuButton(data.menuButtons, menuConfigTable, menuListScrollChild);
-                    end
-                end
-            end
+    -- first argument is the alpha
+    tk:ApplyThemeColor(0.3, normal, highlight);
+    tk:ApplyThemeColor(0.6, checked);
+
+    menuButton:SetSize(250, MENU_BUTTON_HEIGHT);
+    menuButton:SetNormalTexture(normal);
+    menuButton:SetHighlightTexture(highlight);
+    menuButton:SetCheckedTexture(checked);
+    menuButton:SetScript("OnClick", MenuButton_OnClick);
+
+    menuButtons[menuText] = menuButton;
+    table.insert(menuButtons, menuButton);
+  end
+
+  ---Loads all config data from individual modules and places them as a graphical menu
+  ---@param menuListScrollChild Frame @The frame that holds all menu buttons in the left scroll frame.
+  function C_ConfigModule:SetUpSideMenu(data, menuListScrollChild)
+    data.menuButtons = {};
+
+    -- contains all menu buttons in the left scroll frame of the main config window
+    local scrollChildHeight = menuListScrollChild:GetHeight() + MENU_BUTTON_HEIGHT;
+    menuListScrollChild:SetHeight(scrollChildHeight);
+
+    for _, module in MayronUI:IterateModules() do
+
+      if (module.GetConfigTable) then
+        local configTable = module:GetConfigTable();
+
+        if (#configTable == 0) then
+          AddMenuButton(data.menuButtons, configTable, menuListScrollChild);
+        else
+          -- ConfigModule has multiple menu buttons
+          for _, menuConfigTable in ipairs(configTable) do
+            AddMenuButton(data.menuButtons, menuConfigTable, menuListScrollChild);
+          end
         end
-
-        -- order and position buttons:
-        tk.Tables:OrderBy(data.menuButtons, "id", "name");
-
-        for id, menuButton in ipairs(data.menuButtons) do
-            if (id == 1) then
-                -- first menu button (does not need to be anchored to a previous button)
-                menuButton:SetPoint("TOPLEFT", menuListScrollChild, "TOPLEFT");
-                menuButton:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT", -10, 0);
-                menuButton:SetChecked(true);
-
-                self:SetSelectedButton(menuButton);
-            else
-                local previousMenuButton = data.menuButtons[id - 1];
-                menuButton:SetPoint("TOPLEFT", previousMenuButton, "BOTTOMLEFT", 0, -5);
-                menuButton:SetPoint("TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
-
-                -- make room for padding between buttons
-                menuListScrollChild:SetHeight(menuListScrollChild:GetHeight() + 5);
-            end
-        end
-
-        tk:GroupCheckButtons(data.menuButtons);
+      end
     end
+
+    -- order and position buttons:
+    tk.Tables:OrderBy(data.menuButtons, "id", "name");
+
+    for id, menuButton in ipairs(data.menuButtons) do
+      if (id == 1) then
+        -- first menu button (does not need to be anchored to a previous button)
+        menuButton:SetPoint("TOPLEFT", menuListScrollChild, "TOPLEFT");
+        menuButton:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT", -10, 0);
+        menuButton:SetChecked(true);
+
+        self:SetSelectedButton(menuButton);
+      else
+        local previousMenuButton = data.menuButtons[id - 1];
+        menuButton:SetPoint("TOPLEFT", previousMenuButton, "BOTTOMLEFT", 0, -5);
+        menuButton:SetPoint("TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
+
+        -- make room for padding between buttons
+        menuListScrollChild:SetHeight(menuListScrollChild:GetHeight() + 5);
+      end
+    end
+
+    tk:GroupCheckButtons(data.menuButtons);
+  end
 end

@@ -3,7 +3,6 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local InCombatLockdown, unpack = _G.InCombatLockdown, _G.unpack;
-local UIFrameFadeIn, UIFrameFadeOut = _G.UIFrameFadeIn, _G.UIFrameFadeOut;
 local pairs, ipairs, table, xpcall = _G.pairs, _G.ipairs, _G.table, _G.xpcall;
 
 ---@type Engine
@@ -14,7 +13,11 @@ local C_MovableFramesModule = MayronUI:RegisterModule("MovableFramesModule", L["
 
 db:AddToDefaults("global.movable", {
 	enabled = true;
-	positions = {};
+  positions = {};
+  talkingHead = {
+    position = "TOP",
+    yOffset = -50,
+  }
 });
 
 local BlizzardFrames = {
@@ -208,7 +211,7 @@ function C_MovableFramesModule:OnInitialize(data)
 
     -- Reposition talking head frame to top of screen
     f:ClearAllPoints();
-    f:SetPoint("TOP", 0, -50);
+    f:SetPoint(data.settings.talkingHead.position, 0, data.settings.talkingHead.yOffset);
     f:SetScript("OnShow", nil);
     f:SetScript("OnHide", nil);
 

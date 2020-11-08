@@ -116,424 +116,422 @@ end
 
 function C_TimerBarsModule:GetConfigTable()
     return {
-        {
-            module            = "TimerBarsModule";
-            hasOwnDatabase    = true;
-            children = {
-                {   name = L["Enabled"],
-                    tooltip = "If checked, this module will be enabled.",
-                    type = "check",
-                    requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
-                    dbPath = "profile.enabled",
-                },
-                {
-                  type = "divider"
-                },
-                {   name        = L["General Options"];
-                    type        = "title";
-                    marginTop   = 0;
-                };
-                {   name    = L["Sort By Time Remaining"];
-                    type    = "check";
-                    width   = 220;
-                    dbPath  = "profile.sortByExpirationTime";
-                };
-                {   name    = L["Show Tooltips On Mouseover"];
-                    type    = "check";
-                    width   = 230;
-                    dbPath  = "profile.showTooltips";
-                };
-                {   type = "divider";
-                };
-                {   name    = L["Bar Texture"];
-                    type    = "dropdown";
-                    dbPath  = "profile.statusBarTexture";
-                    options = tk.Constants.LSM:List("statusbar");
-                };
-                {   type = "divider";
-                };
-                {   name    = L["Show Borders"];
-                    type    = "check";
-                    height = 55;
-                    dbPath  = "profile.border.show";
-                };
-                {   name    = L["Border Type"];
-                    type    = "dropdown";
-                    dbPath  = "profile.border.type";
-                    options = tk.Constants.LSM:List("border");
-                };
-                {   name    = L["Border Size"];
-                    type    = "slider";
-                    dbPath  = "profile.border.size";
-                    min = 1;
-                    max = 20;
-                    step = 1;
-                };
-                {   type = "divider";
-                };
-                {   name = L["Create New Field"];
-                    type = "button";
-                    OnClick = function()
-                        tk:ShowInputPopup("Create New TimerBar Field", "(requires reloading the UI to apply change)",
-                            "New Field Name", nil, nil, CreateNewFieldButton_OnClick);
-                    end
-                };
-                {   name = L["Remove Field"];
-                    type = "button";
-                    OnClick = function()
-                        tk:ShowInputPopup("Remove TimerBar Field", "(requires reloading the UI to apply change)",
-                            "Field Name", nil, nil, RemoveFieldButton_OnClick);
-                    end
-                };
-                {   name = L["Colors"];
-                    type = "title";
-                };
-                {   name = L["Background Color"];
-                    type = "color";
-                    width = 220;
-                    useIndexes = true;
-                    hasOpacity = true;
-                    dbPath = "profile.colors.background";
-                };
-                {   name = L["Buff Bar Color"];
-                    type = "color";
-                    width = 220;
-                    useIndexes = true;
-                    hasOpacity = true;
-                    dbPath = "profile.colors.basicBuff";
-                };
-                {   name = L["Debuff Bar Color"];
-                    type = "color";
-                    width = 220;
-                    useIndexes = true;
-                    hasOpacity = true;
-                    dbPath = "profile.colors.basicDebuff";
-                };
-                {   name = L["Border"];
-                    type = "color";
-                    width = 220;
-                    useIndexes = true;
-                    hasOpacity = true;
-                    dbPath = "profile.colors.border";
-                };
-                {   name = L["Can Steal or Purge"];
-                    type = "color";
-                    width = 220;
-                    useIndexes = true;
-                    hasOpacity = true;
-                    tooltip = L["If an aura can be stolen or purged, show a different color."];
-                    dbPath = "profile.colors.canStealOrPurge";
-                };
-                {   name = L["Magic Debuff"];
-                    type = "color";
-                    width = 220;
-                    useIndexes = true;
-                    hasOpacity = true;
-                    dbPath = "profile.colors.magic";
-                };
-                {   name = L["Disease Debuff"];
-                    type = "color";
-                    width = 220;
-                    useIndexes = true;
-                    hasOpacity = true;
-                    dbPath = "profile.colors.disease";
-                };
-                {   name = L["Poison Debuff"];
-                    type = "color";
-                    width = 220;
-                    useIndexes = true;
-                    hasOpacity = true;
-                    dbPath = "profile.colors.poison";
-                };
-                {   name = L["Curse Debuff"];
-                    type = "color";
-                    width = 220;
-                    useIndexes = true;
-                    hasOpacity = true;
-                    dbPath = "profile.colors.curse";
-                };
-                {   name = L["Existing Timer Bar Fields"];
-                    type = "title";
-                };
-                {   type = "loop";
-                    args = db.profile.fieldNames:GetUntrackedTable();
-                    func = function(_, name)
-                        local dbFieldPath = "profile.fields."..name;
+      module            = "TimerBarsModule";
+      hasOwnDatabase    = true;
+      children = {
+          {   name = L["Enabled"],
+              tooltip = "If checked, this module will be enabled.",
+              type = "check",
+              requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
+              dbPath = "profile.enabled",
+          },
+          {
+            type = "divider"
+          },
+          {   name        = L["General Options"];
+              type        = "title";
+              marginTop   = 0;
+          };
+          {   name    = L["Sort By Time Remaining"];
+              type    = "check";
+              width   = 220;
+              dbPath  = "profile.sortByExpirationTime";
+          };
+          {   name    = L["Show Tooltips On Mouseover"];
+              type    = "check";
+              width   = 230;
+              dbPath  = "profile.showTooltips";
+          };
+          {   type = "divider";
+          };
+          {   name    = L["Bar Texture"];
+              type    = "dropdown";
+              dbPath  = "profile.statusBarTexture";
+              options = tk.Constants.LSM:List("statusbar");
+          };
+          {   type = "divider";
+          };
+          {   name    = L["Show Borders"];
+              type    = "check";
+              height = 55;
+              dbPath  = "profile.border.show";
+          };
+          {   name    = L["Border Type"];
+              type    = "dropdown";
+              dbPath  = "profile.border.type";
+              options = tk.Constants.LSM:List("border");
+          };
+          {   name    = L["Border Size"];
+              type    = "slider";
+              dbPath  = "profile.border.size";
+              min = 1;
+              max = 20;
+              step = 1;
+          };
+          {   type = "divider";
+          };
+          {   name = L["Create New Field"];
+              type = "button";
+              OnClick = function()
+                  tk:ShowInputPopup("Create New TimerBar Field", "(requires reloading the UI to apply change)",
+                      "New Field Name", nil, nil, CreateNewFieldButton_OnClick);
+              end
+          };
+          {   name = L["Remove Field"];
+              type = "button";
+              OnClick = function()
+                  tk:ShowInputPopup("Remove TimerBar Field", "(requires reloading the UI to apply change)",
+                      "Field Name", nil, nil, RemoveFieldButton_OnClick);
+              end
+          };
+          {   name = L["Colors"];
+              type = "title";
+          };
+          {   name = L["Background Color"];
+              type = "color";
+              width = 220;
+              useIndexes = true;
+              hasOpacity = true;
+              dbPath = "profile.colors.background";
+          };
+          {   name = L["Buff Bar Color"];
+              type = "color";
+              width = 220;
+              useIndexes = true;
+              hasOpacity = true;
+              dbPath = "profile.colors.basicBuff";
+          };
+          {   name = L["Debuff Bar Color"];
+              type = "color";
+              width = 220;
+              useIndexes = true;
+              hasOpacity = true;
+              dbPath = "profile.colors.basicDebuff";
+          };
+          {   name = L["Border"];
+              type = "color";
+              width = 220;
+              useIndexes = true;
+              hasOpacity = true;
+              dbPath = "profile.colors.border";
+          };
+          {   name = L["Can Steal or Purge"];
+              type = "color";
+              width = 220;
+              useIndexes = true;
+              hasOpacity = true;
+              tooltip = L["If an aura can be stolen or purged, show a different color."];
+              dbPath = "profile.colors.canStealOrPurge";
+          };
+          {   name = L["Magic Debuff"];
+              type = "color";
+              width = 220;
+              useIndexes = true;
+              hasOpacity = true;
+              dbPath = "profile.colors.magic";
+          };
+          {   name = L["Disease Debuff"];
+              type = "color";
+              width = 220;
+              useIndexes = true;
+              hasOpacity = true;
+              dbPath = "profile.colors.disease";
+          };
+          {   name = L["Poison Debuff"];
+              type = "color";
+              width = 220;
+              useIndexes = true;
+              hasOpacity = true;
+              dbPath = "profile.colors.poison";
+          };
+          {   name = L["Curse Debuff"];
+              type = "color";
+              width = 220;
+              useIndexes = true;
+              hasOpacity = true;
+              dbPath = "profile.colors.curse";
+          };
+          {   name = L["Existing Timer Bar Fields"];
+              type = "title";
+          };
+          {   type = "loop";
+              args = db.profile.fieldNames:GetUntrackedTable();
+              func = function(_, name)
+                  local dbFieldPath = "profile.fields."..name;
 
-                        return {
-                            name              = name;
-                            type              = "submenu";
-                            module            = "TimerBarsModule";
-                            hasOwnDatabase    = true;
+                  return {
+                      name              = name;
+                      type              = "submenu";
+                      module            = "TimerBarsModule";
+                      hasOwnDatabase    = true;
 
-                            OnLoad = function()
-                                position_TextFields[name] = obj:PopTable();
-                            end;
+                      OnLoad = function()
+                          position_TextFields[name] = obj:PopTable();
+                      end;
 
-                            children = {
-                                {   name    = L["Enable Field"];
-                                    type    = "check";
-                                    dbPath  = dbFieldPath .. ".enabled";
-                                };
-                                {   name = L["Unlock"];
-                                    type = "button";
-                                    OnClick = function(button)
-                                        local field = _G["MUI_"..name.."TimerField"];
+                      children = {
+                          {   name    = L["Enable Field"];
+                              type    = "check";
+                              dbPath  = dbFieldPath .. ".enabled";
+                          };
+                          {   name = L["Unlock"];
+                              type = "button";
+                              OnClick = function(button)
+                                  local field = _G["MUI_"..name.."TimerField"];
 
-                                        if (not (field and field:IsShown())) then
-                                            return;
-                                        end
+                                  if (not (field and field:IsShown())) then
+                                      return;
+                                  end
 
-                                        button.toggle = not button.toggle;
-                                        tk:MakeMovable(field, nil, button.toggle, nil, Field_OnDragStop);
+                                  button.toggle = not button.toggle;
+                                  tk:MakeMovable(field, nil, button.toggle, nil, Field_OnDragStop);
 
-                                        if (button.toggle) then
-                                            if (not field.moveIndicator) then
-                                                local r, g, b = tk:GetThemeColor();
-                                                field.moveIndicator = tk:SetBackground(field, r, g, b);
-                                                field.moveLabel = field:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
-                                                field.moveLabel:SetText(string.format(L["<%s Field>"], name));
-                                                field.moveLabel:SetPoint("CENTER");
-                                            end
+                                  if (button.toggle) then
+                                      if (not field.moveIndicator) then
+                                          local r, g, b = tk:GetThemeColor();
+                                          field.moveIndicator = tk:SetBackground(field, r, g, b);
+                                          field.moveLabel = field:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
+                                          field.moveLabel:SetText(string.format(L["<%s Field>"], name));
+                                          field.moveLabel:SetPoint("CENTER");
+                                      end
 
-                                            field.moveIndicator:SetAlpha(0.4);
-                                            field.moveLabel:SetAlpha(0.8);
-                                            button:SetText(L["Lock"]);
+                                      field.moveIndicator:SetAlpha(0.4);
+                                      field.moveLabel:SetAlpha(0.8);
+                                      button:SetText(L["Lock"]);
 
-                                        elseif (field.moveIndicator) then
-                                            field.moveIndicator:SetAlpha(0);
-                                            field.moveLabel:SetAlpha(0);
-                                            button:SetText("Unlock");
-                                        end
-                                    end
-                                };
-                                {   name = "Save Position";
-                                    type = "button";
+                                  elseif (field.moveIndicator) then
+                                      field.moveIndicator:SetAlpha(0);
+                                      field.moveLabel:SetAlpha(0);
+                                      button:SetText("Unlock");
+                                  end
+                              end
+                          };
+                          {   name = "Save Position";
+                              type = "button";
 
-                                    OnLoad = function(_, button)
-                                        savePositionButtons[name] = button;
-                                        button:SetEnabled(false);
-                                    end;
+                              OnLoad = function(_, button)
+                                  savePositionButtons[name] = button;
+                                  button:SetEnabled(false);
+                              end;
 
-                                    OnClick = function(_)
-                                        local field = _G["MUI_"..name.."TimerField"];
+                              OnClick = function(_)
+                                  local field = _G["MUI_"..name.."TimerField"];
 
-                                        if (not (field and field:IsShown())) then
-                                            return;
-                                        end
+                                  if (not (field and field:IsShown())) then
+                                      return;
+                                  end
 
-                                        local positions = tk.Tables:GetFramePosition(field);
-                                        db:SetPathValue(dbFieldPath .. ".position", positions);
+                                  local positions = tk.Tables:GetFramePosition(field);
+                                  db:SetPathValue(dbFieldPath .. ".position", positions);
 
-                                        Field_OnDragStop(field);
-                                        savePositionButtons[name]:SetEnabled(false);
-                                    end
-                                };
-                                {   type = "divider";
-                                };
-                                {   name = L["Unit to Track"];
-                                    type = "dropdown";
-                                    tooltip = L["The unit who is affected by the spell."];
-                                    dbPath = dbFieldPath .. ".unitID";
-                                    options = {
-                                        [L["Player"]] = "Player";
-                                        [L["Target"]] = "Target";
-                                        [L["TargetTarget"]] = "TargetTarget";
-                                        [L["Focus"]] = "Focus";
-                                        [L["FocusTarget"]] = "FocusTarget"
-                                    };
-                                };
-                                {   type = "divider"
-                                };
-                                {   name = L["Appearance Options"];
-                                    type = "title"
-                                };
-                                {   content = L["The field's vertical growth direction:"];
-                                    type = "fontstring";
-                                };
-                                {   name = L["Up"];
-                                    dbPath = dbFieldPath .. ".direction";
-                                    type = "radio";
-                                    groupName = "TimerBars_Growth_"..name;
+                                  Field_OnDragStop(field);
+                                  savePositionButtons[name]:SetEnabled(false);
+                              end
+                          };
+                          {   type = "divider";
+                          };
+                          {   name = L["Unit to Track"];
+                              type = "dropdown";
+                              tooltip = L["The unit who is affected by the spell."];
+                              dbPath = dbFieldPath .. ".unitID";
+                              options = {
+                                  [L["Player"]] = "Player";
+                                  [L["Target"]] = "Target";
+                                  [L["TargetTarget"]] = "TargetTarget";
+                                  [L["Focus"]] = "Focus";
+                                  [L["FocusTarget"]] = "FocusTarget"
+                              };
+                          };
+                          {   type = "divider"
+                          };
+                          {   name = L["Appearance Options"];
+                              type = "title"
+                          };
+                          {   content = L["The field's vertical growth direction:"];
+                              type = "fontstring";
+                          };
+                          {   name = L["Up"];
+                              dbPath = dbFieldPath .. ".direction";
+                              type = "radio";
+                              groupName = "TimerBars_Growth_"..name;
 
-                                    GetValue = function(_, value)
-                                        return value == "UP";
-                                    end;
+                              GetValue = function(_, value)
+                                  return value == "UP";
+                              end;
 
-                                    SetValue = function(dbPath)
-                                        db:SetPathValue(dbPath, "UP");
-                                    end;
-                                };
-                                {   name = L["Down"];
-                                    dbPath = dbFieldPath .. ".direction";
-                                    type = "radio";
-                                    groupName = "TimerBars_Growth_"..name;
+                              SetValue = function(dbPath)
+                                  db:SetPathValue(dbPath, "UP");
+                              end;
+                          };
+                          {   name = L["Down"];
+                              dbPath = dbFieldPath .. ".direction";
+                              type = "radio";
+                              groupName = "TimerBars_Growth_"..name;
 
-                                    GetValue = function(_, value)
-                                        return value == "DOWN";
-                                    end;
+                              GetValue = function(_, value)
+                                  return value == "DOWN";
+                              end;
 
-                                    SetValue = function(dbPath)
-                                        db:SetPathValue(dbPath, "DOWN");
-                                    end;
-                                };
-                                {   type = "divider"
-                                };
-                                {   name = L["Bar Width"];
-                                    type = "slider";
-                                    dbPath = dbFieldPath .. ".bar.width";
-                                    tooltip = tk.Strings:Concat(L["Default value is "], "213");
-                                    step = 1;
-                                    min = 100;
-                                    max = 400;
-                                };
-                                {   name = L["Bar Height"];
-                                    type = "slider";
-                                    dbPath = dbFieldPath .. ".bar.height";
-                                    tooltip = tk.Strings:Concat(L["Default value is "], "22");
-                                    step = 1;
-                                    min = 5;
-                                    max = 50;
-                                };
-                                {   name = L["Bar Spacing"];
-                                    type = "slider";
-                                    dbPath = dbFieldPath .. ".bar.spacing";
-                                    tooltip = tk.Strings:Concat(L["Default value is "], "2");
-                                    step = 1;
-                                    min = 0;
-                                    max = 10;
-                                };
-                                {   type = "divider"
-                                };
-                                {   name = L["Show Icons"];
-                                    type = "check";
-                                    dbPath = dbFieldPath .. ".showIcons";
-                                };
-                                {   name = L["Show Spark"];
-                                    type = "check";
-                                    dbPath = dbFieldPath .. ".showSpark";
-                                };
-                                {   type = "divider"
-                                };
-                                {   type = "fontstring";
-                                    subtype = "header";
-                                    content = L["Manual Positioning"]
-                                };
-                                {   type = "loop";
-                                    args = { L["Point"], L["Relative Frame"], L["Relative Point"], L["X-Offset"], L["Y-Offset"] };
-                                    func = function(index, arg)
-                                        return {
-                                            name = arg;
-                                            type = "textfield";
-                                            valueType = "string";
-                                            dbPath = tk.Strings:Concat(dbFieldPath, ".position[", index, "]");
-                                            fieldName = name;
-                                            OnLoad = TimerFieldPosition_OnLoad;
-                                        };
-                                    end
-                                };
-                                {   name = L["Text Options"];
-                                    type = "title";
-                                };
-                                {   content = L["Time Remaining Text"];
-                                    type = "fontstring";
-                                    subtype = "header";
-                                };
-                                {   name = L["Show"];
-                                    type = "check";
-                                    height = 50;
-                                    dbPath = dbFieldPath .. ".timeRemaining.show";
-                                };
-                                {   name = L["Font Size"];
-                                    type = "slider";
-                                    tooltip = L["Default is 11"];
-                                    step = 1;
-                                    min = 8;
-                                    max = 22;
-                                    dbPath = dbFieldPath .. ".timeRemaining.fontSize";
-                                };
-                                {   name = L["Font Type"];
-                                    type = "dropdown";
-                                    dbPath = dbFieldPath .. ".timeRemaining.font";
-                                    fontPicker = true;
-                                    options = tk.Constants.LSM:List("font");
-                                };
-                                {   content = L["Spell Name Text"];
-                                    type = "fontstring";
-                                    subtype = "header";
-                                };
-                                {   name = L["Show"];
-                                    type = "check";
-                                    height = 50;
-                                    dbPath = dbFieldPath .. ".auraName.show";
-                                };
-                                {   name = L["Font Size"];
-                                    type = "slider";
-                                    tooltip = L["Default is 11"];
-                                    step = 1;
-                                    min = 8;
-                                    max = 22;
-                                    dbPath = dbFieldPath .. ".auraName.fontSize";
-                                };
-                                {   name = L["Font Type"];
-                                    type = "dropdown";
-                                    dbPath = dbFieldPath .. ".auraName.font";
-                                    fontPicker = true;
-                                    options = tk.Constants.LSM:List("font");
-                                };
-                                {   name = L["Filters"];
-                                    type = "title";
-                                };
-                                {   name = "Show Buffs";
-                                    dbPath = dbFieldPath .. ".filters.showBuffs";
-                                    type = "check";
-                                    width = 150;
-                                };
-                                {   name = L["Only show buffs applied by me"];
-                                    dbPath = dbFieldPath .. ".filters.onlyPlayerBuffs";
-                                    type = "check";
-                                };
-                                {   type = "divider";
-                                };
-                                {   name = "Show Debuffs";
-                                    dbPath = dbFieldPath .. ".filters.showDebuffs";
-                                    type = "check";
-                                    width = 150;
-                                };
+                              SetValue = function(dbPath)
+                                  db:SetPathValue(dbPath, "DOWN");
+                              end;
+                          };
+                          {   type = "divider"
+                          };
+                          {   name = L["Bar Width"];
+                              type = "slider";
+                              dbPath = dbFieldPath .. ".bar.width";
+                              tooltip = tk.Strings:Concat(L["Default value is "], "213");
+                              step = 1;
+                              min = 100;
+                              max = 400;
+                          };
+                          {   name = L["Bar Height"];
+                              type = "slider";
+                              dbPath = dbFieldPath .. ".bar.height";
+                              tooltip = tk.Strings:Concat(L["Default value is "], "22");
+                              step = 1;
+                              min = 5;
+                              max = 50;
+                          };
+                          {   name = L["Bar Spacing"];
+                              type = "slider";
+                              dbPath = dbFieldPath .. ".bar.spacing";
+                              tooltip = tk.Strings:Concat(L["Default value is "], "2");
+                              step = 1;
+                              min = 0;
+                              max = 10;
+                          };
+                          {   type = "divider"
+                          };
+                          {   name = L["Show Icons"];
+                              type = "check";
+                              dbPath = dbFieldPath .. ".showIcons";
+                          };
+                          {   name = L["Show Spark"];
+                              type = "check";
+                              dbPath = dbFieldPath .. ".showSpark";
+                          };
+                          {   type = "divider"
+                          };
+                          {   type = "fontstring";
+                              subtype = "header";
+                              content = L["Manual Positioning"]
+                          };
+                          {   type = "loop";
+                              args = { L["Point"], L["Relative Frame"], L["Relative Point"], L["X-Offset"], L["Y-Offset"] };
+                              func = function(index, arg)
+                                  return {
+                                      name = arg;
+                                      type = "textfield";
+                                      valueType = "string";
+                                      dbPath = tk.Strings:Concat(dbFieldPath, ".position[", index, "]");
+                                      fieldName = name;
+                                      OnLoad = TimerFieldPosition_OnLoad;
+                                  };
+                              end
+                          };
+                          {   name = L["Text Options"];
+                              type = "title";
+                          };
+                          {   content = L["Time Remaining Text"];
+                              type = "fontstring";
+                              subtype = "header";
+                          };
+                          {   name = L["Show"];
+                              type = "check";
+                              height = 50;
+                              dbPath = dbFieldPath .. ".timeRemaining.show";
+                          };
+                          {   name = L["Font Size"];
+                              type = "slider";
+                              tooltip = L["Default is 11"];
+                              step = 1;
+                              min = 8;
+                              max = 22;
+                              dbPath = dbFieldPath .. ".timeRemaining.fontSize";
+                          };
+                          {   name = L["Font Type"];
+                              type = "dropdown";
+                              dbPath = dbFieldPath .. ".timeRemaining.font";
+                              fontPicker = true;
+                              options = tk.Constants.LSM:List("font");
+                          };
+                          {   content = L["Spell Name Text"];
+                              type = "fontstring";
+                              subtype = "header";
+                          };
+                          {   name = L["Show"];
+                              type = "check";
+                              height = 50;
+                              dbPath = dbFieldPath .. ".auraName.show";
+                          };
+                          {   name = L["Font Size"];
+                              type = "slider";
+                              tooltip = L["Default is 11"];
+                              step = 1;
+                              min = 8;
+                              max = 22;
+                              dbPath = dbFieldPath .. ".auraName.fontSize";
+                          };
+                          {   name = L["Font Type"];
+                              type = "dropdown";
+                              dbPath = dbFieldPath .. ".auraName.font";
+                              fontPicker = true;
+                              options = tk.Constants.LSM:List("font");
+                          };
+                          {   name = L["Filters"];
+                              type = "title";
+                          };
+                          {   name = "Show Buffs";
+                              dbPath = dbFieldPath .. ".filters.showBuffs";
+                              type = "check";
+                              width = 150;
+                          };
+                          {   name = L["Only show buffs applied by me"];
+                              dbPath = dbFieldPath .. ".filters.onlyPlayerBuffs";
+                              type = "check";
+                          };
+                          {   type = "divider";
+                          };
+                          {   name = "Show Debuffs";
+                              dbPath = dbFieldPath .. ".filters.showDebuffs";
+                              type = "check";
+                              width = 150;
+                          };
 
-                                {   name = L["Only show debuffs applied by me"];
-                                    dbPath = dbFieldPath .. ".filters.onlyPlayerDebuffs";
-                                    type = "check";
-                                };
-                                {   type = "divider";
-                                };
-                                {   name = L["Enable Whitelist"];
-                                    dbPath = dbFieldPath .. ".filters.enableWhiteList";
-                                    type = "check";
-                                    width = 155;
-                                };
-                                {   name = L["Configure Whitelist"];
-                                    type = "button";
-                                    dbPath = dbFieldPath .. ".filters.whiteList";
-                                    OnClick = ShowListFrame;
-                                };
-                                {   type = "divider";
-                                };
-                                {   name = L["Enable Blacklist"];
-                                    dbPath = dbFieldPath .. ".filters.enableBlackList";
-                                    type = "check";
-                                    width = 155;
-                                };
-                                {   name = L["Configure Blacklist"];
-                                    type = "button";
-                                    dbPath = dbFieldPath .. ".filters.blackList";
-                                    OnClick = ShowListFrame;
-                                };
-                            };
-                        };
-                    end;
-                };
-            }
-        }
+                          {   name = L["Only show debuffs applied by me"];
+                              dbPath = dbFieldPath .. ".filters.onlyPlayerDebuffs";
+                              type = "check";
+                          };
+                          {   type = "divider";
+                          };
+                          {   name = L["Enable Whitelist"];
+                              dbPath = dbFieldPath .. ".filters.enableWhiteList";
+                              type = "check";
+                              width = 155;
+                          };
+                          {   name = L["Configure Whitelist"];
+                              type = "button";
+                              dbPath = dbFieldPath .. ".filters.whiteList";
+                              OnClick = ShowListFrame;
+                          };
+                          {   type = "divider";
+                          };
+                          {   name = L["Enable Blacklist"];
+                              dbPath = dbFieldPath .. ".filters.enableBlackList";
+                              type = "check";
+                              width = 155;
+                          };
+                          {   name = L["Configure Blacklist"];
+                              type = "button";
+                              dbPath = dbFieldPath .. ".filters.blackList";
+                              OnClick = ShowListFrame;
+                          };
+                      };
+                  };
+              end;
+          };
+      }
     };
 end
