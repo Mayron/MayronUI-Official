@@ -133,6 +133,7 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   name = "Top of Screen";
                     type = "radio";
+                    client = "retail";
                     groupName = "talkingHead_position";
                     dbPath = "global.movable.talkingHead.position";
                     height = 50;
@@ -146,6 +147,7 @@ function C_ConfigModule:GetConfigTable()
                 },
                 {   name = "Bottom of Screen";
                     type = "radio";
+                    client = "retail";
                     groupName = "talkingHead_position";
                     dbPath = "global.movable.talkingHead.position";
                     height = 50;
@@ -160,6 +162,7 @@ function C_ConfigModule:GetConfigTable()
                 {
                   name        = L["Y-Offset"];
                   type        = "textfield";
+                  client = "retail";
                   valueType   = "number";
                   dbPath      = "global.movable.talkingHead.yOffset";
                 }
@@ -578,6 +581,7 @@ function C_ConfigModule:GetConfigTable()
         };
         {
             module = "ObjectiveTrackerModule";
+            client = "retail";
             children = {
                 {   name        = L["Objective Tracker"];
                     type        = "title";

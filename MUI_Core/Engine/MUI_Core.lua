@@ -7,7 +7,8 @@ _G.MayronUI = {};
 local MayronUI = _G.MayronUI;
 local table, ipairs, select, string, unpack, print = _G.table, _G.ipairs, _G.select, _G.string, _G.unpack, _G.print;
 local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI = _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
-local strsplit = _G.strsplit;
+local strsplit, GetAddOnMetadata = _G.strsplit, _G.GetAddOnMetadata;
+local collectgarbage, CreateFont, error = _G.collectgarbage, _G.CreateFont, _G.error;
 
 namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI");
 namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
@@ -265,7 +266,9 @@ commands.profiles = function(subCommand)
 end
 
 commands.version = function()
-  tk:Print("Version", _G.GetAddOnMetadata("MUI_Core", "Version"));
+  tk:Print("MUI_Core -", GetAddOnMetadata("MUI_Core", "Version"));
+  tk:Print("MUI_Config -", GetAddOnMetadata("MUI_Config", "Version"));
+  tk:Print("MUI_Setup -", GetAddOnMetadata("MUI_Setup", "Version"));
 end
 
 commands.help = function()
@@ -642,7 +645,7 @@ function C_CoreModule:OnInitialize()
   end
 
   tk:Print(L["Welcome back"], _G.UnitName("player").."!");
-  _G.collectgarbage("collect");
+  collectgarbage("collect");
   DisableAddOn("MUI_Setup"); -- disable for next time
 end
 
@@ -702,15 +705,15 @@ db:OnStartUp(function(self)
 
   local r, g, b = tk:GetThemeColor();
 
-  local myFont = _G.CreateFont("MUI_FontNormal");
+  local myFont = CreateFont("MUI_FontNormal");
   myFont:SetFontObject("GameFontNormal");
   myFont:SetTextColor(r, g, b);
 
-  myFont = _G.CreateFont("MUI_FontSmall");
+  myFont = CreateFont("MUI_FontSmall");
   myFont:SetFontObject("GameFontNormalSmall");
   myFont:SetTextColor(r, g, b);
 
-  myFont = _G.CreateFont("MUI_FontLarge");
+  myFont = CreateFont("MUI_FontLarge");
   myFont:SetFontObject("GameFontNormalLarge");
   myFont:SetTextColor(r, g, b);
 
