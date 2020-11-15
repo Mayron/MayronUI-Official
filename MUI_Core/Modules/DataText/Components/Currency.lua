@@ -64,6 +64,7 @@ end
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
   local coloredKey = tk.Strings:SetTextColorByClass(tk:GetPlayerKey());
 
+  -- TODO: Refactor this to use only a path address
   -- saves info on the currency that each logged in character has
   if (not db:ParsePathValue(db.global, "datatext.currency.characters")) then
     db:SetPathValue(db.profile, "datatext.currency.todayCurrency", GetMoney());

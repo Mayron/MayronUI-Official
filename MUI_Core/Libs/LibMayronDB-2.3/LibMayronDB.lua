@@ -324,17 +324,16 @@ end
 
 Framework:DefineParams("string");
 ---Triggers an update function located by the path argument and pass any arguments to the function
----@param fullPath string @A database path string, such as "profile.myTable.mySubTable[2]" (includes root path).
+---@param path string @A database path string, such as "profile.myTable.mySubTable[2]" (includes root path).
     --- This is needed to locate the updateFunction
----@param newValue any @(optional) The new value assigned to the database.
-function Database:TriggerUpdateFunction(data, fullPath, newValue)
-  local updateFunction = self:ParsePathValue(data.updateFunctions, fullPath);
+function Database:TriggerUpdateFunction(data, path)
+  local updateFunction = self:ParsePathValue(data.updateFunctions, path);
   local manualFunction;
 
   -- used in while-loops for iteration only:
-  local updateFunctionPath = fullPath;
-  local pathOfValue = fullPath; -- used only in the while-loop
-  local manualFunctionPath = fullPath;
+  local updateFunctionPath = path;
+  local pathOfValue = path; -- used only in the while-loop
+  local manualFunctionPath = path;
 
   while (not obj:IsFunction(updateFunction) and pathOfValue:find("[.[]")) do
     -- cut off the last key (traverse table backwards to find update function)
@@ -354,16 +353,18 @@ function Database:TriggerUpdateFunction(data, fullPath, newValue)
     end
   end
 
+  local value = self:ParsePathValue(path);
+
   if (obj:IsFunction(manualFunction)) then
     if (obj:IsFunction(updateFunction)) then
       -- could not find an update function
-      manualFunction(updateFunction, fullPath, newValue);
+      manualFunction(updateFunction, path, value);
     else
-      manualFunction(nil, fullPath, newValue);
+      manualFunction(nil, path, value);
     end
 
   elseif (obj:IsFunction(updateFunction)) then
-    updateFunction(newValue, fullPath);
+    updateFunction(value, path);
   end
 end
 
@@ -813,6 +814,7 @@ function Observer:GetDefaults(data)
   end
 
   if (data.path) then
+    -- TODO: Refactor to use just the path address version of ParsePathValue
     return data.database:ParsePathValue(rootTable, data.path);
   end
 
@@ -1337,6 +1339,8 @@ function Helper:HandlePathValueChange(data, observerData, key, newValue)
   end
 
   local valuePath = GetNextPath(path, key);
+
+  -- TODO: Refactor this to use just the path address version of ParsePathValue
   local defaultValue = data.database:ParsePathValue(defaultRootTable, valuePath); -- get "fields" from defaultRootTable
 
   if (not IsEqual(defaultValue, newValue)) then
@@ -1350,7 +1354,7 @@ function Helper:HandlePathValueChange(data, observerData, key, newValue)
   if (dbTableRootName) then
     -- only run update function if the database saved variable table changes!
     local fullPath = string.format("%s.%s", dbTableRootName, valuePath);
-    data.database:TriggerUpdateFunction(fullPath, newValue);
+    data.database:TriggerUpdateFunction(fullPath);
   end
 end
 

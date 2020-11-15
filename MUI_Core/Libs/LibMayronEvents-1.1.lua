@@ -1,18 +1,15 @@
 -- luacheck: ignore MayronUI self 143 631
 local addonName = ...;
 
-local _G = _G;
-
 ---@class LibMayronEvents
 local Lib = _G.LibStub:NewLibrary("LibMayronEvents", 1.1);
 
-local pairs, ipairs, tostring = _G.pairs, _G.ipairs, _G.tostring;
+---@type Objects
+local obj = _G.LibStub:GetLibrary("LibMayronObjects");
 
-if (not Lib) then
-    return;
-end
+if (not (Lib and obj)) then return end
 
-local unpack = _G.unpack;
+local pairs, ipairs, tostring, unpack = _G.pairs, _G.ipairs, _G.tostring, _G.unpack;
 
 local Private = {};
 Private.eventsList = {};
@@ -20,9 +17,6 @@ Private.eventKeys = {};
 Private.eventTracker = _G.CreateFrame("Frame");
 
 -- Objects ----------------------------
-
----@type Objects
-local obj = _G.LibStub:GetLibrary("LibMayronObjects");
 
 local EventsPackage = obj:CreatePackage("Events", addonName);
 

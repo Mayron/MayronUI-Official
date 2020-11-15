@@ -70,6 +70,13 @@ local function SetBackButtonEnabled(backBtn, enabled)
     end
 end
 
+local function filterByClient(client)
+  if (client == "retail" and not tk:IsRetail()) then return false; end
+  if (client == "classic" and not tk:IsClassic()) then return false; end
+
+  return true;
+end
+
 -- Preserve values before recycling childData table!
 local function TransferWidgetAttributes(widget, widgetTable)
     widget.dbPath           = widgetTable.dbPath;
@@ -271,8 +278,8 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     data.tempMenuConfigTable = menuConfigTable;
 
     for _, widgetConfigTable in pairs(menuConfigTable.children) do
+      if (filterByClient(widgetConfigTable.client)) then
         if (widgetConfigTable.type == "loop" or widgetConfigTable.type == "condition") then
-
             -- run the loop to gather widget children
             local results = namespace.WidgetHandlers[widgetConfigTable.type](
                 data.selectedButton.menu:GetFrame(), widgetConfigTable);
@@ -319,6 +326,7 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
         else
             data.selectedButton.menu:AddChildren(self:SetUpWidget(widgetConfigTable));
         end
+      end
     end
 
     if (data.tempMenuConfigTable.groups) then
@@ -577,17 +585,17 @@ function C_ConfigModule:SetUpWindow(data)
 end
 
 do
-    ---@param module BaseModule
-    ---@param name string
-    local function GetMenuButtonText(module, name)
-      if (module) then
-        return module:GetModuleName();
-      else
-        return name;
-      end
+  ---@param module BaseModule
+  ---@param name string
+  local function GetMenuButtonText(module, name)
+    if (module) then
+      return module:GetModuleName();
+    else
+      return name;
     end
+  end
 
-    local function AddMenuButton(menuButtons, menuConfigTable, menuListScrollChild)
+  local function AddMenuButton(menuButtons, menuConfigTable, menuListScrollChild)
     if (menuConfigTable.client == "retail" and not tk:IsRetail()) then return end
     if (menuConfigTable.client == "classic" and not tk:IsClassic()) then return end
 
@@ -605,6 +613,12 @@ do
     menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
 
     local menuText = GetMenuButtonText(module, menuConfigTable.name);
+
+    -- If not menuText then an unknown module's config table tried to load by mistake.
+    -- e.g. ObjectiveTrackerModule is not loaded in classic, but its config table is loaded.
+    -- should not happen if client == "xxx" is used correctly.
+    if (not menuText) then return end
+
     menuButton.name = menuText; -- this is needed for ordering the buttons
 
     menuButton.text:SetText(menuText);
