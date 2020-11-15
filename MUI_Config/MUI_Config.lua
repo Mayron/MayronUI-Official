@@ -70,7 +70,7 @@ local function SetBackButtonEnabled(backBtn, enabled)
     end
 end
 
-local function filterByClient(client)
+local function filterByClient(client) 
   if (client == "retail" and not tk:IsRetail()) then return false; end
   if (client == "classic" and not tk:IsClassic()) then return false; end
 
