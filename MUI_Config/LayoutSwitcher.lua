@@ -1,6 +1,7 @@
 -- luacheck: ignore MayronUI self 143
 -- Setup namespaces ------------------
 local _, namespace = ...;
+local MayronUI = _G.MayronUI;
 local Engine = namespace.Engine;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local C_LayoutSwitcher = MayronUI:RegisterModule("LayoutSwitcher");
@@ -13,7 +14,7 @@ local LAYOUT_MESSAGE = L["Customize which addOn/s should change to which profile
 -- Local Functions -------------------
 
 local function SetAddOnProfilePair(_, viewingLayout, addOnName, profileName)
-	db:SetPathValue(db.global, string.format("layouts.%s.%s", viewingLayout, addOnName), profileName);
+  db:SetPathValue(db.global, string.format("layouts.%s.%s", viewingLayout, addOnName), profileName);
 end
 
 local function GetSupportedAddOns()

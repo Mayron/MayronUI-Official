@@ -1,5 +1,6 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
+local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ConfigModule = namespace.C_ConfigModule;
 

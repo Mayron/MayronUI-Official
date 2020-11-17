@@ -2,10 +2,9 @@
 local _, namespace = ...;
 namespace.import = {};
 
+local MayronUI = _G.MayronUI;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local Private = {};
-
-local _G = _G;
 
 local tabText = {
   -- This should use the locales!
@@ -23,6 +22,8 @@ local PlaySoundFile, FCF_SetLocked, FCF_SetWindowAlpha, SetCVar, SetChatWindowSi
 C_Timer, UIFrameFadeOut, PlaySound, CreateFrame, IsAddOnLoaded, unpack, math, UIParent, GetAddOnMetadata, string =
 _G.PlaySoundFile, _G.FCF_SetLocked, _G.FCF_SetWindowAlpha, _G.SetCVar, _G.SetChatWindowSize, _G.UIFrameFadeIn, _G.C_Timer,
 _G.UIFrameFadeOut, _G.PlaySound, _G.CreateFrame, _G.IsAddOnLoaded, _G.unpack, _G.math, _G.UIParent, _G.GetAddOnMetadata, _G.string;
+
+local ipairs, strsplit, strjoin, strtrim = _G.ipairs, _G.strsplit, _G.strjoin, _G.strtrim;
 
 -- Setup Objects -------------------------
 

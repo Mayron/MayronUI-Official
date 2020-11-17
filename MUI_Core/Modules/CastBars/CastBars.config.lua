@@ -8,8 +8,7 @@ local sufAnchor_CheckButtons = obj:PopTable();
 local width_TextFields = obj:PopTable();
 local height_TextFields = obj:PopTable();
 
-local _G = _G;
-local tostring = _G.tostring;
+local tostring, string, ipairs = _G.tostring, _G.string, _G.ipairs;
 
 local function SetPositionTextFieldsEnabled(enabled, castBarName)
     for _, textfield in ipairs(position_TextFields[castBarName]) do

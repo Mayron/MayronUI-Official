@@ -3,6 +3,7 @@ local tk, _, _, _, obj = _G.MayronUI:GetCoreComponents();
 local table, ipairs, string, unpack = _G.table, _G.ipairs, _G.string, _G.unpack;
 local tostring, pairs = _G.tostring, _G.pairs;
 
+---@type LibMayronDB
 local libMayronDB = LibStub:GetLibrary("LibMayronDB");
 
 ---@type Engine
