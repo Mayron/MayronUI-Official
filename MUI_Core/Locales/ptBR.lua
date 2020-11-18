@@ -452,13 +452,13 @@ L["MUI_Setup_InfoTab"] = [[
 Visit our Discord community:
 %s
 
-The official homepage for MayronUI Gen6 is:
+Visite o site oficial da MayronUI para obter mais informações:
 %s
 
 The official GitHub repo:
 %s
 
-Become a Patreon and earn exclusive benefits within the community:
+Become a Patron and earn exclusive benefits within the community:
 %s
 
 Visit Mayron's official YouTube channel:

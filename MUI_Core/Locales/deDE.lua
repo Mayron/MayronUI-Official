@@ -448,7 +448,7 @@ L["MUI_Setup_InfoTab"] = [[
 Community Discord:
 %s
 
-Offizelle Homepage für MayronUI Gen6:
+Besuchen Sie die offizielle MayronUI Webseite für weitere Informationen:
 %s
 
 Offizelle GitHub Seite:

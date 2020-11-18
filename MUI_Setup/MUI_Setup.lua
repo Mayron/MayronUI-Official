@@ -683,7 +683,6 @@ function C_SetUpModule:Install()
   if (not db.global.previouslyInstalled) then
     db.global.previouslyInstalled = true;
     db.global.tutorial = true;
-    db.profile.tutorial = true;
   end
 
   if (not db.global.installed) then

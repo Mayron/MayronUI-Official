@@ -481,21 +481,20 @@ L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabl
 	= "Adding %s to the blacklist will hide this timer bar if the blacklist is enabled.";
 
 L["MUI_Setup_InfoTab"] = [[
-Visit our Discord community:
+Discord community:
 %s
 
-The official homepage for MayronUI Gen6 is:
+Visit the official MayronUI website for more info:
 %s
 
 The official GitHub repo:
 %s
 
-Become a Patreon and earn exclusive benefits within the community:
+Become a Patron and earn exclusive benefits within the community:
 %s
 
 Visit Mayron's official YouTube channel:
 %s
-
 
 |cff00ccff> SLASH COMMANDS|r
 

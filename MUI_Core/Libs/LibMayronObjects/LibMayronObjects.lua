@@ -2,7 +2,7 @@
 local addOnName = ...;
 
 ---@type LibMayronObjects
-local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 3.02);
+local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 3.03);
 
 if (not Lib) then return end
 
@@ -252,7 +252,7 @@ end
 ---Also works with nested tables with matching keys.
 ---@param tbl table @The table to add all values into from the other table (otherTbl).
 ---@param otherTbl table @The other table to copy values from and place into the first table (tbl).
----@param preserveOldValue boolean @If true and a key is found in both tables, the value will not be 
+---@param preserveOldValue boolean @If true and a key is found in both tables, the value will not be
 ---overridden by the one in the other table (otherTbl).
 function Lib:FillTable(tbl, otherTbl, preserveOldValue)
   for key, value in pairs(otherTbl) do

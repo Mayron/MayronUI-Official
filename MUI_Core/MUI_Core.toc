@@ -3,13 +3,13 @@
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
-## Version: 6.2.6
+## Version: 6.2.7
 ## X-InterfaceName: MayronUI Gen6
 
 ## Links:
 ## ------------------------------------------------
 ## X-Discord: https://discord.gg/8Kh3maU
-## X-Home-Page: https://www.wowinterface.com/downloads/info21221-MayronUIGen6.html
+## X-Home-Page: https://mayronui.com
 ## X-GitHub-Repo: https://github.com/Mayron/MayronUI-Official
 ## X-Patreon: https://www.patreon.com/mayronWoW
 ## X-YouTube: https://www.youtube.com/channel/UCCu-NuBYVi7yokZmKBCBvHw
@@ -17,7 +17,7 @@
 ## Credits:
 ## ------------------------------------------------
 ## X-Community-Support-Team: Monster/ Alizmer [GER]
-## X-Patreons: Orangepaw3, LaidbackLuke, Korallis, pbb
+## X-Patreons: LaidbackLuke, Tenbears
 ## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma, EarlGrey
 ## X-Development-and-Bug-Fixes: Monkey, Gargnash, BeetleJooce
 
@@ -46,3 +46,5 @@ Engine\MUI_Core.xml
 ## Modules:
 ## ------------------------------------------------
 Modules\Modules.xml
+
+## X-Tutorial: 6.2.7
