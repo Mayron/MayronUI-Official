@@ -1,7 +1,7 @@
 -- luacheck: ignore self 143
 local _, namespace = ...;
 
-local _G, MayronUI = _G, _G.MayronUI;
+local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 
 local GetSpellInfo, IsAddOnLoaded, UnitName = _G.GetSpellInfo, _G.IsAddOnLoaded, _G.UnitName;
@@ -559,7 +559,7 @@ function C_CastBar:SetIconEnabled(data, enabled)
     end
 
     if (not data.square) then
-      data.square = CreateFrame("Frame", nil, data.frame);
+      data.square = CreateFrame("Frame", nil, data.frame, _G.BackdropTemplateMixin and "BackdropTemplate");
       data.square:SetPoint("TOPRIGHT", data.frame, "TOPLEFT", -2, 0);
       data.square:SetPoint("BOTTOMRIGHT", data.frame, "BOTTOMLEFT", -2, 0);
 

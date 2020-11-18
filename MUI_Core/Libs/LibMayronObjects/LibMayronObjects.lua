@@ -6,7 +6,7 @@ local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 3.02);
 
 if (not Lib) then return end
 
-local error, unpack = _G.error, _G.unpack;
+local error, unpack, next = _G.error, _G.unpack, _G.next;
 local type, setmetatable, table, string = _G.type, _G.setmetatable, _G.table, _G.string;
 local getmetatable, select, pcall = _G.getmetatable, _G.select, _G.pcall;
 local tostring, collectgarbage, pairs, print = _G.tostring, _G.collectgarbage, _G.pairs, _G.print;
@@ -47,9 +47,9 @@ Core.DebugMode = false;
 ---@class Package
 local Package;
 
--------------------------------------
--- Helper functions
--------------------------------------
+--------------------------------------------
+-- LibMayronObjects Functions
+--------------------------------------------
 function Lib:IsTable(value)
   return type(value) == Lib.Types.Table;
 end
@@ -240,9 +240,82 @@ do
   end
 end
 
---------------------------------------------
--- LibMayronObjects Functions
---------------------------------------------
+---A helper function to empty a table.
+---@param tbl table @The table to empty.
+function Lib:EmptyTable(tbl)
+  for key, _ in pairs(tbl) do
+    tbl[key] = nil;
+  end
+end
+
+---A helper function to add all values from one table to another table.
+---Also works with nested tables with matching keys.
+---@param tbl table @The table to add all values into from the other table (otherTbl).
+---@param otherTbl table @The other table to copy values from and place into the first table (tbl).
+---@param preserveOldValue boolean @If true and a key is found in both tables, the value will not be 
+---overridden by the one in the other table (otherTbl).
+function Lib:FillTable(tbl, otherTbl, preserveOldValue)
+  for key, value in pairs(otherTbl) do
+    if (self:IsTable(tbl[key]) and self:IsTable(value)) then
+      self:Fill(tbl[key], value);
+
+    elseif (not preserveOldValue or self:IsNil(tbl[key])) then
+      if (self:IsTable(value)) then
+        tbl[key] = self:PopTable();
+        self:Fill(tbl[key], value);
+      else
+        tbl[key] = value;
+      end
+    end
+  end
+end
+
+---A helper function to print a table's contents.
+---@param tbl table @The table to print.
+---@param depth number @The depth of sub-tables to traverse through and print.
+---@param n number @Do NOT manually set this. This controls formatting through recursion.
+function Lib:PrintTable(tbl, depth, n)
+  n = n or 0;
+  depth = depth or 5;
+
+  if (depth == 0) then
+    print(string.rep(' ', n).."...");
+    return;
+  end
+
+  if (n == 0) then
+    print(" ");
+  end
+
+  for key, value in pairs(tbl) do
+    if (key and self:IsNumber(key) or self:IsString(key)) then
+      key = string.format("[\"%s\"]", key);
+
+      if (self:IsTable(value)) then
+        if (next(value)) then
+          print(string.rep(' ', n)..key.." = {");
+          self:PrintTable(value, depth - 1, n + 4);
+          print(string.rep(' ', n).."},");
+        else
+          print(string.rep(' ', n)..key.." = {},");
+        end
+      else
+        if (self:IsString(value)) then
+          value = string.format("\"%s\"", value);
+        else
+          value = tostring(value);
+        end
+
+        print(string.rep(' ', n)..key.." = "..value..",");
+      end
+    end
+  end
+
+  if (n == 0) then
+    print(" ");
+  end
+end
+
 ---@param packageName string @The name of the package.
 ---@param namespace string @The parent package namespace. Example: "Framework.System.package".
 ---@return Package @Returns a package object.
@@ -376,60 +449,6 @@ end
 ---@param errorHandler function @The error handler callback function.
 function Lib:SetErrorHandler(errorHandler)
   Core.errorHandler = errorHandler;
-end
-
----A helper function to empty a table.
----@param tbl table @The table to empty.
-function Lib:EmptyTable(tbl)
-  for key, _ in pairs(tbl) do
-    tbl[key] = nil;
-  end
-end
-
----A helper function to print a table's contents.
----@param tbl table @The table to print.
----@param depth number @The depth of sub-tables to traverse through and print.
----@param n number @Do NOT manually set this. This controls formatting through recursion.
-function Lib:PrintTable(tbl, depth, n)
-  n = n or 0;
-  depth = depth or 5;
-
-  if (depth == 0) then
-    print(string.rep(' ', n).."...");
-    return;
-  end
-
-  if (n == 0) then
-    print(" ");
-  end
-
-  for key, value in pairs(tbl) do
-    if (key and self:IsNumber(key) or self:IsString(key)) then
-      key = string.format("[\"%s\"]", key);
-
-      if (self:IsTable(value)) then
-        if (next(value)) then
-          print(string.rep(' ', n)..key.." = {");
-          self:PrintTable(value, depth - 1, n + 4);
-          print(string.rep(' ', n).."},");
-        else
-          print(string.rep(' ', n)..key.." = {},");
-        end
-      else
-        if (self:IsString(value)) then
-          value = string.format("\"%s\"", value);
-        else
-          value = tostring(value);
-        end
-
-        print(string.rep(' ', n)..key.." = "..value..",");
-      end
-    end
-  end
-
-  if (n == 0) then
-    print(" ");
-  end
 end
 
 ---Do NOT use this unless you are a LibMayronObjects developer.
@@ -917,7 +936,13 @@ do
 
     local instanceController = AllControllers[tostring(self)];
     local className = instanceController.classController.objectName;
-    local str = tostring(self):gsub(Lib.Types.Table, string.format("<Instance> %s", className));
+    local str;
+
+    if (instanceController.name) then
+      str = tostring(self):gsub(Lib.Types.Table, string.format("<Instance> %s (%s)", className, instanceController.name));
+    else
+      str = tostring(self):gsub(Lib.Types.Table, string.format("<Instance> %s", className));
+    end
 
     setmetatable(self, proxyInstanceMT);
 
@@ -958,6 +983,15 @@ do
         "'%s' is not a friend class of '%s'", friendClassName, classController.objectName);
 
       return self:GetPrivateInstanceData(friendInstance);
+    end
+
+    privateData.Embed = function(_, values)
+      Lib:Assert(Lib:IsTable(values),
+        "Failed to embed value into private data - bad argument #1 (table expected, got %s)", type(values));
+
+      for key, value in pairs(values) do
+        privateData[key] = value;
+      end
     end
 
     AllControllers[tostring(proxyInstance)] = instanceController;
@@ -1577,6 +1611,9 @@ function Core:Assert(condition, errorMessage, ...)
         for i = 1, size do
           if (args[i] == nil) then
             args[i] = Lib.Types.Nil;
+
+          elseif (not Lib:IsString(args[i])) then
+            args[i] = tostring(args[i]);
           end
         end
 
@@ -1740,7 +1777,7 @@ end
 ---@param parentClass Object a parent class to inherit from
 ---@param ... Object|string a variable argument list of optional interface entities
 ---(or interface names to be imported as entities) the newly created class should implement
----@return Object the newly created class
+---returns an instance of the Object class
 function Package:CreateClass(data, className, parentClass, ...)
   Core:Assert(not data.entities[className],
     "Class '%s' already exists in this package.", className);
@@ -1754,7 +1791,7 @@ end
 ---@param interfaceName string the name of the interface to create for this package
 ---@param interfaceDefinition table a table containing property and/or function names
 ---with type definitions for property values, function parameters and return types.
----@return Object the newly created interface
+---returns an instance of the Object class
 function Package:CreateInterface(data, interfaceName, interfaceDefinition)
   Core:Assert(Lib:IsString(interfaceName), "bad argument #1 to Package.CreateInterface (string expected, got %s)", type(interfaceName));
   Core:Assert(Lib:IsTable(interfaceDefinition), "bad argument #2 to Package.CreateInterface (table expected, got %s)", type(interfaceDefinition));
@@ -1977,4 +2014,14 @@ function Object:Destroy()
   -- destroy proxy instance
   Lib:EmptyTable(self);
   self.IsDestroyed = true;
+end
+
+function Object:SetName(_, name)
+  local instanceController = Core:GetController(self);
+  instanceController.name = name;
+end
+
+function Object:GetName()
+  local instanceController = Core:GetController(self);
+  return instanceController.name;
 end

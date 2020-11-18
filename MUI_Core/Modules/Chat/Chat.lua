@@ -187,13 +187,8 @@ function C_ChatModule:OnInitialize(data)
 	end
 
 	self:RegisterUpdateFunctions(db.profile.chat, {
-		icons = function()
-			local anchorName = data.settings.icons.anchor;
-			local muiChatFrame = _G["MUI_ChatFrame_" .. anchorName];
-
-			if (muiChatFrame and muiChatFrame:IsShown()) then
-				C_ChatFrame.Static:PositionSideBarIcons(data.settings, muiChatFrame);
-			end
+    icons = function()
+      C_ChatFrame.Static:SetUpSideBarIcons(self, data.settings);
 		end;
 
 		chatFrames = function(value, keysList)

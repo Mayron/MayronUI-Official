@@ -4,11 +4,10 @@ local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 
 -- Register and Import ---------
 
----@class DataTextModule : BaseModule
+---@class MiniMapModule : BaseModule
 local C_MiniMapModule = MayronUI:RegisterModule("MiniMap", L["Mini Map"]);
 namespace.C_MiniMapModule = C_MiniMapModule;
 
-local _G = _G;
 local Minimap, math, table, C_Timer, Minimap_ZoomIn, Minimap_ZoomOut, GameTooltip, IsAltKeyDown,
 CreateFrame, LoadAddOn, InCombatLockdown, IsAddOnLoaded, GarrisonLandingPage_Toggle,
 ToggleDropDownMenu, PlaySound, EasyMenu, UIParent, select =
@@ -438,4 +437,6 @@ function C_MiniMapModule:OnEnable(data)
       _G.GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
     end
   end
+
+  -- self:SetUpIconsFrame();
 end

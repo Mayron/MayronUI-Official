@@ -7,7 +7,8 @@ local SystemPackage = Lib:Import("Framework.System");
 ---@class FrameWrapper : Object
 local FrameWrapper = SystemPackage:CreateClass("FrameWrapper");
 
----This method is used within the LibMayronObjects code to call Frame methods on the underlining frame instead of on the object.
+---This method is used within the LibMayronObjects code to call Frame methods
+---on the underlining frame instead of on the object.
 function FrameWrapper:GetProxyFunction(data, funcName)
     -- @param ... - parameters passed to the real frame function
     return function(_, ...)

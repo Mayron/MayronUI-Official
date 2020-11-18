@@ -50,7 +50,8 @@ function Cell:SetDimensions(data, width, height)
     data.height = height;
 
     if (data.panel) then
-        Private:AnchorCells(Panel.Static:GetData(data.panel));
+        local panelData = data:GetFriendData(data.panel);
+        Private:AnchorCells(panelData);
     end
 end
 

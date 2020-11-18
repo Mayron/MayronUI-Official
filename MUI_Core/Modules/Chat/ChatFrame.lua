@@ -23,7 +23,7 @@ local FRIENDS_TEXTURE_ONLINE, FRIENDS_TEXTURE_AFK, FRIENDS_TEXTURE_DND =
 local FRIENDS_LIST_AVAILABLE, FRIENDS_LIST_AWAY, FRIENDS_LIST_BUSY =
   _G.FRIENDS_LIST_AVAILABLE, _G.FRIENDS_LIST_AWAY, _G.FRIENDS_LIST_BUSY;
 
-local strsplit, select = _G.strsplit, _G.select;
+local strsplit, select, IsAddOnLoaded = _G.strsplit, _G.select, _G.IsAddOnLoaded;
 
 -- C_ChatFrame -----------------------
 
@@ -49,7 +49,7 @@ function C_ChatFrame:SetEnabled(data, enabled)
 			self:Reposition();
 		end
 
-		if (_G.IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
+		if (IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
 			data.chatModule:SetUpRaidFrameManager();
 		else
 			-- if it is not loaded, create a callback to trigger when it is loaded
@@ -69,27 +69,46 @@ function C_ChatFrame:SetEnabled(data, enabled)
 
 		if (enabled) then
 			self:SetUpButtonHandler(data.settings.buttons);
-		end
+    end
 
-		local muiChatFrame = _G["MUI_ChatFrame_" .. data.chatModuleSettings.icons.anchor];
+    self.Static:SetUpSideBarIcons(data.chatModule, data.chatModuleSettings);
+    _G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
 
-		if (not (muiChatFrame and muiChatFrame:IsShown())) then
-			muiChatFrame = data.frame;
-		end
+    if (tk:IsRetail()) then
+      _G.ChatFrameToggleVoiceDeafenButton:DisableDrawLayer("ARTWORK");
+      _G.ChatFrameToggleVoiceMuteButton:DisableDrawLayer("ARTWORK");
 
-		if (muiChatFrame and muiChatFrame:IsShown()) then
-			C_ChatFrame.Static:SetUpSideBarIcons(data.chatModuleSettings, muiChatFrame);
-		else
-			for anchorName, _ in pairs(data.chatModule:GetChatFrames()) do
-				muiChatFrame = _G["MUI_ChatFrame_" .. anchorName];
+      local dummyFunc = function() return true; end
 
-				if (muiChatFrame and muiChatFrame:IsShown()) then
-					C_ChatFrame.Static:SetUpSideBarIcons(data.chatModuleSettings, muiChatFrame);
-					break;
-				end
-			end
-		end
+      _G.ChatFrameToggleVoiceDeafenButton:SetVisibilityQueryFunction(dummyFunc);
+      _G.ChatFrameToggleVoiceDeafenButton:UpdateVisibleState();
+
+      _G.ChatFrameToggleVoiceMuteButton:SetVisibilityQueryFunction(dummyFunc);
+      _G.ChatFrameToggleVoiceMuteButton:UpdateVisibleState();
+    end
 	end
+end
+
+function C_ChatFrame.Static:SetUpSideBarIcons(chatModule, settings)
+  local muiChatFrame = _G["MUI_ChatFrame_" .. settings.icons.anchor];
+  local selectedChatFrame;
+
+  if (muiChatFrame and muiChatFrame:IsShown()) then
+    selectedChatFrame = muiChatFrame;
+  else
+    for anchorName, _ in pairs(chatModule:GetChatFrames()) do
+      muiChatFrame = _G["MUI_ChatFrame_" .. anchorName];
+
+      if (muiChatFrame and muiChatFrame:IsShown()) then
+        selectedChatFrame = muiChatFrame;
+        break;
+      end
+    end
+  end
+
+  if (selectedChatFrame) then
+    self:PositionSideBarIcons(settings, selectedChatFrame);
+  end
 end
 
 function C_ChatFrame:CreateButtons(data)
@@ -254,25 +273,6 @@ function C_ChatFrame:Reposition(data)
 	end
 
 	self:SetUpTabBar(data.settings.tabBar);
-end
-
-function C_ChatFrame.Static:SetUpSideBarIcons(chatModuleSettings, muiChatFrame)
-  _G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
-
-  if (tk:IsRetail()) then
-    _G.ChatFrameToggleVoiceDeafenButton:DisableDrawLayer("ARTWORK");
-    _G.ChatFrameToggleVoiceMuteButton:DisableDrawLayer("ARTWORK");
-
-    local dummyFunc = function() return true; end
-
-    _G.ChatFrameToggleVoiceDeafenButton:SetVisibilityQueryFunction(dummyFunc);
-    _G.ChatFrameToggleVoiceDeafenButton:UpdateVisibleState();
-
-    _G.ChatFrameToggleVoiceMuteButton:SetVisibilityQueryFunction(dummyFunc);
-    _G.ChatFrameToggleVoiceMuteButton:UpdateVisibleState();
-  end
-
-	self:PositionSideBarIcons(chatModuleSettings, muiChatFrame);
 end
 
 do
