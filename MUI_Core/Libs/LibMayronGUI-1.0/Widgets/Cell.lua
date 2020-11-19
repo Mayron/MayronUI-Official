@@ -10,7 +10,7 @@ local Private = Lib.Private;
 local obj = Lib.Objects;
 
 ---@class Cell : FrameWrapper
-local Cell = WidgetsPackage:CreateClass("Cell");
+local Cell = WidgetsPackage:CreateClass("Cell", Private.FrameWrapper);
 Cell.Static:AddFriendClass("Panel");
 
 ---@type Panel
