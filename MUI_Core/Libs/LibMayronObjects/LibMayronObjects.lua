@@ -257,7 +257,7 @@ end
 function Lib:FillTable(tbl, otherTbl, preserveOldValue)
   for key, value in pairs(otherTbl) do
     if (self:IsTable(tbl[key]) and self:IsTable(value)) then
-      self:Fill(tbl[key], value);
+      self:Fill(tbl[key], value, preserveOldValue);
 
     elseif (not preserveOldValue or self:IsNil(tbl[key])) then
       if (self:IsTable(value)) then
@@ -1777,7 +1777,7 @@ end
 ---@param parentClass Object a parent class to inherit from
 ---@param ... Object|string a variable argument list of optional interface entities
 ---(or interface names to be imported as entities) the newly created class should implement
----returns an instance of the Object class
+---returns a new class that is a subclass of the Object class
 function Package:CreateClass(data, className, parentClass, ...)
   Core:Assert(not data.entities[className],
     "Class '%s' already exists in this package.", className);
@@ -1791,7 +1791,7 @@ end
 ---@param interfaceName string the name of the interface to create for this package
 ---@param interfaceDefinition table a table containing property and/or function names
 ---with type definitions for property values, function parameters and return types.
----returns an instance of the Object class
+---returns a new interface
 function Package:CreateInterface(data, interfaceName, interfaceDefinition)
   Core:Assert(Lib:IsString(interfaceName), "bad argument #1 to Package.CreateInterface (string expected, got %s)", type(interfaceName));
   Core:Assert(Lib:IsTable(interfaceDefinition), "bad argument #2 to Package.CreateInterface (table expected, got %s)", type(interfaceDefinition));
