@@ -748,6 +748,10 @@ db:OnStartUp(function(self)
   media:Register(media.MediaType.BORDER, "Skinner", tk:GetAssetFilePath("Borders\\Solid.tga"));
   media:Register(media.MediaType.BORDER, "Glow", tk:GetAssetFilePath("Borders\\Glow.tga"));
 
+  _G.hooksecurefunc('MovieFrame_PlayMovie', function(s)
+    s:SetFrameStrata("DIALOG");
+  end);
+
   -- Set Master Game Font Here! -------------------
 
   if (self.global.core.changeGameFont ~= false) then

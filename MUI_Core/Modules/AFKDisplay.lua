@@ -389,54 +389,54 @@ function Private:StartRotating()
 end
 
 function Private:CreatePlayerModel()
-    local scale = db.global.AFKDisplay.modelScale;
-    Private.Y_POSITION = 100;
+  local scale = db.global.AFKDisplay.modelScale;
+  Private.Y_POSITION = 100;
 
-    local modelFrame = CreateFrame("Frame", nil, self.display);
-    modelFrame:SetSize(200, 500 * scale);
-    modelFrame:SetPoint("BOTTOMLEFT", self.display, "BOTTOMLEFT", 100, Private.Y_POSITION);
-    tk:MakeMovable(modelFrame);
+  local modelFrame = CreateFrame("Frame", nil, self.display);
+  modelFrame:SetSize(200, 500 * scale);
+  modelFrame:SetPoint("BOTTOMLEFT", self.display, "BOTTOMLEFT", 100, Private.Y_POSITION);
+  tk:MakeMovable(modelFrame);
 
-    modelFrame.model = CreateFrame("PlayerModel", nil, modelFrame);
-    modelFrame.model:SetSize(600 * scale, 700 * scale);
-    modelFrame.model:SetUnit("player");
-    modelFrame.model:SetFacing(0.4);
+  modelFrame.model = CreateFrame("PlayerModel", nil, modelFrame);
+  modelFrame.model:SetSize(600 * scale, 700 * scale);
+  modelFrame.model:SetUnit("player");
+  modelFrame.model:SetFacing(0.4);
 
-    modelFrame:SetScript("OnMouseUp", function(self)
-        self.model:SetAnimation(8);
-    end);
+  modelFrame:SetScript("OnMouseUp", function(self)
+    self.model:SetAnimation(8);
+  end);
 
-    modelFrame:SetScript("OnEnter", function()
-        SetCursor("Interface\\CURSOR\\UI-Cursor-Move.blp");
-    end)
+  modelFrame:SetScript("OnEnter", function()
+    SetCursor("Interface\\CURSOR\\UI-Cursor-Move.blp");
+  end)
 
-    modelFrame.model:SetScript("OnAnimFinished", function(self)
-        if (self.dragging) then
-            self:SetAnimation(38);
-        else
-            self:SetAnimation(0);
-        end
-    end)
+  modelFrame.model:SetScript("OnAnimFinished", function(self)
+    if (self.dragging) then
+      self:SetAnimation(38);
+    else
+      self:SetAnimation(0);
+    end
+  end)
 
-    modelFrame:HookScript("OnDragStart", function(self)
-        self:SetClampedToScreen(true);
-        self.model.dragging = true;
-        self.model:SetAnimation(38);
-        Private:PositionModel(true);
-        Private:StartRotating();
-    end)
+  modelFrame:HookScript("OnDragStart", function(self)
+    self:SetClampedToScreen(true);
+    self.model.dragging = true;
+    self.model:SetAnimation(38);
+    Private:PositionModel(true);
+    Private:StartRotating();
+  end)
 
-    modelFrame:HookScript("OnDragStop", function(self)
-        self:SetClampedToScreen(false) -- so it can fall lower off the screen
-        local left = self:GetLeft();
-        local bottom = self:GetBottom();
+  modelFrame:HookScript("OnDragStop", function(self)
+    self:SetClampedToScreen(false) -- so it can fall lower off the screen
+    local left = self:GetLeft();
+    local bottom = self:GetBottom();
 
-        self:ClearAllPoints();
-        self:SetPoint("BOTTOMLEFT", Private.display, "BOTTOMLEFT", left, bottom);
-        Private:StartFalling();
-    end);
+    self:ClearAllPoints();
+    self:SetPoint("BOTTOMLEFT", Private.display, "BOTTOMLEFT", left, bottom);
+    Private:StartFalling();
+  end);
 
-    return modelFrame;
+  return modelFrame;
 end
 
 do
@@ -526,97 +526,98 @@ function C_AFKDisplayModule:OnInitialize(data)
 end
 
 function C_AFKDisplayModule:OnEnable(data)
-    if (not data.handler) then
-        data.handler = em:CreateEventHandlerWithKey("PLAYER_FLAGS_CHANGED", "afkDisplayFlagsChanged",
-            function(_, _, unitID)
-                if (unitID ~= "player" or not data.settings.enabled) then
-                    return;
-                end
+  if (not data.handler) then
+    data.handler = em:CreateEventHandlerWithKey("PLAYER_FLAGS_CHANGED", "afkDisplayFlagsChanged",
+    function(_, _, unitID)
+      if (unitID ~= "player" or not data.settings.enabled) then
+        return;
+      end
 
-                self:SetShown(UnitIsAFK(unitID));
-            end);
+      self:SetShown(UnitIsAFK(unitID));
+    end);
 
-        em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "afkDisplayRegenDisabled",
-            function()
-                self:SetShown(false);
-            end);
-    end
+    em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "afkDisplayRegenDisabled",
+    function()
+      self:SetShown(false);
+    end);
+  end
 end
 
 function C_AFKDisplayModule:OnDisable(data)
-    if (data.handler) then
-        em:DestroyEventHandlersByKey("afkDisplayFlagsChanged", "afkDisplayRegenDisabled");
-        data.handler = nil;
-    end
+  if (data.handler) then
+    em:DestroyEventHandlersByKey("afkDisplayFlagsChanged", "afkDisplayRegenDisabled");
+    data.handler = nil;
+  end
 end
 
 do
-    local function StartTimer()
-        if (Private.display:IsShown()) then
-            Private.time = Private.time or 0;
+  local function StartTimer()
+    if (Private.display:IsShown()) then
+      Private.time = Private.time or 0;
 
-            local time = string.format("%.2d:%.2d", (Private.time / 60) % 60, (Private.time % 60));
-            Private.time = Private.time + 1;
-            Private.display.time:SetText(time);
+      local time = string.format("%.2d:%.2d", (Private.time / 60) % 60, (Private.time % 60));
+      Private.time = Private.time + 1;
+      Private.display.time:SetText(time);
 
-            C_Timer.After(1, StartTimer);
-        end
+      C_Timer.After(1, StartTimer);
+    end
+  end
+
+  function C_AFKDisplayModule:SetShown(data, show)
+    if (InCombatLockdown() or (_G.AuctionFrame and _G.AuctionFrame:IsVisible())
+      or (_G.MovieFrame and _G.MovieFrame:IsShown())) then
+      -- Do not show AFK Display (even if player is AFK)
+      -- if player is using the Auction house or player is in combat
+      if (Private.display) then
+        Private.display:Hide();
+      end
+
+      return;
     end
 
-    function C_AFKDisplayModule:SetShown(data, show)
-        if (InCombatLockdown() or (_G.AuctionFrame and _G.AuctionFrame:IsVisible())) then
-            -- Do not show AFK Display (even if player is AFK)
-            -- if player is using the Auction house or player is in combat
-            if (Private.display) then
-                Private.display:Hide();
-            end
+    if (show) then
+      -- Hide UIParent and show AFK Display
+      UIParent:Hide();
+      MoveViewLeftStart(0.01);
 
-            return;
+      if (not Private.display) then
+        Private.display = Private:CreateDisplay();
+
+        if (data.settings.playerModel) then
+          Private.display.modelFrame = Private:CreatePlayerModel();
         end
+      end
 
-        if (show) then
-            -- Hide UIParent and show AFK Display
-            UIParent:Hide();
-            MoveViewLeftStart(0.01);
+      -- Get Player Level + Spec and update text:
+      local specType;
+      if (GetSpecialization) then
+        specType = (select(2, GetSpecializationInfo(GetSpecialization()))).." ";
+      else
+        specType = tk.Strings.Empty;
+      end
 
-            if (not Private.display) then
-                Private.display = Private:CreateDisplay();
+      local name = tk.Strings:Concat(UnitPVPName("player"), " - ",
+      GetRealmName(), "\nLevel ", UnitLevel("player"), ", ",
+      tk.Strings:SetTextColorByClass(tk.Strings:Concat(specType, (select(1, UnitClass("player"))))));
 
-                if (data.settings.playerModel) then
-                    Private.display.modelFrame = Private:CreatePlayerModel();
-                end
-            end
+      Private.display.name:SetText(name);
+      Private.display:Show();
 
-            -- Get Player Level + Spec and update text:
-            local specType;
-            if (GetSpecialization) then
-                specType = (select(2, GetSpecializationInfo(GetSpecialization()))).." ";
-            else
-                specType = tk.Strings.Empty;
-            end
+      Private:PositionModel();
+      Private:ResetDataText();
+      StartTimer();
+    else
+      -- Hide AFK Display and show UIParent
+      UIParent:Show();
 
-            local name = tk.Strings:Concat(UnitPVPName("player"), " - ",
-                GetRealmName(), "\nLevel ", UnitLevel("player"), ", ",
-                tk.Strings:SetTextColorByClass(tk.Strings:Concat(specType, (select(1, UnitClass("player"))))));
+      if (data.settings.rotateCamera) then
+        MoveViewLeftStop();
+        SetCVar("cameraView", "0");
+      end
 
-            Private.display.name:SetText(name);
-            Private.display:Show();
-
-            Private:PositionModel();
-            Private:ResetDataText();
-            StartTimer();
-        else
-            -- Hide AFK Display and show UIParent
-            UIParent:Show();
-
-            if (data.settings.rotateCamera) then
-                MoveViewLeftStop();
-                SetCVar("cameraView", "0");
-            end
-
-            if (Private.display) then
-                Private.display:Hide();
-            end
-        end
+      if (Private.display) then
+        Private.display:Hide();
+      end
     end
+  end
 end
