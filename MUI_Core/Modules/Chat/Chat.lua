@@ -200,7 +200,7 @@ function C_ChatModule:OnInitialize(data)
       C_ChatFrame.Static:SetUpSideBarIcons(self, data.settings);
 		end;
 
-		chatFrames = function(value, keysList)
+    chatFrames = function(value, keysList)
 			if (keysList:GetSize() == 1) then
 				for anchorName, settings in pairs(value) do
 					local muiChatFrame = data.chatFrames[anchorName];
@@ -221,7 +221,20 @@ function C_ChatModule:OnInitialize(data)
 				keysList:PopFront();
 				local anchorName = keysList:PopFront();
 				local muiChatFrame = data.chatFrames[anchorName];
-				local settingName = keysList:PopFront();
+        local settingName = keysList:PopFront();
+
+        if (settingName == "enabled") then
+					if (value and not muiChatFrame) then
+						muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
+
+						data.chatFrames[anchorName] = muiChatFrame;
+					end
+
+          muiChatFrame:SetEnabled(value);
+          return
+				end
+
+        if (not muiChatFrame) then return end
 
 				if (settingName == "buttons") then
 					keysList:PopFront();
@@ -251,16 +264,7 @@ function C_ChatModule:OnInitialize(data)
 						local p, rf, rp, x = frame.window:GetPoint();
 						frame.window:SetPoint(p, rf, rp, x, value);
 					end
-
-				elseif (settingName == "enabled") then
-					if (value and not muiChatFrame) then
-						muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
-
-						data.chatFrames[anchorName] = muiChatFrame;
-					end
-
-					muiChatFrame:SetEnabled(value);
-				end
+        end
 			end
 		end;
 

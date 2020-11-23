@@ -14,7 +14,7 @@ local ChatFrameAnchorDropDownOptions = {
 
 -- Config Data ----------------------
 
-local function CreateButtonConfigTable(dbPath, buttonID)
+local function CreateButtonConfigTable(dbPath, buttonID, chatFrame, addWidget)
   local configTable = obj:PopTable();
 
   if (buttonID == 1) then
@@ -31,17 +31,23 @@ local function CreateButtonConfigTable(dbPath, buttonID)
 
   table.insert(configTable, {
     name = L["Left Button"],
-    dbPath = string.format("%s.buttons[%d][1]", dbPath, buttonID)
+    dbPath = string.format("%s.buttons[%d][1]", dbPath, buttonID),
+    enabled = chatFrame ~= nil,
+    OnLoad = addWidget
   });
 
   table.insert(configTable, {
     name = L["Middle Button"],
-    dbPath = string.format("%s.buttons[%d][2]", dbPath, buttonID)
+    dbPath = string.format("%s.buttons[%d][2]", dbPath, buttonID),
+    enabled = chatFrame ~= nil,
+    OnLoad = addWidget
   });
 
   table.insert(configTable, {
     name = L["Right Button"],
-    dbPath = string.format("%s.buttons[%d][3]", dbPath, buttonID)
+    dbPath = string.format("%s.buttons[%d][3]", dbPath, buttonID),
+    enabled = chatFrame ~= nil,
+    OnLoad = addWidget
   });
 
   table.insert(configTable, { type = "divider" });
@@ -58,6 +64,8 @@ local function CreateButtonConfigTable(dbPath, buttonID)
       height = 40,
       type = "check",
       dbPath = string.format("%s.buttons[%d].key", dbPath, buttonID),
+      enabled = chatFrame ~= nil,
+      OnLoad = addWidget,
 
       GetValue = function(_, currentValue)
         if (currentValue:find(modKeyFirstChar)) then
@@ -82,7 +90,7 @@ local function CreateButtonConfigTable(dbPath, buttonID)
     });
   end
 
-  return _G.unpack(configTable);
+  return unpack(configTable);
 end
 
 function C_ChatModule:GetConfigTable()
@@ -212,12 +220,18 @@ function C_ChatModule:GetConfigTable()
                 func = function(_, chatFrameName)
                     local dbPath = string.format("profile.chat.chatFrames.%s", chatFrameName);
                     local chatFrameLabel;
+                    local chatFrame = _G["MUI_ChatFrame_"..chatFrameName];
+                    local disabledWidgets = {};
+
+                    local addWidget = function(_, widget)
+                      table.insert(disabledWidgets, widget);
+                    end
 
                     for key, value in pairs(ChatFrameAnchorDropDownOptions) do
-                        if (chatFrameName == value) then
-                            chatFrameLabel = key;
-                            break;
-                        end
+                      if (chatFrameName == value) then
+                        chatFrameLabel = key;
+                        break;
+                      end
                     end
 
                     local ConfigTable =
@@ -233,11 +247,19 @@ function C_ChatModule:GetConfigTable()
                             {   name = L["Enable Chat Frame"],
                                 type = "check",
                                 dbPath = string.format("%s.enabled", dbPath),
+                                OnClick = function(_, value)
+                                  for _, container in ipairs(disabledWidgets) do
+                                    local widget = container.widget or container.btn;
+                                    widget:SetEnabled(value);
+                                  end
+                                end
                             },
                             {   name = L["Show Tab Bar"],
                                 tooltip = L["This is the background bar that goes behind the tabs."];
                                 type = "check",
                                 dbPath = string.format("%s.tabBar.show", dbPath),
+                                enabled = chatFrame ~= nil,
+                                OnLoad = addWidget
                             };
                             {   type = "divider";
                             };
@@ -245,27 +267,35 @@ function C_ChatModule:GetConfigTable()
                                 type = "textfield",
                                 valueType = "number";
                                 dbPath = string.format("%s.tabBar.yOffset", dbPath),
+                                enabled = chatFrame ~= nil,
+                                OnLoad = addWidget
                             };
                             {   name = tk.Strings:JoinWithSpace(L["Window"], L["Y-Offset"]),
                                 type = "textfield",
                                 valueType = "number";
                                 dbPath = string.format("%s.window.yOffset", dbPath),
+                                enabled = chatFrame ~= nil,
+                                OnLoad = addWidget
                             };
                             {   name = tk.Strings:JoinWithSpace("Chat Frame", L["X-Offset"]),
                                 type = "textfield",
                                 valueType = "number";
                                 dbPath = string.format("%s.xOffset", dbPath),
+                                enabled = chatFrame ~= nil,
+                                OnLoad = addWidget
                             };
                             {   name = tk.Strings:JoinWithSpace("Chat Frame", L["Y-Offset"]),
                                 type = "textfield",
                                 valueType = "number";
                                 dbPath = string.format("%s.yOffset", dbPath),
+                                enabled = chatFrame ~= nil,
+                                OnLoad = addWidget
                             };
                         }
                     };
 
                     for i = 1, 3 do
-                      tk.Tables:AddAll(ConfigTable.children, CreateButtonConfigTable(dbPath, i));
+                      tk.Tables:AddAll(ConfigTable.children, CreateButtonConfigTable(dbPath, i, chatFrame, addWidget));
                     end
 
                     return ConfigTable;

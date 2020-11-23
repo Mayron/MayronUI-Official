@@ -1,6 +1,6 @@
 --luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
-local _G, MayronUI = _G, _G.MayronUI;
+local MayronUI = _G.MayronUI;
 local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 local configModule = MayronUI:ImportModule("ConfigModule"); ---@type ConfigModule
 
@@ -27,6 +27,17 @@ local function CreateElementContainerFrame(widget, widgetTable, parent)
         widget:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -5);
     else
         widget:SetPoint("LEFT");
+    end
+
+    if (obj:IsFunction(widgetTable.enabled)) then
+      local enabled = widgetTable:enabled();
+      widget:SetEnabled(enabled);
+
+    elseif (widgetTable.enabled ~= nil) then
+      widget:SetEnabled(widgetTable.enabled);
+
+    else
+      widget:SetEnabled(true);
     end
 
     return container;
@@ -133,6 +144,10 @@ end
 ------------------
 local function CheckButton_OnClick(self)
     configModule:SetDatabaseValue(self:GetParent(), self:GetChecked());
+
+    if (self.OnClick) then
+      self:OnClick(self:GetChecked());
+    end
 end
 
 function WidgetHandlers.check(parent, widgetTable, value)
@@ -143,6 +158,7 @@ function WidgetHandlers.check(parent, widgetTable, value)
 
     cbContainer.btn:SetChecked(value);
     cbContainer.btn:SetScript("OnClick", CheckButton_OnClick);
+    cbContainer.btn.OnClick = widgetTable.OnClick;
 
     if (widgetTable.width) then
         cbContainer:SetWidth(widgetTable.width);
@@ -534,6 +550,17 @@ function WidgetHandlers.textfield(parent, widgetTable, value)
 
     -- passes in textField (not data.editBox);
     textField:OnTextChanged(TextField_OnTextChanged, container);
+
+    if (obj:IsFunction(widgetTable.enabled)) then
+      local enabled = widgetTable:enabled();
+      textField:SetEnabled(enabled);
+
+    elseif (widgetTable.enabled ~= nil) then
+      textField:SetEnabled(widgetTable.enabled);
+
+    else
+      textField:SetEnabled(true);
+    end
 
     return container;
 end

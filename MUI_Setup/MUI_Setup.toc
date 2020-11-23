@@ -1,4 +1,4 @@
-## Interface: 90002
+## Interface: 11305
 ## Title: |cff00ccffMUI|r Setup
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
