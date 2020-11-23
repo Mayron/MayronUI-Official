@@ -60,15 +60,15 @@ function C_ConfigModule:GetConfigTable()
                     type = "check";
 
                     GetValue = function()
-                        return tonumber(_G.GetCVar("ScriptErrors")) == 1;
+                      return tonumber(_G.GetCVar("ScriptErrors")) == 1;
                     end;
 
                     SetValue = function(_, value)
-                        if (value) then
-                            _G.SetCVar("ScriptErrors", "1");
-                        else
-                            _G.SetCVar("ScriptErrors", "0");
-                        end
+                      if (value) then
+                        _G.SetCVar("ScriptErrors", "1");
+                      else
+                        _G.SetCVar("ScriptErrors", "0");
+                      end
                     end
                 };
                 {   type = "divider"
@@ -341,6 +341,14 @@ function C_ConfigModule:GetConfigTable()
                             max         = 200;
                             dbPath      = "profile.actionBarPanel.expandHeight";
                         };
+                        { type = "divider" };
+                        {   name    = "Set Alpha";
+                            type    = "slider";
+                            step    = 0.1;
+                            min     = 0;
+                            max     = 1;
+                            dbPath  = "profile.actionBarPanel.alpha"
+                        };
                         {   type    = "fontstring";
                             content = L["Modifier key/s used to show Expand/Retract button:"];
                         };
@@ -459,6 +467,13 @@ function C_ConfigModule:GetConfigTable()
                             min     = 1;
                             max     = 10;
                             dbPath  = "profile.sidebar.animationSpeed"
+                        };
+                        {   name    = "Set Alpha";
+                            type    = "slider";
+                            step    = 0.1;
+                            min     = 0;
+                            max     = 1;
+                            dbPath  = "profile.sidebar.alpha"
                         };
                         {   name    = L["Bartender Action Bars"];
                             type    = "title";

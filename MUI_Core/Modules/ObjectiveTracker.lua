@@ -29,7 +29,7 @@ local function UpdateQuestDifficultyColors(block)
     for questLogIndex = 1, C_QuestLog:GetNumQuestLogEntries() do
       local questInfo = C_QuestLog.GetInfo(questLogIndex);
 
-      if (questInfo.questID == block.id) then
+      if (questInfo and questInfo.questID == block.id) then
         -- bonus quests do not have HeaderText
           if (block.HeaderText) then
             SetHeaderColor(block.HeaderText, questInfo.level, questInfo.isScaling);

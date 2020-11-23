@@ -22,6 +22,7 @@ db:AddToDefaults("profile.sidebar", {
   animationSpeed = 6;
   yOffset = 40,
   barsShown = 2; -- non-config GUI
+  alpha = 1;
 
   buttons = {
     showWhen = "Always"; -- can be mouseover or never
@@ -232,6 +233,10 @@ function C_SideBarModule:OnInitialize(data)
 
       animationSpeed = function(value)
           Private.step = value;
+      end;
+
+      alpha = function(value)
+          data.panel:SetAlpha(value);
       end;
 
       yOffset = function(value)

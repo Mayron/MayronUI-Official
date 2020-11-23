@@ -44,15 +44,21 @@ local defaults = {
 	chatFrames = {
 		-- these tables will contain the templateMuiChatFrame data (using SetParent)
 		TOPLEFT = {
-			enabled = true;
+      enabled = true;
+      xOffset = 2;
+      yOffset = -2;
     };
 
 		TOPRIGHT = {
-			enabled = false;
+      enabled = false;
+      xOffset = -2;
+      yOffset = -2;
     };
 
 		BOTTOMLEFT = {
-			enabled = false;
+      enabled = false;
+      xOffset = 2;
+      yOffset = 2;
 			tabBar = {
 				yOffset = -43;
 			};
@@ -62,7 +68,9 @@ local defaults = {
     };
 
 		BOTTOMRIGHT = {
-			enabled = false;
+      enabled = false;
+      xOffset = -2;
+      yOffset = 2;
 			tabBar = {
 				yOffset = -43;
 			};
@@ -76,7 +84,8 @@ local defaults = {
 		anchor       = "TOPLEFT";
 		copyChat     = true;
 		emotes       = true;
-		playerStatus = true;
+    playerStatus = true;
+    voiceChat = true;
   };
 
   editBox = {
@@ -223,7 +232,17 @@ function C_ChatModule:OnInitialize(data)
 					end
 
 				elseif (settingName == "tabBar") then
-					muiChatFrame:SetUpTabBar(data.settings.chatFrames[anchorName].tabBar);
+          muiChatFrame:SetUpTabBar(data.settings.chatFrames[anchorName].tabBar);
+
+        elseif (settingName == "xOffset" or settingName == "yOffset") then
+          local frame = muiChatFrame:GetFrame();
+
+          if (frame) then
+            local p, rf, rp, x, y = frame:GetPoint();
+            local xOffset = (settingName == "xOffset" and value) or x;
+            local yOffset = (settingName == "yOffset" and value) or y;
+            frame:SetPoint(p, rf, rp, xOffset, yOffset);
+          end
 
 				elseif (settingName == "window") then
 					local frame = muiChatFrame:GetFrame();

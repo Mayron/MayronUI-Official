@@ -24,6 +24,7 @@ local FRIENDS_LIST_AVAILABLE, FRIENDS_LIST_AWAY, FRIENDS_LIST_BUSY =
   _G.FRIENDS_LIST_AVAILABLE, _G.FRIENDS_LIST_AWAY, _G.FRIENDS_LIST_BUSY;
 
 local strsplit, select, IsAddOnLoaded = _G.strsplit, _G.select, _G.IsAddOnLoaded;
+local UIParent = _G.UIParent;
 
 -- C_ChatFrame -----------------------
 
@@ -168,12 +169,12 @@ end
 Engine:DefineReturns("Frame");
 ---@return Frame returns an MUI chat frame
 function C_ChatFrame:CreateFrame(data)
-	local muiChatFrame = _G.CreateFrame("Frame", "MUI_ChatFrame_" .. data.anchorName, _G.UIParent);
+	local muiChatFrame = CreateFrame("Frame", "MUI_ChatFrame_" .. data.anchorName, UIParent);
 
-    muiChatFrame:SetFrameStrata("LOW");
-    muiChatFrame:SetFrameLevel(1);
+  muiChatFrame:SetFrameStrata("LOW");
+  muiChatFrame:SetFrameLevel(1);
 	muiChatFrame:SetSize(358, 310);
-	muiChatFrame:SetPoint(data.anchorName, 2, -2);
+	muiChatFrame:SetPoint(data.anchorName, data.settings.xOffset, data.settings.yOffset);
 
 	muiChatFrame.sidebar = muiChatFrame:CreateTexture(nil, "ARTWORK");
 	muiChatFrame.sidebar:SetTexture(string.format("%ssidebar", MEDIA));
@@ -239,10 +240,12 @@ function C_ChatFrame:Reposition(data)
 	data.frame:ClearAllPoints();
 	data.frame.window:ClearAllPoints();
 	data.frame.sidebar:ClearAllPoints();
-	data.buttonsBar:ClearAllPoints();
+  data.buttonsBar:ClearAllPoints();
+
+  data.frame:SetPoint(data.anchorName, UIParent, data.anchorName,
+    data.settings.xOffset, data.settings.yOffset);
 
 	if (data.anchorName == "TOPRIGHT") then
-		data.frame:SetPoint(data.anchorName, _G.UIParent, data.anchorName, -2, -2);
 		data.frame.sidebar:SetPoint(data.anchorName, data.frame, data.anchorName, 0 , -10);
 		data.frame.window:SetPoint("TOPRIGHT", data.frame.sidebar, "TOPLEFT", -2, data.settings.window.yOffset);
 		data.frame.window.texture:SetTexCoord(1, 0, 0, 1);
@@ -251,13 +254,15 @@ function C_ChatFrame:Reposition(data)
 		data.frame.sidebar:SetPoint(data.anchorName, data.frame, data.anchorName, 0 , 10);
 
 		if (data.anchorName == "BOTTOMLEFT") then
-			data.frame:SetPoint(data.anchorName, tk.UIParent, data.anchorName, 2, 2);
-			data.frame.window:SetPoint("BOTTOMLEFT", data.frame.sidebar, "BOTTOMRIGHT", 2, data.settings.window.yOffset);
+			data.frame.window:SetPoint(
+        "BOTTOMLEFT", data.frame.sidebar, "BOTTOMRIGHT",
+        2, data.settings.window.yOffset);
 			data.frame.window.texture:SetTexCoord(0, 1, 1, 0);
 
 		elseif (data.anchorName == "BOTTOMRIGHT") then
-			data.frame:SetPoint(data.anchorName, tk.UIParent, data.anchorName, -2, 2);
-			data.frame.window:SetPoint("BOTTOMRIGHT", data.frame.sidebar, "BOTTOMLEFT", -2, data.settings.window.yOffset);
+      data.frame.window:SetPoint(
+        "BOTTOMRIGHT", data.frame.sidebar, "BOTTOMLEFT",
+        -2, data.settings.window.yOffset);
 			data.frame.window.texture:SetTexCoord(1, 0, 1, 0);
 		end
 	end
@@ -323,14 +328,15 @@ do
 		return anchorIcon;
 	end
 
-	function C_ChatFrame.Static:PositionSideBarIcons(chatModuleSettings, muiChatFrame)
+  function C_ChatFrame.Static:PositionSideBarIcons(chatModuleSettings, muiChatFrame)
     _G.ChatFrameChannelButton:ClearAllPoints();
     _G.ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
     _G.ChatFrameChannelButton:SetParent(muiChatFrame);
+    _G.ChatFrameChannelButton:SetShown(chatModuleSettings.icons.voiceChat);
 
     if (tk:IsRetail()) then
-      _G.ChatFrameToggleVoiceDeafenButton:SetParent(muiChatFrame);
-      _G.ChatFrameToggleVoiceMuteButton:SetParent(muiChatFrame);
+      _G.ChatFrameToggleVoiceDeafenButton:SetParent(_G.ChatFrameChannelButton);
+      _G.ChatFrameToggleVoiceMuteButton:SetParent(_G.ChatFrameChannelButton);
     else
       tk:KillElement(_G.ChatFrameMenuButton);
     end

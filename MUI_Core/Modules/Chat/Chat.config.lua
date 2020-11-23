@@ -3,6 +3,8 @@ local _, namespace = ...;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ChatModule = namespace.C_ChatModule;
 
+local table, string, unpack = _G.table, _G.string, _G.unpack;
+
 local ChatFrameAnchorDropDownOptions = {
   [L["Top Left"]] = "TOPLEFT";
   [L["Top Right"]] = "TOPRIGHT";
@@ -13,70 +15,70 @@ local ChatFrameAnchorDropDownOptions = {
 -- Config Data ----------------------
 
 local function CreateButtonConfigTable(dbPath, buttonID)
-  local configTable = {};
+  local configTable = obj:PopTable();
 
   if (buttonID == 1) then
     table.insert(configTable, {
-    name = L["Standard Chat Buttons"],
-    type = "title"
+      name = L["Standard Chat Buttons"],
+      type = "title"
     });
   else
     table.insert(configTable, {
-    name = string.format(L["Chat Buttons with Modifier Key %d"], buttonID),
-    type = "title"
+      name = string.format(L["Chat Buttons with Modifier Key %d"], buttonID),
+      type = "title"
     });
   end
 
   table.insert(configTable, {
-  name = L["Left Button"],
-  dbPath = string.format("%s.buttons[%d][1]", dbPath, buttonID)
+    name = L["Left Button"],
+    dbPath = string.format("%s.buttons[%d][1]", dbPath, buttonID)
   });
 
   table.insert(configTable, {
-  name = L["Middle Button"],
-  dbPath = string.format("%s.buttons[%d][2]", dbPath, buttonID)
+    name = L["Middle Button"],
+    dbPath = string.format("%s.buttons[%d][2]", dbPath, buttonID)
   });
 
   table.insert(configTable, {
-  name = L["Right Button"],
-  dbPath = string.format("%s.buttons[%d][3]", dbPath, buttonID)
+    name = L["Right Button"],
+    dbPath = string.format("%s.buttons[%d][3]", dbPath, buttonID)
   });
 
   table.insert(configTable, { type = "divider" });
 
   if (buttonID == 1) then
-    return _G.unpack(configTable);
+    return unpack(configTable);
   end
 
   for _, modKey in obj:IterateArgs(L["Control"], L["Shift"], L["Alt"]) do
     local modKeyFirstChar = string.sub(modKey, 1, 1);
 
     table.insert(configTable, {
-    name = modKey,
-    height = 40,
-    type = "check",
-    dbPath = string.format("%s.buttons[%d].key", dbPath, buttonID),
+      name = modKey,
+      height = 40,
+      type = "check",
+      dbPath = string.format("%s.buttons[%d].key", dbPath, buttonID),
 
-    GetValue = function(_, currentValue)
-      if (currentValue:find(modKeyFirstChar)) then
-        return true;
+      GetValue = function(_, currentValue)
+        if (currentValue:find(modKeyFirstChar)) then
+          return true;
+        end
+
+        return false;
+      end,
+
+      SetValue = function(valueDbPath, checked, oldValue)
+        if (checked) then
+          -- add it
+          local newValue = (oldValue and tk.Strings:Concat(oldValue, modKeyFirstChar)) or modKeyFirstChar;
+          db:SetPathValue(valueDbPath, newValue);
+
+        elseif (oldValue and oldValue:find(modKeyFirstChar)) then
+          -- remove it
+          local newValue = oldValue:gsub(modKeyFirstChar, tk.Strings.Empty);
+          db:SetPathValue(valueDbPath, newValue);
+        end
       end
-
-      return false;
-    end,
-
-    SetValue = function(valueDbPath, checked, oldValue)
-      if (checked) then
-        -- add it
-        local newValue = (oldValue and tk.Strings:Concat(oldValue, modKeyFirstChar)) or modKeyFirstChar;
-        db:SetPathValue(valueDbPath, newValue);
-
-      elseif (oldValue and oldValue:find(modKeyFirstChar)) then
-        -- remove it
-        local newValue = oldValue:gsub(modKeyFirstChar, tk.Strings.Empty);
-        db:SetPathValue(valueDbPath, newValue);
-      end
-    end
     });
   end
 
@@ -185,6 +187,11 @@ function C_ChatModule:GetConfigTable()
             },
             {   type = "divider"
             },
+            {   name = "Show Voice Chat Icons",
+                type = "check",
+                tooltip = "Show the chat channels, deafen voice chat and mute icons.",
+                dbPath = "profile.chat.icons.voiceChat",
+            },
             {   name = L["Show Copy Chat Icon"],
                 type = "check",
                 dbPath = "profile.chat.icons.copyChat",
@@ -227,12 +234,12 @@ function C_ChatModule:GetConfigTable()
                                 type = "check",
                                 dbPath = string.format("%s.enabled", dbPath),
                             },
-                            {   type = "divider";
-                            };
                             {   name = L["Show Tab Bar"],
                                 tooltip = L["This is the background bar that goes behind the tabs."];
                                 type = "check",
                                 dbPath = string.format("%s.tabBar.show", dbPath),
+                            };
+                            {   type = "divider";
                             };
                             {   name = tk.Strings:JoinWithSpace(L["Tab Bar"], L["Y-Offset"]),
                                 type = "textfield",
@@ -244,11 +251,21 @@ function C_ChatModule:GetConfigTable()
                                 valueType = "number";
                                 dbPath = string.format("%s.window.yOffset", dbPath),
                             };
+                            {   name = tk.Strings:JoinWithSpace("Chat Frame", L["X-Offset"]),
+                                type = "textfield",
+                                valueType = "number";
+                                dbPath = string.format("%s.xOffset", dbPath),
+                            };
+                            {   name = tk.Strings:JoinWithSpace("Chat Frame", L["Y-Offset"]),
+                                type = "textfield",
+                                valueType = "number";
+                                dbPath = string.format("%s.yOffset", dbPath),
+                            };
                         }
                     };
 
                     for i = 1, 3 do
-                        tk.Tables:AddAll(ConfigTable.children, CreateButtonConfigTable(dbPath, i));
+                      tk.Tables:AddAll(ConfigTable.children, CreateButtonConfigTable(dbPath, i));
                     end
 
                     return ConfigTable;

@@ -19,6 +19,7 @@ db:AddToDefaults("profile.actionBarPanel", {
   expandHeight    = 80;
   animateSpeed    = 6;
   texture         = tk:GetAssetFilePath("Textures\\BottomUI\\ActionBarPanel");
+  alpha           = 1;
   cornerSize      = 20;
   bartender = {
     control   = true,
@@ -107,6 +108,10 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
 
     texture = function(value)
       data.panel:SetGridTexture(value);
+    end;
+
+    alpha = function(value)
+      data.panel:SetAlpha(value);
     end;
 
     cornerSize = function(value)
@@ -204,8 +209,7 @@ function C_ActionBarPanel:OnEnable(data)
     ToggleBartenderBar(data.settings.bartender.control, data.Bar4, false);
   end);
 
-  gui:CreateGridTexture(data.panel, data.settings.texture,
-    data.settings.cornerSize, nil, 749, 45);
+  gui:CreateGridTexture(data.panel, data.settings.texture, data.settings.cornerSize, nil, 749, 45);
 
   -- expand button:
   local expandBtn = gui:CreateButton(tk.Constants.AddOnStyle, data.panel, _G["MUI_BottomContainer"]);
@@ -311,52 +315,52 @@ function C_ActionBarPanel:OnEnable(data)
 end
 
 function C_ActionBarPanel:GetPanel(data)
-    return data.panel;
+  return data.panel;
 end
 
 function C_ActionBarPanel:SetUpBartenderBar(data, barID, bartenderBarID)
-    if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
-        return;
-    end
+  if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
+    return;
+  end
 
-    local barId = string.match(bartenderBarID, "Bar (%d+)");
+  local barId = string.match(bartenderBarID, "Bar (%d+)");
 
-    -- get bar
-    _G.Bartender4:GetModule("ActionBars"):EnableBar(barId);
+  -- get bar
+  _G.Bartender4:GetModule("ActionBars"):EnableBar(barId);
 
-    local globalBartenderName = string.format("BT4Bar%d", barId);
-    local bar = _G[globalBartenderName];
+  local globalBartenderName = string.format("BT4Bar%d", barId);
+  local bar = _G[globalBartenderName];
 
-    -- calculate height:
-    local height = 0;
-    local resourceBarsModule = MayronUI:ImportModule("BottomUI_ResourceBars");
-    local dataTextModule = MayronUI:ImportModule("DataTextModule");
+  -- calculate height:
+  local height = 0;
+  local resourceBarsModule = MayronUI:ImportModule("BottomUI_ResourceBars");
+  local dataTextModule = MayronUI:ImportModule("DataTextModule");
 
-    if (resourceBarsModule and resourceBarsModule:IsEnabled()) then
-        height = resourceBarsModule:GetHeight() - 3;
-    end
+  if (resourceBarsModule and resourceBarsModule:IsEnabled()) then
+    height = resourceBarsModule:GetHeight() - 3;
+  end
 
-    if (dataTextModule and dataTextModule:IsShown()) then
-        local dataTextBar = dataTextModule:GetDataTextBar();
-        height = height + ((dataTextBar and dataTextBar:GetHeight()) or 0);
-    end
+  if (dataTextModule and dataTextModule:IsShown()) then
+    local dataTextBar = dataTextModule:GetDataTextBar();
+    height = height + ((dataTextBar and dataTextBar:GetHeight()) or 0);
+  end
 
-    if (barID <= 2) then
-        ToggleBartenderBar(data.settings.bartender.control, bar, true);
-        bar.config.position.y = 39 + height;
-    else
-        bar.config.position.y = 74 + height;
+  if (barID <= 2) then
+    ToggleBartenderBar(data.settings.bartender.control, bar, true);
+    bar.config.position.y = 39 + height;
+  else
+    bar.config.position.y = 74 + height;
 
-        -- Bar 3 and 4 are needed for expanding/retracting
-        local barName = string.format("Bar%d", tostring(barID));
-        data[barName] = bar;
-    end
+    -- Bar 3 and 4 are needed for expanding/retracting
+    local barName = string.format("Bar%d", tostring(barID));
+    data[barName] = bar;
+  end
 
-    bar:LoadPosition();
+  bar:LoadPosition();
 end
 
 function C_ActionBarPanel:SetUpAllBartenderBars(data)
-    for i = 1, 4 do
-        self:SetUpBartenderBar(i, data.settings.bartender[i]);
-    end
+  for i = 1, 4 do
+    self:SetUpBartenderBar(i, data.settings.bartender[i]);
+  end
 end

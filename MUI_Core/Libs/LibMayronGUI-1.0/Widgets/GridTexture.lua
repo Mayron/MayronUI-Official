@@ -8,9 +8,9 @@ if (not Lib) then return; end
 do
     local regions = {"tl", "tr", "bl", "br", "t", "b", "l", "r", "c"};
 
-    local function SetGridColor(self, r, g, b)
+    local function SetGridColor(self, r, g, b, a)
         for _, key in ipairs(regions) do
-            self[key]:SetVertexColor(r, g, b);
+            self[key]:SetVertexColor(r, g, b, a);
         end
     end
 
