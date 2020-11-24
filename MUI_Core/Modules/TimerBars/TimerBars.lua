@@ -17,7 +17,7 @@ local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo;
 local unpack, CreateFrame, UnitIsDeadOrGhost = _G.unpack, _G.CreateFrame, _G.UnitIsDeadOrGhost;
 local string, date, pairs, ipairs = _G.string, _G.date, _G.pairs, _G.ipairs;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
-local table, GetTime, UnitAura = _G.table, _G.GetTime, _G.UnitAura;
+local table, GetTime, UnitAura, tostring = _G.table, _G.GetTime, _G.UnitAura, _G.tostring;
 
 local RepositionBars;
 
@@ -450,7 +450,7 @@ local function CanTrackAura(auraInfo)
     obj:PushTable(auraInfo);
     return false;
 
-  elseif (auraInfo[10] == 43180 or auraInfo[10] == 43182) then
+  elseif (tk.Constants.FOOD_DRINK_AURAS[tostring(auraInfo[10])]) then
     -- let castbar track food and drink
     obj:PushTable(auraInfo);
     return false;

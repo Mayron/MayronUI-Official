@@ -268,11 +268,6 @@ function Events:UNIT_SPELLCAST_START(castBar, castBarData, unitID)
   castBar:StartCasting(false);
 end
 
-local aurasToTrack = {
-  ["43180"] = true, -- food
-  ["43182"] = true -- drink
-};
-
 local UnitBuff, tostring, BUFF_MAX_DISPLAY =
   _G.UnitBuff, _G.tostring, _G.BUFF_MAX_DISPLAY;
 
@@ -285,7 +280,7 @@ function Events:UNIT_AURA(castBar, castBarData, unitID)
   for auraID = 1, BUFF_MAX_DISPLAY do
     local name, iconTexture, _, _, duration, expirationTime, _, _, _, auraId = UnitBuff(unitID, auraID);
 
-    if (name and aurasToTrack[tostring(auraId)]) then
+    if (name and tk.Constants.FOOD_DRINK_AURAS[tostring(auraId)]) then
         if (castBarData.auraId == auraId) then
           return;
         end
@@ -461,7 +456,6 @@ do
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_SUCCEEDED", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_INTERRUPTED", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_DELAYED", wrapper);
-
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_CHANNEL_START", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_CHANNEL_STOP", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_CHANNEL_UPDATE", wrapper);

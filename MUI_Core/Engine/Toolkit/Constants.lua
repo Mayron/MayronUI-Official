@@ -98,3 +98,15 @@ tk.Constants = {
         YELLOW          = _G.YELLOW_FONT_COLOR;
     };
 };
+
+if (tk:IsRetail()) then
+  tk.Constants.FOOD_DRINK_AURAS = {
+    ["43180"] = true, -- food
+    ["43182"] = true, -- drink
+  };
+else
+  tk.Constants.FOOD_DRINK_AURAS = {
+    ["1137"] = true, -- classic drink
+    ["1131"] = true, -- classic food
+  };
+end
