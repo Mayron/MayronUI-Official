@@ -119,9 +119,8 @@ do
   end
 
   local function iterator(wrapper, id)
-    id = id + 1;
-
-    if (wrapper[id] ~= nil) then
+    if (id ~= #wrapper) then
+      id = id + 1;
       return id, wrapper[id];
     else
       -- reached end of wrapper so finish looping and clean up

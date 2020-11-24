@@ -264,6 +264,37 @@ function Events:UNIT_SPELLCAST_START(castBar, castBarData, unitID)
   castBar:StartCasting(false);
 end
 
+local aurasToTrack = {
+  ["43180"] = true, -- food
+  ["43182"] = true -- drink
+};
+
+local UnitBuff, tostring, BUFF_MAX_DISPLAY =
+  _G.UnitBuff, _G.tostring, _G.BUFF_MAX_DISPLAY;
+
+---@param castBar CastBar
+---@param castBarData table
+---@param unitID string
+function Events:UNIT_AURA(castBar, castBarData, unitID)
+  if (unitID ~= castBarData.unitID) then return end
+
+  for auraID = 1, BUFF_MAX_DISPLAY do
+    local name, iconTexture, _, _, duration, expirationTime, _, _, _, auraId = UnitBuff(unitID, auraID);
+
+    if (name and aurasToTrack[tostring(auraId)]) then
+        if (castBarData.auraId == auraId) then
+          return;
+        end
+
+        local startTime = expirationTime - (duration);
+        startTime = startTime * 1000;
+        expirationTime = expirationTime * 1000;
+
+        castBar:StartCasting(false, obj:PopTable(name, iconTexture, startTime, expirationTime, auraId));
+    end
+  end
+end
+
 ---@param castBar CastBar
 ---@param castBarData table
 ---@param unitID string
@@ -405,6 +436,7 @@ do
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_UPDATE", data.unitID);
+          bar:RegisterUnitEvent("UNIT_AURA", data.unitID);
 
           if (tk:IsClassic()) then
               -- These 2 are unnecessary in retail for some reason, and cause problems if enabled
@@ -549,6 +581,18 @@ function C_CastBar:IsFinished(data)
     return value <= 0; -- max value for channelling is reversed
   end
 
+  if (data.auraId) then
+    for auraID = 1, BUFF_MAX_DISPLAY do
+      local auraId = (select(10, UnitBuff(data.unitID, auraID)));
+
+      if (data.auraId == auraId) then
+        return false;
+      end
+    end
+
+    return true;
+  end
+
   return value >= maxValue;
 end
 
@@ -576,6 +620,7 @@ function C_CastBar:StopCasting(data)
   if (not data.fadingOut) then
     data.startTime = nil;
     data.unitName = nil;
+    data.auraId = nil;
 
     if (not data.interrupted) then
       local c = data.appearance.colors.finished;
@@ -598,9 +643,16 @@ end
 Engine:DefineParams("boolean");
 ---Start casting or channelling a spell/ability.
 ---@param channelling boolean @If true, the casting type is set to "channelling" to reverse the bar direction.
-function C_CastBar:StartCasting(data, channelling)
+function C_CastBar:StartCasting(data, channelling, auraInfo)
   local func = channelling and UnitChannelInfo or UnitCastingInfo;
-  local name, _, texture, startTime, endTime, _, _, notInterruptible = func(data.unitID);
+  local name, texture, startTime, endTime, notInterruptible;
+  local auraId;
+
+  if (not obj:IsTable(auraInfo)) then
+    name, _, texture, startTime, endTime, _, _, notInterruptible = func(data.unitID);
+  else
+    name, texture, startTime, endTime, auraId = obj:UnpackTable(auraInfo);
+  end
 
   if (not startTime) then
     if (data.frame:GetAlpha() > 0 and not data.fadingOut) then
@@ -662,6 +714,7 @@ function C_CastBar:StartCasting(data, channelling)
   data.unitName = UnitName(data.unitID);
   data.startTime = startTime; -- makes OnUpdate start casting the bar
   data.totalTime = endTime - startTime;
+  data.auraId = auraId;
 end
 
 function C_CastBar:PositionCastBar(data)
