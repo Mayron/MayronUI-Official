@@ -6,9 +6,15 @@ local LibStub = _G.LibStub;
 _G.MayronUI = {};
 local MayronUI = _G.MayronUI;
 local table, ipairs, select, string, unpack, print = _G.table, _G.ipairs, _G.select, _G.string, _G.unpack, _G.print;
-local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI = _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
+local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI =
+  _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
 local strsplit, GetAddOnMetadata = _G.strsplit, _G.GetAddOnMetadata;
 local collectgarbage, CreateFont, error = _G.collectgarbage, _G.CreateFont, _G.error;
+
+_G.BINDING_CATEGORY_MUI = "MayronUI";
+_G.BINDING_NAME_MUI_SHOW_CONFIG_MENU = "Show Config Menu";
+_G.BINDING_NAME_MUI_SHOW_LAYOUT_MENU = "Show Layout Menu";
+_G.BINDING_NAME_MUI_SHOW_INSTALLER = "Show Installer";
 
 namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI");
 namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
@@ -471,6 +477,15 @@ function MayronUI:TriggerCommand(commandName, ...)
   commands[commandName](...);
 end
 
+---@param commandName string @The name of the command to register.
+---@param func function @The command handler function to register.
+function MayronUI:RegisterCommand(commandName, func)
+  commandName = commandName:lower();
+  obj:Assert(not commands[commandName], "Command already exists: '%s'", commandName);
+  commands[commandName] = func;
+  return func;
+end
+
 ---Hook more functions to a module event. Useful if module is spread across multiple files.
 ---@param moduleKey string @The unique key associated with the registered module.
 ---@param eventName string @The name of the module event to hook (i.e. "OnInitialize", "OnEnable", etc...).
@@ -700,7 +715,9 @@ db:OnProfileChange(function(self, newProfileName, oldProfileName)
 end);
 
 db:OnStartUp(function(self)
+  -- setup globals:
   MayronUI.db = self;
+
   namespace:SetUpBagnon();
 
   local r, g, b = tk:GetThemeColor();

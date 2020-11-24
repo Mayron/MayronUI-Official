@@ -1,0 +1,14 @@
+<Bindings>
+  <Binding name='MUI_SHOW_CONFIG_MENU' category="BINDING_CATEGORY_MUI">
+		MayronUI:TriggerCommand("config")
+  </Binding>
+  <Binding name='MUI_SHOW_LAYOUT_MENU' category="BINDING_CATEGORY_MUI">
+		MayronUI:TriggerCommand("layouts")
+  </Binding>
+  <Binding name='MUI_SHOW_INSTALLER' category="BINDING_CATEGORY_MUI">
+		MayronUI:TriggerCommand("install")
+  </Binding>
+  <Binding name='MUI_TOGGLE_ACTION_BAR_ROW_2' category="BINDING_CATEGORY_MUI">
+		MayronUI:TriggerCommand("ToggleActionBarRow2")
+	</Binding>
+</Bindings>

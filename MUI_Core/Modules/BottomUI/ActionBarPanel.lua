@@ -261,8 +261,9 @@ function C_ActionBarPanel:OnEnable(data)
   expandBtnFader.anim:SetFromAlpha(0);
   expandBtnFader.anim:SetToAlpha(1);
 
-  expandBtn:SetScript("OnClick", function(self)
-    self:Hide();
+  _G.BINDING_NAME_MUI_TOGGLE_ACTION_BAR_ROW_2 = "Toggle Action Bar Row 2";
+  local func = MayronUI:RegisterCommand("ToggleActionBarRow2", function()
+    expandBtn:Hide();
 
     if (InCombatLockdown()) then return end
 
@@ -277,6 +278,8 @@ function C_ActionBarPanel:OnEnable(data)
 
     data.settings.expanded = not expanded;
   end);
+
+  expandBtn:SetScript("OnClick", func);
 
   expandBtnFader:SetScript("OnFinished", function()
     expandBtn:SetAlpha(1);

@@ -21,6 +21,8 @@
 ## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma, EarlGrey
 ## X-Development-and-Bug-Fixes: Monkey, Gargnash, BeetleJooce
 
+TaintLess.xml
+
 ## Libraries:
 ## ------------------------------------------------
 Libs\LibStub.lua
