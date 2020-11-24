@@ -55,6 +55,10 @@ namespace.bars = obj:PopTable();
 
 -- Load Database Defaults --------------
 
+db:AddToDefaults("global.castBars", {
+  showFoodDrink = true;
+});
+
 db:AddToDefaults("profile.castBars", {
   enabled = true;
   __templateCastBar = {
@@ -142,11 +146,11 @@ local Events = obj:PopTable();
 ---@param castBarData table
 ---@param pauseDuration number
 function Events:MIRROR_TIMER_PAUSE(_, castBarData, pauseDuration)
-    castBarData.paused = pauseDuration > 0;
+  castBarData.paused = pauseDuration > 0;
 
-    if (pauseDuration > 0) then
-        castBarData.pauseDuration = pauseDuration;
-    end
+  if (pauseDuration > 0) then
+    castBarData.pauseDuration = pauseDuration;
+  end
 end
 
 ---@param castBarData table
@@ -436,7 +440,10 @@ do
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_UPDATE", data.unitID);
-          bar:RegisterUnitEvent("UNIT_AURA", data.unitID);
+
+          if (db.global.castBars.showFoodDrink) then
+            bar:RegisterUnitEvent("UNIT_AURA", data.unitID);
+          end
 
           if (tk:IsClassic()) then
               -- These 2 are unnecessary in retail for some reason, and cause problems if enabled
@@ -753,8 +760,17 @@ function C_CastBar:PositionCastBar(data)
   end
 end
 
--- C_CastBarsModule -----------------------
+function C_CastBar:CheckStatus(data)
+  if (UnitCastingInfo(data.unitID)) then
+    self:StartCasting(false);
+  elseif (UnitChannelInfo(data.unitID)) then
+    self:StartCasting(true);
+  else
+    Events:UNIT_AURA(self, data, data.unitID)
+  end
+end
 
+-- C_CastBarsModule -----------------------
 function C_CastBarsModule:OnInitialize(data)
   data.bars = obj:PopTable();
   local r, g, b = tk:GetThemeColor();
@@ -950,5 +966,12 @@ end
 function C_CastBarsModule:OnInitialized(data)
   if (data.settings.enabled) then
     self:SetEnabled(true);
+  end
+end
+
+function C_CastBarsModule:OnEnabled(data)
+  -- recheck here
+  for _, castBar in pairs(data.bars) do
+    castBar:CheckStatus();
   end
 end

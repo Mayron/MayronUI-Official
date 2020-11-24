@@ -449,6 +449,11 @@ local function CanTrackAura(auraInfo)
     -- some aura's do not have an expiration time so cannot be added to a timer bar (aura's that are fixed).
     obj:PushTable(auraInfo);
     return false;
+
+  elseif (auraInfo[10] == 43180 or auraInfo[10] == 43182) then
+    -- let castbar track food and drink
+    obj:PushTable(auraInfo);
+    return false;
   end
 
   return true;

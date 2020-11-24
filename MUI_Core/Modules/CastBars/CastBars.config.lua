@@ -104,6 +104,12 @@ function C_CastBarsModule:GetConfigTable()
                 requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
                 appendDbPath = "enabled",
             },
+            {   name = "Show Food and Drink",
+                tooltip = "If checked, the food and drink buff will be displayed as a castbar.",
+                type = "check",
+                requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
+                dbPath = "global.castBars.showFoodDrink",
+            },
             {
               type = "divider"
             },

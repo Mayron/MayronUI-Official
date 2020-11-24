@@ -380,12 +380,17 @@ function BaseModule:SetEnabled(data, enabled, ...)
       data.firstTime = true;
     end
 
+    if (self.OnEnabled) then
+      self:OnEnabled(...);
+    end
+
     -- Call any other functions attached to this modules OnEnable event
     hooks = registryInfo.hooks and registryInfo.hooks.OnEnable;
   else
     if (self.OnDisable) then
       self:OnDisable(...);
     end
+
     -- Call any other functions attached to this modules OnDisable event
     hooks = registryInfo.hooks and registryInfo.hooks.OnDisable;
   end
