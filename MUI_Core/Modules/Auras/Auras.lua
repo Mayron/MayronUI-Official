@@ -126,7 +126,7 @@ do
   local durationCache = {};
 
   local function GetDurationValue(text)
-      local value = tk.Strings:GetSection(text, " ", 1);
+      local value = tk.Strings:Split(text, " ", 1);
 
       if (string.match(text, "min")) then
         value = value * 60;

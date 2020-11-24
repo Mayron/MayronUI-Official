@@ -137,8 +137,12 @@ function tk.Strings:Concat(...)
     return value;
 end
 
-function tk.Strings:GetSection(str, seperator, sectionNum)
+function tk.Strings:Split(str, seperator, sectionNum)
+  if (sectionNum) then
     return (select(sectionNum, string.split(seperator, str)));
+  else
+    return string.split(seperator, str);
+  end
 end
 
 function tk.Strings:Join(separator, ...)

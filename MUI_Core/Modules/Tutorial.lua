@@ -8,17 +8,29 @@ local C_Tutorial = MayronUI:RegisterModule("TutorialModule", "Tutorial");
 local tonumber, GetAddOnMetadata = _G.tonumber, _G.GetAddOnMetadata;
 
 function C_Tutorial:OnInitialize()
-  local tutorialId = GetAddOnMetadata("MUI_Core", "X-Tutorial");
-  local num = tonumber((tutorialId:gsub("%.", "")));
+  local currentVersion = GetAddOnMetadata("MUI_Core", "Version");
+  local major, minor, patch = tk.Strings:Split(currentVersion, ".");
+  major = tonumber(major);
+  minor = tonumber(minor);
+  patch = tonumber(patch);
 
-  if (not db.profile.installMessage or db.profile.installMessage < num) then
+  local oldVersion = db.profile.installMessage; -- should be less
+  if (not oldVersion or not (obj:IsString(oldVersion))) then
     self:SetEnabled(true);
+  else
+    local oldMajor, oldMinor, oldPatch = tk.Strings:Split(oldVersion, ".");
+    oldMajor = tonumber(oldMajor);
+    oldMinor = tonumber(oldMinor);
+    oldPatch = tonumber(oldPatch);
+
+    if (major > oldMajor or minor > oldMinor or patch > (oldPatch + 5)) then
+      self:SetEnabled(true);
+    end
   end
 end
 
 function C_Tutorial:OnEnable()
   local frame = tk:PopFrame("Frame");
-
   frame:SetFrameStrata("TOOLTIP");
   frame:SetSize(350, 230);
   frame:SetPoint("CENTER");
@@ -27,8 +39,6 @@ function C_Tutorial:OnEnable()
   gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
 
   local version = GetAddOnMetadata("MUI_Core", "Version");
-  local tutorialId = GetAddOnMetadata("MUI_Core", "X-Tutorial");
-  local num = tonumber((tutorialId:gsub("%.", "")));
 
   local title = tk.Strings:Concat(L["Version"], "[", version, "]");
   gui:AddTitleBar(tk.Constants.AddOnStyle, frame, title);
@@ -51,7 +61,7 @@ function C_Tutorial:OnEnable()
   configButton:SetScript("OnClick", function()
     MayronUI:TriggerCommand("config");
     frame:Hide();
-    db.profile.installMessage = num;
+    db.profile.installMessage = version;
   end);
 
   local website = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -60,6 +70,6 @@ function C_Tutorial:OnEnable()
   website:SetText(tk.Strings:SetTextColorByKey("https://mayronui.com", "LIGHT_YELLOW"));
 
   frame.closeBtn:HookScript("OnClick", function()
-    db.profile.installMessage = num;
+    db.profile.installMessage = version;
   end);
 end
