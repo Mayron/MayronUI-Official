@@ -174,7 +174,6 @@ local function OnObjectiveTrackerInitialized()
 
     for _, value in pairs(module.blockOffset) do
       value[1] = 0;
-      value[2] = 0;
     end
 
     tk:KillElement(module.Header.Background);
