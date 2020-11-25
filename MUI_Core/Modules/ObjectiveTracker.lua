@@ -11,14 +11,11 @@ MayronUI:Hook("SideBarModule", "OnEnable", function(sideBarModule)
 end);
 
 local ObjectiveTrackerFrame, IsInInstance, ObjectiveTracker_Collapse, ObjectiveTracker_Update,
-ObjectiveTracker_Expand, UIParent, hooksecurefunc, ipairs =
-_G.ObjectiveTrackerFrame, _G.IsInInstance, _G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update,
-_G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs;
-
-local GetInstanceInfo = _G.GetInstanceInfo;
-local GetQuestDifficultyColor = _G.GetQuestDifficultyColor;
-local C_QuestLog = _G.C_QuestLog;
-local CreateFrame = _G.CreateFrame;
+ObjectiveTracker_Expand, UIParent, hooksecurefunc, ipairs, C_QuestLog, CreateFrame,
+GetInstanceInfo, RegisterStateDriver, UnregisterStateDriver, GetQuestDifficultyColor =
+  _G.ObjectiveTrackerFrame, _G.IsInInstance, _G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update,
+  _G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs, _G.C_QuestLog, _G.CreateFrame,
+  _G.GetInstanceInfo, _G.RegisterStateDriver, _G.UnregisterStateDriver, _G.GetQuestDifficultyColor;
 
 local function SetHeaderColor(headerText, level, isScaling)
   local difficultyColor = GetQuestDifficultyColor(level, isScaling);
@@ -36,24 +33,24 @@ local function UpdateQuestDifficultyColors(block)
           if (block.HeaderText) then
             SetHeaderColor(block.HeaderText, questInfo.level, questInfo.isScaling);
           end
-        break;
+          break;
+        end
       end
-    end
 
-  elseif (_G.GetNumQuestLogEntries) then
+    elseif (_G.GetNumQuestLogEntries) then
       for questLogIndex = 1, _G.GetNumQuestLogEntries() do
-          local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
+        local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
 
-          if (questID == block.id) then
-            -- bonus quests do not have HeaderText
-              if (block.HeaderText) then
-                SetHeaderColor(block.HeaderText, level, isScaling);
-              end
+        if (questID == block.id) then
+          -- bonus quests do not have HeaderText
+            if (block.HeaderText) then
+              SetHeaderColor(block.HeaderText, level, isScaling);
+            end
             break;
           end
+        end
       end
-   end
-end
+    end
 
 db:AddToDefaults("profile.objectiveTracker", {
   enabled = true;
@@ -81,9 +78,13 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
   self:RegisterUpdateFunctions(db.profile.objectiveTracker, {
     hideInInstance = function(value)
       if (not value) then
+        UnregisterStateDriver(data.autoHideHandler, "autoHideHandler");
         em:DestroyEventHandlerByKey("ObjectiveTracker_InInstance");
         return;
       end
+
+      RegisterStateDriver(data.autoHideHandler, "autoHideHandler",
+        "[@boss1,exists][@boss2,exists][@boss3,exists][@boss4,exists] 1;0");
 
       em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "ObjectiveTracker_InInstance", function()
         local inInstance = IsInInstance();
@@ -176,6 +177,14 @@ function C_ObjectiveTracker:OnEnable(data)
   ObjectiveTrackerFrame:SetMovable(true); -- required to make user placed
   ObjectiveTrackerFrame:SetUserPlaced(true);
 
+  data.autoHideHandler = CreateFrame("Fram", nil, data.objectiveContainer, "SecureHandlerStateTemplate");
+  data.autoHideHandler:SetAttribute("_onstate-autoHideHandler", "self:SetShown(newstate == 0)");
+
+  local triggerInInstanceHandler = function() em:TriggerEventHandlerByKey("ObjectiveTracker_InInstance"); end
+  data.autoHideHandler:SetScript("OnShow", triggerInInstanceHandler);
+  data.autoHideHandler:SetScript("OnHide", triggerInInstanceHandler);
+
+  -- Reskinning (kept very minimal):
   tk:ApplyThemeColor(ObjectiveTrackerFrame.HeaderMenu.Title);
 
   _G.ScenarioStageBlock.NormalBG:Hide();
@@ -187,9 +196,11 @@ function C_ObjectiveTracker:OnEnable(data)
   box:SetFrameStrata("BACKGROUND");
 
   if (obj:IsTable(ObjectiveTrackerFrame.MODULES_UI_ORDER)) then
+    -- already been initialized:
     for _, module in ipairs(ObjectiveTrackerFrame.MODULES_UI_ORDER) do
       tk:KillElement(module.Header.Background);
       tk:ApplyThemeColor(module.Header.Text);
+
       if (module.Header.MinimizeButton) then
         ReskinMinifyButton(module.Header.MinimizeButton, module);
       end
@@ -207,9 +218,11 @@ function C_ObjectiveTracker:OnEnable(data)
     end);
   end
 
+  -- reskin the "main" minimize button (not per module):
   local minButton = ObjectiveTrackerFrame.HeaderMenu.MinimizeButton;
   ReskinMinifyButton(minButton, ObjectiveTrackerFrame);
 
+  -- Update difficulty colors:
   hooksecurefunc(_G.QUEST_TRACKER_MODULE, "Update", function()
     local block = _G.ObjectiveTrackerBlocksFrame.QuestHeader.module.firstBlock;
 
