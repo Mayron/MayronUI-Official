@@ -15,8 +15,10 @@ ObjectiveTracker_Expand, UIParent, hooksecurefunc, ipairs =
 _G.ObjectiveTrackerFrame, _G.IsInInstance, _G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update,
 _G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs;
 
+local GetInstanceInfo = _G.GetInstanceInfo;
 local GetQuestDifficultyColor = _G.GetQuestDifficultyColor;
 local C_QuestLog = _G.C_QuestLog;
+local CreateFrame = _G.CreateFrame;
 
 local function SetHeaderColor(headerText, level, isScaling)
   local difficultyColor = GetQuestDifficultyColor(level, isScaling);
@@ -88,8 +90,13 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
 
         if (inInstance) then
           if (not ObjectiveTrackerFrame.collapsed) then
-            ObjectiveTracker_Collapse();
-            data.previouslyCollapsed = true;
+            local _, _, difficultyID = GetInstanceInfo();
+
+            -- ignore keystone dungeons
+            if (difficultyID and difficultyID ~= 8) then
+              ObjectiveTracker_Collapse();
+              data.previouslyCollapsed = true;
+            end
           end
         else
           if (ObjectiveTrackerFrame.collapsed and data.previouslyCollapsed) then
@@ -160,17 +167,14 @@ function C_ObjectiveTracker:OnEnable(data)
   if (data.objectiveContainer) then return end
 
   -- holds and controls blizzard objectives tracker frame
-  data.objectiveContainer = _G.CreateFrame("Frame", nil, UIParent);
+  data.objectiveContainer = CreateFrame("Frame", nil, UIParent);
 
   -- blizzard objective tracker frame global variable
   ObjectiveTrackerFrame:SetClampedToScreen(false);
   ObjectiveTrackerFrame:SetParent(data.objectiveContainer);
   ObjectiveTrackerFrame:SetAllPoints(true);
-
-  ObjectiveTrackerFrame.ClearAllPoints = tk.Constants.DUMMY_FUNC;
-  ObjectiveTrackerFrame.SetParent = tk.Constants.DUMMY_FUNC;
-  ObjectiveTrackerFrame.SetPoint = tk.Constants.DUMMY_FUNC;
-  ObjectiveTrackerFrame.SetAllPoints = tk.Constants.DUMMY_FUNC;
+  ObjectiveTrackerFrame:SetMovable(true); -- required to make user placed
+  ObjectiveTrackerFrame:SetUserPlaced(true);
 
   tk:ApplyThemeColor(ObjectiveTrackerFrame.HeaderMenu.Title);
 
