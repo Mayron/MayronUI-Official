@@ -11,11 +11,13 @@ MayronUI:Hook("SideBarModule", "OnEnable", function(sideBarModule)
 end);
 
 local ObjectiveTrackerFrame, IsInInstance, ObjectiveTracker_Collapse, ObjectiveTracker_Update,
-ObjectiveTracker_Expand, UIParent, hooksecurefunc, ipairs, C_QuestLog, CreateFrame,
+ObjectiveTracker_Expand, UIParent, hooksecurefunc, ipairs, pairs, C_QuestLog, CreateFrame,
 GetInstanceInfo, RegisterStateDriver, UnregisterStateDriver, GetQuestDifficultyColor =
   _G.ObjectiveTrackerFrame, _G.IsInInstance, _G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update,
-  _G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs, _G.C_QuestLog, _G.CreateFrame,
+  _G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs, _G.pairs, _G.C_QuestLog, _G.CreateFrame,
   _G.GetInstanceInfo, _G.RegisterStateDriver, _G.UnregisterStateDriver, _G.GetQuestDifficultyColor;
+
+_G.OBJECTIVE_TRACKER_HEADER_OFFSET_X = 0;
 
 local function SetHeaderColor(headerText, level, isScaling)
   local difficultyColor = GetQuestDifficultyColor(level, isScaling);
@@ -165,6 +167,26 @@ local function ReskinMinifyButton(btn, module)
   end);
 end
 
+local function OnObjectiveTrackerInitialized()
+  for _, module in ipairs(ObjectiveTrackerFrame.MODULES_UI_ORDER) do
+    module.Header:SetWidth(ObjectiveTrackerFrame:GetWidth());
+    module.BlocksFrame:SetWidth(ObjectiveTrackerFrame:GetWidth());
+
+    for _, value in pairs(module.blockOffset) do
+      value[1] = 0;
+      value[2] = 0;
+    end
+
+    tk:KillElement(module.Header.Background);
+    tk:ApplyThemeColor(module.Header.Text);
+    module.Header.Text:SetPoint("LEFT", 0, 0);
+
+    if (module.Header.MinimizeButton) then
+      ReskinMinifyButton(module.Header.MinimizeButton, module);
+    end
+  end
+end
+
 function C_ObjectiveTracker:OnEnable(data)
   if (data.objectiveContainer) then return end
 
@@ -198,25 +220,9 @@ function C_ObjectiveTracker:OnEnable(data)
 
   if (obj:IsTable(ObjectiveTrackerFrame.MODULES_UI_ORDER)) then
     -- already been initialized:
-    for _, module in ipairs(ObjectiveTrackerFrame.MODULES_UI_ORDER) do
-      tk:KillElement(module.Header.Background);
-      tk:ApplyThemeColor(module.Header.Text);
-
-      if (module.Header.MinimizeButton) then
-        ReskinMinifyButton(module.Header.MinimizeButton, module);
-      end
-    end
+    OnObjectiveTrackerInitialized();
   else
-    hooksecurefunc("ObjectiveTracker_Initialize", function()
-      for _, module in ipairs(ObjectiveTrackerFrame.MODULES_UI_ORDER) do
-        tk:KillElement(module.Header.Background);
-        tk:ApplyThemeColor(module.Header.Text);
-
-        if (module.Header.MinimizeButton) then
-          ReskinMinifyButton(module.Header.MinimizeButton, module);
-        end
-      end
-    end);
+    hooksecurefunc("ObjectiveTracker_Initialize", OnObjectiveTrackerInitialized);
   end
 
   -- reskin the "main" minimize button (not per module):
