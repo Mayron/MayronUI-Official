@@ -38,6 +38,7 @@ local function UpdateQuestDifficultyColors(block)
       end
 
     elseif (_G.GetNumQuestLogEntries) then
+      -- Classic:
       for questLogIndex = 1, _G.GetNumQuestLogEntries() do
         local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
 
@@ -177,8 +178,8 @@ function C_ObjectiveTracker:OnEnable(data)
   ObjectiveTrackerFrame:SetMovable(true); -- required to make user placed
   ObjectiveTrackerFrame:SetUserPlaced(true);
 
-  data.autoHideHandler = CreateFrame("Fram", nil, data.objectiveContainer, "SecureHandlerStateTemplate");
-  data.autoHideHandler:SetAttribute("_onstate-autoHideHandler", "self:SetShown(newstate == 0)");
+  data.autoHideHandler = CreateFrame("Frame", nil, data.objectiveContainer, "SecureHandlerStateTemplate");
+  data.autoHideHandler:SetAttribute("_onstate-autoHideHandler", "if (newstate == 1) then self:Hide() else self:Show() end");
 
   local triggerInInstanceHandler = function() em:TriggerEventHandlerByKey("ObjectiveTracker_InInstance"); end
   data.autoHideHandler:SetScript("OnShow", triggerInInstanceHandler);

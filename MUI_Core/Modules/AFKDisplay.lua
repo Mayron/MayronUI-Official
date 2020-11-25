@@ -3,6 +3,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local Private = {};
 
+local select, string = _G.select, _G.string;
 local C_Timer, InCombatLockdown, WorldFrame, UnitIsAFK = _G.C_Timer, _G.InCombatLockdown, _G.WorldFrame, _G.UnitIsAFK;
 local UIParent, CreateFrame, GetSpecializationInfo = _G.UIParent, _G.CreateFrame, _G.GetSpecializationInfo;
 local MoveViewLeftStop, SetCVar, MoveViewLeftStart = _G.MoveViewLeftStop, _G.SetCVar, _G.MoveViewLeftStart;
@@ -273,62 +274,62 @@ Private.Races = { -- lower values = lower model
 -- Model Related Functions
 ----------------------------
 do
-    local Animator = {};
+  local Animator = obj:PopTable();
 
-    function Animator:TransitionValue()
-        local _, _, yValue = Animator.model:GetPosition();
+  function Animator:TransitionValue()
+    local _, _, yValue = Animator.model:GetPosition();
 
-        if (Animator.step > 0) then
-            if (yValue >= Animator.endValue) then
-                Animator.model:SetPosition(-0.3, 0, Animator.endValue);
-                return;
-            end
+    if (Animator.step > 0) then
+      if (yValue >= Animator.endValue) then
+        Animator.model:SetPosition(-0.3, 0, Animator.endValue);
+        return;
+      end
 
-        else
-            if (yValue <= Animator.endValue) then
-                Animator.model:SetPosition(-0.3, 0, Animator.endValue);
-                return;
-            end
-        end
-
-        Animator.model:SetPosition(-0.3, 0, yValue + Animator.step);
-        C_Timer.After(0.01, Animator.TransitionValue);
+    else
+      if (yValue <= Animator.endValue) then
+        Animator.model:SetPosition(-0.3, 0, Animator.endValue);
+        return;
+      end
     end
 
-    function Private:PositionModel(hovering, falling)
-        local gender = UnitSex("player");
-        gender = (gender == 2) and "Male" or "Female";
+    Animator.model:SetPosition(-0.3, 0, yValue + Animator.step);
+    C_Timer.After(0.01, Animator.TransitionValue);
+  end
 
-        local race = (select(2, UnitRace("player"))):gsub("%s+", "");
-        local tbl = Private.Races[race][gender];
-        local value = (hovering and tbl.hoverValue) or tbl.value;
-        local model = self.display.modelFrame.model;
+  function Private:PositionModel(hovering, falling)
+    local gender = UnitSex("player");
+    gender = (gender == 2) and "Male" or "Female";
 
-        model:SetPoint("BOTTOM");
+    local race = (select(2, UnitRace("player"))):gsub("%s+", "");
+    local tbl = Private.Races[race][gender];
+    local value = (hovering and tbl.hoverValue) or tbl.value;
+    local model = self.display.modelFrame.model;
 
-        if (not falling) then
-            model:SetPosition(-0.3, 0, value);
-            return;
-        end
+    model:SetPoint("BOTTOM");
 
-        local _, _, yValue = model:GetPosition();
-        local difference = value - yValue;
-
-        Animator.endValue = value;
-        Animator.model = model;
-
-        if (difference > 0) then
-            Animator.step = 0.03;
-            C_Timer.After(0.01, Animator.TransitionValue);
-
-        elseif (difference < 0) then
-            Animator.step = -0.03;
-            C_Timer.After(0.01, Animator.TransitionValue);
-
-        else
-            model:SetPosition(-0.3, 0, value);
-        end
+    if (not falling) then
+      model:SetPosition(-0.3, 0, value);
+      return;
     end
+
+    local _, _, yValue = model:GetPosition();
+    local difference = value - yValue;
+
+    Animator.endValue = value;
+    Animator.model = model;
+
+    if (difference > 0) then
+      Animator.step = 0.03;
+      C_Timer.After(0.01, Animator.TransitionValue);
+
+    elseif (difference < 0) then
+      Animator.step = -0.03;
+      C_Timer.After(0.01, Animator.TransitionValue);
+
+    else
+      model:SetPosition(-0.3, 0, value);
+    end
+  end
 end
 
 function Private:StartFalling()
@@ -440,79 +441,79 @@ function Private:CreatePlayerModel()
 end
 
 do
-    local function IncrementCounter(self)
-        self.f.num = (self.f.num or 0) + 1;
-        self.f:SetText(string.format(self.f.label, self.f.num));
+  local function IncrementCounter(self)
+    self.f.num = (self.f.num or 0) + 1;
+    self.f:SetText(string.format(self.f.label, self.f.num));
+  end
+
+  function Private:CreateDisplay()
+    if (self.display) then
+      return self.display;
     end
 
-    function Private:CreateDisplay()
-        if (self.display) then
-            return self.display;
-        end
+    local display = CreateFrame("Frame", "MUI_AFKDisplayFrame", WorldFrame);
+    display:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, -100);
+    display:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, -100);
+    display:SetHeight(150);
 
-        local display = CreateFrame("Frame", "MUI_AFKDisplayFrame", WorldFrame);
-        display:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, -100);
-        display:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, -100);
-        display:SetHeight(150);
+    display.bg = tk:SetBackground(display, tk:GetAssetFilePath("Textures\\BottomUI\\Single"));
+    tk:ApplyThemeColor(display.bg);
 
-        display.bg = tk:SetBackground(display, tk:GetAssetFilePath("Textures\\BottomUI\\Single"));
-        tk:ApplyThemeColor(display.bg);
+    UIParent:HookScript("OnShow", function()
+      local AFKDisplay = MayronUI:ImportModule("AFKDisplay");
+      AFKDisplay:SetShown(false);
+    end);
 
-        UIParent:HookScript("OnShow", function()
-            local AFKDisplay = MayronUI:ImportModule("AFKDisplay");
-            AFKDisplay:SetShown(false);
-        end);
+    display.time = display:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge");
+    display.time:SetPoint("TOP", 0, -16);
 
-        display.time = display:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge");
-        display.time:SetPoint("TOP", 0, -16);
+    display.name = display:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    display.name:SetJustifyH("RIGHT");
+    display.name:SetPoint("TOPRIGHT", -100, -14);
 
-        display.name = display:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-        display.name:SetJustifyH("RIGHT");
-        display.name:SetPoint("TOPRIGHT", -100, -14);
+    display.titleButton = tk:PopFrame("Button", display);
+    display.titleButton:SetSize(250, 22);
+    display.titleButton:SetPoint("BOTTOM", display.bg, "TOP", 0, -1);
 
-        display.titleButton = tk:PopFrame("Button", display);
-        display.titleButton:SetSize(250, 22);
-        display.titleButton:SetPoint("BOTTOM", display.bg, "TOP", 0, -1);
+    local nameTexturePath = tk:GetAssetFilePath("Textures\\BottomUI\\NamePanel");
+    display.titleButton:SetNormalTexture(nameTexturePath);
+    display.titleButton:SetHighlightTexture(nameTexturePath);
 
-        local nameTexturePath = tk:GetAssetFilePath("Textures\\BottomUI\\NamePanel");
-        display.titleButton:SetNormalTexture(nameTexturePath);
-        display.titleButton:SetHighlightTexture(nameTexturePath);
+    tk:ApplyThemeColor(0.8, display.titleButton);
+    display.titleButton:SetNormalFontObject("MUI_FontNormal");
+    display.titleButton:SetHighlightFontObject("GameFontHighlight");
+    display.titleButton:SetText(_G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"));
 
-        tk:ApplyThemeColor(0.8, display.titleButton);
-        display.titleButton:SetNormalFontObject("MUI_FontNormal");
-        display.titleButton:SetHighlightFontObject("GameFontHighlight");
-        display.titleButton:SetText(_G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"));
+    display.dataFrame = tk:PopFrame("Frame", display);
+    display.dataFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 30);
+    display.dataFrame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT");
 
-        display.dataFrame = tk:PopFrame("Frame", display);
-        display.dataFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 30);
-        display.dataFrame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT");
+    display.dataFrame.center = tk:PopFrame("Button", display.dataFrame);
+    display.dataFrame.center:SetSize(100, 20);
+    display.dataFrame.center:SetPoint("CENTER");
+    display.dataFrame.center:SetNormalFontObject("GameFontHighlight");
 
-        display.dataFrame.center = tk:PopFrame("Button", display.dataFrame);
-        display.dataFrame.center:SetSize(100, 20);
-        display.dataFrame.center:SetPoint("CENTER");
-        display.dataFrame.center:SetNormalFontObject("GameFontHighlight");
+    display.dataFrame.left = tk:PopFrame("Button", display.dataFrame);
+    display.dataFrame.left:SetSize(100, 20);
+    display.dataFrame.left:SetPoint("RIGHT", display.dataFrame.center, "LEFT", -20, 0);
+    display.dataFrame.left:SetNormalFontObject("GameFontHighlight");
 
-        display.dataFrame.left = tk:PopFrame("Button", display.dataFrame);
-        display.dataFrame.left:SetSize(100, 20);
-        display.dataFrame.left:SetPoint("RIGHT", display.dataFrame.center, "LEFT", -20, 0);
-        display.dataFrame.left:SetNormalFontObject("GameFontHighlight");
+    display.dataFrame.right = tk:PopFrame("Button", display.dataFrame);
+    display.dataFrame.right:SetSize(100, 20);
+    display.dataFrame.right:SetPoint("LEFT", display.dataFrame.center, "RIGHT", 20, 0);
+    display.dataFrame.right:SetNormalFontObject("GameFontHighlight");
 
-        display.dataFrame.right = tk:PopFrame("Button", display.dataFrame);
-        display.dataFrame.right:SetSize(100, 20);
-        display.dataFrame.right:SetPoint("LEFT", display.dataFrame.center, "RIGHT", 20, 0);
-        display.dataFrame.right:SetNormalFontObject("GameFontHighlight");
+    display.dataFrame.left:SetText(L["Whispers"]..": 0");
+    display.dataFrame.right:SetText(L["Guild Chat"]..": 0");
+    display.dataFrame.right.label = L["Guild Chat"]..": %u";
+    display.dataFrame.left.label = L["Whispers"]..": %u";
 
-        display.dataFrame.left:SetText(L["Whispers"]..": 0");
-        display.dataFrame.right:SetText(L["Guild Chat"]..": 0");
-        display.dataFrame.right.label = L["Guild Chat"]..": %u";
-        display.dataFrame.left.label = L["Whispers"]..": %u";
+    em:CreateEventHandler("CHAT_MSG_WHISPER", IncrementCounter).f = display.dataFrame.left;
+    em:CreateEventHandler("CHAT_MSG_BN_WHISPER", IncrementCounter).f = display.dataFrame.left;
+    em:CreateEventHandler("CHAT_MSG_GUILD", IncrementCounter).f = display.dataFrame.right;
 
-        em:CreateEventHandler("CHAT_MSG_WHISPER", IncrementCounter).f = display.dataFrame.left;
-        em:CreateEventHandler("CHAT_MSG_BN_WHISPER", IncrementCounter).f = display.dataFrame.left;
-        em:CreateEventHandler("CHAT_MSG_GUILD", IncrementCounter).f = display.dataFrame.right;
-
-        return display;
-    end
+    return display;
+  end
 end
 
 -- C_AFKDisplayModule Module -----------

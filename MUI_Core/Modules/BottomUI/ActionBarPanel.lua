@@ -161,7 +161,7 @@ function C_ActionBarPanel:OnEnable(data)
     return;
   end
 
-  data.panel = CreateFrame("Frame", "MUI_ActionBarPanel", _G["MUI_BottomContainer"]);
+  data.panel = CreateFrame("Frame", "MUI_ActionBarPanel", _G.MUI_BottomContainer);
 
   em:CreateEventHandler("PLAYER_LOGOUT", function()
     db.profile.actionBarPanel.expanded = data.settings.expanded;
@@ -171,8 +171,6 @@ function C_ActionBarPanel:OnEnable(data)
   data.slideController = SlideController(data.panel);
 
   data.panel:SetScript("OnShow", function()
-    if (not (data.Bar3 and data.Bar4)) then return end
-
     local controlBartender = data.settings.bartender.control;
 
     if (data.settings.expanded) then
