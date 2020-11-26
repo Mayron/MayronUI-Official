@@ -9,9 +9,9 @@ local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
 local obj = Lib.Objects;
 local TextField = WidgetsPackage:CreateClass("TextField", Private.FrameWrapper);
+local unpack, CreateFrame = _G.unpack, _G.CreateFrame;
+
 ------------------------------------
-
-
 function Lib:CreateTextField(style, tooltip, parent)
     return TextField(style, tooltip, parent);
 end
@@ -38,7 +38,7 @@ function TextField:__Construct(data, style, tooltip, parent)
     data.frame.bg = Private:SetBackground(data.frame, background);
     data.frame.bg:SetVertexColor(r, g, b);
 
-    data.editBox = _G.CreateFrame("EditBox", nil, data.frame, "InputBoxTemplate");
+    data.editBox = CreateFrame("EditBox", nil, data.frame, "InputBoxTemplate");
     data.editBox:SetPoint("TOPLEFT", data.frame, "TOPLEFT", 8, 0);
     data.editBox:SetPoint("BOTTOMRIGHT", data.frame, "BOTTOMRIGHT", -8, 0);
     data.editBox:SetAutoFocus(false);
@@ -80,14 +80,14 @@ function TextField:GetPreviousText(data)
 end
 
 function TextField:ApplyPreviousText(data)
-    local currentText = data.editBox:GetText();
+  local currentText = data.editBox:GetText();
 
-    if (data.previousText) then
-        data.editBox:SetText(data.previousText);
-    else
-        data.editBox:SetText("");
-    end
-    data.previousText = currentText;
+  if (data.previousText) then
+    data.editBox:SetText(data.previousText);
+  else
+    data.editBox:SetText("");
+  end
+  data.previousText = currentText;
 end
 
 function TextField:GetEditBox(data)
@@ -99,6 +99,6 @@ function TextField:OnTextChanged(data, callback, ...)
 
     data.editBox:SetScript("OnEnterPressed", function()
         data.editBox:ClearFocus();
-        callback(self, data.editBox:GetText(), data.previousText, _G.unpack(args));
+        callback(self, data.editBox:GetText(), data.previousText, unpack(args));
     end);
 end

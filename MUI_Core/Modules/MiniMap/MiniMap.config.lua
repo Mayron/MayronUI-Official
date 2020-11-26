@@ -73,8 +73,10 @@ function C_MiniMapModule:GetConfigTable()
                 end;
             },
             {   name = L["Y-Offset"],
-                type = "textfield",
-                valueType = "number",
+                type = "slider",
+                min = -20;
+                max = 20;
+                step = 1;
                 tooltip = L["Default value is "].."-4";
                 appendDbPath = "zoneText.yOffset";
 

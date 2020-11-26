@@ -21,8 +21,8 @@ do
   end
 
   function tk.BasicTooltip_OnEnter(self)
-    GameTooltip:SetOwner(self, TOOLTIP_ANCHOR_POINT, 0, 2);
-    GameTooltip:AddLine(self.text);
+    GameTooltip:SetOwner(self, self.tooltipAnchor or TOOLTIP_ANCHOR_POINT, 0, 2);
+    GameTooltip:AddLine(self.tooltipText);
     GameTooltip:Show();
   end
 
@@ -53,8 +53,9 @@ do
     GameTooltip:Show();
   end
 
-  function tk:SetBasicTooltip(widget, text)
-    widget.text = text;
+  function tk:SetBasicTooltip(widget, text, anchor)
+    widget.tooltipText = text;
+    widget.tooltipAnchor = anchor;
 
     widget:SetScript("OnEnter", tk.BasicTooltip_OnEnter);
     widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);

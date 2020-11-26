@@ -150,16 +150,20 @@ do
     end
 
     local observerPath = observer:GetPathAddress();
-    local dbObject = MayronUI:GetModuleComponent(self:GetModuleKey(), "Database");
+    local dbObject = MayronUI:GetModuleComponent(self:GetModuleKey(), "Database"); ---@type Database
 
     if (not dbObject) then
-      dbObject = MayronUI:GetCoreComponent("Database");
+      dbObject = MayronUI:GetCoreComponent("Database"); ---@type Database
     end
 
     -- updateFunctionPath is the located function (or table if no function found) path
     -- originalPathOfValue is the original path LibMayronDB tried to find
 
     dbObject:RegisterUpdateFunctions(observerPath, data.updateFunctions, function(updateFunction, fullPath, newValue)
+      if (obj:IsType(newValue, "Observer")) then
+        newValue = newValue:GetUntrackedTable();
+      end
+
       local onPre, onPost;
       local settingPath = fullPath:gsub(observerPath..".", tk.Strings.Empty);
 

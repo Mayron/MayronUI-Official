@@ -106,8 +106,12 @@ local function Field_OnDragStop(field)
 
     if (positions) then
         -- update the config menu view
-        for id, textField in ipairs(position_TextFields[fieldName]) do
-            textField:SetText(positions[id]);
+        for index, positionWidget in ipairs(position_TextFields[fieldName]) do
+          if (positionWidget:GetObjectType() == "TextField") then
+            positionWidget:SetText(tostring(positions[index]));
+          elseif (positionWidget:GetObjectType() == "Slider") then
+            positionWidget.editBox:SetText(positions[index]);
+          end
         end
     end
 
@@ -421,14 +425,22 @@ function C_TimerBarsModule:GetConfigTable()
                           {   type = "loop";
                               args = { L["Point"], L["Relative Frame"], L["Relative Point"], L["X-Offset"], L["Y-Offset"] };
                               func = function(index, arg)
-                                  return {
-                                      name = arg;
-                                      type = "textfield";
-                                      valueType = "string";
-                                      dbPath = tk.Strings:Concat(dbFieldPath, ".position[", index, "]");
-                                      fieldName = name;
-                                      OnLoad = TimerFieldPosition_OnLoad;
-                                  };
+                                local config = {
+                                  name = arg;
+                                  type = "textfield";
+                                  valueType = "string";
+                                  dbPath = tk.Strings:Concat(dbFieldPath, ".position[", index, "]");
+                                  fieldName = name;
+                                  OnLoad = TimerFieldPosition_OnLoad;
+                                };
+
+                                if (index > 3) then
+                                  config.type = "slider";
+                                  config.min = -300;
+                                  config.max = 300;
+                                end
+
+                                return config;
                               end
                           };
                           {   name = L["Text Options"];

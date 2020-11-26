@@ -68,6 +68,16 @@ function Handler:SetEventCallbackEnabled(data, eventName, enabled)
     return self;
 end
 
+EventsPackage:DefineParams("boolean");
+---@param enabled boolean @Set to false to prevent all events from triggering (without destroying it).
+function Handler:SetEnabled(data, enabled)
+  for eventName, _ in pairs(data.events) do
+    data.events[eventName] = enabled;
+  end
+
+  return self;
+end
+
 EventsPackage:DefineParams("string", "boolean");
 EventsPackage:DefineReturns("boolean");
 ---@param eventName string @The name of the event to check for.

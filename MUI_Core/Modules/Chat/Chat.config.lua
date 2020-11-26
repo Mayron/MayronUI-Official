@@ -138,16 +138,19 @@ function C_ChatModule:GetConfigTable()
             {   type = "divider";
             };
             {   name = L["Y-Offset"],
-                type = "textfield",
+                type = "slider",
+                min = -50;
+                max = 50;
                 valueType = "number",
                 tooltip = tk.Strings:Join(
                     L["Set the vertical positioning of the edit box."],
                     "\n\n", L["Default value is "], "-8."),
                 dbPath = "profile.chat.editBox.yOffset"
             },
-            {   name = L["Height"],
-                type = "textfield",
-                valueType = "number",
+            {   name = L["Set Height"],
+                type = "slider",
+                min = 20;
+                max = 50;
                 tooltip = tk.Strings:Join(
                     L["The height of the edit box."], "\n\n", L["Default value is "], "27."),
                 dbPath = "profile.chat.editBox.height"
@@ -168,14 +171,16 @@ function C_ChatModule:GetConfigTable()
             { type = "divider",
             },
             {   name = L["Border Size"],
-                type = "textfield",
-                valueType = "number",
+                type = "slider",
+                min = 1;
+                max = 10;
                 tooltip = L["Set the border size.\n\nDefault is 1."],
                 dbPath = "profile.chat.editBox.borderSize"
             },
             {   name = L["Backdrop Inset"],
-                type = "textfield",
-                valueType = "number",
+                type = "slider",
+                min = 0;
+                max = 10;
                 tooltip = L["Set the spacing between the background and the border.\n\nDefault is 0."],
                 dbPath = "profile.chat.editBox.inset"
             },
@@ -264,29 +269,33 @@ function C_ChatModule:GetConfigTable()
                             {   type = "divider";
                             };
                             {   name = tk.Strings:JoinWithSpace(L["Tab Bar"], L["Y-Offset"]),
-                                type = "textfield",
-                                valueType = "number";
+                                type = "slider",
+                                min = -50;
+                                max = 50;
                                 dbPath = string.format("%s.tabBar.yOffset", dbPath),
                                 enabled = chatFrame ~= nil,
                                 OnLoad = addWidget
                             };
                             {   name = tk.Strings:JoinWithSpace(L["Window"], L["Y-Offset"]),
-                                type = "textfield",
-                                valueType = "number";
+                                type = "slider",
+                                min = -50;
+                                max = 50;
                                 dbPath = string.format("%s.window.yOffset", dbPath),
                                 enabled = chatFrame ~= nil,
                                 OnLoad = addWidget
                             };
                             {   name = tk.Strings:JoinWithSpace("Chat Frame", L["X-Offset"]),
-                                type = "textfield",
-                                valueType = "number";
+                                type = "slider",
+                                min = -50;
+                                max = 50;
                                 dbPath = string.format("%s.xOffset", dbPath),
                                 enabled = chatFrame ~= nil,
                                 OnLoad = addWidget
                             };
                             {   name = tk.Strings:JoinWithSpace("Chat Frame", L["Y-Offset"]),
-                                type = "textfield",
-                                valueType = "number";
+                                type = "slider",
+                                min = -50;
+                                max = 50;
                                 dbPath = string.format("%s.yOffset", dbPath),
                                 enabled = chatFrame ~= nil,
                                 OnLoad = addWidget

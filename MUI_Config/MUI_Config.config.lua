@@ -3,6 +3,10 @@ local _, namespace = ...;
 local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ConfigModule = namespace.C_ConfigModule;
+local expandRetractDependencies = {};
+local defaultHeightWidget;
+
+local table, ipairs = _G.table, _G.ipairs;
 
 local function GetModKeyValue(modKey, currentValue)
     if (obj:IsString(currentValue) and currentValue:find(modKey)) then
@@ -171,8 +175,11 @@ function C_ConfigModule:GetConfigTable()
         };
         {   module = "BottomUI_Container";
             children = {
-                {   name        = L["Main Container Width:"];
-                    type        = "textfield";
+                {   name        = L["Set Width"];
+                    type        = "slider";
+                    min = 500;
+                    max = 1500;
+                    step = 50;
                     valueType   = "number";
                     tooltip     = tk.Strings:Concat(
                         L["Adjust the width of the main container."], "\n\n", L["Default value is "], "750");
@@ -191,59 +198,83 @@ function C_ConfigModule:GetConfigTable()
                     type    = "check";
                     dbPath  = "profile.unitPanels.isSymmetric";
                 };
+                {   name    = "Pulse While Rested",
+                    tooltip = "If enabled, the unit panels will fade in and out while resting.",
+                    module  = "BottomUI_UnitPanels";
+                    dbPath  = "profile.unitPanels.restingPulse";
+                    type    = "check";
+                };
+                {   name    = "Target Class Color Gradient",
+                    tooltip = "If enabled, the unit panel color will transition to the target's class color using a horizontal gradient effect.",
+                    module  = "BottomUI_UnitPanels";
+                    dbPath  = "profile.unitPanels.targetClassColored";
+                    type    = "check";
+                };
                 {   name    = L["Allow MUI to Control Unit Frames"];
                     tooltip = L["TT_MUI_CONTROL_SUF"];
                     type    = "check";
                     dbPath  = "profile.unitPanels.controlSUF";
                 };
-                {   name    = L["Allow MUI to Control Grid"];
-                    tooltip = L["TT_MUI_CONTROL_GRID"];
-                    type    = "check";
-                    dbPath  = "profile.unitPanels.grid.anchorGrid";
-
-                    enabled = function()
-                        return _G.IsAddOnLoaded("Grid") and _G.GridLayoutFrame;
-                    end
-                };
                 {   type = "divider";
                 };
-                {   name        = L["Unit Panel Width"];
-                    type        = "textfield";
-                    module      = "BottomUI_UnitPanels";
-                    min         = 200;
+                {   name = L["Set Width"];
+                    type = "slider";
+                    module = "BottomUI_UnitPanels";
+                    min = 200;
+                    max = 500;
+                    step = 10;
                     valueType   = "number";
                     tooltip     = tk.Strings:Concat(L["Adjust the width of the unit frame background panels."], "\n\n",
                         L["Minimum value is "], "200", "\n\n", L["Default value is "], "325");
                     dbPath      = "profile.unitPanels.unitWidth";
                 };
-                {   name        = L["Unit Panel Height"];
-                    type        = "textfield";
+                {   name        = L["Set Height"];
+                    type        = "slider";
                     module      = "BottomUI_UnitPanels";
                     valueType   = "number";
+                    min = 25;
+                    max = 200;
+                    step = 5;
                     tooltip     = tk.Strings:Concat(L["Adjust the height of the unit frame background panels."],
                         "\n\n", L["Default value is "], "75");
                     dbPath      = "profile.unitPanels.unitHeight";
                 };
+                {   name        = "Set Alpha";
+                    type        = "slider";
+                    module      = "BottomUI_UnitPanels";
+                    valueType   = "number";
+                    min = 0;
+                    max = 1;
+                    step = 0.1;
+                    tooltip     = tk.Strings:Concat(L["Default value is "], "0.8");
+                    dbPath      = "profile.unitPanels.alpha";
+                };
                 {   name    = L["Name Panels"];
                     type    = "title";
                 };
-                {   name        = L["Width"];
-                    type        = "textfield";
-                    valueType   = "number";
+                {   name        = L["Set Width"];
+                    type        = "slider";
+                    min = 150;
+                    max = 300;
+                    step = 5;
                     tooltip     = tk.Strings:Concat(L["Adjust the width of the unit name background panels."], "\n\n",
                         L["Default value is "], "235");
                     dbPath      = "profile.unitPanels.unitNames.width";
                 };
-                {   name        = L["Height"];
-                    type        = "textfield";
-                    valueType   = "number";
+                {   name        = L["Set Height"];
+                    type        = "slider";
+                    min = 15;
+                    max = 30;
+                    step = 1;
                     tooltip     = tk.Strings:Concat(L["Adjust the height of the unit name background panels."], "\n\n",
                         L["Default value is "], "20");
                     dbPath      = "profile.unitPanels.unitNames.height";
                 };
                 {   name        = L["X-Offset"];
-                    type        = "textfield";
-                    valueType   = "number";
+                    type        = "slider";
+                    min = -50;
+                    max = 50;
+                    step = 1;
                     tooltip     = tk.Strings:Concat(L["Move the unit name panels further in or out."],
                         "\n\n", L["Default value is "], "24");
                     dbPath      = "profile.unitPanels.unitNames.xOffset";
@@ -270,8 +301,11 @@ function C_ConfigModule:GetConfigTable()
                     tooltip = L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."];
                     dbPath  = "profile.unitPanels.sufGradients.enabled";
                 };
-                {   name    = L["Height"];
-                    type    = "textfield";
+                {   name    = L["Set Height"];
+                    type        = "slider";
+                    min = 1;
+                    max = 50;
+                    step = 1;
                     tooltip = tk.Strings:Concat(L["The height of the gradient effect."], "\n\n", L["Default value is "], "24");
                     dbPath  = "profile.unitPanels.sufGradients.height";
                 };
@@ -312,6 +346,49 @@ function C_ConfigModule:GetConfigTable()
                         };
                         {   type              = "divider";
                         };
+                        {   name    = "Set Alpha";
+                            type    = "slider";
+                            step    = 0.1;
+                            min     = 0;
+                            max     = 1;
+                            dbPath  = "profile.actionBarPanel.alpha"
+                        };
+                        {   name              = L["Set Height"];
+                            dbPath            = "profile.actionBarPanel.defaultHeight";
+                            tooltip           = "This is the fixed default height to use when the expand and retract feature is disabled.";
+                            type              = "slider";
+                            min         = 40;
+                            max         = 400;
+                            OnLoad = function(_, container)
+                              defaultHeightWidget = container.widget;
+                            end;
+                            enabled = function()
+                              return not db.profile.actionBarPanel.expandRetract;
+                            end
+                        };
+                        {   name    = "Expanding and Retracting Action Bar Rows";
+                            type    = "title";
+                        };
+                        {   name              = "Enable Expand and Retract Feature";
+                            dbPath            = "profile.actionBarPanel.expandRetract";
+                            tooltip           = "If disabled, you will not be able to toggle between 1 and 2 rows of action bars.";
+                            type              = "check";
+                            SetValue = function(dbPath, value)
+                              for _, widget in ipairs(expandRetractDependencies) do
+                                if (widget.bartenderControl) then
+                                  local enabled = value and db.profile.actionBarPanel.bartender.control;
+                                  widget:SetEnabled(enabled);
+                                else
+                                  widget:SetEnabled(value);
+                                end
+                              end
+
+                              defaultHeightWidget:SetEnabled(not value);
+                              db:SetPathValue(dbPath, value);
+                            end;
+                        };
+                        {   type              = "divider";
+                        };
                         {   name    = L["Animation Speed"];
                             type    = "slider";
                             tooltip = tk.Strings:Concat(L["The speed of the Expand and Retract transitions."], "\n\n",
@@ -320,35 +397,44 @@ function C_ConfigModule:GetConfigTable()
                             min     = 1;
                             max     = 10;
                             dbPath  = "profile.actionBarPanel.animateSpeed";
+                            OnLoad = function(_, container)
+                              table.insert(expandRetractDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.expandRetract;
+                            end
                         };
                         {   name        = L["Retract Height"];
                             tooltip     = tk.Strings:Concat(
                                 L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."],
                                 "\n\n", L["Minimum value is "], "40", "\n\n", "Maximum value is ", "200", "\n\n", L["Default value is "], "44");
-                            type        = "textfield";
-                            valueType   = "number";
+                            type        = "slider";
                             min         = 40;
-                            max         = 200;
+                            max         = 400;
                             dbPath      = "profile.actionBarPanel.retractHeight";
+                            OnLoad = function(_, container)
+                              table.insert(expandRetractDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.expandRetract;
+                            end
                         };
                         {   name        = L["Expand Height"];
                             tooltip     = tk.Strings:Concat(
                                 L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."],
                                 "\n\n", L["Minimum value is "], "40", "\n\n", "Maximum value is ", "200", "\n\n", L["Default value is "], "80");
-                            type        = "textfield";
-                            valueType   = "number";
+                            type        = "slider";
                             min         = 40;
-                            max         = 200;
+                            max         = 400;
                             dbPath      = "profile.actionBarPanel.expandHeight";
+                            OnLoad = function(_, container)
+                              table.insert(expandRetractDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.expandRetract;
+                            end
                         };
                         { type = "divider" };
-                        {   name    = "Set Alpha";
-                            type    = "slider";
-                            step    = 0.1;
-                            min     = 0;
-                            max     = 1;
-                            dbPath  = "profile.actionBarPanel.alpha"
-                        };
                         {   type    = "fontstring";
                             content = L["Modifier key/s used to show Expand/Retract button:"];
                         };
@@ -377,6 +463,13 @@ function C_ConfigModule:GetConfigTable()
 
                                     SetValue = function(dbPath, newValue, oldValue)
                                         SetModKeyValue(arg, dbPath, newValue, oldValue);
+                                    end;
+
+                                    OnLoad = function(_, container)
+                                      table.insert(expandRetractDependencies, container.btn);
+                                    end;
+                                    enabled = function()
+                                      return db.profile.actionBarPanel.expandRetract;
                                     end
                                 };
                             end
@@ -387,7 +480,27 @@ function C_ConfigModule:GetConfigTable()
                         {   name    = L["Allow MUI to Control Selected Bartender Bars"];
                             type    = "check";
                             tooltip = L["TT_MUI_CONTROL_BARTENDER"];
-                            dbPath  = "profile.actionBarPanel.bartender.control"
+                            dbPath  = "profile.actionBarPanel.bartender.control";
+
+                            SetValue = function(dbPath, value)
+                              if (not db.profile.actionBarPanel.expandRetract) then return end
+
+                              for _, widget in ipairs(expandRetractDependencies) do
+                                if (widget.bartenderControl) then
+                                  widget:SetEnabled(value);
+                                end
+                              end
+
+                              db:SetPathValue(dbPath, value);
+                            end;
+
+                            OnLoad = function(_, container)
+                              table.insert(expandRetractDependencies, container.btn);
+                            end;
+
+                            enabled = function()
+                              return db.profile.actionBarPanel.expandRetract;
+                            end
                         };
                         {   type    = "fontstring";
                             content = L["Row 1"];
@@ -397,11 +510,26 @@ function C_ConfigModule:GetConfigTable()
                             type    = "dropdown";
                             dbPath  = "profile.actionBarPanel.bartender[1]";
                             options = BartenderActionBars;
+                            OnLoad = function(_, container)
+                              container.widget.bartenderControl = true;
+                              table.insert(expandRetractDependencies, container.widget);
+                            end;
+
+                            enabled = function()
+                              return db.profile.actionBarPanel.bartender.control and db.profile.actionBarPanel.expandRetract;
+                            end;
                         };
                         {   name    = L["Second Bartender Bar"];
                             dbPath  = "profile.actionBarPanel.bartender[2]";
                             type    = "dropdown";
                             options = BartenderActionBars;
+                            OnLoad = function(_, container)
+                              container.widget.bartenderControl = true;
+                              table.insert(expandRetractDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.bartender.control and db.profile.actionBarPanel.expandRetract;
+                            end
                         };
                         {   type    = "fontstring";
                             content = L["Row 2"];
@@ -411,11 +539,25 @@ function C_ConfigModule:GetConfigTable()
                             dbPath  = "profile.actionBarPanel.bartender[3]";
                             type    = "dropdown";
                             options = BartenderActionBars;
+                            OnLoad = function(_, container)
+                              container.widget.bartenderControl = true;
+                              table.insert(expandRetractDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.bartender.control and db.profile.actionBarPanel.expandRetract;
+                            end
                         };
                         {   name    = L["Second Bartender Bar"];
                             dbPath  = "profile.actionBarPanel.bartender[4]";
                             type    = "dropdown";
                             options = BartenderActionBars;
+                            OnLoad = function(_, container)
+                              container.widget.bartenderControl = true;
+                              table.insert(expandRetractDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.bartender.control and db.profile.actionBarPanel.expandRetract;
+                            end
                         }
                     }
                 };
@@ -431,29 +573,35 @@ function C_ConfigModule:GetConfigTable()
                           type = "divider"
                         },
                         {   name        = L["Width (With 1 Bar)"];
-                            type        = "textfield";
+                            type        = "slider";
+                            min = 20,
+                            max = 100,
                             tooltip     = L["Default value is "].."46";
-                            valueType   = "number";
                             dbPath      = "profile.sidebar.retractWidth"
                         };
                         {   name        = L["Width (With 2 Bars)"];
                             tooltip     = L["Default value is "].."83";
-                            type        = "textfield";
-                            valueType   = "number";
+                            type        = "slider";
+                            min = 20,
+                            max = 200,
                             dbPath      = "profile.sidebar.expandWidth"
                         };
                         {   type        = "divider";
                         };
-                        {   name        = L["Height"];
+                        {   name        = L["Set Height"];
                             tooltip     = L["Default value is "].."486";
-                            type        = "textfield";
-                            valueType   = "number";
+                            type        = "slider";
+                            min = 200,
+                            max = 800,
+                            step = 5,
                             dbPath      = "profile.sidebar.height"
                         };
                         {   name        = L["Y-Offset"];
                             tooltip     = L["Default value is "].."40";
-                            type        = "textfield";
-                            valueType   = "number";
+                            type        = "slider";
+                            min = -300,
+                            max = 300,
+                            step = 5,
                             dbPath      = "profile.sidebar.yOffset"
                         };
                         {   type        = "divider";
@@ -513,8 +661,8 @@ function C_ConfigModule:GetConfigTable()
                         };
                         {   type = "divider";
                         };
-                        {   name        = L["Width"];
-                            type        = "textfield";
+                        {   name        = L["Set Width"];
+                            type        = "slider";
                             tooltip     = tk.Strings:Concat(L["Default value is "], "15.", "\n\n",
                                             L["Minimum value is"], " ", 15, "\n\n", L["Maximum value is"], " ", 30);
                             dbPath      = "profile.sidebar.buttons.width";
@@ -522,14 +670,13 @@ function C_ConfigModule:GetConfigTable()
                             max         = 30;
                             valueType   = "number";
                         };
-                        {   name        = L["Height"];
-                            type        = "textfield";
+                        {   name        = L["Set Height"];
+                            type        = "slider";
                             tooltip     = tk.Strings:Concat(L["Default value is "], "100.", "\n\n",
                                             L["Minimum value is"], " ", 50, "\n\n", L["Maximum value is"], " ", 300);
                             dbPath      = "profile.sidebar.buttons.height";
                             min         = 50;
                             max         = 300;
-                            valueType   = "number";
                         }
                     }
                 }
@@ -622,28 +769,40 @@ function C_ConfigModule:GetConfigTable()
                 {   type = "divider";
                 };
                 {   name        = L["Set Width"];
-                    type        = "textfield";
+                    type = "slider",
+                    min = 150;
+                    max = 400;
+                    step = 50;
                     tooltip     = tk.Strings:Concat(L["Adjust the width of the Objective Tracker."],"\n\n",
                                 L["Default value is "], "250");
                     dbPath      = "profile.objectiveTracker.width";
                     valueType   = "number";
                 };
                 {   name        = L["Set Height"];
-                    type        = "textfield";
+                    type = "slider",
+                    min = 300;
+                    max = 1000;
+                    step = 50;
                     tooltip     = tk.Strings:Concat(L["Adjust the height of the Objective Tracker."], "\n\n",
                                 L["Default value is "], "600");
                     dbPath      = "profile.objectiveTracker.height";
                     valueType   = "number";
                 };
                 {   name        = L["X-Offset"];
-                    type        = "textfield";
+                    type = "slider",
+                    min = -300;
+                    max = 300;
+                    step = 1;
                     tooltip     = tk.Strings:Concat(L["Adjust the horizontal positioning of the Objective Tracker."],
                                     "\n\n", L["Default value is "], "-30");
                     dbPath      = "profile.objectiveTracker.xOffset";
                     valueType   = "number";
                 };
                 {   name        = L["Y-Offset"];
-                    type        = "textfield";
+                    type = "slider",
+                    min = -300;
+                    max = 300;
+                    step = 1;
                     tooltip     = tk.Strings:Concat(L["Adjust the vertical positioning of the Objective Tracker."], "\n\n",
                                     L["Default value is "], "0");
                     dbPath      = "profile.objectiveTracker.yOffset";

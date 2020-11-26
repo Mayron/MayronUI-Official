@@ -68,7 +68,7 @@ function C_Aura:__Construct(data, parent, settings, auraID, filter)
 
   if (filter == "HELPFUL") then
     btn:RegisterForClicks("RightButtonUp");
-    btn:SetScript("OnClick", CancelAura)
+    btn:SetScript("OnClick", CancelAura);
   end
 
   btn:SetScript("OnEnter", AuraButton_OnEnter);

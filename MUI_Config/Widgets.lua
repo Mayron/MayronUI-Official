@@ -5,7 +5,7 @@ local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 local configModule = MayronUI:ImportModule("ConfigModule"); ---@type ConfigModule
 
 local unpack, string, pairs, tonumber = _G.unpack, _G.string, _G.pairs, _G.tonumber;
-local CreateFrame = _G.CreateFrame;
+local CreateFrame, PlaySound = _G.CreateFrame, _G.PlaySound;
 
 local WidgetHandlers = {};
 namespace.WidgetHandlers = WidgetHandlers;
@@ -227,17 +227,19 @@ end
 -- Slider
 --------------
 local function Slider_OnValueChanged(self, value)
-    value = tk.Numbers:ToPrecision(value, self.precision);
-    self.Value:SetText(value);
-    configModule:SetDatabaseValue(self.configContainer, value);
+  value = tk.Numbers:ToPrecision(value, self.precision);
+  self.editBox:SetText(value);
+  configModule:SetDatabaseValue(self.configContainer, value);
 end
 
 local function Slider_OnEnable(self)
     self:SetAlpha(1);
+    self.editBox:SetEnabled(true);
 end
 
 local function Slider_OnDisable(self)
     self:SetAlpha(0.7);
+    self.editBox:SetEnabled(false);
 end
 
 function WidgetHandlers.slider(parent, widgetTable, value)
@@ -245,14 +247,54 @@ function WidgetHandlers.slider(parent, widgetTable, value)
 
     slider.tooltipText = widgetTable.tooltip;
     slider.precision = widgetTable.precision or 1;
-    slider:SetMinMaxValues(widgetTable.min, widgetTable.max);
-    slider:SetValueStep(widgetTable.step or 1);
-    slider:SetObeyStepOnDrag(true);
 
-    slider:SetValue(value or widgetTable.min);
-    slider.Value = slider:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
-    slider.Value:SetPoint("BOTTOM", 0, -8);
-    slider.Value:SetText(value or widgetTable.min);
+    -- widgetTable gets cleaned
+    local min = widgetTable.min;
+    local max = widgetTable.max;
+    local step = widgetTable.step;
+
+    slider:SetMinMaxValues(min, max);
+    slider:SetValueStep(step or 1);
+    slider:SetObeyStepOnDrag(true);
+    slider:SetValue(value or min);
+
+    local backdrop = _G.BackdropTemplateMixin and "BackdropTemplate, InputBoxTemplate" or "InputBoxTemplate";
+    slider.editBox = CreateFrame("EditBox", nil, slider, backdrop);
+    slider.editBox:SetAutoFocus(false);
+
+    slider.editBox:SetScript("OnEscapePressed", function()
+      slider.editBox:ClearFocus();
+      slider.editBox:SetText(slider:GetValue());
+    end);
+
+    slider.editBox:SetScript("OnEnterPressed", function()
+      slider.editBox:ClearFocus();
+      local newValue = tonumber(slider.editBox:GetText());
+
+      if (obj:IsNumber(newValue)) then
+        slider.editBox:SetText(newValue);
+        configModule:SetDatabaseValue(slider.configContainer, newValue);
+      else
+        slider.editBox:SetText(slider:GetValue());
+      end
+
+      PlaySound(tk.Constants.CLICK);
+    end);
+
+    -- slider.Value = slider:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
+    slider.editBox:SetPoint("TOP", slider, "BOTTOM", 0, -2);
+    slider.editBox:SetSize(40, 20);
+    tk:SetFontSize(slider.editBox, 10);
+    slider.editBox:SetText(value or widgetTable.min);
+    slider.editBox:DisableDrawLayer("BACKGROUND");
+    slider.editBox:SetJustifyH("CENTER");
+    slider.editBox:SetBackdrop(tk.Constants.BACKDROP);
+    slider.editBox:SetBackdropBorderColor(tk:GetThemeColor());
+
+    local texture = slider.editBox:CreateTexture(nil, "BORDER");
+    texture:SetAllPoints(true);
+
+    texture:SetColorTexture(0, 0, 0, 0.5);
 
     slider.Low:SetText(widgetTable.min);
     slider.Low:ClearAllPoints();
@@ -261,8 +303,8 @@ function WidgetHandlers.slider(parent, widgetTable, value)
     slider.High:ClearAllPoints();
     slider.High:SetPoint("BOTTOMRIGHT", -5, -8);
 
-    slider:SetSize(widgetTable.width or 150, 20);
-
+    slider:SetSize(widgetTable.width or 150, 18);
+		slider:SetHitRectInsets(0, 0, 0, 0);
     slider:SetScript("OnValueChanged", Slider_OnValueChanged);
     slider:SetScript("OnEnable", Slider_OnEnable);
     slider:SetScript("OnDisable", Slider_OnDisable);
@@ -506,32 +548,32 @@ end
 -- Text Field
 ---------------
 local function TextField_OnTextChanged(textfield, value, _, container)
-    -- perform validation based on valueType
-    local isValue = true;
+  -- perform validation based on valueType
+  local isValue = true;
 
-    -- ensure database stores a number, instead of a string containing a number
-    value = tonumber(value) or value;
+  -- ensure database stores a number, instead of a string containing a number
+  value = tonumber(value) or value;
 
-    if (container.valueType == "number") then
+  if (container.valueType == "number") then
 
-        if (not obj:IsNumber(value)) then
-            isValue = false;
-        else
-            if (container.min and value < container.min) then
-                isValue = false;
-            end
-            if (container.max and value > container.max) then
-                isValue = false;
-            end
-        end
-    end
-
-    if (not isValue) then
-        textfield:ApplyPreviousText();
+    if (not obj:IsNumber(value)) then
+      isValue = false;
     else
-        textfield:SetText(value);
-        configModule:SetDatabaseValue(container, value);
+      if (container.min and value < container.min) then
+        isValue = false;
+      end
+      if (container.max and value > container.max) then
+        isValue = false;
+      end
     end
+  end
+
+  if (not isValue) then
+    textfield:ApplyPreviousText();
+  else
+    textfield:SetText(value);
+    configModule:SetDatabaseValue(container, value);
+  end
 end
 
 -- supported textield config attributes:

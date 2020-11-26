@@ -83,12 +83,10 @@ db:AddToDefaults("global", {
     DPS = {
       ["ShadowUF"] = "Default";
       ["MUI_TimerBars"] = "Default";
-      ["Grid"] = "Default"; -- no longer in UI pack but keep
     };
     Healer = {
       ["ShadowUF"] = "MayronUIH";
       ["MUI_TimerBars"] = "Healer";
-      ["Grid"] = "MayronUIH"; -- no longer in UI pack but keep
     };
   };
 
@@ -100,10 +98,8 @@ db:AddToDefaults("global", {
     setup = {
       profilePerCharacter = true;
       addOns = {
-        {"Aura Frames", true, "AuraFrames"};
         {"Bagnon", true, "Bagnon"};
         {"Bartender4", true, "Bartender4"};
-        {"Grid", true, "Grid"};
         {"Masque", true, "Masque"};
         {"Recount", true, "Recount"};
         {"Shadowed Unit Frames", true, "ShadowedUnitFrames"};

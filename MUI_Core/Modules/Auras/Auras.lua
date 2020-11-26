@@ -1,7 +1,7 @@
 local _, namespace = ...;
 
 -- luacheck: ignore self 143
-local _G, MayronUI = _G, _G.MayronUI;
+local MayronUI = _G.MayronUI;
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
 local GetTime, select, SecondsToTimeAbbrev, GetWeaponEnchantInfo, UnitAura, ipairs, CreateFrame, unpack, math,

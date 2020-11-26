@@ -23,51 +23,51 @@ namespace.Engine = Engine;
 local CreateTopMenuButton;
 
 do
-    local menuButtons = {};
+  local menuButtons = {};
 
-    function CreateTopMenuButton(label, onClick, anchor)
-        local btn = gui:CreateButton(tk.Constants.AddOnStyle, nil, label);
-        btn:SetWidth(100);
+  function CreateTopMenuButton(label, onClick, anchor)
+    local btn = gui:CreateButton(tk.Constants.AddOnStyle, nil, label);
+    btn:SetWidth(100);
 
-        if (anchor) then
-            btn:SetPoint("RIGHT", anchor, "RIGHT");
-            btn:SetParent(anchor);
-        else
-            btn:SetPoint("RIGHT", menuButtons[#menuButtons], "LEFT", -10, 0);
-            btn:SetParent(menuButtons[#menuButtons]);
-        end
-
-        btn:SetScript("OnClick", function()
-            onClick();
-            PlaySound(tk.Constants.CLICK);
-        end);
-
-        table.insert(menuButtons, btn);
-
-        return btn;
+    if (anchor) then
+      btn:SetPoint("RIGHT", anchor, "RIGHT");
+      btn:SetParent(anchor);
+    else
+      btn:SetPoint("RIGHT", menuButtons[#menuButtons], "LEFT", -10, 0);
+      btn:SetParent(menuButtons[#menuButtons]);
     end
+
+    btn:SetScript("OnClick", function()
+      onClick();
+      PlaySound(tk.Constants.CLICK);
+    end);
+
+    table.insert(menuButtons, btn);
+
+    return btn;
+  end
 end
 
 local function MenuButton_OnClick(menuButton)
-    if (menuButton:IsObjectType("CheckButton") and not menuButton:GetChecked()) then
-        -- should not be allowed to uncheck a menu button by clicking it a second time!
-        menuButton:SetChecked(true);
-        return;
-    end
+  if (menuButton:IsObjectType("CheckButton") and not menuButton:GetChecked()) then
+    -- should not be allowed to uncheck a menu button by clicking it a second time!
+    menuButton:SetChecked(true);
+    return;
+  end
 
-    local configModule = MayronUI:ImportModule("ConfigModule");
-    configModule:OpenMenu(menuButton);
+  local configModule = MayronUI:ImportModule("ConfigModule");
+  configModule:OpenMenu(menuButton);
 end
 
 local function SetBackButtonEnabled(backBtn, enabled)
-    backBtn:SetEnabled(enabled);
+  backBtn:SetEnabled(enabled);
 
-    if (enabled) then
-        tk:ApplyThemeColor(backBtn.arrow);
-    else
-        local r, g, b = tk.Constants.COLORS.GRAY:GetRGB();
-        backBtn.arrow:SetVertexColor(r, g, b, 1);
-    end
+  if (enabled) then
+    tk:ApplyThemeColor(backBtn.arrow);
+  else
+    local r, g, b = tk.Constants.COLORS.GRAY:GetRGB();
+    backBtn.arrow:SetVertexColor(r, g, b, 1);
+  end
 end
 
 local function filterByClient(client)

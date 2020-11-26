@@ -168,6 +168,8 @@ function tk.Tables:GetFramePosition(frame, useKeys, override)
   end
 
   local positions;
+  x = tk.Numbers:ToPrecision(x, 2);
+  y = tk.Numbers:ToPrecision(y, 2);
 
   if (useKeys) then
     positions = obj:PopTable();

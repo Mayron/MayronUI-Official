@@ -68,8 +68,12 @@ local function UnlockCastBar(widget, castBarName)
         local positions = tk.Tables:GetFramePosition(castbar);
 
         if (positions) then
-            for index, textfield in ipairs(position_TextFields[castBarName]) do
-                textfield:SetText(tostring(positions[index]));
+            for index, positionWidget in ipairs(position_TextFields[castBarName]) do
+              if (positionWidget:GetObjectType() == "TextField") then
+                positionWidget:SetText(tostring(positions[index]));
+              elseif (positionWidget:GetObjectType() == "Slider") then
+                positionWidget.editBox:SetText(positions[index]);
+              end
             end
 
             SetPositionTextFieldsEnabled(true, castBarName);
@@ -132,13 +136,15 @@ function C_CastBarsModule:GetConfigTable()
             {   type = "divider"
             },
             {   name = L["Border Size"],
-                type = "textfield",
-                valueType = "number",
+                type = "slider",
+                min = 0,
+                max = 10,
                 dbPath = "profile.castBars.appearance.borderSize"
             },
             {   name = L["Frame Inset"],
-                type = "textfield",
-                valueType = "number",
+                type = "slider",
+                min = 0,
+                max = 10,
                 tooltip = L["Set the spacing between the status bar and the background."],
                 dbPath = "profile.castBars.appearance.inset"
             },
@@ -264,10 +270,12 @@ function C_CastBarsModule:GetConfigTable()
                         type = "divider"
                       },
                       {
-                        name = L["Width"],
+                        name = L["Set Width"],
                         tooltip = L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."],
-                        type = "textfield",
-                        valueType = "number",
+                        type = "slider",
+                        min = 100,
+                        max = 500,
+                        step = 10,
                         OnLoad = function(_, container)
                           if (db.profile.castBars[name].anchorToSUF) then
                             container.widget:SetEnabled(false);
@@ -278,10 +286,12 @@ function C_CastBarsModule:GetConfigTable()
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".width")
                       },
                       {
-                        name = L["Height"],
+                        name = L["Set Height"],
                         tooltip = L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."],
-                        type = "textfield",
-                        valueType = "number",
+                        type = "slider",
+                        min = 100,
+                        max = 500,
+                        step = 10,
                         OnLoad = function(_, container)
                           if (db.profile.castBars[name].anchorToSUF) then
                             container.widget:SetEnabled(false);
@@ -319,7 +329,7 @@ function C_CastBarsModule:GetConfigTable()
                         type = "loop";
                         args = { L["Point"], L["Relative Frame"], L["Relative Point"], L["X-Offset"], L["Y-Offset"] };
                         func = function(index, arg)
-                          return {
+                          local config = {
                             name = arg;
                             type = "textfield";
                             valueType = "string";
@@ -328,6 +338,14 @@ function C_CastBarsModule:GetConfigTable()
                             pointID = index;
                             OnLoad = CastBarPosition_OnLoad,
                           };
+
+                          if (index > 3) then
+                            config.type = "slider";
+                            config.min = -300;
+                            config.max = 300;
+                          end
+
+                          return config;
                         end
                       };
                     }

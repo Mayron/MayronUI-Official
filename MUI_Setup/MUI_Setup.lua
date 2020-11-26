@@ -654,7 +654,7 @@ function C_SetUpModule:Install()
   end
 
   -- MayronUI profiles:
-  for _, name in obj:IterateArgs("AuraFrames", "Bartender4", "Recount") do
+  for _, name in obj:IterateArgs("Bartender4", "Recount") do
     if (_G[name]) then
       local path = tk.Tables:GetDBObject(name);
 
@@ -667,7 +667,7 @@ function C_SetUpModule:Install()
   end
 
   -- Default Profiles:
-  for _, name in obj:IterateArgs("Grid", "ShadowUF") do
+  for _, name in obj:IterateArgs("ShadowUF") do
     if (_G[name]) then
       local path = tk.Tables:GetDBObject(name);
 

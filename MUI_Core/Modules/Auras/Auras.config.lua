@@ -1,7 +1,6 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 
-local _G = _G;
 local tonumber, ipairs, MayronUI = _G.tonumber, _G.ipairs, _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_AurasModule = namespace.C_AurasModule;
@@ -22,8 +21,12 @@ local function AuraArea_OnDragStop(field)
 
     if (positions) then
         -- update the config menu view
-        for id, textField in ipairs(position_TextFields[auraAreaName]) do
-            textField:SetText(positions[id]);
+        for index, positionWidget in ipairs(position_TextFields[auraAreaName]) do
+          if (positionWidget:GetObjectType() == "TextField") then
+            positionWidget:SetText(tostring(positions[index]));
+          elseif (positionWidget:GetObjectType() == "Slider") then
+            positionWidget.editBox:SetText(positions[index]);
+          end
         end
     end
 
@@ -162,14 +165,22 @@ function C_AurasModule:GetConfigTable(data)
                                       dbPath = tk.Strings:Concat("profile.auras.", name, ".icons.position[", index, "]");
                                   end
 
-                                  return {
-                                      name = arg;
-                                      type = "textfield";
-                                      valueType = "string";
-                                      dbPath = dbPath;
-                                      auraAreaName = name;
-                                      OnLoad = AuraAreaPosition_OnLoad;
+                                  local config = {
+                                    name = arg;
+                                    type = "textfield";
+                                    valueType = "string";
+                                    dbPath = dbPath;
+                                    auraAreaName = name;
+                                    OnLoad = AuraAreaPosition_OnLoad;
                                   };
+
+                                  if (index > 3) then
+                                    config.type = "slider";
+                                    config.min = -300;
+                                    config.max = 300;
+                                  end
+
+                                  return config;
                               end
                           };
                           {   type = "title";
@@ -234,17 +245,15 @@ function C_AurasModule:GetConfigTable(data)
                                       options = tk.Constants.LSM:List("statusbar");
                                       appendDbPath = "statusBars.barTexture";
                                   };
-                                  {   type = "textfield";
+                                  {   type = "slider";
                                       name = L["Bar Width"];
                                       appendDbPath = "statusBars.width";
-                                      valueType = "number";
                                       min = 100;
                                       max = 400;
                                   };
-                                  {   type = "textfield";
+                                  {   type = "slider";
                                       name = L["Bar Height"];
                                       appendDbPath = "statusBars.height";
-                                      valueType = "number";
                                       min = 10;
                                       max = 80;
                                   };
@@ -300,15 +309,17 @@ function C_AurasModule:GetConfigTable(data)
                                           subtype = "header";
                                           content = L[textName];
                                       };
-                                      {   type = "textfield";
+                                      {   type = "slider";
                                           name = L["X-Offset"];
                                           appendDbPath = xOffsetDbPath;
-                                          valueType = "number";
+                                          min = -20,
+                                          max = 20
                                       };
-                                      {   type = "textfield";
+                                      {   type = "slider";
                                           name = L["Y-Offset"];
                                           appendDbPath = yOffsetDbPath;
-                                          valueType = "number";
+                                          min = -20,
+                                          max = 20
                                       };
                                       {   type = "slider";
                                           name = L["Font Size"];

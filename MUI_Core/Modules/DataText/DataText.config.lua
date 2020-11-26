@@ -58,14 +58,18 @@ function C_DataTextModule:GetConfigTable()
                 appendDbPath = "height",
             },
             {   name = L["Menu Width"],
-                type = "textfield",
-                valueType = "number",
+                type = "slider",
+                min = 150;
+                max = 400;
+                step = 10;
                 tooltip = L["Default value is "].."200",
                 appendDbPath = "popup.width",
             },
             {   name = L["Max Menu Height"],
-                type = "textfield",
-                valueType = "number",
+                type = "slider",
+                min = 150;
+                max = 400;
+                step = 10;
                 tooltip = L["Default value is "].."250",
                 appendDbPath = "popup.maxHeight",
             },

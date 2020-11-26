@@ -13,10 +13,12 @@ local SlideController = gui.WidgetsPackage:Get("SlideController");
 -- Load Database Defaults ----------------
 db:AddToDefaults("profile.actionBarPanel", {
   enabled         = true;
+  expandRetract   = true; -- the expandRetract feature
   expanded        = false;
   modKey          = "C";
   retractHeight   = 44;
   expandHeight    = 80;
+  defaultHeight   = 80; -- the height used when expandRetract feature is disabled
   animateSpeed    = 6;
   texture         = tk:GetAssetFilePath("Textures\\BottomUI\\ActionBarPanel");
   alpha           = 1;
@@ -50,6 +52,7 @@ local function LoadTutorial(panel)
   frame.text:SetPoint("TOPLEFT", 20, -20);
   frame.text:SetPoint("BOTTOMRIGHT", -20, 10);
 
+  -- TODO: What if they changed the modifier key combination? Add ability for them to change that combination during the tutorial
   local tutorialMessage = L["Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."];
   tutorialMessage = tutorialMessage:format(tk.Strings:SetTextColorByTheme("Control"));
   frame.text:SetText(tutorialMessage);
@@ -81,12 +84,36 @@ end
 function C_ActionBarPanel:OnInitialize(data, containerModule)
   data.containerModule = containerModule;
 
+  local options = {
+    onExecuteAll = {
+      ignore = {
+        "retractHeight",
+        "expandHeight",
+        "animateSpeed",
+        "expanded",
+      };
+    };
+  };
+
   self:RegisterUpdateFunctions(db.profile.actionBarPanel, {
     expanded = function()
-      data.panel:GetScript("OnShow")();
+      local onShow = data.panel:GetScript("OnShow");
+      if (obj:IsFunction(onShow)) then onShow() end
+    end;
+
+    expandRetract = function(value)
+      if (value) then
+        self:LoadExpandRetractFeature();
+      elseif (data.expandRetractFeatureLoaded) then
+        local handler = em:FindEventHandlerByKey("ExpandRetractFeature");
+        handler:SetEventCallbackEnabled("MODIFIER_STATE_CHANGED", false);
+
+        data.panel:SetHeight(data.settings.defaultHeight);
+      end
     end;
 
     retractHeight = function(value)
+      if (not (data.settings.expandRetract and data.slideController)) then return end
       if (not data.settings.expanded) then
         data.panel:SetHeight(value);
       end
@@ -95,6 +122,7 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
     end;
 
     expandHeight = function(value)
+      if (not (data.settings.expandRetract and data.slideController)) then return end
       if (data.settings.expanded) then
         data.panel:SetHeight(value);
       end
@@ -102,8 +130,16 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
       data.slideController:SetMaxHeight(value);
     end;
 
+    defaultHeight = function(value)
+      if (not data.settings.expandRetract) then
+        data.panel:SetHeight(value);
+      end
+    end;
+
     animateSpeed = function(value)
-      data.slideController:SetStepValue(value);
+      if (data.slideController) then
+        data.slideController:SetStepValue(value);
+      end
     end;
 
     texture = function(value)
@@ -139,7 +175,7 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
         self:SetUpBartenderBar(4, bartenderBarID);
       end;
     };
-  });
+  }, options);
 
   if (data.settings.enabled) then
     self:SetEnabled(true);
@@ -162,15 +198,31 @@ function C_ActionBarPanel:OnEnable(data)
   end
 
   data.panel = CreateFrame("Frame", "MUI_ActionBarPanel", _G.MUI_BottomContainer);
+  data.panel:SetFrameLevel(10);
+  data.panel:SetHeight(data.settings.defaultHeight);
+
+  gui:CreateGridTexture(data.panel, data.settings.texture, data.settings.cornerSize, nil, 749, 45);
+
+  if (db.global.tutorial and db.profile.actionBarPanel.expandRetract) then
+    LoadTutorial(data.panel);
+  end
+end
+
+function C_ActionBarPanel:LoadExpandRetractFeature(data)
+  if (data.expandRetractFeatureLoaded) then
+    local handler = em:FindEventHandlerByKey("ExpandRetractFeature");
+    handler:SetEventCallbackEnabled("MODIFIER_STATE_CHANGED", true);
+
+    local onShow = data.panel:GetScript("OnShow");
+    if (obj:IsFunction(onShow)) then onShow() end
+    return;
+  end
 
   em:CreateEventHandler("PLAYER_LOGOUT", function()
     db.profile.actionBarPanel.expanded = data.settings.expanded;
   end);
 
-  data.panel:SetFrameLevel(10);
-  data.slideController = SlideController(data.panel);
-
-  data.panel:SetScript("OnShow", function()
+  local function onShow()
     local controlBartender = data.settings.bartender.control;
 
     if (data.settings.expanded) then
@@ -182,7 +234,15 @@ function C_ActionBarPanel:OnEnable(data)
       ToggleBartenderBar(controlBartender, data.Bar3, false);
       ToggleBartenderBar(controlBartender, data.Bar4, false);
     end
-  end);
+  end
+
+  data.panel:SetScript("OnShow", onShow);
+  onShow();
+
+  data.slideController = SlideController(data.panel);
+  data.slideController:SetStepValue(data.settings.animateSpeed);
+  data.slideController:SetMinHeight(data.settings.retractHeight);
+  data.slideController:SetMaxHeight(data.settings.expandHeight);
 
   data.slideController:OnStartExpand(function()
     local controlBartender = data.settings.bartender.control;
@@ -206,8 +266,6 @@ function C_ActionBarPanel:OnEnable(data)
     ToggleBartenderBar(data.settings.bartender.control, data.Bar3, false);
     ToggleBartenderBar(data.settings.bartender.control, data.Bar4, false);
   end);
-
-  gui:CreateGridTexture(data.panel, data.settings.texture, data.settings.cornerSize, nil, 749, 45);
 
   -- expand button:
   local expandBtn = gui:CreateButton(tk.Constants.AddOnStyle, data.panel, _G["MUI_BottomContainer"]);
@@ -288,7 +346,7 @@ function C_ActionBarPanel:OnEnable(data)
     expandBtn:SetAlpha(0);
   end);
 
-  em:CreateEventHandler("MODIFIER_STATE_CHANGED", function()
+  em:CreateEventHandlerWithKey("MODIFIER_STATE_CHANGED", "ExpandRetractFeature", function()
     if (not tk:IsModComboActive(data.settings.modKey) or InCombatLockdown()) then
       expandBtn:Hide();
       return;
@@ -310,9 +368,7 @@ function C_ActionBarPanel:OnEnable(data)
     expandBtn:Hide();
   end);
 
-  if (db.global.tutorial) then
-    LoadTutorial(data.panel);
-  end
+  data.expandRetractFeatureLoaded = true;
 end
 
 function C_ActionBarPanel:GetPanel(data)
