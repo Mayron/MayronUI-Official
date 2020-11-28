@@ -11,8 +11,9 @@ local inCombatAttribute = obj:Import("Framework.System.Attributes.InCombatAttrib
 
 ---@type Package
 local WidgetsPackage = Lib.WidgetsPackage;
-local SlideController = WidgetsPackage:CreateClass("SlideController");
 
+---@class SlideController : Object
+local SlideController = WidgetsPackage:CreateClass("SlideController");
 
 local math, C_Timer, InCombatLockdown = _G.math, _G.C_Timer, _G.InCombatLockdown;
 
@@ -20,18 +21,21 @@ SlideController.Static.FORCE_RETRACT = 1;
 SlideController.Static.FORCE_EXPAND = 2;
 ---------------------------------
 
+-- used for dropdown menus
 local function frameOnHide(self)
   self:SetHeight(1);
 end
 
-WidgetsPackage:DefineParams("Frame", "?number");
-function SlideController:__Construct(data, frame, step)
+WidgetsPackage:DefineParams("Frame", "?number", "boolean=true");
+function SlideController:__Construct(data, frame, step, retractOnHide)
   data.frame = frame;
   data.step = step or 30;
   data.minHeight = 1;
   data.maxHeight = 200;
 
-  frame:HookScript("OnHide", frameOnHide);
+  if (retractOnHide) then
+    frame:HookScript("OnHide", frameOnHide);
+  end
 end
 
 WidgetsPackage:SetAttribute(inCombatAttribute, true);

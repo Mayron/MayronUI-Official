@@ -477,9 +477,9 @@ end
 
 -- Private Functions -------------------------
 do
-  local MIN_ALPHA = 0.5;
-  local FLASH_TIME_ON = 0.6;
-  local FLASH_TIME_OFF = 0.6;
+  local MIN_ALPHA = 0.7;
+  local FLASH_TIME_ON = 0.65;
+  local FLASH_TIME_OFF = 0.65;
 
   function Private:UnitPanels_UpdateAlpha(frame, elapsed)
     if (InCombatLockdown()) then return end

@@ -68,7 +68,7 @@ function C_Container:OnInitialize(data)
 end
 
 function C_Container:OnEnable()
-    self:RepositionContent();
+  self:RepositionContent();
 end
 
 function C_Container:RepositionContent(data)

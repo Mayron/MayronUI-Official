@@ -10,6 +10,7 @@ local error, unpack, next = _G.error, _G.unpack, _G.next;
 local type, setmetatable, table, string = _G.type, _G.setmetatable, _G.table, _G.string;
 local getmetatable, select, pcall = _G.getmetatable, _G.select, _G.pcall;
 local tostring, collectgarbage, pairs, print = _G.tostring, _G.collectgarbage, _G.pairs, _G.print;
+local tonumber = _G.tonumber;
 
 Lib.Types = {};
 Lib.Types.Table    = "table";
@@ -1475,6 +1476,29 @@ function Core:ValidateValue(definitionType, realType, defaultValue)
   return errorFound;
 end
 
+local function CastSimpleDefault(definitionType, defaultValue)
+  if (defaultValue == nil) then return end
+  definitionType = string.gsub(definitionType, "?", "");
+  definitionType = string.gsub(definitionType, "%s", "");
+
+  if (definitionType:lower() == "number" and Lib:IsString(defaultValue)) then
+    defaultValue = string.gsub(defaultValue, "%s", ""); -- remove spaces
+    defaultValue = tonumber(defaultValue);
+  end
+
+  if (definitionType:lower() == "boolean" and Lib:IsString(defaultValue)) then
+    defaultValue = string.gsub(defaultValue, "%s", ""); -- remove spaces
+
+    if (defaultValue:lower() == "true") then
+      defaultValue = true;
+    else
+      defaultValue = false;
+    end
+  end
+
+  return defaultValue;
+end
+
 function Core:ValidateFunctionCall(definition, errorMessage, ...)
   local values = Lib:PopTable(...);
 
@@ -1531,24 +1555,7 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
       self:Error(errorMessage);
     end
 
-    definitionType = string.gsub(definitionType, "%s", "");
-
-    if (definitionType:lower() == "number" and Lib:IsString(defaultValue)) then
-      defaultValue = string.gsub(defaultValue, "%s", "");
-      defaultValue = tonumber(defaultValue);
-    end
-
-    if (definitionType:lower() == "boolean" and Lib:IsString(defaultValue)) then
-      defaultValue = string.gsub(defaultValue, "%s", "");
-
-      if (defaultValue:lower() == "true") then
-        defaultValue = true;
-      else
-        defaultValue = false;
-      end
-    end
-
-    defaultValues[id] = defaultValue;
+    defaultValues[id] = CastSimpleDefault(definitionType, defaultValue);
 
     id = id + 1;
     realValue = (select(id, ...));

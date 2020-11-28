@@ -1,5 +1,6 @@
 -- luacheck: ignore MayronUI self 143
 local _, namespace = ...;
+local MayronUI = _G.MayronUI;
 local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 
 -- Register and Import ---------
@@ -9,13 +10,16 @@ local C_MiniMapModule = MayronUI:RegisterModule("MiniMap", L["Mini Map"]);
 namespace.C_MiniMapModule = C_MiniMapModule;
 
 local Minimap, math, table, C_Timer, Minimap_ZoomIn, Minimap_ZoomOut, GameTooltip, IsAltKeyDown,
-CreateFrame, LoadAddOn, InCombatLockdown, IsAddOnLoaded, GarrisonLandingPage_Toggle,
+CreateFrame, LoadAddOn, InCombatLockdown, IsAddOnLoaded,
 ToggleDropDownMenu, PlaySound, EasyMenu, UIParent, select =
-_G.Minimap, _G.math, _G.table, _G.C_Timer, _G.Minimap_ZoomIn, _G.Minimap_ZoomOut, _G.GameTooltip,
-_G.IsAltKeyDown, _G.CreateFrame, _G.LoadAddOn, _G.InCombatLockdown, _G.IsAddOnLoaded,
-_G.GarrisonLandingPage_Toggle, _G.ToggleDropDownMenu,
-_G.PlaySound, _G.EasyMenu, _G.UIParent, _G.select;
+  _G.Minimap, _G.math, _G.table, _G.C_Timer, _G.Minimap_ZoomIn, _G.Minimap_ZoomOut, _G.GameTooltip,
+  _G.IsAltKeyDown, _G.CreateFrame, _G.LoadAddOn, _G.InCombatLockdown, _G.IsAddOnLoaded, _G.ToggleDropDownMenu,
+  _G.PlaySound, _G.EasyMenu, _G.UIParent, _G.select;
 
+local IsInInstance, GetInstanceInfo, GetNumGroupMembers =
+_G.IsInInstance, _G.GetInstanceInfo, _G.GetNumGroupMembers;
+
+local ShowGarrisonLandingPage = _G.ShowGarrisonLandingPage;
 local zoneText = _G.MinimapZoneText;
 local zoneTextButton = _G.MinimapZoneTextButton;
 
@@ -313,8 +317,23 @@ function C_MiniMapModule:OnEnable(data)
     });
 
     table.insert(menuList, {
-      text = L["Class Order Hall"].." / "..L["Garrison Report"],
-      func = GarrisonLandingPage_Toggle
+      text = L["Garrison Report"],
+      func = function() ShowGarrisonLandingPage(2) end
+    });
+
+    table.insert(menuList, {
+      text = L["Class Order Hall"],
+      func = function() ShowGarrisonLandingPage(3) end
+    });
+
+    table.insert(menuList, {
+      text = "Missions",
+      func = function() ShowGarrisonLandingPage(9) end
+    });
+
+    table.insert(menuList, {
+      text = "Covenant Sanctum",
+      func = function() ShowGarrisonLandingPage(111) end
     });
 
     table.insert(menuList, {
@@ -403,8 +422,8 @@ function C_MiniMapModule:OnEnable(data)
     mode.txt:SetPoint("TOPRIGHT", mode, "TOPRIGHT", -5, -5);
 
     mode:SetScript("OnEvent", function()
-      if ((_G.IsInInstance())) then
-        local difficulty = select(4, _G.GetInstanceInfo());
+      if (IsInInstance()) then
+        local difficulty = select(4, GetInstanceInfo());
 
         if (difficulty == "Heroic") then
           difficulty = "H";
@@ -416,7 +435,7 @@ function C_MiniMapModule:OnEnable(data)
           difficulty = "";
         end
 
-        local players = _G.GetNumGroupMembers();
+        local players = GetNumGroupMembers();
         players = (players > 0 and players) or 1;
         mode.txt:SetText(players .. difficulty); -- localization possible?
       else
@@ -437,6 +456,4 @@ function C_MiniMapModule:OnEnable(data)
       _G.GarrisonLandingPageTutorialBox.Show = tk.Constants.DUMMY_FUNC;
     end
   end
-
-  -- self:SetUpIconsFrame();
 end

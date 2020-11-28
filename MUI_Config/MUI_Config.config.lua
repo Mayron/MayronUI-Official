@@ -4,6 +4,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ConfigModule = namespace.C_ConfigModule;
 local expandRetractDependencies = {};
+local bartenderControlDependencies = {};
 local defaultHeightWidget;
 
 local table, ipairs = _G.table, _G.ipairs;
@@ -339,7 +340,7 @@ function C_ConfigModule:GetConfigTable()
                 {   name = L["Bottom Action Bars"];
                     type = "submenu";
                     children = {
-                        {   name              = L["Enable Action Bar Panel"];
+                        {   name              = L["Enable Panel"];
                             dbPath            = "profile.actionBarPanel.enabled";
                             tooltip           = L["Enable or disable the background panel"];
                             type              = "check";
@@ -375,12 +376,7 @@ function C_ConfigModule:GetConfigTable()
                             type              = "check";
                             SetValue = function(dbPath, value)
                               for _, widget in ipairs(expandRetractDependencies) do
-                                if (widget.bartenderControl) then
-                                  local enabled = value and db.profile.actionBarPanel.bartender.control;
-                                  widget:SetEnabled(enabled);
-                                else
-                                  widget:SetEnabled(value);
-                                end
+                                widget:SetEnabled(value);
                               end
 
                               defaultHeightWidget:SetEnabled(not value);
@@ -483,24 +479,12 @@ function C_ConfigModule:GetConfigTable()
                             dbPath  = "profile.actionBarPanel.bartender.control";
 
                             SetValue = function(dbPath, value)
-                              if (not db.profile.actionBarPanel.expandRetract) then return end
-
-                              for _, widget in ipairs(expandRetractDependencies) do
-                                if (widget.bartenderControl) then
-                                  widget:SetEnabled(value);
-                                end
+                              for _, widget in ipairs(bartenderControlDependencies) do
+                                widget:SetEnabled(value);
                               end
 
                               db:SetPathValue(dbPath, value);
                             end;
-
-                            OnLoad = function(_, container)
-                              table.insert(expandRetractDependencies, container.btn);
-                            end;
-
-                            enabled = function()
-                              return db.profile.actionBarPanel.expandRetract;
-                            end
                         };
                         {   type    = "fontstring";
                             content = L["Row 1"];
@@ -511,12 +495,11 @@ function C_ConfigModule:GetConfigTable()
                             dbPath  = "profile.actionBarPanel.bartender[1]";
                             options = BartenderActionBars;
                             OnLoad = function(_, container)
-                              container.widget.bartenderControl = true;
-                              table.insert(expandRetractDependencies, container.widget);
+                              table.insert(bartenderControlDependencies, container.widget);
                             end;
 
                             enabled = function()
-                              return db.profile.actionBarPanel.bartender.control and db.profile.actionBarPanel.expandRetract;
+                              return db.profile.actionBarPanel.bartender.control;
                             end;
                         };
                         {   name    = L["Second Bartender Bar"];
@@ -524,11 +507,10 @@ function C_ConfigModule:GetConfigTable()
                             type    = "dropdown";
                             options = BartenderActionBars;
                             OnLoad = function(_, container)
-                              container.widget.bartenderControl = true;
-                              table.insert(expandRetractDependencies, container.widget);
+                              table.insert(bartenderControlDependencies, container.widget);
                             end;
                             enabled = function()
-                              return db.profile.actionBarPanel.bartender.control and db.profile.actionBarPanel.expandRetract;
+                              return db.profile.actionBarPanel.bartender.control;
                             end
                         };
                         {   type    = "fontstring";
@@ -540,11 +522,10 @@ function C_ConfigModule:GetConfigTable()
                             type    = "dropdown";
                             options = BartenderActionBars;
                             OnLoad = function(_, container)
-                              container.widget.bartenderControl = true;
-                              table.insert(expandRetractDependencies, container.widget);
+                              table.insert(bartenderControlDependencies, container.widget);
                             end;
                             enabled = function()
-                              return db.profile.actionBarPanel.bartender.control and db.profile.actionBarPanel.expandRetract;
+                              return db.profile.actionBarPanel.bartender.control;
                             end
                         };
                         {   name    = L["Second Bartender Bar"];
@@ -552,11 +533,10 @@ function C_ConfigModule:GetConfigTable()
                             type    = "dropdown";
                             options = BartenderActionBars;
                             OnLoad = function(_, container)
-                              container.widget.bartenderControl = true;
-                              table.insert(expandRetractDependencies, container.widget);
+                              table.insert(bartenderControlDependencies, container.widget);
                             end;
                             enabled = function()
-                              return db.profile.actionBarPanel.bartender.control and db.profile.actionBarPanel.expandRetract;
+                              return db.profile.actionBarPanel.bartender.control;
                             end
                         }
                     }
@@ -564,7 +544,7 @@ function C_ConfigModule:GetConfigTable()
                 {   name = L["Side Action Bars"];
                     type = "submenu";
                     children = {
-                        {   name = "Enable Side Bar Panel",
+                        {   name = "Enable Panel",
                             tooltip = L["Enable or disable the background panel"];
                             type = "check",
                             dbPath = "profile.sidebar.enabled",

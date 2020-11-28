@@ -13,13 +13,13 @@ local obj = Lib.Objects;
 ---------------------------------
 
 local function OnEnter(self)
-    _G.GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT");
-    _G.GameTooltip:AddLine(self.tooltip);
-    _G.GameTooltip:Show();
+  _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 4);
+  _G.GameTooltip:AddLine(self.tooltip);
+  _G.GameTooltip:Show();
 end
 
 local function OnLeave()
-    _G.GameTooltip:Hide();
+  _G.GameTooltip:Hide();
 end
 
 Lib.FONT_TYPES = {
@@ -89,41 +89,41 @@ do
     end
 
     function Lib:CreateButton(style, parent, text, button, tooltip)
-        local backgroundTexture = style:GetTexture("ButtonTexture");
+      local backgroundTexture = style:GetTexture("ButtonTexture");
 
-        button = button or CreateFrame("Button", nil, parent,
-          _G.BackdropTemplateMixin and "BackdropTemplate");
+      button = button or CreateFrame("Button", nil, parent,
+        _G.BackdropTemplateMixin and "BackdropTemplate");
 
-        button:SetSize(150, 30);
-        button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
+      button:SetSize(150, 30);
+      button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
 
-        if (text) then
-            button:SetText(text);
-        end
+      if (text) then
+        button:SetText(text);
+      end
 
-        if (tooltip) then
-            button.tooltip = tooltip;
-            button:SetScript("OnEnter", OnEnter);
-            button:SetScript("OnLeave", OnLeave);
-        end
+      if (tooltip) then
+        button.tooltip = tooltip;
+        button:SetScript("OnEnter", OnEnter);
+        button:SetScript("OnLeave", OnLeave);
+      end
 
-        local normal = Private:SetBackground(button, backgroundTexture);
-        local highlight = Private:SetBackground(button, backgroundTexture);
-        local disabled = Private:SetBackground(button, backgroundTexture);
+      local normal = Private:SetBackground(button, backgroundTexture);
+      local highlight = Private:SetBackground(button, backgroundTexture);
+      local disabled = Private:SetBackground(button, backgroundTexture);
 
-        button:SetNormalTexture(normal);
-        button:SetHighlightTexture(highlight);
-        button:SetDisabledTexture(disabled);
+      button:SetNormalTexture(normal);
+      button:SetHighlightTexture(highlight);
+      button:SetDisabledTexture(disabled);
 
-        button:SetNormalFontObject("GameFontHighlight");
-        button:SetDisabledFontObject("GameFontDisable");
+      button:SetNormalFontObject("GameFontHighlight");
+      button:SetDisabledFontObject("GameFontDisable");
 
-        button:SetScript("OnEnable", Button_OnEnable);
-        button:SetScript("OnDisable", Button_OnDisable);
+      button:SetScript("OnEnable", Button_OnEnable);
+      button:SetScript("OnDisable", Button_OnDisable);
 
-        self:UpdateButtonColor(button, style);
+      self:UpdateButtonColor(button, style);
 
-        return button;
+      return button;
     end
 
     function Lib:UpdateButtonColor(button, style)
