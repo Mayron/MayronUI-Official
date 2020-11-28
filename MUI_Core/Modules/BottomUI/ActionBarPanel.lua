@@ -8,6 +8,7 @@ local IsAddOnLoaded, string, ipairs = _G.IsAddOnLoaded, _G.string, _G.ipairs;
 local C_Timer = _G.C_Timer;
 
 local Private = {};
+local FADING_STACKING_DELAY = 0.2;
 
 -- Register and Import Modules -----------
 local Engine = obj:Import("MayronUI.Engine");
@@ -86,25 +87,35 @@ function Private:LoadTutorial()
   end);
 end
 
-function Private:ToggleBartenderBar(bt4Bar, show)
-  if (IsAddOnLoaded("Bartender4") and self.settings.bartender.control) then
-    bt4Bar:SetConfigAlpha((show and 1) or 0);
-    bt4Bar:SetVisibilityOption("always", not show);
-
-    if (show) then
-      bt4Bar:SetAlpha(0);
-      bt4Bar.fadeIn = bt4Bar.fadeIn or function() UIFrameFadeIn(bt4Bar, 0.1, 0, 1) end;
-      C_Timer.After(0.1, bt4Bar.fadeIn);
-    end
+function Private:ToggleBartenderBar(bt4Bar, show, delay)
+  if (not (IsAddOnLoaded("Bartender4") and self.settings.bartender.control))then
+    return false;
   end
+
+  local visible = bt4Bar:GetVisibilityOption("always");
+  if ((not show) == visible) then return false; end
+
+  bt4Bar:SetConfigAlpha((show and 1) or 0);
+  bt4Bar:SetVisibilityOption("always", not show);
+
+  if (show) then
+    bt4Bar:SetAlpha(0);
+    bt4Bar.fadeIn = bt4Bar.fadeIn or function() UIFrameFadeIn(bt4Bar, 0.1, 0, 1) end;
+
+    C_Timer.After(0.1 + (delay or 0), bt4Bar.fadeIn);
+    return true;
+  end
+
+  return true;
 end
 
-function Private:ToggleBartenderBarRow(rowId, show)
+function Private:ToggleBartenderBarRow(rowId, show, delay)
   if (not (IsAddOnLoaded("Bartender4") and self.settings.bartender.control)) then
-    return
+    return false;
   end
 
   local bars = self.settings.bartender[rowId];
+  local fadingIn = false;
 
   for _, bartenderBarId in ipairs(bars) do
     if (obj:IsNumber(bartenderBarId)) then
@@ -112,10 +123,14 @@ function Private:ToggleBartenderBarRow(rowId, show)
       local bartenderBar = _G[bartenderBarName];
 
       if (obj:IsTable(bartenderBar)) then
-        self:ToggleBartenderBar(bartenderBar, show);
+        if (self:ToggleBartenderBar(bartenderBar, show, delay)) then
+          fadingIn = true;
+        end
       end
     end
   end
+
+  return fadingIn;
 end
 
 function Private:SetUpPanelHeight()
@@ -139,27 +154,47 @@ function Private:SetUpSlideController()
   self.slideController:SetStepValue(self.settings.animateSpeed);
 
   self.slideController:OnStartExpand(function()
-    self:ToggleBartenderBarRow(self.settings.activeRows, true);
+    local delay = 0;
+
+    for rowId = 1, self.settings.activeRows do
+      local fadingIn = self:ToggleBartenderBarRow(rowId, true, FADING_STACKING_DELAY * delay);
+
+      if (fadingIn) then
+        delay = delay + 1;
+      end
+    end
   end, 5);
 
   self.slideController:OnStartRetract(function()
-    if (self.settings.bartender.control) then
-      local bars = self.settings.bartender[self.settings.activeRows];
+    if (not self.settings.bartender.control) then return end
+    local delay = 0;
+
+    for rowId = self.previousActiveRows, self.settings.activeRows + 1, -1 do
+      local bars = self.settings.bartender[rowId];
+      local fadingOut = false;
 
       for _, bartenderBarId in ipairs(bars) do
         if (obj:IsNumber(bartenderBarId)) then
-          local bartenderBar = _G[string.format("BT4Bar%d", bartenderBarId)];
+          local btnBar = _G[string.format("BT4Bar%d", bartenderBarId)];
 
-          if (obj:IsTable(bartenderBar)) then
-            UIFrameFadeOut(bartenderBar, 0.1, 1, 0);
+          if (obj:IsTable(btnBar)) then
+            btnBar.fadeOut = btnBar.fadeOut or function() UIFrameFadeOut(btnBar, 0.1, 1, 0) end;
+            C_Timer.After(0 + (FADING_STACKING_DELAY * delay), btnBar.fadeOut);
+            fadingOut = true;
           end
         end
+      end
+
+      if (fadingOut) then
+        delay = delay + 1;
       end
     end
   end);
 
   self.slideController:OnEndRetract(function()
-    self:ToggleBartenderBarRow(self.settings.activeRows + 1, false);
+    for rowId = self.settings.activeRows + 1, 3 do
+      self:ToggleBartenderBarRow(rowId, false);
+    end
   end);
 end
 
@@ -460,32 +495,34 @@ function C_ActionBarPanel:SetNumActiveRows(data, rows)
 
   PlaySound(tk.Constants.CLICK);
   local previous = data.settings.activeRows;
+  local slider = data.slideController; ---@type SlideController
 
   if (rows == 1) then
-    data.slideController:SetMinHeight(data.settings.rowHeights[1]);
-    data.slideController:SetMaxHeight(data.settings.rowHeights[2]);
+    slider:SetMinHeight(data.settings.rowHeights[1]);
+    slider:SetMaxHeight(data.settings.rowHeights[previous]);
 
   elseif (rows == 2) then
     if (previous == 1) then
-      data.slideController:SetMinHeight(data.settings.rowHeights[1]);
-      data.slideController:SetMaxHeight(data.settings.rowHeights[2]);
+      slider:SetMinHeight(data.settings.rowHeights[1]);
+      slider:SetMaxHeight(data.settings.rowHeights[2]);
     elseif (previous == 3) then
-      data.slideController:SetMinHeight(data.settings.rowHeights[2]);
-      data.slideController:SetMaxHeight(data.settings.rowHeights[3]);
+      slider:SetMinHeight(data.settings.rowHeights[2]);
+      slider:SetMaxHeight(data.settings.rowHeights[3]);
     end
 
   elseif (rows == 3) then
-    data.slideController:SetMinHeight(data.settings.rowHeights[2]);
-    data.slideController:SetMaxHeight(data.settings.rowHeights[3]);
+    slider:SetMinHeight(data.settings.rowHeights[previous]);
+    slider:SetMaxHeight(data.settings.rowHeights[3]);
   end
+
+  data.previousActiveRows = data.settings.activeRows;
+  data.settings.activeRows = rows;
 
   if (previous > rows) then
-    data.slideController:Start(SlideController.Static.FORCE_RETRACT);
+    slider:Start(SlideController.Static.FORCE_RETRACT);
   elseif (previous < rows) then
-    data.slideController:Start(SlideController.Static.FORCE_EXPAND);
+    slider:Start(SlideController.Static.FORCE_EXPAND);
   end
-
-  data.settings.activeRows = rows;
 end
 
 function C_ActionBarPanel:LoadExpandRetractFeature(data)
