@@ -346,13 +346,13 @@ function C_SideBarModule:SetButtonsHideInCombat(data, hide)
   local handler = em:FindEventHandlerByKey("SideBar_HideInCombat_RegenEnabled");
 
   if (handler) then
-    handler:SetEventCallbackEnabled("PLAYER_REGEN_ENABLED", hide);
+    handler:SetEventTriggerEnabled("PLAYER_REGEN_ENABLED", hide);
   end
 
   handler = em:FindEventHandlerByKey("SideBar_HideInCombat_RegenDisabled");
 
   if (handler) then
-    handler:SetEventCallbackEnabled("PLAYER_REGEN_DISABLED", hide);
+    handler:SetEventTriggerEnabled("PLAYER_REGEN_DISABLED", hide);
   end
 
   if (InCombatLockdown() and hide) then

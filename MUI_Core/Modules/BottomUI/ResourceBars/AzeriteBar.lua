@@ -91,11 +91,11 @@ function C_AzeriteBar:SetEnabled(data, enabled)
     local handler2 = em:FindEventHandlerByKey("Azerite_OnInventoryChanged");
 
     if (handler) then
-        handler:SetEventCallbackEnabled("AZERITE_ITEM_EXPERIENCE_CHANGED", enabled);
+        handler:SetEventTriggerEnabled("AZERITE_ITEM_EXPERIENCE_CHANGED", enabled);
     end
 
     if (handler2) then
-        handler2:SetEventCallbackEnabled("UNIT_INVENTORY_CHANGED", enabled);
+        handler2:SetEventTriggerEnabled("UNIT_INVENTORY_CHANGED", enabled);
     end
 end
 

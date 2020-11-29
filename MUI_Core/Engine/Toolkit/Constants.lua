@@ -1,6 +1,5 @@
 local _, namespace = ...;
 local tk = namespace.components.Toolkit; ---@type Toolkit
-local _G = _G;
 
 tk.Constants = {
     ASSETS_FOLDER = "Interface\\addons\\MUI_Core\\Assets";

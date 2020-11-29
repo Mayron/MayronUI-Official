@@ -46,10 +46,15 @@ do
         GameTooltip:AddDoubleLine(line.leftText, line.rightText, nil, nil, nil, 1, 1, 1);
       end
 
-      obj:PushTable(line);
+      if (self.cleanUp) then
+        obj:PushTable(line);
+      end
     end
 
-    obj:PushTable(self.lines);
+    if (self.cleanUp) then
+      obj:PushTable(self.lines);
+    end
+
     GameTooltip:Show();
   end
 
@@ -70,8 +75,8 @@ do
     widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
   end
 
-  function tk:SetMultipleLinesTooltip(widget, tooltipData)
-    widget.tooltip = tooltipData;
+  function tk:SetMultipleLinesTooltip(widget, cleanUp)
+    widget.cleanUp = cleanUp;
 
     widget:SetScript("OnEnter", MultipleLinesTooltip_OnEnter);
     widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);

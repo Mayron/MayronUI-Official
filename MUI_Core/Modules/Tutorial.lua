@@ -5,27 +5,13 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 -- Register and Import Modules -----------
 
 local C_Tutorial = MayronUI:RegisterModule("TutorialModule", "Tutorial");
-local tonumber, GetAddOnMetadata = _G.tonumber, _G.GetAddOnMetadata;
+local GetAddOnMetadata = _G.GetAddOnMetadata;
 
 function C_Tutorial:OnInitialize()
-  local currentVersion = GetAddOnMetadata("MUI_Core", "Version");
-  local major, minor, patch = tk.Strings:Split(currentVersion, ".");
-  major = tonumber(major);
-  minor = tonumber(minor);
-  patch = tonumber(patch);
+  local show = tk:GetTutorialShowState(db.profile.installMessage);
 
-  local oldVersion = db.profile.installMessage; -- should be less
-  if (not oldVersion or not (obj:IsString(oldVersion))) then
+  if (show) then
     self:SetEnabled(true);
-  else
-    local oldMajor, oldMinor, oldPatch = tk.Strings:Split(oldVersion, ".");
-    oldMajor = tonumber(oldMajor);
-    oldMinor = tonumber(oldMinor);
-    oldPatch = tonumber(oldPatch);
-
-    if (major > oldMajor or minor > oldMinor or patch > (oldPatch + 5)) then
-      self:SetEnabled(true);
-    end
   end
 end
 

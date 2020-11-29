@@ -503,8 +503,8 @@ function C_AuraArea:SetEnabled(data, enabled)
 
   if (not newlyCreated) then
     local handler = em:FindEventHandlerByKey(data.globalName.."Handler");
-    handler:SetEventCallbackEnabled("GROUP_ROSTER_UPDATE", enabled);
-    handler:SetEventCallbackEnabled("PLAYER_ENTERING_WORLD", enabled);
+    handler:SetEventTriggerEnabled("GROUP_ROSTER_UPDATE", enabled);
+    handler:SetEventTriggerEnabled("PLAYER_ENTERING_WORLD", enabled);
   end
 
   data.frame:SetShown(enabled);

@@ -88,10 +88,10 @@ function C_ArtifactBar:SetEnabled(data, enabled)
   local handler2 = em:FindEventHandlerByKey("Artifact_OnInventoryChanged");
 
   if (handler) then
-      handler:SetEventCallbackEnabled("ARTIFACT_XP_UPDATE", enabled);
+      handler:SetEventTriggerEnabled("ARTIFACT_XP_UPDATE", enabled);
   end
 
   if (handler2) then
-      handler2:SetEventCallbackEnabled("UNIT_INVENTORY_CHANGED", enabled);
+      handler2:SetEventTriggerEnabled("UNIT_INVENTORY_CHANGED", enabled);
   end
 end

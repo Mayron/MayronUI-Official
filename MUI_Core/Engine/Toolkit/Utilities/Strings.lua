@@ -9,7 +9,7 @@ tk.Strings = {};
 tk.Strings.Empty = "";
 tk.Strings.Space = " ";
 
-local _G = _G;
+local CreateColor = _G.CreateColor;
 local string, table, tostring, type = _G.string, _G.table, _G.tostring, _G.type;
 local select, UnitClass = _G.select, _G.UnitClass;
 -----------------------------
@@ -122,7 +122,8 @@ function tk.Strings:SetTextColorByTheme(text)
 end
 
 function tk.Strings:SetTextColorByRGB(text, r, g, b)
-    local color = _G.CreateColor(r, g, b);
+    if (not (r and g and b)) then return text; end
+    local color = CreateColor(r, g, b);
     return color:WrapTextInColorCode(text);
 end
 

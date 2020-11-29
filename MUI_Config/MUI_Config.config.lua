@@ -10,11 +10,11 @@ local defaultHeightWidget;
 local table, ipairs = _G.table, _G.ipairs;
 
 local function GetModKeyValue(modKey, currentValue)
-    if (obj:IsString(currentValue) and currentValue:find(modKey)) then
-        return true;
-    end
+  if (obj:IsString(currentValue) and currentValue:find(modKey)) then
+    return true;
+  end
 
-    return false;
+  return false;
 end
 
 local function SetModKeyValue(modKey, dbPath, newValue, oldValue)
@@ -38,16 +38,30 @@ local function SetModKeyValue(modKey, dbPath, newValue, oldValue)
 end
 
 local BartenderActionBars = {
-    "Bar 1";
-    "Bar 2";
-    "Bar 3";
-    "Bar 4";
-    "Bar 5";
-    "Bar 6";
-    "Bar 7";
-    "Bar 8";
-    "Bar 9";
-    "Bar 10";
+  "Bar 1";
+  "Bar 2";
+  "Bar 3";
+  "Bar 4";
+  "Bar 5";
+  "Bar 6";
+  "Bar 7";
+  "Bar 8";
+  "Bar 9";
+  "Bar 10";
+};
+
+local BartenderActionBarValues = {
+  ["None"]  = 0,
+  ["Bar 1"] = 1;
+  ["Bar 2"] = 2;
+  ["Bar 3"] = 3;
+  ["Bar 4"] = 4;
+  ["Bar 5"] = 5;
+  ["Bar 6"] = 6;
+  ["Bar 7"] = 7;
+  ["Bar 8"] = 8;
+  ["Bar 9"] = 9;
+  ["Bar 10"] = 10;
 };
 
 function C_ConfigModule:GetConfigTable()
@@ -487,13 +501,13 @@ function C_ConfigModule:GetConfigTable()
                             end;
                         };
                         {   type    = "fontstring";
-                            content = L["Row 1"];
+                            content = L["Row"] .. "1";
                             subtype = "header";
                         };
                         {   name    = L["First Bartender Bar"];
                             type    = "dropdown";
-                            dbPath  = "profile.actionBarPanel.bartender[1]";
-                            options = BartenderActionBars;
+                            dbPath  = "profile.actionBarPanel.bartender[1][1]";
+                            options = BartenderActionBarValues;
                             OnLoad = function(_, container)
                               table.insert(bartenderControlDependencies, container.widget);
                             end;
@@ -503,9 +517,9 @@ function C_ConfigModule:GetConfigTable()
                             end;
                         };
                         {   name    = L["Second Bartender Bar"];
-                            dbPath  = "profile.actionBarPanel.bartender[2]";
+                            dbPath  = "profile.actionBarPanel.bartender[1][2]";
                             type    = "dropdown";
-                            options = BartenderActionBars;
+                            options = BartenderActionBarValues;
                             OnLoad = function(_, container)
                               table.insert(bartenderControlDependencies, container.widget);
                             end;
@@ -514,13 +528,13 @@ function C_ConfigModule:GetConfigTable()
                             end
                         };
                         {   type    = "fontstring";
-                            content = L["Row 2"];
+                            content = L["Row"] .. "2";
                             subtype = "header";
                         };
                         {   name    = L["First Bartender Bar"];
-                            dbPath  = "profile.actionBarPanel.bartender[3]";
+                            dbPath  = "profile.actionBarPanel.bartender[2][1]";
                             type    = "dropdown";
-                            options = BartenderActionBars;
+                            options = BartenderActionBarValues;
                             OnLoad = function(_, container)
                               table.insert(bartenderControlDependencies, container.widget);
                             end;
@@ -529,9 +543,35 @@ function C_ConfigModule:GetConfigTable()
                             end
                         };
                         {   name    = L["Second Bartender Bar"];
-                            dbPath  = "profile.actionBarPanel.bartender[4]";
+                            dbPath  = "profile.actionBarPanel.bartender[2][2]";
                             type    = "dropdown";
-                            options = BartenderActionBars;
+                            options = BartenderActionBarValues;
+                            OnLoad = function(_, container)
+                              table.insert(bartenderControlDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.bartender.control;
+                            end
+                        },
+                        {   type    = "fontstring";
+                            content = L["Row"] .. "3";
+                            subtype = "header";
+                        };
+                        {   name    = L["First Bartender Bar"];
+                            dbPath  = "profile.actionBarPanel.bartender[3][1]";
+                            type    = "dropdown";
+                            options = BartenderActionBarValues;
+                            OnLoad = function(_, container)
+                              table.insert(bartenderControlDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.bartender.control;
+                            end
+                        };
+                        {   name    = L["Second Bartender Bar"];
+                            dbPath  = "profile.actionBarPanel.bartender[3][2]";
+                            type    = "dropdown";
+                            options = BartenderActionBarValues;
                             OnLoad = function(_, container)
                               table.insert(bartenderControlDependencies, container.widget);
                             end;

@@ -8,7 +8,7 @@ local MayronUI = _G.MayronUI;
 local table, ipairs, select, string, unpack, print = _G.table, _G.ipairs, _G.select, _G.string, _G.unpack, _G.print;
 local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI =
   _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
-local strsplit, GetAddOnMetadata = _G.strsplit, _G.GetAddOnMetadata;
+local strsplit, GetAddOnMetadata, tostring = _G.strsplit, _G.GetAddOnMetadata, _G.tostring;
 local collectgarbage, CreateFont, error = _G.collectgarbage, _G.CreateFont, _G.error;
 
 _G.BINDING_CATEGORY_MUI = "MayronUI";
@@ -688,6 +688,10 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
   coreModule:Initialize();
 
 end):SetAutoDestroy(true);
+
+em:CreateEventHandler("PLAYER_LOGOUT", function()
+  db.profile.freshInstall = nil;
+end);
 
 -- Database Event callbacks --------------------
 

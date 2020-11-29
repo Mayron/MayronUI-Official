@@ -9,6 +9,8 @@ local C_Timer = _G.C_Timer;
 
 local Private = {};
 local FADING_STACKING_DELAY = 0.2;
+local TOGGLE_BUTTON_WIDTH = 120;
+local TOGGLE_BUTTON_HEIGHT = 28;
 
 -- Register and Import Modules -----------
 local Engine = obj:Import("MayronUI.Engine");
@@ -50,40 +52,81 @@ db:AddToDefaults("profile.actionBarPanel", {
 });
 
 -- local functions ------------------
+
+local function ShowKeyBindings()
+  _G.LoadAddOn("Blizzard_BindingUI");
+  _G.KeyBindingFrame:Show();
+
+  for _, btn in ipairs(_G.KeyBindingFrame.categoryList.buttons) do
+    if (btn.element and btn.element.name == "MayronUI") then
+      btn:Click();
+    end
+  end
+end
+
 function Private:LoadTutorial()
   local frame = tk:PopFrame("Frame", self.panel);
 
   frame:SetFrameStrata("TOOLTIP");
-  frame:SetSize(250, 130);
-  frame:SetPoint("BOTTOM", self.panel, "TOP", 0, 100);
+  frame:SetSize(300, 150);
+  frame:SetPoint("BOTTOM", self.panel, "TOP", 0, 120);
 
   gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
   gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
+  gui:AddTitleBar(tk.Constants.AddOnStyle, frame, "Tutorial: Step 1");
   gui:AddArrow(tk.Constants.AddOnStyle, frame, "DOWN");
 
   frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   frame.text:SetWordWrap(true);
   frame.text:SetPoint("TOPLEFT", 20, -20);
   frame.text:SetPoint("BOTTOMRIGHT", -20, 10);
+  tk:SetFontSize(frame.text, 13);
 
-  -- TODO: What if they changed the modifier key combination? Add ability for them to change that combination during the tutorial
-  local tutorialMessage = L["Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."];
-  tutorialMessage = tutorialMessage:format(tk.Strings:SetTextColorByTheme("Control"));
+  local modKeyLabels = {
+    ["C"] = "CTRL",
+    ["S"] = "SHIFT",
+    ["A"] = "ALT",
+  };
+
+  local modKey = db.profile.actionBarPanel.modKey;
+  local modKeyLabel;
+  for i = 1, #modKey do
+    local c = modKey:sub(i,i);
+
+    if (i == 1) then
+      modKeyLabel = modKeyLabels[c];
+    else
+      modKeyLabel = string.format("%s+%s", modKeyLabel, modKeyLabels[c]);
+    end
+  end
+
+  local tutorialMessage = "Press and hold %s while out of combat to show toggle buttons.\n\n Clicking these will show or hide additional action bar rows.";
+  tutorialMessage = tutorialMessage:format(tk.Strings:SetTextColorByKey(modKeyLabel, "GOLD"));
   frame.text:SetText(tutorialMessage);
 
   em:CreateEventHandler("MODIFIER_STATE_CHANGED", function(self)
-    if (tk:IsModComboActive("C")) then
-      frame.text:SetText(L["You can repeat this step at any time (while out of combat) to hide it."]);
-      frame:SetHeight(90);
+    if (not tk:IsModComboActive(modKey)) then return end
+    frame.titleBar.text:SetText("Tutorial: Step 2");
+    frame.text:SetText("You can change this key combination in the MUI config menu (/mui config).\n\nAlso, there are 3 key bindings to quickly switch between 1 to 3 rows, found in the Blizzard key bindings menu.");
+    frame:SetHeight(200);
+    frame.text:SetPoint("BOTTOMRIGHT", -20, 50);
 
-      if (not frame:IsShown()) then
-        UIFrameFadeIn(frame, 0.5, 0, 1);
-        frame:Show();
-      end
+    local btn = gui:CreateButton(tk.Constants.AddOnStyle, frame, "Show MUI Key Bindings");
+    btn:SetPoint("BOTTOM", 0, 20);
+    btn:SetScript("OnClick", function()
+      ShowKeyBindings();
+      frame.closeBtn:Click();
+    end);
 
-      db.global.tutorial = nil;
-      self:Destroy();
+    btn:SetWidth(200);
+
+    if (not frame:IsShown()) then
+      UIFrameFadeIn(frame, 0.5, 0, 1);
+      frame:Show();
     end
+
+    db.profile.actionBarPanel.tutorial = _G.GetAddOnMetadata("MUI_Core", "Version");
+    self:Destroy();
   end);
 end
 
@@ -202,7 +245,6 @@ function Private:CreateButton()
   local btn = gui:CreateButton(tk.Constants.AddOnStyle, self.buttons);
   btn:SetFrameStrata("HIGH");
   btn:SetFrameLevel(30);
-  btn:SetSize(120, 28);
   btn:SetBackdrop(tk.Constants.BACKDROP);
   btn:SetBackdropBorderColor(0, 0, 0);
   btn:SetScript("OnClick", function(b) self:HandleButtonClick(b); end);
@@ -255,16 +297,24 @@ function Private:PositionToggleButtons()
 
   if (self.settings.activeRows == 1) then
     self.up:SetPoint("BOTTOM", self.buttons, "TOP");
+    self.up:SetSize(TOGGLE_BUTTON_WIDTH, TOGGLE_BUTTON_HEIGHT);
     self.up:Show();
 
   elseif (self.settings.activeRows == 2) then
-    self.down:SetPoint("BOTTOM", self.buttons, "TOP", -64, 0);
+    local smallWidth = TOGGLE_BUTTON_WIDTH / 2;
+    local gap = 1;
+    local offset = (smallWidth / 2) + gap;
+
+    self.down:SetPoint("BOTTOM", self.buttons, "TOP", -offset, 0);
+    self.down:SetSize(smallWidth, TOGGLE_BUTTON_HEIGHT);
     self.down:Show();
-    self.up:SetPoint("BOTTOM", self.buttons, "TOP", 64, 0);
+    self.up:SetPoint("BOTTOM", self.buttons, "TOP", offset, 0);
+    self.up:SetSize(smallWidth, TOGGLE_BUTTON_HEIGHT);
     self.up:Show();
 
   elseif (self.settings.activeRows == 3) then
     self.down:SetPoint("BOTTOM", self.buttons, "TOP");
+    self.down:SetSize(TOGGLE_BUTTON_WIDTH, TOGGLE_BUTTON_HEIGHT);
     self.down:Show();
   end
 end
@@ -284,21 +334,34 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
         "defaultHeight"
       };
     };
+    groups = {
+      {
+        patterns = { "bartender" };
+        value = function(value, keysList)
+          local _, rowId = keysList:PopFront(), keysList:PopFront();
+
+          print("rowId", rowId);
+          MayronUI:PrintTable(value);
+
+          -- if (obj:IsNumber(barIds)) then
+          --   self:SetUpBartenderBar(1, barIds);
+          -- else
+          --   for _, bartenderBarID in ipairs(barIds) do
+          --     self:SetUpBartenderBar(1, bartenderBarID);
+          --   end
+          -- end
+        end;
+      };
+    };
   };
 
   self:RegisterUpdateFunctions(db.profile.actionBarPanel, {
-    -- TODO: Replaced with "activeRows"
-    -- expanded = function()
-    --   local onShow = data.panel:GetScript("OnShow"); -- TODO: This is now on mod change
-    --   if (obj:IsFunction(onShow)) then onShow() end
-    -- end;
-
     expandRetract = function(value)
       if (value) then
         self:LoadExpandRetractFeature();
       elseif (data.expandRetractFeatureLoaded) then
         local handler = em:FindEventHandlerByKey("ExpandRetractFeature");
-        handler:SetEventCallbackEnabled("MODIFIER_STATE_CHANGED", false);
+        handler:SetEventTriggerEnabled("MODIFIER_STATE_CHANGED", false);
 
         data.panel:SetHeight(data.settings.defaultHeight);
       end
@@ -351,25 +414,22 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
     bartender = {
       control = function()
         self:SetUpAllBartenderBars();
-      end;
+      end
 
-      [1] = function(barIds)
-        for _, bartenderBarID in ipairs(barIds) do
-          self:SetUpBartenderBar(1, bartenderBarID);
-        end
-      end;
+      -- [1] = function(barIds)
 
-      [2] = function(barIds)
-        for _, bartenderBarID in ipairs(barIds) do
-          self:SetUpBartenderBar(2, bartenderBarID);
-        end
-      end;
+      -- end;
 
-      [3] = function(barIds)
-        for _, bartenderBarID in ipairs(barIds) do
-          self:SetUpBartenderBar(3, bartenderBarID);
-        end
-      end;
+      -- [2] = function(barIds)
+      --   for _, bartenderBarID in ipairs(barIds) do
+      --     self:SetUpBartenderBar(2, bartenderBarID);
+      --   end
+      -- end;
+
+      -- [3] = function(barIds)
+      --   for _, bartenderBarID in ipairs(barIds) do
+      --     self:SetUpBartenderBar(3, bartenderBarID);
+      --   end
     };
   }, options);
 
@@ -399,8 +459,12 @@ function C_ActionBarPanel:OnEnable(data)
 
   gui:CreateGridTexture(data.panel, data.settings.texture, data.settings.cornerSize, nil, 749, 45);
 
-  if (db.global.tutorial and db.profile.actionBarPanel.expandRetract) then
-    data:LoadTutorial();
+  if (data.settings.expandRetract and not data.settings.tutorial) then
+    local show = tk:GetTutorialShowState(data.settings.tutorial);
+
+    if (show) then
+      data:LoadTutorial();
+    end
   end
 end
 
@@ -409,12 +473,14 @@ function Private:GetRowHeight(rowId)
   local maxHeight = 0;
 
   for _, barId in ipairs(barIds) do
-    local bartenderBar = _G[string.format("BT4Bar%d", barId)];
-    local barHeight = bartenderBar.buttons[1]:GetHeight(); -- always 36
-    barHeight = barHeight * bartenderBar:GetScale();
+    if (barId > 0) then
+      local bartenderBar = _G[string.format("BT4Bar%d", barId)];
+      local barHeight = bartenderBar.buttons[1]:GetHeight(); -- always 36
+      barHeight = barHeight * bartenderBar:GetScale();
 
-    if (barHeight > maxHeight) then
-      maxHeight = barHeight;
+      if (barHeight > maxHeight) then
+        maxHeight = barHeight;
+      end
     end
   end
 
@@ -426,6 +492,7 @@ end
 ---This function controls the selected bartender action bars by setting them up
 Engine:DefineParams("number", "number");
 function C_ActionBarPanel:SetUpBartenderBar(data, rowId, bartenderBarId)
+  if (bartenderBarId == 0) then return end -- disabled
   if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
     return;
   end
@@ -528,7 +595,7 @@ end
 function C_ActionBarPanel:LoadExpandRetractFeature(data)
   if (data.expandRetractFeatureLoaded) then
     local handler = em:FindEventHandlerByKey("ExpandRetractFeature");
-    handler:SetEventCallbackEnabled("MODIFIER_STATE_CHANGED", true);
+    handler:SetEventTriggerEnabled("MODIFIER_STATE_CHANGED", true);
 
     -- Set up the height of data.panel
     data:SetUpPanelHeight();

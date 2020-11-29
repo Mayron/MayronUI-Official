@@ -371,52 +371,7 @@ do
 	end
 
 	do
-		local c = _G.CreateColor(1, 1, 1);
-
-    local function ApplyColorToMessage(message, r, g, b)
-      if (not (r and g and b)) then return message; end
-
-			c:SetRGB(r, g, b);
-
-      local hex = "|c" .. c:GenerateHexColor();
-
-      message = message:gsub("|c.-|r", function(code) return string.format("|r%s%s", code, hex) end);
-      message = string.format("%s%s|r", hex, message);
-
-			return message;
-    end
-
 		-- accountNameCode cannot be used as |K breaks the editBox
-    local function ReplaceAccountNameCodeWithBattleTag(accountNameCode)
-			for i = 1, 200 do
-        if (_G.BNGetFriendInfoByID) then
-          -- otherAccountNameCode will be a code such as |Km24|k
-          local _, otherAccountNameCode, battleTag = _G.BNGetFriendInfoByID(i);
-
-          if (i > 50 and not otherAccountNameCode) then
-            return "";
-          end
-
-          if (accountNameCode == otherAccountNameCode) then
-            return (select(1, strsplit("#", battleTag)));
-          end
-
-        elseif (_G.C_BattleNet and _G.C_BattleNet.GetAccountInfoByID) then
-          local friendInfo = _G.C_BattleNet.GetAccountInfoByID(i);
-
-          if (obj:IsTable(friendInfo)) then
-            if (i > 50 and not friendInfo.accountName) then
-              return "";
-            end
-
-            if (accountNameCode == friendInfo.accountName) then
-              return (select(1, strsplit("#", friendInfo.battleTag)));
-            end
-          end
-        end
-			end
-		end
-
 		local function RefreshChatText(editBox)
 			local chatFrame = _G[string.format("ChatFrame%d", editBox.chatFrameID)];
 			local messages = obj:PopTable();
@@ -428,8 +383,8 @@ do
 
         if (obj:IsString(message) and #message > 0) then
           -- |Km26|k (BSAp) or |Kq%d+|k
-          message = message:gsub("|K.*|k", ReplaceAccountNameCodeWithBattleTag);
-          message = ApplyColorToMessage(message, r, g, b);
+          message = message:gsub("|K.*|k", tk.ReplaceAccountNameCodeWithBattleTag);
+          message = tk.Strings:SetTextColorByRGB(message, r, g, b);
 
 					table.insert(messages, message);
 				end
@@ -441,81 +396,81 @@ do
 			editBox:SetText(fullText);
 		end
 
-		local function CreateChatTextFrame()
-			local frame = CreateFrame("Frame", nil, _G.UIParent);
-			frame:SetSize(600, 300);
-			frame:SetPoint("CENTER");
-			frame:Hide();
+    local function CreateCopyChatFrame()
+      local frame = CreateFrame("Frame", nil, _G.UIParent);
+      frame:SetSize(600, 300);
+      frame:SetPoint("CENTER");
+      frame:Hide();
 
-			gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
-			gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
-			gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Copy Chat Text"]);
+      gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
+      gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
+      gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Copy Chat Text"]);
 
-			local editBox = CreateFrame("EditBox", "MUI_CopyChatEditBox", frame);
-			editBox:SetMultiLine(true);
-			editBox:SetMaxLetters(99999);
-			editBox:EnableMouse(true);
-			editBox:SetAutoFocus(false);
-			editBox:SetFontObject("GameFontHighlight");
-			editBox:SetHeight(200);
-			editBox.chatFrameID = 1;
+      local editBox = CreateFrame("EditBox", "MUI_CopyChatEditBox", frame);
+      editBox:SetMultiLine(true);
+      editBox:SetMaxLetters(99999);
+      editBox:EnableMouse(true);
+      editBox:SetAutoFocus(false);
+      editBox:SetFontObject("GameFontHighlight");
+      editBox:SetHeight(200);
+      editBox.chatFrameID = 1;
 
-			editBox:SetScript("OnEscapePressed", function(self)
-				self:ClearFocus();
-			end);
+      editBox:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus();
+      end);
 
-			local refreshButton = CreateFrame("Button", nil, frame);
-			refreshButton:SetSize(18, 18);
-			refreshButton:SetPoint("TOPRIGHT", frame.closeBtn, "TOPLEFT", -10, -3);
-			refreshButton:SetNormalTexture("Interface\\Buttons\\UI-RefreshButton");
-			refreshButton:SetHighlightAtlas("chatframe-button-highlight");
-			tk:SetBasicTooltip(refreshButton, "Refresh Chat Text");
+      local refreshButton = CreateFrame("Button", nil, frame);
+      refreshButton:SetSize(18, 18);
+      refreshButton:SetPoint("TOPRIGHT", frame.closeBtn, "TOPLEFT", -10, -3);
+      refreshButton:SetNormalTexture("Interface\\Buttons\\UI-RefreshButton");
+      refreshButton:SetHighlightAtlas("chatframe-button-highlight");
+      tk:SetBasicTooltip(refreshButton, "Refresh Chat Text");
 
-			refreshButton:SetScript("OnClick", function()
-				RefreshChatText(editBox);
-			end);
+      refreshButton:SetScript("OnClick", function()
+        RefreshChatText(editBox);
+      end);
 
-			local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, frame);
-			local dropdownContainer = dropdown:GetFrame();
-			dropdownContainer:SetSize(150, 20);
-			dropdownContainer:SetPoint("TOPRIGHT", refreshButton, "TOPLEFT", -10, 0);
+      local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, frame);
+      local dropdownContainer = dropdown:GetFrame();
+      dropdownContainer:SetSize(150, 20);
+      dropdownContainer:SetPoint("TOPRIGHT", refreshButton, "TOPLEFT", -10, 0);
 
-			local function DropDown_OnOptionSelected(_, chatFrameID)
-				editBox.chatFrameID = chatFrameID;
-				RefreshChatText(editBox);
-			end
+      local function DropDown_OnOptionSelected(_, chatFrameID)
+        editBox.chatFrameID = chatFrameID;
+        RefreshChatText(editBox);
+      end
 
-			for chatFrameID = 1, _G.NUM_CHAT_WINDOWS do
-				local tab = _G[string.format("ChatFrame%dTab", chatFrameID)];
-				local tabText = tab.Text:GetText();
+      for chatFrameID = 1, _G.NUM_CHAT_WINDOWS do
+        local tab = _G[string.format("ChatFrame%dTab", chatFrameID)];
+        local tabText = tab.Text:GetText();
 
-				if (obj:IsString(tabText) and #tabText > 0 and tab:IsShown()) then
-					dropdown:AddOption(tabText, DropDown_OnOptionSelected, chatFrameID);
-				end
-			end
+        if (obj:IsString(tabText) and #tabText > 0 and tab:IsShown()) then
+          dropdown:AddOption(tabText, DropDown_OnOptionSelected, chatFrameID);
+        end
+      end
 
-			local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, frame, "MUI_CopyChatFrame", editBox);
-			container:SetPoint("TOPLEFT", 10, -30);
-			container:SetPoint("BOTTOMRIGHT", -10, 10);
+      local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, frame, "MUI_CopyChatFrame", editBox);
+      container:SetPoint("TOPLEFT", 10, -30);
+      container:SetPoint("BOTTOMRIGHT", -10, 10);
 
-			container.ScrollFrame:ClearAllPoints();
-			container.ScrollFrame:SetPoint("TOPLEFT", 5, -5);
-			container.ScrollFrame:SetPoint("BOTTOMRIGHT", -5, 5);
+      container.ScrollFrame:ClearAllPoints();
+      container.ScrollFrame:SetPoint("TOPLEFT", 5, -5);
+      container.ScrollFrame:SetPoint("BOTTOMRIGHT", -5, 5);
 
-			container.ScrollFrame:HookScript("OnScrollRangeChanged", function(self)
-				local maxScroll = self:GetVerticalScrollRange();
-				self:SetVerticalScroll(maxScroll);
-			end);
+      container.ScrollFrame:HookScript("OnScrollRangeChanged", function(self)
+        local maxScroll = self:GetVerticalScrollRange();
+        self:SetVerticalScroll(maxScroll);
+      end);
 
-			tk:SetBackground(container, 0, 0, 0, 0.4);
+      tk:SetBackground(container, 0, 0, 0, 0.4);
 
-			frame.editBox = editBox;
-			frame.dropdown = dropdown;
-			return frame;
-		end
+      frame.editBox = editBox;
+      frame.dropdown = dropdown;
+      return frame;
+    end
 
 		function CreateCopyChatButton(muiChatFrame)
-			local copyChatButton = _G.CreateFrame("Button", "MUI_CopyChatButton", muiChatFrame);
+			local copyChatButton = CreateFrame("Button", "MUI_CopyChatButton", muiChatFrame);
 			copyChatButton:SetSize(24, 24);
 			copyChatButton:SetNormalTexture(string.format("%scopyIcon", MEDIA));
 			copyChatButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
@@ -525,7 +480,7 @@ do
 
 			copyChatButton:SetScript("OnClick", function(self)
 				if (not self.chatTextFrame) then
-					self.chatTextFrame = CreateChatTextFrame();
+					self.chatTextFrame = CreateCopyChatFrame();
 				end
 
 				-- get chat frame text:

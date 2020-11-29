@@ -87,7 +87,7 @@ function C_ReputationBar:SetEnabled(data, enabled)
     local handler = em:FindEventHandlerByKey("OnReputationBarUpdate");
 
     if (handler) then
-        handler:SetEventCallbackEnabled("UPDATE_FACTION", enabled);
-        handler:SetEventCallbackEnabled("PLAYER_REGEN_ENABLED", enabled);
+        handler:SetEventTriggerEnabled("UPDATE_FACTION", enabled);
+        handler:SetEventTriggerEnabled("PLAYER_REGEN_ENABLED", enabled);
     end
 end

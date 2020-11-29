@@ -1,20 +1,24 @@
 -- luacheck: ignore MayronUI self 143 631
 local addonName = ...;
 
----@class LibMayronEvents
-local Lib = _G.LibStub:NewLibrary("LibMayronEvents", 1.1);
-
----@type Objects
-local obj = _G.LibStub:GetLibrary("LibMayronObjects");
+local Lib = _G.LibStub:NewLibrary("LibMayronEvents", 1.2); ---@class LibMayronEvents
+local obj = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
 
 if (not (Lib and obj)) then return end
 
 local pairs, ipairs, tostring, unpack = _G.pairs, _G.ipairs, _G.tostring, _G.unpack;
+local strtrim, strsplit, table, select = _G.strtrim, _G.strsplit, _G.table, _G.select;
 
 local Private = {};
-Private.eventsList = {};
-Private.eventKeys = {};
-Private.eventTracker = _G.CreateFrame("Frame");
+
+-- stores a list of handlers handling a given event.
+-- These handlers will be executed when the event triggers unless disabled.
+Private.handlersByEventName = {};
+
+-- stores all handlers using their key for quick access
+Private.handlersByKey = {};
+
+Private.eventManagerFrame = _G.CreateFrame("Frame");
 
 -- Objects ----------------------------
 
@@ -27,52 +31,51 @@ local Handler = EventsPackage:CreateClass("Handler");
 -- Handler Prototype
 ------------------------
 function Handler:__Construct(data, eventName, callback, unitName, ...)
-    data.callback = callback;
-    data.key = tostring(self);
-    data.events = obj:PopTable();
-    self:SetCallbackArgs(...);
-
-    self:AppendEvent(eventName, unitName);
+  data.callback = callback;
+  data.key = tostring(self);
+  data.eventTriggers = obj:PopTable();
+  self:SetCallbackArgs(...);
+  self:AppendEvent(eventName, unitName);
 end
 
 function Handler:__Destruct(data)
-    for eventName, _ in pairs(data.events) do
-        for id, handler in ipairs(Private.eventsList[eventName]) do
-            if (handler == self) then
-                table.remove(Private.eventsList[eventName], id);
-                Private:CleanEventTable(data.eventName);
-                break;
-            end
-        end
+  for eventName, _ in pairs(data.eventTriggers) do
+    for id, handler in ipairs(Private.handlersByEventName[eventName]) do
+      if (handler == self) then
+        table.remove(Private.handlersByEventName[eventName], id);
+        Private:CleanEventTable(data.eventName);
+        break;
+      end
     end
+  end
 
-    Private.eventKeys[data.key] = nil;
+  Private.handlersByKey[data.key] = nil;
 end
 
 ---@return table @Returns a table containing all event names registered with handler.
 function Handler:GetEventNames(data)
-    local eventNames = obj:PopTable();
+  local eventNames = obj:PopTable();
 
-    for eventName, _ in pairs(data.events) do
-        table.insert(eventNames, eventName);
-    end
+  for eventName, _ in pairs(data.eventTriggers) do
+    table.insert(eventNames, eventName);
+  end
 
-    return eventNames;
+  return eventNames;
 end
 
 EventsPackage:DefineParams("string", "boolean");
----@param eventName string @The event name to enable or disable.
----@param enabled boolean @Set to false to prevent event from triggering (without destroying it).
-function Handler:SetEventCallbackEnabled(data, eventName, enabled)
-    data.events[eventName] = enabled;
-    return self;
+---@param eventName string @The event name to trigger the handler function.
+---@param enabled boolean @Set to false to prevent event from triggering the handler function (without destroying it).
+function Handler:SetEventTriggerEnabled(data, eventName, enabled)
+  data.eventTriggers[eventName] = enabled;
+  return self;
 end
 
 EventsPackage:DefineParams("boolean");
----@param enabled boolean @Set to false to prevent all events from triggering (without destroying it).
+---@param enabled boolean @Set to false to prevent ALL events from triggering (without destroying it).
 function Handler:SetEnabled(data, enabled)
-  for eventName, _ in pairs(data.events) do
-    data.events[eventName] = enabled;
+  for eventName, _ in pairs(data.eventTriggers) do
+    data.eventTriggers[eventName] = enabled;
   end
 
   return self;
@@ -83,93 +86,93 @@ EventsPackage:DefineReturns("boolean");
 ---@param eventName string @The name of the event to check for.
 ---@return boolean @Returns whether the event is enabled for the handler.
 function Handler:IsEventCallbackEnabled(data, eventName)
-    return data.events[eventName];
+  return data.eventTriggers[eventName];
 end
 
 EventsPackage:DefineParams("boolean");
 ---@param autoDestroy boolean @If true, the handler will automatically be destroyed after the first time it is executed.
 function Handler:SetAutoDestroy(data, autoDestroy)
-    data.autoDestroy = autoDestroy;
-    return self;
+  data.autoDestroy = autoDestroy;
+  return self;
 end
 
 ---All variables passed to this function will be passed to the event handler function when the event is triggered.
 function Handler:SetCallbackArgs(data, ...)
-    if (select("#", ...) == 0) then
-        return;
-    end
+  if (select("#", ...) == 0) then
+    return;
+  end
 
-    if (data.args) then
-        obj:PushTable(data.args);
-    end
+  if (data.args) then
+    obj:PushTable(data.args);
+  end
 
-    data.args = obj:PopTable(...);
-    return self;
+  data.args = obj:PopTable(...);
+  return self;
 end
 
 EventsPackage:DefineParams("string");
 ---@param key string @A unique key to easily find an event handler object using the library "find" functions.
 function Handler:SetKey(data, key)
-    data.key = key;
-    Private.eventKeys[key] = self;
-    return self;
+  data.key = key;
+  Private.handlersByKey[key] = self;
+  return self;
 end
 
 EventsPackage:DefineReturns("?string");
 ---@return string @If the handler has a key, it is returned.
 function Handler:GetKey(data)
-    return data.key;
+  return data.key;
 end
 
 EventsPackage:DefineParams("?string");
 EventsPackage:DefineReturns("boolean");
----@param eventName string @The name of the event that triggered the handler (if supplied, the callback will only be executed if has not been disabled using SetEventCallbackEnabled).
+---@param eventName string @The name of the event that triggered the handler (if supplied, the callback will only be executed if has not been disabled using SetEventTriggerEnabled).
 ---@return boolean @Returns true if the handler was destroyed during execution.
 function Handler:Run(data, eventName, ...)
-    if (obj:IsString(eventName) and not data.events[eventName]) then
-        return false; -- event callback has been disabled.
+  if (obj:IsString(eventName) and not data.eventTriggers[eventName]) then
+    return false; -- event callback has been disabled.
+  end
+
+  if (data.callback) then
+    if (data.args) then
+      -- execute event callback
+      local args = obj:PopTable(unpack(data.args));
+
+      for _, value in obj:IterateArgs(...) do
+        table.insert(args, value);
+      end
+
+      data.callback(self, eventName, unpack(args));
+      obj:PushTable(args);
+    else
+      -- execute event callback
+      data.callback(self, eventName, ...);
     end
+  end
 
-    if (data.callback) then
-        if (data.args) then
-            -- execute event callback
-            local args = obj:PopTable(unpack(data.args));
+  if (data.autoDestroy) then
+    self:Destroy();
+    return true;
+  end
 
-            for _, value in obj:IterateArgs(...) do
-                table.insert(args, value);
-            end
-
-            data.callback(self, eventName, unpack(args));
-            obj:PushTable(args);
-        else
-            -- execute event callback
-            data.callback(self, eventName, ...);
-        end
-    end
-
-    if (data.autoDestroy) then
-        self:Destroy();
-        return true;
-    end
-
-    return false;
+  return false;
 end
 
 EventsPackage:DefineParams("string", "?string");
 ---@param eventName string @The event name to register with the handler.
 ---@param unitName string @The name of the unit to register events to (i.e. RegisterUnitEvent).
 function Handler:AppendEvent(data, eventName, unitName)
-    if (unitName) then
-        Private.eventTracker:RegisterUnitEvent(eventName, unitName);
-    else
-        Private.eventTracker:RegisterEvent(eventName);
-    end
+  if (unitName) then
+    Private.eventManagerFrame:RegisterUnitEvent(eventName, unitName);
+  else
+    Private.eventManagerFrame:RegisterEvent(eventName);
+  end
 
-    data.events[eventName] = true;
+  data.eventTriggers[eventName] = true;
 
-    Private.eventsList[eventName] = Private.eventsList[eventName] or obj:PopTable();
-    table.insert(Private.eventsList[eventName], self);
-    return self;
+  Private.handlersByEventName[eventName] = Private.handlersByEventName[eventName] or obj:PopTable();
+  table.insert(Private.handlersByEventName[eventName], self);
+  return self;
 end
 
 ------------------------
@@ -181,27 +184,32 @@ end
 ---@param unitName string @The name of the unit to register events to.
 ---@return Handler @Handler object created for the registered event.
 function Lib:CreateUnitEventHandlerWithKey(eventName, key, callback, unitName, ...)
-    key = key or tostring(callback);
-    local handler = self:FindEventHandlerByKey(key);
+  if (obj:IsString(key)) then
+    obj:Assert(self:FindEventHandlerByKey(key) == nil, "Event handler already exists with key \"%s\"", key);
+  else
+    obj:Assert(self:FindEventHandlerByKey(callback) == nil, "Event handler already exists for that callback function. Use a command-separated list of event names, or AppendEvent, instead.");
+  end
 
-    if (eventName:find(",")) then
-        for _, event in obj:IterateArgs(_G.strsplit(",", eventName)) do
-            event = _G.strtrim(event);
+  key = key or tostring(callback);
 
-            if (not handler) then
-                handler = Handler(event, callback, unitName, ...);
-            else
-                handler:AppendEvent(event, unitName);
-            end
-        end
-    elseif (not handler) then
-        handler = Handler(eventName, callback, unitName, ...);
-    else
-        handler:AppendEvent(eventName, unitName);
+  local handler;
+  if (eventName:find(",")) then
+
+    for _, event in obj:IterateArgs(strsplit(",", eventName)) do
+      event = strtrim(event);
+
+      if (not handler) then
+        handler = Handler(event, callback, unitName, ...);
+      else
+        handler:AppendEvent(event, unitName);
+      end
     end
+  else
+    handler = Handler(eventName, callback, unitName, ...);
+  end
 
-    handler:SetKey(key);
-    return handler;
+  handler:SetKey(key);
+  return handler;
 end
 
 ---@param eventName string @The name of the event to register (or a comma separated list of event names to attach to 1 handler).
@@ -209,7 +217,7 @@ end
 ---@param unitName string @The name of the unit to register events to (i.e. RegisterUnitEvent).
 ---@return Handler @Handler object created for the registered event.
 function Lib:CreateUnitEventHandler(eventName, callback, unitName, ...)
-    return self:CreateUnitEventHandlerWithKey(eventName, nil, callback, unitName, ...);
+  return self:CreateUnitEventHandlerWithKey(eventName, nil, callback, unitName, ...);
 end
 
 ---@param eventName string @The name of the event to register (or a comma separated list of event names to attach to 1 handler).
@@ -217,139 +225,141 @@ end
 ---@param callback function @Function to call when the event triggers.
 ---@return Handler @Handler object created for the registered event.
 function Lib:CreateEventHandlerWithKey(eventName, key, callback, ...)
-    return self:CreateUnitEventHandlerWithKey(eventName, key, callback, nil, ...);
+  return self:CreateUnitEventHandlerWithKey(eventName, key, callback, nil, ...);
 end
 
 ---@param eventName string @The name of the event to register (or a comma separated list of event names to attach to 1 handler).
 ---@param callback function @Function to call when the event triggers.
 ---@return Handler @Handler object created for the registered event.
 function Lib:CreateEventHandler(eventName, callback, ...)
-    return self:CreateUnitEventHandlerWithKey(eventName, nil, callback, nil, ...);
+  return self:CreateUnitEventHandlerWithKey(eventName, nil, callback, nil, ...);
 end
 
 ---@param key string @Check whether a handler with the specified key exists.
 ---@return boolean @If a handler is found, true is returned.
 function Lib:HandlerExists(key)
-    return (Private.eventKeys[key] ~= nil);
+  return (Private.handlersByKey[key] ~= nil);
 end
 
 ---Pass a variable argument list of keys to find and destroy all handlers with the specified key/s.
 function Lib:DestroyEventHandlersByKey(...)
-    for _, key in obj:IterateArgs(...) do
-        self:DestroyEventHandlerByKey(key);
-    end
+  for _, key in obj:IterateArgs(...) do
+    self:DestroyEventHandlerByKey(key);
+  end
 end
 
 ---Find and destroy a handler with the specified key.
 ---@param key string @The key name.
 function Lib:DestroyEventHandlerByKey(key)
-    if (self:HandlerExists(key)) then
-        Private.eventKeys[key]:Destroy();
-        Private.eventKeys[key] = nil;
-    end
+  if (self:HandlerExists(key)) then
+    Private.handlersByKey[key]:Destroy();
+    Private.handlersByKey[key] = nil;
+  end
 end
 
 ---Find and return a handler with the specified key.
 ---@param key string @The key name.
 ---@return Handler @The found handler (possible nil if not found).
 function Lib:FindEventHandlerByKey(key)
-    return Private.eventKeys[key];
+  return Private.handlersByKey[key];
 end
 
 ---Find and return all handlers registered with the event name.
 ---@param eventName string @The event name.
 ---@return table @A table containing all found handlers registered with the specified event name.
 function Lib:FindEventHandlersByEvent(eventName)
-    return Private.eventsList[eventName];
+  return Private.handlersByEventName[eventName];
 end
 
 ---Find and trigger a handler with the specified key if found.
 ---@param key string @The key name.
 ---@return boolean @Returns true if a handler with the specified key was found and triggered.
 function Lib:TriggerEventHandlerByKey(key)
-    local handler = self:FindEventHandlerByKey(key);
+  local handler = self:FindEventHandlerByKey(key);
 
-    if (handler) then
-        handler:Run();
-        return true;
-    end
+  if (handler) then
+    handler:Run();
+    return true;
+  end
 
-    return false;
+  return false;
 end
 
 ---Find and trigger handler callbacks for the specified event name if found.
 ---@param eventName string @The name of the even to trigger.
 ---@return boolean @Returns true if a handler callback for the specified event was found and triggered.
 function Lib:TriggerEventHandlerByEvent(eventName)
-    local handlers = self:FindEventHandlersByEvent(eventName);
-    local executed = false;
+  local handlers = self:FindEventHandlersByEvent(eventName);
+  local executed = false;
 
-    if (obj:IsTable(handlers)) then
-        for _, handler in pairs(handlers) do
-            if (handler:Run(eventName)) then
-                executed = true;
-            end
-        end
+  if (obj:IsTable(handlers)) then
+    for _, handler in pairs(handlers) do
+      if (handler:Run(eventName)) then
+        executed = true;
+      end
     end
+  end
 
-    return executed;
+  return executed;
 end
 
 ---@param eventName string @The event name.
 ---@return number @The total number of event handlers registered with the specified event name.
 function Lib:GetNumEventHandlersByEvent(eventName)
-    if (Private:EventTableExists(eventName)) then
-        return #Private.eventsList[eventName];
-    end
+  if (obj:IsTable(Private.handlersByEventName[eventName])) then
+    return #Private.handlersByEventName[eventName];
+  end
+
+  return 0;
 end
 
 ------------------------
 -- Private API
 ------------------------
-Private.eventTracker:SetScript("OnEvent", function(_, ...)
-    Private:CallHandlersByEvent(...);
+Private.eventManagerFrame:SetScript("OnEvent", function(_, ...)
+  Private:CallHandlersByEvent(...);
 end);
 
--- Finds all handlers in eventsList and executes their
+-- Finds all handlers in handlersByEventName and executes their
 -- callback if registered with the eventName.
 function Private:CallHandlersByEvent(eventName, ...)
-    if (not self:IsEventTableEmpty(eventName)) then
-        local handlers = self.eventsList[eventName];
+  if (self:IsTableEmpty(self.handlersByEventName[eventName])) then return end
+  local handlers = obj:PopTable();
 
-        for _, handler in pairs(handlers) do
-            handler:Run(eventName, ...);
-        end
-    end
+  -- Make a copy to avoid updating the handlers table while iterating it.
+  -- This ensures all handlers run successfully.
+  for _, handler in ipairs(self.handlersByEventName[eventName]) do
+    table.insert(handlers, handler);
+  end
 
-    self:CleanEventTable(eventName);
+  for _, handler in pairs(handlers) do
+    handler:Run(eventName, ...);
+  end
+
+  obj:PushTable(handlers);
 end
 
 function Private:CleanEventTable(eventName)
-    if (self:EventTableExists(eventName)) then
-        local activeHandlers = obj:PopTable();
-        local handlers = self.eventsList[eventName];
+  if (obj:IsTable(self.handlersByEventName[eventName])) then
+    local activeHandlers = obj:PopTable();
+    local handlers = self.handlersByEventName[eventName];
 
-        for _, handler in pairs(handlers) do
-            if (not handler.IsDestroyed) then
-                table.insert(activeHandlers, handler);
-            end
-        end
-
-        self.eventsList[eventName] = activeHandlers;
-        obj:PushTable(handlers);
-
-        if self:IsEventTableEmpty(eventName) then
-            self.eventsList[eventName] = nil;
-            self.eventTracker:UnregisterEvent(eventName);
-        end
+    for _, handler in pairs(handlers) do
+      if (not handler.IsDestroyed) then
+        table.insert(activeHandlers, handler);
+      end
     end
+
+    self.handlersByEventName[eventName] = activeHandlers;
+    obj:PushTable(handlers);
+
+    if self:IsTableEmpty(self.handlersByEventName[eventName]) then
+      self.handlersByEventName[eventName] = nil;
+      self.eventManagerFrame:UnregisterEvent(eventName);
+    end
+  end
 end
 
-function Private:IsEventTableEmpty(eventName)
-    return self.eventsList and #self.eventsList[eventName] == 0;
-end
-
-function Private:EventTableExists(eventName)
-    return (self.eventsList and self.eventsList[eventName] and
-            obj:IsTable(self.eventsList[eventName]));
+function Private:IsTableEmpty(tbl)
+  return obj:IsTable(tbl) and #tbl == 0;
 end

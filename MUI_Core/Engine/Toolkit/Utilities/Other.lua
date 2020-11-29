@@ -1,5 +1,6 @@
--- luacheck: ignore MayronUI LibStub self 143 631
+-- luacheck: ignore LibStub self 143 631
 local _, namespace = ...;
+
 local string, tostring, select, unpack, type = _G.string, _G.tostring, _G.select, _G.unpack, _G.type;
 local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.pcall, _G.error;
 local hooksecurefunc, UnitLevel, UnitClass = _G.hooksecurefunc, _G.UnitLevel, _G.UnitClass;
@@ -516,4 +517,73 @@ function tk:CreateTableProtector(tbl)
     });
 
     return protector;
+end
+
+do
+  local BNGetFriendInfoByID, C_BattleNet = _G.BNGetFriendInfoByID, _G.C_BattleNet;
+  local strsplit = _G.strsplit;
+
+  function tk.ReplaceAccountNameCodeWithBattleTag(accountNameCode)
+    for i = 1, 200 do
+      if (BNGetFriendInfoByID) then
+        -- otherAccountNameCode will be a code such as |Km24|k
+        local _, otherAccountNameCode, battleTag = BNGetFriendInfoByID(i);
+
+        if (i > 50 and not otherAccountNameCode) then
+          return "";
+        end
+
+        if (accountNameCode == otherAccountNameCode) then
+          return (select(1, strsplit("#", battleTag)));
+        end
+
+      elseif (C_BattleNet and C_BattleNet.GetAccountInfoByID) then
+        local friendInfo = C_BattleNet.GetAccountInfoByID(i);
+
+        if (obj:IsTable(friendInfo)) then
+          if (i > 50 and not friendInfo.accountName) then
+            return "";
+          end
+
+          if (accountNameCode == friendInfo.accountName) then
+            return (select(1, strsplit("#", friendInfo.battleTag)));
+          end
+        end
+      end
+    end
+  end
+end
+
+local GetAddOnMetadata = _G.GetAddOnMetadata;
+
+function tk:GetTutorialShowState(oldVersion, afterInstall)
+  local currentVersion = GetAddOnMetadata("MUI_Core", "Version");
+  local major, minor, patch = tk.Strings:Split(currentVersion, ".");
+  major = tonumber(major);
+  minor = tonumber(minor);
+  patch = tonumber(patch);
+
+  local shouldShow = false;
+
+  if (not oldVersion or not (obj:IsString(oldVersion))) then
+    shouldShow = true;
+  else
+    local oldMajor, oldMinor, oldPatch = tk.Strings:Split(oldVersion, ".");
+    oldMajor = tonumber(oldMajor);
+    oldMinor = tonumber(oldMinor);
+    oldPatch = tonumber(oldPatch);
+
+    if (major > oldMajor or minor > oldMinor or patch > (oldPatch + 5)) then
+      shouldShow = true;
+    end
+  end
+
+  if (shouldShow and afterInstall) then
+    local freshInstall = _G.MayronUI.db.profile.freshInstall;
+    if (not freshInstall) then
+      shouldShow = false;
+    end
+  end
+
+  return shouldShow;
 end

@@ -14,7 +14,8 @@ local DropDownMenu = WidgetsPackage:CreateClass("DropDownMenu", Private.FrameWra
 
 DropDownMenu.Static.MAX_HEIGHT = 200;
 
-local CreateFrame = _G.CreateFrame;
+local CreateFrame, select, unpack, ipairs = _G.CreateFrame, _G.select, _G.unpack, _G.ipairs;
+local table = _G.table;
 
 -- Local Functions -------------------------------
 local dropdowns = {};
@@ -33,6 +34,9 @@ local function FoldAll(exclude)
 end
 
 local function DropDownToggleButton_OnClick(self)
+  if (self.menuParent) then
+    DropDownMenu.Static.Menu:SetParent(self.menuParent);
+  end
   DropDownMenu.Static.Menu:SetFrameStrata("TOOLTIP");
   self.dropdown:Toggle(not self.dropdown:IsExpanded());
   FoldAll(self.dropdown);
@@ -54,8 +58,7 @@ local function DropDownContainer_OnHide()
 end
 
 -- @constructor
-function Lib:CreateDropDown(style, parent, direction)
-
+function Lib:CreateDropDown(style, parent, direction, menuParent)
   if (not DropDownMenu.Static.Menu) then
     DropDownMenu.Static.Menu = Lib:CreateScrollFrame(style, _G.UIParent, "MUI_DropDownMenu");
 
@@ -94,6 +97,10 @@ function Lib:CreateDropDown(style, parent, direction)
 
   dropDownContainer.toggleButton.child = dropDownContainer.child; -- needed for OnClick
   dropDownContainer.toggleButton:SetScript("OnClick", DropDownToggleButton_OnClick);
+
+  if (menuParent) then
+    dropDownContainer.toggleButton.menuParent = menuParent;
+  end
 
   local header = CreateFrame("Frame", nil, dropDownContainer, _G.BackdropTemplateMixin and "BackdropTemplate");
   header:SetPoint("TOPLEFT", dropDownContainer);
@@ -160,8 +167,8 @@ function DropDownMenu:__Construct(data, style, header, direction, slideControlle
   data.label:SetWordWrap(false);
   data.label:SetJustifyH("LEFT");
 
--- disabled by default (until an option is added)
-self:SetEnabled(false);
+  -- disabled by default (until an option is added)
+  self:SetEnabled(false);
 end
 
 function DropDownMenu:SetParent(data, parent)
@@ -250,7 +257,7 @@ end
 function DropDownMenu:AddOptions(_, func, optionsTable)
   for _, optionValues in ipairs(optionsTable) do
     local label = optionValues[1];
-    self:AddOption(label, func, select(2, _G.unpack(optionValues)));
+    self:AddOption(label, func, select(2, unpack(optionValues)));
   end
 end
 
@@ -331,17 +338,15 @@ function DropDownMenu:AddOption(data, label, func, ...)
     self:SetLabel(option:GetText());
     self:Toggle(false);
 
-    if (not func) then
-      return;
-    end
+    if (not func) then return end
 
     if (obj:IsTable(func)) then
       local tbl = func[1];
       local methodName = func[2];
 
-      tbl[methodName](tbl, self, _G.unpack(args));
+      tbl[methodName](tbl, self, unpack(args));
     else
-      func(self, _G.unpack(args));
+      func(self, unpack(args));
     end
   end);
 

@@ -679,12 +679,6 @@ function C_SetUpModule:Install()
     end
   end
 
--- Register the UI as installed once everything else is successful!
-  if (not db.global.previouslyInstalled) then
-    db.global.previouslyInstalled = true;
-    db.global.tutorial = true;
-  end
-
   if (not db.global.installed) then
     --db.global.installed = db.global.installed or {}; -- won't work (Observer)
     db.global.installed = {};
@@ -692,6 +686,7 @@ function C_SetUpModule:Install()
 
   db.global.installed[tk:GetPlayerKey()] = true;
   db.global.reanchorRecount = true;
+  db.profile.freshInstall = true;
 
   _G.DisableAddOn("MUI_Setup");
   _G.ReloadUI();

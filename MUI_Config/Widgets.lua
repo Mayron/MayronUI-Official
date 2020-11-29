@@ -334,47 +334,51 @@ local function DropDown_OnSelectedValue(self, value)
 end
 
 function WidgetHandlers.dropdown(parent, widgetTable, value)
-    local container = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
+  local container = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
 
-    if (widgetTable.width) then
-        container:SetWidth(widgetTable.width);
+  if (widgetTable.width) then
+    container:SetWidth(widgetTable.width);
+  end
+
+  container:SetLabel(tostring(value));
+
+  if (widgetTable.disableSorting) then
+    container:SetSortingEnabled(false);
+  end
+
+  local options = GetAttribute(widgetTable, "options");
+
+  for key, dropDownValue in pairs(options) do
+    local option;
+
+    if (tonumber(key) or widgetTable.labels == "values") then
+      option = container:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
+    else
+      if (dropDownValue == "nil") then
+        dropDownValue = nil; -- cannot assign nil's to key/value pairs
+      end
+
+      option = container:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
+
+      if (dropDownValue == value) then
+        container:SetLabel(key);
+      end
     end
 
-    container:SetLabel(tostring(value));
-
-    if (widgetTable.disableSorting) then
-        container:SetSortingEnabled(false);
+    if (widgetTable.fontPicker) then
+      option:GetFontString():SetFont(tk.Constants.LSM:Fetch("font", key), 11);
     end
+  end
 
-    local options = GetAttribute(widgetTable, "options");
+  if (widgetTable.tooltip) then
+    container:SetTooltip(widgetTable.tooltip);
+  end
 
-    for key, dropDownValue in pairs(options) do
-        local option;
+  if (widgetTable.disabledTooltip) then
+    container:SetDisabledTooltip(widgetTable.disabledTooltip);
+  end
 
-        if (tonumber(key) or widgetTable.labels == "values") then
-            option = container:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
-        else
-            option = container:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
-
-            if (dropDownValue == value) then
-                container:SetLabel(key);
-            end
-        end
-
-        if (widgetTable.fontPicker) then
-            option:GetFontString():SetFont(tk.Constants.LSM:Fetch("font", key), 11);
-        end
-    end
-
-    if (widgetTable.tooltip) then
-        container:SetTooltip(widgetTable.tooltip);
-    end
-
-    if (widgetTable.disabledTooltip) then
-        container:SetDisabledTooltip(widgetTable.disabledTooltip);
-    end
-
-    return CreateElementContainerFrame(container, widgetTable, parent);
+  return CreateElementContainerFrame(container, widgetTable, parent);
 end
 
 --------------

@@ -95,10 +95,10 @@ function C_ExperienceBar:SetEnabled(_, enabled)
     local handler2 = em:FindEventHandlerByKey("OnExperienceBarUpdate");
 
     if (handler) then
-        handler:SetEventCallbackEnabled("PLAYER_LEVEL_UP", enabled);
+        handler:SetEventTriggerEnabled("PLAYER_LEVEL_UP", enabled);
     end
 
     if (handler2) then
-        handler2:SetEventCallbackEnabled("PLAYER_XP_UPDATE", enabled);
+        handler2:SetEventTriggerEnabled("PLAYER_XP_UPDATE", enabled);
     end
 end

@@ -4,11 +4,14 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 local Private = {};
 
 local select, string = _G.select, _G.string;
+local GetAddOnMetadata = _G.GetAddOnMetadata;
 local C_Timer, InCombatLockdown, WorldFrame, UnitIsAFK = _G.C_Timer, _G.InCombatLockdown, _G.WorldFrame, _G.UnitIsAFK;
 local UIParent, CreateFrame, GetSpecializationInfo = _G.UIParent, _G.CreateFrame, _G.GetSpecializationInfo;
 local MoveViewLeftStop, SetCVar, MoveViewLeftStart = _G.MoveViewLeftStop, _G.SetCVar, _G.MoveViewLeftStart;
 local UnitSex, UnitRace, SetCursor, GetSpecialization = _G.UnitSex, _G.UnitRace, _G.SetCursor, _G.GetSpecialization;
 local UnitPVPName, GetRealmName, UnitLevel, UnitClass = _G.UnitPVPName, _G.GetRealmName, _G.UnitLevel, _G.UnitClass;
+local table = _G.table;
+local HelpTip = _G.HelpTip;
 
 -- Register Module ------------
 local C_AFKDisplayModule = MayronUI:RegisterModule("AFKDisplay", L["AFK Display"]);
@@ -25,15 +28,31 @@ db:AddToDefaults("global.AFKDisplay", {
 
 function Private:ResetDataText()
   self.time = 0;
-  local dataFrame = self.display.dataFrame;
+  local left = self.display.left;
+  local right = self.display.right;
 
-  local leftText = string.format(dataFrame.left.label, dataFrame.left.num);
-  dataFrame.left.num = 0;
-  dataFrame.left:SetText(leftText);
+  left:Disable();
+  right:Disable();
 
-  local rightText = string.format(dataFrame.right.label, dataFrame.right.num);
-  dataFrame.right.num = 0;
-  dataFrame.right:SetText(rightText);
+  left.num = 0;
+  right.num = 0;
+
+  obj:PushTable(left.messages);
+  left.messages = obj:PopTable();
+
+  obj:PushTable(right.messages);
+  right.messages = obj:PopTable();
+
+  local leftText = string.format(left.label, left.num);
+  left:SetText(leftText);
+
+  local rightText = string.format(right.label, right.num);
+  right:SetText(rightText);
+
+  local handler = em:FindEventHandlerByKey("AFKDisplay_Messages");
+  handler:SetEnabled(true);
+
+  HelpTip:Hide(self.display, self.display.helpTipInfo.text);
 end
 
 -- prevents cutting of models
@@ -356,37 +375,37 @@ function Private:StartFalling()
 end
 
 function Private:StartRotating()
-    if (not Private.display.modelFrame) then
-        return;
+  if (not Private.display.modelFrame) then
+    return;
+  end
+
+  local modelFrame = Private.display.modelFrame;
+
+  if (modelFrame.model.dragging) then
+    local scaledScreenWidth = UIParent:GetWidth() * UIParent:GetScale();
+    local modelPoint = modelFrame:GetLeft() + ((modelFrame:GetWidth()) / 2);
+
+    local rotation = (scaledScreenWidth - modelPoint) - (scaledScreenWidth * 0.5);
+    modelFrame.model:SetFacing(rotation / 1000);
+
+    local justify = Private.display.name:GetJustifyH();
+
+    if (modelPoint > (scaledScreenWidth * 0.5)) then
+      if (justify == "RIGHT") then
+        Private.display.name:SetJustifyH("LEFT");
+        Private.display.name:ClearAllPoints();
+        Private.display.name:SetPoint("TOPLEFT", Private.display, "TOPLEFT", 100, -14);
+      end
+    else
+      if (justify == "LEFT") then
+        Private.display.name:SetJustifyH("RIGHT");
+        Private.display.name:ClearAllPoints();
+        Private.display.name:SetPoint("TOPRIGHT", -100, -14);
+      end
     end
 
-    local modelFrame = Private.display.modelFrame;
-
-    if (modelFrame.model.dragging) then
-        local scaledScreenWidth = UIParent:GetWidth() * UIParent:GetScale();
-        local modelPoint = modelFrame:GetLeft() + ((modelFrame:GetWidth()) / 2);
-
-        local rotation = (scaledScreenWidth - modelPoint) - (scaledScreenWidth * 0.5);
-        modelFrame.model:SetFacing(rotation / 1000);
-
-        local justify = Private.display.name:GetJustifyH();
-
-        if (modelPoint > (scaledScreenWidth * 0.5)) then
-            if (justify == "RIGHT") then
-                Private.display.name:SetJustifyH("LEFT");
-                Private.display.name:ClearAllPoints();
-                Private.display.name:SetPoint("TOPLEFT", Private.display, "TOPLEFT", 100, -14);
-            end
-        else
-            if (justify == "LEFT") then
-                Private.display.name:SetJustifyH("RIGHT");
-                Private.display.name:ClearAllPoints();
-                Private.display.name:SetPoint("TOPRIGHT", -100, -14);
-            end
-        end
-
-        C_Timer.After(0.01, Private.StartRotating);
-    end
+    C_Timer.After(0.01, Private.StartRotating);
+  end
 end
 
 function Private:CreatePlayerModel()
@@ -441,19 +460,141 @@ function Private:CreatePlayerModel()
 end
 
 do
-  local function IncrementCounter(self)
-    self.f.num = (self.f.num or 0) + 1;
-    self.f:SetText(string.format(self.f.label, self.f.num));
+  local messageFormat = "%s[%s]: %s";
+  local function IncrementCounter(self, event, display, message, source)
+    local frame = display.left;
+
+    if (event == "CHAT_MSG_GUILD") then
+      frame = display.right;
+    end
+
+    frame.num = (frame.num or 0) + 1;
+    frame:SetText(string.format(frame.label, frame.num));
+
+    local timestamp = string.format("[%s] ", (select(1, GameTime_GetTime())));
+    timestamp = tk.Strings:SetTextColorByKey(timestamp, "GRAY");
+    table.insert(frame.messages, string.format(messageFormat, timestamp, source, message));
+
+    frame:Enable();
+    HelpTip:Show(display, display.helpTipInfo, frame);
+  end
+
+  local function RefreshChatText(editBox)
+    obj:Assert(ChatTypeInfo[editBox.chatType], "Invalid chat type \"%s\"", editBox.chatType);
+
+    local r, g, b = Chat_GetChannelColor(ChatTypeInfo[editBox.chatType]);
+    local messages = obj:PopTable();
+
+    for _, message in ipairs(editBox.messages) do
+      if (obj:IsString(message) and #message > 0) then
+        -- |Km26|k (BSAp) or |Kq%d+|k
+        message = message:gsub("|K.*|k", tk.ReplaceAccountNameCodeWithBattleTag);
+        message = tk.Strings:SetTextColorByRGB(message, r, g, b);
+
+        table.insert(messages, message);
+      end
+    end
+
+    local fullText = table.concat(messages, " \n", 1, #messages);
+    editBox:SetText(fullText);
+    obj:PushTable(messages);
+  end
+
+  function Private:ShowCopyChatFrame(messages, chatType)
+    if (self.copyChatFrame) then
+      self.copyChatFrame.editBox.messages = messages;
+      self.copyChatFrame.editBox.chatType = chatType;
+      self.chatTypeDropdown:SetLabel(chatType == "WHISPER" and L["Whispers"] or L["Guild Chat"]);
+      self.copyChatFrame:Show();
+      return;
+    end
+
+    local frame = CreateFrame("Frame", nil, WorldFrame);
+    frame:SetSize(600, 300);
+    frame:SetPoint("CENTER");
+    frame:SetScale(UIParent:GetScale());
+    frame:SetScript("OnShow", function()
+      RefreshChatText(self.copyChatFrame.editBox);
+    end);
+
+    self.copyChatFrame = frame;
+
+    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
+    gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
+    gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Copy Chat Text"]);
+
+    local editBox = CreateFrame("EditBox", nil, frame);
+    editBox:SetMultiLine(true);
+    editBox:SetMaxLetters(99999);
+    editBox:EnableMouse(true);
+    editBox:SetAutoFocus(false);
+    editBox:SetFontObject("GameFontHighlight");
+    editBox:SetHeight(200);
+    editBox.messages = messages;
+    editBox.chatType = chatType;
+    self.copyChatFrame.editBox = editBox;
+
+    editBox:SetScript("OnEscapePressed", function(self)
+      self:ClearFocus();
+    end);
+
+    local refreshButton = CreateFrame("Button", nil, frame);
+    refreshButton:SetSize(18, 18);
+    refreshButton:SetPoint("TOPRIGHT", frame.closeBtn, "TOPLEFT", -10, -3);
+    refreshButton:SetNormalTexture("Interface\\Buttons\\UI-RefreshButton");
+    refreshButton:SetHighlightAtlas("chatframe-button-highlight");
+    tk:SetBasicTooltip(refreshButton, "Refresh Chat Text");
+
+    refreshButton:SetScript("OnClick", function()
+      RefreshChatText(editBox);
+    end);
+
+    local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, frame, nil, frame);
+    local dropdownContainer = dropdown:GetFrame();
+    dropdownContainer:SetSize(150, 20);
+    dropdownContainer:SetPoint("TOPRIGHT", refreshButton, "TOPLEFT", -10, 0);
+
+    local function DropDown_OnOptionSelected(_, value)
+      if (value == "WHISPER") then
+        editBox.messages = self.display.left.messages;
+        editBox.chatType = value;
+      else
+        editBox.messages = self.display.right.messages;
+        editBox.chatType = value;
+      end
+
+      RefreshChatText(editBox);
+    end
+
+    dropdown:AddOption(L["Whispers"], DropDown_OnOptionSelected, "WHISPER");
+    dropdown:AddOption(L["Guild Chat"], DropDown_OnOptionSelected, "GUILD");
+    dropdown:SetLabel(chatType == "WHISPER" and L["Whispers"] or L["Guild Chat"]);
+
+    self.chatTypeDropdown = dropdown;
+
+    local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, frame, nil, editBox);
+    container:SetPoint("TOPLEFT", 10, -30);
+    container:SetPoint("BOTTOMRIGHT", -10, 10);
+
+    container.ScrollFrame:ClearAllPoints();
+    container.ScrollFrame:SetPoint("TOPLEFT", 5, -5);
+    container.ScrollFrame:SetPoint("BOTTOMRIGHT", -5, 5);
+
+    container.ScrollFrame:HookScript("OnScrollRangeChanged", function(self)
+      local maxScroll = self:GetVerticalScrollRange();
+      self:SetVerticalScroll(maxScroll);
+    end);
+
+    tk:SetBackground(container, 0, 0, 0, 0.4);
+    RefreshChatText(self.copyChatFrame.editBox);
   end
 
   function Private:CreateDisplay()
-    if (self.display) then
-      return self.display;
-    end
+    if (self.display) then return self.display; end
 
-    local display = CreateFrame("Frame", "MUI_AFKDisplayFrame", WorldFrame);
-    display:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 0, -100);
-    display:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 0, -100);
+    local display = CreateFrame("Frame", nil, WorldFrame);
+    display:SetPoint("BOTTOMLEFT", WorldFrame, "BOTTOMLEFT", 0, -100);
+    display:SetPoint("BOTTOMRIGHT", WorldFrame, "BOTTOMRIGHT", 0, -100);
     display:SetHeight(150);
 
     display.bg = tk:SetBackground(display, tk:GetAssetFilePath("Textures\\BottomUI\\Single"));
@@ -466,53 +607,82 @@ do
 
     display.time = display:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge");
     display.time:SetPoint("TOP", 0, -16);
+    display.time:SetWidth(100);
 
     display.name = display:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     display.name:SetJustifyH("RIGHT");
     display.name:SetPoint("TOPRIGHT", -100, -14);
 
-    display.titleButton = tk:PopFrame("Button", display);
-    display.titleButton:SetSize(250, 22);
-    display.titleButton:SetPoint("BOTTOM", display.bg, "TOP", 0, -1);
+    display.titleBar = tk:PopFrame("Frame", display);
+    display.titleBar:SetSize(250, 22);
+    display.titleBar:SetPoint("BOTTOM", display.bg, "TOP", 0, -1);
 
     local nameTexturePath = tk:GetAssetFilePath("Textures\\BottomUI\\NamePanel");
-    display.titleButton:SetNormalTexture(nameTexturePath);
-    display.titleButton:SetHighlightTexture(nameTexturePath);
+    local titleTexture = display.titleBar:CreateTexture(nil, "BACKGROUND");
+    titleTexture:SetTexture(nameTexturePath);
+    titleTexture:SetAllPoints(true);
+    tk:ApplyThemeColor(0.8, titleTexture);
 
-    tk:ApplyThemeColor(0.8, display.titleButton);
-    display.titleButton:SetNormalFontObject("MUI_FontNormal");
-    display.titleButton:SetHighlightFontObject("GameFontHighlight");
-    display.titleButton:SetText(_G.GetAddOnMetadata("MUI_Core", "X-InterfaceName"));
+    local txt = display.titleBar:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
+    txt:SetPoint("CENTER");
 
-    display.dataFrame = tk:PopFrame("Frame", display);
-    display.dataFrame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 0, 30);
-    display.dataFrame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT");
+    local version = string.format("(v%s)", GetAddOnMetadata("MUI_Core", "Version"));
+    version = tk.Strings:SetTextColorByKey(version, "LIGHT_YELLOW");
+    txt:SetText(string.format("%s %s", GetAddOnMetadata("MUI_Core", "X-InterfaceName"), version));
+    tk:SetFontSize(txt, 11);
 
-    display.dataFrame.center = tk:PopFrame("Button", display.dataFrame);
-    display.dataFrame.center:SetSize(100, 20);
-    display.dataFrame.center:SetPoint("CENTER");
-    display.dataFrame.center:SetNormalFontObject("GameFontHighlight");
+    display.left = CreateFrame("Button", nil, display);
+    display.left:SetDisabledFontObject("GameFontDisable");
+    display.left:Disable();
+    display.left:SetSize(100, 30);
+    display.left:SetPoint("RIGHT", display.time, "LEFT", -20, 0);
+    display.left:SetNormalFontObject("GameFontHighlight");
+    display.left.messages = obj:PopTable();
+    display.left:SetScript("OnClick", function()
+      self:ShowCopyChatFrame(display.left.messages, "WHISPER");
+    end);
 
-    display.dataFrame.left = tk:PopFrame("Button", display.dataFrame);
-    display.dataFrame.left:SetSize(100, 20);
-    display.dataFrame.left:SetPoint("RIGHT", display.dataFrame.center, "LEFT", -20, 0);
-    display.dataFrame.left:SetNormalFontObject("GameFontHighlight");
+    display.helpTipInfo = {
+      text = "You have new messages to view!",
+      targetPoint = HelpTip.Point.TopEdgeCenter,
+      buttonStyle = HelpTip.ButtonStyle.Close,
+      offsetY = 0,
+    };
 
-    display.dataFrame.right = tk:PopFrame("Button", display.dataFrame);
-    display.dataFrame.right:SetSize(100, 20);
-    display.dataFrame.right:SetPoint("LEFT", display.dataFrame.center, "RIGHT", 20, 0);
-    display.dataFrame.right:SetNormalFontObject("GameFontHighlight");
+    display.right = CreateFrame("Button", nil, display);
+    display.right:SetDisabledFontObject("GameFontDisable");
+    display.right:Disable();
+    display.right:SetSize(100, 20);
+    display.right:SetPoint("LEFT", display.time, "RIGHT", 20, 0);
+    display.right:SetNormalFontObject("GameFontHighlight");
+    display.right.messages = obj:PopTable();
+    display.right:SetScript("OnClick", function()
+      self:ShowCopyChatFrame(display.right.messages, "GUILD");
+    end);
 
-    display.dataFrame.left:SetText(L["Whispers"]..": 0");
-    display.dataFrame.right:SetText(L["Guild Chat"]..": 0");
-    display.dataFrame.right.label = L["Guild Chat"]..": %u";
-    display.dataFrame.left.label = L["Whispers"]..": %u";
+    display.left:SetText(L["Whispers"]..": 0");
+    display.right:SetText(L["Guild Chat"]..": 0");
+    display.right.label = L["Guild Chat"]..": %u";
+    display.left.label = L["Whispers"]..": %u";
 
-    em:CreateEventHandler("CHAT_MSG_WHISPER", IncrementCounter).f = display.dataFrame.left;
-    em:CreateEventHandler("CHAT_MSG_BN_WHISPER", IncrementCounter).f = display.dataFrame.left;
-    em:CreateEventHandler("CHAT_MSG_GUILD", IncrementCounter).f = display.dataFrame.right;
+    local handler = em:CreateEventHandler("CHAT_MSG_WHISPER, CHAT_MSG_BN_WHISPER, CHAT_MSG_GUILD", IncrementCounter);
+    handler:SetCallbackArgs(display);
+    handler:SetKey("AFKDisplay_Messages");
 
     return display;
+  end
+end
+
+function Private:HideDisplay()
+  if (self.display) then
+    self.display:Hide();
+
+    local handler = em:FindEventHandlerByKey("AFKDisplay_Messages");
+    handler:SetEnabled(false);
+
+    if (self.copyChatFrame) then
+      self.copyChatFrame:Hide();
+    end
   end
 end
 
@@ -569,10 +739,7 @@ do
       or (_G.MovieFrame and _G.MovieFrame:IsShown())) then
       -- Do not show AFK Display (even if player is AFK)
       -- if player is using the Auction house or player is in combat
-      if (Private.display) then
-        Private.display:Hide();
-      end
-
+      Private:HideDisplay();
       return;
     end
 
@@ -616,9 +783,7 @@ do
         SetCVar("cameraView", "0");
       end
 
-      if (Private.display) then
-        Private.display:Hide();
-      end
+      Private:HideDisplay();
     end
   end
 end

@@ -207,26 +207,26 @@ do
     end
 
     function Lib:AddTitleBar(style, frame, text)
-        local texture = style:GetTexture("TitleBarBackground");
+      local texture = style:GetTexture("TitleBarBackground");
 
-        frame.titleBar = CreateFrame("Frame", nil, frame);
-        frame.titleBar:SetSize(260, 31);
-        frame.titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", -7, 11);
-        frame.titleBar.bg = frame.titleBar:CreateTexture("ARTWORK");
-        frame.titleBar.bg:SetTexture(texture);
+      frame.titleBar = CreateFrame("Frame", nil, frame);
+      frame.titleBar:SetSize(260, 31);
+      frame.titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", -7, 11);
+      frame.titleBar.bg = frame.titleBar:CreateTexture("ARTWORK");
+      frame.titleBar.bg:SetTexture(texture);
 
-        frame.titleBar.bg:SetAllPoints(true);
-        frame.titleBar.text = frame.titleBar:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
+      frame.titleBar.bg:SetAllPoints(true);
+      frame.titleBar.text = frame.titleBar:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
 
-        frame.titleBar.text:SetSize(260, 31);
-        frame.titleBar.text:SetPoint("LEFT", frame.titleBar.bg, "LEFT", 10, 0.5);
-        frame.titleBar.text:SetJustifyH("LEFT");
+      frame.titleBar.text:SetSize(260, 31);
+      frame.titleBar.text:SetPoint("LEFT", frame.titleBar.bg, "LEFT", 10, 0.5);
+      frame.titleBar.text:SetJustifyH("LEFT");
 
-        Private:MakeMovable(frame, frame.titleBar);
-        style:ApplyColor(nil, nil, frame.titleBar.bg);
+      Private:MakeMovable(frame, frame.titleBar);
+      style:ApplyColor(nil, nil, frame.titleBar.bg);
 
-        hooksecurefunc(frame.titleBar.text, "SetText", TitleBar_SetWidth);
-        frame.titleBar.text:SetText(text);
+      hooksecurefunc(frame.titleBar.text, "SetText", TitleBar_SetWidth);
+      frame.titleBar.text:SetText(text);
     end
 end
 
@@ -267,19 +267,19 @@ function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
     group.a2:SetToAlpha(-1);
 
     group:SetScript("OnFinished", function()
-        if (onHideCallback) then
-            onHideCallback();
-        else
-            frame:Hide();
-        end
+      if (onHideCallback) then
+          onHideCallback();
+      else
+          frame:Hide();
+      end
     end);
 
     frame.closeBtn:SetScript("OnClick", function(self)
-        group:Play();
+      group:Play();
 
-        if (clickSoundFilePath) then
-            PlaySound(clickSoundFilePath);
-        end
+      if (clickSoundFilePath) then
+        PlaySound(clickSoundFilePath);
+      end
     end);
 end
 
