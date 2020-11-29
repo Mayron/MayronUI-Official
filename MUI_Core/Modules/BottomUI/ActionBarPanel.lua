@@ -331,7 +331,8 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
         "rowHeights",
         "animateSpeed",
         "activeRows",
-        "defaultHeight"
+        "defaultHeight",
+        "rowSpacing"
       };
     };
     groups = {
@@ -340,16 +341,9 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
         value = function(value, keysList)
           local _, rowId = keysList:PopFront(), keysList:PopFront();
 
-          print("rowId", rowId);
-          MayronUI:PrintTable(value);
-
-          -- if (obj:IsNumber(barIds)) then
-          --   self:SetUpBartenderBar(1, barIds);
-          -- else
-          --   for _, bartenderBarID in ipairs(barIds) do
-          --     self:SetUpBartenderBar(1, bartenderBarID);
-          --   end
-          -- end
+          if (obj:IsNumber(value)) then
+            self:SetUpBartenderBar(rowId, value);
+          end
         end;
       };
     };
@@ -367,25 +361,19 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
       end
     end;
 
-    -- TODO: Replaced with "rowHeights"
-    -- retractHeight = function(value)
-    --   if (not (data.settings.expandRetract and data.slideController)) then return end
-    --   if (not data.settings.expanded) then
-    --     data.panel:SetHeight(value);
-    --   end
+    ---@param keyValues LinkedList
+    rowHeights = function(value, keyValues)
+      local rowId = keyValues:GetBack();
 
-    --   data.slideController:SetMinHeight(value);
-    -- end;
+      if (data.settings.activeRows == rowId) then
+        data.panel:SetHeight(value);
+      end
+    end;
 
-    -- TODO: Replaced with "rowHeights"
-    -- expandHeight = function(value)
-    --   if (not (data.settings.expandRetract and data.slideController)) then return end
-    --   if (data.settings.expanded) then
-    --     data.panel:SetHeight(value);
-    --   end
-
-    --   data.slideController:SetMaxHeight(value);
-    -- end;
+    ---@param keyValues LinkedList
+    rowSpacing = function()
+      self:SetUpAllBartenderBars();
+    end;
 
     defaultHeight = function(value)
       if (not data.settings.expandRetract) then
@@ -415,21 +403,6 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
       control = function()
         self:SetUpAllBartenderBars();
       end
-
-      -- [1] = function(barIds)
-
-      -- end;
-
-      -- [2] = function(barIds)
-      --   for _, bartenderBarID in ipairs(barIds) do
-      --     self:SetUpBartenderBar(2, bartenderBarID);
-      --   end
-      -- end;
-
-      -- [3] = function(barIds)
-      --   for _, bartenderBarID in ipairs(barIds) do
-      --     self:SetUpBartenderBar(3, bartenderBarID);
-      --   end
     };
   }, options);
 

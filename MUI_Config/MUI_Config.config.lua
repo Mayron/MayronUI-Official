@@ -414,36 +414,7 @@ function C_ConfigModule:GetConfigTable()
                               return db.profile.actionBarPanel.expandRetract;
                             end
                         };
-                        {   name        = L["Retract Height"];
-                            tooltip     = tk.Strings:Concat(
-                                L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."],
-                                "\n\n", L["Minimum value is "], "40", "\n\n", "Maximum value is ", "200", "\n\n", L["Default value is "], "44");
-                            type        = "slider";
-                            min         = 40;
-                            max         = 400;
-                            dbPath      = "profile.actionBarPanel.retractHeight";
-                            OnLoad = function(_, container)
-                              table.insert(expandRetractDependencies, container.widget);
-                            end;
-                            enabled = function()
-                              return db.profile.actionBarPanel.expandRetract;
-                            end
-                        };
-                        {   name        = L["Expand Height"];
-                            tooltip     = tk.Strings:Concat(
-                                L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."],
-                                "\n\n", L["Minimum value is "], "40", "\n\n", "Maximum value is ", "200", "\n\n", L["Default value is "], "80");
-                            type        = "slider";
-                            min         = 40;
-                            max         = 400;
-                            dbPath      = "profile.actionBarPanel.expandHeight";
-                            OnLoad = function(_, container)
-                              table.insert(expandRetractDependencies, container.widget);
-                            end;
-                            enabled = function()
-                              return db.profile.actionBarPanel.expandRetract;
-                            end
-                        };
+
                         { type = "divider" };
                         {   type    = "fontstring";
                             content = L["Modifier key/s used to show Expand/Retract button:"];
@@ -500,6 +471,20 @@ function C_ConfigModule:GetConfigTable()
                               db:SetPathValue(dbPath, value);
                             end;
                         };
+                        { type = "divider" };
+                        {   name = tk.Strings:JoinWithSpace("Set", L["Row"], L["Spacing"]);
+                            type = "slider";
+                            min = 1;
+                            max = 20;
+                            step = 0.5;
+                            dbPath      = "profile.actionBarPanel.rowSpacing";
+                            OnLoad = function(_, container)
+                              table.insert(bartenderControlDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.bartender.control;
+                            end;
+                        };
                         {   type    = "fontstring";
                             content = L["Row"] .. "1";
                             subtype = "header";
@@ -525,6 +510,18 @@ function C_ConfigModule:GetConfigTable()
                             end;
                             enabled = function()
                               return db.profile.actionBarPanel.bartender.control;
+                            end
+                        };
+                        {   name        = tk.Strings:JoinWithSpace(L["Row"], L["Height"]);
+                            type        = "slider";
+                            min         = 40;
+                            max         = 400;
+                            dbPath      = "profile.actionBarPanel.rowHeights[1]";
+                            OnLoad = function(_, container)
+                              table.insert(expandRetractDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.expandRetract;
                             end
                         };
                         {   type    = "fontstring";
@@ -553,6 +550,18 @@ function C_ConfigModule:GetConfigTable()
                               return db.profile.actionBarPanel.bartender.control;
                             end
                         },
+                        {   name        = tk.Strings:JoinWithSpace(L["Row"], L["Height"]);
+                            type        = "slider";
+                            min         = 40;
+                            max         = 400;
+                            dbPath      = "profile.actionBarPanel.rowHeights[2]";
+                            OnLoad = function(_, container)
+                              table.insert(expandRetractDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.expandRetract;
+                            end
+                        };
                         {   type    = "fontstring";
                             content = L["Row"] .. "3";
                             subtype = "header";
@@ -578,7 +587,19 @@ function C_ConfigModule:GetConfigTable()
                             enabled = function()
                               return db.profile.actionBarPanel.bartender.control;
                             end
-                        }
+                        };
+                        {   name        = tk.Strings:JoinWithSpace(L["Row"], L["Height"]);
+                            type        = "slider";
+                            min         = 40;
+                            max         = 400;
+                            dbPath      = "profile.actionBarPanel.rowHeights[3]";
+                            OnLoad = function(_, container)
+                              table.insert(expandRetractDependencies, container.widget);
+                            end;
+                            enabled = function()
+                              return db.profile.actionBarPanel.expandRetract;
+                            end
+                        };
                     }
                 };
                 {   name = L["Side Action Bars"];
