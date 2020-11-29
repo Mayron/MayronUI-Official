@@ -195,6 +195,12 @@ function C_UnitPanels:OnDisable(data)
     data.right:Hide();
     data.center:Hide();
   end
+
+  local handler = em:FindEventHandlerByKey("restingPulse");
+
+  if (handler) then
+    handler:SetEnabled(false);
+  end
 end
 
 function C_UnitPanels:OnEnable(data)
@@ -238,26 +244,33 @@ function C_UnitPanels:OnEnable(data)
 end
 
 function C_UnitPanels:OnEnabled(data)
-  local handler = em:CreateEventHandlerWithKey("PLAYER_UPDATE_RESTING", "restingPulse", function()
-    if (IsResting() and data.settings.restingPulse) then
-      for _, key in obj:IterateArgs("left", "center", "right", "player", "target") do
-        if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
-          data[key]:SetScript("OnUpdate", function(...) data:UnitPanels_UpdateAlpha(...) end);
+  local handler = em:FindEventHandlerByKey("restingPulse");
+
+  if (handler) then
+    handler:SetEnabled(true);
+  else
+    handler = em:CreateEventHandlerWithKey("PLAYER_UPDATE_RESTING", "restingPulse", function()
+      if (IsResting() and data.settings.restingPulse) then
+        for _, key in obj:IterateArgs("left", "center", "right", "player", "target") do
+          if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
+            data[key]:SetScript("OnUpdate", function(...) data:UnitPanels_UpdateAlpha(...) end);
+          end
+        end
+      else
+        for _, key in obj:IterateArgs("left", "center", "right", "player", "target") do
+          if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
+            data[key]:SetScript("OnUpdate", nil);
+            data:SetAlpha(data[key], data.settings.alpha);
+          end
         end
       end
-    else
-      for _, key in obj:IterateArgs("left", "center", "right", "player", "target") do
-        if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
-          data[key]:SetScript("OnUpdate", nil);
-          data:SetAlpha(data[key], data.settings.alpha);
-        end
-      end
-    end
 
-    self:UpdateUnitNameText("player");
-  end);
+      self:UpdateUnitNameText("player");
+    end);
 
-  handler:AppendEvent("PLAYER_ENTERING_WORLD");
+    handler:AppendEvent("PLAYER_ENTERING_WORLD");
+  end
+
   handler:Run();
 end
 
@@ -318,9 +331,11 @@ function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
       handler = em:CreateEventHandler("PLAYER_REGEN_ENABLED", function()
         self:UpdateUnitNameText("player");
 
-        for _, key in obj:IterateArgs("left", "center", "right", "player", "target") do
-          if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
-            data[key]:SetScript("OnUpdate", function(...) data:UnitPanels_UpdateAlpha(...) end);
+        if (data.settings.restingPulse) then
+          for _, key in obj:IterateArgs("left", "center", "right", "player", "target") do
+            if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
+              data[key]:SetScript("OnUpdate", function(...) data:UnitPanels_UpdateAlpha(...) end);
+            end
           end
         end
       end);
@@ -477,9 +492,9 @@ end
 
 -- Private Functions -------------------------
 do
-  local MIN_ALPHA = 0.7;
   local FLASH_TIME_ON = 0.65;
   local FLASH_TIME_OFF = 0.65;
+  local ALPHA_INCREASE_AMOUNT = 0.2;
 
   function Private:UnitPanels_UpdateAlpha(frame, elapsed)
     if (InCombatLockdown()) then return end
@@ -509,7 +524,15 @@ do
       alpha = frame.pulseTime / FLASH_TIME_ON;
     end
 
-    alpha = (alpha * (1 - MIN_ALPHA)) + MIN_ALPHA;
+    local maxAlpha = (self.settings.alpha + ALPHA_INCREASE_AMOUNT);
+    local minAlpha =  self.settings.alpha;
+
+    if (maxAlpha > 1) then
+      maxAlpha = 1;
+      minAlpha = 1 - ALPHA_INCREASE_AMOUNT;
+    end
+
+    alpha = (alpha * (maxAlpha - minAlpha)) + minAlpha;
     self:SetAlpha(frame, alpha);
   end
 end

@@ -447,7 +447,9 @@ function Private:GetRowHeight(rowId)
 
   for _, barId in ipairs(barIds) do
     if (barId > 0) then
+      _G.Bartender4:GetModule("ActionBars"):EnableBar(barId);
       local bartenderBar = _G[string.format("BT4Bar%d", barId)];
+
       local barHeight = bartenderBar.buttons[1]:GetHeight(); -- always 36
       barHeight = barHeight * bartenderBar:GetScale();
 

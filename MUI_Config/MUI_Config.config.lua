@@ -207,6 +207,7 @@ function C_ConfigModule:GetConfigTable()
                     module  = "BottomUI_UnitPanels";
                     dbPath  = "profile.unitPanels.enabled";
                     type    = "check";
+                    requiresReload = true;
                 };
                 {   name    = L["Symmetric Unit Panels"];
                     tooltip = L["Previously called 'Classic Mode'."];
