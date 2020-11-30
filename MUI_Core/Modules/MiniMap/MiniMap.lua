@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143
 local _, namespace = ...;
 local MayronUI = _G.MayronUI;
-local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
+local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 
 -- Register and Import ---------
 
@@ -316,24 +316,48 @@ function C_MiniMapModule:OnEnable(data)
       end
     });
 
+    local function ShowMissions(garrTypeId)
+      LoadAddOn("Blizzard_GarrisonUI");
+      local items = _G.C_Garrison.GetAvailableMissions(_G.GetPrimaryGarrisonFollowerType(garrTypeId));
+
+      if (obj:IsTable(items)) then
+        ShowGarrisonLandingPage(garrTypeId);
+      else
+        MayronUI:Print("No available missions to show.");
+      end
+    end
+
     table.insert(menuList, {
       text = L["Garrison Report"],
-      func = function() ShowGarrisonLandingPage(2) end
+      func = function()
+        ShowMissions(2);
+      end
     });
 
     table.insert(menuList, {
       text = L["Class Order Hall"],
-      func = function() ShowGarrisonLandingPage(3) end
+      func = function()
+        ShowMissions(3);
+      end
     });
 
     table.insert(menuList, {
       text = "Missions",
-      func = function() ShowGarrisonLandingPage(9) end
+      func = function()
+        ShowMissions(9);
+      end
     });
 
     table.insert(menuList, {
       text = "Covenant Sanctum",
-      func = function() ShowGarrisonLandingPage(111) end
+      func = function()
+        LoadAddOn("Blizzard_GarrisonUI");
+        if (C_Covenants.GetActiveCovenantID() >= 1) then
+          ShowGarrisonLandingPage(111);
+        else
+          MayronUI:Print("You must be a member of a covenant to view this.");
+        end
+      end
     });
 
     table.insert(menuList, {
@@ -368,13 +392,6 @@ function C_MiniMapModule:OnEnable(data)
       text = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70"),
       func = function()
         _G.SlashCmdList["Leatrix_Plus"]();
-      end
-    });
-
-		table.insert(menuList, {
-      text = tk.Strings:SetTextColorByHex(L["Music Player"], "70db70"),
-      func = function()
-        _G.SlashCmdList["Leatrix_Plus"]("play");
       end
     });
 	end

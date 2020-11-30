@@ -107,7 +107,10 @@ function Private:LoadTutorial()
   em:CreateEventHandler("MODIFIER_STATE_CHANGED", function(self)
     if (not tk:IsModComboActive(modKey)) then return end
     frame.titleBar.text:SetText("Tutorial: Step 2");
-    frame.text:SetText("You can change this key combination in the MUI config menu (/mui config).\n\nAlso, there are 3 key bindings to quickly switch between 1 to 3 rows, found in the Blizzard key bindings menu.");
+
+    local step2Text = "You can change this key combination in the MUI config menu (%s).\n\nThere are 3 key bindings to quickly switch between 1 to 3 rows, found in the Blizzard key bindings menu:";
+    step2Text = string.format(step2Text, tk.Strings:SetTextColorByKey("/mui config", "GOLD"));
+    frame.text:SetText(step2Text);
     frame:SetHeight(200);
     frame.text:SetPoint("BOTTOMRIGHT", -20, 50);
 

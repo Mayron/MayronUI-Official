@@ -7,7 +7,7 @@ local CreateFrame, UIParent = _G.CreateFrame, _G.UIParent;
 
 -- Register and Import Modules -----------
 
-local C_Container = MayronUI:RegisterModule("BottomUI_Container", L["Main Container"]);
+local C_Container = MayronUI:RegisterModule("BottomUI_Container", "Unit Frame Panels");
 
 -- Add Database Defaults -----------------
 

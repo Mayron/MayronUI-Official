@@ -24,6 +24,7 @@ db:AddToDefaults("profile.unitPanels", {
   isSymmetric = false;
   targetClassColored = true;
   restingPulse = true;
+  pulseStrength = 0.3;
   alpha = 0.8;
   unitNames = {
     enabled = true;
@@ -494,7 +495,6 @@ end
 do
   local FLASH_TIME_ON = 0.65;
   local FLASH_TIME_OFF = 0.65;
-  local ALPHA_INCREASE_AMOUNT = 0.2;
 
   function Private:UnitPanels_UpdateAlpha(frame, elapsed)
     if (InCombatLockdown()) then return end
@@ -524,12 +524,12 @@ do
       alpha = frame.pulseTime / FLASH_TIME_ON;
     end
 
-    local maxAlpha = (self.settings.alpha + ALPHA_INCREASE_AMOUNT);
+    local maxAlpha = (self.settings.alpha + self.settings.pulseStrength);
     local minAlpha =  self.settings.alpha;
 
     if (maxAlpha > 1) then
       maxAlpha = 1;
-      minAlpha = 1 - ALPHA_INCREASE_AMOUNT;
+      minAlpha = 1 - self.settings.pulseStrength;
     end
 
     alpha = (alpha * (maxAlpha - minAlpha)) + minAlpha;
@@ -655,13 +655,11 @@ do
         self.left.bg:SetAlpha(self.settings.alpha);
         self.left.noTargetBg:SetAlpha(0);
 
-        if (self.settings.unitNames.targetClassColored) then
-          if (UnitIsPlayer("target")) then
-            local _, class = UnitClass("target");
-            tk:SetClassColoredTexture(class, self.target.bg);
-          else
-            tk:ApplyThemeColor(self.settings.alpha, self.target.bg);
-          end
+        if (self.settings.unitNames.targetClassColored and UnitIsPlayer("target")) then
+          local _, class = UnitClass("target");
+          tk:SetClassColoredTexture(class, self.target.bg);
+        else
+          tk:ApplyThemeColor(self.settings.alpha, self.target.bg);
         end
       end);
     end
@@ -690,12 +688,16 @@ do
     self.left.bg:SetAlpha(self.settings.alpha);
 
     local handler = em:FindEventHandlerByKey("EnableSymmetry_TargetChanged", "PLAYER_TARGET_CHANGED");
+    em:DestroyEventHandlersByKey("DisableSymmetry_TargetChanges", "DisableSymmetry_EnteringWorld");
 
     if (not self.settings.unitNames.targetClassColored) then
       if (handler) then
         handler:Destroy();
       end
 
+      if (self.target) then
+        tk:ApplyThemeColor(self.settings.alpha, self.target.bg); -- TODO: Cannot find
+      end
       return;
     end
 
@@ -715,7 +717,6 @@ do
     end
 
     handler:Run();
-    em:DestroyEventHandlersByKey("DisableSymmetry_TargetChanges", "DisableSymmetry_EnteringWorld");
   end
 end
 

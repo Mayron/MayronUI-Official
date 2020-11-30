@@ -129,6 +129,7 @@ function C_ConfigModule:GetConfigTable()
                     tooltip = L["Reset Blizzard frames back to their original position."];
                     OnClick = function()
                         MayronUI:ImportModule("MovableFramesModule"):ResetPositions();
+                        MayronUI:Print("Blizzard frame positions have been reset.")
                     end
                 };
                 {   type = "divider";
@@ -142,6 +143,18 @@ function C_ConfigModule:GetConfigTable()
                         db:SetPathValue(dbPath, newValue);
                         MayronUI:ImportModule("AFKDisplay"):SetEnabled(newValue);
                     end
+                };
+                {   type = "divider";
+                };
+                {   name        = "Set Main Container Width";
+                    type        = "slider";
+                    min = 500;
+                    max = 1500;
+                    step = 50;
+                    valueType   = "number";
+                    tooltip     = tk.Strings:Concat(
+                        L["Adjust the width of the main container."], "\n\n", L["Default value is "], "750");
+                    dbPath      = "profile.bottomui.width";
                 };
                 {   type = "title";
                     client = "retail";
@@ -189,20 +202,8 @@ function C_ConfigModule:GetConfigTable()
             }
         };
         {   module = "BottomUI_Container";
+            id = 2;
             children = {
-                {   name        = L["Set Width"];
-                    type        = "slider";
-                    min = 500;
-                    max = 1500;
-                    step = 50;
-                    valueType   = "number";
-                    tooltip     = tk.Strings:Concat(
-                        L["Adjust the width of the main container."], "\n\n", L["Default value is "], "750");
-                    dbPath      = "profile.bottomui.width";
-                };
-                {   name    = L["Unit Panels"];
-                    type    = "title";
-                };
                 {   name    = L["Enable Unit Panels"];
                     module  = "BottomUI_UnitPanels";
                     dbPath  = "profile.unitPanels.enabled";
@@ -264,6 +265,16 @@ function C_ConfigModule:GetConfigTable()
                     step = 0.1;
                     tooltip     = tk.Strings:Concat(L["Default value is "], "0.8");
                     dbPath      = "profile.unitPanels.alpha";
+                };
+                {   name        = "Set Pulse Strength";
+                    type        = "slider";
+                    tooltip     =  tk.Strings:Concat("Set the alpha change while pulsing/flashing", L["Default value is "], "0.3");
+                    module      = "BottomUI_UnitPanels";
+                    valueType   = "number";
+                    min = 0;
+                    max = 1;
+                    step = 0.1;
+                    dbPath      = "profile.unitPanels.pulseStrength";
                 };
                 {   name    = L["Name Panels"];
                     type    = "title";
