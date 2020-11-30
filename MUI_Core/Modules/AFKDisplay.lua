@@ -55,7 +55,7 @@ function Private:ResetDataText()
   handler:SetEnabled(true);
 
   if (tk:IsRetail()) then
-    HelpTip:Hide(self.display, self.display.helpTipInfo.text);
+    HelpTip:HideAll(self.display);
   end
 end
 
@@ -649,6 +649,10 @@ do
     display.left.messages = obj:PopTable();
     display.left:SetScript("OnClick", function()
       self:ShowCopyChatFrame(display.left.messages, "WHISPER");
+
+      if (tk:IsRetail()) then
+        HelpTip:HideAll(display);
+      end
     end);
 
     display.left.icon = display.left:CreateTexture(nil, "BACKGROUND");
@@ -676,6 +680,10 @@ do
     display.right.messages = obj:PopTable();
     display.right:SetScript("OnClick", function()
       self:ShowCopyChatFrame(display.right.messages, "GUILD");
+
+      if (tk:IsRetail()) then
+        HelpTip:HideAll(display);
+      end
     end);
 
     display.right.icon = display.right:CreateTexture(nil, "BACKGROUND");
