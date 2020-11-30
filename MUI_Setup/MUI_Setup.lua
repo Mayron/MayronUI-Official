@@ -635,6 +635,12 @@ function C_SetUpModule:Install()
 
     elseif (db.profile.chat.chatFrames["BOTTOMLEFT"].enabled) then
       ChatFrame1:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 34, 30);
+
+    elseif (db.profile.chat.chatFrames["TOPRIGHT"].enabled) then
+      ChatFrame1:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -34, -55);
+
+    elseif (db.profile.chat.chatFrames["BOTTOMRIGHT"].enabled) then
+      ChatFrame1:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 34, -30);
     end
 
     ChatFrame1:SetHeight(222);

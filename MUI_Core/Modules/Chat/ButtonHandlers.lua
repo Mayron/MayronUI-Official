@@ -5,14 +5,22 @@ local C_ChatFrame = namespace.C_ChatFrame;
 local Engine = namespace.Engine;
 local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
 
-local _G = _G;
 local LoadAddOn, IsTrialAccount, IsInGuild, UnitLevel, UnitInBattleground =
 _G.LoadAddOn, _G.IsTrialAccount, _G.IsInGuild, _G.UnitLevel, _G.UnitInBattleground;
+
+local ToggleGuildFrame;
+
+if (tk:IsRetail()) then
+  ToggleGuildFrame = _G.ToggleGuildFrame;
+else
+  local ToggleFriendsFrame = _G.ToggleFriendsFrame;
+  ToggleGuildFrame = function() ToggleFriendsFrame(2) end
+end
 
 -- GLOBALS:
 --[[ luacheck: ignore
 ToggleCharacter ContainerFrame1 ToggleBackpack OpenAllBags ToggleFrame SpellBookFrame PlayerTalentFrame MacroFrame
-ToggleFriendsFrame ToggleGuildFrame ToggleHelpFrame TogglePVPUI ToggleAchievementFrame ToggleCalendar ToggleQuestLog
+ToggleFriendsFrame ToggleHelpFrame TogglePVPUI ToggleAchievementFrame ToggleCalendar ToggleQuestLog
 ToggleLFDParentFrame ToggleRaidFrame ToggleEncounterJournal ToggleCollectionsJournal ToggleWorldMap
 ToggleWorldStateScoreFrame TalentFrame
 ]]
@@ -113,6 +121,8 @@ clickHandlers[buttonKeys.Guild] = function()
     tk:Print(L["Starter Edition accounts cannot perform this action."]);
   elseif (IsInGuild()) then
     ToggleGuildFrame();
+  else
+    tk:Print("You need to be in a guild to perform this action.");
   end
 end
 

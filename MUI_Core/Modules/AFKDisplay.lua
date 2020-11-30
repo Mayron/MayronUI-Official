@@ -32,7 +32,9 @@ function Private:ResetDataText()
   local right = self.display.right;
 
   left:Disable();
+  left.icon:Hide();
   right:Disable();
+  right.icon:Hide();
 
   left.num = 0;
   right.num = 0;
@@ -52,7 +54,9 @@ function Private:ResetDataText()
   local handler = em:FindEventHandlerByKey("AFKDisplay_Messages");
   handler:SetEnabled(true);
 
-  HelpTip:Hide(self.display, self.display.helpTipInfo.text);
+  if (tk:IsRetail()) then
+    HelpTip:Hide(self.display, self.display.helpTipInfo.text);
+  end
 end
 
 -- prevents cutting of models
@@ -476,7 +480,11 @@ do
     table.insert(frame.messages, string.format(messageFormat, timestamp, source, message));
 
     frame:Enable();
-    HelpTip:Show(display, display.helpTipInfo, frame);
+    frame.icon:Show();
+
+    if (tk:IsRetail()) then
+      HelpTip:Show(display, display.helpTipInfo, frame);
+    end
   end
 
   local function RefreshChatText(editBox)
@@ -633,6 +641,7 @@ do
 
     display.left = CreateFrame("Button", nil, display);
     display.left:SetDisabledFontObject("GameFontDisable");
+    display.left:SetHighlightFontObject("GameFontNormal");
     display.left:Disable();
     display.left:SetSize(100, 30);
     display.left:SetPoint("RIGHT", display.time, "LEFT", -20, 0);
@@ -642,15 +651,24 @@ do
       self:ShowCopyChatFrame(display.left.messages, "WHISPER");
     end);
 
-    display.helpTipInfo = {
-      text = "You have new messages to view!",
-      targetPoint = HelpTip.Point.TopEdgeCenter,
-      buttonStyle = HelpTip.ButtonStyle.Close,
-      offsetY = 0,
-    };
+    display.left.icon = display.left:CreateTexture(nil, "BACKGROUND");
+    display.left.icon:SetTexture(tk:GetAssetFilePath("Textures\\available.blp"));
+    display.left.icon:SetSize(15, 15);
+    display.left.icon:SetPoint("LEFT", -5, 0);
+    display.left.icon:Hide();
+
+    if (tk:IsRetail()) then
+      display.helpTipInfo = {
+        text = "You have new messages!",
+        targetPoint = HelpTip.Point.TopEdgeCenter,
+        buttonStyle = HelpTip.ButtonStyle.Close,
+        offsetY = 0,
+      };
+    end
 
     display.right = CreateFrame("Button", nil, display);
     display.right:SetDisabledFontObject("GameFontDisable");
+    display.right:SetHighlightFontObject("GameFontNormal");
     display.right:Disable();
     display.right:SetSize(100, 20);
     display.right:SetPoint("LEFT", display.time, "RIGHT", 20, 0);
@@ -659,6 +677,12 @@ do
     display.right:SetScript("OnClick", function()
       self:ShowCopyChatFrame(display.right.messages, "GUILD");
     end);
+
+    display.right.icon = display.right:CreateTexture(nil, "BACKGROUND");
+    display.right.icon:SetTexture(tk:GetAssetFilePath("Textures\\available.blp"));
+    display.right.icon:SetSize(15, 15);
+    display.right.icon:SetPoint("LEFT", -5, 0);
+    display.right.icon:Hide();
 
     display.left:SetText(L["Whispers"]..": 0");
     display.right:SetText(L["Guild Chat"]..": 0");
