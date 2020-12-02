@@ -460,8 +460,8 @@ function C_AuraArea:SetEnabled(data, enabled)
 
       em:CreateUnitEventHandlerWithKey("UNIT_AURA", data.globalName.."Handler", AuraArea_OnEvent, "Player")
         :SetCallbackArgs(self, data)
-        :AppendEvent("GROUP_ROSTER_UPDATE")
-        :AppendEvent("PLAYER_ENTERING_WORLD");
+        :AddEventTrigger("GROUP_ROSTER_UPDATE")
+        :AddEventTrigger("PLAYER_ENTERING_WORLD");
 
       newlyCreated = true;
     end

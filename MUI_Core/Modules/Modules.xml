@@ -1,6 +1,11 @@
 <Ui>
   <Script file="BottomUI\Container.lua" />
+
   <Script file="BottomUI\UnitPanels.lua" />
+  <Script file="BottomUI\UnitPanels\UnitNames.lua" />
+  <Script file="BottomUI\UnitPanels\PortraitGradient.lua" />
+  <Script file="BottomUI\UnitPanels\RestingPulse.lua" />
+
   <Script file="BottomUI\ResourceBars.lua" />
   <Script file="BottomUI\ResourceBars\ExperienceBar.lua" />
   <Script file="BottomUI\ResourceBars\ReputationBar.lua" />

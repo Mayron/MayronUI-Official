@@ -279,6 +279,16 @@ function C_ConfigModule:GetConfigTable()
                 {   name    = L["Name Panels"];
                     type    = "title";
                 };
+                {   name    = L["Enabled"];
+                    module  = "BottomUI_UnitPanels";
+                    dbPath  = "profile.unitPanels.unitNames.enabled";
+                    type    = "check";
+                };
+                {   name    = L["Target Class Colored"];
+                    type    = "check";
+                    dbPath  = "profile.unitPanels.unitNames.targetClassColored";
+                };
+                { type = "divider" };
                 {   name        = L["Set Width"];
                     type        = "slider";
                     min = 150;
@@ -314,11 +324,6 @@ function C_ConfigModule:GetConfigTable()
                     min     = 8;
                     max     = 18;
                     dbPath  = "profile.unitPanels.unitNames.fontSize";
-                };
-                {   name    = L["Target Class Colored"];
-                    type    = "check";
-                    height  = 50;
-                    dbPath  = "profile.unitPanels.unitNames.targetClassColored";
                 };
                 {   name    = L["SUF Portrait Gradient"];
                     type    = "title";

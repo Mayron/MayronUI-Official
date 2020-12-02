@@ -6,7 +6,7 @@ local obj = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
 
 if (not (Lib and obj)) then return end
 
-local pairs, ipairs, tostring, unpack = _G.pairs, _G.ipairs, _G.tostring, _G.unpack;
+local pairs, ipairs, tostring, unpack, next = _G.pairs, _G.ipairs, _G.tostring, _G.unpack, _G.next;
 local strtrim, strsplit, table, select = _G.strtrim, _G.strsplit, _G.table, _G.select;
 
 local Private = {};
@@ -35,7 +35,7 @@ function Handler:__Construct(data, eventName, callback, unitName, ...)
   data.key = tostring(self);
   data.eventTriggers = obj:PopTable();
   self:SetCallbackArgs(...);
-  self:AppendEvent(eventName, unitName);
+  self:AddEventTrigger(eventName, unitName);
 end
 
 function Handler:__Destruct(data)
@@ -161,7 +161,7 @@ end
 EventsPackage:DefineParams("string", "?string");
 ---@param eventName string @The event name to register with the handler.
 ---@param unitName string @The name of the unit to register events to (i.e. RegisterUnitEvent).
-function Handler:AppendEvent(data, eventName, unitName)
+function Handler:AddEventTrigger(data, eventName, unitName)
   if (unitName) then
     Private.eventManagerFrame:RegisterUnitEvent(eventName, unitName);
   else
@@ -172,6 +172,35 @@ function Handler:AppendEvent(data, eventName, unitName)
 
   Private.handlersByEventName[eventName] = Private.handlersByEventName[eventName] or obj:PopTable();
   table.insert(Private.handlersByEventName[eventName], self);
+  return self;
+end
+
+EventsPackage:DefineParams("string", "?string");
+---@param eventName string @The event name to register with the handler.
+---@param unitName string @The name of the unit to register events to (i.e. RegisterUnitEvent).
+function Handler:RemoveEventTrigger(data, eventName, unitName)
+  data.eventTriggers[eventName] = nil;
+  local eventHandlers = Private.handlersByEventName[eventName];
+
+  if (obj:IsTable(eventHandlers)) then
+    for id, value in ipairs(eventHandlers) do
+      if (value == self) then
+        eventHandlers[id] = nil;
+      end
+    end
+
+    if (not next(eventHandlers)) then
+      if (unitName) then
+        Private.eventManagerFrame:UnregisterUnitEvent(eventName, unitName);
+      else
+        Private.eventManagerFrame:UnregisterEvent(eventName);
+      end
+
+      Private.handlersByEventName[eventName] = nil;
+      obj:PushTable(eventHandlers);
+    end
+  end
+
   return self;
 end
 
@@ -187,7 +216,7 @@ function Lib:CreateUnitEventHandlerWithKey(eventName, key, callback, unitName, .
   if (obj:IsString(key)) then
     obj:Assert(self:FindEventHandlerByKey(key) == nil, "Event handler already exists with key \"%s\"", key);
   else
-    obj:Assert(self:FindEventHandlerByKey(callback) == nil, "Event handler already exists for that callback function. Use a command-separated list of event names, or AppendEvent, instead.");
+    obj:Assert(self:FindEventHandlerByKey(callback) == nil, "Event handler already exists for that callback function. Use a command-separated list of event names, or AddEventTrigger, instead.");
   end
 
   key = key or tostring(callback);
@@ -201,7 +230,7 @@ function Lib:CreateUnitEventHandlerWithKey(eventName, key, callback, unitName, .
       if (not handler) then
         handler = Handler(event, callback, unitName, ...);
       else
-        handler:AppendEvent(event, unitName);
+        handler:AddEventTrigger(event, unitName);
       end
     end
   else
@@ -285,24 +314,6 @@ function Lib:TriggerEventHandlerByKey(key)
   return false;
 end
 
----Find and trigger handler callbacks for the specified event name if found.
----@param eventName string @The name of the even to trigger.
----@return boolean @Returns true if a handler callback for the specified event was found and triggered.
-function Lib:TriggerEventHandlerByEvent(eventName)
-  local handlers = self:FindEventHandlersByEvent(eventName);
-  local executed = false;
-
-  if (obj:IsTable(handlers)) then
-    for _, handler in pairs(handlers) do
-      if (handler:Run(eventName)) then
-        executed = true;
-      end
-    end
-  end
-
-  return executed;
-end
-
 ---@param eventName string @The event name.
 ---@return number @The total number of event handlers registered with the specified event name.
 function Lib:GetNumEventHandlersByEvent(eventName)
@@ -311,6 +322,24 @@ function Lib:GetNumEventHandlersByEvent(eventName)
   end
 
   return 0;
+end
+
+function Lib:DisableEventHandlers(...)
+  for _, key in obj:IterateArgs(...) do
+    if (self:HandlerExists(key)) then
+      local handler = Private.handlersByKey[key]; ---@type Handler
+      handler:SetEnabled(false);
+    end
+  end
+end
+
+function Lib:EnableEventHandlers(...)
+  for _, key in obj:IterateArgs(...) do
+    if (self:HandlerExists(key)) then
+      local handler = Private.handlersByKey[key]; ---@type Handler
+      handler:SetEnabled(true);
+    end
+  end
 end
 
 ------------------------
