@@ -6,6 +6,7 @@ local CreateFrame, InCombatLockdown, PlaySound = _G.CreateFrame, _G.InCombatLock
 local UIFrameFadeIn, UIFrameFadeOut = _G.UIFrameFadeIn, _G.UIFrameFadeOut;
 local IsAddOnLoaded, string, ipairs = _G.IsAddOnLoaded, _G.string, _G.ipairs;
 local C_Timer = _G.C_Timer;
+local GetAddOnMetadata = _G.GetAddOnMetadata;
 
 local Private = {};
 local FADING_STACKING_DELAY = 0.2;
@@ -128,7 +129,7 @@ function Private:LoadTutorial()
       frame:Show();
     end
 
-    db.profile.actionBarPanel.tutorial = _G.GetAddOnMetadata("MUI_Core", "Version");
+    db.profile.actionBarPanel.tutorial = GetAddOnMetadata("MUI_Core", "Version");
     self:Destroy();
   end);
 end
