@@ -17,13 +17,10 @@ about: Create a report to help us debug
 
 
 ### What was the level, faction, class and spec of the character you were playing on when this bug occurred?
-Level:
-
-Faction:
-
-Class:
-
-Spec:
+- Level:
+- Faction:
+- Class:
+- Spec:
 
 ### If applicable, what were you doing at the time?
 > *Were you in a raid, in a battleground, etc...*
