@@ -530,7 +530,7 @@ Visit Mayron's official YouTube channel:
 L["MUI_Setup_CreditsTab"] = [[
 Special thanks goes to the following MayronUI community members for their contributions towards the project (see the information tab for the link to join our Discord community):
 
-|cff00ccff> Patreons|r
+|cff00ccff> Patrons|r
 %s
 
 |cff00ccff> Development and Bug Fixes|r
