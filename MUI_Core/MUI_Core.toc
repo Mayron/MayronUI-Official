@@ -17,7 +17,7 @@
 ## Credits:
 ## ------------------------------------------------
 ## X-Community-Support-Team: Monster/ Alizmer [GER]
-## X-Patreons: LaidbackLuke, AkumaGekido, Arriesa, Missfit, PuppyCatbug
+## X-Patrons: LaidbackLuke, AkumaGekido, Arriesa, Missfit, PuppyCatbug
 ## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma, EarlGrey
 ## X-Development-and-Bug-Fixes: Monkey, Gargnash, BeetleJooce
 

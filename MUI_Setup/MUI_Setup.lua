@@ -520,10 +520,10 @@ function C_SetUpModule:Show(data)
   end
 
   Private.info = L["MUI_Setup_InfoTab"]:format(GetInfoLinks(
-  "X-Discord", "X-Home-Page", "X-GitHub-Repo", "X-Patreon", "X-YouTube"));
+  "X-Discord", "X-Home-Page", "X-GitHub-Repo", "X-Patron", "X-YouTube"));
 
   Private.credits = L["MUI_Setup_CreditsTab"]:format(GetCreditsSections(
-  "X-Patreons", "X-Development-and-Bug-Fixes", "X-Translation-Support", "X-Community-Support-Team"))
+  "X-Patrons", "X-Development-and-Bug-Fixes", "X-Translation-Support", "X-Community-Support-Team"))
 
   local window = gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, nil, "MUI_Setup");
   window:SetSize(750, 485); -- change this!
