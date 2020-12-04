@@ -119,7 +119,9 @@ end
 function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
 	local chatFrameName = string.format("ChatFrame%d", chatFrameID);
 
-	local chatFrame = _G[chatFrameName];
+  local chatFrame = _G[chatFrameName];
+  chatFrame:SetUserPlaced(true);
+  chatFrame:SetMaxResize(1200, 800);
 	chatFrame:SetFrameStrata("LOW");
 	chatFrame:HookScript("OnMouseWheel", ChatFrame_OnMouseWheel);
 

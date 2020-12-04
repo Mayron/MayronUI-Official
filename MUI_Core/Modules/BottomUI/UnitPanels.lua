@@ -116,30 +116,41 @@ function C_UnitPanels:OnInitialize(data, containerModule)
       end;
 
       width = function(value)
-        data.player:SetSize(value, data.settings.unitNames.height);
-        data.target:SetSize(value, data.settings.unitNames.height);
-        data.player.text:SetWidth(value - 25);
-        data.target.text:SetWidth(value - 25);
+        if (data.player and data.target) then
+          data.player:SetSize(value, data.settings.unitNames.height);
+          data.target:SetSize(value, data.settings.unitNames.height);
+          data.player.text:SetWidth(value - 25);
+          data.target.text:SetWidth(value - 25);
+        end
       end;
 
       height = function(value)
-        data.player:SetSize(data.settings.unitNames.width, value);
-        data.target:SetSize(data.settings.unitNames.width, value);
+        if (data.player and data.target) then
+          data.player:SetSize(data.settings.unitNames.width, value);
+          data.target:SetSize(data.settings.unitNames.width, value);
+        end
       end;
 
       fontSize = function(value)
         local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
-        data.player.text:SetFont(font, value);
-        data.target.text:SetFont(font, value);
+
+        if (data.player and data.target) then
+          data.player.text:SetFont(font, value);
+          data.target.text:SetFont(font, value);
+        end
       end;
 
       targetClassColored = function()
-        em:TriggerEventHandlerByKey("MuiUnitNames_TargetChanged");
+        if (data.player and data.target) then
+          em:TriggerEventHandlerByKey("MuiUnitNames_TargetChanged");
+        end
       end;
 
       xOffset = function(value)
-        data.player:SetPoint("BOTTOMLEFT", data.left, "TOPLEFT", value, 0);
-        data.target:SetPoint("BOTTOMRIGHT", data.right, "TOPRIGHT", -(value), 0);
+        if (data.player and data.target) then
+          data.player:SetPoint("BOTTOMLEFT", data.left, "TOPLEFT", value, 0);
+          data.target:SetPoint("BOTTOMRIGHT", data.right, "TOPRIGHT", -(value), 0);
+        end
       end;
     };
 

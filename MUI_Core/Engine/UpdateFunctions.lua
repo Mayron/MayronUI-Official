@@ -1,5 +1,6 @@
 -- luacheck: ignore MayronUI LibStub self 143 631
-local tk, _, _, _, obj = _G.MayronUI:GetCoreComponents();
+local MayronUI = _G.MayronUI;
+local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 local table, ipairs, string, unpack = _G.table, _G.ipairs, _G.string, _G.unpack;
 local tostring, pairs = _G.tostring, _G.pairs;
 
@@ -45,21 +46,30 @@ local function ExecuteUpdateFunction(path, updateFunction, setting, executed, on
   end
 end
 
-local function HasMatchingPathPattern(path, patterns)
-  for _, pattern in ipairs(patterns) do
-    if (path:find(pattern)) then
-      return true;
+local function HasMatchingPathPattern(path, pattern)
+  if (path:find(pattern)) then
+    return true;
 
-    elseif (pattern:find("%(.*|.*%)")) then
-      local optionalKeys = pattern:match("(%(.*|.*%)).*");
+  -- lots of settings in one key
+  elseif (pattern:find("%(.*|.*%)")) then
+    local optionalKeys = pattern:match("(%(.*|.*%)).*");
 
-      for key in string.gmatch(optionalKeys, "([^(|)]+)") do
-        local concretePath = pattern:gsub("%(.*|.*%)", key);
+    for key in string.gmatch(optionalKeys, "([^(|)]+)") do
+      local concretePath = pattern:gsub("%(.*|.*%)", key);
 
-        if (not obj:IsStringNilOrWhiteSpace(concretePath) and path:match(concretePath)) then
-          return true;
-        end
+      if (not obj:IsStringNilOrWhiteSpace(concretePath) and path:match(concretePath)) then
+        return true;
       end
+    end
+  end
+
+  return false;
+end
+
+local function GroupContainsMatchingPathPattern(path, patterns)
+  for _, pattern in ipairs(patterns) do
+    if (HasMatchingPathPattern(path, pattern)) then
+      return true;
     end
   end
 
@@ -75,8 +85,7 @@ local function FindMatchingGroupValue(path, options)
   path = path:gsub("%]", "");
 
   for _, groupOptions in pairs(options.groups) do
-
-    if (HasMatchingPathPattern(path, groupOptions.patterns)) then
+    if (GroupContainsMatchingPathPattern(path, groupOptions.patterns)) then
 
       if (groupOptions.value) then
         local updateFunction = groupOptions.value;
@@ -95,6 +104,34 @@ local function FindMatchingGroupValue(path, options)
         end
 
         return updateFunction, groupOptions.onPre, groupOptions.onPost;
+      end
+    end
+  end
+end
+
+local function ExecuteDependentUpdateFunctions(dependency, dependencies, updateFunctions, settingsTable, oldPath)
+  if (not obj:IsTable(dependencies)) then return end
+
+  for pattern, otherDependency in pairs(dependencies) do
+    if (dependency == otherDependency) then
+
+      -- iterate over all update functions and if  updateFunc:match(dependencyPattern) execute it again
+      -- execute all update functions that match
+      for key, value in pairs(updateFunctions) do
+        local path = key;
+        local setting = settingsTable[key];
+
+        if (obj:IsString(oldPath)) then
+          path = string.format("%s.%s", oldPath, key);
+        end
+
+        if (obj:IsFunction(value)) then
+          if (HasMatchingPathPattern(path, pattern)) then
+            ExecuteUpdateFunction(path, value, setting);
+          end
+        elseif (obj:IsTable(value)) then
+          ExecuteDependentUpdateFunctions(dependency, dependencies, updateFunctions[key], setting, path);
+        end
       end
     end
   end
@@ -178,6 +215,7 @@ do
 
         if (self:IsEnabled() or updateFunction == data.updateFunctions.enabled) then
           ExecuteUpdateFunction(settingPath, updateFunction, newValue, nil, onPre, onPost);
+          ExecuteDependentUpdateFunctions(settingPath, options.onExecuteAll.dependencies, data.updateFunctions, data.settings);
         end
       else
         -- update settings:
