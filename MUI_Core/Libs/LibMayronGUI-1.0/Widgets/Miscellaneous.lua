@@ -57,24 +57,24 @@ Lib.FONT_TYPES = {
 ---@param globalName string @(optional) A global name to give the new frame if frame param is nil
 ---@return Frame @The new frame (or existing frame if the frame param was supplied).
 function Lib:CreateDialogBox(style, parent, alphaType, frame, globalName)
-    frame = frame or CreateFrame("Frame", globalName, parent or _G.UIParent);
-    frame:EnableMouse(true);
+  frame = frame or CreateFrame("Frame", globalName, parent or _G.UIParent);
+  frame:EnableMouse(true);
 
-    alphaType = alphaType or "Medium";
-    alphaType = alphaType:lower();
-    alphaType = alphaType:gsub("^%l", string.upper);
+  alphaType = alphaType or "Medium";
+  alphaType = alphaType:lower();
+  alphaType = alphaType:gsub("^%l", string.upper);
 
-    local texture = style:GetTexture("DialogBoxBackground");
-    texture = string.format("%s%s", texture, alphaType);
+  local texture = style:GetTexture("DialogBoxBackground");
+  texture = string.format("%s%s", texture, alphaType);
 
-    Lib:CreateGridTexture(frame, texture, 10, 6, 512, 512);
+  Lib:CreateGridTexture(frame, texture, 10, 6, 512, 512);
 
-    -- apply the theme color for each Grid Cell
-    style:ApplyColor(nil, nil, frame.tl, frame.tr, frame.bl, frame.br,
-        frame.t, frame.b, frame.l, frame.r, frame.c);
-    frame:SetFrameStrata("DIALOG");
+  -- apply the theme color for each Grid Cell
+  style:ApplyColor(nil, nil, frame.tl, frame.tr, frame.bl, frame.br,
+      frame.t, frame.b, frame.l, frame.r, frame.c);
+  frame:SetFrameStrata("DIALOG");
 
-    return frame;
+  return frame;
 end
 
 do

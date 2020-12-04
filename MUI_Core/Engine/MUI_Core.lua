@@ -169,6 +169,12 @@ commands.install = function()
   MayronUI:ImportModule("SetUpModule"):Show();
 end
 
+-- TODO: Work in Progress
+-- commands.report = function()
+--   if (not LoadMuiAddOn("MUI_Setup")) then return; end
+--   MayronUI:ImportModule("ReportIssue"):Initialize();
+-- end
+
 local function ValidateNewProfileName(self, profileName)
   if (#profileName == 0 or db:ProfileExists(profileName)) then
     return false;

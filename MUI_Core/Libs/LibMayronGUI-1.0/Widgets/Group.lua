@@ -10,7 +10,7 @@ local Private = Lib.Private;
 local obj = Lib.Objects;
 
 local Group = WidgetsPackage:CreateClass("Group", Private.FrameWrapper);
-local Panel = Private.Panel;
+local Panel = Private.Panel; ---@type Panel
 ---------------------------------
 
 local function GetGroup(groupID, groupType, panel, panelData)

@@ -5,6 +5,8 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
 if (not Lib) then return; end
 
+local CreateFrame = _G.CreateFrame;
+
 local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
 local obj = Lib.Objects;
@@ -21,18 +23,18 @@ local Panel = Private.Panel;
 
 -- @constructor
 function Panel:CreateCell(data, frame)
-    frame = frame or Private:PopFrame("Frame");
-    frame:SetParent(data.frame);
+  frame = frame or CreateFrame("Frame", nil, _G.UIParent, _G.BackdropTemplateMixin and "BackdropTemplate");
+  frame:SetParent(data.frame);
 
-    if (data.devMode) then
-        Private:SetBackground(frame, 1, 0, 0, 0.4);
-        frame:SetBackdrop({
-            edgeFile = "Interface/DialogFrame/UI-DialogBox-Border",
-            edgeSize = 16
-        });
-    end
+  if (data.devMode) then
+    Private:SetBackground(frame, 1, 0, 0, 0.4);
+    frame:SetBackdrop({
+      edgeFile = "Interface/DialogFrame/UI-DialogBox-Border",
+      edgeSize = 16
+    });
+  end
 
-    return Cell(frame);
+  return Cell(frame);
 end
 
 function Cell:__Construct(data, frame)

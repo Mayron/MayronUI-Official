@@ -53,7 +53,7 @@ end
 
 -- Creates a scroll frame inside a container frame
 function Lib:CreateScrollFrame(style, parent, global, child)
-  local container = CreateFrame("Frame", global, parent);
+  local container = CreateFrame("Frame", global, parent, _G.BackdropTemplateMixin and "BackdropTemplate");
   container.ScrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate");
   container.ScrollFrame:SetAllPoints(true);
   container.ScrollFrame:EnableMouseWheel(true);

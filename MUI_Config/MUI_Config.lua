@@ -469,7 +469,7 @@ function C_ConfigModule:SetUpWindow(data)
 
   gui:AddTitleBar(tk.Constants.AddOnStyle, data.window, "MUI Config");
   gui:AddResizer(tk.Constants.AddOnStyle, data.window);
-  gui:AddCloseButton(tk.Constants.AddOnStyle, data.window);
+  gui:AddCloseButton(tk.Constants.AddOnStyle, data.window, nil, tk.Constants.CLICK);
 
   -- convert container to a panel
   data.window = gui:CreatePanel(data.window);
