@@ -520,7 +520,7 @@ function C_SetUpModule:Show(data)
   end
 
   Private.info = L["MUI_Setup_InfoTab"]:format(GetInfoLinks(
-  "X-Discord", "X-Home-Page", "X-GitHub-Repo", "X-Patron", "X-YouTube"));
+  "X-Discord", "X-Home-Page", "X-GitHub-Repo", "X-Patreon", "X-YouTube"));
 
   Private.credits = L["MUI_Setup_CreditsTab"]:format(GetCreditsSections(
   "X-Patrons", "X-Development-and-Bug-Fixes", "X-Translation-Support", "X-Community-Support-Team"))
