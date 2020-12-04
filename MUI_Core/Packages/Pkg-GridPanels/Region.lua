@@ -1,5 +1,5 @@
 -- luacheck: ignore self
-local obj = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
+local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 
 if (not obj) then return; end
 

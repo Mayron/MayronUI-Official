@@ -3,7 +3,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local InCombatLockdown, CreateFrame = _G.InCombatLockdown, _G.CreateFrame;
-local ipairs = _G.ipairs;
+local ipairs, table = _G.ipairs, _G.table;
 
 -- Constants -----------------------------
 
@@ -32,120 +32,120 @@ C_ResourceBarsModule.Static:AddFriendClass("BottomUI_Container");
 -- Load Database Defaults ----------------
 
 db:AddToDefaults("profile.resourceBars", {
+  enabled = true;
+  experienceBar = {
     enabled = true;
-    experienceBar = {
-        enabled = true;
-        height = 8;
-        alwaysShowText = false;
-        fontSize = 8;
-    };
-    reputationBar = {
-        enabled = true;
-        height = 8;
-        alwaysShowText = false;
-        fontSize = 8;
-    };
-    artifactBar = {
-        enabled = true;
-        height = 8;
-        alwaysShowText = false;
-        fontSize = 8;
-    };
-    azeriteBar = {
-        enabled = true;
-        height = 8;
-        alwaysShowText = false;
-        fontSize = 8;
-    };
+    height = 8;
+    alwaysShowText = false;
+    fontSize = 8;
+  };
+  reputationBar = {
+    enabled = true;
+    height = 8;
+    alwaysShowText = false;
+    fontSize = 8;
+  };
+  artifactBar = {
+    enabled = true;
+    height = 8;
+    alwaysShowText = false;
+    fontSize = 8;
+  };
+  azeriteBar = {
+    enabled = true;
+    height = 8;
+    alwaysShowText = false;
+    fontSize = 8;
+  };
 });
 
 -- C_ResourceBarsModule -------------------
 function C_ResourceBarsModule:OnInitialize(data, containerModule)
-    data.containerModule = containerModule;
+  data.containerModule = containerModule;
 
-    local function UpdateResourceBar(_, keysList)
-        local barName = keysList:PopFront();
-        barName = barName:gsub("Bar", tk.Strings.Empty);
+  local function UpdateResourceBar(_, keysList)
+    local barName = keysList:PopFront();
+    barName = barName:gsub("Bar", tk.Strings.Empty);
 
-        local bar = data.bars[barName];
-        bar:Update();
+    local bar = data.bars[barName];
+    bar:Update();
 
-        if (keysList:PopFront() == "height") then
-            self:UpdateContainerHeight();
-        end
+    if (keysList:PopFront() == "height") then
+      self:UpdateContainerHeight();
     end
+  end
 
-    local options = {
-      onExecuteAll = {
-        first = {
-          "experienceBar.enabled";
-          "reputationBar.enabled";
-        };
-        ignore = {
-            ".*"; -- ignore everything else
-        };
+  local options = {
+    onExecuteAll = {
+      first = {
+        "experienceBar.enabled";
+        "reputationBar.enabled";
+      };
+      ignore = {
+        ".*"; -- ignore everything else
       };
     };
+  };
 
-    local updateFuncs = {
-      experienceBar = {
-        enabled = function(value)
-            data.bars.experience:SetEnabled(value);
-        end;
+  local updateFuncs = {
+    experienceBar = {
+      enabled = function(value)
+        data.bars.experience:SetEnabled(value);
+      end;
 
-        height = UpdateResourceBar;
-        alwaysShowText = UpdateResourceBar;
-        fontSize = UpdateResourceBar;
-      };
-
-      reputationBar = {
-        enabled = function(value)
-            data.bars.reputation:SetEnabled(value);
-        end;
-
-        height = UpdateResourceBar;
-        alwaysShowText = UpdateResourceBar;
-        fontSize = UpdateResourceBar;
-      };
+      height = UpdateResourceBar;
+      alwaysShowText = UpdateResourceBar;
+      fontSize = UpdateResourceBar;
     };
 
-    if (tk:IsRetail()) then
-      updateFuncs.artifactBar = {
-        enabled = function(value)
-            data.bars.artifact:SetEnabled(value);
-        end;
+    reputationBar = {
+      enabled = function(value)
+        data.bars.reputation:SetEnabled(value);
+      end;
 
-        height = UpdateResourceBar;
-        alwaysShowText = UpdateResourceBar;
-        fontSize = UpdateResourceBar;
-      };
-      updateFuncs.azeriteBar = {
-        enabled = function(value)
-            data.bars.azerite:SetEnabled(value);
-        end;
+      height = UpdateResourceBar;
+      alwaysShowText = UpdateResourceBar;
+      fontSize = UpdateResourceBar;
+    };
+  };
 
-        height = UpdateResourceBar;
-        alwaysShowText = UpdateResourceBar;
-        fontSize = UpdateResourceBar;
-      };
+  if (tk:IsRetail()) then
+    updateFuncs.artifactBar = {
+      enabled = function(value)
+        data.bars.artifact:SetEnabled(value);
+      end;
 
-      table.insert(options.onExecuteAll.first, "artifactBar.enabled");
-      table.insert(options.onExecuteAll.first, "azeriteBar.enabled");
-    end
+      height = UpdateResourceBar;
+      alwaysShowText = UpdateResourceBar;
+      fontSize = UpdateResourceBar;
+    };
+    updateFuncs.azeriteBar = {
+      enabled = function(value)
+        data.bars.azerite:SetEnabled(value);
+      end;
 
-    self:RegisterUpdateFunctions(db.profile.resourceBars, updateFuncs, options);
+      height = UpdateResourceBar;
+      alwaysShowText = UpdateResourceBar;
+      fontSize = UpdateResourceBar;
+    };
 
-    if (data.settings.enabled) then
-        self:SetEnabled(true);
-    end
+    table.insert(options.onExecuteAll.first, "artifactBar.enabled");
+    table.insert(options.onExecuteAll.first, "azeriteBar.enabled");
+  end
+
+  self:RegisterUpdateFunctions(db.profile.resourceBars, updateFuncs, options);
+
+  if (data.settings.enabled) then
+      self:SetEnabled(true);
+  end
 end
 
 function C_ResourceBarsModule:OnDisable(data)
-    if (data.barsContainer) then
-        data.barsContainer:Hide();
-        data.containerModule:RepositionContent();
-        return;
-    end
+  if (data.barsContainer) then
+    data.barsContainer:Hide();
+    data.containerModule:RepositionContent();
+    return;
+  end
 end
 
 function C_ResourceBarsModule:OnEnable(data)
@@ -170,9 +170,9 @@ function C_ResourceBarsModule:OnEnable(data)
 
   MayronUI:Hook("DataTextModule", "OnInitialize", function(dataTextModule, dataTextModuleData)
     dataTextModule:RegisterUpdateFunctions(db.profile.datatext, {
-      blockInCombat = function(value)
-        self:SetBlockerEnabled(value, dataTextModuleData.bar);
-      end;
+    blockInCombat = function(value)
+      self:SetBlockerEnabled(value, dataTextModuleData.bar);
+    end;
     });
   end);
 
@@ -184,209 +184,209 @@ function C_ResourceBarsModule:OnEnable(data)
       local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
 
       if (actionBarPanelModule and actionBarPanelModule:IsEnabled()) then
-          actionBarPanelModule:SetUpAllBartenderBars();
+        actionBarPanelModule:SetUpAllBartenderBars();
       end
     end
   end);
 end
 
 function C_ResourceBarsModule:UpdateContainerHeight(data)
-    local height = 0;
-    local previousFrame;
+  local height = 0;
+  local previousFrame;
 
-    for _, barName in ipairs(BAR_NAMES) do
-        -- check if bar was ever enabled
-        if (data.bars[barName]) then
-            local bar = data.bars[barName];
-            local frame = bar:GetFrame();
+  for _, barName in ipairs(BAR_NAMES) do
+    -- check if bar was ever enabled
+    if (data.bars[barName]) then
+      local bar = data.bars[barName];
+      local frame = bar:GetFrame();
 
-            -- check if frame has been frame (bar has been built)
-            if (frame and bar:IsEnabled() and bar:CanUse()) then
-                frame:ClearAllPoints();
-                frame:SetParent(data.barsContainer);
+      -- check if frame has been frame (bar has been built)
+      if (frame and bar:IsEnabled() and bar:CanUse()) then
+        frame:ClearAllPoints();
+        frame:SetParent(data.barsContainer);
 
-                if (not previousFrame) then
-                    frame:SetPoint("BOTTOMLEFT");
-                    frame:SetPoint("BOTTOMRIGHT");
-                else
-                    frame:SetPoint("BOTTOMLEFT", previousFrame, "TOPLEFT", 0, -1);
-                    frame:SetPoint("BOTTOMRIGHT", previousFrame, "TOPRIGHT", 0, -1);
-                    height = height - 1;
-                end
-
-                height = height + frame:GetHeight();
-                previousFrame = frame;
-                frame:Show();
-
-            elseif (frame) then
-                tk:AttachToDummy(frame);
-            end
+        if (not previousFrame) then
+          frame:SetPoint("BOTTOMLEFT");
+          frame:SetPoint("BOTTOMRIGHT");
+        else
+          frame:SetPoint("BOTTOMLEFT", previousFrame, "TOPLEFT", 0, -1);
+          frame:SetPoint("BOTTOMRIGHT", previousFrame, "TOPRIGHT", 0, -1);
+          height = height - 1;
         end
-    end
 
-    if (height == 0) then
-        height = 1;
-    end
+        height = height + frame:GetHeight();
+        previousFrame = frame;
+        frame:Show();
 
-    data.pendingHeightUpdate = height;
-
-    if (not InCombatLockdown()) then
-        em:TriggerEventHandlerByKey("ResourceBars_HeightUpdate");
+      elseif (frame) then
+        tk:AttachToDummy(frame);
+      end
     end
+  end
+
+  if (height == 0) then
+    height = 1;
+  end
+
+  data.pendingHeightUpdate = height;
+
+  if (not InCombatLockdown()) then
+    em:TriggerEventHandlerByKey("ResourceBars_HeightUpdate");
+  end
 end
 
 Engine:DefineReturns("number");
 function C_ResourceBarsModule:GetHeight(data)
-    if (data.barsContainer) then
-        return data.barsContainer:GetHeight();
-    end
+  if (data.barsContainer) then
+    return data.barsContainer:GetHeight();
+  end
 
-    return 0;
+  return 0;
 end
 
 Engine:DefineParams("string");
 Engine:DefineReturns("Frame");
 function C_ResourceBarsModule:GetBar(data, barName)
-    return data.bars[barName];
+  return data.bars[barName];
 end
 
 function C_ResourceBarsModule:SetBlockerEnabled(data, enabled, dataTextBar)
-    if (not data.blocker and enabled) then
-        data.blocker = tk:PopFrame("Frame", data.barsContainer);
-        data.blocker:SetPoint("TOPLEFT");
-        data.blocker:SetPoint("BOTTOMRIGHT", dataTextBar, "BOTTOMRIGHT");
-        data.blocker:EnableMouse(true);
-        data.blocker:SetFrameStrata("DIALOG");
-        data.blocker:SetFrameLevel(20);
-        data.blocker:Hide();
+  if (not data.blocker and enabled) then
+    data.blocker = tk:PopFrame("Frame", data.barsContainer);
+    data.blocker:SetPoint("TOPLEFT");
+    data.blocker:SetPoint("BOTTOMRIGHT", dataTextBar, "BOTTOMRIGHT");
+    data.blocker:EnableMouse(true);
+    data.blocker:SetFrameStrata("DIALOG");
+    data.blocker:SetFrameLevel(20);
+    data.blocker:Hide();
+  end
+
+  if (enabled) then
+    em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "Blocker_RegenEnabled", function()
+      data.blocker:Hide();
+    end);
+
+    em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "Blocker_RegenDisabled", function()
+      data.blocker:Show();
+    end);
+
+    if (InCombatLockdown()) then
+      data.blocker:Show();
     end
+  else
+    em:DestroyEventHandlerByKey("Blocker_RegenEnabled");
+    em:DestroyEventHandlerByKey("Blocker_RegenDisabled");
 
-    if (enabled) then
-        em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "Blocker_RegenEnabled", function()
-            data.blocker:Hide();
-        end);
-
-        em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "Blocker_RegenDisabled", function()
-            data.blocker:Show();
-        end);
-
-        if (InCombatLockdown()) then
-            data.blocker:Show();
-        end
-    else
-        em:DestroyEventHandlerByKey("Blocker_RegenEnabled");
-        em:DestroyEventHandlerByKey("Blocker_RegenDisabled");
-
-        if (data.blocker) then
-            data.blocker:Hide();
-        end
+    if (data.blocker) then
+      data.blocker:Hide();
     end
+  end
 end
 
 Engine:DefineReturns("Frame");
 function C_ResourceBarsModule:GetBarContainer(data)
-    return data.barsContainer;
+  return data.barsContainer;
 end
 
 -- C_ResourceBar ---------------------------
 
 ResourceBarsPackage:DefineParams("BottomUI_ResourceBars", "table", "string");
 function C_BaseResourceBar:__Construct(data, barsModule, moduleData, barName)
-    data.module = barsModule;
-    data.barName = barName;
-    data.settings = moduleData.settings[barName.."Bar"];
-    data.barsContainer = moduleData.barsContainer;
-    data.notCreated = true;
+  data.module = barsModule;
+  data.barName = barName;
+  data.settings = moduleData.settings[barName.."Bar"];
+  data.barsContainer = moduleData.barsContainer;
+  data.notCreated = true;
 end
 
 function C_BaseResourceBar:CreateBar(data)
-    local texture = tk.Constants.LSM:Fetch("statusbar", "MUI_StatusBar");
-    local frame = CreateFrame("Frame", "MUI_"..data.barName.."Bar", data.barsContainer,
-      _G.BackdropTemplateMixin and "BackdropTemplate");
+  local texture = tk.Constants.LSM:Fetch("statusbar", "MUI_StatusBar");
+  local frame = CreateFrame("Frame", "MUI_"..data.barName.."Bar", data.barsContainer,
+  _G.BackdropTemplateMixin and "BackdropTemplate");
 
-    frame:SetBackdrop(tk.Constants.BACKDROP);
-    frame:SetBackdropBorderColor(0, 0, 0);
-    frame.bg = tk:SetBackground(frame, texture);
-    frame.bg:SetVertexColor(0.08, 0.08, 0.08);
-    frame:SetHeight(data.settings.height);
+  frame:SetBackdrop(tk.Constants.BACKDROP);
+  frame:SetBackdropBorderColor(0, 0, 0);
+  frame.bg = tk:SetBackground(frame, texture);
+  frame.bg:SetVertexColor(0.08, 0.08, 0.08);
+  frame:SetHeight(data.settings.height);
 
-    local statusbar = CreateFrame("StatusBar", nil, frame);
-    statusbar:SetStatusBarTexture(texture);
-    statusbar:SetOrientation("HORIZONTAL");
-    statusbar:SetPoint("TOPLEFT", 1, -1);
-    statusbar:SetPoint("BOTTOMRIGHT", -1, 1);
+  local statusbar = CreateFrame("StatusBar", nil, frame);
+  statusbar:SetStatusBarTexture(texture);
+  statusbar:SetOrientation("HORIZONTAL");
+  statusbar:SetPoint("TOPLEFT", 1, -1);
+  statusbar:SetPoint("BOTTOMRIGHT", -1, 1);
 
-    statusbar.texture = statusbar:GetStatusBarTexture();
-    statusbar.text = statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
-    statusbar.text:SetPoint("CENTER");
+  statusbar.texture = statusbar:GetStatusBarTexture();
+  statusbar.text = statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
+  statusbar.text:SetPoint("CENTER");
 
-    data.frame = frame;
-    data.statusbar = statusbar;
+  data.frame = frame;
+  data.statusbar = statusbar;
 end
 
 do
-    local function OnEnter(self)
-        self.texture:SetBlendMode("ADD");
-        _G.GameTooltip:SetOwner(self, "ANCHOR_TOP");
-        _G.GameTooltip:AddLine(self.text:GetText(), 1, 1, 1);
-        _G.GameTooltip:Show();
+  local function OnEnter(self)
+    self.texture:SetBlendMode("ADD");
+    _G.GameTooltip:SetOwner(self, "ANCHOR_TOP");
+    _G.GameTooltip:AddLine(self.text:GetText(), 1, 1, 1);
+    _G.GameTooltip:Show();
+  end
+
+  local function OnLeave(self)
+    self.texture:SetBlendMode("BLEND");
+    _G.GameTooltip:Hide();
+  end
+
+  function C_BaseResourceBar:Update(data)
+    if (not data.statusbar) then
+      return; -- not active
     end
 
-    local function OnLeave(self)
-        self.texture:SetBlendMode("BLEND");
-        _G.GameTooltip:Hide();
+    data.frame:SetHeight(data.settings.height);
+    tk:SetFontSize(data.statusbar.text, data.settings.fontSize);
+
+    if (data.settings.alwaysShowText) then
+      data.statusbar.text:Show();
+      data.statusbar:SetScript("OnEnter", tk.Constants.DUMMY_FUNC);
+      data.statusbar:SetScript("OnLeave", tk.Constants.DUMMY_FUNC);
+    else
+      data.statusbar.text:Hide();
+      data.statusbar:SetScript("OnEnter", OnEnter);
+      data.statusbar:SetScript("OnLeave", OnLeave);
     end
-
-    function C_BaseResourceBar:Update(data)
-        if (not data.statusbar) then
-            return; -- not active
-        end
-
-        data.frame:SetHeight(data.settings.height);
-        tk:SetFontSize(data.statusbar.text, data.settings.fontSize);
-
-        if (data.settings.alwaysShowText) then
-            data.statusbar.text:Show();
-            data.statusbar:SetScript("OnEnter", tk.Constants.DUMMY_FUNC);
-            data.statusbar:SetScript("OnLeave", tk.Constants.DUMMY_FUNC);
-        else
-            data.statusbar.text:Hide();
-            data.statusbar:SetScript("OnEnter", OnEnter);
-            data.statusbar:SetScript("OnLeave", OnLeave);
-        end
-    end
+  end
 end
 
 ResourceBarsPackage:DefineReturns("number");
 function C_BaseResourceBar:GetHeight(data)
-    return data.frame:GetHeight();
+  return data.frame:GetHeight();
 end
 
 ResourceBarsPackage:DefineReturns("boolean");
 function C_BaseResourceBar:IsActive(data)
-    return (data.frame ~= nil and data.frame:IsShown());
+  return (data.frame ~= nil and data.frame:IsShown());
 end
 
 ResourceBarsPackage:DefineReturns("boolean");
 function C_BaseResourceBar:IsEnabled(data)
-    return data.settings.enabled;
+  return data.settings.enabled;
 end
 
 ResourceBarsPackage:DefineParams("boolean");
 function C_BaseResourceBar:SetActive(data, active)
-    if (data.activeState == active) then
-        return;
+  if (data.activeState == active) then
+    return;
+  end
+
+  data.activeState = active;
+
+  if (active) then
+    if (not data.frame) then
+      self:CreateBar();
     end
 
-    data.activeState = active;
+    self:Update();
+  end
 
-    if (active) then
-        if (not data.frame) then
-            self:CreateBar();
-        end
-
-        self:Update();
-    end
-
-    data.module:UpdateContainerHeight();
+  data.module:UpdateContainerHeight();
 end

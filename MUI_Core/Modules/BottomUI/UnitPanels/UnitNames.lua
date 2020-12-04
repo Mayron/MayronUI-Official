@@ -134,6 +134,6 @@ function C_UnitPanels:SetUpUnitNames(data)
         data.target.text:SetText(tk.Strings.Empty);
       end
 
-      data:UpdateVisuals(data.target, data.settings.alpha);
+      data:Call("UpdateVisuals", data.target, data.settings.alpha);
     end);
 end

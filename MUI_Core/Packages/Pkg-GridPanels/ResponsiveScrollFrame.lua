@@ -1,5 +1,5 @@
 -- luacheck: ignore self
-local obj = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
+local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 
 if (not obj) then return; end
 
@@ -8,12 +8,10 @@ local ResponsiveScrollFrame = GridPanels:Get("ResponsiveScrollFrame"); ---@type 
 
 local CreateFrame, ipairs, math = _G.CreateFrame, _G.ipairs, _G.math;
 local table, unpack, UIParent = _G.table, _G.unpack, _G.UIParent;
-local private = obj:PopTable();
 
 ---------------------------------
 --- Local functions
 ---------------------------------
-
 local function ScrollFrame_OnMouseWheel(self, step)
   local newValue = self:GetVerticalScroll() - (step * 20);
 
@@ -27,85 +25,6 @@ local function ScrollFrame_OnMouseWheel(self, step)
   self:SetVerticalScroll(newValue);
 end
 
----------------------------------
--- private functions
----------------------------------
-function private:UpdateScrollBarShownState()
-  local scrollChild = self.scrollFrame:GetScrollChild();
-
-  if (not scrollChild) then
-    self.scrollBar:Hide();
-    return;
-  end
-
-  local scrollChildHeight = math.floor(scrollChild:GetHeight() + 0.5);
-  local containerHeight = math.floor(self.frame:GetHeight() + 0.5);
-
-  -- dynamically show and hide scroll bar if needed
-  self.scrollBar:SetShown(scrollChildHeight > containerHeight);
-end
-
-function private:RepositionChildElements()
-  local scrollChild = self.scrollFrame:GetScrollChild();
-  local width = math.ceil(self.frame:GetWidth());
-  local anchor = self.children[1];
-
-  if (not anchor) then return end
-
-  local totalRowWidth = 0; -- used to make new rows
-  local largestHeightInPreviousRow = 0; -- used to position new rows with correct Y Offset away from previous row
-  local totalHeight = 0; -- used to dynamically set the ScrollChild's height so that is can be visible
-  local previousChild;
-
-  for id, child in ipairs(self.children) do
-    child:ClearAllPoints();
-    totalRowWidth = totalRowWidth + child:GetWidth();
-
-    if (id ~= 1) then
-      totalRowWidth = totalRowWidth + self.spacing;
-    end
-
-    if ((totalRowWidth) > (width - self.padding * 2) or id == 1) then
-      -- NEW ROW!
-      if (id == 1) then
-        child:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", self.padding, -self.padding);
-        totalHeight = totalHeight + self.padding;
-      else
-        local yOffset = (largestHeightInPreviousRow - anchor:GetHeight());
-        yOffset = ((yOffset > 0 and yOffset) or 0) + self.spacing;
-
-        child:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -(yOffset));
-        totalHeight = totalHeight + self.spacing;
-
-        if (child.GetFrame) then
-          anchor = child:GetFrame();
-        else
-          anchor = child;
-        end
-      end
-
-      totalRowWidth = child:GetWidth();
-      totalHeight = totalHeight + largestHeightInPreviousRow;
-      largestHeightInPreviousRow = child:GetHeight();
-    else
-      child:SetPoint("TOPLEFT", previousChild, "TOPRIGHT", self.spacing, 0);
-
-      if (child:GetHeight() > largestHeightInPreviousRow) then
-        largestHeightInPreviousRow = child:GetHeight();
-      end
-    end
-
-    previousChild = child;
-  end
-
-  totalHeight = totalHeight + largestHeightInPreviousRow + self.padding;
-  totalHeight = (totalHeight > 0 and totalHeight) or 10;
-  totalHeight = math.floor(totalHeight + 0.5);
-
-  scrollChild:SetSize(self.frame:GetWidth(), totalHeight);
-  self:UpdateScrollBarShownState();
-end
-
 --------------------------------------
 --- ResponsiveScrollFrame functions
 --------------------------------------
@@ -116,7 +35,6 @@ function ResponsiveScrollFrame:__Construct(data, containerFrame, globalName, par
   data.spacing = 4;
   data.padding = 4;
   data.children = obj:PopTable();
-  data:Embed(private);
 
   local UpdateScrollBarShownState = function() data:UpdateScrollBarShownState() end
 
@@ -219,4 +137,80 @@ function ResponsiveScrollFrame:MakeResizable(data, dragger)
   dragger:HookScript("OnDragStop", function()
     data.frame:StopMovingOrSizing();
   end);
+end
+
+function ResponsiveScrollFrame.Private:UpdateScrollBarShownState(data)
+  local scrollChild = data.scrollFrame:GetScrollChild();
+
+  if (not scrollChild) then
+    data.scrollBar:Hide();
+    return;
+  end
+
+  local scrollChildHeight = math.floor(scrollChild:GetHeight() + 0.5);
+  local containerHeight = math.floor(data.frame:GetHeight() + 0.5);
+
+  -- dynamically show and hide scroll bar if needed
+  data.scrollBar:SetShown(scrollChildHeight > containerHeight);
+end
+
+function ResponsiveScrollFrame.Private:RepositionChildElements(data)
+  local scrollChild = data.scrollFrame:GetScrollChild();
+  local width = math.ceil(data.frame:GetWidth());
+  local anchor = data.children[1];
+
+  if (not anchor) then return end
+
+  local totalRowWidth = 0; -- used to make new rows
+  local largestHeightInPreviousRow = 0; -- used to position new rows with correct Y Offset away from previous row
+  local totalHeight = 0; -- used to dynamically set the ScrollChild's height so that is can be visible
+  local previousChild;
+
+  for id, child in ipairs(data.children) do
+    child:ClearAllPoints();
+    totalRowWidth = totalRowWidth + child:GetWidth();
+
+    if (id ~= 1) then
+      totalRowWidth = totalRowWidth + data.spacing;
+    end
+
+    if ((totalRowWidth) > (width - data.padding * 2) or id == 1) then
+      -- NEW ROW!
+      if (id == 1) then
+        child:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", data.padding, -data.padding);
+        totalHeight = totalHeight + data.padding;
+      else
+        local yOffset = (largestHeightInPreviousRow - anchor:GetHeight());
+        yOffset = ((yOffset > 0 and yOffset) or 0) + data.spacing;
+
+        child:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -(yOffset));
+        totalHeight = totalHeight + data.spacing;
+
+        if (child.GetFrame) then
+          anchor = child:GetFrame();
+        else
+          anchor = child;
+        end
+      end
+
+      totalRowWidth = child:GetWidth();
+      totalHeight = totalHeight + largestHeightInPreviousRow;
+      largestHeightInPreviousRow = child:GetHeight();
+    else
+      child:SetPoint("TOPLEFT", previousChild, "TOPRIGHT", data.spacing, 0);
+
+      if (child:GetHeight() > largestHeightInPreviousRow) then
+        largestHeightInPreviousRow = child:GetHeight();
+      end
+    end
+
+    previousChild = child;
+  end
+
+  totalHeight = totalHeight + largestHeightInPreviousRow + data.padding;
+  totalHeight = (totalHeight > 0 and totalHeight) or 10;
+  totalHeight = math.floor(totalHeight + 0.5);
+
+  scrollChild:SetSize(data.frame:GetWidth(), totalHeight);
+  data:Call("UpdateScrollBarShownState");
 end

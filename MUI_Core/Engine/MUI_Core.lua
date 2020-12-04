@@ -25,7 +25,7 @@ local tk  = namespace.components.Toolkit; ---@type Toolkit
 local db  = namespace.components.Database; ---@type Database
 local em  = namespace.components.EventManager; ---@type LibMayronEvents
 local gui = namespace.components.GUIBuilder; ---@type LibMayronGUI
-local obj = namespace.components.Objects; ---@type LibMayronObjects
+local obj = namespace.components.Objects; ---@type MayronObjects
 local L   = namespace.components.Locale; ---@type Locale
 
 if (tk:IsClassic()) then
@@ -36,7 +36,7 @@ if (tk:IsClassic()) then
 end
 
 ---Gets the core components of MayronUI
----@return Toolkit, Database, LibMayronEvents, LibMayronGUI, LibMayronObjects, Locale
+---@return Toolkit, Database, LibMayronEvents, LibMayronGUI, MayronObjects, Locale
 function MayronUI:GetCoreComponents()
   return tk, db, em, gui, obj, L;
 end

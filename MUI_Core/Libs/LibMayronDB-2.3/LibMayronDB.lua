@@ -3,8 +3,8 @@
 ---@type LibMayronDB
 local Lib = _G.LibStub:NewLibrary("LibMayronDB", 2.3);
 
----@type LibMayronObjects
-local obj = _G.LibStub:GetLibrary("LibMayronObjects");
+---@type MayronObjects
+local obj = _G.MayronObjects:GetFramework();
 
 if (not Lib or not obj) then return; end
 

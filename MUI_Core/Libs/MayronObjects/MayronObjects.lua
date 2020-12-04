@@ -1,16 +1,49 @@
 -- luacheck: ignore self 143 631
 local addOnName = ...;
+local type, tonumber, pairs = _G.type, _G.tonumber, _G.pairs;
 
----@type LibMayronObjects
-local Lib = _G.LibStub:NewLibrary("LibMayronObjects", 3.03);
+_G.MayronObjects = _G.MayronObjects or {
+  versions = {};
+
+  NewFramework = function(self, version)
+    version = tonumber((version:gsub("%.+", "")));
+    self.last = version;
+
+    if (not self.versions[version]) then
+      local framework = {};
+      self.versions[version] = framework;
+      return framework;
+    end
+  end;
+
+  GetFramework = function(self, version)
+    if (version) then
+      version = version:gsub("%s+", ""):lower();
+
+      if (version == "latest") then
+        for key, _ in pairs(self.versions) do
+          version = key;
+        end
+      else
+        version = tonumber((version:gsub("%.+", "")));
+      end
+
+      self.last = version;
+    end
+
+    return self.versions[self.last];
+  end;
+};
+
+---@type MayronObjects
+local Lib = _G.MayronObjects:NewFramework("3.1.0");
 
 if (not Lib) then return end
 
-local error, unpack, next = _G.error, _G.unpack, _G.next;
-local type, setmetatable, table, string = _G.type, _G.setmetatable, _G.table, _G.string;
+local error, unpack, next, ipairs = _G.error, _G.unpack, _G.next, _G.ipairs;
+local setmetatable, table, string = _G.setmetatable, _G.table, _G.string;
 local getmetatable, select, pcall = _G.getmetatable, _G.select, _G.pcall;
-local tostring, collectgarbage, pairs, print = _G.tostring, _G.collectgarbage, _G.pairs, _G.print;
-local tonumber = _G.tonumber;
+local tostring, collectgarbage, print = _G.tostring, _G.collectgarbage, _G.print;
 
 Lib.Types = {};
 Lib.Types.Table    = "table";
@@ -34,9 +67,9 @@ local ProxyStack = {};
 --]]
 ProxyStack.funcStrings = {};
 
-local Core = {}; -- holds all private Lib core functions for internal use
+local Core = {}; -- holds all private core functions for internal use
 Core.Lib = Lib;
-Core.PREFIX = "|cffffcc00LibMayronObjects: |r"; -- this is used when printing out errors
+Core.PREFIX = "|cffffcc00MayronObjects: |r"; -- this is used when printing out errors
 Core.ExportedPackages = {}; -- contains all exported packages
 Core.DebugMode = false;
 
@@ -49,7 +82,7 @@ Core.DebugMode = false;
 local Package;
 
 --------------------------------------------
--- LibMayronObjects Functions
+-- MayronObjects Functions
 --------------------------------------------
 function Lib:IsTable(value)
   return type(value) == Lib.Types.Table;
@@ -451,7 +484,7 @@ function Lib:SetErrorHandler(errorHandler)
   Core.errorHandler = errorHandler;
 end
 
----Do NOT use this unless you are a LibMayronObjects developer.
+---Do NOT use this unless you are a MayronObjects developer.
 ---@param debug boolean @Set the Library to debug mode.
 function Lib:SetDebugMode(debug)
   Core.DebugMode = debug;
@@ -506,7 +539,10 @@ local function CreateProxyObject(object, key, self, controller, privateData)
     local definition, errorMessage = Core:GetParamsDefinition(proxyObject);
     local args = Core:ValidateFunctionCall(definition, errorMessage, ...);
 
-    if (not proxyObject.privateData) then
+    -- Silent errors
+    if (not Lib:IsTable(args)) then return end
+
+    if (not Lib:IsTable(proxyObject.privateData) and not proxyObject.key:match("Static.")) then
       if (proxyObject.controller.isInterface) then
         Core:Error("%s.%s is an interface function and must be implemented and invoked by an instance object.",
           proxyObject.controller.objectName, proxyObject.key);
@@ -514,16 +550,18 @@ local function CreateProxyObject(object, key, self, controller, privateData)
         Core:Error("%s.%s is a non-static function and must be invoked by an instance object.",
           proxyObject.controller.objectName, proxyObject.key);
       end
+
+      return
     end
 
     definition, errorMessage = Core:GetReturnsDefinition(proxyObject);
 
-    Core:Assert(Lib:IsTable(proxyObject.privateData) and not proxyObject.privateData.GetObjectType,
-      "Invalid instance private data found when calling %s.%s: %s",
-      proxyObject.controller.objectName, proxyObject.key, tostring(proxyObject.privateData));
+    if (not(Lib:IsFunction(proxyObject.object[proxyObject.key]))) then
+      Core:Error("Could not find function '%s' for object '%s'",
+        proxyObject.key, proxyObject.controller.objectName);
 
-    Core:Assert(Lib:IsFunction(proxyObject.object[proxyObject.key]),
-      "Could not find function '%s' for object '%s'", proxyObject.key, proxyObject.controller.objectName);
+      return
+    end
 
     -- execute attributes:
     local attributes = Core:GetAttributes(proxyObject);
@@ -537,10 +575,21 @@ local function CreateProxyObject(object, key, self, controller, privateData)
       end
     end
 
+    local returnValues;
+    if (proxyObject.privateData) then
       -- Validate return values received after calling the function
-    local returnValues = Core:ValidateFunctionCall(definition, errorMessage,
-      -- call function here:
-      proxyObject.object[proxyObject.key](proxyObject.self, proxyObject.privateData, Lib:UnpackTable(args)));
+      returnValues = Core:ValidateFunctionCall(definition, errorMessage,
+        -- call function here:
+        proxyObject.object[proxyObject.key](proxyObject.self, proxyObject.privateData, Lib:UnpackTable(args)));
+    else
+      -- Validate return values received after calling the STATIC function
+      returnValues = Core:ValidateFunctionCall(definition, errorMessage,
+        -- call function here:
+        proxyObject.object[proxyObject.key](proxyObject.self, Lib:UnpackTable(args)));
+    end
+
+    -- Silent errors
+    if (not Lib:IsTable(returnValues)) then return nil; end
 
     if (proxyObject.key ~= "Destroy") then
       local instanceController = Core:GetController(proxyObject.self, true);
@@ -635,9 +684,9 @@ do
   proxyClassMT.__newindex = function(self, key, value)
     local classController = Core:GetController(self);
 
-    if (key == "Static") then
-      -- not allowed to override "Static" Class property!
-      Core:Error("%s.Static property is protected.", classController.objectName);
+    if (key == "Static" or key == "Private") then
+      -- not allowed to override these Class properties
+      Core:Error("%s.%s are reserved class properties.", classController.objectName, key);
       return;
     end
 
@@ -648,9 +697,10 @@ do
     if (Lib:IsFunction(value)) then
       -- Adds temporary definition info to ClassController.definitions table
       Core:AttachFunctionDefinition(classController, key);
+      classController.class[key] = value;
+    else
+      Core:Error("Failed to add non-function value to %s.%s. Use the Static table instead.", classController.objectName, key);
     end
-
-    classController.class[key] = value;
   end
 
   proxyClassMT.__tostring = function(self)
@@ -664,21 +714,98 @@ do
     return str;
   end
 
+  local proxyPrivateMT = {};
+
+  proxyPrivateMT.__newindex = function(self, key, value)
+    local classController = Core:GetController(self);
+    key = string.format("Private.%s", key);
+
+    if (classController.isProtected) then
+      Core:Error("%s is protected.", classController.objectName);
+    end
+
+    if (Lib:IsFunction(value)) then
+      -- Adds temporary definition info to ClassController.definitions table
+      Core:AttachFunctionDefinition(classController, key);
+      classController.privateFunctions[key] = value;
+    else
+      -- get a proxy function object to validate function params and return values
+      Core:Error("Only private functions should be added to this table.");
+    end
+  end
+
+  proxyPrivateMT.__index = function(self, key)
+    local classController = Core:GetController(self);
+    key = string.format("Private.%s", key);
+
+    local value = classController.privateFunctions[key]; -- get the real value
+
+    if (Lib:IsFunction(value)) then
+      -- get a proxy function object to validate function params and return values
+      Core:Error("%s.%s is a non-static function and must be invoked by an instance object.",
+        classController.objectName, key);
+
+      return
+    end
+
+    return value;
+  end
+
+  local proxyStaticMT = {};
+
+  proxyStaticMT.__newindex = function(self, key, value)
+    local classController = Core:GetController(self);
+    key = string.format("Static.%s", key);
+
+    if (classController.isProtected) then
+      Core:Error("%s is protected.", classController.objectName);
+    end
+
+    if (Lib:IsFunction(value)) then
+      -- Adds temporary definition info to ClassController.definitions table
+      Core:AttachFunctionDefinition(classController, key);
+      classController.staticData[key] = value;
+    end
+
+    classController.staticData[key] = value;
+  end
+
+  proxyStaticMT.__index = function(self, key)
+    local classController = Core:GetController(self);
+    key = string.format("Static.%s", key);
+
+    local value = classController.staticData[key]; -- get the real value
+
+    if (Lib:IsFunction(value)) then
+      return CreateProxyObject(classController.staticData, key, self, classController);
+    end
+
+    return value;
+  end
+
   function Core:CreateClass(package, packageData, className, parentProxyClass, ...)
     local class            = Lib:PopTable(); -- stores real table indexes (once proxy has completed evaluating data)
     local proxyClass       = Lib:PopTable(); -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Class instead)
     local definitions      = Lib:PopTable(); -- function definitions for params and return values
     local friends          = Lib:PopTable(); -- friend classes can access instance private data of this class
     local classController  = Lib:PopTable(); -- holds special Lib data to control class
+    local privateFunctions = Lib:PopTable(); -- holds all private class functions
+    local staticData       = Lib:PopTable(); -- holds all static class functions
 
     classController.isClass = true;
     classController.objectName = className;
     classController.proxy = proxyClass;
     classController.definitions = definitions;
     classController.class = class;
+    classController.privateFunctions = privateFunctions;
+    classController.staticData = staticData;
 
     -- protected table for assigning Static functions
-    proxyClass.Static = Lib:PopTable();
+    class.Static = setmetatable(Lib:PopTable(), proxyStaticMT);
+    class.Private = setmetatable(Lib:PopTable(), proxyPrivateMT);
+
+    AllControllers[tostring(class.Private)] = classController;
+    AllControllers[tostring(class.Static)] = classController;
 
     if (package and packageData) then
       -- link new class to package
@@ -695,11 +822,11 @@ do
       self:SetInterfaces(classController, ...);
 
       -- ProxyClass functions --------------------------
-      proxyClass.Static.AddFriendClass = function(_, friendClassName)
+      class.Static.AddFriendClass = function(_, friendClassName)
         friends[friendClassName] = true;
       end
 
-      proxyClass.Static.IsFriendClass = function(_, friendClassName)
+      class.Static.IsFriendClass = function(_, friendClassName)
         if (friendClassName == className) then
           return true;
         end
@@ -707,19 +834,19 @@ do
         return friends[friendClassName];
       end
 
-      proxyClass.Static.OnIndexChanged = function(_, callback)
+      class.Static.OnIndexChanged = function(_, callback)
         classController.indexChangedCallback = callback;
       end
 
-      proxyClass.Static.OnIndexChanging = function(_, callback)
+      class.Static.OnIndexChanging = function(_, callback)
         classController.indexChangingCallback = callback;
       end
 
-      proxyClass.Static.OnIndexed = function(_, callback)
+      class.Static.OnIndexed = function(_, callback)
         classController.indexedCallback = callback;
       end
 
-      proxyClass.Static.OnIndexing = function(_, callback)
+      class.Static.OnIndexing = function(_, callback)
         classController.indexingCallback = callback;
       end
 
@@ -841,8 +968,8 @@ do
 
       if (selectedParentController and selectedParentController.class[key]) then
         value = CreateProxyObject(
-        selectedParentController.class, -- object/scope
-        key, self, selectedParentController, privateData
+          selectedParentController.class, -- object/scope
+          key, self, selectedParentController, privateData
         );
       end
     end
@@ -864,7 +991,7 @@ do
     end
 
     -- check if class has key
-    if (value == nil) then
+    if (value == nil and key ~= "Private") then
       value = classController.proxy[key];
 
       if (Lib:IsFunction(value)) then
@@ -954,7 +1081,7 @@ do
     local instanceController    = Lib:PopTable(); -- holds special Lib data to control instance
     local privateData           = Lib:PopTable(); -- private instance data passed to function calls (the 2nd argument)
     local proxyInstance         = Lib:PopTable(); -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Instance instead)
-    local definitions           = Lib:PopTable();
+    local definitions           = Lib:PopTable(); -- used for generic types
 
     instanceController.privateData = privateData;
     instanceController.instance = instance;
@@ -985,13 +1112,26 @@ do
       return self:GetPrivateInstanceData(friendInstance);
     end
 
-    privateData.Embed = function(_, values)
-      Lib:Assert(Lib:IsTable(values),
-        "Failed to embed value into private data - bad argument #1 (table expected, got %s)", type(values));
+    privateData.Call = function(_, privateFunctionName, ...)
+      Lib:Assert(Lib:IsString(privateFunctionName),
+        "Failed to call private function - bad argument #1 (string expected, got %s)", type(privateFunctionName));
 
-      for key, value in pairs(values) do
-        privateData[key] = value;
-      end
+      privateFunctionName = string.format("Private.%s", privateFunctionName);
+      local func = classController.privateFunctions[privateFunctionName];
+
+      Lib:Assert(Lib:IsFunction(func),
+        "Failed to call private function - Unknown private function '%s'", type(privateFunctionName));
+
+      func = CreateProxyObject(
+        classController.privateFunctions,
+        privateFunctionName,
+        proxyInstance,
+        classController);
+
+      local proxyObject = GetStoredProxyObject(func);
+      proxyObject.privateData = privateData; -- set PrivateData to be injected into function call
+
+      return func(nil, ...);
     end
 
     AllControllers[tostring(proxyInstance)] = instanceController;
@@ -1294,19 +1434,23 @@ do
 
     -- check that class implements interface functions:
     for funcKey, _ in pairs(classController.definitions) do
-      local implementedFunc = classController.class[funcKey];
-      Core:Assert(Lib:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
+      if (not (string.match(funcKey, "Private.") or string.match(funcKey, "Static."))) then
+        local implementedFunc = classController.class[funcKey];
+        Core:Assert(Lib:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
+      end
     end
 
     for funcKey, implementedFunc in pairs(classController.class) do
-      Core:Assert(Lib:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
+      if (funcKey ~= "Private" and funcKey ~= "Static") then
+        Core:Assert(Lib:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
 
-      if (Lib:IsFunction(implementedFunc)) then
-        local funcDefinition = classController.definitions[funcKey];
+        if (Lib:IsFunction(implementedFunc)) then
+          local funcDefinition = classController.definitions[funcKey];
 
-        -- copy function references with definitions
-        instanceController.instance[funcKey] = implementedFunc;
-        instanceController.definitions[funcKey] = funcDefinition;
+          -- copy function references with definitions
+          instanceController.instance[funcKey] = implementedFunc;
+          instanceController.definitions[funcKey] = funcDefinition;
+        end
       end
     end
   end
@@ -1553,6 +1697,7 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
 
       errorMessage = errorMessage:gsub("##", "#" .. tostring(id));
       self:Error(errorMessage);
+      return;
     end
 
     defaultValues[id] = CastSimpleDefault(definitionType, defaultValue);

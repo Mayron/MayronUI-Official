@@ -4,13 +4,13 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 ---@type LibMayronGUI
 if (not Lib) then return; end
 
-local LibObjectLua = _G.LibStub:GetLibrary("LibMayronObjects");
+local LibObjectLua = _G.MayronObjects:GetFramework();
 local WidgetsPackage = Lib.WidgetsPackage;
 
 ---@class Style : Object
 local Style = WidgetsPackage:CreateClass("Style");
 
----@type LibMayronObjects
+---@type MayronObjects
 local obj = Lib.Objects;
 
 -- Local Functions ---------------

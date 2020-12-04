@@ -3,7 +3,7 @@ local Lib = LibStub:GetLibrary("LibMayronDB");
 
 if (not Lib) then return; end
 
-local obj = _G.LibStub:GetLibrary("LibMayronObjects");
+local obj = _G.MayronObjects:GetFramework();
 local db = Lib:CreateDatabase("LibMayronDB", "TestDB");
 
 local function OnStartUp_Test1(self, addOnName) -- luacheck: ignore

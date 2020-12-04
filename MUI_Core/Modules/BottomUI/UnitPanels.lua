@@ -1,7 +1,6 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-local Private = {};
 
 local CreateFrame, pairs = _G.CreateFrame, _G.pairs;
 local IsAddOnLoaded, UnitExists, UnitIsPlayer = _G.IsAddOnLoaded, _G.UnitExists, _G.UnitIsPlayer;
@@ -41,7 +40,6 @@ db:AddToDefaults("profile.unitPanels", {
 
 function C_UnitPanels:OnInitialize(data, containerModule)
   data.containerModule = containerModule;
-  data:Embed(Private);
 
   local r, g, b = tk:GetThemeColor();
   db:AppendOnce(db.profile, "unitPanels.sufGradients", nil, {
@@ -59,8 +57,8 @@ function C_UnitPanels:OnInitialize(data, containerModule)
     };
   };
 
-  local attachWrapper = function() data:AttachShadowedUnitFrames() end
-  local detachWrapper = function() data:DetachShadowedUnitFrames() end
+  local attachWrapper = function() data:Call("AttachShadowedUnitFrames") end
+  local detachWrapper = function() data:Call("DetachShadowedUnitFrames") end
 
   self:RegisterUpdateFunctions(db.profile.unitPanels, {
     controlSUF = function(value)
@@ -70,12 +68,12 @@ function C_UnitPanels:OnInitialize(data, containerModule)
 
         if (handler) then
           handler:Destroy();
-          data:DetachShadowedUnitFrames();
+          data:Call("DetachShadowedUnitFrames");
           tk:UnhookFunc(_G.ShadowUF, "ProfilesChanged", attachWrapper);
           tk:UnhookFunc("ReloadUI", detachWrapper);
         end
       else
-        data:AttachShadowedUnitFrames();
+        data:Call("AttachShadowedUnitFrames");
         tk:HookFunc(_G.ShadowUF, "ProfilesChanged", attachWrapper);
         tk:HookFunc("ReloadUI", detachWrapper);
         em:CreateEventHandlerWithKey("PLAYER_LOGOUT", "MuiDetachSuf_Logout", detachWrapper);
@@ -109,7 +107,7 @@ function C_UnitPanels:OnInitialize(data, containerModule)
     end;
 
     alpha = function()
-      data:UpdateAllVisuals();
+      data:Call("UpdateAllVisuals");
     end;
 
     unitNames = {
@@ -256,7 +254,7 @@ function C_UnitPanels:OnEnabled(data)
   -- This event is always needed
   local events = "PLAYER_REGEN_ENABLED, PLAYER_REGEN_DISABLED, PLAYER_TARGET_CHANGED, PLAYER_ENTERING_WORLD";
   em:CreateEventHandlerWithKey(events, "MuiUnitFramePanels_TargetChanged", function()
-    data:UpdateAllVisuals();
+    data:Call("UpdateAllVisuals");
   end):Run();
 end
 
@@ -279,53 +277,50 @@ do
       tk:ApplyThemeColor(data.settings.alpha, data.left.singleBg);
     end
 
-    data:UpdateAllVisuals();
+    data:Call("UpdateAllVisuals");
   end
 end
 
--- Private Functions -------------------------
-
 -- This is used by the Resting Pulse feature and by the "alpha" update function:
-function Private:UpdateVisuals(frame, restingPulseAlpha)
+function C_UnitPanels.Private:UpdateVisuals(data, frame, restingPulseAlpha)
   local target = tk:GetUnitClassColor("target");
-  local r, g, b = self.left.bg:GetVertexColor();
-  local alpha = self.settings.alpha;
+  local r, g, b = data.left.bg:GetVertexColor();
+  local alpha = data.settings.alpha;
 
-  if (self:ShouldPulse()) then
-    alpha = restingPulseAlpha or self.currentPulseAlpha;
+  if (data:Call("ShouldPulse")) then
+    alpha = restingPulseAlpha or data.currentPulseAlpha;
   elseif (restingPulseAlpha) then
     return
   end
 
-  if (frame ~= self.left and frame ~= self.player) then
-    if (not (self.settings.isSymmetric or UnitExists("target"))) then
+  if (frame ~= data.left and frame ~= data.player) then
+    if (not (data.settings.isSymmetric or UnitExists("target"))) then
       alpha = 0;
     end
   end
 
-  if (frame == self.center) then
-    if (UnitIsPlayer("target") and self.settings.targetClassColored) then
+  if (frame == data.center) then
+    if (UnitIsPlayer("target") and data.settings.targetClassColored) then
       frame.bg:SetGradientAlpha("HORIZONTAL", r, g, b, alpha, target.r, target.g, target.b, alpha);
     else
       frame.bg:SetGradientAlpha("HORIZONTAL", r, g, b, alpha, r, g, b, alpha);
     end
-  elseif (frame == self.right) then
-    if (UnitIsPlayer("target") and self.settings.targetClassColored) then
+  elseif (frame == data.right) then
+    if (UnitIsPlayer("target") and data.settings.targetClassColored) then
       frame.bg:SetVertexColor(target.r, target.g, target.b, alpha);
     else
       frame.bg:SetVertexColor(r, g, b, alpha);
     end
-  elseif (frame == self.target) then
-    if (UnitIsPlayer("target") and self.settings.unitNames.targetClassColored) then
+  elseif (frame == data.target) then
+    if (UnitIsPlayer("target") and data.settings.unitNames.targetClassColored) then
       frame.bg:SetVertexColor(target.r, target.g, target.b, alpha);
     else
       frame.bg:SetVertexColor(r, g, b, alpha);
     end
-  elseif (frame == self.player) then
-    --/run print(MUI_UnitPanelLeft.bg:GetAlpha())
+  elseif (frame == data.player) then
     frame.bg:SetVertexColor(r, g, b, alpha);
   else
-    if (UnitExists("target") or self.settings.isSymmetric) then
+    if (UnitExists("target") or data.settings.isSymmetric) then
       if (frame.singleBg) then
         frame.singleBg:SetVertexColor(r, g, b, 0);
       end
@@ -340,11 +335,11 @@ function Private:UpdateVisuals(frame, restingPulseAlpha)
   end
 end
 
-function Private:UpdateAllVisuals()
+function C_UnitPanels.Private:UpdateAllVisuals(data)
   for _, key in obj:IterateArgs("left", "center", "right", "player", "target") do
-    if (key == "player" and not self.settings.unitNames.enabled) then break end
-    if (obj:IsWidget(self[key]) and obj:IsWidget(self[key].bg)) then
-      self:UpdateVisuals(self[key]);
+    if (key == "player" and not data.settings.unitNames.enabled) then break end
+    if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
+      data:Call("UpdateVisuals", data[key]);
     end
   end
 end
@@ -353,12 +348,12 @@ do
   local IsResting = _G.IsResting;
   local InCombatLockdown = _G.InCombatLockdown;
 
-  function Private:ShouldPulse()
-    return not (self.stopPulsing or InCombatLockdown()) and IsResting() and self.settings.restingPulse;
+  function C_UnitPanels.Private:ShouldPulse(data)
+    return not (data.stopPulsing or InCombatLockdown()) and IsResting() and data.settings.restingPulse;
   end
 end
 
-function Private:DetachShadowedUnitFrames()
+function C_UnitPanels.Private:DetachShadowedUnitFrames(_)
   for _, profileTable in pairs(_G.ShadowedUFDB.profiles) do
 
     if (obj:IsTable(profileTable) and obj:IsTable(profileTable.positions)) then
@@ -375,8 +370,8 @@ function Private:DetachShadowedUnitFrames()
   end
 end
 
-function Private:AttachShadowedUnitFrames()
-  if (not self.center) then return end
+function C_UnitPanels.Private:AttachShadowedUnitFrames(data)
+  if (not data.center) then return end
 
   local SUFTargetTarget = _G.ShadowUF.db.profile.positions.targettarget;
 
@@ -392,7 +387,7 @@ function Private:AttachShadowedUnitFrames()
 
   if (_G.SUFUnittarget) then
     _G.SUFUnittarget:SetFrameStrata("MEDIUM");
-    self.right:SetFrameStrata("LOW");
+    data.right:SetFrameStrata("LOW");
   end
 
   if (_G.SUFUnittargettarget) then

@@ -1,5 +1,5 @@
 -- luacheck: ignore self 143 631
-local obj = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
+local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 local GridPanels = obj:Import("GridPanels.Main"); ---@type Package
 local Grid = GridPanels:Get("Grid");
 local Region = GridPanels:Get("Region");

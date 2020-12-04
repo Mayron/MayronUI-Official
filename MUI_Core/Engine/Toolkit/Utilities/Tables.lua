@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
 
-local obj = namespace.components.Objects; ---@type LibMayronObjects
+local obj = namespace.components.Objects; ---@type MayronObjects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
 local pcall, pairs, strsplit, tonumber = _G.pcall, _G.pairs, _G.strsplit, _G.tonumber;

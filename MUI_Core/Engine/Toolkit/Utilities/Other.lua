@@ -8,7 +8,7 @@ local LibStub, IsTrialAccount = _G.LibStub, _G.IsTrialAccount;
 local UnitQuestTrivialLevelRange, GetQuestGreenRange = _G.UnitQuestTrivialLevelRange, _G.GetQuestGreenRange;
 
 namespace.components = {};
-namespace.components.Objects = LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
+namespace.components.Objects = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 namespace.components.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
 namespace.components.Toolkit = {};
 

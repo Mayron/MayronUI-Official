@@ -7,7 +7,7 @@ if (not Lib) then
     return;
 end
 
-local obj = _G.LibStub:GetLibrary("LibMayronObjects");
+local obj = _G.MayronObjects:GetFramework();
 local Private = {};
 
 Lib.WidgetsPackage = obj:CreatePackage("Widgets", "MayronUI");

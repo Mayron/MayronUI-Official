@@ -5,7 +5,7 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
 if (not Lib) then return; end
 
----@type LibMayronObjects
+---@type MayronObjects
 local obj = Lib.Objects;
 local inCombatAttribute = obj:Import("Framework.System.Attributes.InCombatAttribute");
 

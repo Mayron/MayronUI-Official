@@ -8,8 +8,15 @@ local FLASH_TIME_OFF = 0.65;
 local pulseTime = 0;
 local isPulsing = false;
 
-local function UnitPanels_UpdateAlpha(data, frame, elapsed)
-  if (not data:ShouldPulse()) then return end
+local IsResting = _G.IsResting;
+local InCombatLockdown = _G.InCombatLockdown;
+
+local function ShouldPulse(data)
+  return not (data.stopPulsing or InCombatLockdown()) and IsResting() and data.settings.restingPulse;
+end
+
+local function UnitPanels_UpdateAlpha(data, _, elapsed)
+  if (not ShouldPulse(data)) then return end
   pulseTime = (pulseTime or 0) - elapsed;
 
   if (pulseTime < 0) then
@@ -51,7 +58,7 @@ local function UnitPanels_UpdateAlpha(data, frame, elapsed)
     if (key == "player" and not data.settings.unitNames.enabled) then break end
 
     if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
-      data:UpdateVisuals(data[key], alpha);
+      data:Call("UpdateVisuals", data[key], alpha);
     end
   end
 end
@@ -59,7 +66,7 @@ end
 local PulseTimeManager = _G.CreateFrame("Frame");
 
 local function TriggerPulsing(data)
-  if (data:ShouldPulse()) then
+  if (ShouldPulse(data)) then
     PulseTimeManager:SetScript("OnUpdate", function(...) UnitPanels_UpdateAlpha(data, ...) end);
   else
     PulseTimeManager:SetScript("OnUpdate", nil);
@@ -68,7 +75,7 @@ local function TriggerPulsing(data)
       if (key == "player" and not data.settings.unitNames.enabled) then break end
 
       if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
-        data:UpdateVisuals(data[key]);
+        data:Call("UpdateVisuals", data[key]);
       end
     end
   end

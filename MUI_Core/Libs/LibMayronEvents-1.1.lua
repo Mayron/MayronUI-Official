@@ -1,8 +1,8 @@
 -- luacheck: ignore MayronUI self 143 631
 local addonName = ...;
 
-local Lib = _G.LibStub:NewLibrary("LibMayronEvents", 1.2); ---@class LibMayronEvents
-local obj = _G.LibStub:GetLibrary("LibMayronObjects"); ---@type LibMayronObjects
+local Lib = _G.LibStub:NewLibrary("LibMayronEvents", 1.6); ---@class LibMayronEvents
+local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 
 if (not (Lib and obj)) then return end
 
@@ -43,7 +43,7 @@ function Handler:__Destruct(data)
     for id, handler in ipairs(Private.handlersByEventName[eventName]) do
       if (handler == self) then
         table.remove(Private.handlersByEventName[eventName], id);
-        Private:CleanEventTable(data.eventName);
+        Private:CleanEventTable(eventName);
         break;
       end
     end
@@ -281,8 +281,9 @@ end
 ---@param key string @The key name.
 function Lib:DestroyEventHandlerByKey(key)
   if (self:HandlerExists(key)) then
-    Private.handlersByKey[key]:Destroy();
+    local handler = Private.handlersByKey[key];
     Private.handlersByKey[key] = nil;
+    handler:Destroy();
   end
 end
 
