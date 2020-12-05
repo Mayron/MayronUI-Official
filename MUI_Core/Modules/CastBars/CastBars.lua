@@ -411,9 +411,7 @@ do
   function C_CastBar:SetEnabled(data, enabled)
     local bar = data.frame;
 
-    if (not bar and not enabled) then
-      return;
-    end
+    if (not bar and not enabled) then return end
 
     if (enabled) then
       if (not bar) then
@@ -727,11 +725,12 @@ function C_CastBar:PositionCastBar(data)
 
   if (not (anchorToSUF and sufAnchor)) then
     -- manual position...
-
     local point = data.settings.position[1];
     local relativeFrame = data.settings.position[2];
     local relativePoint = data.settings.position[3];
     local x, y = data.settings.position[4], data.settings.position[5];
+
+    data.frame:SetParent(_G.UIParent);
 
     if (point and relativeFrame and relativePoint and x and y) then
       data.frame:SetPoint(point, _G[relativeFrame], relativePoint, x, y);
@@ -744,14 +743,19 @@ function C_CastBar:PositionCastBar(data)
     end
   elseif (sufAnchor) then
     -- anchor to ShadowedUnitFrames
+    data.frame:SetParent(sufAnchor);
     data.frame:SetPoint("TOPLEFT", sufAnchor, "TOPLEFT", -1, 1);
     data.frame:SetPoint("BOTTOMRIGHT", sufAnchor, "BOTTOMRIGHT", 1, -1);
-    data.frame:SetParent(_G.UIParent);
 
     if (data.square) then
       data.square:SetWidth(sufAnchor:GetHeight() + 2);
     end
   end
+
+  -- Should be in Update functions but no support for executing dependencies if in a group.
+  -- Needed for MUI config to work correctly when enabling/disabling a cast bar:
+  data.frame:SetFrameStrata(data.settings.frameStrata);
+  data.frame:SetFrameLevel(data.settings.frameLevel);
 end
 
 function C_CastBar:CheckStatus(data)

@@ -120,11 +120,12 @@ function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
 	local chatFrameName = string.format("ChatFrame%d", chatFrameID);
 
   local chatFrame = _G[chatFrameName];
+  chatFrame:SetMovable(true);
+  chatFrame:SetClampedToScreen(true);
   chatFrame:SetUserPlaced(true);
   chatFrame:SetMaxResize(1200, 800);
 	chatFrame:SetFrameStrata("LOW");
-	chatFrame:HookScript("OnMouseWheel", ChatFrame_OnMouseWheel);
-
+  chatFrame:HookScript("OnMouseWheel", ChatFrame_OnMouseWheel);
 	_G[string.format("%sEditBox", chatFrameName)]:SetAltArrowKeyMode(false);
 
 	if (chatFrameID ~= 2) then

@@ -215,7 +215,7 @@ do
 
         if (self:IsEnabled() or updateFunction == data.updateFunctions.enabled) then
           ExecuteUpdateFunction(settingPath, updateFunction, newValue, nil, onPre, onPost);
-          ExecuteDependentUpdateFunctions(settingPath, options.onExecuteAll.dependencies, data.updateFunctions, data.settings);
+          ExecuteDependentUpdateFunctions(settingPath, data.options.onExecuteAll.dependencies, data.updateFunctions, data.settings);
         end
       else
         -- update settings:

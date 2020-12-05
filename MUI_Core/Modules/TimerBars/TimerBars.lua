@@ -328,9 +328,20 @@ function C_TimerBarsModule:OnInitialized(data)
 end
 
 function C_TimerBarsModule:OnEnable()
-  -- create event handlers
-  em:CreateEventHandlerWithKey("COMBAT_LOG_EVENT_UNFILTERED", "TimerBarsModule_OnCombatLogEvent", OnCombatLogEvent);
-  em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "TimerBarsModule_CheckUnitAuras", CheckUnitAuras);
+  if (em:FindEventHandlerByKey("TimerBarsModule_OnCombatLogEvent")) then
+    em:EnableEventHandlers(
+      "TimerBarsModule_OnCombatLogEvent",
+      "TimerBarsModule_CheckUnitAuras");
+  else
+    em:CreateEventHandlerWithKey("COMBAT_LOG_EVENT_UNFILTERED", "TimerBarsModule_OnCombatLogEvent", OnCombatLogEvent);
+    em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "TimerBarsModule_CheckUnitAuras", CheckUnitAuras);
+  end
+end
+
+function C_TimerBarsModule:OnDisable()
+    em:DisableEventHandlers(
+      "TimerBarsModule_OnCombatLogEvent",
+      "TimerBarsModule_CheckUnitAuras");
 end
 
 Engine:DefineReturns("?TimerField");
