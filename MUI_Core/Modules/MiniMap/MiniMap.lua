@@ -342,20 +342,20 @@ function C_MiniMapModule:OnEnable(data)
     });
 
     table.insert(menuList, {
-      text = "Missions",
+      text = L["Missions"],
       func = function()
         ShowMissions(9);
       end
     });
 
     table.insert(menuList, {
-      text = "Covenant Sanctum",
+      text = L["Covenant Sanctum"],
       func = function()
         LoadAddOn("Blizzard_GarrisonUI");
         if (C_Covenants.GetActiveCovenantID() >= 1) then
           ShowGarrisonLandingPage(111);
         else
-          MayronUI:Print("You must be a member of a covenant to view this.");
+          MayronUI:Print(L["You must be a member of a covenant to view this."]);
         end
       end
     });
