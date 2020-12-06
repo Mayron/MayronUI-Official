@@ -4,6 +4,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ConfigModule = namespace.C_ConfigModule;
 local expandRetractDependencies = {};
+local expandRetractCheckButton;
 local bartenderControlDependencies = {};
 local defaultHeightWidget;
 
@@ -18,23 +19,27 @@ local function GetModKeyValue(modKey, currentValue)
 end
 
 local function SetModKeyValue(modKey, dbPath, newValue, oldValue)
-    if (obj:IsString(oldValue) and oldValue:find(modKey)) then
-        -- remove modKey from current value before trying to append new value
-        oldValue = oldValue:gsub(modKey, tk.Strings.Empty);
+  if (obj:IsString(oldValue) and oldValue:find(modKey)) then
+    -- remove modKey from current value before trying to append new value
+    oldValue = oldValue:gsub(modKey, tk.Strings.Empty);
+  end
+
+  if (newValue) then
+    newValue = modKey;
+
+    if (obj:IsString(oldValue)) then
+      newValue = oldValue .. newValue;
     end
+  else
+    -- if check button is not checked (false) set back to oldValue that does not include modKey
+    newValue = oldValue;
+  end
 
-    if (newValue) then
-        newValue = modKey;
+  if (tk.Strings:IsNilOrWhiteSpace(newValue) and expandRetractCheckButton:GetChecked()) then
+    expandRetractCheckButton:Click();
+  end
 
-        if (obj:IsString(oldValue)) then
-            newValue = oldValue .. newValue;
-        end
-    else
-        -- if check button is not checked (false) set back to oldValue that does not include modKey
-        newValue = oldValue;
-    end
-
-    db:SetPathValue(dbPath, newValue);
+  db:SetPathValue(dbPath, newValue);
 end
 
 local BartenderActionBars = {
@@ -405,9 +410,27 @@ function C_ConfigModule:GetConfigTable()
                             dbPath            = "profile.actionBarPanel.expandRetract";
                             tooltip           = "If disabled, you will not be able to toggle between 1 and 2 rows of action bars.";
                             type              = "check";
+
+                            OnLoad = function(_, container)
+                              expandRetractCheckButton = container.btn;
+                            end;
+
                             SetValue = function(dbPath, value)
                               for _, widget in ipairs(expandRetractDependencies) do
                                 widget:SetEnabled(value);
+                              end
+
+                              if (value) then
+                                local modKey = db.profile.actionBarPanel.modKey;
+
+                                if (tk.Strings:IsNilOrWhiteSpace(modKey)) then
+                                  for _, btn in ipairs(expandRetractDependencies) do
+                                    if (obj:IsWidget(btn, "CheckButton") and btn.text:GetText() == L["Control"]) then
+                                      btn:Click();
+                                      break;
+                                    end
+                                  end
+                                end
                               end
 
                               defaultHeightWidget:SetEnabled(not value);

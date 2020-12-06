@@ -69,6 +69,11 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
   data.containerModule = containerModule;
   data.rows = obj:PopTable();
 
+  -- If no modKey then disable it
+  if (tk.Strings:IsNilOrWhiteSpace(db.profile.actionBarPanel.modKey)) then
+    db.profile.actionBarPanel.expandRetract = false;
+  end
+
   local options = {
     onExecuteAll = {
       ignore = {
@@ -435,6 +440,8 @@ function C_ActionBarPanel.Private:LoadTutorial(data)
   };
 
   local modKey = db.profile.actionBarPanel.modKey;
+  tk:Assert(not tk.Strings:IsNilOrWhiteSpace(modKey), "Failed to load tutorial - missing modifier key");
+
   local modKeyLabel;
   for i = 1, #modKey do
     local c = modKey:sub(i,i);

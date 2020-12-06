@@ -727,5 +727,5 @@ L["Layout enabled!"]                                                  = "Layout 
 L["Show Chat Menu"]                                                   = "Show Chat Menu";
 L["Azerite"] 							      = "Azerite";
 L["Covenant Sanctum"]						      = "Covenant Sanctum";
-L["Missions"]							      = "Missions";
+L["Missions"]							      = "BfA Missions";
 L["You must be a member of a covenant to view this."]		      = "You must be a member of a covenant to view this."

@@ -116,7 +116,10 @@ function Lib:IsObject(value)
   return (Core:GetController(value, true) ~= nil);
 end
 
-function Lib:IsWidget(value)
+---@param value any @Any value to check whether it is of the expected widget type.
+---@param widgetType string @An optional widget type to test if the value is that type of widget.
+---@return boolean @true if the value is a Blizzard widgets, such as a Frame or Button.
+function Lib:IsWidget(value, widgetType)
   if (not Lib:IsTable(value)) then
     return false;
   end
@@ -127,7 +130,13 @@ function Lib:IsWidget(value)
     return false;
   end
 
-  return (value.GetObjectType ~= nil and value.GetName ~= nil);
+  local isWidget = (value.GetObjectType ~= nil and value.GetName ~= nil);
+
+  if (isWidget and self:IsString(widgetType)) then
+    isWidget = value:GetObjectType() == widgetType;
+  end
+
+  return isWidget;
 end
 
 function Lib:IsStringNilOrWhiteSpace(value)
@@ -1147,7 +1156,7 @@ do
       self:CopyTableValues(otherInstanceData, privateData);
       classController.cloneFrom = nil;
     else
-      if (classController.class.__Construct) then
+      if (proxyInstance.__Construct) then
         -- call custom constructor here!
         proxyInstance:__Construct(...);
       end

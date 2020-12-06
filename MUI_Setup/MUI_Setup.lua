@@ -456,7 +456,7 @@ function Private:LoadCreditsMenu(menuSection)
   menuSection.scrollBar = container.ScrollBar;
 
   tk:SetFullWidth(menuSection.child);
-  menuSection.child:SetHeight(600); -- can't use GetStringHeight
+  menuSection.child:SetHeight(700); -- can't use GetStringHeight
 
   container:SetPoint("TOPLEFT", 40, -40);
   container:SetPoint("BOTTOMRIGHT", -40, 40);

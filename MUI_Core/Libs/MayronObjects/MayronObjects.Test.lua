@@ -553,6 +553,30 @@ local function Inheritance_Test6() -- luacheck: ignore
   print("Inheritance_Test6 Successful!");
 end
 
+local function Inheritance_Test7() -- luacheck: ignore
+  print("Inheritance_Test7 Started");
+
+  local TestPackage = lib:CreatePackage("Inheritance_Test7");
+  local Parent = TestPackage:CreateClass("Parent");
+
+  function Parent:__Construct(data)
+    data.message = "Assigned by parent";
+    print("parent constructor triggered!");
+  end
+
+  local Child = TestPackage:CreateClass("Child", Parent);
+
+  function Child:Print(data)
+    assert(data.message == "Assigned by parent");
+    print(data.message);
+  end
+
+  local child = Child();
+  child:Print(); -- prints: "Assigned by parent"
+
+  print("Inheritance_Test7 Successful!");
+end
+
 local function UsingParent_Test1() -- luacheck: ignore
   print("UsingParent_Test1 Started");
   local TestPackage = lib:CreatePackage("UsingParent_Test1");
@@ -1397,6 +1421,7 @@ end
 -- Inheritance_Test4();
 -- Inheritance_Test5();
 -- Inheritance_Test6();
+-- Inheritance_Test7();
 -- Interfaces_Test1();
 -- Interfaces_Test2();
 -- Interfaces_Test3();

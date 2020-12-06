@@ -297,7 +297,7 @@ end
 
 -- BaseModule Object -------------------
 
-Engine:DefineReturns("string", "?boolean");
+Engine:DefineParams("string", "?string", "?boolean");
 ---Should only be called by the register module method!
 ---@param moduleKey string @The key used to register the module to MayronUI.
 ---@param moduleName string @The human-friendly name of the module to be used in-game (such as on the config window).
@@ -312,6 +312,10 @@ function BaseModule:__Construct(data, moduleKey, moduleName, initializeOnDemand)
   registryInfo.initialized = false;
   registryInfo.enabled = false;
   registryInfo.moduleData = data;
+  registryInfo.instance = self;
+
+  -- Make it easy to iterate through modules
+  table.insert(registeredModules, self);
 end
 
 ---Initialize the module manually (on demand) or is called by MayronUI on startup.
@@ -536,17 +540,12 @@ end
 ---@return Class @Returns a new module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
   local ModuleClass = Engine:CreateClass(moduleKey, BaseModule);
-  local moduleInstance = ModuleClass();
 
   -- must add it to the registeredModules table before calling parent constructor!
   registeredModules[moduleKey] = registeredModules[moduleKey] or obj:PopTable();
-  registeredModules[moduleKey].instance = moduleInstance;
   registeredModules[moduleKey].class = ModuleClass;
 
-  moduleInstance:Super(moduleKey, moduleName, initializeOnDemand); -- call parent constructor
-
-  -- Make it easy to iterate through modules
-  table.insert(registeredModules, moduleInstance);
+  ModuleClass(moduleKey, moduleName, initializeOnDemand);
 
   return ModuleClass;
 end
