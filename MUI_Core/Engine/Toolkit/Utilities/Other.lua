@@ -480,12 +480,14 @@ do
 
         callbacks[key] = obj:PopTable(realCallback, firstArg, ...);
         hooksecurefunc(realGlobalMethodName, callbackWrapper);
+        return realCallback;
       else
         local key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
         local callbackWrapper = CreateCallbackWrapper(key, tbl, methodName);
 
         callbacks[key] = obj:PopTable(callback, ...);
         hooksecurefunc(tbl, methodName, callbackWrapper);
+        return callback;
       end
     end
 

@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143
 local _, namespace = ...;
 local MayronUI = _G.MayronUI;
-local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
+local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 -- Register and Import ---------
 
@@ -47,19 +47,19 @@ local Minimap_OnDragStop;
 do
 	local updateSizeText;
 
-	local function DragStep()
-		local width = Minimap:GetWidth();
-		width = (math.floor(width + 100.5) - 100);
-		Minimap:SetSize(width, width);
+  local function DragStep()
+    local width = Minimap:GetWidth();
+    width = (math.floor(width + 100.5) - 100);
+    Minimap:SetSize(width, width);
 
-		if (not updateSizeText) then
-			Minimap.size:SetText("");
-		else
-			Minimap.size:SetText(width.." x "..width);
-		end
+    if (not updateSizeText) then
+      Minimap.size:SetText("");
+    else
+      Minimap.size:SetText(width.." x "..width);
+    end
 
-		C_Timer.After(0.02, DragStep);
-	end
+    C_Timer.After(0.02, DragStep);
+  end
 
 	function Minimap_OnDragStart()
 		if (tk:IsModComboActive("C")) then
@@ -90,6 +90,94 @@ do
 		tracker:SaveChanges();
 	end
 end
+
+local callback;
+callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
+  if (IsAddOnLoaded("Blizzard_BattlefieldMap") and _G.BattlefieldMapFrame) then
+    local updateSize;
+    local originalWidth, originalHeight = 298, 199;
+    local mapFrame, mapTab = _G.BattlefieldMapFrame, _G.BattlefieldMapTab;
+    local previousWidth;
+
+    local function DragStep()
+      if (not updateSize) then return end
+      local width = mapFrame:GetWidth();
+
+      if (previousWidth ~= width) then
+        previousWidth = width;
+        width = (math.floor(width + 100.5) - 100);
+
+        local difference = width / originalWidth;
+        local height = originalHeight * difference;
+        mapFrame:SetSize(width, height);
+        mapFrame.ScrollContainer:OnCanvasSizeChanged()
+      end
+
+      if (updateSize) then
+        C_Timer.After(0.02, DragStep);
+      end
+    end
+
+    local function update(self)
+      if (self.reskinned) then return end
+      self.BorderFrame:DisableDrawLayer("ARTWORK");
+      originalWidth, originalHeight = self.ScrollContainer:GetSize();
+
+      gui:AddResizer(tk.Constants.AddOnStyle, self);
+      self:SetMinResize(originalWidth, originalHeight);
+      self:SetMaxResize(1200, 800);
+
+      gui:AddTitleBar(tk.Constants.AddOnStyle, self, _G.GetMinimapZoneText());
+      self.titleBar:SetFrameStrata("HIGH");
+      self.titleBar:RegisterForClicks("RightButtonUp");
+      self.titleBar:SetScript("OnClick", function(self, button)
+        if (button == "RightButton") then
+          PlaySound(_G.SOUNDKIT.U_CHAT_SCROLL_BUTTON);
+
+          -- If Rightclick bring up the options menu
+          if button == "RightButton" then
+            local function InitializeOptionsDropDown(self)
+              self:GetParent():InitializeOptionsDropDown();
+            end
+            _G.UIDropDownMenu_Initialize(mapTab.OptionsDropDown, InitializeOptionsDropDown, "MENU");
+            ToggleDropDownMenu(1, nil, mapTab.OptionsDropDown, self, 0, 0);
+            return;
+          end
+        end
+      end);
+
+      self.dragger:SetFrameStrata("HIGH");
+      mapTab:Hide();
+      mapTab.Show = tk.Constants.DUMMY_FUNC;
+
+      local container = self.ScrollContainer;
+      container:SetAllPoints(self);
+
+      self.dragger:HookScript("OnDragStop", function()
+        container:ZoomIn();
+        container:ZoomOut();
+        updateSize = nil;
+      end);
+
+      self.dragger:HookScript("OnDragStart", function()
+        updateSize = true;
+        C_Timer.After(0.1, DragStep);
+      end);
+
+      self.reskinned = true;
+    end
+
+    mapFrame:HookScript("OnShow", update);
+
+    local bg = gui:CreateDialogBox(tk.Constants.AddOnStyle, mapFrame, "HIGH");
+    bg:SetAllPoints(true);
+    bg:SetFrameStrata("LOW");
+
+    mapFrame.BorderFrame.CloseButtonBorder:SetTexture(nil);
+    mapFrame.BorderFrame.CloseButton:SetPoint("TOPRIGHT", mapFrame.BorderFrame, "TOPRIGHT", 5, 5);
+    tk:UnhookFunc("BattlefieldMap_LoadUI", callback);
+  end
+end);
 
 function C_MiniMapModule:OnInitialize()
 	self:RegisterUpdateFunctions(db.profile.minimap, {

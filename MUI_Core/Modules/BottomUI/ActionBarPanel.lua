@@ -74,6 +74,10 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
     db.profile.actionBarPanel.expandRetract = false;
   end
 
+  if (obj:IsString(db.profile.actionBarPanel.bartender[1])) then
+    db.profile.actionBarPanel.bartender = nil;
+  end
+
   local options = {
     onExecuteAll = {
       ignore = {

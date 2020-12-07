@@ -209,7 +209,7 @@ do
     function Lib:AddTitleBar(style, frame, text)
       local texture = style:GetTexture("TitleBarBackground");
 
-      frame.titleBar = CreateFrame("Frame", nil, frame);
+      frame.titleBar = CreateFrame("Button", nil, frame);
       frame.titleBar:SetSize(260, 31);
       frame.titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", -7, 11);
       frame.titleBar.bg = frame.titleBar:CreateTexture("ARTWORK");
