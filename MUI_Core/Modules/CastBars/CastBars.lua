@@ -182,13 +182,11 @@ end
 ---@param castBarData table
 function Events:UNIT_SPELLCAST_INTERRUPTED(_, castBarData)
   if (UnitCastingInfo(castBarData.unitID) or UnitChannelInfo(castBarData.unitID)) then
-    return;
+    castBarData.frame.statusbar:SetValue(select(2, castBarData.frame.statusbar:GetMinMaxValues()));
+    castBarData.interrupted = true;
+    local c = castBarData.appearance.colors.interrupted;
+    castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
   end
-
-  castBarData.frame.statusbar:SetValue(select(2, castBarData.frame.statusbar:GetMinMaxValues()));
-  castBarData.interrupted = true;
-  local c = castBarData.appearance.colors.interrupted;
-  castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
 end
 
 ---@param castBar CastBar
@@ -709,6 +707,7 @@ function C_CastBar:StartCasting(data, channelling, auraInfo)
   UIFrameFadeIn(data.frame, 0.1, 0, 1);
 
   data.fadingOut = nil;
+  data.interrupted = nil;
   data.channelling = channelling;
   data.unitName = UnitName(data.unitID);
   data.startTime = startTime; -- makes OnUpdate start casting the bar
