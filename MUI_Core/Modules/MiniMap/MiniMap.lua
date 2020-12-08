@@ -96,8 +96,9 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
   if (IsAddOnLoaded("Blizzard_BattlefieldMap") and _G.BattlefieldMapFrame) then
     local updateSize;
     local originalWidth, originalHeight = 298, 199;
-    local mapFrame, mapTab = _G.BattlefieldMapFrame, _G.BattlefieldMapTab;
+    local mapFrame, mapTab, mapOptions = _G.BattlefieldMapFrame, _G.BattlefieldMapTab, _G.BattlefieldMapOptions;
     local previousWidth;
+    local GetMinimapZoneText = _G.GetMinimapZoneText;
 
     local function DragStep()
       if (not updateSize) then return end
@@ -119,15 +120,22 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
     end
 
     local function update(self)
-      if (self.reskinned) then return end
+      if (self.reskinned) then
+        if (self.titleBar) then
+          self.titleBar.text:SetText(GetMinimapZoneText());
+        end
+        return
+      end
+
       self.BorderFrame:DisableDrawLayer("ARTWORK");
       originalWidth, originalHeight = self.ScrollContainer:GetSize();
 
       gui:AddResizer(tk.Constants.AddOnStyle, self);
+      self.dragger:SetParent(self.BorderFrame);
       self:SetMinResize(originalWidth, originalHeight);
       self:SetMaxResize(1200, 800);
 
-      gui:AddTitleBar(tk.Constants.AddOnStyle, self, _G.GetMinimapZoneText());
+      gui:AddTitleBar(tk.Constants.AddOnStyle, self, GetMinimapZoneText());
       self.titleBar:SetFrameStrata("HIGH");
       self.titleBar:RegisterForClicks("RightButtonUp");
       self.titleBar:SetScript("OnClick", function(self, button)
@@ -167,11 +175,24 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
       self.reskinned = true;
     end
 
+    mapFrame:SetFrameStrata("MEDIUM");
     mapFrame:HookScript("OnShow", update);
+    mapFrame:HookScript("OnEvent", function(self)
+      if (self.titleBar) then
+        self.titleBar.text:SetText(GetMinimapZoneText());
+      end
+    end);
 
-    local bg = gui:CreateDialogBox(tk.Constants.AddOnStyle, mapFrame, "HIGH");
+    local bg = gui:CreateDialogBox(tk.Constants.AddOnStyle, mapFrame, "HIGH", nil, "MUI_ZoneMap");
     bg:SetAllPoints(true);
     bg:SetFrameStrata("LOW");
+    bg:SetAlpha(1.0 - mapOptions.opacity);
+
+    tk:HookFunc(mapFrame, "RefreshAlpha", function()
+      local alpha = 1.0 - mapOptions.opacity;
+      bg:SetAlpha(1.0 - mapOptions.opacity);
+      mapFrame.titleBar:SetAlpha(math.max(alpha, 0.3));
+    end);
 
     mapFrame.BorderFrame.CloseButtonBorder:SetTexture(nil);
     mapFrame.BorderFrame.CloseButton:SetPoint("TOPRIGHT", mapFrame.BorderFrame, "TOPRIGHT", 5, 5);

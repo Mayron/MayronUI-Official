@@ -46,6 +46,7 @@
   <Script file="DataText\Components\None.lua" />
   <Script file="DataText\Components\Performance.lua" />
   <Script file="DataText\Components\Specialization.lua" />
+  <Script file="DataText\Components\VolumeOptions.lua" />
   <Script file="DataText\DataText.config.lua" />
 
   <Script file="MiniMap\MiniMap.lua" />

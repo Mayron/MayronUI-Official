@@ -32,7 +32,8 @@ namespace.dataTextLabels = {
 ["memory"]            = "Memory",
 ["performance"]       = "Performance",
 ["none"]              = "None";
-["disabled"]          = "Disabled"
+["disabled"]          = "Disabled",
+["volumeOptions"]     = "Volume Options"
 };
 
 local defaults = {
@@ -45,9 +46,9 @@ local defaults = {
   blockInCombat = true;
   popup = {
     hideInCombat = true;
-    maxHeight    = 250;
+    maxHeight    = 300;
     width        = 200;
-    itemHeight   = 26; -- the height of each list item in the popup menu
+    itemHeight   = 26; -- the default height of each list item in the popup menu
   };
   displayOrders = {
     "durability";
@@ -429,7 +430,7 @@ Engine:DefineReturns("number");
 ---@return number the total height of all labels
 function C_DataTextModule:PositionLabels(data, dataModule)
   local totalLabelsShown = dataModule.TotalLabelsShown;
-  local labelHeight = data.settings.popup.itemHeight;
+  local defaultLabelHeight = data.settings.popup.itemHeight;
 
   if (totalLabelsShown == 0) then
     return 0;
@@ -440,6 +441,7 @@ function C_DataTextModule:PositionLabels(data, dataModule)
   for i = 1, totalLabelsShown do
     local label = dataModule.MenuLabels[i];
     local labelType = type(label);
+    local labelHeight = label.customHeight or defaultLabelHeight;
 
     obj:Assert(labelType ~= "nil", "Invalid total labels to show.");
 

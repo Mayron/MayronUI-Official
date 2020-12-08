@@ -9,7 +9,6 @@ local DURABILITY_SLOTS = {
     "WristSlot", "HandsSlot", "MainHandSlot", "SecondaryHandSlot"
 };
 
-local _G = _G;
 local ipairs, GetInventorySlotInfo, GetInventoryItemDurability, GetInventoryAlertStatus, CreateFrame, DurabilityFrame, string =
 _G.ipairs, _G.GetInventorySlotInfo, _G.GetInventoryItemDurability, _G.GetInventoryAlertStatus, _G.CreateFrame, _G.DurabilityFrame, _G.string;
 
@@ -69,105 +68,105 @@ function Durability:IsEnabled(data)
 end
 
 function Durability:SetEnabled(data, enabled)
-    data.enabled = enabled;
+  data.enabled = enabled;
 
-    if (enabled) then
-        data.handler = em:CreateEventHandler("UPDATE_INVENTORY_DURABILITY", function()
-            if (not self.Button) then
-                return
-            end
+  if (enabled) then
+    data.handler = em:CreateEventHandler("UPDATE_INVENTORY_DURABILITY", function()
+      if (not self.Button) then
+        return
+      end
 
-            self:Update();
-        end);
+      self:Update();
+    end);
 
-        tk:KillElement(DurabilityFrame);
+    tk:KillElement(DurabilityFrame);
 
-    elseif (data.handler) then
-        data.handler:Destroy();
-        data.handler = nil;
-    end
+  elseif (data.handler) then
+    data.handler:Destroy();
+    data.handler = nil;
+  end
 end
 
 function Durability:Update(data, refreshSettings)
-    if (refreshSettings) then
-        data.settings:Refresh();
+  if (refreshSettings) then
+    data.settings:Refresh();
+  end
+
+  local durability_total, max_total = 0, 0;
+  local itemsEquipped;
+
+  for _, slotName in ipairs(DURABILITY_SLOTS) do
+    local id = GetInventorySlotInfo(slotName);
+    local durability, max = GetInventoryItemDurability(id);
+
+    if (durability) then
+      durability_total = durability_total + durability;
+      max_total = max_total + max;
+      itemsEquipped = true;
     end
+  end
 
-    local durability_total, max_total = 0, 0;
-    local itemsEquipped;
+  local value = (durability_total / max_total) * 100;
 
-    for _, slotName in ipairs(DURABILITY_SLOTS) do
-        local id = GetInventorySlotInfo(slotName);
-        local durability, max = GetInventoryItemDurability(id);
+  if (itemsEquipped) then
+    local realValue = tk.Numbers:ToPrecision(value, 1);
+    local colored;
 
-        if (durability) then
-            durability_total = durability_total + durability;
-            max_total = max_total + max;
-            itemsEquipped = true;
-        end
-    end
+    if (value < 25) then
+      colored = string.format("%s%s%%|r", RED_FONT_COLOR_CODE, realValue);
 
-    local value = (durability_total / max_total) * 100;
+    elseif (value < 40) then
+      colored = string.format("%s%s%%|r", ORANGE_FONT_COLOR_CODE, realValue);
 
-    if (itemsEquipped) then
-        local realValue = tk.Numbers:ToPrecision(value, 1);
-        local colored;
+    elseif (value < 70) then
+      colored = string.format("%s%s%%|r", YELLOW_FONT_COLOR_CODE, realValue);
 
-        if (value < 25) then
-            colored = string.format("%s%s%%|r", RED_FONT_COLOR_CODE, realValue);
-
-        elseif (value < 40) then
-            colored = string.format("%s%s%%|r", ORANGE_FONT_COLOR_CODE, realValue);
-
-        elseif (value < 70) then
-            colored = string.format("%s%s%%|r", YELLOW_FONT_COLOR_CODE, realValue);
-
-        else
-            colored = string.format("%s%s%%|r", HIGHLIGHT_FONT_COLOR_CODE, realValue);
-        end
-
-       self.Button:SetText(string.format(L["Armor"]..": %s", colored));
     else
-       self.Button:SetText(L["Armor"]..": |cffffffffnone|r");
+      colored = string.format("%s%s%%|r", HIGHLIGHT_FONT_COLOR_CODE, realValue);
     end
+
+    self.Button:SetText(string.format(L["Armor"]..": %s", colored));
+  else
+    self.Button:SetText(L["Armor"]..": |cffffffffnone|r");
+  end
 end
 
 function Durability:Click(data)
-    local totalLabelsShown = 0;
-    local index = 0;
+  local totalLabelsShown = 0;
+  local index = 0;
 
-    for _, slotName in ipairs(DURABILITY_SLOTS) do
-        local id = GetInventorySlotInfo(slotName);
-        local durability, max = GetInventoryItemDurability(id);
+  for _, slotName in ipairs(DURABILITY_SLOTS) do
+    local id = GetInventorySlotInfo(slotName);
+    local durability, max = GetInventoryItemDurability(id);
 
-        if (durability) then
-            index = index + 1;
-            totalLabelsShown = totalLabelsShown + 1;
+    if (durability) then
+      index = index + 1;
+      totalLabelsShown = totalLabelsShown + 1;
 
-            local value = (durability / max) * 100;
-            local alert = GetInventoryAlertStatus(id);
+      local value = (durability / max) * 100;
+      local alert = GetInventoryAlertStatus(id);
 
-            -- get or create new label
-            local label = self.MenuLabels[totalLabelsShown] or
-                CreateLabel(self.MenuContent, data.settings.popup.width);
+      -- get or create new label
+      local label = self.MenuLabels[totalLabelsShown] or
+      CreateLabel(self.MenuContent, data.settings.popup.width);
 
-            self.MenuLabels[totalLabelsShown] = label;
+      self.MenuLabels[totalLabelsShown] = label;
 
-            slotName = slotName:gsub("Slot", "");
-            slotName = tk.Strings:SplitByCamelCase(slotName);
+      slotName = slotName:gsub("Slot", "");
+      slotName = tk.Strings:SplitByCamelCase(slotName);
 
-            label.name:SetText(L[slotName]);
+      label.name:SetText(L[slotName]);
 
-            if (alert == 0) then
-                label.value:SetTextColor(1, 1, 1);
-            else
-                local c = INVENTORY_ALERT_COLORS[alert];
-                label.value:SetTextColor(c.r, c.g, c.b);
-            end
+      if (alert == 0) then
+        label.value:SetTextColor(1, 1, 1);
+      else
+        local c = INVENTORY_ALERT_COLORS[alert];
+        label.value:SetTextColor(c.r, c.g, c.b);
+      end
 
-            label.value:SetText(string.format("%u%%", value));
-        end
+      label.value:SetText(string.format("%u%%", value));
     end
+  end
 
-    self.TotalLabelsShown = totalLabelsShown;
+  self.TotalLabelsShown = totalLabelsShown;
 end

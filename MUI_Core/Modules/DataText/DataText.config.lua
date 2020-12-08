@@ -93,44 +93,44 @@ function C_DataTextModule:GetConfigTable()
             {   name = L["Data Text Modules"],
                 type = "title",
             },
-            {   type = "loop",
-                loops = 10,
-                func = function(id)
-                    local child = {
-                        name = tk.Strings:JoinWithSpace("Button", id);
-                        type = "dropdown";
-                        dbPath = string.format("profile.datatext.displayOrders[%s]", id);
-                        options = namespace.dataTextLabels;
-                        labels = "values";
+          {   type = "loop",
+              loops = 10,
+              func = function(id)
+                local child = {
+                  name = tk.Strings:JoinWithSpace("Button", id);
+                  type = "dropdown";
+                  dbPath = string.format("profile.datatext.displayOrders[%s]", id);
+                  options = namespace.dataTextLabels;
+                  labels = "values";
 
-                        GetValue = function(_, value)
-                            if (value == nil) then
-                                value = "disabled";
-                            end
-
-                            return namespace.dataTextLabels[value];
-                        end;
-
-                        SetValue = function(dbPath, newLabel)
-                            local newValue;
-
-                            for value, label in pairs(namespace.dataTextLabels) do
-                                if (newLabel == label) then
-                                    newValue = value;
-                                    break;
-                                end
-                            end
-
-                            db:SetPathValue(dbPath, newValue);
-                        end;
-                    };
-
-                    if (id == 1) then
-                        child.paddingTop = 0;
+                  GetValue = function(_, value)
+                    if (value == nil) then
+                      value = "disabled";
                     end
 
-                    return child;
+                    return namespace.dataTextLabels[value];
+                  end;
+
+                  SetValue = function(dbPath, newLabel)
+                    local newValue;
+
+                    for value, label in pairs(namespace.dataTextLabels) do
+                      if (newLabel == label) then
+                        newValue = value;
+                        break;
+                      end
+                    end
+
+                    db:SetPathValue(dbPath, newValue);
+                  end;
+                };
+
+                if (id == 1) then
+                  child.paddingTop = 0;
                 end
+
+                return child;
+              end
             },
             {   type = "title",
                 name = L["Module Options"]

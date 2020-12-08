@@ -54,30 +54,30 @@ function Inventory:__Construct(data, settings, dataTextModule, slideController)
 end
 
 function Inventory:SetEnabled(data, enabled)
-    data.enabled = enabled;
+  data.enabled = enabled;
 
-    if (enabled) then
-        data.handler = em:CreateEventHandler("BAG_UPDATE", function()
-            if (not self.Button) then
-                return
-            end
+  if (enabled) then
+    data.handler = em:CreateEventHandler("BAG_UPDATE", function()
+      if (not self.Button) then
+        return
+      end
 
-            self:Update(data);
-        end);
+      self:Update(data);
+    end);
 
-        self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-        self.Button:SetScript("OnEnter", button_OnEnter);
-        self.Button:SetScript("OnLeave", button_OnLeave);
-    else
-        if (data.handler) then
-            data.handler:Destroy();
-            data.handler = nil;
-        end
-
-        self.Button:RegisterForClicks("LeftButtonUp");
-        self.Button:SetScript("OnEnter", nil);
-        self.Button:SetScript("OnLeave", nil);
+    self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+    self.Button:SetScript("OnEnter", button_OnEnter);
+    self.Button:SetScript("OnLeave", button_OnLeave);
+  else
+    if (data.handler) then
+      data.handler:Destroy();
+      data.handler = nil;
     end
+
+    self.Button:RegisterForClicks("LeftButtonUp");
+    self.Button:SetScript("OnEnter", nil);
+    self.Button:SetScript("OnLeave", nil);
+  end
 end
 
 function Inventory:IsEnabled(data)
@@ -85,27 +85,27 @@ function Inventory:IsEnabled(data)
 end
 
 function Inventory:Update(data, refreshSettings)
-    if (refreshSettings) then
-        data.settings:Refresh();
-    end
+  if (refreshSettings) then
+    data.settings:Refresh();
+  end
 
-    local slots = 0;
-    local totalSlots = 0;
+  local slots = 0;
+  local totalSlots = 0;
 
-    for i = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-        totalSlots = totalSlots + (GetContainerNumSlots(i) or 0);
-        slots = slots + (GetContainerNumFreeSlots(i) or 0);
-    end
+  for i = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
+    totalSlots = totalSlots + (GetContainerNumSlots(i) or 0);
+    slots = slots + (GetContainerNumFreeSlots(i) or 0);
+  end
 
-    if (data.settings.slotsToShow == "used") then
-        slots = totalSlots - slots;
-    end
+  if (data.settings.slotsToShow == "used") then
+    slots = totalSlots - slots;
+  end
 
-    if (data.settings.showTotalSlots) then
-        self.Button:SetText(string.format(L["Bags"]..": |cffffffff%u / %u|r", slots, totalSlots));
-    else
-        self.Button:SetText(string.format(L["Bags"]..": |cffffffff%u|r", slots));
-    end
+  if (data.settings.showTotalSlots) then
+    self.Button:SetText(string.format(L["Bags"]..": |cffffffff%u / %u|r", slots, totalSlots));
+  else
+    self.Button:SetText(string.format(L["Bags"]..": |cffffffff%u|r", slots));
+  end
 end
 
 function Inventory:Click(_, button)
