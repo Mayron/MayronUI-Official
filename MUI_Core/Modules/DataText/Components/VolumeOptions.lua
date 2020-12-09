@@ -15,8 +15,8 @@ local AMBIENCE_VOLUME = _G.AMBIENCE_VOLUME;
 local DIALOG_VOLUME = _G.DIALOG_VOLUME;
 local MUTED = _G.MUTED;
 local VOLUME = _G.VOLUME;
-local ENABLE = _G.ENABLE;
-local DISABLE = _G.DISABLE;
+local UNMUTE = _G.UNMUTE;
+local MUTE = _G.MUTE;
 local SHOW = _G.SHOW;
 local OPTIONS = _G.OPTIONS;
 local ActionStatus = _G.ActionStatus;
@@ -27,11 +27,19 @@ local ActionStatus = _G.ActionStatus;
 local VolumeOptions = ComponentsPackage:CreateClass("VolumeOptions", nil, "IDataTextComponent");
 
 -- Local Functions ----------------
+local function GetFormattedValue(text, cvarName, value)
+  value = value or tonumber(GetCVar(cvarName));
+  value = tk.Numbers:ToPrecision(value, 2);
+  local percentage = value * 100;
+  return string.format("%s (%d%%)", text, percentage), value;
+end
+
 local function Slider_OnValueChanged(self)
   local value = self:GetValue();
-  SetCVar(self.cvarName, value);
+  local fullText, newValue = GetFormattedValue(self.text, nil, value);
 
-  self.name:SetText(string.format("%s (%.1f)", self.text, value));
+  SetCVar(self.cvarName, newValue);
+  self.name:SetText(fullText);
 
   if (self.component) then
     self.component:Update();
@@ -49,7 +57,7 @@ local function CreateLabel(contentFrame, cvarName, text, component)
 
   local slider = CreateFrame("Slider", nil, label, "OptionsSliderTemplate");
   slider:SetMinMaxValues(0, 1);
-  slider:SetValueStep(0.1);
+  slider:SetValueStep(0.01);
   slider:SetObeyStepOnDrag(true);
   slider:SetValue(0.5);
 
@@ -87,7 +95,7 @@ local function button_OnEnter(self)
   tk.Strings:JoinWithSpace(SHOW, VOLUME, OPTIONS), r, g, b, 1, 1, 1);
 
   GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]),
-    tk.Strings:Join("", ENABLE, "/", DISABLE, " ", MASTER_VOLUME), r, g, b, 1, 1, 1);
+    tk.Strings:Join("", MUTE, "/", UNMUTE, " ", MASTER_VOLUME), r, g, b, 1, 1, 1);
 
   GameTooltip:Show();
 end
@@ -133,8 +141,8 @@ function VolumeOptions:SetEnabled(data, enabled)
 end
 
 local function UpdateLabel(label, cvarName, text)
-  local value = GetCVar(cvarName);
-  label.name:SetText(string.format("%s (%.1f)", text, value));
+  local fullText, value = GetFormattedValue(text, cvarName);
+  label.name:SetText(fullText);
   label.slider:SetValue(value);
 end
 
@@ -165,7 +173,7 @@ function VolumeOptions:Click(data, button)
     local currentValue = tonumber(GetCVar("Sound_MasterVolume"));
 
     if (currentValue == 0) then
-      ActionStatus:DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, "Unmuted"));
+      ActionStatus:DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, L["Unmuted"]));
       SetCVar("Sound_MasterVolume", data.oldValue or 1);
       data.oldValue = data.oldValue or 1;
     else
@@ -183,5 +191,6 @@ function VolumeOptions:Update(data, refreshSettings)
     data.settings:Refresh();
   end
 
-  self.Button:SetText(string.format("%s (%d%%)", VOLUME, tonumber(GetCVar("Sound_MasterVolume")) * 100));
+  local text = GetFormattedValue(VOLUME, "Sound_MasterVolume")
+  self.Button:SetText(text);
 end

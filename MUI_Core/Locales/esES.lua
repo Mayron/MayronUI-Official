@@ -695,3 +695,4 @@ L["Azerite"] 							      = "Azerite";
 L["Covenant Sanctum"]						      = "Covenant Sanctum";
 L["Missions"]							      = "BfA Missions";
 L["You must be a member of a covenant to view this."]		      = "You must be a member of a covenant to view this."
+L["Unmuted"] = "No silenciado";

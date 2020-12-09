@@ -20,7 +20,7 @@ tk.Numbers = {};
 
 function tk.Numbers:ToPrecision(number, precision)
     number = tonumber(number);
-    number = math.floor(number * (math.pow(10, precision)));
+    number = math.floor(number * (math.pow(10, precision)) + 0.5);
     number = number / (math.pow(10, precision));
     return number;
 end
