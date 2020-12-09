@@ -20,7 +20,7 @@ local MUTE = _G.MUTE;
 local SHOW = _G.SHOW;
 local OPTIONS = _G.OPTIONS;
 local ActionStatus = _G.ActionStatus;
-
+local ActionStatus_DisplayMessage = _G.ActionStatus_DisplayMessage;
 
 -- Register and Import Modules -------
 
@@ -173,11 +173,21 @@ function VolumeOptions:Click(data, button)
     local currentValue = tonumber(GetCVar("Sound_MasterVolume"));
 
     if (currentValue == 0) then
-      ActionStatus:DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, L["Unmuted"]));
+      if (tk:IsClassic()) then
+        ActionStatus_DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, L["Unmuted"]));
+      else
+        ActionStatus:DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, L["Unmuted"]));
+      end
+
       SetCVar("Sound_MasterVolume", data.oldValue or 1);
       data.oldValue = data.oldValue or 1;
     else
-      ActionStatus:DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, MUTED));
+      if (tk:IsClassic()) then
+        ActionStatus_DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, MUTED));
+      else
+        ActionStatus:DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, MUTED));
+      end
+
       SetCVar("Sound_MasterVolume", 0);
       data.oldValue = currentValue;
     end
