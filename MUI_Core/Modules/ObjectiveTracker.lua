@@ -17,43 +17,55 @@ GetInstanceInfo, RegisterStateDriver, UnregisterStateDriver, GetQuestDifficultyC
   _G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs, _G.pairs, _G.C_QuestLog, _G.CreateFrame,
   _G.GetInstanceInfo, _G.RegisterStateDriver, _G.UnregisterStateDriver, _G.GetQuestDifficultyColor;
 
-_G.OBJECTIVE_TRACKER_HEADER_OFFSET_X = 0;
+local function SetHeaderColor(headerText, difficultyColor, highlight)
+  local r, g, b = difficultyColor.r, difficultyColor.g, difficultyColor.b;
 
-local function SetHeaderColor(headerText, level, isScaling)
-  local difficultyColor = GetQuestDifficultyColor(level, isScaling);
-  headerText:SetTextColor(difficultyColor.r, difficultyColor.g, difficultyColor.b);
+  if (highlight) then
+    r = r * 1.2;
+    g = g * 1.2;
+    b = b * 1.2;
+  end
+
+  headerText:SetTextColor(r, g, b);
   headerText.colorStyle = difficultyColor;
 end
 
-local function UpdateQuestDifficultyColors(block)
+local function UpdateQuestDifficultyColors(block, highlight)
   if (C_QuestLog and C_QuestLog.GetNumQuestLogEntries) then
     for questLogIndex = 1, C_QuestLog:GetNumQuestLogEntries() do
       local questInfo = C_QuestLog.GetInfo(questLogIndex);
 
       if (questInfo and questInfo.questID == block.id) then
         -- bonus quests do not have HeaderText
-          if (block.HeaderText) then
-            SetHeaderColor(block.HeaderText, questInfo.level, questInfo.isScaling);
-          end
-          break;
+        if (block.HeaderText) then
+          local difficultyColor = GetDifficultyColor(C_PlayerInfo.GetContentDifficultyQuestForPlayer(questInfo.questID));
+          SetHeaderColor(block.HeaderText, difficultyColor, highlight);
+          local headerText = string.format("[%d] %s", questInfo.level, questInfo.title);
+          block.HeaderText:SetText(headerText);
         end
-      end
 
-    elseif (_G.GetNumQuestLogEntries) then
-      -- Classic:
-      for questLogIndex = 1, _G.GetNumQuestLogEntries() do
-        local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
-
-        if (questID == block.id) then
-          -- bonus quests do not have HeaderText
-            if (block.HeaderText) then
-              SetHeaderColor(block.HeaderText, level, isScaling);
-            end
-            break;
-          end
-        end
+        break;
       end
     end
+
+  elseif (_G.GetNumQuestLogEntries) then
+    -- Classic:
+    for questLogIndex = 1, _G.GetNumQuestLogEntries() do
+      local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
+
+      if (questID == block.id) then
+        -- bonus quests do not have HeaderText
+        if (block.HeaderText) then
+          -- TODO: Don't use for classic
+          local difficultyColor = GetDifficultyColor(C_PlayerInfo.GetContentDifficultyQuestForPlayer(questInfo.questID));
+          SetHeaderColor(block.HeaderText, difficultyColor);
+        end
+
+        break;
+      end
+    end
+  end
+end
 
 db:AddToDefaults("profile.objectiveTracker", {
   enabled = true;
@@ -67,6 +79,7 @@ db:AddToDefaults("profile.objectiveTracker", {
 
 function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
   data.panel = sideBarModule:GetPanel();
+  _G.OBJECTIVE_TRACKER_HEADER_OFFSET_X = 0;
 
   local function SetUpAnchor()
     data.objectiveContainer:ClearAllPoints();
@@ -238,7 +251,11 @@ function C_ObjectiveTracker:OnEnable(data)
     end
   end);
 
-  hooksecurefunc(_G.DEFAULT_OBJECTIVE_TRACKER_MODULE, "OnBlockHeaderLeave", function(self, block)
+  hooksecurefunc(_G.QUEST_TRACKER_MODULE, "OnBlockHeaderEnter", function(self, block)
+    UpdateQuestDifficultyColors(block, true);
+  end);
+
+  hooksecurefunc(_G.QUEST_TRACKER_MODULE, "OnBlockHeaderLeave", function(self, block)
     UpdateQuestDifficultyColors(block);
   end);
 end

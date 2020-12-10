@@ -96,6 +96,10 @@ local BlizzardFrames = {
 	Blizzard_AzeriteUI = "AzeriteEmpoweredItemUI";
 };
 
+local function CanMove(frame)
+  return not (frame:IsProtected() and InCombatLockdown());
+end
+
 local function GetFrame(frameName)
 	local frame = _G[frameName];
 
@@ -329,42 +333,47 @@ end
 
 Engine:DefineParams("Frame");
 function C_MovableFramesModule:RepositionFrame(data, frame)
-	if (InCombatLockdown()) then
+  if (not CanMove(frame)) then
 		return; -- otherwise taint issue!
-	end
+  end
 
-	local name = frame:GetName();
+  local name = frame:GetName();
 
-	if (not name) then
-		return;
-	end
+  if (not name) then
+    return;
+  end
 
-	local position = data.settings.positions[name];
+  local position = data.settings.positions[name];
 
-	if (not obj:IsTable(position)) then
-		return;
-	end
+  if (not obj:IsTable(position)) then
+    return;
+  end
 
-	local point, relFrameName, relPoint, xOffset, yOffset = unpack(position);
-	local relFrame;
+  local point, relFrameName, relPoint, xOffset, yOffset = unpack(position);
+  local relFrame;
 
-	if (obj:IsString(relFrameName)) then
-		relFrame = _G[relFrameName];
+  if (obj:IsString(relFrameName)) then
+    relFrame = _G[relFrameName];
 
-	elseif (not relFrameName) then
-		relFrame = _G.UIParent;
-	else
-		relFrame = relFrameName;
-	end
+  elseif (not relFrameName) then
+    relFrame = _G.UIParent;
+  else
+    relFrame = relFrameName;
+  end
 
-	if (relPoint and obj:IsWidget(relFrame)) then
-		frame:ClearAllPoints();
-		xpcall(function() frame:SetPoint(point, relFrame, relPoint, xOffset, yOffset) end,
-			function() obj:Error("Failed to SetPoint for frame %s using relative Frame: %s", name, relFrameName) end);
-	else
-		data.settings.positions[name] = nil;
-		db.global.movable.positions[name] = nil;
-	end
+  if (relPoint and obj:IsWidget(relFrame)) then
+    if (CanMove(frame)) then
+      xpcall(
+        function()
+          frame:ClearAllPoints();
+          frame:SetPoint(point, relFrame, relPoint, xOffset, yOffset)
+        end,
+        function() obj:Error("Failed to SetPoint for frame %s using relative Frame: %s", name, relFrameName) end);
+    end
+  else
+    data.settings.positions[name] = nil;
+    db.global.movable.positions[name] = nil;
+  end
 end
 
 do
@@ -388,7 +397,7 @@ do
 			end
 		end
 
-		if (obj:IsFunction(self.oldOnDragStop) and not InCombatLockdown()) then
+		if (obj:IsFunction(self.oldOnDragStop) and CanMove(self)) then
 			self.oldOnDragStop(self, ...);
 		end
 	end
@@ -403,7 +412,7 @@ do
 			self:StartMoving();
 		end
 
-		if (obj:IsFunction(self.oldOnDragStop) and not InCombatLockdown()) then
+		if (obj:IsFunction(self.oldOnDragStop) and CanMove(self)) then
 			self.oldOnDragStop(self, ...);
 		end
 	end
@@ -427,13 +436,12 @@ do
 	end
 
 	Engine:DefineParams("boolean", "?Frame", "?table");
-	function C_MovableFramesModule:MakeMovable(data, dontSave, frame, tbl)
-		if (InCombatLockdown() or not frame) then
-			return;
-		end
+  function C_MovableFramesModule:MakeMovable(data, dontSave, frame, tbl)
+    if (not frame or not CanMove(frame)) then return end
 
 		frame:SetMovable(true);
 		frame:EnableMouse(true);
+		frame:SetUserPlaced(true);
 		frame:RegisterForDrag("LeftButton");
 		frame:SetClampedToScreen(true);
 		frame:SetClampRectInsets(-10, 10, 10, -10);
