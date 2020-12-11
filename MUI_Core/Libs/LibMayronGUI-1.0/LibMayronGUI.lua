@@ -32,25 +32,25 @@ end
 
 -- adjusts the size of all cellsList
 function Private:OnSizeChanged(data)
-    local totalFixedWidth = data.fixedInfo and data.fixedInfo.width.total or 0;
-    local totalFixedHeight = data.fixedInfo and data.fixedInfo.height.total or 0;
-    local numFixedColumns = data.fixedInfo and data.fixedInfo.width.columns or 0;
-    local numFixedRows = data.fixedInfo and data.fixedInfo.height.rows or 0;
+  local totalFixedWidth = data.fixedInfo and data.fixedInfo.width.total or 0;
+  local totalFixedHeight = data.fixedInfo and data.fixedInfo.height.total or 0;
+  local numFixedColumns = data.fixedInfo and data.fixedInfo.width.columns or 0;
+  local numFixedRows = data.fixedInfo and data.fixedInfo.height.rows or 0;
 
-    local width = (data.frame:GetWidth() - totalFixedWidth) / (data.width - numFixedColumns);
-    local height = (data.frame:GetHeight() - totalFixedHeight) / (data.height - numFixedRows);
+  local width = (data.frame:GetWidth() - totalFixedWidth) / (data.width - numFixedColumns);
+  local height = (data.frame:GetHeight() - totalFixedHeight) / (data.height - numFixedRows);
 
-    for id, cell in data.grid:Iterate() do
-        local rowNum = math.ceil(id / data.width);
-        local columnNum = id % (data.width);
-        columnNum = (columnNum == 0 and data.width) or columnNum;
+  for id, cell in data.grid:Iterate() do
+    local rowNum = math.ceil(id / data.width);
+    local columnNum = id % (data.width);
+    columnNum = (columnNum == 0 and data.width) or columnNum;
 
-        local rowscale = data.rowscale[rowNum] or 1;
-        local columnscale = data.columnscale[columnNum] or 1;
+    local rowscale = data.rowscale[rowNum] or 1;
+    local columnscale = data.columnscale[columnNum] or 1;
 
-        cell:SetWidth(cell.fixedWidth or (width * columnscale));
-        cell:SetHeight(cell.fixedHeight or (height * rowscale));
-    end
+    cell:SetWidth(cell.fixedWidth or (width * columnscale));
+    cell:SetHeight(cell.fixedHeight or (height * rowscale));
+  end
 end
 
 function Private:SetupGrid(data)

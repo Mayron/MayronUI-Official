@@ -65,35 +65,35 @@ function Group:SetScale(data, scale)
 end
 
 function Group:SetFixed(data, value)
-    local panelData = data:GetFriendData(data.Panel);
+  local panelData = data:GetFriendData(data.Panel);
 
-    if (value and not panelData.fixedInfo) then
-        panelData.fixedInfo = obj:PopTable();
-        panelData.fixedInfo.width = obj:PopTable();
-        panelData.fixedInfo.height = obj:PopTable();
+  if (value and not panelData.fixedInfo) then
+    panelData.fixedInfo = obj:PopTable();
+    panelData.fixedInfo.width = obj:PopTable();
+    panelData.fixedInfo.height = obj:PopTable();
+  end
+
+  for position, squares in panelData.grid:Iterate() do
+    local column, row = Private:GetCoords(position, panelData.width, panelData.height);
+
+    if (data.Type == "column" and column == data.ID) then
+      squares.fixedWidth = value;
+
+    elseif (data.Type == "row" and row == data.ID) then
+      squares.fixedHeight = value;
     end
+  end
 
-    for position, squares in panelData.grid:Iterate() do
-        local column, row = Private:GetCoords(position, panelData.width, panelData.height);
+  if (data.Type == "column") then
+    panelData.fixedInfo.width.total = (panelData.fixedInfo.width.total or 0) + value;
+    panelData.fixedInfo.width.columns = (panelData.fixedInfo.width.columns or 0) + 1;
 
-        if (data.Type == "column" and column == data.ID) then
-            squares.fixedWidth = value;
+  elseif (data.Type == "row") then
+    panelData.fixedInfo.height.total = (panelData.fixedInfo.height.total or 0) + value;
+    panelData.fixedInfo.height.rows = (panelData.fixedInfo.height.rows or 0) + 1;
+  end
 
-        elseif (data.Type == "row" and row == data.ID) then
-            squares.fixedHeight = value;
-        end
-    end
-
-    if (data.Type == "column") then
-        panelData.fixedInfo.width.total = (panelData.fixedInfo.width.total or 0) + value;
-        panelData.fixedInfo.width.columns = (panelData.fixedInfo.width.columns or 0) + 1;
-
-    elseif (data.Type == "row") then
-        panelData.fixedInfo.height.total = (panelData.fixedInfo.height.total or 0) + value;
-        panelData.fixedInfo.height.rows = (panelData.fixedInfo.height.rows or 0) + 1;
-    end
-
-    if (panelData.grid) then
-        Private:OnSizeChanged(panelData);
-    end
+  if (panelData.grid) then
+    Private:OnSizeChanged(panelData);
+  end
 end

@@ -291,42 +291,43 @@ do
     end
 
     local function PopUp_OnShow(self)
-        if (self.button1) then
-            self.button1:Enable();
-        end
+      if (self.button1) then
+        self.button1:Enable();
+      end
 
-        if (self.button2) then
-            self.button2:Enable();
-        end
+      if (self.button2) then
+        self.button2:Enable();
+      end
 
-        if (not self.editBox) then
-            return;
-        end
+      if (not self.editBox) then
+        return;
+      end
 
-        self.editBox.popup = self; -- refer back to popup in scripts below
+      self.editBox.popup = self; -- refer back to popup in scripts below
 
-        if (self.data and self.data.editBoxText) then
-            self.editBox:SetText(self.data.editBoxText);
-            self.editBox:HighlightText();
-        end
+      if (self.data and self.data.editBoxText) then
+        self.editBox:SetText(self.data.editBoxText);
+        self.editBox:HighlightText();
+        self.editBox:SetWidth(300);
+      end
 
-        self.editBox:SetFocus();
+      self.editBox:SetFocus();
 
-        self.editBox:SetScript("OnEscapePressed", EditBox_OnEscapePressed);
-        self.editBox:SetScript("OnEnterPressed", EditBox_OnEnterPressed);
-        self.editBox:SetScript("OnTextChanged", EditBox_OnTextChanged);
+      self.editBox:SetScript("OnEscapePressed", EditBox_OnEscapePressed);
+      self.editBox:SetScript("OnEnterPressed", EditBox_OnEnterPressed);
+      self.editBox:SetScript("OnTextChanged", EditBox_OnTextChanged);
 
-        EditBox_OnTextChanged(self.editBox, true); -- call it OnShow to enable/disable confirm button
+      EditBox_OnTextChanged(self.editBox, true); -- call it OnShow to enable/disable confirm button
     end
 
     local function PopUp_OnAccept(self)
-        if (self.data.OnAccept) then
-            if (self.hasEditBox) then
-                EditBox_OnEnterPressed(self);
-            else
-                self.data.OnAccept(self, obj:UnpackTable(self.data.args));
-            end
+      if (self.data.OnAccept) then
+        if (self.hasEditBox) then
+          EditBox_OnEnterPressed(self);
+        else
+          self.data.OnAccept(self, obj:UnpackTable(self.data.args));
         end
+      end
     end
 
     local function GetPopup(message, subMessage)
@@ -409,6 +410,24 @@ do
 
         _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
+
+    function tk:ShowInputPopupWithOneButton(message, subMessage, editBoxText, okayText, ...)
+      local popup = GetPopup(message, subMessage);
+
+      popup.button1 = okayText or L["Okay"];
+      popup.button2 = nil;
+      popup.hasEditBox = true;
+      popup.OnAccept = EditBox_OnEnterPressed;
+      popup.OnCancel = nil;
+
+      popup.data.editBoxText = editBoxText;
+      popup.data.OnAccept = nil;
+      popup.data.OnCancel = nil;
+      popup.data.OnValidate = nil;
+      StoreArgs(popup, ...);
+
+      _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+  end
 
     function tk:ShowInputPopup(message, subMessage, editBoxText, onValidate, confirmText, onConfirm, cancelText, onCancel, isWarning, ...)
         local popup = GetPopup(message, subMessage);

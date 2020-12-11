@@ -170,10 +170,10 @@ commands.install = function()
 end
 
 -- TODO: Work in Progress
--- commands.report = function()
---   if (not LoadMuiAddOn("MUI_Setup")) then return; end
---   MayronUI:ImportModule("ReportIssue"):Initialize();
--- end
+commands.report = function()
+  if (not LoadMuiAddOn("MUI_Setup")) then return; end
+  MayronUI:ImportModule("ReportIssue"):Initialize();
+end
 
 local function ValidateNewProfileName(self, profileName)
   if (#profileName == 0 or db:ProfileExists(profileName)) then
@@ -292,6 +292,7 @@ commands.help = function()
   tk:Print("|cff00cc66/mui profile new|r - create new profile");
   tk:Print("|cff00cc66/mui profile current|r - show current profile in chat");
   tk:Print("|cff00cc66/mui version|r - show the version of MayronUI");
+  tk:Print("|cff00cc66/mui report|r - Report an issue to GitHub");
   print(" ");
 end
 

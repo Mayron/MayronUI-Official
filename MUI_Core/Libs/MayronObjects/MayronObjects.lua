@@ -358,6 +358,53 @@ function Lib:PrintTable(tbl, depth, n)
   end
 end
 
+---A helper function to print a table's contents.
+---@param tbl table @The table to print.
+---@param depth number @The depth of sub-tables to traverse through and print.
+---@param n number @Do NOT manually set this. This controls formatting through recursion.
+function Lib:ToLongString(result, tbl, depth, n)
+  n = n or 0;
+  depth = depth or 5;
+
+  if (depth == 0) then
+    return string.format("%s\n%s", result, string.rep(' ', n).."...");
+  end
+
+  if (n == 0) then
+    result = string.format("%s\n", result);
+  end
+
+  for key, value in pairs(tbl) do
+    if (key and self:IsNumber(key) or self:IsString(key)) then
+      key = string.format("[\"%s\"]", key);
+
+      if (self:IsTable(value)) then
+        if (next(value)) then
+          result = string.format("%s\n%s%s = {", result, string.rep(' ', n), key);
+          result = self:ToLongString(result, value, depth - 1, n + 4);
+          result = string.format("%s\n%s},", result, string.rep(' ', n));
+        else
+          result = string.format("%s\n%s%s = {},", result, string.rep(' ', n), key);
+        end
+      else
+        if (self:IsString(value)) then
+          value = string.format("\"%s\"", value);
+        else
+          value = tostring(value);
+        end
+
+        result = string.format("%s\n%s%s = %s,", result, string.rep(' ', n), key, value);
+      end
+    end
+  end
+
+  if (n == 0) then
+    result = string.format("%s\n", result);
+  end
+
+  return result;
+end
+
 ---@param packageName string @The name of the package.
 ---@param namespace string @The parent package namespace. Example: "Framework.System.package".
 ---@return Package @Returns a package object.

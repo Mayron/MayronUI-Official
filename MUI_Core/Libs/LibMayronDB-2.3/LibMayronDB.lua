@@ -26,6 +26,7 @@ Observer.Static:AddFriendClass("Database");
 local select, tonumber, strsplit = _G.select, _G.tonumber, _G.strsplit;
 local GetLastTableKeyPairs, GetNextPath, IsEqual, GetDatabasePathInfo;
 local ipairs, pairs, table, unpack, assert = _G.ipairs, _G.pairs, _G.table, _G.unpack, _G.assert;
+local string = _G.string;
 
 local OnAddOnLoadedListener = _G.CreateFrame("Frame");
 OnAddOnLoadedListener:RegisterEvent("ADDON_LOADED");
@@ -853,6 +854,24 @@ function Observer:Print(data, depth)
   print(" ");
 end
 
+Framework:DefineParams("?number");
+Framework:DefineReturns("string");
+---A helper function to get all contents of a table pointed to by the selected Observer (example: db.profile.aModule:Print()).
+---@param depth number|nil @(optional) The depth of tables to print before only printing table references.
+function Observer:ToLongString(data, depth)
+  local merged = self:GetSavedVariable();
+  local tablePath = data.helper:GetDatabaseRootTableName(self);
+  local path = (data.usingChild and data.usingChild.path) or data.path;
+
+  if (path ~= nil) then
+    tablePath = string.format("%s.%s", tablePath, path);
+  end
+
+  local result = (string.format("db.%s = {", tablePath));
+  result = data.helper:ToLongString(result, merged, depth);
+  return string.format("%s\n};", result);
+end
+
 Framework:DefineReturns("number");
 ---@return number @The length of the merged table (Observer:GetUntrackedTable()).
 function Observer:GetLength()
@@ -1295,6 +1314,12 @@ end
 Framework:DefineParams("table", "?number");
 function Helper:PrintTable(_, tbl, depth)
   obj:PrintTable(tbl, depth, 4);
+end
+
+Framework:DefineParams("string", "table", "?number");
+Framework:DefineReturns("string");
+function Helper:ToLongString(_, result, tbl, depth)
+  return obj:ToLongString(result, tbl, depth, 4);
 end
 
 Framework:DefineParams("Observer");

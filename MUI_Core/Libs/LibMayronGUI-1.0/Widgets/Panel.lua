@@ -80,7 +80,7 @@ function Panel:SetDevMode(data, devMode)  -- shows or hides the red frame info o
 end
 
 function Panel:AddCells(data, ...)
-  data.cells = data.cells or Private.LinkedList();
+  data.cells = data.cells or Private.LinkedList(); --- @type LinkedList
 
   for _, cell in obj:IterateArgs(...) do
     data.cells:AddToBack(cell);
