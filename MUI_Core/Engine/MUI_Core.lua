@@ -11,6 +11,10 @@ local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI =
 local strsplit, GetAddOnMetadata, tostring = _G.strsplit, _G.GetAddOnMetadata, _G.tostring;
 local collectgarbage, CreateFont, error = _G.collectgarbage, _G.CreateFont, _G.error;
 
+local ERRORS = {};
+local seterrorhandler = _G.seterrorhandler;
+local ScriptErrorsFrame = _G.ScriptErrorsFrame;
+
 _G.BINDING_CATEGORY_MUI = "MayronUI";
 _G.BINDING_NAME_MUI_SHOW_CONFIG_MENU = "Show Config Menu";
 _G.BINDING_NAME_MUI_SHOW_LAYOUT_MENU = "Show Layout Menu";
@@ -172,7 +176,9 @@ end
 -- TODO: Work in Progress
 commands.report = function()
   if (not LoadMuiAddOn("MUI_Setup")) then return; end
-  MayronUI:ImportModule("ReportIssue"):Initialize();
+  local reportIssue = MayronUI:ImportModule("ReportIssue"); ---@type C_ReportIssue
+  reportIssue:Initialize();
+  reportIssue:SetErrors(ERRORS);
 end
 
 local function ValidateNewProfileName(self, profileName)
@@ -786,14 +792,51 @@ db:OnStartUp(function(self)
     tk:SetGameFont(media:Fetch("font", self.global.core.font));
   end
 
+  local function addError(errorMessage)
+    table.insert(ERRORS, {
+      zone = GetMinimapZoneText(),
+      groupSize = GetNumGroupMembers(),
+      instanceType = (select(2, IsInInstance())),
+      inCombat = InCombatLockdown(),
+      resting = IsResting(),
+      isAFK = UnitIsAFK("player"),
+      isDeadOrGhost = UnitIsDeadOrGhost("player"),
+      error = errorMessage
+    });
+  end
+
+  em:CreateEventHandler("ADDON_ACTION_BLOCKED, ADDON_ACTION_FORBIDDEN", function(event, name, func)
+    local errorMessage = ("[%s] AddOn '%s' tried to call the protected function '%s'."):format(event, name or "<name>", func or "<func>");
+    addError(errorMessage);
+  end);
+
+  em:CreateEventHandler("LUA_WARNING", function(_, _, warningMessage)
+    addError(warningMessage);
+  end);
+
+  seterrorhandler(function(errorMessage)
+    addError(errorMessage);
+    _G.HandleLuaError(errorMessage);
+  end)
+
+  if (_G.BugGrabber) then
+    local function BugGrabber_OnBugGrabbed(event, tbl)
+      if (event == "BugGrabber_BugGrabbed" and obj:IsTable(tbl)) then
+        local errorMessage = string.format("%s\n%s\n%s", tbl.message, tbl.stack, tbl.locals);
+        addError(errorMessage);
+      end
+    end
+
+    _G.BugGrabber.RegisterCallback(namespace, "BugGrabber_BugGrabbed", BugGrabber_OnBugGrabbed);
+  end
+
   obj:SetErrorHandler(function(errorMessage, stack, locals)
     local hideErrorFrame = not _G.GetCVarBool("scriptErrors");
-    _G.ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
-    _G.ScriptErrorsFrame.Title:SetText("MayronUI Error");
-    _G.ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
-    _G.ScriptErrorsFrame.Title.SetText = function() end;
-    _G.ScriptErrorsFrame.DisplayMessage = function() end;
-    error();
+    ScriptErrorsFrame.Title:SetText("MayronUI Error");
+    ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
+
+    addError(string.format("%s\n%s\n%s", errorMessage, stack or "", locals or ""));
+    ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
   end);
 
   tk:KillElement(_G.WorldMapFrame.BlackoutFrame);

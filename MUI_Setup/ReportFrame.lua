@@ -6,7 +6,7 @@ local CreateFrame = _G.CreateFrame;
 local string = _G.string;
 
 local Engine = obj:Import("MayronUI.Engine");
-local C_ReportIssue = MayronUI:RegisterModule("ReportIssue", nil, true);
+local C_ReportIssue = MayronUI:RegisterModule("ReportIssue", nil, true) ---@class C_ReportIssue;
 
 local TOTAL_STEPS = 3;
 local TITLE_TEMPLATE = "Step %d of " .. tostring(TOTAL_STEPS);
@@ -42,6 +42,11 @@ function C_ReportIssue:OnInitialize(data)
   data:Call("SetUpHeader");
   data:Call("ShowStep", 1);
   data:Call("SetUpFooter");
+end
+
+Engine:DefineParams("table");
+function C_ReportIssue:SetErrors(data, errors)
+  data.errors = errors;
 end
 
 function C_ReportIssue.Private:SetUpHeader(data)
@@ -341,9 +346,20 @@ do
     f("- Race: %s", UnitRace("player"));
 
     -- Captured Error Info (player details when error occurred):
-    -- f("- Zone: %s");
-    -- f("- Group Size: %s");
-    -- f("- In Combat Size: %s");
+    AppendLine(string.format("Captured Errors (%d)", #data.errors), true);
+    for _, errorObject in ipairs(data.errors) do
+      f("- Zone: %s", errorObject.zone);
+      f("- Group Size: %s", errorObject.groupSize);
+      f("- Instance Type: %s", errorObject.instanceType);
+      f("- In Combat Size: %s", errorObject.inCombat and "Yes" or "No");
+      f("- Resting: %s", errorObject.resting and "Yes" or "No");
+      f("- AFK: %s", errorObject.isAFK and "Yes" or "No");
+      f("- Dead or Ghost: %s", errorObject.isDeadOrGhost and "Yes" or "No");
+      AppendLine("- Error Message:");
+      AppendLine("```lua");
+      AppendLine(errorObject.error);
+      AppendLine("```\n");
+    end
 
     -- Append Bug Details:
     AppendLine("Bug Details", true);
@@ -358,12 +374,16 @@ do
     -- Append MUI_Core Global Settings:
     AppendLine("MUI_Core Global Settings", true);
     local global = db.global:ToLongString();
+    AppendLine("```lua");
     AppendLine(global);
+    AppendLine("```");
 
     -- Append MUI_Core Current Profile Settings:
     AppendLine("MUI_Core Current Profile Settings", true);
     local profile = db.profile:ToLongString();
+    AppendLine("```lua");
     AppendLine(profile);
+    AppendLine("```");
 
     -- Get Loaded AddOns:
     _G.UpdateAddOnMemoryUsage();
