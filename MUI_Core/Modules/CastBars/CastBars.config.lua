@@ -257,6 +257,11 @@ function C_CastBarsModule:GetConfigTable()
                         end
                       },
                       {
+                        name = L["Left to right"],
+                        type = "check",
+                        dbPath = tk.Strings:Concat("profile.castBars.", name, ".leftToRight")
+                      },
+                      {
                         type = "divider",
                         enabled = name ~= "mirror",
                       },
