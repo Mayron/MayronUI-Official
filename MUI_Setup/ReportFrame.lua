@@ -287,7 +287,11 @@ do
 
   local function AppendLine(line, header)
     if (not report or #report == 0) then
-      report = line;
+      if (header) then
+        report = string.format("### %s", line);
+      else
+        report = line;
+      end
     elseif (header) then
       report = string.format("%s\n\n### %s", report, line);
     else
