@@ -66,6 +66,7 @@ db:AddToDefaults("profile.castBars", {
     width         = 250;
     height        = 27;
     showIcon      = false;
+    leftToRight   = true;
     unlocked      = false;
     frameStrata   = "MEDIUM";
     frameLevel    = 20;
@@ -817,7 +818,7 @@ function C_CastBarsModule:OnInitialize(data)
         end;
       };
       {
-        patterns = { "(width|height|frameStrata|frameLevel|showIcon)" };
+        patterns = { "(width|height|frameStrata|frameLevel|showIcon|leftToRight)" };
         value = function(value, keysList)
           local barName = keysList:PopFront();
           local attribute = keysList:PopFront();
@@ -829,18 +830,16 @@ function C_CastBarsModule:OnInitialize(data)
 
           if (attribute == "width") then
             castBar:SetWidth(value);
-
           elseif (attribute == "height") then
             castBar:SetHeight(value);
-
           elseif (attribute == "frameStrata") then
             castBar:SetFrameStrata(value);
-
           elseif (attribute == "frameLevel") then
             castBar:SetFrameLevel(value);
-
           elseif (attribute == "showIcon") then
             castBar:SetIconEnabled(value);
+          elseif (attribute == "leftToRight") then
+            castBar.statusbar:SetReverseFill(not value);
           end
         end;
       };
