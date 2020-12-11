@@ -135,6 +135,7 @@ L["Enable Bar"]                     = "Enable Bar";
 L["Show Icon"]                      = "Show Icon";
 L["Show Latency Bar"]               = "Show Latency Bar";
 L["Anchor to SUF Portrait Bar"]     = "Anchor to SUF Portrait Bar";
+L["Left to right"]                  = "Left to right";
 L["Width"]                          = "Width";
 L["Height"]                         = "Height";
 L["Frame Strata"]                   = "Frame Strata";
