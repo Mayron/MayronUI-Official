@@ -695,3 +695,28 @@ L["Covenant Sanctum"]						      = "Packtsanktum";
 L["Missions"]							      = "BfA Missionen";
 L["You must be a member of a covenant to view this."]		      = "Du musst einen Packt angehören."
 L["Unmuted"] = "Nicht stummgeschaltet";
+
+---------------------------------------
+--- NEW SINCE 12/12/2020 (update 6.3.8)
+---------------------------------------
+L["Step %d of"] = "Schritt %d von";
+L["Step"] = "Schritt";
+
+L["Found a bug? Use this form to submit an issue to the official MayronUI GitHub page."] =
+  "Einen Fehler gefunden? Verwenden Sie dieses Formular, um ein Problem an die offizielle MayronUI GitHub-Seite zu senden.";
+
+L["Almost done! We just need a bit more information..."] = "Fast fertig! Wir brauchen nur ein bisschen mehr Informationen...";
+
+L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"] =
+  "Klicken Sie unten, um Ihren Bericht zu erstellen. Nach der Erstellung kopieren Sie es in eine neue Ausgabe und senden Sie es über den folgenden Link auf GitHub:";
+
+L["characters"] = "zeichen"; -- text characters (e.g. A, B, C, etc...), NOT WoW characters!
+
+L["minimum"] = "minimum";
+L["Please describe the bug in detail:"] = "Bitte beschreiben Sie den Fehler im Detail:";
+L["How can we replicate the bug?"] = "Wie können wir den Fehler replizieren?";
+L["Report Issue"] = "Melde Probleme";
+
+L["Open this webpage in your browser"] = "Öffnen Sie diese Webseite in Ihrem Browser";
+L["Generate Report"] = "Bericht generieren";
+L["Copy Report"] = "Bericht kopieren";

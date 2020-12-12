@@ -9,7 +9,7 @@ local table, ipairs, select, string, unpack, print = _G.table, _G.ipairs, _G.sel
 local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI =
   _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
 local strsplit, GetAddOnMetadata, tostring = _G.strsplit, _G.GetAddOnMetadata, _G.tostring;
-local collectgarbage, CreateFont, error = _G.collectgarbage, _G.CreateFont, _G.error;
+local collectgarbage, CreateFont = _G.collectgarbage, _G.CreateFont;
 
 local ERRORS = {};
 local seterrorhandler = _G.seterrorhandler;
@@ -174,10 +174,18 @@ commands.install = function()
 end
 
 -- TODO: Work in Progress
-commands.report = function()
+commands.report = function(forceShow)
   if (not LoadMuiAddOn("MUI_Setup")) then return; end
   local reportIssue = MayronUI:ImportModule("ReportIssue"); ---@type C_ReportIssue
-  reportIssue:Initialize();
+
+  if (not reportIssue:IsInitialized()) then
+    reportIssue:Initialize();
+  elseif (forceShow) then
+    reportIssue:Show();
+  else
+    reportIssue:Toggle();
+  end
+
   reportIssue:SetErrors(ERRORS);
 end
 
@@ -817,7 +825,46 @@ db:OnStartUp(function(self)
   seterrorhandler(function(errorMessage)
     addError(errorMessage);
     _G.HandleLuaError(errorMessage);
-  end)
+  end);
+
+  local reloadBtn, closeBtn = ScriptErrorsFrame.Reload, ScriptErrorsFrame.Close;
+
+  ScriptErrorsFrame:SetFrameStrata("HIGH");
+  ScriptErrorsFrame:SetParent(_G.UIParent);
+  ScriptErrorsFrame:SetScale(1.4);
+
+  tk:SetFontSize(closeBtn:GetFontString(), 11);
+  closeBtn:SetText("Report MayronUI Bug");
+  closeBtn:SetWidth(180);
+  ScriptErrorsFrame.IndexLabel:SetPoint("BOTTOMLEFT", _G.ScriptErrorsFrameBottom, "BOTTOMLEFT", 10, 15);
+
+  reloadBtn:SetText("");
+  reloadBtn:SetSize(16, 16);
+  tk:KillAllElements(reloadBtn.Left, reloadBtn.Middle, reloadBtn.Right);
+  reloadBtn:SetNormalTexture("Interface\\Buttons\\UI-RefreshButton");
+  reloadBtn:SetHighlightAtlas("chatframe-button-highlight");
+  tk:SetBasicTooltip(reloadBtn, "Reload UI");
+  reloadBtn:SetPoint("BOTTOMLEFT", ScriptErrorsFrame,  15, 14);
+
+  closeBtn:SetScript("OnClick", function()
+    MayronUI:TriggerCommand("report", true);
+    ScriptErrorsFrame:Hide();
+  end);
+
+  closeBtn.SetScript = tk.Constants.DUMMY_FUNC;
+
+  if (_G.BugSack) then
+    _G.hooksecurefunc(_G.BugSack, "OpenSack", function()
+      if (_G.BugSackSendButton) then
+        _G.BugSackSendButton:SetText("Report MayronUI Bug");
+
+        _G.BugSackSendButton:SetScript("OnClick", function()
+          MayronUI:TriggerCommand("report", true);
+          _G.BugSack:CloseSack();
+        end);
+      end
+    end);
+  end
 
   if (_G.BugGrabber) then
     local function BugGrabber_OnBugGrabbed(event, tbl)

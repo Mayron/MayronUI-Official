@@ -725,3 +725,28 @@ L["Covenant Sanctum"]						      = "Covenant Sanctum";
 L["Missions"]							      = "BfA Missions";
 L["You must be a member of a covenant to view this."]		      = "You must be a member of a covenant to view this."
 L["Unmuted"] = "Без звука";
+
+---------------------------------------
+--- NEW SINCE 12/12/2020 (update 6.3.8)
+---------------------------------------
+L["Step %d of"] = "Шаг %d из";
+L["Step"] = "Шаг";
+
+L["Found a bug? Use this form to submit an issue to the official MayronUI GitHub page."] =
+  "Нашли ошибку? Используйте эту форму, чтобы отправить вопрос на официальную страницу MayronUI GitHub.";
+
+L["Almost done! We just need a bit more information..."] = "Почти сделано! Нам просто нужно немного больше информации ...";
+
+L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"] =
+  "Щелкните ниже, чтобы создать отчет. После создания скопируйте его в новый выпуск и отправьте на GitHub, используя ссылку ниже:";
+
+L["characters"] = "символы"; -- text characters (e.g. A, B, C, etc...), NOT WoW characters!
+
+L["minimum"] = "минимальный";
+L["Please describe the bug in detail:"] = "Пожалуйста, опишите ошибку подробно:";
+L["How can we replicate the bug?"] = "Как мы можем воспроизвести ошибку?";
+L["Report Issue"] = "Сообщить о проблеме";
+
+L["Open this webpage in your browser"] = "Откройте эту веб-страницу в своем браузере";
+L["Generate Report"] = "Создать отчет";
+L["Copy Report"] = "Копировать отчет";
