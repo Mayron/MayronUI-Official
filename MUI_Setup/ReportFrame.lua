@@ -31,14 +31,14 @@ function C_ReportIssue:OnInitialize(data)
   gui:AddCloseButton(tk.Constants.AddOnStyle, frame, nil, tk.Constants.CLICK);
   gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Report Issue"]);
   gui:AddResizer(tk.Constants.AddOnStyle, frame);
-  frame:SetMinResize(400, 400);
+  frame:SetMinResize(500, 400);
   frame:SetMaxResize(900, 800);
 
   data.panel = gui:CreatePanel(nil, nil, frame); ---@type Panel
   data.panel:SetAllPoints(true);
   data.panel:SetDimensions(1, 3);
   data.panel:SetDevMode(false);
-  data.panel:GetRow(1):SetFixed(110);
+  data.panel:GetRow(1):SetFixed(130);
   data.panel:GetRow(3):SetFixed(80);
 
   data:Call("SetUpHeader");
@@ -124,7 +124,7 @@ function C_ReportIssue.Private:ShowStep(data, stepNum)
   data.nextButton:SetEnabled(stepNum < TOTAL_STEPS);
 
   data.reportFrame:SetHeight(400);
-  data.reportFrame:SetMinResize(400, 400);
+  data.reportFrame:SetMinResize(500, 400);
 
   if (data.closeButton) then
     data.closeButton:Hide();
@@ -321,11 +321,13 @@ function C_ReportIssue.Private:RenderStep3(data, parent)
     end
 
     data.reportFrame:SetHeight(600);
-    data.reportFrame:SetMinResize(400, 600);
+    data.reportFrame:SetMinResize(500, 600);
     data.generateButton:Hide();
     data.backButton:Hide();
     data.reportEditBox:SetText(report);
     data.reportEditBox.container:Show();
+    data.reportEditBox:SetFocus();
+    data.reportEditBox:HighlightText();
 
     if (not data.closeButton) then
       data.closeButton = gui:CreateButton(tk.Constants.AddOnStyle, data.footerParent, "Close");
