@@ -15,6 +15,7 @@ local GetNumGroupMembers, IsResting = _G.GetNumGroupMembers, _G.IsResting;
 local IsInInstance, InCombatLockdown = _G.IsInInstance, _G.InCombatLockdown;
 local UnitIsAFK, UnitIsDeadOrGhost, GetZoneText = _G.UnitIsAFK, _G.UnitIsDeadOrGhost, _G.GetZoneText;
 local FillLocalizedClassList, UnitName, HandleLuaError = _G.FillLocalizedClassList, _G.UnitName, _G.HandleLuaError;
+local debugstack, debuglocals = _G.debugstack, _G.debuglocals;
 
 local ERRORS = {};
 local seterrorhandler = _G.seterrorhandler;
@@ -821,6 +822,13 @@ db:OnStartUp(function(self)
   em:CreateEventHandler("ADDON_ACTION_BLOCKED, ADDON_ACTION_FORBIDDEN", function(event, name, func)
     local errorMessage = ("[%s] AddOn '%s' tried to call the protected function '%s'."):format(event, name or "<name>", func or "<func>");
     addError(errorMessage);
+  end);
+
+  hooksecurefunc("DisplayInterfaceActionBlockedMessage", function()
+    local stack = debugstack() or tk.Strings.Empty;
+    local locals = debuglocals() or tk.Strings.Empty;
+    addError(string.format("%s\n%s\n%s", _G.INTERFACE_ACTION_BLOCKED, stack, locals));
+    ScriptErrorsFrame:DisplayMessageInternal(_G.INTERFACE_ACTION_BLOCKED, nil, true, locals, stack);
   end);
 
   em:CreateEventHandler("LUA_WARNING", function(_, _, warningMessage)
