@@ -80,7 +80,7 @@ db:AddToDefaults("profile.castBars", {
     colors = {
       finished    = {r = 0.8, g = 0.8, b = 0.8, a = 0.7};
       interrupted = {r = 1, g = 0, b = 0, a = 0.7};
-      notInterruptible = {r = 0.87, g = 0.7, b = 0.43, a = 0.7};
+      notInterruptible = {r = 0.93, g = 0.4, b = 0, a = 0.7};
       border      = {r = 0, g = 0, b = 0, a = 1};
       background  = {r = 0, g = 0, b = 0, a = 0.6};
       latency     = {r = 1, g = 1, b = 1, a = 0.6};
@@ -231,15 +231,21 @@ end
 ---@param castBar CastBar
 ---@param castBarData table
 function Events:PLAYER_TARGET_CHANGED(castBar, castBarData)
-  local name = select(1, UnitCastingInfo(castBarData.unitID));
+  local active = false;
 
-  if (UnitExists(castBarData.unitID) and name) then
-    if (UnitName(castBarData.unitID) == castBarData.unitName) then return end
-
+  if (UnitExists(castBarData.unitID)) then
     castBar:StopCasting();
-    castBar:StartCasting(false); -- for casting only (not channelling)
 
-  elseif (castBarData.frame:GetAlpha() > 0) then
+    if (UnitCastingInfo(castBarData.unitID)) then
+      castBar:StartCasting(false); -- for casting only (not channelling)
+      active = true;
+    elseif (UnitChannelInfo(castBarData.unitID)) then
+      castBar:StartCasting(true); -- for casting only (not channelling)
+      active = true;
+    end
+  end
+
+  if (not active and castBarData.frame:GetAlpha() > 0) then
     castBar:StopCasting();
     castBarData.frame:SetAlpha(0);
     castBarData.frame:Hide();
