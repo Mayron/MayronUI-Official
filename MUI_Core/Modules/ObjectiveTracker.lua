@@ -11,11 +11,11 @@ MayronUI:Hook("SideBarModule", "OnEnable", function(sideBarModule)
 end);
 
 local ObjectiveTrackerFrame, IsInInstance, ObjectiveTracker_Collapse, ObjectiveTracker_Update,
-ObjectiveTracker_Expand, UIParent, hooksecurefunc, ipairs, pairs, C_QuestLog, CreateFrame,
-GetInstanceInfo, RegisterStateDriver, UnregisterStateDriver, GetQuestDifficultyColor =
+ObjectiveTracker_Expand, UIParent, hooksecurefunc, ipairs, C_PlayerInfo, C_QuestLog, CreateFrame,
+GetInstanceInfo, RegisterStateDriver, UnregisterStateDriver, GetDifficultyColor, string =
   _G.ObjectiveTrackerFrame, _G.IsInInstance, _G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update,
-  _G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs, _G.pairs, _G.C_QuestLog, _G.CreateFrame,
-  _G.GetInstanceInfo, _G.RegisterStateDriver, _G.UnregisterStateDriver, _G.GetQuestDifficultyColor;
+  _G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs, _G.C_PlayerInfo, _G.C_QuestLog, _G.CreateFrame,
+  _G.GetInstanceInfo, _G.RegisterStateDriver, _G.UnregisterStateDriver, _G.GetDifficultyColor, _G.string;
 
 local function SetHeaderColor(headerText, difficultyColor, highlight)
   local r, g, b = difficultyColor.r, difficultyColor.g, difficultyColor.b;
@@ -42,23 +42,7 @@ local function UpdateQuestDifficultyColors(block, highlight)
           SetHeaderColor(block.HeaderText, difficultyColor, highlight);
           local headerText = string.format("[%d] %s", questInfo.level, questInfo.title);
           block.HeaderText:SetText(headerText);
-        end
-
-        break;
-      end
-    end
-
-  elseif (_G.GetNumQuestLogEntries) then
-    -- Classic:
-    for questLogIndex = 1, _G.GetNumQuestLogEntries() do
-      local _, level, _, _, _, _, _, questID, _, _, _, _, _, _, _, _, isScaling = _G.GetQuestLogTitle(questLogIndex);
-
-      if (questID == block.id) then
-        -- bonus quests do not have HeaderText
-        if (block.HeaderText) then
-          -- TODO: Don't use for classic
-          local difficultyColor = GetDifficultyColor(C_PlayerInfo.GetContentDifficultyQuestForPlayer(questInfo.questID));
-          SetHeaderColor(block.HeaderText, difficultyColor);
+          block.HeaderText:SetHeight(block.HeaderText:GetStringHeight())
         end
 
         break;
@@ -79,7 +63,8 @@ db:AddToDefaults("profile.objectiveTracker", {
 
 function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
   data.panel = sideBarModule:GetPanel();
-  _G.OBJECTIVE_TRACKER_HEADER_OFFSET_X = 0;
+  --TODO: This caused taint issue (see other TODO in this file)
+  -- _G.OBJECTIVE_TRACKER_HEADER_OFFSET_X = 0;
 
   local function SetUpAnchor()
     data.objectiveContainer:ClearAllPoints();
@@ -186,9 +171,9 @@ local function OnObjectiveTrackerInitialized()
     -- module.Header:SetWidth(ObjectiveTrackerFrame:GetWidth());
     -- module.BlocksFrame:SetWidth(ObjectiveTrackerFrame:GetWidth());
 
-    for _, value in pairs(module.blockOffset) do
-      value[1] = 0;
-    end
+    -- for _, value in pairs(module.blockOffset) do
+    --   value[1] = 0;
+    -- end
 
     tk:KillElement(module.Header.Background);
     tk:ApplyThemeColor(module.Header.Text);
