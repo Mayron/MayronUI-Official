@@ -226,10 +226,12 @@ end
 --------------
 -- Slider
 --------------
-local function Slider_OnValueChanged(self, value)
-  value = tk.Numbers:ToPrecision(value, self.precision);
-  self.editBox:SetText(value);
-  configModule:SetDatabaseValue(self.configContainer, value);
+local function Slider_OnValueChanged(self, value, userset)
+    if (userset) then
+        value = tk.Numbers:ToPrecision(value, self.precision);
+        self.editBox:SetText(value);
+        configModule:SetDatabaseValue(self.configContainer, value);
+    end
 end
 
 local function Slider_OnEnable(self)
@@ -272,6 +274,9 @@ function WidgetHandlers.slider(parent, widgetTable, value)
       local newValue = tonumber(slider.editBox:GetText());
 
       if (obj:IsNumber(newValue)) then
+        local sliderMin, sliderMax = slider:GetMinMaxValues();
+        slider:SetValue(_G.max(_G.min(newValue, sliderMax), sliderMin));
+
         slider.editBox:SetText(newValue);
         configModule:SetDatabaseValue(slider.configContainer, newValue);
       else
