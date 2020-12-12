@@ -80,6 +80,7 @@ db:AddToDefaults("profile.castBars", {
     colors = {
       finished    = {r = 0.8, g = 0.8, b = 0.8, a = 0.7};
       interrupted = {r = 1, g = 0, b = 0, a = 0.7};
+      notInterruptible = {r = 0.87, g = 0.7, b = 0.43, a = 0.7};
       border      = {r = 0, g = 0, b = 0, a = 1};
       background  = {r = 0, g = 0, b = 0, a = 0.6};
       latency     = {r = 1, g = 1, b = 1, a = 0.6};
@@ -182,7 +183,7 @@ end
 ---@param castBar CastBar
 ---@param castBarData table
 function Events:UNIT_SPELLCAST_INTERRUPTED(_, castBarData)
-  if (UnitCastingInfo(castBarData.unitID) or UnitChannelInfo(castBarData.unitID)) then
+  if (not castBarData.interrupted) then
     castBarData.frame.statusbar:SetValue(select(2, castBarData.frame.statusbar:GetMinMaxValues()));
     castBarData.interrupted = true;
     local c = castBarData.appearance.colors.interrupted;
@@ -671,7 +672,7 @@ function C_CastBar:StartCasting(data, channelling, auraInfo)
   end
 
   if (notInterruptible) then
-    local c = data.appearance.colors.interrupted;
+    local c = data.appearance.colors.notInterruptible;
     data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
   else
     local c = data.appearance.colors.normal;

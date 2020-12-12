@@ -9,7 +9,12 @@ local table, ipairs, select, string, unpack, print = _G.table, _G.ipairs, _G.sel
 local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI =
   _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
 local strsplit, GetAddOnMetadata, tostring = _G.strsplit, _G.GetAddOnMetadata, _G.tostring;
-local collectgarbage, CreateFont = _G.collectgarbage, _G.CreateFont;
+local collectgarbage, CreateFont, GetCVarBool = _G.collectgarbage, _G.CreateFont, _G.GetCVarBool;
+local hooksecurefunc, GetMinimapZoneText = _G.hooksecurefunc, _G.GetMinimapZoneText;
+local GetNumGroupMembers, IsResting = _G.GetNumGroupMembers, _G.IsResting;
+local IsInInstance, InCombatLockdown = _G.IsInInstance, _G.InCombatLockdown;
+local UnitIsAFK, UnitIsDeadOrGhost, GetZoneText = _G.UnitIsAFK, _G.UnitIsDeadOrGhost, _G.GetZoneText;
+local FillLocalizedClassList, UnitName, HandleLuaError = _G.FillLocalizedClassList, _G.UnitName, _G.HandleLuaError;
 
 local ERRORS = {};
 local seterrorhandler = _G.seterrorhandler;
@@ -173,7 +178,6 @@ commands.install = function()
   MayronUI:ImportModule("SetUpModule"):Show();
 end
 
--- TODO: Work in Progress
 commands.report = function(forceShow)
   if (not LoadMuiAddOn("MUI_Setup")) then return; end
   local reportIssue = MayronUI:ImportModule("ReportIssue"); ---@type C_ReportIssue
@@ -663,24 +667,26 @@ function C_CoreModule:OnInitialize()
 
   namespace:SetUpOrderHallBar();
 
-  if (_G.IsAddOnLoaded("Recount")) then
+  -- probably should be moved to another file...
+  if (IsAddOnLoaded("Recount") and _G.Recount_MainWindow) then
+    local recount = _G.Recount_MainWindow;
+
     if (db.global.reanchorRecount) then
-      _G.Recount_MainWindow:ClearAllPoints();
-      _G.Recount_MainWindow:SetPoint("BOTTOMRIGHT", -2, 2);
-      _G.Recount_MainWindow:SaveMainWindowPosition();
+      recount:ClearAllPoints();
+      recount:SetPoint("BOTTOMRIGHT", -2, 2);
+      recount:SaveMainWindowPosition();
 
       db.global.reanchorRecount = nil;
     end
 
     -- Reskin Recount Window
-    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW",  _G.Recount_MainWindow);
-
-    _G.Recount_MainWindow:SetClampedToScreen(true);
-    _G.Recount_MainWindow.tl:SetPoint("TOPLEFT", -6, -5);
-    _G.Recount_MainWindow.tr:SetPoint("TOPRIGHT", 6, -5);
+    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW",  recount);
+    recount:SetClampedToScreen(true);
+    recount.tl:SetPoint("TOPLEFT", -6, -5);
+    recount.tr:SetPoint("TOPRIGHT", 6, -5);
   end
 
-  tk:Print(L["Welcome back"], _G.UnitName("player").."!");
+  tk:Print(L["Welcome back"], UnitName("player").."!");
   collectgarbage("collect");
   DisableAddOn("MUI_Setup"); -- disable for next time
 end
@@ -692,8 +698,8 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
     _G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
   end
 
-  _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
-  _G.FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES, true);
+  FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
+  FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES, true);
 
   if (not MayronUI:IsInstalled()) then
     if (db.global.core.setup.profilePerCharacter) then
@@ -790,19 +796,18 @@ db:OnStartUp(function(self)
   media:Register(media.MediaType.BORDER, "Skinner", tk:GetAssetFilePath("Borders\\Solid.tga"));
   media:Register(media.MediaType.BORDER, "Glow", tk:GetAssetFilePath("Borders\\Glow.tga"));
 
-  _G.hooksecurefunc('MovieFrame_PlayMovie', function(s)
+  hooksecurefunc('MovieFrame_PlayMovie', function(s)
     s:SetFrameStrata("DIALOG");
   end);
 
   -- Set Master Game Font Here! -------------------
-
   if (self.global.core.changeGameFont ~= false) then
     tk:SetGameFont(media:Fetch("font", self.global.core.font));
   end
 
   local function addError(errorMessage)
     table.insert(ERRORS, {
-      zone = GetMinimapZoneText(),
+      zone = string.format("%s (%s)", GetZoneText(), GetMinimapZoneText()),
       groupSize = GetNumGroupMembers(),
       instanceType = (select(2, IsInInstance())),
       inCombat = InCombatLockdown(),
@@ -824,7 +829,7 @@ db:OnStartUp(function(self)
 
   seterrorhandler(function(errorMessage)
     addError(errorMessage);
-    _G.HandleLuaError(errorMessage);
+    HandleLuaError(errorMessage);
   end);
 
   local reloadBtn, closeBtn = ScriptErrorsFrame.Reload, ScriptErrorsFrame.Close;
@@ -853,20 +858,24 @@ db:OnStartUp(function(self)
 
   closeBtn.SetScript = tk.Constants.DUMMY_FUNC;
 
-  if (_G.BugSack) then
-    _G.hooksecurefunc(_G.BugSack, "OpenSack", function()
-      if (_G.BugSackSendButton) then
-        _G.BugSackSendButton:SetText("Report MayronUI Bug");
+  local BugSack, BugGrabber = _G.BugSack, _G.BugGrabber;
 
-        _G.BugSackSendButton:SetScript("OnClick", function()
+  if (BugSack) then
+    local sendButton = _G.BugSackSendButton;
+
+    hooksecurefunc(BugSack, "OpenSack", function()
+      if (sendButton) then
+        sendButton:SetText("Report MayronUI Bug");
+
+        sendButton:SetScript("OnClick", function()
           MayronUI:TriggerCommand("report", true);
-          _G.BugSack:CloseSack();
+          BugSack:CloseSack();
         end);
       end
     end);
   end
 
-  if (_G.BugGrabber) then
+  if (BugGrabber) then
     local function BugGrabber_OnBugGrabbed(event, tbl)
       if (event == "BugGrabber_BugGrabbed" and obj:IsTable(tbl)) then
         local errorMessage = string.format("%s\n%s\n%s", tbl.message, tbl.stack, tbl.locals);
@@ -874,11 +883,11 @@ db:OnStartUp(function(self)
       end
     end
 
-    _G.BugGrabber.RegisterCallback(namespace, "BugGrabber_BugGrabbed", BugGrabber_OnBugGrabbed);
+    BugGrabber.RegisterCallback(namespace, "BugGrabber_BugGrabbed", BugGrabber_OnBugGrabbed);
   end
 
   obj:SetErrorHandler(function(errorMessage, stack, locals)
-    local hideErrorFrame = not _G.GetCVarBool("scriptErrors");
+    local hideErrorFrame = not GetCVarBool("scriptErrors");
     ScriptErrorsFrame.Title:SetText("MayronUI Error");
     ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
 

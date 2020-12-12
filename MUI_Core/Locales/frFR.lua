@@ -125,6 +125,7 @@ L["Border Size"]					= "Taille de la bordure";
 L["Frame Inset"]					= "Encart du cadre";
 L["Colors"]							= "Couleurs";
 L["Normal Casting"]					= "Incantation normale";
+L["Not Interruptible"]					= "Non interruptible";
 L["Finished Casting"]				= "Incantation finie";
 L["Interrupted"]					= "Interrompu";
 L["Latency"]						= "Latence";

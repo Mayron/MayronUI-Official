@@ -384,7 +384,7 @@ do
     -- Get WoW Client Info:
     AppendLine("WoW Client Info", true);
     local patch, build = GetBuildInfo();
-    f("- WoW Version: %s (%s)", patch, build);
+    f("- WoW version: %s (%s)", patch, build);
     f("- Locale: %s", GetLocale());
 
     local resolution = GetCurrentScaledResolution();
@@ -411,16 +411,16 @@ do
     AppendLine(string.format("Captured Errors (%d)", #data.errors), true);
     for _, errorObject in ipairs(data.errors) do
       f("- Zone: %s", errorObject.zone);
-      f("- Group Size: %s", errorObject.groupSize);
-      f("- Instance Type: %s", errorObject.instanceType);
-      f("- In Combat Size: %s", errorObject.inCombat and "Yes" or "No");
+      f("- Group size: %s", errorObject.groupSize);
+      f("- Instance type: %s", errorObject.instanceType);
+      f("- In combat: %s", errorObject.inCombat and "Yes" or "No");
       f("- Resting: %s", errorObject.resting and "Yes" or "No");
       f("- AFK: %s", errorObject.isAFK and "Yes" or "No");
-      f("- Dead or Ghost: %s", errorObject.isDeadOrGhost and "Yes" or "No");
-      AppendLine("- Error Message:");
+      f("- Dead or ghost: %s", errorObject.isDeadOrGhost and "Yes" or "No");
+      AppendLine("- Error message:");
       AppendLine("```lua");
       AppendLine(errorObject.error);
-      AppendLine("```\n");
+      AppendLine("```");
     end
 
     -- Append Bug Details:
@@ -434,7 +434,7 @@ do
     -- Get Lua Errors (for the current session):
 
     -- Append MUI_Core Global Settings:
-    AppendLine("MUI_Core Global Settings", true);
+    AppendLine("MUI_Core global settings", true);
     local global = db.global:ToLongString();
     AppendLine("```lua");
     AppendLine(global);

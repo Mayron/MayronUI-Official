@@ -158,6 +158,12 @@ function C_CastBarsModule:GetConfigTable()
                 hasOpacity = true;
                 dbPath = "profile.castBars.appearance.colors.normal"
             },
+            {   name = L["Not Interruptible"],
+                type = "color",
+                width = 160,
+                hasOpacity = true;
+                dbPath = "profile.castBars.appearance.colors.notInterruptible"
+            },
             {   name = L["Finished Casting"],
                 type = "color",
                 hasOpacity = true;

@@ -122,6 +122,7 @@ L["Border Size"]					= "Espessura das Bordas";
 L["Frame Inset"]					= "Margem da Moldura";
 L["Colors"]							= "Cores";
 L["Normal Casting"]					= "Cast Normal";
+L["Not Interruptible"]					= "Não Interrompível";
 L["Finished Casting"]				= "Cast Terminado";
 L["Interrupted"]					= "Interrompido";
 L["Latency"]						= "Latência";

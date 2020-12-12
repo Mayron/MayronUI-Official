@@ -125,6 +125,7 @@ L["Border Size"]= "Толщина границ";
 L["Frame Inset"]= "Вставка рамки";
 L["Colors"]= "Цвета";
 L["Normal Casting"]= "Обычное заклинание";
+L["Not Interruptible"]					= "Непрерывный";
 L["Finished Casting"]= "Заклинание завершено";
 L["Interrupted"]= "Прервано";
 L["Latency"]= "Задержка";

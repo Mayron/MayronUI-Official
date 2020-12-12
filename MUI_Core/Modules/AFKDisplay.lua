@@ -10,8 +10,7 @@ local UIParent, CreateFrame, GetSpecializationInfo = _G.UIParent, _G.CreateFrame
 local MoveViewLeftStop, SetCVar, MoveViewLeftStart = _G.MoveViewLeftStop, _G.SetCVar, _G.MoveViewLeftStart;
 local UnitSex, UnitRace, SetCursor, GetSpecialization = _G.UnitSex, _G.UnitRace, _G.SetCursor, _G.GetSpecialization;
 local UnitPVPName, GetRealmName, UnitLevel, UnitClass = _G.UnitPVPName, _G.GetRealmName, _G.UnitLevel, _G.UnitClass;
-local table = _G.table;
-local HelpTip = _G.HelpTip;
+local table, ipairs, HelpTip = _G.table, _G.ipairs, _G.HelpTip;
 
 -- Register Module ------------
 local C_AFKDisplayModule = MayronUI:RegisterModule("AFKDisplay", L["AFK Display"]);
@@ -202,6 +201,12 @@ Private.Races = { -- lower values = lower model
     }
   },
   Tauren = {
+    Classic = {
+      Male = {
+        value = -0.5,
+        hoverValue = -0.4,
+      },
+    },
     Male = {
       value = -0.3,
       hoverValue = -0.4,
@@ -325,6 +330,13 @@ do
 
     local race = (select(2, UnitRace("player"))):gsub("%s+", "");
     local tbl = Private.Races[race][gender];
+
+    if (tk:IsClassic()) then
+      local classicTbl = Private.Races[race].Classic;
+      classicTbl = obj:IsTable(classicTbl) and classicTbl[gender];
+      tbl = obj:IsTable(classicTbl) and classicTbl or tbl;
+    end
+
     local value = (hovering and tbl.hoverValue) or tbl.value;
     local model = self.display.modelFrame.model;
 
@@ -465,6 +477,10 @@ end
 
 do
   local messageFormat = "%s[%s]: %s";
+  local GameTime_GetTime = _G.GameTime_GetTime;
+  local ChatTypeInfo = _G.ChatTypeInfo;
+  local Chat_GetChannelColor = _G.Chat_GetChannelColor;
+
   local function IncrementCounter(self, event, display, message, source)
     local frame = display.left;
 
@@ -636,7 +652,7 @@ do
 
     local version = string.format("(v%s)", GetAddOnMetadata("MUI_Core", "Version"));
     version = tk.Strings:SetTextColorByKey(version, "LIGHT_YELLOW");
-    txt:SetText(string.format("%s %s", GetAddOnMetadata("MUI_Core", "X-InterfaceName"), version));
+    txt:SetText(string.format("%s %s", tk:GetInterfaceName(), version));
     tk:SetFontSize(txt, 11);
 
     display.left = CreateFrame("Button", nil, display);

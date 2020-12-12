@@ -126,6 +126,7 @@ L["Border Size"]                    = "Border Size";
 L["Frame Inset"]                    = "Frame Inset";
 L["Colors"]                         = "Colors";
 L["Normal Casting"]                 = "Normal Casting";
+L["Not Interruptible"]              = "Not Interruptible";
 L["Finished Casting"]               = "Finished Casting";
 L["Interrupted"]                    = "Interrupted";
 L["Latency"]                        = "Latency";

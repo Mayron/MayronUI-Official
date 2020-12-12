@@ -608,3 +608,11 @@ function tk:GetTutorialShowState(oldVersion, afterInstall)
 
   return shouldShow;
 end
+
+function tk:GetInterfaceName()
+  if (self:IsClassic()) then
+    return "MayronUI Classic";
+  else
+    return "MayronUI Gen6";
+  end
+end

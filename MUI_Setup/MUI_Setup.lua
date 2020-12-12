@@ -565,7 +565,7 @@ function C_SetUpModule:Show(data)
   window.info:SetInsets(20);
 
   local title = window.info:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-  title:SetText(GetAddOnMetadata("MUI_Core", "X-InterfaceName"):upper());
+  title:SetText(tk:GetInterfaceName():upper());
   title:SetPoint("BOTTOMLEFT");
 
   local version = window.info:CreateFontString(nil, "ARTWORK", "GameFontHighlight");

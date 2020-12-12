@@ -122,6 +122,7 @@ L["Border Size"]					= "Randbreite";
 L["Frame Inset"]					= "Rahmen einlassen";
 L["Colors"]						= "Farben";
 L["Normal Casting"]					= "Zaubernd";
+L["Not Interruptible"]					= "Nicht unterbrechen";
 L["Finished Casting"]					= "Zaubern beendet";
 L["Interrupted"]					= "Unterbrochen";
 L["Latency"]						= "Latenz";

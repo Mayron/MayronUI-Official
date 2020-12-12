@@ -503,7 +503,7 @@ function C_ConfigModule:SetUpWindow(data)
 
   versionCell.text = versionCell:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   versionCell.text:SetText(tk.Strings:Concat(
-    GetAddOnMetadata("MUI_Core", "X-InterfaceName"), " [", GetAddOnMetadata("MUI_Core", "Version"), "]"));
+    tk:GetInterfaceName(), " [", GetAddOnMetadata("MUI_Core", "Version"), "]"));
 
   versionCell.text:SetPoint("BOTTOMLEFT");
 
