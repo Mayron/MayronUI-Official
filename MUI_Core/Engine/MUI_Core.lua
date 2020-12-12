@@ -825,8 +825,8 @@ db:OnStartUp(function(self)
   end);
 
   hooksecurefunc("DisplayInterfaceActionBlockedMessage", function()
-    local stack = debugstack() or tk.Strings.Empty;
-    local locals = debuglocals() or tk.Strings.Empty;
+    local stack = debugstack(3) or tk.Strings.Empty;
+    local locals = debuglocals(3) or tk.Strings.Empty;
     addError(string.format("%s\n%s\n%s", _G.INTERFACE_ACTION_BLOCKED, stack, locals));
     ScriptErrorsFrame:DisplayMessageInternal(_G.INTERFACE_ACTION_BLOCKED, nil, true, locals, stack);
   end);

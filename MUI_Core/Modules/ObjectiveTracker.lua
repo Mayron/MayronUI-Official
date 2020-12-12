@@ -182,8 +182,9 @@ end
 
 local function OnObjectiveTrackerInitialized()
   for _, module in ipairs(ObjectiveTrackerFrame.MODULES_UI_ORDER) do
-    module.Header:SetWidth(ObjectiveTrackerFrame:GetWidth());
-    module.BlocksFrame:SetWidth(ObjectiveTrackerFrame:GetWidth());
+    -- TODO: This causes taint issue and prevents clicking on quest titles on objective tracker to access quests while in combat
+    -- module.Header:SetWidth(ObjectiveTrackerFrame:GetWidth());
+    -- module.BlocksFrame:SetWidth(ObjectiveTrackerFrame:GetWidth());
 
     for _, value in pairs(module.blockOffset) do
       value[1] = 0;
