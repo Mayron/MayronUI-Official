@@ -20,6 +20,7 @@ db:AddToDefaults("profile.sidebar", {
   retractWidth = 46;
   expandWidth = 83;
   animationSpeed = 6;
+  xOffset = 0,
   yOffset = 40,
   barsShown = 2; -- non-config GUI
   alpha = 1;
@@ -113,69 +114,94 @@ function Private:RetractFrame(sidebar, bar2, frame, minWidth)
   C_Timer.After(0.02, loop);
 end
 
-function Private:MoveFrameOut(sideBarModule, frame, bar1, controlBartender)
-  local function loop()
-    local point, anchor, anchorPoint, xOffset, yOffset = frame:GetPoint();
-    local width = math.floor(frame:GetWidth() + 0.5);
-
-    if (xOffset < (width - Private.step) and not frame.moveIn) then
-      frame:SetPoint(point, anchor, anchorPoint, xOffset + Private.step, yOffset);
-      C_Timer.After(0.02, loop);
-
-    else
-      frame:SetPoint(point, anchor, anchorPoint, width, yOffset);
-      frame:Hide();
-      Private:ToggleBartenderBar(bar1, false);
-      frame.animating = false;
-      sideBarModule:SetBarsShown(0);
+function Private:MoveFrameOut(sideBarModule, frame, settingXOffset, settingAlpha, bar1, controlBartender)
+  if (settingXOffset ~= 0) then
+    if (IsAddOnLoaded("Bartender4") and controlBartender) then
+      UIFrameFadeOut(bar1, 0.1, bar1:GetAlpha(), 0);
     end
-  end
+    UIFrameFadeOut(frame, 0.2, settingAlpha, 0);
 
-  frame.moveIn = nil;
-  frame.animating = true;
+    C_Timer.After(0.2, function()
+      sideBarModule:SetBarsShown(0);
+    end); --SetBarsShown(0) hides without the animation. Timer fixes this
+  else
+    frame:SetAlpha(settingAlpha); --Make sure frame is visible after changing settings
+    local function loop()
+      local point, anchor, anchorPoint, xOffset, yOffset = frame:GetPoint();
+      local width = math.floor(frame:GetWidth() + 0.5);
 
-  if (IsAddOnLoaded("Bartender4") and controlBartender) then
-    UIFrameFadeOut(bar1, 0.1, bar1:GetAlpha(), 0);
-  end
+      if (xOffset < (width - Private.step) and not frame.moveIn) then
+        frame:SetPoint(point, anchor, anchorPoint, xOffset + Private.step, yOffset);
+        C_Timer.After(0.02, loop);
 
-  C_Timer.After(0.02, loop);
-end
-
-function Private:MoveFrameIn(sideBarModule, frame, bar1, controlBartender)
-  local counter = 1;
-
-  local function loop()
-    if (counter) then
-      counter = counter + 1;
-
-      if (counter > 8) then
-        if (IsAddOnLoaded("Bartender4") and controlBartender) then
-          UIFrameFadeIn(bar1, 0.2, bar1:GetAlpha(), 1);
-        end
-
-        counter = false;
+      else
+        frame:SetPoint(point, anchor, anchorPoint, width, yOffset);
+        frame:Hide();
+        Private:ToggleBartenderBar(bar1, false);
+        frame.animating = false;
+        sideBarModule:SetBarsShown(0);
       end
     end
 
-    local point, anchor, anchorPoint, xOffset, yOffset = frame:GetPoint();
-    xOffset = math.floor(xOffset + 0.5);
+    frame.moveIn = nil;
+    frame.animating = true;
 
-    if (xOffset > (0 + Private.step) and frame.moveIn) then
-      frame:SetPoint(point, anchor, anchorPoint, xOffset - Private.step, yOffset);
-      C_Timer.After(0.02, loop);
-
-    else
-      frame:SetPoint(point, anchor, anchorPoint, 0, yOffset);
-      Private:ToggleBartenderBar(bar1, true);
-      frame.animating = false;
-      sideBarModule:SetBarsShown(1);
+    if (IsAddOnLoaded("Bartender4") and controlBartender) then
+      UIFrameFadeOut(bar1, 0.1, bar1:GetAlpha(), 0);
     end
-  end
 
-  frame:Show();
-  frame.moveIn = true;
-  frame.animating = true;
-  C_Timer.After(0.02, loop);
+    C_Timer.After(0.02, loop);
+  end
+end
+
+function Private:MoveFrameIn(sideBarModule, frame, settingXOffset, settingAlpha, bar1, controlBartender)
+  if (settingXOffset ~= 0) then
+    local point, anchor, anchorPoint, _, yOffset = frame:GetPoint();
+    frame:SetPoint(point, anchor, anchorPoint, settingXOffset, yOffset);
+    Private:ToggleBartenderBar(bar1, true);
+    sideBarModule:SetBarsShown(1);
+
+    if (IsAddOnLoaded("Bartender4") and controlBartender) then
+      UIFrameFadeIn(bar1, 0.2, bar1:GetAlpha(), 1);
+    end
+    UIFrameFadeIn(frame, 0.2, 0, settingAlpha);
+  else
+    frame:SetAlpha(settingAlpha); --Make sure frame is visible after changing settings
+    local counter = 1;
+
+    local function loop()
+      if (counter) then
+        counter = counter + 1;
+
+        if (counter > 8) then
+          if (IsAddOnLoaded("Bartender4") and controlBartender) then
+            UIFrameFadeIn(bar1, 0.2, bar1:GetAlpha(), 1);
+          end
+
+          counter = false;
+        end
+      end
+
+      local point, anchor, anchorPoint, xOffset, yOffset = frame:GetPoint();
+      xOffset = math.floor(xOffset + 0.5);
+
+      if (xOffset > (0 + Private.step) and frame.moveIn) then
+        frame:SetPoint(point, anchor, anchorPoint, xOffset - Private.step, yOffset);
+        C_Timer.After(0.02, loop);
+
+      else
+        frame:SetPoint(point, anchor, anchorPoint, 0, yOffset);
+        Private:ToggleBartenderBar(bar1, true);
+        frame.animating = false;
+        sideBarModule:SetBarsShown(1);
+      end
+    end
+
+    frame:Show();
+    frame.moveIn = true;
+    frame.animating = true;
+    C_Timer.After(0.02, loop);
+  end
 end
 
 local function UpdateSideButtonVisibility(barsShown, expandBtn, retractBtn)
@@ -205,6 +231,7 @@ function C_SideBarModule:OnInitialize(data)
     onExecuteAll = {
       ignore = {
         "retractWidth";
+        "xOffset";
         "yOffset";
       };
 
@@ -237,6 +264,11 @@ function C_SideBarModule:OnInitialize(data)
 
       alpha = function(value)
           data.panel:SetAlpha(value);
+      end;
+
+      xOffset = function(value)
+        local p, rf, rp, _, y = data.panel:GetPoint();
+        data.panel:SetPoint(p, rf, rp, value, y);
       end;
 
       yOffset = function(value)
@@ -375,7 +407,7 @@ function C_SideBarModule:Expand(data, expandAmount)
   data.retract:Hide();
 
   if (expandAmount == 1) then
-    Private:MoveFrameIn(self, data.panel, data.BTBar1, data.settings.bartender.control);
+    Private:MoveFrameIn(self, data.panel, data.settings.xOffset, data.settings.alpha, data.BTBar1, data.settings.bartender.control);
   elseif (expandAmount == 2) then
     Private:ExpandFrame(self, data.BTBar2, data.panel, data.settings.expandWidth);
   end
@@ -393,7 +425,7 @@ function C_SideBarModule:Retract(data, retractAmount)
   if (retractAmount == 1) then
     Private:RetractFrame(self, data.BTBar2, data.panel, data.settings.retractWidth);
   elseif (retractAmount == 2) then
-    Private:MoveFrameOut(self, data.panel, data.BTBar1, data.settings.bartender.control);
+    Private:MoveFrameOut(self, data.panel, data.settings.xOffset, data.settings.alpha, data.BTBar1, data.settings.bartender.control);
   end
 end
 
@@ -437,7 +469,7 @@ function C_SideBarModule:SetBarsShown(data, numBarsShown)
     Private:ToggleBartenderBar(data.BTBar2, false);
     data.panel:SetSize(data.settings.retractWidth, data.settings.height);
     data.panel:ClearAllPoints();
-    data.panel:SetPoint("RIGHT", UIParent, "RIGHT", data.settings.retractWidth ,data.settings.yOffset);
+    data.panel:SetPoint("RIGHT", UIParent, "RIGHT", data.settings.retractWidth + data.settings.xOffset, data.settings.yOffset);
     data.panel:Hide();
     data.expand:SetPoint("RIGHT");
 
@@ -461,7 +493,7 @@ function C_SideBarModule:CreateSideBar(data)
   local sideBarTexturePath = tk:GetAssetFilePath("Textures\\SideBar\\SideBarPanel");
 
   data.panel = CreateFrame("Frame", "MUI_SideBar", UIParent);
-  data.panel:SetPoint("RIGHT", 0, data.settings.yOffset);
+  data.panel:SetPoint("RIGHT", data.settings.xOffset, data.settings.yOffset);
 
   gui:CreateGridTexture(data.panel, sideBarTexturePath, 20, nil, 45, 749);
 

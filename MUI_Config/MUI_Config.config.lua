@@ -677,6 +677,14 @@ function C_ConfigModule:GetConfigTable()
                             step = 5,
                             dbPath      = "profile.sidebar.height"
                         };
+                        {   name        = L["X-Offset"];
+                            tooltip     = L["Default value is "].."0";
+                            type        = "slider";
+                            min = -300,
+                            max = 0,
+                            step = 5,
+                            dbPath      = "profile.sidebar.xOffset"
+                        };
                         {   name        = L["Y-Offset"];
                             tooltip     = L["Default value is "].."40";
                             type        = "slider";
