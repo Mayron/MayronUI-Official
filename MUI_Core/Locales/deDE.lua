@@ -517,7 +517,7 @@ Und natürlich vielen Dank an die Autoren der Nicht-MayronUI-AddOns, die in dies
 
 L["Cast Bars"]                                      = "Cast Bars";
 L["Auras (Buffs & Debuffs)"]                        = "Auras (Buffs & Debuffs)";
-L["(CTRL+C to Copy, CTRL+V to Paste)"]              = "(CTRL+C zum Kopieren, CTRL+V zum Einfügen)";
+L["(CTRL+C to Copy, CTRL+V to Paste)"]              = "(Strg+C zum Kopieren, Strg+V zum Einfügen)";
 L["Copy Chat Text"]                                 = "Kopiere Chat Text";
 L["Data Text Bar"]                                  = "Daten Leiste";
 L["Setup"]                                          = "Setup";
@@ -705,17 +705,17 @@ L["Step"] = "Schritt";
 L["Found a bug? Use this form to submit an issue to the official MayronUI GitHub page."] =
   "Einen Fehler gefunden? Verwenden Sie dieses Formular, um ein Problem an die offizielle MayronUI GitHub-Seite zu senden.";
 
-L["Almost done! We just need a bit more information..."] = "Fast fertig! Wir brauchen nur ein bisschen mehr Informationen...";
+L["Almost done! We just need a bit more information..."] = "Fast fertig! Wir brauchen nur ein paar mehr Informationen...";
 
 L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"] =
-  "Klicken Sie unten, um Ihren Bericht zu erstellen. Nach der Erstellung kopieren Sie es in eine neue Ausgabe und senden Sie es über den folgenden Link auf GitHub:";
+  "Klicken Sie unten, um Ihren Bericht zu erstellen. Nach dem Erstellen kopieren Sie den Bericht und senden Sie ihn uns über den folgenden Link auf GitHub:";
 
-L["characters"] = "zeichen"; -- text characters (e.g. A, B, C, etc...), NOT WoW characters!
+L["characters"] = "Zeichen"; -- text characters (e.g. A, B, C, etc...), NOT WoW characters!
 
-L["minimum"] = "minimum";
+L["minimum"] = "Minimum";
 L["Please describe the bug in detail:"] = "Bitte beschreiben Sie den Fehler im Detail:";
 L["How can we replicate the bug?"] = "Wie können wir den Fehler replizieren?";
-L["Report Issue"] = "Melde Probleme";
+L["Report Issue"] = "Fehler melden";
 
 L["Open this webpage in your browser"] = "Öffnen Sie diese Webseite in Ihrem Browser";
 L["Generate Report"] = "Bericht generieren";
