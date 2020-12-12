@@ -820,6 +820,11 @@ function C_ConfigModule:GetConfigTable()
                                 tooltip = L["Default value is "].."8";
                                 dbPath  = tk.Strings:Concat("profile.resourceBars.", key, ".fontSize");
                             };
+                            {   type = "dropdown";
+                                name = L["Bar Texture"];
+                                options = tk.Constants.LSM:List("statusbar");
+                                dbPath = tk.Strings:Concat("profile.resourceBars.", key, ".texture");
+                            };
                         };
 
                         if (id == 1) then

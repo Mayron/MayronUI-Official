@@ -33,44 +33,46 @@ C_ResourceBarsModule.Static:AddFriendClass("BottomUI_Container");
 
 db:AddToDefaults("profile.resourceBars", {
   enabled = true;
-  experienceBar = {
+  __templateBar = {
     enabled = true;
     height = 8;
     alwaysShowText = false;
     fontSize = 8;
+    texture = "MUI_StatusBar";
   };
-  reputationBar = {
-    enabled = true;
-    height = 8;
-    alwaysShowText = false;
-    fontSize = 8;
-  };
-  artifactBar = {
-    enabled = true;
-    height = 8;
-    alwaysShowText = false;
-    fontSize = 8;
-  };
-  azeriteBar = {
-    enabled = true;
-    height = 8;
-    alwaysShowText = false;
-    fontSize = 8;
-  };
+  experienceBar = {};
+  reputationBar = {};
+  artifactBar = {};
+  azeriteBar = {};
 });
 
 -- C_ResourceBarsModule -------------------
 function C_ResourceBarsModule:OnInitialize(data, containerModule)
   data.containerModule = containerModule;
 
+  do
+    local template = db.profile.resourceBars.__templateBar;
+    local bars = db.profile.resourceBars;
+
+    for _, barName in obj:IterateArgs("experienceBar", "reputationBar", "artifactBar", "azeriteBar") do
+      bars[barName]:SetParent(template);
+    end
+  end
+
   local function UpdateResourceBar(_, keysList)
     local barName = keysList:PopFront();
     barName = barName:gsub("Bar", tk.Strings.Empty);
 
     local bar = data.bars[barName];
-    bar:Update();
+    local settingName = keysList:PopFront();
 
-    if (keysList:PopFront() == "height") then
+    if (settingName == "texture") then
+      bar:UpdateStatusBarTexture();
+    else
+      bar:Update();
+    end
+
+    if (settingName == "height") then
       self:UpdateContainerHeight();
     end
   end
@@ -96,6 +98,7 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
       height = UpdateResourceBar;
       alwaysShowText = UpdateResourceBar;
       fontSize = UpdateResourceBar;
+      texture = UpdateResourceBar;
     };
 
     reputationBar = {
@@ -106,6 +109,7 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
       height = UpdateResourceBar;
       alwaysShowText = UpdateResourceBar;
       fontSize = UpdateResourceBar;
+      texture = UpdateResourceBar;
     };
   };
 
@@ -118,6 +122,7 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
       height = UpdateResourceBar;
       alwaysShowText = UpdateResourceBar;
       fontSize = UpdateResourceBar;
+      texture = UpdateResourceBar;
     };
     updateFuncs.azeriteBar = {
       enabled = function(value)
@@ -127,6 +132,7 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
       height = UpdateResourceBar;
       alwaysShowText = UpdateResourceBar;
       fontSize = UpdateResourceBar;
+      texture = UpdateResourceBar;
     };
 
     table.insert(options.onExecuteAll.first, "artifactBar.enabled");
@@ -299,29 +305,34 @@ function C_BaseResourceBar:__Construct(data, barsModule, moduleData, barName)
   data.notCreated = true;
 end
 
+function C_BaseResourceBar:UpdateStatusBarTexture(data)
+  local texture = tk.Constants.LSM:Fetch("statusbar", data.settings.texture);
+  data.frame.bg = tk:SetBackground(data.frame, texture);
+  data.frame.bg:SetVertexColor(0.08, 0.08, 0.08);
+  data.statusbar:SetStatusBarTexture(texture);
+  data.statusbar.texture = data.statusbar:GetStatusBarTexture();
+end
+
 function C_BaseResourceBar:CreateBar(data)
-  local texture = tk.Constants.LSM:Fetch("statusbar", "MUI_StatusBar");
   local frame = CreateFrame("Frame", "MUI_"..data.barName.."Bar", data.barsContainer,
-  _G.BackdropTemplateMixin and "BackdropTemplate");
+    _G.BackdropTemplateMixin and "BackdropTemplate");
 
   frame:SetBackdrop(tk.Constants.BACKDROP);
   frame:SetBackdropBorderColor(0, 0, 0);
-  frame.bg = tk:SetBackground(frame, texture);
-  frame.bg:SetVertexColor(0.08, 0.08, 0.08);
   frame:SetHeight(data.settings.height);
 
   local statusbar = CreateFrame("StatusBar", nil, frame);
-  statusbar:SetStatusBarTexture(texture);
   statusbar:SetOrientation("HORIZONTAL");
   statusbar:SetPoint("TOPLEFT", 1, -1);
   statusbar:SetPoint("BOTTOMRIGHT", -1, 1);
 
-  statusbar.texture = statusbar:GetStatusBarTexture();
   statusbar.text = statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
   statusbar.text:SetPoint("CENTER");
 
   data.frame = frame;
   data.statusbar = statusbar;
+
+  self:UpdateStatusBarTexture();
 end
 
 do
