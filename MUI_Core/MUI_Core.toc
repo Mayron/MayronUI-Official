@@ -1,4 +1,4 @@
-## Interface: 11305
+## Interface: 90002
 ## Title: |cff00ccffMUI|r Core
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
