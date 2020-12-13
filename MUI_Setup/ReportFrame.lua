@@ -436,7 +436,7 @@ do
       f("- Resting: %s", errorObject.resting and "Yes" or "No");
       f("- AFK: %s", errorObject.isAFK and "Yes" or "No");
       f("- Dead or ghost: %s", errorObject.isDeadOrGhost and "Yes" or "No");
-      AppendLine("- Error message:");
+      AppendLine("");
       AppendLine("```lua");
       AppendLine(string.sub(errorObject.error, 1, min(#errorObject.error, 1000)));
       AppendLine("```");

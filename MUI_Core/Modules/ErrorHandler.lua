@@ -8,8 +8,7 @@ local hooksecurefunc, GetMinimapZoneText = _G.hooksecurefunc, _G.GetMinimapZoneT
 local GetNumGroupMembers, IsResting = _G.GetNumGroupMembers, _G.IsResting;
 local IsInInstance, InCombatLockdown = _G.IsInInstance, _G.InCombatLockdown;
 local UnitIsAFK, UnitIsDeadOrGhost, GetZoneText = _G.UnitIsAFK, _G.UnitIsDeadOrGhost, _G.GetZoneText;
-local HandleLuaError = _G.HandleLuaError;
-local debugstack, debuglocals = _G.debugstack, _G.debuglocals;
+local debugstack, HandleLuaError = _G.debugstack, _G.HandleLuaError;
 
 local ERRORS = {};
 local seterrorhandler = _G.seterrorhandler;
@@ -33,15 +32,17 @@ function C_ErrorHandler:OnInitialize()
     });
   end
 
-  em:CreateEventHandler("ADDON_ACTION_BLOCKED, ADDON_ACTION_FORBIDDEN", function(_, event, name, func)
+  em:CreateEventHandler("ADDON_ACTION_BLOCKED, ADDON_ACTION_FORBIDDEN, MACRO_ACTION_BLOCKED", function(_, event, name, func)
     local errorMessage = ("[%s] AddOn '%s' tried to call the protected function '%s'."):format(event, name or "<name>", func or "<func>");
     addError(errorMessage);
   end);
 
-  hooksecurefunc("DisplayInterfaceActionBlockedMessage", function()
-    local stack = debugstack(3) or tk.Strings.Empty;
-    addError(string.format("Interface action failed because of an AddOn\n%s", stack));
-  end);
+  if (tk:IsRetail()) then
+    hooksecurefunc("DisplayInterfaceActionBlockedMessage", function()
+      local stack = debugstack(3) or tk.Strings.Empty;
+      addError(string.format("Interface action failed because of an AddOn\n%s", stack));
+    end);
+  end
 
   em:CreateEventHandler("LUA_WARNING", function(_, _, warningMessage)
     addError(warningMessage);
