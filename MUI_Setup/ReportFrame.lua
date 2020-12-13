@@ -3,7 +3,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local CreateFrame, collectgarbage, PlaySound = _G.CreateFrame, _G.collectgarbage, _G.PlaySound;
-local string, ipairs, tostring = _G.string, _G.ipairs, _G.tostring;
+local string, ipairs, tostring, min = _G.string, _G.ipairs, _G.tostring, _G.math.min;
 
 local Engine = obj:Import("MayronUI.Engine");
 local C_ReportIssue = MayronUI:RegisterModule("ReportIssue", nil, true) ---@class C_ReportIssue : BaseModule
@@ -202,7 +202,7 @@ function C_ReportIssue.Private:CreateEditBox(data, parent, titleText, minLength,
   title:SetText(titleText);
 
   local editBox = CreateFrame("EditBox", nil, parent);
-  editBox:SetMaxLetters(maxLength > 0 and maxLength or 9999);
+  editBox:SetMaxLetters(maxLength > 0 and maxLength or 100000);
   editBox:SetMultiLine(true);
   editBox:EnableMouse(true);
   editBox:SetAutoFocus(false);
@@ -383,6 +383,14 @@ do
   function C_ReportIssue.Private:GenerateReport(data)
     local f = AppendFormattedLine;
 
+    -- Append Bug Details:
+    AppendLine("Bug Details", true);
+    AppendLine(data.detailsEditBox:GetText());
+
+    -- Append Steps to Replicate:
+    AppendLine("Steps to Replicate", true);
+    AppendLine(data.replicateBugEditBox:GetText());
+
     -- Get MUI Version Info:
     AppendLine("MUI Version Info", true);
     f("- MUI_Core: %s", GetAddOnMetadata("MUI_Core", "Version"));
@@ -417,7 +425,8 @@ do
 
     -- Captured Error Info (player details when error occurred):
     AppendLine(string.format("Captured Errors (%d)", #data.errors), true);
-    for _, errorObject in ipairs(data.errors) do
+    for id, errorObject in ipairs(data.errors) do
+      if (id > 3) then break end -- only get the first 3
       f("- Zone: %s", errorObject.zone);
       f("- Group size: %s", errorObject.groupSize);
       f("- Instance type: %s", errorObject.instanceType);
@@ -427,17 +436,13 @@ do
       f("- Dead or ghost: %s", errorObject.isDeadOrGhost and "Yes" or "No");
       AppendLine("- Error message:");
       AppendLine("```lua");
-      AppendLine(errorObject.error);
+      AppendLine(string.sub(errorObject.error, 1, min(#errorObject.error, 1000)));
       AppendLine("```");
+
+      if (id < #data.errors) then
+        AppendLine("---");
+      end
     end
-
-    -- Append Bug Details:
-    AppendLine("Bug Details", true);
-    AppendLine(data.detailsEditBox:GetText());
-
-    -- Append Steps to Replicate:
-    AppendLine("Steps to Replicate", true);
-    AppendLine(data.replicateBugEditBox:GetText());
 
     -- Get Lua Errors (for the current session):
 

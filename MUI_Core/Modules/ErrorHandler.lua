@@ -41,7 +41,7 @@ function C_ErrorHandler:OnInitialize()
   hooksecurefunc("DisplayInterfaceActionBlockedMessage", function()
     local stack = debugstack(3) or tk.Strings.Empty;
     local locals = debuglocals(3) or tk.Strings.Empty;
-    addError(string.format("%s\n%s\n%s", _G.INTERFACE_ACTION_BLOCKED, stack, locals));
+    addError(string.format("%s\n%s\n%s", _G.INTERFACE_ACTION_BLOCKED, stack));
     ScriptErrorsFrame:DisplayMessageInternal(_G.INTERFACE_ACTION_BLOCKED, nil, true, locals, stack);
   end);
 
@@ -100,7 +100,7 @@ function C_ErrorHandler:OnInitialize()
   if (BugGrabber) then
     local function BugGrabber_OnBugGrabbed(event, tbl)
       if (event == "BugGrabber_BugGrabbed" and obj:IsTable(tbl)) then
-        local errorMessage = string.format("%s\n%s\n%s", tbl.message, tbl.stack, tbl.locals);
+        local errorMessage = string.format("%s\n%s", tbl.message or "<unknown>", tbl.stack or tk.Strings.Empty);
         addError(errorMessage);
       end
     end
@@ -113,7 +113,7 @@ function C_ErrorHandler:OnInitialize()
     ScriptErrorsFrame.Title:SetText("MayronUI Error");
     ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
 
-    addError(string.format("%s\n%s\n%s", errorMessage, stack or "", locals or ""));
+    addError(string.format("%s\n%s\n%s", errorMessage or "<unknown>", stack or tk.Strings.Empty));
     ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
   end);
 end

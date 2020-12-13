@@ -306,6 +306,10 @@ function C_BaseResourceBar:__Construct(data, barsModule, moduleData, barName)
 end
 
 function C_BaseResourceBar:UpdateStatusBarTexture(data)
+  if (not data.statusbar) then
+    return; -- not active
+  end
+
   local texture = tk.Constants.LSM:Fetch("statusbar", data.settings.texture);
   data.frame.bg = tk:SetBackground(data.frame, texture);
   data.frame.bg:SetVertexColor(0.08, 0.08, 0.08);
