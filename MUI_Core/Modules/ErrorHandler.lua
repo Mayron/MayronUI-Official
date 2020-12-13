@@ -33,7 +33,7 @@ function C_ErrorHandler:OnInitialize()
     });
   end
 
-  em:CreateEventHandler("ADDON_ACTION_BLOCKED, ADDON_ACTION_FORBIDDEN", function(event, name, func)
+  em:CreateEventHandler("ADDON_ACTION_BLOCKED, ADDON_ACTION_FORBIDDEN", function(_, event, name, func)
     local errorMessage = ("[%s] AddOn '%s' tried to call the protected function '%s'."):format(event, name or "<name>", func or "<func>");
     addError(errorMessage);
   end);
