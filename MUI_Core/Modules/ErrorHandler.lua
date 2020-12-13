@@ -40,9 +40,7 @@ function C_ErrorHandler:OnInitialize()
 
   hooksecurefunc("DisplayInterfaceActionBlockedMessage", function()
     local stack = debugstack(3) or tk.Strings.Empty;
-    local locals = debuglocals(3) or tk.Strings.Empty;
-    addError(string.format("%s\n%s", _G.INTERFACE_ACTION_BLOCKED, stack));
-    ScriptErrorsFrame:DisplayMessageInternal(_G.INTERFACE_ACTION_BLOCKED, nil, true, locals, stack);
+    addError(string.format("Interface action failed because of an AddOn\n%s", stack));
   end);
 
   em:CreateEventHandler("LUA_WARNING", function(_, _, warningMessage)
@@ -113,7 +111,7 @@ function C_ErrorHandler:OnInitialize()
     ScriptErrorsFrame.Title:SetText("MayronUI Error");
     ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
 
-    addError(string.format("%s\n%s\n%s", errorMessage or "<unknown>", stack or tk.Strings.Empty));
+    addError(string.format("%s\n%s", errorMessage or "<unknown>", stack or tk.Strings.Empty));
     ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
   end);
 end
