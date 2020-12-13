@@ -41,7 +41,7 @@ function C_ErrorHandler:OnInitialize()
   hooksecurefunc("DisplayInterfaceActionBlockedMessage", function()
     local stack = debugstack(3) or tk.Strings.Empty;
     local locals = debuglocals(3) or tk.Strings.Empty;
-    addError(string.format("%s\n%s\n%s", _G.INTERFACE_ACTION_BLOCKED, stack));
+    addError(string.format("%s\n%s", _G.INTERFACE_ACTION_BLOCKED, stack));
     ScriptErrorsFrame:DisplayMessageInternal(_G.INTERFACE_ACTION_BLOCKED, nil, true, locals, stack);
   end);
 
