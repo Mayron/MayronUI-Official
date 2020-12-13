@@ -352,6 +352,8 @@ do
   local UpdateAddOnMemoryUsage, GetNumAddOns, GetAddOnInfo = _G.UpdateAddOnMemoryUsage, _G.GetNumAddOns, _G.GetAddOnInfo;
 
   local function AppendLine(line, header)
+    line = line:trim();
+
     if (not report or #report == 0) then
       if (header) then
         report = string.format("### %s", line);
