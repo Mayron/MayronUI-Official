@@ -370,6 +370,14 @@ do
     AppendLine(line)
   end
 
+  local function GetCopyOfSavedVariableTable(observer)
+    local svTable = observer:GetSavedVariable();
+    local copyTbl = obj:PopTable();
+
+    tk.Tables:Fill(copyTbl, svTable);
+    return copyTbl;
+  end
+
   -- IMPORTANT: DO NOT LOCALIZE TEXT FOUND BELOW:
   Engine:DefineReturns("string");
   function C_ReportIssue.Private:GenerateReport(data)
@@ -435,29 +443,36 @@ do
 
     -- Append MUI_Core Global Settings:
     AppendLine("MUI_Core global settings", true);
-    local global = db.global:ToLongString();
+
+    local global = GetCopyOfSavedVariableTable(db.global);
+
+    -- these tables get incredibly large so ignore them
+    global.installed = nil;
+    global.movable = nil;
+
+    global = obj:ToLongString(global);
+
     AppendLine("```lua");
     AppendLine(global);
     AppendLine("```");
 
     -- Append MUI_Core Current Profile Settings:
     AppendLine("MUI_Core Current Profile Settings", true);
-    local profile = db.profile:ToLongString();
+
+    local profile = GetCopyOfSavedVariableTable(db.profile);
+    profile = obj:ToLongString(profile);
+
     AppendLine("```lua");
     AppendLine(profile);
     AppendLine("```");
 
-    -- Append MUI_TimerBars Global Settings:
+    -- Append TimerBars Current Profile Settings:
     local timerBarsDb = MayronUI:GetModuleComponent("TimerBarsModule", "Database");
-    AppendLine("TimerBars Global Settings", true);
-    global = timerBarsDb.global:ToLongString();
-    AppendLine("```lua");
-    AppendLine(global);
-    AppendLine("```");
-
-    -- Append MUI_Core Current Profile Settings:
     AppendLine("TimerBars Current Profile Settings", true);
-    profile = timerBarsDb.profile:ToLongString();
+
+    profile = GetCopyOfSavedVariableTable(timerBarsDb.profile);
+    profile = obj:ToLongString(profile);
+
     AppendLine("```lua");
     AppendLine(profile);
     AppendLine("```");

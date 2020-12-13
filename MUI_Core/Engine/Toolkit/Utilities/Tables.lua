@@ -266,19 +266,19 @@ function tk.Tables:Merge(...)
   return merged;
 end
 
--- move values from one table to another table
-function tk.Tables:Fill(tbl, otherTbl, preserveOldValue)
-  for key, value in pairs(otherTbl) do
+-- move values from one table (copiedTable) to another table (receivingTable)
+function tk.Tables:Fill(receivingTable, copiedTable, preserveOldValue)
+  for key, value in pairs(copiedTable) do
 
-    if (obj:IsTable(tbl[key]) and obj:IsTable(value)) then
-      self:Fill(tbl[key], value);
+    if (obj:IsTable(receivingTable[key]) and obj:IsTable(value)) then
+      self:Fill(receivingTable[key], value);
 
-    elseif (not preserveOldValue or obj:IsNil(tbl[key])) then
+    elseif (not preserveOldValue or obj:IsNil(receivingTable[key])) then
       if (obj:IsTable(value)) then
-        tbl[key] = obj:PopTable();
-        self:Fill(tbl[key], value);
+        receivingTable[key] = obj:PopTable();
+        self:Fill(receivingTable[key], value);
       else
-        tbl[key] = value;
+        receivingTable[key] = value;
       end
     end
   end

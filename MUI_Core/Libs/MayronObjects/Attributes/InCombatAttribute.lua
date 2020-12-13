@@ -8,7 +8,6 @@ local InCombatLockdown, select, unpack = _G.InCombatLockdown, _G.select, _G.unpa
 Attributes:CreateInterface("IAttribute", {
   -- params: instance, privateData, functionName, function parameters as vararg
   OnExecute = {type = "function"; params = {"Object", "table", "string"}; returns = "boolean"};
-  __Construct = {type = "function", params = {"?boolean", "?boolean"}}
 });
 
 local C_Stack = Lib:Import("Framework.System.Collections.Stack<T>");

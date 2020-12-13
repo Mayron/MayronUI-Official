@@ -24,9 +24,10 @@ Observer.Static:AddFriendClass("Helper");
 Observer.Static:AddFriendClass("Database");
 
 local select, tonumber, strsplit = _G.select, _G.tonumber, _G.strsplit;
-local GetLastTableKeyPairs, GetNextPath, IsEqual, GetDatabasePathInfo;
 local ipairs, pairs, table, unpack, assert = _G.ipairs, _G.pairs, _G.table, _G.unpack, _G.assert;
-local string = _G.string;
+local string, tostring, setmetatable, print = _G.string, _G.tostring, _G.setmetatable, _G.print;
+
+local GetLastTableKeyPairs, GetNextPath, IsEqual, GetDatabasePathInfo, FillTable;
 
 local OnAddOnLoadedListener = _G.CreateFrame("Frame");
 OnAddOnLoadedListener:RegisterEvent("ADDON_LOADED");
@@ -835,10 +836,11 @@ function Observer:IsEmpty()
   return self:GetLength() == 0;
 end
 
-Framework:DefineParams("?number");
+Framework:DefineParams("number=3", "number=2");
 ---A helper function to print all contents of a table pointed to by the selected Observer (example: db.profile.aModule:Print()).
 ---@param depth number|nil @(optional) The depth of tables to print before only printing table references.
-function Observer:Print(data, depth)
+---@param spaces number @The number of spaces used for nested values inside a table.
+function Observer:Print(data, depth, spaces)
   local merged = self:GetUntrackedTable();
   local tablePath = data.helper:GetDatabaseRootTableName(self);
   local path = (data.usingChild and data.usingChild.path) or data.path;
@@ -847,19 +849,21 @@ function Observer:Print(data, depth)
     tablePath = string.format("%s.%s", tablePath, path);
   end
 
-  print(" ");
   print(string.format("db.%s = {", tablePath));
-  data.helper:PrintTable(merged, depth);
+  data.helper:PrintTable(merged, depth, spaces);
   print("};");
-  print(" ");
 end
 
-Framework:DefineParams("?number");
+Framework:DefineParams("?number", "number=2");
 Framework:DefineReturns("string");
 ---A helper function to get all contents of a table pointed to by the selected Observer (example: db.profile.aModule:Print()).
 ---@param depth number|nil @(optional) The depth of tables to print before only printing table references.
-function Observer:ToLongString(data, depth)
-  local merged = self:GetSavedVariable();
+function Observer:ToLongString(data, depth, spaces)
+  local svTable = self:GetSavedVariable();
+  local copyTbl = obj:PopTable();
+
+  FillTable(svTable, copyTbl);
+
   local tablePath = data.helper:GetDatabaseRootTableName(self);
   local path = (data.usingChild and data.usingChild.path) or data.path;
 
@@ -868,7 +872,7 @@ function Observer:ToLongString(data, depth)
   end
 
   local result = (string.format("db.%s = {", tablePath));
-  result = data.helper:ToLongString(result, merged, depth);
+  result = data.helper:ToLongString(copyTbl, depth, spaces, result);
   return string.format("%s\n};", result);
 end
 
@@ -922,25 +926,6 @@ do
 
   -- Local Functions:
   do
-    -- Adds all key and value pairs from fromTable onto toTable (replaces other non-table values)
-    local function AddTable(fromTable, toTable, doNotReplace)
-      for key, value in pairs(fromTable) do
-        if (obj:IsTable(value)) then
-          if (not (obj:IsString(key) and key:match("^__template"))) then
-
-            -- ignore template default values
-            if (not obj:IsTable(toTable[key])) then
-              toTable[key] = obj:PopTable();
-            end
-
-            AddTable(value, toTable[key], doNotReplace);
-          end
-        elseif (not doNotReplace or (doNotReplace and toTable[key] == nil)) then
-          toTable[key] = value;
-        end
-      end
-    end
-
     local function AddParentTables(observer, merged, isParent)
       if (not isParent) then
         for key, _ in pairs(merged) do
@@ -962,7 +947,7 @@ do
         local parentTable = ConvertObserverToUntrackedTable(parent, nil, true);
 
         if (parentTable) then
-          AddTable(parentTable, merged, true);
+          FillTable(parentTable, merged, true);
         end
       end
     end
@@ -978,11 +963,11 @@ do
       end
 
       if (defaults) then
-        AddTable(defaults, merged);
+        FillTable(defaults, merged);
       end
 
       if (svTable) then
-        AddTable(svTable, merged);
+        FillTable(svTable, merged);
       end
 
       AddParentTables(observer, merged, isParent);
@@ -1311,15 +1296,15 @@ function Helper:GetNextValue(data, previousObserverData, tbl, key)
   return nextObserver;
 end
 
-Framework:DefineParams("table", "?number");
-function Helper:PrintTable(_, tbl, depth)
-  obj:PrintTable(tbl, depth, 4);
+Framework:DefineParams("table", "?number", "number", "string");
+Framework:DefineReturns("string");
+function Helper:ToLongString(_, tbl, depth, spaces, result)
+  return obj:ToLongString(tbl, depth, spaces, result, spaces);
 end
 
-Framework:DefineParams("string", "table", "?number");
-Framework:DefineReturns("string");
-function Helper:ToLongString(_, result, tbl, depth)
-  return obj:ToLongString(result, tbl, depth, 4);
+Framework:DefineParams("table", "number", "number");
+function Helper:PrintTable(_, tbl, depth, spaces)
+  return obj:PrintTable(tbl, depth, spaces, spaces);
 end
 
 Framework:DefineParams("Observer");
@@ -1579,5 +1564,24 @@ do
     obj:PushTable(pathParts);
 
     return lastTable, lastKey;
+  end
+end
+
+-- Adds all key and value pairs from fromTable onto toTable (replaces other non-table values)
+function FillTable(fromTable, toTable, doNotReplace)
+  for key, value in pairs(fromTable) do
+    if (obj:IsTable(value)) then
+      if (not (obj:IsString(key) and key:match("^__template"))) then
+
+        -- ignore template default values
+        if (not obj:IsTable(toTable[key])) then
+          toTable[key] = obj:PopTable();
+        end
+
+        FillTable(value, toTable[key], doNotReplace);
+      end
+    elseif (not doNotReplace or (doNotReplace and toTable[key] == nil)) then
+      toTable[key] = value;
+    end
   end
 end

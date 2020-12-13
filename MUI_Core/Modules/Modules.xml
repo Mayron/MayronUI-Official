@@ -13,6 +13,7 @@
   <Script file="BottomUI\ResourceBars\AzeriteBar.lua" />
   <Script file="BottomUI\ActionBarPanel.lua" />
 
+  <Script file="ErrorHandler.lua" />
   <Script file="ObjectiveTracker.lua" />
   <Script file="SideBar.lua" />
   <Script file="AFKDisplay.lua" />

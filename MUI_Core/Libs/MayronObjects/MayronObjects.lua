@@ -42,7 +42,7 @@ if (not Lib) then return end
 
 local error, unpack, next, ipairs = _G.error, _G.unpack, _G.next, _G.ipairs;
 local setmetatable, table, string = _G.setmetatable, _G.table, _G.string;
-local getmetatable, select, pcall = _G.getmetatable, _G.select, _G.pcall;
+local getmetatable, select, pcall, strsplit = _G.getmetatable, _G.select, _G.pcall, _G.strsplit;
 local tostring, collectgarbage, print = _G.tostring, _G.collectgarbage, _G.print;
 
 Lib.Types = {};
@@ -315,63 +315,30 @@ end
 ---A helper function to print a table's contents.
 ---@param tbl table @The table to print.
 ---@param depth number @The depth of sub-tables to traverse through and print.
+---@param spaces number @The number of spaces used for nested values inside a table.
 ---@param n number @Do NOT manually set this. This controls formatting through recursion.
-function Lib:PrintTable(tbl, depth, n)
-  n = n or 0;
-  depth = depth or 5;
+function Lib:PrintTable(tbl, depth, spaces, n)
+  local value = self:ToLongString(tbl, depth, spaces, nil, n);
 
-  if (depth == 0) then
-    print(string.rep(' ', n).."...");
-    return;
-  end
-
-  if (n == 0) then
-    print(" ");
-  end
-
-  for key, value in pairs(tbl) do
-    if (key and self:IsNumber(key) or self:IsString(key)) then
-      key = string.format("[\"%s\"]", key);
-
-      if (self:IsTable(value)) then
-        if (next(value)) then
-          print(string.rep(' ', n)..key.." = {");
-          self:PrintTable(value, depth - 1, n + 4);
-          print(string.rep(' ', n).."},");
-        else
-          print(string.rep(' ', n)..key.." = {},");
-        end
-      else
-        if (self:IsString(value)) then
-          value = string.format("\"%s\"", value);
-        else
-          value = tostring(value);
-        end
-
-        print(string.rep(' ', n)..key.." = "..value..",");
-      end
-    end
-  end
-
-  if (n == 0) then
-    print(" ");
+  -- cannot print the full string because Blizzard's chat frame messes up spacing when it encounters '\n'
+  for _, line in self:IterateArgs(strsplit("\n", value)) do
+    print(line);
   end
 end
 
 ---A helper function to print a table's contents.
 ---@param tbl table @The table to print.
 ---@param depth number @The depth of sub-tables to traverse through and print.
+---@param spaces number @The number of spaces used for nested values inside a table.
 ---@param n number @Do NOT manually set this. This controls formatting through recursion.
-function Lib:ToLongString(result, tbl, depth, n)
+function Lib:ToLongString(tbl, depth, spaces, result, n)
+  result = result or "";
   n = n or 0;
+  spaces = spaces or 2;
   depth = depth or 5;
 
   if (depth == 0) then
     return string.format("%s\n%s", result, string.rep(' ', n).."...");
-  end
-
-  if (n == 0) then
-    result = string.format("%s\n", result);
   end
 
   for key, value in pairs(tbl) do
@@ -379,12 +346,22 @@ function Lib:ToLongString(result, tbl, depth, n)
       key = string.format("[\"%s\"]", key);
 
       if (self:IsTable(value)) then
-        if (next(value)) then
-          result = string.format("%s\n%s%s = {", result, string.rep(' ', n), key);
-          result = self:ToLongString(result, value, depth - 1, n + 4);
-          result = string.format("%s\n%s},", result, string.rep(' ', n));
+        if (#result > 0) then
+          result = string.format("%s\n%s", result, string.rep(' ', n));
         else
-          result = string.format("%s\n%s%s = {},", result, string.rep(' ', n), key);
+          result = string.rep(' ', n);
+        end
+
+        if (next(value)) then
+          if (depth == 1) then
+            result = string.format("%s%s = { ... },", result, key);
+          else
+            result = string.format("%s%s = {", result, key);
+            result = self:ToLongString(value, depth - 1, spaces, result, n + spaces);
+            result = string.format("%s\n%s},", result, string.rep(' ', n));
+          end
+        else
+          result = string.format("%s%s%s = {},", result, string.rep(' ', n), key);
         end
       else
         if (self:IsString(value)) then
@@ -396,10 +373,6 @@ function Lib:ToLongString(result, tbl, depth, n)
         result = string.format("%s\n%s%s = %s,", result, string.rep(' ', n), key, value);
       end
     end
-  end
-
-  if (n == 0) then
-    result = string.format("%s\n", result);
   end
 
   return result;
@@ -427,7 +400,7 @@ end
 function Lib:Import(namespace, silent)
   local entity;
   local currentNamespace = "";
-  local nodes = Lib:PopTable(_G.strsplit(".", namespace));
+  local nodes = Lib:PopTable(strsplit(".", namespace));
 
   for id, key in ipairs(nodes) do
     Core:Assert(not Core:IsStringNilOrWhiteSpace(key), "Import - bad argument #1 (invalid entity name).");
@@ -474,7 +447,7 @@ function Lib:Export(package, namespace)
   Core:Assert(classController and classController.IsPackage, "Export - bad argument #1 (package expected)");
   Core:Assert(not Core:IsStringNilOrWhiteSpace(namespace), "Export - bad argument #2 (invalid namespace)")
 
-  for id, key in self:IterateArgs(_G.strsplit(".", namespace)) do
+  for id, key in self:IterateArgs(strsplit(".", namespace)) do
     Core:Assert(not Core:IsStringNilOrWhiteSpace(key), "Export - bad argument #2 (invalid namespace).");
     key = key:gsub("%s+", "");
 
@@ -1235,7 +1208,7 @@ end
 
 -- returns comma-separated string list of generic type placeholders (example: "K,V,V2")
 function Core:GetGenericTypesFromClassName(className)
-  local sections = { _G.strsplit("<", className) };
+  local sections = { strsplit("<", className) };
   self:Assert(#sections > 1, "%s is a non-generic type.", className);
 
   local genericTypes = sections[2];
@@ -1244,7 +1217,7 @@ function Core:GetGenericTypesFromClassName(className)
   genericTypes = genericTypes:sub(1, (genericTypes:find(">")) - 1);
 
   -- turn genericTypes into an array
-  genericTypes = { _G.strsplit(',', genericTypes) };
+  genericTypes = { strsplit(',', genericTypes) };
 
   -- string.trim each type
   for id, genericType in ipairs(genericTypes) do
@@ -1332,7 +1305,7 @@ do
 
     -- change instance name to use real types
     local className = classController.objectName;
-    local redefinedInstanceName = (select(1, _G.strsplit("<", className))).."<";
+    local redefinedInstanceName = (select(1, strsplit("<", className))).."<";
 
     for id, realType in ipairs(realTypes) do
       if (id < #realTypes) then
@@ -1572,7 +1545,7 @@ end
 function Core:PathExists(root, path)
   self:Assert(root, "Core.PathExists - bad argument #1 (invalid root).");
 
-  for _, key in Lib:IterateArgs(_G.strsplit(".", path)) do
+  for _, key in Lib:IterateArgs(strsplit(".", path)) do
     if (not root[key]) then
       return false;
     end
@@ -1722,7 +1695,7 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
     end
 
     if (definitionType:find("|")) then
-      for _, singleDefinitionType in Lib:IterateArgs(_G.strsplit("|", definitionType)) do
+      for _, singleDefinitionType in Lib:IterateArgs(strsplit("|", definitionType)) do
         singleDefinitionType = string.gsub(singleDefinitionType, "%s", "");
         errorFound = self:ValidateValue(singleDefinitionType, realValue);
 
@@ -1736,7 +1709,7 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
       end
     else
       if (definitionType:find("=")) then
-        definitionType, defaultValue = _G.strsplit("=", definitionType);
+        definitionType, defaultValue = strsplit("=", definitionType);
       end
 
       errorFound = self:ValidateValue(definitionType, realValue, defaultValue);
