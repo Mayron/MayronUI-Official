@@ -438,7 +438,10 @@ do
       f("- Dead or ghost: %s", errorObject.isDeadOrGhost and "Yes" or "No");
       AppendLine("");
       AppendLine("```lua");
-      AppendLine(string.sub(errorObject.error, 1, min(#errorObject.error, 1000)));
+
+      local maxLength = 3000 - (min(3, #data.errors) * 500);
+      local errorMessage = string.sub(errorObject.error, 1, min(#errorObject.error, maxLength));
+      AppendLine(errorMessage);
       AppendLine("```");
 
       if (id < #data.errors) then
