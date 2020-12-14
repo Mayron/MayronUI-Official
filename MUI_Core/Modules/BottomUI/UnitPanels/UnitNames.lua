@@ -126,7 +126,7 @@ function C_UnitPanels:SetUpUnitNames(data)
       UpdateUnitNameText(data, "player");
     end);
 
-  em:CreateEventHandlerWithKey("PLAYER_TARGET_CHANGED", "MuiUnitNames_TargetChanged",
+  em:CreateEventHandlerWithKey("PLAYER_TARGET_CHANGED, PLAYER_ENTERING_WORLD", "MuiUnitNames_TargetChanged",
     function()
       if (UnitExists("target")) then
         UpdateUnitNameText(data, "target");
