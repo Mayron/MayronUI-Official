@@ -5,17 +5,17 @@ if (tk:IsClassic()) then return end
 
 ---@class ObjectiveTrackerModule : BaseModule
 local C_ObjectiveTracker = MayronUI:RegisterModule("ObjectiveTrackerModule", L["Objective Tracker"], true);
+local Engine = obj:Import("MayronUI.Engine");
 
 MayronUI:Hook("SideBarModule", "OnEnable", function(sideBarModule)
   MayronUI:ImportModule("ObjectiveTrackerModule"):Initialize(sideBarModule);
 end);
 
-local ObjectiveTrackerFrame, IsInInstance, ObjectiveTracker_Collapse, ObjectiveTracker_Update,
-ObjectiveTracker_Expand, UIParent, hooksecurefunc, ipairs, C_PlayerInfo, C_QuestLog, CreateFrame,
-GetInstanceInfo, RegisterStateDriver, UnregisterStateDriver, GetDifficultyColor, string =
-  _G.ObjectiveTrackerFrame, _G.IsInInstance, _G.ObjectiveTracker_Collapse, _G.ObjectiveTracker_Update,
-  _G.ObjectiveTracker_Expand, _G.UIParent, _G.hooksecurefunc, _G.ipairs, _G.C_PlayerInfo, _G.C_QuestLog, _G.CreateFrame,
-  _G.GetInstanceInfo, _G.RegisterStateDriver, _G.UnregisterStateDriver, _G.GetDifficultyColor, _G.string;
+local ObjectiveTrackerFrame, IsInInstance, UIParent, hooksecurefunc, ipairs, C_PlayerInfo, C_QuestLog, CreateFrame,
+GetInstanceInfo, RegisterStateDriver, UnregisterStateDriver, GetDifficultyColor, string, tinsert, unpack =
+  _G.ObjectiveTrackerFrame, _G.IsInInstance, _G.UIParent, _G.hooksecurefunc, _G.ipairs, _G.C_PlayerInfo,
+  _G.C_QuestLog, _G.CreateFrame, _G.GetInstanceInfo, _G.RegisterStateDriver, _G.UnregisterStateDriver,
+  _G.GetDifficultyColor, _G.string, _G.table.insert, _G.unpack;
 
 local function SetHeaderColor(headerText, difficultyColor, highlight)
   local r, g, b = difficultyColor.r, difficultyColor.g, difficultyColor.b;
@@ -63,6 +63,8 @@ db:AddToDefaults("profile.objectiveTracker", {
 
 function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
   data.panel = sideBarModule:GetPanel();
+  data.minButtons = obj:PopTable();
+
   --TODO: This caused taint issue (see other TODO in this file)
   -- _G.OBJECTIVE_TRACKER_HEADER_OFFSET_X = 0;
 
@@ -96,14 +98,14 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
 
             -- ignore keystone dungeons
             if (difficultyID and difficultyID ~= 8) then
-              ObjectiveTracker_Collapse();
+              _G.ObjectiveTracker_Collapse();
               data.previouslyCollapsed = true;
             end
           end
         else
           if (ObjectiveTrackerFrame.collapsed and data.previouslyCollapsed) then
-            ObjectiveTracker_Expand();
-            ObjectiveTracker_Update();
+            _G.ObjectiveTracker_Expand();
+            data:Call("HandleObjectiveTracker_Update");
           end
 
           data.previouslyCollapsed = nil;
@@ -136,7 +138,24 @@ end
 local upButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\UpButton");
 local downButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\DownButton");
 
-local function ReskinMinifyButton(btn, module)
+function C_ObjectiveTracker.Private:HandleObjectiveTracker_Update(data)
+  for _, pair in ipairs(data.minButtons) do
+    local btn, module = unpack(pair);
+
+    if (module.collapsed) then
+      btn:SetNormalTexture(downButtonTexture, "BLEND");
+      btn:SetPushedTexture(downButtonTexture, "BLEND");
+      btn:SetHighlightTexture(downButtonTexture, "ADD");
+    else
+      btn:SetNormalTexture(upButtonTexture, "BLEND");
+      btn:SetPushedTexture(upButtonTexture, "BLEND");
+      btn:SetHighlightTexture(upButtonTexture, "ADD");
+    end
+  end
+end
+
+Engine:DefineParams("Button", "table")
+function C_ObjectiveTracker:ReskinMinifyButton(data, btn, module)
   tk:ApplyThemeColor(btn);
 
   btn:SetSize(20, 20);
@@ -152,20 +171,11 @@ local function ReskinMinifyButton(btn, module)
   btn:GetPushedTexture().SetRotation = tk.Constants.DUMMY_FUNC;
   btn:GetHighlightTexture().SetRotation = tk.Constants.DUMMY_FUNC;
 
-  hooksecurefunc("ObjectiveTracker_Update", function()
-    if (module.collapsed) then
-      btn:SetNormalTexture(downButtonTexture, "BLEND");
-      btn:SetPushedTexture(downButtonTexture, "BLEND");
-      btn:SetHighlightTexture(downButtonTexture, "ADD");
-    else
-      btn:SetNormalTexture(upButtonTexture, "BLEND");
-      btn:SetPushedTexture(upButtonTexture, "BLEND");
-      btn:SetHighlightTexture(upButtonTexture, "ADD");
-    end
-  end);
+  local tbl = obj:PopTable(btn, module);
+  tinsert(data.minButtons, tbl);
 end
 
-local function OnObjectiveTrackerInitialized()
+function C_ObjectiveTracker:OnObjectiveTrackerInitialized()
   for _, module in ipairs(ObjectiveTrackerFrame.MODULES_UI_ORDER) do
     -- TODO: This causes taint issue and prevents clicking on quest titles on objective tracker to access quests while in combat
     -- module.Header:SetWidth(ObjectiveTrackerFrame:GetWidth());
@@ -180,7 +190,7 @@ local function OnObjectiveTrackerInitialized()
     module.Header.Text:SetPoint("LEFT", 0, 0);
 
     if (module.Header.MinimizeButton) then
-      ReskinMinifyButton(module.Header.MinimizeButton, module);
+      self:ReskinMinifyButton(module.Header.MinimizeButton, module);
     end
   end
 end
@@ -218,14 +228,20 @@ function C_ObjectiveTracker:OnEnable(data)
 
   if (obj:IsTable(ObjectiveTrackerFrame.MODULES_UI_ORDER)) then
     -- already been initialized:
-    OnObjectiveTrackerInitialized();
+    self:OnObjectiveTrackerInitialized();
   else
-    hooksecurefunc("ObjectiveTracker_Initialize", OnObjectiveTrackerInitialized);
+    hooksecurefunc("ObjectiveTracker_Initialize", function()
+      self:OnObjectiveTrackerInitialized();
+    end);
   end
 
   -- reskin the "main" minimize button (not per module):
   local minButton = ObjectiveTrackerFrame.HeaderMenu.MinimizeButton;
-  ReskinMinifyButton(minButton, ObjectiveTrackerFrame);
+  self:ReskinMinifyButton(minButton, ObjectiveTrackerFrame);
+
+  hooksecurefunc("ObjectiveTracker_Update", function()
+    data:Call("HandleObjectiveTracker_Update");
+  end);
 
   -- Update difficulty colors:
   hooksecurefunc(_G.QUEST_TRACKER_MODULE, "Update", function()
