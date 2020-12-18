@@ -22,11 +22,14 @@
 
 TaintLess.xml
 
+## Packages:
+## -------------------------------------------------
+Engine\MayronObjects\MayronObjects.xml
+Packages\Pkg-MayronDB\Pkg-MayronDB.lua
+
 ## Libraries:
 ## ------------------------------------------------
 Libs\LibStub.lua
-Libs\MayronObjects\MayronObjects.xml
-Libs\LibMayronDB-2.3\LibMayronDB.lua
 Libs\LibMayronEvents-1.1.lua
 Libs\LibMayronGUI-1.0\LibMayronGUI.xml
 Libs\LibSharedMedia-3.0\CallbackHandler-1.0.lua
@@ -37,13 +40,13 @@ Libs\LibClassicCasterino.lua
 Libs\LibClassicDurations\LibClassicDurations.xml
 
 ## Localization
-## ------------------------------------------------
+## -------------------------------------------------
 Locales\Locales.xml
 
 ## Engine:
-## ------------------------------------------------
+## -------------------------------------------------
 Engine\MUI_Core.xml
 
 ## Modules:
-## ------------------------------------------------
+## -------------------------------------------------
 Modules\Modules.xml

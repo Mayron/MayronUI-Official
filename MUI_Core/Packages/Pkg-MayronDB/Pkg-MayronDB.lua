@@ -1,24 +1,24 @@
 -- luacheck: ignore MayronUI self 143 631
-
----@type LibMayronDB
-local Lib = _G.LibStub:NewLibrary("LibMayronDB", 2.3);
-
 ---@type MayronObjects
 local obj = _G.MayronObjects:GetFramework();
 
-if (not Lib or not obj) then return; end
+if (not obj) then return; end
 
----@class Framework : Package
-local Framework = obj:CreatePackage("LibMayronDB");
+---@class PkgMayronDB : Package
+local PkgMayronDB = obj:CreatePackage("Pkg-MayronDB");
+obj:Export(PkgMayronDB);
+
+---@class MayronDB
+local MayronDB = PkgMayronDB:CreateClass("MayronDB");
 
 ---@class Database : Object
-local Database = Framework:CreateClass("Database");
+local Database = PkgMayronDB:CreateClass("Database");
 
 ---@class Observer : Object
-local Observer = Framework:CreateClass("Observer");
+local Observer = PkgMayronDB:CreateClass("Observer");
 
 ---@class Helper : Object
-local Helper = Framework:CreateClass("Helper");
+local Helper = PkgMayronDB:CreateClass("Helper");
 
 Observer.Static:AddFriendClass("Helper");
 Observer.Static:AddFriendClass("Database");
@@ -45,16 +45,17 @@ end);
 ------------------------
 -- Database API
 ------------------------
-
+PkgMayronDB:DefineParams("string", "string", "?boolean", "?string");
+PkgMayronDB:DefineReturns("Database");
 ---Creates the database but does not initialize it until after "ADDON_LOADED" event (unless manualStartUp is set to true).
 ---@param addOnName string @The name of the addon to listen out for. If supplied it will start the database
 ---    automatically after the ADDON_LOADED event has fired (when the saved variable becomes accessible).
 ---@param savedVariableName string @The name of the saved variable to hold the database (defined in the toc file).
----@param manualStartUp boolean @(optional) Set to true if you do not want the library to automatically start
+---@param manualStartUp boolean @(optional) Set to true if you do not want MayronDB to automatically start
 ---    the database when the saved variable becomes accessible.
 ---@param databaseName string @(optional) Assign a (user-friendly) name for the database.
 ---@return Database @The database object.
-function Lib:CreateDatabase(addOnName, savedVariableName, manualStartUp, databaseName)
+function MayronDB.Static:CreateDatabase(addOnName, savedVariableName, manualStartUp, databaseName)
   local database = Database(addOnName, savedVariableName, databaseName);
 
   if (not manualStartUp and _G[savedVariableName]) then
@@ -70,8 +71,10 @@ function Lib:CreateDatabase(addOnName, savedVariableName, manualStartUp, databas
   return database;
 end
 
+PkgMayronDB:DefineParams("string");
+PkgMayronDB:DefineReturns("Database");
 ---@return Database @The database object
-function Lib:GetDatabaseBySavedVariableName(savedVariableName)
+function MayronDB.Static:GetDatabaseBySavedVariableName(savedVariableName)
   for _, addOnDatabases in pairs(OnAddOnLoadedListener.RegisteredDatabases) do
     if (addOnDatabases[savedVariableName]) then
       return addOnDatabases[savedVariableName];
@@ -79,8 +82,10 @@ function Lib:GetDatabaseBySavedVariableName(savedVariableName)
   end
 end
 
+PkgMayronDB:DefineParams("string");
+PkgMayronDB:DefineReturns("Database");
 ---@return Database @The database object
-function Lib:GetDatabaseByName(databaseName)
+function MayronDB.Static:GetDatabaseByName(databaseName)
   for _, database in self:IterateDatabases() do
     if (database:GetDatabaseName() == databaseName) then
       return database;
@@ -89,7 +94,7 @@ function Lib:GetDatabaseByName(databaseName)
 end
 
 ---Returns svName, db (the database object) for each registered database per iteration.
-function Lib:IterateDatabases()
+function MayronDB.Static:IterateDatabases()
   local id = 0;
   local databases = obj:PopTable();
 
@@ -116,22 +121,22 @@ function Lib:IterateDatabases()
   end
 end
 
-function Lib:SetPathValue(rootTable, path, value)
-  obj:Assert(obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
-  obj:Assert(obj:IsString(path), "Invalid path address.");
+PkgMayronDB:DefineParams("table", "string");
+function MayronDB.Static:SetPathValue(rootTable, path, value)
   obj:Assert(not obj:IsObject(rootTable, "Observer"), "Table required, found Observer");
 
   local lastTable, lastKey = GetLastTableKeyPairs(rootTable, path);
 
   assert(obj:IsTable(lastTable) and
-  (obj:IsString(lastKey) or obj:IsNumber(lastKey)), "Lib:SetPathValue failed to set value");
+  (obj:IsString(lastKey) or obj:IsNumber(lastKey)), "MayronDB.Static:SetPathValue failed to set value");
 
   -- set value here!
   lastTable[lastKey] = value;
 end
 
-function Lib:ParsePathValue(rootTable, path)
-  local values = obj:PopTable(_G.strsplit(".", path));
+PkgMayronDB:DefineParams("table", "string");
+function MayronDB.Static:ParsePathValue(rootTable, path)
+  local values = obj:PopTable(strsplit(".", path));
   local length = #values;
   local iterations = 0;
 
@@ -158,7 +163,7 @@ function Lib:ParsePathValue(rootTable, path)
         length = length + #indexes;
       end
 
-      key = _G.strsplit("[", key);
+      key = strsplit("[", key);
 
       if (#key > 0) then
         rootTable = rootTable[key];
@@ -188,8 +193,8 @@ end
 
 -- Database Object: ------------------
 
-Framework:DefineParams("string", "string", "?string");
----Do NOT call this manually! Should only be called by Lib:CreateDatabase(...)
+PkgMayronDB:DefineParams("string", "string", "?string");
+---Do NOT call this manually! Should only be called by MayronDB.Static:CreateDatabase(...)
 function Database:__Construct(data, addOnName, savedVariableName, databaseName)
   data.addOnName = addOnName;
   data.svName = savedVariableName;
@@ -208,23 +213,23 @@ function Database:__Destruct()
   obj:Error("Database cannot be destroyed");
 end
 
-Framework:DefineParams("string");
+PkgMayronDB:DefineParams("string");
 ---@param name string @The name of the database
 function Database:SetDatabaseName(data, name)
   data.databaseName = name;
 end
 
-Framework:DefineReturns("string");
+PkgMayronDB:DefineReturns("string");
 ---@return string @The name of the database
 function Database:GetDatabaseName(data)
   if (data.databaseName) then return data.databaseName; end
   return string.format("%s:%s", data.addOnName, data.svName);
 end
 
-Framework:DefineParams("function");
+PkgMayronDB:DefineParams("function");
 ---Hooks a callback function onto the "StartUp" event to be called when the database starts up
----(i.e. when the saved variable becomes accessible). By default, this function is called by the library
----with 2 arguments: the database and the addOn name passed to Lib:CreateDatabase(...).
+---(i.e. when the saved variable becomes accessible). By default, this function is called by the MayronDBrary
+---with 2 arguments: the database and the addOn name passed to MayronDB.Static:CreateDatabase(...).
 ---@param callback function @The start up callback function
 function Database:OnStartUp(data, callback)
   local startUpCallbacks = data.callbacks.OnStartUp or obj:PopTable();
@@ -233,7 +238,7 @@ function Database:OnStartUp(data, callback)
   table.insert(startUpCallbacks, callback);
 end
 
-Framework:DefineParams("function");
+PkgMayronDB:DefineParams("function");
 ---Hooks a callback function onto the "ProfileChanged" event to be called when the database changes profile
 ---(i.e. only changed by the user using db:SetProfile() or db:RemoveProfile(currentProfile)).
 ---@param callback function @The profile changing callback function
@@ -245,8 +250,8 @@ function Database:OnProfileChange(data, callback)
 end
 
 ---Starts the database. Should only be used when the saved variable is accessible (after the ADDON_LOADED event has fired).
----This is called automatically by the library when the saved variable becomes accessible unless manualStartUp was
----set to true during the call to Lib:CreateDatabase(...).
+---This is called automatically by MayronDB when the saved variable becomes accessible unless manualStartUp was
+---set to true during the call to MayronDB.Static:CreateDatabase(...).
 function Database:Start(data)
   if (data.loaded) then
     -- previously started and loaded
@@ -276,8 +281,8 @@ function Database:Start(data)
   self.profile = Observer(false, data);
   self.global = Observer(true, data);
 
-  Framework:ProtectProperty(self, "profile");
-  Framework:ProtectProperty(self, "global");
+  PkgMayronDB:ProtectProperty(self, "profile");
+  PkgMayronDB:ProtectProperty(self, "global");
 
   data.loaded = true;
 
@@ -290,14 +295,14 @@ function Database:Start(data)
   data.callbacks.OnStartUp = nil;
 end
 
-Framework:DefineReturns("boolean");
+PkgMayronDB:DefineReturns("boolean");
 ---Returns true if the database has been successfully started and loaded.
 ---@return boolean @indicates if the database is loaded.
 function Database:IsLoaded(data)
   return data.loaded == true;
 end
 
-Framework:DefineParams("string", "any");
+PkgMayronDB:DefineParams("string", "any");
 ---Adds a value to the database defaults table relative to the path: defaults.<path> = <value>
 ---@param path string @A database path string, such as "myTable.mySubTable[2]"
 ---@param value any @A value to assign to the database defaults table using the path
@@ -305,7 +310,7 @@ function Database:AddToDefaults(data, path, value)
   self:SetPathValue(data.defaults, path, value);
 end
 
-Framework:DefineParams("string", "table|function", "?function");
+PkgMayronDB:DefineParams("string", "table|function", "?function");
 ---Add a table of update callback functions to trigger when a database value changes
 ---@param path string @A database path string, such as "myTable.mySubTable[2]".
 ---@param updateFunctions table|function @A table containing functions, or a function, to attach to a database path.
@@ -315,8 +320,8 @@ function Database:RegisterUpdateFunctions(data, path, updateFunctions, manualFun
   data.manualUpdateFunctions[path] = manualFunc;
 end
 
-Framework:DefineParams("string");
-Framework:DefineReturns("table|function");
+PkgMayronDB:DefineParams("string");
+PkgMayronDB:DefineReturns("table|function");
 ---Add a table of update callback functions to trigger when a database value changes
 ---@param path string @A database path string, such as "myTable.mySubTable[2]".
 ---@return table|function @A table containing update functions, or a single update function, associated with the database path.
@@ -324,7 +329,7 @@ function Database:GetUpdateFunctions(data, path)
   return self:ParsePathValue(data.updateFunctions, path);
 end
 
-Framework:DefineParams("string");
+PkgMayronDB:DefineParams("string");
 ---Triggers an update function located by the path argument and pass any arguments to the function
 ---@param path string @A database path string, such as "profile.myTable.mySubTable[2]" (includes root path).
     --- This is needed to locate the updateFunction
@@ -370,7 +375,7 @@ function Database:TriggerUpdateFunction(data, path)
   end
 end
 
-Framework:DefineParams("table|string");
+PkgMayronDB:DefineParams("table|string");
 ---Adds a value to a table relative to a path: rootTable.<path> = <value>
 ---@param rootTableOrPath table|string @The initial root table to search from OR a string that starts with "global" or "profile" so that the rootTable can be calculated.
 ---@param pathOrValue any @(optional) A table path string (also called a path address), such as "myTable.mySubTable[2]", or if rootTable is a string representing the path then this is the value argument. If it is the path then this is converted to a sequence of tables which are added to the database if they do not already exist (myTable will be created if not found).
@@ -395,17 +400,17 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
   end
 end
 
-Framework:DefineParams("table|string", "?string");
+PkgMayronDB:DefineParams("table|string", "?string");
 ---Searches a path address (table path string) and returns the located value if found. Example: value = db:ParsePathValue(db.profile, "mySettings[" .. moduleName .. "][5]");
 ---@param rootTableOrPath table|string @The root table to begin searching through using the path address. OR a string that starts with "global" or "profile" so that the rootTable can be calculated.
 ---@param pathOrNil string|nil @(optional) The path of the value to search for(example: "myTable.mySubTable[2]"), or if rootTableOrPath is a string representing the path then this is nil.
 ---@return any @The value found at the location specified by the path address. Might return nil if the path address is invalid, or no value is located at the address.
 function Database:ParsePathValue(_, rootTableOrPath, pathOrNil)
   local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrNil);
-  return Lib:ParsePathValue(rootTable, path);
+  return MayronDB.Static:ParsePathValue(rootTable, path);
 end
 
-Framework:DefineParams("string");
+PkgMayronDB:DefineParams("string");
 ---Sets the addon profile for the currently logged in character. Creates a new profile if the named profile does not exist.
 ---@param profileName string @The name of the profile to assign to the character.
 function Database:SetProfile(data, profileName)
@@ -429,14 +434,14 @@ function Database:SetProfile(data, profileName)
   end
 end
 
-Framework:DefineReturns("string");
+PkgMayronDB:DefineReturns("string");
 ---@return string @The current profile associated with the currently logged in character.
 function Database:GetCurrentProfile(data)
   local profileKey = data.helper:GetCurrentProfileKey();
   return data.sv.profileKeys[profileKey] or "Default";
 end
 
-Framework:DefineReturns("table");
+PkgMayronDB:DefineReturns("table");
 ---@return table @A table containing string profile names for all profiles associated with the addon.
 function Database:GetProfiles(data)
   local profiles = obj:PopTable();
@@ -448,8 +453,8 @@ function Database:GetProfiles(data)
   return profiles;
 end
 
-Framework:DefineParams("string");
-Framework:DefineReturns("boolean");
+PkgMayronDB:DefineParams("string");
+PkgMayronDB:DefineReturns("boolean");
 ---@param profileName string @The name of the profile to check.
 ---@return boolean @Returns true if the profile exists
 function Database:ProfileExists(data, profileName)
@@ -483,7 +488,7 @@ function Database:IterateProfiles(data)
 end
 
 ---@return int @The number of profiles associated with the database.
-Framework:DefineReturns("number");
+PkgMayronDB:DefineReturns("number");
 function Database:GetNumProfiles(data)
   local n = 0;
 
@@ -494,7 +499,7 @@ function Database:GetNumProfiles(data)
   return n;
 end
 
-Framework:DefineParams("?string");
+PkgMayronDB:DefineParams("?string");
 ---Helper function to reset a profile.
 ---@param profileName string @(Optional) The name of the profile to reset. If nil, uses current profile.
 function Database:ResetProfile(data, profileName)
@@ -510,7 +515,7 @@ function Database:ResetProfile(data, profileName)
   self:SetProfile(profileName);
 end
 
-Framework:DefineParams("string");
+PkgMayronDB:DefineParams("string");
 ---Helper function to reset a profile.
 ---@param profileName string @The name of the profile to reset.
 function Database:CopyProfile(data, profileName, copiedProfileName)
@@ -524,8 +529,8 @@ if (profileName == copiedProfileName) then return end
   end
 end
 
-Framework:DefineParams("string");
-Framework:DefineReturns("boolean");
+PkgMayronDB:DefineParams("string");
+PkgMayronDB:DefineReturns("boolean");
 ---Moves the profile to the bin. The profile cannot be accessed from the bin. Use db:RestoreProfile(profileName) to restore the profile.
 ---@param profileName string @The name of the profile to move to the bin.
 ---@return boolean @Returns true if the profile was changed due to removing the current profile.
@@ -546,8 +551,8 @@ function Database:RemoveProfile(data, profileName)
   return false;
 end
 
-Framework:DefineParams("string");
-Framework:DefineReturns("boolean");
+PkgMayronDB:DefineParams("string");
+PkgMayronDB:DefineReturns("boolean");
 ---Profiles will remain in the bin until a reload of the UI occurs. If the bin contains a profile, this function can restore it.
 ---@param profileName string @The name of the profile located inside the bin.
 function Database:RestoreProfile(data, profileName)
@@ -566,7 +571,7 @@ function Database:RestoreProfile(data, profileName)
   return false;
 end
 
-Framework:DefineReturns("table");
+PkgMayronDB:DefineReturns("table");
 ---Gets all profiles that can be restored from the bin.
 ---@return table @An index table containing the names of all profiles in the bin.
 function Database:GetProfilesInBin(data)
@@ -581,7 +586,7 @@ function Database:GetProfilesInBin(data)
   return profilesInBin;
 end
 
-Framework:DefineParams("string", "string");
+PkgMayronDB:DefineParams("string", "string");
 ---Renames an existing profile to a new profile name. If the new name already exists, it appends a number
 ---to avoid clashing: 'example (2)'.
 ---@param oldProfileName string @The old profile name.
@@ -609,8 +614,8 @@ function Database:RenameProfile(data, oldProfileName, newProfileName)
   end
 end
 
-Framework:DefineParams("Observer", "?string", "?string", "table");
-Framework:DefineReturns("boolean");
+PkgMayronDB:DefineParams("Observer", "?string", "?string", "table");
+PkgMayronDB:DefineReturns("boolean");
 ---Adds a new value to the saved variable table only once. Adds to a special appended history table.
 ---@param rootObserver Observer @The root database table (observer) to append the value to relative to the path address provided.
 ---@param path string @(Optional) The path address to specify where the value should be appended to.
@@ -659,8 +664,8 @@ function Database:AppendOnce(data, rootObserver, path, appendKey, value)
   return true;
 end
 
-Framework:DefineParams("Observer", "string");
-Framework:DefineReturns("boolean");
+PkgMayronDB:DefineParams("Observer", "string");
+PkgMayronDB:DefineReturns("boolean");
 ---Removes the appended history.
 ---@param rootTable Observer @The root database table (observer) to append the value to relative to the path address provided.
 ---@param path string @The path address to specify where the value should be appended to.
@@ -684,8 +689,8 @@ end
 -------------------------
 -- Observer Class:
 -------------------------
-Framework:DefineParams("boolean", "table");
----Do NOT call this manually! Should only be called by the library to create a new observer that controls a database table.
+PkgMayronDB:DefineParams("boolean", "table");
+---Do NOT call this manually! Should only be called by the MayronDBrary to create a new observer that controls a database table.
 ---@param isGlobal boolean @If true, the observer is associated with a global database path address.
 ---@param previousData table @the previous observer data.
 function Observer:__Construct(data, isGlobal, previousData)
@@ -756,7 +761,7 @@ Observer.Static:OnIndexed(function(self, data, key, realValue)
   return foundValue;
 end);
 
-Framework:DefineParams("?Observer");
+PkgMayronDB:DefineParams("?Observer");
 ---Used to achieve database inheritance. If an observer cannot find a value, it uses the value
 ---found in the parent table. Useful if many separate tables in the saved variables table should
 ---use the same set of changable values when the defaults table is not a suitable solution.
@@ -765,25 +770,25 @@ function Observer:SetParent(data, parentObserver)
   data.parent = parentObserver;
 end
 
-Framework:DefineReturns("?Observer");
+PkgMayronDB:DefineReturns("?Observer");
 ---@return Observer @Returns the current Observer's parent.
 function Observer:GetParent(data)
   return data.parent;
 end
 
-Framework:DefineReturns("boolean");
+PkgMayronDB:DefineReturns("boolean");
 ---@return boolean @Returns true if the current Observer has a parent.
 function Observer:HasParent(data)
   return data.parent ~= nil;
 end
 
-Framework:DefineReturns("Database");
+PkgMayronDB:DefineReturns("Database");
 ---@return boolean @Helper method to get database reference in case it is hard to access.
 function Observer:GetDatabase(data)
   return data.database;
 end
 
-Framework:DefineReturns("?table");
+PkgMayronDB:DefineReturns("?table");
 ---Gets the underlining saved variables table. Default and parent values will not be included in this!
 ---@return table @(possible nil) The underlining saved variables table.
 function Observer:GetSavedVariable(data)
@@ -803,7 +808,7 @@ function Observer:GetSavedVariable(data)
   return rootTable;
 end
 
-Framework:DefineReturns("?table");
+PkgMayronDB:DefineReturns("?table");
 ---Gets the default database table associated with the observer. Real saved variable and parent values will not be included in this!
 ---@return table|nil @(possible nil) The default table attached to the database observer if one exists.
 function Observer:GetDefaults(data)
@@ -830,13 +835,13 @@ function Observer:Iterate()
   return next, merged, nil;
 end
 
-Framework:DefineReturns("boolean");
+PkgMayronDB:DefineReturns("boolean");
 ---@return boolean @Whether the merged table is empty.
 function Observer:IsEmpty()
   return self:GetLength() == 0;
 end
 
-Framework:DefineParams("number=3", "number=2");
+PkgMayronDB:DefineParams("number=3", "number=2");
 ---A helper function to print all contents of a table pointed to by the selected Observer (example: db.profile.aModule:Print()).
 ---@param depth number|nil @(optional) The depth of tables to print before only printing table references.
 ---@param spaces number @The number of spaces used for nested values inside a table.
@@ -854,8 +859,8 @@ function Observer:Print(data, depth, spaces)
   print("};");
 end
 
-Framework:DefineParams("?number", "number=2");
-Framework:DefineReturns("string");
+PkgMayronDB:DefineParams("?number", "number=2");
+PkgMayronDB:DefineReturns("string");
 ---A helper function to get all contents of a table pointed to by the selected Observer (example: db.profile.aModule:Print()).
 ---@param depth number|nil @(optional) The depth of tables to print before only printing table references.
 function Observer:ToLongString(data, depth, spaces)
@@ -876,7 +881,7 @@ function Observer:ToLongString(data, depth, spaces)
   return string.format("%s\n};", result);
 end
 
-Framework:DefineReturns("number");
+PkgMayronDB:DefineReturns("number");
 ---@return number @The length of the merged table (Observer:GetUntrackedTable()).
 function Observer:GetLength()
   local length = 0;
@@ -888,8 +893,8 @@ function Observer:GetLength()
   return length;
 end
 
-Framework:DefineParams("?boolean");
-Framework:DefineReturns("?string");
+PkgMayronDB:DefineParams("?boolean");
+PkgMayronDB:DefineReturns("?string");
 ---Helper function to return the path address of the observer.
 ---@param excludeTableType boolean @(optional) Excludes "global" or "profile" at the start of path address if true.
 ---@return string @The path address.
@@ -1183,7 +1188,7 @@ do
     obj:PushTable(self);
   end
 
-  Framework:DefineReturns("table", "?table");
+  PkgMayronDB:DefineReturns("table", "?table");
   ---Creates an immutable table containing all values from the underlining saved variables table,
   ---parent table, and defaults table. Changing this table will not affect the saved variables table!
   ---@param reusableTable table @Can use an already existing table instead of creating a new one. This table will be emptied before being used.
@@ -1201,7 +1206,7 @@ do
     return basicTable;
   end
 
-  Framework:DefineReturns("table", "?table");
+  PkgMayronDB:DefineReturns("table", "?table");
   ---Creates a table containing all values from the underlining saved variables table,
   ---parent table, and defaults table and tracks all changes but does not apply them
   ---until SaveChanges() is called.
@@ -1213,26 +1218,26 @@ do
   end
 end
 -------------------------------------------------
--- Helper Class (only for Library developers)
+-- Helper Class (only for MayronDBrary developers)
 -------------------------------------------------
-Framework:DefineParams("Database", "table");
+PkgMayronDB:DefineParams("Database", "table");
 function Helper:__Construct(data, database, databaseData)
   data.database = database;
   data.dbData = databaseData;
 end
 
-Framework:DefineReturns("Database");
+PkgMayronDB:DefineReturns("Database");
 function Helper:GetDatabase(data)
   return data.database;
 end
 
-Framework:DefineParams("table", "string", "?boolean", "?boolean");
+PkgMayronDB:DefineParams("table", "string", "?boolean", "?boolean");
 function Helper:GetLastTableKeyPairs(_, rootTable, path, cleaning) -- eventually replace this when static methods get strict typing
   GetLastTableKeyPairs(rootTable, path, cleaning);
 end
 
-Framework:DefineParams("string", "table");
-Framework:DefineReturns("string");
+PkgMayronDB:DefineParams("string", "table");
+PkgMayronDB:DefineReturns("string");
 function Helper:GetNewProfileName(_, oldProfileName, profilesTable)
   local newProfileName = oldProfileName;
   local n = 2;
@@ -1246,7 +1251,7 @@ function Helper:GetNewProfileName(_, oldProfileName, profilesTable)
   return newProfileName;
 end
 
-Framework:DefineReturns("string");
+PkgMayronDB:DefineReturns("string");
 function Helper:GetCurrentProfileKey()
   local playerName = _G.UnitName("player");
   local realm = _G.GetRealmName():gsub("%s+", "");
@@ -1254,7 +1259,7 @@ function Helper:GetCurrentProfileKey()
   return string.join("-", playerName, realm);
 end
 
-Framework:DefineParams("table", "table", "any") -- should be string or number
+PkgMayronDB:DefineParams("table", "table", "any") -- should be string or number
 function Helper:GetNextValue(data, previousObserverData, tbl, key)
   --tbl could be sv or defaults table
   local nextValue = tbl[key];
@@ -1296,19 +1301,19 @@ function Helper:GetNextValue(data, previousObserverData, tbl, key)
   return nextObserver;
 end
 
-Framework:DefineParams("table", "?number", "number", "string");
-Framework:DefineReturns("string");
+PkgMayronDB:DefineParams("table", "?number", "number", "string");
+PkgMayronDB:DefineReturns("string");
 function Helper:ToLongString(_, tbl, depth, spaces, result)
   return obj:ToLongString(tbl, depth, spaces, result, spaces);
 end
 
-Framework:DefineParams("table", "number", "number");
+PkgMayronDB:DefineParams("table", "number", "number");
 function Helper:PrintTable(_, tbl, depth, spaces)
   return obj:PrintTable(tbl, depth, spaces, spaces);
 end
 
-Framework:DefineParams("Observer");
-Framework:DefineReturns("string");
+PkgMayronDB:DefineParams("Observer");
+PkgMayronDB:DefineReturns("string");
 function Helper:GetDatabaseRootTableName(data, observer)
   local observerData = data:GetFriendData(observer);
 
@@ -1326,7 +1331,7 @@ function Helper:GetDatabaseRootTableName(data, observer)
   end
 end
 
-Framework:DefineParams("table", "string|number", "?any");
+PkgMayronDB:DefineParams("table", "string|number", "?any");
 function Helper:HandlePathValueChange(data, observerData, key, newValue)
   local path, defaultRootTable, svRootTable, isGlobal, dbTableRootName;
 
@@ -1368,7 +1373,7 @@ function Helper:HandlePathValueChange(data, observerData, key, newValue)
   end
 end
 
-Framework:DefineParams("boolean", "string", "Observer");
+PkgMayronDB:DefineParams("boolean", "string", "Observer");
 function Helper:SetUsingChild(data, isGlobal, path, parentObserver)
   local parentObserverData = data:GetFriendData(parentObserver);
   local usingChild = parentObserverData.usingChild or obj:PopTable();
@@ -1379,8 +1384,8 @@ function Helper:SetUsingChild(data, isGlobal, path, parentObserver)
   parentObserverData.usingChild = usingChild;
 end
 
-Framework:ProtectClass(Database);
-Framework:ProtectClass(Observer);
+PkgMayronDB:ProtectClass(Database);
+PkgMayronDB:ProtectClass(Observer);
 
 --- Local Functions ------------------
 function GetNextPath(path, key)

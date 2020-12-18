@@ -315,9 +315,9 @@ end
 function tk.Tables:GetDBObject(addOnName)
   local addon, okay, dbObject;
 
-  ---@type LibMayronDB
-  local LibMayronDB = LibStub:GetLibrary("LibMayronDB");
-  dbObject = LibMayronDB:GetDatabaseByName(addOnName);
+  ---@type MayronDB
+  local MayronDB = obj:Import("Pkg-MayronDB.MayronDB");
+  dbObject = MayronDB.Static:GetDatabaseByName(addOnName);
 
   if (dbObject) then
     return dbObject;

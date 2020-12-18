@@ -26,13 +26,13 @@ function tk.Numbers:ToPrecision(number, precision)
 end
 
 function tk:ValueIsEither(value, ...)
-    for _, otherValue in obj:IterateArgs(...) do
-        if (self:Equals(value, otherValue)) then
-            return true;
-        end
+  for _, otherValue in obj:IterateArgs(...) do
+    if (self:Equals(value, otherValue)) then
+      return true;
     end
+  end
 
-    return false;
+  return false;
 end
 
 function tk:UnpackIfTable(value)

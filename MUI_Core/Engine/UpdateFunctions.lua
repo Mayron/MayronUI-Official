@@ -1,11 +1,11 @@
 -- luacheck: ignore MayronUI LibStub self 143 631
 local MayronUI = _G.MayronUI;
-local tk, db, _, _, obj = MayronUI:GetCoreComponents();
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 local table, ipairs, string, unpack = _G.table, _G.ipairs, _G.string, _G.unpack;
 local tostring, pairs = _G.tostring, _G.pairs;
 
----@type LibMayronDB
-local libMayronDB = LibStub:GetLibrary("LibMayronDB");
+---@type MayronDB
+local MayronDB = obj:Import("Pkg-MayronDB.MayronDB");
 
 ---@type Engine
 local Engine = obj:Import("MayronUI.Engine");
@@ -274,8 +274,8 @@ do
 
     for _, path in ipairs(options.onExecuteAll[orderKey]) do
       -- both param.updateFunction and param.setitng will be tables
-      local currentUpdateFunction = libMayronDB:ParsePathValue(updateFunction, path);
-      local currentSetting = libMayronDB:ParsePathValue(setting, path);
+      local currentUpdateFunction = MayronDB.Static:ParsePathValue(updateFunction, path);
+      local currentSetting = MayronDB.Static:ParsePathValue(setting, path);
       local onPre, onPost;
 
       if (currentUpdateFunction == nil) then

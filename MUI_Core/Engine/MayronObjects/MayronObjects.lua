@@ -36,22 +36,22 @@ _G.MayronObjects = _G.MayronObjects or {
 };
 
 ---@type MayronObjects
-local Lib = _G.MayronObjects:NewFramework("3.1.0");
+local Framework = _G.MayronObjects:NewFramework("3.1.2");
 
-if (not Lib) then return end
+if (not Framework) then return end
 
 local error, unpack, next, ipairs = _G.error, _G.unpack, _G.next, _G.ipairs;
 local setmetatable, table, string = _G.setmetatable, _G.table, _G.string;
 local getmetatable, select, pcall, strsplit = _G.getmetatable, _G.select, _G.pcall, _G.strsplit;
 local tostring, collectgarbage, print = _G.tostring, _G.collectgarbage, _G.print;
 
-Lib.Types = {};
-Lib.Types.Table    = "table";
-Lib.Types.Number   = "number";
-Lib.Types.Function = "function";
-Lib.Types.Boolean  = "boolean";
-Lib.Types.String   = "string";
-Lib.Types.Nil      = "nil";
+Framework.Types = {};
+Framework.Types.Table    = "table";
+Framework.Types.Number   = "number";
+Framework.Types.Function = "function";
+Framework.Types.Boolean  = "boolean";
+Framework.Types.String   = "string";
+Framework.Types.Nil      = "nil";
 
 -- holds class, instance, and interface controllers
 -- used for controlling behaviour of these "entities"
@@ -68,7 +68,7 @@ local ProxyStack = {};
 ProxyStack.funcStrings = {};
 
 local Core = {}; -- holds all private core functions for internal use
-Core.Lib = Lib;
+Core.Framework = Framework;
 Core.PREFIX = "|cffffcc00MayronObjects: |r"; -- this is used when printing out errors
 Core.ExportedPackages = {}; -- contains all exported packages
 Core.DebugMode = false;
@@ -84,32 +84,32 @@ local Package;
 --------------------------------------------
 -- MayronObjects Functions
 --------------------------------------------
-function Lib:IsTable(value)
-  return type(value) == Lib.Types.Table;
+function Framework:IsTable(value)
+  return type(value) == Framework.Types.Table;
 end
 
-function Lib:IsNumber(value)
-  return type(value) == Lib.Types.Number;
+function Framework:IsNumber(value)
+  return type(value) == Framework.Types.Number;
 end
 
-function Lib:IsFunction(value)
-  return type(value) == Lib.Types.Function;
+function Framework:IsFunction(value)
+  return type(value) == Framework.Types.Function;
 end
 
-function Lib:IsBoolean(value)
-  return type(value) == Lib.Types.Boolean;
+function Framework:IsBoolean(value)
+  return type(value) == Framework.Types.Boolean;
 end
 
-function Lib:IsString(value)
-  return type(value) == Lib.Types.String;
+function Framework:IsString(value)
+  return type(value) == Framework.Types.String;
 end
 
-function Lib:IsNil(value)
-  return type(value) == Lib.Types.Nil;
+function Framework:IsNil(value)
+  return type(value) == Framework.Types.Nil;
 end
 
-function Lib:IsObject(value)
-  if (not Lib:IsTable(value)) then
+function Framework:IsObject(value)
+  if (not Framework:IsTable(value)) then
     return false;
   end
 
@@ -119,8 +119,8 @@ end
 ---@param value any @Any value to check whether it is of the expected widget type.
 ---@param widgetType string @An optional widget type to test if the value is that type of widget.
 ---@return boolean @true if the value is a Blizzard widgets, such as a Frame or Button.
-function Lib:IsWidget(value, widgetType)
-  if (not Lib:IsTable(value)) then
+function Framework:IsWidget(value, widgetType)
+  if (not Framework:IsTable(value)) then
     return false;
   end
 
@@ -139,7 +139,7 @@ function Lib:IsWidget(value, widgetType)
   return isWidget;
 end
 
-function Lib:IsStringNilOrWhiteSpace(value)
+function Framework:IsStringNilOrWhiteSpace(value)
   return Core:IsStringNilOrWhiteSpace(value);
 end
 
@@ -147,16 +147,17 @@ end
 -- @param value: The value to check the type of (can be nil)
 -- @param expectedTypeName: The exact type to check for (can be ObjectType)
 -- @return (boolean): Returns true if the value type matches the specified type
-function Lib:IsType(value, expectedTypeName)
+function Framework:IsType(value, expectedTypeName)
   return Core:IsMatchingType(value, expectedTypeName);
 end
 
 do
   local wrappers = {};
   local pendingClean;
+  local C_Timer = _G.C_Timer;
 
   local function CleanWrappers()
-    Lib:EmptyTable(wrappers);
+    Framework:EmptyTable(wrappers);
     pendingClean = nil;
     collectgarbage("collect");
   end
@@ -167,7 +168,7 @@ do
       return id, wrapper[id];
     else
       -- reached end of wrapper so finish looping and clean up
-      Lib:PushTable(wrapper);
+      Framework:PushTable(wrapper);
     end
   end
 
@@ -179,12 +180,12 @@ do
 
     if (#wrappers >= 10 and not pendingClean) then
       pendingClean = true;
-      _G.C_Timer.After(10, CleanWrappers);
+      C_Timer.After(10, CleanWrappers);
     end
   end
 
   ---@return table @An empty table
-  function Lib:PopTable(...)
+  function Framework:PopTable(...)
     local wrapper;
 
     -- get wrapper before iterating
@@ -219,7 +220,7 @@ do
 
   ---@param wrapper table @A table to be added to the stack. The table is emptied and detached from any meta-table
   ---@param pushSubTables boolean|function @Whether sub tables found in the table should also be pushed to the stack
-  function Lib:PushTable(wrapper, pushSubTables, path)
+  function Framework:PushTable(wrapper, pushSubTables, path)
     if (not self:IsTable(wrapper) or self:IsWidget(wrapper)) then
       return;
     end
@@ -257,7 +258,7 @@ do
 
   ---@param wrapper table @A table to be unpacked and pushed to the stack to be emptied later.
   ---@param doNotPushTable boolean @If true, the table will not be pushed
-  function Lib:UnpackTable(wrapper, doNotPushTable)
+  function Framework:UnpackTable(wrapper, doNotPushTable)
     if (not self:IsTable(wrapper)) then return end
 
     local length = 1;
@@ -276,7 +277,7 @@ do
     return unpack(wrapper, 1, length);
   end
 
-  function Lib:IterateArgs(...)
+  function Framework:IterateArgs(...)
     local wrapper = self:PopTable(...);
     return iterator, wrapper, 0;
   end
@@ -284,7 +285,7 @@ end
 
 ---A helper function to empty a table.
 ---@param tbl table @The table to empty.
-function Lib:EmptyTable(tbl)
+function Framework:EmptyTable(tbl)
   for key, _ in pairs(tbl) do
     tbl[key] = nil;
   end
@@ -296,7 +297,7 @@ end
 ---@param otherTbl table @The other table to copy values from and place into the first table (tbl).
 ---@param preserveOldValue boolean @If true and a key is found in both tables, the value will not be
 ---overridden by the one in the other table (otherTbl).
-function Lib:FillTable(tbl, otherTbl, preserveOldValue)
+function Framework:FillTable(tbl, otherTbl, preserveOldValue)
   for key, value in pairs(otherTbl) do
     if (self:IsTable(tbl[key]) and self:IsTable(value)) then
       self:Fill(tbl[key], value, preserveOldValue);
@@ -314,10 +315,10 @@ end
 
 ---A helper function to print a table's contents.
 ---@param tbl table @The table to print.
----@param depth number @The depth of sub-tables to traverse through and print.
----@param spaces number @The number of spaces used for nested values inside a table.
+---@param depth number @An optional number specifying the depth of sub-tables to traverse through and print.
+---@param spaces number @An optional number specifying the spaces to print to intent nested values inside a table.
 ---@param n number @Do NOT manually set this. This controls formatting through recursion.
-function Lib:PrintTable(tbl, depth, spaces, n)
+function Framework:PrintTable(tbl, depth, spaces, n)
   local value = self:ToLongString(tbl, depth, spaces, nil, n);
 
   -- cannot print the full string because Blizzard's chat frame messes up spacing when it encounters '\n'
@@ -326,12 +327,14 @@ function Lib:PrintTable(tbl, depth, spaces, n)
   end
 end
 
----A helper function to print a table's contents.
----@param tbl table @The table to print.
----@param depth number @The depth of sub-tables to traverse through and print.
----@param spaces number @The number of spaces used for nested values inside a table.
+---A helper function to return the contents of a table as a long string, similar to
+---what the PrintTable utility method prints except it does not print it.
+---@param tbl table @The table to convert to a long string.
+---@param depth number @An optional number specifying the depth of sub-tables to traverse through and append to the long string.
+---@param spaces number @An optional number specifying the spaces to print to intent nested values inside a table.
 ---@param n number @Do NOT manually set this. This controls formatting through recursion.
-function Lib:ToLongString(tbl, depth, spaces, result, n)
+---@return string @A long string containing the contents of the table.
+function Framework:ToLongString(tbl, depth, spaces, result, n)
   result = result or "";
   n = n or 0;
   spaces = spaces or 2;
@@ -381,7 +384,7 @@ end
 ---@param packageName string @The name of the package.
 ---@param namespace string @The parent package namespace. Example: "Framework.System.package".
 ---@return Package @Returns a package object.
-function Lib:CreatePackage(packageName, namespace)
+function Framework:CreatePackage(packageName, namespace)
   local newPackage = Package(packageName, namespace);
 
   Core:Assert(newPackage ~= nil, "Failed to create new Package '%s'", packageName);
@@ -397,10 +400,10 @@ end
 ---@param namespace string @The entity namespace (required for locating it). (an entity = a package, class or interface).
 ---@param silent boolean @If true, no error will be triggered if the entity cannot be found.
 ---@return Package|Class|Interface @Returns the found entity (or false if silent).
-function Lib:Import(namespace, silent)
+function Framework:Import(namespace, silent)
   local entity;
   local currentNamespace = "";
-  local nodes = Lib:PopTable(strsplit(".", namespace));
+  local nodes = Framework:PopTable(strsplit(".", namespace));
 
   for id, key in ipairs(nodes) do
     Core:Assert(not Core:IsStringNilOrWhiteSpace(key), "Import - bad argument #1 (invalid entity name).");
@@ -424,7 +427,7 @@ function Lib:Import(namespace, silent)
     end
   end
 
-  Lib:PushTable(nodes);
+  Framework:PushTable(nodes);
 
   if (not silent) then
     local controller = Core:GetController(entity, true);
@@ -438,14 +441,19 @@ function Lib:Import(namespace, silent)
   return entity;
 end
 
----@param namespace string @The package namespace (required for locating and importing it).
+---@param namespace string @(Optional) The package namespace (required for locating and importing it).
 ---@param package Package @A package instance object.
-function Lib:Export(package, namespace)
+function Framework:Export(package, namespace)
   local classController = Core:GetController(package);
-  local parentPackage;
-
   Core:Assert(classController and classController.IsPackage, "Export - bad argument #1 (package expected)");
-  Core:Assert(not Core:IsStringNilOrWhiteSpace(namespace), "Export - bad argument #2 (invalid namespace)")
+
+  if (not namespace) then
+    local key = package:GetName();
+    Core.ExportedPackages[key] = package;
+    return
+  end
+
+  local parentPackage;
 
   for id, key in self:IterateArgs(strsplit(".", namespace)) do
     Core:Assert(not Core:IsStringNilOrWhiteSpace(key), "Export - bad argument #2 (invalid namespace).");
@@ -454,13 +462,13 @@ function Lib:Export(package, namespace)
     if (id > 1) then
       if (not parentPackage:Get(key)) then
         -- auto-create empty packages if not found in namespace
-        parentPackage:AddSubPackage(Lib:CreatePackage(key));
+        parentPackage:AddSubPackage(Framework:CreatePackage(key));
       end
 
       parentPackage = parentPackage:Get(key);
     else
       -- auto-create empty packages if not found in namespace
-      Core.ExportedPackages[key] = Core.ExportedPackages[key] or Lib:CreatePackage(key);
+      Core.ExportedPackages[key] = Core.ExportedPackages[key] or Framework:CreatePackage(key);
       parentPackage = Core.ExportedPackages[key];
     end
   end
@@ -470,25 +478,25 @@ function Lib:Export(package, namespace)
 end
 
 ---@param silent boolean @True if errors should be cause in the error log instead of triggering.
-function Lib:SetSilentErrors(silent)
+function Framework:SetSilentErrors(silent)
   Core.silent = silent;
 end
 
 ---@return table @Contains index/string pairs of errors caught while in silent mode.
-function Lib:GetErrorLog()
+function Framework:GetErrorLog()
   Core.errorLog = Core.errorLog or {};
   return Core.errorLog;
 end
 
 ---Empties the error log table.
-function Lib:FlushErrorLog()
+function Framework:FlushErrorLog()
   if (Core.errorLog) then
-    Lib:EmptyTable(Core.errorLog);
+    Framework:EmptyTable(Core.errorLog);
   end
 end
 
 ---@return number @The total number of errors caught while in silent mode.
-function Lib:GetNumErrors()
+function Framework:GetNumErrors()
   return (Core.errorLog and #Core.errorLog) or 0;
 end
 
@@ -496,26 +504,26 @@ end
 ---@param condition boolean @A predicate to evaluate.
 ---@param errorMessage string @(Optional) An error message to throw if condition is evaluated to false.
 ---@vararg any @A list of arguments to be inserted into the error message using string.format.
-function Lib:Assert(condition, errorMessage, ...)
+function Framework:Assert(condition, errorMessage, ...)
   Core:Assert(condition, errorMessage, ...);
 end
 
 ---Proxy function to allow outside users to use Core:Error()
 ---@param errorMessage string @The error message to throw.
 ---@vararg any @A list of arguments to be inserted into the error message using string.format.
-function Lib:Error(errorMessage, ...)
+function Framework:Error(errorMessage, ...)
   Core:Error(errorMessage, ...);
 end
 
 ---Attach an error handling function to call when an error occurs to be handled manually.
 ---@param errorHandler function @The error handler callback function.
-function Lib:SetErrorHandler(errorHandler)
+function Framework:SetErrorHandler(errorHandler)
   Core.errorHandler = errorHandler;
 end
 
 ---Do NOT use this unless you are a MayronObjects developer.
----@param debug boolean @Set the Library to debug mode.
-function Lib:SetDebugMode(debug)
+---@param debug boolean @Set the Frameworkrary to debug mode.
+function Framework:SetDebugMode(debug)
   Core.DebugMode = debug;
 end
 
@@ -538,7 +546,7 @@ end
 
 function ProxyStack:Pop()
   if (#self == 0) then
-    return Lib:PopTable();
+    return Framework:PopTable();
   end
 
   local proxyObject = self[#self];
@@ -569,9 +577,9 @@ local function CreateProxyObject(object, key, self, controller, privateData)
     local args = Core:ValidateFunctionCall(definition, errorMessage, ...);
 
     -- Silent errors
-    if (not Lib:IsTable(args)) then return end
+    if (not Framework:IsTable(args)) then return end
 
-    if (not Lib:IsTable(proxyObject.privateData) and not proxyObject.key:match("Static.")) then
+    if (not Framework:IsTable(proxyObject.privateData) and not proxyObject.key:match("Static.")) then
       if (proxyObject.controller.isInterface) then
         Core:Error("%s.%s is an interface function and must be implemented and invoked by an instance object.",
           proxyObject.controller.objectName, proxyObject.key);
@@ -585,7 +593,7 @@ local function CreateProxyObject(object, key, self, controller, privateData)
 
     definition, errorMessage = Core:GetReturnsDefinition(proxyObject);
 
-    if (not(Lib:IsFunction(proxyObject.object[proxyObject.key]))) then
+    if (not(Framework:IsFunction(proxyObject.object[proxyObject.key]))) then
       Core:Error("Could not find function '%s' for object '%s'",
         proxyObject.key, proxyObject.controller.objectName);
 
@@ -595,10 +603,10 @@ local function CreateProxyObject(object, key, self, controller, privateData)
     -- execute attributes:
     local attributes = Core:GetAttributes(proxyObject);
 
-    if (Lib:IsTable(attributes)) then
+    if (Framework:IsTable(attributes)) then
       for _, attribute in ipairs(attributes) do
-        if (not attribute:OnExecute(proxyObject.self, proxyObject.privateData, proxyObject.key, Lib:UnpackTable(args, true))) then
-          Lib:PushTable(args);
+        if (not attribute:OnExecute(proxyObject.self, proxyObject.privateData, proxyObject.key, Framework:UnpackTable(args, true))) then
+          Framework:PushTable(args);
           return nil; -- if attribute returns false, do no move onto the next attribute and do not call function
         end
       end
@@ -609,23 +617,23 @@ local function CreateProxyObject(object, key, self, controller, privateData)
       -- Validate return values received after calling the function
       returnValues = Core:ValidateFunctionCall(definition, errorMessage,
         -- call function here:
-        proxyObject.object[proxyObject.key](proxyObject.self, proxyObject.privateData, Lib:UnpackTable(args)));
+        proxyObject.object[proxyObject.key](proxyObject.self, proxyObject.privateData, Framework:UnpackTable(args)));
     else
       -- Validate return values received after calling the STATIC function
       returnValues = Core:ValidateFunctionCall(definition, errorMessage,
         -- call function here:
-        proxyObject.object[proxyObject.key](proxyObject.self, Lib:UnpackTable(args)));
+        proxyObject.object[proxyObject.key](proxyObject.self, Framework:UnpackTable(args)));
     end
 
     -- Silent errors
-    if (not Lib:IsTable(returnValues)) then return nil; end
+    if (not Framework:IsTable(returnValues)) then return nil; end
 
     if (proxyObject.key ~= "Destroy") then
       local instanceController = Core:GetController(proxyObject.self, true);
 
-      if (instanceController and Lib:IsTable(instanceController.UsingParentControllers)) then
+      if (instanceController and Framework:IsTable(instanceController.UsingParentControllers)) then
         -- might have been destroyed during the function call
-        Lib:PushTable(instanceController.UsingParentControllers);
+        Framework:PushTable(instanceController.UsingParentControllers);
         instanceController.UsingParentControllers = nil;
       end
     end
@@ -633,11 +641,11 @@ local function CreateProxyObject(object, key, self, controller, privateData)
     ProxyStack:Push(proxyObject);
 
     if (#returnValues == 0) then
-      Lib:PushTable(returnValues);
+      Framework:PushTable(returnValues);
       return nil; -- fixes returning nil instead of nothing
     end
 
-    return Lib:UnpackTable(returnValues);
+    return Framework:UnpackTable(returnValues);
   end
 
   ProxyStack.funcStrings[tostring(proxyObject.run)] = proxyObject;
@@ -669,7 +677,7 @@ do
     local class = classController.class;
     local value = class[key]; -- get the real value
 
-    if (Lib:IsFunction(value)) then
+    if (Framework:IsFunction(value)) then
       -- get a proxy function object to validate function params and return values
       value = CreateProxyObject(class, key, self, classController);
 
@@ -679,7 +687,7 @@ do
         -- search parent class instead
         value = classController.parentProxyClass[key];
 
-        if (Lib:IsFunction(value)) then
+        if (Framework:IsFunction(value)) then
           -- need to update the "self" reference to use this class, not the parent!
           local proxyObject = GetStoredProxyObject(value);
           proxyObject.self = self;
@@ -694,7 +702,7 @@ do
       end
     end
 
-    if (classController.UsingChild and Lib:IsFunction(value)) then
+    if (classController.UsingChild and Framework:IsFunction(value)) then
       local isVirtual = classController.virtualFunctions and classController.virtualFunctions[key];
 
       if (isVirtual) then
@@ -723,7 +731,7 @@ do
       Core:Error("%s is protected.", classController.objectName);
     end
 
-    if (Lib:IsFunction(value)) then
+    if (Framework:IsFunction(value)) then
       -- Adds temporary definition info to ClassController.definitions table
       Core:AttachFunctionDefinition(classController, key);
       classController.class[key] = value;
@@ -736,7 +744,7 @@ do
     setmetatable(self, nil);
 
     local classController = AllControllers[tostring(self)];
-    local str = tostring(self):gsub(Lib.Types.Table, string.format("<Class> %s", classController.objectName));
+    local str = tostring(self):gsub(Framework.Types.Table, string.format("<Class> %s", classController.objectName));
 
     setmetatable(self, proxyClassMT);
 
@@ -753,7 +761,7 @@ do
       Core:Error("%s is protected.", classController.objectName);
     end
 
-    if (Lib:IsFunction(value)) then
+    if (Framework:IsFunction(value)) then
       -- Adds temporary definition info to ClassController.definitions table
       Core:AttachFunctionDefinition(classController, key);
       classController.privateFunctions[key] = value;
@@ -769,7 +777,7 @@ do
 
     local value = classController.privateFunctions[key]; -- get the real value
 
-    if (Lib:IsFunction(value)) then
+    if (Framework:IsFunction(value)) then
       -- get a proxy function object to validate function params and return values
       Core:Error("%s.%s is a non-static function and must be invoked by an instance object.",
         classController.objectName, key);
@@ -790,7 +798,7 @@ do
       Core:Error("%s is protected.", classController.objectName);
     end
 
-    if (Lib:IsFunction(value)) then
+    if (Framework:IsFunction(value)) then
       -- Adds temporary definition info to ClassController.definitions table
       Core:AttachFunctionDefinition(classController, key);
       classController.staticData[key] = value;
@@ -805,7 +813,7 @@ do
 
     local value = classController.staticData[key]; -- get the real value
 
-    if (Lib:IsFunction(value)) then
+    if (Framework:IsFunction(value)) then
       return CreateProxyObject(classController.staticData, key, self, classController);
     end
 
@@ -813,13 +821,13 @@ do
   end
 
   function Core:CreateClass(package, packageData, className, parentProxyClass, ...)
-    local class            = Lib:PopTable(); -- stores real table indexes (once proxy has completed evaluating data)
-    local proxyClass       = Lib:PopTable(); -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Class instead)
-    local definitions      = Lib:PopTable(); -- function definitions for params and return values
-    local friends          = Lib:PopTable(); -- friend classes can access instance private data of this class
-    local classController  = Lib:PopTable(); -- holds special Lib data to control class
-    local privateFunctions = Lib:PopTable(); -- holds all private class functions
-    local staticData       = Lib:PopTable(); -- holds all static class functions
+    local class            = Framework:PopTable(); -- stores real table indexes (once proxy has completed evaluating data)
+    local proxyClass       = Framework:PopTable(); -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Class instead)
+    local definitions      = Framework:PopTable(); -- function definitions for params and return values
+    local friends          = Framework:PopTable(); -- friend classes can access instance private data of this class
+    local classController  = Framework:PopTable(); -- holds special Framework data to control class
+    local privateFunctions = Framework:PopTable(); -- holds all private class functions
+    local staticData       = Framework:PopTable(); -- holds all static class functions
 
     classController.isClass = true;
     classController.objectName = className;
@@ -830,8 +838,8 @@ do
     classController.staticData = staticData;
 
     -- protected table for assigning Static functions
-    class.Static = setmetatable(Lib:PopTable(), proxyStaticMT);
-    class.Private = setmetatable(Lib:PopTable(), proxyPrivateMT);
+    class.Static = setmetatable(Framework:PopTable(), proxyStaticMT);
+    class.Private = setmetatable(Framework:PopTable(), proxyPrivateMT);
 
     AllControllers[tostring(class.Private)] = classController;
     AllControllers[tostring(class.Static)] = classController;
@@ -881,10 +889,10 @@ do
 
       proxyClass.Of = function(_, ...)
         Core:Assert(classController.isGenericType, "%s is not a generic class", className);
-        classController.tempRealGenericTypes = Lib:PopTable();
+        classController.tempRealGenericTypes = Framework:PopTable();
 
-        for id, realType in Lib:IterateArgs(...) do
-          if (Lib:IsObject(realType)) then
+        for id, realType in Framework:IterateArgs(...) do
+          if (Framework:IsObject(realType)) then
             local controller = Core:GetController(realType);
             realType = controller.objectName;
           end
@@ -921,7 +929,7 @@ do
     -- ProxyClass changed key to GetFrame during __index meta-method call
     local frame = value(); -- call the proxyObject.Run function here to get the frame
 
-    if (not (Lib:IsTable(frame) and frame.GetObjectType)) then
+    if (not (Framework:IsTable(frame) and frame.GetObjectType)) then
       -- might be a property we are searching for, so do not throw an error!
       return nil;
     end
@@ -929,7 +937,7 @@ do
     if (frame[key]) then
       -- if the frame has the key we are trying to get...
 
-      if (Lib:IsFunction(frame[key])) then
+      if (Framework:IsFunction(frame[key])) then
         innerValues.frame = frame;
         innerValues.key = key;
         value = frameWrapperFunction;
@@ -986,7 +994,7 @@ do
         table.insert(instanceController.UsingParentControllers, nextParentController);
       else
         local parentController = Core:GetController(instanceController.parentProxyClass);
-        instanceController.UsingParentControllers = Lib:PopTable(parentController);
+        instanceController.UsingParentControllers = Framework:PopTable(parentController);
       end
 
       return instanceController.proxy;
@@ -1007,7 +1015,7 @@ do
     if (value == nil and instanceController.instance[key] ~= nil) then
       value = instanceController.instance[key];
 
-      if (Lib:IsFunction(value)) then
+      if (Framework:IsFunction(value)) then
         value = CreateProxyObject(instanceController.instance, key, self, instanceController);
 
         local proxyObject = GetStoredProxyObject(value);
@@ -1023,7 +1031,7 @@ do
     if (value == nil and key ~= "Private") then
       value = classController.proxy[key];
 
-      if (Lib:IsFunction(value)) then
+      if (Framework:IsFunction(value)) then
         local proxyObject = GetStoredProxyObject(value);
         proxyObject.self = self; -- switch ProxyClass reference to proxyInstance
         proxyObject.privateData = privateData; -- set PrivateData to be injected into function call
@@ -1070,7 +1078,7 @@ do
       instance[key] = value
 
       -- if reassigning an instance property, should check that new value is valid
-      if (instanceController.isConstructed and Lib:IsTable(classController.propertyDefinitions)) then
+      if (instanceController.isConstructed and Framework:IsTable(classController.propertyDefinitions)) then
         local propertyDefinition = classController.propertyDefinitions[key];
 
         if (propertyDefinition) then
@@ -1095,9 +1103,9 @@ do
     local str;
 
     if (instanceController.name) then
-      str = tostring(self):gsub(Lib.Types.Table, string.format("<Instance> %s (%s)", className, instanceController.name));
+      str = tostring(self):gsub(Framework.Types.Table, string.format("<Instance> %s (%s)", className, instanceController.name));
     else
-      str = tostring(self):gsub(Lib.Types.Table, string.format("<Instance> %s", className));
+      str = tostring(self):gsub(Framework.Types.Table, string.format("<Instance> %s", className));
     end
 
     setmetatable(self, proxyInstanceMT);
@@ -1106,11 +1114,11 @@ do
   end
 
   function Core:CreateInstance(classController, ...)
-    local instance              = Lib:PopTable(); -- stores real table indexes (once proxy has completed evaluating data)
-    local instanceController    = Lib:PopTable(); -- holds special Lib data to control instance
-    local privateData           = Lib:PopTable(); -- private instance data passed to function calls (the 2nd argument)
-    local proxyInstance         = Lib:PopTable(); -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Instance instead)
-    local definitions           = Lib:PopTable(); -- used for generic types
+    local instance              = Framework:PopTable(); -- stores real table indexes (once proxy has completed evaluating data)
+    local instanceController    = Framework:PopTable(); -- holds special Framework data to control instance
+    local privateData           = Framework:PopTable(); -- private instance data passed to function calls (the 2nd argument)
+    local proxyInstance         = Framework:PopTable(); -- enforces __newindex meta-method to always be called (new indexes, if valid, are added to Instance instead)
+    local definitions           = Framework:PopTable(); -- used for generic types
 
     instanceController.privateData = privateData;
     instanceController.instance = instance;
@@ -1126,7 +1134,7 @@ do
     end
 
     -- interfaceController requires knowledge of many classController settings
-    local instanceControllerMT = Lib:PopTable();
+    local instanceControllerMT = Framework:PopTable();
     instanceControllerMT.__index = classController;
 
     setmetatable(instanceController, instanceControllerMT);
@@ -1135,20 +1143,20 @@ do
       local friendClassName = friendInstance:GetObjectType();
       local friendClass = classController.packageData.entities[friendClassName]; -- must be in same package!
 
-      Lib:Assert(friendClass and friendClass.Static:IsFriendClass(classController.objectName),
+      Framework:Assert(friendClass and friendClass.Static:IsFriendClass(classController.objectName),
         "'%s' is not a friend class of '%s'", friendClassName, classController.objectName);
 
       return self:GetPrivateInstanceData(friendInstance);
     end
 
     privateData.Call = function(_, privateFunctionName, ...)
-      Lib:Assert(Lib:IsString(privateFunctionName),
+      Framework:Assert(Framework:IsString(privateFunctionName),
         "Failed to call private function - bad argument #1 (string expected, got %s)", type(privateFunctionName));
 
       privateFunctionName = string.format("Private.%s", privateFunctionName);
       local func = classController.privateFunctions[privateFunctionName];
 
-      Lib:Assert(Lib:IsFunction(func),
+      Framework:Assert(Framework:IsFunction(func),
         "Failed to call private function - Unknown private function '%s'", type(privateFunctionName));
 
       func = CreateProxyObject(
@@ -1181,7 +1189,7 @@ do
         proxyInstance:__Construct(...);
       end
 
-      if (Lib:IsTable(classController.interfaces)) then
+      if (Framework:IsTable(classController.interfaces)) then
         Core:ValidateImplementedInterfaces(instance, classController);
       end
     end
@@ -1192,8 +1200,8 @@ do
 end
 
 function Core:CreateInterface(packageData, interfaceName, interfaceDefinition)
-  local interface                  = Lib:PopTable();
-  local interfaceController        = Lib:PopTable();
+  local interface                  = Framework:PopTable();
+  local interfaceController        = Framework:PopTable();
 
   interfaceController.proxy        = interface; -- reference to the interface (might not be needed)
   interfaceController.objectName   = interfaceName; -- class and interface controllers are grouped together so we use "Entity" name
@@ -1230,11 +1238,11 @@ end
 local function FillTable(tbl, otherTbl)
   for key, value in pairs(otherTbl) do
 
-    if (Lib:IsTable(tbl[key]) and Lib:IsTable(value)) then
+    if (Framework:IsTable(tbl[key]) and Framework:IsTable(value)) then
       FillTable(tbl[key], value);
 
-    elseif (Lib:IsTable(value)) then
-      tbl[key] = Lib:PopTable();
+    elseif (Framework:IsTable(value)) then
+      tbl[key] = Framework:PopTable();
       FillTable(tbl[key], value);
     else
       tbl[key] = value;
@@ -1257,7 +1265,7 @@ do
           paramOrReturnTable = funcDefinition.returnDefs;
         end
 
-        if (Lib:IsTable(paramOrReturnTable)) then
+        if (Framework:IsTable(paramOrReturnTable)) then
           for defId, definition in ipairs(paramOrReturnTable) do
             for id, genericType in ipairs(genericTypes) do
 
@@ -1265,7 +1273,7 @@ do
 
                 if (not transformed) then
                   -- make a deep copy of the class controller definition table for the instance to use:
-                  local funcDefinitionCopy = Lib:PopTable();
+                  local funcDefinitionCopy = Framework:PopTable();
                   FillTable(funcDefinitionCopy, funcDefinition);
 
                   definitions[funcKey] = funcDefinitionCopy;
@@ -1296,7 +1304,7 @@ do
 
     if (not realTypes) then
       -- Of() was not used, so treat generic types as "any"
-      realTypes = Lib:PopTable();
+      realTypes = Framework:PopTable();
 
       for i = 1, #genericTypes do
         realTypes[i] = "any";
@@ -1317,7 +1325,7 @@ do
 
     TransformDefinitions(definitions, genericTypes, realTypes);
 
-    Lib:PushTable(classController.tempRealGenericTypes);
+    Framework:PushTable(classController.tempRealGenericTypes);
     classController.tempRealGenericTypes = nil;
 
     return redefinedInstanceName;
@@ -1343,19 +1351,19 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
   local funcDefinition;
 
   if (tempParamDefs and #tempParamDefs > 0) then
-    funcDefinition = Lib:PopTable();
+    funcDefinition = Framework:PopTable();
     funcDefinition.paramDefs = Core:CopyTableValues(tempParamDefs, nil, true);
-    Lib:PushTable(tempParamDefs);
+    Framework:PushTable(tempParamDefs);
   end
 
   if (tempReturnDefs and #tempReturnDefs > 0) then
-    funcDefinition = funcDefinition or Lib:PopTable();
+    funcDefinition = funcDefinition or Framework:PopTable();
     funcDefinition.returnDefs = Core:CopyTableValues(tempReturnDefs, nil, true);
-    Lib:PushTable(tempReturnDefs);
+    Framework:PushTable(tempReturnDefs);
   end
 
   if (tempAttributes and #tempAttributes > 0) then
-    funcDefinition = funcDefinition or Lib:PopTable();
+    funcDefinition = funcDefinition or Framework:PopTable();
     funcDefinition.attributes = tempAttributes;
   end
 
@@ -1366,7 +1374,7 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
   controller.packageData.tempAttributes = nil;
 
   if (fromInterface) then
-    controller.interfaceDefinitions = controller.interfaceDefinitions or Lib:PopTable();
+    controller.interfaceDefinitions = controller.interfaceDefinitions or Framework:PopTable();
 
     self:Assert(not controller.definitions[newFuncKey],
       "%s found multiple definitions for interface function '%s'.", controller.objectName, newFuncKey);
@@ -1376,7 +1384,7 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
     self:Assert(not controller.definitions[newFuncKey],
       "%s cannot redefine function '%s'.", controller.objectName, newFuncKey);
 
-    if (Lib:IsTable(controller.interfaceDefinitions)) then
+    if (Framework:IsTable(controller.interfaceDefinitions)) then
 
       if (controller.interfaceDefinitions[newFuncKey]) then
         self:Assert(not funcDefinition, "%s cannot redefine interface function '%s'.", controller.objectName, newFuncKey);
@@ -1387,12 +1395,12 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
       end
     end
 
-    if (Lib:IsTable(funcDefinition)) then
+    if (Framework:IsTable(funcDefinition)) then
       -- might be an interface function with no definition (prevent adding boolean 'true')
       controller.definitions[newFuncKey] = funcDefinition;
 
       if (isVirtual) then
-        controller.virtualFunctions = controller.virtualFunctions or Lib:PopTable();
+        controller.virtualFunctions = controller.virtualFunctions or Framework:PopTable();
         controller.virtualFunctions[newFuncKey] = true;
       end
     end
@@ -1400,16 +1408,16 @@ function Core:AttachFunctionDefinition(controller, newFuncKey, fromInterface)
 end
 
 function Core:SetInterfaces(classController, ...)
-  for id, interface in Lib:IterateArgs(...) do
+  for id, interface in Framework:IterateArgs(...) do
 
-    if (Lib:IsString(interface)) then
+    if (Framework:IsString(interface)) then
       local interfaceName = interface;
-      interface = Lib:Import(interfaceName, true);
+      interface = Framework:Import(interfaceName, true);
 
       if (not interface) then
         -- append full package name:
         interfaceName = string.format("%s.%s", classController.packageData.fullPackageName, interfaceName);
-        interface = Lib:Import(interfaceName);
+        interface = Framework:Import(interfaceName);
       end
     end
 
@@ -1418,25 +1426,25 @@ function Core:SetInterfaces(classController, ...)
     self:Assert(interfaceController and interfaceController.isInterface,
     "Core.SetInterfaces: bad argument #%d (invalid interface)", id);
 
-    if (Lib:IsTable(interfaceController.definition)) then
+    if (Framework:IsTable(interfaceController.definition)) then
       -- Copy interface definition into class
       for key, definition in pairs(interfaceController.definition) do
-        if (Lib:IsString(definition)) then
-          if (definition == Lib.Types.Function) then
+        if (Framework:IsString(definition)) then
+          if (definition == Framework.Types.Function) then
             -- a function with no defined params nor return types
-              classController.interfaceDefinitions = classController.interfaceDefinitions or Lib:PopTable();
+              classController.interfaceDefinitions = classController.interfaceDefinitions or Framework:PopTable();
               classController.interfaceDefinitions[key] = true;
             else
-              classController.propertyDefinitions = classController.propertyDefinitions or Lib:PopTable();
+              classController.propertyDefinitions = classController.propertyDefinitions or Framework:PopTable();
               classController.propertyDefinitions[key] = definition;
             end
 
-          elseif (Lib:IsTable(definition) and definition.type == Lib.Types.Function) then
-            if (Lib:IsTable(definition.params)) then
+          elseif (Framework:IsTable(definition) and definition.type == Framework.Types.Function) then
+            if (Framework:IsTable(definition.params)) then
               classController.package:DefineParams(unpack(definition.params));
             end
 
-            if (Lib:IsTable(definition.returns)) then
+            if (Framework:IsTable(definition.returns)) then
               classController.package:DefineReturns(unpack(definition.returns));
             end
 
@@ -1447,7 +1455,7 @@ function Core:SetInterfaces(classController, ...)
 
     -- Add interface to class only after definition has been copied to class (else it will think
     -- that we are trying to redefine an interface definition and will error).
-    classController.interfaces = classController.interfaces or Lib:PopTable();
+    classController.interfaces = classController.interfaces or Framework:PopTable();
     table.insert(classController.interfaces, interface);
   end
 end
@@ -1465,15 +1473,15 @@ do
     for funcKey, _ in pairs(classController.definitions) do
       if (not (string.match(funcKey, "Private.") or string.match(funcKey, "Static."))) then
         local implementedFunc = classController.class[funcKey];
-        Core:Assert(Lib:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
+        Core:Assert(Framework:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
       end
     end
 
     for funcKey, implementedFunc in pairs(classController.class) do
       if (funcKey ~= "Private" and funcKey ~= "Static") then
-        Core:Assert(Lib:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
+        Core:Assert(Framework:IsFunction(implementedFunc), invalidClassValueErrorMessage, classController.objectName, funcKey);
 
-        if (Lib:IsFunction(implementedFunc)) then
+        if (Framework:IsFunction(implementedFunc)) then
           local funcDefinition = classController.definitions[funcKey];
 
           -- copy function references with definitions
@@ -1487,10 +1495,10 @@ end
 
 ---Helper function to copy key/value pairs from copiedTable to receiverTable
 function Core:CopyTableValues(copiedTable, receiverTable, shallowCopy)
-  receiverTable = receiverTable or Lib:PopTable();
+  receiverTable = receiverTable or Framework:PopTable();
 
   for key, value in pairs(copiedTable) do
-    if (Lib:IsTable(value) and not shallowCopy) then
+    if (Framework:IsTable(value) and not shallowCopy) then
       receiverTable[key] = self:CopyTableValues(value);
     else
       receiverTable[key] = value;
@@ -1502,7 +1510,7 @@ end
 
 function Core:IsStringNilOrWhiteSpace(strValue)
   if (strValue) then
-    Core:Assert(Lib:IsString(strValue),
+    Core:Assert(Framework:IsString(strValue),
       "Core.IsStringNilOrWhiteSpace - bad argument #1 (string expected, got %s)", type(strValue));
     strValue = strValue:gsub("%s+", "");
 
@@ -1517,22 +1525,22 @@ end
 function Core:SetParentClass(classController, parentProxyClass)
   if (parentProxyClass) then
 
-    if (Lib:IsString(parentProxyClass) and not self:IsStringNilOrWhiteSpace(parentProxyClass)) then
-      classController.parentProxyClass = Lib:Import(parentProxyClass, true);
+    if (Framework:IsString(parentProxyClass) and not self:IsStringNilOrWhiteSpace(parentProxyClass)) then
+      classController.parentProxyClass = Framework:Import(parentProxyClass, true);
 
       if (not classController.parentProxyClass) then
         -- append full package name:
         parentProxyClass = string.format("%s.%s", classController.packageData.fullPackageName, parentProxyClass);
-        classController.parentProxyClass = Lib:Import(parentProxyClass);
+        classController.parentProxyClass = Framework:Import(parentProxyClass);
       end
 
-    elseif (Lib:IsTable(parentProxyClass) and parentProxyClass.Static) then
+    elseif (Framework:IsTable(parentProxyClass) and parentProxyClass.Static) then
       classController.parentProxyClass = parentProxyClass;
     end
 
     self:Assert(classController.parentProxyClass, "Core.SetParentClass - bad argument #2 (invalid parent class).");
   else
-    classController.parentProxyClass = Lib:Import("Framework.System.Object", true);
+    classController.parentProxyClass = Framework:Import("Framework.System.Object", true);
 
     if (classController.proxy == classController.parentProxyClass) then
       -- cannot be parented to itself (i.e. Object class has no parent)
@@ -1545,7 +1553,7 @@ end
 function Core:PathExists(root, path)
   self:Assert(root, "Core.PathExists - bad argument #1 (invalid root).");
 
-  for _, key in Lib:IterateArgs(strsplit(".", path)) do
+  for _, key in Framework:IterateArgs(strsplit(".", path)) do
     if (not root[key]) then
       return false;
     end
@@ -1577,7 +1585,7 @@ function Core:GetPrivateInstanceData(instance, instanceController)
   instanceController = instanceController or self:GetController(instance);
   local data = instanceController.privateData;
 
-  self:Assert(Lib:IsTable(data) and not data.GetObjectType,
+  self:Assert(Framework:IsTable(data) and not data.GetObjectType,
     "Invalid instance private data for entity %s.", instanceController.objectName);
 
   return data;
@@ -1607,7 +1615,7 @@ end
 
 ---Call this after using the constructor to make sure properties have been implemented
 function Core:ValidateImplementedInterfaces(instance, classController)
-  if (Lib:IsTable(classController.interfaceDefinitions)) then
+  if (Framework:IsTable(classController.interfaceDefinitions)) then
     for funcName, _ in pairs(classController.interfaceDefinitions) do
       -- iterate over interface definitions just to throw a single error each time
       self:Assert(classController.interfaceDefinitions == nil,
@@ -1617,7 +1625,7 @@ function Core:ValidateImplementedInterfaces(instance, classController)
     classController.interfaceDefinitions = nil; -- no longer needed
   end
 
-  if (not Lib:IsTable(classController.propertyDefinitions)) then
+  if (not Framework:IsTable(classController.propertyDefinitions)) then
     return;
   end
 
@@ -1630,14 +1638,14 @@ end
 function Core:ValidateValue(definitionType, realType, defaultValue)
   local errorFound;
 
-  self:Assert(Lib:IsString(definitionType) and not self:IsStringNilOrWhiteSpace(definitionType),
+  self:Assert(Framework:IsString(definitionType) and not self:IsStringNilOrWhiteSpace(definitionType),
     "Invalid definition found; expected a string containing the expected type of an argument or return value.");
 
-  if (definitionType:find("^?") or defaultValue ~= nil) then
-    -- it's optional so allow null values
-    if (definitionType:find("^?")) then
-      -- remove "?" from front of string
-      definitionType = definitionType:sub(2, #definitionType);
+  if (definitionType:find("^?") or definitionType:find("?$") or defaultValue ~= nil) then
+    -- it's optional so allow nil values
+    if (definitionType:find("^?") or definitionType:find("?$")) then
+      -- remove "?" from front or back of string
+      definitionType = definitionType:gsub("?", "");
     end
 
     errorFound = (realType ~= nil) and (definitionType ~= "any" and not self:IsMatchingType(realType, definitionType));
@@ -1654,12 +1662,12 @@ local function CastSimpleDefault(definitionType, defaultValue)
   definitionType = string.gsub(definitionType, "?", "");
   definitionType = string.gsub(definitionType, "%s", "");
 
-  if (definitionType:lower() == "number" and Lib:IsString(defaultValue)) then
+  if (definitionType:lower() == "number" and Framework:IsString(defaultValue)) then
     defaultValue = string.gsub(defaultValue, "%s", ""); -- remove spaces
     defaultValue = tonumber(defaultValue);
   end
 
-  if (definitionType:lower() == "boolean" and Lib:IsString(defaultValue)) then
+  if (definitionType:lower() == "boolean" and Framework:IsString(defaultValue)) then
     defaultValue = string.gsub(defaultValue, "%s", ""); -- remove spaces
 
     if (defaultValue:lower() == "true") then
@@ -1673,7 +1681,7 @@ local function CastSimpleDefault(definitionType, defaultValue)
 end
 
 function Core:ValidateFunctionCall(definition, errorMessage, ...)
-  local values = Lib:PopTable(...);
+  local values = Framework:PopTable(...);
 
   if (not definition) then
     return values;
@@ -1684,20 +1692,28 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
   local definitionType;
   local errorFound;
   local defaultValue;
-  local defaultValues = Lib:PopTable();
+  local defaultValues = Framework:PopTable();
+  local vararg, varargStartIndex;
 
   repeat
-    definitionType = definition[id];
+    definitionType = definition[id] or vararg;
 
-    if (Lib:IsTable(definitionType)) then
+    if (Framework:IsTable(definitionType)) then
+      -- ordering matters!:
       defaultValue = definitionType[2];
       definitionType = definitionType[1];
     end
 
+    if (definitionType:find("%.%.%.")) then
+      vararg = definitionType:gsub("%.%.%.", "");
+      definitionType = vararg;
+      varargStartIndex = id;
+    end
+
     if (definitionType:find("|")) then
-      for _, singleDefinitionType in Lib:IterateArgs(strsplit("|", definitionType)) do
+      for _, singleDefinitionType in Framework:IterateArgs(strsplit("|", definitionType)) do
         singleDefinitionType = string.gsub(singleDefinitionType, "%s", "");
-        errorFound = self:ValidateValue(singleDefinitionType, realValue);
+        errorFound = self:ValidateValue(singleDefinitionType, realValue, defaultValue);
 
         if (not errorFound) then
           break;
@@ -1716,7 +1732,7 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
     end
 
     if (errorFound) then
-      if (Lib:IsFunction(realValue) or (Lib:IsTable(realValue) and not Lib:IsObject(realValue))) then
+      if (Framework:IsFunction(realValue) or (Framework:IsTable(realValue) and not Framework:IsObject(realValue))) then
         errorMessage = string.format("%s (%s expected, got %s)",
         errorMessage, definitionType, self:GetValueType(realValue));
       else
@@ -1734,15 +1750,30 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
     id = id + 1;
     realValue = (select(id, ...));
 
-  until (not definition[id]);
+  until ((not vararg and definition[id] == nil) or (vararg and id > select("#", ...)));
 
-  for i = 1, #definition do
+  -- we don't care about values with no definitions
+  local length = #definition;
+
+  -- calculate real length (cut off trailing nil values from vararg)
+  if (vararg) then
+    length = varargStartIndex - 1;
+
+    for i = varargStartIndex, (select("#", ...)) do
+      if (values[i] ~= nil) then
+        length = i;
+      end
+    end
+  end
+
+  -- Swap out nil values with their default values:
+  for i = 1, length do
     if (values[i] == nil) then
       values[i] = defaultValues[i];
     end
   end
 
-  Lib:PushTable(defaultValues);
+  Framework:PushTable(defaultValues);
 
   return values;
 end
@@ -1786,21 +1817,21 @@ function Core:Assert(condition, errorMessage, ...)
       local size = select("#", ...);
 
       if (size > 0) then
-        local args = Lib:PopTable(...);
+        local args = Framework:PopTable(...);
 
         for i = 1, size do
           if (args[i] == nil) then
-            args[i] = Lib.Types.Nil;
+            args[i] = Framework.Types.Nil;
 
-          elseif (not Lib:IsString(args[i])) then
+          elseif (not Framework:IsString(args[i])) then
             args[i] = tostring(args[i]);
           end
         end
 
-        errorMessage = string.format(errorMessage, Lib:UnpackTable(args));
+        errorMessage = string.format(errorMessage, Framework:UnpackTable(args));
 
       elseif (string.match(errorMessage, "%s")) then
-        errorMessage = string.format(errorMessage, Lib.Types.Nil);
+        errorMessage = string.format(errorMessage, Framework.Types.Nil);
       end
 
     else
@@ -1810,10 +1841,10 @@ function Core:Assert(condition, errorMessage, ...)
     errorMessage = self.PREFIX .. errorMessage;
 
     if (self.silent) then
-      self.errorLog = self.errorLog or Lib:PopTable();
+      self.errorLog = self.errorLog or Framework:PopTable();
       self.errorLog[#self.errorLog + 1] = select(2, pcall(function() error(errorMessage) end));
 
-    elseif (Lib:IsFunction(self.errorHandler)) then
+    elseif (Framework:IsFunction(self.errorHandler)) then
       -- local level = _G.DEBUGLOCALS_LEVEL;
       local stack = _G.debugstack(3);
       local locals = _G.debuglocals(3);
@@ -1843,13 +1874,13 @@ end
 
 function Core:IsMatchingType(value, expectedTypeName)
   -- check if basic type
-  for _, typeName in pairs(Lib.Types) do
+  for _, typeName in pairs(Framework.Types) do
     if (expectedTypeName == typeName) then
       return (expectedTypeName == type(value));
     end
   end
 
-  if (not Lib:IsTable(value)) then
+  if (not Framework:IsTable(value)) then
     return false;
   end
 
@@ -1869,7 +1900,7 @@ function Core:IsMatchingType(value, expectedTypeName)
       return true; -- Object or Widget matches!
     end
 
-    if (Lib:IsTable(controller.interfaces)) then
+    if (Framework:IsTable(controller.interfaces)) then
       -- check all interface types
       for _, interface in ipairs(controller.interfaces) do
         local interfaceController = self:GetController(interface);
@@ -1882,7 +1913,7 @@ function Core:IsMatchingType(value, expectedTypeName)
 
     value = controller.parentProxyClass;
 
-    if (Lib:IsTable(value)) then
+    if (Framework:IsTable(value)) then
       controller = self:GetController(value, true); -- fail silently
     end
   end
@@ -1892,18 +1923,18 @@ end
 
 function Core:GetValueType(value)
   if (value == nil) then
-    return Lib.Types.Nil;
+    return Framework.Types.Nil;
   end
 
   local valueType = type(value);
 
-  if (valueType ~= Lib.Types.Table) then
+  if (valueType ~= Framework.Types.Table) then
     return valueType;
   elseif (value.GetObjectType) then
     return value:GetObjectType();
   end
 
-  return Lib.Types.Table;
+  return Framework.Types.Table;
 end
 
 ---------------------------------
@@ -1921,7 +1952,7 @@ function Package:__Construct(data, packageName, namespace)
     data.fullPackageName = packageName;
   end
 
-  data.entities = Lib:PopTable();
+  data.entities = Framework:PopTable();
 end
 
 function Package:GetName(data)
@@ -1973,8 +2004,8 @@ end
 ---with type definitions for property values, function parameters and return types.
 ---returns a new interface
 function Package:CreateInterface(data, interfaceName, interfaceDefinition)
-  Core:Assert(Lib:IsString(interfaceName), "bad argument #1 to Package.CreateInterface (string expected, got %s)", type(interfaceName));
-  Core:Assert(Lib:IsTable(interfaceDefinition), "bad argument #2 to Package.CreateInterface (table expected, got %s)", type(interfaceDefinition));
+  Core:Assert(Framework:IsString(interfaceName), "bad argument #1 to Package.CreateInterface (string expected, got %s)", type(interfaceName));
+  Core:Assert(Framework:IsTable(interfaceDefinition), "bad argument #2 to Package.CreateInterface (table expected, got %s)", type(interfaceDefinition));
   Core:Assert(not data.entities[interfaceName], "Entity '%s' already exists in this package.", interfaceName);
 
   local interface = Core:CreateInterface(data, interfaceName, interfaceDefinition);
@@ -1984,14 +2015,58 @@ function Package:CreateInterface(data, interfaceName, interfaceDefinition)
   return interface;
 end
 
+local function ValidateDefinition(...)
+  local defs = Framework:PopTable(...);
+  local vararg;
+
+  for index = 1, select("#", ...) do
+    local def = defs[index];
+
+    if (Framework:IsTable(def)) then
+      if (def[1] == nil) then
+        def[1] = "?any";
+      end
+
+      def = def[1];
+    end
+
+    if (def == nil) then
+      def = "?any";
+      defs[index] = def;
+    end
+
+    if (not Framework:IsString(def)) then
+      Core:Error("Invalid definition - bad argument #1 (string expected, got %s).", type(def));
+      Framework:PushTable(defs);
+      return
+    end
+
+    if (def:find("=") and def:find("|")) then
+      Core:Error("Invalid definition (cannot use default values for union types).");
+      Framework:PushTable(defs);
+      return
+    end
+
+    if (vararg) then
+      Core:Error("Invalid definition (cannot specify another definition after variable list definition: `...`).");
+      Framework:PushTable(defs);
+      return
+    elseif (def:find("%.%.%.")) then
+      vararg = true;
+    end
+  end
+
+  return defs;
+end
+
 ---temporarily store param definitions to be applied to next new indexed function
 function Package:DefineParams(data, ...)
-  data.tempParamDefs = Lib:PopTable(...);
+  data.tempParamDefs = ValidateDefinition(...);
 end
 
 ---temporarily store return definitions to be applied to next new indexed function
 function Package:DefineReturns(data, ...)
-  data.tempReturnDefs = Lib:PopTable(...);
+  data.tempReturnDefs = ValidateDefinition(...);
 end
 
 ---Define the next class function as virtual
@@ -2000,16 +2075,16 @@ function Package:DefineVirtual(data)
 end
 
 function Package:SetAttribute(data, attributeClass, ...)
-  if (Lib:IsString(attributeClass)) then
-    attributeClass = Lib:Import(attributeClass);
+  if (Framework:IsString(attributeClass)) then
+    attributeClass = Framework:Import(attributeClass);
   end
 
   local attribute = attributeClass(...);
 
-  if (Lib:IsTable(data.tempAttributes)) then
+  if (Framework:IsTable(data.tempAttributes)) then
     table.insert(data.tempAttributes, attribute);
   else
-    data.tempAttributes = Lib:PopTable(attribute);
+    data.tempAttributes = Framework:PopTable(attribute);
   end
 end
 
@@ -2023,7 +2098,7 @@ end
 
 function Package:ProtectProperty(_, instance, propertyName)
   local instanceController = Core:GetController(instance);
-  instanceController.protectedProperties = instanceController.protectedProperties or Lib:PopTable();
+  instanceController.protectedProperties = instanceController.protectedProperties or Framework:PopTable();
   instanceController.protectedProperties[propertyName] = true;
 end
 
@@ -2103,7 +2178,7 @@ function Object:IsObjectType(_, objectName)
 end
 
 function Object:Equals(data, other)
-  if (not Lib:IsTable(other) or not other.GetObjectType) then
+  if (not Framework:IsTable(other) or not other.GetObjectType) then
     return false;
   end
 
@@ -2181,18 +2256,18 @@ function Object:Destroy()
   AllControllers[instanceKey] = nil;
 
   -- destroy real instance
-  Lib:PushTable(instanceController.instance);
+  Framework:PushTable(instanceController.instance);
   instanceController.instance = nil;
 
   -- destroy instance private data
-  Lib:PushTable(instanceController.privateData);
+  Framework:PushTable(instanceController.privateData);
   instanceController.privateData = nil;
 
   -- destroy instance controller
-  Lib:PushTable(instanceController);
+  Framework:PushTable(instanceController);
 
   -- destroy proxy instance
-  Lib:EmptyTable(self);
+  Framework:EmptyTable(self);
   self.IsDestroyed = true;
 end
 

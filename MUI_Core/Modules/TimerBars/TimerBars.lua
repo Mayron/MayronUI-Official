@@ -5,11 +5,11 @@ local MayronUI = _G.MayronUI;
 local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
 local LibStub = _G.LibStub;
 
----@type LibMayronDB
-local LibMayronDB = LibStub:GetLibrary("LibMayronDB");
+---@type MayronDB
+local MayronDB = obj:Import("Pkg-MayronDB.MayronDB");
 
 ---@type Database
-local db = LibMayronDB:CreateDatabase(addOnName, "MUI_TimerBarsDb", nil, "MUI TimerBars");
+local db = MayronDB.Static:CreateDatabase(addOnName, "MUI_TimerBarsDb", nil, "MUI TimerBars");
 
 _G.MUI_TimerBars = {}; -- Create new global
 

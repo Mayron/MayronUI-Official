@@ -1,22 +1,22 @@
 -- luacheck: ignore self 143 631
-local lib = _G.MayronObjects:GetFramework();
+local obj = _G.MayronObjects:GetFramework();
 
 local function VerifyExpectedErrors(expectedErrors, test)
-  lib:SetSilentErrors(true);
+  obj:SetSilentErrors(true);
 
   pcall(function() test() end);
 
-  assert(lib:GetNumErrors() == expectedErrors, string.format(
-  "Should throw %s errors but got %d", expectedErrors, lib:GetNumErrors()));
+  assert(obj:GetNumErrors() == expectedErrors, string.format(
+  "Should throw %s errors but got %d", expectedErrors, obj:GetNumErrors()));
 
-  lib:FlushErrorLog();
-  lib:SetSilentErrors(false);
+  obj:FlushErrorLog();
+  obj:SetSilentErrors(false);
 end
 
 local function HelloWorld_Test1() -- luacheck: ignore
   print("HelloWorld_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("HelloWorld_Test1", "Test");
+  local TestPackage = obj:CreatePackage("HelloWorld_Test1", "Test");
 
   local HelloWorld = TestPackage:CreateClass("HelloWorld");
 
@@ -38,7 +38,7 @@ local function HelloWorld_Test1() -- luacheck: ignore
   local instance = HelloWorld("My 1st Message");
   instance:Print("My 2nd Message");
 
-  local HelloWorld2 = lib:Import("Test.HelloWorld_Test1.HelloWorld");
+  local HelloWorld2 = obj:Import("Test.HelloWorld_Test1.HelloWorld");
   assert(HelloWorld == HelloWorld2);
 
   local className = instance:GetObjectType();
@@ -52,7 +52,7 @@ end
 local function DefineParams_Test1() -- luacheck: ignore
   print("DefineParams_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("DefineParams_Test1", "Test");
+  local TestPackage = obj:CreatePackage("DefineParams_Test1", "Test");
 
   local Player = TestPackage:CreateClass("Player");
 
@@ -66,16 +66,16 @@ local function DefineParams_Test1() -- luacheck: ignore
   p:GetSpellCasting("Bloodlust"); -- should work!
   p:GetSpellCasting("Flame Shock", 123); -- should work!
 
-  lib:SetSilentErrors(true);
+  obj:SetSilentErrors(true);
 
   p:GetSpellCasting(123); -- should fail as not a string!
-  assert(lib:GetNumErrors() == 1);
+  assert(obj:GetNumErrors() == 1);
 
   p:GetSpellCasting("Flame Shock", "123"); -- should fail as not a number!
-  assert(lib:GetNumErrors() == 2);
+  assert(obj:GetNumErrors() == 2);
 
-  lib:FlushErrorLog();
-  lib:SetSilentErrors(false);
+  obj:FlushErrorLog();
+  obj:SetSilentErrors(false);
 
   print("DefineParams_Test1 Successful!");
 end
@@ -83,7 +83,7 @@ end
 local function DefineReturns_Test1() -- luacheck: ignore
   print("DefineReturns_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("DefineReturns_Test1", "Test");
+  local TestPackage = obj:CreatePackage("DefineReturns_Test1", "Test");
 
   local Player = TestPackage:CreateClass("Player");
 
@@ -123,7 +123,7 @@ end
 local function DefineParams_Test2() -- luacheck: ignore
   print("DefineParams_Test2 Started");
 
-  local TestPackage = lib:CreatePackage("DefineParams_Test2");
+  local TestPackage = obj:CreatePackage("DefineParams_Test2");
 
   local IHandler = TestPackage:CreateInterface("IHandler", {
     Run = { type = "function"; returns = "string" };
@@ -149,11 +149,292 @@ local function DefineParams_Test2() -- luacheck: ignore
   print("DefineParams_Test2 Successful!");
 end
 
+local function VariableArgumentList_Test1() -- luacheck: ignore
+  print("VariableArgumentList_Test1 Started");
+
+  local TestPackage = obj:CreatePackage("VariableArgumentList_Test1", "Test");
+  local TestClass = TestPackage:CreateClass("TestClass");
+
+  TestPackage:DefineParams("string", "...number");
+  function TestClass:RunTest1(_, str, ...)
+    print("str: "..tostring(str)..", vararg: ", ...);
+  end
+
+  local instance = TestClass();
+
+  print("starting sub-test 1");
+  instance:RunTest1("value", 1, 2, 3, 4, 5);
+
+  VerifyExpectedErrors(1, function()
+    instance:RunTest1("value", 1, 2, 3, "error!", 5); -- should fail!
+  end);
+
+  VerifyExpectedErrors(1, function()
+    instance:RunTest1("value", 1, 2, 3, nil, 5); -- should fail!
+  end);
+
+  TestPackage:DefineParams("string", "...number|string");
+  function TestClass:RunTest2(_, str, ...)
+    print("str: "..tostring(str)..", vararg: ", ...);
+  end
+
+  print("starting sub-test 2");
+  instance:RunTest2("value", 1, 2, 3, 4, 5);
+  instance:RunTest2("value", 1, 2, 3, "allowed!", 5);
+
+  VerifyExpectedErrors(1, function()
+    instance:RunTest2("value", 1, 2, 3, nil, 5); -- should fail!
+  end);
+
+  -- You cannot specify default values when more than 1 type is allowed:
+  VerifyExpectedErrors(1, function()
+    TestPackage:DefineParams("string", "...number=12|string=not okay!?"); -- should fail!
+  end);
+
+  TestPackage:DefineParams("string=hi", "...number=99");
+  function TestClass:RunTest4(_, str, arg1, arg2, arg3, arg4, arg5)
+    assert(str == "hi");
+    assert(arg1 == 1);
+    assert(arg2 == 99, string.format("Expected arg2 to equal default value 99, got %s.", tostring(arg2)));
+    assert(arg3 == 2);
+    assert(arg4 == 99, string.format("Expected arg4 to equal default value 99, got %s.", tostring(arg4)));
+    assert(arg5 == 3);
+  end
+
+  print("starting sub-test 4");
+  instance:RunTest4(nil, 1, nil, 2, nil, 3);
+
+  TestPackage:DefineParams({"...table", { test = true } });
+  function TestClass:RunTest5(_, arg1, arg2, arg3, arg4, arg5)
+    assert(arg1.test == true);
+    assert(arg2.msg == "hi");
+    assert(arg3 == nil);
+    assert(arg4 == nil);
+    assert(arg5 == nil);
+  end
+
+  print("starting sub-test 5");
+  instance:RunTest5(nil, { msg = "hi"});
+
+  TestPackage:DefineParams({"...table", { test = true } });
+  function TestClass:RunTest6(_, arg1, arg2, arg3, arg4, arg5)
+    assert(arg1 == nil);
+    assert(arg2 == nil);
+    assert(arg3 == nil);
+    assert(arg4 == nil);
+    assert(arg5 == nil);
+  end
+
+  print("starting sub-test 6");
+  instance:RunTest6();
+
+  TestPackage:DefineParams("...number=99");
+  function TestClass:RunTest7(_, arg1, arg2, arg3, arg4, arg5)
+    assert(arg1 == 99, string.format("Expected arg1 to equal default value 99, got %s.", tostring(arg1)));
+    assert(arg2 == 99, string.format("Expected arg2 to equal default value 99, got %s.", tostring(arg2)));
+    assert(arg3 == 3, string.format("Expected arg3 to equal 3.", tostring(arg3)));
+    assert(arg4 == nil, string.format("Expected arg4 to equal nil.", tostring(arg4)));
+    assert(arg5 == nil, string.format("Expected arg5 to equal nil.", tostring(arg5)));
+  end
+
+  print("starting sub-test 7");
+  instance:RunTest7(nil, nil, 3, nil);
+
+  TestPackage:DefineParams("...number=99");
+  function TestClass:RunTest8(_, arg1, arg2, arg3, arg4, arg5)
+    assert(arg1 == nil, string.format("Expected arg1 to equal nil, got %s.", tostring(arg1)));
+    assert(arg2 == nil, string.format("Expected arg2 to equal nil, got %s.", tostring(arg2)));
+    assert(arg3 == nil, string.format("Expected arg3 to equal nil, got %s.", tostring(arg3)));
+    assert(arg4 == nil, string.format("Expected arg4 to equal nil, got %s.", tostring(arg4)));
+    assert(arg5 == nil, string.format("Expected arg5 to equal nil, got %s.", tostring(arg5)));
+  end
+
+  print("starting sub-test 8");
+  instance:RunTest8(nil, nil, nil);
+
+  TestPackage:DefineParams("string", "...?number");
+  function TestClass:RunTest9(_, str, ...)
+    print("str: "..tostring(str)..", vararg: ", ...);
+  end
+
+  print("starting sub-test 9");
+  instance:RunTest9("value", 1, 2, 3, nil, 5); -- allowed
+
+  TestPackage:DefineParams("...number|?string");
+  function TestClass:RunTest10(_, arg1, arg2, arg3, arg4, arg5)
+    assert(arg1 == 1)
+    assert(arg2 == "2")
+    assert(arg3 == 3)
+    assert(arg4 == nil)
+    assert(arg5 == 5)
+  end
+
+  print("starting sub-test 10");
+  instance:RunTest10(1, "2", 3, nil, 5); -- allowed
+
+  -- variable argument lists are NOT optional - at least 1 number must be passed to the method
+  TestPackage:DefineParams("string", "...number");
+  function TestClass:RunTest11(_, arg1, arg2)
+    assert(arg1 == "value");
+    assert(arg2 == nil);
+  end
+
+  print("starting sub-test 11");
+  VerifyExpectedErrors(1, function()
+    instance:RunTest11("value"); -- should fail!
+  end);
+
+  print("VariableArgumentList_Test1 Successful!");
+end
+
+local function VariableArgumentList_ReturnValues_Test1() -- luacheck: ignore
+  print("VariableArgumentList_ReturnValues_Test1 Started");
+
+  local TestPackage = obj:CreatePackage("VariableArgumentList_ReturnValues_Test1", "Test");
+  local TestClass = TestPackage:CreateClass("TestClass");
+
+  TestPackage:DefineReturns("string", "...number");
+  function TestClass:RunTest1()
+    return "value", 1, 2, 3;
+  end
+
+  local instance = TestClass();
+
+  print("starting sub-test 1");
+  local v1, v2, v3, v4, v5 = instance:RunTest1();
+  assert(v1 == "value");
+  assert(v2 == 1);
+  assert(v3 == 2);
+  assert(v4 == 3);
+  assert(v5 == nil);
+
+  TestPackage:DefineReturns("string", "...number|string");
+  function TestClass:RunTest2()
+    return "value", 1, "2", 3;
+  end
+
+  -- follow ... def with another value == error
+  VerifyExpectedErrors(1, function()
+    TestPackage:DefineReturns("string", "...number", "table"); -- should fail!
+  end);
+
+  print("starting sub-test 2");
+  v1, v2, v3, v4 = instance:RunTest2();
+  assert(v1 == "value");
+  assert(v2 == 1);
+  assert(v3 == "2");
+  assert(v4 == 3);
+
+  -- You cannot specify default values when more than 1 type is allowed:
+  VerifyExpectedErrors(1, function()
+    TestPackage:DefineReturns("string", "...number=12|string=not okay!?"); -- should fail!
+  end);
+
+  TestPackage:DefineReturns("string=hi", "...number=99");
+  function TestClass:RunTest4()
+    return nil, nil, 123;
+  end
+
+  print("starting sub-test 4");
+  v1, v2, v3, v4 = instance:RunTest4();
+  assert(v1 == "hi");
+  assert(v2 == 99);
+  assert(v3 == 123);
+  assert(v4 == nil);
+
+  TestPackage:DefineReturns({"...table", { test = true } });
+  function TestClass:RunTest5()
+    return nil, { msg = "hi"};
+  end
+
+  print("starting sub-test 5");
+  v1, v2 = instance:RunTest5();
+  assert(v1.test == true);
+  assert(v2.msg == "hi");
+
+  TestPackage:DefineReturns({"...table", { test = true } });
+  function TestClass:RunTest6() end
+
+  print("starting sub-test 6");
+  v1, v2, v3, v4 = instance:RunTest6();
+  assert(v1 == nil);
+  assert(v2 == nil);
+  assert(v3 == nil);
+  assert(v4 == nil);
+
+  TestPackage:DefineReturns("...number=99");
+  function TestClass:RunTest7()
+    return nil, nil, 1, nil, 2;
+  end
+
+  print("starting sub-test 7");
+  v1, v2, v3, v4, v5 = instance:RunTest7();
+  assert(v1 == 99);
+  assert(v2 == 99);
+  assert(v3 == 1);
+  assert(v4 == 99);
+  assert(v5 == 2);
+
+  TestPackage:DefineReturns("...number=99");
+  function TestClass:RunTest8()
+    return nil, nil, nil;
+  end
+
+  print("starting sub-test 8");
+  v1, v2, v3, v4, v5 = instance:RunTest8();
+  assert(v1 == nil, string.format("Expected v1 to equal nil, got %s.", tostring(v1)));
+  assert(v2 == nil, string.format("Expected v2 to equal nil, got %s.", tostring(v2)));
+  assert(v3 == nil, string.format("Expected v3 to equal nil, got %s.", tostring(v3)));
+  assert(v4 == nil, string.format("Expected v4 to equal nil, got %s.", tostring(v4)));
+  assert(v5 == nil, string.format("Expected v5 to equal nil, got %s.", tostring(v5)));
+
+  TestPackage:DefineReturns("string", "...?number");
+  function TestClass:RunTest9()
+    return "value", 1, 2, nil, 3;
+  end
+
+  print("starting sub-test 9");
+  v1, v2, v3, v4, v5 = instance:RunTest9(); -- allowed
+  assert(v1 == "value", string.format("Expected v1 to equal 'value', got %s.", tostring(v1)));
+  assert(v2 == 1, string.format("Expected v2 to equal 1, got %s.", tostring(v2)));
+  assert(v3 == 2, string.format("Expected v3 to equal 2, got %s.", tostring(v3)));
+  assert(v4 == nil, string.format("Expected v4 to equal nil, got %s.", tostring(v4)));
+  assert(v5 == 3, string.format("Expected v5 to equal 3, got %s.", tostring(v5)));
+
+  TestPackage:DefineReturns("...number|?string");
+  function TestClass:RunTest10()
+    return 1, "2", 3, nil, 5;
+  end
+
+  print("starting sub-test 10");
+  v1, v2, v3, v4, v5 = instance:RunTest10(1, "2", 3, nil, 5); -- allowed
+  assert(v1 == 1);
+  assert(v2 == "2");
+  assert(v3 == 3);
+  assert(v4 == nil);
+  assert(v5 == 5);
+
+  -- variable argument lists are NOT optional - at least 1 number value is required.
+  TestPackage:DefineReturns("string", "...number");
+  function TestClass:RunTest11()
+    return "value";
+  end
+
+  print("starting sub-test 11");
+
+  VerifyExpectedErrors(1, function()
+    instance:RunTest11(); -- should fail!
+  end);
+
+
+  print("VariableArgumentList_ReturnValues_Test1 Successful!");
+end
+
 local function ImportPackage_Test1() -- luacheck: ignore
   print("ImportPackage_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("ImportPackage_Test1");
-  lib:Export(TestPackage, "Test"); -- same as: lib:CreatePackage("ImportPackage_Test1", "Test");
+  local TestPackage = obj:CreatePackage("ImportPackage_Test1");
+  obj:Export(TestPackage, "Test"); -- same as: obj:CreatePackage("ImportPackage_Test1", "Test");
 
   local CheckButton   = TestPackage:CreateClass("CheckButton");
   local Button        = TestPackage:CreateClass("Button"); -- luacheck: ignore
@@ -164,11 +445,11 @@ local function ImportPackage_Test1() -- luacheck: ignore
 
   assert(TestPackage:Size() == 6);
 
-  local CheckButton2 = lib:Import("Test.ImportPackage_Test1.CheckButton");
+  local CheckButton2 = obj:Import("Test.ImportPackage_Test1.CheckButton");
 
   assert(CheckButton == CheckButton2);
 
-  local importedPackage = lib:Import("Test.ImportPackage_Test1");
+  local importedPackage = obj:Import("Test.ImportPackage_Test1");
 
   assert(importedPackage == TestPackage);
   assert(importedPackage:Size() == 6);
@@ -185,16 +466,16 @@ end
 local function DuplicateClass_Test1() -- luacheck: ignore
   print("DuplicateClass_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("DuplicateClass_Test1");
+  local TestPackage = obj:CreatePackage("DuplicateClass_Test1");
 
-  lib:SetSilentErrors(true);
+  obj:SetSilentErrors(true);
 
   TestPackage:CreateClass("Player");
   TestPackage:CreateClass("Player");
 
-  assert(lib:GetNumErrors() == 1);
-  lib:FlushErrorLog();
-  lib:SetSilentErrors(false);
+  assert(obj:GetNumErrors() == 1);
+  obj:FlushErrorLog();
+  obj:SetSilentErrors(false);
 
   print("DuplicateClass_Test1 Successful!");
 end
@@ -202,7 +483,7 @@ end
 local function Interfaces_Test1() -- luacheck: ignore
   print("Interfaces_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("Interfaces_Test1");
+  local TestPackage = obj:CreatePackage("Interfaces_Test1");
 
   local IComparable = TestPackage:CreateInterface("IComparable", {
     Compare = {
@@ -231,7 +512,7 @@ end
 local function Interfaces_Test2() -- luacheck: ignore
   print("Interfaces_Test2 Started");
 
-  local TestPackage = lib:CreatePackage("Interfaces_Test2");
+  local TestPackage = obj:CreatePackage("Interfaces_Test2");
 
   local ICell = TestPackage:CreateInterface("ICell", {
     Create = {
@@ -263,7 +544,7 @@ end
 local function Interfaces_Test3() -- luacheck: ignore
   print("Interfaces_Test3 Started");
 
-  local TestPackage = lib:CreatePackage("Interfaces_Test3");
+  local TestPackage = obj:CreatePackage("Interfaces_Test3");
 
   local IDummyInterface = TestPackage:CreateInterface("IDummyInterface", {
     DoSomething = {
@@ -291,7 +572,7 @@ end
 local function NotImplementedInterfaceFunction_Test1() -- luacheck: ignore
   print("NotImplementedInterfaceFunction_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("NotImplementedInterfaceFunction_Test1");
+  local TestPackage = obj:CreatePackage("NotImplementedInterfaceFunction_Test1");
 
   local IDummyInterface = TestPackage:CreateInterface("IDummyInterface", {
     DoSomething = "function";
@@ -309,7 +590,7 @@ end
 local function NotImplementedInterfaceProperty_Test1() -- luacheck: ignore
   print("NotImplementedInterfaceProperty_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("NotImplementedInterfaceProperty_Test1");
+  local TestPackage = obj:CreatePackage("NotImplementedInterfaceProperty_Test1");
 
   local IDummyInterface = TestPackage:CreateInterface("IDummyInterface", {
     MyNumber = "number";
@@ -327,7 +608,7 @@ end
 local function NotImplementedInterfaceProperty_Test2() -- luacheck: ignore
   print("NotImplementedInterfaceProperty_Test2 Started");
 
-  local TestPackage = lib:CreatePackage("NotImplementedInterfaceProperty_Test2");
+  local TestPackage = obj:CreatePackage("NotImplementedInterfaceProperty_Test2");
 
   local IDummyInterface = TestPackage:CreateInterface("IDummyInterface", {
     MyNumber = "number";
@@ -347,7 +628,7 @@ end
 local function NotImplementedInterfaceProperty_Test3() -- luacheck: ignore
   print("NotImplementedInterfaceProperty_Test3 Started");
 
-  local TestPackage = lib:CreatePackage("NotImplementedInterfaceProperty_Test3");
+  local TestPackage = obj:CreatePackage("NotImplementedInterfaceProperty_Test3");
 
   local IDummyInterface = TestPackage:CreateInterface("IDummyInterface", {
     MyNumber = "number";
@@ -370,7 +651,7 @@ end
 local function Inheritance_Test1() -- luacheck: ignore
   print("Inheritance_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("Inheritance_Test1", "Test");
+  local TestPackage = obj:CreatePackage("Inheritance_Test1", "Test");
   local Parent = TestPackage:CreateClass("Parent");
 
   --local Child = TestPackage:CreateClass("Child", "Parent"); -- invalid namespace (it's not been exported as expected!)
@@ -393,7 +674,7 @@ local function Inheritance_Test1() -- luacheck: ignore
     data.Dialog = "I am a parent.";
   end
 
-  lib:SetDebugMode(true);
+  obj:SetDebugMode(true);
   local child = Child();
 
   assert(child:GetObjectType() == "Child");
@@ -413,7 +694,7 @@ end
 
 local function Inheritance_Test2() -- luacheck: ignore
   print("Inheritance_Test2 Started");
-  local TestPackage = lib:CreatePackage("Inheritance_Test2");
+  local TestPackage = obj:CreatePackage("Inheritance_Test2");
 
   local IInterface = TestPackage:CreateInterface("IInterface", {
     Run = {
@@ -443,7 +724,7 @@ end
 
 local function Inheritance_Test3() -- luacheck: ignore
   print("Inheritance_Test3 Started");
-  local TestPackage = lib:CreatePackage("Inheritance_Test3");
+  local TestPackage = obj:CreatePackage("Inheritance_Test3");
 
   local Parent = TestPackage:CreateClass("Parent");
 
@@ -465,7 +746,7 @@ end
 
 local function Inheritance_Test4() -- luacheck: ignore
   print("Inheritance_Test4 Started");
-  local TestPackage = lib:CreatePackage("Inheritance_Test4");
+  local TestPackage = obj:CreatePackage("Inheritance_Test4");
 
   local IInterface = TestPackage:CreateInterface("IInterface", {
     Run = {
@@ -495,7 +776,7 @@ end
 
 local function Inheritance_Test5() -- luacheck: ignore
   print("Inheritance_Test5 Started");
-  local TestPackage = lib:CreatePackage("Inheritance_Test5");
+  local TestPackage = obj:CreatePackage("Inheritance_Test5");
 
   local Parent = TestPackage:CreateClass("Parent");
 
@@ -518,7 +799,7 @@ end
 
 local function Inheritance_Test6() -- luacheck: ignore
   print("Inheritance_Test6 Started");
-  local TestPackage = lib:CreatePackage("Inheritance_Test6");
+  local TestPackage = obj:CreatePackage("Inheritance_Test6");
   local Parent = TestPackage:CreateClass("Parent");
   local allExecuted = 0;
 
@@ -556,7 +837,7 @@ end
 local function Inheritance_Test7() -- luacheck: ignore
   print("Inheritance_Test7 Started");
 
-  local TestPackage = lib:CreatePackage("Inheritance_Test7");
+  local TestPackage = obj:CreatePackage("Inheritance_Test7");
   local Parent = TestPackage:CreateClass("Parent");
 
   function Parent:__Construct(data)
@@ -579,7 +860,7 @@ end
 
 local function UsingParent_Test1() -- luacheck: ignore
   print("UsingParent_Test1 Started");
-  local TestPackage = lib:CreatePackage("UsingParent_Test1");
+  local TestPackage = obj:CreatePackage("UsingParent_Test1");
 
   local SuperParent = TestPackage:CreateClass("SuperParent");
   local Parent = TestPackage:CreateClass("Parent", SuperParent);
@@ -643,7 +924,7 @@ end
 
 local function UsingParent_Test2() -- luacheck: ignore
   print("UsingParent_Test2 Started");
-  local TestPackage = lib:CreatePackage("UsingParent_Test2");
+  local TestPackage = obj:CreatePackage("UsingParent_Test2");
 
   local SuperParent = TestPackage:CreateClass("SuperParent");
   local Parent = TestPackage:CreateClass("Parent", SuperParent);
@@ -698,7 +979,7 @@ end
 
 local function UsingParent_Test3() -- luacheck: ignore
   print("UsingParent_Test3 Started");
-  local TestPackage = lib:CreatePackage("UsingParent_Test3");
+  local TestPackage = obj:CreatePackage("UsingParent_Test3");
 
   local SuperParent = TestPackage:CreateClass("SuperParent");
   local Parent = TestPackage:CreateClass("Parent", SuperParent);
@@ -748,7 +1029,7 @@ end
 
 local function UsingParentWithVirtualFunction_Test4() -- luacheck: ignore
   print("UsingParentWithVirtualFunction_Test4 Started");
-  local TestPackage = lib:CreatePackage("UsingParentWithVirtualFunction_Test4");
+  local TestPackage = obj:CreatePackage("UsingParentWithVirtualFunction_Test4");
   local Parent = TestPackage:CreateClass("Parent");
   local Child = TestPackage:CreateClass("Child", Parent);
   local called = false;
@@ -795,8 +1076,8 @@ end
 local function SubPackages_Test1() -- luacheck: ignore
   print("SubPackages_Test1 Started");
 
-  local ParentPackage = lib:CreatePackage("ParentPackage");
-  local ChildPackage = lib:CreatePackage("ChildPackage");
+  local ParentPackage = obj:CreatePackage("ParentPackage");
+  local ChildPackage = obj:CreatePackage("ChildPackage");
 
   ParentPackage:AddSubPackage(ChildPackage);
 
@@ -806,7 +1087,7 @@ end
 
 local function List_Test1() -- luacheck: ignore
   print("List_Test1 Started");
-  local Collections = lib:Import("Framework.Collections");
+  local Collections = obj:Import("Framework.Collections");
 
   local List = Collections:Get("List");
 
@@ -837,7 +1118,7 @@ end
 
 local function Map_Test1() -- luacheck: ignore
   print("Map_Test1 Started");
-  local Map = lib:Import("Framework.Collections.Map");
+  local Map = obj:Import("Framework.Collections.Map");
 
   local map1 = Map({
     ["Warrior"] = 1,
@@ -881,7 +1162,7 @@ end
 local function DefineProperty_Test1() -- luacheck: ignore
   print("DefineProperty_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("DefineProperty_Test1", "Test");
+  local TestPackage = obj:CreatePackage("DefineProperty_Test1", "Test");
 
   local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
     MyBoolean = "boolean";
@@ -902,7 +1183,7 @@ end
 local function DefineProperty_Test2() -- luacheck: ignore
   print("DefineProperty_Test2 Started");
 
-  local TestPackage = lib:CreatePackage("DefineProperty_Test2", "Test");
+  local TestPackage = obj:CreatePackage("DefineProperty_Test2", "Test");
 
   local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
     MyBoolean = "boolean";
@@ -910,12 +1191,12 @@ local function DefineProperty_Test2() -- luacheck: ignore
 
   local DummyClass = TestPackage:CreateClass("DummyClass", nil, IDummyClass);
 
-  lib:SetSilentErrors(true);
+  obj:SetSilentErrors(true);
   local _ = DummyClass();
 
-  assert(lib:GetNumErrors() == 1);
-  lib:FlushErrorLog();
-  lib:SetSilentErrors(false);
+  assert(obj:GetNumErrors() == 1);
+  obj:FlushErrorLog();
+  obj:SetSilentErrors(false);
 
   print("DefineProperty_Test2 Successful!");
 end
@@ -923,7 +1204,7 @@ end
 local function DefineProperty_Test3() -- luacheck: ignore
   print("DefineProperty_Test3 Started");
 
-  local TestPackage = lib:CreatePackage("DefineProperty_Test3", "Test");
+  local TestPackage = obj:CreatePackage("DefineProperty_Test3", "Test");
 
   local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
     MyBoolean = "boolean";
@@ -936,12 +1217,12 @@ local function DefineProperty_Test3() -- luacheck: ignore
     self.MyBoolean = "not a boolean!";
   end
 
-  lib:SetSilentErrors(true);
+  obj:SetSilentErrors(true);
   local _ = DummyClass();
 
-  assert(lib:GetNumErrors() == 1);
-  lib:FlushErrorLog();
-  lib:SetSilentErrors(false);
+  assert(obj:GetNumErrors() == 1);
+  obj:FlushErrorLog();
+  obj:SetSilentErrors(false);
 
   print("DefineProperty_Test3 Successful!");
 end
@@ -949,7 +1230,7 @@ end
 local function DefineProperty_Test4() -- luacheck: ignore
   print("DefineProperty_Test4 Started");
 
-  local TestPackage = lib:CreatePackage("DefineProperty_Test4", "Test");
+  local TestPackage = obj:CreatePackage("DefineProperty_Test4", "Test");
 
   local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
     MyBoolean = "?boolean";
@@ -965,7 +1246,7 @@ end
 local function DefineProperty_Test5() -- luacheck: ignore
   print("DefineProperty_Test5 Started");
 
-  local TestPackage = lib:CreatePackage("DefineProperty_Test5", "Test");
+  local TestPackage = obj:CreatePackage("DefineProperty_Test5", "Test");
 
   local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
     MyBoolean = "?boolean";
@@ -978,12 +1259,12 @@ local function DefineProperty_Test5() -- luacheck: ignore
     self.MyBoolean = "not a boolean!";
   end
 
-  lib:SetSilentErrors(true);
+  obj:SetSilentErrors(true);
   local _ = DummyClass();
 
-  assert(lib:GetNumErrors() == 1);
-  lib:FlushErrorLog();
-  lib:SetSilentErrors(false);
+  assert(obj:GetNumErrors() == 1);
+  obj:FlushErrorLog();
+  obj:SetSilentErrors(false);
 
   print("DefineProperty_Test5 Successful!");
 end
@@ -991,7 +1272,7 @@ end
 local function DefineProperty_Test6() -- luacheck: ignore
   print("DefineProperty_Test6 Started");
 
-  local TestPackage = lib:CreatePackage("DefineProperty_Test6", "Test");
+  local TestPackage = obj:CreatePackage("DefineProperty_Test6", "Test");
 
   local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
     MyBoolean = "boolean";
@@ -1003,14 +1284,14 @@ local function DefineProperty_Test6() -- luacheck: ignore
     self.MyBoolean = true;
   end
 
-  lib:SetSilentErrors(true);
+  obj:SetSilentErrors(true);
   local dummyClassInstance = DummyClass();
 
   dummyClassInstance.MyBoolean = "not a boolean!";
 
-  assert(lib:GetNumErrors() == 1);
-  lib:FlushErrorLog();
-  lib:SetSilentErrors(false);
+  assert(obj:GetNumErrors() == 1);
+  obj:FlushErrorLog();
+  obj:SetSilentErrors(false);
 
   print("DefineProperty_Test6 Successful!");
 end
@@ -1018,7 +1299,7 @@ end
 local function Get_DefinedProperty_After_Setting_Test1() -- luacheck: ignore
   print("Get_DefinedProperty_After_Setting_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("Get_DefinedProperty_After_Setting_Test1", "Test");
+  local TestPackage = obj:CreatePackage("Get_DefinedProperty_After_Setting_Test1", "Test");
 
   local IDummyClass = TestPackage:CreateInterface("IDummyClass", {
     MyString = "string";
@@ -1042,7 +1323,7 @@ end
 local function GenericClasses_Test1()  -- luacheck: ignore
   print("GenericClasses_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("GenericClasses_Test1", "Test");
+  local TestPackage = obj:CreatePackage("GenericClasses_Test1", "Test");
   local KeyValuePair = TestPackage:CreateClass("KeyValuePair<K, V>");
 
   TestPackage:DefineParams("K", "V");
@@ -1057,7 +1338,7 @@ end
 local function GenericClasses_Test2() -- luacheck: ignore
   print("GenericClasses_Test2 Started");
 
-  local TestPackage = lib:CreatePackage("GenericClasses_Test2", "Test");
+  local TestPackage = obj:CreatePackage("GenericClasses_Test2", "Test");
 
   local KeyValuePair = TestPackage:CreateClass("KeyValuePair<K, V>");
 
@@ -1066,14 +1347,14 @@ local function GenericClasses_Test2() -- luacheck: ignore
 
   local dummyClassInstance = KeyValuePair:Of("string", "number")();
 
-  lib:SetSilentErrors(true);
+  obj:SetSilentErrors(true);
 
   -- passing string but expected a number!
   dummyClassInstance:Add("testKey", "123");
 
-  assert(lib:GetNumErrors() == 1);
-  lib:FlushErrorLog();
-  lib:SetSilentErrors(false);
+  assert(obj:GetNumErrors() == 1);
+  obj:FlushErrorLog();
+  obj:SetSilentErrors(false);
 
   print("GenericClasses_Test2 Successful!");
 end
@@ -1081,7 +1362,7 @@ end
 local function GenericClasses_Test3() -- luacheck: ignore
   print("GenericClasses_Test3 Started");
 
-  local TestPackage = lib:CreatePackage("GenericClasses_Test3", "Test");
+  local TestPackage = obj:CreatePackage("GenericClasses_Test3", "Test");
   local KeyValuePair = TestPackage:CreateClass("KeyValuePair<K, V>");
 
   TestPackage:DefineParams("K", "V");
@@ -1098,7 +1379,7 @@ end
 local function GenericClasses_Test4() -- luacheck: ignore
   print("GenericClasses_Test4 Started");
 
-  local TestPackage = lib:CreatePackage("GenericClasses_Test4", "Test");
+  local TestPackage = obj:CreatePackage("GenericClasses_Test4", "Test");
   local KeyValuePair = TestPackage:CreateClass("KeyValuePair<K, V>");
 
   TestPackage:DefineParams("K", "?V");
@@ -1115,7 +1396,7 @@ end
 local function GetObjectType_In_Constructor_Test1() -- luacheck: ignore
   print("GetObjectType_In_Constructor_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("GetObjectType_In_Constructor_Test1", "Test");
+  local TestPackage = obj:CreatePackage("GetObjectType_In_Constructor_Test1", "Test");
   local DummyClass = TestPackage:CreateClass("DummyClass");
 
   function DummyClass:__Construct()
@@ -1132,7 +1413,7 @@ end
 local function UsingMultipleDefinitionsForOneArgument_Test1() -- luacheck: ignore
   print("UsingMultipleDefinitionsForOneArgument_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("UsingMultipleDefinitionsForOneArgument_Test1");
+  local TestPackage = obj:CreatePackage("UsingMultipleDefinitionsForOneArgument_Test1");
 
   local TestClass = TestPackage:CreateClass("TestClass");
 
@@ -1156,7 +1437,7 @@ end
 local function MemoryLeak_Test1() -- luacheck: ignore
   print("MemoryLeak_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("MemoryLeak_Test1");
+  local TestPackage = obj:CreatePackage("MemoryLeak_Test1");
 
   local TestClass = TestPackage:CreateClass("TestClass", "Framework.System.FrameWrapper");
 
@@ -1191,7 +1472,7 @@ end
 local function MemoryLeak_Test2() -- luacheck: ignore
   print("MemoryLeak_Test2 Started");
 
-  local TestPackage = lib:CreatePackage("MemoryLeak_Test2");
+  local TestPackage = obj:CreatePackage("MemoryLeak_Test2");
 
   local TestInterface = TestPackage:CreateInterface("TestInterface", {
     TestProperty = "number";
@@ -1208,13 +1489,13 @@ local function MemoryLeak_Test2() -- luacheck: ignore
   _G.UpdateAddOnMemoryUsage();
   local before = _G.GetAddOnMemoryUsage("MayronObjects");
 
-  lib:SetDebugMode(true);
+  obj:SetDebugMode(true);
 
   for _ = 1, 500 do
     testInstance.TestProperty = testInstance.TestProperty + 1;
   end
 
-  lib:SetDebugMode(false);
+  obj:SetDebugMode(false);
 
   _G.UpdateAddOnMemoryUsage();
 
@@ -1230,16 +1511,16 @@ end
 
 local function DefaultParams_Test1() -- luacheck: ignore
   print("DefaultParams_Test1 Started");
-  local TestPackage = lib:CreatePackage("DefaultParams_Test1");
+  local TestPackage = obj:CreatePackage("DefaultParams_Test1");
   local TestClass = TestPackage:CreateClass("TestClass");
 
   local defaultTable = {msg = "foobar"}
 
   TestPackage:DefineParams("string=foo bar", "number=14", {"string", "foo bar 2"}, {"number", 20}, {"table", defaultTable})
   function TestClass:AssertDefaults(_, arg1, arg2, arg3, arg4, arg5)
-    assert(arg1 == "foo bar", string.format("arg1 expected to be 'foo bar', got %s", arg1));
-    assert(arg2 == 14, string.format("arg2 expected to be 14, got %s", arg2));
-    assert(arg3 == "foo bar 2", string.format("arg3 expected to be 'foo bar 2', got %s", arg3));
+    assert(arg1 == "foo bar", string.format("arg1 expected to be 'foo bar', got %s", tostring(arg1)));
+    assert(arg2 == 14, string.format("arg2 expected to be 14, got %s", tostring(arg2)));
+    assert(arg3 == "foo bar 2", string.format("arg3 expected to be 'foo bar 2', got %s", tostring(arg3)));
     assert(arg4 == 20, string.format("arg4 expected to be 20, got %s", arg4));
     assert(type(arg5) == "table", string.format("arg5 expected to be of type table, got %s", type(arg5)));
     assert(arg5.msg == "foobar", string.format("arg5.msg expected to be 'foobar', got %s", arg5.msg));
@@ -1253,7 +1534,7 @@ end
 
 local function DefaultParams_Test2() -- luacheck: ignore
   print("DefaultParams_Test2 Started");
-  local TestPackage = lib:CreatePackage("DefaultParams_Test1");
+  local TestPackage = obj:CreatePackage("DefaultParams_Test2");
   local TestClass = TestPackage:CreateClass("TestClass");
 
   local defaultTable = {msg = "foobar"}
@@ -1275,10 +1556,47 @@ local function DefaultParams_Test2() -- luacheck: ignore
   print("DefaultParams_Test2 Successful!");
 end
 
+local function DefaultParams_Variable_List_Definitions_Test1()
+  print("DefaultParams_Variable_List_Definitions_Test1 Started");
+
+  local TestPackage = obj:CreatePackage("DefaultParams_Variable_List_Definitions_Test1");
+  local TestClass = TestPackage:CreateClass("TestClass");
+
+  TestPackage:DefineParams({"...number|table", 14, { msg = "foobar" }});
+  TestPackage:DefineReturns({"...number|table", 30, { msg = "foobar" }});
+  function TestClass:PrintNumbersAndTables(_, ...)
+    for id, value in obj:IterateArgs(...) do
+      if (obj:IsTable(value)) then
+        print(value.msg);
+        assert(value.msg == "custom");
+
+      elseif (obj:IsNumber(value)) then
+        print(id, value);
+
+        if (id == 1) then
+          assert(value == 10);
+        else
+          assert(value == 14);
+        end
+      end
+    end
+
+    return ...;
+  end
+
+  local instance = TestClass();
+  local v1, v2, v3 = instance:PrintNumbersAndTables(10, nil, { msg = "custom"});
+  assert(v1 == 10);
+  assert(v2 == 14); -- should be the default value from parameter
+  assert(v3.msg == "custom");
+
+  print("DefaultParams_Variable_List_Definitions_Test1 Successful!");
+end
+
 local function ProtectedClassProperties_Test1() -- luacheck: ignore
   print("ProtectedClassProperties_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("ProtectedClassProperties_Test1");
+  local TestPackage = obj:CreatePackage("ProtectedClassProperties_Test1");
   local TestClass = TestPackage:CreateClass("TestClass");
 
   -- should not be allowed
@@ -1301,7 +1619,7 @@ end
 local function PrivateInstanceFunctions_Test1() -- luacheck: ignore
   print("PrivateInstanceFunctions_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("PrivateInstanceFunctions_Test1");
+  local TestPackage = obj:CreatePackage("PrivateInstanceFunctions_Test1");
   local TestClass = TestPackage:CreateClass("TestClass");
 
   TestPackage:DefineParams("string");
@@ -1351,7 +1669,7 @@ end
 local function StaticFunctions_Test1() -- luacheck: ignore
   print("StaticFunctions_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("StaticFunctions_Test1");
+  local TestPackage = obj:CreatePackage("StaticFunctions_Test1");
   local TestClass = TestPackage:CreateClass("TestClass");
 
   TestPackage:DefineParams("string");
@@ -1377,7 +1695,7 @@ end
 local function FriendClasses_Test1() -- luacheck: ignore
   print("FriendClasses_Test1 Started");
 
-  local TestPackage = lib:CreatePackage("FriendClasses_Test1");
+  local TestPackage = obj:CreatePackage("FriendClasses_Test1");
   local TestClass = TestPackage:CreateClass("TestClass");
   local FriendClass = TestPackage:CreateClass("FriendClass");
 
@@ -1400,6 +1718,40 @@ local function FriendClasses_Test1() -- luacheck: ignore
   print("FriendClasses_Test1 Successful!");
 end
 
+local function NilDefinitions_Test1()  -- luacheck: ignore
+  print("NilDefinitions_Test1 Started");
+
+  local TestPackage = obj:CreatePackage("NilDefinitions_Test1");
+  local TestClass = TestPackage:CreateClass("TestClass");
+
+  TestPackage:DefineParams("string", nil, "number");
+  TestPackage:DefineReturns("string", nil, "number");
+  function TestClass:Execute(_, ...)
+    return ...;
+  end
+
+  local instance = TestClass();
+  local v1, v2, v3 = instance:Execute("test", nil, 123);
+  assert(v1 == "test");
+  assert(v2 == nil);
+  assert(v3 == 123);
+
+  VerifyExpectedErrors(2, function()
+    -- 3rd argument needs to still be a number!
+    v1, v2, v3 = instance:Execute("test", nil, "abc");
+
+    -- Also, it does not handle automatic conversions:
+    v1, v2, v3 = instance:Execute("test", nil, "123");
+  end);
+
+  v1, v2, v3 = instance:Execute("test", { msg = "test2" }, 123);
+  assert(v1 == "test")
+  assert(v2.msg == "test2")
+  assert(v3 == 123)
+
+  print("NilDefinitions_Test1 Successful!");
+end
+
 ---------------------------------
 -- Run Tests:
 ---------------------------------
@@ -1408,6 +1760,8 @@ end
 -- DefineParams_Test1();
 -- DefineReturns_Test1();
 -- DefineParams_Test2();
+-- VariableArgumentList_Test1();
+-- VariableArgumentList_ReturnValues_Test1();
 -- ImportPackage_Test1();
 -- DuplicateClass_Test1();
 -- UsingParent_Test1();
@@ -1446,7 +1800,9 @@ end
 -- MemoryLeak_Test2();
 -- DefaultParams_Test1();
 -- DefaultParams_Test2();
+-- DefaultParams_Variable_List_Definitions_Test1();
 -- ProtectedClassProperties_Test1();
 -- PrivateInstanceFunctions_Test1();
 -- StaticFunctions_Test1();
 -- FriendClasses_Test1();
+-- NilDefinitions_Test1();

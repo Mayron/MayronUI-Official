@@ -244,7 +244,7 @@ function C_DataTextModule:OnEnable(data)
   data.popup:SetFrameLevel(2);
 
   -- controls the Esc key behaviour to close the popup (must use global name)
-  table.insert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
+  -- table.insert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
 
   data.popup.ScrollBar:SetPoint("TOPLEFT", data.popup, "TOPRIGHT", -6, 1);
   data.popup.ScrollBar:SetPoint("BOTTOMRIGHT", data.popup, "BOTTOMRIGHT", -1, 1);

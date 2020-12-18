@@ -94,6 +94,9 @@ db:AddToDefaults("profile.castBars", {
     anchorToSUF = true;
   },
   Focus = {};
+  Pet = {
+    position = {"BOTTOM", "UIParent", "BOTTOM", 0,  400};
+  };
   Mirror = {
     position = {"TOP", "UIParent", "TOP", 0,  -200};
   };
@@ -393,6 +396,9 @@ do
     elseif (unitID == "player") then
       _G.CastingBarFrame:UnregisterAllEvents();
       _G.CastingBarFrame:Hide();
+    elseif (unitID == "pet") then
+      _G.PetCastingBarFrame:UnregisterAllEvents();
+      _G.PetCastingBarFrame:Hide();
     end
 
     bar.name = bar.statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -784,7 +790,7 @@ function C_CastBarsModule:OnInitialize(data)
     r = r, g = g, b = b, a = 0.7
   });
 
-  for _, barName in obj:IterateArgs("Player", "Target", "Focus", "Mirror") do
+  for _, barName in obj:IterateArgs("Player", "Target", "Focus", "Mirror", "Pet") do
     if (not (tk:IsClassic() and barName == "Focus")) then
       local sv = db.profile.castBars[barName]; ---@type Observer
       sv:SetParent(db.profile.castBars.__templateCastBar);
@@ -795,6 +801,7 @@ function C_CastBarsModule:OnInitialize(data)
     "Player.enabled";
     "Target.enabled";
     "Mirror.enabled";
+    "Pet.enabled";
   };
 
   local ignore;

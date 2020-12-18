@@ -18,7 +18,11 @@ _G.BINDING_NAME_MUI_SHOW_CONFIG_MENU = "Show Config Menu";
 _G.BINDING_NAME_MUI_SHOW_LAYOUT_MENU = "Show Layout Menu";
 _G.BINDING_NAME_MUI_SHOW_INSTALLER = "Show Installer";
 
-namespace.components.Database = LibStub:GetLibrary("LibMayronDB"):CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI");
+local obj = namespace.components.Objects; ---@type MayronObjects
+
+namespace.components.Database = obj:Import("Pkg-MayronDB.MayronDB")
+  .Static:CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI");
+
 namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
 namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.components.Modules = {};
@@ -27,7 +31,7 @@ local tk  = namespace.components.Toolkit; ---@type Toolkit
 local db  = namespace.components.Database; ---@type Database
 local em  = namespace.components.EventManager; ---@type LibMayronEvents
 local gui = namespace.components.GUIBuilder; ---@type LibMayronGUI
-local obj = namespace.components.Objects; ---@type MayronObjects
+
 local L   = namespace.components.Locale; ---@type Locale
 
 if (tk:IsClassic()) then

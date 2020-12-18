@@ -198,7 +198,7 @@ function C_CastBarsModule:GetConfigTable()
                 type = "title",
             },
             {   type = "loop",
-                args = { "Player", "Target", "Focus", "Mirror" },
+                args = { "Player", "Target", "Focus", "Mirror", "Pet" },
                 func = function(_, name)
                   if (tk:IsClassic() and name == "Focus") then return end
                   local config =
