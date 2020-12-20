@@ -2,8 +2,6 @@
 ---@type MayronObjects
 local obj = _G.MayronObjects:GetFramework();
 
-if (not obj) then return; end
-
 ---@class PkgMayronDB : Package
 local PkgMayronDB = obj:CreatePackage("Pkg-MayronDB");
 obj:Export(PkgMayronDB);

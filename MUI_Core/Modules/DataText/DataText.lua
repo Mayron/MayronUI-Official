@@ -185,12 +185,20 @@ function C_DataTextModule:OnInitialize(data)
 
     popup = {
       hideInCombat = function(value)
+        local listenerID = "DataText_Popup_HideInCombat";
+
         if (value) then
-          em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "hideInCombat_RegenDisabled", function()
-            _G["MUI_DataTextPopupMenu"]:Hide();
-          end);
+          if (not em:GetEventListenerByID(listenerID)) then
+            local listener = em:CreateEventListenerWithID(listenerID, function()
+              _G["MUI_DataTextPopupMenu"]:Hide();
+            end);
+
+            listener:RegisterEvent("PLAYER_REGEN_DISABLED");
+          else
+            em:EnableEventListeners(listenerID);
+          end
         else
-          em:DestroyEventHandlerByKey("hideInCombat_RegenDisabled");
+          em:DisableEventListeners(listenerID);
         end
       end;
 

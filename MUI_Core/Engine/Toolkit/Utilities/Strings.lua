@@ -117,8 +117,8 @@ function tk.Strings:SetTextColorByClass(text, className)
 end
 
 function tk.Strings:SetTextColorByTheme(text)
-    local themeColor = tk:GetThemeColor(true);
-    return themeColor:WrapTextInColorCode(text);
+  local themeColor = tk:GetThemeColor(true);
+  return themeColor:WrapTextInColorCode(text);
 end
 
 function tk.Strings:SetTextColorByRGB(text, r, g, b)

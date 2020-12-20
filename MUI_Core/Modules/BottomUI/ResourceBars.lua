@@ -182,7 +182,7 @@ function C_ResourceBarsModule:OnEnable(data)
     });
   end);
 
-  em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "ResourceBars_HeightUpdate", function()
+  local listener = em:CreateEventListenerWithID("ResourceBars_HeightUpdate", function()
     if (data.pendingHeightUpdate) then
       data.barsContainer:SetHeight(data.pendingHeightUpdate);
       data.pendingHeightUpdate = nil;
@@ -194,6 +194,8 @@ function C_ResourceBarsModule:OnEnable(data)
       end
     end
   end);
+
+  listener:RegisterEvent("PLAYER_REGEN_ENABLED");
 end
 
 function C_ResourceBarsModule:UpdateContainerHeight(data)
@@ -237,7 +239,7 @@ function C_ResourceBarsModule:UpdateContainerHeight(data)
   data.pendingHeightUpdate = height;
 
   if (not InCombatLockdown()) then
-    em:TriggerEventHandlerByKey("ResourceBars_HeightUpdate");
+    em:TriggerEventListenerByID("ResourceBars_HeightUpdate");
   end
 end
 
@@ -268,20 +270,21 @@ function C_ResourceBarsModule:SetBlockerEnabled(data, enabled, dataTextBar)
   end
 
   if (enabled) then
-    em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "Blocker_RegenEnabled", function()
-      data.blocker:Hide();
-    end);
+    if (not em:GetEventListenerByID("Blocker_RegenChanged")) then
+      local onChangedListener = em:CreateEventListenerWithID("Blocker_RegenChanged", function(_, event)
+        data.blocker:SetShown(event == "PLAYER_REGEN_DISABLED");
+      end);
 
-    em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "Blocker_RegenDisabled", function()
-      data.blocker:Show();
-    end);
+      onChangedListener:RegisterEvents("PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED");
+    else
+      em:EnableEventListeners("Blocker_RegenChanged");
+    end
 
     if (InCombatLockdown()) then
       data.blocker:Show();
     end
   else
-    em:DestroyEventHandlerByKey("Blocker_RegenEnabled");
-    em:DestroyEventHandlerByKey("Blocker_RegenDisabled");
+    em:DisableEventListeners("Blocker_RegenChanged");
 
     if (data.blocker) then
       data.blocker:Hide();

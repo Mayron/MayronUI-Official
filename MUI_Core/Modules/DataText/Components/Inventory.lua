@@ -17,63 +17,63 @@ local Inventory = ComponentsPackage:CreateClass("Inventory", nil, "IDataTextComp
 -- Load Database Defaults ------------
 
 db:AddToDefaults("profile.datatext.inventory", {
-    showTotalSlots = false,
-    slotsToShow = "free"
+  showTotalSlots = false,
+  slotsToShow = "free"
 });
 
 -- Local Functions ----------------
 
 local function button_OnEnter(self)
-    local r, g, b = tk:GetThemeColor();
-    GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
-    GameTooltip:SetText(L["Commands"]..":");
-    GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Toggle Bags"], r, g, b, 1, 1, 1);
-    GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]), L["Sort Bags"], r, g, b, 1, 1, 1);
-    GameTooltip:Show();
+  local r, g, b = tk:GetThemeColor();
+  GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
+  GameTooltip:SetText(L["Commands"]..":");
+  GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Toggle Bags"], r, g, b, 1, 1, 1);
+  GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]), L["Sort Bags"], r, g, b, 1, 1, 1);
+  GameTooltip:Show();
 end
 
 local function button_OnLeave()
-    GameTooltip:Hide();
+  GameTooltip:Hide();
 end
 
 -- Inventory Module --------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    self:RegisterComponentClass("inventory", Inventory);
+  self:RegisterComponentClass("inventory", Inventory);
 end);
 
 function Inventory:__Construct(data, settings, dataTextModule, slideController)
-    data.settings = settings;
-    data.slideController = slideController;
+  data.settings = settings;
+  data.slideController = slideController;
 
-    -- set public instance properties
-    self.TotalLabelsShown = 0;
-    self.HasLeftMenu = false;
-    self.HasRightMenu = false;
-    self.Button = dataTextModule:CreateDataTextButton();
+  -- set public instance properties
+  self.TotalLabelsShown = 0;
+  self.HasLeftMenu = false;
+  self.HasRightMenu = false;
+  self.Button = dataTextModule:CreateDataTextButton();
 end
 
 function Inventory:SetEnabled(data, enabled)
   data.enabled = enabled;
 
+  local listenerID = "DataText_Inventory_OnChange";
   if (enabled) then
-    data.handler = em:CreateEventHandler("BAG_UPDATE", function()
-      if (not self.Button) then
-        return
-      end
+    if (not em:GetEventListenerByID(listenerID)) then
+      local listener = em:CreateEventListenerWithID(listenerID, function()
+        if (not self.Button) then return end
+        self:Update(data);
+      end);
 
-      self:Update(data);
-    end);
+      listener:RegisterEvent("BAG_UPDATE");
+    else
+      em:EnableEventListeners(listenerID);
+    end
 
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
     self.Button:SetScript("OnEnter", button_OnEnter);
     self.Button:SetScript("OnLeave", button_OnLeave);
   else
-    if (data.handler) then
-      data.handler:Destroy();
-      data.handler = nil;
-    end
-
+    em:DisableEventListeners(listenerID);
     self.Button:RegisterForClicks("LeftButtonUp");
     self.Button:SetScript("OnEnter", nil);
     self.Button:SetScript("OnLeave", nil);
@@ -81,7 +81,7 @@ function Inventory:SetEnabled(data, enabled)
 end
 
 function Inventory:IsEnabled(data)
-    return data.enabled;
+  return data.enabled;
 end
 
 function Inventory:Update(data, refreshSettings)
@@ -109,9 +109,9 @@ function Inventory:Update(data, refreshSettings)
 end
 
 function Inventory:Click(_, button)
-	if (button == "LeftButton") then
-        ToggleAllBags();
-     elseif (button == "RightButton") then
-        SortBags();
-     end
+  if (button == "LeftButton") then
+    ToggleAllBags();
+  elseif (button == "RightButton") then
+    SortBags();
+  end
 end

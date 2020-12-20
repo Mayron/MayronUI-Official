@@ -241,7 +241,7 @@ function C_ChatModule:OnInitialize(data)
 					local buttonID = keysList:PopFront();
 
 					if (buttonID ~= "key") then
-						em:TriggerEventHandlerByKey(anchorName.."_OnModifierStateChanged");
+						em:TriggerEventListenerByID(anchorName.."_OnModifierStateChanged");
 					end
 
 				elseif (settingName == "tabBar") then

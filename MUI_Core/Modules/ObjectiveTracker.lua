@@ -82,14 +82,14 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
     hideInInstance = function(value)
       if (not value) then
         UnregisterStateDriver(data.autoHideHandler, "autoHideHandler");
-        em:DestroyEventHandlerByKey("ObjectiveTracker_InInstance");
+        em:DestroyEventListeners("ObjectiveTracker_InInstance");
         return;
       end
 
       RegisterStateDriver(data.autoHideHandler, "autoHideHandler",
         "[@boss1,exists][@boss2,exists][@boss3,exists][@boss4,exists] 1;0");
 
-      em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "ObjectiveTracker_InInstance", function()
+      local listener = em:CreateEventListenerWithID("ObjectiveTracker_InInstance", function()
         local inInstance = IsInInstance();
 
         if (inInstance) then
@@ -112,8 +112,10 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
         end
       end);
 
+      listener:RegisterEvent("PLAYER_ENTERING_WORLD");
+
       if (IsInInstance()) then
-        em:TriggerEventHandlerByKey("ObjectiveTracker_InInstance");
+        em:TriggerEventListenerByID("ObjectiveTracker_InInstance");
       end
     end;
 
@@ -211,7 +213,7 @@ function C_ObjectiveTracker:OnEnable(data)
   data.autoHideHandler = CreateFrame("Frame", nil, data.objectiveContainer, "SecureHandlerStateTemplate");
   data.autoHideHandler:SetAttribute("_onstate-autoHideHandler", "if (newstate == 1) then self:Hide() else self:Show() end");
 
-  local triggerInInstanceHandler = function() em:TriggerEventHandlerByKey("ObjectiveTracker_InInstance"); end
+  local triggerInInstanceHandler = function() em:TriggerEventListenerByID("ObjectiveTracker_InInstance"); end
   data.autoHideHandler:SetScript("OnShow", triggerInInstanceHandler);
   data.autoHideHandler:SetScript("OnHide", triggerInInstanceHandler);
 

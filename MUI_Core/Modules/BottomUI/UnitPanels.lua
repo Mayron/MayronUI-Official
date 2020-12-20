@@ -63,11 +63,12 @@ function C_UnitPanels:OnInitialize(data, containerModule)
   self:RegisterUpdateFunctions(db.profile.unitPanels, {
     controlSUF = function(value)
       if (not IsAddOnLoaded("ShadowedUnitFrames")) then return end
-      if (not value) then
-        local handler = em:FindEventHandlerByKey("MuiDetachSuf_Logout");
+      local listener = em:GetEventListenerByID("MuiDetachSuf_Logout");
 
-        if (handler) then
-          handler:Destroy();
+      if (not value) then
+
+        if (listener) then
+          listener:UnregisterEvent("PLAYER_LOGOUT");
           data:Call("DetachShadowedUnitFrames");
           tk:UnhookFunc(_G.ShadowUF, "ProfilesChanged", attachWrapper);
           tk:UnhookFunc("ReloadUI", detachWrapper);
@@ -76,7 +77,8 @@ function C_UnitPanels:OnInitialize(data, containerModule)
         data:Call("AttachShadowedUnitFrames");
         tk:HookFunc(_G.ShadowUF, "ProfilesChanged", attachWrapper);
         tk:HookFunc("ReloadUI", detachWrapper);
-        em:CreateEventHandlerWithKey("PLAYER_LOGOUT", "MuiDetachSuf_Logout", detachWrapper);
+        listener = listener or em:CreateEventListenerWithID("MuiDetachSuf_Logout", detachWrapper);
+        listener:RegisterEvent("PLAYER_LOGOUT");
       end
     end;
 
@@ -94,11 +96,11 @@ function C_UnitPanels:OnInitialize(data, containerModule)
     end;
 
     targetClassColored = function(value)
-      local handler = em:FindEventHandlerByKey("targetClassColored");
+      local listener = em:GetEventListenerByID("targetClassColored");
 
-      if (handler) then
-        handler:SetEnabled(value);
-        handler:Run();
+      if (listener) then
+        listener:SetEnabled(value);
+        em:TriggerEventListener(listener);
       end
     end;
 
@@ -142,7 +144,7 @@ function C_UnitPanels:OnInitialize(data, containerModule)
 
       targetClassColored = function()
         if (data.player and data.target) then
-          em:TriggerEventHandlerByKey("MuiUnitNames_TargetChanged");
+          em:TriggerEventListenerByID("MuiUnitNames_TargetChanged");
         end
       end;
 
@@ -169,10 +171,10 @@ function C_UnitPanels:OnInitialize(data, containerModule)
 
       targetClassColored = function()
         if (data.settings.sufGradients.enabled) then
-          local handler = em:FindEventHandlerByKey("MuiUnitPanels_TargetGradient");
+          local listener = em:GetEventListenerByID("MuiUnitPanels_TargetGradient");
 
-          if (handler) then
-            handler:Run();
+          if (listener) then
+            em:TriggerEventListener(listener);
           end
         end
       end;
@@ -260,13 +262,17 @@ function C_UnitPanels:OnEnable(data)
 end
 
 function C_UnitPanels:OnEnabled(data)
-  if (em:FindEventHandlerByKey("MuiUnitFramePanels_TargetChanged")) then return end
+  if (em:GetEventListenerByID("MuiUnitFramePanels_TargetChanged")) then return end
 
-  -- This event is always needed
-  local events = "PLAYER_REGEN_ENABLED, PLAYER_REGEN_DISABLED, PLAYER_TARGET_CHANGED, PLAYER_ENTERING_WORLD";
-  em:CreateEventHandlerWithKey(events, "MuiUnitFramePanels_TargetChanged", function()
+  local listener = em:CreateEventListenerWithID("MuiUnitFramePanels_TargetChanged", function()
     data:Call("UpdateAllVisuals");
-  end):Run();
+  end);
+
+  listener:RegisterEvents(
+    "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED",
+    "PLAYER_TARGET_CHANGED", "PLAYER_ENTERING_WORLD");
+
+  data:Call("UpdateAllVisuals");
 end
 
 do

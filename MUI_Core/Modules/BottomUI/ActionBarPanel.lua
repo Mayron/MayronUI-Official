@@ -107,9 +107,7 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
       if (value) then
         self:LoadExpandRetractFeature();
       elseif (data.expandRetractFeatureLoaded) then
-        local handler = em:FindEventHandlerByKey("ExpandRetractFeature");
-        handler:SetEventTriggerEnabled("MODIFIER_STATE_CHANGED", false);
-
+        em:DisableEventListeners("ExpandRetractFeature");
         data.panel:SetHeight(data.settings.defaultHeight);
       end
     end;
@@ -301,17 +299,18 @@ end
 
 function C_ActionBarPanel:LoadExpandRetractFeature(data)
   if (data.expandRetractFeatureLoaded) then
-    local handler = em:FindEventHandlerByKey("ExpandRetractFeature");
-    handler:SetEventTriggerEnabled("MODIFIER_STATE_CHANGED", true);
+    em:EnableEventListeners("ExpandRetractFeature");
 
     -- Set up the height of data.panel
     data:Call("SetUpPanelHeight");
     return;
   end
 
-  em:CreateEventHandler("PLAYER_LOGOUT", function()
+  local listener = em:CreateEventListener(function()
     db.profile.actionBarPanel.activeRows = data.settings.activeRows;
   end);
+
+  listener:RegisterEvent("PLAYER_LOGOUT");
 
   -- Set up the height of data.panel
   data:Call("SetUpPanelHeight");
@@ -384,14 +383,18 @@ function C_ActionBarPanel:LoadExpandRetractFeature(data)
     self:SetNumActiveRows(3);
   end);
 
-  em:CreateEventHandlerWithKey("MODIFIER_STATE_CHANGED", "ExpandRetractFeature", function()
+  listener = em:CreateEventListenerWithID("ExpandRetractFeature", function()
     data:Call("HandleModifierStateChanged");
   end);
 
-  em:CreateEventHandler("PLAYER_REGEN_DISABLED", function()
+  listener:RegisterEvent("MODIFIER_STATE_CHANGED");
+
+  listener = em:CreateEventListener(function()
     data.up:Hide();
     data.down:Hide();
   end);
+
+  listener:RegisterEvent("PLAYER_REGEN_DISABLED");
 
   data.expandRetractFeatureLoaded = true;
 end
@@ -461,7 +464,7 @@ function C_ActionBarPanel.Private:LoadTutorial(data)
   tutorialMessage = tutorialMessage:format(tk.Strings:SetTextColorByKey(modKeyLabel, "GOLD"));
   frame.text:SetText(tutorialMessage);
 
-  em:CreateEventHandler("MODIFIER_STATE_CHANGED", function(self)
+  local listener = em:CreateEventListener(function(self)
     if (not tk:IsModComboActive(modKey)) then return end
     frame.titleBar.text:SetText("Tutorial: Step 2");
 
@@ -488,6 +491,8 @@ function C_ActionBarPanel.Private:LoadTutorial(data)
     db.profile.actionBarPanel.tutorial = GetAddOnMetadata("MUI_Core", "Version");
     self:Destroy();
   end);
+
+  listener:RegisterEvent("MODIFIER_STATE_CHANGED");
 end
 
 Engine:DefineParams("table", "?boolean", "?number");

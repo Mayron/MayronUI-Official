@@ -68,8 +68,13 @@ function C_ExperienceBar:SetActive(data, active)
     data.statusbar.texture:SetVertexColor(r * 0.8, g * 0.8, b  * 0.8);
 
     -- once max level, can never reactivate
-    em:CreateEventHandlerWithKey("PLAYER_LEVEL_UP", "OnExperienceBarLevelUp", OnExperienceBarLevelUp, self);
-    em:CreateEventHandlerWithKey("PLAYER_XP_UPDATE", "OnExperienceBarUpdate", OnExperienceBarUpdate, data.statusbar, data.rested);
+    local listener = em:CreateEventListenerWithID("OnExperienceBarLevelUp", OnExperienceBarLevelUp);
+    listener:SetCallbackArgs(self);
+    listener:RegisterEvent("PLAYER_LEVEL_UP");
+
+    listener = em:CreateEventListenerWithID("OnExperienceBarUpdate", OnExperienceBarUpdate);
+    listener:SetCallbackArgs(data.statusbar, data.rested);
+    listener:RegisterEvent("PLAYER_XP_UPDATE");
 
     data.notCreated = nil;
   end
@@ -84,21 +89,21 @@ function C_ExperienceBar:SetEnabled(_, enabled)
       end
 
       -- must be triggered AFTER it has been created!
-      em:TriggerEventHandlerByKey("OnExperienceBarUpdate");
+      em:TriggerEventListenerByID("OnExperienceBarUpdate");
     end
 
   elseif (self:IsActive()) then
     self:SetActive(false);
   end
 
-  local handler = em:FindEventHandlerByKey("OnExperienceBarLevelUp");
-  local handler2 = em:FindEventHandlerByKey("OnExperienceBarUpdate");
+  local levelUpListener = em:GetEventListenerByID("OnExperienceBarLevelUp");
+  local onUpdateListener = em:GetEventListenerByID("OnExperienceBarUpdate");
 
-  if (handler) then
-    handler:SetEventTriggerEnabled("PLAYER_LEVEL_UP", enabled);
+  if (levelUpListener) then
+    levelUpListener:SetEnabled(enabled);
   end
 
-  if (handler2) then
-    handler2:SetEventTriggerEnabled("PLAYER_XP_UPDATE", enabled);
+  if (onUpdateListener) then
+    onUpdateListener:SetEnabled(enabled);
   end
 end

@@ -68,8 +68,9 @@ ResourceBarsPackage:DefineParams("boolean");
 function C_ArtifactBar:SetEnabled(data, enabled)
   if (enabled) then
     -- need to check when it's active
-    em:CreateEventHandlerWithKey("ARTIFACT_XP_UPDATE", "ArtifactXP_Update", OnArtifactXPUpdate, self, data);
-    em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Artifact_OnInventoryChanged", OnArtifactXPUpdate, self, data);
+    local listener = em:CreateEventListenerWithID("ArtifactXP_Update", OnArtifactXPUpdate);
+    listener:SetCallbackArgs(self, data);
+    listener:RegisterEvents("ARTIFACT_XP_UPDATE", "UNIT_INVENTORY_CHANGED");
 
     if (self:CanUse()) then
       if (not self:IsActive()) then
@@ -77,21 +78,16 @@ function C_ArtifactBar:SetEnabled(data, enabled)
       end
 
       -- must be triggered AFTER it has been created!
-      em:TriggerEventHandlerByKey("Artifact_OnInventoryChanged");
+      em:TriggerEventListenerByID("ArtifactXP_Update");
     end
 
   elseif (self:IsActive()) then
     self:SetActive(false);
   end
 
-  local handler = em:FindEventHandlerByKey("ArtifactXP_Update");
-  local handler2 = em:FindEventHandlerByKey("Artifact_OnInventoryChanged");
+  local listener = em:GetEventListenerByID("ArtifactXP_Update");
 
-  if (handler) then
-      handler:SetEventTriggerEnabled("ARTIFACT_XP_UPDATE", enabled);
-  end
-
-  if (handler2) then
-      handler2:SetEventTriggerEnabled("UNIT_INVENTORY_CHANGED", enabled);
+  if (listener) then
+    listener:SetEnabled(enabled);
   end
 end

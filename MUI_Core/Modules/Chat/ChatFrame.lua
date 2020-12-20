@@ -54,11 +54,14 @@ function C_ChatFrame:SetEnabled(data, enabled)
 			data.chatModule:SetUpRaidFrameManager();
 		else
 			-- if it is not loaded, create a callback to trigger when it is loaded
-			em:CreateEventHandler("ADDON_LOADED", function(_, name)
+			local listener = em:CreateEventListener(function(_, name)
 				if (name == "Blizzard_CompactRaidFrames") then
 					data.chatModule:SetUpRaidFrameManager();
 				end
-			end):SetAutoDestroy(true);
+      end)
+
+      listener:SetExecuteOnce(true);
+      listener:RegisterEvent("ADDON_LOADED");
 		end
 
 		-- chat channel button
@@ -502,7 +505,7 @@ do
 		local playerStatusButton = _G.CreateFrame("Button", "MUI_PlayerStatusButton", muiChatFrame);
 		playerStatusButton:SetSize(24, 24);
 
-		em:CreateEventHandler("BN_INFO_CHANGED", function()
+		local listener = em:CreateEventListener(function()
 			local status = _G.FRIENDS_TEXTURE_ONLINE;
 			local _, _, _, _, bnetAFK, bnetDND = _G.BNGetInfo();
 
@@ -513,7 +516,10 @@ do
 			end
 
 			playerStatusButton:SetNormalTexture(status);
-		end):Run();
+    end)
+
+    listener:RegisterEvent("BN_INFO_CHANGED");
+    em:TriggerEventListener(listener);
 
 		playerStatusButton:SetHighlightAtlas("chatframe-button-highlight");
 		tk:SetBasicTooltip(playerStatusButton, L["Change Status"]);

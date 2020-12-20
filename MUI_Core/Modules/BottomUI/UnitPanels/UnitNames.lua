@@ -107,33 +107,38 @@ function C_UnitPanels:SetUpUnitNames(data)
 
   -- Setup event handlers:
   if (not tk:IsPlayerMaxLevel()) then
-    em:CreateEventHandlerWithKey("PLAYER_LEVEL_UP", "MuiUnitNames_LevelUp",
-      function(createdHandler, _, newLevel)
-        UpdateUnitNameText(data, "player", newLevel);
+    local listener = em:CreateEventListenerWithID("MuiUnitNames_LevelUp", function(listener, _, newLevel)
+      UpdateUnitNameText(data, "player", newLevel);
 
-        if (UnitGUID("player") == UnitGUID("target")) then
-          UpdateUnitNameText(data, "target", newLevel);
-        end
-
-        if (tk:IsPlayerMaxLevel()) then
-          createdHandler:Destroy();
-        end
-      end);
-  end
-
-  em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED, PLAYER_REGEN_DISABLED, PLAYER_ENTERING_WORLD, PLAYER_UPDATE_RESTING",
-    "MuiUnitNames_UpdatePlayerName", function()
-      UpdateUnitNameText(data, "player");
-    end);
-
-  em:CreateEventHandlerWithKey("PLAYER_TARGET_CHANGED, PLAYER_ENTERING_WORLD", "MuiUnitNames_TargetChanged",
-    function()
-      if (UnitExists("target")) then
-        UpdateUnitNameText(data, "target");
-      else
-        data.target.text:SetText(tk.Strings.Empty);
+      if (UnitGUID("player") == UnitGUID("target")) then
+        UpdateUnitNameText(data, "target", newLevel);
       end
 
-      data:Call("UpdateVisuals", data.target, data.settings.alpha);
+      if (tk:IsPlayerMaxLevel()) then
+        listener:Destroy();
+      end
     end);
+
+    listener:RegisterEvent("PLAYER_LEVEL_UP");
+  end
+
+  local listener = em:CreateEventListenerWithID("MuiUnitNames_UpdatePlayerName", function()
+    UpdateUnitNameText(data, "player");
+  end);
+
+  listener:RegisterEvents(
+    "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED",
+    "PLAYER_ENTERING_WORLD", "PLAYER_UPDATE_RESTING");
+
+  listener = em:CreateEventListenerWithID("MuiUnitNames_TargetChanged", function()
+    if (UnitExists("target")) then
+      UpdateUnitNameText(data, "target");
+    else
+      data.target.text:SetText(tk.Strings.Empty);
+    end
+
+    data:Call("UpdateVisuals", data.target, data.settings.alpha);
+  end);
+
+  listener:RegisterEvents("PLAYER_TARGET_CHANGED", "PLAYER_ENTERING_WORLD");
 end

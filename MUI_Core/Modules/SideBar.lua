@@ -337,13 +337,22 @@ function C_SideBarModule:OnEnable(data)
   UpdateSideButtonVisibility(data.settings.barsShown, data.expand, data.retract);
 
   if (tk:IsRetail()) then
-    em:CreateEventHandlerWithKey("PET_BATTLE_OPENING_START", "SideBarPetBattleStart", function()
-      data.panel:Hide();
-    end);
+    if (em:GetEventListenerByID("SideBarPetBattleStart")) then
+      em:EnableEventListeners("SideBarPetBattleStart");
+      em:EnableEventListeners("SideBarPetBattleStop");
+    else
+      local listener = em:CreateEventListenerWithID("SideBarPetBattleStart", function()
+        data.panel:Hide();
+      end);
 
-    em:CreateEventHandlerWithKey("PET_BATTLE_CLOSE", "SideBarPetBattleStop", function()
-      data.panel:Show();
-    end);
+      listener:RegisterEvent("PET_BATTLE_OPENING_START");
+
+      listener = em:CreateEventListenerWithID("SideBarPetBattleStop", function()
+        data.panel:Show();
+      end);
+
+      listener:RegisterEvent("PET_BATTLE_CLOSE");
+    end
   end
 end
 
@@ -357,34 +366,32 @@ function C_SideBarModule:OnDisable(data)
   data.retract:Hide();
 
   if (tk:IsRetail()) then
-    em:DestroyEventHandlerByKey("SideBarPetBattleStart");
-    em:DestroyEventHandlerByKey("SideBarPetBattleStop");
+    em:DisableEventListeners("SideBarPetBattleStart");
+    em:DisableEventListeners("SideBarPetBattleStop");
   end
 end
 
 function C_SideBarModule:SetButtonsHideInCombat(data, hide)
   if (hide) then
-    em:CreateEventHandlerWithKey("PLAYER_REGEN_ENABLED", "SideBar_HideInCombat_RegenEnabled", function()
-      data.expand:SetShown(data.settings.barsShown ~= 2);
-      data.retract:SetShown(data.settings.barsShown ~= 0);
-    end);
+    if (not em:GetEventListenerByID("SideBar_HideInCombat_RegenEnabled")) then
+      local listener = em:CreateEventListenerWithID("SideBar_HideInCombat_RegenEnabled", function()
+        data.expand:SetShown(data.settings.barsShown ~= 2);
+        data.retract:SetShown(data.settings.barsShown ~= 0);
+      end);
 
-    em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "SideBar_HideInCombat_RegenDisabled", function()
-      data.expand:Hide();
-      data.retract:Hide();
-    end);
-  end
+      listener:RegisterEvent("PLAYER_REGEN_ENABLED");
 
-  local handler = em:FindEventHandlerByKey("SideBar_HideInCombat_RegenEnabled");
+      listener = em:CreateEventListenerWithID("SideBar_HideInCombat_RegenDisabled", function()
+        data.expand:Hide();
+        data.retract:Hide();
+      end);
 
-  if (handler) then
-    handler:SetEventTriggerEnabled("PLAYER_REGEN_ENABLED", hide);
-  end
-
-  handler = em:FindEventHandlerByKey("SideBar_HideInCombat_RegenDisabled");
-
-  if (handler) then
-    handler:SetEventTriggerEnabled("PLAYER_REGEN_DISABLED", hide);
+      listener:RegisterEvent("PLAYER_REGEN_DISABLED");
+    else
+      em:EnableEventListeners("SideBar_HideInCombat_RegenEnabled", "SideBar_HideInCombat_RegenDisabled");
+    end
+  else
+    em:DisableEventListeners("SideBar_HideInCombat_RegenEnabled", "SideBar_HideInCombat_RegenDisabled");
   end
 
   if (InCombatLockdown() and hide) then

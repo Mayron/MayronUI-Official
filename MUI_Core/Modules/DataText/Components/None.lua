@@ -10,25 +10,25 @@ local None = ComponentsPackage:CreateClass("None", nil, "IDataTextComponent");
 -- CombatTimer Module ----------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    self:RegisterComponentClass("none", None);
+  self:RegisterComponentClass("none", None);
 end);
 
 function None:__Construct(_, _, dataTextModule)
-    -- set public instance properties
-    self.TotalLabelsShown = 0;
-    self.HasLeftMenu = false;
-    self.HasRightMenu = false;
-    self.Button = dataTextModule:CreateDataTextButton();
+  -- set public instance properties
+  self.TotalLabelsShown = 0;
+  self.HasLeftMenu = false;
+  self.HasRightMenu = false;
+  self.Button = dataTextModule:CreateDataTextButton();
 end
 
 function None:Click() end
 
 function None:IsEnabled(data)
-    return data.enabled;
+  return data.enabled;
 end
 
 function None:SetEnabled(data, enabled)
-    data.enabled = enabled;
+  data.enabled = enabled;
 end
 
 function None:Update(_) end

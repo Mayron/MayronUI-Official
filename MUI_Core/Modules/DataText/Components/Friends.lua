@@ -81,19 +81,22 @@ end
 function Friends:SetEnabled(data, enabled)
   data.enabled = enabled;
 
+  local listenerID = "DataText_Friends_OnChange";
   if (enabled) then
-    data.handler = em:CreateEventHandler("FRIENDLIST_UPDATE", function()
-    if (not self.Button) then return; end
-    self:Update();
-  end);
+    if (not em:GetEventListenerByID(listenerID)) then
+      local listener = em:CreateEventListenerWithID(listenerID, function()
+        if (not self.Button) then return; end
+        self:Update();
+      end);
 
-  self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-  else
-    if (data.handler) then
-      data.handler:Destroy();
-      data.handler = nil;
+      listener:RegisterEvent("FRIENDLIST_UPDATE");
+    else
+      em:EnableEventListeners(listenerID);
     end
 
+    self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+  else
+    em:DisableEventListeners(listenerID);
     self.Button:RegisterForClicks("LeftButtonUp");
   end
 end

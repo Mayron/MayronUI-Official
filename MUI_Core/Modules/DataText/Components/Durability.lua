@@ -70,20 +70,25 @@ end
 function Durability:SetEnabled(data, enabled)
   data.enabled = enabled;
 
+  local listenerID = "DataText_Durability_OnChange";
   if (enabled) then
-    data.handler = em:CreateEventHandler("UPDATE_INVENTORY_DURABILITY", function()
-      if (not self.Button) then
-        return
-      end
+    if (not em:GetEventListenerByID(listenerID)) then
+      local listener = em:CreateEventListenerWithID(listenerID, function()
+        if (not self.Button) then
+          return
+        end
 
-      self:Update();
-    end);
+        self:Update();
+      end);
+
+      listener:RegisterEvent("UPDATE_INVENTORY_DURABILITY");
+    else
+      em:EnableEventListeners(listenerID);
+    end
 
     tk:KillElement(DurabilityFrame);
-
-  elseif (data.handler) then
-    data.handler:Destroy();
-    data.handler = nil;
+  else
+    em:DisableEventListeners(listenerID);
   end
 end
 

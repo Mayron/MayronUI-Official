@@ -26,11 +26,11 @@ TaintLess.xml
 ## -------------------------------------------------
 Engine\MayronObjects\MayronObjects.xml
 Packages\Pkg-MayronDB\Pkg-MayronDB.lua
+Packages\Pkg-MayronEvents\Pkg-MayronEvents.xml
 
 ## Libraries:
 ## ------------------------------------------------
 Libs\LibStub.lua
-Libs\LibMayronEvents-1.1.lua
 Libs\LibMayronGUI-1.0\LibMayronGUI.xml
 Libs\LibSharedMedia-3.0\CallbackHandler-1.0.lua
 Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua

@@ -139,19 +139,23 @@ end
 function Currency:SetEnabled(data, enabled)
   data.enabled = enabled;
 
+  local listenerID = "DataText_Currency_Changed";
   if (enabled) then
     self.Button:SetScript("OnEnter", Button_OnEnter);
     self.Button:SetScript("OnLeave", Button_OnLeave);
 
-    em:CreateEventHandlerWithKey("PLAYER_MONEY", "PlayerMoneyHandler", function()
-      if (not self.Button) then
-        return;
-      end
+    if (not em:GetEventListenerByID(listenerID)) then
+      local listener = em:CreateEventListenerWithID(listenerID, function()
+        if (not self.Button) then return end
+        self:Update();
+      end);
 
-      self:Update();
-    end);
+      listener:RegisterEvent("PLAYER_MONEY");
+    else
+      em:EnableEventListeners(listenerID);
+    end
   else
-    em:DestroyEventHandlerByKey("PlayerMoneyHandler");
+    em:DisableEventListeners(listenerID);
     data.showMenu = nil;
   end
 end

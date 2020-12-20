@@ -13,34 +13,34 @@ local C_AzeriteBar = ResourceBarsPackage:Get("AzeriteBar");
 -- Local Functions -----------------------
 
 local function OnAzeriteXPUpdate(_, _, bar, data)
-    if (not bar:CanUse()) then
-        bar:SetActive(false);
-        return;
+  if (not bar:CanUse()) then
+    bar:SetActive(false);
+    return;
+  end
+
+  if (not bar:IsActive()) then
+    bar:SetActive(true);
+  end
+
+  local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem();
+  local activeXP, totalXP = C_AzeriteItem.GetAzeriteItemXPInfo(azeriteItemLocation);
+
+  data.statusbar:SetMinMaxValues(0, totalXP);
+  data.statusbar:SetValue(activeXP);
+
+  if (data.statusbar.text) then
+    if (activeXP > 0 and totalXP == 0) then
+      totalXP = activeXP;
     end
 
-    if (not bar:IsActive()) then
-        bar:SetActive(true);
-    end
+    local percent = (activeXP / totalXP) * 100;
 
-    local azeriteItemLocation = C_AzeriteItem.FindActiveAzeriteItem();
-    local activeXP, totalXP = C_AzeriteItem.GetAzeriteItemXPInfo(azeriteItemLocation);
+    activeXP = tk.Strings:FormatReadableNumber(activeXP);
+    totalXP = tk.Strings:FormatReadableNumber(totalXP);
 
-    data.statusbar:SetMinMaxValues(0, totalXP);
-    data.statusbar:SetValue(activeXP);
-
-    if (data.statusbar.text) then
-        if (activeXP > 0 and totalXP == 0) then
-            totalXP = activeXP;
-        end
-
-        local percent = (activeXP / totalXP) * 100;
-
-        activeXP = tk.Strings:FormatReadableNumber(activeXP);
-        totalXP = tk.Strings:FormatReadableNumber(totalXP);
-
-        local text = string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
-        data.statusbar.text:SetText(text);
-    end
+    local text = string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
+    data.statusbar.text:SetText(text);
+  end
 end
 
 -- C_AzeriteBar --------------------------
@@ -69,33 +69,29 @@ end
 
 ResourceBarsPackage:DefineParams("boolean");
 function C_AzeriteBar:SetEnabled(data, enabled)
-    if (enabled) then
-        -- need to check when it's active
-        em:CreateEventHandlerWithKey("AZERITE_ITEM_EXPERIENCE_CHANGED", "AzeriteXP_Update", OnAzeriteXPUpdate, self, data);
-        em:CreateEventHandlerWithKey("UNIT_INVENTORY_CHANGED", "Azerite_OnInventoryChanged", OnAzeriteXPUpdate, self, data);
+  if (enabled) then
+    -- need to check when it's active
+    local listener = em:CreateEventListenerWithID("AzeriteXP_Update", OnAzeriteXPUpdate);
+    listener:SetCallbackArgs(self, data);
+    listener:RegisterEvents("AZERITE_ITEM_EXPERIENCE_CHANGED", "UNIT_INVENTORY_CHANGED");
 
-        if (self:CanUse()) then
-            if (not self:IsActive()) then
-                self:SetActive(true);
-            end
+    if (self:CanUse()) then
+      if (not self:IsActive()) then
+        self:SetActive(true);
+      end
 
-            -- must be triggered AFTER it has been created!
-            em:TriggerEventHandlerByKey("AzeriteXP_Update");
-        end
-
-    elseif (self:IsActive()) then
-        self:SetActive(false);
+      -- must be triggered AFTER it has been created!
+      em:TriggerEventListenerByID("AzeriteXP_Update");
     end
 
-    local handler = em:FindEventHandlerByKey("AzeriteXP_Update");
-    local handler2 = em:FindEventHandlerByKey("Azerite_OnInventoryChanged");
+  elseif (self:IsActive()) then
+    self:SetActive(false);
+  end
 
-    if (handler) then
-        handler:SetEventTriggerEnabled("AZERITE_ITEM_EXPERIENCE_CHANGED", enabled);
-    end
+  local listener = em:GetEventListenerByID("AzeriteXP_Update");
 
-    if (handler2) then
-        handler2:SetEventTriggerEnabled("UNIT_INVENTORY_CHANGED", enabled);
-    end
+  if (listener) then
+    listener:SetEnabled(enabled);
+  end
 end
 

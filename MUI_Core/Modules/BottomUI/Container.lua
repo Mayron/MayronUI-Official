@@ -27,13 +27,17 @@ function C_Container:OnInitialize(data)
   data.container:SetFrameStrata("LOW");
 
   if (tk:IsRetail()) then
-    em:CreateEventHandler("PET_BATTLE_OVER", function()
+    local listener = em:CreateEventListener(function()
       data.container:Show();
     end);
 
-    em:CreateEventHandler("PET_BATTLE_OPENING_START", function()
+    listener:RegisterEvent("PET_BATTLE_OVER");
+
+    listener = em:CreateEventListener(function()
       data.container:Hide();
     end);
+
+    listener:RegisterEvent("PET_BATTLE_OPENING_START");
 
     if (C_PetBattles.IsInBattle()) then
       data.container:Hide();

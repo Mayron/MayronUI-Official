@@ -36,14 +36,14 @@ _G.MayronObjects = _G.MayronObjects or {
 };
 
 ---@type MayronObjects
-local Framework = _G.MayronObjects:NewFramework("3.1.2");
+local Framework = _G.MayronObjects:NewFramework("3.1.4");
 
 if (not Framework) then return end
 
 local error, unpack, next, ipairs = _G.error, _G.unpack, _G.next, _G.ipairs;
 local setmetatable, table, string = _G.setmetatable, _G.table, _G.string;
 local getmetatable, select, pcall, strsplit = _G.getmetatable, _G.select, _G.pcall, _G.strsplit;
-local tostring, collectgarbage, print = _G.tostring, _G.collectgarbage, _G.print;
+local tostring, collectgarbage, print, max = _G.tostring, _G.collectgarbage, _G.print, _G.math.max;
 
 Framework.Types = {};
 Framework.Types.Table    = "table";
@@ -153,32 +153,87 @@ end
 
 do
   local wrappers = {};
+  local lives = {};
   local pendingClean;
   local C_Timer = _G.C_Timer;
 
   local function CleanWrappers()
-    Framework:EmptyTable(wrappers);
-    pendingClean = nil;
-    collectgarbage("collect");
+    for key, value in pairs(lives) do
+      lives[key] = value - 1;
+    end
+
+    local removed = false;
+    for key, wrapper in pairs(wrappers) do
+      if (lives[key] <= 0) then
+        lives[key] = nil;
+        wrappers[key] = nil;
+        setmetatable(wrapper, nil);
+        Framework:EmptyTable(wrapper);
+        removed = true;
+      end
+    end
+
+    if (removed) then
+      collectgarbage("collect");
+    end
+
+    if (next(wrappers)) then
+      C_Timer.After(10, CleanWrappers);
+    else
+      pendingClean = nil;
+    end
   end
 
-  local function iterator(wrapper, id)
-    if (id ~= #wrapper) then
-      id = id + 1;
-      return id, wrapper[id];
-    else
-      -- reached end of wrapper so finish looping and clean up
-      Framework:PushTable(wrapper);
+  -- Only iterates over values found in table and will cut off trailing `nil` values
+  function Framework:IterateValues(...)
+    local index = 0;
+    local args = self:PopTable(...);
+
+    return function()
+      index = index + 1;
+
+      if (index <= #args) then
+        return index, args[index];
+      else
+        -- reached end of wrapper so finish looping and clean up
+        Framework:PushTable(args);
+      end
+    end
+  end
+
+  -- iterates over all arguments in a variable argument list, including explicit `nil` CopyTableValues
+  -- does not trim off trailing `nil` values.
+  function Framework:IterateArgs(...)
+    local index = 0;
+    local size = select("#", ...); -- can only accurately get size of vararg
+
+    if (size == 1 and (select(1, ...)) == nil) then
+      print("error");
+      error("wrong")
+    end
+    local args = self:PopTable(...); -- may contain `nil` values, so we cannot use `#`.
+
+    return function()
+      index = index + 1;
+
+      if (index <= size) then
+        return index, args[index];
+      else
+        -- reached end of wrapper so finish looping and clean up
+        Framework:PushTable(args);
+      end
     end
   end
 
   local function PushTable(wrapper)
-    if (not wrappers[tostring(wrapper)]) then
-      wrappers[#wrappers + 1] = wrapper;
-      wrappers[tostring(wrapper)] = true;
+    local key = tostring(wrapper);
+
+    if (not wrappers[key]) then
+      wrappers[key] = wrapper;
+      lives[key] = 3;
     end
 
-    if (#wrappers >= 10 and not pendingClean) then
+    if (not pendingClean) then
       pendingClean = true;
       C_Timer.After(10, CleanWrappers);
     end
@@ -186,33 +241,27 @@ do
 
   ---@return table @An empty table
   function Framework:PopTable(...)
-    local wrapper;
-
     -- get wrapper before iterating
-    if (#wrappers > 0) then
-      wrapper = wrappers[#wrappers];
-      wrappers[#wrappers] = nil;
-      wrappers[tostring(wrapper)] = nil;
+    local _, wrapper = next(wrappers);
+
+    if (Framework:IsTable(wrapper)) then
+      local key = tostring(wrapper);
+      lives[key] = nil;
+      wrappers[key] = nil;
 
       -- empty table (incase tk.Tables:UnpackTable was used)
-      for key, _ in pairs(wrapper) do
-        wrapper[key] = nil;
-      end
+      setmetatable(wrapper, nil);
+      Framework:EmptyTable(wrapper);
     else
       -- create new wrapper (required if a for-loop call to
       -- IterateArgs is nested inside another IterateArgs call)
       wrapper = {};
     end
 
-    local arg;
     local length = select("#", ...);
-    -- fill wrapper
+    -- add all values from vararg to table:
     for index = 1, length do
-      arg = (select(index, ...));
-
-      if (arg ~= nil) then
-        wrapper[index] = arg;
-      end
+      wrapper[index] = (select(index, ...));
     end
 
     return wrapper, length;
@@ -258,14 +307,15 @@ do
 
   ---@param wrapper table @A table to be unpacked and pushed to the stack to be emptied later.
   ---@param doNotPushTable boolean @If true, the table will not be pushed
-  function Framework:UnpackTable(wrapper, doNotPushTable)
+  ---@param length number @An optional number to specify the known length of the table (in case it was a vararg and length is important)
+  function Framework:UnpackTable(wrapper, doNotPushTable, length)
     if (not self:IsTable(wrapper)) then return end
 
-    local length = 1;
-
-    -- cannot trust select("#", wrapper);
-    for id, _ in pairs(wrapper) do
-      if (id > length) then
+    if (not length) then
+      -- because wrapper is a table containing nil values (not a correct sequence)
+      -- we cannot use "#wrapper" or select("#", unpack(wrapper)) and we lose
+      -- trailing `nil` values when using pairs:
+      for id, _ in pairs(wrapper) do
         length = id;
       end
     end
@@ -274,12 +324,11 @@ do
       PushTable(wrapper);
     end
 
-    return unpack(wrapper, 1, length);
-  end
-
-  function Framework:IterateArgs(...)
-    local wrapper = self:PopTable(...);
-    return iterator, wrapper, 0;
+    if (not Framework:IsNumber(length) or length < 1) then
+      return unpack(wrapper);
+    else
+      return unpack(wrapper, 1, length);
+    end
   end
 end
 
@@ -300,12 +349,12 @@ end
 function Framework:FillTable(tbl, otherTbl, preserveOldValue)
   for key, value in pairs(otherTbl) do
     if (self:IsTable(tbl[key]) and self:IsTable(value)) then
-      self:Fill(tbl[key], value, preserveOldValue);
+      self:FillTable(tbl[key], value, preserveOldValue);
 
     elseif (not preserveOldValue or self:IsNil(tbl[key])) then
       if (self:IsTable(value)) then
         tbl[key] = self:PopTable();
-        self:Fill(tbl[key], value);
+        self:FillTable(tbl[key], value);
       else
         tbl[key] = value;
       end
@@ -574,7 +623,7 @@ local function CreateProxyObject(object, key, self, controller, privateData)
   proxyObject.run = proxyObject.run or function(_, ...)
     -- Validate parameters passed to function
     local definition, errorMessage = Core:GetParamsDefinition(proxyObject);
-    local args = Core:ValidateFunctionCall(definition, errorMessage, ...);
+    local args, argsLength = Core:ValidateFunctionCall(definition, errorMessage, ...);
 
     -- Silent errors
     if (not Framework:IsTable(args)) then return end
@@ -605,28 +654,30 @@ local function CreateProxyObject(object, key, self, controller, privateData)
 
     if (Framework:IsTable(attributes)) then
       for _, attribute in ipairs(attributes) do
-        if (not attribute:OnExecute(proxyObject.self, proxyObject.privateData, proxyObject.key, Framework:UnpackTable(args, true))) then
+        if (not attribute:OnExecute(proxyObject.self, proxyObject.privateData, proxyObject.key, unpack(args, 1, argsLength))) then
           Framework:PushTable(args);
-          return nil; -- if attribute returns false, do no move onto the next attribute and do not call function
+          return -- if attribute returns false, do no move onto the next attribute and do not call function
         end
       end
     end
 
-    local returnValues;
+    local returnValues, returnValuesLength;
     if (proxyObject.privateData) then
       -- Validate return values received after calling the function
-      returnValues = Core:ValidateFunctionCall(definition, errorMessage,
+      returnValues, returnValuesLength = Core:ValidateFunctionCall(definition, errorMessage,
         -- call function here:
-        proxyObject.object[proxyObject.key](proxyObject.self, proxyObject.privateData, Framework:UnpackTable(args)));
+        proxyObject.object[proxyObject.key](proxyObject.self, proxyObject.privateData, unpack(args, 1, argsLength)));
     else
       -- Validate return values received after calling the STATIC function
-      returnValues = Core:ValidateFunctionCall(definition, errorMessage,
+      returnValues, returnValuesLength = Core:ValidateFunctionCall(definition, errorMessage,
         -- call function here:
-        proxyObject.object[proxyObject.key](proxyObject.self, Framework:UnpackTable(args)));
+        proxyObject.object[proxyObject.key](proxyObject.self, unpack(args, 1, argsLength)));
     end
 
+    Framework:PushTable(args);
+
     -- Silent errors
-    if (not Framework:IsTable(returnValues)) then return nil; end
+    if (not Framework:IsTable(returnValues)) then return end
 
     if (proxyObject.key ~= "Destroy") then
       local instanceController = Core:GetController(proxyObject.self, true);
@@ -640,12 +691,12 @@ local function CreateProxyObject(object, key, self, controller, privateData)
 
     ProxyStack:Push(proxyObject);
 
-    if (#returnValues == 0) then
+    if (returnValuesLength == 0) then
       Framework:PushTable(returnValues);
-      return nil; -- fixes returning nil instead of nothing
+      return
     end
 
-    return Framework:UnpackTable(returnValues);
+    return Framework:UnpackTable(returnValues, false, returnValuesLength);
   end
 
   ProxyStack.funcStrings[tostring(proxyObject.run)] = proxyObject;
@@ -931,7 +982,7 @@ do
 
     if (not (Framework:IsTable(frame) and frame.GetObjectType)) then
       -- might be a property we are searching for, so do not throw an error!
-      return nil;
+      return
     end
 
     if (frame[key]) then
@@ -1682,24 +1733,25 @@ end
 
 function Core:ValidateFunctionCall(definition, errorMessage, ...)
   local values = Framework:PopTable(...);
+  local length = select("#", ...);
 
   if (not definition) then
-    return values;
+    return values, length;
   end
 
-  local id = 1;
+  local index = 1;
   local realValue = (select(1, ...));
   local definitionType;
   local errorFound;
   local defaultValue;
   local defaultValues = Framework:PopTable();
-  local vararg, varargStartIndex;
+  local vararg;
 
   repeat
-    definitionType = definition[id] or vararg;
+    definitionType = definition[index] or vararg;
 
     if (Framework:IsTable(definitionType)) then
-      -- ordering matters!:
+      -- a default value detected! ordering of these 2 lines is important:
       defaultValue = definitionType[2];
       definitionType = definitionType[1];
     end
@@ -1707,17 +1759,18 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
     if (definitionType:find("%.%.%.")) then
       vararg = definitionType:gsub("%.%.%.", "");
       definitionType = vararg;
-      varargStartIndex = id;
+
+      -- varargs are optional, if no explicit `nil` is provided then this is acceptible.
+      if (index > length) then break end
     end
 
     if (definitionType:find("|")) then
+      -- a union type detected!
       for _, singleDefinitionType in Framework:IterateArgs(strsplit("|", definitionType)) do
         singleDefinitionType = string.gsub(singleDefinitionType, "%s", "");
         errorFound = self:ValidateValue(singleDefinitionType, realValue, defaultValue);
 
-        if (not errorFound) then
-          break;
-        end
+        if (not errorFound) then break end
       end
 
       if (errorFound) then
@@ -1725,6 +1778,7 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
       end
     else
       if (definitionType:find("=")) then
+        -- a default value detected!
         definitionType, defaultValue = strsplit("=", definitionType);
       end
 
@@ -1740,42 +1794,37 @@ function Core:ValidateFunctionCall(definition, errorMessage, ...)
         errorMessage, definitionType, self:GetValueType(realValue), tostring(realValue));
       end
 
-      errorMessage = errorMessage:gsub("##", "#" .. tostring(id));
+      errorMessage = errorMessage:gsub("##", "#" .. tostring(index));
       self:Error(errorMessage);
-      return;
+      return
     end
 
-    defaultValues[id] = CastSimpleDefault(definitionType, defaultValue);
+    defaultValues[index] = CastSimpleDefault(definitionType, defaultValue);
 
-    id = id + 1;
-    realValue = (select(id, ...));
+    index = index + 1;
+    realValue = (select(index, ...));
 
-  until ((not vararg and definition[id] == nil) or (vararg and id > select("#", ...)));
-
-  -- we don't care about values with no definitions
-  local length = #definition;
-
-  -- calculate real length (cut off trailing nil values from vararg)
-  if (vararg) then
-    length = varargStartIndex - 1;
-
-    for i = varargStartIndex, (select("#", ...)) do
-      if (values[i] ~= nil) then
-        length = i;
-      end
-    end
-  end
+  until ((not vararg and definition[index] == nil) or (vararg and index > length));
 
   -- Swap out nil values with their default values:
-  for i = 1, length do
-    if (values[i] == nil) then
-      values[i] = defaultValues[i];
+  for i, default in pairs(defaultValues) do
+    if (values[i] == nil and default ~= nil) then
+      values[i] = default;
     end
   end
+
+  -- calculate real length (real values might be implicit `nils` but we have defaults to fill in):
+  length = 0;
+  for id, _ in pairs(values) do
+    length = id;
+  end
+
+  -- if there are no defaults, we should fallback to vararg length:
+  length = max((select("#", ...)), length)
 
   Framework:PushTable(defaultValues);
 
-  return values;
+  return values, length;
 end
 
 do

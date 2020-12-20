@@ -181,21 +181,17 @@ end
 function Specialization:SetEnabled(data, enabled)
   data.enabled = enabled;
 
+  local listenerID = "DataText_Specialization_OnChange";
   if (enabled) then
     self.Button:SetScript("OnEnter", Button_OnEnter);
     self.Button:SetScript("OnLeave", Button_OnLeave);
 
-    em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "DataText_Specialization_EnteringWorld", function()
-      self:Update();
-    end);
-
-    em:CreateEventHandlerWithKey("PLAYER_SPECIALIZATION_CHANGED", "DataText_Specialization_SpecChanged", function(_, _, unitID)
-      if (unitID == "player") then
+    if (not em:GetEventListenerByID(listenerID)) then
+      local listener = em:CreateEventListenerWithID(listenerID, listenerID, function(_, _, unitID)
+        if (unitID ~= "player") then return end -- should always be player but just in case
         self:Update();
 
-        if (not data.settings.sets) then
-          return;
-        end
+        if (not data.settings.sets) then return end
 
         local _, specializationName = GetSpecializationInfo(GetSpecialization());
 
@@ -216,11 +212,20 @@ function Specialization:SetEnabled(data, enabled)
             chatModule:SwitchLayouts(layoutName);
           end
         end
-      end
-    end);
+      end);
+
+      listener:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player");
+
+      listener = em:CreateEventListenerWithID("DataText_Specialization_EnteringWorld", function()
+        self:Update();
+      end);
+
+      listener:RegisterEvent("PLAYER_ENTERING_WORLD");
+    else
+      em:EnableEventListeners(listenerID, "DataText_Specialization_EnteringWorld");
+    end
   else
-    em:DestroyEventHandlerByKey("DataText_Specialization_EnteringWorld");
-    em:DestroyEventHandlerByKey("DataText_Specialization_SpecChanged");
+    em:DisableEventListeners(listenerID, "DataText_Specialization_EnteringWorld");
 
     self.Button:SetScript("OnEnter", nil);
     self.Button:SetScript("OnLeave", nil);

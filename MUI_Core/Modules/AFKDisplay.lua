@@ -50,8 +50,8 @@ function Private:ResetDataText()
   local rightText = string.format(right.label, right.num);
   right:SetText(rightText);
 
-  local handler = em:FindEventHandlerByKey("AFKDisplay_Messages");
-  handler:SetEnabled(true);
+  local listener = em:GetEventListenerByID("AFKDisplay_Messages");
+  listener:SetEnabled(true);
 
   if (tk:IsRetail()) then
     HelpTip:HideAll(self.display);
@@ -713,9 +713,9 @@ do
     display.right.label = L["Guild Chat"]..": %u";
     display.left.label = L["Whispers"]..": %u";
 
-    local handler = em:CreateEventHandler("CHAT_MSG_WHISPER, CHAT_MSG_BN_WHISPER, CHAT_MSG_GUILD", IncrementCounter);
-    handler:SetCallbackArgs(display);
-    handler:SetKey("AFKDisplay_Messages");
+    local listener = em:CreateEventListenerWithID("AFKDisplay_Messages", IncrementCounter);
+    listener:SetCallbackArgs(display);
+    listener:RegisterEvents("CHAT_MSG_WHISPER", "CHAT_MSG_BN_WHISPER", "CHAT_MSG_GUILD");
 
     return display;
   end
@@ -725,8 +725,8 @@ function Private:HideDisplay()
   if (self.display) then
     self.display:Hide();
 
-    local handler = em:FindEventHandlerByKey("AFKDisplay_Messages");
-    handler:SetEnabled(false);
+    local listener = em:GetEventListenerByID("AFKDisplay_Messages");
+    listener:SetEnabled(false);
 
     if (self.copyChatFrame) then
       self.copyChatFrame:Hide();
@@ -737,16 +737,16 @@ end
 -- C_AFKDisplayModule Module -----------
 
 function C_AFKDisplayModule:OnInitialize(data)
-    data.settings = db.global.AFKDisplay:GetUntrackedTable();
+  data.settings = db.global.AFKDisplay:GetUntrackedTable();
 
-    if (data.settings.enabled) then
-        self:SetEnabled(true);
-    end
+  if (data.settings.enabled) then
+    self:SetEnabled(true);
+  end
 end
 
 function C_AFKDisplayModule:OnEnable(data)
-  if (not data.handler) then
-    data.handler = em:CreateEventHandlerWithKey("PLAYER_FLAGS_CHANGED", "afkDisplayFlagsChanged",
+  if (not data.eventListener) then
+    data.eventListener = em:CreateEventListenerWithID("afkDisplayFlagsChanged",
     function(_, _, unitID)
       if (unitID ~= "player" or not data.settings.enabled) then
         return;
@@ -755,17 +755,21 @@ function C_AFKDisplayModule:OnEnable(data)
       self:SetShown(UnitIsAFK(unitID));
     end);
 
-    em:CreateEventHandlerWithKey("PLAYER_REGEN_DISABLED", "afkDisplayRegenDisabled",
-    function()
+    data.eventListener:RegisterEvent("PLAYER_FLAGS_CHANGED");
+
+    local regenDisabled = em:CreateEventListenerWithID("afkDisplayRegenDisabled", function()
       self:SetShown(false);
     end);
+
+    regenDisabled:RegisterEvent("PLAYER_REGEN_DISABLED");
+  else
+    em:EnableEventListeners("afkDisplayFlagsChanged", "afkDisplayRegenDisabled");
   end
 end
 
 function C_AFKDisplayModule:OnDisable(data)
-  if (data.handler) then
-    em:DestroyEventHandlersByKey("afkDisplayFlagsChanged", "afkDisplayRegenDisabled");
-    data.handler = nil;
+  if (data.eventListener) then
+    em:DisableEventListeners("afkDisplayFlagsChanged", "afkDisplayRegenDisabled");
   end
 end
 

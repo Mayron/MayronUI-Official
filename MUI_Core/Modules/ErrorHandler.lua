@@ -32,10 +32,15 @@ function C_ErrorHandler:OnInitialize()
     });
   end
 
-  em:CreateEventHandler("ADDON_ACTION_BLOCKED, ADDON_ACTION_FORBIDDEN, MACRO_ACTION_BLOCKED", function(_, event, name, func)
+  local listener = em:CreateEventListener(function(_, event, name, func)
     local errorMessage = ("[%s] AddOn '%s' tried to call the protected function '%s'."):format(event, name or "<name>", func or "<func>");
     addError(errorMessage);
   end);
+
+  listener:RegisterEvents(
+    "ADDON_ACTION_BLOCKED",
+    "ADDON_ACTION_FORBIDDEN",
+    "MACRO_ACTION_BLOCKED");
 
   if (tk:IsRetail()) then
     hooksecurefunc("DisplayInterfaceActionBlockedMessage", function()
@@ -44,9 +49,11 @@ function C_ErrorHandler:OnInitialize()
     end);
   end
 
-  em:CreateEventHandler("LUA_WARNING", function(_, _, warningMessage)
+  listener = em:CreateEventListener(function(_, _, warningMessage)
     addError(warningMessage);
   end);
+
+  listener:RegisterEvent("LUA_WARNING");
 
   seterrorhandler(function(errorMessage)
     addError(errorMessage);

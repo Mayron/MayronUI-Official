@@ -81,14 +81,13 @@ local function TriggerPulsing(data)
   end
 end
 
-local eventTriggers = "PLAYER_REGEN_ENABLED, PLAYER_REGEN_DISABLED, PLAYER_ENTERING_WORLD, PLAYER_UPDATE_RESTING";
 function C_UnitPanels:SetRestingPulseEnabled(data, enabled)
-  local handler = em:FindEventHandlerByKey("MuiRestingPulse");
-  if (not handler and not enabled) then return end
+  local listener = em:GetEventListenerByID("MuiRestingPulse");
+  if (not listener and not enabled) then return end
 
-  if (not handler) then
+  if (not listener) then
     -- enabled must be true
-    em:CreateEventHandlerWithKey(eventTriggers, "MuiRestingPulse", function(_, event)
+    listener = em:CreateEventListenerWithID("MuiRestingPulse", function(_, event)
       if (event == "PLAYER_REGEN_DISABLED") then
         data.stopPulsing = true;
       elseif (event == "PLAYER_REGEN_ENABLED") then
@@ -97,8 +96,12 @@ function C_UnitPanels:SetRestingPulseEnabled(data, enabled)
 
       TriggerPulsing(data);
     end);
+
+    listener:RegisterEvents(
+      "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED",
+      "PLAYER_ENTERING_WORLD", "PLAYER_UPDATE_RESTING");
   else
-    handler:SetEnabled(enabled);
+    listener:SetEnabled(enabled);
   end
 
   TriggerPulsing(data);

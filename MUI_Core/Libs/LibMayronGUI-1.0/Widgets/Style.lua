@@ -48,12 +48,12 @@ WidgetsPackage:DefineReturns("table|number", "?number", "?number");
 ---@param returnTable boolean @(optional) If true, returns the full blizzard color object, else (by default) returns r, g, b, a unpacked values.
 ---@return Color @A Blizzard Color object  containing the r, g, b color values and a few helper functions, or r, g, b, a unpacked values.
 function Style:GetColor(data, colorName, returnTable)
-    local color = Getter(data, "color", colorName, _G.HIGHLIGHT_FONT_COLOR);
-    if (returnTable) then
-        return color;
-    else
-        return color:GetRGBA();
-    end
+  local color = Getter(data, "color", colorName, _G.HIGHLIGHT_FONT_COLOR);
+  if (returnTable) then
+    return color;
+  else
+    return color:GetRGBA();
+  end
 end
 
 WidgetsPackage:DefineParams("number", "?string");

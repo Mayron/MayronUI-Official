@@ -7,9 +7,9 @@ local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
 
 local LoadAddOn, IsTrialAccount, IsInGuild, UnitLevel, UnitInBattleground =
 _G.LoadAddOn, _G.IsTrialAccount, _G.IsInGuild, _G.UnitLevel, _G.UnitInBattleground;
+local InCombatLockdown, ipairs = _G.InCombatLockdown, _G.ipairs;
 
 local ToggleGuildFrame;
-
 if (tk:IsRetail()) then
   ToggleGuildFrame = _G.ToggleGuildFrame;
 else
@@ -232,7 +232,7 @@ local function ChatButton_OnClick(self)
 end
 
 local function ChatFrame_OnModifierStateChanged(_, _, data)
-  if (data.chatModuleSettings.swapInCombat or not _G.InCombatLockdown()) then
+  if (data.chatModuleSettings.swapInCombat or not InCombatLockdown()) then
     for _, buttonStateData in ipairs(data.settings.buttons) do
       if (not buttonStateData.key or (buttonStateData.key and tk:IsModComboActive(buttonStateData.key))) then
         data.buttons[1]:SetText(buttonStateData[1]);
@@ -247,8 +247,12 @@ Engine:DefineParams("table")
 function C_ChatFrame:SetUpButtonHandler(data, buttonSettings)
   data.settings.buttons = buttonSettings;
 
-  em:CreateEventHandlerWithKey("MODIFIER_STATE_CHANGED", data.anchorName.."_OnModifierStateChanged",
-  ChatFrame_OnModifierStateChanged, data):Run();
+  local listenerID = data.anchorName.."_OnModifierStateChanged";
+  local listener = em:CreateEventListenerWithID(listenerID, ChatFrame_OnModifierStateChanged);
+
+  listener:SetCallbackArgs(data);
+  listener:RegisterEvent("MODIFIER_STATE_CHANGED");
+  em:TriggerEventListenerByID(listenerID);
 
   data.buttons[1]:SetScript("OnClick", ChatButton_OnClick);
   data.buttons[2]:SetScript("OnClick", ChatButton_OnClick);

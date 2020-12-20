@@ -198,18 +198,22 @@ function C_TimerBarsModule:OnInitialize(data)
         end;
 
         value = {
+          ---@param field TimerField
           enabled = function(value, _, field)
             field:SetEnabled(value);
           end;
 
+          ---@param field TimerField
           position = function(_, _, field)
             field:PositionField();
           end;
 
+          ---@param field TimerField
           unitID = function(value, _, field)
             field:SetUnitID(value);
           end;
 
+          ---@param field TimerField
           bar = function(_, _, field, fieldName)
             local fieldSettings = data.settings.fields[fieldName];
             local maxBars = fieldSettings.bar.maxBars;
@@ -230,34 +234,40 @@ function C_TimerBarsModule:OnInitialize(data)
             RepositionBars(fieldData);
           end;
 
+          ---@param field TimerField
           showIcons = function(value, _, field)
             for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
               bar:SetIconShown(value);
             end
           end;
 
+          ---@param field TimerField
           showSpark = function(value, _, field)
             for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
               bar:SetSparkShown(value);
             end
           end;
 
+          ---@param field TimerField
           colorDebuffsByType = function(_, _, field)
             field:RecheckAuras();
           end;
 
+          ---@param field TimerField
           auraName = function(_, _, field, fieldName)
             for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
               bar:SetAuraNameShown(data.settings.fields[fieldName].auraName.show);
             end
           end;
 
+          ---@param field TimerField
           timeRemaining = function(_, _, field, fieldName)
             for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
               bar:SetTimeRemainingShown(data.settings.fields[fieldName].timeRemaining.show);
             end
           end;
 
+          ---@param field TimerField
           filters = function(_, _, field)
             if (field) then
               field:RecheckAuras();
@@ -328,20 +338,19 @@ function C_TimerBarsModule:OnInitialized(data)
 end
 
 function C_TimerBarsModule:OnEnable()
-  if (em:FindEventHandlerByKey("TimerBarsModule_OnCombatLogEvent")) then
-    em:EnableEventHandlers(
-      "TimerBarsModule_OnCombatLogEvent",
-      "TimerBarsModule_CheckUnitAuras");
+  if (not em:GetEventListenerByID("TimerBarsModule_OnCombatLogEvent")) then
+    local listener = em:CreateEventListenerWithID("TimerBarsModule_OnCombatLogEvent", OnCombatLogEvent);
+    listener:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
+
+    listener = em:CreateEventListenerWithID("TimerBarsModule_CheckUnitAuras", CheckUnitAuras);
+    listener:RegisterEvent("PLAYER_ENTERING_WORLD");
   else
-    em:CreateEventHandlerWithKey("COMBAT_LOG_EVENT_UNFILTERED", "TimerBarsModule_OnCombatLogEvent", OnCombatLogEvent);
-    em:CreateEventHandlerWithKey("PLAYER_ENTERING_WORLD", "TimerBarsModule_CheckUnitAuras", CheckUnitAuras);
+    em:EnableEventHandlers("TimerBarsModule_OnCombatLogEvent", "TimerBarsModule_CheckUnitAuras");
   end
 end
 
 function C_TimerBarsModule:OnDisable()
-    em:DisableEventHandlers(
-      "TimerBarsModule_OnCombatLogEvent",
-      "TimerBarsModule_CheckUnitAuras");
+  em:DestroyEventListeners("TimerBarsModule_OnCombatLogEvent", "TimerBarsModule_CheckUnitAuras");
 end
 
 Engine:DefineReturns("?TimerField");
@@ -972,8 +981,20 @@ Engine:DefineReturns("?TimerBar");
 function C_TimerField:GetAllTimerBars(data)
   local allBars = obj:PopTable();
 
-  tk.Tables:AddAll(allBars, unpack(data.activeBars));
-  tk.Tables:AddAll(allBars, data.expiredBarsStack:Unpack());
+  if (not tk.Tables:IsEmpty(data.activeBars)) then
+    tk.Tables:AddAll(allBars, unpack(data.activeBars));
+  end
+
+  local stack = data.expiredBarsStack; ---@type Stack
+
+  if (not stack:IsEmpty()) then
+    tk.Tables:AddAll(allBars, stack:Unpack());
+  end
+
+  if (tk.Tables:IsEmpty(allBars)) then
+    obj:PushTable(allBars);
+    return
+  end
 
   return obj:UnpackTable(allBars);
 end

@@ -165,9 +165,11 @@ local function VariableArgumentList_Test1() -- luacheck: ignore
   print("starting sub-test 1");
   instance:RunTest1("value", 1, 2, 3, 4, 5);
 
+
   VerifyExpectedErrors(1, function()
     instance:RunTest1("value", 1, 2, 3, "error!", 5); -- should fail!
   end);
+
 
   VerifyExpectedErrors(1, function()
     instance:RunTest1("value", 1, 2, 3, nil, 5); -- should fail!
@@ -218,7 +220,7 @@ local function VariableArgumentList_Test1() -- luacheck: ignore
 
   TestPackage:DefineParams({"...table", { test = true } });
   function TestClass:RunTest6(_, arg1, arg2, arg3, arg4, arg5)
-    assert(arg1 == nil);
+    assert(arg1 == nil, string.format("Expected arg1 to be nil because no value was explicitly given (not even nil), but got %s", tostring(arg1)));
     assert(arg2 == nil);
     assert(arg3 == nil);
     assert(arg4 == nil);
@@ -233,18 +235,21 @@ local function VariableArgumentList_Test1() -- luacheck: ignore
     assert(arg1 == 99, string.format("Expected arg1 to equal default value 99, got %s.", tostring(arg1)));
     assert(arg2 == 99, string.format("Expected arg2 to equal default value 99, got %s.", tostring(arg2)));
     assert(arg3 == 3, string.format("Expected arg3 to equal 3.", tostring(arg3)));
-    assert(arg4 == nil, string.format("Expected arg4 to equal nil.", tostring(arg4)));
-    assert(arg5 == nil, string.format("Expected arg5 to equal nil.", tostring(arg5)));
+    assert(arg4 == 99, string.format("Expected arg4 to equal 99 as nil was explicitly supplied.", tostring(arg4)));
+    assert(arg5 == nil, string.format("Expected arg5 to equal nil because no value was supplied.", tostring(arg5)));
   end
 
   print("starting sub-test 7");
   instance:RunTest7(nil, nil, 3, nil);
 
   TestPackage:DefineParams("...number=99");
-  function TestClass:RunTest8(_, arg1, arg2, arg3, arg4, arg5)
-    assert(arg1 == nil, string.format("Expected arg1 to equal nil, got %s.", tostring(arg1)));
-    assert(arg2 == nil, string.format("Expected arg2 to equal nil, got %s.", tostring(arg2)));
-    assert(arg3 == nil, string.format("Expected arg3 to equal nil, got %s.", tostring(arg3)));
+  function TestClass:RunTest8(_, ...)
+    assert(select("#", ...) == 3, "Expected vararg size to be 3")
+
+    local arg1, arg2, arg3, arg4, arg5 = ...;
+    assert(arg1 == 99, string.format("Expected arg1 to equal 99 as nil was explicitly supplied, got %s.", tostring(arg1)));
+    assert(arg2 == 99, string.format("Expected arg2 to equal 99 as nil was explicitly supplied, got %s.", tostring(arg2)));
+    assert(arg3 == 99, string.format("Expected arg3 to equal 99 as nil was explicitly supplied, got %s.", tostring(arg3)));
     assert(arg4 == nil, string.format("Expected arg4 to equal nil, got %s.", tostring(arg4)));
     assert(arg5 == nil, string.format("Expected arg5 to equal nil, got %s.", tostring(arg5)));
   end
@@ -272,17 +277,15 @@ local function VariableArgumentList_Test1() -- luacheck: ignore
   print("starting sub-test 10");
   instance:RunTest10(1, "2", 3, nil, 5); -- allowed
 
-  -- variable argument lists are NOT optional - at least 1 number must be passed to the method
+  -- variable argument lists are optional - `...number` means that any explicit `nil` values, or non-number values, are not allowed
+  -- but you do NOT need at least 1 number for this to work. You can ignore passing anything to the vararg.
   TestPackage:DefineParams("string", "...number");
   function TestClass:RunTest11(_, arg1, arg2)
     assert(arg1 == "value");
     assert(arg2 == nil);
   end
 
-  print("starting sub-test 11");
-  VerifyExpectedErrors(1, function()
-    instance:RunTest11("value"); -- should fail!
-  end);
+  instance:RunTest11("value"); -- should pass!
 
   print("VariableArgumentList_Test1 Successful!");
 end
@@ -382,9 +385,9 @@ local function VariableArgumentList_ReturnValues_Test1() -- luacheck: ignore
 
   print("starting sub-test 8");
   v1, v2, v3, v4, v5 = instance:RunTest8();
-  assert(v1 == nil, string.format("Expected v1 to equal nil, got %s.", tostring(v1)));
-  assert(v2 == nil, string.format("Expected v2 to equal nil, got %s.", tostring(v2)));
-  assert(v3 == nil, string.format("Expected v3 to equal nil, got %s.", tostring(v3)));
+  assert(v1 == 99, string.format("Expected v1 to equal 99 as nil was explicitly supplied, got %s.", tostring(v1)));
+  assert(v2 == 99, string.format("Expected v2 to equal 99 as nil was explicitly supplied, got %s.", tostring(v2)));
+  assert(v3 == 99, string.format("Expected v3 to equal 99 as nil was explicitly supplied, got %s.", tostring(v3)));
   assert(v4 == nil, string.format("Expected v4 to equal nil, got %s.", tostring(v4)));
   assert(v5 == nil, string.format("Expected v5 to equal nil, got %s.", tostring(v5)));
 
@@ -422,10 +425,10 @@ local function VariableArgumentList_ReturnValues_Test1() -- luacheck: ignore
 
   print("starting sub-test 11");
 
-  VerifyExpectedErrors(1, function()
-    instance:RunTest11(); -- should fail!
-  end);
-
+  -- a variable list of return values is optional. There is no minimum requirement of returned values.
+  -- `...number` defines the rule that any values returned should not be `nil` and must be a number.
+  -- but if you do not explicitly return a `nil` value then this will pass.
+  instance:RunTest11(); -- should pass!
 
   print("VariableArgumentList_ReturnValues_Test1 Successful!");
 end
@@ -956,7 +959,7 @@ local function UsingParent_Test2() -- luacheck: ignore
     totalCalled = totalCalled + 1;
 
     -- should use parent definitions
-    self.Parent:Print("Child --> "..message); -- TODO: Should have a default UseParentScope based on current scope
+    self.Parent:Print("Child --> "..message);
   end
 
   TestPackage:DefineParams("string", "number")
@@ -1518,12 +1521,12 @@ local function DefaultParams_Test1() -- luacheck: ignore
 
   TestPackage:DefineParams("string=foo bar", "number=14", {"string", "foo bar 2"}, {"number", 20}, {"table", defaultTable})
   function TestClass:AssertDefaults(_, arg1, arg2, arg3, arg4, arg5)
-    assert(arg1 == "foo bar", string.format("arg1 expected to be 'foo bar', got %s", tostring(arg1)));
-    assert(arg2 == 14, string.format("arg2 expected to be 14, got %s", tostring(arg2)));
-    assert(arg3 == "foo bar 2", string.format("arg3 expected to be 'foo bar 2', got %s", tostring(arg3)));
-    assert(arg4 == 20, string.format("arg4 expected to be 20, got %s", arg4));
-    assert(type(arg5) == "table", string.format("arg5 expected to be of type table, got %s", type(arg5)));
-    assert(arg5.msg == "foobar", string.format("arg5.msg expected to be 'foobar', got %s", arg5.msg));
+    assert(arg1 == "foo bar", string.format("arg1 expected to be 'foo bar' because it is not a vararg, got %s", tostring(arg1)));
+    assert(arg2 == 14, string.format("arg2 expected to be 14 because it is not a vararg, got %s", tostring(arg2)));
+    assert(arg3 == "foo bar 2", string.format("arg3 expected to be 'foo bar 2' because it is not a vararg, got %s", tostring(arg3)));
+    assert(arg4 == 20, string.format("arg4 expected to be 20 because it is not a vararg, got %s", arg4));
+    assert(type(arg5) == "table", string.format("arg5 expected to be of type table because it is not a vararg, got %s", type(arg5)));
+    assert(arg5.msg == "foobar", string.format("arg5.msg expected to be 'foobar' because it is not a vararg, got %s", arg5.msg));
   end
 
   local testInstance = TestClass();
@@ -1752,6 +1755,48 @@ local function NilDefinitions_Test1()  -- luacheck: ignore
   print("NilDefinitions_Test1 Successful!");
 end
 
+local function ExplicitNil_Test1()
+  print("ExplicitNil_Test1 Started");
+
+  local TestPackage = obj:CreatePackage("ExplicitNil_Test1");
+  local TestClass = TestPackage:CreateClass("TestClass");
+
+  function TestClass:RunTest1(_, ...)
+    assert((select("#", ...)) == 4, "Explicit nil values should be passed through as expected");
+    return ...;
+  end
+
+  local returnValueSize = 0;
+  local instance = TestClass();
+  for id, value in obj:IterateArgs(instance:RunTest1(nil, nil, nil, nil)) do
+    returnValueSize = id;
+    assert(value == nil, "All values should be nil");
+  end
+
+  assert(returnValueSize == 4);
+
+  function TestClass:RunTest2(_, ...)
+    assert((select("#", ...)) == 0, "Implicit nil values should not be passed through as expected");
+    return ...;
+  end
+
+  for _, _ in obj:IterateArgs(instance:RunTest2()) do
+    error("No return values should have been returned")
+  end
+
+  TestPackage:DefineParams("?number", "...?table");
+  function TestClass:RunTest3(_, ...)
+    assert((select("#", ...)) == 0, "Implicit nil values should not be passed through as expected");
+    return ...;
+  end
+
+  for _, _ in obj:IterateArgs(instance:RunTest3()) do
+    error("No return values should have been returned")
+  end
+
+  print("ExplicitNil_Test1 Successful!");
+end
+
 ---------------------------------
 -- Run Tests:
 ---------------------------------
@@ -1806,3 +1851,4 @@ end
 -- StaticFunctions_Test1();
 -- FriendClasses_Test1();
 -- NilDefinitions_Test1();
+-- ExplicitNil_Test1();

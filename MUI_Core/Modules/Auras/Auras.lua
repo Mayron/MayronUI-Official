@@ -327,9 +327,9 @@ local function AuraEnchantButton_OnUpdate(self, btn, globalName)
 
   if (not (hasEnchant and expirationTime and count)) then
       if (btn.isEnchantActive) then
-          btn.isEnchantActive = nil;
-          -- enable/disable auraButtons:
-          em:FindEventHandlerByKey(globalName.."Handler"):Run("UNIT_AURA");
+        btn.isEnchantActive = nil;
+        -- enable/disable auraButtons:
+        em:TriggerEventListenerByID(globalName.."Listener");
       end
 
       return;
@@ -362,7 +362,7 @@ local function AuraEnchantButton_OnUpdate(self, btn, globalName)
   if (not btn.isEnchantActive) then
     btn.isEnchantActive = true;
     -- enable/disable auraButtons:
-    em:FindEventHandlerByKey(globalName.."Handler"):Run("UNIT_AURA");
+    em:TriggerEventListenerByID(globalName.."Listener");
   end
 end
 
@@ -458,10 +458,12 @@ function C_AuraArea:SetEnabled(data, enabled)
 
       self:UpdateSize();
 
-      em:CreateUnitEventHandlerWithKey("UNIT_AURA", data.globalName.."Handler", AuraArea_OnEvent, "Player")
-        :SetCallbackArgs(self, data)
-        :AddEventTrigger("GROUP_ROSTER_UPDATE")
-        :AddEventTrigger("PLAYER_ENTERING_WORLD");
+      local listenerID = data.globalName.."Listener";
+      local listener = em:CreateEventListenerWithID(listenerID, AuraArea_OnEvent);
+      listener:SetCallbackArgs(self, data);
+      listener:RegisterUnitEvent("UNIT_AURA", "player");
+      listener:RegisterEvent("GROUP_ROSTER_UPDATE");
+      listener:RegisterEvent("PLAYER_ENTERING_WORLD");
 
       newlyCreated = true;
     end
@@ -502,9 +504,8 @@ function C_AuraArea:SetEnabled(data, enabled)
   end
 
   if (not newlyCreated) then
-    local handler = em:FindEventHandlerByKey(data.globalName.."Handler");
-    handler:SetEventTriggerEnabled("GROUP_ROSTER_UPDATE", enabled);
-    handler:SetEventTriggerEnabled("PLAYER_ENTERING_WORLD", enabled);
+    local Listener = em:GetEventListenerByID(data.globalName.."Listener");
+    Listener:SetEnabled(enabled);
   end
 
   data.frame:SetShown(enabled);

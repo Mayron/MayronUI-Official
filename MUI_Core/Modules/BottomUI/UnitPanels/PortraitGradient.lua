@@ -41,10 +41,10 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
 
         if (unitID == "target") then
           local frame = data.gradients[unitID];
-          local handler = em:FindEventHandlerByKey("MuiUnitPanels_TargetGradient");
+          local handler = em:GetEventListenerByID("MuiUnitPanels_TargetGradient");
 
           if (not handler) then
-            handler = em:CreateEventHandlerWithKey("PLAYER_TARGET_CHANGED", "MuiUnitPanels_TargetGradient", function()
+            handler = em:CreateEventListenerWithID("MuiUnitPanels_TargetGradient", function()
               if (not UnitExists("target")) then return end
 
               local from = data.settings.sufGradients.from;
@@ -62,11 +62,13 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
                 from.r, from.g, from.b, from.a);
               end
             end);
+
+            handler:RegisterEvent("PLAYER_TARGET_CHANGED");
           else
             handler:SetEnabled(true);
           end
 
-          handler:Run();
+          em:TriggerEventListenerByID("MuiUnitPanels_TargetGradient");
         end
 
         data.gradients[unitID]:Show();
@@ -82,7 +84,7 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
       end
     end
 
-    local handler = em:FindEventHandlerByKey("MuiUnitPanels_TargetGradient");
+    local handler = em:GetEventListenerByID("MuiUnitPanels_TargetGradient");
 
     if (handler) then
       handler:SetEnabled(false);

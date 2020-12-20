@@ -7,6 +7,8 @@ local LABEL_PATTERN = "|cffffffff%s|r mb";
 
 local C_Timer, string, table, GetNumAddOns, GetAddOnInfo, GetAddOnMemoryUsage =
 _G.C_Timer, _G.string, _G.table, _G.GetNumAddOns, _G.GetAddOnInfo, _G.GetAddOnMemoryUsage;
+local UpdateAddOnMemoryUsage = _G.UpdateAddOnMemoryUsage;
+local unpack = _G.unpack;
 
 -- Register and Import Modules -------
 
@@ -62,6 +64,10 @@ end
 
 function Memory:SetEnabled(data, enabled)
   data.enabled = enabled;
+
+  if (not enabled) then
+    data.executed = nil;
+  end
 end
 
 function Memory:Update(data, refreshSettings)
@@ -69,32 +75,30 @@ function Memory:Update(data, refreshSettings)
     data.settings:Refresh();
   end
 
-if (data.executed) then return end
+  if (data.executed) then return end
 
-data.executed = true;
+  data.executed = true;
 
-local function loop()
-  if (data.disabled) then
-    return
+  local function loop()
+    if (not data.enabled) then return end
+
+    -- Must update first!
+    UpdateAddOnMemoryUsage();
+    local total = 0;
+
+    for i = 1, GetNumAddOns() do
+      total = total + GetAddOnMemoryUsage(i);
+    end
+
+    total = (total / 1000);
+    total = tk.Numbers:ToPrecision(total, 2);
+
+    self.Button:SetText(string.format(LABEL_PATTERN, total));
+
+    C_Timer.After(10, loop);
   end
 
-  -- Must update first!
-  _G.UpdateAddOnMemoryUsage();
-  local total = 0;
-
-  for i = 1, _G.GetNumAddOns() do
-    total = total + _G.GetAddOnMemoryUsage(i);
-  end
-
-  total = (total / 1000);
-  total = tk.Numbers:ToPrecision(total, 2);
-
-  self.Button:SetText(string.format(LABEL_PATTERN, total));
-
-  C_Timer.After(10, loop);
-end
-
-loop();
+  loop();
 end
 
 function Memory:Click(data)
@@ -123,7 +127,7 @@ function Memory:Click(data)
       end
 
       -- Set a max length for addon names so they fit correctly.
-      -- Had issue ignoringthe color code so I took this out for now.
+      -- Had issue ignoring the color code so I took this out for now.
       -- addOnName = tk.Strings:RemoveColorCode(addOnName);
       -- addOnName = tk.Strings:SetOverflow(addOnName, 15);
 
@@ -139,7 +143,11 @@ function Memory:Click(data)
 
   table.sort(sorted, compare);
   tk.Tables:Empty(self.MenuLabels);
-  tk.Tables:AddAll(self.MenuLabels, _G.unpack(sorted));
+
+  if (not tk.Tables:IsEmpty(sorted)) then
+    tk.Tables:AddAll(self.MenuLabels, unpack(sorted));
+  end
+
   obj:PushTable(sorted);
 
   self.TotalLabelsShown = #self.MenuLabels;

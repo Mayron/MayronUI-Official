@@ -41,7 +41,7 @@ function tk.Tables:GetSize(tbl, includeIndices, includeKeys)
 
   elseif (not includeIndices and includeKeys) then
     for key, _ in pairs(tbl) do
-      if (type(key) == "string") then
+      if (obj:IsString(key)) then
         size = size + 1;
       end
     end
@@ -135,7 +135,7 @@ function tk.Tables:IndexOf(tbl, value)
 end
 
 function tk.Tables:AddAll(tbl, ...)
-  for _, value in obj:IterateArgs(...) do
+  for _, value in obj:IterateValues(...) do
     table.insert(tbl, value);
   end
 end

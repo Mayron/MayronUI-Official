@@ -4,6 +4,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local InCombatLockdown, unpack = _G.InCombatLockdown, _G.unpack;
 local pairs, ipairs, table, xpcall = _G.pairs, _G.ipairs, _G.table, _G.xpcall;
+local IsAddOnLoaded = _G.IsAddOnLoaded;
 
 ---@type Engine
 local Engine = obj:Import("MayronUI.Engine");
@@ -207,7 +208,7 @@ function C_MovableFramesModule:OnInitialize(data)
   data.frames = obj:PopTable();
 
   _G.UIPARENT_MANAGED_FRAME_POSITIONS.TalkingHeadFrame = nil;
-  em:CreateEventHandler("ADDON_LOADED", function(self, _, addOnName)
+  local listener = em:CreateEventListener(function(self, _, addOnName)
     if (addOnName ~= "Blizzard_TalkingHeadUI") then return end
 
     self:Destroy();
@@ -267,6 +268,8 @@ function C_MovableFramesModule:OnInitialize(data)
     end);
   end);
 
+  listener:RegisterEvent("ADDON_LOADED");
+
 	if (db.global.movable.enabled) then
 		self:SetEnabled(true);
 	end
@@ -293,8 +296,8 @@ do
 		-- Fix for the "Action[SetPoint] failed because[SetPoint would result in anchor family connection]" bugs:
 		FixAnchorFamilyConnections();
 
-		if (not data.handler) then
-      data.handler = em:CreateEventHandler("ADDON_LOADED", function(_, _, addOnName)
+		if (not data.eventListener) then
+      data.eventListener = em:CreateEventListenerWithID("MovableFramesOnAddOnLoaded", function(_, _, addOnName)
         if (BlizzardFrames[addOnName]) then
 					self:ExecuteMakeMovable(BlizzardFrames[addOnName], false);
 					BlizzardFrames[addOnName] = nil;
@@ -304,7 +307,9 @@ do
 					self:ExecuteMakeMovable(BlizzardFrames.dontSavePosition[addOnName], true);
 					BlizzardFrames.dontSavePosition[addOnName] = nil;
 				end
-			end);
+      end);
+
+      data.eventListener:RegisterEvent("ADDON_LOADED");
 
 			for id, frameName in ipairs(BlizzardFrames) do
 				self:ExecuteMakeMovable(frameName, false);
@@ -317,8 +322,8 @@ do
 			end
 
 			for key, value in pairs(BlizzardFrames) do
-				if (value ~= BlizzardFrames.dontSavePosition and _G.IsAddOnLoaded(key)) then
-					data.handler:Run("ADDON_LOADED", key);
+				if (value ~= BlizzardFrames.dontSavePosition and IsAddOnLoaded(key)) then
+          em:TriggerEventListenerByID("MovableFramesOnAddOnLoaded", key);
 				end
 			end
 		end

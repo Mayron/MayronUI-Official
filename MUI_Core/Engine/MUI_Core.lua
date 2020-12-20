@@ -23,13 +23,13 @@ local obj = namespace.components.Objects; ---@type MayronObjects
 namespace.components.Database = obj:Import("Pkg-MayronDB.MayronDB")
   .Static:CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI");
 
-namespace.components.EventManager = LibStub:GetLibrary("LibMayronEvents");
+namespace.components.EventManager =obj:Import("Pkg-MayronEvents.EventManager")();
 namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.components.Modules = {};
 
 local tk  = namespace.components.Toolkit; ---@type Toolkit
 local db  = namespace.components.Database; ---@type Database
-local em  = namespace.components.EventManager; ---@type LibMayronEvents
+local em  = namespace.components.EventManager; ---@type EventManager
 local gui = namespace.components.GUIBuilder; ---@type LibMayronGUI
 
 local L   = namespace.components.Locale; ---@type Locale
@@ -42,7 +42,7 @@ if (tk:IsClassic()) then
 end
 
 ---Gets the core components of MayronUI
----@return Toolkit, Database, LibMayronEvents, LibMayronGUI, MayronObjects, Locale
+---@return Toolkit, Database, EventManager, LibMayronGUI, MayronObjects, Locale
 function MayronUI:GetCoreComponents()
   return tk, db, em, gui, obj, L;
 end
@@ -665,8 +665,6 @@ function C_CoreModule:OnInitialize()
     end
   end
 
-  namespace:SetUpOrderHallBar();
-
   -- probably should be moved to another file...
   if (IsAddOnLoaded("Recount") and _G.Recount_MainWindow) then
     local recount = _G.Recount_MainWindow;
@@ -693,7 +691,7 @@ end
 
 -- Initialize Modules after player enters world (not when DB starts!).
 -- Some dependencies, like Bartender, only load after this event.
-em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
+local onLogin = em:CreateEventListener(function()
   for i = 1, _G.NUM_CHAT_WINDOWS do
     _G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
   end
@@ -713,11 +711,16 @@ em:CreateEventHandler("PLAYER_ENTERING_WORLD", function()
   local coreModule = MayronUI:ImportModule("CoreModule");
   coreModule:Initialize();
 
-end):SetAutoDestroy(true);
+end)
 
-em:CreateEventHandler("PLAYER_LOGOUT", function()
+onLogin:RegisterEvent("PLAYER_ENTERING_WORLD")
+onLogin:SetExecuteOnce(true); -- destroy after first use
+
+local onLogout = em:CreateEventListener(function()
   db.profile.freshInstall = nil;
 end);
+
+onLogout:RegisterEvent("PLAYER_LOGOUT");
 
 -- Database Event callbacks --------------------
 

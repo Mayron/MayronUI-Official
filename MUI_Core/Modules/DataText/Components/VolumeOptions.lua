@@ -107,7 +107,7 @@ end
 -- Durability Module --------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-    self:RegisterComponentClass("volumeOptions", VolumeOptions);
+  self:RegisterComponentClass("volumeOptions", VolumeOptions);
 end);
 
 function VolumeOptions:__Construct(data, settings, dataTextModule)
