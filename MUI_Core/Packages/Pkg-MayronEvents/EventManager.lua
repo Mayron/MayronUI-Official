@@ -126,6 +126,7 @@ PkgMayronEvents:DefineParams("string");
 PkgMayronEvents:DefineReturns("number");
 ---A helper function to return the total number of event listener objects that are also registered
 ---with the provided Blizzard event, instead of a table containing all event listener objects using `GetEventListenersByEvent`.
+---@param event string @The Blizzard event name to check for.
 ---@return number @The total number of event listeners listing out for the specified event.
 function C_EventManager:GetNumEventListenersByEvent(_, event)
   local listeners = self:GetEventListenersByEvent(event);
@@ -139,6 +140,7 @@ PkgMayronEvents:DefineReturns("number");
 ---A helper function to return the total number of event listener objects that are also registered
 ---with the provided (non-Blizzard) custom addon event, instead of a table containing all event
 ---listener objects using `GetEventListenersByCustomEvent`.
+---@param event string @The (non-BLizzard) custom addon event name to check for.
 ---@return number @The total number of event listeners listing out for the specified custom event.
 function C_EventManager:GetNumEventListenersByCustomEvent(_, customEvent)
   local listeners = self:GetEventListenersByCustomEvent(customEvent);

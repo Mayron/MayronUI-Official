@@ -1,4 +1,4 @@
--- luacheck: ignore MayronUI self 143 631
+-- luacheck: ignore self 143 631
 ---@type MayronObjects
 local obj = _G.MayronObjects:GetFramework();
 

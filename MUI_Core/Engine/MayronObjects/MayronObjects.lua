@@ -36,7 +36,7 @@ _G.MayronObjects = _G.MayronObjects or {
 };
 
 ---@type MayronObjects
-local Framework = _G.MayronObjects:NewFramework("3.1.4");
+local Framework = _G.MayronObjects:NewFramework("3.1.5");
 
 if (not Framework) then return end
 
