@@ -1,7 +1,6 @@
 -- luacheck: ignore self
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
-
-if (not obj) then return; end
+if (obj:Import("GridPanels.Main.Region", true)) then return end
 
 local GridPanels = obj:Import("GridPanels.Main"); ---@type Package
 local Region = GridPanels:Get("Region"); ---@type Region

@@ -1,7 +1,6 @@
 -- luacheck: ignore self
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
-
-if (not obj) then return; end
+if (obj:Import("GridPanels.Main.ResponsiveScrollFrame", true)) then return end
 
 local GridPanels = obj:Import("GridPanels.Main"); ---@type Package
 local ResponsiveScrollFrame = GridPanels:Get("ResponsiveScrollFrame"); ---@type ResponsiveScrollFrame

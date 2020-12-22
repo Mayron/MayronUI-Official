@@ -1,6 +1,6 @@
 -- luacheck: ignore self 143 631
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
-if (not obj) then return; end
+if (obj:Import("GridPanels.Main", true)) then return end
 
 local GridPanels = obj:CreatePackage("Main", "GridPanels"); ---@type Package
 local C_LinkedList = obj:Import("Framework.System.Collections.LinkedList"); ---@type LinkedList
@@ -303,7 +303,7 @@ end
 do
   local frames = obj:PopTable();
 
-  function Grid.Private:PopFrame(data, objectType, parent)
+  function Grid.Private:PopFrame(_, objectType, parent)
     parent = parent or _G.UIParent;
     objectType = objectType or "Frame";
 

@@ -1,6 +1,7 @@
 -- luacheck: ignore self 143 631
 ---@type MayronObjects
 local obj = _G.MayronObjects:GetFramework();
+if (obj:Import("Pkg-MayronDB", true)) then return end
 
 ---@class PkgMayronDB : Package
 local PkgMayronDB = obj:CreatePackage("Pkg-MayronDB");
@@ -700,7 +701,7 @@ function Observer:__Construct(data, isGlobal, previousData)
   data.database = data.helper:GetDatabase();
 end
 
----When a new value is being added to the database, use the child observer's table 
+---When a new value is being added to the database, use the child observer's table
 ---if switched to using a parent observer. Also, add to the saved variable table if not a function.
 Observer.Static:OnIndexChanging(function(_, data, key, value)
   data.helper:HandlePathValueChange(data, key, value);

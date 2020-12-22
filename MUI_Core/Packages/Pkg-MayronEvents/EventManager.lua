@@ -1,5 +1,6 @@
 -- luacheck: ignore self 143 631
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
+if (obj:Import("Pkg-MayronEvents", true)) then return end
 
 ---@class PkgMayronEvents : Package
 local PkgMayronEvents = obj:CreatePackage("Pkg-MayronEvents");
