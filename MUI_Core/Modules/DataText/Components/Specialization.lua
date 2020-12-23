@@ -187,7 +187,7 @@ function Specialization:SetEnabled(data, enabled)
     self.Button:SetScript("OnLeave", Button_OnLeave);
 
     if (not em:GetEventListenerByID(listenerID)) then
-      local listener = em:CreateEventListenerWithID(listenerID, listenerID, function(_, _, unitID)
+      local listener = em:CreateEventListenerWithID(listenerID, function(_, _, unitID)
         if (unitID ~= "player") then return end -- should always be player but just in case
         self:Update();
 
