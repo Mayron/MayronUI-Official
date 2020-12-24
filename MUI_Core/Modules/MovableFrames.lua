@@ -49,7 +49,11 @@ local BlizzardFrames = {
 		"GarrisonBuildingFrame";
 		"GarrisonRecruitSelectFrame";
 		"GarrisonRecruiterFrame";
-	};
+  };
+
+  Blizzard_CovenantRenown = {
+    "CovenantRenownFrame";
+  };
 
 	Blizzard_LookingForGuildUI =
 	{
