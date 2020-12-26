@@ -38,6 +38,7 @@ Libs\AceLocale-3.0.lua
 Libs\SortBags.lua
 Libs\LibClassicCasterino.lua
 Libs\LibClassicDurations\LibClassicDurations.xml
+Libs\LibActionButton.lua
 
 ## Localization
 ## -------------------------------------------------
