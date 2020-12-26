@@ -208,25 +208,60 @@ do
 
     function Lib:AddTitleBar(style, frame, text)
       local texture = style:GetTexture("TitleBarBackground");
+      local height = 31;
 
       frame.titleBar = CreateFrame("Button", nil, frame);
-      frame.titleBar:SetSize(260, 31);
+      frame.titleBar:SetSize(260, height);
       frame.titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", -7, 11);
-      frame.titleBar.bg = frame.titleBar:CreateTexture("ARTWORK");
-      frame.titleBar.bg:SetTexture(texture);
+      frame.titleBar.bgl = frame.titleBar:CreateTexture("ARTWORK");
+      frame.titleBar.bgc = frame.titleBar:CreateTexture("ARTWORK");
+      frame.titleBar.bgr = frame.titleBar:CreateTexture("ARTWORK");
+      frame.titleBar.bgl:SetTexture(texture);
+      frame.titleBar.bgc:SetTexture(texture);
+      frame.titleBar.bgr:SetTexture(texture);
+      frame.titleBar.bgl:SetTexCoord(0, 0.25, 0, 1);
+      frame.titleBar.bgc:SetTexCoord(0.25, 0.5, 0, 1);
+      frame.titleBar.bgr:SetTexCoord(0.5, 0.75, 0, 1);
+      frame.titleBar.bgc:SetHorizTile(true);
 
-      frame.titleBar.bg:SetAllPoints(true);
+      frame.titleBar.bgl:SetPoint("TOPLEFT");
+      frame.titleBar.bgl:SetPoint("BOTTOMLEFT");
+      frame.titleBar.bgl:SetPoint("RIGHT", frame.titleBar, "LEFT", height, 0);
+      frame.titleBar.bgr:SetPoint("TOPRIGHT");
+      frame.titleBar.bgr:SetPoint("BOTTOMRIGHT");
+      frame.titleBar.bgr:SetPoint("LEFT", frame.titleBar, "RIGHT", -height, 0);
+
+      frame.titleBar.bgc:SetPoint("LEFT", frame.titleBar.bgl, "RIGHT");
+      frame.titleBar.bgc:SetPoint("RIGHT", frame.titleBar.bgr, "LEFT");
+      frame.titleBar.bgc:SetPoint("TOP");
+      frame.titleBar.bgc:SetPoint("BOTTOM");
+
       frame.titleBar.text = frame.titleBar:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
 
       frame.titleBar.text:SetSize(260, 31);
-      frame.titleBar.text:SetPoint("LEFT", frame.titleBar.bg, "LEFT", 10, 0.5);
+      frame.titleBar.text:SetPoint("LEFT", frame.titleBar.bgl, "LEFT", 10, 0.5);
       frame.titleBar.text:SetJustifyH("LEFT");
 
       Private:MakeMovable(frame, frame.titleBar);
-      style:ApplyColor(nil, nil, frame.titleBar.bg);
+      style:ApplyColor(nil, nil, frame.titleBar.bgl);
+      style:ApplyColor(nil, nil, frame.titleBar.bgc);
+      style:ApplyColor(nil, nil, frame.titleBar.bgr);
 
       hooksecurefunc(frame.titleBar.text, "SetText", TitleBar_SetWidth);
       frame.titleBar.text:SetText(text);
+    end
+
+    function Lib:AddCenteredTitleBar(style, frame, text)
+        self:AddTitleBar(style, frame, text);
+        frame.titleBar:ClearAllPoints();
+        frame.titleBar:SetPoint("TOP", frame, "TOP", 0, 11);
+
+        frame.titleBar.bgl:SetTexCoord(0.75, 0.5, 0, 1);
+
+        frame.titleBar.text:ClearAllPoints();
+        frame.titleBar.text:SetPoint("CENTER", frame.titleBar, "CENTER", 0, 0);
+        frame.titleBar.text:SetJustifyH("CENTER");
+        frame.titleBar.text:SetJustifyV("CENTER");
     end
 end
 
