@@ -652,8 +652,7 @@ function C_SetUpModule:Install()
   for id, addonData in db.global.core.setup.addOns:Iterate() do
     local alias, value, addonName = unpack(addonData);
 
-    if (value and IsAddOnLoaded(addonName)) then
-      obj:Assert(obj:IsFunction(namespace.import[addonName]), "No import function for addOn '%s'", addonName);
+    if (value and IsAddOnLoaded(addonName) and obj:IsFunction(namespace.import[addonName])) then
       namespace.import[addonName]();
       db.global.core.setup.addOns[id] = {alias, false, addonName};
     end

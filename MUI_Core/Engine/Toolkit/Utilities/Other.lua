@@ -529,17 +529,6 @@ do
     end
 end
 
-function tk:CreateTableProtector(tbl)
-    local protector = setmetatable({}, {
-        __index = tbl;
-        __newindex = function(self, key, value)
-            error(string.format("Failed to transform protected table with key '%s' and value '%s'", tostring(key), tostring(value)));
-        end;
-    });
-
-    return protector;
-end
-
 do
   local BNGetFriendInfoByID, C_BattleNet = _G.BNGetFriendInfoByID, _G.C_BattleNet;
   local strsplit = _G.strsplit;

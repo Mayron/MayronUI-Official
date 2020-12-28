@@ -18,12 +18,16 @@ db:AddToDefaults("profile.actionBars", { });
 
 
 function C_ActionBarsModule:OnInitialize()
-  self:SetEnabled(true);
+  -- self:SetEnabled(true);
 end
 
 function C_ActionBarsModule:OnEnable(data)
   data.buttons = obj:PopTable();
   self:CreateBar();
+
+  LibAB:RegisterCallback("OnButtonContentsChanged", function(...)
+    print("OnButtonContentsChanged: ", ...)
+  end);
 end
 
 local customExitButton = {
@@ -55,6 +59,8 @@ function C_ActionBarsModule:CreateBar(data)
   -- ShowBackground(bar); -- uncomment to show a random background color on the bar to see it easier (devmode)
   tk:MakeMovable(bar); -- for development only
 
+
+
   local btnSize = 32;
   local btnSpacing = 4;
   local totalButtonsOnBar = 20; -- try 300 with empty state!
@@ -78,8 +84,8 @@ function C_ActionBarsModule:CreateBar(data)
     end
 
     -- TODO: This lets you define CUSTOM buttons:
-    -- btn:ClearStates();
-    -- btn:SetState(0, "empty");
+    btn:ClearStates();
+    btn:SetState(0, "empty");
 
     -- TODO: Add Masque support:
     -- local Masque = LibStub("Masque", true)
@@ -104,6 +110,7 @@ function C_ActionBarsModule:CreateBar(data)
 
     btn:Show();
     btn:UpdateAction(); -- from LibActionButton to set up the action
+    SecureHandler_OnLoad(btn)
 
     data.buttons[buttonID] = btn;
   end
