@@ -1,14 +1,12 @@
 -- luacheck: ignore self
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
-if (obj:Import("GridPanels.Main.Region", true)) then return end
+if (obj:Import("Pkg-GridPanels.Region", true)) then return end
 
-local GridPanels = obj:Import("GridPanels.Main"); ---@type Package
-local Region = GridPanels:Get("Region"); ---@type Region
-
+local C_Region = obj:Get("Pkg-GridPanels.Region"); ---@type Region
 local CreateFrame = _G.CreateFrame;
 ---------------------------------
 
-function Region:__Construct(data, frame, globalName, parent)
+function C_Region:__Construct(data, frame, globalName, parent)
   data.frame = frame or CreateFrame("Frame", globalName,
     parent or _G.UIParent, _G.BackdropTemplateMixin and "BackdropTemplate");
 
@@ -16,8 +14,8 @@ function Region:__Construct(data, frame, globalName, parent)
   data.height = 1;
 end
 
-GridPanels:DefineParams("Grid");
-function Region:SetGrid(data, grid)
+obj:DefineParams("Grid");
+function C_Region:SetGrid(data, grid)
   data.grid = grid;
 
   local gridData = data:GetFriendData(grid);
@@ -32,53 +30,53 @@ function Region:SetGrid(data, grid)
 end
 
 -- How far the Region should span to other grid squares
-GridPanels:DefineParams("number", "number");
-function Region:SetSpanSize(data, width, height)
+obj:DefineParams("number", "number");
+function C_Region:SetSpanSize(data, width, height)
   data.width = width;
   data.height = height;
 
   if (data.grid) then
-      local gridData = data:GetFriendData(data.grid);
-      gridData:AnchorRegions();
+    local gridData = data:GetFriendData(data.grid);
+    gridData:AnchorRegions();
   end
 end
 
-GridPanels:DefineParams("number", "?number", "?number", "?number");
-function Region:SetInsets(data, ...)
+obj:DefineParams("number", "?number", "?number", "?number");
+function C_Region:SetInsets(data, ...)
   local args = obj:PopTable(...);
 
   if (#args == 1) then
-      data.insets = {
-          top = args[1],
-          right = args[1],
-          bottom = args[1],
-          left = args[1]
-      };
+    data.insets = {
+      top = args[1],
+      right = args[1],
+      bottom = args[1],
+      left = args[1]
+    };
   elseif (#args == 2) then
-      data.insets = {
-          top = args[1],
-          right = args[2],
-          bottom = args[1],
-          left = args[2]
-      };
+    data.insets = {
+      top = args[1],
+      right = args[2],
+      bottom = args[1],
+      left = args[2]
+    };
   elseif (#args >= 4) then
-      data.insets = {
-          top = args[1],
-          right = args[2],
-          bottom = args[3],
-          left = args[4]
-      };
+    data.insets = {
+      top = args[1],
+      right = args[2],
+      bottom = args[3],
+      left = args[4]
+    };
   end
 
   obj:PushTable(args);
 
   if (data.startAnchor and data.endEnchor) then
-      data.frame:SetPoint("TOPLEFT", data.startAnchor, "TOPLEFT", data.insets.left, -data.insets.top);
-      data.frame:SetPoint("TOPLEFT", data.endEnchor, "TOPLEFT", -data.insets.right, data.insets.bottom);
+    data.frame:SetPoint("TOPLEFT", data.startAnchor, "TOPLEFT", data.insets.left, -data.insets.top);
+    data.frame:SetPoint("TOPLEFT", data.endEnchor, "TOPLEFT", -data.insets.right, data.insets.bottom);
   end
 end
 
-GridPanels:DefineParams("?Panel");
-function Region:GetGrid(data)
+obj:DefineParams("?Panel");
+function C_Region:GetGrid(data)
   return data.grid;
 end

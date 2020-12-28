@@ -2,23 +2,20 @@
 
 ---@type MayronObjects
 local obj = _G.MayronObjects:GetFramework();
-if (obj:Import("GridPanels.Main.Group", true)) then return end
-
----@type Package
-local GridPanels = obj:Import("GridPanels.Main");
+if (obj:Import("Pkg-GridPanels.Group", true)) then return end
 
 ---@type Group
-local Group = GridPanels:Get("Group");
+local C_Group = obj:Import("Pkg-GridPanels.Group");
 ---------------------------------
 
-function Group:__Construct(data, groupID, groupType, grid)
+function C_Group:__Construct(data, groupID, groupType, grid)
   data.type = groupType;
   data.id = groupID;
   data.grid = grid;
 end
 
-GridPanels:DefineParams("number");
-function Group:SetScale(data, scale)
+obj:DefineParams("number");
+function C_Group:SetScale(data, scale)
   local gridData = data:GetFriendData(data.grid);
 
   if (data.type == "row") then
@@ -33,8 +30,8 @@ function Group:SetScale(data, scale)
   end
 end
 
-GridPanels:DefineParams("number");
-function Group:SetFixed(data, value)
+obj:DefineParams("number");
+function C_Group:SetFixed(data, value)
   local gridData = data:GetFriendData(data.grid);
 
   if (value and not gridData.fixedInfo) then

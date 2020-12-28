@@ -1,21 +1,21 @@
 -- luacheck: ignore self 143 631
-local Lib = _G.MayronObjects:GetFramework(); ---@type MayronObjects
+local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 
-if (Lib:Import("Framework.System.Collections.List<T>", true)) then return end
-local Collections = Lib:Import("Framework.System.Collections");
+if (obj:Import("Pkg-Collections.List<T>", true)) then return end
 
----@class List : Object
-local List = Collections:CreateClass("List<T>");
+---@class List
+local C_List = obj:CreateClass("List<T>");
+obj:Export(C_List, "Pkg-Collections");
 
 local table, ipairs = _G.table, _G.ipairs;
 
-function List:__Construct(data, ...)
-  data.values = Lib:PopTable();
+function C_List:__Construct(data, ...)
+  data.values = obj:PopTable();
   self:AddAll(...);
 end
 
-Collections:DefineParams("T", "?number");
-function List:Add(data, value, index)
+obj:DefineParams("T", "?number");
+function C_List:Add(data, value, index)
   if (index) then
     table.insert(data.values, index, value);
   else
@@ -23,13 +23,13 @@ function List:Add(data, value, index)
   end
 end
 
-Collections:DefineParams("number");
-function List:Remove(data, index)
+obj:DefineParams("number");
+function C_List:Remove(data, index)
   table.remove(data.values, index);
 end
 
-Collections:DefineParams("T", "?boolean");
-function List:RemoveByValue(data, value, allValues)
+obj:DefineParams("T", "?boolean");
+function C_List:RemoveByValue(data, value, allValues)
   local index = 1;
   local value2 = data.values[index];
 
@@ -48,15 +48,15 @@ function List:RemoveByValue(data, value, allValues)
   end
 end
 
-Collections:DefineParams("function");
-function List:ForEach(data, func)
+obj:DefineParams("function");
+function C_List:ForEach(data, func)
   for index, value in ipairs(data.values) do
     func(index, value);
   end
 end
 
-Collections:DefineParams("function");
-function List:Filter(data, predicate)
+obj:DefineParams("function");
+function C_List:Filter(data, predicate)
   local index = 1;
   local value = data.values[index];
 
@@ -71,10 +71,10 @@ function List:Filter(data, predicate)
   end
 end
 
-Collections:DefineParams("function");
-Collections:DefineReturns("boolean");
-function List:Select(data, predicate)
-  local selected = Lib:PopTable();
+obj:DefineParams("function");
+obj:DefineReturns("boolean");
+function C_List:Select(data, predicate)
+  local selected = obj:PopTable();
 
   for index, value in ipairs(data.values) do
     if (predicate(index, value)) then
@@ -93,20 +93,20 @@ do
     end
   end
 
-  function List:Iterate(data)
+  function C_List:Iterate(data)
     return iter, data.values, 0;
   end
 end
 
-Collections:DefineParams("number");
-Collections:DefineReturns("?T");
-function List:Get(data, index)
+obj:DefineParams("number");
+obj:DefineReturns("?T");
+function C_List:Get(data, index)
   return data.values[index];
 end
 
-Collections:DefineParams("T");
-Collections:DefineReturns("boolean");
-function List:Contains(data, value)
+obj:DefineParams("T");
+obj:DefineReturns("boolean");
+function C_List:Contains(data, value)
   for _, value2 in ipairs(data.values) do
     if (value2 == value) then
       return true;
@@ -115,27 +115,27 @@ function List:Contains(data, value)
   return false;
 end
 
-function List:Empty(data)
+function C_List:Empty(data)
   for index, _ in ipairs(data.values) do
     data.values[index] = nil;
   end
 end
 
-Collections:DefineReturns("boolean");
-function List:IsEmpty(data)
+obj:DefineReturns("boolean");
+function C_List:IsEmpty(data)
   return #data.values == 0;
 end
 
-Collections:DefineReturns("number");
-function List:Size(data)
+obj:DefineReturns("number");
+function C_List:Size(data)
   return #data.values;
 end
 
 do
   local function AddTable(fromTable, toTable)
     for index, value in ipairs(fromTable) do
-      if (Lib:IsTable(value)) then
-        toTable[index] = Lib:PopTable();
+      if (obj:IsTable(value)) then
+        toTable[index] = obj:PopTable();
         AddTable(value, toTable[index]);
       else
         toTable[index] = value;
@@ -143,28 +143,28 @@ do
     end
   end
 
-  Collections:DefineReturns("table");
-  function List:ToTable(data)
-    local copy = Lib:PopTable();
+  obj:DefineReturns("table");
+  function C_List:ToTable(data)
+    local copy = obj:PopTable();
     AddTable(data.values, copy);
     return copy;
   end
 end
 
-function List:AddAll(data, ...)
-  for _, value in Lib:IterateArgs(...) do
+function C_List:AddAll(data, ...)
+  for _, value in obj:IterateArgs(...) do
     table.insert(data.values, value);
   end
 end
 
-function List:RemoveAll(_, ...)
-  for _, value in Lib:IterateArgs(...) do
+function C_List:RemoveAll(_, ...)
+  for _, value in obj:IterateArgs(...) do
     self:RemoveByValue(value);
   end
 end
 
-function List:RetainAll(_, ...)
-  for _, value in Lib:IterateArgs(...) do
+function C_List:RetainAll(_, ...)
+  for _, value in obj:IterateArgs(...) do
     if (not self:Contains(value)) then
       self:RemoveByValue(value);
     end

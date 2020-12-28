@@ -2,19 +2,17 @@
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 if (obj:Import("Pkg-MayronEvents.EventListener", true)) then return end
 
----@class PkgMayronEvents : Package
-local PkgMayronEvents = obj:Import("Pkg-MayronEvents");
-
 ---@class EventListener : Object
-local C_EventListener = PkgMayronEvents:CreateClass("EventListener");
+local C_EventListener = obj:CreateClass("EventListener");
 C_EventListener.Static:AddFriendClass("EventManager");
+obj:Export(C_EventListener, "Pkg-MayronEvents");
 
 local select, unpack, pairs, ipairs, next, tostring = _G.select, _G.unpack, _G.pairs, _G.ipairs, _G.next, _G.tostring;
 
 -----------------------------------------------------------
 --- C_EventListener API:
 -----------------------------------------------------------
-PkgMayronEvents:DefineParams("function", "EventManager");
+obj:DefineParams("function", "EventManager");
 ---constructor - you create an event listener from the event manager using either
 ---CreateEventListener, or CreateEventListenerWithID. Do not call `__Construct` directly!
 function C_EventListener:__Construct(data, callback, manager)
@@ -37,7 +35,7 @@ function C_EventListener:__Destruct(data)
   managerData.listeners[data.id] = nil;
 end
 
-PkgMayronEvents:DefineParams("string");
+obj:DefineParams("string");
 ---@param id string @A unique ID used to refer to the event listener when using the C_EventManager API.
 ---Can also be set when using the event manager's `CreateEventListenerWithID` method.
 function C_EventListener:SetID(data, id)
@@ -59,14 +57,14 @@ function C_EventListener:SetID(data, id)
   managerData.listeners[data.id] = self;
 end
 
-PkgMayronEvents:DefineReturns("string");
+obj:DefineReturns("string");
 ---If the event listener has not been assigned a custom unique ID, it will return the unique memory address of the handler object.
 ---@return string @Returns the unique ID used to refer to the event listener when using the EventManager API.
 function C_EventListener:GetID(data)
   return data.id;
 end
 
-PkgMayronEvents:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---Used to enable or disable the event listener. When disabled, the event listener
 ---will not trigger its associated callback function even if the event is fired.
 ---@param enabled boolean @The new enabled state of the event listener.
@@ -74,7 +72,7 @@ function C_EventListener:SetEnabled(data, enabled)
   data.enabled = enabled;
 end
 
-PkgMayronEvents:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 ---Returns whether the event listener is enabled or disabled. When disabled, the event listener
 ---will not trigger its associated callback function even if the event is fired.
 ---@return boolean @The current enabled state of the event listener.
@@ -82,7 +80,7 @@ function C_EventListener:IsEnabled(data)
   return data.enabled;
 end
 
-PkgMayronEvents:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---If executeOnce is set to `true`, then the event listener object will be destroyed and
 ---removed from the event manager after its first execution. Some callback functions only need to be
 ---executed once. You can also call the `Destroy()` method on the event listener at any time to destroy it manually.
@@ -110,7 +108,7 @@ function C_EventListener:SetCallbackArgs(data, ...)
   end
 end
 
-PkgMayronEvents:DefineParams("string");
+obj:DefineParams("string");
 ---Register a Blizzard event for the event listener to listen out for. If enabled, the event listener
 ---will execute its callback function when the event fires.
 ---@param event string @The Blizzard event to register.
@@ -122,7 +120,7 @@ function C_EventListener:RegisterEvent(data, event)
   managerData.frame:RegisterEvent(event);
 end
 
-PkgMayronEvents:DefineParams("string", "...string");
+obj:DefineParams("string", "...string");
 ---A helper method that takes a variable argument list of Blizzard event names and calls `RegisterEvent` for each one.
 ---@vararg string @A variable argument list of Blizzard event names register.
 function C_EventListener:RegisterEvents(_, ...)
@@ -131,7 +129,7 @@ function C_EventListener:RegisterEvents(_, ...)
   end
 end
 
-PkgMayronEvents:DefineParams("string", "string", "?string", "?string");
+obj:DefineParams("string", "string", "?string", "?string");
 ---Register a Blizzard unit event for the event listener to listen out for. If enabled, the event listener
 ---will execute its callback function when the event fires for one of the specified units.
 ---@param event string @The Blizzard unit event to register.
@@ -146,7 +144,7 @@ function C_EventListener:RegisterUnitEvent(data, event, unit1, unit2, unit3)
   managerData.frame:RegisterEvent(event);
 end
 
-PkgMayronEvents:DefineParams("table", "string", "?string", "?string", "boolean=true");
+obj:DefineParams("table", "string", "?string", "?string", "boolean=true");
 ---A helper method that takes a table of Blizzard event names and calls RegisterUnitEvent for each one with the provided unitIDs.
 ---@param events table @A table containing the Blizzard unit events to register.
 ---@param unit1 string @A unitID to register with the unit event (e.g., "player").
@@ -165,7 +163,7 @@ function C_EventListener:RegisterUnitEvents(_, events, unit1, unit2, unit3, push
   end
 end
 
-PkgMayronEvents:DefineParams("string");
+obj:DefineParams("string");
 ---Register a non-Blizzard, custom addon event for the event listener to listen out for. If enabled, the event listener
 ---will execute its callback function when the event manager fires the custom event using its `FireCustomEvent` method.
 ---@param customEvent string @The non-Blizzard, custom addon event to register.
@@ -174,7 +172,7 @@ function C_EventListener:RegisterCustomEvent(data, customEvent)
   data.customEvents[customEvent] = true;
 end
 
-PkgMayronEvents:DefineParams("string", "...string");
+obj:DefineParams("string", "...string");
 ---A helper method that takes a variable argument list of custom event names and calls RegisterCustomEvent for each one.
 ---@vararg string @A variable argument list of (non-Blizzard) custom addon events to register.
 function C_EventListener:RegisterCustomEvents(_, ...)
@@ -183,7 +181,7 @@ function C_EventListener:RegisterCustomEvents(_, ...)
   end
 end
 
-PkgMayronEvents:DefineParams("string");
+obj:DefineParams("string");
 ---Unregister a Blizzard event to stop the event listener from triggering its callback function when the event is fired.
 ---@param event string @The Blizzard event to unregister.
 function C_EventListener:UnregisterEvent(data, event)
@@ -202,7 +200,7 @@ function C_EventListener:UnregisterEvent(data, event)
   end
 end
 
-PkgMayronEvents:DefineParams("string", "...string");
+obj:DefineParams("string", "...string");
 ---A helper method that takes a variable argument list of Blizzard event names and calls `UnregisterEvent` for each one.
 ---@vararg string @A variable argument list of Blizzard events to unregister.
 function C_EventListener:UnregisterEvents(_, ...)
@@ -211,7 +209,7 @@ function C_EventListener:UnregisterEvents(_, ...)
   end
 end
 
-PkgMayronEvents:DefineParams("string");
+obj:DefineParams("string");
 ---Unregister a (non-Blizzard) custom addon event to stop the event listener from triggering its callback function when
 ---the event manager fires the custom event using its `FireCustomEvent` method.
 ---@param customEvent string @The non-Blizzard, custom addon event to unregister.
@@ -225,7 +223,7 @@ function C_EventListener:UnregisterCustomEvent(data, customEvent)
   end
 end
 
-PkgMayronEvents:DefineParams("string", "...string");
+obj:DefineParams("string", "...string");
 ---A helper method that takes a variable argument list of custom event names and calls `UnregisterCustomEvent` for each one.
 ---@vararg string @A variable argument list of (non-Blizzard) custom addon events to unregister.
 function C_EventListener:UnregisterCustomEvents(_, ...)
@@ -234,7 +232,7 @@ function C_EventListener:UnregisterCustomEvents(_, ...)
   end
 end
 
-PkgMayronEvents:DefineParams("boolean=true");
+obj:DefineParams("boolean=true");
 ---Unregister all Blizzard events and custom addon events from the event listener. This will stop the callback function from
 ---being executed when any previously registered event fires.
 ---@param includeCustomEvents string @If set to `false`, only the Blizzard events will be unregistered and the custom addon events
@@ -267,7 +265,7 @@ function C_EventListener:UnregisterAllEvents(data, includeCustomEvents)
   end
 end
 
-PkgMayronEvents:DefineReturns("table");
+obj:DefineReturns("table");
 ---Returns all Blizzard events registered with this event listener. If any of these Blizzard events trigger when the event
 ---listener is enabled, the callback function will execute.
 ---@return table @A table containing all registered Blizzard events.
@@ -283,7 +281,7 @@ function C_EventListener:GetRegisteredEvents(data)
   return events;
 end
 
-PkgMayronEvents:DefineReturns("number");
+obj:DefineReturns("number");
 ---@return number @The total number of Blizzard events registered with this event listener.
 function C_EventListener:GetNumRegisteredEvents()
   local events = self:GetRegisteredEvents();
@@ -292,7 +290,7 @@ function C_EventListener:GetNumRegisteredEvents()
   return total;
 end
 
-PkgMayronEvents:DefineReturns("table");
+obj:DefineReturns("table");
 ---Returns all (non-Blizzard) custom addon events registered with this event listener. Custom events are triggered using
 ---the C_EventManager API using the event manager's `FireCustomEvent` method, which will execute the callback function if the
 ---handler is enabled.
@@ -309,7 +307,7 @@ function C_EventListener:GetRegisteredCustomEvents(data)
   return events;
 end
 
-PkgMayronEvents:DefineReturns("number");
+obj:DefineReturns("number");
 ---@return number @The total number of (non-Blizzard) custom addon events registered with this event listener.
 function C_EventListener:GetNumRegisteredCustomEvents()
   local customEvents = self:GetRegisteredCustomEvents();
