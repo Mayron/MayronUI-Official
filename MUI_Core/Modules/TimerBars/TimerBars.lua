@@ -51,10 +51,6 @@ local function CanHandleAura(fieldUnitID, sourceUnitID)
 end
 
 -- Objects -----------------------------
-
----@type Engine
-local Engine = obj:Import("MayronUI.Engine");
-
 ---@class TimerBarsModule : BaseModule
 local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", L["Timer Bars"], true); -- initialized on demand
 MayronUI:AddModuleComponent("TimerBarsModule", "Database", db);
@@ -62,27 +58,16 @@ MayronUI:AddModuleComponent("TimerBarsModule", "Database", db);
 ---@type TimerBarsModule
 local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
 
----@class ITimerBar : Object
----@field ExpirationTime number @The epoch marking the point in time when the timer bar is set to expire
----@field TimeRemaining number @The actual time remaining in seconds
----@field AuraId boolean @The unique aura id used to identify the timer bar.
-Engine:CreateInterface("ITimerBar", {
-  -- fields:
-  ExpirationTime = "number";
-  AuraId = "number";
-  FieldName = "?string";
-});
-
----@class TimerField : FrameWrapper
-local C_TimerField = Engine:CreateClass("TimerField", "Framework.System.FrameWrapper");
+---@class TimerField
+local C_TimerField = obj:CreateClass("TimerField");
 C_TimerField.Static:AddFriendClass("TimerBarsModule");
 
 ---@class TimerBar : ITimerBar
-local C_TimerBar = Engine:CreateClass("TimerBar", "Framework.System.FrameWrapper", "ITimerBar");
+local C_TimerBar = obj:CreateClass("TimerBar");
 C_TimerBar.Static:AddFriendClass("TimerBarsModule");
 
 ---@type Stack
-local Stack = obj:Import("Framework.System.Collections.Stack<T>");
+local Stack = obj:Import("Pkg-Collections.Stack<T>");
 
 -- Database: ---------------------------
 db:AddToDefaults("profile", {
@@ -587,7 +572,7 @@ end
 
 -- C_TimerField ------------------------------
 
-Engine:DefineParams("string", "table");
+obj:DefineParams("string", "table");
 ---@param name string @The unit of the field (to be used in the global variable name).
 function C_TimerField:__Construct(data, name, sharedSettings)
   data.name = name;
@@ -618,7 +603,7 @@ function C_TimerField:__Construct(data, name, sharedSettings)
   end);
 end
 
-Engine:DefineReturns("string");
+obj:DefineReturns("string");
 ---@return string @The unit name to track that is registered with the TimerField.
 function C_TimerField:GetUnitID(data)
   local unitID = data.settings.unitID;
@@ -630,7 +615,7 @@ function C_TimerField:GetUnitID(data)
   return unitID;
 end
 
-Engine:DefineParams("string");
+obj:DefineParams("string");
 ---@param unitID string @Set which unit ID to track.
 function C_TimerField:SetUnitID(data, unitID)
   unitID = unitID:lower();
@@ -643,7 +628,7 @@ function C_TimerField:SetUnitID(data, unitID)
   return unitID;
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---@param enabled boolean @Set to true to enable TimerField tracking.
 function C_TimerField:SetEnabled(data, enabled)
   if (data.enabled == enabled) then
@@ -706,7 +691,7 @@ do
   end
 end
 
-Engine:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 ---@return boolean @The enabled state of the TimerField.
 function C_TimerField:IsEnabled(data)
   if (obj:IsNil(data.enabled)) then
@@ -769,8 +754,8 @@ do
     return a.ExpirationTime > b.ExpirationTime;
   end
 
-  Engine:DefineParams("string");
-  Engine:DefineReturns("Frame");
+  obj:DefineParams("string");
+  obj:DefineReturns("Frame");
   ---@param name string @The name of the field to create (used as a substring in global frame name)
   ---@return Frame @Returns the created field (a Frame widget)
   function C_TimerField:CreateField(data, name)
@@ -847,7 +832,7 @@ do
   end
 end
 
-Engine:DefineParams("number");
+obj:DefineParams("number");
 ---@param auraId number @The aura's unique id used to find and remove the aura.
 function C_TimerField:RemoveAuraByID(data, auraId)
   for _, activeBar in ipairs(data.activeBars) do
@@ -891,7 +876,7 @@ local function IsFilteredOut(filters, sourceGuid, auraName, auraType)
   return false;
 end
 
-Engine:DefineParams("string", "number", "string", "string");
+obj:DefineParams("string", "number", "string", "string");
 ---@param sourceGuid string @The globally unique identify (GUID) representing the source of the aura (the creature or player who casted the aura).
 ---@param auraId number @The unique id of the aura used to find and update the aura.
 ---@param auraName number @The name of the aura used for filtering and updating the TimerBar name.
@@ -971,7 +956,7 @@ function C_TimerField:RecheckAuras(data)
   end
 end
 
-Engine:DefineReturns("?TimerBar");
+obj:DefineReturns("?TimerBar");
 ---@return table @A table containing all active, and non-active, timer bars.
 function C_TimerField:GetAllTimerBars(data)
   local allBars = obj:PopTable();
@@ -996,7 +981,7 @@ end
 
 -- C_TimerBar ---------------------------
 
-Engine:DefineParams("table", "table");
+obj:DefineParams("table", "table");
 ---@param settings table @The config settings table.
 ---@param auraId number @The unique id of the aura used to find and update the aura.
 function C_TimerBar:__Construct(data, sharedSettings, settings)
@@ -1029,7 +1014,7 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
   end);
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar icon.
 function C_TimerBar:SetIconShown(data, shown)
   if (not data.iconFrame and not shown) then
@@ -1063,7 +1048,7 @@ do
     widget:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
   end
 
-  Engine:DefineParams("boolean");
+  obj:DefineParams("boolean");
   ---@param shown boolean @Set to true to show borders.
   function C_TimerBar:SetBorderShown(data, shown)
     if (not data.backdrop and not shown) then
@@ -1109,7 +1094,7 @@ do
   end
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar spark effect.
 function C_TimerBar:SetSparkShown(data, shown)
   if (not data.spark and not shown) then
@@ -1130,7 +1115,7 @@ function C_TimerBar:SetSparkShown(data, shown)
   data.showSpark = shown;
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar aura name.
 function C_TimerBar:SetAuraNameShown(data, shown)
   if (not data.auraName and not shown) then
@@ -1151,7 +1136,7 @@ function C_TimerBar:SetAuraNameShown(data, shown)
   data.auraName:SetShown(shown);
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar's time remaining text.
 function C_TimerBar:SetTimeRemainingShown(data, shown)
   if (not data.timeRemaining and not shown) then
@@ -1168,7 +1153,7 @@ function C_TimerBar:SetTimeRemainingShown(data, shown)
   data.timeRemaining:SetShown(shown);
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the aura tooltip on mouse over.
 function C_TimerBar:SetTooltipsEnabled(data, enabled)
   if (enabled) then
@@ -1179,7 +1164,7 @@ function C_TimerBar:SetTooltipsEnabled(data, enabled)
   end
 end
 
-Engine:DefineParams("number", "?number");
+obj:DefineParams("number", "?number");
 ---@param currentTime number @The current time using GetTime.
 function C_TimerBar:UpdateTimeRemaining(data, currentTime)
   local timeRemaining = self.ExpirationTime - currentTime;
@@ -1233,7 +1218,7 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
   end
 end
 
-Engine:DefineParams("table");
+obj:DefineParams("table");
 ---@param auraInfo table @A table containing a subset of the results from UnitAura.
 function C_TimerBar:UpdateAura(data, auraInfo)
   local auraName        = auraInfo[1];
@@ -1274,7 +1259,7 @@ function C_TimerBar:UpdateAura(data, auraInfo)
   end
 end
 
-Engine:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 function C_TimerBar:UpdateExpirationTime(data)
   local auraInfo = GetAuraInfoByAuraID(data.settings.unitID, self.AuraId, self.AuraType);
   local old = self.ExpirationTime;

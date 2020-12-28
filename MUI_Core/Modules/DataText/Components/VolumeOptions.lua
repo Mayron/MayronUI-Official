@@ -24,7 +24,7 @@ local ActionStatus_DisplayMessage = _G.ActionStatus_DisplayMessage;
 
 -- Register and Import Modules -------
 
-local VolumeOptions = ComponentsPackage:CreateClass("VolumeOptions", nil, "IDataTextComponent");
+local VolumeOptions = ComponentsPackage:CreateClass("VolumeOptions", nil, "table");
 
 -- Local Functions ----------------
 local function GetFormattedValue(text, cvarName, value)

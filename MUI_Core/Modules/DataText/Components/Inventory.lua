@@ -12,7 +12,7 @@ local string, GetContainerNumSlots, GetContainerNumFreeSlots = _G.string, _G.Get
 
 -- Register and Import Modules -------
 
-local Inventory = ComponentsPackage:CreateClass("Inventory", nil, "IDataTextComponent");
+local Inventory = ComponentsPackage:CreateClass("Inventory", nil, "table");
 
 -- Load Database Defaults ------------
 

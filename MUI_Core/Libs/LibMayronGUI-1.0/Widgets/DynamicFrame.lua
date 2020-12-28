@@ -2,15 +2,11 @@
 
 ---@type LibMayronGUI
 local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
-
 if (not Lib) then return; end
 
-local WidgetsPackage = Lib.WidgetsPackage;
-local Private = Lib.Private;
-local DynamicFrame = WidgetsPackage:CreateClass("DynamicFrame", Private.FrameWrapper);
-local obj = Lib.Objects;
-
----------------------------------
+local obj = _G.MayronObjects:GetFramework();
+local DynamicFrame = obj:CreateClass("DynamicFrame");
+obj:Export(DynamicFrame, "MayronUI");
 
 local function OnSizeChanged(self, width)
     width = math.ceil(width);

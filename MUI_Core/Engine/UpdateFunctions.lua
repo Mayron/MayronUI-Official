@@ -7,11 +7,8 @@ local tostring, pairs = _G.tostring, _G.pairs;
 ---@type MayronDB
 local MayronDB = obj:Import("Pkg-MayronDB.MayronDB");
 
----@type Engine
-local Engine = obj:Import("MayronUI.Engine");
-
 ---@type BaseModule
-local BaseModule = Engine:Get("BaseModule");
+local BaseModule = obj:Import("MayronUI.BaseModule");
 
 local function ExecuteUpdateFunction(path, updateFunction, setting, executed, onPre, onPost)
   if (obj:IsTable(executed) and executed[path]) then
@@ -140,7 +137,7 @@ end
 do
   local ignoreEnabledOption = { onExecuteAll = {ignore = { "^enabled$" } } };
 
-  Engine:DefineParams("Observer", "table", "?table");
+  obj:DefineParams("Observer", "table", "?table");
   ---Executed when a profile is loaded and the UI needs to apply changes (this includes loading the initial profile on start up)
   ---@param observer Observer The database observer node to attach the update functions to
   ---@param updateFunctions table A table containing update functions mapped to settings

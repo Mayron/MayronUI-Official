@@ -10,7 +10,7 @@ local RED_FONT_COLOR_CODE = _G.RED_FONT_COLOR_CODE;
 
 -- Objects ---------------------------
 
-local CombatTimer = ComponentsPackage:CreateClass("CombatTimer", nil, "IDataTextComponent");
+local CombatTimer = ComponentsPackage:CreateClass("CombatTimer", nil, "table");
 
 -- CombatTimer Module ----------------
 

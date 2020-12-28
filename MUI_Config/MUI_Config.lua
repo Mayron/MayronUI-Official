@@ -9,15 +9,12 @@ local DisableAddOn, collectgarbage, UIFrameFadeIn, CreateFrame, PlaySound, GetAd
  = _G.DisableAddOn, _G.collectgarbage, _G.UIFrameFadeIn, _G.CreateFrame, _G.PlaySound, _G.GetAddOnMetadata;
 
 -- Registers and Imports -------------
-
-local C_LinkedList = obj:Import("Framework.System.Collections.LinkedList");
-local Engine = obj:Import("MayronUI.Engine");
+---@type LinkedList
+local C_LinkedList = obj:Import("Pkg-Collections.LinkedList");
 
 ---@class ConfigModule : BaseModule
 local C_ConfigModule = MayronUI:RegisterModule("ConfigModule");
-
 namespace.C_ConfigModule = C_ConfigModule;
-namespace.Engine = Engine;
 
 -- Local functions -------------------
 local CreateTopMenuButton;
@@ -124,7 +121,7 @@ function C_ConfigModule:Show(data)
     data.window:Show();
 end
 
-Engine:DefineReturns("Database");
+obj:DefineReturns("Database");
 ---@return Database
 function C_ConfigModule:GetDatabase(data, tbl)
     local dbObject;
@@ -146,7 +143,7 @@ function C_ConfigModule:GetDatabase(data, tbl)
 end
 
 
-Engine:DefineParams("table");
+obj:DefineParams("table");
 ---@param widgetConfigTable table @A widget config table used to construct part of the config menu.
 ---@return any @A value from the database located by the dbPath value inside widgetConfigTable.
 function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
@@ -172,7 +169,7 @@ function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
     return value;
 end
 
-Engine:DefineParams("table");
+obj:DefineParams("table");
 ---Updates the database based on the dbPath config value, or using SetValue,
 ---@param widget table @The created widger frame.
 ---@param value any @The value to add to the database using the dbPath value attached to the widget table.
@@ -208,7 +205,7 @@ function C_ConfigModule:SetDatabaseValue(_, widget, newValue)
     end
 end
 
-Engine:DefineParams("CheckButton|Button");
+obj:DefineParams("CheckButton|Button");
 ---@param menuButton CheckButton|Button @The menu button clicked on associated with a menu.
 function C_ConfigModule:OpenMenu(data, menuButton)
     if (menuButton.type == "menu") then
@@ -230,7 +227,7 @@ do
         return (tbl.type ~= "submenu" and key ~= "options");
     end
 
-    Engine:DefineParams("CheckButton|Button");
+    obj:DefineParams("CheckButton|Button");
     ---@param menuButton CheckButton|Button @The menu button clicked on associated with a menu.
     function C_ConfigModule:SetSelectedButton(data, menuButton)
         if (data.selectedButton) then
@@ -268,7 +265,7 @@ do
     end
 end
 
-Engine:DefineParams("table");
+obj:DefineParams("table");
 ---@param menuConfigTable table @A table containing many widget config tables used to render a full menu.
 function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     if (not (menuConfigTable and obj:IsTable(menuConfigTable.children))) then
@@ -340,7 +337,7 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     data.tempMenuConfigTable = nil;
 end
 
-Engine:DefineReturns("DynamicFrame");
+obj:DefineReturns("DynamicFrame");
 ---@return DynamicFrame @The dynamic frame which holds the menu frame and controls responsiveness and the scroll bar.
 function C_ConfigModule:CreateMenu(data)
     -- else, create a new menu (dynamic frame) to based on the module's config data
@@ -365,7 +362,7 @@ function C_ConfigModule:ShowRestartMessage(data)
     data.warningLabel:SetText(data.warningLabel.restartText);
 end
 
-Engine:DefineParams("table", "?Frame");
+obj:DefineParams("table", "?Frame");
 ---@param widgetConfigTable table @A widget config table used to control the rendering and behavior of a widget in the config menu.
 ---@param parent Frame @(optional) A custom parent frame for the widget, else the parent will be the menu scroll child.
 ---@return Frame @(possibly nil if widget is disabled) The created widget.

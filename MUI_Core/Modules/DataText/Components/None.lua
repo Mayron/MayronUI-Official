@@ -5,7 +5,7 @@ local ComponentsPackage = namespace.ComponentsPackage;
 
 -- Objects ---------------------------
 
-local None = ComponentsPackage:CreateClass("None", nil, "IDataTextComponent");
+local None = ComponentsPackage:CreateClass("None", nil, "table");
 
 -- CombatTimer Module ----------------
 

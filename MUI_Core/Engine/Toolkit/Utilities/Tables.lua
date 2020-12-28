@@ -10,7 +10,7 @@ local LibStub = _G.LibStub;
 
 tk.Tables = {};
 
-local LinkedList = obj:Import("Framework.System.Collections.LinkedList"); ---@type LinkedList
+local LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type LinkedList
 -----------------------------
 
 function tk.Tables:GetKeys(tbl, keys)

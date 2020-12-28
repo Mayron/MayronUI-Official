@@ -4,13 +4,12 @@ local tk, _, _, gui, obj, _ = MayronUI:GetCoreComponents();
 local unpack, ipairs, CreateFrame = _G.unpack, _G.ipairs, _G.CreateFrame;
 local Button_OnClick;
 
-local ConfigToolsPackage = obj:CreatePackage("ConfigTools", "MayronUI.Engine");
-
 ---@class ListFrame : Object
-local C_ListFrame = ConfigToolsPackage:CreateClass("ListFrame");
+local C_ListFrame = obj:CreateClass("ListFrame");
+obj:Export("MayronUI.ListFrame");
 
 ---@class Stack : Object
-local C_Stack = obj:Import("Framework.System.Collections.Stack<T>");
+local C_Stack = obj:Import("Pkg-Collections.Stack<T>");
 
 local function CreateListItem(listFrame, data)
     local item = CreateFrame("Button");

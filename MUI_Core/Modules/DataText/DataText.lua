@@ -7,9 +7,6 @@ local ipairs, pairs, table, GameTooltip, PlaySound = _G.ipairs, _G.pairs, _G.tab
 local CreateFrame, UIFrameFadeIn = _G.CreateFrame, _G.UIFrameFadeIn;
 
 -- Objects -----------------------------
-
-local Engine = obj:Import("MayronUI.Engine");
-local ComponentsPackage = obj:CreatePackage("DataTextComponents", "MayronUI");
 local SlideController = obj:Import("MayronUI.Widgets.SlideController");
 
 -- Register Modules --------------------
@@ -18,7 +15,6 @@ local SlideController = obj:Import("MayronUI.Widgets.SlideController");
 local C_DataTextModule = MayronUI:RegisterModule("DataTextModule", L["Data Text Bar"]);
 
 namespace.C_DataTextModule = C_DataTextModule;
-namespace.ComponentsPackage = ComponentsPackage;
 
 -- Load Database Defaults --------------
 namespace.dataTextLabels = {
@@ -66,35 +62,6 @@ if (tk:IsRetail()) then
 end
 
 db:AddToDefaults("profile.datatext", defaults);
-
--- IDataTextComponent ------------------------------
-
----@class IDataTextComponent : Object
----@field MenuContent Frame The frame containing all popup menu content
----@field MenuLabels table A table containing all menu labels to show
----@field TotalLabelsShown number The total menu labels to show on the popup menu
----@field HasLeftMenu boolean True if the data-text button has a left click action
----@field HasRightMenu boolean True if the data-text button has a right click action
----@field Button Button The data-text button widget
----@field SavedVariableName string The database key associated with the data text module
-
-ComponentsPackage:CreateInterface("IDataTextComponent", {
-  -- fields:
-  MenuContent = "?Frame";
-  MenuLabels = "?table";
-  SavedVariableName = "?string";
-  TotalLabelsShown = "number";
-  HasLeftMenu = "boolean";
-  HasRightMenu = "boolean";
-  Button = "Button";
-
-  -- functions:
-  Update = "function";
-  Click = "function";
-  IsEnabled = {type = "function"; returns = "boolean"};
-  SetEnabled = "function";
-  __Construct = {type = "function", params = {"table", "DataTextModule", "SlideController", "Frame"}}
-});
 
 local function DataComponentButton_OnClick(self, ...)
   self.dataModule:ClickModuleButton(self.component, self, ...);
@@ -282,12 +249,12 @@ function C_DataTextModule:OnEnable(data)
   containerModule:RepositionContent();
 end
 
-Engine:DefineParams("string", "IDataTextComponent");
+obj:DefineParams("string", "table");
 function C_DataTextModule:RegisterComponentClass(data, componentName, componentClass)
   data.registeredComponentClasses[componentName] = componentClass;
 end
 
-Engine:DefineReturns("Button");
+obj:DefineReturns("Button");
 function C_DataTextModule:CreateDataTextButton(data)
   local btn = CreateFrame("Button");
   local btnTextureFilePath = tk.Constants.AddOnStyle:GetTexture("ButtonTexture");
@@ -387,7 +354,7 @@ function C_DataTextModule:PositionDataTextButtons(data)
   end
 end
 
-Engine:DefineParams("Frame");
+obj:DefineParams("Frame");
 ---Attach current dataTextModule scroll child onto shared popup and hide previous scroll child
 ---@param content Frame
 function C_DataTextModule:ChangeMenuContent(data, content)
@@ -414,7 +381,7 @@ function C_DataTextModule:ChangeMenuContent(data, content)
   content:Show();
 end
 
-Engine:DefineParams("table");
+obj:DefineParams("table");
 function C_DataTextModule:ClearLabels(_, labels)
   if (not labels) then return end
 
@@ -431,10 +398,10 @@ function C_DataTextModule:ClearLabels(_, labels)
   end
 end
 
-Engine:DefineParams("IDataTextComponent");
-Engine:DefineReturns("number");
+obj:DefineParams("table");
+obj:DefineReturns("number");
 ---Total height is used to control the dynamic scrollbar
----@param dataModule IDataTextComponent
+---@param dataModule table
 ---@return number the total height of all labels
 function C_DataTextModule:PositionLabels(data, dataModule)
   local totalLabelsShown = dataModule.TotalLabelsShown;
@@ -491,8 +458,8 @@ function C_DataTextModule:PositionLabels(data, dataModule)
   return totalHeight;
 end
 
-Engine:DefineParams("IDataTextComponent", "Button");
----@param dataModule IDataTextComponent The data-text module associated with the data-text button clicked on by the user
+obj:DefineParams("table", "Button");
+---@param dataModule table The data-text module associated with the data-text button clicked on by the user
 ---@param dataTextButton Button The data-text button clicked on by the user
 ---@param buttonName string The name of the button clicked on (i.e. "LeftButton" or "RightButton")
 function C_DataTextModule:ClickModuleButton(data, component, dataTextButton, buttonName, ...)
@@ -579,18 +546,18 @@ function C_DataTextModule:ClickModuleButton(data, component, dataTextButton, but
   PlaySound(tk.Constants.CLICK);
 end
 
-Engine:DefineParams("string");
+obj:DefineParams("string");
 function C_DataTextModule:ForceUpdate(data, dataModuleName)
   local dataModule = data.activeComponents[dataModuleName];
   dataModule:Update();
 end
 
-Engine:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 function C_DataTextModule:IsShown(data)
   return (data.bar and data.bar:IsShown()) or false;
 end
 
-Engine:DefineReturns("Frame");
+obj:DefineReturns("Frame");
 function C_DataTextModule:GetDataTextBar(data)
   return data.bar;
 end

@@ -7,7 +7,7 @@ local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local C_MiniMapModule = namespace.C_MiniMapModule;
 
 ---@type List
-local List = obj:Import("Framework.System.Collections.List<T>");
+local List = obj:Import("Pkg-Collections.List<T>");
 
 ---@type Panel
 local iconsFrame;

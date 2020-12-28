@@ -9,7 +9,7 @@ local GetNetStats, GetFramerate = _G.GetNetStats, _G.GetFramerate;
 
 -- Register and Import Modules -------
 
-local Performance = ComponentsPackage:CreateClass("Performance", nil, "IDataTextComponent");
+local Performance = ComponentsPackage:CreateClass("Performance", nil, "table");
 
 -- Load Database Defaults ------------
 

@@ -16,7 +16,6 @@ local ScriptErrorsFrame = _G.ScriptErrorsFrame;
 
 ---@class C_ErrorHandler : BaseModule
 local C_ErrorHandler = MayronUI:RegisterModule("ErrorHandlerModule");
-local Engine = obj:Import("MayronUI.Engine");
 
 function C_ErrorHandler:OnInitialize()
   local function addError(errorMessage)
@@ -124,7 +123,7 @@ function C_ErrorHandler:OnInitialize()
   end);
 end
 
-Engine:DefineReturns("table");
+obj:DefineReturns("table");
 function C_ErrorHandler:GetErrors()
   return ERRORS;
 end

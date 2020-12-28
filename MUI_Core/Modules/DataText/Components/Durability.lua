@@ -20,7 +20,7 @@ local INVENTORY_ALERT_COLORS = _G.INVENTORY_ALERT_COLORS;
 
 -- Register and Import Modules -------
 
-local Durability = ComponentsPackage:CreateClass("Durability", nil, "IDataTextComponent");
+local Durability = ComponentsPackage:CreateClass("Durability", nil, "table");
 
 -- Local Functions ----------------
 

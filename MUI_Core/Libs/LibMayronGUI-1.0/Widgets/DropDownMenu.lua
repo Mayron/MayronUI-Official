@@ -5,12 +5,11 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
 if (not Lib) then return; end
 
-local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
-local obj = Lib.Objects;
-
-local SlideController = WidgetsPackage:Get("SlideController");
-local DropDownMenu = WidgetsPackage:CreateClass("DropDownMenu", Private.FrameWrapper);
+local obj = _G.MayronObjects:GetFramework();
+local SlideController = obj:Import("MayronUI.SlideController");
+local DropDownMenu = obj:CreateClass("DropDownMenu");
+obj:Export(DropDownMenu, "MayronUI");
 
 DropDownMenu.Static.MAX_HEIGHT = 200;
 
@@ -150,7 +149,7 @@ local function ToolTip_OnLeave()
   _G.GameTooltip:Hide();
 end
 
-WidgetsPackage:DefineParams("Style", "Frame", "string", "SlideController", "Frame")
+obj:DefineParams("Style", "Frame", "string", "SlideController", "Frame")
 function DropDownMenu:__Construct(data, style, header, direction, slideController, frame)
   data.header = header;
   data.direction = direction;
@@ -206,31 +205,31 @@ do
   end
 end
 
-WidgetsPackage:DefineParams("string");
+obj:DefineParams("string");
 function DropDownMenu:SetLabel(data, text)
   data.label:SetText(text);
 end
 
-WidgetsPackage:DefineReturns("?string");
+obj:DefineReturns("?string");
 function DropDownMenu:GetLabel(data)
   return data.label and data.label:GetText();
 end
 
-WidgetsPackage:DefineReturns("number");
+obj:DefineReturns("number");
 function DropDownMenu:GetNumOptions(data)
   return #data.options;
 end
 
-WidgetsPackage:DefineParams("number");
-WidgetsPackage:DefineReturns("Button");
+obj:DefineParams("number");
+obj:DefineReturns("Button");
 function DropDownMenu:GetOptionByID(data, optionID)
   local foundOption = data.options[optionID];
   obj:Assert(foundOption, "DropDownMenu.GetOption failed to find option with id '%s'.", optionID);
   return foundOption;
 end
 
-WidgetsPackage:DefineParams("string");
-WidgetsPackage:DefineReturns("Button");
+obj:DefineParams("string");
+obj:DefineReturns("Button");
 function DropDownMenu:GetOptionByLabel(data, label)
   for _, optionButton in ipairs(data.options) do
     if (optionButton:GetText() == label) then
@@ -239,7 +238,7 @@ function DropDownMenu:GetOptionByLabel(data, label)
   end
 end
 
-WidgetsPackage:DefineParams("string");
+obj:DefineParams("string");
 function DropDownMenu:RemoveOptionByLabel(data, label)
   for optionID, optionButton in ipairs(data.options) do
     if (optionButton:GetText() == label) then

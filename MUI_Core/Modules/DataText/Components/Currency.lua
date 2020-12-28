@@ -13,7 +13,7 @@ local C_Calendar, C_DateAndTime = _G.C_Calendar, _G.C_DateAndTime;
 
 -- Objects ---------------------------
 
-local Currency = ComponentsPackage:CreateClass("Currency", nil, "IDataTextComponent");
+local Currency = ComponentsPackage:CreateClass("Currency", nil, "table");
 
 -- Load Database Defaults ------------
 

@@ -12,7 +12,7 @@ local unpack = _G.unpack;
 
 -- Register and Import Modules -------
 
-local Memory = ComponentsPackage:CreateClass("Memory", nil, "IDataTextComponent");
+local Memory = ComponentsPackage:CreateClass("Memory", nil, "table");
 
 -- Local Functions ----------------
 

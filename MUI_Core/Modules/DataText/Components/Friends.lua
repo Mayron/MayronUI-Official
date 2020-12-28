@@ -28,7 +28,7 @@ local ToggleFriendsFrame = _G.ToggleFriendsFrame;
 
 -- Register and Import Modules -------
 
-local Friends = ComponentsPackage:CreateClass("Friends", nil, "IDataTextComponent");
+local Friends = ComponentsPackage:CreateClass("Friends", nil, "table");
 
 -- Local Functions -------------------
 

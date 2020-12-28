@@ -2,7 +2,6 @@
 
 local _, namespace = ...;
 local C_ChatFrame = namespace.C_ChatFrame;
-local Engine = namespace.Engine;
 local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
 
 local LoadAddOn, IsTrialAccount, IsInGuild, UnitLevel, UnitInBattleground =
@@ -243,7 +242,7 @@ local function ChatFrame_OnModifierStateChanged(_, _, data)
   end
 end
 
-Engine:DefineParams("table")
+obj:DefineParams("table")
 function C_ChatFrame:SetUpButtonHandler(data, buttonSettings)
   data.settings.buttons = buttonSettings;
 

@@ -24,7 +24,7 @@ local GuildRoster = _G.GuildRoster or (_G.C_GuildInfo and _G.C_GuildInfo.GuildRo
 
 -- Register and Import Modules -------
 
-local Guild = ComponentsPackage:CreateClass("Guild", nil, "IDataTextComponent");
+local Guild = ComponentsPackage:CreateClass("Guild", nil, "table");
 
 -- Load Database Defaults ------------
 

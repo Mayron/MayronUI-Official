@@ -10,18 +10,14 @@ local ipairs, table = _G.ipairs, _G.table;
 local BAR_NAMES = {"reputation", "experience", "azerite", "artifact"};
 
 -- Setup Objects -------------------------
-
-local Engine = obj:Import("MayronUI.Engine");
-
-local ResourceBarsPackage = obj:CreatePackage("ResourceBars", "MayronUI");
-local C_BaseResourceBar = ResourceBarsPackage:CreateClass("BaseResourceBar", "Framework.System.FrameWrapper");
-local C_ExperienceBar = ResourceBarsPackage:CreateClass("ExperienceBar", C_BaseResourceBar);
-local C_ReputationBar = ResourceBarsPackage:CreateClass("ReputationBar", C_BaseResourceBar);
+local C_BaseResourceBar = obj:CreateClass("BaseResourceBar");
+local C_ExperienceBar = obj:CreateClass("ExperienceBar", C_BaseResourceBar);
+local C_ReputationBar = obj:CreateClass("ReputationBar", C_BaseResourceBar);
 local C_AzeriteBar, C_ArtifactBar;
 
 if (tk:IsRetail()) then
-  C_AzeriteBar = ResourceBarsPackage:CreateClass("AzeriteBar", C_BaseResourceBar);
-  C_ArtifactBar = ResourceBarsPackage:CreateClass("ArtifactBar", C_BaseResourceBar);
+  C_AzeriteBar = obj:CreateClass("AzeriteBar", C_BaseResourceBar);
+  C_ArtifactBar = obj:CreateClass("ArtifactBar", C_BaseResourceBar);
 end
 -- Register and Import Modules -----------
 
@@ -243,7 +239,7 @@ function C_ResourceBarsModule:UpdateContainerHeight(data)
   end
 end
 
-Engine:DefineReturns("number");
+obj:DefineReturns("number");
 function C_ResourceBarsModule:GetHeight(data)
   if (data.barsContainer) then
     return data.barsContainer:GetHeight();
@@ -252,8 +248,8 @@ function C_ResourceBarsModule:GetHeight(data)
   return 0;
 end
 
-Engine:DefineParams("string");
-Engine:DefineReturns("Frame");
+obj:DefineParams("string");
+obj:DefineReturns("Frame");
 function C_ResourceBarsModule:GetBar(data, barName)
   return data.bars[barName];
 end
@@ -292,14 +288,14 @@ function C_ResourceBarsModule:SetBlockerEnabled(data, enabled, dataTextBar)
   end
 end
 
-Engine:DefineReturns("Frame");
+obj:DefineReturns("Frame");
 function C_ResourceBarsModule:GetBarContainer(data)
   return data.barsContainer;
 end
 
 -- C_ResourceBar ---------------------------
 
-ResourceBarsPackage:DefineParams("BottomUI_ResourceBars", "table", "string");
+obj:DefineParams("BottomUI_ResourceBars", "table", "string");
 function C_BaseResourceBar:__Construct(data, barsModule, moduleData, barName)
   data.module = barsModule;
   data.barName = barName;
@@ -375,22 +371,22 @@ do
   end
 end
 
-ResourceBarsPackage:DefineReturns("number");
+obj:DefineReturns("number");
 function C_BaseResourceBar:GetHeight(data)
   return data.frame:GetHeight();
 end
 
-ResourceBarsPackage:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 function C_BaseResourceBar:IsActive(data)
   return (data.frame ~= nil and data.frame:IsShown());
 end
 
-ResourceBarsPackage:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 function C_BaseResourceBar:IsEnabled(data)
   return data.settings.enabled;
 end
 
-ResourceBarsPackage:DefineParams("boolean");
+obj:DefineParams("boolean");
 function C_BaseResourceBar:SetActive(data, active)
   if (data.activeState == active) then
     return;

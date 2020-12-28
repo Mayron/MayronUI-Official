@@ -1,5 +1,3 @@
-local _, namespace = ...;
-
 -- luacheck: ignore self 143
 local MayronUI = _G.MayronUI;
 local tk, _, _, _, obj = MayronUI:GetCoreComponents();
@@ -8,13 +6,9 @@ local unpack, CreateFrame, InCombatLockdown, CancelUnitBuff, GameTooltip, UnitAu
 _G.unpack, _G.CreateFrame, _G.InCombatLockdown, _G.CancelUnitBuff, _G.GameTooltip, _G.UnitAura;
 
 -- Objects -----------------------------
-
----@type Engine
-local Engine = obj:Import("MayronUI.Engine");
-
 ---@class C_Aura : Object
-local C_Aura = Engine:CreateClass("Aura", "Framework.System.FrameWrapper");
-namespace.C_Aura = C_Aura;
+local C_Aura = obj:CreateClass("Aura");
+obj:Export(C_Aura, "MayronUI.AurasModule");
 
 -- Local Functions ---------------------
 local function CancelAura(self)
@@ -132,7 +126,7 @@ function C_Aura:SetUpIcon(data)
 end
 
 --Changes which aura is being tracked and updates the icon and aura name
-Engine:DefineParams("number|boolean", "?string");
+obj:DefineParams("number|boolean", "?string");
 function C_Aura:SetAura(data, iconTexture, auraName)
   local btn = data.frame;
 
@@ -189,7 +183,7 @@ function C_Aura:SetUpBorder(data)
   btn.iconTexture:SetPoint("BOTTOMRIGHT", -settings.size, settings.size);
 end
 
-Engine:DefineReturns("table");
+obj:DefineReturns("table");
 function C_Aura:GetAuraColor(data)
   local btn = data.frame;
   local _, _, _, debuffType = UnitAura("player", btn:GetID(), btn.filter);
@@ -212,7 +206,7 @@ function C_Aura:GetAuraColor(data)
   return auraColor;
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar spark effect.
 function C_Aura:SetSparkShown(data, shown)
   local btn = data.frame;

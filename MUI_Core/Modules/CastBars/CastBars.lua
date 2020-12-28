@@ -39,16 +39,12 @@ if (tk:IsClassic()) then
 end
 
 -- Objects -----------------------------
-
----@type Engine
-local Engine = obj:Import("MayronUI.Engine");
-
 ---@class CastBarsModule : BaseModule
 local C_CastBarsModule = MayronUI:RegisterModule("CastBarsModule", L["Cast Bars"]);
 namespace.C_CastBarsModule = C_CastBarsModule;
 
 ---@class CastBar : Object
-local C_CastBar = Engine:CreateClass("CastBar", "Framework.System.FrameWrapper");
+local C_CastBar = obj:CreateClass("CastBar");
 C_CastBar.Static:AddFriendClass("CastBarsModule");
 
 namespace.bars = obj:PopTable();
@@ -343,7 +339,7 @@ end
 
 -- C_CastBar ----------------------
 
-Engine:DefineParams("table", "table", "string");
+obj:DefineParams("table", "table", "string");
 function C_CastBar:__Construct(data, settings, appearance, unitID)
   data.settings = settings;
   data.globalName = string.format("MUI_%sCastBar", unitID);
@@ -419,7 +415,7 @@ do
     return bar;
   end
 
-  Engine:DefineParams("boolean")
+  obj:DefineParams("boolean")
   function C_CastBar:SetEnabled(data, enabled)
     local bar = data.frame;
 
@@ -557,7 +553,7 @@ function C_CastBar:Update(data)
   end
 end
 
-Engine:DefineParams("number");
+obj:DefineParams("number");
 ---@param numTicks number @The number of channelling ticks (when damage is applied)
 function C_CastBar:SetTicks(data, numTicks)
   if (data.ticks) then
@@ -582,7 +578,7 @@ function C_CastBar:SetTicks(data, numTicks)
   end
 end
 
-Engine:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 ---@return boolean @Returns true if the cast bar has finished channeling or casting.
 function C_CastBar:IsFinished(data)
   local value = data.frame.statusbar:GetValue();
@@ -607,7 +603,7 @@ function C_CastBar:IsFinished(data)
   return value >= maxValue;
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 function C_CastBar:SetIconEnabled(data, enabled)
   if (not enabled and not data.square) then
     return; -- nothing to do
@@ -651,7 +647,7 @@ function C_CastBar:StopCasting(data)
   end
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---Start casting or channelling a spell/ability.
 ---@param channelling boolean @If true, the casting type is set to "channelling" to reverse the bar direction.
 function C_CastBar:StartCasting(data, channelling, auraInfo)

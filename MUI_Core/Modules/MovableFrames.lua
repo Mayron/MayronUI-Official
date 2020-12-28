@@ -6,9 +6,6 @@ local InCombatLockdown, unpack = _G.InCombatLockdown, _G.unpack;
 local pairs, ipairs, table, xpcall = _G.pairs, _G.ipairs, _G.table, _G.xpcall;
 local IsAddOnLoaded = _G.IsAddOnLoaded;
 
----@type Engine
-local Engine = obj:Import("MayronUI.Engine");
-
 ---@class MovableModule : BaseModule
 local C_MovableFramesModule = MayronUI:RegisterModule("MovableFramesModule", L["Movable Frames"]);
 
@@ -144,7 +141,7 @@ local function FixAnchorFamilyConnections()
 	end
 end
 
-Engine:DefineParams("string|table", "boolean");
+obj:DefineParams("string|table", "boolean");
 function C_MovableFramesModule:ExecuteMakeMovable(_, value, dontSave)
 	if (obj:IsString(value)) then
 		self:MakeMovable(dontSave, GetFrame(value));
@@ -340,7 +337,7 @@ do
 	end
 end
 
-Engine:DefineParams("Frame");
+obj:DefineParams("Frame");
 function C_MovableFramesModule:RepositionFrame(data, frame)
   if (not CanMove(frame)) then
 		return; -- otherwise taint issue!
@@ -444,7 +441,7 @@ do
 		end
 	end
 
-	Engine:DefineParams("boolean", "?Frame", "?table");
+	obj:DefineParams("boolean", "?Frame", "?table");
   function C_MovableFramesModule:MakeMovable(data, dontSave, frame, tbl)
     if (not frame or not CanMove(frame)) then return end
 

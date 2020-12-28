@@ -15,7 +15,7 @@ local SetSpecialization, GetNumSpecializations, GameTooltip = _G.SetSpecializati
 
 -- Register and Import Modules -------
 
-local Specialization = ComponentsPackage:CreateClass("Specialization", nil, "IDataTextComponent");
+local Specialization = ComponentsPackage:CreateClass("Specialization", nil, "table");
 
 -- Load Database Defaults ------------
 

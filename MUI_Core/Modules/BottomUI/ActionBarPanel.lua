@@ -13,9 +13,8 @@ local TOGGLE_BUTTON_WIDTH = 120;
 local TOGGLE_BUTTON_HEIGHT = 28;
 
 -- Register and Import Modules -----------
-local Engine = obj:Import("MayronUI.Engine");
 local C_ActionBarPanel = MayronUI:RegisterModule("BottomUI_ActionBarPanel", L["Action Bar Panel"], true);
-local SlideController = gui.WidgetsPackage:Get("SlideController");
+local SlideController = obj:Import("MayronUI.SlideController");
 
 -- Load Database Defaults ----------------
 db:AddToDefaults("profile.actionBarPanel", {
@@ -195,7 +194,7 @@ end
 ---@param rowId number The MUI row number (between 1 and 3)
 ---@param bartenderBarID number The BT4Bar<n> ID where n is the ID number
 ---This function controls the selected bartender action bars by setting them up
-Engine:DefineParams("number", "number");
+obj:DefineParams("number", "number");
 function C_ActionBarPanel:SetUpBartenderBar(data, rowId, bartenderBarId)
   if (bartenderBarId == 0) then return end -- disabled
   if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
@@ -255,7 +254,7 @@ function C_ActionBarPanel:GetPanel(data)
   return data.panel;
 end
 
-Engine:DefineParams("number")
+obj:DefineParams("number")
 ---@param rows number The number of rows to show
 -- Expands or Retracts the action bar panel to show a given number of rows
 function C_ActionBarPanel:SetNumActiveRows(data, rows)
@@ -399,8 +398,8 @@ function C_ActionBarPanel:LoadExpandRetractFeature(data)
   data.expandRetractFeatureLoaded = true;
 end
 
-Engine:DefineParams("number");
-Engine:DefineReturns("number");
+obj:DefineParams("number");
+obj:DefineReturns("number");
 function C_ActionBarPanel.Private:GetRowHeight(data, rowId)
   local barIds = data.settings.bartender[rowId];
   local maxHeight = 0;
@@ -495,8 +494,8 @@ function C_ActionBarPanel.Private:LoadTutorial(data)
   listener:RegisterEvent("MODIFIER_STATE_CHANGED");
 end
 
-Engine:DefineParams("table", "?boolean", "?number");
-Engine:DefineReturns("boolean");
+obj:DefineParams("table", "?boolean", "?number");
+obj:DefineReturns("boolean");
 function C_ActionBarPanel.Private:ToggleBartenderBar(data, bt4Bar, show, delay)
   if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control))then
     return false;
@@ -519,8 +518,8 @@ function C_ActionBarPanel.Private:ToggleBartenderBar(data, bt4Bar, show, delay)
   return true;
 end
 
-Engine:DefineParams("number", "?boolean", "?number");
-Engine:DefineReturns("boolean");
+obj:DefineParams("number", "?boolean", "?number");
+obj:DefineReturns("boolean");
 function C_ActionBarPanel.Private:ToggleBartenderBarRow(data, rowId, show, delay)
   if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
     return false;
@@ -610,7 +609,7 @@ function C_ActionBarPanel.Private:SetUpSlideController(data)
   end);
 end
 
-Engine:DefineReturns("Button");
+obj:DefineReturns("Button");
 function C_ActionBarPanel.Private:CreateButton(data)
   local btn = gui:CreateButton(tk.Constants.AddOnStyle, data.buttons);
   btn:SetFrameStrata("HIGH");
@@ -653,7 +652,7 @@ function C_ActionBarPanel.Private:HandleModifierStateChanged(data)
   data.fader:Play();
 end
 
-Engine:DefineParams("Button");
+obj:DefineParams("Button");
 function C_ActionBarPanel.Private:HandleButtonClick(data, btn)
   if (data.up == btn and data.settings.activeRows < 3) then
     MayronUI:TriggerCommand(string.format("Show%dActionBarRows", data.settings.activeRows + 1));

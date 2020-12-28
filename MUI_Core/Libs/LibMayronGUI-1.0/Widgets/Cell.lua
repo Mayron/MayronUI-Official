@@ -5,14 +5,12 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
 if (not Lib) then return; end
 
+local obj = _G.MayronObjects:GetFramework();
 local CreateFrame = _G.CreateFrame;
-
-local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
-local obj = Lib.Objects;
 
----@class Cell : FrameWrapper
-local Cell = WidgetsPackage:CreateClass("Cell", Private.FrameWrapper);
+---@class Cell
+local Cell = obj:CreateClass("Cell");
 Cell.Static:AddFriendClass("Panel");
 
 ---@type Panel

@@ -6,14 +6,11 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 if (not Lib) then return; end
 
 ---@type MayronObjects
-local obj = Lib.Objects;
-local inCombatAttribute = obj:Import("Framework.System.Attributes.InCombatAttribute");
-
----@type Package
-local WidgetsPackage = Lib.WidgetsPackage;
+local obj = _G.MayronObjects:GetFramework();
 
 ---@class SlideController : Object
-local SlideController = WidgetsPackage:CreateClass("SlideController");
+local SlideController = obj:CreateClass("SlideController");
+obj:Export(SlideController, "MayronUI");
 
 local math, C_Timer, InCombatLockdown = _G.math, _G.C_Timer, _G.InCombatLockdown;
 
@@ -26,7 +23,7 @@ local function frameOnHide(self)
   self:SetHeight(1);
 end
 
-WidgetsPackage:DefineParams("Frame", "?number", "boolean=true");
+obj:DefineParams("Frame", "?number", "boolean=true");
 function SlideController:__Construct(data, frame, step, retractOnHide)
   data.frame = frame;
   data.step = step or 30;
@@ -38,7 +35,8 @@ function SlideController:__Construct(data, frame, step, retractOnHide)
   end
 end
 
-WidgetsPackage:SetAttribute(inCombatAttribute, true);
+-- TODO: Add this back in somehow
+-- obj:SetAttribute(inCombatAttribute, true);
 function SlideController:Start(data, forceState)
   obj:Assert(obj:IsTable(data) and not data.GetObjectType);
   local step = math.abs(data.step);
@@ -92,7 +90,8 @@ function SlideController:Start(data, forceState)
   end);
 end
 
-WidgetsPackage:SetAttribute(inCombatAttribute, true);
+-- TODO: Add back in!
+-- obj:SetAttribute(inCombatAttribute, true);
 function SlideController:Stop(data)
   data.stop = true;
 

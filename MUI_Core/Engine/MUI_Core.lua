@@ -75,12 +75,9 @@ end
 local registeredModules = {};
 
 -- Objects  ---------------------------
-
----@class Engine : Package
-local Engine = obj:CreatePackage("Engine", "MayronUI");
-
 ---@class BaseModule : Object
-local BaseModule = Engine:CreateClass("BaseModule");
+local BaseModule = obj:CreateClass("BaseModule");
+obj:Export(BaseModule, "MayronUI.BaseModule");
 
 -- Load Database Defaults -------------
 
@@ -315,7 +312,7 @@ end
 
 -- BaseModule Object -------------------
 
-Engine:DefineParams("string", "?string", "?boolean");
+obj:DefineParams("string", "?string", "?boolean");
 ---Should only be called by the register module method!
 ---@param moduleKey string @The key used to register the module to MayronUI.
 ---@param moduleName string @The human-friendly name of the module to be used in-game (such as on the config window).
@@ -366,21 +363,21 @@ function BaseModule:Initialize(_, ...)
   end
 end
 
-Engine:DefineReturns("string");
+obj:DefineReturns("string");
 ---@return string @Returns the human-friendly name of the module to be used in-game (such as on the config window).
 function BaseModule:GetModuleName(_)
   local registryInfo = registeredModules[tostring(self)];
   return registryInfo.moduleName;
 end
 
-Engine:DefineReturns("string");
+obj:DefineReturns("string");
 ---@return string @Returns the key used to register the module to MayronUI.
 function BaseModule:GetModuleKey(_)
   local registryInfo = registeredModules[tostring(self)];
   return registryInfo.moduleKey;
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---@param enabled boolean
 function BaseModule:SetEnabled(data, enabled, ...)
   local registryInfo = registeredModules[tostring(self)];
@@ -426,14 +423,14 @@ function BaseModule:SetEnabled(data, enabled, ...)
   end
 end
 
-Engine:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 ---@return boolean @Returns true if the module has already been initialized.
 function BaseModule:IsInitialized()
   local registryInfo = registeredModules[tostring(self)];
   return registryInfo.initialized;
 end
 
-Engine:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 ---Returns whether the module should be initialized automatically on start up or manually.
 ---@return boolean @If true, the module should be initialized on demand (manually) when required.
 function BaseModule:IsInitializedOnDemand()
@@ -441,7 +438,7 @@ function BaseModule:IsInitializedOnDemand()
   return registryInfo.initializeOnDemand == true;
 end
 
-Engine:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 ---@return boolean @Returns true if the module is enabled.
 function BaseModule:IsEnabled()
   local registryInfo = registeredModules[tostring(self)];
@@ -558,7 +555,7 @@ end
 ---@param initializeOnDemand boolean @(optional) If true, must be initialized manually instead of
 ---@return Class @Returns a new module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
-  local ModuleClass = Engine:CreateClass(moduleKey, BaseModule);
+  local ModuleClass = obj:CreateClass(moduleKey, BaseModule);
 
   -- must add it to the registeredModules table before calling parent constructor!
   registeredModules[moduleKey] = registeredModules[moduleKey] or obj:PopTable();
