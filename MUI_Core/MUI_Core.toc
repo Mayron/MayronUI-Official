@@ -24,9 +24,10 @@ TaintLess.xml
 
 ## Packages:
 ## -------------------------------------------------
-Engine\MayronObjects\MayronObjects.xml
+Engine\MayronObjects\MayronObjects.lua
 Packages\Pkg-MayronDB\Pkg-MayronDB.lua
 Packages\Pkg-MayronEvents\Pkg-MayronEvents.xml
+Packages\Pkg-Collections\Pkg-Collections.xml
 
 ## Libraries:
 ## ------------------------------------------------
@@ -38,7 +39,6 @@ Libs\AceLocale-3.0.lua
 Libs\SortBags.lua
 Libs\LibClassicCasterino.lua
 Libs\LibClassicDurations\LibClassicDurations.xml
-Libs\LibActionButton.lua
 
 ## Localization
 ## -------------------------------------------------

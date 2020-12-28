@@ -1,9 +1,0 @@
-<Ui>
-  <Script file="ActionBars.lua" />
-  <!-- <Script file="Pet.lua" />
-  <Script file="StanceBar.lua" />
-  <Script file="MicroMenu.lua" />
-  <Script file="BagBar.lua" />
-  <Script file="ExtraActionButton.lua" />
-  <Script file="ActionBars.config.lua" /> -->
-</Ui>
