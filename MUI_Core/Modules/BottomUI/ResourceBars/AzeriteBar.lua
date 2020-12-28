@@ -43,24 +43,24 @@ end
 
 obj:DefineParams("BottomUI_ResourceBars", "table");
 function C_AzeriteBar:__Construct(_, barsModule, moduleData)
-    self:Super(barsModule, moduleData, "azerite");
+  self:CreateResourceBar(barsModule, moduleData, "azerite");
 end
 
 obj:DefineReturns("boolean");
 function C_AzeriteBar:CanUse()
-    return _G.AzeriteBarMixin:ShouldBeVisible() == true; -- this is a static mixin method
+  return _G.AzeriteBarMixin:ShouldBeVisible() == true; -- this is a static mixin method
 end
 
 obj:DefineParams("boolean");
 function C_AzeriteBar:SetActive(data, active)
-    self.Parent:SetActive(active);
+  self.Parent:SetActive(active);
 
-    if (active and data.notCreated) then
-        data.statusbar.texture = data.statusbar:GetStatusBarTexture();
-        data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
+  if (active and data.notCreated) then
+    data.statusbar.texture = data.statusbar:GetStatusBarTexture();
+    data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
 
-        data.notCreated = nil;
-    end
+    data.notCreated = nil;
+  end
 end
 
 obj:DefineParams("boolean");

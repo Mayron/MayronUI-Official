@@ -113,14 +113,15 @@ function C_ErrorHandler:OnInitialize()
     BugGrabber.RegisterCallback(namespace, "BugGrabber_BugGrabbed", BugGrabber_OnBugGrabbed);
   end
 
-  obj:SetErrorHandler(function(errorMessage, stack, locals)
-    local hideErrorFrame = not GetCVarBool("scriptErrors");
-    ScriptErrorsFrame.Title:SetText("MayronUI Error");
-    ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
+  -- TODO: Gone forever? :()
+  -- obj:SetErrorHandler(function(errorMessage, stack, locals)
+  --   local hideErrorFrame = not GetCVarBool("scriptErrors");
+  --   ScriptErrorsFrame.Title:SetText("MayronUI Error");
+  --   ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
 
-    addError(string.format("%s\n%s", errorMessage or "<unknown>", stack or tk.Strings.Empty));
-    ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
-  end);
+  --   addError(string.format("%s\n%s", errorMessage or "<unknown>", stack or tk.Strings.Empty));
+  --   ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
+  -- end);
 end
 
 obj:DefineReturns("table");

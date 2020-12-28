@@ -52,9 +52,9 @@ end
 -- C_Aura -------------------------------
 function C_Aura:__Construct(data, parent, settings, auraID, filter)
   data.settings = settings;
-  data.frame = CreateFrame("Button", nil, parent);
+  local btn = CreateFrame("Button", nil, parent);
+  self:SetFrame(btn);
 
-  local btn = data.frame;
   btn:SetID(auraID);
 
   btn.obj = self;
@@ -85,7 +85,7 @@ function C_Aura:__Construct(data, parent, settings, auraID, filter)
 end
 
 function C_Aura:SetUpStatusBar(data)
-  local btn = data.frame;
+  local btn = self:GetFrame();
   local statusBars = data.settings.statusBars;
 
   btn:SetSize(statusBars.width, statusBars.height);
@@ -115,7 +115,7 @@ function C_Aura:SetUpStatusBar(data)
 end
 
 function C_Aura:SetUpIcon(data)
-  local btn = data.frame;
+  local btn = self:GetFrame();
   local icons = data.settings.icons;
 
   btn:SetSize(icons.auraSize, icons.auraSize);
@@ -128,7 +128,7 @@ end
 --Changes which aura is being tracked and updates the icon and aura name
 obj:DefineParams("number|boolean", "?string");
 function C_Aura:SetAura(data, iconTexture, auraName)
-  local btn = data.frame;
+  local btn = self:GetFrame();
 
   if (not iconTexture) then
     btn:Hide();
@@ -156,7 +156,7 @@ end
 
 function C_Aura:SetUpBorder(data)
   local settings = data.settings.border;
-  local btn = data.frame;
+  local btn = self:GetFrame();
 
   if (not data.backdrop) then
     data.backdrop = obj:PopTable();
@@ -185,7 +185,7 @@ end
 
 obj:DefineReturns("table");
 function C_Aura:GetAuraColor(data)
-  local btn = data.frame;
+  local btn = self:GetFrame();
   local _, _, _, debuffType = UnitAura("player", btn:GetID(), btn.filter);
   local auraColor;
 
@@ -209,7 +209,7 @@ end
 obj:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar spark effect.
 function C_Aura:SetSparkShown(data, shown)
-  local btn = data.frame;
+  local btn = self:GetFrame();
 
   if (not btn.spark and not shown) then
     return;
@@ -229,8 +229,8 @@ function C_Aura:SetSparkShown(data, shown)
   data.showSpark = shown;
 end
 
-function C_Aura:UpdateStatusBar(data, duration, timeRemaining)
-  local btn = data.frame;
+function C_Aura:UpdateStatusBar(_, duration, timeRemaining)
+  local btn = self:GetFrame();
 
   if (timeRemaining > 0 and duration) then
     btn.statusBar:SetMinMaxValues(0, duration);

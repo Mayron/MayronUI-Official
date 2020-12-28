@@ -12,6 +12,7 @@ local strsplit, GetAddOnMetadata, tostring = _G.strsplit, _G.GetAddOnMetadata, _
 local collectgarbage, CreateFont = _G.collectgarbage, _G.CreateFont;
 local hooksecurefunc = _G.hooksecurefunc;
 local FillLocalizedClassList, UnitName = _G.FillLocalizedClassList, _G.UnitName;
+local pairs = _G.pairs;
 
 _G.BINDING_CATEGORY_MUI = "MayronUI";
 _G.BINDING_NAME_MUI_SHOW_CONFIG_MENU = "Show Config Menu";
@@ -73,11 +74,12 @@ function MayronUI:AddModuleComponent(moduleKey, componentName, component)
 end
 
 local registeredModules = {};
+local initializationOrder = {};
 
 -- Objects  ---------------------------
 ---@class BaseModule : Object
 local BaseModule = obj:CreateClass("BaseModule");
-obj:Export(BaseModule, "MayronUI.BaseModule");
+obj:Export(BaseModule, "MayronUI");
 
 -- Load Database Defaults -------------
 
@@ -312,25 +314,21 @@ end
 
 -- BaseModule Object -------------------
 
-obj:DefineParams("string", "?string", "?boolean");
+obj:DefineParams("string");
 ---Should only be called by the register module method!
 ---@param moduleKey string @The key used to register the module to MayronUI.
----@param moduleName string @The human-friendly name of the module to be used in-game (such as on the config window).
----@param initializeOnDemand boolean @(optional) If true, the module will not be initialized on start up automatically and can only be initialized by manually calling "Initialize()" on the module.
-function BaseModule:__Construct(data, moduleKey, moduleName, initializeOnDemand)
+function BaseModule:__Construct(data, moduleKey)
   local registryInfo = registeredModules[moduleKey];
   registeredModules[tostring(self)] = registryInfo;
-
-  registryInfo.moduleName = moduleName or moduleKey;
-  registryInfo.moduleKey = moduleKey;
-  registryInfo.initializeOnDemand = initializeOnDemand;
-  registryInfo.initialized = false;
-  registryInfo.enabled = false;
   registryInfo.moduleData = data;
   registryInfo.instance = self;
 
-  -- Make it easy to iterate through modules
-  table.insert(registeredModules, self);
+  for index, otherRegistryInfo in ipairs(initializationOrder) do
+    if (registryInfo == otherRegistryInfo) then
+      table.remove(initializationOrder, index);
+      break
+    end
+  end
 end
 
 ---Initialize the module manually (on demand) or is called by MayronUI on startup.
@@ -426,7 +424,7 @@ end
 obj:DefineReturns("boolean");
 ---@return boolean @Returns true if the module has already been initialized.
 function BaseModule:IsInitialized()
-  local registryInfo = registeredModules[tostring(self)];
+  local registryInfo = registeredModules[self:GetModuleKey()];
   return registryInfo.initialized;
 end
 
@@ -434,25 +432,25 @@ obj:DefineReturns("boolean");
 ---Returns whether the module should be initialized automatically on start up or manually.
 ---@return boolean @If true, the module should be initialized on demand (manually) when required.
 function BaseModule:IsInitializedOnDemand()
-  local registryInfo = registeredModules[tostring(self)];
+  local registryInfo = registeredModules[self:GetModuleKey()];
   return registryInfo.initializeOnDemand == true;
 end
 
 obj:DefineReturns("boolean");
 ---@return boolean @Returns true if the module is enabled.
 function BaseModule:IsEnabled()
-  local registryInfo = registeredModules[tostring(self)];
+  local registryInfo = registeredModules[self:GetModuleKey()];
   return registryInfo.enabled;
 end
 
 ---Hook more functions to a module event. Useful if module is spread across multiple files
 function BaseModule:Hook(_, eventName, func)
-  local registryInfo = registeredModules[tostring(self)];
+  local registryInfo = registeredModules[self:GetModuleKey()];
   MayronUI:Hook(registryInfo.moduleName, eventName, func);
 end
 
 function BaseModule:TriggerEvent(_, eventName, ...)
-  local registryInfo = registeredModules[tostring(self)];
+  local registryInfo = registeredModules[self:GetModuleKey()];
   local hooks = registryInfo.hooks and registryInfo.hooks[eventName];
 
   if (self[eventName]) then
@@ -473,6 +471,18 @@ function BaseModule:RefreshSettings(data)
 end
 
 -- MayronUI Functions ---------------------
+function MayronUI:LoadRegisteredModule(moduleKey)
+  local registryInfo = registeredModules[moduleKey];
+
+  if (not registryInfo) then
+    -- addon is disabled so cannot import module
+    obj:Error("Failed to load module '%s'. Has it been registered?", moduleKey);
+    return nil;
+  end
+
+  local module = registryInfo.class(moduleKey, registryInfo.moduleName, registryInfo.initializeOnDemand);
+  return module;
+end
 
 ---A helper function to print a table's contents using the MayronUI prefix in the chat frame.
 ---@param tbl table @The table to print.
@@ -546,6 +556,10 @@ function MayronUI:ImportModule(moduleKey, silent)
     return nil;
   end
 
+  if (not registryInfo.instance) then
+    MayronUI:LoadRegisteredModule(moduleKey);
+  end
+
   return registryInfo.instance, registryInfo.class;
 end
 
@@ -558,31 +572,27 @@ function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
   local ModuleClass = obj:CreateClass(moduleKey, BaseModule);
 
   -- must add it to the registeredModules table before calling parent constructor!
-  registeredModules[moduleKey] = registeredModules[moduleKey] or obj:PopTable();
-  registeredModules[moduleKey].class = ModuleClass;
+  local registryInfo = obj:PopTable();
+  registryInfo.class = ModuleClass;
+  registryInfo.moduleName =  moduleName or moduleKey;
+  registryInfo.moduleKey = moduleKey;
+  registryInfo.initializeOnDemand = initializeOnDemand;
+  registryInfo.initialized = false;
+  registryInfo.enabled = false;
 
-  ModuleClass(moduleKey, moduleName, initializeOnDemand);
+  registeredModules[moduleKey] = registryInfo;
+  initializationOrder[#initializationOrder + 1] = registryInfo;
 
   return ModuleClass;
-end
-
----@return fun(): number, BaseModule @An iterator function to iterate through registered modules.
-function MayronUI:IterateModules()
-  local id = 0;
-
-  return function()
-    id = id + 1;
-    if (id <= #registeredModules) then
-      return id, registeredModules[id];
-    end
-  end
 end
 
 function MayronUI:GetModules()
   local moduleList = obj:PopTable();
 
-  for _, module in MayronUI:IterateModules() do
-    table.insert(moduleList, module);
+  for _, registryInfo in pairs(registeredModules) do
+    if (registryInfo.instance) then
+      table.insert(moduleList, registryInfo.instance);
+    end
   end
 
   return moduleList;
@@ -655,12 +665,21 @@ function C_CoreModule:OnInitialize()
   end
 
   -- Initialize all modules here!
-  for _, module in MayronUI:IterateModules() do
-    if (not module:IsInitializedOnDemand() and not module:IsInitialized()) then
+  local modulesToLoad = obj:PopTable();
+
+  for index, registryInfo in ipairs(initializationOrder) do
+    modulesToLoad[index] = registryInfo;
+  end
+
+  for _, registryInfo in pairs(modulesToLoad) do
+    if (not registryInfo.initializeOnDemand and not registryInfo.initialized) then
       -- initialize a module if not set for manual initialization
+      local module = MayronUI:LoadRegisteredModule(registryInfo.moduleKey);
       module:Initialize();
     end
   end
+
+  obj:PushTable(modulesToLoad);
 
   -- probably should be moved to another file...
   if (IsAddOnLoaded("Recount") and _G.Recount_MainWindow) then
@@ -705,9 +724,8 @@ local onLogin = em:CreateEventListener(function()
     return;
   end
 
-  local coreModule = MayronUI:ImportModule("CoreModule");
+  local coreModule = MayronUI:LoadRegisteredModule("CoreModule");
   coreModule:Initialize();
-
 end)
 
 onLogin:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -748,9 +766,7 @@ end);
 db:OnStartUp(function(self)
   -- setup globals:
   MayronUI.db = self;
-
   namespace:SetUpBagnon();
-
   local r, g, b = tk:GetThemeColor();
 
   local myFont = CreateFont("MUI_FontNormal");

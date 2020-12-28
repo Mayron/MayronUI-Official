@@ -4,9 +4,6 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 
 local CreateFrame, pairs = _G.CreateFrame, _G.pairs;
 local IsAddOnLoaded, UnitExists, UnitIsPlayer = _G.IsAddOnLoaded, _G.UnitExists, _G.UnitIsPlayer;
-
--- Register Modules ----------------------
-
 local C_UnitPanels = MayronUI:RegisterModule("BottomUI_UnitPanels", L["Unit Panels"], true);
 
 -- Load Database Defaults ----------------

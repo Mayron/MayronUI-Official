@@ -6,21 +6,17 @@ local C_PetBattles = _G.C_PetBattles;
 local CreateFrame, UIParent = _G.CreateFrame, _G.UIParent;
 
 -- Register and Import Modules -----------
-
 local C_Container = MayronUI:RegisterModule("BottomUI_Container", "Unit Frame Panels");
-
 -- Add Database Defaults -----------------
 
 db:AddToDefaults("profile.bottomui", {
-    width = 750;
+  width = 750;
 });
 
 -- C_Container ------------------
 
 function C_Container:OnInitialize(data)
-  if (not MayronUI:IsInstalled()) then
-    return;
-  end
+  if (not MayronUI:IsInstalled()) then return end
 
   data.container = CreateFrame("Frame", "MUI_BottomContainer", UIParent);
   data.container:SetPoint("BOTTOM", 0, -1);
@@ -45,7 +41,6 @@ function C_Container:OnInitialize(data)
   end
 
   -- Initialize Sub Modules -------------
-
   data.subModules = obj:PopTable();
 
   data.subModules.ResourceBars = MayronUI:ImportModule("BottomUI_ResourceBars");

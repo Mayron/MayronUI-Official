@@ -38,7 +38,7 @@ end
 
 obj:DefineParams("BottomUI_ResourceBars", "table");
 function C_ReputationBar:__Construct(_, barsModule, moduleData)
-  self:Super(barsModule, moduleData, "reputation");
+  self:CreateResourceBar(barsModule, moduleData, "reputation");
 end
 
 obj:DefineReturns("boolean");

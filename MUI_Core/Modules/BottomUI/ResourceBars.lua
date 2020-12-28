@@ -1,36 +1,14 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-
 local InCombatLockdown, CreateFrame = _G.InCombatLockdown, _G.CreateFrame;
 local ipairs, table = _G.ipairs, _G.table;
-
--- Constants -----------------------------
-
 local BAR_NAMES = {"reputation", "experience", "azerite", "artifact"};
 
--- Setup Objects -------------------------
+local C_ExperienceBar, C_ReputationBar, C_AzeriteBar, C_ArtifactBar;
 local C_BaseResourceBar = obj:CreateClass("BaseResourceBar");
-
-local C_ExperienceBar = obj:CreateClass("ExperienceBar", C_BaseResourceBar);
-obj:Export(C_ExperienceBar, "MayronUI");
-
-local C_ReputationBar = obj:CreateClass("ReputationBar", C_BaseResourceBar);
-obj:Export(C_ReputationBar, "MayronUI");
-
-local C_AzeriteBar, C_ArtifactBar;
-
-if (tk:IsRetail()) then
-  C_AzeriteBar = obj:CreateClass("AzeriteBar", C_BaseResourceBar);
-  obj:Export(C_AzeriteBar, "MayronUI");
-
-  C_ArtifactBar = obj:CreateClass("ArtifactBar", C_BaseResourceBar);
-  obj:Export(C_ArtifactBar, "MayronUI");
-end
--- Register and Import Modules -----------
-
 local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", L["Resource Bars"], true);
-C_ResourceBarsModule.Static:AddFriendClass("MayronUI.BottomUI_Container");
+C_ResourceBarsModule.Static:AddFriendClass("BottomUI_Container");
 
 -- Load Database Defaults ----------------
 
@@ -303,7 +281,7 @@ end
 -- C_ResourceBar ---------------------------
 
 obj:DefineParams("BottomUI_ResourceBars", "table", "string");
-function C_BaseResourceBar:__Construct(data, barsModule, moduleData, barName)
+function C_BaseResourceBar:CreateResourceBar(data, barsModule, moduleData, barName)
   data.module = barsModule;
   data.barName = barName;
   data.settings = moduleData.settings[barName.."Bar"];
@@ -410,4 +388,18 @@ function C_BaseResourceBar:SetActive(data, active)
   end
 
   data.module:UpdateContainerHeight();
+end
+
+C_ExperienceBar = obj:CreateClass("ExperienceBar", C_BaseResourceBar);
+obj:Export(C_ExperienceBar, "MayronUI");
+
+C_ReputationBar = obj:CreateClass("ReputationBar", C_BaseResourceBar);
+obj:Export(C_ReputationBar, "MayronUI");
+
+if (tk:IsRetail()) then
+  C_AzeriteBar = obj:CreateClass("AzeriteBar", C_BaseResourceBar);
+  obj:Export(C_AzeriteBar, "MayronUI");
+
+  C_ArtifactBar = obj:CreateClass("ArtifactBar", C_BaseResourceBar);
+  obj:Export(C_ArtifactBar, "MayronUI");
 end

@@ -40,7 +40,7 @@ end
 
 obj:DefineParams("BottomUI_ResourceBars", "table");
 function C_ArtifactBar:__Construct(data, barsModule, moduleData)
-    self:Super(barsModule, moduleData, "artifact");
+    self:CreateResourceBar(barsModule, moduleData, "artifact");
     data.blizzardBar = _G.ArtifactWatchBar;
 end
 

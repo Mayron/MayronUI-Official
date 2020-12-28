@@ -60,11 +60,11 @@ local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
 
 ---@class TimerField
 local C_TimerField = obj:CreateClass("TimerField");
-C_TimerField.Static:AddFriendClass("MayronUI.TimerBarsModule");
+C_TimerField.Static:AddFriendClass("TimerBarsModule");
 
 ---@class TimerBar : ITimerBar
 local C_TimerBar = obj:CreateClass("TimerBar");
-C_TimerBar.Static:AddFriendClass("MayronUI.TimerBarsModule");
+C_TimerBar.Static:AddFriendClass("TimerBarsModule");
 
 ---@type Stack
 local Stack = obj:Import("Pkg-Collections.Stack<T>");
@@ -582,7 +582,7 @@ function C_TimerField:__Construct(data, name, sharedSettings)
   data.activeBars = obj:PopTable();
 
   ---@type Stack
-  data.expiredBarsStack = Stack:Of(C_TimerBar)(); -- this returns a class...
+  data.expiredBarsStack = Stack:UsingTypes(C_TimerBar)(); -- this returns a class...
 
   data.expiredBarsStack:OnNewItem(function()
     return C_TimerBar(sharedSettings, data.settings);

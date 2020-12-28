@@ -50,7 +50,6 @@
   <Script file="DataText\DataText.config.lua" />
 
   <Script file="MiniMap\MiniMap.lua" />
-  <Script file="MiniMap\Icons.lua" />
   <Script file="MiniMap\MiniMap.config.lua" />
 
   <Script file="TimerBars\TimerBars.lua" />

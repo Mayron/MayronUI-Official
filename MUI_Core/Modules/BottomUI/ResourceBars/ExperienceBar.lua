@@ -36,7 +36,7 @@ end
 
 obj:DefineParams("BottomUI_ResourceBars", "table");
 function C_ExperienceBar:__Construct(data, barsModule, moduleData)
-  self:Super(barsModule, moduleData, "experience");
+  self:CreateResourceBar(barsModule, moduleData, "experience");
   data.blizzardBar = _G.MainMenuExpBar;
 end
 

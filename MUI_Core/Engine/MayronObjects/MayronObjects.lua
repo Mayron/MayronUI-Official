@@ -396,12 +396,17 @@ do
 
   instanceMetatable.__index = function(self, key)
     local metadata = objectMetadata[tostring(self)];
-    local frame = metadata.frame;
+    local frame = metadata.privateData.frame;
 
     if (Framework:IsTable(frame) and Framework:IsFunction(frame[key])) then
       innerValues.frame = frame;
       innerValues.key = key;
       return frameWrapperFunction;
+    end
+
+    if (Framework:IsFunction(metadata.class[key])) then
+      rawset(self, key, metadata.class[key]);
+      return metadata.class[key];
     end
 
     local value = metadata.instanceProperties[key];
@@ -461,6 +466,7 @@ classMetatable.__call = function(self, ...)
   local metadata = CreateFromMixins(classMetadata);
   metadata.privateData = Framework:PopTable();
   metadata.instanceProperties = Framework:PopTable();
+  metadata.class = self;
 
   metadata.privateData.GetFriendData = function(_, friendInstance)
     local friendMetadata = objectMetadata[tostring(friendInstance)];
@@ -478,7 +484,7 @@ classMetatable.__call = function(self, ...)
   metadata.privateData.Call = function(_, privateMethodName, ...)
     local methods = metadata.privateMethods;
     Framework:Assert(methods and methods[privateMethodName], "Failed to execute unknown private method '%s'", privateMethodName);
-    methods[privateMethodName](instance, ...);
+    return methods[privateMethodName](instance, ...);
   end
 
   if (pendingGenericTypes) then
@@ -740,11 +746,11 @@ function InstanceMixin:SetFrame(_, frame)
     "SetFrame failed - bad argument #1 (Frame expected, got %s)",
     (isWidget and frame:GetObjectType()) or type(frame));
 
-    objectMetadata[tostring(self)].frame = frame;
+  objectMetadata[tostring(self)].privateData.frame = frame;
 end
 
 function InstanceMixin:GetFrame()
-  return objectMetadata[tostring(self)].frame;
+  return objectMetadata[tostring(self)].privateData.frame;
 end
 
 function InstanceMixin:GetObjectType()
@@ -786,6 +792,43 @@ function Framework:IsType(value, expectedTypeName)
   return IsMatchingType(value, expectedTypeName);
 end
 
+function Framework:IsObject(value)
+  if (not self:IsTable(value)) then
+    return false;
+  end
+
+  local isObject = objectMetadata[tostring(value)];
+
+  if (isObject) then
+    return true;
+  end
+
+  return false;
+end
+
+---@param value any @Any value to check whether it is of the expected widget type.
+---@param widgetType string @An optional widget type to test if the value is that type of widget.
+---@return boolean @true if the value is a Blizzard widgets, such as a Frame or Button.
+function Framework:IsWidget(value, widgetType)
+  if (not self:IsTable(value)) then
+    return false;
+  end
+
+  local isObject = objectMetadata[tostring(value)];
+
+  if (isObject) then
+    return false;
+  end
+
+  local isWidget = (self:IsFunction(value.IsObjectType) and value:IsObjectType("Frame"));
+
+  if (isWidget and self:IsString(widgetType)) then
+    isWidget = value:IsObjectType(widgetType);
+  end
+
+  return isWidget;
+end
+
 function Framework:IsStringNilOrWhiteSpace(strValue)
   if (strValue) then
     self:Assert(Framework:IsString(strValue),
@@ -812,6 +855,23 @@ function Framework:IterateArgs(...)
     if (index <= size) then
       return index, args[index];
     else
+      Framework:PushTable(args);
+    end
+  end
+end
+
+-- Only iterates over values found in table and will cut off trailing `nil` values
+function Framework:IterateValues(...)
+  local index = 0;
+  local args = self:PopTable(...);
+
+  return function()
+    index = index + 1;
+
+    if (index <= #args) then
+      return index, args[index];
+    else
+      -- reached end of wrapper so finish looping and clean up
       Framework:PushTable(args);
     end
   end
