@@ -2,7 +2,7 @@
 local _G = _G;
 local tonumber, pairs = _G.tonumber, _G.pairs;
 
-_G.MayronObjectsLite = _G.MayronObjectsLite or {
+_G.MayronObjects = _G.MayronObjects or {
   versions = {};
 
   NewFramework = function(self, version)
@@ -35,8 +35,8 @@ _G.MayronObjectsLite = _G.MayronObjectsLite or {
   end;
 };
 
----@type MayronObjectsLite
-local Framework = _G.MayronObjectsLite:NewFramework("1.0.0");
+---@type MayronObjects
+local Framework = _G.MayronObjects:NewFramework("4.0.0");
 if (not Framework) then return end
 
 local max, tostring, type, strsplit, strgsub, rawset = _G.math.max, _G.tostring, _G.type, _G.strsplit, _G.string.gsub, _G.rawset;

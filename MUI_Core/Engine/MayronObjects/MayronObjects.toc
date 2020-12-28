@@ -1,7 +1,7 @@
 ## Interface: 90002
 ## Title: MayronObjects
 ## Notes: An OOP Lua framework and packaging ecosystem for developing well-defined packages with strict typing support.
-## Version: 4.0
+## Version: 4.0.0
 
 ## Works with classic and retail, just update the toc version number if using as a standalone AddOn
 

@@ -1,6 +1,6 @@
 -- luacheck: ignore self 143 631
 local _G = _G;
-local obj = _G.MayronObjectsLite:GetFramework(); ---@type MayronObjectsLite
+local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 local Tests = {};
 
 local Green, Yellow = _G.GREEN_FONT_COLOR, _G.YELLOW_FONT_COLOR;
