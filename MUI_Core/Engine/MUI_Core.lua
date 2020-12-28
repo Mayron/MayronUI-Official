@@ -20,7 +20,7 @@ _G.BINDING_NAME_MUI_SHOW_INSTALLER = "Show Installer";
 
 local obj = namespace.components.Objects; ---@type MayronObjects
 
-namespace.components.Database = obj:Import("Pkg-MayronDB.MayronDB")
+namespace.components.Database = obj:Import("MayronDB")
   .Static:CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI");
 
 namespace.components.EventManager =obj:Import("Pkg-MayronEvents.EventManager")();
@@ -546,7 +546,7 @@ function MayronUI:ImportModule(moduleKey, silent)
     return nil;
   end
 
-  return registryInfo and registryInfo.instance;
+  return registryInfo.instance, registryInfo.class;
 end
 
 ---MayronUI automatically initializes modules during the "PLAYER_ENTERING_WORLD" event unless initializeOnDemand is true.
@@ -768,7 +768,7 @@ db:OnStartUp(function(self)
   -- To keep UI widget styles consistent ----------
   -- Can only use once Database is loaded...
   ---@type Style
-  local Style = obj:Import("MayronUI.Widgets.Style");
+  local Style = obj:Import("MayronUI.Style");
 
   ---@type Style
   tk.Constants.AddOnStyle = Style();

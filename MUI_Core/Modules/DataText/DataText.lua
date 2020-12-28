@@ -7,7 +7,7 @@ local ipairs, pairs, table, GameTooltip, PlaySound = _G.ipairs, _G.pairs, _G.tab
 local CreateFrame, UIFrameFadeIn = _G.CreateFrame, _G.UIFrameFadeIn;
 
 -- Objects -----------------------------
-local SlideController = obj:Import("MayronUI.Widgets.SlideController");
+local SlideController = obj:Import("MayronUI.SlideController");
 
 -- Register Modules --------------------
 

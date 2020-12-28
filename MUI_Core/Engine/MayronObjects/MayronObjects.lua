@@ -566,21 +566,15 @@ function Framework:CreateClass(className, ...)
   setmetatable(class.Static, staticMetatable);
   setmetatable(class.Private, privateMetatable);
 
-  for methodName, method in pairs(StaticMixin) do
-    class.Static[methodName] = method;
-  end
-
   class.UsingTypes = UsingTypes;
 
   local classMetadata = self:PopTable();
 
   if (className:match("<") and className:match(">")) then
-    local onlyClassName = className:sub(1, (className:find("<")) - 1);
     local genericParams = className:sub((className:find("<")), #className);
     genericParams = genericParams:gsub("<", ""):gsub(">", ""):gsub("%s", "");
 
     classMetadata.genericParams = self:PopTable(strsplit(",", genericParams));
-    className = onlyClassName;
   end
 
   classMetadata.name = className;
@@ -589,6 +583,10 @@ function Framework:CreateClass(className, ...)
   objectMetadata[tostring(class)] = classMetadata;
   objectMetadata[tostring(class.Static)] = classMetadata;
   objectMetadata[tostring(class.Private)] = classMetadata;
+
+  for methodName, method in pairs(StaticMixin) do
+    class.Static[methodName] = method;
+  end
 
   return class;
 end

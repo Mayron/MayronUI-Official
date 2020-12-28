@@ -11,7 +11,7 @@ local Private = Lib.Private;
 
 ---@class Cell
 local Cell = obj:CreateClass("Cell");
-Cell.Static:AddFriendClass("Panel");
+Cell.Static:AddFriendClass("MayronUI.Panel");
 
 ---@type Panel
 local Panel = Private.Panel;

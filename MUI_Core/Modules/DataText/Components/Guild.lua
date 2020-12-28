@@ -1,9 +1,5 @@
-local _, namespace = ...;
-
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
-local ComponentsPackage = namespace.ComponentsPackage;
-
 local LABEL_PATTERN = L["Guild"]..": |cffffffff%u|r";
 
 local strsplit, unpack, CreateFrame, GameTooltip, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1,
@@ -24,7 +20,7 @@ local GuildRoster = _G.GuildRoster or (_G.C_GuildInfo and _G.C_GuildInfo.GuildRo
 
 -- Register and Import Modules -------
 
-local Guild = ComponentsPackage:CreateClass("Guild", nil, "table");
+local Guild = obj:CreateClass("Guild");
 
 -- Load Database Defaults ------------
 

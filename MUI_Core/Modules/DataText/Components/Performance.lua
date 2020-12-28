@@ -1,15 +1,11 @@
-local _, namespace = ...;
-
 -- luacheck: ignore MayronUI self 143 631
-local _, db, em = MayronUI:GetCoreComponents();
-local ComponentsPackage = namespace.ComponentsPackage;
-
+local MayronUI = _G.MayronUI;
+local _, db, _, _, obj = MayronUI:GetCoreComponents();
 local C_Timer, string = _G.C_Timer, _G.string;
 local GetNetStats, GetFramerate = _G.GetNetStats, _G.GetFramerate;
 
 -- Register and Import Modules -------
-
-local Performance = ComponentsPackage:CreateClass("Performance", nil, "table");
+local Performance = obj:CreateClass("Performance");
 
 -- Load Database Defaults ------------
 

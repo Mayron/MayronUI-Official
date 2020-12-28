@@ -26,6 +26,7 @@ _G.CHAT_FONT_HEIGHTS = obj:PopTable(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 -- Objects ------------------
 ---@class ChatFrame
 local C_ChatFrame = obj:CreateClass("ChatFrame");
+obj:Export(C_ChatFrame, "MayronUI.ChatModule");
 
 ---@class ChatModule
 local C_ChatModule = MayronUI:RegisterModule("ChatModule", L["Chat Frames"]);

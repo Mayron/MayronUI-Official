@@ -1,11 +1,6 @@
-local _, namespace = ...;
-
 -- luacheck: ignore MayronUI self 143 631
-local ComponentsPackage = namespace.ComponentsPackage;
-
--- Objects ---------------------------
-
-local None = ComponentsPackage:CreateClass("None", nil, "table");
+local obj = _G.MayronObjects:GetFramework();
+local None = obj:CreateClass("None");
 
 -- CombatTimer Module ----------------
 

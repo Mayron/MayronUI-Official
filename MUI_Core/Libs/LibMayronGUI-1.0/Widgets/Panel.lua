@@ -13,7 +13,7 @@ local math = _G.math;
 local Panel = obj:CreateClass("Panel");
 obj:Export(Panel, "MayronUI");
 
-Panel.Static:AddFriendClass("Group");
+Panel.Static:AddFriendClass("MayronUI.Group");
 Private.Panel = Panel;
 ---------------------------------
 

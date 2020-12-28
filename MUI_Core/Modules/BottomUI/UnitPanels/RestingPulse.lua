@@ -1,7 +1,7 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-local C_UnitPanels = _G.MayronUI:ImportModule("BottomUI_UnitPanels");
+local _, C_UnitPanels = _G.MayronUI:ImportModule("BottomUI_UnitPanels");
 
 local FLASH_TIME_ON = 0.65;
 local FLASH_TIME_OFF = 0.65;

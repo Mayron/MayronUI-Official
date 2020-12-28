@@ -1,16 +1,11 @@
 -- luacheck: ignore self 143 631
-local _, namespace = ...;
-
 local MayronUI = _G.MayronUI;
-local tk, db, em = MayronUI:GetCoreComponents();
-local ComponentsPackage = namespace.ComponentsPackage;
-
+local tk, db, em, _, obj = MayronUI:GetCoreComponents();
 local GetTime, string, C_Timer = _G.GetTime, _G.string, _G.C_Timer;
 local RED_FONT_COLOR_CODE = _G.RED_FONT_COLOR_CODE;
 
 -- Objects ---------------------------
-
-local CombatTimer = ComponentsPackage:CreateClass("CombatTimer", nil, "table");
+local CombatTimer = obj:CreateClass("CombatTimer");
 
 -- CombatTimer Module ----------------
 

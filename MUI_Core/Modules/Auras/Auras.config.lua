@@ -1,9 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
-local _, namespace = ...;
-
-local tonumber, ipairs, MayronUI = _G.tonumber, _G.ipairs, _G.MayronUI;
+local tonumber, ipairs, MayronUI, tostring = _G.tonumber, _G.ipairs, _G.MayronUI, _G.tostring;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
-local C_AurasModule = namespace.C_AurasModule;
+local _, C_AurasModule = MayronUI:ImportModule("AurasModule");
 
 -- contains auraarea name / table pairs where each table holds the 5 config textfield widgets
 -- this is used to update the config menu view after moving the aura areas (by unlocking them)

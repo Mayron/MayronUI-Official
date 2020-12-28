@@ -18,7 +18,7 @@ local function GetSupportedAddOns()
   local addOns = obj:PopTable(); -- Add additional Supported AddOns here
 
   ---@type MayronDB
-  local MayronDB = obj:Import("Pkg-MayronDB.MayronDB");
+  local MayronDB = obj:Import("MayronDB");
 
   for _, database in MayronDB.Static:IterateDatabases() do
     addOns[database:GetDatabaseName()] = database;

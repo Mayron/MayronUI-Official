@@ -1,15 +1,11 @@
 -- luacheck: ignore MayronUI self 143
 ---@type MayronUI
 local MayronUI = _G.MayronUI;
-
--- Setup namespaces ------------------
-local _, namespace = ...;
 local tk, _, em, gui, obj, L = MayronUI:GetCoreComponents();
-
 local MEDIA = tk:GetAssetFilePath("Textures\\Chat\\");
 
----@class ChatFrame;
-local C_ChatFrame = namespace.C_ChatFrame;
+---@class ChatFrame
+local C_ChatFrame = obj:Import("MayronUI.ChatModule.ChatFrame");
 
 local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string, table, pairs =
 	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string, _G.table, _G.pairs;

@@ -1,19 +1,15 @@
-local _, namespace = ...;
-local MayronUI = _G.MayronUI;
 
 -- luacheck: ignore MayronUI self 143 631
+local MayronUI = _G.MayronUI;
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
-local ComponentsPackage = namespace.ComponentsPackage;
 local LABEL_PATTERN = "|cffffffff%s|r";
-
 local tonumber, string, math = _G.tonumber, _G.string, _G.math;
 local GetMoney, ipairs, strsplit = _G.GetMoney, _G.ipairs, _G.strsplit;
 local GameTooltip = _G.GameTooltip;
 local C_Calendar, C_DateAndTime = _G.C_Calendar, _G.C_DateAndTime;
 
 -- Objects ---------------------------
-
-local Currency = ComponentsPackage:CreateClass("Currency", nil, "table");
+local Currency = obj:CreateClass("Currency");
 
 -- Load Database Defaults ------------
 
@@ -160,7 +156,7 @@ function Currency:SetEnabled(data, enabled)
   end
 end
 
-ComponentsPackage:DefineParams("number", "?string", "?boolean")
+obj:DefineParams("number", "?string", "?boolean")
 function Currency:GetFormattedCurrency(data, currency, colorCode, hasLabel)
   local text = "";
   local gold = math.floor(math.abs(currency / 10000));
@@ -222,7 +218,7 @@ function Currency:GetFormattedCurrency(data, currency, colorCode, hasLabel)
   return string.format(LABEL_PATTERN, text:trim());
 end
 
-ComponentsPackage:DefineReturns("string");
+obj:DefineReturns("string");
 function Currency:GetTodaysProfit(data)
   local currency = _G.GetMoney() - data.settings.todayCurrency;
 

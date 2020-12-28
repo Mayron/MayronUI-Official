@@ -1,14 +1,10 @@
 -- luacheck: ignore MayronUI self 143
 -- @Description: Controls the Blizzard Chat Frame changes (not the MUI Chat Frame!)
-
--- Setup namespaces ------------------
-local _, namespace = ...;
-local C_ChatModule = namespace.C_ChatModule;
+local string, MayronUI = _G.string, _G.MayronUI;
 
 ---@type Toolkit
 local tk = MayronUI:GetCoreComponent("Toolkit");
-
-local string = _G.string;
+local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 --------------------------------------
 
 local function GetChatLink(url)

@@ -5,16 +5,16 @@ if (obj:Import("Pkg-GridPanels", true)) then return end
 local C_LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type LinkedList
 
 local C_Grid = obj:CreateClass("Grid"); ---@class Grid
-C_Grid.Static:AddFriendClass("Group");
-C_Grid.Static:AddFriendClass("Region");
+C_Grid.Static:AddFriendClass("Pkg-GridPanels.Group");
+C_Grid.Static:AddFriendClass("Pkg-GridPanels.Region");
 obj:Export(C_Grid, "Pkg-GridPanels");
 
 local C_Region = obj:CreateClass("Region"); ---@class Region : Object
-C_Region.Static:AddFriendClass("Grid");
+C_Region.Static:AddFriendClass("Pkg-GridPanels.Grid");
 obj:Export(C_Region, "Pkg-GridPanels");
 
 local C_Group = obj:CreateClass("Group"); ---@class Group : Object
-C_Group.Static:AddFriendClass("Grid");
+C_Group.Static:AddFriendClass("Pkg-GridPanels.Grid");
 obj:Export(C_Group, "Pkg-GridPanels");
 
 local C_ResponsiveScrollFrame = obj:CreateClass("ResponsiveScrollFrame"); ---@class ResponsiveScrollFrame : Object

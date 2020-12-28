@@ -6,7 +6,7 @@ local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
 local LibStub = _G.LibStub;
 
 ---@type MayronDB
-local MayronDB = obj:Import("Pkg-MayronDB.MayronDB");
+local MayronDB = obj:Import("MayronDB");
 
 ---@type Database
 local db = MayronDB.Static:CreateDatabase(addOnName, "MUI_TimerBarsDb", nil, "MUI TimerBars");
@@ -60,11 +60,11 @@ local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
 
 ---@class TimerField
 local C_TimerField = obj:CreateClass("TimerField");
-C_TimerField.Static:AddFriendClass("TimerBarsModule");
+C_TimerField.Static:AddFriendClass("MayronUI.TimerBarsModule");
 
 ---@class TimerBar : ITimerBar
 local C_TimerBar = obj:CreateClass("TimerBar");
-C_TimerBar.Static:AddFriendClass("TimerBarsModule");
+C_TimerBar.Static:AddFriendClass("MayronUI.TimerBarsModule");
 
 ---@type Stack
 local Stack = obj:Import("Pkg-Collections.Stack<T>");

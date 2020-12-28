@@ -45,7 +45,7 @@ namespace.C_CastBarsModule = C_CastBarsModule;
 
 ---@class CastBar : Object
 local C_CastBar = obj:CreateClass("CastBar");
-C_CastBar.Static:AddFriendClass("CastBarsModule");
+C_CastBar.Static:AddFriendClass("MayronUI.CastBarsModule");
 
 namespace.bars = obj:PopTable();
 

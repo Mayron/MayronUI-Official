@@ -4,7 +4,7 @@ if (obj:Import("Pkg-MayronEvents.EventListener", true)) then return end
 
 ---@class EventListener : Object
 local C_EventListener = obj:CreateClass("EventListener");
-C_EventListener.Static:AddFriendClass("EventManager");
+C_EventListener.Static:AddFriendClass("Pkg-MayronEvents.EventManager");
 obj:Export(C_EventListener, "Pkg-MayronEvents");
 
 local select, unpack, pairs, ipairs, next, tostring = _G.select, _G.unpack, _G.pairs, _G.ipairs, _G.next, _G.tostring;

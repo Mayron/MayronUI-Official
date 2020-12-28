@@ -4,7 +4,7 @@ if (obj:Import("Pkg-MayronEvents", true)) then return end
 
 ---@class EventManager
 local C_EventManager = obj:CreateClass("EventManager");
-C_EventManager.Static:AddFriendClass("EventListener");
+C_EventManager.Static:AddFriendClass("Pkg-MayronEvents.EventListener");
 obj:Export(C_EventManager, "Pkg-MayronEvents");
 
 local select, pairs, ipairs, CreateFrame = _G.select, _G.pairs, _G.ipairs, _G.CreateFrame;

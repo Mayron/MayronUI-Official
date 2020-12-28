@@ -1,8 +1,5 @@
-local _, namespace = ...;
-
 -- luacheck: ignore MayronUI self 143 631
-local tk, _, _, _, obj = MayronUI:GetCoreComponents();
-local ComponentsPackage = namespace.ComponentsPackage;
+local tk, _, _, _, obj = _G.MayronUI:GetCoreComponents();
 local LABEL_PATTERN = "|cffffffff%s|r mb";
 
 local C_Timer, string, table, GetNumAddOns, GetAddOnInfo, GetAddOnMemoryUsage =
@@ -12,7 +9,7 @@ local unpack = _G.unpack;
 
 -- Register and Import Modules -------
 
-local Memory = ComponentsPackage:CreateClass("Memory", nil, "table");
+local Memory = obj:CreateClass("Memory");
 
 -- Local Functions ----------------
 

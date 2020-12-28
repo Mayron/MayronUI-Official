@@ -1,13 +1,8 @@
-local _, namespace = ...;
 local MayronUI = _G.MayronUI;
 
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 if (tk:IsClassic()) then return end
-
----@type Package
-local ComponentsPackage = namespace.ComponentsPackage;
-
 local select, GetSpecializationInfo, C_EquipmentSet = _G.select, _G.GetSpecializationInfo, _G.C_EquipmentSet;
 local GetSpecialization, UnitLevel, CreateFrame, string = _G.GetSpecialization, _G.UnitLevel, _G.CreateFrame, _G.string;
 local GetLootSpecialization, UnitSex, SetLootSpecialization, print = _G.GetLootSpecialization, _G.UnitSex, _G.SetLootSpecialization, _G.print;
@@ -15,7 +10,7 @@ local SetSpecialization, GetNumSpecializations, GameTooltip = _G.SetSpecializati
 
 -- Register and Import Modules -------
 
-local Specialization = ComponentsPackage:CreateClass("Specialization", nil, "table");
+local Specialization = obj:CreateClass("Specialization");
 
 -- Load Database Defaults ------------
 
@@ -232,7 +227,7 @@ function Specialization:SetEnabled(data, enabled)
   end
 end
 
-ComponentsPackage:DefineParams("table", "number", "number", "function");
+obj:DefineParams("table", "number", "number", "function");
 function Specialization:CreateDropdown(data, dropdownsTable, index, totalLabelsShown, handleCreation)
   local popupWidth = data.settings.popup.width;
   local dropdown = dropdownsTable[index] or

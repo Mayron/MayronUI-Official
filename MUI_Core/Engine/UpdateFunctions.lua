@@ -5,7 +5,7 @@ local table, ipairs, string, unpack = _G.table, _G.ipairs, _G.string, _G.unpack;
 local tostring, pairs = _G.tostring, _G.pairs;
 
 ---@type MayronDB
-local MayronDB = obj:Import("Pkg-MayronDB.MayronDB");
+local MayronDB = obj:Import("MayronDB");
 
 ---@type BaseModule
 local BaseModule = obj:Import("MayronUI.BaseModule");

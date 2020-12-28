@@ -11,19 +11,26 @@ local BAR_NAMES = {"reputation", "experience", "azerite", "artifact"};
 
 -- Setup Objects -------------------------
 local C_BaseResourceBar = obj:CreateClass("BaseResourceBar");
+
 local C_ExperienceBar = obj:CreateClass("ExperienceBar", C_BaseResourceBar);
+obj:Export(C_ExperienceBar, "MayronUI");
+
 local C_ReputationBar = obj:CreateClass("ReputationBar", C_BaseResourceBar);
+obj:Export(C_ReputationBar, "MayronUI");
+
 local C_AzeriteBar, C_ArtifactBar;
 
 if (tk:IsRetail()) then
   C_AzeriteBar = obj:CreateClass("AzeriteBar", C_BaseResourceBar);
+  obj:Export(C_AzeriteBar, "MayronUI");
+
   C_ArtifactBar = obj:CreateClass("ArtifactBar", C_BaseResourceBar);
+  obj:Export(C_ArtifactBar, "MayronUI");
 end
 -- Register and Import Modules -----------
 
 local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", L["Resource Bars"], true);
-
-C_ResourceBarsModule.Static:AddFriendClass("BottomUI_Container");
+C_ResourceBarsModule.Static:AddFriendClass("MayronUI.BottomUI_Container");
 
 -- Load Database Defaults ----------------
 
