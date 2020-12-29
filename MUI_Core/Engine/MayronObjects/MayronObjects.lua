@@ -592,7 +592,7 @@ privateMetatable.__newindex = function(self, key, value)
 end
 
 -- special class function (should be static but looks confusing when static)
-local function UsingTypes(self, _, ...)
+local function UsingTypes(self, ...)
   local metadata = objectMetadata[tostring(self)];
   Framework:Assert(Framework:IsTable(metadata.genericParams), "Cannot specify generic types for non-generic class");
 
@@ -651,7 +651,7 @@ function Framework:CreateClass(className, ...)
     class.Static[methodName] = method;
   end
 
-  class.UsingTypes = UsingTypes;
+  rawset(class, "UsingTypes", UsingTypes);
 
   return class;
 end

@@ -1,6 +1,5 @@
 -- luacheck: ignore self 143
 local MayronUI = _G.MayronUI;
-local _, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local ChatFrame1EditBox, NUM_CHAT_WINDOWS = _G.ChatFrame1EditBox, _G.NUM_CHAT_WINDOWS;
@@ -149,7 +148,8 @@ local function LoadEditBoxBackdrop()
 end
 
 function C_ChatModule:OnInitialize(data)
-	data.chatFrames = obj:PopTable();
+  print("Has this been initialized?")
+  data.chatFrames = obj:PopTable();
 
 	local setupOptions = {
 		onExecuteAll = {
