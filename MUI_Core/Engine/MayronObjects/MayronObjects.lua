@@ -81,6 +81,16 @@ local function IsMatchingType(value, expectedTypeName)
     return true;
   end
 
+  local metadata = objectMetadata[tostring(value)];
+
+  if (metadata) then
+    for _, parent in ipairs(metadata.parentClasses) do
+      if (parent.Static and parent.Static.GetClassName and parent.Static:GetClassName() == expectedTypeName) then
+        return true;
+      end
+    end
+  end
+
   return false;
 end
 
@@ -235,8 +245,18 @@ end
 local function ExecuteMethod(self, methodName, method, ...)
   local metadata = objectMetadata[tostring(self)];
   local isStatic = methodName:match("^Static%.") ~= nil;
+  local definitions = metadata.definitions;
 
-  if (not (metadata.definitions and metadata.definitions[methodName])) then
+  if (metadata.usingParent) then
+    local parentMetadata = objectMetadata[tostring(metadata.usingParent)];
+    metadata.usingParent = nil;
+
+    if (parentMetadata) then
+      definitions = parentMetadata.definitions;
+    end
+  end
+
+  if (not (definitions and definitions[methodName])) then
     if (isStatic) then
       return method(self, ...);
     end
@@ -244,7 +264,7 @@ local function ExecuteMethod(self, methodName, method, ...)
     return method(self, metadata.privateData, ...);
   end
 
-  local methodDefinitions = metadata.definitions[methodName];
+  local methodDefinitions = definitions[methodName];
   local args;
   local argsLength = select("#", ...);
 
@@ -372,17 +392,36 @@ local classMetatable = {};
 
 -- Add definitions for class method:
 classMetatable.__newindex = function(self, key, value)
+  local metadata = objectMetadata[tostring(self)];
+
   if (not Framework:IsFunction(value)) then
-    rawset(self, key, value);
+    metadata.classProperties[key] = value;
     return
   end
 
+  -- add functions
   ApplyMethodDefinitions(self, key);
 
   -- add wrapper function that will use definitions to validate:
-  rawset(self, key, function(obj, ...)
+  metadata.classProperties[key] = function(obj, ...)
     return ExecuteMethod(obj, key, value, ...);
-  end);
+  end;
+end
+
+classMetatable.__index = function(self, key)
+  local metadata = objectMetadata[tostring(self)];
+
+  if (metadata.classProperties[key]) then
+    return metadata.classProperties[key];
+  end
+
+  for _, parentClass in ipairs(metadata.parentClasses) do
+    if (Framework:IsFunction(parentClass[key])) then
+      metadata.classProperties[key] = parentClass[key];
+      return parentClass[key];
+    end
+  end
+
 end
 
 local instanceMetatable = {};
@@ -404,6 +443,7 @@ do
       return frameWrapperFunction;
     end
 
+    -- if new class functions were added, update instance object to include them
     if (Framework:IsFunction(metadata.class[key])) then
       rawset(self, key, metadata.class[key]);
       return metadata.class[key];
@@ -453,8 +493,9 @@ end
 -- create class instance:
 classMetatable.__call = function(self, ...)
   local classMetadata = objectMetadata[tostring(self)];
-  local instance = CreateFromMixins(self);
+  local instance = CreateFromMixins(self); -- transfer all class functions to instance object
 
+  -- transfer all InstanceMixin functions to instance object with wrapper
   for methodName, method in pairs(InstanceMixin) do
     instance[methodName] = function(obj, ...)
       return ExecuteMethod(obj, methodName, method, ...);
@@ -564,15 +605,13 @@ end
 -------------------------------------
 --- where ... are mixins
 function Framework:CreateClass(className, ...)
-  local class = CreateFromMixins(...);
+  local class = self:PopTable();
   class.Static = self:PopTable();
   class.Private = self:PopTable();
 
   setmetatable(class, classMetatable);
   setmetatable(class.Static, staticMetatable);
   setmetatable(class.Private, privateMetatable);
-
-  class.UsingTypes = UsingTypes;
 
   local classMetadata = self:PopTable();
 
@@ -585,6 +624,24 @@ function Framework:CreateClass(className, ...)
 
   classMetadata.name = className;
   classMetadata.namespace = className;
+  classMetadata.parentClasses = self:PopTable();
+  classMetadata.classProperties = self:PopTable();
+
+  -- add parents in reverse order for class index metamethod to work
+  for i = select("#", ...), 1, -1 do
+    local parent = (select(i, ...));
+    classMetadata.parentClasses[#classMetadata.parentClasses + 1] = parent;
+
+    local parentMetadata = objectMetadata[tostring(parent)];
+    if (parentMetadata) then
+      -- add parent of parent classes
+      for _, parentClass in ipairs(parentMetadata.parentClasses) do
+        classMetadata.parentClasses[#classMetadata.parentClasses + 1] = parentClass;
+      end
+    else
+      Framework:Error("Failed to create class '%s' - bad argument #%d (unknown parent class).", className, i + 1);
+    end
+  end
 
   objectMetadata[tostring(class)] = classMetadata;
   objectMetadata[tostring(class.Static)] = classMetadata;
@@ -593,6 +650,8 @@ function Framework:CreateClass(className, ...)
   for methodName, method in pairs(StaticMixin) do
     class.Static[methodName] = method;
   end
+
+  class.UsingTypes = UsingTypes;
 
   return class;
 end
@@ -718,6 +777,11 @@ function StaticMixin:ProtectProperty(key)
   metadata.protectedProperties[key] = true;
 end
 
+function StaticMixin:GetParentClasses()
+  local metadata = objectMetadata[tostring(self)];
+  return unpack(metadata.parentClasses);
+end
+
 -------------------------------------
 --- Instance Mixin
 -------------------------------------
@@ -759,6 +823,33 @@ end
 
 function InstanceMixin:IsObjectType(_, objectType)
   return self:GetObjectType() == objectType;
+end
+
+function InstanceMixin:CallParentMethod(_, methodName, ...)
+  local metadata = objectMetadata[tostring(self)];
+
+  for _, parentClass in ipairs(metadata.parentClasses) do
+    if (Framework:IsFunction(parentClass[methodName])) then
+      metadata.usingParent = parentClass;
+      return parentClass[methodName](self, ...); -- should use wrapper to get private data
+    end
+  end
+end
+
+function InstanceMixin:CallParentMethodByClassName(_, parentClassName, methodName, ...)
+  local metadata = objectMetadata[tostring(self)];
+
+  for _, parentClass in ipairs(metadata.parentClasses) do
+    if (Framework:IsFunction(parentClass[methodName])) then
+      if (Framework:IsTable(parentClass.Static) and Framework:IsFunction(parentClass.Static.GetClassName)) then
+        local className = parentClass.Static:GetClassName();
+        if (parentClassName == className) then
+          metadata.usingParent = parentClass;
+          return parentClass[methodName](self, ...); -- should use wrapper to get private data
+        end
+      end
+    end
+  end
 end
 
 -------------------------------------

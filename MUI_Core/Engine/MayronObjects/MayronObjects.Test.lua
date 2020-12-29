@@ -4,8 +4,8 @@ local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 local Tests = {};
 
 local Green, Yellow = _G.GREEN_FONT_COLOR, _G.YELLOW_FONT_COLOR;
-local pairs, print, strformat, assert = _G.pairs, _G.print, _G.string.format, _G.assert;
-
+local pairs, ipairs, print, strformat, assert = _G.pairs, _G.ipairs, _G.print, _G.string.format, _G.assert;
+local tostring, random = _G.tostring, _G.math.random;
 ---------------------------------
 --- Parent Classes / Mixins
 ---------------------------------
@@ -221,11 +221,11 @@ function Tests:Memory_Leak_Test_With_FrameWrapper()
   local C_TestClass = obj:CreateClass("TestClass");
 
   local testInstance = C_TestClass();
-  testInstance:SetFrame(CreateFrame("Frame"));
+  testInstance:SetFrame(_G.CreateFrame("Frame"));
 
   local bg = testInstance:CreateTexture(nil, "BACKGROUND");
   bg:SetAllPoints(true);
-  bg:SetColorTexture(math.random(), math.random(), math.random());
+  bg:SetColorTexture(random(), random(), random());
 
   _G.UpdateAddOnMemoryUsage();
   local before = _G.GetAddOnMemoryUsage("MayronObjects-Lite");
@@ -251,17 +251,144 @@ function Tests:Memory_Leak_Test_With_FrameWrapper()
   assert(difference < 0.5, "difference: "..tostring(difference));
 end
 
+------------------------
+--- Inheritance Test
+------------------------
+function Tests:Inheritance_Call_Parent_Method()
+  local C_ParentClass = obj:CreateClass("ParentClass");
+
+  local executedChild, executedParent;
+
+  obj:DefineParams("number", "string");
+  function C_ParentClass:Execute(data, num, value)
+    assert(data.message == "Call_Parent_Method_Test");
+    assert(num == 123);
+    assert(value == "from child");
+    executedParent = true;
+  end
+
+  local C_ChildClass = obj:CreateClass("ChildClass", C_ParentClass);
+
+  obj:DefineParams("string");
+  function C_ChildClass:Execute(data, value)
+    data.message = "Call_Parent_Method_Test";
+    assert(value == "directly to child");
+    executedChild = true;
+  end
+
+  local instance = C_ChildClass();
+  instance:Execute("directly to child");
+  instance:CallParentMethod("Execute", 123, "from child");
+
+  assert(executedChild)
+  assert(executedParent)
+end
+
+function Tests:Inheritance_Call_Specific_Parent_Method()
+  local executedChild, executedParent, executedSuperParent, executedSomeFunc;
+  local C_SuperParentClass = obj:CreateClass("SuperParentClass");
+
+  obj:DefineParams("number", "table");
+  function C_SuperParentClass:Execute(data, num, tbl)
+    assert(data.message == "Call_Parent_Method_Test");
+    assert(num == 500);
+    assert(tbl.value == "from child");
+    executedSuperParent = true;
+
+    assert(self:SomeFunc("from super parent") == 939);
+  end
+
+  local C_ParentClass = obj:CreateClass("ParentClass", C_SuperParentClass);
+
+  obj:DefineParams("number", "string");
+  function C_ParentClass:Execute(data, num, value)
+    assert(data.message == "Call_Parent_Method_Test");
+    assert(num == 123);
+    assert(value == "from child");
+    executedParent = true;
+  end
+
+  local C_ChildClass = obj:CreateClass("ChildClass", C_ParentClass);
+
+  obj:DefineParams("string");
+  function C_ChildClass:Execute(data, value)
+    data.message = "Call_Parent_Method_Test";
+    assert(value == "directly to child");
+    executedChild = true;
+  end
+
+  obj:DefineParams("string");
+  obj:DefineReturns("number");
+  function C_ChildClass:SomeFunc(data, value)
+    assert(value == "from super parent");
+    assert(data.message == "Call_Parent_Method_Test");
+    executedSomeFunc = true;
+    return 939;
+  end
+
+  local instance = C_ChildClass();
+  instance:Execute("directly to child");
+  assert(executedChild);
+  assert(not executedParent);
+  assert(not executedSuperParent);
+  assert(not executedSomeFunc);
+
+  instance:CallParentMethod("Execute", 123, "from child");
+  assert(executedParent);
+  assert(not executedSuperParent);
+  assert(not executedSomeFunc);
+
+  instance:CallParentMethodByClassName("SuperParentClass", "Execute", 500, {value="from child"});
+  assert(executedSuperParent);
+  assert(executedSomeFunc);
+end
+
+function Tests:Using_ClassName_As_Definition()
+  local C_TestClass = obj:CreateClass("TestClass");
+  local C_ParentClass = obj:CreateClass("ParentClass");
+  local C_OtherClass = obj:CreateClass("OtherClass", C_ParentClass);
+
+  obj:DefineParams("TestClass");
+  function C_OtherClass:StartTest(_, testInstance)
+    testInstance:CallMe(self);
+  end
+
+  function C_OtherClass:FinishTest()
+    print("test finished")
+  end
+
+  obj:DefineParams("ParentClass");
+  function C_TestClass:CallMe(_, otherInstance)
+    otherInstance:FinishTest();
+  end
+
+  local otherInstance = C_OtherClass();
+  local testInstance = C_TestClass();
+  otherInstance:StartTest(testInstance);
+end
+
 ----------------------------------------------------------------------
 -- Run tests:
 ----------------------------------------------------------------------
 do
   local SUCCESS = Green:WrapTextInColorCode("Successful");
+  local whitelist = {};
 
-  for testName, test in pairs(Tests) do
-    testName = Yellow:WrapTextInColorCode(testName);
+  local function RunTest(testName)
+    local coloredTestName = Yellow:WrapTextInColorCode(testName);
 
-    print(strformat("[Test] %s - Started", testName));
-    test();
-    print(strformat("[Test] %s - %s", testName, SUCCESS));
+    print(strformat("[Test] %s - Started", coloredTestName));
+    Tests[testName]();
+    print(strformat("[Test] %s - %s", coloredTestName, SUCCESS));
+  end
+
+  if (#whitelist > 0) then
+    for _, testName in ipairs(whitelist) do
+      RunTest(testName);
+    end
+  else
+    for testName, _ in pairs(Tests) do
+      RunTest(testName);
+    end
   end
 end
