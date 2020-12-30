@@ -16,9 +16,9 @@ function namespace:SetUpBagnon()
         end
 
         f:SetBackdrop({
-        bgFile = [[Interface\ChatFrame\ChatFrameBackground]],
-        edgeFile = tk.Constants.BACKDROP.edgeFile,
-        edgeSize = tk.Constants.BACKDROP.edgeSize,
+          bgFile = [[Interface\ChatFrame\ChatFrameBackground]],
+          edgeFile = tk.Constants.BACKDROP.edgeFile,
+          edgeSize = tk.Constants.BACKDROP.edgeSize,
         });
 
         f.muiUpdate = true;
@@ -30,9 +30,9 @@ function namespace:SetUpBagnon()
         local border = self.profile.borderColor;
 
         self:SetBackdrop({
-        bgFile = [[Interface\ChatFrame\ChatFrameBackground]],
-        edgeFile = tk.Constants.BACKDROP.edgeFile,
-        edgeSize = tk.Constants.BACKDROP.edgeSize,
+          bgFile = [[Interface\ChatFrame\ChatFrameBackground]],
+          edgeFile = tk.Constants.BACKDROP.edgeFile,
+          edgeSize = tk.Constants.BACKDROP.edgeSize,
         });
 
         self:SetBackdropColor(back[1], back[2], back[3], back[4]);

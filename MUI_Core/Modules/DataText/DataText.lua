@@ -206,14 +206,21 @@ function C_DataTextModule:OnEnable(data)
   end
 
   -- the main bar containing all data text buttons
-  data.bar = CreateFrame("Frame", "MUI_DataTextBar", _G["MUI_BottomContainer"]);
-  data.bar:SetPoint("BOTTOMLEFT");
-  data.bar:SetPoint("BOTTOMRIGHT");
+  data.bar = CreateFrame("Frame", "MUI_DataTextBar", _G.MUI_BottomContainer or _G.UIParent);
+
+  if (_G.MUI_BottomContainer) then
+    data.bar:SetPoint("BOTTOMLEFT");
+    data.bar:SetPoint("BOTTOMRIGHT");
+  else
+    data.bar:SetPoint("BOTTOM");
+    data.bar:SetWidth(db.profile.bottomui.width);
+  end
+
   tk:SetBackground(data.bar, 0, 0, 0);
 
   -- create the popup menu (displayed when a data item button is clicked)
   -- each data text module has its own frame to be used as the scroll child
-  data.popup = gui:CreateScrollFrame(tk.Constants.AddOnStyle, _G["MUI_BottomContainer"], "MUI_DataTextPopupMenu");
+  data.popup = gui:CreateScrollFrame(tk.Constants.AddOnStyle, _G.MUI_BottomContainer or _G.UIParent, "MUI_DataTextPopupMenu");
   data.popup:SetFrameStrata("DIALOG");
   data.popup:Hide();
   data.popup:SetFrameLevel(2);
@@ -246,7 +253,10 @@ function C_DataTextModule:OnEnable(data)
   data.slideController = SlideController(data.popup);
 
   local containerModule = MayronUI:ImportModule("BottomUI_Container");
-  containerModule:RepositionContent();
+
+  if (containerModule:IsEnabled()) then
+    containerModule:RepositionContent();
+  end
 end
 
 obj:DefineParams("string", "table");
@@ -327,7 +337,8 @@ function C_DataTextModule:OrderDataTextButtons(data)
 end
 
 function C_DataTextModule:PositionDataTextButtons(data)
-  local itemWidth = _G["MUI_BottomContainer"]:GetWidth() / data.TotalActiveComponents;
+  local bottomContainerWidth = (_G.MUI_BottomContainer and _G.MUI_BottomContainer:GetWidth()) or db.profile.bottomui.width;
+  local itemWidth = bottomContainerWidth / data.TotalActiveComponents;
   local previousButton, currentButton;
 
   -- some indexes might have a nil value as display order is configurable by the user

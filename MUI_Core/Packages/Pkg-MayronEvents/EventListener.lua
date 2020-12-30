@@ -332,6 +332,7 @@ function C_EventListener.Private:Run(data, event, ...)
 
   -- execute callback function here:
   data.callback(self, event, unpack(args, 1, (data.argsLength + select("#", ...))));
+  obj:PushTable(args);
 
   if (data.executeOnce) then
     self:Destroy();

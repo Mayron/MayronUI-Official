@@ -236,7 +236,7 @@ end
 local function ChatFrame_OnModifierStateChanged(_, _, data)
   if (data.chatModuleSettings.swapInCombat or not InCombatLockdown()) then
     for _, buttonStateData in ipairs(data.settings.buttons) do
-      if (not buttonStateData.key or (buttonStateData.key and tk:IsModComboActive(buttonStateData.key))) then
+      if (not buttonStateData.key or tk:IsModComboActive(buttonStateData.key)) then
         data.buttons[1]:SetText(buttonStateData[1]);
         data.buttons[2]:SetText(buttonStateData[2]);
         data.buttons[3]:SetText(buttonStateData[3]);

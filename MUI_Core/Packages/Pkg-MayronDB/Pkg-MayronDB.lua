@@ -19,7 +19,7 @@ local Helper = obj:CreateClass("Helper");
 Observer.Static:AddFriendClass("Helper");
 Observer.Static:AddFriendClass("Database");
 
-local select, tonumber, strsplit = _G.select, _G.tonumber, _G.strsplit;
+local select, tonumber, strsplit, type = _G.select, _G.tonumber, _G.strsplit, _G.type;
 local ipairs, pairs, table, unpack, assert = _G.ipairs, _G.pairs, _G.table, _G.unpack, _G.assert;
 local string, tostring, setmetatable, print = _G.string, _G.tostring, _G.setmetatable, _G.print;
 

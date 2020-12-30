@@ -946,79 +946,51 @@ function Framework:IsStringNilOrWhiteSpace(strValue)
   return true;
 end
 
-function Framework:IterateArgs(...)
-  local index = 0;
-  local size = select("#", ...);
-  local args = self:PopTable(...);
-
-  return function()
-    index = index + 1;
-
-    if (index <= size) then
-      return index, args[index];
-    else
-      Framework:PushTable(args);
-    end
-  end
-end
-
--- Only iterates over values found in table and will cut off trailing `nil` values
-function Framework:IterateValues(...)
-  local index = 0;
-  local args = self:PopTable(...);
-
-  return function()
-    index = index + 1;
-
-    if (index <= #args) then
-      return index, args[index];
+do
+  local function iterator(wrapper, id)
+    if (id ~= wrapper.size) then
+      id = id + 1;
+      return id, wrapper[id];
     else
       -- reached end of wrapper so finish looping and clean up
-      Framework:PushTable(args);
+      Framework:PushTable(wrapper);
     end
+  end
+
+  function Framework:IterateArgs(...)
+    local wrapper = self:PopTable(...);
+    wrapper.size = select("#", ...);
+    return iterator, wrapper, 0;
+  end
+
+  -- Only iterates over values found in table and will cut off trailing `nil` values
+  function Framework:IterateValues(...)
+    local wrapper = self:PopTable(...);
+    wrapper.size = #wrapper;
+    return iterator, wrapper, 0;
   end
 end
 
 do
   local recycledTables = {};
-  local lives = {};
   local pendingClean;
   local C_Timer = _G.C_Timer;
+  local seconds = 5;
 
   local function RunCleaner()
-    for key, value in pairs(lives) do
-      lives[key] = value - 1;
-    end
-
-    local removed = false;
-    for key, _ in pairs(recycledTables) do
-      if (lives[key] <= 0) then
-        lives[key] = nil;
-        recycledTables[key] = nil;
-        removed = true;
-      end
-    end
-
-    if (next(recycledTables)) then
-      C_Timer.After(10, RunCleaner);
-    else
-      pendingClean = nil;
-      if (removed) then
-        collectgarbage("collect");
-      end
-    end
+    Framework:EmptyTable(recycledTables);
+    pendingClean = nil;
+    collectgarbage("collect");
   end
 
   function Framework:UnpackTable(tbl, startIndex, endIndex)
     if (not self:IsTable(tbl)) then return end
 
-    local tblKey = tostring(tbl);
-    recycledTables[tblKey] = tbl;
-    lives[tblKey] = 3;
+    recycledTables[#recycledTables + 1] = tbl;
 
-    if (not pendingClean) then
+    if (#recycledTables > 5 and not pendingClean) then
       pendingClean = true;
-      C_Timer.After(10, RunCleaner);
+      C_Timer.After(seconds, RunCleaner);
     end
 
     return unpack(tbl, startIndex, endIndex);
@@ -1026,20 +998,16 @@ do
 
   function Framework:PushTable(tbl)
     if (not self:IsTable(tbl)) then return end
-
     setmetatable(tbl, nil);
     Framework:EmptyTable(tbl);
     self:UnpackTable(tbl); -- call this just to reuse recycling code
   end
 
   function Framework:PopTable(...)
-    local _, tbl = next(recycledTables);
+    local tbl = recycledTables[#recycledTables];
 
     if (tbl) then
-      assert(self:IsTable(tbl), strformat("Failed to pop table. %s value found: '%s'", type(tbl), tostring(tbl)));
-      local tblKey = tostring(tbl);
-      lives[tblKey] = nil;
-      recycledTables[tblKey] = nil;
+      recycledTables[#recycledTables] = nil;
 
       -- if table was unpacked, need to clean it here:
       setmetatable(tbl, nil);
