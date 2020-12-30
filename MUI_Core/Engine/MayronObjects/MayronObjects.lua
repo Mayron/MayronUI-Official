@@ -721,8 +721,12 @@ end
 
 ---A helper function to empty a table.
 ---@param tbl table @The table to empty.
-function Framework:EmptyTable(tbl)
-  for key, _ in pairs(tbl) do
+function Framework:EmptyTable(tbl, deep)
+  for key, value in pairs(tbl) do
+    if (deep and self:IsTable(value)) then
+      self:EmptyTable(value, deep);
+    end
+
     tbl[key] = nil;
   end
 end

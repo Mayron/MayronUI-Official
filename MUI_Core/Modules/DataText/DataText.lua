@@ -475,9 +475,8 @@ obj:DefineParams("table", "Button");
 ---@param buttonName string The name of the button clicked on (i.e. "LeftButton" or "RightButton")
 function C_DataTextModule:ClickModuleButton(data, component, dataTextButton, buttonName, ...)
   GameTooltip:Hide();
-  component:Update(data);
+  component:Update();
   data.slideController:Stop();
-
   local buttonDisplayOrder = component.DisplayOrder;
 
   if (data.lastButtonID == buttonDisplayOrder and data.lastButton == buttonName and data.popup:IsShown()) then
@@ -521,9 +520,7 @@ function C_DataTextModule:ClickModuleButton(data, component, dataTextButton, but
   -- execute dataTextModule specific click logic
   local cannotExpand = component:Click(buttonName, ...);
 
-  if (cannotExpand) then
-    return;
-  end
+  if (cannotExpand) then return end
 
   -- calculate new height based on number of labels to show
   local totalHeight = self:PositionLabels(component) or data.settings.popup.maxHeight;

@@ -351,12 +351,89 @@ function C_CastBar:__Construct(data, settings, appearance, unitID)
   namespace.castBarData[data.unitID] = data;
 end
 
-local function CastBarFrame_OnUpdate(self, elapsed)
+local function IsFinished(data)
+  local value = data.frame.statusbar:GetValue();
+  local maxValue = select(2, data.frame.statusbar:GetMinMaxValues());
+
+  if (data.channelling) then
+    return value <= 0; -- max value for channelling is reversed
+  end
+
+  if (data.auraId) then
+    for auraID = 1, BUFF_MAX_DISPLAY do
+      local auraId = (select(10, UnitBuff(data.unitID, auraID)));
+
+      if (data.auraId == auraId) then
+        return false;
+      end
+    end
+
+    return true;
+  end
+
+  return value >= maxValue;
+end
+
+local function CastBarFrame_OnUpdate(self, elapsed, data)
   if (self:GetAlpha() > 0) then
     self.totalElapsed = self.totalElapsed + elapsed;
 
     if (self.enabled and self.totalElapsed > 0.01) then
-      self.castBar:Update(elapsed);
+      if (not data.startTime) then
+        if (self:GetAlpha() == 0) then
+          data.fadingOut = nil;
+        end
+
+        return
+      end
+
+      if (data.unitID == "mirror") then
+        if (not data.paused or data.paused == 0) then
+          for i = 1, _G.MIRRORTIMER_NUMTIMERS do
+            local _, _, _, _, _, label = GetMirrorTimerInfo(i);
+
+            if (label == self.name:GetText()) then
+              local value = _G.MirrorTimer1StatusBar:GetValue();
+              local duration = string.format("%.1f", value);
+
+              if (tonumber(duration) > 60) then
+                duration = date("%M:%S", duration);
+              end
+
+              self.duration:SetText(duration);
+              self.statusbar:SetValue(value);
+              return
+            end
+          end
+        end
+      else
+        if (data.startTime and not IsFinished(data)) then
+          local difference = GetTime() - data.startTime;
+
+          if (data.channelling or data.unitID == "mirror") then
+            self.statusbar:SetValue(data.totalTime - difference);
+          else
+            self.statusbar:SetValue(difference);
+          end
+
+          local duration = data.totalTime - difference;
+
+          if (duration < 0) then
+            duration = 0;
+          end
+
+          duration = string.format("%.1f", duration);
+
+          if (tonumber(duration) > 60) then
+            duration = date("%M:%S", duration);
+          end
+
+          self.duration:SetText(duration);
+        else
+          self.castBar:StopCasting();
+        end
+      end
+
       self.totalElapsed = 0;
     end
   end
@@ -482,7 +559,11 @@ do
       bar.totalElapsed = 0;
       bar.castBar = self;
       bar.unitID = data.unitID;
-      bar:SetScript("OnUpdate", CastBarFrame_OnUpdate);
+
+      bar:SetScript("OnUpdate", function(self, elapsed)
+        CastBarFrame_OnUpdate(self, elapsed, data);
+      end);
+
       bar:SetScript("OnEvent", CastBarFrame_OnEvent);
     else
       bar:UnregisterAllEvents();
@@ -494,65 +575,6 @@ do
 
     bar:SetShown(enabled);
     bar.enabled = enabled;
-  end
-end
-
-function C_CastBar:Update(data)
-  local bar = data.frame;
-
-  if (not data.startTime) then
-    if (bar:GetAlpha() == 0) then
-      data.fadingOut = nil;
-    end
-
-    return
-  end
-
-  if (data.unitID == "mirror") then
-    if (not data.paused or data.paused == 0) then
-      for i = 1, _G.MIRRORTIMER_NUMTIMERS do
-        local _, _, _, _, _, label = GetMirrorTimerInfo(i);
-
-        if (label == bar.name:GetText()) then
-          local value = _G.MirrorTimer1StatusBar:GetValue();
-          local duration = string.format("%.1f", value);
-
-          if (tonumber(duration) > 60) then
-            duration = date("%M:%S", duration);
-          end
-
-          bar.duration:SetText(duration);
-          bar.statusbar:SetValue(value);
-          return
-        end
-      end
-    end
-  else
-    if (data.startTime and not self:IsFinished()) then
-      local difference = GetTime() - data.startTime;
-
-      if (data.channelling or data.unitID == "mirror") then
-        bar.statusbar:SetValue(data.totalTime - difference);
-      else
-        bar.statusbar:SetValue(difference);
-      end
-
-      local duration = data.totalTime - difference;
-
-      if (duration < 0) then
-        duration = 0;
-      end
-
-      duration = string.format("%.1f", duration);
-
-      if (tonumber(duration) > 60) then
-        duration = date("%M:%S", duration);
-      end
-
-      bar.duration:SetText(duration);
-    else
-      self:StopCasting();
-    end
   end
 end
 
@@ -579,31 +601,6 @@ function C_CastBar:SetTicks(data, numTicks)
       tick:Show();
     end
   end
-end
-
-obj:DefineReturns("boolean");
----@return boolean @Returns true if the cast bar has finished channeling or casting.
-function C_CastBar:IsFinished(data)
-  local value = data.frame.statusbar:GetValue();
-  local maxValue = select(2, data.frame.statusbar:GetMinMaxValues());
-
-  if (data.channelling) then
-    return value <= 0; -- max value for channelling is reversed
-  end
-
-  if (data.auraId) then
-    for auraID = 1, BUFF_MAX_DISPLAY do
-      local auraId = (select(10, UnitBuff(data.unitID, auraID)));
-
-      if (data.auraId == auraId) then
-        return false;
-      end
-    end
-
-    return true;
-  end
-
-  return value >= maxValue;
 end
 
 obj:DefineParams("boolean");
@@ -670,7 +667,7 @@ function C_CastBar:StartCasting(data, channelling, auraInfo)
     if (bar:GetAlpha() > 0 and not data.fadingOut) then
       self:StopCasting();
     end
-    return;
+    return
   end
 
   startTime = startTime / 1000; -- To make the same as GetTime() format

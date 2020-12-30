@@ -959,7 +959,7 @@ do
       local defaults = observer:GetDefaults();
 
       if (obj:IsTable(reusableTable)) then
-        obj:EmptyTable(reusableTable);
+        obj:EmptyTable(reusableTable, true);
         setmetatable(reusableTable, nil);
       end
 

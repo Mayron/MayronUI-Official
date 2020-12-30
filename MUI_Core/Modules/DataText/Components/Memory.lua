@@ -127,7 +127,6 @@ function Memory:Click(data)
       -- Had issue ignoring the color code so I took this out for now.
       -- addOnName = tk.Strings:RemoveColorCode(addOnName);
       -- addOnName = tk.Strings:SetOverflow(addOnName, 15);
-
       label.name:SetText(addOnName);
       label.value:SetText(value);
       label.usage = usage;
