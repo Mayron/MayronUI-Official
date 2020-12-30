@@ -159,12 +159,12 @@ function Tests:Basic_Memory_Leak_Test()
   local tblValue = {};
 
   function C_TestClass:__Construct(data)
-    data.frame = _G.CreateFrame("Frame");
+    data.obj = _G.CreateFrame("Frame");
   end
 
   obj:DefineParams("Frame");
   function C_TestClass:SetParent(data, parent)
-    data.frame:SetParent(parent);
+    data.obj:SetParent(parent);
   end
 
   obj:DefineParams("number", {"table", { message = "hello" }}, "...?number");
@@ -181,23 +181,23 @@ function Tests:Basic_Memory_Leak_Test()
 
   function C_TestClass:ClearAllPoints(data)
     data:Call("MyPrivateMethod", self.Static:MyStaticMethod(12, tblValue, nil, 2, nil, 3));
-    data.frame:ClearAllPoints();
+    data.obj:ClearAllPoints();
   end
 
   obj:DefineParams("string=CENTER");
   function C_TestClass:SetPoint(data, point)
-    data.frame:SetPoint(point);
+    data.obj:SetPoint(point);
   end
 
   obj:DefineParams("boolean=true");
   function C_TestClass:SetShown(data, shown)
-    data.frame:SetShown(shown);
+    data.obj:SetShown(shown);
   end
 
   local testInstance = C_TestClass();
 
   _G.UpdateAddOnMemoryUsage();
-  local before = _G.GetAddOnMemoryUsage("MayronObjects-Lite");
+  local before = _G.GetAddOnMemoryUsage("MayronObjects");
 
   for _ = 1, 500 do
     testInstance:SetParent(_G.UIParent);
@@ -210,7 +210,7 @@ function Tests:Basic_Memory_Leak_Test()
   end
 
   _G.UpdateAddOnMemoryUsage();
-  local after = _G.GetAddOnMemoryUsage("MayronObjects-Lite");
+  local after = _G.GetAddOnMemoryUsage("MayronObjects");
   local difference = after - before;
 
   print("difference: ", difference);
@@ -228,7 +228,7 @@ function Tests:Memory_Leak_Test_With_FrameWrapper()
   bg:SetColorTexture(random(), random(), random());
 
   _G.UpdateAddOnMemoryUsage();
-  local before = _G.GetAddOnMemoryUsage("MayronObjects-Lite");
+  local before = _G.GetAddOnMemoryUsage("MayronObjects");
 
   for _ = 1, 500 do
     testInstance:SetParent(_G.UIParent);
@@ -244,7 +244,30 @@ function Tests:Memory_Leak_Test_With_FrameWrapper()
   testInstance:SetShown(false);
 
   _G.UpdateAddOnMemoryUsage();
-  local after = _G.GetAddOnMemoryUsage("MayronObjects-Lite");
+  local after = _G.GetAddOnMemoryUsage("MayronObjects");
+  local difference = after - before;
+
+  print("difference: ", difference);
+  assert(difference < 0.5, "difference: "..tostring(difference));
+end
+
+function Tests:Memory_Leak_With_Union_Types_And_Optional_Values()
+  local C_TestClass = obj:CreateClass("TestClass");
+
+  obj:DefineParams("number|boolean");
+  function C_TestClass:RunTest()
+  end
+
+  local instance = C_TestClass();
+  _G.UpdateAddOnMemoryUsage();
+  local before = _G.GetAddOnMemoryUsage("MayronObjects");
+
+  for _ = 1, 2000 do
+    instance:RunTest(true);
+  end
+
+  _G.UpdateAddOnMemoryUsage();
+  local after = _G.GetAddOnMemoryUsage("MayronObjects");
   local difference = after - before;
 
   print("difference: ", difference);

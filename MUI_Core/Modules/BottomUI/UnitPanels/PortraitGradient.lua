@@ -32,7 +32,8 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
   if (enabled) then
     data.gradients = data.gradients or obj:PopTable();
 
-    for _, unitID in obj:IterateArgs("player", "target") do
+    for i = 1, 2 do
+      local unitID = i == 1 and "player" or "target";
       local parent = _G["SUFUnit"..unitID];
 
       if (parent and parent.portrait) then

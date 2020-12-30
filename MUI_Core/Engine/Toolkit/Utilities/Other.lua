@@ -19,14 +19,15 @@ local L = namespace.components.Locale;
 tk.Numbers = {};
 
 function tk.Numbers:ToPrecision(number, precision)
-    number = tonumber(number);
-    number = math.floor(number * (math.pow(10, precision)) + 0.5);
-    number = number / (math.pow(10, precision));
-    return number;
+  number = tonumber(number);
+  number = math.floor(number * (math.pow(10, precision)) + 0.5);
+  number = number / (math.pow(10, precision));
+  return number;
 end
 
 function tk:ValueIsEither(value, ...)
-  for _, otherValue in obj:IterateArgs(...) do
+  for i = 1, select("#", ...) do
+    local otherValue = (select(i, ...));
     if (self:Equals(value, otherValue)) then
       return true;
     end
@@ -36,11 +37,11 @@ function tk:ValueIsEither(value, ...)
 end
 
 function tk:UnpackIfTable(value)
-    if (obj:IsTable(value)) then
-        return obj:UnpackTable(value);
-    else
-        return value;
-    end
+  if (obj:IsTable(value)) then
+    return obj:UnpackTable(value);
+  else
+    return value;
+  end
 end
 
 function tk:Print(...)
@@ -49,7 +50,7 @@ function tk:Print(...)
 end
 
 function tk:GetAssetFilePath(filePath)
-    return string.format("%s\\%s", tk.Constants.ASSETS_FOLDER, filePath);
+  return string.format("%s\\%s", tk.Constants.ASSETS_FOLDER, filePath);
 end
 
 do

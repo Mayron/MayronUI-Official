@@ -28,7 +28,7 @@ function C_Container:OnInitialize(data)
       if (dataTextModule and dataTextModule:IsEnabled()) then
         dataTextModule:PositionDataTextButtons();
       end
-  end;
+    end
   });
 end
 

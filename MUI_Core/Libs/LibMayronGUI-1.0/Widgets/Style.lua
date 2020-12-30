@@ -11,7 +11,7 @@ local obj = _G.MayronObjects:GetFramework();
 local Style = obj:CreateClass("Style");
 obj:Export(Style, "MayronUI");
 
-local unpack, CreateColor = _G.unpack, _G.CreateColor;
+local unpack, CreateColor, type, select = _G.unpack, _G.CreateColor, _G.type, _G.select;
 
 -- Local Functions ---------------
 local function Getter(data, tblKey, name, defaultValue)
@@ -144,8 +144,8 @@ function Style:ApplyColor(_, colorName, alpha, ...)
     alpha = 1;
   end
 
-  for _, element in obj:IterateArgs(...) do
-
+  for i = 1, select("#", ...) do
+    local element = (select(i, ...));
     obj:Assert(obj:IsTable(element) and element.GetObjectType,
     "Style.ApplyColor: Widget expected but received a %s value of %s", type(element), element);
 

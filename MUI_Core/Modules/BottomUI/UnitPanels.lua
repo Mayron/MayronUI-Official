@@ -2,7 +2,7 @@
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
-local CreateFrame, pairs = _G.CreateFrame, _G.pairs;
+local CreateFrame, pairs, ipairs = _G.CreateFrame, _G.pairs, _G.ipairs;
 local IsAddOnLoaded, UnitExists, UnitIsPlayer = _G.IsAddOnLoaded, _G.UnitExists, _G.UnitIsPlayer;
 local C_UnitPanels = MayronUI:RegisterModule("UnitPanels", L["Unit Panels"], true);
 
@@ -349,11 +349,15 @@ function C_UnitPanels.Private:UpdateVisuals(data, frame, restingPulseAlpha)
   end
 end
 
-function C_UnitPanels.Private:UpdateAllVisuals(data)
-  for _, key in obj:IterateArgs("left", "center", "right", "player", "target") do
-    if (key == "player" and not data.settings.unitNames.enabled) then break end
-    if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
-      data:Call("UpdateVisuals", data[key]);
+do
+  local textures = { "left", "center", "right", "player", "target" };
+
+  function C_UnitPanels.Private:UpdateAllVisuals(data)
+    for _, key in ipairs(textures) do
+      if (key == "player" and not data.settings.unitNames.enabled) then break end
+      if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
+        data:Call("UpdateVisuals", data[key]);
+      end
     end
   end
 end

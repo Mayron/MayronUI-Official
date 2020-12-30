@@ -36,6 +36,7 @@ function C_EventManager:__Construct(data)
           for _, registeredUnitID in ipairs(listenerData.events[event]) do
             if (registeredUnitID == unitID) then
               listenerData:Call("Run", event, unitID, ...);
+              break
             end
           end
         else

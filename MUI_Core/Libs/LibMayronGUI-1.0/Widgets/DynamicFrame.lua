@@ -90,18 +90,18 @@ end
 
 -- adds children to ScrollChild of the ScrollFrame
 function DynamicFrame:AddChildren(data, ...)
-    local width, height = data.frame:GetSize();
+  local width, height = data.frame:GetSize();
 
-    if (width == 0 and height == 0) then
-        data.frame:SetSize(_G.UIParent:GetWidth(), _G.UIParent:GetHeight());
-    end
+  if (width == 0 and height == 0) then
+    data.frame:SetSize(_G.UIParent:GetWidth(), _G.UIParent:GetHeight());
+  end
 
-    for _, child in obj:IterateArgs(...) do
-        _G.table.insert(data.frame.children, child);
-        child:SetParent(data.scrollChild);
-    end
+  for _, child in obj:IterateArgs(...) do
+    _G.table.insert(data.frame.children, child);
+    child:SetParent(data.scrollChild);
+  end
 
-    OnSizeChanged(data.frame, data.frame:GetWidth());
+  OnSizeChanged(data.frame, data.frame:GetWidth());
 end
 
 function DynamicFrame:GetChildren(data)

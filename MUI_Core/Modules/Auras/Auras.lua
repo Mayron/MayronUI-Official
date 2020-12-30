@@ -292,9 +292,7 @@ local function AuraButton_OnUpdate(self)
     self.countText:SetText(count);
   end
 
-  if (not expirationTime) then
-    return;
-  end
+  if (not expirationTime) then return end
 
   local timeRemaining = expirationTime - GetTime();
 
@@ -496,8 +494,8 @@ function C_AuraArea:SetEnabled(data, enabled)
   end
 
   if (not newlyCreated) then
-    local Listener = em:GetEventListenerByID(data.globalName.."Listener");
-    Listener:SetEnabled(enabled);
+    local listener = em:GetEventListenerByID(data.globalName.."Listener");
+    listener:SetEnabled(enabled);
   end
 
   data.frame:SetShown(enabled);

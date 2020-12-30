@@ -4,7 +4,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local InCombatLockdown, unpack = _G.InCombatLockdown, _G.unpack;
 local pairs, ipairs, table, xpcall = _G.pairs, _G.ipairs, _G.table, _G.xpcall;
-local IsAddOnLoaded = _G.IsAddOnLoaded;
+local IsAddOnLoaded, strsplit = _G.IsAddOnLoaded, _G.strsplit;
 
 ---@class MovableModule : BaseModule
 local C_MovableFramesModule = MayronUI:RegisterModule("MovableFramesModule", L["Movable Frames"]);
@@ -106,7 +106,7 @@ local function GetFrame(frameName)
 	local frame = _G[frameName];
 
 	if (not frame) then
-		for _, key in obj:IterateArgs(_G.strsplit(".", frameName)) do
+		for _, key in obj:IterateArgs(strsplit(".", frameName)) do
 			if (not frame) then
 				frame = _G[key];
 			else

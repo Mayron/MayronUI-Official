@@ -88,16 +88,19 @@ local function FindMatchingGroupValue(path, options)
         local updateFunction = groupOptions.value;
 
         if (obj:IsTable(updateFunction)) then
-          for _, key in obj:IterateArgs(string.split(".", path)) do
+          local pathValues = obj:PopTable(string.split(".", path));
 
+          for _, key in ipairs(pathValues) do
             if (updateFunction[key]) then
               updateFunction = updateFunction[key];
 
               if (obj:IsFunction(updateFunction)) then
-                break;
+                break
               end
             end
           end
+
+          obj:PushTable(pathValues);
         end
 
         return updateFunction, groupOptions.onPre, groupOptions.onPost;

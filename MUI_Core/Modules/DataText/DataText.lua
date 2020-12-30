@@ -18,18 +18,18 @@ namespace.C_DataTextModule = C_DataTextModule;
 
 -- Load Database Defaults --------------
 namespace.dataTextLabels = {
--- svName = Label
-["combatTimer"]       = "Combat Timer",
-["currency"]          = "Currency",
-["durability"]        = "Durability",
-["friends"]           = "Friends",
-["guild"]             = "Guild",
-["inventory"]         = "Inventory",
-["memory"]            = "Memory",
-["performance"]       = "Performance",
-["none"]              = "None";
-["disabled"]          = "Disabled",
-["volumeOptions"]     = "Volume Options"
+  -- svName = Label
+  ["combatTimer"]       = "Combat Timer",
+  ["currency"]          = "Currency",
+  ["durability"]        = "Durability",
+  ["friends"]           = "Friends",
+  ["guild"]             = "Guild",
+  ["inventory"]         = "Inventory",
+  ["memory"]            = "Memory",
+  ["performance"]       = "Performance",
+  ["none"]              = "None";
+  ["disabled"]          = "Disabled",
+  ["volumeOptions"]     = "Volume Options"
 };
 
 local defaults = {
@@ -50,7 +50,7 @@ local defaults = {
     "durability";
     "friends";
     "guild";
-    "inventory";
+    "volumeOptions";
     "currency";
     "performance";
   };

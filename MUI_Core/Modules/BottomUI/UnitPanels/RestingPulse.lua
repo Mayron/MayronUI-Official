@@ -8,8 +8,8 @@ local FLASH_TIME_OFF = 0.65;
 local pulseTime = 0;
 local isPulsing = false;
 
-local IsResting = _G.IsResting;
-local InCombatLockdown = _G.InCombatLockdown;
+local IsResting, ipairs, InCombatLockdown = _G.IsResting, _G.ipairs, _G.InCombatLockdown;
+local subTextures = { "left", "center", "right", "player", "target" };
 
 local function ShouldPulse(data)
   return not (data.stopPulsing or InCombatLockdown()) and IsResting() and data.settings.restingPulse;
@@ -54,7 +54,7 @@ local function UnitPanels_UpdateAlpha(data, _, elapsed)
   alpha = (alpha * (maxAlpha - minAlpha)) + minAlpha;
   data.currentPulseAlpha = alpha;
 
-  for _, key in obj:IterateArgs("left", "center", "right", "player", "target") do
+  for _, key in ipairs(subTextures) do
     if (key == "player" and not data.settings.unitNames.enabled) then break end
 
     if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then
@@ -71,7 +71,7 @@ local function TriggerPulsing(data)
   else
     PulseTimeManager:SetScript("OnUpdate", nil);
 
-    for _, key in obj:IterateArgs("left", "center", "right", "player", "target") do
+    for _, key in ipairs(subTextures) do
       if (key == "player" and not data.settings.unitNames.enabled) then break end
 
       if (obj:IsWidget(data[key]) and obj:IsWidget(data[key].bg)) then

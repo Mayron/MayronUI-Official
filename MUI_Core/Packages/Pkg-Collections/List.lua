@@ -7,7 +7,7 @@ if (obj:Import("Pkg-Collections.List<T>", true)) then return end
 local C_List = obj:CreateClass("List<T>");
 obj:Export(C_List, "Pkg-Collections");
 
-local table, ipairs = _G.table, _G.ipairs;
+local table, ipairs, select = _G.table, _G.ipairs, _G.select;
 
 function C_List:__Construct(data, ...)
   data.values = obj:PopTable();
@@ -152,19 +152,20 @@ do
 end
 
 function C_List:AddAll(data, ...)
-  for _, value in obj:IterateArgs(...) do
-    table.insert(data.values, value);
+  for i = 1, select("#", ...) do
+    table.insert(data.values, (select(i, ...)));
   end
 end
 
 function C_List:RemoveAll(_, ...)
-  for _, value in obj:IterateArgs(...) do
-    self:RemoveByValue(value);
+  for i = 1, select("#", ...) do
+    self:RemoveByValue((select(i, ...)));
   end
 end
 
 function C_List:RetainAll(_, ...)
-  for _, value in obj:IterateArgs(...) do
+  for i = 1, select("#", ...) do
+    local value = (select(i, ...));
     if (not self:Contains(value)) then
       self:RemoveByValue(value);
     end

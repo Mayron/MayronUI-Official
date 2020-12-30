@@ -65,13 +65,9 @@ local function CreateLabel(contentFrame, cvarName, text, component)
   slider.component = component;
   slider:SetScript("OnValueChanged", Slider_OnValueChanged);
 
-  slider.Low:SetText("0");
-  slider.Low:ClearAllPoints();
-  slider.Low:SetPoint("RIGHT", slider, "LEFT", -5, 0);
+  slider.Low:Hide();
+  slider.High:Hide();
 
-  slider.High:SetText("1");
-  slider.High:ClearAllPoints();
-  slider.High:SetPoint("LEFT", slider, "RIGHT", 5, 0);
   tk:SetBackground(label, 0, 0, 0, 0.2);
 
   label.name = name;

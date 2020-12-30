@@ -4,7 +4,7 @@ if (obj:Import("Pkg-GridPanels.ResponsiveScrollFrame", true)) then return end
 
 local C_ResponsiveScrollFrame = obj:Import("Pkg-GridPanels.ResponsiveScrollFrame"); ---@type ResponsiveScrollFrame
 
-local CreateFrame, ipairs, math = _G.CreateFrame, _G.ipairs, _G.math;
+local CreateFrame, ipairs, math, select = _G.CreateFrame, _G.ipairs, _G.math, _G.select;
 local table, unpack, UIParent = _G.table, _G.unpack, _G.UIParent;
 
 ---------------------------------
@@ -93,7 +93,8 @@ function C_ResponsiveScrollFrame:AddChildren(data, ...)
     data.frame:SetSize(UIParent:GetWidth(), UIParent:GetHeight());
   end
 
-  for _, child in obj:IterateArgs(...) do
+  for i = 1, select("#", ...) do
+    local child = (select(1, ...));
     table.insert(data.children, child);
     child:SetParent(scrollChild);
   end

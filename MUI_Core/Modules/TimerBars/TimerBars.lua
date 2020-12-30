@@ -1173,7 +1173,7 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
   -- obj:Assert(timeRemaining >= 0);
 
   if (timeRemaining < 0) then
-    return; -- Let OnUpdate Script remove it!
+    return -- Let OnUpdate Script remove it!
   end
 
   if (self.TotalDuration) then
@@ -1196,11 +1196,9 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
     data.spark:SetPoint("LEFT", value, 0);
   end
 
-  if (not data.timeRemaining) then
-    return;
-  end
+  if (not data.timeRemaining) then return end
 
-  local timeRemainingText = tk.Numbers:ToPrecision(timeRemaining, 1);
+  local timeRemainingText = tk.Numbers:ToPrecision(timeRemaining, 0);
 
   if (data.timeRemainingText ~= timeRemainingText) then
     data.timeRemainingText = timeRemainingText;

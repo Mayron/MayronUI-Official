@@ -186,12 +186,17 @@ local function RunValidator(definition, errorMessage, objectName, methodName, ..
 
     if (definitionType:find("|")) then
       -- a union type detected!
-      for _, singleDefinitionType in Framework:IterateArgs(strsplit("|", definitionType)) do
+      local unionDefs = Framework:PopTable(strsplit("|", definitionType));
+
+      -- cannot use IterateArgs as loop might break (and table is not pushed)
+      for _, singleDefinitionType in ipairs(unionDefs) do
         singleDefinitionType = strgsub(singleDefinitionType, "%s", "");
         errorFound = ValidateValue(singleDefinitionType, realValue, defaultValue);
 
         if (not errorFound) then break end
       end
+
+      Framework:PushTable(unionDefs);
 
       if (errorFound) then
         definitionType = strgsub(definitionType, "|", " or ");
@@ -701,16 +706,23 @@ end
 
 function Framework:Import(namespace, silent)
   local current = exported;
+  local sections = self:PopTable(strsplit(".", namespace));
 
-  for _, key in self:IterateArgs(strsplit(".", namespace)) do
+  for _, key in ipairs(sections) do
     if (not current[key]) then
-      if (silent) then return end
+      if (silent) then
+        self:PushTable(sections);
+        return
+      end
+
       self:Error("Import - bad argument #1 (no entity at namespace '%s').", namespace);
+      break
     end
 
     current = current[key];
   end
 
+  self:PushTable(sections);
   return current;
 end
 

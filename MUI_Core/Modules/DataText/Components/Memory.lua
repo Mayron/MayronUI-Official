@@ -5,7 +5,7 @@ local LABEL_PATTERN = "|cffffffff%s|r mb";
 local C_Timer, string, table, GetNumAddOns, GetAddOnInfo, GetAddOnMemoryUsage =
 _G.C_Timer, _G.string, _G.table, _G.GetNumAddOns, _G.GetAddOnInfo, _G.GetAddOnMemoryUsage;
 local UpdateAddOnMemoryUsage = _G.UpdateAddOnMemoryUsage;
-local unpack = _G.unpack;
+local unpack, mfloor = _G.unpack, _G.math.floor;
 
 -- Register and Import Modules -------
 
@@ -101,6 +101,7 @@ end
 function Memory:Click(data)
   local currentIndex = 0;
   local sorted = obj:PopTable();
+  UpdateAddOnMemoryUsage();
 
   for i = 1, GetNumAddOns() do
     local _, addOnName, addOnDescription = GetAddOnInfo(i);
@@ -115,8 +116,7 @@ function Memory:Click(data)
       local value;
 
       if (usage > 1000) then
-        value = usage / 1000;
-        value = tk.Numbers:ToPrecision(value, 1);
+        value = mfloor(usage / 10) / 100;
         value = string.format("%smb", value);
       else
         value = tk.Numbers:ToPrecision(usage, 0);
