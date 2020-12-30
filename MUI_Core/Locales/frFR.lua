@@ -149,6 +149,7 @@ L["Player"]							= "Joueur";
 L["Target"]							= "Cible";
 L["Focus"]							= "Focus";
 L["Mirror"]							= "Miroir";
+L["Pet"] = "Familier";
 
 L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."]
 	= "Si activé la barre de sort sera fixée à la barre de portrait de %s (si elle existe)";

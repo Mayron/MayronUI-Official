@@ -6,7 +6,7 @@ local Button_OnClick;
 
 ---@class ListFrame : Object
 local C_ListFrame = obj:CreateClass("ListFrame");
-obj:Export("MayronUI.ListFrame");
+obj:Export(C_ListFrame, "MayronUI");
 
 ---@class Stack : Object
 local C_Stack = obj:Import("Pkg-Collections.Stack<T>");

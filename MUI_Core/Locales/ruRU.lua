@@ -149,6 +149,7 @@ L["Player"]= "Персонаж";
 L["Target"]= "Цель";
 L["Focus"]= "Фокус";
 L["Mirror"]= "Отражение";
+L["Pet"] = "Питомец";
 
 L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."]
 = "Если включено, каст-бар будет привязан к портрету %s (если есть).";

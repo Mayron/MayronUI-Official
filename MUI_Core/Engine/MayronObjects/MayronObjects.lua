@@ -435,13 +435,6 @@ do
 
   instanceMetatable.__index = function(self, key)
     local metadata = objectMetadata[tostring(self)];
-    local frame = metadata.privateData.frame;
-
-    if (Framework:IsTable(frame) and Framework:IsFunction(frame[key])) then
-      innerValues.frame = frame;
-      innerValues.key = key;
-      return frameWrapperFunction;
-    end
 
     -- if new class functions were added, update instance object to include them
     if (Framework:IsFunction(metadata.class[key])) then
@@ -453,6 +446,16 @@ do
 
     if (metadata.indexedCallback) then
       value = metadata.indexedCallback(self, metadata.privateData, key, value);
+    end
+
+    if (not value) then
+      local frame = metadata.privateData.frame;
+
+      if (Framework:IsTable(frame) and Framework:IsFunction(frame[key])) then
+        innerValues.frame = frame;
+        innerValues.key = key;
+        return frameWrapperFunction;
+      end
     end
 
     return value;
@@ -818,10 +821,10 @@ function InstanceMixin:Destroy()
 end
 
 function InstanceMixin:SetFrame(_, frame)
-  local isWidget = Framework:IsTable(frame) and Framework:IsFunction(frame.IsObjectType) Framework:IsFunction(frame.GetObjectType);
+  local isWidget = Framework:IsTable(frame) and Framework:IsFunction(frame.GetObjectType);
 
   Framework:Assert(
-    isWidget and frame:IsObjectType("Frame"),
+    isWidget,
     "SetFrame failed - bad argument #1 (Frame expected, got %s)",
     (isWidget and frame:GetObjectType()) or type(frame));
 
@@ -926,7 +929,7 @@ function Framework:IsWidget(value, widgetType)
     return false;
   end
 
-  local isWidget = (self:IsFunction(value.IsObjectType) and value:IsObjectType("Frame"));
+  local isWidget = (self:IsFunction(value.IsObjectType) and value:IsObjectType("Frame") or value:IsObjectType("Texture"));
 
   if (isWidget and self:IsString(widgetType)) then
     isWidget = value:IsObjectType(widgetType);

@@ -92,9 +92,8 @@ function C_LayoutSwitcher:UpdateAddOnWindow(data)
 
 	local checked, addOnName;
 
-	for i, child in obj:IterateArgs(data.addonWindow.dynamicFrame:GetChildren()) do
-
-		if (i % 2 ~= 0) then
+  for i, child in obj:IterateArgs(data.addonWindow.dynamicFrame:GetChildren()) do
+    if (i % 2 ~= 0) then
 			-- checkbutton
 			addOnName = child.btn.text:GetText();
 			checked = layoutData[addOnName];

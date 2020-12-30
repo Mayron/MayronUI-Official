@@ -7,6 +7,7 @@ if (not Lib) then return; end
 
 local Private = Lib.Private;
 local obj = _G.MayronObjects:GetFramework();
+local C_LinkedList = obj:Import("Pkg-Collections.LinkedList");
 local math = _G.math;
 
 ---@class Panel
@@ -14,8 +15,6 @@ local Panel = obj:CreateClass("Panel");
 obj:Export(Panel, "MayronUI");
 
 Panel.Static:AddFriendClass("MayronUI.Group");
-Private.Panel = Panel;
----------------------------------
 
 -- helper constructor
 function Lib:CreatePanel(frame, globalName, parent)
@@ -24,7 +23,7 @@ end
 
 function Panel:__Construct(data, frame, globalName, parent)
   self:SetFrame(frame or _G.CreateFrame("Frame", globalName, parent or _G.UIParent));
-  data.grid = Private.LinkedList();
+  data.grid = C_LinkedList();
   data.rowscale = obj:PopTable();
   data.columnscale = obj:PopTable();
   data.width = 1;
@@ -79,7 +78,7 @@ function Panel:SetDevMode(data, devMode)  -- shows or hides the red frame info o
 end
 
 function Panel:AddCells(data, ...)
-  data.cells = data.cells or Private.LinkedList(); --- @type LinkedList
+  data.cells = data.cells or C_LinkedList(); --- @type LinkedList
 
   for _, cell in obj:IterateArgs(...) do
     data.cells:AddToBack(cell);

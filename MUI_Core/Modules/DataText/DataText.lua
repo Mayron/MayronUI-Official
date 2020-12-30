@@ -3,8 +3,8 @@ local _, namespace = ...;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
-local ipairs, pairs, table, GameTooltip, PlaySound = _G.ipairs, _G.pairs, _G.table, _G.GameTooltip, _G.PlaySound;
-local CreateFrame, UIFrameFadeIn = _G.CreateFrame, _G.UIFrameFadeIn;
+local ipairs, pairs, GameTooltip, PlaySound = _G.ipairs, _G.pairs, _G.GameTooltip, _G.PlaySound;
+local CreateFrame, UIFrameFadeIn, tinsert = _G.CreateFrame, _G.UIFrameFadeIn, _G.table.insert;
 
 -- Objects -----------------------------
 local SlideController = obj:Import("MayronUI.SlideController");
@@ -58,7 +58,7 @@ local defaults = {
 
 if (tk:IsRetail()) then
   namespace.dataTextLabels["specialization"] = "Specialization";
-  table.insert(defaults.displayOrders, "specialization");
+  tinsert(defaults.displayOrders, "specialization");
 end
 
 db:AddToDefaults("profile.datatext", defaults);
@@ -226,7 +226,7 @@ function C_DataTextModule:OnEnable(data)
   data.popup:SetFrameLevel(2);
 
   -- controls the Esc key behaviour to close the popup (must use global name)
-  -- table.insert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
+  tinsert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
 
   data.popup.ScrollBar:SetPoint("TOPLEFT", data.popup, "TOPRIGHT", -6, 1);
   data.popup.ScrollBar:SetPoint("BOTTOMRIGHT", data.popup, "BOTTOMRIGHT", -1, 1);
@@ -279,7 +279,7 @@ function C_DataTextModule:CreateDataTextButton(data)
   local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
   btn:GetFontString():SetFont(font, data.settings.fontSize);
 
-  table.insert(data.buttons, btn);
+  tinsert(data.buttons, btn);
   return btn;
 end
 
@@ -295,7 +295,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
 
       local componentName = component.SavedVariableName;
       data.inactiveComponents[componentName] = data.inactiveComponents[componentName] or obj:PopTable();
-      table.insert(data.inactiveComponents[componentName], component);
+      tinsert(data.inactiveComponents[componentName], component);
     end
   end
 
@@ -303,7 +303,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
 
   for _, componentName in pairs(data.settings.displayOrders) do
     if (componentName == "disabled") then
-      table.insert(data.activeComponents, "disabled");
+      tinsert(data.activeComponents, "disabled");
     else
       local inactiveTable = data.inactiveComponents[componentName];
 
@@ -329,7 +329,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
       component:SetEnabled(true);
       component:Update();
 
-      table.insert(data.activeComponents, component);
+      tinsert(data.activeComponents, component);
       data.TotalActiveComponents = data.TotalActiveComponents + 1;
       component.DisplayOrder = data.TotalActiveComponents;
     end

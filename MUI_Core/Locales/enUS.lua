@@ -151,6 +151,7 @@ L["Player"]                         = "Player";
 L["Target"]                         = "Target";
 L["Focus"]                          = "Focus";
 L["Mirror"]                         = "Mirror";
+L["Pet"]						= "Pet";
 
 L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."]
 	= "If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists).";

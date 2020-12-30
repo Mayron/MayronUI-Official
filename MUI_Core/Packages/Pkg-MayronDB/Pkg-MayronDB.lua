@@ -79,8 +79,8 @@ function MayronDB.Static:GetDatabaseBySavedVariableName(savedVariableName)
 end
 
 obj:DefineParams("string");
-obj:DefineReturns("Database");
----@return Database @The database object
+obj:DefineReturns("?Database");
+---@return Database @The database object or nil if no database for the given name is found
 function MayronDB.Static:GetDatabaseByName(databaseName)
   for _, database in self:IterateDatabases() do
     if (database:GetDatabaseName() == databaseName) then

@@ -27,7 +27,7 @@ local ipairs, strsplit, strjoin, strtrim = _G.ipairs, _G.strsplit, _G.strjoin, _
 
 -- Setup Objects -------------------------
 
-local Panel = obj:Import("MayronUI.Widgets.Panel");
+local Panel = obj:Import("MayronUI.Panel");
 
 -- Register and Import Modules -----------
 

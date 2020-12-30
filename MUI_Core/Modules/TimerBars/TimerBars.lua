@@ -582,7 +582,7 @@ function C_TimerField:__Construct(data, name, sharedSettings)
   data.activeBars = obj:PopTable();
 
   ---@type Stack
-  data.expiredBarsStack = Stack:UsingTypes(C_TimerBar)(); -- this returns a class...
+  data.expiredBarsStack = Stack:UsingTypes("TimerBar")(); -- this returns a class...
 
   data.expiredBarsStack:OnNewItem(function()
     return C_TimerBar(sharedSettings, data.settings);
@@ -916,7 +916,6 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, auraId, auraName, auraT
   -- update expiration time outside of UpdateAura!
   foundBar.AuraType = auraType;
   foundBar.Remove = nil;
-
   foundBar:UpdateAura(auraInfo);
 end
 
