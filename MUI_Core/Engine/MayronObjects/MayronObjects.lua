@@ -488,13 +488,16 @@ do
       metadata.indexChangedCallback(self, metadata.privateData, key, value, oldValue);
     end
   end
+
+  instanceMetatable.__gc = function(self)
+    self:Destroy();
+  end
 end
 
 -- create class instance:
 classMetatable.__call = function(self, ...)
   local classMetadata = objectMetadata[tostring(self)];
   local instance = CreateFromMixins(self); -- transfer all class functions to instance object
-
   -- transfer all InstanceMixin functions to instance object with wrapper
   for methodName, method in pairs(InstanceMixin) do
     instance[methodName] = function(obj, ...)
@@ -511,20 +514,28 @@ classMetatable.__call = function(self, ...)
 
   metadata.privateData.GetFriendData = function(_, friendInstance)
     local friendMetadata = objectMetadata[tostring(friendInstance)];
+    -- need to get class friend data because "friends" was not copied with CreateFromMixins as it may not have been created yet.
+    local friendClassMetadata = objectMetadata[tostring(friendMetadata.class)];
 
-    if (friendMetadata.namespace == metadata.namespace) then
+    if (friendClassMetadata.namespace == metadata.namespace) then
       return friendMetadata.privateData;
     end
 
-    Framework:Assert(friendMetadata.friends and friendMetadata.friends[metadata.namespace],
-      "'%s' is not a friend class of '%s'", metadata.namespace, friendMetadata.namespace);
+    Framework:Assert(friendClassMetadata.friends and friendClassMetadata.friends[metadata.namespace],
+      "'%s' is not a friend class of '%s'", metadata.namespace, friendClassMetadata.namespace);
 
     return friendMetadata.privateData;
   end
 
   metadata.privateData.Call = function(_, privateMethodName, ...)
-    local methods = metadata.privateMethods;
-    Framework:Assert(methods and methods[privateMethodName], "Failed to execute unknown private method '%s'", privateMethodName);
+    local methods = classMetadata.privateMethods;
+    Framework:Assert(Framework:IsTable(methods),
+      "Failed to execute unknown private method '%s' - No private methods available for class '%s'",
+      privateMethodName, metadata.name);
+
+    Framework:Assert(Framework:IsFunction(methods[privateMethodName]),
+      "Failed to execute unknown private method '%s'", privateMethodName);
+
     return methods[privateMethodName](instance, ...);
   end
 
@@ -575,7 +586,7 @@ end
 local privateMetatable = {};
 privateMetatable.__newindex = function(self, key, value)
   if (not Framework:IsFunction(value)) then
-    Framework:Error("Only functions can be added to a class private table");
+    Framework:Error("Only functions can be added to a class private table. Use the instance's private data table instead.");
     return
   end
 

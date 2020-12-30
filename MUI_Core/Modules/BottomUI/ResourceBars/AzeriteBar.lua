@@ -41,7 +41,7 @@ end
 
 -- C_AzeriteBar --------------------------
 
-obj:DefineParams("BottomUI_ResourceBars", "table");
+obj:DefineParams("ResourceBars", "table");
 function C_AzeriteBar:__Construct(_, barsModule, moduleData)
   self:CreateResourceBar(barsModule, moduleData, "azerite");
 end
@@ -53,7 +53,7 @@ end
 
 obj:DefineParams("boolean");
 function C_AzeriteBar:SetActive(data, active)
-  self.Parent:SetActive(active);
+  self:CallParentMethod("SetActive", active);
 
   if (active and data.notCreated) then
     data.statusbar.texture = data.statusbar:GetStatusBarTexture();

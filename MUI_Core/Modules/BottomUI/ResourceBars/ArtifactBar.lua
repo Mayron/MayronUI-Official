@@ -38,7 +38,7 @@ end
 
 -- C_ArtifactBar -------------------------
 
-obj:DefineParams("BottomUI_ResourceBars", "table");
+obj:DefineParams("ResourceBars", "table");
 function C_ArtifactBar:__Construct(data, barsModule, moduleData)
     self:CreateResourceBar(barsModule, moduleData, "artifact");
     data.blizzardBar = _G.ArtifactWatchBar;
@@ -51,13 +51,13 @@ end
 
 obj:DefineParams("boolean");
 function C_ArtifactBar:SetActive(data, active)
-    self.Parent:SetActive(active);
+  self:CallParentMethod("SetActive", active);
 
-    if (active and data.notCreated) then
-        data.statusbar.texture = data.statusbar:GetStatusBarTexture();
-        data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
-        data.notCreated = nil;
-    end
+  if (active and data.notCreated) then
+    data.statusbar.texture = data.statusbar:GetStatusBarTexture();
+    data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
+    data.notCreated = nil;
+  end
 end
 
 obj:DefineParams("boolean");

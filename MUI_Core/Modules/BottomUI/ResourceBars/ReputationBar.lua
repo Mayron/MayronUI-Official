@@ -36,7 +36,7 @@ end
 
 -- C_ReputationBar -----------------------
 
-obj:DefineParams("BottomUI_ResourceBars", "table");
+obj:DefineParams("ResourceBars", "table");
 function C_ReputationBar:__Construct(_, barsModule, moduleData)
   self:CreateResourceBar(barsModule, moduleData, "reputation");
 end
@@ -51,7 +51,7 @@ end
 
 obj:DefineParams("boolean");
 function C_ReputationBar:SetActive(data, active)
-  self.Parent:SetActive(active);
+  self:CallParentMethod("SetActive", active);
 
   if (active and data.notCreated) then
     data.statusbar.texture = data.statusbar:GetStatusBarTexture();

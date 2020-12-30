@@ -34,7 +34,7 @@ end
 
 -- C_ExperienceBar -----------------------
 
-obj:DefineParams("BottomUI_ResourceBars", "table");
+obj:DefineParams("ResourceBars", "table");
 function C_ExperienceBar:__Construct(data, barsModule, moduleData)
   self:CreateResourceBar(barsModule, moduleData, "experience");
   data.blizzardBar = _G.MainMenuExpBar;
@@ -47,7 +47,7 @@ end
 
 obj:DefineParams("boolean");
 function C_ExperienceBar:SetActive(data, active)
-  self.Parent:SetActive(active);
+  self:CallParentMethod("SetActive", active);
 
   if (active and data.notCreated) then
     data.rested = CreateFrame("StatusBar", nil, data.frame);

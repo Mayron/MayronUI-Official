@@ -43,9 +43,9 @@ function C_Container:OnInitialize(data)
   -- Initialize Sub Modules -------------
   data.subModules = obj:PopTable();
 
-  data.subModules.ResourceBars = MayronUI:ImportModule("BottomUI_ResourceBars");
-  data.subModules.ActionBarPanel = MayronUI:ImportModule("BottomUI_ActionBarPanel");
-  data.subModules.UnitPanels = MayronUI:ImportModule("BottomUI_UnitPanels");
+  data.subModules.ResourceBars = MayronUI:ImportModule("ResourceBars");
+  data.subModules.ActionBarPanel = MayronUI:ImportModule("ActionBarPanel");
+  data.subModules.UnitPanels = MayronUI:ImportModule("UnitPanels");
 
   data.subModules.ResourceBars:Initialize(self, data.subModules);
   data.subModules.ActionBarPanel:Initialize(self, data.subModules);
@@ -80,8 +80,9 @@ function C_Container:RepositionContent(data)
   end
 
   if (data.subModules.ResourceBars and data.subModules.ResourceBars:IsEnabled()) then
+    MUI_Test = true
     local resourceContainer = data:GetFriendData(data.subModules.ResourceBars).barsContainer;
-
+    MUI_Test = nil;
     -- position resourceContainer:
     resourceContainer:ClearAllPoints();
     resourceContainer:SetPoint("BOTTOMLEFT", anchorFrame, "TOPLEFT", 0, -1);

@@ -13,7 +13,7 @@ local TOGGLE_BUTTON_WIDTH = 120;
 local TOGGLE_BUTTON_HEIGHT = 28;
 
 -- Register and Import Modules -----------
-local C_ActionBarPanel = MayronUI:RegisterModule("BottomUI_ActionBarPanel", L["Action Bar Panel"], true);
+local C_ActionBarPanel = MayronUI:RegisterModule("ActionBarPanel", L["Action Bar Panel"], true);
 local SlideController = obj:Import("MayronUI.SlideController");
 
 -- Load Database Defaults ----------------
@@ -210,7 +210,7 @@ function C_ActionBarPanel:SetUpBartenderBar(data, rowId, bartenderBarId)
 
   -- calculate height in relation to Resource Bars and Data-text bar:
   local height = 0;
-  local resourceBarsModule = MayronUI:ImportModule("BottomUI_ResourceBars", true);
+  local resourceBarsModule = MayronUI:ImportModule("ResourceBars", true);
   local dataTextModule = MayronUI:ImportModule("DataTextModule", true);
 
   if (resourceBarsModule and resourceBarsModule:IsEnabled()) then

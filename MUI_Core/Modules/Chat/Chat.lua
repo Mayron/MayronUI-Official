@@ -148,7 +148,6 @@ local function LoadEditBoxBackdrop()
 end
 
 function C_ChatModule:OnInitialize(data)
-  print("Has this been initialized?")
   data.chatFrames = obj:PopTable();
 
 	local setupOptions = {

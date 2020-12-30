@@ -132,7 +132,7 @@ function C_DataTextModule:OnInitialize(data)
 
     height = function(value)
       data.bar:SetHeight(value);
-      local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
+      local actionBarPanelModule = MayronUI:ImportModule("ActionBarPanel");
 
       if (actionBarPanelModule:IsEnabled()) then
         actionBarPanelModule:SetUpAllBartenderBars(data);

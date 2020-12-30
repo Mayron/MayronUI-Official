@@ -1,7 +1,7 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-local _, C_UnitPanels = _G.MayronUI:ImportModule("BottomUI_UnitPanels");
+local _, C_UnitPanels = _G.MayronUI:ImportModule("UnitPanels");
 
 local CreateFrame, pairs = _G.CreateFrame, _G.pairs;
 local IsAddOnLoaded, UnitExists, UnitIsPlayer = _G.IsAddOnLoaded, _G.UnitExists, _G.UnitIsPlayer;

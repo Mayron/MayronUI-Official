@@ -7,7 +7,7 @@ local BAR_NAMES = {"reputation", "experience", "azerite", "artifact"};
 
 local C_ExperienceBar, C_ReputationBar, C_AzeriteBar, C_ArtifactBar;
 local C_BaseResourceBar = obj:CreateClass("BaseResourceBar");
-local C_ResourceBarsModule = MayronUI:RegisterModule("BottomUI_ResourceBars", L["Resource Bars"], true);
+local C_ResourceBarsModule = MayronUI:RegisterModule("ResourceBars", L["Resource Bars"], true);
 C_ResourceBarsModule.Static:AddFriendClass("BottomUI_Container");
 
 -- Load Database Defaults ----------------
@@ -168,7 +168,7 @@ function C_ResourceBarsModule:OnEnable(data)
       data.barsContainer:SetHeight(data.pendingHeightUpdate);
       data.pendingHeightUpdate = nil;
 
-      local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
+      local actionBarPanelModule = MayronUI:ImportModule("ActionBarPanel");
 
       if (actionBarPanelModule and actionBarPanelModule:IsEnabled()) then
         actionBarPanelModule:SetUpAllBartenderBars();
@@ -280,7 +280,7 @@ end
 
 -- C_ResourceBar ---------------------------
 
-obj:DefineParams("BottomUI_ResourceBars", "table", "string");
+obj:DefineParams("ResourceBars", "table", "string");
 function C_BaseResourceBar:CreateResourceBar(data, barsModule, moduleData, barName)
   data.module = barsModule;
   data.barName = barName;
