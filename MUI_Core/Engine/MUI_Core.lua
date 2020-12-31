@@ -12,7 +12,6 @@ local strsplit, GetAddOnMetadata, tostring = _G.strsplit, _G.GetAddOnMetadata, _
 local collectgarbage, CreateFont = _G.collectgarbage, _G.CreateFont;
 local hooksecurefunc = _G.hooksecurefunc;
 local FillLocalizedClassList, UnitName = _G.FillLocalizedClassList, _G.UnitName;
-local pairs = _G.pairs;
 
 _G.BINDING_CATEGORY_MUI = "MayronUI";
 _G.BINDING_NAME_MUI_SHOW_CONFIG_MENU = "Show Config Menu";
@@ -174,7 +173,7 @@ commands.install = function()
 end
 
 commands.report = function(forceShow)
-  if (not LoadMuiAddOn("MUI_Setup")) then return; end
+  if (not LoadMuiAddOn("MUI_Setup")) then return end
   local reportIssue = MayronUI:ImportModule("ReportIssue"); ---@type C_ReportIssue
 
   if (not reportIssue:IsInitialized()) then

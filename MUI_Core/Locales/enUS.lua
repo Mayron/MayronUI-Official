@@ -670,7 +670,6 @@ L["Modifier key/s used to show Expand/Retract button:"] 			  = "Modifier key/s u
 L["Side Action Bars"]                                                 = "Side Action Bars";
 L["Minimum value is"]                                                 = "Minimum value is";
 L["Maximum value is"]                                                 = "Maximum value is";
-L["Enable Changes"]                                                   = "Enable Changes";
 L["Collapse in Instance"]                                             = "Collapse in Instance";
 L["CREDITS"]                                                          = "CREDITS";
 L["Buffs"]                                                            = "Buffs";

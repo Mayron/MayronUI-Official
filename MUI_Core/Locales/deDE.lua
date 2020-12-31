@@ -634,7 +634,6 @@ L["Modifier key/s used to show Expand/Retract button:"] 			  = "Modifizierertast
 L["Side Action Bars"]                                                 = "Seitliche Aktionsleisten";
 L["Minimum value is"]                                                 = "Mindestwert ist";
 L["Maximum value is"]                                                 = "Maximalwert ist";
-L["Enable Changes"]                                                   = "Änderungen aktivieren";
 L["Collapse in Instance"]                                             = "Collapse in Instance";
 L["CREDITS"]                                                          = "Anerkennung";
 L["Buffs"]                                                            = "Buffs";

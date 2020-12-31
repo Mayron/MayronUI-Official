@@ -386,7 +386,6 @@ local function ApplyMethodDefinitions(object, keyDefName)
     pendingReturnDefinitions = nil;
   end
 
-  metadata.definitions = metadata.definitions or Framework:PopTable();
   metadata.definitions[keyDefName] = methodDefinitions;
 end
 
@@ -537,6 +536,7 @@ classMetatable.__call = function(self, ...)
 
   metadata.privateData.Call = function(_, privateMethodName, ...)
     local methods = classMetadata.privateMethods;
+
     Framework:Assert(Framework:IsTable(methods),
       "Failed to execute unknown private method '%s' - No private methods available for class '%s'",
       privateMethodName, metadata.name);
@@ -645,6 +645,7 @@ function Framework:CreateClass(className, ...)
   classMetadata.namespace = className;
   classMetadata.parentClasses = self:PopTable();
   classMetadata.classProperties = self:PopTable();
+  classMetadata.definitions = self:PopTable();
 
   -- add parents in reverse order for class index metamethod to work
   for i = select("#", ...), 1, -1 do

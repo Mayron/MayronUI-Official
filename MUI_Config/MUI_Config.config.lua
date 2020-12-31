@@ -844,7 +844,7 @@ function C_ConfigModule:GetConfigTable()
                     type        = "title";
                     marginTop   = 0;
                 };
-                {   name              = L["Enable Changes"];
+                {   name              = L["Enabled"];
                     tooltip           = L["Disable this to stop MUI from controlling the Objective Tracker."];
                     type              = "check";
                     dbPath            = "profile.objectiveTracker.enabled";

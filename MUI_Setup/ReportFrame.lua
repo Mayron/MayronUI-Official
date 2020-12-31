@@ -3,7 +3,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local CreateFrame, collectgarbage, PlaySound = _G.CreateFrame, _G.collectgarbage, _G.PlaySound;
-local string, ipairs, tostring, min = _G.string, _G.ipairs, _G.tostring, _G.math.min;
+local string, ipairs, tostring, min, mfloor = _G.string, _G.ipairs, _G.tostring, _G.math.min, _G.math.floor;
 
 local C_ReportIssue = MayronUI:RegisterModule("ReportIssue", nil, true) ---@class C_ReportIssue : BaseModule
 
@@ -497,8 +497,7 @@ do
       if (IsAddOnLoaded(i)) then
         local value;
         if (usage > 1000) then
-          value = usage / 1000;
-          value = tk.Numbers:ToPrecision(value, 1);
+          value = mfloor(usage / 10) / 100;
           value = string.format("%smb", value);
         else
           value = tk.Numbers:ToPrecision(usage, 0);

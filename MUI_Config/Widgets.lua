@@ -5,42 +5,42 @@ local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 local configModule = MayronUI:ImportModule("ConfigModule"); ---@type ConfigModule
 
 local unpack, string, pairs, tonumber = _G.unpack, _G.string, _G.pairs, _G.tonumber;
-local CreateFrame, PlaySound = _G.CreateFrame, _G.PlaySound;
+local CreateFrame, PlaySound, tostring = _G.CreateFrame, _G.PlaySound, _G.tostring;
 
 local WidgetHandlers = {};
 namespace.WidgetHandlers = WidgetHandlers;
 
 -- create container to wrap around a child element
 local function CreateElementContainerFrame(widget, widgetTable, parent)
-    local container = tk:PopFrame("Frame", parent);
+  local container = tk:PopFrame("Frame", parent);
 
-    container:SetSize(widgetTable.width or widget:GetWidth(), widgetTable.height or widget:GetHeight());
-    container.widget = widget; -- this is needed to access the widget from the container which is passed to some config functions (i.e. OnLoad)
-    widget.configContainer = container; -- mwidget must have access to container to use properties, such as SetValue() for dropdown menus
+  container:SetSize(widgetTable.width or widget:GetWidth(), widgetTable.height or widget:GetHeight());
+  container.widget = widget; -- this is needed to access the widget from the container which is passed to some config functions (i.e. OnLoad)
+  widget.configContainer = container; -- mwidget must have access to container to use properties, such as SetValue() for dropdown menus
 
-    if (widgetTable.name and tk:ValueIsEither(widgetTable.type, "slider", "dropdown", "textfield")) then
-        container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-        container.name:SetPoint("TOPLEFT", 0, 0);
-        container.name:SetText(widgetTable.name);
+  if (widgetTable.name and tk:ValueIsEither(widgetTable.type, "slider", "dropdown", "textfield")) then
+    container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    container.name:SetPoint("TOPLEFT", 0, 0);
+    container.name:SetText(widgetTable.name);
 
-        container:SetHeight(container:GetHeight() + container.name:GetStringHeight() + 5);
-        widget:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -5);
-    else
-        widget:SetPoint("LEFT");
-    end
+    container:SetHeight(container:GetHeight() + container.name:GetStringHeight() + 5);
+    widget:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -5);
+  else
+    widget:SetPoint("LEFT");
+  end
 
-    if (obj:IsFunction(widgetTable.enabled)) then
-      local enabled = widgetTable:enabled();
-      widget:SetEnabled(enabled);
+  if (obj:IsFunction(widgetTable.enabled)) then
+    local enabled = widgetTable:enabled();
+    widget:SetEnabled(enabled);
 
-    elseif (widgetTable.enabled ~= nil) then
-      widget:SetEnabled(widgetTable.enabled);
+  elseif (widgetTable.enabled ~= nil) then
+    widget:SetEnabled(widgetTable.enabled);
 
-    else
-      widget:SetEnabled(true);
-    end
+  else
+    widget:SetEnabled(true);
+  end
 
-    return container;
+  return container;
 end
 
 local function GetAttribute(configTable, attributeName, ...)
@@ -339,16 +339,16 @@ local function DropDown_OnSelectedValue(self, value)
 end
 
 function WidgetHandlers.dropdown(parent, widgetTable, value)
-  local container = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
+  local widget = gui:CreateDropDown(tk.Constants.AddOnStyle, parent);
 
   if (widgetTable.width) then
-    container:SetWidth(widgetTable.width);
+    widget:SetWidth(widgetTable.width);
   end
 
-  container:SetLabel(tostring(value));
+  widget:SetLabel(tostring(value));
 
   if (widgetTable.disableSorting) then
-    container:SetSortingEnabled(false);
+    widget:SetSortingEnabled(false);
   end
 
   local options = GetAttribute(widgetTable, "options");
@@ -357,16 +357,16 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
     local option;
 
     if (tonumber(key) or widgetTable.labels == "values") then
-      option = container:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
+      option = widget:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
     else
       if (dropDownValue == "nil") then
         dropDownValue = nil; -- cannot assign nil's to key/value pairs
       end
 
-      option = container:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
+      option = widget:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
 
       if (dropDownValue == value) then
-        container:SetLabel(key);
+        widget:SetLabel(key);
       end
     end
 
@@ -376,14 +376,14 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
   end
 
   if (widgetTable.tooltip) then
-    container:SetTooltip(widgetTable.tooltip);
+    widget:SetTooltip(widgetTable.tooltip);
   end
 
   if (widgetTable.disabledTooltip) then
-    container:SetDisabledTooltip(widgetTable.disabledTooltip);
+    widget:SetDisabledTooltip(widgetTable.disabledTooltip);
   end
 
-  return CreateElementContainerFrame(container, widgetTable, parent);
+  return CreateElementContainerFrame(widget, widgetTable, parent);
 end
 
 --------------

@@ -16,9 +16,9 @@
 ## Credits:
 ## ------------------------------------------------
 ## X-Community-Support-Team: Monster/ Alizmer [GER]
-## X-Patrons: LaidbackLuke, AkumaGekido, Arriesa, Missfit, PuppyCatbug, Kallomuki, Tibbetts
+## X-Patrons: Size Queen Kimiko, AkumaGekido, Arriesa, Kallomuki, LaidbackLuke, Missfit, NeuRooT, Pixel, PuppyCatbug, Tibbetts
 ## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma, EarlGrey
-## X-Development-and-Bug-Fixes: Monkey, Gargnash, BeetleJooce
+## X-Development-and-Bug-Fixes: Monkey
 
 TaintLess.xml
 

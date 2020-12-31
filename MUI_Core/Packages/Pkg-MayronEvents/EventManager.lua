@@ -158,7 +158,6 @@ function C_EventManager:TriggerEventListenerByID(data, id, ...)
   local listener = data.listeners[id];
 
   if (listener == nil) then
-    obj:Error("No event listener with ID '%s' has been registered with this event manager", id);
     return
   end
 

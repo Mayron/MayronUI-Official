@@ -92,8 +92,8 @@ function C_MiniMapModule:GetConfigTable()
                 tooltip = L["Default value is "].."Center";
 
                 OnLoad = function(_, container)
-                    widgets.justifyTextDropDownMenu = container.widget.dropdown;
-                    container.widget.dropdown:SetEnabled(widgets.showCheckButton:GetChecked());
+                  widgets.justifyTextDropDownMenu = container.widget;
+                  container.widget:SetEnabled(widgets.showCheckButton:GetChecked());
                 end;
             },
         }

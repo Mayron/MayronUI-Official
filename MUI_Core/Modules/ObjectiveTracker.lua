@@ -64,9 +64,6 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
   data.panel = sideBarModule:GetPanel();
   data.minButtons = obj:PopTable();
 
-  --TODO: This caused taint issue (see other TODO in this file)
-  -- _G.OBJECTIVE_TRACKER_HEADER_OFFSET_X = 0;
-
   local function SetUpAnchor()
     data.objectiveContainer:ClearAllPoints();
 
@@ -178,14 +175,6 @@ end
 
 function C_ObjectiveTracker:OnObjectiveTrackerInitialized()
   for _, module in ipairs(ObjectiveTrackerFrame.MODULES_UI_ORDER) do
-    -- TODO: This causes taint issue and prevents clicking on quest titles on objective tracker to access quests while in combat
-    -- module.Header:SetWidth(ObjectiveTrackerFrame:GetWidth());
-    -- module.BlocksFrame:SetWidth(ObjectiveTrackerFrame:GetWidth());
-
-    -- for _, value in pairs(module.blockOffset) do
-    --   value[1] = 0;
-    -- end
-
     tk:KillElement(module.Header.Background);
     tk:ApplyThemeColor(module.Header.Text);
     module.Header.Text:SetPoint("LEFT", 0, 0);

@@ -390,6 +390,57 @@ function Tests:Using_ClassName_As_Definition()
   otherInstance:StartTest(testInstance);
 end
 
+-------------------------------------
+--- Default Argument Tests
+-------------------------------------
+function Tests:Using_Default_Arguments_For_Private_Methods()
+  local executeCount = 0;
+  local C_TestClass = obj:CreateClass("TestClass");
+
+  obj:DefineParams("string", "number=0", "number=1000");
+  obj:DefineReturns("boolean");
+  function C_TestClass.Private:MyPrivateMethod(_, text, minLength, maxLength)
+    assert(text == "test");
+    assert(minLength == 50);
+    assert(maxLength == 1000);
+    executeCount = executeCount + 1;
+    return true;
+  end
+
+  function C_TestClass:StartTest(data)
+    data:Call("MyPrivateMethod", "test", 50);
+    executeCount = executeCount + 1;
+  end
+
+  local instance = C_TestClass();
+  instance:StartTest();
+  assert(executeCount == 2);
+end
+
+function Tests:Using_Default_Arguments_For_Private_Methods_After_Instance_Created()
+  local executeCount = 0;
+  local C_TestClass = obj:CreateClass("TestClass");
+  local instance = C_TestClass();
+
+  obj:DefineParams("string", "number=0", "number=1000");
+  obj:DefineReturns("boolean");
+  function C_TestClass.Private:MyPrivateMethod(_, text, minLength, maxLength)
+    assert(text == "test");
+    assert(minLength == 50);
+    assert(maxLength == 1000);
+    executeCount = executeCount + 1;
+    return true;
+  end
+
+  function C_TestClass:StartTest(data)
+    data:Call("MyPrivateMethod", "test", 50);
+    executeCount = executeCount + 1;
+  end
+
+  instance:StartTest();
+  assert(executeCount == 2);
+end
+
 ----------------------------------------------------------------------
 -- Run tests:
 ----------------------------------------------------------------------
