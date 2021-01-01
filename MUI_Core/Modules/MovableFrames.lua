@@ -52,6 +52,10 @@ local BlizzardFrames = {
     "CovenantRenownFrame";
   };
 
+  Blizzard_Soulbinds = {
+    "SoulbindViewer";
+  };
+
 	Blizzard_LookingForGuildUI =
 	{
 		hooked = {

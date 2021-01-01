@@ -52,7 +52,7 @@ end
 
 db:AddToDefaults("profile.objectiveTracker", {
   enabled = true;
-  hideInInstance = true;
+  hideInInstance = false;
   anchoredToSideBars = true;
   width = 250;
   height = 600;
