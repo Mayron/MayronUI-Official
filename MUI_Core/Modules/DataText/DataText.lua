@@ -59,6 +59,8 @@ local defaults = {
 if (tk:IsRetail()) then
   namespace.dataTextLabels["specialization"] = "Specialization";
   tinsert(defaults.displayOrders, "specialization");
+else
+  tinsert(defaults.displayOrders, "inventory");
 end
 
 db:AddToDefaults("profile.datatext", defaults);
