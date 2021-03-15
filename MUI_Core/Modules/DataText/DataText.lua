@@ -20,7 +20,7 @@ namespace.C_DataTextModule = C_DataTextModule;
 namespace.dataTextLabels = {
   -- svName = Label
   ["combatTimer"]       = "Combat Timer",
-  ["currency"]          = "Currency",
+  ["money"]             = "Money",
   ["durability"]        = "Durability",
   ["friends"]           = "Friends",
   ["guild"]             = "Guild",
@@ -51,7 +51,7 @@ local defaults = {
     "friends";
     "guild";
     "volumeOptions";
-    "currency";
+    "money";
     "performance";
   };
 };

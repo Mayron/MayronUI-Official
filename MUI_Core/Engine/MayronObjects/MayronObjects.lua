@@ -41,14 +41,14 @@ if (not Framework) then return end
 
 local max, tostring, type, strsplit, strgsub, rawset = _G.math.max, _G.tostring, _G.type, _G.strsplit, _G.string.gsub, _G.rawset;
 local select, next, strformat, unpack, print, strrep = _G.select, _G.next, _G.string.format, _G.unpack, _G.print, _G.string.rep;
-local CreateFromMixins, collectgarbage, setmetatable, assert = _G.CreateFromMixins, _G.collectgarbage, _G.setmetatable, _G.assert;
+local CreateFromMixins, collectgarbage, setmetatable = _G.CreateFromMixins, _G.collectgarbage, _G.setmetatable;
 local strmatch, error, ipairs = _G.string.match, _G.error, _G.ipairs;
 
 local StaticMixin = {};
 local InstanceMixin = {};
 local objectMetadata = {};
 local exported = {};
-local pendingParameterDefinitions, pendingReturnDefinitions, pendingGenericTypes;
+local pendingParameterRule, pendingReturnRule, pendingGenericTypes;
 
 local SimpleTypes = {
   [1] = "table";
@@ -61,62 +61,11 @@ local SimpleTypes = {
 
 local paramErrorMessage = "bad argument ## to '%s.%s'";
 local returnErrorMessage = "bad return value ## to '%s.%s'";
+local propertyErrorMessage = "bad property '%s' for instance of class '%s'";
 
 -------------------------------------
 --- Local Functions
 -------------------------------------
-local function IsMatchingType(value, expectedTypeName)
-  -- check if basic type
-  for _, typeName in pairs(SimpleTypes) do
-    if (expectedTypeName == typeName) then
-      return (expectedTypeName == type(value));
-    end
-  end
-
-  if (not Framework:IsTable(value)) then
-    return false;
-  end
-
-  if (value.IsObjectType and value:IsObjectType(expectedTypeName)) then
-    return true;
-  end
-
-  local metadata = objectMetadata[tostring(value)];
-
-  if (metadata) then
-    for _, parent in ipairs(metadata.parentClasses) do
-      if (parent.Static and parent.Static.GetClassName and parent.Static:GetClassName() == expectedTypeName) then
-        return true;
-      end
-    end
-  end
-
-  return false;
-end
-
-local function ValidateValue(definitionType, realType, defaultValue)
-  local errorFound;
-
-  Framework:Assert(Framework:IsString(definitionType)
-    and not Framework:IsStringNilOrWhiteSpace(definitionType),
-    "Invalid definition found; expected a string containing the expected type of an argument or return value.");
-
-  if (definitionType:find("^?") or definitionType:find("?$") or defaultValue ~= nil) then
-    -- it's optional so allow nil values
-    if (definitionType:find("^?") or definitionType:find("?$")) then
-      -- remove "?" from front or back of string
-      definitionType = definitionType:gsub("?", "");
-    end
-
-    errorFound = (realType ~= nil) and (definitionType ~= "any" and not IsMatchingType(realType, definitionType));
-  else
-    -- it is NOT optional so it cannot be nil
-    errorFound = (realType == nil) or (definitionType ~= "any" and not IsMatchingType(realType, definitionType));
-  end
-
-  return errorFound;
-end
-
 local function GetValueType(value)
   if (value == nil) then
     return SimpleTypes[6];
@@ -157,32 +106,33 @@ local function CastSimpleDefault(definitionType, defaultValue)
   return defaultValue;
 end
 
-local function RunValidator(definition, errorMessage, objectName, methodName, ...)
-  local values = Framework:PopTable(...)
-  local length = select("#", ...);
-  local index = 1;
-  local realValue = (select(1, ...));
-  local definitionType;
-  local errorFound;
-  local defaultValue;
-  local vararg;
+local RunValidator;
+do
+  local function VerifyStrictTypingRule(definitionType, realType, defaultValue)
+    local errorFound;
 
-  repeat
-    definitionType = definition[index] or vararg;
+    Framework:Assert(Framework:IsString(definitionType)
+      and not Framework:IsStringNilOrWhiteSpace(definitionType),
+      "Invalid definition found; expected a string containing the expected type of an argument or return value.");
 
-    if (Framework:IsTable(definitionType)) then
-      -- a default value detected! ordering of these 2 lines is important:
-      defaultValue = definitionType[2];
-      definitionType = definitionType[1];
+    if (definitionType:find("^?") or definitionType:find("?$") or defaultValue ~= nil) then
+      -- it's optional so allow nil values
+      if (definitionType:find("^?") or definitionType:find("?$")) then
+        -- remove "?" from front or back of string
+        definitionType = definitionType:gsub("?", "");
+      end
+
+      errorFound = (realType ~= nil) and (definitionType ~= "any" and not Framework:IsType(realType, definitionType));
+    else
+      -- it is NOT optional so it cannot be nil
+      errorFound = (realType == nil) or (definitionType ~= "any" and not Framework:IsType(realType, definitionType));
     end
 
-    if (definitionType:find("%.%.%.")) then
-      vararg = definitionType:gsub("%.%.%.", "");
-      definitionType = vararg;
+    return errorFound;
+  end
 
-      -- varargs are optional, if no explicit `nil` is provided then this is acceptible.
-      if (index > length) then break end
-    end
+  function RunValidator(definitionType, defaultValue, errorMessage, objectName, name, value, index)
+    local errorFound;
 
     if (definitionType:find("|")) then
       -- a union type detected!
@@ -191,7 +141,7 @@ local function RunValidator(definition, errorMessage, objectName, methodName, ..
       -- cannot use IterateArgs as loop might break (and table is not pushed)
       for _, singleDefinitionType in ipairs(unionDefs) do
         singleDefinitionType = strgsub(singleDefinitionType, "%s", "");
-        errorFound = ValidateValue(singleDefinitionType, realValue, defaultValue);
+        errorFound = VerifyStrictTypingRule(singleDefinitionType, value, defaultValue);
 
         if (not errorFound) then break end
       end
@@ -207,21 +157,83 @@ local function RunValidator(definition, errorMessage, objectName, methodName, ..
         definitionType, defaultValue = strsplit("=", definitionType);
       end
 
-      errorFound = ValidateValue(definitionType, realValue, defaultValue);
+      errorFound = VerifyStrictTypingRule(definitionType, value, defaultValue);
     end
 
     if (errorFound) then
-      errorMessage = strformat(errorMessage, objectName, methodName);
-      if (Framework:IsFunction(realValue) or (Framework:IsTable(realValue) and not Framework:IsFunction(realValue.IsObjectType))) then
-        errorMessage = strformat("%s (%s expected, got %s)", errorMessage, definitionType, GetValueType(realValue));
+      if (Framework:IsNumber(index)) then
+        errorMessage = strformat(errorMessage, objectName, name);
+        errorMessage = errorMessage:gsub("##", "#" .. tostring(index));
       else
-        errorMessage = strformat("%s (%s expected, got %s (value: %s))", errorMessage, definitionType, GetValueType(realValue), tostring(realValue));
+        errorMessage = strformat(errorMessage, name, objectName);
       end
 
-      errorMessage = errorMessage:gsub("##", "#" .. tostring(index));
+      if (Framework:IsFunction(value) or (Framework:IsTable(value) and not Framework:IsFunction(value.IsObjectType))) then
+        errorMessage = strformat("%s (%s expected, got %s)", errorMessage, definitionType, GetValueType(value));
+      else
+        errorMessage = strformat("%s (%s expected, got %s (value: %s))", errorMessage,
+          definitionType, GetValueType(value), tostring(value));
+      end
+
       Framework:Error(errorMessage);
       return
     end
+
+    return definitionType, defaultValue;
+  end
+end
+
+local function ValidateInstanceProperties(instance, interfaces, objectName, keyToCheck)
+  for _, interfaceMetadata in pairs(interfaces) do
+    for key, definitionType in pairs(interfaceMetadata.rules) do
+      if (keyToCheck == nil or key == keyToCheck) then
+        local defaultValue;
+        local value = instance[key];
+
+        -- is property
+        if (Framework:IsTable(definitionType)) then
+          -- a default value detected! ordering of these 2 lines is important:
+          defaultValue = definitionType.default;
+          definitionType = definitionType.type;
+        end
+
+        definitionType, defaultValue = RunValidator(definitionType, defaultValue, propertyErrorMessage, objectName, key, value);
+
+        if (value == nil and defaultValue ~= nil) then
+          instance[key] = CastSimpleDefault(definitionType, defaultValue);
+        end
+      end
+    end
+  end
+end
+
+local function ValidateArguments(definition, errorMessage, objectName, methodName, ...)
+  local values = Framework:PopTable(...)
+  local length = select("#", ...);
+  local index = 1;
+  local realValue = (select(1, ...));
+  local definitionType;
+  local defaultValue;
+  local vararg;
+
+  repeat
+    definitionType = definition[index] or vararg;
+
+    if (Framework:IsTable(definitionType)) then
+      -- a default value detected! ordering of these 2 lines is important:
+      defaultValue = definitionType.default;
+      definitionType = definitionType.type;
+    end
+
+    if (definitionType:find("%.%.%.")) then
+      vararg = definitionType:gsub("%.%.%.", "");
+      definitionType = vararg;
+
+      -- varargs are optional, if no explicit `nil` is provided then this is acceptible.
+      if (index > length) then break end
+    end
+
+    definitionType, defaultValue = RunValidator(definitionType, defaultValue, errorMessage, objectName, methodName, realValue, index);
 
     -- swap out default values
     if (values[index] == nil and defaultValue ~= nil) then
@@ -250,18 +262,18 @@ end
 local function ExecuteMethod(self, methodName, method, ...)
   local metadata = objectMetadata[tostring(self)];
   local isStatic = methodName:match("^Static%.") ~= nil;
-  local definitions = metadata.definitions;
+  local rules = metadata.rules;
 
   if (metadata.usingParent) then
     local parentMetadata = objectMetadata[tostring(metadata.usingParent)];
     metadata.usingParent = nil;
 
     if (parentMetadata) then
-      definitions = parentMetadata.definitions;
+      rules = parentMetadata.rules;
     end
   end
 
-  if (not (definitions and definitions[methodName])) then
+  if (not (rules and rules[methodName])) then
     if (isStatic) then
       return method(self, ...);
     end
@@ -269,27 +281,27 @@ local function ExecuteMethod(self, methodName, method, ...)
     return method(self, metadata.privateData, ...);
   end
 
-  local methodDefinitions = definitions[methodName];
+  local methodRule = rules[methodName];
   local args;
   local argsLength = select("#", ...);
 
-  if (methodDefinitions.params) then
-    args, argsLength = RunValidator(methodDefinitions.params, paramErrorMessage, metadata.name, methodName, ...);
+  if (methodRule.params) then
+    args, argsLength = ValidateArguments(methodRule.params, paramErrorMessage, metadata.name, methodName, ...);
   else
     args = Framework:PopTable(...);
   end
 
-  if (methodDefinitions.returns) then
+  if (methodRule.returns) then
     local returnValues, returnValuesLength;
 
     if (isStatic) then
-      returnValues, returnValuesLength = RunValidator(
-        methodDefinitions.returns, returnErrorMessage, metadata.name, methodName,
+      returnValues, returnValuesLength = ValidateArguments(
+        methodRule.returns, returnErrorMessage, metadata.name, methodName,
         -- call method here:
         method(self, Framework:UnpackTable(args, 1, argsLength)));
     else
-      returnValues, returnValuesLength = RunValidator(
-        methodDefinitions.returns, returnErrorMessage, metadata.name, methodName,
+      returnValues, returnValuesLength = ValidateArguments(
+        methodRule.returns, returnErrorMessage, metadata.name, methodName,
         -- call method here:
         method(self, metadata.privateData, Framework:UnpackTable(args, 1, argsLength)));
     end
@@ -322,17 +334,17 @@ local function DeepCopy(copiedTable, newTable)
   return newTable;
 end
 
-local function ApplyGenericTypes(definitions, genericParams)
-  if (not Framework:IsTable(definitions)) then return end
+local function ApplyGenericTypes(rules, genericParams)
+  if (not Framework:IsTable(rules)) then return end
 
-  for index, _ in ipairs(definitions) do
+  for index, _ in ipairs(rules) do
     for paramIndex, genericParam in ipairs(genericParams) do
-      definitions[index] = definitions[index]:gsub(genericParam, pendingGenericTypes[paramIndex]);
+      rules[index] = rules[index]:gsub(genericParam, pendingGenericTypes[paramIndex]);
     end
   end
 end
 
-local function ValidateDefinition(...)
+local function ValidateDefinitionTypes(...)
   local defs = Framework:PopTable(...);
   local vararg;
 
@@ -370,23 +382,23 @@ local function ValidateDefinition(...)
   return defs;
 end
 
-local function ApplyMethodDefinitions(object, keyDefName)
-  if (not (pendingParameterDefinitions or pendingReturnDefinitions)) then return end
+local function ApplyMethodStrictTypingRule(object, keyDefName)
+  if (not (pendingParameterRule or pendingReturnRule)) then return end
 
   local metadata = objectMetadata[tostring(object)];
-  local methodDefinitions = Framework:PopTable();
+  local methodRule = Framework:PopTable();
 
-  if (pendingParameterDefinitions) then
-    methodDefinitions.params = pendingParameterDefinitions;
-    pendingParameterDefinitions = nil;
+  if (pendingParameterRule) then
+    methodRule.params = pendingParameterRule;
+    pendingParameterRule = nil;
   end
 
-  if (pendingReturnDefinitions) then
-    methodDefinitions.returns = pendingReturnDefinitions;
-    pendingReturnDefinitions = nil;
+  if (pendingReturnRule) then
+    methodRule.returns = pendingReturnRule;
+    pendingReturnRule = nil;
   end
 
-  metadata.definitions[keyDefName] = methodDefinitions;
+  metadata.rules[keyDefName] = methodRule;
 end
 
 -------------------------------------
@@ -394,7 +406,6 @@ end
 -------------------------------------
 local classMetatable = {};
 
--- Add definitions for class method:
 classMetatable.__newindex = function(self, key, value)
   local metadata = objectMetadata[tostring(self)];
 
@@ -404,9 +415,22 @@ classMetatable.__newindex = function(self, key, value)
   end
 
   -- add functions
-  ApplyMethodDefinitions(self, key);
+  if (pendingParameterRule or pendingReturnRule) then
+    for _, interfaceMetadata in pairs(metadata.interfaces) do
+      for keyDefName, _ in pairs(interfaceMetadata.rules) do
+        if (key == keyDefName) then
+          pendingParameterRule = nil;
+          pendingReturnRule = nil;
+          Framework:Error("Cannot redefine method '%s' as it has already been defined by interface '%s'.",
+            key, interfaceMetadata.name);
+        end
+      end
+    end
 
-  -- add wrapper function that will use definitions to validate:
+    ApplyMethodStrictTypingRule(self, key);
+  end
+
+  -- add wrapper function that will use strict typing rules to validate:
   metadata.classProperties[key] = function(obj, ...)
     return ExecuteMethod(obj, key, value, ...);
   end;
@@ -466,12 +490,13 @@ do
   end
 
   instanceMetatable.__newindex = function(self, key, value)
+    local metadata = objectMetadata[tostring(self)];
+
     if (Framework:IsFunction(value)) then
-      Framework:Error("Failed to add function '%s' to instance. Functions must be assigned to the class.", key);
+      metadata.class[key] = value;
       return
     end
 
-    local metadata = objectMetadata[tostring(self)];
     metadata.instanceProperties = metadata.instanceProperties or Framework:PopTable();
 
     local oldValue = metadata.instanceProperties[key];
@@ -490,6 +515,7 @@ do
     end
 
     metadata.instanceProperties[key] = value;
+    ValidateInstanceProperties(self, metadata.interfaces, metadata.name, key);
 
     if (metadata.indexChangedCallback) then
       metadata.indexChangedCallback(self, metadata.privateData, key, value, oldValue);
@@ -548,13 +574,13 @@ classMetatable.__call = function(self, ...)
   end
 
   if (pendingGenericTypes) then
-    -- apply generic types to parameters in definitions
-    if (classMetadata.definitions and classMetadata.genericParams) then
-      metadata.definitions = DeepCopy(classMetadata.definitions);
+    -- apply generic types to parameters in rules
+    if (classMetadata.rules and classMetadata.genericParams) then
+      metadata.rules = DeepCopy(classMetadata.rules);
 
-      for _, methodDefinitions in pairs(metadata.definitions) do
-        ApplyGenericTypes(methodDefinitions.params, classMetadata.genericParams);
-        ApplyGenericTypes(methodDefinitions.returns, classMetadata.genericParams);
+      for _, methodRule in pairs(metadata.rules) do
+        ApplyGenericTypes(methodRule.params, classMetadata.genericParams);
+        ApplyGenericTypes(methodRule.returns, classMetadata.genericParams);
       end
     end
 
@@ -572,6 +598,9 @@ classMetatable.__call = function(self, ...)
   -- (don't need this on instance object)
   instance.UsingTypes = nil;
 
+  -- verify implementations exist
+  ValidateInstanceProperties(instance, classMetadata.interfaces, classMetadata.name);
+
   return instance;
 end
 
@@ -583,7 +612,7 @@ staticMetatable.__newindex = function(self, key, value)
   end
 
   local keyDefName = strformat("Static.%s", key);
-  ApplyMethodDefinitions(self, keyDefName);
+  ApplyMethodStrictTypingRule(self, keyDefName);
 
   -- add wrapper function that will use definitions to validate:
   rawset(self, key, function(obj, ...)
@@ -599,7 +628,7 @@ privateMetatable.__newindex = function(self, key, value)
   end
 
   local keyDefName = strformat("Private.%s", key);
-  ApplyMethodDefinitions(self, keyDefName);
+  ApplyMethodStrictTypingRule(self, keyDefName);
 
   local metadata = objectMetadata[tostring(self)];
   metadata.privateMethods = metadata.privateMethods or Framework:PopTable();
@@ -617,6 +646,35 @@ local function UsingTypes(self, ...)
 
   pendingGenericTypes = Framework:PopTable(...);
   return self;
+end
+
+local function Implements(class, ...)
+  for i = 1, select("#", ...) do
+    local interface = (select(i, ...));
+
+    if (Framework:IsString(interface)) then
+      interface = Framework:Import(interface);
+    end
+
+    local classMetadata = objectMetadata[tostring(class)];
+    local interfaceMetadata = objectMetadata[tostring(interface)];
+
+    Framework:Assert(Framework:IsTable(interfaceMetadata) and interfaceMetadata.rules,
+      "Failed to implement interface for class '%s' - unknown interface", classMetadata.name);
+
+    -- transfer all interface rules to the class
+    for keyDefName, rule in pairs(interfaceMetadata.rules) do
+      if (Framework:IsTable(rule) and rule.type == "function") then
+        classMetadata.rules[keyDefName] = rule;
+      end
+    end
+
+    -- need interface data to use IsObjectType to check if class is a type of instance
+    -- as well as to check that an instance implements a given interface correctly
+    classMetadata.interfaces[#classMetadata.interfaces + 1] = interfaceMetadata;
+  end
+
+  return class;
 end
 
 -------------------------------------
@@ -645,15 +703,21 @@ function Framework:CreateClass(className, ...)
   classMetadata.namespace = className;
   classMetadata.parentClasses = self:PopTable();
   classMetadata.classProperties = self:PopTable();
-  classMetadata.definitions = self:PopTable();
+  classMetadata.rules = self:PopTable();
+  classMetadata.interfaces = self:PopTable();
 
   -- add parents in reverse order for class index metamethod to work
   for i = select("#", ...), 1, -1 do
     local parent = (select(i, ...));
-    classMetadata.parentClasses[#classMetadata.parentClasses + 1] = parent;
+
+    if (Framework:IsString(parent)) then
+      parent = Framework:Import(parent);
+    end
 
     local parentMetadata = objectMetadata[tostring(parent)];
+
     if (parentMetadata) then
+      classMetadata.parentClasses[#classMetadata.parentClasses + 1] = parent;
       -- add parent of parent classes
       for _, parentClass in ipairs(parentMetadata.parentClasses) do
         classMetadata.parentClasses[#classMetadata.parentClasses + 1] = parentClass;
@@ -672,8 +736,27 @@ function Framework:CreateClass(className, ...)
   end
 
   rawset(class, "UsingTypes", UsingTypes);
+  rawset(class, "Implements", Implements);
 
   return class;
+end
+
+function Framework:CreateInterface(interfaceName, interfaceRules)
+  Framework:Assert(self:IsString(interfaceName),
+    "Failed to create interface - bad argument #1 (expected string, got %s)", type(interfaceName));
+
+  Framework:Assert(self:IsTable(interfaceRules),
+    "Failed to create interface '%s' - bad argument #2 (expected table, got %s)", type(interfaceRules));
+
+  local interface = self:PopTable();
+  local interfaceMetadata = self:PopTable();
+  interfaceMetadata.name = interfaceName;
+  interfaceMetadata.namespace = interfaceName;
+  interfaceMetadata.rules = interfaceRules;
+
+  objectMetadata[tostring(interface)] = interfaceMetadata;
+
+  return interface;
 end
 
 -- class = proxyClass namespace is optional
@@ -728,11 +811,11 @@ function Framework:Import(namespace, silent)
 end
 
 function Framework:DefineParams(...)
-  pendingParameterDefinitions = ValidateDefinition(...);
+  pendingParameterRule = ValidateDefinitionTypes(...);
 end
 
 function Framework:DefineReturns(...)
-  pendingReturnDefinitions = ValidateDefinition(...);
+  pendingReturnRule = ValidateDefinitionTypes(...);
 end
 
 ---A helper function to empty a table.
@@ -853,7 +936,25 @@ function InstanceMixin:GetObjectType()
 end
 
 function InstanceMixin:IsObjectType(_, objectType)
-  return self:GetObjectType() == objectType;
+  local metadata = objectMetadata[tostring(self)];
+
+  if (metadata.name == objectType) then return true; end
+
+  for _, interfaceMetadata in ipairs(metadata.interfaces) do
+    if (interfaceMetadata.name == objectType) then
+      return true;
+    end
+  end
+
+  for _, parent in ipairs(metadata.parentClasses) do
+    local parentMetadata = objectMetadata[tostring(parent)];
+
+    if (parentMetadata.name == objectType) then
+      return true;
+    end
+  end
+
+  return false;
 end
 
 function InstanceMixin:CallParentMethod(_, methodName, ...)
@@ -911,7 +1012,32 @@ function Framework:IsNil(value)
 end
 
 function Framework:IsType(value, expectedTypeName)
-  return IsMatchingType(value, expectedTypeName);
+  -- check if basic type
+  for _, typeName in pairs(SimpleTypes) do
+    if (expectedTypeName == typeName) then
+      return (expectedTypeName == type(value));
+    end
+  end
+
+  if (not Framework:IsTable(value)) then
+    return false;
+  end
+
+  if (value.IsObjectType and value:IsObjectType(expectedTypeName)) then
+    return true;
+  end
+
+  local metadata = objectMetadata[tostring(value)];
+
+  if (metadata) then
+    for _, parent in ipairs(metadata.parentClasses) do
+      if (parent.Static and parent.Static.GetClassName and parent.Static:GetClassName() == expectedTypeName) then
+        return true;
+      end
+    end
+  end
+
+  return false;
 end
 
 function Framework:IsObject(value)

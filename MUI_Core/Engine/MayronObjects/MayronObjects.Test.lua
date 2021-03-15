@@ -1,11 +1,18 @@
 -- luacheck: ignore self 143 631
 local _G = _G;
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
-local Tests = {};
+
+local Tests = setmetatable({__tests = {}}, {
+  __newindex = function(self, key, value)
+    -- preserve ordering of tests:
+    self.__tests[#self.__tests + 1] = { testName = key, value = value };
+    rawset(self, key, value);
+  end
+});
 
 local Green, Yellow = _G.GREEN_FONT_COLOR, _G.YELLOW_FONT_COLOR;
-local pairs, ipairs, print, strformat, assert = _G.pairs, _G.ipairs, _G.print, _G.string.format, _G.assert;
-local tostring, random = _G.tostring, _G.math.random;
+local ipairs, print, strformat, assert = _G.ipairs, _G.print, _G.string.format, _G.assert;
+local tostring, random, type = _G.tostring, _G.math.random, _G.type;
 ---------------------------------
 --- Parent Classes / Mixins
 ---------------------------------
@@ -109,7 +116,7 @@ function Tests:Private_And_Static_Method_Test()
     executeCount = executeCount + 1;
   end
 
-  obj:DefineParams("number", {"string", "hello world. How are we?"}, "...string");
+  obj:DefineParams("number", {type="string", default="hello world. How are we?"}, "...string");
   function C_TestClass.Private:MyPrivateMethod(data, arg1, arg2, arg3)
     assert(data.message == "success!");
     assert(arg1 == 10);
@@ -167,13 +174,13 @@ function Tests:Basic_Memory_Leak_Test()
     data.obj:SetParent(parent);
   end
 
-  obj:DefineParams("number", {"table", { message = "hello" }}, "...?number");
+  obj:DefineParams("number", {type="table", default={ message = "hello" }}, "...?number");
   obj:DefineReturns("number", "table", "...?number");
   function C_TestClass.Static:MyStaticMethod(value, tbl, ...)
     return value, tbl, ...;
   end
 
-  obj:DefineParams("number", {"table", { message = "hello" }}, "...?number");
+  obj:DefineParams("number", {type="table", default={ message = "hello" }}, "...?number");
   obj:DefineReturns("number", "table", "...?number");
   function C_TestClass.Private:MyPrivateMethod(_, value, tbl, ...)
     return value, tbl, ...;
@@ -392,7 +399,7 @@ end
 
 -------------------------------------
 --- Default Argument Tests
--------------------------------------
+-------------------------------------|
 function Tests:Using_Default_Arguments_For_Private_Methods()
   local executeCount = 0;
   local C_TestClass = obj:CreateClass("TestClass");
@@ -400,9 +407,9 @@ function Tests:Using_Default_Arguments_For_Private_Methods()
   obj:DefineParams("string", "number=0", "number=1000");
   obj:DefineReturns("boolean");
   function C_TestClass.Private:MyPrivateMethod(_, text, minLength, maxLength)
-    assert(text == "test");
-    assert(minLength == 50);
-    assert(maxLength == 1000);
+    assert(text == "test", strformat("expected text to be 'test', got %s of type '%s'", tostring(text), type(text)));
+    assert(minLength == 50, strformat("expected minLength to be 50 (number), got %s (%s)", tostring(minLength), type(minLength)));
+    assert(maxLength == 1000, strformat("expected maxLength to be 1000 (number), got %s (%s)", tostring(maxLength), type(maxLength)));
     executeCount = executeCount + 1;
     return true;
   end
@@ -441,28 +448,288 @@ function Tests:Using_Default_Arguments_For_Private_Methods_After_Instance_Create
   assert(executeCount == 2);
 end
 
+-------------------------------------
+--- Interface Tests
+-------------------------------------
+Tests.Interface = {};
+
+function Tests.Interface:Interfaces_Test1() -- luacheck: ignore
+  local IComparable = obj:CreateInterface("IComparable", {
+    Compare = {
+      type = "function";
+      params = {"number", "number"};
+      returns = {"boolean"};
+    }
+  });
+
+  local C_Item = obj:CreateClass("Item"):Implements(IComparable);
+
+  function C_Item:Compare(_, a, b)
+    return a < b;
+  end
+
+  local item = C_Item();
+  assert(item:Compare(19, 20));
+  assert(item:GetObjectType() == "Item");
+  assert(item:IsObjectType("Item"));
+  assert(item:IsObjectType("IComparable"));
+end
+
+function Tests.Interface:Interfaces_Test2() -- luacheck: ignore
+  local ICell = obj:CreateInterface("ICell", {
+    Create = {
+      type = "function";
+      params = {"number"};
+    };
+    Update = "function";
+    Destroy = "function";
+  });
+
+  local Panel = obj:CreateClass("Panel"):Implements(ICell);
+
+  function Panel:Create() end
+  function Panel:Destroy() end
+  function Panel:Update() end
+
+  local p = Panel();
+  p:Create(12);
+  p:Update();
+  p:Destroy();
+end
+
+function Tests.Interface:RedefiningInterfaceProperties_Test3() -- luacheck: ignore
+  local IDummyInterface = obj:CreateInterface("IDummyInterface", {
+    DoSomething = {
+      type = "function";
+      params = {"number"};
+    };
+  });
+
+  local DummyClass = obj:CreateClass("DummyClass"):Implements(IDummyInterface);
+
+  assert(not pcall(function()
+    obj:DefineParams("string"); -- attempt to redefine - should not be allowed! (Not working!)
+    function DummyClass:DoSomething() end
+  end));
+
+  function DummyClass:DoSomething() end
+
+  local dummyInstance = DummyClass();
+
+  assert(not pcall(function()
+    dummyInstance:DoSomething("redefined"); -- still using interface definition
+  end));
+end
+
+function Tests.Interface:NotImplementedInterfaceFunction_Test1() -- luacheck: ignore
+  local IDummyInterface = obj:CreateInterface("IDummyInterface", {
+    DoSomething = "function";
+  });
+
+  local DummyClass = obj:CreateClass("DummyClass"):Implements(IDummyInterface);
+
+  assert(not pcall(function()
+    DummyClass(); -- has no implementation for "DoSomething" so should fail!
+  end));
+end
+
+function Tests.Interface:NotImplementedInterfaceProperty_Test1() -- luacheck: ignore
+  local IDummyInterface = obj:CreateInterface("IDummyInterface", {
+    MyNumber = "number";
+  });
+
+  local DummyClass = obj:CreateClass("DummyClass"):Implements(IDummyInterface);
+
+  assert(not pcall(function()
+    DummyClass(); -- has not implemented property "MyNumber", should throw error!
+  end));
+end
+
+function Tests.Interface:NotImplementedInterfaceProperty_Test2() -- luacheck: ignore
+  local IDummyInterface = obj:CreateInterface("IDummyInterface", {
+    MyNumber = "number";
+  });
+
+  local DummyClass = obj:CreateClass("DummyClass"):Implements(IDummyInterface);
+
+  function DummyClass:__Construct() end
+
+  assert(not pcall(function()
+    DummyClass(); -- has not implemented property "MyNumber", should throw error!
+  end));
+end
+
+function Tests.Interface:NotImplementedInterfaceProperty_Test3() -- luacheck: ignore
+  local IDummyInterface = obj:CreateInterface("IDummyInterface", {
+    MyNumber = "number";
+  });
+
+  local DummyClass = obj:CreateClass("DummyClass"):Implements(IDummyInterface);
+
+  function DummyClass:__Construct()
+    self.MyNumber = 123; -- should finish successfully
+  end
+
+  local instance = DummyClass();
+  assert(not pcall(function()
+    instance.MyNumber = "abc"; -- this is not a number, should throw error!
+  end));
+end
+
+function Tests.Interface:DefaultInterfaceMethods()
+
+  local function Execute(self, data, value)
+    self:Print("Execute:", data.message, value);
+    return "success";
+  end
+
+  local IDummyInterface = obj:CreateInterface("IDummyInterface", {
+    Execute = {
+      type = "function";
+      params = {"number"};
+      returns = {"string"};
+      default = Execute;
+    };
+  });
+
+  local DummyClass = obj:CreateClass("DummyClass"):Implements(IDummyInterface);
+
+  function DummyClass:__Construct(data)
+    data.message = "testing";
+  end
+
+  function DummyClass:Print(_, arg1, arg2, arg3)
+    assert(arg1 == "Execute:");
+    assert(arg2 == "testing");
+    assert(arg3 == 123);
+  end
+
+  local instance = DummyClass();
+  local success = instance:Execute(123);
+  assert(success == "success"); -- this passes
+end
+
+function Tests.Interface:OverrideDefaultInterfaceMethods()
+  local function Execute(self, data, value)
+    self:Print("Execute:", data.message, value);
+    return "success";
+  end
+
+  local IDummyInterface = obj:CreateInterface("IDummyInterface", {
+    Execute = {
+      type = "function";
+      params = {"number"};
+      returns = {"string"};
+      default = Execute;
+    };
+  });
+
+  local DummyClass = obj:CreateClass("DummyClass"):Implements(IDummyInterface);
+
+  function DummyClass:__Construct(data)
+    data.message = "testing";
+  end
+
+  function DummyClass:Execute(data, value)
+    self:Print("Overridden Execute!", data.message, value);
+    return "from class";
+  end
+
+  function DummyClass:Print(_, arg1, arg2, arg3)
+    assert(arg1 == "Overridden Execute!");
+    assert(arg2 == "testing");
+    assert(arg3 == 123);
+  end
+
+  local instance = DummyClass();
+  local success = instance:Execute(123);
+  assert(success == "from class"); -- this passes
+end
+
+function Tests.Interface:ParentInterfaceMethods()
+  local function Execute()
+    print("executed")
+  end
+
+  local IDummyInterface = obj:CreateInterface("IDummyInterface", {
+    MethodOne = {
+      type = "function";
+      default = Execute;
+    };
+    MethodTwo = { type = "function" };
+  });
+
+  local ParentClass = obj:CreateClass("ParentClass"):Implements(IDummyInterface);
+  local ChildClass = obj:CreateClass("ChildClass", ParentClass);
+
+  assert(not pcall(function()
+    -- should not be able to create as it's not implemented
+    ChildClass();
+  end));
+
+  function ParentClass:MethodTwo() end
+  ChildClass();
+end
+
 ----------------------------------------------------------------------
 -- Run tests:
 ----------------------------------------------------------------------
 do
   local SUCCESS = Green:WrapTextInColorCode("Successful");
-  local whitelist = {};
+  local IterateTests;
+  local whitelist = {"Interface.ParentInterfaceMethods"};
 
   local function RunTest(testName)
+    local continue = true;
+    if (#whitelist > 0) then
+      continue = false;
+
+      for _, t in ipairs(whitelist) do
+        if (t == testName) then
+          continue = true;
+          break
+        end
+      end
+    end
+
+    if (not continue) then return end
+
     local coloredTestName = Yellow:WrapTextInColorCode(testName);
+    local test = Tests;
 
-    print(strformat("[Test] %s - Started", coloredTestName));
-    Tests[testName]();
-    print(strformat("[Test] %s - %s", coloredTestName, SUCCESS));
+    if (testName:match("%.")) then
+      for t in testName:gmatch("([^.]*)") do
+        test = test[t];
+      end
+    else
+      test = test[testName];
+    end
+
+    if (obj:IsFunction(test)) then
+      print(strformat("[Test] %s - Started", coloredTestName));
+      test();
+      print(strformat("[Test] %s - %s", coloredTestName, SUCCESS));
+    elseif (obj:IsTable(test)) then
+      IterateTests(test, testName);
+    end
   end
 
-  if (#whitelist > 0) then
-    for _, testName in ipairs(whitelist) do
-      RunTest(testName);
-    end
-  else
-    for testName, _ in pairs(Tests) do
-      RunTest(testName);
+  function IterateTests(tests, path)
+    for _, data in ipairs(tests) do
+      local testName = data.testName;
+      local value = data.value;
+
+      if (path) then
+        testName = strformat("%s.%s", path, testName);
+      end
+
+      if (obj:IsFunction(value)) then
+        RunTest(testName);
+      elseif (obj:IsTable(value)) then
+        IterateTests(value, testName);
+      end
     end
   end
+
+  IterateTests(Tests.__tests);
 end

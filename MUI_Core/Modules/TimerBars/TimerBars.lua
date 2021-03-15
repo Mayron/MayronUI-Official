@@ -37,19 +37,6 @@ if (tk:IsClassic()) then
   UnitAura = LibClassicDurations.UnitAuraWrapper;
 end
 
-local function CanHandleAura(fieldUnitID, sourceUnitID)
-  if (not obj:IsString(fieldUnitID)) then
-    -- TimerField has been removed during profile swap and setting no longer exists
-    return
-  end
-
-  if (not (UnitGUID(fieldUnitID) == sourceUnitID and UnitExists(fieldUnitID) and not UnitIsDeadOrGhost(fieldUnitID))) then
-    return -- field cannot handle this aura
-  end
-
-  return true;
-end
-
 -- Objects -----------------------------
 ---@class TimerBarsModule : BaseModule
 local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", L["Timer Bars"], true); -- initialized on demand
@@ -402,8 +389,8 @@ do
         obj:Assert(auraType == BUFF or auraType == DEBUFF, UNKNOWN_AURA_TYPE, auraType);
 
         ---@param field TimerField
-        for unitID, field in pairs(UnitIDFieldPairs) do
-          if (not obj:IsBoolean(field) and CanHandleAura(unitID, destGuid)) then
+        for _, field in pairs(UnitIDFieldPairs) do
+          if (not obj:IsBoolean(field)) then
             field:UpdateBarsByAura(sourceGuid, auraId, auraName, auraType);
           end
         end
@@ -461,7 +448,11 @@ local function CanTrackAura(auraInfo)
   if (not obj:IsTable(auraInfo)) then
     -- some aura's do not return aura info from UnitAura (such as Windfury)
     return false;
-  elseif (not (auraInfo[6] and auraInfo[6] > 0)) then
+  elseif (not (auraInfo[1] or auraInfo[6] and auraInfo[6] > 0)) then
+    if (auraInfo[1]) then
+      print("failed to track:", auraInfo[1])
+    end
+
     -- some aura's do not have an expiration time so cannot be added to a timer bar (aura's that are fixed).
     obj:PushTable(auraInfo);
     return false;
@@ -933,7 +924,7 @@ function C_TimerField:RecheckAuras(data)
     end
 
     for i = 1, maxAuras do
-      --local auraInfo = GetAuraInfoByAuraID(data.settings.unitID, i, auraType);
+      -- /run print(UnitAura("target", 1, "HARMFUL"))
       local auraInfo = obj:PopTable(UnitAura(data.settings.unitID, i, filterName));
 
       if (CanTrackAura(auraInfo)) then
@@ -943,10 +934,7 @@ function C_TimerField:RecheckAuras(data)
 
         if (obj:IsNumber(auraId)) then
           local sourceGuid = sourceUnit and UnitGUID(sourceUnit) or "Unknown";
-
-          if (CanHandleAura(data.settings.unitID, sourceGuid)) then
-            self:UpdateBarsByAura(sourceGuid, auraId, auraName, auraType);
-          end
+          self:UpdateBarsByAura(sourceGuid, auraId, auraName, auraType);
         end
 
         obj:PushTable(auraInfo);

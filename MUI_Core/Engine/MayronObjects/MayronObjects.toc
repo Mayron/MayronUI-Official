@@ -8,4 +8,4 @@
 MayronObjects.lua
 
 ## Uncomment this for testing:
-## MayronObjects.Test.lua
+MayronObjects.Test.lua

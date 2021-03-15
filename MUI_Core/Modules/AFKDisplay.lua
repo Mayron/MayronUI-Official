@@ -7,7 +7,7 @@ local select, string = _G.select, _G.string;
 local GetAddOnMetadata = _G.GetAddOnMetadata;
 local C_Timer, InCombatLockdown, WorldFrame, UnitIsAFK = _G.C_Timer, _G.InCombatLockdown, _G.WorldFrame, _G.UnitIsAFK;
 local UIParent, CreateFrame, GetSpecializationInfo = _G.UIParent, _G.CreateFrame, _G.GetSpecializationInfo;
-local MoveViewLeftStop, SetCVar, MoveViewLeftStart = _G.MoveViewLeftStop, _G.SetCVar, _G.MoveViewLeftStart;
+local MoveViewLeftStop, MoveViewLeftStart = _G.MoveViewLeftStop, _G.MoveViewLeftStart;
 local UnitSex, UnitRace, SetCursor, GetSpecialization = _G.UnitSex, _G.UnitRace, _G.SetCursor, _G.GetSpecialization;
 local UnitPVPName, GetRealmName, UnitLevel, UnitClass = _G.UnitPVPName, _G.GetRealmName, _G.UnitLevel, _G.UnitClass;
 local table, ipairs, HelpTip = _G.table, _G.ipairs, _G.HelpTip;
@@ -832,7 +832,6 @@ do
 
       if (data.settings.rotateCamera) then
         MoveViewLeftStop();
-        SetCVar("cameraView", "0");
       end
 
       Private:HideDisplay();

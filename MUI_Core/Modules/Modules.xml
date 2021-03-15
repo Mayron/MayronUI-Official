@@ -37,7 +37,7 @@
 
   <Script file="DataText\DataText.lua" />
   <Script file="DataText\Components\CombatTimer.lua" />
-  <Script file="DataText\Components\Currency.lua" />
+  <Script file="DataText\Components\Money.lua" />
   <Script file="DataText\Components\Durability.lua" />
   <Script file="DataText\Components\Friends.lua" />
   <Script file="DataText\Components\Guild.lua" />
