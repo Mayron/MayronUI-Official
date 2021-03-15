@@ -5,6 +5,7 @@ if (tk:IsClassic()) then return end
 
 local C_AzeriteItem = _G.C_AzeriteItem;
 local C_AzeriteBar = obj:Import("MayronUI.AzeriteBar");
+local strformat = _G.string.format;
 
 -- Local Functions -----------------------
 
@@ -29,12 +30,12 @@ local function OnAzeriteXPUpdate(_, _, bar, data)
       totalXP = activeXP;
     end
 
-    local percent = (activeXP / totalXP) * 100;
+    local percent = 100 - tk.Numbers:ToPrecision((activeXP / totalXP) * 100, 2);
 
     activeXP = tk.Strings:FormatReadableNumber(activeXP);
     totalXP = tk.Strings:FormatReadableNumber(totalXP);
 
-    local text = string.format("%s / %s (%d%%)", activeXP, totalXP, percent);
+    local text = strformat("%s / %s (%d%% remaining)", activeXP, totalXP, percent);
     data.statusbar.text:SetText(text);
   end
 end

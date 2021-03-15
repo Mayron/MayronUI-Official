@@ -82,12 +82,12 @@ function tk.Strings:IsNilOrWhiteSpace(strValue)
 end
 
 function tk.Strings:SetOverflow(str, maxChars)
-    if (#str > maxChars) then
-        str = string.sub(str, 1, maxChars);
-        str = string.join(self.Empty, str:trim(), "...");
-    end
+  if (#str > maxChars) then
+    str = string.sub(str, 1, maxChars);
+    str = string.join(self.Empty, str:trim(), "...");
+  end
 
-    return str;
+  return str;
 end
 
 function tk.Strings:RemoveColorCode(str)

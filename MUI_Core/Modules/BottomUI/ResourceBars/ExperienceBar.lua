@@ -4,6 +4,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 local UnitXP, UnitXPMax, GetXPExhaustion = _G.UnitXP, _G.UnitXPMax, _G.GetXPExhaustion;
 local CreateFrame = _G.CreateFrame;
 local C_ExperienceBar = obj:Import("MayronUI.ExperienceBar");
+local strformat = _G.string.format;
 
 -- Local Functions -----------------------
 
@@ -17,11 +18,11 @@ local function OnExperienceBarUpdate(handler, eventName, statusbar, rested) -- l
     rested:SetMinMaxValues(0, maxValue);
     rested:SetValue(exhaustValue and (exhaustValue + currentValue) or 0);
 
-    local percent = (currentValue / maxValue) * 100;
+    local percent = 100 - tk.Numbers:ToPrecision((currentValue / maxValue) * 100, 2);
     currentValue = tk.Strings:FormatReadableNumber(currentValue);
     maxValue = tk.Strings:FormatReadableNumber(maxValue);
 
-    local text = string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
+    local text = strformat("%s / %s (%d%% remaining)", currentValue, maxValue, percent);
     statusbar.text:SetText(text);
 end
 

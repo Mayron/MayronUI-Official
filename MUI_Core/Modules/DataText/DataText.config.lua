@@ -1,8 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
-local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
+local tk, db, _, _, _, L = _G.MayronUI:GetCoreComponents();
 local C_DataTextModule = namespace.C_DataTextModule;
-local widgets = {};
 
 function C_DataTextModule:GetConfigTable()
     return {
@@ -164,70 +163,10 @@ function C_DataTextModule:GetConfigTable()
                 }
             },
             {   type = "submenu",
-                name = L["Currency"];
+                name = "Money";
                 module = "DataText",
-                appendDbPath = "currency",
+                appendDbPath = "money",
                 children = {
-                    {   name = L["Automatic"],
-                        type = "check",
-                        tooltip = L["If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit."];
-                        appendDbPath = "auto",
-
-                        SetValue = function(dbPath, value)
-                            widgets.copperCheckButton:SetEnabled(not value);
-                            widgets.silverCheckButton:SetEnabled(not value);
-                            widgets.goldCheckButton:SetEnabled(not value);
-                            db:SetPathValue(dbPath, value);
-                        end;
-
-                        OnLoad = function(_, widget)
-                            widgets.automaticCheckButton = widget.btn;
-                        end;
-                    },
-                    {   type = "divider"
-                    },
-                    {   name = L["Show Copper"],
-                        type = "check",
-                        appendDbPath = "showCopper";
-
-                        OnLoad = function(_, widget)
-                            widgets.copperCheckButton = widget.btn;
-
-                            if (widgets.automaticCheckButton:GetChecked()) then
-                                widget.btn:SetEnabled(false);
-                            end
-                        end;
-                    },
-                    {   type = "divider"
-                    },
-                    {   name = L["Show Silver"],
-                        type = "check",
-                        appendDbPath = "showSilver";
-
-                        OnLoad = function(_, widget)
-                            widgets.silverCheckButton = widget.btn;
-
-                            if (widgets.automaticCheckButton:GetChecked()) then
-                                widget.btn:SetEnabled(false);
-                            end
-                        end;
-                    },
-                    {   type = "divider"
-                    },
-                    {   name = L["Show Gold"],
-                        type = "check",
-                        appendDbPath = "showGold";
-
-                        OnLoad = function(_, widget)
-                            widgets.goldCheckButton = widget.btn;
-
-                            if (widgets.automaticCheckButton:GetChecked()) then
-                                widget.btn:SetEnabled(false);
-                            end
-                        end;
-                    },
-                    {   type = "divider"
-                    },
                     {   name = L["Show Realm Name"],
                         type = "check",
                         appendDbPath = "showRealm",

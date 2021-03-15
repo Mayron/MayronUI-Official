@@ -18,6 +18,7 @@ db:AddToDefaults("profile.resourceBars", {
     enabled = true;
     height = 8;
     alwaysShowText = false;
+    showRemaining = true;
     fontSize = 8;
     texture = "MUI_StatusBar";
   };
@@ -78,6 +79,7 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
 
       height = UpdateResourceBar;
       alwaysShowText = UpdateResourceBar;
+      showRemaining = UpdateResourceBar;
       fontSize = UpdateResourceBar;
       texture = UpdateResourceBar;
     };
@@ -89,6 +91,7 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
 
       height = UpdateResourceBar;
       alwaysShowText = UpdateResourceBar;
+      showRemaining = UpdateResourceBar;
       fontSize = UpdateResourceBar;
       texture = UpdateResourceBar;
     };
@@ -102,6 +105,7 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
 
       height = UpdateResourceBar;
       alwaysShowText = UpdateResourceBar;
+      showRemaining = UpdateResourceBar;
       fontSize = UpdateResourceBar;
       texture = UpdateResourceBar;
     };
@@ -112,6 +116,7 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
 
       height = UpdateResourceBar;
       alwaysShowText = UpdateResourceBar;
+      showRemaining = UpdateResourceBar;
       fontSize = UpdateResourceBar;
       texture = UpdateResourceBar;
     };
@@ -338,7 +343,7 @@ do
 
   function C_BaseResourceBar:Update(data)
     if (not data.statusbar) then
-      return; -- not active
+      return -- not active
     end
 
     data.frame:SetHeight(data.settings.height);

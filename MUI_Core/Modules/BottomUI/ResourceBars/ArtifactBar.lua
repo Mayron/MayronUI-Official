@@ -6,6 +6,7 @@ if (tk:IsClassic()) then return end
 local C_ArtifactUI = _G.C_ArtifactUI;
 local GetNumPurchasableArtifactTraits = _G.ArtifactBarGetNumArtifactTraitsPurchasableFromXP;
 local C_ArtifactBar = obj:Import("MayronUI.ArtifactBar");
+local strformat = _G.string.format;
 
 -- Local Functions -----------------------
 local function OnArtifactXPUpdate(_, _, bar, data)
@@ -28,11 +29,11 @@ local function OnArtifactXPUpdate(_, _, bar, data)
         maxValue = currentValue;
     end
 
-    local percent = (currentValue / maxValue) * 100;
+    local percent = 100 - tk.Numbers:ToPrecision((currentValue / maxValue) * 100, 2);
     currentValue = tk.Strings:FormatReadableNumber(currentValue);
     maxValue = tk.Strings:FormatReadableNumber(maxValue);
 
-    local text = string.format("%s / %s (%d%%)", currentValue, maxValue, percent);
+    local text = strformat("%s / %s (%d%% remaining)", currentValue, maxValue, percent);
     data.statusbar.text:SetText(text);
 end
 
