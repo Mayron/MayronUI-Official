@@ -1,12 +1,6 @@
 -- luacheck: ignore self 143 631
-local _, namespace = ...;
-
 local MayronUI = _G.MayronUI;
 local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
-
----@type Package
-local ComponentsPackage = namespace.ComponentsPackage;
-
 local LABEL_PATTERN = L["Friends"]..": |cffffffff%u|r";
 local convert = {
   WTCG = "HS",
@@ -23,12 +17,8 @@ local BNGetNumFriends, BNGetFriendInfo = _G.BNGetNumFriends, _G.BNGetFriendInfo;
 local string, CreateFrame, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1 =
   _G.string, _G.CreateFrame, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1;
 local select = _G.select;
-
 local ToggleFriendsFrame = _G.ToggleFriendsFrame;
-
--- Register and Import Modules -------
-
-local Friends = ComponentsPackage:CreateClass("Friends", nil, "IDataTextComponent");
+local Friends = obj:CreateClass("Friends");
 
 -- Local Functions -------------------
 
@@ -114,7 +104,7 @@ function Friends:Update(data, refreshSettings)
   self.Button:SetText(string.format(LABEL_PATTERN, totalOnline));
 end
 
-ComponentsPackage:DefineReturns("number");
+obj:DefineReturns("number");
 function Friends:CheckBattleNetFriendsList(data)
   local r, g, b = tk:GetThemeColor();
   local totalLabelsShown = 0;
@@ -163,8 +153,8 @@ function Friends:CheckBattleNetFriendsList(data)
   return totalLabelsShown;
 end
 
-ComponentsPackage:DefineParams("number");
-ComponentsPackage:DefineReturns("number");
+obj:DefineParams("number");
+obj:DefineReturns("number");
 function Friends:CheckWowFriendsList(data, totalLabelsShown)
   for i = 1, C_FriendList.GetNumFriends() do
     local friendInfo = C_FriendList.GetFriendInfoByIndex(i);

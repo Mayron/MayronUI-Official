@@ -5,21 +5,16 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
 if (not Lib) then return; end
 
+local obj = _G.MayronObjects:GetFramework();
 local CreateFrame = _G.CreateFrame;
-
-local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
-local obj = Lib.Objects;
 
----@class Cell : FrameWrapper
-local Cell = WidgetsPackage:CreateClass("Cell", Private.FrameWrapper);
-Cell.Static:AddFriendClass("Panel");
+---@class Cell
+local Cell = obj:CreateClass("Cell");
+Cell.Static:AddFriendClass("MayronUI.Panel");
 
 ---@type Panel
-local Panel = Private.Panel;
-
----------------------------------
----------------------------------
+local Panel = obj:Import("MayronUI.Panel");
 
 -- @constructor
 function Panel:CreateCell(data, frame)
@@ -38,23 +33,23 @@ function Panel:CreateCell(data, frame)
 end
 
 function Cell:__Construct(data, frame)
-    data.width = 1;
-    data.height = 1;
-    self:SetFrame(frame);
+  data.width = 1;
+  data.height = 1;
+  self:SetFrame(frame);
 end
 
 function Cell:SetPanel(data, panel)
-    data.panel = panel;
+  data.panel = panel;
 end
 
 function Cell:SetDimensions(data, width, height)
-    data.width = width;
-    data.height = height;
+  data.width = width;
+  data.height = height;
 
-    if (data.panel) then
-        local panelData = data:GetFriendData(data.panel);
-        Private:AnchorCells(panelData);
-    end
+  if (data.panel) then
+    local panelData = data:GetFriendData(data.panel);
+    Private:AnchorCells(panelData);
+  end
 end
 
 function Cell:SetInsets(data, ...)

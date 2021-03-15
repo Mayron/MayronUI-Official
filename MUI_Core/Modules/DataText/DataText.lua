@@ -3,14 +3,11 @@ local _, namespace = ...;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
-local ipairs, pairs, table, GameTooltip, PlaySound = _G.ipairs, _G.pairs, _G.table, _G.GameTooltip, _G.PlaySound;
-local CreateFrame, UIFrameFadeIn = _G.CreateFrame, _G.UIFrameFadeIn;
+local ipairs, pairs, GameTooltip, PlaySound = _G.ipairs, _G.pairs, _G.GameTooltip, _G.PlaySound;
+local CreateFrame, UIFrameFadeIn, tinsert = _G.CreateFrame, _G.UIFrameFadeIn, _G.table.insert;
 
 -- Objects -----------------------------
-
-local Engine = obj:Import("MayronUI.Engine");
-local ComponentsPackage = obj:CreatePackage("DataTextComponents", "MayronUI");
-local SlideController = obj:Import("MayronUI.Widgets.SlideController");
+local SlideController = obj:Import("MayronUI.SlideController");
 
 -- Register Modules --------------------
 
@@ -18,22 +15,21 @@ local SlideController = obj:Import("MayronUI.Widgets.SlideController");
 local C_DataTextModule = MayronUI:RegisterModule("DataTextModule", L["Data Text Bar"]);
 
 namespace.C_DataTextModule = C_DataTextModule;
-namespace.ComponentsPackage = ComponentsPackage;
 
 -- Load Database Defaults --------------
 namespace.dataTextLabels = {
--- svName = Label
-["combatTimer"]       = "Combat Timer",
-["currency"]          = "Currency",
-["durability"]        = "Durability",
-["friends"]           = "Friends",
-["guild"]             = "Guild",
-["inventory"]         = "Inventory",
-["memory"]            = "Memory",
-["performance"]       = "Performance",
-["none"]              = "None";
-["disabled"]          = "Disabled",
-["volumeOptions"]     = "Volume Options"
+  -- svName = Label
+  ["combatTimer"]       = "Combat Timer",
+  ["money"]             = "Money",
+  ["durability"]        = "Durability",
+  ["friends"]           = "Friends",
+  ["guild"]             = "Guild",
+  ["inventory"]         = "Inventory",
+  ["memory"]            = "Memory",
+  ["performance"]       = "Performance",
+  ["none"]              = "None";
+  ["disabled"]          = "Disabled",
+  ["volumeOptions"]     = "Volume Options"
 };
 
 local defaults = {
@@ -54,47 +50,20 @@ local defaults = {
     "durability";
     "friends";
     "guild";
-    "inventory";
-    "currency";
+    "volumeOptions";
+    "money";
     "performance";
   };
 };
 
 if (tk:IsRetail()) then
   namespace.dataTextLabels["specialization"] = "Specialization";
-  table.insert(defaults.displayOrders, "specialization");
+  tinsert(defaults.displayOrders, "specialization");
+else
+  tinsert(defaults.displayOrders, "inventory");
 end
 
 db:AddToDefaults("profile.datatext", defaults);
-
--- IDataTextComponent ------------------------------
-
----@class IDataTextComponent : Object
----@field MenuContent Frame The frame containing all popup menu content
----@field MenuLabels table A table containing all menu labels to show
----@field TotalLabelsShown number The total menu labels to show on the popup menu
----@field HasLeftMenu boolean True if the data-text button has a left click action
----@field HasRightMenu boolean True if the data-text button has a right click action
----@field Button Button The data-text button widget
----@field SavedVariableName string The database key associated with the data text module
-
-ComponentsPackage:CreateInterface("IDataTextComponent", {
-  -- fields:
-  MenuContent = "?Frame";
-  MenuLabels = "?table";
-  SavedVariableName = "?string";
-  TotalLabelsShown = "number";
-  HasLeftMenu = "boolean";
-  HasRightMenu = "boolean";
-  Button = "Button";
-
-  -- functions:
-  Update = "function";
-  Click = "function";
-  IsEnabled = {type = "function"; returns = "boolean"};
-  SetEnabled = "function";
-  __Construct = {type = "function", params = {"table", "DataTextModule", "SlideController", "Frame"}}
-});
 
 local function DataComponentButton_OnClick(self, ...)
   self.dataModule:ClickModuleButton(self.component, self, ...);
@@ -165,7 +134,7 @@ function C_DataTextModule:OnInitialize(data)
 
     height = function(value)
       data.bar:SetHeight(value);
-      local actionBarPanelModule = MayronUI:ImportModule("BottomUI_ActionBarPanel");
+      local actionBarPanelModule = MayronUI:ImportModule("ActionBarPanel");
 
       if (actionBarPanelModule:IsEnabled()) then
         actionBarPanelModule:SetUpAllBartenderBars(data);
@@ -239,20 +208,27 @@ function C_DataTextModule:OnEnable(data)
   end
 
   -- the main bar containing all data text buttons
-  data.bar = CreateFrame("Frame", "MUI_DataTextBar", _G["MUI_BottomContainer"]);
-  data.bar:SetPoint("BOTTOMLEFT");
-  data.bar:SetPoint("BOTTOMRIGHT");
+  data.bar = CreateFrame("Frame", "MUI_DataTextBar", _G.MUI_BottomContainer or _G.UIParent);
+
+  if (_G.MUI_BottomContainer) then
+    data.bar:SetPoint("BOTTOMLEFT");
+    data.bar:SetPoint("BOTTOMRIGHT");
+  else
+    data.bar:SetPoint("BOTTOM");
+    data.bar:SetWidth(db.profile.bottomui.width);
+  end
+
   tk:SetBackground(data.bar, 0, 0, 0);
 
   -- create the popup menu (displayed when a data item button is clicked)
   -- each data text module has its own frame to be used as the scroll child
-  data.popup = gui:CreateScrollFrame(tk.Constants.AddOnStyle, _G["MUI_BottomContainer"], "MUI_DataTextPopupMenu");
+  data.popup = gui:CreateScrollFrame(tk.Constants.AddOnStyle, _G.MUI_BottomContainer or _G.UIParent, "MUI_DataTextPopupMenu");
   data.popup:SetFrameStrata("DIALOG");
   data.popup:Hide();
   data.popup:SetFrameLevel(2);
 
   -- controls the Esc key behaviour to close the popup (must use global name)
-  -- table.insert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
+  tinsert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
 
   data.popup.ScrollBar:SetPoint("TOPLEFT", data.popup, "TOPRIGHT", -6, 1);
   data.popup.ScrollBar:SetPoint("BOTTOMRIGHT", data.popup, "BOTTOMRIGHT", -1, 1);
@@ -279,15 +255,18 @@ function C_DataTextModule:OnEnable(data)
   data.slideController = SlideController(data.popup);
 
   local containerModule = MayronUI:ImportModule("BottomUI_Container");
-  containerModule:RepositionContent();
+
+  if (containerModule:IsEnabled()) then
+    containerModule:RepositionContent();
+  end
 end
 
-Engine:DefineParams("string", "IDataTextComponent");
+obj:DefineParams("string", "table");
 function C_DataTextModule:RegisterComponentClass(data, componentName, componentClass)
   data.registeredComponentClasses[componentName] = componentClass;
 end
 
-Engine:DefineReturns("Button");
+obj:DefineReturns("Button");
 function C_DataTextModule:CreateDataTextButton(data)
   local btn = CreateFrame("Button");
   local btnTextureFilePath = tk.Constants.AddOnStyle:GetTexture("ButtonTexture");
@@ -302,7 +281,7 @@ function C_DataTextModule:CreateDataTextButton(data)
   local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
   btn:GetFontString():SetFont(font, data.settings.fontSize);
 
-  table.insert(data.buttons, btn);
+  tinsert(data.buttons, btn);
   return btn;
 end
 
@@ -318,7 +297,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
 
       local componentName = component.SavedVariableName;
       data.inactiveComponents[componentName] = data.inactiveComponents[componentName] or obj:PopTable();
-      table.insert(data.inactiveComponents[componentName], component);
+      tinsert(data.inactiveComponents[componentName], component);
     end
   end
 
@@ -326,7 +305,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
 
   for _, componentName in pairs(data.settings.displayOrders) do
     if (componentName == "disabled") then
-      table.insert(data.activeComponents, "disabled");
+      tinsert(data.activeComponents, "disabled");
     else
       local inactiveTable = data.inactiveComponents[componentName];
 
@@ -352,7 +331,7 @@ function C_DataTextModule:OrderDataTextButtons(data)
       component:SetEnabled(true);
       component:Update();
 
-      table.insert(data.activeComponents, component);
+      tinsert(data.activeComponents, component);
       data.TotalActiveComponents = data.TotalActiveComponents + 1;
       component.DisplayOrder = data.TotalActiveComponents;
     end
@@ -360,7 +339,8 @@ function C_DataTextModule:OrderDataTextButtons(data)
 end
 
 function C_DataTextModule:PositionDataTextButtons(data)
-  local itemWidth = _G["MUI_BottomContainer"]:GetWidth() / data.TotalActiveComponents;
+  local bottomContainerWidth = (_G.MUI_BottomContainer and _G.MUI_BottomContainer:GetWidth()) or db.profile.bottomui.width;
+  local itemWidth = bottomContainerWidth / data.TotalActiveComponents;
   local previousButton, currentButton;
 
   -- some indexes might have a nil value as display order is configurable by the user
@@ -387,7 +367,7 @@ function C_DataTextModule:PositionDataTextButtons(data)
   end
 end
 
-Engine:DefineParams("Frame");
+obj:DefineParams("Frame");
 ---Attach current dataTextModule scroll child onto shared popup and hide previous scroll child
 ---@param content Frame
 function C_DataTextModule:ChangeMenuContent(data, content)
@@ -414,7 +394,7 @@ function C_DataTextModule:ChangeMenuContent(data, content)
   content:Show();
 end
 
-Engine:DefineParams("table");
+obj:DefineParams("table");
 function C_DataTextModule:ClearLabels(_, labels)
   if (not labels) then return end
 
@@ -431,10 +411,10 @@ function C_DataTextModule:ClearLabels(_, labels)
   end
 end
 
-Engine:DefineParams("IDataTextComponent");
-Engine:DefineReturns("number");
+obj:DefineParams("table");
+obj:DefineReturns("number");
 ---Total height is used to control the dynamic scrollbar
----@param dataModule IDataTextComponent
+---@param dataModule table
 ---@return number the total height of all labels
 function C_DataTextModule:PositionLabels(data, dataModule)
   local totalLabelsShown = dataModule.TotalLabelsShown;
@@ -491,15 +471,14 @@ function C_DataTextModule:PositionLabels(data, dataModule)
   return totalHeight;
 end
 
-Engine:DefineParams("IDataTextComponent", "Button");
----@param dataModule IDataTextComponent The data-text module associated with the data-text button clicked on by the user
+obj:DefineParams("table", "Button");
+---@param dataModule table The data-text module associated with the data-text button clicked on by the user
 ---@param dataTextButton Button The data-text button clicked on by the user
 ---@param buttonName string The name of the button clicked on (i.e. "LeftButton" or "RightButton")
 function C_DataTextModule:ClickModuleButton(data, component, dataTextButton, buttonName, ...)
   GameTooltip:Hide();
-  component:Update(data);
+  component:Update();
   data.slideController:Stop();
-
   local buttonDisplayOrder = component.DisplayOrder;
 
   if (data.lastButtonID == buttonDisplayOrder and data.lastButton == buttonName and data.popup:IsShown()) then
@@ -543,9 +522,7 @@ function C_DataTextModule:ClickModuleButton(data, component, dataTextButton, but
   -- execute dataTextModule specific click logic
   local cannotExpand = component:Click(buttonName, ...);
 
-  if (cannotExpand) then
-    return;
-  end
+  if (cannotExpand) then return end
 
   -- calculate new height based on number of labels to show
   local totalHeight = self:PositionLabels(component) or data.settings.popup.maxHeight;
@@ -579,18 +556,18 @@ function C_DataTextModule:ClickModuleButton(data, component, dataTextButton, but
   PlaySound(tk.Constants.CLICK);
 end
 
-Engine:DefineParams("string");
+obj:DefineParams("string");
 function C_DataTextModule:ForceUpdate(data, dataModuleName)
   local dataModule = data.activeComponents[dataModuleName];
   dataModule:Update();
 end
 
-Engine:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 function C_DataTextModule:IsShown(data)
   return (data.bar and data.bar:IsShown()) or false;
 end
 
-Engine:DefineReturns("Frame");
+obj:DefineReturns("Frame");
 function C_DataTextModule:GetDataTextBar(data)
   return data.bar;
 end

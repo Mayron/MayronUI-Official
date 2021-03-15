@@ -1,8 +1,8 @@
-## Interface: 90002
+## Interface: 90005
 ## Title: |cff00ccffMUI|r Config
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
-## Version: 6.3.8
+## Version: 6.4.0
 ## Notes: Enables the in-game MayronUI configuration menu
 
 MUI_Config.lua

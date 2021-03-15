@@ -1,18 +1,14 @@
-local _, namespace = ...;
-
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, _, _, L = MayronUI:GetCoreComponents();
-local ComponentsPackage = namespace.ComponentsPackage;
-
-local _G = _G;
-local string, GetContainerNumSlots, GetContainerNumFreeSlots = _G.string, _G.GetContainerNumSlots, _G.GetContainerNumFreeSlots;
+local tk, db, em, _, obj, L = _G.MayronUI:GetCoreComponents();
+local string, GetContainerNumSlots, GetContainerNumFreeSlots =
+  _G.string, _G.GetContainerNumSlots, _G.GetContainerNumFreeSlots;
 
 -- GLOBALS:
 --[[ luacheck: ignore GameTooltip ToggleAllBags SortBags BACKPACK_CONTAINER NUM_BAG_SLOTS ]]
 
 -- Register and Import Modules -------
 
-local Inventory = ComponentsPackage:CreateClass("Inventory", nil, "IDataTextComponent");
+local Inventory = obj:CreateClass("Inventory");
 
 -- Load Database Defaults ------------
 

@@ -1,18 +1,15 @@
-local _, namespace = ...;
-
 -- luacheck: ignore MayronUI self 143 631
-local tk, _, _, _, obj = MayronUI:GetCoreComponents();
-local ComponentsPackage = namespace.ComponentsPackage;
+local tk, _, _, _, obj = _G.MayronUI:GetCoreComponents();
 local LABEL_PATTERN = "|cffffffff%s|r mb";
 
 local C_Timer, string, table, GetNumAddOns, GetAddOnInfo, GetAddOnMemoryUsage =
 _G.C_Timer, _G.string, _G.table, _G.GetNumAddOns, _G.GetAddOnInfo, _G.GetAddOnMemoryUsage;
 local UpdateAddOnMemoryUsage = _G.UpdateAddOnMemoryUsage;
-local unpack = _G.unpack;
+local unpack, mfloor = _G.unpack, _G.math.floor;
 
 -- Register and Import Modules -------
 
-local Memory = ComponentsPackage:CreateClass("Memory", nil, "IDataTextComponent");
+local Memory = obj:CreateClass("Memory");
 
 -- Local Functions ----------------
 
@@ -104,6 +101,7 @@ end
 function Memory:Click(data)
   local currentIndex = 0;
   local sorted = obj:PopTable();
+  UpdateAddOnMemoryUsage();
 
   for i = 1, GetNumAddOns() do
     local _, addOnName, addOnDescription = GetAddOnInfo(i);
@@ -118,8 +116,7 @@ function Memory:Click(data)
       local value;
 
       if (usage > 1000) then
-        value = usage / 1000;
-        value = tk.Numbers:ToPrecision(value, 1);
+        value = mfloor(usage / 10) / 100;
         value = string.format("%smb", value);
       else
         value = tk.Numbers:ToPrecision(usage, 0);
@@ -130,7 +127,6 @@ function Memory:Click(data)
       -- Had issue ignoring the color code so I took this out for now.
       -- addOnName = tk.Strings:RemoveColorCode(addOnName);
       -- addOnName = tk.Strings:SetOverflow(addOnName, 15);
-
       label.name:SetText(addOnName);
       label.value:SetText(value);
       label.usage = usage;

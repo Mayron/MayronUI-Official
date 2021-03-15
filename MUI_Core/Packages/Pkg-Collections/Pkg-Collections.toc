@@ -1,0 +1,7 @@
+## Interface: 90002
+## Title: Pkg-Collections
+## Notes: A package of classes for manipulating collections of data.
+## Version: 1.0.0
+## Dependencies: MayronObjects
+
+Pkg-Collections.xml

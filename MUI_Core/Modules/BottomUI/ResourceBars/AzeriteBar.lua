@@ -4,11 +4,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 if (tk:IsClassic()) then return end
 
 local C_AzeriteItem = _G.C_AzeriteItem;
-
--- Setup Objects -------------------------
-
-local ResourceBarsPackage = obj:Import("MayronUI.ResourceBars");
-local C_AzeriteBar = ResourceBarsPackage:Get("AzeriteBar");
+local C_AzeriteBar = obj:Import("MayronUI.AzeriteBar");
 
 -- Local Functions -----------------------
 
@@ -45,29 +41,29 @@ end
 
 -- C_AzeriteBar --------------------------
 
-ResourceBarsPackage:DefineParams("BottomUI_ResourceBars", "table");
+obj:DefineParams("ResourceBars", "table");
 function C_AzeriteBar:__Construct(_, barsModule, moduleData)
-    self:Super(barsModule, moduleData, "azerite");
+  self:CreateResourceBar(barsModule, moduleData, "azerite");
 end
 
-ResourceBarsPackage:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 function C_AzeriteBar:CanUse()
-    return _G.AzeriteBarMixin:ShouldBeVisible() == true; -- this is a static mixin method
+  return _G.AzeriteBarMixin:ShouldBeVisible() == true; -- this is a static mixin method
 end
 
-ResourceBarsPackage:DefineParams("boolean");
+obj:DefineParams("boolean");
 function C_AzeriteBar:SetActive(data, active)
-    self.Parent:SetActive(active);
+  self:CallParentMethod("SetActive", active);
 
-    if (active and data.notCreated) then
-        data.statusbar.texture = data.statusbar:GetStatusBarTexture();
-        data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
+  if (active and data.notCreated) then
+    data.statusbar.texture = data.statusbar:GetStatusBarTexture();
+    data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
 
-        data.notCreated = nil;
-    end
+    data.notCreated = nil;
+  end
 end
 
-ResourceBarsPackage:DefineParams("boolean");
+obj:DefineParams("boolean");
 function C_AzeriteBar:SetEnabled(data, enabled)
   if (enabled) then
     -- need to check when it's active

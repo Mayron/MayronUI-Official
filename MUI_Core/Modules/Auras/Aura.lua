@@ -1,5 +1,3 @@
-local _, namespace = ...;
-
 -- luacheck: ignore self 143
 local MayronUI = _G.MayronUI;
 local tk, _, _, _, obj = MayronUI:GetCoreComponents();
@@ -8,13 +6,9 @@ local unpack, CreateFrame, InCombatLockdown, CancelUnitBuff, GameTooltip, UnitAu
 _G.unpack, _G.CreateFrame, _G.InCombatLockdown, _G.CancelUnitBuff, _G.GameTooltip, _G.UnitAura;
 
 -- Objects -----------------------------
-
----@type Engine
-local Engine = obj:Import("MayronUI.Engine");
-
 ---@class C_Aura : Object
-local C_Aura = Engine:CreateClass("Aura", "Framework.System.FrameWrapper");
-namespace.C_Aura = C_Aura;
+local C_Aura = obj:CreateClass("Aura");
+obj:Export(C_Aura, "MayronUI.AurasModule");
 
 -- Local Functions ---------------------
 local function CancelAura(self)
@@ -58,9 +52,9 @@ end
 -- C_Aura -------------------------------
 function C_Aura:__Construct(data, parent, settings, auraID, filter)
   data.settings = settings;
-  data.frame = CreateFrame("Button", nil, parent);
+  local btn = CreateFrame("Button", nil, parent);
+  self:SetFrame(btn);
 
-  local btn = data.frame;
   btn:SetID(auraID);
 
   btn.obj = self;
@@ -91,7 +85,7 @@ function C_Aura:__Construct(data, parent, settings, auraID, filter)
 end
 
 function C_Aura:SetUpStatusBar(data)
-  local btn = data.frame;
+  local btn = self:GetFrame();
   local statusBars = data.settings.statusBars;
 
   btn:SetSize(statusBars.width, statusBars.height);
@@ -121,7 +115,7 @@ function C_Aura:SetUpStatusBar(data)
 end
 
 function C_Aura:SetUpIcon(data)
-  local btn = data.frame;
+  local btn = self:GetFrame();
   local icons = data.settings.icons;
 
   btn:SetSize(icons.auraSize, icons.auraSize);
@@ -132,9 +126,9 @@ function C_Aura:SetUpIcon(data)
 end
 
 --Changes which aura is being tracked and updates the icon and aura name
-Engine:DefineParams("number|boolean", "?string");
+obj:DefineParams("number|boolean", "?string");
 function C_Aura:SetAura(data, iconTexture, auraName)
-  local btn = data.frame;
+  local btn = self:GetFrame();
 
   if (not iconTexture) then
     btn:Hide();
@@ -162,7 +156,7 @@ end
 
 function C_Aura:SetUpBorder(data)
   local settings = data.settings.border;
-  local btn = data.frame;
+  local btn = self:GetFrame();
 
   if (not data.backdrop) then
     data.backdrop = obj:PopTable();
@@ -189,9 +183,9 @@ function C_Aura:SetUpBorder(data)
   btn.iconTexture:SetPoint("BOTTOMRIGHT", -settings.size, settings.size);
 end
 
-Engine:DefineReturns("table");
+obj:DefineReturns("table");
 function C_Aura:GetAuraColor(data)
-  local btn = data.frame;
+  local btn = self:GetFrame();
   local _, _, _, debuffType = UnitAura("player", btn:GetID(), btn.filter);
   local auraColor;
 
@@ -212,10 +206,10 @@ function C_Aura:GetAuraColor(data)
   return auraColor;
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar spark effect.
 function C_Aura:SetSparkShown(data, shown)
-  local btn = data.frame;
+  local btn = self:GetFrame();
 
   if (not btn.spark and not shown) then
     return;
@@ -235,8 +229,8 @@ function C_Aura:SetSparkShown(data, shown)
   data.showSpark = shown;
 end
 
-function C_Aura:UpdateStatusBar(data, duration, timeRemaining)
-  local btn = data.frame;
+function C_Aura:UpdateStatusBar(_, duration, timeRemaining)
+  local btn = self:GetFrame();
 
   if (timeRemaining > 0 and duration) then
     btn.statusBar:SetMinMaxValues(0, duration);

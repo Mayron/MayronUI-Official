@@ -5,17 +5,16 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
 if (not Lib) then return; end
 
-local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
-local obj = Lib.Objects;
-
-local SlideController = WidgetsPackage:Get("SlideController");
-local DropDownMenu = WidgetsPackage:CreateClass("DropDownMenu", Private.FrameWrapper);
+local obj = _G.MayronObjects:GetFramework();
+local SlideController = obj:Import("MayronUI.SlideController");
+local DropDownMenu = obj:CreateClass("DropDownMenu");
+obj:Export(DropDownMenu, "MayronUI");
 
 DropDownMenu.Static.MAX_HEIGHT = 200;
 
 local CreateFrame, select, unpack, ipairs = _G.CreateFrame, _G.select, _G.unpack, _G.ipairs;
-local table = _G.table;
+local tremove, tsort, tinsert = _G.table.remove, _G.table.sort, _G.table.insert;
 
 -- Local Functions -------------------------------
 local dropdowns = {};
@@ -74,7 +73,7 @@ function Lib:CreateDropDown(style, parent, direction, menuParent)
     DropDownMenu.Static.Menu:SetScript("OnHide", FoldAll);
 
     Private:SetBackground(DropDownMenu.Static.Menu, 0, 0, 0, 0.9);
-    table.insert(_G.UISpecialFrames, "MUI_DropDownMenu");
+    tinsert(_G.UISpecialFrames, "MUI_DropDownMenu");
   end
 
   local dropDownContainer = CreateFrame("Button", nil, parent);
@@ -125,7 +124,7 @@ function Lib:CreateDropDown(style, parent, direction, menuParent)
 
   dropDownContainer.dropdown = DropDownMenu(style, header, direction, slideController, dropDownContainer);
   dropDownContainer.toggleButton.dropdown = dropDownContainer.dropdown; -- needed for OnClick
-  table.insert(dropdowns, dropDownContainer.dropdown);
+  tinsert(dropdowns, dropDownContainer.dropdown);
 
   return dropDownContainer.dropdown;
 end
@@ -150,7 +149,7 @@ local function ToolTip_OnLeave()
   _G.GameTooltip:Hide();
 end
 
-WidgetsPackage:DefineParams("Style", "Frame", "string", "SlideController", "Frame")
+obj:DefineParams("Style", "Frame", "string", "SlideController", "Frame")
 function DropDownMenu:__Construct(data, style, header, direction, slideController, frame)
   data.header = header;
   data.direction = direction;
@@ -206,31 +205,31 @@ do
   end
 end
 
-WidgetsPackage:DefineParams("string");
+obj:DefineParams("string");
 function DropDownMenu:SetLabel(data, text)
   data.label:SetText(text);
 end
 
-WidgetsPackage:DefineReturns("?string");
+obj:DefineReturns("?string");
 function DropDownMenu:GetLabel(data)
   return data.label and data.label:GetText();
 end
 
-WidgetsPackage:DefineReturns("number");
+obj:DefineReturns("number");
 function DropDownMenu:GetNumOptions(data)
   return #data.options;
 end
 
-WidgetsPackage:DefineParams("number");
-WidgetsPackage:DefineReturns("Button");
+obj:DefineParams("number");
+obj:DefineReturns("Button");
 function DropDownMenu:GetOptionByID(data, optionID)
   local foundOption = data.options[optionID];
   obj:Assert(foundOption, "DropDownMenu.GetOption failed to find option with id '%s'.", optionID);
   return foundOption;
 end
 
-WidgetsPackage:DefineParams("string");
-WidgetsPackage:DefineReturns("Button");
+obj:DefineParams("string");
+obj:DefineReturns("Button");
 function DropDownMenu:GetOptionByLabel(data, label)
   for _, optionButton in ipairs(data.options) do
     if (optionButton:GetText() == label) then
@@ -239,11 +238,11 @@ function DropDownMenu:GetOptionByLabel(data, label)
   end
 end
 
-WidgetsPackage:DefineParams("string");
+obj:DefineParams("string");
 function DropDownMenu:RemoveOptionByLabel(data, label)
   for optionID, optionButton in ipairs(data.options) do
     if (optionButton:GetText() == label) then
-      table.remove(data.options, optionID);
+      tremove(data.options, optionID);
       Private:PushFrame(optionButton);
       self:RepositionOptions();
 
@@ -271,7 +270,7 @@ do
     local height = 30;
 
     if (not data.disableSorting) then
-      table.sort(data.options, SortByLabel);
+      tsort(data.options, SortByLabel);
     end
 
     for _, option in ipairs(data.options) do
@@ -350,7 +349,7 @@ function DropDownMenu:AddOption(data, label, func, ...)
     end
   end);
 
-  table.insert(data.options, option);
+  tinsert(data.options, option);
   self:RepositionOptions();
   self:SetEnabled(true);
 

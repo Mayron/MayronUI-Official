@@ -1,7 +1,7 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-local C_UnitPanels = _G.MayronUI:ImportModule("BottomUI_UnitPanels");
+local _, C_UnitPanels = _G.MayronUI:ImportModule("UnitPanels");
 
 local string, tonumber, tostring = _G.string, _G.tonumber, _G.tostring;
 local UnitGUID, UnitLevel, UnitAffectingCombat = _G.UnitGUID, _G.UnitLevel, _G.UnitAffectingCombat;

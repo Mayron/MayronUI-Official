@@ -1,9 +1,9 @@
-## Interface: 90002
+## Interface: 90005
 ## Title: |cff00ccffMUI|r Core
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
-## Version: 6.3.13
+## Version: 6.4.0
 
 ## Links:
 ## ------------------------------------------------
@@ -16,17 +16,18 @@
 ## Credits:
 ## ------------------------------------------------
 ## X-Community-Support-Team: Monster/ Alizmer [GER]
-## X-Patrons: LaidbackLuke, AkumaGekido, Arriesa, Missfit, PuppyCatbug, Kallomuki, Tibbetts
+## X-Patrons: Size Queen Kimiko, AkumaGekido, Arriesa, Kallomuki, LaidbackLuke, Missfit, NeuRooT, Pixel, PuppyCatbug, Tibbetts
 ## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma, EarlGrey
-## X-Development-and-Bug-Fixes: Monkey, Gargnash, BeetleJooce
+## X-Development-and-Bug-Fixes: Monkey
 
 TaintLess.xml
 
 ## Packages:
 ## -------------------------------------------------
-Engine\MayronObjects\MayronObjects.xml
+Engine\MayronObjects\MayronObjects.lua
 Packages\Pkg-MayronDB\Pkg-MayronDB.lua
 Packages\Pkg-MayronEvents\Pkg-MayronEvents.xml
+Packages\Pkg-Collections\Pkg-Collections.xml
 
 ## Libraries:
 ## ------------------------------------------------

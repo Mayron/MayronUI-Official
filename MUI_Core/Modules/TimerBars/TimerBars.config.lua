@@ -71,27 +71,27 @@ do
     end
 
     function ShowListFrame(btn)
-        if (btn.listFrame) then
-            btn.listFrame:SetShown(true);
-            return;
-        end
-
-        ---@type ListFrame
-        local C_ListFrame = obj:Import("MayronUI.Engine.ConfigTools.ListFrame");
-
-        btn.listFrame = C_ListFrame(btn.name, btn.dbPath);
-
-        if (btn.dbPath:find("white")) then
-            btn.listFrame:AddRowText(L["Enter an aura name to add to the whitelist:"]);
-        else
-            btn.listFrame:AddRowText(L["Enter an aura name to add to the blacklist:"]);
-        end
-
-        btn.listFrame:SetScript("OnAddItem", ListFrame_OnAddItem);
-        btn.listFrame:SetScript("OnRemoveItem", ListFrame_OnRemoveItem);
-        btn.listFrame:SetScript("OnItemEnter", tk.AuraTooltip_OnEnter);
-        btn.listFrame:SetScript("OnShow", ListFrame_OnShow);
+      if (btn.listFrame) then
         btn.listFrame:SetShown(true);
+        return;
+      end
+
+      ---@type ListFrame
+      local C_ListFrame = obj:Import("MayronUI.ListFrame");
+
+      btn.listFrame = C_ListFrame(btn.name, btn.dbPath);
+
+      if (btn.dbPath:find("white")) then
+        btn.listFrame:AddRowText(L["Enter an aura name to add to the whitelist:"]);
+      else
+        btn.listFrame:AddRowText(L["Enter an aura name to add to the blacklist:"]);
+      end
+
+      btn.listFrame:SetScript("OnAddItem", ListFrame_OnAddItem);
+      btn.listFrame:SetScript("OnRemoveItem", ListFrame_OnRemoveItem);
+      btn.listFrame:SetScript("OnItemEnter", tk.AuraTooltip_OnEnter);
+      btn.listFrame:SetScript("OnShow", ListFrame_OnShow);
+      btn.listFrame:SetShown(true);
     end
 end
 

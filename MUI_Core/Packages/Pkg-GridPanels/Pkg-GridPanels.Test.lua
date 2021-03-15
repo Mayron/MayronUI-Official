@@ -1,9 +1,9 @@
 -- luacheck: ignore self 143 631
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
-local GridPanels = obj:Import("GridPanels.Main"); ---@type Package
-local Grid = GridPanels:Get("Grid");
-local Region = GridPanels:Get("Region");
-local ResponsiveScrollFrame = GridPanels:Get("ResponsiveScrollFrame");
+local GridPanels = obj:Import("Pkg-GridPanels"); ---@type Package
+local C_Grid = GridPanels.Grid;
+local C_Region = GridPanels.Region;
+local C_ResponsiveScrollFrame = GridPanels.ResponsiveScrollFrame;
 
 local print = _G.print;
 -------------------------------------------------
@@ -12,14 +12,14 @@ local function Creating_Grid_With_Regions_Test1()
   print("Creating_Grid_With_Regions_Test1 Started");
 
   -- Arrange
-  local grid = Grid(); ---@type Grid
-  local regionA = Region(); ---@type Region
+  local grid = C_Grid(); ---@type Grid
+  local regionA = C_Region(); ---@type Region
   regionA:SetName("Region A");
 
-  local regionB = Region(); ---@type Region
+  local regionB = C_Region(); ---@type Region
   regionB:SetName("Region B");
 
-  local regionC = Region(); ---@type Region
+  local regionC = C_Region(); ---@type Region
   regionC:SetName("Region C");
 
   -- Act
@@ -38,10 +38,10 @@ local function Creating_Grid_With_Regions_Test2()
   print("Creating_Grid_With_Regions_Test2 Started");
 
   -- Arrange
-  local grid = Grid(); ---@type Grid
-  local regionA = Region(); ---@type Region
-  local regionB = Region(); ---@type Region
-  local regionC = Region(); ---@type Region
+  local grid = C_Grid(); ---@type Grid
+  local regionA = C_Region(); ---@type Region
+  local regionB = C_Region(); ---@type Region
+  local regionC = C_Region(); ---@type Region
 
   -- Act
   grid:AddRegions(regionA, regionB, regionC);
@@ -58,7 +58,7 @@ local function Set_And_Get_Grid_Dimensions_Test1()
   print("Set_And_Get_Grid_Dimensions_Test1 Started");
 
   -- Arrange
-  local grid = Grid(); ---@type Grid
+  local grid = C_Grid(); ---@type Grid
 
   -- Act
   grid:SetDimensions(3, 5);
@@ -76,18 +76,18 @@ local function Set_Fixed_And_Scaled_Values_To_Rows_And_Columns_Visual_Test1()
   print("Set_Fixed_And_Scaled_Values_To_Rows_And_Columns_Visual_Test1 Started");
 
   -- Arrange
-  local grid = Grid(); ---@type Grid
+  local grid = C_Grid(); ---@type Grid
   grid:SetDevMode(true);
   grid:SetPoint("CENTER");
   grid:SetSize(800, 500);
 
-  local regionA = Region(); ---@type Region
+  local regionA = C_Region(); ---@type Region
   regionA:SetSpanSize(1, 2);
 
-  local regionB = Region(); ---@type Region
+  local regionB = C_Region(); ---@type Region
   regionB:SetSpanSize(2, 3);
 
-  local regionC = Region(); ---@type Region
+  local regionC = C_Region(); ---@type Region
 
   -- Act
   grid:SetDimensions(3, 5);
@@ -113,14 +113,14 @@ local function If_Not_Enough_Height_Dimension_Should_Scale_To_Fit_Test1()
   print("If_Not_Enough_Height_Dimension_Should_Scale_To_Fit_Test1 Started");
 
   -- Arrange
-  local grid = Grid(); ---@type Grid
+  local grid = C_Grid(); ---@type Grid
   grid:SetDevMode(true);
   grid:SetPoint("CENTER");
   grid:SetSize(800, 500);
 
-  local regionA = Region(); ---@type Region
-  local regionB = Region(); ---@type Region
-  local regionC = Region(); ---@type Region
+  local regionA = C_Region(); ---@type Region
+  local regionB = C_Region(); ---@type Region
+  local regionC = C_Region(); ---@type Region
 
   -- Act
   grid:SetDimensions(1, "auto");
@@ -133,14 +133,14 @@ local function If_Not_Enough_Width_Dimension_Should_Scale_To_Fit_Test1()
   print("If_Not_Enough_Width_Dimension_Should_Scale_To_Fit_Test1 Started");
 
     -- Arrange
-    local grid = Grid(); ---@type Grid
+    local grid = C_Grid(); ---@type Grid
     grid:SetDevMode(true);
     grid:SetPoint("CENTER");
     grid:SetSize(800, 500);
 
-    local regionA = Region(); ---@type Region
-    local regionB = Region(); ---@type Region
-    local regionC = Region(); ---@type Region
+    local regionA = C_Region(); ---@type Region
+    local regionB = C_Region(); ---@type Region
+    local regionC = C_Region(); ---@type Region
 
     -- Act
     -- should ignore auto height and pick width to scale if both are "auto".
@@ -155,20 +155,20 @@ local function Set_Region_Insets_Visual_Test1()
   print("Set_Region_Insets_Visual_Test1 Started");
 
   -- Arrange
-  local grid = Grid(); ---@type Grid
+  local grid = C_Grid(); ---@type Grid
   grid:SetDevMode(true);
   grid:SetPoint("CENTER");
   grid:SetSize(800, 500);
 
-  local regionA = Region(); ---@type Region
+  local regionA = C_Region(); ---@type Region
   regionA:SetInsets(10) -- all insets should be 10
 
-  local regionB = Region(); ---@type Region
+  local regionB = C_Region(); ---@type Region
   -- vertical insets should be 10 (top and bottom),
   -- horizontal insets should be 30 (left and right)
   regionB:SetInsets(10, 30);
 
-  local regionC = Region(); ---@type Region
+  local regionC = C_Region(); ---@type Region
   -- top = 10, right = 30, bottom = 50, left = 80
   regionC:SetInsets(10, 30, 50, 80);
 
@@ -180,7 +180,7 @@ grid:AddRegions(regionA, regionB, regionC);
 end
 
 local function CreateElement(width, height, globalName)
-  local element = CreateFrame("Frame", globalName);
+  local element = _G.CreateFrame("Frame", globalName);
   element:SetSize(width, height);
   local texture = element:CreateTexture(nil, "BACKGROUND");
   texture:SetAllPoints(true);
@@ -192,7 +192,7 @@ end
 local function ResponsiveScrollFrame_Test1()
   print("ResponsiveScrollFrame_Test1 Started");
   -- Act
-  local frame = ResponsiveScrollFrame(nil, "ResponsiveScrollFrame_Test1"); ---@type ResponsiveScrollFrame
+  local frame = C_ResponsiveScrollFrame(nil, "ResponsiveScrollFrame_Test1"); ---@type ResponsiveScrollFrame
   frame:SetPoint("CENTER");
   frame:SetSize(400, 500);
 

@@ -1,16 +1,11 @@
 -- luacheck: ignore MayronUI self 143
 ---@type MayronUI
 local MayronUI = _G.MayronUI;
-
--- Setup namespaces ------------------
-local _, namespace = ...;
-local Engine = namespace.Engine;
 local tk, _, em, gui, obj, L = MayronUI:GetCoreComponents();
-
 local MEDIA = tk:GetAssetFilePath("Textures\\Chat\\");
 
----@class ChatFrame;
-local C_ChatFrame = namespace.C_ChatFrame;
+---@class ChatFrame
+local C_ChatFrame = obj:Import("MayronUI.ChatModule.ChatFrame");
 
 local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string, table, pairs =
 	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string, _G.table, _G.pairs;
@@ -23,12 +18,12 @@ local FRIENDS_TEXTURE_ONLINE, FRIENDS_TEXTURE_AFK, FRIENDS_TEXTURE_DND =
 local FRIENDS_LIST_AVAILABLE, FRIENDS_LIST_AWAY, FRIENDS_LIST_BUSY =
   _G.FRIENDS_LIST_AVAILABLE, _G.FRIENDS_LIST_AWAY, _G.FRIENDS_LIST_BUSY;
 
-local strsplit, select, IsAddOnLoaded = _G.strsplit, _G.select, _G.IsAddOnLoaded;
+local IsAddOnLoaded = _G.IsAddOnLoaded;
 local UIParent = _G.UIParent;
 
 -- C_ChatFrame -----------------------
 
-Engine:DefineParams("string", "ChatModule", "table");
+obj:DefineParams("string", "ChatModule", "table");
 ---@param anchorName string position of chat frame (i.e. "TOPLEFT")
 ---@param chatModule ChatModule
 ---@param chatModuleSettings table
@@ -39,7 +34,7 @@ function C_ChatFrame:__Construct(data, anchorName, chatModule, chatModuleSetting
 	data.settings = chatModuleSettings.chatFrames[anchorName];
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---@param enabled boolean enable/disable the chat frame
 function C_ChatFrame:SetEnabled(data, enabled)
 	if (not data.frame and enabled) then
@@ -169,7 +164,7 @@ function C_ChatFrame:CreateButtons(data)
 	end
 end
 
-Engine:DefineReturns("Frame");
+obj:DefineReturns("Frame");
 ---@return Frame returns an MUI chat frame
 function C_ChatFrame:CreateFrame(data)
 	local muiChatFrame = CreateFrame("Frame", "MUI_ChatFrame_" .. data.anchorName, UIParent);

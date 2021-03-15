@@ -1,8 +1,5 @@
-local _, namespace = ...;
-
 -- luacheck: ignore MayronUI self 143 631
-local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
-local ComponentsPackage = namespace.ComponentsPackage;
+local tk, _, em, _, obj, L = _G.MayronUI:GetCoreComponents();
 
 local DURABILITY_SLOTS = {
     "HeadSlot", "ShoulderSlot", "ChestSlot", "WaistSlot", "LegsSlot", "FeetSlot",
@@ -20,7 +17,7 @@ local INVENTORY_ALERT_COLORS = _G.INVENTORY_ALERT_COLORS;
 
 -- Register and Import Modules -------
 
-local Durability = ComponentsPackage:CreateClass("Durability", nil, "IDataTextComponent");
+local Durability = obj:CreateClass("Durability");
 
 -- Local Functions ----------------
 

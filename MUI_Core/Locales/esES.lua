@@ -144,6 +144,7 @@ L["Player"]							= "Jugador";
 L["Target"]							= "Objetivo";
 L["Focus"]							= "Enfoque";
 L["Mirror"]							= "Duplicar";
+L["Pet"] = "Mascota";
 
 L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."]	= "Cuando esta activo, la barra de conversión se fijará a la barra vertical de %s Unit Frame (si existe).";
 L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."]					= "Debe de estar activa la barra vertical de cuadros de %s para utilizar esta función.";
@@ -634,7 +635,6 @@ L["Modifier key/s used to show Expand/Retract button:"] 			  = "Modifier key/s u
 L["Side Action Bars"]                                                 = "Side Action Bars";
 L["Minimum value is"]                                                 = "Minimum value is";
 L["Maximum value is"]                                                 = "Maximum value is";
-L["Enable Changes"]                                                   = "Enable Changes";
 L["Collapse in Instance"]                                             = "Collapse in Instance";
 L["CREDITS"]                                                          = "CREDITS";
 L["Buffs"]                                                            = "Buffs";

@@ -5,12 +5,12 @@ local obj = namespace.components.Objects; ---@type MayronObjects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
 local pcall, pairs, strsplit, tonumber = _G.pcall, _G.pairs, _G.strsplit, _G.tonumber;
-local table = _G.table;
+local table, select = _G.table, _G.select;
 local LibStub = _G.LibStub;
 
 tk.Tables = {};
 
-local LinkedList = obj:Import("Framework.System.Collections.LinkedList"); ---@type LinkedList
+local LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type LinkedList
 -----------------------------
 
 function tk.Tables:GetKeys(tbl, keys)
@@ -64,7 +64,9 @@ function tk.Tables:GetTable(rootTable, ...)
 
   local currentTable = rootTable;
 
-  for _, key in obj:IterateArgs(...) do
+  for i = 1, select("#", ...) do
+    local key = (select(i, ...));
+
     if (not obj:IsTable(currentTable[key])) then
       currentTable[key] = obj:PopTable();
     end
@@ -253,7 +255,9 @@ end
 function tk.Tables:Merge(...)
   local merged = obj:PopTable();
 
-  for _, tbl in obj:IterateArgs(...) do
+  for i = 1, select("#", ...) do
+    local tbl = (select(i, ...));
+
     for key, value in pairs(tbl) do
       if (obj:IsTable(merged[key]) and obj:IsTable(value)) then
         merged[key] = self:Merge(merged[key], value);
@@ -316,7 +320,7 @@ function tk.Tables:GetDBObject(addOnName)
   local addon, okay, dbObject;
 
   ---@type MayronDB
-  local MayronDB = obj:Import("Pkg-MayronDB.MayronDB");
+  local MayronDB = obj:Import("MayronDB");
   dbObject = MayronDB.Static:GetDatabaseByName(addOnName);
 
   if (dbObject) then

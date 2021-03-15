@@ -1,31 +1,32 @@
 -- luacheck: ignore self 143 631
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
-if (obj:Import("GridPanels.Main", true)) then return end
+if (obj:Import("Pkg-GridPanels", true)) then return end
 
-local GridPanels = obj:CreatePackage("Main", "GridPanels"); ---@type Package
-local C_LinkedList = obj:Import("Framework.System.Collections.LinkedList"); ---@type LinkedList
-local C_FrameWrapper = obj:Import("Framework.System.FrameWrapper");
+local C_LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type LinkedList
 
-local Grid = GridPanels:CreateClass("Grid", C_FrameWrapper); ---@class Grid : FrameWrapper
-Grid.Static:AddFriendClass("Group");
-Grid.Static:AddFriendClass("Region");
+local C_Grid = obj:CreateClass("Grid"); ---@class Grid
+C_Grid.Static:AddFriendClass("Pkg-GridPanels.Group");
+C_Grid.Static:AddFriendClass("Pkg-GridPanels.Region");
+obj:Export(C_Grid, "Pkg-GridPanels");
 
-local Region = GridPanels:CreateClass("Region", C_FrameWrapper); ---@class Region : Object
-Region.Static:AddFriendClass("Grid");
+local C_Region = obj:CreateClass("Region"); ---@class Region : Object
+C_Region.Static:AddFriendClass("Pkg-GridPanels.Grid");
+obj:Export(C_Region, "Pkg-GridPanels");
 
-local Group = GridPanels:CreateClass("Group", C_FrameWrapper); ---@class Group : Object
-Group.Static:AddFriendClass("Grid");
+local C_Group = obj:CreateClass("Group"); ---@class Group : Object
+C_Group.Static:AddFriendClass("Pkg-GridPanels.Grid");
+obj:Export(C_Group, "Pkg-GridPanels");
 
-GridPanels:CreateClass("ResponsiveScrollFrame", C_FrameWrapper); ---@class ResponsiveScrollFrame : Object
+local C_ResponsiveScrollFrame = obj:CreateClass("ResponsiveScrollFrame"); ---@class ResponsiveScrollFrame : Object
+obj:Export(C_ResponsiveScrollFrame, "Pkg-GridPanels");
 
 local math, select, CreateFrame = _G.math, _G.select, _G.CreateFrame;
-
 local DUMMY_FRAME = CreateFrame("Frame");
 
 ---------------------------------
---- Grid
+--- C_Grid
 ---------------------------------
-function Grid:__Construct(data, frame, globalName, parent)
+function C_Grid:__Construct(data, frame, globalName, parent)
   data.frame = frame or CreateFrame("Frame", globalName,
     parent or _G.UIParent, _G.BackdropTemplateMixin and "BackdropTemplate");
 
@@ -41,17 +42,17 @@ function Grid:__Construct(data, frame, globalName, parent)
 end
 
 -- helper function so you don't need to manually import the Region object
-function Grid:CreateRegion(_, frame, globalName, parent)
-  return Region(frame, globalName, parent);
+function C_Grid:CreateRegion(_, frame, globalName, parent)
+  return C_Region(frame, globalName, parent);
 end
 
-GridPanels:DefineReturns("number|string", "number|string");
-function Grid:GetDimensions(data)
+obj:DefineReturns("number|string", "number|string");
+function C_Grid:GetDimensions(data)
   return data.width, data.height;
 end
 
-GridPanels:DefineParams("number|string", "number|string");
-function Grid:SetDimensions(data, width, height)
+obj:DefineParams("number|string", "number|string");
+function C_Grid:SetDimensions(data, width, height)
   local cells = obj:PopTable(data.cells:Unpack());
 
   data.width = width;
@@ -97,14 +98,14 @@ function Grid:SetDimensions(data, width, height)
   data:SetupGrid();
 end
 
-GridPanels:DefineParams("boolean");
-function Grid:SetDevMode(data, devMode)  -- shows or hides the red frame info overlays
+obj:DefineParams("boolean");
+function C_Grid:SetDevMode(data, devMode)  -- shows or hides the red frame info overlays
   data.devMode = devMode;
 end
 
 ---@vararg Region
-GridPanels:DefineParams("Region");
-function Grid:AddRegions(data, ...)
+obj:DefineParams("Region");
+function C_Grid:AddRegions(data, ...)
   data.regions = data.regions or C_LinkedList();
 
   for _, region in obj:IterateArgs(...) do
@@ -115,30 +116,30 @@ function Grid:AddRegions(data, ...)
   data:AnchorRegions();
 end
 
-GridPanels:DefineParams("?number");
-GridPanels:DefineReturns("?Region");
-function Grid:GetRegions(data, n)
+obj:DefineParams("?number");
+obj:DefineReturns("?Region");
+function C_Grid:GetRegions(data, n)
   if (not data.regions) then return end
   return data.regions:Unpack(n);
 end
 
-GridPanels:DefineParams("number");
-GridPanels:DefineReturns("?Group");
+obj:DefineParams("number");
+obj:DefineReturns("?Group");
 ---@return Group
-function Grid:GetRow(data, rowID)
+function C_Grid:GetRow(data, rowID)
   if (not data.cells) then return end
-  return Group(rowID, "row", self);
+  return C_Group(rowID, "row", self);
 end
 
-GridPanels:DefineParams("number");
-GridPanels:DefineReturns("?Group");
+obj:DefineParams("number");
+obj:DefineReturns("?Group");
 ---@return Group
-function Grid:GetColumn(data, columnID)
+function C_Grid:GetColumn(data, columnID)
   if (not data.cells) then return end
-  return Group(columnID, "column", self);
+  return C_Group(columnID, "column", self);
 end
 
-function Grid:MakeResizable(data, dragger)
+function C_Grid:MakeResizable(data, dragger)
   dragger = dragger or data.frame;
   data.frame:SetResizable(true);
   dragger:RegisterForDrag("LeftButton");
@@ -152,7 +153,7 @@ function Grid:MakeResizable(data, dragger)
   end);
 end
 
-function Grid.Private:GetCoords(data, position)
+function C_Grid.Private:GetCoords(data, position)
   for row = 1, data.height do
     for column = 1, data.width do
       if ((row - 1) * data.width + column == position) then
@@ -162,7 +163,7 @@ function Grid.Private:GetCoords(data, position)
   end
 end
 
-function Grid.Private:BuildPattern(data, startPos, endPos, pattern)
+function C_Grid.Private:BuildPattern(data, startPos, endPos, pattern)
   local startColumn, startRow = data:Call("GetCoords", startPos);
   local endColumn, endRow = data:Call("GetCoords", endPos);
 
@@ -177,7 +178,7 @@ function Grid.Private:BuildPattern(data, startPos, endPos, pattern)
   end
 end
 
-function Grid.Private:AnchorRegions(data)
+function C_Grid.Private:AnchorRegions(data)
   if (not data.regions or not data.cells) then
     return false;
   end
@@ -241,7 +242,7 @@ function Grid.Private:AnchorRegions(data)
 end
 
 -- Helper Functions
-function Grid.Private:SetBackground(frame, ...)
+function C_Grid.Private:SetBackground(frame, ...)
   local texture = frame:CreateTexture(nil, "BACKGROUND");
 
   -- make room for the border!
@@ -257,7 +258,7 @@ function Grid.Private:SetBackground(frame, ...)
   return texture;
 end
 
-function Grid.Private:OnSizeChanged(data)
+function C_Grid.Private:OnSizeChanged(data)
   local totalFixedWidth = data.fixedInfo and data.fixedInfo.width.total or 0;
   local totalFixedHeight = data.fixedInfo and data.fixedInfo.height.total or 0;
   local numFixedColumns = data.fixedInfo and data.fixedInfo.width.columns or 0;
@@ -279,7 +280,7 @@ function Grid.Private:OnSizeChanged(data)
   end
 end
 
-function Grid.Private:SetupGrid(data)
+function C_Grid.Private:SetupGrid(data)
   local cells = obj:PopTable(data.cells:Unpack());
 
   for id, region in data.cells:Iterate() do
@@ -303,7 +304,7 @@ end
 do
   local frames = obj:PopTable();
 
-  function Grid.Private:PopFrame(_, objectType, parent)
+  function C_Grid.Private:PopFrame(_, objectType, parent)
     parent = parent or _G.UIParent;
     objectType = objectType or "Frame";
 
@@ -322,7 +323,7 @@ do
     return frame;
   end
 
-  function Grid.Private:PushFrame(data, frame)
+  function C_Grid.Private:PushFrame(data, frame)
     if (not frame.GetObjectType) then return end
 
     local objectType = frame:GetObjectType();

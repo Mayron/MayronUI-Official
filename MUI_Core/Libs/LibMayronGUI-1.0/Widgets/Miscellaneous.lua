@@ -9,8 +9,7 @@ local CreateFrame, string, hooksecurefunc, PlaySound, unpack =
   _G.CreateFrame, _G.string, _G.hooksecurefunc, _G.PlaySound, _G.unpack;
 
 local Private = Lib.Private;
-local obj = Lib.Objects;
----------------------------------
+local obj = _G.MayronObjects:GetFramework();
 
 local function OnEnter(self)
   _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 4);

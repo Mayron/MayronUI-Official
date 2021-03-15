@@ -1,5 +1,3 @@
-local _, namespace = ...;
-
 -- luacheck: ignore self 143
 local MayronUI = _G.MayronUI;
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
@@ -14,20 +12,16 @@ local enchantAuraIds = { 16, 17, 18 };
 local ARGS_PER_ITEM = 4;
 
 -- Objects -----------------------------
-
----@type Engine
-local Engine = obj:Import("MayronUI.Engine");
-
 ---@class AurasModule : BaseModule
 local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"]);
-namespace.C_AurasModule = C_AurasModule;
 
 ---@class C_AuraArea : Object
-local C_AuraArea = Engine:CreateClass("AuraArea", "Framework.System.FrameWrapper");
+local C_AuraArea = obj:CreateClass("AuraArea");
 C_AuraArea.Static:AddFriendClass(C_AurasModule);
+obj:Export(C_AuraArea, "MayronUI.AurasModule");
 
 ---@type C_Aura
-local C_Aura = namespace.C_Aura;
+local C_Aura = obj:Import("MayronUI.AurasModule.Aura");
 
 -- Load Database Defaults --------------
 
@@ -298,9 +292,7 @@ local function AuraButton_OnUpdate(self)
     self.countText:SetText(count);
   end
 
-  if (not expirationTime) then
-    return;
-  end
+  if (not expirationTime) then return end
 
   local timeRemaining = expirationTime - GetTime();
 
@@ -394,7 +386,7 @@ end
 
 -- C_AuraArea ----------------------
 
-Engine:DefineParams("table", "string");
+obj:DefineParams("table", "string");
 function C_AuraArea:__Construct(data, moduleSettings, areaName)
   data.settings = moduleSettings[areaName];
   data.globalName = string.format("MUI_%sArea", areaName);
@@ -437,11 +429,9 @@ function C_AuraArea:UpdateSize(data)
   end
 end
 
-Engine:DefineParams("boolean")
+obj:DefineParams("boolean")
 function C_AuraArea:SetEnabled(data, enabled)
-  if (not data.frame and not enabled) then
-    return;
-  end
+  if (not data.frame and not enabled) then return end
 
   local newlyCreated;
 
@@ -504,8 +494,8 @@ function C_AuraArea:SetEnabled(data, enabled)
   end
 
   if (not newlyCreated) then
-    local Listener = em:GetEventListenerByID(data.globalName.."Listener");
-    Listener:SetEnabled(enabled);
+    local listener = em:GetEventListenerByID(data.globalName.."Listener");
+    listener:SetEnabled(enabled);
   end
 
   data.frame:SetShown(enabled);

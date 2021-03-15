@@ -16,7 +16,6 @@ local ScriptErrorsFrame = _G.ScriptErrorsFrame;
 
 ---@class C_ErrorHandler : BaseModule
 local C_ErrorHandler = MayronUI:RegisterModule("ErrorHandlerModule");
-local Engine = obj:Import("MayronUI.Engine");
 
 function C_ErrorHandler:OnInitialize()
   local function addError(errorMessage)
@@ -114,17 +113,18 @@ function C_ErrorHandler:OnInitialize()
     BugGrabber.RegisterCallback(namespace, "BugGrabber_BugGrabbed", BugGrabber_OnBugGrabbed);
   end
 
-  obj:SetErrorHandler(function(errorMessage, stack, locals)
-    local hideErrorFrame = not GetCVarBool("scriptErrors");
-    ScriptErrorsFrame.Title:SetText("MayronUI Error");
-    ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
+  -- TODO: Gone forever? :()
+  -- obj:SetErrorHandler(function(errorMessage, stack, locals)
+  --   local hideErrorFrame = not GetCVarBool("scriptErrors");
+  --   ScriptErrorsFrame.Title:SetText("MayronUI Error");
+  --   ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
 
-    addError(string.format("%s\n%s", errorMessage or "<unknown>", stack or tk.Strings.Empty));
-    ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
-  end);
+  --   addError(string.format("%s\n%s", errorMessage or "<unknown>", stack or tk.Strings.Empty));
+  --   ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
+  -- end);
 end
 
-Engine:DefineReturns("table");
+obj:DefineReturns("table");
 function C_ErrorHandler:GetErrors()
   return ERRORS;
 end

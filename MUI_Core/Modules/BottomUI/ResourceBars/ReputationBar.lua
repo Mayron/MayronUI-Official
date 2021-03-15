@@ -1,13 +1,8 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-
 local GetWatchedFactionInfo = _G.GetWatchedFactionInfo;
-
--- Setup Objects -------------------------
-
-local ResourceBarsPackage = obj:Import("MayronUI.ResourceBars");
-local C_ReputationBar = ResourceBarsPackage:Get("ReputationBar");
+local C_ReputationBar = obj:Import("MayronUI.ReputationBar");
 
 -- Local Functions -----------------------
 
@@ -41,12 +36,12 @@ end
 
 -- C_ReputationBar -----------------------
 
-ResourceBarsPackage:DefineParams("BottomUI_ResourceBars", "table");
+obj:DefineParams("ResourceBars", "table");
 function C_ReputationBar:__Construct(_, barsModule, moduleData)
-  self:Super(barsModule, moduleData, "reputation");
+  self:CreateResourceBar(barsModule, moduleData, "reputation");
 end
 
-ResourceBarsPackage:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 function C_ReputationBar:CanUse()
   -- standingID 8 == exalted
   local factionName, standingID = GetWatchedFactionInfo();
@@ -54,9 +49,9 @@ function C_ReputationBar:CanUse()
   return canUse;
 end
 
-ResourceBarsPackage:DefineParams("boolean");
+obj:DefineParams("boolean");
 function C_ReputationBar:SetActive(data, active)
-  self.Parent:SetActive(active);
+  self:CallParentMethod("SetActive", active);
 
   if (active and data.notCreated) then
     data.statusbar.texture = data.statusbar:GetStatusBarTexture();
@@ -65,7 +60,7 @@ function C_ReputationBar:SetActive(data, active)
   end
 end
 
-ResourceBarsPackage:DefineParams("boolean");
+obj:DefineParams("boolean");
 function C_ReputationBar:SetEnabled(data, enabled)
   if (enabled) then
     if (not em:GetEventListenerByID("OnReputationBarUpdate")) then

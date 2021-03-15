@@ -4,7 +4,7 @@ local _, namespace = ...;
 local string, tostring, select, unpack, type = _G.string, _G.tostring, _G.select, _G.unpack, _G.type;
 local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.pcall, _G.error;
 local hooksecurefunc, UnitLevel, UnitClass = _G.hooksecurefunc, _G.UnitLevel, _G.UnitClass;
-local LibStub, IsTrialAccount = _G.LibStub, _G.IsTrialAccount;
+local LibStub, IsTrialAccount, tostringall = _G.LibStub, _G.IsTrialAccount, _G.tostringall;
 local UnitQuestTrivialLevelRange, GetQuestGreenRange = _G.UnitQuestTrivialLevelRange, _G.GetQuestGreenRange;
 
 namespace.components = {};
@@ -19,14 +19,15 @@ local L = namespace.components.Locale;
 tk.Numbers = {};
 
 function tk.Numbers:ToPrecision(number, precision)
-    number = tonumber(number);
-    number = math.floor(number * (math.pow(10, precision)) + 0.5);
-    number = number / (math.pow(10, precision));
-    return number;
+  number = tonumber(number);
+  number = math.floor(number * (math.pow(10, precision)) + 0.5);
+  number = number / (math.pow(10, precision));
+  return number;
 end
 
 function tk:ValueIsEither(value, ...)
-  for _, otherValue in obj:IterateArgs(...) do
+  for i = 1, select("#", ...) do
+    local otherValue = (select(i, ...));
     if (self:Equals(value, otherValue)) then
       return true;
     end
@@ -36,50 +37,54 @@ function tk:ValueIsEither(value, ...)
 end
 
 function tk:UnpackIfTable(value)
-    if (obj:IsTable(value)) then
-        return obj:UnpackTable(value);
-    else
-        return value;
-    end
+  if (obj:IsTable(value)) then
+    return obj:UnpackTable(value);
+  else
+    return value;
+  end
 end
 
 function tk:Print(...)
-    local prefix = self.Strings:SetTextColorByTheme("MayronUI:");
-    _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, _G.tostringall(...)));
+  local prefix = self.Strings:SetTextColorByTheme("MayronUI:");
+  _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, tostringall(...)));
 end
 
 function tk:GetAssetFilePath(filePath)
-    return string.format("%s\\%s", tk.Constants.ASSETS_FOLDER, filePath);
+  return string.format("%s\\%s", tk.Constants.ASSETS_FOLDER, filePath);
 end
 
 do
-    local modKeys = {
-        S = function() return _G.IsShiftKeyDown(); end,
-        C = function() return _G.IsControlKeyDown(); end,
-        A = function() return _G.IsAltKeyDown(); end,
-    };
+  local IsShiftKeyDown, IsControlKeyDown, IsAltKeyDown =
+    _G.IsShiftKeyDown, _G.IsControlKeyDown, _G.IsAltKeyDown;
 
-    function tk:IsModComboActive(strKey) -- "SC" - is shift and control down but not alt? (example)
-        local checked = {S = false, C = false, A = false};
-        for i = 1, #strKey do
-            local modCode = strKey:sub(i,i)
-            modCode = string.upper(modCode);
+  local modKeys = {
+    S = function() return IsShiftKeyDown(); end;
+    C = function() return IsControlKeyDown(); end;
+    A = function() return IsAltKeyDown(); end;
+  };
 
-            checked[modCode] = true;
+  function tk:IsModComboActive(strKey) -- "SC" - is shift and control down but not alt? (example)
+    local checked = obj:PopTable();
 
-            if (not modKeys[modCode]()) then
-                return false;
-            end
-        end
+    for i = 1, #strKey do
+      local modCode = strKey:sub(i,i);
+      modCode = string.upper(modCode);
+      checked[modCode] = true;
 
-        for key, value in pairs(checked) do
-            if (not value and modKeys[key]()) then
-                return false;
-            end
-        end
-
-        return strKey ~= "";
+      if (not modKeys[modCode]()) then
+        return false;
+      end
     end
+
+    for key, value in pairs(checked) do
+      if (not value and modKeys[key]()) then
+        return false;
+      end
+    end
+
+    obj:PushTable(checked);
+    return strKey ~= tk.Strings.Empty;
+  end
 end
 
 do
@@ -224,23 +229,23 @@ function tk:GetNumErrors()
 end
 
 function tk:Assert(condition, errorMessage, ...)
-    if (condition) then return end
+  if (condition) then return end
 
-    if ((select("#", ...)) >= 1) then
-        errorMessage = string.format(errorMessage, _G.tostringall(...));
+  if ((select("#", ...)) >= 1) then
+    errorMessage = string.format(errorMessage, tostringall(...));
 
-    elseif (tk.Strings:Contains(errorMessage, "%s")) then
-        errorMessage = string.format(errorMessage, "nil");
-    end
+  elseif (tk.Strings:Contains(errorMessage, "%s")) then
+    errorMessage = string.format(errorMessage, "nil");
+  end
 
-    local fullError = tk.Strings:Join(tk.Strings.Empty, errorInfo.PREFIX, errorMessage);
+  local fullError = tk.Strings:Join(tk.Strings.Empty, errorInfo.PREFIX, errorMessage);
 
-    if (errorInfo.silent) then
-        errorInfo.errorLog = errorInfo.errorLog or {};
-        errorInfo.errorLog[#errorInfo.errorLog + 1] = pcall(function() error(fullError) end);
-    else
-        error(fullError);
-    end
+  if (errorInfo.silent) then
+    errorInfo.errorLog = errorInfo.errorLog or {};
+    errorInfo.errorLog[#errorInfo.errorLog + 1] = pcall(function() error(fullError) end);
+  else
+    error(fullError);
+  end
 end
 
 function tk:Error(errorMessage, ...)
@@ -527,17 +532,6 @@ do
 
         callbacks[key] = nil;
     end
-end
-
-function tk:CreateTableProtector(tbl)
-    local protector = setmetatable({}, {
-        __index = tbl;
-        __newindex = function(self, key, value)
-            error(string.format("Failed to transform protected table with key '%s' and value '%s'", tostring(key), tostring(value)));
-        end;
-    });
-
-    return protector;
 end
 
 do

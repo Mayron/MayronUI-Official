@@ -1,8 +1,5 @@
 -- luacheck: ignore MayronUI self 143
--- Setup namespaces ------------------
-local _, namespace = ...;
 local MayronUI = _G.MayronUI;
-local Engine = namespace.Engine;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local C_LayoutSwitcher = MayronUI:RegisterModule("LayoutSwitcher");
 
@@ -21,7 +18,7 @@ local function GetSupportedAddOns()
   local addOns = obj:PopTable(); -- Add additional Supported AddOns here
 
   ---@type MayronDB
-  local MayronDB = obj:Import("Pkg-MayronDB.MayronDB");
+  local MayronDB = obj:Import("MayronDB");
 
   for _, database in MayronDB.Static:IterateDatabases() do
     addOns[database:GetDatabaseName()] = database;
@@ -48,7 +45,7 @@ end
 
 -- C_LayoutSwitcher ------------------------
 
-Engine:DefineParams("?DropDownMenu", "?string");
+obj:DefineParams("?DropDownMenu", "?string");
 function C_LayoutSwitcher:SetViewingLayout(data, dropdown, layoutName)
 	if (not layoutName) then
 		if (dropdown) then
@@ -70,7 +67,7 @@ function C_LayoutSwitcher:SetViewingLayout(data, dropdown, layoutName)
 	end
 end
 
-Engine:DefineReturns("number");
+obj:DefineReturns("number");
 function C_LayoutSwitcher:GetNumLayouts()
 	local n = 0;
 
@@ -95,9 +92,8 @@ function C_LayoutSwitcher:UpdateAddOnWindow(data)
 
 	local checked, addOnName;
 
-	for i, child in obj:IterateArgs(data.addonWindow.dynamicFrame:GetChildren()) do
-
-		if (i % 2 ~= 0) then
+  for i, child in obj:IterateArgs(data.addonWindow.dynamicFrame:GetChildren()) do
+    if (i % 2 ~= 0) then
 			-- checkbutton
 			addOnName = child.btn.text:GetText();
 			checked = layoutData[addOnName];
@@ -116,7 +112,7 @@ function C_LayoutSwitcher:UpdateAddOnWindow(data)
 	end
 end
 
-Engine:DefineParams("DropDownMenu", "string", "table");
+obj:DefineParams("DropDownMenu", "string", "table");
 function C_LayoutSwitcher:CreateNewAddOnProfile(data, dropdown, addOnName, dbObject)
 	local newProfileLabel = string.format("Create New %s Profile:", addOnName);
 	dropdown:SetLabel(db.global.layouts[data.viewingLayout][addOnName]);
@@ -278,8 +274,8 @@ function C_LayoutSwitcher:DeleteLayout(data)
 	_G.StaticPopup_Show("MUI_DeleteLayout");
 end
 
-Engine:DefineParams("table", "string");
-Engine:DefineReturns("Frame", "DropDownMenu");
+obj:DefineParams("table", "string");
+obj:DefineReturns("Frame", "DropDownMenu");
 function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
 	local scrollFrame = data.addonWindow.dynamicFrame:GetFrame();
 	local addOnProfiles = dbObject:GetProfiles();

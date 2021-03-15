@@ -210,7 +210,7 @@ function C_ConfigModule:GetConfigTable()
             id = 2;
             children = {
                 {   name    = L["Enable Unit Panels"];
-                    module  = "BottomUI_UnitPanels";
+                    module  = "UnitPanels";
                     dbPath  = "profile.unitPanels.enabled";
                     type    = "check";
                     requiresReload = true;
@@ -222,13 +222,13 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   name    = "Pulse While Rested",
                     tooltip = "If enabled, the unit panels will fade in and out while resting.",
-                    module  = "BottomUI_UnitPanels";
+                    module  = "UnitPanels";
                     dbPath  = "profile.unitPanels.restingPulse";
                     type    = "check";
                 };
                 {   name    = "Target Class Color Gradient",
                     tooltip = "If enabled, the unit panel color will transition to the target's class color using a horizontal gradient effect.",
-                    module  = "BottomUI_UnitPanels";
+                    module  = "UnitPanels";
                     dbPath  = "profile.unitPanels.targetClassColored";
                     type    = "check";
                 };
@@ -241,7 +241,7 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   name = L["Set Width"];
                     type = "slider";
-                    module = "BottomUI_UnitPanels";
+                    module = "UnitPanels";
                     min = 200;
                     max = 500;
                     step = 10;
@@ -252,7 +252,7 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   name        = L["Set Height"];
                     type        = "slider";
-                    module      = "BottomUI_UnitPanels";
+                    module      = "UnitPanels";
                     valueType   = "number";
                     min = 25;
                     max = 200;
@@ -263,7 +263,7 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   name        = "Set Alpha";
                     type        = "slider";
-                    module      = "BottomUI_UnitPanels";
+                    module      = "UnitPanels";
                     valueType   = "number";
                     min = 0;
                     max = 1;
@@ -274,7 +274,7 @@ function C_ConfigModule:GetConfigTable()
                 {   name        = "Set Pulse Strength";
                     type        = "slider";
                     tooltip     =  tk.Strings:Concat("Set the alpha change while pulsing/flashing", L["Default value is "], "0.3");
-                    module      = "BottomUI_UnitPanels";
+                    module      = "UnitPanels";
                     valueType   = "number";
                     min = 0;
                     max = 1;
@@ -285,7 +285,7 @@ function C_ConfigModule:GetConfigTable()
                     type    = "title";
                 };
                 {   name    = L["Enabled"];
-                    module  = "BottomUI_UnitPanels";
+                    module  = "UnitPanels";
                     dbPath  = "profile.unitPanels.unitNames.enabled";
                     type    = "check";
                 };
@@ -371,7 +371,7 @@ function C_ConfigModule:GetConfigTable()
                 };
             }
         };
-        {   module = "BottomUI_ActionBarPanel";
+        {   module = "ActionBarPanel";
             children =  {
                 {   name = L["Bottom Action Bars"];
                     type = "submenu";
@@ -772,7 +772,7 @@ function C_ConfigModule:GetConfigTable()
             }
         };
         {   name = "Resource Bars";
-            module = "BottomUI_ResourceBars";
+            module = "ResourceBars";
             children = {
                 {   type = "loop";
                     args = { "Artifact", "Azerite", "Experience", "Reputation" };
@@ -844,7 +844,7 @@ function C_ConfigModule:GetConfigTable()
                     type        = "title";
                     marginTop   = 0;
                 };
-                {   name              = L["Enable Changes"];
+                {   name              = L["Enabled"];
                     tooltip           = L["Disable this to stop MUI from controlling the Objective Tracker."];
                     type              = "check";
                     dbPath            = "profile.objectiveTracker.enabled";

@@ -1,8 +1,7 @@
 -- luacheck: ignore MayronUI self 143
-local _, namespace = ...;
+local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
-local C_ChatModule = namespace.C_ChatModule;
-
+local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 local table, string, unpack = _G.table, _G.string, _G.unpack;
 
 local ChatFrameAnchorDropDownOptions = {
@@ -246,7 +245,7 @@ function C_ChatModule:GetConfigTable()
                         module = "Chat",
                         inherit = {
                             type = "dropdown",
-                            options = namespace.ButtonNames;
+                            options = C_ChatModule.Static.ButtonNames;
                         },
                         children = { -- shame I can't loop this
                             {   name = L["Enable Chat Frame"],

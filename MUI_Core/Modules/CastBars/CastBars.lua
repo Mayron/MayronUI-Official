@@ -39,16 +39,12 @@ if (tk:IsClassic()) then
 end
 
 -- Objects -----------------------------
-
----@type Engine
-local Engine = obj:Import("MayronUI.Engine");
-
 ---@class CastBarsModule : BaseModule
 local C_CastBarsModule = MayronUI:RegisterModule("CastBarsModule", L["Cast Bars"]);
 namespace.C_CastBarsModule = C_CastBarsModule;
 
 ---@class CastBar : Object
-local C_CastBar = Engine:CreateClass("CastBar", "Framework.System.FrameWrapper");
+local C_CastBar = obj:CreateClass("CastBar");
 C_CastBar.Static:AddFriendClass("CastBarsModule");
 
 namespace.bars = obj:PopTable();
@@ -343,7 +339,7 @@ end
 
 -- C_CastBar ----------------------
 
-Engine:DefineParams("table", "table", "string");
+obj:DefineParams("table", "table", "string");
 function C_CastBar:__Construct(data, settings, appearance, unitID)
   data.settings = settings;
   data.globalName = string.format("MUI_%sCastBar", unitID);
@@ -355,12 +351,89 @@ function C_CastBar:__Construct(data, settings, appearance, unitID)
   namespace.castBarData[data.unitID] = data;
 end
 
-local function CastBarFrame_OnUpdate(self, elapsed)
+local function IsFinished(data)
+  local value = data.frame.statusbar:GetValue();
+  local maxValue = select(2, data.frame.statusbar:GetMinMaxValues());
+
+  if (data.channelling) then
+    return value <= 0; -- max value for channelling is reversed
+  end
+
+  if (data.auraId) then
+    for auraID = 1, BUFF_MAX_DISPLAY do
+      local auraId = (select(10, UnitBuff(data.unitID, auraID)));
+
+      if (data.auraId == auraId) then
+        return false;
+      end
+    end
+
+    return true;
+  end
+
+  return value >= maxValue;
+end
+
+local function CastBarFrame_OnUpdate(self, elapsed, data)
   if (self:GetAlpha() > 0) then
     self.totalElapsed = self.totalElapsed + elapsed;
 
     if (self.enabled and self.totalElapsed > 0.01) then
-      self.castBar:Update(elapsed);
+      if (not data.startTime) then
+        if (self:GetAlpha() == 0) then
+          data.fadingOut = nil;
+        end
+
+        return
+      end
+
+      if (data.unitID == "mirror") then
+        if (not data.paused or data.paused == 0) then
+          for i = 1, _G.MIRRORTIMER_NUMTIMERS do
+            local _, _, _, _, _, label = GetMirrorTimerInfo(i);
+
+            if (label == self.name:GetText()) then
+              local value = _G.MirrorTimer1StatusBar:GetValue();
+              local duration = string.format("%.1f", value);
+
+              if (tonumber(duration) > 60) then
+                duration = date("%M:%S", duration);
+              end
+
+              self.duration:SetText(duration);
+              self.statusbar:SetValue(value);
+              return
+            end
+          end
+        end
+      else
+        if (data.startTime and not IsFinished(data)) then
+          local difference = GetTime() - data.startTime;
+
+          if (data.channelling or data.unitID == "mirror") then
+            self.statusbar:SetValue(data.totalTime - difference);
+          else
+            self.statusbar:SetValue(difference);
+          end
+
+          local duration = data.totalTime - difference;
+
+          if (duration < 0) then
+            duration = 0;
+          end
+
+          duration = string.format("%.1f", duration);
+
+          if (tonumber(duration) > 60) then
+            duration = date("%M:%S", duration);
+          end
+
+          self.duration:SetText(duration);
+        else
+          self.castBar:StopCasting();
+        end
+      end
+
       self.totalElapsed = 0;
     end
   end
@@ -419,7 +492,7 @@ do
     return bar;
   end
 
-  Engine:DefineParams("boolean")
+  obj:DefineParams("boolean")
   function C_CastBar:SetEnabled(data, enabled)
     local bar = data.frame;
 
@@ -428,7 +501,7 @@ do
     if (enabled) then
       if (not bar) then
         bar = CreateBarFrame(data.unitID, data.settings, data.globalName);
-        data.frame = bar;
+        self:SetFrame(bar);
       end
 
       self:PositionCastBar();
@@ -486,7 +559,11 @@ do
       bar.totalElapsed = 0;
       bar.castBar = self;
       bar.unitID = data.unitID;
-      bar:SetScript("OnUpdate", CastBarFrame_OnUpdate);
+
+      bar:SetScript("OnUpdate", function(self, elapsed)
+        CastBarFrame_OnUpdate(self, elapsed, data);
+      end);
+
       bar:SetScript("OnEvent", CastBarFrame_OnEvent);
     else
       bar:UnregisterAllEvents();
@@ -501,63 +578,7 @@ do
   end
 end
 
-function C_CastBar:Update(data)
-  if (not data.startTime) then
-    if (data.frame:GetAlpha() == 0) then
-      data.fadingOut = nil;
-    end
-    return;
-  end
-
-  if (data.unitID == "mirror") then
-    if (not data.paused or data.paused == 0) then
-      for i = 1, _G.MIRRORTIMER_NUMTIMERS do
-        local _, _, _, _, _, label = GetMirrorTimerInfo(i);
-
-        if (label == data.frame.name:GetText()) then
-          local value = _G.MirrorTimer1StatusBar:GetValue();
-          local duration = string.format("%.1f", value);
-
-          if (tonumber(duration) > 60) then
-            duration = date("%M:%S", duration);
-          end
-
-          data.frame.duration:SetText(duration);
-          data.frame.statusbar:SetValue(value);
-          return;
-        end
-      end
-    end
-  else
-    if (data.startTime and not self:IsFinished()) then
-      local difference = GetTime() - data.startTime;
-
-      if (data.channelling or data.unitID == "mirror") then
-        data.frame.statusbar:SetValue(data.totalTime - difference);
-      else
-        data.frame.statusbar:SetValue(difference);
-      end
-
-      local duration = data.totalTime - difference;
-
-      if (duration < 0) then
-        duration = 0;
-      end
-
-      duration = string.format("%.1f", duration);
-
-      if (tonumber(duration) > 60) then
-        duration = date("%M:%S", duration);
-      end
-
-      data.frame.duration:SetText(duration);
-    else
-      self:StopCasting();
-    end
-  end
-end
-
-Engine:DefineParams("number");
+obj:DefineParams("number");
 ---@param numTicks number @The number of channelling ticks (when damage is applied)
 function C_CastBar:SetTicks(data, numTicks)
   if (data.ticks) then
@@ -582,32 +603,7 @@ function C_CastBar:SetTicks(data, numTicks)
   end
 end
 
-Engine:DefineReturns("boolean");
----@return boolean @Returns true if the cast bar has finished channeling or casting.
-function C_CastBar:IsFinished(data)
-  local value = data.frame.statusbar:GetValue();
-  local maxValue = select(2, data.frame.statusbar:GetMinMaxValues());
-
-  if (data.channelling) then
-    return value <= 0; -- max value for channelling is reversed
-  end
-
-  if (data.auraId) then
-    for auraID = 1, BUFF_MAX_DISPLAY do
-      local auraId = (select(10, UnitBuff(data.unitID, auraID)));
-
-      if (data.auraId == auraId) then
-        return false;
-      end
-    end
-
-    return true;
-  end
-
-  return value >= maxValue;
-end
-
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 function C_CastBar:SetIconEnabled(data, enabled)
   if (not enabled and not data.square) then
     return; -- nothing to do
@@ -628,36 +624,38 @@ end
 
 ---Stop casting or channelling a spell/ability.
 function C_CastBar:StopCasting(data)
-  if (not data.fadingOut) then
-    data.startTime = nil;
-    data.unitName = nil;
-    data.auraId = nil;
+  if (data.fadingOut) then return end
 
-    if (not data.interrupted) then
-      local c = data.appearance.colors.finished;
-      data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
-    end
+  local bar = self:GetFrame();
+  data.startTime = nil;
+  data.unitName = nil;
+  data.auraId = nil;
 
-    data.interrupted = nil;
-    data.fadingOut = true;
+  if (not data.interrupted) then
+    local c = data.appearance.colors.finished;
+    bar.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+  end
 
-    if (not data.settings.unlocked) then
-      UIFrameFadeOut(data.frame, 1, 1, 0);
-    else
-      data.frame.statusbar:SetValue(0);
-      data.frame.name:SetText("");
-      data.frame.duration:SetText("");
-    end
+  data.interrupted = nil;
+  data.fadingOut = true;
+
+  if (not data.settings.unlocked) then
+    UIFrameFadeOut(bar, 1, 1, 0);
+  else
+    bar.statusbar:SetValue(0);
+    bar.name:SetText("");
+    bar.duration:SetText("");
   end
 end
 
-Engine:DefineParams("boolean");
+obj:DefineParams("boolean");
 ---Start casting or channelling a spell/ability.
 ---@param channelling boolean @If true, the casting type is set to "channelling" to reverse the bar direction.
 function C_CastBar:StartCasting(data, channelling, auraInfo)
   local func = channelling and UnitChannelInfo or UnitCastingInfo;
   local name, texture, startTime, endTime, notInterruptible;
   local auraId;
+  local bar = self:GetFrame();
 
   if (not obj:IsTable(auraInfo)) then
     name, _, texture, startTime, endTime, _, _, notInterruptible = func(data.unitID);
@@ -666,17 +664,17 @@ function C_CastBar:StartCasting(data, channelling, auraInfo)
   end
 
   if (not startTime) then
-    if (data.frame:GetAlpha() > 0 and not data.fadingOut) then
+    if (bar:GetAlpha() > 0 and not data.fadingOut) then
       self:StopCasting();
     end
-    return;
+    return
   end
 
   startTime = startTime / 1000; -- To make the same as GetTime() format
   endTime = endTime / 1000; -- To make the same as GetTime() format
 
-  data.frame.statusbar:SetMinMaxValues(0, endTime - startTime); -- 0 to n seconds
-  data.frame.name:SetText(name);
+  bar.statusbar:SetMinMaxValues(0, endTime - startTime); -- 0 to n seconds
+  bar.name:SetText(name);
 
   if (data.icon) then
     data.icon:SetTexture(texture);
@@ -685,40 +683,40 @@ function C_CastBar:StartCasting(data, channelling, auraInfo)
 
   if (notInterruptible) then
     local c = data.appearance.colors.notInterruptible;
-    data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+    bar.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
   else
     local c = data.appearance.colors.normal;
-    data.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+    bar.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
   end
 
-  if (data.frame.latencyBar) then
+  if (bar.latencyBar) then
     if (data.settings.showLatency) then
-      local width = math.floor(data.frame.statusbar:GetWidth() + 0.5);
+      local width = math.floor(bar.statusbar:GetWidth() + 0.5);
       local percent = (select(4, GetNetStats()) / 1000);
       local latencyWidth = (width * percent);
 
       if (latencyWidth >= width or latencyWidth == 0) then
-        data.frame.latencyBar:Hide();
+        bar.latencyBar:Hide();
       else
-        data.frame.latencyBar:Show();
+        bar.latencyBar:Show();
       end
 
-      data.frame.latencyBar:SetWidth(latencyWidth);
+      bar.latencyBar:SetWidth(latencyWidth);
     else
-      data.frame.latencyBar:Hide();
+      bar.latencyBar:Hide();
     end
   end
 
   -- ticks:
   if (channelling) then
     self:SetTicks(Ticks.data[name] or 0);
-    data.frame.statusbar:SetValue(endTime - startTime);
+    bar.statusbar:SetValue(endTime - startTime);
   else
     self:SetTicks(0);
-    data.frame.statusbar:SetValue(0);
+    bar.statusbar:SetValue(0);
   end
 
-  UIFrameFadeIn(data.frame, 0.1, 0, 1);
+  UIFrameFadeIn(bar, 0.1, 0, 1);
 
   data.fadingOut = nil;
   data.interrupted = nil;
@@ -730,7 +728,7 @@ function C_CastBar:StartCasting(data, channelling, auraInfo)
 end
 
 function C_CastBar:PositionCastBar(data)
-  data.frame:ClearAllPoints();
+  self:ClearAllPoints();
 
   local anchorToSUF = IsAddOnLoaded("ShadowedUnitFrames") and data.settings.anchorToSUF;
   local unitframe = _G[ string.format("SUFUnit%s", data.unitID:lower()) ];
@@ -743,12 +741,12 @@ function C_CastBar:PositionCastBar(data)
     local relativePoint = data.settings.position[3];
     local x, y = data.settings.position[4], data.settings.position[5];
 
-    data.frame:SetParent(_G.UIParent);
+    self:SetParent(_G.UIParent);
 
     if (point and relativeFrame and relativePoint and x and y) then
-      data.frame:SetPoint(point, _G[relativeFrame], relativePoint, x, y);
+      self:SetPoint(point, _G[relativeFrame], relativePoint, x, y);
     else
-      data.frame:SetPoint("CENTER");
+      self:SetPoint("CENTER");
     end
 
     if (data.sqaure) then
@@ -756,9 +754,9 @@ function C_CastBar:PositionCastBar(data)
     end
   elseif (sufAnchor) then
     -- anchor to ShadowedUnitFrames
-    data.frame:SetParent(sufAnchor);
-    data.frame:SetPoint("TOPLEFT", sufAnchor, "TOPLEFT", -1, 1);
-    data.frame:SetPoint("BOTTOMRIGHT", sufAnchor, "BOTTOMRIGHT", 1, -1);
+    self:SetParent(sufAnchor);
+    self:SetPoint("TOPLEFT", sufAnchor, "TOPLEFT", -1, 1);
+    self:SetPoint("BOTTOMRIGHT", sufAnchor, "BOTTOMRIGHT", 1, -1);
 
     if (data.square) then
       data.square:SetWidth(sufAnchor:GetHeight() + 2);
@@ -767,8 +765,8 @@ function C_CastBar:PositionCastBar(data)
 
   -- Should be in Update functions but no support for executing dependencies if in a group.
   -- Needed for MUI config to work correctly when enabling/disabling a cast bar:
-  data.frame:SetFrameStrata(data.settings.frameStrata);
-  data.frame:SetFrameLevel(data.settings.frameLevel);
+  self:SetFrameStrata(data.settings.frameStrata);
+  self:SetFrameLevel(data.settings.frameLevel);
 end
 
 function C_CastBar:CheckStatus(data)
@@ -838,9 +836,7 @@ function C_CastBarsModule:OnInitialize(data)
           local attribute = keysList:PopFront();
           local castBar = data.bars[barName]; ---@type CastBar
 
-          if (not castBar) then
-            return;
-          end
+          if (not castBar) then return end
 
           if (attribute == "width") then
             castBar:SetWidth(value);
@@ -853,7 +849,8 @@ function C_CastBarsModule:OnInitialize(data)
           elseif (attribute == "showIcon") then
             castBar:SetIconEnabled(value);
           elseif (attribute == "leftToRight") then
-            castBar.statusbar:SetReverseFill(not value);
+            local bar = castBar:GetFrame();
+            bar.statusbar:SetReverseFill(not value);
           end
         end;
       };

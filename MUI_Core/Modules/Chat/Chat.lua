@@ -1,6 +1,5 @@
 -- luacheck: ignore self 143
 local MayronUI = _G.MayronUI;
-local _, namespace = ...;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local ChatFrame1EditBox, NUM_CHAT_WINDOWS = _G.ChatFrame1EditBox, _G.NUM_CHAT_WINDOWS;
@@ -24,18 +23,12 @@ _G.DEFAULT_CHATFRAME_ALPHA = 0;
 _G.CHAT_FONT_HEIGHTS = obj:PopTable(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 
 -- Objects ------------------
-
-local Engine = obj:Import("MayronUI.Engine");
-
 ---@class ChatFrame
-local C_ChatFrame = Engine:CreateClass("ChatFrame", "Framework.System.FrameWrapper");
+local C_ChatFrame = obj:CreateClass("ChatFrame");
+obj:Export(C_ChatFrame, "MayronUI.ChatModule");
 
 ---@class ChatModule
 local C_ChatModule = MayronUI:RegisterModule("ChatModule", L["Chat Frames"]);
-
-namespace.Engine = Engine;
-namespace.C_ChatModule = C_ChatModule;
-namespace.C_ChatFrame = C_ChatFrame;
 
 -- Database Defaults -----------------
 local defaults = {
@@ -155,7 +148,7 @@ local function LoadEditBoxBackdrop()
 end
 
 function C_ChatModule:OnInitialize(data)
-	data.chatFrames = obj:PopTable();
+  data.chatFrames = obj:PopTable();
 
 	local setupOptions = {
 		onExecuteAll = {
@@ -425,7 +418,7 @@ function C_ChatModule:OnEnable(data)
   end
 end
 
-Engine:DefineReturns("table");
+obj:DefineReturns("table");
 function C_ChatModule:GetChatFrames(data)
 	return data.chatFrames;
 end
@@ -498,7 +491,7 @@ do
 		end
 	end
 
-	Engine:DefineParams("Button");
+	obj:DefineParams("Button");
 	function C_ChatModule:SetUpLayoutButton(data, layoutButton)
 		local layoutName = db.profile.layout;
 
@@ -516,7 +509,7 @@ do
 	end
 end
 
-Engine:DefineParams("string", "?table");
+obj:DefineParams("string", "?table");
 function C_ChatModule:SwitchLayouts(data, layoutName, layoutData)
   if (InCombatLockdown()) then
     tk:Print(L["Cannot switch layouts while in combat."]);

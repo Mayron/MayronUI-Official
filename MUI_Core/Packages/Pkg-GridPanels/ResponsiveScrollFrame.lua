@@ -1,11 +1,10 @@
 -- luacheck: ignore self
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
-if (obj:Import("GridPanels.Main.ResponsiveScrollFrame", true)) then return end
+if (obj:Import("Pkg-GridPanels.ResponsiveScrollFrame", true)) then return end
 
-local GridPanels = obj:Import("GridPanels.Main"); ---@type Package
-local ResponsiveScrollFrame = GridPanels:Get("ResponsiveScrollFrame"); ---@type ResponsiveScrollFrame
+local C_ResponsiveScrollFrame = obj:Import("Pkg-GridPanels.ResponsiveScrollFrame"); ---@type ResponsiveScrollFrame
 
-local CreateFrame, ipairs, math = _G.CreateFrame, _G.ipairs, _G.math;
+local CreateFrame, ipairs, math, select = _G.CreateFrame, _G.ipairs, _G.math, _G.select;
 local table, unpack, UIParent = _G.table, _G.unpack, _G.UIParent;
 
 ---------------------------------
@@ -27,7 +26,7 @@ end
 --------------------------------------
 --- ResponsiveScrollFrame functions
 --------------------------------------
-function ResponsiveScrollFrame:__Construct(data, containerFrame, globalName, parent, child)
+function C_ResponsiveScrollFrame:__Construct(data, containerFrame, globalName, parent, child)
   data.frame = containerFrame or CreateFrame("Frame", globalName,
     parent or UIParent, _G.BackdropTemplateMixin and "BackdropTemplate");
 
@@ -63,9 +62,9 @@ function ResponsiveScrollFrame:__Construct(data, containerFrame, globalName, par
 
 end
 
-GridPanels:DefineParams("number");
+obj:DefineParams("number");
 -- the spacing around each inner element
-function ResponsiveScrollFrame:SetElementSpacing(data, spacing)
+function C_ResponsiveScrollFrame:SetElementSpacing(data, spacing)
   data.spacing = spacing;
 
   if (#data.children > 0) then
@@ -73,9 +72,9 @@ function ResponsiveScrollFrame:SetElementSpacing(data, spacing)
   end
 end
 
-GridPanels:DefineParams("number");
+obj:DefineParams("number");
 -- the padding around the entire container (which holds all the elements)
-function ResponsiveScrollFrame:SetContainerPadding(data, padding)
+function C_ResponsiveScrollFrame:SetContainerPadding(data, padding)
   data.padding = padding;
 
   if (#data.children > 0) then
@@ -84,7 +83,7 @@ function ResponsiveScrollFrame:SetContainerPadding(data, padding)
 end
 
 -- adds children to ScrollChild of the ScrollFrame
-function ResponsiveScrollFrame:AddChildren(data, ...)
+function C_ResponsiveScrollFrame:AddChildren(data, ...)
   local scrollChild = data.scrollFrame:GetScrollChild();
   obj:Assert(scrollChild, "Failed to add children to ResponsiveScrollFrame - missing scroll child.");
 
@@ -94,7 +93,8 @@ function ResponsiveScrollFrame:AddChildren(data, ...)
     data.frame:SetSize(UIParent:GetWidth(), UIParent:GetHeight());
   end
 
-  for _, child in obj:IterateArgs(...) do
+  for i = 1, select("#", ...) do
+    local child = (select(1, ...));
     table.insert(data.children, child);
     child:SetParent(scrollChild);
   end
@@ -102,28 +102,28 @@ function ResponsiveScrollFrame:AddChildren(data, ...)
   data:RepositionChildElements();
 end
 
-function ResponsiveScrollFrame:GetChildren(data)
+function C_ResponsiveScrollFrame:GetChildren(data)
   return unpack(data.children);
 end
 
-function ResponsiveScrollFrame:GetScrollFrame(data)
+function C_ResponsiveScrollFrame:GetScrollFrame(data)
   return data.scrollFrame;
 end
 
-function ResponsiveScrollFrame:GetScrollBar(data)
+function C_ResponsiveScrollFrame:GetScrollBar(data)
   return data.scrollBar; -- built-in by Blizzard
 end
 
-function ResponsiveScrollFrame:GetScrollBarButtons(data)
+function C_ResponsiveScrollFrame:GetScrollBarButtons(data)
    -- built-in by Blizzard
   return data.scrollBar.ScrollUpButton, data.scrollBar.ScrollDownButton;
 end
 
-function ResponsiveScrollFrame:GetScrollBarThumbTexture(data)
+function C_ResponsiveScrollFrame:GetScrollBarThumbTexture(data)
   return data.scrollBar:GetThumbTexture(); -- built-in by Blizzard
 end
 
-function ResponsiveScrollFrame:MakeResizable(data, dragger)
+function C_ResponsiveScrollFrame:MakeResizable(data, dragger)
   dragger = dragger or data.frame;
   data.frame:SetResizable(true);
   dragger:RegisterForDrag("LeftButton");
@@ -138,7 +138,7 @@ function ResponsiveScrollFrame:MakeResizable(data, dragger)
   end);
 end
 
-function ResponsiveScrollFrame.Private:UpdateScrollBarShownState(data)
+function C_ResponsiveScrollFrame.Private:UpdateScrollBarShownState(data)
   local scrollChild = data.scrollFrame:GetScrollChild();
 
   if (not scrollChild) then
@@ -153,7 +153,7 @@ function ResponsiveScrollFrame.Private:UpdateScrollBarShownState(data)
   data.scrollBar:SetShown(scrollChildHeight > containerHeight);
 end
 
-function ResponsiveScrollFrame.Private:RepositionChildElements(data)
+function C_ResponsiveScrollFrame.Private:RepositionChildElements(data)
   local scrollChild = data.scrollFrame:GetScrollChild();
   local width = math.ceil(data.frame:GetWidth());
   local anchor = data.children[1];

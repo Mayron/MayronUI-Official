@@ -1,18 +1,18 @@
 -- luacheck: ignore self 143 631
-local Lib = _G.MayronObjects:GetFramework(); ---@type MayronObjects
+local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 
-if (Lib:Import("Framework.System.Collections.Map", true)) then return end
-local Collections = Lib:Import("Framework.System.Collections");
+if (obj:Import("Pkg-Collections.Map", true)) then return end
 
----@class Map : Object
-local Map = Collections:CreateClass("Map");
-local List = Collections:Get("List<T>");
+---@class Map
+local C_Map = obj:CreateClass("Map");
+obj:Export(C_Map, "Pkg-Collections");
 
-local pairs = _G.pairs;
+local C_List = obj:Import("Pkg-Collections.List<T>");
+local pairs, ipairs = _G.pairs, _G.ipairs;
 
-Collections:DefineParams("?table");
-function Map:__Construct(data, tbl)
-  data.values = Lib:PopTable();
+obj:DefineParams("?table");
+function C_Map:__Construct(data, tbl)
+  data.values = obj:PopTable();
 
   if (tbl) then
     for key, value in pairs(tbl) do
@@ -21,29 +21,29 @@ function Map:__Construct(data, tbl)
   end
 end
 
-function Map:Add(data, key, value)
-  Lib:Assert(not data.values[key], "Map.Add - key '%s' already exists.", key);
+function C_Map:Add(data, key, value)
+  obj:Assert(not data.values[key], "C_Map.Add - key '%s' already exists.", key);
   data.values[key] = value;
 end
 
-function Map:AddAll(_, keyValues)
+function C_Map:AddAll(_, keyValues)
   for key, value in pairs(keyValues) do
     self:Add(key, value);
   end
 end
 
-function Map:Remove(data, key)
-  Lib:Assert(data.values[key], "Map.Add: key '%s' not found.", key);
+function C_Map:Remove(data, key)
+  obj:Assert(data.values[key], "C_Map.Add: key '%s' not found.", key);
   data.values[key] = nil;
 end
 
-function Map:RemoveAll(_, keys)
+function C_Map:RemoveAll(_, keys)
   for _, key in ipairs(keys) do
     self:Remove(key);
   end
 end
 
-function Map:RetainAll(data, keys)
+function C_Map:RetainAll(data, keys)
   for key, _ in pairs(data.values) do
     local keyExists = false;
 
@@ -60,7 +60,7 @@ function Map:RetainAll(data, keys)
   end
 end
 
-function Map:RemoveByValue(data, value)
+function C_Map:RemoveByValue(data, value)
   for key, value2 in pairs(data.values) do
     if (value2 == value) then
       data.values[key] = nil;
@@ -68,11 +68,11 @@ function Map:RemoveByValue(data, value)
   end
 end
 
-function Map:Get(data, key)
+function C_Map:Get(data, key)
   return data.values[key];
 end
 
-function Map:Contains(data, value)
+function C_Map:Contains(data, value)
   for key, _ in pairs(data.values) do
     if (data.values[key] == value) then
       return true;
@@ -82,13 +82,13 @@ function Map:Contains(data, value)
   return false;
 end
 
-function Map:ForEach(data, func)
+function C_Map:ForEach(data, func)
   for key, value in pairs(data.values) do
     func(key, value);
   end
 end
 
-function Map:Filter(data, predicate)
+function C_Map:Filter(data, predicate)
   for key, value in pairs(data.values) do
     if (predicate(key, value)) then
       self:Remove(key);
@@ -96,8 +96,8 @@ function Map:Filter(data, predicate)
   end
 end
 
-function Map:Select(data, predicate)
-  local selected = Lib:PopTable();
+function C_Map:Select(data, predicate)
+  local selected = obj:PopTable();
 
   for key, value in pairs(data.values) do
     if (predicate(key, value)) then
@@ -108,17 +108,17 @@ function Map:Select(data, predicate)
   return selected;
 end
 
-function Map:Empty(data)
+function C_Map:Empty(data)
   for key, _ in pairs(data.values) do
     data.values[key] = nil;
   end
 end
 
-function Map:IsEmpty(_)
+function C_Map:IsEmpty(_)
     return self:Size() == 0;
 end
 
-function Map:Size(data)
+function C_Map:Size(data)
   local size = 0;
   for _, _ in pairs(data.values) do
     size = size + 1;
@@ -126,8 +126,8 @@ function Map:Size(data)
   return size;
 end
 
-function Map:ToTable(data)
-  local copy = Lib:PopTable();
+function C_Map:ToTable(data)
+  local copy = obj:PopTable();
 
   for key, value in pairs(data.values) do
     copy[key] = value;
@@ -136,18 +136,22 @@ function Map:ToTable(data)
   return copy;
 end
 
-function Map:GetValueList(data)
-  local list = List:Of("any")();
+function C_Map:GetValueList(data)
+  local list = C_List:UsingTypes("any")();
+
   for _, value in pairs(data.values) do
     list:Add(value);
   end
+
   return list;
 end
 
-function Map:GetKeyList(data)
-  local list = List:Of("any")();
+function C_Map:GetKeyList(data)
+  local list = C_List:UsingTypes("any")();
+
   for key, _ in pairs(data.values) do
     list:Add(key);
   end
+
   return list;
 end

@@ -2,13 +2,10 @@
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 if (obj:Import("Pkg-MayronEvents", true)) then return end
 
----@class PkgMayronEvents : Package
-local PkgMayronEvents = obj:CreatePackage("Pkg-MayronEvents");
-obj:Export(PkgMayronEvents);
-
 ---@class EventManager
-local C_EventManager = PkgMayronEvents:CreateClass("EventManager");
-C_EventManager.Static:AddFriendClass("EventListener");
+local C_EventManager = obj:CreateClass("EventManager");
+C_EventManager.Static:AddFriendClass("Pkg-MayronEvents.EventListener");
+obj:Export(C_EventManager, "Pkg-MayronEvents");
 
 local select, pairs, ipairs, CreateFrame = _G.select, _G.pairs, _G.ipairs, _G.CreateFrame;
 
@@ -39,6 +36,7 @@ function C_EventManager:__Construct(data)
           for _, registeredUnitID in ipairs(listenerData.events[event]) do
             if (registeredUnitID == unitID) then
               listenerData:Call("Run", event, unitID, ...);
+              break
             end
           end
         else
@@ -51,39 +49,39 @@ function C_EventManager:__Construct(data)
   end)
 end
 
-PkgMayronEvents:DefineParams("function");
-PkgMayronEvents:DefineReturns("EventListener");
+obj:DefineParams("function");
+obj:DefineReturns("EventListener");
 ---Creates an EventListener that calls the provided callback function when a registered event is fired (while the event listener is enabled).
 ---@param callback function @A callback function to execute when a registered event is fired (while the event listener is enabled).
 ---@return EventListener @The event listener object used to register/unregister events, set custom arguments and more.
 function C_EventManager:CreateEventListener(_, callback)
-  local C_EventListener = PkgMayronEvents:Get("EventListener");
+  local C_EventListener = obj:Import("Pkg-MayronEvents.EventListener");
   return C_EventListener(callback, self);
 end
 
-PkgMayronEvents:DefineParams("string", "function");
-PkgMayronEvents:DefineReturns("EventListener");
+obj:DefineParams("string", "function");
+obj:DefineReturns("EventListener");
 ---Creates an EventListener with an ID that calls the provided callback function when a registered event is fired (while the event listener is enabled).
 ---@param id string @The ID to reference the event listener object using the C_EventManager API.
 ---@param callback function @A callback function to execute when a registered event is fired (while the event listener is enabled).
 ---@return EventListener @The event listener object used to register/unregister events, set custom arguments and more.
 function C_EventManager:CreateEventListenerWithID(_, id, callback)
-  local C_EventListener = PkgMayronEvents:Get("EventListener");
+  local C_EventListener = obj:Import("Pkg-MayronEvents.EventListener");
   local eventListener = C_EventListener(callback, self); ---@type EventListener
   eventListener:SetID(id);
   return eventListener;
 end
 
-PkgMayronEvents:DefineParams("string");
-PkgMayronEvents:DefineReturns("?EventListener");
+obj:DefineParams("string");
+obj:DefineReturns("?EventListener");
 ---@param id string @The event listener's unique ID.
 ---@return EventListener @If an event listener with the provided ID is registered with the event manager, it will be returned.
 function C_EventManager:GetEventListenerByID(data, id)
   return data.listeners[id];
 end
 
-PkgMayronEvents:DefineParams("string");
-PkgMayronEvents:DefineReturns("table");
+obj:DefineParams("string");
+obj:DefineReturns("table");
 ---Returns all event listeners created from the event manager that are also registered with the provided Blizzard event.
 ---These event listeners will trigger their associated callback functions when this Blizzard event is fired.
 ---@param event string @The Blizzard event name to check for.
@@ -102,8 +100,8 @@ function C_EventManager:GetEventListenersByEvent(data, event)
   return listeners;
 end
 
-PkgMayronEvents:DefineParams("string");
-PkgMayronEvents:DefineReturns("table");
+obj:DefineParams("string");
+obj:DefineReturns("table");
 ---Returns all event listeners created from the event manager that are also registered with the
 ---provided (non-BLizzard) custom addon event. These event listeners will trigger their associated callback
 ---functions when the custom event is fired using the event manager's `FireCustomEvent` method.
@@ -123,8 +121,8 @@ function C_EventManager:GetEventListenersByCustomEvent(data, customEvent)
   return listeners;
 end
 
-PkgMayronEvents:DefineParams("string");
-PkgMayronEvents:DefineReturns("number");
+obj:DefineParams("string");
+obj:DefineReturns("number");
 ---A helper function to return the total number of event listener objects that are also registered
 ---with the provided Blizzard event, instead of a table containing all event listener objects using `GetEventListenersByEvent`.
 ---@param event string @The Blizzard event name to check for.
@@ -136,8 +134,8 @@ function C_EventManager:GetNumEventListenersByEvent(_, event)
   return total;
 end
 
-PkgMayronEvents:DefineParams("string");
-PkgMayronEvents:DefineReturns("number");
+obj:DefineParams("string");
+obj:DefineReturns("number");
 ---A helper function to return the total number of event listener objects that are also registered
 ---with the provided (non-Blizzard) custom addon event, instead of a table containing all event
 ---listener objects using `GetEventListenersByCustomEvent`.
@@ -150,7 +148,7 @@ function C_EventManager:GetNumEventListenersByCustomEvent(_, customEvent)
   return total;
 end
 
-PkgMayronEvents:DefineParams("string");
+obj:DefineParams("string");
 ---Manually executes the callback function associated with the event listener whose ID matches the provided ID.
 ---The callback function will receive a `nil` argument value for its event name parameter as no event was naturally fired.
 ---@param id string @The event listener's ID.
@@ -160,14 +158,13 @@ function C_EventManager:TriggerEventListenerByID(data, id, ...)
   local listener = data.listeners[id];
 
   if (listener == nil) then
-    obj:Error("No event listener with ID '%s' has been registered with this event manager", id);
     return
   end
 
   self:TriggerEventListener(listener, ...);
 end
 
-PkgMayronEvents:DefineParams("EventListener");
+obj:DefineParams("EventListener");
 ---Manually executes the callback function associated with the event listener.
 ---The callback function will receive a `nil` argument value for its event name parameter as no event was naturally fired.
 ---@param listener EventListener @The event listener object.
@@ -181,7 +178,7 @@ function C_EventManager:TriggerEventListener(data, listener, ...)
   end
 end
 
-PkgMayronEvents:DefineParams("string");
+obj:DefineParams("string");
 ---Fires a custom event to notify all event listeners registered with that custom event.
 ---This method cannot be used to fire Blizzard in-game events as this could cause unexpected bugs
 ---for other code using this event manager.
@@ -198,7 +195,7 @@ function C_EventManager:FireCustomEvent(data, customEvent, ...)
   end
 end
 
-PkgMayronEvents:DefineParams("string", "...string");
+obj:DefineParams("string", "...string");
 ---Destroys all event listeners and removes them from the event manager, whose IDs match those found in the list of provided arguments.
 ---Destroyed event listeners will not trigger their callback functions if the event is fired and can never be enabled.
 ---@vararg string @A variable argument list of IDs for referencing event listeners to be destroyed.
@@ -213,7 +210,7 @@ function C_EventManager:DestroyEventListeners(data, ...)
   end
 end
 
-PkgMayronEvents:DefineParams("string", "...string");
+obj:DefineParams("string", "...string");
 ---Disables all event listeners whose IDs match those found in the list of provided arguments.
 ---Disabled event listeners will not trigger their callback functions if the event is fired.
 ---@vararg string @A variable argument list of IDs for referencing event listeners to be disabled.
@@ -228,7 +225,7 @@ function C_EventManager:DisableEventListeners(data, ...)
   end
 end
 
-PkgMayronEvents:DefineParams("string", "...string");
+obj:DefineParams("string", "...string");
 ---Enables all event listeners whose IDs match those found in the list of provided arguments.
 ---Enables event listeners will trigger their callback functions if the event is fired.
 ---@vararg string @A variable argument list of IDs for referencing event listeners to be enabled.

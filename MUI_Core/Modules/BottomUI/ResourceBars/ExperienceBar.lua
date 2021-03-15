@@ -1,14 +1,9 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-
 local UnitXP, UnitXPMax, GetXPExhaustion = _G.UnitXP, _G.UnitXPMax, _G.GetXPExhaustion;
 local CreateFrame = _G.CreateFrame;
-
--- Setup Objects -------------------------
-
-local ResourceBarsPackage = obj:Import("MayronUI.ResourceBars");
-local C_ExperienceBar = ResourceBarsPackage:Get("ExperienceBar");
+local C_ExperienceBar = obj:Import("MayronUI.ExperienceBar");
 
 -- Local Functions -----------------------
 
@@ -39,20 +34,20 @@ end
 
 -- C_ExperienceBar -----------------------
 
-ResourceBarsPackage:DefineParams("BottomUI_ResourceBars", "table");
+obj:DefineParams("ResourceBars", "table");
 function C_ExperienceBar:__Construct(data, barsModule, moduleData)
-  self:Super(barsModule, moduleData, "experience");
+  self:CreateResourceBar(barsModule, moduleData, "experience");
   data.blizzardBar = _G.MainMenuExpBar;
 end
 
-ResourceBarsPackage:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 function C_ExperienceBar:CanUse()
   return not tk:IsPlayerMaxLevel();
 end
 
-ResourceBarsPackage:DefineParams("boolean");
+obj:DefineParams("boolean");
 function C_ExperienceBar:SetActive(data, active)
-  self.Parent:SetActive(active);
+  self:CallParentMethod("SetActive", active);
 
   if (active and data.notCreated) then
     data.rested = CreateFrame("StatusBar", nil, data.frame);
@@ -80,7 +75,7 @@ function C_ExperienceBar:SetActive(data, active)
   end
 end
 
-ResourceBarsPackage:DefineParams("boolean");
+obj:DefineParams("boolean");
 function C_ExperienceBar:SetEnabled(_, enabled)
   if (enabled) then
     if (self:CanUse()) then

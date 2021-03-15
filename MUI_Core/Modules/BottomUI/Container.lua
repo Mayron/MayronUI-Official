@@ -6,72 +6,75 @@ local C_PetBattles = _G.C_PetBattles;
 local CreateFrame, UIParent = _G.CreateFrame, _G.UIParent;
 
 -- Register and Import Modules -----------
-
 local C_Container = MayronUI:RegisterModule("BottomUI_Container", "Unit Frame Panels");
-
 -- Add Database Defaults -----------------
 
 db:AddToDefaults("profile.bottomui", {
-    width = 750;
+  width = 750;
+  enabled = true;
 });
 
 -- C_Container ------------------
 
 function C_Container:OnInitialize(data)
-  if (not MayronUI:IsInstalled()) then
-    return;
-  end
-
-  data.container = CreateFrame("Frame", "MUI_BottomContainer", UIParent);
-  data.container:SetPoint("BOTTOM", 0, -1);
-  data.container:SetFrameStrata("LOW");
-
-  if (tk:IsRetail()) then
-    local listener = em:CreateEventListener(function()
-      data.container:Show();
-    end);
-
-    listener:RegisterEvent("PET_BATTLE_OVER");
-
-    listener = em:CreateEventListener(function()
-      data.container:Hide();
-    end);
-
-    listener:RegisterEvent("PET_BATTLE_OPENING_START");
-
-    if (C_PetBattles.IsInBattle()) then
-      data.container:Hide();
-    end
-  end
-
-  -- Initialize Sub Modules -------------
-
-  data.subModules = obj:PopTable();
-
-  data.subModules.ResourceBars = MayronUI:ImportModule("BottomUI_ResourceBars");
-  data.subModules.ActionBarPanel = MayronUI:ImportModule("BottomUI_ActionBarPanel");
-  data.subModules.UnitPanels = MayronUI:ImportModule("BottomUI_UnitPanels");
-
-  data.subModules.ResourceBars:Initialize(self, data.subModules);
-  data.subModules.ActionBarPanel:Initialize(self, data.subModules);
-  data.subModules.UnitPanels:Initialize(self, data.subModules);
+  if (not MayronUI:IsInstalled()) then return end
 
   self:RegisterUpdateFunctions(db.profile.bottomui, {
-  width = function(value)
-    data.container:SetSize(value, 1);
+    width = function(value)
+      data.container:SetSize(value, 1);
 
-    local dataTextModule = MayronUI:ImportModule("DataTextModule");
+      local dataTextModule = MayronUI:ImportModule("DataTextModule");
 
-    if (dataTextModule and dataTextModule:IsEnabled()) then
-      dataTextModule:PositionDataTextButtons();
+      if (dataTextModule and dataTextModule:IsEnabled()) then
+        dataTextModule:PositionDataTextButtons();
+      end
     end
-  end;
   });
-
-  self:SetEnabled(true);
 end
 
-function C_Container:OnEnable()
+function C_Container:OnInitialized(data)
+  if (data.settings.enabled) then
+    self:SetEnabled(true);
+  end
+end
+
+function C_Container:OnEnable(data)
+  if (not data.container) then
+    data.container = CreateFrame("Frame", "MUI_BottomContainer", UIParent);
+    data.container:SetPoint("BOTTOM", 0, -1);
+    data.container:SetFrameStrata("LOW");
+
+    if (tk:IsRetail()) then
+      local listener = em:CreateEventListener(function()
+        data.container:Show();
+      end);
+
+      listener:RegisterEvent("PET_BATTLE_OVER");
+
+      listener = em:CreateEventListener(function()
+        data.container:Hide();
+      end);
+
+      listener:RegisterEvent("PET_BATTLE_OPENING_START");
+
+      if (C_PetBattles.IsInBattle()) then
+        data.container:Hide();
+      end
+    end
+  end
+
+  if (not data.subModules) then
+    data.subModules = obj:PopTable();
+
+    data.subModules.ResourceBars = MayronUI:ImportModule("ResourceBars");
+    data.subModules.ActionBarPanel = MayronUI:ImportModule("ActionBarPanel");
+    data.subModules.UnitPanels = MayronUI:ImportModule("UnitPanels");
+
+    data.subModules.ResourceBars:Initialize(self, data.subModules);
+    data.subModules.ActionBarPanel:Initialize(self, data.subModules);
+    data.subModules.UnitPanels:Initialize(self, data.subModules);
+  end
+
   self:RepositionContent();
 end
 

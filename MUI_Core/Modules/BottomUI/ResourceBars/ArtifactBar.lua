@@ -5,11 +5,7 @@ if (tk:IsClassic()) then return end
 
 local C_ArtifactUI = _G.C_ArtifactUI;
 local GetNumPurchasableArtifactTraits = _G.ArtifactBarGetNumArtifactTraitsPurchasableFromXP;
-
--- Setup Objects -------------------------
-
-local ResourceBarsPackage = obj:Import("MayronUI.ResourceBars");
-local C_ArtifactBar = ResourceBarsPackage:Get("ArtifactBar");
+local C_ArtifactBar = obj:Import("MayronUI.ArtifactBar");
 
 -- Local Functions -----------------------
 local function OnArtifactXPUpdate(_, _, bar, data)
@@ -42,29 +38,29 @@ end
 
 -- C_ArtifactBar -------------------------
 
-ResourceBarsPackage:DefineParams("BottomUI_ResourceBars", "table");
+obj:DefineParams("ResourceBars", "table");
 function C_ArtifactBar:__Construct(data, barsModule, moduleData)
-    self:Super(barsModule, moduleData, "artifact");
+    self:CreateResourceBar(barsModule, moduleData, "artifact");
     data.blizzardBar = _G.ArtifactWatchBar;
 end
 
-ResourceBarsPackage:DefineReturns("boolean");
+obj:DefineReturns("boolean");
 function C_ArtifactBar:CanUse()
     return _G.ArtifactBarMixin:ShouldBeVisible() == true; -- this is a static mixin method
 end
 
-ResourceBarsPackage:DefineParams("boolean");
+obj:DefineParams("boolean");
 function C_ArtifactBar:SetActive(data, active)
-    self.Parent:SetActive(active);
+  self:CallParentMethod("SetActive", active);
 
-    if (active and data.notCreated) then
-        data.statusbar.texture = data.statusbar:GetStatusBarTexture();
-        data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
-        data.notCreated = nil;
-    end
+  if (active and data.notCreated) then
+    data.statusbar.texture = data.statusbar:GetStatusBarTexture();
+    data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
+    data.notCreated = nil;
+  end
 end
 
-ResourceBarsPackage:DefineParams("boolean");
+obj:DefineParams("boolean");
 function C_ArtifactBar:SetEnabled(data, enabled)
   if (enabled) then
     -- need to check when it's active

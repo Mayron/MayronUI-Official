@@ -1,9 +1,9 @@
-## Interface: 90002
+## Interface: 90005
 ## Title: |cff00ccffMUI|r Setup
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
 ## OptionalDeps: Leatrix_Plus
-## Version: 6.3.10
+## Version: 6.4.0
 ## Notes: Required to install MayronUI and inject addon settings
 
 MUI_Setup.lua

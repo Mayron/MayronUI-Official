@@ -1,7 +1,7 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-local C_UnitPanels = _G.MayronUI:ImportModule("BottomUI_UnitPanels");
+local _, C_UnitPanels = _G.MayronUI:ImportModule("UnitPanels");
 
 local CreateFrame, pairs = _G.CreateFrame, _G.pairs;
 local IsAddOnLoaded, UnitExists, UnitIsPlayer = _G.IsAddOnLoaded, _G.UnitExists, _G.UnitIsPlayer;
@@ -32,7 +32,8 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
   if (enabled) then
     data.gradients = data.gradients or obj:PopTable();
 
-    for _, unitID in obj:IterateArgs("player", "target") do
+    for i = 1, 2 do
+      local unitID = i == 1 and "player" or "target";
       local parent = _G["SUFUnit"..unitID];
 
       if (parent and parent.portrait) then

@@ -4,20 +4,17 @@ local MayronUI = _G.MayronUI;
 local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local MENU_BUTTON_HEIGHT = 40;
-local pairs, ipairs, table = _G.pairs, _G.ipairs, _G.table;
+local pairs, ipairs, table, mrandom, setmetatable = _G.pairs, _G.ipairs, _G.table, _G.math.random, _G.setmetatable;
 local DisableAddOn, collectgarbage, UIFrameFadeIn, CreateFrame, PlaySound, GetAddOnMetadata
  = _G.DisableAddOn, _G.collectgarbage, _G.UIFrameFadeIn, _G.CreateFrame, _G.PlaySound, _G.GetAddOnMetadata;
 
 -- Registers and Imports -------------
-
-local C_LinkedList = obj:Import("Framework.System.Collections.LinkedList");
-local Engine = obj:Import("MayronUI.Engine");
+---@type LinkedList
+local C_LinkedList = obj:Import("Pkg-Collections.LinkedList");
 
 ---@class ConfigModule : BaseModule
 local C_ConfigModule = MayronUI:RegisterModule("ConfigModule");
-
 namespace.C_ConfigModule = C_ConfigModule;
-namespace.Engine = Engine;
 
 -- Local functions -------------------
 local CreateTopMenuButton;
@@ -124,7 +121,7 @@ function C_ConfigModule:Show(data)
     data.window:Show();
 end
 
-Engine:DefineReturns("Database");
+obj:DefineReturns("Database");
 ---@return Database
 function C_ConfigModule:GetDatabase(data, tbl)
     local dbObject;
@@ -146,7 +143,7 @@ function C_ConfigModule:GetDatabase(data, tbl)
 end
 
 
-Engine:DefineParams("table");
+obj:DefineParams("table");
 ---@param widgetConfigTable table @A widget config table used to construct part of the config menu.
 ---@return any @A value from the database located by the dbPath value inside widgetConfigTable.
 function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
@@ -172,7 +169,7 @@ function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
     return value;
 end
 
-Engine:DefineParams("table");
+obj:DefineParams("table");
 ---Updates the database based on the dbPath config value, or using SetValue,
 ---@param widget table @The created widger frame.
 ---@param value any @The value to add to the database using the dbPath value attached to the widget table.
@@ -208,7 +205,7 @@ function C_ConfigModule:SetDatabaseValue(_, widget, newValue)
     end
 end
 
-Engine:DefineParams("CheckButton|Button");
+obj:DefineParams("CheckButton|Button");
 ---@param menuButton CheckButton|Button @The menu button clicked on associated with a menu.
 function C_ConfigModule:OpenMenu(data, menuButton)
     if (menuButton.type == "menu") then
@@ -230,7 +227,7 @@ do
         return (tbl.type ~= "submenu" and key ~= "options");
     end
 
-    Engine:DefineParams("CheckButton|Button");
+    obj:DefineParams("CheckButton|Button");
     ---@param menuButton CheckButton|Button @The menu button clicked on associated with a menu.
     function C_ConfigModule:SetSelectedButton(data, menuButton)
         if (data.selectedButton) then
@@ -268,7 +265,7 @@ do
     end
 end
 
-Engine:DefineParams("table");
+obj:DefineParams("table");
 ---@param menuConfigTable table @A table containing many widget config tables used to render a full menu.
 function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     if (not (menuConfigTable and obj:IsTable(menuConfigTable.children))) then
@@ -340,7 +337,7 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     data.tempMenuConfigTable = nil;
 end
 
-Engine:DefineReturns("DynamicFrame");
+obj:DefineReturns("DynamicFrame");
 ---@return DynamicFrame @The dynamic frame which holds the menu frame and controls responsiveness and the scroll bar.
 function C_ConfigModule:CreateMenu(data)
     -- else, create a new menu (dynamic frame) to based on the module's config data
@@ -365,93 +362,93 @@ function C_ConfigModule:ShowRestartMessage(data)
     data.warningLabel:SetText(data.warningLabel.restartText);
 end
 
-Engine:DefineParams("table", "?Frame");
+obj:DefineParams("table", "?Frame");
 ---@param widgetConfigTable table @A widget config table used to control the rendering and behavior of a widget in the config menu.
 ---@param parent Frame @(optional) A custom parent frame for the widget, else the parent will be the menu scroll child.
 ---@return Frame @(possibly nil if widget is disabled) The created widget.
 function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
-    if (not parent) then
-        parent = data.selectedButton.menu:GetFrame();
-        parent = parent.ScrollFrame:GetScrollChild();
-    end
+  if (not parent) then
+    parent = data.selectedButton.menu:GetFrame();
+    parent = parent.ScrollFrame:GetScrollChild();
+  end
 
-    tk:Assert(obj:IsTable(data.tempMenuConfigTable), "Invalid temp data for '%s'", widgetConfigTable.name);
+  tk:Assert(obj:IsTable(data.tempMenuConfigTable), "Invalid temp data for '%s'", widgetConfigTable.name);
 
-    if (not tk.Strings:IsNilOrWhiteSpace(data.tempMenuConfigTable.dbPath) and
-        not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.appendDbPath)) then
+  if (not tk.Strings:IsNilOrWhiteSpace(data.tempMenuConfigTable.dbPath) and
+  not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.appendDbPath)) then
 
-        -- append the widget config table's dbPath value onto it!
-        widgetConfigTable.dbPath = tk.Strings:Join(".",
-            data.tempMenuConfigTable.dbPath, widgetConfigTable.appendDbPath);
+    -- append the widget config table's dbPath value onto it!
+    widgetConfigTable.dbPath = tk.Strings:Join(".",
+    data.tempMenuConfigTable.dbPath, widgetConfigTable.appendDbPath);
 
-        widgetConfigTable.appendDbPath = nil;
-    end
+    widgetConfigTable.appendDbPath = nil;
+  end
 
-    if (not obj:IsTable(data.tempMenuConfigTable.inherit)) then
-        data.tempMenuConfigTable.inherit = obj:PopTable();
-        data.tempMenuConfigTable.inherit.module = data.tempMenuConfigTable.module;
-        data.tempMenuConfigTable.inherit.hasOwnDatabase = data.tempMenuConfigTable.hasOwnDatabase;
-    end
+  if (not obj:IsTable(data.tempMenuConfigTable.inherit)) then
+    data.tempMenuConfigTable.inherit = obj:PopTable();
+    data.tempMenuConfigTable.inherit.module = data.tempMenuConfigTable.module;
+    data.tempMenuConfigTable.inherit.hasOwnDatabase = data.tempMenuConfigTable.hasOwnDatabase;
+  end
 
-    if (not data.tempMenuConfigTable.inherit.__index) then
-        local metaTable = obj:PopTable();
-        metaTable.__index = data.tempMenuConfigTable.inherit;
-        data.tempMenuConfigTable.inherit = metaTable;
-    end
+  if (not data.tempMenuConfigTable.inherit.__index) then
+    local metaTable = obj:PopTable();
+    metaTable.__index = data.tempMenuConfigTable.inherit;
+    data.tempMenuConfigTable.inherit = metaTable;
+  end
 
-    -- Inherit all key and value pairs from a menu table
-    setmetatable(widgetConfigTable, data.tempMenuConfigTable.inherit);
+  -- Inherit all key and value pairs from a menu table
+  setmetatable(widgetConfigTable, data.tempMenuConfigTable.inherit);
 
-    local widgetType = widgetConfigTable.type;
+  local widgetType = widgetConfigTable.type;
 
-    -- treat the widget like a check button (except when grouping the check buttons)
-    if (widgetType == "radio") then
-        widgetType = "check";
-    end
+  -- treat the widget like a check button (except when grouping the check buttons)
+  if (widgetType == "radio") then
+    widgetType = "check";
+  end
 
-    tk:Assert(namespace.WidgetHandlers[widgetType],
-        "Unsupported widget type '%s' found in config data for config table '%s'.",
-        widgetType or "nil", widgetConfigTable.name or "nil");
+  tk:Assert(namespace.WidgetHandlers[widgetType],
+  "Unsupported widget type '%s' found in config data for config table '%s'.",
+  widgetType or "nil", widgetConfigTable.name or "nil");
 
-    if (widgetConfigTable.OnInitialize) then
-        -- do disabled widgets need to be initialized?
-        widgetConfigTable.OnInitialize(widgetConfigTable);
-        widgetConfigTable.OnInitialize = nil;
-    end
+  if (widgetConfigTable.OnInitialize) then
+    -- do disabled widgets need to be initialized?
+    widgetConfigTable.OnInitialize(widgetConfigTable);
+    widgetConfigTable.OnInitialize = nil;
+  end
 
-    local currentValue = self:GetDatabaseValue(widgetConfigTable);
+  local currentValue = self:GetDatabaseValue(widgetConfigTable);
 
-    -- create the widget (run the widget function)!
-    local widget = namespace.WidgetHandlers[widgetType](parent, widgetConfigTable, currentValue);
+  -- create the widget (run the widget function)!
+  local widget = namespace.WidgetHandlers[widgetType](parent, widgetConfigTable, currentValue);
 
-    if (widgetConfigTable.devMode) then
-        -- highlight the widget in dev mode.
-        tk:SetBackground(widget, math.random(), math.random(), math.random());
-    end
+  if (widgetConfigTable.devMode) then
+    -- highlight the widget in dev mode.
+    tk:SetBackground(widget, mrandom(), mrandom(), mrandom());
+  end
 
-    if (widgetConfigTable.type == "radio" and widgetConfigTable.groupName) then
-        -- get groups[groupName] value from tempRadioButtonGroup
-        local tempRadioButtonGroup = tk.Tables:GetTable(
-            data.tempMenuConfigTable, "groups", widgetConfigTable.groupName);
+  if (widgetConfigTable.type == "radio" and widgetConfigTable.groupName) then
+    -- get groups[groupName] value from tempRadioButtonGroup
+    local tempRadioButtonGroup = tk.Tables:GetTable(
+    data.tempMenuConfigTable, "groups", widgetConfigTable.groupName);
 
-        table.insert(tempRadioButtonGroup, widget.btn);
-    end
+    table.insert(tempRadioButtonGroup, widget.btn);
+  end
 
-    if (widgetConfigTable.disabled) then
-        return;
-    end
+  if (widgetConfigTable.disabled) then
+    return;
+  end
 
-    -- setup complete, so run the OnLoad callback if one exists
-    if (widgetConfigTable.OnLoad) then
-        widgetConfigTable.OnLoad(widgetConfigTable, widget, currentValue);
-        widgetConfigTable.OnLoad = nil;
-    end
+  -- setup complete, so run the OnLoad callback if one exists
+  if (widgetConfigTable.OnLoad) then
+    widgetConfigTable.OnLoad(widgetConfigTable, widget, currentValue);
+    widgetConfigTable.OnLoad = nil;
+  end
 
-    if (widgetType ~= "submenu") then
-        TransferWidgetAttributes(widget, widgetConfigTable);
-    end
+  if (widgetType ~= "submenu") then
+    TransferWidgetAttributes(widget, widgetConfigTable);
+  end
 
-    return widget;
+  return widget;
 end
 
 function C_ConfigModule:SetUpWindow(data)

@@ -1,13 +1,8 @@
 -- luacheck: ignore self GameTooltip 143 631
-local _, namespace = ...;
-
 local MayronUI = _G.MayronUI;
-local tk, _, _, _, _, L = MayronUI:GetCoreComponents();
-local ComponentsPackage = namespace.ComponentsPackage;
-
+local tk, _, _, _, obj, L = MayronUI:GetCoreComponents();
 local CreateFrame, GetCVar, SetCVar, string = _G.CreateFrame, _G.GetCVar, _G.SetCVar, _G.string;
 local tonumber = _G.tonumber;
-
 local MASTER_VOLUME = _G.MASTER_VOLUME;
 local SOUND_VOLUME = _G.SOUND_VOLUME;
 local MUSIC_VOLUME = _G.MUSIC_VOLUME;
@@ -23,8 +18,7 @@ local ActionStatus = _G.ActionStatus;
 local ActionStatus_DisplayMessage = _G.ActionStatus_DisplayMessage;
 
 -- Register and Import Modules -------
-
-local VolumeOptions = ComponentsPackage:CreateClass("VolumeOptions", nil, "IDataTextComponent");
+local VolumeOptions = obj:CreateClass("VolumeOptions");
 
 -- Local Functions ----------------
 local function GetFormattedValue(text, cvarName, value)
@@ -71,13 +65,9 @@ local function CreateLabel(contentFrame, cvarName, text, component)
   slider.component = component;
   slider:SetScript("OnValueChanged", Slider_OnValueChanged);
 
-  slider.Low:SetText("0");
-  slider.Low:ClearAllPoints();
-  slider.Low:SetPoint("RIGHT", slider, "LEFT", -5, 0);
+  slider.Low:Hide();
+  slider.High:Hide();
 
-  slider.High:SetText("1");
-  slider.High:ClearAllPoints();
-  slider.High:SetPoint("LEFT", slider, "RIGHT", 5, 0);
   tk:SetBackground(label, 0, 0, 0, 0.2);
 
   label.name = name;

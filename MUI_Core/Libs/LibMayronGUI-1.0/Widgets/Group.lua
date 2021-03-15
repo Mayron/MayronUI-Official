@@ -5,33 +5,35 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
 if (not Lib) then return; end
 
-local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
-local obj = Lib.Objects;
+local obj = _G.MayronObjects:GetFramework();
 
-local Group = WidgetsPackage:CreateClass("Group", Private.FrameWrapper);
-local Panel = Private.Panel; ---@type Panel
+local Group = obj:CreateClass("Group");
+obj:Export(Group, "MayronUI");
+
+local Panel = obj:Import("MayronUI.Panel"); ---@type Panel
+local LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type LinkedList
 ---------------------------------
 
 local function GetGroup(groupID, groupType, panel, panelData)
-    if (not panelData.grid) then
-        return false;
+  if (not panelData.grid) then
+    return false;
+  end
+
+  local cellsList = obj:PopTable();
+
+  for position, cell in panelData.grid:Iterate() do
+    local column, row = Private:GetCoords(position, panelData.width, panelData.height);
+
+    if ((groupType == "row" and row == groupID) or (groupType == "column" and column == groupID)) then
+      table.insert(cellsList, cell);
     end
+  end
 
-    local cellsList = obj:PopTable();
+  local cellsLinkedList = LinkedList(_G.unpack(cellsList));
 
-    for position, cell in panelData.grid:Iterate() do
-        local column, row = Private:GetCoords(position, panelData.width, panelData.height);
-
-        if ((groupType == "row" and row == groupID) or (groupType == "column" and column == groupID)) then
-            table.insert(cellsList, cell);
-        end
-    end
-
-    local cellsLinkedList = Private.LinkedList(_G.unpack(cellsList));
-
-    obj:PushTable(cellsList);
-    return Group(groupID, groupType, cellsLinkedList, panel);
+  obj:PushTable(cellsList);
+  return Group(groupID, groupType, cellsLinkedList, panel);
 end
 
 function Panel:GetRow(data, rowID)

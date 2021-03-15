@@ -3,9 +3,8 @@ local MayronUI = _G.MayronUI;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local CreateFrame, collectgarbage, PlaySound = _G.CreateFrame, _G.collectgarbage, _G.PlaySound;
-local string, ipairs, tostring, min = _G.string, _G.ipairs, _G.tostring, _G.math.min;
+local string, ipairs, tostring, min, mfloor = _G.string, _G.ipairs, _G.tostring, _G.math.min, _G.math.floor;
 
-local Engine = obj:Import("MayronUI.Engine");
 local C_ReportIssue = MayronUI:RegisterModule("ReportIssue", nil, true) ---@class C_ReportIssue : BaseModule
 
 local TOTAL_STEPS = 3;
@@ -67,7 +66,7 @@ function C_ReportIssue:Toggle(data)
   end
 end
 
-Engine:DefineParams("table");
+obj:DefineParams("table");
 function C_ReportIssue:SetErrors(data, errors)
   data.errors = errors;
 end
@@ -92,7 +91,7 @@ function C_ReportIssue.Private:SetUpHeader(data)
   panel:AddCells(cell);
 end
 
-Engine:DefineParams("number");
+obj:DefineParams("number");
 function C_ReportIssue.Private:ShowStep(data, stepNum)
   if (stepNum < 1) then
     stepNum = 1;
@@ -193,8 +192,8 @@ function C_ReportIssue.Private:SetUpFooter(data)
   panel:AddCells(cell);
 end
 
-Engine:DefineParams("Frame", "string", "number=0", "number=1000");
-Engine:DefineReturns("EditBox");
+obj:DefineParams("Frame", "string", "number=0", "number=1000");
+obj:DefineReturns("EditBox");
 function C_ReportIssue.Private:CreateEditBox(data, parent, titleText, minLength, maxLength)
   local title = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
   title:SetPoint("TOPLEFT");
@@ -264,18 +263,18 @@ end
 ---------------------------------
 --- Steps:
 ---------------------------------
-Engine:DefineParams("Frame");
+obj:DefineParams("Frame");
 function C_ReportIssue.Private:RenderStep1(data, parent)
   data.detailsEditBox = data:Call("CreateEditBox", parent, L["Please describe the bug in detail:"], 50);
 end
 
-Engine:DefineParams("Frame");
+obj:DefineParams("Frame");
 function C_ReportIssue.Private:RenderStep2(data, parent)
   data.replicateBugEditBox = data:Call("CreateEditBox", parent, L["How can we replicate the bug?"]);
   data.replicateBugEditBox:SetText(REPLICATE_BUG_STEP_TEXT);
 end
 
-Engine:DefineParams("Frame");
+obj:DefineParams("Frame");
 function C_ReportIssue.Private:RenderStep3(data, parent)
   local linkButton = CreateFrame("Button", nil, parent);
   linkButton:SetPoint("TOPLEFT");
@@ -381,7 +380,7 @@ do
   end
 
   -- IMPORTANT: DO NOT LOCALIZE TEXT FOUND BELOW:
-  Engine:DefineReturns("string");
+  obj:DefineReturns("string");
   function C_ReportIssue.Private:GenerateReport(data)
     local f = AppendFormattedLine;
 
@@ -498,8 +497,7 @@ do
       if (IsAddOnLoaded(i)) then
         local value;
         if (usage > 1000) then
-          value = usage / 1000;
-          value = tk.Numbers:ToPrecision(value, 1);
+          value = mfloor(usage / 10) / 100;
           value = string.format("%smb", value);
         else
           value = tk.Numbers:ToPrecision(usage, 0);

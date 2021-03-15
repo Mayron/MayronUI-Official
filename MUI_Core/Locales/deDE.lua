@@ -146,6 +146,7 @@ L["Player"]						= "Spieler";
 L["Target"]						= "Ziel";
 L["Focus"]						= "Fokus";
 L["Mirror"]						= "Spiegel";
+L["Pet"] = "Begleiter";
 
 L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."]	= "Wenn aktiviert, wird die CastBar am %s Einheiten Fenster verankert. (Sofern existent!)";
 L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."]					= "Das %s Einheiten Fenster muss für dieses Feature aktiviert sein.";
@@ -633,7 +634,6 @@ L["Modifier key/s used to show Expand/Retract button:"] 			  = "Modifizierertast
 L["Side Action Bars"]                                                 = "Seitliche Aktionsleisten";
 L["Minimum value is"]                                                 = "Mindestwert ist";
 L["Maximum value is"]                                                 = "Maximalwert ist";
-L["Enable Changes"]                                                   = "Änderungen aktivieren";
 L["Collapse in Instance"]                                             = "Collapse in Instance";
 L["CREDITS"]                                                          = "Anerkennung";
 L["Buffs"]                                                            = "Buffs";

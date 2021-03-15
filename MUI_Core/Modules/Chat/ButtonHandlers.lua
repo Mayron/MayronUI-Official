@@ -1,12 +1,14 @@
 -- luacheck: ignore MayronUI self 143
-
-local _, namespace = ...;
-local C_ChatFrame = namespace.C_ChatFrame;
-local Engine = namespace.Engine;
+local MayronUI = _G.MayronUI;
 local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
+local obj = _G.MayronObjects:GetFramework();
+
+---@class ChatFrame
+local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
+local C_ChatFrame = obj:Import("MayronUI.ChatModule.ChatFrame");
 
 local LoadAddOn, IsTrialAccount, IsInGuild, UnitLevel, UnitInBattleground =
-_G.LoadAddOn, _G.IsTrialAccount, _G.IsInGuild, _G.UnitLevel, _G.UnitInBattleground;
+  _G.LoadAddOn, _G.IsTrialAccount, _G.IsInGuild, _G.UnitLevel, _G.UnitInBattleground;
 local InCombatLockdown, ipairs = _G.InCombatLockdown, _G.ipairs;
 
 local ToggleGuildFrame;
@@ -43,7 +45,7 @@ local buttonKeys = {
 };
 
 if (tk:IsClassic()) then
-  namespace.ButtonNames = {
+  C_ChatModule.Static.ButtonNames = {
     L["Character"],
     L["Bags"],
     L["Friends"],
@@ -60,7 +62,7 @@ if (tk:IsClassic()) then
     "Skills"
   };
 else
-  namespace.ButtonNames = {
+  C_ChatModule.Static.ButtonNames = {
     L["Character"],
     L["Bags"],
     L["Friends"],
@@ -234,7 +236,7 @@ end
 local function ChatFrame_OnModifierStateChanged(_, _, data)
   if (data.chatModuleSettings.swapInCombat or not InCombatLockdown()) then
     for _, buttonStateData in ipairs(data.settings.buttons) do
-      if (not buttonStateData.key or (buttonStateData.key and tk:IsModComboActive(buttonStateData.key))) then
+      if (not buttonStateData.key or tk:IsModComboActive(buttonStateData.key)) then
         data.buttons[1]:SetText(buttonStateData[1]);
         data.buttons[2]:SetText(buttonStateData[2]);
         data.buttons[3]:SetText(buttonStateData[3]);
@@ -243,7 +245,7 @@ local function ChatFrame_OnModifierStateChanged(_, _, data)
   end
 end
 
-Engine:DefineParams("table")
+obj:DefineParams("table")
 function C_ChatFrame:SetUpButtonHandler(data, buttonSettings)
   data.settings.buttons = buttonSettings;
 

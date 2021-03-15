@@ -5,39 +5,37 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
 if (not Lib) then return; end
 
-local WidgetsPackage = Lib.WidgetsPackage;
 local Private = Lib.Private;
-local obj = Lib.Objects;
-
+local obj = _G.MayronObjects:GetFramework();
+local C_LinkedList = obj:Import("Pkg-Collections.LinkedList");
 local math = _G.math;
 
----@class Panel : FrameWrapper
-local Panel = WidgetsPackage:CreateClass("Panel", Private.FrameWrapper);
+---@class Panel
+local Panel = obj:CreateClass("Panel");
+obj:Export(Panel, "MayronUI");
 
-Panel.Static:AddFriendClass("Group");
-Private.Panel = Panel;
----------------------------------
+Panel.Static:AddFriendClass("MayronUI.Group");
 
 -- helper constructor
 function Lib:CreatePanel(frame, globalName, parent)
-    return Panel(frame, globalName, parent);
+  return Panel(frame, globalName, parent);
 end
 
 function Panel:__Construct(data, frame, globalName, parent)
-    self:SetFrame(frame or _G.CreateFrame("Frame", globalName, parent or _G.UIParent));
-    data.grid = Private.LinkedList();
-    data.rowscale = obj:PopTable();
-    data.columnscale = obj:PopTable();
-    data.width = 1;
-    data.height = 1;
+  self:SetFrame(frame or _G.CreateFrame("Frame", globalName, parent or _G.UIParent));
+  data.grid = C_LinkedList();
+  data.rowscale = obj:PopTable();
+  data.columnscale = obj:PopTable();
+  data.width = 1;
+  data.height = 1;
 
-    data.frame:HookScript("OnSizeChanged", function()
-        Private:OnSizeChanged(data);
-    end);
+  data.frame:HookScript("OnSizeChanged", function()
+    Private:OnSizeChanged(data);
+  end);
 end
 
 function Panel:GetDimensions(data)
-    return data.width, data.height;
+  return data.width, data.height;
 end
 
 function Panel:SetDimensions(data, width, height)
@@ -80,7 +78,7 @@ function Panel:SetDevMode(data, devMode)  -- shows or hides the red frame info o
 end
 
 function Panel:AddCells(data, ...)
-  data.cells = data.cells or Private.LinkedList(); --- @type LinkedList
+  data.cells = data.cells or C_LinkedList(); --- @type LinkedList
 
   for _, cell in obj:IterateArgs(...) do
     data.cells:AddToBack(cell);
