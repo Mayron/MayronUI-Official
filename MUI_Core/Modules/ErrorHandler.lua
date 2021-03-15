@@ -3,7 +3,7 @@ local _, namespace = ...;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
-local GetCVarBool, table, string, select = _G.GetCVarBool, _G.table, _G.string, _G.select;
+local table, string, select = _G.table, _G.string, _G.select;
 local hooksecurefunc, GetMinimapZoneText = _G.hooksecurefunc, _G.GetMinimapZoneText;
 local GetNumGroupMembers, IsResting = _G.GetNumGroupMembers, _G.IsResting;
 local IsInInstance, InCombatLockdown = _G.IsInInstance, _G.InCombatLockdown;
@@ -13,6 +13,7 @@ local debugstack, HandleLuaError = _G.debugstack, _G.HandleLuaError;
 local ERRORS = {};
 local seterrorhandler = _G.seterrorhandler;
 local ScriptErrorsFrame = _G.ScriptErrorsFrame;
+local tostring = _G.tostring;
 
 ---@class C_ErrorHandler : BaseModule
 local C_ErrorHandler = MayronUI:RegisterModule("ErrorHandlerModule");
@@ -27,7 +28,7 @@ function C_ErrorHandler:OnInitialize()
       resting = IsResting(),
       isAFK = UnitIsAFK("player"),
       isDeadOrGhost = UnitIsDeadOrGhost("player"),
-      error = errorMessage
+      error = tostring(errorMessage)
     });
   end
 
@@ -112,16 +113,6 @@ function C_ErrorHandler:OnInitialize()
 
     BugGrabber.RegisterCallback(namespace, "BugGrabber_BugGrabbed", BugGrabber_OnBugGrabbed);
   end
-
-  -- TODO: Gone forever? :()
-  -- obj:SetErrorHandler(function(errorMessage, stack, locals)
-  --   local hideErrorFrame = not GetCVarBool("scriptErrors");
-  --   ScriptErrorsFrame.Title:SetText("MayronUI Error");
-  --   ScriptErrorsFrame.Title:SetFontObject("MUI_FontNormal");
-
-  --   addError(string.format("%s\n%s", errorMessage or "<unknown>", stack or tk.Strings.Empty));
-  --   ScriptErrorsFrame:DisplayMessageInternal(errorMessage, nil, hideErrorFrame, locals, stack);
-  -- end);
 end
 
 obj:DefineReturns("table");

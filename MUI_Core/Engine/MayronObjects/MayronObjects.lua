@@ -1023,7 +1023,7 @@ function Framework:IsType(value, expectedTypeName)
     return false;
   end
 
-  if (value.IsObjectType and value:IsObjectType(expectedTypeName)) then
+  if (Framework:IsFunction(value.IsObjectType) and value:IsObjectType(expectedTypeName)) then
     return true;
   end
 
