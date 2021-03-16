@@ -45,19 +45,19 @@ function C_ChatFrame:SetEnabled(data, enabled)
 			self:Reposition();
 		end
 
-		if (IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
-			data.chatModule:SetUpRaidFrameManager();
-		else
-			-- if it is not loaded, create a callback to trigger when it is loaded
-			local listener = em:CreateEventListener(function(_, name)
-				if (name == "Blizzard_CompactRaidFrames") then
-					data.chatModule:SetUpRaidFrameManager();
-				end
+    if (IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
+      data.chatModule:SetUpRaidFrameManager();
+    else
+      -- if it is not loaded, create a callback to trigger when it is loaded
+      local listener = em:CreateEventListener(function(_, name)
+        if (name == "Blizzard_CompactRaidFrames") then
+          data.chatModule:SetUpRaidFrameManager();
+        end
       end)
 
       listener:SetExecuteOnce(true);
       listener:RegisterEvent("ADDON_LOADED");
-		end
+    end
 
 		-- chat channel button
 		data.chatModule:SetUpLayoutButton(data.frame.layoutButton);

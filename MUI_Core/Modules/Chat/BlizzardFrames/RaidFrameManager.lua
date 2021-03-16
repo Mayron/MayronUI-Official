@@ -2,11 +2,11 @@
 -- Setup namespaces ------------------
 local MayronUI = _G.MayronUI;
 local tk, _, _, gui = MayronUI:GetCoreComponents();
+
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 local CompactRaidFrameManager, GetNumGroupMembers = _G.CompactRaidFrameManager, _G.GetNumGroupMembers;
 local IsAddOnLoaded, CreateFrame = _G.IsAddOnLoaded, _G.CreateFrame;
 --------------------------------------
-
 local function ToggleButton_OnEvent(self)
   if (not IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
     return;
