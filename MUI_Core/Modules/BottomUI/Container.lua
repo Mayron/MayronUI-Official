@@ -12,6 +12,7 @@ local C_Container = MayronUI:RegisterModule("BottomUI_Container", "Unit Frame Pa
 db:AddToDefaults("profile.bottomui", {
   width = 750;
   enabled = true;
+  frameStrata = "LOW";
 });
 
 -- C_Container ------------------
@@ -42,7 +43,7 @@ function C_Container:OnEnable(data)
   if (not data.container) then
     data.container = CreateFrame("Frame", "MUI_BottomContainer", UIParent);
     data.container:SetPoint("BOTTOM", 0, -1);
-    data.container:SetFrameStrata("LOW");
+    data.container:SetFrameStrata(data.settings.frameStrata);
 
     if (tk:IsRetail()) then
       local listener = em:CreateEventListener(function()

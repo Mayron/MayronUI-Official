@@ -152,7 +152,7 @@ function C_ConfigModule:GetConfigTable()
                 };
                 {   type = "divider";
                 };
-                {   name        = "Set Main Container Width";
+                {   name        = "Main Container Width";
                     type        = "slider";
                     min = 500;
                     max = 1500;
@@ -161,6 +161,12 @@ function C_ConfigModule:GetConfigTable()
                     tooltip     = tk.Strings:Concat(
                         L["Adjust the width of the main container."], "\n\n", L["Default value is "], "750");
                     dbPath      = "profile.bottomui.width";
+                };
+                {
+                    name = "Main Container Strata",
+                    type = "dropdown",
+                    options = tk.Constants.ORDERED_FRAME_STRATAS,
+                    dbPath = tk.Strings:Concat("profile.bottomui.frameStrata")
                 };
                 {   type = "title";
                     client = "retail";
