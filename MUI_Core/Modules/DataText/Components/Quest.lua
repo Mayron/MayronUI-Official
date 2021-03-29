@@ -51,7 +51,6 @@ function Quest:SetEnabled(data, enabled)
 end
 
 function Quest:Update(data, refreshSettings)
-  print("Update");
   if (refreshSettings) then
     data.settings:Refresh();
   end
