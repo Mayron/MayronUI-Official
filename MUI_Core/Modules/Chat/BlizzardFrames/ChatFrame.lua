@@ -112,8 +112,14 @@ local function RepositionNotificationFrame(chatFrame)
 	end
 end
 
-function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
-	local chatFrameName = string.format("ChatFrame%d", chatFrameID);
+function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
+  if (not data.ProcessedChatFrames) then
+    data.ProcessedChatFrames = {};
+  end
+
+  if (data.ProcessedChatFrames[chatFrameName]) then
+    return; -- return because frame has already being processed before
+  end
 
   local chatFrame = _G[chatFrameName];
   chatFrame:SetMovable(true);
@@ -186,5 +192,17 @@ function C_ChatModule:SetUpBlizzardChatFrame(_, chatFrameID)
 		_G.BNToastFrame.SetPoint = tk.Constants.DUMMY_FUNC;
 	end
 
+  data.ProcessedChatFrames[chatFrameName] = chatFrame;
+
 	return chatFrame;
+end
+
+function C_ChatModule:SetUpAllBlizzardFrames(data)
+  for _, chatFrameName in ipairs(_G.CHAT_FRAMES) do
+    local chatFrame = self:SetUpBlizzardChatFrame(chatFrameName);
+    if (changeGameFont) then
+      local _, fontSize, outline = _G.FCF_GetChatWindowInfo(chatFrame:GetID());
+      chatFrame:SetFont(muiFont, fontSize, outline);
+    end
+  end
 end
