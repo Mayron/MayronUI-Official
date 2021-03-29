@@ -43,6 +43,7 @@
   <Script file="DataText\Components\Guild.lua" />
   <Script file="DataText\Components\Inventory.lua" />
   <Script file="DataText\Components\Memory.lua" />
+  <Script file="DataText\Components\Quest.lua" />
   <Script file="DataText\Components\None.lua" />
   <Script file="DataText\Components\Performance.lua" />
   <Script file="DataText\Components\Specialization.lua" />
