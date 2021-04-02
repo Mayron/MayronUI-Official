@@ -65,7 +65,7 @@ obj:DefineParams("boolean");
 function C_ArtifactBar:SetEnabled(data, enabled)
   if (enabled) then
     -- need to check when it's active
-    local listener = em:CreateEventListenerWithID("ArtifactXP_Update", OnArtifactXPUpdate);
+    local listener = em:GetEventListenerByID("ArtifactXP_Update") or em:CreateEventListenerWithID("ArtifactXP_Update", OnArtifactXPUpdate);
     listener:SetCallbackArgs(self, data);
     listener:RegisterEvents("ARTIFACT_XP_UPDATE", "UNIT_INVENTORY_CHANGED");
 

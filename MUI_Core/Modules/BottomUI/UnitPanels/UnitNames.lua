@@ -63,7 +63,7 @@ function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
     if (not (data.player and data.target)) then
       self:SetUpUnitNames(data);
     else
-      em:EnableEventHandlers(
+      em:EnableEventListeners(
         "MuiUnitNames_LevelUp",
         "MuiUnitNames_UpdatePlayerName",
         "MuiUnitNames_TargetChanged");

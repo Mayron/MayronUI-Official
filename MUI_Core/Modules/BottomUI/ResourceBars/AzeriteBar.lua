@@ -68,7 +68,7 @@ obj:DefineParams("boolean");
 function C_AzeriteBar:SetEnabled(data, enabled)
   if (enabled) then
     -- need to check when it's active
-    local listener = em:CreateEventListenerWithID("AzeriteXP_Update", OnAzeriteXPUpdate);
+    local listener = em:GetEventListenerByID("AzeriteXP_Update") or em:CreateEventListenerWithID("AzeriteXP_Update", OnAzeriteXPUpdate);
     listener:SetCallbackArgs(self, data);
     listener:RegisterEvents("AZERITE_ITEM_EXPERIENCE_CHANGED", "UNIT_INVENTORY_CHANGED");
 
