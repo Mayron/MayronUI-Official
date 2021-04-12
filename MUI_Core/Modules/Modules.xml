@@ -28,6 +28,8 @@
   <Script file="CastBars\CastBars.lua" />
   <Script file="CastBars\CastBars.config.lua" />
 
+  <Script file="ChatNew.lua" />
+	
   <Script file="Chat\Chat.lua" />
   <Script file="Chat\ButtonHandlers.lua" />
   <Script file="Chat\ChatFrame.lua" />
