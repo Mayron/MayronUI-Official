@@ -404,9 +404,6 @@ function C_ChatModule:OnEnable(data)
 		_G.ChatFrameMenuButton,	_G.QuickJoinToastButton
 	);
 
-  local changeGameFont = db.global.core.changeGameFont;
-  local muiFont = tk.Constants.LSM:Fetch("font", db.global.core.font);
-
   self:SetUpAllBlizzardFrames();
 end
 

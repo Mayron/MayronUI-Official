@@ -4,6 +4,7 @@ local string, MayronUI = _G.string, _G.MayronUI;
 
 ---@type Toolkit
 local tk = MayronUI:GetCoreComponent("Toolkit");
+local db = MayronUI:GetCoreComponent("Database");
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 --------------------------------------
 
@@ -198,9 +199,12 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
 end
 
 function C_ChatModule:SetUpAllBlizzardFrames(data)
+  local changeGameFont = db.global.core.changeGameFont;
+  local muiFont = tk.Constants.LSM:Fetch("font", db.global.core.font);
+
   for _, chatFrameName in ipairs(_G.CHAT_FRAMES) do
     local chatFrame = self:SetUpBlizzardChatFrame(chatFrameName);
-    if (changeGameFont) then
+    if (changeGameFont and chatFrame) then
       local _, fontSize, outline = _G.FCF_GetChatWindowInfo(chatFrame:GetID());
       chatFrame:SetFont(muiFont, fontSize, outline);
     end

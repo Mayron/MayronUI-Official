@@ -3,7 +3,21 @@ local tk, db, em, _, obj, L = _G.MayronUI:GetCoreComponents();
 local obj = _G.MayronObjects:GetFramework();
 local Quest = obj:CreateClass("Quest");
 
--- CombatTimer Module ----------------
+local function button_OnEnter(self)
+  local r, g, b = tk:GetThemeColor();
+  GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
+  GameTooltip:SetText(L["Commands"]..":");
+
+  GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Toggle Questlog"], r, g, b, 1, 1, 1);
+
+  GameTooltip:Show();
+end
+
+local function button_OnLeave()
+  GameTooltip:Hide();
+end
+
+-- Quest Module ----------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
   self:RegisterComponentClass("quest", Quest);
@@ -30,7 +44,6 @@ function Quest:SetEnabled(data, enabled)
   if (enabled) then
     if (not em:GetEventListenerByID(listenerID)) then
       local listener = em:CreateEventListenerWithID(listenerID, function()
-        if (not self.Button) then return end
         self:Update(data);
       end);
 
@@ -39,14 +52,13 @@ function Quest:SetEnabled(data, enabled)
       em:EnableEventListeners(listenerID);
     end
 
-    -- self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-    -- self.Button:SetScript("OnEnter", button_OnEnter);
-    -- self.Button:SetScript("OnLeave", button_OnLeave);
+    self.Button:RegisterForClicks("LeftButtonUp");
+    self.Button:SetScript("OnEnter", button_OnEnter);
+    self.Button:SetScript("OnLeave", button_OnLeave);
   else
     em:DisableEventListeners(listenerID);
-    -- self.Button:RegisterForClicks("LeftButtonUp");
-    -- self.Button:SetScript("OnEnter", nil);
-    -- self.Button:SetScript("OnLeave", nil);
+    self.Button:SetScript("OnEnter", nil);
+    self.Button:SetScript("OnLeave", nil);
   end
 end
 
@@ -59,12 +71,8 @@ function Quest:Update(data, refreshSettings)
   local maxQuestsCanAccept = C_QuestLog.GetMaxNumQuestsCanAccept();
 
   self.Button:SetText(string.format("|TInterface\\QuestTypeIcons:14:14:0:0:128:64:18:32:2:16|t %u / %u", numQuests, maxQuestsCanAccept));
-
-  -- if (data.settings.showTotalSlots) then
-  --   self.Button:SetText(string.format("", numQuests, maxQuestsCanAccept));
-  -- else
-  --   self.Button:SetText(string.format("", numQuests));
-  -- end
 end
 
-function Quest:Click() end
+function Quest:Click()
+  _G.ToggleQuestLog();
+end

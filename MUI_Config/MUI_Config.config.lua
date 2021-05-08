@@ -166,7 +166,7 @@ function C_ConfigModule:GetConfigTable()
                     name = "Main Container Strata",
                     type = "dropdown",
                     options = tk.Constants.ORDERED_FRAME_STRATAS,
-                    dbPath = tk.Strings:Concat("profile.bottomui.frameStrata")
+                    dbPath = "profile.bottomui.frameStrata"
                 };
                 {   type = "title";
                     client = "retail";
