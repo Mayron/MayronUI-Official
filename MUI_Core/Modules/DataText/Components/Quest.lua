@@ -1,7 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, _, obj, L = _G.MayronUI:GetCoreComponents();
-local obj = _G.MayronObjects:GetFramework();
+local tk, _, em, _, obj, L = _G.MayronUI:GetCoreComponents();
 local Quest = obj:CreateClass("Quest");
+local strformat = _G.string.format;
+
+-- GLOBALS:
+--[[ luacheck: ignore GameTooltip C_QuestLog ]]
 
 local function button_OnEnter(self)
   local r, g, b = tk:GetThemeColor();
@@ -70,7 +73,9 @@ function Quest:Update(data, refreshSettings)
   local _, numQuests = C_QuestLog.GetNumQuestLogEntries()
   local maxQuestsCanAccept = C_QuestLog.GetMaxNumQuestsCanAccept();
 
-  self.Button:SetText(string.format("|TInterface\\QuestTypeIcons:14:14:0:0:128:64:18:32:2:16|t %u / %u", numQuests, maxQuestsCanAccept));
+  self.Button:SetText(strformat(
+    "|TInterface\\QuestTypeIcons:14:14:0:0:128:64:18:32:2:16|t %u / %u",
+    numQuests, maxQuestsCanAccept));
 end
 
 function Quest:Click()
