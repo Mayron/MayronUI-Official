@@ -1,9 +1,16 @@
 -- luacheck: ignore self 143
 local MayronUI = _G.MayronUI;
 local tk, _, _, _, obj = MayronUI:GetCoreComponents();
+local LibStub = _G.LibStub;
 
 local unpack, CreateFrame, InCombatLockdown, CancelUnitBuff, GameTooltip, UnitAura =
 _G.unpack, _G.CreateFrame, _G.InCombatLockdown, _G.CancelUnitBuff, _G.GameTooltip, _G.UnitAura;
+
+if (tk:IsClassic()) then
+  local LibClassicDurations = LibStub("LibClassicDurations");
+  LibClassicDurations:Register("MayronUI");
+  UnitAura = LibClassicDurations.UnitAuraWrapper;
+end
 
 -- Objects -----------------------------
 ---@class C_Aura : Object

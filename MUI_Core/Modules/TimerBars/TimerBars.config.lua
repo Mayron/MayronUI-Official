@@ -146,6 +146,21 @@ function C_TimerBarsModule:GetConfigTable()
               width   = 230;
               dbPath  = "profile.showTooltips";
           };
+          {   name    = "Show Auras With Unknown Time Remaining";
+              type    = "check";
+              client  = "classic";
+              tooltip =
+[[
+If enabled, auras with an unknown time remaining, as well as auras that never
+expire unless cancelled, will be shown on the timer bar field and will
+never deplete. The bar will still disappear if the aura is removed.
+
+In classic, the time remaining of some auras (depending on the situation)
+might not be known to the player and will be hidden unles this is enabled.
+]];
+              width   = 230;
+              dbPath  = "profile.showUnknownExpiration";
+          };
           {   type = "divider";
           };
           {   name    = L["Bar Texture"];

@@ -17,10 +17,11 @@ local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo;
 local unpack, CreateFrame, UnitIsDeadOrGhost = _G.unpack, _G.CreateFrame, _G.UnitIsDeadOrGhost;
 local string, date, pairs, ipairs = _G.string, _G.date, _G.pairs, _G.ipairs;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
-local table, GetTime, UnitAura, tostring = _G.table, _G.GetTime, _G.UnitAura, _G.tostring;
+local table, GetTime, UnitAura, tostring, tonumber = _G.table, _G.GetTime, _G.UnitAura, _G.tostring, _G.tonumber;
 
 local RepositionBars;
 
+local UNKNOWN_EXPIRATION = 100000;
 local HELPFUL, HARMFUL, DEBUFF, BUFF, UP = "HELPFUL", "HARMFUL", "DEBUFF", "BUFF", "UP";
 local TIMER_FIELD_UPDATE_FREQUENCY = 0.05;
 local UNKNOWN_AURA_TYPE = "Unknown aura type '%s'.";
@@ -33,7 +34,7 @@ local UnitIDFieldPairs = {}; -- contains FieldName to unitID
 
 if (tk:IsClassic()) then
   local LibClassicDurations = LibStub("LibClassicDurations");
-  LibClassicDurations:Register(addOnName);
+  LibClassicDurations:Register("MayronUI");
   UnitAura = LibClassicDurations.UnitAuraWrapper;
 end
 
@@ -62,6 +63,7 @@ db:AddToDefaults("profile", {
   sortByExpirationTime  = true;
   showTooltips          = true;
   statusBarTexture      = "MUI_StatusBar";
+  showUnknownExpiration = tk:IsClassic();
 
   border = {
     type = "Skinner";
@@ -368,36 +370,35 @@ do
     local payload = obj:PopTable(CombatLogGetCurrentEventInfo());
     local subEvent = payload[2];
 
-    if (SUB_EVENT_NAMES[subEvent]) then
-      local sourceGuid = payload[4];
-      local destGuid = payload[8];
+    if (not SUB_EVENT_NAMES[subEvent]) then
+      obj:PushTable(payload);
+      return
+    end
 
-      if (subEvent:find("UNIT")) then
-        for unitID, field in pairs(UnitIDFieldPairs) do
-          if (not obj:IsBoolean(field)) then
-            if (UnitGUID(destGuid) == unitID) then
-              field:Hide();
-            end
-          end
+    local sourceGuid = payload[4];
+    local destGuid = payload[8];
+
+    if (subEvent:find("UNIT")) then
+      for unitID, field in pairs(UnitIDFieldPairs) do
+        if (not obj:IsBoolean(field) and (UnitGUID(destGuid) == unitID)) then
+          field:Hide();
         end
-      else
-        -- guaranteed to always be the same for all registered events:
-        local auraId = payload[12];
-        local auraName = payload[13];
-        local auraType = payload[15];
+      end
+    else
+      -- guaranteed to always be the same for all registered events:
+      local auraId = payload[12];
+      local auraName = payload[13];
+      local auraType = payload[15];
 
-        obj:Assert(auraType == BUFF or auraType == DEBUFF, UNKNOWN_AURA_TYPE, auraType);
+      obj:Assert(auraType == BUFF or auraType == DEBUFF, UNKNOWN_AURA_TYPE, auraType);
 
-        ---@param field TimerField
-        for _, field in pairs(UnitIDFieldPairs) do
-          if (not obj:IsBoolean(field)) then
+      ---@param field TimerField
+      for _, field in pairs(UnitIDFieldPairs) do
+        if (not obj:IsBoolean(field)) then
             field:UpdateBarsByAura(sourceGuid, auraId, auraName, auraType);
-          end
         end
       end
     end
-
-    obj:PushTable(payload)
   end
 end
 
@@ -444,20 +445,30 @@ do
   end
 end
 
-local function CanTrackAura(auraInfo)
+local function CanTrackAura(auraInfo, sharedSettings)
   if (not obj:IsTable(auraInfo)) then
     -- some aura's do not return aura info from UnitAura (such as Windfury)
     return false;
-  elseif (not (auraInfo[1] or auraInfo[6] and auraInfo[6] > 0)) then
-    if (auraInfo[1]) then
-      print("failed to track:", auraInfo[1])
-    end
+  end
 
-    -- some aura's do not have an expiration time so cannot be added to a timer bar (aura's that are fixed).
+  local auraName = auraInfo[1];
+  if (not auraName) then
+    -- `nil` usually means the aura no longer exists (also, we don't want a timer bar with no name).
     obj:PushTable(auraInfo);
     return false;
+  end
 
-  elseif (tk.Constants.FOOD_DRINK_AURAS[tostring(auraInfo[10])]) then
+  local expirationTime = auraInfo[6];
+  if (not (expirationTime and expirationTime > 0)) then
+    -- some aura's do not have an expiration time so cannot be added to a timer bar (aura's that are fixed).
+    if (not sharedSettings.showUnknownExpiration) then
+      obj:PushTable(auraInfo);
+      return false;
+    end
+  end
+
+  local spellId = tostring(auraInfo[10]);
+  if (tk.Constants.FOOD_DRINK_AURAS[spellId]) then
     -- let castbar track food and drink
     obj:PushTable(auraInfo);
     return false;
@@ -534,6 +545,7 @@ do
         --self, text, shortcut, func, nested, value
     _G.UIMenu_AddButton(options, blacklistText, nil, function() OptionSelected(false) end);
     _G.UIMenu_AddButton(options, whitelistText, nil, function() OptionSelected(true) end);
+    _G.UIMenu_AddButton(options, "Cancel", nil, function() options:Hide() end);
     _G.UIMenu_AutoSize(options);
     options:Hide();
 
@@ -666,6 +678,7 @@ do
 
   function C_TimerField:RegisterAllEvents(data)
     local unitID = data.settings.unitID;
+    data.frame:RegisterUnitEvent("UNIT_AURA", unitID);
 
     if (unitID == "target") then
       data.frame:RegisterEvent("PLAYER_TARGET_CHANGED");
@@ -774,12 +787,12 @@ do
               changed = true;
             end
 
-            if (activeBar.ExpirationTime < currentTime or activeBar.Remove) then
+            if (activeBar.Remove or (activeBar.ExpirationTime < currentTime)) then
               data.expiredBarsStack:Push(activeBar); -- remove bar here!
               table.remove(data.activeBars, id);
               barRemoved = true;
               changed = true;
-              break;
+              break
             end
           end
 
@@ -832,7 +845,6 @@ function C_TimerField:RemoveAuraByID(data, auraId)
     end
   end
 end
-
 function C_TimerField:RemoveAllAuras(data)
   for _, activeBar in ipairs(data.activeBars) do
     activeBar.Remove = true;
@@ -889,13 +901,15 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, auraId, auraName, auraT
     end
   end
 
-  if (not CanTrackAura(auraInfo)) then return end
+  local canTrack = CanTrackAura(auraInfo, data.sharedSettings);
+
+  if (not canTrack) then return end
 
   -- first try to search for an existing one:
   for _, activeBar in ipairs(data.activeBars) do
     if (auraId == activeBar.AuraId) then
       foundBar = activeBar;
-      break;
+      break
     end
   end
 
@@ -927,7 +941,7 @@ function C_TimerField:RecheckAuras(data)
       -- /run print(UnitAura("target", 1, "HARMFUL"))
       local auraInfo = obj:PopTable(UnitAura(data.settings.unitID, i, filterName));
 
-      if (CanTrackAura(auraInfo)) then
+      if (CanTrackAura(auraInfo, data.sharedSettings)) then
         local auraName = auraInfo[1];
         local auraId = auraInfo[10];
         local sourceUnit = auraInfo[7]; -- classic returns nil
@@ -1085,7 +1099,7 @@ obj:DefineParams("boolean");
 ---@param shown boolean @Set to true to show the timer bar spark effect.
 function C_TimerBar:SetSparkShown(data, shown)
   if (not data.spark and not shown) then
-    return;
+    return
   end
 
   if (not data.spark) then
@@ -1112,6 +1126,7 @@ function C_TimerBar:SetAuraNameShown(data, shown)
   if (not data.auraName) then
     data.auraName = data.slider:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall");
     data.auraName:SetPoint("LEFT", 4, 0);
+    data.auraName:SetPoint("RIGHT", -50, 0);
     data.auraName:SetJustifyH("LEFT");
     data.auraName:SetWordWrap(false);
   end
@@ -1154,6 +1169,19 @@ end
 obj:DefineParams("number", "?number");
 ---@param currentTime number @The current time using GetTime.
 function C_TimerBar:UpdateTimeRemaining(data, currentTime)
+  if (self.ExpirationTime == UNKNOWN_EXPIRATION) then
+    data.slider:SetMinMaxValues(0, 1);
+    data.slider:SetValue(1);
+    data.timeRemaining:SetText("");
+    data.auraName:SetPoint("RIGHT", 0, 0);
+    self:SetSparkShown(false);
+    return
+  end
+
+  if (data.sharedSettings.showUnknownExpiration) then
+    data.auraName:SetPoint("RIGHT", -50, 0);
+  end
+
   local timeRemaining = self.ExpirationTime - currentTime;
 
   -- duration should have been checked in the frame OnUpdate script
@@ -1170,6 +1198,10 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
   end
 
   data.slider:SetValue(timeRemaining);
+
+  if (not data.showSpark and data.settings.showSpark) then
+    self:SetSparkShown(true);
+  end
 
   if (data.showSpark) then
     local _, max = data.slider:GetMinMaxValues();
@@ -1192,7 +1224,8 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
     data.timeRemainingText = timeRemainingText;
 
     if (timeRemainingText > 3600) then
-      timeRemainingText = date("%H:%M:%S", timeRemainingText);
+      timeRemainingText = tonumber(date("%H", timeRemainingText));
+      timeRemainingText = string.format("< %uh", timeRemainingText + 1);
 
     elseif (timeRemainingText > 60) then
       timeRemainingText = date("%M:%S", timeRemainingText);
@@ -1246,12 +1279,16 @@ end
 
 obj:DefineReturns("boolean");
 function C_TimerBar:UpdateExpirationTime(data)
-  local auraInfo = GetAuraInfoByAuraID(data.settings.unitID, self.AuraId, self.AuraType);
   local old = self.ExpirationTime;
+  local auraInfo = GetAuraInfoByAuraID(data.settings.unitID, self.AuraId, self.AuraType);
 
   if (obj:IsTable(auraInfo)) then
     self.TotalDuration = auraInfo[5];
     self.ExpirationTime = auraInfo[6];
+
+    if (self.TotalDuration == 0 and self.ExpirationTime == 0) then
+      self.ExpirationTime = UNKNOWN_EXPIRATION;
+    end
   else
     self.ExpirationTime = -1;
   end

@@ -1,7 +1,7 @@
 local lib = LibStub and LibStub("LibClassicDurations", true)
 if not lib then return end
 
-local Type, Version = "SpellTable", 50
+local Type, Version = "SpellTable", 71
 if lib:GetDataVersion(Type) >= Version then return end  -- older versions didn't have that function
 
 local Spell = lib.AddAura
@@ -16,105 +16,186 @@ local locale = GetLocale()
 if locale == "zhCN" then
     lib.spellNameToID[GetSpellInfo(980)] = nil
 end
+if locale == "ruRU" then
+    lib.spellNameToID[GetSpellInfo(12721)] = nil -- Deep Wounds conflict with Rake on ruRU
+end
 
 -- https://github.com/rgd87/LibClassicDurations/issues/11
 lib.indirectRefreshSpells = {
     [GetSpellInfo(11597)] = { -- Sunder Armor
-        events = {
-            ["SPELL_CAST_SUCCESS"] = true
-        },
-        targetSpellID = 11597,
+        [11597] = {
+            events = {
+                ["SPELL_CAST_SUCCESS"] = true
+            },
+            -- targetSpellID = 11597,
+            rollbackMisses = true,
+        }
     },
 
     [GetSpellInfo(25357)] = { -- Healing Wave
-        events = {
-            ["SPELL_CAST_SUCCESS"] = true
-        },
-        targetSpellID = 29203, -- Healing Way
+        [29203] = {
+            events = {
+                ["SPELL_CAST_SUCCESS"] = true
+            },
+            -- targetSpellID = 29203, -- Healing Way
+        }
     },
 }
 
 if class == "MAGE" then
-    lib.indirectRefreshSpells[GetSpellInfo(10207)] = { -- Scorch
-        events = {
-            ["SPELL_DAMAGE"] = true
-        },
-        targetSpellID = 22959, -- Fire Vulnerability
-        targetResistCheck = true,
-        condition = function(isMine) return isMine end,
-        -- it'll refresg only from mages personal casts which is fine
-        -- because if mage doesn't have imp scorch then he won't even see a Fire Vulnerability timer
-    }
+
 
     lib.indirectRefreshSpells[GetSpellInfo(25304)] = { -- Frostbolt
-        events = {
-            ["SPELL_DAMAGE"] = true
-        },
-        targetSpellID = 12579, -- Winter's Chill
-        targetResistCheck = true,
-        condition = function(isMine) return isMine end,
+        [12579] = {
+            events = {
+                ["SPELL_DAMAGE"] = true
+            },
+            targetSpellID = 12579, -- Winter's Chill
+            rollbackMisses = true,
+            condition = function(isMine) return isMine end,
+        }
     }
 
     lib.indirectRefreshSpells[GetSpellInfo(10161)] = { -- Cone of Cold
-        events = {
-            ["SPELL_DAMAGE"] = true
-        },
-        targetSpellID = 12579, -- Winter's Chill
-        targetResistCheck = true,
-        condition = function(isMine) return isMine end,
+        [12579] = {
+            events = {
+                ["SPELL_DAMAGE"] = true
+            },
+            targetSpellID = 12579, -- Winter's Chill
+            rollbackMisses = true,
+            condition = function(isMine) return isMine end,
+        }
     }
 
     lib.indirectRefreshSpells[GetSpellInfo(10230)] = { -- Frost Nova
-        events = {
-            ["SPELL_DAMAGE"] = true
-        },
-        targetSpellID = 12579, -- Winter's Chill
-        targetResistCheck = true,
-        condition = function(isMine) return isMine end,
+        [12579] = {
+            events = {
+                ["SPELL_DAMAGE"] = true
+            },
+            targetSpellID = 12579, -- Winter's Chill
+            rollbackMisses = true,
+            condition = function(isMine) return isMine end,
+        }
     }
 
+    -- Winter's Chill = Frostbolt
+    lib.indirectRefreshSpells[GetSpellInfo(12579)] = lib.indirectRefreshSpells[GetSpellInfo(25304)]
+
     lib.indirectRefreshSpells[GetSpellInfo(10)] = { -- Blizzard
-        events = {
-            ["SPELL_PERIODIC_DAMAGE"] = true
-        },
-        applyAura = true,
-        targetSpellID = 12486, -- Imp Blizzard
+        [12486] = {
+            events = {
+                ["SPELL_PERIODIC_DAMAGE"] = true
+            },
+            applyAura = true,
+            targetSpellID = 12486, -- Imp Blizzard
+        }
     }
+
+    -- Ignite
+
+    lib.indirectRefreshSpells[GetSpellInfo(10207)] = { -- Scorch
+        [22959] = {
+            events = {
+                ["SPELL_DAMAGE"] = true
+            },
+            -- targetSpellID = 22959, -- Fire Vulnerability
+            rollbackMisses = true,
+            -- condition = function(isMine) return isMine end,
+            -- it'll refresg only from mages personal casts which is fine
+            -- because if mage doesn't have imp scorch then he won't even see a Fire Vulnerability timer
+        },
+    }
+
+    local fire_spells = {133, 10207, 2136, 2120, 11113} -- Fireball, Scorch, Fireblast, Flamestrike, Blast Wave
+
+    for _, spellId in ipairs(fire_spells) do
+        local spellName = GetSpellInfo(spellId)
+        if not lib.indirectRefreshSpells[spellName] then
+            lib.indirectRefreshSpells[spellName] = {}
+        end
+        lib.indirectRefreshSpells[spellName][12654] = {
+            events = {
+                ["SPELL_DAMAGE"] = true
+            },
+            -- targetSpellID = 12654, -- Ignite
+            rollbackMisses = true,
+            condition = function(isMine, isCrit) return isCrit end,
+            customAction = function(srcGUID, dstGUID, spellID)
+                local lib = LibStub("LibClassicDurations")
+                local spellTable = lib:GetSpellTable(srcGUID, dstGUID, spellID)
+                if spellTable and not spellTable.tickExtended then
+                    local igniteStartTime = spellTable[2]
+                    spellTable[2] = igniteStartTime + 2
+                    spellTable.tickExtended = true
+                    if lib.DEBUG_IGNITE then
+                        print(GetTime(), "[Ignite] Extended", dstGUID, "New start time:", spellTable[2])
+                    end
+                end
+            end,
+        }
+    end
+
+
+
+    lib.indirectRefreshSpells[GetSpellInfo(12654)] = CopyTable(lib.indirectRefreshSpells[GetSpellInfo(133)]) -- Just adding Ignite to indirectRefreshSpells table
+    lib.indirectRefreshSpells[GetSpellInfo(12654)][12654].events = {}
 end
 
 if class == "PRIEST" then
     -- Shadow Weaving
     lib.indirectRefreshSpells[GetSpellInfo(10894)] = { -- SW:Pain
-        events = {
-            ["SPELL_AURA_APPLIED"] = true,
-            ["SPELL_AURA_REFRESH"] = true,
-        },
-        targetSpellID = 15258, -- Shadow Weaving
-        targetResistCheck = true,
-        condition = function(isMine) return isMine end,
+        [15258] = {
+            events = {
+                ["SPELL_AURA_APPLIED"] = true,
+                ["SPELL_AURA_REFRESH"] = true,
+            },
+            -- targetSpellID = 15258, -- Shadow Weaving
+            -- targetResistCheck = true,
+            rollbackMisses = true,
+            condition = function(isMine) return isMine end,
+        }
     }
     lib.indirectRefreshSpells[GetSpellInfo(10947)] = { -- Mind Blast
-        events = {
-            ["SPELL_DAMAGE"] = true,
-        },
-        targetSpellID = 15258, -- Shadow Weaving
-        targetResistCheck = true,
-        condition = function(isMine) return isMine end,
+        [15258] = {
+            events = {
+                ["SPELL_DAMAGE"] = true,
+            },
+            -- targetResistCheck = true,
+            rollbackMisses = true,
+            condition = function(isMine) return isMine end,
+        }
     }
     lib.indirectRefreshSpells[GetSpellInfo(18807)] = { -- Mind Flay
-        events = {
-            ["SPELL_AURA_APPLIED"] = true,
-            ["SPELL_AURA_REFRESH"] = true,
-        },
-        targetSpellID = 15258, -- Shadow Weaving
-        targetResistCheck = true,
-        condition = function(isMine) return isMine end,
+        [15258] = {
+            events = {
+                ["SPELL_AURA_APPLIED"] = true,
+                ["SPELL_AURA_REFRESH"] = true,
+            },
+            rollbackMisses = true,
+            condition = function(isMine) return isMine end,
+        }
     }
+
+    -- Shadow Weaving = SW: Pain
+    lib.indirectRefreshSpells[GetSpellInfo(15258)] = CopyTable(lib.indirectRefreshSpells[GetSpellInfo(10894)])
+    lib.indirectRefreshSpells[GetSpellInfo(15258)][15258].events = {}
 end
 
 ------------------
 -- GLOBAL
 ------------------
+
+-- World Buffs incl. Chronoboon IDs
+Spell(349981, { duration = INFINITY }) -- World effect suspended
+Spell({ 355363, 22888 }, { duration = 7200 }) -- Rallying Cry of the Dragonslayer
+Spell({ 355365, 24425 }, { duration = 7200 }) -- Spirit of Zandalar
+Spell({ 355366, 16609 }, { duration = 3600 }) -- Warchief's Blessing
+
+-- Atiesh Buffs
+Spell( 28142, { duration = INFINITY, type = "BUFF" }) -- Power of the Guardian
+Spell( 28143, { duration = INFINITY, type = "BUFF" }) -- Power of the Guardian
+Spell( 28144, { duration = INFINITY, type = "BUFF" }) -- Power of the Guardian
+Spell( 28145, { duration = INFINITY, type = "BUFF" }) -- Power of the Guardian
 
 Spell( 2479, { duration = 30 }) -- Honorless Target
 Spell(1604, { duration = 4 }) -- Common Daze
@@ -166,6 +247,7 @@ Spell( 13141, { duration = 20, type = "BUFF" }) -- Gnomish Rocket Boots
 Spell( 8892, { duration = 20, type = "BUFF" }) -- Goblin Rocket Boots
 Spell( 9774, { duration = 5, type = "BUFF" }) -- Spider Belt & Ornate Mithril Boots
 Spell({ 746, 1159, 3267, 3268, 7926, 7927, 10838, 10839, 18608, 18610, 23567, 23568, 23569, 23696, 24412, 24413, 24414}, { duration = 8, type = "BUFF" }) -- First Aid
+Spell({ 21992, 27648 }, { duration = 12 }) -- Thunderfury, -Nature Resist, -Atk Spd
 
 
 -------------
@@ -197,7 +279,7 @@ Spell( 14751, { duration = INFINITY, type = "BUFF", buffType = "Magic" }) -- Inn
 Spell({ 1243, 1244, 1245, 2791, 10937, 10938 }, { duration = 1800, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Power Word: Fortitude
 Spell({ 21562, 21564 }, { duration = 3600, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Prayer of Fortitude
 Spell({ 976, 10957, 10958 }, { duration = 600, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Shadow Protection
-Spell( 27683, { duration = 600, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Prayer of Shadow Protection
+Spell( 27683, { duration = 1200, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Prayer of Shadow Protection
 Spell({ 14752, 14818, 14819, 27841 }, { duration = 1800, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Divine Spirit
 Spell( 27681, { duration = 3600, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Prayer of Spirit
 
@@ -213,11 +295,24 @@ Spell({ 2651, 19289, 19291, 19292, 19293 }, { duration = 15, type = "BUFF" }) --
 Spell({ 9035, 19281, 19282, 19283, 19284, 19285 }, { duration = 120 }) -- Hex of Weakness
 
 Spell( 6346, { duration = 600, type = "BUFF", buffType = "Magic" }) -- Fear Ward
+Spell({ 14893, 15357 ,15359 }, { duration = 15, type = "BUFF", buffType = "Magic" }) -- Inspiration
 Spell({ 7001, 27873, 27874 }, { duration = 10, type = "BUFF", buffType = "Magic" }) -- Lightwell Renew
 Spell( 552, { duration = 20, type = "BUFF", buffType = "Magic" }) -- Abolish Disease
 Spell({ 17, 592, 600, 3747, 6065, 6066, 10898, 10899, 10900, 10901 }, {duration = 30, type = "BUFF", buffType = "Magic" }) -- PWS
 Spell( 6788, { duration = 15 }) -- Weakened Soul
-Spell({ 139, 6074, 6075, 6076, 6077, 6078, 10927, 10928, 10929, 25315 }, { duration = 15, type = "BUFF", buffType = "Magic" }) -- Renew
+if class == "PRIEST" then
+    lib:TrackItemSet("Garments of the Oracle", { 21349, 21350, 21348, 21352, 21351 })
+    lib:RegisterSetBonusCallback("Garments of the Oracle", 5)
+end
+Spell({ 139, 6074, 6075, 6076, 6077, 6078, 10927, 10928, 10929, 25315 }, {
+    duration = function(spellID, isSrcPlayer)
+        if isSrcPlayer and lib:IsSetBonusActive("Garments of the Oracle", 5) then
+            return 18
+        else
+            return 15
+        end
+    end,
+    type = "BUFF", buffType = "Magic" }) -- Renew
 
 Spell( 15487, { duration = 5 }) -- Silence
 Spell({ 10797, 19296, 19299, 19302, 19303, 19304, 19305 }, { duration = 6, stacking = true }) -- starshards
@@ -235,7 +330,25 @@ Spell({ 9484, 9485, 10955 }, {
 Spell( 10060, { duration = 15, type = "BUFF", buffType = "Magic" }) --Power Infusion
 Spell({ 14914, 15261, 15262, 15263, 15264, 15265, 15266, 15267 }, { duration = 10, stacking = true }) -- Holy Fire, stacking?
 Spell({ 586, 9578, 9579, 9592, 10941, 10942 }, { duration = 10, type = "BUFF" }) -- Fade
-Spell({ 8122, 8124, 10888, 10890 }, { duration = 8,  }) -- Psychic Scream
+if class == "PRIEST" then
+    lib:TrackItemSet("PriestPvPSet", {
+        17604, 17603, 17605, 17608, 17607, 17602,
+        17623, 17625, 17622, 17624, 17618, 17620,
+        22869, 22859, 22882, 22885, 23261, 23262,
+        23302, 23303, 23288, 23289, 23316, 23317,
+    })
+    lib:RegisterSetBonusCallback("PriestPvPSet", 3)
+end
+Spell({ 8122, 8124, 10888, 10890 }, {
+    duration = function(spellID, isSrcPlayer)
+        if isSrcPlayer then
+            local pvpSetBonus = lib:IsSetBonusActive("PriestPvPSet", 3) and 1 or 0
+            return 8 + pvpSetBonus
+        else
+            return 8
+        end
+    end
+}) -- Psychic Scream
 Spell({ 589, 594, 970, 992, 2767, 10892, 10893, 10894 }, { stacking = true,
     duration = function(spellID, isSrcPlayer)
         -- Improved SWP, 2 ranks: Increases the duration of your Shadow Word: Pain spell by 3 sec.
@@ -272,6 +385,7 @@ Spell( 5487, { duration = INFINITY, type = "BUFF" }) -- Bear Form
 Spell( 9634, { duration = INFINITY, type = "BUFF" }) -- Dire Bear Form
 Spell( 1066, { duration = INFINITY, type = "BUFF" }) -- Aquatic Form
 Spell( 24858, { duration = INFINITY, type = "BUFF" }) -- Moonkin Form
+Spell( 24932, { duration = INFINITY, type = "BUFF" }) -- Leader of the Pack
 Spell( 17116, { duration = INFINITY, type = "BUFF", buffType = "Magic" }) -- Nature's Swiftness
 
 Spell({ 1126, 5232, 5234, 6756, 8907, 9884, 9885 }, { duration = 1800, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Mark of the Wild
@@ -334,7 +448,7 @@ Spell({ 9005, 9823, 9827 }, { -- Pounce stun doesn't create a debuff icon, so th
     end
 }) -- Pounce
 Spell({ 9007, 9824, 9826 }, { duration = 18, stacking = true, }) -- Pounce Bleed
-Spell({ 8921, 8924, 8925, 8926, 8927, 8928, 8929, 9833, 9834, 9835 }, {
+Spell({ 8921, 8924, 8925, 8926, 8927, 8928, 8929, 9833, 9834, 9835 }, { stacking = true,
     duration = function(spellID)
         if spellID == 8921 then return 9
         else return 12 end
@@ -348,7 +462,20 @@ Spell( 2893 ,{ duration = 8, type = "BUFF", buffType = "Magic" }) -- Abolish Poi
 Spell( 29166 , { duration = 20, type = "BUFF", buffType = "Magic" }) -- Innervate
 
 Spell({ 8936, 8938, 8939, 8940, 8941, 9750, 9856, 9857, 9858 }, { duration = 21, type = "BUFF", buffType = "Magic" }) -- Regrowth
-Spell({ 774, 1058, 1430, 2090, 2091, 3627, 8910, 9839, 9840, 9841, 25299 }, { duration = 12, stacking = false, type = "BUFF", buffType = "Magic" }) -- Rejuv
+
+if class == "DRUID" then
+    lib:TrackItemSet("StormrageRaiment", { 16899, 16900, 16901, 16902, 16903, 16904, 16897, 16898, })
+    lib:RegisterSetBonusCallback("StormrageRaiment", 8)
+end
+Spell({ 774, 1058, 1430, 2090, 2091, 3627, 8910, 9839, 9840, 9841, 25299 }, {
+    duration = function(spellID, isSrcPlayer)
+        if isSrcPlayer and lib:IsSetBonusActive("StormrageRaiment", 8) then
+            return 15
+        else
+            return 12
+        end
+    end,
+    stacking = false, type = "BUFF", buffType = "Magic" }) -- Rejuv
 Spell({ 5570, 24974, 24975, 24976, 24977 }, { duration = 12, stacking = true }) -- Insect Swarm
 
 -------------
@@ -378,7 +505,9 @@ Spell({ 772, 6546, 6547, 6548, 11572, 11573, 11574 }, { stacking = true,
         else return 21 end
     end
 }) -- Rend
+if locale ~= "ruRU" or class ~= "DRUID" then
 Spell( 12721, { duration = 12, stacking = true }) -- Deep Wounds
+end
 
 Spell({ 1715, 7372, 7373 }, { duration = 15 }) -- Hamstring
 Spell( 23694 , { duration = 5 }) -- Improved Hamstring
@@ -429,6 +558,7 @@ Spell( 12292 ,{ duration = 20, type = "BUFF" }) -- Sweeping Strikes
 Spell({ 12880, 14201, 14202, 14203, 14204 }, { duration = 12, type = "BUFF" }) -- Enrage
 Spell({ 12966, 12967, 12968, 12969, 12970 }, { duration = 15, type = "BUFF" }) -- Flurry
 Spell({ 16488, 16490, 16491 }, { duration = 6, type = "BUFF" }) -- Blood Craze
+Spell({ 23885, 23886, 23887, 23888 }, { duration = 6, type = "BUFF" }) -- Bloodthirst
 Spell(7922, { duration = 1 }) -- Charge
 Spell(5530, { duration = 3 }) -- Mace Specialization
 
@@ -537,7 +667,6 @@ Spell({ 704, 7658, 7659, 11717 }, { duration = 120 }) -- Curse of Recklessness
 Spell( 603 ,{ duration = 60, stacking = true }) -- Curse of Doom
 Spell( 18223 ,{ duration = 12 }) -- Curse of Exhaustion
 Spell( 6358, {
-    pvpduration = 20,
     duration = function(spellID, isSrcPlayer)
         if isSrcPlayer then
             local mul = 1 + Talent(18754, 18755, 18756)*0.1
@@ -567,7 +696,11 @@ Spell({ 710, 18647 }, {
     end
 }) -- Banish
 Spell({ 6789, 17925, 17926 }, { duration = 3 }) -- Death Coil
-
+Spell({ 6307, 7804, 7805, 11766, 11767 }, { duration = INFINITY }) -- Blood Pact
+Spell({ 18708 }, { duration = 15, type = "BUFF", buffType = "Magic" }) -- Fel Domination
+Spell({ 19480 }, { duration = INFINITY }) -- Paranoia
+Spell({ 25228 }, { duration = INFINITY, type = "BUFF", buffType = "Magic" }) -- Soul Link
+Spell({ 23829 }, { duration = INFINITY, type = "BUFF" }) -- Master Demonologist
 Spell({ 18265, 18879, 18880, 18881}, { duration = 30, stacking = true }) -- Siphon Life
 
 if locale ~= "zhCN" or class ~= "MAGE" then
@@ -606,7 +739,7 @@ Spell({ 8076, 8162, 8163, 10441, 25362 }, { duration = INFINITY, type = "BUFF" }
 Spell({ 8836, 10626, 25360 }, { duration = INFINITY, type = "BUFF" }) -- Grace of Air Totem
 Spell({ 8072, 8156, 8157, 10403, 10404, 10405 }, { duration = INFINITY, type = "BUFF" }) -- Stoneskin Totem
 Spell({ 16191, 17355, 17360 }, { duration = 12, type = "BUFF" }) -- Mana Tide Totem
-
+Spell( 16166, { duration = INFINITY, type = "BUFF" }) -- Elemental Mastery
 
 Spell( 8178 ,{ duration = 45, type = "BUFF" }) -- Grounding Totem Effect, no duration, but lasts 45s. Keeping for enemy buffs
 
@@ -636,6 +769,7 @@ Spell({ 19891, 19899, 19900 }, { duration = INFINITY, type = "BUFF" }) -- Fire R
 Spell({ 19888, 19897, 19898 }, { duration = INFINITY, type = "BUFF" }) -- Frost Resistance Aura
 Spell({ 19876, 19895, 19896 }, { duration = INFINITY, type = "BUFF" }) -- Shadow Resistance Aura
 Spell({ 7294, 10298, 10299, 10300, 10301 }, { duration = INFINITY, type = "BUFF" }) -- Retribution Aura
+Spell({ 20218 }, { duration = INFINITY, type = "BUFF" }) -- Sanctity Aura
 
 
 Spell( 25780, { duration = 1800, type = "BUFF", buffType = "Magic" }) -- Righteous Fury
@@ -650,7 +784,7 @@ Spell(20217, { duration = 300, type = "BUFF", castFilter = true, buffType = "Mag
 Spell(25898, { duration = 900, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Greater Blessing of Kings
 
 Spell({ 20911, 20912, 20913 }, { duration = 300, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Blessing of Sanctuary
-Spell(25899, { duration = 900, type = "BUFF", castFilter = tru, buffType = "Magic" }) -- Greater Blessing of Sanctuary
+Spell(25899, { duration = 900, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Greater Blessing of Sanctuary
 
 Spell(1038, { duration = 300, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Blessing of Salvation
 Spell(25895, { duration = 900, type = "BUFF", castFilter = true, buffType = "Magic" }) -- Greater Blessing of Salvation
@@ -667,7 +801,12 @@ Spell({ 2878, 5627, 5627 }, {
     end
 }) -- Turn Undead
 
-Spell( 1044, { duration = 10, type = "BUFF", buffType = "Magic" }) -- Blessing of Freedom
+Spell( 1044, {
+    duration = function(spellID, isSrcPlayer)
+        local talents = 0
+        if isSrcPlayer then talents = 3*Talent(20174, 20175)  end
+        return 10 + talents
+    end, type = "BUFF", buffType = "Magic" }) -- Blessing of Freedom
 Spell({ 6940, 20729 }, { duration = 30, type = "BUFF", buffType = "Magic" }) -- Blessing of Sacrifice
 Spell({ 1022, 5599, 10278 }, { type = "BUFF",
     buffType = "Magic",
@@ -744,6 +883,7 @@ Spell( 13163, { duration = INFINITY, type = "BUFF" }) -- Aspect of the Monkey
 Spell({ 20043, 20190 }, { duration = INFINITY, type = "BUFF" }) -- Aspect of the Wild
 Spell({ 13165, 14318, 14319, 14320, 14321, 14322, 25296 }, { duration = INFINITY, type = "BUFF" }) -- Aspect of the Hawk
 Spell( 5384, { duration = INFINITY, type = "BUFF" }) -- Feign Death (Will it work?)
+Spell({ 19579, 24529 }, { duration = INFINITY, type = "BUFF" }) -- Spirit Bond
 
 Spell({ 19506, 20905, 20906 }, { duration = 1800, type = "BUFF", castFilter = true }) -- Trueshot Aura
 Spell(19615, { duration = 8, type = "BUFF" }) -- Frenzy
@@ -789,6 +929,7 @@ Spell(24394, { duration = 3 }) -- Intimidation
 -- Spell(15571, { duration = 4 }) -- Daze from Aspect
 Spell(19185, { duration = 5 }) -- Entrapment
 Spell(25999, { duration = 1 }) -- Boar Charge
+Spell({ 23099, 23109, 23110 } , { duration = 15 }) -- Dash
 Spell(1002, { duration = 60 }) -- Eye of the Beast
 Spell(1539, { duration = 20 }) -- Feed Pet Effect
 Spell({ 136, 3111, 3661, 3662, 13542, 13543, 13544 }, { duration = 5, type = "BUFF" }) -- Mend Pet
@@ -839,7 +980,8 @@ Spell({ 543, 8457, 8458, 10223, 10225 }, { duration = 30, type = "BUFF", buffTyp
 Spell({ 6143, 8461, 8462, 10177, 28609 }, { duration = 30, type = "BUFF", buffType = "Magic" }) -- Frost Ward
 
 Spell(12355, { duration = 2 }) -- Impact
-Spell(12654, { duration = 4 }) -- Ignite
+lib.spellNameToID[GetSpellInfo(12654)] = 12654
+-- Spell(12654, { duration = 4 }) -- Ignite
 
 if class == "MAGE" then
 Spell(22959, {
@@ -922,7 +1064,82 @@ Spell(12043, { duration = 15 }) -- Presence of Mind
 Spell(12042, { duration = 15 }) -- Arcane Power
 Spell(12051, { duration = 8, type = "BUFF" }) -- Evocation
 
+-------------
+-- MOUNTS
+-------------
 
+Spell(17481, { duration = INFINITY, type = "BUFF" }) -- Deathcharger's Reins
+Spell(24252, { duration = INFINITY, type = "BUFF" }) -- Swift Zulian Tiger
+Spell(23509, { duration = INFINITY, type = "BUFF" }) -- Horn of the Frostwolf Howler
+Spell(17229, { duration = INFINITY, type = "BUFF" }) -- Reins of the Winterspring Frostsaber
+Spell(26656, { duration = INFINITY, type = "BUFF" }) -- Black Qiraji Resonating Crystal
+Spell(24242, { duration = INFINITY, type = "BUFF" }) -- Swift Razzashi Raptor
+Spell(23510, { duration = INFINITY, type = "BUFF" }) -- Stormpike Battle Charger
+Spell(470, { duration = INFINITY, type = "BUFF" }) -- Black Stallion Bridle
+Spell(22723, { duration = INFINITY, type = "BUFF" }) -- Reins of the Black War Tiger
+Spell(472, { duration = INFINITY, type = "BUFF" }) -- Pinto Bridle
+Spell(23221, { duration = INFINITY, type = "BUFF" }) -- Reins of the Swift Frostsaber
+Spell(23227, { duration = INFINITY, type = "BUFF" }) -- Swift Palomino
+Spell(23228, { duration = INFINITY, type = "BUFF" }) -- Swift White Steed
+Spell(6648, { duration = INFINITY, type = "BUFF" }) -- Chestnut Mare Bridle
+Spell(458, { duration = INFINITY, type = "BUFF" }) -- Brown Horse Bridle
+Spell(23338, { duration = INFINITY, type = "BUFF" }) -- Reins of the Swift Stormsaber
+Spell(23219, { duration = INFINITY, type = "BUFF" }) -- Reins of the Swift Mistsaber
+Spell(22721, { duration = INFINITY, type = "BUFF" }) -- Whistle of the Black War Raptor
+Spell(23229, { duration = INFINITY, type = "BUFF" }) -- Swift Brown Steed
+Spell(22717, { duration = INFINITY, type = "BUFF" }) -- Black War Steed Bridle
+Spell(10793, { duration = INFINITY, type = "BUFF" }) -- Reins of the Striped Nightsaber
+Spell(22722, { duration = INFINITY, type = "BUFF" }) -- Red Skeletal Warhorse
+Spell(18791, { duration = INFINITY, type = "BUFF" }) -- Purple Skeletal Warhorse
+Spell(10789, { duration = INFINITY, type = "BUFF" }) -- Reins of the Spotted Frostsaber
+Spell(18245, { duration = INFINITY, type = "BUFF" }) -- Horn of the Black War Wolf
+Spell(6653, { duration = INFINITY, type = "BUFF" }) -- Horn of the Dire Wolf
+Spell(23241, { duration = INFINITY, type = "BUFF" }) -- Swift Blue Raptor
+Spell(8394, { duration = INFINITY, type = "BUFF" }) -- Reins of the Striped Frostsaber
+Spell(23250, { duration = INFINITY, type = "BUFF" }) -- Horn of the Swift Brown Wolf
+Spell(22718, { duration = INFINITY, type = "BUFF" }) -- Black War Kodo
+Spell(580, { duration = INFINITY, type = "BUFF" }) -- Horn of the Timber Wolf
+Spell(17463, { duration = INFINITY, type = "BUFF" }) -- Blue Skeletal Horse
+Spell(23251, { duration = INFINITY, type = "BUFF" }) -- Horn of the Swift Timber Wolf
+Spell(23243, { duration = INFINITY, type = "BUFF" }) -- Swift Orange Raptor
+Spell(17465, { duration = INFINITY, type = "BUFF" }) -- Green Skeletal Warhorse
+Spell(22720, { duration = INFINITY, type = "BUFF" }) -- Black War Ram
+Spell(8395, { duration = INFINITY, type = "BUFF" }) -- Whistle of the Emerald Raptor
+Spell(6654, { duration = INFINITY, type = "BUFF" }) -- Horn of the Brown Wolf
+Spell(17462, { duration = INFINITY, type = "BUFF" }) -- Red Skeletal Horse
+Spell(23240, { duration = INFINITY, type = "BUFF" }) -- Swift White Ram
+Spell(23252, { duration = INFINITY, type = "BUFF" }) -- Horn of the Swift Gray Wolf
+Spell(23247, { duration = INFINITY, type = "BUFF" }) -- Great White Kodo
+Spell(23242, { duration = INFINITY, type = "BUFF" }) -- Swift Olive Raptor
+Spell(23225, { duration = INFINITY, type = "BUFF" }) -- Swift Green Mechanostrider
+Spell(10969, { duration = INFINITY, type = "BUFF" }) -- Blue Mechanostrider
+Spell(10799, { duration = INFINITY, type = "BUFF" }) -- Whistle of the Violet Raptor
+Spell(22719, { duration = INFINITY, type = "BUFF" }) -- Black Battlestrider
+Spell(6898, { duration = INFINITY, type = "BUFF" }) -- White Ram
+Spell(17464, { duration = INFINITY, type = "BUFF" }) -- Brown Skeletal Horse
+Spell(17454, { duration = INFINITY, type = "BUFF" }) -- Unpainted Mechanostrider
+Spell(23223, { duration = INFINITY, type = "BUFF" }) -- Swift White Mechanostrider
+Spell(10796, { duration = INFINITY, type = "BUFF" }) -- Whistle of the Turquoise Raptor
+Spell(23238, { duration = INFINITY, type = "BUFF" }) -- Swift Brown Ram
+Spell(23239, { duration = INFINITY, type = "BUFF" }) -- Swift Gray Ram
+Spell(6899, { duration = INFINITY, type = "BUFF" }) -- Brown Ram
+Spell(6777, { duration = INFINITY, type = "BUFF" }) -- Gray Ram
+Spell(10873, { duration = INFINITY, type = "BUFF" }) -- Red Mechanostrider
+Spell(23249, { duration = INFINITY, type = "BUFF" }) -- Great Brown Kodo
+Spell(18989, { duration = INFINITY, type = "BUFF" }) -- Gray Kodo
+Spell(18990, { duration = INFINITY, type = "BUFF" }) -- Brown Kodo
+Spell(23248, { duration = INFINITY, type = "BUFF" }) -- Great Gray Kodo
+Spell(23222, { duration = INFINITY, type = "BUFF" }) -- Swift Yellow Mechanostrider
+Spell(17453, { duration = INFINITY, type = "BUFF" }) -- Green Mechanostrider
+Spell(23214, { duration = INFINITY, type = "BUFF" }) -- Summon Charger
+Spell(13819, { duration = INFINITY, type = "BUFF" }) -- Summon Warhorse
+Spell(23161, { duration = INFINITY, type = "BUFF" }) -- Summon Dreadsteed
+Spell(5784, { duration = INFINITY, type = "BUFF" }) -- Summon Felsteed
 
+-------------
+-- ITEMS
+-------------
+
+Spell(17670, { duration = INFINITY, type = "BUFF" }) -- Argent Dawn Commission
 
 lib:SetDataVersion(Type, Version)

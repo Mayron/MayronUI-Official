@@ -454,7 +454,7 @@ function C_AuraArea:SetEnabled(data, enabled)
       listener:RegisterUnitEvent("UNIT_AURA", "player");
       listener:RegisterEvent("GROUP_ROSTER_UPDATE");
       listener:RegisterEvent("PLAYER_ENTERING_WORLD");
-
+      em:TriggerEventListenerByID(listenerID);
       newlyCreated = true;
     end
 
