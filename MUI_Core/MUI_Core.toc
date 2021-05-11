@@ -1,9 +1,9 @@
-## Interface: 90005
+## Interface: 20501
 ## Title: |cff00ccffMUI|r Core
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
-## Version: 6.4.1
+## Version: 6.5.0
 
 ## Links:
 ## ------------------------------------------------

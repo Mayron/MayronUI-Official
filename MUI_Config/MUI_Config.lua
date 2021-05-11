@@ -67,11 +67,24 @@ local function SetBackButtonEnabled(backBtn, enabled)
   end
 end
 
-local function filterByClient(client)
-  if (client == "retail" and not tk:IsRetail()) then return false; end
-  if (client == "classic" and not tk:IsClassic()) then return false; end
+local function IsUnsupportedByClient(client)
+  if (not client) then return false; end
 
-  return true;
+  if (obj:IsTable(client)) then
+    for _, c in ipairs(client) do
+      if (IsUnsupportedByClient(c)) then
+        return true;
+      end
+    end
+
+    return false;
+  end
+
+  if (client == "retail" and not tk:IsRetail()) then return true; end
+  if (client == "classic" and not tk:IsClassic()) then return true; end
+  if (client == "bcclassic" and not tk:IsBCClassic()) then return true; end
+
+  return false;
 end
 
 -- Preserve values before recycling childData table!
@@ -275,7 +288,7 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     data.tempMenuConfigTable = menuConfigTable;
 
     for _, widgetConfigTable in pairs(menuConfigTable.children) do
-      if (filterByClient(widgetConfigTable.client)) then
+      if (not IsUnsupportedByClient(widgetConfigTable.client)) then
         if (widgetConfigTable.type == "loop" or widgetConfigTable.type == "condition") then
             -- run the loop to gather widget children
             local results = namespace.WidgetHandlers[widgetConfigTable.type](
@@ -593,8 +606,7 @@ do
   end
 
   local function AddMenuButton(menuButtons, menuConfigTable, menuListScrollChild)
-    if (menuConfigTable.client == "retail" and not tk:IsRetail()) then return end
-    if (menuConfigTable.client == "classic" and not tk:IsClassic()) then return end
+    if (IsUnsupportedByClient(menuConfigTable.client)) then return end
 
     local module; ---@type BaseModule might be nil for some menus (e.g. General menu has no module)
 

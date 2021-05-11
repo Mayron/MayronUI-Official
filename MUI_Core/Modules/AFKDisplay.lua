@@ -331,7 +331,8 @@ do
     local race = (select(2, UnitRace("player"))):gsub("%s+", "");
     local tbl = Private.Races[race][gender];
 
-    if (tk:IsClassic()) then
+    if (tk:IsClassic() or tk:IsBCClassic()) then
+      -- TODO: for BC, support Blood elves and Draenei
       local classicTbl = Private.Races[race].Classic;
       classicTbl = obj:IsTable(classicTbl) and classicTbl[gender];
       tbl = obj:IsTable(classicTbl) and classicTbl or tbl;

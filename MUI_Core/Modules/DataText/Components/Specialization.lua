@@ -2,7 +2,8 @@ local MayronUI = _G.MayronUI;
 
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-if (tk:IsClassic()) then return end
+if (not tk:IsRetail()) then return end
+
 local select, GetSpecializationInfo, C_EquipmentSet = _G.select, _G.GetSpecializationInfo, _G.C_EquipmentSet;
 local GetSpecialization, UnitLevel, CreateFrame, string = _G.GetSpecialization, _G.UnitLevel, _G.CreateFrame, _G.string;
 local GetLootSpecialization, UnitSex, SetLootSpecialization, print = _G.GetLootSpecialization, _G.UnitSex, _G.SetLootSpecialization, _G.print;

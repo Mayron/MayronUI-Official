@@ -511,7 +511,7 @@ do
         bar:RegisterEvent("MIRROR_TIMER_START");
         bar:RegisterEvent("MIRROR_TIMER_STOP");
       else
-        if (tk:IsRetail() or data.unitID == "player") then
+        if (not tk:IsClassic() or data.unitID == "player") then
           bar:RegisterUnitEvent("UNIT_SPELLCAST_START", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_DELAYED", data.unitID);

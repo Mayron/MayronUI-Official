@@ -1,12 +1,12 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-if (tk:IsClassic()) then return end
+if (not tk:IsRetail()) then return end
 
 local C_ArtifactUI = _G.C_ArtifactUI;
 local GetNumPurchasableArtifactTraits = _G.ArtifactBarGetNumArtifactTraitsPurchasableFromXP;
 local C_ArtifactBar = obj:Import("MayronUI.ArtifactBar");
-local strformat = _G.string.format;
+local strformat, select = _G.string.format, _G.select;
 
 -- Local Functions -----------------------
 local function OnArtifactXPUpdate(_, _, bar, data)

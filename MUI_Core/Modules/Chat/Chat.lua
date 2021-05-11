@@ -125,7 +125,7 @@ local defaults = {
 	};
 };
 
-if (tk:IsClassic()) then
+if (not tk:IsRetail()) then
   defaults.__templateChatFrame.buttons[3] = {
     key = "S"; -- SHIFT
     L["Reputation"];

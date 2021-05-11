@@ -44,7 +44,7 @@ local buttonKeys = {
   Skills    = "Skills"
 };
 
-if (tk:IsClassic()) then
+if (not tk:IsRetail()) then
   C_ChatModule.Static.ButtonNames = {
     L["Character"],
     L["Bags"],

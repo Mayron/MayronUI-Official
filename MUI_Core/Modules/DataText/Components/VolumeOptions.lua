@@ -163,7 +163,7 @@ function VolumeOptions:Click(data, button)
     local currentValue = tonumber(GetCVar("Sound_MasterVolume"));
 
     if (currentValue == 0) then
-      if (tk:IsClassic()) then
+      if (not tk:IsRetail()) then
         ActionStatus_DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, L["Unmuted"]));
       else
         ActionStatus:DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, L["Unmuted"]));
@@ -172,7 +172,7 @@ function VolumeOptions:Click(data, button)
       SetCVar("Sound_MasterVolume", data.oldValue or 1);
       data.oldValue = data.oldValue or 1;
     else
-      if (tk:IsClassic()) then
+      if (not tk:IsRetail()) then
         ActionStatus_DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, MUTED));
       else
         ActionStatus:DisplayMessage(tk.Strings:JoinWithSpace(MASTER_VOLUME, MUTED));

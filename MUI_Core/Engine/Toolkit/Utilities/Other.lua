@@ -165,6 +165,10 @@ function tk:IsClassic()
   return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC;
 end
 
+function tk:IsBCClassic()
+  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_BURNING_CRUSADE_CLASSIC;
+end
+
 function tk:GetMaxPlayerLevel()
   return IsTrialAccount() and 20 or 60;
 end
@@ -606,6 +610,11 @@ end
 function tk:GetInterfaceName()
   if (self:IsClassic()) then
     return "MayronUI Classic";
+  elseif (self:IsBCClassic()) then
+    return tk.Strings:JoinWithSpace(
+      "MayronUI",
+      tk.Strings:SetTextColorByKey("Burning Crusade", "GREEN"),
+      "Classic");
   else
     return "MayronUI Gen6";
   end

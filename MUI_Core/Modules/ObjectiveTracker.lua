@@ -1,7 +1,7 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-if (tk:IsClassic()) then return end
+if (not tk:IsRetail()) then return end
 
 ---@class ObjectiveTrackerModule : BaseModule
 local C_ObjectiveTracker = MayronUI:RegisterModule("ObjectiveTrackerModule", L["Objective Tracker"], true);
