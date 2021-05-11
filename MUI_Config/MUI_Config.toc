@@ -2,7 +2,7 @@
 ## Title: |cff00ccffMUI|r Config
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
-## Version: 6.5
+## Version: 6.5.0
 ## Notes: Enables the in-game MayronUI configuration menu
 
 MUI_Config.lua
