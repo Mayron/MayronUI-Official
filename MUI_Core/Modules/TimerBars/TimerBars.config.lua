@@ -148,7 +148,6 @@ function C_TimerBarsModule:GetConfigTable()
           };
           {   name    = "Show Auras With Unknown Time Remaining";
               type    = "check";
-              client  = "classic";
               tooltip =
 [[
 If enabled, auras with an unknown time remaining, as well as auras that never
