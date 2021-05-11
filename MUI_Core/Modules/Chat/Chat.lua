@@ -351,6 +351,8 @@ function C_ChatModule:OnInitialized(data)
     if (chat) then
       chat:SetClampRectInsets(0, 0, 0, 0);
     end
+
+    self:SetUpAllBlizzardFrames();
   end);
 
   self:SetEnabled(true);
@@ -402,17 +404,7 @@ function C_ChatModule:OnEnable(data)
 		_G.ChatFrameMenuButton,	_G.QuickJoinToastButton
 	);
 
-  local changeGameFont = db.global.core.changeGameFont;
-  local muiFont = tk.Constants.LSM:Fetch("font", db.global.core.font);
-
-  for chatFrameID = 1, NUM_CHAT_WINDOWS do
-    local chatFrame = self:SetUpBlizzardChatFrame(chatFrameID);
-
-    if (changeGameFont) then
-      local _, fontSize, outline = _G.FCF_GetChatWindowInfo(chatFrame:GetID());
-      chatFrame:SetFont(muiFont, fontSize, outline);
-    end
-  end
+  self:SetUpAllBlizzardFrames();
 end
 
 obj:DefineReturns("table");

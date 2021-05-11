@@ -470,16 +470,16 @@ L["Configure Whitelist"]                        = "Configure Whitelist";
 L["Enable Blacklist"]                           = "Enable Blacklist";
 L["Configure Blacklist"]                        = "Configure Blacklist";
 
-L["Are you sure you want to reset the currency data for all of your characters?"] 
+L["Are you sure you want to reset the currency data for all of your characters?"]
 	= "Are you sure you want to reset the currency data for all of your characters?";
 
-L["Are you sure you want to reset the currency data for %s?"] 
+L["Are you sure you want to reset the currency data for %s?"]
 	= "Are you sure you want to reset the currency data for %s?";
 
 L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."]
 	= "Removing %s from the whitelist will hide this timer bar if the whitelist is enabled.";
 
-L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."] 
+L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."]
 	= "Adding %s to the blacklist will hide this timer bar if the blacklist is enabled.";
 
 L["MUI_Setup_InfoTab"] = [[
@@ -591,39 +591,39 @@ L["Size"]                                           = "Size";
 L["Adjust the font size of the zone text."]         = "Adjust the font size of the zone text.";
 L["Okay"]                        					= "Okay";
 
-L["Profile %s has been copied into current profile %s."] 
+L["Profile %s has been copied into current profile %s."]
 	= "Profile %s has been copied into current profile %s.";
 
 L["You can manage character profiles here.\n\nBy default, each character has its own unique profile."]
 	= "You can manage character profiles here.\n\nBy default, each character has its own unique profile.";
 
-L["Reset currently active profile back to default settings."] 
+L["Reset currently active profile back to default settings."]
 	= "Reset currently active profile back to default settings.";
 
-L["Are you sure you want to reset profile '%s' back to default settings?"] 
+L["Are you sure you want to reset profile '%s' back to default settings?"]
 	= "Are you sure you want to reset profile '%s' back to default settings?";
 
-L["Delete currently active profile (cannot delete the 'Default' profile)."] 
+L["Delete currently active profile (cannot delete the 'Default' profile)."]
 	= "Delete currently active profile (cannot delete the 'Default' profile).";
 
-L["Copy all settings from one profile to the active profile."] 
+L["Copy all settings from one profile to the active profile."]
 	= "Copy all settings from one profile to the active profile.";
 
-L["Are you sure you want to overide all profile settings in '%s' for those in profile '%s'?"] 
+L["Are you sure you want to overide all profile settings in '%s' for those in profile '%s'?"]
 	= "Are you sure you want to overide all profile settings in '%s' for those in profile '%s'?";
 
-L["By default, each new character will be automatically assigned a unique character profile instead of a single default profile.\n\nProfiles are automatically assigned only after installing the UI on a new character."] 
+L["By default, each new character will be automatically assigned a unique character profile instead of a single default profile.\n\nProfiles are automatically assigned only after installing the UI on a new character."]
 	= "By default, each new character will be automatically assigned a unique character profile instead of a single default profile.\n\nProfiles are automatically assigned only after installing the UI on a new character.";
 
 L["Profile Per Character"] = "Profile Per Character";
 
-L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."] 
+L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."]
 	= "If enabled, new characters will be assigned a unique character profile instead of the Default profile.";
 
-L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] 
+L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."]
 	= "Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones.";
 
-L["Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."] 
+L["Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."]
 	= "Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons.";
 
 L["Thank you for installing %s!\n\nYou can fully customise the UI using the config menu:"]
@@ -635,7 +635,7 @@ L["Anchor the Objective Tracker to the action bar container on the right side of
 L["You can repeat this step at any time (while out of combat) to hide it."]
 		= "You can repeat this step at any time (while out of combat) to hide it.";
 
-L["If true, the objective tracker will collapse when entering an instance."] 
+L["If true, the objective tracker will collapse when entering an instance."]
 	= "If true, the objective tracker will collapse when entering an instance.";
 
 L["If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit."]
@@ -732,6 +732,7 @@ L["Covenant Sanctum"]						      = "Covenant Sanctum";
 L["Missions"]							      = "BfA Missions";
 L["You must be a member of a covenant to view this."]		      = "You must be a member of a covenant to view this."
 L["Unmuted"] = "Unmuted";
+L["Toggle Questlog"] = "Toggle Questlog";
 
 ---------------------------------------
 --- NEW SINCE 12/12/2020 (update 6.3.8)

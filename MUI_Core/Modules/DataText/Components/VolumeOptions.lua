@@ -94,7 +94,7 @@ local function button_OnLeave()
   GameTooltip:Hide();
 end
 
--- Durability Module --------------
+-- Volume options Module --------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
   self:RegisterComponentClass("volumeOptions", VolumeOptions);

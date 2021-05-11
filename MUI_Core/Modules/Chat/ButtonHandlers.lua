@@ -250,7 +250,7 @@ function C_ChatFrame:SetUpButtonHandler(data, buttonSettings)
   data.settings.buttons = buttonSettings;
 
   local listenerID = data.anchorName.."_OnModifierStateChanged";
-  local listener = em:CreateEventListenerWithID(listenerID, ChatFrame_OnModifierStateChanged);
+  local listener = em:GetEventListenerByID(listenerID) or em:CreateEventListenerWithID(listenerID, ChatFrame_OnModifierStateChanged);
 
   listener:SetCallbackArgs(data);
   listener:RegisterEvent("MODIFIER_STATE_CHANGED");

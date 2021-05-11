@@ -196,7 +196,7 @@ function C_UnitPanels:OnDisable(data)
   end
 
   -- disable all events:
-  em:DisableEventHandlers(
+  em:DisableEventListeners(
     "MuiRestingPulse",
     "MuiUnitFramePanels_TargetChanged",
     "MuiDetachSuf_Logout",
@@ -221,22 +221,22 @@ function C_UnitPanels:OnEnable(data)
 
     -- enable event handlers
     if (data.settings.restingPulse) then
-      em:EnableEventHandlers("MuiRestingPulse");
+      em:EnableEventListeners("MuiRestingPulse");
     end
 
     if (data.settings.controlSUF) then
-      em:EnableEventHandlers("MuiDetachSuf_Logout");
+      em:EnableEventListeners("MuiDetachSuf_Logout");
     end
 
     if (data.settings.unitNames.enabled) then
-      em:EnableEventHandlers("MuiUnitNames_TargetChanged", "MuiUnitNames_LevelUp", "MuiUnitNames_UpdatePlayerName");
+      em:EnableEventListeners("MuiUnitNames_TargetChanged", "MuiUnitNames_LevelUp", "MuiUnitNames_UpdatePlayerName");
     end
 
     if (data.settings.sufGradients.enabled) then
-      em:EnableEventHandlers("MuiUnitPanels_TargetGradient");
+      em:EnableEventListeners("MuiUnitPanels_TargetGradient");
     end
 
-    em:EnableEventHandlers("MuiUnitFramePanels_TargetChanged");
+    em:EnableEventListeners("MuiUnitFramePanels_TargetChanged");
     return;
   end
 

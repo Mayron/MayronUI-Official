@@ -26,6 +26,7 @@ namespace.dataTextLabels = {
   ["guild"]             = "Guild",
   ["inventory"]         = "Inventory",
   ["memory"]            = "Memory",
+  ["quest"]             = "Quest",
   ["performance"]       = "Performance",
   ["none"]              = "None";
   ["disabled"]          = "Disabled",

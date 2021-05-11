@@ -346,7 +346,7 @@ function C_TimerBarsModule:OnEnable()
     listener = em:CreateEventListenerWithID("TimerBarsModule_CheckUnitAuras", CheckUnitAuras);
     listener:RegisterEvent("PLAYER_ENTERING_WORLD");
   else
-    em:EnableEventHandlers("TimerBarsModule_OnCombatLogEvent", "TimerBarsModule_CheckUnitAuras");
+    em:EnableEventListeners("TimerBarsModule_OnCombatLogEvent", "TimerBarsModule_CheckUnitAuras");
   end
 end
 
