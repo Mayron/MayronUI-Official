@@ -105,7 +105,33 @@ if (tk:IsRetail()) then
   };
 else
   tk.Constants.FOOD_DRINK_AURAS = {
-    ["1137"] = true, -- classic drink
-    ["1131"] = true, -- classic food
+    -- classic drinks
+    ["24355"] = true,
+    ["1137"] = true,
+    ["1135"] = true,
+    ["1133"] = true,
+    ["432"] = true,
+    ["431"] = true,
+    ["430"] = true,
+
+    -- classic foods
+    ["1131"] = true,
+    ["1127"] = true,
+    ["5006"] = true,
+    ["24800"] = true,
+    ["18233"] = true,
+    ["434"] = true,
+    ["5004"] = true,
+    ["22731"] = true,
+    ["435"] = true,
+    ["5007"] = true,
+    ["10256"] = true,
+    ["18230"] = true,
+    ["25660"] = true,
+    ["10257"] = true,
+    ["18234"] = true,
+    ["5005"] = true,
+    ["7737"] = true,
+    ["18229"] = true,
   };
 end
