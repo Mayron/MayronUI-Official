@@ -3,9 +3,10 @@
 
 # Except AddOns prefixed with "MUI_"
 !/MUI_*
-!/LibMayronDB
-!/LibMayronObjects
-!.pkg*
+
+# But ignore .toc files inside MUI_
+*.toc
+*.zip
 
 !.github
 !.gitignore
