@@ -258,6 +258,11 @@ function C_MiniMapModule:OnEnable(data)
     tk:KillElement(_G.MinimapToggleButton);
   end
 
+  -- TBC Classic
+  if (_G.MiniMapTracking) then
+    tk:KillElement(_G.MiniMapTracking);
+  end
+
 	tk:ApplyThemeColor(zoneText);
 	zoneText.SetTextColor = tk.Constants.DUMMY_FUNC;
 	zoneText:ClearAllPoints();

@@ -784,7 +784,7 @@ function C_ConfigModule:GetConfigTable()
                 {   type = "loop";
                     args = { "Artifact", "Azerite", "Experience", "Reputation" };
                     func = function(id, name)
-                        if (not tk:IsRetial() and (name == "Artifact" or name == "Azerite")) then
+                        if (not tk:IsRetail() and (name == "Artifact" or name == "Azerite")) then
                           return
                         end
 

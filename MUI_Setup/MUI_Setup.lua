@@ -621,6 +621,8 @@ function C_SetUpModule:Install()
 
   if (tk:IsRetail()) then
     SetCVar("floatingCombatTextCombatHealing", "1");
+  elseif (tk:IsBCClassic()) then
+    SetCVar("nameplateMaxDistance", 41);
   end
 
   SetCVar("useUiScale", "1");

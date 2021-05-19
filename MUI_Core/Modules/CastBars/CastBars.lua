@@ -546,7 +546,7 @@ do
 
         if (data.unitID == "target") then
           bar:RegisterEvent("PLAYER_TARGET_CHANGED");
-        elseif (tk:IsRetail() and data.unitID == "focus") then
+        elseif (not tk:IsClassic() and data.unitID == "focus") then
           bar:RegisterEvent("PLAYER_FOCUS_CHANGED");
         end
 
@@ -804,7 +804,7 @@ function C_CastBarsModule:OnInitialize(data)
 
   local ignore;
 
-  if (tk:IsRetail()) then
+  if (not tk:IsClassic()) then
     first[4] = "Focus.enabled";
   else
     ignore = { "Focus.enabled" };
