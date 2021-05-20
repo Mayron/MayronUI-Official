@@ -1,0 +1,19 @@
+## Interface: 90005
+## Title: |cff00ccffMUI|r Setup
+## Dependencies: MUI_Core
+## LoadOnDemand: 1
+## OptionalDeps: Leatrix_Plus
+## Version: 6.5.2
+## Notes: Required to install MayronUI and inject addon settings
+
+MUI_Setup.lua
+ReportFrame.lua
+
+## imports:
+imports/Bagnon.lua
+imports/Bartender4.lua
+imports/Masque.lua
+imports/Recount.lua
+imports/ShadowedUnitFrames.lua
+imports/TipTac.lua
+imports/LeatrixPlus.lua

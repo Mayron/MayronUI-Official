@@ -1,0 +1,53 @@
+## Interface: 11307
+## Title: |cff00ccffMUI|r Core
+## SavedVariables: MayronUIdb, MUI_TimerBarsDb
+## OptionalDeps: ShadowedUnitFrames, Bartender4
+## Notes: Required to run MayronUI Modules
+## Version: 6.5.2
+
+## Links:
+## ------------------------------------------------
+## X-Discord: https://discord.gg/8Kh3maU
+## X-Home-Page: https://mayronui.com
+## X-GitHub-Repo: https://github.com/Mayron/MayronUI-Official
+## X-Patreon: https://www.patreon.com/mayronWoW
+## X-YouTube: https://www.youtube.com/channel/UCCu-NuBYVi7yokZmKBCBvHw
+
+## Credits:
+## ------------------------------------------------
+## X-Community-Support-Team: Monster/ Alizmer [GER]
+## X-Patrons: Size Queen Kimiko, AkumaGekido, Arriesa, Kallomuki, LaidbackLuke, Missfit, NeuRooT, Pixel, PuppyCatbug, Tibbetts
+## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma, EarlGrey
+## X-Development-and-Bug-Fixes: Monkey
+
+TaintLess.xml
+
+## Packages:
+## -------------------------------------------------
+Engine\MayronObjects\MayronObjects.lua
+Packages\Pkg-MayronDB\Pkg-MayronDB.lua
+Packages\Pkg-MayronEvents\Pkg-MayronEvents.xml
+Packages\Pkg-Collections\Pkg-Collections.xml
+
+## Libraries:
+## ------------------------------------------------
+Libs\LibStub.lua
+Libs\LibMayronGUI-1.0\LibMayronGUI.xml
+Libs\LibSharedMedia-3.0\CallbackHandler-1.0.lua
+Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
+Libs\AceLocale-3.0.lua
+Libs\SortBags.lua
+Libs\LibClassicCasterino.lua
+Libs\LibClassicDurations\LibClassicDurations.xml
+
+## Localization
+## -------------------------------------------------
+Locales\Locales.xml
+
+## Engine:
+## -------------------------------------------------
+Engine\MUI_Core.xml
+
+## Modules:
+## -------------------------------------------------
+Modules\Modules.xml

@@ -4,8 +4,6 @@
 # Except AddOns prefixed with "MUI_"
 !/MUI_*
 
-# But ignore .toc files inside MUI_
-*.toc
 *.zip
 
 !.github
