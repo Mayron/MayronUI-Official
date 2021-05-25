@@ -129,6 +129,7 @@ db:AddToDefaults("profile.tooltips", {
       size = 28;
       position = "TOP";
       direction = "ltr";
+      onlyYours = false;
     };
     debuffs = {
       enabled = true;
@@ -137,6 +138,7 @@ db:AddToDefaults("profile.tooltips", {
       direction = "ltr";
       aboveBuffs = true;
       colorByDebuffType = true;
+      onlyYours = false;
     };
   };
 });
@@ -470,8 +472,13 @@ local function AddAuras(data, filter, anchor)
 
   for index = 1, maxAuras do
     local auraName, iconTexture, _, auraType, duration, endTime, source = UnitAura(MOUSEOVER, index, filter);
+    local show = true;
 
-    if (auraName and iconTexture and source == "player") then
+    if (settings.onlyYours and source ~= "player") then
+      show = false;
+    end
+
+    if (auraName and iconTexture and show) then
       local frame = auraFrames[id];
 
       if (not frame) then

@@ -396,7 +396,11 @@ do
       ---@param field TimerField
       for _, field in pairs(UnitIDFieldPairs) do
         if (not obj:IsBoolean(field)) then
+          local unitID = field:GetUnitID();
+
+          if (UnitGUID(unitID) == destGuid) then
             field:UpdateBarsByAura(sourceGuid, auraId, auraName, auraType);
+          end
         end
       end
     end
@@ -908,7 +912,7 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, auraId, auraName, auraT
   if (not canTrack) then return end
 
   -- first try to search for an existing one:
-  for _, activeBar in ipairs(data.activeBars) do
+  for i, activeBar in ipairs(data.activeBars) do
     if (auraId == activeBar.AuraId and sourceGuid == activeBar.Source) then
       foundBar = activeBar;
       break
@@ -941,7 +945,6 @@ function C_TimerField:RecheckAuras(data)
     end
 
     for i = 1, maxAuras do
-      -- /run print(UnitAura("target", 1, "HARMFUL"))
       local auraInfo = obj:PopTable(UnitAura(data.settings.unitID, i, filterName));
 
       if (CanTrackAura(auraInfo, data.sharedSettings)) then
