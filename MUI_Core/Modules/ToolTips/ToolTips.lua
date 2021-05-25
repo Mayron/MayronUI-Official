@@ -4,10 +4,9 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local C_ToolTipsModule = MayronUI:RegisterModule("ToolTips", "Tool Tips");
 
-local tooltipStyle = _G.GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT;
+local tooltipStyle = _G.GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT or _G.TOOLTIP_BACKDROP_STYLE_DEFAULT;
 local gameTooltip = _G.GameTooltip;
 local healthBar, powerBar = _G.GameTooltipStatusBar, nil;
-local AddTooltipLine = _G.GameTooltip_AddNormalLine;
 
 local select, IsAddOnLoaded, strformat, ipairs, CreateFrame, UnitAura, unpack,
   UnitName, UnitHealthMax, UnitHealth, hooksecurefunc, UnitExists, UnitIsPlayer,
@@ -16,11 +15,17 @@ local select, IsAddOnLoaded, strformat, ipairs, CreateFrame, UnitAura, unpack,
   _G.UnitName, _G.UnitHealthMax, _G.UnitHealth, _G.hooksecurefunc, _G.UnitExists, _G.UnitIsPlayer,
   _G.GetGuildInfo, _G.UnitRace, _G.UnitCreatureFamily, _G.UnitCreatureType, _G.UnitReaction;
 local UnitPowerType, UnitPower, UnitPowerMax, min = _G.UnitPowerType, _G.UnitPower, _G.UnitPowerMax, _G.math.min;
+local UnitLevel, CanInspect, UnitGUID, CheckInteractDistance, GetInspectSpecialization,
+  C_PaperDollInfo, GetSpecializationInfoByID = _G.UnitLevel, _G.CanInspect, _G.UnitGUID, _G.CheckInteractDistance,
+  _G.GetInspectSpecialization, _G.C_PaperDollInfo, _G.GetSpecializationInfoByID;
 
 -- Constants
 local MOUSEOVER = "MOUSEOVER";
 local HARMFUL = "HARMFUL";
 local HELPFUL = "HELPFUL";
+local ITEM_LEVEL_LABEL = "Item Level:";
+local LOADING = "loading...";
+local SPEC_LABEL = strformat("%s:", _G.SPECIALIZATION);
 local AURA_SPACING = 2;
 
 local tooltipsToReskin =  {
@@ -43,8 +48,8 @@ db:AddToDefaults("profile.tooltips", {
   enabled = not (select(1, IsAddOnLoaded("TipTac")));
   targetShown = true;
   guildRankShown = true;
-  itemLevelShown = true; -- TODO: Needs implmentation
-  specShown = true; -- TODO: Needs implmentation
+  itemLevelShown = true;
+  specShown = true;
   font = "MUI_Font";
   flag = "None";
   standardFontSize = 14;
@@ -629,9 +634,9 @@ local function UpdateTargetText(data)
 		local line = _G["GameTooltipTextLeft"..i];
     local text = line:GetText();
 
-    if (text and tk.Strings:Contains(line:GetText(), "Target:")) then
+    if (text == "Target:") then
       if (mouseoverTarget) then
-        line:SetText(strformat("Target: %s", mouseoverTarget));
+        -- line:SetText(strformat("Target: %s", mouseoverTarget));
         return
       else
         line:SetText("");
@@ -641,14 +646,15 @@ local function UpdateTargetText(data)
   end
 
   if (mouseoverTarget) then
-    AddTooltipLine(gameTooltip, strformat("Target: %s", mouseoverTarget), true);
+    gameTooltip:AddDoubleLine("Target:", mouseoverTarget);
   end
 
   RefreshPadding(data);
 end
 
 local function CreatePowerBar(data)
-  powerBar = CreateFrame("StatusBar", "GameTooltipPowerBar", healthBar, _G.BackdropTemplateMixin and "BackdropTemplate");
+  powerBar = CreateFrame("StatusBar", "GameTooltipPowerBar", healthBar,
+    _G.BackdropTemplateMixin and "BackdropTemplate");
   powerBar:SetHeight(data.settings.powerBar.height);
 
   local statusBarTexture = tk.Constants.LSM:Fetch("statusbar", data.settings.powerBar.texture);
@@ -727,6 +733,18 @@ local function PositionStatusBars(data)
   end
 end
 
+local function SetDoubleLine(leftText, rightText)
+  for i = 1, _G.GameTooltip:NumLines() do
+    local left = _G[strformat("GameTooltipTextLeft%d", i)];
+    local right = _G[strformat("GameTooltipTextRight%d", i)];
+
+    if (left and right and tk.Strings:Contains(left:GetText(), leftText)) then
+      right:SetText(rightText);
+      return
+    end
+  end
+end
+
 -------------------------------
 --- C_ToolTipsModule
 -------------------------------
@@ -740,8 +758,6 @@ function C_ToolTipsModule:OnInitialize(data)
   end
 
 	self:RegisterUpdateFunctions(db.profile.tooltips, {
-    itemLevelShown = function() end;--true; -- TODO: Needs implmentation
-    specShown = function() end;--true; -- TODO: Needs implmentation
     font = SetFontsWrapper;--"MUI_Font";
     flag = SetFontsWrapper;
     standardFontSize = SetFontsWrapper;--14;
@@ -837,6 +853,33 @@ function C_ToolTipsModule:OnEnable(data)
     HideAllAuras(data);
   end);
 
+  local specListener = em:CreateEventListener(function(handler, _, guid)
+    if (UnitGUID(MOUSEOVER) ~= guid) then return end
+
+    local specID = GetInspectSpecialization(MOUSEOVER);
+    local specializationName = select(2, GetSpecializationInfoByID(specID));
+    local itemLevel = C_PaperDollInfo.GetInspectItemLevel(MOUSEOVER);
+
+    if (not tk.Strings:IsNilOrWhiteSpace(specializationName)) then
+      handler:SetEnabled(false);
+
+      if (obj:IsTable(data.specCache) and data.settings.specShown) then
+        data.specCache[guid] = specializationName;
+        SetDoubleLine(SPEC_LABEL, specializationName);
+      end
+
+      if (obj:IsTable(data.itemLevelCache) and data.settings.itemLevelShown) then
+        data.itemLevelCache[guid] = itemLevel;
+        SetDoubleLine(ITEM_LEVEL_LABEL, itemLevel);
+      end
+
+      RefreshPadding(data);
+    end
+  end);
+
+  specListener:RegisterEvent("INSPECT_READY");
+  specListener:SetEnabled(false);
+
   local listener = em:CreateEventListener(function()
     local unitExists = UnitExists(MOUSEOVER);
 
@@ -844,12 +887,44 @@ function C_ToolTipsModule:OnEnable(data)
       gameTooltip:Hide();
     else
       UpdateUnitTooltipLines(data.settings.guildRankShown); -- must be BEFORE padding
-      UpdateStatusBarOnMouseOver(data)
-
+      UpdateStatusBarOnMouseOver(data);
       UpdateAuras(data);
 
       if (data.settings.targetShown) then
         UpdateTargetText(data);
+      end
+
+      if (tk:IsRetail() and UnitIsPlayer(MOUSEOVER) and UnitLevel(MOUSEOVER) >= 10 
+          and CanInspect(MOUSEOVER) and CheckInteractDistance(MOUSEOVER, 1)) then
+
+        local guid = UnitGUID(MOUSEOVER) or "";
+
+        if (data.settings.specShown) then
+          data.specCache = data.specCache or obj:PopTable();
+          local specializationName = data.specCache[guid];
+
+          if (specializationName) then
+            gameTooltip:AddDoubleLine(SPEC_LABEL, specializationName);
+          else
+            gameTooltip:AddDoubleLine(SPEC_LABEL, LOADING);
+          end
+        end
+
+        if (data.settings.itemLevelShown) then
+          data.itemLevelCache = data.itemLevelCache or obj:PopTable();
+          local itemLevel = data.itemLevelCache[guid];
+
+          if (itemLevel) then
+            gameTooltip:AddDoubleLine(ITEM_LEVEL_LABEL, itemLevel);
+          else
+            gameTooltip:AddDoubleLine(ITEM_LEVEL_LABEL, LOADING);
+          end
+        end
+
+        if (data.settings.specShown or data.settings.itemLevelShown) then
+          specListener:SetEnabled(true);
+          _G.NotifyInspect(MOUSEOVER);
+        end
       end
     end
 
