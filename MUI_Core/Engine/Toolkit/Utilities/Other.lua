@@ -178,32 +178,41 @@ function tk:IsPlayerMaxLevel()
     return (self:GetMaxPlayerLevel() == playerLevel);
 end
 
-function tk:GetLocalizedUnitClassName(unit)
-    return select(2, UnitClass(unit));
+-- the class filename is often required for use with the API (unlike the localized class name)
+function tk:GetClassFilenameByUnitID(unitID)
+  local _, classFilename, _ = UnitClass(unitID); -- className, classFilename, classID
+  return classFilename;
 end
 
-function tk:GetLocalizedClassName(className)
-    if (tk.Constants.LOCALIZED_CLASS_NAMES[className] or tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES[className]) then
-        -- already localized
-        return className;
-    end
+-- the class name to be shown on the UI (not usable with the API)
+function tk:GetLocalizedClassNameByFilename(classFilename, makeClassColored)
+  classFilename = classFilename:gsub("%s+", tk.Strings.Empty);
+  classFilename = classFilename:upper();
 
-    local localizedName = tk.Tables:GetIndex(tk.Constants.LOCALIZED_CLASS_NAMES, className);
+  local localizedName = tk.Constants.LOCALIZED_CLASS_NAMES[classFilename];
 
-    if (not localizedName) then
-        localizedName = tk.Tables:GetIndex(tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES, className);
-    end
-
-    tk:Assert(localizedName, "Unknown class name '%s'.", className);
+  if (not localizedName) then
     return localizedName;
+  end
+
+  localizedName = tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES[classFilename];
+
+  if (not localizedName) then
+    return localizedName;
+  end
+
+  tk:Assert(localizedName, "Unknown class name '%s'.", classFilename);
+
+  if (makeClassColored) then
+    localizedName = tk.Strings:SetTextColorByClassFilename(localizedName, classFilename);
+  end
+
+  return localizedName;
 end
 
-function tk:GetClassColor(className)
-    return _G.GetClassColorObj(tk:GetLocalizedClassName(className));
-end
-
-function tk:GetUnitClassColor(unit)
-    return _G.GetClassColorObj(tk:GetLocalizedUnitClassName(unit));
+function tk:GetClassColorByUnitID(unitID)
+  local classFilename = tk:GetClassFilenameByUnitID(unitID);
+  return _G.GetClassColorObj(classFilename);
 end
 
 local errorInfo = {};
@@ -618,4 +627,26 @@ function tk:GetInterfaceName()
   else
     return "MayronUI Gen6";
   end
+end
+
+-- "Mix two colors together in variable proportion."
+-- Used to get color from a gradient between two colors based on a percentage.
+-- percent should be between 0 and 1 - "a percentage balance point between the two colors"
+function tk:MixColorsByPercentage(color1, color2, percentage)
+  local weight;
+
+  if (percentage > 0.5) then
+  -- more than half way to the end of the gradient.
+		weight = (percentage * 2) - 1; -- 0.02-0.98
+	else
+    weight = (percentage * 2); -- 0.02-1
+	end
+
+  -- algorithm from:
+  -- https://stackoverflow.com/questions/30143082/how-to-get-color-value-from-gradient-by-percentage-with-javascript
+  local r = (color1.r * weight) + (color2.r * (1 - weight));
+  local g = (color1.g * weight) + (color2.g * (1 - weight));
+  local b = (color1.b * weight) + (color2.b * (1 - weight));
+
+	return r, g, b;
 end

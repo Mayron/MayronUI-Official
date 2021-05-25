@@ -100,6 +100,7 @@ local BlizzardFrames = {
 	Blizzard_ItemSocketingUI = "ItemSocketingFrame";
 	Blizzard_ItemUpgradeUI = "ItemUpgradeFrame";
 	Blizzard_AzeriteUI = "AzeriteEmpoweredItemUI";
+	Blizzard_CraftUI = "CraftFrame";
 };
 
 local function CanMove(frame)

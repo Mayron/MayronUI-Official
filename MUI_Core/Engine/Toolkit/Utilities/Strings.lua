@@ -65,20 +65,20 @@ function tk.Strings:GetStringBetween(strValue, firstPart, secondPart)
 end
 
 function tk.Strings:IsNilOrWhiteSpace(strValue)
-    if (strValue == nil) then
-        return true;
-    end
-
-    tk:Assert(obj:IsString(strValue),
-        "tk.Strings.IsNilOrWhiteSpace - bad argument #1 (string expected, got %s)", type(strValue));
-
-    strValue = strValue:gsub("%s+", "");
-
-    if (#strValue > 0) then
-        return false;
-    end
-
+  if (strValue == nil) then
     return true;
+  end
+
+  tk:Assert(obj:IsString(strValue),
+    "tk.Strings.IsNilOrWhiteSpace - bad argument #1 (string expected, got %s)", type(strValue));
+
+  strValue = strValue:gsub("%s+", "");
+
+  if (#strValue > 0) then
+    return false;
+  end
+
+  return true;
 end
 
 function tk.Strings:SetOverflow(str, maxChars)
@@ -105,17 +105,16 @@ function tk.Strings:SetTextColorByHex(text, hex)
     return string.format("|cff%s%s|r", hex, text);
 end
 
-function tk.Strings:SetTextColorByClass(text, className)
-    text = text or className;
-    className = className or (select(2, UnitClass("player")));
+function tk.Strings:SetTextColorByClassFilename(text, classFilename)
+  text = text or classFilename;
+  classFilename = classFilename or tk:GetClassFilenameByUnitID("player");
 
-    className = className:gsub("%s+", tk.Strings.Empty);
-    className = className:upper();
+  classFilename = classFilename:gsub("%s+", tk.Strings.Empty);
+  classFilename = classFilename:upper();
 
-    local classColor = tk:GetClassColor(className);
-    return classColor:WrapTextInColorCode(text);
+  local classColor = _G.GetClassColorObj(classFilename);
+  return classColor:WrapTextInColorCode(text);
 end
-
 function tk.Strings:SetTextColorByTheme(text)
   local themeColor = tk:GetThemeColor(true);
   return themeColor:WrapTextInColorCode(text);
@@ -159,4 +158,88 @@ end
 
 function tk.Strings:JoinWithSpace(...)
     return tk.Strings:Join(tk.Strings.Space, ...);
+end
+
+-- also includes level at the end
+local UnitName, UnitLevel, UnitClassification, tonumber, UnitIsPlayer, UnitAffectingCombat, IsResting,
+UnitIsConnected, UnitIsAFK, UnitIsDND, UnitReaction = _G.UnitName, _G.UnitLevel, _G.UnitClassification, _G.tonumber,
+  _G.UnitIsPlayer, _G.UnitAffectingCombat, _G.IsResting, _G.UnitIsConnected, _G.UnitIsAFK, _G.UnitIsDND, _G.UnitReaction;
+
+function tk.Strings:GetUnitNameText(unitID)
+  local unitName = tk.Strings:SetOverflow(UnitName(unitID), 22);
+
+  if (unitID:lower() == "player") then
+    if (UnitAffectingCombat("player")) then
+      unitName = tk.Strings:SetTextColorByRGB(unitName, 1, 0, 0);
+
+    elseif (IsResting()) then
+      unitName = tk.Strings:SetTextColorByRGB(unitName, 0, 1, 1);
+    else
+      local _, class = UnitClass(unitID);
+      unitName = tk.Strings:SetTextColorByClassFilename(unitName, class);
+    end
+  elseif (UnitIsPlayer(unitID)) then
+    local _, class = UnitClass(unitID);
+    unitName = tk.Strings:SetTextColorByClassFilename(unitName, class);
+  else
+    local reaction = UnitReaction("player", unitID);
+    local r, g, b = 1, 1, 1;
+
+    if (reaction) then
+      r = tk.Constants.FACTION_BAR_COLORS[reaction].r;
+      g = tk.Constants.FACTION_BAR_COLORS[reaction].g;
+      b = tk.Constants.FACTION_BAR_COLORS[reaction].b;
+    end
+
+    unitName = tk.Strings:SetTextColorByRGB(unitName, r, g, b);
+  end
+
+  return unitName;
+end
+
+function tk.Strings:GetUnitLevelText(unitID)
+  local unitLevel = UnitLevel(unitID);
+
+  if (unitID:lower() == "player") then
+    unitLevel = tk.Strings:SetTextColorByRGB(unitLevel, 1, 0.8, 0);
+  else
+    local classification = UnitClassification(unitID);
+
+    if (tonumber(unitLevel) < 1) then
+      unitLevel = "boss";
+    elseif (classification == "elite" or classification == "rareelite") then
+      unitLevel = tostring(unitLevel).."+";
+    end
+
+    if (classification == "rareelite" or classification == "rare") then
+      unitLevel = tk.Strings:Concat("|cffff66ff", unitLevel, "|r");
+    end
+
+    if (classification == "worldboss" or unitLevel == "boss") then
+      unitLevel = tk.Strings:SetTextColorByKey(unitLevel, "yellow");
+    else
+      local color = tk:GetDifficultyColor(UnitLevel(unitID));
+      unitLevel = tk.Strings:SetTextColorByRGB(unitLevel, color.r, color.g, color.b);
+    end
+  end
+
+  return unitLevel;
+end
+
+function tk.Strings:GetUnitStatusText(unitID)
+  if (UnitIsPlayer(unitID)) then
+    local status = (not UnitIsConnected(unitID) and " <DC>")
+      or (UnitIsAFK(unitID) and " <AFK>")
+      or (UnitIsDND(unitID) and " <DND>");
+
+      return status;
+  end
+end
+
+function tk.Strings:GetUnitFullNameText(unitID)
+  local unitName = self:GetUnitNameText(unitID);
+  local unitLevel = self:GetUnitLevelText(unitID);
+  local unitStatus = self:GetUnitStatusText(unitID);
+
+  return string.format("%s %s%s", unitName, unitLevel, unitStatus or "");
 end

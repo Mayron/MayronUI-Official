@@ -11,7 +11,7 @@ tk.Constants = {
     SOLID_TEXTURE = "Interface\\addons\\MUI_Core\\Assets\\Textures\\Widgets\\Solid";
 
     FONT = function()
-        return tk.Constants.LSM:Fetch("font", namespace.components.Database.global.core.font);
+      return tk.Constants.LSM:Fetch("font", namespace.components.Database.global.core.font);
     end;
 
     LSM = _G.LibStub("LibSharedMedia-3.0");
@@ -74,6 +74,34 @@ tk.Constants = {
         FULLSCREEN          = "FULLSCREEN";
         FULLSCREEN_DIALOG   = "FULLSCREEN_DIALOG";
         TOOLTIP             = "TOOLTIP";
+    };
+
+    POWER_TYPES = {
+      [0] =  "MANA";
+      [1] =  "RAGE";
+      [2] =  "FOCUS";
+      [3] =  "ENERGY";
+      [4] =  "CHI";
+      [5] =  "RUNES";
+      [6] =  "RUNIC_POWER";
+      [7] =  "SOUL_SHARDS";
+      [8] =  "LUNAR_POWER";
+      [9] =  "HOLY_POWER";
+      [11] = "MAELSTROM";
+      [13] = "INSANITY";
+      [17] = "FURY";
+      [18] = "PAIN";
+    };
+
+    FACTION_BAR_COLORS = {
+      [1] = {r = 0.8, g = 0.3, b = 0.22}; -- Exceptionally hostile
+      [2] = {r = 0.8, g = 0.3, b = 0.22}; -- Very Hostile
+      [3] = {r = 0.75, g = 0.27, b = 0}; -- Hostile
+      [4] = {r = 0.9, g = 0.7, b = 0}; -- Neutral
+      [5] = {r = 0, g = 0.6, b = 0.1}; -- Friendly
+      [6] = {r = 0, g = 0.6, b = 0.1}; -- Very Friendly
+      [7] = {r = 0, g = 0.6, b = 0.1}; -- Exceptionally friendly
+      [8] = {r = 0, g = 0.6, b = 0.1}; -- Exalted
     };
 
     -- Blizzard global colors are tables containing r, g, b, keys and functions such as:

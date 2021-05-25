@@ -131,7 +131,7 @@ function C_UnitPanels:OnInitialize(data, containerModule)
       end;
 
       fontSize = function(value)
-        local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
+        local font = tk.Constants.FONT();
 
         if (data.player and data.target) then
           data.player.text:SetFont(font, value);
@@ -297,7 +297,7 @@ end
 
 -- This is used by the Resting Pulse feature and by the "alpha" update function:
 function C_UnitPanels.Private:UpdateVisuals(data, frame, restingPulseAlpha)
-  local target = tk:GetUnitClassColor("target");
+  local target = tk:GetClassColorByUnitID("target");
   local r, g, b = data.left.bg:GetVertexColor();
   local alpha = data.settings.alpha;
 

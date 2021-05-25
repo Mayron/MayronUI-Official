@@ -639,7 +639,14 @@ do
     display.name:SetPoint("TOPRIGHT", -100, -14);
 
     display.titleBar = tk:PopFrame("Frame", display);
-    display.titleBar:SetSize(250, 22);
+
+    local titleBarWidth = 250;
+
+    if (tk:IsBCClassic()) then
+      titleBarWidth = 340;
+    end
+
+    display.titleBar:SetSize(titleBarWidth, 22);
     display.titleBar:SetPoint("BOTTOM", display.bg, "TOP", 0, -1);
 
     local nameTexturePath = tk:GetAssetFilePath("Textures\\BottomUI\\NamePanel");
@@ -819,7 +826,7 @@ do
 
       local name = tk.Strings:Concat(UnitPVPName("player"), " - ",
       GetRealmName(), "\nLevel ", UnitLevel("player"), ", ",
-      tk.Strings:SetTextColorByClass(tk.Strings:Concat(specType, (select(1, UnitClass("player"))))));
+      tk.Strings:SetTextColorByClassFilename(tk.Strings:Concat(specType, (select(1, UnitClass("player"))))));
 
       Private.display.name:SetText(name);
       Private.display:Show();

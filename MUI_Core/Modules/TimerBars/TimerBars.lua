@@ -102,6 +102,7 @@ db:AddToDefaults("profile", {
     showSpark             = true;
     colorDebuffsByType    = true;
     colorStealOrPurge     = true;
+    nonPlayerAlpha        = 0.7;
 
     auraName = {
       show        = true;
@@ -598,9 +599,10 @@ function C_TimerField:__Construct(data, name, sharedSettings)
     bar:SetParent(tk.Constants.DUMMY_FRAME);
   end);
 
-  data.expiredBarsStack:OnPopItem(function(bar, auraId)
+  data.expiredBarsStack:OnPopItem(function(bar, auraId, source)
     data.barAdded = true; -- needed for controlling OnUpdate
     bar.AuraId = auraId;
+    bar.Source = source;
     bar.FieldName = name; -- Needed for right click options menu (used in dbPath)
     table.insert(data.activeBars, bar);
   end);
@@ -907,7 +909,7 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, auraId, auraName, auraT
 
   -- first try to search for an existing one:
   for _, activeBar in ipairs(data.activeBars) do
-    if (auraId == activeBar.AuraId) then
+    if (auraId == activeBar.AuraId and sourceGuid == activeBar.Source) then
       foundBar = activeBar;
       break
     end
@@ -915,11 +917,12 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, auraId, auraName, auraT
 
   if (not foundBar) then
     -- create a new timer bar
-    foundBar = data.expiredBarsStack:Pop(auraId);
+    foundBar = data.expiredBarsStack:Pop(auraId, sourceGuid);
   end
 
   -- update expiration time outside of UpdateAura!
   foundBar.AuraType = auraType;
+  foundBar.Source = sourceGuid;
   foundBar.Remove = nil;
   foundBar:UpdateAura(auraInfo);
 end
@@ -989,6 +992,7 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
 
   -- fields
   self.AuraId = -1;
+  self.Source = "Unset";
   self.ExpirationTime = -1;
 
   data.settings = settings;
@@ -1065,6 +1069,7 @@ do
 
       local borderType = data.sharedSettings.border.type;
       local borderColor = data.sharedSettings.colors.border;
+
       borderSize = data.sharedSettings.border.size;
 
       data.backdrop.edgeFile = tk.Constants.LSM:Fetch("border", borderType);
@@ -1274,6 +1279,12 @@ function C_TimerBar:UpdateAura(data, auraInfo)
         data.slider:SetStatusBarColor(unpack(data.sharedSettings.colors.basicDebuff));
       end
     end
+  end
+
+  if (self.Source == UnitGUID("player")) then
+    data.frame:SetAlpha(1);
+  else
+    data.frame:SetAlpha(data.settings.nonPlayerAlpha);
   end
 end
 

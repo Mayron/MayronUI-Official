@@ -160,7 +160,6 @@ function Friends:CheckWowFriendsList(data, totalLabelsShown)
     local friendInfo = C_FriendList.GetFriendInfoByIndex(i);
 
     if (friendInfo.connected and not (friendInfo.className == "Unknown")) then
-      local classFileName = tk:GetLocalizedClassName(friendInfo.className);
 
       local status = tk.Strings.Empty;
 
@@ -181,7 +180,8 @@ function Friends:CheckWowFriendsList(data, totalLabelsShown)
       label:SetHighlightTexture(1);
       label:GetHighlightTexture():SetColorTexture(0.2, 0.2, 0.2, 0.4);
 
-      local classText = tk.Strings:SetTextColorByClass(friendInfo.name, classFileName);
+      -- TODO: Needs testing... (friendInfo.className might be invalid)
+      local classText = tk.Strings:SetTextColorByClassFilename(friendInfo.name, friendInfo.className);
       label.name:SetText(string.format("%s%s %s ", classText, status, friendInfo.level));
     end
   end

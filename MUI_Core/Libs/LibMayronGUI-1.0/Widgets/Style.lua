@@ -146,8 +146,9 @@ function Style:ApplyColor(_, colorName, alpha, ...)
 
   for i = 1, select("#", ...) do
     local element = (select(i, ...));
+
     obj:Assert(obj:IsTable(element) and element.GetObjectType,
-    "Style.ApplyColor: Widget expected but received a %s value of %s", type(element), element);
+      "Style.ApplyColor: Widget expected but received a %s value of %s", type(element), element);
 
     local objectType = element:GetObjectType();
 

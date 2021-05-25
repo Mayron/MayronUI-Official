@@ -102,7 +102,6 @@ db:AddToDefaults("profile.castBars", {
 -- Channel Ticks
 -------------------
 local Ticks = obj:PopTable();
-
 function Ticks:Create(data)
     local tick = data.frame.statusbar:CreateTexture(nil, "OVERLAY");
     tick:SetSize(26, data.frame.statusbar:GetHeight() + 20);
@@ -116,30 +115,61 @@ end
 
 local dummyTick = "_";
 
-Ticks.data = {
-  -- DRUID
-  [(GetSpellInfo(740)) or dummyTick]    = 4;  -- Tranquility
+if (tk:IsRetail()) then
+    -- CLASSIC OR BC-CLASSIC
+    Ticks.data = {
+      -- PRIEST
+      [(GetSpellInfo(15407)) or dummyTick]  = 6;  -- Mind Flay
+      [(GetSpellInfo(205065)) or dummyTick] = 4;  -- Void Torrent
 
-  -- MAGE
-  [(GetSpellInfo(5143)) or dummyTick]   = 5;  -- Arcane Missiles
-  [(GetSpellInfo(12051)) or dummyTick]  = 3;  -- Evocation
-  [(GetSpellInfo(205021)) or dummyTick] = 10; -- Ray of Frost
+      -- WARLOCK
+      [(GetSpellInfo(234153)) or dummyTick] = 5;  -- Drain Life
+      [(GetSpellInfo(198590)) or dummyTick] = 5;  -- Drain Soul
 
-  -- MONK
-  [(GetSpellInfo(117952)) or dummyTick] = 4;  -- Crackling Jade Lightning
-  [(GetSpellInfo(191837)) or dummyTick] = 3;  -- Essence Font
+      -- MAGE
+      [(GetSpellInfo(205021)) or dummyTick] = 10; -- Ray of Frost
 
-  -- PRIEST
-  [(GetSpellInfo(64843)) or dummyTick]  = 4;  -- Divine Hymn
-  [(GetSpellInfo(15407)) or dummyTick]  = 4;  -- Mind Flay
-  [(GetSpellInfo(47540)) or dummyTick]  = 2;  -- Penance
-  [(GetSpellInfo(205065)) or dummyTick] = 4;  -- Void Torrent
+      -- MONK
+      [(GetSpellInfo(117952)) or dummyTick] = 4;  -- Crackling Jade Lightning
+      [(GetSpellInfo(191837)) or dummyTick] = 3;  -- Essence Font
+      [(GetSpellInfo(113656)) or dummyTick] = 20;  -- fists of fury, first tick instant, aoe
+      [(GetSpellInfo(115175)) or dummyTick] = 8;  -- soothing mist
+    };
+else
+  -- CLASSIC OR BC-CLASSIC
+  Ticks.data = {
+    -- PRIEST
+    [(GetSpellInfo(15407)) or dummyTick]  = 3;  -- Mind Flay
 
-  -- WARLOCK
-  [(GetSpellInfo(193440)) or dummyTick] = 3;  -- Demonwrath
-  [(GetSpellInfo(198590)) or dummyTick] = 6;  -- Drain Soul
-	[(GetSpellInfo(234153)) or dummyTick] = 4;  -- Health Funnel
-};
+    -- WARLOCK
+    [(GetSpellInfo(689)) or dummyTick] = 6;  -- Drain Life
+    [(GetSpellInfo(1120)) or dummyTick] = 4;  -- Drain Soul
+    [(GetSpellInfo(4629)) or dummyTick] = 6;  -- Rain of Fire
+
+    -- MAGE
+    [(GetSpellInfo(10)) or dummyTick] = 8;  -- Blizzard
+
+    -- DRUID
+    [(GetSpellInfo(16914)) or dummyTick] = 10;  -- Hurricane
+  };
+end
+
+-- SHARED TICKS
+------------------------------
+-- PRIEST
+Ticks.data[(GetSpellInfo(64843)) or dummyTick]  = 4;  -- Divine Hymn
+Ticks.data[(GetSpellInfo(47540)) or dummyTick]  = 2;  -- Penance
+Ticks.data[(GetSpellInfo(48045)) or dummyTick] = 6;  -- Mind Sear
+
+-- WARLOCK
+Ticks.data[(GetSpellInfo(755)) or dummyTick] = 6;  -- Health Funnel
+
+-- MAGE
+Ticks.data[(GetSpellInfo(5143)) or dummyTick] = 5;  -- Arcane Missiles
+Ticks.data[(GetSpellInfo(12051)) or dummyTick] = 6;  -- Evocation
+
+-- DRUID
+Ticks.data[(GetSpellInfo(740)) or dummyTick] = 4;  -- Tranquility
 
 -- Events ---------------------
 local Events = obj:PopTable();
@@ -254,15 +284,12 @@ end
 ---@param castBar CastBar
 ---@param castBarData table
 function Events:UNIT_SPELLCAST_DELAYED(castBar, castBarData)
-  local endTime = select(5, UnitCastingInfo(castBarData.unitID));
-
-  if (not endTime or not castBarData.startTime) then
+  if (not (UnitCastingInfo(castBarData.unitID)) or not castBarData.startTime) then
     self:UNIT_SPELLCAST_INTERRUPTED(castBar, castBarData);
     return;
   end
 
-  endTime = endTime / 1000;
-  castBarData.frame.statusbar:SetMinMaxValues(0, endTime - castBarData.startTime);
+  castBar:CheckStatus();
 end
 
 ---@param castBar CastBar
@@ -286,15 +313,13 @@ function Events:UNIT_AURA(castBar, castBarData, unitID)
     local name, iconTexture, _, _, duration, expirationTime, _, _, _, auraId = UnitBuff(unitID, auraID);
 
     if (name and ((tk.Constants.FOOD_DRINK_AURAS[tostring(auraId)]) or name == "Food" or name == "Drink")) then
-        if (castBarData.auraId == auraId) then
-          return;
+        if (castBarData.auraId ~= auraId) then
+          local startTime = expirationTime - (duration);
+          startTime = startTime * 1000;
+          expirationTime = expirationTime * 1000;
+
+          castBar:StartCasting(false, true, obj:PopTable(name, iconTexture, startTime, expirationTime, auraId));
         end
-
-        local startTime = expirationTime - (duration);
-        startTime = startTime * 1000;
-        expirationTime = expirationTime * 1000;
-
-        castBar:StartCasting(false, obj:PopTable(name, iconTexture, startTime, expirationTime, auraId));
     end
   end
 end
@@ -322,9 +347,7 @@ end
 ---@param castBar CastBar
 ---@param castBarData table
 function Events:UNIT_SPELLCAST_CHANNEL_UPDATE(castBar, castBarData)
-  local endTime = select(5, UnitChannelInfo(castBarData.unitID));
-
-  if (not endTime or not castBarData.startTime) then
+  if (not (UnitChannelInfo(castBarData.unitID)) or not castBarData.startTime) then
     castBar:StopCasting();
 
     local c = castBarData.appearance.colors.interrupted;
@@ -333,8 +356,7 @@ function Events:UNIT_SPELLCAST_CHANNEL_UPDATE(castBar, castBarData)
     return;
   end
 
-  endTime = endTime / 1000;
-  castBarData.frame.statusbar:SetMinMaxValues(0, endTime - castBarData.startTime);
+  castBar:CheckStatus();
 end
 
 -- C_CastBar ----------------------
@@ -648,10 +670,10 @@ function C_CastBar:StopCasting(data)
   end
 end
 
-obj:DefineParams("boolean");
+obj:DefineParams("boolean", "boolean=true");
 ---Start casting or channelling a spell/ability.
 ---@param channelling boolean @If true, the casting type is set to "channelling" to reverse the bar direction.
-function C_CastBar:StartCasting(data, channelling, auraInfo)
+function C_CastBar:StartCasting(data, channelling, fadeIn, auraInfo)
   local func = channelling and UnitChannelInfo or UnitCastingInfo;
   local name, texture, startTime, endTime, notInterruptible;
   local auraId;
@@ -716,7 +738,9 @@ function C_CastBar:StartCasting(data, channelling, auraInfo)
     bar.statusbar:SetValue(0);
   end
 
-  UIFrameFadeIn(bar, 0.1, 0, 1);
+  if (fadeIn) then
+    UIFrameFadeIn(bar, 0.1, 0, 1);
+  end
 
   data.fadingOut = nil;
   data.interrupted = nil;
@@ -771,9 +795,9 @@ end
 
 function C_CastBar:CheckStatus(data)
   if (UnitCastingInfo(data.unitID)) then
-    self:StartCasting(false);
+    self:StartCasting(false, false);
   elseif (UnitChannelInfo(data.unitID)) then
-    self:StartCasting(true);
+    self:StartCasting(true, false);
   else
     Events:UNIT_AURA(self, data, data.unitID)
   end

@@ -238,12 +238,6 @@ function tk:HookOnce(func)
   return wrapper;
 end
 
-function tk:SetClassColoredTexture(className, texture)
-  className = className or (select(2, UnitClass("player")));
-  local color = tk:GetClassColor(className);
-  texture:SetVertexColor(color.r, color.g, color.b, texture:GetAlpha());
-end
-
 -- apply theme color to a vararg list of elements
 -- first arg can be a number specifying the alpha value
 function tk:ApplyThemeColor(...)
@@ -272,7 +266,7 @@ function tk:UpdateThemeColor(value)
   if (obj:IsTable(value) and value.r and value.g and value.b) then
     color = value;
   else
-    color = tk:GetClassColor(value);
+    color = _G.GetClassColorObj(value);
   end
 
   if (not color.GenerateHexColor) then

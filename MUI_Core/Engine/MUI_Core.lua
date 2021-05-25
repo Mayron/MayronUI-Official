@@ -98,6 +98,7 @@ db:AddToDefaults("global", {
     changeGameFont    = true;
     font              = "MUI_Font";
     useLocalization   = true;
+
     setup = {
       profilePerCharacter = true;
       addOns = {
@@ -115,7 +116,7 @@ db:AddToDefaults("global", {
 
 db:AddToDefaults("profile.layout", "DPS");
 
-local classColor = tk:GetUnitClassColor("player");
+local classColor = tk:GetClassColorByUnitID("player");
 db:AddToDefaults("profile.theme", {
   color = {
     r     = classColor.r;

@@ -52,7 +52,7 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
               local to = data.settings.sufGradients.to;
 
               if (UnitIsPlayer("target") and data.settings.sufGradients.targetClassColored) then
-                local classColor = tk:GetUnitClassColor("target");
+                local classColor = tk:GetClassColorByUnitID("target");
 
                 frame.texture:SetGradientAlpha("VERTICAL",
                 to.r, to.g, to.b, to.a,

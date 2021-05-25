@@ -313,7 +313,7 @@ function C_ReportIssue.Private:RenderStep3(data, parent)
     PlaySound(tk.Constants.CLICK);
     local report = data:Call("GenerateReport");
     local copyText = string.format("%s %s:", L["Copy Report"], L["(CTRL+C to Copy, CTRL+V to Paste)"]);
-    copyText = tk.Strings:SetTextColorByClass(copyText);
+    copyText = tk.Strings:SetTextColorByClassFilename(copyText);
 
     if (not data.reportEditBox) then
       data.reportEditBox = data:Call("CreateEditBox", container, copyText, nil, 0);

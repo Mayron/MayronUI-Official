@@ -3,59 +3,26 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local _, C_UnitPanels = _G.MayronUI:ImportModule("UnitPanels");
 
-local string, tonumber, tostring = _G.string, _G.tonumber, _G.tostring;
-local UnitGUID, UnitLevel, UnitAffectingCombat = _G.UnitGUID, _G.UnitLevel, _G.UnitAffectingCombat;
-local CreateFrame, UnitName, UnitClassification = _G.CreateFrame, _G.UnitName, _G.UnitClassification;
-local UnitExists, UnitIsPlayer, UnitClass, IsResting, GetRestState =
-  _G.UnitExists, _G.UnitIsPlayer, _G.UnitClass, _G.IsResting, _G.GetRestState;
+local CreateFrame, UnitGUID, UnitAffectingCombat = _G.CreateFrame, _G.UnitGUID, _G.UnitAffectingCombat;
+local UnitExists, IsResting, GetRestState = _G.UnitExists, _G.IsResting, _G.GetRestState;
 
-local function UpdateUnitNameText(data, unitType, unitLevel)
-  unitLevel = unitLevel or UnitLevel(unitType);
+local function UpdateUnitNameText(data, unitID)
+  local unitNameText = tk.Strings:GetUnitFullNameText(unitID);
 
-  local name = UnitName(unitType);
-  name = tk.Strings:SetOverflow(name, 22);
-
-  local _, class = UnitClass(unitType); -- not sure if this works..
-  local classification = UnitClassification(unitType);
-
-  if (tonumber(unitLevel) < 1) then
-    unitLevel = "boss";
-  elseif (classification == "elite" or classification == "rareelite") then
-    unitLevel = tostring(unitLevel).."+";
-  end
-
-  if (classification == "rareelite" or classification == "rare") then
-    unitLevel = tk.Strings:Concat("|cffff66ff", unitLevel, "|r");
-  end
-
-  if (unitType ~= "player") then
-    if (classification == "worldboss") then
-      unitLevel = tk.Strings:SetTextColorByRGB(unitLevel, 0.25, 0.75, 0.25); -- yellow
-    else
-      local color = tk:GetDifficultyColor(UnitLevel(unitType));
-
-      unitLevel = tk.Strings:SetTextColorByRGB(unitLevel, color.r, color.g, color.b);
-      name = (UnitIsPlayer(unitType) and tk.Strings:SetTextColorByClass(name, class)) or name;
-    end
-  else
-    unitLevel = tk.Strings:SetTextColorByRGB(unitLevel, 1, 0.8, 0);
-
+  if (unitID:lower() == "player") then
     if (UnitAffectingCombat("player")) then
-      name = tk.Strings:SetTextColorByRGB(name, 1, 0, 0);
-      tk:SetBasicTooltip(data[unitType], _G.COMBAT, "ANCHOR_CURSOR");
+      tk:SetBasicTooltip(data[unitID], _G.COMBAT, "ANCHOR_CURSOR");
 
     elseif (IsResting()) then
-      name = tk.Strings:SetTextColorByRGB(name, 0, 1, 1);
       local _, exhaustionStateName = GetRestState();
-      tk:SetBasicTooltip(data[unitType], exhaustionStateName, "ANCHOR_CURSOR");
+      tk:SetBasicTooltip(data[unitID], exhaustionStateName, "ANCHOR_CURSOR");
 
     else
-      name = tk.Strings:SetTextColorByClass(name, class);
-      tk:SetBasicTooltip(data[unitType], nil, "ANCHOR_CURSOR");
+      tk:SetBasicTooltip(data[unitID], nil, "ANCHOR_CURSOR");
     end
   end
 
-  data[unitType].text:SetText(string.format("%s %s", name, unitLevel));
+  data[unitID].text:SetText(unitNameText);
 end
 
 function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
@@ -128,7 +95,7 @@ function C_UnitPanels:SetUpUnitNames(data)
 
   listener:RegisterEvents(
     "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED",
-    "PLAYER_ENTERING_WORLD", "PLAYER_UPDATE_RESTING");
+    "PLAYER_ENTERING_WORLD", "PLAYER_UPDATE_RESTING", "PLAYER_FLAGS_CHANGED");
 
   listener = em:CreateEventListenerWithID("MuiUnitNames_TargetChanged", function()
     if (UnitExists("target")) then

@@ -5,6 +5,8 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
 if (not Lib) then return; end
 
+local ipairs = _G.ipairs;
+
 do
     local regions = {"tl", "tr", "bl", "br", "t", "b", "l", "r", "c"};
 
@@ -18,6 +20,12 @@ do
         for _, key in ipairs(regions) do
             self[key]:SetTexture(texture);
         end
+    end
+
+    local function SetGridTextureShown(self, shown)
+      for _, key in ipairs(regions) do
+        self[key]:SetShown(shown);
+      end
     end
 
     local function SetGridCornerSize(self, cornerSize)
@@ -67,5 +75,6 @@ do
         frame.SetGridColor = SetGridColor;
         frame.SetGridTexture = SetGridTexture;
         frame.SetGridCornerSize = SetGridCornerSize;
+        frame.SetGridTextureShown = SetGridTextureShown;
     end
 end
