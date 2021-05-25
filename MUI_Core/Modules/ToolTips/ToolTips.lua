@@ -1,8 +1,10 @@
 -- luacheck: ignore MayronUI self 143
+local _, namespace = ...;
 local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local C_ToolTipsModule = MayronUI:RegisterModule("ToolTips", "Tool Tips");
+namespace.C_ToolTipsModule = C_ToolTipsModule;
 
 local tooltipStyle = _G.GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT or _G.TOOLTIP_BACKDROP_STYLE_DEFAULT;
 local gameTooltip = _G.GameTooltip;
@@ -126,19 +128,19 @@ db:AddToDefaults("profile.tooltips", {
   auras = {
     buffs = {
       enabled = true;
+      onlyYours = false;
       size = 28;
       position = "TOP";
       direction = "ltr";
-      onlyYours = false;
     };
     debuffs = {
       enabled = true;
+      onlyYours = false;
       size = 28;
       position = "TOP";
       direction = "ltr";
       aboveBuffs = true;
       colorByDebuffType = true;
-      onlyYours = false;
     };
   };
 });

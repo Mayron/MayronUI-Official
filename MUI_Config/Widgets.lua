@@ -200,7 +200,7 @@ function WidgetHandlers.title(parent, widgetTable)
     container.text:SetText(widgetTable.name);
 
     local marginTop = widgetTable.marginTop or 10;
-    local marginBottom = widgetTable.marginBottom or 10;
+    local marginBottom = widgetTable.marginBottom or 0;
     local topPadding = (widgetTable.paddingTop or (marginTop + 10));
     local bottomPadding = (widgetTable.paddingBottom or (marginBottom + 10));
     local textHeight = container.text:GetStringHeight();
@@ -642,7 +642,7 @@ end
 
 -- supported fontstring config attributes:
 -- content - the fontstring text to display
--- subType - Can be used to change the font object. Supports "header" only (for now).
+-- subtype - Can be used to change the font object. Supports "header" only (for now).
 -- justify - overrides the default horizontal justification ("LEFT")
 -- height - overrides the default height of 30
 -- width - overrides the default width (and ignores the fixedWidth attribute) with a specific width
