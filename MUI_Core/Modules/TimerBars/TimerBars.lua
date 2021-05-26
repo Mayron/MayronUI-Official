@@ -743,18 +743,18 @@ do
         if (data.settings.direction == UP) then
           if (id > 1) then
             previousBarFrame = data.activeBars[id - 1]:GetFrame();
-            activeBar:SetPoint(p.BOTTOMLEFT, previousBarFrame, p.TOPLEFT, 0, data.settings.bar.spacing);
-            activeBar:SetPoint(p.BOTTOMRIGHT, previousBarFrame, p.TOPRIGHT, 0, data.settings.bar.spacing);
+            activeBar:SetPoint(p["Bottom Left"], previousBarFrame, p["Top Left"], 0, data.settings.bar.spacing);
+            activeBar:SetPoint(p["Bottom Right"], previousBarFrame, p["Top Right"], 0, data.settings.bar.spacing);
           else
-            activeBar:SetPoint(p.BOTTOMRIGHT, data.frame, p.BOTTOMRIGHT, 0, 0);
+            activeBar:SetPoint(p["Bottom Right"], data.frame, p["Bottom Right"], 0, 0);
           end
         elseif (id > 1) then
           previousBarFrame = data.activeBars[id - 1]:GetFrame();
-          activeBar:SetPoint(p.TOPLEFT, previousBarFrame, p.BOTTOMLEFT, 0, -data.settings.bar.spacing);
-          activeBar:SetPoint(p.TOPRIGHT, previousBarFrame, p.BOTTOMRIGHT, 0, -data.settings.bar.spacing);
+          activeBar:SetPoint(p["Top Left"], previousBarFrame, p["Bottom Left"], 0, -data.settings.bar.spacing);
+          activeBar:SetPoint(p["Top Right"], previousBarFrame, p["Bottom Right"], 0, -data.settings.bar.spacing);
         else
-          activeBar:SetPoint(p.TOPLEFT, data.frame, p.BOTTOMLEFT, 0, 0);
-          activeBar:SetPoint(p.TOPRIGHT, data.frame, p.BOTTOMRIGHT, 0, 0);
+          activeBar:SetPoint(p["Top Left"], data.frame, p["Bottom Left"], 0, 0);
+          activeBar:SetPoint(p["Top Right"], data.frame, p["Bottom Right"], 0, 0);
         end
       end
     end

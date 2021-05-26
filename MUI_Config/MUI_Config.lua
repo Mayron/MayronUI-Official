@@ -388,11 +388,11 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
   tk:Assert(obj:IsTable(data.tempMenuConfigTable), "Invalid temp data for '%s'", widgetConfigTable.name);
 
   if (not tk.Strings:IsNilOrWhiteSpace(data.tempMenuConfigTable.dbPath) and
-  not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.appendDbPath)) then
+      not tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.appendDbPath)) then
 
     -- append the widget config table's dbPath value onto it!
     widgetConfigTable.dbPath = tk.Strings:Join(".",
-    data.tempMenuConfigTable.dbPath, widgetConfigTable.appendDbPath);
+      data.tempMenuConfigTable.dbPath, widgetConfigTable.appendDbPath);
 
     widgetConfigTable.appendDbPath = nil;
   end

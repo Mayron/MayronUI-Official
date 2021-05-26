@@ -84,7 +84,7 @@ local defaults = {
     border = "Skinner";
     position = "BOTTOM";
     inset = 0;
-    borderSize = 1;
+    borderSize = tk.Constants.BACKDROP.edgeSize;
     backdropColor = {
       r = 0;
       g = 0;
@@ -264,7 +264,7 @@ function C_ChatModule:OnInitialize(data)
 			end;
 
       border = function(value)
-        data.editBoxBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", value);
+        data.editBoxBackdrop.edgeFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BORDER, value);
         ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
         LoadEditBoxBackdrop();
 
@@ -380,7 +380,7 @@ function C_ChatModule:OnEnable(data)
   -- default setup
   data.editBoxBackdrop.edgeFile = tk.Constants.BACKDROP.edgeFile;
   data.editBoxBackdrop.edgeSize = tk.Constants.BACKDROP.edgeSize;
-	data.editBoxBackdrop.bgFile = "Interface\\Buttons\\WHITE8X8";
+	data.editBoxBackdrop.bgFile = tk.Constants.BACKDROP_WITH_BACKGROUND.bgFile;
 	data.editBoxBackdrop.insets = obj:PopTable();
 
 	-- Kill all blizzard unwanted elements (textures, fontstrings, frames, etc...)

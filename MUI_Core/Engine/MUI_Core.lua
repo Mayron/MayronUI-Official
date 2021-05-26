@@ -793,8 +793,9 @@ db:OnStartUp(function(self)
   media:Register(media.MediaType.FONT, "Imagine", tk:GetAssetFilePath("Fonts\\Imagine.ttf"));
   media:Register(media.MediaType.FONT, "Prototype", tk:GetAssetFilePath("Fonts\\Prototype.ttf"));
   media:Register(media.MediaType.STATUSBAR, "MUI_StatusBar", tk:GetAssetFilePath("Textures\\Widgets\\Button.tga"));
-  media:Register(media.MediaType.BORDER, "Skinner", tk:GetAssetFilePath("Borders\\Solid.tga"));
+  media:Register(media.MediaType.BORDER, "Skinner", tk.Constants.BACKDROP.edgeFile);
   media:Register(media.MediaType.BORDER, "Glow", tk:GetAssetFilePath("Borders\\Glow.tga"));
+  media:Register(media.MediaType.BACKGROUND, "MUI_Solid", tk.Constants.BACKDROP_WITH_BACKGROUND.bgFile);
 
   hooksecurefunc('MovieFrame_PlayMovie', function(s)
     s:SetFrameStrata("DIALOG");

@@ -25,67 +25,67 @@ local function SetPositionTextFieldsEnabled(enabled, castBarName)
 end
 
 local function UnlockCastBar(widget, castBarName)
-    local name = castBarName:gsub("^%l", string.upper);
-    local castbar = _G[tk.Strings:Concat("MUI_", name, "CastBar")];
+  local name = castBarName:gsub("^%l", string.upper);
+  local castbar = _G[tk.Strings:Concat("MUI_", name, "CastBar")];
 
-    if (not castbar) then -- might be disabled
-        return;
-    end
+  if (not castbar) then -- might be disabled
+    return
+  end
 
-    castbar.unlocked = not castbar.unlocked;
+  castbar.unlocked = not castbar.unlocked;
 
-    if (not castbar) then
-        tk:Print(name..L[" CastBar not enabled."]);
-        return
-    end
+  if (not castbar) then
+    tk:Print(name..L[" CastBar not enabled."]);
+    return
+  end
 
-    tk:MakeMovable(castbar, nil, castbar.unlocked);
+  tk:MakeMovable(castbar, nil, castbar.unlocked);
 
-    if (not castbar.moveIndicator) then
-        castbar.moveIndicator = castbar.statusbar:CreateTexture(nil, "OVERLAY");
-        castbar.moveIndicator:SetColorTexture(0, 0, 0, 0.6);
-        tk:ApplyThemeColor(0.6, castbar.moveIndicator);
-        castbar.moveIndicator:SetAllPoints(true);
-        castbar.moveLabel = castbar.statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-        castbar.moveLabel:SetText(tk.Strings:Concat("<", name, " CastBar>"));
-        castbar.moveLabel:SetPoint("CENTER", castbar.moveIndicator, "CENTER");
-    end
+  if (not castbar.moveIndicator) then
+    castbar.moveIndicator = castbar.statusbar:CreateTexture(nil, "OVERLAY");
+    castbar.moveIndicator:SetColorTexture(0, 0, 0, 0.6);
+    tk:ApplyThemeColor(0.6, castbar.moveIndicator);
+    castbar.moveIndicator:SetAllPoints(true);
+    castbar.moveLabel = castbar.statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    castbar.moveLabel:SetText(tk.Strings:Concat("<", name, " CastBar>"));
+    castbar.moveLabel:SetPoint("CENTER", castbar.moveIndicator, "CENTER");
+  end
 
-    if (castbar.unlocked) then
-        widget:SetText(L["Lock"]);
-        castbar.moveIndicator:Show();
-        castbar.moveLabel:Show();
-        castbar:SetAlpha(1);
-        castbar.name:SetText(tk.Strings.Empty);
-        castbar.duration:SetText(tk.Strings.Empty);
-        castbar.statusbar:SetStatusBarColor(0, 0, 0, 0);
-    else
-        widget:SetText(L["Unlock"]);
-        castbar.moveIndicator:Hide();
-        castbar.moveLabel:Hide();
-        castbar:SetAlpha(0);
+  if (castbar.unlocked) then
+    widget:SetText(L["Lock"]);
+    castbar.moveIndicator:Show();
+    castbar.moveLabel:Show();
+    castbar:SetAlpha(1);
+    castbar.name:SetText(tk.Strings.Empty);
+    castbar.duration:SetText(tk.Strings.Empty);
+    castbar.statusbar:SetStatusBarColor(0, 0, 0, 0);
+  else
+    widget:SetText(L["Unlock"]);
+    castbar.moveIndicator:Hide();
+    castbar.moveLabel:Hide();
+    castbar:SetAlpha(0);
 
-        local positions = tk.Tables:GetFramePosition(castbar);
+    local positions = tk.Tables:GetFramePosition(castbar);
 
-        if (positions) then
-            for index, positionWidget in ipairs(position_TextFields[castBarName]) do
-              if (positionWidget:GetObjectType() == "TextField") then
-                positionWidget:SetText(tostring(positions[index]));
-              elseif (positionWidget:GetObjectType() == "Slider") then
-                positionWidget.editBox:SetText(positions[index]);
-              end
-            end
-
-            SetPositionTextFieldsEnabled(true, castBarName);
-
-            if (castBarName ~= "Mirror") then
-                sufAnchor_CheckButtons[castBarName]:SetChecked(false);
-                db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "anchorToSUF"), false);
-            end
-
-            db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "position"), positions);
+    if (positions) then
+      for index, positionWidget in ipairs(position_TextFields[castBarName]) do
+        if (positionWidget:GetObjectType() == "TextField") then
+          positionWidget:SetText(tostring(positions[index]));
+        elseif (positionWidget:GetObjectType() == "Slider") then
+          positionWidget.editBox:SetText(positions[index]);
         end
+      end
+
+      SetPositionTextFieldsEnabled(true, castBarName);
+
+      if (castBarName ~= "Mirror") then
+        sufAnchor_CheckButtons[castBarName]:SetChecked(false);
+        db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "anchorToSUF"), false);
+      end
+
+      db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "position"), positions);
     end
+  end
 end
 
 local function CastBarPosition_OnLoad(configTable, container)

@@ -140,8 +140,12 @@ do
 
     dragger.onDragStart = onDragStart;
     dragger.onDragStop = onDragStop;
-    dragger:HookScript("OnDragStart", Dragger_OnDragStart);
-    dragger:HookScript("OnDragStop", Dragger_OnDragStop);
+
+    if (not dragger.hookedDragScripts) then
+      dragger:HookScript("OnDragStart", Dragger_OnDragStart);
+      dragger:HookScript("OnDragStop", Dragger_OnDragStop);
+      dragger.hookedDragScripts = true;
+    end
   end
 end
 

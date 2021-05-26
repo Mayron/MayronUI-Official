@@ -149,48 +149,48 @@ do
 end
 
 do
-    local function CheckButton_OnSetEnabled(self, value)
-        if (value) then
-            self.text:SetFontObject("GameFontHighlight");
-        else
-            self.text:SetFontObject("GameFontDisable");
-        end
+  local function CheckButton_OnSetEnabled(self, value)
+    if (value) then
+      self.text:SetFontObject("GameFontHighlight");
+    else
+      self.text:SetFontObject("GameFontDisable");
+    end
+  end
+
+  function Lib:CreateCheckButton(parent, text, radio, tooltip)
+    local container = Private:PopFrame("Frame", parent);
+    container:SetSize(150, 30);
+
+    if (radio) then
+      container.btn = CreateFrame("CheckButton", nil, container, "UIRadioButtonTemplate");
+      container.btn:SetSize(20, 20);
+    else
+      container.btn = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
+      container.btn:SetSize(30, 30);
     end
 
-    function Lib:CreateCheckButton(parent, text, radio, tooltip)
-        local container = Private:PopFrame("Frame", parent);
-        container:SetSize(150, 30);
-
-        if (radio) then
-            container.btn = CreateFrame("CheckButton", nil, container, "UIRadioButtonTemplate");
-            container.btn:SetSize(20, 20);
-        else
-            container.btn = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
-            container.btn:SetSize(30, 30);
-        end
-
-        if (tooltip) then
-            container.btn.tooltip = tooltip;
-            container.btn:SetScript("OnEnter", OnEnter);
-            container.btn:SetScript("OnLeave", OnLeave);
-        end
-
-        container.btn:SetPoint("LEFT");
-        container.btn.text:SetFontObject("GameFontHighlight");
-        container.btn.text:ClearAllPoints();
-        container.btn.text:SetPoint("LEFT", container.btn, "RIGHT", 5, 0);
-
-        hooksecurefunc(container.btn, "SetEnabled", CheckButton_OnSetEnabled);
-
-        if (text) then
-            container.btn.text:SetText(text);
-            local width = container.btn.text:GetStringWidth();
-            width = (width > 100) and width or 100;
-            container:SetWidth(width + container.btn:GetWidth() + 20);
-        end
-
-        return container;
+    if (tooltip) then
+      container.btn.tooltip = tooltip;
+      container.btn:SetScript("OnEnter", OnEnter);
+      container.btn:SetScript("OnLeave", OnLeave);
     end
+
+    container.btn:SetPoint("LEFT");
+    container.btn.text:SetFontObject("GameFontHighlight");
+    container.btn.text:ClearAllPoints();
+    container.btn.text:SetPoint("LEFT", container.btn, "RIGHT", 5, 0);
+
+    hooksecurefunc(container.btn, "SetEnabled", CheckButton_OnSetEnabled);
+
+    if (text) then
+      container.btn.text:SetText(text);
+      local width = container.btn.text:GetStringWidth();
+      width = (width > 100) and width or 100;
+      container:SetWidth(width + container.btn:GetWidth() + 20);
+    end
+
+    return container;
+  end
 end
 
 -------------------------------

@@ -18,25 +18,25 @@ tk.Constants = {
 
     BACKDROP = {
         edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
-        edgeSize = 1,
+        edgeSize = 1.25,
     };
 
     BACKDROP_WITH_BACKGROUND = {
       bgFile = "interface\\addons\\MUI_Core\\Assets\\Textures\\Widgets\\Solid",
       edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
-      edgeSize = 1,
+      edgeSize = 1.25,
   };
 
     POINTS = {
-        LEFT = "LEFT";
-        CENTER = "CENTER";
-        RIGHT = "RIGHT";
-        TOP = "TOP";
-        BOTTOM = "BOTTOM";
-        TOPLEFT = "TOPLEFT";
-        TOPRIGHT = "TOPRIGHT";
-        BOTTOMLEFT = "BOTTOMLEFT";
-        BOTTOMRIGHT = "BOTTOMRIGHT";
+        Left = "LEFT";
+        Center = "CENTER";
+        Right = "RIGHT";
+        Top = "TOP";
+        Bottom = "BOTTOM";
+        ["Top Left"] = "TOPLEFT";
+        ["Top Right"] = "TOPRIGHT";
+        ["Bottom Left"] = "BOTTOMLEFT";
+        ["Bottom Right"] = "BOTTOMRIGHT";
     };
 
     ORDERED_POINTS = {

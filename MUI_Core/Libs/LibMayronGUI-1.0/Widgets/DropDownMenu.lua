@@ -238,6 +238,14 @@ function DropDownMenu:GetOptionByLabel(data, label)
   end
 end
 
+obj:DefineParams("function");
+obj:DefineReturns("?Button");
+function DropDownMenu:FindOption(data, func)
+  for _, optionButton in ipairs(data.options) do
+    if (func(optionButton)) then return optionButton; end
+  end
+end
+
 obj:DefineParams("string");
 function DropDownMenu:RemoveOptionByLabel(data, label)
   for optionID, optionButton in ipairs(data.options) do
@@ -333,6 +341,7 @@ function DropDownMenu:AddOption(data, label, func, ...)
   option:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
 
   local args = obj:PopTable(...);
+  option.args = args;
   option:SetScript("OnClick", function()
     self:SetLabel(option:GetText());
     self:Toggle(false);

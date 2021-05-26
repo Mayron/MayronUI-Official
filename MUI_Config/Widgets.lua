@@ -64,24 +64,40 @@ end
 function WidgetHandlers.submenu(parent, submenuConfigTable)
     local btn = tk:PopFrame("Button", parent);
     btn:SetSize(250, 60);
+    btn:SetNormalFontObject("GameFontHighlight");
+    btn:SetDisabledFontObject("GameFontDisable");
 
-    btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    btn.text:SetText(submenuConfigTable.name);
+    if (obj:IsFunction(submenuConfigTable.enabled)) then
+      local enabled = submenuConfigTable:enabled();
+      btn:SetEnabled(enabled);
+
+    elseif (submenuConfigTable.enabled ~= nil) then
+      btn:SetEnabled(submenuConfigTable.enabled);
+    else
+      btn:SetEnabled(true);
+    end
+
+    btn:SetText(submenuConfigTable.name);
+    btn.text = btn:GetFontString();
     btn.text:SetJustifyH("LEFT");
+    btn.text:ClearAllPoints();
     btn.text:SetPoint("TOPLEFT", 10, 0);
     btn.text:SetPoint("BOTTOMRIGHT");
 
     local filePath = tk:GetAssetFilePath("Textures\\Widgets\\Solid");
 
     btn.normal = tk:SetBackground(btn, filePath);
+    btn.disabled = tk:SetBackground(btn, filePath);
     btn.highlight = tk:SetBackground(btn, filePath);
 
     tk:ApplyThemeColor(btn.normal, btn.highlight);
 
     btn.normal:SetAlpha(0.3);
+    btn.disabled:SetAlpha(0.3);
     btn.highlight:SetAlpha(0.3);
 
     btn:SetNormalTexture(btn.normal);
+    btn:SetDisabledTexture(btn.disabled);
     btn:SetHighlightTexture(btn.highlight);
 
     btn.configTable = submenuConfigTable;
@@ -151,37 +167,36 @@ local function CheckButton_OnClick(self)
 end
 
 function WidgetHandlers.check(parent, widgetTable, value)
-    local cbContainer = gui:CreateCheckButton(
-        parent, widgetTable.name,
-        widgetTable.type == "radio",
-        widgetTable.tooltip);
+  local cbContainer = gui:CreateCheckButton(
+    parent, widgetTable.name,
+    widgetTable.type == "radio",
+    widgetTable.tooltip);
 
-    cbContainer.btn:SetChecked(value);
-    cbContainer.btn:SetScript("OnClick", CheckButton_OnClick);
-    cbContainer.btn.OnClick = widgetTable.OnClick;
+  cbContainer.btn:SetChecked(value);
+  cbContainer.btn:SetScript("OnClick", CheckButton_OnClick);
+  cbContainer.btn.OnClick = widgetTable.OnClick;
 
-    if (widgetTable.width) then
-        cbContainer:SetWidth(widgetTable.width);
-    else
-        cbContainer:SetWidth(cbContainer.btn:GetWidth() + 20 + cbContainer.btn.text:GetStringWidth());
-    end
+  if (widgetTable.width) then
+    cbContainer:SetWidth(widgetTable.width);
+  else
+    cbContainer:SetWidth(cbContainer.btn:GetWidth() + 20 + cbContainer.btn.text:GetStringWidth());
+  end
 
-    if (widgetTable.height) then
-        cbContainer:SetHeight(widgetTable.height);
-    end
+  if (widgetTable.height) then
+    cbContainer:SetHeight(widgetTable.height);
+  end
 
-    if (obj:IsFunction(widgetTable.enabled)) then
-        local enabled = widgetTable:enabled();
-        cbContainer.btn:SetEnabled(enabled);
+  if (obj:IsFunction(widgetTable.enabled)) then
+    local enabled = widgetTable:enabled();
+    cbContainer.btn:SetEnabled(enabled);
 
-    elseif (widgetTable.enabled ~= nil) then
-        cbContainer.btn:SetEnabled(widgetTable.enabled);
+  elseif (widgetTable.enabled ~= nil) then
+    cbContainer.btn:SetEnabled(widgetTable.enabled);
+  else
+    cbContainer.btn:SetEnabled(true);
+  end
 
-    else
-        cbContainer.btn:SetEnabled(true);
-    end
-
-    return cbContainer;
+  return cbContainer;
 end
 
 ----------------
@@ -334,8 +349,12 @@ end
 -------------------
 -- Drop Down Menu
 -------------------
-local function DropDown_OnSelectedValue(self, value)
-    configModule:SetDatabaseValue(self.configContainer, value);
+local function DropDown_OnSelectedValue(self, value, onClick)
+  configModule:SetDatabaseValue(self.configContainer, value);
+
+  if (obj:IsFunction(onClick)) then
+    onClick(value, self);
+  end
 end
 
 function WidgetHandlers.dropdown(parent, widgetTable, value)
@@ -357,7 +376,7 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
     local option;
 
     if (tonumber(key) or widgetTable.labels == "values") then
-      option = widget:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue);
+      option = widget:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue, widgetTable.OnClick);
     else
       if (dropDownValue == "nil") then
         dropDownValue = nil; -- cannot assign nil's to key/value pairs
@@ -381,6 +400,9 @@ function WidgetHandlers.dropdown(parent, widgetTable, value)
 
   if (widgetTable.disabledTooltip) then
     widget:SetDisabledTooltip(widgetTable.disabledTooltip);
+
+  elseif (widgetTable.tooltip) then
+    widget:SetTooltip(widgetTable.tooltip);
   end
 
   return CreateElementContainerFrame(widget, widgetTable, parent);

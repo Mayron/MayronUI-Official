@@ -10,6 +10,12 @@ local tooltipStyle = _G.GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT or _G.TOOLTIP_BACKDR
 local gameTooltip = _G.GameTooltip;
 local healthBar, powerBar = _G.GameTooltipStatusBar, nil;
 
+local originalSetBackdropBorderColor = gameTooltip.SetBackdropBorderColor;
+gameTooltip.SetBackdropBorderColor = tk.Constants.DUMMY_FUNC;
+
+local originalSetBackdropColor = gameTooltip.SetBackdropColor;
+gameTooltip.SetBackdropColor = tk.Constants.DUMMY_FUNC;
+
 local select, IsAddOnLoaded, strformat, ipairs, CreateFrame, UnitAura, unpack,
   UnitName, UnitHealthMax, UnitHealth, hooksecurefunc, UnitExists, UnitIsPlayer,
   GetGuildInfo, UnitRace, UnitCreatureFamily, UnitCreatureType, UnitReaction =
@@ -59,26 +65,32 @@ db:AddToDefaults("profile.tooltips", {
   scale = 0.8;
   muiTexture = {
     enabled = true;
-    color = "theme"; -- or "custom"
+    useTheme = true;
     custom = { 0, 0, 0, 1 }
   }; -- if true, does not use backdrop
   backdrop = {
-    borderColor = { 0, 0, 0, 1 };
-    bgColor = { 0, 0, 0, 1 };
-    bgFile = tk.Constants.BACKDROP_WITH_BACKGROUND.bgFile,
-    edgeFile = tk.Constants.BACKDROP_WITH_BACKGROUND.edgeFile,
+    borderClassColored =  true;
+    borderColor = { 0.2, 0.2, 0.2, 1 };
+    bgColor = { 0, 0, 0, 0.8 };
+    bgFile = "MUI_Solid",
+    edgeFile = "Skinner",
     edgeSize = tk.Constants.BACKDROP_WITH_BACKGROUND.edgeSize,
     insets = { left = 0, right = 0, top = 0, bottom = 0 };
   };
   anchors = {
-    units = {
-      type = "mouse"; -- or "screen"
+    screenAnchor = {
       point = "BOTTOMRIGHT";
-    },
-    other = {
-      type = "screen"; -- or "mouse"
-      point = "BOTTOMRIGHT";
-    }
+      -- used on the data.screenAnchor
+      xOffset = -4;
+      yOffset = 4;
+    };
+    mouseAnchor = {
+      point = "ANCHOR_CURSOR_RIGHT";
+      xOffset = 2;
+      yOffset = 4;
+    };
+    units = "mouse";
+    standard = "screen";
   },
   colors = {
     buff    = { 0, 0, 0 };
@@ -115,14 +127,16 @@ db:AddToDefaults("profile.tooltips", {
   healthBar = {
     fontSize = 14;
     texture = "MUI_StatusBar";
-    format = "%"; -- or "n", "n/n"
+    flag = "OUTLINE";
+    format = "%"; -- or "", "n", "n/n"
     height = 18;
   };
   powerBar = {
     enabled = true;
     fontSize = 14;
     texture = "MUI_StatusBar";
-    format = "%"; -- or "n", "n/n"
+    flag = "OUTLINE";
+    format = "%"; -- or "", "n", "n/n"
     height = 18;
   };
   auras = {
@@ -147,6 +161,25 @@ db:AddToDefaults("profile.tooltips", {
 
 local function SetBackdropStyle(data)
   local scale = data.settings.scale;
+  local backdrop = nil;
+
+  if (not data.settings.muiTexture.enabled) then
+    local bgFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BACKGROUND, data.settings.backdrop.bgFile);
+    local edgeFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BORDER, data.settings.backdrop.edgeFile);
+
+    backdrop = {
+      bgFile = bgFile,
+      edgeFile = edgeFile,
+      edgeSize = data.settings.backdrop.edgeSize,
+      insets = data.settings.backdrop.insets;
+    };
+  end
+
+    -- remove backdrop:
+    tooltipStyle.bgFile = backdrop and backdrop.bgFile;
+    tooltipStyle.insets = backdrop and backdrop.insets;
+    tooltipStyle.edgeFile = backdrop and backdrop.edgeFile;
+    tooltipStyle.edgeSize = backdrop and backdrop.edgeSize;
 
   for _, tooltip in ipairs(tooltipsToReskin) do
     tooltip = _G[tooltip];
@@ -169,7 +202,7 @@ local function SetBackdropStyle(data)
           gui:CreateGridTexture(tooltip, texture, 10, 6, 512, 512);
         end
 
-        if (data.settings.muiTexture.color == "theme") then
+        if (data.settings.muiTexture.useTheme) then
           tk.Constants.AddOnStyle:ApplyColor(
             nil, nil, tooltip.tl, tooltip.tr, tooltip.bl, tooltip.br,
             tooltip.t, tooltip.b, tooltip.l, tooltip.r, tooltip.c);
@@ -181,19 +214,20 @@ local function SetBackdropStyle(data)
 
         tooltip:SetGridTextureShown(true);
       else
-        local backdrop = data.backdrop;
-        local borderColor = backdrop.borderColor;
-        local bgColor = backdrop.bgColor;
+        local borderColor = data.settings.backdrop.borderColor;
+        local bgColor = data.settings.backdrop.bgColor;
 
-        tooltip:SetBackdrop({
-          bgFile = backdrop.bgFile,
-          edgeFile = backdrop.edgeFile,
-          edgeSize = backdrop.edgeSize,
-          insets = backdrop.insets;
-        });
+        tooltip:SetBackdrop(backdrop);
+        tooltip:SetBackdropBorderColor(unpack(borderColor));
+        tooltip:SetBackdropColor(unpack(bgColor));
 
-        tooltip:SetBackdropBorderColor(borderColor);
-        tooltip:SetBackdropColor(bgColor);
+        if (tooltip == gameTooltip) then
+          originalSetBackdropColor(tooltip, unpack(bgColor));
+          originalSetBackdropBorderColor(tooltip, unpack(borderColor));
+        else
+          tooltip:SetBackdropBorderColor(unpack(borderColor));
+          tooltip:SetBackdropColor(unpack(bgColor));
+        end
 
         if (obj:IsFunction(tooltip.SetGridTextureShown)) then
           tooltip:SetGridTextureShown(false);
@@ -201,12 +235,6 @@ local function SetBackdropStyle(data)
       end
     end
   end
-
-  -- remove backdrop:
-  tooltipStyle.bgFile = nil;
-  tooltipStyle.insets = nil;
-  tooltipStyle.edgeFile = nil;
-  tooltipStyle.edgeSize = nil;
 end
 
 local function GetHealthColor(healthColors, currentHealth, maxHealth)
@@ -248,23 +276,23 @@ do
     local text = tk.Strings.Empty;
 
     -- format can be: "%", "n", "n/n"
-    if (format == "%") then
+    if (format == "%" or max == 100) then
       text = strformat("%d%%", percentage);
     else
       if (current > 1000) then
-        current = strformat("%dk", tk.Numbers:ToPrecision(current / 1000, 1));
+        current = strformat("%.1fk", tk.Numbers:ToPrecision(current / 1000, 1));
       end
 
       if (format == "n") then
         -- current health
-        text = current;
+        text = tostring(current);
       elseif (format == "n/n") then
         -- current and max health
         if (max > 1000) then
-          max = strformat("%dk", tk.Numbers:ToPrecision(max / 1000, 1));
+          max = strformat("%.1fk", tk.Numbers:ToPrecision(max / 1000, 1));
         end
 
-        text = strformat("%dk/%dk", current, max);
+        text = strformat("%s/%s", tostring(current), tostring(max));
       end
     end
 
@@ -340,6 +368,14 @@ local function SetFonts(data)
 	for i = 1, _G.ShoppingTooltip2:NumLines() do
 		_G["ShoppingTooltip2TextRight"..i]:SetFont(font, size -2, flag);
 	end
+
+  if (healthBar.HealthText) then
+    healthBar.HealthText:SetFont(font, data.settings.healthBar.fontSize, data.settings.healthBar.flag);
+  end
+
+  if (powerBar and powerBar.PowerText) then
+    powerBar.PowerText:SetFont(font, data.settings.powerBar.fontSize, data.settings.powerBar.flag);
+  end
 end
 
 local function UpdateUnitTooltipLines(guildRankShown)
@@ -400,6 +436,10 @@ do
 
     if (UnitIsPlayer(MOUSEOVER) and color) then
       originalSetStatusBarColor(healthBar, color.r, color.g, color.b);
+
+      if (not data.settings.muiTexture.enabled and data.settings.backdrop.borderClassColored) then
+        originalSetBackdropBorderColor(gameTooltip, color.r, color.g, color.b, data.settings.backdrop.borderColor[4]);
+      end
     else
       local reaction = UnitReaction("player", MOUSEOVER);
       local r, g, b;
@@ -415,6 +455,10 @@ do
       end
 
       originalSetStatusBarColor(healthBar, r, g, b);
+
+      if (not data.settings.muiTexture.enabled and data.settings.backdrop.borderClassColored) then
+        originalSetBackdropBorderColor(gameTooltip, r, g, b, data.settings.backdrop.borderColor[4]);
+      end
     end
 
     HandleHealthBarValueChanged(data.settings.healthBar.format, data.settings.healthColors);
@@ -487,17 +531,18 @@ local function AddAuras(data, filter, anchor)
         auraFrames[id] = CreateFrame("Frame", nil, gameTooltip, _G.BackdropTemplateMixin and "BackdropTemplate");
         frame = auraFrames[id];
 
-        frame:SetBackdrop(data.backdrop);
+        frame:SetBackdrop(data.auraBackdrop);
+        local edge = tk.Constants.BACKDROP.edgeSize;
 
         frame.iconTexture = frame:CreateTexture(nil, "ARTWORK");
         frame.iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
-        frame.iconTexture:SetPoint("TOPLEFT", 1, -1);
-        frame.iconTexture:SetPoint("BOTTOMRIGHT", -1, 1);
+        frame.iconTexture:SetPoint("TOPLEFT", edge, -edge);
+        frame.iconTexture:SetPoint("BOTTOMRIGHT", -edge, edge);
 
         frame.cooldown = CreateFrame("Cooldown", nil, frame, _G.BackdropTemplateMixin and "CooldownFrameTemplate");
         frame.cooldown:SetReverse(1);
-        frame.cooldown:SetPoint("TOPLEFT", 1, -1);
-        frame.cooldown:SetPoint("BOTTOMRIGHT", -1, 1);
+        frame.cooldown:SetPoint("TOPLEFT", edge, -edge);
+        frame.cooldown:SetPoint("BOTTOMRIGHT", -edge, edge);
         frame.cooldown:SetFrameLevel(frame:GetFrameLevel() + 1);
       end
 
@@ -549,6 +594,7 @@ local function AddAuras(data, filter, anchor)
 
         if (settings.position == "BOTTOM") then
           verticlePoint, verticleRelativePoint = "TOP", "BOTTOM";
+          yOffset = -yOffset;
         end
 
         local point = verticlePoint..horizontal;
@@ -571,10 +617,10 @@ local function AddAuras(data, filter, anchor)
 end
 
 local function UpdateAuras(data)
-  if (not data.backdrop) then
-    data.backdrop = obj:PopTable();
-    data.backdrop.edgeFile = tk.Constants.LSM:Fetch("border", "Skinner");
-    data.backdrop.edgeSize = 1;
+  if (not data.auraBackdrop) then
+    data.auraBackdrop = obj:PopTable();
+    data.auraBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", "Skinner");
+    data.auraBackdrop.edgeSize = tk.Constants.BACKDROP.edgeSize;
   end
 
   HideAllAuras(data);
@@ -584,10 +630,24 @@ local function UpdateAuras(data)
   local debuffsEnabled = data.settings.auras.debuffs.enabled;
   local samePositions = (data.settings.auras.buffs.position == data.settings.auras.debuffs.position);
 
+  local debuffsFirst = true;
+
+  if (samePositions) then
+    if (data.settings.auras.debuffs.aboveBuffs) then
+      if (data.settings.auras.buffs.position == "TOP") then
+        debuffsFirst = false; -- if top, then debuffs need to go last to appear above buffs
+      end
+    else
+      if (data.settings.auras.buffs.position == "BOTTOM") then
+        debuffsFirst = false; -- if bottom, then debuffs need to go last to appear below buffs
+      end
+    end
+  end
+
   data.buffs = buffsEnabled and (data.buffs or obj:PopTable());
   data.debuffs = debuffsEnabled and (data.debuffs or obj:PopTable());
 
-  if (debuffsEnabled and data.settings.auras.debuffs.aboveBuffs) then
+  if (debuffsEnabled and debuffsFirst) then
     local nextRelativeFrame = AddAuras(data, HARMFUL, relativeFrame);
 
     if (samePositions) then
@@ -595,7 +655,7 @@ local function UpdateAuras(data)
     end
 
     if (buffsEnabled) then
-       AddAuras(data, HELPFUL, relativeFrame);
+      AddAuras(data, HELPFUL, relativeFrame);
     end
   else
     if (buffsEnabled) then
@@ -754,6 +814,61 @@ local function SetDoubleLine(leftText, rightText)
   end
 end
 
+local function CreateScreenAnchor(data)
+  data.screenAnchor = CreateFrame("Frame", nil, _G.UIParent);
+  data.screenAnchor:SetFrameStrata("TOOLTIP");
+  tk:MakeMovable(data.screenAnchor);
+  data.screenAnchor:SetSize(240, 150);
+
+  data.screenAnchor:SetPoint(data.settings.anchors.screenAnchor.point,
+    data.settings.anchors.screenAnchor.xOffset,
+    data.settings.anchors.screenAnchor.yOffset);
+
+  data.screenAnchor.bg = tk:SetBackground(data.screenAnchor, unpack(data.settings.backdrop.bgColor));
+  data.screenAnchor.bg:SetAllPoints(true);
+
+  data.screenAnchor.bg.text = data.screenAnchor:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
+  data.screenAnchor.bg.text:SetText("Tool-tip screen anchor point (Drag me!)");
+  data.screenAnchor.bg.text:SetWidth(200);
+  data.screenAnchor.bg.text:SetPoint("CENTER");
+
+  function data.screenAnchor:Unlock()
+    data.screenAnchor:ClearAllPoints();
+    data.screenAnchor:SetPoint(data.settings.anchors.screenAnchor.point,
+      data.settings.anchors.screenAnchor.xOffset,
+      data.settings.anchors.screenAnchor.yOffset);
+
+    data.screenAnchor.bg:SetAlpha(data.settings.backdrop.bgColor[4]);
+    data.screenAnchor.bg.text:SetAlpha(1);
+    data.screenAnchor:EnableMouse(true);
+    data.screenAnchor:SetMovable(true);
+  end
+
+  function data.screenAnchor:Lock(dontSave)
+    data.screenAnchor.bg:SetAlpha(0);
+    data.screenAnchor.bg.text:SetAlpha(0);
+    data.screenAnchor:EnableMouse(false);
+    data.screenAnchor:SetMovable(false);
+
+    -- save changes:
+    if (not dontSave) then
+      local positions = tk.Tables:GetFramePosition(data.screenAnchor);
+
+      if (obj:IsTable(positions)) then
+        db:SetPathValue("profile.tooltips.anchors.screenAnchor", {
+          point = positions[1];
+          xOffset = positions[4] or 0;
+          yOffset = positions[5] or 0
+        });
+      end
+
+      return positions;
+    end
+  end
+
+  data.screenAnchor:Lock(true);
+end
+
 -------------------------------
 --- C_ToolTipsModule
 -------------------------------
@@ -778,15 +893,30 @@ function C_ToolTipsModule:OnInitialize(data)
       fontSize = function(value)
         if (healthBar.HealthText) then
           local font = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.FONT, data.settings.font);
-          healthBar.HealthText:SetFont(font, value, "OUTLINE");
+          healthBar.HealthText:SetFont(font, value, data.settings.healthBar.flag);
         end
-      end;--14;
+      end;
+      flag = function(value)
+        if (healthBar.HealthText) then
+          local font = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.FONT, data.settings.font);
+          healthBar.HealthText:SetFont(font, data.settings.healthBar.fontSize, value);
+        end
+      end;
       texture = function(value)
         local statusBarTexture = tk.Constants.LSM:Fetch("statusbar", value);
         healthBar:SetStatusBarTexture(statusBarTexture);
       end;--"MUI_StatusBar";
       height = function(value)
         healthBar:SetHeight(value);
+        PositionStatusBars(data);
+      end;
+    };
+    anchors = {
+      screenAnchor = function()
+        data.screenAnchor:ClearAllPoints();
+        data.screenAnchor:SetPoint(data.settings.anchors.screenAnchor.point,
+          data.settings.anchors.screenAnchor.xOffset,
+          data.settings.anchors.screenAnchor.yOffset);
       end;
     };
     powerBar = {
@@ -800,7 +930,13 @@ function C_ToolTipsModule:OnInitialize(data)
       fontSize = function(value)
         if (powerBar and powerBar.PowerText) then
           local font = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.FONT, data.settings.font);
-          powerBar.PowerText:SetFont(font, value, "OUTLINE");
+          powerBar.PowerText:SetFont(font, value, data.settings.powerBar.flag);
+        end
+      end;
+      flag = function(value)
+        if (healthBar.HealthText) then
+          local font = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.FONT, data.settings.font);
+          powerBar.PowerText:SetFont(font, data.settings.powerBar.fontSize, value);
         end
       end;
       texture = function(value)
@@ -811,6 +947,7 @@ function C_ToolTipsModule:OnInitialize(data)
       height = function(value)
         if (not powerBar) then return end
         powerBar:SetHeight(value);
+        PositionStatusBars(data);
       end;
     };
   });
@@ -823,10 +960,9 @@ function C_ToolTipsModule:OnInitialized(data)
 end
 
 function C_ToolTipsModule:OnEnable(data)
-  -- Create new anchor:
-  data.anchor = CreateFrame("Frame", nil, _G.UIParent);
-  data.anchor:SetPoint("BOTTOMRIGHT", -4, 4); -- TODO: Make configurable - make movable
-  data.anchor:SetSize(100, 30);
+  if (not data.screenAnchor) then
+    CreateScreenAnchor(data);
+  end
 
 	-- Fixes inconsistency with Blizzard code to support backdrop alphas:
 	tooltipStyle.backdropColor.GetRGB = _G.ColorMixin.GetRGBA;
@@ -838,23 +974,27 @@ function C_ToolTipsModule:OnEnable(data)
 
   -- set positioning of tooltip:
   hooksecurefunc("GameTooltip_SetDefaultAnchor", function (tooltip, parent)
-    local anchors;
+    local anchorType;
     if (UnitExists(MOUSEOVER)) then
-      anchors = data.settings.anchors.units;
+      anchorType = data.settings.anchors.units:lower();
     else
-      anchors = data.settings.anchors.other;
+      anchorType = data.settings.anchors.standard:lower();
+
+      if (not data.settings.muiTexture.enabled) then
+        local borderColor = data.settings.backdrop.borderColor;
+        originalSetBackdropBorderColor(gameTooltip, unpack(borderColor));
+      end
     end
 
-    local anchorType = anchors.type:lower();
-    local point = anchors.point:upper();
+    local anchor = data.settings.anchors[anchorType.."Anchor"];
 
     if (anchorType == "mouse") then
       -- TODO: TEST THIS!
-      tooltip:SetOwner(parent, "ANCHOR_CURSOR_RIGHT");
+      tooltip:SetOwner(parent, anchor.point, anchor.xOffset, anchor.yOffset);
     else
       tooltip:SetOwner(parent, "ANCHOR_NONE");
       tooltip:ClearAllPoints();
-      tooltip:SetPoint(point, data.anchor, point); -- the new anchor point
+      tooltip:SetPoint(anchor.point, data.screenAnchor, anchor.point); -- the new anchor point
     end
   end);
 
