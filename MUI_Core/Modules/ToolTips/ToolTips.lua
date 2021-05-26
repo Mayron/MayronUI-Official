@@ -133,7 +133,7 @@ db:AddToDefaults("profile.tooltips", {
     height = 18;
   };
   powerBar = {
-    enabled = true;
+    enabled = false;
     fontSize = 14;
     texture = "MUI_StatusBar";
     flag = "OUTLINE";
@@ -146,14 +146,14 @@ db:AddToDefaults("profile.tooltips", {
       onlyYours = false;
       size = 28;
       position = "TOP";
-      direction = "ltr";
+      direction = "rtl";
     };
     debuffs = {
       enabled = true;
-      onlyYours = false;
+      onlyYours = true;
       size = 28;
-      position = "TOP";
-      direction = "ltr";
+      position = "BOTTOM";
+      direction = "rtl";
       aboveBuffs = true;
       colorByDebuffType = true;
     };
@@ -463,8 +463,8 @@ do
 
     HandleHealthBarValueChanged(data.settings.healthBar.format, data.settings.healthColors);
 
+    if (not (powerBar and powerBar.PowerText)) then return end
     local powerTypeID = UnitPowerType(MOUSEOVER);
-    if (not powerBar) then return end
 
     local show = data.settings.powerBar.enabled and powerTypeID >= 0;
     powerBar:SetShown(show);
@@ -737,6 +737,9 @@ local function CreatePowerBar(data)
 	powerBar.bg:SetBackdrop({ bgFile = tk.Constants.BACKDROP_WITH_BACKGROUND.bgFile });
 
   local powerText = powerBar:CreateFontString(nil, "OVERLAY");
+  local font = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.FONT, data.settings.font);
+
+  powerText:SetFont(font, data.settings.powerBar.fontSize, data.settings.powerBar.flag);
   powerText:SetPoint("CENTER");
   powerBar.PowerText = powerText;
 end
@@ -934,7 +937,7 @@ function C_ToolTipsModule:OnInitialize(data)
         end
       end;
       flag = function(value)
-        if (healthBar.HealthText) then
+        if (powerBar and powerBar.PowerText) then
           local font = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.FONT, data.settings.font);
           powerBar.PowerText:SetFont(font, data.settings.powerBar.fontSize, value);
         end
