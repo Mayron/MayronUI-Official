@@ -26,6 +26,7 @@ local UnitPowerType, UnitPower, UnitPowerMax, min = _G.UnitPowerType, _G.UnitPow
 local UnitLevel, CanInspect, UnitGUID, CheckInteractDistance, GetInspectSpecialization,
   C_PaperDollInfo, GetSpecializationInfoByID = _G.UnitLevel, _G.CanInspect, _G.UnitGUID, _G.CheckInteractDistance,
   _G.GetInspectSpecialization, _G.C_PaperDollInfo, _G.GetSpecializationInfoByID;
+local tostring = _G.tostring;
 
 -- Constants
 local MOUSEOVER = "MOUSEOVER";
@@ -185,7 +186,6 @@ local function SetBackdropStyle(data)
     tooltip = _G[tooltip];
 
     if (obj:IsTable(tooltip) and obj:IsFunction(tooltip.GetObjectType)) then
-
       if (tooltip == _G.FriendsTooltip) then
         scale = scale + 0.2;
       end
