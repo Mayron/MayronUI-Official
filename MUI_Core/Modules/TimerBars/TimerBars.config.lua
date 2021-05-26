@@ -420,6 +420,16 @@ might not be known to the player and will be hidden unles this is enabled.
                               min = 0;
                               max = 10;
                           };
+                          {   name = "Non-Player Alpha";
+                              type = "slider";
+                              dbPath = dbFieldPath .. ".nonPlayerAlpha";
+                              tooltip = tk.Strings:Concat(
+                                "Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs).",
+                                "\n\n", L["Default value is "], dbFieldPath == "Player" and "1" or "0.7");
+                              step = 0.1;
+                              min = 0;
+                              max = 1;
+                          };
                           {   type = "divider"
                           };
                           {   name = L["Show Icons"];

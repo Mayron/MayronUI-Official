@@ -235,6 +235,17 @@ function C_TimerBarsModule:OnInitialize(data)
           end;
 
           ---@param field TimerField
+          nonPlayerAlpha = function(value, _, field)
+            for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
+              if (bar.Source == UnitGUID("player")) then
+                bar:SetAlpha(1);
+              else
+                bar:SetAlpha(value);
+              end
+            end
+          end;
+
+          ---@param field TimerField
           showSpark = function(value, _, field)
             for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
               bar:SetSparkShown(value);
@@ -1338,6 +1349,7 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
         Player = {
           position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
           unitID = "player";
+          nonPlayerAlpha = 1;
         };
         Target = {
           position = { "BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2 },
