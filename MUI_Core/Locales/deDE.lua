@@ -466,7 +466,6 @@ Mayron's offizeller YouTube Kanal:
 
 |cff00ccff/mui|r - Zeigt alle Mui Befehle ( einschließlich der Befehle "install","config" und "profile")
 |cff00ccff/rl|r - Läd alle Addons neu
-|cff00ccff/tiptac|r - Zeigt die TipTac Optionen an
 |cff00ccff/ltp|r - Leatrix Plus Einstellungen ( Bitte schaut hier rein! (z.b. Automatische Quest annahme und abgabe))
 |cff00ccff/suf|r - Einstellung für die Unit Frames (Addon: Shadowed Unit Frames)
 |cff00ccff/bt|r - Bartender einstellungen (Aktionsleisten)
@@ -488,10 +487,6 @@ Mayron's offizeller YouTube Kanal:
 |cff00ccffQ: Wo kann ich die Automatischen Quest an und abgabe Ausschalten? Oder die Automatische Reperatur|r
 
 |cff90ee90A:|r Dies wird von Liatrix Plus gesteuert (Leatrix Plus bietet auch viele anderen nützliche Funktionen) mit /ltp kommst du in das Menü und unter Automation könnt Ihr dies an und aus schalten.
-
-|cff00ccffQ: Der Tooltip wird über meinen Zaubersprüchen angezeigt, wenn ich den Mauszeiger darüber bewege. Wie kann ich ihn wie die anderen Tooltips in die untere rechte Ecke verschieben?|r
-
-|cff90ee90A:|r Geben Sie "/ tiptac" ein und wechseln in der Liste links zur Seite "Anchors".Dort, wo "Frame Tip Type" steht, sehen Sie rechts ein Dropdown-Menü. Ändern Sie es von "Mouse Anchor" in "Normal Anchor".
 ]]
 
 L["MUI_Setup_CreditsTab"] = [[
