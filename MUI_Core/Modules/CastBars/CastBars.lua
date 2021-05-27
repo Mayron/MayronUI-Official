@@ -499,7 +499,7 @@ do
 
     bar.name = bar.statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     bar.name:SetPoint("LEFT", 4, 0);
-    bar.name:SetWidth(150);
+    bar.name:SetPoint("RIGHT", -40, 0);
     bar.name:SetWordWrap(false);
     bar.name:SetJustifyH("LEFT");
 
