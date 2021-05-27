@@ -923,8 +923,13 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, auraId, auraName, auraT
   if (not canTrack) then return end
 
   -- first try to search for an existing one:
-  for i, activeBar in ipairs(data.activeBars) do
+  for _, activeBar in ipairs(data.activeBars) do
     if (auraId == activeBar.AuraId and sourceGuid == activeBar.Source) then
+      foundBar = activeBar;
+      break
+    end
+
+    if (auraId == activeBar.AuraId and sourceGuid ~= activeBar.Source and activeBar.Source == "Unknown") then
       foundBar = activeBar;
       break
     end
