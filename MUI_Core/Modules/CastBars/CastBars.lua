@@ -71,6 +71,7 @@ db:AddToDefaults("profile.castBars", {
   appearance = {
     texture       = "MUI_StatusBar";
     border        = "Skinner";
+    blendMode     = "ADD";
     borderSize    = 1;
     inset         = 1;
     colors = {
@@ -905,6 +906,19 @@ function C_CastBarsModule:OnInitialize(data)
           for _, castBar in pairs(data.bars) do
             castBarData = data:GetFriendData(castBar);
             castBarData.frame.statusbar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", value));
+            castBarData.frame.statusbar:GetStatusBarTexture():SetBlendMode(data.settings.appearance.blendMode);
+          end
+        end;
+
+        blendMode = function(value)
+          local castBarData;
+          for _, castBar in pairs(data.bars) do
+            castBarData = data:GetFriendData(castBar);
+            local texture = castBarData.frame.statusbar:GetStatusBarTexture();
+
+            if (texture) then
+              castBarData.frame.statusbar:GetStatusBarTexture():SetBlendMode(value);
+            end
           end
         end;
 
