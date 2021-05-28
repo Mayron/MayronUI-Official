@@ -616,17 +616,25 @@ function tk:GetTutorialShowState(oldVersion, afterInstall)
   return shouldShow;
 end
 
-function tk:GetInterfaceName()
-  if (self:IsClassic()) then
-    return "MayronUI Classic";
-  elseif (self:IsBCClassic()) then
-    return tk.Strings:JoinWithSpace(
-      "MayronUI",
-      tk.Strings:SetTextColorByKey("Burning Crusade", "GREEN"),
-      "Classic");
-  else
-    return "MayronUI Gen6";
+function tk:GetVersion(addon, colorKey)
+  local client = tk.Strings.Empty;
+
+  if (tk:IsRetail()) then
+    client = "-retail";
+  elseif (tk:IsBCClassic()) then
+    client = "-bcc";
+  elseif (tk:IsClassic()) then
+    client = "-classic";
   end
+
+  local version = string.format("%s%s", GetAddOnMetadata(addon or "MUI_Core", "Version"), client);
+  version = tk.Strings:SetTextColorByKey(version, colorKey or "GRAY");
+
+  return version;
+end
+
+function tk:GetInterfaceName()
+  return string.format("MayronUI [%s]", self:GetVersion());
 end
 
 -- "Mix two colors together in variable proportion."

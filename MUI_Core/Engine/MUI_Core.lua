@@ -288,9 +288,9 @@ commands.profiles = function(subCommand)
 end
 
 commands.version = function()
-  tk:Print("MUI_Core -", GetAddOnMetadata("MUI_Core", "Version"));
-  tk:Print("MUI_Config -", GetAddOnMetadata("MUI_Config", "Version"));
-  tk:Print("MUI_Setup -", GetAddOnMetadata("MUI_Setup", "Version"));
+  tk:Print("MUI_Core:", tk:GetVersion("MUI_Core", "YELLOW"));
+  tk:Print("MUI_Config:", tk:GetVersion("MUI_Config", "YELLOW"));
+  tk:Print("MUI_Setup:", tk:GetVersion("MUI_Setup", "YELLOW"));
 end
 
 commands.help = function()

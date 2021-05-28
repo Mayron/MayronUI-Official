@@ -562,15 +562,18 @@ function C_SetUpModule:Show(data)
   window.banner.right:SetPoint("LEFT", window.banner:GetFrame(), "CENTER");
 
   window.info = window:CreateCell();
-  window.info:SetInsets(20);
+  window.info:SetInsets(15, 20);
 
   local title = window.info:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-  title:SetText(tk:GetInterfaceName():upper());
-  title:SetPoint("BOTTOMLEFT");
+  title:SetText("MAYRONUI");
+  title:SetPoint("TOPLEFT");
+  tk:SetFontSize(title, 22);
 
   local version = window.info:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
-  version:SetText(tk.Strings:JoinWithSpace(L["VERSION"], GetAddOnMetadata("MUI_Core", "Version")));
-  version:SetPoint("BOTTOMLEFT", title, "TOPLEFT", 0, 4);
+  version:SetText(tk.Strings:JoinWithSpace(L["VERSION"], tk:GetVersion("MUI_Core", "YELLOW")));
+  version:SetPoint("TOPLEFT");
+  version:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 2, 0);
+  tk:SetFontSize(version, 12);
 
   window.submenu = gui:CreateDialogBox(tk.Constants.AddOnStyle, window.banner:GetFrame());
   window.submenu:SetAllPoints(window.banner:GetFrame());

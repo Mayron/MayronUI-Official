@@ -3,7 +3,7 @@
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
-## Version: 6.6.1
+## Version: 6.6.2
 
 ## Links:
 ## ------------------------------------------------
@@ -16,7 +16,7 @@
 ## Credits:
 ## ------------------------------------------------
 ## X-Community-Support-Team: Monster/ Alizmer [GER]
-## X-Patrons: Size Queen Kimiko, AkumaGekido, Arriesa, Kallomuki, LaidbackLuke, Missfit, NeuRooT, Pixel, PuppyCatbug, Tibbetts
+## X-Patrons: AkumaGekido, Arriesa, Kallomuki, LaidbackLuke, Missfit, PuppyCatbug
 ## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma, EarlGrey
 ## X-Development-and-Bug-Fixes: Monkey
 

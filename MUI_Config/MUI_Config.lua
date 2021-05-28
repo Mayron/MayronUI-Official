@@ -5,8 +5,8 @@ local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local MENU_BUTTON_HEIGHT = 40;
 local pairs, ipairs, table, mrandom, setmetatable = _G.pairs, _G.ipairs, _G.table, _G.math.random, _G.setmetatable;
-local DisableAddOn, collectgarbage, UIFrameFadeIn, CreateFrame, PlaySound, GetAddOnMetadata
- = _G.DisableAddOn, _G.collectgarbage, _G.UIFrameFadeIn, _G.CreateFrame, _G.PlaySound, _G.GetAddOnMetadata;
+local DisableAddOn, collectgarbage, UIFrameFadeIn, CreateFrame, PlaySound, strformat
+ = _G.DisableAddOn, _G.collectgarbage, _G.UIFrameFadeIn, _G.CreateFrame, _G.PlaySound, _G.string.format;
 
 -- Registers and Imports -------------
 ---@type LinkedList
@@ -512,9 +512,8 @@ function C_ConfigModule:SetUpWindow(data)
   versionCell:SetInsets(10, 10, 10, 10);
 
   versionCell.text = versionCell:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-  versionCell.text:SetText(tk.Strings:Concat(
-    tk:GetInterfaceName(), " [", GetAddOnMetadata("MUI_Core", "Version"), "]"));
-
+  versionCell.text:SetText(strformat("MUI_Core: %s   MUI_Config: %s   MUI_Setup: %s",
+    tk:GetVersion("MUI_Core"), tk:GetVersion("MUI_Config"), tk:GetVersion("MUI_Setup")));
   versionCell.text:SetPoint("BOTTOMLEFT");
 
   local bottombar = data.window:CreateCell();

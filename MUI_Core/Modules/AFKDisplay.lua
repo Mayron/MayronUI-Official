@@ -657,10 +657,7 @@ do
 
     local txt = display.titleBar:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
     txt:SetPoint("CENTER");
-
-    local version = string.format("(v%s)", GetAddOnMetadata("MUI_Core", "Version"));
-    version = tk.Strings:SetTextColorByKey(version, "LIGHT_YELLOW");
-    txt:SetText(string.format("%s %s", tk:GetInterfaceName(), version));
+    txt:SetText(tk:GetInterfaceName());
     tk:SetFontSize(txt, 11);
 
     display.left = CreateFrame("Button", nil, display);
