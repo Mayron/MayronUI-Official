@@ -68,6 +68,19 @@ function C_ToolTipsModule:GetConfigTable(data)
                 client = "retail";
                 appendDbPath = "specShown",
             },
+            {   name = "In Combat Options",
+                type = "title",
+            };
+            {   name = "Show Unit Tool-Tips In Combat",
+                type = "check",
+                appendDbPath = "combat.showUnit",
+                tooltip = "Unit tool-tips display player and NPC information while\nyour mouse cursor is over a unit in the game world.";
+            },
+            {   name = "Show Standard Tool-Tips In Combat",
+                tooltip = "Standard tool-tips display non-unit related information,\nsuch as action-bar abilities, buffs and debuffs, etc...";
+                type = "check",
+                appendDbPath = "combat.showStandard",
+            },
             {   name = "Appearance Options",
                 type = "title",
             };

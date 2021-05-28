@@ -28,7 +28,7 @@ local UnitPowerType, UnitPower, UnitPowerMax, min = _G.UnitPowerType, _G.UnitPow
 local UnitLevel, CanInspect, UnitGUID, CheckInteractDistance, GetInspectSpecialization,
   C_PaperDollInfo, GetSpecializationInfoByID = _G.UnitLevel, _G.CanInspect, _G.UnitGUID, _G.CheckInteractDistance,
   _G.GetInspectSpecialization, _G.C_PaperDollInfo, _G.GetSpecializationInfoByID;
-local tostring = _G.tostring;
+local tostring, InCombatLockdown = _G.tostring, _G.InCombatLockdown;
 
 -- Constants
 local MOUSEOVER = "MOUSEOVER";
@@ -79,6 +79,10 @@ db:AddToDefaults("profile.tooltips", {
     edgeFile = "Skinner",
     edgeSize = tk.Constants.BACKDROP_WITH_BACKGROUND.edgeSize,
     insets = { left = 0, right = 0, top = 0, bottom = 0 };
+  };
+  combat = {
+    showUnit = true;
+    showStandard = true;
   };
   anchors = {
     screenAnchor = {
@@ -918,6 +922,27 @@ local function CreateScreenAnchor(data)
   data.screenAnchor:Lock(true);
 end
 
+local function IsInCombatAndHidden(data, tooltip, inCombat)
+  local unitExists = UnitExists(MOUSEOVER);
+  tooltip = tooltip or gameTooltip;
+
+  if (inCombat == nil) then
+    inCombat = InCombatLockdown();
+  end
+
+  if (inCombat) then
+    if (unitExists and not data.settings.combat.showUnit) then
+      tooltip:Hide();
+      return true;
+    elseif (not unitExists and not data.settings.combat.showStandard) then
+      tooltip:Hide();
+      return true;
+    end
+  end
+
+  return false;
+end
+
 -------------------------------
 --- C_ToolTipsModule
 -------------------------------
@@ -1018,6 +1043,9 @@ function C_ToolTipsModule:OnEnable(data)
 	tooltipStyle.backdropBorderColor.GetRGB = _G.ColorMixin.GetRGBA
 
   gameTooltip:HookScript("OnShow", function()
+    if (IsInCombatAndHidden(data)) then return end
+    HideAllAuras(data);
+
     if (not data.settings.muiTexture.enabled) then
       originalSetBackdropBorderColor(gameTooltip, unpack(data.settings.backdrop.borderColor));
     end
@@ -1029,7 +1057,9 @@ function C_ToolTipsModule:OnEnable(data)
 
   -- set positioning of tooltip:
   hooksecurefunc("GameTooltip_SetDefaultAnchor", function (tooltip, parent)
+    if (IsInCombatAndHidden(data, tooltip)) then return end
     local anchorType;
+
     if (UnitExists(MOUSEOVER)) then
       anchorType = data.settings.anchors.units:lower();
     else
@@ -1052,12 +1082,9 @@ function C_ToolTipsModule:OnEnable(data)
     end
   end);
 
-  gameTooltip:HookScript("OnShow", function()
-    HideAllAuras(data);
-  end);
-
   local specListener = em:CreateEventListener(function(handler, _, guid)
     if (UnitGUID(MOUSEOVER) ~= guid) then return end
+    if (IsInCombatAndHidden(data)) then return end
 
     local specID = GetInspectSpecialization(MOUSEOVER);
     local specializationName = select(2, GetSpecializationInfoByID(specID));
@@ -1083,51 +1110,61 @@ function C_ToolTipsModule:OnEnable(data)
   specListener:RegisterEvent("INSPECT_READY");
   specListener:SetEnabled(false);
 
+  local combatListener = em:CreateEventListener(function()
+    IsInCombatAndHidden(data, nil, true);
+  end);
+
+  combatListener:RegisterEvent("PLAYER_REGEN_DISABLED");
+
   local listener = em:CreateEventListener(function()
     local unitExists = UnitExists(MOUSEOVER);
 
     if (not unitExists) then
       gameTooltip:Hide();
-    else
-      UpdateUnitTooltipLines(data.settings.guildRankShown); -- must be BEFORE padding
-      UpdateStatusBarOnMouseOver(data);
-      UpdateAuras(data);
+      RefreshPadding(data);
+      return
+    end
 
-      if (data.settings.targetShown) then
-        UpdateTargetText(data);
+    if (IsInCombatAndHidden(data)) then return end
+
+    UpdateUnitTooltipLines(data.settings.guildRankShown); -- must be BEFORE padding
+    UpdateStatusBarOnMouseOver(data);
+    UpdateAuras(data);
+
+    if (data.settings.targetShown) then
+      UpdateTargetText(data);
+    end
+
+    if (tk:IsRetail() and UnitIsPlayer(MOUSEOVER) and UnitLevel(MOUSEOVER) >= 10
+        and CanInspect(MOUSEOVER) and CheckInteractDistance(MOUSEOVER, 1)) then
+
+      local guid = UnitGUID(MOUSEOVER) or "";
+
+      if (data.settings.specShown) then
+        data.specCache = data.specCache or obj:PopTable();
+        local specializationName = data.specCache[guid];
+
+        if (specializationName) then
+          gameTooltip:AddDoubleLine(SPEC_LABEL, specializationName);
+        else
+          gameTooltip:AddDoubleLine(SPEC_LABEL, LOADING);
+        end
       end
 
-      if (tk:IsRetail() and UnitIsPlayer(MOUSEOVER) and UnitLevel(MOUSEOVER) >= 10
-          and CanInspect(MOUSEOVER) and CheckInteractDistance(MOUSEOVER, 1)) then
+      if (data.settings.itemLevelShown) then
+        data.itemLevelCache = data.itemLevelCache or obj:PopTable();
+        local itemLevel = data.itemLevelCache[guid];
 
-        local guid = UnitGUID(MOUSEOVER) or "";
-
-        if (data.settings.specShown) then
-          data.specCache = data.specCache or obj:PopTable();
-          local specializationName = data.specCache[guid];
-
-          if (specializationName) then
-            gameTooltip:AddDoubleLine(SPEC_LABEL, specializationName);
-          else
-            gameTooltip:AddDoubleLine(SPEC_LABEL, LOADING);
-          end
+        if (itemLevel) then
+          gameTooltip:AddDoubleLine(ITEM_LEVEL_LABEL, itemLevel);
+        else
+          gameTooltip:AddDoubleLine(ITEM_LEVEL_LABEL, LOADING);
         end
+      end
 
-        if (data.settings.itemLevelShown) then
-          data.itemLevelCache = data.itemLevelCache or obj:PopTable();
-          local itemLevel = data.itemLevelCache[guid];
-
-          if (itemLevel) then
-            gameTooltip:AddDoubleLine(ITEM_LEVEL_LABEL, itemLevel);
-          else
-            gameTooltip:AddDoubleLine(ITEM_LEVEL_LABEL, LOADING);
-          end
-        end
-
-        if (data.settings.specShown or data.settings.itemLevelShown) then
-          specListener:SetEnabled(true);
-          _G.NotifyInspect(MOUSEOVER);
-        end
+      if (data.settings.specShown or data.settings.itemLevelShown) then
+        specListener:SetEnabled(true);
+        _G.NotifyInspect(MOUSEOVER);
       end
     end
 
