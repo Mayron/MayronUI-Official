@@ -52,7 +52,8 @@ local tooltipsToReskin =  {
   "WorldMapCompareTooltip1",
   "WorldMapCompareTooltip2",
   "AdventureMap_MissionPinTooltip",
-  "FriendsTooltip"
+  "FriendsTooltip",
+  "LibDBIconTooltip"
 };
 
 db:AddToDefaults("profile.tooltips", {
