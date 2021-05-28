@@ -92,7 +92,7 @@ db:AddToDefaults("profile", {
     position = { "CENTER", "UIParent", "CENTER", 0, 0 },
 
     bar = {
-      width   = 213;
+      width   = 210;
       height  = 22;
       spacing = 2;
       maxBars = 10;
@@ -119,8 +119,8 @@ db:AddToDefaults("profile", {
     filters = {
       showBuffs = true;
       showDebuffs = true;
-      onlyPlayerBuffs   = true;
-      onlyPlayerDebuffs = true;
+      onlyPlayerBuffs   = false;
+      onlyPlayerDebuffs = false;
       enableWhiteList   = false;
       enableBlackList   = false;
       whiteList         = {};
@@ -1338,7 +1338,7 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
       };
       fields = {
         Player = {
-          position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
+          position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 12, 2 },
           unitID = "player";
         };
       };
@@ -1352,9 +1352,8 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
       };
       fields = {
         Player = {
-          position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
+          position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 12, 2 },
           unitID = "player";
-          nonPlayerAlpha = 1;
         };
         Target = {
           position = { "BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2 },

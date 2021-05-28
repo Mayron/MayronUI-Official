@@ -3,7 +3,18 @@ local _, setup = ...;
 setup.import["Bartender4"] = function()
 	local settings = {
     ["namespaces"] = {
-      ["StatusTrackingBar"] = {
+      ["APBar"] = {
+        ["profiles"] = {
+          ["MayronUI"] = {
+            ["version"] = 3,
+            ["position"] = {
+              ["y"] = -1,
+              ["x"] = -363.300042724609,
+              ["point"] = "TOP",
+              ["scale"] = 0.7,
+            },
+          },
+        },
       },
       ["ActionBars"] = {
         ["profiles"] = {
@@ -11,16 +22,16 @@ setup.import["Bartender4"] = function()
             ["actionbars"] = {
               {
                 ["showgrid"] = true,
-                ["fadeoutalpha"] = 1,
                 ["version"] = 3,
+                ["fadeoutalpha"] = 1,
                 ["position"] = {
                   ["y"] = 68.60000038146973,
                   ["x"] = -354,
                   ["point"] = "BOTTOM",
                   ["scale"] = 0.850000023841858,
                 },
-                ["padding"] = 5.5,
                 ["hidemacrotext"] = true,
+                ["padding"] = 5.5,
                 ["visibility"] = {
                   ["always"] = false,
                 },
@@ -65,7 +76,8 @@ setup.import["Bartender4"] = function()
               {
                 ["showgrid"] = true,
                 ["rows"] = 12,
-                ["hidemacrotext"] = true,
+                ["padding"] = 5.5,
+                ["alpha"] = 0,
                 ["version"] = 3,
                 ["position"] = {
                   ["y"] = 265,
@@ -73,16 +85,17 @@ setup.import["Bartender4"] = function()
                   ["point"] = "RIGHT",
                   ["scale"] = 0.9,
                 },
-                ["padding"] = 5.5,
+                ["hidemacrotext"] = true,
                 ["visibility"] = {
-                  ["always"] = false,
+                  ["always"] = true,
                   ["vehicleui"] = false,
                 },
               }, -- [3]
               {
                 ["showgrid"] = true,
                 ["rows"] = 12,
-                ["hidemacrotext"] = true,
+                ["padding"] = 5.5,
+                ["alpha"] = 0,
                 ["version"] = 3,
                 ["position"] = {
                   ["y"] = 265,
@@ -90,15 +103,16 @@ setup.import["Bartender4"] = function()
                   ["point"] = "RIGHT",
                   ["scale"] = 0.899999976158142,
                 },
-                ["padding"] = 5.5,
+                ["hidemacrotext"] = true,
                 ["visibility"] = {
-                  ["always"] = false,
+                  ["always"] = true,
                   ["vehicleui"] = false,
                 },
               }, -- [4]
               {
                 ["showgrid"] = true,
                 ["hidemacrotext"] = true,
+                ["alpha"] = 0,
                 ["version"] = 3,
                 ["position"] = {
                   ["y"] = 140.8000020980835,
@@ -108,13 +122,14 @@ setup.import["Bartender4"] = function()
                 },
                 ["padding"] = 5.5,
                 ["visibility"] = {
-                  ["always"] = false,
+                  ["always"] = true,
                   ["vehicle"] = false,
                 },
               }, -- [5]
               {
                 ["showgrid"] = true,
                 ["buttons"] = 8,
+                ["alpha"] = 0,
                 ["version"] = 3,
                 ["position"] = {
                   ["y"] = 140.8000020980835,
@@ -124,7 +139,7 @@ setup.import["Bartender4"] = function()
                 },
                 ["padding"] = 5.5,
                 ["visibility"] = {
-                  ["always"] = false,
+                  ["always"] = true,
                 },
               }, -- [6]
               {
@@ -138,8 +153,8 @@ setup.import["Bartender4"] = function()
                   ["point"] = "BOTTOM",
                   ["scale"] = 0.850000023841858,
                 },
-                ["hidemacrotext"] = true,
                 ["padding"] = 5.5,
+                ["hidemacrotext"] = true,
                 ["visibility"] = {
                   ["always"] = false,
                   ["overridebar"] = false,
@@ -149,10 +164,10 @@ setup.import["Bartender4"] = function()
                   ["enabled"] = true,
                   ["stance"] = {
                     ["MONK"] = {
-                      ["crane"] = 8,
-                      ["tiger"] = 8,
-                      ["serpent"] = 8,
                       ["ox"] = 8,
+                      ["serpent"] = 8,
+                      ["tiger"] = 8,
+                      ["crane"] = 8,
                     },
                     ["ROGUE"] = {
                       ["stealth"] = 0,
@@ -178,8 +193,8 @@ setup.import["Bartender4"] = function()
                   ["enabled"] = true,
                   ["stance"] = {
                     ["MONK"] = {
-                      ["tiger"] = 1,
                       ["serpent"] = 1,
+                      ["tiger"] = 1,
                       ["ox"] = 1,
                     },
                   },
@@ -189,7 +204,8 @@ setup.import["Bartender4"] = function()
                 ["showgrid"] = true,
                 ["enabled"] = true,
                 ["buttons"] = 8,
-                ["hidemacrotext"] = true,
+                ["padding"] = 5.5,
+                ["alpha"] = 0,
                 ["version"] = 3,
                 ["position"] = {
                   ["y"] = 104.7000012397766,
@@ -197,9 +213,9 @@ setup.import["Bartender4"] = function()
                   ["point"] = "BOTTOM",
                   ["scale"] = 0.85,
                 },
-                ["padding"] = 5.5,
+                ["hidemacrotext"] = true,
                 ["visibility"] = {
-                  ["always"] = false,
+                  ["always"] = true,
                   ["vehicle"] = false,
                   ["vehicleui"] = false,
                 },
@@ -208,6 +224,7 @@ setup.import["Bartender4"] = function()
                 ["showgrid"] = true,
                 ["enabled"] = true,
                 ["hidemacrotext"] = true,
+                ["alpha"] = 0,
                 ["version"] = 3,
                 ["position"] = {
                   ["y"] = 104.7000012397766,
@@ -217,24 +234,11 @@ setup.import["Bartender4"] = function()
                 },
                 ["padding"] = 5.5,
                 ["visibility"] = {
-                  ["always"] = false,
+                  ["always"] = true,
                   ["vehicle"] = false,
                   ["vehicleui"] = false,
                 },
               }, -- [10]
-            },
-          },
-        },
-      },
-      ["APBar"] = {
-        ["profiles"] = {
-          ["MayronUI"] = {
-            ["version"] = 3,
-            ["position"] = {
-              ["y"] = -1,
-              ["x"] = -363.300042724609,
-              ["point"] = "TOP",
-              ["scale"] = 0.7,
             },
           },
         },
@@ -244,12 +248,31 @@ setup.import["Bartender4"] = function()
       ["ExtraActionBar"] = {
         ["profiles"] = {
           ["MayronUI"] = {
+            ["version"] = 3,
             ["position"] = {
               ["y"] = -164.4622802734375,
               ["x"] = -63.49993896484375,
               ["point"] = "CENTER",
             },
+          },
+        },
+      },
+      ["MicroMenu"] = {
+        ["profiles"] = {
+          ["MayronUI"] = {
             ["version"] = 3,
+            ["position"] = {
+              ["y"] = 38,
+              ["x"] = -292,
+              ["point"] = "BOTTOMRIGHT",
+              ["scale"] = 1,
+            },
+            ["fadeoutalpha"] = 0,
+            ["padding"] = -2,
+            ["visibility"] = {
+              ["always"] = false,
+            },
+            ["fadeout"] = true,
           },
         },
       },
@@ -265,40 +288,21 @@ setup.import["Bartender4"] = function()
           },
         },
       },
-      ["MicroMenu"] = {
-        ["profiles"] = {
-          ["MayronUI"] = {
-            ["version"] = 3,
-            ["position"] = {
-              ["y"] = 38,
-              ["x"] = -292,
-              ["point"] = "BOTTOMRIGHT",
-              ["scale"] = 1,
-            },
-            ["fadeout"] = true,
-            ["padding"] = -2,
-            ["visibility"] = {
-              ["always"] = false,
-            },
-            ["fadeoutalpha"] = 0,
-          },
-        },
-      },
       ["XPBar"] = {
         ["profiles"] = {
           ["MayronUI"] = {
-            ["visibility"] = {
-              ["always"] = false,
-              ["vehicleui"] = false,
-            },
             ["version"] = 3,
-            ["fadeoutalpha"] = 1,
             ["position"] = {
               ["y"] = -1,
               ["x"] = -363.299957275391,
               ["point"] = "TOP",
               ["scale"] = 0.7,
             },
+            ["visibility"] = {
+              ["always"] = false,
+              ["vehicleui"] = false,
+            },
+            ["fadeoutalpha"] = 1,
           },
         },
       },
@@ -328,18 +332,25 @@ setup.import["Bartender4"] = function()
           },
         },
       },
-      ["Vehicle"] = {
+      ["StanceBar"] = {
         ["profiles"] = {
           ["MayronUI"] = {
-            ["version"] = 3,
+            ["fadeoutalpha"] = 0.5,
             ["position"] = {
-              ["y"] = 40,
-              ["x"] = -350,
-              ["point"] = "BOTTOMRIGHT",
-              ["growVertical"] = "UP",
+              ["y"] = -1,
+              ["x"] = -377.068823285867,
+              ["point"] = "BOTTOM",
+              ["scale"] = 0.899999976158142,
               ["growHorizontal"] = "LEFT",
+              ["growVertical"] = "UP",
             },
+            ["version"] = 3,
             ["padding"] = 3,
+            ["visibility"] = {
+              ["stance"] = {
+                false, -- [1]
+              },
+            },
           },
         },
       },
@@ -357,25 +368,18 @@ setup.import["Bartender4"] = function()
           },
         },
       },
-      ["StanceBar"] = {
+      ["Vehicle"] = {
         ["profiles"] = {
           ["MayronUI"] = {
-            ["fadeoutalpha"] = 0.5,
-            ["position"] = {
-              ["y"] = -1,
-              ["x"] = -377.068823285867,
-              ["point"] = "BOTTOM",
-              ["scale"] = 0.899999976158142,
-              ["growVertical"] = "UP",
-              ["growHorizontal"] = "LEFT",
-            },
             ["version"] = 3,
-            ["padding"] = 3,
-            ["visibility"] = {
-              ["stance"] = {
-                false, -- [1]
-              },
+            ["position"] = {
+              ["y"] = 40,
+              ["x"] = -350,
+              ["point"] = "BOTTOMRIGHT",
+              ["growHorizontal"] = "LEFT",
+              ["growVertical"] = "UP",
             },
+            ["padding"] = 3,
           },
         },
       },
@@ -386,9 +390,10 @@ setup.import["Bartender4"] = function()
             ["rows"] = 2,
             ["fadeoutalpha"] = 0,
             ["position"] = {
-              ["y"] = 67.99999237060547,
-              ["x"] = 372.4763793945313,
+              ["y"] = 60.5,
+              ["x"] = 374,
               ["point"] = "BOTTOM",
+              ["scale"] = 0.8999999761581421,
             },
             ["visibility"] = {
               ["always"] = false,
