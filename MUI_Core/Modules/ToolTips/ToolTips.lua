@@ -211,7 +211,6 @@ do
 end
 
 local function SetBackdropStyle(data)
-  local scale = data.settings.scale;
   local bgFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BACKGROUND, data.settings.backdrop.bgFile);
   local edgeFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BORDER, data.settings.backdrop.edgeFile);
 
@@ -231,6 +230,8 @@ local function SetBackdropStyle(data)
     local tooltip = _G[tooltipName];
 
     if (obj:IsTable(tooltip) and obj:IsFunction(tooltip.GetObjectType)) then
+      local scale = data.settings.scale;
+
       if (tooltip == _G.FriendsTooltip) then
         scale = scale + 0.2;
       end
