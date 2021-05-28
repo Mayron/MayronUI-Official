@@ -36,7 +36,7 @@ function C_Tutorial:OnEnable()
   frame.text:SetPoint("TOPRIGHT", -10, -40);
 
   local tutorialMessage = L["Thank you for installing %s!\n\nYou can fully customise the UI using the config menu:"];
-  tutorialMessage = tutorialMessage:format(tk:GetInterfaceName());
+  tutorialMessage = tutorialMessage:format("MayronUI");
 
   local subMessage = tk.Strings:SetTextColorByKey(L["(type '/mui' to list all slash commands)"], "GOLD");
 
