@@ -235,6 +235,17 @@ function C_TimerBarsModule:OnInitialize(data)
           end;
 
           ---@param field TimerField
+          nonPlayerAlpha = function(value, _, field)
+            for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
+              if (bar.Source == UnitGUID("player")) then
+                bar:SetAlpha(1);
+              else
+                bar:SetAlpha(value);
+              end
+            end
+          end;
+
+          ---@param field TimerField
           showSpark = function(value, _, field)
             for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
               bar:SetSparkShown(value);
@@ -912,8 +923,13 @@ function C_TimerField:UpdateBarsByAura(data, sourceGuid, auraId, auraName, auraT
   if (not canTrack) then return end
 
   -- first try to search for an existing one:
-  for i, activeBar in ipairs(data.activeBars) do
+  for _, activeBar in ipairs(data.activeBars) do
     if (auraId == activeBar.AuraId and sourceGuid == activeBar.Source) then
+      foundBar = activeBar;
+      break
+    end
+
+    if (auraId == activeBar.AuraId and sourceGuid ~= activeBar.Source and activeBar.Source == "Unknown") then
       foundBar = activeBar;
       break
     end
@@ -1338,6 +1354,7 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
         Player = {
           position = { "BOTTOMLEFT", "MUI_PlayerName", "TOPLEFT", 10, 2 },
           unitID = "player";
+          nonPlayerAlpha = 1;
         };
         Target = {
           position = { "BOTTOMRIGHT", "MUI_TargetName", "TOPRIGHT", -10, 2 },

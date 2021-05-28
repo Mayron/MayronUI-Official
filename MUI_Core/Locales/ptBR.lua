@@ -470,7 +470,6 @@ Visit Mayron's official YouTube channel:
 
 |cff00ccff/mui|r - List all MayronUI slash commands (including "install", "config" and "profile" commands)
 |cff00ccff/rl|r - Reloads the UI
-|cff00ccff/tiptac|r - Show TipTac (Tooltips) AddOn settings
 |cff00ccff/ltp|r - Leatrix Plus settings (I recommend looking through them!)
 |cff00ccff/suf|r - Settings for the Unit Frames (Shadowed Unit Frames)
 |cff00ccff/bt|r - Bartender Settings (Action Bars)
@@ -492,10 +491,6 @@ Visit Mayron's official YouTube channel:
 |cff00ccffQ: How do I turn off/on Auto Quest? Or how do I turn on auto repair?|r
 
 |cff90ee90A:|r That is controlled by Leatrix Plus (Leatrix Plus also offers many other useful features and is worth checking out!). You can open the Leatrix Plus menu to view these by right clicking the Minimap and selecting Leatrix Plus or by typing "/ltp".
-
-|cff00ccffQ: The tooltip shows over my spells when I hover my mouse cursor over them, how can I move it to the Bottom Right corner like the other tooltips do?|r
-
-|cff90ee90A:|r Type "/tiptac" and go to the Anchors page from the list on the left. Where it says "Frame Tip Type" you will see a drop down menu on the right. Change it from "Mouse Anchor" to "Normal Anchor".
 ]]
 
 L["MUI_Setup_CreditsTab"] = [[

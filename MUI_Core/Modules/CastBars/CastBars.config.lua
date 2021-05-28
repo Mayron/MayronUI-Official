@@ -128,6 +128,15 @@ function C_CastBarsModule:GetConfigTable()
                 options = tk.Constants.LSM:List("statusbar"),
                 dbPath = "profile.castBars.appearance.texture"
             },
+            {   name = "Blend Mode",
+                tooltip = "Changing the blend mode will affect how alpha channels blend with the background.";
+                type = "dropdown",
+                options = {
+                  Normal = "BLEND";
+                  Add = "ADD";
+                },
+                dbPath = "profile.castBars.appearance.blendMode"
+            },
             {   name = L["Border"],
                 type = "dropdown",
                 options = tk.Constants.LSM:List("border"),

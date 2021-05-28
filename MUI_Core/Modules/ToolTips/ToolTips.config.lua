@@ -565,9 +565,10 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   type = "fontstring";
                 subtype = "header";
-                content = "Set Buff and Debuff Order"
+                content = "Buff and Debuff Ordering"
             };
             {   type = "fontstring";
+                height = 40;
                 content = "The below setting controls the ordering of auras on the tool-tip when both the buffs and debuffs are positioned together (either above or below the tool-tip) and are both enabled."
             };
             {   name = "Debuffs Above Buffs";

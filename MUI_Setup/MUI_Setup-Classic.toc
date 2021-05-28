@@ -15,5 +15,4 @@ imports/Bartender4.lua
 imports/Masque.lua
 imports/Recount.lua
 imports/ShadowedUnitFrames.lua
-imports/TipTac.lua
 imports/LeatrixPlus.lua

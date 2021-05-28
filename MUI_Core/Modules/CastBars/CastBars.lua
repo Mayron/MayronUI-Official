@@ -71,6 +71,7 @@ db:AddToDefaults("profile.castBars", {
   appearance = {
     texture       = "MUI_StatusBar";
     border        = "Skinner";
+    blendMode     = "ADD";
     borderSize    = 1;
     inset         = 1;
     colors = {
@@ -252,7 +253,7 @@ end
 
 ---@param castBarData table
 function Events:UNIT_SPELLCAST_NOT_INTERRUPTIBLE(_, castBarData)
-  local c = castBarData.appearance.colors.interrupted;
+  local c = castBarData.appearance.colors.notInterruptible;
   castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
 end
 
@@ -335,28 +336,12 @@ end
 ---@param castBar CastBar
 ---@param castBarData table
 function Events:UNIT_SPELLCAST_CHANNEL_STOP(castBar, castBarData)
+  if (castBarData.frame.statusbar:GetValue() >= 0.1) then
+    castBarData.interrupted = true;
+  end
+
   castBarData.frame.statusbar:SetValue(select(2, castBarData.frame.statusbar:GetMinMaxValues()));
-
-  if (castBarData.frame.statusbar:GetValue() > 0.1) then
-    self:UNIT_SPELLCAST_CHANNEL_UPDATE(castBar, castBarData);
-  else
-    castBar:StopCasting();
-  end
-end
-
----@param castBar CastBar
----@param castBarData table
-function Events:UNIT_SPELLCAST_CHANNEL_UPDATE(castBar, castBarData)
-  if (not (UnitChannelInfo(castBarData.unitID)) or not castBarData.startTime) then
-    castBar:StopCasting();
-
-    local c = castBarData.appearance.colors.interrupted;
-    castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
-
-    return;
-  end
-
-  castBar:CheckStatus();
+  castBar:StopCasting();
 end
 
 -- C_CastBar ----------------------
@@ -498,7 +483,7 @@ do
 
     bar.name = bar.statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     bar.name:SetPoint("LEFT", 4, 0);
-    bar.name:SetWidth(150);
+    bar.name:SetPoint("RIGHT", -40, 0);
     bar.name:SetWordWrap(false);
     bar.name:SetJustifyH("LEFT");
 
@@ -539,7 +524,6 @@ do
           bar:RegisterUnitEvent("UNIT_SPELLCAST_DELAYED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", data.unitID);
-          bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_UPDATE", data.unitID);
 
           if (db.global.castBars.showFoodDrink) then
             bar:RegisterUnitEvent("UNIT_AURA", data.unitID);
@@ -563,7 +547,6 @@ do
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_DELAYED", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_CHANNEL_START", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_CHANNEL_STOP", wrapper);
-          LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_CHANNEL_UPDATE", wrapper);
         end
 
         if (data.unitID == "target") then
@@ -653,10 +636,8 @@ function C_CastBar:StopCasting(data)
   data.unitName = nil;
   data.auraId = nil;
 
-  if (not data.interrupted) then
-    local c = data.appearance.colors.finished;
-    bar.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
-  end
+  local c = data.interrupted and data.appearance.colors.interrupted or data.appearance.colors.finished;
+  bar.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
 
   data.interrupted = nil;
   data.fadingOut = true;
@@ -905,6 +886,19 @@ function C_CastBarsModule:OnInitialize(data)
           for _, castBar in pairs(data.bars) do
             castBarData = data:GetFriendData(castBar);
             castBarData.frame.statusbar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", value));
+            castBarData.frame.statusbar:GetStatusBarTexture():SetBlendMode(data.settings.appearance.blendMode);
+          end
+        end;
+
+        blendMode = function(value)
+          local castBarData;
+          for _, castBar in pairs(data.bars) do
+            castBarData = data:GetFriendData(castBar);
+            local texture = castBarData.frame.statusbar:GetStatusBarTexture();
+
+            if (texture) then
+              castBarData.frame.statusbar:GetStatusBarTexture():SetBlendMode(value);
+            end
           end
         end;
 
