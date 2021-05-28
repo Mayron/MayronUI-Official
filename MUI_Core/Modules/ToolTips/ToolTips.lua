@@ -16,6 +16,8 @@ gameTooltip.SetBackdropBorderColor = tk.Constants.DUMMY_FUNC;
 local originalSetBackdropColor = gameTooltip.SetBackdropColor;
 gameTooltip.SetBackdropColor = tk.Constants.DUMMY_FUNC;
 
+local originalSetBackdrop = gameTooltip.SetBackdrop;
+
 local select, IsAddOnLoaded, strformat, ipairs, CreateFrame, UnitAura, unpack,
   UnitName, UnitHealthMax, UnitHealth, hooksecurefunc, UnitExists, UnitIsPlayer,
   GetGuildInfo, UnitRace, UnitCreatureFamily, UnitCreatureType, UnitReaction =
@@ -26,6 +28,7 @@ local UnitPowerType, UnitPower, UnitPowerMax, min = _G.UnitPowerType, _G.UnitPow
 local UnitLevel, CanInspect, UnitGUID, CheckInteractDistance, GetInspectSpecialization,
   C_PaperDollInfo, GetSpecializationInfoByID = _G.UnitLevel, _G.CanInspect, _G.UnitGUID, _G.CheckInteractDistance,
   _G.GetInspectSpecialization, _G.C_PaperDollInfo, _G.GetSpecializationInfoByID;
+local tostring = _G.tostring;
 
 -- Constants
 local MOUSEOVER = "MOUSEOVER";
@@ -70,7 +73,7 @@ db:AddToDefaults("profile.tooltips", {
   }; -- if true, does not use backdrop
   backdrop = {
     borderClassColored =  true;
-    borderColor = { 0.2, 0.2, 0.2, 1 };
+    borderColor = { 0.4, 0.4, 0.4, 1 };
     bgColor = { 0, 0, 0, 0.8 };
     bgFile = "MUI_Solid",
     edgeFile = "Skinner",
@@ -132,7 +135,7 @@ db:AddToDefaults("profile.tooltips", {
     height = 18;
   };
   powerBar = {
-    enabled = true;
+    enabled = false;
     fontSize = 14;
     texture = "MUI_StatusBar";
     flag = "OUTLINE";
@@ -145,47 +148,84 @@ db:AddToDefaults("profile.tooltips", {
       onlyYours = false;
       size = 28;
       position = "TOP";
-      direction = "ltr";
+      direction = "rtl";
     };
     debuffs = {
       enabled = true;
-      onlyYours = false;
+      onlyYours = true;
       size = 28;
-      position = "TOP";
-      direction = "ltr";
+      position = "BOTTOM";
+      direction = "rtl";
       aboveBuffs = true;
       colorByDebuffType = true;
     };
   };
 });
 
+local ManageGetterOverrides;
+
+do
+  local original = {};
+  local new = {};
+
+  function ManageGetterOverrides(data, tooltip, replace)
+    local bgColor = data.settings.backdrop.bgColor;
+    local borderColor = data.settings.backdrop.borderColor;
+    local key = tostring(tooltip);
+
+    if (replace) then
+      new[key] = new[key] or obj:PopTable();
+      original[key] = original[key] or obj:PopTable();
+
+      new[key].GetBackdropColor = new[key].GetBackdropColor or function()
+        return unpack(bgColor);
+      end
+
+      new[key].GetBackdropBorderColor = new[key].GetBackdropBorderColor or function()
+        return unpack(borderColor);
+      end
+
+      new[key].GetBackdrop = new[key].GetBackdrop or function()
+        return data.tooltipBackdrop;
+      end
+
+      original[key].GetBackdropColor = tooltip.GetBackdropColor;
+      original[key].GetBackdropBorderColor = tooltip.GetBackdropBorderColor;
+      original[key].GetBackdrop = tooltip.GetBackdrop;
+
+      tooltip.GetBackdropColor = new[key].GetBackdropColor;
+      tooltip.GetBackdropBorderColor = new[key].GetBackdropBorderColor;
+      tooltip.GetBackdrop = new[key].GetBackdrop;
+
+    elseif (obj:IsTable(original[key])) then
+      tooltip.GetBackdropColor = original[key].GetBackdropColor;
+      tooltip.GetBackdropBorderColor = original[key].GetBackdropBorderColor;
+      tooltip.GetBackdrop = original[key].GetBackdrop;
+    end
+  end
+end
+
 local function SetBackdropStyle(data)
   local scale = data.settings.scale;
-  local backdrop = nil;
+  local bgFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BACKGROUND, data.settings.backdrop.bgFile);
+  local edgeFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BORDER, data.settings.backdrop.edgeFile);
 
-  if (not data.settings.muiTexture.enabled) then
-    local bgFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BACKGROUND, data.settings.backdrop.bgFile);
-    local edgeFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BORDER, data.settings.backdrop.edgeFile);
+  data.tooltipBackdrop = data.tooltipBackdrop or obj:PopTable();
+  data.tooltipBackdrop.bgFile = bgFile;
+  data.tooltipBackdrop.edgeFile = edgeFile;
+  data.tooltipBackdrop.edgeSize = data.settings.backdrop.edgeSize;
+  data.tooltipBackdrop.insets = data.settings.backdrop.insets;
 
-    backdrop = {
-      bgFile = bgFile,
-      edgeFile = edgeFile,
-      edgeSize = data.settings.backdrop.edgeSize,
-      insets = data.settings.backdrop.insets;
-    };
-  end
+  -- replace backdrop:
+  tooltipStyle.bgFile = data.tooltipBackdrop.bgFile;
+  tooltipStyle.insets = data.tooltipBackdrop.insets;
+  tooltipStyle.edgeFile = data.tooltipBackdrop.edgeFile;
+  tooltipStyle.edgeSize = data.tooltipBackdrop.edgeSize;
 
-    -- remove backdrop:
-    tooltipStyle.bgFile = backdrop and backdrop.bgFile;
-    tooltipStyle.insets = backdrop and backdrop.insets;
-    tooltipStyle.edgeFile = backdrop and backdrop.edgeFile;
-    tooltipStyle.edgeSize = backdrop and backdrop.edgeSize;
-
-  for _, tooltip in ipairs(tooltipsToReskin) do
-    tooltip = _G[tooltip];
+  for _, tooltipName in ipairs(tooltipsToReskin) do
+    local tooltip = _G[tooltipName];
 
     if (obj:IsTable(tooltip) and obj:IsFunction(tooltip.GetObjectType)) then
-
       if (tooltip == _G.FriendsTooltip) then
         scale = scale + 0.2;
       end
@@ -194,6 +234,9 @@ local function SetBackdropStyle(data)
 
       if (data.settings.muiTexture.enabled) then
         tooltip:SetBackdrop(nil);
+        tooltip.SetBackdrop = tk.Constants.DUMMY_FUNC;
+
+        ManageGetterOverrides(data, tooltip, true);
 
         if (not obj:IsFunction(tooltip.SetGridTextureShown)) then
           local texture = tk.Constants.AddOnStyle:GetTexture("DialogBoxBackground");
@@ -217,7 +260,10 @@ local function SetBackdropStyle(data)
         local borderColor = data.settings.backdrop.borderColor;
         local bgColor = data.settings.backdrop.bgColor;
 
-        tooltip:SetBackdrop(backdrop);
+        tooltip.SetBackdrop = originalSetBackdrop;
+        ManageGetterOverrides(data, tooltip);
+
+        tooltip:SetBackdrop(data.tooltipBackdrop);
         tooltip:SetBackdropBorderColor(unpack(borderColor));
         tooltip:SetBackdropColor(unpack(bgColor));
 
@@ -463,8 +509,8 @@ do
 
     HandleHealthBarValueChanged(data.settings.healthBar.format, data.settings.healthColors);
 
+    if (not (powerBar and powerBar.PowerText)) then return end
     local powerTypeID = UnitPowerType(MOUSEOVER);
-    if (not powerBar) then return end
 
     local show = data.settings.powerBar.enabled and powerTypeID >= 0;
     powerBar:SetShown(show);
@@ -737,6 +783,9 @@ local function CreatePowerBar(data)
 	powerBar.bg:SetBackdrop({ bgFile = tk.Constants.BACKDROP_WITH_BACKGROUND.bgFile });
 
   local powerText = powerBar:CreateFontString(nil, "OVERLAY");
+  local font = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.FONT, data.settings.font);
+
+  powerText:SetFont(font, data.settings.powerBar.fontSize, data.settings.powerBar.flag);
   powerText:SetPoint("CENTER");
   powerBar.PowerText = powerText;
 end
@@ -934,7 +983,7 @@ function C_ToolTipsModule:OnInitialize(data)
         end
       end;
       flag = function(value)
-        if (healthBar.HealthText) then
+        if (powerBar and powerBar.PowerText) then
           local font = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.FONT, data.settings.font);
           powerBar.PowerText:SetFont(font, data.settings.powerBar.fontSize, value);
         end
@@ -967,6 +1016,12 @@ function C_ToolTipsModule:OnEnable(data)
 	-- Fixes inconsistency with Blizzard code to support backdrop alphas:
 	tooltipStyle.backdropColor.GetRGB = _G.ColorMixin.GetRGBA;
 	tooltipStyle.backdropBorderColor.GetRGB = _G.ColorMixin.GetRGBA
+
+  gameTooltip:HookScript("OnShow", function()
+    if (not data.settings.muiTexture.enabled) then
+      originalSetBackdropBorderColor(gameTooltip, unpack(data.settings.backdrop.borderColor));
+    end
+  end);
 
   SetBackdropStyle(data);
   ApplyHealthBarChanges(data);
