@@ -1044,7 +1044,6 @@ function C_ToolTipsModule:OnEnable(data)
     local anchor = data.settings.anchors[anchorType.."Anchor"];
 
     if (anchorType == "mouse") then
-      -- TODO: TEST THIS!
       tooltip:SetOwner(parent, anchor.point, anchor.xOffset, anchor.yOffset);
     else
       tooltip:SetOwner(parent, "ANCHOR_NONE");
@@ -1098,7 +1097,7 @@ function C_ToolTipsModule:OnEnable(data)
         UpdateTargetText(data);
       end
 
-      if (tk:IsRetail() and UnitIsPlayer(MOUSEOVER) and UnitLevel(MOUSEOVER) >= 10 
+      if (tk:IsRetail() and UnitIsPlayer(MOUSEOVER) and UnitLevel(MOUSEOVER) >= 10
           and CanInspect(MOUSEOVER) and CheckInteractDistance(MOUSEOVER, 1)) then
 
         local guid = UnitGUID(MOUSEOVER) or "";
