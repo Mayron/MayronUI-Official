@@ -175,13 +175,11 @@ function tk.Tables:GetFramePosition(frame, useKeys, override)
 
   if (useKeys) then
     positions = obj:PopTable();
-
     positions.point = point;
     positions.relativeFrame = relativeFrame;
     positions.relativePoint = relativePoint;
     positions.x = x;
     positions.y = y;
-
   else
     positions = obj:PopTable(point, relativeFrame, relativePoint, x, y);
   end

@@ -22,7 +22,11 @@ db:AddToDefaults("profile.resourceBars", {
     fontSize = 8;
     texture = "MUI_StatusBar";
   };
-  experienceBar = {};
+  experienceBar = {
+    height = 18;
+    alwaysShowText = true;
+    fontSize = 10;
+  };
   reputationBar = {};
   artifactBar = {};
   azeriteBar = {};

@@ -8,7 +8,6 @@ local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
 local GameTooltip, ipairs, hooksecurefunc, CreateFrame, UIParent, select =
 _G.GameTooltip, _G.ipairs, _G.hooksecurefunc, _G.CreateFrame, _G.UIParent, _G.select;
 local CreateColor = _G.CreateColor;
-local UnitClass = _G.UnitClass;
 
 function tk:SetFontSize(fontString, size)
   local fontPath, _, flags = fontString:GetFont();
@@ -16,12 +15,30 @@ function tk:SetFontSize(fontString, size)
 end
 
 do
+  local function SetOwner(widget)
+    local anchor = widget.tooltipAnchor;
+    local point = TOOLTIP_ANCHOR_POINT
+    local xOffset = 0;
+    local yOffset = 2;
+
+    if (obj:IsTable(anchor)) then
+      point = anchor.point or TOOLTIP_ANCHOR_POINT;
+      xOffset = anchor.xOffset or xOffset;
+      yOffset = anchor.yOffset or yOffset;
+
+    elseif (obj:IsString(anchor)) then
+      point = anchor;
+    end
+
+    GameTooltip:SetOwner(widget, point, xOffset, yOffset);
+  end
+
   function tk.GeneralTooltip_OnLeave()
     GameTooltip:Hide();
   end
 
   function tk.BasicTooltip_OnEnter(self)
-    GameTooltip:SetOwner(self, self.tooltipAnchor or TOOLTIP_ANCHOR_POINT, 0, 2);
+    SetOwner(self);
     GameTooltip:AddLine(self.tooltipText);
     GameTooltip:Show();
   end
@@ -35,32 +52,32 @@ do
   end
 
   local function MultipleLinesTooltip_OnEnter(self)
-    GameTooltip:SetOwner(self, TOOLTIP_ANCHOR_POINT, 0, 2);
+    SetOwner(self);
 
     for _, line in ipairs(self.lines) do
-
       if (line.text) then
         GameTooltip:AddLine(line.text);
 
       elseif (line.leftText and line.rightText) then
-        GameTooltip:AddDoubleLine(line.leftText, line.rightText, nil, nil, nil, 1, 1, 1);
+        local r, g, b = tk:GetThemeColor();
+        GameTooltip:AddDoubleLine(line.leftText, line.rightText, r, g, b, 1, 1, 1);
       end
-
-      if (self.cleanUp) then
-        obj:PushTable(line);
-      end
-    end
-
-    if (self.cleanUp) then
-      obj:PushTable(self.lines);
     end
 
     GameTooltip:Show();
   end
 
-  function tk:SetBasicTooltip(widget, text, anchor)
+  function tk:SetBasicTooltip(widget, text, point, xOffset, yOffset)
     widget.tooltipText = text;
-    widget.tooltipAnchor = anchor;
+
+    if (xOffset or yOffset) then
+      widget.tooltipAnchor = obj:PopTable();
+      widget.tooltipAnchor.point = point;
+      widget.tooltipAnchor.xOffset = xOffset;
+      widget.tooltipAnchor.yOffset = yOffset;
+    else
+      widget.tooltipAnchor = point;
+    end
 
     widget:SetScript("OnEnter", tk.BasicTooltip_OnEnter);
     widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);

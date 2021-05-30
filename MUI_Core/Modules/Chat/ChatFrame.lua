@@ -18,8 +18,7 @@ local FRIENDS_TEXTURE_ONLINE, FRIENDS_TEXTURE_AFK, FRIENDS_TEXTURE_DND =
 local FRIENDS_LIST_AVAILABLE, FRIENDS_LIST_AWAY, FRIENDS_LIST_BUSY =
   _G.FRIENDS_LIST_AVAILABLE, _G.FRIENDS_LIST_AWAY, _G.FRIENDS_LIST_BUSY;
 
-local IsAddOnLoaded = _G.IsAddOnLoaded;
-local UIParent = _G.UIParent;
+local IsAddOnLoaded, InCombatLockdown, UIParent = _G.IsAddOnLoaded, _G.InCombatLockdown, _G.UIParent;
 
 -- C_ChatFrame -----------------------
 
@@ -279,41 +278,75 @@ function C_ChatFrame:Reposition(data)
 end
 
 do
-	local CreatePlayerStatusButton, CreateToggleEmoteButton, CreateCopyChatButton;
+	local CreatePlayerStatusButton,
+    CreateToggleEmoteButton,
+    CreateCopyChatButton,
+    CreateProfessionsButton,
+    CreateShortcutsButton,
+    SetUpChatFrameChannelButton;
 
-	local function PositionChatIconMenu(icon, menu)
-		local chatFrameName = icon:GetParent():GetName();
-		menu:ClearAllPoints();
+	local function PositionChatIconMenu(icon, menu, protected)
+    local chatAnchor = icon:GetParent():GetName():match(".*_(.*)$");
+    menu:ClearAllPoints();
 
-		if (chatFrameName:find("TOPLEFT")) then
-			menu:SetPoint("TOPLEFT", icon, "TOPRIGHT");
+    if (protected) then
+      local x, y = icon:GetCenter();
 
-		elseif (chatFrameName:find("TOPRIGHT")) then
-			menu:SetPoint("TOPRIGHT", icon, "TOPLEFT");
+      if (chatAnchor:find("TOP")) then
+        y = y + 10;
+      elseif (chatAnchor:find("BOTTOM")) then
+        y = y - 10;
+      end
 
-		elseif (chatFrameName:find("BOTTOMLEFT")) then
-			menu:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT");
+      if (chatAnchor:find("LEFT")) then
+        x = x + 15;
+      elseif (chatAnchor:find("RIGHT")) then
+        x = x - 15;
+      end
 
-		elseif (chatFrameName:find("BOTTOMRIGHT")) then
-			menu:SetPoint("BOTTOMRIGHT", icon, "BOTTOMLEFT");
-		end
+      menu:SetPoint(chatAnchor, UIParent, "BOTTOMLEFT", x, y);
+    else
+      local orig, new = "RIGHT", "LEFT";
+
+      if (chatAnchor:find("LEFT")) then
+        orig, new = "LEFT", "RIGHT";
+      end
+
+      local relPoint = chatAnchor:gsub(orig, new);
+      menu:SetPoint(chatAnchor, icon, relPoint);
+    end
 
 		icon:GetScript("OnLeave")(icon);
 	end
 
-	local function PositionIcon(enabled, currentIcon, anchorIcon, frame, createFunc)
+	local function PositionIcon(enabled, currentIcon, anchorIcon, frame, createFunc, bottom)
 		if (enabled) then
 			if (not currentIcon) then
 				currentIcon = createFunc(frame);
-			end
+      elseif (currentIcon.Menu) then
+        currentIcon.Menu:SetParent(frame);
+      end
 
 			currentIcon:ClearAllPoints();
 			currentIcon:SetParent(frame);
+      currentIcon:SetSize(24, 24); -- fixes inconsistencies with blizz buttons (e.g., voice chat icons)
 
 			if (anchorIcon) then
-				currentIcon:SetPoint("BOTTOMLEFT", anchorIcon, "TOPLEFT", 0, 2);
+        local point, relPoint, yOffset = "TOPLEFT", "BOTTOMLEFT", -2;
+
+        if (bottom) then
+          point, relPoint, yOffset = "BOTTOMLEFT", "TOPLEFT", 2;
+        end
+
+				currentIcon:SetPoint(point, anchorIcon, relPoint, 0, yOffset);
 			else
-				currentIcon:SetPoint("BOTTOMLEFT", frame.sidebar, "BOTTOMLEFT", 1, 14);
+        local point, relPoint, yOffset = "TOPLEFT", "TOPLEFT", -14;
+
+        if (bottom) then
+          point, relPoint, yOffset = "BOTTOMLEFT", "BOTTOMLEFT", 14;
+        end
+
+				currentIcon:SetPoint(point, frame.sidebar, relPoint, 1, yOffset);
 			end
 
 			currentIcon:Show();
@@ -327,46 +360,60 @@ do
 	end
 
   function C_ChatFrame.Static:PositionSideBarIcons(chatModuleSettings, muiChatFrame)
-    _G.ChatFrameChannelButton:ClearAllPoints();
-    _G.ChatFrameChannelButton:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPLEFT", -1, -10);
-    _G.ChatFrameChannelButton:SetParent(muiChatFrame);
-    _G.ChatFrameChannelButton:SetShown(chatModuleSettings.icons.voiceChat);
+		local anchorIcon;
+
+    -- TOP ICONS!
+    anchorIcon = PositionIcon(chatModuleSettings.icons.voiceChat,
+      nil, nil, muiChatFrame, SetUpChatFrameChannelButton);
+
+    if (not tk:IsRetail() or not anchorIcon) then
+      -- Profession icons!
+      anchorIcon = PositionIcon(true, -- TODO: Make configurable
+        _G.MUI_ToggleProfessionsButton, anchorIcon, muiChatFrame, CreateProfessionsButton);
+
+        PositionIcon(true, -- TODO: Make configurable
+        _G.MUI_ShortcutsButton, anchorIcon, muiChatFrame, CreateShortcutsButton);
+    end
+
+    -- BOTTOM ICONS!
+    anchorIcon = PositionIcon(chatModuleSettings.icons.playerStatus,
+      _G.MUI_PlayerStatusButton, nil, muiChatFrame, CreatePlayerStatusButton, true);
+
+    anchorIcon = PositionIcon(chatModuleSettings.icons.emotes,
+      _G.MUI_ToggleEmotesButton, anchorIcon, muiChatFrame, CreateToggleEmoteButton, true);
+
+    PositionIcon(chatModuleSettings.icons.copyChat,
+      _G.MUI_CopyChatButton, anchorIcon, muiChatFrame, CreateCopyChatButton, true);
+	end
+
+  function SetUpChatFrameChannelButton()
+    local btn = _G.ChatFrameChannelButton;
 
     if (tk:IsRetail()) then
-      _G.ChatFrameToggleVoiceDeafenButton:SetParent(_G.ChatFrameChannelButton);
-      _G.ChatFrameToggleVoiceMuteButton:SetParent(_G.ChatFrameChannelButton);
+      _G.ChatFrameToggleVoiceDeafenButton:SetParent(btn);
+      _G.ChatFrameToggleVoiceMuteButton:SetParent(btn);
     else
       tk:KillElement(_G.ChatFrameMenuButton);
     end
 
-		local anchorIcon;
+    return btn;
+  end
 
-		anchorIcon = PositionIcon(chatModuleSettings.icons.playerStatus,
-			_G.MUI_PlayerStatusButton, nil, muiChatFrame, CreatePlayerStatusButton);
+  function CreateToggleEmoteButton(muiChatFrame)
+    local toggleEmotesButton = CreateFrame("Button", "MUI_ToggleEmotesButton", muiChatFrame);
+    toggleEmotesButton:SetNormalTexture(string.format("%sspeechIcon", MEDIA));
+    toggleEmotesButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
+    toggleEmotesButton:SetHighlightAtlas("chatframe-button-highlight");
 
-		anchorIcon = PositionIcon(chatModuleSettings.icons.emotes,
-			_G.MUI_ToggleEmotesButton, anchorIcon, muiChatFrame, CreateToggleEmoteButton);
+    tk:SetBasicTooltip(toggleEmotesButton, L["Show Chat Menu"], "ANCHOR_CURSOR_RIGHT", 16, 8);
 
-		PositionIcon(chatModuleSettings.icons.copyChat,
-			_G.MUI_CopyChatButton, anchorIcon, muiChatFrame, CreateCopyChatButton);
-	end
+    toggleEmotesButton:SetScript("OnClick", function(self)
+      PositionChatIconMenu(self, ChatMenu);
+      _G.ChatFrame_ToggleMenu();
+    end);
 
-	function CreateToggleEmoteButton(muiChatFrame)
-		local toggleEmotesButton = _G.CreateFrame("Button", "MUI_ToggleEmotesButton", muiChatFrame);
-		toggleEmotesButton:SetSize(24, 24);
-		toggleEmotesButton:SetNormalTexture(string.format("%sspeechIcon", MEDIA));
-		toggleEmotesButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
-		toggleEmotesButton:SetHighlightAtlas("chatframe-button-highlight");
-
-		tk:SetBasicTooltip(toggleEmotesButton, L["Show Chat Menu"]);
-
-		toggleEmotesButton:SetScript("OnClick", function(self)
-			PositionChatIconMenu(self, ChatMenu);
-			_G.ChatFrame_ToggleMenu();
-		end);
-
-		return toggleEmotesButton;
-	end
+    return toggleEmotesButton;
+  end
 
 	do
 		-- accountNameCode cannot be used as |K breaks the editBox
@@ -469,12 +516,11 @@ do
 
 		function CreateCopyChatButton(muiChatFrame)
 			local copyChatButton = CreateFrame("Button", "MUI_CopyChatButton", muiChatFrame);
-			copyChatButton:SetSize(24, 24);
 			copyChatButton:SetNormalTexture(string.format("%scopyIcon", MEDIA));
 			copyChatButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
 			copyChatButton:SetHighlightAtlas("chatframe-button-highlight");
 
-			tk:SetBasicTooltip(copyChatButton, L["Copy Chat Text"]);
+			tk:SetBasicTooltip(copyChatButton, L["Copy Chat Text"], "ANCHOR_CURSOR_RIGHT", 16, 8);
 
 			copyChatButton:SetScript("OnClick", function(self)
 				if (not self.chatTextFrame) then
@@ -496,9 +542,167 @@ do
 		end
 	end
 
+  ---@type LibAddonCompat
+  local LibAddonCompat = _G.LibStub("LibAddonCompat-1.0");
+  -- local LAB = _G.LibStub("LibActionButton-1.0");
+
+  function CreateProfessionsButton(muiChatFrame)
+    local professionsIcon = CreateFrame("Button", "MUI_ToggleProfessionsButton", muiChatFrame);
+    professionsIcon:SetNormalTexture(string.format("%sbook", MEDIA));
+		professionsIcon:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
+		professionsIcon:SetHighlightAtlas("chatframe-button-highlight");
+
+    tk:SetBasicTooltip(professionsIcon, "Show Professions", "ANCHOR_CURSOR_RIGHT", 16, 8);
+
+    local menuWidth = 240;
+    local buttonHeight = 24;
+    local profMenu = CreateFrame("Frame", "MUI_ProfessionsMenu", UIParent, "TooltipBackdropTemplate");
+    profMenu:SetSize(menuWidth, buttonHeight);
+    profMenu:SetScript("OnShow", _G.UIMenu_OnShow);
+    profMenu:SetScript("OnUpdate", _G.UIMenu_OnUpdate);
+
+    --self, text, shortcut, func, nested, value
+    local prof1, prof2, _, fishing, cooking, firstAid  = LibAddonCompat:GetProfessions();
+    local professions = obj:PopTable(prof1, prof2, fishing, cooking, firstAid);
+    tk.Tables:CleanIndexes(professions);
+
+    local function HideMenu() profMenu:Hide(); end
+
+    local prev;
+    for i, profID in pairs(professions) do
+      local name = "MUI_ProfessionsMenuButton"..i;
+      local btn = CreateFrame("CheckButton", name, profMenu, "SpellButtonTemplate");
+      local btnIcon = _G[name.."IconTexture"];
+
+      local iconFrame = CreateFrame("Frame", nil, btn, _G.BackdropTemplateMixin and "BackdropTemplate");
+      iconFrame:SetSize(buttonHeight, buttonHeight);
+      iconFrame:ClearAllPoints();
+      iconFrame:SetPoint("LEFT", 6, 0);
+      iconFrame:SetBackdrop(tk.Constants.BACKDROP);
+      iconFrame:SetBackdropBorderColor(0, 0, 0, 1);
+
+      btnIcon:SetSize(buttonHeight - 2, buttonHeight - 2);
+      btnIcon:ClearAllPoints();
+      btnIcon:SetPoint("TOPLEFT", iconFrame, "TOPLEFT", 1, -1);
+      btnIcon:SetPoint("BOTTOMRIGHT", iconFrame, "BOTTOMRIGHT", -1, 1);
+      btnIcon:SetTexCoord(0.1, 0.9, 0.1, 0.9);
+
+      btn:SetSize(menuWidth - 8, buttonHeight + 8);
+      btn:SetScript("OnEnter", _G.UIMenuButton_OnEnter);
+      btn:SetScript("OnLeave", _G.UIMenuButton_OnLeave);
+      btn:SetCheckedTexture(nil);
+      btn:DisableDrawLayer("BACKGROUND");
+      btn:DisableDrawLayer("ARTWORK");
+
+      btn.SpellName:SetWidth(300);
+      btn.SpellName:ClearAllPoints();
+      btn.SpellName:SetPoint("TOPLEFT", btnIcon, "TOPRIGHT", 8, 0);
+      btn.SpellSubName:SetFontObject("GameFontHighlightSmall");
+
+      btn:HookScript("OnClick", HideMenu);
+
+      btn:HookScript("OnEvent", function(_, event)
+        local profName, _, skillRank, skillMaxRank, _, spellbookID = LibAddonCompat:GetProfessionInfo(profID);
+        local text = tk.Strings:Concat(profName, " (", skillRank, "/", skillMaxRank, ")");
+
+        btn:SetID(spellbookID + 1);
+        btn.SpellName:SetText(text);
+
+        local r, g, b = tk:GetThemeColor();
+        btn:SetHighlightTexture(1, "ADD");
+        btn:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
+      end);
+
+      btn:ClearAllPoints();
+      if (not prev) then
+        btn:SetPoint("TOPLEFT", 4, -4);
+      else
+        btn:SetPoint("TOPLEFT", prev, "BOTTOMLEFT");
+      end
+
+      prev = btn;
+    end
+
+    profMenu:SetHeight(32 + (#professions * buttonHeight));
+    local missingAnchor = true;
+
+    professionsIcon:SetScript("OnClick", function(self)
+      if (InCombatLockdown()) then
+        MayronUI:Print(L["Cannot toggle menu while in combat."]);
+        return
+      end
+
+      if (missingAnchor) then
+        PositionChatIconMenu(self, profMenu, true);
+        missingAnchor = nil;
+        return
+      end
+
+      profMenu:SetShown(not profMenu:IsShown());
+
+      if (profMenu:IsShown()) then
+        PositionChatIconMenu(self, profMenu, true);
+        missingAnchor = nil;
+      end
+    end);
+
+    return professionsIcon;
+  end
+
+  function CreateShortcutsButton(muiChatFrame)
+    local btn = CreateFrame("Button", "MUI_ShortcutsButton", muiChatFrame);
+    btn:SetNormalTexture(string.format("%sshortcuts", MEDIA));
+    btn:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
+    btn:SetHighlightAtlas("chatframe-button-highlight");
+
+    tk:SetBasicTooltip(btn, "Show AddOn Shortcuts", "ANCHOR_CURSOR_RIGHT", 16, 8);
+
+    local menu = CreateFrame("Frame", "MUI_ShortcutsMenu", muiChatFrame, "UIMenuTemplate");
+    UIMenu_Initialize(menu);
+
+    local lines = {
+      { "MUI Config", "/mui config", function() MayronUI:TriggerCommand("config") end};
+      { "MUI Install", "/mui install", function() MayronUI:TriggerCommand("install") end};
+      { "MUI Layouts", "/mui layouts", function() MayronUI:TriggerCommand("layouts") end};
+      { "MUI Profile Manager", "/mui profiles", function() MayronUI:TriggerCommand("profiles") end};
+      { "MUI Show Profiles", "/mui profiles list", function() MayronUI:TriggerCommand("profiles", "list") end};
+      { "MUI Version", "/mui version", function() MayronUI:TriggerCommand("version") end};
+      { "MUI Report", "/mui report", function() MayronUI:TriggerCommand("report") end};
+      { "Leatrix Plus", _G.SLASH_Leatrix_Plus1, function() _G.SlashCmdList.Leatrix_Plus("") end};
+      { "Toggle Alignment Grid", "/ltp grid", function() _G.SlashCmdList.Leatrix_Plus("grid") end};
+      { "Bartender", "/bt", _G.Bartender4.ChatCommand};
+      { "Shadowed Unit Frames", _G.SLASH_SHADOWEDUF1, function() _G.SlashCmdList.SHADOWEDUF("") end};
+      { "Masque", _G.SLASH_MASQUE1, _G.SlashCmdList.MASQUE};
+      { "Bagnon Bank", "/bgn bank", function() _G.Bagnon.Commands.OnSlashCommand("bank") end };
+      { "Bagnon Guild Bank", "/bgn guild", function() _G.Bagnon.Commands.OnSlashCommand("guild") end, true };
+      { "Bagnon Void Storage", "/bgn vault", function() _G.Bagnon.Commands.OnSlashCommand("vault") end, true };
+      { "Bagnon Config", "/bgn config", function() _G.Bagnon.Commands.OnSlashCommand("config") end };
+    };
+
+    for _, line in pairs(lines) do
+      if (not line[4] or tk:IsRetail()) then
+        UIMenu_AddButton(menu, line[1], line[2], line[3]);
+      end
+    end
+
+    UIMenu_AutoSize(menu);
+    menu:Hide();
+
+    btn:SetScript("OnClick", function(self)
+      menu:SetShown(not menu:IsShown());
+
+      if (menu:IsShown()) then
+        PositionChatIconMenu(self, menu);
+      end
+    end);
+
+    btn.Menu = menu;
+
+    return btn;
+  end
+
 	function CreatePlayerStatusButton(muiChatFrame)
-		local playerStatusButton = _G.CreateFrame("Button", "MUI_PlayerStatusButton", muiChatFrame);
-		playerStatusButton:SetSize(24, 24);
+		local playerStatusButton = CreateFrame("Button", "MUI_PlayerStatusButton", muiChatFrame);
 
 		local listener = em:CreateEventListener(function()
 			local status = _G.FRIENDS_TEXTURE_ONLINE;
@@ -511,16 +715,13 @@ do
 			end
 
 			playerStatusButton:SetNormalTexture(status);
-    end)
+    end);
 
     listener:RegisterEvent("BN_INFO_CHANGED");
     em:TriggerEventListener(listener);
 
 		playerStatusButton:SetHighlightAtlas("chatframe-button-highlight");
-		tk:SetBasicTooltip(playerStatusButton, L["Change Status"]);
-
-		local statusMenu = CreateFrame("Frame", "MUI_StatusMenu", muiChatFrame, "UIMenuTemplate");
-		UIMenu_Initialize(statusMenu);
+		tk:SetBasicTooltip(playerStatusButton, L["Change Status"], "ANCHOR_CURSOR_RIGHT", 16, 8);
 
 		local optionText = "\124T%s.tga:16:16:0:0\124t %s";
 		local availableText = string.format(optionText, FRIENDS_TEXTURE_ONLINE, FRIENDS_LIST_AVAILABLE);
@@ -532,20 +733,24 @@ do
 			playerStatusButton:SetNormalTexture(btn.value);
 		end
 
-		--self, text, shortcut, func, nested, value
-		UIMenu_AddButton(statusMenu, availableText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_ONLINE);
-		UIMenu_AddButton(statusMenu, afkText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_AFK);
-		UIMenu_AddButton(statusMenu, dndText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_DND);
-		UIMenu_AutoSize(statusMenu);
-		statusMenu:Hide();
+    local statusMenu = CreateFrame("Frame", "MUI_StatusMenu", muiChatFrame, "UIMenuTemplate");
+    UIMenu_Initialize(statusMenu);
+    --self, text, shortcut, func, nested, value
+    UIMenu_AddButton(statusMenu, availableText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_ONLINE);
+    UIMenu_AddButton(statusMenu, afkText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_AFK);
+    UIMenu_AddButton(statusMenu, dndText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_DND);
+    UIMenu_AutoSize(statusMenu);
+    statusMenu:Hide();
 
-		playerStatusButton:SetScript("OnClick", function(self)
-			statusMenu:SetShown(not statusMenu:IsShown());
+    playerStatusButton:SetScript("OnClick", function(self)
+      statusMenu:SetShown(not statusMenu:IsShown());
 
-			if (statusMenu:IsShown()) then
-				PositionChatIconMenu(self, statusMenu);
-			end
-		end);
+      if (statusMenu:IsShown()) then
+        PositionChatIconMenu(self, statusMenu);
+      end
+    end);
+
+    playerStatusButton.Menu = statusMenu;
 
 		return playerStatusButton;
 	end

@@ -39,6 +39,7 @@ Libs\AceLocale-3.0.lua
 Libs\SortBags.lua
 Libs\LibClassicCasterino.lua
 Libs\LibClassicDurations\LibClassicDurations.xml
+Libs\LibAddonCompat.lua
 
 ## Localization
 ## -------------------------------------------------

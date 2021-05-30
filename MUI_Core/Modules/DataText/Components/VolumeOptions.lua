@@ -76,7 +76,7 @@ local function CreateLabel(contentFrame, cvarName, text, component)
   return label;
 end
 
-local function button_OnEnter(self)
+local function ButtonOnEnter(self)
   local r, g, b = tk:GetThemeColor();
   GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
   GameTooltip:SetText(L["Commands"]..":");
@@ -90,7 +90,7 @@ local function button_OnEnter(self)
   GameTooltip:Show();
 end
 
-local function button_OnLeave()
+local function ButtonOnLeave()
   GameTooltip:Hide();
 end
 
@@ -121,8 +121,8 @@ function VolumeOptions:SetEnabled(data, enabled)
 
   if (enabled) then
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-    self.Button:SetScript("OnEnter", button_OnEnter);
-    self.Button:SetScript("OnLeave", button_OnLeave);
+    self.Button:SetScript("OnEnter", ButtonOnEnter);
+    self.Button:SetScript("OnLeave", ButtonOnLeave);
   else
     self.Button:RegisterForClicks("LeftButtonUp");
     self.Button:SetScript("OnEnter", nil);
