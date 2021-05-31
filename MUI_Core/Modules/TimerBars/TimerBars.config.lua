@@ -399,7 +399,7 @@ might not be known to the player and will be hidden unles this is enabled.
                           {   name = L["Bar Width"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".bar.width";
-                              tooltip = tk.Strings:Concat(L["Default value is "], "213");
+                              tooltip = tk.Strings:Concat(L["Default value is"], " 213");
                               step = 1;
                               min = 100;
                               max = 400;
@@ -407,7 +407,7 @@ might not be known to the player and will be hidden unles this is enabled.
                           {   name = L["Bar Height"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".bar.height";
-                              tooltip = tk.Strings:Concat(L["Default value is "], "22");
+                              tooltip = tk.Strings:Concat(L["Default value is"], " 22");
                               step = 1;
                               min = 5;
                               max = 50;
@@ -415,17 +415,17 @@ might not be known to the player and will be hidden unles this is enabled.
                           {   name = L["Bar Spacing"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".bar.spacing";
-                              tooltip = tk.Strings:Concat(L["Default value is "], "2");
+                              tooltip = tk.Strings:Concat(L["Default value is"], " 2");
                               step = 1;
                               min = 0;
                               max = 10;
                           };
-                          {   name = "Non-Player Alpha";
+                          {   name = L["Non-Player Alpha"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".nonPlayerAlpha";
                               tooltip = tk.Strings:Concat(
-                                "Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs).",
-                                "\n\n", L["Default value is "], dbFieldPath == "Player" and "1" or "0.7");
+                                L["Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs)."],
+                                "\n\n", L["Default value is"], dbFieldPath == "Player" and " 1" or  "0.7");
                               step = 0.1;
                               min = 0;
                               max = 1;
@@ -481,7 +481,7 @@ might not be known to the player and will be hidden unles this is enabled.
                           };
                           {   name = L["Font Size"];
                               type = "slider";
-                              tooltip = L["Default is 11"];
+                              tooltip = tk.Strings:JoinWithSpace(L["Default value is"], 11);
                               step = 1;
                               min = 8;
                               max = 22;
@@ -504,7 +504,7 @@ might not be known to the player and will be hidden unles this is enabled.
                           };
                           {   name = L["Font Size"];
                               type = "slider";
-                              tooltip = L["Default is 11"];
+                              tooltip = tk.Strings:JoinWithSpace(L["Default value is"], 11);
                               step = 1;
                               min = 8;
                               max = 22;

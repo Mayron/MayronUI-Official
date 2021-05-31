@@ -127,14 +127,14 @@ function tk.Strings:SetTextColorByRGB(text, r, g, b)
 end
 
 function tk.Strings:SetTextColorByKey(text, colorKey)
-    return tk.Constants.COLORS[colorKey:upper()]:WrapTextInColorCode(text);
+  return tk.Constants.COLORS[colorKey:upper()]:WrapTextInColorCode(text);
 end
 
 function tk.Strings:Concat(...)
-    local wrapper = obj:PopTable(...);
-    local value = table.concat(wrapper, tk.Strings.Empty);
-    obj:PushTable(wrapper);
-    return value;
+  local wrapper = obj:PopTable(...);
+  local value = table.concat(wrapper, tk.Strings.Empty);
+  obj:PushTable(wrapper);
+  return value;
 end
 
 function tk.Strings:Split(str, seperator, sectionNum)
@@ -146,18 +146,18 @@ function tk.Strings:Split(str, seperator, sectionNum)
 end
 
 function tk.Strings:Join(separator, ...)
-    local wrapper = obj:PopTable(...);
+  local wrapper = obj:PopTable(...);
 
-    tk:Assert(#wrapper > 0, "List of values to join cannot be empty.");
+  tk:Assert(#wrapper > 0, "List of values to join cannot be empty.");
 
-    local value = table.concat(wrapper, separator);
-    obj:PushTable(wrapper);
+  local value = table.concat(wrapper, separator);
+  obj:PushTable(wrapper);
 
-    return value;
+  return value;
 end
 
 function tk.Strings:JoinWithSpace(...)
-    return tk.Strings:Join(tk.Strings.Space, ...);
+  return tk.Strings:Join(tk.Strings.Space, ...);
 end
 
 -- also includes level at the end

@@ -28,7 +28,7 @@ function C_MiniMapModule:GetConfigTable()
                 valueType = "number",
                 min = 120;
                 max = 400;
-                tooltip = tk.Strings:Join("\n", L["Adjust the size of the minimap."], L["Default value is "].."200"),
+                tooltip = tk.Strings:Join("\n", L["Adjust the size of the minimap."], L["Default value is"].." 200"),
                 appendDbPath = "size",
             };
             {   name = L["Scale"],
@@ -37,7 +37,7 @@ function C_MiniMapModule:GetConfigTable()
                 min = 0.5;
                 step = 0.1;
                 max = 3;
-                tooltip = tk.Strings:Join("\n", L["Adjust the scale of the minimap."], L["Default value is "].."1"),
+                tooltip = tk.Strings:Join("\n", L["Adjust the scale of the minimap."], L["Default value is"].." 1"),
                 appendDbPath = "scale",
             };
             {   name = L["Zone Text"],
@@ -62,7 +62,7 @@ function C_MiniMapModule:GetConfigTable()
             },
             {   name = L["Font Size"],
                 type = "slider",
-                tooltip = tk.Strings:Join("\n", L["Adjust the font size of the zone text."], L["Default value is "].."12"),
+                tooltip = tk.Strings:Join("\n", L["Adjust the font size of the zone text."], L["Default value is"].." 12"),
                 min = 8,
                 max = 18,
                 appendDbPath = "zoneText.fontSize",
@@ -77,7 +77,7 @@ function C_MiniMapModule:GetConfigTable()
                 min = -20;
                 max = 20;
                 step = 1;
-                tooltip = L["Default value is "].."-4";
+                tooltip = L["Default value is"].." -4";
                 appendDbPath = "zoneText.yOffset";
 
                 OnLoad = function(_, container)
@@ -87,9 +87,9 @@ function C_MiniMapModule:GetConfigTable()
             };
             {   type = "dropdown",
                 name = L["Justify Text"],
-                options = { Left = "LEFT", Right = "RIGHT", Center = "CENTER" },
+                options = { [L["Left"]] = "LEFT", [L["Right"]] = "RIGHT", [L["Center"]] = "CENTER" },
                 appendDbPath = "zoneText.justify";
-                tooltip = L["Default value is "].."Center";
+                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], L["Center"]);
 
                 OnLoad = function(_, container)
                   widgets.justifyTextDropDownMenu = container.widget;

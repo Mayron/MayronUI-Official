@@ -196,13 +196,20 @@ do
     -- updateFunctionPath is the located function (or table if no function found) path
     -- originalPathOfValue is the original path LibMayronDB tried to find
 
-    dbObject:RegisterUpdateFunctions(observerPath, data.updateFunctions, function(updateFunction, fullPath, newValue)
+    dbObject:RegisterUpdateFunctions(observerPath, data.updateFunctions, function(updateFunction, fullPath, newValue, ignoreUpdate)
       if (obj:IsType(newValue, "Observer")) then
         newValue = newValue:GetUntrackedTable();
       end
 
-      local onPre, onPost;
       local settingPath = fullPath:gsub(observerPath..".", tk.Strings.Empty);
+
+      if (ignoreUpdate) then
+        -- update settings:
+        dbObject:SetPathValue(data.settings, settingPath, newValue);
+        return
+      end
+
+      local onPre, onPost;
 
       if (updateFunction == nil) then
         -- check if a group function can be used

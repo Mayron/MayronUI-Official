@@ -8,7 +8,7 @@ if (not Lib) then return; end
 local Private = Lib.Private;
 local obj = _G.MayronObjects:GetFramework();
 local SlideController = obj:Import("MayronUI.SlideController");
-local DropDownMenu = obj:CreateClass("DropDownMenu");
+local DropDownMenu = obj:CreateClass("DropDownMenu"); ---@class DropDownMenu
 obj:Export(DropDownMenu, "MayronUI");
 
 DropDownMenu.Static.MAX_HEIGHT = 200;

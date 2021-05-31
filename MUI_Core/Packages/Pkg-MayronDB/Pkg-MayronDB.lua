@@ -329,7 +329,7 @@ obj:DefineParams("string");
 ---Triggers an update function located by the path argument and pass any arguments to the function
 ---@param path string @A database path string, such as "profile.myTable.mySubTable[2]" (includes root path).
     --- This is needed to locate the updateFunction
-function Database:TriggerUpdateFunction(data, path)
+function Database:TriggerUpdateFunction(data, path, ...)
   local updateFunction = self:ParsePathValue(data.updateFunctions, path);
   local manualFunction;
 
@@ -360,23 +360,23 @@ function Database:TriggerUpdateFunction(data, path)
 
   if (obj:IsFunction(manualFunction)) then
     if (obj:IsFunction(updateFunction)) then
-      -- could not find an update function
-      manualFunction(updateFunction, path, value);
+      manualFunction(updateFunction, path, value, ...);
     else
-      manualFunction(nil, path, value);
+      -- could not find an update function
+      manualFunction(nil, path, value, ...);
     end
 
   elseif (obj:IsFunction(updateFunction)) then
-    updateFunction(value, path);
+    updateFunction(value, path, ...);
   end
 end
 
-obj:DefineParams("table|string");
+obj:DefineParams("table|string", "any");
 ---Adds a value to a table relative to a path: rootTable.<path> = <value>
 ---@param rootTableOrPath table|string @The initial root table to search from OR a string that starts with "global" or "profile" so that the rootTable can be calculated.
 ---@param pathOrValue any @(optional) A table path string (also called a path address), such as "myTable.mySubTable[2]", or if rootTable is a string representing the path then this is the value argument. If it is the path then this is converted to a sequence of tables which are added to the database if they do not already exist (myTable will be created if not found).
 ---@param value any @(optional) A value to assign to the table relative to the provided path string (is nil if the path argument is the value)
-function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
+function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value, ...)
   local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
 
   obj:Assert(obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
@@ -390,7 +390,7 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value)
   -- set value here!
   if (lastTable.IsObjectType and lastTable:IsObjectType("Observer")) then
     local observerData = data:GetFriendData(lastTable);
-    data.helper:HandlePathValueChange(observerData, lastKey, realValue);
+    data.helper:HandlePathValueChange(observerData, lastKey, realValue, ...);
   else
     lastTable[lastKey] = realValue;
   end
@@ -1327,8 +1327,8 @@ function Helper:GetDatabaseRootTableName(data, observer)
   end
 end
 
-obj:DefineParams("table", "string|number", "?any");
-function Helper:HandlePathValueChange(data, observerData, key, newValue)
+obj:DefineParams("table", "string|number");
+function Helper:HandlePathValueChange(data, observerData, key, newValue, ...)
   local path, defaultRootTable, svRootTable, isGlobal, dbTableRootName;
 
   if (observerData.usingChild) then
@@ -1365,7 +1365,7 @@ function Helper:HandlePathValueChange(data, observerData, key, newValue)
   if (dbTableRootName) then
     -- only run update function if the database saved variable table changes!
     local fullPath = string.format("%s.%s", dbTableRootName, valuePath);
-    data.database:TriggerUpdateFunction(fullPath);
+    data.database:TriggerUpdateFunction(fullPath, ...);
   end
 end
 

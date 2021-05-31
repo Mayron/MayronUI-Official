@@ -159,7 +159,7 @@ function C_ConfigModule:GetConfigTable()
                     step = 50;
                     valueType   = "number";
                     tooltip     = tk.Strings:Concat(
-                        L["Adjust the width of the main container."], "\n\n", L["Default value is "], "750");
+                        L["Adjust the width of the main container."], "\n\n", L["Default value is"], " 750");
                     dbPath      = "profile.bottomui.width";
                 };
                 {
@@ -254,7 +254,7 @@ function C_ConfigModule:GetConfigTable()
                     step = 10;
                     valueType   = "number";
                     tooltip     = tk.Strings:Concat(L["Adjust the width of the unit frame background panels."], "\n\n",
-                        L["Minimum value is "], "200", "\n\n", L["Default value is "], "325");
+                        L["Minimum value is "], "200", "\n\n", L["Default value is"], " 325");
                     dbPath      = "profile.unitPanels.unitWidth";
                 };
                 {   name        = L["Set Height"];
@@ -265,7 +265,7 @@ function C_ConfigModule:GetConfigTable()
                     max = 200;
                     step = 5;
                     tooltip     = tk.Strings:Concat(L["Adjust the height of the unit frame background panels."],
-                        "\n\n", L["Default value is "], "75");
+                        "\n\n", L["Default value is"], " 75");
                     dbPath      = "profile.unitPanels.unitHeight";
                 };
                 {   name        = "Set Alpha";
@@ -275,12 +275,12 @@ function C_ConfigModule:GetConfigTable()
                     min = 0;
                     max = 1;
                     step = 0.1;
-                    tooltip     = tk.Strings:Concat(L["Default value is "], "0.8");
+                    tooltip     = tk.Strings:Concat(L["Default value is"], " 0.8");
                     dbPath      = "profile.unitPanels.alpha";
                 };
                 {   name        = "Set Pulse Strength";
                     type        = "slider";
-                    tooltip     =  tk.Strings:Concat("Set the alpha change while pulsing/flashing", L["Default value is "], "0.3");
+                    tooltip     =  tk.Strings:Concat("Set the alpha change while pulsing/flashing", L["Default value is"], " 0.3");
                     module      = "UnitPanels";
                     valueType   = "number";
                     min = 0;
@@ -307,7 +307,7 @@ function C_ConfigModule:GetConfigTable()
                     max = 300;
                     step = 5;
                     tooltip     = tk.Strings:Concat(L["Adjust the width of the unit name background panels."], "\n\n",
-                        L["Default value is "], "235");
+                        L["Default value is"], " 235");
                     dbPath      = "profile.unitPanels.unitNames.width";
                 };
                 {   name        = L["Set Height"];
@@ -316,7 +316,7 @@ function C_ConfigModule:GetConfigTable()
                     max = 30;
                     step = 1;
                     tooltip     = tk.Strings:Concat(L["Adjust the height of the unit name background panels."], "\n\n",
-                        L["Default value is "], "20");
+                        L["Default value is"], " 20");
                     dbPath      = "profile.unitPanels.unitNames.height";
                 };
                 {   name        = L["X-Offset"];
@@ -325,13 +325,13 @@ function C_ConfigModule:GetConfigTable()
                     max = 50;
                     step = 1;
                     tooltip     = tk.Strings:Concat(L["Move the unit name panels further in or out."],
-                        "\n\n", L["Default value is "], "24");
+                        "\n\n", L["Default value is"], " 24");
                     dbPath      = "profile.unitPanels.unitNames.xOffset";
                 };
                 {   name    = L["Font Size"];
                     type    = "slider";
                     tooltip = tk.Strings:Concat(L["Set the font size of unit names."],
-                        "\n\n", L["Default value is "], "11");
+                        "\n\n", L["Default value is"], " 11");
                     step    = 1;
                     min     = 8;
                     max     = 18;
@@ -350,7 +350,7 @@ function C_ConfigModule:GetConfigTable()
                     min = 1;
                     max = 50;
                     step = 1;
-                    tooltip = tk.Strings:Concat(L["The height of the gradient effect."], "\n\n", L["Default value is "], "24");
+                    tooltip = tk.Strings:Concat(L["The height of the gradient effect."], "\n\n", L["Default value is"], " 24");
                     dbPath  = "profile.unitPanels.sufGradients.height";
                 };
                 {   type    = "fontstring";
@@ -449,7 +449,7 @@ function C_ConfigModule:GetConfigTable()
                         {   name    = L["Animation Speed"];
                             type    = "slider";
                             tooltip = tk.Strings:Concat(L["The speed of the Expand and Retract transitions."], "\n\n",
-                                L["The higher the value, the quicker the speed."], "\n\n", L["Default value is "], "6");
+                                L["The higher the value, the quicker the speed."], "\n\n", L["Default value is"], " 6");
                             step    = 1;
                             min     = 1;
                             max     = 10;
@@ -664,11 +664,11 @@ function C_ConfigModule:GetConfigTable()
                             type        = "slider";
                             min = 20,
                             max = 100,
-                            tooltip     = L["Default value is "].."46";
+                            tooltip     = L["Default value is"].." 46";
                             dbPath      = "profile.sidebar.retractWidth"
                         };
                         {   name        = L["Width (With 2 Bars)"];
-                            tooltip     = L["Default value is "].."83";
+                            tooltip     = L["Default value is"].." 83";
                             type        = "slider";
                             min = 20,
                             max = 200,
@@ -677,7 +677,7 @@ function C_ConfigModule:GetConfigTable()
                         {   type        = "divider";
                         };
                         {   name        = L["Set Height"];
-                            tooltip     = L["Default value is "].."486";
+                            tooltip     = L["Default value is"].." 486";
                             type        = "slider";
                             min = 200,
                             max = 800,
@@ -685,7 +685,7 @@ function C_ConfigModule:GetConfigTable()
                             dbPath      = "profile.sidebar.height"
                         };
                         {   name        = L["X-Offset"];
-                            tooltip     = L["Default value is "].."0";
+                            tooltip     = L["Default value is"].." 0";
                             type        = "slider";
                             min = -300,
                             max = 0,
@@ -693,7 +693,7 @@ function C_ConfigModule:GetConfigTable()
                             dbPath      = "profile.sidebar.xOffset"
                         };
                         {   name        = L["Y-Offset"];
-                            tooltip     = L["Default value is "].."40";
+                            tooltip     = L["Default value is"].." 40";
                             type        = "slider";
                             min = -300,
                             max = 300,
@@ -706,7 +706,7 @@ function C_ConfigModule:GetConfigTable()
                             type    = "slider";
                             tooltip = L["The speed of the Expand and Retract transitions."].."\n\n"..
                                         L["The higher the value, the quicker the speed."].."\n\n"..
-                                        L["Default value is "].."6.";
+                                        L["Default value is"].." 6.";
                             step    = 1;
                             min     = 1;
                             max     = 10;
@@ -759,7 +759,7 @@ function C_ConfigModule:GetConfigTable()
                         };
                         {   name        = L["Set Width"];
                             type        = "slider";
-                            tooltip     = tk.Strings:Concat(L["Default value is "], "15.", "\n\n",
+                            tooltip     = tk.Strings:Concat(L["Default value is"], " 15.", "\n\n",
                                             L["Minimum value is"], " ", 15, "\n\n", L["Maximum value is"], " ", 30);
                             dbPath      = "profile.sidebar.buttons.width";
                             min         = 15;
@@ -768,7 +768,7 @@ function C_ConfigModule:GetConfigTable()
                         };
                         {   name        = L["Set Height"];
                             type        = "slider";
-                            tooltip     = tk.Strings:Concat(L["Default value is "], "100.", "\n\n",
+                            tooltip     = tk.Strings:Concat(L["Default value is"], " 100.", "\n\n",
                                             L["Minimum value is"], " ", 50, "\n\n", L["Maximum value is"], " ", 300);
                             dbPath      = "profile.sidebar.buttons.height";
                             min         = 50;
@@ -803,12 +803,12 @@ function C_ConfigModule:GetConfigTable()
                             };
                             {   name    = L["Enabled"];
                                 type    = "check";
-                                tooltip = L["Default value is "]..L["true"];
+                                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], L["true"]);
                                 dbPath  = tk.Strings:Concat("profile.resourceBars.", key, ".enabled");
                             };
                             {   name    = L["Show Text"];
                                 type    = "check";
-                                tooltip = L["Default value is "]..L["false"];
+                                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], L["false"]);
                                 dbPath  = tk.Strings:Concat("profile.resourceBars.", key, ".alwaysShowText");
                             };
                             {   name    = L["Height"];
@@ -816,7 +816,7 @@ function C_ConfigModule:GetConfigTable()
                                 step    = 1;
                                 min     = 4;
                                 max     = 30;
-                                tooltip = L["Default value is "].."8";
+                                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "8");
                                 dbPath  = tk.Strings:Concat("profile.resourceBars.", key, ".height");
                             };
                             {   name    = L["Font Size"];
@@ -824,7 +824,7 @@ function C_ConfigModule:GetConfigTable()
                                 step    = 1;
                                 min     = 8;
                                 max     = 18;
-                                tooltip = L["Default value is "].."8";
+                                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "8");
                                 dbPath  = tk.Strings:Concat("profile.resourceBars.", key, ".fontSize");
                             };
                             {   type = "dropdown";
@@ -875,7 +875,7 @@ function C_ConfigModule:GetConfigTable()
                     max = 400;
                     step = 50;
                     tooltip     = tk.Strings:Concat(L["Adjust the width of the Objective Tracker."],"\n\n",
-                                L["Default value is "], "250");
+                                L["Default value is"], " 250");
                     dbPath      = "profile.objectiveTracker.width";
                     valueType   = "number";
                 };
@@ -885,7 +885,7 @@ function C_ConfigModule:GetConfigTable()
                     max = 1000;
                     step = 50;
                     tooltip     = tk.Strings:Concat(L["Adjust the height of the Objective Tracker."], "\n\n",
-                                L["Default value is "], "600");
+                                L["Default value is"], " 600");
                     dbPath      = "profile.objectiveTracker.height";
                     valueType   = "number";
                 };
@@ -895,7 +895,7 @@ function C_ConfigModule:GetConfigTable()
                     max = 300;
                     step = 1;
                     tooltip     = tk.Strings:Concat(L["Adjust the horizontal positioning of the Objective Tracker."],
-                                    "\n\n", L["Default value is "], "-30");
+                                    "\n\n", L["Default value is"], " -30");
                     dbPath      = "profile.objectiveTracker.xOffset";
                     valueType   = "number";
                 };
@@ -905,7 +905,7 @@ function C_ConfigModule:GetConfigTable()
                     max = 300;
                     step = 1;
                     tooltip     = tk.Strings:Concat(L["Adjust the vertical positioning of the Objective Tracker."], "\n\n",
-                                    L["Default value is "], "0");
+                                    L["Default value is"], " 0");
                     dbPath      = "profile.objectiveTracker.yOffset";
                     valueType   = "number";
                 };

@@ -70,12 +70,17 @@ local defaults = {
 		};
   };
 
+  iconsAnchor = "TOPLEFT"; -- which chat frame to align them to
 	icons = {
-		anchor       = "TOPLEFT";
-		copyChat     = true;
-		emotes       = true;
-    playerStatus = true;
-    voiceChat = true;
+    { type = "voiceChat" };
+    -- optional:
+    -- { type = "deafen" };
+    -- { type = "mute" };
+    { type = "professions" };
+    { type = "shortcuts" };
+    { type = "copyChat" };
+    { type = "emotes" };
+    { type = "playerStatus" };
   };
 
   editBox = {
@@ -153,7 +158,7 @@ function C_ChatModule:OnInitialize(data)
 				"editBox.backdropColor";
 			};
 			ignore = {
-				"icons";
+				"icons", "iconsAnchor";
 			}
 		};
 		groups = {
@@ -186,6 +191,10 @@ function C_ChatModule:OnInitialize(data)
 	end
 
 	self:RegisterUpdateFunctions(db.profile.chat, {
+    iconsAnchor = function()
+      C_ChatFrame.Static:SetUpSideBarIcons(self, data.settings);
+		end;
+
     icons = function()
       C_ChatFrame.Static:SetUpSideBarIcons(self, data.settings);
 		end;
@@ -306,24 +315,27 @@ end
 ----------------------------------
 function C_ChatModule:OnInitialized(data)
   if (not data.settings.enabled) then return end
+
+  -- perform migration if old settings are found:
+  if (not tk.Tables:All(data.settings.icons, obj.IsTable)) then
+    db:SetPathValue("profile.chat.icons", nil, nil, false);
+  end
+
   -- Override Blizzard Stuff -----------------------
   local function RepositionChatTab()
     ChatFrame1Tab:SetPoint("LEFT", 16, 0);
   end
 
-  -- override with a dummy function
-  --luacheck: ignore FCFTab_UpdateColors
-  function FCFTab_UpdateColors() end
+  _G.FCFTab_UpdateColors = tk.Constants.DUMMY_FUNC;
 
-  --luacheck: ignore FCF_SetTabPosition
-  function FCF_SetTabPosition(chatFrame)
+  function _G.FCF_SetTabPosition(chatFrame)
     local chatFrameTab = _G[string.format("%sTab", chatFrame:GetName())];
 
     if (not chatFrame.isDocked) then
       chatFrameTab:ClearAllPoints();
 
       if (IsCombatLog(chatFrame)) then
-        chatFrameTab:SetPoint("BOTTOMLEFT", _G["CombatLogQuickButtonFrame_Custom"], "TOPLEFT", 15, 10);
+        chatFrameTab:SetPoint("BOTTOMLEFT", _G.CombatLogQuickButtonFrame_Custom, "TOPLEFT", 15, 10);
       else
         chatFrameTab:SetPoint("BOTTOMLEFT", chatFrame, "TOPLEFT", 15, 10);
       end
@@ -344,7 +356,7 @@ function C_ChatModule:OnInitialized(data)
     ChatFrame1EditBox:SetBackdropBorderColor(r, g, b, 1);
   end);
 
-  -- probably not needed
+  -- probably not needed anymore
   hooksecurefunc("FCF_OpenTemporaryWindow", function()
     local chat =_G.FCF_GetCurrentChatFrame();
 

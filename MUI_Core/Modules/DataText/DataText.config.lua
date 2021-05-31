@@ -53,7 +53,7 @@ function C_DataTextModule:GetConfigTable()
                 valueType = "number",
                 min = 10;
                 max = 50;
-                tooltip = tk.Strings:Join("\n", L["Adjust the height of the datatext bar."], L["Default value is "].."24"),
+                tooltip = tk.Strings:Join("\n", L["Adjust the height of the datatext bar."], L["Default value is"].." 24"),
                 appendDbPath = "height",
             },
             {   name = L["Menu Width"],
@@ -61,7 +61,7 @@ function C_DataTextModule:GetConfigTable()
                 min = 150;
                 max = 400;
                 step = 10;
-                tooltip = L["Default value is "].."200",
+                tooltip = L["Default value is"].." 200",
                 appendDbPath = "popup.width",
             },
             {   name = L["Max Menu Height"],
@@ -69,7 +69,7 @@ function C_DataTextModule:GetConfigTable()
                 min = 150;
                 max = 400;
                 step = 10;
-                tooltip = L["Default value is "].."250",
+                tooltip = L["Default value is"].." 250",
                 appendDbPath = "popup.maxHeight",
             },
             {   type = "divider"

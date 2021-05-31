@@ -8,7 +8,7 @@ local MayronUI = _G.MayronUI;
 local table, ipairs, select, string, unpack, print = _G.table, _G.ipairs, _G.select, _G.string, _G.unpack, _G.print;
 local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI =
   _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
-local strsplit, GetAddOnMetadata, tostring = _G.strsplit, _G.GetAddOnMetadata, _G.tostring;
+local strsplit, tostring = _G.strsplit, _G.tostring;
 local collectgarbage, CreateFont = _G.collectgarbage, _G.CreateFont;
 local hooksecurefunc = _G.hooksecurefunc;
 local FillLocalizedClassList, UnitName = _G.FillLocalizedClassList, _G.UnitName;
@@ -31,7 +31,6 @@ local tk  = namespace.components.Toolkit; ---@type Toolkit
 local db  = namespace.components.Database; ---@type Database
 local em  = namespace.components.EventManager; ---@type EventManager
 local gui = namespace.components.GUIBuilder; ---@type LibMayronGUI
-
 local L   = namespace.components.Locale; ---@type Locale
 
 if (tk:IsClassic()) then

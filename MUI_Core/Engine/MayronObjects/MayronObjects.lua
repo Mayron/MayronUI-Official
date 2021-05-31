@@ -987,31 +987,42 @@ end
 -------------------------------------
 --- Framework Helper Methods
 -------------------------------------
-function Framework:IsTable(value)
+function Framework.IsTable(self, value)
+  if (self ~= Framework) then value = self; end
   return type(value) == SimpleTypes[1];
 end
 
-function Framework:IsNumber(value)
+function Framework.IsNumber(self, value)
+  if (self ~= Framework) then value = self; end
   return type(value) == SimpleTypes[2];
 end
 
-function Framework:IsFunction(value)
+function Framework.IsFunction(self, value)
+  if (self ~= Framework) then value = self; end
   return type(value) == SimpleTypes[3];
 end
 
-function Framework:IsBoolean(value)
+function Framework.IsBoolean(self, value)
+  if (self ~= Framework) then value = self; end
   return type(value) == SimpleTypes[4];
 end
 
-function Framework:IsString(value)
+function Framework.IsString(self, value)
+  if (self ~= Framework) then value = self; end
   return type(value) == SimpleTypes[5];
 end
 
-function Framework:IsNil(value)
+function Framework.IsNil(self, value)
+  if (self ~= Framework) then value = self; end
   return type(value) == SimpleTypes[6];
 end
 
-function Framework:IsType(value, expectedTypeName)
+function Framework.IsType(self, value, expectedTypeName)
+  if (self ~= Framework) then
+    expectedTypeName = value;
+    value = self;
+  end
+
   -- check if basic type
   for _, typeName in pairs(SimpleTypes) do
     if (expectedTypeName == typeName) then
@@ -1040,8 +1051,10 @@ function Framework:IsType(value, expectedTypeName)
   return false;
 end
 
-function Framework:IsObject(value)
-  if (not self:IsTable(value)) then
+function Framework.IsObject(self, value)
+  if (self ~= Framework) then value = self; end
+
+  if (not Framework.IsTable(value)) then
     return false;
   end
 
@@ -1057,8 +1070,10 @@ end
 ---@param value any @Any value to check whether it is of the expected widget type.
 ---@param widgetType string @An optional widget type to test if the value is that type of widget.
 ---@return boolean @true if the value is a Blizzard widgets, such as a Frame or Button.
-function Framework:IsWidget(value, widgetType)
-  if (not self:IsTable(value)) then
+function Framework.IsWidget(self, value, widgetType)
+  if (self ~= Framework) then value = self; end
+
+  if (not Framework:IsTable(value)) then
     return false;
   end
 
@@ -1068,23 +1083,25 @@ function Framework:IsWidget(value, widgetType)
     return false;
   end
 
-  local isWidget = (self:IsFunction(value.IsObjectType) and value:IsObjectType("Frame") or value:IsObjectType("Texture"));
+  local isWidget = (Framework:IsFunction(value.IsObjectType) and value:IsObjectType("Frame") or value:IsObjectType("Texture"));
 
-  if (isWidget and self:IsString(widgetType)) then
+  if (isWidget and Framework:IsString(widgetType)) then
     isWidget = value:IsObjectType(widgetType);
   end
 
   return isWidget;
 end
 
-function Framework:IsStringNilOrWhiteSpace(strValue)
-  if (strValue) then
-    self:Assert(Framework:IsString(strValue),
-      "bad argument #1 (string expected, got %s)", type(strValue));
+function Framework.IsStringNilOrWhiteSpace(self, value)
+  if (self ~= Framework) then value = self; end
 
-    strValue = strValue:gsub("%s+", "");
+  if (value) then
+    Framework:Assert(Framework:IsString(value),
+      "bad argument #1 (string expected, got %s)", type(value));
 
-    if (#strValue > 0) then
+      value = value:gsub("%s+", "");
+
+    if (#value > 0) then
       return false;
     end
   end

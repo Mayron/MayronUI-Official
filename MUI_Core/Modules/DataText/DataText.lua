@@ -111,7 +111,7 @@ function C_DataTextModule:OnInitialize(data)
         value = function(_, keysList)
           local componentName = keysList:PopFront();
           local component = tk.Tables:First(data.activeComponents,
-          function(c) return c.SavedVariableName == componentName end);
+            function(c) return c.SavedVariableName == componentName end);
 
           if (not component) then
             -- filter out missing update functions (such as popup settings)

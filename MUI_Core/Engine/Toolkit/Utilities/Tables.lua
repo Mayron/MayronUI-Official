@@ -96,15 +96,31 @@ function tk.Tables:Contains(tbl, value)
   return false;
 end
 
+function tk.Tables:Any(tbl, predicate)
+  for _, value in pairs(tbl) do
+    if (predicate(value)) then
+      return true;
+    end
+  end
+
+  return false;
+end
+
+function tk.Tables:All(tbl, predicate)
+  for _, value in pairs(tbl) do
+    if (not predicate(value)) then
+      return false;
+    end
+  end
+
+  return true;
+end
+
 -- gets the first value where the predicate returns true
 function tk.Tables:First(tbl, predicate)
-  for _, value in pairs(tbl) do
-    if (obj:IsFunction(predicate)) then
-      if (predicate(value)) then
-        return value;
-      end
-    elseif (value) then
-      return value;
+  for key, value in pairs(tbl) do
+    if (predicate(value, key)) then
+      return value, key;
     end
   end
 
