@@ -254,7 +254,7 @@ function C_ConfigModule:GetConfigTable()
                     step = 10;
                     valueType   = "number";
                     tooltip     = tk.Strings:Concat(L["Adjust the width of the unit frame background panels."], "\n\n",
-                        L["Minimum value is "], "200", "\n\n", L["Default value is"], " 325");
+                        L["Minimum value is"], " 200", "\n\n", L["Default value is"], " 325");
                     dbPath      = "profile.unitPanels.unitWidth";
                 };
                 {   name        = L["Set Height"];
@@ -760,7 +760,7 @@ function C_ConfigModule:GetConfigTable()
                         {   name        = L["Set Width"];
                             type        = "slider";
                             tooltip     = tk.Strings:Concat(L["Default value is"], " 15.", "\n\n",
-                                            L["Minimum value is"], " ", 15, "\n\n", L["Maximum value is"], " ", 30);
+                                            L["Minimum value is"], " 15", "\n\n", L["Maximum value is"], " 30");
                             dbPath      = "profile.sidebar.buttons.width";
                             min         = 15;
                             max         = 30;
@@ -769,7 +769,7 @@ function C_ConfigModule:GetConfigTable()
                         {   name        = L["Set Height"];
                             type        = "slider";
                             tooltip     = tk.Strings:Concat(L["Default value is"], " 100.", "\n\n",
-                                            L["Minimum value is"], " ", 50, "\n\n", L["Maximum value is"], " ", 300);
+                                            L["Minimum value is"], " 50", "\n\n", L["Maximum value is"], " 300");
                             dbPath      = "profile.sidebar.buttons.height";
                             min         = 50;
                             max         = 300;

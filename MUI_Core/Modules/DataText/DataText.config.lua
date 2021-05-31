@@ -163,14 +163,14 @@ function C_DataTextModule:GetConfigTable()
                 }
             },
             {   type = "submenu",
-                name = "Money";
+                name = L["Money"];
                 module = "DataText",
                 appendDbPath = "money",
                 children = {
-                    {   name = L["Show Realm Name"],
-                        type = "check",
-                        appendDbPath = "showRealm",
-                    },
+                  { name = L["Show Realm Name"],
+                    type = "check",
+                    appendDbPath = "showRealm",
+                  },
                 }
             },
             {   type = "submenu",

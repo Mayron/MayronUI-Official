@@ -4,7 +4,6 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 local Private = {};
 
 local select, string = _G.select, _G.string;
-local GetAddOnMetadata = _G.GetAddOnMetadata;
 local C_Timer, InCombatLockdown, WorldFrame, UnitIsAFK = _G.C_Timer, _G.InCombatLockdown, _G.WorldFrame, _G.UnitIsAFK;
 local UIParent, CreateFrame, GetSpecializationInfo = _G.UIParent, _G.CreateFrame, _G.GetSpecializationInfo;
 local MoveViewLeftStop, MoveViewLeftStart = _G.MoveViewLeftStop, _G.MoveViewLeftStart;
@@ -640,13 +639,7 @@ do
 
     display.titleBar = tk:PopFrame("Frame", display);
 
-    local titleBarWidth = 250;
-
-    if (tk:IsBCClassic()) then
-      titleBarWidth = 340;
-    end
-
-    display.titleBar:SetSize(titleBarWidth, 22);
+    display.titleBar:SetSize(200, 22);
     display.titleBar:SetPoint("BOTTOM", display.bg, "TOP", 0, -1);
 
     local nameTexturePath = tk:GetAssetFilePath("Textures\\BottomUI\\NamePanel");
@@ -657,7 +650,7 @@ do
 
     local txt = display.titleBar:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
     txt:SetPoint("CENTER");
-    txt:SetText(tk:GetInterfaceName());
+    txt:SetText("MayronUI");
     tk:SetFontSize(txt, 11);
 
     display.left = CreateFrame("Button", nil, display);

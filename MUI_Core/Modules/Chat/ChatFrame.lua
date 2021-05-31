@@ -447,7 +447,7 @@ do
       professionsIcon:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
       professionsIcon:SetHighlightAtlas("chatframe-button-highlight");
 
-      tk:SetBasicTooltip(professionsIcon, "Show Professions", "ANCHOR_CURSOR_RIGHT", 16, 8);
+      tk:SetBasicTooltip(professionsIcon, L["Show Professions"], "ANCHOR_CURSOR_RIGHT", 16, 8);
 
       local menuWidth = 240;
       local buttonHeight = 24;
@@ -551,28 +551,28 @@ do
     btn:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
     btn:SetHighlightAtlas("chatframe-button-highlight");
 
-    tk:SetBasicTooltip(btn, "Show AddOn Shortcuts", "ANCHOR_CURSOR_RIGHT", 16, 8);
+    tk:SetBasicTooltip(btn, L["Show AddOn Shortcuts"], "ANCHOR_CURSOR_RIGHT", 16, 8);
 
     local menu = CreateFrame("Frame", "MUI_ShortcutsMenu", btn, "UIMenuTemplate");
     UIMenu_Initialize(menu);
 
     local lines = {
-      { "MUI Config", "/mui config", function() MayronUI:TriggerCommand("config") end};
-      { "MUI Install", "/mui install", function() MayronUI:TriggerCommand("install") end};
-      { "MUI Layouts", "/mui layouts", function() MayronUI:TriggerCommand("layouts") end};
-      { "MUI Profile Manager", "/mui profiles", function() MayronUI:TriggerCommand("profiles") end};
-      { "MUI Show Profiles", "/mui profiles list", function() MayronUI:TriggerCommand("profiles", "list") end};
-      { "MUI Version", "/mui version", function() MayronUI:TriggerCommand("version") end};
-      { "MUI Report", "/mui report", function() MayronUI:TriggerCommand("report") end};
+      { "MUI "..L["Config"], "/mui config", function() MayronUI:TriggerCommand("config") end};
+      { "MUI "..L["Install"], "/mui install", function() MayronUI:TriggerCommand("install") end};
+      { "MUI "..L["Layouts"], "/mui layouts", function() MayronUI:TriggerCommand("layouts") end};
+      { "MUI "..L["Profile Manager"], "/mui profiles", function() MayronUI:TriggerCommand("profiles") end};
+      { "MUI "..L["Show Profiles"], "/mui profiles list", function() MayronUI:TriggerCommand("profiles", "list") end};
+      { "MUI "..L["Version"], "/mui version", function() MayronUI:TriggerCommand("version") end};
+      { "MUI "..L["Report"], "/mui report", function() MayronUI:TriggerCommand("report") end};
       { "Leatrix Plus", _G.SLASH_Leatrix_Plus1, function() _G.SlashCmdList.Leatrix_Plus("") end};
-      { "Toggle Alignment Grid", "/ltp grid", function() _G.SlashCmdList.Leatrix_Plus("grid") end};
+      { L["Toggle Alignment Grid"], "/ltp grid", function() _G.SlashCmdList.Leatrix_Plus("grid") end};
       { "Bartender", "/bt", _G.Bartender4.ChatCommand};
       { "Shadowed Unit Frames", _G.SLASH_SHADOWEDUF1, function() _G.SlashCmdList.SHADOWEDUF("") end};
       { "Masque", _G.SLASH_MASQUE1, _G.SlashCmdList.MASQUE};
-      { "Bagnon Bank", "/bgn bank", function() _G.Bagnon.Commands.OnSlashCommand("bank") end };
-      { "Bagnon Guild Bank", "/bgn guild", function() _G.Bagnon.Commands.OnSlashCommand("guild") end, true };
-      { "Bagnon Void Storage", "/bgn vault", function() _G.Bagnon.Commands.OnSlashCommand("vault") end, true };
-      { "Bagnon Config", "/bgn config", function() _G.Bagnon.Commands.OnSlashCommand("config") end };
+      { "Bagnon "..L["Bank"], "/bgn bank", function() _G.Bagnon.Commands.OnSlashCommand("bank") end };
+      { "Bagnon "..L["Guild Bank"], "/bgn guild", function() _G.Bagnon.Commands.OnSlashCommand("guild") end, true };
+      { "Bagnon "..L["Void Storage"], "/bgn vault", function() _G.Bagnon.Commands.OnSlashCommand("vault") end, true };
+      { "Bagnon "..L["Config"], "/bgn config", function() _G.Bagnon.Commands.OnSlashCommand("config") end };
     };
 
     for _, line in pairs(lines) do
@@ -629,7 +629,7 @@ do
 			playerStatusButton:SetNormalTexture(btn.value);
 		end
 
-    local statusMenu = CreateFrame("Frame", "MUI_StatusMenu", muiChatFrame, "UIMenuTemplate");
+    local statusMenu = CreateFrame("Frame", "MUI_StatusMenu", UIParent, "UIMenuTemplate");
     UIMenu_Initialize(statusMenu);
     --self, text, shortcut, func, nested, value
     UIMenu_AddButton(statusMenu, availableText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_ONLINE);
