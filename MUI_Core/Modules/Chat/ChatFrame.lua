@@ -480,6 +480,7 @@ do
       profMenu:SetScript("OnShow", function()
         if (#profMenu.btns == 0) then
           MayronUI:Print(L["You have no professions to show."]);
+          profMenu:Hide();
           return
         end
 
