@@ -478,6 +478,11 @@ do
       profMenu.btns = obj:PopTable();
       profMenu:SetSize(menuWidth, buttonHeight);
       profMenu:SetScript("OnShow", function()
+        if (#profMenu.btns == 0) then
+          MayronUI:Print(L["You have no professions to show."]);
+          return
+        end
+
         _G.UIMenu_OnShow(profMenu);
 
         if (tk:IsRetail()) then

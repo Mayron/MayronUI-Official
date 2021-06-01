@@ -858,3 +858,4 @@ L["Toggle Alignment Grid"] = "Toggle Alignment Grid";
 L["Guild Bank"] = "Guild Bank";
 L["Bank"] = "Bank";
 L["Void Storage"] = "Void Storage";
+L["You have no professions to show."] = "You have no professions to show.";
