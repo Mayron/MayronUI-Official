@@ -479,7 +479,7 @@ do
       profMenu:SetSize(menuWidth, buttonHeight);
       profMenu:SetScript("OnShow", function()
         if (#profMenu.btns == 0) then
-          MayronUI:Print(L["You have no professions to show."]);
+          MayronUI:Print(L["You have no professions."]);
           profMenu:Hide();
           return
         end
