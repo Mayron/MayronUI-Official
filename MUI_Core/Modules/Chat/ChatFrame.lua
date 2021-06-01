@@ -473,7 +473,8 @@ do
       local menuWidth = 240;
       local buttonHeight = 32;
 
-      local profMenu = CreateFrame("Frame", "MUI_ProfessionsMenu", UIParent, "TooltipBackdropTemplate");
+      local template = tk:IsClassic() and "UIMenuTemplate" or "TooltipBackdropTemplate";
+      local profMenu = CreateFrame("Frame", "MUI_ProfessionsMenu", UIParent, template);
       profMenu.btns = obj:PopTable();
       profMenu:SetSize(menuWidth, buttonHeight);
       profMenu:SetScript("OnShow", function()
@@ -503,16 +504,24 @@ do
 
       --self, text, shortcut, func, nested, value
       local prof1, prof2, _, fishing, cooking, firstAid = GetProfessions();
+
       local professions = obj:PopTable(prof1, prof2, fishing, cooking, firstAid);
-      tk.Tables:CleanIndexes(professions);
+      professions = tk.Tables:Filter(professions, function(profID)
+        if (profID) then
+          local spellbookID = select(6, GetProfessionInfo(profID));
+          if (obj:IsNumber(spellbookID)) then
+            return true;
+          end
+        end
+      end);
 
       local function HideMenu() profMenu:Hide(); end
 
       local prev;
       for i, profID in pairs(professions) do
         local btnName = "MUI_ProfessionsMenuButton"..i;
-        local template = tk:IsRetail() and "ProfessionButtonTemplate" or "SpellButtonTemplate";
-        local btn = CreateFrame("CheckButton", btnName, profMenu, template);
+        local btnTemplate = tk:IsRetail() and "ProfessionButtonTemplate" or "SpellButtonTemplate";
+        local btn = CreateFrame("CheckButton", btnName, profMenu, btnTemplate);
         table.insert(profMenu.btns, btn);
 
         local iconFrame = CreateFrame("Frame", nil, btn, _G.BackdropTemplateMixin and "BackdropTemplate");
@@ -529,12 +538,13 @@ do
         iconTexture:SetPoint("BOTTOMRIGHT", iconFrame, "BOTTOMRIGHT", -1, 1);
         iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
 
-        btn:SetSize(menuWidth - 10, buttonHeight);
+        btn:SetSize(menuWidth - 9, buttonHeight);
         btn:SetScript("OnEnter", _G.UIMenuButton_OnEnter);
         btn:SetScript("OnLeave", _G.UIMenuButton_OnLeave);
         btn:SetCheckedTexture(nil);
         btn:DisableDrawLayer("BACKGROUND");
         btn:DisableDrawLayer("ARTWORK");
+        btn:SetFrameLevel(20);
         btn:Hide();
 
         local spellName = _G[btnName.."SpellName"];
@@ -549,6 +559,7 @@ do
         btn:HookScript("OnShow", function()
           local profName, _, skillRank, skillMaxRank, _, spellbookID = GetProfessionInfo(profID);
           local text = tk.Strings:Concat(profName, " (", skillRank, "/", skillMaxRank, ")");
+
           btn:SetID(spellbookID + 1);
 
           _G.SpellButton_UpdateButton(btn);
@@ -561,7 +572,7 @@ do
 
         btn:ClearAllPoints();
         if (not prev) then
-          btn:SetPoint("TOPLEFT", 6, -4);
+          btn:SetPoint("TOPLEFT", 5, -4);
         else
           btn:SetPoint("TOPLEFT", prev, "BOTTOMLEFT");
         end
@@ -569,7 +580,7 @@ do
         prev = btn;
       end
 
-      profMenu:SetHeight((#professions * (buttonHeight + 2)));
+      profMenu:SetHeight((#professions * (buttonHeight)) + 8);
 
       local missingAnchor = true;
 

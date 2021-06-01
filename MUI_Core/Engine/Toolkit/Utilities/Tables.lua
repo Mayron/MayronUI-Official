@@ -116,6 +116,19 @@ function tk.Tables:All(tbl, predicate)
   return true;
 end
 
+function tk.Tables:Filter(tbl, predicate)
+  local new = obj:PopTable();
+
+  for _, value in pairs(tbl) do
+    if (predicate(value)) then
+      table.insert(new, value);
+    end
+  end
+
+  obj:PushTable(tbl);
+  return new;
+end
+
 -- gets the first value where the predicate returns true
 function tk.Tables:First(tbl, predicate)
   for key, value in pairs(tbl) do
