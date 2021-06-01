@@ -1,11 +1,12 @@
 -- luacheck: ignore self 143
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local ChatFrame1EditBox, NUM_CHAT_WINDOWS = _G.ChatFrame1EditBox, _G.NUM_CHAT_WINDOWS;
 local ChatFrame1Tab, InCombatLockdown, StaticPopupDialogs, hooksecurefunc, IsCombatLog, pairs, PlaySound =
 _G.ChatFrame1Tab, _G.InCombatLockdown, _G.StaticPopupDialogs, _G.hooksecurefunc, _G.IsCombatLog, _G.pairs, _G.PlaySound;
-
+local strformat, ipairs = _G.string.format, _G.ipairs;
 --------------------------
 -- Blizzard Globals
 --------------------------
@@ -329,7 +330,7 @@ function C_ChatModule:OnInitialized(data)
   _G.FCFTab_UpdateColors = tk.Constants.DUMMY_FUNC;
 
   function _G.FCF_SetTabPosition(chatFrame)
-    local chatFrameTab = _G[string.format("%sTab", chatFrame:GetName())];
+    local chatFrameTab = _G[strformat("%sTab", chatFrame:GetName())];
 
     if (not chatFrame.isDocked) then
       chatFrameTab:ClearAllPoints();
@@ -343,7 +344,7 @@ function C_ChatModule:OnInitialized(data)
 
     RepositionChatTab();
 
-    local minButton = _G[string.format("%sButtonFrameMinimizeButton", chatFrame:GetName())];
+    local minButton = _G[strformat("%sButtonFrameMinimizeButton", chatFrame:GetName())];
       minButton:Hide();
   end
 
@@ -397,16 +398,16 @@ function C_ChatModule:OnEnable(data)
 
 	-- Kill all blizzard unwanted elements (textures, fontstrings, frames, etc...)
 	for i = 1, 20 do
-		local staticPopupEditBox = string.format("StaticPopup%dEditBox", i);
+		local staticPopupEditBox = strformat("StaticPopup%dEditBox", i);
 
 		if (not _G[staticPopupEditBox]) then
 			break;
 		end
 
 		tk:KillAllElements(
-			_G[string.format("%sLeft", staticPopupEditBox)],
-			_G[string.format("%sMid", staticPopupEditBox)],
-			_G[string.format("%sRight", staticPopupEditBox)]
+			_G[strformat("%sLeft", staticPopupEditBox)],
+			_G[strformat("%sMid", staticPopupEditBox)],
+			_G[strformat("%sRight", staticPopupEditBox)]
 		);
 	end
 

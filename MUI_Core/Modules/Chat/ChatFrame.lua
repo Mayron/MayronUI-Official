@@ -73,16 +73,8 @@ function C_ChatFrame:SetEnabled(data, enabled)
     _G.ChatFrameChannelButton:DisableDrawLayer("ARTWORK");
 
     if (tk:IsRetail()) then
-      _G.ChatFrameToggleVoiceDeafenButton:DisableDrawLayer("ARTWORK");
       _G.ChatFrameToggleVoiceMuteButton:DisableDrawLayer("ARTWORK");
-
-      local dummyFunc = function() return true; end
-
-      _G.ChatFrameToggleVoiceDeafenButton:SetVisibilityQueryFunction(dummyFunc);
-      _G.ChatFrameToggleVoiceDeafenButton:UpdateVisibleState();
-
-      _G.ChatFrameToggleVoiceMuteButton:SetVisibilityQueryFunction(dummyFunc);
-      _G.ChatFrameToggleVoiceMuteButton:UpdateVisibleState();
+      _G.ChatFrameToggleVoiceDeafenButton:DisableDrawLayer("ARTWORK");
     end
 	end
 end
@@ -317,9 +309,18 @@ do
 	local function PositionIcon(enabled, iconType, anchorIcon, chatFrame, bottom)
     local currentIcon = _G["MUI_ChatFrameIcon_"..iconType];
 
-		if (enabled) then
-			if (not currentIcon) then
+    if (iconType == "deafen" or iconType == "mute") then
+      if (not currentIcon) then
 				currentIcon = CreateOrSetUpIcon[iconType]("MUI_ChatFrameIcon_"..iconType);
+      end
+
+      currentIcon:SetVisibilityQueryFunction(function() return enabled; end);
+      currentIcon:UpdateVisibleState();
+    end
+
+    if (enabled) then
+      if (not currentIcon) then
+        currentIcon = CreateOrSetUpIcon[iconType]("MUI_ChatFrameIcon_"..iconType);
       end
 
 			currentIcon:ClearAllPoints();
@@ -407,14 +408,21 @@ do
     end
 	end
 
+  function CreateOrSetUpIcon.mute(name)
+    _G[name] = _G.ChatFrameToggleVoiceMuteButton;
+    return _G[name];
+  end
+
+  function CreateOrSetUpIcon.deafen(name)
+    _G[name] = _G.ChatFrameToggleVoiceDeafenButton;
+    return _G[name];
+  end
+
   function CreateOrSetUpIcon.voiceChat()
     local btn = _G.ChatFrameChannelButton;
     _G.MUI_ChatFrameIcon_voiceChat = btn;
 
-    if (tk:IsRetail()) then
-      _G.ChatFrameToggleVoiceDeafenButton:SetParent(btn);
-      _G.ChatFrameToggleVoiceMuteButton:SetParent(btn);
-    else
+    if (not tk:IsRetail()) then
       tk:KillElement(_G.ChatFrameMenuButton);
     end
 
@@ -463,11 +471,32 @@ do
       tk:SetBasicTooltip(professionsIcon, L["Show Professions"], "ANCHOR_CURSOR_RIGHT", 16, 8);
 
       local menuWidth = 240;
-      local buttonHeight = 24;
+      local buttonHeight = 32;
+
       local profMenu = CreateFrame("Frame", "MUI_ProfessionsMenu", UIParent, "TooltipBackdropTemplate");
+      profMenu.btns = obj:PopTable();
       profMenu:SetSize(menuWidth, buttonHeight);
-      profMenu:SetScript("OnShow", _G.UIMenu_OnShow);
+      profMenu:SetScript("OnShow", function()
+        _G.UIMenu_OnShow(profMenu);
+        _G.SpellBookFrame.bookType = _G.BOOKTYPE_PROFESSION;
+
+        for _, btn in ipairs(profMenu.btns) do
+          btn:Show();
+        end
+      end);
+
+      profMenu:SetScript("OnHide", function()
+        for _, btn in ipairs(profMenu.btns) do
+          btn:Hide();
+        end
+      end);
+
       profMenu:SetScript("OnUpdate", _G.UIMenu_OnUpdate);
+      profMenu.spellOffset = 0;
+      profMenu.specializationIndex = 0;
+
+      profMenu:SetScript("OnEvent", profMenu.Hide);
+      profMenu:RegisterEvent("PLAYER_REGEN_DISABLED");
 
       --self, text, shortcut, func, nested, value
       local prof1, prof2, _, fishing, cooking, firstAid = GetProfessions();
@@ -479,42 +508,47 @@ do
       local prev;
       for i, profID in pairs(professions) do
         local btnName = "MUI_ProfessionsMenuButton"..i;
-        local btn = CreateFrame("CheckButton", btnName, profMenu, "SpellButtonTemplate");
-        local btnIcon = _G[btnName.."IconTexture"];
+        local template = tk:IsRetail() and "ProfessionButtonTemplate" or "SpellButtonTemplate";
+        local btn = CreateFrame("CheckButton", btnName, profMenu, template);
+        table.insert(profMenu.btns, btn);
 
         local iconFrame = CreateFrame("Frame", nil, btn, _G.BackdropTemplateMixin and "BackdropTemplate");
-        iconFrame:SetSize(buttonHeight, buttonHeight);
+        iconFrame:SetSize(buttonHeight - 8, buttonHeight - 8);
         iconFrame:ClearAllPoints();
         iconFrame:SetPoint("LEFT", 6, 0);
         iconFrame:SetBackdrop(tk.Constants.BACKDROP);
         iconFrame:SetBackdropBorderColor(0, 0, 0, 1);
 
-        btnIcon:SetSize(buttonHeight - 2, buttonHeight - 2);
-        btnIcon:ClearAllPoints();
-        btnIcon:SetPoint("TOPLEFT", iconFrame, "TOPLEFT", 1, -1);
-        btnIcon:SetPoint("BOTTOMRIGHT", iconFrame, "BOTTOMRIGHT", -1, 1);
-        btnIcon:SetTexCoord(0.1, 0.9, 0.1, 0.9);
+        local iconTexture = _G[btnName.."IconTexture"];
+        iconTexture:SetSize(buttonHeight - 6, buttonHeight - 6);
+        iconTexture:ClearAllPoints();
+        iconTexture:SetPoint("TOPLEFT", iconFrame, "TOPLEFT", 1, -1);
+        iconTexture:SetPoint("BOTTOMRIGHT", iconFrame, "BOTTOMRIGHT", -1, 1);
+        iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
 
-        btn:SetSize(menuWidth - 8, buttonHeight + 8);
+        btn:SetSize(menuWidth - 10, buttonHeight);
         btn:SetScript("OnEnter", _G.UIMenuButton_OnEnter);
         btn:SetScript("OnLeave", _G.UIMenuButton_OnLeave);
         btn:SetCheckedTexture(nil);
         btn:DisableDrawLayer("BACKGROUND");
         btn:DisableDrawLayer("ARTWORK");
 
-        btn.SpellName:SetWidth(300);
-        btn.SpellName:ClearAllPoints();
-        btn.SpellName:SetPoint("TOPLEFT", btnIcon, "TOPRIGHT", 8, 0);
-        btn.SpellSubName:SetFontObject("GameFontHighlightSmall");
+        local spellName = _G[btnName.."SpellName"];
+        local spellSubName = _G[btnName.."SubSpellName"];
+        spellName:SetWidth(300);
+        spellName:ClearAllPoints();
+        spellName:SetPoint("TOPLEFT", iconTexture, "TOPRIGHT", 8, 0);
+        spellSubName:SetFontObject("GameFontHighlightSmall");
 
         btn:HookScript("OnClick", HideMenu);
 
-        btn:HookScript("OnEvent", function()
+        btn:HookScript("OnShow", function()
           local profName, _, skillRank, skillMaxRank, _, spellbookID = GetProfessionInfo(profID);
           local text = tk.Strings:Concat(profName, " (", skillRank, "/", skillMaxRank, ")");
-
           btn:SetID(spellbookID + 1);
-          btn.SpellName:SetText(text);
+
+          _G.SpellButton_UpdateButton(btn);
+          spellName:SetText(text);
 
           local r, g, b = tk:GetThemeColor();
           btn:SetHighlightTexture(1, "ADD");
@@ -523,15 +557,18 @@ do
 
         btn:ClearAllPoints();
         if (not prev) then
-          btn:SetPoint("TOPLEFT", 4, -4);
+          btn:SetPoint("TOPLEFT", 6, -4);
         else
           btn:SetPoint("TOPLEFT", prev, "BOTTOMLEFT");
         end
 
+        btn:Hide();
+
         prev = btn;
       end
 
-      profMenu:SetHeight(32 + (#professions * buttonHeight));
+      profMenu:SetHeight((#professions * (buttonHeight + 2)));
+
       local missingAnchor = true;
 
       professionsIcon:SetScript("OnClick", function(self)
@@ -542,6 +579,7 @@ do
 
         if (missingAnchor) then
           PositionChatIconMenu(self, profMenu, true);
+          profMenu:GetScript("OnShow")();
           missingAnchor = nil;
           return
         end

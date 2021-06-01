@@ -236,8 +236,9 @@ function C_ChatModule:GetConfigTable()
                     OnLoad = function(_, container)
                       iconDropdowns[id] = container.widget;
                     end;
-                    GetValue = function()
-                      return iconOptionLabels[id];
+                    GetValue = function(_, value)
+                      local _, label = tk.Tables:First(iconOptions, function(v) return v == value end);
+                      return label;
                     end;
                     ---@param old Observer
                     SetValue = function(path, newType, oldType)
