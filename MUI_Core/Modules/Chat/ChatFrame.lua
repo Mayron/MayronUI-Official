@@ -458,7 +458,7 @@ do
       end
 
       GetProfessionInfo = function(profID)
-        return LibAddonCompat:GetProfessions(profID);
+        return LibAddonCompat:GetProfessionInfo(profID);
       end
     end
 
@@ -478,7 +478,10 @@ do
       profMenu:SetSize(menuWidth, buttonHeight);
       profMenu:SetScript("OnShow", function()
         _G.UIMenu_OnShow(profMenu);
-        _G.SpellBookFrame.bookType = _G.BOOKTYPE_PROFESSION;
+
+        if (tk:IsRetail()) then
+          _G.SpellBookFrame.bookType = _G.BOOKTYPE_PROFESSION;
+        end
 
         for _, btn in ipairs(profMenu.btns) do
           btn:Show();
@@ -532,6 +535,7 @@ do
         btn:SetCheckedTexture(nil);
         btn:DisableDrawLayer("BACKGROUND");
         btn:DisableDrawLayer("ARTWORK");
+        btn:Hide();
 
         local spellName = _G[btnName.."SpellName"];
         local spellSubName = _G[btnName.."SubSpellName"];
@@ -561,8 +565,6 @@ do
         else
           btn:SetPoint("TOPLEFT", prev, "BOTTOMLEFT");
         end
-
-        btn:Hide();
 
         prev = btn;
       end
