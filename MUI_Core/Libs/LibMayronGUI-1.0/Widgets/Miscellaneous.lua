@@ -275,7 +275,7 @@ function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
 
     frame.closeBtn:SetScript("OnClick", function(self)
       group:Play();
-
+      
       if (clickSoundFilePath) then
         PlaySound(clickSoundFilePath);
       end

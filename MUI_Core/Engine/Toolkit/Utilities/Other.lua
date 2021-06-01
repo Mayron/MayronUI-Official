@@ -170,7 +170,15 @@ function tk:IsBCClassic()
 end
 
 function tk:GetMaxPlayerLevel()
-  return IsTrialAccount() and 20 or 60;
+  if (IsTrialAccount()) then
+    return 20;
+  end
+
+  if (tk:IsBCClassic()) then
+    return 70;
+  end
+
+  return 60;
 end
 
 function tk:IsPlayerMaxLevel()

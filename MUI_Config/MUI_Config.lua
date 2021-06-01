@@ -7,6 +7,7 @@ local MENU_BUTTON_HEIGHT = 40;
 local pairs, ipairs, table, mrandom, setmetatable = _G.pairs, _G.ipairs, _G.table, _G.math.random, _G.setmetatable;
 local DisableAddOn, collectgarbage, UIFrameFadeIn, CreateFrame, PlaySound, strformat
  = _G.DisableAddOn, _G.collectgarbage, _G.UIFrameFadeIn, _G.CreateFrame, _G.PlaySound, _G.string.format;
+ local PlaySound = _G.PlaySound;
 
 -- Registers and Imports -------------
 ---@type LinkedList
@@ -132,6 +133,7 @@ function C_ConfigModule:Show(data)
     end
 
     data.window:Show();
+    PlaySound(tk.Constants.MENU_OPENED_CLICK);
 end
 
 obj:DefineReturns("Database");

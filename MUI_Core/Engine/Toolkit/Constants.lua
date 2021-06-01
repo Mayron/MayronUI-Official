@@ -5,6 +5,7 @@ local L = namespace.components.Locale; ---@type Locale
 tk.Constants = {
   ASSETS_FOLDER = "Interface\\addons\\MUI_Core\\Assets";
   CLICK = 856;
+  MENU_OPENED_CLICK = 852;
   DUMMY_FUNC = function() end;
   DUMMY_FRAME = _G.CreateFrame("Frame");
   LOCALIZED_CLASS_NAMES = {};

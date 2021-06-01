@@ -5,6 +5,8 @@ local C_LayoutSwitcher = MayronUI:RegisterModule("LayoutSwitcher");
 
 local ipairs, string = _G.ipairs, _G.string;
 local LibStub, IsAddOnLoaded = _G.LibStub, _G.IsAddOnLoaded;
+local UIFrameFadeIn, PlaySound = _G.UIFrameFadeIn, _G.PlaySound;
+
 
 local LAYOUT_MESSAGE = L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."];
 
@@ -311,7 +313,8 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 	if (data.layoutTool) then
 		data.layoutTool:Show();
 		self:UpdateAddOnWindow();
-		_G.UIFrameFadeIn(data.layoutTool, 0.3, 0, 1);
+    UIFrameFadeIn(data.layoutTool, 0.3, 0, 1);
+    PlaySound(tk.Constants.MENU_OPENED_CLICK);
 		return;
 	end
 
@@ -322,7 +325,7 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 	data.layoutTool:SetPoint("CENTER");
 
 	gui:AddTitleBar(tk.Constants.AddOnStyle, data.layoutTool, L["MUI Layout Tool"]);
-	gui:AddCloseButton(tk.Constants.AddOnStyle, data.layoutTool);
+	gui:AddCloseButton(tk.Constants.AddOnStyle, data.layoutTool, nil, tk.Constants.CLICK);
 
 	-- convert to panel
 	data.layoutTool = gui:CreatePanel(data.layoutTool);
@@ -397,5 +400,6 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 	data.menu.deleteButton:SetEnabled(self:GetNumLayouts() ~= 1);
 
 	data.layoutTool:Show();
-	_G.UIFrameFadeIn(data.layoutTool, 0.3, 0, 1);
+  UIFrameFadeIn(data.layoutTool, 0.3, 0, 1);
+  PlaySound(tk.Constants.MENU_OPENED_CLICK);
 end

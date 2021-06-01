@@ -19,7 +19,7 @@ local FRIENDS_LIST_AVAILABLE, FRIENDS_LIST_AWAY, FRIENDS_LIST_BUSY =
   _G.FRIENDS_LIST_AVAILABLE, _G.FRIENDS_LIST_AWAY, _G.FRIENDS_LIST_BUSY;
 
 local IsAddOnLoaded, InCombatLockdown, UIParent, ipairs = _G.IsAddOnLoaded, _G.InCombatLockdown, _G.UIParent, _G.ipairs;
-
+local PlaySound = _G.PlaySound;
 -- C_ChatFrame -----------------------
 
 obj:DefineParams("string", "ChatModule", "table");
@@ -438,6 +438,7 @@ do
     tk:SetBasicTooltip(toggleEmotesButton, L["Show Chat Menu"], "ANCHOR_CURSOR_RIGHT", 16, 8);
 
     toggleEmotesButton:SetScript("OnClick", function(self)
+      PlaySound(tk.Constants.CLICK);
       PositionChatIconMenu(self, ChatMenu);
       _G.ChatFrame_ToggleMenu();
     end);
@@ -591,6 +592,8 @@ do
       local missingAnchor = true;
 
       professionsIcon:SetScript("OnClick", function(self)
+        PlaySound(tk.Constants.CLICK);
+
         if (InCombatLockdown()) then
           MayronUI:Print(L["Cannot toggle menu while in combat."]);
           return
@@ -659,6 +662,8 @@ do
 
       if (menu:IsShown()) then
         PositionChatIconMenu(self, menu);
+      else
+        PlaySound(tk.Constants.CLICK);
       end
     end);
 
@@ -713,6 +718,8 @@ do
 
       if (statusMenu:IsShown()) then
         PositionChatIconMenu(self, statusMenu);
+      else
+        PlaySound(tk.Constants.CLICK);
       end
     end);
 
@@ -754,7 +761,7 @@ do
       frame:Hide();
 
       gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
-      gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
+      gui:AddCloseButton(tk.Constants.AddOnStyle, frame, nil, tk.Constants.CLICK);
       gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Copy Chat Text"]);
 
       local editBox = CreateFrame("EditBox", "MUI_CopyChatEditBox", frame);
@@ -829,6 +836,7 @@ do
 			tk:SetBasicTooltip(copyChatButton, L["Copy Chat Text"], "ANCHOR_CURSOR_RIGHT", 16, 8);
 
 			copyChatButton:SetScript("OnClick", function(self)
+        PlaySound(tk.Constants.MENU_OPENED_CLICK);
 				if (not self.chatTextFrame) then
 					self.chatTextFrame = CreateCopyChatFrame();
 				end

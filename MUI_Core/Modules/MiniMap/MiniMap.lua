@@ -140,10 +140,10 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
       self.titleBar:RegisterForClicks("RightButtonUp");
       self.titleBar:SetScript("OnClick", function(self, button)
         if (button == "RightButton") then
-          PlaySound(_G.SOUNDKIT.U_CHAT_SCROLL_BUTTON);
+          PlaySound(tk.Constants.CLICK);
 
           -- If Rightclick bring up the options menu
-          if button == "RightButton" then
+          if (button == "RightButton") then
             local function InitializeOptionsDropDown(self)
               self:GetParent():InitializeOptionsDropDown();
             end
@@ -530,7 +530,7 @@ function C_MiniMapModule:OnEnable(data)
 	Minimap:SetScript("OnMouseUp", function(self, btn)
 		if (btn == "RightButton") then
 			EasyMenu(menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
-
+      PlaySound(tk.Constants.CLICK);
 		elseif (tk:IsRetail() and btn == "MiddleButton") then
 			ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "Minimap", 0, 0);
 			PlaySound(tk.Constants.CLICK);
