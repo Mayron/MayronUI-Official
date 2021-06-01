@@ -438,8 +438,21 @@ do
   end
 
   do
-    ---@type LibAddonCompat
-    local LibAddonCompat = _G.LibStub("LibAddonCompat-1.0");
+    local GetProfessions = _G.GetProfessions;
+    local GetProfessionInfo = _G.GetProfessionInfo;
+
+    if (not tk:IsRetail()) then
+      ---@type LibAddonCompat
+      local LibAddonCompat = _G.LibStub("LibAddonCompat-1.0");
+
+      GetProfessions = function()
+        return LibAddonCompat:GetProfessions();
+      end
+
+      GetProfessionInfo = function(profID)
+        return LibAddonCompat:GetProfessions(profID);
+      end
+    end
 
     function CreateOrSetUpIcon.professions(name)
       local professionsIcon = CreateFrame("Button", name);
@@ -457,7 +470,7 @@ do
       profMenu:SetScript("OnUpdate", _G.UIMenu_OnUpdate);
 
       --self, text, shortcut, func, nested, value
-      local prof1, prof2, _, fishing, cooking, firstAid  = LibAddonCompat:GetProfessions();
+      local prof1, prof2, _, fishing, cooking, firstAid = GetProfessions();
       local professions = obj:PopTable(prof1, prof2, fishing, cooking, firstAid);
       tk.Tables:CleanIndexes(professions);
 
@@ -465,9 +478,9 @@ do
 
       local prev;
       for i, profID in pairs(professions) do
-        local name = "MUI_ProfessionsMenuButton"..i;
-        local btn = CreateFrame("CheckButton", name, profMenu, "SpellButtonTemplate");
-        local btnIcon = _G[name.."IconTexture"];
+        local btnName = "MUI_ProfessionsMenuButton"..i;
+        local btn = CreateFrame("CheckButton", btnName, profMenu, "SpellButtonTemplate");
+        local btnIcon = _G[btnName.."IconTexture"];
 
         local iconFrame = CreateFrame("Frame", nil, btn, _G.BackdropTemplateMixin and "BackdropTemplate");
         iconFrame:SetSize(buttonHeight, buttonHeight);
@@ -497,7 +510,7 @@ do
         btn:HookScript("OnClick", HideMenu);
 
         btn:HookScript("OnEvent", function()
-          local profName, _, skillRank, skillMaxRank, _, spellbookID = LibAddonCompat:GetProfessionInfo(profID);
+          local profName, _, skillRank, skillMaxRank, _, spellbookID = GetProfessionInfo(profID);
           local text = tk.Strings:Concat(profName, " (", skillRank, "/", skillMaxRank, ")");
 
           btn:SetID(spellbookID + 1);
