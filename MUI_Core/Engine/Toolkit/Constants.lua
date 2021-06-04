@@ -30,7 +30,7 @@ tk.Constants = {
   };
 
   -- Used for drop down options only!
-  POINTS = {
+  POINT_OPTIONS = {
     [L["Left"]] = "LEFT";
     [L["Center"]] = "CENTER";
     [L["Right"]] = "RIGHT";
@@ -40,6 +40,18 @@ tk.Constants = {
     [L["Top Right"]] = "TOPRIGHT";
     [L["Bottom Left"]] = "BOTTOMLEFT";
     [L["Bottom Right"]] = "BOTTOMRIGHT";
+  };
+
+  POINTS = {
+    ["Left"] = "LEFT";
+    ["Center"] = "CENTER";
+    ["Right"] = "RIGHT";
+    ["Top"] = "TOP";
+    ["Bottom"] = "BOTTOM";
+    ["Top Left"] = "TOPLEFT";
+    ["Top Right"] = "TOPRIGHT";
+    ["Bottom Left"] = "BOTTOMLEFT";
+    ["Bottom Right"] = "BOTTOMRIGHT";
   };
 
   FONT_FLAG_DROPDOWN_OPTIONS = {

@@ -1082,11 +1082,12 @@ function C_ToolTipsModule:OnEnable(data)
       tooltip:ClearAllPoints();
       tooltip:SetPoint(anchor.point, data.screenAnchor, anchor.point); -- the new anchor point
     end
+
+    RefreshPadding(data);
   end);
 
   local specListener = em:CreateEventListener(function(handler, _, guid)
-    if (UnitGUID(MOUSEOVER) ~= guid) then return end
-    if (IsInCombatAndHidden(data)) then return end
+    if (UnitGUID(MOUSEOVER) ~= guid or IsInCombatAndHidden(data)) then return end
 
     local specID = GetInspectSpecialization(MOUSEOVER);
     local specializationName = select(2, GetSpecializationInfoByID(specID));
@@ -1120,14 +1121,7 @@ function C_ToolTipsModule:OnEnable(data)
 
   local listener = em:CreateEventListener(function()
     local unitExists = UnitExists(MOUSEOVER);
-
-    if (not unitExists) then
-      gameTooltip:Hide();
-      RefreshPadding(data);
-      return
-    end
-
-    if (IsInCombatAndHidden(data)) then return end
+    if (not unitExists or IsInCombatAndHidden(data)) then return end
 
     UpdateUnitTooltipLines(data.settings.guildRankShown); -- must be BEFORE padding
     UpdateStatusBarOnMouseOver(data);

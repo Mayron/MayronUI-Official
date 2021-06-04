@@ -397,7 +397,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   type = "dropdown";
                 name = L["Point"];
-                options = tk.Constants.POINTS;
+                options = tk.Constants.POINT_OPTIONS;
                 appendDbPath = "anchors.screenAnchor.point";
                 OnLoad = function(_, container)
                   screenPointDropdown = container.widget;
