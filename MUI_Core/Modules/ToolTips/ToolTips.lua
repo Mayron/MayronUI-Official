@@ -1057,35 +1057,6 @@ function C_ToolTipsModule:OnEnable(data)
   ApplyHealthBarChanges(data);
   SetFonts(data);
 
-  -- set positioning of tooltip:
-  hooksecurefunc("GameTooltip_SetDefaultAnchor", function (tooltip, parent)
-    if (IsInCombatAndHidden(data, tooltip)) then return end
-    local anchorType;
-
-    if (UnitExists(MOUSEOVER)) then
-      anchorType = data.settings.anchors.units:lower();
-    else
-      anchorType = data.settings.anchors.standard:lower();
-
-      if (not data.settings.muiTexture.enabled) then
-        local borderColor = data.settings.backdrop.borderColor;
-        originalSetBackdropBorderColor(gameTooltip, unpack(borderColor));
-      end
-    end
-
-    local anchor = data.settings.anchors[anchorType.."Anchor"];
-
-    if (anchorType == "mouse") then
-      tooltip:SetOwner(parent, anchor.point, anchor.xOffset, anchor.yOffset);
-    else
-      tooltip:SetOwner(parent, "ANCHOR_NONE");
-      tooltip:ClearAllPoints();
-      tooltip:SetPoint(anchor.point, data.screenAnchor, anchor.point); -- the new anchor point
-    end
-
-    RefreshPadding(data);
-  end);
-
   local specListener = em:CreateEventListener(function(handler, _, guid)
     if (UnitGUID(MOUSEOVER) ~= guid or IsInCombatAndHidden(data)) then return end
 
@@ -1118,6 +1089,37 @@ function C_ToolTipsModule:OnEnable(data)
   end);
 
   combatListener:RegisterEvent("PLAYER_REGEN_DISABLED");
+
+  -- set positioning of tooltip:
+  hooksecurefunc("GameTooltip_SetDefaultAnchor", function (tooltip, parent)
+    if (IsInCombatAndHidden(data, tooltip)) then return end
+    local anchorType;
+
+    if (UnitExists(MOUSEOVER)) then
+      anchorType = data.settings.anchors.units:lower();
+    else
+      anchorType = data.settings.anchors.standard:lower();
+
+      if (not data.settings.muiTexture.enabled) then
+        local borderColor = data.settings.backdrop.borderColor;
+        originalSetBackdropBorderColor(gameTooltip, unpack(borderColor));
+      end
+    end
+
+    local anchor = data.settings.anchors[anchorType.."Anchor"];
+
+    if (anchorType == "mouse") then
+      tooltip:SetOwner(parent, anchor.point, anchor.xOffset, anchor.yOffset);
+    else
+      tooltip:SetOwner(parent, "ANCHOR_NONE");
+      tooltip:ClearAllPoints();
+      tooltip:SetPoint(anchor.point, data.screenAnchor, anchor.point); -- the new anchor point
+    end
+  end);
+
+  gameTooltip:HookScript("OnShow", function()
+    RefreshPadding(data);
+  end);
 
   local listener = em:CreateEventListener(function()
     local unitExists = UnitExists(MOUSEOVER);
