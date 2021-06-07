@@ -449,6 +449,7 @@ do
   do
     local GetProfessions = _G.GetProfessions;
     local GetProfessionInfo = _G.GetProfessionInfo;
+    local select = _G.select;
 
     if (not tk:IsRetail()) then
       ---@type LibAddonCompat
@@ -463,52 +464,7 @@ do
       end
     end
 
-    function CreateOrSetUpIcon.professions(name)
-      local professionsIcon = CreateFrame("Button", name);
-      professionsIcon:SetNormalTexture(string.format("%sbook", MEDIA));
-      professionsIcon:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
-      professionsIcon:SetHighlightAtlas("chatframe-button-highlight");
-
-      tk:SetBasicTooltip(professionsIcon, L["Show Professions"], "ANCHOR_CURSOR_RIGHT", 16, 8);
-
-      local menuWidth = 240;
-      local buttonHeight = 32;
-
-      local template = tk:IsClassic() and "UIMenuTemplate" or "TooltipBackdropTemplate";
-      local profMenu = CreateFrame("Frame", "MUI_ProfessionsMenu", UIParent, template);
-      profMenu.btns = obj:PopTable();
-      profMenu:SetSize(menuWidth, buttonHeight);
-      profMenu:SetScript("OnShow", function()
-        if (#profMenu.btns == 0) then
-          MayronUI:Print(L["You have no professions."]);
-          profMenu:Hide();
-          return
-        end
-
-        _G.UIMenu_OnShow(profMenu);
-
-        if (tk:IsRetail()) then
-          _G.SpellBookFrame.bookType = _G.BOOKTYPE_PROFESSION;
-        end
-
-        for _, btn in ipairs(profMenu.btns) do
-          btn:Show();
-        end
-      end);
-
-      profMenu:SetScript("OnHide", function()
-        for _, btn in ipairs(profMenu.btns) do
-          btn:Hide();
-        end
-      end);
-
-      profMenu:SetScript("OnUpdate", _G.UIMenu_OnUpdate);
-      profMenu.spellOffset = 0;
-      profMenu.specializationIndex = 0;
-
-      profMenu:SetScript("OnEvent", profMenu.Hide);
-      profMenu:RegisterEvent("PLAYER_REGEN_DISABLED");
-
+    local function GetProfessionIDs()
       --self, text, shortcut, func, nested, value
       local prof1, prof2, _, fishing, cooking, firstAid = GetProfessions();
 
@@ -522,62 +478,87 @@ do
         end
       end);
 
-      local function HideMenu() profMenu:Hide(); end
+      return professions;
+    end
+
+    local menuWidth = 240;
+    local buttonHeight = 32;
+
+    local function CreateProfessionButton(profMenu, profID)
+      local btnName = "MUI_ProfessionsMenuButton"..profID;
+      local btnTemplate = tk:IsRetail() and "ProfessionButtonTemplate" or "SpellButtonTemplate";
+      local btn = CreateFrame("CheckButton", btnName, profMenu, btnTemplate);
+
+      local iconFrame = CreateFrame("Frame", nil, btn, _G.BackdropTemplateMixin and "BackdropTemplate");
+      iconFrame:SetSize(buttonHeight - 8, buttonHeight - 8);
+      iconFrame:ClearAllPoints();
+      iconFrame:SetPoint("LEFT", 6, 0);
+      iconFrame:SetBackdrop(tk.Constants.BACKDROP);
+      iconFrame:SetBackdropBorderColor(0, 0, 0, 1);
+
+      local iconTexture = _G[btnName.."IconTexture"];
+      iconTexture:SetSize(buttonHeight - 6, buttonHeight - 6);
+      iconTexture:ClearAllPoints();
+      iconTexture:SetPoint("TOPLEFT", iconFrame, "TOPLEFT", 1, -1);
+      iconTexture:SetPoint("BOTTOMRIGHT", iconFrame, "BOTTOMRIGHT", -1, 1);
+      iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
+
+      btn:SetSize(menuWidth - 9, buttonHeight);
+      btn:SetScript("OnEnter", _G.UIMenuButton_OnEnter);
+      btn:SetScript("OnLeave", _G.UIMenuButton_OnLeave);
+      btn:SetCheckedTexture(nil);
+      btn:DisableDrawLayer("BACKGROUND");
+      btn:DisableDrawLayer("ARTWORK");
+      btn:SetFrameLevel(20);
+
+      local spellName = _G[btnName.."SpellName"];
+      local spellSubName = _G[btnName.."SubSpellName"];
+      spellName:SetWidth(300);
+      spellName:ClearAllPoints();
+      spellName:SetPoint("TOPLEFT", iconTexture, "TOPRIGHT", 8, 0);
+      spellSubName:SetFontObject("GameFontHighlightSmall");
+
+      local r, g, b = tk:GetThemeColor();
+      btn:SetHighlightTexture(tk.Constants.SOLID_TEXTURE, "ADD");
+      btn.SetHighlightTexture = tk.Constants.DUMMY_FUNC;
+
+      local t = btn:GetHighlightTexture();
+      t.SetTexture = tk.Constants.DUMMY_FUNC;
+      t:SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
+
+      btn:HookScript("OnClick", function() profMenu:Hide() end);
+      return btn;
+    end
+
+    local function ProfessionsMenuOnShow(menu)
+      local professionIDs = GetProfessionIDs();
+
+      if (#professionIDs == 0) then
+        obj:PushTable(professionIDs);
+        MayronUI:Print(L["You have no professions."]);
+        menu:Hide();
+        return
+      end
 
       local prev;
-      for i, profID in pairs(professions) do
-        local btnName = "MUI_ProfessionsMenuButton"..i;
-        local btnTemplate = tk:IsRetail() and "ProfessionButtonTemplate" or "SpellButtonTemplate";
-        local btn = CreateFrame("CheckButton", btnName, profMenu, btnTemplate);
-        table.insert(profMenu.btns, btn);
+      for _, profID in ipairs(professionIDs) do
+        local profName, _, skillRank, skillMaxRank, _, spellbookID = GetProfessionInfo(profID);
 
-        local iconFrame = CreateFrame("Frame", nil, btn, _G.BackdropTemplateMixin and "BackdropTemplate");
-        iconFrame:SetSize(buttonHeight - 8, buttonHeight - 8);
-        iconFrame:ClearAllPoints();
-        iconFrame:SetPoint("LEFT", 6, 0);
-        iconFrame:SetBackdrop(tk.Constants.BACKDROP);
-        iconFrame:SetBackdropBorderColor(0, 0, 0, 1);
+        local btn = menu.btns[profID] or CreateProfessionButton(menu, profID);
+        menu.btns[profID] = btn;
 
-        local iconTexture = _G[btnName.."IconTexture"];
-        iconTexture:SetSize(buttonHeight - 6, buttonHeight - 6);
-        iconTexture:ClearAllPoints();
-        iconTexture:SetPoint("TOPLEFT", iconFrame, "TOPLEFT", 1, -1);
-        iconTexture:SetPoint("BOTTOMRIGHT", iconFrame, "BOTTOMRIGHT", -1, 1);
-        iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
+        -- Update button:
+        btn:SetID(spellbookID + 1);
+        _G.SpellBookFrame.selectedSkillLine = 1; -- General Tab (needed to ensure offset is 0)!
+        _G.SpellButton_UpdateButton(btn);
 
-        btn:SetSize(menuWidth - 9, buttonHeight);
-        btn:SetScript("OnEnter", _G.UIMenuButton_OnEnter);
-        btn:SetScript("OnLeave", _G.UIMenuButton_OnLeave);
-        btn:SetCheckedTexture(nil);
-        btn:DisableDrawLayer("BACKGROUND");
-        btn:DisableDrawLayer("ARTWORK");
-        btn:SetFrameLevel(20);
-        btn:Hide();
-
-        local spellName = _G[btnName.."SpellName"];
-        local spellSubName = _G[btnName.."SubSpellName"];
-        spellName:SetWidth(300);
-        spellName:ClearAllPoints();
-        spellName:SetPoint("TOPLEFT", iconTexture, "TOPRIGHT", 8, 0);
-        spellSubName:SetFontObject("GameFontHighlightSmall");
-
-        btn:HookScript("OnClick", HideMenu);
-
-        btn:HookScript("OnShow", function()
-          local profName, _, skillRank, skillMaxRank, _, spellbookID = GetProfessionInfo(profID);
-          local text = tk.Strings:Concat(profName, " (", skillRank, "/", skillMaxRank, ")");
-
-          btn:SetID(spellbookID + 1);
-
-          _G.SpellButton_UpdateButton(btn);
-          spellName:SetText(text);
-
-          local r, g, b = tk:GetThemeColor();
-          btn:SetHighlightTexture(1, "ADD");
-          btn:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
-        end);
+        -- Update button text:
+        local spellName = _G[btn:GetName().."SpellName"];
+        local text = tk.Strings:Concat(profName, " (", skillRank, "/", skillMaxRank, ")");
+        spellName:SetText(text);
 
         btn:ClearAllPoints();
+
         if (not prev) then
           btn:SetPoint("TOPLEFT", 5, -4);
         else
@@ -587,7 +568,34 @@ do
         prev = btn;
       end
 
-      profMenu:SetHeight((#professions * (buttonHeight)) + 8);
+      if (tk:IsRetail()) then
+        _G.SpellBookFrame.bookType = _G.BOOKTYPE_PROFESSION;
+      end
+
+      menu:SetHeight((#professionIDs * (buttonHeight)) + 8);
+      obj:PushTable(professionIDs);
+      _G.UIMenu_OnShow(menu);
+    end
+
+    function CreateOrSetUpIcon.professions(name)
+      local professionsIcon = CreateFrame("Button", name);
+      professionsIcon:SetNormalTexture(string.format("%sbook", MEDIA));
+      professionsIcon:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
+      professionsIcon:SetHighlightAtlas("chatframe-button-highlight");
+
+      tk:SetBasicTooltip(professionsIcon, L["Show Professions"], "ANCHOR_CURSOR_RIGHT", 16, 8);
+
+      local template = tk:IsClassic() and "UIMenuTemplate" or "TooltipBackdropTemplate";
+      local profMenu = CreateFrame("Frame", "MUI_ProfessionsMenu", UIParent, template);
+      profMenu.btns = obj:PopTable();
+      profMenu.specializationIndex = 0;
+      profMenu.spellOffset = 0;
+
+      profMenu:SetSize(menuWidth, buttonHeight);
+      profMenu:SetScript("OnShow", ProfessionsMenuOnShow);
+      profMenu:SetScript("OnUpdate", _G.UIMenu_OnUpdate);
+      profMenu:SetScript("OnEvent", profMenu.Hide);
+      profMenu:RegisterEvent("PLAYER_REGEN_DISABLED");
 
       local missingAnchor = true;
 
@@ -601,7 +609,7 @@ do
 
         if (missingAnchor) then
           PositionChatIconMenu(self, profMenu, true);
-          profMenu:GetScript("OnShow")();
+          ProfessionsMenuOnShow(profMenu);
           missingAnchor = nil;
           return
         end
