@@ -544,6 +544,12 @@ do
         btn:Hide();
       end
 
+      if (tk:IsRetail()) then
+        _G.SpellBookFrame.bookType = _G.BOOKTYPE_PROFESSION;
+      end
+
+      _G.SpellBookFrame.selectedSkillLine = 1; -- General Tab (needed to ensure offset is 0)!
+
       local prev;
       for _, profID in ipairs(professionIDs) do
         local profName, _, skillRank, skillMaxRank, _, spellbookID = GetProfessionInfo(profID);
@@ -553,7 +559,6 @@ do
 
         -- Update button:
         btn:SetID(spellbookID + 1);
-        _G.SpellBookFrame.selectedSkillLine = 1; -- General Tab (needed to ensure offset is 0)!
         _G.SpellButton_UpdateButton(btn);
 
         -- Update button text:
@@ -572,10 +577,6 @@ do
         btn:Show();
 
         prev = btn;
-      end
-
-      if (tk:IsRetail()) then
-        _G.SpellBookFrame.bookType = _G.BOOKTYPE_PROFESSION;
       end
 
       menu:SetHeight((#professionIDs * (buttonHeight)) + 8);
