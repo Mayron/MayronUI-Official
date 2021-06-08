@@ -530,7 +530,7 @@ do
       return btn;
     end
 
-    local function ProfessionsMenuOnShow(menu)
+    local function ProfessionsMenuOnShow(icon, menu)
       local professionIDs = GetProfessionIDs();
 
       if (#professionIDs == 0) then
@@ -539,6 +539,8 @@ do
         menu:Hide();
         return
       end
+
+      PositionChatIconMenu(icon, menu, true);
 
       for _, btn in pairs(menu.btns) do
         btn:Hide();
@@ -601,7 +603,6 @@ do
       profMenu.spellOffset = 0;
 
       profMenu:SetSize(menuWidth, buttonHeight);
-      profMenu:SetScript("OnShow", ProfessionsMenuOnShow);
       profMenu:SetScript("OnUpdate", _G.UIMenu_OnUpdate);
       profMenu:SetScript("OnEvent", profMenu.Hide);
       profMenu:RegisterEvent("PLAYER_REGEN_DISABLED");
@@ -617,11 +618,9 @@ do
         end
 
         if (missingAnchor) then
-          PositionChatIconMenu(self, profMenu, true);
-
           -- Explicitly run show script:
-          ProfessionsMenuOnShow(profMenu);
           profMenu:Show(); -- might have been hidden by entering combat listener
+          ProfessionsMenuOnShow(self, profMenu);
 
           missingAnchor = nil;
           return
@@ -630,7 +629,7 @@ do
         profMenu:SetShown(not profMenu:IsShown());
 
         if (profMenu:IsShown()) then
-          PositionChatIconMenu(self, profMenu, true);
+          ProfessionsMenuOnShow(self, profMenu);
           missingAnchor = nil;
         end
       end);
