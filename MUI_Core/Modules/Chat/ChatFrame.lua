@@ -540,6 +540,10 @@ do
         return
       end
 
+      for _, btn in pairs(menu.btns) do
+        btn:Hide();
+      end
+
       local prev;
       for _, profID in ipairs(professionIDs) do
         local profName, _, skillRank, skillMaxRank, _, spellbookID = GetProfessionInfo(profID);
@@ -564,6 +568,8 @@ do
         else
           btn:SetPoint("TOPLEFT", prev, "BOTTOMLEFT");
         end
+
+        btn:Show();
 
         prev = btn;
       end
