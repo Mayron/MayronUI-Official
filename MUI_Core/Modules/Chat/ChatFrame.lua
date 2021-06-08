@@ -7,8 +7,8 @@ local MEDIA = tk:GetAssetFilePath("Textures\\Chat\\");
 ---@class ChatFrame
 local C_ChatFrame = obj:Import("MayronUI.ChatModule.ChatFrame");
 
-local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string, table, pairs, next =
-	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string, _G.table, _G.pairs, _G.next;
+local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string, table, pairs =
+	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string, _G.table, _G.pairs;
 
 local UIMenu_AddButton, FriendsFrame_SetOnlineStatus = _G.UIMenu_AddButton, _G.FriendsFrame_SetOnlineStatus;
 
@@ -581,7 +581,9 @@ do
 
       menu:SetHeight((#professionIDs * (buttonHeight)) + 8);
       obj:PushTable(professionIDs);
-      _G.UIMenu_OnShow(menu);
+
+      menu.timeleft = 2.0;
+      menu.counting = 0;
     end
 
     function CreateOrSetUpIcon.professions(name)
@@ -616,7 +618,11 @@ do
 
         if (missingAnchor) then
           PositionChatIconMenu(self, profMenu, true);
+
+          -- Explicitly run show script:
           ProfessionsMenuOnShow(profMenu);
+          profMenu:Show(); -- might have been hidden by entering combat listener
+
           missingAnchor = nil;
           return
         end
