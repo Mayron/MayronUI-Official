@@ -656,12 +656,16 @@ obj:DefineParams("boolean", "boolean=true");
 ---@param channelling boolean @If true, the casting type is set to "channelling" to reverse the bar direction.
 function C_CastBar:StartCasting(data, channelling, fadeIn, auraInfo)
   local func = channelling and UnitChannelInfo or UnitCastingInfo;
-  local name, texture, startTime, endTime, notInterruptible;
+  local name, text, texture, startTime, endTime, notInterruptible;
   local auraId;
   local bar = self:GetFrame();
 
   if (not obj:IsTable(auraInfo)) then
-    name, _, texture, startTime, endTime, _, _, notInterruptible = func(data.unitID);
+    name, text, texture, startTime, endTime, _, _, notInterruptible = func(data.unitID);
+
+    if (not tk:IsRetail()) then
+      notInterruptible = false; -- does not get returned  by func
+    end
   else
     name, texture, startTime, endTime, auraId = obj:UnpackTable(auraInfo);
   end
@@ -677,7 +681,7 @@ function C_CastBar:StartCasting(data, channelling, fadeIn, auraInfo)
   endTime = endTime / 1000; -- To make the same as GetTime() format
 
   bar.statusbar:SetMinMaxValues(0, endTime - startTime); -- 0 to n seconds
-  bar.name:SetText(name);
+  bar.name:SetText(text);
 
   if (data.icon) then
     data.icon:SetTexture(texture);
