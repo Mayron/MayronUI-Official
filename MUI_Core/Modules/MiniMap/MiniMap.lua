@@ -510,20 +510,6 @@ function C_MiniMapModule:OnEnable(data)
     });
 	end
 
-  if (IsAddOnLoaded("Recount")) then
-      table.insert(menuList, {
-        text = "Toggle Recount",
-        func = function()
-          if (_G.Recount.MainWindow:IsShown()) then
-            _G.Recount.MainWindow:Hide();
-          else
-            _G.Recount.MainWindow:Show();
-            _G.Recount:RefreshMainWindow();
-          end
-        end
-      });
-  end
-
   local menuFrame = CreateFrame("Frame", "MinimapRightClickMenu", UIParent, "UIDropDownMenuTemplate");
 	Minimap.oldMouseUp = Minimap:GetScript("OnMouseUp");
 

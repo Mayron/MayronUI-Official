@@ -104,7 +104,6 @@ db:AddToDefaults("global", {
         {"Bagnon", true, "Bagnon"};
         {"Bartender4", true, "Bartender4"};
         {"Masque", true, "Masque"};
-        {"Recount", true, "Recount"};
         {"Shadowed Unit Frames", true, "ShadowedUnitFrames"};
         {"Leatrix Plus", true, "Leatrix_Plus"};
       };
@@ -659,25 +658,6 @@ function C_CoreModule:OnInitialize()
       -- initialize a module if not set for manual initialization
       module:Initialize();
     end
-  end
-
-  -- probably should be moved to another file...
-  if (IsAddOnLoaded("Recount") and _G.Recount_MainWindow) then
-    local recount = _G.Recount_MainWindow;
-
-    if (db.global.reanchorRecount) then
-      recount:ClearAllPoints();
-      recount:SetPoint("BOTTOMRIGHT", -2, 2);
-      recount:SaveMainWindowPosition();
-
-      db.global.reanchorRecount = nil;
-    end
-
-    -- Reskin Recount Window
-    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW",  recount);
-    recount:SetClampedToScreen(true);
-    recount.tl:SetPoint("TOPLEFT", -6, -5);
-    recount.tr:SetPoint("TOPRIGHT", 6, -5);
   end
 
   tk:Print(L["Welcome back"], UnitName("player").."!");
