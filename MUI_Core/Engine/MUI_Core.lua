@@ -10,7 +10,7 @@ local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI =
   _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
 local strsplit, tostring = _G.strsplit, _G.tostring;
 local collectgarbage, CreateFont = _G.collectgarbage, _G.CreateFont;
-local hooksecurefunc = _G.hooksecurefunc;
+local hooksecurefunc, InCombatLockdown = _G.hooksecurefunc, _G.InCombatLockdown;
 local FillLocalizedClassList, UnitName = _G.FillLocalizedClassList, _G.UnitName;
 
 _G.BINDING_CATEGORY_MUI = "MayronUI";
@@ -152,10 +152,14 @@ end
 local commands = {};
 
 commands.config = function()
-  local module = GetMuiConfigModule()
+  if (InCombatLockdown()) then
+    tk:Print(L["Cannot access config menu while in combat."]);
+  else
+    local module = GetMuiConfigModule()
 
-  if (module) then
-    module:Show();
+    if (module) then
+      module:Show();
+    end
   end
 end
 

@@ -650,7 +650,7 @@ do
     UIMenu_Initialize(menu);
 
     local lines = {
-      { "MUI "..L["Config"], "/mui config", function() MayronUI:TriggerCommand("config") end};
+      { "MUI "..L["Config Menu"], "/mui config", function() MayronUI:TriggerCommand("config") end};
       { "MUI "..L["Install"], "/mui install", function() MayronUI:TriggerCommand("install") end};
       { "MUI "..L["Layouts"], "/mui layouts", function() MayronUI:TriggerCommand("layouts") end};
       { "MUI "..L["Profile Manager"], "/mui profiles", function() MayronUI:TriggerCommand("profiles") end};
@@ -665,7 +665,7 @@ do
       { "Bagnon "..L["Bank"], "/bgn bank", function() _G.Bagnon.Commands.OnSlashCommand("bank") end };
       { "Bagnon "..L["Guild Bank"], "/bgn guild", function() _G.Bagnon.Commands.OnSlashCommand("guild") end, true };
       { "Bagnon "..L["Void Storage"], "/bgn vault", function() _G.Bagnon.Commands.OnSlashCommand("vault") end, true };
-      { "Bagnon "..L["Config"], "/bgn config", function() _G.Bagnon.Commands.OnSlashCommand("config") end };
+      { "Bagnon "..L["Config Menu"], "/bgn config", function() _G.Bagnon.Commands.OnSlashCommand("config") end };
     };
 
     for _, line in pairs(lines) do

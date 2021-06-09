@@ -183,8 +183,6 @@ L["Customer Support"]     = "Customer Support";
 L["Class Order Hall"]     = "Class Order Hall";
 L["Garrison Report"]      = "Garrison Report";
 L["Tracking Menu"]        = "Tracking Menu";
-L["MUI Config Menu"]      = "MUI Config Menu";
-L["MUI Installer"]        = "MUI Installer";
 L["Music Player"]         = "Music Player";
 
 L["Cannot access config menu while in combat."] = "Cannot access config menu while in combat.";
@@ -851,7 +849,7 @@ L["Sets the alpha of timer bars for auras not produced by you (i.e., other playe
 L["Show Professions"] = "Show Professions";
 L["Show AddOn Shortcuts"] = "Show AddOn Shortcuts";
 L["Profile Manager"] = "Profile Manager";
-L["Config"] = "Config";
+L["Config Menu"] = "Config Menu";
 L["Show Profiles"] = "Show Profiles";
 L["Report"] = "Report";
 L["Toggle Alignment Grid"] = "Toggle Alignment Grid";
