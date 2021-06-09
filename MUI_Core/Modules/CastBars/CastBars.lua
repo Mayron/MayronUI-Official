@@ -681,7 +681,7 @@ function C_CastBar:StartCasting(data, channelling, fadeIn, auraInfo)
   endTime = endTime / 1000; -- To make the same as GetTime() format
 
   bar.statusbar:SetMinMaxValues(0, endTime - startTime); -- 0 to n seconds
-  bar.name:SetText(text);
+  bar.name:SetText(text or name);
 
   if (data.icon) then
     data.icon:SetTexture(texture);

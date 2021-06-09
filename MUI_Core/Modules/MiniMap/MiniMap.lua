@@ -200,6 +200,106 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
   end
 end);
 
+local function GetRightClickMenuList()
+  local menuList = {};
+
+  table.insert(menuList, {
+    text = tk.Strings:SetTextColorByTheme("MayronUI"),
+    hasArrow = true,
+      menuList = {
+      { text = L["Config Menu"], func = function() MayronUI:TriggerCommand("config") end};
+      { text = L["Install"], func = function() MayronUI:TriggerCommand("install") end};
+      { text = L["Layouts"], func = function() MayronUI:TriggerCommand("layouts") end};
+      { text = L["Profile Manager"], func = function() MayronUI:TriggerCommand("profiles") end};
+      { text = L["Show Profiles"], func = function() MayronUI:TriggerCommand("profiles", "list") end};
+      { text = L["Version"], func = function() MayronUI:TriggerCommand("version") end};
+      { text = L["Report"], func = function() MayronUI:TriggerCommand("report") end};
+    }
+  });
+
+  if (IsAddOnLoaded("Leatrix_Plus")) then
+    table.insert(menuList, {
+      text = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70"),
+      func = function()
+        _G.SlashCmdList["Leatrix_Plus"]();
+      end
+    });
+	end
+
+  if (tk:IsRetail()) then
+    table.insert(menuList, {
+      text = L["Calendar"],
+      func = function()
+        if (not _G["CalendarFrame"]) then
+          LoadAddOn("Blizzard_Calendar");
+        end
+        _G.Calendar_Toggle();
+      end
+    });
+
+    local function ShowMissions(garrTypeId)
+      LoadAddOn("Blizzard_GarrisonUI");
+      local items = _G.C_Garrison.GetAvailableMissions(_G.GetPrimaryGarrisonFollowerType(garrTypeId));
+
+      if (obj:IsTable(items)) then
+        ShowGarrisonLandingPage(garrTypeId);
+      else
+        MayronUI:Print("No available missions to show.");
+      end
+    end
+
+    table.insert(menuList, {
+      text = L["Garrison Report"],
+      func = function()
+        ShowMissions(2);
+      end
+    });
+
+    table.insert(menuList, {
+      text = L["Class Order Hall"],
+      func = function()
+        ShowMissions(3);
+      end
+    });
+
+    table.insert(menuList, {
+      text = L["Missions"],
+      func = function()
+        ShowMissions(9);
+      end
+    });
+
+    table.insert(menuList, {
+      text = L["Covenant Sanctum"],
+      func = function()
+        LoadAddOn("Blizzard_GarrisonUI");
+        if (_G.C_Covenants.GetActiveCovenantID() >= 1) then
+          ShowGarrisonLandingPage(111);
+        else
+          MayronUI:Print(L["You must be a member of a covenant to view this."]);
+        end
+      end
+    });
+
+    table.insert(menuList, {
+      text = L["Tracking Menu"],
+      func = function()
+        ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "MiniMapTracking", 0, -5);
+        PlaySound(tk.Constants.CLICK);
+      end
+    });
+  end
+
+  table.insert(menuList, {
+    text = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70"),
+    func = function()
+      _G.SlashCmdList["Leatrix_Plus"]();
+    end
+  });
+
+  return menuList;
+end
+
 function C_MiniMapModule:OnInitialize()
 	self:RegisterUpdateFunctions(db.profile.minimap, {
 		size = function(value)
@@ -258,9 +358,15 @@ function C_MiniMapModule:OnEnable(data)
     tk:KillElement(_G.MinimapToggleButton);
   end
 
-  -- TBC Classic
-  if (_G.MiniMapTracking) then
-    tk:KillElement(_G.MiniMapTracking);
+  -- TBC Classic -- in Retail it's MiniMapTrackingButton
+  local tracking = _G.MiniMapTracking or _G.MiniMapTrackingButton;
+  if (tracking) then
+    tracking:DisableDrawLayer("ARTWORK");
+    tracking:SetScale(0.8);
+    tracking:ClearAllPoints();
+    tracking:SetParent(Minimap);
+    tracking:SetPoint("TOPRIGHT");
+    _G.MiniMapTrackingIcon:SetPoint("CENTER", 0, 0);
   end
 
 	tk:ApplyThemeColor(zoneText);
@@ -361,7 +467,6 @@ function C_MiniMapModule:OnEnable(data)
 		GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
 		GameTooltip:AddDoubleLine(L["SHIFT + Drag:"], L["Resize Minimap"], 1, 1, 1);
 		GameTooltip:AddDoubleLine(L["Left Click:"], L["Ping Minimap"], 1, 1, 1);
-		GameTooltip:AddDoubleLine(L["Middle Click:"], L["Show Tracking Menu"], 1, 1, 1);
 		GameTooltip:AddDoubleLine(L["Right Click:"], L["Show Menu"], 1, 1, 1);
 		GameTooltip:AddDoubleLine(L["Mouse Wheel:"], L["Zoom in/out"], 1, 1, 1);
 		GameTooltip:AddDoubleLine(L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
@@ -417,113 +522,7 @@ function C_MiniMapModule:OnEnable(data)
   end
 
 	-- Drop down List:
-  local menuList = {};
-
-  if (tk:IsRetail()) then
-    table.insert(menuList, {
-      text = L["Calendar"],
-      func = function()
-        if (not _G["CalendarFrame"]) then
-          LoadAddOn("Blizzard_Calendar");
-        end
-        _G.Calendar_Toggle();
-      end
-    });
-
-    local function ShowMissions(garrTypeId)
-      LoadAddOn("Blizzard_GarrisonUI");
-      local items = _G.C_Garrison.GetAvailableMissions(_G.GetPrimaryGarrisonFollowerType(garrTypeId));
-
-      if (obj:IsTable(items)) then
-        ShowGarrisonLandingPage(garrTypeId);
-      else
-        MayronUI:Print("No available missions to show.");
-      end
-    end
-
-    table.insert(menuList, {
-      text = L["Garrison Report"],
-      func = function()
-        ShowMissions(2);
-      end
-    });
-
-    table.insert(menuList, {
-      text = L["Class Order Hall"],
-      func = function()
-        ShowMissions(3);
-      end
-    });
-
-    table.insert(menuList, {
-      text = L["Missions"],
-      func = function()
-        ShowMissions(9);
-      end
-    });
-
-    table.insert(menuList, {
-      text = L["Covenant Sanctum"],
-      func = function()
-        LoadAddOn("Blizzard_GarrisonUI");
-        if (C_Covenants.GetActiveCovenantID() >= 1) then
-          ShowGarrisonLandingPage(111);
-        else
-          MayronUI:Print(L["You must be a member of a covenant to view this."]);
-        end
-      end
-    });
-
-    table.insert(menuList, {
-      text = L["Tracking Menu"],
-      func = function()
-        ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "MiniMapTracking", 0, -5);
-        PlaySound(tk.Constants.CLICK);
-      end
-    });
-  end
-
-  table.insert(menuList, {
-    text = tk.Strings:SetTextColorByTheme(L["MUI Config Menu"]),
-    func = function()
-      if (InCombatLockdown()) then
-        tk:Print(L["Cannot access config menu while in combat."]);
-      else
-        MayronUI:TriggerCommand("config");
-      end
-    end
-  });
-
-  table.insert(menuList, {
-    text = tk.Strings:SetTextColorByTheme(L["MUI Installer"]),
-    func = function()
-      MayronUI:TriggerCommand("install");
-    end
-  });
-
-	if (IsAddOnLoaded("Leatrix_Plus")) then
-    table.insert(menuList, {
-      text = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70"),
-      func = function()
-        _G.SlashCmdList["Leatrix_Plus"]();
-      end
-    });
-	end
-
-  if (IsAddOnLoaded("Recount")) then
-      table.insert(menuList, {
-        text = "Toggle Recount",
-        func = function()
-          if (_G.Recount.MainWindow:IsShown()) then
-            _G.Recount.MainWindow:Hide();
-          else
-            _G.Recount.MainWindow:Show();
-            _G.Recount:RefreshMainWindow();
-          end
-        end
-      });
-  end
-
+  local menuList = GetRightClickMenuList();
   local menuFrame = CreateFrame("Frame", "MinimapRightClickMenu", UIParent, "UIDropDownMenuTemplate");
 	Minimap.oldMouseUp = Minimap:GetScript("OnMouseUp");
 
@@ -531,9 +530,6 @@ function C_MiniMapModule:OnEnable(data)
 		if (btn == "RightButton") then
 			EasyMenu(menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
       PlaySound(tk.Constants.CLICK);
-		elseif (tk:IsRetail() and btn == "MiddleButton") then
-			ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "Minimap", 0, 0);
-			PlaySound(tk.Constants.CLICK);
 		else
 			self.oldMouseUp(self);
 		end

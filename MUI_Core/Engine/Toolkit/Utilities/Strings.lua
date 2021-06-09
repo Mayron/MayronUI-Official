@@ -197,8 +197,8 @@ function tk.Strings:GetUnitNameText(unitID)
   return unitName;
 end
 
-function tk.Strings:GetUnitLevelText(unitID)
-  local unitLevel = UnitLevel(unitID);
+function tk.Strings:GetUnitLevelText(unitID, unitLevel)
+  unitLevel = unitLevel or UnitLevel(unitID);
 
   if (unitID:lower() == "player") then
     unitLevel = tk.Strings:SetTextColorByRGB(unitLevel, 1, 0.8, 0);
@@ -236,9 +236,9 @@ function tk.Strings:GetUnitStatusText(unitID)
   end
 end
 
-function tk.Strings:GetUnitFullNameText(unitID)
+function tk.Strings:GetUnitFullNameText(unitID, unitLevel)
   local unitName = self:GetUnitNameText(unitID);
-  local unitLevel = self:GetUnitLevelText(unitID);
+  unitLevel = self:GetUnitLevelText(unitID, unitLevel);
   local unitStatus = self:GetUnitStatusText(unitID);
 
   return string.format("%s %s%s", unitName, unitLevel, unitStatus or "");

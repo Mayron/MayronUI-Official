@@ -10,7 +10,7 @@ local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI =
   _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
 local strsplit, tostring = _G.strsplit, _G.tostring;
 local collectgarbage, CreateFont = _G.collectgarbage, _G.CreateFont;
-local hooksecurefunc = _G.hooksecurefunc;
+local hooksecurefunc, InCombatLockdown = _G.hooksecurefunc, _G.InCombatLockdown;
 local FillLocalizedClassList, UnitName = _G.FillLocalizedClassList, _G.UnitName;
 
 _G.BINDING_CATEGORY_MUI = "MayronUI";
@@ -104,7 +104,6 @@ db:AddToDefaults("global", {
         {"Bagnon", true, "Bagnon"};
         {"Bartender4", true, "Bartender4"};
         {"Masque", true, "Masque"};
-        {"Recount", true, "Recount"};
         {"Shadowed Unit Frames", true, "ShadowedUnitFrames"};
         {"Leatrix Plus", true, "Leatrix_Plus"};
       };
@@ -153,10 +152,14 @@ end
 local commands = {};
 
 commands.config = function()
-  local module = GetMuiConfigModule()
+  if (InCombatLockdown()) then
+    tk:Print(L["Cannot access config menu while in combat."]);
+  else
+    local module = GetMuiConfigModule()
 
-  if (module) then
-    module:Show();
+    if (module) then
+      module:Show();
+    end
   end
 end
 
@@ -659,25 +662,6 @@ function C_CoreModule:OnInitialize()
       -- initialize a module if not set for manual initialization
       module:Initialize();
     end
-  end
-
-  -- probably should be moved to another file...
-  if (IsAddOnLoaded("Recount") and _G.Recount_MainWindow) then
-    local recount = _G.Recount_MainWindow;
-
-    if (db.global.reanchorRecount) then
-      recount:ClearAllPoints();
-      recount:SetPoint("BOTTOMRIGHT", -2, 2);
-      recount:SaveMainWindowPosition();
-
-      db.global.reanchorRecount = nil;
-    end
-
-    -- Reskin Recount Window
-    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "LOW",  recount);
-    recount:SetClampedToScreen(true);
-    recount.tl:SetPoint("TOPLEFT", -6, -5);
-    recount.tr:SetPoint("TOPRIGHT", 6, -5);
   end
 
   tk:Print(L["Welcome back"], UnitName("player").."!");

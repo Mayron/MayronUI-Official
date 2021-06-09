@@ -663,28 +663,22 @@ function C_SetUpModule:Install()
     end
   end
 
-  -- MayronUI profiles:
-  for _, name in obj:IterateArgs("Bartender4", "Recount") do
-    if (_G[name]) then
-      local path = tk.Tables:GetDBObject(name);
+  if (_G.Bartender4) then
+    local path = tk.Tables:GetDBObject("Bartender4");
 
-      if (path) then
-        if (path:GetCurrentProfile() ~= "MayronUI") then
-          path:SetProfile("MayronUI");
-        end
+    if (path) then
+      if (path:GetCurrentProfile() ~= "MayronUI") then
+        path:SetProfile("MayronUI");
       end
     end
   end
 
-  -- Default Profiles:
-  for _, name in obj:IterateArgs("ShadowUF") do
-    if (_G[name]) then
-      local path = tk.Tables:GetDBObject(name);
+  if (_G.ShadowUF) then
+    local path = tk.Tables:GetDBObject("ShadowUF");
 
-      if (path) then
-        if (path:GetCurrentProfile() ~= "Default") then
-          path:SetProfile("Default");
-        end
+    if (path) then
+      if (path:GetCurrentProfile() ~= "Default") then
+        path:SetProfile("Default");
       end
     end
   end
@@ -695,7 +689,6 @@ function C_SetUpModule:Install()
   end
 
   db.global.installed[tk:GetPlayerKey()] = true;
-  db.global.reanchorRecount = true;
   db.profile.freshInstall = true;
 
   _G.DisableAddOn("MUI_Setup");
