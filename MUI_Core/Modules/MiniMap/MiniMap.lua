@@ -358,8 +358,8 @@ function C_MiniMapModule:OnEnable(data)
     tk:KillElement(_G.MinimapToggleButton);
   end
 
-  -- TBC Classic
-  local tracking = _G.MiniMapTracking;
+  -- TBC Classic -- in Retail it's MiniMapTrackingButton
+  local tracking = _G.MiniMapTracking or _G.MiniMapTrackingButton;
   if (tracking) then
     tracking:DisableDrawLayer("ARTWORK");
     tracking:SetScale(0.8);
@@ -467,7 +467,6 @@ function C_MiniMapModule:OnEnable(data)
 		GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
 		GameTooltip:AddDoubleLine(L["SHIFT + Drag:"], L["Resize Minimap"], 1, 1, 1);
 		GameTooltip:AddDoubleLine(L["Left Click:"], L["Ping Minimap"], 1, 1, 1);
-		GameTooltip:AddDoubleLine(L["Middle Click:"], L["Show Tracking Menu"], 1, 1, 1);
 		GameTooltip:AddDoubleLine(L["Right Click:"], L["Show Menu"], 1, 1, 1);
 		GameTooltip:AddDoubleLine(L["Mouse Wheel:"], L["Zoom in/out"], 1, 1, 1);
 		GameTooltip:AddDoubleLine(L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
@@ -531,10 +530,6 @@ function C_MiniMapModule:OnEnable(data)
 		if (btn == "RightButton") then
 			EasyMenu(menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
       PlaySound(tk.Constants.CLICK);
-
-		elseif (_G.MiniMapTrackingDropDown and btn == "MiddleButton") then
-			ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "Minimap", 0, 0);
-			PlaySound(tk.Constants.CLICK);
 		else
 			self.oldMouseUp(self);
 		end
