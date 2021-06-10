@@ -40,10 +40,10 @@ function C_ToolTipsModule:GetConfigTable(data)
                 requiresReload = true,
                 appendDbPath = "enabled",
             },
-            {   name = L["Unit Tool-Tip Options"],
+            {   name = L["Unit Tooltip Options"],
                 type = "title",
             };
-            {   content = L["These options only affect tool-tips that appear when you mouse over a unit, such as an NPC or player."],
+            {   content = L["These options only affect tooltips that appear when you mouse over a unit, such as an NPC or player."],
                 type = "fontstring",
             };
             {   name = L["Show Target"],
@@ -75,20 +75,20 @@ function C_ToolTipsModule:GetConfigTable(data)
             {   name = L["In Combat Options"],
                 type = "title",
             };
-            {   name = L["Show Unit Tool-Tips In Combat"],
+            {   name = L["Show Unit Tooltips In Combat"],
                 type = "check",
                 appendDbPath = "combat.showUnit",
-                tooltip = L["Unit tool-tips display player and NPC information while\nyour mouse cursor is over a unit in the game world."];
+                tooltip = L["Unit tooltips display player and NPC information while your mouse cursor is over a unit in the game world."];
             },
-            {   name = L["Show Standard Tool-Tips In Combat"],
-                tooltip = L["Standard tool-tips display non-unit related information,\nsuch as action-bar abilities, buffs and debuffs, and more."];
+            {   name = L["Show Standard Tooltips In Combat"],
+                tooltip = L["Standard tooltips display non-unit related information, such as action-bar abilities, buffs and debuffs, and more."];
                 type = "check",
                 appendDbPath = "combat.showStandard",
             },
             {   name = L["Appearance Options"],
                 type = "title",
             };
-            {   content = L["These options allow you to customize the appearance of the tool-tips."],
+            {   content = L["These options allow you to customize the appearance of the tooltips."],
                 type = "fontstring",
             };
             {   name = L["Font Type"];
@@ -126,7 +126,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   name = L["Scale"];
                 type = "slider";
-                tooltip = tk.Strings:JoinWithSpace(L["Affects the overall size of the tool-tips."], L["Default value is"], "0.8");
+                tooltip = tk.Strings:JoinWithSpace(L["Affects the overall size of the tooltips."], L["Default value is"], "0.8");
                 step = 0.1;
                 min = 0.5;
                 max = 1.5;
@@ -174,15 +174,15 @@ function C_ToolTipsModule:GetConfigTable(data)
                 end;
                 children = {
                     {   type = "fontstring";
-                        content = L["The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see previous menu)."];
+                        content = L["The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see the previous menu)."];
                     };
                     {   name = L["Use MUI Theme Color"],
-                        tooltip = L["If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class colored)."];
+                        tooltip = L["If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class-colored)."];
                         type = "check",
                         appendDbPath = "useTheme",
                     },
                     {   name = L["Custom Color"];
-                        tooltip = L["If not using the MUI theme color, the tool-tip will use this custom color for both the background and bolor color."];
+                        tooltip = L["If not using the MUI theme color, the tooltip will use this custom color for both the background and border color."];
                         type = "color";
                         width = 200;
                         enabled = db.profile.tooltips.muiTexture.useTheme;
@@ -205,7 +205,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                         appendDbPath = "borderClassColored",
                     },
                     {   name = L["Border Color"];
-                        tooltip = L["If color border by class or NPC type is checked, this color will be used for all non-unit tool-tips, else it will be used for every tool-tip border."];
+                        tooltip = L["If color border by class or NPC type is checked, this color will be used for all non-unit tooltips, else it will be used for every tooltip border."];
                         type = "color";
                         hasOpacity = true;
                         width = 200;
@@ -297,7 +297,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   type = "fontstring",
                 subtype = "header",
-                content = L["Unit Tool-Tip Anchor Point"],
+                content = L["Unit Tooltip Anchor Point"],
             },
             {   name = L["Mouse Cursor"];
                 type = "radio";
@@ -327,7 +327,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             },
             {   type = "fontstring",
                 subtype = "header",
-                content = L["Standard Tool-Tip Anchor Point"],
+                content = L["Standard Tooltip Anchor Point"],
             },
             {   name = L["Mouse Cursor"];
                 type = "radio";
@@ -361,7 +361,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             },
             --ANCHOR_CURSOR_RIGHT
             {   name = "Point",
-                tooltip = L["The bottom-[point] corner of the tool-tip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."];
+                tooltip = L["The bottom-[point] corner of the tooltip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."];
                 type = "dropdown",
                 appendDbPath = "anchors.mouseAnchor.point",
                 options = {
@@ -464,7 +464,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                 type = "title",
             };
             {   name = L["Enabled"],
-                tooltip = L["If checked, unit tool-tips will show the unit's power bar."],
+                tooltip = L["If checked, unit tooltips will show the unit's power bar."],
                 type = "check",
                 appendDbPath = "powerBar.enabled",
             },
@@ -512,7 +512,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                 content = L["Buffs"],
             },
             {   name = L["Enabled"],
-                tooltip = L["If checked, unit tool-tips will show the unit's buffs."],
+                tooltip = L["If checked, unit tooltips will show the unit's buffs."],
                 type = "check",
                 appendDbPath = "auras.buffs.enabled",
             },
@@ -529,7 +529,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                 appendDbPath = "auras.buffs.size";
             };
             {   name = L["Position"],
-                tooltip = L["Set whether you want the unit's buffs to appear above or below the tool-tip."];
+                tooltip = L["Set whether you want the unit's buffs to appear above or below the tooltip."];
                 type = "dropdown",
                 appendDbPath = "auras.buffs.position",
                 options = {
@@ -547,7 +547,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                 content = L["Debuffs"],
             },
             {   name = L["Enabled"],
-                tooltip = L["If checked, unit tool-tips will show the unit's debuffs."],
+                tooltip = L["If checked, unit tooltips will show the unit's debuffs."],
                 type = "check",
                 appendDbPath = "auras.debuffs.enabled",
             },
@@ -569,7 +569,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                 appendDbPath = "auras.debuffs.size";
             };
             {   name = L["Position"],
-                tooltip = L["Set whether you want the unit's debuffs to appear above or below the tool-tip."];
+                tooltip = L["Set whether you want the unit's debuffs to appear above or below the tooltip."];
                 type = "dropdown",
                 appendDbPath = "auras.debuffs.position",
                 options = {
@@ -588,7 +588,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   type = "fontstring";
                 height = 40;
-                content = L["The below setting controls the ordering of auras on the tool-tip when both the buffs and debuffs are positioned together (either above or below the tool-tip) and are both enabled."]
+                content = L["The below setting controls the ordering of auras on the tooltip when both the buffs and debuffs are positioned together (either above or below the tooltip) and are both enabled."]
             };
             {   name = L["Debuffs Above Buffs"];
                 appendDbPath = "auras.debuffs.aboveBuffs";

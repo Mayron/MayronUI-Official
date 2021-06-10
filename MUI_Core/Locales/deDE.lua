@@ -714,108 +714,163 @@ L["Copy Report"] = "Bericht kopieren";
 ---------------------------------------
 --- NEW SINCE 31/05/2021 (update 6.6.3)
 ---------------------------------------
-L["Chat Frame with Icons"] = "Chat Frame with Icons";
-L["Vertical Side Icons"] = "Vertical Side Icons";
-L["Only 1 active chat frame can show the chat icons on the side bar (see icons listed below)."] = "Only 1 active chat frame can show the chat icons on the side bar (see icons listed below).";
-L["Horizontal Top Buttons"] = "Horizontal Top Buttons";
-L["This option will affect all active chat frames. To configure each individual button per chat frame, see the chat frame sub menus below."] = "This option will affect all active chat frames. To configure each individual button per chat frame, see the chat frame sub menus below.";
-L["Chat Channels"] = "Chat Channels";
-L["Professions"] = "Professions";
-L["AddOn Shortcuts"] = "AddOn Shortcuts";
-L["Copy Chat"] = "Copy Chat";
+L["Chat Frame with Icons"] = "Chat-Rahmen mit Symbolen";
+L["Vertical Side Icons"] = "Vertikale Seitensymbole";
+L["Only 1 active chat frame can show the chat icons on the sidebar (see icons listed below)."] 
+  = "Nur 1 aktiver Chatrahmen kann die Chatsymbole in der Seitenleiste anzeigen (siehe unten aufgeführte Symbole).";
+L["Horizontal Top Buttons"] = "Horizontale obere Tasten";
+L["This option will affect all active chat frames. To configure each individual button per chat frame, see the chat frame sub-menus below."] 
+  = "Diese Option wirkt sich auf alle aktiven Chat-Frames aus. Um jede einzelne Schaltfläche pro Chat-Frame zu konfigurieren, sehen Sie sich die Chat-Frame-Untermenüs unten an.";
+L["Chat Channels"] = "Chat-Kanäle";
+L["Professions"] = "Berufe";
+L["AddOn Shortcuts"] = "AddOn-Kurzbefehle";
+L["Copy Chat"] = "Chat kopieren";
 L["Emotes"] = "Emotes";
 L["Online Status"] = "Online Status";
-L["None"] = "None";
-L["Deafen"] = "Deafen";
-L["Mute"] = "Mute";
-L["If checked, this module will be enabled."] = "If checked, this module will be enabled.";
-L["Unit Tool-Tip Options"] = "Unit Tool-Tip Options";
-L["These options only affect tool-tips that appear when you mouse over a unit, such as an NPC or player."] = "These options only affect tool-tips that appear when you mouse over a unit, such as an NPC or player.";
-L["If checked, the target of the unit (NPC or player) displayed in the tooltip will be shown."] = "If checked, the target of the unit (NPC or player) displayed in the tooltip will be shown.";
-L["If checked and the player is in a guild, the guild rank of the player displayed in the tooltip will be shown."] = "If checked and the player is in a guild, the guild rank of the player displayed in the tooltip will be shown.";
-L["If checked and the player is level 10 or higher, the item level of the player displayed in the tooltip will be shown."] = "If checked and the player is level 10 or higher, the item level of the player displayed in the tooltip will be shown.";
-L["The player must be close enough to be inspected for this information to load."] = "The player must be close enough to be inspected for this information to load.";
-L["If checked and the player is level 10 or higher and has chosen a class specialization, the specialization of the player displayed in the tooltip will be shown."] = "If checked and the player is level 10 or higher and has chosen a class specialization, the specialization of the player displayed in the tooltip will be shown.";
-L["Show Specialization"] = "Show Specialization";
-L["Show Item Level"] = "Show Item Level";
-L["In Combat Options"] = "In Combat Options";
-L["Show Unit Tool-Tips In Combat"] = "Show Unit Tool-Tips In Combat";
-L["Show Guild Rank"] = "Show Guild Rank";
-L["Show Target"] = "Show Target";
-L["Show Standard Tool-Tips In Combat"] = "Show Standard Tool-Tips In Combat";
-L["Standard tool-tips display non-unit related information,\nsuch as action-bar abilities, buffs and debuffs, and more."] = "Standard tool-tips display non-unit related information,\nsuch as action-bar abilities, buffs and debuffs, and more.";
-L["Unit tool-tips display player and NPC information while\nyour mouse cursor is over a unit in the game world."] = "Unit tool-tips display player and NPC information while\nyour mouse cursor is over a unit in the game world.";
-L["Appearance Options"] = "Appearance Options";
-L["These options allow you to customize the appearance of the tool-tips."] = "These options allow you to customize the appearance of the tool-tips.";
-L["Font Flag"] = "Font Flag";
-L["Standard Font Size"] = "Standard Font Size";
-L["Header Font Size"] = "Header Font Size";
-L["Affects the overall size of the tool-tips."] = "Affects the overall size of the tool-tips.";
-L["Reskin using the MUI texture or a custom backdrop"] = "Reskin using the MUI texture or a custom backdrop";
-L["Texture"] = "Texture";
-L["Texture Options"] = "Texture Options";
-L["Custom Backdrop"] = "Custom Backdrop";
-L["The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see previous menu)."] = "The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see previous menu).";
-L["Use MUI Theme Color"] = "Use MUI Theme Color";
-L["If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class colored)."] = "If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class colored).";
-L["Custom Color"] = "Custom Color";
-L["If not using the MUI theme color, the tool-tip will use this custom color for both the background and bolor color."] = "If not using the MUI theme color, the tool-tip will use this custom color for both the background and bolor color.";
-L["Custom Backdrop Options"] = "Custom Backdrop Options";
-L["Color border by class or NPC type"] = "Color border by class or NPC type";
-L["If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit."] = "If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit.";
-L["Border Color"] = "Border Color";
-L["If color border by class or NPC type is checked, this color will be used for all non-unit tool-tips, else it will be used for every tool-tip border."] = "If color border by class or NPC type is checked, this color will be used for all non-unit tool-tips, else it will be used for every tool-tip border.";
-L["Background Texture"] = "Background Texture";
-L["Border Insets"] = "Border Insets";
-L["Left"] = "Left";
-L["Right"] = "Right";
+L["None"] = "Keiner";
+L["Deafen"] = "taub";
+L["Mute"] = "Stumm";
+L["If checked, this module will be enabled."] = "Wenn diese Option aktiviert ist, wird dieses Modul aktiviert.";
+L["Unit Tooltip Options"] = "Tooltip-Optionen für Einheiten";
+L["These options only affect tooltips that appear when you mouse over a unit, such as an NPC or player."]
+  = "Diese Optionen wirken sich nur auf Tooltips aus, die angezeigt werden, wenn Sie mit der Maus über eine Einheit fahren, z. B. einen NPC oder einen Spieler.";
+L["If checked, the target of the unit (NPC or player) displayed in the tooltip will be shown."] 
+  = "Wenn aktiviert, wird das im Tooltip angezeigte Ziel der Einheit (NPC oder Spieler) angezeigt.";
+L["If checked and the player is in a guild, the guild rank of the player displayed in the tooltip will be shown."] 
+  = "Wenn aktiviert und der Spieler in einer Gilde ist, wird der Gildenrang des Spielers im Tooltip angezeigt.";
+L["If checked and the player is level 10 or higher, the item level of the player displayed in the tooltip will be shown."] 
+  = "Wenn diese Option aktiviert ist und der Spieler Level 10 oder höher ist, wird die Gegenstandsstufe des Spielers angezeigt, die im Tooltip angezeigt wird.";
+L["The player must be close enough to be inspected for this information to load."] 
+  = "Der Player muss nah genug sein, um inspiziert zu werden, damit diese Informationen geladen werden können.";
+L["If checked and the player is level 10 or higher and has chosen a class specialization, the specialization of the player displayed in the tooltip will be shown."]
+  = "Wenn aktiviert und der Spieler Level 10 oder höher ist und eine Klassenspezialisierung gewählt hat, wird die Spezialisierung des Spielers angezeigt, die im Tooltip angezeigt wird.";
+L["Show Specialization"] = "Spezialisierung anzeigen";
+L["Show Item Level"] = "Artikelstufe anzeigen";
+L["In Combat Options"] = "In Kampfoptionen";
+L["Show Unit Tooltips In Combat"] = "Einheiten-Tooltips im Kampf anzeigen";
+L["Show Guild Rank"] = "Gildenrang anzeigen";
+L["Show Target"] = "Ziel anzeigen";
+L["Show Standard Tooltips In Combat"] = "Standard-Tooltips im Kampf anzeigen";
+L["Standard tooltips display non-unit related information, such as action-bar abilities, buffs and debuffs, and more."] 
+  = "Standard-Tooltips zeigen nicht einheitenbezogene Informationen an, z. B. Fähigkeiten der Aktionsleiste, Buffs und Debuffs und mehr.";
+L["Unit tooltips display player and NPC information while your mouse cursor is over a unit in the game world."] 
+  = "Einheiten-Tooltips zeigen Spieler- und NPC-Informationen an, während sich der Mauszeiger über einer Einheit in der Spielwelt befindet.";
+L["Appearance Options"] = "Darstellungsoptionen";
+L["These options allow you to customize the appearance of the tooltips."] 
+  = "Mit diesen Optionen können Sie das Erscheinungsbild der QuickInfos anpassen.";
+L["Font Flag"] = "Schriftart-Flag";
+L["Standard Font Size"] = "Standardschriftgröße";
+L["Header Font Size"] = "Schriftgröße der Kopfzeile";
+L["Affects the overall size of the tooltips."] = "Beeinflusst die Gesamtgröße der QuickInfos.";
+L["Reskin using the MUI texture or a custom backdrop"] = "Reskin mit der MUI-Textur oder einem benutzerdefinierten Hintergrund";
+L["Texture"] = "Textur";
+L["Texture Options"] = "Texturoptionen";
+L["Custom Backdrop"] = "Benutzerdefinierter Hintergrund";
+L["The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see the previous menu)."] 
+  = "Die MUI-Textur steuert sowohl die Hintergrund- als auch die Randtexturen. Wenn Sie einen individuelleren Stil wünschen, verwenden Sie stattdessen den Stil „Benutzerdefinierter Hintergrund“ (siehe vorheriges Menü).";
+L["Use MUI Theme Color"] = "Verwenden Sie die MUI-Designfarbe";
+L["If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class-colored)."] 
+  = "Wenn diese Option aktiviert ist, verwendet die MUI-Textur Ihre MUI-Designfarbe sowohl für den Hintergrund als auch für die Rahmenfarbe (standardmäßig ist dies klassenfarben).";
+L["Custom Color"] = "Freiwählbare Farbe";
+L["If not using the MUI theme color, the tooltip will use this custom color for both the background and border color."] 
+  = "Wenn die MUI-Designfarbe nicht verwendet wird, verwendet die QuickInfo diese benutzerdefinierte Farbe sowohl für die Hintergrund- als auch für die Rahmenfarbe.";
+L["Custom Backdrop Options"] = "Benutzerdefinierte Hintergrundoptionen";
+L["Color border by class or NPC type"] = "Farbrahmen nach Klasse oder NPC-Typ";
+L["If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit."] 
+  = "Wenn diese Option aktiviert ist, basiert die Farbe des Hintergrundrahmens auf der Klasse der Spielereinheit oder dem Typ der NPC-Einheit.";
+L["Border Color"] = "Randfarbe";
+L["If color border by class or NPC type is checked, this color will be used for all non-unit tooltips, else it will be used for every tooltip border."] 
+  = "Wenn Farbrahmen nach Klasse oder NPC-Typ aktiviert ist, wird diese Farbe für alle Tooltips verwendet, die keine Einheiten sind, andernfalls wird sie für jeden Tooltip-Rahmen verwendet.";
+L["Background Texture"] = "Hintergrundtextur";
+L["Border Insets"] = "Randeinsätze";
+L["Left"] = "Links";
+L["Right"] = "Recht";
 L["Center"] = "Center";
-L["Top"] = "Top";
-L["Bottom"] = "Bottom";
-L["Anchor Options"] = "Anchor Options";
-L["Unit Tool-Tip Anchor Point"] = "Unit Tool-Tip Anchor Point";
-L["Mouse Cursor"] = "Mouse Cursor";
-L["Screen Corner"] = "Screen Corner";
-L["Screen Corner Positioning"] = "Screen Corner Positioning";
-L["Standard Tool-Tip Anchor Point"] = "Standard Tool-Tip Anchor Point";
-L["Mouse Cursor Positioning"] = "Mouse Cursor Positioning";
-L["The bottom-[point] corner of the tool-tip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."] = "The bottom-[point] corner of the tool-tip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor.";
-L["Health Bar"] = "Health Bar";
-L["Outline"] = "Outline";
-L["Thick Outline"] = "Thick Outline";
-L["Monochrome"] = "Monochrome";
-L["Text Format"] = "Text Format";
-L["Set the text format of the value that appears on the status bar. Set this to 'None' to hide the text."] = "Set the text format of the value that appears on the status bar. Set this to 'None' to hide the text.";
-L["Current/Maximum"] = "Current/Maximum";
-L["Percentage"] = "Percentage";
-L["Power Bar"] = "Power Bar";
-L["If checked, unit tool-tips will show the unit's power bar."] = "If checked, unit tool-tips will show the unit's power bar.";
-L["Unit Aura Options"] = "Unit Aura Options";
-L["If checked, unit tool-tips will show the unit's buffs."] = "If checked, unit tool-tips will show the unit's buffs.";
-L["Above"] = "Above";
-L["Below"] = "Below";
+L["Top"] = "oben";
+L["Bottom"] = "Unterseite";
+L["Anchor Options"] = "Ankeroptionen";
+L["Unit Tooltip Anchor Point"] = "Einheiten-Tooltip-Ankerpunkt";
+L["Mouse Cursor"] = "Mauszeiger";
+L["Screen Corner"] = "Bildschirmecke";
+L["Screen Corner Positioning"] = "Positionierung der Bildschirmecke";
+L["Standard Tooltip Anchor Point"] = "Standard-Tooltip-Ankerpunkt";
+L["Mouse Cursor Positioning"] = "Positionierung des Mauszeigers";
+L["The bottom-[point] corner of the tooltip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."] 
+  = "Die untere [Punkt]-Ecke des Tooltips, wobei [Punkt] entweder 'Links' oder 'Rechts' ist, wird an der Position des Mauszeigers verankert.";
+L["Health Bar"] = "Gesundheitsleiste";
+L["Outline"] = "Gliederung";
+L["Thick Outline"] = "Dicker Umriss";
+L["Monochrome"] = "Einfarbig";
+L["Text Format"] = "Textformat";
+L["Set the text format of the value that appears on the status bar. Set this to 'None' to hide the text."] 
+  = "Legen Sie das Textformat des Werts fest, der in der Statusleiste angezeigt wird. Setzen Sie dies auf 'Keine', um den Text auszublenden.";
+L["Current/Maximum"] = "Strom/Maximum";
+L["Percentage"] = "Prozentsatz";
+L["Power Bar"] = "Energieleiste";
+L["If checked, unit tooltips will show the unit's power bar."] 
+  = "Wenn diese Option aktiviert ist, zeigen die Tooltips der Einheit die Energieleiste der Einheit an.";
+L["Unit Aura Options"] = "Aura-Optionen für Einheiten";
+L["If checked, unit tooltips will show the unit's buffs."] = "Wenn diese Option aktiviert ist, zeigen Einheiten-Tooltips die Buffs der Einheit.";
+L["Above"] = "Über";
+L["Below"] = "Unten";
 L["Position"] = "Position";
-L["Set whether you want the unit's buffs to appear above or below the tool-tip."] = "Set whether you want the unit's buffs to appear above or below the tool-tip.";
-L["Left to Right"] = "Left to Right";
-L["Right to Left"] = "Right to Left";
-L["If checked, unit tool-tips will show the unit's debuffs."] = "If checked, unit tool-tips will show the unit's debuffs.";
-L["Set border color by debuff type"] = "Set border color by debuff type";
-L["If enabled, the border color of debuffs will be based on the type of debuff (e.g., poisons will appear with a green border color)."] = "If enabled, the border color of debuffs will be based on the type of debuff (e.g., poisons will appear with a green border color).";
-L["Set whether you want the unit's debuffs to appear above or below the tool-tip."] = "Set whether you want the unit's debuffs to appear above or below the tool-tip.";
-L["Buff and Debuff Ordering"] = "Buff and Debuff Ordering";
-L["The below setting controls the ordering of auras on the tool-tip when both the buffs and debuffs are positioned together (either above or below the tool-tip) and are both enabled."] = "The below setting controls the ordering of auras on the tool-tip when both the buffs and debuffs are positioned together (either above or below the tool-tip) and are both enabled.";
-L["Debuffs Above Buffs"] = "Debuffs Above Buffs";
-L["Buffs Above Debuffs"] = "Buffs Above Debuffs";
-L["Non-Player Alpha"] = "Non-Player Alpha";
-L["Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs)."] = "Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs).";
-L["Show AddOn Shortcuts"] = "Show AddOn Shortcuts";
-L["Show Professions"] = "Show Professions";
-L["Profile Manager"] = "Profile Manager";
+L["Set whether you want the unit's buffs to appear above or below the tooltip."] 
+  = "Legen Sie fest, ob die Buffs der Einheit über oder unter dem Tooltip angezeigt werden sollen.";
+L["Left to Right"] = "Links nach rechts";
+L["Right to Left"] = "Rechts nach links";
+L["If checked, unit tooltips will show the unit's debuffs."] 
+  = "Wenn diese Option aktiviert ist, zeigen Einheiten-Tooltips die Schwächungen der Einheit an.";
+L["Set border color by debuff type"] = "Rahmenfarbe nach Debuff-Typ festlegen";
+L["If enabled, the border color of debuffs will be based on the type of debuff (e.g., poisons will appear with a green border color)."] 
+  = "Wenn aktiviert, richtet sich die Randfarbe von Debuffs nach der Art des Debuffs (z. B. werden Gifte mit einer grünen Randfarbe angezeigt).";
+L["Set whether you want the unit's debuffs to appear above or below the tooltip."] 
+  = "Legen Sie fest, ob die Schwächungen der Einheit über oder unter dem Tooltip angezeigt werden sollen.";
+L["Buff and Debuff Ordering"] = "Buff- und Debuff-Bestellung";
+L["The below setting controls the ordering of auras on the tooltip when both the buffs and debuffs are positioned together (either above or below the tooltip) and are both enabled."] 
+  = "Die unten stehende Einstellung steuert die Reihenfolge der Auren im Tooltip, wenn Buffs und Debuffs zusammen positioniert sind (entweder über oder unter dem Tooltip) und beide aktiviert sind.";
+L["Debuffs Above Buffs"] = "Debuffs über Buffs";
+L["Buffs Above Debuffs"] = "Buffs über Debuffs";
+L["Non-Player Alpha"] = "Nicht-Spieler-Alpha";
+L["Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs)."] 
+  = "Legt das Alpha von Timer-Balken für Auren fest, die nicht von Ihnen erzeugt wurden (d. h. Buffs und Debuffs anderer Spieler oder NPCs).";
+L["Show Professions"] = "Berufe anzeigen";
+L["Show AddOn Shortcuts"] = "AddOn-Kurzbefehle anzeigen";
+L["Profile Manager"] = "Profilmanager";
 L["Config Menu"] = "Konfigurationsmenü";
-L["Show Profiles"] = "Show Profiles";
-L["Report"] = "Report";
-L["Toggle Alignment Grid"] = "Toggle Alignment Grid";
-L["Guild Bank"] = "Guild Bank";
+L["Show Profiles"] = "Profile anzeigen";
+L["Report"] = "Bericht";
+L["Toggle Alignment Grid"] = "Ausrichtungsraster umschalten";
+L["Guild Bank"] = "Gildenbank";
 L["Bank"] = "Bank";
-L["Void Storage"] = "Void Storage";
-L["You have no professions."] = "You have no professions.";
+L["Void Storage"] = "Leere Lagerung";
+L["You have no professions."] = "Sie haben keine Berufe.";
+
+---------------------------------------
+--- NEW SINCE 10/06/2021 (update 6.6.9)
+---------------------------------------
+L["remaining"] = "verbleibend"; -- for XP bar (e.g., "50/100 (50% remaining)")
+L["Fixed Color"] = "Feste Farbe";
+L["Main Container"] = "Hauptcontainer";
+L["Talking Head Frame"] = "Sprechender Kopfrahmen";
+L["This is the animated character portrait frame that shows when an NPC is talking to you."] 
+  = "Dies ist der animierte Charakterporträtrahmen, der zeigt, wenn ein NPC mit Ihnen spricht.";
+L["Top of Screen"] = "Oben auf dem Bildschirm";
+L["Bottom of Screen"] = "Unterseite des Bildschirms";
+L["Pulse While Resting"] = "Puls während der Ruhe";
+L["If enabled, the unit panels will fade in and out while resting."] 
+  = "Wenn diese Option aktiviert ist, werden die Bedienfelder der Einheit im Ruhezustand ein- und ausgeblendet.";
+L["Target Class Color Gradient"] = "Farbverlauf der Zielklasse";
+L["If enabled, the unit panel color will transition to the target's class color using a horizontal gradient effect."] 
+  = "Wenn diese Option aktiviert ist, geht die Farbe des Einheitenbedienfelds mit einem horizontalen Verlaufseffekt in die Klassenfarbe des Ziels über.";
+L["Set Pulse Strength"] = "Pulsstärke einstellen";
+L["Expanding and Retracting Action Bar Rows"] = "Erweitern und Zurückziehen von Aktionsleistenzeilen";
+L["Enable Expand and Retract Feature"] = "Aktivieren Sie die Funktion zum Erweitern und Zurückziehen";
+L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."] 
+  = "Wenn deaktiviert, können Sie nicht zwischen 1 und 2 Reihen von Aktionsleisten umschalten.";
+L["This is the fixed default height to use when the expand and retract feature is disabled."] 
+  = "Dies ist die feste Standardhöhe, die verwendet wird, wenn die Funktion zum Erweitern und Zurückziehen deaktiviert ist.";
+L["Set Alpha"] = "Alpha einstellen";
+L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."] 
+  = "Wenn diese Option aktiviert ist, verwendet die Ansehensleiste eine feste Farbe, anstatt sich dynamisch basierend auf Ihrem Ansehen bei der ausgewählten Fraktion zu ändern.";
+L["Use Fixed Color"] = "Feste Farbe verwenden";
+L["Reputation Colors"] = "Ruffarben";

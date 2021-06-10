@@ -218,7 +218,7 @@ function C_ChatModule:GetConfigTable()
             {   name = L["Chat Frame with Icons"],
                 type = "dropdown",
                 tooltip = tk.Strings:Join("\n",
-                    L["Only 1 active chat frame can show the chat icons on the side bar (see icons listed below)."],
+                    L["Only 1 active chat frame can show the chat icons on the sidebar (see icons listed below)."],
                     L["Select which chat frame the chat icons should be anchored to."]),
                 options = ChatFrameAnchorDropDownOptions;
                 dbPath = "profile.chat.iconsAnchor",
@@ -278,7 +278,7 @@ function C_ChatModule:GetConfigTable()
             {   type = "fontstring";
                 height = 50;
                 content = tk.Strings:JoinWithSpace(L["Allow the use of modifier keys to swap chat buttons while in combat."],
-                  L["This option will affect all active chat frames. To configure each individual button per chat frame, see the chat frame sub menus below."]);
+                  L["This option will affect all active chat frames. To configure each individual button per chat frame, see the chat frame sub-menus below."]);
             };
             {   name = L["Button Swapping in Combat"],
                 type = "check",

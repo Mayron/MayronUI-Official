@@ -78,11 +78,11 @@ local function AddRepStandingIDColorOptions(repSettings, child)
   local options = {
     {
       type = "fontstring";
-      content = "Reputation Colors";
+      content = L["Reputation Colors"];
       subtype = "header";
     };
-    { name = "Use Fixed Color",
-      tooltip = "If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction.",
+    { name = L["Use Fixed Color"],
+      tooltip = L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."],
       type = "check",
       dbPath = "profile.resourceBars.reputationBar.useDefaultColor",
       SetValue = function(dbPath, newValue)
@@ -94,7 +94,7 @@ local function AddRepStandingIDColorOptions(repSettings, child)
         end
       end
     };
-    { name = "Fixed Color";
+    { name = L["Fixed Color"];
       type = "color";
       width = 120;
       dbPath = "profile.resourceBars.reputationBar.defaultColor";
@@ -129,7 +129,7 @@ local function AddRepStandingIDColorOptions(repSettings, child)
   obj:PushTable(options);
 end
 
-function C_ConfigModule:GetConfigTable(data)
+function C_ConfigModule:GetConfigTable()
   return {
       {   name = L["General"];
           id = 1;
@@ -200,10 +200,10 @@ function C_ConfigModule:GetConfigTable(data)
               };
               {   type = "divider";
               };
-              {   name              = L["Show AFK Display"];
-                  type              = "check";
-                  tooltip           = L["Enable/disable the AFK Display"];
-                  dbPath            = "global.AFKDisplay.enabled";
+              {   name    = L["Show AFK Display"];
+                  type    = "check";
+                  tooltip = L["Enable/disable the AFK Display"];
+                  dbPath  = "global.AFKDisplay.enabled";
 
                   SetValue = function(dbPath, newValue)
                       db:SetPathValue(dbPath, newValue);
@@ -212,31 +212,31 @@ function C_ConfigModule:GetConfigTable(data)
               };
               {   type = "divider";
               };
-              {   name        = "Main Container Width";
-                  type        = "slider";
+              {   name = tk.Strings:JoinWithSpace(L["Main Container"], L["Width"]);
+                  type = "slider";
                   min = 500;
                   max = 1500;
                   step = 50;
-                  valueType   = "number";
-                  tooltip     = tk.Strings:Concat(
+                  valueType = "number";
+                  tooltip = tk.Strings:Concat(
                       L["Adjust the width of the main container."], "\n\n", L["Default value is"], " 750");
-                  dbPath      = "profile.bottomui.width";
+                  dbPath = "profile.bottomui.width";
               };
               {
-                  name = "Main Container Strata",
+                  name = tk.Strings:JoinWithSpace(L["Main Container"], L["Frame Strata"]);
                   type = "dropdown",
                   options = tk.Constants.ORDERED_FRAME_STRATAS,
                   dbPath = "profile.bottomui.frameStrata"
               };
               {   type = "title";
                   client = "retail";
-                  name = "Talking Head Frame"
+                  name = L["Talking Head Frame"];
               };
               {   type = "fontstring";
                   client = "retail";
-                  content = "This is the animated character portrait frame that shows when an NPC is talking to you."
+                  content = L["This is the animated character portrait frame that shows when an NPC is talking to you."];
               };
-              {   name = "Top of Screen";
+              {   name = L["Top of Screen"];
                   type = "radio";
                   client = "retail";
                   groupName = "talkingHead_position";
@@ -250,7 +250,7 @@ function C_ConfigModule:GetConfigTable(data)
                       db:SetPathValue(path, "TOP");
                   end;
               },
-              {   name = "Bottom of Screen";
+              {   name = L["Bottom of Screen"];
                   type = "radio";
                   client = "retail";
                   groupName = "talkingHead_position";
@@ -265,11 +265,11 @@ function C_ConfigModule:GetConfigTable(data)
                   end;
               },
               {
-                name        = L["Y-Offset"];
-                type        = "textfield";
+                name = L["Y-Offset"];
+                type = "textfield";
                 client = "retail";
-                valueType   = "number";
-                dbPath      = "global.movable.talkingHead.yOffset";
+                valueType = "number";
+                dbPath = "global.movable.talkingHead.yOffset";
               }
           }
       };
@@ -287,14 +287,14 @@ function C_ConfigModule:GetConfigTable(data)
                   type    = "check";
                   dbPath  = "profile.unitPanels.isSymmetric";
               };
-              {   name    = "Pulse While Rested",
-                  tooltip = "If enabled, the unit panels will fade in and out while resting.",
+              {   name    = L["Pulse While Resting"];
+                  tooltip = L["If enabled, the unit panels will fade in and out while resting."],
                   module  = "UnitPanels";
                   dbPath  = "profile.unitPanels.restingPulse";
                   type    = "check";
               };
-              {   name    = "Target Class Color Gradient",
-                  tooltip = "If enabled, the unit panel color will transition to the target's class color using a horizontal gradient effect.",
+              {   name    = L["Target Class Color Gradient"];
+                  tooltip = L["If enabled, the unit panel color will transition to the target's class color using a horizontal gradient effect."];
                   module  = "UnitPanels";
                   dbPath  = "profile.unitPanels.targetClassColored";
                   type    = "check";
@@ -338,7 +338,7 @@ function C_ConfigModule:GetConfigTable(data)
                   tooltip     = tk.Strings:Concat(L["Default value is"], " 0.8");
                   dbPath      = "profile.unitPanels.alpha";
               };
-              {   name        = "Set Pulse Strength";
+              {   name        = L["Set Pulse Strength"];
                   type        = "slider";
                   tooltip     =  tk.Strings:Concat("Set the alpha change while pulsing/flashing", L["Default value is"], " 0.3");
                   module      = "UnitPanels";
@@ -450,7 +450,7 @@ function C_ConfigModule:GetConfigTable(data)
                       };
                       {   type              = "divider";
                       };
-                      {   name    = "Set Alpha";
+                      {   name    = L["Set Alpha"];
                           type    = "slider";
                           step    = 0.1;
                           min     = 0;
@@ -459,7 +459,7 @@ function C_ConfigModule:GetConfigTable(data)
                       };
                       {   name              = L["Set Height"];
                           dbPath            = "profile.actionBarPanel.defaultHeight";
-                          tooltip           = "This is the fixed default height to use when the expand and retract feature is disabled.";
+                          tooltip           = L["This is the fixed default height to use when the expand and retract feature is disabled."];
                           type              = "slider";
                           min         = 40;
                           max         = 400;
@@ -470,12 +470,12 @@ function C_ConfigModule:GetConfigTable(data)
                             return not db.profile.actionBarPanel.expandRetract;
                           end
                       };
-                      {   name    = "Expanding and Retracting Action Bar Rows";
+                      {   name    = L["Expanding and Retracting Action Bar Rows"];
                           type    = "title";
                       };
-                      {   name              = "Enable Expand and Retract Feature";
+                      {   name              = L["Enable Expand and Retract Feature"];
                           dbPath            = "profile.actionBarPanel.expandRetract";
-                          tooltip           = "If disabled, you will not be able to toggle between 1 and 2 rows of action bars.";
+                          tooltip           = L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."];
                           type              = "check";
 
                           OnLoad = function(_, container)
@@ -712,7 +712,7 @@ function C_ConfigModule:GetConfigTable(data)
               {   name = L["Side Action Bars"];
                   type = "submenu";
                   children = {
-                      {   name = "Enable Panel",
+                      {   name = L["Enabled"],
                           tooltip = L["Enable or disable the background panel"];
                           type = "check",
                           dbPath = "profile.sidebar.enabled",
@@ -772,7 +772,7 @@ function C_ConfigModule:GetConfigTable(data)
                           max     = 10;
                           dbPath  = "profile.sidebar.animationSpeed"
                       };
-                      {   name    = "Set Alpha";
+                      {   name    = L["Set Alpha"];
                           type    = "slider";
                           step    = 0.1;
                           min     = 0;
