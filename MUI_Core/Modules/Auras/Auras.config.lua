@@ -9,26 +9,26 @@ local position_TextFields = {};
 local savePositionButtons = {};
 
 local function AuraAreaPosition_OnLoad(configTable, container)
-    local positionIndex = configTable.dbPath:match("%[(%d)%]$");
-    position_TextFields[configTable.auraAreaName][tonumber(positionIndex)] = container.widget;
+  local positionIndex = configTable.dbPath:match("%[(%d)%]$");
+  position_TextFields[configTable.auraAreaName][tonumber(positionIndex)] = container.widget;
 end
 
 local function AuraArea_OnDragStop(field)
-    local positions = tk.Tables:GetFramePosition(field);
-    local auraAreaName = field:GetName():match("MUI_(.*)Area");
+  local positions = tk.Tables:GetFramePosition(field);
+  local auraAreaName = field:GetName():match("MUI_(.*)Area");
 
-    if (positions) then
-        -- update the config menu view
-        for index, positionWidget in ipairs(position_TextFields[auraAreaName]) do
-          if (positionWidget:GetObjectType() == "TextField") then
-            positionWidget:SetText(tostring(positions[index]));
-          elseif (positionWidget:GetObjectType() == "Slider") then
-            positionWidget.editBox:SetText(positions[index]);
-          end
-        end
+  if (positions) then
+    -- update the config menu view
+    for index, positionWidget in ipairs(position_TextFields[auraAreaName]) do
+      if (positionWidget:GetObjectType() == "TextField") then
+        positionWidget:SetText(tostring(positions[index]));
+      elseif (positionWidget:GetObjectType() == "Slider") then
+        positionWidget.editBox:SetText(positions[index]);
+      end
     end
+  end
 
-    savePositionButtons[auraAreaName]:SetEnabled(true);
+  savePositionButtons[auraAreaName]:SetEnabled(true);
 end
 
 function C_AurasModule:GetConfigTable(data)

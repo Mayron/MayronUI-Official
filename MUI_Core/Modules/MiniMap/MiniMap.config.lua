@@ -1,10 +1,157 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
-local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
+local tk, db, _, _, obj, L = _G.MayronUI:GetCoreComponents();
 local C_MiniMapModule = namespace.C_MiniMapModule;
 local widgets = {};
 
-function C_MiniMapModule:GetConfigTable()
+local function UpdateTestModeButton(button)
+  local r, g, b = tk:GetThemeColor();
+
+  if (db.profile.minimap.testMode) then
+    button:SetText("Disable Test Mode");
+    button:GetNormalTexture():SetVertexColor(r * 1.2, g * 1.2, b * 1.2);
+  else
+    button:SetText("Enable Test Mode");
+    button:GetNormalTexture():SetVertexColor(r * 0.5, g * 0.5, b * 0.5);
+  end
+end
+
+local function AddShowOption(children, name, text)
+  children[#children + 1] = {
+    name = tk.Strings:JoinWithSpace("Show", text);
+    type = "check";
+    appendDbPath = "show";
+    height = 50;
+
+    SetValue = function(dbPath, value)
+      widgets[name].point:SetEnabled(value);
+      widgets[name].x:SetEnabled(value);
+      widgets[name].y:SetEnabled(value);
+
+      if (widgets[name].fontSize) then
+        widgets[name].fontSize:SetEnabled(value);
+      end
+
+      if (widgets[name].scale) then
+        widgets[name].scale:SetEnabled(value);
+      end
+
+      if (db.profile.minimap.testMode) then
+        widgets.testModeButton:GetScript("OnClick")(widgets.testModeButton);
+      end
+
+      db:SetPathValue(dbPath, value);
+    end;
+  };
+end
+
+local function AddHideOption(children, name, text, func)
+  children[#children + 1] = {
+    name = tk.Strings:JoinWithSpace("Hide", text);
+    type = "check";
+    appendDbPath = "hide";
+    height = 50;
+
+    SetValue = function(dbPath, value)
+      widgets[name].point:SetEnabled(not value);
+      widgets[name].x:SetEnabled(not value);
+      widgets[name].y:SetEnabled(not value);
+
+      if (widgets[name].fontSize) then
+        widgets[name].fontSize:SetEnabled(not value);
+      end
+
+      if (widgets[name].scale) then
+        widgets[name].scale:SetEnabled(not value);
+      end
+
+      if (db.profile.minimap.testMode) then
+        widgets.testModeButton:GetScript("OnClick")(widgets.testModeButton);
+      end
+
+      db:SetPathValue(dbPath, value);
+      if (func) then func(); end
+    end;
+  };
+end
+
+local function AddFontSizeOption(children, name, settings)
+  children[#children + 1] = {
+    name = L["Font Size"];
+    type = "slider";
+    valueType = "number";
+    min = 8;
+    step = 1;
+    max = 24;
+    appendDbPath = "fontSize";
+    tooltip = L["Default value is"] .. " 12";
+    enabled = settings.show;
+    OnLoad = function(_, container)
+      widgets[name].fontSize = container.widget;
+    end;
+  };
+end
+
+local function AddScaleOption(children, name)
+  children[#children + 1] = {
+    name = L["Scale"];
+    type = "slider";
+    valueType = "number";
+    min = 0.2;
+    step = 0.1;
+    max = 2;
+    tooltip = L["Default value is"].." 1";
+    appendDbPath = "scale";
+    OnLoad = function(_, container)
+      widgets[name].scale = container.widget;
+    end;
+  }
+end
+
+local function AddPositioningOptions(children, name, settings)
+  widgets[name] = obj:PopTable();
+
+  children[#children + 1] = {
+    type = "fontstring";
+    subtype = "header";
+    content = "Icon Position";
+  };
+
+  children[#children + 1] = {
+    name = L["Point"];
+    type = "dropdown";
+    options = tk.Constants.POINT_OPTIONS;
+    appendDbPath = "point";
+    enabled = settings.show;
+    OnLoad = function(_, container)
+      widgets[name].point = container.widget;
+    end;
+  };
+
+  children[#children + 1] = {
+    name        = L["X-Offset"];
+    type        = "textfield";
+    valueType   = "number";
+    appendDbPath      = "x";
+    enabled = settings.show;
+    OnLoad = function(_, container)
+      widgets[name].x = container.widget;
+    end;
+  };
+
+  children[#children + 1] = {
+    name        = L["Y-Offset"];
+    type        = "textfield";
+    valueType   = "number";
+    appendDbPath      = "y";
+    enabled = settings.show;
+    OnLoad = function(_, container)
+      widgets[name].y = container.widget;
+    end;
+  }
+end
+
+function C_MiniMapModule:GetConfigTable(data)
     return {
         type = "menu",
         module = "MiniMap",
@@ -40,62 +187,147 @@ function C_MiniMapModule:GetConfigTable()
                 tooltip = tk.Strings:Join("\n", L["Adjust the scale of the minimap."], L["Default value is"].." 1"),
                 appendDbPath = "scale",
             };
-            {   name = L["Zone Text"],
-                type = "title",
-            },
-            {   name = L["Show"],
-                type = "check",
-                appendDbPath = "zoneText.show";
-
-                SetValue = function(dbPath, value)
-                    widgets.fontStringSlider:SetEnabled(value);
-                    widgets.yOffsetTextField:SetEnabled(value);
-                    widgets.justifyTextDropDownMenu:SetEnabled(value);
-                    db:SetPathValue(dbPath, value);
+            {   name = "Enable Test Mode";
+                type = "button";
+                width = 200;
+                tooltip = "Test mode allows you to easily customize the looks and positioning of widgets by forcing all widgets to be shown.";
+                OnLoad = function(_, button)
+                  widgets.testModeButton = button;
+                  UpdateTestModeButton(button);
                 end;
+                OnClick = function(button)
+                  local testMode = not db.profile.minimap.testMode;
 
-                OnLoad = function(_, widget)
-                    widgets.showCheckButton = widget.btn;
-                end;
-            },
-            {   type = "divider"
-            },
-            {   name = L["Font Size"],
-                type = "slider",
-                tooltip = tk.Strings:Join("\n", L["Adjust the font size of the zone text."], L["Default value is"].." 12"),
-                min = 8,
-                max = 18,
-                appendDbPath = "zoneText.fontSize",
+                  if (not testMode) then
+                    -- must be before to update
+                    data.testModeActive = false;
+                  end
 
-                OnLoad = function(_, container)
-                    widgets.fontStringSlider = container.widget;
-                    container.widget:SetEnabled(widgets.showCheckButton:GetChecked());
-                end;
-            },
-            {   name = L["Y-Offset"],
-                type = "slider",
-                min = -20;
-                max = 20;
-                step = 1;
-                tooltip = L["Default value is"].." -4";
-                appendDbPath = "zoneText.yOffset";
+                  db.profile.minimap.testMode = testMode;
 
-                OnLoad = function(_, container)
-                    widgets.yOffsetTextField = container.widget;
-                    container.widget:SetEnabled(widgets.showCheckButton:GetChecked());
+                  if (testMode) then
+                    -- must be after to update
+                    data.testModeActive = true;
+                  else
+                    obj:PushTable(data.isShown);
+                  end
+
+                  UpdateTestModeButton(button);
                 end;
             };
-            {   type = "dropdown",
-                name = L["Justify Text"],
-                options = { [L["Left"]] = "LEFT", [L["Right"]] = "RIGHT", [L["Center"]] = "CENTER" },
-                appendDbPath = "zoneText.justify";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], L["Center"]);
+            {   name = "Mini-Map Widgets",
+                type = "title",
+            };
+            {
+              name = "Clock";
+              type = "submenu";
+              appendDbPath = "widgets.clock";
+              children = function()
+                local children = {};
+                AddHideOption(children, "clock", "Clock");
+                AddFontSizeOption(children, "clock", data.settings.widgets.clock);
+                AddPositioningOptions(children, "clock", data.settings.widgets.clock);
+                return children;
+              end
+            };
 
-                OnLoad = function(_, container)
-                  widgets.justifyTextDropDownMenu = container.widget;
-                  container.widget:SetEnabled(widgets.showCheckButton:GetChecked());
-                end;
-            },
+            {
+              name = "Dungeon Difficulty";
+              appendDbPath = "widgets.difficulty";
+              type = "submenu";
+              client = "retail";
+              children = function()
+                local children = {};
+                AddShowOption(children, "difficulty", "Dungeon Difficulty Text");
+                AddFontSizeOption(children, "difficulty", data.settings.widgets.difficulty);
+                AddPositioningOptions(children, "difficulty", data.settings.widgets.difficulty);
+                return children;
+              end
+            };
+
+            {
+              name = "Looking For Group Icon";
+              type = "submenu";
+              appendDbPath = "widgets.lfg";
+              client = "retail";
+              children = function()
+                local children = {};
+                AddScaleOption(children, "lfg", data.settings.widgets.lfg);
+                AddPositioningOptions(children, "lfg", data.settings.widgets.lfg);
+                return children;
+              end
+            };
+
+            {
+              name = "New Mail Icon";
+              type = "submenu";
+              appendDbPath = "widgets.mail";
+              children = function()
+                local children = {};
+                AddScaleOption(children, "mail", data.settings.widgets.mail);
+                AddPositioningOptions(children, "mail", data.settings.widgets.mail);
+                return children;
+              end
+            };
+
+            {
+              name = "Missions Icon";
+              type = "submenu";
+              appendDbPath = "widgets.missions";
+              client = "retail";
+              children = function()
+                local children = {
+                  {
+                    type = "fontstring";
+                    content = "This button opens the most relevant missions menu for your character. The menu will either show missions for your Covenant Sanctum, Class Order Hall, or your Garrison."
+                  };
+                };
+
+                AddHideOption(children, "missions", "Missions Icon");
+                AddScaleOption(children, "missions", data.settings.widgets.missions);
+                AddPositioningOptions(children, "missions", data.settings.widgets.missions);
+
+                return children;
+              end
+            };
+
+            {
+              name = "Tracking Icon";
+              type = "submenu";
+              appendDbPath = "widgets.tracking";
+              client = {"retail", "bcc"};
+              children = function()
+                local children = {
+                  {
+                    type = "fontstring";
+                    content = "When hidden, you can still access tracking options from the Minimap right-click menu.";
+                  };
+                };
+
+                -- TODO: Add tracking option to minimap right click menu when hidden
+                AddHideOption(children, "tracking", "Tracking Icon", function()
+                  data:Call("UpdateTrackingMenuOptionVisibility");
+                end);
+
+                AddScaleOption(children, "tracking", data.settings.widgets.tracking);
+                AddPositioningOptions(children, "tracking", data.settings.widgets.tracking);
+
+                return children;
+              end
+            };
+
+            {
+              name = "Zone Name";
+              type = "submenu";
+              appendDbPath = "widgets.zone";
+              children = function()
+                local children = {};
+                AddHideOption(children, "zone", "Zone Name");
+                AddFontSizeOption(children, "zone", data.settings.widgets.zone);
+                AddPositioningOptions(children, "zone", data.settings.widgets.zone);
+                return children;
+              end
+            };
         }
     };
 end

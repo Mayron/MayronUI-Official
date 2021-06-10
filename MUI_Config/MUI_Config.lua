@@ -73,44 +73,44 @@ local function IsUnsupportedByClient(client)
 
   if (obj:IsTable(client)) then
     for _, c in ipairs(client) do
-      if (IsUnsupportedByClient(c)) then
-        return true;
+      if (not IsUnsupportedByClient(c)) then
+        return false;
       end
     end
 
-    return false;
+    return true;
   end
 
   if (client == "retail" and not tk:IsRetail()) then return true; end
   if (client == "classic" and not tk:IsClassic()) then return true; end
-  if (client == "bcclassic" and not tk:IsBCClassic()) then return true; end
+  if (client == "bcclassic" or client == "bcc" and not tk:IsBCClassic()) then return true; end
 
   return false;
 end
 
 -- Preserve values before recycling childData table!
 local function TransferWidgetAttributes(widget, widgetTable)
-    widget.dbPath           = widgetTable.dbPath;
-    widget.name             = widgetTable.name;
-    widget.__SetValue       = widgetTable.SetValue;
-    widget.requiresReload   = widgetTable.requiresReload;
-    widget.requiresRestart  = widgetTable.requiresRestart;
-    widget.module           = widgetTable.module;
-    widget.hasOwnDatabase   = widgetTable.hasOwnDatabase;
-    widget.valueType        = widgetTable.valueType;
-    widget.min              = widgetTable.min;
-    widget.max              = widgetTable.max;
-    widget.step             = widgetTable.step;
-    widget.OnClick          = widgetTable.OnClick;
-    widget.data             = widgetTable.data;
-    widget.useIndexes       = widgetTable.useIndexes;
+  widget.dbPath           = widgetTable.dbPath;
+  widget.name             = widgetTable.name;
+  widget.__SetValue       = widgetTable.SetValue;
+  widget.requiresReload   = widgetTable.requiresReload;
+  widget.requiresRestart  = widgetTable.requiresRestart;
+  widget.module           = widgetTable.module;
+  widget.hasOwnDatabase   = widgetTable.hasOwnDatabase;
+  widget.valueType        = widgetTable.valueType;
+  widget.min              = widgetTable.min;
+  widget.max              = widgetTable.max;
+  widget.step             = widgetTable.step;
+  widget.OnClick          = widgetTable.OnClick;
+  widget.data             = widgetTable.data;
+  widget.useIndexes       = widgetTable.useIndexes;
 
-    if (widgetTable.type == "frame") then
-        widget.children = widgetTable.children;
-    end
+  if (widgetTable.type == "frame") then
+    widget.children = widgetTable.children;
+  end
 
-    -- remove references to avoid clean up (else tables would be emptied)
-    tk.Tables:Empty(widgetTable);
+-- remove references to avoid clean up (else tables would be emptied)
+  tk.Tables:Empty(widgetTable);
 end
 
 namespace.MenuButton_OnClick = MenuButton_OnClick;
@@ -245,111 +245,114 @@ do
     obj:DefineParams("CheckButton|Button");
     ---@param menuButton CheckButton|Button @The menu button clicked on associated with a menu.
     function C_ConfigModule:SetSelectedButton(data, menuButton)
-        if (data.selectedButton) then
-            -- hide old menu
-            data.selectedButton.menu:Hide();
+      if (data.selectedButton) then
+        -- hide old menu
+        data.selectedButton.menu:Hide();
+      end
+
+      menuButton.menu = menuButton.menu or self:CreateMenu();
+      data.selectedButton = menuButton;
+
+      if (menuButton:IsObjectType("CheckButton")) then
+        menuButton:SetChecked(true);
+      end
+
+      if (menuButton.configTable) then
+        self:RenderSelectedMenu(menuButton.configTable);
+        obj:PushTable(menuButton.configTable, CleanTablesPredicate);
+
+        menuButton.configTable = nil;
+
+        if (menuButton.module) then
+          menuButton.module.configTable = nil;
         end
+      end
 
-        menuButton.menu = menuButton.menu or self:CreateMenu();
-        data.selectedButton = menuButton;
+      collectgarbage("collect");
 
+      -- fade menu in...
+      data.selectedButton.menu:Show();
+      data.windowName:SetText(menuButton.name);
 
-        if (menuButton:IsObjectType("CheckButton")) then
-            menuButton:SetChecked(true);
-        end
-
-        if (menuButton.configTable) then
-            self:RenderSelectedMenu(menuButton.configTable);
-            obj:PushTable(menuButton.configTable, CleanTablesPredicate);
-
-            menuButton.configTable = nil;
-
-            if (menuButton.module) then
-                menuButton.module.configTable = nil;
-            end
-        end
-
-        collectgarbage("collect");
-
-        -- fade menu in...
-        data.selectedButton.menu:Show();
-        data.windowName:SetText(menuButton.name);
-
-        UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
-        PlaySound(tk.Constants.CLICK);
+      UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
+      PlaySound(tk.Constants.CLICK);
     end
 end
 
 obj:DefineParams("table");
 ---@param menuConfigTable table @A table containing many widget config tables used to render a full menu.
 function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
-    if (not (menuConfigTable and obj:IsTable(menuConfigTable.children))) then
-        return;
-    end
+  if (not obj:IsTable(menuConfigTable)) then return end
 
-    data.tempMenuConfigTable = menuConfigTable;
+  if (obj:IsFunction(menuConfigTable.children)) then
+    menuConfigTable.children = menuConfigTable:children();
+  end
 
-    for _, widgetConfigTable in pairs(menuConfigTable.children) do
-      if (not IsUnsupportedByClient(widgetConfigTable.client)) then
-        if (widgetConfigTable.type == "loop" or widgetConfigTable.type == "condition") then
-            -- run the loop to gather widget children
-            local results = namespace.WidgetHandlers[widgetConfigTable.type](
-                data.selectedButton.menu:GetFrame(), widgetConfigTable);
+  if (not obj:IsTable(menuConfigTable.children)) then return end
 
-            if (obj:IsTable(results)) then
-                for _, result in ipairs(results) do
-                    if (obj:IsTable(result)) then
-                        if (not result.type and #result > 1) then
-                            for _, subWidgetConfigTable in ipairs(result) do
-                                data.selectedButton.menu:AddChildren(self:SetUpWidget(subWidgetConfigTable));
-                            end
-                        else
-                            data.selectedButton.menu:AddChildren(self:SetUpWidget(result));
-                        end
-                    end
+  data.tempMenuConfigTable = menuConfigTable;
+
+  for _, widgetConfigTable in pairs(menuConfigTable.children) do
+    if (not IsUnsupportedByClient(widgetConfigTable.client)) then
+      if (widgetConfigTable.type == "loop" or widgetConfigTable.type == "condition") then
+        -- run the loop to gather widget children
+        local results = namespace.WidgetHandlers[widgetConfigTable.type](
+        data.selectedButton.menu:GetFrame(), widgetConfigTable);
+
+        if (obj:IsTable(results)) then
+          for _, result in ipairs(results) do
+            if (obj:IsTable(result)) then
+              if (not result.type and #result > 1) then
+                for _, subWidgetConfigTable in ipairs(result) do
+                  data.selectedButton.menu:AddChildren(self:SetUpWidget(subWidgetConfigTable));
                 end
+              else
+                data.selectedButton.menu:AddChildren(self:SetUpWidget(result));
+              end
             end
-
-            -- the table was previously popped
-            obj:PushTable(results);
-
-        elseif (widgetConfigTable.type == "frame") then
-            local frame = self:SetUpWidget(widgetConfigTable);
-
-            if (frame.children) then
-                -- add children of frame directly onto frame to group them together
-                -- allows for more control over the positioning of elements
-                local previousFrame = frame;
-
-                for _, subWidgetConfigTable in ipairs(frame.children) do
-                    local frameWidget = self:SetUpWidget(subWidgetConfigTable, frame);
-
-                    if (previousFrame == frame) then
-                        frameWidget:SetPoint("TOPLEFT", previousFrame, "TOPLEFT", 10, -10);
-                    else
-                        frameWidget:SetPoint("BOTTOMLEFT", previousFrame, "BOTTOMRIGHT", 10, 0);
-                    end
-
-                    previousFrame = frameWidget;
-                end
-            end
-
-            data.selectedButton.menu:AddChildren(frame);
-        else
-            data.selectedButton.menu:AddChildren(self:SetUpWidget(widgetConfigTable));
+          end
         end
+
+        -- the table was previously popped
+        obj:PushTable(results);
+
+      elseif (widgetConfigTable.type == "frame") then
+        local frame = self:SetUpWidget(widgetConfigTable);
+
+        if (frame.children) then
+          -- add children of frame directly onto frame to group them together
+          -- allows for more control over the positioning of elements
+          local previousFrame = frame;
+
+          for _, subWidgetConfigTable in ipairs(frame.children) do
+            local frameWidget = self:SetUpWidget(subWidgetConfigTable, frame);
+
+            if (previousFrame == frame) then
+              frameWidget:SetPoint("TOPLEFT", previousFrame, "TOPLEFT", 10, -10);
+            else
+              frameWidget:SetPoint("BOTTOMLEFT", previousFrame, "BOTTOMRIGHT", 10, 0);
+            end
+
+            previousFrame = frameWidget;
+          end
+        end
+
+        data.selectedButton.menu:AddChildren(frame);
+      else
+        data.selectedButton.menu:AddChildren(self:SetUpWidget(widgetConfigTable));
       end
     end
+  end
 
-    if (data.tempMenuConfigTable.groups) then
-        for _, group in pairs(data.tempMenuConfigTable.groups) do
-            tk:GroupCheckButtons(group);
-        end
-
-        obj:PushTable(data.tempMenuConfigTable.groups);
+  if (data.tempMenuConfigTable.groups) then
+    for _, group in pairs(data.tempMenuConfigTable.groups) do
+      tk:GroupCheckButtons(group);
     end
 
-    data.tempMenuConfigTable = nil;
+    obj:PushTable(data.tempMenuConfigTable.groups);
+  end
+
+  data.tempMenuConfigTable = nil;
 end
 
 obj:DefineReturns("DynamicFrame");
