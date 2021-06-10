@@ -421,7 +421,7 @@ function Private:LoadInfoMenu(menuSection)
   menuSection.scrollBar = container.ScrollBar;
 
   tk:SetFullWidth(menuSection.child);
-  menuSection.child:SetHeight(1000);
+  menuSection.child:SetHeight(300);
 
   container:SetPoint("TOPLEFT", 40, -40);
   container:SetPoint("BOTTOMRIGHT", -40, 40);
