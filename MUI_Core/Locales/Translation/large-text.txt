@@ -1,0 +1,61 @@
+L["TT_MUI_CONTROL_SUF"] =
+[[If enabled, MUI will reposition the Shadowed Unit
+Frames to fit over the top of the MUI Unit Panels.
+
+It will also automatically move the Unit Frames when
+expanding and retracting the MUI Action Bar Panel.]];
+
+L["TT_MUI_CONTROL_GRID"] =
+[[|cff00ccffImportant:|r Only for the |cff00ccff'MayronUIH' Grid Profile|r (used in the Healing Layout)!
+
+If enabled, MUI will reposition the Grid Frame to fit on top of the MUI Unit Panels.
+
+It will also automatically move the Grid Frame when expanding and retracting the
+MUI Action Bar Panel.]];
+
+L["TT_MUI_CONTROL_BARTENDER"] =
+[[If enabled, MUI will reposition the selected Bartender
+bars to fit over the top of the action bar panel.
+
+It will also control the fading in and out transitions
+of selected row 2 Bartender bars when expanding and
+retracting the MUI Action Bar Panel.]];
+
+L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
+[[If checked, the target portrait gradient will use the target's class
+color instead of using the 'Start Color' RGB values. It will
+still use the Alpha and 'End Color' RGB values.]];
+
+L["MUI_Setup_InfoTab"] = [[
+Discord community:
+%s
+
+Visit the official MayronUI website for more info:
+%s
+
+The official GitHub repo:
+%s
+
+Become a Patron and earn exclusive benefits within the community:
+%s
+
+Visit Mayron's official YouTube channel:
+%s]]
+
+L["MUI_Setup_CreditsTab"] = [[
+Special thanks goes to the following MayronUI community members for their contributions towards the project (see the information tab for the link to join our Discord community):
+
+|cff00ccff> Patrons|r
+%s
+
+|cff00ccff> Development and Bug Fixes|r
+%s
+
+|cff00ccff> Translation Support|r
+%s
+
+|cff00ccff> Community Support Team|r
+%s
+
+And of course, thank you to the authors of the non-MayronUI AddOns included in this UI pack.
+]]

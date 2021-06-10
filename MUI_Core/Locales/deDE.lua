@@ -456,35 +456,7 @@ Werde Patron und bekomme exklusive Vorteile inerhalb der Community:
 %s
 
 Mayron's offizeller YouTube Kanal:
-%s
-
-
-|cff00ccff> SLASH COMMANDS|r
-
-|cff00ccff/mui|r - Zeigt alle Mui Befehle ( einschließlich der Befehle "install","config" und "profile")
-|cff00ccff/rl|r - Läd alle Addons neu
-|cff00ccff/ltp|r - Leatrix Plus Einstellungen ( Bitte schaut hier rein! (z.b. Automatische Quest annahme und abgabe))
-|cff00ccff/suf|r - Einstellung für die Unit Frames (Addon: Shadowed Unit Frames)
-|cff00ccff/bt|r - Bartender einstellungen (Aktionsleisten)
-
-|cff00ccff> F.A.Q's|r
-
-|cff00ccffQ: Wie öffne ich den Kalender? / Wo finde ich das Tracking Menü?|r
-
-|cff90ee90A:|r Rechts Klick mit der Maus auf der Karte und hier dan das jeweilige Menü auswählen.
-
-|cff00ccffQ: Wie kann ich mehr Aktionsleisten am unteren Rand der Benutzeroberfläche sehen, wie in den Screenshots?|r
-
-|cff90ee90A:|r Sie müssen die Steuertaste (Strg) außerhalb des Kampfes gedrückt halten, um die Schaltfläche für ein und ausklapen anzuzeigen.
-
-|cff00ccffQ: Wo kann ich die Zeitangaben in der Chatbox einschalten?|r
-
-|cff90ee90A:|r Ich habe diese Funktion entfernt als Blizzard diese selber einbaute. Unter Interface / Kontakte und Chatzeitstempel könnt ihr euer Wunschformat einstellen.
-
-|cff00ccffQ: Wo kann ich die Automatischen Quest an und abgabe Ausschalten? Oder die Automatische Reperatur|r
-
-|cff90ee90A:|r Dies wird von Liatrix Plus gesteuert (Leatrix Plus bietet auch viele anderen nützliche Funktionen) mit /ltp kommst du in das Menü und unter Automation könnt Ihr dies an und aus schalten.
-]]
+%s]]
 
 L["MUI_Setup_CreditsTab"] = [[
 Ein besonderer Dank geht an die folgenden Mitglieder der MayronUI-Community für ihre Beiträge zum Projekt (auf der Registerkarte "Informationen" finden Sie den Link, über den Sie unserer Discord-Community beitreten können):

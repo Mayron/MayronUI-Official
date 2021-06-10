@@ -462,35 +462,7 @@ Become a Patron and earn exclusive benefits within the community:
 %s
 
 Visit Mayron's official YouTube channel:
-%s
-
-
-|cff00ccff> SLASH COMMANDS|r
-
-|cff00ccff/mui|r - List all MayronUI slash commands (including "install", "config" and "profile" commands)
-|cff00ccff/rl|r - Reloads the UI
-|cff00ccff/ltp|r - Leatrix Plus settings (I recommend looking through them!)
-|cff00ccff/suf|r - Settings for the Unit Frames (Shadowed Unit Frames)
-|cff00ccff/bt|r - Bartender Settings (Action Bars)
-
-|cff00ccff> F.A.Q's|r
-
-|cff00ccffQ: How do I open up the Calendar? / How do I toggle the Tracker?|r
-
-|cff90ee90A:|r Right click the Mini-Map and select the option to do this in the drop down menu.
-
-|cff00ccffQ: How can I see more action bars on the bottom of the UI like in the screen shots?|r
-
-|cff90ee90A:|r You need to press and hold the Control key while out of combat to show the Expand and Retract button.
-
-|cff00ccffQ: How do I enable the Timestamps on the Chat Box?|r
-
-|cff90ee90A:|r I removed this feature when Blizzard added this themselves in the Blizzard Interface Options. Go to the Interface in-game menu and go to "Social" then there is a drop down menu with the title "Chat Timestamps". Change this from "None" to a format that suits you.
-
-|cff00ccffQ: How do I turn off/on Auto Quest? Or how do I turn on auto repair?|r
-
-|cff90ee90A:|r That is controlled by Leatrix Plus (Leatrix Plus also offers many other useful features and is worth checking out!). You can open the Leatrix Plus menu to view these by right clicking the Minimap and selecting Leatrix Plus or by typing "/ltp".
-]]
+%s]]
 
 L["MUI_Setup_CreditsTab"] = [[
 Special thanks goes to the following MayronUI community members for their contributions towards the project (see the information tab for the link to join our Discord community):
