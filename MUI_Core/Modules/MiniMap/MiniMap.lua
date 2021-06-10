@@ -51,9 +51,9 @@ db:AddToDefaults("profile.minimap", {
     };
 
     lfg = {
-      scale = 1;
+      scale = 0.9;
       point = "BOTTOMLEFT";
-      x = 24;
+      x = 22;
       y = 0;
     };
 
@@ -77,7 +77,7 @@ db:AddToDefaults("profile.minimap", {
       scale = 0.8;
       point = "BOTTOMLEFT";
       x = 0;
-      y = 0;
+      y = 2;
     };
 
     zone = {
