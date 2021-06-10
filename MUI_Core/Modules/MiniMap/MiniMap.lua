@@ -74,7 +74,7 @@ db:AddToDefaults("profile.minimap", {
 
     tracking = {
       hide = false;
-      scale = 1;
+      scale = 0.8;
       point = "BOTTOMLEFT";
       x = 0;
       y = 0;
@@ -360,8 +360,10 @@ do
     end
   end
 
+  -- TODO: Does not work in BCC (PLAYER_DIFFICULTY_CHANGED event does not exist)
+  -- TODO: But BCC can have heroics?
   local function SetDungeonDifficultyShown(data)
-    if (not tk:IsRetail()) then return end -- TODO: TEST IN BCC!
+    if (not tk:IsRetail()) then return end
     local widgets = data.settings.widgets;
 
     if (not data.dungeonDifficulty and not widgets.difficulty.show) then return end
@@ -372,7 +374,7 @@ do
 
       local listener = em:CreateEventListenerWithID("DungeonDifficultyText", function()
         if (IsInInstance()) then
-          local difficulty = select(4, GetInstanceInfo()); -- TODO: TEST IN BCC!
+          local difficulty = select(4, GetInstanceInfo());
 
           if (difficulty == "Heroic") then
             difficulty = "H";
@@ -730,7 +732,6 @@ function C_MiniMapModule:OnEnable(data)
 		end
 	end);
 
-  -- Calendar Button: -- TODO: TEST FOR BCC!
   if (tk:IsRetail()) then
     local eventBtn = CreateFrame("Button", nil, Minimap);
     eventBtn:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, -18);

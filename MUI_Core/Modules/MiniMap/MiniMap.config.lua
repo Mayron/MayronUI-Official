@@ -304,7 +304,6 @@ function C_MiniMapModule:GetConfigTable(data)
                   };
                 };
 
-                -- TODO: Add tracking option to minimap right click menu when hidden
                 AddHideOption(children, "tracking", "Tracking Icon", function()
                   data:Call("UpdateTrackingMenuOptionVisibility");
                 end);
