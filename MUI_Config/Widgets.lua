@@ -11,6 +11,16 @@ local WidgetHandlers = {};
 namespace.WidgetHandlers = WidgetHandlers;
 
 -- create container to wrap around a child element
+local function SetWidgetEnabled(widget, enabled)
+  if (obj:IsFunction(enabled)) then
+    widget:SetEnabled(enabled());
+  elseif (enabled ~= nil) then
+    widget:SetEnabled(enabled);
+  else
+    widget:SetEnabled(true);
+  end
+end
+
 local function CreateElementContainerFrame(widget, widgetTable, parent)
   local container = tk:PopFrame("Frame", parent);
 
@@ -29,16 +39,7 @@ local function CreateElementContainerFrame(widget, widgetTable, parent)
     widget:SetPoint("LEFT");
   end
 
-  if (obj:IsFunction(widgetTable.enabled)) then
-    local enabled = widgetTable:enabled();
-    widget:SetEnabled(enabled);
-
-  elseif (widgetTable.enabled ~= nil) then
-    widget:SetEnabled(widgetTable.enabled);
-
-  else
-    widget:SetEnabled(true);
-  end
+  SetWidgetEnabled(widget, widgetTable.enabled);
 
   return container;
 end
@@ -67,15 +68,7 @@ function WidgetHandlers.submenu(parent, submenuConfigTable)
     btn:SetNormalFontObject("GameFontHighlight");
     btn:SetDisabledFontObject("GameFontDisable");
 
-    if (obj:IsFunction(submenuConfigTable.enabled)) then
-      local enabled = submenuConfigTable:enabled();
-      btn:SetEnabled(enabled);
-
-    elseif (submenuConfigTable.enabled ~= nil) then
-      btn:SetEnabled(submenuConfigTable.enabled);
-    else
-      btn:SetEnabled(true);
-    end
+    SetWidgetEnabled(btn, submenuConfigTable.enabled);
 
     btn:SetText(submenuConfigTable.name);
     btn.text = btn:GetFontString();
@@ -186,15 +179,7 @@ function WidgetHandlers.check(parent, widgetTable, value)
     cbContainer:SetHeight(widgetTable.height);
   end
 
-  if (obj:IsFunction(widgetTable.enabled)) then
-    local enabled = widgetTable:enabled();
-    cbContainer.btn:SetEnabled(enabled);
-
-  elseif (widgetTable.enabled ~= nil) then
-    cbContainer.btn:SetEnabled(widgetTable.enabled);
-  else
-    cbContainer.btn:SetEnabled(true);
-  end
+  SetWidgetEnabled(cbContainer.btn, widgetTable.enabled);
 
   return cbContainer;
 end
@@ -493,86 +478,102 @@ local function ColorWidget_SaveValue(container, r, g, b, a)
 end
 
 local function ColorWidget_OnClick(self)
-    self.loaded = nil;
-    _G.OpenColorPicker(self);
+  self.loaded = nil;
+  _G.OpenColorPicker(self);
 
-    if (self.hasOpacity) then
-        _G.OpacitySliderFrame:SetValue(self.opacity);
-    end
+  if (self.hasOpacity) then
+    _G.OpacitySliderFrame:SetValue(self.opacity);
+  end
 end
 
 local function ColorWidget_OnValueChanged()
-    local container = _G.ColorPickerFrame.extraInfo;
+  local container = _G.ColorPickerFrame.extraInfo;
 
-    if (_G.ColorPickerFrame:IsShown() or not container.loaded) then
-        -- do not update database until OkayButton clicked
-        container.loaded = true;
-        return;
-    end
+  if (_G.ColorPickerFrame:IsShown() or not container.loaded) then
+  -- do not update database until OkayButton clicked
+    container.loaded = true;
+    return;
+  end
 
-    -- OkayButton was clicked so update database:
-    local r, g, b = _G.ColorPickerFrame:GetColorRGB();
-    local a;
+  -- OkayButton was clicked so update database:
+  local r, g, b = _G.ColorPickerFrame:GetColorRGB();
+  local a;
 
-    if (container.hasOpacity) then
-        a = 1.0 - _G.OpacitySliderFrame:GetValue();
-    end
+  if (container.hasOpacity) then
+    a = 1.0 - _G.OpacitySliderFrame:GetValue();
+  end
 
-    ColorWidget_SaveValue(container, r, g, b, a);
-    container.color:SetColorTexture(r, g, b, a or 1);
+  ColorWidget_SaveValue(container, r, g, b, a);
+  container.color:SetColorTexture(r, g, b, a or 1);
 
-    if (container.requiresReload) then
-        configModule:ShowReloadMessage();
-    end
+  if (container.requiresReload) then
+    configModule:ShowReloadMessage();
+  end
+end
+
+local function Color_OnSetEnabled(self, value)
+  if (value) then
+    self.text:SetFontObject("GameFontHighlight");
+    self.square:SetDrawLayer("BACKGROUND");
+    self.square:SetVertexColor(1, 1, 1, 1);
+  else
+    self.text:SetFontObject("GameFontDisable");
+    self.square:SetDrawLayer("OVERLAY");
+    self.square:SetVertexColor(0, 0, 0, 0.5);
+  end
 end
 
 function WidgetHandlers.color(parent, widgetTable, value)
-    local container = tk:PopFrame("Button", parent);
-    container:SetScript("OnClick", ColorWidget_OnClick);
+  local container = CreateFrame("Button", parent);
+  container:SetScript("OnClick", ColorWidget_OnClick);
 
-    -- create widget elements:
-    container.square = container:CreateTexture(nil, "BACKGROUND");
-    container.square:SetSize(30, 30);
-    container.square:SetTexture("Interface\\ChatFrame\\ChatFrameColorSwatch");
-    container.square:SetPoint("LEFT");
+  -- create widget elements:
+  container.square = tk:SetBackground(container, 1, 1, 1);
+  container.square:ClearAllPoints();
+  container.square:SetSize(18.25, 18.25);
+  container.square:SetPoint("LEFT");
 
-    container.name = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
-    container.name:SetText(widgetTable.name);
-    container.name:SetJustifyH("LEFT");
-    container.name:SetPoint("LEFT", container.square, "RIGHT", 4, 0);
+  container.text = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
+  container.text:SetText(widgetTable.name);
+  container.text:SetJustifyH("LEFT");
+  container.text:SetPoint("LEFT", container.square, "RIGHT", 8, 0);
 
-    container.color = container:CreateTexture(nil, "OVERLAY");
-    container.color:SetSize(16, 16);
-    container.color:SetPoint("CENTER", container.square, "CENTER");
+  container.color = container:CreateTexture(nil, "ARTWORK");
+  container.color:SetSize(16, 16);
+  container.color:SetPoint("CENTER", container.square, "CENTER");
 
-    container:SetSize(
-        widgetTable.width or (container.name:GetStringWidth() + 44),
-        widgetTable.height or 30);
+  container:SetSize(
+  widgetTable.width or (container.text:GetStringWidth() + 44),
+  widgetTable.height or 30);
 
-    -- info options:
-    container.extraInfo = container;
-    container.swatchFunc = ColorWidget_OnValueChanged;
+  -- info options:
+  container.extraInfo = container;
+  container.swatchFunc = ColorWidget_OnValueChanged;
 
-    container.value = value;
-    container.r = value.r or value[1] or 0;
-    container.g = value.g or value[2] or 0;
-    container.b = value.b or value[3] or 0;
+  container.value = value;
+  container.r = value.r or value[1] or 0;
+  container.g = value.g or value[2] or 0;
+  container.b = value.b or value[3] or 0;
 
-    if (widgetTable.hasOpacity) then
-        container.opacity = 1.0 - (value.a or value[4] or 0);
-        container.hasOpacity = true;
+  if (widgetTable.hasOpacity) then
+    container.opacity = 1.0 - (value.a or value[4] or 0);
+    container.hasOpacity = true;
 
-        local blackBackground = container:CreateTexture(nil, "BORDER");
-        blackBackground:SetSize(16, 16);
-        blackBackground:SetPoint("CENTER", container.square, "CENTER");
-        blackBackground:SetColorTexture(0, 0, 0);
+    local blackBackground = container:CreateTexture(nil, "BORDER");
+    blackBackground:SetSize(16, 16);
+    blackBackground:SetPoint("CENTER", container.square, "CENTER");
+    blackBackground:SetColorTexture(0, 0, 0);
 
-        container.color:SetColorTexture(container.r, container.g, container.b, 1.0 - container.opacity);
-    else
-        container.color:SetColorTexture(container.r, container.g, container.b);
-    end
+    container.color:SetColorTexture(container.r, container.g, container.b, 1.0 - container.opacity);
+  else
+    container.color:SetColorTexture(container.r, container.g, container.b);
+  end
 
-    return container;
+  _G.hooksecurefunc(container, "SetEnabled", Color_OnSetEnabled);
+
+  SetWidgetEnabled(container, widgetTable.enabled);
+
+  return container;
 end
 
 ---------------
@@ -623,17 +624,7 @@ function WidgetHandlers.textfield(parent, widgetTable, value)
 
     -- passes in textField (not data.editBox);
     textField:OnTextChanged(TextField_OnTextChanged, container);
-
-    if (obj:IsFunction(widgetTable.enabled)) then
-      local enabled = widgetTable:enabled();
-      textField:SetEnabled(enabled);
-
-    elseif (widgetTable.enabled ~= nil) then
-      textField:SetEnabled(widgetTable.enabled);
-
-    else
-      textField:SetEnabled(true);
-    end
+    SetWidgetEnabled(textField, widgetTable.enabled);
 
     return container;
 end

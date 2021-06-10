@@ -27,7 +27,20 @@ db:AddToDefaults("profile.resourceBars", {
     alwaysShowText = true;
     fontSize = 10;
   };
-  reputationBar = {};
+  reputationBar = {
+    standingColors = {
+      { r = 0.850980392, g = 0.129411765, b = 0.129411765 }, -- Hated
+      { r = 0.870588235, g = 0.329411765, b = 0.11372549 }, -- Hostile
+      { r = 0.870588235, g = 0.494117647, b = 0.11372549 }, -- Unfriendly
+      { r = 0.968627451, g = 0.968627451, b = 0.105882353 }, -- Neutral
+      { r = 0.643137255, g = 0.941176471, b = 0.094117647 }, -- Friendly
+      { r = 0.207843137, g = 0.941176471, b = 0.094117647 }, -- Honored
+      { r = 0.098039216, g = 0.811764706, b = 0.215686275 }, -- Revered
+      { r = 0.066666667, g = 0.850980392, b = 0.850980392 }, -- Exalted
+    };
+    useDefaultColor = false;
+    defaultColor = { r = 0.16, g = 0.6, b = 0.16 };
+  };
   artifactBar = {};
   azeriteBar = {};
 });
@@ -42,6 +55,14 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
 
     for _, barName in obj:IterateArgs("experienceBar", "reputationBar", "artifactBar", "azeriteBar") do
       bars[barName]:SetParent(template);
+    end
+  end
+
+  local function UpdateReputationBarColor()
+    local listener = em:GetEventListenerByID("OnReputationBarUpdate");
+
+    if (listener and listener:IsEnabled()) then
+      em:TriggerEventListenerByID("OnReputationBarUpdate");
     end
   end
 
@@ -98,6 +119,9 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
       showRemaining = UpdateResourceBar;
       fontSize = UpdateResourceBar;
       texture = UpdateResourceBar;
+      standingColors = UpdateReputationBarColor;
+      useDefaultColor = UpdateReputationBarColor;
+      defaultColor = UpdateReputationBarColor;
     };
   };
 

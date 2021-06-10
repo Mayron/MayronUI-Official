@@ -4,20 +4,9 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 local GetWatchedFactionInfo = _G.GetWatchedFactionInfo;
 local C_ReputationBar = obj:Import("MayronUI.ReputationBar");
 
-local strformat = _G.string.format;
+local strformat, select = _G.string.format, _G.select;
 
 -- Local Functions -----------------------
-
-local standingColors = {
-  {r=0.850980392, g=0.129411765, b=0.129411765, a=1.0}, -- Hated
-  {r=0.870588235, g=0.329411765, b=0.11372549, a=1.0}, -- Hostile
-  {r=0.870588235, g=0.494117647, b=0.11372549, a=1.0}, -- Unfriendly
-  {r=0.968627451, g=0.968627451, b=0.105882353, a=1.0}, -- Neutral
-  {r=0.643137255, g=0.941176471, b=0.094117647, a=1.0}, -- Friendly
-  {r=0.207843137, g=0.941176471, b=0.094117647, a=1.0}, -- Honored
-  {r=0.098039216, g=0.811764706, b=0.215686275, a=1.0}, -- Revered
-  {r=0.066666667, g=0.850980392, b=0.850980392, a=1.0}, -- Exalted
-}
 
 local function OnReputationBarUpdate(_, _, bar, data)
   if (not bar:CanUse()) then
@@ -37,7 +26,12 @@ local function OnReputationBarUpdate(_, _, bar, data)
   data.statusbar:SetMinMaxValues(0, maxValue);
   data.statusbar:SetValue(currentValue);
 
-  local color = standingColors[standingID];
+  local color = data.settings.standingColors[standingID] or data.settings.defaultColor;
+
+  if (data.settings.useDefaultColor) then
+    color = data.settings.defaultColor;
+  end
+
   data.statusbar.texture:SetVertexColor(color.r or 0, color.g or 0, color.b or 0, color.a or 1);
 
   if (data.statusbar.text) then
@@ -70,8 +64,14 @@ function C_ReputationBar:SetActive(data, active)
   self:CallParentMethod("SetActive", active);
 
   if (active and data.notCreated) then
+    local standingID = select(2, GetWatchedFactionInfo());
+    local color = data.settings.standingColors[standingID] or data.settings.defaultColor;
+
+    if (data.settings.useDefaultColor) then
+      color = data.settings.defaultColor;
+    end
+
     data.statusbar.texture = data.statusbar:GetStatusBarTexture();
-    local color = standingColors[_G.select(2, GetWatchedFactionInfo())];
     data.statusbar.texture:SetVertexColor(color.r or 0, color.g or 0, color.b or 0, color.a or 1);
     data.notCreated = nil;
   end
