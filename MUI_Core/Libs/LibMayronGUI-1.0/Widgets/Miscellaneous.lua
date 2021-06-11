@@ -99,7 +99,7 @@ do
       if (text) then
         button:SetText(text);
 
-        button:SetScript("OnShow", function()
+        button:SetScript("OnLoad", function()
           local width = button:GetFontString():GetUnboundedStringWidth() + (button.padding or 44);
           width = max(button.minWidth or 0, width);
           button:SetWidth(width);

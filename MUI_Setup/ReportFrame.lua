@@ -171,6 +171,7 @@ function C_ReportIssue.Private:SetUpFooter(data)
   data.footerParent = parent;
 
   local backButton = gui:CreateButton(tk.Constants.AddOnStyle, parent, L["Back"]);
+  backButton.minWidth = 200;
   backButton:Disable();
 
   backButton:SetScript("OnClick", function()
@@ -179,6 +180,7 @@ function C_ReportIssue.Private:SetUpFooter(data)
   end);
 
   local nextButton = gui:CreateButton(tk.Constants.AddOnStyle, parent, L["Next"]);
+  nextButton.minWidth = 200;
   nextButton:Disable();
 
   nextButton:SetScript("OnClick", function()
