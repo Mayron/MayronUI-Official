@@ -5,8 +5,8 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
 if (not Lib) then return; end
 
-local CreateFrame, string, hooksecurefunc, PlaySound, unpack =
-  _G.CreateFrame, _G.string, _G.hooksecurefunc, _G.PlaySound, _G.unpack;
+local CreateFrame, string, hooksecurefunc, PlaySound, unpack, max =
+  _G.CreateFrame, _G.string, _G.hooksecurefunc, _G.PlaySound, _G.unpack, _G.math.max;
 
 local Private = Lib.Private;
 local obj = _G.MayronObjects:GetFramework();
@@ -100,7 +100,9 @@ do
         button:SetText(text);
 
         button:SetScript("OnShow", function()
-          button:SetWidth(button:GetFontString():GetUnboundedStringWidth() + (button.padding or 44));
+          local width = button:GetFontString():GetUnboundedStringWidth() + (button.padding or 44);
+          width = max(button.minWidth or 0, width);
+          button:SetWidth(width);
         end);
       end
 

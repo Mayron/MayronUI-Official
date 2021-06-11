@@ -7,12 +7,16 @@
 -- to remove extra and get only keys
 -- Then run this script:
 
-local OtherLanguageValues = {};
+local OtherLanguageValues = {
+
+};
 
 ------------------------
 --- STEP 2:
 ------------------------
-local EnglishKeys = {};
+local EnglishKeys = {
+
+};
 
 ------------------------
 --- STEP 3: Print!

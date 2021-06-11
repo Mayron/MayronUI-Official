@@ -184,6 +184,7 @@ function Private:LoadInstallMenu(menuSection)
   menuSection.message:SetText(RELOAD_MESSAGE);
 
   menuSection.installButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, L["INSTALL"]);
+  menuSection.installButton.minWidth = 200;
   menuSection.installButton:SetPoint("CENTER", 0, -20);
   menuSection.installButton:SetScript("OnClick", function()
     setUpModule:Install();
@@ -406,8 +407,9 @@ function Private:LoadCustomMenu(menuSection)
   end
 
   -- install button
-  menuSection.installButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, L["Install"]);
+  menuSection.installButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, L["INSTALL"]);
   menuSection.installButton:SetPoint("TOPRIGHT", menuSection.addonContainer, "BOTTOMRIGHT", 0, -20);
+  menuSection.installButton.minWidth = 200;
 
   menuSection.installButton:SetScript("OnClick", function()
     setUpModule:Install();

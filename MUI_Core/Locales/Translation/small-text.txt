@@ -679,3 +679,5 @@
 "Show Buffs",
 "Show Debuffs",
 "Refresh Chat Text",
+"Back",
+"Next",

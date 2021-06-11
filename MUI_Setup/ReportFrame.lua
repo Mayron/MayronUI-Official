@@ -170,7 +170,7 @@ function C_ReportIssue.Private:SetUpFooter(data)
   local parent = cell:GetFrame();
   data.footerParent = parent;
 
-  local backButton = gui:CreateButton(tk.Constants.AddOnStyle, parent, "Back");
+  local backButton = gui:CreateButton(tk.Constants.AddOnStyle, parent, L["Back"]);
   backButton:Disable();
 
   backButton:SetScript("OnClick", function()
@@ -178,7 +178,7 @@ function C_ReportIssue.Private:SetUpFooter(data)
     data:Call("ShowStep", data.currentStep - 1);
   end);
 
-  local nextButton = gui:CreateButton(tk.Constants.AddOnStyle, parent, "Next");
+  local nextButton = gui:CreateButton(tk.Constants.AddOnStyle, parent, L["Next"]);
   nextButton:Disable();
 
   nextButton:SetScript("OnClick", function()

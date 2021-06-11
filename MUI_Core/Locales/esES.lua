@@ -638,6 +638,8 @@ L["Show Auras With Unknown Time Remaining"] = "Mostrar auras con tiempo restante
 L["Show Buffs"] = "Show Buffs";
 L["Show Debuffs"] = "Mostrar desventajas";
 L["Refresh Chat Text"] = "Actualizar texto de chat";
+L["Back"] = "atrás";
+L["Next"] = "Próximo";
 
 ---------------------------------
 --- LARGE TEXT:

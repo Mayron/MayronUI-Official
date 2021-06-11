@@ -859,6 +859,8 @@ L["Show Auras With Unknown Time Remaining"] = "Zeige Auren mit unbekannter verbl
 L["Show Buffs"] = "Buffs anzeigen";
 L["Show Debuffs"] = "Debuffs anzeigen";
 L["Refresh Chat Text"] = "Chat-Text aktualisieren";
+L["Back"] = "Zurück";
+L["Next"] = "Nächster";
 
 L["PRESS_HOLD_TOGGLE_BUTTONS"] = [[
 Halten Sie %s außerhalb des Kampfes gedrückt, um die Umschalttasten anzuzeigen.

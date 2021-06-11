@@ -734,6 +734,8 @@ L["Show Auras With Unknown Time Remaining"] = "Show Auras With Unknown Time Rema
 L["Show Buffs"] = "Show Buffs";
 L["Show Debuffs"] = "Show Debuffs";
 L["Refresh Chat Text"] = "Refresh Chat Text";
+L["Back"] = "Back";
+L["Next"] = "Next";
 
 ---------------------------------
 --- LARGE TEXT:

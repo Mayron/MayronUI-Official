@@ -693,6 +693,8 @@ L["Show Auras With Unknown Time Remaining"] = "显示剩余时间未知的光环
 L["Show Buffs"] = "显示爱好者";
 L["Show Debuffs"] = "显示减益";
 L["Refresh Chat Text"] = "刷新聊天文本";
+L["Back"] = "后退";
+L["Next"] = "下一个";
 
 L["PRESS_HOLD_TOGGLE_BUTTONS"] = [[
 脱离战斗时按住 %s 可显示切换按钮。
