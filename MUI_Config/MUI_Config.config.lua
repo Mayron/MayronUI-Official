@@ -197,13 +197,6 @@ function C_ConfigModule:GetConfigTable()
                       MayronUI:ImportModule("MovableFramesModule"):ResetPositions();
                       MayronUI:Print("Blizzard frame positions have been reset.")
                   end;
-
-                  OnLoad = function(_, btn)
-                    if (tk:IsLocale("ruRU", "deDE")) then
-                      btn:SetWidth(400);
-                    end
-                  end;
-
               };
               {   type = "divider";
               };

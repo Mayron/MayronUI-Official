@@ -128,7 +128,12 @@ local function RetractSetupWindow()
   local window = setUpModule:GetWindow();
   local width, height = window:GetSize();
 
-  if (width <= 750 and height <= 450) then
+  local maxWidth, maxHeight = 750, 450;
+  if (tk:IsLocale("itIT")) then
+    maxWidth, maxHeight = 900, 582;
+  end
+
+  if (width <= maxWidth and height <= maxHeight) then
     return
   end
 
@@ -313,6 +318,8 @@ function Private:LoadCustomMenu(menuSection)
   menuSection.scaleTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
   menuSection.scaleTitle:SetPoint("TOPLEFT", menuSection.themeTitle, "TOPRIGHT", 150, 0);
   menuSection.scaleTitle:SetText(L["Adjust the UI Scale:"]);
+  menuSection.scaleTitle:SetWidth(200);
+  menuSection.scaleTitle:SetJustifyH("LEFT");
 
   menuSection.scaler = CreateFrame("Slider", nil, menuSection, "OptionsSliderTemplate");
   menuSection.scaler:SetPoint("TOPLEFT", menuSection.scaleTitle, "BOTTOMLEFT", 0, -10);
@@ -355,6 +362,8 @@ function Private:LoadCustomMenu(menuSection)
   menuSection.injectTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
   menuSection.injectTitle:SetPoint("TOPLEFT", menuSection.scaleTitle, "TOPRIGHT", 110, 0);
   menuSection.injectTitle:SetText(L["AddOn Settings to Override:"]);
+  menuSection.injectTitle:SetWidth(300);
+  menuSection.injectTitle:SetJustifyH("LEFT");
 
   local previous;
   menuSection.addonContainer = gui:CreateScrollFrame(tk.Constants.AddOnStyle, menuSection, nil);
@@ -533,6 +542,10 @@ function C_SetUpModule:Show(data)
   window:SetSize(750, 485); -- change this!
   window:SetPoint("CENTER");
   window:SetFrameStrata("DIALOG");
+
+  if (tk:IsLocale("itIT")) then
+    window:SetSize(900, 582);
+  end
 
   gui:AddTitleBar(tk.Constants.AddOnStyle, window, L["Setup Menu"]);
   gui:AddCloseButton(tk.Constants.AddOnStyle, window, nil, tk.Constants.CLICK);

@@ -24,7 +24,7 @@ do
 
   function CreateTopMenuButton(label, onClick, anchor)
     local btn = gui:CreateButton(tk.Constants.AddOnStyle, nil, label);
-    btn:SetWidth(132.25);
+    btn.padding = 60;
 
     if (anchor) then
       btn:SetPoint("RIGHT", anchor, "RIGHT");

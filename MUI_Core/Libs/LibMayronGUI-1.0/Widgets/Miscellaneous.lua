@@ -98,6 +98,10 @@ do
 
       if (text) then
         button:SetText(text);
+
+        button:SetScript("OnShow", function()
+          button:SetWidth(button:GetFontString():GetUnboundedStringWidth() + (button.padding or 44));
+        end);
       end
 
       if (tooltip) then
