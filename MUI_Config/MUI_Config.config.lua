@@ -45,30 +45,30 @@ local function SetModKeyValue(modKey, dbPath, newValue, oldValue)
 end
 
 local BartenderActionBars = {
-  "Bar 1";
-  "Bar 2";
-  "Bar 3";
-  "Bar 4";
-  "Bar 5";
-  "Bar 6";
-  "Bar 7";
-  "Bar 8";
-  "Bar 9";
-  "Bar 10";
+  [L["Bar"] .. " 1"] = "Bar 1";
+  [L["Bar"] .. " 2"] = "Bar 2";
+  [L["Bar"] .. " 3"] = "Bar 3";
+  [L["Bar"] .. " 4"] = "Bar 4";
+  [L["Bar"] .. " 5"] = "Bar 5";
+  [L["Bar"] .. " 6"] = "Bar 6";
+  [L["Bar"] .. " 7"] = "Bar 7";
+  [L["Bar"] .. " 8"] = "Bar 8";
+  [L["Bar"] .. " 9"] = "Bar 9";
+  [L["Bar"] .. " 10"] = "Bar 10";
 };
 
 local BartenderActionBarValues = {
-  ["None"]  = 0,
-  ["Bar 1"] = 1;
-  ["Bar 2"] = 2;
-  ["Bar 3"] = 3;
-  ["Bar 4"] = 4;
-  ["Bar 5"] = 5;
-  ["Bar 6"] = 6;
-  ["Bar 7"] = 7;
-  ["Bar 8"] = 8;
-  ["Bar 9"] = 9;
-  ["Bar 10"] = 10;
+  [L["None"]]  = 0,
+  [L["Bar"] .. " 1"] = 1;
+  [L["Bar"] .. " 2"] = 2;
+  [L["Bar"] .. " 3"] = 3;
+  [L["Bar"] .. " 4"] = 4;
+  [L["Bar"] .. " 5"] = 5;
+  [L["Bar"] .. " 6"] = 6;
+  [L["Bar"] .. " 7"] = 7;
+  [L["Bar"] .. " 8"] = 8;
+  [L["Bar"] .. " 9"] = 9;
+  [L["Bar"] .. " 10"] = 10;
 };
 
 local function AddRepStandingIDColorOptions(repSettings, child)
@@ -199,7 +199,7 @@ function C_ConfigModule:GetConfigTable()
                   end;
 
                   OnLoad = function(_, btn)
-                    if (GetLocale() == "ruRU") then
+                    if (tk:IsLocale("ruRU", "deDE")) then
                       btn:SetWidth(400);
                     end
                   end;
@@ -335,7 +335,7 @@ function C_ConfigModule:GetConfigTable()
                       "\n\n", L["Default value is"], " 75");
                   dbPath      = "profile.unitPanels.unitHeight";
               };
-              {   name        = "Set Alpha";
+              {   name        = L["Set Alpha"];
                   type        = "slider";
                   module      = "UnitPanels";
                   valueType   = "number";

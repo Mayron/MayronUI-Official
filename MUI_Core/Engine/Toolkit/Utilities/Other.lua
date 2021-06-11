@@ -157,6 +157,20 @@ function tk:GetPlayerKey()
     return key;
 end
 
+do
+  local GetLocale = _G.GetLocale;
+
+  function tk:IsLocale(...)
+    for _, locale in obj:IterateArgs(...) do
+      if (GetLocale() == locale) then
+        return true;
+      end
+    end
+
+    return false;
+  end
+end
+
 function tk:IsRetail()
   return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE;
 end
