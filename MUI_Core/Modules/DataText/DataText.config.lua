@@ -83,7 +83,7 @@ function C_DataTextModule:GetConfigTable()
             },
             {   type = "slider",
                 name = L["Bar Level"],
-                tooltip = L["The frame level of the entire DataText bar based on it's frame strata value."],
+                tooltip = L["The frame level of the entire DataText bar based on its frame strata value."],
                 min = 1,
                 max = 50,
                 default = 30,

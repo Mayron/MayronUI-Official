@@ -202,14 +202,15 @@ function C_ChatModule:GetConfigTable()
                 type = "slider",
                 min = 1;
                 max = 10;
-                tooltip = L["Set the border size.\n\nDefault is 1."],
+                tooltip = tk.Strings:Join("\n\n", L["Set the border size."], L["Default value is"] .. " 1"),
                 dbPath = "profile.chat.editBox.borderSize"
             },
             {   name = L["Backdrop Inset"],
                 type = "slider",
                 min = 0;
                 max = 10;
-                tooltip = L["Set the spacing between the background and the border.\n\nDefault is 0."],
+                tooltip = tk.Strings:Join("\n\n",
+                  L["Set the spacing between the background and the border."], L["Default value is"] .. " 0"),
                 dbPath = "profile.chat.editBox.inset"
             },
             {   name = L["Vertical Side Icons"],

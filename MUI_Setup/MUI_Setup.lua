@@ -317,7 +317,9 @@ function Private:LoadCustomMenu(menuSection)
   menuSection.scaler = CreateFrame("Slider", nil, menuSection, "OptionsSliderTemplate");
   menuSection.scaler:SetPoint("TOPLEFT", menuSection.scaleTitle, "BOTTOMLEFT", 0, -10);
   menuSection.scaler:SetWidth(200);
-  menuSection.scaler.tooltipText = L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"];
+  menuSection.scaler.tooltipText = tk.Strings:Join("\n\n",
+    L["This will ensure that frames are correctly positioned to match the UI scale during installation."],
+    L["Default value is"] .. " 0.7");
   menuSection.scaler:SetMinMaxValues(0.6, 1.2);
   menuSection.scaler:SetValueStep(0.05);
   menuSection.scaler:SetObeyStepOnDrag(true);

@@ -1,4 +1,4 @@
-local L = _G.LibStub("AceLocale-3.0"):NewLocale("MayronUI", "zhCN", true);
+local L = _G.LibStub("AceLocale-3.0"):NewLocale("MayronUI", "zhCN");
 if not L then return end
 
 L["Hello!"] = "你好！";
@@ -47,10 +47,10 @@ L["Ctrl"] = "控制";
 L["Alt"] = "阿尔特";
 L["Chat Buttons with Modifier Key 1"] = "带有修饰键 1 的聊天按钮";
 L["Chat Buttons with Modifier Key 2"] = "带有修饰键 2 的聊天按钮";
-L["Set the border size.\n\nDefault is 1."] = "设置边框大小。\n\n默认为 1。";
+L["Set the border size."] = "设置边框大小。";
 L["Cannot toggle menu while in combat."] = "在战斗中无法切换菜单。";
 L["Cannot switch layouts while in combat."] = "在战斗中无法切换布局。";
-L["Set the spacing between the background and the border.\n\nDefault is 0."] = "设置背景和边框之间的间距。\n\n默认为 0。";
+L["Set the spacing between the background and the border."] = "设置背景和边框之间的间距。";
 L["Allow the use of modifier keys to swap chat buttons while in combat."] = "允许使用修饰键在战斗中交换聊天按钮。";
 L["Failed to load MUI_Config. Possibly missing?"] = "加载 MUI_Config 失败。可能丢失了？";
 L["List of slash commands:"] = "斜线命令列表：";
@@ -178,7 +178,7 @@ L["Warning:"] = "警告：";
 L["This will reload the UI!"] = "这将重新加载用户界面！";
 L["Setup Menu"] = "设置菜单";
 L["VERSION"] = "版本";
-L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"] = "这将确保框架在安装过程中正确定位以匹配 UI 比例。\n\n默认值为 0.7";
+L["This will ensure that frames are correctly positioned to match the UI scale during installation."] = "这将确保框架在安装过程中正确定位以匹配 UI 比例。";
 L["Only track your %s"] = "只跟踪你的 %s";
 L["Track all %s"] = "跟踪所有 %s";
 L["General Options"] = "常规选项";
@@ -338,9 +338,7 @@ L["Adjust the horizontal positioning of the Objective Tracker."] = "调整目标
 L["Adjust the vertical positioning of the Objective Tracker."] = "调整目标跟踪器的垂直定位。";
 L["The font size of text that appears on data text buttons."] = "出现在数据文本按钮上的文本字体大小。";
 L["Show guild info tooltips when the cursor is over guild members in the guild list."] = "当光标位于公会列表中的公会成员上时,显示公会信息工具提示。";
-L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."] = "设置操作栏面板的高度,当它'缩回'以显示 1 个操作栏行时。";
-L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."] = "设置操作栏面板的高度,当它'展开'以显示 2 个操作栏行时。";
-L["The frame level of the entire DataText bar based on it's frame strata value."] = "基于其帧层值的整个 DataText 条的帧级别。";
+L["The frame level of the entire DataText bar based on its frame strata value."] = "基于其帧层值的整个 DataText 条的帧级别。";
 L["If unchecked, the entire DataText module will be disabled and all"] = "如果取消选中,整个 DataText 模块将被禁用和所有";
 L["DataText buttons, as well as the background bar, will not be displayed."] = "DataText 按钮以及背景栏将不会显示。";
 L["Prevents you from using data text modules while in combat."] = "阻止你在战斗中使用数据文本模块。";
@@ -408,13 +406,22 @@ L["Size"] = "尺寸";
 L["Adjust the font size of the zone text."] = "调整区域文本的字体大小。";
 L["Okay"] = "好的";
 L["Profile %s has been copied into current profile %s."] = "配置文件 %s 已复制到当前配置文件 %s。";
-L["You can manage character profiles here.\n\nBy default, each character has its own unique profile."] = "您可以在此处管理角色档案。\n\n默认情况下,每个角色都有自己独特的档案。";
+
+L["MANAGE_PROFILES_HERE"] = [[
+您可以在此处管理角色档案。
+
+默认情况下,每个角色都有自己独特的档案。]]
+
 L["Reset currently active profile back to default settings."] = "将当前活动的配置文件重置为默认设置。";
 L["Are you sure you want to reset profile '%s' back to default settings?"] = "您确定要将配置文件 '%s' 重置为默认设置吗？";
 L["Delete currently active profile (cannot delete the 'Default' profile)."] = "删除当前活动的配置文件（不能删除'默认'配置文件）。";
 L["Copy all settings from one profile to the active profile."] = "将所有设置从一个配置文件复制到活动配置文件。";
-L["Are you sure you want to overide all profile settings in '%s' for those in profile '%s'?"] = "您确定要为配置文件 '%s' 中的配置文件覆盖 '%s' 中的所有配置文件设置吗？";
-L["By default, each new character will be automatically assigned a unique character profile instead of a single default profile.\n\nProfiles are automatically assigned only after installing the UI on a new character."] = "默认情况下,每个新角色将自动分配一个唯一的角色配置文件,而不是单个默认配置文件。\n\n配置文件仅在新角色上安装 UI 后自动分配。";
+L["Are you sure you want to override all profile settings in '%s' for those in profile '%s'?"] = "您确定要为配置文件 '%s' 中的配置文件覆盖 '%s' 中的所有配置文件设置吗？";
+L["UNIQUE_CHARACTER_PROFILE"] = [[
+默认情况下,每个新角色将自动分配一个唯一的角色配置文件,而不是单个默认配置文件。
+
+配置文件仅在新角色上安装 UI 后自动分配。]]
+
 L["Profile Per Character"] = "每个角色的个人资料";
 L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."] = "如果启用,新角色将被分配一个唯一的角色配置文件,而不是默认配置文件。";
 L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] = "为每个布局自定义哪些插件应该更改为哪些配置文件,以及管理现有布局或创建新布局。";
@@ -612,7 +619,6 @@ L["Set border color by debuff type"] = "按减益类型设置边框颜色";
 L["If enabled, the border color of debuffs will be based on the type of debuff (e.g., poisons will appear with a green border color)."] = "如果启用,debuff 的边框颜色将基于 debuff 的类型（例如,毒药会以绿色边框颜色出现）。";
 L["Set whether you want the unit's debuffs to appear above or below the tooltip."] = "设置你想让单位的减益效果出现在工具提示的上方还是下方。";
 L["Buff and Debuff Ordering"] = "增益和减益排序";
-L["The below setting controls the ordering of auras on the tooltip when both the buffs and debuffs are positioned together (either above or below the tooltip) and are both enabled."] = "当 buff 和 debuff 放在一起（在工具提示的上方或下方）并且都启用时,下面的设置控制工具提示上光环的顺序。";
 L["Debuffs Above Buffs"] = "减益高于增益";
 L["Buffs Above Debuffs"] = "增益高于减益";
 L["Non-Player Alpha"] = "非玩家阿尔法";
@@ -717,14 +723,6 @@ L["TT_MUI_CONTROL_SUF"] =
 它也会在以下情况下自动移动单位框架
 展开和缩回 MUI 操作栏面板。]];
 
-L["TT_MUI_CONTROL_GRID"] =
-[[|cff00ccff 重要提示：|r 仅适用于 |cff00ccff'MayronUIH' 网格配置文件|r（用于治疗布局）！
-
-如果启用，MUI 将重新定位网格框架以适合 MUI 单元面板的顶部。
-
-它还会在展开和缩回网格时自动移动网格框架
-MUI 操作栏面板。]];
-
 L["TT_MUI_CONTROL_BARTENDER"] =
 [[如果启用，MUI 将重新定位选定的调酒师
 条以适合操作栏面板的顶部。
@@ -770,3 +768,8 @@ L["MUI_Setup_CreditsTab"] = [[
 %s
 
 当然，感谢此 UI 包中包含的非 MayronUI 插件的作者。]]
+
+L["AURAS_ORDERING_ON_TOOLTIP"] = 
+[[以下设置控制工具提示上的光环顺序
+当 buffs 和 debuffs 放在一起时
+（在工具提示上方或下方）并且都已启用。]]

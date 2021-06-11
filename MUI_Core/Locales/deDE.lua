@@ -1,14 +1,9 @@
-local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "deDE");
+local L = _G.LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "deDE");
 if not L then return end
 
---[[
-To change the value fill in the translation on the right side of the equal sign.
-Example:
-L["Hello!"] = "Hi!";
-]]
-
--- German translations go here
--- MUI Chat
+---------------------------------
+--- SMALL TEXT:
+---------------------------------
 L["Hello!"] = "Hallo!";
 L["Character"] = "Charakter";
 L["Bags"] = "Taschen";
@@ -57,11 +52,11 @@ L["Alt"] = "Alt";  -- Mod-Key!
 
 L["Chat Buttons with Modifier Key 1"] = "Chat Schaltflächen - 1. Mod-Taste";
 L["Chat Buttons with Modifier Key 2"] = "Chat Schaltflächen - 2. Mod-Taste";
-L["Set the border size.\n\nDefault is 1."] = "Setzt die Randbreite.\n\nStandard ist 1.";
+L["Set the border size."] = "Setzt die Randbreite.";
 L["Cannot toggle menu while in combat."] = "Das Menü kann im Kampf nicht umgeschaltet werden.";
 L["Cannot switch layouts while in combat."] = "Layouts können im Kampf nicht gewechselt werden.";
 
-L["Set the spacing between the background and the border.\n\nDefault is 0."] = "Setzt den Abstand zwischen Hintergrund und Rand.\n\nStandard ist 0.";
+L["Set the spacing between the background and the border."] = "Setzt den Abstand zwischen Hintergrund und Rand.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."] = "Erlaubt die Nutzung der Mod-Tasten zum wechseln der Chat-Schaltflächen, während man sich im Kampf befindet.";
 
 -- MUI Core
@@ -202,9 +197,7 @@ L["Warning:"] = "Warnung:";
 L["This will reload the UI!"] = "Dadurch wird das UI neu geladen!";
 L["Setup Menu"] = "Installations Menü";
 L["VERSION"] = "VERSION";
-
-
-L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"] = "Hiermit wird sichergestellt, das bei der Installation die Frames passend zur Skalierung positioniert werden.\n\nStandard ist 0.7";
+L["This will ensure that frames are correctly positioned to match the UI scale during installation."] = "Hiermit wird sichergestellt, das bei der Installation die Frames passend zur Skalierung positioniert werden.";
 
 -- MUI TimerBar
 L["Only track your %s"] = "Nur eigene %s";
@@ -372,9 +365,7 @@ L["Adjust the horizontal positioning of the Objective Tracker."] = "Verschiebt d
 L["Adjust the vertical positioning of the Objective Tracker."] = "Verschiebt den Aufgaben / Quest Tracke vertikal.";
 L["The font size of text that appears on data text buttons."] = "Die Schriftgröße des Textes auf den DataText Elementen.";
 L["Show guild info tooltips when the cursor is over guild members in the guild list."] = "Zeigt Gildeninformationen, wenn mit der Maus über ein Listeneintrag gefahren wird.";
-L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."] = "Setzt die Höhe der unteren Benutzeroberfläche um eine Aktionsleiste darzustellen.";
-L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."] = "Setzt die Höhe der unteren Benutzeroberfläche um zwei Aktionsleisten darzustellen.";
-L["The frame level of the entire DataText bar based on it's frame strata value."] = "Die Darstellungsebene der DataText Leiste, basierend auf ihrer Darstellungsschicht.";
+L["The frame level of the entire DataText bar based on its frame strata value."] = "Die Darstellungsebene der DataText Leiste, basierend auf ihrer Darstellungsschicht.";
 L["If unchecked, the entire DataText module will be disabled and all"] = "Wenn deaktiviert, werden die gesamten DataText Elemente ausgeblendet.";
 L["DataText buttons, as well as the background bar, will not be displayed."] = "Die Daten Text box, sowie der Hindergrund wird ebenfalls ausgeblendet.";
 L["Prevents you from using data text modules while in combat."] = "Verhindert die benutzung der DataText Elemente während dem Kampf.";
@@ -386,13 +377,6 @@ L["If the SUF Player or Target portrait bars are enabled, a class colored gradie
 L["TT_MUI_CONTROL_SUF"]    =
 [[Wenn aktiviert, wird MUI die Shadowed Unit Frames passend in sein UI verschieben.
 
-Es wird automatisch die Positionen anpassen, wenn die untere Benutzeroberfläche
-erweitert over verkleinert wird.]];
-
-L["TT_MUI_CONTROL_GRID"]   =
-[[|cff00ccffWichtig:|r Gild nur für das |cff00ccff'MayronUIH' Grid Profil |r (wird im Heiler-Layout benutzt)!
-
-Wenn aktiviert, wird MUI das Grid Fenster oberhalb des Zielfensters positionieren.
 Es wird automatisch die Positionen anpassen, wenn die untere Benutzeroberfläche
 erweitert over verkleinert wird.]];
 
@@ -476,13 +460,8 @@ Ein besonderer Dank geht an die folgenden Mitglieder der MayronUI-Community für
 Und natürlich vielen Dank an die Autoren der Nicht-MayronUI-AddOns, die in diesem UI-Paket enthalten sind.
 ]]
 
--- TODO: These are all newly added since 6.0.11:
---------------------------------------------------------------------------------------------
------ Do not touch the placeholders: %s, %d
------ Do not touch the line break syntax: \n
-
-L["Cast Bars"] = "Cast Bars";
-L["Auras (Buffs & Debuffs)"] = "Auras (Buffs & Debuffs)";
+L["Cast Bars"] = "Gegossene Bars";
+L["Auras (Buffs & Debuffs)"] = "Auren (Buffs & Debuffs)";
 L["(CTRL+C to Copy, CTRL+V to Paste)"] = "(Strg+C zum Kopieren, Strg+V zum Einfügen)";
 L["Copy Chat Text"] = "Kopiere Chat Text";
 L["Data Text Bar"] = "Daten Leiste";
@@ -507,7 +486,7 @@ L["MUI Layout Tool"] = "MUI Layout Tool";
 L["Layouts"] = "Layout´s";
 L["Create New Layout"] = "Neues Layout";
 L["Delete Layout"] = "Layout Löschen";
-L["Chat Buttons with Modifier Key %d"] = "Chat Buttons with Modifier Key %d";
+L["Chat Buttons with Modifier Key %d"] = "Chat-Schaltflächen mit Modifikatortaste %d";
 L["Please install the UI and try again."] = "Bitte installieren Sie die Benutzeroberfläche und versuchen Sie es erneut.";
 L["Chat Frames"] = "Chat Frames";
 L["Mini-Map Options"] = "Karten Option";
@@ -523,8 +502,10 @@ L["Okay"] = "Okay";
 L["Profile %s has been copied into current profile %s."]
 = "Das profil %s wurde in das aktuelle Profil %s kopiert.";
 
-L["You can manage character profiles here.\n\nBy default, each character has its own unique profile."]
-= "Hier können Sie Charakterprofile verwalten.\n\nStandardmäßig hat jeder Char ein eigenes Profil.";
+L["MANAGE_PROFILES_HERE"] = [[
+Hier können Sie Charakterprofile verwalten.
+
+Standardmäßig hat jeder Char ein eigenes Profil.]]
 
 L["Reset currently active profile back to default settings."]
 = "Setzen Sie das aktuell aktive Profil auf die Standardeinstellungen zurück.";
@@ -538,11 +519,12 @@ L["Delete currently active profile (cannot delete the 'Default' profile)."]
 L["Copy all settings from one profile to the active profile."]
 = "Kopieren Sie alle Einstellungen von einem Profil in das aktive Profil.";
 
-L["Are you sure you want to overide all profile settings in '%s' for those in profile '%s'?"]
+L["Are you sure you want to override all profile settings in '%s' for those in profile '%s'?"]
 = "Möchten Sie wirklich alle Profileinstellungen in '%s' für diejenigen im Profil '%s' überschreiben?";
 
-L["By default, each new character will be automatically assigned a unique character profile instead of a single default profile.\n\nProfiles are automatically assigned only after installing the UI on a new character."]
-= "Standardmäßig wird jedem neuen Char automatisch ein eindeutiges Pofil erstellt, anstelle eines einzelnen Standardprofils zugewiesen. \n\nProfile werden automatisch erst zugewiesen, nachdem die Benutzeroberfläche auf einem neuen Char installiert wurde.";
+L["UNIQUE_CHARACTER_PROFILE"] = [[
+Standardmäßig wird jedem neuen Char automatisch ein eindeutiges Pofil erstellt, anstelle eines einzelnen Standardprofils zugewiesen.
+Profile werden automatisch erst zugewiesen, nachdem die Benutzeroberfläche auf einem neuen Char installiert wurde.]]
 
 L["Profile Per Character"] = "Profil pro Character";
 
@@ -792,8 +774,6 @@ L["If enabled, the border color of debuffs will be based on the type of debuff (
 L["Set whether you want the unit's debuffs to appear above or below the tooltip."] 
   = "Legen Sie fest, ob die Schwächungen der Einheit über oder unter dem Tooltip angezeigt werden sollen.";
 L["Buff and Debuff Ordering"] = "Buff- und Debuff-Bestellung";
-L["The below setting controls the ordering of auras on the tooltip when both the buffs and debuffs are positioned together (either above or below the tooltip) and are both enabled."] 
-  = "Die unten stehende Einstellung steuert die Reihenfolge der Auren im Tooltip, wenn Buffs und Debuffs zusammen positioniert sind (entweder über oder unter dem Tooltip) und beide aktiviert sind.";
 L["Debuffs Above Buffs"] = "Debuffs über Buffs";
 L["Buffs Above Debuffs"] = "Buffs über Debuffs";
 L["Non-Player Alpha"] = "Nicht-Spieler-Alpha";
@@ -901,3 +881,8 @@ nie erschöpfen. Der Balken wird weiterhin verschwinden, wenn die Aura entfernt 
 
 Im Klassiker die verbleibende Zeit einiger Auren (je nach Situation)
 ist dem Spieler möglicherweise nicht bekannt und wird ausgeblendet, wenn dies nicht aktiviert ist.]]
+
+L["AURAS_ORDERING_ON_TOOLTIP"] = 
+[[Die folgende Einstellung steuert die Reihenfolge der Auren im Tooltip
+wenn Buffs und Debuffs zusammen positioniert sind
+(entweder über oder unter dem Tooltip) und sind beide aktiviert.]]

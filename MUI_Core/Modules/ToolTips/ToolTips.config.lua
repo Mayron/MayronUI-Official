@@ -588,7 +588,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   type = "fontstring";
                 height = 40;
-                content = L["The below setting controls the ordering of auras on the tooltip when both the buffs and debuffs are positioned together (either above or below the tooltip) and are both enabled."]
+                content = L["AURAS_ORDERING_ON_TOOLTIP"]
             };
             {   name = L["Debuffs Above Buffs"];
                 appendDbPath = "auras.debuffs.aboveBuffs";

@@ -52,7 +52,7 @@ local configTable = {
     children =
     {
         {
-            content = L["You can manage character profiles here.\n\nBy default, each character has its own unique profile."];
+            content = L["MANAGE_PROFILES_HERE"];
             type    = "fontstring";
         },
         {
@@ -116,7 +116,7 @@ local configTable = {
                 end
 
                 local popupMessage = string.format(
-                    L["Are you sure you want to overide all profile settings in '%s' for those in profile '%s'?"],
+                    L["Are you sure you want to override all profile settings in '%s' for those in profile '%s'?"],
                     db:GetCurrentProfile(), profileName);
 
                 tk:ShowConfirmPopup(popupMessage, nil, CopyProfile, nil, nil, nil, true, profileName);
@@ -188,7 +188,7 @@ local configTable = {
             marginBottom = 0;
         },
         {
-            content = L["By default, each new character will be automatically assigned a unique character profile instead of a single default profile.\n\nProfiles are automatically assigned only after installing the UI on a new character."];
+            content = L["UNIQUE_CHARACTER_PROFILE"];
             type    = "fontstring";
         },
         {

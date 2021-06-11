@@ -5,14 +5,6 @@ Frames to fit over the top of the MUI Unit Panels.
 It will also automatically move the Unit Frames when
 expanding and retracting the MUI Action Bar Panel.]];
 
-L["TT_MUI_CONTROL_GRID"] =
-[[|cff00ccffImportant:|r Only for the |cff00ccff'MayronUIH' Grid Profile|r (used in the Healing Layout)!
-
-If enabled, MUI will reposition the Grid Frame to fit on top of the MUI Unit Panels.
-
-It will also automatically move the Grid Frame when expanding and retracting the
-MUI Action Bar Panel.]];
-
 L["TT_MUI_CONTROL_BARTENDER"] =
 [[If enabled, MUI will reposition the selected Bartender
 bars to fit over the top of the action bar panel.
@@ -26,8 +18,8 @@ L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
 color instead of using the 'Start Color' RGB values. It will
 still use the Alpha and 'End Color' RGB values.]];
 
-L["MUI_Setup_InfoTab"] = [[
-Discord community:
+L["MUI_Setup_InfoTab"] = 
+[[Discord community:
 %s
 
 Visit the official MayronUI website for more info:
@@ -42,8 +34,8 @@ Become a Patron and earn exclusive benefits within the community:
 Visit Mayron's official YouTube channel:
 %s]]
 
-L["MUI_Setup_CreditsTab"] = [[
-Special thanks goes to the following MayronUI community members for their contributions towards the project (see the information tab for the link to join our Discord community):
+L["MUI_Setup_CreditsTab"] = 
+[[Special thanks go to the following MayronUI community members for their contributions towards the project (see the information tab for the link to join our Discord community):
 
 |cff00ccff> Patrons|r
 %s
@@ -57,27 +49,41 @@ Special thanks goes to the following MayronUI community members for their contri
 |cff00ccff> Community Support Team|r
 %s
 
-And of course, thank you to the authors of the non-MayronUI AddOns included in this UI pack.
-]]
+And of course, thank you to the authors of the non-MayronUI AddOns included in this UI pack.]]
 
-L["PRESS_HOLD_TOGGLE_BUTTONS"] = [[
-Press and hold %s while out of combat to show toggle buttons.
+L["PRESS_HOLD_TOGGLE_BUTTONS"] = 
+[[Press and hold %s while out of combat to show toggle buttons.
 Clicking these will show or hide additional action-bar rows.]]
 
-L["CHANGE_KEYBINDINGS"] = [[
-You can change this key combination in the MUI config menu (%s).
+L["CHANGE_KEYBINDINGS"] = 
+[[You can change this key combination in the MUI config menu (%s).
 There are 3 key bindings to quickly switch between 1 to 3 rows,
 found in the Blizzard key bindings menu:]]
 
-L["THANK_YOU_FOR_INSTALLING"] = [[
-Thank you for installing %s!
+L["THANK_YOU_FOR_INSTALLING"] = 
+[[Thank you for installing %s!
 
 You can fully customise the UI using the config menu:]]
 
-L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] = [[
-If enabled, auras with an unknown time remaining, as well as auras that never
+L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] = 
+[[If enabled, auras with an unknown time remaining, as well as auras that never
 expire unless canceled, will be shown on the timer bar field and will
 never deplete. The bar will still disappear if the aura is removed.
 
 In classic, the time remaining of some auras (depending on the situation)
 might not be known to the player and will be hidden unless this is enabled.]]
+
+L["MANAGE_PROFILES_HERE"] = 
+[[You can manage character profiles here.
+
+By default, each character has its own unique profile.]]
+
+L["UNIQUE_CHARACTER_PROFILE"] = 
+[[By default, each new character will be automatically assigned a unique character profile instead of a single default profile.
+
+Profiles are automatically assigned only after installing the UI on a new character.]]
+
+L["AURAS_ORDERING_ON_TOOLTIP"] = 
+[[The below setting controls the ordering of auras on the tooltip 
+when both the buffs and debuffs are positioned together 
+(either above or below the tooltip) and are both enabled.]]

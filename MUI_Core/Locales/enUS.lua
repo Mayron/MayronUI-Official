@@ -1,18 +1,8 @@
 local L = _G.LibStub("AceLocale-3.0"):NewLocale("MayronUI", "enUS", true);
 if not L then return end
 
---[[
--- PLEASE READ; IMPORTANT INSTRUCTIONS:
-
-1. To change the value fill in the translation on the right side of the equal sign.
-Example: L["Hello!"] = "Hi!";
-
-2. Do not touch the placeholders: %s, %d
-
-3. Do not touch the line break syntax: \n
-]]
-
--- Start of English translations:
+---------------------------------
+--- SMALL TEXT:
 ---------------------------------
 L["Hello!"]                         = "Hello!";
 L["Character"]                      = "Character";
@@ -61,12 +51,12 @@ L["Alt"]                            = "Alt";
 
 L["Chat Buttons with Modifier Key 1"]         = "Chat Buttons with Modifier Key 1";
 L["Chat Buttons with Modifier Key 2"]         = "Chat Buttons with Modifier Key 2";
-L["Set the border size.\n\nDefault is 1."]    = "Set the border size.\n\nDefault is 1.";
+L["Set the border size."]    = "Set the border size.";
 L["Cannot toggle menu while in combat."]      = "Cannot toggle menu while in combat.";
 L["Cannot switch layouts while in combat."]   = "Cannot switch layouts while in combat.";
 
-L["Set the spacing between the background and the border.\n\nDefault is 0."]
-= "Set the spacing between the background and the border.\n\nDefault is 0.";
+L["Set the spacing between the background and the border."]
+= "Set the spacing between the background and the border.";
 
 L["Allow the use of modifier keys to swap chat buttons while in combat."]
 = "Allow the use of modifier keys to swap chat buttons while in combat.";
@@ -214,8 +204,8 @@ L["This will reload the UI!"]       = "This will reload the UI!";
 L["Setup Menu"]                     = "Setup Menu";
 L["VERSION"]                        = "VERSION";
 
-L["This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7"]
-= "This will ensure that frames are correctly positioned to match the UI scale during installation.\n\nDefault value is 0.7";
+L["This will ensure that frames are correctly positioned to match the UI scale during installation."]
+= "This will ensure that frames are correctly positioned to match the UI scale during installation.";
 
 -- MUI TimerBar
 L["Only track your %s"]                   = "Only track your %s";
@@ -394,14 +384,8 @@ L["The font size of text that appears on data text buttons."]
 L["Show guild info tooltips when the cursor is over guild members in the guild list."]
 = "Show guild info tooltips when the cursor is over guild members in the guild list.";
 
-L["Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row."]
-= "Set the height of the action bar panel when it\nis 'Retracted' to show 1 action bar row.";
-
-L["Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows."]
-= "Set the height of the action bar panel when it\nis 'Expanded' to show 2 action bar rows.";
-
-L["The frame level of the entire DataText bar based on it's frame strata value."]
-= "The frame level of the entire DataText bar based on it's frame strata value.";
+L["The frame level of the entire DataText bar based on its frame strata value."]
+= "The frame level of the entire DataText bar based on its frame strata value.";
 
 L["If unchecked, the entire DataText module will be disabled and all"]
 = "If unchecked, the entire DataText module will be disabled and all";
@@ -409,47 +393,13 @@ L["If unchecked, the entire DataText module will be disabled and all"]
 L["DataText buttons, as well as the background bar, will not be displayed."]
 = "DataText buttons, as well as the background bar, will not be displayed.";
 
-L["Prevents you from using data text modules while in combat."]
-= "Prevents you from using data text modules while in combat.";
-
-L["This is useful for 'clickers'."]
-= "This is useful for 'clickers'.";
-
-L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."]
-= "If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it.";
-
-L["TT_MUI_CONTROL_SUF"] =
-[[If enabled, MUI will reposition the Shadowed Unit
-Frames to fit over the top of the MUI Unit Panels.
-
-It will also automatically move the Unit Frames when
-expanding and retracting the MUI Action Bar Panel.]];
-
-L["TT_MUI_CONTROL_GRID"] =
-[[|cff00ccffImportant:|r Only for the |cff00ccff'MayronUIH' Grid Profile|r (used in the Healing Layout)!
-
-If enabled, MUI will reposition the Grid Frame to fit on top of the MUI Unit Panels.
-
-It will also automatically move the Grid Frame when expanding and retracting the
-MUI Action Bar Panel.]];
-
-L["TT_MUI_CONTROL_BARTENDER"] =
-[[If enabled, MUI will reposition the selected Bartender
-bars to fit over the top of the action bar panel.
-
-It will also control the fading in and out transitions
-of selected row 2 Bartender bars when expanding and
-retracting the MUI Action Bar Panel.]];
-
-L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
-[[If checked, the target portrait gradient will use the target's class
-color instead of using the 'Start Color' RGB values. It will
-still use the Alpha and 'End Color' RGB values.]];
-
-L["Show Overview"]                              = "Show Overview";
-L["Show Reset Options"]                         = "Show Reset Options";
-L["Reset All Characters"]                       = "Reset All Characters";
-L["Reset Options"]                              = "Reset Options";
+L["Prevents you from using data text modules while in combat."] = "Prevents you from using data text modules while in combat.";
+L["This is useful for 'clickers'."] = "This is useful for 'clickers'.";
+L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."] = "If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it.";
+L["Show Overview"] = "Show Overview";
+L["Show Reset Options"] = "Show Reset Options";
+L["Reset All Characters"] = "Reset All Characters";
+L["Reset Options"] = "Reset Options";
 L["All currency data has been reset."]          = "All currency data has been reset.";
 L["Currency data for %s has been reset."]       = "Currency data for %s has been reset.";
 L["Change Status"]                              = "Change Status";
@@ -463,60 +413,12 @@ L["Only show buffs applied by me"]              = "Only show buffs applied by me
 L["Only show debuffs applied by me"]            = "Only show debuffs applied by me";
 L["Enable Whitelist"]                           = "Enable Whitelist";
 L["Configure Whitelist"]                        = "Configure Whitelist";
-L["Enable Blacklist"]                           = "Enable Blacklist";
-L["Configure Blacklist"]                        = "Configure Blacklist";
-
-L["Are you sure you want to reset the currency data for all of your characters?"]
-= "Are you sure you want to reset the currency data for all of your characters?";
-
-L["Are you sure you want to reset the currency data for %s?"]
-= "Are you sure you want to reset the currency data for %s?";
-
-L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."]
-= "Removing %s from the whitelist will hide this timer bar if the whitelist is enabled.";
-
-L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."]
-= "Adding %s to the blacklist will hide this timer bar if the blacklist is enabled.";
-
-L["MUI_Setup_InfoTab"] = [[
-Discord community:
-%s
-
-Visit the official MayronUI website for more info:
-%s
-
-The official GitHub repo:
-%s
-
-Become a Patron and earn exclusive benefits within the community:
-%s
-
-Visit Mayron's official YouTube channel:
-%s]]
-
-L["MUI_Setup_CreditsTab"] = [[
-Special thanks goes to the following MayronUI community members for their contributions towards the project (see the information tab for the link to join our Discord community):
-
-|cff00ccff> Patrons|r
-%s
-
-|cff00ccff> Development and Bug Fixes|r
-%s
-
-|cff00ccff> Translation Support|r
-%s
-
-|cff00ccff> Community Support Team|r
-%s
-
-And of course, thank you to the authors of the non-MayronUI AddOns included in this UI pack.
-]]
-
--- These are all newly added since 6.0.11:
---------------------------------------------------------------------------------------------
------ Do not touch the placeholders: %s, %d
------ Do not touch the line break syntax: \n
-
+L["Enable Blacklist"] = "Enable Blacklist";
+L["Configure Blacklist"] = "Configure Blacklist";
+L["Are you sure you want to reset the currency data for all of your characters?"] = "Are you sure you want to reset the currency data for all of your characters?";
+L["Are you sure you want to reset the currency data for %s?"] = "Are you sure you want to reset the currency data for %s?";
+L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."] = "Removing %s from the whitelist will hide this timer bar if the whitelist is enabled.";
+L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."] = "Adding %s to the blacklist will hide this timer bar if the blacklist is enabled.";
 L["Cast Bars"]                                      = "Cast Bars";
 L["Auras (Buffs & Debuffs)"]                        = "Auras (Buffs & Debuffs)";
 L["(CTRL+C to Copy, CTRL+V to Paste)"]              = "(CTRL+C to Copy, CTRL+V to Paste)";
@@ -554,52 +456,20 @@ L["Zone Text"]                                      = "Zone Text";
 L["Scale"]                                          = "Scale";
 L["Size"]                                           = "Size";
 L["Adjust the font size of the zone text."]         = "Adjust the font size of the zone text.";
-L["Okay"]                        					= "Okay";
-
-L["Profile %s has been copied into current profile %s."]
-= "Profile %s has been copied into current profile %s.";
-
-L["You can manage character profiles here.\n\nBy default, each character has its own unique profile."]
-= "You can manage character profiles here.\n\nBy default, each character has its own unique profile.";
-
-L["Reset currently active profile back to default settings."]
-= "Reset currently active profile back to default settings.";
-
-L["Are you sure you want to reset profile '%s' back to default settings?"]
-= "Are you sure you want to reset profile '%s' back to default settings?";
-
-L["Delete currently active profile (cannot delete the 'Default' profile)."]
-= "Delete currently active profile (cannot delete the 'Default' profile).";
-
-L["Copy all settings from one profile to the active profile."]
-= "Copy all settings from one profile to the active profile.";
-
-L["Are you sure you want to overide all profile settings in '%s' for those in profile '%s'?"]
-= "Are you sure you want to overide all profile settings in '%s' for those in profile '%s'?";
-
-L["By default, each new character will be automatically assigned a unique character profile instead of a single default profile.\n\nProfiles are automatically assigned only after installing the UI on a new character."]
-= "By default, each new character will be automatically assigned a unique character profile instead of a single default profile.\n\nProfiles are automatically assigned only after installing the UI on a new character.";
-
+L["Okay"] = "Okay";
+L["Profile %s has been copied into current profile %s."] = "Profile %s has been copied into current profile %s.";
+L["Reset currently active profile back to default settings."] = "Reset currently active profile back to default settings.";
+L["Are you sure you want to reset profile '%s' back to default settings?"] = "Are you sure you want to reset profile '%s' back to default settings?";
+L["Delete currently active profile (cannot delete the 'Default' profile)."] = "Delete currently active profile (cannot delete the 'Default' profile).";
+L["Copy all settings from one profile to the active profile."] = "Copy all settings from one profile to the active profile.";
+L["Are you sure you want to override all profile settings in '%s' for those in profile '%s'?"] = "Are you sure you want to override all profile settings in '%s' for those in profile '%s'?";
 L["Profile Per Character"] = "Profile Per Character";
-
-L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."]
-= "If enabled, new characters will be assigned a unique character profile instead of the Default profile.";
-
-L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."]
-= "Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones.";
-
-L["Anchor the Objective Tracker to the action bar container on the right side of the screen."]
-= "Anchor the Objective Tracker to the action bar container on the right side of the screen.";
-
-L["You can repeat this step at any time (while out of combat) to hide it."]
-= "You can repeat this step at any time (while out of combat) to hide it.";
-
-L["If true, the objective tracker will collapse when entering an instance."]
-= "If true, the objective tracker will collapse when entering an instance.";
-
-L["If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit."]
-= "If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit.";
-
+L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."] = "If enabled, new characters will be assigned a unique character profile instead of the Default profile.";
+L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] = "Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones.";
+L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] = "Anchor the Objective Tracker to the action bar container on the right side of the screen.";
+L["You can repeat this step at any time (while out of combat) to hide it."] = "You can repeat this step at any time (while out of combat) to hide it.";
+L["If true, the objective tracker will collapse when entering an instance."] = "If true, the objective tracker will collapse when entering an instance.";
+L["If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit."] = "If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit.";
 L["Also enable the %s"]                                               = "Also enable the %s";
 L["Current"]                                                          = "Current";
 L["Equipment Set"]                                                    = "Equipment Set";
@@ -613,7 +483,6 @@ L["(type '/mui' to list all slash commands)"] 						  = "(type '/mui' to list al
 L["Version"]                                                          = "Version";
 L["Main Container"]                                                   = "Main Container";
 L["Resource Bars"]                                                    = "Resource Bars";
-
 L["Movable Blizzard Frames"]                                          = "Movable Blizzard Frames";
 L["Allows you to move Blizzard Frames outside of combat only."]       = "Allows you to move Blizzard Frames outside of combat only.";
 L["Reset Blizzard frames back to their original position."]           = "Reset Blizzard frames back to their original position.";
@@ -681,43 +550,27 @@ L["This is the background bar that goes behind the tabs."]            = "This is
 L["Show Tab Bar"]                                                     = "Show Tab Bar";
 L["Tab Bar"]                                                          = "Tab Bar";
 L["Window"]                                                           = "Window";
-L["Layout enabled!"]                                                  = "Layout enabled!";
-L["Show Chat Menu"]                                                   = "Show Chat Menu";
-L["Azerite"] 							      = "Azerite";
-L["Covenant Sanctum"]						      = "Covenant Sanctum";
-L["Missions"]							      = "BfA Missions";
-L["You must be a member of a covenant to view this."]		      = "You must be a member of a covenant to view this."
+L["Layout enabled!"] = "Layout enabled!";
+L["Show Chat Menu"] = "Show Chat Menu";
+L["Azerite"] = "Azerite";
+L["Covenant Sanctum"] = "Covenant Sanctum";
+L["Missions"] = "BfA Missions";
+L["You must be a member of a covenant to view this."] = "You must be a member of a covenant to view this."
 L["Unmuted"] = "Unmuted";
 L["Toggle Questlog"] = "Toggle Questlog";
-
----------------------------------------
---- NEW SINCE 12/12/2020 (update 6.3.8)
----------------------------------------
 L["Step %d of"] = "Step %d of";
 L["Step"] = "Step";
-
-L["Found a bug? Use this form to submit an issue to the official MayronUI GitHub page."] =
-"Found a bug? Use this form to submit an issue to the official MayronUI GitHub page.";
-
+L["Found a bug? Use this form to submit an issue to the official MayronUI GitHub page."] = "Found a bug? Use this form to submit an issue to the official MayronUI GitHub page.";
 L["Almost done! We just need a bit more information..."] = "Almost done! We just need a bit more information...";
-
-L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"] =
-"Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:";
-
+L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"] = "Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:";
 L["characters"] = "characters"; -- text characters (e.g. A, B, C, etc...), NOT WoW characters!
-
 L["minimum"] = "minimum";
 L["Please describe the bug in detail:"] = "Please describe the bug in detail:";
 L["How can we replicate the bug?"] = "How can we replicate the bug?";
 L["Report Issue"] = "Report Issue";
-
 L["Open this webpage in your browser"] = "Open this webpage in your browser";
 L["Generate Report"] = "Generate Report";
 L["Copy Report"] = "Copy Report";
-
----------------------------------------
---- NEW SINCE 31/05/2021 (update 6.6.3)
----------------------------------------
 L["Chat Frame with Icons"] = "Chat Frame with Icons";
 L["Vertical Side Icons"] = "Vertical Side Icons";
 L["Only 1 active chat frame can show the chat icons on the sidebar (see icons listed below)."] = "Only 1 active chat frame can show the chat icons on the sidebar (see icons listed below).";
@@ -807,7 +660,6 @@ L["Set border color by debuff type"] = "Set border color by debuff type";
 L["If enabled, the border color of debuffs will be based on the type of debuff (e.g., poisons will appear with a green border color)."] = "If enabled, the border color of debuffs will be based on the type of debuff (e.g., poisons will appear with a green border color).";
 L["Set whether you want the unit's debuffs to appear above or below the tooltip."] = "Set whether you want the unit's debuffs to appear above or below the tooltip.";
 L["Buff and Debuff Ordering"] = "Buff and Debuff Ordering";
-L["The below setting controls the ordering of auras on the tooltip when both the buffs and debuffs are positioned together (either above or below the tooltip) and are both enabled."] = "The below setting controls the ordering of auras on the tooltip when both the buffs and debuffs are positioned together (either above or below the tooltip) and are both enabled.";
 L["Debuffs Above Buffs"] = "Debuffs Above Buffs";
 L["Buffs Above Debuffs"] = "Buffs Above Debuffs";
 L["Non-Player Alpha"] = "Non-Player Alpha";
@@ -823,10 +675,6 @@ L["Guild Bank"] = "Guild Bank";
 L["Bank"] = "Bank";
 L["Void Storage"] = "Void Storage";
 L["You have no professions."] = "You have no professions.";
-
----------------------------------------
---- NEW SINCE 10/06/2021 (update 6.6.9)
----------------------------------------
 L["remaining"] = "remaining"; -- for XP bar (e.g., "50/100 (50% remaining)")
 L["Fixed Color"] = "Fixed Color";
 L["Main Container"] = "Main Container";
@@ -887,24 +735,95 @@ L["Show Buffs"] = "Show Buffs";
 L["Show Debuffs"] = "Show Debuffs";
 L["Refresh Chat Text"] = "Refresh Chat Text";
 
-L["PRESS_HOLD_TOGGLE_BUTTONS"] = [[
-Press and hold %s while out of combat to show toggle buttons.
+---------------------------------
+--- LARGE TEXT:
+---------------------------------
+L["TT_MUI_CONTROL_SUF"] =
+[[If enabled, MUI will reposition the Shadowed Unit
+Frames to fit over the top of the MUI Unit Panels.
+
+It will also automatically move the Unit Frames when
+expanding and retracting the MUI Action Bar Panel.]];
+
+L["TT_MUI_CONTROL_BARTENDER"] =
+[[If enabled, MUI will reposition the selected Bartender
+bars to fit over the top of the action bar panel.
+
+It will also control the fading in and out transitions
+of selected row 2 Bartender bars when expanding and
+retracting the MUI Action Bar Panel.]];
+
+L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
+[[If checked, the target portrait gradient will use the target's class
+color instead of using the 'Start Color' RGB values. It will
+still use the Alpha and 'End Color' RGB values.]];
+
+L["MUI_Setup_InfoTab"] = 
+[[Discord community:
+%s
+
+Visit the official MayronUI website for more info:
+%s
+
+The official GitHub repo:
+%s
+
+Become a Patron and earn exclusive benefits within the community:
+%s
+
+Visit Mayron's official YouTube channel:
+%s]]
+
+L["MUI_Setup_CreditsTab"] = 
+[[Special thanks go to the following MayronUI community members for their contributions towards the project (see the information tab for the link to join our Discord community):
+
+|cff00ccff> Patrons|r
+%s
+
+|cff00ccff> Development and Bug Fixes|r
+%s
+
+|cff00ccff> Translation Support|r
+%s
+
+|cff00ccff> Community Support Team|r
+%s
+
+And of course, thank you to the authors of the non-MayronUI AddOns included in this UI pack.]]
+
+L["PRESS_HOLD_TOGGLE_BUTTONS"] = 
+[[Press and hold %s while out of combat to show toggle buttons.
 Clicking these will show or hide additional action-bar rows.]]
 
-L["CHANGE_KEYBINDINGS"] = [[
-You can change this key combination in the MUI config menu (%s).
+L["CHANGE_KEYBINDINGS"] = 
+[[You can change this key combination in the MUI config menu (%s).
 There are 3 key bindings to quickly switch between 1 to 3 rows,
-found in the Blizzard key bindings menu:]]
+found in Blizzard's key bindings menu:]]
 
-L["THANK_YOU_FOR_INSTALLING"] = [[
-Thank you for installing %s!
+L["THANK_YOU_FOR_INSTALLING"] = 
+[[Thank you for installing %s!
 
 You can fully customise the UI using the config menu:]]
 
-L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] = [[
-If enabled, auras with an unknown time remaining, as well as auras that never
-expire unless cancelled, will be shown on the timer bar field and will
+L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] = 
+[[If enabled, auras with an unknown time remaining, as well as auras that never
+expire unless canceled, will be shown on the timer bar field and will
 never deplete. The bar will still disappear if the aura is removed.
 
 In classic, the time remaining of some auras (depending on the situation)
-might not be known to the player and will be hidden unles this is enabled.]]
+might not be known to the player and will be hidden unless this is enabled.]]
+
+L["MANAGE_PROFILES_HERE"] = 
+[[You can manage character profiles here.
+
+By default, each character has its own unique profile.]]
+
+L["UNIQUE_CHARACTER_PROFILE"] = 
+[[By default, each new character will be automatically assigned a unique character profile instead of a single default profile.
+
+Profiles are automatically assigned only after installing the UI on a new character.]]
+
+L["AURAS_ORDERING_ON_TOOLTIP"] = 
+[[The below setting controls the ordering of auras on the tooltip 
+when both the buffs and debuffs are positioned together 
+(either above or below the tooltip) and are both enabled.]]
