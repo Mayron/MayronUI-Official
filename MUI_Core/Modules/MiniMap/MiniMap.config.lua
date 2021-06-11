@@ -8,17 +8,17 @@ local function UpdateTestModeButton(button)
   local r, g, b = tk:GetThemeColor();
 
   if (db.profile.minimap.testMode) then
-    button:SetText("Disable Test Mode");
+    button:SetText(L["Disable Test Mode"]);
     button:GetNormalTexture():SetVertexColor(r * 1.2, g * 1.2, b * 1.2);
   else
-    button:SetText("Enable Test Mode");
+    button:SetText(L["Enable Test Mode"]);
     button:GetNormalTexture():SetVertexColor(r * 0.5, g * 0.5, b * 0.5);
   end
 end
 
 local function AddShowOption(children, name, text)
   children[#children + 1] = {
-    name = tk.Strings:JoinWithSpace("Show", text);
+    name = tk.Strings:JoinWithSpace(L["Show"], text);
     type = "check";
     appendDbPath = "show";
     height = 50;
@@ -47,7 +47,7 @@ end
 
 local function AddHideOption(children, name, text, func)
   children[#children + 1] = {
-    name = tk.Strings:JoinWithSpace("Hide", text);
+    name = tk.Strings:JoinWithSpace(L["Hide"], text);
     type = "check";
     appendDbPath = "hide";
     height = 50;
@@ -114,7 +114,7 @@ local function AddPositioningOptions(children, name, settings)
   children[#children + 1] = {
     type = "fontstring";
     subtype = "header";
-    content = "Icon Position";
+    content = L["Icon Position"];
   };
 
   children[#children + 1] = {
@@ -158,7 +158,7 @@ function C_MiniMapModule:GetConfigTable(data)
         dbPath = "profile.minimap",
         children =  {
             {   name = L["Enabled"],
-                tooltip = "If checked, this module will be enabled.",
+                tooltip = L["If checked, this module will be enabled."],
                 type = "check",
                 requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
                 appendDbPath = "enabled",
@@ -187,10 +187,10 @@ function C_MiniMapModule:GetConfigTable(data)
                 tooltip = tk.Strings:Join("\n", L["Adjust the scale of the minimap."], L["Default value is"].." 1"),
                 appendDbPath = "scale",
             };
-            {   name = "Enable Test Mode";
+            {   name = L["Enable Test Mode"];
                 type = "button";
                 width = 200;
-                tooltip = "Test mode allows you to easily customize the looks and positioning of widgets by forcing all widgets to be shown.";
+                tooltip = L["Test mode allows you to easily customize the looks and positioning of widgets by forcing all widgets to be shown."];
                 OnLoad = function(_, button)
                   widgets.testModeButton = button;
                   UpdateTestModeButton(button);
@@ -215,16 +215,16 @@ function C_MiniMapModule:GetConfigTable(data)
                   UpdateTestModeButton(button);
                 end;
             };
-            {   name = "Mini-Map Widgets",
+            {   name = L["Mini-Map Widgets"],
                 type = "title",
             };
             {
-              name = "Clock";
+              name = L["Clock"];
               type = "submenu";
               appendDbPath = "widgets.clock";
               children = function()
                 local children = {};
-                AddHideOption(children, "clock", "Clock");
+                AddHideOption(children, "clock", L["Clock"]);
                 AddFontSizeOption(children, "clock", data.settings.widgets.clock);
                 AddPositioningOptions(children, "clock", data.settings.widgets.clock);
                 return children;
@@ -232,13 +232,13 @@ function C_MiniMapModule:GetConfigTable(data)
             };
 
             {
-              name = "Dungeon Difficulty";
+              name = L["Dungeon Difficulty"];
               appendDbPath = "widgets.difficulty";
               type = "submenu";
               client = "retail";
               children = function()
                 local children = {};
-                AddShowOption(children, "difficulty", "Dungeon Difficulty Text");
+                AddShowOption(children, "difficulty", L["Dungeon Difficulty"]);
                 AddFontSizeOption(children, "difficulty", data.settings.widgets.difficulty);
                 AddPositioningOptions(children, "difficulty", data.settings.widgets.difficulty);
                 return children;
@@ -246,7 +246,7 @@ function C_MiniMapModule:GetConfigTable(data)
             };
 
             {
-              name = "Looking For Group Icon";
+              name = L["Looking For Group Icon"];
               type = "submenu";
               appendDbPath = "widgets.lfg";
               client = "retail";
@@ -259,7 +259,7 @@ function C_MiniMapModule:GetConfigTable(data)
             };
 
             {
-              name = "New Mail Icon";
+              name = L["New Mail Icon"];
               type = "submenu";
               appendDbPath = "widgets.mail";
               children = function()
@@ -271,7 +271,7 @@ function C_MiniMapModule:GetConfigTable(data)
             };
 
             {
-              name = "Missions Icon";
+              name = L["Missions Icon"];
               type = "submenu";
               appendDbPath = "widgets.missions";
               client = "retail";
@@ -279,11 +279,11 @@ function C_MiniMapModule:GetConfigTable(data)
                 local children = {
                   {
                     type = "fontstring";
-                    content = "This button opens the most relevant missions menu for your character. The menu will either show missions for your Covenant Sanctum, Class Order Hall, or your Garrison."
+                    content = L["This button opens the most relevant missions menu for your character. The menu will either show missions for your Covenant Sanctum, Class Order Hall, or your Garrison."]
                   };
                 };
 
-                AddHideOption(children, "missions", "Missions Icon");
+                AddHideOption(children, "missions", L["Missions Icon"]);
                 AddScaleOption(children, "missions", data.settings.widgets.missions);
                 AddPositioningOptions(children, "missions", data.settings.widgets.missions);
 
@@ -292,7 +292,7 @@ function C_MiniMapModule:GetConfigTable(data)
             };
 
             {
-              name = "Tracking Icon";
+              name = L["Tracking Icon"];
               type = "submenu";
               appendDbPath = "widgets.tracking";
               client = {"retail", "bcc"};
@@ -300,11 +300,11 @@ function C_MiniMapModule:GetConfigTable(data)
                 local children = {
                   {
                     type = "fontstring";
-                    content = "When hidden, you can still access tracking options from the Minimap right-click menu.";
+                    content = L["When hidden, you can still access tracking options from the Minimap right-click menu."];
                   };
                 };
 
-                AddHideOption(children, "tracking", "Tracking Icon", function()
+                AddHideOption(children, "tracking", L["Tracking Icon"], function()
                   data:Call("UpdateTrackingMenuOptionVisibility");
                 end);
 
@@ -316,12 +316,12 @@ function C_MiniMapModule:GetConfigTable(data)
             };
 
             {
-              name = "Zone Name";
+              name = L["Zone Name"];
               type = "submenu";
               appendDbPath = "widgets.zone";
               children = function()
                 local children = {};
-                AddHideOption(children, "zone", "Zone Name");
+                AddHideOption(children, "zone", L["Zone Name"]);
                 AddFontSizeOption(children, "zone", data.settings.widgets.zone);
                 AddPositioningOptions(children, "zone", data.settings.widgets.zone);
                 return children;

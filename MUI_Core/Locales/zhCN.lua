@@ -651,6 +651,23 @@ L["Set Alpha"] = "设置阿尔法";
 L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."] = "如果选中,声望栏将使用固定颜色,而不是根据您在所选派系中的声望动态变化。";
 L["Use Fixed Color"] = "使用固定颜色";
 L["Reputation Colors"] = "声誉颜色";
+L["Show"] = "表演";
+L["Hide"] = "隐藏";
+L["Enable Test Mode"] = "启用测试模式";
+L["Disable Test Mode"] = "禁用测试模式";
+L["Icon Position"] = "图标位置";
+L["If checked, this module will be enabled."] = "如果选中，将启用此模块。";
+L["Test mode allows you to easily customize the looks and positioning of widgets by forcing all widgets to be shown."] = "测试模式允许您通过强制显示所有小部件来轻松自定义小部件的外观和位置。";
+L["Mini-Map Widgets"] = "小地图小工具";
+L["Clock"] = "钟";
+L["Dungeon Difficulty"] = "地牢难度";
+L["Looking For Group Icon"] = "寻找组图标";
+L["New Mail Icon"] = "新邮件图标";
+L["Missions Icon"] = "任务图标";
+L["This button opens the most relevant missions menu for your character. The menu will either show missions for your Covenant Sanctum, Class Order Hall, or your Garrison."] = "此按钮为您的角色打开最相关的任务菜单。菜单将显示您的圣约圣殿、职业秩序大厅或您的要塞的任务。";
+L["Tracking Icon"] = "跟踪图标";
+L["When hidden, you can still access tracking options from the Minimap right-click menu."] = "隐藏后，您仍然可以从小地图右键单击菜单访问跟踪选项。";
+L["Zone Name"] = "区域名称";
 
 L["TT_MUI_CONTROL_SUF"] =
 [[如果启用，MUI 将重新定位阴影单元
