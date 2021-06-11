@@ -565,7 +565,8 @@ do
     local refreshButton = CreateFrame("Button", nil, frame);
     refreshButton:SetSize(18, 18);
     refreshButton:SetPoint("TOPRIGHT", frame.closeBtn, "TOPLEFT", -10, -3);
-    refreshButton:SetNormalTexture("Interface\\Buttons\\UI-RefreshButton");
+    refreshButton:SetNormalTexture(tk:GetAssetFilePath("Textures\\refresh"));
+    refreshButton:GetNormalTexture():SetVertexColor(tk:GetThemeColor());
     refreshButton:SetHighlightAtlas("chatframe-button-highlight");
     tk:SetBasicTooltip(refreshButton, L["Refresh Chat Text"]);
 

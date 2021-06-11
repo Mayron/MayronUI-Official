@@ -752,7 +752,7 @@ Il y a 3 raccourcis clavier pour basculer rapidement entre 1 à 3 rangées,
 trouvé dans le menu des raccourcis clavier de Blizzard :]]
 
 L["THANK_YOU_FOR_INSTALLING"] = 
-[[Merci d'avoir installé %s !
+[[Merci d'avoir installé MayronUI !
 
 Vous pouvez entièrement personnaliser l'interface utilisateur
 à l'aide du menu de configuration :]]

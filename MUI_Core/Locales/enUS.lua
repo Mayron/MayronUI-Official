@@ -801,7 +801,7 @@ There are 3 key bindings to quickly switch between 1 to 3 rows,
 found in Blizzard's key bindings menu:]]
 
 L["THANK_YOU_FOR_INSTALLING"] = 
-[[Thank you for installing %s!
+[[Thank you for installing MayronUI!
 
 You can fully customise the UI using the config menu:]]
 

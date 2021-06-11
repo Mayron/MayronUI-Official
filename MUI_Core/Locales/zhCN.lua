@@ -704,7 +704,7 @@ L["CHANGE_KEYBINDINGS"] = [[
 在暴雪键绑定菜单中找到：]]
 
 L["THANK_YOU_FOR_INSTALLING"] = [[
-感谢您安装 %s！
+感谢您安装 MayronUI！
 
 您可以使用配置菜单完全自定义 UI：]]
 

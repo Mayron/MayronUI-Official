@@ -705,7 +705,7 @@ Hay 3 combinaciones de teclas para cambiar rápidamente entre 1 y 3 filas,
 que se encuentra en el menú de combinaciones de teclas de Blizzard:]]
 
 L["THANK_YOU_FOR_INSTALLING"] = 
-[[¡Gracias por instalar %s!
+[[¡Gracias por instalar MayronUI!
 
 Puede personalizar completamente la interfaz de usuario usando el menú de configuración:]]
 

@@ -24,7 +24,7 @@ do
 
   function CreateTopMenuButton(label, onClick, anchor)
     local btn = gui:CreateButton(tk.Constants.AddOnStyle, nil, label);
-    btn:SetWidth(100);
+    btn:SetWidth(132.25);
 
     if (anchor) then
       btn:SetPoint("RIGHT", anchor, "RIGHT");
@@ -582,14 +582,21 @@ function C_ConfigModule:SetUpWindow(data)
     data.window:Hide();
   end);
 
-  -- installer buttons
-  data.window.installerBtn = CreateTopMenuButton(L["Installer"], function()
-    MayronUI:TriggerCommand("install");
-    data.window:Hide();
-  end);
-
   -- reload button
-  data.window.reloadBtn = CreateTopMenuButton(L["Reload UI"], _G.ReloadUI);
+  local refreshButton = CreateFrame("Button", nil, data.window.layoutsBtn);
+  refreshButton:SetSize(20, 20);
+  refreshButton:SetPoint("RIGHT", data.window.layoutsBtn, "LEFT", -10, 0);
+  refreshButton:SetNormalTexture(tk:GetAssetFilePath("Textures\\refresh"));
+  refreshButton:GetNormalTexture():SetVertexColor(tk:GetThemeColor());
+  refreshButton:SetHighlightAtlas("chatframe-button-highlight");
+
+  local highlight = refreshButton:GetHighlightTexture();
+  highlight:SetBlendMode("ADD");
+  highlight:SetPoint("TOPLEFT", -4, 4);
+  highlight:SetPoint("BOTTOMRIGHT", 4, -4);
+
+  tk:SetBasicTooltip(refreshButton, L["Reload UI"]);
+  refreshButton:SetScript("OnClick", _G.ReloadUI);
 
   local menuListScrollChild = menuListContainer.ScrollFrame:GetScrollChild();
   tk:SetFullWidth(menuListScrollChild);

@@ -870,7 +870,7 @@ Es gibt 3 Tastenkombinationen, um schnell zwischen 1 bis 3 Reihen zu wechseln,
 finden Sie im Blizzard-Tastenbelegungsmenü:]]
 
 L["THANK_YOU_FOR_INSTALLING"] = [[
-Vielen Dank für die Installation von %s!
+Vielen Dank für die Installation von MayronUI!
 
 Sie können die Benutzeroberfläche mithilfe des Konfigurationsmenüs vollständig anpassen:]]
 

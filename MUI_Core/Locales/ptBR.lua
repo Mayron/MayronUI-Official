@@ -752,7 +752,7 @@ Existem 3 combinações de teclas para alternar rapidamente entre 1 a 3 linhas,
 encontrado no menu de atalhos de teclado da Blizzard:]]
 
 L["THANK_YOU_FOR_INSTALLING"] = 
-[[Obrigado por instalar %s!
+[[Obrigado por instalar MayronUI!
 
 Você pode personalizar totalmente a IU usando o menu de configuração:]]
 

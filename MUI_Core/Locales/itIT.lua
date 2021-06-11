@@ -752,7 +752,7 @@ Ci sono 3 combinazioni di tasti per passare rapidamente da 1 a 3 righe,
 trovato nel menu delle associazioni dei tasti di Blizzard:]]
 
 L["THANK_YOU_FOR_INSTALLING"] = 
-[[Grazie per aver installato %s!
+[[Grazie per aver installato MayronUI!
 
 Puoi personalizzare completamente l'interfaccia
 utente utilizzando il menu di configurazione:]]

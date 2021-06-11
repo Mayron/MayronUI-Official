@@ -40,8 +40,6 @@ function C_Tutorial:OnEnable()
   frame.text:SetPoint("TOPRIGHT", -10, -40);
 
   local tutorialMessage = L["THANK_YOU_FOR_INSTALLING"];
-  tutorialMessage = tutorialMessage:format("MayronUI");
-
   local subMessage = tk.Strings:SetTextColorByKey(L["(type '/mui' to list all slash commands)"], "GOLD");
 
   frame.text:SetText(tk.Strings:Join("\n\n", tutorialMessage, subMessage));
