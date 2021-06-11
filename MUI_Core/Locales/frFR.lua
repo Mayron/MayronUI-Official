@@ -548,10 +548,6 @@ L["If enabled, new characters will be assigned a unique character profile instea
 
 L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] = "Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones.";
 
-	L["Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."] = "Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons.";
-
-L["Thank you for installing %s!\n\nYou can fully customise the UI using the config menu:"] = "Thank you for installing %s!\n\nYou can fully customise the UI using the config menu:";
-
 L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] = "Anchor the Objective Tracker to the action bar container on the right side of the screen.";
 
 L["You can repeat this step at any time (while out of combat) to hide it."] = "You can repeat this step at any time (while out of combat) to hide it.";
@@ -821,3 +817,47 @@ L["This button opens the most relevant missions menu for your character. The men
 L["Tracking Icon"] = "Icône de suivi";
 L["When hidden, you can still access tracking options from the Minimap right-click menu."] = "Lorsqu'il est masqué, vous pouvez toujours accéder aux options de suivi à partir du menu contextuel de la mini-carte.";
 L["Zone Name"] = "Nom de la zone";
+L["Apply Scaling"] = "Appliquer la mise à l'échelle";
+L["Show MUI Key Bindings"] = "Afficher les liaisons de touches MUI";
+L["Tutorial: Step 2"] = "Tutoriel : Étape 2";
+L["Tutorial: Step 1"] = "Tutoriel : Étape 1";
+L["Open Config Menu"] = "Ouvrir le menu de configuration";
+L["Config"] = "Configuration";
+L["Unit Frame Panels"] = "Panneaux de cadre unitaire";
+L["Tooltips"] = "Info-bulles";
+L["Show Food and Drink"] = "Montrer la nourriture et les boissons";
+L["If checked, the food and drink buff will be displayed as a castbar."] = "Si coché, le buff de nourriture et de boisson sera affiché comme une barre de coulée.";
+L["Blend Mode"] = "Mode de fusion";
+L["Changing the blend mode will affect how alpha channels blend with the background."] = "La modification du mode de fusion affectera la façon dont les canaux alpha se fondent avec l'arrière-plan.";
+L["Background"] = "Arrière-plan";
+L["Button"] = "Bouton";
+L["Combat Timer"] = "Minuteur de combat";
+L["Quest"] = "Quête";
+L["Volume Options"] = "Options de volume";
+L["Specialization"] = "Spécialisation";
+L["Show Auras With Unknown Time Remaining"] = "Afficher les auras avec un temps restant inconnu";
+L["Show Buffs"] = "Afficher les amateurs";
+L["Show Debuffs"] = "Afficher les debuffs";
+L["Refresh Chat Text"] = "Actualiser le texte du chat";
+
+L["PRESS_HOLD_TOGGLE_BUTTONS"] = [[
+Appuyez et maintenez %s hors combat pour afficher les boutons à bascule.
+En cliquant dessus, vous afficherez ou masquerez des lignes supplémentaires de la barre d'action.]]
+
+L["CHANGE_KEYBINDINGS"] = [[
+Vous pouvez modifier cette combinaison de touches dans le menu de configuration MUI (%s).
+Il y a 3 raccourcis clavier pour basculer rapidement entre 1 à 3 rangées,
+trouvé dans le menu des raccourcis clavier de Blizzard :]]
+
+L["THANK_YOU_FOR_INSTALLING"] = [[
+Merci d'avoir installé %s !
+
+Vous pouvez entièrement personnaliser l'interface utilisateur à l'aide du menu de configuration :]]
+
+L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] = [[
+Si activé, les auras avec un temps restant inconnu, ainsi que les auras qui ne
+expirera à moins d'être annulé, sera affiché dans le champ de la barre de minuterie et
+ne s'épuise jamais. La barre disparaîtra toujours si l'aura est supprimée.
+
+En classique, le temps restant de certaines auras (selon la situation)
+peut ne pas être connu du joueur et sera masqué à moins que cela ne soit activé.]]

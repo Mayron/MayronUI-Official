@@ -114,7 +114,6 @@ L["Enable Bar"] = "启用栏";
 L["Show Icon"] = "显示图标";
 L["Show Latency Bar"] = "显示延迟条";
 L["Anchor to SUF Portrait Bar"] = "锚定到 SUF 肖像栏";
-L["Left to right"] = "左到右";
 L["Width"] = "宽度";
 L["Height"] = "高度";
 L["Frame Strata"] = "框架层";
@@ -419,8 +418,6 @@ L["By default, each new character will be automatically assigned a unique charac
 L["Profile Per Character"] = "每个角色的个人资料";
 L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."] = "如果启用,新角色将被分配一个唯一的角色配置文件,而不是默认配置文件。";
 L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] = "为每个布局自定义哪些插件应该更改为哪些配置文件,以及管理现有布局或创建新布局。";
-L["Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."] = "在脱离战斗时按住 %s 键会显示一个箭头按钮。\n\n 单击此按钮将显示第二行操作按钮。";
-L["Thank you for installing %s!\n\nYou can fully customise the UI using the config menu:"] = "感谢您安装 %s！\n\n您可以使用配置菜单完全自定义 UI:";
 L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] = "将目标跟踪器锚定到屏幕右侧的操作栏容器。";
 L["You can repeat this step at any time (while out of combat) to hide it."] = "你可以在任何时候（脱离战斗时）重复这个步骤来隐藏它。";
 L["If true, the objective tracker will collapse when entering an instance."] = "如果为 true,目标跟踪器将在进入实例时崩溃。";
@@ -668,6 +665,50 @@ L["This button opens the most relevant missions menu for your character. The men
 L["Tracking Icon"] = "跟踪图标";
 L["When hidden, you can still access tracking options from the Minimap right-click menu."] = "隐藏后，您仍然可以从小地图右键单击菜单访问跟踪选项。";
 L["Zone Name"] = "区域名称";
+L["Apply Scaling"] = "应用缩放";
+L["Show MUI Key Bindings"] = "显示 MUI 键绑定";
+L["Tutorial: Step 2"] = "教程：第 2 步";
+L["Tutorial: Step 1"] = "教程：第 1 步";
+L["Open Config Menu"] = "打开配置菜单";
+L["Config"] = "配置";
+L["Unit Frame Panels"] = "单元框架面板";
+L["Tooltips"] = "工具提示";
+L["Show Food and Drink"] = "显示食物和饮料";
+L["If checked, the food and drink buff will be displayed as a castbar."] = "如果选中,食物和饮料buff将显示为一个castbar。";
+L["Blend Mode"] = "混合模式";
+L["Changing the blend mode will affect how alpha channels blend with the background."] = "更改混合模式将影响 Alpha 通道与背景混合的方式。";
+L["Background"] = "背景";
+L["Button"] = "按钮";
+L["Combat Timer"] = "战斗计时器";
+L["Quest"] = "寻求";
+L["Volume Options"] = "音量选项";
+L["Specialization"] = "专业化";
+L["Show Auras With Unknown Time Remaining"] = "显示剩余时间未知的光环";
+L["Show Buffs"] = "显示爱好者";
+L["Show Debuffs"] = "显示减益";
+L["Refresh Chat Text"] = "刷新聊天文本";
+
+L["PRESS_HOLD_TOGGLE_BUTTONS"] = [[
+脱离战斗时按住 %s 可显示切换按钮。
+单击这些将显示或隐藏其他操作栏行。]]
+
+L["CHANGE_KEYBINDINGS"] = [[
+您可以在 MUI 配置菜单 (%s) 中更改此组合键。
+有 3 个按键绑定，可以在 1 到 3 行之间快速切换，
+在暴雪键绑定菜单中找到：]]
+
+L["THANK_YOU_FOR_INSTALLING"] = [[
+感谢您安装 %s！
+
+您可以使用配置菜单完全自定义 UI：]]
+
+L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] = [[
+如果启用，剩余时间未知的光环，以及永远不会的光环
+除非取消，否则过期，将显示在计时器栏字段上，并将
+永不枯竭。 如果光环被移除，该条仍然会消失。
+
+经典中，部分光环剩余时间（视情况而定）
+玩家可能不知道，除非启用此功能，否则将被隐藏。]]
 
 L["TT_MUI_CONTROL_SUF"] =
 [[如果启用，MUI 将重新定位阴影单元

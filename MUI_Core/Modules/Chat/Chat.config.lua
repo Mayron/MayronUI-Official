@@ -139,7 +139,7 @@ function C_ChatModule:GetConfigTable()
                 type = "title",
                 marginTop = 0;
             },
-            {   name = "Top";
+            {   name = L["Top"];
                 type = "radio";
                 groupName = "editBox_tabPositions";
                 dbPath = "profile.chat.editBox.position";
@@ -151,7 +151,7 @@ function C_ChatModule:GetConfigTable()
                     db:SetPathValue(path, "TOP");
                 end;
             },
-            {   name = "Bottom";
+            {   name = L["Bottom"];
                 type = "radio";
                 groupName = "editBox_tabPositions";
                 dbPath = "profile.chat.editBox.position";

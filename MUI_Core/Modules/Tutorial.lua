@@ -21,6 +21,10 @@ function C_Tutorial:OnEnable()
   frame:SetSize(350, 230);
   frame:SetPoint("CENTER");
 
+  if (GetLocale() == "ruRU") then
+    frame:SetWidth(500);
+  end
+
   gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
   gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
 
@@ -35,20 +39,24 @@ function C_Tutorial:OnEnable()
   frame.text:SetPoint("TOPLEFT", 10, -40);
   frame.text:SetPoint("TOPRIGHT", -10, -40);
 
-  local tutorialMessage = L["Thank you for installing %s!\n\nYou can fully customise the UI using the config menu:"];
+  local tutorialMessage = L["THANK_YOU_FOR_INSTALLING"];
   tutorialMessage = tutorialMessage:format("MayronUI");
 
   local subMessage = tk.Strings:SetTextColorByKey(L["(type '/mui' to list all slash commands)"], "GOLD");
 
   frame.text:SetText(tk.Strings:Join("\n\n", tutorialMessage, subMessage));
 
-  local configButton = gui:CreateButton(tk.Constants.AddOnStyle, frame, "Open Config Menu");
+  local configButton = gui:CreateButton(tk.Constants.AddOnStyle, frame, L["Open Config Menu"]);
   configButton:SetPoint("TOP", frame.text, "BOTTOM", 0, -20);
   configButton:SetScript("OnClick", function()
     MayronUI:TriggerCommand("config");
     frame:Hide();
     db.profile.installMessage = version;
   end);
+
+  if (GetLocale() == "ruRU") then
+    configButton:SetWidth(250);
+  end
 
   local website = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   website:SetPoint("TOP", configButton, "BOTTOM", 0, -15);

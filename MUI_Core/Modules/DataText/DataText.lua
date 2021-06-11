@@ -19,18 +19,18 @@ namespace.C_DataTextModule = C_DataTextModule;
 -- Load Database Defaults --------------
 namespace.dataTextLabels = {
   -- svName = Label
-  ["combatTimer"]       = "Combat Timer",
-  ["money"]             = "Money",
-  ["durability"]        = "Durability",
-  ["friends"]           = "Friends",
-  ["guild"]             = "Guild",
-  ["inventory"]         = "Inventory",
-  ["memory"]            = "Memory",
-  ["quest"]             = "Quest",
-  ["performance"]       = "Performance",
-  ["none"]              = "None";
-  ["disabled"]          = "Disabled",
-  ["volumeOptions"]     = "Volume Options"
+  ["combatTimer"]       = L["Combat Timer"];
+  ["money"]             = L["Money"];
+  ["durability"]        = L["Durability"];
+  ["friends"]           = L["Friends"];
+  ["guild"]             = L["Guild"];
+  ["inventory"]         = L["Inventory"];
+  ["memory"]            = L["Memory"];
+  ["quest"]             = L["Quest"];
+  ["performance"]       = L["Performance"];
+  ["none"]              = L["None"];
+  ["disabled"]          = L["Disabled"];
+  ["volumeOptions"]     = L["Volume Options"];
 };
 
 local defaults = {
@@ -58,7 +58,7 @@ local defaults = {
 };
 
 if (tk:IsRetail()) then
-  namespace.dataTextLabels["specialization"] = "Specialization";
+  namespace.dataTextLabels["specialization"] = L["Specialization"];
   tinsert(defaults.displayOrders, "specialization");
 else
   tinsert(defaults.displayOrders, "inventory");

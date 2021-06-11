@@ -59,3 +59,25 @@ Special thanks goes to the following MayronUI community members for their contri
 
 And of course, thank you to the authors of the non-MayronUI AddOns included in this UI pack.
 ]]
+
+L["PRESS_HOLD_TOGGLE_BUTTONS"] = [[
+Press and hold %s while out of combat to show toggle buttons.
+Clicking these will show or hide additional action-bar rows.]]
+
+L["CHANGE_KEYBINDINGS"] = [[
+You can change this key combination in the MUI config menu (%s).
+There are 3 key bindings to quickly switch between 1 to 3 rows,
+found in the Blizzard key bindings menu:]]
+
+L["THANK_YOU_FOR_INSTALLING"] = [[
+Thank you for installing %s!
+
+You can fully customise the UI using the config menu:]]
+
+L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] = [[
+If enabled, auras with an unknown time remaining, as well as auras that never
+expire unless canceled, will be shown on the timer bar field and will
+never deplete. The bar will still disappear if the aura is removed.
+
+In classic, the time remaining of some auras (depending on the situation)
+might not be known to the player and will be hidden unless this is enabled.]]

@@ -103,13 +103,13 @@ function C_CastBarsModule:GetConfigTable()
         dbPath = "profile.castBars",
         children = {
             {   name = L["Enabled"],
-                tooltip = "If checked, this module will be enabled.",
+                tooltip = L["If checked, this module will be enabled."],
                 type = "check",
                 requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
                 appendDbPath = "enabled",
             },
-            {   name = "Show Food and Drink",
-                tooltip = "If checked, the food and drink buff will be displayed as a castbar.",
+            {   name = L["Show Food and Drink"],
+                tooltip = L["If checked, the food and drink buff will be displayed as a castbar."],
                 type = "check",
                 requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
                 dbPath = "global.castBars.showFoodDrink",
@@ -128,8 +128,8 @@ function C_CastBarsModule:GetConfigTable()
                 options = tk.Constants.LSM:List("statusbar"),
                 dbPath = "profile.castBars.appearance.texture"
             },
-            {   name = "Blend Mode",
-                tooltip = "Changing the blend mode will affect how alpha channels blend with the background.";
+            {   name = L["Blend Mode"],
+                tooltip = L["Changing the blend mode will affect how alpha channels blend with the background."];
                 type = "dropdown",
                 options = {
                   Normal = "BLEND";
@@ -197,7 +197,7 @@ function C_CastBarsModule:GetConfigTable()
                 width = 160,
                 dbPath = "profile.castBars.appearance.colors.border"
             },
-            {   name = "Background",
+            {   name = L["Background"],
                 type = "color",
                 hasOpacity = true;
                 width = 160,
@@ -272,7 +272,7 @@ function C_CastBarsModule:GetConfigTable()
                         end
                       },
                       {
-                        name = L["Left to right"],
+                        name = L["Left to Right"],
                         type = "check",
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".leftToRight")
                       },

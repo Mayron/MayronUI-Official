@@ -481,7 +481,7 @@ function C_ConfigModule:SetUpWindow(data)
   data.window:SetSize(800, 500);
   data.window:SetPoint("CENTER");
 
-  gui:AddTitleBar(tk.Constants.AddOnStyle, data.window, "MUI Config");
+  gui:AddTitleBar(tk.Constants.AddOnStyle, data.window, "MUI " .. L["Config"]);
   gui:AddResizer(tk.Constants.AddOnStyle, data.window);
   gui:AddCloseButton(tk.Constants.AddOnStyle, data.window, nil, tk.Constants.CLICK);
 

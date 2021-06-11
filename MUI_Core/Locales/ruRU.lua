@@ -46,7 +46,7 @@ L["Backdrop Inset"]= "Вставка фона"
 L["Chat Frame Options"]= "Настройка чата"
 L["Enable Chat Frame"]= "Отобразить чат"
 L["Options"]= "Настройки"
-L["Button Swapping in Combat"]= "Button Swapping in Combat"
+L["Button Swapping in Combat"]= "Смена кнопок в бою"
 L["Standard Chat Buttons"]= "Стандартные кнопки чата"
 L["Left Button"]= "Левая кнопка"
 L["Middle Button"]= "Средняя кнопка"
@@ -581,12 +581,6 @@ L["If enabled, new characters will be assigned a unique character profile instea
 L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] 
 	= "Настроить какой(ие) аддон(ы) должны изменять профили при активации макета, а также изменить существующие макеты или создать новые.";
 
-	L["Press and hold the %s key while out of combat to show an arrow button.\n\n Clicking this will show a second row of action buttons."] 
-	= "Нажмите и держите кнопку %s когда вне боя, чтобы отобразить кнопку со стрелкой.\n\n Её нажатие отобразит вторую строку панели действий.";
-
-L["Thank you for installing %s!\n\nYou can fully customise the UI using the config menu:"]
-	= "Спасибо за установку %s!\n\nВы можете полностью настроить под себя UI используя меню настройки:";
-
 L["Anchor the Objective Tracker to the action bar container on the right side of the screen."]
 	= "Закрепить Трекер Целей к контейнеру панелей действий в правой части экрана.";
 
@@ -890,3 +884,50 @@ L["This button opens the most relevant missions menu for your character. The men
 L["Tracking Icon"] = "Значок отслеживания";
 L["When hidden, you can still access tracking options from the Minimap right-click menu."] = "Когда он скрыт, вы все равно можете получить доступ к параметрам отслеживания из контекстного меню миникарты.";
 L["Zone Name"] = "Название зоны";
+
+L["Apply Scaling"] = "Применить масштабирование";
+L["Show MUI Key Bindings"] = "Показать привязки клавиш MUI";
+L["Tutorial: Step 2"] = "Учебник: Шаг 2";
+L["Tutorial: Step 1"] = "Учебник: шаг 1";
+L["Open Config Menu"] = "Открыть меню конфигурации";
+L["Config"] = "Конфиг";
+L["Unit Frame Panels"] = "Панели каркаса агрегата";
+L["Tooltips"] = "Всплывающие подсказки";
+L["Show Food and Drink"] = "Показать еду и напитки";
+L["If checked, the food and drink buff will be displayed as a castbar."] = "Если этот флажок установлен, усиление еды и питья будет отображаться в виде панели каста.";
+L["Blend Mode"] = "Режим смешивания";
+L["Changing the blend mode will affect how alpha channels blend with the background."] = "Изменение режима наложения повлияет на то, как альфа-каналы смешиваются с фоном.";
+L["Background"] = "Задний план";
+L["Button"] = "Кнопка";
+L["Combat Timer"] = "Боевой таймер";
+L["Quest"] = "Квест";
+L["Volume Options"] = "Параметры громкости";
+L["Specialization"] = "Специализация";
+L["Show Auras With Unknown Time Remaining"] = "Показать ауры с неизвестным оставшимся временем";
+L["Show Buffs"] = "Показать баффы";
+L["Show Debuffs"] = "Показать дебаффы";
+L["Refresh Chat Text"] = "Обновить текст чата";
+
+L["PRESS_HOLD_TOGGLE_BUTTONS"] = [[
+Вне боя нажмите и удерживайте %s, чтобы отобразить кнопки переключения.
+
+Щелчок по ним покажет или скроет дополнительные строки панели действий.]]
+
+L["CHANGE_KEYBINDINGS"] = [[
+Вы можете изменить эту комбинацию клавиш в меню конфигурации MUI (%s).
+
+Есть 3 привязки клавиш для быстрого переключения между 1 и 3 рядами,
+можно найти в меню привязок клавиш Blizzard:]]
+
+L["THANK_YOU_FOR_INSTALLING"] = [[
+Спасибо за установку %s!
+
+Вы можете полностью настроить пользовательский интерфейс, используя меню конфигурации:]]
+
+L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] = [[
+Если включено, ауры с неизвестным оставшимся временем, а также ауры, которые никогда не
+истечет, если не будет отменен, будет отображаться в поле панели таймера и будет
+никогда не истощаться. Полоса все равно исчезнет, если аура будет удалена.
+
+В классике оставшееся время некоторых аур (в зависимости от ситуации)
+может быть неизвестен игроку и будет скрыт, если этот параметр не включен.]]

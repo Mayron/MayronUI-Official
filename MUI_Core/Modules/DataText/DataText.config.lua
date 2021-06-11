@@ -48,7 +48,7 @@ function C_DataTextModule:GetConfigTable()
                 default = 11,
                 appendDbPath = "fontSize",
             },
-            {   name = "Height",
+            {   name = L["Height"],
                 type = "slider",
                 valueType = "number",
                 min = 10;
@@ -96,7 +96,7 @@ function C_DataTextModule:GetConfigTable()
               loops = 10,
               func = function(id)
                 local child = {
-                  name = tk.Strings:JoinWithSpace("Button", id);
+                  name = tk.Strings:JoinWithSpace(L["Button"], id);
                   type = "dropdown";
                   dbPath = string.format("profile.datatext.displayOrders[%s]", id);
                   options = namespace.dataTextLabels;

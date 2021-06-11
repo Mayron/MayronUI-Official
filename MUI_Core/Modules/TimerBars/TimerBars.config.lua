@@ -146,17 +146,10 @@ function C_TimerBarsModule:GetConfigTable()
               width   = 230;
               dbPath  = "profile.showTooltips";
           };
-          {   name    = "Show Auras With Unknown Time Remaining";
+          {   name    = L["Show Auras With Unknown Time Remaining"];
               type    = "check";
-              tooltip =
-[[
-If enabled, auras with an unknown time remaining, as well as auras that never
-expire unless cancelled, will be shown on the timer bar field and will
-never deplete. The bar will still disappear if the aura is removed.
+              tooltip = L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"];
 
-In classic, the time remaining of some auras (depending on the situation)
-might not be known to the player and will be hidden unles this is enabled.
-]];
               width   = 230;
               dbPath  = "profile.showUnknownExpiration";
           };
@@ -278,7 +271,7 @@ might not be known to the player and will be hidden unles this is enabled.
                   local dbFieldPath = "profile.fields."..name;
 
                   return {
-                      name              = name;
+                      name              = L[name];
                       type              = "submenu";
                       module            = "TimerBarsModule";
                       hasOwnDatabase    = true;
@@ -519,7 +512,7 @@ might not be known to the player and will be hidden unles this is enabled.
                           {   name = L["Filters"];
                               type = "title";
                           };
-                          {   name = "Show Buffs";
+                          {   name = L["Show Buffs"];
                               dbPath = dbFieldPath .. ".filters.showBuffs";
                               type = "check";
                               width = 150;
@@ -530,7 +523,7 @@ might not be known to the player and will be hidden unles this is enabled.
                           };
                           {   type = "divider";
                           };
-                          {   name = "Show Debuffs";
+                          {   name = L["Show Debuffs"];
                               dbPath = dbFieldPath .. ".filters.showDebuffs";
                               type = "check";
                               width = 150;
@@ -546,11 +539,21 @@ might not be known to the player and will be hidden unles this is enabled.
                               dbPath = dbFieldPath .. ".filters.enableWhiteList";
                               type = "check";
                               width = 155;
+                              OnLoad = function(_, widget)
+                                if (GetLocale() == "ruRU") then
+                                  widget:SetWidth(240);
+                                end
+                              end
                           };
                           {   name = L["Configure Whitelist"];
                               type = "button";
                               dbPath = dbFieldPath .. ".filters.whiteList";
                               OnClick = ShowListFrame;
+                              OnLoad = function(_, btn)
+                                if (GetLocale() == "ruRU") then
+                                  btn:SetWidth(240);
+                                end
+                              end
                           };
                           {   type = "divider";
                           };
@@ -558,11 +561,21 @@ might not be known to the player and will be hidden unles this is enabled.
                               dbPath = dbFieldPath .. ".filters.enableBlackList";
                               type = "check";
                               width = 155;
+                              OnLoad = function(_, widget)
+                                if (GetLocale() == "ruRU") then
+                                  widget:SetWidth(240);
+                                end
+                              end
                           };
                           {   name = L["Configure Blacklist"];
                               type = "button";
                               dbPath = dbFieldPath .. ".filters.blackList";
                               OnClick = ShowListFrame;
+                              OnLoad = function(_, btn)
+                                if (GetLocale() == "ruRU") then
+                                  btn:SetWidth(240);
+                                end
+                              end
                           };
                       };
                   };

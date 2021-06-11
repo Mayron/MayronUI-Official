@@ -6,7 +6,7 @@ local C_PetBattles = _G.C_PetBattles;
 local CreateFrame, UIParent = _G.CreateFrame, _G.UIParent;
 
 -- Register and Import Modules -----------
-local C_Container = MayronUI:RegisterModule("BottomUI_Container", "Unit Frame Panels");
+local C_Container = MayronUI:RegisterModule("BottomUI_Container", L["Unit Frame Panels"]);
 -- Add Database Defaults -----------------
 
 db:AddToDefaults("profile.bottomui", {

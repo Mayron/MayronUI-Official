@@ -802,7 +802,7 @@ do
       refreshButton:SetPoint("TOPRIGHT", frame.closeBtn, "TOPLEFT", -10, -3);
       refreshButton:SetNormalTexture("Interface\\Buttons\\UI-RefreshButton");
       refreshButton:SetHighlightAtlas("chatframe-button-highlight");
-      tk:SetBasicTooltip(refreshButton, "Refresh Chat Text");
+      tk:SetBasicTooltip(refreshButton, L["Refresh Chat Text"]);
 
       refreshButton:SetScript("OnClick", function()
         RefreshChatText(editBox);

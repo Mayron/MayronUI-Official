@@ -11,6 +11,8 @@ local tabText = {
   L["INSTALL"], L["CUSTOM INSTALL"], L["INFORMATION"], L["CREDITS"]
 };
 
+local RELOAD_MESSAGE = tk.Strings:SetTextColorByTheme(L["Warning:"]).." "..L["This will reload the UI!"];
+
 local tabNames = {
   [L["INSTALL"]] = "Install";
   [L["CUSTOM INSTALL"]] = "Custom";
@@ -174,9 +176,9 @@ end
 function Private:LoadInstallMenu(menuSection)
   menuSection.message = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
   menuSection.message:SetPoint("CENTER", 0, 20);
-  menuSection.message:SetText(tk.Strings:SetTextColorByTheme("Warning:").." This will reload the UI!");
+  menuSection.message:SetText(RELOAD_MESSAGE);
 
-  menuSection.installButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "Install");
+  menuSection.installButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, L["INSTALL"]);
   menuSection.installButton:SetPoint("CENTER", 0, -20);
   menuSection.installButton:SetScript("OnClick", function()
     setUpModule:Install();
@@ -330,7 +332,7 @@ function Private:LoadCustomMenu(menuSection)
   menuSection.scaler.Value:SetPoint("BOTTOM", 0, -8);
   menuSection.scaler.Value:SetText(db.global.core.uiScale);
 
-  menuSection.applyScaleBtn = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "Apply Scaling");
+  menuSection.applyScaleBtn = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, L["Apply Scaling"]);
   menuSection.applyScaleBtn:SetPoint("TOPLEFT", menuSection.scaler, "BOTTOMLEFT", 0, -20);
   menuSection.applyScaleBtn:Disable();
 
@@ -403,7 +405,7 @@ function Private:LoadCustomMenu(menuSection)
   local GameTooltip = _G.GameTooltip;
   menuSection.installButton:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT", 18, 4);
-    GameTooltip:AddLine(tk.Strings:SetTextColorByTheme(L["Warning:"]).." "..L["This will reload the UI!"]);
+    GameTooltip:AddLine(RELOAD_MESSAGE);
     GameTooltip:SetFrameLevel(30);
     GameTooltip:Show();
   end);

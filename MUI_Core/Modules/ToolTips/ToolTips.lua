@@ -3,7 +3,7 @@ local _, namespace = ...;
 local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-local C_ToolTipsModule = MayronUI:RegisterModule("ToolTips", "Tool Tips");
+local C_ToolTipsModule = MayronUI:RegisterModule("Tooltips", L["Tooltips"]);
 namespace.C_ToolTipsModule = C_ToolTipsModule;
 
 local tooltipStyle = _G.GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT or _G.TOOLTIP_BACKDROP_STYLE_DEFAULT;

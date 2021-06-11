@@ -430,7 +430,7 @@ function C_ActionBarPanel.Private:LoadTutorial(data)
 
   gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
   gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
-  gui:AddTitleBar(tk.Constants.AddOnStyle, frame, "Tutorial: Step 1");
+  gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Tutorial: Step 1"]);
   gui:AddArrow(tk.Constants.AddOnStyle, frame, "DOWN");
 
   frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -459,21 +459,21 @@ function C_ActionBarPanel.Private:LoadTutorial(data)
     end
   end
 
-  local tutorialMessage = "Press and hold %s while out of combat to show toggle buttons.\n\n Clicking these will show or hide additional action bar rows.";
+  local tutorialMessage = L["PRESS_HOLD_TOGGLE_BUTTONS"];
   tutorialMessage = tutorialMessage:format(tk.Strings:SetTextColorByKey(modKeyLabel, "GOLD"));
   frame.text:SetText(tutorialMessage);
 
   local listener = em:CreateEventListener(function(self)
     if (not tk:IsModComboActive(modKey)) then return end
-    frame.titleBar.text:SetText("Tutorial: Step 2");
+    frame.titleBar.text:SetText(L["Tutorial: Step 2"]);
 
-    local step2Text = "You can change this key combination in the MUI config menu (%s).\n\nThere are 3 key bindings to quickly switch between 1 to 3 rows, found in the Blizzard key bindings menu:";
+    local step2Text = L["CHANGE_KEYBINDINGS"];
     step2Text = string.format(step2Text, tk.Strings:SetTextColorByKey("/mui config", "GOLD"));
     frame.text:SetText(step2Text);
     frame:SetHeight(200);
     frame.text:SetPoint("BOTTOMRIGHT", -20, 50);
 
-    local btn = gui:CreateButton(tk.Constants.AddOnStyle, frame, "Show MUI Key Bindings");
+    local btn = gui:CreateButton(tk.Constants.AddOnStyle, frame, L["Show MUI Key Bindings"]);
     btn:SetPoint("BOTTOM", 0, 20);
     btn:SetScript("OnClick", function()
       ShowKeyBindings();
