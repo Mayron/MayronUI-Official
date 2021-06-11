@@ -196,7 +196,7 @@ function Private:LoadProfileMenu(menuSection)
     menuSection.chooseProfileDropDown:AddOption(name, ChangeProfile, name);
   end
 
-  menuSection.newProfileButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "New Profile");
+  menuSection.newProfileButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, L["New Profile"]);
   menuSection.newProfileButton:SetPoint("TOPLEFT", menuSection.chooseProfileDropDown:GetFrame(), "BOTTOMLEFT", 0, -20);
 
   menuSection.newProfileButton:SetScript("OnClick", function()
@@ -210,7 +210,7 @@ function Private:LoadProfileMenu(menuSection)
     end);
   end);
 
-  menuSection.deleteProfileButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, "Delete Profile");
+  menuSection.deleteProfileButton = gui:CreateButton(tk.Constants.AddOnStyle, menuSection, L["Delete Profile"]);
   menuSection.deleteProfileButton:SetPoint("TOPLEFT", menuSection.newProfileButton, "BOTTOMLEFT", 0, -20);
   menuSection.deleteProfileButton:SetEnabled(db:GetCurrentProfile() ~= "Default");
 
@@ -224,8 +224,8 @@ function Private:LoadProfileMenu(menuSection)
     end);
   end);
 
-  menuSection.profilePerCharacter = gui:CreateCheckButton(menuSection, "Profile Per Character", nil,
-  "If enabled, new characters will be assigned a unique character profile instead of the Default profile.");
+  menuSection.profilePerCharacter = gui:CreateCheckButton(menuSection, L["Profile Per Character"], nil,
+    L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."]);
 
   menuSection.profilePerCharacter:SetPoint("TOPLEFT", menuSection.deleteProfileButton, "BOTTOMLEFT", 0, -20);
   menuSection.profilePerCharacter.btn:SetChecked(db.global.core.setup.profilePerCharacter);
