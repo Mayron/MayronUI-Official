@@ -77,81 +77,84 @@ function Lib:CreateDialogBox(style, parent, alphaType, frame, globalName)
 end
 
 do
-    local function Button_OnEnable(self)
-        local r, g, b = unpack(self.enabledBackdrop);
-        self:SetBackdropBorderColor(r, g, b, 0.7);
+  local function Button_OnEnable(self)
+    local r, g, b = unpack(self.enabledBackdrop);
+    self:SetBackdropBorderColor(r, g, b, 0.7);
+  end
+
+  local function Button_OnDisable(self)
+    local r, g, b = _G.DISABLED_FONT_COLOR:GetRGB();
+    self:SetBackdropBorderColor(r, g, b, 0.6);
+  end
+
+  local function SetWidth(self)
+    local width = self:GetFontString():GetUnboundedStringWidth() + (self.padding or 44);
+    width = max(max(self.minWidth or 0, width), self:GetWidth());
+    self:SetWidth(width);
+  end
+
+  function Lib:CreateButton(style, parent, text, button, tooltip)
+    local backgroundTexture = style:GetTexture("ButtonTexture");
+
+    button = button or CreateFrame("Button", nil, parent,
+      _G.BackdropTemplateMixin and "BackdropTemplate");
+
+    button:SetSize(150, 30);
+    button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
+
+    if (text) then
+      button:SetText(text);
+      button:HookScript("OnShow", SetWidth);
+      button:HookScript("OnLoad", SetWidth);
+      hooksecurefunc(button, "SetText", SetWidth);
     end
 
-    local function Button_OnDisable(self)
-        local r, g, b = _G.DISABLED_FONT_COLOR:GetRGB();
-        self:SetBackdropBorderColor(r, g, b, 0.6);
+    if (tooltip) then
+      button.tooltip = tooltip;
+      button:SetScript("OnEnter", OnEnter);
+      button:SetScript("OnLeave", OnLeave);
     end
 
-    function Lib:CreateButton(style, parent, text, button, tooltip)
-      local backgroundTexture = style:GetTexture("ButtonTexture");
+    local normal = Private:SetBackground(button, backgroundTexture);
+    local highlight = Private:SetBackground(button, backgroundTexture);
+    local disabled = Private:SetBackground(button, backgroundTexture);
 
-      button = button or CreateFrame("Button", nil, parent,
-        _G.BackdropTemplateMixin and "BackdropTemplate");
+    button:SetNormalTexture(normal);
+    button:SetHighlightTexture(highlight);
+    button:SetDisabledTexture(disabled);
 
-      button:SetSize(150, 30);
-      button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
+    button:SetNormalFontObject("GameFontHighlight");
+    button:SetDisabledFontObject("GameFontDisable");
 
-      if (text) then
-        button:SetText(text);
+    button:SetScript("OnEnable", Button_OnEnable);
+    button:SetScript("OnDisable", Button_OnDisable);
 
-        button:SetScript("OnLoad", function()
-          local width = button:GetFontString():GetUnboundedStringWidth() + (button.padding or 44);
-          width = max(button.minWidth or 0, width);
-          button:SetWidth(width);
-        end);
-      end
+    self:UpdateButtonColor(button, style);
 
-      if (tooltip) then
-        button.tooltip = tooltip;
-        button:SetScript("OnEnter", OnEnter);
-        button:SetScript("OnLeave", OnLeave);
-      end
+    return button;
+  end
 
-      local normal = Private:SetBackground(button, backgroundTexture);
-      local highlight = Private:SetBackground(button, backgroundTexture);
-      local disabled = Private:SetBackground(button, backgroundTexture);
+  function Lib:UpdateButtonColor(button, style)
+    local r, g, b = style:GetColor();
+    local normal = button:GetNormalTexture();
+    local highlight = button:GetHighlightTexture();
+    local disabled = button:GetDisabledTexture();
 
-      button:SetNormalTexture(normal);
-      button:SetHighlightTexture(highlight);
-      button:SetDisabledTexture(disabled);
+    button:SetBackdropBorderColor(r, g, b, 0.7);
+    button.enabledBackdrop = obj:PopTable(r, g, b);
 
-      button:SetNormalFontObject("GameFontHighlight");
-      button:SetDisabledFontObject("GameFontDisable");
+    normal:SetVertexColor(r * 0.6, g * 0.6, b * 0.6, 1);
+    highlight:SetVertexColor(r, g, b, 0.2);
 
-      button:SetScript("OnEnable", Button_OnEnable);
-      button:SetScript("OnDisable", Button_OnDisable);
+    local dr, dg, db = _G.DISABLED_FONT_COLOR:GetRGB();
+    disabled:SetVertexColor(dr, dg, db, 0.6);
 
-      self:UpdateButtonColor(button, style);
-
-      return button;
+    if (button:IsEnabled()) then
+      button:SetBackdropBorderColor(r, g, b, 0.7);
+    else
+      button:SetBackdropBorderColor(dr, dg, db, 0.6);
     end
-
-    function Lib:UpdateButtonColor(button, style)
-        local r, g, b = style:GetColor();
-        local normal = button:GetNormalTexture();
-        local highlight = button:GetHighlightTexture();
-        local disabled = button:GetDisabledTexture();
-
-        button:SetBackdropBorderColor(r, g, b, 0.7);
-        button.enabledBackdrop = obj:PopTable(r, g, b);
-
-        normal:SetVertexColor(r * 0.6, g * 0.6, b * 0.6, 1);
-        highlight:SetVertexColor(r, g, b, 0.2);
-
-        local dr, dg, db = _G.DISABLED_FONT_COLOR:GetRGB();
-        disabled:SetVertexColor(dr, dg, db, 0.6);
-
-        if (button:IsEnabled()) then
-            button:SetBackdropBorderColor(r, g, b, 0.7);
-        else
-            button:SetBackdropBorderColor(dr, dg, db, 0.6);
-        end
-    end
+  end
 end
 
 do
@@ -281,7 +284,7 @@ function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
 
     frame.closeBtn:SetScript("OnClick", function(self)
       group:Play();
-      
+
       if (clickSoundFilePath) then
         PlaySound(clickSoundFilePath);
       end
