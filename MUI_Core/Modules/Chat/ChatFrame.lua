@@ -459,8 +459,8 @@ do
         return LibAddonCompat:GetProfessions();
       end
 
-      GetProfessionInfo = function(profID)
-        return LibAddonCompat:GetProfessionInfo(profID);
+      GetProfessionInfo = function(spellIndex)
+        return LibAddonCompat:GetProfessionInfo(spellIndex);
       end
     end
 
@@ -469,9 +469,9 @@ do
       local prof1, prof2, _, fishing, cooking, firstAid = GetProfessions();
 
       local professions = obj:PopTable(prof1, prof2, fishing, cooking, firstAid);
-      professions = tk.Tables:Filter(professions, function(profID)
-        if (profID) then
-          local spellbookID = select(6, GetProfessionInfo(profID));
+      professions = tk.Tables:Filter(professions, function(spellIndex)
+        if (spellIndex) then
+          local spellbookID = select(6, GetProfessionInfo(spellIndex));
           if (obj:IsNumber(spellbookID)) then
             return true;
           end
@@ -484,8 +484,8 @@ do
     local menuWidth = 240;
     local buttonHeight = 32;
 
-    local function CreateProfessionButton(profMenu, profID)
-      local btnName = "MUI_ProfessionsMenuButton"..profID;
+    local function CreateProfessionButton(profMenu, spellIndex)
+      local btnName = "MUI_ProfessionsMenuButton"..spellIndex;
       local btnTemplate = tk:IsRetail() and "ProfessionButtonTemplate" or "SpellButtonTemplate";
       local btn = CreateFrame("CheckButton", btnName, profMenu, btnTemplate);
 
@@ -553,11 +553,11 @@ do
       _G.SpellBookFrame.selectedSkillLine = 1; -- General Tab (needed to ensure offset is 0)!
 
       local prev;
-      for _, profID in ipairs(professionIDs) do
-        local profName, _, skillRank, skillMaxRank, _, spellbookID = GetProfessionInfo(profID);
+      for _, spellIndex in ipairs(professionIDs) do
+        local profName, _, skillRank, skillMaxRank, _, spellbookID = GetProfessionInfo(spellIndex);
 
-        local btn = menu.btns[profID] or CreateProfessionButton(menu, profID);
-        menu.btns[profID] = btn;
+        local btn = menu.btns[spellIndex] or CreateProfessionButton(menu, spellIndex);
+        menu.btns[spellIndex] = btn;
 
         -- Update button:
         btn:SetID(spellbookID + 1);

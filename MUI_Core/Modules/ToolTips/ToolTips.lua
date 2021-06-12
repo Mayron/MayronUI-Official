@@ -493,7 +493,7 @@ do
         originalSetBackdropBorderColor(gameTooltip, color.r, color.g, color.b, data.settings.backdrop.borderColor[4]);
       end
     else
-      local reaction = UnitReaction("player", MOUSEOVER);
+      local reaction = UnitReaction(MOUSEOVER, "player");
       local r, g, b;
 
       if (reaction) then

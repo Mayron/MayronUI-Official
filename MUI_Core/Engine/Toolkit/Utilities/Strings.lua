@@ -182,7 +182,7 @@ function tk.Strings:GetUnitNameText(unitID)
     local _, class = UnitClass(unitID);
     unitName = tk.Strings:SetTextColorByClassFilename(unitName, class);
   else
-    local reaction = UnitReaction("player", unitID);
+    local reaction = UnitReaction(unitID, "player");
     local r, g, b = 1, 1, 1;
 
     if (reaction) then

@@ -1,4 +1,4 @@
-local MAJOR, MINOR = "LibAddonCompat-1.0", 6
+local MAJOR, MINOR = "LibAddonCompat-1.0", 10
 ---@class LibAddonCompat
 local LibAddonCompat = LibStub:NewLibrary(MAJOR, MINOR)
 if not LibAddonCompat then return end
@@ -25,6 +25,7 @@ local TEXTURE_ENGINEERING = "136243"
 local TEXTURE_ENCHANTING = "136244"
 local TEXTURE_TAILORING = "136249"
 local TEXTURE_SKINNING = "134366"
+local TEXTURE_JEWELCRAFTING = { "134071", "134072" }
 
 local professionsLocale = {
 	[PROFESSIONS_COOKING] = TEXTURE_COOKING,
@@ -46,7 +47,7 @@ function LibAddonCompat:GetProfessions()
 		skillMaxRank, isAbandonable, stepCost, rankCost, minLevel, skillCostType,
 		skillDescription = GetSkillLineInfo(skillIndex)
 
-		if not isHeader then
+		if skillName and not isHeader then
 			if isAbandonable then
 				-- primary
 				if not professions.first then
@@ -97,20 +98,32 @@ end
 ---@field skillLine number
 
 ---@type table<string, ProfInfo>
-local professionInfoTable = {
-	[TEXTURE_FIRST_AID] = { numAbilities = 1, spellIds = { 3273, 3274, 7924, 10846 }, skillLine = 129 },
-	[TEXTURE_BLACKSMITHING] = { numAbilities = 1, spellIds = { 2018, 3100, 3538, 9785 }, skillLine = 164 },
-	[TEXTURE_LEATHERWORKING] = { numAbilities = 1, spellIds = { 2108, 3104, 3811, 10662 }, skillLine = 165 },
-	[TEXTURE_ALCHEMY] = { numAbilities = 1, spellIds = { 2259, 3101, 3464, 11611 }, skillLine = 171 },
-	[TEXTURE_HERBALISM] = { numAbilities = 1, spellIds = { }, skillLine = 182 },
-	[TEXTURE_MINING] = { numAbilities = 2, spellIds = { 2656 }, skillLine = 186 },
-	[TEXTURE_ENGINEERING] = { numAbilities = 1, spellIds = { 4036, 4037, 4038, 12656 }, skillLine = 202 },
-	[TEXTURE_ENCHANTING] = { numAbilities = 1, spellIds = { 7411, 7412, 7413, 13920 }, skillLine = 333 },
-	[TEXTURE_FISHING] = { numAbilities = 1, spellIds = { }, skillLine = 356 },
-	[TEXTURE_COOKING] = { numAbilities = 1, spellIds = { 2550, 3102, 3413, 18260 }, skillLine = 185 },
-	[TEXTURE_TAILORING] = { numAbilities = 1, spellIds = { 3908, 3909, 3910, 12180 }, skillLine = 197 },
-	[TEXTURE_SKINNING] = { numAbilities = 1, spellIds = { }, skillLine = 393 },
-}
+local professionInfoTable = {}
+setmetatable(professionInfoTable, {
+	__newindex = function(t, k, v)
+		if type(k) == "table" then
+			for _, texture in ipairs(k) do
+				professionInfoTable[texture] = v
+			end
+		else
+			rawset(t, k, v)
+		end
+	end
+})
+
+professionInfoTable[TEXTURE_FIRST_AID] = { numAbilities = 1, spellIds = { 3273, 3274, 7924, 10846, 27028 }, skillLine = 129 }
+professionInfoTable[TEXTURE_BLACKSMITHING] = { numAbilities = 1, spellIds = { 2018, 3100, 3538, 9785, 29844 }, skillLine = 164 }
+professionInfoTable[TEXTURE_LEATHERWORKING] = { numAbilities = 1, spellIds = { 2108, 3104, 3811, 10662, 32549 }, skillLine = 165 }
+professionInfoTable[TEXTURE_ALCHEMY] = { numAbilities = 1, spellIds = { 2259, 3101, 3464, 11611, 28596 }, skillLine = 171 }
+professionInfoTable[TEXTURE_HERBALISM] = { numAbilities = 1, spellIds = { }, skillLine = 182 }
+professionInfoTable[TEXTURE_MINING] = { numAbilities = 2, spellIds = { 2656 }, skillLine = 186 }
+professionInfoTable[TEXTURE_ENGINEERING] = { numAbilities = 1, spellIds = { 4036, 4037, 4038, 12656, 30350 }, skillLine = 202 }
+professionInfoTable[TEXTURE_ENCHANTING] = { numAbilities = 1, spellIds = { 7411, 7412, 7413, 13920, 28029 }, skillLine = 333 }
+professionInfoTable[TEXTURE_FISHING] = { numAbilities = 1, spellIds = { }, skillLine = 356 }
+professionInfoTable[TEXTURE_COOKING] = { numAbilities = 1, spellIds = { 2550, 3102, 3413, 18260, 33359 }, skillLine = 185 }
+professionInfoTable[TEXTURE_TAILORING] = { numAbilities = 1, spellIds = { 3908, 3909, 3910, 12180, 26790 }, skillLine = 197 }
+professionInfoTable[TEXTURE_SKINNING] = { numAbilities = 1, spellIds = { }, skillLine = 393 }
+professionInfoTable[TEXTURE_JEWELCRAFTING] = { numAbilities = 2, spellIds = { 25229, 25230, 28894, 28895, 28897 }, skillLine = 755 }
 
 function LibAddonCompat:GetProfessionInfo(skillIndex)
 	local skillName, isHeader, isExpanded, skillRank, numTempPoints, skillModifier,
@@ -139,6 +152,7 @@ if locale == "deDE" then
 	professionsLocale["Verzauberkunst"] = TEXTURE_ENCHANTING
 	professionsLocale["Schneiderei"] = TEXTURE_TAILORING
 	professionsLocale["Kürschnerei"] = TEXTURE_SKINNING
+	professionsLocale["Juwelierskunst"] = TEXTURE_JEWELCRAFTING
 elseif locale == "esES" then
 	professionsLocale["Herrería"] = TEXTURE_BLACKSMITHING
 	professionsLocale["Peletería"] = TEXTURE_LEATHERWORKING
@@ -149,6 +163,7 @@ elseif locale == "esES" then
 	professionsLocale["Encantamiento"] = TEXTURE_ENCHANTING
 	professionsLocale["Sastrería"] = TEXTURE_TAILORING
 	professionsLocale["Desuello"] = TEXTURE_SKINNING
+	professionsLocale["Joyería"] = TEXTURE_JEWELCRAFTING
 elseif locale == "esMX" then
 	professionsLocale["Herrería"] = TEXTURE_BLACKSMITHING
 	professionsLocale["Peletería"] = TEXTURE_LEATHERWORKING
@@ -159,6 +174,7 @@ elseif locale == "esMX" then
 	professionsLocale["Encantamiento"] = TEXTURE_ENCHANTING
 	professionsLocale["Sastrería"] = TEXTURE_TAILORING
 	professionsLocale["Desuello"] = TEXTURE_SKINNING
+	professionsLocale["Joyería"] = TEXTURE_JEWELCRAFTING
 elseif locale == "frFR" then
 	professionsLocale["Forge"] = TEXTURE_BLACKSMITHING
 	professionsLocale["Travail du cuir"] = TEXTURE_LEATHERWORKING
@@ -169,6 +185,7 @@ elseif locale == "frFR" then
 	professionsLocale["Enchantement"] = TEXTURE_ENCHANTING
 	professionsLocale["Couture"] = TEXTURE_TAILORING
 	professionsLocale["Dépeçage"] = TEXTURE_SKINNING
+	professionsLocale["Joaillerie"] = TEXTURE_JEWELCRAFTING
 elseif locale == "itIT" then
 	professionsLocale["Forgiatura"] = TEXTURE_BLACKSMITHING
 	professionsLocale["Conciatura"] = TEXTURE_LEATHERWORKING
@@ -179,6 +196,7 @@ elseif locale == "itIT" then
 	professionsLocale["Incantamento"] = TEXTURE_ENCHANTING
 	professionsLocale["Sartoria"] = TEXTURE_TAILORING
 	professionsLocale["Scuoiatura"] = TEXTURE_SKINNING
+	professionsLocale["Oreficeria"] = TEXTURE_JEWELCRAFTING
 elseif locale == "koKR" then
 	professionsLocale["대장기술"] = TEXTURE_BLACKSMITHING
 	professionsLocale["가죽세공"] = TEXTURE_LEATHERWORKING
@@ -189,6 +207,7 @@ elseif locale == "koKR" then
 	professionsLocale["마법부여"] = TEXTURE_ENCHANTING
 	professionsLocale["재봉술"] = TEXTURE_TAILORING
 	professionsLocale["무두질"] = TEXTURE_SKINNING
+	professionsLocale["보석세공"] = TEXTURE_JEWELCRAFTING
 elseif locale == "ptBR" then
 	professionsLocale["Ferraria"] = TEXTURE_BLACKSMITHING
 	professionsLocale["Couraria"] = TEXTURE_LEATHERWORKING
@@ -199,6 +218,7 @@ elseif locale == "ptBR" then
 	professionsLocale["Encantamento"] = TEXTURE_ENCHANTING
 	professionsLocale["Alfaiataria"] = TEXTURE_TAILORING
 	professionsLocale["Esfolamento"] = TEXTURE_SKINNING
+	professionsLocale["Joalheia"] = TEXTURE_JEWELCRAFTING
 elseif locale == "ruRU" then
 	professionsLocale["Кузнечное дело"] = TEXTURE_BLACKSMITHING
 	professionsLocale["Кожевничество"] = TEXTURE_LEATHERWORKING
@@ -209,6 +229,7 @@ elseif locale == "ruRU" then
 	professionsLocale["Наложение чар"] = TEXTURE_ENCHANTING
 	professionsLocale["Портняжное дело"] = TEXTURE_TAILORING
 	professionsLocale["Снятие шкур"] = TEXTURE_SKINNING
+	professionsLocale["Ювелирное дело"] = TEXTURE_JEWELCRAFTING
 elseif locale == "zhCN" then
 	professionsLocale["锻造"] = TEXTURE_BLACKSMITHING
 	professionsLocale["制皮"] = TEXTURE_LEATHERWORKING
@@ -219,6 +240,7 @@ elseif locale == "zhCN" then
 	professionsLocale["附魔"] = TEXTURE_ENCHANTING
 	professionsLocale["裁缝"] = TEXTURE_TAILORING
 	professionsLocale["剥皮"] = TEXTURE_SKINNING
+	professionsLocale["珠宝加工"] = TEXTURE_JEWELCRAFTING
 elseif locale == "zhTW" then
 	professionsLocale["鍛造"] = TEXTURE_BLACKSMITHING
 	professionsLocale["製皮"] = TEXTURE_LEATHERWORKING
@@ -229,6 +251,7 @@ elseif locale == "zhTW" then
 	professionsLocale["附魔"] = TEXTURE_ENCHANTING
 	professionsLocale["裁縫"] = TEXTURE_TAILORING
 	professionsLocale["剝皮"] = TEXTURE_SKINNING
+	professionsLocale["珠寶設計"] = TEXTURE_JEWELCRAFTING
 else
 	professionsLocale["Blacksmithing"] = TEXTURE_BLACKSMITHING
 	professionsLocale["Leatherworking"] = TEXTURE_LEATHERWORKING
@@ -239,10 +262,14 @@ else
 	professionsLocale["Enchanting"] = TEXTURE_ENCHANTING
 	professionsLocale["Tailoring"] = TEXTURE_TAILORING
 	professionsLocale["Skinning"] = TEXTURE_SKINNING
+	professionsLocale["Jewelcrafting"] = TEXTURE_JEWELCRAFTING
 end
 
 local tmp = {}
 for k, v in pairs(professionsLocale) do
+	if type(v) == "table" then
+		v = v[1] -- just pick the first value for now.
+	end
 	tmp[k] = v
 	tmp[string.lower(k)] = v
 end
