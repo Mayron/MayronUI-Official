@@ -56,6 +56,6 @@
   <Script file="TimerBars\TimerBars.lua" />
   <Script file="TimerBars\TimerBars.config.lua" />
 
-  <Script file="ToolTips\ToolTips.lua" />
-  <Script file="ToolTips\ToolTips.config.lua" />
+  <Script file="Tooltips\Tooltips.lua" />
+  <Script file="Tooltips\Tooltips.config.lua" />
 </Ui>

@@ -31,7 +31,7 @@ end
 function C_ToolTipsModule:GetConfigTable(data)
     return {
         type = "menu",
-        module = "ToolTips",
+        module = "Tooltips",
         dbPath = "profile.tooltips",
         children =  {
             {   name = L["Enabled"],
