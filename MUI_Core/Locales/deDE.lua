@@ -693,7 +693,7 @@ L["The player must be close enough to be inspected for this information to load.
 L["If checked and the player is level 10 or higher and has chosen a class specialization, the specialization of the player displayed in the tooltip will be shown."]
   = "Wenn aktiviert und der Spieler Level 10 oder höher ist und eine Klassenspezialisierung gewählt hat, wird die Spezialisierung des Spielers angezeigt, die im Tooltip angezeigt wird.";
 L["Show Specialization"] = "Spezialisierung anzeigen";
-L["Show Item Level"] = "Artikelstufe anzeigen";
+L["Show Item Level"] = "Item Level anzeigen";
 L["In Combat Options"] = "In Kampfoptionen";
 L["Show Unit Tooltips In Combat"] = "Einheiten-Tooltips im Kampf anzeigen";
 L["Show Guild Rank"] = "Gildenrang anzeigen";
@@ -736,15 +736,15 @@ L["Right"] = "Recht";
 L["Center"] = "Center";
 L["Top"] = "oben";
 L["Bottom"] = "Unterseite";
-L["Anchor Options"] = "Ankeroptionen";
-L["Unit Tooltip Anchor Point"] = "Einheiten-Tooltip-Ankerpunkt";
+L["Anchor Options"] = "Fixier Optionen";
+L["Unit Tooltip Anchor Point"] = "Einheiten-Tooltip-Fixierpunkt";
 L["Mouse Cursor"] = "Mauszeiger";
 L["Screen Corner"] = "Bildschirmecke";
 L["Screen Corner Positioning"] = "Positionierung der Bildschirmecke";
-L["Standard Tooltip Anchor Point"] = "Standard-Tooltip-Ankerpunkt";
+L["Standard Tooltip Anchor Point"] = "Standard-Tooltip-Fixierpunkt";
 L["Mouse Cursor Positioning"] = "Positionierung des Mauszeigers";
 L["The bottom-[point] corner of the tooltip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."] 
-  = "Die untere [Punkt]-Ecke des Tooltips, wobei [Punkt] entweder 'Links' oder 'Rechts' ist, wird an der Position des Mauszeigers verankert.";
+  = "Die untere [Punkt]-Ecke des Tooltips, wobei [Punkt] entweder 'Links' oder 'Rechts' ist, wird an der Position des Mauszeigers fixiert.";
 L["Health Bar"] = "Gesundheitsleiste";
 L["Outline"] = "Gliederung";
 L["Thick Outline"] = "Dicker Umriss";
@@ -752,7 +752,7 @@ L["Monochrome"] = "Einfarbig";
 L["Text Format"] = "Textformat";
 L["Set the text format of the value that appears on the status bar. Set this to 'None' to hide the text."] 
   = "Legen Sie das Textformat des Werts fest, der in der Statusleiste angezeigt wird. Setzen Sie dies auf 'Keine', um den Text auszublenden.";
-L["Current/Maximum"] = "Strom/Maximum";
+L["Current/Maximum"] = "Aktuell/Maximum";
 L["Percentage"] = "Prozentsatz";
 L["Power Bar"] = "Energieleiste";
 L["If checked, unit tooltips will show the unit's power bar."] 
@@ -788,7 +788,7 @@ L["Report"] = "Bericht";
 L["Toggle Alignment Grid"] = "Ausrichtungsraster umschalten";
 L["Guild Bank"] = "Gildenbank";
 L["Bank"] = "Bank";
-L["Void Storage"] = "Leere Lagerung";
+L["Void Storage"] = "Leerenlager";
 L["You have no professions."] = "Sie haben keine Berufe.";
 
 ---------------------------------------
@@ -796,7 +796,7 @@ L["You have no professions."] = "Sie haben keine Berufe.";
 ---------------------------------------
 L["remaining"] = "verbleibend"; -- for XP bar (e.g., "50/100 (50% remaining)")
 L["Fixed Color"] = "Feste Farbe";
-L["Main Container"] = "Hauptcontainer";
+L["Main Container"] = "Haupt Fenstert";
 L["Talking Head Frame"] = "Sprechender Kopfrahmen";
 L["This is the animated character portrait frame that shows when an NPC is talking to you."] 
   = "Dies ist der animierte Charakterporträtrahmen, der zeigt, wenn ein NPC mit Ihnen spricht.";
