@@ -385,14 +385,17 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 	end
 
 	data.menu.createButton = gui:CreateButton(tk.Constants.AddOnStyle, data.menu:GetFrame(), L["Create New Layout"]);
+  data.menu.createButton:SetWidth(178);
 	data.menu.createButton:SetPoint("TOP", data.menu.layoutsDropDown:GetFrame(), "BOTTOM", 0, -20);
 	data.menu.createButton:SetScript("OnClick", function() self:CreateLayout() end);
 
 	data.menu.renameButton = gui:CreateButton(tk.Constants.AddOnStyle, data.menu:GetFrame(), L["Rename Layout"]);
+  data.menu.renameButton:SetWidth(178);
 	data.menu.renameButton:SetPoint("TOP", data.menu.createButton, "BOTTOM", 0, -20);
 	data.menu.renameButton:SetScript("OnClick", function() self:RenameLayout() end);
 
 	data.menu.deleteButton = gui:CreateButton(tk.Constants.AddOnStyle, data.menu:GetFrame(), L["Delete Layout"]);
+  data.menu.deleteButton:SetWidth(178);
 	data.menu.deleteButton:SetPoint("TOP", data.menu.renameButton, "BOTTOM", 0, -20);
 	data.menu.deleteButton:SetScript("OnClick", function() self:DeleteLayout() end);
 	data.layoutTool.deleteButton = data.menu.deleteButton;
