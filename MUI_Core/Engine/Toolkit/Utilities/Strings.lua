@@ -11,7 +11,7 @@ tk.Strings.Space = " ";
 
 local CreateColor = _G.CreateColor;
 local string, table, tostring, type = _G.string, _G.table, _G.tostring, _G.type;
-local select, UnitClass = _G.select, _G.UnitClass;
+local select, UnitClass, UnitIsTapDenied = _G.select, _G.UnitClass, _G.UnitIsTapDenied;
 -----------------------------
 
 do
@@ -182,13 +182,18 @@ function tk.Strings:GetUnitNameText(unitID)
     local _, class = UnitClass(unitID);
     unitName = tk.Strings:SetTextColorByClassFilename(unitName, class);
   else
-    local reaction = UnitReaction(unitID, "player");
     local r, g, b = 1, 1, 1;
 
-    if (reaction) then
-      r = tk.Constants.FACTION_BAR_COLORS[reaction].r;
-      g = tk.Constants.FACTION_BAR_COLORS[reaction].g;
-      b = tk.Constants.FACTION_BAR_COLORS[reaction].b;
+    if (UnitIsTapDenied(unitID)) then
+      r, g, b = 0.5, 0.5, 0.5;
+    else
+      local reaction = UnitReaction(unitID, "player");
+
+      if (reaction) then
+        r = tk.Constants.FACTION_BAR_COLORS[reaction].r;
+        g = tk.Constants.FACTION_BAR_COLORS[reaction].g;
+        b = tk.Constants.FACTION_BAR_COLORS[reaction].b;
+      end
     end
 
     unitName = tk.Strings:SetTextColorByRGB(unitName, r, g, b);
