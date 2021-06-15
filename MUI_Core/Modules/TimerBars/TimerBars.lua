@@ -119,8 +119,8 @@ db:AddToDefaults("profile", {
     filters = {
       showBuffs = true;
       showDebuffs = true;
-      onlyPlayerBuffs   = false;
-      onlyPlayerDebuffs = false;
+      onlyPlayerBuffs   = true;
+      onlyPlayerDebuffs = true;
       enableWhiteList   = false;
       enableBlackList   = false;
       whiteList         = {};
