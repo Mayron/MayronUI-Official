@@ -417,6 +417,8 @@ function C_ChatModule:OnEnable(data)
 		_G.ChatFrameMenuButton,	_G.QuickJoinToastButton
 	);
 
+  -- rename stuff here:
+
   self:SetUpAllBlizzardFrames();
 end
 

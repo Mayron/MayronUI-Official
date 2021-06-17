@@ -1,20 +1,107 @@
 -- luacheck: ignore MayronUI self 143
 -- @Description: Controls the Blizzard Chat Frame changes (not the MUI Chat Frame!)
 local string, MayronUI = _G.string, _G.MayronUI;
+local pairs, ipairs, PlaySound = _G.pairs, _G.ipairs, _G.PlaySound;
 
----@type Toolkit
-local tk = MayronUI:GetCoreComponent("Toolkit");
-local db = MayronUI:GetCoreComponent("Database");
+local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 --------------------------------------
+local CHANNEL_PATTERNS = {
+  "^(|Hchannel:.-|h%[.-%]|h |Hplayer:.-|h%[.-%]|h: )(.*)";
+  "^(|Hplayer:.-|h%[.-%]|h.-: )(.*)"};
 
 local function GetChatLink(url)
 	return string.format("|Hurl:%s|h|cffffe29e%s|r|h", url, "["..url.."]");
 end
 
-local function NewAddMessage(self, text, ...)
+local wordsOfInterest = {
+  {
+    "healers", "healer", "healz", "heal",
+    color = "GREEN";
+    upperCase = true;
+  },
+  {
+    "tanks", "tank",
+    color = "RED";
+    upperCase = true;
+  },
+  {
+    "dps";
+    color = "YELLOW";
+    upperCase = true;
+  },
+  {
+    _G.UnitName("player"):upper();
+    color = "TRANSMOG_VIOLET";
+    sound = true;
+    upperCase = false;
+  },
+};
+
+local function FormatWordsOfInterest(text)
+  local prefix, body, playSound, changed;
+
+  for _, pattern in ipairs(CHANNEL_PATTERNS) do
+    prefix, body = text:match(pattern);
+
+    if (prefix and body) then
+      body = body:trim();
+
+      -- highlight words of interest:
+      for _, value in pairs(wordsOfInterest) do
+        body, changed = tk.Strings:HighlightSubStringsByKey(body, value, value.color, value.upperCase);
+
+        if (changed and value.sound) then
+          playSound = true;
+        end
+      end
+
+      text = prefix .. body;
+    end
+  end
+
+  if (playSound) then
+    PlaySound(3081);
+  end
+
+  return text;
+end
+
+local aliases = {
+  ["4. LookingForGroup"] = "LFG";
+  ["Guild"] = "G";
+  ["Party"] = "P";
+  ["Party Leader"] = "PL";
+  ["5. WorldDefense"] = "WD";
+  ["3. LocalDefense"] = "LD";
+  ["2. Trade"] = "T";
+  ["1. General"] = "G";
+}
+
+local function RenameAliases(text, r, g, b)
+  for channel, alias in pairs(aliases) do
+    local channelID, body = text:match("^|Hchannel:(.-)|h%[" .. channel .. ".-%]|h (.*)");
+
+    if (channelID and body) then
+      body = body:trim();
+      alias = tk.Strings:SetTextColorByRGB(alias, r * 0.7, g * 0.7, b * 0.7);
+      local prefix = "|Hchannel:" .. channelID .. "|h" .. alias .. " |h";
+      text = prefix .. body;
+      break;
+    end
+  end
+
+  return text;
+end
+
+-- example: "|Hchannel:channel:4|h[4. LookingForGroup]|h |Hplayer:Numberone:12:CHANNEL:4|h[|cffaad372Numberone|r]|h: LF2M healer and dps UB HC!", 
+local function NewAddMessage(self, text, r, g, b, ...)
 	if (not text) then return; end
-	self:oldAddMessage(text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink), ...);
+
+  text = FormatWordsOfInterest(text);
+  text = RenameAliases(text, r, g, b);
+
+	self:oldAddMessage(text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink), r, g, b, ...);
 end
 
 local function OnHyperLinkLeave()
@@ -131,7 +218,7 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
   chatFrame:HookScript("OnMouseWheel", ChatFrame_OnMouseWheel);
 	_G[string.format("%sEditBox", chatFrameName)]:SetAltArrowKeyMode(false);
 
-	if (chatFrameID ~= 2) then
+	if (chatFrame:GetID() ~= 2) then
 		-- if not combat log...
 		chatFrame.oldAddMessage = chatFrame.AddMessage;
 		chatFrame.AddMessage = NewAddMessage;

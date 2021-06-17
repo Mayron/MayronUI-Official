@@ -638,7 +638,9 @@ function C_SetUpModule:Install()
   FCF_SetWindowAlpha(ChatFrame1, 0);
   SetCVar("ScriptErrors","1");
   SetChatWindowSize(1, 13);
+
   SetCVar("chatStyle", "classic");
+  SetCVar("chatClassColorOverride", "0"); -- chat class colors
   SetCVar("floatingCombatTextCombatDamage", "1");
 
   if (tk:IsRetail()) then

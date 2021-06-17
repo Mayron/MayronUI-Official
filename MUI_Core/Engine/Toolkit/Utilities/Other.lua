@@ -680,3 +680,33 @@ function tk:MixColorsByPercentage(color1, color2, percentage)
 
 	return r, g, b;
 end
+
+-- /run MUI_IterateItemsInBag(1)
+-- Need to open bags before I can run this:
+-- Bagnon breaks this:
+function MUI_IterateItemsInBag(bagNum) -- or "container"
+  local bag = _G["ContainerFrame"..bagNum];
+  -- local bagID = bag:GetID(); -- usually bagNum - 1, so ContainerFrame1:GetID() == 0, Bagnon messes this up!
+  local bagID = bagNum - 1; -- doesn't work
+  local name = bag:GetName();
+  local bagSize = GetContainerNumSlots(bagID);
+
+  local items = {};
+  for i = 1, bagSize do
+    local itemButton = _G[name.."Item"..i];
+    local slot = itemButton:GetID(); -- slot is the real order! i is NOT in order
+    local icon, itemCount, locked, quality, readable, lootable,
+      itemLink, isFiltered, noValue, itemID = GetContainerItemInfo(bagID, slot);
+
+    if (icon) then
+      table.insert(items, {slot, icon, itemCount, locked, quality, readable, lootable, 
+        itemLink, isFiltered, noValue, itemID});
+    end
+  end
+
+  table.sort(items, function(a, b) return a[1] < b[1] end);
+
+  for _, item in pairs(items) do
+    tk:Print(unpack(item));
+  end
+end

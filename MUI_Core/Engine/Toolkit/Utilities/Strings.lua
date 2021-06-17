@@ -121,9 +121,9 @@ function tk.Strings:SetTextColorByTheme(text)
 end
 
 function tk.Strings:SetTextColorByRGB(text, r, g, b)
-    if (not (r and g and b)) then return text; end
-    local color = CreateColor(r, g, b);
-    return color:WrapTextInColorCode(text);
+  if (not (r and g and b)) then return text; end
+  local color = CreateColor(r, g, b);
+  return color:WrapTextInColorCode(text);
 end
 
 function tk.Strings:SetTextColorByKey(text, colorKey)
@@ -247,4 +247,70 @@ function tk.Strings:GetUnitFullNameText(unitID, unitLevel)
   local unitStatus = self:GetUnitStatusText(unitID);
 
   return string.format("%s %s%s", unitName, unitLevel, unitStatus or "");
+end
+
+function tk.Strings:Replace(msg, word, replacement)
+  local query = msg:lower();
+  word = word:lower();
+  local offset = 0;
+  local found = 0;
+
+  while (query:find(word)) do
+    local startId, endId = query:find(word);
+
+    local pre = msg:sub(0, startId - 1 + offset) -- everything before
+    local post = msg:sub(endId + 1 + offset, #msg); -- everything after
+
+    query = post:lower();
+    offset = (#(pre .. replacement));
+
+    msg = pre .. replacement .. post;
+    found = found + 1;
+  end
+
+  return msg, found;
+end
+
+local function GetStartAndEnd(query, word)
+  if (obj:IsTable(word)) then
+    local startId, endId;
+    local smallestStartId, smallestEndId;
+
+    for _, w in ipairs(word) do
+      startId, endId = query:find(w:lower());
+
+      if (startId and endId) then
+        if (not smallestStartId or startId < smallestStartId) then
+          smallestStartId = startId;
+          smallestEndId = endId;
+        end
+      end
+    end
+
+    return smallestStartId, smallestEndId;
+  end
+
+  return query:find(word:lower());
+end
+
+function tk.Strings:HighlightSubStringsByKey(msg, word, colorKey, upperCase)
+  local query = msg:lower();
+  local offset = 0;
+
+  while (true) do
+    local startId, endId = GetStartAndEnd(query, word);
+    if (not (startId and endId)) then break end
+
+    local pre = msg:sub(0, startId - 1 + offset) -- everything before
+    local found = msg:sub(startId + offset, endId + offset);
+    found = tk.Strings:SetTextColorByKey(upperCase and found:upper() or found, colorKey);
+    local post = msg:sub(endId + 1 + offset, #msg); -- everything after
+
+    query = post:lower();
+    offset = (#(pre .. found));
+
+    msg = pre .. found .. post;
+  end
+
+  return msg, offset > 0;
 end

@@ -657,16 +657,31 @@ do
       { "MUI "..L["Show Profiles"], "/mui profiles list", function() MayronUI:TriggerCommand("profiles", "list") end};
       { "MUI "..L["Version"], "/mui version", function() MayronUI:TriggerCommand("version") end};
       { "MUI "..L["Report"], "/mui report", function() MayronUI:TriggerCommand("report") end};
-      { "Leatrix Plus", _G.SLASH_Leatrix_Plus1, function() _G.SlashCmdList.Leatrix_Plus("") end};
-      { L["Toggle Alignment Grid"], "/ltp grid", function() _G.SlashCmdList.Leatrix_Plus("grid") end};
-      { "Bartender", "/bt", _G.Bartender4.ChatCommand};
-      { "Shadowed Unit Frames", _G.SLASH_SHADOWEDUF1, function() _G.SlashCmdList.SHADOWEDUF("") end};
-      { "Masque", _G.SLASH_MASQUE1, _G.SlashCmdList.MASQUE};
-      { "Bagnon "..L["Bank"], "/bgn bank", function() _G.Bagnon.Commands.OnSlashCommand("bank") end };
-      { "Bagnon "..L["Guild Bank"], "/bgn guild", function() _G.Bagnon.Commands.OnSlashCommand("guild") end, true };
-      { "Bagnon "..L["Void Storage"], "/bgn vault", function() _G.Bagnon.Commands.OnSlashCommand("vault") end, true };
-      { "Bagnon "..L["Config Menu"], "/bgn config", function() _G.Bagnon.Commands.OnSlashCommand("config") end };
     };
+
+    if (obj:IsFunction(_G.SlashCmdList.Leatrix_Plus)) then
+      lines[#lines + 1] = { "Leatrix Plus", _G.SLASH_Leatrix_Plus1, function() _G.SlashCmdList.Leatrix_Plus("") end};
+      lines[#lines + 1] = { L["Toggle Alignment Grid"], "/ltp grid", function() _G.SlashCmdList.Leatrix_Plus("grid") end};
+    end
+
+    if (obj:IsTable(_G.Bartender4) and obj:IsFunction(_G.Bartender4.ChatCommand)) then
+      lines[#lines + 1] = { "Bartender", "/bt", _G.Bartender4.ChatCommand};
+    end
+
+    if (obj:IsFunction(_G.SlashCmdList.SHADOWEDUF)) then
+      lines[#lines + 1] = { "Shadowed Unit Frames", _G.SLASH_SHADOWEDUF1, function() _G.SlashCmdList.SHADOWEDUF("") end};
+    end
+
+    if (obj:IsFunction(_G.SlashCmdList.MASQUE)) then
+      lines[#lines + 1] = { "Masque", _G.SLASH_MASQUE1, _G.SlashCmdList.MASQUE};
+    end
+
+    if (obj:IsTable(_G.Bagnon) and obj:IsTable(_G.Bagnon.Commands) and obj:IsFunction( _G.Bagnon.Commands.OnSlashCommand)) then
+      lines[#lines + 1] = { "Bagnon "..L["Bank"], "/bgn bank", function() _G.Bagnon.Commands.OnSlashCommand("bank") end };
+      lines[#lines + 1] = { "Bagnon "..L["Guild Bank"], "/bgn guild", function() _G.Bagnon.Commands.OnSlashCommand("guild") end, true };
+      lines[#lines + 1] = { "Bagnon "..L["Void Storage"], "/bgn vault", function() _G.Bagnon.Commands.OnSlashCommand("vault") end, true };
+      lines[#lines + 1] = { "Bagnon "..L["Config Menu"], "/bgn config", function() _G.Bagnon.Commands.OnSlashCommand("config") end };
+    end
 
     for _, line in pairs(lines) do
       if (not line[4] or tk:IsRetail()) then
