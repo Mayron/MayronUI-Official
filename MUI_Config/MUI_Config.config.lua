@@ -155,6 +155,16 @@ function C_ConfigModule:GetConfigTable()
                     end
                   end
               };
+              {   name    = L["Show AFK Display"];
+                  type    = "check";
+                  tooltip = L["Enable/disable the AFK Display"];
+                  dbPath  = "global.AFKDisplay.enabled";
+
+                  SetValue = function(dbPath, newValue)
+                      db:SetPathValue(dbPath, newValue);
+                      MayronUI:ImportModule("AFKDisplay"):SetEnabled(newValue);
+                  end
+              };
               {   type = "divider"
               };
               {   name              = L["Master Font"];
@@ -199,21 +209,13 @@ function C_ConfigModule:GetConfigTable()
                       MayronUI:Print("Blizzard frame positions have been reset.")
                   end;
               };
-              {   type = "divider";
+              {   type = "title";
+                  name = L["Main Container"];
               };
-              {   name    = L["Show AFK Display"];
-                  type    = "check";
-                  tooltip = L["Enable/disable the AFK Display"];
-                  dbPath  = "global.AFKDisplay.enabled";
-
-                  SetValue = function(dbPath, newValue)
-                      db:SetPathValue(dbPath, newValue);
-                      MayronUI:ImportModule("AFKDisplay"):SetEnabled(newValue);
-                  end
+              { type = "fontstring";
+                content = L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."]
               };
-              {   type = "divider";
-              };
-              {   name = tk.Strings:JoinWithSpace(L["Main Container"], L["Width"]);
+              {   name = L["Set Width"];
                   type = "slider";
                   min = 500;
                   max = 1500;
@@ -224,10 +226,33 @@ function C_ConfigModule:GetConfigTable()
                   dbPath = "profile.bottomui.width";
               };
               {
-                  name = tk.Strings:JoinWithSpace(L["Main Container"], L["Frame Strata"]);
+                  name = L["Frame Strata"];
                   type = "dropdown",
                   options = tk.Constants.ORDERED_FRAME_STRATAS,
-                  dbPath = "profile.bottomui.frameStrata"
+                  dbPath = "profile.bottomui.frameStrata";
+                  tooltip = L["Default value is"] .. " LOW";
+              };
+              {
+                  name = L["Frame Level"];
+                  type = "textfield",
+                  valueType = "number";
+                  dbPath = "profile.bottomui.frameLevel";
+                  tooltip = L["Default value is"] .. " 5";
+              };
+              { type = "divider"; };
+              {
+                  name = L["X-Offset"];
+                  type = "textfield",
+                  valueType = "number";
+                  dbPath = "profile.bottomui.xOffset";
+                  tooltip = L["Default value is"] .. " 0";
+              };
+              {
+                  name = L["Y-Offset"];
+                  type = "textfield",
+                  valueType = "number";
+                  dbPath = "profile.bottomui.yOffset";
+                  tooltip = L["Default value is"] .. " -1";
               };
               {   type = "title";
                   client = "retail";

@@ -10,7 +10,7 @@ tk.Constants = {
   DUMMY_FRAME = _G.CreateFrame("Frame");
   LOCALIZED_CLASS_NAMES = {};
   LOCALIZED_CLASS_FEMALE_NAMES = {};
-  SOLID_TEXTURE = "Interface\\addons\\MUI_Core\\Assets\\Textures\\Widgets\\Solid";
+  SOLID_TEXTURE = "Interface\\Buttons\\WHITE8X8";
 
   FONT = function()
     return tk.Constants.LSM:Fetch("font", namespace.components.Database.global.core.font);
@@ -19,12 +19,12 @@ tk.Constants = {
   LSM = _G.LibStub("LibSharedMedia-3.0");
 
   BACKDROP = {
-    edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
+    edgeFile = "Interface\\Buttons\\WHITE8X8",
     edgeSize = 1.25,
   };
 
   BACKDROP_WITH_BACKGROUND = {
-    bgFile = "interface\\addons\\MUI_Core\\Assets\\Textures\\Widgets\\Solid",
+    bgFile = "Interface\\Buttons\\WHITE8X8",
     edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
     edgeSize = 1.25,
   };

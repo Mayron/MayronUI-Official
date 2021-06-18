@@ -77,11 +77,9 @@ function WidgetHandlers.submenu(parent, submenuConfigTable)
     btn.text:SetPoint("TOPLEFT", 10, 0);
     btn.text:SetPoint("BOTTOMRIGHT");
 
-    local filePath = tk:GetAssetFilePath("Textures\\Widgets\\Solid");
-
-    btn.normal = tk:SetBackground(btn, filePath);
-    btn.disabled = tk:SetBackground(btn, filePath);
-    btn.highlight = tk:SetBackground(btn, filePath);
+    btn.normal = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
+    btn.disabled = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
+    btn.highlight = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
 
     tk:ApplyThemeColor(btn.normal, btn.highlight);
 
@@ -236,16 +234,16 @@ end
 -- Slider
 --------------
 local function Slider_OnValueChanged(self, value, userset)
-    if (userset) then
-        value = tk.Numbers:ToPrecision(value, self.precision);
-        self.editBox:SetText(value);
-        configModule:SetDatabaseValue(self.configContainer, value);
-    end
+  if (userset) then
+    value = tk.Numbers:ToPrecision(value, self.precision);
+    self.editBox:SetText(value);
+    configModule:SetDatabaseValue(self.configContainer, value);
+  end
 end
 
 local function Slider_OnEnable(self)
-    self:SetAlpha(1);
-    self.editBox:SetEnabled(true);
+  self:SetAlpha(1);
+  self.editBox:SetEnabled(true);
 end
 
 local function Slider_OnDisable(self)
@@ -254,78 +252,81 @@ local function Slider_OnDisable(self)
 end
 
 function WidgetHandlers.slider(parent, widgetTable, value)
-    local slider = CreateFrame("Slider", nil, parent, "OptionsSliderTemplate");
+  local slider = CreateFrame("Slider", nil, parent, "OptionsSliderTemplate");
 
-    slider.tooltipText = widgetTable.tooltip;
-    slider.precision = widgetTable.precision or 1;
+  slider.tooltipText = widgetTable.tooltip;
+  slider.precision = widgetTable.precision or 1;
 
-    -- widgetTable gets cleaned
-    local min = widgetTable.min;
-    local max = widgetTable.max;
-    local step = widgetTable.step;
+  -- widgetTable gets cleaned
+  local min = widgetTable.min;
+  local max = widgetTable.max;
+  local step = widgetTable.step;
 
-    slider:SetMinMaxValues(min, max);
-    slider:SetValueStep(step or 1);
-    slider:SetObeyStepOnDrag(true);
-    slider:SetValue(value or min);
+  slider:DisableDrawLayer("BORDER");
+  slider:SetMinMaxValues(min, max);
+  slider:SetValueStep(step or 1);
+  slider:SetObeyStepOnDrag(true);
+  slider:SetValue(value or min);
+  slider:SetThumbTexture(tk:GetAssetFilePath("Textures\\Widgets\\SliderThumb"));
+  slider:GetThumbTexture():SetSize(14, 24);
 
-    local backdrop = _G.BackdropTemplateMixin and "BackdropTemplate, InputBoxTemplate" or "InputBoxTemplate";
-    slider.editBox = CreateFrame("EditBox", nil, slider, backdrop);
-    slider.editBox:SetAutoFocus(false);
+  local backdrop = _G.BackdropTemplateMixin and "BackdropTemplate, InputBoxTemplate" or "InputBoxTemplate";
+  slider.editBox = CreateFrame("EditBox", nil, slider, backdrop);
+  slider.editBox:SetAutoFocus(false);
 
-    slider.editBox:SetScript("OnEscapePressed", function()
-      slider.editBox:ClearFocus();
+  slider.editBox:SetScript("OnEscapePressed", function()
+    slider.editBox:ClearFocus();
+    slider.editBox:SetText(slider:GetValue());
+  end);
+
+  slider.editBox:SetScript("OnEnterPressed", function()
+    slider.editBox:ClearFocus();
+    local newValue = tonumber(slider.editBox:GetText());
+
+    if (obj:IsNumber(newValue)) then
+      local sliderMin, sliderMax = slider:GetMinMaxValues();
+      slider:SetValue(_G.max(_G.min(newValue, sliderMax), sliderMin));
+
+      slider.editBox:SetText(newValue);
+      configModule:SetDatabaseValue(slider.configContainer, newValue);
+    else
       slider.editBox:SetText(slider:GetValue());
-    end);
+    end
 
-    slider.editBox:SetScript("OnEnterPressed", function()
-      slider.editBox:ClearFocus();
-      local newValue = tonumber(slider.editBox:GetText());
+    PlaySound(tk.Constants.CLICK);
+  end);
 
-      if (obj:IsNumber(newValue)) then
-        local sliderMin, sliderMax = slider:GetMinMaxValues();
-        slider:SetValue(_G.max(_G.min(newValue, sliderMax), sliderMin));
+  -- slider.Value = slider:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
+  slider.editBox:SetPoint("TOP", slider, "BOTTOM", 0, -2);
+  slider.editBox:SetSize(40, 20);
+  tk:SetFontSize(slider.editBox, 10);
+  slider.editBox:SetText(value or widgetTable.min);
+  slider.editBox:DisableDrawLayer("BACKGROUND");
+  slider.editBox:SetJustifyH("CENTER");
+  slider.editBox:SetBackdrop(tk.Constants.BACKDROP);
+  slider.editBox:SetBackdropBorderColor(tk:GetThemeColor());
 
-        slider.editBox:SetText(newValue);
-        configModule:SetDatabaseValue(slider.configContainer, newValue);
-      else
-        slider.editBox:SetText(slider:GetValue());
-      end
+  local texture = slider.editBox:CreateTexture(nil, "BORDER");
+  texture:SetAllPoints(true);
 
-      PlaySound(tk.Constants.CLICK);
-    end);
+  texture:SetColorTexture(0, 0, 0, 0.5);
 
-    -- slider.Value = slider:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
-    slider.editBox:SetPoint("TOP", slider, "BOTTOM", 0, -2);
-    slider.editBox:SetSize(40, 20);
-    tk:SetFontSize(slider.editBox, 10);
-    slider.editBox:SetText(value or widgetTable.min);
-    slider.editBox:DisableDrawLayer("BACKGROUND");
-    slider.editBox:SetJustifyH("CENTER");
-    slider.editBox:SetBackdrop(tk.Constants.BACKDROP);
-    slider.editBox:SetBackdropBorderColor(tk:GetThemeColor());
+  slider.Low:SetText(widgetTable.min);
+  slider.Low:ClearAllPoints();
+  slider.Low:SetPoint("BOTTOMLEFT", 9, -8);
+  slider.High:SetText(widgetTable.max);
+  slider.High:ClearAllPoints();
+  slider.High:SetPoint("BOTTOMRIGHT", -5, -8);
 
-    local texture = slider.editBox:CreateTexture(nil, "BORDER");
-    texture:SetAllPoints(true);
+  slider:SetSize(widgetTable.width or 150, 18);
+  slider:SetHitRectInsets(0, 0, 0, 0);
+  slider:SetScript("OnValueChanged", Slider_OnValueChanged);
+  slider:SetScript("OnEnable", Slider_OnEnable);
+  slider:SetScript("OnDisable", Slider_OnDisable);
 
-    texture:SetColorTexture(0, 0, 0, 0.5);
-
-    slider.Low:SetText(widgetTable.min);
-    slider.Low:ClearAllPoints();
-    slider.Low:SetPoint("BOTTOMLEFT", 9, -8);
-    slider.High:SetText(widgetTable.max);
-    slider.High:ClearAllPoints();
-    slider.High:SetPoint("BOTTOMRIGHT", -5, -8);
-
-    slider:SetSize(widgetTable.width or 150, 18);
-		slider:SetHitRectInsets(0, 0, 0, 0);
-    slider:SetScript("OnValueChanged", Slider_OnValueChanged);
-    slider:SetScript("OnEnable", Slider_OnEnable);
-    slider:SetScript("OnDisable", Slider_OnDisable);
-
-    local container = CreateElementContainerFrame(slider, widgetTable, parent);
-    container:SetHeight(container:GetHeight() + 20); -- make room for value text
-    return container;
+  local container = CreateElementContainerFrame(slider, widgetTable, parent);
+  container:SetHeight(container:GetHeight() + 20); -- make room for value text
+  return container;
 end
 
 --------------
@@ -626,16 +627,16 @@ end
 -- max - maximum value allowed
 
 function WidgetHandlers.textfield(parent, widgetTable, value)
-    local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetTable.tooltip, parent);
+  local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetTable.tooltip, parent);
 
-    textField:SetText((value and tostring(value)) or "");
-    local container = CreateElementContainerFrame(textField, widgetTable, parent);
+  textField:SetText((value and tostring(value)) or "");
+  local container = CreateElementContainerFrame(textField, widgetTable, parent);
 
-    -- passes in textField (not data.editBox);
-    textField:OnTextChanged(TextField_OnTextChanged, container);
-    SetWidgetEnabled(textField, widgetTable.enabled);
+  -- passes in textField (not data.editBox);
+  textField:OnTextChanged(TextField_OnTextChanged, container);
+  SetWidgetEnabled(textField, widgetTable.enabled);
 
-    return container;
+  return container;
 end
 
 ----------------

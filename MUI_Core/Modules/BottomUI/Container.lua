@@ -13,6 +13,9 @@ db:AddToDefaults("profile.bottomui", {
   width = 750;
   enabled = true;
   frameStrata = "LOW";
+  frameLevel = 5;
+  xOffset = 0;
+  yOffset = -1;
 });
 
 -- C_Container ------------------
@@ -29,7 +32,19 @@ function C_Container:OnInitialize(data)
       if (dataTextModule and dataTextModule:IsEnabled()) then
         dataTextModule:PositionDataTextButtons();
       end
-    end
+    end;
+    frameLevel = function(value)
+      data.container:SetFrameLevel(value);
+    end;
+    frameStrata = function(value)
+      data.container:SetFrameStrata(value);
+    end;
+    yOffset = function(value)
+      data.container:SetPoint("BOTTOM", data.settings.xOffset, value);
+    end;
+    xOffset = function(value)
+      data.container:SetPoint("BOTTOM", value, data.settings.yOffset);
+    end;
   });
 end
 
@@ -42,8 +57,9 @@ end
 function C_Container:OnEnable(data)
   if (not data.container) then
     data.container = CreateFrame("Frame", "MUI_BottomContainer", UIParent);
-    data.container:SetPoint("BOTTOM", 0, -1);
+    data.container:SetPoint("BOTTOM", data.settings.xOffset, data.settings.yOffset);
     data.container:SetFrameStrata(data.settings.frameStrata);
+    data.container:SetFrameLevel(data.settings.frameLevel);
 
     if (tk:IsRetail()) then
       local listener = em:CreateEventListener(function()

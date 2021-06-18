@@ -33,7 +33,7 @@ end
 function TextField:__Construct(data, style, tooltip, parent)
   local r, g, b = style:GetColor();
   data.frame = Private:PopFrame("Frame", parent);
-  data.frame:SetSize(150, 28);
+  data.frame:SetSize(120, 28);
 
   local background = style:GetTexture("TextField");
   data.frame.bg = Private:SetBackground(data.frame, background);

@@ -166,23 +166,52 @@ do
     end
   end
 
+  local function CheckButton_OnEnter(self)
+    self:GetCheckedTexture():SetBlendMode("ADD");
+  end
+
+  local function CheckButton_OnLeave(self)
+    self:GetCheckedTexture():SetBlendMode("BLEND");
+  end
+
   function Lib:CreateCheckButton(parent, text, radio, tooltip)
     local container = Private:PopFrame("Frame", parent);
     container:SetSize(150, 30);
 
     if (radio) then
       container.btn = CreateFrame("CheckButton", nil, container, "UIRadioButtonTemplate");
-      container.btn:SetSize(20, 20);
     else
       container.btn = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
-      container.btn:SetSize(30, 30);
     end
+
+    container.btn:SetSize(20, 20);
 
     if (tooltip) then
       container.btn.tooltip = tooltip;
       container.btn:SetScript("OnEnter", OnEnter);
       container.btn:SetScript("OnLeave", OnLeave);
     end
+
+    container.btn:SetPushedTexture(nil);
+
+    local tk = _G.MayronUI:GetCoreComponent("Toolkit"); ---@type Toolkit
+
+    -- Normal Texture:
+    container.btn:SetNormalTexture(tk:GetAssetFilePath("Textures\\Widgets\\Unchecked"));
+    local normalTexture = container.btn:GetNormalTexture();
+    normalTexture:SetAllPoints(true);
+
+    -- Checked Texture:
+    container.btn:SetCheckedTexture(tk:GetAssetFilePath("Textures\\Widgets\\Checked"));
+    local checkedTexture = container.btn:GetCheckedTexture();
+    checkedTexture:SetAllPoints(true);
+    tk:ApplyThemeColor(checkedTexture);
+
+    -- Highlight Texture:
+    container.btn:SetHighlightTexture(nil);
+
+    container.btn:HookScript("OnEnter", CheckButton_OnEnter);
+    container.btn:HookScript("OnLeave", CheckButton_OnLeave);
 
     container.btn:SetPoint("LEFT");
     container.btn.text:SetFontObject("GameFontHighlight");

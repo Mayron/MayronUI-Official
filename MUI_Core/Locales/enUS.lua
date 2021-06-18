@@ -840,3 +840,5 @@ L["CHANNEL_NAME_ALIASES"] =
 [[Set short, custom aliases for chat channel names.
 For example, you can set "LFG" to replace the default
 channel name "[4. LookingForGroup]".]]
+
+L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen.";

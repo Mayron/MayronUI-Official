@@ -645,10 +645,9 @@ do
     menuButton.text:SetPoint("TOPLEFT", 10, 0);
     menuButton.text:SetPoint("BOTTOMRIGHT");
 
-    local filePath = tk:GetAssetFilePath("Textures\\Widgets\\Solid");
-    local normal = tk:SetBackground(menuButton, filePath);
-    local highlight = tk:SetBackground(menuButton, filePath);
-    local checked = tk:SetBackground(menuButton, filePath);
+    local normal = tk:SetBackground(menuButton, tk.Constants.SOLID_TEXTURE);
+    local highlight = tk:SetBackground(menuButton, tk.Constants.SOLID_TEXTURE);
+    local checked = tk:SetBackground(menuButton, tk.Constants.SOLID_TEXTURE);
 
     -- first argument is the alpha
     tk:ApplyThemeColor(0.3, normal, highlight);
