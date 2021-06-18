@@ -829,3 +829,14 @@ L["AURAS_ORDERING_ON_TOOLTIP"] =
 [[The below setting controls the ordering of auras on the tooltip 
 when both the buffs and debuffs are positioned together 
 (either above or below the tooltip) and are both enabled.]]
+
+-------------------------------
+--- NEW!
+L["MANAGE_INTEREST_WORDS"] =
+[[Manage a list of words to highlight and optionally
+play a sound effect when they appear in chat.]]
+
+L["CHANNEL_NAME_ALIASES"] =
+[[Set short, custom aliases for chat channel names.
+For example, you can set "LFG" to replace the default
+channel name "[4. LookingForGroup]".]]

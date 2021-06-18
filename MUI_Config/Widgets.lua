@@ -99,6 +99,10 @@ function WidgetHandlers.submenu(parent, submenuConfigTable)
 
     btn:SetScript("OnClick", namespace.MenuButton_OnClick);
 
+    if (submenuConfigTable.tooltip) then
+      tk:SetBasicTooltip(btn, submenuConfigTable.tooltip);
+    end
+
     return btn;
 end
 
@@ -115,24 +119,29 @@ end
 
 -- should return a table of children created during the loop
 function WidgetHandlers.loop(_, loopConfigTable)
-    local children = obj:PopTable();
+  local children = obj:PopTable();
 
-    if (loopConfigTable.loops) then
-        -- rather than args, you specify the number of times to loop
-        for id = 1, loopConfigTable.loops do
-            children[id] = loopConfigTable.func(id);
-        end
+  if (loopConfigTable.OnLoad) then
+    loopConfigTable.OnLoad(loopConfigTable);
+    loopConfigTable.OnLoad = nil;
+  end
 
-    elseif (loopConfigTable.args) then
-        for id, arg in _G.ipairs(loopConfigTable.args) do
-            -- func returns the children data to be loaded
-            children[id] = loopConfigTable.func(id, arg);
-        end
+  if (loopConfigTable.loops) then
+    -- rather than args, you specify the number of times to loop
+    for id = 1, loopConfigTable.loops do
+      children[id] = loopConfigTable.func(id, loopConfigTable);
     end
 
-    tk.Tables:CleanIndexes(children);
+  elseif (loopConfigTable.args) then
+    for id, arg in _G.ipairs(loopConfigTable.args) do
+      -- func returns the children data to be loaded
+      children[id] = loopConfigTable.func(id, arg, loopConfigTable);
+    end
+  end
 
-    return children;
+  tk.Tables:CleanIndexes(children);
+
+  return children;
 end
 
 ----------------

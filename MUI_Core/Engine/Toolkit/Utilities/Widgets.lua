@@ -67,6 +67,7 @@ do
     GameTooltip:Show();
   end
 
+  -- point, xOffset, yOffset are all optional
   function tk:SetBasicTooltip(widget, text, point, xOffset, yOffset)
     widget.tooltipText = text;
 

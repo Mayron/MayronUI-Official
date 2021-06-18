@@ -132,6 +132,17 @@ end
 
 obj:DefineParams("table", "string");
 function MayronDB.Static:ParsePathValue(rootTable, path)
+  local replaced;
+  path = path:gsub("(%b[])", function(index)
+    index = index:match("%[(.+)%]");
+
+    if (index:find("%.")) then
+      replaced = replaced or obj:PopTable();
+      replaced[#replaced + 1] = index;
+      return "[$" .. tostring(#replaced) .. "]";
+    end
+  end);
+
   local values = obj:PopTable(strsplit(".", path));
   local length = #values;
   local iterations = 0;
@@ -149,10 +160,16 @@ function MayronDB.Static:ParsePathValue(rootTable, path)
       local indexes;
 
       if (key:find("%b[]")) then
-        indexes = {};
+        indexes = obj:PopTable();
 
         for index in key:gmatch("(%b[])") do
           index = index:match("%[(.+)%]");
+
+          if (index:find("^%$%d+$") and replaced) then
+            local r = tonumber(index:match("^%$(%d+)$"));
+            index = replaced[r];
+          end
+
           table.insert(indexes, index);
         end
 
@@ -176,8 +193,14 @@ function MayronDB.Static:ParsePathValue(rootTable, path)
             break;
           end
         end
+
+        obj:PushTable(indexes);
       end
     end
+  end
+
+  if (replaced) then
+    obj:PushTable(replaced);
   end
 
   if (iterations == length) then

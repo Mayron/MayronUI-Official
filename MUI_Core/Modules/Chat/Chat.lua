@@ -84,6 +84,45 @@ local defaults = {
     { type = "playerStatus" };
   };
 
+  darkening = 0.7;
+  aliases = {
+    -- TODO: Locale
+    ["Guild"] = "G";
+    ["Party"] = "P";
+    ["Party Leader"] = "PL";
+    ["Raid"] = "R";
+    ["Raid Leader"] = "RL";
+    ["1. General"] = "G";
+    ["2. Trade"] = "T";
+    ["3. LocalDefense"] = "LD";
+    ["4. LookingForGroup"] = "LFG";
+    ["5. WorldDefense"] = "WD";
+  };
+
+  wordsOfInterest = {
+    {
+      "healers", "healer", "healz", "heal",
+      color = "GREEN";
+      upperCase = true;
+    },
+    {
+      "tanks", "tank",
+      color = "RED";
+      upperCase = true;
+    },
+    {
+      "dps";
+      color = "YELLOW";
+      upperCase = true;
+    },
+    {
+      _G.UnitName("player"):upper();
+      color = "TRANSMOG_VIOLET";
+      sound = true;
+      upperCase = false;
+    },
+  };
+
   editBox = {
     yOffset = -8;
     height = 27;

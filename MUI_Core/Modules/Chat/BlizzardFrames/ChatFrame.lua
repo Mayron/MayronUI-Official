@@ -14,31 +14,7 @@ local function GetChatLink(url)
 	return string.format("|Hurl:%s|h|cffffe29e%s|r|h", url, "["..url.."]");
 end
 
-local wordsOfInterest = {
-  {
-    "healers", "healer", "healz", "heal",
-    color = "GREEN";
-    upperCase = true;
-  },
-  {
-    "tanks", "tank",
-    color = "RED";
-    upperCase = true;
-  },
-  {
-    "dps";
-    color = "YELLOW";
-    upperCase = true;
-  },
-  {
-    _G.UnitName("player"):upper();
-    color = "TRANSMOG_VIOLET";
-    sound = true;
-    upperCase = false;
-  },
-};
-
-local function FormatWordsOfInterest(text)
+local function FormatWordsOfInterest(text, wordsOfInterest)
   local prefix, body, playSound, changed;
 
   for _, pattern in ipairs(CHANNEL_PATTERNS) do
@@ -67,24 +43,14 @@ local function FormatWordsOfInterest(text)
   return text;
 end
 
-local aliases = {
-  ["4. LookingForGroup"] = "LFG";
-  ["Guild"] = "G";
-  ["Party"] = "P";
-  ["Party Leader"] = "PL";
-  ["5. WorldDefense"] = "WD";
-  ["3. LocalDefense"] = "LD";
-  ["2. Trade"] = "T";
-  ["1. General"] = "G";
-}
-
-local function RenameAliases(text, r, g, b)
-  for channel, alias in pairs(aliases) do
+local function RenameAliases(text, settings, r, g, b)
+  for channel, alias in pairs(settings.aliases) do
     local channelID, body = text:match("^|Hchannel:(.-)|h%[" .. channel .. ".-%]|h (.*)");
 
     if (channelID and body) then
       body = body:trim();
-      alias = tk.Strings:SetTextColorByRGB(alias, r * 0.7, g * 0.7, b * 0.7);
+      local d = settings.darkening;
+      alias = tk.Strings:SetTextColorByRGB(alias, r * d, g * d, b * d);
       local prefix = "|Hchannel:" .. channelID .. "|h" .. alias .. " |h";
       text = prefix .. body;
       break;
@@ -95,11 +61,11 @@ local function RenameAliases(text, r, g, b)
 end
 
 -- example: "|Hchannel:channel:4|h[4. LookingForGroup]|h |Hplayer:Numberone:12:CHANNEL:4|h[|cffaad372Numberone|r]|h: LF2M healer and dps UB HC!", 
-local function NewAddMessage(self, text, r, g, b, ...)
+local function NewAddMessage(self, settings, text, r, g, b, ...)
 	if (not text) then return; end
 
-  text = FormatWordsOfInterest(text);
-  text = RenameAliases(text, r, g, b);
+  text = FormatWordsOfInterest(text, settings.wordsOfInterest);
+  text = RenameAliases(text, settings, r, g, b);
 
 	self:oldAddMessage(text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink), r, g, b, ...);
 end
@@ -221,7 +187,10 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
 	if (chatFrame:GetID() ~= 2) then
 		-- if not combat log...
 		chatFrame.oldAddMessage = chatFrame.AddMessage;
-		chatFrame.AddMessage = NewAddMessage;
+		chatFrame.AddMessage = function(self, text, r, g, b)
+      NewAddMessage(self, data.settings, text, r, g, b);
+    end;
+
 		chatFrame:SetScript("OnHyperLinkEnter", OnHyperLinkEnter);
 		chatFrame:SetScript("OnHyperLinkLeave", OnHyperLinkLeave);
 		chatFrame:SetScript("OnHyperlinkClick", OnHyperLinkClick);
