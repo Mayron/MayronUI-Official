@@ -832,8 +832,8 @@ when both the buffs and debuffs are positioned together
 
 -------------------------------
 --- NEW!
-L["MANAGE_INTEREST_WORDS"] =
-[[Manage a list of words to highlight and optionally
+L["MANAGE_TEXT_HIGHLIGHTING"] =
+[[Manage text to highlight and optionally
 play a sound effect when they appear in chat.]]
 
 L["CHANNEL_NAME_ALIASES"] =

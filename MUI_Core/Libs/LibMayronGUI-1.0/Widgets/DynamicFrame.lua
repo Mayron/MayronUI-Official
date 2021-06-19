@@ -5,21 +5,24 @@ local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 if (not Lib) then return; end
 
 local obj = _G.MayronObjects:GetFramework();
-local DynamicFrame = obj:CreateClass("DynamicFrame");
+local DynamicFrame = obj:CreateClass("DynamicFrame"); ---@class DynamicFrame
 obj:Export(DynamicFrame, "MayronUI");
+
 local mceil, mfloor, unpack, ipairs = _G.math.ceil, _G.math.floor, _G.unpack, _G.ipairs;
+local CreateFrame, tinsert, select = _G.CreateFrame, _G.table.insert, _G.select;
 
 local function OnSizeChanged(self, width)
   width = mceil(width);
 
-  local scrollChild = self.ScrollFrame:GetScrollChild();
+  -- Set container (relative) frame (either using a scroll frame or regular frame):
+  local container = (self.ScrollFrame and self.ScrollFrame:GetScrollChild()) or self;
   local anchor = self.children[1];
 
   if (not anchor) then return end
 
   local totalRowWidth = 0; -- used to make new rows
   local largestHeightInPreviousRow = 0; -- used to position new rows with correct Y Offset away from previous row
-  local totalHeight = 0; -- used to dynamically set the ScrollChild's height so that is can be visible
+  local totalHeight = 0; -- used to dynamically set the container frame's height so that is can be visible
   local previousChild;
 
   for id, child in ipairs(self.children) do
@@ -33,7 +36,7 @@ local function OnSizeChanged(self, width)
     if ((totalRowWidth) > (width - self.padding * 2) or id == 1) then
       -- NEW ROW!
       if (id == 1) then
-        child:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", self.padding, -self.padding);
+        child:SetPoint("TOPLEFT", container, "TOPLEFT", self.padding, -self.padding);
         totalHeight = totalHeight + self.padding;
       else
         local yOffset = (largestHeightInPreviousRow - anchor:GetHeight());
@@ -67,28 +70,34 @@ local function OnSizeChanged(self, width)
   totalHeight = (totalHeight > 0 and totalHeight) or 10;
   totalHeight = mfloor(totalHeight + 0.5);
 
-  -- update ScrollChild Height dynamically:
-  scrollChild:SetHeight(totalHeight);
+  -- update container frame's height dynamically:
+  container:SetHeight(totalHeight);
 end
 
 -- Helper constructor!
 function Lib:CreateDynamicFrame(style, parent, spacing, padding)
-  local scrollFrameContainer = Lib:CreateScrollFrame(style, parent);
+  local frame;
 
-  scrollFrameContainer:HookScript("OnSizeChanged", OnSizeChanged);
-  scrollFrameContainer.spacing = spacing or 4; -- the spacing around each inner element
-  scrollFrameContainer.padding = padding or 4; -- the padding around the entire container (which holds all the elements)
+  if (style) then
+    frame = Lib:CreateScrollFrame(style, parent);
+  else
+    frame = CreateFrame("Frame", nil, parent);
+  end
 
-  return DynamicFrame(scrollFrameContainer);
+  frame:HookScript("OnSizeChanged", OnSizeChanged);
+  frame.spacing = spacing or 4; -- the spacing around each inner element
+  frame.padding = padding or 4; -- the padding around the entire container (which holds all the elements)
+
+  return DynamicFrame(frame);
 end
 
-function DynamicFrame:__Construct(data, scrollFrameContainer)
-  data.scrollChild = scrollFrameContainer.ScrollFrame:GetScrollChild();
-  self:SetFrame(scrollFrameContainer);
+function DynamicFrame:__Construct(data, frame)
+  data.scrollChild = frame.ScrollFrame and frame.ScrollFrame:GetScrollChild();
+  self:SetFrame(frame);
   data.frame.children = obj:PopTable();
 end
 
--- adds children to ScrollChild of the ScrollFrame
+-- adds children to container of the ScrollFrame
 function DynamicFrame:AddChildren(data, ...)
   local width, height = data.frame:GetSize();
 
@@ -96,11 +105,19 @@ function DynamicFrame:AddChildren(data, ...)
     data.frame:SetSize(_G.UIParent:GetWidth(), _G.UIParent:GetHeight());
   end
 
-  for _, child in obj:IterateArgs(...) do
-    _G.table.insert(data.frame.children, child);
-    child:SetParent(data.scrollChild);
+  -- add child to children table and set parent
+  if (select("#", ...) == 1) then
+    local child = (select(1, ...));
+    tinsert(data.frame.children, child);
+    child:SetParent(data.scrollChild or data.frame);
+  else
+    for _, child in obj:IterateArgs(...) do
+      tinsert(data.frame.children, child);
+      child:SetParent(data.scrollChild or data.frame);
+    end
   end
 
+  -- position the child
   OnSizeChanged(data.frame, data.frame:GetWidth());
 end
 

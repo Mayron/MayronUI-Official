@@ -88,25 +88,34 @@ do
   end
 
   local function SetWidth(self)
-    local width = self:GetFontString():GetUnboundedStringWidth() + (self.padding or 44);
+    local fontString = self:GetFontString();
+
+    local width = fontString:GetUnboundedStringWidth() + (self.padding);
     width = max(max(self.minWidth or 0, width), self:GetWidth());
+
     self:SetWidth(width);
+    fontString:SetPoint("CENTER", self);
   end
 
-  function Lib:CreateButton(style, parent, text, button, tooltip)
+  function Lib:CreateButton(style, parent, text, button, tooltip, padding, minWidth)
     local backgroundTexture = style:GetTexture("ButtonTexture");
 
     button = button or CreateFrame("Button", nil, parent,
       _G.BackdropTemplateMixin and "BackdropTemplate");
 
-    button:SetSize(150, 30);
+    button.padding = padding or 30;
+    button.minWidth = minWidth;
+    button:SetHeight(30);
     button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
+
+    local fs = button:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    button:SetFontString(fs);
+    hooksecurefunc(button, "SetText", SetWidth);
 
     if (text) then
       button:SetText(text);
-      button:HookScript("OnShow", SetWidth);
-      button:HookScript("OnLoad", SetWidth);
-      hooksecurefunc(button, "SetText", SetWidth);
+    else
+      button:SetWidth(150);
     end
 
     if (tooltip) then
@@ -167,23 +176,19 @@ do
   end
 
   local function CheckButton_OnEnter(self)
+    self:GetNormalTexture():SetVertexColor(0.7, 0.7, 0.7);
     self:GetCheckedTexture():SetBlendMode("ADD");
   end
 
   local function CheckButton_OnLeave(self)
+    self:GetNormalTexture():SetVertexColor(1, 1, 1);
     self:GetCheckedTexture():SetBlendMode("BLEND");
   end
 
-  function Lib:CreateCheckButton(parent, text, radio, tooltip)
+  function Lib:CreateCheckButton(parent, text, tooltip)
     local container = Private:PopFrame("Frame", parent);
     container:SetSize(150, 30);
-
-    if (radio) then
-      container.btn = CreateFrame("CheckButton", nil, container, "UIRadioButtonTemplate");
-    else
-      container.btn = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
-    end
-
+    container.btn = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
     container.btn:SetSize(20, 20);
 
     if (tooltip) then
@@ -216,7 +221,7 @@ do
     container.btn:SetPoint("LEFT");
     container.btn.text:SetFontObject("GameFontHighlight");
     container.btn.text:ClearAllPoints();
-    container.btn.text:SetPoint("LEFT", container.btn, "RIGHT", 5, 0);
+    container.btn.text:SetPoint("LEFT", container.btn, "RIGHT", 6, 2);
 
     hooksecurefunc(container.btn, "SetEnabled", CheckButton_OnSetEnabled);
 

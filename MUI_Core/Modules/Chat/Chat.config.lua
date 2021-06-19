@@ -135,12 +135,63 @@ function C_ChatModule:GetConfigTable()
             {
               type = "divider"
             },
-            {   name = "Highlight Words of Interest"; -- TODO: LOCALE
-                tooltip = L["MANAGE_INTEREST_WORDS"];
+            {   name = "Text Highlighting"; -- TODO: LOCALE
+                tooltip = L["MANAGE_TEXT_HIGHLIGHTING"];
                 type = "submenu";
                 children = {
                   {   type = "fontstring";
-                      content = L["MANAGE_INTEREST_WORDS"]:gsub("\n", " ");
+                      content = L["MANAGE_TEXT_HIGHLIGHTING"]:gsub("\n", " ");
+                  };
+                  {   type = "loop";
+                      args = db.profile.chat.highlighted:GetUntrackedTable();
+                      func = function(id, tbl)
+                        local path = "profile.chat.highlighted[" .. id .. "].";
+
+                        for index, text in ipairs(tbl) do
+                          tbl[index] = tk.Strings:SetTextColorByRGB(text, unpack(tbl.color));
+                        end
+
+                        local highlighted = tk.Strings:Join(" | ", tbl);
+                        local content = tk.Strings:JoinWithSpace("Text to Highlight (case insensitive):", highlighted);
+
+                        local children = {
+                          type = "frame";
+                          children = {
+                            {
+                              type = "fontstring";
+                              content = content;
+                            },
+                            {   type = "check";
+                                name = "Show in Upper Case";
+                                dbPath = path .. "upperCase";
+                            };
+                            {   type = "color";
+                                name = "Set Color";
+                                dbPath = path .. "color";
+                            };
+                            {   type = "button";
+                                name = "Edit Text";
+                                padding = 15;
+                            },
+                            {   type = "button";
+                                name = "Delete";
+                                padding = 15;
+                            },
+                            {   type = "divider"; };
+                            {   type = "dropdown";
+                                name = "Play Sound";
+                                tooltip = "Play a sound effect when any of the selected text appears in chat.";
+                                options = { "None", "Whisper Received"};
+                            }
+                          };
+                        };
+
+                        return children;
+                      end;
+                  },
+                  {
+                    type = "button";
+                    name = "Add Text";
                   }
                 };
             },

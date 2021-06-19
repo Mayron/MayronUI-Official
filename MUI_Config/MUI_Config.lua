@@ -108,8 +108,7 @@ local function TransferWidgetAttributes(widget, widgetTable)
     widget.children = widgetTable.children;
   end
 
--- remove references to avoid clean up (else tables would be emptied)
-  tk.Tables:Empty(widgetTable);
+  obj:PushTable(widgetTable);
 end
 
 namespace.MenuButton_OnClick = MenuButton_OnClick;
@@ -279,6 +278,40 @@ do
 end
 
 obj:DefineParams("table");
+function C_ConfigModule:RenderWidget(data, config)
+  if (config.type == "loop" or config.type == "condition") then
+    -- run the loop to gather widget children
+    local widgetConfigs = namespace.WidgetHandlers[config.type](
+      data.selectedButton.menu:GetFrame(), config);
+
+    for _, c in ipairs(widgetConfigs) do
+      self:RenderWidget(c);
+    end
+
+    -- the table was previously popped
+    obj:PushTable(widgetConfigs);
+    return
+  end
+
+  local widgetType = config.type; -- config gets deleted after SetUpWidget and type does not get mapped
+  local widget = self:SetUpWidget(config);
+
+  if (widgetType == "frame" and obj:IsTable(widget.children)) then
+    local dynamicFrame = widget; ---@type DynamicFrame
+    local frame = widget:GetFrame();
+
+    for _, subWidgetConfigTable in ipairs(widget.children) do
+      local childWidget = self:SetUpWidget(subWidgetConfigTable, frame);
+      dynamicFrame:AddChildren(childWidget);
+    end
+
+    widget = frame;
+  end
+
+  data.selectedButton.menu:AddChildren(widget);
+end
+
+obj:DefineParams("table");
 ---@param menuConfigTable table @A table containing many widget config tables used to render a full menu.
 function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
   if (not obj:IsTable(menuConfigTable)) then return end
@@ -293,53 +326,7 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
 
   for _, widgetConfigTable in pairs(menuConfigTable.children) do
     if (not IsUnsupportedByClient(widgetConfigTable.client)) then
-      if (widgetConfigTable.type == "loop" or widgetConfigTable.type == "condition") then
-        -- run the loop to gather widget children
-        local results = namespace.WidgetHandlers[widgetConfigTable.type](
-          data.selectedButton.menu:GetFrame(), widgetConfigTable);
-
-        if (obj:IsTable(results)) then
-          for _, result in ipairs(results) do
-            if (obj:IsTable(result)) then
-              if (not result.type and #result > 1) then
-                for _, subWidgetConfigTable in ipairs(result) do
-                  data.selectedButton.menu:AddChildren(self:SetUpWidget(subWidgetConfigTable));
-                end
-              else
-                data.selectedButton.menu:AddChildren(self:SetUpWidget(result));
-              end
-            end
-          end
-        end
-
-        -- the table was previously popped
-        obj:PushTable(results);
-
-      elseif (widgetConfigTable.type == "frame") then
-        local frame = self:SetUpWidget(widgetConfigTable);
-
-        if (frame.children) then
-          -- add children of frame directly onto frame to group them together
-          -- allows for more control over the positioning of elements
-          local previousFrame = frame;
-
-          for _, subWidgetConfigTable in ipairs(frame.children) do
-            local frameWidget = self:SetUpWidget(subWidgetConfigTable, frame);
-
-            if (previousFrame == frame) then
-              frameWidget:SetPoint("TOPLEFT", previousFrame, "TOPLEFT", 10, -10);
-            else
-              frameWidget:SetPoint("BOTTOMLEFT", previousFrame, "BOTTOMRIGHT", 10, 0);
-            end
-
-            previousFrame = frameWidget;
-          end
-        end
-
-        data.selectedButton.menu:AddChildren(frame);
-      else
-        data.selectedButton.menu:AddChildren(self:SetUpWidget(widgetConfigTable));
-      end
+      self:RenderWidget(widgetConfigTable);
     end
   end
 

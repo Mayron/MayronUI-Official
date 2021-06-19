@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143
 -- @Description: Controls the Blizzard Chat Frame changes (not the MUI Chat Frame!)
 local string, MayronUI = _G.string, _G.MayronUI;
-local pairs, ipairs, PlaySound = _G.pairs, _G.ipairs, _G.PlaySound;
+local pairs, ipairs, PlaySound, unpack = _G.pairs, _G.ipairs, _G.PlaySound, _G.unpack;
 
 local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
@@ -14,7 +14,7 @@ local function GetChatLink(url)
 	return string.format("|Hurl:%s|h|cffffe29e%s|r|h", url, "["..url.."]");
 end
 
-local function FormatWordsOfInterest(text, wordsOfInterest)
+local function HighlightText(text, highlighted)
   local prefix, body, playSound, changed;
 
   for _, pattern in ipairs(CHANNEL_PATTERNS) do
@@ -24,8 +24,8 @@ local function FormatWordsOfInterest(text, wordsOfInterest)
       body = body:trim();
 
       -- highlight words of interest:
-      for _, value in pairs(wordsOfInterest) do
-        body, changed = tk.Strings:HighlightSubStringsByKey(body, value, value.color, value.upperCase);
+      for _, value in pairs(highlighted) do
+        body, changed = tk.Strings:HighlightSubStringsByRGB(body, value, value.upperCase, unpack(value.color));
 
         if (changed and value.sound) then
           playSound = true;
@@ -64,7 +64,7 @@ end
 local function NewAddMessage(self, settings, text, r, g, b, ...)
 	if (not text) then return; end
 
-  text = FormatWordsOfInterest(text, settings.wordsOfInterest);
+  text = HighlightText(text, settings.highlighted);
   text = RenameAliases(text, settings, r, g, b);
 
 	self:oldAddMessage(text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink), r, g, b, ...);

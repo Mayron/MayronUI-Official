@@ -232,7 +232,7 @@ function Private:LoadProfileMenu(menuSection)
     end);
   end);
 
-  menuSection.profilePerCharacter = gui:CreateCheckButton(menuSection, L["Profile Per Character"], nil,
+  menuSection.profilePerCharacter = gui:CreateCheckButton(menuSection, L["Profile Per Character"],
     L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."]);
 
   menuSection.profilePerCharacter:SetPoint("TOPLEFT", menuSection.deleteProfileButton, "BOTTOMLEFT", 0, -20);

@@ -169,7 +169,6 @@ end
 function WidgetHandlers.check(parent, widgetTable, value)
   local cbContainer = gui:CreateCheckButton(
     parent, widgetTable.name,
-    widgetTable.type == "radio",
     widgetTable.tooltip);
 
   cbContainer.btn:SetChecked(value);
@@ -407,57 +406,48 @@ end
 -- Button
 --------------
 do
-    local function Button_OnClick(self)
-        if (obj:IsTable(self.data)) then
-            self.OnClick(self, unpack(self.data));
-        else
-            self.OnClick(self);
-        end
+  local function Button_OnClick(self)
+    if (obj:IsTable(self.data)) then
+      self.OnClick(self, unpack(self.data));
+    else
+      self.OnClick(self);
+    end
+  end
+
+  function WidgetHandlers.button(parent, widgetTable)
+    local button = gui:CreateButton(
+      tk.Constants.AddOnStyle, parent, widgetTable.name, nil,
+      widgetTable.tooltip, widgetTable.padding, widgetTable.minWidth);
+
+    if (widgetTable.height) then
+      button:SetHeight(widgetTable.height);
     end
 
-    function WidgetHandlers.button(parent, widgetTable)
-        local button = gui:CreateButton(tk.Constants.AddOnStyle, parent,
-            widgetTable.name, nil, widgetTable.tooltip);
+    button:SetScript("OnClick", Button_OnClick);
 
-        if (widgetTable.width) then
-            button:SetWidth(widgetTable.width);
-        end
-
-        if (widgetTable.height) then
-            button:SetHeight(widgetTable.height);
-        end
-
-        button:SetScript("OnClick", Button_OnClick);
-
-        return button;
-    end
+    return button;
+  end
 end
 
 -----------------
 -- Frame
 -----------------
 function WidgetHandlers.frame(parent, widgetTable)
-    local frame;
+  local dynamicFrame = gui:CreateDynamicFrame(nil, parent, widgetTable.spacing or 10, widgetTable.padding or 10);
+  local realFrame = dynamicFrame:GetFrame();
 
-    if (widgetTable.GetFrame) then
-        frame = widgetTable:GetFrame();
-    else
-        frame = widgetTable.frame or tk:PopFrame("Frame", parent);
-    end
+  if (widgetTable.width) then
+    realFrame:SetWidth(widgetTable.width);
+  else
+    tk:SetFullWidth(realFrame, 20);
+  end
 
-    if (widgetTable.width) then
-        frame:SetWidth(widgetTable.width);
-    else
-        tk:SetFullWidth(frame, 20);
-    end
+  realFrame.originalHeight = widgetTable.height or 60; -- needed for fontstring resizing
 
-    frame.originalHeight = widgetTable.height or 60; -- needed for fontstring resizing
-    -- frame:SetScript("OnSizeChanged", Frame_OnSizeChanged);
+  realFrame:SetHeight(realFrame.originalHeight);
+  tk:SetBackground(realFrame, 0, 0, 0, 0.2);
 
-    frame:SetHeight(frame.originalHeight);
-    tk:SetBackground(frame, 0, 0, 0, 0.2);
-
-    return frame;
+  return dynamicFrame;
 end
 
 -----------------
@@ -540,16 +530,16 @@ function WidgetHandlers.color(parent, widgetTable, value)
   -- create widget elements:
   container.square = tk:SetBackground(container, 1, 1, 1);
   container.square:ClearAllPoints();
-  container.square:SetSize(18.25, 18.25);
-  container.square:SetPoint("LEFT");
+  container.square:SetSize(16, 16);
+  container.square:SetPoint("LEFT", 0, 1);
 
   container.text = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
   container.text:SetText(widgetTable.name);
   container.text:SetJustifyH("LEFT");
-  container.text:SetPoint("LEFT", container.square, "RIGHT", 8, 0);
+  container.text:SetPoint("LEFT", container.square, "RIGHT", 6, 0);
 
   container.color = container:CreateTexture(nil, "ARTWORK");
-  container.color:SetSize(16, 16);
+  container.color:SetSize(12, 12);
   container.color:SetPoint("CENTER", container.square, "CENTER");
 
   container:SetSize(
@@ -634,7 +624,6 @@ function WidgetHandlers.textfield(parent, widgetTable, value)
 
   -- passes in textField (not data.editBox);
   textField:OnTextChanged(TextField_OnTextChanged, container);
-  SetWidgetEnabled(textField, widgetTable.enabled);
 
   return container;
 end

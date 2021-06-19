@@ -99,25 +99,25 @@ local defaults = {
     ["5. WorldDefense"] = "WD";
   };
 
-  wordsOfInterest = {
+  highlighted = {
     {
       "healers", "healer", "healz", "heal",
-      color = "GREEN";
+      color = { 0.1; 1; 0.1; };
       upperCase = true;
     },
     {
       "tanks", "tank",
-      color = "RED";
+      color = { 1; 0.1; 0.1; };
       upperCase = true;
     },
     {
       "dps";
-      color = "YELLOW";
+      color = { 1; 1; 0; };
       upperCase = true;
     },
     {
-      _G.UnitName("player"):upper();
-      color = "TRANSMOG_VIOLET";
+      _G.UnitName("player");
+      color = { 1, 0.5, 1};
       sound = true;
       upperCase = false;
     },

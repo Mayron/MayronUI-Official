@@ -146,7 +146,13 @@ function tk.Strings:Split(str, seperator, sectionNum)
 end
 
 function tk.Strings:Join(separator, ...)
-  local wrapper = obj:PopTable(...);
+  local wrapper;
+
+  if (obj:IsTable((select(1, ...)))) then
+    wrapper = (select(1, ...));
+  else
+    wrapper = obj:PopTable(...);
+  end
 
   tk:Assert(#wrapper > 0, "List of values to join cannot be empty.");
 
@@ -293,7 +299,7 @@ local function GetStartAndEnd(query, word)
   return query:find(word:lower());
 end
 
-function tk.Strings:HighlightSubStringsByKey(msg, word, colorKey, upperCase)
+function tk.Strings:HighlightSubStringsByRGB(msg, word, upperCase, r, g, b)
   local query = msg:lower();
   local offset = 0;
 
@@ -303,7 +309,7 @@ function tk.Strings:HighlightSubStringsByKey(msg, word, colorKey, upperCase)
 
     local pre = msg:sub(0, startId - 1 + offset) -- everything before
     local found = msg:sub(startId + offset, endId + offset);
-    found = tk.Strings:SetTextColorByKey(upperCase and found:upper() or found, colorKey);
+    found = tk.Strings:SetTextColorByRGB(upperCase and found:upper() or found, r, g, b);
     local post = msg:sub(endId + 1 + offset, #msg); -- everything after
 
     query = post:lower();
