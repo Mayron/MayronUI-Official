@@ -146,6 +146,25 @@ tk.Constants = {
     WHITE           = _G.HIGHLIGHT_FONT_COLOR;
     YELLOW          = _G.YELLOW_FONT_COLOR;
   };
+
+  SOUND_OPTIONS = {
+    [L["Auction House Open"]] = 5274;
+    [L["Auction House Close"]] = 5275;
+    [L["Alarm Clock Warning 1"]] = 18871;
+    [L["Alarm Clock Warning 2"]] = 12867;
+    [L["Alarm Clock Warning 3"]] = 12889;
+    [L["Enter Queue"]] = 8458;
+    [L["Jewel Crafting Socket"]] = 10590;
+    [L["Loot Money"]] = 120;
+    [L["Map Ping"]] = 3175;
+    [L["Queue Ready"]] = 8459;
+    [L["Raid Warning"]] = 8959;
+    [L["Raid Boss Warning"]] = 12197;
+    [L["Ready Check"]] = 8960;
+    [L["Repair Item"]] = 7994;
+    [L["Whisper Received"]] = 3081;
+    [L["None"]] = false;
+  }
 };
 
 if (tk:IsRetail()) then

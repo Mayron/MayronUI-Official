@@ -394,7 +394,7 @@ function Database:TriggerUpdateFunction(data, path, ...)
   end
 end
 
-obj:DefineParams("table|string", "any");
+obj:DefineParams("table|string");
 ---Adds a value to a table relative to a path: rootTable.<path> = <value>
 ---@param rootTableOrPath table|string @The initial root table to search from OR a string that starts with "global" or "profile" so that the rootTable can be calculated.
 ---@param pathOrValue any @(optional) A table path string (also called a path address), such as "myTable.mySubTable[2]", or if rootTable is a string representing the path then this is the value argument. If it is the path then this is converted to a sequence of tables which are added to the database if they do not already exist (myTable will be created if not found).

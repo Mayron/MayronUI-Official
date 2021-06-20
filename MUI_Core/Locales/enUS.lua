@@ -842,3 +842,19 @@ For example, you can set "LFG" to replace the default
 channel name "[4. LookingForGroup]".]]
 
 L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen.";
+
+L["Auction House Open"] = "Auction House Open";
+L["Auction House Close"] = "Auction House Close";
+L["Alarm Clock Warning 1"] = "Alarm Clock Warning 1";
+L["Alarm Clock Warning 2"] = "Alarm Clock Warning 2";
+L["Alarm Clock Warning 3"] = "Alarm Clock Warning 3";
+L["Enter Queue"] = "Enter Queue";
+L["Jewel Crafting Socket"] = "Jewel Crafting Socket";
+L["Loot Money"] = "Loot Money";
+L["Map Ping"] = "Map Ping";
+L["Queue Ready"] = "Queue Ready";
+L["Raid Warning"] = "Raid Warning";
+L["Raid Boss Warning"] = "Raid Boss Warning";
+L["Ready Check"] = "Ready Check";
+L["Repair Item"] = "Repair Item";
+L["Whisper Received"] = "Whisper Received";

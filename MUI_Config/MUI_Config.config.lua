@@ -556,36 +556,36 @@ function C_ConfigModule:GetConfigTable()
                           type = "loop";
                           args = { "C", "S", "A" };
                           func = function(_, arg)
-                              local name = L["Alt"];
+                            local name = L["Alt"];
 
-                              if (arg == "C") then
-                                  name = L["Control"];
+                            if (arg == "C") then
+                              name = L["Control"];
 
-                              elseif (arg == "S") then
-                                  name = L["Shift"];
+                            elseif (arg == "S") then
+                              name = L["Shift"];
+                            end
+
+                            return {
+                              name    = name;
+                              height  = 40;
+                              type    = "check";
+                              dbPath  = "profile.actionBarPanel.modKey";
+
+                              GetValue = function(_, currentValue)
+                                return GetModKeyValue(arg, currentValue);
+                              end;
+
+                              SetValue = function(dbPath, newValue, oldValue)
+                                SetModKeyValue(arg, dbPath, newValue, oldValue);
+                              end;
+
+                              OnLoad = function(_, container)
+                                table.insert(expandRetractDependencies, container.btn);
+                              end;
+                              enabled = function()
+                                return db.profile.actionBarPanel.expandRetract;
                               end
-
-                              return {
-                                  name    = name;
-                                  height  = 40;
-                                  type    = "check";
-                                  dbPath  = "profile.actionBarPanel.modKey";
-
-                                  GetValue = function(_, currentValue)
-                                      return GetModKeyValue(arg, currentValue);
-                                  end;
-
-                                  SetValue = function(dbPath, newValue, oldValue)
-                                      SetModKeyValue(arg, dbPath, newValue, oldValue);
-                                  end;
-
-                                  OnLoad = function(_, container)
-                                    table.insert(expandRetractDependencies, container.btn);
-                                  end;
-                                  enabled = function()
-                                    return db.profile.actionBarPanel.expandRetract;
-                                  end
-                              };
+                            };
                           end
                       };
                       {   name    = L["Bartender Action Bars"];

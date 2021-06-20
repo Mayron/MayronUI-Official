@@ -87,28 +87,29 @@ local function IsUnsupportedByClient(client)
   return false;
 end
 
--- Preserve values before recycling childData table!
-local function TransferWidgetAttributes(widget, widgetTable)
-  widget.dbPath           = widgetTable.dbPath;
-  widget.name             = widgetTable.name;
-  widget.__SetValue       = widgetTable.SetValue;
-  widget.requiresReload   = widgetTable.requiresReload;
-  widget.requiresRestart  = widgetTable.requiresRestart;
-  widget.module           = widgetTable.module;
-  widget.hasOwnDatabase   = widgetTable.hasOwnDatabase;
-  widget.valueType        = widgetTable.valueType;
-  widget.min              = widgetTable.min;
-  widget.max              = widgetTable.max;
-  widget.step             = widgetTable.step;
-  widget.OnClick          = widgetTable.OnClick;
-  widget.data             = widgetTable.data;
-  widget.useIndexes       = widgetTable.useIndexes;
+local TransferWidgetAttributes;
+do
+  local map = {
+    "dbPath", "name", "requiresReload", "requiresRestart", "module", "hasOwnDatabase",
+    "valueType", "min", "max", "step", "OnClick", "data", "useIndexes", "OnPostSetValue",
+    ["SetValue"] = "__SetValue";
+  };
 
-  if (widgetTable.type == "frame") then
-    widget.children = widgetTable.children;
+  function TransferWidgetAttributes(widget, widgetTable)
+    for index, key in pairs(map) do
+      if (obj:IsNumber(index)) then
+        widget[key] = widgetTable[key];
+      else
+        widget[index] = widgetTable[key];
+      end
+    end
+
+    if (widgetTable.type == "frame") then
+      widget.children = widgetTable.children;
+    end
+
+    obj:PushTable(widgetTable);
   end
-
-  obj:PushTable(widgetTable);
 end
 
 namespace.MenuButton_OnClick = MenuButton_OnClick;
@@ -187,35 +188,37 @@ obj:DefineParams("table");
 ---@param widget table @The created widger frame.
 ---@param value any @The value to add to the database using the dbPath value attached to the widget table.
 function C_ConfigModule:SetDatabaseValue(_, widget, newValue)
-    local db = self:GetDatabase(widget);
+  local db = self:GetDatabase(widget);
+  local oldValue;
 
-    -- __SetValue is a custom function to manually set the datbase config value
-    if (widget.__SetValue) then
-        local oldValue;
+  if (not tk.Strings:IsNilOrWhiteSpace(widget.dbPath)) then
+    oldValue = db:ParsePathValue(widget.dbPath);
+  end
 
-        if (not tk.Strings:IsNilOrWhiteSpace(widget.dbPath)) then
-            oldValue = db:ParsePathValue(widget.dbPath);
-        end
-
-        widget.__SetValue(widget.dbPath, newValue, oldValue, widget);
+  if (widget.__SetValue) then
+    widget.__SetValue(widget.dbPath, newValue, oldValue, widget);
+  else
+    -- dbPath is required if not using a custom __SetValue function!
+    if (widget.name and widget.name.IsObjectType and widget.name:IsObjectType("FontString")) then
+      tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widget.dbPath),
+        "%s is missing database path address element (dbPath) in config data.", widget.name:GetText());
     else
-        -- dbPath is required if not using a custom __SetValue function!
-        if (widget.name and widget.name.IsObjectType and widget.name:IsObjectType("FontString")) then
-            tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widget.dbPath),
-                "%s is missing database path address element (dbPath) in config data.", widget.name:GetText());
-        else
-            tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widget.dbPath),
-                "Unknown config data is missing database path address element (dbPath).");
-        end
-
-        db:SetPathValue(widget.dbPath, newValue);
+      tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widget.dbPath),
+        "Unknown config data is missing database path address element (dbPath).");
     end
 
-    if (widget.requiresReload) then
-        self:ShowReloadMessage();
-    elseif (widget.requiresRestart) then
-        self:ShowRestartMessage();
-    end
+    db:SetPathValue(widget.dbPath, newValue);
+  end
+
+  if (widget.OnPostSetValue) then
+    widget.OnPostSetValue(widget.dbPath, newValue, oldValue, widget);
+  end
+
+  if (widget.requiresReload) then
+    self:ShowReloadMessage();
+  elseif (widget.requiresRestart) then
+    self:ShowRestartMessage();
+  end
 end
 
 obj:DefineParams("CheckButton|Button");
@@ -281,15 +284,24 @@ obj:DefineParams("table");
 function C_ConfigModule:RenderWidget(data, config)
   if (config.type == "loop" or config.type == "condition") then
     -- run the loop to gather widget children
-    local widgetConfigs = namespace.WidgetHandlers[config.type](
+    local children = namespace.WidgetHandlers[config.type](
       data.selectedButton.menu:GetFrame(), config);
 
-    for _, c in ipairs(widgetConfigs) do
-      self:RenderWidget(c);
+    for _, c in ipairs(children) do
+      if (obj:IsTable(c) and not c.type) then
+        for _, c2 in ipairs(c) do
+          self:RenderWidget(c2);
+        end
+
+        obj:PushTable(c);
+      else
+        self:RenderWidget(c);
+      end
     end
 
     -- the table was previously popped
-    obj:PushTable(widgetConfigs);
+    obj:PushTable(children);
+    obj:PushTable(config);
     return
   end
 

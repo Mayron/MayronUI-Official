@@ -27,8 +27,8 @@ local function HighlightText(text, highlighted)
       for _, value in pairs(highlighted) do
         body, changed = tk.Strings:HighlightSubStringsByRGB(body, value, value.upperCase, unpack(value.color));
 
-        if (changed and value.sound) then
-          playSound = true;
+        if (changed and obj:IsNumber(value.sound) and not playSound) then
+          playSound = value.sound; -- first sound only
         end
       end
 
@@ -37,7 +37,7 @@ local function HighlightText(text, highlighted)
   end
 
   if (playSound) then
-    PlaySound(3081);
+    PlaySound(playSound);
   end
 
   return text;

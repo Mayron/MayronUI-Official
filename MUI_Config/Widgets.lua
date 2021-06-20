@@ -5,7 +5,7 @@ local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 local configModule = MayronUI:ImportModule("ConfigModule"); ---@type ConfigModule
 
 local unpack, string, pairs, tonumber = _G.unpack, _G.string, _G.pairs, _G.tonumber;
-local CreateFrame, PlaySound, tostring = _G.CreateFrame, _G.PlaySound, _G.tostring;
+local CreateFrame, PlaySound, tostring, ipairs = _G.CreateFrame, _G.PlaySound, _G.tostring, _G.ipairs;
 
 local WidgetHandlers = {};
 namespace.WidgetHandlers = WidgetHandlers;
@@ -116,24 +116,24 @@ end
 -- the function should return 1 widget per execution
 
 -- should return a table of children created during the loop
-function WidgetHandlers.loop(_, loopConfigTable)
+function WidgetHandlers.loop(_, config)
   local children = obj:PopTable();
 
-  if (loopConfigTable.OnLoad) then
-    loopConfigTable.OnLoad(loopConfigTable);
-    loopConfigTable.OnLoad = nil;
+  if (config.OnLoad) then
+    config.OnLoad(config);
+    config.OnLoad = nil;
   end
 
-  if (loopConfigTable.loops) then
+  if (config.loops) then
     -- rather than args, you specify the number of times to loop
-    for id = 1, loopConfigTable.loops do
-      children[id] = loopConfigTable.func(id, loopConfigTable);
+    for id = 1, config.loops do
+      children[id] = config.func(id, config);
     end
 
-  elseif (loopConfigTable.args) then
-    for id, arg in _G.ipairs(loopConfigTable.args) do
+  elseif (config.args) then
+    for id, arg in ipairs(config.args) do
       -- func returns the children data to be loaded
-      children[id] = loopConfigTable.func(id, arg, loopConfigTable);
+      children[id] = config.func(id, arg, config);
     end
   end
 
@@ -414,16 +414,35 @@ do
     end
   end
 
-  function WidgetHandlers.button(parent, widgetTable)
-    local button = gui:CreateButton(
-      tk.Constants.AddOnStyle, parent, widgetTable.name, nil,
-      widgetTable.tooltip, widgetTable.padding, widgetTable.minWidth);
+  function WidgetHandlers.button(parent, config)
+    local button;
 
-    if (widgetTable.height) then
-      button:SetHeight(widgetTable.height);
+    if (config.texture) then
+      local container = CreateFrame("Frame", nil, parent);
+      container:SetSize(config.width or 20, config.height or 20);
+
+      button = CreateFrame("Button", nil, container);
+      button:SetSize(config.texWidth or config.width or 20, config.texHeight or config.height or 20);
+      button:SetPoint(config.point or "BOTTOM");
+
+      button:SetNormalTexture(config.texture);
+      button:SetHighlightAtlas("chatframe-button-highlight");
+    else
+      button = gui:CreateButton(
+        tk.Constants.AddOnStyle, parent, config.name, nil,
+        config.tooltip, config.padding, config.minWidth);
+
+      if (config.height) then
+        button:SetHeight(config.height);
+      end
     end
 
+    button.OnClick = config.OnClick;
     button:SetScript("OnClick", Button_OnClick);
+
+    if (config.texture) then
+      return button:GetParent();
+    end
 
     return button;
   end
@@ -454,27 +473,27 @@ end
 -- Color Picker
 -----------------
 local function ColorWidget_SaveValue(container, r, g, b, a)
-    if (container.useIndexes) then
-        container.value[1] = r;
-        container.value[2] = g;
-        container.value[3] = b;
-        container.value[4] = a;
-    else
-        container.value.r = r;
-        container.value.g = g;
-        container.value.b = b;
-        container.value.a = a;
-    end
+  if (container.useIndexes) then
+    container.value[1] = r;
+    container.value[2] = g;
+    container.value[3] = b;
+    container.value[4] = a;
+  else
+    container.value.r = r;
+    container.value.g = g;
+    container.value.b = b;
+    container.value.a = a;
+  end
 
-    container.r = r;
-    container.g = g;
-    container.b = b;
+  container.r = r;
+  container.g = g;
+  container.b = b;
 
-    if (container.hasOpacity) then
-        container.opacity = 1.0 - a;
-    end
+  if (container.hasOpacity) then
+    container.opacity = 1.0 - a;
+  end
 
-    configModule:SetDatabaseValue(container, container.value);
+  configModule:SetDatabaseValue(container, container.value);
 end
 
 local function ColorWidget_OnClick(self)
@@ -661,41 +680,41 @@ end
 -- fixedWidth - overrides the default container width with the natural width of the fontstring
 
 function WidgetHandlers.fontstring(parent, widgetTable)
-    local container = tk:PopFrame("Frame", parent);
+  local container = tk:PopFrame("Frame", parent);
 
-    container.content = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
-    container.content:SetAllPoints(true);
-    container.content:SetWordWrap(true);
+  container.content = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
+  container.content:SetAllPoints(true);
+  container.content:SetWordWrap(true);
 
-    if (widgetTable.justify) then
-        container.content:SetJustifyH(widgetTable.justify);
-    else
-        container.content:SetJustifyH("LEFT");
+  if (widgetTable.justify) then
+    container.content:SetJustifyH(widgetTable.justify);
+  else
+    container.content:SetJustifyH("LEFT");
+  end
+
+  if (widgetTable.subtype) then
+    if (widgetTable.subtype == "header") then
+      container.content:SetFontObject("MUI_FontLarge");
     end
+  end
 
-    if (widgetTable.subtype) then
-        if (widgetTable.subtype == "header") then
-            container.content:SetFontObject("MUI_FontLarge");
-        end
-    end
+  local content = GetAttribute(widgetTable, "content");
+  container.content:SetText(content);
 
-    local content = GetAttribute(widgetTable, "content");
-    container.content:SetText(content);
+  if (widgetTable.height) then
+    container:SetHeight(widgetTable.height);
+  else
+    container:SetHeight(container.content:GetStringHeight());
+    container:SetScript("OnSizeChanged", FontString_OnSizeChanged);
+  end
 
-    if (widgetTable.height) then
-        container:SetHeight(widgetTable.height);
-    else
-        container:SetHeight(container.content:GetStringHeight());
-        container:SetScript("OnSizeChanged", FontString_OnSizeChanged);
-    end
+  if (widgetTable.width) then
+    container:SetWidth(widgetTable.width);
+  elseif (widgetTable.fixedWidth) then
+    container:SetWidth(container.content:GetStringWidth());
+  else
+    tk:SetFullWidth(container, 20);
+  end
 
-    if (widgetTable.width) then
-        container:SetWidth(widgetTable.width);
-    elseif (widgetTable.fixedWidth) then
-        container:SetWidth(container.content:GetStringWidth());
-    else
-        tk:SetFullWidth(container, 20);
-    end
-
-    return container;
+  return container;
 end

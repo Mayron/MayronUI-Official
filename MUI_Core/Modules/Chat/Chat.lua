@@ -103,22 +103,25 @@ local defaults = {
     {
       "healers", "healer", "healz", "heal",
       color = { 0.1; 1; 0.1; };
+      sound = false;
       upperCase = true;
     },
     {
       "tanks", "tank",
       color = { 1; 0.1; 0.1; };
+      sound = false;
       upperCase = true;
     },
     {
       "dps";
       color = { 1; 1; 0; };
+      sound = false;
       upperCase = true;
     },
     {
       _G.UnitName("player");
-      color = { 1, 0.5, 1};
-      sound = true;
+      color = { 1, 0.04, 0.78 };
+      sound = tk.Constants.SOUND_OPTIONS[L["Whisper Received"]];
       upperCase = false;
     },
   };

@@ -121,6 +121,17 @@ local function CreateButtonConfigTable(dbPath, buttonID, chatFrame, addWidget)
   return unpack(configTable);
 end
 
+local function GetTextToHighlightLabel(highlighted)
+  local coloredText = obj:PopTable();
+
+  for index, text in ipairs(highlighted) do
+    coloredText[index] = tk.Strings:SetTextColorByRGB(text, unpack(highlighted.color));
+  end
+
+  local label = tk.Strings:Join(" | ", coloredText); -- this pushes the table
+  return tk.Strings:JoinWithSpace("Text to Highlight (case insensitive):", label);
+end
+
 function C_ChatModule:GetConfigTable()
     return {
         module = "ChatModule",
@@ -145,29 +156,33 @@ function C_ChatModule:GetConfigTable()
                   {   type = "loop";
                       args = db.profile.chat.highlighted:GetUntrackedTable();
                       func = function(id, tbl)
-                        local path = "profile.chat.highlighted[" .. id .. "].";
-
-                        for index, text in ipairs(tbl) do
-                          tbl[index] = tk.Strings:SetTextColorByRGB(text, unpack(tbl.color));
-                        end
-
-                        local highlighted = tk.Strings:Join(" | ", tbl);
-                        local content = tk.Strings:JoinWithSpace("Text to Highlight (case insensitive):", highlighted);
+                        local path = "profile.chat.highlighted[" .. id .. "]";
+                        local fontString;
 
                         local children = {
                           type = "frame";
                           children = {
                             {
                               type = "fontstring";
-                              content = content;
+                              content = GetTextToHighlightLabel(tbl);
+                              OnLoad = function(_, container)
+                                fontString = container.content;
+                              end;
                             },
                             {   type = "check";
                                 name = "Show in Upper Case";
-                                dbPath = path .. "upperCase";
+                                dbPath = tk.Strings:Join(".", path, "upperCase");
                             };
                             {   type = "color";
+                                useIndexes = true;
                                 name = "Set Color";
-                                dbPath = path .. "color";
+                                dbPath = tk.Strings:Join(".", path, "color");
+
+                                OnPostSetValue = function()
+                                  local newTbl = db:ParsePathValue(path):GetUntrackedTable();
+                                  local newContent = GetTextToHighlightLabel(newTbl);
+                                  fontString:SetText(newContent);
+                                end;
                             };
                             {   type = "button";
                                 name = "Edit Text";
@@ -180,8 +195,23 @@ function C_ChatModule:GetConfigTable()
                             {   type = "divider"; };
                             {   type = "dropdown";
                                 name = "Play Sound";
+                                dbPath = tk.Strings:Join(".", path, "sound");
                                 tooltip = "Play a sound effect when any of the selected text appears in chat.";
-                                options = { "None", "Whisper Received"};
+                                options = tk.Constants.SOUND_OPTIONS;
+                            },
+                            { type = "button";
+                              texture = "Interface\\COMMON\\VOICECHAT-SPEAKER";
+                              width = 20;
+                              height = 40;
+                              texHeight = 20;
+                              OnClick = function()
+                                local soundPath = tk.Strings:Join(".", path, "sound");
+                                local sound = db:ParsePathValue(soundPath);
+
+                                if (obj:IsNumber(sound)) then
+                                  _G.PlaySound(sound);
+                                end
+                              end
                             }
                           };
                         };
