@@ -3,7 +3,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local C_LayoutSwitcher = MayronUI:RegisterModule("LayoutSwitcher");
 
-local ipairs, string = _G.ipairs, _G.string;
+local ipairs, string, pairs = _G.ipairs, _G.string, _G.pairs;
 local LibStub, IsAddOnLoaded = _G.LibStub, _G.IsAddOnLoaded;
 local UIFrameFadeIn, PlaySound = _G.UIFrameFadeIn, _G.PlaySound;
 
@@ -12,8 +12,9 @@ local LAYOUT_MESSAGE = L["Customize which addOn/s should change to which profile
 
 -- Local Functions -------------------
 
-local function SetAddOnProfilePair(_, viewingLayout, addOnName, profileName)
-  db:SetPathValue(db.global, string.format("layouts.%s.%s", viewingLayout, addOnName), profileName);
+local function SetAddOnProfilePair(_, data, addOnName, profileName)
+  local path = string.format("layouts.%s.%s", data.viewingLayout, addOnName);
+  db:SetPathValue(db.global, path, profileName);
 end
 
 local function GetSupportedAddOns()
@@ -83,7 +84,7 @@ function C_LayoutSwitcher:GetNumLayouts()
 end
 
 function C_LayoutSwitcher:UpdateAddOnWindow(data)
-	if (not data.addonWindow) then return; end
+	if (not data.addonWindow) then return end
 
   local layoutData = db.global.layouts[data.viewingLayout];
 
@@ -149,12 +150,12 @@ function C_LayoutSwitcher:CreateNewAddOnProfile(data, dropdown, addOnName, dbObj
 			end
 
 			if (not alreadyExists) then
-				dropdown:AddOption(text, SetAddOnProfilePair, data.viewingLayout, addOnName, text);
+				dropdown:AddOption(text, SetAddOnProfilePair, data, addOnName, text);
 			end
 
 			dbObject:SetProfile(text);
 			dbObject:SetProfile(currentProfile);
-			SetAddOnProfilePair(nil, data.viewingLayout, addOnName, text);
+			SetAddOnProfilePair(nil, data, addOnName, text);
 
 			dropdown:SetLabel(text);
 		end,
@@ -291,7 +292,7 @@ function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
 	dropdown:AddOption("<"..L["New Profile"]..">", {self, "CreateNewAddOnProfile"}, addOnName, dbObject);
 
 	for _, profileName in ipairs(addOnProfiles) do
-		dropdown:AddOption(profileName, SetAddOnProfilePair, data.viewingLayout, addOnName, profileName);
+		dropdown:AddOption(profileName, SetAddOnProfilePair, data, addOnName, profileName);
 	end
 
 	checkButton.btn:SetScript("OnClick", function(self)
@@ -299,10 +300,10 @@ function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
 		dropdown:SetEnabled(checked);
 
 		if (not checked) then
-			SetAddOnProfilePair(nil, data.viewingLayout, addOnName, false);
+			SetAddOnProfilePair(nil, data, addOnName, false);
 		else
 			local profileName = dropdown:GetLabel();
-			SetAddOnProfilePair(nil, data.viewingLayout, addOnName, profileName);
+			SetAddOnProfilePair(nil, data, addOnName, profileName);
 		end
 	end);
 
