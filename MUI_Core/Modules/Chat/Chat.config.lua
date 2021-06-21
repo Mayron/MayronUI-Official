@@ -395,7 +395,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
           };
           { type = "fontstring";
             subtype = "header";
-            content = "Server Channels";
+            content = L["Server Channels"];
             width = "";
           };
           { type = "loop";

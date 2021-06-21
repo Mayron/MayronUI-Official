@@ -856,3 +856,4 @@ L["Raid Boss Warning"] = "Raid Boss Warning";
 L["Ready Check"] = "Ready Check";
 L["Repair Item"] = "Repair Item";
 L["Whisper Received"] = "Whisper Received";
+L["Server Channels"] = "Server Channels";

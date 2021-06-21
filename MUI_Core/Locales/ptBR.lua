@@ -807,3 +807,4 @@ L["Raid Boss Warning"] = "Aviso de chefe de ataque";
 L["Ready Check"] = "Teste de Pronto";
 L["Repair Item"] = "Item de reparo";
 L["Whisper Received"] = "Sussurro recebido";
+L["Server Channels"] = "Canais de servidor";

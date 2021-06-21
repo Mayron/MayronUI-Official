@@ -802,3 +802,4 @@ L["Raid Boss Warning"] = "突袭boss警告";
 L["Ready Check"] = "准备检查";
 L["Repair Item"] = "维修项目";
 L["Whisper Received"] = "耳语收到";
+L["Server Channels"] = "服务器通道";

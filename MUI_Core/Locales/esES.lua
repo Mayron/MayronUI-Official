@@ -761,3 +761,4 @@ L["Raid Boss Warning"] = "Advertencia de jefe de incursión";
 L["Ready Check"] = "Comprobación lista";
 L["Repair Item"] = "Reparar artículo";
 L["Whisper Received"] = "Susurro recibido";
+L["Server Channels"] = "Canales del servidor";

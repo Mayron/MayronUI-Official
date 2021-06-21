@@ -808,3 +808,4 @@ L["Raid Boss Warning"] = "Avertissement du boss de raid";
 L["Ready Check"] = "Contrôle prêt";
 L["Repair Item"] = "Réparer l'article";
 L["Whisper Received"] = "Murmure reçu";
+L["Server Channels"] = "Canaux de serveur";

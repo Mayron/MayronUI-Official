@@ -812,3 +812,4 @@ L["Raid Boss Warning"] = "Предупреждение рейдового бос
 L["Ready Check"] = "Готовый чек";
 L["Repair Item"] = "Предмет ремонта";
 L["Whisper Received"] = "Получен шепот";
+L["Server Channels"] = "Каналы сервера";
