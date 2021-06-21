@@ -9,7 +9,7 @@ local DynamicFrame = obj:CreateClass("DynamicFrame"); ---@class DynamicFrame
 obj:Export(DynamicFrame, "MayronUI");
 
 local mceil, mfloor, unpack, ipairs = _G.math.ceil, _G.math.floor, _G.unpack, _G.ipairs;
-local CreateFrame, tinsert, select = _G.CreateFrame, _G.table.insert, _G.select;
+local CreateFrame, tinsert, tremove, select = _G.CreateFrame, _G.table.insert, _G.table.remove, _G.select;
 
 local function OnSizeChanged(self, width)
   width = mceil(width);
@@ -119,6 +119,23 @@ function DynamicFrame:AddChildren(data, ...)
 
   -- position the child
   OnSizeChanged(data.frame, data.frame:GetWidth());
+end
+
+function DynamicFrame:RemoveChild(data, child)
+  local foundId;
+  for id, otherChild in ipairs(data.frame.children) do
+    if (otherChild == child) then
+      foundId = id;
+      break
+    end
+  end
+
+  if (foundId) then
+    child:ClearAllPoints();
+    child:Hide();
+    tremove(data.frame.children, foundId);
+    OnSizeChanged(data.frame, data.frame:GetWidth());
+  end
 end
 
 function DynamicFrame:GetChildren(data)

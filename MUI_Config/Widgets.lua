@@ -455,6 +455,10 @@ function WidgetHandlers.frame(parent, widgetTable)
   local dynamicFrame = gui:CreateDynamicFrame(nil, parent, widgetTable.spacing or 10, widgetTable.padding or 10);
   local realFrame = dynamicFrame:GetFrame();
 
+  if (widgetTable.OnClose) then
+    gui:AddCloseButton(tk.Constants.AddOnStyle, realFrame, widgetTable.OnClose);
+  end
+
   if (widgetTable.width) then
     realFrame:SetWidth(widgetTable.width);
   else

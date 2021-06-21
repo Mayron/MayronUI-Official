@@ -22,31 +22,31 @@ local function OnLeave()
 end
 
 Lib.FONT_TYPES = {
-    GameFontNormal                  = "GameFontNormal",
-    GameFontNormalSmall             = "GameFontNormalSmall",
-    GameFontNormalLarge             = "GameFontNormalLarge",
-    GameFontHighlight               = "GameFontHighlight",
-    GameFontHighlightSmall          = "GameFontHighlightSmall",
-    GameFontHighlightSmallOutline   = "GameFontHighlightSmallOutline",
-    GameFontHighlightLarge          = "GameFontHighlightLarge",
-    GameFontDisable                 = "GameFontDisable",
-    GameFontDisableSmall            = "GameFontDisableSmall",
-    GameFontDisableLarge            = "GameFontDisableLarge",
-    GameFontGreen                   = "GameFontGreen",
-    GameFontGreenSmall              = "GameFontGreenSmall",
-    GameFontGreenLarge              = "GameFontGreenLarge",
-    GameFontRed                     = "GameFontRed",
-    GameFontRedSmall                = "GameFontRedSmall",
-    GameFontRedLarge                = "GameFontRedLarge",
-    GameFontWhite                   = "GameFontWhite",
-    GameFontDarkGraySmall           = "GameFontDarkGraySmall",
-    NumberFontNormalYellow          = "NumberFontNormalYellow",
-    NumberFontNormalSmallGray       = "NumberFontNormalSmallGray",
-    QuestFontNormalSmall            = "QuestFontNormalSmall",
-    DialogButtonHighlightText       = "DialogButtonHighlightText",
-    ErrorFont                       = "ErrorFont",
-    TextStatusBarText               = "TextStatusBarText",
-    CombatLogFont                   = "CombatLogFont",
+  GameFontNormal                  = "GameFontNormal",
+  GameFontNormalSmall             = "GameFontNormalSmall",
+  GameFontNormalLarge             = "GameFontNormalLarge",
+  GameFontHighlight               = "GameFontHighlight",
+  GameFontHighlightSmall          = "GameFontHighlightSmall",
+  GameFontHighlightSmallOutline   = "GameFontHighlightSmallOutline",
+  GameFontHighlightLarge          = "GameFontHighlightLarge",
+  GameFontDisable                 = "GameFontDisable",
+  GameFontDisableSmall            = "GameFontDisableSmall",
+  GameFontDisableLarge            = "GameFontDisableLarge",
+  GameFontGreen                   = "GameFontGreen",
+  GameFontGreenSmall              = "GameFontGreenSmall",
+  GameFontGreenLarge              = "GameFontGreenLarge",
+  GameFontRed                     = "GameFontRed",
+  GameFontRedSmall                = "GameFontRedSmall",
+  GameFontRedLarge                = "GameFontRedLarge",
+  GameFontWhite                   = "GameFontWhite",
+  GameFontDarkGraySmall           = "GameFontDarkGraySmall",
+  NumberFontNormalYellow          = "NumberFontNormalYellow",
+  NumberFontNormalSmallGray       = "NumberFontNormalSmallGray",
+  QuestFontNormalSmall            = "QuestFontNormalSmall",
+  DialogButtonHighlightText       = "DialogButtonHighlightText",
+  ErrorFont                       = "ErrorFont",
+  TextStatusBarText               = "TextStatusBarText",
+  CombatLogFont                   = "CombatLogFont",
 };
 
 ---@param style Style @The style Object to used to get the "DialogBoxBackground" texture for the dialog box background.
@@ -240,116 +240,116 @@ end
 -- Extra Widget Enhancements
 -------------------------------
 do
-    local function TitleBar_SetWidth(self)
-        local bar = self:GetParent();
-        local width = self:GetStringWidth() + 34;
+  local function TitleBar_SetWidth(self)
+    local bar = self:GetParent();
+    local width = self:GetStringWidth() + 34;
 
-        width = (width > 150 and width) or 150;
-        bar:SetWidth(width);
-    end
+    width = (width > 150 and width) or 150;
+    bar:SetWidth(width);
+  end
 
-    function Lib:AddTitleBar(style, frame, text)
-      local texture = style:GetTexture("TitleBarBackground");
+  function Lib:AddTitleBar(style, frame, text)
+    local texture = style:GetTexture("TitleBarBackground");
 
-      frame.titleBar = CreateFrame("Button", nil, frame);
-      frame.titleBar:SetSize(260, 31);
-      frame.titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", -7, 11);
-      frame.titleBar.bg = frame.titleBar:CreateTexture("ARTWORK");
-      frame.titleBar.bg:SetTexture(texture);
+    frame.titleBar = CreateFrame("Button", nil, frame);
+    frame.titleBar:SetSize(260, 31);
+    frame.titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", -7, 11);
+    frame.titleBar.bg = frame.titleBar:CreateTexture("ARTWORK");
+    frame.titleBar.bg:SetTexture(texture);
 
-      frame.titleBar.bg:SetAllPoints(true);
-      frame.titleBar.text = frame.titleBar:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
+    frame.titleBar.bg:SetAllPoints(true);
+    frame.titleBar.text = frame.titleBar:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
 
-      frame.titleBar.text:SetSize(260, 31);
-      frame.titleBar.text:SetPoint("LEFT", frame.titleBar.bg, "LEFT", 10, 0.5);
-      frame.titleBar.text:SetJustifyH("LEFT");
+    frame.titleBar.text:SetSize(260, 31);
+    frame.titleBar.text:SetPoint("LEFT", frame.titleBar.bg, "LEFT", 10, 0.5);
+    frame.titleBar.text:SetJustifyH("LEFT");
 
-      Private:MakeMovable(frame, frame.titleBar);
-      style:ApplyColor(nil, nil, frame.titleBar.bg);
+    Private:MakeMovable(frame, frame.titleBar);
+    style:ApplyColor(nil, nil, frame.titleBar.bg);
 
-      hooksecurefunc(frame.titleBar.text, "SetText", TitleBar_SetWidth);
-      frame.titleBar.text:SetText(text);
-    end
+    hooksecurefunc(frame.titleBar.text, "SetText", TitleBar_SetWidth);
+    frame.titleBar.text:SetText(text);
+  end
 end
 
 function Lib:AddResizer(style, frame)
-    local normalTexture = style:GetTexture("DraggerTexture");
-    local highlightTexture = style:GetTexture("DraggerTexture");
+  local normalTexture = style:GetTexture("DraggerTexture");
+  local highlightTexture = style:GetTexture("DraggerTexture");
 
-    frame.dragger = CreateFrame("Button", nil, frame);
-    frame.dragger:SetSize(28, 28);
-    frame.dragger:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 2);
-    frame.dragger:SetNormalTexture(normalTexture, "BLEND");
-    frame.dragger:SetHighlightTexture(highlightTexture, "ADD");
+  frame.dragger = CreateFrame("Button", nil, frame);
+  frame.dragger:SetSize(28, 28);
+  frame.dragger:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 2);
+  frame.dragger:SetNormalTexture(normalTexture, "BLEND");
+  frame.dragger:SetHighlightTexture(highlightTexture, "ADD");
 
-    Private:MakeResizable(frame, frame.dragger);
-    style:ApplyColor(nil, nil, frame.dragger:GetNormalTexture());
-    style:ApplyColor(nil, nil, frame.dragger:GetHighlightTexture());
+  Private:MakeResizable(frame, frame.dragger);
+  style:ApplyColor(nil, nil, frame.dragger:GetNormalTexture());
+  style:ApplyColor(nil, nil, frame.dragger:GetHighlightTexture());
 end
 
 function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
-    frame.closeBtn = CreateFrame("Button", nil, frame);
-    frame.closeBtn:SetSize(28, 24);
-    frame.closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1);
+  frame.closeBtn = CreateFrame("Button", nil, frame);
+  frame.closeBtn:SetSize(28, 24);
+  frame.closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1);
 
-    local texture = style:GetTexture("CloseButtonBackground");
-    frame.closeBtn:SetNormalTexture(texture, "BLEND");
-    frame.closeBtn:SetHighlightTexture(texture, "ADD");
-    style:ApplyColor(nil, nil, frame.closeBtn);
+  local texture = style:GetTexture("CloseButtonBackground");
+  frame.closeBtn:SetNormalTexture(texture, "BLEND");
+  frame.closeBtn:SetHighlightTexture(texture, "ADD");
+  style:ApplyColor(nil, nil, frame.closeBtn);
 
-    local group = frame:CreateAnimationGroup();
-    group.a1 = group:CreateAnimation("Translation");
-    group.a1:SetSmoothing("OUT");
-    group.a1:SetDuration(0.3);
-    group.a1:SetOffset(0, 10);
-    group.a2 = group:CreateAnimation("Alpha");
-    group.a2:SetSmoothing("OUT");
-    group.a2:SetDuration(0.3);
-    group.a2:SetFromAlpha(1);
-    group.a2:SetToAlpha(-1);
+  local group = frame:CreateAnimationGroup();
+  group.a1 = group:CreateAnimation("Translation");
+  group.a1:SetSmoothing("OUT");
+  group.a1:SetDuration(0.3);
+  group.a1:SetOffset(0, 10);
+  group.a2 = group:CreateAnimation("Alpha");
+  group.a2:SetSmoothing("OUT");
+  group.a2:SetDuration(0.3);
+  group.a2:SetFromAlpha(1);
+  group.a2:SetToAlpha(-1);
 
-    group:SetScript("OnFinished", function()
-      if (onHideCallback) then
-          onHideCallback();
-      else
-          frame:Hide();
-      end
-    end);
+  group:SetScript("OnFinished", function()
+    if (obj:IsFunction(onHideCallback)) then
+      onHideCallback(frame);
+    end
 
-    frame.closeBtn:SetScript("OnClick", function(self)
-      group:Play();
+    frame:Hide();
+  end);
 
-      if (clickSoundFilePath) then
-        PlaySound(clickSoundFilePath);
-      end
-    end);
+  frame.closeBtn:SetScript("OnClick", function(self)
+    group:Play();
+
+    if (clickSoundFilePath) then
+      PlaySound(clickSoundFilePath);
+    end
+  end);
 end
 
 function Lib:AddArrow(style, frame, direction, center)
-    direction = direction or "UP";
-    direction = direction:upper();
+  direction = direction or "UP";
+  direction = direction:upper();
 
-    frame.arrow = CreateFrame("Frame", nil, frame);
-    frame.arrow:SetSize(30, 24);
+  frame.arrow = CreateFrame("Frame", nil, frame);
+  frame.arrow:SetSize(30, 24);
 
-    local texture = style:GetTexture("ArrowButtonTexture");
-    frame.arrow.bg = frame.arrow:CreateTexture(nil, "ARTWORK");
-    frame.arrow.bg:SetAllPoints(true);
-    frame.arrow.bg:SetTexture(texture);
+  local texture = style:GetTexture("ArrowButtonTexture");
+  frame.arrow.bg = frame.arrow:CreateTexture(nil, "ARTWORK");
+  frame.arrow.bg:SetAllPoints(true);
+  frame.arrow.bg:SetTexture(texture);
 
-    style:ApplyColor(nil, nil, frame.arrow.bg);
+  style:ApplyColor(nil, nil, frame.arrow.bg);
 
-    if (center) then
-        frame.arrow:SetPoint("CENTER");
+  if (center) then
+    frame.arrow:SetPoint("CENTER");
+  end
+
+  if (direction ~= "UP") then
+    if (direction == "DOWN") then
+      frame.arrow.bg:SetTexCoord(0, 1, 1, 0);
+
+      if (not center) then
+        frame.arrow:SetPoint("TOP", frame, "BOTTOM", 0, -2);
+      end
     end
-
-    if (direction ~= "UP") then
-        if (direction == "DOWN") then
-            frame.arrow.bg:SetTexCoord(0, 1, 1, 0);
-
-            if (not center) then
-                frame.arrow:SetPoint("TOP", frame, "BOTTOM", 0, -2);
-            end
-        end
-    end
+  end
 end

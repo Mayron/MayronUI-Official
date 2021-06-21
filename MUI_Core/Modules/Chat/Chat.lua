@@ -99,33 +99,6 @@ local defaults = {
     ["5. WorldDefense"] = "WD";
   };
 
-  highlighted = {
-    {
-      "healers", "healer", "healz", "heal",
-      color = { 0.1; 1; 0.1; };
-      sound = false;
-      upperCase = true;
-    },
-    {
-      "tanks", "tank",
-      color = { 1; 0.1; 0.1; };
-      sound = false;
-      upperCase = true;
-    },
-    {
-      "dps";
-      color = { 1; 1; 0; };
-      sound = false;
-      upperCase = true;
-    },
-    {
-      _G.UnitName("player");
-      color = { 1, 0.04, 0.78 };
-      sound = tk.Constants.SOUND_OPTIONS[L["Whisper Received"]];
-      upperCase = false;
-    },
-  };
-
   editBox = {
     yOffset = -8;
     height = 27;
@@ -415,6 +388,34 @@ end
 
 function C_ChatModule:OnEnable(data)
   if (data.editBoxBackdrop) then return end
+
+  db:AppendOnce(db.profile, "chat.highlighted", nil, {
+    {
+      "healers", "healer", "healz", "heal",
+      color = { 0.1; 1; 0.1; };
+      sound = false;
+      upperCase = true;
+    },
+    {
+      "tanks", "tank",
+      color = { 1; 0.1; 0.1; };
+      sound = false;
+      upperCase = true;
+    },
+    {
+      "dps";
+      color = { 1; 1; 0; };
+      sound = false;
+      upperCase = true;
+    },
+    {
+      _G.UnitName("player");
+      color = { 1, 0.04, 0.78 };
+      sound = tk.Constants.SOUND_OPTIONS[L["Whisper Received"]];
+      upperCase = false;
+    },
+  });
+
 
 	StaticPopupDialogs["MUI_Link"] = {
 		text = tk.Strings:Join(
