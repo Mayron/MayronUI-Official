@@ -14,66 +14,64 @@ local savePositionButtons = {};
 local ShowListFrame;
 
 local function CreateNewFieldButton_OnClick(editBox)
-    local text = editBox:GetText();
-    local tbl = db.profile.fieldNames:GetUntrackedTable();
+  local text = editBox:GetText();
+  local tbl = db.profile.fieldNames:GetUntrackedTable();
 
-    db:SetPathValue(db.profile, "fieldNames["..(#tbl + 1).."]", text);
-    db:SetPathValue(db.profile, "fields."..text, obj:PopTable());
+  db:SetPathValue(db.profile, "fieldNames["..(#tbl + 1).."]", text);
+  db:SetPathValue(db.profile, "fields."..text, obj:PopTable());
 
-    tk:Print(string.format(L["TimerBar field '%s' created."], text));
-    MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
+  tk:Print(string.format(L["TimerBar field '%s' created."], text));
+  MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
 end
 
 local function RemoveFieldButton_OnClick(editBox)
-    local text = editBox:GetText();
-    local tbl = db.profile.fieldNames:GetUntrackedTable();
-    local id = tk.Tables:GetIndex(tbl, text);
+  local text = editBox:GetText();
+  local tbl = db.profile.fieldNames:GetUntrackedTable();
+  local id = tk.Tables:GetIndex(tbl, text);
 
-    if (id) then
-        db:SetPathValue(db.profile, "fieldNames["..id.."]", nil);
-        db:SetPathValue(db.profile, "fields."..text, nil);
-        MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
-    else
-        tk:Print(string.format(L["TimerBar field '%s' does not exist."], text));
-    end
+  if (id) then
+    db:SetPathValue(db.profile, "fieldNames["..id.."]", nil);
+    db:SetPathValue(db.profile, "fields."..text, nil);
+    MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
+  else
+    tk:Print(string.format(L["TimerBar field '%s' does not exist."], text));
+  end
 end
 
 local function ListFrame_OnAddItem(_, item, dbPath)
-    local fullPath = string.format("%s.%s", dbPath, item.name:GetText());
-    db:SetPathValue(fullPath, true);
+  local fullPath = string.format("%s.%s", dbPath, item.name:GetText());
+  db:SetPathValue(fullPath, true);
 end
 
 local function ListFrame_OnRemoveItem(_, item, dbPath)
-    local fullPath = string.format("%s.%s", dbPath, item.name:GetText());
-    db:SetPathValue(fullPath, nil);
+  local fullPath = string.format("%s.%s", dbPath, item.name:GetText());
+  db:SetPathValue(fullPath, nil);
 end
 
 do
     local function compare(a, b)
-        return a < b;
+      return a < b;
     end
 
     ---@param self ListFrame
     ---@param dbPath string
     local function ListFrame_OnShow(self, dbPath)
-        local auraNames = db:ParsePathValue(dbPath);
+      local auraNames = db:ParsePathValue(dbPath);
 
-        if (not obj:IsTable(auraNames)) then
-            return;
-        end
+      if (not obj:IsTable(auraNames)) then return end
 
-        auraNames = auraNames:GetUntrackedTable();
-        table.sort(auraNames, compare);
+      auraNames = auraNames:GetUntrackedTable();
+      table.sort(auraNames, compare);
 
-        for auraName, _ in pairs(auraNames) do
-            self:AddItem(auraName);
-        end
+      for auraName, _ in pairs(auraNames) do
+        self:AddItem(auraName);
+      end
     end
 
     function ShowListFrame(btn)
       if (btn.listFrame) then
         btn.listFrame:SetShown(true);
-        return;
+        return
       end
 
       ---@type ListFrame
@@ -96,26 +94,26 @@ do
 end
 
 local function TimerFieldPosition_OnLoad(configTable, container)
-    local positionIndex = configTable.dbPath:match("%[(%d)%]$");
-    position_TextFields[configTable.fieldName][tonumber(positionIndex)] = container.widget;
+  local positionIndex = configTable.dbPath:match("%[(%d)%]$");
+  position_TextFields[configTable.fieldName][tonumber(positionIndex)] = container.widget;
 end
 
 local function Field_OnDragStop(field)
-    local positions = tk.Tables:GetFramePosition(field);
-    local fieldName = field:GetName():match("MUI_(.*)TimerField");
+  local positions = tk.Tables:GetFramePosition(field);
+  local fieldName = field:GetName():match("MUI_(.*)TimerField");
 
-    if (positions) then
-        -- update the config menu view
-        for index, positionWidget in ipairs(position_TextFields[fieldName]) do
-          if (positionWidget:GetObjectType() == "TextField") then
-            positionWidget:SetText(tostring(positions[index]));
-          elseif (positionWidget:GetObjectType() == "Slider") then
-            positionWidget.editBox:SetText(positions[index]);
-          end
-        end
+  if (positions) then
+    -- update the config menu view
+    for index, positionWidget in ipairs(position_TextFields[fieldName]) do
+      if (positionWidget:GetObjectType() == "TextField") then
+        positionWidget:SetText(tostring(positions[index]));
+      elseif (positionWidget:GetObjectType() == "Slider") then
+        positionWidget.editBox:SetText(positions[index]);
+      end
     end
+  end
 
-    savePositionButtons[fieldName]:SetEnabled(true);
+  savePositionButtons[fieldName]:SetEnabled(true);
 end
 
 function C_TimerBarsModule:GetConfigTable()

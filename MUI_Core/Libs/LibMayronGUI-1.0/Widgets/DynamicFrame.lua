@@ -135,6 +135,8 @@ function DynamicFrame:RemoveChild(data, child)
     child:Hide();
     tremove(data.frame.children, foundId);
     OnSizeChanged(data.frame, data.frame:GetWidth());
+  else
+    obj:Error("Failed to remove child from dynamic frame.")
   end
 end
 

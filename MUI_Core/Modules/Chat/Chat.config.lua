@@ -13,6 +13,7 @@ local ChatFrameAnchorDropDownOptions = {
   [L["Bottom Right"]]   = "BOTTOMRIGHT";
 };
 
+local highlightFrames;
 local iconDropdowns = {};
 
 local iconOptionLabels = {
@@ -122,9 +123,69 @@ local function CreateButtonConfigTable(dbPath, buttonID, chatFrame, addWidget)
   return unpack(configTable);
 end
 
-local GetTextToHighlightFrameConfigTable;
+
+local function ListFrame_OnAddItem(_, item, getPath, updateFontString)
+  local newText = item.name:GetText();
+  local dbPath = getPath();
+  local highlightTable = db:ParsePathValue(dbPath):GetUntrackedTable();
+
+  highlightTable[#highlightTable + 1] = newText;
+  db:SetPathValue(dbPath, highlightTable);
+
+  updateFontString();
+end
+
+local function ListFrame_OnRemoveItem(_, item, getPath, updateFontString)
+  local deleteText = item.name:GetText();
+  local dbPath = getPath();
+  local highlightTable = db:ParsePathValue(dbPath):GetUntrackedTable();
+
+  local index = tk.Tables:IndexOf(highlightTable, deleteText);
+  tremove(highlightTable, index);
+  db:SetPathValue(dbPath, highlightTable);
+
+  updateFontString();
+end
+
+local ShowListFrame;
+do
+  ---@param self ListFrame
+  ---@param dbPath string
+  local function ListFrame_OnShow(self, getPath)
+    local dbPath = getPath();
+    local highlightTable = db:ParsePathValue(dbPath):GetUntrackedTable();
+
+    for _, text in ipairs(highlightTable) do
+      self:AddItem(text);
+    end
+  end
+
+  function ShowListFrame(btn, getPath, updateFontString)
+    if (btn.listFrame) then
+      btn.listFrame:SetShown(true);
+      return
+    end
+
+    ---@type ListFrame
+    local C_ListFrame = obj:Import("MayronUI.ListFrame");
+
+    btn.listFrame = C_ListFrame(btn.name, getPath, updateFontString);
+    btn.listFrame:AddRowText("Enter text to highlight:");
+    btn.listFrame:SetScript("OnShow", ListFrame_OnShow);
+    btn.listFrame:SetShown(true);
+
+    btn.listFrame:SetScript("OnAddItem", ListFrame_OnAddItem);
+    btn.listFrame:SetScript("OnRemoveItem", ListFrame_OnRemoveItem);
+  end
+end
+
+local GetTextHighlightingFrameConfigTable;
 do
   local function GetTextToHighlightLabel(highlighted)
+    if (not highlighted[1]) then
+      return "You have not added any text yet!\nPress the 'Edit Text' button below to add text to highlight:";
+    end
+
     local coloredText = obj:PopTable();
 
     for index, text in ipairs(highlighted) do
@@ -135,49 +196,72 @@ do
     return tk.Strings:JoinWithSpace("Text to Highlight (case insensitive):", label);
   end
 
-  function GetTextToHighlightFrameConfigTable(id, tbl, path, configModule)
-    local fontString;
+  local function GetDbPath(frame)
+    local id = tk.Tables:IndexOf(highlightFrames, frame);
+    obj:Assert(obj:IsNumber(id), "Failed to get index of highlight frame.")
+    return "profile.chat.highlighted[" .. id .. "]";
+  end
+
+  ---@param configModule ConfigModule
+  function GetTextHighlightingFrameConfigTable(tbl, configModule)
+    local fontString, frame;
+
+    local function UpdateFontString()
+      local path = GetDbPath(frame);
+      local newTbl = db:ParsePathValue(path):GetUntrackedTable();
+      local newContent = GetTextToHighlightLabel(newTbl);
+      fontString:SetText(newContent);
+    end
+
+    local function RemoveTextHighlighting()
+      local highlighted = db.profile.chat.highlighted:GetUntrackedTable();
+      local id = tk.Tables:IndexOf(highlightFrames, frame);
+
+      tremove(highlighted, id);
+      tremove(highlightFrames, id);
+
+      db:SetPathValue("profile.chat.highlighted", highlighted);
+      configModule:RemoveWidget(frame);
+    end
+
     local frameConfig = {
       type = "frame";
-      OnClose = function(frame)
-        local highlighted = db.profile.chat.highlighted:GetUntrackedTable();
-        tremove(highlighted, id);
-        db:SetPathValue("profile.chat.highlighted", highlighted);
-        configModule:RemoveWidget(frame);
+      OnLoad = function(_, f)
+        frame = f:GetFrame();
+        table.insert(highlightFrames, frame);
       end;
+      OnClose = RemoveTextHighlighting;
       children = {
-        {
-          type = "fontstring";
+        { type = "fontstring";
           content = GetTextToHighlightLabel(tbl);
           OnLoad = function(_, container)
             fontString = container.content;
           end;
-        },
-        {   type = "check";
-            name = "Show in Upper Case";
-            dbPath = tk.Strings:Join(".", path, "upperCase");
         };
-        {   type = "color";
-            useIndexes = true;
-            name = "Set Color";
-            dbPath = tk.Strings:Join(".", path, "color");
-
-            OnPostSetValue = function()
-              local newTbl = db:ParsePathValue(path):GetUntrackedTable();
-              local newContent = GetTextToHighlightLabel(newTbl);
-              fontString:SetText(newContent);
-            end;
+        { type = "check";
+          name = "Show in Upper Case";
+          dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "upperCase"); end;
         };
-        {   type = "button";
-            name = "Edit Text";
-            padding = 15;
+        { type = "color";
+          useIndexes = true;
+          name = "Set Color";
+          dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "color"); end;
+          OnPostSetValue = UpdateFontString;
+        };
+        { type = "button";
+          name = "Edit Text";
+          padding = 15;
+          OnClick = function(btn)
+            local getPath = function() return GetDbPath(frame) end;
+            ShowListFrame(btn, getPath, UpdateFontString);
+          end;
         },
-        {   type = "divider"; };
-        {   type = "dropdown";
-            name = "Play Sound";
-            dbPath = tk.Strings:Join(".", path, "sound");
-            tooltip = "Play a sound effect when any of the selected text appears in chat.";
-            options = tk.Constants.SOUND_OPTIONS;
+        { type = "divider"; };
+        { type = "dropdown";
+          name = "Play Sound";
+          dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "sound"); end;
+          tooltip = "Play a sound effect when any of the selected text appears in chat.";
+          options = tk.Constants.SOUND_OPTIONS;
         },
         { type = "button";
           texture = "Interface\\COMMON\\VOICECHAT-SPEAKER";
@@ -185,7 +269,7 @@ do
           height = 40;
           texHeight = 20;
           OnClick = function()
-            local soundPath = tk.Strings:Join(".", path, "sound");
+            local soundPath = tk.Strings:Join(".", GetDbPath(frame), "sound");
             local sound = db:ParsePathValue(soundPath);
 
             if (obj:IsNumber(sound)) then
@@ -202,6 +286,21 @@ end
 
 ---@param configModule ConfigModule
 function C_ChatModule:GetConfigTable(_, configModule)
+  local function AddTextHighlighting()
+    highlightFrames = highlightFrames or obj:PopTable();
+    local highlighted = db.profile.chat.highlighted:GetUntrackedTable();
+    local id = #highlighted + 1;
+
+    highlighted[id] = obj:PopTable();
+    highlighted[id].color = obj:PopTable(1, 0, 0);
+    highlighted[id].sound = false;
+    highlighted[id].upperCase = false;
+
+    db.profile.chat.highlighted = highlighted;
+    local config = GetTextHighlightingFrameConfigTable(highlighted[id], configModule);
+    configModule:RenderWidget(config);
+  end
+
   return {
     module = "ChatModule",
     dbPath = "profile.chat",
@@ -220,30 +319,17 @@ function C_ChatModule:GetConfigTable(_, configModule)
           { type = "fontstring";
             content = L["MANAGE_TEXT_HIGHLIGHTING"]:gsub("\n", " ");
           };
+          { type = "divider" };
           { type = "loop";
             args = db.profile.chat.highlighted:GetUntrackedTable();
-            func = function(id, tbl)
-              local path = "profile.chat.highlighted[" .. id .. "]";
-              return GetTextToHighlightFrameConfigTable(id, tbl, path, configModule);
+            func = function(_, tbl)
+              highlightFrames = highlightFrames or obj:PopTable();
+              return GetTextHighlightingFrameConfigTable(tbl, configModule);
             end
           };
           { type = "button";
-            name = "Add Highlighted Text";
-            OnClick = function()
-              local highlighted = db.profile.chat.highlighted:GetUntrackedTable();
-              local id = #highlighted + 1;
-              highlighted[id] = {
-                "Enter text to highlight",
-                color = { 1; 0; 0; };
-                sound = false;
-                upperCase = false;
-              };
-
-              db.profile.chat.highlighted = highlighted;
-              local path = "profile.chat.highlighted[" .. id .. "]";
-              local config = GetTextToHighlightFrameConfigTable(id, highlighted[id], path, configModule);
-              configModule:RenderWidget(config);
-            end;
+            name = "Add Text Highlighting";
+            OnClick = AddTextHighlighting;
           }
         };
       },

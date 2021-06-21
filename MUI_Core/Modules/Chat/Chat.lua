@@ -169,20 +169,20 @@ function C_ChatModule:OnInitialize(data)
   data.chatFrames = obj:PopTable();
 
 	local setupOptions = {
-		onExecuteAll = {
-			last = {
-				"editBox.backdropColor";
-			};
-			ignore = {
-				"icons", "iconsAnchor";
-			}
-		};
+    onExecuteAll = {
+      last = {
+        "editBox.backdropColor";
+      };
+      ignore = {
+        "icons", "iconsAnchor";
+      }
+    };
 		groups = {
-			{
-				patterns = {
-					"editBox.position";
-					"editBox.yOffset";
-				};
+      {
+        patterns = {
+          "editBox.position";
+          "editBox.yOffset";
+        };
 				value = function()
 					local yOffset = data.settings.editBox.yOffset;
 					local position = data.settings.editBox.position;
@@ -228,65 +228,65 @@ function C_ChatModule:OnInitialize(data)
     },
   });
 
-	-- must be before data.settings gets initialised from RegisterUpdateFunctions
-	for _, anchorName in obj:IterateArgs("TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT") do
-		db.profile.chat.chatFrames[anchorName]:SetParent(db.profile.chat.__templateChatFrame);
-	end
+  -- must be before data.settings gets initialised from RegisterUpdateFunctions
+  for _, anchorName in obj:IterateArgs("TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT") do
+    db.profile.chat.chatFrames[anchorName]:SetParent(db.profile.chat.__templateChatFrame);
+  end
 
-	self:RegisterUpdateFunctions(db.profile.chat, {
+  self:RegisterUpdateFunctions(db.profile.chat, {
     iconsAnchor = function()
       C_ChatFrame.Static:SetUpSideBarIcons(self, data.settings);
-		end;
+    end;
 
     icons = function()
       C_ChatFrame.Static:SetUpSideBarIcons(self, data.settings);
-		end;
+    end;
 
     chatFrames = function(value, keysList)
-			if (keysList:GetSize() == 1) then
-				for anchorName, settings in pairs(value) do
-					local muiChatFrame = data.chatFrames[anchorName];
+      if (keysList:GetSize() == 1) then
+        for anchorName, settings in pairs(value) do
+          local muiChatFrame = data.chatFrames[anchorName];
 
-					if (settings.enabled and not muiChatFrame) then
-						muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
-						data.chatFrames[anchorName] = muiChatFrame;
-					end
-				end
+          if (settings.enabled and not muiChatFrame) then
+            muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
+            data.chatFrames[anchorName] = muiChatFrame;
+          end
+        end
 
-				for anchorName, settings in pairs(value) do
-					local muiChatFrame = data.chatFrames[anchorName];
-					if (muiChatFrame) then
-						muiChatFrame:SetEnabled(settings.enabled);
-					end
-				end
-			else
-				keysList:PopFront();
-				local anchorName = keysList:PopFront();
-				local muiChatFrame = data.chatFrames[anchorName];
+        for anchorName, settings in pairs(value) do
+          local muiChatFrame = data.chatFrames[anchorName];
+          if (muiChatFrame) then
+            muiChatFrame:SetEnabled(settings.enabled);
+          end
+        end
+      else
+        keysList:PopFront();
+        local anchorName = keysList:PopFront();
+        local muiChatFrame = data.chatFrames[anchorName];
         local settingName = keysList:PopFront();
 
         if (settingName == "enabled") then
-					if (value and not muiChatFrame) then
-						muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
+          if (value and not muiChatFrame) then
+            muiChatFrame = C_ChatFrame(anchorName, self, data.settings);
 
-						data.chatFrames[anchorName] = muiChatFrame;
-					end
+            data.chatFrames[anchorName] = muiChatFrame;
+          end
 
           muiChatFrame:SetEnabled(value);
           return
-				end
+        end
 
         if (not muiChatFrame) then return end
 
-				if (settingName == "buttons") then
-					keysList:PopFront();
-					local buttonID = keysList:PopFront();
+        if (settingName == "buttons") then
+          keysList:PopFront();
+          local buttonID = keysList:PopFront();
 
-					if (buttonID ~= "key") then
-						em:TriggerEventListenerByID(anchorName.."_OnModifierStateChanged");
-					end
+          if (buttonID ~= "key") then
+            em:TriggerEventListenerByID(anchorName.."_OnModifierStateChanged");
+          end
 
-				elseif (settingName == "tabBar") then
+        elseif (settingName == "tabBar") then
           muiChatFrame:SetUpTabBar(data.settings.chatFrames[anchorName].tabBar);
 
         elseif (settingName == "xOffset" or settingName == "yOffset") then
@@ -299,58 +299,58 @@ function C_ChatModule:OnInitialize(data)
             frame:SetPoint(p, rf, rp, xOffset, yOffset);
           end
 
-				elseif (settingName == "window") then
-					local frame = muiChatFrame:GetFrame();
+        elseif (settingName == "window") then
+          local frame = muiChatFrame:GetFrame();
 
-					if (frame) then
-						local p, rf, rp, x = frame.window:GetPoint();
-						frame.window:SetPoint(p, rf, rp, x, value);
-					end
+          if (frame) then
+            local p, rf, rp, x = frame.window:GetPoint();
+            frame.window:SetPoint(p, rf, rp, x, value);
+          end
         end
-			end
-		end;
+      end
+    end;
 
-		editBox = {
-			height = function(value)
-				ChatFrame1EditBox:SetHeight(value);
-			end;
+    editBox = {
+      height = function(value)
+        ChatFrame1EditBox:SetHeight(value);
+      end;
 
       border = function(value)
         data.editBoxBackdrop.edgeFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BORDER, value);
         ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
         LoadEditBoxBackdrop();
 
-				local color = data.settings.editBox.backdropColor;
-				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
-			end;
+        local color = data.settings.editBox.backdropColor;
+        ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
+      end;
 
-			inset = function(value)
-				data.editBoxBackdrop.insets.left = value;
-				data.editBoxBackdrop.insets.right = value;
-				data.editBoxBackdrop.insets.top = value;
-				data.editBoxBackdrop.insets.bottom = value;
+      inset = function(value)
+        data.editBoxBackdrop.insets.left = value;
+        data.editBoxBackdrop.insets.right = value;
+        data.editBoxBackdrop.insets.top = value;
+        data.editBoxBackdrop.insets.bottom = value;
         ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
         LoadEditBoxBackdrop();
 
-				local color = data.settings.editBox.backdropColor;
-				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
-			end;
+        local color = data.settings.editBox.backdropColor;
+        ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
+      end;
 
-			borderSize = function(value)
-				data.editBoxBackdrop.edgeSize = value;
+      borderSize = function(value)
+        data.editBoxBackdrop.edgeSize = value;
         ChatFrame1EditBox:SetBackdrop(data.editBoxBackdrop);
         LoadEditBoxBackdrop();
 
-				local color = data.settings.editBox.backdropColor;
-				ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
-			end;
+        local color = data.settings.editBox.backdropColor;
+        ChatFrame1EditBox:SetBackdropColor(color.r, color.g, color.b, color.a);
+      end;
 
-			backdropColor = function(value)
+      backdropColor = function(value)
         ChatFrame1EditBox:SetBackdropColor(value.r, value.g, value.b, value.a);
         LoadEditBoxBackdrop();
-			end;
-		};
-	}, setupOptions);
+      end;
+    };
+  }, setupOptions);
 end
 
 ----------------------------------

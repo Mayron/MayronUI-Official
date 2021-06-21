@@ -160,16 +160,18 @@ obj:DefineParams("table");
 ---@param widgetConfigTable table @A widget config table used to construct part of the config menu.
 ---@return any @A value from the database located by the dbPath value inside widgetConfigTable.
 function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
-  if (tk.Strings:IsNilOrWhiteSpace(widgetConfigTable.dbPath)) then
+  local dbPath = widgetConfigTable.dbPath;
+
+  if (obj:IsFunction(dbPath)) then
+    dbPath = dbPath();
+  end
+
+  if (tk.Strings:IsNilOrWhiteSpace(dbPath)) then
     return widgetConfigTable.GetValue and widgetConfigTable.GetValue(widgetConfigTable);
   end
 
-  if (obj:IsFunction(widgetConfigTable.dbPath)) then
-    widgetConfigTable.dbPath = widgetConfigTable.dbPath();
-  end
-
   local db = self:GetDatabase(widgetConfigTable);
-  local value = db:ParsePathValue(widgetConfigTable.dbPath);
+  local value = db:ParsePathValue(dbPath);
 
   if (obj:IsTable(value) and value.GetUntrackedTable) then
     value = value:GetUntrackedTable();
@@ -189,28 +191,33 @@ obj:DefineParams("table");
 function C_ConfigModule:SetDatabaseValue(_, widget, newValue)
   local db = self:GetDatabase(widget);
   local oldValue;
+  local dbPath = widget.dbPath;
 
-  if (not tk.Strings:IsNilOrWhiteSpace(widget.dbPath)) then
-    oldValue = db:ParsePathValue(widget.dbPath);
+  if (obj:IsFunction(dbPath)) then
+    dbPath = dbPath();
+  end
+
+  if (not tk.Strings:IsNilOrWhiteSpace(dbPath)) then
+    oldValue = db:ParsePathValue(dbPath);
   end
 
   if (widget.__SetValue) then
-    widget.__SetValue(widget.dbPath, newValue, oldValue, widget);
+    widget.__SetValue(dbPath, newValue, oldValue, widget);
   else
     -- dbPath is required if not using a custom __SetValue function!
     if (widget.name and widget.name.IsObjectType and widget.name:IsObjectType("FontString")) then
-      tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widget.dbPath),
+      tk:Assert(not tk.Strings:IsNilOrWhiteSpace(dbPath),
         "%s is missing database path address element (dbPath) in config data.", widget.name:GetText());
     else
-      tk:Assert(not tk.Strings:IsNilOrWhiteSpace(widget.dbPath),
+      tk:Assert(not tk.Strings:IsNilOrWhiteSpace(dbPath),
         "Unknown config data is missing database path address element (dbPath).");
     end
 
-    db:SetPathValue(widget.dbPath, newValue);
+    db:SetPathValue(dbPath, newValue);
   end
 
   if (widget.OnPostSetValue) then
-    widget.OnPostSetValue(widget.dbPath, newValue, oldValue, widget);
+    widget.OnPostSetValue(dbPath, newValue, oldValue, widget);
   end
 
   if (widget.requiresReload) then
@@ -394,14 +401,19 @@ function C_ConfigModule:ShowRestartMessage(data)
 end
 
 local function ApplyMenuConfigTable(widgetConfig, menuConfig)
-  if (not tk.Strings:IsNilOrWhiteSpace(menuConfig.dbPath) and
-    not tk.Strings:IsNilOrWhiteSpace(widgetConfig.appendDbPath)) then
+  local dbPath = menuConfig.dbPath;
+
+  if (obj:IsFunction(dbPath)) then
+    dbPath = dbPath();
+  end
+
+  if (not tk.Strings:IsNilOrWhiteSpace(dbPath) and
+      not tk.Strings:IsNilOrWhiteSpace(widgetConfig.appendDbPath)) then
 
     -- append the widget config table's dbPath value onto it!
-    widgetConfig.dbPath = tk.Strings:Join(".",
-    menuConfig.dbPath, widgetConfig.appendDbPath);
-
-      widgetConfig.appendDbPath = nil;
+    obj:Assert(widgetConfig.dbPath == nil, "Cannot use both appendDbPath and dbPath on the same config table.");
+    widgetConfig.dbPath = tk.Strings:Join(".", menuConfig.dbPath, widgetConfig.appendDbPath);
+    widgetConfig.appendDbPath = nil;
   end
 
   if (not obj:IsTable(menuConfig.inherit)) then
