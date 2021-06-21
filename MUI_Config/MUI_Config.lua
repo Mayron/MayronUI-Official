@@ -115,24 +115,23 @@ end
 namespace.MenuButton_OnClick = MenuButton_OnClick;
 
 -- C_ConfigModule -------------------
-
 function C_ConfigModule:OnInitialize()
-    if (not MayronUI:IsInstalled()) then
-        tk:Print(L["Please install the UI and try again."]);
-        return;
-    end
+  if (not MayronUI:IsInstalled()) then
+    tk:Print(L["Please install the UI and try again."]);
+    return;
+  end
 
-    DisableAddOn("MUI_Config"); -- disable for next time
+  DisableAddOn("MUI_Config"); -- disable for next time
 end
 
 function C_ConfigModule:Show(data)
-    if (not data.window) then
-        local menuListScrollChild = self:SetUpWindow();
-        self:SetUpSideMenu(menuListScrollChild);
-    end
+  if (not data.window) then
+    local menuListScrollChild = self:SetUpWindow();
+    self:SetUpSideMenu(menuListScrollChild);
+  end
 
-    data.window:Show();
-    PlaySound(tk.Constants.MENU_OPENED_CLICK);
+  data.window:Show();
+  PlaySound(tk.Constants.MENU_OPENED_CLICK);
 end
 
 obj:DefineReturns("Database");

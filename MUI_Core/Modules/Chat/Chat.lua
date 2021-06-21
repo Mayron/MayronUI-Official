@@ -201,6 +201,33 @@ function C_ChatModule:OnInitialize(data)
 		}
 	};
 
+  db:AppendOnce(db.profile, "chat.highlighted", nil, {
+    {
+      "healers", "healer", "healz", "heal",
+      color = { 0.1; 1; 0.1; };
+      sound = false;
+      upperCase = true;
+    },
+    {
+      "tanks", "tank",
+      color = { 1; 0.1; 0.1; };
+      sound = false;
+      upperCase = true;
+    },
+    {
+      "dps";
+      color = { 1; 1; 0; };
+      sound = false;
+      upperCase = true;
+    },
+    {
+      _G.UnitName("player");
+      color = { 1, 0.04, 0.78 };
+      sound = tk.Constants.SOUND_OPTIONS[L["Whisper Received"]];
+      upperCase = false;
+    },
+  });
+
 	-- must be before data.settings gets initialised from RegisterUpdateFunctions
 	for _, anchorName in obj:IterateArgs("TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT") do
 		db.profile.chat.chatFrames[anchorName]:SetParent(db.profile.chat.__templateChatFrame);
@@ -388,34 +415,6 @@ end
 
 function C_ChatModule:OnEnable(data)
   if (data.editBoxBackdrop) then return end
-
-  db:AppendOnce(db.profile, "chat.highlighted", nil, {
-    {
-      "healers", "healer", "healz", "heal",
-      color = { 0.1; 1; 0.1; };
-      sound = false;
-      upperCase = true;
-    },
-    {
-      "tanks", "tank",
-      color = { 1; 0.1; 0.1; };
-      sound = false;
-      upperCase = true;
-    },
-    {
-      "dps";
-      color = { 1; 1; 0; };
-      sound = false;
-      upperCase = true;
-    },
-    {
-      _G.UnitName("player");
-      color = { 1, 0.04, 0.78 };
-      sound = tk.Constants.SOUND_OPTIONS[L["Whisper Received"]];
-      upperCase = false;
-    },
-  });
-
 
 	StaticPopupDialogs["MUI_Link"] = {
 		text = tk.Strings:Join(

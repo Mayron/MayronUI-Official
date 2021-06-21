@@ -9,59 +9,59 @@ tk.Strings = {};
 tk.Strings.Empty = "";
 tk.Strings.Space = " ";
 
-local CreateColor = _G.CreateColor;
+local CreateColor, ipairs = _G.CreateColor, _G.ipairs;
 local string, table, tostring, type = _G.string, _G.table, _G.tostring, _G.type;
 local select, UnitClass, UnitIsTapDenied = _G.select, _G.UnitClass, _G.UnitIsTapDenied;
 -----------------------------
 
 do
-    local function split(char)
-        return tk.Strings.Space .. char;
-    end
+  local function split(char)
+    return tk.Strings.Space .. char;
+  end
 
-    local function trim1(s)
-        return (s:gsub("^%s*(.-)%s*$", "%1"));
-    end
+  local function trim1(s)
+    return (s:gsub("^%s*(.-)%s*$", "%1"));
+  end
 
-    function tk.Strings:SplitByCamelCase(str)
-        return trim1(str:gsub("[A-Z]", split):gsub("^.", string.upper));
-    end
+  function tk.Strings:SplitByCamelCase(str)
+    return trim1(str:gsub("[A-Z]", split):gsub("^.", string.upper));
+  end
 end
 
 function tk.Strings:Contains(fullString, subString)
-    if (string.match(fullString, subString)) then
-        return true;
-    else
-        return false;
-    end
+  if (string.match(fullString, subString)) then
+    return true;
+  else
+    return false;
+  end
 end
 
 function tk.Strings:StartsWith(strValue, start)
-    return strValue:sub(1, #start) == start;
+  return strValue:sub(1, #start) == start;
 end
 
 function tk.Strings:GeneratePathLengthPattern(totalKeys)
-    local pattern = "^";
+  local pattern = "^";
 
-    for i = 1, totalKeys do
-        if (i < totalKeys) then
-            pattern = pattern .. "[^.]+%.";
-        else
-            pattern = pattern .. "[^.]+";
-        end
+  for i = 1, totalKeys do
+    if (i < totalKeys) then
+      pattern = pattern .. "[^.]+%.";
+    else
+      pattern = pattern .. "[^.]+";
     end
+  end
 
-    pattern = pattern .. "$";
-    return pattern;
+  pattern = pattern .. "$";
+  return pattern;
 end
 
 function tk.Strings:EndsWith(strValue, ending)
-    return strValue:sub(-#ending) == ending;
+  return strValue:sub(-#ending) == ending;
 end
 
 function tk.Strings:GetStringBetween(strValue, firstPart, secondPart)
-    local pattern = string.format("%s%s%s", firstPart, "(.-)", secondPart);
-    return string.match(strValue, pattern);
+  local pattern = string.format("%s%s%s", firstPart, "(.-)", secondPart);
+  return string.match(strValue, pattern);
 end
 
 function tk.Strings:IsNilOrWhiteSpace(strValue)
@@ -91,18 +91,18 @@ function tk.Strings:SetOverflow(str, maxChars)
 end
 
 function tk.Strings:RemoveColorCode(str)
-    return string.gsub(str, "^|c" .. ('%w'):rep(8) .. "(.-)|r(.*)", "%1%2")
+  return string.gsub(str, "^|c" .. ('%w'):rep(8) .. "(.-)|r(.*)", "%1%2")
 end
 
 -- adds comma's to big numbers for easy readability for the player
 function tk.Strings:FormatReadableNumber(number)
-    number = tostring(number);
-    return string.gsub(number, "^(-?%d+)(%d%d%d)", '%1,%2');
+  number = tostring(number);
+  return string.gsub(number, "^(-?%d+)(%d%d%d)", '%1,%2');
 end
 
 --@param text - any text you wish to colour code
 function tk.Strings:SetTextColorByHex(text, hex)
-    return string.format("|cff%s%s|r", hex, text);
+  return string.format("|cff%s%s|r", hex, text);
 end
 
 function tk.Strings:SetTextColorByClassFilename(text, classFilename)
@@ -168,8 +168,9 @@ end
 
 -- also includes level at the end
 local UnitName, UnitLevel, UnitClassification, tonumber, UnitIsPlayer, UnitAffectingCombat, IsResting,
-UnitIsConnected, UnitIsAFK, UnitIsDND, UnitReaction = _G.UnitName, _G.UnitLevel, _G.UnitClassification, _G.tonumber,
-  _G.UnitIsPlayer, _G.UnitAffectingCombat, _G.IsResting, _G.UnitIsConnected, _G.UnitIsAFK, _G.UnitIsDND, _G.UnitReaction;
+UnitIsConnected, UnitIsAFK, UnitIsDND, UnitReaction = _G.UnitName, _G.UnitLevel,
+_G.UnitClassification, _G.tonumber, _G.UnitIsPlayer, _G.UnitAffectingCombat, _G.IsResting,
+_G.UnitIsConnected, _G.UnitIsAFK,   _G.UnitIsDND, _G.UnitReaction;
 
 function tk.Strings:GetUnitNameText(unitID)
   local unitName = tk.Strings:SetOverflow(UnitName(unitID), 22);
@@ -240,10 +241,10 @@ end
 function tk.Strings:GetUnitStatusText(unitID)
   if (UnitIsPlayer(unitID)) then
     local status = (not UnitIsConnected(unitID) and " <DC>")
-      or (UnitIsAFK(unitID) and " <AFK>")
-      or (UnitIsDND(unitID) and " <DND>");
+    or (UnitIsAFK(unitID) and " <AFK>")
+    or (UnitIsDND(unitID) and " <DND>");
 
-      return status;
+    return status;
   end
 end
 
@@ -288,6 +289,8 @@ local function GetStartAndEnd(query, word)
       if (startId and endId) then
         if (not smallestStartId or startId < smallestStartId) then
           smallestStartId = startId;
+          smallestEndId = endId;
+        elseif (smallestStartId and smallestStartId == startId and smallestEndId < endId) then
           smallestEndId = endId;
         end
       end
