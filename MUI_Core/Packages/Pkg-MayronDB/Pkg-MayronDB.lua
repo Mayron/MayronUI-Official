@@ -1372,6 +1372,10 @@ function Helper:HandlePathValueChange(data, observerData, key, newValue, ...)
     dbTableRootName = "profile";
   end
 
+  if (key:find("%.")) then
+    key = "["..key.."]";
+  end
+
   local valuePath = GetNextPath(path, key);
 
   -- TODO: Refactor this to use just the path address version of ParsePathValue
@@ -1408,6 +1412,8 @@ function GetNextPath(path, key)
   if (path ~= nil) then
     if (tonumber(key)) then
       return string.format("%s[%s]", path, key);
+    elseif (key:sub(1, 1) == "[") then
+      return path .. key;
     else
       return string.format("%s.%s", path, key);
     end
@@ -1520,6 +1526,18 @@ do
     local nextTable = rootTable;
     local lastTable, lastKey;
     local isLastPart, isLastIndex;
+    local replaced;
+
+    path = path:gsub("(%b[])", function(index)
+      index = index:match("%[(.+)%]");
+
+      if (index:find("%.")) then
+        replaced = replaced or obj:PopTable();
+        replaced[#replaced + 1] = index;
+        return "[$" .. tostring(#replaced) .. "]";
+      end
+    end);
+
     local pathParts = obj:PopTable(strsplit(".", path));
 
     for i, key in ipairs(pathParts) do
@@ -1543,6 +1561,12 @@ do
 
           for index in key:gmatch("(%b[])") do
             index = index:match("%[(.+)%]");
+
+            if (index:find("^%$%d+$") and replaced) then
+              local r = tonumber(index:match("^%$(%d+)$"));
+              index = replaced[r];
+            end
+
             table.insert(indexes, index);
           end
         end

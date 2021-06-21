@@ -138,6 +138,7 @@ end
 local function ListFrame_OnRemoveItem(_, item, getPath, updateFontString)
   local deleteText = item.name:GetText();
   local dbPath = getPath();
+
   local highlightTable = db:ParsePathValue(dbPath):GetUntrackedTable();
 
   local index = tk.Tables:IndexOf(highlightTable, deleteText);
@@ -174,8 +175,8 @@ do
     btn.listFrame:SetScript("OnShow", ListFrame_OnShow);
     btn.listFrame:SetShown(true);
 
-    btn.listFrame:SetScript("OnAddItem", ListFrame_OnAddItem);
     btn.listFrame:SetScript("OnRemoveItem", ListFrame_OnRemoveItem);
+    btn.listFrame:SetScript("OnAddItem", ListFrame_OnAddItem);
   end
 end
 
@@ -336,64 +337,54 @@ function C_ChatModule:GetConfigTable(_, configModule)
       { name = "Channel Name Aliases",
         tooltip = L["CHANNEL_NAME_ALIASES"];
         type = "submenu";
-
-          -- aliases = {
-          --   -- TODO: Locale
-          --   ["4. LookingForGroup"] = "LFG";
-          --   ["Guild"] = "G";
-          --   ["Party"] = "P";
-          --   ["Party Leader"] = "PL";
-          --   ["5. WorldDefense"] = "WD";
-          --   ["3. LocalDefense"] = "LD";
-          --   ["2. Trade"] = "T";
-          --   ["1. General"] = "G";
-          -- };
-
-
+        dbPath = "profile.chat.aliases";
+        inherit = {
+          width = 170;
+        };
         children = {
           { type = "fontstring";
             content = L["CHANNEL_NAME_ALIASES"]:gsub("\n", " ");
+            width = ""; -- ignore 150 width
           };
           { name = "Guild";
             type = "textfield";
-            dbPath = "profile.chat.aliases[Guild]";
+            appendDbPath = "[Guild]";
           };
           { name = "Party";
             type = "textfield";
-            dbPath = "profile.chat.aliases[Party]";
+            appendDbPath = "[Party]";
           };
           { name = "Party Leader";
             type = "textfield";
-            dbPath = "profile.chat.aliases[Party Leader]";
+            appendDbPath = "[Party Leader]";
           };
           { name = "Raid";
             type = "textfield";
-            dbPath = "profile.chat.aliases[Raid]";
+            appendDbPath = "[Raid]";
           };
           { name = "Raid Leader";
             type = "textfield";
-            dbPath = "profile.chat.aliases[Raid Leader]";
+            appendDbPath = "[Raid Leader]";
           };
-
           { name = "1. General";
             type = "textfield";
-            dbPath = "profile.chat.aliases[1. General]"; -- TODO: . not supported...
+            appendDbPath = "[1. General]"; -- TODO: . not supported...
           };
           { name = "2. Trade";
             type = "textfield";
-            dbPath = "profile.chat.aliases[2. Trade]";
+            appendDbPath = "[2. Trade]";
           };
           { name = "3. LocalDefense";
             type = "textfield";
-            dbPath = "profile.chat.aliases[3. LocalDefense]";
+            appendDbPath = "[3. LocalDefense]";
           };
           { name = "4. LookingForGroup";
             type = "textfield";
-            dbPath = "profile.chat.aliases[4. LookingForGroup]";
+            appendDbPath = "[4. LookingForGroup]";
           };
           { name = "5. WorldDefense";
             type = "textfield";
-            dbPath = "profile.chat.aliases[5. WorldDefense]";
+            appendDbPath = "[5. WorldDefense]";
           };
         };
       },

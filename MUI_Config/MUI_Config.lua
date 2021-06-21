@@ -412,7 +412,13 @@ local function ApplyMenuConfigTable(widgetConfig, menuConfig)
 
     -- append the widget config table's dbPath value onto it!
     obj:Assert(widgetConfig.dbPath == nil, "Cannot use both appendDbPath and dbPath on the same config table.");
-    widgetConfig.dbPath = tk.Strings:Join(".", menuConfig.dbPath, widgetConfig.appendDbPath);
+
+    if (tk.Strings:StartsWith(widgetConfig.appendDbPath, "[")) then
+      widgetConfig.dbPath = tk.Strings:Concat(menuConfig.dbPath, widgetConfig.appendDbPath);
+    else
+      widgetConfig.dbPath = tk.Strings:Join(".", menuConfig.dbPath, widgetConfig.appendDbPath);
+    end
+
     widgetConfig.appendDbPath = nil;
   end
 

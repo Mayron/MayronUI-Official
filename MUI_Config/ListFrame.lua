@@ -2,7 +2,6 @@
 local _G, MayronUI = _G, _G.MayronUI;
 local tk, _, _, gui, obj, _ = MayronUI:GetCoreComponents();
 local unpack, ipairs, CreateFrame, table = _G.unpack, _G.ipairs, _G.CreateFrame, _G.table;
-local Button_OnClick;
 
 ---@class ListFrame : Object
 local C_ListFrame = obj:CreateClass("ListFrame");
@@ -39,13 +38,10 @@ local function CreateListItem(listFrame, data)
   item.btn:SetNormalTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "BLEND");
   item.btn:SetHighlightTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "ADD");
 
-  if (not Button_OnClick) then
-    Button_OnClick = function(btn)
-      listFrame:RemoveItem(btn:GetParent());
-    end
-  end
+  item.btn:SetScript("OnClick", function(btn)
+    listFrame:RemoveItem(btn:GetParent());
+  end);
 
-  item.btn:SetScript("OnClick", Button_OnClick);
   tk:ApplyThemeColor(item.btn);
 
   return item;
@@ -91,36 +87,34 @@ end
 
 obj:DefineParams("string");
 function C_ListFrame:__Construct(data, listFrameTitle, ...)
-    data.listFrameTitle = listFrameTitle;
-    data.args = obj:PopTable(...);
-    data.items = obj:PopTable();
-    data.itemStack = C_Stack:UsingTypes("Frame")();
-    data.itemStack:OnNewItem(CreateListItem);
-    data.itemNames = obj:PopTable();
+  data.listFrameTitle = listFrameTitle;
+  data.args = obj:PopTable(...);
+  data.items = obj:PopTable();
+  data.itemStack = C_Stack:UsingTypes("Frame")();
+  data.itemStack:OnNewItem(CreateListItem);
+  data.itemNames = obj:PopTable();
 end
 
 obj:DefineParams("string");
 function C_ListFrame:AddRowText(data, text)
-    data.rowText = data.rowText or obj:PopTable();
-    data.rowText[#data.rowText + 1] = text;
+  data.rowText = data.rowText or obj:PopTable();
+  data.rowText[#data.rowText + 1] = text;
 end
 
 obj:DefineParams("string");
 function C_ListFrame:AddTextFieldTooltip(data, text)
-    data.textFieldTooltip = text;
+  data.textFieldTooltip = text;
 end
 
 obj:DefineParams("string", "function");
 ---Possible scripts: OnTextChanged, OnRemoveItem, OnAddItem, OnItemEnter, OnShow
 function C_ListFrame:SetScript(data, scriptName, callback)
-    data[scriptName] = callback;
+  data[scriptName] = callback;
 end
 
 obj:DefineParams("boolean");
 function C_ListFrame:SetShown(data, shown)
-  if (not data.listFrame and not shown) then
-    return;
-  end
+  if (not data.listFrame and not shown) then return end
 
   if (data.listFrame) then
     data.listFrame:SetShown(shown);

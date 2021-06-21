@@ -63,45 +63,45 @@ end
 -- Sub Menu
 --------------
 function WidgetHandlers.submenu(parent, submenuConfigTable)
-    local btn = tk:PopFrame("Button", parent);
-    btn:SetSize(250, 60);
-    btn:SetNormalFontObject("GameFontHighlight");
-    btn:SetDisabledFontObject("GameFontDisable");
+  local btn = tk:PopFrame("Button", parent);
+  btn:SetSize(250, 60);
+  btn:SetNormalFontObject("GameFontHighlight");
+  btn:SetDisabledFontObject("GameFontDisable");
 
-    SetWidgetEnabled(btn, submenuConfigTable.enabled);
+  SetWidgetEnabled(btn, submenuConfigTable.enabled);
 
-    btn:SetText(submenuConfigTable.name);
-    btn.text = btn:GetFontString();
-    btn.text:SetJustifyH("LEFT");
-    btn.text:ClearAllPoints();
-    btn.text:SetPoint("TOPLEFT", 10, 0);
-    btn.text:SetPoint("BOTTOMRIGHT");
+  btn:SetText(submenuConfigTable.name);
+  btn.text = btn:GetFontString();
+  btn.text:SetJustifyH("LEFT");
+  btn.text:ClearAllPoints();
+  btn.text:SetPoint("TOPLEFT", 10, 0);
+  btn.text:SetPoint("BOTTOMRIGHT");
 
-    btn.normal = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
-    btn.disabled = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
-    btn.highlight = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
+  btn.normal = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
+  btn.disabled = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
+  btn.highlight = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
 
-    tk:ApplyThemeColor(btn.normal, btn.highlight);
+  tk:ApplyThemeColor(btn.normal, btn.highlight);
 
-    btn.normal:SetAlpha(0.3);
-    btn.disabled:SetAlpha(0.3);
-    btn.highlight:SetAlpha(0.3);
+  btn.normal:SetAlpha(0.3);
+  btn.disabled:SetAlpha(0.3);
+  btn.highlight:SetAlpha(0.3);
 
-    btn:SetNormalTexture(btn.normal);
-    btn:SetDisabledTexture(btn.disabled);
-    btn:SetHighlightTexture(btn.highlight);
+  btn:SetNormalTexture(btn.normal);
+  btn:SetDisabledTexture(btn.disabled);
+  btn:SetHighlightTexture(btn.highlight);
 
-    btn.configTable = submenuConfigTable;
-    btn.type = "submenu";
-    btn.name = submenuConfigTable.name;
+  btn.configTable = submenuConfigTable;
+  btn.type = "submenu";
+  btn.name = submenuConfigTable.name;
 
-    btn:SetScript("OnClick", namespace.MenuButton_OnClick);
+  btn:SetScript("OnClick", namespace.MenuButton_OnClick);
 
-    if (submenuConfigTable.tooltip) then
-      tk:SetBasicTooltip(btn, submenuConfigTable.tooltip);
-    end
+  if (submenuConfigTable.tooltip) then
+    tk:SetBasicTooltip(btn, submenuConfigTable.tooltip);
+  end
 
-    return btn;
+  return btn;
 end
 
 ---------------------
@@ -642,6 +642,14 @@ end
 function WidgetHandlers.textfield(parent, widgetTable, value)
   local textField = gui:CreateTextField(tk.Constants.AddOnStyle, widgetTable.tooltip, parent);
 
+  if (widgetTable.width) then
+    textField:SetWidth(widgetTable.width);
+  end
+
+  if (widgetTable.height) then
+    textField:SetHeight(widgetTable.height);
+  end
+
   textField:SetText((value and tostring(value)) or "");
   local container = CreateElementContainerFrame(textField, widgetTable, parent);
 
@@ -655,24 +663,22 @@ end
 -- Font String
 ----------------
 local function FontString_OnSizeChanged(self)
-    if (self.runningScript) then
-        return;
-    end
+  if (self.runningScript) then return end
 
-    self.runningScript = true;
-    local expectedHeight = self.content:GetStringHeight() + 20;
+  self.runningScript = true;
+  local expectedHeight = self.content:GetStringHeight() + 20;
 
-    if (expectedHeight ~= self:GetHeight()) then
-        self:SetHeight(expectedHeight);
-    end
+  if (expectedHeight ~= self:GetHeight()) then
+    self:SetHeight(expectedHeight);
+  end
 
-    local parent = self:GetParent();
+  local parent = self:GetParent();
 
-    if (parent.originalHeight and parent.originalHeight < expectedHeight and expectedHeight ~= parent:GetHeight()) then
-        parent:SetHeight(expectedHeight);
-    end
+  if (parent.originalHeight and parent.originalHeight < expectedHeight and expectedHeight ~= parent:GetHeight()) then
+    parent:SetHeight(expectedHeight);
+  end
 
-    self.runningScript = nil;
+  self.runningScript = nil;
 end
 
 -- supported fontstring config attributes:
@@ -712,7 +718,7 @@ function WidgetHandlers.fontstring(parent, widgetTable)
     container:SetScript("OnSizeChanged", FontString_OnSizeChanged);
   end
 
-  if (widgetTable.width) then
+  if (obj:IsNumber(widgetTable.width)) then
     container:SetWidth(widgetTable.width);
   elseif (widgetTable.fixedWidth) then
     container:SetWidth(container.content:GetStringWidth());
