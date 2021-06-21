@@ -830,19 +830,15 @@ L["AURAS_ORDERING_ON_TOOLTIP"] =
 when both the buffs and debuffs are positioned together 
 (either above or below the tooltip) and are both enabled.]]
 
--------------------------------
---- NEW!
 L["MANAGE_TEXT_HIGHLIGHTING"] =
 [[Manage text to highlight and optionally
 play a sound effect when they appear in chat.]]
 
-L["CHANNEL_NAME_ALIASES"] =
-[[Set short, custom aliases for chat channel names.
-For example, you can set "LFG" to replace the default
-channel name "[4. LookingForGroup]".]]
+L["CHANNEL_NAME_ALIASES"] = [[Set short, custom aliases for chat channel names.]]
 
 L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen.";
-
+L["Add Text Highlighting"] = "Add Text Highlighting";
+L["Channel Name Aliases"] = "Channel Name Aliases";
 L["Text Highlighting"] = "Text Highlighting";
 L["Alias Brightness"] = "Alias Brightness";
 L["Auction House Open"] = "Auction House Open";

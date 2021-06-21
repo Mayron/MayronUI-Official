@@ -781,3 +781,30 @@ L["AURAS_ORDERING_ON_TOOLTIP"] =
 [[Le paramètre ci-dessous contrôle l'ordre des auras sur l'info-bulle
 lorsque les buffs et les debuffs sont positionnés ensemble
 (au-dessus ou au-dessous de l'info-bulle) et sont tous deux activés.]]
+
+L["MANAGE_TEXT_HIGHLIGHTING"] =
+[[Gérer le texte à surligner et éventuellement
+jouer un effet sonore lorsqu'ils apparaissent dans le chat.]]
+
+L["CHANNEL_NAME_ALIASES"] = [[Définissez des alias courts et personnalisés pour les noms de canaux de discussion.]]
+
+L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "Le conteneur principal contient les panneaux du cadre de l'unité, les panneaux de la barre d'action, la barre de texte de données et toutes les barres de ressources en bas de l'écran.";
+L["Add Text Highlighting"] = "Ajouter une surbrillance de texte";
+L["Channel Name Aliases"] = "Alias de nom de chaîne";
+L["Text Highlighting"] = "Surlignement du texte";
+L["Alias Brightness"] = "Alias Luminosité";
+L["Auction House Open"] = "Ouverture de l'hôtel des ventes";
+L["Auction House Close"] = "Fermeture de l'hôtel des ventes";
+L["Alarm Clock Warning 1"] = "Avertissement réveil 1";
+L["Alarm Clock Warning 2"] = "Alarme réveil 2";
+L["Alarm Clock Warning 3"] = "Alarme réveil 3";
+L["Enter Queue"] = "Entrer dans la file d'attente";
+L["Jewel Crafting Socket"] = "Douille de fabrication de bijoux";
+L["Loot Money"] = "Loot argent";
+L["Map Ping"] = "Carte Ping";
+L["Queue Ready"] = "File d'attente prête";
+L["Raid Warning"] = "Avertissement de raid";
+L["Raid Boss Warning"] = "Avertissement du boss de raid";
+L["Ready Check"] = "Contrôle prêt";
+L["Repair Item"] = "Réparer l'article";
+L["Whisper Received"] = "Murmure reçu";

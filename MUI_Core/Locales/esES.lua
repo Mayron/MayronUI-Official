@@ -734,3 +734,30 @@ L["AURAS_ORDERING_ON_TOOLTIP"] =
 la información sobre herramientas cuando tanto los beneficios como
 los perjuicios se colocan juntos (ya sea por encima o por debajo 
 de la información sobre herramientas) y ambos están habilitados.]]
+
+L["MANAGE_TEXT_HIGHLIGHTING"] =
+[[Administrar texto para resaltar y opcionalmente
+reproducir un efecto de sonido cuando aparezcan en el chat.]]
+
+L["CHANNEL_NAME_ALIASES"] = [[Establezca alias cortos y personalizados para los nombres de los canales de chat.]]
+
+L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "El contenedor principal contiene los paneles del marco de la unidad, los paneles de la barra de acción, la barra de texto de datos y todas las barras de recursos en la parte inferior de la pantalla.";
+L["Add Text Highlighting"] = "Agregar texto resaltado";
+L["Channel Name Aliases"] = "Alias de nombre de canal";
+L["Text Highlighting"] = "Resaltado de texto";
+L["Alias Brightness"] = "Brillo de alias";
+L["Auction House Open"] = "Casa de subastas abierta";
+L["Auction House Close"] = "Cierre de la casa de subastas";
+L["Alarm Clock Warning 1"] = "Alarma de advertencia 1";
+L["Alarm Clock Warning 2"] = "Alarma de advertencia 2";
+L["Alarm Clock Warning 3"] = "Alarma de advertencia 3";
+L["Enter Queue"] = "Entrar en cola";
+L["Jewel Crafting Socket"] = "Enchufe de fabricación de joyas";
+L["Loot Money"] = "Saquear dinero";
+L["Map Ping"] = "Mapa de ping";
+L["Queue Ready"] = "Cola lista";
+L["Raid Warning"] = "Advertencia de incursión";
+L["Raid Boss Warning"] = "Advertencia de jefe de incursión";
+L["Ready Check"] = "Comprobación lista";
+L["Repair Item"] = "Reparar artículo";
+L["Whisper Received"] = "Susurro recibido";

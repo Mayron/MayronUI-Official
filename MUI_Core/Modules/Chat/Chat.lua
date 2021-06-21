@@ -147,11 +147,6 @@ local defaults = {
 	};
 };
 
-for _, channelName in obj:IterateValues(_G.EnumerateServerChannels()) do
-  tk.Strings:SplitByCamelCase(channelName)
-  defaults.aliases[channelName] = (channelName:gsub("[a-z%s]", ""));
-end
-
 if (not tk:IsRetail()) then
   defaults.__templateChatFrame.buttons[3] = {
     key = "S"; -- SHIFT
@@ -173,6 +168,11 @@ end
 
 function C_ChatModule:OnInitialize(data)
   data.chatFrames = obj:PopTable();
+
+  for _, channelName in obj:IterateValues(_G.EnumerateServerChannels()) do
+    tk.Strings:SplitByCamelCase(channelName)
+    defaults.aliases[channelName] = (channelName:gsub("[a-z%s]", ""));
+  end
 
 	local setupOptions = {
     onExecuteAll = {

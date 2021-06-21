@@ -329,12 +329,12 @@ function C_ChatModule:GetConfigTable(_, configModule)
             end
           };
           { type = "button";
-            name = "Add Text Highlighting";
+            name = L["Add Text Highlighting"];
             OnClick = AddTextHighlighting;
           }
         };
       },
-      { name = "Channel Name Aliases",
+      { name = L["Channel Name Aliases"],
         tooltip = L["CHANNEL_NAME_ALIASES"];
         type = "submenu";
         dbPath = "profile.chat.aliases";

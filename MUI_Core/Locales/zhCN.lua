@@ -775,3 +775,30 @@ L["AURAS_ORDERING_ON_TOOLTIP"] =
 [[以下设置控制工具提示上的光环顺序
 当 buffs 和 debuffs 放在一起时
 （在工具提示上方或下方）并且都已启用。]]
+
+L["MANAGE_TEXT_HIGHLIGHTING"] =
+[[管理文本以突出显示和可选
+当他们出现在聊天中时播放声音效果。]]
+
+L["CHANNEL_NAME_ALIASES"] = [[为聊天频道名称设置简短的自定义别名。]]
+
+L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "主容器包含单元框架面板、操作栏面板、数据文本栏和屏幕底部的所有资源栏。";
+L["Add Text Highlighting"] = "添加文本突出显示";
+L["Channel Name Aliases"] = "频道名称别名";
+L["Text Highlighting"] = "文本突出显示";
+L["Alias Brightness"] = "别名亮度";
+L["Auction House Open"] = "拍卖行开放";
+L["Auction House Close"] = "拍卖行关闭";
+L["Alarm Clock Warning 1"] = "闹钟警告1";
+L["Alarm Clock Warning 2"] = "闹钟警告2";
+L["Alarm Clock Warning 3"] = "闹钟警告3";
+L["Enter Queue"] = "进入队列";
+L["Jewel Crafting Socket"] = "珠宝制作插座";
+L["Loot Money"] = "抢钱";
+L["Map Ping"] = "地图平";
+L["Queue Ready"] = "队列准备就绪";
+L["Raid Warning"] = "突袭警告";
+L["Raid Boss Warning"] = "突袭boss警告";
+L["Ready Check"] = "准备检查";
+L["Repair Item"] = "维修项目";
+L["Whisper Received"] = "耳语收到";

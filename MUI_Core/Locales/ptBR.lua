@@ -780,3 +780,30 @@ L["AURAS_ORDERING_ON_TOOLTIP"] =
 [[A configuração abaixo controla a ordem das auras na dica de ferramenta
 quando os buffs e debuffs são posicionados juntos (acima ou abaixo da
 dica de ferramenta) e ambos estão habilitados.]]
+
+L["MANAGE_TEXT_HIGHLIGHTING"] =
+[[Gerenciar texto para destacar e opcionalmente
+reproduzam um efeito sonoro quando aparecem no chat.]]
+
+L["CHANNEL_NAME_ALIASES"] = [[Defina apelidos curtos e personalizados para nomes de canais de bate-papo.]]
+
+L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "O contêiner principal contém os painéis da estrutura da unidade, painéis da barra de ação, barra de texto de dados e todas as barras de recursos na parte inferior da tela.";
+L["Add Text Highlighting"] = "Adicionar realce de texto";
+L["Channel Name Aliases"] = "Aliases de nome de canal";
+L["Text Highlighting"] = "Destaque de texto";
+L["Alias Brightness"] = "Alias Brightness";
+L["Auction House Open"] = "Leilão aberto";
+L["Auction House Close"] = "Leilão da casa fechada";
+L["Alarm Clock Warning 1"] = "Aviso 1 do despertador";
+L["Alarm Clock Warning 2"] = "Aviso 2 do despertador";
+L["Alarm Clock Warning 3"] = "Aviso 3 do despertador";
+L["Enter Queue"] = "Entrar na fila";
+L["Jewel Crafting Socket"] = "Soquete de fabricação de joias";
+L["Loot Money"] = "Dinheiro de saque";
+L["Map Ping"] = "Mapeamento";
+L["Queue Ready"] = "Fila pronta";
+L["Raid Warning"] = "Aviso de Raid";
+L["Raid Boss Warning"] = "Aviso de chefe de ataque";
+L["Ready Check"] = "Teste de Pronto";
+L["Repair Item"] = "Item de reparo";
+L["Whisper Received"] = "Sussurro recebido";

@@ -785,3 +785,30 @@ L["AURAS_ORDERING_ON_TOOLTIP"] =
 [[Приведенная ниже настройка управляет порядком аур во всплывающей подсказке.
 когда и баффы, и дебаффы расположены вместе
 (либо над, либо под всплывающей подсказкой), и оба они включены.]]
+
+L["MANAGE_TEXT_HIGHLIGHTING"] =
+[[Управляйте текстом для выделения и при необходимости
+воспроизводить звуковой эффект, когда они появляются в чате.]]
+
+L["CHANNEL_NAME_ALIASES"] = [[Установите короткие персонализированные псевдонимы для имен каналов чата.]]
+
+L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "Основной контейнер содержит панели фрейма объекта, панели панели действий, панель текста и данных и все панели ресурсов в нижней части экрана.";
+L["Add Text Highlighting"] = "Добавить выделение текста";
+L["Channel Name Aliases"] = "Псевдонимы названий каналов";
+L["Text Highlighting"] = "Выделение текста";
+L["Alias Brightness"] = "Яркость псевдонима";
+L["Auction House Open"] = "Аукционный дом открыт";
+L["Auction House Close"] = "Аукционный дом Закрыть";
+L["Alarm Clock Warning 1"] = "Предупреждение будильника 1";
+L["Alarm Clock Warning 2"] = "Предупреждение будильника 2";
+L["Alarm Clock Warning 3"] = "Предупреждение будильника 3";
+L["Enter Queue"] = "Войти в очередь";
+L["Jewel Crafting Socket"] = "Гнездо для изготовления самоцветов";
+L["Loot Money"] = "Деньги с добычей";
+L["Map Ping"] = "Пинг карты";
+L["Queue Ready"] = "Очередь готова";
+L["Raid Warning"] = "Предупреждение о рейде";
+L["Raid Boss Warning"] = "Предупреждение рейдового босса";
+L["Ready Check"] = "Готовый чек";
+L["Repair Item"] = "Предмет ремонта";
+L["Whisper Received"] = "Получен шепот";
