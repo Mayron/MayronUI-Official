@@ -479,7 +479,7 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
     tk:SetBackground(widget, mrandom(), mrandom(), mrandom());
   end
 
-  -- TODO: If using RenderWidget manually in config then this won't work
+  -- If using RenderWidget manually in config then this won't work
   if (data.tempMenuConfigTable and widgetConfigTable.type == "radio" and widgetConfigTable.groupName) then
     -- get groups[groupName] value from tempRadioButtonGroup
     local tempRadioButtonGroup = tk.Tables:GetTable(

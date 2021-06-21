@@ -45,12 +45,15 @@ end
 
 local function RenameAliases(text, settings, r, g, b)
   for channel, alias in pairs(settings.aliases) do
-    local channelID, body = text:match("^|Hchannel:(.-)|h%[" .. channel .. ".-%]|h (.*)");
+    local channelID, body = text:match("^|Hchannel:(.-)|h%[.-" .. channel .. ".-%]|h (.*)");
 
     if (channelID and body) then
       body = body:trim();
-      local d = settings.darkening;
-      alias = tk.Strings:SetTextColorByRGB(alias, r * d, g * d, b * d);
+      alias = tk.Strings:SetTextColorByRGB(alias,
+        r * settings.brightness,
+        g * settings.brightness,
+        b * settings.brightness);
+
       local prefix = "|Hchannel:" .. channelID .. "|h" .. alias .. " |h";
       text = prefix .. body;
       break;

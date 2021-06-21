@@ -843,6 +843,8 @@ channel name "[4. LookingForGroup]".]]
 
 L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen.";
 
+L["Text Highlighting"] = "Text Highlighting";
+L["Alias Brightness"] = "Alias Brightness";
 L["Auction House Open"] = "Auction House Open";
 L["Auction House Close"] = "Auction House Close";
 L["Alarm Clock Warning 1"] = "Alarm Clock Warning 1";

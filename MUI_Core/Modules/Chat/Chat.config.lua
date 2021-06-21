@@ -313,7 +313,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
         appendDbPath = "enabled",
       },
       { type = "divider" };
-      { name = "Text Highlighting"; -- TODO: LOCALE
+      { name = L["Text Highlighting"];
         tooltip = L["MANAGE_TEXT_HIGHLIGHTING"];
         type = "submenu";
         children = {
@@ -346,46 +346,68 @@ function C_ChatModule:GetConfigTable(_, configModule)
             content = L["CHANNEL_NAME_ALIASES"]:gsub("\n", " ");
             width = ""; -- ignore 150 width
           };
-          { name = "Guild";
-            type = "textfield";
-            appendDbPath = "[Guild]";
+          { type = "slider";
+            name = L["Alias Brightness"];
+            tooltip = L["Default value is"] .. " 0.7";
+            dbPath = "profile.chat.brightness";
+            min = 0;
+            max = 1;
+            step = 0.1;
           };
-          { name = "Party";
+          { type = "divider"; };
+          { name = _G.CHAT_MSG_GUILD;
             type = "textfield";
-            appendDbPath = "[Party]";
+            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_GUILD, "]");
           };
-          { name = "Party Leader";
+          { name = _G.CHAT_MSG_OFFICER;
             type = "textfield";
-            appendDbPath = "[Party Leader]";
+            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_OFFICER, "]");
           };
-          { name = "Raid";
+          { name = _G.CHAT_MSG_PARTY;
             type = "textfield";
-            appendDbPath = "[Raid]";
+            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_PARTY, "]");
           };
-          { name = "Raid Leader";
+          { name = _G.CHAT_MSG_PARTY_LEADER;
             type = "textfield";
-            appendDbPath = "[Raid Leader]";
+            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_PARTY_LEADER, "]");
           };
-          { name = "1. General";
+          { name = _G.CHAT_MSG_RAID;
             type = "textfield";
-            appendDbPath = "[1. General]"; -- TODO: . not supported...
+            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID, "]");
           };
-          { name = "2. Trade";
+          { name = _G.CHAT_MSG_RAID_LEADER;
             type = "textfield";
-            appendDbPath = "[2. Trade]";
+            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID_LEADER, "]");
           };
-          { name = "3. LocalDefense";
+          { name = _G.CHAT_MSG_RAID_WARNING;
             type = "textfield";
-            appendDbPath = "[3. LocalDefense]";
+            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID_WARNING, "]");
           };
-          { name = "4. LookingForGroup";
+          { name = _G.INSTANCE_CHAT;
             type = "textfield";
-            appendDbPath = "[4. LookingForGroup]";
+            appendDbPath = tk.Strings:Concat("[", _G.INSTANCE_CHAT, "]");
+            client = "retail";
           };
-          { name = "5. WorldDefense";
+          { name = _G.INSTANCE_CHAT_LEADER;
             type = "textfield";
-            appendDbPath = "[5. WorldDefense]";
+            appendDbPath = tk.Strings:Concat("[", _G.INSTANCE_CHAT_LEADER, "]");
+            client = "retail";
           };
+          { type = "fontstring";
+            subtype = "header";
+            content = "Server Channels";
+            width = "";
+          };
+          { type = "loop";
+            args =  obj:PopTable(_G.EnumerateServerChannels());
+            func = function(_, channelName)
+              return {
+                name = tk.Strings:SplitByCamelCase(channelName);
+                type = "textfield";
+                dbPath = tk.Strings:Concat("profile.chat.aliases[", channelName, "]");
+              };
+            end;
+          }
         };
       },
       { name = L["Edit Box (Message Input Box)"],

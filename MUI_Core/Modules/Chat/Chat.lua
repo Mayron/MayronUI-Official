@@ -84,19 +84,20 @@ local defaults = {
     { type = "playerStatus" };
   };
 
-  darkening = 0.7;
+  brightness = 0.7;
   aliases = {
-    -- TODO: Locale
-    ["Guild"] = "G";
-    ["Party"] = "P";
-    ["Party Leader"] = "PL";
-    ["Raid"] = "R";
-    ["Raid Leader"] = "RL";
-    ["1. General"] = "G";
-    ["2. Trade"] = "T";
-    ["3. LocalDefense"] = "LD";
-    ["4. LookingForGroup"] = "LFG";
-    ["5. WorldDefense"] = "WD";
+    [_G.CHAT_MSG_GUILD] = _G.CHAT_MSG_GUILD:gsub("[a-z%s]", tk.Strings.Empty);
+    [_G.CHAT_MSG_OFFICER] = _G.CHAT_MSG_OFFICER:gsub("[a-z%s]", tk.Strings.Empty);
+
+    [_G.CHAT_MSG_PARTY] = _G.CHAT_MSG_PARTY:gsub("[a-z%s]", tk.Strings.Empty);
+    [_G.CHAT_MSG_PARTY_LEADER] = _G.CHAT_MSG_PARTY_LEADER:gsub("[a-z%s]", tk.Strings.Empty);
+
+    [_G.CHAT_MSG_RAID] = _G.CHAT_MSG_RAID:gsub("[a-z%s]", tk.Strings.Empty);
+    [_G.CHAT_MSG_RAID_LEADER] = _G.CHAT_MSG_RAID_LEADER:gsub("[a-z%s]", tk.Strings.Empty);
+    [_G.CHAT_MSG_RAID_WARNING] = _G.CHAT_MSG_RAID_WARNING:gsub("[a-z%s]", tk.Strings.Empty);
+
+    [_G.INSTANCE_CHAT] = _G.INSTANCE_CHAT:gsub("[a-z%s]", tk.Strings.Empty);
+    [_G.INSTANCE_CHAT_LEADER] = _G.INSTANCE_CHAT_LEADER:gsub("[a-z%s]", tk.Strings.Empty);
   };
 
   editBox = {
@@ -145,6 +146,11 @@ local defaults = {
 		}
 	};
 };
+
+for _, channelName in obj:IterateValues(_G.EnumerateServerChannels()) do
+  tk.Strings:SplitByCamelCase(channelName)
+  defaults.aliases[channelName] = (channelName:gsub("[a-z%s]", ""));
+end
 
 if (not tk:IsRetail()) then
   defaults.__templateChatFrame.buttons[3] = {
