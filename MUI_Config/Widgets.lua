@@ -146,13 +146,13 @@ end
 -- Condition
 ----------------
 function WidgetHandlers.condition(_, widgetTable)
-    local result = widgetTable.func();
+  local result = widgetTable.func();
 
-    if (result) then
-        return widgetTable.onTrue;
-    else
-        return widgetTable.onFalse;
-    end
+  if (result) then
+    return widgetTable.onTrue;
+  else
+    return widgetTable.onFalse;
+  end
 end
 
 ------------------

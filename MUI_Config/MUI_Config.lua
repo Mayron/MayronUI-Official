@@ -311,21 +311,25 @@ function C_ConfigModule:RenderWidget(data, config)
     local children = namespace.WidgetHandlers[config.type](
       data.selectedButton.menu:GetFrame(), config);
 
-    for _, c in ipairs(children) do
-      if (obj:IsTable(c) and not c.type) then
-        for _, c2 in ipairs(c) do
-          self:RenderWidget(c2);
-        end
+    if (obj:IsTable(children)) then -- Sometimes a condition may not return anything
+      for _, c in ipairs(children) do
+        if (obj:IsTable(c) and not c.type) then
+          for _, c2 in ipairs(c) do
+            self:RenderWidget(c2);
+          end
 
-        obj:PushTable(c);
-      else
-        self:RenderWidget(c);
+          obj:PushTable(c);
+        else
+          self:RenderWidget(c);
+        end
       end
+
+      obj:PushTable(children);
     end
 
     -- the table was previously popped
-    obj:PushTable(children);
     obj:PushTable(config);
+
     return
   end
 
