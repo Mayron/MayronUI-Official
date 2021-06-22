@@ -100,7 +100,7 @@ do
       if (obj:IsNumber(index)) then
         widget[key] = widgetTable[key];
       else
-        widget[index] = widgetTable[key];
+        widget[key] = widgetTable[index];
       end
     end
 
