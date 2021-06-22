@@ -1372,7 +1372,7 @@ function Helper:HandlePathValueChange(data, observerData, key, newValue, ...)
     dbTableRootName = "profile";
   end
 
-  if (key:find("%.")) then
+  if (obj:IsString(key) and key:find("%.")) then
     key = "["..key.."]";
   end
 
