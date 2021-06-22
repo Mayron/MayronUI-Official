@@ -115,7 +115,7 @@ do
     if (text) then
       button:SetText(text);
     else
-      button:SetWidth(150);
+      button:SetWidth(minWidth or 150);
     end
 
     if (tooltip) then

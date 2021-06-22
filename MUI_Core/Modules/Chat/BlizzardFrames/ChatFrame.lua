@@ -63,9 +63,24 @@ local function RenameAliases(text, settings, r, g, b)
   return text;
 end
 
+local loadedServerChannels = {};
+
 -- example: "|Hchannel:channel:4|h[4. LookingForGroup]|h |Hplayer:Numberone:12:CHANNEL:4|h[|cffaad372Numberone|r]|h: LF2M healer and dps UB HC!", 
 local function NewAddMessage(self, settings, text, r, g, b, ...)
 	if (not text) then return; end
+
+  local loaded;
+  for _, channelName in obj:IterateValues(_G.EnumerateServerChannels()) do
+    if (not loadedServerChannels[channelName]) then
+      tk.Strings:SplitByCamelCase(channelName)
+      db:AddToDefaults(tk.Strings:Concat("profile.chat.aliases[", channelName, "]"), (channelName:gsub("[a-z%s]", "")));
+      loaded = true;
+    end
+
+    if (loaded) then
+      settings:Refresh();
+    end
+  end
 
   text = HighlightText(text, settings.highlighted);
   text = RenameAliases(text, settings, r, g, b);
