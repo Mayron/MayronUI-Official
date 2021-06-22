@@ -43,44 +43,46 @@ local function HighlightText(text, highlighted)
   return text;
 end
 
-local function RenameAliases(text, settings, r, g, b)
-  for channel, alias in pairs(settings.aliases) do
-    local channelID, body = text:match("^|Hchannel:(.-)|h%[.-" .. channel .. ".-%]|h (.*)");
+local RenameAliases;
+do
+  local loadedServerChannels = {};
+  function RenameAliases(text, settings, r, g, b)
+    local loaded;
+    for _, channelName in obj:IterateValues(_G.EnumerateServerChannels()) do
+      if (not loadedServerChannels[channelName]) then
+        tk.Strings:SplitByCamelCase(channelName)
+        db:AddToDefaults(tk.Strings:Concat("profile.chat.aliases[", channelName, "]"), (channelName:gsub("[a-z%s]", "")));
+        loaded = true;
+      end
 
-    if (channelID and body) then
-      body = body:trim();
-      alias = tk.Strings:SetTextColorByRGB(alias,
-        r * settings.brightness,
-        g * settings.brightness,
-        b * settings.brightness);
-
-      local prefix = "|Hchannel:" .. channelID .. "|h" .. alias .. " |h";
-      text = prefix .. body;
-      break;
+      if (loaded) then
+        settings:Refresh();
+      end
     end
+
+    for channelName, alias in pairs(settings.aliases) do
+      local channelID, body = text:match("^|Hchannel:(.-)|h%[.-" .. channelName .. ".-%]|h (.*)");
+
+      if (channelID and body) then
+        body = body:trim();
+        alias = tk.Strings:SetTextColorByRGB(alias,
+          r * settings.brightness,
+          g * settings.brightness,
+          b * settings.brightness);
+
+        local prefix = "|Hchannel:" .. channelID .. "|h" .. alias .. " |h";
+        text = prefix .. body;
+        break;
+      end
+    end
+
+    return text;
   end
-
-  return text;
 end
-
-local loadedServerChannels = {};
 
 -- example: "|Hchannel:channel:4|h[4. LookingForGroup]|h |Hplayer:Numberone:12:CHANNEL:4|h[|cffaad372Numberone|r]|h: LF2M healer and dps UB HC!", 
 local function NewAddMessage(self, settings, text, r, g, b, ...)
 	if (not text) then return; end
-
-  local loaded;
-  for _, channelName in obj:IterateValues(_G.EnumerateServerChannels()) do
-    if (not loadedServerChannels[channelName]) then
-      tk.Strings:SplitByCamelCase(channelName)
-      db:AddToDefaults(tk.Strings:Concat("profile.chat.aliases[", channelName, "]"), (channelName:gsub("[a-z%s]", "")));
-      loaded = true;
-    end
-
-    if (loaded) then
-      settings:Refresh();
-    end
-  end
 
   text = HighlightText(text, settings.highlighted);
   text = RenameAliases(text, settings, r, g, b);
