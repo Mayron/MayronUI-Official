@@ -3,7 +3,7 @@
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
-## Version: 6.6.14
+## Version: 6.6.15
 
 ## Links:
 ## ------------------------------------------------
