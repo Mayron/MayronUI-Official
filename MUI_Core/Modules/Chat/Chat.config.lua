@@ -4,7 +4,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 local table, string, unpack, tostring, pairs, ipairs = _G.table, _G.string, _G.unpack, _G.tostring, _G.pairs, _G.ipairs;
-local tremove, PlaySound = _G.table.remove, _G.PlaySound;
+local tremove, PlaySound, GetChannelList = _G.table.remove, _G.PlaySound, _G.GetChannelList;
 
 local ChatFrameAnchorDropDownOptions = {
   [L["Top Left"]]       = "TOPLEFT";
@@ -302,6 +302,13 @@ function C_ChatModule:GetConfigTable(_, configModule)
     configModule:RenderWidget(config);
   end
 
+  local channelNames = obj:PopTable();
+  for _, channelName in obj:IterateValues(GetChannelList()) do
+    if (obj:IsString(channelName)) then
+      channelNames[#channelNames + 1] = channelName;
+    end
+  end
+
   return {
     module = "ChatModule",
     dbPath = "profile.chat",
@@ -399,7 +406,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
             width = "";
           };
           { type = "loop";
-            args =  obj:PopTable(_G.EnumerateServerChannels());
+            args =  channelNames;
             func = function(_, channelName)
               return {
                 name = tk.Strings:SplitByCamelCase(channelName);
