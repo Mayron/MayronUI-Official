@@ -40,6 +40,7 @@ Libs\SortBags.lua
 Libs\LibClassicCasterino.lua
 Libs\LibClassicDurations\LibClassicDurations.xml
 Libs\LibAddonCompat.lua
+Libs\LibHealComm-4.0\LibHealComm-4.0.xml
 
 ## Localization
 ## -------------------------------------------------
