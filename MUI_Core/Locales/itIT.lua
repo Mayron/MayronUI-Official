@@ -810,3 +810,15 @@ L["Ready Check"] = "Controllo pronto";
 L["Repair Item"] = "Articolo di riparazione";
 L["Whisper Received"] = "Sussurro ricevuto";
 L["Server Channels"] = "Canali del server";
+
+L["NO_HIGHLIGHT_TEXT_ADDED"] =
+[[Non hai ancora aggiunto alcun testo!
+Premi il pulsante "Modifica testo" qui sotto per aggiungere del testo da evidenziare:]];
+
+L["Text to Highlight (case insensitive):"] = "Testo da evidenziare (senza distinzione tra maiuscole e minuscole):";
+L["Enter text to highlight:"] = "Inserisci il testo da evidenziare:";
+L["Show in Upper Case"] = "Mostra in maiuscolo";
+L["Set Color"] = "Imposta colore";
+L["Edit Text"] = "Modifica il testo";
+L["Play a sound effect when any of the selected text appears in chat."] = "Riproduci un effetto sonoro quando uno dei testi selezionati appare nella chat.";
+L["Play Sound"] = "Riprodurre l'audio";

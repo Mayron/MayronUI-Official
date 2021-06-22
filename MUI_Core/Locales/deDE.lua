@@ -915,3 +915,15 @@ L["Ready Check"] = "Bereit-Check";
 L["Repair Item"] = "Reparaturartikel";
 L["Whisper Received"] = "Flüstern empfangen";
 L["Server Channels"] = "Serverkanäle";
+
+L["NO_HIGHLIGHT_TEXT_ADDED"] =
+[[Sie haben noch keinen Text hinzugefügt!
+Klicken Sie unten auf die Schaltfläche "Text bearbeiten", um Text zum Hervorheben hinzuzufügen:]];
+
+L["Text to Highlight (case insensitive):"] = "Text zum Hervorheben (Groß-/Kleinschreibung nicht beachten):";
+L["Enter text to highlight:"] = "Text zum Hervorheben eingeben:";
+L["Show in Upper Case"] = "In Großbuchstaben anzeigen";
+L["Set Color"] = "Farbe einstellen";
+L["Edit Text"] = "Text bearbeiten";
+L["Play a sound effect when any of the selected text appears in chat."] = "Spielen Sie einen Soundeffekt ab, wenn einer der ausgewählten Texte im Chat erscheint.";
+L["Play Sound"] = "Ton abspielen";

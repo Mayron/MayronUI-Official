@@ -803,3 +803,15 @@ L["Ready Check"] = "准备检查";
 L["Repair Item"] = "维修项目";
 L["Whisper Received"] = "耳语收到";
 L["Server Channels"] = "服务器通道";
+
+L["NO_HIGHLIGHT_TEXT_ADDED"] =
+[[您还没有添加任何文字！
+按下面的“编辑文本”按钮添加要突出显示的文本：]];
+
+L["Text to Highlight (case insensitive):"] = "要突出显示的文本（不区分大小写）：";
+L["Enter text to highlight:"] = "输入要突出显示的文本：";
+L["Show in Upper Case"] = "以大写显示";
+L["Set Color"] = "设置颜色";
+L["Edit Text"] = "编辑文本";
+L["Play a sound effect when any of the selected text appears in chat."] = "当任何选定的文本出现在聊天中时播放声音效果。";
+L["Play Sound"] = "播放声音";

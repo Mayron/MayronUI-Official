@@ -834,7 +834,7 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 [[Manage text to highlight and optionally
 play a sound effect when they appear in chat.]]
 
-L["CHANNEL_NAME_ALIASES"] = [[Set short, custom aliases for chat channel names.]]
+L["CHANNEL_NAME_ALIASES"] = "Set short, custom aliases for chat channel names.";
 
 L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen.";
 L["Add Text Highlighting"] = "Add Text Highlighting";
@@ -857,3 +857,15 @@ L["Ready Check"] = "Ready Check";
 L["Repair Item"] = "Repair Item";
 L["Whisper Received"] = "Whisper Received";
 L["Server Channels"] = "Server Channels";
+
+L["NO_HIGHLIGHT_TEXT_ADDED"] =
+[[You have not added any text yet!
+Press the 'Edit Text' button below to add text to highlight:]];
+
+L["Text to Highlight (case insensitive):"] = "Text to Highlight (case insensitive):";
+L["Enter text to highlight:"] = "Enter text to highlight:";
+L["Show in Upper Case"] = "Show in Upper Case";
+L["Set Color"] = "Set Color";
+L["Edit Text"] = "Edit Text";
+L["Play a sound effect when any of the selected text appears in chat."] = "Play a sound effect when any of the selected text appears in chat.";
+L["Play Sound"] = "Play Sound";

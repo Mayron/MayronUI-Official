@@ -809,3 +809,15 @@ L["Ready Check"] = "Contrôle prêt";
 L["Repair Item"] = "Réparer l'article";
 L["Whisper Received"] = "Murmure reçu";
 L["Server Channels"] = "Canaux de serveur";
+
+L["NO_HIGHLIGHT_TEXT_ADDED"] =
+[[Vous n'avez pas encore ajouté de texte !
+Appuyez sur le bouton « Modifier le texte » ci-dessous pour ajouter du texte à mettre en surbrillance :]];
+
+L["Text to Highlight (case insensitive):"] = "Texte à mettre en surbrillance (insensible à la casse):";
+L["Enter text to highlight:"] = "Entrez le texte à mettre en surbrillance :";
+L["Show in Upper Case"] = "Afficher en majuscule";
+L["Set Color"] = "Définir la couleur";
+L["Edit Text"] = "Éditer le texte";
+L["Play a sound effect when any of the selected text appears in chat."] = "Jouer un effet sonore lorsque l'un des textes sélectionnés apparaît dans le chat.";
+L["Play Sound"] = "Jouer son";

@@ -813,3 +813,15 @@ L["Ready Check"] = "Готовый чек";
 L["Repair Item"] = "Предмет ремонта";
 L["Whisper Received"] = "Получен шепот";
 L["Server Channels"] = "Каналы сервера";
+
+L["NO_HIGHLIGHT_TEXT_ADDED"] =
+[[Вы еще не добавили никакого текста!
+Нажмите кнопку «Изменить текст» ниже, чтобы добавить текст для выделения:]];
+
+L["Text to Highlight (case insensitive):"] = "Текст для выделения (без учета регистра):";
+L["Enter text to highlight:"] = "Введите текст для выделения:";
+L["Show in Upper Case"] = "Показать в верхнем регистре";
+L["Set Color"] = "Установить цвет";
+L["Edit Text"] = "Редактировать текст";
+L["Play a sound effect when any of the selected text appears in chat."] = "Воспроизвести звуковой эффект, когда любой из выделенного текста появляется в чате.";
+L["Play Sound"] = "Воспроизвести звук";

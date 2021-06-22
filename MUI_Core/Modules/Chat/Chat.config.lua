@@ -171,7 +171,7 @@ do
     local C_ListFrame = obj:Import("MayronUI.ListFrame");
 
     btn.listFrame = C_ListFrame(btn.name, getPath, updateFontString);
-    btn.listFrame:AddRowText("Enter text to highlight:");
+    btn.listFrame:AddRowText(L["Enter text to highlight:"]);
     btn.listFrame:SetScript("OnShow", ListFrame_OnShow);
     btn.listFrame:SetShown(true);
 
@@ -184,7 +184,7 @@ local GetTextHighlightingFrameConfigTable;
 do
   local function GetTextToHighlightLabel(highlighted)
     if (not highlighted[1]) then
-      return "You have not added any text yet!\nPress the 'Edit Text' button below to add text to highlight:";
+      return L["NO_HIGHLIGHT_TEXT_ADDED"];
     end
 
     local coloredText = obj:PopTable();
@@ -194,7 +194,7 @@ do
     end
 
     local label = tk.Strings:Join(" | ", coloredText); -- this pushes the table
-    return tk.Strings:JoinWithSpace("Text to Highlight (case insensitive):", label);
+    return tk.Strings:JoinWithSpace(L["Text to Highlight (case insensitive):"], label);
   end
 
   local function GetDbPath(frame)
@@ -240,17 +240,17 @@ do
           end;
         };
         { type = "check";
-          name = "Show in Upper Case";
+          name = L["Show in Upper Case"];
           dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "upperCase"); end;
         };
         { type = "color";
           useIndexes = true;
-          name = "Set Color";
+          name = L["Set Color"];
           dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "color"); end;
           OnPostSetValue = UpdateFontString;
         };
         { type = "button";
-          name = "Edit Text";
+          name = L["Edit Text"];
           padding = 15;
           OnClick = function(btn)
             local getPath = function() return GetDbPath(frame) end;
@@ -259,9 +259,9 @@ do
         },
         { type = "divider"; };
         { type = "dropdown";
-          name = "Play Sound";
+          name = L["Play Sound"];
           dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "sound"); end;
-          tooltip = "Play a sound effect when any of the selected text appears in chat.";
+          tooltip = L["Play a sound effect when any of the selected text appears in chat."];
           options = tk.Constants.SOUND_OPTIONS;
         },
         { type = "button";
