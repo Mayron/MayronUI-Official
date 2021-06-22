@@ -6,7 +6,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 local ChatFrame1EditBox, NUM_CHAT_WINDOWS = _G.ChatFrame1EditBox, _G.NUM_CHAT_WINDOWS;
 local ChatFrame1Tab, InCombatLockdown, StaticPopupDialogs, hooksecurefunc, IsCombatLog, pairs, PlaySound =
 _G.ChatFrame1Tab, _G.InCombatLockdown, _G.StaticPopupDialogs, _G.hooksecurefunc, _G.IsCombatLog, _G.pairs, _G.PlaySound;
-local strformat, ipairs, GetChannelList = _G.string.format, _G.ipairs, _G.GetChannelList;
+local strformat, ipairs = _G.string.format, _G.ipairs;
 --------------------------
 -- Blizzard Globals
 --------------------------
@@ -168,13 +168,6 @@ end
 
 function C_ChatModule:OnInitialize(data)
   data.chatFrames = obj:PopTable();
-
-  for _, channelName in obj:IterateValues(GetChannelList()) do
-    if (obj:IsString(channelName)) then
-      tk.Strings:SplitByCamelCase(channelName)
-      defaults.aliases[channelName] = (channelName:gsub("[a-z%s]", ""));
-    end
-  end
 
 	local setupOptions = {
     onExecuteAll = {

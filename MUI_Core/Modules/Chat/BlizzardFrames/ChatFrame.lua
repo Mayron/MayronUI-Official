@@ -2,6 +2,7 @@
 -- @Description: Controls the Blizzard Chat Frame changes (not the MUI Chat Frame!)
 local string, MayronUI = _G.string, _G.MayronUI;
 local pairs, ipairs, PlaySound, unpack = _G.pairs, _G.ipairs, _G.PlaySound, _G.unpack;
+local select, GetChannelList = _G.select, _G.GetChannelList;
 
 local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
@@ -43,7 +44,25 @@ local function HighlightText(text, highlighted)
   return text;
 end
 
+local loadedChannels = {};
 local function RenameAliases(text, settings, r, g, b)
+  local changed;
+  for i = 2, 60, 3 do
+    local channelName = (select(i, GetChannelList()));
+    if (channelName ==  nil) then break end
+    if (obj:IsString(channelName) and not loadedChannels[channelName]) then
+      local path = tk.Strings:Concat("profile.chat.aliases[", channelName, "]");
+      local default = (channelName:gsub("[a-z%s]", ""));
+      db:AddToDefaults(path, default);
+      loadedChannels[channelName] = true;
+      changed = true;
+    end
+  end
+
+  if (changed) then
+    settings:Refresh();
+  end
+
   for channelName, alias in pairs(settings.aliases) do
     local channelID, body = text:match("^|Hchannel:(.-)|h%[.-" .. channelName .. ".-%]|h (.*)");
 
@@ -257,7 +276,7 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
 	return chatFrame;
 end
 
-function C_ChatModule:SetUpAllBlizzardFrames(data)
+function C_ChatModule:SetUpAllBlizzardFrames()
   local changeGameFont = db.global.core.changeGameFont;
   local muiFont = tk.Constants.LSM:Fetch("font", db.global.core.font);
 
