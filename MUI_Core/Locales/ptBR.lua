@@ -822,6 +822,5 @@ L["Play Sound"] = "Tocar música";
 
 L["Set Timestamp Color"] = "Definir a cor do carimbo de data / hora";
 L["Use Fixed Timestamp Color"] = "Usar cor fixa de carimbo de data / hora";
-L["Set Timestamp Format"] = "Definir formato de carimbo de data / hora";
 L["Timestamps"] = "Timestamps";
 L["Enable Custom Aliases"] = "Habilitar aliases personalizados";

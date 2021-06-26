@@ -823,6 +823,5 @@ L["Play Sound"] = "Jouer son";
 
 L["Set Timestamp Color"] = "Définir la couleur de l'horodatage";
 L["Use Fixed Timestamp Color"] = "Utiliser une couleur d'horodatage fixe";
-L["Set Timestamp Format"] = "Définir le format d'horodatage";
 L["Timestamps"] = "Horodatage";
 L["Enable Custom Aliases"] = "Activer les alias personnalisés";

@@ -824,6 +824,5 @@ L["Play Sound"] = "Riprodurre l'audio";
 
 L["Set Timestamp Color"] = "Imposta il colore del timestamp";
 L["Use Fixed Timestamp Color"] = "Usa colore timestamp fisso";
-L["Set Timestamp Format"] = "Imposta formato timestamp";
 L["Timestamps"] = "Timestamp";
 L["Enable Custom Aliases"] = "Abilita alias personalizzati";

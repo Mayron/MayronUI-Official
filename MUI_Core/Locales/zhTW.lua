@@ -692,7 +692,6 @@ L["Play a sound effect when any of the selected text appears in chat."] = "當�
 L["Play Sound"] = "播放聲音";
 L["Set Timestamp Color"] = "設置時間戳顏色";
 L["Use Fixed Timestamp Color"] = "使用固定時間戳顏色";
-L["Set Timestamp Format"] = "設置時間戳格式";
 L["Timestamps"] = "時間戳";
 L["Enable Custom Aliases"] = "啟用自定義別名";
 L["Set short, custom aliases for chat channel names."] = "為聊天頻道名稱設置簡短的自定義別名。";

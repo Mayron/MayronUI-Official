@@ -819,6 +819,5 @@ L["Play Sound"] = "Воспроизвести звук";
 
 L["Set Timestamp Color"] = "Установить цвет отметки времени";
 L["Use Fixed Timestamp Color"] = "Использовать фиксированный цвет отметки времени";
-L["Set Timestamp Format"] = "Установить формат отметки времени";
 L["Timestamps"] = "Отметки времени";
 L["Enable Custom Aliases"] = "Включить настраиваемые псевдонимы";

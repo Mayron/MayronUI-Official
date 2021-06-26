@@ -929,6 +929,5 @@ L["Play Sound"] = "Ton abspielen";
 
 L["Set Timestamp Color"] = "Zeitstempelfarbe einstellen";
 L["Use Fixed Timestamp Color"] = "Feste Zeitstempelfarbe verwenden";
-L["Set Timestamp Format"] = "Zeitstempelformat einstellen";
 L["Timestamps"] = "Zeitstempel";
 L["Enable Custom Aliases"] = "Benutzerdefinierte Aliasse aktivieren";

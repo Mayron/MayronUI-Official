@@ -563,10 +563,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
       { name = L["Timestamps"];
         type = "submenu";
         children = {
-          { content = _G.OPTION_TOOLTIP_TIMESTAMPS;
-            type = "fontstring";
-          },
-          { name = L["Set Timestamp Format"];
+          { name = _G.OPTION_TOOLTIP_TIMESTAMPS;
             type = "dropdown";
             GetValue = function()
               return GetCVar("showTimestamps");

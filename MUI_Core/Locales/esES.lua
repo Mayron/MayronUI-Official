@@ -776,6 +776,5 @@ L["Play Sound"] = "Reproducir sonido";
 
 L["Set Timestamp Color"] = "Establecer el color de la marca de tiempo";
 L["Use Fixed Timestamp Color"] = "Usar color de marca de tiempo fijo";
-L["Set Timestamp Format"] = "Establecer formato de marca de tiempo";
 L["Timestamps"] = "Marcas de tiempo";
 L["Enable Custom Aliases"] = "Habilitar alias personalizados";

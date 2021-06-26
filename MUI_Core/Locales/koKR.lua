@@ -692,7 +692,6 @@ L["Play a sound effect when any of the selected text appears in chat."] = "선�
 L["Play Sound"] = "사운드 재생";
 L["Set Timestamp Color"] = "타임 스탬프 색상 설정";
 L["Use Fixed Timestamp Color"] = "고정 타임 스탬프 색상 사용";
-L["Set Timestamp Format"] = "타임 스탬프 형식 설정";
 L["Timestamps"] = "타임 스탬프";
 L["Enable Custom Aliases"] = "사용자 지정 별칭 활성화";
 L["Set short, custom aliases for chat channel names."] = "채팅 채널 이름에 대한 짧은 사용자 지정 별칭을 설정합니다.";
