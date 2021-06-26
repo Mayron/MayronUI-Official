@@ -1,7 +1,6 @@
 local L = _G.LibStub("AceLocale-3.0"):NewLocale("MayronUI", "zhCN");
 if not L then return end
 
-L["Hello!"] = "你好！";
 L["Character"] = "特点";
 L["Bags"] = "包";
 L["Friends"] = "朋友们";
@@ -780,7 +779,7 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 [[管理文本以突出显示和可选
 当他们出现在聊天中时播放声音效果。]]
 
-L["CHANNEL_NAME_ALIASES"] = [[为聊天频道名称设置简短的自定义别名。]]
+L["Set short, custom aliases for chat channel names."] = [[为聊天频道名称设置简短的自定义别名。]]
 
 L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "主容器包含单元框架面板、操作栏面板、数据文本栏和屏幕底部的所有资源栏。";
 L["Add Text Highlighting"] = "添加文本突出显示";

@@ -4,7 +4,6 @@ if not L then return end
 ---------------------------------
 --- SMALL TEXT:
 ---------------------------------
-L["Hello!"]                         = "Hello!";
 L["Character"]                      = "Character";
 L["Bags"]                           = "Bags";
 L["Friends"]                        = "Friends";
@@ -736,6 +735,40 @@ L["Show Debuffs"] = "Show Debuffs";
 L["Refresh Chat Text"] = "Refresh Chat Text";
 L["Back"] = "Back";
 L["Next"] = "Next";
+L["Set short, custom aliases for chat channel names."] = "Set short, custom aliases for chat channel names.";
+L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen.";
+L["Add Text Highlighting"] = "Add Text Highlighting";
+L["Channel Name Aliases"] = "Channel Name Aliases";
+L["Text Highlighting"] = "Text Highlighting";
+L["Alias Brightness"] = "Alias Brightness";
+L["Auction House Open"] = "Auction House Open";
+L["Auction House Close"] = "Auction House Close";
+L["Alarm Clock Warning 1"] = "Alarm Clock Warning 1";
+L["Alarm Clock Warning 2"] = "Alarm Clock Warning 2";
+L["Alarm Clock Warning 3"] = "Alarm Clock Warning 3";
+L["Enter Queue"] = "Enter Queue";
+L["Jewel Crafting Socket"] = "Jewel Crafting Socket";
+L["Loot Money"] = "Loot Money";
+L["Map Ping"] = "Map Ping";
+L["Queue Ready"] = "Queue Ready";
+L["Raid Warning"] = "Raid Warning";
+L["Raid Boss Warning"] = "Raid Boss Warning";
+L["Ready Check"] = "Ready Check";
+L["Repair Item"] = "Repair Item";
+L["Whisper Received"] = "Whisper Received";
+L["Server Channels"] = "Server Channels";
+L["Text to Highlight (case insensitive):"] = "Text to Highlight (case insensitive):";
+L["Enter text to highlight:"] = "Enter text to highlight:";
+L["Show in Upper Case"] = "Show in Upper Case";
+L["Set Color"] = "Set Color";
+L["Edit Text"] = "Edit Text";
+L["Play a sound effect when any of the selected text appears in chat."] = "Play a sound effect when any of the selected text appears in chat.";
+L["Play Sound"] = "Play Sound";
+L["Set Timestamp Color"] = "Set Timestamp Color";
+L["Use Fixed Timestamp Color"] = "Use Fixed Timestamp Color";
+L["Set Timestamp Format"] = "Set Timestamp Format";
+L["Timestamps"] = "Timestamps";
+L["Enable Custom Aliases"] = "Enable Custom Aliases";
 
 ---------------------------------
 --- LARGE TEXT:
@@ -834,44 +867,6 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 [[Manage text to highlight and optionally
 play a sound effect when they appear in chat.]]
 
-L["CHANNEL_NAME_ALIASES"] = "Set short, custom aliases for chat channel names.";
-
-L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen.";
-L["Add Text Highlighting"] = "Add Text Highlighting";
-L["Channel Name Aliases"] = "Channel Name Aliases";
-L["Text Highlighting"] = "Text Highlighting";
-L["Alias Brightness"] = "Alias Brightness";
-L["Auction House Open"] = "Auction House Open";
-L["Auction House Close"] = "Auction House Close";
-L["Alarm Clock Warning 1"] = "Alarm Clock Warning 1";
-L["Alarm Clock Warning 2"] = "Alarm Clock Warning 2";
-L["Alarm Clock Warning 3"] = "Alarm Clock Warning 3";
-L["Enter Queue"] = "Enter Queue";
-L["Jewel Crafting Socket"] = "Jewel Crafting Socket";
-L["Loot Money"] = "Loot Money";
-L["Map Ping"] = "Map Ping";
-L["Queue Ready"] = "Queue Ready";
-L["Raid Warning"] = "Raid Warning";
-L["Raid Boss Warning"] = "Raid Boss Warning";
-L["Ready Check"] = "Ready Check";
-L["Repair Item"] = "Repair Item";
-L["Whisper Received"] = "Whisper Received";
-L["Server Channels"] = "Server Channels";
-
 L["NO_HIGHLIGHT_TEXT_ADDED"] =
 [[You have not added any text yet!
 Press the 'Edit Text' button below to add text to highlight:]];
-
-L["Text to Highlight (case insensitive):"] = "Text to Highlight (case insensitive):";
-L["Enter text to highlight:"] = "Enter text to highlight:";
-L["Show in Upper Case"] = "Show in Upper Case";
-L["Set Color"] = "Set Color";
-L["Edit Text"] = "Edit Text";
-L["Play a sound effect when any of the selected text appears in chat."] = "Play a sound effect when any of the selected text appears in chat.";
-L["Play Sound"] = "Play Sound";
-
-L["Set Timestamp Color"] = "Set Timestamp Color";
-L["Use Fixed Timestamp Color"] = "Use Fixed Timestamp Color";
-L["Set Timestamp Format"] = "Set Timestamp Format";
-L["Timestamps"] = "Timestamps";
-L["Enable Custom Aliases"] = "Enable Custom Aliases";

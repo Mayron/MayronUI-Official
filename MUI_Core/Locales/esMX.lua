@@ -1,4 +1,4 @@
-local L = _G.LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "esES");
+local L = _G.LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "esMX");
 if not L then return end
 
 ---------------------------------

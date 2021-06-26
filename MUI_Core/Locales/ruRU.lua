@@ -1,15 +1,6 @@
 local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "ruRU");
 if not L then return end
 
---[[
-To change the value fill in the translation on the right side of the equal sign.
-Example:
-	L["Hello!"] = "Hi!";
-]]
-
--- Russian translations go here
--- MUI Chat
-L["Hello!"] = "Привет!";
 L["Character"] = "Персонаж";
 L["Bags"] = "Сумки";
 L["Friends"] = "Друзья";
@@ -790,7 +781,7 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 [[Управляйте текстом для выделения и при необходимости
 воспроизводить звуковой эффект, когда они появляются в чате.]]
 
-L["CHANNEL_NAME_ALIASES"] = [[Установите короткие персонализированные псевдонимы для имен каналов чата.]]
+L["Set short, custom aliases for chat channel names."] = [[Установите короткие персонализированные псевдонимы для имен каналов чата.]]
 
 L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "Основной контейнер содержит панели фрейма объекта, панели панели действий, панель текста и данных и все панели ресурсов в нижней части экрана.";
 L["Add Text Highlighting"] = "Добавить выделение текста";

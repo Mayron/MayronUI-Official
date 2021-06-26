@@ -4,7 +4,6 @@ if not L then return end
 ---------------------------------
 --- SMALL TEXT:
 ---------------------------------
-L["Hello!"] = "Olá!";
 L["Character"] = "Personagem";
 L["Bags"] = "Bolsas";
 L["Friends"] = "Amigos";
@@ -785,7 +784,7 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 [[Gerenciar texto para destacar e opcionalmente
 reproduzam um efeito sonoro quando aparecem no chat.]]
 
-L["CHANNEL_NAME_ALIASES"] = [[Defina apelidos curtos e personalizados para nomes de canais de bate-papo.]]
+L["Set short, custom aliases for chat channel names."] = [[Defina apelidos curtos e personalizados para nomes de canais de bate-papo.]]
 
 L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "O contêiner principal contém os painéis da estrutura da unidade, painéis da barra de ação, barra de texto de dados e todas as barras de recursos na parte inferior da tela.";
 L["Add Text Highlighting"] = "Adicionar realce de texto";

@@ -343,7 +343,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
         };
       },
       { name = L["Channel Name Aliases"],
-        tooltip = L["CHANNEL_NAME_ALIASES"];
+        tooltip = L["Set short, custom aliases for chat channel names."];
         type = "submenu";
         dbPath = "profile.chat.aliases";
         inherit = {
@@ -351,7 +351,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
         };
         children = {
           { type = "fontstring";
-            content = L["CHANNEL_NAME_ALIASES"]:gsub("\n", " ");
+            content = L["Set short, custom aliases for chat channel names."];
             width = ""; -- ignore 150 width
           };
           { type = "check";
