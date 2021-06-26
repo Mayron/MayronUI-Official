@@ -64,7 +64,13 @@ local function RenameAliases(text, settings, r, g, b)
   end
 
   for channelName, alias in pairs(settings.aliases) do
-    local channelID, body = text:match("^|Hchannel:(.-)|h%[.-" .. channelName .. ".-%]|h (.*)");
+    local time, channelID, body;
+
+    if (_G.CHAT_TIMESTAMP_FORMAT) then
+      time, channelID, body = text:match("(.-)|Hchannel:(.-)|h%[.-" .. channelName .. ".-%]|h (.*)");
+    else
+      channelID, body = text:match("^|Hchannel:(.-)|h%[.-" .. channelName .. ".-%]|h (.*)");
+    end
 
     if (channelID and body) then
       body = body:trim();
@@ -74,7 +80,19 @@ local function RenameAliases(text, settings, r, g, b)
         b * settings.brightness);
 
       local prefix = "|Hchannel:" .. channelID .. "|h" .. alias .. " |h";
-      text = prefix .. body;
+
+      if (obj:IsString(time)) then
+        if (settings.useTimestampColor) then
+          time = tk.Strings:SetTextColorByRGB(time,
+            settings.timestampColor.r,
+            settings.timestampColor.g,
+            settings.timestampColor.b);
+        end
+        text = time .. prefix .. body;
+      else
+        text = prefix .. body;
+      end
+
       break;
     end
   end
@@ -87,7 +105,10 @@ local function NewAddMessage(self, settings, text, r, g, b, ...)
 	if (not text) then return; end
 
   text = HighlightText(text, settings.highlighted);
-  text = RenameAliases(text, settings, r, g, b);
+
+  if (settings.enableAliases) then
+    text = RenameAliases(text, settings, r, g, b);
+  end
 
 	self:oldAddMessage(text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink), r, g, b, ...);
 end

@@ -85,6 +85,7 @@ local defaults = {
   };
 
   brightness = 0.7;
+  enableAliases = true;
   aliases = {
     [_G.CHAT_MSG_GUILD] = _G.CHAT_MSG_GUILD:gsub("[a-z%s]", tk.Strings.Empty);
     [_G.CHAT_MSG_OFFICER] = _G.CHAT_MSG_OFFICER:gsub("[a-z%s]", tk.Strings.Empty);
@@ -98,6 +99,11 @@ local defaults = {
 
     [_G.INSTANCE_CHAT] = _G.INSTANCE_CHAT:gsub("[a-z%s]", tk.Strings.Empty);
     [_G.INSTANCE_CHAT_LEADER] = _G.INSTANCE_CHAT_LEADER:gsub("[a-z%s]", tk.Strings.Empty);
+  };
+
+  useTimestampColor = true;
+  timestampColor = {
+    r = 0.6; g = 0.6; b = 0.6;
   };
 
   editBox = {
@@ -204,13 +210,13 @@ function C_ChatModule:OnInitialize(data)
 
   db:AppendOnce(db.profile, "chat.highlighted", nil, {
     {
-      "healers", "healer", "healz", "heal",
+      "healers", "healer", "healz", "heal", "healing",
       color = { 0.1; 1; 0.1; };
       sound = false;
       upperCase = true;
     },
     {
-      "tanks", "tank",
+      "tanks", "tank", "tanking",
       color = { 1; 0.1; 0.1; };
       sound = false;
       upperCase = true;
@@ -416,17 +422,6 @@ end
 
 function C_ChatModule:OnEnable(data)
   if (data.editBoxBackdrop) then return end
-
-  -- em:CreateEventListener(function()
-  --   local loaded = false;
-
-
-
-  --   -- db:AddToDefaults("profile.chat.aliases", defaults.aliases);
-  --   if (loaded) then
-  --     data.settings:Refresh();
-  --   end
-  -- end):RegisterEvent("CHAT_MSG_CHANNEL");
 
 	StaticPopupDialogs["MUI_Link"] = {
 		text = tk.Strings:Join(

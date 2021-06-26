@@ -815,3 +815,9 @@ L["Set Color"] = "设置颜色";
 L["Edit Text"] = "编辑文本";
 L["Play a sound effect when any of the selected text appears in chat."] = "当任何选定的文本出现在聊天中时播放声音效果。";
 L["Play Sound"] = "播放声音";
+
+L["Set Timestamp Color"] = "设置时间戳颜色";
+L["Use Fixed Timestamp Color"] = "使用固定时间戳颜色";
+L["Set Timestamp Format"] = "设置时间戳格式";
+L["Timestamps"] = "时间戳";
+L["Enable Custom Aliases"] = "启用自定义别名";

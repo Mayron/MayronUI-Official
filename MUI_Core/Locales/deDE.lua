@@ -927,3 +927,9 @@ L["Set Color"] = "Farbe einstellen";
 L["Edit Text"] = "Text bearbeiten";
 L["Play a sound effect when any of the selected text appears in chat."] = "Spielen Sie einen Soundeffekt ab, wenn einer der ausgewählten Texte im Chat erscheint.";
 L["Play Sound"] = "Ton abspielen";
+
+L["Set Timestamp Color"] = "Zeitstempelfarbe einstellen";
+L["Use Fixed Timestamp Color"] = "Feste Zeitstempelfarbe verwenden";
+L["Set Timestamp Format"] = "Zeitstempelformat einstellen";
+L["Timestamps"] = "Zeitstempel";
+L["Enable Custom Aliases"] = "Benutzerdefinierte Aliasse aktivieren";

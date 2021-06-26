@@ -825,3 +825,9 @@ L["Set Color"] = "Установить цвет";
 L["Edit Text"] = "Редактировать текст";
 L["Play a sound effect when any of the selected text appears in chat."] = "Воспроизвести звуковой эффект, когда любой из выделенного текста появляется в чате.";
 L["Play Sound"] = "Воспроизвести звук";
+
+L["Set Timestamp Color"] = "Установить цвет отметки времени";
+L["Use Fixed Timestamp Color"] = "Использовать фиксированный цвет отметки времени";
+L["Set Timestamp Format"] = "Установить формат отметки времени";
+L["Timestamps"] = "Отметки времени";
+L["Enable Custom Aliases"] = "Включить настраиваемые псевдонимы";

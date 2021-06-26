@@ -221,7 +221,7 @@ do
     container.btn:SetPoint("LEFT");
     container.btn.text:SetFontObject("GameFontHighlight");
     container.btn.text:ClearAllPoints();
-    container.btn.text:SetPoint("LEFT", container.btn, "RIGHT", 6, 2);
+    container.btn.text:SetPoint("LEFT", container.btn, "RIGHT", 6, 1);
 
     hooksecurefunc(container.btn, "SetEnabled", CheckButton_OnSetEnabled);
 

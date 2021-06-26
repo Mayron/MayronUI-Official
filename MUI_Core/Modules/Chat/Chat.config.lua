@@ -5,288 +5,287 @@ local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 local table, string, unpack, tostring, pairs, ipairs = _G.table, _G.string, _G.unpack, _G.tostring, _G.pairs, _G.ipairs;
 local tremove, PlaySound, GetChannelList = _G.table.remove, _G.PlaySound, _G.GetChannelList;
-
-local ChatFrameAnchorDropDownOptions = {
-  [L["Top Left"]]       = "TOPLEFT";
-  [L["Top Right"]]      = "TOPRIGHT";
-  [L["Bottom Left"]]    = "BOTTOMLEFT";
-  [L["Bottom Right"]]   = "BOTTOMRIGHT";
-};
-
-local highlightFrames;
-local iconDropdowns = {};
-
-local iconOptionLabels = {
-  L["Chat Channels"];
-  L["Professions"];
-  L["AddOn Shortcuts"];
-  L["Copy Chat"];
-  L["Emotes"];
-  L["Online Status"];
-  L["None"]
-}
-
-local iconOptions = {
-  [iconOptionLabels[1]]   = "voiceChat";
-  [iconOptionLabels[2]]   = "professions";
-  [iconOptionLabels[3]]   = "shortcuts";
-  [iconOptionLabels[4]]   = "copyChat";
-  [iconOptionLabels[5]]   = "emotes";
-  [iconOptionLabels[6]]   = "playerStatus";
-  [iconOptionLabels[7]]   = "none";
-};
-
-if (tk:IsRetail()) then
-  table.insert(iconOptionLabels, 2, L["Deafen"]);
-  table.insert(iconOptionLabels, 3, L["Mute"]);
-  iconOptions[iconOptionLabels[2]] = "deafen";
-  iconOptions[iconOptionLabels[3]] = "mute";
-end
-
--- Config Data ----------------------
-local function CreateButtonConfigTable(dbPath, buttonID, chatFrame, addWidget)
-  local configTable = obj:PopTable();
-
-  if (buttonID == 1) then
-    table.insert(configTable, {
-      name = L["Standard Chat Buttons"],
-      type = "title"
-    });
-  else
-    table.insert(configTable, {
-      name = string.format(L["Chat Buttons with Modifier Key %d"], buttonID),
-      type = "title"
-    });
-  end
-
-  table.insert(configTable, {
-    name = L["Left Button"],
-    dbPath = string.format("%s.buttons[%d][1]", dbPath, buttonID),
-    enabled = chatFrame ~= nil,
-    OnLoad = addWidget
-  });
-
-  table.insert(configTable, {
-    name = L["Middle Button"],
-    dbPath = string.format("%s.buttons[%d][2]", dbPath, buttonID),
-    enabled = chatFrame ~= nil,
-    OnLoad = addWidget
-  });
-
-  table.insert(configTable, {
-    name = L["Right Button"],
-    dbPath = string.format("%s.buttons[%d][3]", dbPath, buttonID),
-    enabled = chatFrame ~= nil,
-    OnLoad = addWidget
-  });
-
-  table.insert(configTable, { type = "divider" });
-
-  if (buttonID == 1) then
-    return unpack(configTable);
-  end
-
-  for _, modKey in obj:IterateArgs(L["Control"], L["Shift"], L["Alt"]) do
-    local modKeyFirstChar = string.sub(modKey, 1, 1);
-
-    table.insert(configTable, {
-      name = modKey,
-      height = 40,
-      type = "check",
-      dbPath = string.format("%s.buttons[%d].key", dbPath, buttonID),
-      enabled = chatFrame ~= nil,
-      OnLoad = addWidget,
-
-      GetValue = function(_, currentValue)
-        if (currentValue:find(modKeyFirstChar)) then
-          return true;
-        end
-
-        return false;
-      end,
-
-      SetValue = function(valueDbPath, checked, oldValue)
-        if (checked) then
-          -- add it
-          local newValue = (oldValue and tk.Strings:Concat(oldValue, modKeyFirstChar)) or modKeyFirstChar;
-          db:SetPathValue(valueDbPath, newValue);
-
-        elseif (oldValue and oldValue:find(modKeyFirstChar)) then
-          -- remove it
-          local newValue = oldValue:gsub(modKeyFirstChar, tk.Strings.Empty);
-          db:SetPathValue(valueDbPath, newValue);
-        end
-      end
-    });
-  end
-
-  return unpack(configTable);
-end
-
-
-local function ListFrame_OnAddItem(_, item, getPath, updateFontString)
-  local newText = item.name:GetText();
-  local dbPath = getPath();
-  local highlightTable = db:ParsePathValue(dbPath):GetUntrackedTable();
-
-  highlightTable[#highlightTable + 1] = newText;
-  db:SetPathValue(dbPath, highlightTable);
-
-  updateFontString();
-end
-
-local function ListFrame_OnRemoveItem(_, item, getPath, updateFontString)
-  local deleteText = item.name:GetText();
-  local dbPath = getPath();
-
-  local highlightTable = db:ParsePathValue(dbPath):GetUntrackedTable();
-
-  local index = tk.Tables:IndexOf(highlightTable, deleteText);
-  tremove(highlightTable, index);
-  db:SetPathValue(dbPath, highlightTable);
-
-  updateFontString();
-end
-
-local ShowListFrame;
-do
-  ---@param self ListFrame
-  ---@param dbPath string
-  local function ListFrame_OnShow(self, getPath)
-    local dbPath = getPath();
-    local highlightTable = db:ParsePathValue(dbPath):GetUntrackedTable();
-
-    for _, text in ipairs(highlightTable) do
-      self:AddItem(text);
-    end
-  end
-
-  function ShowListFrame(btn, getPath, updateFontString)
-    if (btn.listFrame) then
-      btn.listFrame:SetShown(true);
-      return
-    end
-
-    ---@type ListFrame
-    local C_ListFrame = obj:Import("MayronUI.ListFrame");
-
-    btn.listFrame = C_ListFrame(btn.name, getPath, updateFontString);
-    btn.listFrame:AddRowText(L["Enter text to highlight:"]);
-    btn.listFrame:SetScript("OnShow", ListFrame_OnShow);
-    btn.listFrame:SetShown(true);
-
-    btn.listFrame:SetScript("OnRemoveItem", ListFrame_OnRemoveItem);
-    btn.listFrame:SetScript("OnAddItem", ListFrame_OnAddItem);
-  end
-end
-
-local GetTextHighlightingFrameConfigTable;
-do
-  local function GetTextToHighlightLabel(highlighted)
-    if (not highlighted[1]) then
-      return L["NO_HIGHLIGHT_TEXT_ADDED"];
-    end
-
-    local coloredText = obj:PopTable();
-
-    for index, text in ipairs(highlighted) do
-      coloredText[index] = tk.Strings:SetTextColorByRGB(text, unpack(highlighted.color));
-    end
-
-    local label = tk.Strings:Join(" | ", coloredText); -- this pushes the table
-    return tk.Strings:JoinWithSpace(L["Text to Highlight (case insensitive):"], label);
-  end
-
-  local function GetDbPath(frame)
-    local id = tk.Tables:IndexOf(highlightFrames, frame);
-    obj:Assert(obj:IsNumber(id), "Failed to get index of highlight frame.")
-    return "profile.chat.highlighted[" .. id .. "]";
-  end
-
-  ---@param configModule ConfigModule
-  function GetTextHighlightingFrameConfigTable(tbl, configModule)
-    local fontString, frame;
-
-    local function UpdateFontString()
-      local path = GetDbPath(frame);
-      local newTbl = db:ParsePathValue(path):GetUntrackedTable();
-      local newContent = GetTextToHighlightLabel(newTbl);
-      fontString:SetText(newContent);
-    end
-
-    local function RemoveTextHighlighting()
-      local highlighted = db.profile.chat.highlighted:GetUntrackedTable();
-      local id = tk.Tables:IndexOf(highlightFrames, frame);
-
-      tremove(highlighted, id);
-      tremove(highlightFrames, id);
-
-      db:SetPathValue("profile.chat.highlighted", highlighted);
-      configModule:RemoveWidget(frame);
-    end
-
-    local frameConfig = {
-      type = "frame";
-      OnLoad = function(_, f)
-        frame = f:GetFrame();
-        table.insert(highlightFrames, frame);
-      end;
-      OnClose = RemoveTextHighlighting;
-      children = {
-        { type = "fontstring";
-          content = GetTextToHighlightLabel(tbl);
-          OnLoad = function(_, container)
-            fontString = container.content;
-          end;
-        };
-        { type = "check";
-          name = L["Show in Upper Case"];
-          dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "upperCase"); end;
-        };
-        { type = "color";
-          useIndexes = true;
-          name = L["Set Color"];
-          dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "color"); end;
-          OnPostSetValue = UpdateFontString;
-        };
-        { type = "button";
-          name = L["Edit Text"];
-          padding = 15;
-          OnClick = function(btn)
-            local getPath = function() return GetDbPath(frame) end;
-            ShowListFrame(btn, getPath, UpdateFontString);
-          end;
-        },
-        { type = "divider"; };
-        { type = "dropdown";
-          name = L["Play Sound"];
-          dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "sound"); end;
-          tooltip = L["Play a sound effect when any of the selected text appears in chat."];
-          options = tk.Constants.SOUND_OPTIONS;
-        },
-        { type = "button";
-          texture = "Interface\\COMMON\\VOICECHAT-SPEAKER";
-          width = 20;
-          height = 40;
-          texHeight = 20;
-          OnClick = function()
-            local soundPath = tk.Strings:Join(".", GetDbPath(frame), "sound");
-            local sound = db:ParsePathValue(soundPath);
-
-            if (obj:IsNumber(sound)) then
-              PlaySound(sound);
-            end
-          end
-        }
-      };
-    };
-
-    return frameConfig;
-  end
-end
+local BetterDate, SetCVar, GetCVar, time = _G.BetterDate, _G.SetCVar, _G.GetCVar, _G.time;
 
 ---@param configModule ConfigModule
 function C_ChatModule:GetConfigTable(_, configModule)
+  local ChatFrameAnchorDropDownOptions = {
+    [L["Top Left"]]       = "TOPLEFT";
+    [L["Top Right"]]      = "TOPRIGHT";
+    [L["Bottom Left"]]    = "BOTTOMLEFT";
+    [L["Bottom Right"]]   = "BOTTOMRIGHT";
+  };
+
+  local highlightFrames;
+  local iconDropdowns = {};
+
+  local iconOptionLabels = {
+    L["Chat Channels"];
+    L["Professions"];
+    L["AddOn Shortcuts"];
+    L["Copy Chat"];
+    L["Emotes"];
+    L["Online Status"];
+    L["None"]
+  }
+
+  local iconOptions = {
+    [iconOptionLabels[1]]   = "voiceChat";
+    [iconOptionLabels[2]]   = "professions";
+    [iconOptionLabels[3]]   = "shortcuts";
+    [iconOptionLabels[4]]   = "copyChat";
+    [iconOptionLabels[5]]   = "emotes";
+    [iconOptionLabels[6]]   = "playerStatus";
+    [iconOptionLabels[7]]   = "none";
+  };
+
+  if (tk:IsRetail()) then
+    table.insert(iconOptionLabels, 2, L["Deafen"]);
+    table.insert(iconOptionLabels, 3, L["Mute"]);
+    iconOptions[iconOptionLabels[2]] = "deafen";
+    iconOptions[iconOptionLabels[3]] = "mute";
+  end
+
+  -- Config Data ----------------------
+  local function CreateButtonConfigTable(dbPath, buttonID, chatFrame, addWidget)
+    local configTable = obj:PopTable();
+
+    if (buttonID == 1) then
+      table.insert(configTable, {
+        name = L["Standard Chat Buttons"],
+        type = "title"
+      });
+    else
+      table.insert(configTable, {
+        name = string.format(L["Chat Buttons with Modifier Key %d"], buttonID),
+        type = "title"
+      });
+    end
+
+    table.insert(configTable, {
+      name = L["Left Button"],
+      dbPath = string.format("%s.buttons[%d][1]", dbPath, buttonID),
+      enabled = chatFrame ~= nil,
+      OnLoad = addWidget
+    });
+
+    table.insert(configTable, {
+      name = L["Middle Button"],
+      dbPath = string.format("%s.buttons[%d][2]", dbPath, buttonID),
+      enabled = chatFrame ~= nil,
+      OnLoad = addWidget
+    });
+
+    table.insert(configTable, {
+      name = L["Right Button"],
+      dbPath = string.format("%s.buttons[%d][3]", dbPath, buttonID),
+      enabled = chatFrame ~= nil,
+      OnLoad = addWidget
+    });
+
+    table.insert(configTable, { type = "divider" });
+
+    if (buttonID == 1) then
+      return unpack(configTable);
+    end
+
+    for _, modKey in obj:IterateArgs(L["Control"], L["Shift"], L["Alt"]) do
+      local modKeyFirstChar = string.sub(modKey, 1, 1);
+
+      table.insert(configTable, {
+        name = modKey,
+        height = 40,
+        type = "check",
+        dbPath = string.format("%s.buttons[%d].key", dbPath, buttonID),
+        enabled = chatFrame ~= nil,
+        OnLoad = addWidget,
+
+        GetValue = function(_, currentValue)
+          if (currentValue:find(modKeyFirstChar)) then
+            return true;
+          end
+
+          return false;
+        end,
+
+        SetValue = function(valueDbPath, checked, oldValue)
+          if (checked) then
+            -- add it
+            local newValue = (oldValue and tk.Strings:Concat(oldValue, modKeyFirstChar)) or modKeyFirstChar;
+            db:SetPathValue(valueDbPath, newValue);
+
+          elseif (oldValue and oldValue:find(modKeyFirstChar)) then
+            -- remove it
+            local newValue = oldValue:gsub(modKeyFirstChar, tk.Strings.Empty);
+            db:SetPathValue(valueDbPath, newValue);
+          end
+        end
+      });
+    end
+
+    return unpack(configTable);
+  end
+
+  local function ListFrame_OnAddItem(_, item, getPath, updateFontString)
+    local newText = item.name:GetText();
+    local dbPath = getPath();
+    local highlightTable = db:ParsePathValue(dbPath):GetUntrackedTable();
+
+    highlightTable[#highlightTable + 1] = newText;
+    db:SetPathValue(dbPath, highlightTable);
+
+    updateFontString();
+  end
+
+  local function ListFrame_OnRemoveItem(_, item, getPath, updateFontString)
+    local deleteText = item.name:GetText();
+    local dbPath = getPath();
+
+    local highlightTable = db:ParsePathValue(dbPath):GetUntrackedTable();
+
+    local index = tk.Tables:IndexOf(highlightTable, deleteText);
+    tremove(highlightTable, index);
+    db:SetPathValue(dbPath, highlightTable);
+
+    updateFontString();
+  end
+
+  local ShowListFrame;
+  do
+    ---@param self ListFrame
+    ---@param dbPath string
+    local function ListFrame_OnShow(self, getPath)
+      local dbPath = getPath();
+      local highlightTable = db:ParsePathValue(dbPath):GetUntrackedTable();
+
+      for _, text in ipairs(highlightTable) do
+        self:AddItem(text);
+      end
+    end
+
+    function ShowListFrame(btn, getPath, updateFontString)
+      if (btn.listFrame) then
+        btn.listFrame:SetShown(true);
+        return
+      end
+
+      ---@type ListFrame
+      local C_ListFrame = obj:Import("MayronUI.ListFrame");
+
+      btn.listFrame = C_ListFrame(btn.name, getPath, updateFontString);
+      btn.listFrame:AddRowText(L["Enter text to highlight:"]);
+      btn.listFrame:SetScript("OnShow", ListFrame_OnShow);
+      btn.listFrame:SetShown(true);
+
+      btn.listFrame:SetScript("OnRemoveItem", ListFrame_OnRemoveItem);
+      btn.listFrame:SetScript("OnAddItem", ListFrame_OnAddItem);
+    end
+  end
+
+  local GetTextHighlightingFrameConfigTable;
+  do
+    local function GetTextToHighlightLabel(highlighted)
+      if (not highlighted[1]) then
+        return L["NO_HIGHLIGHT_TEXT_ADDED"];
+      end
+
+      local coloredText = obj:PopTable();
+
+      for index, text in ipairs(highlighted) do
+        coloredText[index] = tk.Strings:SetTextColorByRGB(text, unpack(highlighted.color));
+      end
+
+      local label = tk.Strings:Join(" | ", coloredText); -- this pushes the table
+      return tk.Strings:JoinWithSpace(L["Text to Highlight (case insensitive):"], label);
+    end
+
+    local function GetDbPath(frame)
+      local id = tk.Tables:IndexOf(highlightFrames, frame);
+      obj:Assert(obj:IsNumber(id), "Failed to get index of highlight frame.")
+      return "profile.chat.highlighted[" .. id .. "]";
+    end
+
+    function GetTextHighlightingFrameConfigTable(tbl)
+      local fontString, frame;
+
+      local function UpdateFontString()
+        local path = GetDbPath(frame);
+        local newTbl = db:ParsePathValue(path):GetUntrackedTable();
+        local newContent = GetTextToHighlightLabel(newTbl);
+        fontString:SetText(newContent);
+      end
+
+      local function RemoveTextHighlighting()
+        local highlighted = db.profile.chat.highlighted:GetUntrackedTable();
+        local id = tk.Tables:IndexOf(highlightFrames, frame);
+
+        tremove(highlighted, id);
+        tremove(highlightFrames, id);
+
+        db:SetPathValue("profile.chat.highlighted", highlighted);
+        configModule:RemoveWidget(frame);
+      end
+
+      local frameConfig = {
+        type = "frame";
+        OnLoad = function(_, f)
+          frame = f:GetFrame();
+          table.insert(highlightFrames, frame);
+        end;
+        OnClose = RemoveTextHighlighting;
+        children = {
+          { type = "fontstring";
+            content = GetTextToHighlightLabel(tbl);
+            OnLoad = function(_, container)
+              fontString = container.content;
+            end;
+          };
+          { type = "check";
+            name = L["Show in Upper Case"];
+            dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "upperCase"); end;
+          };
+          { type = "color";
+            useIndexes = true;
+            name = L["Set Color"];
+            dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "color"); end;
+            OnPostSetValue = UpdateFontString;
+          };
+          { type = "button";
+            name = L["Edit Text"];
+            padding = 15;
+            OnClick = function(btn)
+              local getPath = function() return GetDbPath(frame) end;
+              ShowListFrame(btn, getPath, UpdateFontString);
+            end;
+          },
+          { type = "divider"; };
+          { type = "dropdown";
+            name = L["Play Sound"];
+            dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "sound"); end;
+            tooltip = L["Play a sound effect when any of the selected text appears in chat."];
+            options = tk.Constants.SOUND_OPTIONS;
+          },
+          { type = "button";
+            texture = "Interface\\COMMON\\VOICECHAT-SPEAKER";
+            width = 20;
+            height = 40;
+            texHeight = 20;
+            OnClick = function()
+              local soundPath = tk.Strings:Join(".", GetDbPath(frame), "sound");
+              local sound = db:ParsePathValue(soundPath);
+
+              if (obj:IsNumber(sound)) then
+                PlaySound(sound);
+              end
+            end
+          }
+        };
+      };
+
+      return frameConfig;
+    end
+  end
+
   local function AddTextHighlighting()
     highlightFrames = highlightFrames or obj:PopTable();
     local highlighted = db.profile.chat.highlighted:GetUntrackedTable();
@@ -308,6 +307,8 @@ function C_ChatModule:GetConfigTable(_, configModule)
       channelNames[#channelNames + 1] = channelName;
     end
   end
+
+  local customTimestampColor;
 
   return {
     module = "ChatModule",
@@ -353,6 +354,11 @@ function C_ChatModule:GetConfigTable(_, configModule)
             content = L["CHANNEL_NAME_ALIASES"]:gsub("\n", " ");
             width = ""; -- ignore 150 width
           };
+          { type = "check";
+            name = L["Enable Custom Aliases"];
+            dbPath = "profile.chat.enableAliases";
+          },
+          { type = "divider" };
           { type = "slider";
             name = L["Alias Brightness"];
             tooltip = L["Default value is"] .. " 0.7";
@@ -554,6 +560,55 @@ function C_ChatModule:GetConfigTable(_, configModule)
           },
         }
       },
+      { name = L["Timestamps"];
+        type = "submenu";
+        children = {
+          { content = _G.OPTION_TOOLTIP_TIMESTAMPS;
+            type = "fontstring";
+          },
+          { name = L["Set Timestamp Format"];
+            type = "dropdown";
+            GetValue = function()
+              return GetCVar("showTimestamps");
+            end;
+            SetValue = function(_, value)
+              SetCVar("showTimestamps", value);
+              if (value == "none") then
+                _G.CHAT_TIMESTAMP_FORMAT = nil;
+              else
+                _G.CHAT_TIMESTAMP_FORMAT = value;
+              end
+            end;
+            options = {
+              [L["None"]] = "none";
+              [BetterDate(_G.TIMESTAMP_FORMAT_HHMM, time())] = _G.TIMESTAMP_FORMAT_HHMM;
+              [BetterDate(_G.TIMESTAMP_FORMAT_HHMMSS, time())] = _G.TIMESTAMP_FORMAT_HHMMSS;
+              [BetterDate(_G.TIMESTAMP_FORMAT_HHMM_AMPM, time())] = _G.TIMESTAMP_FORMAT_HHMM_AMPM;
+              [BetterDate(_G.TIMESTAMP_FORMAT_HHMMSS_AMPM, time())] = _G.TIMESTAMP_FORMAT_HHMMSS_AMPM;
+              [BetterDate(_G.TIMESTAMP_FORMAT_HHMM_24HR, time())] = _G.TIMESTAMP_FORMAT_HHMM_24HR;
+              [BetterDate(_G.TIMESTAMP_FORMAT_HHMMSS_24HR, time())] = _G.TIMESTAMP_FORMAT_HHMMSS_24HR;
+              [BetterDate(_G.TIMESTAMP_FORMAT_HHMM, time())] = _G.TIMESTAMP_FORMAT_HHMM;
+            };
+          },
+          { type = "divider" };
+          { type = "check";
+            name = L["Use Fixed Timestamp Color"];
+            width = 230;
+            dbPath = "profile.chat.useTimestampColor";
+            OnPostSetValue = function(_, value)
+              customTimestampColor:SetEnabled(value);
+            end
+          };
+          { type = "color";
+            name = L["Set Timestamp Color"];
+            dbPath = "profile.chat.timestampColor";
+            enabled = db.profile.chat.useTimestampColor,
+            OnLoad = function(_, widget)
+              customTimestampColor = widget;
+            end;
+          };
+        };
+      };
       { name = L["Horizontal Top Buttons"],
         type = "title",
       },
@@ -595,60 +650,60 @@ function C_ChatModule:GetConfigTable(_, configModule)
               type = "submenu",
               module = "Chat",
               inherit = {
-                  type = "dropdown",
-                  options = C_ChatModule.Static.ButtonNames;
+                type = "dropdown",
+                options = C_ChatModule.Static.ButtonNames;
               },
               children = { -- shame I can't loop this
-                {   name = L["Enable Chat Frame"],
-                    type = "check",
-                    dbPath = string.format("%s.enabled", dbPath),
-                    OnClick = function(_, value)
-                      for _, container in ipairs(disabledWidgets) do
-                        local widget = container.widget or container.btn;
-                        widget:SetEnabled(value);
-                      end
+                { name = L["Enable Chat Frame"],
+                  type = "check",
+                  dbPath = string.format("%s.enabled", dbPath),
+                  OnClick = function(_, value)
+                    for _, container in ipairs(disabledWidgets) do
+                      local widget = container.widget or container.btn;
+                      widget:SetEnabled(value);
                     end
+                  end
                 },
-                {   name = L["Show Tab Bar"],
-                    tooltip = L["This is the background bar that goes behind the tabs."];
-                    type = "check",
-                    dbPath = string.format("%s.tabBar.show", dbPath),
-                    enabled = chatFrame ~= nil,
-                    OnLoad = addWidget
+                { name = L["Show Tab Bar"],
+                  tooltip = L["This is the background bar that goes behind the tabs."];
+                  type = "check",
+                  dbPath = string.format("%s.tabBar.show", dbPath),
+                  enabled = chatFrame ~= nil,
+                  OnLoad = addWidget
                 };
-                {   type = "divider";
+                { type = "divider";
                 };
-                {   name = tk.Strings:JoinWithSpace(L["Tab Bar"], L["Y-Offset"]),
-                    type = "slider",
-                    min = -50;
-                    max = 50;
-                    dbPath = string.format("%s.tabBar.yOffset", dbPath),
-                    enabled = chatFrame ~= nil,
-                    OnLoad = addWidget
+                { name = tk.Strings:JoinWithSpace(L["Tab Bar"], L["Y-Offset"]),
+                  type = "slider",
+                  min = -50;
+                  max = 50;
+                  dbPath = string.format("%s.tabBar.yOffset", dbPath),
+                  enabled = chatFrame ~= nil,
+                  OnLoad = addWidget
                 };
-                {   name = tk.Strings:JoinWithSpace(L["Window"], L["Y-Offset"]),
-                    type = "slider",
-                    min = -50;
-                    max = 50;
-                    dbPath = string.format("%s.window.yOffset", dbPath),
-                    enabled = chatFrame ~= nil,
-                    OnLoad = addWidget
+                { name = tk.Strings:JoinWithSpace(L["Window"], L["Y-Offset"]),
+                  type = "slider",
+                  min = -50;
+                  max = 50;
+                  dbPath = string.format("%s.window.yOffset", dbPath),
+                  enabled = chatFrame ~= nil,
+                  OnLoad = addWidget
                 };
-                {   name = tk.Strings:JoinWithSpace("Chat Frame", L["X-Offset"]),
-                    type = "slider",
-                    min = -50;
-                    max = 50;
-                    dbPath = string.format("%s.xOffset", dbPath),
-                    enabled = chatFrame ~= nil,
-                    OnLoad = addWidget
+                { name = tk.Strings:JoinWithSpace("Chat Frame", L["X-Offset"]),
+                  type = "slider",
+                  min = -50;
+                  max = 50;
+                  dbPath = string.format("%s.xOffset", dbPath),
+                  enabled = chatFrame ~= nil,
+                  OnLoad = addWidget
                 };
-                {   name = tk.Strings:JoinWithSpace("Chat Frame", L["Y-Offset"]),
-                    type = "slider",
-                    min = -50;
-                    max = 50;
-                    dbPath = string.format("%s.yOffset", dbPath),
-                    enabled = chatFrame ~= nil,
-                    OnLoad = addWidget
+                { name = tk.Strings:JoinWithSpace("Chat Frame", L["Y-Offset"]),
+                  type = "slider",
+                  min = -50;
+                  max = 50;
+                  dbPath = string.format("%s.yOffset", dbPath),
+                  enabled = chatFrame ~= nil,
+                  OnLoad = addWidget
                 };
               }
           };

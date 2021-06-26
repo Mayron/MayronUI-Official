@@ -566,8 +566,8 @@ function WidgetHandlers.color(parent, widgetTable, value)
   container.color:SetPoint("CENTER", container.square, "CENTER");
 
   container:SetSize(
-  widgetTable.width or (container.text:GetStringWidth() + 44),
-  widgetTable.height or 30);
+    widgetTable.width or (container.text:GetStringWidth() + 44),
+    widgetTable.height or 30);
 
   -- info options:
   container.extraInfo = container;
@@ -593,7 +593,6 @@ function WidgetHandlers.color(parent, widgetTable, value)
   end
 
   _G.hooksecurefunc(container, "SetEnabled", Color_OnSetEnabled);
-
   SetWidgetEnabled(container, widgetTable.enabled);
 
   return container;

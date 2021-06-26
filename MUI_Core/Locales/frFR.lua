@@ -821,3 +821,9 @@ L["Set Color"] = "Définir la couleur";
 L["Edit Text"] = "Éditer le texte";
 L["Play a sound effect when any of the selected text appears in chat."] = "Jouer un effet sonore lorsque l'un des textes sélectionnés apparaît dans le chat.";
 L["Play Sound"] = "Jouer son";
+
+L["Set Timestamp Color"] = "Définir la couleur de l'horodatage";
+L["Use Fixed Timestamp Color"] = "Utiliser une couleur d'horodatage fixe";
+L["Set Timestamp Format"] = "Définir le format d'horodatage";
+L["Timestamps"] = "Horodatage";
+L["Enable Custom Aliases"] = "Activer les alias personnalisés";

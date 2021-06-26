@@ -94,7 +94,7 @@ db:AddToDefaults("profile", {
     bar = {
       width   = 210;
       height  = 22;
-      spacing = 2;
+      spacing = 1;
       maxBars = 10;
     };
 

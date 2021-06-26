@@ -17,8 +17,13 @@ local BNGetNumFriends, BNGetFriendInfo = _G.BNGetNumFriends, _G.BNGetFriendInfo;
 local string, CreateFrame, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1 =
   _G.string, _G.CreateFrame, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1;
 local select = _G.select;
-local ToggleFriendsFrame = _G.ToggleFriendsFrame;
 local Friends = obj:CreateClass("Friends");
+
+local LocalToggleFriendsFrame = _G.ToggleFriendsFrame;
+
+if (not tk:IsRetail()) then
+LocalToggleFriendsFrame = function() _G.ToggleFriendsFrame(1); end
+end
 
 -- Local Functions -------------------
 
@@ -191,7 +196,7 @@ end
 
 function Friends:Click(_, button)
   if (button == "RightButton") then
-    ToggleFriendsFrame();
+    LocalToggleFriendsFrame();
     return;
   end
 

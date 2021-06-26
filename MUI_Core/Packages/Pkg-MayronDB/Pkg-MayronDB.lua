@@ -38,6 +38,12 @@ OnAddOnLoadedListener:SetScript("OnEvent", function(self, _, addOnName)
   end
 end);
 
+local function Log(msg, ...)
+  if (_G.MayronDBTest) then
+    print(msg, ...);
+  end
+end
+
 ------------------------
 -- Database API
 ------------------------

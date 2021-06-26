@@ -7,13 +7,12 @@ IsInGuild, GetNumGuildMembers, GetGuildRosterInfo, IsTrialAccount =
 _G.strsplit, _G.unpack, _G.CreateFrame, _G.GameTooltip, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1,
 _G.IsInGuild, _G.GetNumGuildMembers, _G.GetGuildRosterInfo, _G.IsTrialAccount;
 
-local ToggleGuildFrame;
+local LocalToggleGuildFrame = _G.ToggleGuildFrame;
 
-if (tk:IsRetail()) then
-  ToggleGuildFrame = _G.ToggleGuildFrame;
-else
-  local ToggleFriendsFrame = _G.ToggleFriendsFrame;
-  ToggleGuildFrame = function() ToggleFriendsFrame(2) end
+if (tk:IsBCClassic()) then
+  LocalToggleGuildFrame = function() _G.ToggleFriendsFrame(3); end
+elseif (tk:IsClassic()) then
+  LocalToggleGuildFrame = function() _G.ToggleFriendsFrame(1); end
 end
 
 local GuildRoster = _G.GuildRoster or (_G.C_GuildInfo and _G.C_GuildInfo.GuildRoster);
@@ -154,7 +153,7 @@ function Guild:Click(data, button)
     if (IsTrialAccount()) then
       tk:Print(L["Starter Edition accounts cannot perform this action."]);
     elseif (IsInGuild()) then
-      ToggleGuildFrame();
+      LocalToggleGuildFrame();
     else
       tk:Print("You need to be in a guild to perform this action.");
     end

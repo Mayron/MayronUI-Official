@@ -730,7 +730,6 @@ end);
 db:OnStartUp(function(self)
   -- setup globals:
   MayronUI.db = self;
-
   namespace:SetUpBagnon();
 
   local r, g, b = tk:GetThemeColor();

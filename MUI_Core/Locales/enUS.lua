@@ -869,3 +869,9 @@ L["Set Color"] = "Set Color";
 L["Edit Text"] = "Edit Text";
 L["Play a sound effect when any of the selected text appears in chat."] = "Play a sound effect when any of the selected text appears in chat.";
 L["Play Sound"] = "Play Sound";
+
+L["Set Timestamp Color"] = "Set Timestamp Color";
+L["Use Fixed Timestamp Color"] = "Use Fixed Timestamp Color";
+L["Set Timestamp Format"] = "Set Timestamp Format";
+L["Timestamps"] = "Timestamps";
+L["Enable Custom Aliases"] = "Enable Custom Aliases";
