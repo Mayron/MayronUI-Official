@@ -29,6 +29,8 @@ do
 end
 
 function tk.Strings:Contains(fullString, subString)
+  if (not (obj:IsString(fullString) and obj:IsString(subString))) then return false; end
+
   if (string.match(fullString, subString)) then
     return true;
   else
