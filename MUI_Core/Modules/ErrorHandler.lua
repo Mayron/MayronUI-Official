@@ -56,7 +56,8 @@ function C_ErrorHandler:OnInitialize()
   listener:RegisterEvent("LUA_WARNING");
 
   seterrorhandler(function(errorMessage)
-    addError(errorMessage);
+    local stack = debugstack(_G.DEBUGLOCALS_LEVEL);
+    addError(errorMessage .. (stack or ""));
     HandleLuaError(errorMessage);
   end);
 
