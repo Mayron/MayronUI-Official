@@ -64,25 +64,16 @@ do
   };
 
   function tk:IsModComboActive(strKey) -- "SC" - is shift and control down but not alt? (example)
-    local checked = obj:PopTable();
-
     for i = 1, #strKey do
       local modCode = strKey:sub(i,i);
       modCode = string.upper(modCode);
-      checked[modCode] = true;
 
-      if (not modKeys[modCode]()) then
+      -- If unknown mod key, skip it because it's from an old bug (russian locale accidentally added to db)
+      if (obj:IsFunction(modKeys[modCode]) and not modKeys[modCode]()) then
         return false;
       end
     end
 
-    for key, value in pairs(checked) do
-      if (not value and modKeys[key]()) then
-        return false;
-      end
-    end
-
-    obj:PushTable(checked);
     return strKey ~= tk.Strings.Empty;
   end
 end

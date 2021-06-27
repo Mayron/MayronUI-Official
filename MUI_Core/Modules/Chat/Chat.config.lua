@@ -89,11 +89,11 @@ function C_ChatModule:GetConfigTable(_, configModule)
       return unpack(configTable);
     end
 
-    for _, modKey in obj:IterateArgs(L["Control"], L["Shift"], L["Alt"]) do
+    for _, modKey in obj:IterateArgs("Control", "Shift", "Alt") do
       local modKeyFirstChar = string.sub(modKey, 1, 1);
 
       table.insert(configTable, {
-        name = modKey,
+        name = L[modKey],
         height = 40,
         type = "check",
         dbPath = string.format("%s.buttons[%d].key", dbPath, buttonID),
