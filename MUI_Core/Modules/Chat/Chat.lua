@@ -213,19 +213,19 @@ function C_ChatModule:OnInitialize(data)
       "healers", "healer", "healz", "heal", "healing",
       color = { 0.1; 1; 0.1; };
       sound = false;
-      upperCase = true;
+      upperCase = false;
     },
     {
       "tanks", "tank", "tanking",
       color = { 1; 0.1; 0.1; };
       sound = false;
-      upperCase = true;
+      upperCase = false;
     },
     {
       "dps";
       color = { 1; 1; 0; };
       sound = false;
-      upperCase = true;
+      upperCase = false;
     },
     {
       _G.UnitName("player");
