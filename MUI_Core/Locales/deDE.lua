@@ -48,21 +48,15 @@ L["Right Button"] = "Rechte Schaltfläche";
 L["Shift"] = "Umschalt";  -- Mod-Key!
 L["Ctrg"] = "Strg";  -- Mod-Key!
 L["Alt"] = "Alt";  -- Mod-Key!
-
 L["Chat Buttons with Modifier Key 1"] = "Chat Schaltflächen - 1. Mod-Taste";
 L["Chat Buttons with Modifier Key 2"] = "Chat Schaltflächen - 2. Mod-Taste";
 L["Set the border size."] = "Setzt die Randbreite.";
 L["Cannot toggle menu while in combat."] = "Das Menü kann im Kampf nicht umgeschaltet werden.";
 L["Cannot switch layouts while in combat."] = "Layouts können im Kampf nicht gewechselt werden.";
-
 L["Set the spacing between the background and the border."] = "Setzt den Abstand zwischen Hintergrund und Rand.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."] = "Erlaubt die Nutzung der Mod-Tasten zum wechseln der Chat-Schaltflächen, während man sich im Kampf befindet.";
-
--- MUI Core
 L["Failed to load MUI_Config. Possibly missing?"] = "MUI_Config konnte nicht geladen werden! Evtl. fehlt das Addon?";
 L["List of slash commands:"] = "Liste der Slash-Befehle:";
-L["shows config menu"] = "öffnet das Konfigurationsmenü";
-L["shows setup menu"] = "öffnet das Installationsmenü";
 L["Welcome back"] = "Willkommen zurück";
 L["Starter Edition accounts cannot perform this action."] = "Sorry, das geht nicht mit der Starter Edition.";
 L["Loot Specialization set to: Current Specialization"] = "Die Beute Spezialisierung entspricht der Spezialisierung:";
@@ -70,7 +64,6 @@ L["Must be level 10 or higher to use Talents."] = "Talente sind erst ab Level 10
 L["Requires level 10+ to view the PVP window."] = "PVP ist erst ab Level 10 verfügbar.";
 L["Requires level 10+ to view the Glyphs window."] = "Glyphen sind erst ab Level 10 verfügbar";
 L["Requires being inside a Battle Ground."] = "Sie müssen sich in einem Schlachtfeld befinden.";
-
 L["Choose Spec"] = "Spezialisierung wählen";
 L["Choose Loot Spec"] = "Beutespezialisierung wählen";
 L["Current Spec"] = "Aktive Spezialisierung";
@@ -100,12 +93,8 @@ L["Current Money"] = "Aktuelles Vermögen";
 L["Start of the day"] = "Bei Tagesbeginn";
 L["Today's profit"] = "Tagesprofit";
 L["Money per character"] = "Vermögen je Charakter";
-
--- afk
 L["Guild Chat"] = "Gildenchat";
 L["Whispers"] = "Private Nachrichten";
-
--- MUI Castbar
 L[" CastBar not enabled."] = " Castbar ist nicht aktiviert.";
 L["Lock"] = "Sperren";
 L["Unlock"] = "Freigeben";
@@ -141,13 +130,10 @@ L["Target"] = "Ziel";
 L["Focus"] = "Fokus";
 L["Mirror"] = "Spiegel";
 L["Pet"] = "Begleiter";
-
 L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."] = "Wenn aktiviert, wird die CastBar am %s Einheiten Fenster verankert. (Sofern existent!)";
 L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."] = "Das %s Einheiten Fenster muss für dieses Feature aktiviert sein.";
 L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."] = "Nur wirksam wenn nicht an SUF Portrait verankert.";
 L["Manual positioning only works if the CastBar is not anchored to a SUF Portrait Bar."] = "Die manuelle Positionierung funktioniert nur wenn die CastBar nicht am SUF Portrait verankert ist.";
-
--- MUI Minimap
 L["CTRL + Drag:"] = "Strg + ziehen:";
 L["SHIFT + Drag:"] = "Umschalt + ziehen:";
 L["Mouse Wheel:"] = "Mausrad:";
@@ -165,10 +151,7 @@ L["Class Order Hall"] = "Klassenhallen Bericht";
 L["Garrison Report"] = "Garnisons Bericht";
 L["Tracking Menu"] = "Tracking Menü";
 L["Music Player"] = "Musikspieler";
-
 L["Cannot access config menu while in combat."] = "Das Menü kann nicht im Kampf geöffnet werden.";
-
--- MUI Setup
 L["Choose Theme:"] = "Thema wählen";
 L["Custom Colour"] = "Benutzerdefinierte Farbe";
 L["Theme"] = "Thema";
@@ -197,8 +180,6 @@ L["This will reload the UI!"] = "Dadurch wird das UI neu geladen!";
 L["Setup Menu"] = "Installations Menü";
 L["VERSION"] = "VERSION";
 L["This will ensure that frames are correctly positioned to match the UI scale during installation."] = "Hiermit wird sichergestellt, das bei der Installation die Frames passend zur Skalierung positioniert werden.";
-
--- MUI TimerBar
 L["Only track your %s"] = "Nur eigene %s";
 L["Track all %s"] = "Alle %s";
 L["General Options"] = "Allgemeine Einstellungen";
@@ -236,15 +217,12 @@ L["Show"] = "Anzeigen";
 L["Font Size"] = "Schriftgröße";
 L["Font Type"] = "Schriftart";
 L["Spell Name Text"] = "Text: Zaubername";
-
 L["Enter the Name of a %s to Track:"] = "Gebe den Namen eines %s ein um ihn zu überwachen.";
 L["Only %s casted by you will be tracked."] = "Nur die %s von dir werden überwacht";
 L["Ignore the list of %s to track and track everything."] = "Ignoriere die Liste der %s und überwache alles.";
 L["Enabling this will dynamically generate the list of %s to track."] = "Bei aktivierung werden dynamisch alle %s erfasst und überwacht.";
 L["The unit who is affected by the spell."] = "Die Einheit die vom Zauber betroffen ist.";
 L["The field's vertical growth direction:"] = "Die Richtung in der die Leiste wachsen wird.";
-
--- MUI Config
 L["Reload UI"] = "UI neu laden";
 L["General"] = "Allgemein";
 L["Master Font"] = "Haupt-Schriftart";
@@ -331,7 +309,6 @@ L["Never"] = "Niemals";
 L["Always"] = "Immer";
 L["On Mouse-over"] = "Bei Mausover";
 L["Bar"] = "Leiste";
-
 L["Uncheck to prevent MUI from changing the game font."] = "Deaktivieren um MUI daran zu hindern die Hauptschriftart des Spiels zu ändern.";
 L["Config type '%s' unsupported!"] = "Konfigurationstyp '%s' wird nicht unterstützt!";
 L["The UI requires reloading to apply changes."] = "Das UI muss neu geladen werden um die Änderungen zu übernehmen.";
@@ -357,7 +334,6 @@ L["The higher the value, the quicker the speed."] = "Je größer der Wert, desto
 L["The height of the gradient effect."] = "Die Höhe der Farbverlaufeffeckts.";
 L["Adjust the spacing between data text buttons."] = "Den Abstand zwischen den DataText Elementen anpassen.";
 L["The frame strata of the entire DataText bar."] = "Die Darstellungsschicht der DataText Leiste.";
-
 L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] = "Verankert den Quest Tracker an der SideBar auf der rechten Seite.";
 L["Disable this to stop MUI from controlling the Objective Tracker."] = "Wenn deaktiviert, wird MUI den Quest Tracker nicht konfigurieren.";
 L["Adjust the horizontal positioning of the Objective Tracker."] = "Verschiebt den Aufgaben / Quest Tracke horizontal.";
@@ -369,53 +345,23 @@ L["If unchecked, the entire DataText module will be disabled and all"] = "Wenn d
 L["DataText buttons, as well as the background bar, will not be displayed."] = "Die Daten Text box, sowie der Hindergrund wird ebenfalls ausgeblendet.";
 L["Prevents you from using data text modules while in combat."] = "Verhindert die benutzung der DataText Elemente während dem Kampf.";
 L["This is useful for 'clickers'."] = "Das ist besonders für die Benutzer mit einer Vorliebe für Maussteuerung hilfreich.";
-
-L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."]
-= "Wenn die SUF Spieler oder Ziel Portais aktiv sind, wird ein Farbverlauf mit den Klassenfarben darüber gelegt.";
-
-L["TT_MUI_CONTROL_SUF"]    =
-[[Wenn aktiviert, wird MUI die Shadowed Unit Frames passend in sein UI verschieben.
-
-Es wird automatisch die Positionen anpassen, wenn die untere Benutzeroberfläche
-erweitert over verkleinert wird.]];
-
-L["TT_MUI_CONTROL_BARTENDER"]  =
-[[Wenn aktiviert, wird MUI die ausgewählten Bartender Leisten so verschieben,
-das sie in die untere Benutzeroberfläche passen.
-
-Auch die ein-ausblende Animationen werden die repositionierung der Aktionsleisten berücksichtigen.]];
-
-L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
-[[Wenn aktiviert, wird der Farbverlauf die Klassenfarben des Ziels statt die vordefinierten verwenden.
-Es werden aber weiterhin die Alphawerte und Endfarbe verwendet]];
-
+L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."] = "Wenn die SUF Spieler oder Ziel Portais aktiv sind, wird ein Farbverlauf mit den Klassenfarben darüber gelegt.";
 L["Show Overview"] = "Übersicht anzeigen";
 L["Show Reset Options"] = "Reset-Optionen anzeigen";
 L["Reset All Characters"] = "Alle Chars zurücksetzen";
 L["Reset Options"] = "Optionen zurücksetzen";
-
 L["All currency data has been reset."] = "Alle Währungen wurden zurückgesetzt.";
 L["Currency data for %s has been reset."] = "Währung für %s wurden zurückgesetzt.";
-L["Are you sure you want to reset the currency data for all of your characters?"] =
-"Sind Sie sicher, dass Sie die Währungen für alle Ihre Chars zurücksetzen möchten?";
-L["Are you sure you want to reset the currency data for %s?"] =
-"Möchten Sie die Währung für %s wirklich zurücksetzen?";
-
+L["Are you sure you want to reset the currency data for all of your characters?"] = "Sind Sie sicher, dass Sie die Währungen für alle Ihre Chars zurücksetzen möchten?";
+L["Are you sure you want to reset the currency data for %s?"] = "Möchten Sie die Währung für %s wirklich zurücksetzen?";
 L["Change Status"] = "Status ändern";
 L["Remove from Whitelist"] = "Aus der Whitelist entfernen";
 L["Add to Blacklist"] = "Zur Blacklist hinzufügen";
-
-L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."] =
-"Durch Entfernen von %s aus der Whitelist wird diese Zeitleiste ausgeblendet, wenn die Whitelist aktiviert ist.";
-
-L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."] =
-"Durch Hinzufügen von %s zur Blacklist wird diese Zeitleiste ausgeblendet, wenn die Blacklist aktiviert ist.";
-
+L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."] = "Durch Entfernen von %s aus der Whitelist wird diese Zeitleiste ausgeblendet, wenn die Whitelist aktiviert ist.";
+L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."] = "Durch Hinzufügen von %s zur Blacklist wird diese Zeitleiste ausgeblendet, wenn die Blacklist aktiviert ist.";
 L["Are you sure you want to do this?"] = "Sind Sie sicher, dass Sie dies tun möchten?";
-
 L["%s has been removed from the whitelist."] = "%s wurde aus der Whitelist entfernt.";
 L["%s has been added to the blacklist."] = "%s wurde der Blacklist hinzugefügt.";
-
 L["Filters"] = "Filters";
 L["Only show buffs applied by me"] = "Nur von mir angewendete Buffs anzeigen";
 L["Only show debuffs applied by me"] = "Nur von mir angewendete Debuffs anzeigen";
@@ -423,42 +369,6 @@ L["Enable Whitelist"] = "Whitelist aktivieren";
 L["Configure Whitelist"] = "Whitelist bearbeiten";
 L["Enable Blacklist"] = "Blacklist aktivieren";
 L["Configure Blacklist"] = "Blacklist bearbeiten";
-
-
-L["MUI_Setup_InfoTab"] = [[
-Community Discord:
-%s
-
-Besuchen Sie die offizielle MayronUI Webseite für weitere Informationen:
-%s
-
-Offizelle GitHub Seite:
-%s
-
-Werde Patron und bekomme exklusive Vorteile inerhalb der Community:
-%s
-
-Mayron's offizeller YouTube Kanal:
-%s]]
-
-L["MUI_Setup_CreditsTab"] = [[
-Ein besonderer Dank geht an die folgenden Mitglieder der MayronUI-Community für ihre Beiträge zum Projekt (auf der Registerkarte "Informationen" finden Sie den Link, über den Sie unserer Discord-Community beitreten können):
-
-|cff00ccff> Patrons|r
-%s
-
-|cff00ccff> Entwicklung & Fehlerbehebung|r
-%s
-
-|cff00ccff> Übersetzungsunterstützung|r
-%s
-
-|cff00ccff> Community Support Team|r
-%s
-
-Und natürlich vielen Dank an die Autoren der Nicht-MayronUI-AddOns, die in diesem UI-Paket enthalten sind.
-]]
-
 L["Cast Bars"] = "Gegossene Bars";
 L["Auras (Buffs & Debuffs)"] = "Auren (Buffs & Debuffs)";
 L["(CTRL+C to Copy, CTRL+V to Paste)"] = "(Strg+C zum Kopieren, Strg+V zum Einfügen)";
@@ -475,7 +385,7 @@ L["Select profile"] = "Profil wählen";
 L["Choose Profile"] = "Profil wählen";
 L["Choose the currently active profile."] = "Wählen Sie das aktuell aktive Profil.";
 L["New Profile"] = "Neues Profil";
-L["Create a new profile."] = "Erstelle ein neues Profil";
+L["Create a new profile"] = "Erstelle ein neues Profil";
 L["Default Profile Behaviour"] = "Standard Profil";
 L["Name of New Layout"] = "Name des neuen Layout´s";
 L["Layout"] = "Layout";
@@ -497,54 +407,19 @@ L["Scale"] = "Skallierung";
 L["Size"] = "Größe";
 L["Adjust the font size of the zone text."] = "Passen Sie die Schriftgröße des Zonentextes an.";
 L["Okay"] = "Okay";
-
-L["Profile %s has been copied into current profile %s."]
-= "Das profil %s wurde in das aktuelle Profil %s kopiert.";
-
-L["MANAGE_PROFILES_HERE"] = [[
-Hier können Sie Charakterprofile verwalten.
-
-Standardmäßig hat jeder Char ein eigenes Profil.]]
-
-L["Reset currently active profile back to default settings."]
-= "Setzen Sie das aktuell aktive Profil auf die Standardeinstellungen zurück.";
-
-L["Are you sure you want to reset profile '%s' back to default settings?"]
-= "Möchten Sie das Profil '%s' wirklich auf die Standardeinstellungen zurücksetzen?";
-
-L["Delete currently active profile (cannot delete the 'Default' profile)."]
-= "Derzeit aktives Profil löschen (Standardprofil kann nicht gelöscht werden).";
-
-L["Copy all settings from one profile to the active profile."]
-= "Kopieren Sie alle Einstellungen von einem Profil in das aktive Profil.";
-
-L["Are you sure you want to override all profile settings in '%s' for those in profile '%s'?"]
-= "Möchten Sie wirklich alle Profileinstellungen in '%s' für diejenigen im Profil '%s' überschreiben?";
-
-L["UNIQUE_CHARACTER_PROFILE"] = [[
-Standardmäßig wird jedem neuen Char automatisch ein eindeutiges Pofil erstellt, anstelle eines einzelnen Standardprofils zugewiesen.
-Profile werden automatisch erst zugewiesen, nachdem die Benutzeroberfläche auf einem neuen Char installiert wurde.]]
-
+L["Profile %s has been copied into current profile %s."] = "Das profil %s wurde in das aktuelle Profil %s kopiert.";
+L["Reset currently active profile back to default settings."] = "Setzen Sie das aktuell aktive Profil auf die Standardeinstellungen zurück.";
+L["Are you sure you want to reset profile '%s' back to default settings?"] = "Möchten Sie das Profil '%s' wirklich auf die Standardeinstellungen zurücksetzen?";
+L["Delete currently active profile (cannot delete the 'Default' profile)."] = "Derzeit aktives Profil löschen (Standardprofil kann nicht gelöscht werden).";
+L["Copy all settings from one profile to the active profile."] = "Kopieren Sie alle Einstellungen von einem Profil in das aktive Profil.";
+L["Are you sure you want to override all profile settings in '%s' for those in profile '%s'?"] = "Möchten Sie wirklich alle Profileinstellungen in '%s' für diejenigen im Profil '%s' überschreiben?";
 L["Profile Per Character"] = "Profil pro Character";
-
-L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."]
-= "Wenn diese Option aktiviert ist, wird einen neuen Char anstelle des Standardprofils ein eindeutiges Characterprofil zugewiesen.";
-
-L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."]
-= "Passen Sie an, welche AddOn/s zu welchem Profil und welches Profil für jedes Layout geändert werden soll, und verwalten Sie Ihre vorhandenen Layouts oder erstellen Sie neue.";
-
-L["Anchor the Objective Tracker to the action bar container on the right side of the screen."]
-= "Verankern Sie den Objective Tracker im Aktionsleistencontainer auf der rechten Seite des Bildschirms.";
-
-L["You can repeat this step at any time (while out of combat) to hide it."]
-= "Sie können diesen Schritt jederzeit (außerhalb des Kampfes) wiederholen, um ihn auszublenden.";
-
-L["If true, the objective tracker will collapse when entering an instance."]
-= "Wenn dies der Fall ist, wird der Ziel-Tracker beim Eingeben einer Instanz reduziert.";
-
-L["If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit."]
-= "Wenn dies zutrifft, zeigt MUI weder Kupfer noch Silber an, wenn die Goldmenge einen bestimmten Grenzwert überschreitet.";
-
+L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."] = "Wenn diese Option aktiviert ist, wird einen neuen Char anstelle des Standardprofils ein eindeutiges Characterprofil zugewiesen.";
+L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] = "Passen Sie an, welche AddOn/s zu welchem Profil und welches Profil für jedes Layout geändert werden soll, und verwalten Sie Ihre vorhandenen Layouts oder erstellen Sie neue.";
+L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] = "Verankern Sie den Objective Tracker im Aktionsleistencontainer auf der rechten Seite des Bildschirms.";
+L["You can repeat this step at any time (while out of combat) to hide it."] = "Sie können diesen Schritt jederzeit (außerhalb des Kampfes) wiederholen, um ihn auszublenden.";
+L["If true, the objective tracker will collapse when entering an instance."] = "Wenn dies der Fall ist, wird der Ziel-Tracker beim Eingeben einer Instanz reduziert.";
+L["If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit."] = "Wenn dies zutrifft, zeigt MUI weder Kupfer noch Silber an, wenn die Goldmenge einen bestimmten Grenzwert überschreitet.";
 L["Also enable the %s"] = "Aktivieren Sie auch die %s";
 L["Current"] = "Aktuell";
 L["Equipment Set"] = "Rüstung´s Set";
@@ -632,42 +507,24 @@ L["Covenant Sanctum"] = "Packtsanktum";
 L["Missions"] = "BfA Missionen";
 L["You must be a member of a covenant to view this."] = "Du musst einen Packt angehören."
 L["Unmuted"] = "Nicht stummgeschaltet";
-
----------------------------------------
---- NEW SINCE 12/12/2020 (update 6.3.8)
----------------------------------------
 L["Step %d of"] = "Schritt %d von";
 L["Step"] = "Schritt";
-
-L["Found a bug? Use this form to submit an issue to the official MayronUI GitHub page."] =
-"Einen Fehler gefunden? Verwenden Sie dieses Formular, um ein Problem an die offizielle MayronUI GitHub-Seite zu senden.";
-
+L["Found a bug? Use this form to submit an issue to the official MayronUI GitHub page."] = "Einen Fehler gefunden? Verwenden Sie dieses Formular, um ein Problem an die offizielle MayronUI GitHub-Seite zu senden.";
 L["Almost done! We just need a bit more information..."] = "Fast fertig! Wir brauchen nur ein paar mehr Informationen...";
-
-L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"] =
-"Klicken Sie unten, um Ihren Bericht zu erstellen. Nach dem Erstellen kopieren Sie den Bericht und senden Sie ihn uns über den folgenden Link auf GitHub:";
-
-L["characters"] = "Zeichen"; -- text characters (e.g. A, B, C, etc...), NOT WoW characters!
-
+L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"] = "Klicken Sie unten, um Ihren Bericht zu erstellen. Nach dem Erstellen kopieren Sie den Bericht und senden Sie ihn uns über den folgenden Link auf GitHub:";
+L["characters"] = "Zeichen";
 L["minimum"] = "Minimum";
 L["Please describe the bug in detail:"] = "Bitte beschreiben Sie den Fehler im Detail:";
 L["How can we replicate the bug?"] = "Wie können wir den Fehler replizieren?";
 L["Report Issue"] = "Fehler melden";
-
 L["Open this webpage in your browser"] = "Öffnen Sie diese Webseite in Ihrem Browser";
 L["Generate Report"] = "Bericht generieren";
 L["Copy Report"] = "Bericht kopieren";
-
----------------------------------------
---- NEW SINCE 31/05/2021 (update 6.6.3)
----------------------------------------
 L["Chat Frame with Icons"] = "Chat-Rahmen mit Symbolen";
 L["Vertical Side Icons"] = "Vertikale Seitensymbole";
-L["Only 1 active chat frame can show the chat icons on the sidebar (see icons listed below)."] 
-  = "Nur 1 aktiver Chatrahmen kann die Chatsymbole in der Seitenleiste anzeigen (siehe unten aufgeführte Symbole).";
+L["Only 1 active chat frame can show the chat icons on the sidebar (see icons listed below)."] = "Nur 1 aktiver Chatrahmen kann die Chatsymbole in der Seitenleiste anzeigen (siehe unten aufgeführte Symbole).";
 L["Horizontal Top Buttons"] = "Horizontale obere Tasten";
-L["This option will affect all active chat frames. To configure each individual button per chat frame, see the chat frame sub-menus below."] 
-  = "Diese Option wirkt sich auf alle aktiven Chat-Frames aus. Um jede einzelne Schaltfläche pro Chat-Frame zu konfigurieren, sehen Sie sich die Chat-Frame-Untermenüs unten an.";
+L["This option will affect all active chat frames. To configure each individual button per chat frame, see the chat frame sub-menus below."] = "Diese Option wirkt sich auf alle aktiven Chat-Frames aus. Um jede einzelne Schaltfläche pro Chat-Frame zu konfigurieren, sehen Sie sich die Chat-Frame-Untermenüs unten an.";
 L["Chat Channels"] = "Chat-Kanäle";
 L["Professions"] = "Berufe";
 L["AddOn Shortcuts"] = "AddOn-Kurzbefehle";
@@ -679,18 +536,12 @@ L["Deafen"] = "taub";
 L["Mute"] = "Stumm";
 L["If checked, this module will be enabled."] = "Wenn diese Option aktiviert ist, wird dieses Modul aktiviert.";
 L["Unit Tooltip Options"] = "Tooltip-Optionen für Einheiten";
-L["These options only affect tooltips that appear when you mouse over a unit, such as an NPC or player."]
-  = "Diese Optionen wirken sich nur auf Tooltips aus, die angezeigt werden, wenn Sie mit der Maus über eine Einheit fahren, z. B. einen NPC oder einen Spieler.";
-L["If checked, the target of the unit (NPC or player) displayed in the tooltip will be shown."] 
-  = "Wenn aktiviert, wird das im Tooltip angezeigte Ziel der Einheit (NPC oder Spieler) angezeigt.";
-L["If checked and the player is in a guild, the guild rank of the player displayed in the tooltip will be shown."] 
-  = "Wenn aktiviert und der Spieler in einer Gilde ist, wird der Gildenrang des Spielers im Tooltip angezeigt.";
-L["If checked and the player is level 10 or higher, the item level of the player displayed in the tooltip will be shown."] 
-  = "Wenn diese Option aktiviert ist und der Spieler Level 10 oder höher ist, wird die Gegenstandsstufe des Spielers angezeigt, die im Tooltip angezeigt wird.";
-L["The player must be close enough to be inspected for this information to load."] 
-  = "Der Player muss nah genug sein, um inspiziert zu werden, damit diese Informationen geladen werden können.";
-L["If checked and the player is level 10 or higher and has chosen a class specialization, the specialization of the player displayed in the tooltip will be shown."]
-  = "Wenn aktiviert und der Spieler Level 10 oder höher ist und eine Klassenspezialisierung gewählt hat, wird die Spezialisierung des Spielers angezeigt, die im Tooltip angezeigt wird.";
+L["These options only affect tooltips that appear when you mouse over a unit, such as an NPC or player."] = "Diese Optionen wirken sich nur auf Tooltips aus, die angezeigt werden, wenn Sie mit der Maus über eine Einheit fahren, z. B. einen NPC oder einen Spieler.";
+L["If checked, the target of the unit (NPC or player) displayed in the tooltip will be shown."] = "Wenn aktiviert, wird das im Tooltip angezeigte Ziel der Einheit (NPC oder Spieler) angezeigt.";
+L["If checked and the player is in a guild, the guild rank of the player displayed in the tooltip will be shown."] = "Wenn aktiviert und der Spieler in einer Gilde ist, wird der Gildenrang des Spielers im Tooltip angezeigt.";
+L["If checked and the player is level 10 or higher, the item level of the player displayed in the tooltip will be shown."] = "Wenn diese Option aktiviert ist und der Spieler Level 10 oder höher ist, wird die Gegenstandsstufe des Spielers angezeigt, die im Tooltip angezeigt wird.";
+L["The player must be close enough to be inspected for this information to load."] = "Der Player muss nah genug sein, um inspiziert zu werden, damit diese Informationen geladen werden können.";
+L["If checked and the player is level 10 or higher and has chosen a class specialization, the specialization of the player displayed in the tooltip will be shown."]= "Wenn aktiviert und der Spieler Level 10 oder höher ist und eine Klassenspezialisierung gewählt hat, wird die Spezialisierung des Spielers angezeigt, die im Tooltip angezeigt wird.";
 L["Show Specialization"] = "Spezialisierung anzeigen";
 L["Show Item Level"] = "Item Level anzeigen";
 L["In Combat Options"] = "In Kampfoptionen";
@@ -698,13 +549,10 @@ L["Show Unit Tooltips In Combat"] = "Einheiten-Tooltips im Kampf anzeigen";
 L["Show Guild Rank"] = "Gildenrang anzeigen";
 L["Show Target"] = "Ziel anzeigen";
 L["Show Standard Tooltips In Combat"] = "Standard-Tooltips im Kampf anzeigen";
-L["Standard tooltips display non-unit related information, such as action-bar abilities, buffs and debuffs, and more."] 
-  = "Standard-Tooltips zeigen nicht einheitenbezogene Informationen an, z. B. Fähigkeiten der Aktionsleiste, Buffs und Debuffs und mehr.";
-L["Unit tooltips display player and NPC information while your mouse cursor is over a unit in the game world."] 
-  = "Einheiten-Tooltips zeigen Spieler- und NPC-Informationen an, während sich der Mauszeiger über einer Einheit in der Spielwelt befindet.";
+L["Standard tooltips display non-unit related information, such as action-bar abilities, buffs and debuffs, and more."] = "Standard-Tooltips zeigen nicht einheitenbezogene Informationen an, z. B. Fähigkeiten der Aktionsleiste, Buffs und Debuffs und mehr.";
+L["Unit tooltips display player and NPC information while your mouse cursor is over a unit in the game world."] = "Einheiten-Tooltips zeigen Spieler- und NPC-Informationen an, während sich der Mauszeiger über einer Einheit in der Spielwelt befindet.";
 L["Appearance Options"] = "Darstellungsoptionen";
-L["These options allow you to customize the appearance of the tooltips."] 
-  = "Mit diesen Optionen können Sie das Erscheinungsbild der QuickInfos anpassen.";
+L["These options allow you to customize the appearance of the tooltips."] = "Mit diesen Optionen können Sie das Erscheinungsbild der QuickInfos anpassen.";
 L["Font Flag"] = "Schriftart-Flag";
 L["Standard Font Size"] = "Standardschriftgröße";
 L["Header Font Size"] = "Schriftgröße der Kopfzeile";
@@ -713,21 +561,16 @@ L["Reskin using the MUI texture or a custom backdrop"] = "Reskin mit der MUI-Tex
 L["Texture"] = "Textur";
 L["Texture Options"] = "Texturoptionen";
 L["Custom Backdrop"] = "Benutzerdefinierter Hintergrund";
-L["The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see the previous menu)."] 
-  = "Die MUI-Textur steuert sowohl die Hintergrund- als auch die Randtexturen. Wenn Sie einen individuelleren Stil wünschen, verwenden Sie stattdessen den Stil „Benutzerdefinierter Hintergrund“ (siehe vorheriges Menü).";
+L["The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see the previous menu)."] = "Die MUI-Textur steuert sowohl die Hintergrund- als auch die Randtexturen. Wenn Sie einen individuelleren Stil wünschen, verwenden Sie stattdessen den Stil „Benutzerdefinierter Hintergrund“ (siehe vorheriges Menü).";
 L["Use MUI Theme Color"] = "Verwenden Sie die MUI-Designfarbe";
-L["If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class-colored)."] 
-  = "Wenn diese Option aktiviert ist, verwendet die MUI-Textur Ihre MUI-Designfarbe sowohl für den Hintergrund als auch für die Rahmenfarbe (standardmäßig ist dies klassenfarben).";
+L["If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class-colored)."] = "Wenn diese Option aktiviert ist, verwendet die MUI-Textur Ihre MUI-Designfarbe sowohl für den Hintergrund als auch für die Rahmenfarbe (standardmäßig ist dies klassenfarben).";
 L["Custom Color"] = "Freiwählbare Farbe";
-L["If not using the MUI theme color, the tooltip will use this custom color for both the background and border color."] 
-  = "Wenn die MUI-Designfarbe nicht verwendet wird, verwendet die QuickInfo diese benutzerdefinierte Farbe sowohl für die Hintergrund- als auch für die Rahmenfarbe.";
+L["If not using the MUI theme color, the tooltip will use this custom color for both the background and border color."] = "Wenn die MUI-Designfarbe nicht verwendet wird, verwendet die QuickInfo diese benutzerdefinierte Farbe sowohl für die Hintergrund- als auch für die Rahmenfarbe.";
 L["Custom Backdrop Options"] = "Benutzerdefinierte Hintergrundoptionen";
 L["Color border by class or NPC type"] = "Farbrahmen nach Klasse oder NPC-Typ";
-L["If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit."] 
-  = "Wenn diese Option aktiviert ist, basiert die Farbe des Hintergrundrahmens auf der Klasse der Spielereinheit oder dem Typ der NPC-Einheit.";
+L["If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit."] = "Wenn diese Option aktiviert ist, basiert die Farbe des Hintergrundrahmens auf der Klasse der Spielereinheit oder dem Typ der NPC-Einheit.";
 L["Border Color"] = "Randfarbe";
-L["If color border by class or NPC type is checked, this color will be used for all non-unit tooltips, else it will be used for every tooltip border."] 
-  = "Wenn Farbrahmen nach Klasse oder NPC-Typ aktiviert ist, wird diese Farbe für alle Tooltips verwendet, die keine Einheiten sind, andernfalls wird sie für jeden Tooltip-Rahmen verwendet.";
+L["If color border by class or NPC type is checked, this color will be used for all non-unit tooltips, else it will be used for every tooltip border."] = "Wenn Farbrahmen nach Klasse oder NPC-Typ aktiviert ist, wird diese Farbe für alle Tooltips verwendet, die keine Einheiten sind, andernfalls wird sie für jeden Tooltip-Rahmen verwendet.";
 L["Background Texture"] = "Hintergrundtextur";
 L["Border Insets"] = "Randeinsätze";
 L["Left"] = "Links";
@@ -742,42 +585,34 @@ L["Screen Corner"] = "Bildschirmecke";
 L["Screen Corner Positioning"] = "Positionierung der Bildschirmecke";
 L["Standard Tooltip Anchor Point"] = "Standard-Tooltip-Fixierpunkt";
 L["Mouse Cursor Positioning"] = "Positionierung des Mauszeigers";
-L["The bottom-[point] corner of the tooltip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."] 
-  = "Die untere [Punkt]-Ecke des Tooltips, wobei [Punkt] entweder 'Links' oder 'Rechts' ist, wird an der Position des Mauszeigers fixiert.";
+L["The bottom-[point] corner of the tooltip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."] = "Die untere [Punkt]-Ecke des Tooltips, wobei [Punkt] entweder 'Links' oder 'Rechts' ist, wird an der Position des Mauszeigers fixiert.";
 L["Health Bar"] = "Gesundheitsleiste";
 L["Outline"] = "Gliederung";
 L["Thick Outline"] = "Dicker Umriss";
 L["Monochrome"] = "Einfarbig";
 L["Text Format"] = "Textformat";
-L["Set the text format of the value that appears on the status bar. Set this to 'None' to hide the text."] 
-  = "Legen Sie das Textformat des Werts fest, der in der Statusleiste angezeigt wird. Setzen Sie dies auf 'Keine', um den Text auszublenden.";
+L["Set the text format of the value that appears on the status bar. Set this to 'None' to hide the text."] = "Legen Sie das Textformat des Werts fest, der in der Statusleiste angezeigt wird. Setzen Sie dies auf 'Keine', um den Text auszublenden.";
 L["Current/Maximum"] = "Aktuell/Maximum";
 L["Percentage"] = "Prozentsatz";
 L["Power Bar"] = "Energieleiste";
-L["If checked, unit tooltips will show the unit's power bar."] 
-  = "Wenn diese Option aktiviert ist, zeigen die Tooltips der Einheit die Energieleiste der Einheit an.";
+L["If checked, unit tooltips will show the unit's power bar."] = "Wenn diese Option aktiviert ist, zeigen die Tooltips der Einheit die Energieleiste der Einheit an.";
 L["Unit Aura Options"] = "Aura-Optionen für Einheiten";
 L["If checked, unit tooltips will show the unit's buffs."] = "Wenn diese Option aktiviert ist, zeigen Einheiten-Tooltips die Buffs der Einheit.";
 L["Above"] = "Über";
 L["Below"] = "Unten";
 L["Position"] = "Position";
-L["Set whether you want the unit's buffs to appear above or below the tooltip."] 
-  = "Legen Sie fest, ob die Buffs der Einheit über oder unter dem Tooltip angezeigt werden sollen.";
+L["Set whether you want the unit's buffs to appear above or below the tooltip."] = "Legen Sie fest, ob die Buffs der Einheit über oder unter dem Tooltip angezeigt werden sollen.";
 L["Left to Right"] = "Links nach rechts";
 L["Right to Left"] = "Rechts nach links";
-L["If checked, unit tooltips will show the unit's debuffs."] 
-  = "Wenn diese Option aktiviert ist, zeigen Einheiten-Tooltips die Schwächungen der Einheit an.";
+L["If checked, unit tooltips will show the unit's debuffs."] = "Wenn diese Option aktiviert ist, zeigen Einheiten-Tooltips die Schwächungen der Einheit an.";
 L["Set border color by debuff type"] = "Rahmenfarbe nach Debuff-Typ festlegen";
-L["If enabled, the border color of debuffs will be based on the type of debuff (e.g., poisons will appear with a green border color)."] 
-  = "Wenn aktiviert, richtet sich die Randfarbe von Debuffs nach der Art des Debuffs (z. B. werden Gifte mit einer grünen Randfarbe angezeigt).";
-L["Set whether you want the unit's debuffs to appear above or below the tooltip."] 
-  = "Legen Sie fest, ob die Schwächungen der Einheit über oder unter dem Tooltip angezeigt werden sollen.";
+L["If enabled, the border color of debuffs will be based on the type of debuff (e.g., poisons will appear with a green border color)."] = "Wenn aktiviert, richtet sich die Randfarbe von Debuffs nach der Art des Debuffs (z. B. werden Gifte mit einer grünen Randfarbe angezeigt).";
+L["Set whether you want the unit's debuffs to appear above or below the tooltip."] = "Legen Sie fest, ob die Schwächungen der Einheit über oder unter dem Tooltip angezeigt werden sollen.";
 L["Buff and Debuff Ordering"] = "Buff- und Debuff-Bestellung";
 L["Debuffs Above Buffs"] = "Debuffs über Buffs";
 L["Buffs Above Debuffs"] = "Buffs über Debuffs";
 L["Non-Player Alpha"] = "Nicht-Spieler-Alpha";
-L["Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs)."] 
-  = "Legt das Alpha von Timer-Balken für Auren fest, die nicht von Ihnen erzeugt wurden (d. h. Buffs und Debuffs anderer Spieler oder NPCs).";
+L["Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs)."] = "Legt das Alpha von Timer-Balken für Auren fest, die nicht von Ihnen erzeugt wurden (d. h. Buffs und Debuffs anderer Spieler oder NPCs).";
 L["Show Professions"] = "Berufe anzeigen";
 L["Show AddOn Shortcuts"] = "AddOn-Kurzbefehle anzeigen";
 L["Profile Manager"] = "Profilmanager";
@@ -789,34 +624,24 @@ L["Guild Bank"] = "Gildenbank";
 L["Bank"] = "Bank";
 L["Void Storage"] = "Leerenlager";
 L["You have no professions."] = "Sie haben keine Berufe.";
-
----------------------------------------
---- NEW SINCE 10/06/2021 (update 6.6.9)
----------------------------------------
 L["remaining"] = "verbleibend"; -- for XP bar (e.g., "50/100 (50% remaining)")
 L["Fixed Color"] = "Feste Farbe";
 L["Main Container"] = "Haupt Fenstert";
 L["Talking Head Frame"] = "Sprechender Kopfrahmen";
-L["This is the animated character portrait frame that shows when an NPC is talking to you."] 
-  = "Dies ist der animierte Charakterporträtrahmen, der zeigt, wenn ein NPC mit Ihnen spricht.";
+L["This is the animated character portrait frame that shows when an NPC is talking to you."] = "Dies ist der animierte Charakterporträtrahmen, der zeigt, wenn ein NPC mit Ihnen spricht.";
 L["Top of Screen"] = "Oben auf dem Bildschirm";
 L["Bottom of Screen"] = "Unterseite des Bildschirms";
 L["Pulse While Resting"] = "Puls während der Ruhe";
-L["If enabled, the unit panels will fade in and out while resting."] 
-  = "Wenn diese Option aktiviert ist, werden die Bedienfelder der Einheit im Ruhezustand ein- und ausgeblendet.";
+L["If enabled, the unit panels will fade in and out while resting."] = "Wenn diese Option aktiviert ist, werden die Bedienfelder der Einheit im Ruhezustand ein- und ausgeblendet.";
 L["Target Class Color Gradient"] = "Farbverlauf der Zielklasse";
-L["If enabled, the unit panel color will transition to the target's class color using a horizontal gradient effect."] 
-  = "Wenn diese Option aktiviert ist, geht die Farbe des Einheitenbedienfelds mit einem horizontalen Verlaufseffekt in die Klassenfarbe des Ziels über.";
+L["If enabled, the unit panel color will transition to the target's class color using a horizontal gradient effect."] = "Wenn diese Option aktiviert ist, geht die Farbe des Einheitenbedienfelds mit einem horizontalen Verlaufseffekt in die Klassenfarbe des Ziels über.";
 L["Set Pulse Strength"] = "Pulsstärke einstellen";
 L["Expanding and Retracting Action Bar Rows"] = "Erweitern und Zurückziehen von Aktionsleistenzeilen";
 L["Enable Expand and Retract Feature"] = "Aktivieren Sie die Funktion zum Erweitern und Zurückziehen";
-L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."] 
-  = "Wenn deaktiviert, können Sie nicht zwischen 1 und 2 Reihen von Aktionsleisten umschalten.";
-L["This is the fixed default height to use when the expand and retract feature is disabled."] 
-  = "Dies ist die feste Standardhöhe, die verwendet wird, wenn die Funktion zum Erweitern und Zurückziehen deaktiviert ist.";
+L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."] = "Wenn deaktiviert, können Sie nicht zwischen 1 und 2 Reihen von Aktionsleisten umschalten.";
+L["This is the fixed default height to use when the expand and retract feature is disabled."] = "Dies ist die feste Standardhöhe, die verwendet wird, wenn die Funktion zum Erweitern und Zurückziehen deaktiviert ist.";
 L["Set Alpha"] = "Alpha einstellen";
-L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."] 
-  = "Wenn diese Option aktiviert ist, verwendet die Ansehensleiste eine feste Farbe, anstatt sich dynamisch basierend auf Ihrem Ansehen bei der ausgewählten Fraktion zu ändern.";
+L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."] = "Wenn diese Option aktiviert ist, verwendet die Ansehensleiste eine feste Farbe, anstatt sich dynamisch basierend auf Ihrem Ansehen bei der ausgewählten Fraktion zu ändern.";
 L["Use Fixed Color"] = "Feste Farbe verwenden";
 L["Reputation Colors"] = "Ruffarben";
 L["Show"] = "Show";
@@ -860,38 +685,6 @@ L["Show Debuffs"] = "Debuffs anzeigen";
 L["Refresh Chat Text"] = "Chat-Text aktualisieren";
 L["Back"] = "Zurück";
 L["Next"] = "Nächster";
-
-L["PRESS_HOLD_TOGGLE_BUTTONS"] = [[
-Halten Sie %s außerhalb des Kampfes gedrückt, um die Umschalttasten anzuzeigen.
-Wenn Sie auf diese klicken, werden zusätzliche Aktionsleistenzeilen ein- oder ausgeblendet.]]
-
-L["CHANGE_KEYBINDINGS"] = [[
-Sie können diese Tastenkombination im MUI-Konfigurationsmenü (%s) ändern.
-Es gibt 3 Tastenkombinationen, um schnell zwischen 1 bis 3 Reihen zu wechseln,
-finden Sie im Blizzard-Tastenbelegungsmenü:]]
-
-L["THANK_YOU_FOR_INSTALLING"] = [[
-Vielen Dank für die Installation von MayronUI!
-
-Sie können die Benutzeroberfläche mithilfe des Konfigurationsmenüs vollständig anpassen:]]
-
-L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] = [[
-Wenn aktiviert, Auren mit unbekannter verbleibender Zeit sowie Auren, die nie
-ablaufen, wenn nicht storniert, wird im Timerleistenfeld angezeigt und wird
-nie erschöpfen. Der Balken wird weiterhin verschwinden, wenn die Aura entfernt wird.
-
-Im Klassiker die verbleibende Zeit einiger Auren (je nach Situation)
-ist dem Spieler möglicherweise nicht bekannt und wird ausgeblendet, wenn dies nicht aktiviert ist.]]
-
-L["AURAS_ORDERING_ON_TOOLTIP"] = 
-[[Die folgende Einstellung steuert die Reihenfolge der Auren im Tooltip
-wenn Buffs und Debuffs zusammen positioniert sind
-(entweder über oder unter dem Tooltip) und sind beide aktiviert.]]
-
-L["MANAGE_TEXT_HIGHLIGHTING"] =
-[[Text zum Hervorheben und optional verwalten
-einen Soundeffekt abspielen, wenn sie im Chat erscheinen.]]
-
 L["Set short, custom aliases for chat channel names."] = [[Legen Sie kurze, benutzerdefinierte Aliase für Chatkanalnamen fest.]]
 L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "Der Hauptcontainer enthält die Einheitenrahmenfelder, Aktionsleistenfelder, die Datentextleiste und alle Ressourcenleisten am unteren Bildschirmrand.";
 L["Add Text Highlighting"] = "Texthervorhebung hinzufügen";
@@ -914,11 +707,6 @@ L["Ready Check"] = "Bereit-Check";
 L["Repair Item"] = "Reparaturartikel";
 L["Whisper Received"] = "Flüstern empfangen";
 L["Server Channels"] = "Serverkanäle";
-
-L["NO_HIGHLIGHT_TEXT_ADDED"] =
-[[Sie haben noch keinen Text hinzugefügt!
-Klicken Sie unten auf die Schaltfläche "Text bearbeiten", um Text zum Hervorheben hinzuzufügen:]];
-
 L["Text to Highlight (case insensitive):"] = "Text zum Hervorheben (Groß-/Kleinschreibung nicht beachten):";
 L["Enter text to highlight:"] = "Text zum Hervorheben eingeben:";
 L["Show in Upper Case"] = "In Großbuchstaben anzeigen";
@@ -926,8 +714,118 @@ L["Set Color"] = "Farbe einstellen";
 L["Edit Text"] = "Text bearbeiten";
 L["Play a sound effect when any of the selected text appears in chat."] = "Spielen Sie einen Soundeffekt ab, wenn einer der ausgewählten Texte im Chat erscheint.";
 L["Play Sound"] = "Ton abspielen";
-
 L["Set Timestamp Color"] = "Zeitstempelfarbe einstellen";
 L["Use Fixed Timestamp Color"] = "Feste Zeitstempelfarbe verwenden";
 L["Timestamps"] = "Zeitstempel";
 L["Enable Custom Aliases"] = "Benutzerdefinierte Aliasse aktivieren";
+L["Dangerous Actions!"] = "Gefährliche Aktionen!";
+L["Cannot delete the Default profile."] = "Das Standardprofil kann nicht gelöscht werden.";
+L["Are you sure you want to delete profile '%s'?"] = "Sind Sie sicher, dass Sie das Profil '%s' löschen möchten?";
+L["DELETE"] = "LÖSCHEN";
+L["Please type '%s' to confirm:"] = "Bitte geben Sie '%s' ein, um zu bestätigen:";
+L["Enter a new unique profile name:"] = "Geben Sie einen neuen eindeutigen Profilnamen ein:";
+L["Current Profile:"] = "Aktuelles Profil:";
+L["Show the MUI Config Menu"] = "MUI Konfigurationsmenü anzeigen";
+L["Show the MUI Installer"] = "MUI Installationsprogramm anzeigen";
+L["List All Profiles"] = "Alle Profile auflisten";
+L["Show the MUI Profile Manager"] = "MUI Profil-Manager anzeigen";
+L["Set Profile"] = "Profil festlegen";
+L["Show Currently Active Profile"] = "Aktuell aktives Profil anzeigen";
+L["Show the Version of MUI"] = "Zeige die Version von MUI";
+L["Show the MUI Layout Tool"] = "MUI Layout-Tool anzeigen";
+
+---------------------------------
+--- LARGE TEXT:
+---------------------------------
+L["TT_MUI_CONTROL_SUF"] =
+[[Wenn aktiviert, wird MUI die Shadowed Unit Frames passend in sein UI verschieben.
+
+Es wird automatisch die Positionen anpassen, wenn die untere Benutzeroberfläche
+erweitert over verkleinert wird.]];
+
+L["TT_MUI_CONTROL_BARTENDER"] =
+[[Wenn aktiviert, wird MUI die ausgewählten Bartender Leisten so verschieben,
+das sie in die untere Benutzeroberfläche passen.
+
+Auch die ein-ausblende Animationen werden die repositionierung der Aktionsleisten berücksichtigen.]];
+
+L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
+[[Wenn aktiviert, wird der Farbverlauf die Klassenfarben des Ziels statt die vordefinierten verwenden.
+Es werden aber weiterhin die Alphawerte und Endfarbe verwendet]];
+
+L["MUI_Setup_InfoTab"] =
+[[Community Discord:
+%s
+
+Besuchen Sie die offizielle MayronUI Webseite für weitere Informationen:
+%s
+
+Offizelle GitHub Seite:
+%s
+
+Werde Patron und bekomme exklusive Vorteile inerhalb der Community:
+%s
+
+Mayron's offizeller YouTube Kanal:
+%s]]
+
+L["MUI_Setup_CreditsTab"] =
+[[Ein besonderer Dank geht an die folgenden Mitglieder der MayronUI-Community für ihre Beiträge zum Projekt (auf der Registerkarte "Informationen" finden Sie den Link, über den Sie unserer Discord-Community beitreten können):
+
+|cff00ccff> Patrons|r
+%s
+
+|cff00ccff> Entwicklung & Fehlerbehebung|r
+%s
+
+|cff00ccff> Übersetzungsunterstützung|r
+%s
+
+|cff00ccff> Community Support Team|r
+%s
+
+Und natürlich vielen Dank an die Autoren der Nicht-MayronUI-AddOns, die in diesem UI-Paket enthalten sind.]]
+
+L["MANAGE_PROFILES_HERE"] =
+[[Hier können Sie Charakterprofile verwalten.
+
+Standardmäßig hat jeder Char ein eigenes Profil.]]
+
+L["PRESS_HOLD_TOGGLE_BUTTONS"] =
+[[Halten Sie %s außerhalb des Kampfes gedrückt, um die Umschalttasten anzuzeigen.
+Wenn Sie auf diese klicken, werden zusätzliche Aktionsleistenzeilen ein- oder ausgeblendet.]]
+
+L["CHANGE_KEYBINDINGS"] =
+[[Sie können diese Tastenkombination im MUI-Konfigurationsmenü (%s) ändern.
+Es gibt 3 Tastenkombinationen, um schnell zwischen 1 bis 3 Reihen zu wechseln,
+finden Sie im Blizzard-Tastenbelegungsmenü:]]
+
+L["THANK_YOU_FOR_INSTALLING"] =
+[[Vielen Dank für die Installation von MayronUI!
+
+Sie können die Benutzeroberfläche mithilfe des Konfigurationsmenüs vollständig anpassen:]]
+
+L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] =
+[[Wenn aktiviert, Auren mit unbekannter verbleibender Zeit sowie Auren, die nie
+ablaufen, wenn nicht storniert, wird im Timerleistenfeld angezeigt und wird
+nie erschöpfen. Der Balken wird weiterhin verschwinden, wenn die Aura entfernt wird.
+
+Im Klassiker die verbleibende Zeit einiger Auren (je nach Situation)
+ist dem Spieler möglicherweise nicht bekannt und wird ausgeblendet, wenn dies nicht aktiviert ist.]]
+
+L["AURAS_ORDERING_ON_TOOLTIP"] =
+[[Die folgende Einstellung steuert die Reihenfolge der Auren im Tooltip
+wenn Buffs und Debuffs zusammen positioniert sind
+(entweder über oder unter dem Tooltip) und sind beide aktiviert.]]
+
+L["MANAGE_TEXT_HIGHLIGHTING"] =
+[[Text zum Hervorheben und optional verwalten
+einen Soundeffekt abspielen, wenn sie im Chat erscheinen.]]
+
+L["NO_HIGHLIGHT_TEXT_ADDED"] =
+[[Sie haben noch keinen Text hinzugefügt!
+Klicken Sie unten auf die Schaltfläche "Text bearbeiten", um Text zum Hervorheben hinzuzufügen:]];
+
+L["UNIQUE_CHARACTER_PROFILE"] =
+[[Standardmäßig wird jedem neuen Char automatisch ein eindeutiges Pofil erstellt, anstelle eines einzelnen Standardprofils zugewiesen.
+Profile werden automatisch erst zugewiesen, nachdem die Benutzeroberfläche auf einem neuen Char installiert wurde.]]

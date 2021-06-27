@@ -47,25 +47,15 @@ L["Right Button"]                   = "Right Button";
 L["Shift"]                          = "Shift";
 L["Ctrl"]                           = "Ctrl";
 L["Alt"]                            = "Alt";
-
 L["Chat Buttons with Modifier Key 1"]         = "Chat Buttons with Modifier Key 1";
 L["Chat Buttons with Modifier Key 2"]         = "Chat Buttons with Modifier Key 2";
 L["Set the border size."]    = "Set the border size.";
 L["Cannot toggle menu while in combat."]      = "Cannot toggle menu while in combat.";
 L["Cannot switch layouts while in combat."]   = "Cannot switch layouts while in combat.";
-
-L["Set the spacing between the background and the border."]
-= "Set the spacing between the background and the border.";
-
-L["Allow the use of modifier keys to swap chat buttons while in combat."]
-= "Allow the use of modifier keys to swap chat buttons while in combat.";
-
-L["Failed to load MUI_Config. Possibly missing?"]
-= "Failed to load MUI_Config. Possibly missing?";
-
+L["Set the spacing between the background and the border."] = "Set the spacing between the background and the border.";
+L["Allow the use of modifier keys to swap chat buttons while in combat."] = "Allow the use of modifier keys to swap chat buttons while in combat.";
+L["Failed to load MUI_Config. Possibly missing?"] = "Failed to load MUI_Config. Possibly missing?";
 L["List of slash commands:"]                                = "List of slash commands:";
-L["shows config menu"]                                      = "shows config menu";
-L["shows setup menu"]                                       = "shows setup menu";
 L["Welcome back"]                                           = "Welcome back";
 L["Starter Edition accounts cannot perform this action."]   = "Starter Edition accounts cannot perform this action.";
 L["Loot Specialization set to: Current Specialization"]     = "Loot Specialization set to: Current Specialization";
@@ -73,7 +63,6 @@ L["Must be level 10 or higher to use Talents."]             = "Must be level 10 
 L["Requires level 10+ to view the PVP window."]             = "Requires level 10+ to view the PVP window.";
 L["Requires level 10+ to view the Glyphs window."]          = "Requires level 10+ to view the Glyphs window.";
 L["Requires being inside a Battle Ground."]                 = "Requires being inside a Battle Ground.";
-
 L["Choose Spec"]                    = "Choose Spec";
 L["Choose Loot Spec"]               = "Choose Loot Spec";
 L["Current Spec"]                   = "Current Spec";
@@ -140,20 +129,10 @@ L["Target"]                         = "Target";
 L["Focus"]                          = "Focus";
 L["Mirror"]                         = "Mirror";
 L["Pet"]						= "Pet";
-
-L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."]
-= "If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists).";
-
-L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."]
-= "The %s Unit Frames's Portrait Bar needs to be enabled to use this feature.";
-
-L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."]
-= "Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar.";
-
-L["Manual positioning only works if the CastBar is not anchored to a SUF Portrait Bar."]
-= "Manual positioning only works if the CastBar is not anchored to a SUF Portrait Bar.";
-
--- MUI Minimap
+L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."] = "If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists).";
+L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."] = "The %s Unit Frames's Portrait Bar needs to be enabled to use this feature.";
+L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."] = "Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar.";
+L["Manual positioning only works if the CastBar is not anchored to a SUF Portrait Bar."] = "Manual positioning only works if the CastBar is not anchored to a SUF Portrait Bar.";
 L["CTRL + Drag:"]         = "CTRL + Drag:";
 L["SHIFT + Drag:"]        = "SHIFT + Drag:";
 L["Mouse Wheel:"]         = "Mouse Wheel:";
@@ -171,10 +150,7 @@ L["Class Order Hall"]     = "Class Order Hall";
 L["Garrison Report"]      = "Garrison Report";
 L["Tracking Menu"]        = "Tracking Menu";
 L["Music Player"]         = "Music Player";
-
 L["Cannot access config menu while in combat."] = "Cannot access config menu while in combat.";
-
--- MUI Setup
 L["Choose Theme:"]                  = "Choose Theme:";
 L["Custom Colour"]                  = "Custom Colour";
 L["Theme"]                          = "Theme";
@@ -202,11 +178,7 @@ L["Warning:"]                       = "Warning:";
 L["This will reload the UI!"]       = "This will reload the UI!";
 L["Setup Menu"]                     = "Setup Menu";
 L["VERSION"]                        = "VERSION";
-
-L["This will ensure that frames are correctly positioned to match the UI scale during installation."]
-= "This will ensure that frames are correctly positioned to match the UI scale during installation.";
-
--- MUI TimerBar
+L["This will ensure that frames are correctly positioned to match the UI scale during installation."] = "This will ensure that frames are correctly positioned to match the UI scale during installation.";
 L["Only track your %s"]                   = "Only track your %s";
 L["Track all %s"]                         = "Track all %s";
 L["General Options"]                      = "General Options";
@@ -244,15 +216,12 @@ L["Show"]                                 = "Show";
 L["Font Size"]                            = "Font Size";
 L["Font Type"]                            = "Font Type";
 L["Spell Name Text"]                      = "Spell Name Text";
-
 L["Enter the Name of a %s to Track:"]                                   = "Enter the Name of a %s to Track:";
 L["Only %s casted by you will be tracked."]                             = "Only %s casted by you will be tracked.";
 L["Ignore the list of %s to track and track everything."]               = "Ignore the list of %s to track and track everything.";
 L["Enabling this will dynamically generate the list of %s to track."]   = "Enabling this will dynamically generate the list of %s to track.";
 L["The unit who is affected by the spell."]                             = "The unit who is affected by the spell.";
 L["The field's vertical growth direction:"]                             = "The field's vertical growth direction:";
-
--- MUI Config
 L["Reload UI"]                    = "Reload UI";
 L["General"]                      = "General";
 L["Master Font"]                  = "Master Font";
@@ -338,7 +307,6 @@ L["Never"]                        = "Never";
 L["Always"]                       = "Always";
 L["On Mouse-over"]                = "On Mouse-over";
 L["Bar"]                          = "Bar";
-
 L["Uncheck to prevent MUI from changing the game font."]    = "Uncheck to prevent MUI from changing the game font.";
 L["Config type '%s' unsupported!"]                          = "Config type '%s' unsupported!";
 L["The UI requires reloading to apply changes."]            = "The UI requires reloading to apply changes.";
@@ -364,34 +332,15 @@ L["The higher the value, the quicker the speed."]           = "The higher the va
 L["The height of the gradient effect."]                     = "The height of the gradient effect.";
 L["Adjust the spacing between data text buttons."]          = "Adjust the spacing between data text buttons.";
 L["The frame strata of the entire DataText bar."]           = "The frame strata of the entire DataText bar.";
-
-L["Anchor the Objective Tracker to the action bar container on the right side of the screen."]
-= "Anchor the Objective Tracker to the action bar container on the right side of the screen.";
-
-L["Disable this to stop MUI from controlling the Objective Tracker."]
-= "Disable this to stop MUI from controlling the Objective Tracker.";
-
-L["Adjust the horizontal positioning of the Objective Tracker."]
-= "Adjust the horizontal positioning of the Objective Tracker.";
-
-L["Adjust the vertical positioning of the Objective Tracker."]
-= "Adjust the vertical positioning of the Objective Tracker.";
-
-L["The font size of text that appears on data text buttons."]
-= "The font size of text that appears on data text buttons.";
-
-L["Show guild info tooltips when the cursor is over guild members in the guild list."]
-= "Show guild info tooltips when the cursor is over guild members in the guild list.";
-
-L["The frame level of the entire DataText bar based on its frame strata value."]
-= "The frame level of the entire DataText bar based on its frame strata value.";
-
-L["If unchecked, the entire DataText module will be disabled and all"]
-= "If unchecked, the entire DataText module will be disabled and all";
-
-L["DataText buttons, as well as the background bar, will not be displayed."]
-= "DataText buttons, as well as the background bar, will not be displayed.";
-
+L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] = "Anchor the Objective Tracker to the action bar container on the right side of the screen.";
+L["Disable this to stop MUI from controlling the Objective Tracker."] = "Disable this to stop MUI from controlling the Objective Tracker.";
+L["Adjust the horizontal positioning of the Objective Tracker."] = "Adjust the horizontal positioning of the Objective Tracker.";
+L["Adjust the vertical positioning of the Objective Tracker."] = "Adjust the vertical positioning of the Objective Tracker.";
+L["The font size of text that appears on data text buttons."] = "The font size of text that appears on data text buttons.";
+L["Show guild info tooltips when the cursor is over guild members in the guild list."] = "Show guild info tooltips when the cursor is over guild members in the guild list.";
+L["The frame level of the entire DataText bar based on its frame strata value."] = "The frame level of the entire DataText bar based on its frame strata value.";
+L["If unchecked, the entire DataText module will be disabled and all"] = "If unchecked, the entire DataText module will be disabled and all";
+L["DataText buttons, as well as the background bar, will not be displayed."] = "DataText buttons, as well as the background bar, will not be displayed.";
 L["Prevents you from using data text modules while in combat."] = "Prevents you from using data text modules while in combat.";
 L["This is useful for 'clickers'."] = "This is useful for 'clickers'.";
 L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."] = "If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it.";
@@ -429,12 +378,12 @@ L["MUI Profile Manager"]                            = "MUI Profile Manager";
 L["Current profile"]                                = "Current profile";
 L["Reset Profile"]                                  = "Reset Profile";
 L["Delete Profile"]                                 = "Delete Profile";
-L["Copy From"]                                      = "Copy From";
+L["Copy From"] = "Copy From";
 L["Select profile"]                                 = "Select profile";
 L["Choose Profile"]                                 = "Choose Profile";
 L["Choose the currently active profile."]           = "Choose the currently active profile.";
 L["New Profile"]                                    = "New Profile";
-L["Create a new profile."]                          = "Create a new profile.";
+L["Create a new profile"]                          = "Create a new profile";
 L["Default Profile Behaviour"]                      = "Default Profile Behaviour";
 L["Name of New Layout"]                             = "Name of New Layout";
 L["Layout"]                                         = "Layout";
@@ -768,6 +717,21 @@ L["Set Timestamp Color"] = "Set Timestamp Color";
 L["Use Fixed Timestamp Color"] = "Use Fixed Timestamp Color";
 L["Timestamps"] = "Timestamps";
 L["Enable Custom Aliases"] = "Enable Custom Aliases";
+L["Dangerous Actions!"] = "Dangerous Actions!";
+L["Cannot delete the Default profile."] = "Cannot delete the Default profile.";
+L["Are you sure you want to delete profile '%s'?"] = "Are you sure you want to delete profile '%s'?";
+L["DELETE"] = "DELETE";
+L["Please type '%s' to confirm:"] = "Please type '%s' to confirm:";
+L["Enter a new unique profile name:"] = "Enter a new unique profile name:";
+L["Current Profile:"] = "Current Profile:";
+L["Show the MUI Config Menu"] = "Show the MUI Config Menu";
+L["Show the MUI Installer"] = "Show the MUI Installer";
+L["List All Profiles"] = "List All Profiles";
+L["Show the MUI Profile Manager"] = "Show the MUI Profile Manager";
+L["Set Profile"] = "Set Profile";
+L["Show Currently Active Profile"] = "Show Currently Active Profile";
+L["Show the Version of MUI"] = "Show the Version of MUI";
+L["Show the MUI Layout Tool"] = "Show the MUI Layout Tool";
 
 ---------------------------------
 --- LARGE TEXT:

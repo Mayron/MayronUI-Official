@@ -25,7 +25,7 @@ _G.CHAT_FONT_HEIGHTS = obj:PopTable(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 local C_ChatFrame = obj:CreateClass("ChatFrame");
 obj:Export(C_ChatFrame, "MayronUI.ChatModule");
 
----@class ChatModule
+---@class ChatModule : BaseModule
 local C_ChatModule = MayronUI:RegisterModule("ChatModule", L["Chat Frames"]);
 
 -- Database Defaults -----------------
@@ -208,7 +208,7 @@ function C_ChatModule:OnInitialize(data)
 		}
 	};
 
-  db:AppendOnce(db.profile, "chat.highlighted", nil, {
+  db:AppendOnce("profile.chat.highlighted", nil, {
     {
       "healers", "healer", "healz", "heal", "healing",
       color = { 0.1; 1; 0.1; };

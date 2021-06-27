@@ -1332,7 +1332,7 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
 
   if (db:GetCurrentProfile() == "Healer") then
     -- Healer Layout/Profile
-    db:AppendOnce(db.profile, nil, "defaultFields", {
+    db:AppendOnce("profile", "defaultFields", {
       fieldNames = {
         "Player";
       };
@@ -1345,7 +1345,7 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
     });
   else
     -- DPS Layout/Default Profile
-    db:AppendOnce(db.profile, nil, "defaultFields", {
+    db:AppendOnce("profile", "defaultFields", {
       fieldNames = {
         "Player";
         "Target";

@@ -1161,6 +1161,13 @@ do
 
   function Framework:PushTable(tbl)
     if (not self:IsTable(tbl)) then return end
+
+    if (MayronUIdb and MayronUIdb.profiles.Test2 and MayronUIdb.profiles.Test2.chat) then
+      if (tbl == MayronUIdb.profiles.Test2) then
+        error("WTF PUSH!")
+      end
+    end
+
     setmetatable(tbl, nil);
     Framework:EmptyTable(tbl);
     self:UnpackTable(tbl); -- call this just to reuse recycling code
@@ -1181,6 +1188,10 @@ do
 
     for index = 1, select("#", ...) do
       tbl[index] = (select(index, ...));
+    end
+
+    if (MUI_Test and tostring(MUI_Test) == tbl) then
+      error("WTF POP!")
     end
 
     return tbl;

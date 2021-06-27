@@ -56,8 +56,6 @@ L["Set the spacing between the background and the border."] = "Imposta la spazia
 L["Allow the use of modifier keys to swap chat buttons while in combat."] = "Consenti l'uso dei tasti modificatori per scambiare i pulsanti della chat durante il combattimento.";
 L["Failed to load MUI_Config. Possibly missing?"] = "Impossibile caricare MUI_Config. Forse mancante?";
 L["List of slash commands:"] = "Elenco dei comandi barra:";
-L["shows config menu"] = "mostra il menu di configurazione";
-L["shows setup menu"] = "mostra il menu di configurazione";
 L["Welcome back"] = "Ben tornato";
 L["Starter Edition accounts cannot perform this action."] = "Gli account della Versione principianti non possono eseguire questa azione.";
 L["Loot Specialization set to: Current Specialization"] = "Specializzazione bottino impostata su: Specializzazione attuale";
@@ -385,7 +383,7 @@ L["Select profile"] = "Seleziona profilo";
 L["Choose Profile"] = "Scegli profilo";
 L["Choose the currently active profile."] = "Scegli il profilo attualmente attivo.";
 L["New Profile"] = "Nuovo profilo";
-L["Create a new profile."] = "Crea un nuovo profilo.";
+L["Create a new profile"] = "Crea un nuovo profilo";
 L["Default Profile Behaviour"] = "Comportamento profilo predefinito";
 L["Name of New Layout"] = "Nome del nuovo layout";
 L["Layout"] = "Disposizione";
@@ -686,6 +684,54 @@ L["Show Debuffs"] = "Mostra Debuff";
 L["Refresh Chat Text"] = "Aggiorna testo chat";
 L["Back"] = "Indietro";
 L["Next"] = "Il prossimo";
+L["Set short, custom aliases for chat channel names."] = [[Imposta alias brevi e personalizzati per i nomi dei canali di chat.]]
+L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "Il contenitore principale contiene i pannelli del frame dell'unità, i pannelli della barra delle azioni, la barra del testo dei dati e tutte le barre delle risorse nella parte inferiore dello schermo.";
+L["Add Text Highlighting"] = "Aggiungi evidenziazione del testo";
+L["Channel Name Aliases"] = "Alias del nome del canale";
+L["Text Highlighting"] = "Evidenziazione del testo";
+L["Alias Brightness"] = "Alias Luminosità";
+L["Auction House Open"] = "Casa d'aste aperta";
+L["Auction House Close"] = "Casa d'aste chiusa";
+L["Alarm Clock Warning 1"] = "Avviso sveglia 1";
+L["Alarm Clock Warning 2"] = "Avviso sveglia 2";
+L["Alarm Clock Warning 3"] = "Avviso sveglia 3";
+L["Enter Queue"] = "Entra in coda";
+L["Jewel Crafting Socket"] = "Presa per la creazione di gioielli";
+L["Loot Money"] = "Soldi di bottino";
+L["Map Ping"] = "Mappatura";
+L["Queue Ready"] = "Coda pronta";
+L["Raid Warning"] = "Avviso di incursione";
+L["Raid Boss Warning"] = "Avvertimento capo raid";
+L["Ready Check"] = "Controllo pronto";
+L["Repair Item"] = "Articolo di riparazione";
+L["Whisper Received"] = "Sussurro ricevuto";
+L["Server Channels"] = "Canali del server";
+L["Text to Highlight (case insensitive):"] = "Testo da evidenziare (senza distinzione tra maiuscole e minuscole):";
+L["Enter text to highlight:"] = "Inserisci il testo da evidenziare:";
+L["Show in Upper Case"] = "Mostra in maiuscolo";
+L["Set Color"] = "Imposta colore";
+L["Edit Text"] = "Modifica il testo";
+L["Play a sound effect when any of the selected text appears in chat."] = "Riproduci un effetto sonoro quando uno dei testi selezionati appare nella chat.";
+L["Play Sound"] = "Riprodurre l'audio";
+L["Set Timestamp Color"] = "Imposta il colore del timestamp";
+L["Use Fixed Timestamp Color"] = "Usa colore timestamp fisso";
+L["Timestamps"] = "Timestamp";
+L["Enable Custom Aliases"] = "Abilita alias personalizzati";
+L["Dangerous Actions!"] = "Azioni pericolose!";
+L["Cannot delete the Default profile."] = "Impossibile eliminare il profilo predefinito.";
+L["Are you sure you want to delete profile '%s'?"] = "Sei sicuro di voler eliminare il profilo '%s'?";
+L["DELETE"] = "ELIMINA";
+L["Please type '%s' to confirm:"] = "Digita '%s' per confermare:";
+L["Enter a new unique profile name:"] = "Inserisci un nuovo nome profilo univoco:";
+L["Current Profile:"] = "Profilo attuale:";
+L["Show the MUI Config Menu"] = "Mostra il menu di configurazione MUI";
+L["Show the MUI Installer"] = "Mostra il programma di installazione MUI";
+L["List All Profiles"] = "Elenca tutti i profili";
+L["Show the MUI Profile Manager"] = "Mostra il gestore profilo MUI";
+L["Set Profile"] = "Imposta profilo";
+L["Show Currently Active Profile"] = "Mostra profilo attualmente attivo";
+L["Show the Version of MUI"] = "Mostra la versione di MUI";
+L["Show the MUI Layout Tool"] = "Mostra lo strumento di layout MUI";
 
 ---------------------------------
 --- LARGE TEXT:
@@ -786,43 +832,6 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 [[Gestisci il testo da evidenziare e facoltativamente
 riprodurre un effetto sonoro quando appaiono nella chat.]]
 
-L["Set short, custom aliases for chat channel names."] = [[Imposta alias brevi e personalizzati per i nomi dei canali di chat.]]
-
-L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "Il contenitore principale contiene i pannelli del frame dell'unità, i pannelli della barra delle azioni, la barra del testo dei dati e tutte le barre delle risorse nella parte inferiore dello schermo.";
-L["Add Text Highlighting"] = "Aggiungi evidenziazione del testo";
-L["Channel Name Aliases"] = "Alias del nome del canale";
-L["Text Highlighting"] = "Evidenziazione del testo";
-L["Alias Brightness"] = "Alias Luminosità";
-L["Auction House Open"] = "Casa d'aste aperta";
-L["Auction House Close"] = "Casa d'aste chiusa";
-L["Alarm Clock Warning 1"] = "Avviso sveglia 1";
-L["Alarm Clock Warning 2"] = "Avviso sveglia 2";
-L["Alarm Clock Warning 3"] = "Avviso sveglia 3";
-L["Enter Queue"] = "Entra in coda";
-L["Jewel Crafting Socket"] = "Presa per la creazione di gioielli";
-L["Loot Money"] = "Soldi di bottino";
-L["Map Ping"] = "Mappatura";
-L["Queue Ready"] = "Coda pronta";
-L["Raid Warning"] = "Avviso di incursione";
-L["Raid Boss Warning"] = "Avvertimento capo raid";
-L["Ready Check"] = "Controllo pronto";
-L["Repair Item"] = "Articolo di riparazione";
-L["Whisper Received"] = "Sussurro ricevuto";
-L["Server Channels"] = "Canali del server";
-
 L["NO_HIGHLIGHT_TEXT_ADDED"] =
 [[Non hai ancora aggiunto alcun testo!
 Premi il pulsante "Modifica testo" qui sotto per aggiungere del testo da evidenziare:]];
-
-L["Text to Highlight (case insensitive):"] = "Testo da evidenziare (senza distinzione tra maiuscole e minuscole):";
-L["Enter text to highlight:"] = "Inserisci il testo da evidenziare:";
-L["Show in Upper Case"] = "Mostra in maiuscolo";
-L["Set Color"] = "Imposta colore";
-L["Edit Text"] = "Modifica il testo";
-L["Play a sound effect when any of the selected text appears in chat."] = "Riproduci un effetto sonoro quando uno dei testi selezionati appare nella chat.";
-L["Play Sound"] = "Riprodurre l'audio";
-
-L["Set Timestamp Color"] = "Imposta il colore del timestamp";
-L["Use Fixed Timestamp Color"] = "Usa colore timestamp fisso";
-L["Timestamps"] = "Timestamp";
-L["Enable Custom Aliases"] = "Abilita alias personalizzati";

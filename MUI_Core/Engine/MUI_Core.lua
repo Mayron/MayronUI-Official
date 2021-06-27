@@ -199,7 +199,7 @@ local function ValidateNewProfileName(self, profileName)
   return true;
 end
 
-local function CreateNewProfile(_, profileName, callback)
+local function CreateNewProfile(self, profileName, callback)
   db:SetProfile(profileName);
 
   if (obj:IsFunction(callback)) then
@@ -212,7 +212,7 @@ local function ValidateRemoveProfile(_, text)
     return false;
   end
 
-  return text == "DELETE";
+  return text == L["DELETE"];
 end
 
 local function RemoveProfile(_, _, profileName, callback)
@@ -238,23 +238,23 @@ commands.profile = function(subCommand, profileName, callback)
 
     elseif (subCommand == "delete" and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
       if (profileName == "Default") then
-        tk:Print("Cannot delete the Default profile.");
+        tk:Print(L["Cannot delete the Default profile."]);
         return;
       end
 
-      local popupMessage = string.format("Are you sure you want to delete profile '%s'?", profileName);
-      local subMessage = "Please type 'DELETE' to confirm:";
+      local popupMessage = string.format(L["Are you sure you want to delete profile '%s'?"], profileName);
+      local subMessage = string.format(L["Please type '%s' to confirm:"], L["DELETE"]);
 
       tk:ShowInputPopup(popupMessage, subMessage, nil, ValidateRemoveProfile, nil, RemoveProfile, nil, nil, true, profileName, callback);
 
     elseif (subCommand == "new") then
-      local popupMessage = "Enter a new unique profile name:";
+      local popupMessage = L["Enter a new unique profile name:"];
       tk:ShowInputPopup(popupMessage, nil, nil, ValidateNewProfileName, nil, CreateNewProfile, nil, nil, nil, callback);
 
     elseif (subCommand == "current") then
       local currentProfile = db:GetCurrentProfile();
       currentProfile = tk.Strings:SetTextColorByKey(currentProfile, "gold");
-      tk:Print("Current Profile:", currentProfile);
+      tk:Print(L["Current Profile:"], currentProfile);
     else
       commands.help();
     end
@@ -298,17 +298,17 @@ end
 commands.help = function()
   print(" ");
   tk:Print(L["List of slash commands:"])
-  tk:Print("|cff00cc66/mui config|r - "..L["shows config menu"]);
-  tk:Print("|cff00cc66/mui install|r - "..L["shows setup menu"]);
-  tk:Print("|cff00cc66/mui layouts|r - show layout tool");
-  tk:Print("|cff00cc66/mui profiles list|r - list all MayronUI profiles");
-  tk:Print("|cff00cc66/mui profiles|r - shows profile manager");
-  tk:Print("|cff00cc66/mui profile set <profile_name>|r - set profile");
-  tk:Print("|cff00cc66/mui profile delete <profile_name>|r - delete profile");
-  tk:Print("|cff00cc66/mui profile new|r - create new profile");
-  tk:Print("|cff00cc66/mui profile current|r - show current profile in chat");
-  tk:Print("|cff00cc66/mui version|r - show the version of MayronUI");
-  tk:Print("|cff00cc66/mui report|r - Report an issue to GitHub");
+  tk:Print("|cff00cc66/mui config|r - "..L["Show the MUI Config Menu"]:lower());
+  tk:Print("|cff00cc66/mui install|r - "..L["Show the MUI Installer"]:lower());
+  tk:Print("|cff00cc66/mui layouts|r - " .. L["Show the MUI Layout Tool"]:lower());
+  tk:Print("|cff00cc66/mui profiles list|r - " .. L["List All Profiles"]:lower());
+  tk:Print("|cff00cc66/mui profiles|r - " .. L["Show the MUI Profile Manager"]:lower());
+  tk:Print("|cff00cc66/mui profile set <profile_name>|r - " .. L["Set Profile"]:lower());
+  tk:Print("|cff00cc66/mui profile delete <profile_name>|r - " .. L["Delete Profile"]:lower());
+  tk:Print("|cff00cc66/mui profile new|r - " .. L["Create a new profile"]:lower());
+  tk:Print("|cff00cc66/mui profile current|r - " .. L["Show Currently Active Profile"]:lower());
+  tk:Print("|cff00cc66/mui version|r - " .. L["Show the Version of MUI"]:lower());
+  tk:Print("|cff00cc66/mui report|r - " .. L["Report Issue"]:lower());
   print(" ");
 end
 
@@ -712,9 +712,10 @@ db:OnProfileChange(function(self, newProfileName, oldProfileName)
     local registryInfo = registeredModules[tostring(module)];
 
     if (not MayronUI:GetModuleComponent(registryInfo.moduleKey, "Database")) then
+      module:TriggerEvent("OnProfileChanging", newProfileName);
       module:RefreshSettings();
       module:ExecuteAllUpdateFunctions();
-      module:TriggerEvent("OnProfileChange", newProfileName);
+      module:TriggerEvent("OnProfileChanged", newProfileName);
     end
   end
 

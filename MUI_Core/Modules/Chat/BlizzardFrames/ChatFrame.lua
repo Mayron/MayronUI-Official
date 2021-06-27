@@ -104,7 +104,9 @@ end
 local function NewAddMessage(self, settings, text, r, g, b, ...)
 	if (not text) then return; end
 
-  text = HighlightText(text, settings.highlighted);
+  if (obj:IsTable(settings.highlighted)) then
+    text = HighlightText(text, settings.highlighted);
+  end
 
   if (settings.enableAliases) then
     text = RenameAliases(text, settings, r, g, b);

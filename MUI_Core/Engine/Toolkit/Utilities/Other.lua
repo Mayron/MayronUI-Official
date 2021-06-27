@@ -309,11 +309,13 @@ do
         local onAccept = popup.data.OnAccept;
 
         if (validator and not validator(editBox, editBox:GetText())) then
-            return;
+          return;
         end
 
         if (onAccept) then
-            onAccept(editBox, editBox:GetText(), obj:UnpackTable(popup.data.args));
+          local args = popup.data.args;
+          popup.data.args = nil;
+          onAccept(editBox, editBox:GetText(), obj:UnpackTable(args));
         end
 
         _G.StaticPopup_Hide(POPUP_GLOBAL_NAME);
@@ -365,43 +367,41 @@ do
         if (self.hasEditBox) then
           EditBox_OnEnterPressed(self);
         else
-          self.data.OnAccept(self, obj:UnpackTable(self.data.args));
+          local args = self.data.args;
+          self.data.args = nil;
+          self.data.OnAccept(self, obj:UnpackTable(args));
         end
       end
     end
 
     local function GetPopup(message, subMessage)
-        local popup = _G.StaticPopupDialogs[POPUP_GLOBAL_NAME];
+      local popup = _G.StaticPopupDialogs[POPUP_GLOBAL_NAME];
 
-        if (not popup) then
-            popup = {
-                preferredIndex = 3;
-                timeout = 0;
-                whileDead = 1;
-                hideOnEscape = 1;
-                maxLetters = 1024;
-                OnShow = PopUp_OnShow;
-                closeButton = true;
-                data = obj:PopTable();
-            };
+      if (not popup) then
+        popup = {
+          preferredIndex = 3;
+          timeout = 0;
+          whileDead = 1;
+          hideOnEscape = 1;
+          maxLetters = 1024;
+          OnShow = PopUp_OnShow;
+          closeButton = true;
+          data = obj:PopTable();
+        };
 
-            _G.StaticPopupDialogs[POPUP_GLOBAL_NAME] = popup;
-        end
+        _G.StaticPopupDialogs[POPUP_GLOBAL_NAME] = popup;
+      end
 
-        popup.text = message;
-        popup.subText = subMessage;
+      popup.text = message;
+      popup.subText = subMessage;
 
-        return popup;
+      return popup;
     end
 
     local function StoreArgs(popup, ...)
-        if (obj:IsTable(popup.data.args)) then
-            obj:PushTable(popup.data.args);
-        end
-
-        if (select("#", ...) > 0) then
-            popup.data.args = obj:PopTable(...);
-        end
+      if (select("#", ...) > 0) then
+        popup.data.args = obj:PopTable(...);
+      end
     end
 
     local function ShowConfirmPopup(message, subMessage, onConfirm, confirmText, onCancel, cancelText, isWarning, ...)
@@ -414,7 +414,7 @@ do
       popup.OnCancel = onCancel;
 
       if (isWarning) then
-          popup.showAlert = true;
+        popup.showAlert = true;
       end
 
       popup.data.OnAccept = onConfirm;
@@ -430,25 +430,25 @@ do
     end
 
     function tk:ShowConfirmPopupWithInsertedFrame(insertedFrame, ...)
-        local popup = ShowConfirmPopup(...);
-        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data, insertedFrame);
+      local popup = ShowConfirmPopup(...);
+      _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data, insertedFrame);
     end
 
     function tk:ShowMessagePopup(message, subMessage, okayText, onOkay, isWarning, ...)
-        local popup = GetPopup(message, subMessage);
+      local popup = GetPopup(message, subMessage);
 
-        popup.button1 = okayText or L["Okay"];
-        popup.button2 = nil;
-        popup.hasEditBox = false;
-        popup.OnAccept = onOkay;
-        popup.OnCancel = nil;
-        StoreArgs(popup, ...);
+      popup.button1 = okayText or L["Okay"];
+      popup.button2 = nil;
+      popup.hasEditBox = false;
+      popup.OnAccept = onOkay;
+      popup.OnCancel = nil;
+      StoreArgs(popup, ...);
 
-        if (isWarning) then
-            popup.showAlert = true;
-        end
+      if (isWarning) then
+        popup.showAlert = true;
+      end
 
-        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+      _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
 
     function tk:ShowInputPopupWithOneButton(message, subMessage, editBoxText, okayText, ...)
@@ -469,62 +469,62 @@ do
       _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
   end
 
-    function tk:ShowInputPopup(message, subMessage, editBoxText, onValidate, confirmText, onConfirm, cancelText, onCancel, isWarning, ...)
-        local popup = GetPopup(message, subMessage);
+  function tk:ShowInputPopup(message, subMessage, editBoxText, onValidate, confirmText, onConfirm, cancelText, onCancel, isWarning, ...)
+    local popup = GetPopup(message, subMessage);
 
-        popup.button1 = confirmText or L["Confirm"];
-        popup.button2 = cancelText or L["Cancel"];
-        popup.hasEditBox = true;
-        popup.OnAccept = EditBox_OnEnterPressed;
-        popup.OnCancel = EditBox_OnEscapePressed;
+    popup.button1 = confirmText or L["Confirm"];
+    popup.button2 = cancelText or L["Cancel"];
+    popup.hasEditBox = true;
+    popup.OnAccept = EditBox_OnEnterPressed;
+    popup.OnCancel = EditBox_OnEscapePressed;
 
-        if (isWarning) then
-            popup.showAlert = true;
-        end
-
-        popup.data.editBoxText = editBoxText;
-        popup.data.OnAccept = onConfirm;
-        popup.data.OnCancel = onCancel;
-        popup.data.OnValidate = onValidate;
-        StoreArgs(popup, ...);
-
-        _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+    if (isWarning) then
+      popup.showAlert = true;
     end
+
+    popup.data.editBoxText = editBoxText;
+    popup.data.OnAccept = onConfirm;
+    popup.data.OnCancel = onCancel;
+    popup.data.OnValidate = onValidate;
+    StoreArgs(popup, ...);
+
+    _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+  end
 end
 
 do
     local callbacks = {};
 
     local function CreateCallbackWrapper(key, tbl, methodName)
-        return function(...)
-            local callbackData = callbacks[key];
+      return function(...)
+        local callbackData = callbacks[key];
 
-            if (not callbackData) then
-                return; -- it has been unhooked
-            end
+        if (not callbackData) then
+          return; -- it has been unhooked
+        end
 
-            local args = obj:PopTable();
-            tk.Tables:AddAll(args, select(2, unpack(callbackData)));
-            tk.Tables:AddAll(args, ...);
+        local args = obj:PopTable();
+        tk.Tables:AddAll(args, select(2, unpack(callbackData)));
+        tk.Tables:AddAll(args, ...);
 
-            if (obj:IsTable(callbackData)) then
-                -- pass to callback function all custom args and then the real hooksecurefunc args
-                local callback = callbackData[1];
+        if (obj:IsTable(callbackData)) then
+          -- pass to callback function all custom args and then the real hooksecurefunc args
+            local callback = callbackData[1];
 
-                if (obj:IsFunction(callback)) then
-                  local unhook = callbackData[1](unpack(args));
+            if (obj:IsFunction(callback)) then
+              local unhook = callbackData[1](unpack(args));
 
-                  if (unhook) then
-                      if (tbl) then
-                          tk:UnhookFunc(tbl, methodName, callbackData[1]);
-                      else
-                          tk:UnhookFunc(methodName, callbackData[1]);
-                      end
-                  end
+              if (unhook) then
+                if (tbl) then
+                  tk:UnhookFunc(tbl, methodName, callbackData[1]);
+                else
+                  tk:UnhookFunc(methodName, callbackData[1]);
                 end
+              end
             end
+          end
 
-            obj:PushTable(args);
+          obj:PushTable(args);
         end
     end
 
@@ -562,7 +562,7 @@ do
         end
 
         if (obj:IsTable(callbacks[key])) then
-            obj:PushTable(callbacks[key]);
+          obj:PushTable(callbacks[key]);
         end
 
         callbacks[key] = nil;
@@ -699,7 +699,7 @@ function MUI_IterateItemsInBag(bagNum) -- or "container"
       itemLink, isFiltered, noValue, itemID = GetContainerItemInfo(bagID, slot);
 
     if (icon) then
-      table.insert(items, {slot, icon, itemCount, locked, quality, readable, lootable, 
+      table.insert(items, {slot, icon, itemCount, locked, quality, readable, lootable,
         itemLink, isFiltered, noValue, itemID});
     end
   end

@@ -413,8 +413,7 @@ function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value, ...)
 
   local lastTable, lastKey = GetLastTableKeyPairs(rootTable, path);
 
-  assert(obj:IsTable(lastTable) and (obj:IsString(lastKey) or obj:IsNumber(lastKey)),
-    "Database:SetPathValue failed to set value");
+  obj:Assert(obj:IsTable(lastTable) and (obj:IsString(lastKey) or obj:IsNumber(lastKey)), "Database:SetPathValue failed to set value");
 
   -- set value here!
   if (lastTable.IsObjectType and lastTable:IsObjectType("Observer")) then
@@ -439,6 +438,7 @@ obj:DefineParams("string");
 ---Sets the addon profile for the currently logged in character. Creates a new profile if the named profile does not exist.
 ---@param profileName string @The name of the profile to assign to the character.
 function Database:SetProfile(data, profileName)
+  -- Get profile or create if it does not exist
   local profile = data.sv.profiles[profileName] or obj:PopTable();
   data.sv.profiles[profileName] = profile;
 
@@ -447,8 +447,9 @@ function Database:SetProfile(data, profileName)
   data.sv.profileKeys[profileKey] = profileName;
 
   if (obj:IsTable(data.appended)) then
-    for _, params in ipairs(data.appended) do
-      self:AppendOnce(obj:UnpackTable(params));
+    for _, params in pairs(data.appended) do
+      local path, appendKey, value = unpack(params);
+      self:AppendOnce(path, appendKey, value);
     end
   end
 
@@ -639,54 +640,69 @@ function Database:RenameProfile(data, oldProfileName, newProfileName)
   end
 end
 
-obj:DefineParams("Observer", "?string", "?string", "table");
-obj:DefineReturns("boolean");
----Adds a new value to the saved variable table only once. Adds to a special appended history table.
----@param rootObserver Observer @The root database table (observer) to append the value to relative to the path address provided.
----@param path string @(Optional) The path address to specify where the value should be appended to.
----@param appendKey string @(Optional) An optional key that can be used instead of the path for registering an appended value.
----@param value table @The table of values to be appended to the database.
----@return boolean @Returns whether the value was successfully added.
-function Database:AppendOnce(data, rootObserver, path, appendKey, value)
-  local tableType = data.helper:GetDatabaseRootTableName(rootObserver);
-  local appendTable = data.sv.appended[tableType] or obj:PopTable();
+do
+  local function RegisterForProfileSwitching(data, appendKey, path, value)
+    data.appended = data.appended or obj:PopTable();
+    if (not data.appended[appendKey]) then
+      data.appended[appendKey] = { path, appendKey, value };
+    end
+  end
 
-  data.sv.appended[tableType] = appendTable;
+  local function AppendToSavedVariables(db, sv, path, value)
+    -- we know which sv table to use now, so trim this part off:
+    path = path:gsub("^global%.", ""):gsub("^profile%.", "");
 
-  appendKey = appendKey or path;
-  obj:Assert(appendKey, "Both path and appendKey args cannot be missing (at least one is required)");
+    if (#path > 0) then
+      db:SetPathValue(sv, path, value);
+    elseif (obj:IsTable(value)) then
+      for k, v in pairs(value) do
+        db:SetPathValue(sv, k, v);
+      end
+    else
+      obj:Error("Injecting a non-table value requires the path argument");
+    end
+  end
 
-  data.appended = data.appended or obj:PopTable();
+  obj:DefineParams("string", "?string", "table");
+  obj:DefineReturns("boolean");
+  ---Adds a new value to the saved variable table only once. Adds to a special appended history table.
+  ---@param path string The path address to specify where the value should be appended to.
+  ---@param appendKey string @(Optional) An optional key that can be used instead of the path for registering an appended value.
+  ---@param value table @The table of values to be appended to the database.
+  ---@return boolean @Returns whether the value was successfully added.
+  function Database:AppendOnce(data, path, appendKey, value)
+    appendKey = appendKey or path;
+    obj:Assert(appendKey, "Both path and appendKey args cannot be missing (at least one is required)");
 
-  if (not data.appended[appendKey]) then
+    appendKey = appendKey:gsub("^global%.", ""):gsub("^profile%.", "");
+
+    local rootObserver = self.global;
+
+    if (path:match("^profile%.")) then
+      rootObserver = self.profile;
+    end
+
+    local tableType = data.helper:GetDatabaseRootTableName(rootObserver);
+
+    -- created SV appended table with profile/global name sub-table:
+    local appendTable = data.sv.appended[tableType] or obj:PopTable();
+    data.sv.appended[tableType] = appendTable;
+
     -- this is needed for profile switching to reinject if not injected for a given profile
-    data.appended[tableType] = obj:PopTable(rootObserver, path, appendKey, value);
-  end
+    RegisterForProfileSwitching(data, appendKey, path, value);
 
-  if (appendTable[appendKey]) then
-    -- already previously appended, cannot append again
-    if (obj:IsTable(value)) then
-      obj:PushTable(value, true);
+    if (appendTable[appendKey]) then
+      -- already registered (do not clean up table because it is used in profile switching)
+      return false;
     end
 
-    return false;
+    -- Append to SV table:
+    local sv = rootObserver:GetSavedVariable();
+    AppendToSavedVariables(self, sv, path, value);
+
+    appendTable[appendKey] = true;
+    return true;
   end
-
-  local sv = rootObserver:GetSavedVariable();
-
-  if (path) then
-    self:SetPathValue(sv, path, value);
-
-  elseif (obj:IsTable(value)) then
-    for k, v in pairs(value) do
-      self:SetPathValue(sv, k, v);
-    end
-  else
-    obj:Error("Injecting a non-table value requires the path argument");
-  end
-
-  appendTable[appendKey] = true;
-  return true;
 end
 
 obj:DefineParams("Observer", "string");
@@ -1348,8 +1364,8 @@ function Helper:GetDatabaseRootTableName(data, observer)
 
   local currentProfile = data.database:GetCurrentProfile();
 
-  if (currentProfile:find("%s+")) then
-    -- has spaces
+  if (currentProfile:find("%s") or currentProfile:find("%.")) then
+    -- has spaces or a "."
     return string.format("profile['%s']", currentProfile);
   else
     return string.format("profile.%s", currentProfile);
