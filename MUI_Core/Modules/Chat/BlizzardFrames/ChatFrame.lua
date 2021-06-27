@@ -8,18 +8,22 @@ local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 --------------------------------------
 local CHANNEL_PATTERNS = {
-  "^(|Hchannel:.-|h%[.-%]|h |Hplayer:.-|h%[.-%]|h: )(.*)";
-  "^(|Hplayer:.-|h%[.-%]|h.-: )(.*)"};
+  "(|Hchannel:.-|h%[.-%]|h |Hplayer:.-|h%[.-%]|h: )(.*)";
+  "(|Hplayer:.-|h%[.-%]|h.-: )(.*)"};
 
 local function GetChatLink(url)
 	return string.format("|Hurl:%s|h|cffffe29e%s|r|h", url, "["..url.."]");
 end
 
 local function HighlightText(text, highlighted)
-  local prefix, body, playSound, changed;
+  local prefix, body, time, playSound, changed;
 
   for _, pattern in ipairs(CHANNEL_PATTERNS) do
-    prefix, body = text:match(pattern);
+    if (_G.CHAT_TIMESTAMP_FORMAT) then
+      time, prefix, body = text:match("(.-)" .. pattern);
+    else
+      prefix, body = text:match("^" .. pattern);
+    end
 
     if (prefix and body) then
       body = body:trim();
@@ -33,7 +37,13 @@ local function HighlightText(text, highlighted)
         end
       end
 
-      text = prefix .. body;
+      if (time) then
+        text = time .. prefix .. body;
+      else
+        text = prefix .. body;
+      end
+
+      break
     end
   end
 
@@ -47,9 +57,11 @@ end
 local loadedChannels = {};
 local function RenameAliases(text, settings, r, g, b)
   local changed;
+
   for i = 2, 60, 3 do
     local channelName = (select(i, GetChannelList()));
     if (channelName ==  nil) then break end
+
     if (obj:IsString(channelName) and not loadedChannels[channelName]) then
       local path = tk.Strings:Concat("profile.chat.aliases[", channelName, "]");
       local default = (channelName:gsub("[a-z%s]", ""));
@@ -82,18 +94,12 @@ local function RenameAliases(text, settings, r, g, b)
       local prefix = "|Hchannel:" .. channelID .. "|h" .. alias .. " |h";
 
       if (obj:IsString(time)) then
-        if (settings.useTimestampColor) then
-          time = tk.Strings:SetTextColorByRGB(time,
-            settings.timestampColor.r,
-            settings.timestampColor.g,
-            settings.timestampColor.b);
-        end
         text = time .. prefix .. body;
       else
         text = prefix .. body;
       end
 
-      break;
+      break
     end
   end
 
@@ -110,6 +116,21 @@ local function NewAddMessage(self, settings, text, r, g, b, ...)
 
   if (settings.enableAliases) then
     text = RenameAliases(text, settings, r, g, b);
+  end
+
+  if (settings.useTimestampColor and _G.CHAT_TIMESTAMP_FORMAT) then
+    for _, pattern in ipairs(CHANNEL_PATTERNS) do
+      local time, prefix, body = text:match("(.-)" .. pattern);
+      if (time and prefix and body) then
+        time = tk.Strings:SetTextColorByRGB(time,
+          settings.timestampColor.r,
+          settings.timestampColor.g,
+          settings.timestampColor.b);
+
+        text = time .. prefix .. body;
+        break
+      end
+    end
   end
 
 	self:oldAddMessage(text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink), r, g, b, ...);
