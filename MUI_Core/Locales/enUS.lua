@@ -732,6 +732,12 @@ L["Set Profile"] = "Set Profile";
 L["Show Currently Active Profile"] = "Show Currently Active Profile";
 L["Show the Version of MUI"] = "Show the Version of MUI";
 L["Show the MUI Layout Tool"] = "Show the MUI Layout Tool";
+L["Some settings will not be changed until the UI has been reloaded."] = "Some settings will not be changed until the UI has been reloaded.";
+L["Would you like to reload the UI now?"] = "Would you like to reload the UI now?";
+L["Reload UI"] = "Reload UI";
+L["No"] = "No";
+L["Profile changed to %s."] = "Profile changed to: %s.";
+L["Profile %s has been reset."] = "Profile %s has been reset.";
 
 ---------------------------------
 --- LARGE TEXT:

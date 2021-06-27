@@ -684,6 +684,60 @@ L["Show Debuffs"] = "Mostrar Debuffs";
 L["Refresh Chat Text"] = "Atualizar texto do bate-papo";
 L["Back"] = "Voltar";
 L["Next"] = "Próximo";
+L["Set short, custom aliases for chat channel names."] = [[Defina apelidos curtos e personalizados para nomes de canais de bate-papo.]]
+L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "O contêiner principal contém os painéis da estrutura da unidade, painéis da barra de ação, barra de texto de dados e todas as barras de recursos na parte inferior da tela.";
+L["Add Text Highlighting"] = "Adicionar realce de texto";
+L["Channel Name Aliases"] = "Aliases de nome de canal";
+L["Text Highlighting"] = "Destaque de texto";
+L["Alias Brightness"] = "Alias Brightness";
+L["Auction House Open"] = "Leilão aberto";
+L["Auction House Close"] = "Leilão da casa fechada";
+L["Alarm Clock Warning 1"] = "Aviso 1 do despertador";
+L["Alarm Clock Warning 2"] = "Aviso 2 do despertador";
+L["Alarm Clock Warning 3"] = "Aviso 3 do despertador";
+L["Enter Queue"] = "Entrar na fila";
+L["Jewel Crafting Socket"] = "Soquete de fabricação de joias";
+L["Loot Money"] = "Dinheiro de saque";
+L["Map Ping"] = "Mapeamento";
+L["Queue Ready"] = "Fila pronta";
+L["Raid Warning"] = "Aviso de Raid";
+L["Raid Boss Warning"] = "Aviso de chefe de ataque";
+L["Ready Check"] = "Teste de Pronto";
+L["Repair Item"] = "Item de reparo";
+L["Whisper Received"] = "Sussurro recebido";
+L["Server Channels"] = "Canais de servidor";
+L["Text to Highlight (case insensitive):"] = "Texto a destacar (não diferencia maiúsculas de minúsculas):";
+L["Enter text to highlight:"] = "Digite o texto para destacar:";
+L["Show in Upper Case"] = "Mostrar em maiúsculas";
+L["Set Color"] = "Definir cor";
+L["Edit Text"] = "Editar texto";
+L["Play a sound effect when any of the selected text appears in chat."] = "Tocar um efeito de som quando qualquer um dos textos selecionados aparecer no bate-papo.";
+L["Play Sound"] = "Tocar música";
+L["Set Timestamp Color"] = "Definir a cor do carimbo de data / hora";
+L["Use Fixed Timestamp Color"] = "Usar cor fixa de carimbo de data / hora";
+L["Timestamps"] = "Timestamps";
+L["Enable Custom Aliases"] = "Habilitar aliases personalizados";
+L["Dangerous Actions!"] = "Ações perigosas!";
+L["Cannot delete the Default profile."] = "Não é possível excluir o perfil padrão.";
+L["Are you sure you want to delete profile '%s'?"] = "Tem certeza que deseja excluir o perfil '%s'?";
+L["DELETE"] = "EXCLUIR";
+L["Please type '%s' to confirm:"] = "Digite '%s' para confirmar:";
+L["Enter a new unique profile name:"] = "Insira um novo nome de perfil exclusivo:";
+L["Current Profile:"] = "Perfil atual:";
+L["Show the MUI Config Menu"] = "Mostrar o menu de configuração do MUI";
+L["Show the MUI Installer"] = "Mostrar o instalador MUI";
+L["List All Profiles"] = "Listar todos os perfis";
+L["Show the MUI Profile Manager"] = "Mostrar o gerenciador de perfil MUI";
+L["Set Profile"] = "Definir Perfil";
+L["Show Currently Active Profile"] = "Mostrar perfil ativo no momento";
+L["Show the Version of MUI"] = "Mostrar a versão do MUI";
+L["Show the MUI Layout Tool"] = "Mostrar a ferramenta de layout MUI";
+L["Some settings will not be changed until the UI has been reloaded."] = "Algumas configurações não serão alteradas até que a IU seja recarregada.";
+L["Would you like to reload the UI now?"] = "Gostaria de recarregar a IU agora?";
+L["Reload UI"] = "Recarregar IU";
+L["No"] = "Não";
+L["Profile changed to %s."] = "Perfil alterado para %s.";
+L["Profile %s has been reset."] = "O perfil %s foi redefinido.";
 
 ---------------------------------
 --- LARGE TEXT:
@@ -782,58 +836,6 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 [[Gerenciar texto para destacar e opcionalmente
 reproduzam um efeito sonoro quando aparecem no chat.]]
 
-L["Set short, custom aliases for chat channel names."] = [[Defina apelidos curtos e personalizados para nomes de canais de bate-papo.]]
-
-L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "O contêiner principal contém os painéis da estrutura da unidade, painéis da barra de ação, barra de texto de dados e todas as barras de recursos na parte inferior da tela.";
-L["Add Text Highlighting"] = "Adicionar realce de texto";
-L["Channel Name Aliases"] = "Aliases de nome de canal";
-L["Text Highlighting"] = "Destaque de texto";
-L["Alias Brightness"] = "Alias Brightness";
-L["Auction House Open"] = "Leilão aberto";
-L["Auction House Close"] = "Leilão da casa fechada";
-L["Alarm Clock Warning 1"] = "Aviso 1 do despertador";
-L["Alarm Clock Warning 2"] = "Aviso 2 do despertador";
-L["Alarm Clock Warning 3"] = "Aviso 3 do despertador";
-L["Enter Queue"] = "Entrar na fila";
-L["Jewel Crafting Socket"] = "Soquete de fabricação de joias";
-L["Loot Money"] = "Dinheiro de saque";
-L["Map Ping"] = "Mapeamento";
-L["Queue Ready"] = "Fila pronta";
-L["Raid Warning"] = "Aviso de Raid";
-L["Raid Boss Warning"] = "Aviso de chefe de ataque";
-L["Ready Check"] = "Teste de Pronto";
-L["Repair Item"] = "Item de reparo";
-L["Whisper Received"] = "Sussurro recebido";
-L["Server Channels"] = "Canais de servidor";
-
 L["NO_HIGHLIGHT_TEXT_ADDED"] =
 [[Você ainda não adicionou nenhum texto!
 Pressione o botão 'Editar Texto' abaixo para adicionar texto para destacar:]];
-
-L["Text to Highlight (case insensitive):"] = "Texto a destacar (não diferencia maiúsculas de minúsculas):";
-L["Enter text to highlight:"] = "Digite o texto para destacar:";
-L["Show in Upper Case"] = "Mostrar em maiúsculas";
-L["Set Color"] = "Definir cor";
-L["Edit Text"] = "Editar texto";
-L["Play a sound effect when any of the selected text appears in chat."] = "Tocar um efeito de som quando qualquer um dos textos selecionados aparecer no bate-papo.";
-L["Play Sound"] = "Tocar música";
-
-L["Set Timestamp Color"] = "Definir a cor do carimbo de data / hora";
-L["Use Fixed Timestamp Color"] = "Usar cor fixa de carimbo de data / hora";
-L["Timestamps"] = "Timestamps";
-L["Enable Custom Aliases"] = "Habilitar aliases personalizados";
-L["Dangerous Actions!"] = "Ações perigosas!";
-L["Cannot delete the Default profile."] = "Não é possível excluir o perfil padrão.";
-L["Are you sure you want to delete profile '%s'?"] = "Tem certeza que deseja excluir o perfil '%s'?";
-L["DELETE"] = "EXCLUIR";
-L["Please type '%s' to confirm:"] = "Digite '%s' para confirmar:";
-L["Enter a new unique profile name:"] = "Insira um novo nome de perfil exclusivo:";
-L["Current Profile:"] = "Perfil atual:";
-L["Show the MUI Config Menu"] = "Mostrar o menu de configuração do MUI";
-L["Show the MUI Installer"] = "Mostrar o instalador MUI";
-L["List All Profiles"] = "Listar todos os perfis";
-L["Show the MUI Profile Manager"] = "Mostrar o gerenciador de perfil MUI";
-L["Set Profile"] = "Definir Perfil";
-L["Show Currently Active Profile"] = "Mostrar perfil ativo no momento";
-L["Show the Version of MUI"] = "Mostrar a versão do MUI";
-L["Show the MUI Layout Tool"] = "Mostrar a ferramenta de layout MUI";

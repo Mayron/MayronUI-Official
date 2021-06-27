@@ -729,6 +729,12 @@ L["Set Profile"] = "프로필 설정";
 L["Show Currently Active Profile"] = "현재 활성 프로필 표시";
 L["Show the Version of MUI"] = "MUI 버전 표시";
 L["Show the MUI Layout Tool"] = "MUI 레이아웃 도구 표시";
+L["Some settings will not be changed until the UI has been reloaded."] = "일부 설정은 UI가 다시로드 될 때까지 변경되지 않습니다.";
+L["Would you like to reload the UI now?"] = "지금 UI를 다시로드 하시겠습니까?";
+L["Reload UI"] = "UI 새로 고침";
+L["No"] = "아니";
+L["Profile changed to %s."] = "프로필이 %s (으)로 변경되었습니다.";
+L["Profile %s has been reset."] = "%s 프로필이 재설정되었습니다.";
 
 ---------------------------------
 --- LARGE TEXT:

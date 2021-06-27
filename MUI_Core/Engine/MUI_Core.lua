@@ -485,8 +485,8 @@ function MayronUI:PrintTable(tbl, depth, spaces)
 end
 
 function MayronUI:ShowReloadUIPopUp()
-  tk:ShowConfirmPopup("Some settings will not be changed until the UI has been reloaded.",
-    "Would you like to reload the UI now?", ReloadUI, "Reload UI", nil, "No", true);
+  tk:ShowConfirmPopup(L["Some settings will not be changed until the UI has been reloaded."],
+    L["Would you like to reload the UI now?"], ReloadUI, L["Reload UI"], nil, L["No"], true);
 end
 
 ---A helper function to print a variable argument list using the MayronUI prefix in the chat frame.
@@ -719,11 +719,14 @@ db:OnProfileChange(function(self, newProfileName, oldProfileName)
     end
   end
 
+  local msg;
   if (oldProfileName == newProfileName) then
-    tk:Print("Profile", tk.Strings:SetTextColorByKey(newProfileName, "gold"), "has been reset.");
+    msg = string.format(L["Profile %s has been reset."], tk.Strings:SetTextColorByKey(newProfileName, "gold"));
   else
-    tk:Print("Profile changed to:", tk.Strings:SetTextColorByKey(newProfileName, "GOLD"));
+    msg = string.format(L["Profile changed to %s."], tk.Strings:SetTextColorByKey(newProfileName, "gold"));
   end
+
+  tk:Print(msg);
 
   MayronUI:ShowReloadUIPopUp();
 end);

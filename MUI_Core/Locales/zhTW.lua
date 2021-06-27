@@ -729,6 +729,12 @@ L["Set Profile"] = "設置配置文件";
 L["Show Currently Active Profile"] = "顯示當前活動的個人資料";
 L["Show the Version of MUI"] = "顯示 MUI 版本";
 L["Show the MUI Layout Tool"] = "顯示 MUI 佈局工具";
+L["Some settings will not be changed until the UI has been reloaded."] = "在重新加載 UI 之前，某些設置不會更改。";
+L["Would you like to reload the UI now?"] = "您現在要重新加載用戶界面嗎？";
+L["Reload UI"] = "重新加載用戶界面";
+L["No"] = "不";
+L["Profile changed to %s."] = "配置文件已更改為 %s。";
+L["Profile %s has been reset."] = "配置文件 %s 已被重置。";
 
 ---------------------------------
 --- LARGE TEXT:
@@ -753,7 +759,7 @@ L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
 顏色而不是使用“起始顏色”RGB 值。 它會
 仍然使用 Alpha 和 'End Color' RGB 值。]];
 
-L["MUI_Setup_InfoTab"] = 
+L["MUI_Setup_InfoTab"] =
 [[不和諧社區：
 %s
 
@@ -769,7 +775,7 @@ L["MUI_Setup_InfoTab"] =
 訪問 Mayron 的官方 YouTube 頻道：
 %s]]
 
-L["MUI_Setup_CreditsTab"] = 
+L["MUI_Setup_CreditsTab"] =
 [[特別感謝以下 MayronUI 社區成員對項目的貢獻（請參閱信息標籤以獲取加入我們 Discord 社區的鏈接）：
 
 |cff00ccff> 贊助人|r
@@ -786,21 +792,21 @@ L["MUI_Setup_CreditsTab"] =
 
 當然，感謝此 UI 包中包含的非 MayronUI 插件的作者。]]
 
-L["PRESS_HOLD_TOGGLE_BUTTONS"] = 
+L["PRESS_HOLD_TOGGLE_BUTTONS"] =
 [[脫離戰鬥時按住 %s 可顯示切換按鈕。
 單擊這些將顯示或隱藏其他操作欄行。]]
 
-L["CHANGE_KEYBINDINGS"] = 
+L["CHANGE_KEYBINDINGS"] =
 [[您可以在 MUI 配置菜單 (%s) 中更改此組合鍵。
 有 3 個按鍵綁定，可以在 1 到 3 行之間快速切換，
 在暴雪的按鍵綁定菜單中找到：]]
 
-L["THANK_YOU_FOR_INSTALLING"] = 
+L["THANK_YOU_FOR_INSTALLING"] =
 [[感謝您安裝 MayronUI！
 
 您可以使用配置菜單完全自定義 UI：]]
 
-L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] = 
+L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] =
 [[如果啟用，剩餘時間未知的光環，以及永遠不會的光環
 除非取消，否則過期，將顯示在計時器欄字段上，並將
 永不枯竭。 如果光環被移除，該條仍然會消失。
@@ -808,17 +814,17 @@ L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] =
 經典中，部分光環剩餘時間（視情況而定）
 玩家可能不知道，除非啟用此功能，否則將被隱藏。]]
 
-L["MANAGE_PROFILES_HERE"] = 
+L["MANAGE_PROFILES_HERE"] =
 [[您可以在此處管理角色檔案。
 
 默認情況下，每個角色都有自己獨特的個人資料。]]
 
-L["UNIQUE_CHARACTER_PROFILE"] = 
+L["UNIQUE_CHARACTER_PROFILE"] =
 [[默認情況下，每個新角色將自動分配一個唯一的角色配置文件，而不是單個默認配置文件。
 
 只有在新角色上安裝 UI 後才會自動分配配置文件。]]
 
-L["AURAS_ORDERING_ON_TOOLTIP"] = 
+L["AURAS_ORDERING_ON_TOOLTIP"] =
 [[以下設置控制工具提示上的光環順序
 當 buffs 和 debuffs 放在一起時
 （在工具提示上方或下方）並且都已啟用。]]

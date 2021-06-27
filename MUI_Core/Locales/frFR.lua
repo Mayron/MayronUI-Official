@@ -732,6 +732,12 @@ L["Set Profile"] = "Définir le profil";
 L["Show Currently Active Profile"] = "Afficher le profil actuellement actif";
 L["Show the Version of MUI"] = "Afficher la version de MUI";
 L["Show the MUI Layout Tool"] = "Afficher l'outil de mise en page MUI";
+L["Some settings will not be changed until the UI has been reloaded."] = "Certains paramètres ne seront pas modifiés tant que l'interface utilisateur n'aura pas été rechargée.";
+L["Would you like to reload the UI now?"] = "Voulez-vous recharger l'interface utilisateur maintenant ?";
+L["Reload UI"] = "Recharger l'interface utilisateur";
+L["No"] = "Non";
+L["Profile changed to %s."] = "Profil changé en %s.";
+L["Profile %s has been reset."] = "Le profil %s a été réinitialisé.";
 
 ---------------------------------
 --- LARGE TEXT:

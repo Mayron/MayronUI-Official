@@ -681,6 +681,60 @@ L["Show Debuffs"] = "Показать дебаффы";
 L["Refresh Chat Text"] = "Обновить текст чата";
 L["Back"] = "Назад";
 L["Next"] = "Следующий";
+L["Set short, custom aliases for chat channel names."] = [[Установите короткие персонализированные псевдонимы для имен каналов чата.]]
+L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "Основной контейнер содержит панели фрейма объекта, панели панели действий, панель текста и данных и все панели ресурсов в нижней части экрана.";
+L["Add Text Highlighting"] = "Добавить выделение текста";
+L["Channel Name Aliases"] = "Псевдонимы названий каналов";
+L["Text Highlighting"] = "Выделение текста";
+L["Alias Brightness"] = "Яркость псевдонима";
+L["Auction House Open"] = "Аукционный дом открыт";
+L["Auction House Close"] = "Аукционный дом Закрыть";
+L["Alarm Clock Warning 1"] = "Предупреждение будильника 1";
+L["Alarm Clock Warning 2"] = "Предупреждение будильника 2";
+L["Alarm Clock Warning 3"] = "Предупреждение будильника 3";
+L["Enter Queue"] = "Войти в очередь";
+L["Jewel Crafting Socket"] = "Гнездо для изготовления самоцветов";
+L["Loot Money"] = "Деньги с добычей";
+L["Map Ping"] = "Пинг карты";
+L["Queue Ready"] = "Очередь готова";
+L["Raid Warning"] = "Предупреждение о рейде";
+L["Raid Boss Warning"] = "Предупреждение рейдового босса";
+L["Ready Check"] = "Готовый чек";
+L["Repair Item"] = "Предмет ремонта";
+L["Whisper Received"] = "Получен шепот";
+L["Server Channels"] = "Каналы сервера";
+L["Text to Highlight (case insensitive):"] = "Текст для выделения (без учета регистра):";
+L["Enter text to highlight:"] = "Введите текст для выделения:";
+L["Show in Upper Case"] = "Показать в верхнем регистре";
+L["Set Color"] = "Установить цвет";
+L["Edit Text"] = "Редактировать текст";
+L["Play a sound effect when any of the selected text appears in chat."] = "Воспроизвести звуковой эффект, когда любой из выделенного текста появляется в чате.";
+L["Play Sound"] = "Воспроизвести звук";
+L["Set Timestamp Color"] = "Установить цвет отметки времени";
+L["Use Fixed Timestamp Color"] = "Использовать фиксированный цвет отметки времени";
+L["Timestamps"] = "Отметки времени";
+L["Enable Custom Aliases"] = "Включить настраиваемые псевдонимы";
+L["Dangerous Actions!"] = "Опасные действия!";
+L["Cannot delete the Default profile."] = "Невозможно удалить профиль по умолчанию.";
+L["Are you sure you want to delete profile '%s'?"] = "Вы уверены, что хотите удалить профиль '%s'?";
+L["DELETE"] = "УДАЛИТЬ";
+L["Please type '%s' to confirm:"] = "Введите '%s' для подтверждения:";
+L["Enter a new unique profile name:"] = "Введите новое уникальное имя профиля:";
+L["Current Profile:"] = "Текущий профиль:";
+L["Show the MUI Config Menu"] = "Показать меню конфигурации MUI";
+L["Show the MUI Installer"] = "Показать установщик MUI";
+L["List All Profiles"] = "Список всех профилей";
+L["Show the MUI Profile Manager"] = "Показать диспетчер профилей MUI";
+L["Set Profile"] = "Установить профиль";
+L["Show Currently Active Profile"] = "Показать текущий активный профиль";
+L["Show the Version of MUI"] = "Показать версию MUI";
+L["Show the MUI Layout Tool"] = "Показать инструмент макета MUI";
+L["Some settings will not be changed until the UI has been reloaded."] = "Некоторые настройки не будут изменены, пока пользовательский интерфейс не будет перезагружен.";
+L["Would you like to reload the UI now?"] = "Хотите перезагрузить интерфейс сейчас?";
+L["Reload UI"] = "Обновить интерфейс";
+L["No"] = "Нет";
+L["Profile changed to %s."] = "Профиль изменен на %s.";
+L["Profile %s has been reset."] = "Профиль %s был сброшен.";
 
 ---------------------------------
 --- LARGE TEXT:
@@ -779,58 +833,6 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 [[Управляйте текстом для выделения и при необходимости
 воспроизводить звуковой эффект, когда они появляются в чате.]]
 
-L["Set short, custom aliases for chat channel names."] = [[Установите короткие персонализированные псевдонимы для имен каналов чата.]]
-
-L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "Основной контейнер содержит панели фрейма объекта, панели панели действий, панель текста и данных и все панели ресурсов в нижней части экрана.";
-L["Add Text Highlighting"] = "Добавить выделение текста";
-L["Channel Name Aliases"] = "Псевдонимы названий каналов";
-L["Text Highlighting"] = "Выделение текста";
-L["Alias Brightness"] = "Яркость псевдонима";
-L["Auction House Open"] = "Аукционный дом открыт";
-L["Auction House Close"] = "Аукционный дом Закрыть";
-L["Alarm Clock Warning 1"] = "Предупреждение будильника 1";
-L["Alarm Clock Warning 2"] = "Предупреждение будильника 2";
-L["Alarm Clock Warning 3"] = "Предупреждение будильника 3";
-L["Enter Queue"] = "Войти в очередь";
-L["Jewel Crafting Socket"] = "Гнездо для изготовления самоцветов";
-L["Loot Money"] = "Деньги с добычей";
-L["Map Ping"] = "Пинг карты";
-L["Queue Ready"] = "Очередь готова";
-L["Raid Warning"] = "Предупреждение о рейде";
-L["Raid Boss Warning"] = "Предупреждение рейдового босса";
-L["Ready Check"] = "Готовый чек";
-L["Repair Item"] = "Предмет ремонта";
-L["Whisper Received"] = "Получен шепот";
-L["Server Channels"] = "Каналы сервера";
-
 L["NO_HIGHLIGHT_TEXT_ADDED"] =
 [[Вы еще не добавили никакого текста!
 Нажмите кнопку «Изменить текст» ниже, чтобы добавить текст для выделения:]];
-
-L["Text to Highlight (case insensitive):"] = "Текст для выделения (без учета регистра):";
-L["Enter text to highlight:"] = "Введите текст для выделения:";
-L["Show in Upper Case"] = "Показать в верхнем регистре";
-L["Set Color"] = "Установить цвет";
-L["Edit Text"] = "Редактировать текст";
-L["Play a sound effect when any of the selected text appears in chat."] = "Воспроизвести звуковой эффект, когда любой из выделенного текста появляется в чате.";
-L["Play Sound"] = "Воспроизвести звук";
-
-L["Set Timestamp Color"] = "Установить цвет отметки времени";
-L["Use Fixed Timestamp Color"] = "Использовать фиксированный цвет отметки времени";
-L["Timestamps"] = "Отметки времени";
-L["Enable Custom Aliases"] = "Включить настраиваемые псевдонимы";
-L["Dangerous Actions!"] = "Опасные действия!";
-L["Cannot delete the Default profile."] = "Невозможно удалить профиль по умолчанию.";
-L["Are you sure you want to delete profile '%s'?"] = "Вы уверены, что хотите удалить профиль '%s'?";
-L["DELETE"] = "УДАЛИТЬ";
-L["Please type '%s' to confirm:"] = "Введите '%s' для подтверждения:";
-L["Enter a new unique profile name:"] = "Введите новое уникальное имя профиля:";
-L["Current Profile:"] = "Текущий профиль:";
-L["Show the MUI Config Menu"] = "Показать меню конфигурации MUI";
-L["Show the MUI Installer"] = "Показать установщик MUI";
-L["List All Profiles"] = "Список всех профилей";
-L["Show the MUI Profile Manager"] = "Показать диспетчер профилей MUI";
-L["Set Profile"] = "Установить профиль";
-L["Show Currently Active Profile"] = "Показать текущий активный профиль";
-L["Show the Version of MUI"] = "Показать версию MUI";
-L["Show the MUI Layout Tool"] = "Показать инструмент макета MUI";

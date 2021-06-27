@@ -403,22 +403,11 @@ L["Size"] = "尺寸";
 L["Adjust the font size of the zone text."] = "调整区域文本的字体大小。";
 L["Okay"] = "好的";
 L["Profile %s has been copied into current profile %s."] = "配置文件 %s 已复制到当前配置文件 %s。";
-
-L["MANAGE_PROFILES_HERE"] = [[
-您可以在此处管理角色档案。
-
-默认情况下,每个角色都有自己独特的档案。]]
-
 L["Reset currently active profile back to default settings."] = "将当前活动的配置文件重置为默认设置。";
 L["Are you sure you want to reset profile '%s' back to default settings?"] = "您确定要将配置文件 '%s' 重置为默认设置吗？";
 L["Delete currently active profile (cannot delete the 'Default' profile)."] = "删除当前活动的配置文件（不能删除'默认'配置文件）。";
 L["Copy all settings from one profile to the active profile."] = "将所有设置从一个配置文件复制到活动配置文件。";
 L["Are you sure you want to override all profile settings in '%s' for those in profile '%s'?"] = "您确定要为配置文件 '%s' 中的配置文件覆盖 '%s' 中的所有配置文件设置吗？";
-L["UNIQUE_CHARACTER_PROFILE"] = [[
-默认情况下,每个新角色将自动分配一个唯一的角色配置文件,而不是单个默认配置文件。
-
-配置文件仅在新角色上安装 UI 后自动分配。]]
-
 L["Profile Per Character"] = "每个角色的个人资料";
 L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."] = "如果启用,新角色将被分配一个唯一的角色配置文件,而不是默认配置文件。";
 L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] = "为每个布局自定义哪些插件应该更改为哪些配置文件,以及管理现有布局或创建新布局。";
@@ -692,23 +681,80 @@ L["Show Debuffs"] = "显示减益";
 L["Refresh Chat Text"] = "刷新聊天文本";
 L["Back"] = "后退";
 L["Next"] = "下一个";
+L["Set short, custom aliases for chat channel names."] = [[为聊天频道名称设置简短的自定义别名。]]
+L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "主容器包含单元框架面板、操作栏面板、数据文本栏和屏幕底部的所有资源栏。";
+L["Add Text Highlighting"] = "添加文本突出显示";
+L["Channel Name Aliases"] = "频道名称别名";
+L["Text Highlighting"] = "文本突出显示";
+L["Alias Brightness"] = "别名亮度";
+L["Auction House Open"] = "拍卖行开放";
+L["Auction House Close"] = "拍卖行关闭";
+L["Alarm Clock Warning 1"] = "闹钟警告1";
+L["Alarm Clock Warning 2"] = "闹钟警告2";
+L["Alarm Clock Warning 3"] = "闹钟警告3";
+L["Enter Queue"] = "进入队列";
+L["Jewel Crafting Socket"] = "珠宝制作插座";
+L["Loot Money"] = "抢钱";
+L["Map Ping"] = "地图平";
+L["Queue Ready"] = "队列准备就绪";
+L["Raid Warning"] = "突袭警告";
+L["Raid Boss Warning"] = "突袭boss警告";
+L["Ready Check"] = "准备检查";
+L["Repair Item"] = "维修项目";
+L["Whisper Received"] = "耳语收到";
+L["Server Channels"] = "服务器通道";
+L["Text to Highlight (case insensitive):"] = "要突出显示的文本（不区分大小写）：";
+L["Enter text to highlight:"] = "输入要突出显示的文本：";
+L["Show in Upper Case"] = "以大写显示";
+L["Set Color"] = "设置颜色";
+L["Edit Text"] = "编辑文本";
+L["Play a sound effect when any of the selected text appears in chat."] = "当任何选定的文本出现在聊天中时播放声音效果。";
+L["Play Sound"] = "播放声音";
+L["Set Timestamp Color"] = "设置时间戳颜色";
+L["Use Fixed Timestamp Color"] = "使用固定时间戳颜色";
+L["Timestamps"] = "时间戳";
+L["Enable Custom Aliases"] = "启用自定义别名";
+L["Dangerous Actions!"] = "危险动作！";
+L["Cannot delete the Default profile."] = "无法删除默认配置文件。";
+L["Are you sure you want to delete profile '%s'?"] = "您确定要删除配置文件 '%s' 吗？";
+L["DELETE"] = "删除";
+L["Please type '%s' to confirm:"] = "请输入'%s' 来确认：";
+L["Enter a new unique profile name:"] = "输入一个新的唯一配置文件名称：";
+L["Current Profile:"] = "当前档案：";
+L["Show the MUI Config Menu"] = "显示 MUI 配置菜单";
+L["Show the MUI Installer"] = "显示 MUI 安装程序";
+L["List All Profiles"] = "列出所有配置文件";
+L["Show the MUI Profile Manager"] = "显示 MUI 配置文件管理器";
+L["Set Profile"] = "设置配置文件";
+L["Show Currently Active Profile"] = "显示当前活动的个人资料";
+L["Show the Version of MUI"] = "显示 MUI 版本";
+L["Show the MUI Layout Tool"] = "显示 MUI 布局工具";
+L["Some settings will not be changed until the UI has been reloaded."] = "在重新加载 UI 之前，某些设置不会更改。";
+L["Would you like to reload the UI now?"] = "您现在要重新加载用户界面吗？";
+L["Reload UI"] = "重新加载用户界面";
+L["No"] = "不";
+L["Profile changed to %s."] = "配置文件已更改为 %s。";
+L["Profile %s has been reset."] = "配置文件 %s 已被重置。";
 
-L["PRESS_HOLD_TOGGLE_BUTTONS"] = [[
-脱离战斗时按住 %s 可显示切换按钮。
+---------------------------------
+--- LARGE TEXT:
+---------------------------------
+L["PRESS_HOLD_TOGGLE_BUTTONS"] =
+[[脱离战斗时按住 %s 可显示切换按钮。
 单击这些将显示或隐藏其他操作栏行。]]
 
-L["CHANGE_KEYBINDINGS"] = [[
-您可以在 MUI 配置菜单 (%s) 中更改此组合键。
+L["CHANGE_KEYBINDINGS"] =
+[[您可以在 MUI 配置菜单 (%s) 中更改此组合键。
 有 3 个按键绑定，可以在 1 到 3 行之间快速切换，
 在暴雪键绑定菜单中找到：]]
 
-L["THANK_YOU_FOR_INSTALLING"] = [[
-感谢您安装 MayronUI！
+L["THANK_YOU_FOR_INSTALLING"] =
+[[感谢您安装 MayronUI！
 
 您可以使用配置菜单完全自定义 UI：]]
 
-L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] = [[
-如果启用，剩余时间未知的光环，以及永远不会的光环
+L["SHOW_AURAS_WITH_UNKNOWN_TIME_TOOLTIP"] =
+[[如果启用，剩余时间未知的光环，以及永远不会的光环
 除非取消，否则过期，将显示在计时器栏字段上，并将
 永不枯竭。 如果光环被移除，该条仍然会消失。
 
@@ -735,8 +781,8 @@ L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
 颜色而不是使用“起始颜色”RGB 值。 它会
 仍然使用 Alpha 和 'End Color' RGB 值。]];
 
-L["MUI_Setup_InfoTab"] = [[
-不和谐社区：
+L["MUI_Setup_InfoTab"] =
+[[不和谐社区：
 %s
 
 访问官方 MayronUI 网站了解更多信息：
@@ -751,8 +797,8 @@ L["MUI_Setup_InfoTab"] = [[
 访问 Mayron 的官方 YouTube 频道：
 %s]]
 
-L["MUI_Setup_CreditsTab"] = [[
-特别感谢以下 MayronUI 社区成员对项目的贡献（请参阅信息标签以获取加入我们 Discord 社区的链接）：
+L["MUI_Setup_CreditsTab"] =
+[[特别感谢以下 MayronUI 社区成员对项目的贡献（请参阅信息标签以获取加入我们 Discord 社区的链接）：
 
 |cff00ccff> 赞助人|r
 %s
@@ -768,7 +814,7 @@ L["MUI_Setup_CreditsTab"] = [[
 
 当然，感谢此 UI 包中包含的非 MayronUI 插件的作者。]]
 
-L["AURAS_ORDERING_ON_TOOLTIP"] = 
+L["AURAS_ORDERING_ON_TOOLTIP"] =
 [[以下设置控制工具提示上的光环顺序
 当 buffs 和 debuffs 放在一起时
 （在工具提示上方或下方）并且都已启用。]]
@@ -777,58 +823,16 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 [[管理文本以突出显示和可选
 当他们出现在聊天中时播放声音效果。]]
 
-L["Set short, custom aliases for chat channel names."] = [[为聊天频道名称设置简短的自定义别名。]]
-
-L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] = "主容器包含单元框架面板、操作栏面板、数据文本栏和屏幕底部的所有资源栏。";
-L["Add Text Highlighting"] = "添加文本突出显示";
-L["Channel Name Aliases"] = "频道名称别名";
-L["Text Highlighting"] = "文本突出显示";
-L["Alias Brightness"] = "别名亮度";
-L["Auction House Open"] = "拍卖行开放";
-L["Auction House Close"] = "拍卖行关闭";
-L["Alarm Clock Warning 1"] = "闹钟警告1";
-L["Alarm Clock Warning 2"] = "闹钟警告2";
-L["Alarm Clock Warning 3"] = "闹钟警告3";
-L["Enter Queue"] = "进入队列";
-L["Jewel Crafting Socket"] = "珠宝制作插座";
-L["Loot Money"] = "抢钱";
-L["Map Ping"] = "地图平";
-L["Queue Ready"] = "队列准备就绪";
-L["Raid Warning"] = "突袭警告";
-L["Raid Boss Warning"] = "突袭boss警告";
-L["Ready Check"] = "准备检查";
-L["Repair Item"] = "维修项目";
-L["Whisper Received"] = "耳语收到";
-L["Server Channels"] = "服务器通道";
-
 L["NO_HIGHLIGHT_TEXT_ADDED"] =
 [[您还没有添加任何文字！
 按下面的“编辑文本”按钮添加要突出显示的文本：]];
 
-L["Text to Highlight (case insensitive):"] = "要突出显示的文本（不区分大小写）：";
-L["Enter text to highlight:"] = "输入要突出显示的文本：";
-L["Show in Upper Case"] = "以大写显示";
-L["Set Color"] = "设置颜色";
-L["Edit Text"] = "编辑文本";
-L["Play a sound effect when any of the selected text appears in chat."] = "当任何选定的文本出现在聊天中时播放声音效果。";
-L["Play Sound"] = "播放声音";
+L["MANAGE_PROFILES_HERE"] =
+[[您可以在此处管理角色档案。
 
-L["Set Timestamp Color"] = "设置时间戳颜色";
-L["Use Fixed Timestamp Color"] = "使用固定时间戳颜色";
-L["Timestamps"] = "时间戳";
-L["Enable Custom Aliases"] = "启用自定义别名";
-L["Dangerous Actions!"] = "危险动作！";
-L["Cannot delete the Default profile."] = "无法删除默认配置文件。";
-L["Are you sure you want to delete profile '%s'?"] = "您确定要删除配置文件 '%s' 吗？";
-L["DELETE"] = "删除";
-L["Please type '%s' to confirm:"] = "请输入'%s' 来确认：";
-L["Enter a new unique profile name:"] = "输入一个新的唯一配置文件名称：";
-L["Current Profile:"] = "当前档案：";
-L["Show the MUI Config Menu"] = "显示 MUI 配置菜单";
-L["Show the MUI Installer"] = "显示 MUI 安装程序";
-L["List All Profiles"] = "列出所有配置文件";
-L["Show the MUI Profile Manager"] = "显示 MUI 配置文件管理器";
-L["Set Profile"] = "设置配置文件";
-L["Show Currently Active Profile"] = "显示当前活动的个人资料";
-L["Show the Version of MUI"] = "显示 MUI 版本";
-L["Show the MUI Layout Tool"] = "显示 MUI 布局工具";
+默认情况下,每个角色都有自己独特的档案。]]
+
+L["UNIQUE_CHARACTER_PROFILE"] =
+[[默认情况下,每个新角色将自动分配一个唯一的角色配置文件,而不是单个默认配置文件。
+
+配置文件仅在新角色上安装 UI 后自动分配。]]
