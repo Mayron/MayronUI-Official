@@ -1,6 +1,0 @@
-"Some settings will not be changed until the UI has been reloaded.",
-"Would you like to reload the UI now?",
-"Reload UI",
-"No",
-"Profile changed to %s.",
-"Profile %s has been reset.",
