@@ -736,7 +736,7 @@ L["Some settings will not be changed until the UI has been reloaded."] = "Some s
 L["Would you like to reload the UI now?"] = "Would you like to reload the UI now?";
 L["Reload UI"] = "Reload UI";
 L["No"] = "No";
-L["Profile changed to %s."] = "Profile changed to: %s.";
+L["Profile changed to %s."] = "Profile changed to %s.";
 L["Profile %s has been reset."] = "Profile %s has been reset.";
 
 ---------------------------------
