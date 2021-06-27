@@ -322,14 +322,13 @@ do
     end
 
     local function EditBox_OnTextChanged(self, userInput)
-        local validator = self.popup.data.OnValidate;
+      if (not obj:IsTable(self.popup.data)) then return end
+      local validator = self.popup.data.OnValidate;
 
-        if (not userInput or not validator) then
-            return;
-        end
+      if (not userInput or not validator) then return end
 
-        local isValid = validator(self, self:GetText());
-        self.popup.button1:SetEnabled(isValid);
+      local isValid = validator(self, self:GetText());
+      self.popup.button1:SetEnabled(isValid);
     end
 
     local function PopUp_OnShow(self)
@@ -341,9 +340,7 @@ do
         self.button2:Enable();
       end
 
-      if (not self.editBox) then
-        return;
-      end
+      if (not self.editBox) then return end
 
       self.editBox.popup = self; -- refer back to popup in scripts below
 
@@ -354,7 +351,6 @@ do
       end
 
       self.editBox:SetFocus();
-
       self.editBox:SetScript("OnEscapePressed", EditBox_OnEscapePressed);
       self.editBox:SetScript("OnEnterPressed", EditBox_OnEnterPressed);
       self.editBox:SetScript("OnTextChanged", EditBox_OnTextChanged);
