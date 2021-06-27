@@ -38,10 +38,14 @@ db:AddToDefaults("profile.unitPanels", {
 function C_UnitPanels:OnInitialize(data, containerModule)
   data.containerModule = containerModule;
 
+  if (not (db.profile.unitPanels.sufGradients.from and db.profile.unitPanels.sufGradients.to)) then
+    db:RemoveAppended(db.profile, "unitPanels.sufGradients");
+  end
+
   local r, g, b = tk:GetThemeColor();
   db:AppendOnce("profile.unitPanels.sufGradients", nil, {
-      from = {r = r, g = g, b = b, a = 0.5},
-      to = {r = 0, g = 0, b = 0, a = 0}
+    from = {r = r, g = g, b = b, a = 0.5},
+    to = {r = 0, g = 0, b = 0, a = 0}
   });
 
   local options = {

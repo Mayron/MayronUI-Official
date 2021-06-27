@@ -1329,6 +1329,9 @@ function C_TimerBar:UpdateExpirationTime(data)
 end
 
 function C_TimerBarsModule:ApplyProfileSettings(data)
+  if (not (db.profile.fieldNames and db.profile.fields)) then
+    db:RemoveAppended(db.profile, "defaultFields");
+  end
 
   if (db:GetCurrentProfile() == "Healer") then
     -- Healer Layout/Profile

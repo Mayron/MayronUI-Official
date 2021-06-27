@@ -208,6 +208,10 @@ function C_ChatModule:OnInitialize(data)
 		}
 	};
 
+  if (not db.profile.chat.highlighted) then
+    db:RemoveAppended(db.profile, "chat.highlighted");
+  end
+
   db:AppendOnce("profile.chat.highlighted", nil, {
     {
       "healers", "healer", "healz", "heal", "healing",
