@@ -174,8 +174,12 @@ UnitIsConnected, UnitIsAFK, UnitIsDND, UnitReaction = _G.UnitName, _G.UnitLevel,
 _G.UnitClassification, _G.tonumber, _G.UnitIsPlayer, _G.UnitAffectingCombat, _G.IsResting,
 _G.UnitIsConnected, _G.UnitIsAFK,   _G.UnitIsDND, _G.UnitReaction;
 
-function tk.Strings:GetUnitNameText(unitID)
-  local unitName = tk.Strings:SetOverflow(UnitName(unitID), 22);
+function tk.Strings:GetUnitNameText(unitID, overflow)
+  local unitName = UnitName(unitID)
+
+  if (overflow) then
+    unitName = tk.Strings:SetOverflow(unitName, overflow);
+  end
 
   if (unitID:lower() == "player") then
     if (UnitAffectingCombat("player")) then
@@ -250,8 +254,8 @@ function tk.Strings:GetUnitStatusText(unitID)
   end
 end
 
-function tk.Strings:GetUnitFullNameText(unitID, unitLevel)
-  local unitName = self:GetUnitNameText(unitID);
+function tk.Strings:GetUnitFullNameText(unitID, unitLevel, nameOverflow)
+  local unitName = self:GetUnitNameText(unitID, nameOverflow);
   unitLevel = self:GetUnitLevelText(unitID, unitLevel);
   local unitStatus = self:GetUnitStatusText(unitID);
 

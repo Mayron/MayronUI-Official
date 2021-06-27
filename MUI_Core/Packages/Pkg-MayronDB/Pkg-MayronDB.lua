@@ -650,7 +650,7 @@ do
 
   local function AppendToSavedVariables(db, sv, path, value)
     -- we know which sv table to use now, so trim this part off:
-    path = path:gsub("^global%.", ""):gsub("^profile%.", "");
+    path = path:gsub("^global%.?", ""):gsub("^profile%.?", "");
 
     if (#path > 0) then
       db:SetPathValue(sv, path, value);
@@ -674,11 +674,11 @@ do
     appendKey = appendKey or path;
     obj:Assert(appendKey, "Both path and appendKey args cannot be missing (at least one is required)");
 
-    appendKey = appendKey:gsub("^global%.", ""):gsub("^profile%.", "");
+    appendKey = appendKey:gsub("^global%.?", ""):gsub("^profile%.?", "");
 
     local rootObserver = self.global;
 
-    if (path:match("^profile%.")) then
+    if (path:match("^profile%.?")) then
       rootObserver = self.profile;
     end
 

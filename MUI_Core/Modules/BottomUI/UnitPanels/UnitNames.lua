@@ -7,7 +7,8 @@ local CreateFrame, UnitGUID, UnitAffectingCombat = _G.CreateFrame, _G.UnitGUID, 
 local UnitExists, IsResting, GetRestState = _G.UnitExists, _G.IsResting, _G.GetRestState;
 
 local function UpdateUnitNameText(data, unitID, unitLevel)
-  local unitNameText = tk.Strings:GetUnitFullNameText(unitID, unitLevel);
+  local overflow = tk:IsLocale("enUS", "deDE", "esES", "esMX", "frFR", "itIT", "prBR") and 22;
+  local unitNameText = tk.Strings:GetUnitFullNameText(unitID, unitLevel, overflow);
 
   if (unitID:lower() == "player") then
     if (UnitAffectingCombat("player")) then
