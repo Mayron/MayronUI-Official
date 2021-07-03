@@ -26,7 +26,7 @@ _G.PlaySoundFile, _G.FCF_SetLocked, _G.FCF_SetWindowAlpha, _G.SetCVar, _G.SetCha
 _G.UIFrameFadeOut, _G.PlaySound, _G.CreateFrame, _G.IsAddOnLoaded, _G.unpack, _G.math, _G.UIParent, _G.GetAddOnMetadata, _G.string;
 
 local ipairs, strsplit, strjoin, strtrim = _G.ipairs, _G.strsplit, _G.strjoin, _G.strtrim;
-
+local FCF_SetChatWindowFontSize = _G.FCF_SetChatWindowFontSize;
 -- Setup Objects -------------------------
 
 local Panel = obj:Import("MayronUI.Panel");
@@ -640,6 +640,11 @@ function C_SetUpModule:Install()
   SetCVar("chatStyle", "classic");
   SetCVar("chatClassColorOverride", "0"); -- chat class colors
   SetCVar("floatingCombatTextCombatDamage", "1");
+
+	for chatFrameID = 1, _G.NUM_CHAT_WINDOWS do
+		local chatFrame = _G[string.format("ChatFrame%d", chatFrameID) ];
+		FCF_SetChatWindowFontSize(nil, chatFrame, 12);
+	end
 
   if (tk:IsRetail()) then
     SetCVar("floatingCombatTextCombatHealing", "1");

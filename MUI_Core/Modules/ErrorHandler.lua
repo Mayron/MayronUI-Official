@@ -28,7 +28,7 @@ function C_ErrorHandler:OnInitialize()
       resting = IsResting(),
       isAFK = UnitIsAFK("player"),
       isDeadOrGhost = UnitIsDeadOrGhost("player"),
-      error = tostring(errorMessage)
+      error = tk.Strings:Join("\n", tostring(errorMessage), (debugstack(4) or tk.Strings.Empty));
     });
   end
 
@@ -56,8 +56,7 @@ function C_ErrorHandler:OnInitialize()
   listener:RegisterEvent("LUA_WARNING");
 
   seterrorhandler(function(errorMessage)
-    local stack = debugstack(_G.DEBUGLOCALS_LEVEL);
-    addError(errorMessage .. (stack or ""));
+    addError(errorMessage);
     HandleLuaError(errorMessage);
   end);
 

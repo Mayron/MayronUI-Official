@@ -214,7 +214,7 @@ function C_ChatModule:OnInitialize(data)
 
   db:AppendOnce("profile.chat.highlighted", nil, {
     {
-      "healers", "healer", "healz", "heal", "healing",
+      "healers", "healer", "healz", "heals", "heal", "healing",
       color = { 0.1; 1; 0.1; };
       sound = false;
       upperCase = false;
