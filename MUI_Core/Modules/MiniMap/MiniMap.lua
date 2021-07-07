@@ -18,7 +18,7 @@ CreateFrame, LoadAddOn, IsAddOnLoaded, ToggleDropDownMenu, PlaySound, EasyMenu, 
 local IsInInstance, GetInstanceInfo, GetNumGroupMembers, ipairs =
 _G.IsInInstance, _G.GetInstanceInfo, _G.GetNumGroupMembers, _G.ipairs;
 
-local ShowGarrisonLandingPage, strformat = _G.ShowGarrisonLandingPage, _G.string.format;
+local ShowGarrisonLandingPage, GetLandingPageGarrisonType, strformat = _G.ShowGarrisonLandingPage, _G.C_Garrison.GetLandingPageGarrisonType, _G.string.format;
 
 -- Load Database Defaults --------------
 
@@ -316,8 +316,27 @@ do
         -- blizzard element or something we want to hide perminently
         shown = false;
       elseif (settings.hide == false or settings.show) then
-        -- if show, custom MUI widget that should be shown
-        shown = true;
+        if (name == "missions") then
+          -- don't show missions icon just yet, wait for the garrison type to be available
+          shown = false;
+          local missionsListener = em:CreateEventListener(function(self)
+            if (GetLandingPageGarrisonType() ~= 0) then
+              -- show when player actually has a "GarrisonType", new players always have 0
+              if (not widget:IsShown()) then
+                if (widget.SetShown ~= tk.Constants.DUMMY_FUNC) then
+                  widget:SetShown(true);
+                else
+                  methods.SetShown(widget, true);
+                end
+              end
+            end
+          end);
+
+          missionsListener:RegisterEvents("GARRISON_UPDATE");
+        else
+          -- if show, custom MUI widget that should be shown
+          shown = true;
+        end
       end
 
       if (shown ~= nil) then
