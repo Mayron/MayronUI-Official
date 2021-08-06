@@ -1146,6 +1146,7 @@ function C_ToolTipsModule:OnEnable(data)
 
 
   local function UpdateTooltipPosition(tooltip, parent)
+    parent = parent or tooltip:GetParent();
     if (IsInCombatAndHidden(data, tooltip) or not tooltip or not parent) then return end
     local anchorType;
 
@@ -1169,20 +1170,15 @@ function C_ToolTipsModule:OnEnable(data)
     -- tooltip:SetPoint(anchor.point, _G.UIParent, "BOTTOMLEFT", xOffset, yOffset);
 
     if (anchorType == "mouse") then
-      print("Mouse")
       tooltip:ClearAllPoints();
       tooltip:SetOwner(parent, anchor.point, anchor.xOffset, anchor.yOffset);
     else
-      print("Anchor")
       tooltip:ClearAllPoints();
       tooltip:SetOwner(parent, "ANCHOR_NONE");
       tooltip:SetPoint(anchor.point, data.screenAnchor, anchor.point); -- the new anchor point
     end
   end
 
-  hooksecurefunc("UnitFrame_UpdateTooltip", function(_, unitFrame)
-    UpdateTooltipPosition(gameTooltip, unitFrame);
-  end)
   -- set positioning of tooltip:
   hooksecurefunc("GameTooltip_SetDefaultAnchor", UpdateTooltipPosition);
 end

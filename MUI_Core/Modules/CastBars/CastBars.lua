@@ -143,7 +143,8 @@ else
     [(GetSpellInfo(15407)) or dummyTick]  = 3;  -- Mind Flay
 
     -- WARLOCK
-    [(GetSpellInfo(689)) or dummyTick] = 6;  -- Drain Life
+    [(GetSpellInfo(689)) or dummyTick] = 5;  -- Drain Life
+    [(GetSpellInfo(30908)) or dummyTick] = 5;  -- Drain Mana
     [(GetSpellInfo(1120)) or dummyTick] = 4;  -- Drain Soul
     [(GetSpellInfo(4629)) or dummyTick] = 6;  -- Rain of Fire
 
@@ -284,17 +285,6 @@ end
 
 ---@param castBar CastBar
 ---@param castBarData table
-function Events:UNIT_SPELLCAST_DELAYED(castBar, castBarData)
-  if (not (UnitCastingInfo(castBarData.unitID)) or not castBarData.startTime) then
-    self:UNIT_SPELLCAST_INTERRUPTED(castBar, castBarData);
-    return;
-  end
-
-  castBar:CheckStatus();
-end
-
----@param castBar CastBar
----@param castBarData table
 ---@param unitID string
 function Events:UNIT_SPELLCAST_START(castBar, castBarData, unitID)
   if (unitID ~= castBarData.unitID) then return end
@@ -415,6 +405,14 @@ local function CastBarFrame_OnUpdate(self, elapsed, data)
         end
       else
         if (data.startTime and not IsFinished(data)) then
+          if (UnitCastingInfo(data.unitID)) then
+            local _, _, _, startTime = UnitCastingInfo(data.unitID);
+            data.startTime = startTime / 1000;
+          elseif (UnitChannelInfo(data.unitID)) then
+            local _, _, _, startTime = UnitChannelInfo(data.unitID);
+            data.startTime = startTime / 1000;
+          end
+
           local difference = GetTime() - data.startTime;
 
           if (data.channelling or data.unitID == "mirror") then
@@ -521,7 +519,6 @@ do
         if (not tk:IsClassic() or data.unitID == "player") then
           bar:RegisterUnitEvent("UNIT_SPELLCAST_START", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", data.unitID);
-          bar:RegisterUnitEvent("UNIT_SPELLCAST_DELAYED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", data.unitID);
 
@@ -544,7 +541,6 @@ do
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_STOP", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_SUCCEEDED", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_INTERRUPTED", wrapper);
-          LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_DELAYED", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_CHANNEL_START", wrapper);
           LibCC.RegisterCallback(bar, "UNIT_SPELLCAST_CHANNEL_STOP", wrapper);
         end

@@ -483,13 +483,6 @@ local function CanTrackAura(auraInfo, sharedSettings)
     end
   end
 
-  local spellId = tostring(auraInfo[10]);
-  if (tk.Constants.FOOD_DRINK_AURAS[spellId]) then
-    -- let castbar track food and drink
-    obj:PushTable(auraInfo);
-    return false;
-  end
-
   return true;
 end
 
