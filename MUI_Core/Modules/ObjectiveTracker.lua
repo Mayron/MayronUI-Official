@@ -85,7 +85,7 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
       RegisterStateDriver(data.autoHideHandler, "autoHideHandler",
         "[@boss1,exists][@boss2,exists][@boss3,exists][@boss4,exists] 1;0");
 
-      local listener = em:CreateEventListenerWithID("ObjectiveTracker_InInstance", function()
+      local listener = em:GetEventListenerByID("ObjectiveTracker_InInstance") or em:CreateEventListenerWithID("ObjectiveTracker_InInstance", function()
         local inInstance = IsInInstance();
 
         if (inInstance) then
