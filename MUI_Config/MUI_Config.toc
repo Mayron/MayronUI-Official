@@ -1,4 +1,4 @@
-## Interface: 90005
+## Interface: 90100
 ## Title: |cff00ccffMUI|r Config
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
