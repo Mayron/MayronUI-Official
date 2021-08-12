@@ -5871,22 +5871,6 @@ setup.import["ShadowedUnitFrames"] = function()
             ["top"] = 751.911327527057,
           },
         },
-        ["filters"] = {
-          ["whitelists"] = {
-            ["Shaman Healing"] = {
-              ["buffs"] = true,
-              ["Earth Shield"] = true,
-              ["debuffs"] = false,
-            },
-          },
-          ["zonewhite"] = {
-            ["partyraid"] = "Shaman Healing",
-            ["arenaraid"] = "Shaman Healing",
-            ["noneraid"] = "Shaman Healing",
-            ["pvpraid"] = "Shaman Healing",
-            ["raidraid"] = "Shaman Healing",
-          },
-        },
         ["advanced"] = true,
         ["revision"] = 61,
         ["castColors"] = {
