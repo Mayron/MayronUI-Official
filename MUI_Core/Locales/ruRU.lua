@@ -344,6 +344,10 @@ L["If the SUF Player or Target portrait bars are enabled, a class colored gradie
 L["Show Overview"] = "Показать обзор";
 L["Show Reset Options"] = "Показать параметры сброса";
 L["Reset All Characters"] = "Сбросить все символы";
+L["Are you sure you want to reset the money data for all of your characters?"] = "Вы уверены, что хотите сбросить данные о деньгах для всех ваших персонажей?";
+L["All money data has been reset."] = "Все денежные данные сброшены.";
+L["Are you sure you want to reset the money data for %s?"] = "Вы уверены, что хотите сбросить данные о деньгах для %s?";
+L["Money data for %s has been reset."] = "Данные о деньгах для %s сброшены.";
 L["Reset Options"] = "Параметры сброса";
 L["All currency data has been reset."] = "Все валютные данные были сброшены.";
 L["Currency data for %s has been reset."] = "Данные о валюте для %s были сброшены.";

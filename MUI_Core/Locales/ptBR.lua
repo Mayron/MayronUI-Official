@@ -347,6 +347,10 @@ L["If the SUF Player or Target portrait bars are enabled, a class colored gradie
 L["Show Overview"] = "Mostrar visão geral";
 L["Show Reset Options"] = "Mostrar opções de redefinição";
 L["Reset All Characters"] = "Redefinir todos os caracteres";
+L["Are you sure you want to reset the money data for all of your characters?"] = "Tem certeza que deseja redefinir os dados de dinheiro para todos os seus personagens?";
+L["All money data has been reset."] = "Todos os dados de dinheiro foram zerados.";
+L["Are you sure you want to reset the money data for %s?"] = "Tem certeza que deseja redefinir os dados de dinheiro para %s?";
+L["Money data for %s has been reset."] = "Os dados de dinheiro para %s foram redefinidos.";
 L["Reset Options"] = "Opções de redefinição";
 L["All currency data has been reset."] = "Todos os dados de moeda foram redefinidos.";
 L["Currency data for %s has been reset."] = "Os dados de moeda para %s foram redefinidos.";

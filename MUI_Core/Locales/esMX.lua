@@ -300,6 +300,10 @@ L["If the SUF Player or Target portrait bars are enabled, a class colored gradie
 L["Show Overview"] = "Resumen del espectaculo";
 L["Show Reset Options"] = "Mostrar opciones de restablecimiento";
 L["Reset All Characters"] = "Restablecer todos los caracteres";
+L["Are you sure you want to reset the money data for all of your characters?"] = "¿Estás seguro de que deseas restablecer los datos monetarios de todos tus personajes?";
+L["All money data has been reset."] = "Se han restablecido todos los datos de dinero";
+L["Are you sure you want to reset the money data for %s?"] = "¿Está seguro de que desea restablecer los datos monetarios de %s?";
+L["Money data for %s has been reset."] = "Se han restablecido los datos monetarios de %s.";
 L["Reset Options"] = "Restablecer opciones";
 L["All currency data has been reset."] = "Se han restablecido todos los datos de divisas.";
 L["Currency data for %s has been reset."] = "Se restablecieron los datos de moneda para %s.";

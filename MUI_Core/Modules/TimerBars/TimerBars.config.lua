@@ -269,7 +269,7 @@ function C_TimerBarsModule:GetConfigTable()
                   local dbFieldPath = "profile.fields."..name;
 
                   return {
-                      name              = L[name];
+                      name              = name;
                       type              = "submenu";
                       module            = "TimerBarsModule";
                       hasOwnDatabase    = true;

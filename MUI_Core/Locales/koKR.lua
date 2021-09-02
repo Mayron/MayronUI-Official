@@ -344,6 +344,10 @@ L["If the SUF Player or Target portrait bars are enabled, a class colored gradie
 L["Show Overview"] = "개요 표시";
 L["Show Reset Options"] = "재설정 옵션 표시";
 L["Reset All Characters"] = "모든 문자 재설정";
+L["Are you sure you want to reset the money data for all of your characters?"] = "모든 캐릭터의 돈 데이터를 재설정하시겠습니까?";
+L["All money data has been reset."] = "모든 돈 데이터가 재설정되었습니다.";
+L["Are you sure you want to reset the money data for %s?"] = "%s 에 대한 돈 데이터를 재설정하시겠습니까?";
+L["Money data for %s has been reset."] = "%s 에 대한 화폐 데이터가 재설정되었습니다.";
 L["Reset Options"] = "재설정 옵션";
 L["All currency data has been reset."] = "모든 통화 데이터가 재설정되었습니다.";
 L["Currency data for %s has been reset."] = "%s 의 통화 데이터가 재설정되었습니다.";

@@ -344,6 +344,10 @@ L["If the SUF Player or Target portrait bars are enabled, a class colored gradie
 L["Show Overview"] = "显示概述";
 L["Show Reset Options"] = "显示重置选项";
 L["Reset All Characters"] = "重置所有字符";
+L["Are you sure you want to reset the money data for all of your characters?"] = "您确定要重置所有角色的金钱数据吗？";
+L["All money data has been reset."] = "所有货币数据已重置。";
+L["Are you sure you want to reset the money data for %s?"] = "您确定要重置 %s 的金钱数据吗？";
+L["Money data for %s has been reset."] = "%s 的金钱数据已被重置。";
 L["Reset Options"] = "重置选项";
 L["All currency data has been reset."] = "所有货币数据已重置。";
 L["Currency data for %s has been reset."] = "%s 的货币数据已被重置。";
