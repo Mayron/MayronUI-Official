@@ -452,6 +452,13 @@ do
       end
 
       data:Call("SetUpWidget", "lfg", _G.QueueStatusMinimapButton);
+    elseif (tk:IsBCClassic() and _G.MiniMapLFGFrame) then
+      if (not data.reskinnedLFG) then
+        _G.MiniMapLFGBorder:Hide();
+        data.reskinnedLFG = true;
+      end
+
+      data:Call("SetUpWidget", "lfg", _G.MiniMapLFGFrame);
     end
 
     -- mail:

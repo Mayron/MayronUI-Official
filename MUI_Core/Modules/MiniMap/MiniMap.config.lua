@@ -249,7 +249,7 @@ function C_MiniMapModule:GetConfigTable(data)
               name = L["Looking For Group Icon"];
               type = "submenu";
               appendDbPath = "widgets.lfg";
-              client = "retail";
+              client = "retail,bcc";
               children = function()
                 local children = {};
                 AddScaleOption(children, "lfg", data.settings.widgets.lfg);
