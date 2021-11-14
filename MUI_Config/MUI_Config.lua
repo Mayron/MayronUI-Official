@@ -555,8 +555,8 @@ function C_ConfigModule:SetUpWindow(data)
   versionCell:SetInsets(10, 10, 10, 10);
 
   versionCell.text = versionCell:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-  versionCell.text:SetText(strformat("MUI_Core: %s   MUI_Config: %s   MUI_Setup: %s",
-    tk:GetVersion("MUI_Core"), tk:GetVersion("MUI_Config"), tk:GetVersion("MUI_Setup")));
+  versionCell.text:SetText(strformat("Version: %s", tk:GetVersion()));
+
   versionCell.text:SetPoint("BOTTOMLEFT");
 
   local bottombar = data.window:CreateCell();

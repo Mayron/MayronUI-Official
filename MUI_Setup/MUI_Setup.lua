@@ -587,7 +587,7 @@ function C_SetUpModule:Show(data)
   tk:SetFontSize(title, 22);
 
   local version = window.info:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
-  version:SetText(tk.Strings:JoinWithSpace(L["VERSION"], tk:GetVersion("MUI_Core", "YELLOW")));
+  version:SetText(tk.Strings:JoinWithSpace(L["VERSION"], tk:GetVersion("YELLOW")));
   version:SetPoint("TOPLEFT");
   version:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 2, 0);
   tk:SetFontSize(version, 12);

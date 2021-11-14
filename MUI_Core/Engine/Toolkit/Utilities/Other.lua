@@ -625,7 +625,7 @@ function tk:GetTutorialShowState(oldVersion, afterInstall)
   return shouldShow;
 end
 
-function tk:GetVersion(addon, colorKey)
+function tk:GetVersion(colorKey)
   local client = tk.Strings.Empty;
 
   if (tk:IsRetail()) then
@@ -636,14 +636,23 @@ function tk:GetVersion(addon, colorKey)
     client = "-classic";
   end
 
-  local version = string.format("%s%s", GetAddOnMetadata(addon or "MUI_Core", "Version"), client);
+  local muiCore = GetAddOnMetadata("MUI_Core", "Version");
+  local muiConfig = GetAddOnMetadata("MUI_Config", "Version");
+  local muiSetup = GetAddOnMetadata("MUI_Setup", "Version");
+  local version;
+
+  if (muiCore == muiConfig and muiConfig == muiSetup) then
+     version = string.format("%s%s", muiCore, client);
+  else
+    muiCore = string.format("%s%s", muiCore, client);
+    muiConfig = string.format("%s%s", muiConfig, client);
+    muiSetup = string.format("%s%s", muiSetup, client);
+    version = string.format("MUI_Core: %s, MUI_Config: %s, MUI_Setup: %s", muiCore, muiConfig, muiSetup);
+  end
+
   version = tk.Strings:SetTextColorByKey(version, colorKey or "GRAY");
 
   return version;
-end
-
-function tk:GetInterfaceName()
-  return string.format("MayronUI [%s]", self:GetVersion());
 end
 
 -- "Mix two colors together in variable proportion."

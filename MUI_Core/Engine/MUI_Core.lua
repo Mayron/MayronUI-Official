@@ -290,9 +290,7 @@ commands.profiles = function(subCommand)
 end
 
 commands.version = function()
-  tk:Print("MUI_Core:", tk:GetVersion("MUI_Core", "YELLOW"));
-  tk:Print("MUI_Config:", tk:GetVersion("MUI_Config", "YELLOW"));
-  tk:Print("MUI_Setup:", tk:GetVersion("MUI_Setup", "YELLOW"));
+  tk:Print("Version:", tk:GetVersion("YELLOW"));
 end
 
 commands.help = function()
