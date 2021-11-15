@@ -18,6 +18,13 @@ gameTooltip.SetBackdropColor = tk.Constants.DUMMY_FUNC;
 
 local originalSetBackdrop = gameTooltip.SetBackdrop;
 
+if (not obj:IsFunction(originalSetBackdrop)) then
+  _G.Mixin(gameTooltip, _G.BackdropTemplateMixin);
+  originalSetBackdrop = gameTooltip.SetBackdrop;
+  originalSetBackdropColor = gameTooltip.SetBackdropColor;
+  originalSetBackdropBorderColor = gameTooltip.SetBackdropBorderColor;
+end
+
 local select, IsAddOnLoaded, strformat, ipairs, CreateFrame, UnitAura, unpack,
   UnitName, UnitHealthMax, UnitHealth, hooksecurefunc, UnitExists, UnitIsPlayer,
   GetGuildInfo, UnitRace, UnitCreatureFamily, UnitCreatureType, UnitReaction =
@@ -221,10 +228,12 @@ local function SetBackdropStyle(data)
   data.tooltipBackdrop.insets = data.settings.backdrop.insets;
 
   -- replace backdrop:
-  tooltipStyle.bgFile = data.tooltipBackdrop.bgFile;
-  tooltipStyle.insets = data.tooltipBackdrop.insets;
-  tooltipStyle.edgeFile = data.tooltipBackdrop.edgeFile;
-  tooltipStyle.edgeSize = data.tooltipBackdrop.edgeSize;
+  if (tooltipStyle) then
+    tooltipStyle.bgFile = data.tooltipBackdrop.bgFile;
+    tooltipStyle.insets = data.tooltipBackdrop.insets;
+    tooltipStyle.edgeFile = data.tooltipBackdrop.edgeFile;
+    tooltipStyle.edgeSize = data.tooltipBackdrop.edgeSize;
+  end
 
   for _, tooltipName in ipairs(tooltipsToReskin) do
     local tooltip = _G[tooltipName];
@@ -237,6 +246,14 @@ local function SetBackdropStyle(data)
       end
 
       tooltip:SetScale(scale);
+
+      if (tooltip.NineSlice) then
+        tk:KillElement(tooltip.NineSlice);
+
+        if (tooltip ~= gameTooltip) then
+          _G.Mixin(tooltip, _G.BackdropTemplateMixin);
+        end
+      end
 
       if (data.settings.muiTexture.enabled) then
         tooltip:SetBackdrop(nil);
@@ -1041,8 +1058,10 @@ function C_ToolTipsModule:OnEnable(data)
   end
 
 	-- Fixes inconsistency with Blizzard code to support backdrop alphas:
-	tooltipStyle.backdropColor.GetRGB = _G.ColorMixin.GetRGBA;
-	tooltipStyle.backdropBorderColor.GetRGB = _G.ColorMixin.GetRGBA
+  if (tooltipStyle) then
+    tooltipStyle.backdropColor.GetRGB = _G.ColorMixin.GetRGBA;
+    tooltipStyle.backdropBorderColor.GetRGB = _G.ColorMixin.GetRGBA;
+  end
 
   gameTooltip:HookScript("OnShow", function()
     if (IsInCombatAndHidden(data)) then return end

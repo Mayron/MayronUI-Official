@@ -82,9 +82,9 @@ function Money:__Construct(data, settings, dataTextModule, slideController)
   self.Button = dataTextModule:CreateDataTextButton();
   self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 
-  data.goldString = "|TInterface\\MoneyFrame\\UI-GoldIcon:14:14:2:0|t";
-  data.silverString = "|TInterface\\MoneyFrame\\UI-SilverIcon:14:14:2:0|t";
-  data.copperString = "|TInterface\\MoneyFrame\\UI-CopperIcon:14:14:2:0|t";
+  data.goldString = "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t";
+  data.silverString = "|TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t";
+  data.copperString = "|TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t";
   data.showMenu = true;
 
   local calendarDate;
