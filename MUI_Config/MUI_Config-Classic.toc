@@ -1,4 +1,4 @@
-## Interface: 11307
+## Interface: 11401
 ## Title: |cff00ccffMUI|r Config
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
