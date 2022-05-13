@@ -109,6 +109,7 @@ end
 
 function tk.Strings:SetTextColorByClassFilename(text, classFilename)
   text = text or classFilename;
+
   classFilename = classFilename or tk:GetClassFilenameByUnitID("player");
 
   classFilename = classFilename:gsub("%s+", tk.Strings.Empty);

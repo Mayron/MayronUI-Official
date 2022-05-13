@@ -202,8 +202,12 @@ function Friends:CheckWowFriendsList(data, totalLabelsShown)
       label:SetHighlightTexture(1);
       label:GetHighlightTexture():SetColorTexture(0.2, 0.2, 0.2, 0.4);
 
-      -- TODO: Needs testing... (friendInfo.className might be invalid)
-      local classText = tk.Strings:SetTextColorByClassFilename(friendInfo.name, friendInfo.className);
+      local _, className = tk.Tables:First(
+          tk.Constants.LOCALIZED_CLASS_NAMES, function(value)
+            return value == friendInfo.className;
+          end);
+
+      local classText = tk.Strings:SetTextColorByClassFilename(friendInfo.name, className);
       label.name:SetText(string.format("%s%s %s ", classText, status, friendInfo.level));
     end
   end
