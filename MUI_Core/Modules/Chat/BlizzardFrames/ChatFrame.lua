@@ -133,7 +133,9 @@ local function NewAddMessage(self, settings, text, r, g, b, ...)
     end
   end
 
-	self:oldAddMessage(text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink), r, g, b, ...);
+  local newText = text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink);
+  MayronUI.text = newText;
+	self:oldAddMessage(newText, r, g, b, ...);
 end
 
 local function OnHyperLinkLeave()

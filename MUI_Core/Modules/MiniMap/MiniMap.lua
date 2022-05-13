@@ -678,7 +678,8 @@ function C_MiniMapModule:OnEnable(data)
 	_G.MinimapZoomIn:Hide();
 	_G.MinimapZoomOut:Hide();
 	_G.GameTimeFrame:Hide();
-	_G.MiniMapWorldMapButton:Hide();
+
+  tk:KillElement(_G.MiniMapWorldMapButton);
   _G.MinimapNorthTag:SetTexture("");
 
   if (_G.MinimapToggleButton) then

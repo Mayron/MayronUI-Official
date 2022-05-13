@@ -1,9 +1,9 @@
-## Interface: 90105
+## Interface: 90200
 ## Title: |cff00ccffMUI|r Core
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
-## Version: 6.6.22
+## Version: 6.6.23
 
 ## Links:
 ## ------------------------------------------------
@@ -37,6 +37,10 @@ Libs\LibSharedMedia-3.0\CallbackHandler-1.0.lua
 Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
 Libs\AceLocale-3.0.lua
 Libs\SortBags.lua
+Libs\LibClassicCasterino.lua
+Libs\LibClassicDurations\LibClassicDurations.xml
+Libs\LibAddonCompat.lua
+Libs\LibHealComm-4.0\LibHealComm-4.0.xml
 
 ## Localization
 ## -------------------------------------------------

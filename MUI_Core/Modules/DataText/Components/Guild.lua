@@ -2,12 +2,15 @@
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 local LABEL_PATTERN = L["Guild"]..": |cffffffff%u|r";
 
-local strsplit, unpack, CreateFrame, GameTooltip, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1,
+local strsplit, unpack, CreateFrame, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1,
 IsInGuild, GetNumGuildMembers, GetGuildRosterInfo, IsTrialAccount =
-_G.strsplit, _G.unpack, _G.CreateFrame, _G.GameTooltip, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1,
+_G.strsplit, _G.unpack, _G.CreateFrame, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1,
 _G.IsInGuild, _G.GetNumGuildMembers, _G.GetGuildRosterInfo, _G.IsTrialAccount;
 
 local LocalToggleGuildFrame = _G.ToggleGuildFrame;
+
+-- GLOBALS:
+--[[ luacheck: ignore GameTooltip C_QuestLog ]]
 
 if (tk:IsBCClassic()) then
   LocalToggleGuildFrame = function() _G.ToggleFriendsFrame(3); end
@@ -28,13 +31,23 @@ db:AddToDefaults("profile.datatext.guild", {
   showTooltips = true
 });
 
+local function ButtonOnEnter(self)
+  local r, g, b = tk:GetThemeColor();
+  GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
+  GameTooltip:SetText(L["Commands"]..":");
+
+  GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Show Guild Members"], r, g, b, 1, 1, 1);
+  GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]), L["Toggle Guild Pane"], r, g, b, 1, 1, 1);
+  GameTooltip:Show();
+end
+
 -- Local Functions ----------------
 
 local CreateLabel;
 do
   local onLabelClickFunc;
 
-  local function button_OnEnter(self)
+  local function LabelOnEnter(self)
     local fullName, rank, _, _, _, zone, note, _, _, _, classFileName, achievementPoints = unpack(self.guildRosterInfo);
     fullName = strsplit("-", fullName);
 
@@ -53,10 +66,6 @@ do
     GameTooltip:Show();
   end
 
-  local function button_OnLeave(self)
-    GameTooltip:Hide();
-  end
-
   function CreateLabel(contentFrame, popupWidth, slideController, showTooltips)
     local label = tk:PopFrame("Button", contentFrame);
 
@@ -67,8 +76,8 @@ do
     label.name:SetJustifyH("LEFT");
 
     if (showTooltips) then
-      label:SetScript("OnEnter", button_OnEnter);
-      label:SetScript("OnLeave", button_OnLeave);
+      label:SetScript("OnEnter", LabelOnEnter);
+      label:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
     end
 
     if (not onLabelClickFunc) then
@@ -124,9 +133,13 @@ function Guild:SetEnabled(data, enabled)
     end
 
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+    self.Button:SetScript("OnEnter", ButtonOnEnter);
+    self.Button:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
   else
     em:DisableEventListeners(listenerID);
     self.Button:RegisterForClicks("LeftButtonUp");
+    self.Button:SetScript("OnEnter", nil);
+    self.Button:SetScript("OnLeave", nil);
   end
 end
 

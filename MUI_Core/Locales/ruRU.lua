@@ -1,4 +1,4 @@
-local L = LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "ruRU");
+local L = _G.LibStub("AceLocale-3.0"):NewLocale ("MayronUI", "ruRU");
 if not L then return end
 
 L["Character"] = "Персонаж";
@@ -19,6 +19,11 @@ L["Collections Journal"] = "Журнал Коллекций";
 L["Macros"] = "Макросы";
 L["World Map"] = "Карта мира";
 L["Quest Log"] = "Журнал заданий";
+L["Show Online Friends"] = "Показать онлайн-друзей";
+L["Toggle Friends List"] = "Переключить список друзей";
+L["Show Guild Members"] = "Показать членов гильдии";
+L["Toggle Guild Pane"] = "Переключить панель гильдии";
+L["Quests"] = "Квесты";
 L["Reputation"] = "Репутация";
 L["PVP Score"] = "Оценка ПВП";
 L["Currency"] = "Валюта";

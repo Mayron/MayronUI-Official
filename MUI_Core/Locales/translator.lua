@@ -8,21 +8,25 @@
 -- Then run this script:
 
 local OtherLanguageValues = {
-  "Вы уверены, что хотите сбросить данные о деньгах для всех ваших персонажей?";
-  "Все денежные данные сброшены.";
-  "Вы уверены, что хотите сбросить данные о деньгах для %s?";
-  "Данные о деньгах для %s сброшены.";
+  "온라인 친구 표시";
+  "친구 목록 토글";
+  "길드 회원 표시";
+  "길드 창 토글";
+  "퀘스트";
 };
 
 ------------------------
 --- STEP 2:
 ------------------------
 local EnglishKeys = {
-  "Are you sure you want to reset the money data for all of your characters?";
-  "All money data has been reset.";
-  "Are you sure you want to reset the money data for %s?";
-  "Money data for %s has been reset.";
+  "Show Online Friends";
+  "Toggle Friends List";
+  "Show Guild Members";
+  "Toggle Guild Pane";
+  "Quests";
 };
+
+
 
 ------------------------
 --- STEP 3: Print!

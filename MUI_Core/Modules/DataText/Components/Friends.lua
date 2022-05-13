@@ -22,8 +22,11 @@ local Friends = obj:CreateClass("Friends");
 local LocalToggleFriendsFrame = _G.ToggleFriendsFrame;
 
 if (not tk:IsRetail()) then
-LocalToggleFriendsFrame = function() _G.ToggleFriendsFrame(1); end
+  LocalToggleFriendsFrame = function() _G.ToggleFriendsFrame(1); end
 end
+
+-- GLOBALS:
+--[[ luacheck: ignore GameTooltip C_QuestLog ]]
 
 -- Local Functions -------------------
 
@@ -52,6 +55,16 @@ do
 
     return label;
   end
+end
+
+local function ButtonOnEnter(self)
+  local r, g, b = tk:GetThemeColor();
+  GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
+  GameTooltip:SetText(L["Commands"]..":");
+
+  GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Show Online Friends"], r, g, b, 1, 1, 1);
+  GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]), L["Toggle Friends List"], r, g, b, 1, 1, 1);
+  GameTooltip:Show();
 end
 
 -- Friends Module --------------
@@ -90,9 +103,13 @@ function Friends:SetEnabled(data, enabled)
     end
 
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+    self.Button:SetScript("OnEnter", ButtonOnEnter);
+    self.Button:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
   else
     em:DisableEventListeners(listenerID);
     self.Button:RegisterForClicks("LeftButtonUp");
+    self.Button:SetScript("OnEnter", nil);
+    self.Button:SetScript("OnLeave", nil);
   end
 end
 

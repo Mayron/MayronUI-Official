@@ -5,9 +5,12 @@ local obj = namespace.components.Objects; ---@type MayronObjects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
 local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
-local GameTooltip, ipairs, hooksecurefunc, CreateFrame, UIParent, select =
-_G.GameTooltip, _G.ipairs, _G.hooksecurefunc, _G.CreateFrame, _G.UIParent, _G.select;
+local ipairs, hooksecurefunc, CreateFrame, UIParent, select = 
+  _G.ipairs, _G.hooksecurefunc, _G.CreateFrame, _G.UIParent, _G.select;
 local CreateColor = _G.CreateColor;
+
+-- GLOBALS:
+--[[ luacheck: ignore GameTooltip C_QuestLog ]]
 
 function tk:SetFontSize(fontString, size)
   local fontPath, _, flags = fontString:GetFont();

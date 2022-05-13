@@ -1,8 +1,7 @@
-## Interface: 90105
+## Interface: 90200
 ## Title: |cff00ccffMUI|r Config
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
-## Version: 6.6.22
 ## Notes: Enables the in-game MayronUI configuration menu
 
 MUI_Config.lua

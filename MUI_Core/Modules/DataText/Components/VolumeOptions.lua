@@ -25,7 +25,7 @@ local function GetFormattedValue(text, cvarName, value)
   value = value or tonumber(GetCVar(cvarName));
   value = tk.Numbers:ToPrecision(value, 2);
   local percentage = value * 100;
-  return string.format("%s (%d%%)", text, percentage), value;
+  return string.format("%s: |cffffffff%d%%|r", text, percentage), value;
 end
 
 local function Slider_OnValueChanged(self)

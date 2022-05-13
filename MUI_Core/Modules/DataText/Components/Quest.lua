@@ -1,12 +1,13 @@
 -- luacheck: ignore MayronUI self 143 631
 local tk, _, em, _, obj, L = _G.MayronUI:GetCoreComponents();
 local Quest = obj:CreateClass("Quest");
-local strformat = _G.string.format;
+local GetNumQuestLogEntries = _G.C_QuestLog.GetNumQuestLogEntries or _G.GetNumQuestLogEntries;
+local string = _G.string;
 
 -- GLOBALS:
 --[[ luacheck: ignore GameTooltip C_QuestLog ]]
 
-local function button_OnEnter(self)
+local function ButtonOnEnter(self)
   local r, g, b = tk:GetThemeColor();
   GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
   GameTooltip:SetText(L["Commands"]..":");
@@ -14,10 +15,6 @@ local function button_OnEnter(self)
   GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Toggle Questlog"], r, g, b, 1, 1, 1);
 
   GameTooltip:Show();
-end
-
-local function button_OnLeave()
-  GameTooltip:Hide();
 end
 
 -- Quest Module ----------------
@@ -56,8 +53,8 @@ function Quest:SetEnabled(data, enabled)
     end
 
     self.Button:RegisterForClicks("LeftButtonUp");
-    self.Button:SetScript("OnEnter", button_OnEnter);
-    self.Button:SetScript("OnLeave", button_OnLeave);
+    self.Button:SetScript("OnEnter", ButtonOnEnter);
+    self.Button:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
   else
     em:DisableEventListeners(listenerID);
     self.Button:SetScript("OnEnter", nil);
@@ -70,12 +67,10 @@ function Quest:Update(data, refreshSettings)
     data.settings:Refresh();
   end
 
-  local _, numQuests = C_QuestLog.GetNumQuestLogEntries()
+  local _, numQuests = GetNumQuestLogEntries()
   local maxQuestsCanAccept = C_QuestLog.GetMaxNumQuestsCanAccept();
 
-  self.Button:SetText(strformat(
-    "|TInterface\\QuestTypeIcons:14:14:0:0:128:64:18:32:2:16|t %u / %u",
-    numQuests, maxQuestsCanAccept));
+  self.Button:SetText(string.format(L["Quests"]..": |cffffffff%u/%u|r", numQuests, maxQuestsCanAccept));
 end
 
 function Quest:Click()

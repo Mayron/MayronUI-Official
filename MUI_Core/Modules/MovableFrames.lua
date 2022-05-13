@@ -29,7 +29,9 @@ local BlizzardFrames = {
 	"PetBattleFrame.ActiveAlly", "PetBattleFrame.ActiveEnemy", "ChannelFrame", "WorldMapFrame", "LFGParentFrame",
 	{
 		"CharacterFrame";
-		clickedFrames = { "CharacterFrameTab1", "CharacterFrameTab2", "CharacterFrameTab3" };
+		clickedFrames = {
+      "CharacterFrameTab1", "CharacterFrameTab2", "CharacterFrameTab3",
+      "CharacterFrameTab4", "CharacterFrameTab5" };
 	};
 
 	dontSavePosition = {
