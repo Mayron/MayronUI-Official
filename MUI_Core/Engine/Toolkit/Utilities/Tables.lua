@@ -344,48 +344,54 @@ end
 
 -- gets the DB associated with the AddOn based on convention
 function tk.Tables:GetDBObject(addOnName)
-  local addon, okay, dbObject;
+  local success, result = pcall(function()
+    local addon, okay, dbObject;
+    local MayronDB = obj:Import("MayronDB"); ---@type MayronDB
+    dbObject = MayronDB.Static:GetDatabaseByName(addOnName);
 
-  ---@type MayronDB
-  local MayronDB = obj:Import("MayronDB");
-  dbObject = MayronDB.Static:GetDatabaseByName(addOnName);
-
-  if (dbObject) then
-    return dbObject;
-  end
-
-  if (_G[addOnName]) then
-    addon = _G[addOnName];
-    okay = true;
-  else
-    if (not dbObject) then
-      okay, addon = pcall(function()
-        LibStub("AceAddon-3.0"):GetAddon(addOnName);
-      end);
+    if (dbObject) then
+      return dbObject;
     end
-  end
 
-  if (not (addon and okay)) then
-    return nil;
-  end
-
-  dbObject = addon.db;
-
-  if (not dbObject) then
-    for dbName, dbTable in pairs(addon) do
-      if (obj:IsTable(dbTable) and dbTable.profile
-      and obj:IsString(dbName) and dbName:lower():find("db")) then
-
-        dbObject = dbTable;
-        break;
+    if (_G[addOnName]) then
+      addon = _G[addOnName];
+      okay = true;
+    else
+      if (not dbObject) then
+        okay, addon = pcall(function()
+          LibStub("AceAddon-3.0"):GetAddon(addOnName);
+        end);
       end
     end
-  end
 
-  if (dbObject and dbObject.profile and dbObject.SetProfile
-  and dbObject.GetProfiles and dbObject.GetCurrentProfile) then
+    if (not (addon and okay)) then
+      return nil;
+    end
 
-    return dbObject;
+    dbObject = addon.db;
+
+    if (not dbObject) then
+      for dbName, dbTable in pairs(addon) do
+        if (obj:IsTable(dbTable) and
+          dbTable.profile and
+          obj:IsString(dbName) and
+          dbName:lower():find("db")) then
+
+          dbObject = dbTable;
+          break;
+        end
+      end
+    end
+
+    if (dbObject and dbObject.profile and dbObject.SetProfile
+    and dbObject.GetProfiles and dbObject.GetCurrentProfile) then
+
+      return dbObject;
+    end
+  end);
+
+  if (success) then
+    return result;
   end
 end
 
