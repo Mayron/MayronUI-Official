@@ -344,7 +344,6 @@ end
 
 -- gets the DB associated with the AddOn based on convention
 function tk.Tables:GetDBObject(addOnName)
-  local success, result = pcall(function()
     local addon, okay, dbObject;
     local MayronDB = obj:Import("MayronDB"); ---@type MayronDB
     dbObject = MayronDB.Static:GetDatabaseByName(addOnName);
@@ -356,43 +355,30 @@ function tk.Tables:GetDBObject(addOnName)
     if (_G[addOnName]) then
       addon = _G[addOnName];
       okay = true;
-    else
-      if (not dbObject) then
-        okay, addon = pcall(function()
-          LibStub("AceAddon-3.0"):GetAddon(addOnName);
-        end);
-      end
+    elseif (not dbObject) then
+      okay, addon = pcall(function()
+        LibStub("AceAddon-3.0"):GetAddon(addOnName);
+      end);
     end
 
-    if (not (addon and okay)) then
+    if (not (okay and obj:IsTable(addon))) then
       return nil;
     end
 
     dbObject = addon.db;
 
     if (not dbObject) then
-      for dbName, dbTable in pairs(addon) do
-        if (obj:IsTable(dbTable) and
-          dbTable.profile and
-          obj:IsString(dbName) and
-          dbName:lower():find("db")) then
-
-          dbObject = dbTable;
-          break;
-        end
-      end
+      return nil;
     end
 
-    if (dbObject and dbObject.profile and dbObject.SetProfile
-    and dbObject.GetProfiles and dbObject.GetCurrentProfile) then
+    if (obj:IsTable(dbObject) and
+      obj:IsTable(dbObject.profile) and
+      obj:IsFunction(dbObject.SetProfile) and
+      obj:IsFunction(dbObject.GetProfiles) and
+      obj:IsFunction(dbObject.GetCurrentProfile)) then
 
       return dbObject;
     end
-  end);
-
-  if (success) then
-    return result;
-  end
 end
 
 function tk.Tables:GetLastPathKey(path)

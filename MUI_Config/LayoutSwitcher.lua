@@ -27,7 +27,6 @@ local function GetSupportedAddOns()
     addOns[database:GetDatabaseName()] = database;
   end
 
-  -- local dbObject = tk.Tables:GetDBObject(addOnName);
 	for addOnName, status in LibStub("AceAddon-3.0"):IterateAddonStatus() do
 		if (status) then
 			local dbObject = tk.Tables:GetDBObject(addOnName);
