@@ -514,7 +514,7 @@ L["Covenant Sanctum"] = "Covenant Sanctum";
 L["Missions"] = "Missões";
 L["You must be a member of a covenant to view this."] = "Você deve ser membro de uma aliança para ver isso.";
 L["Unmuted"] = "Com som";
-L["Toggle Questlog"] = "Toggle Questlog";
+L["Toggle Questlog"] = "Alternar registro de missão";
 L["Step %d of"] = "Etapa %d de";
 L["Step"] = "Etapa";
 L["Found a bug? Use this form to submit an issue to the official MayronUI GitHub page."] = "Encontrou um bug? Use este formulário para enviar um problema para a página oficial do MayronUI GitHub.";
@@ -684,7 +684,6 @@ L["Changing the blend mode will affect how alpha channels blend with the backgro
 L["Background"] = "Fundo";
 L["Button"] = "Botão";
 L["Combat Timer"] = "Combat Timer";
-L["Quest"] = "Busca";
 L["Volume Options"] = "Opções de volume";
 L["Specialization"] = "Especialização";
 L["Show Auras With Unknown Time Remaining"] = "Mostrar Auras com Tempo Restante Desconhecido";

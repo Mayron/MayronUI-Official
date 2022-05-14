@@ -1,9 +1,44 @@
 -- luacheck: ignore MayronUI self 143 631
 local _, namespace = ...;
-local tk, db, _, _, _, L = _G.MayronUI:GetCoreComponents();
+local tk, db, _, _, obj, L = _G.MayronUI:GetCoreComponents();
 local C_DataTextModule = namespace.C_DataTextModule;
+local pairs, string = _G.pairs, _G.string;
+
 
 function C_DataTextModule:GetConfigTable()
+    local label_TextFields = obj:PopTable();
+
+    local function SetLabel_OnLoad(configTable, container)
+      label_TextFields[configTable.module] = container.widget;
+      local path = ("profile.datatext.labels.hidden.%s"):format(configTable.module);
+      local isHidden = db:ParsePathValue(path);
+
+      if (isHidden) then
+          container.widget:SetEnabled(false);
+      end
+    end
+
+    local function CreateLabelOptions(module)
+      return {
+        {   name = "Hide Label";
+            type = "check";
+            dbPath = "profile.datatext.labels.hidden." .. module;
+            SetValue = function(dbPath, newValue)
+              db:SetPathValue(dbPath, newValue and true or nil);
+              local label = label_TextFields[module];
+              label:SetEnabled(not newValue); -- if hidden == true then hide label option
+            end
+        },
+        {   name = "Set Label",
+            type = "textfield",
+            module = module;
+            dbPath = "profile.datatext.labels." .. module;
+            OnLoad = SetLabel_OnLoad,
+        },
+        { type = "divider" };
+      }
+    end
+
     return {
         type = "menu",
         module = "DataTextModule",
@@ -136,6 +171,82 @@ function C_DataTextModule:GetConfigTable()
             },
             {   type = "submenu",
                 module = "DataText",
+                name = L["Durability"],
+                appendDbPath = "durability",
+                children = CreateLabelOptions("durability");
+            },
+            {   type = "submenu",
+                module = "DataText",
+                name = L["Friends"],
+                appendDbPath = "friends",
+                children = CreateLabelOptions("friends");
+            },
+            {   type = "submenu",
+                module = "DataText",
+                name = L["Guild"],
+                appendDbPath = "guild",
+                children = function()
+                  local children = CreateLabelOptions("guild");
+                  children[#children + 1] =
+                  { type = "check",
+                    name = L["Show Self"],
+                    tooltip = L["Show your character in the guild list."],
+                    appendDbPath = "showSelf"
+                  };
+                  children[#children + 1] =
+                  { type = "check",
+                    name = L["Show Tooltips"],
+                    tooltip = L["Show guild info tooltips when the cursor is over guild members in the guild list."],
+                    appendDbPath = "showTooltips"
+                  };
+
+                  return children;
+                end;
+            };
+            {   type = "submenu",
+                name = L["Inventory"],
+                module = "DataText",
+                appendDbPath = "inventory",
+                children = function()
+                  local children = CreateLabelOptions("inventory");
+                  children[#children + 1] =
+                  {  name = L["Show Total Slots"];
+                      type = "check";
+                      appendDbPath = "showTotalSlots";
+                  };
+                  children[#children + 1] = 
+                  {   name = L["Show Used Slots"];
+                      type = "radio";
+                      groupName = "inventory";
+                      appendDbPath = "slotsToShow";
+
+                      GetValue = function(_, value)
+                          return value == "used";
+                      end;
+
+                      SetValue = function(path)
+                          db:SetPathValue(path, "used");
+                      end;
+                  };
+                  children[#children + 1] =
+                  {   name = L["Show Free Slots"];
+                      type = "radio";
+                      groupName = "inventory";
+                      appendDbPath = "slotsToShow";
+
+                      GetValue = function(_, value)
+                          return value == "free";
+                      end;
+
+                      SetValue = function(path)
+                          db:SetPathValue(path, "free");
+                      end;
+                  };
+                  return children;
+                end;
+            },
+            {   type = "submenu",
+                module = "DataText",
                 name = L["Performance"],
                 appendDbPath = "performance",
                 children = {
@@ -167,68 +278,24 @@ function C_DataTextModule:GetConfigTable()
                 module = "DataText",
                 appendDbPath = "money",
                 children = {
-                  { name = L["Show Realm Name"],
-                    type = "check",
-                    appendDbPath = "showRealm",
+                  {   name = L["Show Realm Name"],
+                      type = "check",
+                      appendDbPath = "showRealm",
                   },
                 }
             },
             {   type = "submenu",
-                name = L["Inventory"],
                 module = "DataText",
-                appendDbPath = "inventory",
-                children = {
-                    {   name = L["Show Total Slots"];
-                        type = "check";
-                        appendDbPath = "showTotalSlots";
-                    },
-                    {   type = "divider"
-                    },
-                    {   name = L["Show Used Slots"];
-                        type = "radio";
-                        groupName = "inventory";
-                        appendDbPath = "slotsToShow";
-
-                        GetValue = function(_, value)
-                            return value == "used";
-                        end;
-
-                        SetValue = function(path)
-                            db:SetPathValue(path, "used");
-                        end;
-                    },
-                    {   name = L["Show Free Slots"];
-                        type = "radio";
-                        groupName = "inventory";
-                        appendDbPath = "slotsToShow";
-
-                        GetValue = function(_, value)
-                            return value == "free";
-                        end;
-
-                        SetValue = function(path)
-                            db:SetPathValue(path, "free");
-                        end;
-                    },
-                },
+                name = L["Quests"],
+                appendDbPath = "quest",
+                children = CreateLabelOptions("quest");
             },
             {   type = "submenu",
                 module = "DataText",
-                name = L["Guild"],
-                appendDbPath = "guild",
-                children = {
-                    {   type = "check",
-                        name = L["Show Self"],
-                        tooltip = L["Show your character in the guild list."],
-                        appendDbPath = "showSelf"
-                    },
-                    {   type = "check",
-                        name = L["Show Tooltips"],
-                        tooltip = L["Show guild info tooltips when the cursor is over guild members in the guild list."],
-                        appendDbPath = "showTooltips"
-                    }
-                }
-            }
+                name = L["Volume Options"],
+                appendDbPath = "volumeOptions",
+                children = CreateLabelOptions("volumeOptions");
+            },
         }
     };
 end

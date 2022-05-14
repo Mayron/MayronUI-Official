@@ -681,7 +681,6 @@ L["Changing the blend mode will affect how alpha channels blend with the backgro
 L["Background"] = "Задний план";
 L["Button"] = "Кнопка";
 L["Combat Timer"] = "Боевой таймер";
-L["Quest"] = "Квест";
 L["Volume Options"] = "Параметры громкости";
 L["Specialization"] = "Специализация";
 L["Show Auras With Unknown Time Remaining"] = "Показать ауры с неизвестным оставшимся временем";

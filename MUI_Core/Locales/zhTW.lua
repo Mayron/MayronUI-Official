@@ -681,7 +681,6 @@ L["Changing the blend mode will affect how alpha channels blend with the backgro
 L["Background"] = "背景";
 L["Button"] = "按鈕";
 L["Combat Timer"] = "戰鬥計時器";
-L["Quest"] = "尋求";
 L["Volume Options"] = "音量選項";
 L["Specialization"] = "專業化";
 L["Show Auras With Unknown Time Remaining"] = "顯示剩餘時間未知的光環";

@@ -1,7 +1,7 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
-local LABEL_PATTERN = L["Friends"]..": |cffffffff%u|r";
+
 local convert = {
   WTCG = "HS",
   Pro = "OW",
@@ -123,7 +123,15 @@ function Friends:Update(data, refreshSettings)
   end
 
   local totalOnline = C_FriendList.GetNumOnlineFriends() + (select(2, BNGetNumFriends()));
-  self.Button:SetText(string.format(LABEL_PATTERN, totalOnline));
+
+  local label = tk.Strings.Empty;
+  local hideLabel = obj:IsTable(data.settings.labels.hidden) and data.settings.labels.hidden.friends;
+
+  if (not hideLabel) then
+    label = data.settings.labels.friends .. ": ";
+  end
+
+  self.Button:SetText(string.format("%s|cffffffff%u|r", label, totalOnline));
 end
 
 obj:DefineReturns("number");

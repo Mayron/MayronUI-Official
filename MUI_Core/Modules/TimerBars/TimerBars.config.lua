@@ -4,7 +4,7 @@ local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local db = MayronUI:GetModuleComponent("TimerBarsModule", "Database");
 local C_TimerBarsModule = MayronUI:GetModuleClass("TimerBarsModule");
 
-local _G, MayronUI = _G, _G.MayronUI;
+local _G, MayronUI, GetLocale = _G, _G.MayronUI, _G.GetLocale;
 local pairs, tonumber, table, string = _G.pairs, _G.tonumber, _G.table, _G.string;
 
 -- contains field name / table pairs where each table holds the 5 config textfield widgets

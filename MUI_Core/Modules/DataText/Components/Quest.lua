@@ -70,7 +70,14 @@ function Quest:Update(data, refreshSettings)
   local _, numQuests = GetNumQuestLogEntries()
   local maxQuestsCanAccept = C_QuestLog.GetMaxNumQuestsCanAccept();
 
-  self.Button:SetText(string.format(L["Quests"]..": |cffffffff%u/%u|r", numQuests, maxQuestsCanAccept));
+  local label = tk.Strings.Empty;
+  local hideLabel = obj:IsTable(data.settings.labels.hidden) and data.settings.labels.hidden.quest;
+
+  if (not hideLabel) then
+    label = data.settings.labels.quest .. ": ";
+  end
+
+  self.Button:SetText(string.format("%s|cffffffff%u/%u|r", label, numQuests, maxQuestsCanAccept));
 end
 
 function Quest:Click()

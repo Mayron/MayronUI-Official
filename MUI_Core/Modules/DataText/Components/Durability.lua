@@ -110,6 +110,13 @@ function Durability:Update(data, refreshSettings)
 
   local value = (durability_total / max_total) * 100;
 
+  local label = tk.Strings.Empty;
+  local hideLabel = obj:IsTable(data.settings.labels.hidden) and data.settings.labels.hidden.durability;
+
+  if (not hideLabel) then
+    label = data.settings.labels.durability .. ": ";
+  end
+
   if (itemsEquipped) then
     local realValue = tk.Numbers:ToPrecision(value, 1);
     local colored;
@@ -127,9 +134,9 @@ function Durability:Update(data, refreshSettings)
       colored = string.format("%s%s%%|r", HIGHLIGHT_FONT_COLOR_CODE, realValue);
     end
 
-    self.Button:SetText(string.format(L["Armor"]..": %s", colored));
+    self.Button:SetText(string.format("%s%s", label, colored));
   else
-    self.Button:SetText(L["Armor"]..": |cffffffffnone|r");
+    self.Button:SetText(string.format("%s|cffffffffnone|r", label));
   end
 end
 

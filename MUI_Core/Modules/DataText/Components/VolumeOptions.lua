@@ -191,6 +191,16 @@ function VolumeOptions:Update(data, refreshSettings)
     data.settings:Refresh();
   end
 
-  local text = GetFormattedValue(VOLUME, "Sound_MasterVolume")
-  self.Button:SetText(text);
+  local label = tk.Strings.Empty;
+  local hideLabel = obj:IsTable(data.settings.labels.hidden) and data.settings.labels.hidden.volumeOptions;
+
+  if (not hideLabel) then
+    label = data.settings.labels.volumeOptions .. ": ";
+  end
+
+  local value = tonumber(GetCVar("Sound_MasterVolume"));
+  value = tk.Numbers:ToPrecision(value, 2);
+  local percentage = value * 100;
+
+  self.Button:SetText(string.format("%s|cffffffff%d%%|r", label, percentage));
 end

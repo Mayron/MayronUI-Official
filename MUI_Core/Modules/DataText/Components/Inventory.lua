@@ -97,10 +97,17 @@ function Inventory:Update(data, refreshSettings)
     slots = totalSlots - slots;
   end
 
+  local label = tk.Strings.Empty;
+  local hideLabel = obj:IsTable(data.settings.labels.hidden) and data.settings.labels.hidden.inventory;
+
+  if (not hideLabel) then
+    label = data.settings.labels.inventory .. ": ";
+  end
+
   if (data.settings.showTotalSlots) then
-    self.Button:SetText(string.format(L["Bags"]..": |cffffffff%u / %u|r", slots, totalSlots));
+    self.Button:SetText(string.format("%s|cffffffff%u / %u|r", label, slots, totalSlots));
   else
-    self.Button:SetText(string.format(L["Bags"]..": |cffffffff%u|r", slots));
+    self.Button:SetText(string.format("%s|cffffffff%u|r", label, slots));
   end
 end
 

@@ -684,7 +684,6 @@ L["Changing the blend mode will affect how alpha channels blend with the backgro
 L["Background"] = "Arrière-plan";
 L["Button"] = "Bouton";
 L["Combat Timer"] = "Minuteur de combat";
-L["Quest"] = "Quête";
 L["Volume Options"] = "Options de volume";
 L["Specialization"] = "Spécialisation";
 L["Show Auras With Unknown Time Remaining"] = "Afficher les auras avec un temps restant inconnu";

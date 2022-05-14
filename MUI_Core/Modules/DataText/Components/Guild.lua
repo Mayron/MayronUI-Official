@@ -1,6 +1,5 @@
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
-local LABEL_PATTERN = L["Guild"]..": |cffffffff%u|r";
 
 local strsplit, unpack, CreateFrame, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1,
 IsInGuild, GetNumGuildMembers, GetGuildRosterInfo, IsTrialAccount =
@@ -156,8 +155,14 @@ function Guild:Update(data, refreshSettings)
     local _, _, numOnlineAndMobile = GetNumGuildMembers();
     numOnlineAndMobile = (not data.settings.showSelf and numOnlineAndMobile - 1) or numOnlineAndMobile;
 
-    -- data.showMenu = (numOnlineAndMobile ~= 0);
-    self.Button:SetText(string.format(LABEL_PATTERN, numOnlineAndMobile));
+    local label = tk.Strings.Empty;
+    local hideLabel = obj:IsTable(data.settings.labels.hidden) and data.settings.labels.hidden.guild;
+
+    if (not hideLabel) then
+      label = data.settings.labels.guild .. ": ";
+    end
+
+    self.Button:SetText(string.format("%s|cffffffff%u|r", label, numOnlineAndMobile));
   end
 end
 

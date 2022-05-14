@@ -15,24 +15,22 @@ local SlideController = obj:Import("MayronUI.SlideController");
 local C_DataTextModule = MayronUI:RegisterModule("DataTextModule", L["Data Text Bar"]);
 
 namespace.C_DataTextModule = C_DataTextModule;
-
--- Load Database Defaults --------------
 namespace.dataTextLabels = {
-  -- svName = Label
-  ["combatTimer"]       = L["Combat Timer"];
-  ["money"]             = L["Money"];
-  ["durability"]        = L["Durability"];
-  ["friends"]           = L["Friends"];
-  ["guild"]             = L["Guild"];
-  ["inventory"]         = L["Inventory"];
-  ["memory"]            = L["Memory"];
-  ["quest"]             = L["Quest"];
-  ["performance"]       = L["Performance"];
-  ["none"]              = L["None"];
-  ["disabled"]          = L["Disabled"];
-  ["volumeOptions"]     = L["Volume Options"];
+  combatTimer   = L["Combat Timer"];
+  disabled      = L["Disabled"];
+  durability    = L["Durability"];
+  friends       = L["Friends"];
+  guild         = L["Guild"];
+  inventory     = L["Inventory"];
+  memory        = L["Memory"];
+  money         = L["Money"];
+  none          = L["None"];
+  performance   = L["Performance"];
+  quest         = L["Quests"];
+  volumeOptions = _G.VOLUME;
 };
 
+-- Load Database Defaults --------------
 local defaults = {
   enabled       = true;
   frameStrata   = "MEDIUM";
@@ -47,6 +45,7 @@ local defaults = {
     width        = 200;
     itemHeight   = 26; -- the default height of each list item in the popup menu
   };
+  labels = namespace.dataTextLabels,
   displayOrders = {
     "durability";
     "friends";
@@ -58,7 +57,7 @@ local defaults = {
 };
 
 if (tk:IsRetail()) then
-  namespace.dataTextLabels["specialization"] = L["Specialization"];
+  defaults.labels.specialization = L["Specialization"];
   tinsert(defaults.displayOrders, "specialization");
 else
   tinsert(defaults.displayOrders, "inventory");
@@ -109,9 +108,13 @@ function C_DataTextModule:OnInitialize(data)
         patterns = {".*"};
 
         value = function(_, keysList)
-          local componentName = keysList:PopFront();
-          local component = tk.Tables:First(data.activeComponents,
-            function(c) return c.SavedVariableName == componentName end);
+          local component = tk.Tables:First(data.activeComponents, function(c)
+            for _, componentName in keysList:Iterate() do
+              if (c.SavedVariableName == componentName) then
+                  return true;
+              end
+            end
+          end);
 
           if (not component) then
             -- filter out missing update functions (such as popup settings)
