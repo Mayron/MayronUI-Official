@@ -695,10 +695,14 @@ function C_CoreModule:OnInitialize()
     local updateSufProfileName = _G.ShadowedUFDB and obj:IsTable(_G.ShadowedUFDB.profiles) and not obj:IsTable(_G.ShadowedUFDB.profiles.MayronUI);
 
     if (updateSufProfileName) then
-      local layouts = db.global.layouts:GetSavedVariable();
+      local shadowUfProfile = db:ParsePathValue(db.global, "layouts.DPS.ShadowUF");
 
-      if (obj:IsTable(layouts.DPS) and layouts.DPS.ShadowUF == "Default") then
-        layouts.DPS.ShadowUF = nil; -- default it back to the newer MayronUI profile
+      if (shadowUfProfile == "Default") then
+        local layouts = db.global.layouts:GetSavedVariable();
+
+        if (obj:IsTable(layouts) and obj:IsTable(layouts.DPS)) then
+          layouts.DPS.ShadowUF = nil; -- default it back to the newer MayronUI profile
+        end
       end
 
       _G.ShadowedUFDB.profiles.MayronUI = _G.ShadowedUFDB.profiles.Default;
