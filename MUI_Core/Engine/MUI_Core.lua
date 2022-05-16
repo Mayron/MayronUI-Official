@@ -643,43 +643,42 @@ local C_CoreModule = MayronUI:RegisterModule("CoreModule", "MUI Core", true);
 function C_CoreModule:OnInitialize()
   _G["SLASH_MUI1"] = "/mui";
   _G.SlashCmdList.MUI = function(str)
-
-  if (#str == 0) then
-    commands.help();
-    return;
-  end
-
-  local args = obj:PopTable();
-
-  for _, arg in obj:IterateArgs(strsplit(' ', str)) do
-    if (#arg > 0) then
-      table.insert(args, arg);
+    if (#str == 0) then
+      commands.help();
+      return;
     end
-  end
 
-  local path = commands;
+    local args = obj:PopTable();
 
-  for id, arg in ipairs(args) do
-    arg = string.lower(arg);
+    for _, arg in obj:IterateArgs(strsplit(' ', str)) do
+      if (#arg > 0) then
+        table.insert(args, arg);
+      end
+    end
 
-    if (path[arg]) then
-      if (obj:IsFunction(path[arg])) then
-        path[arg](select(id + 1, unpack(args)));
-        return;
+    local path = commands;
 
-      elseif (obj:IsTable(path[arg])) then
-        path = path[arg];
+    for id, arg in ipairs(args) do
+      arg = string.lower(arg);
+
+      if (path[arg]) then
+        if (obj:IsFunction(path[arg])) then
+          path[arg](select(id + 1, unpack(args)));
+          return;
+
+        elseif (obj:IsTable(path[arg])) then
+          path = path[arg];
+        else
+          commands.help();
+          return;
+        end
+
       else
         commands.help();
         return;
       end
 
-    else
-      commands.help();
-      return;
     end
-
-  end
     obj:PushTable(args);
   end
 
@@ -707,7 +706,6 @@ function C_CoreModule:OnInitialize()
 
       _G.ShadowedUFDB.profiles.MayronUI = _G.ShadowedUFDB.profiles.Default;
       MayronUI:SwitchLayouts(db.profile.layout);
-      _G.ReloadUI();
     end
   end
 
