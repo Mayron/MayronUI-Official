@@ -58,6 +58,7 @@ L["Chat Buttons with Modifier Key 2"] = "Chat Schaltflächen - 2. Mod-Taste";
 L["Set the border size."] = "Setzt die Randbreite.";
 L["Cannot toggle menu while in combat."] = "Das Menü kann im Kampf nicht umgeschaltet werden.";
 L["Cannot switch layouts while in combat."] = "Layouts können im Kampf nicht gewechselt werden.";
+L["Cannot install while in combat."]   = "Kann während des Kampfes nicht installiert werden.";
 L["Set the spacing between the background and the border."] = "Setzt den Abstand zwischen Hintergrund und Rand.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."] = "Erlaubt die Nutzung der Mod-Tasten zum wechseln der Chat-Schaltflächen, während man sich im Kampf befindet.";
 L["Failed to load MUI_Config. Possibly missing?"] = "MUI_Config konnte nicht geladen werden! Evtl. fehlt das Addon?";

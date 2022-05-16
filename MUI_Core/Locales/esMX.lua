@@ -57,6 +57,7 @@ L["Chat Buttons with Modifier Key 2"] = "Botones de chat con la tecla modificado
 L["Set the border size."] = "Establecer el tamaño del borde.";
 L["Cannot toggle menu while in combat."] = "No se puede cambiar el menú durante el combate.";
 L["Cannot switch layouts while in combat."] = "No se pueden cambiar de diseño en combate";
+L["Cannot install while in combat."]   = "No se puede instalar mientras está en combate.";
 L["Set the spacing between the background and the border."] = "Establezca el espacio entre el fondo y el borde.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."] = "Permitir el uso de teclas modificadoras para intercambiar botones de chat durante el combate";
 L["Failed to load MUI_Config. Possibly missing?"] = "Error al cargar MUI_Config. ¿Posiblemente falta?";

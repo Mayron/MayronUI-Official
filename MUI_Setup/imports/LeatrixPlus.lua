@@ -1,7 +1,5 @@
 local _, setup = ...;
-
----@type EventManager
-local em = select(3, _G.MayronUI:GetCoreComponents());
+local tk = _G.MayronUI:GetCoreComponent("Toolkit"); ---@type Toolkit
 
 setup.import["Leatrix_Plus"] = function()
 	local settings = {
@@ -104,11 +102,9 @@ setup.import["Leatrix_Plus"] = function()
     ["TooltipAnchorMenu"] = 1,
   };
 
-  local listener = em:CreateEventListener(function()
-    for k, v in pairs(settings) do
-      _G.LeaPlusDB[k] = v;
-    end
-  end);
+  local merged = tk.Tables:Merge(_G.LeaPlusDB, settings);
 
-  listener:RegisterEvent("PLAYER_LOGOUT");
+  for key, value in pairs(_G.LeaPlusDB) do
+    merged[key] = value;
+  end
 end

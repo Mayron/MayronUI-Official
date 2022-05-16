@@ -57,10 +57,10 @@ local function ChangeTheme(self, value)
   local frame = window:GetFrame();
 
   tk:ApplyThemeColor(
-  frame.tl, frame.tr, frame.bl, frame.br, frame.t,
-  frame.b, frame.l, frame.r, frame.c,
-  frame.titleBar.bg,
-  frame.closeBtn);
+    frame.tl, frame.tr, frame.bl, frame.br, frame.t,
+    frame.b, frame.l, frame.r, frame.c,
+    frame.titleBar.bg,
+    frame.closeBtn);
 
   frame = window;
   tk:ApplyThemeColor(0.5, unpack(frame.tabs));
@@ -270,18 +270,18 @@ function Private:LoadThemeMenu(menuSection)
   menuSection.themeDropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, menuSection);
 
   menuSection.themeDropdown:AddOptions(ChangeTheme, {
-  { tk.Strings:SetTextColorByHex("Death Knight", "C41F3B"), "DEATHKNIGHT" },
-  { tk.Strings:SetTextColorByHex("Demon Hunter", "A330C9"), "DEMONHUNTER" },
-  { tk.Strings:SetTextColorByHex("Druid", "FF7D0A"), "DRUID" },
-  { tk.Strings:SetTextColorByHex("Hunter", "ABD473"), "HUNTER" },
-  { tk.Strings:SetTextColorByHex("Mage", "69CCF0"), "MAGE" },
-  { tk.Strings:SetTextColorByHex("Monk", "00FF96"), "MONK" },
-  { tk.Strings:SetTextColorByHex("Paladin", "F58CBA"), "PALADIN" },
-  { tk.Strings:SetTextColorByHex("Priest", "FFFFFF"), "PRIEST" },
-  { tk.Strings:SetTextColorByHex("Rogue", "FFF569"), "ROGUE" },
-  { tk.Strings:SetTextColorByHex("Shaman", "0070DE"), "SHAMAN" },
-  { tk.Strings:SetTextColorByHex("Warlock", "9482C9"), "WARLOCK" },
-  { tk.Strings:SetTextColorByHex("Warrior", "C79C6E"), "WARRIOR" }
+    { tk.Strings:SetTextColorByHex("Death Knight", "C41F3B"), "DEATHKNIGHT" },
+    { tk.Strings:SetTextColorByHex("Demon Hunter", "A330C9"), "DEMONHUNTER" },
+    { tk.Strings:SetTextColorByHex("Druid", "FF7D0A"), "DRUID" },
+    { tk.Strings:SetTextColorByHex("Hunter", "ABD473"), "HUNTER" },
+    { tk.Strings:SetTextColorByHex("Mage", "69CCF0"), "MAGE" },
+    { tk.Strings:SetTextColorByHex("Monk", "00FF96"), "MONK" },
+    { tk.Strings:SetTextColorByHex("Paladin", "F58CBA"), "PALADIN" },
+    { tk.Strings:SetTextColorByHex("Priest", "FFFFFF"), "PRIEST" },
+    { tk.Strings:SetTextColorByHex("Rogue", "FFF569"), "ROGUE" },
+    { tk.Strings:SetTextColorByHex("Shaman", "0070DE"), "SHAMAN" },
+    { tk.Strings:SetTextColorByHex("Warlock", "9482C9"), "WARLOCK" },
+    { tk.Strings:SetTextColorByHex("Warrior", "C79C6E"), "WARRIOR" }
   });
 
   local ColorPickerFrame = _G.ColorPickerFrame;
@@ -526,6 +526,16 @@ function C_SetUpModule:OnInitialize()
 end
 
 function C_SetUpModule:Show(data)
+  if (_G.InCombatLockdown()) then
+    tk:Print(L["Cannot install while in combat."]);
+
+    if (data.window) then
+      data.window:Hide();
+    end
+
+    return;
+  end
+
   if (data.window) then
     data.window:Show();
     UIFrameFadeIn(data.window, 0.3, 0, 1);
@@ -542,6 +552,11 @@ function C_SetUpModule:Show(data)
   window:SetSize(750, 485); -- change this!
   window:SetPoint("CENTER");
   window:SetFrameStrata("DIALOG");
+  window:RegisterEvent("PLAYER_REGEN_DISABLED");
+  window:SetScript("OnEvent", function(self)
+    self:Hide();
+    tk:Print(L["Cannot install while in combat."]);
+  end);
 
   if (tk:IsLocale("itIT")) then
     window:SetSize(900, 582);
@@ -627,7 +642,13 @@ function C_SetUpModule:Show(data)
   UIFrameFadeIn(data.window, 0.3, 0, 1);
 end
 
-function C_SetUpModule:Install()
+function C_SetUpModule:Install(data)
+  if (_G.InCombatLockdown()) then
+    tk:Print(L["Cannot install while in combat."]);
+    data.window:Hide();
+    return;
+  end
+
   PlaySoundFile("Interface\\AddOns\\MUI_Setup\\install.ogg");
   local ChatFrame1 = _G.ChatFrame1;
 
@@ -679,9 +700,9 @@ function C_SetUpModule:Install()
 
   -- Export AddOn values to db:
   for id, addonData in db.global.core.setup.addOns:Iterate() do
-    local alias, value, addonName = unpack(addonData);
+    local alias, requiresImporting, addonName = unpack(addonData);
 
-    if (value and IsAddOnLoaded(addonName) and obj:IsFunction(namespace.import[addonName])) then
+    if (requiresImporting and IsAddOnLoaded(addonName) and obj:IsFunction(namespace.import[addonName])) then
       namespace.import[addonName]();
       db.global.core.setup.addOns[id] = {alias, false, addonName};
     end
@@ -689,23 +710,12 @@ function C_SetUpModule:Install()
 
   if (_G.Bartender4) then
     local path = tk.Tables:GetDBObject("Bartender4");
-
-    if (path) then
-      if (path:GetCurrentProfile() ~= "MayronUI") then
-        path:SetProfile("MayronUI");
-      end
+    if (obj:IsTable(path) and path:GetCurrentProfile() ~= "MayronUI") then
+      path:SetProfile("MayronUI");
     end
   end
 
-  if (_G.ShadowUF) then
-    local path = tk.Tables:GetDBObject("ShadowUF");
-
-    if (path) then
-      if (path:GetCurrentProfile() ~= "Default") then
-        path:SetProfile("Default");
-      end
-    end
-  end
+  MayronUI:SwitchLayouts(db.profile.layout);
 
   if (not db.global.installed) then
     --db.global.installed = db.global.installed or {}; -- won't work (Observer)

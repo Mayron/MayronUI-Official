@@ -1,4 +1,7 @@
 local _, setup = ...;
+local _G = _G;
+local tk, _, _, _, obj = _G.MayronUI:GetCoreComponents();
+local pairs = _G.pairs;
 
 setup.import["Bartender4"] = function()
 	local settings = {
@@ -432,6 +435,11 @@ setup.import["Bartender4"] = function()
 	};
 
 	for k, v in pairs(settings) do
-		_G.Bartender4DB[k] = v;
+    local tbl = _G.Bartender4DB[k];
+
+    if (obj:IsTable(tbl)) then
+      local merged = tk.Tables:Merge(_G.Bartender4DB[k], v);
+      _G.Bartender4DB[k] = merged;
+    end
 	end
 end

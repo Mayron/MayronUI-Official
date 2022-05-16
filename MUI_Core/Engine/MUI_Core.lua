@@ -83,7 +83,7 @@ obj:Export(BaseModule, "MayronUI");
 db:AddToDefaults("global", {
   layouts = {
     DPS = {
-      ["ShadowUF"] = "Default";
+      ["ShadowUF"] = "MayronUI";
       ["MUI TimerBars"] = "Default";
     };
     Healer = {
@@ -293,20 +293,27 @@ commands.version = function()
   tk:Print("Version:", tk:GetVersion("YELLOW"));
 end
 
+ -- aliases
+commands.i = commands.install;
+commands.c = commands.config;
+commands.v = commands.version;
+commands.r = commands.report;
+commands.l = commands.layouts;
+
 commands.help = function()
   print(" ");
   tk:Print(L["List of slash commands:"])
-  tk:Print("|cff00cc66/mui config|r - "..L["Show the MUI Config Menu"]:lower());
-  tk:Print("|cff00cc66/mui install|r - "..L["Show the MUI Installer"]:lower());
-  tk:Print("|cff00cc66/mui layouts|r - " .. L["Show the MUI Layout Tool"]:lower());
+  tk:Print("|cff00cc66/mui config, /mui c|r - "..L["Show the MUI Config Menu"]:lower());
+  tk:Print("|cff00cc66/mui install, /mui i|r - "..L["Show the MUI Installer"]:lower());
+  tk:Print("|cff00cc66/mui layouts, /mui l|r - " .. L["Show the MUI Layout Tool"]:lower());
   tk:Print("|cff00cc66/mui profiles list|r - " .. L["List All Profiles"]:lower());
   tk:Print("|cff00cc66/mui profiles|r - " .. L["Show the MUI Profile Manager"]:lower());
   tk:Print("|cff00cc66/mui profile set <profile_name>|r - " .. L["Set Profile"]:lower());
   tk:Print("|cff00cc66/mui profile delete <profile_name>|r - " .. L["Delete Profile"]:lower());
   tk:Print("|cff00cc66/mui profile new|r - " .. L["Create a new profile"]:lower());
   tk:Print("|cff00cc66/mui profile current|r - " .. L["Show Currently Active Profile"]:lower());
-  tk:Print("|cff00cc66/mui version|r - " .. L["Show the Version of MUI"]:lower());
-  tk:Print("|cff00cc66/mui report|r - " .. L["Report Issue"]:lower());
+  tk:Print("|cff00cc66/mui version, /mui v|r - " .. L["Show the Version of MUI"]:lower());
+  tk:Print("|cff00cc66/mui report, /mui r|r - " .. L["Report Issue"]:lower());
   print(" ");
 end
 
@@ -608,6 +615,28 @@ function MayronUI:GetModuleKeys()
   return moduleKeysList;
 end
 
+function MayronUI:SwitchLayouts(layoutName, layoutData)
+  if (InCombatLockdown()) then
+    tk:Print(L["Cannot switch layouts while in combat."]);
+    return;
+  end
+
+  db.profile.layout = layoutName;
+  layoutData = layoutData or db.global.layouts:GetUntrackedTable()[layoutName];
+
+	-- Switch all assigned addons to new profile
+  for a, profileName in pairs(layoutData) do
+		if (profileName) then
+			-- profileName could be false
+			local dbObject = tk.Tables:GetDBObject(a);
+
+			if (dbObject) then
+				dbObject:SetProfile(profileName);
+			end
+		end
+  end
+end
+
 -- Register Core Module ---------------------
 local C_CoreModule = MayronUI:RegisterModule("CoreModule", "MUI Core", true);
 
@@ -662,6 +691,22 @@ function C_CoreModule:OnInitialize()
     end
   end
 
+  if (IsAddOnLoaded("ShadowedUnitFrames")) then
+    local updateSufProfileName = _G.ShadowedUFDB and obj:IsTable(_G.ShadowedUFDB.profiles) and not obj:IsTable(_G.ShadowedUFDB.profiles.MayronUI);
+
+    if (updateSufProfileName) then
+      local layouts = db.global.layouts:GetSavedVariable();
+
+      if (obj:IsTable(layouts.DPS) and layouts.DPS.ShadowUF == "Default") then
+        layouts.DPS.ShadowUF = nil; -- default it back to the newer MayronUI profile
+      end
+
+      _G.ShadowedUFDB.profiles.MayronUI = _G.ShadowedUFDB.profiles.Default;
+      MayronUI:SwitchLayouts(db.profile.layout);
+      _G.ReloadUI();
+    end
+  end
+
   tk:Print(L["Welcome back"], UnitName("player").."!");
   collectgarbage("collect");
   DisableAddOn("MUI_Setup"); -- disable for next time
@@ -702,7 +747,9 @@ onLogout:RegisterEvent("PLAYER_LOGOUT");
 -- Database Event callbacks --------------------
 
 db:OnProfileChange(function(self, newProfileName, oldProfileName)
-  if (not MayronUI:IsInstalled() or (_G.MUI_Setup and _G.MUI_Setup:IsShown())) then
+  local coreModule = MayronUI:ImportModule("CoreModule");
+
+  if (not (coreModule:IsInitialized() and MayronUI:IsInstalled())) then
     return;
   end
 
@@ -725,7 +772,6 @@ db:OnProfileChange(function(self, newProfileName, oldProfileName)
   end
 
   tk:Print(msg);
-
   MayronUI:ShowReloadUIPopUp();
 end);
 

@@ -138,13 +138,11 @@ db:OnStartUp(function(self)
 end);
 
 db:OnProfileChange(function()
-  if (not MayronUI:IsInstalled()) then
-    return;
+  if (timerBarsModule:IsInitialized() and MayronUI:IsInstalled()) then
+    timerBarsModule:ApplyProfileSettings();
+    timerBarsModule:RefreshSettings();
+    timerBarsModule:ExecuteAllUpdateFunctions();
   end
-
-  timerBarsModule:ApplyProfileSettings();
-  timerBarsModule:RefreshSettings();
-  timerBarsModule:ExecuteAllUpdateFunctions();
 end);
 
 -- C_TimerBarsModule --------------------

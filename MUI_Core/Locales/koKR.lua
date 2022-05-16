@@ -54,6 +54,7 @@ L["Chat Buttons with Modifier Key 2"] = "수정 키 2가있는 채팅 버튼";
 L["Set the border size."] = "테두리 크기를 설정하십시오.";
 L["Cannot toggle menu while in combat."] = "전투 중에는 메뉴를 전환 할 수 없습니다.";
 L["Cannot switch layouts while in combat."] = "전투 중에는 레이아웃을 변경할 수 없습니다.";
+L["Cannot install while in combat."] = "전투 중에는 설치할 수 없습니다.";
 L["Set the spacing between the background and the border."] = "배경과 테두리 사이의 간격을 설정하십시오.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."] = "전투 중 채팅 버튼을 바꾸는 수정 자 키 사용을 허용합니다.";
 L["Failed to load MUI_Config. Possibly missing?"] = "MUI_Config를로드하지 못했습니다. 누락되었을 수 있습니까?";

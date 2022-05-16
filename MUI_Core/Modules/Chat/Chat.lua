@@ -573,20 +573,8 @@ function C_ChatModule:SwitchLayouts(data, layoutName, layoutData)
     return;
   end
 
-  db.profile.layout = layoutName;
-  layoutData = layoutData or db.global.layouts:GetUntrackedTable()[layoutName];
+  MayronUI:SwitchLayouts(layoutName, layoutData);
 
-	-- Switch all assigned addons to new profile
-  for addOnName, profileName in pairs(layoutData) do
-		if (profileName) then
-			-- profileName could be false
-			local dbObject = tk.Tables:GetDBObject(addOnName);
-
-			if (dbObject) then
-				dbObject:SetProfile(profileName);
-			end
-		end
-  end
   for _, btn in ipairs(data.layoutButtons) do
     btn:SetText(layoutName:sub(1, 1):upper());
   end

@@ -54,6 +54,7 @@ L["Chat Buttons with Modifier Key 2"] = "带有修饰键 2 的聊天按钮";
 L["Set the border size."] = "设置边框大小。";
 L["Cannot toggle menu while in combat."] = "在战斗中无法切换菜单。";
 L["Cannot switch layouts while in combat."] = "在战斗中无法切换布局。";
+L["Cannot install while in combat."] = "在战斗中无法安装。";
 L["Set the spacing between the background and the border."] = "设置背景和边框之间的间距。";
 L["Allow the use of modifier keys to swap chat buttons while in combat."] = "允许使用修饰键在战斗中交换聊天按钮。";
 L["Failed to load MUI_Config. Possibly missing?"] = "加载 MUI_Config 失败。可能丢失了？";

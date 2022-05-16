@@ -54,6 +54,7 @@ L["Chat Buttons with Modifier Key 2"] = "Кнопки чата с клавише
 L["Set the border size."] = "Установить размер границы.";
 L["Cannot toggle menu while in combat."] = "Невозможно переключить меню в бою.";
 L["Cannot switch layouts while in combat."] = "Невозможно переключить раскладку в бою.";
+L["Cannot install while in combat."] = "Не удается установить во время боя.";
 L["Set the spacing between the background and the border."] = "Установите интервал между фоном и рамкой.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."] = "Разрешить использование клавиш-модификаторов для переключения кнопок чата в бою.";
 L["Failed to load MUI_Config. Possibly missing?"] = "Не удалось загрузить MUI_Config. Возможно, отсутствует?";

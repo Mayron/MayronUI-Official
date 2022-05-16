@@ -1,4 +1,7 @@
 local _, setup = ...;
+local _G = _G;
+local tk, _, _, _, obj = _G.MayronUI:GetCoreComponents();
+local pairs = _G.pairs;
 
 setup.import["ShadowedUnitFrames"] = function()
 	local settings = {		
@@ -6,7 +9,7 @@ setup.import["ShadowedUnitFrames"] = function()
       ["infoID"] = 3,
     },
     ["profiles"] = {
-      ["Default"] = {
+      ["MayronUI"] = {
         ["wowBuild"] = 20504,
         ["auras"] = {
           ["borderType"] = "dark",
@@ -11292,6 +11295,13 @@ setup.import["ShadowedUnitFrames"] = function()
   };
   
   for k, v in pairs(settings) do
-		_G.ShadowedUFDB[k] = v;
+    local tbl = _G.ShadowedUFDB[k];
+
+    if (obj:IsTable(tbl)) then
+      local merged = tk.Tables:Merge(_G.ShadowedUFDB[k], v);
+      _G.ShadowedUFDB[k] = merged;
+    else
+      print(k, " : ", v)
+    end
 	end
 end
