@@ -448,8 +448,11 @@ function Database:SetProfile(data, profileName)
 
   if (obj:IsTable(data.appended)) then
     for _, params in pairs(data.appended) do
-      local path, appendKey, value = unpack(params);
-      self:AppendOnce(path, appendKey, value);
+      local path, appendKey, value, manual = unpack(params);
+
+      if (not manual) then
+        self:AppendOnce(path, appendKey, value);
+      end
     end
   end
 
@@ -547,6 +550,7 @@ obj:DefineParams("string");
 function Database:CopyProfile(data, profileName, copiedProfileName)
 if (profileName == copiedProfileName) then return end
 
+  -- If both profiles already exist so we can copy one profile ontop of another and override the old profile
   if (data.sv.profiles[profileName] and data.sv.profiles[copiedProfileName]) then
     data.bin = data.bin or obj:PopTable();
     data.bin[profileName] = data.sv.profiles[profileName];
@@ -641,10 +645,10 @@ function Database:RenameProfile(data, oldProfileName, newProfileName)
 end
 
 do
-  local function RegisterForProfileSwitching(data, appendKey, path, value)
+  local function RegisterForProfileSwitching(data, appendKey, path, value, manual)
     data.appended = data.appended or obj:PopTable();
     if (not data.appended[appendKey]) then
-      data.appended[appendKey] = { path, appendKey, value };
+      data.appended[appendKey] = { path, appendKey, value, manual };
     end
   end
 
@@ -663,14 +667,35 @@ do
     end
   end
 
-  obj:DefineParams("string", "?string", "table");
+  function Database:IsAppended(data, appendKey)
+    if (not obj:IsTable(data.sv.appended)) then
+      return false;
+    end
+
+    local profileType = data.helper:GetDatabaseRootTableName(self.profile);
+    local appendTable = data.sv.appended[profileType];
+
+    if (obj:IsTable(appendTable) and appendTable[appendKey]) then
+      return true;
+    end
+
+    appendTable = data.sv.appended["global"];
+    if (obj:IsTable(appendTable) and appendTable[appendKey]) then
+      return true;
+    end
+
+    return false;
+  end
+
+  obj:DefineParams("string", "?string", "table", "?boolean");
   obj:DefineReturns("boolean");
   ---Adds a new value to the saved variable table only once. Adds to a special appended history table.
   ---@param path string The path address to specify where the value should be appended to.
   ---@param appendKey string @(Optional) An optional key that can be used instead of the path for registering an appended value.
   ---@param value table @The table of values to be appended to the database.
+  ---@param manual bool @True if the value should only be manually appended and not when profile switching.
   ---@return boolean @Returns whether the value was successfully added.
-  function Database:AppendOnce(data, path, appendKey, value)
+  function Database:AppendOnce(data, path, appendKey, value, manual)
     appendKey = appendKey or path;
     obj:Assert(appendKey, "Both path and appendKey args cannot be missing (at least one is required)");
 
@@ -689,7 +714,7 @@ do
     data.sv.appended[tableType] = appendTable;
 
     -- this is needed for profile switching to reinject if not injected for a given profile
-    RegisterForProfileSwitching(data, appendKey, path, value);
+    RegisterForProfileSwitching(data, appendKey, path, value, manual);
 
     if (appendTable[appendKey]) then
       -- already registered (do not clean up table because it is used in profile switching)

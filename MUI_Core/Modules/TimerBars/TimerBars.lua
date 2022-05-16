@@ -17,7 +17,7 @@ local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo;
 local unpack, CreateFrame, UnitIsDeadOrGhost = _G.unpack, _G.CreateFrame, _G.UnitIsDeadOrGhost;
 local string, date, pairs, ipairs = _G.string, _G.date, _G.pairs, _G.ipairs;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
-local table, GetTime, UnitAura, tostring, tonumber = _G.table, _G.GetTime, _G.UnitAura, _G.tostring, _G.tonumber;
+local table, GetTime, UnitAura, tonumber = _G.table, _G.GetTime, _G.UnitAura, _G.tonumber;
 
 local RepositionBars;
 
@@ -50,7 +50,7 @@ local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
 local C_TimerField = obj:CreateClass("TimerField");
 C_TimerField.Static:AddFriendClass("TimerBarsModule");
 
----@class TimerBar : ITimerBar
+---@class TimerBar
 local C_TimerBar = obj:CreateClass("TimerBar");
 C_TimerBar.Static:AddFriendClass("TimerBarsModule");
 
@@ -137,7 +137,7 @@ db:OnStartUp(function(self)
   end);
 end);
 
-db:OnProfileChange(function(self)
+db:OnProfileChange(function()
   if (not MayronUI:IsInstalled()) then
     return;
   end
@@ -145,7 +145,6 @@ db:OnProfileChange(function(self)
   timerBarsModule:ApplyProfileSettings();
   timerBarsModule:RefreshSettings();
   timerBarsModule:ExecuteAllUpdateFunctions();
-  timerBarsModule:TriggerEvent("OnProfileChange");
 end);
 
 -- C_TimerBarsModule --------------------
@@ -603,7 +602,7 @@ function C_TimerField:__Construct(data, name, sharedSettings)
   data.expiredBarsStack:OnPushItem(function(bar)
     bar.ExpirationTime = -1;
     bar.FieldName = nil;
-    bar:SetShown(false);
+    bar:Hide();
     bar:SetParent(tk.Constants.DUMMY_FRAME);
   end);
 
@@ -658,31 +657,35 @@ function C_TimerField:SetEnabled(data, enabled)
     data.frame = self:CreateField(data.name);
   end
 
-  data.frame:SetShown(enabled);
+  data.frame.disabled = not enabled;
+  data.frame:Hide();
 
   if (not enabled) then
     -- disable:
     data.frame:SetAllPoints(tk.Constants.DUMMY_FRAME);
     data.frame:SetParent(tk.Constants.DUMMY_FRAME);
-    data.frame:UnregisterAllEvents();
+    data.frame:UnregisterAllEvents(); -- doesn't seem to work, so use disabled=true
   else
     -- enable:
+    data.frame:SetParent(UIParent);
     self:PositionField();
-    self:SetParent(UIParent);
     self:RegisterAllEvents();
     self:RecheckAuras();
+    data.frame:Show();
   end
 end
 
 do
   local function TimerField_OnEvent(self)
-    local unitID = self.field:GetUnitID();
+    if (self.disabled) then return end
+    local field = self.field; ---@type TimerField
+    local unitID = field:GetUnitID();
 
     if (UnitExists(unitID) and not UnitIsDeadOrGhost(unitID)) then
-      self.field:Show();
-      self.field:RecheckAuras();
+      field:Show();
+      field:RecheckAuras();
     else
-      self.field:Hide();
+      field:Hide();
     end
   end
 
@@ -821,20 +824,20 @@ do
             table.sort(data.activeBars, SortByExpirationTime);
           end
 
+          RepositionBars(data);
+
           ---@param bar TimerBar
           for i, bar in ipairs(data.activeBars) do
             if (i <= data.settings.bar.maxBars) then
               -- make visible
-              bar:Show();
               bar:SetParent(data.frame);
+              bar:Show();
             else
               -- make invisible
               bar:Hide();
               bar:SetParent(tk.Constants.DUMMY_FRAME);
             end
           end
-
-          RepositionBars(data);
         end
 
         data.barAdded = nil;
@@ -1013,6 +1016,7 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
   data.frame = CreateFrame("Button", nil, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
   data.frame:SetSize(settings.bar.width, settings.bar.height);
   data.frame:RegisterForClicks("RightButtonUp");
+  data.frame:Hide();
 
   data.slider = CreateFrame("StatusBar", nil, data.frame);
   data.slider:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", sharedSettings.statusBarTexture));
@@ -1327,6 +1331,20 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
   end
 
   if (db:GetCurrentProfile() == "Healer") then
+    if (not db:IsAppended("removedTargetInHealing")) then
+      local sv = db.profile:GetSavedVariable();
+      db:AppendOnce("profile", "removedTargetInHealing", { removed = true });
+
+      if (obj:IsTable(sv.fieldNames)) then
+        sv.fields.Target = nil;
+
+        if (tk.Tables:Contains(sv.fieldNames, "Target")) then
+          local index = tk.Tables:IndexOf(sv.fieldNames, "Target");
+          table.remove(sv.fieldNames, index);
+        end
+      end
+    end
+
     -- Healer Layout/Profile
     db:AppendOnce("profile", "defaultFields", {
       fieldNames = {
@@ -1338,7 +1356,7 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
           unitID = "player";
         };
       };
-    });
+    }, true);
   else
     -- DPS Layout/Default Profile
     db:AppendOnce("profile", "defaultFields", {
@@ -1356,7 +1374,7 @@ function C_TimerBarsModule:ApplyProfileSettings(data)
           unitID = "target";
         };
       };
-    });
+    }, true);
   end
 
   if (obj:IsObject(db.profile.fieldNames)) then

@@ -7,8 +7,9 @@ local ipairs, string, pairs = _G.ipairs, _G.string, _G.pairs;
 local LibStub, IsAddOnLoaded = _G.LibStub, _G.IsAddOnLoaded;
 local UIFrameFadeIn, PlaySound = _G.UIFrameFadeIn, _G.PlaySound;
 
-
-local LAYOUT_MESSAGE = L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."];
+local LAYOUT_MESSAGE = L[
+  "Customize which addOn/s should change to which profile/s for each layout, " ..
+  "as well as manage your existing layouts or create new ones."];
 
 -- Local Functions -------------------
 

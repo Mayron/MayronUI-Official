@@ -84,11 +84,11 @@ db:AddToDefaults("global", {
   layouts = {
     DPS = {
       ["ShadowUF"] = "Default";
-      ["MUI_TimerBars"] = "Default";
+      ["MUI TimerBars"] = "Default";
     };
     Healer = {
       ["ShadowUF"] = "MayronUIH";
-      ["MUI_TimerBars"] = "Healer";
+      ["MUI TimerBars"] = "Healer";
     };
   };
 
