@@ -2,9 +2,9 @@
 
 
 ### How can we replicate the problem?:
-Step 1: 
-Step 2: 
-Step 3:
+- Step 1: 
+- Step 2: 
+- Step 3:
 
 
 ### What MUI version are you using? (enter the command: `/mui version`)
