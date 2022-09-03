@@ -1,3 +1,8 @@
+---
+name: Manual Bug Report
+about: Fill in a bug report manually instead of using the in-game MUI report tool
+---
+
 ### Please describe the bug:
 
 
