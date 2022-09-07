@@ -11,7 +11,7 @@ local LocalToggleGuildFrame = _G.ToggleGuildFrame;
 -- GLOBALS:
 --[[ luacheck: ignore GameTooltip C_QuestLog ]]
 
-if (tk:IsBCClassic()) then
+if (tk:IsBCClassic() or tk:IsWrathClassic()) then
   LocalToggleGuildFrame = function() _G.ToggleFriendsFrame(3); end
 elseif (tk:IsClassic()) then
   LocalToggleGuildFrame = function() _G.ToggleFriendsFrame(1); end
@@ -51,7 +51,7 @@ do
     fullName = strsplit("-", fullName);
 
     GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
-    GameTooltip:AddLine(tk.Strings:SetTextColorByClassFilename(fullName, classFileName));
+    GameTooltip:AddLine(tk.Strings:SetTextColorByClassFileName(fullName, classFileName));
     GameTooltip:AddDoubleLine(L["Zone"]..":", zone, nil, nil, nil, 1, 1, 1);
     GameTooltip:AddDoubleLine(L["Rank"]..":", rank, nil, nil, nil, 1, 1, 1);
 
@@ -221,7 +221,7 @@ function Guild:Click(data, button)
       label.guildRosterInfo = { _G.GetGuildRosterInfo(i) };
 
       label.name:SetText(string.format("%s%s %s",
-      tk.Strings:SetTextColorByClassFilename(fullName, classFileName), status, level));
+      tk.Strings:SetTextColorByClassFileName(fullName, classFileName), status, level));
     end
   end
 

@@ -3,7 +3,7 @@
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
 ## OptionalDeps: Leatrix_Plus
-## Version: 6.6.27
+## Version: 6.6.28
 ## Notes: Required to install MayronUI and inject addon settings
 
 MUI_Setup.lua

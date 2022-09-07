@@ -215,7 +215,7 @@ function Friends:CheckWowFriendsList(data, totalLabelsShown)
             return value == friendInfo.className;
           end);
 
-      local classText = tk.Strings:SetTextColorByClassFilename(friendInfo.name, className);
+      local classText = tk.Strings:SetTextColorByClassFileName(friendInfo.name, className);
       label.name:SetText(string.format("%s%s %s ", classText, status, friendInfo.level));
     end
   end

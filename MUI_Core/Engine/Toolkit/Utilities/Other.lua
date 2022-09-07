@@ -4,19 +4,12 @@ local _, namespace = ...;
 local string, tostring, select, unpack, type = _G.string, _G.tostring, _G.select, _G.unpack, _G.type;
 local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.pcall, _G.error;
 local hooksecurefunc, UnitLevel, UnitClass = _G.hooksecurefunc, _G.UnitLevel, _G.UnitClass;
-local LibStub, IsTrialAccount, tostringall = _G.LibStub, _G.IsTrialAccount, _G.tostringall;
+local GetMaxPlayerLevel, tostringall = _G.GetMaxPlayerLevel, _G.tostringall;
 local UnitQuestTrivialLevelRange, GetQuestGreenRange = _G.UnitQuestTrivialLevelRange, _G.GetQuestGreenRange;
 
-namespace.components = {};
-namespace.components.Objects = _G.MayronObjects:GetFramework(); ---@type MayronObjects
-namespace.components.Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
-namespace.components.Toolkit = {};
-
-local obj = namespace.components.Objects;
+local obj = namespace.components.Objects; ---@type MayronObjects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 local L = namespace.components.Locale;
-
-tk.Numbers = {};
 
 function tk.Numbers:ToPrecision(number, precision)
   number = tonumber(number);
@@ -162,70 +155,37 @@ do
   end
 end
 
-function tk:IsRetail()
-  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE;
-end
-
-function tk:IsClassic()
-  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC;
-end
-
-function tk:IsBCClassic()
-  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_BURNING_CRUSADE_CLASSIC;
-end
-
-function tk:GetMaxPlayerLevel()
-  if (IsTrialAccount()) then
-    return 20;
-  end
-
-  if (tk:IsBCClassic()) then
-    return 70;
-  end
-
-  return 60;
-end
-
 function tk:IsPlayerMaxLevel()
     local playerLevel = UnitLevel("player");
-    return (self:GetMaxPlayerLevel() == playerLevel);
+    return (GetMaxPlayerLevel() == playerLevel);
 end
 
 -- the class filename is often required for use with the API (unlike the localized class name)
-function tk:GetClassFilenameByUnitID(unitID)
+function tk:GetClassFileNameByUnitID(unitID)
   local _, classFilename, _ = UnitClass(unitID); -- className, classFilename, classID
   return classFilename;
 end
 
 -- the class name to be shown on the UI (not usable with the API)
-function tk:GetLocalizedClassNameByFilename(classFilename, makeClassColored)
-  classFilename = classFilename:gsub("%s+", tk.Strings.Empty);
-  classFilename = classFilename:upper();
+function tk:GetLocalizedClassNameByFileName(classFileName, makeClassColored)
+  classFileName = classFileName:gsub("%s+", tk.Strings.Empty):upper();
+  
+  local localizedName = 
+    tk.Constants.LOCALIZED_CLASS_NAMES[classFileName] or 
+    tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES[classFileName];
 
-  local localizedName = tk.Constants.LOCALIZED_CLASS_NAMES[classFilename];
-
-  if (not localizedName) then
-    return localizedName;
-  end
-
-  localizedName = tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES[classFilename];
-
-  if (not localizedName) then
-    return localizedName;
-  end
-
-  tk:Assert(localizedName, "Unknown class name '%s'.", classFilename);
+  tk:Assert(localizedName, "Unknown class file name '%s'.", classFileName);
 
   if (makeClassColored) then
-    localizedName = tk.Strings:SetTextColorByClassFilename(localizedName, classFilename);
+    localizedName = tk.Strings:SetTextColorByClassFileName(localizedName, classFileName);
   end
 
   return localizedName;
 end
 
 function tk:GetClassColorByUnitID(unitID)
-  local classFilename = tk:GetClassFilenameByUnitID(unitID);
-  return _G.GetClassColorObj(classFilename);
+  local classFileName = tk:GetClassFileNameByUnitID(unitID);
+  return _G.GetClassColorObj(classFileName);
 end
 
 local errorInfo = {};
@@ -630,6 +590,8 @@ function tk:GetVersion(colorKey)
 
   if (tk:IsRetail()) then
     client = "-retail";
+  elseif (tk:IsWrathClassic()) then
+    client = "-wrath";
   elseif (tk:IsBCClassic()) then
     client = "-bcc";
   elseif (tk:IsClassic()) then
@@ -675,4 +637,63 @@ function tk:MixColorsByPercentage(color1, color2, percentage)
   local b = (color1.b * weight) + (color2.b * (1 - weight));
 
 	return r, g, b;
+end
+
+do
+  local classes = tk.Constants.CLASS_FILE_NAMES;
+
+  local function IsClass(unitID, classFileName)
+    unitID = unitID or "player";
+    local _, _, classId = UnitClass(unitID);
+    local playerClass = tk.Constants.CLASS_IDS[classId];
+    return playerClass == classFileName;
+  end
+
+  function tk:IsWarrior(unitID)
+    return IsClass(unitID, classes.WARRIOR);
+  end
+
+  function tk:IsPaladin(unitID)
+    return IsClass(unitID, classes.PALADIN);
+  end
+
+  function tk:IsHunter(unitID)
+    return IsClass(unitID, classes.HUNTER);
+  end
+
+  function tk:IsRogue(unitID)
+    return IsClass(unitID, classes.ROGUE);
+  end
+
+  function tk:IsPriest(unitID)
+    return IsClass(unitID, classes.PRIEST);
+  end
+
+  function tk:IsDeathKnight(unitID)
+    return IsClass(unitID, classes.DEATHKNIGHT);
+  end
+
+  function tk:IsShaman(unitID)
+    return IsClass(unitID, classes.SHAMAN);
+  end
+
+  function tk:IsMage(unitID)
+    return IsClass(unitID, classes.MAGE);
+  end
+
+  function tk:IsWarlock(unitID)
+    return IsClass(unitID, classes.WARLOCK);
+  end
+
+  function tk:IsMonk(unitID)
+    return IsClass(unitID, classes.MONK);
+  end
+
+  function tk:IsDruid(unitID)
+    return IsClass(unitID, classes.DRUID);
+  end
+
+  function tk:IsDemonHunter(unitID)
+    return IsClass(unitID, classes.DEMONHUNTER);
+  end
 end

@@ -312,11 +312,11 @@ setup.import["Bartender4"] = function()
       ["MultiCast"] = {
         ["profiles"] = {
           ["MayronUI"] = {
-            ["enabled"] = false,
+            ["enabled"] = true,
             ["version"] = 3,
             ["position"] = {
-              ["y"] = 35.0000026671023,
-              ["x"] = 284.333404478858,
+              ["y"] = 40,
+              ["x"] = 365,
               ["point"] = "BOTTOMLEFT",
             },
           },

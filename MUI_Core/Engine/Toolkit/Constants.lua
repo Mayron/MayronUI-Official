@@ -1,6 +1,33 @@
 local _, namespace = ...;
+local _G = _G;
+local LibStub, MayronObjects = _G.LibStub, _G.MayronObjects;
+
+namespace.components = {
+  Objects = MayronObjects:GetFramework(); ---@type MayronObjects
+  Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
+  Toolkit = {
+    Numbers = {};
+  };
+};
+
 local tk = namespace.components.Toolkit; ---@type Toolkit
-local L = namespace.components.Locale; ---@type Locale
+local L = namespace.components.Locale;
+
+function tk:IsRetail()
+  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE;
+end
+
+function tk:IsClassic()
+  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_CLASSIC;
+end
+
+function tk:IsBCClassic()
+  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_BURNING_CRUSADE_CLASSIC;
+end
+
+function tk:IsWrathClassic()
+  return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_WRATH_CLASSIC;
+end
 
 tk.Constants = {
   ASSETS_FOLDER = "Interface\\addons\\MUI_Core\\Assets";
@@ -16,7 +43,7 @@ tk.Constants = {
     return tk.Constants.LSM:Fetch("font", namespace.components.Database.global.core.font);
   end;
 
-  LSM = _G.LibStub("LibSharedMedia-3.0");
+  LSM = LibStub("LibSharedMedia-3.0");
 
   BACKDROP = {
     edgeFile = "Interface\\Buttons\\WHITE8X8",
@@ -115,6 +142,36 @@ tk.Constants = {
     [18] = "PAIN";
   };
 
+  CLASS_IDS = {
+    [1] = "WARRIOR",
+    [2] = "PALADIN",
+    [3] = "HUNTER",
+    [4] = "ROGUE",
+    [5] = "PRIEST",
+    [6] = "DEATHKNIGHT",
+    [7] = "SHAMAN",
+    [8] = "MAGE",
+    [9] = "WARLOCK",
+    [10] = "MONK",
+    [11] = "DRUID",
+    [12] = "DEMONHUNTER",
+  };
+
+  CLASS_FILE_NAMES = {
+    WARRIOR = "WARRIOR",
+    PALADIN = "PALADIN",
+    HUNTER = "HUNTER",
+    ROGUE = "ROGUE",
+    PRIEST = "PRIEST",
+    DEATHKNIGHT = "DEATHKNIGHT",
+    SHAMAN = "SHAMAN",
+    MAGE = "MAGE",
+    WARLOCK = "WARLOCK",
+    MONK = "MONK",
+    DRUID = "DRUID",
+    DEMONHUNTER = "DEMONHUNTER",
+  };
+
   FACTION_BAR_COLORS = {
     [1] = {r = 0.8, g = 0.3, b = 0.22}; -- Exceptionally hostile
     [2] = {r = 0.8, g = 0.3, b = 0.22}; -- Very Hostile
@@ -203,4 +260,16 @@ else
     ["7737"] = true,
     ["18229"] = true,
   };
+end
+
+if (not tk:IsRetail()) then
+  tk.Constants.CLASS_IDS[12] = nil;
+  tk.Constants.CLASS_FILE_NAMES.DEMONHUNTER = nil;
+  tk.Constants.CLASS_IDS[10] = nil;
+  tk.Constants.CLASS_FILE_NAMES.MONK = nil;
+end
+
+if (not tk:IsWrathClassic() and not tk:IsRetail()) then
+  tk.Constants.CLASS_IDS[6] = nil;
+  tk.Constants.CLASS_FILE_NAMES.DEATHKNIGHT = nil;
 end

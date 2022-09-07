@@ -2,7 +2,7 @@
 local _, namespace = ...;
 namespace.import = {};
 
-local MayronUI = _G.MayronUI;
+local MayronUI, table = _G.MayronUI, _G.table;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local Private = {};
 
@@ -38,7 +38,7 @@ local setUpModule = MayronUI:ImportModule("SetUpModule");
 
 -- Local Functions -----------------------
 
-local function ChangeTheme(self, value)
+local function ChangeTheme(_, value)
   if (value) then
     -- reinject theme colors for next time...
     db.profile["profile.castbars.appearance.colors.normal"] = nil;
@@ -269,20 +269,19 @@ function Private:LoadThemeMenu(menuSection)
 
   menuSection.themeDropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, menuSection);
 
-  menuSection.themeDropdown:AddOptions(ChangeTheme, {
-    { tk.Strings:SetTextColorByHex("Death Knight", "C41F3B"), "DEATHKNIGHT" },
-    { tk.Strings:SetTextColorByHex("Demon Hunter", "A330C9"), "DEMONHUNTER" },
-    { tk.Strings:SetTextColorByHex("Druid", "FF7D0A"), "DRUID" },
-    { tk.Strings:SetTextColorByHex("Hunter", "ABD473"), "HUNTER" },
-    { tk.Strings:SetTextColorByHex("Mage", "69CCF0"), "MAGE" },
-    { tk.Strings:SetTextColorByHex("Monk", "00FF96"), "MONK" },
-    { tk.Strings:SetTextColorByHex("Paladin", "F58CBA"), "PALADIN" },
-    { tk.Strings:SetTextColorByHex("Priest", "FFFFFF"), "PRIEST" },
-    { tk.Strings:SetTextColorByHex("Rogue", "FFF569"), "ROGUE" },
-    { tk.Strings:SetTextColorByHex("Shaman", "0070DE"), "SHAMAN" },
-    { tk.Strings:SetTextColorByHex("Warlock", "9482C9"), "WARLOCK" },
-    { tk.Strings:SetTextColorByHex("Warrior", "C79C6E"), "WARRIOR" }
-  });
+  local classFileNames = tk.Tables:GetKeys(tk.Constants.CLASS_FILE_NAMES);
+  table.sort(classFileNames);
+
+  local optionsTable = obj:PopTable();
+  for _, classFileName in ipairs(classFileNames) do
+    local text = tk:GetLocalizedClassNameByFileName(classFileName, true);
+    local option = obj:PopTable(text, classFileName);
+    table.insert(optionsTable, option);
+  end
+
+  obj:PushTable(classFileNames);
+  
+  menuSection.themeDropdown:AddOptions(ChangeTheme, optionsTable);
 
   local ColorPickerFrame = _G.ColorPickerFrame;
   menuSection.themeDropdown:AddOption("Custom Color", function()
@@ -669,7 +668,7 @@ function C_SetUpModule:Install(data)
 
   if (tk:IsRetail()) then
     SetCVar("floatingCombatTextCombatHealing", "1");
-  elseif (tk:IsBCClassic()) then
+  elseif (not tk:IsClassic()) then
     SetCVar("nameplateMaxDistance", 41);
   end
 

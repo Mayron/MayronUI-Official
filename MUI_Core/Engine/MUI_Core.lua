@@ -709,6 +709,24 @@ function C_CoreModule:OnInitialize()
     end
   end
 
+  -- Migrations:
+  if (tk:IsWrathClassic() and _G.Bartender4DB and not db.global["WrathTotemBar"]) then
+    local bartenderProfile = tk.Tables:GetTable(_G.Bartender4DB, "namespaces", "MultiCast", "profiles");
+    bartenderProfile["MayronUI"] = {
+      ["enabled"] = true,
+      ["version"] = 3,
+      ["position"] = {
+        ["y"] = 40,
+        ["x"] = 365,
+        ["point"] = "BOTTOMLEFT",
+      },
+    };
+
+    _G.Bartender4.modules.MultiCast:Enable();
+    db.global["WrathTotemBar"] = true;
+  end
+
+
   tk:Print(L["Welcome back"], UnitName("player").."!");
   collectgarbage("collect");
   DisableAddOn("MUI_Setup"); -- disable for next time

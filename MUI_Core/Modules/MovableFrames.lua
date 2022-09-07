@@ -18,20 +18,24 @@ db:AddToDefaults("global.movable", {
   }
 });
 
+local characterSubFrames = { "ReputationFrame" };
+
 local BlizzardFrames = {
-	"QuestLogFrame", "QuestLogPopupDetailFrame", "InterfaceOptionsFrame", "QuestFrame",
+	"InterfaceOptionsFrame", "QuestFrame",
   "GossipFrame", "DurabilityFrame", "FriendsFrame", "MailFrame", "PetStableFrame", "SpellBookFrame",
-  "PetitionFrame", "BankFrame", "TimeManagerFrame", "LFGDungeonReadyStatus", "RecruitAFriendFrame",
-  "VideoOptionsFrame", "LFGDungeonReadyDialog", "AddonList", "WorldStateScoreFrame",
-  "LFDRoleCheckPopup", "ChatConfigFrame", "GuildInviteFrame", "LootFrame", "ReadyCheckFrame",
-  "BonusRollMoneyWonFrame", "BonusRollFrame", "TradeFrame", "TabardFrame", "GuildRegistrarFrame",
-	"ItemTextFrame", "DressUpFrame", "GameMenuFrame", "TaxiFrame", "HelpFrame", "PVEFrame", "MerchantFrame",
-	"PetBattleFrame.ActiveAlly", "PetBattleFrame.ActiveEnemy", "ChannelFrame", "WorldMapFrame", "LFGParentFrame",
+  "PetitionFrame", "BankFrame", "TimeManagerFrame",
+  "VideoOptionsFrame", "AddonList",
+  "ChatConfigFrame", "LootFrame", "ReadyCheckFrame",
+  "TradeFrame", "TabardFrame", "GuildRegistrarFrame",
+	"ItemTextFrame", "DressUpFrame", "GameMenuFrame", "TaxiFrame", "HelpFrame", "MerchantFrame",
+	"ChannelFrame", "WorldMapFrame",
 	{
 		"CharacterFrame";
+    subFrames = characterSubFrames,
 		clickedFrames = {
       "CharacterFrameTab1", "CharacterFrameTab2", "CharacterFrameTab3",
-      "CharacterFrameTab4", "CharacterFrameTab5" };
+      "CharacterFrameTab4", "CharacterFrameTab5" 
+    };
 	};
 
 	dontSavePosition = {
@@ -104,6 +108,35 @@ local BlizzardFrames = {
 	Blizzard_AzeriteUI = "AzeriteEmpoweredItemUI";
 	Blizzard_CraftUI = "CraftFrame";
 };
+
+if (tk:IsClassic()) then
+  table.insert(characterSubFrames, "HonorFrame");
+else
+  table.insert(characterSubFrames, "TokenFrame");
+  table.insert(characterSubFrames, "TokenFrameContainer");
+end
+
+if (tk:IsRetail()) then
+  table.insert(BlizzardFrames, "QuestLogPopupDetailFrame");
+  table.insert(BlizzardFrames, "LFGDungeonReadyStatus");
+  table.insert(BlizzardFrames, "RecruitAFriendFrame");
+  table.insert(BlizzardFrames, "LFGDungeonReadyDialog");
+  table.insert(BlizzardFrames, "LFDRoleCheckPopup");
+  table.insert(BlizzardFrames, "GuildInviteFrame");
+  table.insert(BlizzardFrames, "BonusRollMoneyWonFrame");
+  table.insert(BlizzardFrames, "BonusRollFrame");
+  table.insert(BlizzardFrames, "PVEFrame");
+  table.insert(BlizzardFrames, "PetBattleFrame.ActiveAlly");
+  table.insert(BlizzardFrames, "PetBattleFrame.ActiveEnemy");
+else
+  table.insert(BlizzardFrames, "QuestLogFrame");
+  table.insert(BlizzardFrames, "WorldStateScoreFrame");
+end
+
+if (tk:IsBCClassic() or tk:IsWrathClassic()) then  
+  table.insert(characterSubFrames, "PetPaperDollFrameCompanionFrame");
+  table.insert(BlizzardFrames, "LFGParentFrame");
+end
 
 local function CanMove(frame)
   return not (frame:IsProtected() and InCombatLockdown());

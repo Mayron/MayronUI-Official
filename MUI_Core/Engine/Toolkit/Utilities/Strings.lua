@@ -107,17 +107,15 @@ function tk.Strings:SetTextColorByHex(text, hex)
   return string.format("|cff%s%s|r", hex, text);
 end
 
-function tk.Strings:SetTextColorByClassFilename(text, classFilename)
-  text = text or classFilename;
+function tk.Strings:SetTextColorByClassFileName(text, classFileName)
+  text = text or classFileName;
+  classFileName = classFileName or tk:GetClassFileNameByUnitID("player");
+  classFileName = classFileName:gsub("%s+", tk.Strings.Empty):upper();
 
-  classFilename = classFilename or tk:GetClassFilenameByUnitID("player");
-
-  classFilename = classFilename:gsub("%s+", tk.Strings.Empty);
-  classFilename = classFilename:upper();
-
-  local classColor = _G.GetClassColorObj(classFilename);
+  local classColor = _G.GetClassColorObj(classFileName);
   return classColor:WrapTextInColorCode(text);
 end
+
 function tk.Strings:SetTextColorByTheme(text)
   local themeColor = tk:GetThemeColor(true);
   return themeColor:WrapTextInColorCode(text);
@@ -190,11 +188,11 @@ function tk.Strings:GetUnitNameText(unitID, overflow)
       unitName = tk.Strings:SetTextColorByRGB(unitName, 0, 1, 1);
     else
       local _, class = UnitClass(unitID);
-      unitName = tk.Strings:SetTextColorByClassFilename(unitName, class);
+      unitName = tk.Strings:SetTextColorByClassFileName(unitName, class);
     end
   elseif (UnitIsPlayer(unitID)) then
     local _, class = UnitClass(unitID);
-    unitName = tk.Strings:SetTextColorByClassFilename(unitName, class);
+    unitName = tk.Strings:SetTextColorByClassFileName(unitName, class);
   else
     local r, g, b = 1, 1, 1;
 

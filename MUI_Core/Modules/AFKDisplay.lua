@@ -330,8 +330,7 @@ do
     local race = (select(2, UnitRace("player"))):gsub("%s+", "");
     local tbl = Private.Races[race][gender];
 
-    if (tk:IsClassic() or tk:IsBCClassic()) then
-      -- TODO: for BC, support Blood elves and Draenei
+    if (not tk:IsRetail()) then
       local classicTbl = Private.Races[race].Classic;
       classicTbl = obj:IsTable(classicTbl) and classicTbl[gender];
       tbl = obj:IsTable(classicTbl) and classicTbl or tbl;
@@ -817,7 +816,7 @@ do
 
       local name = tk.Strings:Concat(UnitPVPName("player"), " - ",
       GetRealmName(), "\nLevel ", UnitLevel("player"), ", ",
-      tk.Strings:SetTextColorByClassFilename(tk.Strings:Concat(specType, (select(1, UnitClass("player"))))));
+      tk.Strings:SetTextColorByClassFileName(tk.Strings:Concat(specType, (select(1, UnitClass("player"))))));
 
       Private.display.name:SetText(name);
       Private.display:Show();

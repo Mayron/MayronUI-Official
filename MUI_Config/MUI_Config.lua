@@ -83,6 +83,7 @@ local function IsUnsupportedByClient(client)
   if (client == "retail" and not tk:IsRetail()) then return true; end
   if (client == "classic" and not tk:IsClassic()) then return true; end
   if (client == "bcclassic" or client == "bcc" and not tk:IsBCClassic()) then return true; end
+  if (client == "wrathclassic" or client == "wrath" and not tk:IsWrathClassic()) then return true; end
 
   return false;
 end

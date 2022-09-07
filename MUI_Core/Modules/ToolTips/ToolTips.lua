@@ -474,8 +474,8 @@ local function UpdateUnitTooltipLines(guildRankShown)
 
       elseif ((not guild and i == 2) or (guild and i == 3)) then
         local race = UnitRace(MOUSEOVER);
-        local fileName = tk:GetClassFilenameByUnitID(MOUSEOVER);
-        local localizedName = tk:GetLocalizedClassNameByFilename(fileName, true);
+        local fileName = tk:GetClassFileNameByUnitID(MOUSEOVER);
+        local localizedName = tk:GetLocalizedClassNameByFileName(fileName, true);
 
         line:SetFormattedText("%s %s (%s)", race, localizedName, _G.PLAYER);
       end

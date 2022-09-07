@@ -14,7 +14,7 @@ local LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type LinkedList
 -----------------------------
 
 function tk.Tables:GetKeys(tbl, keys)
-  keys = keys or {};
+  keys = keys or obj:PopTable();
 
   for key, _ in pairs(tbl) do
     table.insert(keys, key);

@@ -452,7 +452,7 @@ do
       end
 
       data:Call("SetUpWidget", "lfg", _G.QueueStatusMinimapButton);
-    elseif (tk:IsBCClassic() and _G.MiniMapLFGFrame) then
+    elseif (_G.MiniMapLFGFrame) then
       if (not data.reskinnedLFG) then
         local border = _G.MiniMapLFGBorder or _G.MiniMapLFGFrameBorder;
         if (obj:IsWidget(border)) then
@@ -485,17 +485,16 @@ do
     -- tracking:
     if (not tk:IsClassic() and obj:IsWidget(_G.MiniMapTracking)) then
       _G.MiniMapTrackingBackground:Hide();
+
       if (tk:IsRetail()) then
         _G.MiniMapTrackingButtonBorder:Hide();
         _G.MiniMapTrackingIconOverlay:Hide();
       end
 
-      if (tk:IsBCClassic()) then
-        local border = _G.MiniMapTrackingBorder or _G.MiniMapTrackingButtonBorder;
+      local border = _G.MiniMapTrackingBorder or _G.MiniMapTrackingButtonBorder;
 
-        if (obj:IsWidget(border)) then
-          tk:KillElement(border);
-        end
+      if (obj:IsWidget(border)) then
+        tk:KillElement(border);
       end
 
       data:Call("SetUpWidget", "tracking", _G.MiniMapTracking);

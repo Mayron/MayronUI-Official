@@ -54,7 +54,7 @@ end
 -- Money Module ----------------
 
 MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
-  local coloredKey = tk.Strings:SetTextColorByClassFilename(tk:GetPlayerKey());
+  local coloredKey = tk.Strings:SetTextColorByClassFileName(tk:GetPlayerKey());
 
   -- TODO: Refactor this to use only a path address
   -- saves info on the money that each logged in character has
@@ -210,7 +210,7 @@ function Money:Update(data, refreshSettings)
 
   local money = GetMoney();
   local currentMoney = self:GetFormattedMoney(money);
-  local coloredKey = tk.Strings:SetTextColorByClassFilename(tk:GetPlayerKey());
+  local coloredKey = tk.Strings:SetTextColorByClassFileName(tk:GetPlayerKey());
 
   self.Button:SetText(currentMoney);
   db:SetPathValue(db.global, ("datatext.money.characters.%s"):format(coloredKey), money);
@@ -244,7 +244,7 @@ function Money:GetLabel(data, index, btnEnabled)
     end
 
     local characterName = (label.dbKey);
-    local currentCharacterName = tk.Strings:SetTextColorByClassFilename(tk:GetPlayerKey());
+    local currentCharacterName = tk.Strings:SetTextColorByClassFileName(tk:GetPlayerKey());
     local message = L["Are you sure you want to reset the money data for %s?"]:format(characterName);
     local confirmMessage = L["Money data for %s has been reset."]:format(characterName);
 

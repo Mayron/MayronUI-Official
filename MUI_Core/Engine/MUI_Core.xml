@@ -1,11 +1,10 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
+    <Script file="Toolkit\Constants.lua"/>
     <Script file="Toolkit\Utilities\Other.lua"/>
     <Script file="Toolkit\Utilities\Tables.lua"/>
     <Script file="Toolkit\Utilities\Strings.lua"/>
     <Script file="Toolkit\Utilities\Widgets.lua"/>
-    <Script file="Toolkit\Constants.lua"/>
-
     <Script file="MUI_Core.lua"/>
     <Script file="UpdateFunctions.lua"/>
 </Ui>
