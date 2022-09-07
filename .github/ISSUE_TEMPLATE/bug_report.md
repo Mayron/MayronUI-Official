@@ -1,7 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us debug
-
+about: Use the MUI report tool (/mui report) to generate a bug report and paste it here
 ---
 
 ### Instructions
