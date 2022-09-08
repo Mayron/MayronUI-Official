@@ -710,21 +710,28 @@ function C_CoreModule:OnInitialize()
   end
 
   -- Migrations:
-  if (tk:IsWrathClassic() and _G.Bartender4DB and not db.global["WrathTotemBar"]) then
-    local bartenderProfile = tk.Tables:GetTable(_G.Bartender4DB, "namespaces", "MultiCast", "profiles");
-    bartenderProfile["MayronUI"] = {
-      ["enabled"] = true,
-      ["version"] = 3,
-      ["position"] = {
-        ["y"] = 40,
-        ["x"] = 365,
-        ["point"] = "BOTTOMLEFT",
-      },
-    };
+  if (tk:IsWrathClassic() and tk:IsShaman() and IsAddOnLoaded("Bartender4")) then
+    local bartenderDB, bartender = _G.Bartender4DB, _G.Bartender4;
 
-    _G.Bartender4.modules.MultiCast:Enable();
-    db.global["WrathTotemBar"] = true;
+    if (obj:IsTable(bartenderDB) and obj:IsTable(bartender) and not db.global["WrathTotemBar"]) then
+        local profile = tk.Tables:GetTable(bartenderDB, "namespaces", "MultiCast", "profiles");
+        
+        profile.MayronUI = {
+          enabled = true;
+          version = 3;
+          position = { y = 40; x = 365; point = "BOTTOMLEFT" };
+        };
+
+        db.global["WrathTotemBar"] = true;
+
+        local multiCast = tk.Tables:GetValueOrNil(bartender, "modules", "MultiCast");
+
+        if (obj:IsTable(multiCast)) then
+          bartender.modules.MultiCast:Enable();
+        end
+      end
   end
+  
 
 
   tk:Print(L["Welcome back"], UnitName("player").."!");

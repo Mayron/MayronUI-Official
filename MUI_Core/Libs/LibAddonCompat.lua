@@ -1,17 +1,29 @@
-local MAJOR, MINOR = "LibAddonCompat-1.0", 10
+local MAJOR, MINOR = "LibAddonCompat-1.0", 13
 ---@class LibAddonCompat
 local LibAddonCompat = LibStub:NewLibrary(MAJOR, MINOR)
 if not LibAddonCompat then return end
 
-local GetNumSkillLines, GetSkillLineInfo = GetNumSkillLines, GetSkillLineInfo
-local FindSpellBookSlotBySpellID, GetSpellBookItemTexture = FindSpellBookSlotBySpellID, GetSpellBookItemTexture
-local PROFESSIONS_COOKING, PROFESSIONS_FIRST_AID, PROFESSIONS_FISHING = PROFESSIONS_COOKING, PROFESSIONS_FIRST_AID, PROFESSIONS_FISHING
-
 LibAddonCompat.PROFESSION_FIRST_INDEX = 1
 LibAddonCompat.PROFESSION_SECOND_INDEX = 2
+LibAddonCompat.PROFESSIONS_ARCHAEOLOGY_INDEX = 3
 LibAddonCompat.PROFESSION_FISHING_INDEX = 4
 LibAddonCompat.PROFESSION_COOKING_INDEX = 5
 LibAddonCompat.PROFESSION_FIRST_AID_INDEX = 6
+
+if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
+	function LibAddonCompat:GetProfessions()
+		return GetProfessions()
+	end
+	function LibAddonCompat:GetProfessionInfo(skillIndex)
+		return GetProfessionInfo(skillIndex)
+	end
+
+	return
+end
+
+local GetNumSkillLines, GetSkillLineInfo = GetNumSkillLines, GetSkillLineInfo
+local FindSpellBookSlotBySpellID, GetSpellBookItemTexture = FindSpellBookSlotBySpellID, GetSpellBookItemTexture
+local PROFESSIONS_COOKING, PROFESSIONS_FIRST_AID, PROFESSIONS_FISHING = PROFESSIONS_COOKING, PROFESSIONS_FIRST_AID, PROFESSIONS_FISHING
 
 local TEXTURE_COOKING = "133971"
 local TEXTURE_FIRST_AID = "135966"
@@ -26,12 +38,17 @@ local TEXTURE_ENCHANTING = "136244"
 local TEXTURE_TAILORING = "136249"
 local TEXTURE_SKINNING = "134366"
 local TEXTURE_JEWELCRAFTING = { "134071", "134072" }
+local TEXTURE_INSCRIPTION = "237171"
 
 local professionsLocale = {
 	[PROFESSIONS_COOKING] = TEXTURE_COOKING,
 	[PROFESSIONS_FIRST_AID] = TEXTURE_FIRST_AID,
 	[PROFESSIONS_FISHING] = TEXTURE_FISHING
 }
+
+if INSCRIPTION then
+	professionsLocale[INSCRIPTION] = TEXTURE_INSCRIPTION
+end
 
 function LibAddonCompat:GetProfessions()
 	local professions = {
@@ -111,19 +128,20 @@ setmetatable(professionInfoTable, {
 	end
 })
 
-professionInfoTable[TEXTURE_FIRST_AID] = { numAbilities = 1, spellIds = { 3273, 3274, 7924, 10846, 27028 }, skillLine = 129 }
-professionInfoTable[TEXTURE_BLACKSMITHING] = { numAbilities = 1, spellIds = { 2018, 3100, 3538, 9785, 29844 }, skillLine = 164 }
-professionInfoTable[TEXTURE_LEATHERWORKING] = { numAbilities = 1, spellIds = { 2108, 3104, 3811, 10662, 32549 }, skillLine = 165 }
-professionInfoTable[TEXTURE_ALCHEMY] = { numAbilities = 1, spellIds = { 2259, 3101, 3464, 11611, 28596 }, skillLine = 171 }
+professionInfoTable[TEXTURE_FIRST_AID] = { numAbilities = 1, spellIds = { 3273, 3274, 7924, 10846, 27028, 45542, 74559, 110406, 158741, 195113 }, skillLine = 129 }
+professionInfoTable[TEXTURE_BLACKSMITHING] = { numAbilities = 1, spellIds = { 2018, 3100, 3538, 9785, 29844, 51300, 76666, 110396, 158737, 195097 }, skillLine = 164 }
+professionInfoTable[TEXTURE_LEATHERWORKING] = { numAbilities = 1, spellIds = { 2108, 3104, 3811, 10662, 32549, 51302, 81199, 110423, 158752, 195119 }, skillLine = 165 }
+professionInfoTable[TEXTURE_ALCHEMY] = { numAbilities = 1, spellIds = { 2259, 3101, 3464, 11611, 28596, 51304, 80731, 105206 }, skillLine = 171 }
 professionInfoTable[TEXTURE_HERBALISM] = { numAbilities = 1, spellIds = { }, skillLine = 182 }
 professionInfoTable[TEXTURE_MINING] = { numAbilities = 2, spellIds = { 2656 }, skillLine = 186 }
-professionInfoTable[TEXTURE_ENGINEERING] = { numAbilities = 1, spellIds = { 4036, 4037, 4038, 12656, 30350 }, skillLine = 202 }
-professionInfoTable[TEXTURE_ENCHANTING] = { numAbilities = 1, spellIds = { 7411, 7412, 7413, 13920, 28029 }, skillLine = 333 }
+professionInfoTable[TEXTURE_ENGINEERING] = { numAbilities = 1, spellIds = { 4036, 4037, 4038, 12656, 30350, 51306, 82774, 110403, 158739, 195112 }, skillLine = 202 }
+professionInfoTable[TEXTURE_ENCHANTING] = { numAbilities = 1, spellIds = { 7411, 7412, 7413, 13920, 28029, 51313, 74258, 110400, 158716, 195096 }, skillLine = 333 }
 professionInfoTable[TEXTURE_FISHING] = { numAbilities = 1, spellIds = { }, skillLine = 356 }
-professionInfoTable[TEXTURE_COOKING] = { numAbilities = 1, spellIds = { 2550, 3102, 3413, 18260, 33359 }, skillLine = 185 }
-professionInfoTable[TEXTURE_TAILORING] = { numAbilities = 1, spellIds = { 3908, 3909, 3910, 12180, 26790 }, skillLine = 197 }
+professionInfoTable[TEXTURE_COOKING] = { numAbilities = 1, spellIds = { 2550, 3102, 3413, 18260, 33359, 51296, 88053, 104381, 158765, 195128 }, skillLine = 185 }
+professionInfoTable[TEXTURE_TAILORING] = { numAbilities = 1, spellIds = { 3908, 3909, 3910, 12180, 26790, 51309, 75156, 110426, 158758, 195126 }, skillLine = 197 }
 professionInfoTable[TEXTURE_SKINNING] = { numAbilities = 1, spellIds = { }, skillLine = 393 }
-professionInfoTable[TEXTURE_JEWELCRAFTING] = { numAbilities = 2, spellIds = { 25229, 25230, 28894, 28895, 28897 }, skillLine = 755 }
+professionInfoTable[TEXTURE_JEWELCRAFTING] = { numAbilities = 2, spellIds = { 25229, 25230, 28894, 28895, 28897, 51311, 73318, 110420, 158750, 195116 }, skillLine = 755 }
+professionInfoTable[TEXTURE_INSCRIPTION] = { numAbilities = 2, spellIds = { 45357, 45358, 45359, 45360, 45361, 45363, 86008, 110417, 158748, 195115 }, skillLine = 773 }
 
 function LibAddonCompat:GetProfessionInfo(skillIndex)
 	local skillName, isHeader, isExpanded, skillRank, numTempPoints, skillModifier,
@@ -201,7 +219,7 @@ elseif locale == "koKR" then
 	professionsLocale["대장기술"] = TEXTURE_BLACKSMITHING
 	professionsLocale["가죽세공"] = TEXTURE_LEATHERWORKING
 	professionsLocale["연금술"] = TEXTURE_ALCHEMY
-	professionsLocale["약초채집"] = TEXTURE_HERBALISM
+	professionsLocale["약초 채집"] = TEXTURE_HERBALISM
 	professionsLocale["채광"] = TEXTURE_MINING
 	professionsLocale["기계공학"] = TEXTURE_ENGINEERING
 	professionsLocale["마법부여"] = TEXTURE_ENCHANTING

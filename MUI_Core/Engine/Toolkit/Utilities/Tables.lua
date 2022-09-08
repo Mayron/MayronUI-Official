@@ -4,7 +4,7 @@ local _, namespace = ...;
 local obj = namespace.components.Objects; ---@type MayronObjects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
-local pcall, pairs, strsplit, tonumber = _G.pcall, _G.pairs, _G.strsplit, _G.tonumber;
+local pcall, pairs, ipairs, type, strsplit, tonumber = _G.pcall, _G.pairs, _G.ipairs, _G.type, _G.strsplit, _G.tonumber;
 local table, select = _G.table, _G.select;
 local LibStub = _G.LibStub;
 
@@ -75,6 +75,25 @@ function tk.Tables:GetTable(rootTable, ...)
   end
 
   return currentTable;
+end
+
+function tk.Tables:GetValueOrNil(rootTable, ...)
+  tk:Assert(obj:IsTable(rootTable),
+    "tk.Tables.GetValueOrNil - invalid rootTable arg (table expected, got %s)", type(rootTable));
+
+  local current = rootTable;
+
+  for i = 1, select("#", ...) do
+    local key = (select(i, ...));
+
+    if (not obj:IsTable(current)) then
+      return nil;
+    end
+
+    current = current[key];
+  end
+
+  return current;
 end
 
 ---A helper function to print a table's contents.
