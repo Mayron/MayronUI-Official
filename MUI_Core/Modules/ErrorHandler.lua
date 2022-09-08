@@ -1,9 +1,10 @@
 -- luacheck: ignore self 143 631
 local _, namespace = ...;
+local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local tk, _, em, _, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
-local table, string, select = _G.table, _G.string, _G.select;
+local table, string, select, pairs = _G.table, _G.string, _G.select, _G.pairs;
 local hooksecurefunc, GetMinimapZoneText = _G.hooksecurefunc, _G.GetMinimapZoneText;
 local GetNumGroupMembers, IsResting = _G.GetNumGroupMembers, _G.IsResting;
 local IsInInstance, InCombatLockdown = _G.IsInInstance, _G.InCombatLockdown;
@@ -33,7 +34,8 @@ function C_ErrorHandler:OnInitialize()
   end
 
   local listener = em:CreateEventListener(function(_, event, name, func)
-    local errorMessage = ("[%s] AddOn '%s' tried to call the protected function '%s'."):format(event, name or "<name>", func or "<func>");
+    local errorMessage = ("[%s] AddOn '%s' tried to call the protected function '%s'.")
+      :format(event, name or "<name>", func or "<func>");
     addError(errorMessage);
   end);
 
@@ -67,8 +69,36 @@ function C_ErrorHandler:OnInitialize()
   ScriptErrorsFrame:SetScale(1.4);
 
   tk:SetFontSize(closeBtn:GetFontString(), 11);
-  closeBtn:SetText("Report MayronUI Bug");
-  closeBtn:SetWidth(180);
+  local closeText = closeBtn:GetText();
+  local closeBtnWidth = closeBtn:GetWidth();
+
+  tk:HookFunc(ScriptErrorsFrame, "Update", function(self)
+    local isMayronUIError = false;
+
+    if (obj:IsTable(self.seen)) then
+      local index = self.index;
+
+      for errorMessage, errorIndex in pairs(self.seen) do
+        if (errorIndex == index) then
+          if (tk.Strings:Contains(errorMessage, "MUI_")) then
+            isMayronUIError = true;
+          end
+          break;
+        end
+      end
+    end
+
+    closeBtn.showReportWindow = isMayronUIError;
+
+    if (isMayronUIError) then
+      closeBtn:SetText(L["Report MayronUI Bug"]);
+      closeBtn:SetWidth(180);
+    else
+      closeBtn:SetText(closeText);
+      closeBtn:SetWidth(closeBtnWidth);
+    end
+  end);
+
   ScriptErrorsFrame.IndexLabel:SetPoint("BOTTOMLEFT", _G.ScriptErrorsFrameBottom, "BOTTOMLEFT", 10, 15);
 
   reloadBtn:SetText("");
@@ -79,8 +109,11 @@ function C_ErrorHandler:OnInitialize()
   tk:SetBasicTooltip(reloadBtn, "Reload UI");
   reloadBtn:SetPoint("BOTTOMLEFT", ScriptErrorsFrame,  15, 14);
 
-  closeBtn:SetScript("OnClick", function()
-    MayronUI:TriggerCommand("report", true);
+  closeBtn:SetScript("OnClick", function(self)
+    if (self.showReportWindow) then
+      MayronUI:TriggerCommand("report", true);
+    end
+
     ScriptErrorsFrame:Hide();
   end);
 
@@ -93,7 +126,7 @@ function C_ErrorHandler:OnInitialize()
       local sendButton = _G.BugSackSendButton;
 
       if (sendButton) then
-        sendButton:SetText("Report MayronUI Bug");
+        sendButton:SetText(L["Report MayronUI Bug"]);
 
         sendButton:SetScript("OnClick", function()
           MayronUI:TriggerCommand("report", true);

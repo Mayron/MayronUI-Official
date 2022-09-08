@@ -523,6 +523,7 @@ L["minimum"] = "최저한의";
 L["Please describe the bug in detail:"] = "버그에 대해 자세히 설명해주세요.";
 L["How can we replicate the bug?"] = "버그를 어떻게 복제 할 수 있습니까?";
 L["Report Issue"] = "문제보고";
+L["Report MayronUI Bug"] = "MayronUI 버그 신고";
 L["Open this webpage in your browser"] = "브라우저에서이 웹 페이지 열기";
 L["Generate Report"] = "보고서 생성";
 L["Copy Report"] = "보고서 복사";

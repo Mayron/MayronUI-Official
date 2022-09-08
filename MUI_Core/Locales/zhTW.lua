@@ -523,6 +523,7 @@ L["minimum"] = "最低限度";
 L["Please describe the bug in detail:"] = "請詳細描述錯誤：";
 L["How can we replicate the bug?"] = "我們如何復制錯誤？";
 L["Report Issue"] = "報告問題";
+L["Report MayronUI Bug"] = "報告 MayronUI 錯誤";
 L["Open this webpage in your browser"] = "在瀏覽器中打開此網頁";
 L["Generate Report"] = "生成報告";
 L["Copy Report"] = "複製報告";

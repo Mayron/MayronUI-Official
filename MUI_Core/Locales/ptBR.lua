@@ -526,6 +526,7 @@ L["minimum"] = "mínimo";
 L["Please describe the bug in detail:"] = "Descreva o bug em detalhes:";
 L["How can we replicate the bug?"] = "Como podemos replicar o bug?";
 L["Report Issue"] = "Reportar problema";
+L["Report MayronUI Bug"] = "Reportar Bug do MayronUI";
 L["Open this webpage in your browser"] = "Abra esta página da web em seu navegador";
 L["Generate Report"] = "Gerar Relatório";
 L["Copy Report"] = "Copiar Relatório";
