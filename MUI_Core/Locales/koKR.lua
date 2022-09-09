@@ -17,6 +17,7 @@ L["Raid"] = "레이드";
 L["Encounter Journal"] = "만남 일지";
 L["Collections Journal"] = "컬렉션 저널";
 L["Macros"] = "매크로";
+L["Skills"] = "기술";
 L["World Map"] = "세계지도";
 L["Quest Log"] = "퀘스트 로그";
 L["Show Online Friends"] = "온라인 친구 표시";

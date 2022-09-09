@@ -59,8 +59,17 @@ if (not tk:IsRetail()) then
     L["Quest Log"],
     L["Reputation"],
     L["PVP Score"],
-    "Skills"
+    L["Skills"]
   };
+
+  if (tk:IsWrathClassic()) then
+    table.insert(C_ChatModule.Static.ButtonNames, 8, L["Achievements"]);
+    table.insert(C_ChatModule.Static.ButtonNames, 9, L["Glyphs"]);
+    table.insert(C_ChatModule.Static.ButtonNames, 10, L["Calendar"]);
+    buttonKeys.Achievements = L["Achievements"];
+    buttonKeys.Glyphs = L["Glyphs"];
+    buttonKeys.Calendar = L["Calendar"];
+  end
 else
   C_ChatModule.Static.ButtonNames = {
     L["Character"],
@@ -84,7 +93,7 @@ else
     L["Reputation"],
     L["PVP Score"],
     L["Currency"],
-    "Skills"
+    L["Skills"]
   };
 
   buttonKeys.PVP = L["PVP"];
@@ -149,30 +158,34 @@ end
 
 -- Talents
 clickHandlers[buttonKeys.Talents] = function()
-  if (UnitLevel("player") < 10) then
+  if (UnitLevel("player") < SHOW_TALENT_LEVEL) then
     tk:Print(L["Must be level 10 or higher to use Talents."]);
   else
-    local talentFrame = PlayerTalentFrame or TalentFrame;
-
-    if (not talentFrame) then
-      LoadAddOn("Blizzard_TalentUI");
-      talentFrame = PlayerTalentFrame or TalentFrame;
-    end
-
-    ToggleFrame(talentFrame);
+    ToggleTalentFrame();
   end
 end
 
 -- Raid
 clickHandlers[buttonKeys.Raid] = ToggleRaidFrame;
 
-if (tk:IsRetail()) then
+if (tk:IsRetail() or tk:IsWrathClassic()) then
   -- Achievements
   clickHandlers[buttonKeys.Achievements] = ToggleAchievementFrame;
 
+  -- Glyphs
+  clickHandlers[buttonKeys.Glyphs] = function()
+    if (UnitLevel("player") < SHOW_INSCRIPTION_LEVEL) then
+      tk:Print(L["Must be level 10 or higher to use Talents."]);
+    else
+      ToggleGlyphFrame();
+    end
+  end
+
   -- Calendar
   clickHandlers[buttonKeys.Calendar] = ToggleCalendar;
+end
 
+if (tk:IsRetail()) then
   -- LFD
   clickHandlers[buttonKeys.LFD] = ToggleLFDParentFrame;
 

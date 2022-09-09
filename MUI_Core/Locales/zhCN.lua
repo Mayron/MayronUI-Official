@@ -17,6 +17,7 @@ L["Raid"] = "袭击";
 L["Encounter Journal"] = "邂逅日记";
 L["Collections Journal"] = "收藏杂志";
 L["Macros"] = "宏";
+L["Skills"] = "技能";
 L["World Map"] = "世界地图";
 L["Quest Log"] = "任务日志";
 L["Show Online Friends"] = "显示在线朋友";

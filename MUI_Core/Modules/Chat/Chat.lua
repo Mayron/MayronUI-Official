@@ -130,8 +130,8 @@ local defaults = {
       };
       {
         key = "C"; -- CONTROL
-        L["Friends"];
-        L["Guild"];
+        L["Reputation"];
+        L["Skills"];
         L["Quest Log"];
       };
       {
@@ -154,11 +154,13 @@ local defaults = {
 };
 
 if (not tk:IsRetail()) then
+  local firstBtn = tk:IsWrathClassic() and "Achievements" or "Friends";
+  local secondBtn = tk:IsWrathClassic() and "Calendar" or "Guild";
   defaults.__templateChatFrame.buttons[3] = {
     key = "S"; -- SHIFT
-    L["Reputation"];
+    L[firstBtn];
+    L[secondBtn];
     L["Macros"];
-    "Skills";
   };
 end
 

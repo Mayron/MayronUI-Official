@@ -20,6 +20,7 @@ L["Raid"] = "Raid";
 L["Encounter Journal"] = "Journal des Rencontres";
 L["Collections Journal"] = "Journal des Collections";
 L["Macros"] = "Macro";
+L["Skills"] = "Compétences";
 L["World Map"] = "Carte du monde";
 L["Quest Log"] = "Journal de quête";
 L["Show Online Friends"] = "Afficher les amis en ligne";
