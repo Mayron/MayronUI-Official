@@ -172,17 +172,21 @@ if (tk:IsRetail() or tk:IsWrathClassic()) then
   -- Achievements
   clickHandlers[buttonKeys.Achievements] = ToggleAchievementFrame;
 
-  -- Glyphs
-  clickHandlers[buttonKeys.Glyphs] = function()
-    if (UnitLevel("player") < SHOW_INSCRIPTION_LEVEL) then
-      tk:Print(L["Must be level 10 or higher to use Talents."]);
-    else
-      ToggleGlyphFrame();
+    -- Calendar
+  clickHandlers[buttonKeys.Calendar] = ToggleCalendar;
+
+  if (tk:IsWrathClassic() and 
+    obj:IsNumber(SHOW_INSCRIPTION_LEVEL) and 
+    obj:IsFunction(ToggleGlyphFrame)) then
+    -- Glyphs
+    clickHandlers[buttonKeys.Glyphs] = function()
+      if (UnitLevel("player") < SHOW_INSCRIPTION_LEVEL) then
+        tk:Print(L["Must be level 10 or higher to use Talents."]);
+      else
+        ToggleGlyphFrame();
+      end
     end
   end
-
-  -- Calendar
-  clickHandlers[buttonKeys.Calendar] = ToggleCalendar;
 end
 
 if (tk:IsRetail()) then
