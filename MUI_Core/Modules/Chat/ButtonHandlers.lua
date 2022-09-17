@@ -1,5 +1,6 @@
 -- luacheck: ignore MayronUI self 143
-local MayronUI = _G.MayronUI;
+local _G = _G;
+local MayronUI, table = _G.MayronUI, _G.table;
 local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
 local obj = _G.MayronObjects:GetFramework();
 
@@ -8,10 +9,12 @@ local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 local C_ChatFrame = obj:Import("MayronUI.ChatModule.ChatFrame");
 
 local LoadAddOn, IsTrialAccount, IsInGuild, UnitLevel, UnitInBattleground =
-  _G.LoadAddOn, _G.IsTrialAccount, _G.IsInGuild, _G.UnitLevel, _G.UnitInBattleground;
-local InCombatLockdown, ipairs = _G.InCombatLockdown, _G.ipairs;
+  _G.LoadAddOn, _G.IsTrialAccount, _G.IsInGuild, _G.UnitLevel,
+  _G.UnitInBattleground;
 
+local InCombatLockdown, ipairs = _G.InCombatLockdown, _G.ipairs;
 local ToggleGuildFrame;
+
 if (tk:IsRetail()) then
   ToggleGuildFrame = _G.ToggleGuildFrame;
 else
@@ -28,38 +31,27 @@ ToggleWorldStateScoreFrame TalentFrame
 ]]
 
 local buttonKeys = {
-  Character   = L["Character"],
-  Bags        = L["Bags"],
-  Friends     = L["Friends"],
-  Guild       = L["Guild"],
-  HelpMenu    = L["Help Menu"],
-  SpellBook   = L["Spell Book"],
-  Talents     = L["Talents"],
-  Raid        = L["Raid"],
-  Macros      = L["Macros"],
-  WorldMap    = L["World Map"],
-  QuestLog    = L["Quest Log"],
-  Reputation  = L["Reputation"],
-  PVPScore    = L["PVP Score"],
-  Skills    = "Skills"
+  Character = L["Character"];
+  Bags = L["Bags"];
+  Friends = L["Friends"];
+  Guild = L["Guild"];
+  HelpMenu = L["Help Menu"];
+  SpellBook = L["Spell Book"];
+  Talents = L["Talents"];
+  Raid = L["Raid"];
+  Macros = L["Macros"];
+  WorldMap = L["World Map"];
+  QuestLog = L["Quest Log"];
+  Reputation = L["Reputation"];
+  PVPScore = L["PVP Score"];
+  Skills = "Skills"
 };
 
 if (not tk:IsRetail()) then
   C_ChatModule.Static.ButtonNames = {
-    L["Character"],
-    L["Bags"],
-    L["Friends"],
-    L["Guild"],
-    L["Help Menu"],
-    L["Spell Book"],
-    L["Talents"],
-    L["Raid"],
-    L["Macros"],
-    L["World Map"],
-    L["Quest Log"],
-    L["Reputation"],
-    L["PVP Score"],
-    L["Skills"]
+    L["Character"]; L["Bags"]; L["Friends"]; L["Guild"]; L["Help Menu"];
+    L["Spell Book"]; L["Talents"]; L["Raid"]; L["Macros"]; L["World Map"];
+    L["Quest Log"]; L["Reputation"]; L["PVP Score"]; L["Skills"]
   };
 
   if (tk:IsWrathClassic()) then
@@ -72,28 +64,11 @@ if (not tk:IsRetail()) then
   end
 else
   C_ChatModule.Static.ButtonNames = {
-    L["Character"],
-    L["Bags"],
-    L["Friends"],
-    L["Guild"],
-    L["Help Menu"],
-    L["PVP"],
-    L["Spell Book"],
-    L["Talents"],
-    L["Achievements"],
-    L["Glyphs"],
-    L["Calendar"],
-    L["LFD"],
-    L["Raid"],
-    L["Encounter Journal"],
-    L["Collections Journal"],
-    L["Macros"],
-    L["World Map"],
-    L["Quest Log"],
-    L["Reputation"],
-    L["PVP Score"],
-    L["Currency"],
-    L["Skills"]
+    L["Character"]; L["Bags"]; L["Friends"]; L["Guild"]; L["Help Menu"];
+    L["PVP"]; L["Spell Book"]; L["Talents"]; L["Achievements"]; L["Glyphs"];
+    L["Calendar"]; L["LFD"]; L["Raid"]; L["Encounter Journal"];
+    L["Collections Journal"]; L["Macros"]; L["World Map"]; L["Quest Log"];
+    L["Reputation"]; L["PVP Score"]; L["Currency"]; L["Skills"]
   };
 
   buttonKeys.PVP = L["PVP"];
@@ -114,10 +89,12 @@ end
 
 -- Bags
 clickHandlers[buttonKeys.Bags] = function()
-  if (ContainerFrame1:IsVisible()) then
-    ToggleBackpack();
+  local frame = _G.ContainerFrame1;
+
+  if (obj:IsWidget(frame) and frame:IsVisible()) then
+    _G.ToggleBackpack();
   else
-    OpenAllBags();
+    _G.OpenAllBags();
   end
 end
 
@@ -152,9 +129,8 @@ if (tk:IsRetail()) then
 end
 
 -- Spell Book
-clickHandlers[buttonKeys.SpellBook] = function()
-    ToggleFrame(SpellBookFrame);
-end
+clickHandlers[buttonKeys.SpellBook] =
+  function() ToggleFrame(SpellBookFrame); end
 
 -- Talents
 clickHandlers[buttonKeys.Talents] = function()
@@ -172,19 +148,18 @@ if (tk:IsRetail() or tk:IsWrathClassic()) then
   -- Achievements
   clickHandlers[buttonKeys.Achievements] = ToggleAchievementFrame;
 
-    -- Calendar
+  -- Calendar
   clickHandlers[buttonKeys.Calendar] = ToggleCalendar;
+end
 
-  if (tk:IsWrathClassic() and 
-    obj:IsNumber(SHOW_INSCRIPTION_LEVEL) and 
-    obj:IsFunction(ToggleGlyphFrame)) then
-    -- Glyphs
-    clickHandlers[buttonKeys.Glyphs] = function()
-      if (UnitLevel("player") < SHOW_INSCRIPTION_LEVEL) then
-        tk:Print(L["Must be level 10 or higher to use Talents."]);
-      else
-        ToggleGlyphFrame();
-      end
+if (tk:IsWrathClassic() and obj:IsNumber(SHOW_INSCRIPTION_LEVEL) and
+  obj:IsFunction(ToggleGlyphFrame)) then
+  -- Glyphs
+  clickHandlers[buttonKeys.Glyphs] = function()
+    if (UnitLevel("player") < SHOW_INSCRIPTION_LEVEL) then
+      tk:Print(L["Must be level 10 or higher to use Talents."]);
+    else
+      ToggleGlyphFrame();
     end
   end
 end
@@ -198,7 +173,7 @@ if (tk:IsRetail()) then
 
   -- Collections Journal
   clickHandlers[buttonKeys.CollectionsJournal] = function()
-      ToggleCollectionsJournal();
+    ToggleCollectionsJournal();
   end
 
   -- Currency
@@ -209,11 +184,9 @@ end
 
 -- -- Macros
 clickHandlers[buttonKeys.Macros] = function()
-    if (not MacroFrame) then
-        LoadAddOn("Blizzard_MacroUI");
-    end
+  if (not obj:IsWidget(MacroFrame)) then LoadAddOn("Blizzard_MacroUI"); end
 
-    ToggleFrame(MacroFrame);
+  ToggleFrame(MacroFrame);
 end
 
 -- World Map
@@ -224,25 +197,23 @@ clickHandlers[buttonKeys.QuestLog] = ToggleQuestLog;
 
 -- Repuation
 clickHandlers[buttonKeys.Reputation] = function()
-    ToggleCharacter("ReputationFrame");
+  ToggleCharacter("ReputationFrame");
 end
 
 -- PVP Score
 clickHandlers[buttonKeys.PVPScore] = function()
-    if (not UnitInBattleground("player")) then
-        tk:Print(L["Requires being inside a Battle Ground."]);
-    else
-        ToggleWorldStateScoreFrame();
-    end
+  if (not UnitInBattleground("player")) then
+    tk:Print(L["Requires being inside a Battle Ground."]);
+  else
+    ToggleWorldStateScoreFrame();
+  end
 end
 
 -- Skill
-clickHandlers[buttonKeys.Skills] = function()
-  ToggleCharacter("SkillFrame");
-end
+clickHandlers[buttonKeys.Skills] = function() ToggleCharacter("SkillFrame"); end
 
 local function ChatButton_OnClick(self)
-  if (_G.InCombatLockdown()) then
+  if (InCombatLockdown()) then
     tk:Print(L["Cannot toggle menu while in combat."]);
     return;
   end
@@ -266,8 +237,11 @@ obj:DefineParams("table")
 function C_ChatFrame:SetUpButtonHandler(data, buttonSettings)
   data.settings.buttons = buttonSettings;
 
-  local listenerID = data.anchorName.."_OnModifierStateChanged";
-  local listener = em:GetEventListenerByID(listenerID) or em:CreateEventListenerWithID(listenerID, ChatFrame_OnModifierStateChanged);
+  local listenerID = data.anchorName .. "_OnModifierStateChanged";
+
+  local listener = em:GetEventListenerByID(listenerID) or
+                     em:CreateEventListenerWithID(listenerID,
+                                                  ChatFrame_OnModifierStateChanged);
 
   listener:SetCallbackArgs(data);
   listener:RegisterEvent("MODIFIER_STATE_CHANGED");
