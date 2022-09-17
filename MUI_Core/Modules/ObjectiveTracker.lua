@@ -1,19 +1,24 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-if (not tk:IsRetail()) then return end
+if (not tk:IsRetail()) then
+  return
+end
 
 ---@class ObjectiveTrackerModule : BaseModule
-local C_ObjectiveTracker = MayronUI:RegisterModule("ObjectiveTrackerModule", L["Objective Tracker"], true);
+local C_ObjectiveTracker = MayronUI:RegisterModule("ObjectiveTrackerModule",
+                             L["Objective Tracker"], true);
 
 MayronUI:Hook("SideBarModule", "OnEnable", function(sideBarModule)
   MayronUI:ImportModule("ObjectiveTrackerModule"):Initialize(sideBarModule);
 end);
 
-local ObjectiveTrackerFrame, IsInInstance, UIParent, hooksecurefunc, ipairs, C_PlayerInfo, C_QuestLog, CreateFrame,
-GetInstanceInfo, RegisterStateDriver, UnregisterStateDriver, GetDifficultyColor, string, tinsert, unpack =
-  _G.ObjectiveTrackerFrame, _G.IsInInstance, _G.UIParent, _G.hooksecurefunc, _G.ipairs, _G.C_PlayerInfo,
-  _G.C_QuestLog, _G.CreateFrame, _G.GetInstanceInfo, _G.RegisterStateDriver, _G.UnregisterStateDriver,
+local ObjectiveTrackerFrame, IsInInstance, UIParent, hooksecurefunc, ipairs,
+      C_PlayerInfo, C_QuestLog, CreateFrame, GetInstanceInfo,
+      RegisterStateDriver, UnregisterStateDriver, GetDifficultyColor, string,
+      tinsert, unpack = _G.ObjectiveTrackerFrame, _G.IsInInstance, _G.UIParent,
+  _G.hooksecurefunc, _G.ipairs, _G.C_PlayerInfo, _G.C_QuestLog, _G.CreateFrame,
+  _G.GetInstanceInfo, _G.RegisterStateDriver, _G.UnregisterStateDriver,
   _G.GetDifficultyColor, _G.string, _G.table.insert, _G.unpack;
 
 local function SetHeaderColor(headerText, difficultyColor, highlight)
@@ -37,14 +42,18 @@ local function UpdateQuestDifficultyColors(block, highlight)
       if (questInfo and questInfo.questID == block.id) then
         -- bonus quests do not have HeaderText
         if (block.HeaderText) then
-          local difficultyColor = GetDifficultyColor(C_PlayerInfo.GetContentDifficultyQuestForPlayer(questInfo.questID));
+          local difficultyColor = GetDifficultyColor(
+                                    C_PlayerInfo.GetContentDifficultyQuestForPlayer(
+                                      questInfo.questID));
+
           SetHeaderColor(block.HeaderText, difficultyColor, highlight);
-          local headerText = string.format("[%d] %s", questInfo.level, questInfo.title);
+          local headerText = string.format("[%d] %s", questInfo.level,
+                               questInfo.title);
           block.HeaderText:SetText(headerText);
           block.HeaderText:SetHeight(block.HeaderText:GetStringHeight())
         end
 
-        break;
+        break
       end
     end
   end
@@ -68,9 +77,11 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
     data.objectiveContainer:ClearAllPoints();
 
     if (data.settings.anchoredToSideBars) then
-      data.objectiveContainer:SetPoint("TOPRIGHT", data.panel, "TOPLEFT", data.settings.xOffset, data.settings.yOffset);
+      data.objectiveContainer:SetPoint("TOPRIGHT", data.panel, "TOPLEFT",
+        data.settings.xOffset, data.settings.yOffset);
     else
-      data.objectiveContainer:SetPoint("CENTER", data.settings.xOffset, data.settings.yOffset);
+      data.objectiveContainer:SetPoint("CENTER", data.settings.xOffset,
+        data.settings.yOffset);
     end
   end
 
@@ -85,28 +96,30 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
       RegisterStateDriver(data.autoHideHandler, "autoHideHandler",
         "[@boss1,exists][@boss2,exists][@boss3,exists][@boss4,exists] 1;0");
 
-      local listener = em:GetEventListenerByID("ObjectiveTracker_InInstance") or em:CreateEventListenerWithID("ObjectiveTracker_InInstance", function()
-        local inInstance = IsInInstance();
+      local listener = em:GetEventListenerByID("ObjectiveTracker_InInstance") or
+                         em:CreateEventListenerWithID(
+                           "ObjectiveTracker_InInstance", function()
+            local inInstance = IsInInstance();
 
-        if (inInstance) then
-          if (not ObjectiveTrackerFrame.collapsed) then
-            local _, _, difficultyID = GetInstanceInfo();
+            if (inInstance) then
+              if (not ObjectiveTrackerFrame.collapsed) then
+                local _, _, difficultyID = GetInstanceInfo();
 
-            -- ignore keystone dungeons
-            if (difficultyID and difficultyID ~= 8) then
-              _G.ObjectiveTracker_Collapse();
-              data.previouslyCollapsed = true;
+                -- ignore keystone dungeons
+                if (difficultyID and difficultyID ~= 8) then
+                  _G.ObjectiveTracker_Collapse();
+                  data.previouslyCollapsed = true;
+                end
+              end
+            else
+              if (ObjectiveTrackerFrame.collapsed and data.previouslyCollapsed) then
+                _G.ObjectiveTracker_Expand();
+                data:Call("HandleObjectiveTracker_Update");
+              end
+
+              data.previouslyCollapsed = nil;
             end
-          end
-        else
-          if (ObjectiveTrackerFrame.collapsed and data.previouslyCollapsed) then
-            _G.ObjectiveTracker_Expand();
-            data:Call("HandleObjectiveTracker_Update");
-          end
-
-          data.previouslyCollapsed = nil;
-        end
-      end);
+          end);
 
       listener:RegisterEvent("PLAYER_ENTERING_WORLD");
 
@@ -129,6 +142,29 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
   });
 
   if (data.settings.enabled) then
+    if (not data.objectiveContainer) then
+
+      local success, isMovable = pcall(function()
+        ObjectiveTrackerFrame:SetMovable(true); -- required to make user placed
+
+        if (not ObjectiveTrackerFrame:IsMovable()) then
+          return false; -- an addon may have tampered with it
+        end
+
+        ObjectiveTrackerFrame:SetUserPlaced(true);
+        ObjectiveTrackerFrame:SetClampedToScreen(false);
+        return true;
+      end);
+
+      if (not (success and isMovable)) then
+        return
+      end
+
+      ObjectiveTrackerFrame.SetMovable = tk.Constants.DUMMY_FUNC;
+      ObjectiveTrackerFrame.SetUserPlaced = tk.Constants.DUMMY_FUNC;
+      ObjectiveTrackerFrame.SetClampedToScreen = tk.Constants.DUMMY_FUNC;
+    end
+
     self:SetEnabled(true);
   end
 end
@@ -186,22 +222,26 @@ function C_ObjectiveTracker:OnObjectiveTrackerInitialized()
 end
 
 function C_ObjectiveTracker:OnEnable(data)
-  if (data.objectiveContainer) then return end
+  if (data.objectiveContainer) then
+    return
+  end
 
   -- holds and controls blizzard objectives tracker frame
   data.objectiveContainer = CreateFrame("Frame", nil, UIParent);
 
   -- blizzard objective tracker frame global variable
-  ObjectiveTrackerFrame:SetClampedToScreen(false);
   ObjectiveTrackerFrame:SetParent(data.objectiveContainer);
   ObjectiveTrackerFrame:SetAllPoints(true);
-  ObjectiveTrackerFrame:SetMovable(true); -- required to make user placed
-  ObjectiveTrackerFrame:SetUserPlaced(true);
 
-  data.autoHideHandler = CreateFrame("Frame", nil, data.objectiveContainer, "SecureHandlerStateTemplate");
-  data.autoHideHandler:SetAttribute("_onstate-autoHideHandler", "if (newstate == 1) then self:Hide() else self:Show() end");
+  data.autoHideHandler = CreateFrame("Frame", nil, data.objectiveContainer,
+                           "SecureHandlerStateTemplate");
 
-  local triggerInInstanceHandler = function() em:TriggerEventListenerByID("ObjectiveTracker_InInstance"); end
+  data.autoHideHandler:SetAttribute("_onstate-autoHideHandler",
+    "if (newstate == 1) then self:Hide() else self:Show() end");
+
+  local triggerInInstanceHandler = function()
+    em:TriggerEventListenerByID("ObjectiveTracker_InInstance");
+  end
   data.autoHideHandler:SetScript("OnShow", triggerInInstanceHandler);
   data.autoHideHandler:SetScript("OnHide", triggerInInstanceHandler);
 
@@ -211,7 +251,8 @@ function C_ObjectiveTracker:OnEnable(data)
   _G.ScenarioStageBlock.NormalBG:Hide();
   _G.ScenarioStageBlock:SetHeight(70);
 
-  local box = gui:CreateDialogBox(tk.Constants.AddOnStyle, _G.ScenarioStageBlock, "LOW");
+  local box = gui:CreateDialogBox(tk.Constants.AddOnStyle,
+                _G.ScenarioStageBlock, "LOW");
   box:SetPoint("TOPLEFT", 5, -5);
   box:SetPoint("BOTTOMRIGHT", -5, 5);
   box:SetFrameStrata("BACKGROUND");
@@ -243,11 +284,13 @@ function C_ObjectiveTracker:OnEnable(data)
     end
   end);
 
-  hooksecurefunc(_G.QUEST_TRACKER_MODULE, "OnBlockHeaderEnter", function(self, block)
-    UpdateQuestDifficultyColors(block, true);
-  end);
+  hooksecurefunc(_G.QUEST_TRACKER_MODULE, "OnBlockHeaderEnter",
+    function(self, block)
+      UpdateQuestDifficultyColors(block, true);
+    end);
 
-  hooksecurefunc(_G.QUEST_TRACKER_MODULE, "OnBlockHeaderLeave", function(self, block)
-    UpdateQuestDifficultyColors(block);
-  end);
+  hooksecurefunc(_G.QUEST_TRACKER_MODULE, "OnBlockHeaderLeave",
+    function(self, block)
+      UpdateQuestDifficultyColors(block);
+    end);
 end

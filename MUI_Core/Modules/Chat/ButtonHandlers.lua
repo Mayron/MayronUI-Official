@@ -9,8 +9,8 @@ local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 local C_ChatFrame = obj:Import("MayronUI.ChatModule.ChatFrame");
 
 local LoadAddOn, IsTrialAccount, IsInGuild, UnitLevel, UnitInBattleground =
-  _G.LoadAddOn, _G.IsTrialAccount, _G.IsInGuild, _G.UnitLevel,
-  _G.UnitInBattleground;
+_G.LoadAddOn, _G.IsTrialAccount, _G.IsInGuild, _G.UnitLevel,
+_G.UnitInBattleground;
 
 local InCombatLockdown, ipairs = _G.InCombatLockdown, _G.ipairs;
 local ToggleGuildFrame;
@@ -19,7 +19,9 @@ if (tk:IsRetail()) then
   ToggleGuildFrame = _G.ToggleGuildFrame;
 else
   local ToggleFriendsFrame = _G.ToggleFriendsFrame;
-  ToggleGuildFrame = function() ToggleFriendsFrame(2) end
+  ToggleGuildFrame = function()
+    ToggleFriendsFrame(2)
+  end
 end
 
 -- GLOBALS:
@@ -129,8 +131,9 @@ if (tk:IsRetail()) then
 end
 
 -- Spell Book
-clickHandlers[buttonKeys.SpellBook] =
-  function() ToggleFrame(SpellBookFrame); end
+clickHandlers[buttonKeys.SpellBook] = function()
+  ToggleFrame(SpellBookFrame);
+end
 
 -- Talents
 clickHandlers[buttonKeys.Talents] = function()
@@ -153,7 +156,7 @@ if (tk:IsRetail() or tk:IsWrathClassic()) then
 end
 
 if (tk:IsWrathClassic() and obj:IsNumber(SHOW_INSCRIPTION_LEVEL) and
-  obj:IsFunction(ToggleGlyphFrame)) then
+obj:IsFunction(ToggleGlyphFrame)) then
   -- Glyphs
   clickHandlers[buttonKeys.Glyphs] = function()
     if (UnitLevel("player") < SHOW_INSCRIPTION_LEVEL) then
@@ -184,7 +187,9 @@ end
 
 -- -- Macros
 clickHandlers[buttonKeys.Macros] = function()
-  if (not obj:IsWidget(MacroFrame)) then LoadAddOn("Blizzard_MacroUI"); end
+  if (not obj:IsWidget(MacroFrame)) then
+    LoadAddOn("Blizzard_MacroUI");
+  end
 
   ToggleFrame(MacroFrame);
 end
@@ -210,7 +215,9 @@ clickHandlers[buttonKeys.PVPScore] = function()
 end
 
 -- Skill
-clickHandlers[buttonKeys.Skills] = function() ToggleCharacter("SkillFrame"); end
+clickHandlers[buttonKeys.Skills] = function()
+  ToggleCharacter("SkillFrame");
+end
 
 local function ChatButton_OnClick(self)
   if (InCombatLockdown()) then
@@ -238,10 +245,12 @@ function C_ChatFrame:SetUpButtonHandler(data, buttonSettings)
   data.settings.buttons = buttonSettings;
 
   local listenerID = data.anchorName .. "_OnModifierStateChanged";
+  local listener = em:GetEventListenerByID(listenerID);
 
-  local listener = em:GetEventListenerByID(listenerID) or
-                     em:CreateEventListenerWithID(listenerID,
-                                                  ChatFrame_OnModifierStateChanged);
+  if (not listener) then
+    listener = em:CreateEventListenerWithID(listenerID,
+               ChatFrame_OnModifierStateChanged)
+  end
 
   listener:SetCallbackArgs(data);
   listener:RegisterEvent("MODIFIER_STATE_CHANGED");
