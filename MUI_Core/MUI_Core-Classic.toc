@@ -3,7 +3,7 @@
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: Required to run MayronUI Modules
-## Version: 6.6.29
+## Version: 6.6.30
 
 ## Links:
 ## ------------------------------------------------
@@ -16,7 +16,7 @@
 ## Credits:
 ## ------------------------------------------------
 ## X-Community-Support-Team: Monster/ Alizmer [GER]
-## X-Patrons: Arriesa, Kallomuki, LaidbackLuke, Missfit, PuppyCatbug
+## X-Patrons: Arriesa, Kallomuki
 ## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma, EarlGrey
 ## X-Development-and-Bug-Fixes: Monkey
 
