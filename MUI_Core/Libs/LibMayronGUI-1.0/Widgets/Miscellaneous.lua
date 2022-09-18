@@ -14,6 +14,20 @@ local Private = Lib.Private;
 local obj = _G.MayronObjects:GetFramework();
 
 local function OnEnter(self)
+  if (not obj:IsString(self.tooltip)) then
+    local parent = self:GetParent();
+
+    if (obj:IsTable(parent) and obj:IsString(parent.tooltip)) then
+      local script = parent:GetScript("OnEnter");
+
+      if (obj:IsFunction(script)) then
+        script(parent); -- it's the container
+      end
+    end
+
+    return
+  end
+
   _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 4);
   _G.GameTooltip:AddLine(self.tooltip, nil, nil, nil, true);
   _G.GameTooltip:Show();
@@ -207,6 +221,8 @@ do
       container.tooltip = tooltip;
       container:SetScript("OnEnter", OnEnter);
       container:SetScript("OnLeave", OnLeave);
+      container.btn:SetScript("OnEnter", OnEnter);
+      container.btn:SetScript("OnLeave", OnLeave);
     end
 
     container.btn:SetPushedTexture(nil);
