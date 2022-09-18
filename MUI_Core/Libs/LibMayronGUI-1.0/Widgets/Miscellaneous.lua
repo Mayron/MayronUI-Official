@@ -1,12 +1,14 @@
 -- luacheck: ignore MayronUI self 143 631
-
 ---@type LibMayronGUI
 local Lib = _G.LibStub:GetLibrary("LibMayronGUI");
 
-if (not Lib) then return; end
+if (not Lib) then
+  return;
+end
 
 local CreateFrame, string, hooksecurefunc, PlaySound, unpack, max =
-  _G.CreateFrame, _G.string, _G.hooksecurefunc, _G.PlaySound, _G.unpack, _G.math.max;
+  _G.CreateFrame, _G.string, _G.hooksecurefunc, _G.PlaySound, _G.unpack,
+  _G.math.max;
 
 local Private = Lib.Private;
 local obj = _G.MayronObjects:GetFramework();
@@ -22,31 +24,31 @@ local function OnLeave()
 end
 
 Lib.FONT_TYPES = {
-  GameFontNormal                  = "GameFontNormal",
-  GameFontNormalSmall             = "GameFontNormalSmall",
-  GameFontNormalLarge             = "GameFontNormalLarge",
-  GameFontHighlight               = "GameFontHighlight",
-  GameFontHighlightSmall          = "GameFontHighlightSmall",
-  GameFontHighlightSmallOutline   = "GameFontHighlightSmallOutline",
-  GameFontHighlightLarge          = "GameFontHighlightLarge",
-  GameFontDisable                 = "GameFontDisable",
-  GameFontDisableSmall            = "GameFontDisableSmall",
-  GameFontDisableLarge            = "GameFontDisableLarge",
-  GameFontGreen                   = "GameFontGreen",
-  GameFontGreenSmall              = "GameFontGreenSmall",
-  GameFontGreenLarge              = "GameFontGreenLarge",
-  GameFontRed                     = "GameFontRed",
-  GameFontRedSmall                = "GameFontRedSmall",
-  GameFontRedLarge                = "GameFontRedLarge",
-  GameFontWhite                   = "GameFontWhite",
-  GameFontDarkGraySmall           = "GameFontDarkGraySmall",
-  NumberFontNormalYellow          = "NumberFontNormalYellow",
-  NumberFontNormalSmallGray       = "NumberFontNormalSmallGray",
-  QuestFontNormalSmall            = "QuestFontNormalSmall",
-  DialogButtonHighlightText       = "DialogButtonHighlightText",
-  ErrorFont                       = "ErrorFont",
-  TextStatusBarText               = "TextStatusBarText",
-  CombatLogFont                   = "CombatLogFont",
+  GameFontNormal = "GameFontNormal";
+  GameFontNormalSmall = "GameFontNormalSmall";
+  GameFontNormalLarge = "GameFontNormalLarge";
+  GameFontHighlight = "GameFontHighlight";
+  GameFontHighlightSmall = "GameFontHighlightSmall";
+  GameFontHighlightSmallOutline = "GameFontHighlightSmallOutline";
+  GameFontHighlightLarge = "GameFontHighlightLarge";
+  GameFontDisable = "GameFontDisable";
+  GameFontDisableSmall = "GameFontDisableSmall";
+  GameFontDisableLarge = "GameFontDisableLarge";
+  GameFontGreen = "GameFontGreen";
+  GameFontGreenSmall = "GameFontGreenSmall";
+  GameFontGreenLarge = "GameFontGreenLarge";
+  GameFontRed = "GameFontRed";
+  GameFontRedSmall = "GameFontRedSmall";
+  GameFontRedLarge = "GameFontRedLarge";
+  GameFontWhite = "GameFontWhite";
+  GameFontDarkGraySmall = "GameFontDarkGraySmall";
+  NumberFontNormalYellow = "NumberFontNormalYellow";
+  NumberFontNormalSmallGray = "NumberFontNormalSmallGray";
+  QuestFontNormalSmall = "QuestFontNormalSmall";
+  DialogButtonHighlightText = "DialogButtonHighlightText";
+  ErrorFont = "ErrorFont";
+  TextStatusBarText = "TextStatusBarText";
+  CombatLogFont = "CombatLogFont";
 };
 
 ---@param style Style @The style Object to used to get the "DialogBoxBackground" texture for the dialog box background.
@@ -69,8 +71,9 @@ function Lib:CreateDialogBox(style, parent, alphaType, frame, globalName)
   Lib:CreateGridTexture(frame, texture, 10, 6, 512, 512);
 
   -- apply the theme color for each Grid Cell
-  style:ApplyColor(nil, nil, frame.tl, frame.tr, frame.bl, frame.br,
-      frame.t, frame.b, frame.l, frame.r, frame.c);
+  style:ApplyColor(
+    nil, nil, frame.tl, frame.tr, frame.bl, frame.br, frame.t, frame.b, frame.l,
+    frame.r, frame.c);
   frame:SetFrameStrata("DIALOG");
 
   return frame;
@@ -97,11 +100,13 @@ do
     fontString:SetPoint("CENTER", self);
   end
 
-  function Lib:CreateButton(style, parent, text, button, tooltip, padding, minWidth)
+  function Lib:CreateButton(
+    style, parent, text, button, tooltip, padding, minWidth)
     local backgroundTexture = style:GetTexture("ButtonTexture");
 
-    button = button or CreateFrame("Button", nil, parent,
-      _G.BackdropTemplateMixin and "BackdropTemplate");
+    button = button or CreateFrame(
+               "Button", nil, parent,
+               _G.BackdropTemplateMixin and "BackdropTemplate");
 
     button.padding = padding or 30;
     button.minWidth = minWidth;
@@ -143,6 +148,7 @@ do
     return button;
   end
 
+  -- TODO: Should be deprecated and replacedby Style.lua > function Style:ApplyColor(_, colorName, alpha, ...)
   function Lib:UpdateButtonColor(button, style)
     local r, g, b = style:GetColor();
     local normal = button:GetNormalTexture();
@@ -185,10 +191,17 @@ do
     self:GetCheckedTexture():SetBlendMode("BLEND");
   end
 
+  local function UpdateColor(self)
+    local tk = _G.MayronUI:GetCoreComponent("Toolkit"); ---@type Toolkit
+    local checkedTexture = self.btn:GetCheckedTexture();
+    tk:ApplyThemeColor(checkedTexture);
+  end
+
   function Lib:CreateCheckButton(parent, text, tooltip)
     local container = Private:PopFrame("Frame", parent);
     container:SetSize(150, 30);
-    container.btn = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
+    container.btn = CreateFrame(
+                      "CheckButton", nil, container, "UICheckButtonTemplate");
     container.btn:SetSize(20, 20);
 
     if (tooltip) then
@@ -202,15 +215,21 @@ do
     local tk = _G.MayronUI:GetCoreComponent("Toolkit"); ---@type Toolkit
 
     -- Normal Texture:
-    container.btn:SetNormalTexture(tk:GetAssetFilePath("Textures\\Widgets\\Unchecked"));
+    container.btn:SetNormalTexture(
+      tk:GetAssetFilePath(
+        "Textures\\Widgets\\Unchecked"));
     local normalTexture = container.btn:GetNormalTexture();
     normalTexture:SetAllPoints(true);
 
     -- Checked Texture:
-    container.btn:SetCheckedTexture(tk:GetAssetFilePath("Textures\\Widgets\\Checked"));
+    container.btn:SetCheckedTexture(
+      tk:GetAssetFilePath(
+        "Textures\\Widgets\\Checked"));
     local checkedTexture = container.btn:GetCheckedTexture();
     checkedTexture:SetAllPoints(true);
-    tk:ApplyThemeColor(checkedTexture);
+
+    container.UpdateColor = UpdateColor;
+    container:UpdateColor();
 
     -- Highlight Texture:
     container.btn:SetHighlightTexture(nil);
@@ -258,7 +277,8 @@ do
     frame.titleBar.bg:SetTexture(texture);
 
     frame.titleBar.bg:SetAllPoints(true);
-    frame.titleBar.text = frame.titleBar:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
+    frame.titleBar.text = frame.titleBar:CreateFontString(
+                            nil, "ARTWORK", "GameFontHighlight");
 
     frame.titleBar.text:SetSize(260, 31);
     frame.titleBar.text:SetPoint("LEFT", frame.titleBar.bg, "LEFT", 10, 0.5);
@@ -308,21 +328,23 @@ function Lib:AddCloseButton(style, frame, onHideCallback, clickSoundFilePath)
   group.a2:SetFromAlpha(1);
   group.a2:SetToAlpha(-1);
 
-  group:SetScript("OnFinished", function()
-    if (obj:IsFunction(onHideCallback)) then
-      onHideCallback(frame);
-    end
+  group:SetScript(
+    "OnFinished", function()
+      if (obj:IsFunction(onHideCallback)) then
+        onHideCallback(frame);
+      end
 
-    frame:Hide();
-  end);
+      frame:Hide();
+    end);
 
-  frame.closeBtn:SetScript("OnClick", function(self)
-    group:Play();
+  frame.closeBtn:SetScript(
+    "OnClick", function(self)
+      group:Play();
 
-    if (clickSoundFilePath) then
-      PlaySound(clickSoundFilePath);
-    end
-  end);
+      if (clickSoundFilePath) then
+        PlaySound(clickSoundFilePath);
+      end
+    end);
 end
 
 function Lib:AddArrow(style, frame, direction, center)

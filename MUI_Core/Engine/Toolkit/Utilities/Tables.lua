@@ -4,7 +4,8 @@ local _, namespace = ...;
 local obj = namespace.components.Objects; ---@type MayronObjects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
-local pcall, pairs, ipairs, type, strsplit, tonumber = _G.pcall, _G.pairs, _G.ipairs, _G.type, _G.strsplit, _G.tonumber;
+local pcall, pairs, ipairs, type, strsplit, tonumber = _G.pcall, _G.pairs,
+  _G.ipairs, _G.type, _G.strsplit, _G.tonumber;
 local table, select = _G.table, _G.select;
 local LibStub = _G.LibStub;
 
@@ -59,8 +60,10 @@ end
 
 -- can be replaced with: local value = tk.Tables:GetTable(tbl, key, anotherKey);
 function tk.Tables:GetTable(rootTable, ...)
-  tk:Assert(obj:IsTable(rootTable),
-  "tk.Tables.GetTable - invalid rootTable arg (table expected, got %s)", type(rootTable));
+  tk:Assert(
+    obj:IsTable(rootTable),
+      "tk.Tables.GetTable - invalid rootTable arg (table expected, got %s)",
+      type(rootTable));
 
   local currentTable = rootTable;
 
@@ -78,8 +81,10 @@ function tk.Tables:GetTable(rootTable, ...)
 end
 
 function tk.Tables:GetValueOrNil(rootTable, ...)
-  tk:Assert(obj:IsTable(rootTable),
-    "tk.Tables.GetValueOrNil - invalid rootTable arg (table expected, got %s)", type(rootTable));
+  tk:Assert(
+    obj:IsTable(rootTable),
+      "tk.Tables.GetValueOrNil - invalid rootTable arg (table expected, got %s)",
+      type(rootTable));
 
   local current = rootTable;
 
@@ -159,6 +164,14 @@ function tk.Tables:First(tbl, predicate)
   return nil;
 end
 
+function tk.Tables:Remove(tbl, predicate)
+  for index, value in ipairs(tbl) do
+    if (predicate(value)) then
+      table.remove(tbl, index);
+    end
+  end
+end
+
 function tk.Tables:GetIndex(tbl, value, position)
   local totalFound = 0;
   position = position or 1;
@@ -210,7 +223,8 @@ function tk.Tables:GetFramePosition(frame, useKeys, override)
     relativeFrame = relativeFrame:GetName();
   end
 
-  if (override and (not relativeFrame or (relativeFrame and relativeFrame ~= "UIParent"))) then
+  if (override
+    and (not relativeFrame or (relativeFrame and relativeFrame ~= "UIParent"))) then
     x, y = frame:GetCenter();
     point = "CENTER";
     relativeFrame = "UIParent"; -- Do not want this to be UIParent in some cases
@@ -218,8 +232,8 @@ function tk.Tables:GetFramePosition(frame, useKeys, override)
   end
 
   local positions;
-  x = tk.Numbers:ToPrecision(x, 2);
-  y = tk.Numbers:ToPrecision(y, 2);
+  x = obj:IsNumber(x) and tk.Numbers:ToPrecision(x, 2) or 0;
+  y = obj:IsNumber(y) and tk.Numbers:ToPrecision(y, 2) or 0;
 
   if (useKeys) then
     positions = obj:PopTable();
@@ -274,7 +288,7 @@ function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
         -- remove it!
         mainTable[mainIndex] = nil;
         totalRemoved = totalRemoved + 1;
-        break;
+        break
       end
     end
   end
@@ -289,7 +303,7 @@ function tk.Tables:RemoveAll(mainTable, subTable, preserveIndex)
         -- remove it!
         mainTable[key] = nil;
         totalRemoved = totalRemoved + 1;
-        break;
+        break
       end
     end
   end
@@ -317,7 +331,9 @@ function tk.Tables:Merge(...)
 end
 
 -- move values from one table (copiedTable) to another table (receivingTable)
-function tk.Tables:Fill(receivingTable, copiedTable, preserveOldValue)
+function tk.Tables:Fill(receivingTable,
+                        copiedTable,
+                        preserveOldValue)
   for key, value in pairs(copiedTable) do
 
     if (obj:IsTable(receivingTable[key]) and obj:IsTable(value)) then
@@ -363,41 +379,41 @@ end
 
 -- gets the DB associated with the AddOn based on convention
 function tk.Tables:GetDBObject(addOnName)
-    local addon, okay, dbObject;
-    local MayronDB = obj:Import("MayronDB"); ---@type MayronDB
-    dbObject = MayronDB.Static:GetDatabaseByName(addOnName);
+  local addon, okay, dbObject;
+  local MayronDB = obj:Import("MayronDB"); ---@type MayronDB
+  dbObject = MayronDB.Static:GetDatabaseByName(addOnName);
 
-    if (dbObject) then
-      return dbObject;
-    end
+  if (dbObject) then
+    return dbObject;
+  end
 
-    if (_G[addOnName]) then
-      addon = _G[addOnName];
-      okay = true;
-    elseif (not dbObject) then
-      okay, addon = pcall(function()
+  if (_G[addOnName]) then
+    addon = _G[addOnName];
+    okay = true;
+  elseif (not dbObject) then
+    okay, addon = pcall(
+                    function()
         LibStub("AceAddon-3.0"):GetAddon(addOnName);
       end);
-    end
+  end
 
-    if (not (okay and obj:IsTable(addon))) then
-      return nil;
-    end
+  if (not (okay and obj:IsTable(addon))) then
+    return nil;
+  end
 
-    dbObject = addon.db;
+  dbObject = addon.db;
 
-    if (not dbObject) then
-      return nil;
-    end
+  if (not dbObject) then
+    return nil;
+  end
 
-    if (obj:IsTable(dbObject) and
-      obj:IsTable(dbObject.profile) and
-      obj:IsFunction(dbObject.SetProfile) and
-      obj:IsFunction(dbObject.GetProfiles) and
-      obj:IsFunction(dbObject.GetCurrentProfile)) then
+  if (obj:IsTable(dbObject) and obj:IsTable(dbObject.profile)
+    and obj:IsFunction(dbObject.SetProfile)
+    and obj:IsFunction(dbObject.GetProfiles)
+    and obj:IsFunction(dbObject.GetCurrentProfile)) then
 
-      return dbObject;
-    end
+    return dbObject;
+  end
 end
 
 function tk.Tables:GetLastPathKey(path)

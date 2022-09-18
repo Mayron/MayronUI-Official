@@ -32,15 +32,21 @@ Packages\Pkg-Collections\Pkg-Collections.xml
 ## Libraries:
 ## ------------------------------------------------
 Libs\LibStub.lua
-Libs\LibMayronGUI-1.0\LibMayronGUI.xml
-Libs\LibSharedMedia-3.0\CallbackHandler-1.0.lua
-Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
+Libs\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0.lua
 Libs\AceLocale-3.0.lua
+Libs\LibSharedMedia-3.0.lua
 Libs\SortBags.lua
+
+## Libraries for Classic WoW:
 Libs\LibClassicCasterino.lua
 Libs\LibClassicDurations\LibClassicDurations.xml
-Libs\LibAddonCompat.lua
 Libs\LibHealComm-4.0\LibHealComm-4.0.xml
+Libs\LibAddonCompat.lua
+
+## Custom libraries:
+Libs\LibMayronGUI-1.0\LibMayronGUI.xml
 
 ## Localization
 ## -------------------------------------------------

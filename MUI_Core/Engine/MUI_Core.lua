@@ -5,7 +5,8 @@ local LibStub = _G.LibStub;
 ---@class MayronUI
 _G.MayronUI = {};
 local MayronUI = _G.MayronUI;
-local table, ipairs, select, string, unpack, print = _G.table, _G.ipairs, _G.select, _G.string, _G.unpack, _G.print;
+local table, ipairs, pairs, select, string, unpack, print = _G.table, _G.ipairs,
+  _G.pairs, _G.select, _G.string, _G.unpack, _G.print;
 local IsAddOnLoaded, EnableAddOn, LoadAddOn, DisableAddOn, ReloadUI =
   _G.IsAddOnLoaded, _G.EnableAddOn, _G.LoadAddOn, _G.DisableAddOn, _G.ReloadUI;
 local strsplit, tostring = _G.strsplit, _G.tostring;
@@ -20,18 +21,18 @@ _G.BINDING_NAME_MUI_SHOW_INSTALLER = "Show Installer";
 
 local obj = namespace.components.Objects; ---@type MayronObjects
 
-namespace.components.Database = obj:Import("MayronDB")
-  .Static:CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI");
-
-namespace.components.EventManager =obj:Import("Pkg-MayronEvents.EventManager")();
+namespace.components.Database = obj:Import("MayronDB").Static:CreateDatabase(
+                                  addOnName, "MayronUIdb", nil, "MayronUI");
+namespace.components.EventManager =
+  obj:Import("Pkg-MayronEvents.EventManager")();
 namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.components.Modules = {};
 
-local tk  = namespace.components.Toolkit; ---@type Toolkit
-local db  = namespace.components.Database; ---@type Database
-local em  = namespace.components.EventManager; ---@type EventManager
+local tk = namespace.components.Toolkit; ---@type Toolkit
+local db = namespace.components.Database; ---@type Database
+local em = namespace.components.EventManager; ---@type EventManager
 local gui = namespace.components.GUIBuilder; ---@type LibMayronGUI
-local L   = namespace.components.Locale; ---@type Locale
+local L = namespace.components.Locale; ---@type Locale
 
 if (tk:IsClassic()) then
   -- remove the Shaman Pink class color back to retail.
@@ -47,10 +48,13 @@ function MayronUI:GetCoreComponents()
 end
 
 function MayronUI:GetCoreComponent(componentName, silent)
-  tk:Assert(silent or obj:IsString(componentName), "Invalid component '%s'", componentName);
+  tk:Assert(
+    silent or obj:IsString(componentName), "Invalid component '%s'",
+      componentName);
 
   local component = namespace.components[componentName];
-  tk:Assert(silent or obj:IsTable(component), "Invalid component '%s'", componentName);
+  tk:Assert(
+    silent or obj:IsTable(component), "Invalid component '%s'", componentName);
 
   return component;
 end
@@ -78,50 +82,62 @@ local registeredModules = {};
 local BaseModule = obj:CreateClass("BaseModule");
 obj:Export(BaseModule, "MayronUI");
 
+function MayronUI:PrintCVars()
+  print("ScriptErrors: ", GetCVar("ScriptErrors"));
+  print("chatStyle: ", GetCVar("chatStyle"));
+  print("chatClassColorOverride: ", GetCVar("chatClassColorOverride")); -- chat class colors
+  print(
+    "floatingCombatTextCombatDamage: ",
+      GetCVar("floatingCombatTextCombatDamage"));
+  print("cameraDistanceMaxZoomFactor: ", GetCVar("cameraDistanceMaxZoomFactor"));
+  print(
+    "floatingCombatTextCombatHealing: ",
+      GetCVar("floatingCombatTextCombatHealing"));
+  print("nameplateMaxDistance: ", GetCVar("nameplateMaxDistance"));
+  print("useUiScale: ", GetCVar("useUiScale"));
+  print("uiscale: ", GetCVar("uiscale"));
+end
+
 -- Load Database Defaults -------------
 
-db:AddToDefaults("global", {
-  layouts = {
-    DPS = {
-      ["ShadowUF"] = "MayronUI";
-      ["MUI TimerBars"] = "Default";
+db:AddToDefaults(
+  "global", {
+    layouts = {
+      DPS = { ["ShadowUF"] = "MayronUI"; ["MUI TimerBars"] = "Default" };
+      Healer = { ["ShadowUF"] = "MayronUIH"; ["MUI TimerBars"] = "Healer" };
     };
-    Healer = {
-      ["ShadowUF"] = "MayronUIH";
-      ["MUI TimerBars"] = "Healer";
-    };
-  };
 
-  core = {
-    uiScale           = 0.7;
-    changeGameFont    = true;
-    font              = "MUI_Font";
-    useLocalization   = true;
+    core = {
+      uiScale = 0.7;
+      maxCameraZoom = true;
+      changeGameFont = true;
+      font = "MUI_Font";
+      useLocalization = true;
 
-    setup = {
-      profilePerCharacter = true;
-      addOns = {
-        {"Bagnon", true, "Bagnon"};
-        {"Bartender4", true, "Bartender4"};
-        {"Masque", true, "Masque"};
-        {"Shadowed Unit Frames", true, "ShadowedUnitFrames"};
-        {"Leatrix Plus", true, "Leatrix_Plus"};
+      setup = {
+        profilePerCharacter = true;
+        addOns = {
+          { "Bagnon"; true; "Bagnon" }; { "Bartender4"; true; "Bartender4" };
+          { "Masque"; true; "Masque" };
+          { "Shadowed Unit Frames"; true; "ShadowedUnitFrames" };
+          { "Leatrix Plus"; true; "Leatrix_Plus" };
+        };
       };
     };
-  };
-});
+  });
 
 db:AddToDefaults("profile.layout", "DPS");
 
 local classColor = tk:GetClassColorByUnitID("player");
-db:AddToDefaults("profile.theme", {
-  color = {
-    r     = classColor.r;
-    g     = classColor.g;
-    b     = classColor.b;
-    hex   = classColor:GenerateHexColor();
-  },
-});
+db:AddToDefaults(
+  "profile.theme", {
+    color = {
+      r = classColor.r;
+      g = classColor.g;
+      b = classColor.b;
+      hex = classColor:GenerateHexColor();
+    };
+  });
 
 -- Slash Commands ------------------
 
@@ -139,7 +155,9 @@ local function LoadMuiAddOn(name)
 end
 
 local function GetMuiConfigModule()
-  if (not LoadMuiAddOn("MUI_Config")) then return; end
+  if (not LoadMuiAddOn("MUI_Config")) then
+    return;
+  end
   local configModule = MayronUI:ImportModule("ConfigModule");
 
   if (not configModule:IsInitialized()) then
@@ -164,18 +182,24 @@ commands.config = function()
 end
 
 commands.layouts = function()
-  if (not LoadMuiAddOn("MUI_Config")) then return; end
+  if (not LoadMuiAddOn("MUI_Config")) then
+    return;
+  end
   local layoutSwitcher = MayronUI:ImportModule("LayoutSwitcher");
   layoutSwitcher:ShowLayoutTool();
 end
 
 commands.install = function()
-  if (not LoadMuiAddOn("MUI_Setup")) then return; end
+  if (not LoadMuiAddOn("MUI_Setup")) then
+    return;
+  end
   MayronUI:ImportModule("SetUpModule"):Show();
 end
 
 commands.report = function(forceShow)
-  if (not LoadMuiAddOn("MUI_Setup")) then return end
+  if (not LoadMuiAddOn("MUI_Setup")) then
+    return
+  end
   local reportIssue = MayronUI:ImportModule("ReportIssue"); ---@type C_ReportIssue
 
   if (not reportIssue:IsInitialized()) then
@@ -217,7 +241,9 @@ end
 
 local function RemoveProfile(_, _, profileName, callback)
   db:RemoveProfile(profileName);
-  tk:Print("Profile", tk.Strings:SetTextColorByKey(profileName, "gold"), "has been deleted.");
+  tk:Print(
+    "Profile", tk.Strings:SetTextColorByKey(profileName, "gold"),
+      "has been deleted.");
 
   local playerKey = tk:GetPlayerKey();
   if (db.global.core.setup.profilePerCharacter and db:ProfileExists(playerKey)) then
@@ -236,20 +262,29 @@ commands.profile = function(subCommand, profileName, callback)
     if (subCommand == "set" and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
       db:SetProfile(profileName);
 
-    elseif (subCommand == "delete" and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
+    elseif (subCommand == "delete"
+      and not tk.Strings:IsNilOrWhiteSpace(profileName)) then
       if (profileName == "Default") then
         tk:Print(L["Cannot delete the Default profile."]);
         return;
       end
 
-      local popupMessage = string.format(L["Are you sure you want to delete profile '%s'?"], profileName);
-      local subMessage = string.format(L["Please type '%s' to confirm:"], L["DELETE"]);
+      local popupMessage = string.format(
+                             L["Are you sure you want to delete profile '%s'?"],
+                               profileName);
 
-      tk:ShowInputPopup(popupMessage, subMessage, nil, ValidateRemoveProfile, nil, RemoveProfile, nil, nil, true, profileName, callback);
+      local subMessage = string.format(
+                           L["Please type '%s' to confirm:"], L["DELETE"]);
+
+      tk:ShowInputPopup(
+        popupMessage, subMessage, nil, ValidateRemoveProfile, nil,
+          RemoveProfile, nil, nil, true, profileName, callback);
 
     elseif (subCommand == "new") then
       local popupMessage = L["Enter a new unique profile name:"];
-      tk:ShowInputPopup(popupMessage, nil, nil, ValidateNewProfileName, nil, CreateNewProfile, nil, nil, nil, callback);
+      tk:ShowInputPopup(
+        popupMessage, nil, nil, ValidateNewProfileName, nil, CreateNewProfile,
+          nil, nil, nil, callback);
 
     elseif (subCommand == "current") then
       local currentProfile = db:GetCurrentProfile();
@@ -275,7 +310,9 @@ commands.profiles = function(subCommand)
         if (id == 1) then
           allProfiles = tk.Strings:SetTextColorByKey(profile, "gold");
         else
-          allProfiles = tk.Strings:Join(", ", allProfiles, tk.Strings:SetTextColorByKey(profile, "gold"));
+          allProfiles = tk.Strings:Join(
+                          ", ", allProfiles,
+                            tk.Strings:SetTextColorByKey(profile, "gold"));
         end
       end
 
@@ -293,7 +330,7 @@ commands.version = function()
   tk:Print("Version:", tk:GetVersion("YELLOW"));
 end
 
- -- aliases
+-- aliases
 commands.i = commands.install;
 commands.c = commands.config;
 commands.v = commands.version;
@@ -303,16 +340,29 @@ commands.l = commands.layouts;
 commands.help = function()
   print(" ");
   tk:Print(L["List of slash commands:"])
-  tk:Print("|cff00cc66/mui config, /mui c|r - "..L["Show the MUI Config Menu"]:lower());
-  tk:Print("|cff00cc66/mui install, /mui i|r - "..L["Show the MUI Installer"]:lower());
-  tk:Print("|cff00cc66/mui layouts, /mui l|r - " .. L["Show the MUI Layout Tool"]:lower());
-  tk:Print("|cff00cc66/mui profiles list|r - " .. L["List All Profiles"]:lower());
-  tk:Print("|cff00cc66/mui profiles|r - " .. L["Show the MUI Profile Manager"]:lower());
-  tk:Print("|cff00cc66/mui profile set <profile_name>|r - " .. L["Set Profile"]:lower());
-  tk:Print("|cff00cc66/mui profile delete <profile_name>|r - " .. L["Delete Profile"]:lower());
-  tk:Print("|cff00cc66/mui profile new|r - " .. L["Create a new profile"]:lower());
-  tk:Print("|cff00cc66/mui profile current|r - " .. L["Show Currently Active Profile"]:lower());
-  tk:Print("|cff00cc66/mui version, /mui v|r - " .. L["Show the Version of MUI"]:lower());
+  tk:Print(
+    "|cff00cc66/mui config, /mui c|r - " .. L["Show the MUI Config Menu"]:lower());
+  tk:Print(
+    "|cff00cc66/mui install, /mui i|r - " .. L["Show the MUI Installer"]:lower());
+  tk:Print(
+    "|cff00cc66/mui layouts, /mui l|r - "
+      .. L["Show the MUI Layout Tool"]:lower());
+  tk:Print(
+    "|cff00cc66/mui profiles list|r - " .. L["List All Profiles"]:lower());
+  tk:Print(
+    "|cff00cc66/mui profiles|r - " .. L["Show the MUI Profile Manager"]:lower());
+  tk:Print(
+    "|cff00cc66/mui profile set <profile_name>|r - " .. L["Set Profile"]:lower());
+  tk:Print(
+    "|cff00cc66/mui profile delete <profile_name>|r - "
+      .. L["Delete Profile"]:lower());
+  tk:Print(
+    "|cff00cc66/mui profile new|r - " .. L["Create a new profile"]:lower());
+  tk:Print(
+    "|cff00cc66/mui profile current|r - "
+      .. L["Show Currently Active Profile"]:lower());
+  tk:Print(
+    "|cff00cc66/mui version, /mui v|r - " .. L["Show the Version of MUI"]:lower());
   tk:Print("|cff00cc66/mui report, /mui r|r - " .. L["Report Issue"]:lower());
   print(" ");
 end
@@ -342,7 +392,9 @@ end
 
 ---Initialize the module manually (on demand) or is called by MayronUI on startup.
 function BaseModule:Initialize(_, ...)
-  if (self:IsInitialized()) then return end
+  if (self:IsInitialized()) then
+    return
+  end
 
   if (self.OnInitialize) then
     self:OnInitialize(...);
@@ -483,15 +535,17 @@ end
 
 ---A helper function to print a table's contents using the MayronUI prefix in the chat frame.
 ---@param tbl table @The table to print.
----@param depth number @The depth of sub-tables to traverse through and print.
+---@param depth number @The depth of sub-tables to traverse through and print (defaults to 1).
 ---@param spaces number @The number of spaces used for nested values inside a table (defaults to 2).
 function MayronUI:PrintTable(tbl, depth, spaces)
-  tk.Tables:Print(tbl, depth, spaces);
+  tk.Tables:Print(tbl, depth or 1, spaces);
 end
 
 function MayronUI:ShowReloadUIPopUp()
-  tk:ShowConfirmPopup(L["Some settings will not be changed until the UI has been reloaded."],
-    L["Would you like to reload the UI now?"], ReloadUI, L["Reload UI"], nil, L["No"], true);
+  tk:ShowConfirmPopup(
+    L["Some settings will not be changed until the UI has been reloaded."],
+      L["Would you like to reload the UI now?"], ReloadUI, L["Reload UI"], nil,
+      L["No"], true);
 end
 
 ---A helper function to print a variable argument list using the MayronUI prefix in the chat frame.
@@ -515,7 +569,8 @@ end
 ---@param func function @The command handler function to register.
 function MayronUI:RegisterCommand(commandName, func)
   commandName = commandName:lower();
-  obj:Assert(not commands[commandName], "Command already exists: '%s'", commandName);
+  obj:Assert(
+    not commands[commandName], "Command already exists: '%s'", commandName);
   commands[commandName] = func;
   return func;
 end
@@ -525,7 +580,8 @@ end
 ---@param eventName string @The name of the module event to hook (i.e. "OnInitialize", "OnEnable", etc...).
 ---@param func function @A callback function to execute when the module's event is triggered.
 function MayronUI:Hook(moduleKey, eventName, func)
-  local eventHooks = tk.Tables:GetTable(registeredModules, moduleKey, "hooks", eventName);
+  local eventHooks = tk.Tables:GetTable(
+                       registeredModules, moduleKey, "hooks", eventName);
   table.insert(eventHooks, func);
 end
 
@@ -549,7 +605,8 @@ function MayronUI:ImportModule(moduleKey, silent)
 
   if (not registryInfo) then
     -- addon is disabled so cannot import module
-    obj:Assert(silent, "Failed to import module '%s'. Has it been registered?", moduleKey);
+    obj:Assert(
+      silent, "Failed to import module '%s'. Has it been registered?", moduleKey);
     return nil;
   end
 
@@ -561,7 +618,9 @@ end
 ---@param moduleName string @A human-friendly name of the module to be used in-game (such as on the config window).
 ---@param initializeOnDemand boolean @(optional) If true, must be initialized manually instead of
 ---@return Class @Returns a new module Class so that a module can be given additional methods and definitions where required.
-function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
+function MayronUI:RegisterModule(moduleKey,
+                                 moduleName,
+                                 initializeOnDemand)
   local ModuleClass = obj:CreateClass(moduleKey, BaseModule);
 
   -- must add it to the registeredModules table before calling parent constructor!
@@ -622,18 +681,28 @@ function MayronUI:SwitchLayouts(layoutName, layoutData)
   end
 
   db.profile.layout = layoutName;
-  layoutData = layoutData or db.global.layouts:GetUntrackedTable()[layoutName];
 
-	-- Switch all assigned addons to new profile
+  if (not obj:IsTable(layoutData)) then
+    local layouts = db.global.layouts:GetUntrackedTable();
+    layoutData = layouts[layoutName];
+  end
+
+  -- should never happen but someone reported it without a way to replicate
+  if (not obj:IsTable(layoutData)) then
+    layoutData = obj:PopTable();
+    db.global.layouts[layoutName] = layoutData;
+  end
+
+  -- Switch all assigned addons to new profile
   for a, profileName in pairs(layoutData) do
-		if (profileName) then
-			-- profileName could be false
-			local dbObject = tk.Tables:GetDBObject(a);
+    if (profileName) then
+      -- profileName could be false
+      local dbObject = tk.Tables:GetDBObject(a);
 
-			if (dbObject) then
-				dbObject:SetProfile(profileName);
-			end
-		end
+      if (dbObject) then
+        dbObject:SetProfile(profileName);
+      end
+    end
   end
 end
 
@@ -650,7 +719,7 @@ function C_CoreModule:OnInitialize()
 
     local args = obj:PopTable();
 
-    for _, arg in obj:IterateArgs(strsplit(' ', str)) do
+    for _, arg in obj:IterateArgs(strsplit(" ", str)) do
       if (#arg > 0) then
         table.insert(args, arg);
       end
@@ -691,10 +760,14 @@ function C_CoreModule:OnInitialize()
   end
 
   if (IsAddOnLoaded("ShadowedUnitFrames")) then
-    local updateSufProfileName = _G.ShadowedUFDB and obj:IsTable(_G.ShadowedUFDB.profiles) and not obj:IsTable(_G.ShadowedUFDB.profiles.MayronUI);
+    local updateSufProfileName = _G.ShadowedUFDB
+                                   and obj:IsTable(_G.ShadowedUFDB.profiles)
+                                   and not obj:IsTable(
+                                     _G.ShadowedUFDB.profiles.MayronUI);
 
     if (updateSufProfileName) then
-      local shadowUfProfile = db:ParsePathValue(db.global, "layouts.DPS.ShadowUF");
+      local shadowUfProfile = db:ParsePathValue(
+                                db.global, "layouts.DPS.ShadowUF");
 
       if (shadowUfProfile == "Default") then
         local layouts = db.global.layouts:GetSavedVariable();
@@ -713,154 +786,194 @@ function C_CoreModule:OnInitialize()
   if (tk:IsWrathClassic() and tk:IsShaman() and IsAddOnLoaded("Bartender4")) then
     local bartenderDB, bartender = _G.Bartender4DB, _G.Bartender4;
 
-    if (obj:IsTable(bartenderDB) and obj:IsTable(bartender) and not db.global["WrathTotemBar"]) then
-        local profile = tk.Tables:GetTable(bartenderDB, "namespaces", "MultiCast", "profiles");
-        
-        profile.MayronUI = {
-          enabled = true;
-          version = 3;
-          position = { y = 40; x = 365; point = "BOTTOMLEFT" };
-        };
+    if (obj:IsTable(bartenderDB) and obj:IsTable(bartender)
+      and not db.global["WrathTotemBar"]) then
+      local profile = tk.Tables:GetTable(
+                        bartenderDB, "namespaces", "MultiCast", "profiles");
 
-        db.global["WrathTotemBar"] = true;
+      profile.MayronUI = {
+        enabled = true;
+        version = 3;
+        position = { y = 40; x = 365; point = "BOTTOMLEFT" };
+      };
 
-        local multiCast = tk.Tables:GetValueOrNil(bartender, "modules", "MultiCast");
+      db.global["WrathTotemBar"] = true;
 
-        if (obj:IsTable(multiCast)) then
-          bartender.modules.MultiCast:Enable();
-        end
+      local multiCast = tk.Tables:GetValueOrNil(
+                          bartender, "modules", "MultiCast");
+
+      if (obj:IsTable(multiCast)) then
+        bartender.modules.MultiCast:Enable();
       end
+    end
   end
-  
 
+  if (db.global.core.maxCameraZoom) then
+    _G.SetCVar("cameraDistanceMaxZoomFactor", 4.0);
+  end
 
-  tk:Print(L["Welcome back"], UnitName("player").."!");
+  tk:Print(L["Welcome back"], UnitName("player") .. "!");
   collectgarbage("collect");
   DisableAddOn("MUI_Setup"); -- disable for next time
 end
 
 -- Initialize Modules after player enters world (not when DB starts!).
 -- Some dependencies, like Bartender, only load after this event.
-local onLogin = em:CreateEventListener(function()
-  for i = 1, _G.NUM_CHAT_WINDOWS do
-    _G["ChatFrame"..i.."EditBox"]:SetAltArrowKeyMode(false);
-  end
-
-  FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
-  FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES, true);
-
-  if (not MayronUI:IsInstalled()) then
-    if (db.global.core.setup.profilePerCharacter) then
-      db:SetProfile(tk:GetPlayerKey());
+local onLogin = em:CreateEventListener(
+                  function()
+    for i = 1, _G.NUM_CHAT_WINDOWS do
+      _G["ChatFrame" .. i .. "EditBox"]:SetAltArrowKeyMode(false);
     end
 
-    MayronUI:TriggerCommand("install");
-    return;
-  end
+    FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
+    FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES, true);
 
-  local coreModule = MayronUI:ImportModule("CoreModule");
-  coreModule:Initialize();
-end);
+    if (not MayronUI:IsInstalled()) then
+      if (db.global.core.setup.profilePerCharacter) then
+        db:SetProfile(tk:GetPlayerKey());
+      end
+
+      MayronUI:TriggerCommand("install");
+      return;
+    end
+
+    local coreModule = MayronUI:ImportModule("CoreModule");
+    coreModule:Initialize();
+  end);
 
 onLogin:RegisterEvent("PLAYER_ENTERING_WORLD")
 onLogin:SetExecuteOnce(true); -- destroy after first use
 
-local onLogout = em:CreateEventListener(function()
-  db.profile.freshInstall = nil;
-end);
+local onLogout = em:CreateEventListener(
+                   function()
+    db.profile.freshInstall = nil;
+  end);
 
 onLogout:RegisterEvent("PLAYER_LOGOUT");
 
 -- Database Event callbacks --------------------
 
-db:OnProfileChange(function(self, newProfileName, oldProfileName)
-  local coreModule = MayronUI:ImportModule("CoreModule");
+db:OnProfileChange(
+  function(_, newProfileName, oldProfileName)
+    local coreModule = MayronUI:ImportModule("CoreModule");
 
-  if (not (coreModule:IsInitialized() and MayronUI:IsInstalled())) then
-    return;
-  end
-
-  for _, module in MayronUI:IterateModules() do
-    local registryInfo = registeredModules[tostring(module)];
-
-    if (not MayronUI:GetModuleComponent(registryInfo.moduleKey, "Database")) then
-      module:TriggerEvent("OnProfileChanging", newProfileName);
-      module:RefreshSettings();
-      module:ExecuteAllUpdateFunctions();
-      module:TriggerEvent("OnProfileChanged", newProfileName);
+    if (not (coreModule:IsInitialized() and MayronUI:IsInstalled())) then
+      return;
     end
-  end
 
-  local msg;
-  if (oldProfileName == newProfileName) then
-    msg = string.format(L["Profile %s has been reset."], tk.Strings:SetTextColorByKey(newProfileName, "gold"));
-  else
-    msg = string.format(L["Profile changed to %s."], tk.Strings:SetTextColorByKey(newProfileName, "gold"));
-  end
+    for _, module in MayronUI:IterateModules() do
+      local registryInfo = registeredModules[tostring(module)];
 
-  tk:Print(msg);
-  MayronUI:ShowReloadUIPopUp();
-end);
+      if (not MayronUI:GetModuleComponent(registryInfo.moduleKey, "Database")) then
+        module:TriggerEvent("OnProfileChanging", newProfileName);
+        module:RefreshSettings();
+        module:ExecuteAllUpdateFunctions();
+        module:TriggerEvent("OnProfileChanged", newProfileName);
+      end
+    end
 
-db:OnStartUp(function(self)
-  -- setup globals:
-  MayronUI.db = self;
-  namespace:SetUpBagnon();
+    local msg;
+    if (oldProfileName == newProfileName) then
+      msg = string.format(
+              L["Profile %s has been reset."],
+                tk.Strings:SetTextColorByKey(newProfileName, "gold"));
+    else
+      msg = string.format(
+              L["Profile changed to %s."],
+                tk.Strings:SetTextColorByKey(newProfileName, "gold"));
+    end
 
-  local r, g, b = tk:GetThemeColor();
-
-  local myFont = CreateFont("MUI_FontNormal");
-  myFont:SetFontObject("GameFontNormal");
-  myFont:SetTextColor(r, g, b);
-
-  myFont = CreateFont("MUI_FontSmall");
-  myFont:SetFontObject("GameFontNormalSmall");
-  myFont:SetTextColor(r, g, b);
-
-  myFont = CreateFont("MUI_FontLarge");
-  myFont:SetFontObject("GameFontNormalLarge");
-  myFont:SetTextColor(r, g, b);
-
-  -- To keep UI widget styles consistent ----------
-  -- Can only use once Database is loaded...
-  ---@type Style
-  local Style = obj:Import("MayronUI.Style");
-
-  ---@type Style
-  tk.Constants.AddOnStyle = Style();
-  tk.Constants.AddOnStyle:SetPadding(10, 10, 10, 10);
-  tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");
-  tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "ButtonBackdrop");
-  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\Button"), "ButtonTexture");
-  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\GraphicalArrow"), "ArrowButtonTexture");
-  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\SmallArrow"), "SmallArrow");
-  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\Texture-"), "DialogBoxBackground");
-  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\TitleBar"), "TitleBarBackground");
-  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "CloseButtonBackground");
-  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\DragRegion"), "DraggerTexture");
-  tk.Constants.AddOnStyle:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\TextField"), "TextField");
-  tk.Constants.AddOnStyle:SetColor(r, g, b);
-  tk.Constants.AddOnStyle:SetColor(r * 0.7, g * 0.7, b * 0.7, "Widget");
-
-  -- Load Media using LibSharedMedia --------------
-  local media = tk.Constants.LSM;
-
-  media:Register(media.MediaType.FONT, "MUI_Font", tk:GetAssetFilePath("Fonts\\MayronUI.ttf"));
-  media:Register(media.MediaType.FONT, "Imagine", tk:GetAssetFilePath("Fonts\\Imagine.ttf"));
-  media:Register(media.MediaType.FONT, "Prototype", tk:GetAssetFilePath("Fonts\\Prototype.ttf"));
-  media:Register(media.MediaType.STATUSBAR, "MUI_StatusBar", tk:GetAssetFilePath("Textures\\Widgets\\Button.tga"));
-  media:Register(media.MediaType.BORDER, "Skinner", tk.Constants.BACKDROP.edgeFile);
-  media:Register(media.MediaType.BORDER, "Glow", tk:GetAssetFilePath("Borders\\Glow.tga"));
-  media:Register(media.MediaType.BACKGROUND, "MUI_Solid", tk.Constants.SOLID_TEXTURE);
-
-  hooksecurefunc('MovieFrame_PlayMovie', function(s)
-    s:SetFrameStrata("DIALOG");
+    tk:Print(msg);
+    MayronUI:ShowReloadUIPopUp();
   end);
 
-  -- Set Master Game Font Here! -------------------
-  if (self.global.core.changeGameFont ~= false) then
-    tk:SetGameFont(media:Fetch("font", self.global.core.font));
-  end
+db:OnStartUp(
+  function(self)
+    -- setup globals:
+    MayronUI.db = self;
+    namespace:SetUpBagnon();
 
-  tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
-end);
+    local r, g, b = tk:GetThemeColor();
+
+    local myFont = CreateFont("MUI_FontNormal");
+    myFont:SetFontObject("GameFontNormal");
+    myFont:SetTextColor(r, g, b);
+
+    myFont = CreateFont("MUI_FontSmall");
+    myFont:SetFontObject("GameFontNormalSmall");
+    myFont:SetTextColor(r, g, b);
+
+    myFont = CreateFont("MUI_FontLarge");
+    myFont:SetFontObject("GameFontNormalLarge");
+    myFont:SetTextColor(r, g, b);
+
+    -- To keep UI widget styles consistent ----------
+    -- Can only use once Database is loaded...
+    ---@type Style
+    local Style = obj:Import("MayronUI.Style");
+
+    ---@type Style
+    tk.Constants.AddOnStyle = Style();
+    tk.Constants.AddOnStyle:SetPadding(10, 10, 10, 10);
+    tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");
+    tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "ButtonBackdrop");
+    tk.Constants.AddOnStyle:SetTexture(
+      tk:GetAssetFilePath(
+        "Textures\\Widgets\\Button"), "ButtonTexture");
+    tk.Constants.AddOnStyle:SetTexture(
+      tk:GetAssetFilePath(
+        "Textures\\Widgets\\GraphicalArrow"), "ArrowButtonTexture");
+    tk.Constants.AddOnStyle:SetTexture(
+      tk:GetAssetFilePath(
+        "Textures\\Widgets\\SmallArrow"), "SmallArrow");
+    tk.Constants.AddOnStyle:SetTexture(
+      tk:GetAssetFilePath(
+        "Textures\\DialogBox\\Texture-"), "DialogBoxBackground");
+    tk.Constants.AddOnStyle:SetTexture(
+      tk:GetAssetFilePath(
+        "Textures\\DialogBox\\TitleBar"), "TitleBarBackground");
+    tk.Constants.AddOnStyle:SetTexture(
+      tk:GetAssetFilePath(
+        "Textures\\DialogBox\\CloseButton"), "CloseButtonBackground");
+    tk.Constants.AddOnStyle:SetTexture(
+      tk:GetAssetFilePath(
+        "Textures\\DialogBox\\DragRegion"), "DraggerTexture");
+    tk.Constants.AddOnStyle:SetTexture(
+      tk:GetAssetFilePath(
+        "Textures\\Widgets\\TextField"), "TextField");
+    tk.Constants.AddOnStyle:SetColor(r, g, b);
+    tk.Constants.AddOnStyle:SetColor(r * 0.7, g * 0.7, b * 0.7, "Widget");
+
+    -- Load Media using LibSharedMedia --------------
+    local media = tk.Constants.LSM;
+
+    media:Register(
+      media.MediaType.FONT, "MUI_Font",
+        tk:GetAssetFilePath("Fonts\\MayronUI.ttf"));
+    media:Register(
+      media.MediaType.FONT, "Imagine", tk:GetAssetFilePath("Fonts\\Imagine.ttf"));
+    media:Register(
+      media.MediaType.FONT, "Prototype",
+        tk:GetAssetFilePath("Fonts\\Prototype.ttf"));
+    media:Register(
+      media.MediaType.STATUSBAR, "MUI_StatusBar",
+        tk:GetAssetFilePath("Textures\\Widgets\\Button.tga"));
+    media:Register(
+      media.MediaType.BORDER, "Skinner", tk.Constants.BACKDROP.edgeFile);
+    media:Register(
+      media.MediaType.BORDER, "Glow", tk:GetAssetFilePath("Borders\\Glow.tga"));
+    media:Register(
+      media.MediaType.BACKGROUND, "MUI_Solid", tk.Constants.SOLID_TEXTURE);
+
+    hooksecurefunc(
+      "MovieFrame_PlayMovie", function(s)
+        s:SetFrameStrata("DIALOG");
+      end);
+
+    -- Set Master Game Font Here! -------------------
+    if (self.global.core.changeGameFont ~= false) then
+      tk:SetGameFont(media:Fetch("font", self.global.core.font));
+    end
+
+    tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
+  end);
