@@ -117,17 +117,41 @@ do
   function Minimap_OnDragStop(data)
     Minimap:StopMovingOrSizing();
     updateSizeText = nil;
+
     Minimap_ZoomIn();
     Minimap_ZoomOut();
 
+    local width = Minimap:GetWidth();
+    width = math.floor(width + 0.5);
+
+    if (width % 2 > 0) then
+      width = width + 1;
+    end   
+
+    Minimap:SetSize(width, width);
+
     local settings = data.settings:GetTrackedTable();
-    settings.point, settings.relativeTo, settings.relativePoint, settings.x, settings.y = Minimap:GetPoint();
+    local relativeTo;
 
-    settings.x = math.floor(settings.x + 0.5);
-    settings.y = math.floor(settings.y + 0.5);
+    settings.size = width;
+    settings.point, relativeTo, settings.relativePoint, settings.x, settings.y = Minimap:GetPoint();
 
-    settings.size, settings.size = Minimap:GetSize();
-    settings.size = math.floor(settings.size + 0.5);
+    local x = math.floor(settings.x + 0.5);
+    local y = math.floor(settings.y + 0.5);
+
+    if (x % 2 > 0) then
+      x = x + 1;
+    end
+
+    if (y % 2 > 0) then
+      y = y + 1;
+    end    
+    
+    settings.x = x; settings.y = y;
+
+    Minimap:SetPoint(
+      settings.point, relativeTo or _G.UIParent, 
+      settings.relativePoint, settings.x, settings.y);
 
     settings:SaveChanges();
   end
@@ -681,9 +705,24 @@ function C_MiniMapModule:GetRightClickMenuList()
       };
     });
 
-  local libDbIcons = _G.LibStub("LibDBIcon-1.0");
+  local libDbIcons = _G.LibStub("LibDBIcon-1.0");  
 
-  if (obj:IsTable(libDbIcons) and db.profile.minimap.hideIcons) then     
+  if (obj:IsTable(libDbIcons) and db.profile.minimap.hideIcons) then    
+    
+    local knownAddOnsText = {
+      ["Leatrix_Plus"] = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70");
+      ["Questie"] = tk.Strings:SetTextColorByHex("Questie", "ffc50f");
+      ["Details"] = tk.Strings:SetTextColorByHex("Details", "ffb8b8");
+      ["Bartender4"] = tk.Strings:SetTextColorByHex("Bartender4", "eaffb8");
+      ["DBM"] = tk.Strings:SetTextColorByHex("Deadly Boss Mods", "ff5656");
+      ["RareScannerMinimapIcon"] = tk.Strings:SetTextColorByHex("Rare Scanner", "ff0f6f");
+      ["Plater"] = tk.Strings:SetTextColorByHex("Plater", "e657ff");
+      ["BigWigs"] = tk.Strings:SetTextColorByHex("BigWigs Bossmods", "ff5656");
+      ["TradeSkillMaster"] = tk.Strings:SetTextColorByHex("Trade Skill Master", "ffef57");
+      ["WeakAuras"] = tk.Strings:SetTextColorByHex("Weak Auras", "c0f15c");
+      ["HealBot"] = tk.Strings:SetTextColorByHex("HealBot", "3af500");
+      ["AtlasLoot"] = tk.Strings:SetTextColorByHex("Atlas Loot", "e5cd8f");
+    };
     
     local function MoveAddonIconToMenu(name)
       local iconButton = libDbIcons:GetMinimapButton(name);
@@ -705,7 +744,7 @@ function C_MiniMapModule:GetRightClickMenuList()
     
       local fs = customBtn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
       fs:SetPoint("LEFT", 4, 0);
-      fs:SetText(name);
+      fs:SetText(knownAddOnsText[name] or name);
       fs:SetJustifyH("LEFT");
       customBtn:SetWidth(fs:GetUnboundedStringWidth() + height + 10);
       
@@ -721,12 +760,12 @@ function C_MiniMapModule:GetRightClickMenuList()
           _G.DropDownList2:Hide();
         end
         
-        if (iconButton.dataObject) then
+        if (obj:IsFunction(iconButton.dataObject.OnTooltipShow)) then
           GameTooltip:SetOwner(list, "ANCHOR_BOTTOM", 0, -2);
           iconButton.dataObject.OnTooltipShow(GameTooltip);
           GameTooltip:Show();
 
-        elseif (iconButton.dataObject.OnEnter) then
+        elseif (obj:IsFunction(iconButton.dataObject.OnEnter)) then
           iconButton.dataObject.OnEnter(iconButton);
         end
       end);
@@ -752,15 +791,18 @@ function C_MiniMapModule:GetRightClickMenuList()
       customBtn:SetScript("OnLeave", function(...) 
         GameTooltip:Hide();
 
-        if (iconButton.dataObject.OnLeave) then
+        if (obj:IsFunction(iconButton.dataObject.OnLeave)) then
           iconButton.dataObject.OnLeave(iconButton);
         end
       end);
 
       customBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp", "MiddleButtonUp");
       customBtn:SetScript("OnClick", function(self, buttonName)
-        iconButton.dataObject.OnClick(iconButton, buttonName);
-        self:GetParent():Hide(); -- hides the drop down list frame
+        if (obj:IsFunction(iconButton.dataObject.OnClick)) then
+          iconButton.dataObject.OnClick(iconButton, buttonName);
+        end
+
+        HideMenu();
       end);
 
       table.insert(menuList, {
