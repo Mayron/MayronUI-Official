@@ -389,10 +389,12 @@ do
 
   -- TODO: Does not work in BCC (PLAYER_DIFFICULTY_CHANGED event does not exist)
   -- TODO: But BCC can have heroics?
+  -- TODO: What about Wrath?
   local function SetDungeonDifficultyShown(data)
     if (not tk:IsRetail()) then
       return
     end
+
     local widgets = data.settings.widgets;
 
     if (not data.dungeonDifficulty and not widgets.difficulty.show) then
@@ -400,31 +402,30 @@ do
     end
 
     if (not data.dungeonDifficulty) then
-      -- Create
       data.dungeonDifficulty = Minimap:CreateFontString(nil, "OVERLAY");
 
-      local listener = em:CreateEventListenerWithID(
-                         "DungeonDifficultyText", function()
-          if (IsInInstance()) then
-            local difficulty = select(4, GetInstanceInfo());
+      local listener = em:CreateEventListenerWithID("DungeonDifficultyText", function()
+        if (not IsInInstance()) then
+          data.dungeonDifficulty:SetText("");
+          return
+        end
 
-            if (difficulty == "Heroic") then
-              difficulty = "H";
-            elseif (difficulty == "Mythic") then
-              difficulty = "M";
-            elseif (difficulty == "Looking For Raid") then
-              difficulty = "RF";
-            else
-              difficulty = "";
-            end
+        local difficulty = select(4, GetInstanceInfo());
 
-            local players = GetNumGroupMembers();
-            players = (players > 0 and players) or 1;
-            data.dungeonDifficulty:SetText(players .. difficulty); -- localization possible?
-          else
-            data.dungeonDifficulty:SetText("");
-          end
-        end);
+        if (difficulty == "Heroic") then
+          difficulty = "H";
+        elseif (difficulty == "Mythic") then
+          difficulty = "M";
+        elseif (difficulty == "Looking For Raid") then
+          difficulty = "RF";
+        else
+          difficulty = "";
+        end
+
+        local players = GetNumGroupMembers();
+        players = (players > 0 and players) or 1;
+        data.dungeonDifficulty:SetText(players .. difficulty); -- localization possible?
+      end);
 
       listener:RegisterEvents(
         "PLAYER_ENTERING_WORLD", "PLAYER_DIFFICULTY_CHANGED",

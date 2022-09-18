@@ -16,6 +16,9 @@ L["Glyphs"] = "字形";
 L["Calendar"] = "日曆";
 L["LFD"] = "LFD";
 L["Enable Max Camera Zoom"] = "啟用最大相機縮放";
+L["Move AddOn Minimap Icons"] = "Move AddOn Minimap Icons";
+L["If checked, your addon minimap icons will be moved to the minimap's right-click menu."] 
+  = "If checked, your addon minimap icons will be moved to the minimap's right-click menu.";
 L["Raid"] = "襲擊";
 L["Encounter Journal"] = "相遇日記";
 L["Collections Journal"] = "收藏雜誌";

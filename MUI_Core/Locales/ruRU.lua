@@ -15,8 +15,10 @@ L["Achievements"] = "Достижения";
 L["Glyphs"] = "Глифы";
 L["Calendar"] = "Календарь";
 L["LFD"] = "LFD";
-L["Enable Max Camera Zoom"] =
-  "Включить максимальный зум камеры";
+L["Enable Max Camera Zoom"] = "Включить максимальный зум камеры";
+L["Move AddOn Minimap Icons"] = "Move AddOn Minimap Icons";
+L["If checked, your addon minimap icons will be moved to the minimap's right-click menu."] 
+  = "If checked, your addon minimap icons will be moved to the minimap's right-click menu.";
 L["Raid"] = "Рейд";
 L["Encounter Journal"] = "Журнал встреч";
 L["Collections Journal"] = "Журнал Коллекций";

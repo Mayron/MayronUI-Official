@@ -19,6 +19,9 @@ L["Glyphs"] = "Glyphen";
 L["Calendar"] = "Kalender";
 L["LFD"] = "LFD";
 L["Enable Max Camera Zoom"] = "Aktivieren Sie den maximalen Kamerazoom";
+L["Move AddOn Minimap Icons"] = "Move AddOn Minimap Icons";
+L["If checked, your addon minimap icons will be moved to the minimap's right-click menu."] 
+  = "If checked, your addon minimap icons will be moved to the minimap's right-click menu.";
 L["Raid"] = "Raid";
 L["Encounter Journal"] = "Dungeon Kompendium";
 L["Collections Journal"] = "Sammlungen";

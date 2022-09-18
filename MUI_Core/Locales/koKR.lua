@@ -16,6 +16,9 @@ L["Glyphs"] = "글리프";
 L["Calendar"] = "달력";
 L["LFD"] = "LFD";
 L["Enable Max Camera Zoom"] = "최대 카메라 줌 활성화";
+L["Move AddOn Minimap Icons"] = "Move AddOn Minimap Icons";
+L["If checked, your addon minimap icons will be moved to the minimap's right-click menu."] 
+  = "If checked, your addon minimap icons will be moved to the minimap's right-click menu.";
 L["Raid"] = "레이드";
 L["Encounter Journal"] = "만남 일지";
 L["Collections Journal"] = "컬렉션 저널";

@@ -15,7 +15,7 @@ local obj = _G.MayronObjects:GetFramework();
 
 local function OnEnter(self)
   _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 4);
-  _G.GameTooltip:AddLine(self.tooltip);
+  _G.GameTooltip:AddLine(self.tooltip, nil, nil, nil, true);
   _G.GameTooltip:Show();
 end
 
@@ -198,16 +198,15 @@ do
   end
 
   function Lib:CreateCheckButton(parent, text, tooltip)
-    local container = Private:PopFrame("Frame", parent);
+    local container = Private:PopFrame("Button", parent);
     container:SetSize(150, 30);
-    container.btn = CreateFrame(
-                      "CheckButton", nil, container, "UICheckButtonTemplate");
+    container.btn = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
     container.btn:SetSize(20, 20);
 
     if (tooltip) then
-      container.btn.tooltip = tooltip;
-      container.btn:SetScript("OnEnter", OnEnter);
-      container.btn:SetScript("OnLeave", OnLeave);
+      container.tooltip = tooltip;
+      container:SetScript("OnEnter", OnEnter);
+      container:SetScript("OnLeave", OnLeave);
     end
 
     container.btn:SetPushedTexture(nil);
