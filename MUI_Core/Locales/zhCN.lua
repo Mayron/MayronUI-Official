@@ -16,9 +16,8 @@ L["Glyphs"] = "字形";
 L["Calendar"] = "日历";
 L["LFD"] = "LFD";
 L["Enable Max Camera Zoom"] = "启用最大相机缩放";
-L["Move AddOn Minimap Icons"] = "Move AddOn Minimap Icons";
-L["If checked, your addon minimap icons will be moved to the minimap's right-click menu."] 
-  = "If checked, your addon minimap icons will be moved to the minimap's right-click menu.";
+L["Move AddOn Buttons"] = "移动插件按钮";
+L["MOVE_ADDON_BUTTONS_TOOLTIP"] = "如果选中，出现在小地图顶部的插件图标按钮将被移动到小地图的右键菜单中。";
 L["Raid"] = "袭击";
 L["Encounter Journal"] = "邂逅日记";
 L["Collections Journal"] = "收藏杂志";

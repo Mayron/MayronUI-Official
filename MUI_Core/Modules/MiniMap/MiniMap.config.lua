@@ -163,8 +163,8 @@ function C_MiniMapModule:GetConfigTable(data)
                 requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
                 appendDbPath = "enabled",
             },
-            {   name = L["Move AddOn Minimap Icons"],
-                tooltip = L["If checked, your addon minimap icons will be moved to the minimap's right-click menu."],
+            {   name = L["Move AddOn Buttons"],
+                tooltip = L["MOVE_ADDON_BUTTONS_TOOLTIP"],
                 type = "check",
                 requiresReload = true,
                 appendDbPath = "hideIcons",
