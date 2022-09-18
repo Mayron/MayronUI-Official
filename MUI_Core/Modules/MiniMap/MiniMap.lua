@@ -713,15 +713,15 @@ function C_MiniMapModule:GetRightClickMenuList()
       ["Leatrix_Plus"] = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70");
       ["Questie"] = tk.Strings:SetTextColorByHex("Questie", "ffc50f");
       ["Details"] = tk.Strings:SetTextColorByHex("Details", "ffb8b8");
-      ["Bartender4"] = tk.Strings:SetTextColorByHex("Bartender4", "eaffb8");
+      ["Bartender4"] = tk.Strings:SetTextColorByHex("Bartender4", "ee873a");
       ["DBM"] = tk.Strings:SetTextColorByHex("Deadly Boss Mods", "ff5656");
       ["RareScannerMinimapIcon"] = tk.Strings:SetTextColorByHex("Rare Scanner", "ff0f6f");
       ["Plater"] = tk.Strings:SetTextColorByHex("Plater", "e657ff");
       ["BigWigs"] = tk.Strings:SetTextColorByHex("BigWigs Bossmods", "ff5656");
-      ["TradeSkillMaster"] = tk.Strings:SetTextColorByHex("Trade Skill Master", "ffef57");
-      ["WeakAuras"] = tk.Strings:SetTextColorByHex("Weak Auras", "c0f15c");
+      ["TradeSkillMaster"] = tk.Strings:SetTextColorByHex("Trade Skill Master", "a05ff4");
+      ["WeakAuras"] = tk.Strings:SetTextColorByHex("Weak Auras", "9900ff");
       ["HealBot"] = tk.Strings:SetTextColorByHex("HealBot", "3af500");
-      ["AtlasLoot"] = tk.Strings:SetTextColorByHex("Atlas Loot", "e5cd8f");
+      ["AtlasLoot"] = tk.Strings:SetTextColorByHex("Atlas Loot", "f0c092");
     };
     
     local function MoveAddonIconToMenu(name)
