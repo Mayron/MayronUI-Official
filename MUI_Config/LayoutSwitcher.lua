@@ -25,7 +25,12 @@ local function GetSupportedAddOns()
   local MayronDB = obj:Import("MayronDB");
 
   for _, database in MayronDB.Static:IterateDatabases() do
-    addOns[database:GetDatabaseName()] = database;
+    local dbName = database:GetDatabaseName();
+    if (dbName ~= "MayronUI") then
+      -- don't allow the full MayronUI db to change as it raises bugs
+      -- (db.profile.layout is confusing and needs to be addressed in MUI Gen7)
+      addOns[dbName] = database;
+    end
   end
 
   for addOnName, status in LibStub("AceAddon-3.0"):IterateAddonStatus() do
@@ -297,7 +302,7 @@ function C_LayoutSwitcher:CreateScrollFrameRowContent(data,
   dropdown:SetLabel(dbObject:GetCurrentProfile());
   dropdown:AddOption(
     "<" .. L["New Profile"] .. ">", { self; "CreateNewAddOnProfile" },
-    addOnName, dbObject);
+      addOnName, dbObject);
 
   for _, profileName in ipairs(addOnProfiles) do
     dropdown:AddOption(
@@ -359,7 +364,7 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 
   data.addonWindow = gui:CreateDynamicFrame(
                        tk.Constants.AddOnStyle, data.layoutTool:GetFrame(), 5,
-                       10);
+                         10);
   gui:CreateDialogBox(
     tk.Constants.AddOnStyle, nil, "LOW", data.addonWindow:GetFrame());
 
@@ -407,7 +412,7 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 
   data.menu.createButton = gui:CreateButton(
                              tk.Constants.AddOnStyle, data.menu:GetFrame(),
-                             L["Create New Layout"]);
+                               L["Create New Layout"]);
   data.menu.createButton:SetWidth(178);
   data.menu.createButton:SetPoint(
     "TOP", data.menu.layoutsDropDown:GetFrame(), "BOTTOM", 0, -20);
@@ -418,7 +423,7 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 
   data.menu.renameButton = gui:CreateButton(
                              tk.Constants.AddOnStyle, data.menu:GetFrame(),
-                             L["Rename Layout"]);
+                               L["Rename Layout"]);
   data.menu.renameButton:SetWidth(178);
   data.menu.renameButton:SetPoint(
     "TOP", data.menu.createButton, "BOTTOM", 0, -20);
@@ -429,7 +434,7 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 
   data.menu.deleteButton = gui:CreateButton(
                              tk.Constants.AddOnStyle, data.menu:GetFrame(),
-                             L["Delete Layout"]);
+                               L["Delete Layout"]);
   data.menu.deleteButton:SetWidth(178);
   data.menu.deleteButton:SetPoint(
     "TOP", data.menu.renameButton, "BOTTOM", 0, -20);

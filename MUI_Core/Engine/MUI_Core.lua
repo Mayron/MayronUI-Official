@@ -454,10 +454,8 @@ function BaseModule:SetEnabled(data, enabled, ...)
       self:OnEnable(...);
     end
 
-    if (data.updateFunctions and not data.firstTime) then
-      -- execute all update functions if enabled setting changed
-      self:ExecuteAllUpdateFunctions(self);
-      data.firstTime = true;
+    if (data.updateFunctions) then
+      self:ExecuteAllUpdateFunctions();
     end
 
     if (self.OnEnabled) then
@@ -867,7 +865,11 @@ db:OnProfileChange(
       if (not MayronUI:GetModuleComponent(registryInfo.moduleKey, "Database")) then
         module:TriggerEvent("OnProfileChanging", newProfileName);
         module:RefreshSettings();
-        module:ExecuteAllUpdateFunctions();
+
+        local enabled = module:IsEnabled();
+        -- this will call ExecuteAllUpdateFunctions
+        module:SetEnabled(enabled);
+
         module:TriggerEvent("OnProfileChanged", newProfileName);
       end
     end

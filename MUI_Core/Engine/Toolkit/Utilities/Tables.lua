@@ -379,6 +379,11 @@ end
 
 -- gets the DB associated with the AddOn based on convention
 function tk.Tables:GetDBObject(addOnName)
+  if (addOnName == "MayronUI") then
+    -- restricted due to db.profile.layout bug
+    return
+  end
+
   local addon, okay, dbObject;
   local MayronDB = obj:Import("MayronDB"); ---@type MayronDB
   dbObject = MayronDB.Static:GetDatabaseByName(addOnName);

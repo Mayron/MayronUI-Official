@@ -1,7 +1,9 @@
 -- luacheck: ignore self 143 631
 ---@type MayronObjects
 local obj = _G.MayronObjects:GetFramework();
-if (obj:Import("MayronDB", true)) then return end
+if (obj:Import("MayronDB", true)) then
+  return
+end
 
 ---@class MayronDB
 local MayronDB = obj:CreateClass("MayronDB");
@@ -19,9 +21,12 @@ local Helper = obj:CreateClass("Helper");
 Observer.Static:AddFriendClass("Helper");
 Observer.Static:AddFriendClass("Database");
 
-local select, tonumber, strsplit, type = _G.select, _G.tonumber, _G.strsplit, _G.type;
-local ipairs, pairs, table, unpack, assert = _G.ipairs, _G.pairs, _G.table, _G.unpack, _G.assert;
-local string, tostring, setmetatable, print = _G.string, _G.tostring, _G.setmetatable, _G.print;
+local select, tonumber, strsplit, type = _G.select, _G.tonumber, _G.strsplit,
+  _G.type;
+local ipairs, pairs, table, unpack, assert = _G.ipairs, _G.pairs, _G.table,
+  _G.unpack, _G.assert;
+local string, tostring, setmetatable, print = _G.string, _G.tostring,
+  _G.setmetatable, _G.print;
 
 local GetLastTableKeyPairs, GetNextPath, IsEqual, GetDatabasePathInfo, FillTable;
 
@@ -29,20 +34,17 @@ local OnAddOnLoadedListener = _G.CreateFrame("Frame");
 OnAddOnLoadedListener:RegisterEvent("ADDON_LOADED");
 OnAddOnLoadedListener.RegisteredDatabases = obj:PopTable();
 
-OnAddOnLoadedListener:SetScript("OnEvent", function(self, _, addOnName)
-  local addOnDatabases = OnAddOnLoadedListener.RegisteredDatabases[addOnName];
+OnAddOnLoadedListener:SetScript(
+  "OnEvent", function(self, _, addOnName)
+    local addOnDatabases = OnAddOnLoadedListener.RegisteredDatabases[addOnName];
 
-  if (not addOnDatabases) then return end
-  for _, database in pairs(addOnDatabases) do
-    database:Start();
-  end
-end);
-
-local function Log(msg, ...)
-  if (_G.MayronDBTest) then
-    print(msg, ...);
-  end
-end
+    if (not addOnDatabases) then
+      return
+    end
+    for _, database in pairs(addOnDatabases) do
+      database:Start();
+    end
+  end);
 
 ------------------------
 -- Database API
@@ -57,7 +59,8 @@ obj:DefineReturns("Database");
 ---    the database when the saved variable becomes accessible.
 ---@param databaseName string @(optional) Assign a (user-friendly) name for the database.
 ---@return Database @The database object.
-function MayronDB.Static:CreateDatabase(addOnName, savedVariableName, manualStartUp, databaseName)
+function MayronDB.Static:CreateDatabase(
+  addOnName, savedVariableName, manualStartUp, databaseName)
   local database = Database(addOnName, savedVariableName, databaseName);
 
   if (not manualStartUp and _G[savedVariableName]) then
@@ -65,7 +68,8 @@ function MayronDB.Static:CreateDatabase(addOnName, savedVariableName, manualStar
     database:Start();
   end
 
-  local addOnDatabases = OnAddOnLoadedListener.RegisteredDatabases[addOnName] or obj:PopTable();
+  local addOnDatabases = OnAddOnLoadedListener.RegisteredDatabases[addOnName]
+                           or obj:PopTable();
   addOnDatabases[savedVariableName] = database;
 
   OnAddOnLoadedListener.RegisteredDatabases[addOnName] = addOnDatabases;
@@ -125,12 +129,14 @@ end
 
 obj:DefineParams("table", "string");
 function MayronDB.Static:SetPathValue(rootTable, path, value)
-  obj:Assert(not obj:IsType(rootTable, "Observer"), "Table required, found Observer");
+  obj:Assert(
+    not obj:IsType(rootTable, "Observer"), "Table required, found Observer");
 
   local lastTable, lastKey = GetLastTableKeyPairs(rootTable, path);
 
-  assert(obj:IsTable(lastTable) and
-  (obj:IsString(lastKey) or obj:IsNumber(lastKey)), "MayronDB.Static:SetPathValue failed to set value");
+  assert(
+    obj:IsTable(lastTable) and (obj:IsString(lastKey) or obj:IsNumber(lastKey)),
+      "MayronDB.Static:SetPathValue failed to set value");
 
   -- set value here!
   lastTable[lastKey] = value;
@@ -139,15 +145,16 @@ end
 obj:DefineParams("table", "string");
 function MayronDB.Static:ParsePathValue(rootTable, path)
   local replaced;
-  path = path:gsub("(%b[])", function(index)
-    index = index:match("%[(.+)%]");
+  path = path:gsub(
+           "(%b[])", function(index)
+      index = index:match("%[(.+)%]");
 
-    if (index:find("%.")) then
-      replaced = replaced or obj:PopTable();
-      replaced[#replaced + 1] = index;
-      return "[$" .. tostring(#replaced) .. "]";
-    end
-  end);
+      if (index:find("%.")) then
+        replaced = replaced or obj:PopTable();
+        replaced[#replaced + 1] = index;
+        return "[$" .. tostring(#replaced) .. "]";
+      end
+    end);
 
   local values = obj:PopTable(strsplit(".", path));
   local length = #values;
@@ -155,7 +162,7 @@ function MayronDB.Static:ParsePathValue(rootTable, path)
 
   for _, key in ipairs(values) do
     if (rootTable == nil or not obj:IsTable(rootTable)) then
-      break;
+      break
     end
 
     if (tonumber(key)) then
@@ -196,7 +203,7 @@ function MayronDB.Static:ParsePathValue(rootTable, path)
           iterations = iterations + 1;
 
           if (rootTable == nil or not obj:IsTable(rootTable)) then
-            break;
+            break
           end
         end
 
@@ -247,7 +254,9 @@ end
 obj:DefineReturns("string");
 ---@return string @The name of the database
 function Database:GetDatabaseName(data)
-  if (data.databaseName) then return data.databaseName; end
+  if (data.databaseName) then
+    return data.databaseName;
+  end
   return string.format("%s:%s", data.addOnName, data.svName);
 end
 
@@ -268,7 +277,8 @@ obj:DefineParams("function");
 ---(i.e. only changed by the user using db:SetProfile() or db:RemoveProfile(currentProfile)).
 ---@param callback function @The profile changing callback function
 function Database:OnProfileChange(data, callback)
-  local profileChangedCallback = data.callbacks["OnProfileChange"] or obj:PopTable();
+  local profileChangedCallback = data.callbacks["OnProfileChange"]
+                                   or obj:PopTable();
   data.callbacks["OnProfileChange"] = profileChangedCallback;
 
   table.insert(profileChangedCallback, callback);
@@ -327,6 +337,15 @@ function Database:IsLoaded(data)
   return data.loaded == true;
 end
 
+---@return string @The name of the player plus their realm name
+obj:DefineReturns("string");
+function Database:GetPlayerProfileName()
+  local playerName = _G.UnitName("player");
+  local realm = _G.GetRealmName():gsub("%s+", "");
+
+  return string.join("-", playerName, realm);
+end
+
 obj:DefineParams("string", "any");
 ---Adds a value to the database defaults table relative to the path: defaults.<path> = <value>
 ---@param path string @A database path string, such as "myTable.mySubTable[2]"
@@ -340,7 +359,8 @@ obj:DefineParams("string", "table|function", "?function");
 ---@param path string @A database path string, such as "myTable.mySubTable[2]".
 ---@param updateFunctions table|function @A table containing functions, or a function, to attach to a database path.
 ---@param manualFunc function @When TriggerUpdateFunction is called, the manualFunc will be called and is passed the update function to allow the user to decide how it should be called.
-function Database:RegisterUpdateFunctions(data, path, updateFunctions, manualFunc)
+function Database:RegisterUpdateFunctions(
+  data, path, updateFunctions, manualFunc)
   self:SetPathValue(data.updateFunctions, path, updateFunctions);
   data.manualUpdateFunctions[path] = manualFunc;
 end
@@ -357,7 +377,7 @@ end
 obj:DefineParams("string");
 ---Triggers an update function located by the path argument and pass any arguments to the function
 ---@param path string @A database path string, such as "profile.myTable.mySubTable[2]" (includes root path).
-    --- This is needed to locate the updateFunction
+--- This is needed to locate the updateFunction
 function Database:TriggerUpdateFunction(data, path, ...)
   local updateFunction = self:ParsePathValue(data.updateFunctions, path);
   local manualFunction;
@@ -369,19 +389,20 @@ function Database:TriggerUpdateFunction(data, path, ...)
 
   while (not obj:IsFunction(updateFunction) and pathOfValue:find("[.[]")) do
     -- cut off the last key (traverse table backwards to find update function)
-    updateFunctionPath = updateFunctionPath:match('(.+)[.[]');
-    pathOfValue = pathOfValue:match('(.+)[.[]');
+    updateFunctionPath = updateFunctionPath:match("(.+)[.[]");
+    pathOfValue = pathOfValue:match("(.+)[.[]");
 
-    updateFunction = self:ParsePathValue(data.updateFunctions, updateFunctionPath);
+    updateFunction = self:ParsePathValue(
+                       data.updateFunctions, updateFunctionPath);
   end
 
   while (not obj:IsFunction(manualFunction)) do
     manualFunction = data.manualUpdateFunctions[manualFunctionPath];
 
     if (manualFunctionPath:find("[.[]")) then
-      manualFunctionPath = manualFunctionPath:match('(.+)[.[]');
+      manualFunctionPath = manualFunctionPath:match("(.+)[.[]");
     else
-      break;
+      break
     end
   end
 
@@ -406,14 +427,20 @@ obj:DefineParams("table|string");
 ---@param pathOrValue any @(optional) A table path string (also called a path address), such as "myTable.mySubTable[2]", or if rootTable is a string representing the path then this is the value argument. If it is the path then this is converted to a sequence of tables which are added to the database if they do not already exist (myTable will be created if not found).
 ---@param value any @(optional) A value to assign to the table relative to the provided path string (is nil if the path argument is the value)
 function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value, ...)
-  local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
+  local rootTable, path, realValue = GetDatabasePathInfo(
+                                       self, rootTableOrPath, pathOrValue, value);
 
-  obj:Assert(obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
-  obj:Assert(path and not (obj:IsType(rootTable, "Observer") and path:find("__template")), "Invalid path address '%s'.", path);
+  obj:Assert(
+    obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
+  obj:Assert(
+    path and not (obj:IsType(rootTable, "Observer") and path:find("__template")),
+      "Invalid path address '%s'.", path);
 
   local lastTable, lastKey = GetLastTableKeyPairs(rootTable, path);
 
-  obj:Assert(obj:IsTable(lastTable) and (obj:IsString(lastKey) or obj:IsNumber(lastKey)), "Database:SetPathValue failed to set value");
+  obj:Assert(
+    obj:IsTable(lastTable) and (obj:IsString(lastKey) or obj:IsNumber(lastKey)),
+      "Database:SetPathValue failed to set value");
 
   -- set value here!
   if (lastTable.IsObjectType and lastTable:IsObjectType("Observer")) then
@@ -442,7 +469,7 @@ function Database:SetProfile(data, profileName)
   local profile = data.sv.profiles[profileName] or obj:PopTable();
   data.sv.profiles[profileName] = profile;
 
-  local profileKey = data.helper:GetCurrentProfileKey();
+  local profileKey = self:GetPlayerProfileName();
   local oldProfileName = data.sv.profileKeys[profileKey] or "Default";
   data.sv.profileKeys[profileKey] = profileName;
 
@@ -466,7 +493,7 @@ end
 obj:DefineReturns("string");
 ---@return string @The current profile associated with the currently logged in character.
 function Database:GetCurrentProfile(data)
-  local profileKey = data.helper:GetCurrentProfileKey();
+  local profileKey = self:GetPlayerProfileName();
   return data.sv.profileKeys[profileKey] or "Default";
 end
 
@@ -533,7 +560,7 @@ obj:DefineParams("?string");
 ---@param profileName string @(Optional) The name of the profile to reset. If nil, uses current profile.
 function Database:ResetProfile(data, profileName)
   profileName = profileName or self:GetCurrentProfile();
-  data.sv.appended["profile."..profileName] = nil;
+  data.sv.appended["profile." .. profileName] = nil;
 
   if (data.sv.profiles[profileName]) then
     data.bin = data.bin or obj:PopTable();
@@ -548,7 +575,9 @@ obj:DefineParams("string");
 ---Helper function to reset a profile.
 ---@param profileName string @The name of the profile to reset.
 function Database:CopyProfile(data, profileName, copiedProfileName)
-if (profileName == copiedProfileName) then return end
+  if (profileName == copiedProfileName) then
+    return
+  end
 
   -- If both profiles already exist so we can copy one profile ontop of another and override the old profile
   if (data.sv.profiles[profileName] and data.sv.profiles[copiedProfileName]) then
@@ -565,7 +594,7 @@ obj:DefineReturns("boolean");
 ---@param profileName string @The name of the profile to move to the bin.
 ---@return boolean @Returns true if the profile was changed due to removing the current profile.
 function Database:RemoveProfile(data, profileName)
-  data.sv.appended["profile."..profileName] = nil;
+  data.sv.appended["profile." .. profileName] = nil;
 
   if (data.sv.profiles[profileName]) then
     data.bin = data.bin or obj:PopTable();
@@ -622,13 +651,14 @@ obj:DefineParams("string", "string");
 ---@param oldProfileName string @The old profile name.
 ---@param newProfileName string @The new profile name.
 function Database:RenameProfile(data, oldProfileName, newProfileName)
-  newProfileName = data.helper:GetNewProfileName(newProfileName, data.sv.profiles);
+  newProfileName = data.helper:GetNewProfileName(
+                     newProfileName, data.sv.profiles);
   local profile = data.sv.profiles[oldProfileName];
 
   data.sv.profiles[oldProfileName] = nil;
   data.sv.profiles[newProfileName] = profile;
 
-  local currentProfileKey = data.helper:GetCurrentProfileKey();
+  local currentProfileKey = self:GetPlayerProfileName();
 
   for profileKey, profileName in pairs(data.sv.profileKeys) do
     if (profileName == oldProfileName) then
@@ -645,10 +675,11 @@ function Database:RenameProfile(data, oldProfileName, newProfileName)
 end
 
 do
-  local function RegisterForProfileSwitching(data, appendKey, path, value, manual)
+  local function RegisterForProfileSwitching(
+    data, appendKey, path, value, manual)
     data.appended = data.appended or obj:PopTable();
     if (not data.appended[appendKey]) then
-      data.appended[appendKey] = { path, appendKey, value, manual };
+      data.appended[appendKey] = { path; appendKey; value; manual };
     end
   end
 
@@ -697,7 +728,9 @@ do
   ---@return boolean @Returns whether the value was successfully added.
   function Database:AppendOnce(data, path, appendKey, value, manual)
     appendKey = appendKey or path;
-    obj:Assert(appendKey, "Both path and appendKey args cannot be missing (at least one is required)");
+    obj:Assert(
+      appendKey,
+        "Both path and appendKey args cannot be missing (at least one is required)");
 
     appendKey = appendKey:gsub("^global%.?", ""):gsub("^profile%.?", "");
 
@@ -770,62 +803,64 @@ end
 
 ---When a new value is being added to the database, use the child observer's table
 ---if switched to using a parent observer. Also, add to the saved variable table if not a function.
-Observer.Static:OnIndexChanging(function(_, data, key, value)
-  data.helper:HandlePathValueChange(data, key, value);
-  return true; -- prevent indexing
-end);
+Observer.Static:OnIndexChanging(
+  function(_, data, key, value)
+    data.helper:HandlePathValueChange(data, key, value);
+    return true; -- prevent indexing
+  end);
 
 ---Pick from Observer's saved variable table, else parent table if not found, else defaults table.
-Observer.Static:OnIndexed(function(self, data, key, realValue)
-  if (realValue ~= nil) then
-    return realValue; -- it is an observer object value
-  end
+Observer.Static:OnIndexed(
+  function(self, data, key, realValue)
+    if (realValue ~= nil) then
+      return realValue; -- it is an observer object value
+    end
 
-  local foundValue;
-  local svTable = self:GetSavedVariable();
+    local foundValue;
+    local svTable = self:GetSavedVariable();
 
-  if (svTable) then
-    -- convert saved variable table into an Observer
-    foundValue = data.helper:GetNextValue(data, svTable, key);
-  end
+    if (svTable) then
+      -- convert saved variable table into an Observer
+      foundValue = data.helper:GetNextValue(data, svTable, key);
+    end
 
-  -- check parent if still not found
-  if (foundValue == nil) then
-    if (data.parent) then
-      local parentSvTable = data.parent:GetSavedVariable();
+    -- check parent if still not found
+    if (foundValue == nil) then
+      if (data.parent) then
+        local parentSvTable = data.parent:GetSavedVariable();
 
-      if (parentSvTable ~= nil) then
-        local parentData = data:GetFriendData(data.parent);
+        if (parentSvTable ~= nil) then
+          local parentData = data:GetFriendData(data.parent);
 
-        data.helper:SetUsingChild(data.isGlobal, data.path, data.parent);
-        -- it is possible to not have a svTable (might be dependent on defaults table)
-        foundValue = data.helper:GetNextValue(parentData, parentSvTable, key);
+          data.helper:SetUsingChild(data.isGlobal, data.path, data.parent);
+          -- it is possible to not have a svTable (might be dependent on defaults table)
+          foundValue = data.helper:GetNextValue(parentData, parentSvTable, key);
+        end
       end
     end
-  end
 
-  -- check own defaults table if still not found
-  if (foundValue == nil) then
-    local defaults = self:GetDefaults();
+    -- check own defaults table if still not found
+    if (foundValue == nil) then
+      local defaults = self:GetDefaults();
 
-    if (defaults) then
-      foundValue = data.helper:GetNextValue(data, defaults, key);
+      if (defaults) then
+        foundValue = data.helper:GetNextValue(data, defaults, key);
+      end
     end
-  end
 
-  if (foundValue == nil and data.parent) then
-    -- check parent's defaults table before own defaults table
-    local defaults = data.parent:GetDefaults();
+    if (foundValue == nil and data.parent) then
+      -- check parent's defaults table before own defaults table
+      local defaults = data.parent:GetDefaults();
 
-    if (defaults ~= nil) then
-      local parentData = data:GetFriendData(data.parent);
-      data.helper:SetUsingChild(data.isGlobal, data.path, data.parent);
-      foundValue = data.helper:GetNextValue(parentData, defaults, key);
+      if (defaults ~= nil) then
+        local parentData = data:GetFriendData(data.parent);
+        data.helper:SetUsingChild(data.isGlobal, data.path, data.parent);
+        foundValue = data.helper:GetNextValue(parentData, defaults, key);
+      end
     end
-  end
 
-  return foundValue;
-end);
+    return foundValue;
+  end);
 
 obj:DefineParams("?Observer");
 ---Used to achieve database inheritance. If an observer cannot find a value, it uses the value
@@ -988,12 +1023,13 @@ do
   -- local functions, ToTable
   local ConvertObserverToUntrackedTable, CreateTrackerFromTable;
   -- tracker methods
-  local SaveChanges, Refresh, GetObserver, GetTotalPendingChanges, ResetChanges, GetUntrackedTable, Iterate;
+  local SaveChanges, Refresh, GetObserver, GetTotalPendingChanges, ResetChanges,
+        GetUntrackedTable, Iterate;
 
   local _metaData = {};
   local tracker_MT = {};
   local BasicTableParent = {};
-  local basicTable_MT = {__index = BasicTableParent};
+  local basicTable_MT = { __index = BasicTableParent };
 
   -- Local Functions:
   do
@@ -1023,7 +1059,9 @@ do
       end
     end
 
-    function ConvertObserverToUntrackedTable(observer, reusableTable, isParent)
+    function ConvertObserverToUntrackedTable(observer,
+                                             reusableTable,
+                                             isParent)
       local merged = reusableTable or obj:PopTable();
       local svTable = observer:GetSavedVariable();
       local defaults = observer:GetDefaults();
@@ -1112,7 +1150,8 @@ do
 
   function Refresh(tracker)
     local data = _metaData[tostring(tracker)];
-    local basicTable = ConvertObserverToUntrackedTable(data.observer, data.basicTable);
+    local basicTable = ConvertObserverToUntrackedTable(
+                         data.observer, data.basicTable);
     setmetatable(basicTable, basicTable_MT);
   end
 
@@ -1155,7 +1194,7 @@ do
     local tracker = data.tracker;
 
     if (not tracker) then
-        tracker = CreateTrackerFromTable(data.observer, self);
+      tracker = CreateTrackerFromTable(data.observer, self);
     end
 
     return tracker;
@@ -1171,7 +1210,8 @@ do
       for currentKey, currentValue in pairs(currentTable) do
         if (updatedTable[currentKey] == nil) then
           currentTable[currentKey] = nil;
-        elseif (obj:IsTable(updatedTable[currentKey]) and obj:IsTable(currentValue)) then
+        elseif (obj:IsTable(updatedTable[currentKey])
+          and obj:IsTable(currentValue)) then
           RemoveNilTableValues(currentValue, updatedTable[currentKey]);
         end
       end
@@ -1219,7 +1259,8 @@ do
       local nextTracker = _metaData[tostring(basicTable)];
 
       if (not nextTracker) then
-        nextValue = CreateTrackerFromTable(data.observer, basicTable, tracker, nextPath);
+        nextValue = CreateTrackerFromTable(
+                      data.observer, basicTable, tracker, nextPath);
       end
     end
 
@@ -1233,7 +1274,7 @@ do
 
     if (currentValue ~= nil and value == nil) then
       -- so that SaveChanges() knows to set this to nil
-    -- (else the key would be removed from changes table)
+      -- (else the key would be removed from changes table)
       data.changes[newIndexPath] = "nil";
 
     elseif (IsEqual(currentValue, value)) then
@@ -1317,17 +1358,9 @@ function Helper:GetNewProfileName(_, oldProfileName, profilesTable)
   return newProfileName;
 end
 
-obj:DefineReturns("string");
-function Helper:GetCurrentProfileKey()
-  local playerName = _G.UnitName("player");
-  local realm = _G.GetRealmName():gsub("%s+", "");
-
-  return string.join("-", playerName, realm);
-end
-
 obj:DefineParams("table", "table", "any") -- should be string or number
 function Helper:GetNextValue(data, previousObserverData, tbl, key)
-  --tbl could be sv or defaults table
+  -- tbl could be sv or defaults table
   local nextValue = tbl[key];
 
   if (not obj:IsTable(nextValue)) then
@@ -1340,7 +1373,8 @@ function Helper:GetNextValue(data, previousObserverData, tbl, key)
     nextObserver = previousObserverData.internalTree[key];
 
     if (not nextObserver) then
-      nextObserver = Observer(previousObserverData.isGlobal, previousObserverData);
+      nextObserver = Observer(
+                       previousObserverData.isGlobal, previousObserverData);
     end
 
     previousObserverData.internalTree[key] = nextObserver;
@@ -1358,7 +1392,8 @@ function Helper:GetNextValue(data, previousObserverData, tbl, key)
   -- get next child path in use
   if (previousObserverData.usingChild) then
     local nextChildPath = GetNextPath(previousObserverData.usingChild.path, key);
-    self:SetUsingChild(previousObserverData.usingChild.isGlobal, nextChildPath, nextObserver);
+    self:SetUsingChild(
+      previousObserverData.usingChild.isGlobal, nextChildPath, nextObserver);
   else
     obj:PushTable(nextObserverData.usingChild);
     nextObserverData.usingChild = nil;
@@ -1420,7 +1455,7 @@ function Helper:HandlePathValueChange(data, observerData, key, newValue, ...)
   end
 
   if (obj:IsString(key) and key:find("%.")) then
-    key = "["..key.."]";
+    key = "[" .. key .. "]";
   end
 
   local valuePath = GetNextPath(path, key);
@@ -1575,15 +1610,16 @@ do
     local isLastPart, isLastIndex;
     local replaced;
 
-    path = path:gsub("(%b[])", function(index)
-      index = index:match("%[(.+)%]");
+    path = path:gsub(
+             "(%b[])", function(index)
+        index = index:match("%[(.+)%]");
 
-      if (index:find("%.")) then
-        replaced = replaced or obj:PopTable();
-        replaced[#replaced + 1] = index;
-        return "[$" .. tostring(#replaced) .. "]";
-      end
-    end);
+        if (index:find("%.")) then
+          replaced = replaced or obj:PopTable();
+          replaced[#replaced + 1] = index;
+          return "[$" .. tostring(#replaced) .. "]";
+        end
+      end);
 
     local pathParts = obj:PopTable(strsplit(".", path));
 
@@ -1622,7 +1658,9 @@ do
 
         if (#key > 0) then
           lastKey = key;
-          lastTable, nextTable = GetNextTable(nextTable, key, isLastPart and (indexes and #indexes == 0));
+          lastTable, nextTable = GetNextTable(
+                                   nextTable, key,
+                                     isLastPart and (indexes and #indexes == 0));
 
           if (IsCleaning(cleaning, nextTable, lastTable, lastKey)) then
             if (obj:IsTable(indexes)) then
@@ -1639,7 +1677,9 @@ do
             isLastIndex = i2 == #indexes;
             indexKey = tonumber(indexKey) or indexKey;
             lastKey = indexKey;
-            lastTable, nextTable = GetNextTable(nextTable, indexKey, isLastPart and isLastIndex);
+            lastTable, nextTable = GetNextTable(
+                                     nextTable, indexKey,
+                                       isLastPart and isLastIndex);
 
             if (IsCleaning(cleaning, nextTable, lastTable, lastKey)) then
               obj:PushTable(indexes);
