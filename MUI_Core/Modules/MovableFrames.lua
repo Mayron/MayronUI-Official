@@ -13,6 +13,7 @@ local C_MovableFramesModule = MayronUI:RegisterModule(
 db:AddToDefaults(
   "global.movable", {
     enabled = true;
+    clampToScreen = true;
     positions = {};
     talkingHead = { position = "TOP"; yOffset = -50 };
   });
@@ -86,7 +87,15 @@ local BlizzardFrames = {
   Blizzard_VoidStorageUI = "VoidStorageFrame";
   Blizzard_ItemAlterationUI = "TransmogrifyFrame";
   Blizzard_GuildBankUI = "GuildBankFrame";
-  Blizzard_TalentUI = tk:IsClassic() and "TalentFrame" or "PlayerTalentFrame";
+  Blizzard_TalentUI = {
+    (tk:IsClassic() and "TalentFrame" or "PlayerTalentFrame");
+    subFrames = tk:IsWrathClassic() and { "GlyphFrame" };
+
+  };
+  Blizzard_GlyphUI = {
+    (tk:IsClassic() and "TalentFrame" or "PlayerTalentFrame");
+    subFrames = tk:IsWrathClassic() and { "GlyphFrame" };
+  };
   Blizzard_MacroUI = "MacroFrame";
   Blizzard_BindingUI = "KeyBindingFrame";
   Blizzard_Calendar = "CalendarFrame";
@@ -520,25 +529,33 @@ do
 
   obj:DefineParams("boolean", "?Frame", "?table");
   function C_MovableFramesModule:MakeMovable(data, dontSave, frame, tbl)
-    if (not frame or not CanMove(frame)) then
+    if (not obj:IsWidget(frame) or not CanMove(frame)) then
       return
     end
 
-    frame:SetMovable(true);
-    frame:EnableMouse(true);
-    frame:SetUserPlaced(true);
-    frame:RegisterForDrag("LeftButton");
-    frame:SetClampedToScreen(true);
-    frame:SetClampRectInsets(-10, 10, 10, -10);
-    frame.dontSave = dontSave;
-    settings = data.settings;
+    if (not tk.Tables:Contains(data.frames, frame)) then
+      frame:SetMovable(true);
+      frame:EnableMouse(true);
+      frame:SetUserPlaced(true);
+      frame:RegisterForDrag("LeftButton");
 
-    table.insert(data.frames, frame);
+      if (data.settings.clampToScreen) then
+        frame:SetClampedToScreen(true);
+        frame:SetClampRectInsets(-10, 10, 10, -10);
+      else
+        frame:SetClampedToScreen(false);
+      end
 
-    frame.oldOnDragStart = frame:GetScript("OnDragStart");
-    frame.oldOnDragStop = frame:GetScript("OnDragStop");
-    frame:SetScript("OnDragStart", Frame_OnDragStart);
-    frame:SetScript("OnDragStop", Frame_OnDragStop);
+      frame.dontSave = dontSave;
+      settings = data.settings;
+
+      table.insert(data.frames, frame);
+
+      frame.oldOnDragStart = frame:GetScript("OnDragStart");
+      frame.oldOnDragStop = frame:GetScript("OnDragStop");
+      frame:SetScript("OnDragStart", Frame_OnDragStart);
+      frame:SetScript("OnDragStop", Frame_OnDragStop);
+    end
 
     if (not tbl) then
       return;

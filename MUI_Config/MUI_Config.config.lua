@@ -211,6 +211,12 @@ function C_ConfigModule:GetConfigTable()
             db:SetPathValue(dbPath, newValue);
             MayronUI:ImportModule("MovableFramesModule"):SetEnabled(newValue);
           end;
+        }; {
+          name = "Clamp Frames to Screen";
+          type = "check";
+          tooltip = "If checked, Blizzard frames cannot be dragged outside of the screen.";
+          dbPath = "global.movable.clampToScreen";
+          requiresReload = true;
         }; { type = "divider" }; {
           name = L["Reset Blizzard Frame Positions"];
           type = "button";
