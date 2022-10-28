@@ -340,8 +340,15 @@ function C_ActionBarPanel:LoadExpandRetractFeature(data)
   glowScaler.anim = glowScaler:CreateAnimation("Scale");
   glowScaler.anim:SetOrigin("BOTTOM", 0, 0);
   glowScaler.anim:SetDuration(0.4);
-  glowScaler.anim:SetFromScale(0, 0);
-  glowScaler.anim:SetToScale(1, 1);
+
+  if (obj:IsFunction(glowScaler.anim.SetFromScale)) then
+    glowScaler.anim:SetFromScale(0, 0);
+    glowScaler.anim:SetToScale(1, 1);
+  else
+    -- changed function name in dragonflight
+    glowScaler.anim:SetScaleFrom(0, 0);
+    glowScaler.anim:SetScaleTo(1, 1);
+  end
 
   -- Create the glow effect's fade in effect:
   local fader = data.buttons:CreateAnimationGroup();

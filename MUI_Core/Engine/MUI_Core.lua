@@ -82,22 +82,6 @@ local registeredModules = {};
 local BaseModule = obj:CreateClass("BaseModule");
 obj:Export(BaseModule, "MayronUI");
 
-function MayronUI:PrintCVars()
-  print("ScriptErrors: ", GetCVar("ScriptErrors"));
-  print("chatStyle: ", GetCVar("chatStyle"));
-  print("chatClassColorOverride: ", GetCVar("chatClassColorOverride")); -- chat class colors
-  print(
-    "floatingCombatTextCombatDamage: ",
-      GetCVar("floatingCombatTextCombatDamage"));
-  print("cameraDistanceMaxZoomFactor: ", GetCVar("cameraDistanceMaxZoomFactor"));
-  print(
-    "floatingCombatTextCombatHealing: ",
-      GetCVar("floatingCombatTextCombatHealing"));
-  print("nameplateMaxDistance: ", GetCVar("nameplateMaxDistance"));
-  print("useUiScale: ", GetCVar("useUiScale"));
-  print("uiscale: ", GetCVar("uiscale"));
-end
-
 -- Load Database Defaults -------------
 
 db:AddToDefaults(

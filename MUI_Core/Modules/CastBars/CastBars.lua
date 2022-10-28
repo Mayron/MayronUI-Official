@@ -13,6 +13,7 @@ local UnitExists = _G.UnitExists;
 
 local GetMirrorTimerInfo, GetTime, pairs = _G.GetMirrorTimerInfo, _G.GetTime, _G.pairs;
 local CastingInfo, ChannelInfo = _G.CastingInfo, _G.ChannelInfo;
+local CastingBarFrame = _G.CastingBarFrame or _G.PlayerCastingBarFrame;
 
 namespace.castBarData = obj:PopTable();
 
@@ -472,8 +473,8 @@ do
       _G.MirrorTimer1:SetAlpha(0);
       _G.MirrorTimer1.SetAlpha = tk.Constants.DUMMY_FUNC;
     elseif (unitID == "player") then
-      _G.CastingBarFrame:UnregisterAllEvents();
-      _G.CastingBarFrame:Hide();
+      CastingBarFrame:UnregisterAllEvents();
+      CastingBarFrame:Hide();
     elseif (unitID == "pet") then
       _G.PetCastingBarFrame:UnregisterAllEvents();
       _G.PetCastingBarFrame:Hide();

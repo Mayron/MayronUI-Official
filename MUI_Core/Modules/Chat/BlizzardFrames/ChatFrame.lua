@@ -247,7 +247,12 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
   chatFrame:SetMovable(true);
   chatFrame:SetClampedToScreen(true);
   chatFrame:SetUserPlaced(true);
-  chatFrame:SetMaxResize(1200, 800);
+
+  if (obj:IsFunction(chatFrame.SetMaxResize)) then
+    -- dragonflight has a resizing layout system and doesn't use this:
+    chatFrame:SetMaxResize(1200, 800);
+  end
+
 	chatFrame:SetFrameStrata("LOW");
   chatFrame:HookScript("OnMouseWheel", ChatFrame_OnMouseWheel);
 	_G[string.format("%sEditBox", chatFrameName)]:SetAltArrowKeyMode(false);
@@ -328,9 +333,10 @@ function C_ChatModule:SetUpAllBlizzardFrames()
 
   for _, chatFrameName in ipairs(_G.CHAT_FRAMES) do
     local chatFrame = self:SetUpBlizzardChatFrame(chatFrameName);
+
     if (changeGameFont and chatFrame) then
-      local _, fontSize, outline = _G.FCF_GetChatWindowInfo(chatFrame:GetID());
-      chatFrame:SetFont(muiFont, fontSize, outline);
+      local _, fontSize = _G.FCF_GetChatWindowInfo(chatFrame:GetID());
+      chatFrame:SetFont(muiFont, fontSize, "");
     end
   end
 end

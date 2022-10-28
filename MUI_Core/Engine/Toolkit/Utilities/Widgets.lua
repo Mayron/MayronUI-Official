@@ -384,14 +384,15 @@ function tk:SetGameFont(font)
   };
 
   -- prevent weird font size bug
-  _G.SystemFont_NamePlate:SetFont(font, 9);
+  local _, _, sysFontFlags = _G.SystemFont_NamePlate:GetFont();
+  _G.SystemFont_NamePlate:SetFont(font, 9, sysFontFlags);
 
   for _, f in ipairs(fonts) do
     local fontString = _G[f];
 
     if (fontString) then
-      local _, size, outline = fontString:GetFont();
-      fontString:SetFont(font, size, outline);
+      local _, size, fontFlags = fontString:GetFont();
+      fontString:SetFont(font, size, fontFlags);
     end
   end
 end

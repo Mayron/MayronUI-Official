@@ -20,8 +20,15 @@ local function CreateGradientFrame(sufGradients, parent)
   local from = sufGradients.from;
   local to = sufGradients.to;
 
-  frame.texture:SetGradientAlpha("VERTICAL",
-    to.r, to.g, to.b, to.a, from.r, from.g, from.b, from.a);
+  if (tk:IsRetail()) then
+    -- Dragonflight removed SetGradientAlpha
+    local minColor = CreateColor(to.r, to.g, to.b, to.a);
+    local maxColor = CreateColor(from.r, from.g, from.b, from.a);
+    frame.texture:SetGradient("HORIZONTAL", minColor, maxColor);
+  else
+    frame.texture:SetGradientAlpha("VERTICAL",
+      to.r, to.g, to.b, to.a, from.r, from.g, from.b, from.a);
+  end
 
   return frame;
 end
@@ -53,14 +60,21 @@ function C_UnitPanels:SetPortraitGradientsEnabled(data, enabled)
 
               if (UnitIsPlayer("target") and data.settings.sufGradients.targetClassColored) then
                 local classColor = tk:GetClassColorByUnitID("target");
-
-                frame.texture:SetGradientAlpha("VERTICAL",
-                to.r, to.g, to.b, to.a,
-                classColor.r, classColor.g, classColor.b, from.a);
+                local minColor = CreateColor(to.r, to.g, to.b, to.a);
+                local maxColor = CreateColor(classColor.r, classColor.g, classColor.b, from.a);
+                -- dragonflight only:
+                frame.texture:SetGradient("VERTICAL", minColor, maxColor);
+                -- frame.texture:SetGradientAlpha("VERTICAL",
+                --   to.r, to.g, to.b, to.a,
+                --   classColor.r, classColor.g, classColor.b, from.a);
               else
-                frame.texture:SetGradientAlpha("VERTICAL",
-                to.r, to.g, to.b, to.a,
-                from.r, from.g, from.b, from.a);
+                local minColor = CreateColor(to.r, to.g, to.b, to.a);
+                local maxColor = CreateColor(from.r, from.g, from.b, from.a);
+                -- dragonflight only:
+                frame.texture:SetGradient("VERTICAL", minColor, maxColor);
+                -- frame.texture:SetGradientAlpha("VERTICAL",
+                --   to.r, to.g, to.b, to.a,
+                --   from.r, from.g, from.b, from.a);
               end
             end);
 

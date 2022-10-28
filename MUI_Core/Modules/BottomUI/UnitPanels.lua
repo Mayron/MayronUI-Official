@@ -255,7 +255,7 @@ function C_UnitPanels:OnEnable(data)
   data.center:SetPoint("BOTTOMRIGHT", data.right, "BOTTOMLEFT");
 
   data.center.bg = tk:SetBackground(data.center, tk:GetAssetFilePath("Textures\\BottomUI\\Center"));
-  data.center.hasGradient = true; -- should be colored using SetGradientAlpha when target changes.
+  data.center.hasGradient = true; -- should be colored using SetGradient when target changes.
 
   data.left:SetFrameStrata("BACKGROUND");
   data.center:SetFrameStrata("BACKGROUND");
@@ -319,9 +319,16 @@ function C_UnitPanels.Private:UpdateVisuals(data, frame, restingPulseAlpha)
 
   if (frame == data.center) then
     if (UnitIsPlayer("target") and data.settings.targetClassColored) then
-      frame.bg:SetGradientAlpha("HORIZONTAL", r, g, b, alpha, target.r, target.g, target.b, alpha);
+      local minColor = CreateColor(r, g, b, alpha);
+      local maxColor = CreateColor(target.r, target.g, target.b, alpha);
+      -- dragonflight only:
+      frame.bg:SetGradient("HORIZONTAL", minColor, maxColor);
+      -- frame.bg:SetGradientAlpha("HORIZONTAL", r, g, b, alpha, target.r, target.g, target.b, alpha);
     else
-      frame.bg:SetGradientAlpha("HORIZONTAL", r, g, b, alpha, r, g, b, alpha);
+      local color = CreateColor(r, g, b, alpha);
+      -- dragonflight only:
+      frame.bg:SetGradient("HORIZONTAL", color, color);
+      -- frame.bg:SetGradientAlpha("HORIZONTAL", r, g, b, alpha, r, g, b, alpha);
     end
   elseif (frame == data.right) then
     if (UnitIsPlayer("target") and data.settings.targetClassColored) then

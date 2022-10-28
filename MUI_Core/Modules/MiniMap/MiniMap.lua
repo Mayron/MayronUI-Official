@@ -504,17 +504,21 @@ do
       data:Call("SetUpWidget", "lfg", _G.MiniMapLFGFrame);
     end
 
-    -- mail:
-    data:Call("SetUpWidget", "mail", _G.MiniMapMailFrame);
-    _G.MiniMapMailFrame:SetAlpha(0.7);
-    _G.MiniMapMailFrame:SetSize(14, 10);
+    if (_G.MiniMapMailFrame) then
+      -- dragonflight removed all this:
+      data:Call("SetUpWidget", "mail", _G.MiniMapMailFrame);
+      _G.MiniMapMailFrame:SetAlpha(0.7);
+      _G.MiniMapMailFrame:SetSize(14, 10);
+      _G.MiniMapMailBorder:Hide();
+    end
+
     _G.MiniMapMailIcon:ClearAllPoints();
     _G.MiniMapMailIcon:SetPoint("CENTER");
     _G.MiniMapMailIcon:SetTexture(tk:GetAssetFilePath("Textures\\mail"));
-    _G.MiniMapMailBorder:Hide();
 
     -- missions icon:
     if (tk:IsRetail() and obj:IsWidget(_G.GarrisonLandingPageMinimapButton)) then
+      -- dragonflight removed this:
       data:Call("SetUpWidget", "missions", _G.GarrisonLandingPageMinimapButton);
       -- prevents popup from showing:
       _G.GarrisonLandingPageMinimapButton:DisableDrawLayer("OVERLAY");

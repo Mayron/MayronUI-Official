@@ -1,10 +1,10 @@
 ## Interface: 11403
-## Title: |cff00ccffMUI|r Setup
+## Title: |TInterface/Addons/MUI_Core/Assets/Logo:12:22|t |cff00ccffSetup|r
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
 ## OptionalDeps: Leatrix_Plus
 ## Version: 6.6.32
-## Notes: Required to install MayronUI and inject addon settings
+## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to install MayronUI and inject AddOn default settings.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!
 
 MUI_Setup.lua
 ReportFrame.lua
