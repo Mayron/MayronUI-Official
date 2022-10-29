@@ -48,6 +48,7 @@ local BlizzardFrames = {
   "MerchantFrame";
   "ChannelFrame";
   "WorldMapFrame";
+  "ProfessionsFrame"; -- dragonflight
   {
     "CharacterFrame";
     subFrames = characterSubFrames;
@@ -90,7 +91,9 @@ local BlizzardFrames = {
   Blizzard_TalentUI = {
     (tk:IsClassic() and "TalentFrame" or "PlayerTalentFrame");
     subFrames = tk:IsWrathClassic() and { "GlyphFrame" };
-
+  };
+  Blizzard_ClassTalentUI = {
+    "ClassTalentFrame";
   };
   Blizzard_GlyphUI = {
     (tk:IsClassic() and "TalentFrame" or "PlayerTalentFrame");

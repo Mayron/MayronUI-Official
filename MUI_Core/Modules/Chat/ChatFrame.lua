@@ -507,8 +507,10 @@ do
       btn:SetScript("OnEnter", _G.UIMenuButton_OnEnter);
       btn:SetScript("OnLeave", _G.UIMenuButton_OnLeave);
       btn:SetCheckedTexture("");
+      btn.SetCheckedTexture = tk.Constants.DUMMY_FUNC;
       btn:DisableDrawLayer("BACKGROUND");
       btn:DisableDrawLayer("ARTWORK");
+      btn:DisableDrawLayer("HIGHLIGHT");
       btn:SetFrameLevel(20);
 
       local spellName = _G[btnName.."SpellName"];
@@ -561,7 +563,12 @@ do
 
         -- Update button:
         btn:SetID(spellbookID + 1);
-        _G.SpellButton_UpdateButton(btn);
+
+        if (obj:IsFunction(_G.SpellButton_UpdateButton)) then
+          _G.SpellButton_UpdateButton(btn);
+        else
+            btn:UpdateButton();
+        end
 
         -- Update button text:
         local spellName = _G[btn:GetName().."SpellName"];
