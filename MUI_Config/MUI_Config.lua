@@ -9,6 +9,7 @@ local pairs, ipairs, table, mrandom, setmetatable = _G.pairs, _G.ipairs,
 local DisableAddOn, collectgarbage, UIFrameFadeIn, CreateFrame, PlaySound,
       strformat = _G.DisableAddOn, _G.collectgarbage, _G.UIFrameFadeIn,
   _G.CreateFrame, _G.PlaySound, _G.string.format;
+local strsplit = _G.strsplit;
 
 -- Registers and Imports -------------
 ---@type LinkedList
@@ -75,6 +76,10 @@ local function IsUnsupportedByClient(client)
     return false;
   end
 
+  if (obj:IsString(client) and client:find(",")) then
+    client = obj:PopTable(strsplit(",", client));
+  end
+
   if (obj:IsTable(client)) then
     for _, c in ipairs(client) do
       if (not IsUnsupportedByClient(c)) then
@@ -84,6 +89,8 @@ local function IsUnsupportedByClient(client)
 
     return true;
   end
+
+  client = client:trim();
 
   if (client == "retail" and not tk:IsRetail()) then
     return true;

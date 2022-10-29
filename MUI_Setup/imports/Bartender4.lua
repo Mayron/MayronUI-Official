@@ -6,16 +6,46 @@ local pairs = _G.pairs;
 setup.import["Bartender4"] = function()
 	local settings = {
     ["namespaces"] = {
-      ["APBar"] = {
+      ["StatusTrackingBar"] = {
+        ["profiles"] = {
+          ["MayronUI"] = {
+            ["position"] = {
+              ["y"] = 13,
+              ["x"] = -289.5000305175781,
+              ["point"] = "TOP",
+            },
+            ["version"] = 3,
+          },
+        },
+      },
+      ["MicroMenu"] = {
         ["profiles"] = {
           ["MayronUI"] = {
             ["version"] = 3,
             ["position"] = {
-              ["y"] = -1,
-              ["x"] = -363.300042724609,
-              ["point"] = "TOP",
-              ["scale"] = 0.7,
+              ["y"] = 36,
+              ["x"] = -280,
+              ["point"] = "BOTTOMRIGHT",
+              ["scale"] = 1.3,
             },
+            ["padding"] = 0,
+            ["visibility"] = {
+              ["always"] = false,
+            },
+            ["fadeoutalpha"] = 0,
+          },
+        },
+      },
+      ["QueueStatus"] = {
+        ["profiles"] = {
+          ["MayronUI"] = {
+            ["position"] = {
+              ["y"] = -218,
+              ["x"] = -37,
+              ["point"] = "TOPRIGHT",
+              ["scale"] = 0.8,
+            },
+            ["version"] = 3,
           },
         },
       },
@@ -25,19 +55,20 @@ setup.import["Bartender4"] = function()
             ["actionbars"] = {
               {
                 ["showgrid"] = true,
-                ["version"] = 3,
-                ["fadeoutalpha"] = 1,
-                ["position"] = {
-                  ["y"] = 68.60000038146973,
-                  ["x"] = -354,
-                  ["point"] = "BOTTOM",
-                  ["scale"] = 0.850000023841858,
-                },
-                ["hidemacrotext"] = true,
-                ["padding"] = 5.5,
                 ["visibility"] = {
                   ["always"] = false,
                 },
+                ["fadeoutalpha"] = 1,
+                ["version"] = 3,
+                ["position"] = {
+                  ["y"] = 89,
+                  ["x"] = -358,
+                  ["point"] = "BOTTOM",
+                  ["scale"] = 0.8500000238418579,
+                },
+                ["padding"] = -3.6,
+                ["hidemacrotext"] = true,
+                ["WoW10Layout"] = true,
                 ["states"] = {
                   ["actionbar"] = true,
                   ["stance"] = {
@@ -68,109 +99,111 @@ setup.import["Bartender4"] = function()
                 },
               }, -- [1]
               {
+                ["showgrid"] = true,
                 ["enabled"] = false,
                 ["version"] = 3,
                 ["position"] = {
-                  ["y"] = -189.499941973427,
-                  ["x"] = -231.500185021676,
-                  ["point"] = "CENTER",
+                  ["y"] = -1,
+                  ["x"] = -223.5499740600586,
+                  ["point"] = "TOP",
+                  ["scale"] = 0.85,
                 },
+                ["padding"] = -2,
+                ["WoW10Layout"] = true,
               }, -- [2]
               {
                 ["showgrid"] = true,
-                ["rows"] = 12,
-                ["padding"] = 5.5,
-                ["alpha"] = 0,
+                ["visibility"] = {
+                  ["always"] = false,
+                  ["vehicleui"] = false,
+                },
+                ["padding"] = -2.4,
                 ["version"] = 3,
                 ["position"] = {
-                  ["y"] = 265,
-                  ["x"] = -41,
+                  ["y"] = 274,
+                  ["x"] = -44,
                   ["point"] = "RIGHT",
                   ["scale"] = 0.9,
                 },
+                ["rows"] = 12,
                 ["hidemacrotext"] = true,
-                ["visibility"] = {
-                  ["always"] = true,
-                  ["vehicleui"] = false,
-                },
+                ["WoW10Layout"] = true,
               }, -- [3]
               {
                 ["showgrid"] = true,
-                ["rows"] = 12,
-                ["padding"] = 5.5,
-                ["alpha"] = 0,
-                ["version"] = 3,
-                ["position"] = {
-                  ["y"] = 265,
-                  ["x"] = -78,
-                  ["point"] = "RIGHT",
-                  ["scale"] = 0.899999976158142,
-                },
-                ["hidemacrotext"] = true,
                 ["visibility"] = {
-                  ["always"] = true,
+                  ["always"] = false,
                   ["vehicleui"] = false,
                 },
+                ["padding"] = -2.4,
+                ["version"] = 3,
+                ["position"] = {
+                  ["y"] = 274,
+                  ["x"] = -82,
+                  ["point"] = "RIGHT",
+                  ["scale"] = 0.9,
+                },
+                ["rows"] = 12,
+                ["hidemacrotext"] = true,
+                ["WoW10Layout"] = true,
               }, -- [4]
               {
                 ["showgrid"] = true,
-                ["hidemacrotext"] = true,
-                ["alpha"] = 0,
+                ["visibility"] = {
+                  ["always"] = false,
+                  ["vehicle"] = false,
+                },
                 ["version"] = 3,
                 ["position"] = {
-                  ["y"] = 140.8000020980835,
-                  ["x"] = -354,
+                  ["y"] = 159,
+                  ["x"] = -358,
                   ["point"] = "BOTTOM",
                   ["scale"] = 0.85,
                 },
-                ["padding"] = 5.5,
-                ["visibility"] = {
-                  ["always"] = true,
-                  ["vehicle"] = false,
-                },
+                ["hidemacrotext"] = true,
+                ["padding"] = -3.6,
+                ["WoW10Layout"] = true,
               }, -- [5]
               {
                 ["showgrid"] = true,
-                ["buttons"] = 8,
-                ["alpha"] = 0,
+                ["visibility"] = {
+                  ["always"] = false,
+                },
                 ["version"] = 3,
                 ["position"] = {
-                  ["y"] = 140.8000020980835,
-                  ["x"] = 69,
+                  ["y"] = 124,
+                  ["x"] = -358,
                   ["point"] = "BOTTOM",
-                  ["scale"] = 0.8500000238418579,
+                  ["scale"] = 0.85,
                 },
-                ["padding"] = 5.5,
-                ["visibility"] = {
-                  ["always"] = true,
-                },
+                ["padding"] = -3.6,
+                ["WoW10Layout"] = true,
               }, -- [6]
               {
                 ["showgrid"] = true,
-                ["enabled"] = true,
-                ["buttons"] = 8,
-                ["version"] = 3,
-                ["position"] = {
-                  ["y"] = 68.60000038146973,
-                  ["x"] = 69,
-                  ["point"] = "BOTTOM",
-                  ["scale"] = 0.850000023841858,
-                },
-                ["padding"] = 5.5,
-                ["hidemacrotext"] = true,
                 ["visibility"] = {
                   ["always"] = false,
                   ["overridebar"] = false,
                   ["vehicleui"] = false,
                 },
+                ["version"] = 3,
+                ["position"] = {
+                  ["y"] = -71.58256718722987,
+                  ["x"] = 328.2116806538434,
+                  ["point"] = "LEFT",
+                  ["scale"] = 0.8500000238418579,
+                },
+                ["hidemacrotext"] = true,
+                ["padding"] = -3.6,
+                ["WoW10Layout"] = true,
                 ["states"] = {
                   ["enabled"] = true,
                   ["stance"] = {
                     ["MONK"] = {
-                      ["ox"] = 8,
-                      ["serpent"] = 8,
-                      ["tiger"] = 8,
                       ["crane"] = 8,
+                      ["tiger"] = 8,
+                      ["serpent"] = 8,
+                      ["ox"] = 8,
                     },
                     ["ROGUE"] = {
                       ["stealth"] = 0,
@@ -180,24 +213,24 @@ setup.import["Bartender4"] = function()
               }, -- [7]
               {
                 ["showgrid"] = true,
-                ["rows"] = 4,
                 ["version"] = 3,
+                ["fadeoutalpha"] = 0,
                 ["position"] = {
-                  ["y"] = -190.469005458428,
-                  ["x"] = -54.40003520634491,
-                  ["point"] = "CENTER",
+                  ["y"] = -36.39244168845471,
+                  ["x"] = 328.2116806538434,
+                  ["point"] = "LEFT",
                   ["scale"] = 0.8500000238418579,
                 },
-                ["padding"] = 5.5,
+                ["WoW10Layout"] = true,
+                ["padding"] = -3.6,
                 ["visibility"] = {
-                  ["always"] = true,
+                  ["always"] = false,
                 },
                 ["states"] = {
-                  ["enabled"] = true,
                   ["stance"] = {
                     ["MONK"] = {
-                      ["serpent"] = 1,
                       ["tiger"] = 1,
+                      ["serpent"] = 1,
                       ["ox"] = 1,
                     },
                   },
@@ -205,43 +238,83 @@ setup.import["Bartender4"] = function()
               }, -- [8]
               {
                 ["showgrid"] = true,
-                ["enabled"] = true,
-                ["buttons"] = 8,
-                ["padding"] = 5.5,
-                ["alpha"] = 0,
-                ["version"] = 3,
-                ["position"] = {
-                  ["y"] = 104.7000012397766,
-                  ["x"] = 69,
-                  ["point"] = "BOTTOM",
-                  ["scale"] = 0.85,
-                },
-                ["hidemacrotext"] = true,
                 ["visibility"] = {
-                  ["always"] = true,
+                  ["always"] = false,
                   ["vehicle"] = false,
                   ["vehicleui"] = false,
                 },
+                ["version"] = 3,
+                ["position"] = {
+                  ["y"] = -1.202368069563818,
+                  ["x"] = 328.2116287739591,
+                  ["point"] = "LEFT",
+                  ["scale"] = 0.8500000238418579,
+                },
+                ["padding"] = -3.6,
+                ["hidemacrotext"] = true,
+                ["WoW10Layout"] = true,
               }, -- [9]
               {
                 ["showgrid"] = true,
-                ["enabled"] = true,
-                ["hidemacrotext"] = true,
-                ["alpha"] = 0,
-                ["version"] = 3,
-                ["position"] = {
-                  ["y"] = 104.7000012397766,
-                  ["x"] = -354,
-                  ["point"] = "BOTTOM",
-                  ["scale"] = 0.85,
-                },
-                ["padding"] = 5.5,
                 ["visibility"] = {
-                  ["always"] = true,
+                  ["always"] = false,
                   ["vehicle"] = false,
                   ["vehicleui"] = false,
                 },
+                ["version"] = 3,
+                ["position"] = {
+                  ["y"] = 33.98765366944281,
+                  ["x"] = 328.2116287739591,
+                  ["point"] = "LEFT",
+                  ["scale"] = 0.8500000238418579,
+                },
+                ["padding"] = -3.6,
+                ["hidemacrotext"] = true,
+                ["WoW10Layout"] = true,
               }, -- [10]
+              [14] = {
+                ["showgrid"] = true,
+                ["enabled"] = true,
+                ["buttons"] = 8,
+                ["version"] = 3,
+                ["position"] = {
+                  ["y"] = 124,
+                  ["x"] = 65,
+                  ["point"] = "BOTTOM",
+                  ["scale"] = 0.85,
+                },
+                ["padding"] = -3.6,
+                ["WoW10Layout"] = true,
+              },
+              [13] = {
+                ["showgrid"] = true,
+                ["enabled"] = true,
+                ["version"] = 3,
+                ["buttons"] = 8,
+                ["fadeoutalpha"] = 0,
+                ["position"] = {
+                  ["y"] = 89,
+                  ["x"] = 65,
+                  ["point"] = "BOTTOM",
+                  ["scale"] = 0.8500000238418579,
+                },
+                ["padding"] = -3.6,
+                ["WoW10Layout"] = true,
+              },
+              [15] = {
+                ["showgrid"] = true,
+                ["enabled"] = true,
+                ["buttons"] = 8,
+                ["version"] = 3,
+                ["position"] = {
+                  ["y"] = 159,
+                  ["x"] = 65,
+                  ["point"] = "BOTTOM",
+                  ["scale"] = 0.85,
+                },
+                ["padding"] = -3.6,
+                ["WoW10Layout"] = true,
+              },
             },
           },
         },
@@ -251,31 +324,30 @@ setup.import["Bartender4"] = function()
       ["ExtraActionBar"] = {
         ["profiles"] = {
           ["MayronUI"] = {
-            ["version"] = 3,
             ["position"] = {
               ["y"] = -164.4622802734375,
               ["x"] = -63.49993896484375,
               ["point"] = "CENTER",
             },
+            ["version"] = 3,
           },
         },
       },
-      ["MicroMenu"] = {
+      ["XPBar"] = {
         ["profiles"] = {
           ["MayronUI"] = {
-            ["version"] = 3,
-            ["position"] = {
-              ["y"] = 38,
-              ["x"] = -292,
-              ["point"] = "BOTTOMRIGHT",
-              ["scale"] = 1,
-            },
-            ["fadeoutalpha"] = 0,
-            ["padding"] = -2,
             ["visibility"] = {
               ["always"] = false,
+              ["vehicleui"] = false,
             },
-            ["fadeout"] = true,
+            ["version"] = 3,
+            ["fadeoutalpha"] = 1,
+            ["position"] = {
+              ["y"] = -1,
+              ["x"] = -363.299957275391,
+              ["point"] = "TOP",
+              ["scale"] = 0.7,
+            },
           },
         },
       },
@@ -291,21 +363,18 @@ setup.import["Bartender4"] = function()
           },
         },
       },
-      ["XPBar"] = {
+      ["BagBar"] = {
         ["profiles"] = {
           ["MayronUI"] = {
+            ["onebag"] = true,
             ["version"] = 3,
             ["position"] = {
-              ["y"] = -1,
-              ["x"] = -363.299957275391,
-              ["point"] = "TOP",
-              ["scale"] = 0.7,
+              ["y"] = 73,
+              ["x"] = -72,
+              ["point"] = "BOTTOMRIGHT",
+              ["scale"] = 0.9,
             },
-            ["visibility"] = {
-              ["always"] = false,
-              ["vehicleui"] = false,
-            },
-            ["fadeoutalpha"] = 1,
+            ["padding"] = -2,
           },
         },
       },
@@ -335,54 +404,54 @@ setup.import["Bartender4"] = function()
           },
         },
       },
+      ["Vehicle"] = {
+        ["profiles"] = {
+          ["MayronUI"] = {
+            ["version"] = 3,
+            ["position"] = {
+              ["y"] = -3.749999284744263,
+              ["x"] = -275.447509765625,
+              ["point"] = "BOTTOMRIGHT",
+              ["scale"] = 1.5,
+              ["growVertical"] = "UP",
+              ["growHorizontal"] = "LEFT",
+            },
+            ["padding"] = 3,
+          },
+        },
+      },
+      ["APBar"] = {
+        ["profiles"] = {
+          ["MayronUI"] = {
+            ["version"] = 3,
+            ["position"] = {
+              ["y"] = -1,
+              ["x"] = -363.300042724609,
+              ["point"] = "TOP",
+              ["scale"] = 0.7,
+            },
+          },
+        },
+      },
       ["StanceBar"] = {
         ["profiles"] = {
           ["MayronUI"] = {
-            ["fadeoutalpha"] = 0.5,
-            ["position"] = {
-              ["y"] = -1,
-              ["x"] = -377.068823285867,
-              ["point"] = "BOTTOM",
-              ["scale"] = 0.899999976158142,
-              ["growHorizontal"] = "LEFT",
-              ["growVertical"] = "UP",
-            },
             ["version"] = 3,
+            ["fadeoutalpha"] = 0.5,
             ["padding"] = 3,
             ["visibility"] = {
               ["stance"] = {
                 false, -- [1]
               },
             },
-          },
-        },
-      },
-      ["BagBar"] = {
-        ["profiles"] = {
-          ["MayronUI"] = {
-            ["enabled"] = false,
-            ["onebag"] = true,
-            ["version"] = 3,
             ["position"] = {
-              ["y"] = 41.75,
-              ["x"] = 463.5,
+              ["y"] = -1,
+              ["x"] = -377.068823285867,
               ["point"] = "BOTTOM",
-            },
-          },
-        },
-      },
-      ["Vehicle"] = {
-        ["profiles"] = {
-          ["MayronUI"] = {
-            ["version"] = 3,
-            ["position"] = {
-              ["y"] = 40,
-              ["x"] = -350,
-              ["point"] = "BOTTOMRIGHT",
-              ["growHorizontal"] = "LEFT",
+              ["scale"] = 0.899999976158142,
               ["growVertical"] = "UP",
+              ["growHorizontal"] = "LEFT",
             },
-            ["padding"] = 3,
           },
         },
       },
@@ -391,17 +460,18 @@ setup.import["Bartender4"] = function()
           ["MayronUI"] = {
             ["showgrid"] = true,
             ["rows"] = 2,
-            ["fadeoutalpha"] = 0,
+            ["version"] = 3,
             ["position"] = {
-              ["y"] = 60.5,
-              ["x"] = 374,
+              ["y"] = 72,
+              ["x"] = 371.2181321166427,
               ["point"] = "BOTTOM",
-              ["scale"] = 0.8999999761581421,
+              ["scale"] = 1.200000047683716,
             },
+            ["fadeoutalpha"] = 0,
+            ["padding"] = -3.6,
             ["visibility"] = {
               ["always"] = false,
             },
-            ["version"] = 3,
           },
         },
       },
@@ -430,6 +500,7 @@ setup.import["Bartender4"] = function()
           ["hide"] = true,
         },
         ["focuscastmodifier"] = false,
+        ["buttonlock"] = false,
       },
     },
 	};

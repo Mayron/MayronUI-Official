@@ -815,9 +815,11 @@ function C_SetUpModule:Install(data)
   end
 
   if (_G.Bartender4) then
-    local path = tk.Tables:GetDBObject("Bartender4");
-    if (obj:IsTable(path) and path:GetCurrentProfile() ~= "MayronUI") then
-      path:SetProfile("MayronUI");
+    local bartenderDB = tk.Tables:GetDBObject("Bartender4");
+    local bartenderCurrentProfile = bartenderDB:GetCurrentProfile();
+
+    if (obj:IsTable(bartenderDB) and bartenderCurrentProfile ~= "MayronUI") then
+      bartenderDB:SetProfile("MayronUI");
     end
   end
 
@@ -832,7 +834,6 @@ function C_SetUpModule:Install(data)
   db.profile.freshInstall = true;
 
   PlaySoundFile("Interface\\AddOns\\MUI_Setup\\install.ogg");
-
   DisableAddOn("MUI_Setup");
   ReloadUI();
 end

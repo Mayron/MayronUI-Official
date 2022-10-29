@@ -133,9 +133,14 @@ function C_ReportIssue.Private:ShowStep(data, stepNum)
 
   data.backButton:SetEnabled(stepNum > 1);
   data.nextButton:SetEnabled(stepNum < TOTAL_STEPS);
-
   data.reportFrame:SetHeight(400);
-  data.reportFrame:SetMinResize(500, 400);
+
+  if (obj:IsFunction(data.reportFrame.SetMinResize)) then
+    data.reportFrame:SetMinResize(500, 400);
+  else
+    -- dragonflight:
+    data.reportFrame:SetResizeBounds(500, 400);
+  end
 
   if (data.closeButton) then
     data.closeButton:Hide();
@@ -354,17 +359,24 @@ function C_ReportIssue.Private:RenderStep3(data, parent)
       PlaySound(tk.Constants.CLICK);
       local report = data:Call("GenerateReport");
       local copyText = string.format(
-                         "%s %s:", L["Copy Report"],
-                           L["(CTRL+C to Copy, CTRL+V to Paste)"]);
+        "%s %s:", L["Copy Report"],
+         L["(CTRL+C to Copy, CTRL+V to Paste)"]);
+
       copyText = tk.Strings:SetTextColorByClassFileName(copyText);
 
       if (not data.reportEditBox) then
-        data.reportEditBox = data:Call(
-                               "CreateEditBox", container, copyText, nil, 0);
+        data.reportEditBox = data:Call("CreateEditBox", container, copyText, nil, 0);
       end
 
       data.reportFrame:SetHeight(600);
-      data.reportFrame:SetMinResize(500, 600);
+
+      if (obj:IsFunction(data.reportFrame.SetMinResize)) then
+        data.reportFrame:SetMinResize(500, 600);
+      else
+        -- dragonflight:
+        data.reportFrame:SetResizeBounds(500, 600);
+      end
+
       data.generateButton:Hide();
       data.backButton:Hide();
       data.reportEditBox:SetText(report);

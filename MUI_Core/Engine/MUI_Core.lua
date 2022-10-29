@@ -826,8 +826,7 @@ local onLogin = em:CreateEventListener(
 onLogin:RegisterEvent("PLAYER_ENTERING_WORLD")
 onLogin:SetExecuteOnce(true); -- destroy after first use
 
-local onLogout = em:CreateEventListener(
-                   function()
+local onLogout = em:CreateEventListener(function()
     db.profile.freshInstall = nil;
   end);
 
