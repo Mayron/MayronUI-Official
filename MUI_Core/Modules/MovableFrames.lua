@@ -206,7 +206,7 @@ local function FixAnchorFamilyConnections()
   end
 end
 
-obj:DefineParams("string|table", "boolean");
+obj:DefineParams("string|table", "boolean=false");
 function C_MovableFramesModule:ExecuteMakeMovable(_, value, dontSave)
   if (obj:IsString(value)) then
     self:MakeMovable(dontSave, GetFrame(value));
@@ -245,6 +245,11 @@ function C_MovableFramesModule:ExecuteMakeMovable(_, value, dontSave)
       value.onLoad();
     end
   end
+end
+
+function MayronUI:MakeMovable(frame)
+  local movableModule = self:ImportModule("MovableFramesModule");
+  movableModule:ExecuteMakeMovable(frame);
 end
 
 local function CreateFadingAnimations(f)
