@@ -10,6 +10,9 @@ local GetTime, select, SecondsToTimeAbbrev, GetWeaponEnchantInfo, UnitAura, ipai
 -- Main-Hand, Off-Hand, Ranged
 local enchantAuraIds = { 16, 17, 18 };
 local ARGS_PER_ITEM = 4;
+local BUFF_FLASH_TIME_ON = 0.75;
+local BUFF_MIN_ALPHA = 0.3;
+local BUFF_WARNING_TIME = 31;
 
 -- Objects -----------------------------
 ---@class AurasModule : BaseModule
@@ -244,10 +247,10 @@ local function AuraButton_UpdateAlpha(self, elapsed)
 
     if (self.isPulsing == 0) then
       self.isPulsing = 1;
-      self.pulseTime = _G.BUFF_FLASH_TIME_ON;
+      self.pulseTime = 0.75;
     else
       self.isPulsing = 0;
-      self.pulseTime = _G.BUFF_FLASH_TIME_OFF;
+      self.pulseTime = 0.75;
     end
 
     if (overtime < self.pulseTime) then
@@ -265,16 +268,16 @@ local function AuraButton_UpdateAlpha(self, elapsed)
   local timeRemaining = expirationTime - GetTime();
 
   -- Handle flashing
-  if (timeRemaining and timeRemaining < _G.BUFF_WARNING_TIME) then
+  if (timeRemaining and timeRemaining < BUFF_WARNING_TIME) then
     local alphaValue;
 
     if (self.isPulsing == 1) then
-      alphaValue = (_G.BUFF_FLASH_TIME_ON - self.pulseTime) / _G.BUFF_FLASH_TIME_ON;
+      alphaValue = (BUFF_FLASH_TIME_ON - self.pulseTime) / BUFF_FLASH_TIME_ON;
     else
-      alphaValue = self.pulseTime / _G.BUFF_FLASH_TIME_ON;
+      alphaValue = self.pulseTime / BUFF_FLASH_TIME_ON;
     end
 
-    alphaValue = (alphaValue * (1 - _G.BUFF_MIN_ALPHA)) + _G.BUFF_MIN_ALPHA;
+    alphaValue = (alphaValue * (1 - BUFF_MIN_ALPHA)) + BUFF_MIN_ALPHA;
 
     self:SetAlpha(alphaValue);
   else

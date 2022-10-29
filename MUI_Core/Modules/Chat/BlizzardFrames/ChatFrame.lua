@@ -309,7 +309,16 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
     _G[ string.format("%sButtonFrameUpButton", chatFrameName) ],
     _G[ string.format("%sButtonFrameDownButton", chatFrameName) ],
     _G[ string.format("%sButtonFrameMinimizeButton", chatFrameName) ],
-    _G[ string.format("%sButtonFrame", chatFrameName) ]
+    _G[ string.format("%sButtonFrame", chatFrameName) ],
+    tab.ActiveLeft,
+    tab.HighlightLeft,
+    tab.Left,
+    tab.ActiveMiddle,
+    tab.HighlightMiddle,
+    tab.Middle,
+    tab.ActiveRight,
+    tab.HighlightRight,
+    tab.Right
   );
 
 	if (chatFrameName == "ChatFrame1") then

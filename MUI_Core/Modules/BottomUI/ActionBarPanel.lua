@@ -4,7 +4,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignor
 
 local CreateFrame, InCombatLockdown, PlaySound = _G.CreateFrame, _G.InCombatLockdown, _G.PlaySound;
 local UIFrameFadeIn, UIFrameFadeOut = _G.UIFrameFadeIn, _G.UIFrameFadeOut;
-local IsAddOnLoaded, string, ipairs = _G.IsAddOnLoaded, _G.string, _G.ipairs;
+local IsAddOnLoaded, LoadAddOn, string, ipairs = _G.IsAddOnLoaded, _G.LoadAddOn, _G.string, _G.ipairs;
 local C_Timer = _G.C_Timer;
 local GetAddOnMetadata = _G.GetAddOnMetadata;
 
@@ -52,14 +52,20 @@ db:AddToDefaults("profile.actionBarPanel", {
 
 -- local functions ------------------
 
-local function ShowKeyBindings()
-  _G.LoadAddOn("Blizzard_BindingUI");
-  _G.KeyBindingFrame:Show();
+function MayronUI:ShowKeyBindings()
+  LoadAddOn("Blizzard_BindingUI");
+  local keybindingsFrame = _G.KeyBindingFrame;
 
-  for _, btn in ipairs(_G.KeyBindingFrame.categoryList.buttons) do
-    if (btn.element and btn.element.name == "MayronUI") then
-      btn:Click();
+  if (IsAddOnLoaded("Blizzard_BindingUI") and obj:IsWidget(keybindingsFrame)) then
+    keybindingsFrame:Show();
+
+    for _, btn in ipairs(keybindingsFrame.categoryList.buttons) do
+      if (btn.element and btn.element.name == "MayronUI") then
+        btn:Click();
+      end
     end
+  elseif (IsAddOnLoaded("Blizzard_Settings")) then
+    _G.Settings.OpenToCategory(); -- can't use 12 (the Keybindings category) due to taint
   end
 end
 
@@ -483,7 +489,7 @@ function C_ActionBarPanel.Private:LoadTutorial(data)
     local btn = gui:CreateButton(tk.Constants.AddOnStyle, frame, L["Show MUI Key Bindings"]);
     btn:SetPoint("BOTTOM", 0, 20);
     btn:SetScript("OnClick", function()
-      ShowKeyBindings();
+      MayronUI:ShowKeyBindings();
       frame.closeBtn:Click();
     end);
 

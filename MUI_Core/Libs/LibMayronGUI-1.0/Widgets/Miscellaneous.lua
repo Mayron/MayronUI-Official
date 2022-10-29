@@ -14,6 +14,10 @@ local Private = Lib.Private;
 local obj = _G.MayronObjects:GetFramework();
 
 local function OnEnter(self)
+  if (obj:IsFunction(self.DisableDrawLayer)) then
+    self:DisableDrawLayer("Highlight");
+  end
+
   if (not obj:IsString(self.tooltip)) then
     local parent = self:GetParent();
 
@@ -211,35 +215,31 @@ do
     tk:ApplyThemeColor(checkedTexture);
   end
 
-  function Lib:CreateCheckButton(parent, text, tooltip)
+  function Lib:CreateCheckButton(parent, text, tooltip, globalName)
     local container = Private:PopFrame("Button", parent);
     container:SetSize(150, 30);
-    container.btn = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate");
+    container.btn = CreateFrame("CheckButton", globalName, container, "UICheckButtonTemplate");
     container.btn:SetSize(20, 20);
 
-    if (tooltip) then
-      container.tooltip = tooltip;
-      container:SetScript("OnEnter", OnEnter);
-      container:SetScript("OnLeave", OnLeave);
-      container.btn:SetScript("OnEnter", OnEnter);
-      container.btn:SetScript("OnLeave", OnLeave);
-    end
-
-    container.btn:SetPushedTexture(nil);
+    container.tooltip = tooltip;
+    container:SetScript("OnEnter", OnEnter);
+    container:SetScript("OnLeave", OnLeave);
+    container.btn:SetScript("OnEnter", OnEnter);
+    container.btn:SetScript("OnLeave", OnLeave);
 
     local tk = _G.MayronUI:GetCoreComponent("Toolkit"); ---@type Toolkit
 
     -- Normal Texture:
-    container.btn:SetNormalTexture(
-      tk:GetAssetFilePath(
-        "Textures\\Widgets\\Unchecked"));
+    local normalTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\Unchecked");
+    container.btn:SetNormalTexture(normalTexturePath);
     local normalTexture = container.btn:GetNormalTexture();
     normalTexture:SetAllPoints(true);
 
+    container.btn:SetPushedTexture(normalTexturePath);
+    container.btn.SetPushedTexture = tk.Constants.DUMMY_FUNC;
+
     -- Checked Texture:
-    container.btn:SetCheckedTexture(
-      tk:GetAssetFilePath(
-        "Textures\\Widgets\\Checked"));
+    container.btn:SetCheckedTexture(tk:GetAssetFilePath("Textures\\Widgets\\Checked"));
     local checkedTexture = container.btn:GetCheckedTexture();
     checkedTexture:SetAllPoints(true);
 
@@ -247,7 +247,8 @@ do
     container:UpdateColor();
 
     -- Highlight Texture:
-    container.btn:SetHighlightTexture(nil);
+    container.btn:SetHighlightTexture("");
+    container.btn.SetHighlightTexture = tk.Constants.DUMMY_FUNC;
 
     container.btn:HookScript("OnEnter", CheckButton_OnEnter);
     container.btn:HookScript("OnLeave", CheckButton_OnLeave);

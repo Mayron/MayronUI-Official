@@ -274,9 +274,11 @@ function C_MovableFramesModule:OnInitialize(data)
   data.settings = db.global.movable:GetUntrackedTable();
   data.frames = obj:PopTable();
 
-  _G.UIPARENT_MANAGED_FRAME_POSITIONS.TalkingHeadFrame = nil;
-  local listener = em:CreateEventListener(
-                     function(self, _, addOnName)
+  if (obj:IsTable(_G.UIPARENT_MANAGED_FRAME_POSITIONS)) then
+    _G.UIPARENT_MANAGED_FRAME_POSITIONS.TalkingHeadFrame = nil;
+  end
+
+  local listener = em:CreateEventListener(function(self, _, addOnName)
       if (addOnName ~= "Blizzard_TalkingHeadUI") then
         return
       end
@@ -378,9 +380,9 @@ do
     FixAnchorFamilyConnections();
 
     if (not data.eventListener) then
-      data.eventListener = em:CreateEventListenerWithID(
-                             "MovableFramesOnAddOnLoaded",
-                               function(_, _, addOnName)
+      data.eventListener =
+        em:CreateEventListenerWithID("MovableFramesOnAddOnLoaded", function(_, _, addOnName)
+          print("ADDON LOADED: ", addOnName)
             if (BlizzardFrames[addOnName]) then
               self:ExecuteMakeMovable(BlizzardFrames[addOnName], false);
               BlizzardFrames[addOnName] = nil;

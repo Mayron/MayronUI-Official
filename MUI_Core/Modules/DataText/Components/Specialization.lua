@@ -40,7 +40,7 @@ local function SetLabelEnabled(label, enabled)
   if (not enabled) then
     label:SetNormalTexture(1);
     label:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
-    label:SetHighlightTexture(nil);
+    label:SetHighlightTexture("");
   else
     local r, g, b = tk:GetThemeColor();
 

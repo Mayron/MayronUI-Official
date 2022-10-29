@@ -4,9 +4,11 @@ local MayronUI = _G.MayronUI;
 local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local MENU_BUTTON_HEIGHT = 40;
-local pairs, ipairs, table, mrandom, setmetatable = _G.pairs, _G.ipairs, _G.table, _G.math.random, _G.setmetatable;
-local DisableAddOn, collectgarbage, UIFrameFadeIn, CreateFrame, PlaySound, strformat
- = _G.DisableAddOn, _G.collectgarbage, _G.UIFrameFadeIn, _G.CreateFrame, _G.PlaySound, _G.string.format;
+local pairs, ipairs, table, mrandom, setmetatable = _G.pairs, _G.ipairs,
+  _G.table, _G.math.random, _G.setmetatable;
+local DisableAddOn, collectgarbage, UIFrameFadeIn, CreateFrame, PlaySound,
+      strformat = _G.DisableAddOn, _G.collectgarbage, _G.UIFrameFadeIn,
+  _G.CreateFrame, _G.PlaySound, _G.string.format;
 
 -- Registers and Imports -------------
 ---@type LinkedList
@@ -34,10 +36,11 @@ do
       btn:SetParent(menuButtons[#menuButtons]);
     end
 
-    btn:SetScript("OnClick", function()
-      onClick();
-      PlaySound(tk.Constants.CLICK);
-    end);
+    btn:SetScript(
+      "OnClick", function()
+        onClick();
+        PlaySound(tk.Constants.CLICK);
+      end);
 
     table.insert(menuButtons, btn);
 
@@ -68,7 +71,9 @@ local function SetBackButtonEnabled(backBtn, enabled)
 end
 
 local function IsUnsupportedByClient(client)
-  if (not client) then return false; end
+  if (not client) then
+    return false;
+  end
 
   if (obj:IsTable(client)) then
     for _, c in ipairs(client) do
@@ -80,10 +85,18 @@ local function IsUnsupportedByClient(client)
     return true;
   end
 
-  if (client == "retail" and not tk:IsRetail()) then return true; end
-  if (client == "classic" and not tk:IsClassic()) then return true; end
-  if (client == "bcclassic" or client == "bcc" and not tk:IsBCClassic()) then return true; end
-  if (client == "wrathclassic" or client == "wrath" and not tk:IsWrathClassic()) then return true; end
+  if (client == "retail" and not tk:IsRetail()) then
+    return true;
+  end
+  if (client == "classic" and not tk:IsClassic()) then
+    return true;
+  end
+  if (client == "bcclassic" or client == "bcc" and not tk:IsBCClassic()) then
+    return true;
+  end
+  if (client == "wrathclassic" or client == "wrath" and not tk:IsWrathClassic()) then
+    return true;
+  end
 
   return false;
 end
@@ -91,8 +104,20 @@ end
 local TransferWidgetAttributes;
 do
   local map = {
-    "dbPath", "name", "requiresReload", "requiresRestart", "module", "hasOwnDatabase",
-    "valueType", "min", "max", "step", "OnClick", "data", "useIndexes", "OnPostSetValue",
+    "dbPath";
+    "name";
+    "requiresReload";
+    "requiresRestart";
+    "module";
+    "hasOwnDatabase";
+    "valueType";
+    "min";
+    "max";
+    "step";
+    "OnClick";
+    "data";
+    "useIndexes";
+    "OnPostSetValue";
     ["SetValue"] = "__SetValue";
   };
 
@@ -156,7 +181,6 @@ function C_ConfigModule:GetDatabase(data, tbl)
   return dbObject;
 end
 
-
 obj:DefineParams("table");
 ---@param widgetConfigTable table @A widget config table used to construct part of the config menu.
 ---@return any @A value from the database located by the dbPath value inside widgetConfigTable.
@@ -168,7 +192,8 @@ function C_ConfigModule:GetDatabaseValue(_, widgetConfigTable)
   end
 
   if (tk.Strings:IsNilOrWhiteSpace(dbPath)) then
-    return widgetConfigTable.GetValue and widgetConfigTable.GetValue(widgetConfigTable);
+    return widgetConfigTable.GetValue
+             and widgetConfigTable.GetValue(widgetConfigTable);
   end
 
   local db = self:GetDatabase(widgetConfigTable);
@@ -206,12 +231,16 @@ function C_ConfigModule:SetDatabaseValue(_, widget, newValue)
     widget.__SetValue(dbPath, newValue, oldValue, widget);
   else
     -- dbPath is required if not using a custom __SetValue function!
-    if (widget.name and widget.name.IsObjectType and widget.name:IsObjectType("FontString")) then
-      tk:Assert(not tk.Strings:IsNilOrWhiteSpace(dbPath),
-        "%s is missing database path address element (dbPath) in config data.", widget.name:GetText());
+    if (widget.name and widget.name.IsObjectType
+      and widget.name:IsObjectType("FontString")) then
+      tk:Assert(
+        not tk.Strings:IsNilOrWhiteSpace(dbPath),
+          "%s is missing database path address element (dbPath) in config data.",
+          widget.name:GetText());
     else
-      tk:Assert(not tk.Strings:IsNilOrWhiteSpace(dbPath),
-        "Unknown config data is missing database path address element (dbPath).");
+      tk:Assert(
+        not tk.Strings:IsNilOrWhiteSpace(dbPath),
+          "Unknown config data is missing database path address element (dbPath).");
     end
 
     db:SetPathValue(dbPath, newValue);
@@ -246,8 +275,10 @@ function C_ConfigModule:OpenMenu(data, menuButton)
 end
 
 function C_ConfigModule:RemoveWidget(data, widget)
-  obj:Assert(data.selectedButton, "Failed to remove widget - No selected button.");
-  obj:Assert(data.selectedButton.menu, "Failed to remove widget - No selected menu.");
+  obj:Assert(
+    data.selectedButton, "Failed to remove widget - No selected button.");
+  obj:Assert(
+    data.selectedButton.menu, "Failed to remove widget - No selected menu.");
 
   ---@type DynamicFrame
   local menu = data.selectedButton.menu;
@@ -256,7 +287,8 @@ end
 
 function C_ConfigModule:AddWidget(data, widget)
   obj:Assert(data.selectedButton, "Failed to add widget - No selected button.");
-  obj:Assert(data.selectedButton.menu, "Failed to add widget - No selected menu.");
+  obj:Assert(
+    data.selectedButton.menu, "Failed to add widget - No selected menu.");
 
   ---@type DynamicFrame
   local menu = data.selectedButton.menu;
@@ -264,45 +296,45 @@ function C_ConfigModule:AddWidget(data, widget)
 end
 
 do
-    local function CleanTablesPredicate(_, tbl, key)
-        return (tbl.type ~= "submenu" and key ~= "options");
+  local function CleanTablesPredicate(_, tbl, key)
+    return (tbl.type ~= "submenu" and key ~= "options");
+  end
+
+  obj:DefineParams("CheckButton|Button");
+  ---@param menuButton CheckButton|Button @The menu button clicked on associated with a menu.
+  function C_ConfigModule:SetSelectedButton(data, menuButton)
+    if (data.selectedButton) then
+      -- hide old menu
+      data.selectedButton.menu:Hide();
     end
 
-    obj:DefineParams("CheckButton|Button");
-    ---@param menuButton CheckButton|Button @The menu button clicked on associated with a menu.
-    function C_ConfigModule:SetSelectedButton(data, menuButton)
-      if (data.selectedButton) then
-        -- hide old menu
-        data.selectedButton.menu:Hide();
-      end
+    menuButton.menu = menuButton.menu or self:CreateMenu();
+    data.selectedButton = menuButton;
 
-      menuButton.menu = menuButton.menu or self:CreateMenu();
-      data.selectedButton = menuButton;
-
-      if (menuButton:IsObjectType("CheckButton")) then
-        menuButton:SetChecked(true);
-      end
-
-      if (menuButton.configTable) then
-        self:RenderSelectedMenu(menuButton.configTable);
-        obj:PushTable(menuButton.configTable, CleanTablesPredicate);
-
-        menuButton.configTable = nil;
-
-        if (menuButton.module) then
-          menuButton.module.configTable = nil;
-        end
-      end
-
-      collectgarbage("collect");
-
-      -- fade menu in...
-      data.selectedButton.menu:Show();
-      data.windowName:SetText(menuButton.name);
-
-      UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
-      PlaySound(tk.Constants.CLICK);
+    if (menuButton:IsObjectType("CheckButton")) then
+      menuButton:SetChecked(true);
     end
+
+    if (menuButton.configTable) then
+      self:RenderSelectedMenu(menuButton.configTable);
+      obj:PushTable(menuButton.configTable, CleanTablesPredicate);
+
+      menuButton.configTable = nil;
+
+      if (menuButton.module) then
+        menuButton.module.configTable = nil;
+      end
+    end
+
+    collectgarbage("collect");
+
+    -- fade menu in...
+    data.selectedButton.menu:Show();
+    data.windowName:SetText(menuButton.name);
+
+    UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
+    PlaySound(tk.Constants.CLICK);
+  end
 end
 
 obj:DefineParams("table");
@@ -310,7 +342,7 @@ function C_ConfigModule:RenderWidget(data, config)
   if (config.type == "loop" or config.type == "condition") then
     -- run the loop to gather widget children
     local children = namespace.WidgetHandlers[config.type](
-      data.selectedButton.menu:GetFrame(), config);
+                       data.selectedButton.menu:GetFrame(), config);
 
     if (obj:IsTable(children)) then -- Sometimes a condition may not return anything
       for _, c in ipairs(children) do
@@ -359,7 +391,9 @@ function C_ConfigModule:RenderSelectedMenu(data, menuConfigTable)
     menuConfigTable.children = menuConfigTable:children();
   end
 
-  if (not obj:IsTable(menuConfigTable.children)) then return end
+  if (not obj:IsTable(menuConfigTable.children)) then
+    return
+  end
 
   data.tempMenuConfigTable = menuConfigTable;
 
@@ -383,9 +417,10 @@ end
 obj:DefineReturns("DynamicFrame");
 ---@return DynamicFrame @The dynamic frame which holds the menu frame and controls responsiveness and the scroll bar.
 function C_ConfigModule:CreateMenu(data)
--- else, create a new menu (dynamic frame) to based on the module's config data
+  -- else, create a new menu (dynamic frame) to based on the module's config data
   local menuParent = data.options:GetFrame();
-  local menu = gui:CreateDynamicFrame(tk.Constants.AddOnStyle, menuParent, 10, 10);
+  local menu = gui:CreateDynamicFrame(
+                 tk.Constants.AddOnStyle, menuParent, 10, 10);
   local menuScrollFrame = menu:GetFrame();
 
   -- add graphical dialog box to dynamic frame:
@@ -396,13 +431,13 @@ function C_ConfigModule:CreateMenu(data)
 end
 
 function C_ConfigModule:ShowReloadMessage(data)
-    data.warningIcon:Show();
-    data.warningLabel:SetText(data.warningLabel.reloadText);
+  data.warningIcon:Show();
+  data.warningLabel:SetText(data.warningLabel.reloadText);
 end
 
 function C_ConfigModule:ShowRestartMessage(data)
-    data.warningIcon:Show();
-    data.warningLabel:SetText(data.warningLabel.restartText);
+  data.warningIcon:Show();
+  data.warningLabel:SetText(data.warningLabel.restartText);
 end
 
 local function ApplyMenuConfigTable(widgetConfig, menuConfig)
@@ -412,16 +447,20 @@ local function ApplyMenuConfigTable(widgetConfig, menuConfig)
     dbPath = dbPath();
   end
 
-  if (not tk.Strings:IsNilOrWhiteSpace(dbPath) and
-      not tk.Strings:IsNilOrWhiteSpace(widgetConfig.appendDbPath)) then
+  if (not tk.Strings:IsNilOrWhiteSpace(dbPath)
+    and not tk.Strings:IsNilOrWhiteSpace(widgetConfig.appendDbPath)) then
 
     -- append the widget config table's dbPath value onto it!
-    obj:Assert(widgetConfig.dbPath == nil, "Cannot use both appendDbPath and dbPath on the same config table.");
+    obj:Assert(
+      widgetConfig.dbPath == nil,
+        "Cannot use both appendDbPath and dbPath on the same config table.");
 
     if (tk.Strings:StartsWith(widgetConfig.appendDbPath, "[")) then
-      widgetConfig.dbPath = tk.Strings:Concat(menuConfig.dbPath, widgetConfig.appendDbPath);
+      widgetConfig.dbPath = tk.Strings:Concat(
+                              menuConfig.dbPath, widgetConfig.appendDbPath);
     else
-      widgetConfig.dbPath = tk.Strings:Join(".", menuConfig.dbPath, widgetConfig.appendDbPath);
+      widgetConfig.dbPath = tk.Strings:Join(
+                              ".", menuConfig.dbPath, widgetConfig.appendDbPath);
     end
 
     widgetConfig.appendDbPath = nil;
@@ -464,9 +503,10 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
     widgetType = "check";
   end
 
-  tk:Assert(namespace.WidgetHandlers[widgetType],
-    "Unsupported widget type '%s' found in config data for config table '%s'.",
-  widgetType or "nil", widgetConfigTable.name or "nil");
+  tk:Assert(
+    namespace.WidgetHandlers[widgetType],
+      "Unsupported widget type '%s' found in config data for config table '%s'.",
+      widgetType or "nil", widgetConfigTable.name or "nil");
 
   if (widgetConfigTable.OnInitialize) then
     -- do disabled widgets need to be initialized?
@@ -477,7 +517,8 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
   local currentValue = self:GetDatabaseValue(widgetConfigTable);
 
   -- create the widget (run the widget function)!
-  local widget = namespace.WidgetHandlers[widgetType](parent, widgetConfigTable, currentValue);
+  local widget = namespace.WidgetHandlers[widgetType](
+                   parent, widgetConfigTable, currentValue);
 
   if (widgetConfigTable.devMode) then
     -- highlight the widget in dev mode.
@@ -485,15 +526,19 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
   end
 
   -- If using RenderWidget manually in config then this won't work
-  if (data.tempMenuConfigTable and widgetConfigTable.type == "radio" and widgetConfigTable.groupName) then
+  if (data.tempMenuConfigTable and widgetConfigTable.type == "radio"
+    and widgetConfigTable.groupName) then
     -- get groups[groupName] value from tempRadioButtonGroup
     local tempRadioButtonGroup = tk.Tables:GetTable(
-    data.tempMenuConfigTable, "groups", widgetConfigTable.groupName);
+                                   data.tempMenuConfigTable, "groups",
+                                     widgetConfigTable.groupName);
 
     table.insert(tempRadioButtonGroup, widget.btn);
   end
 
-  if (widgetConfigTable.disabled) then return end
+  if (widgetConfigTable.disabled) then
+    return
+  end
 
   -- setup complete, so run the OnLoad callback if one exists
   if (widgetConfigTable.OnLoad) then
@@ -509,21 +554,32 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
 end
 
 function C_ConfigModule:SetUpWindow(data)
-  if (data.window) then return end
+  if (data.window) then
+    return
+  end
 
   data.history = C_LinkedList();
 
-  data.window = gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, nil, "MUI_Config");
+  data.window = gui:CreateDialogBox(
+                  tk.Constants.AddOnStyle, nil, nil, nil, "MUI_Config");
   data.window:SetFrameStrata("DIALOG");
   data.window:Hide();
-  data.window:SetMinResize(600, 400);
-  data.window:SetMaxResize(1200, 800);
+
+  if (obj:IsFunction(data.window.SetMinResize)) then
+    data.window:SetMinResize(600, 400);
+    data.window:SetMaxResize(1200, 800);
+  else
+    -- dragonflight:
+    data.window:SetResizeBounds(600, 400, 1200, 800);
+  end
+
   data.window:SetSize(800, 500);
   data.window:SetPoint("CENTER");
 
   gui:AddTitleBar(tk.Constants.AddOnStyle, data.window, "MUI " .. L["Config"]);
   gui:AddResizer(tk.Constants.AddOnStyle, data.window);
-  gui:AddCloseButton(tk.Constants.AddOnStyle, data.window, nil, tk.Constants.CLICK);
+  gui:AddCloseButton(
+    tk.Constants.AddOnStyle, data.window, nil, tk.Constants.CLICK);
 
   -- convert container to a panel
   data.window = gui:CreatePanel(data.window);
@@ -533,18 +589,23 @@ function C_ConfigModule:SetUpWindow(data)
   data.window:GetRow(1):SetFixed(80);
   data.window:GetRow(3):SetFixed(50);
 
-  data.window:SetScript("OnShow", function()
-    -- fade in when shown
-    UIFrameFadeIn(data.window, 0.3, 0, 1);
-  end);
+  data.window:SetScript(
+    "OnShow", function()
+      -- fade in when shown
+      UIFrameFadeIn(data.window, 0.3, 0, 1);
+    end);
 
   local topbar = data.window:CreateCell();
   topbar:SetInsets(25, 14, 2, 10);
   topbar:SetDimensions(2, 1);
 
-  local menuListContainer = gui:CreateScrollFrame(tk.Constants.AddOnStyle, data.window:GetFrame(), "MUI_ConfigSideBar");
-  menuListContainer.ScrollBar:SetPoint("TOPLEFT", menuListContainer.ScrollFrame, "TOPRIGHT", -5, 0);
-  menuListContainer.ScrollBar:SetPoint("BOTTOMRIGHT", menuListContainer.ScrollFrame, "BOTTOMRIGHT", 0, 0);
+  local menuListContainer = gui:CreateScrollFrame(
+                              tk.Constants.AddOnStyle, data.window:GetFrame(),
+                                "MUI_ConfigSideBar");
+  menuListContainer.ScrollBar:SetPoint(
+    "TOPLEFT", menuListContainer.ScrollFrame, "TOPRIGHT", -5, 0);
+  menuListContainer.ScrollBar:SetPoint(
+    "BOTTOMRIGHT", menuListContainer.ScrollFrame, "BOTTOMRIGHT", 0, 0);
 
   local menuListCell = data.window:CreateCell(menuListContainer);
   menuListCell:SetInsets(2, 10, 10, 10);
@@ -555,7 +616,8 @@ function C_ConfigModule:SetUpWindow(data)
   local versionCell = data.window:CreateCell();
   versionCell:SetInsets(10, 10, 10, 10);
 
-  versionCell.text = versionCell:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+  versionCell.text = versionCell:CreateFontString(
+                       nil, "OVERLAY", "GameFontHighlight");
   versionCell.text:SetText(strformat("Version: %s", tk:GetVersion()));
 
   versionCell.text:SetPoint("BOTTOMLEFT");
@@ -564,7 +626,8 @@ function C_ConfigModule:SetUpWindow(data)
   bottombar:SetDimensions(2, 1);
   bottombar:SetInsets(10, 30, 10, 0);
 
-  data.window:AddCells(topbar, menuListCell, data.options, versionCell, bottombar);
+  data.window:AddCells(
+    topbar, menuListCell, data.options, versionCell, bottombar);
 
   data.warningIcon = bottombar:CreateTexture(nil, "ARTWORK");
   data.warningIcon:SetSize(20, 20);
@@ -572,55 +635,65 @@ function C_ConfigModule:SetUpWindow(data)
   data.warningIcon:SetTexture(_G.STATICPOPUP_TEXTURE_ALERT);
   data.warningIcon:Hide();
 
-  data.warningLabel = bottombar:CreateFontString(nil, "OVERLAY", "GameFontNormal");
+  data.warningLabel = bottombar:CreateFontString(
+                        nil, "OVERLAY", "GameFontNormal");
   data.warningLabel:SetPoint("LEFT", data.warningIcon, "RIGHT", 10, 0);
   data.warningLabel:SetText(tk.Strings.Empty);
 
-  data.warningLabel.reloadText = L["The UI requires reloading to apply changes."];
-  data.warningLabel.restartText = L["Some changes require a client restart to take effect."];
+  data.warningLabel.reloadText =
+    L["The UI requires reloading to apply changes."];
+  data.warningLabel.restartText =
+    L["Some changes require a client restart to take effect."];
 
   -- forward and back buttons
-  data.window.back = gui:CreateButton(tk.Constants.AddOnStyle, topbar:GetFrame());
+  data.window.back = gui:CreateButton(
+                       tk.Constants.AddOnStyle, topbar:GetFrame());
   data.window.back:SetPoint("LEFT");
   data.window.back:SetWidth(50);
   data.window.back.arrow = data.window.back:CreateTexture(nil, "OVERLAY");
-  data.window.back.arrow:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\SideArrow"));
+  data.window.back.arrow:SetTexture(
+    tk:GetAssetFilePath(
+      "Textures\\Widgets\\SideArrow"));
   data.window.back.arrow:SetSize(16, 14);
   data.window.back.arrow:SetPoint("CENTER", -1, 0);
 
-  data.window.back:SetScript("OnClick", function(backButton)
-    local menuButton = data.history:GetBack();
-    data.history:RemoveBack();
+  data.window.back:SetScript(
+    "OnClick", function(backButton)
+      local menuButton = data.history:GetBack();
+      data.history:RemoveBack();
 
-    self:SetSelectedButton(menuButton);
+      self:SetSelectedButton(menuButton);
 
-    if (data.history:GetSize() == 0) then
-      data.windowName:SetText(menuButton.name);
-      SetBackButtonEnabled(backButton, false);
-    else
-      local previousMenuButton = data.history:GetBack();
-      data.windowName:SetText(previousMenuButton.name);
-    end
-  end);
+      if (data.history:GetSize() == 0) then
+        data.windowName:SetText(menuButton.name);
+        SetBackButtonEnabled(backButton, false);
+      else
+        local previousMenuButton = data.history:GetBack();
+        data.windowName:SetText(previousMenuButton.name);
+      end
+    end);
 
-  data.windowName = topbar:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
+  data.windowName = topbar:CreateFontString(
+                      nil, "ARTWORK", "GameFontHighlightLarge");
   data.windowName:SetPoint("LEFT", data.window.back, "RIGHT", 10, 0);
   SetBackButtonEnabled(data.window.back, false);
 
   -- profiles button
-  data.window.profilesBtn = CreateTopMenuButton(L["Profiles"], function()
-    if (data.selectedButton:IsObjectType("CheckButton")) then
+  data.window.profilesBtn = CreateTopMenuButton(
+                              L["Profiles"], function()
+      if (data.selectedButton:IsObjectType("CheckButton")) then
         data.selectedButton:SetChecked(false);
-    end
+      end
 
-    self:ShowProfileManager();
-  end, topbar:GetFrame());
+      self:ShowProfileManager();
+    end, topbar:GetFrame());
 
   -- Layouts Button:
-  data.window.layoutsBtn = CreateTopMenuButton(L["Layouts"], function()
-    MayronUI:TriggerCommand("layouts");
-    data.window:Hide();
-  end);
+  data.window.layoutsBtn = CreateTopMenuButton(
+                             L["Layouts"], function()
+      MayronUI:TriggerCommand("layouts");
+      data.window:Hide();
+    end);
 
   -- reload button
   local refreshButton = CreateFrame("Button", nil, data.window.layoutsBtn);
@@ -655,8 +728,11 @@ do
     end
   end
 
-  local function AddMenuButton(menuButtons, menuConfigTable, menuListScrollChild)
-    if (IsUnsupportedByClient(menuConfigTable.client)) then return end
+  local function AddMenuButton(
+    menuButtons, menuConfigTable, menuListScrollChild)
+    if (IsUnsupportedByClient(menuConfigTable.client)) then
+      return
+    end
 
     local module; ---@type BaseModule might be nil for some menus (e.g. General menu has no module)
 
@@ -669,14 +745,17 @@ do
     menuButton.id = menuConfigTable.id;
     menuButton.type = "menu";
     menuButton.module = module;
-    menuButton.text = menuButton:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    menuButton.text = menuButton:CreateFontString(
+                        nil, "OVERLAY", "GameFontHighlight");
 
     local menuText = GetMenuButtonText(module, menuConfigTable.name);
 
     -- If not menuText then an unknown module's config table tried to load by mistake.
     -- e.g. ObjectiveTrackerModule is not loaded in classic, but its config table is loaded.
     -- should not happen if client == "xxx" is used correctly.
-    if (not menuText) then return end
+    if (not menuText) then
+      return
+    end
 
     menuButton.name = menuText; -- this is needed for ordering the buttons
 
@@ -709,7 +788,8 @@ do
     data.menuButtons = {};
 
     -- contains all menu buttons in the left scroll frame of the main config window
-    local scrollChildHeight = menuListScrollChild:GetHeight() + MENU_BUTTON_HEIGHT;
+    local scrollChildHeight = menuListScrollChild:GetHeight()
+                                + MENU_BUTTON_HEIGHT;
     menuListScrollChild:SetHeight(scrollChildHeight);
 
     for _, module in MayronUI:IterateModules() do
@@ -722,7 +802,8 @@ do
         else
           -- ConfigModule has multiple menu buttons
           for _, menuConfigTable in ipairs(configTable) do
-            AddMenuButton(data.menuButtons, menuConfigTable, menuListScrollChild);
+            AddMenuButton(
+              data.menuButtons, menuConfigTable, menuListScrollChild);
           end
         end
       end
@@ -742,7 +823,8 @@ do
       else
         local previousMenuButton = data.menuButtons[id - 1];
         menuButton:SetPoint("TOPLEFT", previousMenuButton, "BOTTOMLEFT", 0, -5);
-        menuButton:SetPoint("TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
+        menuButton:SetPoint(
+          "TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
 
         -- make room for padding between buttons
         menuListScrollChild:SetHeight(menuListScrollChild:GetHeight() + 5);

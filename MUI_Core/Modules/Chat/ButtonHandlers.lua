@@ -3,6 +3,7 @@ local _G = _G;
 local MayronUI, table = _G.MayronUI, _G.table;
 local tk, _, em, _, _, L = MayronUI:GetCoreComponents();
 local obj = _G.MayronObjects:GetFramework();
+local SHOW_TALENT_LEVEL = _G.SHOW_TALENT_LEVEL or 10;
 
 ---@class ChatFrame
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
@@ -46,20 +47,24 @@ local buttonKeys = {
   QuestLog = L["Quest Log"];
   Reputation = L["Reputation"];
   PVPScore = L["PVP Score"];
-  Skills = "Skills"
 };
 
 if (not tk:IsRetail()) then
   C_ChatModule.Static.ButtonNames = {
     L["Character"]; L["Bags"]; L["Friends"]; L["Guild"]; L["Help Menu"];
     L["Spell Book"]; L["Talents"]; L["Raid"]; L["Macros"]; L["World Map"];
-    L["Quest Log"]; L["Reputation"]; L["PVP Score"]; L["Skills"]
+    L["Quest Log"]; L["Reputation"]; L["PVP Score"]; L["Skills"];
   };
+
+  buttonKeys.Skills = L["Skills"];
 
   if (tk:IsWrathClassic()) then
     table.insert(C_ChatModule.Static.ButtonNames, 8, L["Achievements"]);
     table.insert(C_ChatModule.Static.ButtonNames, 9, L["Glyphs"]);
     table.insert(C_ChatModule.Static.ButtonNames, 10, L["Calendar"]);
+    table.insert(C_ChatModule.Static.ButtonNames, 11, L["Currency"]);
+
+    buttonKeys.Currency = L["Currency"];
     buttonKeys.Achievements = L["Achievements"];
     buttonKeys.Glyphs = L["Glyphs"];
     buttonKeys.Calendar = L["Calendar"];
@@ -67,10 +72,10 @@ if (not tk:IsRetail()) then
 else
   C_ChatModule.Static.ButtonNames = {
     L["Character"]; L["Bags"]; L["Friends"]; L["Guild"]; L["Help Menu"];
-    L["PVP"]; L["Spell Book"]; L["Talents"]; L["Achievements"]; L["Glyphs"];
+    L["PVP"]; L["Spell Book"]; L["Talents"]; L["Achievements"];
     L["Calendar"]; L["LFD"]; L["Raid"]; L["Encounter Journal"];
     L["Collections Journal"]; L["Macros"]; L["World Map"]; L["Quest Log"];
-    L["Reputation"]; L["PVP Score"]; L["Currency"]; L["Skills"]
+    L["Reputation"]; L["PVP Score"]; L["Currency"];
   };
 
   buttonKeys.PVP = L["PVP"];
@@ -93,10 +98,14 @@ end
 clickHandlers[buttonKeys.Bags] = function()
   local frame = _G.ContainerFrame1;
 
-  if (obj:IsWidget(frame) and frame:IsVisible()) then
-    _G.ToggleBackpack();
+  if (obj:IsFunction(_G.ToggleAllBags)) then
+    _G.ToggleAllBags();
   else
-    _G.OpenAllBags();
+    if (obj:IsWidget(frame) and frame:IsVisible()) then
+      (_G.CloseAllBags or _G.ToggleBackpack)();
+    else
+      _G.OpenAllBags();
+    end
   end
 end
 
@@ -155,8 +164,7 @@ if (tk:IsRetail() or tk:IsWrathClassic()) then
   clickHandlers[buttonKeys.Calendar] = ToggleCalendar;
 end
 
-if (tk:IsWrathClassic() and obj:IsNumber(SHOW_INSCRIPTION_LEVEL) and
-obj:IsFunction(ToggleGlyphFrame)) then
+if (tk:IsWrathClassic() and obj:IsNumber(SHOW_INSCRIPTION_LEVEL) and obj:IsFunction(ToggleGlyphFrame)) then
   -- Glyphs
   clickHandlers[buttonKeys.Glyphs] = function()
     if (UnitLevel("player") < SHOW_INSCRIPTION_LEVEL) then
@@ -180,8 +188,10 @@ if (tk:IsRetail()) then
   end
 
   -- Currency
-  clickHandlers[buttonKeys.Currency] = function()
-    ToggleCharacter("TokenFrame");
+if (buttonKeys.Currency) then
+    clickHandlers[buttonKeys.Currency] = function()
+      ToggleCharacter("TokenFrame");
+    end
   end
 end
 
@@ -215,8 +225,11 @@ clickHandlers[buttonKeys.PVPScore] = function()
 end
 
 -- Skill
-clickHandlers[buttonKeys.Skills] = function()
-  ToggleCharacter("SkillFrame");
+
+if (buttonKeys.Skills) then
+  clickHandlers[buttonKeys.Skills] = function()
+    ToggleCharacter("SkillFrame");
+  end
 end
 
 local function ChatButton_OnClick(self)

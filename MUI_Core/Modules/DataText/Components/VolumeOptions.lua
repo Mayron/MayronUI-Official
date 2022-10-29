@@ -4,7 +4,7 @@ local tk, _, _, _, obj, L = MayronUI:GetCoreComponents();
 local CreateFrame, GetCVar, SetCVar, string = _G.CreateFrame, _G.GetCVar, _G.SetCVar, _G.string;
 local tonumber = _G.tonumber;
 local MASTER_VOLUME = _G.MASTER_VOLUME;
-local SOUND_VOLUME = _G.SOUND_VOLUME;
+local SOUND_VOLUME = _G.SOUND_VOLUME or _G.FX_VOLUME;
 local MUSIC_VOLUME = _G.MUSIC_VOLUME;
 local AMBIENCE_VOLUME = _G.AMBIENCE_VOLUME;
 local DIALOG_VOLUME = _G.DIALOG_VOLUME;
@@ -25,6 +25,8 @@ local function GetFormattedValue(text, cvarName, value)
   value = value or tonumber(GetCVar(cvarName));
   value = tk.Numbers:ToPrecision(value, 2);
   local percentage = value * 100;
+
+  obj:Assert(obj:IsString(text), "Missing text for cvar %s.", cvarName);
   return string.format("%s: |cffffffff%d%%|r", text, percentage), value;
 end
 

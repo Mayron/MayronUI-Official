@@ -258,8 +258,18 @@ end
 function WidgetHandlers.slider(parent, widgetTable, value)
   local slider = CreateFrame("Slider", nil, parent, "OptionsSliderTemplate");
 
-  slider.tooltipText = widgetTable.tooltip;
+  tk:KillElement(slider.NineSlice);
+  local bg = tk:SetBackground(slider, 0, 0, 0, 0.5);
+  bg:ClearAllPoints();
+  bg:SetPoint("LEFT");
+  bg:SetPoint("RIGHT");
+  bg:SetHeight(8);
+
   slider.precision = widgetTable.precision or 1;
+
+  if (widgetTable.tooltip) then
+    tk:SetBasicTooltip(slider, widgetTable.tooltip);
+  end
 
   -- widgetTable gets cleaned
   local min = widgetTable.min;
@@ -300,8 +310,7 @@ function WidgetHandlers.slider(parent, widgetTable, value)
     PlaySound(tk.Constants.CLICK);
   end);
 
-  -- slider.Value = slider:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
-  slider.editBox:SetPoint("TOP", slider, "BOTTOM", 0, -2);
+  slider.editBox:SetPoint("TOP", slider, "BOTTOM", 0, -6);
   slider.editBox:SetSize(40, 20);
   tk:SetFontSize(slider.editBox, 10);
   slider.editBox:SetText(value or widgetTable.min);
@@ -329,7 +338,7 @@ function WidgetHandlers.slider(parent, widgetTable, value)
   slider:SetScript("OnDisable", Slider_OnDisable);
 
   local container = CreateElementContainerFrame(slider, widgetTable, parent);
-  container:SetHeight(container:GetHeight() + 20); -- make room for value text
+  container:SetHeight(container:GetHeight() + 28); -- make room for value text
   return container;
 end
 

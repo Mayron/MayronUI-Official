@@ -5,8 +5,8 @@ local obj = namespace.components.Objects; ---@type MayronObjects
 local tk = namespace.components.Toolkit; ---@type Toolkit
 
 local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
-local ipairs, hooksecurefunc, CreateFrame, UIParent, select = 
-  _G.ipairs, _G.hooksecurefunc, _G.CreateFrame, _G.UIParent, _G.select;
+local ipairs, hooksecurefunc, CreateFrame, UIParent, select = _G.ipairs,
+  _G.hooksecurefunc, _G.CreateFrame, _G.UIParent, _G.select;
 local CreateColor = _G.CreateColor;
 
 -- GLOBALS:
@@ -63,7 +63,8 @@ do
 
       elseif (line.leftText and line.rightText) then
         local r, g, b = tk:GetThemeColor();
-        GameTooltip:AddDoubleLine(line.leftText, line.rightText, r, g, b, 1, 1, 1);
+        GameTooltip:AddDoubleLine(
+          line.leftText, line.rightText, r, g, b, 1, 1, 1);
       end
     end
 
@@ -108,18 +109,21 @@ function tk:SetFullWidth(frame, rightPadding)
   rightPadding = rightPadding or 0;
 
   if (not frame:GetParent()) then
-    hooksecurefunc(frame, "SetParent", function()
-      frame:GetParent():HookScript("OnSizeChanged", function(_, width)
-        frame:SetWidth(width - rightPadding);
+    hooksecurefunc(
+      frame, "SetParent", function()
+        frame:GetParent():HookScript(
+          "OnSizeChanged", function(_, width)
+            frame:SetWidth(width - rightPadding);
+          end);
+
+        frame:SetWidth(frame:GetParent():GetWidth() - rightPadding);
       end);
 
-      frame:SetWidth(frame:GetParent():GetWidth() - rightPadding);
-    end);
-
   else
-    frame:GetParent():HookScript("OnSizeChanged", function(_, width)
-      frame:SetWidth(width - rightPadding);
-    end);
+    frame:GetParent():HookScript(
+      "OnSizeChanged", function(_, width)
+        frame:SetWidth(width - rightPadding);
+      end);
 
     frame:SetWidth(frame:GetParent():GetWidth() - rightPadding);
   end
@@ -175,13 +179,15 @@ function tk:MakeResizable(frame, dragger)
   frame:SetResizable(true);
   dragger:RegisterForDrag("LeftButton");
 
-  dragger:HookScript("OnDragStart", function()
-    frame:StartSizing();
-  end);
+  dragger:HookScript(
+    "OnDragStart", function()
+      frame:StartSizing();
+    end);
 
-  dragger:HookScript("OnDragStop", function()
-    frame:StopMovingOrSizing();
-  end);
+  dragger:HookScript(
+    "OnDragStop", function()
+      frame:StopMovingOrSizing();
+    end);
 end
 
 function tk:FlipTexture(texture, direction)
@@ -214,7 +220,9 @@ function tk:ClipTexture(texture, sideName, amount)
 end
 
 function tk:KillElement(element)
-  if (not element) then return end
+  if (not element) then
+    return
+  end
   self:AttachToDummy(element);
   element.Show = tk.Constants.DUMMY_FUNC;
 end
@@ -223,6 +231,10 @@ function tk:AttachToDummy(element)
   element:Hide();
   element:SetParent(tk.Constants.DUMMY_FRAME);
   element:SetAllPoints(true);
+
+  if (element:GetObjectType() == "Texture") then
+    element:SetTexture(tk.Strings.Empty);
+  end
 end
 
 function tk:KillAllElements(...)
@@ -309,7 +321,19 @@ function tk:UpdateThemeColor(value)
 
   -- update Constant Style Object
   tk.Constants.AddOnStyle:SetColor(color.r, color.g, color.b);
-  tk.Constants.AddOnStyle:SetColor(color.r * 0.7, color.g * 0.7, color.b * 0.7, "Widget");
+  tk.Constants.AddOnStyle:SetColor(
+    color.r * 0.7, color.g * 0.7, color.b * 0.7, "Widget");
+end
+
+function tk:SetGradient(texture, direction, r, g, b, alpha, r2, g2, b2, alpha2)
+  if (obj:IsFunction(texture.SetGradientAlpha)) then
+    texture:SetGradientAlpha(direction, r, g, b, alpha, r2, g2, b2, alpha2);
+  else
+    -- dragonflight only:
+    local minColor = CreateColor(r, g, b, alpha);
+    local maxColor = CreateColor(r2, g2, b2, alpha2);
+    texture:SetGradient(direction, minColor, maxColor);
+  end
 end
 
 function tk:SetBackground(frame, ...)
@@ -363,24 +387,26 @@ function tk:SetGameFont(font)
   _G["STANDARD_TEXT_FONT"] = font;
 
   local fonts = {
-    "SystemFont_Tiny", "SystemFont_Shadow_Small", "SystemFont_Small",
-    "SystemFont_Small2", "SystemFont_Shadow_Small2", "SystemFont_Shadow_Med1_Outline",
-    "SystemFont_Shadow_Med1", "QuestFont_Large", "SystemFont_Large",
-    "SystemFont_Shadow_Large_Outline", "SystemFont_Shadow_Med2", "SystemFont_Shadow_Large",
-    "SystemFont_Shadow_Large2", "SystemFont_Shadow_Huge1", "SystemFont_Huge2",
-    "SystemFont_Shadow_Huge2", "SystemFont_Shadow_Huge3", "SystemFont_World",
-    "SystemFont_World_ThickOutline", "SystemFont_Shadow_Outline_Huge2", "SystemFont_Med1",
-    "SystemFont_WTF2", "SystemFont_Outline_WTF2", "GameTooltipHeader", "System_IME",
-
-    -- other:
-    "NumberFont_OutlineThick_Mono_Small", "NumberFont_Outline_Huge",
-    "NumberFont_Outline_Large", "NumberFont_Outline_Med", "NumberFont_Shadow_Med",
-    "NumberFont_Shadow_Small", "QuestFont", "QuestTitleFont", "QuestTitleFontBlackShadow",
-    "GameFontNormalMed3", "SystemFont_Med3", "SystemFont_OutlineThick_Huge2",
-    "SystemFont_Outline_Small", "SystemFont_Shadow_Med3", "Tooltip_Med", "Tooltip_Small",
-    "ZoneTextString", "SubZoneTextString", "PVPInfoTextString", "PVPArenaTextString",
-    "CombatTextFont", "FriendsFont_Normal", "FriendsFont_Small", "FriendsFont_Large",
-    "FriendsFont_UserText", "Fancy22Font",
+    "SystemFont_Tiny"; "SystemFont_Shadow_Small"; "SystemFont_Small";
+    "SystemFont_Small2"; "SystemFont_Shadow_Small2";
+    "SystemFont_Shadow_Med1_Outline"; "SystemFont_Shadow_Med1";
+    "QuestFont_Large"; "SystemFont_Large"; "SystemFont_Shadow_Large_Outline";
+    "SystemFont_Shadow_Med2"; "SystemFont_Shadow_Large";
+    "SystemFont_Shadow_Large2"; "SystemFont_Shadow_Huge1"; "SystemFont_Huge2";
+    "SystemFont_Shadow_Huge2"; "SystemFont_Shadow_Huge3"; "SystemFont_World";
+    "SystemFont_World_ThickOutline"; "SystemFont_Shadow_Outline_Huge2";
+    "SystemFont_Med1"; "SystemFont_WTF2"; "SystemFont_Outline_WTF2";
+    "GameTooltipHeader"; "System_IME"; -- other:
+    "NumberFont_OutlineThick_Mono_Small"; "NumberFont_Outline_Huge";
+    "NumberFont_Outline_Large"; "NumberFont_Outline_Med";
+    "NumberFont_Shadow_Med"; "NumberFont_Shadow_Small"; "QuestFont";
+    "QuestTitleFont"; "QuestTitleFontBlackShadow"; "GameFontNormalMed3";
+    "SystemFont_Med3"; "SystemFont_OutlineThick_Huge2";
+    "SystemFont_Outline_Small"; "SystemFont_Shadow_Med3"; "Tooltip_Med";
+    "Tooltip_Small"; "ZoneTextString"; "SubZoneTextString"; "PVPInfoTextString";
+    "PVPArenaTextString"; "CombatTextFont"; "FriendsFont_Normal";
+    "FriendsFont_Small"; "FriendsFont_Large"; "FriendsFont_UserText";
+    "Fancy22Font";
   };
 
   -- prevent weird font size bug
@@ -434,11 +460,11 @@ do
     frame:SetAllPoints(true);
     frame:Hide();
 
-    for _, child in ipairs({frame:GetChildren()}) do
+    for _, child in ipairs({ frame:GetChildren() }) do
       self:PushFrame(child);
     end
 
-    for _, region in ipairs({frame:GetRegions()}) do
+    for _, region in ipairs({ frame:GetRegions() }) do
       region:SetParent(tk.Constants.DUMMY_FRAME);
       region:SetAllPoints(true);
       region:Hide();

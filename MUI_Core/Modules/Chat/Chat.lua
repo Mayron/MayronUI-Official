@@ -131,14 +131,14 @@ local defaults = {
       {
         key = "C"; -- CONTROL
         L["Reputation"];
-        L["Skills"];
+        L[((tk:IsRetail() or tk:IsWrathClassic()) and "Currency") or "Skills"];
         L["Quest Log"];
       };
       {
         key = "S"; -- SHIFT
-        L["Achievements"];
-        L["Collections Journal"];
-        L["Encounter Journal"];
+        L[((tk:IsRetail() or tk:IsWrathClassic()) and "Achievements") or "Friends"];
+        L[(tk:IsRetail() and "Collections Journal") or (tk:IsWrathClassic() and "Calendar") or "Guild"];
+        L[(tk:IsRetail() and "Encounter Journal") or "Macros"];
       };
     };
 
@@ -152,17 +152,6 @@ local defaults = {
 		}
 	};
 };
-
-if (not tk:IsRetail()) then
-  local firstBtn = tk:IsWrathClassic() and "Achievements" or "Friends";
-  local secondBtn = tk:IsWrathClassic() and "Calendar" or "Guild";
-  defaults.__templateChatFrame.buttons[3] = {
-    key = "S"; -- SHIFT
-    L[firstBtn];
-    L[secondBtn];
-    L["Macros"];
-  };
-end
 
 db:AddToDefaults("profile.chat", defaults);
 

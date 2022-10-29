@@ -2,24 +2,30 @@
 local MayronUI = _G.MayronUI;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 
-local CreateFrame, collectgarbage, PlaySound = _G.CreateFrame, _G.collectgarbage, _G.PlaySound;
-local string, ipairs, tostring, min, mfloor = _G.string, _G.ipairs, _G.tostring, _G.math.min, _G.math.floor;
+local CreateFrame, collectgarbage, PlaySound = _G.CreateFrame,
+  _G.collectgarbage, _G.PlaySound;
+local string, ipairs, tostring, min, mfloor = _G.string, _G.ipairs, _G.tostring,
+  _G.math.min, _G.math.floor;
 
 local C_ReportIssue = MayronUI:RegisterModule("ReportIssue", nil, true) ---@class C_ReportIssue : BaseModule
 
 local TOTAL_STEPS = 3;
-local TITLE_TEMPLATE = tk.Strings:JoinWithSpace(L["Step %d of"], tostring(TOTAL_STEPS));
-local REPLICATE_BUG_STEP_TEXT = string.format("%s 1: \n%s 2: \n%s 3: ", L["Step"], L["Step"], L["Step"]);
-_G.MUI_GITHUB_SUBMIT_NEW_ISSUE_LINK = "https://github.com/Mayron/MayronUI-Official/issues/new?template=bug_report.md";
+local TITLE_TEMPLATE = tk.Strings:JoinWithSpace(
+                         L["Step %d of"], tostring(TOTAL_STEPS));
+local REPLICATE_BUG_STEP_TEXT = string.format(
+                                  "%s 1: \n%s 2: \n%s 3: ", L["Step"],
+                                    L["Step"], L["Step"]);
+_G.MUI_GITHUB_SUBMIT_NEW_ISSUE_LINK =
+  "https://github.com/Mayron/MayronUI-Official/issues/new?template=bug_report.md";
 
 function C_ReportIssue:OnInitialize(data)
   data.steps = obj:PopTable();
   data.ITEM_SPACING = 20;
 
   data.stepText = {
-    [1] = L["Found a bug? Use this form to submit an issue to the official MayronUI GitHub page."],
-    [2] = L["Almost done! We just need a bit more information..."],
-    [3] = L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"]
+    [1] = L["Found a bug? Use this form to submit an issue to the official MayronUI GitHub page."];
+    [2] = L["Almost done! We just need a bit more information..."];
+    [3] = L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"];
   }
 
   local frame = gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "HIGH");
@@ -30,8 +36,14 @@ function C_ReportIssue:OnInitialize(data)
   gui:AddCloseButton(tk.Constants.AddOnStyle, frame, nil, tk.Constants.CLICK);
   gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Report Issue"]);
   gui:AddResizer(tk.Constants.AddOnStyle, frame);
-  frame:SetMinResize(500, 400);
-  frame:SetMaxResize(900, 800);
+
+  if (obj:IsFunction(frame.SetMinResize)) then
+    frame:SetMinResize(500, 400);
+    frame:SetMaxResize(900, 800);
+  else
+    -- dragonflight:
+    frame:SetResizeBounds(500, 400, 900, 800);
+  end
 
   data.panel = gui:CreatePanel(nil, nil, frame); ---@type Panel
   data.panel:SetAllPoints(true);
@@ -170,25 +182,29 @@ function C_ReportIssue.Private:SetUpFooter(data)
   local parent = cell:GetFrame();
   data.footerParent = parent;
 
-  local backButton = gui:CreateButton(tk.Constants.AddOnStyle, parent, L["Back"]);
+  local backButton = gui:CreateButton(
+                       tk.Constants.AddOnStyle, parent, L["Back"]);
   backButton.minWidth = 150;
   backButton:SetWidth(150);
   backButton:Disable();
 
-  backButton:SetScript("OnClick", function()
-    PlaySound(tk.Constants.CLICK);
-    data:Call("ShowStep", data.currentStep - 1);
-  end);
+  backButton:SetScript(
+    "OnClick", function()
+      PlaySound(tk.Constants.CLICK);
+      data:Call("ShowStep", data.currentStep - 1);
+    end);
 
-  local nextButton = gui:CreateButton(tk.Constants.AddOnStyle, parent, L["Next"]);
+  local nextButton = gui:CreateButton(
+                       tk.Constants.AddOnStyle, parent, L["Next"]);
   nextButton.minWidth = 150;
   nextButton:SetWidth(150);
   nextButton:Disable();
 
-  nextButton:SetScript("OnClick", function()
-    PlaySound(tk.Constants.CLICK);
-    data:Call("ShowStep", data.currentStep + 1);
-  end);
+  nextButton:SetScript(
+    "OnClick", function()
+      PlaySound(tk.Constants.CLICK);
+      data:Call("ShowStep", data.currentStep + 1);
+    end);
 
   data.backButton = backButton;
   data.nextButton = nextButton;
@@ -198,7 +214,8 @@ end
 
 obj:DefineParams("Frame", "string", "number=0", "number=1000");
 obj:DefineReturns("EditBox");
-function C_ReportIssue.Private:CreateEditBox(data, parent, titleText, minLength, maxLength)
+function C_ReportIssue.Private:CreateEditBox(
+  data, parent, titleText, minLength, maxLength)
   local title = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
   title:SetPoint("TOPLEFT");
   title:SetPoint("TOPRIGHT");
@@ -212,50 +229,58 @@ function C_ReportIssue.Private:CreateEditBox(data, parent, titleText, minLength,
   editBox:SetFontObject("ChatFontNormal");
   editBox:SetAllPoints(true);
 
-  local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, parent, nil, editBox);
+  local container = gui:CreateScrollFrame(
+                      tk.Constants.AddOnStyle, parent, nil, editBox);
   container:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -data.ITEM_SPACING);
   container:SetPoint("TOPRIGHT", title, "BOTTOMRIGHT", 0, -data.ITEM_SPACING);
   container:SetPoint("BOTTOM");
   container:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
   container:SetBackdropBorderColor(tk:GetThemeColor());
   container:SetBackdropColor(0, 0, 0, 0.5);
-  container:SetScript("OnMouseUp", function() editBox:SetFocus(true) end);
+  container:SetScript(
+    "OnMouseUp", function()
+      editBox:SetFocus(true)
+    end);
   editBox.container = container;
 
   if (maxLength > 0) then
-    local characters = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    local characters = parent:CreateFontString(
+                         nil, "OVERLAY", "GameFontHighlight");
     characters:SetPoint("TOP", container, "BOTTOM", 0, -10);
 
-    local charactersTemplate = tk.Strings:Join("", "%d/1000 ", L["characters"], " %s");
-    editBox:SetScript("OnTextChanged", function()
-      local size = #(editBox:GetText());
-      local minText = tk.Strings.Empty;
+    local charactersTemplate = tk.Strings:Join(
+                                 "", "%d/1000 ", L["characters"], " %s");
+    editBox:SetScript(
+      "OnTextChanged", function()
+        local size = #(editBox:GetText());
+        local minText = tk.Strings.Empty;
 
-      if (minLength > 0) then
-        minText = string.format("(%s: %d)", L["minimum"], minLength);
-      end
+        if (minLength > 0) then
+          minText = string.format("(%s: %d)", L["minimum"], minLength);
+        end
 
-      local newText = string.format(charactersTemplate, size, minText);
+        local newText = string.format(charactersTemplate, size, minText);
 
-      if (minLength > 0) then
-        if (size < minLength) then
-          data.nextButton:Disable();
-          newText = tk.Strings:SetTextColorByKey(newText, "RED");
+        if (minLength > 0) then
+          if (size < minLength) then
+            data.nextButton:Disable();
+            newText = tk.Strings:SetTextColorByKey(newText, "RED");
+          else
+            data.nextButton:Enable();
+            newText = tk.Strings:SetTextColorByKey(newText, "GREEN");
+          end
         else
           data.nextButton:Enable();
-          newText = tk.Strings:SetTextColorByKey(newText, "GREEN");
         end
-      else
-        data.nextButton:Enable();
-      end
 
-      characters:SetText(newText);
-    end);
+        characters:SetText(newText);
+      end);
   end
 
-  editBox:SetScript("OnEscapePressed", function()
-    editBox:ClearFocus();
-  end);
+  editBox:SetScript(
+    "OnEscapePressed", function()
+      editBox:ClearFocus();
+    end);
 
   container.ScrollFrame:ClearAllPoints();
   container.ScrollFrame:SetPoint("TOPLEFT", 10, -10);
@@ -269,12 +294,16 @@ end
 ---------------------------------
 obj:DefineParams("Frame");
 function C_ReportIssue.Private:RenderStep1(data, parent)
-  data.detailsEditBox = data:Call("CreateEditBox", parent, L["Please describe the bug in detail:"], 50);
+  data.detailsEditBox = data:Call(
+                          "CreateEditBox", parent,
+                            L["Please describe the bug in detail:"], 50);
 end
 
 obj:DefineParams("Frame");
 function C_ReportIssue.Private:RenderStep2(data, parent)
-  data.replicateBugEditBox = data:Call("CreateEditBox", parent, L["How can we replicate the bug?"]);
+  data.replicateBugEditBox = data:Call(
+                               "CreateEditBox", parent,
+                                 L["How can we replicate the bug?"]);
   data.replicateBugEditBox:SetText(REPLICATE_BUG_STEP_TEXT);
 end
 
@@ -291,68 +320,87 @@ function C_ReportIssue.Private:RenderStep3(data, parent)
   fontString:SetTextColor(tk.Constants.COLORS.LIGHT_YELLOW:GetRGB());
   fontString:SetWidth(400);
 
-  linkButton:SetScript("OnEnter", function()
-    fontString:SetTextColor(tk.Constants.COLORS.WHITE:GetRGB());
-  end);
+  linkButton:SetScript(
+    "OnEnter", function()
+      fontString:SetTextColor(tk.Constants.COLORS.WHITE:GetRGB());
+    end);
 
-  linkButton:SetScript("OnLeave", function()
-    fontString:SetTextColor(tk.Constants.COLORS.LIGHT_YELLOW:GetRGB());
-  end);
+  linkButton:SetScript(
+    "OnLeave", function()
+      fontString:SetTextColor(tk.Constants.COLORS.LIGHT_YELLOW:GetRGB());
+    end);
 
-  linkButton:SetScript("OnClick", function()
-    tk:ShowInputPopupWithOneButton(L["Open this webpage in your browser"],
-      L["(CTRL+C to Copy, CTRL+V to Paste)"],
-      _G.MUI_GITHUB_SUBMIT_NEW_ISSUE_LINK)
-  end);
+  linkButton:SetScript(
+    "OnClick", function()
+      tk:ShowInputPopupWithOneButton(
+        L["Open this webpage in your browser"],
+          L["(CTRL+C to Copy, CTRL+V to Paste)"],
+          _G.MUI_GITHUB_SUBMIT_NEW_ISSUE_LINK)
+    end);
 
   local container = CreateFrame("Frame", nil, linkButton);
   container:SetPoint("TOPLEFT", linkButton, "BOTTOMLEFT", 0, -data.ITEM_SPACING);
-  container:SetPoint("TOPRIGHT", linkButton, "BOTTOMRIGHT", 0, -data.ITEM_SPACING);
+  container:SetPoint(
+    "TOPRIGHT", linkButton, "BOTTOMRIGHT", 0, -data.ITEM_SPACING);
   container:SetPoint("BOTTOM", parent, "BOTTOM");
 
-  data.generateButton = gui:CreateButton(tk.Constants.AddOnStyle, container, L["Generate Report"]);
+  data.generateButton = gui:CreateButton(
+                          tk.Constants.AddOnStyle, container,
+                            L["Generate Report"]);
   data.generateButton:SetPoint("CENTER");
 
-  data.generateButton:SetScript("OnClick", function()
-    PlaySound(tk.Constants.CLICK);
-    local report = data:Call("GenerateReport");
-    local copyText = string.format("%s %s:", L["Copy Report"], L["(CTRL+C to Copy, CTRL+V to Paste)"]);
-    copyText = tk.Strings:SetTextColorByClassFileName(copyText);
+  data.generateButton:SetScript(
+    "OnClick", function()
+      PlaySound(tk.Constants.CLICK);
+      local report = data:Call("GenerateReport");
+      local copyText = string.format(
+                         "%s %s:", L["Copy Report"],
+                           L["(CTRL+C to Copy, CTRL+V to Paste)"]);
+      copyText = tk.Strings:SetTextColorByClassFileName(copyText);
 
-    if (not data.reportEditBox) then
-      data.reportEditBox = data:Call("CreateEditBox", container, copyText, nil, 0);
-    end
+      if (not data.reportEditBox) then
+        data.reportEditBox = data:Call(
+                               "CreateEditBox", container, copyText, nil, 0);
+      end
 
-    data.reportFrame:SetHeight(600);
-    data.reportFrame:SetMinResize(500, 600);
-    data.generateButton:Hide();
-    data.backButton:Hide();
-    data.reportEditBox:SetText(report);
-    data.reportEditBox.container:Show();
-    data.reportEditBox:SetFocus();
-    data.reportEditBox:HighlightText();
+      data.reportFrame:SetHeight(600);
+      data.reportFrame:SetMinResize(500, 600);
+      data.generateButton:Hide();
+      data.backButton:Hide();
+      data.reportEditBox:SetText(report);
+      data.reportEditBox.container:Show();
+      data.reportEditBox:SetFocus();
+      data.reportEditBox:HighlightText();
 
-    if (not data.closeButton) then
-      data.closeButton = gui:CreateButton(tk.Constants.AddOnStyle, data.footerParent, "Close");
-      data.closeButton:SetPoint("CENTER");
+      if (not data.closeButton) then
+        data.closeButton = gui:CreateButton(
+                             tk.Constants.AddOnStyle, data.footerParent, "Close");
+        data.closeButton:SetPoint("CENTER");
 
-      data.closeButton:SetScript("OnClick", function()
-        data.reportFrame.closeBtn:Click();
-      end);
-    end
+        data.closeButton:SetScript(
+          "OnClick", function()
+            data.reportFrame.closeBtn:Click();
+          end);
+      end
 
-    data.closeButton:Show();
-  end);
+      data.closeButton:Show();
+    end);
 end
 
 do
   local report;
-  local GetAddOnMetadata, GetBuildInfo, GetLocale = _G.GetAddOnMetadata, _G.GetBuildInfo, _G.GetLocale;
-  local GetCurrentScaledResolution, UIParent = _G.GetCurrentScaledResolution, _G.UIParent;
-  local IsMacClient, UnitFactionGroup, UnitClass = _G.IsMacClient, _G.UnitFactionGroup, _G.UnitClass;
-  local GetSpecializationInfo, GetSpecialization = _G.GetSpecializationInfo, _G.GetSpecialization;
-  local UnitLevel, UnitRace, GetAddOnMemoryUsage, IsAddOnLoaded = _G.UnitLevel, _G.UnitRace, _G.GetAddOnMemoryUsage, _G.IsAddOnLoaded;
-  local UpdateAddOnMemoryUsage, GetNumAddOns, GetAddOnInfo = _G.UpdateAddOnMemoryUsage, _G.GetNumAddOns, _G.GetAddOnInfo;
+  local GetAddOnMetadata, GetBuildInfo, GetLocale = _G.GetAddOnMetadata,
+    _G.GetBuildInfo, _G.GetLocale;
+  local GetCurrentScaledResolution, UIParent = _G.GetCurrentScaledResolution,
+    _G.UIParent;
+  local IsMacClient, UnitFactionGroup, UnitClass = _G.IsMacClient,
+    _G.UnitFactionGroup, _G.UnitClass;
+  local GetSpecializationInfo, GetSpecialization = _G.GetSpecializationInfo,
+    _G.GetSpecialization;
+  local UnitLevel, UnitRace, GetAddOnMemoryUsage, IsAddOnLoaded = _G.UnitLevel,
+    _G.UnitRace, _G.GetAddOnMemoryUsage, _G.IsAddOnLoaded;
+  local UpdateAddOnMemoryUsage, GetNumAddOns, GetAddOnInfo =
+    _G.UpdateAddOnMemoryUsage, _G.GetNumAddOns, _G.GetAddOnInfo;
 
   local function AppendLine(line, header)
     line = line:trim();
@@ -410,7 +458,9 @@ do
 
     local resolution = GetCurrentScaledResolution();
 
-    f("- Resolution: %s (UI scale: %s)", resolution, tk.Numbers:ToPrecision(UIParent:GetScale(), 3));
+    f(
+      "- Resolution: %s (UI scale: %s)", resolution,
+        tk.Numbers:ToPrecision(UIParent:GetScale(), 3));
     f("- Using Mac: %s", IsMacClient() and "Yes" or "No");
 
     -- Basic Character Info:
@@ -431,7 +481,9 @@ do
     -- Captured Error Info (player details when error occurred):
     AppendLine(string.format("Captured Errors (%d)", #data.errors), true);
     for id, errorObject in ipairs(data.errors) do
-      if (id > 3) then break end -- only get the first 3
+      if (id > 3) then
+        break
+      end -- only get the first 3
       f("- Zone: %s", errorObject.zone);
       f("- Group size: %s", errorObject.groupSize);
       f("- Instance type: %s", errorObject.instanceType);
@@ -443,7 +495,9 @@ do
       AppendLine("```lua");
 
       local maxLength = 3000 - (min(3, #data.errors) * 500);
-      local errorMessage = string.sub(errorObject.error, 1, min(#errorObject.error, maxLength));
+      local errorMessage = string.sub(
+                             errorObject.error, 1,
+                               min(#errorObject.error, maxLength));
       AppendLine(errorMessage);
       AppendLine("```");
 
@@ -480,7 +534,8 @@ do
     AppendLine("```");
 
     -- Append TimerBars Current Profile Settings:
-    local timerBarsDb = MayronUI:GetModuleComponent("TimerBarsModule", "Database");
+    local timerBarsDb = MayronUI:GetModuleComponent(
+                          "TimerBarsModule", "Database");
     AppendLine("TimerBars Current Profile Settings", true);
 
     profile = GetCopyOfSavedVariableTable(timerBarsDb.profile);

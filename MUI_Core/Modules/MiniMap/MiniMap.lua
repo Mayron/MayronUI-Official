@@ -53,7 +53,7 @@ db:AddToDefaults(
     x = -4;
     y = -4;
     size = 200;
-    scale = 1;    
+    scale = 1;
     hideIcons = true;
     testMode = false; -- for testing
 
@@ -75,7 +75,7 @@ db:AddToDefaults(
 
       missions = { hide = false; scale = 0.6; point = "TOPLEFT"; x = -8; y = 2 };
 
-      tracking = { hide = false; scale = 0.8; point = "BOTTOMLEFT"; x = 0;
+      tracking = { hide = false; scale = (tk:IsRetail() and 1.2 or 0.8); point = "BOTTOMLEFT"; x = 0;
       y = 2 };
 
       zone = { hide = true; point = "TOP"; fontSize = 10; x = 0; y = -4 };
@@ -126,7 +126,7 @@ do
 
     if (width % 2 > 0) then
       width = width + 1;
-    end   
+    end
 
     Minimap:SetSize(width, width);
 
@@ -134,7 +134,8 @@ do
     local relativeTo;
 
     settings.size = width;
-    settings.point, relativeTo, settings.relativePoint, settings.x, settings.y = Minimap:GetPoint();
+    settings.point, relativeTo, settings.relativePoint, settings.x, settings.y =
+      Minimap:GetPoint();
 
     local x = math.floor(settings.x + 0.5);
     local y = math.floor(settings.y + 0.5);
@@ -145,13 +146,14 @@ do
 
     if (y % 2 > 0) then
       y = y + 1;
-    end    
-    
-    settings.x = x; settings.y = y;
+    end
+
+    settings.x = x;
+    settings.y = y;
 
     Minimap:SetPoint(
-      settings.point, relativeTo or _G.UIParent, 
-      settings.relativePoint, settings.x, settings.y);
+      settings.point, relativeTo or _G.UIParent, settings.relativePoint,
+        settings.x, settings.y);
 
     settings:SaveChanges();
   end
@@ -159,129 +161,140 @@ end
 
 local callback;
 callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
-  if (IsAddOnLoaded("Blizzard_BattlefieldMap") and _G.BattlefieldMapFrame) then
-    local updateSize;
-    local originalWidth, originalHeight = 298, 199;
-    local mapFrame, mapTab, mapOptions = _G.BattlefieldMapFrame,
-      _G.BattlefieldMapTab, _G.BattlefieldMapOptions;
-    local previousWidth;
-    local GetMinimapZoneText = _G.GetMinimapZoneText;
+    if (IsAddOnLoaded("Blizzard_BattlefieldMap") and _G.BattlefieldMapFrame) then
+      local updateSize;
+      local originalWidth, originalHeight = 298, 199;
+      local mapFrame, mapTab, mapOptions = _G.BattlefieldMapFrame,
+        _G.BattlefieldMapTab, _G.BattlefieldMapOptions;
+      local previousWidth;
+      local GetMinimapZoneText = _G.GetMinimapZoneText;
 
-    local function DragStep()
-      if (not updateSize) then
-        return
-      end
-      local width = mapFrame:GetWidth();
-
-      if (previousWidth ~= width) then
-        previousWidth = width;
-        width = (math.floor(width + 100.5) - 100);
-
-        local difference = width / originalWidth;
-        local height = originalHeight * difference;
-        mapFrame:SetSize(width, height);
-        mapFrame.ScrollContainer:OnCanvasSizeChanged()
-      end
-
-      if (updateSize) then
-        C_Timer.After(0.02, DragStep);
-      end
-    end
-
-    local function update(self)
-      if (self.reskinned) then
-        if (self.titleBar) then
-          self.titleBar.text:SetText(GetMinimapZoneText());
+      local function DragStep()
+        if (not updateSize) then
+          return
         end
-        return
+        local width = mapFrame:GetWidth();
+
+        if (previousWidth ~= width) then
+          previousWidth = width;
+          width = (math.floor(width + 100.5) - 100);
+
+          local difference = width / originalWidth;
+          local height = originalHeight * difference;
+          mapFrame:SetSize(width, height);
+          mapFrame.ScrollContainer:OnCanvasSizeChanged()
+        end
+
+        if (updateSize) then
+          C_Timer.After(0.02, DragStep);
+        end
       end
 
-      self.BorderFrame:DisableDrawLayer("ARTWORK");
-      originalWidth, originalHeight = self.ScrollContainer:GetSize();
+      local function update(self)
+        if (self.reskinned) then
+          if (self.titleBar) then
+            self.titleBar.text:SetText(GetMinimapZoneText());
+          end
+          return
+        end
 
-      gui:AddResizer(tk.Constants.AddOnStyle, self);
-      self.dragger:SetParent(self.BorderFrame);
-      self:SetMinResize(originalWidth, originalHeight);
-      self:SetMaxResize(1200, 800);
+        self.BorderFrame:DisableDrawLayer("ARTWORK");
+        originalWidth, originalHeight = self.ScrollContainer:GetSize();
 
-      gui:AddTitleBar(tk.Constants.AddOnStyle, self, GetMinimapZoneText());
-      self.titleBar:SetFrameStrata("HIGH");
-      self.titleBar:RegisterForClicks("RightButtonUp");
-      self.titleBar:SetScript(
-        "OnClick", function(self, button)
-          if (button == "RightButton") then
-            PlaySound(tk.Constants.CLICK);
+        gui:AddResizer(tk.Constants.AddOnStyle, self);
+        self.dragger:SetParent(self.BorderFrame);
 
-            -- If Rightclick bring up the options menu
+        if (obj:IsFunction(self.SetMinResize)) then
+          self:SetMinResize(originalWidth, originalHeight);
+          self:SetMaxResize(1200, 800);
+        else
+          -- dragonflight:
+          self:SetResizeBounds(originalWidth, originalHeight, 1200, 800);
+        end
+
+        gui:AddTitleBar(tk.Constants.AddOnStyle, self, GetMinimapZoneText());
+        self.titleBar:SetFrameStrata("HIGH");
+        self.titleBar:RegisterForClicks("RightButtonUp");
+        self.titleBar:SetScript(
+          "OnClick", function(self, button)
             if (button == "RightButton") then
-              local function InitializeOptionsDropDown(self)
-                self:GetParent():InitializeOptionsDropDown();
+              PlaySound(tk.Constants.CLICK);
+
+              -- If Rightclick bring up the options menu
+              if (button == "RightButton") then
+                local function InitializeOptionsDropDown(self)
+                  self:GetParent():InitializeOptionsDropDown();
+                end
+                _G.UIDropDownMenu_Initialize(
+                  mapTab.OptionsDropDown, InitializeOptionsDropDown, "MENU");
+                ToggleDropDownMenu(1, nil, mapTab.OptionsDropDown, self, 0, 0);
+                return;
               end
-              _G.UIDropDownMenu_Initialize(
-                mapTab.OptionsDropDown, InitializeOptionsDropDown, "MENU");
-              ToggleDropDownMenu(1, nil, mapTab.OptionsDropDown, self, 0, 0);
-              return;
             end
+          end);
+
+        self.dragger:SetFrameStrata("HIGH");
+        mapTab:Hide();
+        mapTab.Show = tk.Constants.DUMMY_FUNC;
+
+        local container = self.ScrollContainer;
+        container:SetAllPoints(self);
+
+        self.dragger:HookScript(
+          "OnDragStop", function()
+            container:ZoomIn();
+            container:ZoomOut();
+            updateSize = nil;
+          end);
+
+        self.dragger:HookScript(
+          "OnDragStart", function()
+            updateSize = true;
+            C_Timer.After(0.1, DragStep);
+          end);
+
+        self.reskinned = true;
+      end
+
+      mapFrame:SetFrameStrata("MEDIUM");
+      mapFrame:HookScript("OnShow", update);
+      mapFrame:HookScript(
+        "OnEvent", function(self)
+          if (self.titleBar) then
+            self.titleBar.text:SetText(GetMinimapZoneText());
           end
         end);
 
-      self.dragger:SetFrameStrata("HIGH");
-      mapTab:Hide();
-      mapTab.Show = tk.Constants.DUMMY_FUNC;
+      local bg = gui:CreateDialogBox(
+                   tk.Constants.AddOnStyle, mapFrame, "HIGH", nil, "MUI_ZoneMap");
+      bg:SetAllPoints(true);
+      bg:SetFrameStrata("LOW");
+      bg:SetAlpha(1.0 - mapOptions.opacity);
 
-      local container = self.ScrollContainer;
-      container:SetAllPoints(self);
-
-      self.dragger:HookScript(
-        "OnDragStop", function()
-          container:ZoomIn();
-          container:ZoomOut();
-          updateSize = nil;
+      tk:HookFunc(
+        mapFrame, "RefreshAlpha", function()
+          local alpha = 1.0 - mapOptions.opacity;
+          bg:SetAlpha(1.0 - mapOptions.opacity);
+          mapFrame.titleBar:SetAlpha(math.max(alpha, 0.3));
         end);
 
-      self.dragger:HookScript(
-        "OnDragStart", function()
-          updateSize = true;
-          C_Timer.After(0.1, DragStep);
-        end);
-
-      self.reskinned = true;
+      mapFrame.BorderFrame.CloseButtonBorder:SetTexture("");
+      mapFrame.BorderFrame.CloseButton:SetPoint(
+        "TOPRIGHT", mapFrame.BorderFrame, "TOPRIGHT", 5, 5);
+      tk:UnhookFunc("BattlefieldMap_LoadUI", callback);
     end
-
-    mapFrame:SetFrameStrata("MEDIUM");
-    mapFrame:HookScript("OnShow", update);
-    mapFrame:HookScript("OnEvent", function(self)
-      if (self.titleBar) then
-        self.titleBar.text:SetText(GetMinimapZoneText());
-      end
-    end);
-
-    local bg = gui:CreateDialogBox(
-                  tk.Constants.AddOnStyle, mapFrame, "HIGH", nil, "MUI_ZoneMap");
-    bg:SetAllPoints(true);
-    bg:SetFrameStrata("LOW");
-    bg:SetAlpha(1.0 - mapOptions.opacity);
-
-    tk:HookFunc(
-      mapFrame, "RefreshAlpha", function()
-        local alpha = 1.0 - mapOptions.opacity;
-        bg:SetAlpha(1.0 - mapOptions.opacity);
-        mapFrame.titleBar:SetAlpha(math.max(alpha, 0.3));
-      end);
-
-    mapFrame.BorderFrame.CloseButtonBorder:SetTexture(nil);
-    mapFrame.BorderFrame.CloseButton:SetPoint(
-      "TOPRIGHT", mapFrame.BorderFrame, "TOPRIGHT", 5, 5);
-    tk:UnhookFunc("BattlefieldMap_LoadUI", callback);
-  end
-end);
+  end);
 
 do
   local widgetMethods = {};
-  local positioningMethods = {"SetParent"; "ClearAllPoints"; "SetPoint"; "SetScale";};
+  local positioningMethods = {
+    "SetParent"; "ClearAllPoints"; "SetPoint"; "SetScale";
+  };
   local visibilityMethods = { "Show"; "Hide"; "SetShown" };
 
   function C_MiniMapModule.Private:SetUpWidget(data, name, widget)
+    obj:Assert(widget, "Failed to setup minimap widget %s.", name);
+
     local methods = widgetMethods[name];
     local settings = data.settings.widgets[name];
 
@@ -428,28 +441,29 @@ do
     if (not data.dungeonDifficulty) then
       data.dungeonDifficulty = Minimap:CreateFontString(nil, "OVERLAY");
 
-      local listener = em:CreateEventListenerWithID("DungeonDifficultyText", function()
-        if (not IsInInstance()) then
-          data.dungeonDifficulty:SetText("");
-          return
-        end
+      local listener = em:CreateEventListenerWithID(
+                         "DungeonDifficultyText", function()
+          if (not IsInInstance()) then
+            data.dungeonDifficulty:SetText("");
+            return
+          end
 
-        local difficulty = select(4, GetInstanceInfo());
+          local difficulty = select(4, GetInstanceInfo());
 
-        if (difficulty == "Heroic") then
-          difficulty = "H";
-        elseif (difficulty == "Mythic") then
-          difficulty = "M";
-        elseif (difficulty == "Looking For Raid") then
-          difficulty = "RF";
-        else
-          difficulty = "";
-        end
+          if (difficulty == "Heroic") then
+            difficulty = "H";
+          elseif (difficulty == "Mythic") then
+            difficulty = "M";
+          elseif (difficulty == "Looking For Raid") then
+            difficulty = "RF";
+          else
+            difficulty = "";
+          end
 
-        local players = GetNumGroupMembers();
-        players = (players > 0 and players) or 1;
-        data.dungeonDifficulty:SetText(players .. difficulty); -- localization possible?
-      end);
+          local players = GetNumGroupMembers();
+          players = (players > 0 and players) or 1;
+          data.dungeonDifficulty:SetText(players .. difficulty); -- localization possible?
+        end);
 
       listener:RegisterEvents(
         "PLAYER_ENTERING_WORLD", "PLAYER_DIFFICULTY_CHANGED",
@@ -487,11 +501,14 @@ do
       if (not data.reskinnedLFG) then
         tk:KillElement(_G.MiniMapInstanceDifficulty);
         tk:KillElement(_G.GuildInstanceDifficulty);
-        _G.QueueStatusMinimapButtonBorder:Hide();
+        tk:KillElement(_G.QueueStatusMinimapButtonBorder);
+
         data.reskinnedLFG = true;
       end
 
-      data:Call("SetUpWidget", "lfg", _G.QueueStatusMinimapButton);
+      if (_G.QueueStatusMinimapButton) then
+        data:Call("SetUpWidget", "lfg", _G.QueueStatusMinimapButton);
+      end
     elseif (_G.MiniMapLFGFrame) then
       if (not data.reskinnedLFG) then
         local border = _G.MiniMapLFGBorder or _G.MiniMapLFGFrameBorder;
@@ -527,26 +544,32 @@ do
     end
 
     -- tracking:
-    if (not tk:IsClassic() and obj:IsWidget(_G.MiniMapTracking)) then
-      _G.MiniMapTrackingBackground:Hide();
+    local tracking = _G.MiniMapTracking or _G.MinimapCluster.Tracking;
 
-      if (tk:IsRetail()) then
-        _G.MiniMapTrackingButtonBorder:Hide();
-        _G.MiniMapTrackingIconOverlay:Hide();
+    if (not tk:IsClassic() and obj:IsWidget(tracking)) then
+      if (obj:IsWidget(_G.MiniMapTrackingIcon)) then
+          tk:KillElement(_G.MiniMapTrackingIconOverlay);
+        _G.MiniMapTrackingIcon:SetPoint("CENTER", 0, 0);
       end
 
-      local border = _G.MiniMapTrackingBorder or _G.MiniMapTrackingButtonBorder;
+      tk:KillElement(_G.MiniMapTrackingBorder or _G.MiniMapTrackingButtonBorder);
+      tk:KillElement(_G.MiniMapTrackingBackground or _G.MinimapCluster.Tracking.Background);
 
+      local border = _G.MiniMapTrackingBorder or _G.MiniMapTrackingButtonBorder;
       if (obj:IsWidget(border)) then
         tk:KillElement(border);
       end
 
-      data:Call("SetUpWidget", "tracking", _G.MiniMapTracking);
-      _G.MiniMapTrackingIcon:SetPoint("CENTER", 0, 0);
+      data:Call("SetUpWidget", "tracking", tracking);
     end
 
     -- zone:
-    data:Call("SetUpWidget", "zone", _G.MinimapZoneTextButton);
+    local zoneBtn = _G.MinimapZoneTextButton or (_G.MinimapCluster and _G.MinimapCluster.ZoneTextButton);
+
+    if (zoneBtn) then
+      data:Call("SetUpWidget", "zone", zoneBtn);
+    end
+
     SetUpWidgetText(_G.MinimapZoneText, widgets.zone);
     _G.MinimapZoneText:ClearAllPoints();
     _G.MinimapZoneText:SetAllPoints(true);
@@ -605,7 +628,8 @@ function C_MiniMapModule:GetRightClickMenuList()
     local function ShowMissions(garrTypeId)
       LoadAddOn("Blizzard_GarrisonUI");
       local items = _G.C_Garrison.GetAvailableMissions(
-        _G.GetPrimaryGarrisonFollowerType(garrTypeId));
+                      _G.GetPrimaryGarrisonFollowerType(
+                        garrTypeId));
 
       if (obj:IsTable(items)) then
         ShowGarrisonLandingPage(garrTypeId);
@@ -659,7 +683,7 @@ function C_MiniMapModule:GetRightClickMenuList()
 
   local function TriggerCommand(_, arg1, arg2)
     MayronUI:TriggerCommand(arg1, arg2);
-    HideMenu();    
+    HideMenu();
   end
 
   table.insert(
@@ -709,119 +733,128 @@ function C_MiniMapModule:GetRightClickMenuList()
       };
     });
 
-  local libDbIcons = _G.LibStub("LibDBIcon-1.0");  
+  local libDbIcons = _G.LibStub("LibDBIcon-1.0");
 
-  if (obj:IsTable(libDbIcons) and db.profile.minimap.hideIcons) then    
-    
+  if (obj:IsTable(libDbIcons) and db.profile.minimap.hideIcons) then
+
     local knownAddOnsText = {
       ["Leatrix_Plus"] = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70");
       ["Questie"] = tk.Strings:SetTextColorByHex("Questie", "ffc50f");
       ["Details"] = tk.Strings:SetTextColorByHex("Details", "ffb8b8");
       ["Bartender4"] = tk.Strings:SetTextColorByHex("Bartender4", "ee873a");
       ["DBM"] = tk.Strings:SetTextColorByHex("Deadly Boss Mods", "ff5656");
-      ["RareScannerMinimapIcon"] = tk.Strings:SetTextColorByHex("Rare Scanner", "ff0f6f");
+      ["RareScannerMinimapIcon"] = tk.Strings:SetTextColorByHex(
+        "Rare Scanner", "ff0f6f");
       ["Plater"] = tk.Strings:SetTextColorByHex("Plater", "e657ff");
       ["BigWigs"] = tk.Strings:SetTextColorByHex("BigWigs Bossmods", "ff5656");
-      ["TradeSkillMaster"] = tk.Strings:SetTextColorByHex("Trade Skill Master", "a05ff4");
+      ["TradeSkillMaster"] = tk.Strings:SetTextColorByHex(
+        "Trade Skill Master", "a05ff4");
       ["WeakAuras"] = tk.Strings:SetTextColorByHex("Weak Auras", "9900ff");
       ["HealBot"] = tk.Strings:SetTextColorByHex("HealBot", "3af500");
       ["AtlasLoot"] = tk.Strings:SetTextColorByHex("Atlas Loot", "f0c092");
     };
-    
+
     local function MoveAddonIconToMenu(name)
       local iconButton = libDbIcons:GetMinimapButton(name);
       iconButton:Hide();
 
       local customBtn = CreateFrame(
-        "Button", "MUI_MinimapButton_"..name, UIParent, 
-        "UIDropDownCustomMenuEntryTemplate");
+                          "Button", "MUI_MinimapButton_" .. name, UIParent,
+                            "UIDropDownCustomMenuEntryTemplate");
 
-      customBtn:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight");
+      customBtn:SetHighlightTexture(
+        "Interface\\QuestFrame\\UI-QuestTitleHighlight");
 
       local height = _G.UIDROPDOWNMENU_BUTTON_HEIGHT;
       customBtn:SetHeight(height);
-            
+
       customBtn.icon = customBtn:CreateTexture(nil, "ARTWORK");
       customBtn.icon:SetSize(height, height);
       customBtn.icon:SetTexture(iconButton.icon:GetTexture());
       customBtn.icon:SetPoint("RIGHT", 0, 0);
-    
-      local fs = customBtn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
+
+      local fs = customBtn:CreateFontString(
+                   nil, "OVERLAY", "GameFontHighlightSmall");
       fs:SetPoint("LEFT", 4, 0);
       fs:SetText(knownAddOnsText[name] or name);
       fs:SetJustifyH("LEFT");
       customBtn:SetWidth(fs:GetUnboundedStringWidth() + height + 10);
-      
-      customBtn:SetScript("OnShow", function()
-        customBtn:SetPoint("RIGHT", -14, 0);
-      end);
 
-      customBtn:SetScript("OnEnter", function()
-        local list = customBtn:GetParent();
-        list.showTimer = nil; -- prevents hiding tooltip after 2 seconds
+      customBtn:SetScript(
+        "OnShow", function()
+          customBtn:SetPoint("RIGHT", -14, 0);
+        end);
 
-        if (obj:IsWidget(_G.DropDownList2)) then
-          _G.DropDownList2:Hide();
-        end
-        
-        if (obj:IsFunction(iconButton.dataObject.OnTooltipShow)) then
-          GameTooltip:SetOwner(list, "ANCHOR_BOTTOM", 0, -2);
-          iconButton.dataObject.OnTooltipShow(GameTooltip);
-          GameTooltip:Show();
+      customBtn:SetScript(
+        "OnEnter", function()
+          local list = customBtn:GetParent();
+          list.showTimer = nil; -- prevents hiding tooltip after 2 seconds
 
-        elseif (obj:IsFunction(iconButton.dataObject.OnEnter)) then
-          iconButton.dataObject.OnEnter(iconButton);
-        end
-      end);
+          if (obj:IsWidget(_G.DropDownList2)) then
+            _G.DropDownList2:Hide();
+          end
+
+          if (obj:IsFunction(iconButton.dataObject.OnTooltipShow)) then
+            GameTooltip:SetOwner(list, "ANCHOR_BOTTOM", 0, -2);
+            iconButton.dataObject.OnTooltipShow(GameTooltip);
+            GameTooltip:Show();
+
+          elseif (obj:IsFunction(iconButton.dataObject.OnEnter)) then
+            iconButton.dataObject.OnEnter(iconButton);
+          end
+        end);
 
       iconButton.Show = function()
-        local entry = tk.Tables:First(menuList, function(value) 
-          return value.customFrame == customBtn 
-        end);
+        local entry = tk.Tables:First(
+                        menuList, function(value)
+            return value.customFrame == customBtn
+          end);
 
         entry.text = name;
         HideMenu();
       end
 
       iconButton.Hide = function()
-        local entry = tk.Tables:First(menuList, function(value) 
-          return value.customFrame == customBtn 
-        end);
+        local entry = tk.Tables:First(
+                        menuList, function(value)
+            return value.customFrame == customBtn
+          end);
 
         entry.text = nil;
         HideMenu();
       end
 
-      customBtn:SetScript("OnLeave", function(...) 
-        GameTooltip:Hide();
+      customBtn:SetScript(
+        "OnLeave", function(...)
+          GameTooltip:Hide();
 
-        if (obj:IsFunction(iconButton.dataObject.OnLeave)) then
-          iconButton.dataObject.OnLeave(iconButton);
-        end
-      end);
+          if (obj:IsFunction(iconButton.dataObject.OnLeave)) then
+            iconButton.dataObject.OnLeave(iconButton);
+          end
+        end);
 
-      customBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp", "MiddleButtonUp");
-      customBtn:SetScript("OnClick", function(self, buttonName)
-        if (obj:IsFunction(iconButton.dataObject.OnClick)) then
-          iconButton.dataObject.OnClick(iconButton, buttonName);
-        end
+      customBtn:RegisterForClicks(
+        "LeftButtonUp", "RightButtonUp", "MiddleButtonUp");
+      customBtn:SetScript(
+        "OnClick", function(self, buttonName)
+          if (obj:IsFunction(iconButton.dataObject.OnClick)) then
+            iconButton.dataObject.OnClick(iconButton, buttonName);
+          end
 
-        HideMenu();
-      end);
+          HideMenu();
+        end);
 
-      table.insert(menuList, {
-        text = name;
-        customFrame = customBtn;
-      });
+      table.insert(menuList, { text = name; customFrame = customBtn });
     end
 
     for _, iconName in ipairs(libDbIcons:GetButtonList()) do
       MoveAddonIconToMenu(iconName);
     end
 
-    libDbIcons.RegisterCallback(addOnName, "LibDBIcon_IconCreated", function(_, _, iconName)
-      MoveAddonIconToMenu(iconName);
-    end);
+    libDbIcons.RegisterCallback(
+      addOnName, "LibDBIcon_IconCreated", function(_, _, iconName)
+        MoveAddonIconToMenu(iconName);
+      end);
   end
 
   return menuList;
@@ -861,14 +894,25 @@ function C_MiniMapModule:OnInitialized(data)
 end
 
 function C_MiniMapModule:OnEnable(data)
-  _G.MinimapBorder:Hide();
-  _G.MinimapBorderTop:Hide();
-  _G.MinimapZoomIn:Hide();
-  _G.MinimapZoomOut:Hide();
+  if (obj:IsWidget(_G.MinimapBorder)) then
+    tk:KillElement(_G.MinimapBorder);
+    tk:KillElement(_G.MinimapBorderTop);
+    tk:KillElement(_G.MinimapZoomIn);
+    tk:KillElement(_G.MinimapZoomOut);
+    tk:KillElement(_G.MinimapNorthTag);
+  end
+
+  if (tk:IsRetail() and obj:IsWidget(_G.MinimapCluster) and obj:IsWidget(_G.MinimapCluster.BorderTop)) then
+    _G.MinimapCluster.BorderTop:Hide();
+    tk:KillElement(_G.MinimapCompassTexture);
+    tk:KillElement(_G.Minimap.ZoomIn);
+    tk:KillElement(_G.Minimap.ZoomOut);
+    tk:KillElement(_G.MinimapCluster.BorderTop);
+  end
+
   _G.GameTimeFrame:Hide();
 
   tk:KillElement(_G.MiniMapWorldMapButton);
-  _G.MinimapNorthTag:SetTexture("");
 
   if (_G.MinimapToggleButton) then
     tk:KillElement(_G.MinimapToggleButton);
@@ -898,69 +942,82 @@ function C_MiniMapModule:OnEnable(data)
   Minimap:SetMovable(true);
   Minimap:SetUserPlaced(true);
   Minimap:RegisterForDrag("LeftButton");
-  Minimap:SetMaxResize(400, 400);
-  Minimap:SetMinResize(120, 120);
+
+  if (obj:IsFunction(Minimap.SetMinResize)) then
+    Minimap:SetMinResize(120, 120);
+    Minimap:SetMaxResize(400, 400);
+  else
+    -- dragonflight:
+    Minimap:SetResizeBounds(120, 120, 400, 400);
+  end
+
   Minimap:SetClampedToScreen(true);
-  Minimap:SetClampRectInsets(-3, 3, 3, -3);  
+  Minimap:SetClampRectInsets(-3, 3, 3, -3);
 
   if (tk:IsRetail()) then
     Minimap:SetArchBlobRingScalar(0);
     Minimap:SetQuestBlobRingScalar(0);
   end
 
-  Minimap:SetBackdrop({
-    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark";
-    edgeFile = tk:GetAssetFilePath("Borders\\Solid.tga");
-    edgeSize = 1;
-  });
+  Minimap:SetBackdrop(
+    {
+      bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark";
+      edgeFile = tk:GetAssetFilePath("Borders\\Solid.tga");
+      edgeSize = 1;
+    });
 
   Minimap:SetBackdropBorderColor(0, 0, 0);
 
   Minimap:SetScript("OnMouseWheel", function(_, value)
       if (value > 0) then
-        _G.MinimapZoomIn:Click();
+        (_G.MinimapZoomIn or _G.Minimap.ZoomIn):Click();
       elseif (value < 0) then
-        _G.MinimapZoomOut:Click();
+        (_G.MinimapZoomOut or _G.Minimap.ZoomOut):Click();
       end
     end);
 
   Minimap:SetScript("OnDragStart", Minimap_OnDragStart);
-  Minimap:SetScript("OnDragStop", function() Minimap_OnDragStop(data) end);
+  Minimap:SetScript(
+    "OnDragStop", function()
+      Minimap_OnDragStop(data)
+    end);
 
-  Minimap:HookScript("OnEnter", function(self)
-    if (data.settings.Tooltip) then
-      -- helper tooltip (can be hidden)
-      return
-    end
-
-    GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -2)
-    GameTooltip:SetText("MUI MiniMap"); -- This sets the top line of text, in gold.
-    GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
-    GameTooltip:AddDoubleLine(
-      L["SHIFT + Drag:"], L["Resize Minimap"], 1, 1, 1);
-    GameTooltip:AddDoubleLine(L["Left Click:"], L["Ping Minimap"], 1, 1, 1);
-    GameTooltip:AddDoubleLine(L["Right Click:"], L["Show Menu"], 1, 1, 1);
-    GameTooltip:AddDoubleLine(L["Mouse Wheel:"], L["Zoom in/out"], 1, 1, 1);
-    GameTooltip:AddDoubleLine(
-      L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
-    GameTooltip:Show();
-  end);
-
-  Minimap:HookScript("OnMouseDown", function(_, button)
-    if ((IsAltKeyDown()) and (button == "LeftButton")) then
-      local tracker = data.settings:GetTrackedTable();
-
-      if (tracker.Tooltip) then
-        tracker.Tooltip = nil;
-        Minimap:GetScript("OnEnter")(Minimap);
-      else
-        tracker.Tooltip = true;
-        GameTooltip:Hide();
+  Minimap:HookScript(
+    "OnEnter", function(self)
+      if (data.settings.Tooltip) then
+        -- helper tooltip (can be hidden)
+        return
       end
 
-      tracker:SaveChanges();
-    end
-  end);
+      GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -2)
+      GameTooltip:SetText("MUI MiniMap"); -- This sets the top line of text, in gold.
+      GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
+      GameTooltip:AddDoubleLine(
+        L["SHIFT + Drag:"], L["Resize Minimap"], 1, 1, 1);
+      GameTooltip:AddDoubleLine(L["Left Click:"], L["Ping Minimap"], 1, 1, 1);
+      GameTooltip:AddDoubleLine(L["Right Click:"], L["Show Menu"], 1, 1, 1);
+      GameTooltip:AddDoubleLine(L["Mouse Wheel:"], L["Zoom in/out"], 1, 1, 1);
+      GameTooltip:AddDoubleLine(
+        L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
+      GameTooltip:Show();
+    end);
+
+  Minimap:HookScript(
+    "OnMouseDown", function(_, button)
+      if ((IsAltKeyDown()) and (button == "LeftButton")) then
+        local tracker = data.settings:GetTrackedTable();
+
+        if (tracker.Tooltip) then
+          tracker.Tooltip = nil;
+          Minimap:GetScript("OnEnter")(Minimap);
+        else
+          tracker.Tooltip = true;
+          GameTooltip:Hide();
+        end
+
+        tracker:SaveChanges();
+      end
+    end);
 
   if (tk:IsRetail() or tk:IsWrathClassic()) then
     local eventBtn = CreateFrame("Button", nil, Minimap);
@@ -999,16 +1056,19 @@ function C_MiniMapModule:OnEnable(data)
   data.menuList = self:GetRightClickMenuList();
   data:Call("UpdateTrackingMenuOptionVisibility");
 
-  local menuFrame = CreateFrame("Frame", "MinimapRightClickMenu", UIParent, "UIDropDownMenuTemplate"); 
+  local menuFrame = CreateFrame(
+                      "Frame", "MinimapRightClickMenu", UIParent,
+                        "UIDropDownMenuTemplate");
   Minimap.oldMouseUp = Minimap:GetScript("OnMouseUp");
 
-  Minimap:SetScript("OnMouseUp", function(self, btn)
-    if (btn == "RightButton") then
-      EasyMenu(data.menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
-      PlaySound(tk.Constants.CLICK);
-    else
-      HideMenu();
-      self.oldMouseUp(self);
-    end
-  end);
+  Minimap:SetScript(
+    "OnMouseUp", function(self, btn)
+      if (btn == "RightButton") then
+        EasyMenu(data.menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
+        PlaySound(tk.Constants.CLICK);
+      else
+        HideMenu();
+        self.oldMouseUp(self);
+      end
+    end);
 end

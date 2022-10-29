@@ -532,7 +532,7 @@ function Private:LoadInfoMenu(menuSection)
   content:EnableMouse(true);
   content:SetAutoFocus(false);
   content:SetFontObject("GameFontHighlight");
-  content:SetFont(font, 13);
+  content:SetFont(font, 13, "");
   content:SetAllPoints(true);
   content:SetText(Private.info);
   content:SetScript(

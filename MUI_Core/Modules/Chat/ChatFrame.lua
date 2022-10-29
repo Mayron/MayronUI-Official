@@ -506,7 +506,7 @@ do
       btn:SetSize(menuWidth - 9, buttonHeight);
       btn:SetScript("OnEnter", _G.UIMenuButton_OnEnter);
       btn:SetScript("OnLeave", _G.UIMenuButton_OnLeave);
-      btn:SetCheckedTexture(nil);
+      btn:SetCheckedTexture("");
       btn:DisableDrawLayer("BACKGROUND");
       btn:DisableDrawLayer("ARTWORK");
       btn:SetFrameLevel(20);

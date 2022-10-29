@@ -407,7 +407,7 @@ local function SetFonts(data)
   local headerSize = data.settings.headerFontSize;
 
   if (flag == "None") then
-    flag = nil;
+    flag = "";
   end
 
 	_G.GameTooltipHeaderText:SetFont(font, headerSize, flag);
