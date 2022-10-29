@@ -223,6 +223,7 @@ function tk:KillElement(element)
   if (not element) then
     return
   end
+
   self:AttachToDummy(element);
   element.Show = tk.Constants.DUMMY_FUNC;
 end

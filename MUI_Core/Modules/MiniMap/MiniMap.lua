@@ -363,19 +363,18 @@ do
         if (name == "missions") then
           -- don't show missions icon just yet, wait for the garrison type to be available
           shown = false;
-          local missionsListener = em:CreateEventListener(
-                                     function(self)
-              if (_G.C_Garrison.GetLandingPageGarrisonType() ~= 0) then
-                -- show when player actually has a "GarrisonType", new players always have 0
-                if (not widget:IsShown()) then
-                  if (widget.SetShown ~= tk.Constants.DUMMY_FUNC) then
-                    widget:SetShown(true);
-                  else
-                    methods.SetShown(widget, true);
-                  end
+          local missionsListener = em:CreateEventListener(function()
+            if (_G.C_Garrison.GetLandingPageGarrisonType() ~= 0) then
+              -- show when player actually has a "GarrisonType", new players always have 0
+              if (not widget:IsShown()) then
+                if (widget.SetShown ~= tk.Constants.DUMMY_FUNC) then
+                  widget:SetShown(true);
+                else
+                  methods.SetShown(widget, true);
                 end
               end
-            end);
+            end
+          end);
 
           missionsListener:RegisterEvents("GARRISON_UPDATE");
         else
@@ -441,29 +440,28 @@ do
     if (not data.dungeonDifficulty) then
       data.dungeonDifficulty = Minimap:CreateFontString(nil, "OVERLAY");
 
-      local listener = em:CreateEventListenerWithID(
-                         "DungeonDifficultyText", function()
-          if (not IsInInstance()) then
-            data.dungeonDifficulty:SetText("");
-            return
-          end
+      local listener = em:CreateEventListenerWithID("DungeonDifficultyText", function()
+        if (not IsInInstance()) then
+          data.dungeonDifficulty:SetText("");
+          return
+        end
 
-          local difficulty = select(4, GetInstanceInfo());
+        local difficulty = select(4, GetInstanceInfo());
 
-          if (difficulty == "Heroic") then
-            difficulty = "H";
-          elseif (difficulty == "Mythic") then
-            difficulty = "M";
-          elseif (difficulty == "Looking For Raid") then
-            difficulty = "RF";
-          else
-            difficulty = "";
-          end
+        if (difficulty == "Heroic") then
+          difficulty = "H";
+        elseif (difficulty == "Mythic") then
+          difficulty = "M";
+        elseif (difficulty == "Looking For Raid") then
+          difficulty = "RF";
+        else
+          difficulty = "";
+        end
 
-          local players = GetNumGroupMembers();
-          players = (players > 0 and players) or 1;
-          data.dungeonDifficulty:SetText(players .. difficulty); -- localization possible?
-        end);
+        local players = GetNumGroupMembers();
+        players = (players > 0 and players) or 1;
+        data.dungeonDifficulty:SetText(players .. difficulty); -- localization possible?
+      end);
 
       listener:RegisterEvents(
         "PLAYER_ENTERING_WORLD", "PLAYER_DIFFICULTY_CHANGED",
@@ -533,14 +531,15 @@ do
     _G.MiniMapMailIcon:SetPoint("CENTER");
     _G.MiniMapMailIcon:SetTexture(tk:GetAssetFilePath("Textures\\mail"));
 
+    local missionBtn = _G.ExpansionLandingPageMinimapButton or _G.GarrisonLandingPageMinimapButton;
     -- missions icon:
-    if (tk:IsRetail() and obj:IsWidget(_G.GarrisonLandingPageMinimapButton)) then
+    if (tk:IsRetail() and obj:IsWidget(missionBtn)) then
       -- dragonflight removed this:
-      data:Call("SetUpWidget", "missions", _G.GarrisonLandingPageMinimapButton);
+      data:Call("SetUpWidget", "missions", missionBtn);
       -- prevents popup from showing:
-      _G.GarrisonLandingPageMinimapButton:DisableDrawLayer("OVERLAY");
-      _G.GarrisonLandingPageMinimapButton:DisableDrawLayer("BORDER");
-      _G.GarrisonLandingPageMinimapButton.SideToastGlow:SetTexture("");
+      missionBtn:DisableDrawLayer("OVERLAY");
+      missionBtn:DisableDrawLayer("BORDER");
+      missionBtn.SideToastGlow:SetTexture("");
     end
 
     -- tracking:

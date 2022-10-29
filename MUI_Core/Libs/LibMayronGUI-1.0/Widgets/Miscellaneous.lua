@@ -14,10 +14,6 @@ local Private = Lib.Private;
 local obj = _G.MayronObjects:GetFramework();
 
 local function OnEnter(self)
-  if (obj:IsFunction(self.DisableDrawLayer)) then
-    self:DisableDrawLayer("Highlight");
-  end
-
   if (not obj:IsString(self.tooltip)) then
     local parent = self:GetParent();
 
@@ -221,13 +217,16 @@ do
     container.btn = CreateFrame("CheckButton", globalName, container, "UICheckButtonTemplate");
     container.btn:SetSize(20, 20);
 
-    container.tooltip = tooltip;
-    container:SetScript("OnEnter", OnEnter);
-    container:SetScript("OnLeave", OnLeave);
-    container.btn:SetScript("OnEnter", OnEnter);
-    container.btn:SetScript("OnLeave", OnLeave);
+    if (tooltip) then
+      container.tooltip = tooltip;
+      container:SetScript("OnEnter", OnEnter);
+      container:SetScript("OnLeave", OnLeave);
+      container.btn:SetScript("OnEnter", OnEnter);
+      container.btn:SetScript("OnLeave", OnLeave);
+    end
 
     local tk = _G.MayronUI:GetCoreComponent("Toolkit"); ---@type Toolkit
+    tk:KillElement(container.btn:GetHighlightTexture());
 
     -- Normal Texture:
     local normalTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\Unchecked");

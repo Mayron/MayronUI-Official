@@ -506,8 +506,7 @@ do
       btn:SetSize(menuWidth - 9, buttonHeight);
       btn:SetScript("OnEnter", _G.UIMenuButton_OnEnter);
       btn:SetScript("OnLeave", _G.UIMenuButton_OnLeave);
-      btn:SetCheckedTexture("");
-      btn.SetCheckedTexture = tk.Constants.DUMMY_FUNC;
+      tk:KillElement(btn:GetCheckedTexture());
       btn:DisableDrawLayer("BACKGROUND");
       btn:DisableDrawLayer("ARTWORK");
       btn:DisableDrawLayer("HIGHLIGHT");
@@ -561,13 +560,14 @@ do
         local btn = menu.btns[spellIndex] or CreateProfessionButton(menu, spellIndex);
         menu.btns[spellIndex] = btn;
 
-        -- Update button:
         btn:SetID(spellbookID + 1);
 
-        if (obj:IsFunction(_G.SpellButton_UpdateButton)) then
+        if (not tk:IsRetail() and obj:IsFunction(_G.SpellButton_UpdateButton)) then
           _G.SpellButton_UpdateButton(btn);
         else
-            btn:UpdateButton();
+          -- dragonflight:
+          local texture = _G.GetSpellBookItemTexture(btn:GetID(), _G.BOOKTYPE_PROFESSION);
+          btn.IconTexture:SetTexture(texture);
         end
 
         -- Update button text:

@@ -124,7 +124,8 @@ local BlizzardFrames = {
   Blizzard_AuctionUI = "AuctionFrame";
   Blizzard_AuctionHouseUI = "AuctionHouseFrame";
   Blizzard_TrainerUI = "ClassTrainerFrame";
-  Blizzard_Collections = "CollectionsJournal";
+  -- TODO: This is bugged!
+  --Blizzard_Collections = "CollectionsJournal";
   Blizzard_GuildControlUI = "GuildControlUI";
   Blizzard_InspectUI = "InspectFrame";
   Blizzard_ItemSocketingUI = "ItemSocketingFrame";
@@ -390,18 +391,17 @@ do
     if (not data.eventListener) then
       data.eventListener =
         em:CreateEventListenerWithID("MovableFramesOnAddOnLoaded", function(_, _, addOnName)
-          print("ADDON LOADED: ", addOnName)
-            if (BlizzardFrames[addOnName]) then
-              self:ExecuteMakeMovable(BlizzardFrames[addOnName], false);
-              BlizzardFrames[addOnName] = nil;
-            end
+          if (BlizzardFrames[addOnName]) then
+            self:ExecuteMakeMovable(BlizzardFrames[addOnName], false);
+            BlizzardFrames[addOnName] = nil;
+          end
 
-            if (BlizzardFrames.dontSavePosition[addOnName]) then
-              self:ExecuteMakeMovable(
-                BlizzardFrames.dontSavePosition[addOnName], true);
-              BlizzardFrames.dontSavePosition[addOnName] = nil;
-            end
-          end);
+          if (BlizzardFrames.dontSavePosition[addOnName]) then
+            self:ExecuteMakeMovable(
+              BlizzardFrames.dontSavePosition[addOnName], true);
+            BlizzardFrames.dontSavePosition[addOnName] = nil;
+          end
+        end);
 
       data.eventListener:RegisterEvent("ADDON_LOADED");
 
