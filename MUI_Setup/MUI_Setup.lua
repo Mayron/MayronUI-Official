@@ -873,13 +873,20 @@ function C_SetUpModule:Install(data)
   for id, addonData in db.global.core.setup.addOns:Iterate() do
     local alias, requiresImporting, addonName = unpack(addonData);
 
-    if (requiresImporting and IsAddOnLoaded(addonName)
-      and obj:IsFunction(namespace.import[addonName])) then
-      namespace.import[addonName]();
-      db.global.core.setup.addOns[id] = { alias; false; addonName };
+    if (requiresImporting and IsAddOnLoaded(addonName)) then
+      local importFunc = namespace.import[addonName];
 
-      if (addonName == "Bartender4") then
-        db.global["DragonflightActionBarLayout"] = true;
+      if (tk:IsRetail() and addonName == "Bartender4") then
+        importFunc = namespace.import[addonName.."-Dragonflight"];
+      end
+
+      if (obj:IsFunction(importFunc)) then
+        importFunc();
+        db.global.core.setup.addOns[id] = { alias; false; addonName };
+
+        if (tk:IsRetail() and addonName == "Bartender4") then
+          db.global["DragonflightActionBarLayout"] = true;
+        end
       end
     end
   end

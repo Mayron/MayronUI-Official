@@ -24,7 +24,7 @@ db:AddToDefaults("profile.actionBarPanel", {
   texture         = tk:GetAssetFilePath("Textures\\BottomUI\\ActionBarPanel");
   alpha           = 1;
   cornerSize      = 20;
-  rowSpacing      = -2;
+  rowSpacing      = tk:IsRetail() and -2 or 5.5;
 
   -- Default settings for the expand and retract feature:
   expandRetract = true; -- Enable button to toggle between number of visible rows
@@ -45,11 +45,11 @@ db:AddToDefaults("profile.actionBarPanel", {
     -- These are the bartender IDs, not the Bar Name!
     -- Use Bartender4:GetModule("ActionBars"):GetBarName(id) to find out its name.
     -- Row 1
-    [1] = { 1, 13 };
+    [1] = tk:IsRetail() and { 1, 13 } or { 1, 7 };
     -- Row 2
-    [2] = { 6, 14 };
+    [2] = tk:IsRetail() and { 6, 14 } or { 9, 10 };
     -- Row 3:
-    [3] = { 5, 15 };
+    [3] = tk:IsRetail() and { 5, 15 } or { 5, 6 };
   };
 });
 
@@ -233,7 +233,7 @@ function C_ActionBarPanel:SetUpBartenderBar(data, rowId, bartenderBarId)
     height = height + ((dataTextBar and dataTextBar:GetHeight()) or 0);
   end
 
-  height = height + 5; -- distance from bottom edge of action bar panel (to allow for some space)
+  height = height + (tk:IsRetail() and 5 or 9); -- distance from bottom edge of action bar panel (to allow for some space)
 
   for r = 1, rowId do
     -- add all row heights

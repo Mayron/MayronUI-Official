@@ -314,6 +314,11 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
     _G[ string.format("%sTabHighlightRight", chatFrameName) ]
   );
 
+  if (not tk:IsRetail()) then
+    local btnFrame = _G[ string.format("%sButtonFrame", chatFrameName) ];
+    tk:KillElement(btnFrame);
+  end
+
   if (chatFrameName == "ChatFrame1") then
     hooksecurefunc("FCF_StopDragging", RepositionNotificationFrame);
     RepositionNotificationFrame(chatFrame);
@@ -373,7 +378,8 @@ function C_ChatModule:SetUpAllBlizzardFrames()
   UpdateTabs();
 
   hooksecurefunc("FCF_UpdateButtonSide", function(chatFrame)
-    local buttonFrame = _G[chatFrame:GetName().."ButtonFrame"];
+    local btnFrameName = chatFrame:GetName().."ButtonFrame";
+    local buttonFrame = _G[btnFrameName];
     buttonFrame:Hide();
   end)
 

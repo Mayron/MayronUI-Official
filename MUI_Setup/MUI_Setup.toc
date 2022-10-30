@@ -12,6 +12,7 @@ ReportFrame.lua
 ## imports:
 imports/Bagnon.lua
 imports/Bartender4.lua
+imports/Bartender4_Dragonflight.lua
 imports/Masque.lua
 imports/ShadowedUnitFrames.lua
 imports/LeatrixPlus.lua
