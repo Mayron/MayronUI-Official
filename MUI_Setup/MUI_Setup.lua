@@ -37,7 +37,7 @@ local Panel = obj:Import("MayronUI.Panel");
 
 -- Register and Import Modules -----------
 
-local C_SetUpModule = MayronUI:RegisterModule("SetUpModule", L["Setup"]);
+local C_SetUpModule = MayronUI:RegisterModule("SetUpModule", L["Setup"]); ---@class MUI_SetupModule
 local setUpModule = MayronUI:ImportModule("SetUpModule");
 
 -- Local Functions -----------------------
@@ -877,6 +877,10 @@ function C_SetUpModule:Install(data)
       and obj:IsFunction(namespace.import[addonName])) then
       namespace.import[addonName]();
       db.global.core.setup.addOns[id] = { alias; false; addonName };
+
+      if (addonName == "Bartender4") then
+        db.global["DragonflightActionBarLayout"] = true;
+      end
     end
   end
 

@@ -409,10 +409,9 @@ setup.import["Bartender4"] = function()
           ["MayronUI"] = {
             ["version"] = 3,
             ["position"] = {
-              ["y"] = -3.749999284744263,
-              ["x"] = -275.447509765625,
+              ["y"] = 34,
+              ["x"] = -315,
               ["point"] = "BOTTOMRIGHT",
-              ["scale"] = 1.5,
               ["growVertical"] = "UP",
               ["growHorizontal"] = "LEFT",
             },

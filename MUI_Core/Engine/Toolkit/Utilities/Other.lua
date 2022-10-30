@@ -285,10 +285,25 @@ do
     local function PopUp_OnShow(self)
       if (self.button1) then
         self.button1:Enable();
+        self.button1:SetHeight(40);
+
+        if (self.numButtons == 1) then
+          local width = self.button1:GetTextWidth();
+
+          if (width > 200) then
+            width = width + 40;
+            self.button1:SetWidth(width);
+            local point, relFrame, relPoint, _, y = self.button1:GetPoint();
+
+            local offset = width / 2;
+            self.button1:SetPoint(point, relFrame, relPoint, -offset, y);
+          end
+        end
       end
 
       if (self.button2) then
         self.button2:Enable();
+        self.button2:SetHeight(40);
       end
 
       if (not self.editBox) then return end

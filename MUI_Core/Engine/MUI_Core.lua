@@ -101,7 +101,8 @@ db:AddToDefaults("global", {
       profilePerCharacter = true;
       resetChatSettings = true;
       addOns = {
-        { "Bagnon"; true; "Bagnon" }; { "Bartender4"; true; "Bartender4" };
+        { "Bagnon"; true; "Bagnon" };
+        { "Bartender4"; true; "Bartender4" };
         { "Masque"; true; "Masque" };
         { "Shadowed Unit Frames"; true; "ShadowedUnitFrames" };
         { "Leatrix Plus"; true; "Leatrix_Plus" };
@@ -199,7 +200,7 @@ commands.report = function(forceShow)
   reportIssue:SetErrors(errors);
 end
 
-local function ValidateNewProfileName(self, profileName)
+local function ValidateNewProfileName(_, profileName)
   if (#profileName == 0 or db:ProfileExists(profileName)) then
     return false;
   end
@@ -207,7 +208,7 @@ local function ValidateNewProfileName(self, profileName)
   return true;
 end
 
-local function CreateNewProfile(self, profileName, callback)
+local function CreateNewProfile(_, profileName, callback)
   db:SetProfile(profileName);
 
   if (obj:IsFunction(callback)) then
@@ -770,8 +771,7 @@ function C_CoreModule:OnInitialize()
 
     if (obj:IsTable(bartenderDB) and obj:IsTable(bartender)
       and not db.global["WrathTotemBar"]) then
-      local profile = tk.Tables:GetTable(
-                        bartenderDB, "namespaces", "MultiCast", "profiles");
+      local profile = tk.Tables:GetTable(bartenderDB, "namespaces", "MultiCast", "profiles");
 
       profile.MayronUI = {
         enabled = true;
@@ -781,13 +781,27 @@ function C_CoreModule:OnInitialize()
 
       db.global["WrathTotemBar"] = true;
 
-      local multiCast = tk.Tables:GetValueOrNil(
-                          bartender, "modules", "MultiCast");
+      local multiCast = tk.Tables:GetValueOrNil(bartender, "modules", "MultiCast");
 
       if (obj:IsTable(multiCast)) then
         bartender.modules.MultiCast:Enable();
       end
     end
+  end
+
+  if (tk:IsRetail() and not db.global["DragonflightActionBarLayout"]) then
+    tk:ShowMessagePopup(
+      "The new Dragonflight action bar system is incompatible with your current Bartender4 settings.\n\n" ..
+      "You can fix this by overriding them with the latest |cff00ccffMayronUI|r preset Bartender4 settings. " ..
+      "\n\nDo you want to migrate your Bartender4 settings now?\n\n",
+      "Warning! This will replace all of your Bartender4 settings and reload the UI.\n",
+
+      "Yes, I want to update my action bar layout", function()
+        db.global.core.setup.addOns[2][2] = true;
+        LoadMuiAddOn("MUI_Setup");
+        local setupModule = MayronUI:ImportModule("SetUpModule"); ---@type MUI_SetupModule
+        setupModule:Install();
+      end, true);
   end
 
   if (db.global.core.maxCameraZoom) then
@@ -801,27 +815,26 @@ end
 
 -- Initialize Modules after player enters world (not when DB starts!).
 -- Some dependencies, like Bartender, only load after this event.
-local onLogin = em:CreateEventListener(
-                  function()
-    for i = 1, _G.NUM_CHAT_WINDOWS do
-      _G["ChatFrame" .. i .. "EditBox"]:SetAltArrowKeyMode(false);
+local onLogin = em:CreateEventListener(function()
+  for i = 1, _G.NUM_CHAT_WINDOWS do
+    _G["ChatFrame" .. i .. "EditBox"]:SetAltArrowKeyMode(false);
+  end
+
+  FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
+  FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES, true);
+
+  if (not MayronUI:IsInstalled()) then
+    if (db.global.core.setup.profilePerCharacter) then
+      db:SetProfile(tk:GetPlayerKey());
     end
 
-    FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_NAMES);
-    FillLocalizedClassList(tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES, true);
+    MayronUI:TriggerCommand("install");
+    return;
+  end
 
-    if (not MayronUI:IsInstalled()) then
-      if (db.global.core.setup.profilePerCharacter) then
-        db:SetProfile(tk:GetPlayerKey());
-      end
-
-      MayronUI:TriggerCommand("install");
-      return;
-    end
-
-    local coreModule = MayronUI:ImportModule("CoreModule");
-    coreModule:Initialize();
-  end);
+  local coreModule = MayronUI:ImportModule("CoreModule");
+  coreModule:Initialize();
+end);
 
 onLogin:RegisterEvent("PLAYER_ENTERING_WORLD")
 onLogin:SetExecuteOnce(true); -- destroy after first use
