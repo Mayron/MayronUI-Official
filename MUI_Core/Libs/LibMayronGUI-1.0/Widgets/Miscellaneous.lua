@@ -118,9 +118,8 @@ do
     style, parent, text, button, tooltip, padding, minWidth)
     local backgroundTexture = style:GetTexture("ButtonTexture");
 
-    button = button or CreateFrame(
-               "Button", nil, parent,
-               _G.BackdropTemplateMixin and "BackdropTemplate");
+    button = button or CreateFrame("Button", 
+      nil, parent, _G.BackdropTemplateMixin and "BackdropTemplate");
 
     button.padding = padding or 30;
     button.minWidth = minWidth;

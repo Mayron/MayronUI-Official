@@ -2,7 +2,7 @@
 -- @Description: Controls the Blizzard Chat Frame changes (not the MUI Chat Frame!)
 local string, MayronUI = _G.string, _G.MayronUI;
 local pairs, ipairs, PlaySound, unpack = _G.pairs, _G.ipairs, _G.PlaySound, _G.unpack;
-local select, GetChannelList = _G.select, _G.GetChannelList;
+local select, GetChannelList, hooksecurefunc = _G.select, _G.GetChannelList, _G.hooksecurefunc;
 
 local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
@@ -244,8 +244,9 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
   end
 
   local chatFrame = _G[chatFrameName];
+  chatFrame.isStaticDocked = true;
   chatFrame:SetMovable(true);
-  chatFrame:SetClampedToScreen(true);
+  chatFrame:SetClampedToScreen(false);
   chatFrame:SetUserPlaced(true);
 
   if (obj:IsFunction(chatFrame.SetMaxResize)) then
@@ -322,13 +323,20 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
   );
 
 	if (chatFrameName == "ChatFrame1") then
-		_G.hooksecurefunc("FCF_StopDragging", RepositionNotificationFrame);
+		hooksecurefunc("FCF_StopDragging", RepositionNotificationFrame);
 		RepositionNotificationFrame(chatFrame);
 
-		_G.BNToastFrame:ClearAllPoints();
-		_G.BNToastFrame:SetPoint("BOTTOMLEFT", _G.ChatAlertFrame, "BOTTOMLEFT", 0, 0);
-		_G.BNToastFrame.ClearAllPoints = tk.Constants.DUMMY_FUNC;
-		_G.BNToastFrame.SetPoint = tk.Constants.DUMMY_FUNC;
+    local dock = _G.GENERAL_CHAT_DOCK;
+    dock:SetPoint("BOTTOMLEFT", chatFrame, "TOPLEFT", 16, 12);
+	  dock:SetPoint("BOTTOMRIGHT", chatFrame, "TOPRIGHT", 0, 12);
+    dock.SetPoint = tk.Constants.DUMMY_FUNC;
+    dock.ClearAllPoints = tk.Constants.DUMMY_FUNC;
+
+    local toasts = _G.BNToastFrame;
+		toasts:ClearAllPoints();
+		toasts:SetPoint("BOTTOMLEFT", _G.ChatAlertFrame, "BOTTOMLEFT", 0, 0);
+		toasts.ClearAllPoints = tk.Constants.DUMMY_FUNC;
+		toasts.SetPoint = tk.Constants.DUMMY_FUNC;
 	end
 
   data.ProcessedChatFrames[chatFrameName] = chatFrame;
@@ -348,4 +356,6 @@ function C_ChatModule:SetUpAllBlizzardFrames()
       chatFrame:SetFont(muiFont, fontSize, "");
     end
   end
+
+  _G.FCF_DockUpdate();
 end

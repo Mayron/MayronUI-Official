@@ -31,11 +31,6 @@ local PlaySoundFile, SetCVar, SetChatWindowSize, UIFrameFadeIn, C_Timer,
 local ipairs, strsplit, strjoin, strtrim, ReloadUI, DisableAddOn = _G.ipairs,
   _G.strsplit, _G.strjoin, _G.strtrim, _G.ReloadUI, _G.DisableAddOn;
 
-local FCF_SetChatWindowFontSize = _G.FCF_SetChatWindowFontSize;
-local FCF_SavePositionAndDimensions = _G.FCF_SavePositionAndDimensions;
-local FCF_SetWindowAlpha = _G.FCF_SetWindowAlpha;
-local FCF_SetLocked = _G.FCF_SetLocked;
-
 -- Setup Objects -------------------------
 
 local Panel = obj:Import("MayronUI.Panel");
@@ -328,31 +323,30 @@ function Private:LoadThemeMenu(menuSection)
   menuSection.themeDropdown:AddOptions(ChangeTheme, optionsTable);
 
   local ColorPickerFrame = _G.ColorPickerFrame;
-  menuSection.themeDropdown:AddOption(
-    "Custom Color", function()
-      local colors = {};
-      ColorPickerFrame:SetColorRGB(1, 1, 1);
-      ColorPickerFrame.previousValues = { 1; 1; 1; 0 };
+  menuSection.themeDropdown:AddOption("Custom Color", function()
+    local colors = {};
+    ColorPickerFrame:SetColorRGB(1, 1, 1);
+    ColorPickerFrame.previousValues = { 1; 1; 1; 0 };
 
-      ColorPickerFrame.func = function()
-        colors.r, colors.g, colors.b = ColorPickerFrame:GetColorRGB();
-        colors.hex = string.format(
-                       "%02x%02x%02x", colors.r * 255, colors.g * 255,
-                         colors.b * 255);
-        ChangeTheme(nil, colors);
-      end
+    ColorPickerFrame.func = function()
+      colors.r, colors.g, colors.b = ColorPickerFrame:GetColorRGB();
+      colors.hex = string.format(
+                      "%02x%02x%02x", colors.r * 255, colors.g * 255,
+                        colors.b * 255);
+      ChangeTheme(nil, colors);
+    end
 
-      ColorPickerFrame.cancelFunc = function(values)
-        colors.r, colors.g, colors.b = unpack(values);
-        colors.hex = string.format(
-                       "%02x%02x%02x", colors.r * 255, colors.g * 255,
-                         colors.b * 255);
-        ChangeTheme(nil, colors);
-      end
+    ColorPickerFrame.cancelFunc = function(values)
+      colors.r, colors.g, colors.b = unpack(values);
+      colors.hex = string.format(
+                      "%02x%02x%02x", colors.r * 255, colors.g * 255,
+                        colors.b * 255);
+      ChangeTheme(nil, colors);
+    end
 
-      ColorPickerFrame:Hide(); -- run OnShow
-      ColorPickerFrame:Show();
-    end);
+    ColorPickerFrame:Hide(); -- run OnShow
+    ColorPickerFrame:Show();
+  end);
 
   menuSection.themeDropdown:SetLabel(L["Theme"]);
   menuSection.themeDropdown:SetPoint(
@@ -377,10 +371,9 @@ function Private:LoadCustomMenu(menuSection)
   menuSection.scaler:SetPoint(
     "TOPLEFT", menuSection.scaleTitle, "BOTTOMLEFT", 0, -10);
   menuSection.scaler:SetWidth(200);
-  menuSection.scaler.tooltipText = tk.Strings:Join(
-                                     "\n\n",
-                                       L["This will ensure that frames are correctly positioned to match the UI scale during installation."],
-                                       L["Default value is"] .. " 0.7");
+  menuSection.scaler.tooltipText = tk.Strings:Join("\n\n",
+    L["This will ensure that frames are correctly positioned to match the UI scale during installation."],
+    L["Default value is"] .. " 0.7");
   menuSection.scaler:SetMinMaxValues(0.6, 1.2);
   menuSection.scaler:SetValueStep(0.05);
   menuSection.scaler:SetObeyStepOnDrag(true);
@@ -391,36 +384,43 @@ function Private:LoadCustomMenu(menuSection)
   menuSection.scaler.High:SetText(1.2);
   menuSection.scaler.High:ClearAllPoints();
   menuSection.scaler.High:SetPoint("BOTTOMRIGHT", -5, -8);
-  menuSection.scaler.Value = menuSection.scaler:CreateFontString(
-                               nil, "OVERLAY", "GameFontHighlightSmall");
+  menuSection.scaler.Value = menuSection.scaler:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
   menuSection.scaler.Value:SetPoint("BOTTOM", 0, -8);
   menuSection.scaler.Value:SetText(db.global.core.uiScale);
 
   menuSection.applyScaleBtn = gui:CreateButton(
-                                tk.Constants.AddOnStyle, menuSection,
-                                  L["Apply Scaling"]);
+    tk.Constants.AddOnStyle, menuSection, L["Apply Scaling"]);
+
   menuSection.applyScaleBtn:SetPoint(
     "TOPLEFT", menuSection.scaler, "BOTTOMLEFT", 0, -20);
   menuSection.applyScaleBtn:Disable();
 
-  menuSection.applyScaleBtn:SetScript(
-    "OnClick", function(self)
-      self:Disable();
-      SetCVar("useUiScale", "1");
-      SetCVar("uiscale", db.global.core.uiScale);
-    end);
+  menuSection.applyScaleBtn:SetScript("OnClick", function(self)
+    self:Disable();
+    SetCVar("useUiScale", "1");
+    SetCVar("uiscale", db.global.core.uiScale);
+  end);
 
-  menuSection.scaler:SetScript(
-    "OnValueChanged", function(self, value)
-      value = math.floor((value * 100) + 0.5) / 100;
-      self.Value:SetText(value);
-      db.global.core.uiScale = value;
-      menuSection.applyScaleBtn:Enable();
-    end);
+  menuSection.scaler:SetScript("OnValueChanged", function(self, value)
+    value = math.floor((value * 100) + 0.5) / 100;
+    self.Value:SetText(value);
+    db.global.core.uiScale = value;
+    menuSection.applyScaleBtn:Enable();
+  end);
+
+  menuSection.resetChatBtn = gui:CreateCheckButton(
+    menuSection, "Reset Chat Settings",
+    "Unchecking this will preserve your chat tabs and the Blizzard chat settings associated with each chat window.");
+
+  menuSection.resetChatBtn:SetPoint("TOPLEFT", menuSection.applyScaleBtn, "BOTTOMLEFT", 0, -20);
+  menuSection.resetChatBtn.btn:SetChecked(db.global.core.setup.resetChatSettings);
+
+  menuSection.resetChatBtn.btn:SetScript("OnClick", function(self)
+    db.global.core.setup.resetChatSettings = self:GetChecked();
+  end);
 
   -- AddOn Settings to Inject
-  menuSection.injectTitle = menuSection:CreateFontString(
-                              nil, "ARTWORK", "GameFontHighlightLarge");
+  menuSection.injectTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
   menuSection.injectTitle:SetPoint(
     "TOPLEFT", menuSection.scaleTitle, "TOPRIGHT", 110, 0);
   menuSection.injectTitle:SetText(L["AddOn Settings to Override:"]);
@@ -754,41 +754,105 @@ local function ApplyMayronUIConsoleVariableDefaults()
   SetCVar("uiscale", db.global.core.uiScale);
 end
 
+local FCF_ResetChatWindows = _G.FCF_ResetChatWindows;
+local VoiceTranscriptionFrame_UpdateVisibility = _G.VoiceTranscriptionFrame_UpdateVisibility;
+local VoiceTranscriptionFrame_UpdateVoiceTab = _G.VoiceTranscriptionFrame_UpdateVoiceTab;
+local VoiceTranscriptionFrame_UpdateEditBox = _G.VoiceTranscriptionFrame_UpdateEditBox;
+local FCF_StopDragging = _G.FCF_StopDragging;
+local ToggleChatColorNamesByClassGroup = _G.ToggleChatColorNamesByClassGroup;
+local CHAT_CONFIG_CHAT_LEFT = _G.CHAT_CONFIG_CHAT_LEFT;
+local FCF_SetWindowAlpha = _G.FCF_SetWindowAlpha;
+local FCF_SetLocked = _G.FCF_SetLocked;
+local EditModeManagerFrame = _G.EditModeManagerFrame;
+local FCF_SetWindowName = _G.FCF_SetWindowName;
+
 local function ApplyMayronUIChatFrameDefaults()
-  local frame = _G.ChatFrame1;
+  local resetChat = db.global.core.setup.resetChatSettings;
 
-  -- Chat Frame settings:
-  FCF_SetLocked(frame, 1);
-  FCF_SetWindowAlpha(frame, 0);
-  SetChatWindowSize(1, 13);
+  if (resetChat) then
+    FCF_ResetChatWindows();
 
-  for chatFrameID = 1, _G.NUM_CHAT_WINDOWS do
-    local chatFrame = _G[string.format("ChatFrame%d", chatFrameID)];
-    FCF_SetChatWindowFontSize(nil, chatFrame, 12);
+    -- Create social
+    local socialTab = _G.FCF_OpenNewWindow(_G.SOCIAL_LABEL or "Social");
+    _G.ChatFrame_RemoveAllMessageGroups(socialTab);
+
+    for _, group in ipairs({
+      "SAY", "WHISPER", "BN_WHISPER", "PARTY", "PARTY_LEADER", "RAID",
+      "RAID_LEADER", "RAID_WARNING", "INSTANCE_CHAT",
+      "INSTANCE_CHAT_LEADER", "GUILD", "OFFICER", "ACHIEVEMENT",
+      "GUILD_ACHIEVEMENT", "COMMUNITIES_CHANNEL", "SYSTEM", "TARGETICONS"
+    }) do
+        _G.ChatFrame_AddMessageGroup(socialTab, group);
+      end
+
+    -- Create Loot
+    local lootTab = _G.FCF_OpenNewWindow(_G.LOOT or "Loot");
+    _G.ChatFrame_RemoveAllMessageGroups(lootTab);
+
+    for _, group in ipairs({"LOOT", "CURRENCY", "MONEY", "SYSTEM", "COMBAT_FACTION_CHANGE"}) do
+      _G.ChatFrame_AddMessageGroup(lootTab, group);
+    end
   end
 
-  frame:SetMovable(true);
-  frame:SetUserPlaced(true);
-  frame:ClearAllPoints();
+	for _, name in ipairs(_G.CHAT_FRAMES) do
+		local chatFrame = _G[name];
+		local id = chatFrame:GetID();
 
-  if (db.profile.chat) then
-    if (db.profile.chat.chatFrames["TOPLEFT"].enabled) then
-      frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 34, -55);
+    SetChatWindowSize(1, 13);
 
-    elseif (db.profile.chat.chatFrames["BOTTOMLEFT"].enabled) then
-      frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 34, 30);
+    if (id == 1) then
+      FCF_SetLocked(chatFrame, 1); -- required for the older system
+      FCF_SetWindowAlpha(chatFrame, 0);
 
-    elseif (db.profile.chat.chatFrames["TOPRIGHT"].enabled) then
-      frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -34, -55);
+      chatFrame:SetMovable(true);
+      chatFrame:SetUserPlaced(true);
+      chatFrame:SetClampedToScreen(false);
+      chatFrame:ClearAllPoints();
 
-    elseif (db.profile.chat.chatFrames["BOTTOMRIGHT"].enabled) then
-      frame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 34, -30);
+      if (db.profile.chat) then
+        if (db.profile.chat.chatFrames["TOPLEFT"].enabled) then
+          chatFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 34, -55);
+
+        elseif (db.profile.chat.chatFrames["BOTTOMLEFT"].enabled) then
+          chatFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 34, 30);
+
+        elseif (db.profile.chat.chatFrames["TOPRIGHT"].enabled) then
+          chatFrame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -34, -55);
+
+        elseif (db.profile.chat.chatFrames["BOTTOMRIGHT"].enabled) then
+          chatFrame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 34, -30);
+        end
+      end
+
+      chatFrame:SetWidth(375);
+      chatFrame:SetHeight(240);
+      FCF_StopDragging(chatFrame); -- for the older system
+
+      if (EditModeManagerFrame) then
+        -- dragonflight:
+        chatFrame:EditMode_OnResized();
+        EditModeManagerFrame:OnSystemPositionChange(chatFrame);
+        EditModeManagerFrame:SaveLayouts();
+      end
+
+    elseif (id == 2 and resetChat) then
+      FCF_SetWindowName(chatFrame, _G.GUILD_EVENT_LOG or "Log");
+
+    elseif (id == 3) then
+      VoiceTranscriptionFrame_UpdateVisibility(chatFrame);
+      VoiceTranscriptionFrame_UpdateVoiceTab(chatFrame);
+      VoiceTranscriptionFrame_UpdateEditBox(chatFrame);
     end
+	end
 
-    frame:SetHeight(222);
-    frame:SetWidth(375);
+	for i = 1, _G.MAX_WOW_CHAT_CHANNELS do
+    ToggleChatColorNamesByClassGroup(true, "CHANNEL" .. i);
+	end
 
-    FCF_SavePositionAndDimensions(frame);
+  for _, value in ipairs(CHAT_CONFIG_CHAT_LEFT) do
+    if (obj:IsTable(value) and obj:IsString(value.type)) then
+      ToggleChatColorNamesByClassGroup(true, value.type);
+    end
   end
 end
 

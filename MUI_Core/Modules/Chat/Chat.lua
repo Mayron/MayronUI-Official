@@ -367,49 +367,12 @@ function C_ChatModule:OnInitialized(data)
   end
 
   -- Override Blizzard Stuff -----------------------
-  local function RepositionChatTab()
-    ChatFrame1Tab:SetPoint("LEFT", 16, 0);
-  end
-
   _G.FCFTab_UpdateColors = tk.Constants.DUMMY_FUNC;
 
-  function _G.FCF_SetTabPosition(chatFrame)
-    local chatFrameTab = _G[strformat("%sTab", chatFrame:GetName())];
-
-    if (not chatFrame.isDocked) then
-      chatFrameTab:ClearAllPoints();
-
-      if (IsCombatLog(chatFrame)) then
-        chatFrameTab:SetPoint("BOTTOMLEFT", _G.CombatLogQuickButtonFrame_Custom, "TOPLEFT", 15, 10);
-      else
-        chatFrameTab:SetPoint("BOTTOMLEFT", chatFrame, "TOPLEFT", 15, 10);
-      end
-    end
-
-    RepositionChatTab();
-
-    local minButton = _G[strformat("%sButtonFrameMinimizeButton", chatFrame:GetName())];
-      minButton:Hide();
-  end
-
-  hooksecurefunc("FCFTab_OnUpdate", RepositionChatTab);
-  hooksecurefunc("FCF_DockUpdate", RepositionChatTab);
-  hooksecurefunc("FCFDockScrollFrame_JumpToTab", RepositionChatTab);
   hooksecurefunc("ChatEdit_UpdateHeader", function()
     local chatType = ChatFrame1EditBox:GetAttribute("chatType");
     local r, g, b = _G.GetMessageTypeColor(chatType);
     ChatFrame1EditBox:SetBackdropBorderColor(r, g, b, 1);
-  end);
-
-  -- probably not needed anymore
-  hooksecurefunc("FCF_OpenTemporaryWindow", function()
-    local chat =_G.FCF_GetCurrentChatFrame();
-
-    if (chat) then
-      chat:SetClampRectInsets(0, 0, 0, 0);
-    end
-
-    self:SetUpAllBlizzardFrames();
   end);
 
   self:SetEnabled(true);

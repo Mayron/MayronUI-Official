@@ -84,31 +84,31 @@ obj:Export(BaseModule, "MayronUI");
 
 -- Load Database Defaults -------------
 
-db:AddToDefaults(
-  "global", {
-    layouts = {
-      DPS = { ["ShadowUF"] = "MayronUI"; ["MUI TimerBars"] = "Default" };
-      Healer = { ["ShadowUF"] = "MayronUIH"; ["MUI TimerBars"] = "Healer" };
-    };
+db:AddToDefaults("global", {
+  layouts = {
+    DPS = { ["ShadowUF"] = "MayronUI"; ["MUI TimerBars"] = "Default" };
+    Healer = { ["ShadowUF"] = "MayronUIH"; ["MUI TimerBars"] = "Healer" };
+  };
 
-    core = {
-      uiScale = 0.7;
-      maxCameraZoom = true;
-      changeGameFont = true;
-      font = "MUI_Font";
-      useLocalization = true;
+  core = {
+    uiScale = 0.7;
+    maxCameraZoom = true;
+    changeGameFont = true;
+    font = "MUI_Font";
+    useLocalization = true;
 
-      setup = {
-        profilePerCharacter = true;
-        addOns = {
-          { "Bagnon"; true; "Bagnon" }; { "Bartender4"; true; "Bartender4" };
-          { "Masque"; true; "Masque" };
-          { "Shadowed Unit Frames"; true; "ShadowedUnitFrames" };
-          { "Leatrix Plus"; true; "Leatrix_Plus" };
-        };
+    setup = {
+      profilePerCharacter = true;
+      resetChatSettings = true;
+      addOns = {
+        { "Bagnon"; true; "Bagnon" }; { "Bartender4"; true; "Bartender4" };
+        { "Masque"; true; "Masque" };
+        { "Shadowed Unit Frames"; true; "ShadowedUnitFrames" };
+        { "Leatrix Plus"; true; "Leatrix_Plus" };
       };
     };
-  });
+  };
+});
 
 db:AddToDefaults("profile.layout", "DPS");
 
