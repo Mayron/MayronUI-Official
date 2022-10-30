@@ -1,8 +1,7 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-
-if (not tk:IsClassic()) then
+if (not tk:IsRetail()) then
   return
 end
 
@@ -32,7 +31,6 @@ local function SetHeaderColor(headerText, difficultyColor, highlight)
   end
 
   headerText:SetTextColor(r, g, b);
-  headerText.colorStyle = difficultyColor;
 end
 
 local function UpdateQuestDifficultyColors(block, highlight)
@@ -43,13 +41,11 @@ local function UpdateQuestDifficultyColors(block, highlight)
       if (questInfo and questInfo.questID == block.id) then
         -- bonus quests do not have HeaderText
         if (block.HeaderText) then
-          local difficultyColor = GetDifficultyColor(
-                                    C_PlayerInfo.GetContentDifficultyQuestForPlayer(
-                                      questInfo.questID));
+          local difficulty = C_PlayerInfo.GetContentDifficultyQuestForPlayer(questInfo.questID);
+          local difficultyColor = GetDifficultyColor(difficulty);
 
           SetHeaderColor(block.HeaderText, difficultyColor, highlight);
-          local headerText = string.format("[%d] %s", questInfo.level,
-                               questInfo.title);
+          local headerText = string.format("[%d] %s", questInfo.level, questInfo.title);
           block.HeaderText:SetText(headerText);
           block.HeaderText:SetHeight(block.HeaderText:GetStringHeight())
         end
@@ -98,29 +94,29 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
         "[@boss1,exists][@boss2,exists][@boss3,exists][@boss4,exists] 1;0");
 
       local listener = em:GetEventListenerByID("ObjectiveTracker_InInstance") or
-                         em:CreateEventListenerWithID(
-                           "ObjectiveTracker_InInstance", function()
-            local inInstance = IsInInstance();
+        -- create one:
+        em:CreateEventListenerWithID("ObjectiveTracker_InInstance", function()
+          local inInstance = IsInInstance();
 
-            if (inInstance) then
-              if (not ObjectiveTrackerFrame.collapsed) then
-                local _, _, difficultyID = GetInstanceInfo();
+          if (inInstance) then
+            if (not ObjectiveTrackerFrame.collapsed) then
+              local _, _, difficultyID = GetInstanceInfo();
 
-                -- ignore keystone dungeons
-                if (difficultyID and difficultyID ~= 8) then
-                  _G.ObjectiveTracker_Collapse();
-                  data.previouslyCollapsed = true;
-                end
+              -- ignore keystone dungeons
+              if (difficultyID and difficultyID ~= 8) then
+                _G.ObjectiveTracker_Collapse();
+                data.previouslyCollapsed = true;
               end
-            else
-              if (ObjectiveTrackerFrame.collapsed and data.previouslyCollapsed) then
-                _G.ObjectiveTracker_Expand();
-                data:Call("HandleObjectiveTracker_Update");
-              end
-
-              data.previouslyCollapsed = nil;
             end
-          end);
+          else
+            if (ObjectiveTrackerFrame.collapsed and data.previouslyCollapsed) then
+              _G.ObjectiveTracker_Expand();
+              data:Call("HandleObjectiveTracker_Update");
+            end
+
+            data.previouslyCollapsed = nil;
+          end
+        end);
 
       listener:RegisterEvent("PLAYER_ENTERING_WORLD");
 
@@ -144,7 +140,6 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
 
   if (data.settings.enabled) then
     if (not data.objectiveContainer) then
-
       local success, isMovable = pcall(function()
         ObjectiveTrackerFrame:SetMovable(true); -- required to make user placed
 
@@ -160,10 +155,6 @@ function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
       if (not (success and isMovable)) then
         return
       end
-
-      ObjectiveTrackerFrame.SetMovable = tk.Constants.DUMMY_FUNC;
-      ObjectiveTrackerFrame.SetUserPlaced = tk.Constants.DUMMY_FUNC;
-      ObjectiveTrackerFrame.SetClampedToScreen = tk.Constants.DUMMY_FUNC;
     end
 
     self:SetEnabled(true);
@@ -228,14 +219,14 @@ function C_ObjectiveTracker:OnEnable(data)
   end
 
   -- holds and controls blizzard objectives tracker frame
-  data.objectiveContainer = CreateFrame("Frame", nil, UIParent);
+  data.objectiveContainer = CreateFrame("Frame", "MUI_ObjectiveContainer", UIParent);
 
   -- blizzard objective tracker frame global variable
   ObjectiveTrackerFrame:SetParent(data.objectiveContainer);
   ObjectiveTrackerFrame:SetAllPoints(true);
 
-  data.autoHideHandler = CreateFrame("Frame", nil, data.objectiveContainer,
-                           "SecureHandlerStateTemplate");
+  data.autoHideHandler = CreateFrame(
+    "Frame", nil, data.objectiveContainer, "SecureHandlerStateTemplate");
 
   data.autoHideHandler:SetAttribute("_onstate-autoHideHandler",
     "if (newstate == 1) then self:Hide() else self:Show() end");
