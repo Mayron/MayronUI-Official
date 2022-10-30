@@ -45,18 +45,18 @@ local function CreateElementContainerFrame(widget, widgetTable, parent)
 end
 
 local function GetAttribute(configTable, attributeName, ...)
-    if (configTable[attributeName] ~= nil) then
-        return configTable[attributeName];
-    end
+  if (configTable[attributeName] ~= nil) then
+    return configTable[attributeName];
+  end
 
-    local funcName = tk.Strings:Concat("Get", (attributeName:gsub("^%l", string.upper)));
+  local funcName = tk.Strings:Concat("Get", (attributeName:gsub("^%l", string.upper)));
 
-    if (obj:IsFunction(configTable[funcName])) then
-        return configTable[funcName](configTable, ...);
-    end
+  if (obj:IsFunction(configTable[funcName])) then
+    return configTable[funcName](configTable, ...);
+  end
 
-    obj:Error("Required attribute '%s' missing for %s widget in config table '%s' using database path '%s'",
-        attributeName, configTable.type, configTable.name, configTable.dbPath);
+  obj:Error("Required attribute '%s' missing for %s widget in config table '%s' using database path '%s'",
+    attributeName, configTable.type, configTable.name, configTable.dbPath);
 end
 
 --------------

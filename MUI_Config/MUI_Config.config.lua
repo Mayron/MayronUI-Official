@@ -46,32 +46,20 @@ local function SetModKeyValue(modKey, dbPath, newValue, oldValue)
   db:SetPathValue(dbPath, newValue);
 end
 
-local BartenderActionBars = {
-  [L["Bar"] .. " 1"] = "Bar 1";
-  [L["Bar"] .. " 2"] = "Bar 2";
-  [L["Bar"] .. " 3"] = "Bar 3";
-  [L["Bar"] .. " 4"] = "Bar 4";
-  [L["Bar"] .. " 5"] = "Bar 5";
-  [L["Bar"] .. " 6"] = "Bar 6";
-  [L["Bar"] .. " 7"] = "Bar 7";
-  [L["Bar"] .. " 8"] = "Bar 8";
-  [L["Bar"] .. " 9"] = "Bar 9";
-  [L["Bar"] .. " 10"] = "Bar 10";
-};
+local function GetBartenderActionBarOptions()
+  local maxBars = tk:IsRetail() and 15 or 10;
+  local options = { [L["None"]] = 0 };
+  local actionBarsModule = _G.Bartender4:GetModule("ActionBars");
 
-local BartenderActionBarValues = {
-  [L["None"]] = 0;
-  [L["Bar"] .. " 1"] = 1;
-  [L["Bar"] .. " 2"] = 2;
-  [L["Bar"] .. " 3"] = 3;
-  [L["Bar"] .. " 4"] = 4;
-  [L["Bar"] .. " 5"] = 5;
-  [L["Bar"] .. " 6"] = 6;
-  [L["Bar"] .. " 7"] = 7;
-  [L["Bar"] .. " 8"] = 8;
-  [L["Bar"] .. " 9"] = 9;
-  [L["Bar"] .. " 10"] = 10;
-};
+  for i = 1, maxBars do
+    if (i < 11 or i > 12) then
+      local barName = actionBarsModule:GetBarName(i);
+      options[barName] = i;
+    end
+  end
+
+  return options;
+end
 
 local function AddRepStandingIDColorOptions(repSettings, child)
   local repColors = {};
@@ -613,7 +601,7 @@ function C_ConfigModule:GetConfigTable()
             }; { type = "divider" }; {
               name = tk.Strings:JoinWithSpace("Set", L["Row"], L["Spacing"]);
               type = "slider";
-              min = 1;
+              min = -20;
               max = 20;
               step = 0.5;
               dbPath = "profile.actionBarPanel.rowSpacing";
@@ -624,12 +612,13 @@ function C_ConfigModule:GetConfigTable()
                 return db.profile.actionBarPanel.bartender.control;
               end;
             };
-            { type = "fontstring"; content = L["Row"] .. "1";
-            subtype = "header" }; {
+            { type = "fontstring";
+              content = L["Row"] .. " 1";
+              subtype = "header" }; {
               name = L["First Bartender Bar"];
               type = "dropdown";
               dbPath = "profile.actionBarPanel.bartender[1][1]";
-              options = BartenderActionBarValues;
+              GetOptions = GetBartenderActionBarOptions;
               OnLoad = function(_, container)
                 table.insert(bartenderControlDependencies, container.widget);
               end;
@@ -641,7 +630,7 @@ function C_ConfigModule:GetConfigTable()
               name = L["Second Bartender Bar"];
               dbPath = "profile.actionBarPanel.bartender[1][2]";
               type = "dropdown";
-              options = BartenderActionBarValues;
+              GetOptions = GetBartenderActionBarOptions;
               OnLoad = function(_, container)
                 table.insert(bartenderControlDependencies, container.widget);
               end;
@@ -661,12 +650,13 @@ function C_ConfigModule:GetConfigTable()
                 return db.profile.actionBarPanel.expandRetract;
               end;
             };
-            { type = "fontstring"; content = L["Row"] .. "2";
-            subtype = "header" }; {
+            { type = "fontstring"; 
+              content = L["Row"] .. " 2";
+              subtype = "header" }; {
               name = L["First Bartender Bar"];
               dbPath = "profile.actionBarPanel.bartender[2][1]";
               type = "dropdown";
-              options = BartenderActionBarValues;
+              GetOptions = GetBartenderActionBarOptions;
               OnLoad = function(_, container)
                 table.insert(bartenderControlDependencies, container.widget);
               end;
@@ -677,7 +667,7 @@ function C_ConfigModule:GetConfigTable()
               name = L["Second Bartender Bar"];
               dbPath = "profile.actionBarPanel.bartender[2][2]";
               type = "dropdown";
-              options = BartenderActionBarValues;
+              GetOptions = GetBartenderActionBarOptions;
               OnLoad = function(_, container)
                 table.insert(bartenderControlDependencies, container.widget);
               end;
@@ -697,12 +687,13 @@ function C_ConfigModule:GetConfigTable()
                 return db.profile.actionBarPanel.expandRetract;
               end;
             };
-            { type = "fontstring"; content = L["Row"] .. "3";
-            subtype = "header" }; {
+            { type = "fontstring";
+              content = L["Row"] .. " 3";
+              subtype = "header" }; {
               name = L["First Bartender Bar"];
               dbPath = "profile.actionBarPanel.bartender[3][1]";
               type = "dropdown";
-              options = BartenderActionBarValues;
+              GetOptions = GetBartenderActionBarOptions;
               OnLoad = function(_, container)
                 table.insert(bartenderControlDependencies, container.widget);
               end;
@@ -713,7 +704,7 @@ function C_ConfigModule:GetConfigTable()
               name = L["Second Bartender Bar"];
               dbPath = "profile.actionBarPanel.bartender[3][2]";
               type = "dropdown";
-              options = BartenderActionBarValues;
+              GetOptions = GetBartenderActionBarOptions;
               OnLoad = function(_, container)
                 table.insert(bartenderControlDependencies, container.widget);
               end;
@@ -807,12 +798,12 @@ function C_ConfigModule:GetConfigTable()
               name = L["First Bartender Bar"];
               dbPath = "profile.sidebar.bartender[1]";
               type = "dropdown";
-              options = BartenderActionBars;
+              GetOptions = GetBartenderActionBarOptions;
             }; {
               name = L["Second Bartender Bar"];
               dbPath = "profile.sidebar.bartender[2]";
               type = "dropdown";
-              options = BartenderActionBars;
+              GetOptions = GetBartenderActionBarOptions;
             }; { name = L["Expand and Retract Buttons"]; type = "title" }; {
               name = L["Hide in Combat"];
               type = "check";

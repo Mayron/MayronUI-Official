@@ -11,8 +11,7 @@ local InCombatLockdown, IsAddOnLoaded, UIFrameFadeIn, UIFrameFadeOut, math,
 
 -- Register and Import Modules -----------
 
-local C_SideBarModule = MayronUI:RegisterModule(
-                          "SideBarModule", L["Side Action Bar"])
+local C_SideBarModule = MayronUI:RegisterModule("SideBarModule", L["Side Action Bar"])
 
 -- Add Database Defaults -----------------
 
@@ -35,8 +34,11 @@ db:AddToDefaults(
     };
     bartender = {
       control = true;
-      [1] = "Bar 3"; -- first bar
-      [2] = "Bar 4"; -- second bar
+
+      -- These are the bartender IDs, not the Bar Name!
+      -- Use Bartender4:GetModule("ActionBars"):GetBarName(id) to find out its name.
+      [1] = 3; -- first bar
+      [2] = 4; -- second bar
     };
   })
 
@@ -547,8 +549,8 @@ function C_SideBarModule:SetBartenderBars(data)
     return
   end
 
-  local bar1 = data.settings.bartender[1]:match("%d+")
-  local bar2 = data.settings.bartender[2]:match("%d+")
+  local bar1 = data.settings.bartender[1];
+  local bar2 = data.settings.bartender[2];
 
   _G.Bartender4:GetModule("ActionBars"):EnableBar(bar1)
   _G.Bartender4:GetModule("ActionBars"):EnableBar(bar2)
