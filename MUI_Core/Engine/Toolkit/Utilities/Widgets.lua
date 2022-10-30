@@ -224,8 +224,8 @@ function tk:KillElement(element)
     return
   end
 
+  element.Show = element.Hide;
   self:AttachToDummy(element);
-  element.Show = tk.Constants.DUMMY_FUNC;
 end
 
 function tk:AttachToDummy(element)

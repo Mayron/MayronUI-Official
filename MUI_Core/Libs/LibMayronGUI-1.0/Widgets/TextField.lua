@@ -52,7 +52,7 @@ function TextField:__Construct(data, style, tooltip, parent)
   data.editBox:SetScript("OnEnable", OnEnable);
   data.editBox:SetScript("OnDisable", OnDisable);
 
-  Private:HideLayers(data.editBox, Private.LayerTypes.BACKGROUND);
+  Lib:HideLayers(data.editBox, Lib.LayerTypes.BACKGROUND);
 
   data.editBox.themeColor = obj:PopTable(r, g, b);
 

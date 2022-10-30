@@ -200,9 +200,16 @@ local function Tab_OnClick(self)
 	end
 end
 
+local function Tab_OnDragStart(self)
+  self:DisableDrawLayer("BACKGROUND");
+  self:DisableDrawLayer("BORDER");
+  self:DisableDrawLayer("HIGHLIGHT");
+end
+
 local function Tab_OnEnter(self)
 	-- set tab label white on mouse over
 	self:GetFontString():SetTextColor(1, 1, 1, 1);
+  Tab_OnDragStart(self);
 end
 
 local function Tab_OnLeave(self)
@@ -216,6 +223,10 @@ local function Tab_OnLeave(self)
 		tk:ApplyThemeColor(tabLabel);
 	end
 end
+
+hooksecurefunc("FCFTab_UpdateColors", function(tab)
+  Tab_OnLeave(tab);
+end);
 
 local function RepositionNotificationFrame(chatFrame)
 	if (not chatFrame:GetName() == "ChatFrame1") then
@@ -244,7 +255,6 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
   end
 
   local chatFrame = _G[chatFrameName];
-  chatFrame.isStaticDocked = true;
   chatFrame:SetMovable(true);
   chatFrame:SetClampedToScreen(false);
   chatFrame:SetUserPlaced(true);
@@ -272,76 +282,78 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
 
 	local tab = _G[string.format("%sTab", chatFrameName)];
 	tab.ChatFrame = chatFrame; -- needed for scripts
+  tab:SetHeight(16);
+  tab:SetFrameStrata("MEDIUM");
+  tab:HookScript("OnClick", Tab_OnClick);
+  tab:HookScript("OnDragStart", Tab_OnDragStart);
+  tab:SetScript("OnEnter", Tab_OnEnter);
+  tab:SetScript("OnLeave", Tab_OnLeave);
 
-	tab:SetHeight(16);
-	tab:SetFrameStrata("MEDIUM");
-	tab:HookScript("OnClick", Tab_OnClick);
-	tab:SetScript("OnEnter", Tab_OnEnter);
-	tab:SetScript("OnLeave", Tab_OnLeave);
-	Tab_OnLeave(tab); -- run script to set correct label color
+  Tab_OnLeave(tab); -- run script to set correct label color
+  Tab_OnDragStart(tab);
 
-	local tabLabel = tab:GetFontString();
-	tabLabel:ClearAllPoints();
-	tabLabel:SetPoint("CENTER", tab, "CENTER");
+  local tabLabel = tab:GetFontString();
+  tabLabel:ClearAllPoints();
+  tabLabel:SetPoint("CENTER", tab, "CENTER");
 
-	local btn = _G[ string.format("%sButtonFrame", chatFrameName) ];
-	btn:ClearAllPoints();
-	btn:DisableDrawLayer("BACKGROUND");
-	btn:DisableDrawLayer("BORDER");
-	btn:EnableMouse(false);
-	btn:SetPoint("BOTTOM", tab, "BOTTOM", 0, -2);
-	btn:SetSize(tab:GetWidth() - 10, 20);
-
-	btn.EnableMouse = tk.Constants.DUMMY_FUNC;
-
-	tk:KillAllElements(
+  tk:KillAllElements(
     _G[ string.format("%sEditBoxLeft", chatFrameName) ],
-		_G[ string.format("%sEditBoxMid", chatFrameName) ],
-		_G[ string.format("%sEditBoxRight", chatFrameName) ],
-		_G[ string.format("%sTabSelectedLeft", chatFrameName) ],
-		_G[ string.format("%sTabSelectedMiddle", chatFrameName) ],
-		_G[ string.format("%sTabSelectedRight", chatFrameName) ],
-		_G[ string.format("%sTabLeft", chatFrameName) ],
-		_G[ string.format("%sTabMiddle", chatFrameName) ],
-		_G[ string.format("%sTabRight", chatFrameName) ],
-		_G[ string.format("%sTabHighlightLeft", chatFrameName) ],
-		_G[ string.format("%sTabHighlightMiddle", chatFrameName) ],
-    _G[ string.format("%sTabHighlightRight", chatFrameName) ],
-    _G[ string.format("%sButtonFrameUpButton", chatFrameName) ],
-    _G[ string.format("%sButtonFrameDownButton", chatFrameName) ],
-    _G[ string.format("%sButtonFrameMinimizeButton", chatFrameName) ],
-    _G[ string.format("%sButtonFrame", chatFrameName) ],
-    tab.ActiveLeft,
-    tab.HighlightLeft,
-    tab.Left,
-    tab.ActiveMiddle,
-    tab.HighlightMiddle,
-    tab.Middle,
-    tab.ActiveRight,
-    tab.HighlightRight,
-    tab.Right
+    _G[ string.format("%sEditBoxMid", chatFrameName) ],
+    _G[ string.format("%sEditBoxRight", chatFrameName) ],
+
+    _G[ string.format("%sTabSelectedLeft", chatFrameName) ],
+    _G[ string.format("%sTabSelectedMiddle", chatFrameName) ],
+    _G[ string.format("%sTabSelectedRight", chatFrameName) ],
+
+    _G[ string.format("%sTabLeft", chatFrameName) ],
+    _G[ string.format("%sTabMiddle", chatFrameName) ],
+    _G[ string.format("%sTabRight", chatFrameName) ],
+
+    _G[ string.format("%sTabHighlightLeft", chatFrameName) ],
+    _G[ string.format("%sTabHighlightMiddle", chatFrameName) ],
+    _G[ string.format("%sTabHighlightRight", chatFrameName) ]
   );
 
-	if (chatFrameName == "ChatFrame1") then
-		hooksecurefunc("FCF_StopDragging", RepositionNotificationFrame);
-		RepositionNotificationFrame(chatFrame);
+  if (chatFrameName == "ChatFrame1") then
+    hooksecurefunc("FCF_StopDragging", RepositionNotificationFrame);
+    RepositionNotificationFrame(chatFrame);
 
     local dock = _G.GENERAL_CHAT_DOCK;
     dock:SetPoint("BOTTOMLEFT", chatFrame, "TOPLEFT", 16, 12);
-	  dock:SetPoint("BOTTOMRIGHT", chatFrame, "TOPRIGHT", 0, 12);
+    dock:SetPoint("BOTTOMRIGHT", chatFrame, "TOPRIGHT", 0, 12);
     dock.SetPoint = tk.Constants.DUMMY_FUNC;
     dock.ClearAllPoints = tk.Constants.DUMMY_FUNC;
 
     local toasts = _G.BNToastFrame;
-		toasts:ClearAllPoints();
-		toasts:SetPoint("BOTTOMLEFT", _G.ChatAlertFrame, "BOTTOMLEFT", 0, 0);
-		toasts.ClearAllPoints = tk.Constants.DUMMY_FUNC;
-		toasts.SetPoint = tk.Constants.DUMMY_FUNC;
-	end
+    toasts:ClearAllPoints();
+    toasts:SetPoint("BOTTOMLEFT", _G.ChatAlertFrame, "BOTTOMLEFT", 0, 0);
+    toasts.ClearAllPoints = tk.Constants.DUMMY_FUNC;
+    toasts.SetPoint = tk.Constants.DUMMY_FUNC;
+  end
 
   data.ProcessedChatFrames[chatFrameName] = chatFrame;
 
 	return chatFrame;
+end
+
+local function UpdateTabs()
+  local dock = _G.GENERAL_CHAT_DOCK;
+  local chatFrames = _G.GENERAL_CHAT_DOCK.DOCKED_CHAT_FRAMES;
+  local prev;
+
+  for _, chatFrame in ipairs(chatFrames) do
+    local chatTab = _G[chatFrame:GetName().."Tab"];
+    chatTab:SetAlpha(1);
+    chatTab:SetWidth(chatTab:GetFontString():GetStringWidth() + 30);
+
+    if (prev) then
+      chatTab:SetPoint("LEFT", prev, "RIGHT", 1, 0);
+    else
+      chatTab:SetPoint("BOTTOMLEFT", dock, "BOTTOMLEFT", 0, 0);
+    end
+
+    prev = chatTab;
+  end
 end
 
 function C_ChatModule:SetUpAllBlizzardFrames()
@@ -357,5 +369,14 @@ function C_ChatModule:SetUpAllBlizzardFrames()
     end
   end
 
-  _G.FCF_DockUpdate();
+  hooksecurefunc("FCFDock_UpdateTabs", UpdateTabs);
+  UpdateTabs();
+
+  hooksecurefunc("FCF_UpdateButtonSide", function(chatFrame)
+    local buttonFrame = _G[chatFrame:GetName().."ButtonFrame"];
+    buttonFrame:Hide();
+  end)
+
+  _G.FCF_FadeInChatFrame = tk.Constants.DUMMY_FUNC;
+  _G.FCF_FadeOutChatFrame = tk.Constants.DUMMY_FUNC;
 end

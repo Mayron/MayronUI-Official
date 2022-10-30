@@ -1,23 +1,15 @@
 -- luacheck: ignore self 143
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local tk, db, em, _, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local ChatFrame1EditBox, NUM_CHAT_WINDOWS = _G.ChatFrame1EditBox, _G.NUM_CHAT_WINDOWS;
-local ChatFrame1Tab, InCombatLockdown, StaticPopupDialogs, hooksecurefunc, IsCombatLog, pairs, PlaySound =
-_G.ChatFrame1Tab, _G.InCombatLockdown, _G.StaticPopupDialogs, _G.hooksecurefunc, _G.IsCombatLog, _G.pairs, _G.PlaySound;
+local InCombatLockdown, StaticPopupDialogs, hooksecurefunc, pairs, PlaySound =
+ _G.InCombatLockdown, _G.StaticPopupDialogs, _G.hooksecurefunc, _G.pairs, _G.PlaySound;
 local strformat, ipairs = _G.string.format, _G.ipairs;
 --------------------------
 -- Blizzard Globals
 --------------------------
-_G.CHAT_FRAME_TAB_SELECTED_NOMOUSE_ALPHA = 1;
-_G.CHAT_FRAME_TAB_NORMAL_NOMOUSE_ALPHA = 1;
-_G.CHAT_FRAME_TAB_ALERTING_NOMOUSE_ALPHA = 1;
-_G.CHAT_FRAME_TAB_SELECTED_MOUSEOVER_ALPHA = 1;
-_G.CHAT_FRAME_TAB_NORMAL_MOUSEOVER_ALPHA = 1;
-_G.CHAT_FRAME_TAB_ALERTING_MOUSEOVER_ALPHA = 1;
-
-_G.DEFAULT_CHATFRAME_ALPHA = 0;
 _G.CHAT_FONT_HEIGHTS = obj:PopTable(8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 
 -- Objects ------------------
@@ -367,8 +359,6 @@ function C_ChatModule:OnInitialized(data)
   end
 
   -- Override Blizzard Stuff -----------------------
-  _G.FCFTab_UpdateColors = tk.Constants.DUMMY_FUNC;
-
   hooksecurefunc("ChatEdit_UpdateHeader", function()
     local chatType = ChatFrame1EditBox:GetAttribute("chatType");
     local r, g, b = _G.GetMessageTypeColor(chatType);

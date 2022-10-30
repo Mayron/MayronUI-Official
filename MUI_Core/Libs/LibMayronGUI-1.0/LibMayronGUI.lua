@@ -277,15 +277,15 @@ end
 -- Reskinning
 ---------------------------
 do
-  Private.LayerTypes = {};
-  Private.LayerTypes.BACKGROUND = 2;
-  Private.LayerTypes.BORDER = 4;
-  Private.LayerTypes.ARTWORK = 8;
-  Private.LayerTypes.OVERLAY = 16;
-  Private.LayerTypes.HIGHLIGHT = 32;
-  Private.LayerTypes.CREATE_BACKGROUND = 64;
+  Lib.LayerTypes = {};
+  Lib.LayerTypes.BACKGROUND = 2;
+  Lib.LayerTypes.BORDER = 4;
+  Lib.LayerTypes.ARTWORK = 8;
+  Lib.LayerTypes.OVERLAY = 16;
+  Lib.LayerTypes.HIGHLIGHT = 32;
+  Lib.LayerTypes.CREATE_BACKGROUND = 64;
 
-  function Private:HideLayers(frame, value)
+  function Lib:HideLayers(frame, value)
     local layerTypes = {};
 
     if (bitband(value, self.LayerTypes.BACKGROUND) ~= 0) then
@@ -308,10 +308,10 @@ do
       tinsert(layerTypes, "HIGHLIGHT");
     end
 
-    Private:HideTextures(frame, layerTypes);
+    self:HideTextures(frame, layerTypes);
   end
 
-  function Private:HideTextures(frame, layers)
+  function Lib:HideTextures(frame, layers)
     for layer = 1, (#layers) do
 
       for regionIndex = 1, frame:GetNumRegions() do
@@ -324,8 +324,8 @@ do
         if (region:GetObjectType() == "Texture" and region:GetDrawLayer() == layers[layer]) then
           region:Hide();
           region:SetTexture("");
-          region.Show = self.DUMMY_FUNC;
-          region.SetTexture = self.DUMMY_FUNC;
+          region.Show = Private.DUMMY_FUNC;
+          region.SetTexture = Private.DUMMY_FUNC;
         end
       end
     end

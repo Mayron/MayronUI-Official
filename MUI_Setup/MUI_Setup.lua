@@ -761,10 +761,11 @@ local VoiceTranscriptionFrame_UpdateEditBox = _G.VoiceTranscriptionFrame_UpdateE
 local FCF_StopDragging = _G.FCF_StopDragging;
 local ToggleChatColorNamesByClassGroup = _G.ToggleChatColorNamesByClassGroup;
 local CHAT_CONFIG_CHAT_LEFT = _G.CHAT_CONFIG_CHAT_LEFT;
-local FCF_SetWindowAlpha = _G.FCF_SetWindowAlpha;
 local FCF_SetLocked = _G.FCF_SetLocked;
 local EditModeManagerFrame = _G.EditModeManagerFrame;
 local FCF_SetWindowName = _G.FCF_SetWindowName;
+local FCF_SetWindowColor = _G.FCF_SetWindowColor;
+local FCF_SetWindowAlpha = _G.FCF_SetWindowAlpha;
 
 local function ApplyMayronUIChatFrameDefaults()
   local resetChat = db.global.core.setup.resetChatSettings;
@@ -798,11 +799,12 @@ local function ApplyMayronUIChatFrameDefaults()
 		local chatFrame = _G[name];
 		local id = chatFrame:GetID();
 
-    SetChatWindowSize(1, 13);
+    SetChatWindowSize(id, 13);
+    FCF_SetWindowAlpha(chatFrame, 0);
+    FCF_SetWindowColor(chatFrame, 0, 0, 0);
 
     if (id == 1) then
       FCF_SetLocked(chatFrame, 1); -- required for the older system
-      FCF_SetWindowAlpha(chatFrame, 0);
 
       chatFrame:SetMovable(true);
       chatFrame:SetUserPlaced(true);
