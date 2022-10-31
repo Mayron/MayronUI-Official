@@ -58,8 +58,8 @@ function C_AzeriteBar:SetActive(data, active)
 
   if (active and data.notCreated) then
     data.statusbar.texture = data.statusbar:GetStatusBarTexture();
-    data.statusbar.texture:SetVertexColor(_G.ARTIFACT_BAR_COLOR:GetRGB(), 0.8);
-
+    local r, g, b = _G.ARTIFACT_BAR_COLOR:GetRGB();
+    data.statusbar.texture:SetVertexColor(r, g, b, 0.8);
     data.notCreated = nil;
   end
 end

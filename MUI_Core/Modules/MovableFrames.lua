@@ -84,10 +84,15 @@ local BlizzardFrames = {
     };
   };
 
-  Blizzard_Communities = "CommunitiesFrame";
-  Blizzard_VoidStorageUI = "VoidStorageFrame";
+  Blizzard_VoidStorageUI = {
+    "VoidStorageFrame",
+    subFrames = { "VoidStorageBorderFrame" },
+    onLoad = function()
+      _G.VoidStorageBorderFrameHeader:SetTexture("");
+    end
+  };
   Blizzard_ItemAlterationUI = "TransmogrifyFrame";
-  Blizzard_GuildBankUI = "GuildBankFrame";
+  Blizzard_GuildBankUI = { "GuildBankFrame", subFrames = { "GuildBankFrame.Emblem" }};
   Blizzard_TalentUI = {
     (tk:IsClassic() and "TalentFrame" or "PlayerTalentFrame");
     subFrames = tk:IsWrathClassic() and { "GlyphFrame" };
@@ -119,19 +124,21 @@ local BlizzardFrames = {
   Blizzard_ArchaeologyUI = "ArchaeologyFrame";
   Blizzard_AchievementUI = {
     "AchievementFrame";
-    subFrames = { "AchievementFrameHeader" };
+    subFrames = { "AchievementFrameHeader", "AchievementFrame.Header" };
   };
   Blizzard_AuctionUI = "AuctionFrame";
   Blizzard_AuctionHouseUI = "AuctionHouseFrame";
   Blizzard_TrainerUI = "ClassTrainerFrame";
-  -- TODO: This is bugged!
-  --Blizzard_Collections = "CollectionsJournal";
   Blizzard_GuildControlUI = "GuildControlUI";
   Blizzard_InspectUI = "InspectFrame";
   Blizzard_ItemSocketingUI = "ItemSocketingFrame";
   Blizzard_ItemUpgradeUI = "ItemUpgradeFrame";
   Blizzard_AzeriteUI = "AzeriteEmpoweredItemUI";
   Blizzard_CraftUI = "CraftFrame";
+
+  -- TODO: These are currently bugged in Dragonflight:
+  --Blizzard_Collections = "CollectionsJournal";
+  --Blizzard_Communities = "CommunitiesFrame";
 };
 
 if (tk:IsClassic()) then
@@ -164,7 +171,7 @@ if (tk:IsBCClassic() or tk:IsWrathClassic()) then
 end
 
 local function CanMove(frame)
-  return not (frame:IsProtected() and InCombatLockdown());
+  return obj:IsFunction(frame.RegisterForDrag) and not (frame:IsProtected() and InCombatLockdown());
 end
 
 local function GetFrame(frameName)

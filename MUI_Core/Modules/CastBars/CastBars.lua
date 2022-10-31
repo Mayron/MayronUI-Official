@@ -391,7 +391,8 @@ local function CastBarFrame_OnUpdate(self, elapsed, data)
             local _, _, _, _, _, label = GetMirrorTimerInfo(i);
 
             if (label == self.name:GetText()) then
-              local value = _G.MirrorTimer1StatusBar:GetValue();
+              local statusBar = _G.MirrorTimer1 and _G.MirrorTimer1.StatusBar or _G.MirrorTimer1StatusBar;
+              local value = statusBar:GetValue();
               local duration = string.format("%.1f", value);
 
               if (tonumber(duration) > 60) then
