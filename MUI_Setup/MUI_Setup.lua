@@ -754,106 +754,174 @@ local function ApplyMayronUIConsoleVariableDefaults()
   SetCVar("uiscale", db.global.core.uiScale);
 end
 
-local FCF_ResetChatWindows = _G.FCF_ResetChatWindows;
-local VoiceTranscriptionFrame_UpdateVisibility = _G.VoiceTranscriptionFrame_UpdateVisibility;
-local VoiceTranscriptionFrame_UpdateVoiceTab = _G.VoiceTranscriptionFrame_UpdateVoiceTab;
-local VoiceTranscriptionFrame_UpdateEditBox = _G.VoiceTranscriptionFrame_UpdateEditBox;
-local FCF_StopDragging = _G.FCF_StopDragging;
-local ToggleChatColorNamesByClassGroup = _G.ToggleChatColorNamesByClassGroup;
-local CHAT_CONFIG_CHAT_LEFT = _G.CHAT_CONFIG_CHAT_LEFT;
-local FCF_SetLocked = _G.FCF_SetLocked;
-local EditModeManagerFrame = _G.EditModeManagerFrame;
-local FCF_SetWindowName = _G.FCF_SetWindowName;
-local FCF_SetWindowColor = _G.FCF_SetWindowColor;
-local FCF_SetWindowAlpha = _G.FCF_SetWindowAlpha;
+local ApplyMayronUIChatFrameDefaults;
+do
+  local FCF_ResetChatWindows = _G.FCF_ResetChatWindows;
+  local VoiceTranscriptionFrame_UpdateVisibility = _G.VoiceTranscriptionFrame_UpdateVisibility;
+  local VoiceTranscriptionFrame_UpdateVoiceTab = _G.VoiceTranscriptionFrame_UpdateVoiceTab;
+  local VoiceTranscriptionFrame_UpdateEditBox = _G.VoiceTranscriptionFrame_UpdateEditBox;
+  local FCF_StopDragging = _G.FCF_StopDragging;
+  local ToggleChatColorNamesByClassGroup = _G.ToggleChatColorNamesByClassGroup;
+  local CHAT_CONFIG_CHAT_LEFT = _G.CHAT_CONFIG_CHAT_LEFT;
+  local FCF_SetLocked = _G.FCF_SetLocked;
+  local EditModeManagerFrame = _G.EditModeManagerFrame;
+  local FCF_SetWindowName = _G.FCF_SetWindowName;
+  local FCF_SetWindowColor = _G.FCF_SetWindowColor;
+  local FCF_SetWindowAlpha = _G.FCF_SetWindowAlpha;
+  local C_EditMode = _G.C_EditMode;
 
-local function ApplyMayronUIChatFrameDefaults()
-  local resetChat = db.global.core.setup.resetChatSettings;
+  local function GetPresetLayoutInfo()
+    local layouts = EditModeManagerFrame:GetLayouts();
 
-  if (resetChat) then
-    FCF_ResetChatWindows();
-
-    -- Create social
-    local socialTab = _G.FCF_OpenNewWindow(_G.SOCIAL_LABEL or "Social");
-    _G.ChatFrame_RemoveAllMessageGroups(socialTab);
-
-    for _, group in ipairs({
-      "SAY", "WHISPER", "BN_WHISPER", "PARTY", "PARTY_LEADER", "RAID",
-      "RAID_LEADER", "RAID_WARNING", "INSTANCE_CHAT",
-      "INSTANCE_CHAT_LEADER", "GUILD", "OFFICER", "ACHIEVEMENT",
-      "GUILD_ACHIEVEMENT", "COMMUNITIES_CHANNEL", "SYSTEM", "TARGETICONS"
-    }) do
-        _G.ChatFrame_AddMessageGroup(socialTab, group);
+    for _, layoutInfo in ipairs(layouts) do
+      if (layoutInfo.layoutType == 0) then
+        return layoutInfo;
       end
+    end
 
-    -- Create Loot
-    local lootTab = _G.FCF_OpenNewWindow(_G.LOOT or "Loot");
-    _G.ChatFrame_RemoveAllMessageGroups(lootTab);
+    return layouts[1];
+  end
 
-    for _, group in ipairs({"LOOT", "CURRENCY", "MONEY", "SYSTEM", "COMBAT_FACTION_CHANGE"}) do
-      _G.ChatFrame_AddMessageGroup(lootTab, group);
+  local function GetMayronUILayoutIndex()
+    local layoutsInfo = EditModeManagerFrame:GetLayouts();
+
+    for index, layoutInfo in ipairs(layoutsInfo) do
+      if (layoutInfo.layoutName == "MayronUI") then
+        return index;
+      end
+    end
+
+    return 0;
+  end
+
+  local function SetHighestLayoutIndexByType(layoutType)
+    local layouts = EditModeManagerFrame:GetLayouts();
+    local highest = 0;
+
+    for index, layoutInfo in ipairs(layouts) do
+      if (layoutInfo.layoutType == layoutType and highest < index) then
+        highest = index;
+      end
+    end
+
+    EditModeManagerFrame.highestLayoutIndexByType = {};
+
+    if (highest > 0) then
+      EditModeManagerFrame.highestLayoutIndexByType[layoutType] = highest
     end
   end
 
-	for _, name in ipairs(_G.CHAT_FRAMES) do
-		local chatFrame = _G[name];
-		local id = chatFrame:GetID();
+  local function SetMayronUILayout()
+    local activeLayoutName = EditModeManagerFrame:GetActiveLayoutInfo().layoutName;
 
-    SetChatWindowSize(id, 13);
-    FCF_SetWindowAlpha(chatFrame, 0);
-    FCF_SetWindowColor(chatFrame, 0, 0, 0);
-
-    if (id == 1) then
-      FCF_SetLocked(chatFrame, 1); -- required for the older system
-
-      chatFrame:SetMovable(true);
-      chatFrame:SetUserPlaced(true);
-      chatFrame:SetClampedToScreen(false);
-      chatFrame:ClearAllPoints();
-
-      if (db.profile.chat) then
-        if (db.profile.chat.chatFrames["TOPLEFT"].enabled) then
-          chatFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 34, -55);
-
-        elseif (db.profile.chat.chatFrames["BOTTOMLEFT"].enabled) then
-          chatFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 34, 30);
-
-        elseif (db.profile.chat.chatFrames["TOPRIGHT"].enabled) then
-          chatFrame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -34, -55);
-
-        elseif (db.profile.chat.chatFrames["BOTTOMRIGHT"].enabled) then
-          chatFrame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 34, -30);
-        end
+    if (activeLayoutName ~= "MayronUI") then
+      -- check if there is one:
+      if (GetMayronUILayoutIndex() == 0) then
+        -- create it
+        local preset = GetPresetLayoutInfo();
+        local newLayoutInfo = tk.Tables:Copy(preset);
+        local layoutType = _G.Enum.EditModeLayoutType.Account;
+        SetHighestLayoutIndexByType(layoutType);
+        EditModeManagerFrame:MakeNewLayout(newLayoutInfo, layoutType, "MayronUI");
       end
 
-      chatFrame:SetWidth(375);
-      chatFrame:SetHeight(240);
-      FCF_StopDragging(chatFrame); -- for the older system
-
-      if (EditModeManagerFrame) then
-        -- dragonflight:
-        chatFrame:EditMode_OnResized();
-        EditModeManagerFrame:OnSystemPositionChange(chatFrame);
-        EditModeManagerFrame:SaveLayouts();
-      end
-
-    elseif (id == 2 and resetChat) then
-      FCF_SetWindowName(chatFrame, _G.GUILD_EVENT_LOG or "Log");
-
-    elseif (id == 3) then
-      VoiceTranscriptionFrame_UpdateVisibility(chatFrame);
-      VoiceTranscriptionFrame_UpdateVoiceTab(chatFrame);
-      VoiceTranscriptionFrame_UpdateEditBox(chatFrame);
+      local muiLayoutIndex = GetMayronUILayoutIndex();
+      C_EditMode.SetActiveLayout(muiLayoutIndex);
     end
-	end
+  end
 
-	for i = 1, _G.MAX_WOW_CHAT_CHANNELS do
-    ToggleChatColorNamesByClassGroup(true, "CHANNEL" .. i);
-	end
+  function ApplyMayronUIChatFrameDefaults()
+    local resetChat = db.global.core.setup.resetChatSettings;
 
-  for _, value in ipairs(CHAT_CONFIG_CHAT_LEFT) do
-    if (obj:IsTable(value) and obj:IsString(value.type)) then
-      ToggleChatColorNamesByClassGroup(true, value.type);
+    if (resetChat) then
+      FCF_ResetChatWindows();
+
+      -- Create social
+      local socialTab = _G.FCF_OpenNewWindow(_G.SOCIAL_LABEL or "Social");
+      _G.ChatFrame_RemoveAllMessageGroups(socialTab);
+
+      for _, group in ipairs({
+        "SAY", "WHISPER", "BN_WHISPER", "PARTY", "PARTY_LEADER", "RAID",
+        "RAID_LEADER", "RAID_WARNING", "INSTANCE_CHAT",
+        "INSTANCE_CHAT_LEADER", "GUILD", "OFFICER", "ACHIEVEMENT",
+        "GUILD_ACHIEVEMENT", "COMMUNITIES_CHANNEL", "SYSTEM", "TARGETICONS"
+      }) do
+          _G.ChatFrame_AddMessageGroup(socialTab, group);
+        end
+
+      -- Create Loot
+      local lootTab = _G.FCF_OpenNewWindow(_G.LOOT or "Loot");
+      _G.ChatFrame_RemoveAllMessageGroups(lootTab);
+
+      for _, group in ipairs({"LOOT", "CURRENCY", "MONEY", "SYSTEM", "COMBAT_FACTION_CHANGE"}) do
+        _G.ChatFrame_AddMessageGroup(lootTab, group);
+      end
+    end
+
+    if (EditModeManagerFrame) then
+      SetMayronUILayout();
+    end
+
+    for _, name in ipairs(_G.CHAT_FRAMES) do
+      local chatFrame = _G[name];
+      local id = chatFrame:GetID();
+
+      SetChatWindowSize(id, 13);
+      FCF_SetWindowAlpha(chatFrame, 0);
+      FCF_SetWindowColor(chatFrame, 0, 0, 0);
+
+      if (id == 1) then
+        FCF_SetLocked(chatFrame, 1); -- required for the older system
+
+        chatFrame:SetMovable(true);
+        chatFrame:SetUserPlaced(true);
+        chatFrame:SetClampedToScreen(false);
+        chatFrame:ClearAllPoints();
+
+        if (db.profile.chat) then
+          if (db.profile.chat.chatFrames["TOPLEFT"].enabled) then
+            chatFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 34, -55);
+
+          elseif (db.profile.chat.chatFrames["BOTTOMLEFT"].enabled) then
+            chatFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 34, 30);
+
+          elseif (db.profile.chat.chatFrames["TOPRIGHT"].enabled) then
+            chatFrame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -34, -55);
+
+          elseif (db.profile.chat.chatFrames["BOTTOMRIGHT"].enabled) then
+            chatFrame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 34, -30);
+          end
+        end
+
+        chatFrame:SetWidth(375);
+        chatFrame:SetHeight(240);
+        FCF_StopDragging(chatFrame); -- for the older system
+
+        if (EditModeManagerFrame) then
+          -- dragonflight:
+          chatFrame:EditMode_OnResized();
+          EditModeManagerFrame:OnSystemPositionChange(chatFrame);
+          EditModeManagerFrame:SaveLayouts();
+        end
+
+      elseif (id == 2 and resetChat) then
+        FCF_SetWindowName(chatFrame, _G.GUILD_EVENT_LOG or "Log");
+
+      elseif (id == 3) then
+        VoiceTranscriptionFrame_UpdateVisibility(chatFrame);
+        VoiceTranscriptionFrame_UpdateVoiceTab(chatFrame);
+        VoiceTranscriptionFrame_UpdateEditBox(chatFrame);
+      end
+    end
+
+    for i = 1, _G.MAX_WOW_CHAT_CHANNELS do
+      ToggleChatColorNamesByClassGroup(true, "CHANNEL" .. i);
+    end
+
+    for _, value in ipairs(CHAT_CONFIG_CHAT_LEFT) do
+      if (obj:IsTable(value) and obj:IsString(value.type)) then
+        ToggleChatColorNamesByClassGroup(true, value.type);
+      end
     end
   end
 end
@@ -869,23 +937,30 @@ function C_SetUpModule:Install(data)
   ApplyMayronUIConsoleVariableDefaults();
   ApplyMayronUIChatFrameDefaults();
 
+  local usedDragonflightLayout = db.global["DragonflightBarLayout"];
+
   -- Export AddOn values to db:
   for id, addonData in db.global.core.setup.addOns:Iterate() do
     local alias, requiresImporting, addonName = unpack(addonData);
 
     if (requiresImporting and IsAddOnLoaded(addonName)) then
       local importFunc = namespace.import[addonName];
+      local mergeSettings = true;
 
       if (tk:IsRetail() and addonName == "Bartender4") then
         importFunc = namespace.import[addonName.."-Dragonflight"];
+
+        if (not usedDragonflightLayout) then
+          mergeSettings = false;
+        end
       end
 
       if (obj:IsFunction(importFunc)) then
-        importFunc();
+        importFunc(mergeSettings);
         db.global.core.setup.addOns[id] = { alias; false; addonName };
 
-        if (tk:IsRetail() and addonName == "Bartender4") then
-          db.global["DragonflightActionBarLayout"] = true;
+        if (tk:IsRetail() and not usedDragonflightLayout and addonName == "Bartender4") then
+          db.global["DragonflightBarLayout"] = true;
         end
       end
     end

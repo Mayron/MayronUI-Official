@@ -3,7 +3,7 @@ local _G = _G;
 local tk, _, _, _, obj = _G.MayronUI:GetCoreComponents();
 local pairs = _G.pairs;
 
-setup.import["Bartender4-Dragonflight"] = function()
+setup.import["Bartender4-Dragonflight"] = function(mergeSettings)
 	local settings = {
     ["namespaces"] = {
       ["StatusTrackingBar"] = {
@@ -505,11 +505,13 @@ setup.import["Bartender4-Dragonflight"] = function()
 	};
 
 	for k, v in pairs(settings) do
-    local tbl = _G.Bartender4DB[k];
-
-    if (obj:IsTable(tbl)) then
-      local merged = tk.Tables:Merge(_G.Bartender4DB[k], v);
-      _G.Bartender4DB[k] = merged;
+    if (mergeSettings) then
+      if (obj:IsTable(_G.Bartender4DB[k])) then
+        local merged = tk.Tables:Merge(_G.Bartender4DB[k], v);
+        _G.Bartender4DB[k] = merged;
+      end
+    else
+      _G.Bartender4DB[k] = v;
     end
 	end
 end

@@ -330,10 +330,22 @@ function tk.Tables:Merge(...)
   return merged;
 end
 
+function tk.Tables:Copy(tbl, shallow)
+	local copy = obj:PopTable();
+
+	for key, value in pairs(tbl) do
+		if (obj:IsTable(value) and not shallow) then
+			copy[key] = self:Copy(value);
+		else
+			copy[key] = value;
+		end
+	end
+
+	return copy;
+end
+
 -- move values from one table (copiedTable) to another table (receivingTable)
-function tk.Tables:Fill(receivingTable,
-                        copiedTable,
-                        preserveOldValue)
+function tk.Tables:Fill(receivingTable, copiedTable, preserveOldValue)
   for key, value in pairs(copiedTable) do
 
     if (obj:IsTable(receivingTable[key]) and obj:IsTable(value)) then

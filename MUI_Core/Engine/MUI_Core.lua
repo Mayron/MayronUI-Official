@@ -789,12 +789,12 @@ function C_CoreModule:OnInitialize()
     end
   end
 
-  if (tk:IsRetail() and not db.global["DragonflightActionBarLayout"]) then
+  if (tk:IsRetail() and not db.global["DragonflightBarLayout"]) then
     tk:ShowMessagePopup(
       "The new Dragonflight action bar system is incompatible with your current Bartender4 settings.\n\n" ..
-      "You can fix this by overriding them with the latest |cff00ccffMayronUI|r preset Bartender4 settings. " ..
-      "\n\nDo you want to migrate your Bartender4 settings now?\n\n",
-      "Warning! This will replace all of your Bartender4 settings and reload the UI.\n",
+      "You can fix this by replacing them with the latest |cff00ccffMayronUI|r preset Bartender4 settings." ..
+      "\n\nDo you want to do this now?\n|cff8c8c8c(this will reload the UI)|r\n\n",
+      "Warning! This will wipe all customizations you have made to your Bartender4 action bars.\n",
 
       "Yes, I want to update my action bar layout", function()
         db.global.core.setup.addOns[2][2] = true;

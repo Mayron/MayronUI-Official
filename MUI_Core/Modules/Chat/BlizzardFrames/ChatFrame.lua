@@ -311,13 +311,10 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
 
     _G[ string.format("%sTabHighlightLeft", chatFrameName) ],
     _G[ string.format("%sTabHighlightMiddle", chatFrameName) ],
-    _G[ string.format("%sTabHighlightRight", chatFrameName) ]
-  );
+    _G[ string.format("%sTabHighlightRight", chatFrameName) ],
 
-  if (not tk:IsRetail()) then
-    local btnFrame = _G[ string.format("%sButtonFrame", chatFrameName) ];
-    tk:KillElement(btnFrame);
-  end
+    _G[ string.format("%sButtonFrame", chatFrameName) ]
+  );
 
   if (chatFrameName == "ChatFrame1") then
     hooksecurefunc("FCF_StopDragging", RepositionNotificationFrame);
@@ -343,13 +340,11 @@ end
 
 local function UpdateTabs()
   local dock = _G.GENERAL_CHAT_DOCK;
-  local chatFrames = _G.GENERAL_CHAT_DOCK.DOCKED_CHAT_FRAMES;
   local prev;
 
-  for _, chatFrame in ipairs(chatFrames) do
+  -- position docked tabs:
+  for _, chatFrame in ipairs(_G.GENERAL_CHAT_DOCK.DOCKED_CHAT_FRAMES) do
     local chatTab = _G[chatFrame:GetName().."Tab"];
-    chatTab:SetAlpha(1);
-    chatTab:SetWidth(chatTab:GetFontString():GetStringWidth() + 30);
 
     if (prev) then
       chatTab:SetPoint("LEFT", prev, "RIGHT", 1, 0);
@@ -358,6 +353,13 @@ local function UpdateTabs()
     end
 
     prev = chatTab;
+  end
+
+  -- update all chat tabs regardless of whether they're in the dock:
+  for _, chatFrameName in ipairs(_G.CHAT_FRAMES) do
+    local chatTab = _G[chatFrameName.."Tab"];
+    chatTab:SetAlpha(1);
+    chatTab:SetWidth(chatTab:GetFontString():GetStringWidth() + 30);
   end
 end
 
@@ -376,12 +378,6 @@ function C_ChatModule:SetUpAllBlizzardFrames()
 
   hooksecurefunc("FCFDock_UpdateTabs", UpdateTabs);
   UpdateTabs();
-
-  hooksecurefunc("FCF_UpdateButtonSide", function(chatFrame)
-    local btnFrameName = chatFrame:GetName().."ButtonFrame";
-    local buttonFrame = _G[btnFrameName];
-    buttonFrame:Hide();
-  end)
 
   _G.FCF_FadeInChatFrame = tk.Constants.DUMMY_FUNC;
   _G.FCF_FadeOutChatFrame = tk.Constants.DUMMY_FUNC;
