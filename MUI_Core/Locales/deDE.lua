@@ -1019,3 +1019,13 @@ Klicken Sie unten auf die Schaltfläche "Text bearbeiten", um Text zum Hervorheb
 L["UNIQUE_CHARACTER_PROFILE"] =
   [[Standardmäßig wird jedem neuen Char automatisch ein eindeutiges Pofil erstellt, anstelle eines einzelnen Standardprofils zugewiesen.
 Profile werden automatisch erst zugewiesen, nachdem die Benutzeroberfläche auf einem neuen Char installiert wurde.]]
+
+L["Reset Chat Settings"] = "Chat-Einstellungen zurücksetzen";
+L["RESET_CHAT_SETTINGS_TOOLTIP"] = "Wenn Sie dies deaktivieren, bleiben Ihre Chat-Registerkarten und die mit jedem Chat-Fenster verknüpften Blizzard-Chat-Einstellungen erhalten.";
+
+L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] = "Das neue Dragonflight-Aktionsleistensystem ist mit Ihren aktuellen Bartender4-Einstellungen nicht kompatibel.";
+L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] = "Sie können dies beheben, indem Sie sie durch die neuesten |cff00ccffMayronUI|r-Voreinstellungen für Bartender4 ersetzen.";
+L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] = "Willst du das jetzt tun?";
+L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] = "Dadurch wird die Benutzeroberfläche neu geladen";
+L["DRAGONFLIGHT_BAR_POPUP_WARNING"] = "Warnung! Dadurch werden alle Anpassungen gelöscht, die Sie an Ihren Bartender4-Aktionsleisten vorgenommen haben.";
+L["Yes, I want to update my action bar layout"] = "Ja, ich möchte mein Aktionsleisten-Layout aktualisieren";

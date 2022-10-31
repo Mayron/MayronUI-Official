@@ -1028,4 +1028,14 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 jouer un effet sonore lorsqu'ils apparaissent dans le chat.]]
 
 L["NO_HIGHLIGHT_TEXT_ADDED"] = [[Vous n'avez pas encore ajouté de texte !
-Appuyez sur le bouton « Modifier le texte » ci-dessous pour ajouter du texte à mettre en surbrillance :]];
+Appuyez sur le bouton « Modifier le texte » ci-dessous pour ajouter du texte à mettre en surbrillance:]];
+
+L["Reset Chat Settings"] = "Réinitialiser les paramètres de chat";
+L["RESET_CHAT_SETTINGS_TOOLTIP"] = "Si vous décochez cette case, vos onglets de chat et les paramètres de chat Blizzard associés à chaque fenêtre de chat seront préservés.";
+
+L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] = "Le nouveau système de barre d'action Dragonflight est incompatible avec vos paramètres Bartender4 actuels.";
+L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] = "Vous pouvez résoudre ce problème en les remplaçant par les derniers paramètres |cff00ccffMayronUI|r prédéfinis de Bartender4.";
+L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] = "Voulez-vous le faire maintenant?";
+L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] = "cela rechargera l'interface utilisateur";
+L["DRAGONFLIGHT_BAR_POPUP_WARNING"] = "Avertissement! Cela effacera toutes les personnalisations que vous avez apportées à vos barres d'action Bartender4.";
+L["Yes, I want to update my action bar layout"] = "Oui, je veux mettre à jour la disposition de ma barre d'action";

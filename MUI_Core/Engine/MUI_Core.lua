@@ -790,18 +790,21 @@ function C_CoreModule:OnInitialize()
   end
 
   if (tk:IsRetail() and not db.global["DragonflightBarLayout"]) then
-    tk:ShowMessagePopup(
-      "The new Dragonflight action bar system is incompatible with your current Bartender4 settings.\n\n" ..
-      "You can fix this by replacing them with the latest |cff00ccffMayronUI|r preset Bartender4 settings." ..
-      "\n\nDo you want to do this now?\n|cff8c8c8c(this will reload the UI)|r\n\n",
-      "Warning! This will wipe all customizations you have made to your Bartender4 action bars.\n",
+    local message =
+      L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] .. "\n\n" ..
+      L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] .. "\n\n" ..
+      L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] .. "\n|cff8c8c8c(" ..
+      L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] .. ")|r\n\n";
 
-      "Yes, I want to update my action bar layout", function()
-        db.global.core.setup.addOns[2][2] = true;
-        LoadMuiAddOn("MUI_Setup");
-        local setupModule = MayronUI:ImportModule("SetUpModule"); ---@type MUI_SetupModule
-        setupModule:Install();
-      end, true);
+    local warningText = L["DRAGONFLIGHT_BAR_POPUP_WARNING"] .. "\n";
+    local okayText = L["Yes, I want to update my action bar layout"];
+
+    tk:ShowMessagePopup(message, warningText, okayText, function()
+      db.global.core.setup.addOns[2][2] = true;
+      LoadMuiAddOn("MUI_Setup");
+      local setupModule = MayronUI:ImportModule("SetUpModule"); ---@type MUI_SetupModule
+      setupModule:Install();
+    end, true);
   end
 
   if (db.global.core.maxCameraZoom) then

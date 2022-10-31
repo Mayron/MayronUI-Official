@@ -986,3 +986,13 @@ L["MANAGE_TEXT_HIGHLIGHTING"] = [[管理文本以突出顯示和可選
 
 L["NO_HIGHLIGHT_TEXT_ADDED"] = [[您還沒有添加任何文字！
 按下面的“編輯文本”按鈕添加要突出顯示的文本：]];
+
+L["Reset Chat Settings"] = "重置聊天設置";
+L["RESET_CHAT_SETTINGS_TOOLTIP"] = "取消選中此項將保留您的聊天選項卡以及與每個聊天窗口關聯的暴雪聊天設置。";
+
+L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] = "新的 Dragonflight 動作條系統與您當前的 Bartender4 設置不兼容。";
+L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] = "您可以通過將它們替換為最新的 |cff00ccffMayronUI|r 預設 Bartender4 設置來解決此問題。";
+L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] = "你現在想這樣做嗎？";
+L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] = "這將重新加載 UI";
+L["DRAGONFLIGHT_BAR_POPUP_WARNING"] = "警告！ 這將清除您對 Bartender4 操作欄所做的所有自定義。";
+L["Yes, I want to update my action bar layout"] = "是的，我想更新我的操作欄佈局";

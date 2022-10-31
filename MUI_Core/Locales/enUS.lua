@@ -995,3 +995,13 @@ play a sound effect when they appear in chat.]]
 
 L["NO_HIGHLIGHT_TEXT_ADDED"] = [[You have not added any text yet!
 Press the 'Edit Text' button below to add text to highlight:]];
+
+L["Reset Chat Settings"] = "Reset Chat Settings";
+L["RESET_CHAT_SETTINGS_TOOLTIP"] = "Unchecking this will preserve your chat tabs and the Blizzard chat settings associated with each chat window.";
+
+L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] = "The new Dragonflight action bar system is incompatible with your current Bartender4 settings.";
+L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] = "You can fix this by replacing them with the latest |cff00ccffMayronUI|r preset Bartender4 settings.";
+L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] = "Do you want to do this now?";
+L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] = "this will reload the UI";
+L["DRAGONFLIGHT_BAR_POPUP_WARNING"] = "Warning! This will wipe all customizations you have made to your Bartender4 action bars.";
+L["Yes, I want to update my action bar layout"] = "Yes, I want to update my action bar layout";

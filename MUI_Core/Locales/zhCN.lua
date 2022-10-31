@@ -987,3 +987,13 @@ L["UNIQUE_CHARACTER_PROFILE"] =
   [[默认情况下,每个新角色将自动分配一个唯一的角色配置文件,而不是单个默认配置文件。
 
 配置文件仅在新角色上安装 UI 后自动分配。]]
+
+L["Reset Chat Settings"] = "重置聊天设置";
+L["RESET_CHAT_SETTINGS_TOOLTIP"] = "取消选中此项将保留您的聊天选项卡以及与每个聊天窗口关联的暴雪聊天设置。";
+
+L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] = "新的 Dragonflight 动作条系统与您当前的 Bartender4 设置不兼容。";
+L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] = "您可以通过将它们替换为最新的 |cff00ccffMayronUI|r 预设 Bartender4 设置来解决此问题。";
+L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] = "你现在想这样做吗？";
+L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] = "这将重新加载 UI";
+L["DRAGONFLIGHT_BAR_POPUP_WARNING"] = "警告！ 这将清除您对 Bartender4 操作栏所做的所有自定义。";
+L["Yes, I want to update my action bar layout"] = "是的，我想更新我的操作栏布局";

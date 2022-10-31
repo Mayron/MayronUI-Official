@@ -1021,3 +1021,13 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 L["NO_HIGHLIGHT_TEXT_ADDED"] =
   [[아직 텍스트를 추가하지 않았습니다!
 강조 표시 할 텍스트를 추가하려면 아래의 '텍스트 편집'버튼을 누르십시오.]];
+
+L["Reset Chat Settings"] = "채팅 설정 재설정";
+L["RESET_CHAT_SETTINGS_TOOLTIP"] = "선택을 취소하면 채팅 탭과 각 채팅 창과 연결된 Blizzard 채팅 설정이 유지됩니다.";
+
+L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] = "새로운 Dragonflight 작업 표시줄 시스템은 현재 Bartender4 설정과 호환되지 않습니다.";
+L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] = "최신 |cff00ccffMayronUI|r 사전 설정 Bartender4 설정으로 교체하여 이 문제를 해결할 수 있습니다.";
+L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] = "지금 하시겠습니까?";
+L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] = "이것은 UI를 다시 로드합니다";
+L["DRAGONFLIGHT_BAR_POPUP_WARNING"] = "경고! 이렇게 하면 Bartender4 작업 표시줄에 대해 수행한 모든 사용자 지정이 지워집니다.";
+L["Yes, I want to update my action bar layout"] = "예, 내 작업 모음 레이아웃을 업데이트하고 싶습니다.";

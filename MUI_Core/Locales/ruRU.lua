@@ -1097,3 +1097,13 @@ L["MANAGE_TEXT_HIGHLIGHTING"] =
 L["NO_HIGHLIGHT_TEXT_ADDED"] =
   [[Вы еще не добавили никакого текста!
 Нажмите кнопку «Изменить текст» ниже, чтобы добавить текст для выделения:]];
+
+L["Reset Chat Settings"] = "Сбросить настройки чата";
+L["RESET_CHAT_SETTINGS_TOOLTIP"] = "Сняв этот флажок, вы сохраните вкладки чата и настройки чата Blizzard, связанные с каждым окном чата.";
+
+L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] = "Новая система панели действий Dragonflight несовместима с вашими текущими настройками Bartender4.";
+L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] = "Это можно исправить, заменив их последними предустановленными настройками |cff00ccffMayronUI|r Bartender4.";
+L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] = "Вы хотите сделать это сейчас?";
+L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] = "это перезагрузит пользовательский интерфейс";
+L["DRAGONFLIGHT_BAR_POPUP_WARNING"] = "Предупреждение! Это сотрет все настройки, которые вы внесли в панели действий Bartender4.";
+L["Yes, I want to update my action bar layout"] = "Да, я хочу обновить макет панели действий";

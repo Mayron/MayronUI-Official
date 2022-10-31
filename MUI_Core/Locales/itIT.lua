@@ -1024,3 +1024,13 @@ riprodurre un effetto sonoro quando appaiono nella chat.]]
 
 L["NO_HIGHLIGHT_TEXT_ADDED"] = [[Non hai ancora aggiunto alcun testo!
 Premi il pulsante "Modifica testo" qui sotto per aggiungere del testo da evidenziare:]];
+
+L["Reset Chat Settings"] = "Ripristina le impostazioni della chat";
+L["RESET_CHAT_SETTINGS_TOOLTIP"] = "Deselezionando questa opzione, verranno preservate le schede della chat e le impostazioni della chat Blizzard associate a ciascuna finestra della chat.";
+
+L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] = "Il nuovo sistema di barra delle azioni di Dragonflight non è compatibile con le impostazioni correnti di Bartender4.";
+L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] = "Puoi risolvere questo problema sostituendoli con le ultime impostazioni predefinite di |cff00ccffMayronUI|r Bartender4.";
+L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] = "Vuoi farlo ora?";
+L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] = "questo ricaricherà l'interfaccia utente";
+L["DRAGONFLIGHT_BAR_POPUP_WARNING"] = "Avvertimento! Questo cancellerà tutte le personalizzazioni che hai apportato alle barre delle azioni di Bartender4.";
+L["Yes, I want to update my action bar layout"] = "Sì, voglio aggiornare il layout della mia barra delle azioni";

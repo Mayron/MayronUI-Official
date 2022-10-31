@@ -409,8 +409,7 @@ function Private:LoadCustomMenu(menuSection)
   end);
 
   menuSection.resetChatBtn = gui:CreateCheckButton(
-    menuSection, "Reset Chat Settings",
-    "Unchecking this will preserve your chat tabs and the Blizzard chat settings associated with each chat window.");
+    menuSection, L["Reset Chat Settings"], L["RESET_CHAT_SETTINGS_TOOLTIP"]);
 
   menuSection.resetChatBtn:SetPoint("TOPLEFT", menuSection.applyScaleBtn, "BOTTOMLEFT", 0, -20);
   menuSection.resetChatBtn.btn:SetChecked(db.global.core.setup.resetChatSettings);
