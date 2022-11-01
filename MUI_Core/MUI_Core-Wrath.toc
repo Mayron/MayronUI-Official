@@ -3,7 +3,7 @@
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to run each MUI module.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!
-## Version: 6.7.1
+## Version: 6.7.2
 
 ## Links:
 ## ------------------------------------------------
