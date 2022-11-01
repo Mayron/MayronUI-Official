@@ -789,7 +789,7 @@ function C_CoreModule:OnInitialize()
     end
   end
 
-  if (tk:IsRetail() and not db.global["DragonflightBarLayout"]) then
+  if (tk:IsRetail() and not db.global[tk.Constants.DRAGONFLIGHT_BAR_LAYOUT_PATCH]) then
     local message =
       L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] .. "\n\n" ..
       L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] .. "\n\n" ..

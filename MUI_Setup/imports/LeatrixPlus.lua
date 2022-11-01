@@ -1,5 +1,5 @@
 local _, setup = ...;
-local tk = _G.MayronUI:GetCoreComponent("Toolkit"); ---@type Toolkit
+local pairs = _G.pairs;
 
 setup.import["Leatrix_Plus"] = function()
 	local settings = {
@@ -102,9 +102,7 @@ setup.import["Leatrix_Plus"] = function()
     ["TooltipAnchorMenu"] = 1,
   };
 
-  local merged = tk.Tables:Merge(_G.LeaPlusDB, settings);
-
-  for key, value in pairs(_G.LeaPlusDB) do
-    merged[key] = value;
+  for key, value in pairs(settings) do
+    _G.LeaPlusDB[key] = value;
   end
 end

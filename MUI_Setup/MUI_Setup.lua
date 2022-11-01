@@ -936,7 +936,7 @@ function C_SetUpModule:Install(data)
   ApplyMayronUIConsoleVariableDefaults();
   ApplyMayronUIChatFrameDefaults();
 
-  local usedDragonflightLayout = db.global["DragonflightBarLayout"];
+  local usedDragonflightLayout = db.global[tk.Constants.DRAGONFLIGHT_BAR_LAYOUT_PATCH];
 
   -- Export AddOn values to db:
   for id, addonData in db.global.core.setup.addOns:Iterate() do
@@ -944,22 +944,17 @@ function C_SetUpModule:Install(data)
 
     if (requiresImporting and IsAddOnLoaded(addonName)) then
       local importFunc = namespace.import[addonName];
-      local mergeSettings = true;
 
       if (tk:IsRetail() and addonName == "Bartender4") then
         importFunc = namespace.import[addonName.."-Dragonflight"];
-
-        if (not usedDragonflightLayout) then
-          mergeSettings = false;
-        end
       end
 
       if (obj:IsFunction(importFunc)) then
-        importFunc(mergeSettings);
+        importFunc();
         db.global.core.setup.addOns[id] = { alias; false; addonName };
 
         if (tk:IsRetail() and not usedDragonflightLayout and addonName == "Bartender4") then
-          db.global["DragonflightBarLayout"] = true;
+          db.global[tk.Constants.DRAGONFLIGHT_BAR_LAYOUT_PATCH] = true;
         end
       end
     end

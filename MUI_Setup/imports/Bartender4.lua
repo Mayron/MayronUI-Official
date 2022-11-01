@@ -434,12 +434,22 @@ setup.import["Bartender4"] = function()
     },
 	};
 
-	for k, v in pairs(settings) do
-    local tbl = _G.Bartender4DB[k];
+  -- This fixes the bartender MUI settings to work with the injected settings.
+  if (obj:IsTable(_G.MayronUIdb) and obj:IsTable(_G.MayronUIdb.profiles)) then
+    for _, profile in pairs(_G.MayronUIdb.profiles) do
+      if (obj:IsTable(profile)) then
+        if (obj:IsTable(profile.actionBarPanel)) then
+          profile.actionBarPanel.bartender = nil;
+        end
 
-    if (obj:IsTable(tbl)) then
-      local merged = tk.Tables:Merge(_G.Bartender4DB[k], v);
-      _G.Bartender4DB[k] = merged;
+        if (obj:IsTable(profile.sidebar)) then
+          profile.sidebar.bartender = nil;
+        end
+      end
     end
+  end
+
+	for k, v in pairs(settings) do
+    _G.Bartender4DB[k] = v;
 	end
 end

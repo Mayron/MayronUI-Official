@@ -30,6 +30,7 @@ function tk:IsWrathClassic()
 end
 
 tk.Constants = {
+  DRAGONFLIGHT_BAR_LAYOUT_PATCH = "DragonflightBarLayout_V2";
   ASSETS_FOLDER = "Interface\\addons\\MUI_Core\\Assets";
   CLICK = 856;
   MENU_OPENED_CLICK = 852;

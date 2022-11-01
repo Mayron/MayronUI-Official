@@ -1,4 +1,5 @@
 local _, setup = ...;
+local pairs = _G.pairs;
 
 setup.import["Masque"] = function()
   local settings = {
@@ -677,6 +678,7 @@ setup.import["Masque"] = function()
 			},
 		},
 	};
+
   for k, v in pairs(settings) do
     _G.MasqueDB.profiles[k] = v;
   end

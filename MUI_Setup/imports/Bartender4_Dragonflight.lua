@@ -1,9 +1,9 @@
 local _, setup = ...;
 local _G = _G;
-local tk, _, _, _, obj = _G.MayronUI:GetCoreComponents();
+local _, _, _, _, obj = _G.MayronUI:GetCoreComponents();
 local pairs = _G.pairs;
 
-setup.import["Bartender4-Dragonflight"] = function(mergeSettings)
+setup.import["Bartender4-Dragonflight"] = function()
 	local settings = {
     ["namespaces"] = {
       ["StatusTrackingBar"] = {
@@ -28,11 +28,11 @@ setup.import["Bartender4-Dragonflight"] = function(mergeSettings)
               ["point"] = "BOTTOMRIGHT",
               ["scale"] = 1.3,
             },
-            ["padding"] = 0,
+            ["fadeoutalpha"] = 0,
             ["visibility"] = {
               ["always"] = false,
             },
-            ["fadeoutalpha"] = 0,
+            ["padding"] = 0,
           },
         },
       },
@@ -61,7 +61,7 @@ setup.import["Bartender4-Dragonflight"] = function(mergeSettings)
                 ["fadeoutalpha"] = 1,
                 ["version"] = 3,
                 ["position"] = {
-                  ["y"] = 89,
+                  ["y"] = 82.25000240802774,
                   ["x"] = -358,
                   ["point"] = "BOTTOM",
                   ["scale"] = 0.8500000238418579,
@@ -85,8 +85,7 @@ setup.import["Bartender4-Dragonflight"] = function(mergeSettings)
                     },
                     ["DRUID"] = {
                       ["treeoflife"] = 0,
-                      ["cat"] = 6,
-                      ["bear"] = 5,
+                      ["moonkin"] = 10,
                     },
                     ["MONK"] = {
                       ["serpent"] = 5,
@@ -155,29 +154,29 @@ setup.import["Bartender4-Dragonflight"] = function(mergeSettings)
                 },
                 ["version"] = 3,
                 ["position"] = {
-                  ["y"] = 159,
+                  ["y"] = 154.7500110387805,
                   ["x"] = -358,
                   ["point"] = "BOTTOM",
                   ["scale"] = 0.85,
                 },
-                ["hidemacrotext"] = true,
                 ["padding"] = -3.6,
+                ["hidemacrotext"] = true,
                 ["WoW10Layout"] = true,
               }, -- [5]
               {
                 ["showgrid"] = true,
-                ["visibility"] = {
-                  ["always"] = false,
-                },
+                ["WoW10Layout"] = true,
                 ["version"] = 3,
                 ["position"] = {
-                  ["y"] = 124,
+                  ["y"] = 118.5000067234041,
                   ["x"] = -358,
                   ["point"] = "BOTTOM",
                   ["scale"] = 0.85,
                 },
                 ["padding"] = -3.6,
-                ["WoW10Layout"] = true,
+                ["visibility"] = {
+                  ["always"] = false,
+                },
               }, -- [6]
               {
                 ["showgrid"] = true,
@@ -275,10 +274,13 @@ setup.import["Bartender4-Dragonflight"] = function(mergeSettings)
               [14] = {
                 ["showgrid"] = true,
                 ["enabled"] = true,
+                ["visibility"] = {
+                  ["always"] = false,
+                },
                 ["buttons"] = 8,
                 ["version"] = 3,
                 ["position"] = {
-                  ["y"] = 124,
+                  ["y"] = 118.5000067234041,
                   ["x"] = 65,
                   ["point"] = "BOTTOM",
                   ["scale"] = 0.85,
@@ -289,14 +291,17 @@ setup.import["Bartender4-Dragonflight"] = function(mergeSettings)
               [13] = {
                 ["showgrid"] = true,
                 ["enabled"] = true,
-                ["version"] = 3,
-                ["buttons"] = 8,
                 ["fadeoutalpha"] = 0,
+                ["buttons"] = 8,
+                ["version"] = 3,
                 ["position"] = {
-                  ["y"] = 89,
+                  ["y"] = 82.25000240802774,
                   ["x"] = 65,
                   ["point"] = "BOTTOM",
                   ["scale"] = 0.8500000238418579,
+                },
+                ["visibility"] = {
+                  ["always"] = false,
                 },
                 ["padding"] = -3.6,
                 ["WoW10Layout"] = true,
@@ -304,10 +309,13 @@ setup.import["Bartender4-Dragonflight"] = function(mergeSettings)
               [15] = {
                 ["showgrid"] = true,
                 ["enabled"] = true,
+                ["visibility"] = {
+                  ["always"] = false,
+                },
                 ["buttons"] = 8,
                 ["version"] = 3,
                 ["position"] = {
-                  ["y"] = 159,
+                  ["y"] = 154.7500110387805,
                   ["x"] = 65,
                   ["point"] = "BOTTOM",
                   ["scale"] = 0.85,
@@ -437,17 +445,17 @@ setup.import["Bartender4-Dragonflight"] = function(mergeSettings)
           ["MayronUI"] = {
             ["version"] = 3,
             ["fadeoutalpha"] = 0.5,
-            ["padding"] = 3,
+            ["padding"] = -2.5,
             ["visibility"] = {
               ["stance"] = {
                 false, -- [1]
               },
             },
             ["position"] = {
-              ["y"] = -1,
-              ["x"] = -377.068823285867,
+              ["y"] = -2,
+              ["x"] = -376,
               ["point"] = "BOTTOM",
-              ["scale"] = 0.899999976158142,
+              ["scale"] = 1.2,
               ["growVertical"] = "UP",
               ["growHorizontal"] = "LEFT",
             },
@@ -504,14 +512,22 @@ setup.import["Bartender4-Dragonflight"] = function(mergeSettings)
     },
 	};
 
-	for k, v in pairs(settings) do
-    if (mergeSettings) then
-      if (obj:IsTable(_G.Bartender4DB[k])) then
-        local merged = tk.Tables:Merge(_G.Bartender4DB[k], v);
-        _G.Bartender4DB[k] = merged;
+  -- This fixes the bartender MUI settings to work with the injected settings.
+  if (obj:IsTable(_G.MayronUIdb) and obj:IsTable(_G.MayronUIdb.profiles)) then
+    for _, profile in pairs(_G.MayronUIdb.profiles) do
+      if (obj:IsTable(profile)) then
+        if (obj:IsTable(profile.actionBarPanel)) then
+          profile.actionBarPanel.bartender = nil;
+        end
+
+        if (obj:IsTable(profile.sidebar)) then
+          profile.sidebar.bartender = nil;
+        end
       end
-    else
-      _G.Bartender4DB[k] = v;
     end
+  end
+
+	for k, v in pairs(settings) do
+    _G.Bartender4DB[k] = v;
 	end
 end
