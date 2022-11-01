@@ -13,6 +13,7 @@ local ARGS_PER_ITEM = 4;
 local BUFF_FLASH_TIME_ON = 0.75;
 local BUFF_MIN_ALPHA = 0.3;
 local BUFF_WARNING_TIME = 31;
+local DEFAULT_POSITION = {"CENTER", "UIParent", "CENTER", 0, 0};
 
 -- Objects -----------------------------
 ---@class AurasModule : BaseModule
@@ -476,17 +477,17 @@ function C_AuraArea:SetEnabled(data, enabled)
       position = data.settings.statusBars.position;
 
       if (not _G[position[2]]) then
-        position[2] = "UIParent";
+        position = tk.Tables:Copy(DEFAULT_POSITION);
         -- save in database:
-        db.profile.auras[data.areaName].statusBars.position[2] = "UIParent";
+        db.profile.auras[data.areaName].statusBars.position = position;
       end
     else
       position = data.settings.icons.position;
 
       if (not _G[position[2]]) then
-        position[2] = "UIParent";
+        position = tk.Tables:Copy(DEFAULT_POSITION);
         -- save in database:
-        db.profile.auras[data.areaName].icons.position[2] = "UIParent";
+        db.profile.auras[data.areaName].icons.position = position;
       end
     end
 
