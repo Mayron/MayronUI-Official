@@ -296,8 +296,7 @@ commands.profiles = function(subCommand)
           allProfiles = tk.Strings:SetTextColorByKey(profile, "gold");
         else
           allProfiles = tk.Strings:Join(
-                          ", ", allProfiles,
-                            tk.Strings:SetTextColorByKey(profile, "gold"));
+            ", ", allProfiles, tk.Strings:SetTextColorByKey(profile, "gold"));
         end
       end
 
@@ -800,7 +799,13 @@ function C_CoreModule:OnInitialize()
     local okayText = L["Yes, I want to update my action bar layout"];
 
     tk:ShowMessagePopup(message, warningText, okayText, function()
-      db.global.core.setup.addOns[2][2] = true;
+      for id, addonData in db.global.core.setup.addOns:Iterate() do
+        if (addonData[3] == "Bartender4") then
+          db.global.core.setup.addOns[id][2] = true;
+          break;
+        end
+      end
+
       LoadMuiAddOn("MUI_Setup");
       local setupModule = MayronUI:ImportModule("SetUpModule"); ---@type MUI_SetupModule
       setupModule:Install();

@@ -16,7 +16,7 @@
 ## Credits:
 ## ------------------------------------------------
 ## X-Community-Support-Team: Monster/ Alizmer [GER]
-## X-Patrons: Arriesa, Kallomuki, Knirykas
+## X-Patrons: Arriesa, Kallomuki, Knirykas, NeoFireFly
 ## X-Translation-Support: Monster/ Alizmer [GER], Royking89, ExLinux, Pharma, EarlGrey
 ## X-Development-and-Bug-Fixes: Monkey
 
