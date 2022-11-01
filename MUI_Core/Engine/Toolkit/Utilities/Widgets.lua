@@ -326,13 +326,14 @@ function tk:UpdateThemeColor(value)
     color.r * 0.7, color.g * 0.7, color.b * 0.7, "Widget");
 end
 
-function tk:SetGradient(texture, direction, r, g, b, alpha, r2, g2, b2, alpha2)
+function tk:SetGradient(texture, direction, r, g, b, a, r2, g2, b2, a2)
+  r, g, b, a, r2, g2, b2, a2 = r or 0, g or 0, b or 0, a or 0, r2 or 0, g2 or 0, b2 or 0, a2 or 0;
   if (obj:IsFunction(texture.SetGradientAlpha)) then
-    texture:SetGradientAlpha(direction, r, g, b, alpha, r2, g2, b2, alpha2);
+    texture:SetGradientAlpha(direction, r, g, b, a, r2, g2, b2, a2);
   else
     -- dragonflight only:
-    local minColor = CreateColor(r, g, b, alpha);
-    local maxColor = CreateColor(r2, g2, b2, alpha2);
+    local minColor = CreateColor(r, g, b, a);
+    local maxColor = CreateColor(r2, g2, b2, a2);
     texture:SetGradient(direction, minColor, maxColor);
   end
 end

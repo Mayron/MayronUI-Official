@@ -36,6 +36,7 @@ db:AddToDefaults(
 
 function C_UnitPanels:OnInitialize(data, containerModule)
   data.containerModule = containerModule;
+  data.currentPulseAlpha = 0;
 
   if (not (db.profile.unitPanels.sufGradients.from
     and db.profile.unitPanels.sufGradients.to)) then
@@ -281,10 +282,9 @@ function C_UnitPanels:OnEnabled(data)
     return
   end
 
-  local listener = em:CreateEventListenerWithID(
-                     "MuiUnitFramePanels_TargetChanged", function()
-      data:Call("UpdateAllVisuals");
-    end);
+  local listener = em:CreateEventListenerWithID("MuiUnitFramePanels_TargetChanged", function()
+    data:Call("UpdateAllVisuals");
+  end);
 
   listener:RegisterEvents(
     "PLAYER_REGEN_ENABLED", "PLAYER_REGEN_DISABLED", "PLAYER_TARGET_CHANGED",
@@ -311,8 +311,7 @@ do
     if (not enabled) then
       -- create single texture (shown when there is no target and not symmetrical)
       data.left.singleBg = data.left.singleBg
-                             or tk:SetBackground(
-                               data.left, singleTextureFilePath);
+        or tk:SetBackground(data.left, singleTextureFilePath);
       tk:ApplyThemeColor(data.settings.alpha, data.left.singleBg);
     end
 
@@ -340,9 +339,7 @@ function C_UnitPanels.Private:UpdateVisuals(data, frame, restingPulseAlpha)
 
   if (frame == data.center) then
     if (UnitIsPlayer("target") and data.settings.targetClassColored) then
-      tk:SetGradient(
-        frame.bg, "HORIZONTAL", r, g, b, alpha, target.r, target.g, target.b,
-          alpha);
+      tk:SetGradient(frame.bg, "HORIZONTAL", r, g, b, alpha, target.r, target.g, target.b, alpha);
     else
       tk:SetGradient(frame.bg, "HORIZONTAL", r, g, b, alpha, r, g, b, alpha);
     end

@@ -408,6 +408,7 @@ function C_AuraArea:__Construct(data, moduleSettings, areaName)
   else
     data.totalAuras = DEBUFF_MAX_DISPLAY;
     data.filter = "HARMFUL";
+    tk:KillElement(_G.DebuffFrame);
   end
 end
 

@@ -283,7 +283,7 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
 	local tab = _G[string.format("%sTab", chatFrameName)];
 	tab.ChatFrame = chatFrame; -- needed for scripts
   tab:SetHeight(16);
-  tab:SetFrameStrata("MEDIUM");
+  tab:SetFrameStrata(tk.Constants.FRAME_STRATAS.MEDIUM);
   tab:HookScript("OnClick", Tab_OnClick);
   tab:HookScript("OnDragStart", Tab_OnDragStart);
   tab:SetScript("OnEnter", Tab_OnEnter);
@@ -360,6 +360,7 @@ local function UpdateTabs()
     local chatTab = _G[chatFrameName.."Tab"];
     chatTab:SetAlpha(1);
     chatTab:SetWidth(chatTab:GetFontString():GetStringWidth() + 30);
+    chatTab:SetFrameStrata(tk.Constants.FRAME_STRATAS.MEDIUM);
   end
 end
 

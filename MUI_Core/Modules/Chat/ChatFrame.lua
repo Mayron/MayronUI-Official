@@ -612,6 +612,7 @@ do
       profMenu:SetSize(menuWidth, buttonHeight);
       profMenu:SetScript("OnUpdate", _G.UIMenu_OnUpdate);
       profMenu:SetScript("OnEvent", profMenu.Hide);
+      profMenu:SetFrameStrata(tk.Constants.FRAME_STRATAS.TOOLTIP);
       profMenu:RegisterEvent("PLAYER_REGEN_DISABLED");
 
       local missingAnchor = true;
