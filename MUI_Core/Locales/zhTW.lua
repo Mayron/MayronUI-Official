@@ -281,7 +281,7 @@ L["Gradient Colors"] = "漸變色";
 L["Start Color"] = "起始顏色";
 L["End Color"] = "結束顏色";
 L["Target Class Colored"] = "目標類有色";
-L["Bartender Action Bars"] = "調酒師動作條";
+L["Bartender4 Action Bars"] = "調酒師動作條";
 L["Row"] = "排";
 L["First Bartender Bar"] = "第一調酒師酒吧";
 L["Second Bartender Bar"] = "第二調酒師酒吧";
@@ -351,7 +351,7 @@ L["What color the gradient should start as."] =
   "漸變應該以什麼顏色開始。";
 L["What color the gradient should change into."] =
   "漸變應該變成什麼顏色。";
-L["Allow MUI to Control Selected Bartender Bars"] =
+L["Allow MUI to Control Selected Bartender4 Bars"] =
   "允許 MUI 控制選定的調酒師酒吧";
 L["Show your character in the guild list."] =
   "在公會列表中展示你的角色。";
@@ -775,7 +775,7 @@ L["Expanding and Retracting Action Bar Rows"] = "展開和收縮動作條行";
 L["Enable Expand and Retract Feature"] = "啟用展開和收回功能";
 L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."] =
   "如果禁用,您將無法在 1 行和 2 行操作欄之間切換。";
-L["This is the fixed default height to use when the expand and retract feature is disabled."] =
+L["This is the fixed height of the action bar panel when MUI is not controlling Bartender4."] =
   "這是禁用展開和縮回功能時要使用的固定默認高度。";
 L["Set Alpha"] = "設置阿爾法";
 L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."] =

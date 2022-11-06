@@ -286,7 +286,7 @@ L["Gradient Colors"] = "Gradient Colors";
 L["Start Color"] = "Start Color";
 L["End Color"] = "End Color";
 L["Target Class Colored"] = "Target Class Colored";
-L["Bartender Action Bars"] = "Bartender Action Bars";
+L["Bartender4 Action Bars"] = "Bartender4 Action Bars";
 L["Row"] = "Row";
 L["First Bartender Bar"] = "First Bartender Bar";
 L["Second Bartender Bar"] = "Second Bartender Bar";
@@ -356,8 +356,8 @@ L["What color the gradient should start as."] =
   "What color the gradient should start as.";
 L["What color the gradient should change into."] =
   "What color the gradient should change into.";
-L["Allow MUI to Control Selected Bartender Bars"] =
-  "Allow MUI to Control Selected Bartender Bars";
+L["Allow MUI to Control Selected Bartender4 Bars"] =
+  "Allow MUI to Control Selected Bartender4 Bars";
 L["Show your character in the guild list."] =
   "Show your character in the guild list.";
 L["Adjust the width of the Bottom UI container."] =
@@ -785,8 +785,8 @@ L["Expanding and Retracting Action Bar Rows"] =
 L["Enable Expand and Retract Feature"] = "Enable Expand and Retract Feature";
 L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."] =
   "If disabled, you will not be able to toggle between 1 and 2 rows of action bars.";
-L["This is the fixed default height to use when the expand and retract feature is disabled."] =
-  "This is the fixed default height to use when the expand and retract feature is disabled.";
+L["This is the fixed height of the action bar panel when MUI is not controlling Bartender4."] =
+  "This is the fixed height of the action bar panel when MUI is not controlling Bartender4.";
 L["Set Alpha"] = "Set Alpha";
 L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."] =
   "If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction.";
@@ -910,13 +910,7 @@ Frames to fit over the top of the MUI Unit Panels.
 It will also automatically move the Unit Frames when
 expanding and retracting the MUI Action Bar Panel.]];
 
-L["TT_MUI_CONTROL_BARTENDER"] =
-  [[If enabled, MUI will reposition the selected Bartender
-bars to fit over the top of the action bar panel.
-
-It will also control the fading in and out transitions
-of selected row 2 Bartender bars when expanding and
-retracting the MUI Action Bar Panel.]];
+L["TT_MUI_CONTROL_BARTENDER"] = "If enabled, MUI will reposition the selected Bartender4 action bars to fit over the top of the MUI action bar panel, as well as dynamically set the height of the panel based on the number of visible Bartender4 bars.\n\nMUI will also control the visibility of Bartender4 bars when playing the animation to show or hide action bar rows.\n\nIf disabled, the arrow buttons to show and hide action bar rows will be unavailable.";
 
 L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
   [[If checked, the target portrait gradient will use the target's class

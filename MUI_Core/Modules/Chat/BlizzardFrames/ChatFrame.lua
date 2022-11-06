@@ -224,9 +224,7 @@ local function Tab_OnLeave(self)
 	end
 end
 
-hooksecurefunc("FCFTab_UpdateColors", function(tab)
-  Tab_OnLeave(tab);
-end);
+hooksecurefunc("FCFTab_UpdateColors", Tab_OnLeave);
 
 local function RepositionNotificationFrame(chatFrame)
 	if (not chatFrame:GetName() == "ChatFrame1") then
@@ -243,6 +241,18 @@ local function RepositionNotificationFrame(chatFrame)
 	elseif (relativePoint:find("BOTTOM")) then
 		_G.ChatAlertFrame:SetPoint("BOTTOMLEFT", tab, "TOPLEFT", 0, 10);
 	end
+end
+
+local function OnScrollChangedCallback(self, offset)
+  self.ScrollBar:SetValue(self:GetNumMessages() - offset);
+
+  if (offset > 0) then
+    self.ScrollBar:SetAlpha(1);
+    self.ScrollToBottomButton:SetAlpha(1);
+  else
+    self.ScrollBar:SetAlpha(0);
+    self.ScrollToBottomButton:SetAlpha(0);
+  end
 end
 
 function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
@@ -316,6 +326,21 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
     _G[ string.format("%sButtonFrame", chatFrameName) ]
   );
 
+  chatFrame.ScrollBar.ThumbTexture:SetColorTexture(1, 1, 1);
+  chatFrame.ScrollBar.ThumbTexture:SetSize(8, 34);
+  tk.Constants.AddOnStyle:ApplyColor(nil, 1, chatFrame.ScrollBar.ThumbTexture);
+  chatFrame.ScrollBar:SetPoint("TOPLEFT", chatFrame, "TOPRIGHT", 1, 0);
+
+  local downButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\DownButton");
+  local downBtn = chatFrame.ScrollToBottomButton;
+  downBtn:SetNormalTexture(downButtonTexture, "BLEND");
+  downBtn:SetPushedTexture(downButtonTexture, "BLEND");
+  downBtn:SetHighlightTexture(downButtonTexture, "ADD");
+  downBtn:DisableDrawLayer("OVERLAY");
+  tk.Constants.AddOnStyle:ApplyColor(nil, 1, downBtn);
+
+  chatFrame:SetOnScrollChangedCallback(OnScrollChangedCallback);
+
   if (chatFrameName == "ChatFrame1") then
     hooksecurefunc("FCF_StopDragging", RepositionNotificationFrame);
     RepositionNotificationFrame(chatFrame);
@@ -381,5 +406,11 @@ function C_ChatModule:SetUpAllBlizzardFrames()
   UpdateTabs();
 
   _G.FCF_FadeInChatFrame = tk.Constants.DUMMY_FUNC;
+  _G.FCF_FadeInScrollbar = tk.Constants.DUMMY_FUNC;
   _G.FCF_FadeOutChatFrame = tk.Constants.DUMMY_FUNC;
+  _G.FCF_FadeOutScrollbar = tk.Constants.DUMMY_FUNC;
+
+  hooksecurefunc("FCFManager_RegisterDedicatedFrame", function(chatFrame)
+    self:SetUpBlizzardChatFrame(chatFrame:GetName());
+  end)
 end

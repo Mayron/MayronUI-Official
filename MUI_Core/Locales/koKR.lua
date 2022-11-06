@@ -287,7 +287,7 @@ L["Gradient Colors"] = "그라디언트 색상";
 L["Start Color"] = "시작 색상";
 L["End Color"] = "종료 색상";
 L["Target Class Colored"] = "대상 클래스 색상";
-L["Bartender Action Bars"] = "Bartender 액션 바";
+L["Bartender4 Action Bars"] = "Bartender 액션 바";
 L["Row"] = "열";
 L["First Bartender Bar"] = "첫 바텐더 바";
 L["Second Bartender Bar"] = "두 번째 바텐더 바";
@@ -360,7 +360,7 @@ L["What color the gradient should start as."] =
   "그라데이션이 시작되는 색상입니다.";
 L["What color the gradient should change into."] =
   "그라데이션이 어떤 색상으로 변경되어야하는지.";
-L["Allow MUI to Control Selected Bartender Bars"] =
+L["Allow MUI to Control Selected Bartender4 Bars"] =
   "MUI가 선택한 바텐더 바를 제어하도록 허용";
 L["Show your character in the guild list."] =
   "길드 목록에 자신의 캐릭터를 보여주세요.";
@@ -804,7 +804,7 @@ L["Expanding and Retracting Action Bar Rows"] =
 L["Enable Expand and Retract Feature"] = "확장 및 축소 기능 활성화";
 L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."] =
   "사용하지 않으면 1 행과 2 행의 작업 표시 줄간에 전환 할 수 없습니다.";
-L["This is the fixed default height to use when the expand and retract feature is disabled."] =
+L["This is the fixed height of the action bar panel when MUI is not controlling Bartender4."] =
   "확장 및 축소 기능이 비활성화 된 경우 사용할 고정 된 기본 높이입니다.";
 L["Set Alpha"] = "알파 설정";
 L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."] =

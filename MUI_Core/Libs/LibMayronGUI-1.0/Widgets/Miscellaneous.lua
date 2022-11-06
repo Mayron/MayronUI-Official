@@ -29,6 +29,12 @@ local function OnEnter(self)
   end
 
   _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 4);
+
+  if (#self.tooltip > 100) then
+    local minWidth = math.min(#self.tooltip, 400);
+    _G.GameTooltip:SetMinimumWidth(minWidth);
+  end
+
   _G.GameTooltip:AddLine(self.tooltip, nil, nil, nil, true);
   _G.GameTooltip:Show();
 end

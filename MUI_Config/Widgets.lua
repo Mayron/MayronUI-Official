@@ -21,12 +21,23 @@ local function SetWidgetEnabled(widget, enabled)
   end
 end
 
+local function SetContainerShown(container, shown)
+  if (obj:IsFunction(shown)) then
+    container:SetShown(shown());
+  elseif (shown ~= nil) then
+    container:SetShown(shown);
+  else
+    container:SetShown(true);
+  end
+end
+
 local function CreateElementContainerFrame(widget, widgetTable, parent)
   local container = tk:PopFrame("Frame", parent);
 
   container:SetSize(widgetTable.width or widget:GetWidth(), widgetTable.height or widget:GetHeight());
   container.widget = widget; -- this is needed to access the widget from the container which is passed to some config functions (i.e. OnLoad)
   widget.configContainer = container; -- mwidget must have access to container to use properties, such as SetValue() for dropdown menus
+  widget:SetParent(container);
 
   if (widgetTable.name and tk:ValueIsEither(widgetTable.type, "slider", "dropdown", "textfield")) then
     container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -40,6 +51,7 @@ local function CreateElementContainerFrame(widget, widgetTable, parent)
   end
 
   SetWidgetEnabled(widget, widgetTable.enabled);
+  SetContainerShown(container, widgetTable.shown);
 
   return container;
 end

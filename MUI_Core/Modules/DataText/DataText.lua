@@ -141,7 +141,7 @@ function C_DataTextModule:OnInitialize(data)
       local actionBarPanelModule = MayronUI:ImportModule("ActionBarPanel");
 
       if (actionBarPanelModule:IsEnabled()) then
-        actionBarPanelModule:SetUpAllBartenderBars(data);
+        actionBarPanelModule:SetUpBartenderBars(data);
       end
     end;
 

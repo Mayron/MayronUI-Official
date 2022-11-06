@@ -447,6 +447,12 @@ function C_ConfigModule:ShowRestartMessage(data)
   data.warningLabel:SetText(data.warningLabel.restartText);
 end
 
+function C_ConfigModule:RefreshMenu(data)
+  ---@type DynamicFrame
+  local menu = data.selectedButton.menu;
+  menu:Refresh();
+end
+
 local function ApplyMenuConfigTable(widgetConfig, menuConfig)
   local dbPath = menuConfig.dbPath;
 
@@ -525,7 +531,7 @@ function C_ConfigModule:SetUpWidget(data, widgetConfigTable, parent)
 
   -- create the widget (run the widget function)!
   local widget = namespace.WidgetHandlers[widgetType](
-                   parent, widgetConfigTable, currentValue);
+    parent, widgetConfigTable, currentValue);
 
   if (widgetConfigTable.devMode) then
     -- highlight the widget in dev mode.

@@ -520,6 +520,7 @@ end
 ---@param depth number @The depth of sub-tables to traverse through and print (defaults to 1).
 ---@param spaces number @The number of spaces used for nested values inside a table (defaults to 2).
 function MayronUI:PrintTable(tbl, depth, spaces)
+  tk:Assert(obj:IsTable(tbl), "bad argument #1 (table expected, got %s)", type(tbl));
   tk.Tables:Print(tbl, depth or 1, spaces);
 end
 
@@ -941,6 +942,9 @@ db:OnStartUp(
     tk.Constants.AddOnStyle:SetTexture(
       tk:GetAssetFilePath(
         "Textures\\DialogBox\\CloseButton"), "CloseButtonBackground");
+    tk.Constants.AddOnStyle:SetTexture(
+      tk:GetAssetFilePath(
+        "Textures\\DialogBox\\CloseButton"), "DownButton");
     tk.Constants.AddOnStyle:SetTexture(
       tk:GetAssetFilePath(
         "Textures\\DialogBox\\DragRegion"), "DraggerTexture");

@@ -4,14 +4,20 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ConfigModule = namespace.C_ConfigModule;
-local expandRetractDependencies = {};
-local expandRetractCheckButton;
 local bartenderControlDependencies = {};
-local defaultHeightWidget;
+local fixedHeightOption;
 
 local table, ipairs, strformat, tonumber = _G.table, _G.ipairs,
   _G.string.format, _G.tonumber;
 local GetCVar, SetCVar = _G.GetCVar, _G.SetCVar;
+
+local function IsControllingBartender4()
+  return db.profile.actionBarPanel.bartender.control;
+end
+
+local function IsNotControllingBartender4()
+  return not IsControllingBartender4();
+end
 
 local function GetModKeyValue(modKey, currentValue)
   if (obj:IsString(currentValue) and currentValue:find(modKey)) then
@@ -36,11 +42,6 @@ local function SetModKeyValue(modKey, dbPath, newValue, oldValue)
   else
     -- if check button is not checked (false) set back to oldValue that does not include modKey
     newValue = oldValue;
-  end
-
-  if (tk.Strings:IsNilOrWhiteSpace(newValue)
-    and expandRetractCheckButton:GetChecked()) then
-    expandRetractCheckButton:Click();
   end
 
   db:SetPathValue(dbPath, newValue);
@@ -474,64 +475,145 @@ function C_ConfigModule:GetConfigTable()
               dbPath = "profile.actionBarPanel.enabled";
               tooltip = L["Enable or disable the background panel"];
               type = "check";
-            }; { type = "divider" }; {
-              name = L["Set Alpha"];
+            }; { type = "divider" }; 
+            {
+              name = "Set Panel Alpha";
               type = "slider";
               step = 0.1;
               min = 0;
               max = 1;
               dbPath = "profile.actionBarPanel.alpha";
-            }; {
-              name = L["Set Height"];
-              dbPath = "profile.actionBarPanel.defaultHeight";
-              tooltip = L["This is the fixed default height to use when the expand and retract feature is disabled."];
+            };
+            {
+              name = "Set Panel Height";
+              dbPath = "profile.actionBarPanel.fixedHeight";
+              tooltip = L["This is the fixed height of the action bar panel when MUI is not controlling Bartender4."];
               type = "slider";
               min = 40;
               max = 400;
               OnLoad = function(_, container)
-                defaultHeightWidget = container.widget;
+                fixedHeightOption = container;
               end;
-              enabled = function()
-                return not db.profile.actionBarPanel.expandRetract;
-              end;
+              enabled = IsNotControllingBartender4;
+              shown = IsNotControllingBartender4;
             };
+            { name = L["Bartender4 Action Bars"]; type = "title" };
             {
-              name = L["Expanding and Retracting Action Bar Rows"];
-              type = "title";
-            }; {
-              name = L["Enable Expand and Retract Feature"];
-              dbPath = "profile.actionBarPanel.expandRetract";
-              tooltip = L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."];
+              name = L["Allow MUI to Control Selected Bartender4 Bars"];
               type = "check";
-
-              OnLoad = function(_, container)
-                expandRetractCheckButton = container.btn;
-              end;
+              tooltip = L["TT_MUI_CONTROL_BARTENDER"];
+              dbPath = "profile.actionBarPanel.bartender.control";
 
               SetValue = function(dbPath, value)
-                for _, widget in ipairs(expandRetractDependencies) do
+                for _, widget in ipairs(bartenderControlDependencies) do
                   widget:SetEnabled(value);
                 end
 
-                if (value) then
-                  local modKey = db.profile.actionBarPanel.modKey;
+                fixedHeightOption.widget:SetEnabled(not value);
+                fixedHeightOption:SetShown(not value);
+                self:RefreshMenu();
 
-                  if (tk.Strings:IsNilOrWhiteSpace(modKey)) then
-                    for _, btn in ipairs(expandRetractDependencies) do
-                      if (obj:IsWidget(btn, "CheckButton") and btn.text:GetText()
-                        == L["Control"]) then
-                        btn:Click();
-                        break
-                      end
-                    end
-                  end
-                end
-
-                defaultHeightWidget:SetEnabled(not value);
                 db:SetPathValue(dbPath, value);
               end;
-            }; { type = "divider" }; {
-              name = L["Animation Speed"];
+            };
+            { type = "fontstring";
+              content = L["Row"] .. " 1";
+              subtype = "header" }; {
+              name = L["First Bartender Bar"];
+              type = "dropdown";
+              dbPath = "profile.actionBarPanel.bartender[1][1]";
+              GetOptions = GetBartenderActionBarOptions;
+              OnLoad = function(_, container)
+                table.insert(bartenderControlDependencies, container.widget);
+              end;
+
+              enabled = function()
+                return db.profile.actionBarPanel.bartender.control;
+              end;
+            }; {
+              name = L["Second Bartender Bar"];
+              dbPath = "profile.actionBarPanel.bartender[1][2]";
+              type = "dropdown";
+              GetOptions = GetBartenderActionBarOptions;
+              OnLoad = function(_, container)
+                table.insert(bartenderControlDependencies, container.widget);
+              end;
+              enabled = function()
+                return db.profile.actionBarPanel.bartender.control;
+              end;
+            };
+            { type = "fontstring"; 
+              content = L["Row"] .. " 2";
+              subtype = "header" }; {
+              name = L["First Bartender Bar"];
+              dbPath = "profile.actionBarPanel.bartender[2][1]";
+              type = "dropdown";
+              GetOptions = GetBartenderActionBarOptions;
+              OnLoad = function(_, container)
+                table.insert(bartenderControlDependencies, container.widget);
+              end;
+              enabled = function()
+                return db.profile.actionBarPanel.bartender.control;
+              end;
+            }; {
+              name = L["Second Bartender Bar"];
+              dbPath = "profile.actionBarPanel.bartender[2][2]";
+              type = "dropdown";
+              GetOptions = GetBartenderActionBarOptions;
+              OnLoad = function(_, container)
+                table.insert(bartenderControlDependencies, container.widget);
+              end;
+              enabled = function()
+                return db.profile.actionBarPanel.bartender.control;
+              end;
+            };
+            { type = "fontstring";
+              content = L["Row"] .. " 3";
+              subtype = "header" }; {
+              name = L["First Bartender Bar"];
+              dbPath = "profile.actionBarPanel.bartender[3][1]";
+              type = "dropdown";
+              GetOptions = GetBartenderActionBarOptions;
+              OnLoad = function(_, container)
+                table.insert(bartenderControlDependencies, container.widget);
+              end;
+              enabled = function()
+                return db.profile.actionBarPanel.bartender.control;
+              end;
+            }; {
+              name = L["Second Bartender Bar"];
+              dbPath = "profile.actionBarPanel.bartender[3][2]";
+              type = "dropdown";
+              GetOptions = GetBartenderActionBarOptions;
+              OnLoad = function(_, container)
+                table.insert(bartenderControlDependencies, container.widget);
+              end;
+              enabled = function()
+                return db.profile.actionBarPanel.bartender.control;
+              end;
+            };
+            { type = "divider" };
+            {
+              name = tk.Strings:JoinWithSpace("Set", L["Row"], L["Spacing"]);
+              type = "slider";
+              min = -20;
+              max = 20;
+              step = 0.5;
+              dbPath = "profile.actionBarPanel.rowSpacing";
+              OnLoad = function(_, container)
+                table.insert(bartenderControlDependencies, container.widget);
+              end;
+              enabled = function()
+                return db.profile.actionBarPanel.bartender.control;
+              end;
+            };
+            {
+              name = "Animations";
+              type = "title";
+            };
+            { type = "divider" };
+            {
+              name = "Set Animation Speed";
               type = "slider";
               tooltip = tk.Strings:Concat(
                 L["The speed of the Expand and Retract transitions."], "\n\n",
@@ -542,14 +624,13 @@ function C_ConfigModule:GetConfigTable()
               max = 10;
               dbPath = "profile.actionBarPanel.animateSpeed";
               OnLoad = function(_, container)
-                table.insert(expandRetractDependencies, container.widget);
+                table.insert(bartenderControlDependencies, container.widget);
               end;
-              enabled = function()
-                return db.profile.actionBarPanel.expandRetract;
-              end;
-            }; { type = "divider" }; {
+              enabled = IsControllingBartender4;
+            };
+            { type = "divider" }; {
               type = "fontstring";
-              content = L["Modifier key/s used to show Expand/Retract button:"];
+              content = "Set the modifier key/s that should be pressed to show the arrow buttons.";
             }; {
               type = "loop";
               args = { "C"; "S"; "A" };
@@ -578,150 +659,10 @@ function C_ConfigModule:GetConfigTable()
                   end;
 
                   OnLoad = function(_, container)
-                    table.insert(expandRetractDependencies, container.btn);
+                    table.insert(bartenderControlDependencies, container.btn);
                   end;
-                  enabled = function()
-                    return db.profile.actionBarPanel.expandRetract;
-                  end;
+                  enabled = IsControllingBartender4;
                 };
-              end;
-            }; { name = L["Bartender Action Bars"]; type = "title" }; {
-              name = L["Allow MUI to Control Selected Bartender Bars"];
-              type = "check";
-              tooltip = L["TT_MUI_CONTROL_BARTENDER"];
-              dbPath = "profile.actionBarPanel.bartender.control";
-
-              SetValue = function(dbPath, value)
-                for _, widget in ipairs(bartenderControlDependencies) do
-                  widget:SetEnabled(value);
-                end
-
-                db:SetPathValue(dbPath, value);
-              end;
-            }; { type = "divider" }; {
-              name = tk.Strings:JoinWithSpace("Set", L["Row"], L["Spacing"]);
-              type = "slider";
-              min = -20;
-              max = 20;
-              step = 0.5;
-              dbPath = "profile.actionBarPanel.rowSpacing";
-              OnLoad = function(_, container)
-                table.insert(bartenderControlDependencies, container.widget);
-              end;
-              enabled = function()
-                return db.profile.actionBarPanel.bartender.control;
-              end;
-            };
-            { type = "fontstring";
-              content = L["Row"] .. " 1";
-              subtype = "header" }; {
-              name = L["First Bartender Bar"];
-              type = "dropdown";
-              dbPath = "profile.actionBarPanel.bartender[1][1]";
-              GetOptions = GetBartenderActionBarOptions;
-              OnLoad = function(_, container)
-                table.insert(bartenderControlDependencies, container.widget);
-              end;
-
-              enabled = function()
-                return db.profile.actionBarPanel.bartender.control;
-              end;
-            }; {
-              name = L["Second Bartender Bar"];
-              dbPath = "profile.actionBarPanel.bartender[1][2]";
-              type = "dropdown";
-              GetOptions = GetBartenderActionBarOptions;
-              OnLoad = function(_, container)
-                table.insert(bartenderControlDependencies, container.widget);
-              end;
-              enabled = function()
-                return db.profile.actionBarPanel.bartender.control;
-              end;
-            }; {
-              name = tk.Strings:JoinWithSpace(L["Row"], L["Height"]);
-              type = "slider";
-              min = 40;
-              max = 400;
-              dbPath = "profile.actionBarPanel.rowHeights[1]";
-              OnLoad = function(_, container)
-                table.insert(expandRetractDependencies, container.widget);
-              end;
-              enabled = function()
-                return db.profile.actionBarPanel.expandRetract;
-              end;
-            };
-            { type = "fontstring"; 
-              content = L["Row"] .. " 2";
-              subtype = "header" }; {
-              name = L["First Bartender Bar"];
-              dbPath = "profile.actionBarPanel.bartender[2][1]";
-              type = "dropdown";
-              GetOptions = GetBartenderActionBarOptions;
-              OnLoad = function(_, container)
-                table.insert(bartenderControlDependencies, container.widget);
-              end;
-              enabled = function()
-                return db.profile.actionBarPanel.bartender.control;
-              end;
-            }; {
-              name = L["Second Bartender Bar"];
-              dbPath = "profile.actionBarPanel.bartender[2][2]";
-              type = "dropdown";
-              GetOptions = GetBartenderActionBarOptions;
-              OnLoad = function(_, container)
-                table.insert(bartenderControlDependencies, container.widget);
-              end;
-              enabled = function()
-                return db.profile.actionBarPanel.bartender.control;
-              end;
-            }; {
-              name = tk.Strings:JoinWithSpace(L["Row"], L["Height"]);
-              type = "slider";
-              min = 40;
-              max = 400;
-              dbPath = "profile.actionBarPanel.rowHeights[2]";
-              OnLoad = function(_, container)
-                table.insert(expandRetractDependencies, container.widget);
-              end;
-              enabled = function()
-                return db.profile.actionBarPanel.expandRetract;
-              end;
-            };
-            { type = "fontstring";
-              content = L["Row"] .. " 3";
-              subtype = "header" }; {
-              name = L["First Bartender Bar"];
-              dbPath = "profile.actionBarPanel.bartender[3][1]";
-              type = "dropdown";
-              GetOptions = GetBartenderActionBarOptions;
-              OnLoad = function(_, container)
-                table.insert(bartenderControlDependencies, container.widget);
-              end;
-              enabled = function()
-                return db.profile.actionBarPanel.bartender.control;
-              end;
-            }; {
-              name = L["Second Bartender Bar"];
-              dbPath = "profile.actionBarPanel.bartender[3][2]";
-              type = "dropdown";
-              GetOptions = GetBartenderActionBarOptions;
-              OnLoad = function(_, container)
-                table.insert(bartenderControlDependencies, container.widget);
-              end;
-              enabled = function()
-                return db.profile.actionBarPanel.bartender.control;
-              end;
-            }; {
-              name = tk.Strings:JoinWithSpace(L["Row"], L["Height"]);
-              type = "slider";
-              min = 40;
-              max = 400;
-              dbPath = "profile.actionBarPanel.rowHeights[3]";
-              OnLoad = function(_, container)
-                table.insert(expandRetractDependencies, container.widget);
-              end;
-              enabled = function()
-                return db.profile.actionBarPanel.expandRetract;
               end;
             };
           };
@@ -789,8 +730,8 @@ function C_ConfigModule:GetConfigTable()
               min = 0;
               max = 1;
               dbPath = "profile.sidebar.alpha";
-            }; { name = L["Bartender Action Bars"]; type = "title" }; {
-              name = L["Allow MUI to Control Selected Bartender Bars"];
+            }; { name = L["Bartender4 Action Bars"]; type = "title" }; {
+              name = L["Allow MUI to Control Selected Bartender4 Bars"];
               type = "check";
               dbPath = "profile.sidebar.bartender.control";
               tooltip = L["TT_MUI_CONTROL_BARTENDER"];

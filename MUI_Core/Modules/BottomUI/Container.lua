@@ -136,8 +136,8 @@ function C_Container:RepositionContent(data)
     rightUnitPanel:SetPoint("TOPRIGHT", anchorFrame, "TOPRIGHT", 0, unitHeight);
   end
 
-  -- Update Bartender Bars
-  if (actionBarPanel) then
-    data.subModules.ActionBarPanel:SetUpAllBartenderBars();
+  -- Update Bartender4 Bars
+  if (actionBarPanel and obj:IsNumber(actionBarPanel:GetBottom())) then
+    data.subModules.ActionBarPanel:SetUpBartenderBars();
   end
 end

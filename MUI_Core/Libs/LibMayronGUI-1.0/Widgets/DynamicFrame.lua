@@ -26,44 +26,46 @@ local function OnSizeChanged(self, width)
   local previousChild;
 
   for id, child in ipairs(self.children) do
-    child:ClearAllPoints();
-    totalRowWidth = totalRowWidth + child:GetWidth();
+    if (child:IsShown()) then
+      child:ClearAllPoints();
+      totalRowWidth = totalRowWidth + child:GetWidth();
 
-    if (id ~= 1) then
-      totalRowWidth = totalRowWidth + self.spacing;
-    end
+      if (id ~= 1) then
+        totalRowWidth = totalRowWidth + self.spacing;
+      end
 
-    if ((totalRowWidth) > (width - self.padding * 2) or id == 1) then
-      -- NEW ROW!
-      if (id == 1) then
-        child:SetPoint("TOPLEFT", container, "TOPLEFT", self.padding, -self.padding);
-        totalHeight = totalHeight + self.padding;
-      else
-        local yOffset = (largestHeightInPreviousRow - anchor:GetHeight());
-        yOffset = ((yOffset > 0 and yOffset) or 0) + self.spacing;
-
-        child:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -(yOffset));
-        totalHeight = totalHeight + self.spacing;
-
-        if (child.GetFrame) then
-          anchor = child:GetFrame();
+      if ((totalRowWidth) > (width - self.padding * 2) or id == 1) then
+        -- NEW ROW!
+        if (id == 1) then
+          child:SetPoint("TOPLEFT", container, "TOPLEFT", self.padding, -self.padding);
+          totalHeight = totalHeight + self.padding;
         else
-          anchor = child;
+          local yOffset = (largestHeightInPreviousRow - anchor:GetHeight());
+          yOffset = ((yOffset > 0 and yOffset) or 0) + self.spacing;
+
+          child:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -(yOffset));
+          totalHeight = totalHeight + self.spacing;
+
+          if (child.GetFrame) then
+            anchor = child:GetFrame();
+          else
+            anchor = child;
+          end
+        end
+
+        totalRowWidth = child:GetWidth();
+        totalHeight = totalHeight + largestHeightInPreviousRow;
+        largestHeightInPreviousRow = child:GetHeight();
+      else
+        child:SetPoint("TOPLEFT", previousChild, "TOPRIGHT", self.spacing, 0);
+
+        if (child:GetHeight() > largestHeightInPreviousRow) then
+          largestHeightInPreviousRow = child:GetHeight();
         end
       end
 
-      totalRowWidth = child:GetWidth();
-      totalHeight = totalHeight + largestHeightInPreviousRow;
-      largestHeightInPreviousRow = child:GetHeight();
-    else
-      child:SetPoint("TOPLEFT", previousChild, "TOPRIGHT", self.spacing, 0);
-
-      if (child:GetHeight() > largestHeightInPreviousRow) then
-        largestHeightInPreviousRow = child:GetHeight();
-      end
+      previousChild = child;
     end
-
-    previousChild = child;
   end
 
   totalHeight = totalHeight + largestHeightInPreviousRow + self.padding;
@@ -142,4 +144,8 @@ end
 
 function DynamicFrame:GetChildren(data)
   return unpack(data.frame.children);
+end
+
+function DynamicFrame:Refresh(data)
+  OnSizeChanged(data.frame, data.frame:GetWidth());
 end

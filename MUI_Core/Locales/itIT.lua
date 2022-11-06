@@ -291,7 +291,7 @@ L["Gradient Colors"] = "Colori sfumati";
 L["Start Color"] = "Colore iniziale";
 L["End Color"] = "Fine colore";
 L["Target Class Colored"] = "Classe di destinazione colorata";
-L["Bartender Action Bars"] = "Bar d'azione barman";
+L["Bartender4 Action Bars"] = "Bar d'azione barman";
 L["Row"] = "Riga";
 L["First Bartender Bar"] = "Primo Barista Bar";
 L["Second Bartender Bar"] = "Secondo Barista Bar";
@@ -364,7 +364,7 @@ L["What color the gradient should start as."] =
   "Di che colore dovrebbe iniziare il gradiente.";
 L["What color the gradient should change into."] =
   "Di che colore dovrebbe cambiare il gradiente.";
-L["Allow MUI to Control Selected Bartender Bars"] =
+L["Allow MUI to Control Selected Bartender4 Bars"] =
   "Consenti a MUI di controllare le barre del barista selezionate";
 L["Show your character in the guild list."] =
   "Mostra il tuo personaggio nell'elenco delle gilde.";
@@ -809,7 +809,7 @@ L["Enable Expand and Retract Feature"] =
   "Abilita funzione di espansione e ritrazione";
 L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."] =
   "Se disabilitato, non sarai in grado di alternare tra 1 e 2 righe di barre delle azioni.";
-L["This is the fixed default height to use when the expand and retract feature is disabled."] =
+L["This is the fixed height of the action bar panel when MUI is not controlling Bartender4."] =
   "Questa è l'altezza predefinita fissa da utilizzare quando la funzione di espansione e ritrazione è disabilitata.";
 L["Set Alpha"] = "Imposta alfa";
 L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."] =
