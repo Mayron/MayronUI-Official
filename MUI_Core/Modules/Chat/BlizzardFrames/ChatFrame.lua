@@ -244,14 +244,21 @@ local function RepositionNotificationFrame(chatFrame)
 end
 
 local function OnScrollChangedCallback(self, offset)
-  self.ScrollBar:SetValue(self:GetNumMessages() - offset);
+  if (obj:IsWidget(self.ScrollBar)) then
+    self.ScrollBar:SetValue(self:GetNumMessages() - offset);
 
+    if (offset > 0) then
+      self.ScrollBar:SetAlpha(1);
+    else
+      self.ScrollBar:SetAlpha(0);
+    end
+  end
+
+  local downBtn = self.ScrollToBottomButton;
   if (offset > 0) then
-    self.ScrollBar:SetAlpha(1);
-    self.ScrollToBottomButton:SetAlpha(1);
+    downBtn:SetAlpha(1);
   else
-    self.ScrollBar:SetAlpha(0);
-    self.ScrollToBottomButton:SetAlpha(0);
+    downBtn:SetAlpha(0);
   end
 end
 
@@ -326,20 +333,31 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
     _G[ string.format("%sButtonFrame", chatFrameName) ]
   );
 
-  chatFrame.ScrollBar.ThumbTexture:SetColorTexture(1, 1, 1);
-  chatFrame.ScrollBar.ThumbTexture:SetSize(8, 34);
-  tk.Constants.AddOnStyle:ApplyColor(nil, 1, chatFrame.ScrollBar.ThumbTexture);
-  chatFrame.ScrollBar:SetPoint("TOPLEFT", chatFrame, "TOPRIGHT", 1, 0);
+  if (obj:IsWidget(chatFrame.ScrollBar)) then
+    chatFrame.ScrollBar.ThumbTexture:SetColorTexture(1, 1, 1);
+    chatFrame.ScrollBar.ThumbTexture:SetSize(8, 34);
+    tk.Constants.AddOnStyle:ApplyColor(nil, 1, chatFrame.ScrollBar.ThumbTexture);
+    chatFrame.ScrollBar:SetPoint("TOPLEFT", chatFrame, "TOPRIGHT", 1, 0);
+  end
 
-  local downButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\DownButton");
   local downBtn = chatFrame.ScrollToBottomButton;
-  downBtn:SetNormalTexture(downButtonTexture, "BLEND");
-  downBtn:SetPushedTexture(downButtonTexture, "BLEND");
-  downBtn:SetHighlightTexture(downButtonTexture, "ADD");
-  downBtn:DisableDrawLayer("OVERLAY");
-  tk.Constants.AddOnStyle:ApplyColor(nil, 1, downBtn);
+
+  if (obj:IsWidget(downBtn)) then
+    local downButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\DownButton");
+    downBtn:SetNormalTexture(downButtonTexture, "BLEND");
+    downBtn:SetPushedTexture(downButtonTexture, "BLEND");
+    downBtn:SetHighlightTexture(downButtonTexture, "ADD");
+    downBtn:DisableDrawLayer("OVERLAY");
+    tk.Constants.AddOnStyle:ApplyColor(nil, 1, downBtn);
+  end
 
   chatFrame:SetOnScrollChangedCallback(OnScrollChangedCallback);
+
+  if (not tk:IsRetail()) then
+    downBtn:ClearAllPoints();
+    downBtn:SetPoint("BOTTOMLEFT", chatFrame, "BOTTOMRIGHT", 4, 0);
+--    downBtn.ClearAllPoints = tk.Constants.Dumm
+  end
 
   if (chatFrameName == "ChatFrame1") then
     hooksecurefunc("FCF_StopDragging", RepositionNotificationFrame);

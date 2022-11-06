@@ -81,10 +81,9 @@ function tk.Tables:GetTable(rootTable, ...)
 end
 
 function tk.Tables:GetValueOrNil(rootTable, ...)
-  tk:Assert(
-    obj:IsTable(rootTable),
-      "tk.Tables.GetValueOrNil - invalid rootTable arg (table expected, got %s)",
-      type(rootTable));
+  tk:Assert(obj:IsTable(rootTable),
+    "tk.Tables.GetValueOrNil - invalid rootTable arg (table expected, got %s)",
+    type(rootTable));
 
   local current = rootTable;
 
