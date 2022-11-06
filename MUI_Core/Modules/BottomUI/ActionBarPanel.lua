@@ -484,6 +484,11 @@ function C_ActionBarPanel:SetUpBartenderBars(data)
 
   -- -- calculate Row Offsets in relation to Resource Bars and Data-text bar:
   local startPoint = bottom;
+
+  if (not tk:IsRetail()) then
+    startPoint = startPoint + 1; -- no clue why...
+  end
+
   local rowSpacing = data.settings.rowSpacing + BARTENDER4_BAR_BUTTON_BORDER_SIZE;
   local row1Height = GetRowHeight(data.settings.bartender[1]);
   local row2Height = GetRowHeight(data.settings.bartender[2]);
@@ -502,7 +507,7 @@ function C_ActionBarPanel:SetUpBartenderBars(data)
     local endPoint = data.rowOffsets[rowId] +
       (rowSpacing + ACTION_BAR_PANEL_PADDING - ACTION_BAR_PANEL_OVERLAP - BARTENDER4_BAR_BUTTON_BORDER_SIZE);
 
-    data.panelHeightPerRow[rowId] = endPoint - startPoint;
+    data.panelHeightPerRow[rowId] = endPoint - bottom;
 
     for _, bartenderBarId in ipairs(data.settings.bartender[rowId]) do
       -- Tell Bartender to enable the bar
