@@ -1210,10 +1210,18 @@ end
 ---@param n number @Do NOT manually set this. This controls formatting through recursion.
 ---@return string @A long string containing the contents of the table.
 function Framework:ToLongString(tbl, depth, spaces, result, n)
+  local minify = false;
   result = result or "";
   n = n or 0;
-  spaces = spaces or 2;
-  depth = depth or 5;
+
+  if (depth == nil or depth < 0) then
+    depth = 5;
+  end
+
+  if (spaces == nil or spaces <= 0) then
+    minify = spaces == -1;
+    spaces = 2;
+  end
 
   if (depth == 0) then
     return strformat("%s\n%s", result, strrep(' ', n).."...");
@@ -1251,6 +1259,15 @@ function Framework:ToLongString(tbl, depth, spaces, result, n)
         result = strformat("%s\n%s%s = %s,", result, strrep(' ', n), key, value);
       end
     end
+  end
+
+  if (n == 0 and minify) then
+    return result
+      :gsub("\n", "")
+      :gsub("%s+=%s+", "=")
+      :gsub("%{%s+", "{")
+      :gsub("%s+%}", "}")
+      :gsub("%s+%[", "[")
   end
 
   return result;

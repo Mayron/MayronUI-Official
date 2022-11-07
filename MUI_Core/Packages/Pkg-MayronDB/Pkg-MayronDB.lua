@@ -1697,32 +1697,47 @@ do
   end
 end
 
-local STACKOVERFLOW_DETECTED_ERROR_MSG = "Failed to fill table. Key '%s' has been added too many times.";
+local STACKOVERFLOW_DETECTED_ERROR_MSG = "Failed to fill table. Key '%s' has been added over the max limit of %d for table %s.";
+local MAX_KEY_OCCURRENCE = {
+  20; -- the default limit for all other keys
+  r = 50;
+  g = 50;
+  b = 50;
+};
+
 -- Adds all key and value pairs from fromTable onto toTable (replaces other non-table values)
-function FillTable(fromTable, toTable, doNotReplace, memorized)
-  memorized = memorized or obj:PopTable();
+function FillTable(fromTable, toTable, doNotReplace, memorized, originalTable)
+  local top = false;
+
+  if (not memorized) then
+    top = true;
+    memorized = obj:PopTable();
+    originalTable = fromTable
+  end
 
   for key, value in pairs(fromTable) do
-    if (not doNotReplace or (doNotReplace and toTable[key] == nil)) then
-      obj:Assert(memorized[key] < 3, STACKOVERFLOW_DETECTED_ERROR_MSG, key);
-
+    if (obj:IsString(key) and not tonumber(key)) then
       memorized[key] = (memorized[key] or 0) + 1;
+      local limit = MAX_KEY_OCCURRENCE[key] or MAX_KEY_OCCURRENCE[1];
+      obj:Assert(memorized[key] < limit, STACKOVERFLOW_DETECTED_ERROR_MSG, key, limit, obj:ToLongString(originalTable, 4, -1));
+    end
 
-      if (obj:IsTable(value)) then
-        if (not (obj:IsString(key) and key:match("^__template"))) then
+    if (obj:IsTable(value)) then
+      if (not (obj:IsString(key) and key:match("^__template"))) then
 
-          -- ignore template default values
-          if (not obj:IsTable(toTable[key])) then
-            toTable[key] = obj:PopTable();
-          end
-
-          FillTable(value, toTable[key], doNotReplace, memorized);
+        -- ignore template default values
+        if (not obj:IsTable(toTable[key])) then
+          toTable[key] = obj:PopTable();
         end
-      else
-        toTable[key] = value;
+
+        FillTable(value, toTable[key], doNotReplace, memorized, originalTable);
       end
+    elseif (not doNotReplace or (doNotReplace and toTable[key] == nil)) then
+      toTable[key] = value;
     end
   end
 
-  obj:PushTable(memorized);
+  if (top) then
+    obj:PushTable(memorized);
+  end
 end
