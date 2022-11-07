@@ -517,6 +517,10 @@ function C_ActionBarPanel:SetUpBartenderBars(data)
       local bartenderBar = _G[string.format("BT4Bar%d", bartenderBarId)];
       obj:Assert(bartenderBar, "Failed to setup bartender bar %s - bar does not exist", bartenderBarId);
 
+      local shouldShow = data.settings.activeRows >= rowId;
+      bartenderBar:SetConfigAlpha((shouldShow and 1) or 0);
+      bartenderBar:SetVisibilityOption("always", not shouldShow);
+
       bartenderBar.config.position.point = "BOTTOM";
       bartenderBar.config.position.y = data.rowOffsets[rowId];
 

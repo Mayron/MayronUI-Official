@@ -408,7 +408,7 @@ setup.import["Bartender4-Dragonflight"] = function()
 				["MayronUI"] = {
 					["version"] = 3,
 					["fadeoutalpha"] = 0.5,
-					["padding"] = -2.5,
+					["padding"] = 4,
 					["visibility"] = {
 						["stance"] = {
 							false, -- [1]
@@ -418,7 +418,7 @@ setup.import["Bartender4-Dragonflight"] = function()
 						["y"] = -2,
 						["x"] = -376,
 						["point"] = "BOTTOM",
-						["scale"] = 1.2,
+						["scale"] = 1,
 						["growHorizontal"] = "LEFT",
 						["growVertical"] = "UP",
 					},
