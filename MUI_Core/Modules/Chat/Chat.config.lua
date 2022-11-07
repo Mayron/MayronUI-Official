@@ -101,7 +101,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
         OnLoad = addWidget,
 
         GetValue = function(_, currentValue)
-          if (currentValue:find(modKeyFirstChar)) then
+          if (obj:IsString(currentValue) and currentValue:find(modKeyFirstChar)) then
             return true;
           end
 
