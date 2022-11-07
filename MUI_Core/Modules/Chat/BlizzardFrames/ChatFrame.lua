@@ -402,7 +402,7 @@ local function UpdateTabs()
   for _, chatFrameName in ipairs(_G.CHAT_FRAMES) do
     local chatTab = _G[chatFrameName.."Tab"];
     chatTab:SetAlpha(1);
-    chatTab:SetWidth(chatTab:GetFontString():GetStringWidth() + 30);
+    chatTab:SetWidth(chatTab:GetFontString():GetStringWidth() + 28);
     chatTab:SetFrameStrata(tk.Constants.FRAME_STRATAS.MEDIUM);
   end
 end
@@ -430,5 +430,30 @@ function C_ChatModule:SetUpAllBlizzardFrames()
 
   hooksecurefunc("FCFManager_RegisterDedicatedFrame", function(chatFrame)
     self:SetUpBlizzardChatFrame(chatFrame:GetName());
-  end)
+  end);
+
+  hooksecurefunc("FCF_StartAlertFlash", function(chatFrame)
+    local chatFrameName = chatFrame:GetName();
+    local chatTab = _G[chatFrameName.."Tab"];
+
+    if (not chatTab.notify) then
+      chatTab.notify = chatTab:CreateTexture(nil, "OVERLAY");
+
+      local notifyTexture = tk:GetAssetFilePath("Icons\\notify");
+      chatTab.notify:SetTexture(notifyTexture);
+      chatTab.notify:SetPoint("LEFT", 0, 0);
+      chatTab.notify:SetSize(14, 14);
+    end
+
+    _G.UIFrameFlash(chatTab.notify, 1.0, 1.0, -1, false, 0, 0, "mui-chat-tab-notify");
+  end);
+
+  hooksecurefunc("FCF_StopAlertFlash", function(chatFrame)
+    local chatFrameName = chatFrame:GetName();
+    local chatTab = _G[chatFrameName.."Tab"];
+
+    if (chatTab.notify) then
+      _G.UIFrameFlashStop(chatTab.notify);
+    end
+  end);
 end
