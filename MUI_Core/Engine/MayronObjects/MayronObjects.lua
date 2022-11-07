@@ -1257,33 +1257,35 @@ function Framework:ToLongString(tbl, depth, spaces, result, n)
 end
 
 function Framework:Assert(condition, errorMessage, ...)
-  if (not condition) then
-    if (errorMessage) then
-      local size = select("#", ...);
-
-      if (size > 0) then
-        local args = Framework:PopTable(...);
-
-        for i = 1, size do
-          if (args[i] == nil) then
-            args[i] = SimpleTypes[6];
-
-          elseif (not Framework:IsString(args[i])) then
-            args[i] = tostring(args[i]);
-          end
-        end
-
-        errorMessage = strformat(errorMessage, Framework:UnpackTable(args));
-
-      elseif (strmatch(errorMessage, "%s")) then
-        errorMessage = strformat(errorMessage, SimpleTypes[6]);
-      end
-    else
-      errorMessage = "condition failed";
-    end
-
-    error(errorMessage);
+  if (condition) then
+    return -- no failed condition so error to throw
   end
+
+  if (errorMessage) then
+    local size = select("#", ...);
+
+    if (size > 0) then
+      local args = Framework:PopTable(...);
+
+      for i = 1, size do
+        if (args[i] == nil) then
+          args[i] = SimpleTypes[6];
+
+        elseif (not Framework:IsString(args[i])) then
+          args[i] = tostring(args[i]);
+        end
+      end
+
+      errorMessage = strformat(errorMessage, Framework:UnpackTable(args));
+
+    elseif (strmatch(errorMessage, "%s")) then
+      errorMessage = strformat(errorMessage, SimpleTypes[6]);
+    end
+  else
+    errorMessage = "condition failed";
+  end
+
+  error(errorMessage);
 end
 
 function Framework:Error(errorMessage, ...)

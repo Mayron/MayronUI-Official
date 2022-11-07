@@ -1059,9 +1059,7 @@ do
       end
     end
 
-    function ConvertObserverToUntrackedTable(observer,
-                                             reusableTable,
-                                             isParent)
+    function ConvertObserverToUntrackedTable(observer, reusableTable, isParent)
       local merged = reusableTable or obj:PopTable();
       local svTable = observer:GetSavedVariable();
       local defaults = observer:GetDefaults();
@@ -1699,21 +1697,32 @@ do
   end
 end
 
+local STACKOVERFLOW_DETECTED_ERROR_MSG = "Failed to fill table. Key '%s' has been added too many times.";
 -- Adds all key and value pairs from fromTable onto toTable (replaces other non-table values)
-function FillTable(fromTable, toTable, doNotReplace)
+function FillTable(fromTable, toTable, doNotReplace, memorized)
+  memorized = memorized or obj:PopTable();
+
   for key, value in pairs(fromTable) do
-    if (obj:IsTable(value)) then
-      if (not (obj:IsString(key) and key:match("^__template"))) then
+    if (not doNotReplace or (doNotReplace and toTable[key] == nil)) then
+      obj:Assert(memorized[key] < 3, STACKOVERFLOW_DETECTED_ERROR_MSG, key);
 
-        -- ignore template default values
-        if (not obj:IsTable(toTable[key])) then
-          toTable[key] = obj:PopTable();
+      memorized[key] = (memorized[key] or 0) + 1;
+
+      if (obj:IsTable(value)) then
+        if (not (obj:IsString(key) and key:match("^__template"))) then
+
+          -- ignore template default values
+          if (not obj:IsTable(toTable[key])) then
+            toTable[key] = obj:PopTable();
+          end
+
+          FillTable(value, toTable[key], doNotReplace, memorized);
         end
-
-        FillTable(value, toTable[key], doNotReplace);
+      else
+        toTable[key] = value;
       end
-    elseif (not doNotReplace or (doNotReplace and toTable[key] == nil)) then
-      toTable[key] = value;
     end
   end
+
+  obj:PushTable(memorized);
 end
