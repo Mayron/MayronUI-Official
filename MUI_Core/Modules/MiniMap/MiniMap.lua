@@ -58,8 +58,13 @@ db:AddToDefaults(
     testMode = false; -- for testing
 
     widgets = {
-      clock = { hide = false; fontSize = 12; point = "BOTTOMRIGHT"; x = 0;
-      y = 0 };
+      clock = {
+        hide = false;
+        fontSize = 12;
+        point = "BOTTOMRIGHT";
+        x = 0;
+        y = tk:IsRetail() and 4 or 0
+      };
 
       difficulty = {
         show = true;
@@ -71,12 +76,22 @@ db:AddToDefaults(
 
       lfg = { scale = 0.9; point = "BOTTOMLEFT"; x = 22; y = 0 };
 
-      mail = { scale = 1; point = "BOTTOMRIGHT"; x = -8; y = 24 };
+      mail = {
+        scale = 1;
+        point = "BOTTOMRIGHT";
+        x = -8;
+        y = 22
+      };
 
       missions = { hide = false; scale = 0.6; point = "TOPLEFT"; x = -8; y = 2 };
 
-      tracking = { hide = false; scale = (tk:IsRetail() and 1.2 or 0.8); point = "BOTTOMLEFT"; x = 0;
-      y = 2 };
+      tracking = {
+        hide = false;
+        scale = (tk:IsRetail() and 1.2 or 0.8);
+        point = "BOTTOMLEFT";
+        x = tk:IsRetail() and 2 or 0;
+        y = tk:IsRetail() and 4 or 2;
+      };
 
       zone = { hide = true; point = "TOP"; fontSize = 10; x = 0; y = -4 };
     };
@@ -519,17 +534,25 @@ do
       data:Call("SetUpWidget", "lfg", _G.MiniMapLFGFrame);
     end
 
-    if (_G.MiniMapMailFrame) then
+    local mailFrame = _G.MiniMapMailFrame or _G.MinimapCluster.MailFrame;
+    if (mailFrame) then
       -- dragonflight removed all this:
-      data:Call("SetUpWidget", "mail", _G.MiniMapMailFrame);
-      _G.MiniMapMailFrame:SetAlpha(0.7);
-      _G.MiniMapMailFrame:SetSize(14, 10);
-      _G.MiniMapMailBorder:Hide();
-    end
+      data:Call("SetUpWidget", "mail", mailFrame);
+      mailFrame:SetSize(18, 13);
+      mailFrame:SetAlpha(0.9);
 
-    _G.MiniMapMailIcon:ClearAllPoints();
-    _G.MiniMapMailIcon:SetPoint("CENTER");
-    _G.MiniMapMailIcon:SetTexture(tk:GetAssetFilePath("Textures\\mail"));
+      if (_G.MiniMapMailBorder) then
+        _G.MiniMapMailBorder:Hide();
+      end
+
+      local icon = _G.MiniMapMailIcon;
+
+      if (obj:IsWidget(icon) and icon:GetObjectType() == "Texture") then
+        icon:ClearAllPoints();
+        icon:SetAllPoints(mailFrame);
+        icon:SetTexture(tk:GetAssetFilePath("Icons\\mail"));
+      end
+    end
 
     local missionBtn = _G.ExpansionLandingPageMinimapButton or _G.GarrisonLandingPageMinimapButton;
     -- missions icon:
@@ -735,7 +758,6 @@ function C_MiniMapModule:GetRightClickMenuList()
   local libDbIcons = _G.LibStub("LibDBIcon-1.0");
 
   if (obj:IsTable(libDbIcons) and db.profile.minimap.hideIcons) then
-
     local knownAddOnsText = {
       ["Leatrix_Plus"] = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70");
       ["Questie"] = tk.Strings:SetTextColorByHex("Questie", "ffc50f");
@@ -758,8 +780,8 @@ function C_MiniMapModule:GetRightClickMenuList()
       iconButton:Hide();
 
       local customBtn = CreateFrame(
-                          "Button", "MUI_MinimapButton_" .. name, UIParent,
-                            "UIDropDownCustomMenuEntryTemplate");
+        "Button", "MUI_MinimapButton_" .. name, UIParent,
+        "UIDropDownCustomMenuEntryTemplate");
 
       customBtn:SetHighlightTexture(
         "Interface\\QuestFrame\\UI-QuestTitleHighlight");
@@ -779,69 +801,64 @@ function C_MiniMapModule:GetRightClickMenuList()
       fs:SetJustifyH("LEFT");
       customBtn:SetWidth(fs:GetUnboundedStringWidth() + height + 10);
 
-      customBtn:SetScript(
-        "OnShow", function()
-          customBtn:SetPoint("RIGHT", -14, 0);
-        end);
+      customBtn:SetScript("OnShow", function()
+        customBtn:SetPoint("RIGHT", -14, 0);
+      end);
 
-      customBtn:SetScript(
-        "OnEnter", function()
-          local list = customBtn:GetParent();
-          list.showTimer = nil; -- prevents hiding tooltip after 2 seconds
+      customBtn:SetScript("OnEnter", function()
+        local list = customBtn:GetParent();
+        list.showTimer = nil; -- prevents hiding tooltip after 2 seconds
 
-          if (obj:IsWidget(_G.DropDownList2)) then
-            _G.DropDownList2:Hide();
-          end
+        if (obj:IsWidget(_G.DropDownList2)) then
+          _G.DropDownList2:Hide();
+        end
 
-          if (obj:IsFunction(iconButton.dataObject.OnTooltipShow)) then
-            GameTooltip:SetOwner(list, "ANCHOR_BOTTOM", 0, -2);
-            iconButton.dataObject.OnTooltipShow(GameTooltip);
-            GameTooltip:Show();
+        if (obj:IsFunction(iconButton.dataObject.OnTooltipShow)) then
+          GameTooltip:SetOwner(list, "ANCHOR_BOTTOM", 0, -2);
+          iconButton.dataObject.OnTooltipShow(GameTooltip);
+          GameTooltip:Show();
 
-          elseif (obj:IsFunction(iconButton.dataObject.OnEnter)) then
-            iconButton.dataObject.OnEnter(iconButton);
-          end
-        end);
+        elseif (obj:IsFunction(iconButton.dataObject.OnEnter)) then
+          iconButton.dataObject.OnEnter(iconButton);
+        end
+      end);
 
       iconButton.Show = function()
-        local entry = tk.Tables:First(
-                        menuList, function(value)
-            return value.customFrame == customBtn
-          end);
+        local entry = tk.Tables:First(menuList, function(value)
+          return value.customFrame == customBtn
+        end);
 
         entry.text = name;
         HideMenu();
       end
 
       iconButton.Hide = function()
-        local entry = tk.Tables:First(
-                        menuList, function(value)
-            return value.customFrame == customBtn
-          end);
+        local entry = tk.Tables:First(menuList, function(value)
+          return value.customFrame == customBtn
+        end);
 
         entry.text = nil;
         HideMenu();
       end
 
-      customBtn:SetScript(
-        "OnLeave", function(...)
-          GameTooltip:Hide();
+      customBtn:SetScript("OnLeave", function()
+        GameTooltip:Hide();
 
-          if (obj:IsFunction(iconButton.dataObject.OnLeave)) then
-            iconButton.dataObject.OnLeave(iconButton);
-          end
-        end);
+        if (obj:IsFunction(iconButton.dataObject.OnLeave)) then
+          iconButton.dataObject.OnLeave(iconButton);
+        end
+      end);
 
       customBtn:RegisterForClicks(
         "LeftButtonUp", "RightButtonUp", "MiddleButtonUp");
-      customBtn:SetScript(
-        "OnClick", function(self, buttonName)
-          if (obj:IsFunction(iconButton.dataObject.OnClick)) then
-            iconButton.dataObject.OnClick(iconButton, buttonName);
-          end
 
-          HideMenu();
-        end);
+      customBtn:SetScript("OnClick", function(_, buttonName)
+        if (obj:IsFunction(iconButton.dataObject.OnClick)) then
+          iconButton.dataObject.OnClick(iconButton, buttonName);
+        end
+
+        HideMenu();
+      end);
 
       table.insert(menuList, { text = name; customFrame = customBtn });
     end
@@ -850,8 +867,8 @@ function C_MiniMapModule:GetRightClickMenuList()
       MoveAddonIconToMenu(iconName);
     end
 
-    libDbIcons.RegisterCallback(
-      addOnName, "LibDBIcon_IconCreated", function(_, _, iconName)
+    libDbIcons.RegisterCallback(addOnName, "LibDBIcon_IconCreated",
+      function(_, _, iconName)
         MoveAddonIconToMenu(iconName);
       end);
   end
