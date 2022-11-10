@@ -7,4 +7,5 @@
     <Script file="Toolkit\Utilities\Widgets.lua"/>
     <Script file="MUI_Core.lua"/>
     <Script file="UpdateFunctions.lua"/>
+    <Script file="Toolkit\Utilities\BartenderController.lua"/>
 </Ui>

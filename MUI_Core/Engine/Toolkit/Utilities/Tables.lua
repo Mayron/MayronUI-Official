@@ -407,10 +407,9 @@ function tk.Tables:GetDBObject(addOnName)
     addon = _G[addOnName];
     okay = true;
   elseif (not dbObject) then
-    okay, addon = pcall(
-                    function()
-        LibStub("AceAddon-3.0"):GetAddon(addOnName);
-      end);
+    okay, addon = pcall(function()
+      LibStub("AceAddon-3.0"):GetAddon(addOnName);
+    end);
   end
 
   if (not (okay and obj:IsTable(addon))) then

@@ -129,13 +129,11 @@ end
 
 obj:DefineParams("table", "string");
 function MayronDB.Static:SetPathValue(rootTable, path, value)
-  obj:Assert(
-    not obj:IsType(rootTable, "Observer"), "Table required, found Observer");
+  obj:Assert(not obj:IsType(rootTable, "Observer"), "Table required, found Observer");
 
   local lastTable, lastKey = GetLastTableKeyPairs(rootTable, path);
 
-  assert(
-    obj:IsTable(lastTable) and (obj:IsString(lastKey) or obj:IsNumber(lastKey)),
+  assert(obj:IsTable(lastTable) and (obj:IsString(lastKey) or obj:IsNumber(lastKey)),
       "MayronDB.Static:SetPathValue failed to set value");
 
   -- set value here!
@@ -145,16 +143,15 @@ end
 obj:DefineParams("table", "string");
 function MayronDB.Static:ParsePathValue(rootTable, path)
   local replaced;
-  path = path:gsub(
-           "(%b[])", function(index)
-      index = index:match("%[(.+)%]");
+  path = path:gsub("(%b[])", function(index)
+    index = index:match("%[(.+)%]");
 
-      if (index:find("%.")) then
-        replaced = replaced or obj:PopTable();
-        replaced[#replaced + 1] = index;
-        return "[$" .. tostring(#replaced) .. "]";
-      end
-    end);
+    if (index:find("%.")) then
+      replaced = replaced or obj:PopTable();
+      replaced[#replaced + 1] = index;
+      return "[$" .. tostring(#replaced) .. "]";
+    end
+  end);
 
   local values = obj:PopTable(strsplit(".", path));
   local length = #values;
@@ -1608,16 +1605,15 @@ do
     local isLastPart, isLastIndex;
     local replaced;
 
-    path = path:gsub(
-             "(%b[])", function(index)
-        index = index:match("%[(.+)%]");
+    path = path:gsub("(%b[])", function(index)
+      index = index:match("%[(.+)%]");
 
-        if (index:find("%.")) then
-          replaced = replaced or obj:PopTable();
-          replaced[#replaced + 1] = index;
-          return "[$" .. tostring(#replaced) .. "]";
-        end
-      end);
+      if (index:find("%.")) then
+        replaced = replaced or obj:PopTable();
+        replaced[#replaced + 1] = index;
+        return "[$" .. tostring(#replaced) .. "]";
+      end
+    end);
 
     local pathParts = obj:PopTable(strsplit(".", path));
 
@@ -1657,8 +1653,7 @@ do
         if (#key > 0) then
           lastKey = key;
           lastTable, nextTable = GetNextTable(
-                                   nextTable, key,
-                                     isLastPart and (indexes and #indexes == 0));
+              nextTable, key, isLastPart and (indexes and #indexes == 0));
 
           if (IsCleaning(cleaning, nextTable, lastTable, lastKey)) then
             if (obj:IsTable(indexes)) then

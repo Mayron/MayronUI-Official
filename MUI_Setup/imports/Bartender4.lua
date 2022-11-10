@@ -1,6 +1,6 @@
 local _, setup = ...;
 local _G = _G;
-local tk, _, _, _, obj = _G.MayronUI:GetCoreComponents();
+local _, _, _, _, obj = _G.MayronUI:GetCoreComponents();
 local pairs = _G.pairs;
 
 setup.import["Bartender4"] = function()

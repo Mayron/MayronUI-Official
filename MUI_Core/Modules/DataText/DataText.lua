@@ -141,7 +141,7 @@ function C_DataTextModule:OnInitialize(data)
       local actionBarPanelModule = MayronUI:ImportModule("ActionBarPanel");
 
       if (actionBarPanelModule:IsEnabled()) then
-        actionBarPanelModule:SetUpBartenderBars(data);
+        actionBarPanelModule:SetUpExpandRetract(data);
       end
     end;
 
@@ -256,7 +256,7 @@ function C_DataTextModule:OnEnable(data)
   end);
 
   -- provides more intelligent scrolling (+ controls visibility of scrollbar)
-  data.slideController = SlideController(data.popup);
+  data.slideController = SlideController(data.popup, "VERTICAL");
 
   local containerModule = MayronUI:ImportModule("BottomUI_Container");
 
@@ -491,7 +491,7 @@ function C_DataTextModule:ClickModuleButton(data, component, dataTextButton, but
     -- if button was rapidly clicked on, reset alpha
     data.popup:SetAlpha(1);
     gui:FoldAllDropDownMenus(); -- fold any dropdown menus (slideController is not a dropdown menu)
-    data.slideController:Start(SlideController.Static.FORCE_RETRACT);
+    data.slideController:StartRetracting();
 
     PlaySound(tk.Constants.CLICK);
     return;
@@ -553,8 +553,8 @@ function C_DataTextModule:ClickModuleButton(data, component, dataTextButton, but
 
   -- begin expanding the popup menu
   data.slideController:Hide();
-  data.slideController:SetMaxHeight(totalHeight);
-  data.slideController:Start(SlideController.Static.FORCE_EXPAND);
+  data.slideController:SetMaxValue(totalHeight);
+  data.slideController:StartExpanding();
 
   UIFrameFadeIn(data.popup, 0.3, 0, 1);
   PlaySound(tk.Constants.CLICK);

@@ -190,7 +190,7 @@ do
     local dbObject = MayronUI:GetModuleComponent(self:GetModuleKey(), "Database"); ---@type Database
 
     if (not dbObject) then
-      dbObject = MayronUI:GetCoreComponent("Database"); ---@type Database
+      dbObject = MayronUI:GetComponent("Database"); ---@type Database
     end
 
     -- updateFunctionPath is the located function (or table if no function found) path

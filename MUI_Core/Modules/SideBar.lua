@@ -3,11 +3,12 @@ local _G = _G
 local MayronUI = _G.MayronUI
 local tk, db, em, gui, _, L = MayronUI:GetCoreComponents()
 
-local Private = {}
-local InCombatLockdown, IsAddOnLoaded, UIFrameFadeIn, UIFrameFadeOut, math,
-      tostring, CreateFrame, C_Timer, UIParent, PlaySound = _G.InCombatLockdown,
-  _G.IsAddOnLoaded, _G.UIFrameFadeIn, _G.UIFrameFadeOut, _G.math, _G.tostring,
-  _G.CreateFrame, _G.C_Timer, _G.UIParent, _G.PlaySound
+local InCombatLockdown, IsAddOnLoaded, CreateFrame, UIParent =
+   _G.InCombatLockdown,_G.IsAddOnLoaded, _G.CreateFrame, _G.UIParent;
+local radians = _G.math.rad;
+
+local EXPAND_BUTTON_ID = 1;
+local RETRACT_BUTTON_ID = 2;
 
 -- Register and Import Modules -----------
 
@@ -15,302 +16,145 @@ local C_SideBarModule = MayronUI:RegisterModule("SideBarModule", L["Side Action 
 
 -- Add Database Defaults -----------------
 
-db:AddToDefaults(
-  "profile.sidebar", {
+db:AddToDefaults("profile.sidebar", {
     enabled = true;
-    height = 486;
-    retractWidth = 46;
-    expandWidth = 83;
-    animationSpeed = 6;
+    height = 460;
+    fixedWidth = 46;
     xOffset = 0;
     yOffset = 40;
-    barsShown = 2; -- non-config GUI
     alpha = 1;
+
     buttons = {
       showWhen = "Always"; -- can be mouseover or never
       hideInCombat = false;
       width = 15;
       height = 100;
     };
+
     bartender = {
+      panelPadding = 6;
+      animationSpeed = 6;
+      spacing = 4;
       control = true;
+      controlPositioning = true;
+      controlScale = true;
+      scale = tk:IsRetail() and 0.69 or 0.85;
+      controlPadding = true;
+      padding = tk:IsRetail() and 6 or 5.5;
+      activeSets = 2;
 
       -- These are the bartender IDs, not the Bar Name!
       -- Use Bartender4:GetModule("ActionBars"):GetBarName(id) to find out its name.
-      [1] = 3; -- first bar
-      [2] = 4; -- second bar
+      -- Set 1:
+      [1] = { 3 };
+      -- Set 2:
+      [2] = { 4 };
     };
   })
 
--- Private Functions ---------------------
+-- Local Functions ---------------------
 
-function Private:ToggleBartenderBar(bar, show)
-  if (IsAddOnLoaded("Bartender4") and db.profile.sidebar.bartender.control) then
-    bar:SetConfigAlpha((show and 1) or 0)
-    bar:SetVisibilityOption("always", not show)
-  end
-end
+local function UpdateArrowButtonVisibility(data, activeSets)
+  activeSets = activeSets or data.settings.bartender.activeSets;
 
-function Private:ExpandFrame(sidebar, bar2, frame, maxWidth)
-  local counter = 1
+  local showOnMouseOver = data.settings.buttons.showWhen == "On Mouse-over";
+  data.expand.showOnMouseOver = showOnMouseOver;
+  data.retract.showOnMouseOver = showOnMouseOver;
 
-  local function loop()
-    if (counter) then
-      counter = counter + 1
-
-      if (counter > 6) then
-        if (IsAddOnLoaded("Bartender4") and db.profile.sidebar.bartender.control) then
-          UIFrameFadeIn(bar2, 0.2, bar2:GetAlpha(), 1)
-        end
-
-        counter = false
-      end
-    end
-
-    local width = math.floor(frame:GetWidth() + 0.5)
-
-    if (width < maxWidth and frame.expand) then
-      if (width + Private.step > maxWidth) then
-        frame:SetWidth(maxWidth)
-      else
-        frame:SetWidth(width + Private.step)
-      end
-
-      C_Timer.After(0.02, loop)
+  if (data.settings.buttons.hideInCombat) then
+    if (not em:GetEventListenerByID("SideBar_HideInCombat")) then
+      em:CreateEventListenerWithID("SideBar_HideInCombat", UpdateArrowButtonVisibility)
+        :SetCallbackArgs(data)
+        :RegisterEvent("PLAYER_REGEN_ENABLED")
+        :RegisterEvent("PLAYER_REGEN_DISABLED");
     else
-      frame:SetWidth(maxWidth)
-      Private:ToggleBartenderBar(bar2, true)
-      frame.animating = false
-      sidebar:SetBarsShown(2)
+      em:EnableEventListeners("SideBar_HideInCombat");
     end
-  end
-
-  frame:Show()
-  frame.expand = true
-  frame.animating = true
-  C_Timer.After(0.02, loop)
-end
-
-function Private:RetractFrame(sidebar, bar2, frame, minWidth)
-  local function loop()
-    local width = math.floor(frame:GetWidth() + 0.5)
-
-    if (width > (Private.step + minWidth) and not frame.expand) then
-      frame:SetWidth(width - Private.step)
-      C_Timer.After(0.02, loop)
-    else
-      frame:SetWidth(minWidth)
-      Private:ToggleBartenderBar(bar2, false)
-      frame.animating = false
-      sidebar:SetBarsShown(1)
-    end
-  end
-
-  frame.expand = nil
-  frame.animating = true
-
-  if (IsAddOnLoaded("Bartender4") and db.profile.sidebar.bartender.control) then
-    UIFrameFadeOut(bar2, 0.1, bar2:GetAlpha(), 0)
-  end
-
-  C_Timer.After(0.02, loop)
-end
-
-function Private:MoveFrameOut(
-  sideBarModule,
-  frame,
-  settingXOffset,
-  settingAlpha,
-  bar1,
-  controlBartender)
-  if (settingXOffset ~= 0) then
-    if (IsAddOnLoaded("Bartender4") and controlBartender) then
-      UIFrameFadeOut(bar1, 0.1, bar1:GetAlpha(), 0)
-    end
-    UIFrameFadeOut(frame, 0.2, settingAlpha, 0)
-
-    C_Timer.After(
-      0.2, function()
-        sideBarModule:SetBarsShown(0)
-      end) -- SetBarsShown(0) hides without the animation. Timer fixes this
   else
-    frame:SetAlpha(settingAlpha) -- Make sure frame is visible after changing settings
-    local function loop()
-      local point, anchor, anchorPoint, xOffset, yOffset = frame:GetPoint()
-      local width = math.floor(frame:GetWidth() + 0.5)
-
-      if (xOffset < (width - Private.step) and not frame.moveIn) then
-        frame:SetPoint(
-          point, anchor, anchorPoint, xOffset + Private.step, yOffset)
-        C_Timer.After(0.02, loop)
-      else
-        frame:SetPoint(point, anchor, anchorPoint, width, yOffset)
-        frame:Hide()
-        Private:ToggleBartenderBar(bar1, false)
-        frame.animating = false
-        sideBarModule:SetBarsShown(0)
-      end
-    end
-
-    frame.moveIn = nil
-    frame.animating = true
-
-    if (IsAddOnLoaded("Bartender4") and controlBartender) then
-      UIFrameFadeOut(bar1, 0.1, bar1:GetAlpha(), 0)
-    end
-
-    C_Timer.After(0.02, loop)
+    em:DisableEventListeners("SideBar_HideInCombat");
   end
-end
 
-function Private:MoveFrameIn(
-  sideBarModule,
-  frame,
-  settingXOffset,
-  settingAlpha,
-  bar1,
-  controlBartender)
-  if (settingXOffset ~= 0) then
-    local point, anchor, anchorPoint, _, yOffset = frame:GetPoint()
-    frame:SetPoint(point, anchor, anchorPoint, settingXOffset, yOffset)
-    Private:ToggleBartenderBar(bar1, true)
-    sideBarModule:SetBarsShown(1)
+  if (data.settings.buttons.showWhen == "Never" or
+    data.settings.buttons.hideInCombat and InCombatLockdown()) then
 
-    if (IsAddOnLoaded("Bartender4") and controlBartender) then
-      UIFrameFadeIn(bar1, 0.2, bar1:GetAlpha(), 1)
-    end
-    UIFrameFadeIn(frame, 0.2, 0, settingAlpha)
-  else
-    frame:SetAlpha(settingAlpha) -- Make sure frame is visible after changing settings
-    local counter = 1
-
-    local function loop()
-      if (counter) then
-        counter = counter + 1
-
-        if (counter > 8) then
-          if (IsAddOnLoaded("Bartender4") and controlBartender) then
-            UIFrameFadeIn(bar1, 0.2, bar1:GetAlpha(), 1)
-          end
-
-          counter = false
-        end
-      end
-
-      local point, anchor, anchorPoint, xOffset, yOffset = frame:GetPoint()
-      xOffset = math.floor(xOffset + 0.5)
-
-      if (xOffset > (0 + Private.step) and frame.moveIn) then
-        frame:SetPoint(
-          point, anchor, anchorPoint, xOffset - Private.step, yOffset)
-        C_Timer.After(0.02, loop)
-      else
-        frame:SetPoint(point, anchor, anchorPoint, 0, yOffset)
-        Private:ToggleBartenderBar(bar1, true)
-        frame.animating = false
-        sideBarModule:SetBarsShown(1)
-      end
-    end
-
-    frame:Show()
-    frame.moveIn = true
-    frame.animating = true
-    C_Timer.After(0.02, loop)
+    data.expand:Hide();
+    data.retract:Hide();
+    return
   end
-end
 
-local function UpdateSideButtonVisibility(barsShown,
-                                          expandBtn,
-                                          retractBtn)
-  if (barsShown == 0) then
-    expandBtn:Show()
-    retractBtn:Hide()
-  elseif (barsShown == 1) then
-    expandBtn:Show()
-    retractBtn:Show()
-  elseif (barsShown == 2) then
-    expandBtn:Hide()
-    retractBtn:Show()
+  if (showOnMouseOver) then
+    data.expand:Show();
+    data.retract:Show();
+    data.expand:SetAlpha(0);
+    data.retract:SetAlpha(0);
+    return
   end
+
+  data.expand:SetAlpha(1);
+  data.retract:SetAlpha(1);
+  data.expand:SetShown(activeSets ~= 2);
+  data.retract:SetShown(activeSets ~= 0);
 end
 
-local function SideButton_OnEnter(self)
-  self:SetAlpha(1)
-end
+local function UpdateArrowButtonPositions(data, activeSets)
+  activeSets = activeSets or data.settings.bartender.activeSets;
 
-local function SideButton_OnLeave(self)
-  self:SetAlpha(0)
+  data.expand:ClearAllPoints();
+  data.retract:ClearAllPoints();
+
+  if (activeSets == 0) then
+    data.expand:SetPoint("RIGHT", data.panel, "LEFT");
+
+  elseif (activeSets == 1) then
+    data.expand:SetPoint("RIGHT", data.panel, "LEFT", 0, 90);
+    data.retract:SetPoint("RIGHT", data.panel, "LEFT", 0, -90);
+
+  elseif (activeSets == 2) then
+    data.retract:SetPoint("RIGHT", data.panel, "LEFT");
+  end
 end
 
 -- C_SideBarModule -----------------------
 function C_SideBarModule:OnInitialize(data)
   local options = {
     onExecuteAll = {
-      ignore = { "retractWidth"; "xOffset"; "yOffset" };
-      dependencies = { ["expandWidth"] = "bartender" };
+      ignore = { "xOffset"; "yOffset", "buttons.*" };
     };
   }
 
   self:RegisterUpdateFunctions(
     db.profile.sidebar, {
       enabled = function(value)
-        self:SetEnabled(value)
+        self:SetEnabled(value);
       end;
       height = function(value)
-        data.panel:SetHeight(value)
+        data.panel:SetHeight(value);
       end;
-      retractWidth = function()
-        self:SetBarsShown(data.settings.barsShown)
-      end;
-      expandWidth = function()
-        self:SetBarsShown(data.settings.barsShown)
-      end;
-      animationSpeed = function(value)
-        Private.step = value
+      fixedHeight = function(value)
+        if (not data.settings.bartender.control) then
+          data.panel:SetWidth(value);
+        end
       end;
       alpha = function(value)
-        data.panel:SetAlpha(value)
+        data.panel:SetAlpha(value);
       end;
       xOffset = function(value)
-        local p, rf, rp, _, y = data.panel:GetPoint()
-        data.panel:SetPoint(p, rf, rp, value, y)
+        local p, rf, rp, _, y = data.panel:GetPoint();
+        data.panel:SetPoint(p, rf, rp, value, y);
       end;
       yOffset = function(value)
-        local p, rf, rp, x = data.panel:GetPoint()
-        data.panel:SetPoint(p, rf, rp, x, value)
+        local p, rf, rp, x = data.panel:GetPoint();
+        data.panel:SetPoint(p, rf, rp, x, value);
       end;
       bartender = function()
-        self:SetBartenderBars()
+        self:SetUpExpandRetract();
       end;
       buttons = {
-        showWhen = function(value)
-          if (value == "Never") then
-            data.expand:Hide()
-            data.retract:Hide()
-            return
-          end
-
-          UpdateSideButtonVisibility(
-            data.settings.barsShown, data.expand, data.retract)
-
-          if (value == "On Mouse-over") then
-            data.expand:SetAlpha(0)
-            data.retract:SetAlpha(0)
-            data.expand:SetScript("OnEnter", SideButton_OnEnter)
-            data.expand:SetScript("OnLeave", SideButton_OnLeave)
-            data.retract:SetScript("OnEnter", SideButton_OnEnter)
-            data.retract:SetScript("OnLeave", SideButton_OnLeave)
-          else
-            data.expand:SetScript("OnEnter", nil)
-            data.expand:SetScript("OnLeave", nil)
-            data.retract:SetScript("OnEnter", nil)
-            data.retract:SetScript("OnLeave", nil)
-            data.expand:SetAlpha(1)
-            data.retract:SetAlpha(1)
-          end
+        showWhen = function()
+          UpdateArrowButtonVisibility(data);
         end;
-        hideInCombat = function(value)
-          self:SetButtonsHideInCombat(value)
+        hideInCombat = function()
+          UpdateArrowButtonVisibility(data);
         end;
         width = function(value)
           data.expand:SetSize(value, data.settings.buttons.height)
@@ -331,30 +175,27 @@ function C_SideBarModule:OnInitialized(data)
 end
 
 function C_SideBarModule:OnEnable(data)
-  Private.step = data.settings.animationSpeed
-  self:CreateSideBar()
-  data.panel:Show()
-  UpdateSideButtonVisibility(data.settings.barsShown, data.expand, data.retract)
+  if (not data.panel) then
+    local sideBarTexturePath = tk:GetAssetFilePath("Textures\\SideBar\\SideBarPanel");
+    data.panel = CreateFrame("Frame", "MUI_SideBar", UIParent);
+    data.panel:SetPoint("RIGHT", data.settings.xOffset, data.settings.yOffset);
+    gui:CreateGridTexture(data.panel, sideBarTexturePath, 20, nil, 45, 749);
+  end
+
+  data.panel:Show();
 
   if (tk:IsRetail()) then
     if (em:GetEventListenerByID("SideBarPetBattleStart")) then
-      em:EnableEventListeners("SideBarPetBattleStart")
-      em:EnableEventListeners("SideBarPetBattleStop")
-    else
-      local listener = em:CreateEventListenerWithID(
-                         "SideBarPetBattleStart", function()
-          data.panel:Hide()
-        end)
-
-      listener:RegisterEvent("PET_BATTLE_OPENING_START")
-
-      listener = em:CreateEventListenerWithID(
-                   "SideBarPetBattleStop", function()
-          data.panel:Show()
-        end)
-
-      listener:RegisterEvent("PET_BATTLE_CLOSE")
+      em:EnableEventListeners("SideBarPetBattleStart");
+      em:EnableEventListeners("SideBarPetBattleStop");
+      return
     end
+
+    em:CreateEventListenerWithID("SideBarPetBattleStart", function() data.panel:Hide() end)
+      :RegisterEvent("PET_BATTLE_OPENING_START");
+
+    em:CreateEventListenerWithID("SideBarPetBattleStop", function() data.panel:Show() end)
+      :RegisterEvent("PET_BATTLE_CLOSE");
   end
 end
 
@@ -363,197 +204,115 @@ function C_SideBarModule:OnDisable(data)
     return
   end
 
-  data.panel:Hide()
-  data.expand:Hide()
-  data.retract:Hide()
+  data.panel:Hide();
+
+  if (data.expand and data.retract) then
+    data.expand:Hide();
+    data.retract:Hide();
+  end
 
   if (tk:IsRetail()) then
-    em:DisableEventListeners("SideBarPetBattleStart")
-    em:DisableEventListeners("SideBarPetBattleStop")
+    em:DisableEventListeners("SideBarPetBattleStart");
+    em:DisableEventListeners("SideBarPetBattleStop");
   end
 end
 
-function C_SideBarModule:SetButtonsHideInCombat(data, hide)
-  if (hide) then
-    if (not em:GetEventListenerByID("SideBar_HideInCombat_RegenEnabled")) then
-      local listener = em:CreateEventListenerWithID(
-                         "SideBar_HideInCombat_RegenEnabled", function()
-          data.expand:SetShown(data.settings.barsShown ~= 2)
-          data.retract:SetShown(data.settings.barsShown ~= 0)
-        end)
+local function OnArrowButtonEnter(self)
+  local r, g, b = self.icon:GetVertexColor();
+  self.icon:SetVertexColor(r * 1.2, g * 1.2, b * 1.2);
 
-      listener:RegisterEvent("PLAYER_REGEN_ENABLED")
+  if (self.showOnMouseOver) then
+    self:SetAlpha(1);
+  end
+end
 
-      listener = em:CreateEventListenerWithID(
-                   "SideBar_HideInCombat_RegenDisabled", function()
-          data.expand:Hide()
-          data.retract:Hide()
-        end)
+local function OnArrowButtonLeave(self)
+  tk:ApplyThemeColor(self.icon);
+  if (self.showOnMouseOver) then
+    self:SetAlpha(0);
+  end
+end
 
-      listener:RegisterEvent("PLAYER_REGEN_DISABLED")
-    else
-      em:EnableEventListeners(
-        "SideBar_HideInCombat_RegenEnabled",
-          "SideBar_HideInCombat_RegenDisabled")
+local function OnArrowButtonClick(btnId, currentActiveSets)
+  if (btnId == EXPAND_BUTTON_ID) then
+    if (currentActiveSets == 0) then
+      MayronUI:TriggerCommand("Show1SideActionBar");
+    elseif (currentActiveSets == 1) then
+      MayronUI:TriggerCommand("Show2SideActionBars");
     end
-  else
-    em:DisableEventListeners(
-      "SideBar_HideInCombat_RegenEnabled", "SideBar_HideInCombat_RegenDisabled")
-  end
 
-  if (InCombatLockdown() and hide) then
-    data.expand:Hide()
-    data.retract:Hide()
-  else
-    data.expand:SetShown(data.settings.barsShown ~= 2)
-    data.retract:SetShown(data.settings.barsShown ~= 0)
+  elseif (btnId == RETRACT_BUTTON_ID ) then
+    if (currentActiveSets == 1) then
+      MayronUI:TriggerCommand("HideAllSideActionBars");
+    elseif (currentActiveSets == 2) then
+      MayronUI:TriggerCommand("Show1SideActionBar");
+    end
   end
 end
 
--- SideBar Object -------------------------
-function C_SideBarModule:Expand(data, expandAmount)
-  if (InCombatLockdown()) then
-    return
-  end
-
-  PlaySound(tk.Constants.CLICK)
-  data.expand:Hide()
-  data.retract:Hide()
-
-  if (expandAmount == 1) then
-    Private:MoveFrameIn(
-      self, data.panel, data.settings.xOffset, data.settings.alpha, data.BTBar1,
-        data.settings.bartender.control)
-  elseif (expandAmount == 2) then
-    Private:ExpandFrame(
-      self, data.BTBar2, data.panel, data.settings.expandWidth)
-  end
-end
-
-function C_SideBarModule:Retract(data, retractAmount)
-  if (InCombatLockdown()) then
-    return
-  end
-
-  PlaySound(tk.Constants.CLICK)
-  data.expand:Hide()
-  data.retract:Hide()
-
-  if (retractAmount == 1) then
-    Private:RetractFrame(
-      self, data.BTBar2, data.panel, data.settings.retractWidth)
-  elseif (retractAmount == 2) then
-    Private:MoveFrameOut(
-      self, data.panel, data.settings.xOffset, data.settings.alpha, data.BTBar1,
-        data.settings.bartender.control)
-  end
-end
-
-function C_SideBarModule:SetBarsShown(data, numBarsShown)
-  data.settings.barsShown = numBarsShown
-  db.profile.sidebar.barsShown = numBarsShown
-
-  data.expand:ClearAllPoints()
-  data.retract:ClearAllPoints()
-
-  UpdateSideButtonVisibility(data.settings.barsShown, data.expand, data.retract)
-
-  if (data.settings.barsShown == 2) then
-    Private:ToggleBartenderBar(data.BTBar2, true)
-    Private:ToggleBartenderBar(data.BTBar1, true)
-
-    data.panel:SetSize(data.settings.expandWidth, data.settings.height)
-    data.retract:SetPoint("RIGHT", data.panel, "LEFT")
-
-    data.retract:SetScript(
-      "OnClick", function()
-        self:Retract(1)
-      end)
-  elseif (data.settings.barsShown == 1) then
-    Private:ToggleBartenderBar(data.BTBar2, false)
-    Private:ToggleBartenderBar(data.BTBar1, true)
-    data.panel:SetSize(data.settings.retractWidth, data.settings.height)
-    data.expand:SetPoint("RIGHT", data.panel, "LEFT", 0, 90)
-    data.retract:SetPoint("RIGHT", data.panel, "LEFT", 0, -90)
-
-    data.expand:SetScript(
-      "OnClick", function()
-        self:Expand(2)
-      end)
-
-    data.retract:SetScript(
-      "OnClick", function()
-        self:Retract(2)
-      end)
-  elseif (data.settings.barsShown == 0) then
-    Private:ToggleBartenderBar(data.BTBar1, false)
-    Private:ToggleBartenderBar(data.BTBar2, false)
-    data.panel:SetSize(data.settings.retractWidth, data.settings.height)
-    data.panel:ClearAllPoints()
-    data.panel:SetPoint(
-      "RIGHT", UIParent, "RIGHT",
-        data.settings.retractWidth + data.settings.xOffset,
-        data.settings.yOffset)
-    data.panel:Hide()
-    data.expand:SetPoint("RIGHT")
-
-    data.expand:SetScript(
-      "OnClick", function()
-        self:Expand(1)
-      end)
-  end
-
-  if (data.settings.buttons.showWhen == "Never") then
-    data.expand:Hide()
-    data.retract:Hide()
-  end
-end
-
-function C_SideBarModule:CreateSideBar(data)
-  if (data.panel) then
-    return
-  end
-
-  local sideButtonTexturePath = tk:GetAssetFilePath(
-                                  "Textures\\SideBar\\SideButton")
-  local sideBarTexturePath = tk:GetAssetFilePath(
-                               "Textures\\SideBar\\SideBarPanel")
-
-  data.panel = CreateFrame("Frame", "MUI_SideBar", UIParent)
-  data.panel:SetPoint("RIGHT", data.settings.xOffset, data.settings.yOffset)
-
-  gui:CreateGridTexture(data.panel, sideBarTexturePath, 20, nil, 45, 749)
-
-  data.expand = CreateFrame("Button", nil, UIParent)
-  data.expand:SetNormalFontObject("MUI_FontSmall")
-  data.expand:SetHighlightFontObject("GameFontHighlightSmall")
-  data.expand:SetNormalTexture(sideButtonTexturePath)
-  data.expand:SetSize(data.settings.buttons.width, data.settings.buttons.height)
-  data.expand:SetText("<")
-
-  data.retract = CreateFrame("Button", nil, UIParent)
-  data.retract:SetNormalFontObject("MUI_FontSmall")
-  data.retract:SetHighlightFontObject("GameFontHighlightSmall")
-  data.retract:SetNormalTexture(sideButtonTexturePath)
-  data.retract:SetSize(
-    data.settings.buttons.width, data.settings.buttons.height)
-  data.retract:SetText(">")
-end
-
-function C_SideBarModule:GetPanel(data)
-  return data.panel
-end
-
-function C_SideBarModule:SetBartenderBars(data)
+function C_SideBarModule:SetUpExpandRetract(data)
   if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
     return
   end
 
-  local bar1 = data.settings.bartender[1];
-  local bar2 = data.settings.bartender[2];
+  local sideButtonTexture = tk:GetAssetFilePath("Textures\\SideBar\\SideButton");
 
-  _G.Bartender4:GetModule("ActionBars"):EnableBar(bar1)
-  _G.Bartender4:GetModule("ActionBars"):EnableBar(bar2)
-  data.BTBar1 = _G["BT4Bar" .. tostring(bar1)]
-  data.BTBar2 = _G["BT4Bar" .. tostring(bar2)]
+  em:CreateEventListener(function()
+    db.profile.sidebar.bartender.activeSets = data.settings.bartender.activeSets;
+  end):RegisterEvent("PLAYER_LOGOUT");
+
+  for btnId = 1, 2 do
+    local btn = CreateFrame("Button", nil, UIParent);
+    btn:SetID(btnId);
+    btn:SetNormalTexture(sideButtonTexture);
+    btn:SetSize(data.settings.buttons.width, data.settings.buttons.height);
+    btn:SetScript("OnEnter", OnArrowButtonEnter);
+    btn:SetScript("OnLeave", OnArrowButtonLeave);
+    btn:SetScript("OnClick", function()
+      OnArrowButtonClick(btnId, data.settings.bartender.activeSets);
+    end);
+
+    btn.icon = btn:CreateTexture(nil, "OVERLAY");
+    btn.icon:SetSize(16, 8);
+    btn.icon:SetPoint("CENTER");
+    btn.icon:SetTexture(tk:GetAssetFilePath("Textures\\BottomUI\\Arrow"));
+    tk:ApplyThemeColor(btn.icon);
+
+    if (btnId == EXPAND_BUTTON_ID) then
+      btn.icon:SetRotation(radians(90));
+    else
+      btn.icon:SetRotation(radians(-90));
+    end
+
+    local btnKey = btnId == EXPAND_BUTTON_ID and "expand" or "retract";
+    data[btnKey] = btn;
+  end
+
+  UpdateArrowButtonPositions(data);
+  UpdateArrowButtonVisibility(data);
+
+  local mixin = MayronUI:GetComponent("BartenderController");
+
+  ---@type BartenderControllerMixin
+  local controller = _G.CreateAndInitFromMixin(mixin, data.panel, data.settings.bartender, 0, "HORIZONTAL", 40, 2, 0);
+
+  local function PlayTransition(nextActiveSetId)
+    controller:PlayTransition(nextActiveSetId);
+    UpdateArrowButtonPositions(data, nextActiveSetId);
+    UpdateArrowButtonVisibility(data, nextActiveSetId);
+  end
+
+  -- Setup action bar toggling commands:
+  _G.BINDING_NAME_MUI_HIDE_ALL_SIDE_ACTION_BARS = "Hide All Side Action Bars";
+  MayronUI:RegisterCommand("HideAllSideActionBars", PlayTransition, 0);
+
+  _G.BINDING_NAME_MUI_SHOW_1_SIDE_ACTION_BAR = "Show 1 Side Action Bar";
+  MayronUI:RegisterCommand("Show1SideActionBar", PlayTransition, 1);
+
+  _G.BINDING_NAME_MUI_SHOW_2_SIDE_ACTION_BARS = "Show 2 Side Action Bars";
+  MayronUI:RegisterCommand("Show2SideActionBars", PlayTransition, 2);
+end
+
+function C_SideBarModule:GetPanel(data)
+  return data.panel
 end

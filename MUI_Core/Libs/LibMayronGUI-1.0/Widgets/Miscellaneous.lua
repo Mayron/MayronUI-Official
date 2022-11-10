@@ -211,7 +211,7 @@ do
   end
 
   local function UpdateColor(self)
-    local tk = _G.MayronUI:GetCoreComponent("Toolkit"); ---@type Toolkit
+    local tk = _G.MayronUI:GetComponent("Toolkit"); ---@type Toolkit
     local checkedTexture = self.btn:GetCheckedTexture();
     tk:ApplyThemeColor(checkedTexture);
   end
@@ -230,7 +230,7 @@ do
       container.btn:SetScript("OnLeave", OnLeave);
     end
 
-    local tk = _G.MayronUI:GetCoreComponent("Toolkit"); ---@type Toolkit
+    local tk = _G.MayronUI:GetComponent("Toolkit"); ---@type Toolkit
     tk:KillElement(container.btn:GetHighlightTexture());
 
     -- Normal Texture:

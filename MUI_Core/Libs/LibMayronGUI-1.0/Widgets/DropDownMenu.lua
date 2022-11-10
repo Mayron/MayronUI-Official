@@ -115,10 +115,11 @@ function Lib:CreateDropDown(style, parent, direction, menuParent)
     dropDownContainer.toggleButton.arrow:SetTexCoord(0, 1, 0, 1);
   end
 
-  local slideController = SlideController(DropDownMenu.Static.Menu);
-  slideController:SetMinHeight(1);
+  ---@type SlideController
+  local slideController = SlideController(DropDownMenu.Static.Menu, "VERTICAL");
+  slideController:SetMinValue(1);
 
-  slideController:OnEndRetract(function(self, frame)
+  slideController:OnEndRetract(function(_, frame)
     frame:Hide();
   end);
 
@@ -459,7 +460,7 @@ function DropDownMenu:Toggle(data, show, clickSoundFilePath)
     DropDownMenu.Static.Menu:SetHeight(1);
 
     data.frame.child:Show();
-    data.slideController:SetMaxHeight(maxHeight);
+    data.slideController:SetMaxValue(maxHeight);
 
     if (data.direction == "DOWN") then
       data.frame.toggleButton.arrow:SetTexCoord(0, 1, 0, 1);

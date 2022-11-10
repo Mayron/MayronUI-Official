@@ -95,6 +95,7 @@ end
 ---callback arguments. Therefore, calling this method with no arguments will remove all of them. Note: If you call this
 ---method with only `nil` then `nil` will still be passed as a custom callback argument.
 ---@vararg any @A list of custom callback arguments to be passed to the callback function each time it is executed.
+---@return EventListener
 function C_EventListener:SetCallbackArgs(data, ...)
   if (obj:IsTable(data.args)) then
     obj:EmptyTable(data.args);
@@ -106,27 +107,34 @@ function C_EventListener:SetCallbackArgs(data, ...)
   for i = 1, data.argsLength do
     data.args[i] = (select(i, ...));
   end
+
+  return self;
 end
 
 obj:DefineParams("string");
 ---Register a Blizzard event for the event listener to listen out for. If enabled, the event listener
 ---will execute its callback function when the event fires.
 ---@param event string @The Blizzard event to register.
+---@return EventListener
 function C_EventListener:RegisterEvent(data, event)
   data.events = data.events or obj:PopTable();
   data.events[event] = true;
 
   local managerData = data:GetFriendData(data.manager);
   managerData.frame:RegisterEvent(event);
+  return self;
 end
 
 obj:DefineParams("string", "...string");
 ---A helper method that takes a variable argument list of Blizzard event names and calls `RegisterEvent` for each one.
 ---@vararg string @A variable argument list of Blizzard event names register.
+---@return EventListener
 function C_EventListener:RegisterEvents(_, ...)
   for i = 1, select("#", ...) do
     self:RegisterEvent((select(i, ...)));
   end
+
+  return self;
 end
 
 obj:DefineParams("string", "string", "?string", "?string");

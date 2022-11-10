@@ -2,72 +2,53 @@
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
-local CreateFrame, InCombatLockdown, PlaySound = _G.CreateFrame, _G.InCombatLockdown, _G.PlaySound;
-local UIFrameFadeIn, UIFrameFadeOut = _G.UIFrameFadeIn, _G.UIFrameFadeOut;
-local IsAddOnLoaded, LoadAddOn, string, ipairs = _G.IsAddOnLoaded, _G.LoadAddOn, _G.string, _G.ipairs;
-local C_Timer = _G.C_Timer;
+local CreateFrame, InCombatLockdown = _G.CreateFrame, _G.InCombatLockdown;
+local UIFrameFadeIn = _G.UIFrameFadeIn;
+local IsAddOnLoaded, LoadAddOn, ipairs = _G.IsAddOnLoaded, _G.LoadAddOn, _G.ipairs;
 local GetAddOnMetadata = _G.GetAddOnMetadata;
 
-local FADING_STACKING_DELAY = 0.2;
 local TOGGLE_BUTTON_WIDTH = 120;
 local TOGGLE_BUTTON_HEIGHT = 28;
-local BARTENDER4_BAR_BUTTON_BORDER_SIZE = 0.65;
-local ACTION_BAR_PANEL_OVERLAP = 1; -- how much the ActionBarPanel texture overlaps into the element below it
-local ACTION_BAR_PANEL_PADDING = 2;
+local EXPAND_BUTTON_ID = 1;
+local RETRACT_BUTTON_ID = 2;
 
 -- Register and Import Modules -----------
 local C_ActionBarPanel = MayronUI:RegisterModule("ActionBarPanel", L["Action Bar Panel"], true);
-local SlideController = obj:Import("MayronUI.SlideController");
 
 -- Load Database Defaults ----------------
 db:AddToDefaults("profile.actionBarPanel", {
-  enabled         = true; -- show/hide action bar panel
-
+  enabled = true; -- show/hide action bar panel
   -- Appearance properties
-  texture         = tk:GetAssetFilePath("Textures\\BottomUI\\ActionBarPanel");
-  alpha           = 1;
-  cornerSize      = 20;
-  rowSpacing      = 4;
+  texture = tk:GetAssetFilePath("Textures\\BottomUI\\ActionBarPanel");
+  alpha = 1;
+  cornerSize = 20;
   modKey = "C"; -- modifier key to toggle expand and retract button
-  animateSpeed = 6; -- expand and retract speed to show or hide an action bar row
   fixedHeight = 80; -- the height used when bartender.control is disabled
-  activeRows = 1; -- only show 1 row
+
   bartender = {
+    animationSpeed = 6;
+    panelPadding = 6;
+    spacing = 3;
     control = true;
+    controlPositioning = true;
+    controlScale = true;
+    scale = tk:IsRetail() and 0.69 or 0.85;
+    controlPadding = true;
+    padding = tk:IsRetail() and 6 or 5.5;
+    activeSets = 1;
 
     -- These are the bartender IDs, not the Bar Name!
     -- Use Bartender4:GetModule("ActionBars"):GetBarName(id) to find out its name.
-    -- Row 1
+    -- Set 1:
     [1] = tk:IsRetail() and { 1, 13 } or { 1, 7 };
-    -- Row 2
+    -- Set 2:
     [2] = tk:IsRetail() and { 6, 14 } or { 9, 10 };
-    -- Row 3:
+    -- Set 3
     [3] = tk:IsRetail() and { 5, 15 } or { 5, 6 };
   };
 });
 
 -- local functions ------------------
-
-local function GetRowHeight(barIds)
-  local maxHeight = 0;
-
-  for _, barId in ipairs(barIds) do
-    if (barId > 0) then
-      _G.Bartender4:GetModule("ActionBars"):EnableBar(barId);
-      local bartenderBar = _G[string.format("BT4Bar%d", barId)];
-
-      local barScale = bartenderBar:GetScale();
-      local buttonHeight = bartenderBar.buttons[1]:GetHeight();
-      local barHeight = (buttonHeight * barScale);
-
-      if (barHeight > maxHeight) then
-        maxHeight = barHeight;
-      end
-    end
-  end
-
-  return maxHeight;
-end
 
 local modKeyLabels = {
   ["C"] = "CTRL",
@@ -142,217 +123,57 @@ local function LoadTutorial(panel)
   listener:RegisterEvent("MODIFIER_STATE_CHANGED");
 end
 
-local function ToggleBartenderBarRow(data, rowId, show, delay)
-  if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
-    return false;
-  end
-
-  local bars = data.settings.bartender[rowId];
-  local fadingIn = false;
-
-  for _, bartenderBarId in ipairs(bars) do
-    if (obj:IsNumber(bartenderBarId)) then
-      local bartenderBarName = string.format("BT4Bar%d", bartenderBarId);
-      local bartenderBar = _G[bartenderBarName];
-
-      if (obj:IsTable(bartenderBar)) then
-        local newAlwaysHideValue = not show;
-        local currentAlwaysHideValue = bartenderBar:GetVisibilityOption("always");
-
-        if (newAlwaysHideValue ~= currentAlwaysHideValue) then
-          -- We need to fade this bartender bar in because the values are different:
-          fadingIn = true;
-
-          bartenderBar:SetConfigAlpha((show and 1) or 0);
-          -- Set Always hide (e.g, if show is true, then disable Always Hide)
-          bartenderBar:SetVisibilityOption("always", newAlwaysHideValue);
-
-          if (show) then
-            bartenderBar:SetAlpha(0);
-            bartenderBar.fadeIn = bartenderBar.fadeIn or function()
-              UIFrameFadeIn(bartenderBar, 0.1, 0, 1)
-            end;
-
-            C_Timer.After(0.1 + (delay or 0), bartenderBar.fadeIn);
-          end
-        end
-      end
+local function OnArrowButtonClick(btnId, currentActiveSets)
+  if (btnId == EXPAND_BUTTON_ID) then
+    if (currentActiveSets == 1) then
+      MayronUI:TriggerCommand("Show2BottomActionBars");
+    elseif (currentActiveSets == 2) then
+      MayronUI:TriggerCommand("Show3BottomActionBars");
     end
-  end
 
-  return fadingIn;
-end
-
--- Controls the Expand and Retract animation:
-local function SetUpSlideController(data)
-  ---@type SlideController
-  data.slideController = SlideController(data.panel, nil, false);
-  data.slideController:SetStepValue(data.settings.animateSpeed);
-
-  data.slideController:OnStartExpand(function()
-    local delay = 0;
-
-    for rowId = 1, data.settings.activeRows do
-      local fadingIn = ToggleBartenderBarRow(data, rowId, true, FADING_STACKING_DELAY * delay);
-
-      if (fadingIn) then
-        delay = delay + 1;
-      end
+  elseif (btnId == RETRACT_BUTTON_ID) then
+    if (currentActiveSets == 2) then
+      MayronUI:TriggerCommand("Show1BottomActionBar");
+    elseif (currentActiveSets == 3) then
+      MayronUI:TriggerCommand("Show2BottomActionBars");
     end
-  end, 5);
-
-  data.slideController:OnStartRetract(function()
-    if (not data.settings.bartender.control) then return end
-    local delay = 0;
-
-    for rowId = data.previousActiveRows, data.settings.activeRows + 1, -1 do
-      local bars = data.settings.bartender[rowId];
-      local fadingOut = false;
-
-      for _, bartenderBarId in ipairs(bars) do
-        if (obj:IsNumber(bartenderBarId)) then
-          local btnBar = _G[string.format("BT4Bar%d", bartenderBarId)];
-
-          if (obj:IsTable(btnBar)) then
-            btnBar.fadeOut = btnBar.fadeOut or function() UIFrameFadeOut(btnBar, 0.1, 1, 0) end;
-            C_Timer.After(0 + (FADING_STACKING_DELAY * delay), btnBar.fadeOut);
-            fadingOut = true;
-          end
-        end
-      end
-
-      if (fadingOut) then
-        delay = delay + 1;
-      end
-    end
-  end);
-
-  data.slideController:OnEndRetract(function()
-    for rowId = data.settings.activeRows + 1, 3 do
-      ToggleBartenderBarRow(data, rowId, false);
-    end
-  end);
-end
-
-local function HandleArrowButtonClick(data, btn)
-  if (data.up == btn and data.settings.activeRows < 3) then
-    MayronUI:TriggerCommand(string.format("Show%dActionBarRows", data.settings.activeRows + 1));
-  elseif (data.down == btn and data.settings.activeRows > 1) then
-    MayronUI:TriggerCommand(string.format("Show%dActionBarRows", data.settings.activeRows - 1));
   end
 end
 
-local function CreateArrowButton(data)
-  local btn = gui:CreateButton(tk.Constants.AddOnStyle, data.buttons);
-  btn:Hide();
-  btn:SetFrameStrata("HIGH");
-  btn:SetFrameLevel(30);
-  btn:SetBackdrop(tk.Constants.BACKDROP);
-  btn:SetBackdropBorderColor(0, 0, 0);
-  btn:SetScript("OnClick", function(b)
-    HandleArrowButtonClick(data, b);
-  end);
-
-  btn.icon = btn:CreateTexture(nil, "OVERLAY");
-  btn.icon:SetSize(16, 10);
-  btn.icon:SetPoint("CENTER");
-  btn.icon:SetTexture(tk:GetAssetFilePath("Textures\\BottomUI\\Arrow"));
-  tk:ApplyThemeColor(btn.icon);
-
-  local normalTexture = btn:GetNormalTexture();
-  normalTexture:SetVertexColor(0.15, 0.15, 0.15, 1);
-
-  btn:HookScript("OnEnter", function(self)
-    local r, g, b = self.icon:GetVertexColor();
-    self.icon:SetVertexColor(r * 1.2, g * 1.2, b * 1.2);
-  end);
-
-  btn:HookScript("OnLeave", function(self)
-    tk:ApplyThemeColor(self.icon);
-  end);
-
-  return btn;
+local function OnArrowButtonEnter(self)
+  local r, g, b = self.icon:GetVertexColor();
+  self.icon:SetVertexColor(r * 1.2, g * 1.2, b * 1.2);
 end
 
-local function HandleModifierStateChanged(data)
-  if (not tk:IsModComboActive(data.settings.modKey) or InCombatLockdown()) then
-    data.buttons:Hide();
-    return;
-  end
-
-  -- force execution of OnFinished callback
-  data.fader:Stop();
-  data.glowScaler:Play();
-  data.fader:Play();
+local function OnArrowButtonLeave(self)
+  tk:ApplyThemeColor(self.icon);
 end
 
 local function PositionToggleButtons(data)
-  data.up:Hide();
-  data.down:Hide();
+  data.expand:Hide();
+  data.retract:Hide();
 
-  if (data.settings.activeRows == 1) then
-    data.up:SetPoint("BOTTOM", data.buttons, "TOP");
-    data.up:SetSize(TOGGLE_BUTTON_WIDTH, TOGGLE_BUTTON_HEIGHT);
-    data.up:Show();
+  if (data.settings.bartender.activeSets == 1) then
+    data.expand:SetPoint("BOTTOM", data.buttons, "TOP");
+    data.expand:SetSize(TOGGLE_BUTTON_WIDTH, TOGGLE_BUTTON_HEIGHT);
+    data.expand:Show();
 
-  elseif (data.settings.activeRows == 2) then
+  elseif (data.settings.bartender.activeSets == 2) then
     local smallWidth = TOGGLE_BUTTON_WIDTH / 2;
     local gap = 1;
     local offset = (smallWidth / 2) + gap;
 
-    data.down:SetPoint("BOTTOM", data.buttons, "TOP", -offset, 0);
-    data.down:SetSize(smallWidth, TOGGLE_BUTTON_HEIGHT);
-    data.down:Show();
-    data.up:SetPoint("BOTTOM", data.buttons, "TOP", offset, 0);
-    data.up:SetSize(smallWidth, TOGGLE_BUTTON_HEIGHT);
-    data.up:Show();
+    data.retract:SetPoint("BOTTOM", data.buttons, "TOP", -offset, 0);
+    data.retract:SetSize(smallWidth, TOGGLE_BUTTON_HEIGHT);
+    data.retract:Show();
+    data.expand:SetPoint("BOTTOM", data.buttons, "TOP", offset, 0);
+    data.expand:SetSize(smallWidth, TOGGLE_BUTTON_HEIGHT);
+    data.expand:Show();
 
-  elseif (data.settings.activeRows == 3) then
-    data.down:SetPoint("BOTTOM", data.buttons, "TOP");
-    data.down:SetSize(TOGGLE_BUTTON_WIDTH, TOGGLE_BUTTON_HEIGHT);
-    data.down:Show();
-  end
-end
-
-local function PlayPanelHeightAnimation(data, rows)
-  data.buttons:Hide();
-
-  obj:Assert(rows >= 1 and rows <= 3,
-    "Invalid number of rows %s. Must be between or equal to 1 and 3.", rows);
-
-  if (InCombatLockdown()) then return end
-
-  PlaySound(tk.Constants.CLICK);
-
-  local previous = data.settings.activeRows;
-  local slider = data.slideController; ---@type SlideController
-  local rowHeights = data.panelHeightPerRow;
-
-  if (rows == 1) then
-    slider:SetMinHeight(rowHeights[1]);
-    slider:SetMaxHeight(rowHeights[previous]);
-
-  elseif (rows == 2) then
-    if (previous == 1) then
-      slider:SetMinHeight(rowHeights[1]);
-      slider:SetMaxHeight(rowHeights[2]);
-    elseif (previous == 3) then
-      slider:SetMinHeight(rowHeights[2]);
-      slider:SetMaxHeight(rowHeights[3]);
-    end
-
-  elseif (rows == 3) then
-    slider:SetMinHeight(rowHeights[previous]);
-    slider:SetMaxHeight(rowHeights[3]);
-  end
-
-  data.previousActiveRows = data.settings.activeRows;
-  data.settings.activeRows = rows;
-
-  if (previous > rows) then
-    slider:Start(SlideController.Static.FORCE_RETRACT);
-  elseif (previous < rows) then
-    slider:Start(SlideController.Static.FORCE_EXPAND);
+  elseif (data.settings.bartender.activeSets == 3) then
+    data.retract:SetPoint("BOTTOM", data.buttons, "TOP");
+    data.retract:SetSize(TOGGLE_BUTTON_WIDTH, TOGGLE_BUTTON_HEIGHT);
+    data.retract:Show();
   end
 end
 
@@ -387,8 +208,6 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
   local options = {
     onExecuteAll = {
       ignore = {
-        "animateSpeed",
-        "rowSpacing",
         "bartender"
       };
     };
@@ -415,18 +234,8 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
 
     -- Ignored OnLoad functions -----------
 
-    rowSpacing = function()
-      self:SetUpBartenderBars();
-    end;
-
     bartender = function()
-      self:SetUpBartenderBars();
-    end;
-
-    animateSpeed = function(value)
-      if (data.slideController) then
-        data.slideController:SetStepValue(value);
-      end
+      self:SetUpExpandRetract();
     end;
   }, options);
 
@@ -444,6 +253,16 @@ function C_ActionBarPanel:OnDisable(data)
 end
 
 function C_ActionBarPanel:OnEnable(data)
+  if (_G.Bartender4DB and not db.global.expanddatedStanceBar) then
+    local config = tk.Tables:GetTable(_G.Bartender4DB, "namespaces", "StanceBar", "profiles", "MayronUI");
+    config.padding = 4;
+    config.position = config.position or obj:PopTable();
+    config.position.scale = 1;
+    db.global.expanddatedStanceBar = true;
+
+    -- TODO: Also do pet bar
+  end
+
   if (data.panel) then
     data.panel:Show();
     data.containerModule:RepositionContent();
@@ -453,7 +272,6 @@ function C_ActionBarPanel:OnEnable(data)
   data.panel = CreateFrame("Frame", "MUI_ActionBarPanel", _G.MUI_BottomContainer);
   data.panel:SetFrameLevel(10);
   data.panel:SetHeight(data.settings.fixedHeight);
-
   gui:CreateGridTexture(data.panel, data.settings.texture, data.settings.cornerSize, nil, 749, 45);
 
   if (data.settings.bartender.control and not data.settings.tutorial) then
@@ -465,10 +283,10 @@ function C_ActionBarPanel:OnEnable(data)
   end
 end
 
-function C_ActionBarPanel:SetUpBartenderBars(data)
+function C_ActionBarPanel:SetUpExpandRetract(data)
   if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
     if (data.expandRetractFeatureLoaded) then
-      em:DisableEventListeners("ExpandRetractFeature");
+      em:DisableEventListeners("BottomSets_ExpandRetract");
       data.panel:SetHeight(data.settings.fixedHeight);
     end
 
@@ -480,78 +298,14 @@ function C_ActionBarPanel:SetUpBartenderBars(data)
     return
   end
 
-  self:LoadExpandRetractFeature();
-
-  -- -- calculate Row Offsets in relation to Resource Bars and Data-text bar:
-  local startPoint = bottom;
-
-  if (not tk:IsRetail()) then
-    startPoint = startPoint + 1; -- no clue why...
-  end
-
-  local rowSpacing = data.settings.rowSpacing + BARTENDER4_BAR_BUTTON_BORDER_SIZE;
-  local row1Height = GetRowHeight(data.settings.bartender[1]);
-  local row2Height = GetRowHeight(data.settings.bartender[2]);
-  local row3Height = GetRowHeight(data.settings.bartender[3]);
-
-  -- The Y-Offsets of each Bartender Bar per MayronUI row.
-  -- Each button is anchored to the TOPLEFT of the bar, so the bar needs to make room for the height of the buttons.
-  data.rowOffsets = {};
-  data.rowOffsets[1] = startPoint + (ACTION_BAR_PANEL_OVERLAP + ACTION_BAR_PANEL_PADDING + rowSpacing) + row1Height;
-  data.rowOffsets[2] = data.rowOffsets[1] + rowSpacing + row2Height;
-  data.rowOffsets[3] = data.rowOffsets[2] + rowSpacing + row3Height;
-
-  data.panelHeightPerRow = {};
-
-  for rowId = 1, 3 do
-    local endPoint = data.rowOffsets[rowId] +
-      (rowSpacing + ACTION_BAR_PANEL_PADDING - ACTION_BAR_PANEL_OVERLAP - BARTENDER4_BAR_BUTTON_BORDER_SIZE);
-
-    data.panelHeightPerRow[rowId] = endPoint - bottom;
-
-    for _, bartenderBarId in ipairs(data.settings.bartender[rowId]) do
-      -- Tell Bartender to enable the bar
-      _G.Bartender4:GetModule("ActionBars"):EnableBar(bartenderBarId);
-
-      -- Get Bartender action bar using its ID:
-      local bartenderBar = _G[string.format("BT4Bar%d", bartenderBarId)];
-      obj:Assert(bartenderBar, "Failed to setup bartender bar %s - bar does not exist", bartenderBarId);
-
-      local shouldShow = data.settings.activeRows >= rowId;
-      bartenderBar:SetConfigAlpha((shouldShow and 1) or 0);
-      bartenderBar:SetVisibilityOption("always", not shouldShow);
-
-      bartenderBar.config.position.point = "BOTTOM";
-      bartenderBar.config.position.y = data.rowOffsets[rowId];
-
-      data.rows[rowId] = data.rows[rowId] or obj:PopTable();
-      data.rows[rowId][bartenderBarId] = bartenderBar;
-
-      -- Save changes in Bartender4:
-      bartenderBar:LoadPosition();
-    end
-  end
-
-  -- Set ActionBarPanel height based on active rows:
-  data.panel:SetHeight(data.panelHeightPerRow[data.settings.activeRows]);
-end
-
-function C_ActionBarPanel:GetPanel(data)
-  return data.panel;
-end
-
-function C_ActionBarPanel:LoadExpandRetractFeature(data)
   if (data.expandRetractFeatureLoaded) then
-    em:EnableEventListeners("ExpandRetractFeature");
+    em:EnableEventListeners("BottomSets_ExpandRetract");
     return;
   end
 
-  local listener = em:CreateEventListener(function()
-    db.profile.actionBarPanel.activeRows = data.settings.activeRows;
-  end);
-
-  listener:RegisterEvent("PLAYER_LOGOUT");
-  SetUpSlideController(data);
+  em:CreateEventListener(function()
+    db.profile.actionBarPanel.bartender.activeSets = data.settings.bartender.activeSets;
+  end):RegisterEvent("PLAYER_LOGOUT");
 
   -- Create up and down buttons used to expand/retract rows:
   data.buttons = CreateFrame("Frame", nil, data.panel);
@@ -561,9 +315,38 @@ function C_ActionBarPanel:LoadExpandRetractFeature(data)
   data.buttons:SetSize(1, 1);
   data.buttons:Hide();
 
-  data.up = CreateArrowButton(data);
-  data.down = CreateArrowButton(data);
-  data.down.icon:SetTexCoord(0, 1, 1, 0);
+  for btnId = 1, 2 do
+    local btn = gui:CreateButton(tk.Constants.AddOnStyle, data.buttons);
+    btn:Hide();
+    btn:SetID(btnId);
+    btn:SetScript("OnEnter", OnArrowButtonEnter);
+    btn:SetScript("OnLeave", OnArrowButtonLeave);
+    btn:SetScript("OnClick", function()
+      OnArrowButtonClick(btnId, data.settings.bartender.activeSets);
+      data.buttons:Hide();
+    end);
+
+    btn:SetFrameStrata("HIGH");
+    btn:SetFrameLevel(30);
+    btn:SetBackdrop(tk.Constants.BACKDROP);
+    btn:SetBackdropBorderColor(0, 0, 0);
+
+    btn.icon = btn:CreateTexture(nil, "OVERLAY");
+    btn.icon:SetSize(16, 10);
+    btn.icon:SetPoint("CENTER");
+    btn.icon:SetTexture(tk:GetAssetFilePath("Textures\\BottomUI\\Arrow"));
+    tk:ApplyThemeColor(btn.icon);
+
+    local normalTexture = btn:GetNormalTexture();
+    normalTexture:SetVertexColor(0.15, 0.15, 0.15, 1);
+
+    if (btnId == RETRACT_BUTTON_ID) then
+      btn.icon:SetTexCoord(0, 1, 1, 0);
+    end
+
+    local btnKey = btnId == EXPAND_BUTTON_ID and "expand" or "retract";
+    data[btnKey] = btn;
+  end
 
   -- Create glow effect that fades in when holding the modifier key/s:
   local glow = data.buttons:CreateTexture("MUI_ActionBarPanelGlow", "BACKGROUND");
@@ -611,34 +394,45 @@ function C_ActionBarPanel:LoadExpandRetractFeature(data)
   data.glow = glow;
   data.fader = fader;
 
+  local mixin = MayronUI:GetComponent("BartenderController");
+
+  ---@type BartenderControllerMixin
+  local controller = _G.CreateAndInitFromMixin(mixin,
+    data.panel, data.settings.bartender, bottom, "VERTICAL", nil, 2, 0);
+
+  local function PlayTransition(nextActiveSetId)
+    controller:PlayTransition(nextActiveSetId);
+  end
+
   -- Setup action bar toggling commands:
-  _G.BINDING_NAME_MUI_SHOW_1_ACTION_BAR_ROW = "Show 1 Action Bar Row";
-  MayronUI:RegisterCommand("Show1ActionBarRows", function()
-    PlayPanelHeightAnimation(data, 1);
-  end);
+  _G.BINDING_NAME_MUI_SHOW_1_BOTTOM_ACTION_BAR = "Show 1 Bottom Action Bar";
+  MayronUI:RegisterCommand("Show1BottomActionBar", PlayTransition, 1);
 
-  _G.BINDING_NAME_MUI_SHOW_2_ACTION_BAR_ROWS = "Show 2 Action Bar Rows";
-  MayronUI:RegisterCommand("Show2ActionBarRows", function()
-    PlayPanelHeightAnimation(data, 2);
-  end);
+  _G.BINDING_NAME_MUI_SHOW_2_BOTTOM_ACTION_BARS = "Show 2 Bottom Action Bars";
+  MayronUI:RegisterCommand("Show2BottomActionBars", PlayTransition, 2);
 
-  _G.BINDING_NAME_MUI_SHOW_3_ACTION_BAR_ROWS = "Show 3 Action Bar Rows";
-  MayronUI:RegisterCommand("Show3ActionBarRows", function()
-    PlayPanelHeightAnimation(data, 3);
-  end);
+  _G.BINDING_NAME_MUI_SHOW_3_BOTTOM_ACTION_BARS = "Show 3 Bottom Action Bars";
+  MayronUI:RegisterCommand("Show3BottomActionBars", PlayTransition, 3);
 
-  listener = em:CreateEventListenerWithID("ExpandRetractFeature", function()
-    HandleModifierStateChanged(data);
-  end);
+  em:CreateEventListenerWithID("BottomSets_ExpandRetract", function()
+    if (not tk:IsModComboActive(data.settings.modKey) or InCombatLockdown()) then
+      data.buttons:Hide();
+      return;
+    end
 
-  listener:RegisterEvent("MODIFIER_STATE_CHANGED");
+    data.fader:Stop(); -- force execution of OnFinished callback
+    data.glowScaler:Play();
+    data.fader:Play();
+  end):RegisterEvent("MODIFIER_STATE_CHANGED");
 
-  listener = em:CreateEventListener(function()
-    data.up:Hide();
-    data.down:Hide();
-  end);
-
-  listener:RegisterEvent("PLAYER_REGEN_DISABLED");
+  em:CreateEventListener(function()
+    data.expand:Hide();
+    data.retract:Hide();
+  end):RegisterEvent("PLAYER_REGEN_DISABLED");
 
   data.expandRetractFeatureLoaded = true;
+end
+
+function C_ActionBarPanel:GetPanel(data)
+  return data.panel;
 end

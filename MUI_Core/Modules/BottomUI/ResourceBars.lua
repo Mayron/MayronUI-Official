@@ -204,7 +204,7 @@ function C_ResourceBarsModule:OnEnable(data)
       local actionBarPanelModule = MayronUI:ImportModule("ActionBarPanel");
 
       if (actionBarPanelModule and actionBarPanelModule:IsEnabled()) then
-        actionBarPanelModule:SetUpBartenderBars();
+        actionBarPanelModule:SetUpExpandRetract();
       end
     end
   end);

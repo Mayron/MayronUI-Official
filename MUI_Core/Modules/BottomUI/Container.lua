@@ -138,6 +138,6 @@ function C_Container:RepositionContent(data)
 
   -- Update Bartender4 Bars
   if (actionBarPanel and obj:IsNumber(actionBarPanel:GetBottom())) then
-    data.subModules.ActionBarPanel:SetUpBartenderBars();
+    data.subModules.ActionBarPanel:SetUpExpandRetract();
   end
 end

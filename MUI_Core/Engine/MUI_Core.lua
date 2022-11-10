@@ -21,10 +21,12 @@ _G.BINDING_NAME_MUI_SHOW_INSTALLER = "Show Installer";
 
 local obj = namespace.components.Objects; ---@type MayronObjects
 
-namespace.components.Database = obj:Import("MayronDB").Static:CreateDatabase(
-                                  addOnName, "MayronUIdb", nil, "MayronUI");
+namespace.components.Database = obj:Import("MayronDB")
+  .Static:CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI");
+
 namespace.components.EventManager =
   obj:Import("Pkg-MayronEvents.EventManager")();
+
 namespace.components.GUIBuilder = LibStub:GetLibrary("LibMayronGUI");
 namespace.components.Modules = {};
 
@@ -47,16 +49,17 @@ function MayronUI:GetCoreComponents()
   return tk, db, em, gui, obj, L;
 end
 
-function MayronUI:GetCoreComponent(componentName, silent)
-  tk:Assert(
-    silent or obj:IsString(componentName), "Invalid component '%s'",
-      componentName);
+function MayronUI:GetComponent(componentName, silent)
+  tk:Assert(silent or obj:IsString(componentName), "Invalid component '%s'", componentName);
 
   local component = namespace.components[componentName];
-  tk:Assert(
-    silent or obj:IsTable(component), "Invalid component '%s'", componentName);
+  tk:Assert(silent or obj:IsTable(component), "Invalid component '%s'", componentName);
 
   return component;
+end
+
+function MayronUI:AddComponent(componentName, component)
+  namespace.components[componentName] = component;
 end
 
 ---Get a single component registered with the MayronUI Engine
@@ -65,7 +68,7 @@ function MayronUI:GetModuleComponent(moduleKey, componentName)
     return namespace.components.Modules[moduleKey][componentName];
 
   elseif (not moduleKey or moduleKey == "CoreModule") then
-    return self:GetCoreComponent(componentName);
+    return self:GetComponent(componentName);
   end
 end
 
@@ -545,16 +548,36 @@ end
 function MayronUI:TriggerCommand(commandName, ...)
   commandName = commandName:lower();
   obj:Assert(commands[commandName], "Unknown command name '%s'", commandName);
-  commands[commandName](...);
+  local func = commands[commandName];
+
+  if (obj:IsTable(func)) then
+    local args = func[2];
+    func = func[1];
+
+    if (select("#", ...) > 0) then
+      args = tk.Tables:Copy(args, true);
+      tk.Tables:AddAll(args, ...);
+      func(obj:UnpackTable(args));
+    else
+      func(unpack(args));
+    end
+  else
+    func(...);
+  end
 end
 
 ---@param commandName string @The name of the command to register.
 ---@param func function @The command handler function to register.
-function MayronUI:RegisterCommand(commandName, func)
+function MayronUI:RegisterCommand(commandName, func, ...)
   commandName = commandName:lower();
-  obj:Assert(
-    not commands[commandName], "Command already exists: '%s'", commandName);
-  commands[commandName] = func;
+  obj:Assert(not commands[commandName], "Command already exists: '%s'", commandName);
+
+  if (select("#", ...) > 0) then
+    commands[commandName] = { func, { ... } };
+  else
+    commands[commandName] = func;
+  end
+
   return func;
 end
 
@@ -849,19 +872,18 @@ onLogin:RegisterEvent("PLAYER_ENTERING_WORLD")
 onLogin:SetExecuteOnce(true); -- destroy after first use
 
 local onLogout = em:CreateEventListener(function()
-    db.profile.freshInstall = nil;
-  end);
+  db.profile.freshInstall = nil;
+end);
 
 onLogout:RegisterEvent("PLAYER_LOGOUT");
 
 -- Database Event callbacks --------------------
 
-db:OnProfileChange(
-  function(_, newProfileName, oldProfileName)
+db:OnProfileChange(function(_, newProfileName, oldProfileName)
     local coreModule = MayronUI:ImportModule("CoreModule");
 
     if (not (coreModule:IsInitialized() and MayronUI:IsInstalled())) then
-      return;
+      return
     end
 
     for _, module in MayronUI:IterateModules() do
@@ -881,109 +903,105 @@ db:OnProfileChange(
 
     local msg;
     if (oldProfileName == newProfileName) then
-      msg = string.format(
-              L["Profile %s has been reset."],
-                tk.Strings:SetTextColorByKey(newProfileName, "gold"));
+      msg = string.format(L["Profile %s has been reset."],
+        tk.Strings:SetTextColorByKey(newProfileName, "gold"));
     else
-      msg = string.format(
-              L["Profile changed to %s."],
-                tk.Strings:SetTextColorByKey(newProfileName, "gold"));
+      msg = string.format(L["Profile changed to %s."],
+        tk.Strings:SetTextColorByKey(newProfileName, "gold"));
     end
 
     tk:Print(msg);
     MayronUI:ShowReloadUIPopUp();
   end);
 
-db:OnStartUp(
-  function(self)
-    -- setup globals:
-    MayronUI.db = self;
-    namespace:SetUpBagnon();
+db:OnStartUp(function(self)
+  -- setup globals:
+  MayronUI.db = self;
+  namespace:SetUpBagnon();
 
-    local r, g, b = tk:GetThemeColor();
+  local r, g, b = tk:GetThemeColor();
 
-    local myFont = CreateFont("MUI_FontNormal");
-    myFont:SetFontObject("GameFontNormal");
-    myFont:SetTextColor(r, g, b);
+  local myFont = CreateFont("MUI_FontNormal");
+  myFont:SetFontObject("GameFontNormal");
+  myFont:SetTextColor(r, g, b);
 
-    myFont = CreateFont("MUI_FontSmall");
-    myFont:SetFontObject("GameFontNormalSmall");
-    myFont:SetTextColor(r, g, b);
+  myFont = CreateFont("MUI_FontSmall");
+  myFont:SetFontObject("GameFontNormalSmall");
+  myFont:SetTextColor(r, g, b);
 
-    myFont = CreateFont("MUI_FontLarge");
-    myFont:SetFontObject("GameFontNormalLarge");
-    myFont:SetTextColor(r, g, b);
+  myFont = CreateFont("MUI_FontLarge");
+  myFont:SetFontObject("GameFontNormalLarge");
+  myFont:SetTextColor(r, g, b);
 
-    -- To keep UI widget styles consistent ----------
-    -- Can only use once Database is loaded...
-    ---@type Style
-    local Style = obj:Import("MayronUI.Style");
+  -- To keep UI widget styles consistent ----------
+  -- Can only use once Database is loaded...
+  ---@type Style
+  local Style = obj:Import("MayronUI.Style");
 
-    ---@type Style
-    tk.Constants.AddOnStyle = Style();
-    tk.Constants.AddOnStyle:SetPadding(10, 10, 10, 10);
-    tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");
-    tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "ButtonBackdrop");
-    tk.Constants.AddOnStyle:SetTexture(
-      tk:GetAssetFilePath(
-        "Textures\\Widgets\\Button"), "ButtonTexture");
-    tk.Constants.AddOnStyle:SetTexture(
-      tk:GetAssetFilePath(
-        "Textures\\Widgets\\GraphicalArrow"), "ArrowButtonTexture");
-    tk.Constants.AddOnStyle:SetTexture(
-      tk:GetAssetFilePath(
-        "Textures\\Widgets\\SmallArrow"), "SmallArrow");
-    tk.Constants.AddOnStyle:SetTexture(
-      tk:GetAssetFilePath(
-        "Textures\\DialogBox\\Texture-"), "DialogBoxBackground");
-    tk.Constants.AddOnStyle:SetTexture(
-      tk:GetAssetFilePath(
-        "Textures\\DialogBox\\TitleBar"), "TitleBarBackground");
-    tk.Constants.AddOnStyle:SetTexture(
-      tk:GetAssetFilePath(
-        "Textures\\DialogBox\\CloseButton"), "CloseButtonBackground");
-    tk.Constants.AddOnStyle:SetTexture(
-      tk:GetAssetFilePath(
-        "Textures\\DialogBox\\CloseButton"), "DownButton");
-    tk.Constants.AddOnStyle:SetTexture(
-      tk:GetAssetFilePath(
-        "Textures\\DialogBox\\DragRegion"), "DraggerTexture");
-    tk.Constants.AddOnStyle:SetTexture(
-      tk:GetAssetFilePath(
-        "Textures\\Widgets\\TextField"), "TextField");
-    tk.Constants.AddOnStyle:SetColor(r, g, b);
-    tk.Constants.AddOnStyle:SetColor(r * 0.7, g * 0.7, b * 0.7, "Widget");
+  ---@type Style
+  tk.Constants.AddOnStyle = Style();
+  tk.Constants.AddOnStyle:SetPadding(10, 10, 10, 10);
+  tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");
+  tk.Constants.AddOnStyle:SetBackdrop(tk.Constants.BACKDROP, "ButtonBackdrop");
+  tk.Constants.AddOnStyle:SetTexture(
+    tk:GetAssetFilePath(
+      "Textures\\Widgets\\Button"), "ButtonTexture");
+  tk.Constants.AddOnStyle:SetTexture(
+    tk:GetAssetFilePath(
+      "Textures\\Widgets\\GraphicalArrow"), "ArrowButtonTexture");
+  tk.Constants.AddOnStyle:SetTexture(
+    tk:GetAssetFilePath(
+      "Textures\\Widgets\\SmallArrow"), "SmallArrow");
+  tk.Constants.AddOnStyle:SetTexture(
+    tk:GetAssetFilePath(
+      "Textures\\DialogBox\\Texture-"), "DialogBoxBackground");
+  tk.Constants.AddOnStyle:SetTexture(
+    tk:GetAssetFilePath(
+      "Textures\\DialogBox\\TitleBar"), "TitleBarBackground");
+  tk.Constants.AddOnStyle:SetTexture(
+    tk:GetAssetFilePath(
+      "Textures\\DialogBox\\CloseButton"), "CloseButtonBackground");
+  tk.Constants.AddOnStyle:SetTexture(
+    tk:GetAssetFilePath(
+      "Textures\\DialogBox\\CloseButton"), "DownButton");
+  tk.Constants.AddOnStyle:SetTexture(
+    tk:GetAssetFilePath(
+      "Textures\\DialogBox\\DragRegion"), "DraggerTexture");
+  tk.Constants.AddOnStyle:SetTexture(
+    tk:GetAssetFilePath(
+      "Textures\\Widgets\\TextField"), "TextField");
+  tk.Constants.AddOnStyle:SetColor(r, g, b);
+  tk.Constants.AddOnStyle:SetColor(r * 0.7, g * 0.7, b * 0.7, "Widget");
 
-    -- Load Media using LibSharedMedia --------------
-    local media = tk.Constants.LSM;
+  -- Load Media using LibSharedMedia --------------
+  local media = tk.Constants.LSM;
 
-    media:Register(
-      media.MediaType.FONT, "MUI_Font",
-        tk:GetAssetFilePath("Fonts\\MayronUI.ttf"));
-    media:Register(
-      media.MediaType.FONT, "Imagine", tk:GetAssetFilePath("Fonts\\Imagine.ttf"));
-    media:Register(
-      media.MediaType.FONT, "Prototype",
-        tk:GetAssetFilePath("Fonts\\Prototype.ttf"));
-    media:Register(
-      media.MediaType.STATUSBAR, "MUI_StatusBar",
-        tk:GetAssetFilePath("Textures\\Widgets\\Button.tga"));
-    media:Register(
-      media.MediaType.BORDER, "Skinner", tk.Constants.BACKDROP.edgeFile);
-    media:Register(
-      media.MediaType.BORDER, "Glow", tk:GetAssetFilePath("Borders\\Glow.tga"));
-    media:Register(
-      media.MediaType.BACKGROUND, "MUI_Solid", tk.Constants.SOLID_TEXTURE);
+  media:Register(
+    media.MediaType.FONT, "MUI_Font",
+      tk:GetAssetFilePath("Fonts\\MayronUI.ttf"));
+  media:Register(
+    media.MediaType.FONT, "Imagine", tk:GetAssetFilePath("Fonts\\Imagine.ttf"));
+  media:Register(
+    media.MediaType.FONT, "Prototype",
+      tk:GetAssetFilePath("Fonts\\Prototype.ttf"));
+  media:Register(
+    media.MediaType.STATUSBAR, "MUI_StatusBar",
+      tk:GetAssetFilePath("Textures\\Widgets\\Button.tga"));
+  media:Register(
+    media.MediaType.BORDER, "Skinner", tk.Constants.BACKDROP.edgeFile);
+  media:Register(
+    media.MediaType.BORDER, "Glow", tk:GetAssetFilePath("Borders\\Glow.tga"));
+  media:Register(
+    media.MediaType.BACKGROUND, "MUI_Solid", tk.Constants.SOLID_TEXTURE);
 
-    hooksecurefunc(
-      "MovieFrame_PlayMovie", function(s)
-        s:SetFrameStrata("DIALOG");
-      end);
-
-    -- Set Master Game Font Here! -------------------
-    if (self.global.core.changeGameFont ~= false) then
-      tk:SetGameFont(media:Fetch("font", self.global.core.font));
-    end
-
-    tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
+  hooksecurefunc("MovieFrame_PlayMovie", function(s)
+    s:SetFrameStrata("DIALOG");
   end);
+
+  -- Set Master Game Font Here! -------------------
+  if (self.global.core.changeGameFont ~= false) then
+    tk:SetGameFont(media:Fetch("font", self.global.core.font));
+  end
+
+  tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
+end);
