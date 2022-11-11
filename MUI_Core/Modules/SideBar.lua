@@ -273,7 +273,7 @@ function C_SideBarModule:SetUpExpandRetract(data)
     end);
 
     btn.icon = btn:CreateTexture(nil, "OVERLAY");
-    btn.icon:SetSize(16, 8);
+    btn.icon:SetSize(12, 8);
     btn.icon:SetPoint("CENTER");
     btn.icon:SetTexture(tk:GetAssetFilePath("Textures\\BottomUI\\Arrow"));
     tk:ApplyThemeColor(btn.icon);
