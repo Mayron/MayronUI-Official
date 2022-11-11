@@ -21,7 +21,7 @@ db:AddToDefaults("profile.sidebar", {
     height = 460;
     fixedWidth = 46;
     xOffset = 0;
-    yOffset = 40;
+    yOffset = 53;
     alpha = 1;
 
     buttons = {

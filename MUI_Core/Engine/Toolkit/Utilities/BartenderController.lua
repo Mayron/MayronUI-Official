@@ -137,7 +137,7 @@ function BartenderControllerMixin:Init(panel, settings, startPoint, direction, m
     local offset;
 
     if (not previousOffset) then
-      offset = startPoint + (bottomPadding + settings.panelPadding) + size;
+      offset = startPoint + bottomPadding + settings.panelPadding + size;
     else
       offset = previousOffset + settings.spacing + size;
     end
@@ -181,18 +181,14 @@ function BartenderControllerMixin:GetBarSetSize(bars)
   for _, bt4Bar in pairs(bars) do
     local btn = bt4Bar.buttons[1];
     local scale = bt4Bar:GetScale();
-
-    if (not btn.muiOverlay) then
-        btn.muiOverlay = _G.CreateFrame("Frame");
-        btn.muiOverlay:SetAllPoints(btn);
-        -- For testing only:
-        -- tk:SetBackground(btn.muiOverlay, math.random(), math.random(), math.random())
-        -- btn.muiOverlay:SetFrameStrata("TOOLTIP")
-    end
-
-    local width, height = btn.muiOverlay:GetSize();
+    local width, height = btn:GetSize();
     local size = (self.direction == "VERTICAL" and height) or width;
-    size = size / scale;
+
+    if (scale ~= 1) then
+      local unscaledSize = size / scale;
+      local scaledBottomGap = (unscaledSize - size) / 2;
+      size = size - scaledBottomGap;
+    end
 
     if (size > maxSize) then
       maxSize = size;

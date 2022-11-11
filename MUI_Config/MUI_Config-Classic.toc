@@ -3,7 +3,7 @@
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
 ## Version: 6.7.3
-## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to enable the in-game MayronUI configuration menu|nwhere you'll be able to customize every aspect of MayronUI.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!
+## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to enable the in-game MayronUI configuration menu|nwhere you'll be able to customize every aspect of MayronUI.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!|n|n|cffffd100Version: 6.7.3|r
 
 MUI_Config.lua
 MUI_Config.config.lua

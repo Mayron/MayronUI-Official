@@ -494,9 +494,6 @@ setup.import["Bartender4-Dragonflight"] = function()
     },
     ["profiles"] = {
       ["MayronUI"] = {
-        ["minimapIcon"] = {
-          ["hide"] = true,
-        },
         ["focuscastmodifier"] = false,
         ["buttonlock"] = false,
       },

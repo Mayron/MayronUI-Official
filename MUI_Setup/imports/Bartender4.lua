@@ -426,10 +426,8 @@ setup.import["Bartender4"] = function()
     },
     ["profiles"] = {
       ["MayronUI"] = {
-        ["minimapIcon"] = {
-          ["hide"] = true,
-        },
         ["focuscastmodifier"] = false,
+        ["buttonlock"] = false,
       },
     },
 	};
