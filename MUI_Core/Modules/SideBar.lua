@@ -150,8 +150,12 @@ function C_SideBarModule:OnInitialize(data)
         local p, rf, rp, x = data.panel:GetPoint();
         data.panel:SetPoint(p, rf, rp, x, value);
       end;
-      bartender = function()
-        self:SetUpExpandRetract();
+      ---@param keys LinkedList
+      bartender = function(_, path)
+        local key = path:GetBack();
+        if (key ~= "activeSets") then
+          self:SetUpExpandRetract();
+        end
       end;
       buttons = {
         showWhen = function()
@@ -261,10 +265,6 @@ function C_SideBarModule:SetUpExpandRetract(data)
 
   local sideButtonTexture = tk:GetAssetFilePath("Textures\\SideBar\\SideButton");
 
-  em:CreateEventListener(function()
-    db.profile.sidebar.bartender.activeSets = data.settings.bartender.activeSets;
-  end):RegisterEvent("PLAYER_LOGOUT");
-
   for btnId = 1, 2 do
     local btn = CreateFrame("Button", nil, UIParent);
     btn:SetID(btnId);
@@ -304,6 +304,7 @@ function C_SideBarModule:SetUpExpandRetract(data)
     controller:PlayTransition(nextActiveSetId);
     UpdateArrowButtonPositions(data, nextActiveSetId);
     UpdateArrowButtonVisibility(data, nextActiveSetId);
+    db.profile.sidebar.bartender.activeSets = nextActiveSetId;
   end
 
   -- Setup action bar toggling commands:

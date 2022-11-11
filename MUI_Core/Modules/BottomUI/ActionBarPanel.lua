@@ -238,8 +238,12 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
       end
     end;
 
-    bartender = function()
-      self:SetUpExpandRetract();
+    ---@param keys LinkedList
+    bartender = function(_, path)
+      local key = path:GetBack();
+      if (key ~= "activeSets") then
+        self:SetUpExpandRetract();
+      end
     end;
   }, options);
 
@@ -326,10 +330,6 @@ function C_ActionBarPanel:SetUpExpandRetract(data)
     data.controller:LoadPositions(bottom);
     return
   end
-
-  em:CreateEventListener(function()
-    db.profile.actionBarPanel.bartender.activeSets = data.settings.bartender.activeSets;
-  end):RegisterEvent("PLAYER_LOGOUT");
 
   -- Create up and down buttons used to expand/retract rows:
   data.buttons = CreateFrame("Frame", nil, data.panel);
@@ -426,6 +426,7 @@ function C_ActionBarPanel:SetUpExpandRetract(data)
 
   local function PlayTransition(nextActiveSetId)
     data.controller:PlayTransition(nextActiveSetId);
+    db.profile.actionBarPanel.bartender.activeSets = nextActiveSetId;
   end
 
   -- Setup action bar toggling commands:
