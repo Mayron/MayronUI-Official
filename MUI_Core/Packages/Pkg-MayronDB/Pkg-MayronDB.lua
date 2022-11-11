@@ -5,6 +5,15 @@ if (obj:Import("MayronDB", true)) then
   return
 end
 
+local STACKOVERFLOW_DETECTED_ERROR_MSG = "Failed to iterate table. Key '%s' has been detected over the max limit of %d for table %s.";
+local MAX_KEY_OCCURRENCE = {
+  20; -- the default limit for all other keys
+  r = 50;
+  g = 50;
+  b = 50;
+};
+
+
 ---@class MayronDB
 local MayronDB = obj:CreateClass("MayronDB");
 obj:Export(MayronDB);
@@ -798,10 +807,44 @@ function Observer:__Construct(data, isGlobal, previousData)
   data.database = data.helper:GetDatabase();
 end
 
+local function VerifyTableContainsNoFunctions(tbl, memorized, originalTable)
+  local top = false;
+
+  if (not memorized) then
+    top = true;
+    memorized = obj:PopTable();
+    originalTable = tbl;
+  end
+
+  for key, value in pairs(tbl) do
+    if (obj:IsString(key) and not tonumber(key)) then
+      memorized[key] = (memorized[key] or 0) + 1;
+      local limit = MAX_KEY_OCCURRENCE[key] or MAX_KEY_OCCURRENCE[1];
+      obj:Assert(memorized[key] < limit, STACKOVERFLOW_DETECTED_ERROR_MSG, key, limit, obj:ToLongString(originalTable, 4, -1));
+    end
+
+    if (obj:IsFunction(value)) then
+      obj:Assert(not obj:IsFunction(value), "Forbidden to add '%s' (a function) to the database.", key);
+    elseif (obj:IsTable(value)) then
+      VerifyTableContainsNoFunctions(value, memorized, originalTable);
+    end
+  end
+
+  if (top) then
+    obj:PushTable(memorized);
+  end
+end
+
 ---When a new value is being added to the database, use the child observer's table
 ---if switched to using a parent observer. Also, add to the saved variable table if not a function.
 Observer.Static:OnIndexChanging(
   function(_, data, key, value)
+    obj:Assert(not obj:IsFunction(value), "Forbidden to add a function value to the database.");
+
+    if (obj:IsTable(value)) then
+      VerifyTableContainsNoFunctions(value);
+    end
+
     data.helper:HandlePathValueChange(data, key, value);
     return true; -- prevent indexing
   end);
@@ -1691,14 +1734,6 @@ do
     return lastTable, lastKey;
   end
 end
-
-local STACKOVERFLOW_DETECTED_ERROR_MSG = "Failed to fill table. Key '%s' has been added over the max limit of %d for table %s.";
-local MAX_KEY_OCCURRENCE = {
-  20; -- the default limit for all other keys
-  r = 50;
-  g = 50;
-  b = 50;
-};
 
 -- Adds all key and value pairs from fromTable onto toTable (replaces other non-table values)
 function FillTable(fromTable, toTable, doNotReplace, memorized, originalTable)
