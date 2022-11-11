@@ -116,7 +116,7 @@ setup.import["Bartender4-Dragonflight"] = function()
                 ["hidemacrotext"] = true,
                 ["version"] = 3,
                 ["position"] = {
-                  ["y"] = 250,
+                  ["y"] = 265,
                   ["x"] = -40,
                   ["point"] = "RIGHT",
                   ["scale"] = 0.69,
@@ -134,7 +134,7 @@ setup.import["Bartender4-Dragonflight"] = function()
                 ["hidemacrotext"] = true,
                 ["version"] = 3,
                 ["position"] = {
-                  ["y"] = 250,
+                  ["y"] = 265,
                   ["x"] = -75,
                   ["point"] = "RIGHT",
                   ["scale"] = 0.69,
@@ -378,15 +378,17 @@ setup.import["Bartender4-Dragonflight"] = function()
       ["BagBar"] = {
         ["profiles"] = {
           ["MayronUI"] = {
+            ["enabled"] = false,
+            ["onebagreagents"] = false,
             ["onebag"] = true,
             ["version"] = 3,
             ["position"] = {
-              ["y"] = 73,
-              ["x"] = -72,
+              ["y"] = 84,
+              ["x"] = -52,
               ["point"] = "BOTTOMRIGHT",
-              ["scale"] = 0.9,
+              ["scale"] = 0.8999999761581421,
             },
-            ["padding"] = -2,
+            ["padding"] = 0,
           },
         },
       },
@@ -460,13 +462,12 @@ setup.import["Bartender4-Dragonflight"] = function()
             ["rows"] = 2,
             ["version"] = 3,
             ["position"] = {
-              ["y"] = 72,
-              ["x"] = 371.2181321166427,
+              ["y"] = 73,
+              ["x"] = 378,
               ["point"] = "BOTTOM",
-              ["scale"] = 1.200000047683716,
             },
             ["fadeoutalpha"] = 0,
-            ["padding"] = 5.5,
+            ["padding"] = 4,
             ["visibility"] = {
               ["always"] = false,
             },

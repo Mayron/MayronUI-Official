@@ -253,14 +253,33 @@ function C_ActionBarPanel:OnDisable(data)
 end
 
 function C_ActionBarPanel:OnEnable(data)
-  if (_G.Bartender4DB and not db.global.expanddatedStanceBar) then
-    local config = tk.Tables:GetTable(_G.Bartender4DB, "namespaces", "StanceBar", "profiles", "MayronUI");
-    config.padding = 4;
-    config.position = config.position or obj:PopTable();
-    config.position.scale = 1;
-    db.global.expanddatedStanceBar = true;
+  if (_G.Bartender4DB and tk:IsRetail() and not db.global.bartender4Update == 1) then
+    local stanceBarConfig = tk.Tables:GetTable(_G.Bartender4DB, "namespaces", "StanceBar", "profiles", "MayronUI");
 
-    -- TODO: Also do pet bar
+    stanceBarConfig.padding = 4;
+    stanceBarConfig.position = stanceBarConfig.position or obj:PopTable();
+    stanceBarConfig.position.scale = 1;
+
+    local petBarConfig = tk.Tables:GetTable(_G.Bartender4DB, "namespaces", "PetBar", "profiles", "MayronUI");
+    petBarConfig.padding = 4;
+    petBarConfig.position = petBarConfig.position or obj:PopTable();
+    petBarConfig.position.y = 73;
+    petBarConfig.position.x = 378;
+    petBarConfig.position.scale = 1;
+
+    local bagBarConfig = tk.Tables:GetTable(_G.Bartender4DB, "namespaces", "BagBar", "profiles", "MayronUI");
+    bagBarConfig.enabled = false;
+    bagBarConfig.onebagreagents = false;
+    bagBarConfig.padding = 0;
+    bagBarConfig.position = bagBarConfig.position or obj:PopTable();
+    bagBarConfig.position.y = 84;
+    bagBarConfig.position.x = -52;
+
+    local actionBarsConfig = tk.Tables:GetTable(_G.Bartender4DB, "namespaces", "ActionBars", "profiles", "MayronUI", "actionbars");
+    tk.Tables:GetTable(actionBarsConfig, 3, "position").y = 265;
+    tk.Tables:GetTable(actionBarsConfig, 4, "position").y = 265;
+
+    db.global.bartender4Update = 1;
   end
 
   if (data.panel) then
