@@ -123,7 +123,7 @@ function C_Container:RepositionContent(data)
     actionBarPanel:SetPoint("BOTTOMRIGHT", anchorFrame, "TOPRIGHT", 0, -1);
 
     local startPoint = actionBarPanel:GetBottom();
-    data.subModules.ActionBarPanel:ReloadBartenderPositions(startPoint);
+    data.subModules.ActionBarPanel:SetUpExpandRetract(startPoint);
     anchorFrame = actionBarPanel;
   end
 

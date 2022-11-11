@@ -1,14 +1,16 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local tk, _, em, _, obj = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local UnitXP, UnitXPMax, GetXPExhaustion = _G.UnitXP, _G.UnitXPMax, _G.GetXPExhaustion;
 local CreateFrame = _G.CreateFrame;
 local C_ExperienceBar = obj:Import("MayronUI.ExperienceBar");
 local strformat = _G.string.format;
+local GetMaxPlayerLevel = _G.GetMaxPlayerLevel;
+local HitMaxLevel = false;
 
 -- Local Functions -----------------------
 
-local function OnExperienceBarUpdate(handler, eventName, statusbar, rested) -- luacheck: ignore
+local function OnExperienceBarUpdate(_, _, statusbar, rested) -- luacheck: ignore
     local currentValue = UnitXP("player");
     local maxValue = UnitXPMax("player");
     local exhaustValue = GetXPExhaustion();
@@ -26,10 +28,10 @@ local function OnExperienceBarUpdate(handler, eventName, statusbar, rested) -- l
     statusbar.text:SetText(text);
 end
 
-local function OnExperienceBarLevelUp(_, _, bar)
-  if (not bar:CanUse()) then
+local function OnExperienceBarLevelUp(_, _, bar, newLevel)
+  if (newLevel == GetMaxPlayerLevel()) then
+    HitMaxLevel = true;
     bar:SetActive(false);
-    return;
   end
 end
 
@@ -43,7 +45,7 @@ end
 
 obj:DefineReturns("boolean");
 function C_ExperienceBar:CanUse()
-  return not tk:IsPlayerMaxLevel();
+  return not (tk:IsPlayerMaxLevel() or HitMaxLevel);
 end
 
 obj:DefineParams("boolean");

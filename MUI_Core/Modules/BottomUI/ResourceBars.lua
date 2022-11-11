@@ -45,6 +45,53 @@ db:AddToDefaults("profile.resourceBars", {
   azeriteBar = {};
 });
 
+local function ApplyVisualUpdates(_, _, container, bars)
+  if (InCombatLockdown()) then return end
+  local height = 0;
+  local previousFrame;
+
+  for _, barName in ipairs(BAR_NAMES) do
+    -- check if bar was ever enabled
+    if (bars[barName]) then
+      local bar = bars[barName];
+      local frame = bar:GetFrame();
+
+      -- check if frame has been frame (bar has been built)
+      if (frame and bar:IsEnabled() and bar:CanUse()) then
+        frame:ClearAllPoints();
+        frame:SetParent(container);
+
+        if (not previousFrame) then
+          frame:SetPoint("BOTTOMLEFT");
+          frame:SetPoint("BOTTOMRIGHT");
+        else
+          frame:SetPoint("BOTTOMLEFT", previousFrame, "TOPLEFT", 0, -1);
+          frame:SetPoint("BOTTOMRIGHT", previousFrame, "TOPRIGHT", 0, -1);
+          height = height - 1;
+        end
+
+        height = height + frame:GetHeight();
+        previousFrame = frame;
+        frame:Show();
+
+      elseif (frame) then
+        tk:AttachToDummy(frame);
+      end
+    end
+  end
+
+  if (height == 0) then
+    height = 1;
+  end
+
+  container:SetHeight(height);
+  local actionBarPanelModule = MayronUI:ImportModule("ActionBarPanel");
+
+  if (actionBarPanelModule and actionBarPanelModule:IsEnabled()) then
+    actionBarPanelModule:SetUpExpandRetract();
+  end
+end
+
 -- C_ResourceBarsModule -------------------
 function C_ResourceBarsModule:OnInitialize(data, containerModule)
   data.containerModule = containerModule;
@@ -80,7 +127,7 @@ function C_ResourceBarsModule:OnInitialize(data, containerModule)
     end
 
     if (settingName == "height") then
-      self:UpdateContainerHeight();
+      em:TriggerEventListenerByID("ResourceBars_ApplyVisualUpdate");
     end
   end
 
@@ -190,71 +237,15 @@ function C_ResourceBarsModule:OnEnable(data)
 
   MayronUI:Hook("DataTextModule", "OnInitialize", function(dataTextModule, dataTextModuleData)
     dataTextModule:RegisterUpdateFunctions(db.profile.datatext, {
-    blockInCombat = function(value)
-      self:SetBlockerEnabled(value, dataTextModuleData.bar);
-    end;
+      blockInCombat = function(value)
+        self:SetBlockerEnabled(value, dataTextModuleData.bar);
+      end;
     });
   end);
 
-  local listener = em:CreateEventListenerWithID("ResourceBars_HeightUpdate", function()
-    if (data.pendingHeightUpdate) then
-      data.barsContainer:SetHeight(data.pendingHeightUpdate);
-      data.pendingHeightUpdate = nil;
-
-      local actionBarPanelModule = MayronUI:ImportModule("ActionBarPanel");
-
-      if (actionBarPanelModule and actionBarPanelModule:IsEnabled()) then
-        actionBarPanelModule:SetUpExpandRetract();
-      end
-    end
-  end);
-
-  listener:RegisterEvent("PLAYER_REGEN_ENABLED");
-end
-
-function C_ResourceBarsModule:UpdateContainerHeight(data)
-  local height = 0;
-  local previousFrame;
-
-  for _, barName in ipairs(BAR_NAMES) do
-    -- check if bar was ever enabled
-    if (data.bars[barName]) then
-      local bar = data.bars[barName];
-      local frame = bar:GetFrame();
-
-      -- check if frame has been frame (bar has been built)
-      if (frame and bar:IsEnabled() and bar:CanUse()) then
-        frame:ClearAllPoints();
-        frame:SetParent(data.barsContainer);
-
-        if (not previousFrame) then
-          frame:SetPoint("BOTTOMLEFT");
-          frame:SetPoint("BOTTOMRIGHT");
-        else
-          frame:SetPoint("BOTTOMLEFT", previousFrame, "TOPLEFT", 0, -1);
-          frame:SetPoint("BOTTOMRIGHT", previousFrame, "TOPRIGHT", 0, -1);
-          height = height - 1;
-        end
-
-        height = height + frame:GetHeight();
-        previousFrame = frame;
-        frame:Show();
-
-      elseif (frame) then
-        tk:AttachToDummy(frame);
-      end
-    end
-  end
-
-  if (height == 0) then
-    height = 1;
-  end
-
-  data.pendingHeightUpdate = height;
-
-  if (not InCombatLockdown()) then
-    em:TriggerEventListenerByID("ResourceBars_HeightUpdate");
-  end
+  em:CreateEventListenerWithID("ResourceBars_ApplyVisualUpdate", ApplyVisualUpdates)
+    :SetCallbackArgs(data.barsContainer, data.bars)
+    :RegisterEvent("PLAYER_REGEN_ENABLED");
 end
 
 obj:DefineReturns("number");
@@ -407,7 +398,7 @@ end
 obj:DefineParams("boolean");
 function C_BaseResourceBar:SetActive(data, active)
   if (data.activeState == active) then
-    return;
+    return
   end
 
   data.activeState = active;
@@ -420,7 +411,7 @@ function C_BaseResourceBar:SetActive(data, active)
     self:Update();
   end
 
-  data.module:UpdateContainerHeight();
+  em:TriggerEventListenerByID("ResourceBars_ApplyVisualUpdate");
 end
 
 C_ExperienceBar = obj:CreateClass("ExperienceBar", C_BaseResourceBar);

@@ -28,13 +28,17 @@ db:AddToDefaults("profile.actionBarPanel", {
   bartender = {
     animationSpeed = 6;
     panelPadding = 6;
-    spacing = 3;
+
+    spacing = tk:IsRetail() and 2 or 3;
     control = true;
     controlPositioning = true;
+
     controlScale = true;
-    scale = tk:IsRetail() and 0.69 or 0.85;
+    scale = 0.85 * (tk:IsRetail() and 0.8 or 1);
+
     controlPadding = true;
-    padding = tk:IsRetail() and 6 or 5.5;
+    padding = tk:IsRetail() and 6.8 or 5.5;
+
     activeSets = 1;
 
     -- These are the bartender IDs, not the Bar Name!
@@ -304,7 +308,7 @@ end
 
 function C_ActionBarPanel:SetUpExpandRetract(data)
   if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
-    if (data.expandRetractFeatureLoaded) then
+    if (data.controller) then
       em:DisableEventListeners("BottomSets_ExpandRetract");
       data.panel:SetHeight(data.settings.fixedHeight);
     end
@@ -317,9 +321,10 @@ function C_ActionBarPanel:SetUpExpandRetract(data)
     return
   end
 
-  if (data.expandRetractFeatureLoaded) then
+  if (data.controller) then
     em:EnableEventListeners("BottomSets_ExpandRetract");
-    return;
+    data.controller:LoadPositions(bottom);
+    return
   end
 
   em:CreateEventListener(function()
@@ -417,7 +422,7 @@ function C_ActionBarPanel:SetUpExpandRetract(data)
 
   ---@type BartenderControllerMixin
   data.controller = _G.CreateAndInitFromMixin(mixin,
-    data.panel, data.settings.bartender, bottom, "VERTICAL", nil, 2, 0);
+    data.panel, data.settings.bartender, bottom, "VERTICAL", nil, tk:IsRetail() and 0 or 2, 0);
 
   local function PlayTransition(nextActiveSetId)
     data.controller:PlayTransition(nextActiveSetId);
@@ -436,7 +441,7 @@ function C_ActionBarPanel:SetUpExpandRetract(data)
   em:CreateEventListenerWithID("BottomSets_ExpandRetract", function()
     if (not tk:IsModComboActive(data.settings.modKey) or InCombatLockdown()) then
       data.buttons:Hide();
-      return;
+      return
     end
 
     data.fader:Stop(); -- force execution of OnFinished callback
@@ -448,18 +453,8 @@ function C_ActionBarPanel:SetUpExpandRetract(data)
     data.expand:Hide();
     data.retract:Hide();
   end):RegisterEvent("PLAYER_REGEN_DISABLED");
-
-  data.expandRetractFeatureLoaded = true;
 end
 
 function C_ActionBarPanel:GetPanel(data)
   return data.panel;
-end
-
-function C_ActionBarPanel:ReloadBartenderPositions(data, startPoint)
-  local controller = data.controller; ---@type BartenderControllerMixin
-
-  if (controller and obj:IsNumber(startPoint)) then
-    controller:LoadPositions(startPoint);
-  end
 end

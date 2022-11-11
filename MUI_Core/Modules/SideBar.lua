@@ -32,15 +32,19 @@ db:AddToDefaults("profile.sidebar", {
     };
 
     bartender = {
-      panelPadding = 6;
       animationSpeed = 6;
-      spacing = 4;
+      panelPadding = 6;
+
+      spacing = tk:IsRetail() and 2 or 3;
       control = true;
       controlPositioning = true;
+
       controlScale = true;
-      scale = tk:IsRetail() and 0.69 or 0.85;
+      scale = 0.85 * (tk:IsRetail() and 0.8 or 1);
+
       controlPadding = true;
-      padding = tk:IsRetail() and 6 or 5.5;
+      padding = tk:IsRetail() and 6.8 or 5.5;
+
       activeSets = 2;
 
       -- These are the bartender IDs, not the Bar Name!

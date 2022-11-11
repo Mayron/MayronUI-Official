@@ -156,8 +156,8 @@ do
 end
 
 function tk:IsPlayerMaxLevel()
-    local playerLevel = UnitLevel("player");
-    return (GetMaxPlayerLevel() == playerLevel);
+  local playerLevel = UnitLevel("player");
+  return (GetMaxPlayerLevel() == playerLevel);
 end
 
 -- the class filename is often required for use with the API (unlike the localized class name)
@@ -169,8 +169,8 @@ end
 -- the class name to be shown on the UI (not usable with the API)
 function tk:GetLocalizedClassNameByFileName(classFileName, makeClassColored)
   classFileName = classFileName:gsub("%s+", tk.Strings.Empty):upper();
-  
-  local localizedName = 
+
+  local localizedName =
     tk.Constants.LOCALIZED_CLASS_NAMES[classFileName] or 
     tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES[classFileName];
 
