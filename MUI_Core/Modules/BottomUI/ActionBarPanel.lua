@@ -208,18 +208,13 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
   local options = {
     onExecuteAll = {
       ignore = {
+        "fixedHeight",
         "bartender"
       };
     };
   };
 
   self:RegisterUpdateFunctions(db.profile.actionBarPanel, {
-    fixedHeight = function(value)
-      if (not data.settings.bartender.control) then
-        data.panel:SetHeight(value);
-      end
-    end;
-
     texture = function(value)
       data.panel:SetGridTexture(value);
     end;
@@ -233,6 +228,11 @@ function C_ActionBarPanel:OnInitialize(data, containerModule)
     end;
 
     -- Ignored OnLoad functions -----------
+    fixedHeight = function(value)
+      if (not data.settings.bartender.control) then
+        data.panel:SetHeight(value);
+      end
+    end;
 
     bartender = function()
       self:SetUpExpandRetract();
@@ -416,11 +416,11 @@ function C_ActionBarPanel:SetUpExpandRetract(data)
   local mixin = MayronUI:GetComponent("BartenderController");
 
   ---@type BartenderControllerMixin
-  local controller = _G.CreateAndInitFromMixin(mixin,
+  data.controller = _G.CreateAndInitFromMixin(mixin,
     data.panel, data.settings.bartender, bottom, "VERTICAL", nil, 2, 0);
 
   local function PlayTransition(nextActiveSetId)
-    controller:PlayTransition(nextActiveSetId);
+    data.controller:PlayTransition(nextActiveSetId);
   end
 
   -- Setup action bar toggling commands:
@@ -454,4 +454,12 @@ end
 
 function C_ActionBarPanel:GetPanel(data)
   return data.panel;
+end
+
+function C_ActionBarPanel:ReloadBartenderPositions(data, startPoint)
+  local controller = data.controller; ---@type BartenderControllerMixin
+
+  if (controller and obj:IsNumber(startPoint)) then
+    controller:LoadPositions(startPoint);
+  end
 end

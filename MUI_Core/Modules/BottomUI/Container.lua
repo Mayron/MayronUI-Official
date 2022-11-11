@@ -121,6 +121,9 @@ function C_Container:RepositionContent(data)
     actionBarPanel:ClearAllPoints();
     actionBarPanel:SetPoint("BOTTOMLEFT", anchorFrame, "TOPLEFT", 0, -1);
     actionBarPanel:SetPoint("BOTTOMRIGHT", anchorFrame, "TOPRIGHT", 0, -1);
+
+    local startPoint = actionBarPanel:GetBottom();
+    data.subModules.ActionBarPanel:ReloadBartenderPositions(startPoint);
     anchorFrame = actionBarPanel;
   end
 
@@ -134,10 +137,5 @@ function C_Container:RepositionContent(data)
     rightUnitPanel:ClearAllPoints();
     leftUnitPanel:SetPoint("TOPLEFT", anchorFrame, "TOPLEFT", 0, unitHeight);
     rightUnitPanel:SetPoint("TOPRIGHT", anchorFrame, "TOPRIGHT", 0, unitHeight);
-  end
-
-  -- Update Bartender4 Bars
-  if (actionBarPanel and obj:IsNumber(actionBarPanel:GetBottom())) then
-    data.subModules.ActionBarPanel:SetUpExpandRetract();
   end
 end

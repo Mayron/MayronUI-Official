@@ -1,12 +1,31 @@
 -- luacheck: ignore self 143 631
 local MayronUI = _G.MayronUI;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local tk, db, em, _, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local CreateFrame, pairs, ipairs = _G.CreateFrame, _G.pairs, _G.ipairs;
-local IsAddOnLoaded, UnitExists, UnitIsPlayer = _G.IsAddOnLoaded, _G.UnitExists,
-  _G.UnitIsPlayer;
-local C_UnitPanels = MayronUI:RegisterModule(
-                       "UnitPanels", L["Unit Panels"], true);
+local IsAddOnLoaded, UnitExists, UnitIsPlayer = _G.IsAddOnLoaded, _G.UnitExists, _G.UnitIsPlayer;
+local C_UnitPanels = MayronUI:RegisterModule("UnitPanels", L["Unit Panels"], true);
+
+
+local function DetachShadowedUnitFrame()
+  for _, profileTable in pairs(_G.ShadowedUFDB.profiles) do
+    if (obj:IsTable(profileTable) and obj:IsTable(profileTable.positions)) then
+      local config = profileTable.positions.targettarget;
+
+      if (obj:IsTable(config) and config.anchorTo == "MUI_UnitPanelCenter") then
+        config.point = "TOP";
+        config.anchorTo = "UIParent";
+        config.relativePoint = "TOP";
+        config.x = 100;
+        config.y = -100;
+      end
+    end
+  end
+end
+
+if (_G.ShadowUF and obj:IsTable(_G.ShadowUF.Units)) then
+  _G.ShadowUF.Units.OnInitialize = DetachShadowedUnitFrame;
+end
 
 -- Load Database Defaults ----------------
 
@@ -61,35 +80,35 @@ function C_UnitPanels:OnInitialize(data, containerModule)
   };
 
   local attachWrapper = function()
-    data:Call("AttachShadowedUnitFrames")
+    data:Call("AttachShadowedUnitFrames");
   end
-  local detachWrapper = function()
-    data:Call("DetachShadowedUnitFrames")
-  end
-
+  
   self:RegisterUpdateFunctions(
     db.profile.unitPanels, {
       controlSUF = function(value)
         if (not IsAddOnLoaded("ShadowedUnitFrames")) then
           return
         end
+
         local listener = em:GetEventListenerByID("MuiDetachSuf_Logout");
 
         if (not value) then
-
           if (listener) then
+            DetachShadowedUnitFrame();
             listener:UnregisterEvent("PLAYER_LOGOUT");
-            data:Call("DetachShadowedUnitFrames");
             tk:UnhookFunc(_G.ShadowUF, "ProfilesChanged", attachWrapper);
-            tk:UnhookFunc("ReloadUI", detachWrapper);
+            tk:UnhookFunc("ReloadUI", DetachShadowedUnitFrame);
           end
         else
           data:Call("AttachShadowedUnitFrames");
           tk:HookFunc(_G.ShadowUF, "ProfilesChanged", attachWrapper);
-          tk:HookFunc("ReloadUI", detachWrapper);
-          listener = listener
-                       or em:CreateEventListenerWithID(
-                         "MuiDetachSuf_Logout", detachWrapper);
+          tk:HookFunc("ReloadUI", DetachShadowedUnitFrame);
+
+          if (not listener) then
+            listener = em:CreateEventListenerWithID(
+              "MuiDetachSuf_Logout", DetachShadowedUnitFrame);
+          end
+
           listener:RegisterEvent("PLAYER_LOGOUT");
         end
       end;
@@ -398,27 +417,12 @@ do
   end
 end
 
-function C_UnitPanels.Private:DetachShadowedUnitFrames(_)
-  for _, profileTable in pairs(_G.ShadowedUFDB.profiles) do
-
-    if (obj:IsTable(profileTable) and obj:IsTable(profileTable.positions)) then
-      local p = profileTable.positions.targettarget;
-
-      if (obj:IsTable(p) and p.anchorTo == "MUI_UnitPanelCenter") then
-        p.point = "TOP";
-        p.anchorTo = "UIParent";
-        p.relativePoint = "TOP";
-        p.x = 100;
-        p.y = -100;
-      end
-    end
-  end
-end
-
 function C_UnitPanels.Private:AttachShadowedUnitFrames(data)
   if (not data.center) then
     return
   end
+
+  obj:Assert(obj:IsWidget(_G.MUI_UnitPanelCenter), "Failed to attach SUF to MayronUI");
 
   local SUFTargetTarget = _G.ShadowUF.db.profile.positions.targettarget;
 

@@ -527,6 +527,19 @@ function MayronUI:PrintTable(tbl, depth, spaces)
   tk.Tables:Print(tbl, depth or 1, spaces);
 end
 
+function MayronUI:PrintTableKeys(tbl, perRow)
+  local keys = {};
+  perRow = perRow or 3;
+
+  for key, _ in pairs(tbl) do
+    keys[#keys + 1] = key;
+  end
+
+  for i = 1, #keys, perRow do
+    print(keys[i], ", ", keys[i+1], ", ", keys[i+2])
+  end
+end
+
 function MayronUI:ShowReloadUIPopUp()
   tk:ShowConfirmPopup(
     L["Some settings will not be changed until the UI has been reloaded."],

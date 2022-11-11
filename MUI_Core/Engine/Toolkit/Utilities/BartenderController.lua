@@ -93,8 +93,6 @@ MayronUI:AddComponent("BartenderController", BartenderControllerMixin);
 
 function BartenderControllerMixin:Init(panel, settings, startPoint, direction, minFrameSize, bottomPadding, topPadding)
   direction = (direction or ""):upper();
-  bottomPadding = bottomPadding or 0;
-  topPadding = topPadding or 0;
   obj:Assert(direction == "VERTICAL" or direction == "HORIZONTAL", "Unknown direction %s", direction);
 
   self.settings = settings;
@@ -104,6 +102,8 @@ function BartenderControllerMixin:Init(panel, settings, startPoint, direction, m
   self.direction = direction;
   self.actionBarsModule = _G.Bartender4:GetModule("ActionBars");
   self.panelSizes = obj:PopTable();
+  self.bottomPadding = bottomPadding or 0;
+  self.topPadding = topPadding or 0;
 
   -- Setup Bartender Visibility and scaling Properties before calculating position
   for setId, barIds in ipairs(settings) do
@@ -130,6 +130,21 @@ function BartenderControllerMixin:Init(panel, settings, startPoint, direction, m
     end
   end
 
+  self:LoadPositions(startPoint);
+
+  ---@type SlideController
+  self.slider = SlideController(panel, direction, nil, false);
+  self.slider:SetStepValue(settings.animationSpeed);
+  self.slider:OnStartExpand(OnStartExpand, 5, self.settings, self.sets);
+  self.slider:OnStartRetract(OnStartRetract, 0, self.settings, self.sets);
+  self.slider:OnEndRetract(OnEndRetract, 0, self.settings, self.sets);
+
+  -- Set ActionBarPanel size based on active sets:
+  local panelSize = settings.activeSets > 0 and self.panelSizes[settings.activeSets] or 0;
+  self.slider:SetValue(panelSize);
+end
+
+function BartenderControllerMixin:LoadPositions(startPoint)
   local previousOffset;
 
   for setId, bars in ipairs(self.sets) do
@@ -137,17 +152,17 @@ function BartenderControllerMixin:Init(panel, settings, startPoint, direction, m
     local offset;
 
     if (not previousOffset) then
-      offset = startPoint + bottomPadding + settings.panelPadding + size;
+      offset = startPoint + self.bottomPadding + self.settings.panelPadding + size;
     else
-      offset = previousOffset + settings.spacing + size;
+      offset = previousOffset + self.settings.spacing + size;
     end
 
     previousOffset = offset;
 
-    local endPoint = offset + (topPadding + settings.panelPadding);
+    local endPoint = offset + (self.topPadding + self.settings.panelPadding);
     self.panelSizes[setId] = endPoint - startPoint;
 
-    if (settings.controlPositioning) then
+    if (self.settings.controlPositioning) then
       for _, bt4Bar in pairs(bars) do
         if (self.direction == "VERTICAL") then
           bt4Bar.config.position.point = "BOTTOM";
@@ -161,17 +176,6 @@ function BartenderControllerMixin:Init(panel, settings, startPoint, direction, m
       end
     end
   end
-
-  ---@type SlideController
-  self.slider = SlideController(panel, direction, nil, false);
-  self.slider:SetStepValue(settings.animationSpeed);
-  self.slider:OnStartExpand(OnStartExpand, 5, self.settings, self.sets);
-  self.slider:OnStartRetract(OnStartRetract, 0, self.settings, self.sets);
-  self.slider:OnEndRetract(OnEndRetract, 0, self.settings, self.sets);
-
-  -- Set ActionBarPanel size based on active sets:
-  local panelSize = settings.activeSets > 0 and self.panelSizes[settings.activeSets] or 0;
-  self.slider:SetValue(panelSize);
 end
 
 
