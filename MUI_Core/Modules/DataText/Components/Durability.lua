@@ -1,13 +1,16 @@
 -- luacheck: ignore MayronUI self 143 631
-local tk, _, em, _, obj, L = _G.MayronUI:GetCoreComponents();
+local _G = _G;
+local MayronUI = _G.MayronUI;
+local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
 
 local DURABILITY_SLOTS = {
     "HeadSlot", "ShoulderSlot", "ChestSlot", "WaistSlot", "LegsSlot", "FeetSlot",
     "WristSlot", "HandsSlot", "MainHandSlot", "SecondaryHandSlot"
 };
 
-local ipairs, GetInventorySlotInfo, GetInventoryItemDurability, GetInventoryAlertStatus, CreateFrame, DurabilityFrame, string =
-_G.ipairs, _G.GetInventorySlotInfo, _G.GetInventoryItemDurability, _G.GetInventoryAlertStatus, _G.CreateFrame, _G.DurabilityFrame, _G.string;
+local ipairs, GetInventorySlotInfo, GetInventoryItemDurability, GetInventoryAlertStatus, DurabilityFrame, string =
+  _G.ipairs, _G.GetInventorySlotInfo, _G.GetInventoryItemDurability,
+  _G.GetInventoryAlertStatus, _G.DurabilityFrame, _G.string;
 
 local RED_FONT_COLOR_CODE = _G.RED_FONT_COLOR_CODE;
 local ORANGE_FONT_COLOR_CODE = _G.ORANGE_FONT_COLOR_CODE;
@@ -22,7 +25,7 @@ local Durability = obj:CreateClass("Durability");
 -- Local Functions ----------------
 
 local function CreateLabel(contentFrame, popupWidth)
-    local label = tk:PopFrame("Frame", contentFrame);
+    local label = tk:CreateFrame("Frame", contentFrame);
 
     label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     label.value = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -49,15 +52,15 @@ MayronUI:Hook("DataTextModule", "OnInitialize", function(self)
 end);
 
 function Durability:__Construct(data, settings, dataTextModule)
-    data.settings = settings;
+  data.settings = settings;
 
-    -- set public instance properties
-    self.MenuContent = CreateFrame("Frame");
-    self.MenuLabels = {};
-    self.TotalLabelsShown = 0;
-    self.HasLeftMenu = true;
-    self.HasRightMenu = false;
-    self.Button = dataTextModule:CreateDataTextButton();
+  -- set public instance properties
+  self.MenuContent = tk:CreateFrame("Frame");
+  self.MenuLabels = obj:PopTable();
+  self.TotalLabelsShown = 0;
+  self.HasLeftMenu = true;
+  self.HasRightMenu = false;
+  self.Button = dataTextModule:CreateDataTextButton();
 end
 
 function Durability:IsEnabled(data)

@@ -1,10 +1,11 @@
 -- luacheck: ignore MayronUI self 143 631
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-
-local _, namespace = ...;
+local _G = _G;
+local MayronUI = _G.MayronUI; ---@type MayronUI
+local tk, _, em, _, obj = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local IsAddOnLoaded = _G.IsAddOnLoaded;
+local BagnonChanges = MayronUI:NewComponent("BagnonChanges");
 
-function namespace:SetUpBagnon()
+function BagnonChanges:Apply()
   if (IsAddOnLoaded("Bagnon")) then
     -- support for older versions of Bagnon
     if (obj:IsFunction(_G.Bagnon.CreateFrame)) then

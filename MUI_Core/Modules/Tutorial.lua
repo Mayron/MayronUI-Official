@@ -1,6 +1,8 @@
 -- luacheck: ignore MayronUI self 143 631
+local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local tk, db, _, gui, _, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local GetLocale = _G.GetLocale;
 
 -- Register and Import Modules -----------
 
@@ -16,7 +18,7 @@ function C_Tutorial:OnInitialize()
 end
 
 function C_Tutorial:OnEnable()
-  local frame = tk:PopFrame("Frame");
+  local frame = tk:CreateFrame("Frame");
   frame:SetFrameStrata("TOOLTIP");
   frame:SetSize(350, 230);
   frame:SetPoint("CENTER");
@@ -25,13 +27,13 @@ function C_Tutorial:OnEnable()
     frame:SetWidth(500);
   end
 
-  gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
-  gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
+  gui:CreateDialogBox(nil, nil, frame);
+  gui:AddCloseButton(frame);
 
   local version = GetAddOnMetadata("MUI_Core", "Version");
 
   local title = tk.Strings:Concat(L["Version"], "[", version, "]");
-  gui:AddTitleBar(tk.Constants.AddOnStyle, frame, title);
+  gui:AddTitleBar(frame, title);
 
   frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   tk:SetFontSize(frame.text, 14);
@@ -44,7 +46,7 @@ function C_Tutorial:OnEnable()
 
   frame.text:SetText(tk.Strings:Join("\n\n", tutorialMessage, subMessage));
 
-  local configButton = gui:CreateButton(tk.Constants.AddOnStyle, frame, L["Open Config Menu"]);
+  local configButton = gui:CreateButton(frame, L["Open Config Menu"]);
   configButton:SetPoint("TOP", frame.text, "BOTTOM", 0, -20);
   configButton:SetScript("OnClick", function()
     MayronUI:TriggerCommand("config");

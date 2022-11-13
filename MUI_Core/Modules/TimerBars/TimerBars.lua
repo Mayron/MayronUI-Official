@@ -1,9 +1,10 @@
 --luacheck: ignore self 143 631
 local addOnName = ...;
+local _G = _G;
 local MayronUI = _G.MayronUI;
+local LibStub = _G.LibStub;
 
 local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
-local LibStub = _G.LibStub;
 
 ---@type MayronDB
 local MayronDB = obj:Import("MayronDB");
@@ -14,7 +15,7 @@ local db = MayronDB.Static:CreateDatabase(addOnName, "MUI_TimerBarsDb", nil, "MU
 _G.MUI_TimerBars = {}; -- Create new global
 
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo;
-local unpack, CreateFrame, UnitIsDeadOrGhost = _G.unpack, _G.CreateFrame, _G.UnitIsDeadOrGhost;
+local unpack, UnitIsDeadOrGhost = _G.unpack, _G.UnitIsDeadOrGhost;
 local string, date, pairs, ipairs = _G.string, _G.date, _G.pairs, _G.ipairs;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
 local table, GetTime, UnitAura, tonumber = _G.table, _G.GetTime, _G.UnitAura, _G.tonumber;
@@ -40,19 +41,19 @@ end
 
 -- Objects -----------------------------
 ---@class TimerBarsModule : BaseModule
-local C_TimerBarsModule = MayronUI:RegisterModule("TimerBarsModule", L["Timer Bars"], true); -- initialized on demand
-MayronUI:AddModuleComponent("TimerBarsModule", "Database", db);
+local C_TimerBars = MayronUI:RegisterModule("TimerBars", L["Timer Bars"], true); -- initialized on demand
+MayronUI:AddComponent("TimerBarsDatabase", db);
 
----@type TimerBarsModule
-local timerBarsModule = MayronUI:ImportModule("TimerBarsModule");
+---@type TimerBars
+local TimerBars = MayronUI:ImportModule("TimerBars");
 
 ---@class TimerField
 local C_TimerField = obj:CreateClass("TimerField");
-C_TimerField.Static:AddFriendClass("TimerBarsModule");
+C_TimerField.Static:AddFriendClass("TimerBars");
 
 ---@class TimerBar
 local C_TimerBar = obj:CreateClass("TimerBar");
-C_TimerBar.Static:AddFriendClass("TimerBarsModule");
+C_TimerBar.Static:AddFriendClass("TimerBars");
 
 ---@type Stack
 local Stack = obj:Import("Pkg-Collections.Stack<T>");
@@ -133,21 +134,21 @@ db:OnStartUp(function(self)
   _G.MUI_TimerBars.db = self;
 
   MayronUI:Hook("CoreModule", "OnInitialized", function()
-    timerBarsModule:Initialize();
+    TimerBars:Initialize();
   end);
 end);
 
 db:OnProfileChange(function()
-  if (timerBarsModule:IsInitialized() and MayronUI:IsInstalled()) then
-    timerBarsModule:ApplyProfileSettings();
-    timerBarsModule:RefreshSettings();
-    timerBarsModule:ExecuteAllUpdateFunctions();
+  if (TimerBars:IsInitialized() and MayronUI:IsInstalled()) then
+    TimerBars:ApplyProfileSettings();
+    TimerBars:RefreshSettings();
+    TimerBars:ExecuteAllUpdateFunctions();
   end
 end);
 
--- C_TimerBarsModule --------------------
+-- C_TimerBars --------------------
 
-function C_TimerBarsModule:OnInitialize(data)
+function C_TimerBars:OnInitialize(data)
   data.loadedFields = obj:PopTable();
 
   -- create 2 default (removable from database) TimerFields
@@ -341,26 +342,26 @@ function C_TimerBarsModule:OnInitialize(data)
   });
 end
 
-function C_TimerBarsModule:OnInitialized(data)
+function C_TimerBars:OnInitialized(data)
   if (data.settings.enabled) then
     self:SetEnabled(true); -- this executes all update functions
   end
 end
 
-function C_TimerBarsModule:OnEnable()
-  if (not em:GetEventListenerByID("TimerBarsModule_OnCombatLogEvent")) then
-    local listener = em:CreateEventListenerWithID("TimerBarsModule_OnCombatLogEvent", OnCombatLogEvent);
+function C_TimerBars:OnEnable()
+  if (not em:GetEventListenerByID("TimerBars_OnCombatLogEvent")) then
+    local listener = em:CreateEventListenerWithID("TimerBars_OnCombatLogEvent", OnCombatLogEvent);
     listener:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
 
-    listener = em:CreateEventListenerWithID("TimerBarsModule_CheckUnitAuras", CheckUnitAuras);
+    listener = em:CreateEventListenerWithID("TimerBars_CheckUnitAuras", CheckUnitAuras);
     listener:RegisterEvent("PLAYER_ENTERING_WORLD");
   else
-    em:EnableEventListeners("TimerBarsModule_OnCombatLogEvent", "TimerBarsModule_CheckUnitAuras");
+    em:EnableEventListeners("TimerBars_OnCombatLogEvent", "TimerBars_CheckUnitAuras");
   end
 end
 
-function C_TimerBarsModule:OnDisable()
-  em:DestroyEventListeners("TimerBarsModule_OnCombatLogEvent", "TimerBarsModule_CheckUnitAuras");
+function C_TimerBars:OnDisable()
+  em:DestroyEventListeners("TimerBars_OnCombatLogEvent", "TimerBars_CheckUnitAuras");
 end
 
 -- Local Functions -------------------
@@ -502,15 +503,15 @@ do
       db:SetPathValue(("profile.fields.%s.filters.%s.%s"):format(params.fieldName, listName, params.auraName), value);
       tk:Print(printMessage:format(params.auraName));
       params.timerBar.Remove = true;
-      timerBarsModule:RefreshSettings();
+      TimerBars:RefreshSettings();
     end
 
     if (not enabled) then
       if (not insertedFrame) then
-        insertedFrame = tk:PopFrame("Frame", self);
+        insertedFrame = tk:CreateFrame("Frame", self);
         insertedFrame:SetSize(200, 30);
 
-        insertedFrame.btn = _G.CreateFrame("CheckButton", nil, insertedFrame, "UICheckButtonTemplate");
+        insertedFrame.btn = tk:CreateFrame("CheckButton", insertedFrame, nil, "UICheckButtonTemplate");
         insertedFrame.btn:SetSize(30, 30);
         insertedFrame.btn:SetPoint("LEFT");
         insertedFrame.btn.text:SetFontObject("GameFontHighlight");
@@ -526,7 +527,7 @@ do
   end
 
   local function CreateOptionsMenu()
-    local options = CreateFrame("Frame", "MUI_TimerBarOptionsMenu", nil, "UIMenuTemplate");
+    local options = tk:CreateFrame("Frame", nil, "MUI_TimerBarOptionsMenu", "UIMenuTemplate");
     _G.UIMenu_Initialize(options);
 
     local function OptionSelected(whitelist)
@@ -775,7 +776,7 @@ do
   ---@return Frame @Returns the created field (a Frame widget)
   function C_TimerField:CreateField(data, name)
     local globalName = tk.Strings:Concat("MUI_", name, "TimerField");
-    local frame = CreateFrame("Frame", globalName, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+    local frame = tk:CreateFrame("Frame", nil, globalName, _G.BackdropTemplateMixin and "BackdropTemplate");
 
     local fieldHeight = (data.settings.bar.maxBars * (data.settings.bar.height + data.settings.bar.spacing)) - data.settings.bar.spacing;
     frame:SetSize(data.settings.bar.width, fieldHeight);
@@ -1011,12 +1012,12 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
   data.settings = settings;
   data.sharedSettings = sharedSettings;
 
-  data.frame = CreateFrame("Button", nil, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+  data.frame = tk:CreateFrame("Button", nil, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
   data.frame:SetSize(settings.bar.width, settings.bar.height);
   data.frame:RegisterForClicks("RightButtonUp");
   data.frame:Hide();
 
-  data.slider = CreateFrame("StatusBar", nil, data.frame);
+  data.slider = tk:CreateFrame("StatusBar", data.frame);
   data.slider:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", sharedSettings.statusBarTexture));
   data.slider.bg = tk:SetBackground(data.slider, unpack(sharedSettings.colors.background));
   data.frame.slider = data.slider;
@@ -1042,7 +1043,7 @@ function C_TimerBar:SetIconShown(data, shown)
 
   if (shown) then
     if (not data.iconFrame) then
-      data.iconFrame = CreateFrame("Frame", nil, data.frame, _G.BackdropTemplateMixin and "BackdropTemplate");
+      data.iconFrame = tk:CreateFrame("Frame", data.frame, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
 
       data.icon = data.iconFrame:CreateTexture(nil, "ARTWORK");
       data.icon:SetTexCoord(0.1, 0.92, 0.08, 0.92);
@@ -1323,7 +1324,7 @@ function C_TimerBar:UpdateExpirationTime(data)
   return (old ~= self.ExpirationTime);
 end
 
-function C_TimerBarsModule:ApplyProfileSettings(data)
+function C_TimerBars:ApplyProfileSettings(data)
   if (not (db.profile.fieldNames and db.profile.fields)) then
     db:RemoveAppended(db.profile, "defaultFields");
   end

@@ -1,29 +1,29 @@
 <Bindings>
   <Binding name='MUI_SHOW_CONFIG_MENU' category="BINDING_CATEGORY_MUI">
-		MayronUI:TriggerCommand("config")
+    MayronUI:TriggerCommand("config")
   </Binding>
   <Binding name='MUI_SHOW_LAYOUT_MENU' category="BINDING_CATEGORY_MUI">
-		MayronUI:TriggerCommand("layouts")
+    MayronUI:TriggerCommand("layouts")
   </Binding>
   <Binding name='MUI_SHOW_INSTALLER' category="BINDING_CATEGORY_MUI">
-		MayronUI:TriggerCommand("install")
+    MayronUI:TriggerCommand("install")
   </Binding>
   <Binding name='MUI_SHOW_1_BOTTOM_ACTION_BAR' category="BINDING_CATEGORY_MUI">
-		MayronUI:TriggerCommand("Show1BottomActionBar")
+    MayronUI:TriggerCommand("Show1BottomActionBar")
   </Binding>
   <Binding name='MUI_SHOW_2_BOTTOM_ACTION_BARS' category="BINDING_CATEGORY_MUI">
-		MayronUI:TriggerCommand("Show2BottomActionBars")
+    MayronUI:TriggerCommand("Show2BottomActionBars")
   </Binding>
   <Binding name='MUI_SHOW_3_BOTTOM_ACTION_BARS' category="BINDING_CATEGORY_MUI">
-		MayronUI:TriggerCommand("Show3BottomActionBars")
-	</Binding>
+    MayronUI:TriggerCommand("Show3BottomActionBars")
+  </Binding>
   <Binding name='MUI_HIDE_ALL_SIDE_ACTION_BARS' category="BINDING_CATEGORY_MUI">
-		MayronUI:TriggerCommand("HideAllSideActionBars")
-	</Binding>
+    MayronUI:TriggerCommand("HideAllSideActionBars")
+  </Binding>
   <Binding name='MUI_SHOW_1_SIDE_ACTION_BAR' category="BINDING_CATEGORY_MUI">
-		MayronUI:TriggerCommand("Show1SideActionBar")
-	</Binding>
+    MayronUI:TriggerCommand("Show1SideActionBar")
+  </Binding>
   <Binding name='MUI_SHOW_2_SIDE_ACTION_BARS' category="BINDING_CATEGORY_MUI">
-		MayronUI:TriggerCommand("Show2SideActionBars")
-	</Binding>
+    MayronUI:TriggerCommand("Show2SideActionBars")
+  </Binding>
 </Bindings>

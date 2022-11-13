@@ -1,7 +1,8 @@
 -- luacheck: ignore self GameTooltip 143 631
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, _, _, _, obj, L = MayronUI:GetCoreComponents();
-local CreateFrame, GetCVar, SetCVar, string = _G.CreateFrame, _G.GetCVar, _G.SetCVar, _G.string;
+local GetCVar, SetCVar, string = _G.GetCVar, _G.SetCVar, _G.string;
 local tonumber = _G.tonumber;
 local MASTER_VOLUME = _G.MASTER_VOLUME;
 local SOUND_VOLUME = _G.SOUND_VOLUME or _G.FX_VOLUME;
@@ -43,7 +44,7 @@ local function Slider_OnValueChanged(self)
 end
 
 local function CreateLabel(contentFrame, cvarName, text, component)
-  local label = tk:PopFrame("Frame", contentFrame);
+  local label = tk:CreateFrame("Frame", contentFrame);
   label.customHeight = 46;
 
   local name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -51,7 +52,7 @@ local function CreateLabel(contentFrame, cvarName, text, component)
   name:SetWordWrap(false);
   name:SetJustifyH("CENTER");
 
-  local slider = CreateFrame("Slider", nil, label, "OptionsSliderTemplate");
+  local slider = tk:CreateFrame("Slider", label, nil, "OptionsSliderTemplate");
   slider:SetMinMaxValues(0, 1);
   slider:SetValueStep(0.01);
   slider:SetObeyStepOnDrag(true);
@@ -106,8 +107,8 @@ function VolumeOptions:__Construct(data, settings, dataTextModule)
   data.settings = settings;
 
   -- set public instance properties
-  self.MenuContent = CreateFrame("Frame");
-  self.MenuLabels = {};
+  self.MenuContent = tk:CreateFrame("Frame");
+  self.MenuLabels = obj:PopTable();
   self.TotalLabelsShown = 5;
   self.HasLeftMenu = true;
   self.HasRightMenu = false;

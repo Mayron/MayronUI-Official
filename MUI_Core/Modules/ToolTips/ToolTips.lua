@@ -1,10 +1,8 @@
 -- luacheck: ignore MayronUI self 143
-local _, namespace = ...;
 local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local C_ToolTipsModule = MayronUI:RegisterModule("Tooltips", L["Tooltips"]);
-namespace.C_ToolTipsModule = C_ToolTipsModule;
 
 local tooltipStyle = _G.GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT or _G.TOOLTIP_BACKDROP_STYLE_DEFAULT;
 local gameTooltip = _G.GameTooltip;
@@ -25,10 +23,10 @@ if (not obj:IsFunction(originalSetBackdrop)) then
   originalSetBackdropBorderColor = gameTooltip.SetBackdropBorderColor;
 end
 
-local select, IsAddOnLoaded, strformat, ipairs, CreateFrame, UnitAura, unpack,
+local select, IsAddOnLoaded, strformat, ipairs, UnitAura, unpack,
   UnitName, UnitHealthMax, UnitHealth, hooksecurefunc, UnitExists, UnitIsPlayer,
   GetGuildInfo, UnitRace, UnitCreatureFamily, UnitCreatureType, UnitReaction =
-  _G.select, _G.IsAddOnLoaded, _G.string.format, _G.ipairs, _G.CreateFrame, _G.UnitAura, _G.unpack,
+  _G.select, _G.IsAddOnLoaded, _G.string.format, _G.ipairs, _G.UnitAura, _G.unpack,
   _G.UnitName, _G.UnitHealthMax, _G.UnitHealth, _G.hooksecurefunc, _G.UnitExists, _G.UnitIsPlayer,
   _G.GetGuildInfo, _G.UnitRace, _G.UnitCreatureFamily, _G.UnitCreatureType, _G.UnitReaction;
 local UnitPowerType, UnitPower, UnitPowerMax, min = _G.UnitPowerType, _G.UnitPower, _G.UnitPowerMax, _G.math.min;
@@ -597,7 +595,7 @@ local function AddAuras(data, filter, anchor)
       local frame = auraFrames[id];
 
       if (not frame) then
-        auraFrames[id] = CreateFrame("Frame", nil, gameTooltip, _G.BackdropTemplateMixin and "BackdropTemplate");
+        auraFrames[id] = tk:CreateFrame("Frame", gameTooltip, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
         frame = auraFrames[id];
 
         frame:SetBackdrop(data.auraBackdrop);
@@ -608,7 +606,7 @@ local function AddAuras(data, filter, anchor)
         frame.iconTexture:SetPoint("TOPLEFT", edge, -edge);
         frame.iconTexture:SetPoint("BOTTOMRIGHT", -edge, edge);
 
-        frame.cooldown = CreateFrame("Cooldown", nil, frame, _G.BackdropTemplateMixin and "CooldownFrameTemplate");
+        frame.cooldown = tk:CreateFrame("Cooldown", frame, nil, _G.BackdropTemplateMixin and "CooldownFrameTemplate");
         frame.cooldown:SetReverse(1);
         frame.cooldown:SetPoint("TOPLEFT", edge, -edge);
         frame.cooldown:SetPoint("BOTTOMRIGHT", -edge, edge);
@@ -791,7 +789,7 @@ local function UpdateTargetText(data)
 end
 
 local function CreatePowerBar(data)
-  powerBar = CreateFrame("StatusBar", "GameTooltipPowerBar", healthBar,
+  powerBar = tk:CreateFrame("StatusBar", healthBar, "GameTooltipPowerBar",
     _G.BackdropTemplateMixin and "BackdropTemplate");
   powerBar:SetHeight(data.settings.powerBar.height);
 
@@ -800,7 +798,7 @@ local function CreatePowerBar(data)
   powerBar:SetFrameLevel(10);
 
   -- Create backdrop for status bar:
-  powerBar.bg = CreateFrame("Frame", nil, powerBar, _G.BackdropTemplateMixin and "BackdropTemplate");
+  powerBar.bg = tk:CreateFrame("Frame", powerBar, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
   powerBar.bg:SetAllPoints();
 	powerBar.bg:SetFrameLevel(healthBar:GetFrameLevel() - 1);
 	powerBar.bg:SetBackdrop({ bgFile = tk.Constants.BACKDROP_WITH_BACKGROUND.bgFile });
@@ -823,7 +821,7 @@ local function ApplyHealthBarChanges(data)
   healthBar.SetStatusBarColor = tk.Constants.DUMMY_FUNC;
 
   -- Create backdrop for status bar:
-  healthBar.bg = CreateFrame("Frame", nil, healthBar, _G.BackdropTemplateMixin and "BackdropTemplate");
+  healthBar.bg = tk:CreateFrame("Frame", healthBar, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
   healthBar.bg:SetAllPoints();
 	healthBar.bg:SetFrameLevel(healthBar:GetFrameLevel() - 1);
 	healthBar.bg:SetBackdrop({ bgFile = tk.Constants.BACKDROP_WITH_BACKGROUND.bgFile });
@@ -887,7 +885,7 @@ local function SetDoubleLine(leftText, rightText)
 end
 
 local function CreateScreenAnchor(data)
-  data.screenAnchor = CreateFrame("Frame", nil, _G.UIParent);
+  data.screenAnchor = tk:CreateFrame("Frame");
   data.screenAnchor:SetFrameStrata("TOOLTIP");
   tk:MakeMovable(data.screenAnchor);
   data.screenAnchor:SetSize(240, 150);

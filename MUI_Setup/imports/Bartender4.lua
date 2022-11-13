@@ -436,12 +436,9 @@ setup.import["Bartender4"] = function()
   if (obj:IsTable(_G.MayronUIdb) and obj:IsTable(_G.MayronUIdb.profiles)) then
     for _, profile in pairs(_G.MayronUIdb.profiles) do
       if (obj:IsTable(profile)) then
-        if (obj:IsTable(profile.actionBarPanel)) then
-          profile.actionBarPanel.bartender = nil;
-        end
-
-        if (obj:IsTable(profile.sidebar)) then
-          profile.sidebar.bartender = nil;
+        if (obj:IsTable(profile.actionbars)) then
+          profile.actionbars.bottom = nil;
+          profile.actionbars.side = nil;
         end
       end
     end

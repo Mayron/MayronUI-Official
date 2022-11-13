@@ -13,6 +13,8 @@ local Node = {};
 local LinkedListData = {};
 
 function C_LinkedList:__Construct(data, ...)
+  data.size = 0;
+
   for _, value in obj:IterateArgs(...) do
     self:AddToBack(value);
   end
@@ -178,6 +180,16 @@ function C_LinkedList:Unpack(_, n)
   end
 
   return obj:UnpackTable(values);
+end
+
+function C_LinkedList:ToTable()
+  local values = obj:PopTable();
+
+  for _, value in self:Iterate() do
+    table.insert(values, value);
+  end
+
+  return values;
 end
 
 ---Iterate through the values in the LinkedList.

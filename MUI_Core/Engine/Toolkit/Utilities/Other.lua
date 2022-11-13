@@ -1,15 +1,15 @@
--- luacheck: ignore LibStub self 143 631
-local _, namespace = ...;
+-- luacheck: ignore self
+local _G = _G;
+local MayronUI = _G.MayronUI;
+local tk, _, _, _, obj, L = MayronUI:GetCoreComponents();
+
+tk.Numbers = {};
 
 local string, tostring, select, unpack, type = _G.string, _G.tostring, _G.select, _G.unpack, _G.type;
 local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.pcall, _G.error;
 local hooksecurefunc, UnitLevel, UnitClass = _G.hooksecurefunc, _G.UnitLevel, _G.UnitClass;
 local GetMaxPlayerLevel, tostringall = _G.GetMaxPlayerLevel, _G.tostringall;
 local UnitQuestTrivialLevelRange, GetQuestGreenRange = _G.UnitQuestTrivialLevelRange, _G.GetQuestGreenRange;
-
-local obj = namespace.components.Objects; ---@type MayronObjects
-local tk = namespace.components.Toolkit; ---@type Toolkit
-local L = namespace.components.Locale;
 
 function tk.Numbers:ToPrecision(number, precision)
   number = tonumber(number);
@@ -109,36 +109,35 @@ do
 end
 
 function tk:Equals(value1, value2, deepEquals)
-    local type1 = type(value1);
+  local type1 = type(value1);
 
-    if (type(value2) == type1) then
-
-        if (type1 == "table") then
-            if (not deepEquals) then
-                return tostring(value1) == tostring(value2);
-            else
-                for id, value in pairs(value1) do
-                    if (not self:Equals(value, value2[id])) then
-                        return false;
-                    end
-                end
-            end
-
-            return true;
-        elseif (type1 == "function") then
-            return tostring(value1) == tostring(value2);
-        else
-            return value1 == value2;
+  if (type(value2) == type1) then
+    if (type1 == "table") then
+      if (not deepEquals) then
+        return tostring(value1) == tostring(value2);
+      else
+        for id, value in pairs(value1) do
+          if (not self:Equals(value, value2[id])) then
+            return false;
+          end
         end
-    end
+      end
 
-    return false;
+      return true;
+    elseif (type1 == "function") then
+      return tostring(value1) == tostring(value2);
+    else
+      return value1 == value2;
+    end
+  end
+
+  return false;
 end
 
 function tk:GetPlayerKey()
-    local key, realm = _G.UnitName("player"), _G.GetRealmName():gsub("%s+", "");
-    key = realm and string.join("-", key, realm);
-    return key;
+  local key, realm = _G.UnitName("player"), _G.GetRealmName():gsub("%s+", "");
+  key = realm and string.join("-", key, realm);
+  return key;
 end
 
 do
@@ -171,7 +170,7 @@ function tk:GetLocalizedClassNameByFileName(classFileName, makeClassColored)
   classFileName = classFileName:gsub("%s+", tk.Strings.Empty):upper();
 
   local localizedName =
-    tk.Constants.LOCALIZED_CLASS_NAMES[classFileName] or 
+    tk.Constants.LOCALIZED_CLASS_NAMES[classFileName] or
     tk.Constants.LOCALIZED_CLASS_FEMALE_NAMES[classFileName];
 
   tk:Assert(localizedName, "Unknown class file name '%s'.", classFileName);
@@ -285,7 +284,20 @@ do
     local function PopUp_OnShow(self)
       if (self.button1) then
         self.button1:Enable();
-        self.button1:SetHeight(40);
+      end
+
+      if (self.button2) then
+        self.button2:Enable();
+      end
+
+      if (not self.editBox or not self.editBox:IsShown()) then
+        if (self.button1) then
+          self.button1:SetHeight(30);
+        end
+
+        if (self.button2) then
+          self.button2:SetHeight(30);
+        end
 
         if (self.numButtons == 1) then
           local width = self.button1:GetTextWidth();
@@ -299,14 +311,8 @@ do
             self.button1:SetPoint(point, relFrame, relPoint, -offset, y);
           end
         end
+        return
       end
-
-      if (self.button2) then
-        self.button2:Enable();
-        self.button2:SetHeight(40);
-      end
-
-      if (not self.editBox) then return end
 
       self.editBox.popup = self; -- refer back to popup in scripts below
 
@@ -431,7 +437,10 @@ do
       _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
   end
 
-  function tk:ShowInputPopup(message, subMessage, editBoxText, onValidate, confirmText, onConfirm, cancelText, onCancel, isWarning, ...)
+  function tk:ShowInputPopup(
+    message, subMessage, editBoxText, onValidate, confirmText,
+    onConfirm, cancelText, onCancel, isWarning, ...)
+
     local popup = GetPopup(message, subMessage);
 
     popup.button1 = confirmText or L["Confirm"];

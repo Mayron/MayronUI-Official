@@ -1,10 +1,11 @@
 -- luacheck: ignore self 143
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 local LibStub = _G.LibStub;
 
-local unpack, CreateFrame, InCombatLockdown, CancelUnitBuff, GameTooltip, UnitAura =
-_G.unpack, _G.CreateFrame, _G.InCombatLockdown, _G.CancelUnitBuff, _G.GameTooltip, _G.UnitAura;
+local unpack, InCombatLockdown, CancelUnitBuff, GameTooltip, UnitAura =
+_G.unpack, _G.InCombatLockdown, _G.CancelUnitBuff, _G.GameTooltip, _G.UnitAura;
 
 if (tk:IsClassic()) then
   local LibClassicDurations = LibStub("LibClassicDurations");
@@ -59,7 +60,7 @@ end
 -- C_Aura -------------------------------
 function C_Aura:__Construct(data, parent, settings, auraID, filter)
   data.settings = settings;
-  local btn = CreateFrame("Button", nil, parent);
+  local btn = tk:CreateFrame("Button", parent);
   self:SetFrame(btn);
 
   btn:SetID(auraID);
@@ -75,7 +76,7 @@ function C_Aura:__Construct(data, parent, settings, auraID, filter)
   btn:SetScript("OnEnter", AuraButton_OnEnter);
   btn:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
 
-  btn.iconFrame = CreateFrame("Frame", nil, btn, _G.BackdropTemplateMixin and "BackdropTemplate");
+  btn.iconFrame = tk:CreateFrame("Frame", btn, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
   btn.iconTexture = btn.iconFrame:CreateTexture(nil, "ARTWORK");
   btn.iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
 
@@ -100,11 +101,11 @@ function C_Aura:SetUpStatusBar(data)
   btn.iconFrame:SetPoint("TOPLEFT");
   btn.iconFrame:SetPoint("BOTTOMLEFT");
 
-  btn.statusBarFrame = CreateFrame("Frame", nil, btn, _G.BackdropTemplateMixin and "BackdropTemplate");
+  btn.statusBarFrame = tk:CreateFrame("Frame", btn, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
   btn.statusBarFrame:SetPoint("TOPLEFT", btn.iconFrame, "TOPRIGHT", statusBars.iconGap, 0);
   btn.statusBarFrame:SetPoint("BOTTOMRIGHT");
 
-  btn.statusBar = CreateFrame("StatusBar", nil, btn.statusBarFrame);
+  btn.statusBar = tk:CreateFrame("StatusBar", btn.statusBarFrame);
   btn.statusBar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", statusBars.barTexture));
 
   btn.background = tk:SetBackground(btn.statusBarFrame, 0, 0, 0);

@@ -1,10 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
-local _, namespace = ...;
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local ipairs, pairs, GameTooltip, PlaySound = _G.ipairs, _G.pairs, _G.GameTooltip, _G.PlaySound;
-local CreateFrame, UIFrameFadeIn, tinsert = _G.CreateFrame, _G.UIFrameFadeIn, _G.table.insert;
+local UIFrameFadeIn, tinsert = _G.UIFrameFadeIn, _G.table.insert;
 
 -- Objects -----------------------------
 local SlideController = obj:Import("MayronUI.SlideController");
@@ -14,8 +14,7 @@ local SlideController = obj:Import("MayronUI.SlideController");
 ---@class DataTextModule : BaseModule
 local C_DataTextModule = MayronUI:RegisterModule("DataTextModule", L["Data Text Bar"]);
 
-namespace.C_DataTextModule = C_DataTextModule;
-namespace.dataTextLabels = {
+local labels = {
   combatTimer   = L["Combat Timer"];
   disabled      = L["Disabled"];
   durability    = L["Armor"];
@@ -29,6 +28,8 @@ namespace.dataTextLabels = {
   quest         = L["Quests"];
   volumeOptions = _G.VOLUME;
 };
+
+MayronUI:AddComponent("DataTextLabels", labels);
 
 -- Load Database Defaults --------------
 local defaults = {
@@ -45,7 +46,7 @@ local defaults = {
     width        = 200;
     itemHeight   = 26; -- the default height of each list item in the popup menu
   };
-  labels = namespace.dataTextLabels,
+  labels = labels,
   displayOrders = {
     "durability";
     "friends";
@@ -138,10 +139,10 @@ function C_DataTextModule:OnInitialize(data)
 
     height = function(value)
       data.bar:SetHeight(value);
-      local actionBarPanelModule = MayronUI:ImportModule("ActionBarPanel");
+      local bottomActionBars = MayronUI:ImportModule("BottomActionBars");
 
-      if (actionBarPanelModule:IsEnabled()) then
-        actionBarPanelModule:SetUpExpandRetract(data);
+      if (bottomActionBars:IsEnabled()) then
+        bottomActionBars:SetUpExpandRetract(data);
       end
     end;
 
@@ -198,7 +199,7 @@ function C_DataTextModule:OnDisable(data)
     data.bar:Hide();
     data.popup:Hide();
 
-    local containerModule = MayronUI:ImportModule("BottomUI_Container");
+    local containerModule = MayronUI:ImportModule("MainContainer");
     containerModule:RepositionContent();
   end
 end
@@ -206,13 +207,13 @@ end
 function C_DataTextModule:OnEnable(data)
   if (data.bar) then
     data.bar:Show();
-    local containerModule = MayronUI:ImportModule("BottomUI_Container");
+    local containerModule = MayronUI:ImportModule("MainContainer");
     containerModule:RepositionContent();
     return;
   end
 
   -- the main bar containing all data text buttons
-  data.bar = CreateFrame("Frame", "MUI_DataTextBar", _G.MUI_BottomContainer or _G.UIParent);
+  data.bar = tk:CreateFrame("Frame", _G.MUI_BottomContainer, "MUI_DataTextBar");
 
   if (_G.MUI_BottomContainer) then
     data.bar:SetPoint("BOTTOMLEFT");
@@ -226,7 +227,7 @@ function C_DataTextModule:OnEnable(data)
 
   -- create the popup menu (displayed when a data item button is clicked)
   -- each data text module has its own frame to be used as the scroll child
-  data.popup = gui:CreateScrollFrame(tk.Constants.AddOnStyle, _G.MUI_BottomContainer or _G.UIParent, "MUI_DataTextPopupMenu");
+  data.popup = gui:CreateScrollFrame(_G.MUI_BottomContainer or _G.UIParent, "MUI_DataTextPopupMenu");
   data.popup:SetFrameStrata("DIALOG");
   data.popup:Hide();
   data.popup:SetFrameLevel(2);
@@ -237,7 +238,7 @@ function C_DataTextModule:OnEnable(data)
   data.popup.ScrollBar:SetPoint("TOPLEFT", data.popup, "TOPRIGHT", -6, 1);
   data.popup.ScrollBar:SetPoint("BOTTOMRIGHT", data.popup, "BOTTOMRIGHT", -1, 1);
 
-  data.popup.bg = gui:CreateDialogBox(tk.Constants.AddOnStyle, data.popup, "High");
+  data.popup.bg = gui:CreateDialogBox(data.popup, "High");
   data.popup.bg:SetPoint("TOPLEFT", 0, 2);
   data.popup.bg:SetPoint("BOTTOMRIGHT", 0, -2);
 
@@ -258,7 +259,7 @@ function C_DataTextModule:OnEnable(data)
   -- provides more intelligent scrolling (+ controls visibility of scrollbar)
   data.slideController = SlideController(data.popup, "VERTICAL");
 
-  local containerModule = MayronUI:ImportModule("BottomUI_Container");
+  local containerModule = MayronUI:ImportModule("MainContainer");
 
   if (containerModule:IsEnabled()) then
     containerModule:RepositionContent();
@@ -272,7 +273,7 @@ end
 
 obj:DefineReturns("Button");
 function C_DataTextModule:CreateDataTextButton(data)
-  local btn = CreateFrame("Button");
+  local btn = tk:CreateFrame("Button");
   local btnTextureFilePath = tk.Constants.AddOnStyle:GetTexture("ButtonTexture");
   btn:SetNormalTexture(btnTextureFilePath);
   btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
@@ -399,10 +400,10 @@ function C_DataTextModule:ChangeMenuContent(data, content)
 end
 
 obj:DefineParams("table");
-function C_DataTextModule:ClearLabels(_, labels)
-  if (not labels) then return end
+function C_DataTextModule:ClearLabels(_, currentLabels)
+  if (not currentLabels) then return end
 
-  for _, label in ipairs(labels) do
+  for _, label in ipairs(currentLabels) do
     if (label.name) then label.name:SetText(""); end
     if (label.value) then label.value:SetText(""); end
 

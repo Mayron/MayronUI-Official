@@ -14,7 +14,7 @@ local Memory = obj:CreateClass("Memory");
 -- Local Functions ----------------
 
 local function CreateLabel(contentFrame, popupWidth)
-  local label = tk:PopFrame("Frame", contentFrame);
+  local label = tk:CreateFrame("Frame", contentFrame);
 
   label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   label.name:SetPoint("LEFT", 6, 0);
@@ -47,7 +47,7 @@ function Memory:__Construct(data, settings, dataTextModule)
   data.settings =  settings;
 
   -- set public instance properties
-  self.MenuContent = _G.CreateFrame("Frame");
+  self.MenuContent = tk:CreateFrame("Frame");
   self.MenuLabels = obj:PopTable();
   self.TotalLabelsShown = 0;
   self.HasLeftMenu = true;

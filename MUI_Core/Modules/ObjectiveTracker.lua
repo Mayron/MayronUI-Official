@@ -1,6 +1,8 @@
 -- luacheck: ignore self 143 631
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+
 if (not tk:IsRetail()) then
   return
 end
@@ -9,15 +11,15 @@ end
 local C_ObjectiveTracker = MayronUI:RegisterModule(
   "ObjectiveTrackerModule", L["Objective Tracker"], true);
 
-MayronUI:Hook("SideBarModule", "OnEnable", function(sideBarModule)
-  MayronUI:ImportModule("ObjectiveTrackerModule"):Initialize(sideBarModule);
+MayronUI:Hook("SideActionBars", "OnEnable", function(sideActionBars)
+  MayronUI:ImportModule("ObjectiveTrackerModule"):Initialize(sideActionBars);
 end);
 
-local ObjectiveTrackerFrame, IsInInstance, UIParent, hooksecurefunc, ipairs,
-      C_PlayerInfo, C_QuestLog, CreateFrame, GetInstanceInfo,
+local ObjectiveTrackerFrame, IsInInstance, hooksecurefunc, ipairs,
+      C_PlayerInfo, C_QuestLog, GetInstanceInfo,
       RegisterStateDriver, UnregisterStateDriver, GetDifficultyColor, string,
-      tinsert, unpack = _G.ObjectiveTrackerFrame, _G.IsInInstance, _G.UIParent,
-  _G.hooksecurefunc, _G.ipairs, _G.C_PlayerInfo, _G.C_QuestLog, _G.CreateFrame,
+      tinsert, unpack = _G.ObjectiveTrackerFrame, _G.IsInInstance,
+  _G.hooksecurefunc, _G.ipairs, _G.C_PlayerInfo, _G.C_QuestLog,
   _G.GetInstanceInfo, _G.RegisterStateDriver, _G.UnregisterStateDriver,
   _G.GetDifficultyColor, _G.string, _G.table.insert, _G.unpack;
 
@@ -66,8 +68,8 @@ db:AddToDefaults("profile.objectiveTracker", {
   xOffset = -30;
 });
 
-function C_ObjectiveTracker:OnInitialize(data, sideBarModule)
-  data.panel = sideBarModule:GetPanel();
+function C_ObjectiveTracker:OnInitialize(data, sideActionBars)
+  data.panel = sideActionBars:GetPanel();
   data.minButtons = obj:PopTable();
 
   local function SetUpAnchor()
@@ -219,14 +221,13 @@ function C_ObjectiveTracker:OnEnable(data)
   end
 
   -- holds and controls blizzard objectives tracker frame
-  data.objectiveContainer = CreateFrame("Frame", "MUI_ObjectiveContainer", UIParent);
+  data.objectiveContainer = tk:CreateFrame("Frame", nil, "MUI_ObjectiveContainer");
 
   -- blizzard objective tracker frame global variable
   ObjectiveTrackerFrame:SetParent(data.objectiveContainer);
   ObjectiveTrackerFrame:SetAllPoints(true);
 
-  data.autoHideHandler = CreateFrame(
-    "Frame", nil, data.objectiveContainer, "SecureHandlerStateTemplate");
+  data.autoHideHandler = tk:CreateFrame("Frame", data.objectiveContainer, nil, "SecureHandlerStateTemplate");
 
   data.autoHideHandler:SetAttribute("_onstate-autoHideHandler",
     "if (newstate == 1) then self:Hide() else self:Show() end");
@@ -243,8 +244,7 @@ function C_ObjectiveTracker:OnEnable(data)
   _G.ScenarioStageBlock.NormalBG:Hide();
   _G.ScenarioStageBlock:SetHeight(70);
 
-  local box = gui:CreateDialogBox(tk.Constants.AddOnStyle,
-                _G.ScenarioStageBlock, "LOW");
+  local box = gui:CreateDialogBox(_G.ScenarioStageBlock, "LOW");
   box:SetPoint("TOPLEFT", 5, -5);
   box:SetPoint("BOTTOMRIGHT", -5, 5);
   box:SetFrameStrata("BACKGROUND");
@@ -277,12 +277,12 @@ function C_ObjectiveTracker:OnEnable(data)
   end);
 
   hooksecurefunc(_G.QUEST_TRACKER_MODULE, "OnBlockHeaderEnter",
-    function(self, block)
+    function(_, block)
       UpdateQuestDifficultyColors(block, true);
     end);
 
   hooksecurefunc(_G.QUEST_TRACKER_MODULE, "OnBlockHeaderLeave",
-    function(self, block)
+    function(_, block)
       UpdateQuestDifficultyColors(block);
     end);
 end

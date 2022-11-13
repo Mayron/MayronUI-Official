@@ -1,11 +1,10 @@
 -- luacheck: ignore self 143
-local _, namespace = ...;
-
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 
 local GetSpellInfo, IsAddOnLoaded, UnitName = _G.GetSpellInfo, _G.IsAddOnLoaded, _G.UnitName;
-local UnitChannelInfo, UnitCastingInfo, CreateFrame = _G.UnitChannelInfo, _G.UnitCastingInfo, _G.CreateFrame;
+local UnitChannelInfo, UnitCastingInfo = _G.UnitChannelInfo, _G.UnitCastingInfo;
 local UIFrameFadeIn, UIFrameFadeOut, select, date, math, tonumber, string, table, ipairs =
     _G.UIFrameFadeIn, _G.UIFrameFadeOut, _G.select, _G.date, _G.math, _G.tonumber, _G.string, _G.table, _G.ipairs;
 local GetNetStats = _G.GetNetStats;
@@ -15,8 +14,7 @@ local GetMirrorTimerInfo, GetTime, pairs = _G.GetMirrorTimerInfo, _G.GetTime, _G
 local CastingInfo, ChannelInfo = _G.CastingInfo, _G.ChannelInfo;
 local CastingBarFrame = _G.CastingBarFrame or _G.PlayerCastingBarFrame;
 
-namespace.castBarData = obj:PopTable();
-
+local allCastBarData = obj:PopTable();
 local LibCC;
 
 if (tk:IsClassic()) then
@@ -42,13 +40,10 @@ end
 -- Objects -----------------------------
 ---@class CastBarsModule : BaseModule
 local C_CastBarsModule = MayronUI:RegisterModule("CastBarsModule", L["Cast Bars"]);
-namespace.C_CastBarsModule = C_CastBarsModule;
 
 ---@class CastBar : Object
 local C_CastBar = obj:CreateClass("CastBar");
 C_CastBar.Static:AddFriendClass("CastBarsModule");
-
-namespace.bars = obj:PopTable();
 
 -- Load Database Defaults --------------
 
@@ -346,7 +341,7 @@ function C_CastBar:__Construct(data, settings, appearance, unitID)
   data.backdrop = obj:PopTable();
 
   -- Needed for event functions
-  namespace.castBarData[data.unitID] = data;
+  allCastBarData[data.unitID] = data;
 end
 
 local function IsFinished(data)
@@ -452,16 +447,16 @@ local function CastBarFrame_OnEvent(bar, eventName, ...)
   end
 
   if (Events[eventName]) then
-    Events[eventName](Events, bar.castBar, namespace.castBarData[bar.unitID], ...);
+    Events[eventName](Events, bar.castBar, allCastBarData[bar.unitID], ...);
   end
 end
 
 do
   local function CreateBarFrame(unitID, settings, globalName)
-    local bar = CreateFrame("Frame", globalName, _G.UIParent, _G.BackdropTemplateMixin and "BackdropTemplate");
+    local bar = tk:CreateFrame("Frame", nil, globalName, _G.BackdropTemplateMixin and "BackdropTemplate");
     bar:SetAlpha(0);
 
-    bar.statusbar = CreateFrame("StatusBar", nil, bar);
+    bar.statusbar = tk:CreateFrame("StatusBar", bar);
     bar.statusbar:SetValue(0);
 
     if (unitID == "player" and settings.showLatency) then
@@ -491,7 +486,7 @@ do
     bar.duration:SetPoint("RIGHT", -4, 0);
     bar.duration:SetJustifyH("RIGHT");
 
-    bar.bg = CreateFrame("Frame", nil, bar);
+    bar.bg = tk:CreateFrame("Frame", bar);
     bar.bg:SetPoint("TOPLEFT", bar, "TOPLEFT", -1, 1);
     bar.bg:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 1, -1);
     bar.bg:SetFrameLevel(5);
@@ -613,7 +608,7 @@ function C_CastBar:SetIconEnabled(data, enabled)
     end
 
     if (not data.square) then
-      data.square = CreateFrame("Frame", nil, data.frame, _G.BackdropTemplateMixin and "BackdropTemplate");
+      data.square = tk:CreateFrame("Frame", data.frame, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
       data.square:SetPoint("TOPRIGHT", data.frame, "TOPLEFT", -2, 0);
       data.square:SetPoint("BOTTOMRIGHT", data.frame, "BOTTOMLEFT", -2, 0);
 

@@ -1,9 +1,9 @@
 -- luacheck: ignore self 143 631
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 
-local CreateFrame, collectgarbage, PlaySound = _G.CreateFrame,
-  _G.collectgarbage, _G.PlaySound;
+local collectgarbage, PlaySound = _G.collectgarbage, _G.PlaySound;
 local string, ipairs, tostring, min, mfloor = _G.string, _G.ipairs, _G.tostring,
   _G.math.min, _G.math.floor;
 
@@ -28,14 +28,14 @@ function C_ReportIssue:OnInitialize(data)
     [3] = L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"];
   }
 
-  local frame = gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, "HIGH");
+  local frame = gui:CreateDialogBox(nil, "HIGH");
   frame:SetSize(600, 400);
   frame:SetPoint("CENTER");
   data.reportFrame = frame;
 
-  gui:AddCloseButton(tk.Constants.AddOnStyle, frame, nil, tk.Constants.CLICK);
-  gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Report Issue"]);
-  gui:AddResizer(tk.Constants.AddOnStyle, frame);
+  gui:AddCloseButton(frame, nil, tk.Constants.CLICK);
+  gui:AddTitleBar(frame, L["Report Issue"]);
+  gui:AddResizer(frame);
 
   if (obj:IsFunction(frame.SetMinResize)) then
     frame:SetMinResize(500, 400);
@@ -118,7 +118,7 @@ function C_ReportIssue.Private:ShowStep(data, stepNum)
   end
 
   if (not data.steps[stepNum]) then
-    local stepFrame = CreateFrame("Frame", nil, data.stepParentFrame);
+    local stepFrame = tk:CreateFrame("Frame", data.stepParentFrame);
     stepFrame:SetAllPoints(true);
     data:Call(string.format("RenderStep%d", stepNum), stepFrame);
     data.steps[stepNum] = stepFrame;
@@ -187,8 +187,7 @@ function C_ReportIssue.Private:SetUpFooter(data)
   local parent = cell:GetFrame();
   data.footerParent = parent;
 
-  local backButton = gui:CreateButton(
-                       tk.Constants.AddOnStyle, parent, L["Back"]);
+  local backButton = gui:CreateButton(parent, L["Back"]);
   backButton.minWidth = 150;
   backButton:SetWidth(150);
   backButton:Disable();
@@ -199,8 +198,7 @@ function C_ReportIssue.Private:SetUpFooter(data)
       data:Call("ShowStep", data.currentStep - 1);
     end);
 
-  local nextButton = gui:CreateButton(
-                       tk.Constants.AddOnStyle, parent, L["Next"]);
+  local nextButton = gui:CreateButton(parent, L["Next"]);
   nextButton.minWidth = 150;
   nextButton:SetWidth(150);
   nextButton:Disable();
@@ -226,7 +224,7 @@ function C_ReportIssue.Private:CreateEditBox(
   title:SetPoint("TOPRIGHT");
   title:SetText(titleText);
 
-  local editBox = CreateFrame("EditBox", nil, parent);
+  local editBox = tk:CreateFrame("EditBox", parent);
   editBox:SetMaxLetters(maxLength > 0 and maxLength or 100000);
   editBox:SetMultiLine(true);
   editBox:EnableMouse(true);
@@ -234,8 +232,7 @@ function C_ReportIssue.Private:CreateEditBox(
   editBox:SetFontObject("ChatFontNormal");
   editBox:SetAllPoints(true);
 
-  local container = gui:CreateScrollFrame(
-                      tk.Constants.AddOnStyle, parent, nil, editBox);
+  local container = gui:CreateScrollFrame(parent, nil, editBox);
   container:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -data.ITEM_SPACING);
   container:SetPoint("TOPRIGHT", title, "BOTTOMRIGHT", 0, -data.ITEM_SPACING);
   container:SetPoint("BOTTOM");
@@ -314,7 +311,7 @@ end
 
 obj:DefineParams("Frame");
 function C_ReportIssue.Private:RenderStep3(data, parent)
-  local linkButton = CreateFrame("Button", nil, parent);
+  local linkButton = tk:CreateFrame("Button", parent);
   linkButton:SetPoint("TOPLEFT");
   linkButton:SetPoint("TOPRIGHT");
   linkButton:SetHeight(50);
@@ -343,60 +340,55 @@ function C_ReportIssue.Private:RenderStep3(data, parent)
           _G.MUI_GITHUB_SUBMIT_NEW_ISSUE_LINK)
     end);
 
-  local container = CreateFrame("Frame", nil, linkButton);
+  local container = tk:CreateFrame("Frame", linkButton);
   container:SetPoint("TOPLEFT", linkButton, "BOTTOMLEFT", 0, -data.ITEM_SPACING);
   container:SetPoint(
     "TOPRIGHT", linkButton, "BOTTOMRIGHT", 0, -data.ITEM_SPACING);
   container:SetPoint("BOTTOM", parent, "BOTTOM");
 
-  data.generateButton = gui:CreateButton(
-                          tk.Constants.AddOnStyle, container,
-                            L["Generate Report"]);
+  data.generateButton = gui:CreateButton(container, L["Generate Report"]);
   data.generateButton:SetPoint("CENTER");
 
-  data.generateButton:SetScript(
-    "OnClick", function()
-      PlaySound(tk.Constants.CLICK);
-      local report = data:Call("GenerateReport");
-      local copyText = string.format(
-        "%s %s:", L["Copy Report"],
-         L["(CTRL+C to Copy, CTRL+V to Paste)"]);
+  data.generateButton:SetScript("OnClick", function()
+    PlaySound(tk.Constants.CLICK);
+    local report = data:Call("GenerateReport");
+    local copyText = string.format(
+      "%s %s:", L["Copy Report"],
+        L["(CTRL+C to Copy, CTRL+V to Paste)"]);
 
-      copyText = tk.Strings:SetTextColorByClassFileName(copyText);
+    copyText = tk.Strings:SetTextColorByClassFileName(copyText);
 
-      if (not data.reportEditBox) then
-        data.reportEditBox = data:Call("CreateEditBox", container, copyText, nil, 0);
-      end
+    if (not data.reportEditBox) then
+      data.reportEditBox = data:Call("CreateEditBox", container, copyText, nil, 0);
+    end
 
-      data.reportFrame:SetHeight(600);
+    data.reportFrame:SetHeight(600);
 
-      if (obj:IsFunction(data.reportFrame.SetMinResize)) then
-        data.reportFrame:SetMinResize(500, 600);
-      else
-        -- dragonflight:
-        data.reportFrame:SetResizeBounds(500, 600);
-      end
+    if (obj:IsFunction(data.reportFrame.SetMinResize)) then
+      data.reportFrame:SetMinResize(500, 600);
+    else
+      -- dragonflight:
+      data.reportFrame:SetResizeBounds(500, 600);
+    end
 
-      data.generateButton:Hide();
-      data.backButton:Hide();
-      data.reportEditBox:SetText(report);
-      data.reportEditBox.container:Show();
-      data.reportEditBox:SetFocus();
-      data.reportEditBox:HighlightText();
+    data.generateButton:Hide();
+    data.backButton:Hide();
+    data.reportEditBox:SetText(report);
+    data.reportEditBox.container:Show();
+    data.reportEditBox:SetFocus();
+    data.reportEditBox:HighlightText();
 
-      if (not data.closeButton) then
-        data.closeButton = gui:CreateButton(
-                             tk.Constants.AddOnStyle, data.footerParent, "Close");
-        data.closeButton:SetPoint("CENTER");
+    if (not data.closeButton) then
+      data.closeButton = gui:CreateButton(data.footerParent, "Close");
+      data.closeButton:SetPoint("CENTER");
 
-        data.closeButton:SetScript(
-          "OnClick", function()
-            data.reportFrame.closeBtn:Click();
-          end);
-      end
+      data.closeButton:SetScript("OnClick", function()
+        data.reportFrame.closeBtn:Click();
+      end);
+    end
 
-      data.closeButton:Show();
-    end);
+    data.closeButton:Show();
+  end);
 end
 
 do
@@ -546,8 +538,7 @@ do
     AppendLine("```");
 
     -- Append TimerBars Current Profile Settings:
-    local timerBarsDb = MayronUI:GetModuleComponent(
-                          "TimerBarsModule", "Database");
+    local timerBarsDb = MayronUI:GetComponent("TimerBarsDatabase");
     AppendLine("TimerBars Current Profile Settings", true);
 
     profile = GetCopyOfSavedVariableTable(timerBarsDb.profile);

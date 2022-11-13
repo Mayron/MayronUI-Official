@@ -1,16 +1,12 @@
--- luacheck: ignore MayronUI self 143 631
-local _, namespace = ...;
-
-local obj = namespace.components.Objects; ---@type MayronObjects
-local tk = namespace.components.Toolkit; ---@type Toolkit
+-- luacheck: ignore self
+local _G = _G;
+local MayronUI = _G.MayronUI;
+local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 
 local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
-local ipairs, hooksecurefunc, CreateFrame, UIParent, select = _G.ipairs,
-  _G.hooksecurefunc, _G.CreateFrame, _G.UIParent, _G.select;
-local CreateColor = _G.CreateColor;
-
--- GLOBALS:
---[[ luacheck: ignore GameTooltip C_QuestLog ]]
+local ipairs, hooksecurefunc, CreateFrame, select = _G.ipairs, _G.hooksecurefunc,
+  _G.CreateFrame, _G.select;
+local CreateColor, bitband, pairs = _G.CreateColor, _G.bit.band, _G.pairs;
 
 function tk:SetFontSize(fontString, size)
   local fontPath, _, flags = fontString:GetFont();
@@ -33,24 +29,24 @@ do
       point = anchor;
     end
 
-    GameTooltip:SetOwner(widget, point, xOffset, yOffset);
+    _G.GameTooltip:SetOwner(widget, point, xOffset, yOffset);
   end
 
   function tk.GeneralTooltip_OnLeave()
-    GameTooltip:Hide();
+    _G.GameTooltip:Hide();
   end
 
   function tk.BasicTooltip_OnEnter(self)
     SetOwner(self);
-    GameTooltip:AddLine(self.tooltipText);
-    GameTooltip:Show();
+    _G.GameTooltip:AddLine(self.tooltipText);
+    _G.GameTooltip:Show();
   end
 
   function tk.AuraTooltip_OnEnter(self)
     if (self.auraId) then
-      GameTooltip:SetOwner(self, TOOLTIP_ANCHOR_POINT, 0, 2);
-      GameTooltip:SetSpellByID(self.auraId);
-      GameTooltip:Show();
+      _G.GameTooltip:SetOwner(self, TOOLTIP_ANCHOR_POINT, 0, 2);
+      _G.GameTooltip:SetSpellByID(self.auraId);
+      _G.GameTooltip:Show();
     end
   end
 
@@ -59,16 +55,15 @@ do
 
     for _, line in ipairs(self.lines) do
       if (line.text) then
-        GameTooltip:AddLine(line.text);
+        _G.GameTooltip:AddLine(line.text);
 
       elseif (line.leftText and line.rightText) then
         local r, g, b = tk:GetThemeColor();
-        GameTooltip:AddDoubleLine(
-          line.leftText, line.rightText, r, g, b, 1, 1, 1);
+        _G.GameTooltip:AddDoubleLine(line.leftText, line.rightText, r, g, b, 1, 1, 1);
       end
     end
 
-    GameTooltip:Show();
+    _G.GameTooltip:Show();
   end
 
   -- point, xOffset, yOffset are all optional
@@ -109,21 +104,18 @@ function tk:SetFullWidth(frame, rightPadding)
   rightPadding = rightPadding or 0;
 
   if (not frame:GetParent()) then
-    hooksecurefunc(
-      frame, "SetParent", function()
-        frame:GetParent():HookScript(
-          "OnSizeChanged", function(_, width)
-            frame:SetWidth(width - rightPadding);
-          end);
-
-        frame:SetWidth(frame:GetParent():GetWidth() - rightPadding);
-      end);
-
-  else
-    frame:GetParent():HookScript(
-      "OnSizeChanged", function(_, width)
+    hooksecurefunc(frame, "SetParent", function()
+      frame:GetParent():HookScript("OnSizeChanged", function(_, width)
         frame:SetWidth(width - rightPadding);
       end);
+
+      frame:SetWidth(frame:GetParent():GetWidth() - rightPadding);
+    end);
+
+  else
+    frame:GetParent():HookScript("OnSizeChanged", function(_, width)
+      frame:SetWidth(width - rightPadding);
+    end);
 
     frame:SetWidth(frame:GetParent():GetWidth() - rightPadding);
   end
@@ -179,13 +171,11 @@ function tk:MakeResizable(frame, dragger)
   frame:SetResizable(true);
   dragger:RegisterForDrag("LeftButton");
 
-  dragger:HookScript(
-    "OnDragStart", function()
+  dragger:HookScript("OnDragStart", function()
       frame:StartSizing();
     end);
 
-  dragger:HookScript(
-    "OnDragStop", function()
+  dragger:HookScript("OnDragStop", function()
       frame:StopMovingOrSizing();
     end);
 end
@@ -294,7 +284,7 @@ function tk:GetThemeColor(returnTable)
     return tk.Constants.AddOnStyle:GetColor(nil, returnTable);
   end
 
-  local color = namespace.components.Database.profile.theme.color;
+  local color = db.profile.theme.color;
   return color.r, color.g, color.b, color.hex;
 end
 
@@ -318,7 +308,7 @@ function tk:UpdateThemeColor(value)
   colorValues.hex = color:GenerateHexColor();
 
   -- update database
-  namespace.components.Database.profile.theme.color = colorValues;
+  db.profile.theme.color = colorValues;
 
   -- update Constant Style Object
   tk.Constants.AddOnStyle:SetColor(color.r, color.g, color.b);
@@ -328,6 +318,7 @@ end
 
 function tk:SetGradient(texture, direction, r, g, b, a, r2, g2, b2, a2)
   r, g, b, a, r2, g2, b2, a2 = r or 0, g or 0, b or 0, a or 0, r2 or 0, g2 or 0, b2 or 0, a2 or 0;
+
   if (obj:IsFunction(texture.SetGradientAlpha)) then
     texture:SetGradientAlpha(direction, r, g, b, a, r2, g2, b2, a2);
   else
@@ -338,20 +329,20 @@ function tk:SetGradient(texture, direction, r, g, b, a, r2, g2, b2, a2)
   end
 end
 
-function tk:SetBackground(frame, ...)
-  local args = obj:PopTable(...);
+function tk:SetBackground(frame, texturePath, g, b, a, inset)
+  inset = inset or 0;
   local texture = frame:CreateTexture(nil, "BACKGROUND");
 
-  texture:SetAllPoints(frame);
+  texture:SetPoint("TOPLEFT", frame, "TOPLEFT", inset, -inset);
+  texture:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -inset, inset);
 
-  if (#args > 1) then
-    texture:SetTexture(tk.Constants.SOLID_TEXTURE);
-    texture:SetVertexColor(...);
+  if (obj:IsString(texturePath)) then
+    texture:SetTexture(texturePath);
   else
-    texture:SetTexture(args[1]);
+    local r = texturePath;
+    texture:SetTexture(tk.Constants.SOLID_TEXTURE);
+    texture:SetVertexColor(r, g, b, a);
   end
-
-  obj:PushTable(args);
 
   return texture;
 end
@@ -425,53 +416,29 @@ function tk:SetGameFont(font)
   end
 end
 
-do
-  local frames = {};
+function tk:CreateFrame(frameType, parent, globalName, templates)
+  local frame =  CreateFrame(frameType or "Frame", globalName, parent or _G.UIParent, templates);
+  frame:ClearAllPoints();
+  frame:Show();
+  return frame;
+end
 
-  function tk:PopFrame(frameType, parent)
-    parent = parent or UIParent;
-    frameType = frameType or "Frame";
+function tk:Reskin(frame, value)
+  
+  
+  for layerName, flag in pairs(tk.Constants.RESKIN_FLAGS) do
+    if (bitband(value, flag) ~= 0) then
+      for regionIndex = 1, frame:GetNumRegions() do
+        local region = select(regionIndex, frame:GetRegions());
+        if (region and region:GetObjectType() == "Texture" and region:GetDrawLayer() == layerName) then
+          tk:KillElement(region);
 
-    local frame;
-    local framesTable = frames[frameType];
-
-    if (obj:IsTable(framesTable) and #framesTable > 0) then
-      frame = framesTable and framesTable[#framesTable];
+          if (TEST_EIDT) then
+            print(layerName);
+            print(region:GetName(), region == frame.Right);
+          end
+        end
+      end
     end
-
-    if (not frame) then
-      frame = CreateFrame(frameType);
-    else
-      framesTable[#framesTable] = nil;
-    end
-
-    frame:SetParent(parent);
-    frame:Show();
-
-    return frame;
-  end
-
-  function tk:PushFrame(frame)
-    if (not frame.GetObjectType) then
-      return
-    end
-
-    local frameType = frame:GetObjectType();
-    frames[frameType] = frames[frameType] or {};
-    frame:SetParent(tk.Constants.DUMMY_FRAME);
-    frame:SetAllPoints(true);
-    frame:Hide();
-
-    for _, child in ipairs({ frame:GetChildren() }) do
-      self:PushFrame(child);
-    end
-
-    for _, region in ipairs({ frame:GetRegions() }) do
-      region:SetParent(tk.Constants.DUMMY_FRAME);
-      region:SetAllPoints(true);
-      region:Hide();
-    end
-
-    table.insert(frames[frameType], frame);
   end
 end

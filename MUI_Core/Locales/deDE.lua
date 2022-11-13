@@ -278,7 +278,7 @@ L["Symmetric Unit Panels"] = "Symetrische Fenster";
 L["Name Panels"] = "Fenster Format";
 L["Unit Panel Width"] = "Fenster Breite";
 L["Target Class Colored"] = "Klassenfarbe des Ziels";
-L["Action Bar Panel"] = "Aktionsleiste";
+L["Bottom Action Bars"] = "Aktionsleiste";
 L["Enable Panel"] = "Aktiviere Aktionsleiste";
 L["Animation Speed"] = "Animationsgeschwindigkeit";
 L["Retract Height"] = "Höhe - Eingeklappt";
@@ -536,7 +536,7 @@ L["Profiles"] = "Profile";
 L["AFK Display"] = "AFK Anzeige";
 L["Movable Frames"] = "Bewegliche Rahmen";
 L["Objective Tracker"] = "Objective Tracker";
-L["Side Action Bar"] = "Seitliche Aktionsleiste";
+L["Side Action Bars"] = "Seitliche Aktionsleiste";
 L["(type '/mui' to list all slash commands)"] =
   "(Geben Sie '/mui' ein, um alle Befehle aufzulisten.)";
 L["Version"] = "Version";

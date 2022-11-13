@@ -7,7 +7,7 @@ local table, string, unpack, tostring, pairs, ipairs = _G.table, _G.string, _G.u
 local tremove, PlaySound, GetChannelList = _G.table.remove, _G.PlaySound, _G.GetChannelList;
 local BetterDate, SetCVar, GetCVar, time = _G.BetterDate, _G.SetCVar, _G.GetCVar, _G.time;
 
----@param configModule ConfigModule
+---@param configModule ConfigMenuModule
 function C_ChatModule:GetConfigTable(_, configModule)
   local ChatFrameAnchorDropDownOptions = {
     [L["Top Left"]]       = "TOPLEFT";

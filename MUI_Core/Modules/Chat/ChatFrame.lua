@@ -7,8 +7,8 @@ local MEDIA = tk:GetAssetFilePath("Textures\\Chat\\");
 ---@class ChatFrame
 local C_ChatFrame = obj:Import("MayronUI.ChatModule.ChatFrame");
 
-local ChatMenu, CreateFrame, UIMenu_Initialize, UIMenu_AutoSize, string, table, pairs =
-	_G.ChatMenu, _G.CreateFrame, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string, _G.table, _G.pairs;
+local ChatMenu, UIMenu_Initialize, UIMenu_AutoSize, string, table, pairs =
+	_G.ChatMenu, _G.UIMenu_Initialize, _G.UIMenu_AutoSize, _G.string, _G.table, _G.pairs;
 
 local UIMenu_AddButton, FriendsFrame_SetOnlineStatus = _G.UIMenu_AddButton, _G.FriendsFrame_SetOnlineStatus;
 
@@ -18,8 +18,9 @@ local FRIENDS_TEXTURE_ONLINE, FRIENDS_TEXTURE_AFK, FRIENDS_TEXTURE_DND =
 local FRIENDS_LIST_AVAILABLE, FRIENDS_LIST_AWAY, FRIENDS_LIST_BUSY =
   _G.FRIENDS_LIST_AVAILABLE, _G.FRIENDS_LIST_AWAY, _G.FRIENDS_LIST_BUSY;
 
-local IsAddOnLoaded, InCombatLockdown, UIParent, ipairs = _G.IsAddOnLoaded, _G.InCombatLockdown, _G.UIParent, _G.ipairs;
+local IsAddOnLoaded, InCombatLockdown, ipairs = _G.IsAddOnLoaded, _G.InCombatLockdown, _G.ipairs;
 local PlaySound = _G.PlaySound;
+
 -- C_ChatFrame -----------------------
 
 obj:DefineParams("string", "ChatModule", "table");
@@ -106,7 +107,7 @@ function C_ChatFrame:CreateButtons(data)
 	data.buttons = obj:PopTable();
 
 	for buttonID = 1, 3 do
-		local btn = tk:PopFrame("Button", data.buttonsBar);
+		local btn = tk:CreateFrame("Button", data.buttonsBar);
 		data.buttons[buttonID] = btn;
 
 		btn:SetSize(135, 20);
@@ -158,7 +159,7 @@ end
 obj:DefineReturns("Frame");
 ---@return Frame returns an MUI chat frame
 function C_ChatFrame:CreateFrame(data)
-	local muiChatFrame = CreateFrame("Frame", "MUI_ChatFrame_" .. data.anchorName, UIParent);
+	local muiChatFrame = tk:CreateFrame("Frame", nil, "MUI_ChatFrame_" .. data.anchorName);
 
   muiChatFrame:SetFrameStrata("LOW");
   muiChatFrame:SetFrameLevel(1);
@@ -170,7 +171,7 @@ function C_ChatFrame:CreateFrame(data)
 	muiChatFrame.sidebar:SetSize(24, 300);
 	muiChatFrame.sidebar:SetPoint(data.anchorName, 0, -10);
 
-	muiChatFrame.window = tk:PopFrame("Frame", muiChatFrame);
+	muiChatFrame.window = tk:CreateFrame("Frame", muiChatFrame);
 	muiChatFrame.window:SetSize(367, 248);
 	muiChatFrame.window:SetPoint("TOPLEFT", muiChatFrame.sidebar, "TOPRIGHT", 2, data.settings.window.yOffset);
 
@@ -178,7 +179,7 @@ function C_ChatFrame:CreateFrame(data)
 	muiChatFrame.window.texture:SetTexture(string.format("%swindow", MEDIA));
 	muiChatFrame.window.texture:SetAllPoints(true);
 
-	muiChatFrame.layoutButton = tk:PopFrame("Button", muiChatFrame);
+	muiChatFrame.layoutButton = tk:CreateFrame("Button", muiChatFrame);
 	muiChatFrame.layoutButton:SetNormalFontObject("MUI_FontSmall");
 	muiChatFrame.layoutButton:SetHighlightFontObject("GameFontHighlightSmall");
 	muiChatFrame.layoutButton:SetText(" ");
@@ -188,7 +189,7 @@ function C_ChatFrame:CreateFrame(data)
 	muiChatFrame.layoutButton:SetNormalTexture(string.format("%slayoutButton", MEDIA));
 	muiChatFrame.layoutButton:SetHighlightTexture(string.format("%slayoutButton", MEDIA));
 
-	data.buttonsBar = tk:PopFrame("Frame", muiChatFrame);
+	data.buttonsBar = tk:CreateFrame("Frame", muiChatFrame);
 	data.buttonsBar:SetSize(135 * 3, 20);
 	data.buttonsBar:SetPoint("TOPLEFT", 20, 0);
 
@@ -430,7 +431,7 @@ do
   end
 
   function CreateOrSetUpIcon.emotes(name)
-    local toggleEmotesButton = CreateFrame("Button", name);
+    local toggleEmotesButton = tk:CreateFrame("Button", nil, name);
     toggleEmotesButton:SetNormalTexture(string.format("%sspeechIcon", MEDIA));
     toggleEmotesButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
     toggleEmotesButton:SetHighlightAtlas("chatframe-button-highlight");
@@ -487,9 +488,9 @@ do
     local function CreateProfessionButton(profMenu, spellIndex)
       local btnName = "MUI_ProfessionsMenuButton"..spellIndex;
       local btnTemplate = tk:IsRetail() and "ProfessionButtonTemplate" or "SpellButtonTemplate";
-      local btn = CreateFrame("CheckButton", btnName, profMenu, btnTemplate);
+      local btn = tk:CreateFrame("CheckButton", profMenu, btnName, btnTemplate);
 
-      local iconFrame = CreateFrame("Frame", nil, btn, _G.BackdropTemplateMixin and "BackdropTemplate");
+      local iconFrame = tk:CreateFrame("Frame", btn, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
       iconFrame:SetSize(buttonHeight - 8, buttonHeight - 8);
       iconFrame:ClearAllPoints();
       iconFrame:SetPoint("LEFT", 6, 0);
@@ -596,7 +597,7 @@ do
     end
 
     function CreateOrSetUpIcon.professions(name)
-      local professionsIcon = CreateFrame("Button", name);
+      local professionsIcon = tk:CreateFrame("Button", nil, name);
       professionsIcon:SetNormalTexture(string.format("%sbook", MEDIA));
       professionsIcon:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
       professionsIcon:SetHighlightAtlas("chatframe-button-highlight");
@@ -604,7 +605,7 @@ do
       tk:SetBasicTooltip(professionsIcon, L["Show Professions"], "ANCHOR_CURSOR_RIGHT", 16, 8);
 
       local template = tk:IsClassic() and "UIMenuTemplate" or "TooltipBackdropTemplate";
-      local profMenu = CreateFrame("Frame", "MUI_ProfessionsMenu", UIParent, template);
+      local profMenu = tk:CreateFrame("Frame", nil, "MUI_ProfessionsMenu", template);
       profMenu.btns = obj:PopTable();
       profMenu.specializationIndex = 0;
       profMenu.spellOffset = 0;
@@ -647,14 +648,14 @@ do
   end
 
   function CreateOrSetUpIcon.shortcuts(name)
-    local btn = CreateFrame("Button", name);
+    local btn = tk:CreateFrame("Button", nil, name);
     btn:SetNormalTexture(string.format("%sshortcuts", MEDIA));
     btn:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
     btn:SetHighlightAtlas("chatframe-button-highlight");
 
     tk:SetBasicTooltip(btn, L["Show AddOn Shortcuts"], "ANCHOR_CURSOR_RIGHT", 16, 8);
 
-    local menu = CreateFrame("Frame", "MUI_ShortcutsMenu", btn, "UIMenuTemplate");
+    local menu = tk:CreateFrame("Frame", btn, "MUI_ShortcutsMenu", "UIMenuTemplate");
     UIMenu_Initialize(menu);
 
     local lines = {
@@ -668,8 +669,11 @@ do
     };
 
     if (obj:IsFunction(_G.SlashCmdList.Leatrix_Plus)) then
-      lines[#lines + 1] = { "Leatrix Plus", _G.SLASH_Leatrix_Plus1, function() _G.SlashCmdList.Leatrix_Plus("") end};
-      lines[#lines + 1] = { L["Toggle Alignment Grid"], "/ltp grid", function() _G.SlashCmdList.Leatrix_Plus("grid") end};
+      lines[#lines + 1] = { "Leatrix Plus", _G.SLASH_Leatrix_Plus1,
+        function() _G.SlashCmdList.Leatrix_Plus("") end };
+
+      lines[#lines + 1] = { L["Toggle Alignment Grid"], "/ltp grid",
+        function() _G.SlashCmdList.Leatrix_Plus("grid") end };
     end
 
     if (obj:IsTable(_G.Bartender4) and obj:IsFunction(_G.Bartender4.ChatCommand)) then
@@ -677,18 +681,33 @@ do
     end
 
     if (obj:IsFunction(_G.SlashCmdList.SHADOWEDUF)) then
-      lines[#lines + 1] = { "Shadowed Unit Frames", _G.SLASH_SHADOWEDUF1, function() _G.SlashCmdList.SHADOWEDUF("") end};
+      lines[#lines + 1] = { "Shadowed Unit Frames", _G.SLASH_SHADOWEDUF1,
+        function() _G.SlashCmdList.SHADOWEDUF("") end};
     end
 
     if (obj:IsFunction(_G.SlashCmdList.MASQUE)) then
       lines[#lines + 1] = { "Masque", _G.SLASH_MASQUE1, _G.SlashCmdList.MASQUE};
     end
 
-    if (obj:IsTable(_G.Bagnon) and obj:IsTable(_G.Bagnon.Commands) and obj:IsFunction( _G.Bagnon.Commands.OnSlashCommand)) then
-      lines[#lines + 1] = { "Bagnon "..L["Bank"], "/bgn bank", function() _G.Bagnon.Commands.OnSlashCommand("bank") end };
-      lines[#lines + 1] = { "Bagnon "..L["Guild Bank"], "/bgn guild", function() _G.Bagnon.Commands.OnSlashCommand("guild") end, true };
-      lines[#lines + 1] = { "Bagnon "..L["Void Storage"], "/bgn vault", function() _G.Bagnon.Commands.OnSlashCommand("vault") end, true };
-      lines[#lines + 1] = { "Bagnon "..L["Config Menu"], "/bgn config", function() _G.Bagnon.Commands.OnSlashCommand("config") end };
+    if (obj:IsTable(_G.Bagnon) and
+      obj:IsTable(_G.Bagnon.Commands) and
+      obj:IsFunction( _G.Bagnon.Commands.OnSlashCommand)) then
+
+      lines[#lines + 1] = { "Bagnon "..L["Bank"], "/bgn bank", function()
+        _G.Bagnon.Commands.OnSlashCommand("bank");
+      end };
+
+      lines[#lines + 1] = { "Bagnon "..L["Guild Bank"], "/bgn guild", function()
+        _G.Bagnon.Commands.OnSlashCommand("guild");
+      end, true };
+
+      lines[#lines + 1] = { "Bagnon "..L["Void Storage"], "/bgn vault", function()
+        _G.Bagnon.Commands.OnSlashCommand("vault");
+      end, true };
+
+      lines[#lines + 1] = { "Bagnon "..L["Config Menu"], "/bgn config", function()
+        _G.Bagnon.Commands.OnSlashCommand("config");
+      end };
     end
 
     for _, line in pairs(lines) do
@@ -716,7 +735,7 @@ do
   end
 
 	function CreateOrSetUpIcon.playerStatus(name)
-		local playerStatusButton = CreateFrame("Button", name);
+		local playerStatusButton = tk:CreateFrame("Button", nil, name);
 
 		local listener = em:CreateEventListener(function()
 			local status = _G.FRIENDS_TEXTURE_ONLINE;
@@ -747,7 +766,7 @@ do
 			playerStatusButton:SetNormalTexture(btn.value);
 		end
 
-    local statusMenu = CreateFrame("Frame", "MUI_StatusMenu", UIParent, "UIMenuTemplate");
+    local statusMenu = tk:CreateFrame("Frame", nil, "MUI_StatusMenu", "UIMenuTemplate");
     UIMenu_Initialize(statusMenu);
     --self, text, shortcut, func, nested, value
     UIMenu_AddButton(statusMenu, availableText, nil, SetOnlineStatus, nil, FRIENDS_TEXTURE_ONLINE);
@@ -798,16 +817,16 @@ do
 		end
 
     local function CreateCopyChatFrame()
-      local frame = CreateFrame("Frame", nil, _G.UIParent);
+      local frame = tk:CreateFrame("Frame");
       frame:SetSize(600, 300);
       frame:SetPoint("CENTER");
       frame:Hide();
 
-      gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
-      gui:AddCloseButton(tk.Constants.AddOnStyle, frame, nil, tk.Constants.CLICK);
-      gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Copy Chat Text"]);
+      gui:CreateDialogBox(nil, nil, frame);
+      gui:AddCloseButton(frame, nil, tk.Constants.CLICK);
+      gui:AddTitleBar(frame, L["Copy Chat Text"]);
 
-      local editBox = CreateFrame("EditBox", "MUI_CopyChatEditBox", frame);
+      local editBox = tk:CreateFrame("EditBox", frame, "MUI_CopyChatEditBox");
       editBox:SetMultiLine(true);
       editBox:SetMaxLetters(99999);
       editBox:EnableMouse(true);
@@ -820,7 +839,7 @@ do
         self:ClearFocus();
       end);
 
-      local refreshButton = CreateFrame("Button", nil, frame);
+      local refreshButton = tk:CreateFrame("Button", frame);
       refreshButton:SetSize(18, 18);
       refreshButton:SetPoint("TOPRIGHT", frame.closeBtn, "TOPLEFT", -10, -3);
       refreshButton:SetNormalTexture(tk:GetAssetFilePath("Textures\\refresh"));
@@ -832,7 +851,7 @@ do
         RefreshChatText(editBox);
       end);
 
-      local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, frame);
+      local dropdown = gui:CreateDropDown(frame);
       local dropdownContainer = dropdown:GetFrame();
       dropdownContainer:SetSize(150, 20);
       dropdownContainer:SetPoint("TOPRIGHT", refreshButton, "TOPLEFT", -10, 0);
@@ -851,7 +870,7 @@ do
         end
       end
 
-      local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, frame, "MUI_CopyChatFrame", editBox);
+      local container = gui:CreateScrollFrame(frame, "MUI_CopyChatFrame", editBox);
       container:SetPoint("TOPLEFT", 10, -30);
       container:SetPoint("BOTTOMRIGHT", -10, 10);
 
@@ -872,7 +891,7 @@ do
     end
 
 		function CreateOrSetUpIcon.copyChat(name)
-			local copyChatButton = CreateFrame("Button", name);
+			local copyChatButton = tk:CreateFrame("Button", nil, name);
 			copyChatButton:SetNormalTexture(string.format("%scopyIcon", MEDIA));
 			copyChatButton:GetNormalTexture():SetVertexColor(tk.Constants.COLORS.GOLD:GetRGB());
 			copyChatButton:SetHighlightAtlas("chatframe-button-highlight");

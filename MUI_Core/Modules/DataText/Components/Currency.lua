@@ -27,7 +27,7 @@
 --   local onLabelClickFunc;
 
 --   function CreateLabel(contentFrame, slideController)
---     local label = tk:PopFrame("Button", contentFrame);
+--     local label = tk:CreateFrame("Button", contentFrame);
 
 --     label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
 --     label.name:SetPoint("LEFT", 6, 0);

@@ -1,11 +1,12 @@
 -- luacheck: ignore self 143
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
-local GetTime, select, SecondsToTimeAbbrev, GetWeaponEnchantInfo, UnitAura, ipairs, CreateFrame, unpack, math,
-    GetInventoryItemTexture, string, BUFF_MAX_DISPLAY, DEBUFF_MAX_DISPLAY, UIParent, table = _G.GetTime, _G.select,
-    _G.SecondsToTimeAbbrev, _G.GetWeaponEnchantInfo, _G.UnitAura, _G.ipairs, _G.CreateFrame, _G.unpack, _G.math,
-    _G.GetInventoryItemTexture, _G.string, _G.BUFF_MAX_DISPLAY, _G.DEBUFF_MAX_DISPLAY, _G.UIParent, _G.table;
+local GetTime, select, SecondsToTimeAbbrev, GetWeaponEnchantInfo, UnitAura, ipairs, unpack, math,
+    GetInventoryItemTexture, string, BUFF_MAX_DISPLAY, DEBUFF_MAX_DISPLAY, table = _G.GetTime, _G.select,
+    _G.SecondsToTimeAbbrev, _G.GetWeaponEnchantInfo, _G.UnitAura, _G.ipairs, _G.unpack, _G.math,
+    _G.GetInventoryItemTexture, _G.string, _G.BUFF_MAX_DISPLAY, _G.DEBUFF_MAX_DISPLAY, _G.table;
 
 -- Main-Hand, Off-Hand, Ranged
 local enchantAuraIds = { 16, 17, 18 };
@@ -163,8 +164,8 @@ do
 
   GetEnchantNameAndDuration = function(slotID)
     if (not scanner) then
-      scanner = CreateFrame("GameTooltip");
-      scanner:SetOwner(UIParent, "ANCHOR_NONE");
+      scanner = tk:CreateFrame("GameTooltip");
+      scanner:SetOwner(_G.UIParent, "ANCHOR_NONE");
       scanner.lines = obj:PopTable();
 
       for _ = 1, 30 do
@@ -442,7 +443,7 @@ function C_AuraArea:SetEnabled(data, enabled)
 
   if (enabled) then
     if (not data.frame) then
-      data.frame = CreateFrame("Frame", data.globalName);
+      data.frame = tk:CreateFrame("Frame", nil, data.globalName);
 
       if (data.enchantButtons) then
         for index, enchantID in ipairs(enchantAuraIds) do

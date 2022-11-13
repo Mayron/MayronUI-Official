@@ -1,17 +1,8 @@
-local _, namespace = ...;
+-- luacheck: ignore self 143 631
 local _G = _G;
-local LibStub, MayronObjects = _G.LibStub, _G.MayronObjects;
-
-namespace.components = {
-  Objects = MayronObjects:GetFramework(); ---@type MayronObjects
-  Locale = LibStub("AceLocale-3.0"):GetLocale("MayronUI");
-  Toolkit = {
-    Numbers = {};
-  };
-};
-
-local tk = namespace.components.Toolkit; ---@type Toolkit
-local L = namespace.components.Locale;
+local MayronUI = _G.MayronUI; ---@type MayronUI
+local LibStub = _G.LibStub;
+local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
 
 function tk:IsRetail()
   return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE;
@@ -41,7 +32,7 @@ tk.Constants = {
   SOLID_TEXTURE = "Interface\\Buttons\\WHITE8X8";
 
   FONT = function()
-    return tk.Constants.LSM:Fetch("font", namespace.components.Database.global.core.font);
+    return tk.Constants.LSM:Fetch("font", db.global.core.font);
   end;
 
   LSM = LibStub("LibSharedMedia-3.0");
@@ -126,6 +117,15 @@ tk.Constants = {
     TOOLTIP             = "TOOLTIP";
   };
 
+  RESKIN_FLAGS = {
+    BACKGROUND = 2;
+    BORDER = 4;
+    ARTWORK = 8;
+    OVERLAY = 16;
+    HIGHLIGHT = 32;
+    CREATE_BACKGROUND = 64;
+  };
+
   POWER_TYPES = {
     [0] =  "MANA";
     [1] =  "RAGE";
@@ -205,6 +205,34 @@ tk.Constants = {
     YELLOW          = _G.YELLOW_FONT_COLOR;
   };
 
+  FONT_TYPES = {
+    GameFontNormal = "GameFontNormal";
+    GameFontNormalSmall = "GameFontNormalSmall";
+    GameFontNormalLarge = "GameFontNormalLarge";
+    GameFontHighlight = "GameFontHighlight";
+    GameFontHighlightSmall = "GameFontHighlightSmall";
+    GameFontHighlightSmallOutline = "GameFontHighlightSmallOutline";
+    GameFontHighlightLarge = "GameFontHighlightLarge";
+    GameFontDisable = "GameFontDisable";
+    GameFontDisableSmall = "GameFontDisableSmall";
+    GameFontDisableLarge = "GameFontDisableLarge";
+    GameFontGreen = "GameFontGreen";
+    GameFontGreenSmall = "GameFontGreenSmall";
+    GameFontGreenLarge = "GameFontGreenLarge";
+    GameFontRed = "GameFontRed";
+    GameFontRedSmall = "GameFontRedSmall";
+    GameFontRedLarge = "GameFontRedLarge";
+    GameFontWhite = "GameFontWhite";
+    GameFontDarkGraySmall = "GameFontDarkGraySmall";
+    NumberFontNormalYellow = "NumberFontNormalYellow";
+    NumberFontNormalSmallGray = "NumberFontNormalSmallGray";
+    QuestFontNormalSmall = "QuestFontNormalSmall";
+    DialogButtonHighlightText = "DialogButtonHighlightText";
+    ErrorFont = "ErrorFont";
+    TextStatusBarText = "TextStatusBarText";
+    CombatLogFont = "CombatLogFont";
+  };
+
   SOUND_OPTIONS = {
     [L["Auction House Open"]] = 5274;
     [L["Auction House Close"]] = 5275;
@@ -274,3 +302,15 @@ if (not tk:IsWrathClassic() and not tk:IsRetail()) then
   tk.Constants.CLASS_IDS[6] = nil;
   tk.Constants.CLASS_FILE_NAMES.DEATHKNIGHT = nil;
 end
+
+if (tk:IsClassic()) then
+  -- remove the Shaman Pink class color back to retail.
+  local shamanColor = _G.RAID_CLASS_COLORS["SHAMAN"];
+  shamanColor:SetRGB(0.0, 0.44, 0.87);
+  shamanColor.colorStr = shamanColor:GenerateHexColor();
+end
+
+_G.BINDING_CATEGORY_MUI = "MayronUI";
+_G.BINDING_NAME_MUI_SHOW_CONFIG_MENU = "Show Config Menu";
+_G.BINDING_NAME_MUI_SHOW_LAYOUT_MENU = "Show Layout Menu";
+_G.BINDING_NAME_MUI_SHOW_INSTALLER = "Show Installer";

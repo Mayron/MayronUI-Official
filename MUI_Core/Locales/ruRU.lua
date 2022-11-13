@@ -299,7 +299,7 @@ L["Symmetric Unit Panels"] =
 L["Name Panels"] = "Панели имен";
 L["Unit Panel Width"] = "Ширина панели агрегата";
 L["Target Class Colored"] = "Целевой класс цветной";
-L["Action Bar Panel"] = "Панель панели действий";
+L["Bottom Action Bars"] = "Панель панели действий";
 L["Enable Panel"] = "Включить панель";
 L["Animation Speed"] = "Скорость анимации";
 L["Retract Height"] = "Высота втягивания";
@@ -569,7 +569,7 @@ L["Profiles"] = "Профили";
 L["AFK Display"] = "AFK Display";
 L["Movable Frames"] = "Подвижные рамы";
 L["Objective Tracker"] = "Отслеживание целей";
-L["Side Action Bar"] = "Панель побочных действий";
+L["Side Action Bars"] = "Панель побочных действий";
 L["(type '/mui' to list all slash commands)"] =
   "(введите '/ mui', чтобы вывести список всех команд с косой чертой)";
 L["Version"] = "Версия";

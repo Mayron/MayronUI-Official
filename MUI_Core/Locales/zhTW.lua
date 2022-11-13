@@ -268,7 +268,7 @@ L["Symmetric Unit Panels"] = "對稱單元面板";
 L["Name Panels"] = "名稱面板";
 L["Unit Panel Width"] = "單位面板寬度";
 L["Target Class Colored"] = "目標類有色";
-L["Action Bar Panel"] = "操作欄面板";
+L["Bottom Action Bars"] = "操作欄面板";
 L["Enable Panel"] = "啟用面板";
 L["Animation Speed"] = "動畫速度";
 L["Retract Height"] = "收回高度";
@@ -509,7 +509,7 @@ L["Profiles"] = "個人資料";
 L["AFK Display"] = "AFK 顯示";
 L["Movable Frames"] = "可移動框架";
 L["Objective Tracker"] = "目標跟踪器";
-L["Side Action Bar"] = "側面動作欄";
+L["Side Action Bars"] = "側面動作欄";
 L["(type '/mui' to list all slash commands)"] =
   "(輸入'/mui'列出所有斜線命令)";
 L["Version"] = "版本";

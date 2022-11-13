@@ -1,9 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
-local _, namespace = ...;
-local tk, db, _, _, obj, L = _G.MayronUI:GetCoreComponents();
-local C_DataTextModule = namespace.C_DataTextModule;
+local _G = _G;
+local MayronUI = _G.MayronUI;
+local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
+local C_DataTextModule = MayronUI:GetModuleClass("DataTextModule");
+local dataTextLabels = MayronUI:GetComponent("DataTextLabels");
 local pairs, string = _G.pairs, _G.string;
-
 
 function C_DataTextModule:GetConfigTable()
     local label_TextFields = obj:PopTable();
@@ -134,7 +135,7 @@ function C_DataTextModule:GetConfigTable()
                   name = tk.Strings:JoinWithSpace(L["Button"], id);
                   type = "dropdown";
                   dbPath = string.format("profile.datatext.displayOrders[%s]", id);
-                  options = namespace.dataTextLabels;
+                  options = dataTextLabels;
                   labels = "values";
 
                   GetValue = function(_, value)
@@ -142,13 +143,13 @@ function C_DataTextModule:GetConfigTable()
                       value = "disabled";
                     end
 
-                    return namespace.dataTextLabels[value];
+                    return dataTextLabels[value];
                   end;
 
                   SetValue = function(dbPath, newLabel)
                     local newValue;
 
-                    for value, label in pairs(namespace.dataTextLabels) do
+                    for value, label in pairs(dataTextLabels) do
                       if (newLabel == label) then
                         newValue = value;
                         break;
@@ -214,7 +215,7 @@ function C_DataTextModule:GetConfigTable()
                       type = "check";
                       appendDbPath = "showTotalSlots";
                   };
-                  children[#children + 1] = 
+                  children[#children + 1] =
                   {   name = L["Show Used Slots"];
                       type = "radio";
                       groupName = "inventory";

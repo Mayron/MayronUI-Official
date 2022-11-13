@@ -274,7 +274,7 @@ L["Symmetric Unit Panels"] = "대칭 단위 패널";
 L["Name Panels"] = "이름 패널";
 L["Unit Panel Width"] = "단위 패널 폭";
 L["Target Class Colored"] = "대상 클래스 색상";
-L["Action Bar Panel"] = "작업 표시 줄 패널";
+L["Bottom Action Bars"] = "작업 표시 줄 패널";
 L["Enable Panel"] = "패널 활성화";
 L["Animation Speed"] = "애니메이션 속도";
 L["Retract Height"] = "후퇴 높이";
@@ -530,7 +530,7 @@ L["Profiles"] = "프로필";
 L["AFK Display"] = "AFK 디스플레이";
 L["Movable Frames"] = "이동 프레임";
 L["Objective Tracker"] = "목표 추적기";
-L["Side Action Bar"] = "사이드 액션 바";
+L["Side Action Bars"] = "사이드 액션 바";
 L["(type '/mui' to list all slash commands)"] =
   "(모든 슬래시 명령을 나열하려면 '/ mui'입력)";
 L["Version"] = "버전";

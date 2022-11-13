@@ -1,0 +1,25 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+    <Script file="Toolkit\Constants.lua"/>
+    <Script file="Toolkit\Utilities\Other.lua"/>
+    <Script file="Toolkit\Utilities\Tables.lua"/>
+    <Script file="Toolkit\Utilities\Strings.lua"/>
+    <Script file="Toolkit\Utilities\Widgets.lua"/>
+
+    <Script file="GUI-Builder\Panel.lua"/>
+    <Script file="GUI-Builder\Cell.lua"/>
+    <Script file="GUI-Builder\Group.lua"/>
+    <Script file="GUI-Builder\Style.lua"/>
+    <Script file="GUI-Builder\SlideController.lua"/>
+    <Script file="GUI-Builder\DropDownMenu.lua"/>
+    <Script file="GUI-Builder\DynamicFrame.lua"/>
+    <Script file="GUI-Builder\DynamicScrollFrame.lua"/>
+    <Script file="GUI-Builder\GridTexture.lua"/>
+    <Script file="GUI-Builder\Miscellaneous.lua"/>
+    <Script file="GUI-Builder\TextField.lua"/>
+
+    <Script file="Modules.lua"/>
+    <Script file="UpdateFunctions.lua"/>
+
+    <Script file="Mixins\ActionBarControllerMixin.lua"/>
+</Ui>

@@ -1,18 +1,14 @@
--- luacheck: ignore MayronUI self 143 631
-local _, namespace = ...;
+-- luacheck: ignore self
+local _G = _G;
+local MayronUI = _G.MayronUI;
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 
-local obj = namespace.components.Objects; ---@type MayronObjects
-local tk = namespace.components.Toolkit; ---@type Toolkit
-
-local pcall, pairs, ipairs, type, strsplit, tonumber = _G.pcall, _G.pairs,
-  _G.ipairs, _G.type, _G.strsplit, _G.tonumber;
+local pcall, pairs, ipairs, type, strsplit, tonumber = _G.pcall, _G.pairs, _G.ipairs, _G.type, _G.strsplit, _G.tonumber;
 local table, select = _G.table, _G.select;
 local LibStub = _G.LibStub;
+local LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type LinkedList
 
 tk.Tables = {};
-
-local LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type LinkedList
------------------------------
 
 function tk.Tables:GetKeys(tbl, keys)
   keys = keys or obj:PopTable();

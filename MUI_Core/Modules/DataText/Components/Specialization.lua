@@ -5,7 +5,7 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 if (not tk:IsRetail()) then return end
 
 local select, GetSpecializationInfo, C_EquipmentSet = _G.select, _G.GetSpecializationInfo, _G.C_EquipmentSet;
-local GetSpecialization, UnitLevel, CreateFrame, string = _G.GetSpecialization, _G.UnitLevel, _G.CreateFrame, _G.string;
+local GetSpecialization, UnitLevel, string = _G.GetSpecialization, _G.UnitLevel, _G.string;
 local GetLootSpecialization, UnitSex, SetLootSpecialization, print = _G.GetLootSpecialization, _G.UnitSex, _G.SetLootSpecialization, _G.print;
 local SetSpecialization, GetNumSpecializations, GameTooltip = _G.SetSpecialization, _G.GetNumSpecializations, _G.GameTooltip;
 
@@ -58,7 +58,7 @@ end
 
 local function CreateEquipmentSetDropDown(settings, contentFrame, popupWidth, dataTextBar, specializationID)
   -- create dropdown to list all equipment sets per specialization:
-  local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, contentFrame, "UP", dataTextBar);
+  local dropdown = gui:CreateDropDown(contentFrame, "UP", dataTextBar);
   dropdown:SetWidth(popupWidth - 10);
   dropdown:Show();
 
@@ -105,7 +105,7 @@ end
 
 local function CreateLayoutDropDown(settings, contentFrame, popupWidth, dataTextBar, specializationID)
   -- create dropdown to list all equipment sets per specialization:
-  local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, contentFrame, "UP", dataTextBar);
+  local dropdown = gui:CreateDropDown(contentFrame, "UP", dataTextBar);
   dropdown:SetWidth(popupWidth - 10);
   dropdown:Show();
 
@@ -158,7 +158,7 @@ function Specialization:__Construct(data, settings, dataTextModule, slideControl
   data.dropdowns.layouts = obj:PopTable();
 
   -- set public instance properties
-  self.MenuContent = CreateFrame("Frame");
+  self.MenuContent = tk:CreateFrame("Frame");
   self.MenuContent.minWidth = 230;
 
   self.MenuLabels = obj:PopTable();
@@ -278,7 +278,7 @@ function Specialization:GetLabel(data, index)
     return label;
   end
 
-  label = tk:PopFrame("Button", self.MenuContent);
+  label = tk:CreateFrame("Button", self.MenuContent);
   label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   label.name:SetPoint("LEFT", 6, 0);
   label.name:SetWidth(data.settings.popup.width - 10);

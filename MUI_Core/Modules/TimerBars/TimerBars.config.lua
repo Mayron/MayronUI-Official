@@ -1,10 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
-
-local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
-local db = MayronUI:GetModuleComponent("TimerBarsModule", "Database");
-local C_TimerBarsModule = MayronUI:GetModuleClass("TimerBarsModule");
-
-local _G, MayronUI, GetLocale = _G, _G.MayronUI, _G.GetLocale;
+local _G = _G;
+local MayronUI = _G.MayronUI;
+local tk, _, _, _, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local C_TimerBars = MayronUI:GetModuleClass("TimerBars");
+local db = MayronUI:GetComponent("TimerBarsDatabase");
+local GetLocale = _G.GetLocale;
 local pairs, tonumber, table, string = _G.pairs, _G.tonumber, _G.table, _G.string;
 
 -- contains field name / table pairs where each table holds the 5 config textfield widgets
@@ -21,7 +21,7 @@ local function CreateNewFieldButton_OnClick(editBox)
   db:SetPathValue(db.profile, "fields."..text, obj:PopTable());
 
   tk:Print(string.format(L["TimerBar field '%s' created."], text));
-  MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
+  MayronUI:ImportModule("ConfigMenu"):ShowReloadMessage();
 end
 
 local function RemoveFieldButton_OnClick(editBox)
@@ -32,7 +32,7 @@ local function RemoveFieldButton_OnClick(editBox)
   if (id) then
     db:SetPathValue(db.profile, "fieldNames["..id.."]", nil);
     db:SetPathValue(db.profile, "fields."..text, nil);
-    MayronUI:ImportModule("ConfigModule"):ShowReloadMessage();
+    MayronUI:ImportModule("ConfigMenu"):ShowReloadMessage();
   else
     tk:Print(string.format(L["TimerBar field '%s' does not exist."], text));
   end
@@ -116,9 +116,9 @@ local function Field_OnDragStop(field)
   savePositionButtons[fieldName]:SetEnabled(true);
 end
 
-function C_TimerBarsModule:GetConfigTable()
+function C_TimerBars:GetConfigTable()
     return {
-      module            = "TimerBarsModule";
+      module            = "TimerBars";
       hasOwnDatabase    = true;
       children = {
           {   name = L["Enabled"],
@@ -271,7 +271,7 @@ function C_TimerBarsModule:GetConfigTable()
                   return {
                       name              = name;
                       type              = "submenu";
-                      module            = "TimerBarsModule";
+                      module            = "TimerBars";
                       hasOwnDatabase    = true;
 
                       OnLoad = function()

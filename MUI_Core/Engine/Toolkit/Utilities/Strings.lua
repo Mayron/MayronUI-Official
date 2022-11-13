@@ -1,18 +1,15 @@
--- luacheck: ignore MayronUI self 143
-local _, namespace = ...;
-
-local obj = namespace.components.Objects; ---@type MayronObjects
-local tk = namespace.components.Toolkit; ---@type Toolkit
+-- luacheck: ignore self
+local _G = _G;
+local MayronUI = _G.MayronUI;
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 
 tk.Strings = {};
-
 tk.Strings.Empty = "";
 tk.Strings.Space = " ";
 
 local CreateColor, ipairs = _G.CreateColor, _G.ipairs;
 local string, table, tostring, type = _G.string, _G.table, _G.tostring, _G.type;
 local select, UnitClass, UnitIsTapDenied = _G.select, _G.UnitClass, _G.UnitIsTapDenied;
------------------------------
 
 do
   local function split(char)

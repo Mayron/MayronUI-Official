@@ -1,5 +1,6 @@
 -- luacheck: ignore MayronUI self 143
-local addOnName, namespace = ...;
+local addOnName = ...;
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
@@ -7,15 +8,13 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 ---@class MiniMapModule : BaseModule
 local C_MiniMapModule = MayronUI:RegisterModule("MiniMap", L["Mini-Map"]);
-namespace.C_MiniMapModule = C_MiniMapModule;
 
 local Minimap, math, table, C_Timer, Minimap_ZoomIn, Minimap_ZoomOut,
-      GameTooltip, IsAltKeyDown, CreateFrame, LoadAddOn, IsAddOnLoaded,
-      ToggleDropDownMenu, PlaySound, EasyMenu, UIParent, select = _G.Minimap,
+      GameTooltip, IsAltKeyDown, LoadAddOn, IsAddOnLoaded,
+      ToggleDropDownMenu, PlaySound, EasyMenu, select = _G.Minimap,
   _G.math, _G.table, _G.C_Timer, _G.Minimap_ZoomIn, _G.Minimap_ZoomOut,
-  _G.GameTooltip, _G.IsAltKeyDown, _G.CreateFrame, _G.LoadAddOn,
-  _G.IsAddOnLoaded, _G.ToggleDropDownMenu, _G.PlaySound, _G.EasyMenu,
-  _G.UIParent, _G.select;
+  _G.GameTooltip, _G.IsAltKeyDown, _G.LoadAddOn,
+  _G.IsAddOnLoaded, _G.ToggleDropDownMenu, _G.PlaySound, _G.EasyMenu, _G.select;
 
 local IsInInstance, GetInstanceInfo, GetNumGroupMembers, ipairs =
   _G.IsInInstance, _G.GetInstanceInfo, _G.GetNumGroupMembers, _G.ipairs;
@@ -216,7 +215,7 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
         self.BorderFrame:DisableDrawLayer("ARTWORK");
         originalWidth, originalHeight = self.ScrollContainer:GetSize();
 
-        gui:AddResizer(tk.Constants.AddOnStyle, self);
+        gui:AddResizer(self);
         self.dragger:SetParent(self.BorderFrame);
 
         if (obj:IsFunction(self.SetMinResize)) then
@@ -227,7 +226,7 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
           self:SetResizeBounds(originalWidth, originalHeight, 1200, 800);
         end
 
-        gui:AddTitleBar(tk.Constants.AddOnStyle, self, GetMinimapZoneText());
+        gui:AddTitleBar(self, GetMinimapZoneText());
         self.titleBar:SetFrameStrata("HIGH");
         self.titleBar:RegisterForClicks("RightButtonUp");
         self.titleBar:SetScript(
@@ -280,8 +279,7 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
           end
         end);
 
-      local bg = gui:CreateDialogBox(
-                   tk.Constants.AddOnStyle, mapFrame, "HIGH", nil, "MUI_ZoneMap");
+      local bg = gui:CreateDialogBox(mapFrame, "HIGH", nil, "MUI_ZoneMap");
       bg:SetAllPoints(true);
       bg:SetFrameStrata("LOW");
       bg:SetAlpha(1.0 - mapOptions.opacity);
@@ -779,9 +777,8 @@ function C_MiniMapModule:GetRightClickMenuList()
       local iconButton = libDbIcons:GetMinimapButton(name);
       iconButton:Hide();
 
-      local customBtn = CreateFrame(
-        "Button", "MUI_MinimapButton_" .. name, UIParent,
-        "UIDropDownCustomMenuEntryTemplate");
+      local customBtn = tk:CreateFrame(
+        "Button", nil, "MUI_MinimapButton_" .. name, "UIDropDownCustomMenuEntryTemplate");
 
       customBtn:SetHighlightTexture(
         "Interface\\QuestFrame\\UI-QuestTitleHighlight");
@@ -1036,7 +1033,7 @@ function C_MiniMapModule:OnEnable(data)
     end);
 
   if (tk:IsRetail() or tk:IsWrathClassic()) then
-    local eventBtn = CreateFrame("Button", nil, Minimap);
+    local eventBtn = tk:CreateFrame("Button", Minimap);
     eventBtn:SetPoint("BOTTOM", Minimap, "BOTTOM", 0, -18);
     eventBtn:SetSize(100, 20);
     eventBtn:SetNormalFontObject("GameFontNormal");
@@ -1072,9 +1069,7 @@ function C_MiniMapModule:OnEnable(data)
   data.menuList = self:GetRightClickMenuList();
   data:Call("UpdateTrackingMenuOptionVisibility");
 
-  local menuFrame = CreateFrame(
-                      "Frame", "MinimapRightClickMenu", UIParent,
-                        "UIDropDownMenuTemplate");
+  local menuFrame = tk:CreateFrame("Frame", nil, "MinimapRightClickMenu", "UIDropDownMenuTemplate");
   Minimap.oldMouseUp = Minimap:GetScript("OnMouseUp");
 
   Minimap:SetScript(

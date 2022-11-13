@@ -1,9 +1,11 @@
 -- luacheck: ignore MayronUI self 143 631
+local _G = _G;
+local MayronUI = _G.MayronUI;
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
-local strsplit, unpack, CreateFrame, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1,
+local strsplit, unpack, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1,
 IsInGuild, GetNumGuildMembers, GetGuildRosterInfo, IsTrialAccount =
-_G.strsplit, _G.unpack, _G.CreateFrame, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1,
+_G.strsplit, _G.unpack, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1,
 _G.IsInGuild, _G.GetNumGuildMembers, _G.GetGuildRosterInfo, _G.IsTrialAccount;
 
 local LocalToggleGuildFrame = _G.ToggleGuildFrame;
@@ -66,7 +68,7 @@ do
   end
 
   function CreateLabel(contentFrame, popupWidth, slideController, showTooltips)
-    local label = tk:PopFrame("Button", contentFrame);
+    local label = tk:CreateFrame("Button", contentFrame);
 
     label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     label.name:SetPoint("LEFT", 6, 0);
@@ -103,7 +105,7 @@ function Guild:__Construct(data, settings, dataTextModule, slideController)
   data.slideController = slideController;
 
   -- set public instance properties
-  self.MenuContent = CreateFrame("Frame");
+  self.MenuContent = tk:CreateFrame("Frame");
   self.MenuLabels = obj:PopTable();
   self.TotalLabelsShown = 0;
   self.HasLeftMenu = true;

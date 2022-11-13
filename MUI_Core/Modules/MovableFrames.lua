@@ -335,8 +335,7 @@ function C_MovableFramesModule:OnInitialize(data)
       overlay:SetSize(118, 122)
       overlay:SetPoint("TOPLEFT", 20, -16);
 
-      local bg = gui:CreateDialogBox(
-                   tk.Constants.AddOnStyle, f.BackgroundFrame, "LOW", nil,
+      local bg = gui:CreateDialogBox(f.BackgroundFrame, "LOW", nil,
                      "MUI_TEST");
       bg:SetPoint("TOPLEFT", 14, -10);
       bg:SetPoint("BOTTOMRIGHT", -10, 10);

@@ -278,7 +278,7 @@ L["Symmetric Unit Panels"] = "Pannelli dell'unità simmetrica";
 L["Name Panels"] = "Pannelli dei nomi";
 L["Unit Panel Width"] = "Larghezza pannello unità";
 L["Target Class Colored"] = "Classe di destinazione colorata";
-L["Action Bar Panel"] = "Pannello barra delle azioni";
+L["Bottom Action Bars"] = "Pannello barra delle azioni";
 L["Enable Panel"] = "Abilita pannello";
 L["Animation Speed"] = "Velocità di animazione";
 L["Retract Height"] = "Retrazione altezza";
@@ -532,7 +532,7 @@ L["Profiles"] = "Profili";
 L["AFK Display"] = "Visualizzazione AFK";
 L["Movable Frames"] = "Cornici mobili";
 L["Objective Tracker"] = "Inseguitore di obiettivi";
-L["Side Action Bar"] = "Barra delle azioni laterale";
+L["Side Action Bars"] = "Barra delle azioni laterale";
 L["(type '/mui' to list all slash commands)"] =
   "(digita '/mui' per elencare tutti i comandi barra)";
 L["Version"] = "Versione";

@@ -1,4 +1,5 @@
 -- luacheck: ignore self 143 631
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, _, em, _, obj, L = MayronUI:GetCoreComponents();
 
@@ -14,8 +15,8 @@ local convert = {
 
 local C_FriendList = _G.C_FriendList;
 local BNGetNumFriends, BNGetFriendInfo = _G.BNGetNumFriends, _G.BNGetFriendInfo;
-local string, CreateFrame, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1 =
-  _G.string, _G.CreateFrame, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1;
+local string, ChatFrame1EditBox, ChatMenu_SetChatType, ChatFrame1 =
+  _G.string, _G.ChatFrame1EditBox, _G.ChatMenu_SetChatType, _G.ChatFrame1;
 local select = _G.select;
 local Friends = obj:CreateClass("Friends");
 
@@ -35,7 +36,7 @@ do
   local onLabelClickFunc;
 
   function CreateLabel(contentFrame, slideController)
-    local label = tk:PopFrame("Button", contentFrame);
+    local label = tk:CreateFrame("Button", contentFrame);
 
     label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     label.name:SetPoint("LEFT", 6, 0);
@@ -78,7 +79,7 @@ function Friends:__Construct(data, settings, dataTextModule, slideController)
   data.slideController = slideController;
 
   -- set public instance properties
-  self.MenuContent = CreateFrame("Frame");
+  self.MenuContent = tk:CreateFrame("Frame");
   self.MenuLabels = obj:PopTable();
   self.TotalLabelsShown = 0;
   self.HasLeftMenu = true;

@@ -1,7 +1,8 @@
 -- luacheck: ignore MayronUI self 143 631
-local _, namespace = ...;
+local _G = _G;
+local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
-local C_CastBarsModule = namespace.C_CastBarsModule;
+local C_CastBarsModule = MayronUI:GetModuleClass("CastBarsModule");
 
 local position_TextFields = obj:PopTable();
 local sufAnchor_CheckButtons = obj:PopTable();
@@ -9,6 +10,7 @@ local width_TextFields = obj:PopTable();
 local height_TextFields = obj:PopTable();
 
 local tostring, string, ipairs = _G.tostring, _G.string, _G.ipairs;
+local tonumber, tinsert = _G.tonumber, _G.table.insert;
 
 local function SetPositionTextFieldsEnabled(enabled, castBarName)
     for _, textfield in ipairs(position_TextFields[castBarName]) do
@@ -316,7 +318,7 @@ function C_CastBarsModule:GetConfigTable()
                           if (db.profile.castBars[name].anchorToSUF) then
                             container.widget:SetEnabled(false);
                           end
-                          table.insert(height_TextFields[name], container.widget);
+                          tinsert(height_TextFields[name], container.widget);
                         end,
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".height")
                       },

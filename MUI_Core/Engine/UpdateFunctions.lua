@@ -187,7 +187,7 @@ do
     end
 
     local observerPath = observer:GetPathAddress();
-    local dbObject = MayronUI:GetModuleComponent(self:GetModuleKey(), "Database"); ---@type Database
+    local dbObject = MayronUI:GetComponent(self:GetModuleKey() .. "Database", true); ---@type Database
 
     if (not dbObject) then
       dbObject = MayronUI:GetComponent("Database"); ---@type Database

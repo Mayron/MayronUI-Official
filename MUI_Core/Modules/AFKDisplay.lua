@@ -1,11 +1,12 @@
 -- luacheck: ignore self 143 631
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local Private = {};
 
 local select, string = _G.select, _G.string;
 local C_Timer, InCombatLockdown, WorldFrame, UnitIsAFK = _G.C_Timer, _G.InCombatLockdown, _G.WorldFrame, _G.UnitIsAFK;
-local UIParent, CreateFrame, GetSpecializationInfo = _G.UIParent, _G.CreateFrame, _G.GetSpecializationInfo;
+local GetSpecializationInfo = _G.GetSpecializationInfo;
 local MoveViewLeftStop, MoveViewLeftStart = _G.MoveViewLeftStop, _G.MoveViewLeftStart;
 local UnitSex, UnitRace, SetCursor, GetSpecialization = _G.UnitSex, _G.UnitRace, _G.SetCursor, _G.GetSpecialization;
 local UnitPVPName, GetRealmName, UnitLevel, UnitClass = _G.UnitPVPName, _G.GetRealmName, _G.UnitLevel, _G.UnitClass;
@@ -427,12 +428,12 @@ function Private:CreatePlayerModel()
   local scale = db.global.AFKDisplay.modelScale;
   Private.Y_POSITION = 100;
 
-  local modelFrame = CreateFrame("Frame", nil, self.display);
+  local modelFrame = tk:CreateFrame("Frame", self.display);
   modelFrame:SetSize(200, 500 * scale);
   modelFrame:SetPoint("BOTTOMLEFT", self.display, "BOTTOMLEFT", 100, Private.Y_POSITION);
   tk:MakeMovable(modelFrame);
 
-  modelFrame.model = CreateFrame("PlayerModel", nil, modelFrame);
+  modelFrame.model = tk:CreateFrame("PlayerModel", modelFrame);
   modelFrame.model:SetSize(600 * scale, 700 * scale);
   modelFrame.model:SetUnit("player");
   modelFrame.model:SetFacing(0.4);
@@ -532,21 +533,21 @@ do
       return;
     end
 
-    local frame = CreateFrame("Frame", nil, WorldFrame);
+    local frame = tk:CreateFrame("Frame", WorldFrame);
     frame:SetSize(600, 300);
     frame:SetPoint("CENTER");
-    frame:SetScale(UIParent:GetScale());
+    frame:SetScale(_G.UIParent:GetScale());
     frame:SetScript("OnShow", function()
       RefreshChatText(self.copyChatFrame.editBox);
     end);
 
     self.copyChatFrame = frame;
 
-    gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, frame);
-    gui:AddCloseButton(tk.Constants.AddOnStyle, frame);
-    gui:AddTitleBar(tk.Constants.AddOnStyle, frame, L["Copy Chat Text"]);
+    gui:CreateDialogBox(nil, nil, frame);
+    gui:AddCloseButton(frame);
+    gui:AddTitleBar(frame, L["Copy Chat Text"]);
 
-    local editBox = CreateFrame("EditBox", nil, frame);
+    local editBox = tk:CreateFrame("EditBox", frame);
     editBox:SetMultiLine(true);
     editBox:SetMaxLetters(99999);
     editBox:EnableMouse(true);
@@ -561,7 +562,7 @@ do
       self:ClearFocus();
     end);
 
-    local refreshButton = CreateFrame("Button", nil, frame);
+    local refreshButton = tk:CreateFrame("Button", frame);
     refreshButton:SetSize(18, 18);
     refreshButton:SetPoint("TOPRIGHT", frame.closeBtn, "TOPLEFT", -10, -3);
     refreshButton:SetNormalTexture(tk:GetAssetFilePath("Textures\\refresh"));
@@ -573,7 +574,7 @@ do
       RefreshChatText(editBox);
     end);
 
-    local dropdown = gui:CreateDropDown(tk.Constants.AddOnStyle, frame, nil, frame);
+    local dropdown = gui:CreateDropDown(frame, nil, frame);
     local dropdownContainer = dropdown:GetFrame();
     dropdownContainer:SetSize(150, 20);
     dropdownContainer:SetPoint("TOPRIGHT", refreshButton, "TOPLEFT", -10, 0);
@@ -596,7 +597,7 @@ do
 
     self.chatTypeDropdown = dropdown;
 
-    local container = gui:CreateScrollFrame(tk.Constants.AddOnStyle, frame, nil, editBox);
+    local container = gui:CreateScrollFrame(frame, nil, editBox);
     container:SetPoint("TOPLEFT", 10, -30);
     container:SetPoint("BOTTOMRIGHT", -10, 10);
 
@@ -616,7 +617,7 @@ do
   function Private:CreateDisplay()
     if (self.display) then return self.display; end
 
-    local display = CreateFrame("Frame", nil, WorldFrame);
+    local display = tk:CreateFrame("Frame", WorldFrame);
     display:SetPoint("BOTTOMLEFT", WorldFrame, "BOTTOMLEFT", 0, -100);
     display:SetPoint("BOTTOMRIGHT", WorldFrame, "BOTTOMRIGHT", 0, -100);
     display:SetHeight(150);
@@ -624,7 +625,7 @@ do
     display.bg = tk:SetBackground(display, tk:GetAssetFilePath("Textures\\BottomUI\\Single"));
     tk:ApplyThemeColor(display.bg);
 
-    UIParent:HookScript("OnShow", function()
+    _G.UIParent:HookScript("OnShow", function()
       local AFKDisplay = MayronUI:ImportModule("AFKDisplay");
       AFKDisplay:SetShown(false);
     end);
@@ -637,7 +638,7 @@ do
     display.name:SetJustifyH("RIGHT");
     display.name:SetPoint("TOPRIGHT", -100, -14);
 
-    display.titleBar = tk:PopFrame("Frame", display);
+    display.titleBar = tk:CreateFrame("Frame", display);
 
     display.titleBar:SetSize(200, 22);
     display.titleBar:SetPoint("BOTTOM", display.bg, "TOP", 0, -1);
@@ -653,7 +654,7 @@ do
     txt:SetText("MayronUI");
     tk:SetFontSize(txt, 11);
 
-    display.left = CreateFrame("Button", nil, display);
+    display.left = tk:CreateFrame("Button", display);
     display.left:SetDisabledFontObject("GameFontDisable");
     display.left:SetHighlightFontObject("GameFontNormal");
     display.left:Disable();
@@ -684,7 +685,7 @@ do
       };
     end
 
-    display.right = CreateFrame("Button", nil, display);
+    display.right = tk:CreateFrame("Button", display);
     display.right:SetDisabledFontObject("GameFontDisable");
     display.right:SetHighlightFontObject("GameFontNormal");
     display.right:Disable();
@@ -795,7 +796,7 @@ do
 
     if (show) then
       -- Hide UIParent and show AFK Display
-      UIParent:Hide();
+      _G.UIParent:Hide();
       MoveViewLeftStart(0.01);
 
       if (not Private.display) then
@@ -826,7 +827,7 @@ do
       StartTimer();
     else
       -- Hide AFK Display and show UIParent
-      UIParent:Show();
+      _G.UIParent:Show();
 
       if (data.settings.rotateCamera) then
         MoveViewLeftStop();

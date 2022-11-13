@@ -1,11 +1,12 @@
 -- luacheck: ignore MayronUI self 143
 -- Setup namespaces ------------------
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, _, _, gui = MayronUI:GetCoreComponents();
 
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 local CompactRaidFrameManager, GetNumGroupMembers = _G.CompactRaidFrameManager, _G.GetNumGroupMembers;
-local IsAddOnLoaded, CreateFrame = _G.IsAddOnLoaded, _G.CreateFrame;
+local IsAddOnLoaded = _G.IsAddOnLoaded;
 --------------------------------------
 local function ToggleButton_OnEvent(self)
   if (not IsAddOnLoaded("Blizzard_CompactRaidFrames")) then
@@ -36,9 +37,9 @@ local function ToggleButton_OnClick(self)
 end
 
 local function CreateToggleButton()
-  local btn = CreateFrame("Button", nil, _G.UIParent);
+  local btn = tk:CreateFrame("Button");
   btn:SetSize(14, 120);
-  btn:SetPoint("LEFT", _G.UIParent, "LEFT");
+  btn:SetPoint("LEFT");
   btn:SetNormalTexture(tk:GetAssetFilePath("Textures\\SideBar\\SideButton"));
   btn:SetNormalFontObject("MUI_FontSmall");
   btn:SetHighlightFontObject("GameFontHighlightSmall");
@@ -77,7 +78,7 @@ function C_ChatModule:SetUpRaidFrameManager(data)
   compactFrame:ClearAllPoints();
   compactFrame:SetPoint("TOPLEFT", btn, "TOPRIGHT", 5, 0);
 
-  gui:CreateDialogBox(tk.Constants.AddOnStyle, nil, nil, compactFrame);
+  gui:CreateDialogBox(nil, nil, compactFrame);
   tk:MakeMovable(compactFrame);
 
   ToggleButton_OnEvent(btn);

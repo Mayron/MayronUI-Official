@@ -1,7 +1,8 @@
 -- luacheck: ignore MayronUI self 143 631
-local _, namespace = ...;
-local tk, db, _, _, obj, L = _G.MayronUI:GetCoreComponents();
-local C_MiniMapModule = namespace.C_MiniMapModule;
+local _G = _G;
+local MayronUI = _G.MayronUI;
+local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
+local C_MiniMapModule = MayronUI:GetModuleClass("MiniMap");
 local widgets = {};
 
 local function UpdateTestModeButton(button)

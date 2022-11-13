@@ -1,7 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
-local _, namespace = ...;
+
+local _G = _G;
+local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
-local C_ToolTipsModule = namespace.C_ToolTipsModule;
+local C_ToolTipsModule = MayronUI:GetModuleClass("Tooltips");
+
 local muiTextureSubmenu, customBackdropSubmenu;
 local screenPointXOffsetTextField, screenPointYOffsetTextField, screenPointDropdown;
 

@@ -1,0 +1,5 @@
+<Ui>
+    <Script file="ConfigMenu.lua"/>
+    <Script file="LayoutSwitcher.lua"/>
+    <Script file="ProfileManager.lua"/>
+</Ui>

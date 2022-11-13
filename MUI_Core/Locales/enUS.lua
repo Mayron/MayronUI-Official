@@ -273,7 +273,7 @@ L["Symmetric Unit Panels"] = "Symmetric Unit Panels";
 L["Name Panels"] = "Name Panels";
 L["Unit Panel Width"] = "Unit Panel Width";
 L["Target Class Colored"] = "Target Class Colored";
-L["Action Bar Panel"] = "Action Bar Panels";
+L["Bottom Action Bars"] = "Action Bar Panels";
 L["Enable Panel"] = "Enable Panel";
 L["Animation Speed"] = "Animation Speed";
 L["Retract Height"] = "Retract Height";
@@ -517,7 +517,7 @@ L["Profiles"] = "Profiles";
 L["AFK Display"] = "AFK Display";
 L["Movable Frames"] = "Movable Frames";
 L["Objective Tracker"] = "Objective Tracker";
-L["Side Action Bar"] = "Side Action Bar";
+L["Side Action Bars"] = "Side Action Bars";
 L["(type '/mui' to list all slash commands)"] =
   "(type '/mui' to list all slash commands)";
 L["Version"] = "Version";

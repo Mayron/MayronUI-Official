@@ -1,0 +1,15 @@
+<Ui>
+    <Script file="Button.lua"/>
+    <Script file="CheckButton.lua"/>
+    <Script file="Color.lua"/>
+    <Script file="DropDown.lua"/>
+    <Script file="FontString.lua"/>
+    <Script file="Frame.lua"/>
+    <Script file="Loop.lua"/>
+    <Script file="Misc.lua"/>
+    <Script file="Slider.lua"/>
+    <Script file="SubMenu.lua"/>
+    <Script file="TextField.lua"/>
+    <Script file="Title.lua"/>
+    <Script file="ListFrame.lua"/>
+</Ui>

@@ -74,7 +74,7 @@ function Money:__Construct(data, settings, dataTextModule, slideController)
   data.slideController = slideController;
 
   -- set public instance properties
-  self.MenuContent = _G.CreateFrame("Frame");
+  self.MenuContent = tk:CreateFrame("Frame");
   self.MenuLabels = obj:PopTable();
   self.TotalLabelsShown = 0;
   self.HasLeftMenu = true;
@@ -224,7 +224,7 @@ function Money:GetLabel(data, index, btnEnabled)
     return label;
   end
 
-  label = tk:PopFrame("Button", self.MenuContent);
+  label = tk:CreateFrame("Button", self.MenuContent);
   label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   label.name:SetPoint("LEFT", 6, 0);
   label.name:SetWidth(data.settings.popup.width - 10);
