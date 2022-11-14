@@ -482,20 +482,20 @@ local function ApplyMenuConfigTable(componentConfig, menuConfig)
 end
 
 obj:DefineParams("table", "?Frame");
----@param componentConfigTable table @A component config table used to control the rendering and behavior of a component in the config menu.
+---@param config table @A component config table used to control the rendering and behavior of a component in the config menu.
 ---@param parent Frame @(optional) A custom parent frame for the component, else the parent will be the menu scroll child.
 ---@return Frame @(possibly nil if component is disabled) The created component.
-function C_ConfigMenuModule:SetUpComponent(data, componentConfigTable, parent)
+function C_ConfigMenuModule:SetUpComponent(data, config, parent)
   if (not parent) then
     parent = data.selectedButton.menu:GetFrame();
     parent = parent.ScrollFrame:GetScrollChild();
   end
 
   if (obj:IsTable(data.tempMenuConfigTable)) then
-    ApplyMenuConfigTable(componentConfigTable, data.tempMenuConfigTable);
+    ApplyMenuConfigTable(config, data.tempMenuConfigTable);
   end
 
-  local componentType = componentConfigTable.type;
+  local componentType = config.type;
 
   -- treat the component like a check button (except when grouping the check buttons)
   if (componentType == "radio") then
@@ -506,45 +506,44 @@ function C_ConfigMenuModule:SetUpComponent(data, componentConfigTable, parent)
 
   tk:Assert(components[componentType],
     "Unsupported component type '%s' found in config data for config table '%s'.",
-    componentType or "nil", componentConfigTable.name or "nil");
+    componentType or "nil", config.name or "nil");
 
-  if (componentConfigTable.OnInitialize) then
+  if (config.OnInitialize) then
     -- do disabled components need to be initialized?
-    componentConfigTable.OnInitialize(componentConfigTable);
-    componentConfigTable.OnInitialize = nil;
+    config.OnInitialize(config);
+    config.OnInitialize = nil;
   end
 
-  local currentValue = self:GetDatabaseValue(componentConfigTable);
-  local component = components[componentType](parent, componentConfigTable, currentValue);
+  local currentValue = self:GetDatabaseValue(config);
+  local component = components[componentType](parent, config, currentValue);
 
-  if (componentConfigTable.devMode) then
+  if (config.devMode) then
     -- highlight the component in dev mode.
     tk:SetBackground(component, mrandom(), mrandom(), mrandom());
   end
 
   -- If using Rendercomponent manually in config then this won't work
-  if (data.tempMenuConfigTable and componentConfigTable.type == "radio"
-    and componentConfigTable.groupName) then
+  if (data.tempMenuConfigTable and config.type == "radio"
+    and config.groupName) then
     -- get groups[groupName] value from tempRadioButtonGroup
     local tempRadioButtonGroup = tk.Tables:GetTable(
-                                   data.tempMenuConfigTable, "groups",
-                                     componentConfigTable.groupName);
+      data.tempMenuConfigTable, "groups", config.groupName);
 
     table.insert(tempRadioButtonGroup, component.btn);
   end
 
-  if (componentConfigTable.disabled) then
+  if (config.disabled) then
     return
   end
 
   -- setup complete, so run the OnLoad callback if one exists
-  if (componentConfigTable.OnLoad) then
-    componentConfigTable.OnLoad(componentConfigTable, component, currentValue);
-    componentConfigTable.OnLoad = nil;
+  if (config.OnLoad) then
+    config.OnLoad(config, component, currentValue);
+    config.OnLoad = nil;
   end
 
   if (componentType ~= "submenu") then
-    TransfercomponentAttributes(component, componentConfigTable);
+    TransfercomponentAttributes(component, config);
   end
 
   return component;

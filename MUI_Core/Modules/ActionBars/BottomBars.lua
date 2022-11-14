@@ -23,7 +23,6 @@ db:AddToDefaults("profile.actionbars.bottom", {
   -- Appearance properties
   texture = tk:GetAssetFilePath("Textures\\BottomUI\\ActionBarPanel");
   alpha = 1;
-  cornerSize = 20;
   manualSizes = {80, 120, 160}; -- the manual heights for each of the 3 rows
   sizeMode = "dynamic";
   panelPadding = 6;
@@ -212,8 +211,7 @@ function C_BottomActionBars:OnInitialize(data, containerModule)
   local options = {
     onExecuteAll = {
       ignore = {
-        "height",
-        "bartender"
+        ".*";
       };
     };
   };
@@ -227,11 +225,39 @@ function C_BottomActionBars:OnInitialize(data, containerModule)
       data.panel:SetAlpha(value);
     end;
 
-    cornerSize = function(value)
-      data.panel:SetGridCornerSize(value);
+    manualSizes = function()
+      if (data.settings.sizeMode == "manual") then
+        data.controller.panelSizes = tk.Tables:Copy(data.settings.manualSizes);
+        local activeSets = data.settings.animation.activeSets;
+        data.controller.slider:SetValue(data.settings.manualSizes[activeSets]);
+      end
     end;
 
-    -- Ignored OnLoad functions -----------
+    sizeMode = function(value)
+      data.controller.sizeMode = value;
+
+      if (value == "dynamic") then
+        local bottom = data.panel:GetBottom();
+        data.controller:LoadPositions(bottom);
+        local activeSets = data.settings.animation.activeSets;
+        data.controller.slider:SetValue(data.controller.panelSizes[activeSets]);
+      else
+        data.controller.panelSizes = tk.Tables:Copy(data.settings.manualSizes);
+        local activeSets = data.settings.animation.activeSets;
+        data.controller.slider:SetValue(data.settings.manualSizes[activeSets]);
+      end
+    end;
+
+    panelPadding = function(value)
+      if (data.settings.sizeMode == "dynamic") then
+        data.controller.panelPadding = value;
+        local bottom = data.panel:GetBottom();
+        data.controller:LoadPositions(bottom);
+        local activeSets = data.settings.animation.activeSets;
+        data.controller.slider:SetValue(data.controller.panelSizes[activeSets]);
+      end
+    end;
+
     ---@param keys LinkedList
     bartender = function(_, path)
       local key = path:GetBack();
@@ -239,6 +265,12 @@ function C_BottomActionBars:OnInitialize(data, containerModule)
         self:SetUpExpandRetract();
       end
     end;
+
+    animation = {
+      speed = function(value)
+        data.controller:SetAnimationSpeed(value);
+      end
+    };
   }, options);
 
   if (data.settings.enabled) then
@@ -293,7 +325,8 @@ function C_BottomActionBars:OnEnable(data)
   data.panel = tk:CreateFrame("Frame", _G.MUI_BottomContainer, "MUI_BottomActionBarsPanel");
   data.panel:SetFrameLevel(10);
   data.panel:SetHeight(1);
-  gui:CreateGridTexture(data.panel, data.settings.texture, data.settings.cornerSize, nil, 749, 45);
+  data.panel:SetAlpha(data.settings.alpha);
+  gui:CreateGridTexture(data.panel, data.settings.texture, 20, nil, 749, 45);
 
   if (not data.settings.tutorial) then
     local show = tk:GetTutorialShowState(data.settings.tutorial);
@@ -305,12 +338,7 @@ function C_BottomActionBars:OnEnable(data)
 end
 
 function C_BottomActionBars:SetUpExpandRetract(data)
-  if (not (IsAddOnLoaded("Bartender4"))) then
-    if (data.controller) then
-      em:DisableEventListeners("BottomSets_ExpandRetract");
-      data.panel:SetHeight(1);
-    end
-
+  if (not IsAddOnLoaded("Bartender4")) then
     return
   end
 
@@ -321,6 +349,7 @@ function C_BottomActionBars:SetUpExpandRetract(data)
 
   if (data.controller) then
     em:EnableEventListeners("BottomSets_ExpandRetract");
+    data.controller:ApplyOverrides();
     data.controller:LoadPositions(bottom);
     return
   end

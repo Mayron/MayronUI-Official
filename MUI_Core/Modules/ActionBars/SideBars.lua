@@ -20,7 +20,6 @@ db:AddToDefaults("profile.actionbars.side", {
     -- Appearance properties
     texture = tk:GetAssetFilePath("Textures\\SideBar\\SideBarPanel");
     alpha = 1;
-    cornerSize = 20;
     manualSizes = {46, 80}; -- the manual widths for each of the 3 columns
     sizeMode = "dynamic";
     panelPadding = 6;
@@ -123,53 +122,86 @@ end
 function C_SideActionBars:OnInitialize(data)
   local options = {
     onExecuteAll = {
-      ignore = { "yOffset", "buttons.*" };
+      ignore = { ".*" };
     };
   }
 
   self:RegisterUpdateFunctions(db.profile.actionbars.side, {
-      enabled = function(value)
-        self:SetEnabled(value);
+    height = function(value)
+      data.panel:SetHeight(value);
+    end;
+    alpha = function(value)
+      data.panel:SetAlpha(value);
+    end;
+    yOffset = function(value)
+      local p, rf, rp, x = data.panel:GetPoint();
+      data.panel:SetPoint(p, rf, rp, x, value);
+    end;
+    ---@param keys LinkedList
+    bartender = function(_, path)
+      local key = path:GetBack();
+      if (key ~= "activeSets") then
+        self:SetUpExpandRetract();
+      end
+    end;
+
+    manualSizes = function()
+      if (data.settings.sizeMode == "manual") then
+        data.controller.panelSizes = tk.Tables:Copy(data.settings.manualSizes);
+        local activeSets = data.settings.animation.activeSets;
+
+        local panelSize = activeSets > 0 and data.controller.panelSizes[activeSets] or 0;
+        data.controller.slider:SetValue(panelSize);
+      end
+    end;
+
+    sizeMode = function(value)
+      local activeSets = data.settings.animation.activeSets;
+      data.controller.sizeMode = value;
+
+      if (value == "dynamic") then
+        data.controller:LoadPositions(0);
+        data.controller.slider:SetValue(activeSets > 0 and data.controller.panelSizes[activeSets] or 0);
+      else
+        data.controller.panelSizes = tk.Tables:Copy(data.settings.manualSizes);
+        data.controller.slider:SetValue(activeSets > 0 and data.settings.manualSizes[activeSets] or 0);
+      end
+    end;
+
+    panelPadding = function(value)
+      if (data.settings.sizeMode == "dynamic") then
+        data.controller.panelPadding = value;
+        data.controller:LoadPositions(0);
+
+        local activeSets = data.settings.animation.activeSets;
+        local panelSize = activeSets > 0 and data.controller.panelSizes[activeSets] or 0;
+        data.controller.slider:SetValue(panelSize);
+      end
+    end;
+
+    animation = {
+      showWhen = function()
+        UpdateArrowButtonVisibility(data);
+      end;
+      hideInCombat = function()
+        UpdateArrowButtonVisibility(data);
+      end;
+      width = function(value)
+        data.expand:SetSize(value, data.settings.buttons.height)
+        data.retract:SetSize(value, data.settings.buttons.height)
       end;
       height = function(value)
-        data.panel:SetHeight(value);
+        data.expand:SetSize(data.settings.buttons.width, value)
+        data.retract:SetSize(data.settings.buttons.width, value)
       end;
-      alpha = function(value)
-        data.panel:SetAlpha(value);
-      end;
-      yOffset = function(value)
-        local p, rf, rp, x = data.panel:GetPoint();
-        data.panel:SetPoint(p, rf, rp, x, value);
-      end;
-      ---@param keys LinkedList
-      bartender = function(_, path)
-        local key = path:GetBack();
-        if (key ~= "activeSets") then
-          self:SetUpExpandRetract();
-        end
-      end;
-      buttons = {
-        showWhen = function()
-          UpdateArrowButtonVisibility(data);
-        end;
-        hideInCombat = function()
-          UpdateArrowButtonVisibility(data);
-        end;
-        width = function(value)
-          data.expand:SetSize(value, data.settings.buttons.height)
-          data.retract:SetSize(value, data.settings.buttons.height)
-        end;
-        height = function(value)
-          data.expand:SetSize(data.settings.buttons.width, value)
-          data.retract:SetSize(data.settings.buttons.width, value)
-        end;
-      };
-    }, options);
-end
+      speed = function(value)
+        data.controller:SetAnimationSpeed(value);
+      end
+    };
+  }, options);
 
-function C_SideActionBars:OnInitialized(data)
   if (data.settings.enabled) then
-    self:SetEnabled(true)
+    self:SetEnabled(true);
   end
 end
 
@@ -177,7 +209,9 @@ function C_SideActionBars:OnEnable(data)
   if (not data.panel) then
     data.panel = tk:CreateFrame("Frame", nil, "MUI_SideBar");
     data.panel:SetPoint("RIGHT", 0, data.settings.yOffset);
-    gui:CreateGridTexture(data.panel, data.settings.texture, data.settings.cornerSize, nil, 45, 749);
+    data.panel:SetAlpha(data.settings.alpha);
+    data.panel:SetHeight(data.settings.height);
+    gui:CreateGridTexture(data.panel, data.settings.texture, 20, nil, 45, 749);
   end
 
   data.panel:Show();
@@ -195,6 +229,8 @@ function C_SideActionBars:OnEnable(data)
     em:CreateEventListenerWithID("SideBarPetBattleStop", function() data.panel:Show() end)
       :RegisterEvent("PET_BATTLE_CLOSE");
   end
+
+  self:SetUpExpandRetract();
 end
 
 function C_SideActionBars:OnDisable(data)
@@ -249,12 +285,14 @@ local function OnArrowButtonClick(btnId, currentActiveSets)
 end
 
 function C_SideActionBars:SetUpExpandRetract(data)
-  if (not (IsAddOnLoaded("Bartender4"))) then
+  if (not IsAddOnLoaded("Bartender4")) then
     return
   end
 
   if (data.controller) then
-    return
+    data.controller:ApplyOverrides();
+    data.controller:LoadPositions(0);
+    return;
   end
 
   local sideButtonTexture = tk:GetAssetFilePath("Textures\\SideBar\\SideButton");

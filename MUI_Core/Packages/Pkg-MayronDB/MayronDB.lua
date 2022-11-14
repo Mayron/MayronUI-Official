@@ -359,6 +359,10 @@ function Database:AddToDefaults(data, path, value)
   self:SetPathValue(data.defaults, path, value);
 end
 
+function Database:GetDefault(data, path)
+  return self:ParsePathValue(data.defaults, path);
+end
+
 obj:DefineParams("string", "table|function", "?function");
 ---Add a table of update callback functions to trigger when a database value changes
 ---@param path string @A database path string, such as "myTable.mySubTable[2]".

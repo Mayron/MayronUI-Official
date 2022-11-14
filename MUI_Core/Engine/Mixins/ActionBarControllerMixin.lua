@@ -116,39 +116,12 @@ function ActionBarControllerMixin:Init(
   self.topPadding = topPadding or 0;
 
   -- Setup Bartender Visibility and scaling Properties before calculating position
-  for setId, barIds in ipairs(self.bartender) do
-    for _, bt4BarId in ipairs(barIds) do
-      if (bt4BarId > 0) then
-        -- Tell Bartender to enable the bar
-        self.actionBarsModule:EnableBar(bt4BarId);
-        local bt4Bar = self.actionBarsModule.actionbars[bt4BarId];
-        obj:Assert(bt4Bar, "Failed to setup bartender bar %s - bar does not exist", bt4BarId);
-
-        self.sets[setId] = self.sets[setId] or obj:PopTable();
-        self.sets[setId][bt4BarId] = bt4Bar;
-
-        if (self.bartender.controlVisibility) then
-          local shouldShow = self.animation.activeSets >= setId;
-          bt4Bar:SetConfigAlpha((shouldShow and 1) or 0);
-          bt4Bar:SetVisibilityOption("always", not shouldShow);
-        end
-
-        if (self.bartender.controlScale) then
-          bt4Bar:SetConfigScale(self.bartender.scale);
-        end
-
-        if (self.bartender.controlPadding) then
-          bt4Bar:SetPadding(self.bartender.padding);
-        end
-      end
-    end
-  end
-
+  self:ApplyOverrides();
   self:LoadPositions(startPoint);
 
   ---@type SlideController
   self.slider = SlideController(panel, direction, nil, false);
-  self.slider:SetStepValue(self.animation.speed);
+  self:SetAnimationSpeed(self.animation.speed);
   self.slider:OnStartExpand(OnStartExpand, 5, self);
   self.slider:OnStartRetract(OnStartRetract, 0, self);
   self.slider:OnEndRetract(OnEndRetract, 0, self);
@@ -156,6 +129,10 @@ function ActionBarControllerMixin:Init(
   -- Set Panel size based on active sets:
   local panelSize = self.animation.activeSets > 0 and self.panelSizes[self.animation.activeSets] or 0;
   self.slider:SetValue(panelSize);
+end
+
+function ActionBarControllerMixin:SetAnimationSpeed(speed)
+  self.slider:SetStepValue(speed);
 end
 
 function ActionBarControllerMixin:LoadPositions(startPoint)
@@ -189,6 +166,37 @@ function ActionBarControllerMixin:LoadPositions(startPoint)
         end
 
         bt4Bar:LoadPosition();
+      end
+    end
+  end
+end
+
+function ActionBarControllerMixin:ApplyOverrides()
+  for setId, barIds in ipairs(self.bartender) do
+    for index, bt4BarId in ipairs(barIds) do
+      self.sets[setId] = self.sets[setId] or obj:PopTable();
+
+      if (bt4BarId > 0) then
+        -- Tell Bartender to enable the bar
+        self.actionBarsModule:EnableBar(bt4BarId);
+        local bt4Bar = self.actionBarsModule.actionbars[bt4BarId];
+        obj:Assert(bt4Bar, "Failed to setup bartender bar %s - bar does not exist", bt4BarId);
+
+        self.sets[setId][index] = bt4Bar;
+
+        if (self.bartender.controlVisibility) then
+          local shouldShow = self.animation.activeSets >= setId;
+          bt4Bar:SetConfigAlpha((shouldShow and 1) or 0);
+          bt4Bar:SetVisibilityOption("always", not shouldShow);
+        end
+
+        if (self.bartender.controlScale) then
+          bt4Bar:SetConfigScale(self.bartender.scale);
+        end
+
+        if (self.bartender.controlPadding) then
+          bt4Bar:SetPadding(self.bartender.padding);
+        end
       end
     end
   end

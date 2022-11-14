@@ -18,7 +18,7 @@ function tk.Numbers:ToPrecision(number, precision)
 
   local factor = math.pow(10, precision);
   number = tonumber(number);
-  number = math.floor(number * factor) + 0.5;
+  number = math.floor((number * factor) + 0.5);
   number = number / factor;
   return number;
 end

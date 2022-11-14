@@ -1,7 +1,6 @@
 local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
-
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local Utils = MayronUI:GetComponent("ConfigMenuUtils");
 local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule

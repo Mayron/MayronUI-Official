@@ -2,13 +2,15 @@
 local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
-local C_ConfigMenu = MayronUI:GetModuleClass("ConfigMenu");
+local C_ConfigMenu = MayronUI:GetModuleClass("ConfigMenu"); ---@type ConfigMenuModule
 
 local ipairs, strformat, tonumber = _G.ipairs, _G.string.format, _G.tonumber;
 local GetCVar, SetCVar = _G.GetCVar, _G.SetCVar;
 
 local bottomPanelManualHeightOptions;
+local bottomPanelPaddingOption;
 local sidePanelManualWidthOptions;
+local sidePanelPaddingOption;
 
 local function GetModKeyValue(modKey, currentValue)
   if (obj:IsString(currentValue) and currentValue:find(modKey)) then
@@ -42,9 +44,9 @@ local function GetBartender4ActionBarOptions()
   local options = { [L["None"]] = 0 };
   local BT4ActionBars = _G.Bartender4:GetModule("ActionBars");
 
-  for i = 1, #BT4ActionBars.LIST_ACTIONBARS do
-    local barName = BT4ActionBars:GetBarName(i);
-    options[barName] = i;
+  for _, barId in ipairs(BT4ActionBars.LIST_ACTIONBARS) do
+    local barName = BT4ActionBars:GetBarName(barId);
+    options[barName] = barId;
   end
 
   return options;
@@ -168,7 +170,7 @@ function C_ConfigMenu:GetConfigTable()
           type = "color";
           dbPath = "profile.theme.color";
           height = 54;
-          requiresReload = true; -- TODO: This might not need to restart.
+          requiresReload = true;
 
           SetValue = function(_, value)
             value.hex = strformat(
@@ -212,9 +214,7 @@ function C_ConfigMenu:GetConfigTable()
           max = 1500;
           step = 50;
           valueType = "number";
-          tooltip = tk.Strings:Concat(
-            L["Adjust the width of the main container."], "\n\n",
-              L["Default value is"], " 750");
+          tooltip = L["Adjust the width of the main container."];
           dbPath = "profile.bottomui.width";
         }; {
           name = L["Frame Strata"];
@@ -322,10 +322,7 @@ function C_ConfigMenu:GetConfigTable()
           max = 500;
           step = 10;
           valueType = "number";
-          tooltip = tk.Strings:Concat(
-            L["Adjust the width of the unit frame background panels."], "\n\n",
-              L["Minimum value is"], " 200", "\n\n", L["Default value is"],
-              " 325");
+          tooltip = L["Adjust the width of the unit frame background panels."];
           dbPath = "profile.unitPanels.unitWidth";
         }; {
           name = L["Set Height"];
@@ -335,9 +332,7 @@ function C_ConfigMenu:GetConfigTable()
           min = 25;
           max = 200;
           step = 5;
-          tooltip = tk.Strings:Concat(
-            L["Adjust the height of the unit frame background panels."], "\n\n",
-              L["Default value is"], " 75");
+          tooltip = L["Adjust the height of the unit frame background panels."];
           dbPath = "profile.unitPanels.unitHeight";
         }; {
           name = L["Set Alpha"];
@@ -347,14 +342,11 @@ function C_ConfigMenu:GetConfigTable()
           min = 0;
           max = 1;
           step = 0.1;
-          tooltip = tk.Strings:Concat(L["Default value is"], " 0.8");
           dbPath = "profile.unitPanels.alpha";
         }; {
           name = L["Set Pulse Strength"];
           type = "slider";
-          tooltip = tk.Strings:Concat(
-            "Set the alpha change while pulsing/flashing",
-              L["Default value is"], " 0.3");
+          tooltip = "Set the alpha change while pulsing/flashing";
           module = "UnitPanels";
           valueType = "number";
           min = 0;
@@ -376,9 +368,7 @@ function C_ConfigMenu:GetConfigTable()
           min = 150;
           max = 300;
           step = 5;
-          tooltip = tk.Strings:Concat(
-            L["Adjust the width of the unit name background panels."], "\n\n",
-              L["Default value is"], " 235");
+          tooltip = L["Adjust the width of the unit name background panels."];
           dbPath = "profile.unitPanels.unitNames.width";
         }; {
           name = L["Set Height"];
@@ -386,9 +376,7 @@ function C_ConfigMenu:GetConfigTable()
           min = 15;
           max = 30;
           step = 1;
-          tooltip = tk.Strings:Concat(
-            L["Adjust the height of the unit name background panels."], "\n\n",
-              L["Default value is"], " 20");
+          tooltip = L["Adjust the height of the unit name background panels."];
           dbPath = "profile.unitPanels.unitNames.height";
         }; {
           name = L["X-Offset"];
@@ -396,16 +384,12 @@ function C_ConfigMenu:GetConfigTable()
           min = -50;
           max = 50;
           step = 1;
-          tooltip = tk.Strings:Concat(
-            L["Move the unit name panels further in or out."], "\n\n",
-              L["Default value is"], " 24");
+          tooltip = L["Move the unit name panels further in or out."];
           dbPath = "profile.unitPanels.unitNames.xOffset";
         }; {
           name = L["Font Size"];
           type = "slider";
-          tooltip = tk.Strings:Concat(
-            L["Set the font size of unit names."], "\n\n",
-              L["Default value is"], " 11");
+          tooltip = L["Set the font size of unit names."];
           step = 1;
           min = 8;
           max = 18;
@@ -421,9 +405,7 @@ function C_ConfigMenu:GetConfigTable()
           min = 1;
           max = 50;
           step = 1;
-          tooltip = tk.Strings:Concat(
-            L["The height of the gradient effect."], "\n\n",
-              L["Default value is"], " 24");
+          tooltip = L["The height of the gradient effect."];
           dbPath = "profile.unitPanels.sufGradients.height";
         };
         {
@@ -472,10 +454,15 @@ function C_ConfigMenu:GetConfigTable()
         {
           type = "slider",
           name = "Set Animation Speed",
+          min = 1; max = 10; step = 1;
           dbPath = "profile.actionbars.bottom.animation.speed";
           tooltip = L["The speed of the Expand and Retract transitions."]
-            .. "\n\n" .. L["The higher the value, the quicker the speed."]
-            .. "\n\n" .. L["Default value is"] .. " 6.";
+            .. "\n" .. L["The higher the value, the quicker the speed."];
+        },
+        {
+          type = "slider",
+          name = "Set Alpha",
+          dbPath = "profile.actionbars.bottom.alpha";
         },
         { type = "divider" };
         {
@@ -511,17 +498,7 @@ function C_ConfigMenu:GetConfigTable()
             };
           end;
         };
-        {
-          type = "slider",
-          name = "Set Alpha",
-          dbPath = "profile.actionbars.bottom.alpha";
-        },
-        {
-          type = "slider",
-          name = "Set Corner Size",
-          dbPath = "profile.actionbars.bottom.cornerSize";
-          min = 0; max = 40;
-        },
+        { type = "divider" };
         {
           name = "Set Height Mode";
           type = "dropdown";
@@ -530,6 +507,8 @@ function C_ConfigMenu:GetConfigTable()
           tooltip = "If set to dynamic, MayronUI will calculate the optimal height for the selected Bartender4 action bars to fit inside the panel.";
           OnValueChanged = function(value)
             bottomPanelManualHeightOptions:SetShown(value == "manual");
+            bottomPanelPaddingOption:SetShown(value == "dynamic");
+            self:RefreshMenu();
           end
         };
         {
@@ -537,10 +516,16 @@ function C_ConfigMenu:GetConfigTable()
           name = "Set Panel Padding",
           dbPath = "profile.actionbars.bottom.panelPadding";
           min = 0; max = 20;
+          OnLoad = function(_, slider)
+            bottomPanelPaddingOption = slider;
+          end;
+          shown = function()
+            return db.profile.actionbars.bottom.sizeMode == "dynamic";
+          end;
         },
         {
           type = "frame";
-          OnLoad = function(frame)
+          OnLoad = function(_, frame)
             bottomPanelManualHeightOptions = frame;
           end;
           shown = function()
@@ -556,16 +541,18 @@ function C_ConfigMenu:GetConfigTable()
               type = "slider",
               name = "Set Row 1 Height",
               dbPath = "profile.actionbars.bottom.manualSizes[1]";
+              min = 40; max = 300; step = 5;
             },
             {
               type = "slider",
               name = "Set Row 2 Height",
               dbPath = "profile.actionbars.bottom.manualSizes[2]";
+              min = 40; max = 300; step = 5;
             },
             {
               type = "slider",
               name = "Set Row 3 Height",
-              min = 40; max = 300;
+              min = 40; max = 300; step = 5;
               dbPath = "profile.actionbars.bottom.manualSizes[3]";
             },
           },
@@ -578,10 +565,10 @@ function C_ConfigMenu:GetConfigTable()
         {
           type = "slider",
           name = "Set Animation Speed",
+          min = 1; max = 10; step = 1;
           dbPath = "profile.actionbars.side.animation.speed";
           tooltip = L["The speed of the Expand and Retract transitions."]
-            .. "\n\n" .. L["The higher the value, the quicker the speed."]
-            .. "\n\n" .. L["Default value is"] .. " 6.";
+            .. "\n" .. L["The higher the value, the quicker the speed."];
         },
         {
           type = "slider",
@@ -590,23 +577,19 @@ function C_ConfigMenu:GetConfigTable()
         },
         {
           type = "slider",
-          name = "Set Corner Size",
-          dbPath = "profile.actionbars.side.cornerSize";
-          min = 0; max = 40;
-        },
-        {
-          type = "textfield",
           name = "Set Y-Offset",
           valueType = "number";
           dbPath = "profile.actionbars.side.yOffset";
-          min = 0; max = 40;
+          min = -200; max = 200; step = 10;
         },
         {
           type = "slider",
           name = "Set Height",
           dbPath = "profile.actionbars.side.height";
+          min = 200; max = 800; step = 10;
         },
-        {
+        { type = "divider" };
+       {
           name = "Set Width Mode";
           type = "dropdown";
           options = { Dynamic = "dynamic", Manual = "manual" };
@@ -614,6 +597,8 @@ function C_ConfigMenu:GetConfigTable()
           tooltip = "If set to dynamic, MayronUI will calculate the optimal width for the selected Bartender4 action bars to fit inside the panel.";
           OnValueChanged = function(value)
             sidePanelManualWidthOptions:SetShown(value == "manual");
+            sidePanelPaddingOption:SetShown(value == "dynamic");
+            self:RefreshMenu();
           end
         };
         {
@@ -621,10 +606,16 @@ function C_ConfigMenu:GetConfigTable()
           name = "Set Panel Padding",
           dbPath = "profile.actionbars.side.panelPadding";
           min = 0; max = 20;
+          OnLoad = function(_, slider)
+            sidePanelPaddingOption = slider;
+          end;
+          shown = function()
+            return db.profile.actionbars.side.sizeMode == "dynamic";
+          end;
         },
         {
           type = "frame";
-          OnLoad = function(frame)
+          OnLoad = function(_, frame)
             sidePanelManualWidthOptions = frame;
           end;
           shown = function()
@@ -632,19 +623,21 @@ function C_ConfigMenu:GetConfigTable()
           end;
           children = {
             {
-                type = "fontstring",
-                subtype = "header",
-                content = "Manual Side Panel Widths",
+              type = "fontstring",
+              subtype = "header",
+              content = "Manual Side Panel Widths",
             },
             {
               type = "slider",
               name = "Set Column 1 Width",
               dbPath = "profile.actionbars.side.manualSizes[1]";
+              min = 40; max = 300; step = 5;
             },
             {
               type = "slider",
               name = "Set Column 2 Width",
               dbPath = "profile.actionbars.side.manualSizes[2]";
+              min = 40; max = 300; step = 5;
             },
           },
         },
@@ -695,8 +688,8 @@ function C_ConfigMenu:GetConfigTable()
         { type = "slider";
           name = "Set Bar Padding";
           dbPath = "profile.actionbars.bottom.bartender.padding";
-          min = 0; max = 10;
-          enabled = "profile.actionbars.bottom.bartender.controlPadding"
+          min = 0; max = 10; step = 0.1;
+          enabled = "profile.actionbars.bottom.bartender.controlPadding";
         },
         { type = "slider";
           name = "Set Bar Scale";
@@ -835,35 +828,27 @@ function C_ConfigMenu:GetConfigTable()
               }; {
                 name = L["Enabled"];
                 type = "check";
-                tooltip = tk.Strings:JoinWithSpace(
-                  L["Default value is"], L["true"]);
-                dbPath = tk.Strings:Concat(
-                  "profile.resourceBars.", key, ".enabled");
+                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], L["true"]);
+                dbPath = tk.Strings:Concat("profile.resourceBars.", key, ".enabled");
               }; {
                 name = L["Show Text"];
                 type = "check";
-                tooltip = tk.Strings:JoinWithSpace(
-                  L["Default value is"], L["false"]);
-                dbPath = tk.Strings:Concat(
-                  "profile.resourceBars.", key, ".alwaysShowText");
+                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], L["false"]);
+                dbPath = tk.Strings:Concat("profile.resourceBars.", key, ".alwaysShowText");
               }; {
                 name = L["Height"];
                 type = "slider";
                 step = 1;
                 min = 4;
                 max = 30;
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "8");
-                dbPath = tk.Strings:Concat(
-                  "profile.resourceBars.", key, ".height");
+                dbPath = tk.Strings:Concat("profile.resourceBars.", key, ".height");
               }; {
                 name = L["Font Size"];
                 type = "slider";
                 step = 1;
                 min = 8;
                 max = 18;
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "8");
-                dbPath = tk.Strings:Concat(
-                  "profile.resourceBars.", key, ".fontSize");
+                dbPath = tk.Strings:Concat("profile.resourceBars.", key, ".fontSize");
               }; {
                 type = "dropdown";
                 name = L["Bar Texture"];
@@ -914,9 +899,7 @@ function C_ConfigMenu:GetConfigTable()
           min = 150;
           max = 400;
           step = 50;
-          tooltip = tk.Strings:Concat(
-            L["Adjust the width of the Objective Tracker."], "\n\n",
-              L["Default value is"], " 250");
+          tooltip = L["Adjust the width of the Objective Tracker."];
           dbPath = "profile.objectiveTracker.width";
           valueType = "number";
         }; {
@@ -925,9 +908,7 @@ function C_ConfigMenu:GetConfigTable()
           min = 300;
           max = 1000;
           step = 50;
-          tooltip = tk.Strings:Concat(
-            L["Adjust the height of the Objective Tracker."], "\n\n",
-              L["Default value is"], " 600");
+          tooltip = L["Adjust the height of the Objective Tracker."];
           dbPath = "profile.objectiveTracker.height";
           valueType = "number";
         }; {
@@ -936,9 +917,7 @@ function C_ConfigMenu:GetConfigTable()
           min = -300;
           max = 300;
           step = 1;
-          tooltip = tk.Strings:Concat(
-            L["Adjust the horizontal positioning of the Objective Tracker."],
-              "\n\n", L["Default value is"], " -30");
+          tooltip = L["Adjust the horizontal positioning of the Objective Tracker."];
           dbPath = "profile.objectiveTracker.xOffset";
           valueType = "number";
         }; {
@@ -947,9 +926,7 @@ function C_ConfigMenu:GetConfigTable()
           min = -300;
           max = 300;
           step = 1;
-          tooltip = tk.Strings:Concat(
-            L["Adjust the vertical positioning of the Objective Tracker."],
-              "\n\n", L["Default value is"], " 0");
+          tooltip = L["Adjust the vertical positioning of the Objective Tracker."];
           dbPath = "profile.objectiveTracker.yOffset";
           valueType = "number";
         };

@@ -1,6 +1,6 @@
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, _, _, _, obj = MayronUI:GetCoreComponents();
+local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
@@ -13,7 +13,11 @@ local tonumber = _G.tonumber;
 
 local function Slider_OnValueChanged(self, value, userset)
   if (userset) then
+    local sliderMin, sliderMax = self:GetMinMaxValues();
     value = tk.Numbers:ToPrecision(value, self.precision);
+
+    value = max(min(value, sliderMax), sliderMin);
+    self:SetValue(value);
     self.editBox:SetText(value);
 
     local container = self:GetParent();
@@ -71,6 +75,20 @@ function Components.slider(parent, config, value)
 
   slider.precision = config.precision or 1; -- at most 1 decimal place
 
+  if (config.dbPath) then
+    local default = db:GetDefault(config.dbPath);
+
+    if (obj:IsNumber(default) or obj:IsString(default)) then
+      local defaultTooltip = tk.Strings:JoinWithSpace(L["Default value is"], db:GetDefault(config.dbPath));
+
+      if (config.tooltip) then
+        config.tooltip = tk.Strings:Join("\n\n", config.tooltip, defaultTooltip);
+      else
+        config.tooltip = defaultTooltip;
+      end
+    end
+  end
+
   if (config.tooltip) then
     tk:SetBasicTooltip(slider, config.tooltip);
   end
@@ -83,8 +101,7 @@ function Components.slider(parent, config, value)
     "Failed to create slider %s - max value %s is less than or equal to min value %s.", 
     config.name, maxValue, minValue);
 
-  local totalSteps = config.steps or 10;
-  local step = (maxValue - minValue) / totalSteps;
+  local step = config.step or ((maxValue - minValue) / (config.steps or 10));
 
   slider:DisableDrawLayer("BORDER");
   slider:SetMinMaxValues(minValue, maxValue);

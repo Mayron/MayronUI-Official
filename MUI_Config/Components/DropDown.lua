@@ -9,7 +9,12 @@ local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuMod
 local tostring, pairs, tonumber = _G.tostring, _G.pairs, _G.tonumber;
 
 local function DropDown_OnSelectedValue(self, value, onClick)
-  configModule:SetDatabaseValue(self.configContainer, value);
+  local container = self:GetParent();
+  if (not container.dbPath) then
+      container = self:GetFrame();
+  end
+
+  configModule:SetDatabaseValue(container, value);
 
   if (obj:IsFunction(onClick)) then
     onClick(value, self);

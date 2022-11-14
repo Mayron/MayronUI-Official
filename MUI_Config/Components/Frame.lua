@@ -1,6 +1,6 @@
 local MayronUI = _G.MayronUI;
 local tk, _, _, gui = MayronUI:GetCoreComponents();
-
+local Utils = MayronUI:GetComponent("ConfigMenuUtils");
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 
 function Components.frame(parent, config)
@@ -22,6 +22,7 @@ function Components.frame(parent, config)
 
   frame:SetHeight(frame.originalHeight);
   tk:SetBackground(frame, 0, 0, 0, 0.2);
+  Utils:SetShown(frame, config.shown);
 
   return dynamicFrame;
 end
