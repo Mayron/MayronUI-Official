@@ -3,7 +3,7 @@ local MayronUI = _G.MayronUI;
 local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
-local Utils = MayronUI:GetComponent("ConfigMenuUtils");
+local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
 local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule
 
 local min = _G.math.min;
@@ -15,7 +15,9 @@ local function Slider_OnValueChanged(self, value, userset)
   if (userset) then
     value = tk.Numbers:ToPrecision(value, self.precision);
     self.editBox:SetText(value);
-    configModule:SetDatabaseValue(self.configContainer, value);
+
+    local container = self:GetParent();
+    configModule:SetDatabaseValue(container, value);
   end
 end
 
@@ -29,7 +31,35 @@ local function Slider_OnDisable(self)
     self.editBox:SetEnabled(false);
 end
 
-function Components.slider(parent, widgetTable, value)
+local function SliderEditBox_OnEnterPressed(editBox)
+  editBox:ClearFocus();
+
+  local newValue = tonumber(editBox:GetText());
+  local slider = editBox:GetParent();
+
+  if (obj:IsNumber(newValue)) then
+    local sliderMin, sliderMax = slider:GetMinMaxValues();
+    slider:SetValue(max(min(newValue, sliderMax), sliderMin));
+
+    editBox:SetText(newValue);
+
+    local container = slider:GetParent();
+    configModule:SetDatabaseValue(container, newValue);
+  else
+    editBox:SetText(slider:GetValue());
+  end
+
+  PlaySound(tk.Constants.CLICK);
+end
+
+local function SliderEditBox_OnEscapePressed(editBox)
+  editBox:ClearFocus();
+
+  local slider = editBox:GetParent();
+  editBox:SetText(slider:GetValue());
+end
+
+function Components.slider(parent, config, value)
   local slider = tk:CreateFrame("Slider", parent, nil, "OptionsSliderTemplate");
 
   tk:KillElement(slider.NineSlice);
@@ -39,16 +69,22 @@ function Components.slider(parent, widgetTable, value)
   bg:SetPoint("RIGHT");
   bg:SetHeight(8);
 
-  slider.precision = widgetTable.precision or 1;
+  slider.precision = config.precision or 1; -- at most 1 decimal place
 
-  if (widgetTable.tooltip) then
-    tk:SetBasicTooltip(slider, widgetTable.tooltip);
+  if (config.tooltip) then
+    tk:SetBasicTooltip(slider, config.tooltip);
   end
 
   -- widgetTable gets cleaned
-  local minValue = widgetTable.min;
-  local maxValue = widgetTable.max;
-  local step = widgetTable.step;
+  local maxValue = config.max or 1;
+  local minValue = config.min or 0;
+
+  obj:Assert(maxValue > minValue,
+    "Failed to create slider %s - max value %s is less than or equal to min value %s.", 
+    config.name, maxValue, minValue);
+
+  local totalSteps = config.steps or 10;
+  local step = (maxValue - minValue) / totalSteps;
 
   slider:DisableDrawLayer("BORDER");
   slider:SetMinMaxValues(minValue, maxValue);
@@ -59,35 +95,17 @@ function Components.slider(parent, widgetTable, value)
   slider:GetThumbTexture():SetSize(14, 24);
 
   local backdrop = _G.BackdropTemplateMixin and "BackdropTemplate, InputBoxTemplate" or "InputBoxTemplate";
+
   slider.editBox = tk:CreateFrame("EditBox", slider, nil, backdrop);
   slider.editBox:SetAutoFocus(false);
 
-  slider.editBox:SetScript("OnEscapePressed", function()
-    slider.editBox:ClearFocus();
-    slider.editBox:SetText(slider:GetValue());
-  end);
-
-  slider.editBox:SetScript("OnEnterPressed", function()
-    slider.editBox:ClearFocus();
-    local newValue = tonumber(slider.editBox:GetText());
-
-    if (obj:IsNumber(newValue)) then
-      local sliderMin, sliderMax = slider:GetMinMaxValues();
-      slider:SetValue(max(min(newValue, sliderMax), sliderMin));
-
-      slider.editBox:SetText(newValue);
-      configModule:SetDatabaseValue(slider.configContainer, newValue);
-    else
-      slider.editBox:SetText(slider:GetValue());
-    end
-
-    PlaySound(tk.Constants.CLICK);
-  end);
+  slider.editBox:SetScript("OnEscapePressed", SliderEditBox_OnEscapePressed);
+  slider.editBox:SetScript("OnEnterPressed", SliderEditBox_OnEnterPressed);
 
   slider.editBox:SetPoint("TOP", slider, "BOTTOM", 0, -6);
   slider.editBox:SetSize(40, 20);
   tk:SetFontSize(slider.editBox, 10);
-  slider.editBox:SetText(value or widgetTable.min);
+  slider.editBox:SetText(value or minValue);
   slider.editBox:DisableDrawLayer("BACKGROUND");
   slider.editBox:SetJustifyH("CENTER");
   slider.editBox:SetBackdrop(tk.Constants.BACKDROP);
@@ -95,23 +113,25 @@ function Components.slider(parent, widgetTable, value)
 
   local texture = slider.editBox:CreateTexture(nil, "BORDER");
   texture:SetAllPoints(true);
-
   texture:SetColorTexture(0, 0, 0, 0.5);
 
-  slider.Low:SetText(widgetTable.min);
+  slider.Low:SetText(minValue);
   slider.Low:ClearAllPoints();
   slider.Low:SetPoint("BOTTOMLEFT", 9, -8);
-  slider.High:SetText(widgetTable.max);
+  slider.High:SetText(maxValue);
   slider.High:ClearAllPoints();
   slider.High:SetPoint("BOTTOMRIGHT", -5, -8);
 
-  slider:SetSize(widgetTable.width or 150, 18);
+  slider:SetSize(config.width or 150, 18);
   slider:SetHitRectInsets(0, 0, 0, 0);
   slider:SetScript("OnValueChanged", Slider_OnValueChanged);
   slider:SetScript("OnEnable", Slider_OnEnable);
   slider:SetScript("OnDisable", Slider_OnDisable);
 
-  local container = Utils:CreateElementContainerFrame(slider, widgetTable, parent);
+  Utils:SetComponentEnabled(slider, config.enabled);
+  local container = Utils:WrapInNamedContainer(slider, config.name);
   container:SetHeight(container:GetHeight() + 28); -- make room for value text
+
+  Utils:SetShown(container, config.shown);
   return container;
 end

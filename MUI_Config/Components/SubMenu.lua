@@ -10,7 +10,7 @@ function Components.submenu(parent, submenuConfigTable)
   btn:SetNormalFontObject("GameFontHighlight");
   btn:SetDisabledFontObject("GameFontDisable");
 
-  Utils:SetWidgetEnabled(btn, submenuConfigTable.enabled);
+  Utils:SetComponentEnabled(btn, submenuConfigTable.enabled);
 
   btn:SetText(submenuConfigTable.name);
   btn.text = btn:GetFontString();

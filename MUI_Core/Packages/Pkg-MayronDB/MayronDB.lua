@@ -432,13 +432,10 @@ obj:DefineParams("table|string");
 ---@param pathOrValue any @(optional) A table path string (also called a path address), such as "myTable.mySubTable[2]", or if rootTable is a string representing the path then this is the value argument. If it is the path then this is converted to a sequence of tables which are added to the database if they do not already exist (myTable will be created if not found).
 ---@param value any @(optional) A value to assign to the table relative to the provided path string (is nil if the path argument is the value)
 function Database:SetPathValue(data, rootTableOrPath, pathOrValue, value, ...)
-  local rootTable, path, realValue = GetDatabasePathInfo(
-                                       self, rootTableOrPath, pathOrValue, value);
+  local rootTable, path, realValue = GetDatabasePathInfo(self, rootTableOrPath, pathOrValue, value);
 
-  obj:Assert(
-    obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
-  obj:Assert(
-    path and not (obj:IsType(rootTable, "Observer") and path:find("__template")),
+  obj:Assert(obj:IsTable(rootTable), "Failed to find root-table for path '%s'.", path);
+  obj:Assert(path and not (obj:IsType(rootTable, "Observer") and path:find("__template")),
       "Invalid path address '%s'.", path);
 
   local lastTable, lastKey = GetLastTableKeyPairs(rootTable, path);

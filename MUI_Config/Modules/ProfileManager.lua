@@ -67,7 +67,7 @@ local configTable = {
       width      = 200;
 
       OnLoad = function(_, container)
-        components.chooseProfileDropDown = container.widget;
+        components.chooseProfileDropDown = container.component;
       end;
 
       SetValue = function(_, newValue)
@@ -145,7 +145,7 @@ local configTable = {
 
       SetValue = function(_, profileName, _, container)
         if (db:GetCurrentProfile() == profileName) then
-          container.widget:SetLabel("Select profile");
+          container.component:SetLabel("Select profile");
           return;
         end
 
@@ -154,7 +154,7 @@ local configTable = {
         db:GetCurrentProfile(), profileName);
 
         tk:ShowConfirmPopup(popupMessage, nil, CopyProfile, nil, nil, nil, true, profileName);
-        container.widget:SetLabel(L["Select profile"]);
+        container.component:SetLabel(L["Select profile"]);
       end;
 
       GetValue = function()

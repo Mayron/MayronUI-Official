@@ -7,11 +7,42 @@ local C_ConfigMenu = MayronUI:GetModuleClass("ConfigMenu");
 local ipairs, strformat, tonumber = _G.ipairs, _G.string.format, _G.tonumber;
 local GetCVar, SetCVar = _G.GetCVar, _G.SetCVar;
 
+local bottomPanelManualHeightOptions;
+local sidePanelManualWidthOptions;
+
+local function GetModKeyValue(modKey, currentValue)
+  if (obj:IsString(currentValue) and currentValue:find(modKey)) then
+    return true;
+  end
+
+  return false;
+end
+
+local function SetModKeyValue(modKey, dbPath, newValue, oldValue)
+  if (obj:IsString(oldValue) and oldValue:find(modKey)) then
+    -- remove modKey from current value before trying to append new value
+    oldValue = oldValue:gsub(modKey, tk.Strings.Empty);
+  end
+
+  if (newValue) then
+    newValue = modKey;
+
+    if (obj:IsString(oldValue)) then
+      newValue = oldValue .. newValue;
+    end
+  else
+    -- if check button is not checked (false) set back to oldValue that does not include modKey
+    newValue = oldValue;
+  end
+
+  db:SetPathValue(dbPath, newValue);
+end
+
 local function GetBartender4ActionBarOptions()
   local options = { [L["None"]] = 0 };
   local BT4ActionBars = _G.Bartender4:GetModule("ActionBars");
 
-  for i = 1, BT4ActionBars.LIST_ACTIONBARS do
+  for i = 1, #BT4ActionBars.LIST_ACTIONBARS do
     local barName = BT4ActionBars:GetBarName(i);
     options[barName] = i;
   end
@@ -427,6 +458,7 @@ function C_ConfigMenu:GetConfigTable()
         {
           type = "title";
           name = "Background Panel Settings",
+          marginTop = 0;
         },
         {
           type = "fontstring";
@@ -438,17 +470,105 @@ function C_ConfigMenu:GetConfigTable()
             content = "Bottom Panel",
         },
         {
-          type = "check",
-          name = "Show Panel",
+          type = "slider",
+          name = "Set Animation Speed",
+          dbPath = "profile.actionbars.bottom.animation.speed";
+          tooltip = L["The speed of the Expand and Retract transitions."]
+            .. "\n\n" .. L["The higher the value, the quicker the speed."]
+            .. "\n\n" .. L["Default value is"] .. " 6.";
         },
+        { type = "divider" };
+        {
+          type = "fontstring";
+          content = "Set the modifier key/s that should be pressed to show the arrow buttons.";
+        };
+        {
+          type = "loop";
+          args = { "C"; "S"; "A" };
+          func = function(_, arg)
+            local name = L["Alt"];
+
+            if (arg == "C") then
+              name = L["Control"];
+
+            elseif (arg == "S") then
+              name = L["Shift"];
+            end
+
+            return {
+              name = name;
+              height = 40;
+              type = "check";
+              dbPath = "profile.actionbars.bottom.animation.modKey";
+
+              GetValue = function(_, currentValue)
+                return GetModKeyValue(arg, currentValue);
+              end;
+
+              SetValue = function(dbPath, newValue, oldValue)
+                SetModKeyValue(arg, dbPath, newValue, oldValue);
+              end;
+            };
+          end;
+        };
         {
           type = "slider",
           name = "Set Alpha",
+          dbPath = "profile.actionbars.bottom.alpha";
         },
         {
           type = "slider",
-          name = "Set Height",
-          tooltip = "This option is only available if the expand/retract feature is disabled."
+          name = "Set Corner Size",
+          dbPath = "profile.actionbars.bottom.cornerSize";
+          min = 0; max = 40;
+        },
+        {
+          name = "Set Height Mode";
+          type = "dropdown";
+          options = { Dynamic = "dynamic", Manual = "manual" };
+          dbPath = "profile.actionbars.bottom.sizeMode";
+          tooltip = "If set to dynamic, MayronUI will calculate the optimal height for the selected Bartender4 action bars to fit inside the panel.";
+          OnValueChanged = function(value)
+            bottomPanelManualHeightOptions:SetShown(value == "manual");
+          end
+        };
+        {
+          type = "slider",
+          name = "Set Panel Padding",
+          dbPath = "profile.actionbars.bottom.panelPadding";
+          min = 0; max = 20;
+        },
+        {
+          type = "frame";
+          OnLoad = function(frame)
+            bottomPanelManualHeightOptions = frame;
+          end;
+          shown = function()
+            return db.profile.actionbars.bottom.sizeMode == "manual";
+          end;
+          children = {
+            {
+                type = "fontstring",
+                subtype = "header",
+                content = "Manual Height Mode Settings",
+            },
+            {
+              type = "slider",
+              name = "Set Row 1 Height",
+              dbPath = "profile.actionbars.bottom.manualSizes[1]";
+            },
+            {
+              type = "slider",
+              name = "Set Row 2 Height",
+              dbPath = "profile.actionbars.bottom.manualSizes[2]";
+            },
+            {
+              type = "slider",
+              name = "Set Row 3 Height",
+              min = 40; max = 300;
+              dbPath = "profile.actionbars.bottom.manualSizes[3]";
+            },
+          },
         },
         {
             type = "fontstring",
@@ -456,36 +576,88 @@ function C_ConfigMenu:GetConfigTable()
             content = "Side Panel",
         },
         {
-          type = "check",
-          name = "Show Panel",
+          type = "slider",
+          name = "Set Animation Speed",
+          dbPath = "profile.actionbars.side.animation.speed";
+          tooltip = L["The speed of the Expand and Retract transitions."]
+            .. "\n\n" .. L["The higher the value, the quicker the speed."]
+            .. "\n\n" .. L["Default value is"] .. " 6.";
         },
         {
           type = "slider",
           name = "Set Alpha",
-        },
-        {
-          type = "check",
-          name = "Calculate Width",
-          tooltip = "If true"
+          dbPath = "profile.actionbars.side.alpha";
         },
         {
           type = "slider",
-          name = "Set Width",
-          tooltip = "This option is only available if the expand/retract feature is disabled."
+          name = "Set Corner Size",
+          dbPath = "profile.actionbars.side.cornerSize";
+          min = 0; max = 40;
+        },
+        {
+          type = "textfield",
+          name = "Set Y-Offset",
+          valueType = "number";
+          dbPath = "profile.actionbars.side.yOffset";
+          min = 0; max = 40;
         },
         {
           type = "slider",
           name = "Set Height",
+          dbPath = "profile.actionbars.side.height";
+        },
+        {
+          name = "Set Width Mode";
+          type = "dropdown";
+          options = { Dynamic = "dynamic", Manual = "manual" };
+          dbPath = "profile.actionbars.side.sizeMode";
+          tooltip = "If set to dynamic, MayronUI will calculate the optimal width for the selected Bartender4 action bars to fit inside the panel.";
+          OnValueChanged = function(value)
+            sidePanelManualWidthOptions:SetShown(value == "manual");
+          end
+        };
+        {
+          type = "slider",
+          name = "Set Panel Padding",
+          dbPath = "profile.actionbars.side.panelPadding";
+          min = 0; max = 20;
+        },
+        {
+          type = "frame";
+          OnLoad = function(frame)
+            sidePanelManualWidthOptions = frame;
+          end;
+          shown = function()
+            return db.profile.actionbars.side.sizeMode == "manual";
+          end;
+          children = {
+            {
+                type = "fontstring",
+                subtype = "header",
+                content = "Manual Side Panel Widths",
+            },
+            {
+              type = "slider",
+              name = "Set Column 1 Width",
+              dbPath = "profile.actionbars.side.manualSizes[1]";
+            },
+            {
+              type = "slider",
+              name = "Set Column 2 Width",
+              dbPath = "profile.actionbars.side.manualSizes[2]";
+            },
+          },
         },
         {
           type = "title";
-          name = "Bartender4 Action Bar Settings",
+          name = "Bartender4 Override Settings",
         },
         {
           type = "fontstring";
-          content = "These settings control what MayronUI is allowed to do with the Bartender4 action bars.\nBy default, MayronUI:";
+          content = "These settings control what MayronUI is allowed to do with the Bartender4 action bars. By default, MayronUI:";
         },
-        { type = "fontstring",
+        {
+          type = "fontstring",
           list = {
             "Fades action bars in and out when you press the provided arrow buttons.";
             "Maintains the visibility of action bars between sessions of gameplay.";
@@ -494,26 +666,146 @@ function C_ConfigMenu:GetConfigTable()
           }
         },
         {
-            type = "fontstring",
-            subtype = "header",
-            content = "Bottom Action Bars",
+          type = "fontstring",
+          subtype = "header",
+          content = "Bottom Bartender4 Action Bars",
         },
+        { type = "check";
+          name = "Control Bar Positioning";
+          dbPath = "profile.actionbars.bottom.bartender.controlPositioning";
+          tooltip = "If enabled, MayronUI will move the selected Bartender4 action bars into the correct position for you."
+        },
+        { type = "check";
+          name = "Override Bar Padding";
+          dbPath = "profile.actionbars.bottom.bartender.controlPadding";
+          tooltip = "If enabled, MayronUI will set the padding of the selected Bartender4 action bar to best fit the background panel."
+        },
+        { type = "check";
+          name = "Override Bar Scale";
+          dbPath = "profile.actionbars.bottom.bartender.controlScale";
+          tooltip = "If enabled, MayronUI will set the scale of the selected Bartender4 action bar to best fit the background panel."
+        },
+        { type = "divider" };
         {
-          type = "table",
-          rows = {"Row 1: ", "Row 2: ", "Row 3"},
-          columns = {"BT4 Bar #1", "BT4 Bar #2"},
-          dbPath = "profile.actionbars.bottom.bartender[row][column]";
-          GetOptions = GetBartender4ActionBarOptions;
-          cell = function(row, column)
-            local value = db.profile.actionbars.bottom[row][column];
+          type = "slider",
+          name = "Set Row Spacing",
+          dbPath = "profile.actionbars.bottom.bartender.spacing";
+          min = 0; max = 20;
+        },
+        { type = "slider";
+          name = "Set Bar Padding";
+          dbPath = "profile.actionbars.bottom.bartender.padding";
+          min = 0; max = 10;
+          enabled = "profile.actionbars.bottom.bartender.controlPadding"
+        },
+        { type = "slider";
+          name = "Set Bar Scale";
+          dbPath = "profile.actionbars.bottom.bartender.scale";
+          min = 0.25; max = 2;
+          enabled = "profile.actionbars.bottom.bartender.controlScale"
+        },
 
-          end;
+        {
+          type = "fontstring",
+          content = "The bottom panel can display and control up to two Bartender4 action bars per row.",
         },
         {
-            type = "fontstring",
-            subtype = "header",
-            content = "Side Action Bars",
+          type = "fontstring";
+          content = L["Row"] .. " 1";
+          height = 10;
         },
+        {
+          type = "dropdown";
+          dbPath = "profile.actionbars.bottom.bartender[1][1]";
+          GetOptions = GetBartender4ActionBarOptions;
+        };
+        {
+          type = "dropdown";
+          dbPath = "profile.actionbars.bottom.bartender[1][2]";
+          GetOptions = GetBartender4ActionBarOptions;
+        };
+        {
+          type = "fontstring";
+          content = L["Row"] .. " 2";
+          height = 10;
+        },
+        {
+          type = "dropdown";
+          dbPath = "profile.actionbars.bottom.bartender[2][1]";
+          GetOptions = GetBartender4ActionBarOptions;
+        };
+        {
+          type = "dropdown";
+          dbPath = "profile.actionbars.bottom.bartender[2][2]";
+          GetOptions = GetBartender4ActionBarOptions;
+        };
+        {
+          type = "fontstring";
+          content = L["Row"] .. " 3";
+          height = 10;
+        },
+        {
+          type = "dropdown";
+          dbPath = "profile.actionbars.bottom.bartender[3][1]";
+          GetOptions = GetBartender4ActionBarOptions;
+        };
+        {
+          type = "dropdown";
+          dbPath = "profile.actionbars.bottom.bartender[3][2]";
+          GetOptions = GetBartender4ActionBarOptions;
+        };
+        {
+          type = "fontstring",
+          subtype = "header",
+          content = "Side Bartender4 Action Bars",
+        },
+        { type = "check";
+          name = "Control Bar Positioning";
+          dbPath = "profile.actionbars.side.bartender.controlPositioning";
+          tooltip = "If enabled, MayronUI will move the selected Bartender4 action bars into the correct position for you."
+        },
+        { type = "check";
+          name = "Override Bar Padding";
+          dbPath = "profile.actionbars.side.bartender.controlPadding";
+          tooltip = "If enabled, MayronUI will set the padding of the selected Bartender4 action bar to best fit the background panel."
+        },
+        { type = "check";
+          name = "Override Bar Scale";
+          dbPath = "profile.actionbars.side.bartender.controlScale";
+          tooltip = "If enabled, MayronUI will set the scale of the selected Bartender4 action bar to best fit the background panel."
+        },
+        { type = "divider" };
+        {
+          type = "slider",
+          name = "Set Column Spacing",
+          dbPath = "profile.actionbars.side.bartender.spacing";
+          min = 0; max = 20;
+        },
+        { type = "slider";
+          name = "Set Bar Padding";
+          dbPath = "profile.actionbars.side.bartender.padding";
+          min = 0; max = 10;
+          enabled = "profile.actionbars.side.bartender.controlPadding"
+        },
+
+        { type = "slider";
+          name = "Set Bar Scale";
+          dbPath = "profile.actionbars.side.bartender.scale";
+          min = 0.25; max = 2;
+          enabled = "profile.actionbars.side.bartender.controlScale"
+        },
+        {
+          name = "Column 1";
+          type = "dropdown";
+          dbPath = "profile.actionbars.side.bartender[1][1]";
+          GetOptions = GetBartender4ActionBarOptions;
+        };
+        {
+          name = "Column 2";
+          type = "dropdown";
+          dbPath = "profile.actionbars.side.bartender[2][1]";
+          GetOptions = GetBartender4ActionBarOptions;
+        };
       };
     }; {
       name = "Resource Bars";

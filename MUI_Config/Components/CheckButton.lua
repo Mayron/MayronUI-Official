@@ -37,7 +37,7 @@ function Components.check(parent, widgetTable, value)
     cbContainer:SetHeight(widgetTable.height);
   end
 
-  Utils:SetWidgetEnabled(cbContainer.btn, widgetTable.enabled);
+  Utils:SetComponentEnabled(cbContainer.btn, widgetTable.enabled);
 
   return cbContainer;
 end

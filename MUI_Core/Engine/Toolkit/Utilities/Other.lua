@@ -12,9 +12,14 @@ local GetMaxPlayerLevel, tostringall = _G.GetMaxPlayerLevel, _G.tostringall;
 local UnitQuestTrivialLevelRange, GetQuestGreenRange = _G.UnitQuestTrivialLevelRange, _G.GetQuestGreenRange;
 
 function tk.Numbers:ToPrecision(number, precision)
+  if (not obj:IsNumber(precision) or precision <= 0) then
+    precision = 1;
+  end
+
+  local factor = math.pow(10, precision);
   number = tonumber(number);
-  number = math.floor(number * (math.pow(10, precision)) + 0.5);
-  number = number / (math.pow(10, precision));
+  number = math.floor(number * factor) + 0.5;
+  number = number / factor;
   return number;
 end
 

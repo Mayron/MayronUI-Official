@@ -248,7 +248,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
             useIndexes = true;
             name = L["Set Color"];
             dbPath = function() return tk.Strings:Join(".", GetDbPath(frame), "color"); end;
-            OnPostSetValue = UpdateFontString;
+            OnValueChanged = UpdateFontString;
           };
           { type = "button";
             name = L["Edit Text"];
@@ -592,7 +592,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
             name = L["Use Fixed Timestamp Color"];
             width = 230;
             dbPath = "profile.chat.useTimestampColor";
-            OnPostSetValue = function(_, value)
+            OnValueChanged = function(value)
               customTimestampColor:SetEnabled(value);
             end
           };

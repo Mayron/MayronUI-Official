@@ -21,11 +21,16 @@ db:AddToDefaults("profile.actionbars.side", {
     texture = tk:GetAssetFilePath("Textures\\SideBar\\SideBarPanel");
     alpha = 1;
     cornerSize = 20;
+    manualSizes = {46, 80}; -- the manual widths for each of the 3 columns
+    sizeMode = "dynamic";
+    panelPadding = 6;
+
     height = 460;
-    width = 46;
     yOffset = 53;
 
-    buttons = {
+    animation = {
+      speed = 6;
+      activeSets = 2;
       showWhen = "Always"; -- can be mouseover or never
       hideInCombat = false;
       width = 15;
@@ -33,20 +38,15 @@ db:AddToDefaults("profile.actionbars.side", {
     };
 
     bartender = {
-      animationSpeed = 6;
-      panelPadding = 6;
-
       spacing = tk:IsRetail() and 2 or 3;
-      control = true;
+
+      controlVisibility = true;
       controlPositioning = true;
-
       controlScale = true;
-      scale = 0.85 * (tk:IsRetail() and 0.8 or 1);
-
       controlPadding = true;
-      padding = tk:IsRetail() and 6.8 or 5.5;
 
-      activeSets = 2;
+      scale = 0.85 * (tk:IsRetail() and 0.8 or 1);
+      padding = tk:IsRetail() and 6.8 or 5.5;
 
       -- These are the bartender IDs, not the Bar Name!
       -- Use Bartender4:GetModule("ActionBars"):GetBarName(id) to find out its name.
@@ -60,13 +60,13 @@ db:AddToDefaults("profile.actionbars.side", {
 -- Local Functions ---------------------
 
 local function UpdateArrowButtonVisibility(data, activeSets)
-  activeSets = activeSets or data.settings.bartender.activeSets;
+  activeSets = activeSets or data.settings.animation.activeSets;
 
-  local showOnMouseOver = data.settings.buttons.showWhen == "On Mouse-over";
+  local showOnMouseOver = data.settings.animation.showWhen == "On Mouse-over";
   data.expand.showOnMouseOver = showOnMouseOver;
   data.retract.showOnMouseOver = showOnMouseOver;
 
-  if (data.settings.buttons.hideInCombat) then
+  if (data.settings.animation.hideInCombat) then
     if (not em:GetEventListenerByID("SideBar_HideInCombat")) then
       em:CreateEventListenerWithID("SideBar_HideInCombat", UpdateArrowButtonVisibility)
         :SetCallbackArgs(data)
@@ -79,8 +79,8 @@ local function UpdateArrowButtonVisibility(data, activeSets)
     em:DisableEventListeners("SideBar_HideInCombat");
   end
 
-  if (data.settings.buttons.showWhen == "Never" or
-    data.settings.buttons.hideInCombat and InCombatLockdown()) then
+  if (data.settings.animation.showWhen == "Never" or
+    data.settings.animation.hideInCombat and InCombatLockdown()) then
 
     data.expand:Hide();
     data.retract:Hide();
@@ -102,7 +102,7 @@ local function UpdateArrowButtonVisibility(data, activeSets)
 end
 
 local function UpdateArrowButtonPositions(data, activeSets)
-  activeSets = activeSets or data.settings.bartender.activeSets;
+  activeSets = activeSets or data.settings.animation.activeSets;
 
   data.expand:ClearAllPoints();
   data.retract:ClearAllPoints();
@@ -133,11 +133,6 @@ function C_SideActionBars:OnInitialize(data)
       end;
       height = function(value)
         data.panel:SetHeight(value);
-      end;
-      fixedHeight = function(value)
-        if (not data.settings.bartender.control) then
-          data.panel:SetWidth(value);
-        end
       end;
       alpha = function(value)
         data.panel:SetAlpha(value);
@@ -254,7 +249,7 @@ local function OnArrowButtonClick(btnId, currentActiveSets)
 end
 
 function C_SideActionBars:SetUpExpandRetract(data)
-  if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
+  if (not (IsAddOnLoaded("Bartender4"))) then
     return
   end
 
@@ -268,11 +263,11 @@ function C_SideActionBars:SetUpExpandRetract(data)
     local btn = tk:CreateFrame("Button");
     btn:SetID(btnId);
     btn:SetNormalTexture(sideButtonTexture);
-    btn:SetSize(data.settings.buttons.width, data.settings.buttons.height);
+    btn:SetSize(data.settings.animation.width, data.settings.animation.height);
     btn:SetScript("OnEnter", OnArrowButtonEnter);
     btn:SetScript("OnLeave", OnArrowButtonLeave);
     btn:SetScript("OnClick", function()
-      OnArrowButtonClick(btnId, data.settings.bartender.activeSets);
+      OnArrowButtonClick(btnId, data.settings.animation.activeSets);
     end);
 
     btn.icon = btn:CreateTexture(nil, "OVERLAY");
@@ -294,16 +289,16 @@ function C_SideActionBars:SetUpExpandRetract(data)
   UpdateArrowButtonPositions(data);
   UpdateArrowButtonVisibility(data);
 
-  local mixin = MayronUI:GetComponent("BartenderController");
+  local mixin = MayronUI:GetComponent("ActionBarController");
 
-  ---@type BartenderControllerMixin
-  data.controller = _G.CreateAndInitFromMixin(mixin, data.panel, data.settings.bartender, 0, "HORIZONTAL", 40, 2, 0);
+  ---@type ActionBarControllerMixin
+  data.controller = _G.CreateAndInitFromMixin(mixin, data.panel, data.settings, 0, "HORIZONTAL", 40, 2, 0);
 
   local function PlayTransition(nextActiveSetId)
     data.controller:PlayTransition(nextActiveSetId);
     UpdateArrowButtonPositions(data, nextActiveSetId);
     UpdateArrowButtonVisibility(data, nextActiveSetId);
-    db.profile.actionbars.side.bartender.activeSets = nextActiveSetId;
+    db.profile.actionbars.side.animation.activeSets = nextActiveSetId;
   end
 
   -- Setup action bar toggling commands:

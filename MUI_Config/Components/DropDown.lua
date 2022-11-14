@@ -3,7 +3,7 @@ local MayronUI = _G.MayronUI;
 local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
-local Utils = MayronUI:GetComponent("ConfigMenuUtils");
+local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
 local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule
 
 local tostring, pairs, tonumber = _G.tostring, _G.pairs, _G.tonumber;
@@ -16,53 +16,64 @@ local function DropDown_OnSelectedValue(self, value, onClick)
   end
 end
 
-function Components.dropdown(parent, widgetTable, value)
-  local widget = gui:CreateDropDown(parent);
+function Components.dropdown(parent, config, value)
+  local dropdown = gui:CreateDropDown(parent);
 
-  if (widgetTable.width) then
-    widget:SetWidth(widgetTable.width);
+  if (config.width) then
+    dropdown:SetWidth(config.width);
   end
 
-  widget:SetLabel(tostring(value));
+  dropdown:SetLabel(tostring(value));
 
-  if (widgetTable.disableSorting) then
-    widget:SetSortingEnabled(false);
+  if (config.disableSorting) then
+    dropdown:SetSortingEnabled(false);
   end
 
-  local options = Utils:GetAttribute(widgetTable, "options");
+  local options = Utils:GetAttribute(config, "options");
 
-  for key, dropDownValue in pairs(options) do
+  for key, optionValue in pairs(options) do
     local option;
 
-    if (tonumber(key) or widgetTable.labels == "values") then
-      option = widget:AddOption(dropDownValue, DropDown_OnSelectedValue, dropDownValue, widgetTable.OnClick);
+    if (tonumber(key) or config.labels == "values") then
+      option = dropdown:AddOption(optionValue, DropDown_OnSelectedValue, optionValue, config.OnClick);
     else
-      if (dropDownValue == "nil") then
-        dropDownValue = nil; -- cannot assign nil's to key/value pairs
+      if (optionValue == "nil") then
+        optionValue = nil; -- cannot assign nil's to key/value pairs
       end
 
-      option = widget:AddOption(key, DropDown_OnSelectedValue, dropDownValue);
+      option = dropdown:AddOption(key, DropDown_OnSelectedValue, optionValue);
 
-      if (dropDownValue == value) then
-        widget:SetLabel(key);
+      if (optionValue == value) then
+        dropdown:SetLabel(key);
       end
     end
 
-    if (widgetTable.fontPicker) then
+    if (config.fontPicker) then
       option:GetFontString():SetFont(tk.Constants.LSM:Fetch("font", key), 11);
     end
   end
 
-  if (widgetTable.tooltip) then
-    widget:SetTooltip(widgetTable.tooltip);
+  if (config.tooltip) then
+    dropdown:SetTooltip(config.tooltip);
   end
 
-  if (widgetTable.disabledTooltip) then
-    widget:SetDisabledTooltip(widgetTable.disabledTooltip);
+  if (config.disabledTooltip) then
+    dropdown:SetDisabledTooltip(config.disabledTooltip);
 
-  elseif (widgetTable.tooltip) then
-    widget:SetTooltip(widgetTable.tooltip);
+  elseif (config.tooltip) then
+    dropdown:SetTooltip(config.tooltip);
   end
 
-  return Utils:CreateElementContainerFrame(widget, widgetTable, parent);
+  Utils:SetComponentEnabled(dropdown, config.enabled);
+
+  local container;
+
+  if (config.name) then
+    container = Utils:WrapInNamedContainer(dropdown, config.name);
+  else
+    container = dropdown:GetFrame();
+  end
+
+  Utils:SetShown(container, config.shown);
+  return container;
 end

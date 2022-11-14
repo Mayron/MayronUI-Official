@@ -100,7 +100,7 @@ do
     "OnClick";
     "data";
     "useIndexes";
-    "OnPostSetValue";
+    "OnValueChanged";
     ["SetValue"] = "__SetValue";
   };
 
@@ -212,23 +212,20 @@ function C_ConfigMenuModule:SetDatabaseValue(_, component, newValue)
     component.__SetValue(dbPath, newValue, oldValue, component);
   else
     -- dbPath is required if not using a custom __SetValue function!
-    if (component.name and component.name.IsObjectType
-      and component.name:IsObjectType("FontString")) then
-      tk:Assert(
-        not tk.Strings:IsNilOrWhiteSpace(dbPath),
-          "%s is missing database path address element (dbPath) in config data.",
-          component.name:GetText());
+    if (component.name and component.name.IsObjectType and component.name:IsObjectType("FontString")) then
+      tk:Assert(not tk.Strings:IsNilOrWhiteSpace(dbPath),
+        "%s is missing database path address element (dbPath) in config data.",
+        component.name:GetText());
     else
-      tk:Assert(
-        not tk.Strings:IsNilOrWhiteSpace(dbPath),
-          "Unknown config data is missing database path address element (dbPath).");
+      tk:Assert(not tk.Strings:IsNilOrWhiteSpace(dbPath),
+        "Unknown config data is missing database path address element (dbPath).");
     end
 
     db:SetPathValue(dbPath, newValue);
   end
 
-  if (component.OnPostSetValue) then
-    component.OnPostSetValue(dbPath, newValue, oldValue, component);
+  if (component.OnValueChanged) then
+    component.OnValueChanged(newValue);
   end
 
   if (component.requiresReload) then

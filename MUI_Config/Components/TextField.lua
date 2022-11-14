@@ -16,7 +16,6 @@ local function TextField_OnTextChanged(textfield, value, _, container)
   value = tonumber(value) or value;
 
   if (container.valueType == "number") then
-
     if (not obj:IsNumber(value)) then
       isValue = false;
     else
@@ -44,23 +43,23 @@ end
 -- valueType - overrides the default height of 30
 -- min - minimum value allowed
 -- max - maximum value allowed
+function Components.textfield(parent, config, value)
+  local textField = gui:CreateTextField(config.tooltip, parent);
 
-function Components.textfield(parent, widgetTable, value)
-  local textField = gui:CreateTextField(widgetTable.tooltip, parent);
-
-  if (widgetTable.width) then
-    textField:SetWidth(widgetTable.width);
+  if (config.width) then
+    textField:SetWidth(config.width);
   end
 
-  if (widgetTable.height) then
-    textField:SetHeight(widgetTable.height);
+  if (config.height) then
+    textField:SetHeight(config.height);
   end
 
-  textField:SetText((value and tostring(value)) or "");
-  local container = Utils:CreateElementContainerFrame(textField, widgetTable, parent);
+  textField:SetText((value and tostring(value)) or tk.Strings.Empty);
 
-  -- passes in textField (not data.editBox);
+  Utils:SetComponentEnabled(textField, config.enabled);
+  local container = Utils:WrapInNamedContainer(textField, config.name);
   textField:OnTextChanged(TextField_OnTextChanged, container);
 
+  Utils:SetShown(container, config.shown);
   return container;
 end

@@ -24,24 +24,26 @@ db:AddToDefaults("profile.actionbars.bottom", {
   texture = tk:GetAssetFilePath("Textures\\BottomUI\\ActionBarPanel");
   alpha = 1;
   cornerSize = 20;
-  modKey = "C"; -- modifier key to toggle expand and retract button
-  height = 80; -- the height used when bartender.control is disabled
+  manualSizes = {80, 120, 160}; -- the manual heights for each of the 3 rows
+  sizeMode = "dynamic";
+  panelPadding = 6;
+
+  animation = {
+    speed = 6;
+    activeSets = 1;
+    modKey = "C"; -- modifier key to toggle expand and retract button
+  };
 
   bartender = {
-    animationSpeed = 6;
-    panelPadding = 6;
-
     spacing = tk:IsRetail() and 2 or 3;
-    control = true;
+
+    controlVisibility = true;
     controlPositioning = true;
-
     controlScale = true;
-    scale = 0.85 * (tk:IsRetail() and 0.8 or 1);
-
     controlPadding = true;
-    padding = tk:IsRetail() and 6.8 or 5.5;
 
-    activeSets = 1;
+    scale = 0.85 * (tk:IsRetail() and 0.8 or 1);
+    padding = tk:IsRetail() and 6.8 or 5.5;
 
     -- These are the bartender IDs, not the Bar Name!
     -- Use Bartender4:GetModule("ActionBars"):GetBarName(id) to find out its name.
@@ -80,7 +82,7 @@ local function LoadTutorial(panel)
   frame.text:SetPoint("BOTTOMRIGHT", -20, 10);
   tk:SetFontSize(frame.text, 13);
 
-  local modKey = db.profile.actionbars.bottom.modKey;
+  local modKey = db.profile.actionbars.bottom.animation.modKey;
   tk:Assert(not tk.Strings:IsNilOrWhiteSpace(modKey), "Failed to load tutorial - missing modifier key");
 
   local modKeyLabel;
@@ -90,7 +92,7 @@ local function LoadTutorial(panel)
     if (i == 1) then
       modKeyLabel = modKeyLabels[c];
     else
-      modKeyLabel = string.format("%s+%s", modKeyLabel, modKeyLabels[c]);
+      modKeyLabel = strformat("%s+%s", modKeyLabel, modKeyLabels[c]);
     end
   end
 
@@ -159,12 +161,12 @@ local function PositionToggleButtons(data)
   data.expand:Hide();
   data.retract:Hide();
 
-  if (data.settings.bartender.activeSets == 1) then
+  if (data.settings.animation.activeSets == 1) then
     data.expand:SetPoint("BOTTOM", data.buttons, "TOP");
     data.expand:SetSize(TOGGLE_BUTTON_WIDTH, TOGGLE_BUTTON_HEIGHT);
     data.expand:Show();
 
-  elseif (data.settings.bartender.activeSets == 2) then
+  elseif (data.settings.animation.activeSets == 2) then
     local smallWidth = TOGGLE_BUTTON_WIDTH / 2;
     local gap = 1;
     local offset = (smallWidth / 2) + gap;
@@ -176,7 +178,7 @@ local function PositionToggleButtons(data)
     data.expand:SetSize(smallWidth, TOGGLE_BUTTON_HEIGHT);
     data.expand:Show();
 
-  elseif (data.settings.bartender.activeSets == 3) then
+  elseif (data.settings.animation.activeSets == 3) then
     data.retract:SetPoint("BOTTOM", data.buttons, "TOP");
     data.retract:SetSize(TOGGLE_BUTTON_WIDTH, TOGGLE_BUTTON_HEIGHT);
     data.retract:Show();
@@ -230,12 +232,6 @@ function C_BottomActionBars:OnInitialize(data, containerModule)
     end;
 
     -- Ignored OnLoad functions -----------
-    height = function(value)
-      if (not data.settings.bartender.control) then
-        data.panel:SetHeight(value);
-      end
-    end;
-
     ---@param keys LinkedList
     bartender = function(_, path)
       local key = path:GetBack();
@@ -296,10 +292,10 @@ function C_BottomActionBars:OnEnable(data)
 
   data.panel = tk:CreateFrame("Frame", _G.MUI_BottomContainer, "MUI_BottomActionBarsPanel");
   data.panel:SetFrameLevel(10);
-  data.panel:SetHeight(data.settings.height);
+  data.panel:SetHeight(1);
   gui:CreateGridTexture(data.panel, data.settings.texture, data.settings.cornerSize, nil, 749, 45);
 
-  if (data.settings.bartender.control and not data.settings.tutorial) then
+  if (not data.settings.tutorial) then
     local show = tk:GetTutorialShowState(data.settings.tutorial);
 
     if (show) then
@@ -309,10 +305,10 @@ function C_BottomActionBars:OnEnable(data)
 end
 
 function C_BottomActionBars:SetUpExpandRetract(data)
-  if (not (IsAddOnLoaded("Bartender4") and data.settings.bartender.control)) then
+  if (not (IsAddOnLoaded("Bartender4"))) then
     if (data.controller) then
       em:DisableEventListeners("BottomSets_ExpandRetract");
-      data.panel:SetHeight(data.settings.height);
+      data.panel:SetHeight(1);
     end
 
     return
@@ -344,7 +340,7 @@ function C_BottomActionBars:SetUpExpandRetract(data)
     btn:SetScript("OnEnter", OnArrowButtonEnter);
     btn:SetScript("OnLeave", OnArrowButtonLeave);
     btn:SetScript("OnClick", function()
-      OnArrowButtonClick(btnId, data.settings.bartender.activeSets);
+      OnArrowButtonClick(btnId, data.settings.animation.activeSets);
       data.buttons:Hide();
     end);
 
@@ -416,15 +412,15 @@ function C_BottomActionBars:SetUpExpandRetract(data)
   data.glow = glow;
   data.fader = fader;
 
-  local mixin = MayronUI:GetComponent("BartenderController");
+  local mixin = MayronUI:GetComponent("ActionBarController");
 
-  ---@type BartenderControllerMixin
+  ---@type ActionBarControllerMixin
   data.controller = _G.CreateAndInitFromMixin(mixin,
-    data.panel, data.settings.bartender, bottom, "VERTICAL", nil, tk:IsRetail() and 0 or 2, 0);
+    data.panel, data.settings, bottom, "VERTICAL", nil, tk:IsRetail() and 0 or 2, 0);
 
   local function PlayTransition(nextActiveSetId)
     data.controller:PlayTransition(nextActiveSetId);
-    db.profile.actionbars.bottom.bartender.activeSets = nextActiveSetId;
+    db.profile.actionbars.bottom.animation.activeSets = nextActiveSetId;
   end
 
   -- Setup action bar toggling commands:
@@ -438,7 +434,7 @@ function C_BottomActionBars:SetUpExpandRetract(data)
   MayronUI:RegisterCommand("Show3BottomActionBars", PlayTransition, 3);
 
   em:CreateEventListenerWithID("BottomSets_ExpandRetract", function()
-    if (not tk:IsModComboActive(data.settings.modKey) or InCombatLockdown()) then
+    if (not tk:IsModComboActive(data.settings.animation.modKey) or InCombatLockdown()) then
       data.buttons:Hide();
       return
     end

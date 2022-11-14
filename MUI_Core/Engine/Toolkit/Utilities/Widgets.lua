@@ -102,22 +102,18 @@ end
 
 function tk:SetFullWidth(frame, rightPadding)
   rightPadding = rightPadding or 0;
+  local parent = frame:GetParent();
 
-  if (not frame:GetParent()) then
+  if (not parent) then
     hooksecurefunc(frame, "SetParent", function()
-      frame:GetParent():HookScript("OnSizeChanged", function(_, width)
-        frame:SetWidth(width - rightPadding);
-      end);
-
-      frame:SetWidth(frame:GetParent():GetWidth() - rightPadding);
+      tk:SetFullWidth(frame, rightPadding);
     end);
-
   else
-    frame:GetParent():HookScript("OnSizeChanged", function(_, width)
+    parent:HookScript("OnSizeChanged", function(_, width)
       frame:SetWidth(width - rightPadding);
     end);
 
-    frame:SetWidth(frame:GetParent():GetWidth() - rightPadding);
+    frame:SetWidth(parent:GetWidth() - rightPadding);
   end
 end
 
@@ -421,24 +417,4 @@ function tk:CreateFrame(frameType, parent, globalName, templates)
   frame:ClearAllPoints();
   frame:Show();
   return frame;
-end
-
-function tk:Reskin(frame, value)
-  
-  
-  for layerName, flag in pairs(tk.Constants.RESKIN_FLAGS) do
-    if (bitband(value, flag) ~= 0) then
-      for regionIndex = 1, frame:GetNumRegions() do
-        local region = select(regionIndex, frame:GetRegions());
-        if (region and region:GetObjectType() == "Texture" and region:GetDrawLayer() == layerName) then
-          tk:KillElement(region);
-
-          if (TEST_EIDT) then
-            print(layerName);
-            print(region:GetName(), region == frame.Right);
-          end
-        end
-      end
-    end
-  end
 end

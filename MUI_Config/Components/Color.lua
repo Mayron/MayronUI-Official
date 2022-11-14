@@ -124,7 +124,7 @@ function Components.color(parent, widgetTable, value)
   end
 
   hooksecurefunc(container, "SetEnabled", Color_OnSetEnabled);
-  Utils:SetWidgetEnabled(container, widgetTable.enabled);
+  Utils:SetComponentEnabled(container, widgetTable.enabled);
 
   return container;
 end
