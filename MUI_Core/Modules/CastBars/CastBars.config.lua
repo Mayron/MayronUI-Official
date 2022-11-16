@@ -92,10 +92,10 @@ end
 
 local function CastBarPosition_OnLoad(configTable, container)
     local positionIndex = configTable.dbPath:match("%[(%d)%]$");
-    position_TextFields[configTable.castBarName][tonumber(positionIndex)] = container.widget;
+    position_TextFields[configTable.castBarName][tonumber(positionIndex)] = container.component;
 
     if (db.profile.castBars[configTable.castBarName].anchorToSUF) then
-        container.widget:SetEnabled(false);
+        container.component:SetEnabled(false);
     end
 end
 
@@ -300,10 +300,10 @@ function C_CastBarsModule:GetConfigTable()
                         step = 10,
                         OnLoad = function(_, container)
                           if (db.profile.castBars[name].anchorToSUF) then
-                            container.widget:SetEnabled(false);
+                            container.component:SetEnabled(false);
                           end
 
-                          table.insert(width_TextFields[name], container.widget);
+                          tinsert(width_TextFields[name], container.component);
                         end,
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".width")
                       },
@@ -316,9 +316,10 @@ function C_CastBarsModule:GetConfigTable()
                         step = 10,
                         OnLoad = function(_, container)
                           if (db.profile.castBars[name].anchorToSUF) then
-                            container.widget:SetEnabled(false);
+                            container.component:SetEnabled(false);
                           end
-                          tinsert(height_TextFields[name], container.widget);
+
+                          tinsert(height_TextFields[name], container.component);
                         end,
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".height")
                       },
