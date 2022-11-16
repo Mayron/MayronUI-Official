@@ -1,7 +1,8 @@
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, _, obj, L = _G.MayronUI:GetCoreComponents();
-local string, GetContainerNumSlots, GetContainerNumFreeSlots =
-  _G.string, _G.GetContainerNumSlots, _G.GetContainerNumFreeSlots;
+local string = _G.string;
+local GetContainerNumSlots = _G.GetContainerNumSlots or _G.C_Container.GetContainerNumSlots;
+local GetContainerNumFreeSlots = _G.GetContainerNumFreeSlots or _G.C_Container.GetContainerNumFreeSlots;
 
 -- GLOBALS:
 --[[ luacheck: ignore GameTooltip ToggleAllBags SortBags BACKPACK_CONTAINER NUM_BAG_SLOTS ]]
