@@ -10,12 +10,12 @@ function C_DataTextModule:GetConfigTable()
     local label_TextFields = obj:PopTable();
 
     local function SetLabel_OnLoad(configTable, container)
-      label_TextFields[configTable.module] = container.widget;
+      label_TextFields[configTable.module] = container.component;
       local path = ("profile.datatext.labels.hidden.%s"):format(configTable.module);
       local isHidden = db:ParsePathValue(path);
 
       if (isHidden) then
-          container.widget:SetEnabled(false);
+          container.component:SetEnabled(false);
       end
     end
 

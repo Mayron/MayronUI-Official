@@ -296,6 +296,16 @@ Private.Races = { -- lower values = lower model
       hoverValue = -0.3,
     }
   },
+  Dracthyr = {
+    Male = {
+      value = -0.1,
+      hoverValue = -0.4,
+    },
+    Female = {
+      value = -0.1,
+      hoverValue = -0.4,
+    }
+  },
 };
 
 ----------------------------

@@ -403,7 +403,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                 options = tk.Constants.POINT_OPTIONS;
                 appendDbPath = "anchors.screenAnchor.point";
                 OnLoad = function(_, container)
-                  screenPointDropdown = container.widget;
+                  screenPointDropdown = container.component;
                 end;
             };
             {   type = "textfield";
@@ -412,7 +412,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                 tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "-4");
                 appendDbPath = "anchors.screenAnchor.xOffset";
                 OnLoad = function(_, container)
-                  screenPointXOffsetTextField = container.widget;
+                  screenPointXOffsetTextField = container.component;
                 end;
             };
             {   type = "textfield";
@@ -421,7 +421,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                 tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "4");
                 appendDbPath = "anchors.screenAnchor.yOffset";
                 OnLoad = function(_, container)
-                  screenPointYOffsetTextField = container.widget;
+                  screenPointYOffsetTextField = container.component;
                 end;
             };
             {   name = L["Health Bar"],

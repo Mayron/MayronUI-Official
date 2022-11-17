@@ -520,7 +520,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
                 dbPath = tk.Strings:Concat("profile.chat.icons[", id, "].type");
                 options = iconOptions;
                 OnLoad = function(_, container)
-                  iconDropdowns[id] = container.widget;
+                  iconDropdowns[id] = container.component;
                 end;
                 GetValue = function(_, value)
                   local _, label = tk.Tables:First(iconOptions, function(v) return v == value end);
@@ -656,7 +656,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
                   dbPath = string.format("%s.enabled", dbPath),
                   OnClick = function(_, value)
                     for _, container in ipairs(disabledWidgets) do
-                      local widget = container.widget or container.btn;
+                      local widget = container.component or container.btn;
                       widget:SetEnabled(value);
                     end
                   end

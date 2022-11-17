@@ -11,7 +11,7 @@ local savePositionButtons = {};
 
 local function AuraAreaPosition_OnLoad(configTable, container)
   local positionIndex = configTable.dbPath:match("%[(%d)%]$");
-  position_TextFields[configTable.auraAreaName][tonumber(positionIndex)] = container.widget;
+  position_TextFields[configTable.auraAreaName][tonumber(positionIndex)] = container.component;
 end
 
 local function AuraArea_OnDragStop(field)
