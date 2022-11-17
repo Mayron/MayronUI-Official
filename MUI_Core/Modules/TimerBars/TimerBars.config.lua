@@ -95,7 +95,7 @@ end
 
 local function TimerFieldPosition_OnLoad(configTable, container)
   local positionIndex = configTable.dbPath:match("%[(%d)%]$");
-  position_TextFields[configTable.fieldName][tonumber(positionIndex)] = container.widget;
+  position_TextFields[configTable.fieldName][tonumber(positionIndex)] = container.component;
 end
 
 local function Field_OnDragStop(field)
