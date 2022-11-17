@@ -88,7 +88,7 @@ local function AddFontSizeOption(children, name, settings)
     tooltip = L["Default value is"] .. " 12";
     enabled = settings.show;
     OnLoad = function(_, container)
-      widgets[name].fontSize = container.widget;
+      widgets[name].fontSize = container.component;
     end;
   };
 end
@@ -104,7 +104,7 @@ local function AddScaleOption(children, name)
     tooltip = L["Default value is"].." 1";
     appendDbPath = "scale";
     OnLoad = function(_, container)
-      widgets[name].scale = container.widget;
+      widgets[name].scale = container.component;
     end;
   }
 end
@@ -125,7 +125,7 @@ local function AddPositioningOptions(children, name, settings)
     appendDbPath = "point";
     enabled = settings.show;
     OnLoad = function(_, container)
-      widgets[name].point = container.widget;
+      widgets[name].point = container.component;
     end;
   };
 
@@ -136,7 +136,7 @@ local function AddPositioningOptions(children, name, settings)
     appendDbPath      = "x";
     enabled = settings.show;
     OnLoad = function(_, container)
-      widgets[name].x = container.widget;
+      widgets[name].x = container.component;
     end;
   };
 
@@ -147,7 +147,7 @@ local function AddPositioningOptions(children, name, settings)
     appendDbPath      = "y";
     enabled = settings.show;
     OnLoad = function(_, container)
-      widgets[name].y = container.widget;
+      widgets[name].y = container.component;
     end;
   }
 end
