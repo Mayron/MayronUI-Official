@@ -33,6 +33,11 @@ db:AddToDefaults("profile.datatext.guild", {
 });
 
 local function ButtonOnEnter(self)
+  if (not IsInGuild()) then
+    GameTooltip:Hide();
+    return
+  end
+
   local r, g, b = tk:GetThemeColor();
   GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
   GameTooltip:SetText(L["Commands"]..":");
@@ -169,20 +174,13 @@ function Guild:Update(data, refreshSettings)
 end
 
 function Guild:Click(data, button)
-  if (button == "RightButton") then
-    if (IsTrialAccount()) then
-      tk:Print(L["Starter Edition accounts cannot perform this action."]);
-    elseif (IsInGuild()) then
-      LocalToggleGuildFrame();
-    else
-      tk:Print("You need to be in a guild to perform this action.");
-    end
-
-    return;
-  end
-
   if (not IsInGuild()) then
     return true;
+  end
+
+  if (button == "RightButton") then
+    LocalToggleGuildFrame();
+    return
   end
 
   local totalLabelsShown = 0;

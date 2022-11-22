@@ -23,6 +23,13 @@ db:AddToDefaults("profile.datatext.specialization", {
 -- Local Functions ----------------
 
 local function Button_OnEnter(self)
+  local _, name = GetSpecializationInfo(GetSpecialization());
+
+  if (tk.Strings:IsNilOrWhiteSpace(name)) then
+    GameTooltip:Hide();
+    return
+  end
+
   local r, g, b = tk:GetThemeColor();
 
   GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
@@ -262,13 +269,17 @@ function Specialization:Update(data, refreshSettings)
   end
 
   local specializationID = GetSpecialization();
+  local specText = L["No Spec"];
 
-  if (not specializationID) then
-    self.Button:SetText(L["No Spec"]);
-  else
+  if (specializationID) then
     local _, name = GetSpecializationInfo(specializationID, nil, nil, "player");
-    self.Button:SetText(name);
+
+    if (obj:IsString(name) and not tk.Strings:IsNilOrWhiteSpace(name)) then
+      specText = name;
+    end
   end
+
+  self.Button:SetText(specText);
 end
 
 function Specialization:GetLabel(data, index)
@@ -309,7 +320,7 @@ function Specialization:GetLabel(data, index)
           -- no chat message is printed when set to current spec, so print our own
           local _, name = GetSpecializationInfo(currentSpecializationID);
           print(tk.Strings:Concat(_G.YELLOW_FONT_COLOR_CODE,
-          L["Loot Specialization set to: Current Specialization"], " (", name, ")|r"));
+            L["Loot Specialization set to: Current Specialization"], " (", name, ")|r"));
         end
       end
     else
@@ -404,6 +415,11 @@ end
 function Specialization:Click(_, button)
   if (UnitLevel("player") < 10) then
     tk:Print(L["Must be level 10 or higher to use Talents."]);
+    return true;
+  end
+
+  local _, name = GetSpecializationInfo(GetSpecialization());
+  if (tk.Strings:IsNilOrWhiteSpace(name)) then
     return true;
   end
 
