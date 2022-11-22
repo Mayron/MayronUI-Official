@@ -705,51 +705,6 @@ function C_CoreModule:OnInitialize()
     end
   end
 
-  if (IsAddOnLoaded("ShadowedUnitFrames")) then
-    local updateSufProfileName = _G.ShadowedUFDB
-      and obj:IsTable(_G.ShadowedUFDB.profiles)
-      and not obj:IsTable(_G.ShadowedUFDB.profiles.MayronUI);
-
-    if (updateSufProfileName) then
-      local shadowUfProfile = db:ParsePathValue(db.global, "layouts.DPS.ShadowUF");
-
-      if (shadowUfProfile == "Default") then
-        local layouts = db.global.layouts:GetSavedVariable();
-
-        if (obj:IsTable(layouts) and obj:IsTable(layouts.DPS)) then
-          layouts.DPS.ShadowUF = nil; -- default it back to the newer MayronUI profile
-        end
-      end
-
-      _G.ShadowedUFDB.profiles.MayronUI = _G.ShadowedUFDB.profiles.Default;
-      MayronUI:SwitchLayouts(db.profile.layout);
-    end
-  end
-
-  -- Migrations:
-  if (tk:IsWrathClassic() and tk:IsShaman() and IsAddOnLoaded("Bartender4")) then
-    local bartenderDB, bartender = _G.Bartender4DB, _G.Bartender4;
-
-    if (obj:IsTable(bartenderDB) and obj:IsTable(bartender)
-      and not db.global["WrathTotemBar"]) then
-      local profile = tk.Tables:GetTable(bartenderDB, "namespaces", "MultiCast", "profiles");
-
-      profile.MayronUI = {
-        enabled = true;
-        version = 3;
-        position = { y = 40; x = 365; point = "BOTTOMLEFT" };
-      };
-
-      db.global["WrathTotemBar"] = true;
-
-      local multiCast = tk.Tables:GetValueOrNil(bartender, "modules", "MultiCast");
-
-      if (obj:IsTable(multiCast)) then
-        bartender.modules.MultiCast:Enable();
-      end
-    end
-  end
-
   if (tk:IsRetail() and not db.global[tk.Constants.DRAGONFLIGHT_BAR_LAYOUT_PATCH]) then
     local message =
       L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] .. "\n\n" ..
