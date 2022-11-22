@@ -234,13 +234,17 @@ function Money:GetLabel(data, index, btnEnabled)
   label:SetScript("OnClick", function()
     data.slideController:Start(data.slideController.Static.FORCE_RETRACT);
     if (label.isResetAll) then
-      tk:ShowConfirmPopup(L["Reset All Characters"], L["Are you sure you want to reset the money data for all of your characters?"], function()
+      local message = L["Reset All Characters"];
+      local subMessage = L["Are you sure you want to reset the money data for all of your characters?"];
+
+      local function onConfirm()
         db.global.datatext.money.characters = {};
         self:Update(true);
         tk:Print(L["All money data has been reset."]);
-      end);
+      end;
 
-      return;
+      tk:ShowConfirmPopup(message, subMessage, nil, onConfirm);
+      return
     end
 
     local characterName = (label.dbKey);
@@ -249,16 +253,16 @@ function Money:GetLabel(data, index, btnEnabled)
     local confirmMessage = L["Money data for %s has been reset."]:format(characterName);
 
     if (characterName == currentCharacterName) then
-      tk:ShowConfirmPopup(message, nil, function()
+      tk:ShowConfirmPopup(message, nil, nil, function()
         db:SetPathValue(db.profile, "datatext.money.todayMoney", GetMoney());
         self:Update(true);
         tk:Print(confirmMessage);
       end);
 
-      return;
+      return
     end
 
-    tk:ShowConfirmPopup(message, nil, function()
+    tk:ShowConfirmPopup(message, nil, nil, function()
       db.global.datatext.money.characters[characterName] = nil;
       self:Update(true);
       tk:Print(confirmMessage);

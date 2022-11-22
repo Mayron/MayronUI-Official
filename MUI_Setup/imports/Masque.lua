@@ -682,4 +682,6 @@ setup.import["Masque"] = function()
   for k, v in pairs(settings) do
     _G.MasqueDB.profiles[k] = v;
   end
+
+  return 1;
 end

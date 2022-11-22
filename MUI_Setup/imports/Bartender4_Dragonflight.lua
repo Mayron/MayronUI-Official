@@ -516,4 +516,6 @@ setup.import["Bartender4-Dragonflight"] = function()
 	for k, v in pairs(settings) do
     _G.Bartender4DB[k] = v;
 	end
+
+  return 1;
 end

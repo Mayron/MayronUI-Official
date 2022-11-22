@@ -111,7 +111,7 @@ local configTable = {
         local profileName = db:GetCurrentProfile();
         local popupMessage = strformat(
         L["Are you sure you want to reset profile '%s' back to default settings?"], profileName);
-        tk:ShowConfirmPopup(popupMessage, nil, ResetProfile, nil, nil, nil, true);
+        tk:ShowConfirmPopup(popupMessage, nil, nil, ResetProfile, nil, nil, true);
       end
     };
     { name    = L["Delete Profile"];
@@ -153,7 +153,7 @@ local configTable = {
         L["Are you sure you want to override all profile settings in '%s' for those in profile '%s'?"],
         db:GetCurrentProfile(), profileName);
 
-        tk:ShowConfirmPopup(popupMessage, nil, CopyProfile, nil, nil, nil, true, profileName);
+        tk:ShowConfirmPopup(popupMessage, nil, nil, CopyProfile, nil, nil, true, profileName);
         container.component:SetLabel(L["Select profile"]);
       end;
 

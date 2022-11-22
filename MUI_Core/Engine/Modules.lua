@@ -35,10 +35,10 @@ db:AddToDefaults("global", {
       profilePerCharacter = true;
       resetChatSettings = true;
       addOns = {
-        { "Bagnon"; true; "Bagnon" };
-        { "Bartender4"; true; "Bartender4" };
-        { "Masque"; true; "Masque" };
-        { "Shadowed Unit Frames"; true; "ShadowedUnitFrames" };
+        { "Bagnon"; true; "Bagnon", 1 };
+        { "Bartender4"; true; "Bartender4", 1 };
+        { "Masque"; true; "Masque", 1 };
+        { "Shadowed Unit Frames"; true; "ShadowedUnitFrames", 1 };
       };
     };
   };
@@ -474,8 +474,8 @@ end
 function MayronUI:ShowReloadUIPopUp()
   tk:ShowConfirmPopup(
     L["Some settings will not be changed until the UI has been reloaded."],
-      L["Would you like to reload the UI now?"], ReloadUI, L["Reload UI"], nil,
-      L["No"], true);
+    L["Would you like to reload the UI now?"], L["Reload UI"], ReloadUI,
+    L["No"], nil, true);
 end
 
 ---A helper function to print a variable argument list using the MayronUI prefix in the chat frame.
@@ -652,6 +652,58 @@ function MayronUI:SwitchLayouts(layoutName, layoutData)
   end
 end
 
+local function InstallPresetOnClick(_, addonId)
+  db.global.core.setup.addOns[addonId][2] = true; -- set to "needs installing"
+  LoadMuiAddOn("MUI_Setup");
+  local setupModule = MayronUI:ImportModule("SetUpModule"); ---@type MUI_SetupModule
+  setupModule:Install();
+end
+
+local function InstallPresetOnCancel(_, addonId, latestPresetVersion)
+  local presetInfo = db.global.core.setup.addOns[addonId];
+  presetInfo[2] = false; -- does not need installing
+  presetInfo[4] = latestPresetVersion; -- skip this version and assign the latest preset version
+
+  local command = tk.Strings:SetTextColorByTheme("/mui install", "LIGHT_YELLOW");
+  local message = "You can always install presets at anytime from the custom install tab located on the MayronUI installer.";
+  local subMessage =  ("Hint: Type %s to access the installer."):format(command);
+  
+  _G.C_Timer.After(0.01, function()   
+    -- Need to add a delay, else the OnCancel will prevent the 2nd popup from showing
+    tk:ShowMessagePopup(message, subMessage);      
+  end);
+end
+
+local function CheckForNewMayronUIPreset(addonId, presetInfo)
+  if (not obj:IsTable(presetInfo)) then return end
+  local displayName = presetInfo[1];
+  local needsInstalling = presetInfo[2];
+  local registeredName = presetInfo[3];
+  local installedPresetVersion = presetInfo[4] or 0;
+
+  if (not IsAddOnLoaded(registeredName)) then return end
+
+  local defaults = db.global.core.setup.addOns[addonId]:GetDefaults();
+  local latestPresetVersion = defaults[4] or 0;
+  local newerPresetAvailable = needsInstalling or (installedPresetVersion < latestPresetVersion);
+
+  if (not newerPresetAvailable) then return end
+  
+  local coloredDisplayName = tk.Strings:SetTextColorByKey(displayName, "LIGHT_YELLOW");
+
+  local message = 
+    ("There is a newer MayronUI preset available for %s."):format(coloredDisplayName) .. "\n\n" .. "Would you like to install it?";
+
+  local warningText = ("Warning! This will wipe all customizations you have made to %s."):format(displayName);
+  local confirmText = "Install Preset";
+  local cancelText = "Skip this Version";
+
+  tk:ShowConfirmPopup(
+    message, warningText, confirmText, InstallPresetOnClick, 
+    cancelText, InstallPresetOnCancel, true, addonId, latestPresetVersion);
+end
+
+
 -- Register Core Module ---------------------
 local C_CoreModule = MayronUI:RegisterModule("CoreModule", "MUI Core", true);
 
@@ -705,28 +757,8 @@ function C_CoreModule:OnInitialize()
     end
   end
 
-  if (tk:IsRetail() and not db.global[tk.Constants.DRAGONFLIGHT_BAR_LAYOUT_PATCH]) then
-    local message =
-      L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] .. "\n\n" ..
-      L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] .. "\n\n" ..
-      L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] .. "\n|cff8c8c8c(" ..
-      L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] .. ")|r\n\n";
-
-    local warningText = L["DRAGONFLIGHT_BAR_POPUP_WARNING"] .. "\n";
-    local okayText = L["Yes, I want to update my action bar layout"];
-
-    tk:ShowMessagePopup(message, warningText, okayText, function()
-      for id, addonData in db.global.core.setup.addOns:Iterate() do
-        if (addonData[3] == "Bartender4") then
-          db.global.core.setup.addOns[id][2] = true;
-          break;
-        end
-      end
-
-      LoadMuiAddOn("MUI_Setup");
-      local setupModule = MayronUI:ImportModule("SetUpModule"); ---@type MUI_SetupModule
-      setupModule:Install();
-    end, true);
+  for addonId, addonData in db.global.core.setup.addOns:Iterate() do
+    CheckForNewMayronUIPreset(addonId, addonData);
   end
 
   if (db.global.core.maxCameraZoom) then

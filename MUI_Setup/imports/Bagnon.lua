@@ -233,5 +233,7 @@ setup.import["Bagnon"] = function()
 		},
 		["leatherColor"] = {
 		},
-	}
+	};
+
+  return 1;
 end

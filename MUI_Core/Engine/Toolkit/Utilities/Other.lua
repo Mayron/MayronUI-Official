@@ -347,6 +347,14 @@ do
       end
     end
 
+    local function PopUp_OnCancel(self)    
+      if (self.data.OnCancel) then
+        local args = self.data.args;
+        self.data.args = nil;
+        self.data.OnCancel(self, obj:UnpackTable(args));
+      end      
+    end
+
     local function GetPopup(message, subMessage)
       local popup = _G.StaticPopupDialogs[POPUP_GLOBAL_NAME];
 
@@ -377,37 +385,38 @@ do
       end
     end
 
-    local function ShowConfirmPopup(message, subMessage, onConfirm, confirmText, onCancel, cancelText, isWarning, ...)
+    local function ShowConfirmPopup(message, subMessage, confirmText, onConfirm, cancelText, onCancel, isWarning, ...)
       local popup = GetPopup(message, subMessage);
 
       popup.hasEditBox = false;
       popup.button1 = confirmText or L["Confirm"];
       popup.button2 = cancelText or L["Cancel"];
       popup.OnAccept = PopUp_OnAccept;
-      popup.OnCancel = onCancel;
+      popup.OnCancel = PopUp_OnCancel;
 
       if (isWarning) then
         popup.showAlert = true;
       end
 
       popup.data.OnAccept = onConfirm;
+      popup.data.OnCancel = onCancel;
       popup.data.OnValidate = nil;
       StoreArgs(popup, ...);
 
       return popup;
     end
 
-    function tk:ShowConfirmPopup(...)
-      local popup = ShowConfirmPopup(...);
+    function tk:ShowConfirmPopup(message, subMessage, confirmText, onConfirm, cancelText, onCancel, isWarning, ...)
+      local popup = ShowConfirmPopup(message, subMessage, confirmText, onConfirm, cancelText, onCancel, isWarning, ...);
       _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
     end
 
-    function tk:ShowConfirmPopupWithInsertedFrame(insertedFrame, ...)
-      local popup = ShowConfirmPopup(...);
+    function tk:ShowConfirmPopupWithInsertedFrame(insertedFrame, message, subMessage, confirmText, onConfirm, cancelText, onCancel, isWarning, ...)
+      local popup = ShowConfirmPopup(message, subMessage, confirmText, onConfirm, cancelText, onCancel, isWarning, ...);
       _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data, insertedFrame);
     end
 
-    function tk:ShowMessagePopup(message, subMessage, okayText, onOkay, isWarning, ...)
+    function tk:ShowMessagePopup(message, subMessage, okayText, onOkay, isWarning, ...)    
       local popup = GetPopup(message, subMessage);
 
       popup.button1 = okayText or L["Okay"];
@@ -415,13 +424,10 @@ do
       popup.hasEditBox = false;
       popup.OnAccept = onOkay;
       popup.OnCancel = nil;
-      StoreArgs(popup, ...);
+      popup.showAlert = isWarning;
+      StoreArgs(popup, ...);      
 
-      if (isWarning) then
-        popup.showAlert = true;
-      end
-
-      _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+      _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data); 
     end
 
     function tk:ShowInputPopupWithOneButton(message, subMessage, editBoxText, okayText, ...)

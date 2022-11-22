@@ -523,7 +523,7 @@ do
       insertedFrame.btn:SetChecked(true);
     end
 
-    tk:ShowConfirmPopupWithInsertedFrame(insertedFrame, message, subMessage, onConfirm);
+    tk:ShowConfirmPopupWithInsertedFrame(insertedFrame, message, subMessage, nil, onConfirm);
   end
 
   local function CreateOptionsMenu()

@@ -2,7 +2,7 @@
 local _G = _G;
 local MayronUI = _G.MayronUI; ---@type MayronUI
 local LibStub = _G.LibStub;
-local tk, db, _, _, _, L = MayronUI:GetCoreComponents();
+local tk, db, _, _, _, L = MayronUI:GetCoreComponents(); ---@type Toolkit
 
 function tk:IsRetail()
   return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE;

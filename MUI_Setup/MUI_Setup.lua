@@ -69,8 +69,7 @@ local function ChangeTheme(_, value)
   frame = frame.submenu;
 
   tk:ApplyThemeColor(
-    frame.tl, frame.tr, frame.bl, frame.br, frame.t, frame.b, frame.l, frame.r,
-      frame.c);
+    frame.tl, frame.tr, frame.bl, frame.br, frame.t, frame.b, frame.l, frame.r, frame.c);
 
   frame = window.submenu["Custom"];
 
@@ -286,8 +285,7 @@ function Private:LoadProfileMenu(menuSection)
 end
 
 function Private:LoadThemeMenu(menuSection)
-  menuSection.themeTitle = menuSection:CreateFontString(
-                             nil, "ARTWORK", "GameFontHighlightLarge");
+  menuSection.themeTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
   menuSection.themeTitle:SetPoint("TOPLEFT", 20, -20);
   menuSection.themeTitle:SetText(L["Choose Theme:"]);
 
@@ -322,9 +320,7 @@ function Private:LoadThemeMenu(menuSection)
 
     ColorPickerFrame.cancelFunc = function(values)
       colors.r, colors.g, colors.b = unpack(values);
-      colors.hex = string.format(
-                      "%02x%02x%02x", colors.r * 255, colors.g * 255,
-                        colors.b * 255);
+      colors.hex = string.format("%02x%02x%02x", colors.r * 255, colors.g * 255, colors.b * 255);
       ChangeTheme(nil, colors);
     end
 
@@ -342,8 +338,7 @@ function Private:LoadCustomMenu(menuSection)
   self:LoadProfileMenu(menuSection, tk.Constants.AddOnStyle);
 
   -- UI Scale
-  menuSection.scaleTitle = menuSection:CreateFontString(
-                             nil, "ARTWORK", "GameFontHighlightLarge");
+  menuSection.scaleTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
   menuSection.scaleTitle:SetPoint(
     "TOPLEFT", menuSection.themeTitle, "TOPRIGHT", 150, 0);
   menuSection.scaleTitle:SetText(L["Adjust the UI Scale:"]);
@@ -402,16 +397,20 @@ function Private:LoadCustomMenu(menuSection)
 
   -- AddOn Settings to Inject
   menuSection.injectTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-  menuSection.injectTitle:SetPoint(
-    "TOPLEFT", menuSection.scaleTitle, "TOPRIGHT", 110, 0);
-  menuSection.injectTitle:SetText(L["AddOn Settings to Override:"]);
-  menuSection.injectTitle:SetWidth(300);
+  menuSection.injectTitle:SetPoint("TOPLEFT", menuSection.scaleTitle, "TOPRIGHT", 50, 0);
+  menuSection.injectTitle:SetText("MayronUI AddOn Presets");
+  menuSection.injectTitle:SetWidth(320);
   menuSection.injectTitle:SetJustifyH("LEFT");
+
+  menuSection.injectDescription = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
+  menuSection.injectDescription:SetPoint("TOPLEFT", menuSection.injectTitle, "BOTTOMLEFT", 0, -5);
+  menuSection.injectDescription:SetWidth(320);
+  menuSection.injectDescription:SetText("The following selected addons will have their settings reset to the MayronUI preset settings:")
+  menuSection.injectDescription:SetJustifyH("LEFT");
 
   local previous;
   menuSection.addonContainer = gui:CreateScrollFrame(menuSection, nil);
-  menuSection.addonContainer:SetPoint(
-    "TOPLEFT", menuSection.injectTitle, "BOTTOMLEFT", 0, -20);
+  menuSection.addonContainer:SetPoint("TOPLEFT", menuSection.injectDescription, "BOTTOMLEFT", 0, -20);
   menuSection.addonContainer:SetPoint("BOTTOMRIGHT", -20, 70);
 
   local scrollChild = menuSection.addonContainer.ScrollFrame:GetScrollChild();
@@ -429,12 +428,10 @@ function Private:LoadCustomMenu(menuSection)
       totalAddOnsLoaded = totalAddOnsLoaded + 1;
 
       cb.btn:SetChecked(value);
-      cb.btn:SetScript(
-        "OnClick", function(self)
-          db.global.core.setup.addOns[id] = obj:PopTable(
-                                              alias, self:GetChecked(),
-                                                addOnName);
-        end);
+      cb.btn:SetScript("OnClick", function(self)
+        db.global.core.setup.addOns[id] = obj:PopTable(
+          alias, self:GetChecked(), addOnName);
+      end);
 
       if (not previous) then
         cb:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 10, -10);
@@ -923,8 +920,8 @@ function C_SetUpModule:Install(data)
       end
 
       if (obj:IsFunction(importFunc)) then
-        importFunc();
-        db.global.core.setup.addOns[id] = { alias; false; addonName };
+        local presetVersion = importFunc();
+        db.global.core.setup.addOns[id] = { alias; false; addonName; presetVersion };
 
         if (tk:IsRetail() and not usedDragonflightLayout and addonName == "Bartender4") then
           db.global[tk.Constants.DRAGONFLIGHT_BAR_LAYOUT_PATCH] = true;
