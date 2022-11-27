@@ -25,6 +25,17 @@ setup.import["Bartender4"] = function()
             ["actionbars"] = {
               {
                 ["showgrid"] = true,
+                ["elements"] = {
+                  ["macro"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["hotkey"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["count"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                },
                 ["version"] = 3,
                 ["fadeoutalpha"] = 1,
                 ["position"] = {
@@ -69,6 +80,17 @@ setup.import["Bartender4"] = function()
               }, -- [1]
               {
                 ["enabled"] = false,
+                ["elements"] = {
+                  ["macro"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["hotkey"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["count"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                },
                 ["version"] = 3,
                 ["position"] = {
                   ["y"] = -189.499941973427,
@@ -78,6 +100,17 @@ setup.import["Bartender4"] = function()
               }, -- [2]
               {
                 ["showgrid"] = true,
+                ["elements"] = {
+                  ["macro"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["hotkey"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["count"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                },
                 ["rows"] = 12,
                 ["padding"] = 5.5,
                 ["alpha"] = 0,
@@ -96,6 +129,17 @@ setup.import["Bartender4"] = function()
               }, -- [3]
               {
                 ["showgrid"] = true,
+                ["elements"] = {
+                  ["macro"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["hotkey"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["count"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                },
                 ["rows"] = 12,
                 ["padding"] = 5.5,
                 ["alpha"] = 0,
@@ -114,6 +158,17 @@ setup.import["Bartender4"] = function()
               }, -- [4]
               {
                 ["showgrid"] = true,
+                ["elements"] = {
+                  ["macro"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["hotkey"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["count"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                },
                 ["hidemacrotext"] = true,
                 ["alpha"] = 0,
                 ["version"] = 3,
@@ -131,6 +186,17 @@ setup.import["Bartender4"] = function()
               }, -- [5]
               {
                 ["showgrid"] = true,
+                ["elements"] = {
+                  ["macro"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["hotkey"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["count"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                },
                 ["buttons"] = 8,
                 ["alpha"] = 0,
                 ["version"] = 3,
@@ -148,6 +214,17 @@ setup.import["Bartender4"] = function()
               {
                 ["showgrid"] = true,
                 ["enabled"] = true,
+                ["elements"] = {
+                  ["macro"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["hotkey"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["count"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                },
                 ["buttons"] = 8,
                 ["version"] = 3,
                 ["position"] = {
@@ -180,6 +257,17 @@ setup.import["Bartender4"] = function()
               }, -- [7]
               {
                 ["showgrid"] = true,
+                ["elements"] = {
+                  ["macro"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["hotkey"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["count"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                },
                 ["rows"] = 4,
                 ["version"] = 3,
                 ["position"] = {
@@ -205,6 +293,17 @@ setup.import["Bartender4"] = function()
               }, -- [8]
               {
                 ["showgrid"] = true,
+                ["elements"] = {
+                  ["macro"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["hotkey"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["count"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                },
                 ["enabled"] = true,
                 ["buttons"] = 8,
                 ["padding"] = 5.5,
@@ -225,6 +324,17 @@ setup.import["Bartender4"] = function()
               }, -- [9]
               {
                 ["showgrid"] = true,
+                ["elements"] = {
+                  ["macro"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["hotkey"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                  ["count"] = {
+                    ["font"] = "MUI_Font",
+                  },
+                },
                 ["enabled"] = true,
                 ["hidemacrotext"] = true,
                 ["alpha"] = 0,
@@ -428,6 +538,7 @@ setup.import["Bartender4"] = function()
       ["MayronUI"] = {
         ["focuscastmodifier"] = false,
         ["buttonlock"] = false,
+        ["snapping"] = false,
       },
     },
 	};
