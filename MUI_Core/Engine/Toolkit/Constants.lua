@@ -31,10 +31,6 @@ tk.Constants = {
   LOCALIZED_CLASS_FEMALE_NAMES = {};
   SOLID_TEXTURE = "Interface\\Buttons\\WHITE8X8";
 
-  FONT = function()
-    return tk.Constants.LSM:Fetch("font", db.global.core.font);
-  end;
-
   LSM = LibStub("LibSharedMedia-3.0");
 
   BACKDROP = {

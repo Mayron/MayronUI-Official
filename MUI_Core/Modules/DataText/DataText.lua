@@ -152,8 +152,8 @@ function C_DataTextModule:OnInitialize(data)
 
     fontSize = function(value)
       for _, btn in ipairs(data.buttons) do
-        local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
-        btn:GetFontString():SetFont(font, value);
+        local masterFont = tk:GetMasterFont();
+        btn:GetFontString():SetFont(masterFont, value, "");
       end
     end;
 
@@ -283,8 +283,8 @@ function C_DataTextModule:CreateDataTextButton(data)
   btn:SetNormalFontObject("MUI_FontNormal");
   btn:SetText(" ");
 
-  local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
-  btn:GetFontString():SetFont(font, data.settings.fontSize);
+  local masterFont = tk:GetMasterFont();
+  btn:GetFontString():SetFont(masterFont, data.settings.fontSize, "");
 
   tinsert(data.buttons, btn);
   return btn;

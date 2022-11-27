@@ -408,15 +408,15 @@ local function UpdateTabs()
 end
 
 function C_ChatModule:SetUpAllBlizzardFrames()
-  local changeGameFont = db.global.core.changeGameFont;
-  local muiFont = tk.Constants.LSM:Fetch("font", db.global.core.font);
+  local useMasterFont = db.global.core.fonts.useMasterFont;
+  local masterFont = tk:GetMasterFont();
 
   for _, chatFrameName in ipairs(_G.CHAT_FRAMES) do
     local chatFrame = self:SetUpBlizzardChatFrame(chatFrameName);
 
-    if (changeGameFont and chatFrame) then
+    if (useMasterFont and chatFrame) then
       local _, fontSize = _G.FCF_GetChatWindowInfo(chatFrame:GetID());
-      chatFrame:SetFont(muiFont, fontSize, "");
+      chatFrame:SetFont(masterFont, fontSize, "");
     end
   end
 

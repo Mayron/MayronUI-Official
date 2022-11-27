@@ -167,7 +167,7 @@ function C_UnitPanels:OnInitialize(data, containerModule)
         end;
 
         fontSize = function(value)
-          local font = tk.Constants.FONT();
+          local font = tk:GetMasterFont();
 
           if (data.player and data.target) then
             data.player.text:SetFont(font, value);

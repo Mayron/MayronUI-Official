@@ -74,24 +74,7 @@ function Components.slider(parent, config, value)
   bg:SetHeight(8);
 
   slider.precision = config.precision or 1; -- at most 1 decimal place
-
-  if (config.dbPath) then
-    local default = db:GetDefault(config.dbPath);
-
-    if (obj:IsNumber(default) or obj:IsString(default)) then
-      local defaultTooltip = tk.Strings:JoinWithSpace(L["Default value is"], db:GetDefault(config.dbPath));
-
-      if (config.tooltip) then
-        config.tooltip = tk.Strings:Join("\n\n", config.tooltip, defaultTooltip);
-      else
-        config.tooltip = defaultTooltip;
-      end
-    end
-  end
-
-  if (config.tooltip) then
-    tk:SetBasicTooltip(slider, config.tooltip);
-  end
+  Utils:SetBasicTooltip(slider, config);
 
   -- widgetTable gets cleaned
   local maxValue = config.max or 1;
@@ -146,7 +129,7 @@ function Components.slider(parent, config, value)
   slider:SetScript("OnDisable", Slider_OnDisable);
 
   Utils:SetComponentEnabled(slider, config.enabled);
-  local container = Utils:WrapInNamedContainer(slider, config.name);
+  local container = Utils:WrapInNamedContainer(slider, config);
   container:SetHeight(container:GetHeight() + 28); -- make room for value text
 
   Utils:SetShown(container, config.shown);

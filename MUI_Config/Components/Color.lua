@@ -1,13 +1,14 @@
+local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk = MayronUI:GetCoreComponents();
+local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local Utils = MayronUI:GetComponent("ConfigMenuUtils");
 local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule
 
-local hooksecurefunc = _G.hooksecurefunc;
+local hooksecurefunc, max = _G.hooksecurefunc, _G.math.max
 
-local function ColorWidget_SaveValue(container, r, g, b, a)
+local function SetColorValueToDatabase(container, r, g, b, a)
   if (container.useIndexes) then
     container.value[1] = r;
     container.value[2] = g;
@@ -20,18 +21,14 @@ local function ColorWidget_SaveValue(container, r, g, b, a)
     container.value.a = a;
   end
 
-  container.r = r;
-  container.g = g;
-  container.b = b;
-
   if (container.hasOpacity) then
-    container.opacity = 1.0 - a;
+    container.opacity = 1 - a;
   end
 
   configModule:SetDatabaseValue(container, container.value);
 end
 
-local function ColorWidget_OnClick(self)
+local function OnColorContainerClick(self)
   self.loaded = nil;
   _G.OpenColorPicker(self);
 
@@ -40,91 +37,96 @@ local function ColorWidget_OnClick(self)
   end
 end
 
-local function ColorWidget_OnValueChanged()
+local function OnColorSwatchButtonClick(self)
+  self:SetChecked(true);
+  OnColorContainerClick(self:GetParent());
+end
+
+local function OnColorComponentValueChanged()
   local container = _G.ColorPickerFrame.extraInfo;
 
   if (_G.ColorPickerFrame:IsShown() or not container.loaded) then
-  -- do not update database until OkayButton clicked
+    -- do not update database until OkayButton clicked
     container.loaded = true;
-    return;
+    return
   end
 
   -- OkayButton was clicked so update database:
   local r, g, b = _G.ColorPickerFrame:GetColorRGB();
-  local a;
+  local a = 1;
 
   if (container.hasOpacity) then
-    a = 1.0 - _G.OpacitySliderFrame:GetValue();
+    a = 1 - _G.OpacitySliderFrame:GetValue();
   end
 
-  ColorWidget_SaveValue(container, r, g, b, a);
-  container.color:SetColorTexture(r, g, b, a or 1);
+  SetColorValueToDatabase(container, r, g, b, a);
+  container:UpdateColor(r, g, b, a);
 
   if (container.requiresReload) then
     configModule:ShowReloadMessage();
   end
 end
 
-local function Color_OnSetEnabled(self, value)
-  if (value) then
+local function OnColorComponentEnabled(self, enabled)
+  local texturePath;
+
+  if (enabled) then
     self.text:SetFontObject("GameFontHighlight");
-    self.square:SetDrawLayer("BACKGROUND");
-    self.square:SetVertexColor(1, 1, 1, 1);
+    texturePath = tk:GetAssetFilePath("Textures\\Widgets\\Checked");
+    self:SetAlpha(1);
   else
     self.text:SetFontObject("GameFontDisable");
-    self.square:SetDrawLayer("OVERLAY");
-    self.square:SetVertexColor(0, 0, 0, 0.5);
+    texturePath = tk:GetAssetFilePath("Textures\\Widgets\\Unchecked");
+    self:SetAlpha(0.8);
   end
+
+  self.color:SetTexture(texturePath);
 end
 
-function Components.color(parent, widgetTable, value)
-  local container = tk:CreateFrame("Button", parent);
-  container:SetScript("OnClick", ColorWidget_OnClick);
-
-  -- create widget elements:
-  container.square = tk:SetBackground(container, 1, 1, 1);
-  container.square:ClearAllPoints();
-  container.square:SetSize(16, 16);
-  container.square:SetPoint("LEFT", 0, 1);
-
-  container.text = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
-  container.text:SetText(widgetTable.name);
-  container.text:SetJustifyH("LEFT");
-  container.text:SetPoint("LEFT", container.square, "RIGHT", 6, 0);
-
-  container.color = container:CreateTexture(nil, "ARTWORK");
-  container.color:SetSize(12, 12);
-  container.color:SetPoint("CENTER", container.square, "CENTER");
-
-  container:SetSize(
-    widgetTable.width or (container.text:GetStringWidth() + 44),
-    widgetTable.height or 30);
-
-  -- info options:
-  container.extraInfo = container;
-  container.swatchFunc = ColorWidget_OnValueChanged;
-
-  container.value = value;
-  container.r = value.r or value[1] or 0;
-  container.g = value.g or value[2] or 0;
-  container.b = value.b or value[3] or 0;
-
-  if (widgetTable.hasOpacity) then
-    container.opacity = 1.0 - (value.a or value[4] or 0);
-    container.hasOpacity = true;
-
-    local blackBackground = container:CreateTexture(nil, "BORDER");
-    blackBackground:SetSize(16, 16);
-    blackBackground:SetPoint("CENTER", container.square, "CENTER");
-    blackBackground:SetColorTexture(0, 0, 0);
-
-    container.color:SetColorTexture(container.r, container.g, container.b, 1.0 - container.opacity);
-  else
-    container.color:SetColorTexture(container.r, container.g, container.b);
+function Components.color(parent, config, value)
+  if (not obj:IsTable(value)) then
+    -- Might have been appended and removed
+    value = { 1, 1, 1, r = 1; g = 1; b = 1; a = 1 };
   end
 
-  hooksecurefunc(container, "SetEnabled", Color_OnSetEnabled);
-  Utils:SetComponentEnabled(container, widgetTable.enabled);
+  local cbContainer = gui:CreateColorSwatchButton(parent, config.name, config.tooltip, nil, config.verticalAlignment);
+  cbContainer.btn:SetScript("OnClick", OnColorSwatchButtonClick);
+  cbContainer:SetScript("OnClick", OnColorContainerClick);
 
-  return container;
+  local optimalWidth = cbContainer.btn:GetWidth() + 20 + cbContainer.btn.text:GetStringWidth();
+
+  if (config.width) then
+    local width = max(optimalWidth, config.width);
+    cbContainer:SetWidth(width);
+  else
+    cbContainer:SetWidth(optimalWidth);
+  end
+
+  if (config.height) then
+    cbContainer:SetHeight(config.height);
+  end
+
+
+  -- info options:
+  cbContainer.extraInfo = cbContainer;
+  cbContainer.swatchFunc = OnColorComponentValueChanged;
+  cbContainer.hasOpacity = config.hasOpacity;
+  cbContainer.value = value;
+
+  local r = value.r or value[1] or 0;
+  local g = value.g or value[2] or 0;
+  local b = value.b or value[3] or 0;
+  local a = 1;
+
+  if (config.hasOpacity) then
+    a = (value.a or value[4] or 0);
+    cbContainer.opacity = 1 - a;
+  end
+
+  cbContainer:UpdateColor(r, g, b, a);
+
+  hooksecurefunc(cbContainer, "SetEnabled", OnColorComponentEnabled);
+  Utils:SetComponentEnabled(cbContainer.btn, config.enabled);
+
+  return cbContainer;
 end

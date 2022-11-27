@@ -2,7 +2,7 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
-local Utils = MayronUI:GetComponent("ConfigMenuUtils");
+local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
 local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule
 
 local tonumber, tostring = _G.tonumber, _G.tostring;
@@ -43,7 +43,7 @@ end
 -- min - minimum value allowed
 -- max - maximum value allowed
 function Components.textfield(parent, config, value)
-  local textField = gui:CreateTextField(config.tooltip, parent);
+  local textField = gui:CreateTextField(parent);
 
   if (config.width) then
     textField:SetWidth(config.width);
@@ -54,11 +54,13 @@ function Components.textfield(parent, config, value)
   end
 
   textField:SetText((value and tostring(value)) or tk.Strings.Empty);
-
   Utils:SetComponentEnabled(textField, config.enabled);
-  local container = Utils:WrapInNamedContainer(textField, config.name);
-  textField:OnTextChanged(TextField_OnTextChanged, container);
 
+  local container = Utils:WrapInNamedContainer(textField, config);
+  Utils:SetBasicTooltip(textField:GetEditBox(), config);
+
+  textField:OnTextChanged(TextField_OnTextChanged, container);
+  
   Utils:SetShown(container, config.shown);
   return container;
 end

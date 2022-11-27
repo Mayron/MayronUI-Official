@@ -115,10 +115,6 @@ db:OnStartUp(function(self, sv)
     s:SetFrameStrata("DIALOG");
   end);
 
-  -- Set Master Game Font Here! -------------------
-  if (self.global.core.changeGameFont ~= false) then
-    tk:SetGameFont(media:Fetch("font", self.global.core.font));
-  end
-
+  tk:SetGameFont(self.global.core.fonts);
   tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
 end);

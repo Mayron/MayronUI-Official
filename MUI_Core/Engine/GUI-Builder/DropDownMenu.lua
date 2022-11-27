@@ -71,43 +71,43 @@ function gui:CreateDropDown(parent, direction, menuParent)
     tinsert(_G.UISpecialFrames, "MUI_DropDownMenu");
   end
 
-  local dropDownContainer = tk:CreateFrame("Button", parent);
-  dropDownContainer:SetSize(178, 28);
-  dropDownContainer:SetScript("OnHide", DropDownContainer_OnHide);
+  local frame = tk:CreateFrame("Button", parent);
+  frame:SetSize(178, 28);
+  frame:SetScript("OnHide", DropDownContainer_OnHide);
 
-  dropDownContainer.toggleButton = self:CreateButton(dropDownContainer);
-  dropDownContainer.toggleButton:SetSize(28, 28);
-  dropDownContainer.toggleButton:SetPoint("TOPRIGHT", dropDownContainer, "TOPRIGHT");
-  dropDownContainer.toggleButton:SetPoint("BOTTOMRIGHT", dropDownContainer, "BOTTOMRIGHT");
-  dropDownContainer.toggleButton:SetScript("OnSizeChanged", OnSizeChanged);
+  frame.toggleButton = self:CreateButton(frame);
+  frame.toggleButton:SetSize(28, 28);
+  frame.toggleButton:SetPoint("TOPRIGHT", frame, "TOPRIGHT");
+  frame.toggleButton:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT");
+  frame.toggleButton:SetScript("OnSizeChanged", OnSizeChanged);
 
-  dropDownContainer.toggleButton.arrow = dropDownContainer.toggleButton:CreateTexture(nil, "OVERLAY");
-  dropDownContainer.toggleButton.arrow:SetTexture(style:GetTexture("SmallArrow"));
-  dropDownContainer.toggleButton.arrow:SetPoint("CENTER");
-  dropDownContainer.toggleButton.arrow:SetSize(16, 16);
+  frame.toggleButton.arrow = frame.toggleButton:CreateTexture(nil, "OVERLAY");
+  frame.toggleButton.arrow:SetTexture(style:GetTexture("SmallArrow"));
+  frame.toggleButton.arrow:SetPoint("CENTER");
+  frame.toggleButton.arrow:SetSize(16, 16);
 
-  dropDownContainer.child = tk:CreateFrame("Frame", DropDownMenu.Static.Menu);
-  tk:SetFullWidth(dropDownContainer.child);
+  frame.child = tk:CreateFrame("Frame", DropDownMenu.Static.Menu);
+  tk:SetFullWidth(frame.child);
 
-  dropDownContainer.toggleButton.child = dropDownContainer.child; -- needed for OnClick
-  dropDownContainer.toggleButton:SetScript("OnClick", DropDownToggleButton_OnClick);
+  frame.toggleButton.child = frame.child; -- needed for OnClick
+  frame.toggleButton:SetScript("OnClick", DropDownToggleButton_OnClick);
 
   if (menuParent) then
-    dropDownContainer.toggleButton.menuParent = menuParent;
+    frame.toggleButton.menuParent = menuParent;
   end
 
-  local header = tk:CreateFrame("Frame", dropDownContainer, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
-  header:SetPoint("TOPLEFT", dropDownContainer);
-  header:SetPoint("BOTTOMRIGHT", dropDownContainer.toggleButton, "BOTTOMLEFT", -2, 0);
+  local header = tk:CreateFrame("Frame", frame, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+  header:SetPoint("TOPLEFT", frame);
+  header:SetPoint("BOTTOMRIGHT", frame.toggleButton, "BOTTOMLEFT", -2, 0);
   header:SetBackdrop(style:GetBackdrop("DropDownMenu"));
   header.bg = tk:SetBackground(header, style:GetTexture("ButtonTexture"));
 
   direction = (direction or "DOWN"):upper();
 
   if (direction == "DOWN") then
-    dropDownContainer.toggleButton.arrow:SetTexCoord(1, 0, 1, 0);
+    frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0);
   elseif (direction == "UP") then
-    dropDownContainer.toggleButton.arrow:SetTexCoord(0, 1, 0, 1);
+    frame.toggleButton.arrow:SetTexCoord(0, 1, 0, 1);
   end
 
   ---@type SlideController
@@ -118,17 +118,17 @@ function gui:CreateDropDown(parent, direction, menuParent)
     frame:Hide();
   end);
 
-  dropDownContainer.dropdown = DropDownMenu(style, header, direction, slideController, dropDownContainer);
-  dropDownContainer.toggleButton.dropdown = dropDownContainer.dropdown; -- needed for OnClick
-  tinsert(dropdowns, dropDownContainer.dropdown);
+  frame.dropdown = DropDownMenu(style, header, direction, slideController, frame);
+  frame.toggleButton.dropdown = frame.dropdown; -- needed for OnClick
+  tinsert(dropdowns, frame.dropdown);
 
-  return dropDownContainer.dropdown;
+  return frame.dropdown;
 end
 
 -----------------------------------
 -- DropDownMenu Object
 -----------------------------------
-local function ToolTip_OnEnter(frame)
+local function OnDropDownEnter(frame)
   local tooltip = _G.GameTooltip;
   tooltip:SetOwner(frame, "ANCHOR_TOPLEFT", 0, 2);
 
@@ -139,10 +139,6 @@ local function ToolTip_OnEnter(frame)
   end
 
   tooltip:Show();
-end
-
-local function ToolTip_OnLeave()
-  _G.GameTooltip:Hide();
 end
 
 obj:DefineParams("Style", "Frame", "string", "SlideController", "Frame")
@@ -186,8 +182,8 @@ end
 
 do
   local function ApplyTooltipScripts(f)
-    f:SetScript("OnEnter", ToolTip_OnEnter);
-    f:SetScript("OnLeave", ToolTip_OnLeave);
+    f:SetScript("OnEnter", OnDropDownEnter);
+    f:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);    
   end
 
   function DropDownMenu:SetTooltip(data, tooltip)

@@ -13,7 +13,7 @@ local function UpdateContainerHeight(self)
   local containerHeight = 0;
 
   if (self.content) then
-    containerHeight = self.content:GetStringHeight() + 20;
+    containerHeight = self.content:GetStringHeight() + self.padding;
 
   elseif (self.rows) then
     for _, row in ipairs(self.rows) do
@@ -43,12 +43,13 @@ end
 
 -- supported fontstring config attributes:
 -- content - the fontstring text to display
--- subtype - Can be used to change the font object. Supports "header" only (for now).
+-- subtype - Can be used to change the font object. Supports "header" and "sub-header".
 -- justify - overrides the default horizontal justification ("LEFT")
 -- height - overrides the default height of 30
 -- width - overrides the default width with a specific width
 function Components.fontstring(parent, widgetTable)
   local container = tk:CreateFrame("Frame", parent);
+  container.padding = widgetTable.padding or 16;
   container:SetSize(widgetTable.width or 300, widgetTable.height or 50);
 
   if (Utils:HasAttribute(widgetTable, "list")) then
@@ -87,12 +88,14 @@ function Components.fontstring(parent, widgetTable)
     container.content = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
     container.content:SetAllPoints(true);
     container.content:SetWordWrap(true);
-    container.content:SetJustifyH(widgetTable.justify or "LEFT");
+    container.content:SetJustifyH(widgetTable.justifyH or "LEFT");
+    container.content:SetJustifyV(widgetTable.justifyV or "MIDDLE");
 
-    if (widgetTable.subtype) then
-      if (widgetTable.subtype == "header") then
-        container.content:SetFontObject("MUI_FontLarge");
-      end
+    if (widgetTable.subtype == "header") then
+      container.content:SetFontObject("MUI_FontLarge");
+    elseif (widgetTable.subtype == "sub-header") then
+      container.content:SetFontObject("AchievementPointsFontSmall");
+      tk:SetFontSize(container.content, 13);
     end
 
     local content = Utils:GetAttribute(widgetTable, "content");

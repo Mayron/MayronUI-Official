@@ -113,13 +113,61 @@ function C_ConfigMenu:GetConfigTable()
       name = L["General"];
       id = 1;
       children = {
+        { type = "title"; name = "Popular Settings"; marginTop = 0; };
         {
-          name = L["Enable Master Font"];
+          name = L["Set Theme Color"];
+          type = "color";
+          dbPath = "profile.theme.color";
+          requiresReload = true;
+
+          SetValue = function(_, value)
+            value.hex = strformat("%02x%02x%02x", value.r * 255, value.g * 255, value.b * 255);
+            db.profile.theme.color = value;
+            db.profile.bottomui.gradients = nil;
+            db:RemoveAppended(db.profile, "unitPanels.sufGradients");
+          end;
+        };
+        { type = "title"; name = "Global Settings"; description = "These settings are applied account-wide" };
+        {
+          name = "Override Master Font";
+          height = 42;
+          verticalAlignment = "BOTTOM";
+          tooltip = L["Uncheck to prevent MUI from changing the game font."];
+          requiresReload = true;
+          width = 180;
+          dbPath = "global.core.fonts.useMasterFont";
+          type = "check";
+        };
+        {
+          name = L["Master Font"];
+          type = "dropdown";
+          options = tk.Constants.LSM:List("font");
+          dbPath = "global.core.fonts.master";
+          requiresRestart = true;
+          fontPicker = true;
+        };
+        { type = "divider"};
+        {
+          name = "Override Combat Font";
+          height = 42;
+          width = 180;
+          verticalAlignment = "BOTTOM";
           tooltip = L["Uncheck to prevent MUI from changing the game font."];
           requiresRestart = true;
-          dbPath = "global.core.changeGameFont";
+          dbPath = "global.core.fonts.useCombatFont";
           type = "check";
-        }; {
+        };  
+        {
+          name = "Combat Font";
+          tooltip = "This font is used to display the damage and healing combat numbers.";
+          type = "dropdown";
+          options = tk.Constants.LSM:List("font");
+          dbPath = "global.core.fonts.combat";
+          requiresRestart = true;
+          fontPicker = true;
+        };
+        { type = "fontstring"; subType="header"; content = "Miscellaneous"};
+        {
           name = L["Display Lua Errors"];
           type = "check";
 
@@ -158,56 +206,9 @@ function C_ConfigMenu:GetConfigTable()
               SetCVar("cameraDistanceMaxZoomFactor", 1.9);
             end
           end;
-        }; { type = "divider" }; {
-          name = L["Master Font"];
-          type = "dropdown";
-          options = tk.Constants.LSM:List("font");
-          dbPath = "global.core.font";
-          requiresRestart = true;
-          fontPicker = true;
-        }; {
-          name = L["Set Theme Color"];
-          type = "color";
-          dbPath = "profile.theme.color";
-          height = 54;
-          requiresReload = true;
-
-          SetValue = function(_, value)
-            value.hex = strformat(
-                          "%02x%02x%02x", value.r * 255, value.g * 255,
-                            value.b * 255);
-            db.profile.theme.color = value;
-            db.profile.bottomui.gradients = nil;
-            db:RemoveAppended(db.profile, "unitPanels.sufGradients");
-          end;
-        }; { type = "divider" }; {
-          name = L["Movable Blizzard Frames"];
-          type = "check";
-          tooltip = L["Allows you to move Blizzard Frames outside of combat only."];
-          dbPath = "global.movable.enabled";
-
-          SetValue = function(dbPath, newValue)
-            db:SetPathValue(dbPath, newValue);
-            MayronUI:ImportModule("MovableFramesModule"):SetEnabled(newValue);
-          end;
-        }; {
-          name = "Clamp Frames to Screen";
-          type = "check";
-          tooltip = "If checked, Blizzard frames cannot be dragged outside of the screen.";
-          dbPath = "global.movable.clampToScreen";
-          requiresReload = true;
-        }; { type = "divider" }; {
-          name = L["Reset Blizzard Frame Positions"];
-          type = "button";
-          tooltip = L["Reset Blizzard frames back to their original position."];
-          OnClick = function()
-            MayronUI:ImportModule("MovableFramesModule"):ResetPositions();
-            MayronUI:Print("Blizzard frame positions have been reset.")
-          end;
-        }; { type = "title"; name = L["Main Container"] }; {
-          type = "fontstring";
-          content = L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."];
-        }; {
+        };
+        { type = "title"; name = L["Main Container"]; description = L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] }; 
+        {
           name = L["Set Width"];
           type = "slider";
           min = 500;
@@ -241,10 +242,46 @@ function C_ConfigMenu:GetConfigTable()
           dbPath = "profile.bottomui.yOffset";
           tooltip = L["Default value is"] .. " -1";
         };
-        { type = "title"; client = "retail"; name = L["Talking Head Frame"] };
+
+        { type = "title"; name = "Blizzard Frames"};
+        {
+          name = "Movable Frames";
+          type = "check";
+          tooltip = L["Allows you to move Blizzard Frames outside of combat only."];
+          dbPath = "global.movable.enabled";
+
+          SetValue = function(dbPath, newValue)
+            db:SetPathValue(dbPath, newValue);
+            MayronUI:ImportModule("MovableFramesModule"):SetEnabled(newValue);
+          end;
+        }; 
+        {
+          name = "Clamped to Screen";
+          type = "check";
+          tooltip = "If checked, Blizzard frames cannot be dragged outside of the screen.";
+          dbPath = "global.movable.clampToScreen";
+          requiresReload = true;
+        }; 
+        {
+          name = "Reset Positions";
+          type = "button";
+          tooltip = L["Reset Blizzard frames back to their original position."];
+          OnClick = function()
+            MayronUI:ImportModule("MovableFramesModule"):ResetPositions();
+            MayronUI:Print("Blizzard frame positions have been reset.")
+          end;
+        };
+        { 
+          type = "fontstring"; 
+          subtype="header"; 
+          client = "retail";
+          height = 20;
+          content = L["Talking Head Frame"] 
+        };
         {
           type = "fontstring";
           client = "retail";
+          padding = 4;
           content = L["This is the animated character portrait frame that shows when an NPC is talking to you."];
         }; {
           name = L["Top of Screen"];
@@ -282,7 +319,8 @@ function C_ConfigMenu:GetConfigTable()
           dbPath = "global.movable.talkingHead.yOffset";
         };
       };
-    }; {
+    }; 
+    {
       module = "MainContainer";
       id = 2;
       children = {

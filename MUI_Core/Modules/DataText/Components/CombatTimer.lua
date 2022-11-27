@@ -22,17 +22,17 @@ function CombatTimer:__Construct(data, settings, dataTextModule)
   self.HasRightMenu = false;
   self.Button = dataTextModule:CreateDataTextButton();
 
-  local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
+  local font = tk:GetMasterFont();
 
   data.seconds = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
-  data.seconds:SetFont(font, data.settings.fontSize);
+  data.seconds:SetFont(font, data.settings.fontSize, "");
 
   data.minutes = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
   data.minutes:SetFont(font, data.settings.fontSize);
   data.minutes:SetJustifyH("RIGHT");
 
   data.milliseconds = self.Button:CreateFontString(nil, "ARTWORK", "MUI_FontNormal");
-  data.milliseconds:SetFont(font, data.settings.fontSize);
+  data.milliseconds:SetFont(font, data.settings.fontSize, "");
   data.milliseconds:SetJustifyH("LEFT");
   data.seconds:SetPoint("CENTER");
   data.minutes:SetPoint("RIGHT", data.seconds, "LEFT");

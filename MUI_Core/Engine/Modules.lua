@@ -27,9 +27,15 @@ db:AddToDefaults("global", {
   core = {
     uiScale = 0.7;
     maxCameraZoom = true;
-    changeGameFont = true;
-    font = "MUI_Font";
     useLocalization = true;
+
+    fonts = {
+      master = "MUI_Font";
+      useMasterFont = true;
+
+      combat = "Prototype";
+      useCombatFont = true;
+    };
 
     setup = {
       profilePerCharacter = true;

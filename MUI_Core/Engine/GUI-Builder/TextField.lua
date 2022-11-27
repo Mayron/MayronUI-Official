@@ -9,8 +9,8 @@ obj:Export(TextField, "MayronUI");
 local unpack = _G.unpack;
 
 ------------------------------------
-function gui:CreateTextField(tooltip, parent)
-  return TextField(tooltip, parent);
+function gui:CreateTextField(parent)
+  return TextField(parent);
 end
 
 local function OnEnable(self)
@@ -26,7 +26,7 @@ local function OnDisable(self)
   self:SetAlpha(0.7);
 end
 
-function TextField:__Construct(data, tooltip, parent)
+function TextField:__Construct(data, parent)
   local style = tk.Constants.AddOnStyle;
   local r, g, b = style:GetColor();
   data.frame = tk:CreateFrame("Frame", parent);
@@ -52,12 +52,6 @@ function TextField:__Construct(data, tooltip, parent)
   tk:KillAllElements(data.editBox.Middle, data.editBox.Left, data.editBox.Right);
 
   data.editBox.themeColor = obj:PopTable(r, g, b);
-
-  if (tooltip) then
-    data.editBox.tooltip = tooltip;
-    data.editBox:SetScript("OnEnter", gui.ToolTip_OnEnter);
-    data.editBox:SetScript("OnLeave", gui.ToolTip_OnLeave);
-  end
 end
 
 function TextField:SetEnabled(data, enabled)

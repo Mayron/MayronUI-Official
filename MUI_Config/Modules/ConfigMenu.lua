@@ -84,7 +84,7 @@ local function IsUnsupportedByClient(client)
   return false;
 end
 
-local TransfercomponentAttributes;
+local TransferComponentAttributes;
 do
   local map = {
     "dbPath";
@@ -104,20 +104,20 @@ do
     ["SetValue"] = "__SetValue";
   };
 
-  function TransfercomponentAttributes(component, componentTable)
+  function TransferComponentAttributes(component, config)
     for index, key in pairs(map) do
       if (obj:IsNumber(index)) then
-        component[key] = componentTable[key];
+        component[key] = config[key];
       else
-        component[key] = componentTable[index];
+        component[key] = config[index];
       end
     end
 
-    if (componentTable.type == "frame") then
-      component.children = componentTable.children;
+    if (config.type == "frame") then
+      component.children = config.children;
     end
 
-    obj:PushTable(componentTable);
+    obj:PushTable(config);
   end
 end
 
@@ -160,35 +160,6 @@ function C_ConfigMenuModule:GetDatabase(data, tbl)
   obj:Assert(dbObject, "Failed to get database object for module '%s'", moduleKey);
 
   return dbObject;
-end
-
-obj:DefineParams("table");
----@param componentConfigTable table @A component config table used to construct part of the config menu.
----@return any @A value from the database located by the dbPath value inside componentConfigTable.
-function C_ConfigMenuModule:GetDatabaseValue(_, componentConfigTable)
-  local dbPath = componentConfigTable.dbPath;
-
-  if (obj:IsFunction(dbPath)) then
-    dbPath = dbPath();
-  end
-
-  if (tk.Strings:IsNilOrWhiteSpace(dbPath)) then
-    return componentConfigTable.GetValue
-             and componentConfigTable.GetValue(componentConfigTable);
-  end
-
-  local db = self:GetDatabase(componentConfigTable);
-  local value = db:ParsePathValue(dbPath);
-
-  if (obj:IsTable(value) and value.GetUntrackedTable) then
-    value = value:GetUntrackedTable();
-  end
-
-  if (componentConfigTable.GetValue) then
-    value = componentConfigTable.GetValue(componentConfigTable, value);
-  end
-
-  return value;
 end
 
 obj:DefineParams("table");
@@ -446,20 +417,16 @@ local function ApplyMenuConfigTable(componentConfig, menuConfig)
     dbPath = dbPath();
   end
 
-  if (not tk.Strings:IsNilOrWhiteSpace(dbPath)
-    and not tk.Strings:IsNilOrWhiteSpace(componentConfig.appendDbPath)) then
+  if (not tk.Strings:IsNilOrWhiteSpace(dbPath) and not tk.Strings:IsNilOrWhiteSpace(componentConfig.appendDbPath)) then
 
     -- append the component config table's dbPath value onto it!
-    obj:Assert(
-      componentConfig.dbPath == nil,
-        "Cannot use both appendDbPath and dbPath on the same config table.");
+    obj:Assert(componentConfig.dbPath == nil,
+      "Cannot use both appendDbPath and dbPath on the same config table.");
 
     if (tk.Strings:StartsWith(componentConfig.appendDbPath, "[")) then
-      componentConfig.dbPath = tk.Strings:Concat(
-                              menuConfig.dbPath, componentConfig.appendDbPath);
+      componentConfig.dbPath = tk.Strings:Concat(menuConfig.dbPath, componentConfig.appendDbPath);
     else
-      componentConfig.dbPath = tk.Strings:Join(
-                              ".", menuConfig.dbPath, componentConfig.appendDbPath);
+      componentConfig.dbPath = tk.Strings:Join(".", menuConfig.dbPath, componentConfig.appendDbPath);
     end
 
     componentConfig.appendDbPath = nil;
@@ -481,72 +448,104 @@ local function ApplyMenuConfigTable(componentConfig, menuConfig)
   setmetatable(componentConfig, menuConfig.inherit);
 end
 
-obj:DefineParams("table", "?Frame");
----@param config table @A component config table used to control the rendering and behavior of a component in the config menu.
----@param parent Frame @(optional) A custom parent frame for the component, else the parent will be the menu scroll child.
----@return Frame @(possibly nil if component is disabled) The created component.
-function C_ConfigMenuModule:SetUpComponent(data, config, parent)
-  if (not parent) then
-    parent = data.selectedButton.menu:GetFrame();
-    parent = parent.ScrollFrame:GetScrollChild();
+do
+  local function GetDatabaseValue(module, config)
+    if (obj:IsFunction(config.dbPath)) then
+      config.dbPath = config.dbPath();
+    end
+
+    local dbPath = config.dbPath;
+
+    if (tk.Strings:IsNilOrWhiteSpace(dbPath)) then
+      return config.GetValue and config.GetValue(config);
+    end
+
+    local db = module:GetDatabase(config);
+    local value = db:ParsePathValue(dbPath);
+
+    if (obj:IsTable(value) and value.GetUntrackedTable) then
+      value = value:GetUntrackedTable();
+    end
+
+    if (config.GetValue) then
+      value = config.GetValue(config, value);
+    end
+
+    return value;
   end
 
-  if (obj:IsTable(data.tempMenuConfigTable)) then
-    ApplyMenuConfigTable(config, data.tempMenuConfigTable);
+  obj:DefineParams("table", "?Frame");
+  ---@param config table @A component config table used to control the rendering and behavior of a component in the config menu.
+  ---@param parent Frame @(optional) A custom parent frame for the component, else the parent will be the menu scroll child.
+  ---@return Frame @(possibly nil if component is disabled) The created component.
+  function C_ConfigMenuModule:SetUpComponent(data, config, parent)
+    if (not parent) then
+      parent = data.selectedButton.menu:GetFrame();
+      parent = parent.ScrollFrame:GetScrollChild();
+    end
+
+    if (obj:IsTable(data.tempMenuConfigTable)) then
+      ApplyMenuConfigTable(config, data.tempMenuConfigTable);
+    end
+
+    local componentType = config.type;
+
+    -- treat the component like a check button (except when grouping the check buttons)
+    if (componentType == "radio") then
+      componentType = "check";
+    end
+
+    local components = MayronUI:GetComponent("ConfigMenuComponents");
+
+    tk:Assert(components[componentType],
+      "Unsupported component type '%s' found in config data for config table '%s'.",
+      componentType or "nil", config.name or "nil");
+
+    if (config.OnInitialize) then
+      -- do disabled components need to be initialized?
+      config.OnInitialize(config);
+      config.OnInitialize = nil;
+    end
+
+    local currentValue = GetDatabaseValue(self, config);
+    local component = components[componentType](parent, config, currentValue);
+
+    if (config.devMode) then
+      -- highlight the component in dev mode.
+      tk:SetBackground(component, mrandom(), mrandom(), mrandom());
+    end
+
+    -- If using Rendercomponent manually in config then this won't work
+    if (data.tempMenuConfigTable and config.type == "radio" and config.groupName) then
+      -- get groups[groupName] value from tempRadioButtonGroup
+      local tempRadioButtonGroup = tk.Tables:GetTable(
+        data.tempMenuConfigTable, "groups", config.groupName);
+
+      table.insert(tempRadioButtonGroup, component.btn);
+    end
+
+    if (config.disabled) then
+      return
+    end
+
+    -- setup complete, so run the OnLoad callback if one exists
+    if (config.OnLoad) then
+      config.OnLoad(config, component, currentValue);
+      config.OnLoad = nil;
+    end
+
+    if (componentType ~= "submenu") then
+      local printIt = config.name and tk.Strings:Contains(config.name, L["Choose Profile"]);
+      TransferComponentAttributes(component, config);
+
+      if (printIt) then
+        MayronUI:PrintTable(component);
+      end
+
+    end
+
+    return component;
   end
-
-  local componentType = config.type;
-
-  -- treat the component like a check button (except when grouping the check buttons)
-  if (componentType == "radio") then
-    componentType = "check";
-  end
-
-  local components = MayronUI:GetComponent("ConfigMenuComponents");
-
-  tk:Assert(components[componentType],
-    "Unsupported component type '%s' found in config data for config table '%s'.",
-    componentType or "nil", config.name or "nil");
-
-  if (config.OnInitialize) then
-    -- do disabled components need to be initialized?
-    config.OnInitialize(config);
-    config.OnInitialize = nil;
-  end
-
-  local currentValue = self:GetDatabaseValue(config);
-  local component = components[componentType](parent, config, currentValue);
-
-  if (config.devMode) then
-    -- highlight the component in dev mode.
-    tk:SetBackground(component, mrandom(), mrandom(), mrandom());
-  end
-
-  -- If using Rendercomponent manually in config then this won't work
-  if (data.tempMenuConfigTable and config.type == "radio"
-    and config.groupName) then
-    -- get groups[groupName] value from tempRadioButtonGroup
-    local tempRadioButtonGroup = tk.Tables:GetTable(
-      data.tempMenuConfigTable, "groups", config.groupName);
-
-    table.insert(tempRadioButtonGroup, component.btn);
-  end
-
-  if (config.disabled) then
-    return
-  end
-
-  -- setup complete, so run the OnLoad callback if one exists
-  if (config.OnLoad) then
-    config.OnLoad(config, component, currentValue);
-    config.OnLoad = nil;
-  end
-
-  if (componentType ~= "submenu") then
-    TransfercomponentAttributes(component, config);
-  end
-
-  return component;
 end
 
 function C_ConfigMenuModule:SetUpWindow(data)

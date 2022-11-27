@@ -156,8 +156,9 @@ function C_ListFrame:SetShown(data, shown)
     end
   end
 
-  data.textField = gui:CreateTextField(data.textFieldTooltip, data.listFrame);
+  data.textField = gui:CreateTextField(data.listFrame);
   data.textField:OnTextChanged(TextField_OnTextChanged, self, data, unpack(data.args));
+  tk:SetBasicTooltip(data.textField:GetEditBox(), data.textFieldTooltip);
 
   row = panel:CreateCell(data.textField);
   row:SetDimensions(1, 1);

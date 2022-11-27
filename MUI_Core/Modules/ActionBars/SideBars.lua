@@ -32,8 +32,6 @@ db:AddToDefaults("profile.actionbars.side", {
       activeSets = 2;
       showWhen = "Always"; -- can be mouseover or never
       hideInCombat = false;
-      width = 15;
-      height = 100;
     };
 
     bartender = {
@@ -186,14 +184,6 @@ function C_SideActionBars:OnInitialize(data)
       hideInCombat = function()
         UpdateArrowButtonVisibility(data);
       end;
-      width = function(value)
-        data.expand:SetSize(value, data.settings.buttons.height)
-        data.retract:SetSize(value, data.settings.buttons.height)
-      end;
-      height = function(value)
-        data.expand:SetSize(data.settings.buttons.width, value)
-        data.retract:SetSize(data.settings.buttons.width, value)
-      end;
       speed = function(value)
         data.controller:SetAnimationSpeed(value);
       end
@@ -301,7 +291,7 @@ function C_SideActionBars:SetUpExpandRetract(data)
     local btn = tk:CreateFrame("Button");
     btn:SetID(btnId);
     btn:SetNormalTexture(sideButtonTexture);
-    btn:SetSize(data.settings.animation.width, data.settings.animation.height);
+    btn:SetSize(15, 100);
     btn:SetScript("OnEnter", OnArrowButtonEnter);
     btn:SetScript("OnLeave", OnArrowButtonLeave);
     btn:SetScript("OnClick", function()

@@ -1,7 +1,8 @@
 -- luacheck: ignore self
 local _G = _G;
 local MayronUI, strupper = _G.MayronUI, _G.string.upper;
-local tk, db, _, _, obj = MayronUI:GetCoreComponents();
+local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
+local tostring = _G.tostring;
 
 ---@class ConfigMenuUtils
 local Utils = MayronUI:NewComponent("ConfigMenuUtils");
@@ -31,7 +32,7 @@ function Utils:SetShown(frame, shown)
 end
 
 --- This function wraps the widget inside of a new container with a "name" fontstring label.
-function Utils:WrapInNamedContainer(component, name)
+function Utils:WrapInNamedContainer(component, config)
   local oldParent = component:GetParent();
   local container = tk:CreateFrame("Frame", oldParent);
   component:SetParent(container);
@@ -41,10 +42,12 @@ function Utils:WrapInNamedContainer(component, name)
   -- this is needed to access the component from the container
   -- which is passed to some config functions (i.e. OnLoad):
   container.component = component;
+  component.wrapper = container;
 
   container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   container.name:SetPoint("TOPLEFT", 0, 0);
-  container.name:SetText(name);
+  container.name:SetText(config.name);
+  self:SetBasicTooltip(container, config);
 
   container:SetHeight(component:GetHeight() + container.name:GetStringHeight() + 5);
   component:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -5);
@@ -90,4 +93,29 @@ function Utils.OnMenuButtonClick(menuButton)
 
   local configMenu = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule
   configMenu:OpenMenu(menuButton);
+end
+
+function Utils:AppendDefaultValueToTooltip(config)
+  if (not tk.Strings:Contains(config.tooltip, L["Default value is"]) and config.dbPath) then
+    local default = db:GetDefault(config.dbPath);
+
+    if (obj:IsNumber(default) or obj:IsString(default) or obj:IsBoolean(default)) then
+      default = tostring(default);
+      local defaultTooltip = tk.Strings:JoinWithSpace(L["Default value is"], default);
+
+      if (obj:IsString(config.tooltip)) then
+        config.tooltip = tk.Strings:Join("\n\n", config.tooltip, defaultTooltip);
+      else
+        config.tooltip = defaultTooltip;
+      end
+    end
+  end 
+end
+
+function Utils:SetBasicTooltip(widget, config)
+  self:AppendDefaultValueToTooltip(config);
+
+  if (obj:IsString(config.tooltip)) then
+    tk:SetBasicTooltip(widget, config.tooltip);
+  end
 end

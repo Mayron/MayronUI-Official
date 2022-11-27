@@ -458,28 +458,25 @@ function Private:LoadCustomMenu(menuSection)
   menuSection.installButton:SetPoint(
     "TOPRIGHT", menuSection.addonContainer, "BOTTOMRIGHT", 0, -20);
 
-  menuSection.installButton:SetScript(
-    "OnClick", function()
-      setUpModule:Install();
-    end);
+  menuSection.installButton:SetScript("OnClick", function()
+    setUpModule:Install();
+  end);
 
   local GameTooltip = _G.GameTooltip;
-  menuSection.installButton:SetScript(
-    "OnEnter", function(self)
-      GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT", 18, 4);
-      GameTooltip:AddLine(RELOAD_MESSAGE);
-      GameTooltip:SetFrameLevel(30);
-      GameTooltip:Show();
-    end);
+  menuSection.installButton:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT", 18, 4);
+    GameTooltip:AddLine(RELOAD_MESSAGE);
+    GameTooltip:SetFrameLevel(30);
+    GameTooltip:Show();
+  end);
 
-  menuSection.installButton:SetScript(
-    "OnLeave", function(self)
-      GameTooltip:Hide();
-    end);
+  menuSection.installButton:SetScript("OnLeave", function()
+    GameTooltip:Hide();
+  end);
 end
 
 function Private:LoadInfoMenu(menuSection)
-  local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
+  local font = tk:GetMasterFont();
 
   local container = gui:CreateScrollFrame(menuSection);
   menuSection.child = container.ScrollFrame:GetScrollChild();
@@ -521,7 +518,7 @@ function Private:LoadInfoMenu(menuSection)
 end
 
 function Private:LoadCreditsMenu(menuSection)
-  local font = tk.Constants.LSM:Fetch("font", db.global.core.font);
+  local font = tk:GetMasterFont();
 
   local container = gui:CreateScrollFrame(menuSection);
   menuSection.child = container.ScrollFrame:GetScrollChild();

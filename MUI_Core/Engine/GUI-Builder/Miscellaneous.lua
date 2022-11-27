@@ -6,34 +6,28 @@ local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 local string, hooksecurefunc, PlaySound, unpack, min, max =
   _G.string, _G.hooksecurefunc, _G.PlaySound, _G.unpack, _G.math.min, _G.math.max;
 
-local function OnEnter(self)
+local function HandleShowingTooltipOnEnter(self)
+  local tooltip = self.tooltip;
+  local anchor = self.btn or self;
+
   if (not obj:IsString(self.tooltip)) then
-    local parent = self:GetParent();
-
-    if (obj:IsTable(parent) and obj:IsString(parent.tooltip)) then
-      local script = parent:GetScript("OnEnter");
-
-      if (obj:IsFunction(script)) then
-        script(parent); -- it's the container
-      end
-    end
-
-    return
+    local parent = self:GetParent(); -- update anchor
+    tooltip = parent.tooltip;
   end
 
-  _G.GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 4);
+  if (not obj:IsString(tooltip)) then
+    return -- no tooltip to show
+  end
 
-  if (#self.tooltip > 100) then
-    local minWidth = min(#self.tooltip, 400);
+  _G.GameTooltip:SetOwner(anchor, "ANCHOR_TOPLEFT", 4, 4);
+
+  if (#tooltip > 100) then
+    local minWidth = min(#tooltip, 400);
     _G.GameTooltip:SetMinimumWidth(minWidth);
   end
 
-  _G.GameTooltip:AddLine(self.tooltip, nil, nil, nil, true);
+  _G.GameTooltip:AddLine(tooltip, nil, nil, nil, true);
   _G.GameTooltip:Show();
-end
-
-local function OnLeave()
-  _G.GameTooltip:Hide();
 end
 
 ---@param parent Frame @(optional) The parent frame to give the new frame if frame param is nil
@@ -65,12 +59,12 @@ function gui:CreateDialogBox(parent, alphaType, frame, globalName)
 end
 
 do
-  local function Button_OnEnable(self)
+  local function OnButtonEnabled(self)
     local r, g, b = unpack(self.enabledBackdrop);
     self:SetBackdropBorderColor(r, g, b, 0.7);
   end
 
-  local function Button_OnDisable(self)
+  local function OnButtonDisabled(self)
     local r, g, b = _G.DISABLED_FONT_COLOR:GetRGB();
     self:SetBackdropBorderColor(r, g, b, 0.6);
   end
@@ -90,7 +84,7 @@ do
     local backgroundTexture = style:GetTexture("ButtonTexture");
 
     button = button or tk:CreateFrame("Button", parent, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
-
+    button.tooltip = tooltip;
     button.padding = padding or 30;
     button.minWidth = minWidth;
     button:SetHeight(30);
@@ -106,12 +100,6 @@ do
       button:SetWidth(minWidth or 150);
     end
 
-    if (tooltip) then
-      button.tooltip = tooltip;
-      button:SetScript("OnEnter", OnEnter);
-      button:SetScript("OnLeave", OnLeave);
-    end
-
     local normal = tk:SetBackground(button, backgroundTexture, nil, nil, nil, 1);
     local highlight = tk:SetBackground(button, backgroundTexture, nil, nil, nil, 1);
     local disabled = tk:SetBackground(button, backgroundTexture, nil, nil, nil, 1);
@@ -123,8 +111,13 @@ do
     button:SetNormalFontObject("GameFontHighlight");
     button:SetDisabledFontObject("GameFontDisable");
 
-    button:SetScript("OnEnable", Button_OnEnable);
-    button:SetScript("OnDisable", Button_OnDisable);
+    if (tooltip) then
+      button:SetScript("OnEnter", HandleShowingTooltipOnEnter);
+      button:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
+    end
+
+    button:SetScript("OnEnable", OnButtonEnabled);
+    button:SetScript("OnDisable", OnButtonDisabled);
 
     self:UpdateButtonColor(button, style);
 
@@ -156,7 +149,7 @@ do
 end
 
 do
-  local function CheckButton_OnSetEnabled(self, value)
+  local function OnCheckButtonSetEnabled(self, value)
     if (value) then
       self.text:SetFontObject("GameFontHighlight");
     else
@@ -164,67 +157,103 @@ do
     end
   end
 
-  local function CheckButton_OnEnter(self)
-    self:GetNormalTexture():SetVertexColor(0.7, 0.7, 0.7);
-    self:GetCheckedTexture():SetBlendMode("ADD");
+  local function OnCheckButtonEnter(self)
+    local btn = self.btn or self;
+    local container = btn:GetParent();
+    container.background:SetVertexColor(0.7, 0.7, 0.7);
+    container.color:SetBlendMode("ADD");
   end
 
-  local function CheckButton_OnLeave(self)
-    self:GetNormalTexture():SetVertexColor(1, 1, 1);
-    self:GetCheckedTexture():SetBlendMode("BLEND");
+  local function OnCheckButtonLeave(self)
+    local btn = self.btn or self;
+    local container = btn:GetParent();
+    container.background:SetVertexColor(1, 1, 1);
+    container.color:SetBlendMode("BLEND");
   end
 
-  local function UpdateColor(self)
-    local checkedTexture = self.btn:GetCheckedTexture();
-    tk:ApplyThemeColor(checkedTexture);
+  local function UpdateColor(self, r, g, b, a)
+    if (self.isSwatch) then
+      self.r = r;
+      self.g = g;
+      self.b = b;
+      self.a = a;
+      self.color:SetVertexColor(r * a, g * a, b * a);
+    else
+      tk:ApplyThemeColor(self.color);
+    end
   end
 
-  function gui:CreateCheckButton(parent, text, tooltip, globalName)
+  function gui:CreateColorSwatchButton(parent, text, tooltip, globalName, verticalAlignment)
+    local container = self:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment);
+    container.isSwatch = true;
+    container.btn:SetChecked(true);
+    return container;
+  end
+
+  function gui:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment)
     local container = tk:CreateFrame("Button", parent);
+    container.tooltip = tooltip;
+
     container:SetSize(150, 30);
+
     container.btn = tk:CreateFrame("CheckButton", container, globalName, "UICheckButtonTemplate");
     container.btn:SetSize(20, 20);
-
-    if (tooltip) then
-      container.tooltip = tooltip;
-      container:SetScript("OnEnter", OnEnter);
-      container:SetScript("OnLeave", OnLeave);
-      container.btn:SetScript("OnEnter", OnEnter);
-      container.btn:SetScript("OnLeave", OnLeave);
-    end
 
     tk:KillElement(container.btn:GetHighlightTexture());
 
     -- Normal Texture:
     local normalTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\Unchecked");
     container.btn:SetNormalTexture(normalTexturePath);
-    local normalTexture = container.btn:GetNormalTexture();
-    normalTexture:SetAllPoints(true);
 
-    container.btn:SetPushedTexture(normalTexturePath);
-    container.btn.SetPushedTexture = tk.Constants.DUMMY_FUNC;
+    container.background = container.btn:GetNormalTexture();
+    container.background:SetAllPoints(true);
 
     -- Checked Texture:
-    container.btn:SetCheckedTexture(tk:GetAssetFilePath("Textures\\Widgets\\Checked"));
-    local checkedTexture = container.btn:GetCheckedTexture();
-    checkedTexture:SetAllPoints(true);
+    local checkedTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\Checked");
+    container.btn:SetCheckedTexture(checkedTexturePath);
 
-    container.UpdateColor = UpdateColor;
-    container:UpdateColor();
+    container.color = container.btn:GetCheckedTexture();
+    container.color:SetAllPoints(true);
 
     -- Highlight Texture:
     container.btn:SetHighlightTexture("");
     container.btn.SetHighlightTexture = tk.Constants.DUMMY_FUNC;
 
-    container.btn:HookScript("OnEnter", CheckButton_OnEnter);
-    container.btn:HookScript("OnLeave", CheckButton_OnLeave);
+    -- Pushed Textured:
+    container.btn:SetPushedTexture(normalTexturePath);
+    container.btn.SetPushedTexture = tk.Constants.DUMMY_FUNC;
 
-    container.btn:SetPoint("LEFT");
+    container.UpdateColor = UpdateColor;
+    container:UpdateColor();
+
+    if (tooltip) then
+      container.tooltip = tooltip;
+      container:SetScript("OnEnter", HandleShowingTooltipOnEnter);
+      container:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
+      container.btn:SetScript("OnEnter", HandleShowingTooltipOnEnter);
+      container.btn:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
+    end
+
+    -- Handle Styling:
+    container:HookScript("OnEnter", OnCheckButtonEnter);
+    container:HookScript("OnLeave", OnCheckButtonLeave);
+    container.btn:HookScript("OnEnter", OnCheckButtonEnter);
+    container.btn:HookScript("OnLeave", OnCheckButtonLeave);
+
     container.btn.text:SetFontObject("GameFontHighlight");
     container.btn.text:ClearAllPoints();
     container.btn.text:SetPoint("LEFT", container.btn, "RIGHT", 6, 1);
+    container.btn.text:SetHeight(18);
 
-    hooksecurefunc(container.btn, "SetEnabled", CheckButton_OnSetEnabled);
+    if (verticalAlignment == "TOP") then
+      container.btn:SetPoint("TOPLEFT");
+    elseif (verticalAlignment == "BOTTOM") then
+      container.btn:SetPoint("BOTTOMLEFT");
+    else
+      container.btn:SetPoint("LEFT");
+    end
+
+    hooksecurefunc(container.btn, "SetEnabled", OnCheckButtonSetEnabled);
 
     if (text) then
       container.btn.text:SetText(text);

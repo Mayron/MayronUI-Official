@@ -2,37 +2,66 @@ local MayronUI = _G.MayronUI;
 local tk = MayronUI:GetCoreComponents();
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 
+local function UpdateContainerHeight(self)
+  if (self.runningScript) then return end
+  self.runningScript = true;
+
+  local containerHeight = self.title:GetStringHeight();
+
+  if (self.description) then
+    containerHeight = containerHeight + self.description:GetStringHeight() + 4;
+  end
+
+  containerHeight = containerHeight + self.paddingTop + self.marginTop + self.paddingBottom + self.marginBottom;
+
+  if (containerHeight ~= self:GetHeight()) then
+    self:SetHeight(containerHeight);
+  end
+
+  self.runningScript = nil;
+end
+
 -- supported title config attributes:
 -- name - the container name (a visible fontstring that shows in the GUI)
+-- description (optional) - a 2nd sub-title for the description
 -- paddingTop - space between top of background and top of name
 -- paddingBottom - space between bottom of background and bottom of name
--- width - overrides using a full width (100% width of the container) with a fixed width value
-function Components.title(parent, widgetTable)
-    local container = tk:CreateFrame("Frame", parent);
-    container.text = container:CreateFontString(nil, "OVERLAY", "MUI_FontLarge");
-    tk:SetFontSize(container.text, 14);
-    container.text:SetText(widgetTable.name);
+-- marginTop
+-- marginBottom
+function Components.title(parent, config)
+  local container = tk:CreateFrame("Frame", parent);
+  container:SetSize(300, 50); -- needs to be set
 
-    local marginTop = widgetTable.marginTop or 10;
-    local marginBottom = widgetTable.marginBottom or 0;
-    local topPadding = (widgetTable.paddingTop or (marginTop + 10));
-    local bottomPadding = (widgetTable.paddingBottom or (marginBottom + 10));
-    local textHeight = container.text:GetStringHeight();
-    local height = textHeight + topPadding + bottomPadding;
+  container.marginTop = config.marginTop or 10;
+  container.marginBottom = config.marginBottom or 0;
+  container.paddingTop = config.paddingTop or 10;
+  container.paddingBottom = config.paddingBottom or 10;
 
-    container:SetHeight(height);
+  local background = tk:SetBackground(container, 0, 0, 0, 0.2);
+  background:ClearAllPoints();
+  background:SetPoint("TOPLEFT", 0, -container.marginTop);
+  background:SetPoint("BOTTOMRIGHT", 0, container.marginBottom);
 
-    if (widgetTable.width) then
-        container:SetWidth(widgetTable.width);
-    else
-        tk:SetFullWidth(container, 14);
-    end
+  container.title = container:CreateFontString(nil, "OVERLAY", "MUI_FontLarge");
+  tk:SetFontSize(container.title, 14);
 
-    local background = tk:SetBackground(container, 0, 0, 0, 0.2);
-    background:ClearAllPoints();
-    background:SetPoint("TOPLEFT", 0, -marginTop);
-    background:SetPoint("BOTTOMRIGHT", 0, marginBottom);
-    container.text:SetAllPoints(background);
+  if (config.description) then
+    container.description = container:CreateFontString(nil, "OVERLAY", "AchievementPointsFontSmall");
+    container.description:SetWordWrap(true);
+    container.description:SetPoint("LEFT", 20, 0);
+    container.description:SetPoint("RIGHT", -20, 0);
 
-    return container;
+    container.title:SetPoint("TOP", background, "TOP", 0, -container.paddingTop);
+    container.description:SetPoint("TOP", container.title, "BOTTOM", 0, -4);
+    container.description:SetText(config.description);
+  else
+    container.title:SetAllPoints(background);
+  end
+
+  container.title:SetText(config.name:upper());
+
+  tk:SetFullWidth(container, 14);
+  container:HookScript("OnSizeChanged", UpdateContainerHeight);
+
+  return container;
 end

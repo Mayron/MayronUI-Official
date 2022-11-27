@@ -1,12 +1,16 @@
 -- luacheck: ignore self
 local _G = _G;
 local MayronUI = _G.MayronUI;
+
 local tk, db, _, _, obj = MayronUI:GetCoreComponents();
+
+---@type Toolkit
+tk = tk;
 
 local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
 local ipairs, hooksecurefunc, CreateFrame, select = _G.ipairs, _G.hooksecurefunc,
   _G.CreateFrame, _G.select;
-local CreateColor, bitband, pairs = _G.CreateColor, _G.bit.band, _G.pairs;
+local CreateColor = _G.CreateColor;
 
 function tk:SetFontSize(fontString, size)
   local fontPath, _, flags = fontString:GetFont();
@@ -220,7 +224,8 @@ function tk:AttachToDummy(element)
   element:SetAllPoints(true);
 
   if (element:GetObjectType() == "Texture") then
-    element:SetTexture(tk.Strings.Empty);
+    element:SetTexture(tk.Strings.Empty)
+    element.SetTexture = tk.Constants.DUMMY_FUNC;
   end
 end
 
@@ -369,13 +374,26 @@ function tk:SetFontSize(fontstring, size)
   fontstring:SetFont(filename, size, flags);
 end
 
-function tk:SetGameFont(font)
-  _G["UNIT_NAME_FONT"] = font;
-  _G["NAMEPLATE_FONT"] = font;
-  _G["DAMAGE_TEXT_FONT"] = font;
-  _G["STANDARD_TEXT_FONT"] = font;
+function tk:GetMasterFont()
+  return tk.Constants.LSM:Fetch("font", db.global.core.fonts.master);
+end
 
-  local fonts = {
+function tk:SetGameFont(fontSettings)
+  local media = tk.Constants.LSM;
+  local masterFont = media:Fetch("font", fontSettings.master);
+   
+  if (fontSettings.useCombatFont) then
+    local combatFont = media:Fetch("font", fontSettings.combat);
+    _G["DAMAGE_TEXT_FONT"] = combatFont; -- for damage AND healing font
+  end
+
+  if (not fontSettings.useMasterFont) then return end
+
+  _G["UNIT_NAME_FONT"] = masterFont;
+  _G["NAMEPLATE_FONT"] = masterFont;
+  _G["STANDARD_TEXT_FONT"] = masterFont;
+
+  local additionalBlizzardFontStrings = {
     "SystemFont_Tiny"; "SystemFont_Shadow_Small"; "SystemFont_Small";
     "SystemFont_Small2"; "SystemFont_Shadow_Small2";
     "SystemFont_Shadow_Med1_Outline"; "SystemFont_Shadow_Med1";
@@ -385,7 +403,7 @@ function tk:SetGameFont(font)
     "SystemFont_Shadow_Huge2"; "SystemFont_Shadow_Huge3"; "SystemFont_World";
     "SystemFont_World_ThickOutline"; "SystemFont_Shadow_Outline_Huge2";
     "SystemFont_Med1"; "SystemFont_WTF2"; "SystemFont_Outline_WTF2";
-    "GameTooltipHeader"; "System_IME"; -- other:
+    "GameTooltipHeader"; "System_IME";
     "NumberFont_OutlineThick_Mono_Small"; "NumberFont_Outline_Huge";
     "NumberFont_Outline_Large"; "NumberFont_Outline_Med";
     "NumberFont_Shadow_Med"; "NumberFont_Shadow_Small"; "QuestFont";
@@ -400,14 +418,14 @@ function tk:SetGameFont(font)
 
   -- prevent weird font size bug
   local _, _, sysFontFlags = _G.SystemFont_NamePlate:GetFont();
-  _G.SystemFont_NamePlate:SetFont(font, 9, sysFontFlags);
+  _G.SystemFont_NamePlate:SetFont(masterFont, 9, sysFontFlags);
 
-  for _, f in ipairs(fonts) do
+  for _, f in ipairs(additionalBlizzardFontStrings) do
     local fontString = _G[f];
 
-    if (fontString) then
+    if (obj:IsTable(fontString) and obj:IsFunction(fontString.GetFont)) then
       local _, size, fontFlags = fontString:GetFont();
-      fontString:SetFont(font, size, fontFlags);
+      fontString:SetFont(masterFont, size, fontFlags);
     end
   end
 end
