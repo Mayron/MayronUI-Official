@@ -1,4 +1,4 @@
-## Interface: 100000
+## Interface: 100002
 ## Title: |TInterface/Addons/MUI_Core/Assets/Logo:12:22|t |cff00ccffSetup|r
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
