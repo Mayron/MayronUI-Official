@@ -518,9 +518,7 @@ do
     -- If using Rendercomponent manually in config then this won't work
     if (data.tempMenuConfigTable and config.type == "radio" and config.groupName) then
       -- get groups[groupName] value from tempRadioButtonGroup
-      local tempRadioButtonGroup = tk.Tables:GetTable(
-        data.tempMenuConfigTable, "groups", config.groupName);
-
+      local tempRadioButtonGroup = tk.Tables:GetTable(data.tempMenuConfigTable, "groups", config.groupName);
       table.insert(tempRadioButtonGroup, component.btn);
     end
 

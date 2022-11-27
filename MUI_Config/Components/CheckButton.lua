@@ -1,20 +1,23 @@
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local _, _, _, gui = MayronUI:GetCoreComponents();
+local _, _, _, gui, obj = MayronUI:GetCoreComponents();
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
 local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule
 local max = _G.math.max;
 
-local function CheckButton_OnClick(self)
-  configModule:SetDatabaseValue(self:GetParent(), self:GetChecked());
+local function OnCheckButtonClick(self)
+  local checked = self:GetChecked();
+  configModule:SetDatabaseValue(self:GetParent(), checked);
 
-  if (self.OnClick) then
-    self:OnClick(self:GetChecked());
+  if (obj:IsFunction(self.OnClick)) then
+    self:OnClick(checked);
   end
+
+  self.previousValue = checked;
 end
 
-local function CheckButtonContainer_OnClick(self)
+local function OnCheckButtonContainerClick(self)
   self.btn:Click();
 end
 
@@ -23,8 +26,9 @@ function Components.check(parent, config, value)
   local cbContainer = gui:CreateCheckButton(parent, config.name, config.tooltip, nil, config.verticalAlignment);
 
   cbContainer.btn:SetChecked(value);
-  cbContainer.btn:SetScript("OnClick", CheckButton_OnClick);
-  cbContainer:SetScript("OnClick", CheckButtonContainer_OnClick);
+
+  cbContainer.btn:SetScript("OnClick", OnCheckButtonClick);
+  cbContainer:SetScript("OnClick", OnCheckButtonContainerClick);
   cbContainer.btn.OnClick = config.OnClick;
 
   local optimalWidth = cbContainer.btn:GetWidth() + 20 + cbContainer.btn.text:GetStringWidth();

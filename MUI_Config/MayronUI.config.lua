@@ -627,6 +627,20 @@ function C_ConfigMenu:GetConfigTable()
           min = 200; max = 800; step = 10;
         },
         { type = "divider" };
+        {
+          name = "Set Arrow Button Visibility";
+          type = "dropdown";
+          options = { "Always", "On Mouse-over", "Never" };
+          dbPath = "profile.actionbars.side.animation.showWhen";
+        };
+        {
+          name = "Hide Arrow Buttons In Combat";
+          type = "check";
+          dbPath = "profile.actionbars.side.animation.hideInCombat";
+          height = 42;
+          verticalAlignment = "BOTTOM";
+        };
+        { type = "divider" };
        {
           name = "Set Width Mode";
           type = "dropdown";

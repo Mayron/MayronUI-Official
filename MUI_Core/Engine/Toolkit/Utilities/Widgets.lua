@@ -348,24 +348,26 @@ function tk:SetBackground(frame, texturePath, g, b, a, inset)
   return texture;
 end
 
-do
-  local function RadioButton_OnClick(self)
-    if (self:GetChecked()) then
-      for otherId, otherBtn in ipairs(self.radioGroup) do
-        if (self:GetID() ~= otherId) then
+function tk:GroupCheckButtons(radioButtonsInGroup)
+  for id, btn in ipairs(radioButtonsInGroup) do
+    local oldScript = btn:GetScript("OnClick");
+    btn.previousValue = btn:GetChecked();
+
+    btn:SetScript("OnClick", function(self, ...)
+      self:SetChecked(true); -- Can never uncheck a radio button by reclicking in
+
+      for otherId, otherBtn in ipairs(radioButtonsInGroup) do
+        if (id ~= otherId) then
           otherBtn:SetChecked(false);
+          otherBtn.previousValue = false;
         end
       end
-    end
-  end
 
-  function tk:GroupCheckButtons(btns)
-    for id, btn in ipairs(btns) do
-      btn:SetID(id);
-      btn.radioGroup = btns;
-
-      btn:HookScript("OnClick", RadioButton_OnClick);
-    end
+      if (not self.previousValue) then
+        oldScript(self, ...);
+        self.previousValue = true;
+      end
+    end);
   end
 end
 

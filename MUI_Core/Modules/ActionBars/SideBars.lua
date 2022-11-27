@@ -56,17 +56,22 @@ db:AddToDefaults("profile.actionbars.side", {
 
 -- Local Functions ---------------------
 
-local function UpdateArrowButtonVisibility(data, activeSets)
+local function UpdateArrowButtonVisibility(data, activeSets, inCombat)
   activeSets = activeSets or data.settings.animation.activeSets;
 
   local showOnMouseOver = data.settings.animation.showWhen == "On Mouse-over";
+  local hideInCombat = data.settings.animation.hideInCombat;
+  local neverShow = data.settings.animation.showWhen == "Never";
+
   data.expand.showOnMouseOver = showOnMouseOver;
   data.retract.showOnMouseOver = showOnMouseOver;
 
-  if (data.settings.animation.hideInCombat) then
+  if (hideInCombat) then
     if (not em:GetEventListenerByID("SideBar_HideInCombat")) then
-      em:CreateEventListenerWithID("SideBar_HideInCombat", UpdateArrowButtonVisibility)
-        :SetCallbackArgs(data)
+      em:CreateEventListenerWithID("SideBar_HideInCombat",
+        function(_, event)
+          UpdateArrowButtonVisibility(data, _, event == "PLAYER_REGEN_DISABLED");
+        end)
         :RegisterEvent("PLAYER_REGEN_ENABLED")
         :RegisterEvent("PLAYER_REGEN_DISABLED");
     else
@@ -76,9 +81,7 @@ local function UpdateArrowButtonVisibility(data, activeSets)
     em:DisableEventListeners("SideBar_HideInCombat");
   end
 
-  if (data.settings.animation.showWhen == "Never" or
-    data.settings.animation.hideInCombat and InCombatLockdown()) then
-
+  if (neverShow or (hideInCombat and inCombat)) then
     data.expand:Hide();
     data.retract:Hide();
     return
