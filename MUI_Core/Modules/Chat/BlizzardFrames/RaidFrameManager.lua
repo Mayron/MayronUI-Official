@@ -54,10 +54,13 @@ function C_ChatModule:SetUpRaidFrameManager(data)
   CompactRaidFrameManager:EnableMouse(false);
   tk:KillElement(CompactRaidFrameManager.toggleButton);
 
-  tk:KillAllElements(
-    _G.CompactRaidFrameManagerDisplayFrameHeaderDelineator,
-    _G.CompactRaidFrameManagerDisplayFrameFilterOptionsFooterDelineator,
-    _G.CompactRaidFrameManagerDisplayFrameHeaderBackground);
+  _G.CompactRaidFrameManagerDisplayFrameHeaderDelineator:SetTexture("");
+  _G.CompactRaidFrameManagerDisplayFrameFilterOptionsFooterDelineator:SetTexture("");
+  _G.CompactRaidFrameManagerDisplayFrameHeaderBackground:Hide();
+
+  _G.CompactRaidFrameManagerDisplayFrameHeaderDelineator.SetTexture = tk.Constants.DUMMY_FUNC;
+  _G.CompactRaidFrameManagerDisplayFrameFilterOptionsFooterDelineator.SetTexture = tk.Constants.DUMMY_FUNC;
+  _G.CompactRaidFrameManagerDisplayFrameHeaderBackground.Show = tk.Constants.DUMMY_FUNC;
 
   -- button to toggle compact raid frame manager
   local btn = tk:CreateFrame("Button", nil, "MUI_RaidFrameManagerButton");
