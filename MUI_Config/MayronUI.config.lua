@@ -166,7 +166,7 @@ function C_ConfigMenu:GetConfigTable()
           requiresRestart = true;
           fontPicker = true;
         };
-        { type = "fontstring"; subType="header"; content = L["Miscellaneous"]};
+        { type = "fontstring"; subtype="header"; content = L["Miscellaneous"]};
         {
           name = L["Display Lua Errors"];
           type = "check";

@@ -190,7 +190,7 @@ do
     return container;
   end
 
-  function gui:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment)
+  function gui:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment, radio)
     local container = tk:CreateFrame("Button", parent);
     container.tooltip = tooltip;
 
@@ -201,17 +201,23 @@ do
 
     tk:KillElement(container.btn:GetHighlightTexture());
 
-    -- Normal Texture:
-    local normalTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\Unchecked");
-    container.btn:SetNormalTexture(normalTexturePath);
+    local normalTexturePath, checkedTexturePath;
 
+    if (radio) then
+      normalTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\RadioButtonUnchecked");
+      checkedTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\RadioButtonChecked");
+    else
+      normalTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\Unchecked");
+      checkedTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\Checked");
+    end
+
+    -- Normal Texture:
+    container.btn:SetNormalTexture(normalTexturePath);
     container.background = container.btn:GetNormalTexture();
     container.background:SetAllPoints(true);
 
     -- Checked Texture:
-    local checkedTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\Checked");
     container.btn:SetCheckedTexture(checkedTexturePath);
-
     container.color = container.btn:GetCheckedTexture();
     container.color:SetAllPoints(true);
 

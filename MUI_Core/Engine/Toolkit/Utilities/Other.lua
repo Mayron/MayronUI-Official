@@ -47,6 +47,12 @@ function tk:Print(...)
   _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, tostringall(...)));
 end
 
+
+function tk:LogError(errorMessage, ...)
+  local prefix = self.Strings:SetTextColorByTheme("MayronUI:");
+  _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, errorMessage:format(...)), 1, 0, 0);
+end
+
 function tk:GetAssetFilePath(filePath)
   return string.format("%s\\%s", tk.Constants.ASSETS_FOLDER, filePath);
 end

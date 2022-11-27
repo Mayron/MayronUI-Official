@@ -489,6 +489,10 @@ function MayronUI:Print(...)
   tk:Print(...);
 end
 
+function MayronUI:LogError(...)
+  tk:LogError(...);
+end
+
 ---@return boolean @Returns true if MayronUI has been previously installing (usually using MUI_Setup).
 function MayronUI:IsInstalled()
   return db.global.installed and db.global.installed[tk:GetPlayerKey()];

@@ -1,4 +1,5 @@
 if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then return end
+-- Version: v1.8.8
 
 local major = "LibHealComm-4.0"
 local minor = 108
@@ -812,6 +813,14 @@ local function getBaseHealAmount(spellData, spellName, spellID, spellRank)
 	else
 		spellData = spellData[spellName]
 	end
+
+	if (MayronUI and not spellData) then
+		MayronUI:LogError(
+			"LibHealComm failed to index spellData for spell '%s' - Rank %s (ID: %s).", 
+			spellName, spellRank, spellID);
+		return 0;
+	end
+
 	local average = spellData.averages[spellRank]
 	if type(average) == "number" then
 		return average

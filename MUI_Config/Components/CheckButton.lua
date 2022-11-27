@@ -23,7 +23,9 @@ end
 
 function Components.check(parent, config, value)
   Utils:AppendDefaultValueToTooltip(config);
-  local cbContainer = gui:CreateCheckButton(parent, config.name, config.tooltip, nil, config.verticalAlignment);
+  local cbContainer = gui:CreateCheckButton(
+    parent, config.name, config.tooltip, nil,
+  config.verticalAlignment, config.type == "radio");
 
   cbContainer.btn:SetChecked(value);
 
