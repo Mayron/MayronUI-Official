@@ -690,6 +690,12 @@ local function CheckForNewMayronUIPreset(addonId, presetInfo)
   if (not IsAddOnLoaded(registeredName)) then return end
 
   local defaults = db.global.core.setup.addOns[addonId]:GetDefaults();
+
+  if (not obj:IsTable(defaults)) then 
+    -- _G.MayronUIdb.global.core.setup.addOns[addonId] = nil; -- TODO: SAFELY remove it (this might be risky)
+    return
+  end
+
   local latestPresetVersion = defaults[4] or 0;
   local newerPresetAvailable = needsInstalling or (installedPresetVersion < latestPresetVersion);
 
