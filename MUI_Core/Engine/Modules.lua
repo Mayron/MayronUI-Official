@@ -671,12 +671,12 @@ local function InstallPresetOnCancel(_, addonId, latestPresetVersion)
   presetInfo[4] = latestPresetVersion; -- skip this version and assign the latest preset version
 
   local command = tk.Strings:SetTextColorByTheme("/mui install", "LIGHT_YELLOW");
-  local message = "You can always install presets at anytime from the custom install tab located on the MayronUI installer.";
-  local subMessage =  ("Hint: Type %s to access the installer."):format(command);
-  
-  _G.C_Timer.After(0.01, function()   
+  local message = L["You can always install presets at anytime from the custom install tab located on the MayronUI installer."];
+  local subMessage =  L["Hint: Type %s to access the installer."]:format(command);
+
+  _G.C_Timer.After(0.01, function()
     -- Need to add a delay, else the OnCancel will prevent the 2nd popup from showing
-    tk:ShowMessagePopup(message, subMessage);      
+    tk:ShowMessagePopup(message, subMessage);
   end);
 end
 
@@ -691,7 +691,7 @@ local function CheckForNewMayronUIPreset(addonId, presetInfo)
 
   local defaults = db.global.core.setup.addOns[addonId]:GetDefaults();
 
-  if (not obj:IsTable(defaults)) then 
+  if (not obj:IsTable(defaults)) then
     -- _G.MayronUIdb.global.core.setup.addOns[addonId] = nil; -- TODO: SAFELY remove it (this might be risky)
     return
   end
@@ -700,18 +700,18 @@ local function CheckForNewMayronUIPreset(addonId, presetInfo)
   local newerPresetAvailable = needsInstalling or (installedPresetVersion < latestPresetVersion);
 
   if (not newerPresetAvailable) then return end
-  
+
   local coloredDisplayName = tk.Strings:SetTextColorByKey(displayName, "LIGHT_YELLOW");
 
-  local message = 
-    ("There is a newer MayronUI preset available for %s."):format(coloredDisplayName) .. "\n\n" .. "Would you like to install it?";
+  local message = L["There is a newer MayronUI preset available for %s."]:format(coloredDisplayName)
+    .. "\n\n" .. L["Would you like to install it?"];
 
-  local warningText = ("Warning! This will wipe all customizations you have made to %s."):format(displayName);
-  local confirmText = "Install Preset";
-  local cancelText = "Skip this Version";
+  local warningText = L["Warning! This will wipe all customizations you have made to %s."]:format(displayName);
+  local confirmText = L["Install Preset"];
+  local cancelText = L["Skip this Version"];
 
   tk:ShowConfirmPopup(
-    message, warningText, confirmText, InstallPresetOnClick, 
+    message, warningText, confirmText, InstallPresetOnClick,
     cancelText, InstallPresetOnCancel, true, addonId, latestPresetVersion);
 end
 

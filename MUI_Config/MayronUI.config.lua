@@ -113,7 +113,7 @@ function C_ConfigMenu:GetConfigTable()
       name = L["General"];
       id = 1;
       children = {
-        { type = "title"; name = "Popular Settings"; marginTop = 0; };
+        { type = "title"; name = L["Popular Settings"]; marginTop = 0; };
         {
           name = L["Set Theme Color"];
           type = "color";
@@ -127,9 +127,9 @@ function C_ConfigMenu:GetConfigTable()
             db:RemoveAppended(db.profile, "unitPanels.sufGradients");
           end;
         };
-        { type = "title"; name = "Global Settings"; description = "These settings are applied account-wide" };
+        { type = "title"; name = L["Global Settings"]; description = L["These settings are applied account-wide"] };
         {
-          name = "Override Master Font";
+          name = L["Override Master Font"];
           height = 42;
           verticalAlignment = "BOTTOM";
           tooltip = L["Uncheck to prevent MUI from changing the game font."];
@@ -148,7 +148,7 @@ function C_ConfigMenu:GetConfigTable()
         };
         { type = "divider"};
         {
-          name = "Override Combat Font";
+          name = L["Override Combat Font"];
           height = 42;
           width = 180;
           verticalAlignment = "BOTTOM";
@@ -156,17 +156,17 @@ function C_ConfigMenu:GetConfigTable()
           requiresRestart = true;
           dbPath = "global.core.fonts.useCombatFont";
           type = "check";
-        };  
+        };
         {
-          name = "Combat Font";
-          tooltip = "This font is used to display the damage and healing combat numbers.";
+          name = L["Combat Font"];
+          tooltip = L["This font is used to display the damage and healing combat numbers."];
           type = "dropdown";
           options = tk.Constants.LSM:List("font");
           dbPath = "global.core.fonts.combat";
           requiresRestart = true;
           fontPicker = true;
         };
-        { type = "fontstring"; subType="header"; content = "Miscellaneous"};
+        { type = "fontstring"; subType="header"; content = L["Miscellaneous"]};
         {
           name = L["Display Lua Errors"];
           type = "check";
@@ -207,7 +207,10 @@ function C_ConfigMenu:GetConfigTable()
             end
           end;
         };
-        { type = "title"; name = L["Main Container"]; description = L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."] }; 
+        { type = "title";
+          name = L["Main Container"];
+          description = L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."]
+        };
         {
           name = L["Set Width"];
           type = "slider";
@@ -222,30 +225,27 @@ function C_ConfigMenu:GetConfigTable()
           type = "dropdown";
           options = tk.Constants.ORDERED_FRAME_STRATAS;
           dbPath = "profile.bottomui.frameStrata";
-          tooltip = L["Default value is"] .. " LOW";
-        }; {
+        };
+        {
           name = L["Frame Level"];
           type = "textfield";
           valueType = "number";
           dbPath = "profile.bottomui.frameLevel";
-          tooltip = L["Default value is"] .. " 5";
         }; { type = "divider" }; {
           name = L["X-Offset"];
           type = "textfield";
           valueType = "number";
           dbPath = "profile.bottomui.xOffset";
-          tooltip = L["Default value is"] .. " 0";
         }; {
           name = L["Y-Offset"];
           type = "textfield";
           valueType = "number";
           dbPath = "profile.bottomui.yOffset";
-          tooltip = L["Default value is"] .. " -1";
         };
 
-        { type = "title"; name = "Blizzard Frames"};
+        { type = "title"; name = L["Blizzard Frames"] };
         {
-          name = "Movable Frames";
+          name = L["Movable Frames"];
           type = "check";
           tooltip = L["Allows you to move Blizzard Frames outside of combat only."];
           dbPath = "global.movable.enabled";
@@ -254,29 +254,29 @@ function C_ConfigMenu:GetConfigTable()
             db:SetPathValue(dbPath, newValue);
             MayronUI:ImportModule("MovableFramesModule"):SetEnabled(newValue);
           end;
-        }; 
+        };
         {
-          name = "Clamped to Screen";
+          name = L["Clamped to Screen"];
           type = "check";
-          tooltip = "If checked, Blizzard frames cannot be dragged outside of the screen.";
+          tooltip = L["If checked, Blizzard frames cannot be dragged outside of the screen."];
           dbPath = "global.movable.clampToScreen";
           requiresReload = true;
-        }; 
+        };
         {
-          name = "Reset Positions";
+          name = L["Reset Positions"];
           type = "button";
           tooltip = L["Reset Blizzard frames back to their original position."];
           OnClick = function()
             MayronUI:ImportModule("MovableFramesModule"):ResetPositions();
-            MayronUI:Print("Blizzard frame positions have been reset.")
+            MayronUI:Print(L["Blizzard frame positions have been reset."]);
           end;
         };
-        { 
-          type = "fontstring"; 
-          subtype="header"; 
+        {
+          type = "fontstring";
+          subtype="header";
           client = "retail";
           height = 20;
-          content = L["Talking Head Frame"] 
+          content = L["Talking Head Frame"];
         };
         {
           type = "fontstring";
@@ -319,7 +319,7 @@ function C_ConfigMenu:GetConfigTable()
           dbPath = "global.movable.talkingHead.yOffset";
         };
       };
-    }; 
+    };
     {
       module = "MainContainer";
       id = 2;
@@ -384,23 +384,27 @@ function C_ConfigMenu:GetConfigTable()
         }; {
           name = L["Set Pulse Strength"];
           type = "slider";
-          tooltip = "Set the alpha change while pulsing/flashing";
+          tooltip = L["Set the alpha change while pulsing/flashing."];
           module = "UnitPanels";
           valueType = "number";
           min = 0;
           max = 1;
           step = 0.1;
           dbPath = "profile.unitPanels.pulseStrength";
-        }; { name = L["Name Panels"]; type = "title" }; {
+        };
+        { name = L["Name Panels"]; type = "title" }; {
           name = L["Enabled"];
           module = "UnitPanels";
           dbPath = "profile.unitPanels.unitNames.enabled";
           type = "check";
-        }; {
+        };
+        {
           name = L["Target Class Colored"];
           type = "check";
           dbPath = "profile.unitPanels.unitNames.targetClassColored";
-        }; { type = "divider" }; {
+        };
+        { type = "divider" };
+        {
           name = L["Set Width"];
           type = "slider";
           min = 150;
@@ -473,25 +477,25 @@ function C_ConfigMenu:GetConfigTable()
       };
     };
     {
-      name = "Action Bars";
+      name = L["Action Bars"];
       children = {
         {
           type = "title";
-          name = "Background Panel Settings",
+          name = L["Background Panel Settings"],
           marginTop = 0;
         },
         {
           type = "fontstring";
-          content = "These settings control the MayronUI artwork behind the Bartender4 action bars.";
+          content = L["These settings control the MayronUI artwork behind the Bartender4 action bars."];
         },
         {
             type = "fontstring",
             subtype = "header",
-            content = "Bottom Panel",
+            content = L["Bottom Panel"],
         },
         {
           type = "slider",
-          name = "Set Animation Speed",
+          name = L["Set Animation Speed"],
           min = 1; max = 10; step = 1;
           dbPath = "profile.actionbars.bottom.animation.speed";
           tooltip = L["The speed of the Expand and Retract transitions."]
@@ -499,13 +503,13 @@ function C_ConfigMenu:GetConfigTable()
         },
         {
           type = "slider",
-          name = "Set Alpha",
+          name = L["Set Alpha"],
           dbPath = "profile.actionbars.bottom.alpha";
         },
         { type = "divider" };
         {
           type = "fontstring";
-          content = "Set the modifier key/s that should be pressed to show the arrow buttons.";
+          content = L["Set the modifier key/s that should be pressed to show the arrow buttons."];
         };
         {
           type = "loop";
@@ -538,11 +542,11 @@ function C_ConfigMenu:GetConfigTable()
         };
         { type = "divider" };
         {
-          name = "Set Height Mode";
+          name = L["Set Height Mode"];
           type = "dropdown";
-          options = { Dynamic = "dynamic", Manual = "manual" };
+          options = { [L["Dynamic"]] = "dynamic", [L["Manual"]] = "manual" };
           dbPath = "profile.actionbars.bottom.sizeMode";
-          tooltip = "If set to dynamic, MayronUI will calculate the optimal height for the selected Bartender4 action bars to fit inside the panel.";
+          tooltip = L["If set to dynamic, MayronUI will calculate the optimal height for the selected Bartender4 action bars to fit inside the panel."];
           OnValueChanged = function(value)
             bottomPanelManualHeightOptions:SetShown(value == "manual");
             bottomPanelPaddingOption:SetShown(value == "dynamic");
@@ -551,7 +555,7 @@ function C_ConfigMenu:GetConfigTable()
         };
         {
           type = "slider",
-          name = "Set Panel Padding",
+          name = L["Set Panel Padding"],
           dbPath = "profile.actionbars.bottom.panelPadding";
           min = 0; max = 20;
           OnLoad = function(_, slider)
@@ -573,23 +577,23 @@ function C_ConfigMenu:GetConfigTable()
             {
                 type = "fontstring",
                 subtype = "header",
-                content = "Manual Height Mode Settings",
+                content = L["Manual Height Mode Settings"],
             },
             {
               type = "slider",
-              name = "Set Row 1 Height",
+              name = L["Set Row 1 Height"],
               dbPath = "profile.actionbars.bottom.manualSizes[1]";
               min = 40; max = 300; step = 5;
             },
             {
               type = "slider",
-              name = "Set Row 2 Height",
+              name = L["Set Row 2 Height"],
               dbPath = "profile.actionbars.bottom.manualSizes[2]";
               min = 40; max = 300; step = 5;
             },
             {
               type = "slider",
-              name = "Set Row 3 Height",
+              name = L["Set Row 3 Height"],
               min = 40; max = 300; step = 5;
               dbPath = "profile.actionbars.bottom.manualSizes[3]";
             },
@@ -598,7 +602,7 @@ function C_ConfigMenu:GetConfigTable()
         {
             type = "fontstring",
             subtype = "header",
-            content = "Side Panel",
+            content = L["Side Panel"],
         },
         {
           type = "slider",
@@ -610,31 +614,35 @@ function C_ConfigMenu:GetConfigTable()
         },
         {
           type = "slider",
-          name = "Set Alpha",
+          name = L["Set Alpha"],
           dbPath = "profile.actionbars.side.alpha";
         },
         {
           type = "slider",
-          name = "Set Y-Offset",
+          name = L["Set Y-Offset"],
           valueType = "number";
           dbPath = "profile.actionbars.side.yOffset";
           min = -200; max = 200; step = 10;
         },
         {
           type = "slider",
-          name = "Set Height",
+          name = L["Set Height"],
           dbPath = "profile.actionbars.side.height";
           min = 200; max = 800; step = 10;
         },
         { type = "divider" };
         {
-          name = "Set Arrow Button Visibility";
+          name = L["Set Arrow Button Visibility"];
           type = "dropdown";
-          options = { "Always", "On Mouse-over", "Never" };
+          options = {
+            [L["Always"]] = "Always";
+            [L["On Mouse-over"]] = "On Mouse-over";
+            [L["Never"]] = "Never";
+          };
           dbPath = "profile.actionbars.side.animation.showWhen";
         };
         {
-          name = "Hide Arrow Buttons In Combat";
+          name = L["Hide Arrow Buttons In Combat"];
           type = "check";
           dbPath = "profile.actionbars.side.animation.hideInCombat";
           height = 42;
@@ -642,11 +650,11 @@ function C_ConfigMenu:GetConfigTable()
         };
         { type = "divider" };
        {
-          name = "Set Width Mode";
+          name = L["Set Width Mode"];
           type = "dropdown";
-          options = { Dynamic = "dynamic", Manual = "manual" };
+          options = { [L["Dynamic"]] = "dynamic", [L["Manual"]] = "manual" };
           dbPath = "profile.actionbars.side.sizeMode";
-          tooltip = "If set to dynamic, MayronUI will calculate the optimal width for the selected Bartender4 action bars to fit inside the panel.";
+          tooltip = L["If set to dynamic, MayronUI will calculate the optimal width for the selected Bartender4 action bars to fit inside the panel."];
           OnValueChanged = function(value)
             sidePanelManualWidthOptions:SetShown(value == "manual");
             sidePanelPaddingOption:SetShown(value == "dynamic");
@@ -655,7 +663,7 @@ function C_ConfigMenu:GetConfigTable()
         };
         {
           type = "slider",
-          name = "Set Panel Padding",
+          name = L["Set Panel Padding"],
           dbPath = "profile.actionbars.side.panelPadding";
           min = 0; max = 20;
           OnLoad = function(_, slider)
@@ -677,17 +685,17 @@ function C_ConfigMenu:GetConfigTable()
             {
               type = "fontstring",
               subtype = "header",
-              content = "Manual Side Panel Widths",
+              content = L["Manual Side Panel Widths"],
             },
             {
               type = "slider",
-              name = "Set Column 1 Width",
+              name = L["Set Column 1 Width"],
               dbPath = "profile.actionbars.side.manualSizes[1]";
               min = 40; max = 300; step = 5;
             },
             {
               type = "slider",
-              name = "Set Column 2 Width",
+              name = L["Set Column 2 Width"],
               dbPath = "profile.actionbars.side.manualSizes[2]";
               min = 40; max = 300; step = 5;
             },
@@ -695,64 +703,63 @@ function C_ConfigMenu:GetConfigTable()
         },
         {
           type = "title";
-          name = "Bartender4 Override Settings",
+          name = L["Bartender4 Override Settings"],
         },
         {
           type = "fontstring";
-          content = "These settings control what MayronUI is allowed to do with the Bartender4 action bars. By default, MayronUI:";
+          content = L["These settings control what MayronUI is allowed to do with the Bartender4 action bars. By default, MayronUI:"];
         },
         {
           type = "fontstring",
           list = {
-            "Fades action bars in and out when you press the provided arrow buttons.";
-            "Maintains the visibility of action bars between sessions of gameplay.";
-            "Sets the scale and padding of action bar buttons to best fit inside the background panels.";
-            "Sets and updates the position the action bars so they remain in place ontop of the background panels."
+            L["Fades action bars in and out when you press the provided arrow buttons."];
+            L["Maintains the visibility of action bars between sessions of gameplay."];
+            L["Sets the scale and padding of action bar buttons to best fit inside the background panels."];
+            L["Sets and updates the position the action bars so they remain in place ontop of the background panels."]
           }
         },
         {
           type = "fontstring",
           subtype = "header",
-          content = "Bottom Bartender4 Action Bars",
+          content = L["Bottom Bartender4 Action Bars"],
         },
         { type = "check";
-          name = "Control Bar Positioning";
+          name = L["Control Bar Positioning"];
           dbPath = "profile.actionbars.bottom.bartender.controlPositioning";
-          tooltip = "If enabled, MayronUI will move the selected Bartender4 action bars into the correct position for you."
+          tooltip = L["If enabled, MayronUI will move the selected Bartender4 action bars into the correct position for you."]
         },
         { type = "check";
-          name = "Override Bar Padding";
+          name = L["Override Bar Padding"];
           dbPath = "profile.actionbars.bottom.bartender.controlPadding";
-          tooltip = "If enabled, MayronUI will set the padding of the selected Bartender4 action bar to best fit the background panel."
+          tooltip = L["If enabled, MayronUI will set the padding of the selected Bartender4 action bar to best fit the background panel."]
         },
         { type = "check";
-          name = "Override Bar Scale";
+          name = L["Override Bar Scale"];
           dbPath = "profile.actionbars.bottom.bartender.controlScale";
-          tooltip = "If enabled, MayronUI will set the scale of the selected Bartender4 action bar to best fit the background panel."
+          tooltip = L["If enabled, MayronUI will set the scale of the selected Bartender4 action bar to best fit the background panel."]
         },
         { type = "divider" };
         {
           type = "slider",
-          name = "Set Row Spacing",
+          name = L["Set Row Spacing"],
           dbPath = "profile.actionbars.bottom.bartender.spacing";
           min = 0; max = 20;
         },
         { type = "slider";
-          name = "Set Bar Padding";
+          name = L["Set Bar Padding"];
           dbPath = "profile.actionbars.bottom.bartender.padding";
           min = 0; max = 10; step = 0.1;
           enabled = "profile.actionbars.bottom.bartender.controlPadding";
         },
         { type = "slider";
-          name = "Set Bar Scale";
+          name = L["Set Bar Scale"];
           dbPath = "profile.actionbars.bottom.bartender.scale";
           min = 0.25; max = 2;
           enabled = "profile.actionbars.bottom.bartender.controlScale"
         },
-
         {
           type = "fontstring",
-          content = "The bottom panel can display and control up to two Bartender4 action bars per row.",
+          content = L["The bottom panel can display and control up to two Bartender4 action bars per row."],
         },
         {
           type = "fontstring";
@@ -802,58 +809,58 @@ function C_ConfigMenu:GetConfigTable()
         {
           type = "fontstring",
           subtype = "header",
-          content = "Side Bartender4 Action Bars",
+          content = L["Side Bartender4 Action Bars"],
         },
         { type = "check";
-          name = "Control Bar Positioning";
+          name = L["Control Bar Positioning"];
           dbPath = "profile.actionbars.side.bartender.controlPositioning";
-          tooltip = "If enabled, MayronUI will move the selected Bartender4 action bars into the correct position for you."
+          tooltip = L["If enabled, MayronUI will move the selected Bartender4 action bars into the correct position for you."]
         },
         { type = "check";
-          name = "Override Bar Padding";
+          name = L["Override Bar Padding"];
           dbPath = "profile.actionbars.side.bartender.controlPadding";
-          tooltip = "If enabled, MayronUI will set the padding of the selected Bartender4 action bar to best fit the background panel."
+          tooltip = L["If enabled, MayronUI will set the padding of the selected Bartender4 action bar to best fit the background panel."]
         },
         { type = "check";
-          name = "Override Bar Scale";
+          name = L["Override Bar Scale"];
           dbPath = "profile.actionbars.side.bartender.controlScale";
-          tooltip = "If enabled, MayronUI will set the scale of the selected Bartender4 action bar to best fit the background panel."
+          tooltip = L["If enabled, MayronUI will set the scale of the selected Bartender4 action bar to best fit the background panel."]
         },
         { type = "divider" };
         {
           type = "slider",
-          name = "Set Column Spacing",
+          name = L["Set Column Spacing"],
           dbPath = "profile.actionbars.side.bartender.spacing";
           min = 0; max = 20;
         },
         { type = "slider";
-          name = "Set Bar Padding";
+          name = L["Set Bar Padding"];
           dbPath = "profile.actionbars.side.bartender.padding";
           min = 0; max = 10;
           enabled = "profile.actionbars.side.bartender.controlPadding"
         },
 
         { type = "slider";
-          name = "Set Bar Scale";
+          name = L["Set Bar Scale"];
           dbPath = "profile.actionbars.side.bartender.scale";
           min = 0.25; max = 2;
           enabled = "profile.actionbars.side.bartender.controlScale"
         },
         {
-          name = "Column 1";
+          name = L["Column"] .. " 1";
           type = "dropdown";
           dbPath = "profile.actionbars.side.bartender[1][1]";
           GetOptions = GetBartender4ActionBarOptions;
         };
         {
-          name = "Column 2";
+          name = L["Column"] .. " 2";
           type = "dropdown";
           dbPath = "profile.actionbars.side.bartender[2][1]";
           GetOptions = GetBartender4ActionBarOptions;
         };
       };
     }; {
-      name = "Resource Bars";
+      name = L["Resource Bars"];
       module = "ResourceBars";
       children = {
         {

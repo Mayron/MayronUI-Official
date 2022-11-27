@@ -8,30 +8,158 @@
 -- Then run this script:
 
 local OtherLanguageValues = {
-  "온라인 친구 표시";
-  "친구 목록 토글";
-  "길드 회원 표시";
-  "길드 창 토글";
-  "퀘스트";
+"Ajustes preestablecidos de complementos de MayronUI",
+"No se han cargado complementos compatibles",
+"Se restablecerá la configuración de los siguientes complementos seleccionados a la configuración preestablecida de MayronUI:",
+"Hay un ajuste preestablecido de MayronUI más nuevo disponible para %s.",
+"¿Te gustaría instalarlo?",
+"¡Advertencia! Esto borrará todas las personalizaciones que haya realizado en %s.",
+"Instalar preajuste",
+"Omitir esta version",
+"Siempre puede instalar ajustes preestablecidos en cualquier momento desde la pestaña de instalación personalizada ubicada en el instalador de MayronUI.",
+"Sugerencia: escriba %s para acceder al instalador.",
+"Establecer la visibilidad del botón de flecha",
+"Ocultar botones de flecha en combate",
+"Establecer modo de ancho",
+"Si se establece en dinámico, MayronUI calculará el ancho óptimo para que las barras de acción Bartender4 seleccionadas quepan dentro del panel.",
+"Establecer relleno de panel",
+"Establecer modo de altura",
+"Si se establece en dinámico, MayronUI calculará la altura óptima para que las barras de acción Bartender4 seleccionadas encajen dentro del panel.",
+"Configure la tecla o teclas modificadoras que deben presionarse para mostrar los botones de flecha.",
+"Establecer velocidad de animación",
+"Estos ajustes controlan la obra de arte de MayronUI detrás de las barras de acción de Bartender4.",
+"Configuración del panel de fondo",
+"Panel inferior",
+"Barras de acción",
+"Configuraciones populares",
+"Configuración global",
+"Esta configuración se aplica en toda la cuenta",
+"Anular fuente maestra",
+"Anular fuente de combate",
+"Fuente de combate",
+"Esta fuente se utiliza para mostrar los números de combate de daño y curación.",
+"Misceláneas",
+"Marcos de ventisca",
+"Sujetado a la pantalla",
+"Si está marcado, los marcos de Blizzard no se pueden arrastrar fuera de la pantalla.",
+"Restablecer posiciones",
+"Se han restablecido las posiciones de fotogramas de Blizzard.",
+"Configure el cambio alfa mientras pulsa/parpadea.",
+"Dinámica",
+"Manual",
+"Configuración del modo de altura manual",
+"Establecer la altura de la fila 1",
+"Establecer la altura de la fila 2",
+"Establecer la altura de la fila 3",
+"Panel lateral",
+"Establecer Desplazamiento Y",
+"Anchos de paneles laterales manuales",
+"Establecer el ancho de la columna 1",
+"Establecer el ancho de la columna 2",
+"Configuración de anulación de Bartender4",
+"Estos ajustes controlan lo que MayronUI puede hacer con las barras de acción de Bartender4. Por defecto, MayronUI:",
+"Desvanece las barras de acción hacia adentro y hacia afuera cuando presiona los botones de flecha proporcionados.",
+"Mantiene la visibilidad de las barras de acción entre sesiones de juego.",
+"Establece la escala y el relleno de los botones de la barra de acción para que encajen mejor dentro de los paneles de fondo.",
+"Establece y actualiza la posición de las barras de acción para que permanezcan en su lugar sobre los paneles de fondo.",
+"Bottom Bartender4 Barras de acción",
+"Si está habilitado, MayronUI moverá las barras de acción Bartender4 seleccionadas a la posición correcta para usted.",
+"Posicionamiento de la barra de control",
+"Anular relleno de barra",
+"Si está habilitado, MayronUI configurará el relleno de la barra de acción Bartender4 seleccionada para que se ajuste mejor al panel de fondo.",
+"Anular escala de barras",
+"Si está habilitado, MayronUI establecerá la escala de la barra de acción Bartender4 seleccionada para que se ajuste mejor al panel de fondo.",
+"Establecer espaciado entre filas",
+"Establecer relleno de barra",
+"Establecer escala de barra",
+"El panel inferior puede mostrar y controlar hasta dos barras de acción Bartender4 por fila.",
+"Side Bartender4 Barras de acción",
+"Establecer espaciado de columnas",
+"Columna",
 };
 
 ------------------------
 --- STEP 2:
 ------------------------
 local EnglishKeys = {
-  "Show Online Friends";
-  "Toggle Friends List";
-  "Show Guild Members";
-  "Toggle Guild Pane";
-  "Quests";
+  "MayronUI AddOn Presets",
+  "No Supported AddOns Loaded",
+  "The following selected addons will have their settings reset to the MayronUI preset settings:",
+  "There is a newer MayronUI preset available for %s.",
+  "Would you like to install it?",
+  "Warning! This will wipe all customizations you have made to %s.",
+  "Install Preset",
+  "Skip this Version",
+  "You can always install presets at anytime from the custom install tab located on the MayronUI installer.",
+  "Hint: Type %s to access the installer.",
+  "Set Arrow Button Visibility",
+  "Hide Arrow Buttons In Combat",
+  "Set Width Mode",
+  "If set to dynamic, MayronUI will calculate the optimal width for the selected Bartender4 action bars to fit inside the panel.",
+  "Set Panel Padding",
+  "Set Height Mode",
+  "If set to dynamic, MayronUI will calculate the optimal height for the selected Bartender4 action bars to fit inside the panel.",
+  "Set the modifier key/s that should be pressed to show the arrow buttons.",
+  "Set Animation Speed",
+  "These settings control the MayronUI artwork behind the Bartender4 action bars.",
+  "Background Panel Settings",
+  "Bottom Panel",
+  "Action Bars",
+  "Popular Settings",
+  "Global Settings",
+  "These settings are applied account-wide",
+  "Override Master Font",
+  "Override Combat Font",
+  "Combat Font",
+  "This font is used to display the damage and healing combat numbers.",
+  "Miscellaneous",
+  "Blizzard Frames",
+  "Clamped to Screen",
+  "If checked, Blizzard frames cannot be dragged outside of the screen.",
+  "Reset Positions",
+  "Blizzard frame positions have been reset.",
+  "Set the alpha change while pulsing/flashing.",
+  "Dynamic",
+  "Manual",
+  "Manual Height Mode Settings",
+  "Set Row 1 Height",
+  "Set Row 2 Height",
+  "Set Row 3 Height",
+  "Side Panel",
+  "Set Y-Offset",
+  "Manual Side Panel Widths",
+  "Set Column 1 Width",
+  "Set Column 2 Width",
+  "Bartender4 Override Settings",
+  "These settings control what MayronUI is allowed to do with the Bartender4 action bars. By default, MayronUI:",
+  "Fades action bars in and out when you press the provided arrow buttons.",
+  "Maintains the visibility of action bars between sessions of gameplay.",
+  "Sets the scale and padding of action bar buttons to best fit inside the background panels.",
+  "Sets and updates the position the action bars so they remain in place ontop of the background panels.",
+  "Bottom Bartender4 Action Bars",
+  "If enabled, MayronUI will move the selected Bartender4 action bars into the correct position for you.",
+  "Control Bar Positioning",
+  "Override Bar Padding",
+  "If enabled, MayronUI will set the padding of the selected Bartender4 action bar to best fit the background panel.",
+  "Override Bar Scale",
+  "If enabled, MayronUI will set the scale of the selected Bartender4 action bar to best fit the background panel.",
+  "Set Row Spacing",
+  "Set Bar Padding",
+  "Set Bar Scale",
+  "The bottom panel can display and control up to two Bartender4 action bars per row.",
+  "Side Bartender4 Action Bars",
+  "Set Column Spacing",
+  "Column",
 };
-
-
 
 ------------------------
 --- STEP 3: Print!
 ------------------------
+local output = "";
 for id, key in ipairs(EnglishKeys) do
   local value = OtherLanguageValues[id];
-  print("L[\"" .. key .. "\"] = \"" .. value .. "\";");
+  output = output .. "L[\"" .. key .. "\"] = \"" .. value .. "\";\n";
 end
+
+print(output);
+print("Finished!");

@@ -398,14 +398,15 @@ function Private:LoadCustomMenu(menuSection)
   -- AddOn Settings to Inject
   menuSection.injectTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
   menuSection.injectTitle:SetPoint("TOPLEFT", menuSection.scaleTitle, "TOPRIGHT", 50, 0);
-  menuSection.injectTitle:SetText("MayronUI AddOn Presets");
+  menuSection.injectTitle:SetText(L["MayronUI AddOn Presets"]);
   menuSection.injectTitle:SetWidth(320);
   menuSection.injectTitle:SetJustifyH("LEFT");
 
   menuSection.injectDescription = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
   menuSection.injectDescription:SetPoint("TOPLEFT", menuSection.injectTitle, "BOTTOMLEFT", 0, -5);
   menuSection.injectDescription:SetWidth(320);
-  menuSection.injectDescription:SetText("The following selected addons will have their settings reset to the MayronUI preset settings:")
+  menuSection.injectDescription:SetText(
+    L["The following selected addons will have their settings reset to the MayronUI preset settings:"])
   menuSection.injectDescription:SetJustifyH("LEFT");
 
   local previous;
@@ -449,7 +450,7 @@ function Private:LoadCustomMenu(menuSection)
     local fontString = menuSection.addonContainer:CreateFontString(
       nil, "ARTWORK", "GameFontHighlightLarge");
     fontString:SetPoint("CENTER");
-    fontString:SetText("No Supported AddOns Loaded");
+    fontString:SetText(L["No Supported AddOns Loaded"]);
   end
 
   -- install button
@@ -569,8 +570,8 @@ local function GetCreditsSections(...)
 
     for i, name in ipairs(names) do
       names[i] = string.format(
-                   "|TInterface\\Challenges\\ChallengeMode_Medal_Gold:18:18:0:-4|t %s",
-                     strtrim(name));
+        "|TInterface\\Challenges\\ChallengeMode_Medal_Gold:18:18:0:-4|t %s",
+          strtrim(name));
     end
 
     sections[s] = strjoin("\n", unpack(names));
@@ -614,11 +615,10 @@ function C_SetUpModule:Show(data)
   window:SetPoint("CENTER");
   window:SetFrameStrata("DIALOG");
   window:RegisterEvent("PLAYER_REGEN_DISABLED");
-  window:SetScript(
-    "OnEvent", function(self)
-      self:Hide();
-      tk:Print(L["Cannot install while in combat."]);
-    end);
+  window:SetScript("OnEvent", function(self)
+    self:Hide();
+    tk:Print(L["Cannot install while in combat."]);
+  end);
 
   if (tk:IsLocale("itIT")) then
     window:SetSize(900, 582);
@@ -629,7 +629,7 @@ function C_SetUpModule:Show(data)
 
   window.bg = tk:SetBackground(window, 0, 0, 0, 0.8); -- was 0.8 but set to 0.2 for testing
   window.bg:SetDrawLayer("BACKGROUND", -5);
-  window.bg:SetAllPoints(UIParent);
+  window.bg:SetAllPoints(_G.UIParent);
 
   -- turn window frame into a Panel
   window = Panel(window);
@@ -846,16 +846,16 @@ do
 
         if (db.profile.chat) then
           if (db.profile.chat.chatFrames["TOPLEFT"].enabled) then
-            chatFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 34, -55);
+            chatFrame:SetPoint("TOPLEFT", _G.UIParent, "TOPLEFT", 34, -55);
 
           elseif (db.profile.chat.chatFrames["BOTTOMLEFT"].enabled) then
-            chatFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", 34, 30);
+            chatFrame:SetPoint("BOTTOMLEFT", _G.UIParent, "BOTTOMLEFT", 34, 30);
 
           elseif (db.profile.chat.chatFrames["TOPRIGHT"].enabled) then
-            chatFrame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -34, -55);
+            chatFrame:SetPoint("TOPRIGHT", _G.UIParent, "TOPRIGHT", -34, -55);
 
           elseif (db.profile.chat.chatFrames["BOTTOMRIGHT"].enabled) then
-            chatFrame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", 34, -30);
+            chatFrame:SetPoint("BOTTOMRIGHT", _G.UIParent, "BOTTOMRIGHT", 34, -30);
           end
         end
 
