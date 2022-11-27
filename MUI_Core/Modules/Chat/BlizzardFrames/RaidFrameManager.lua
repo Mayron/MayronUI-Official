@@ -50,9 +50,9 @@ end
 
 function C_ChatModule:SetUpRaidFrameManager(data)
   -- Hide Blizzard Compact Manager:
-  -- CompactRaidFrameManager:DisableDrawLayer("ARTWORK");
-  -- CompactRaidFrameManager:EnableMouse(false);
-  -- tk:KillElement(CompactRaidFrameManager.toggleButton);
+  CompactRaidFrameManager:DisableDrawLayer("ARTWORK");
+  CompactRaidFrameManager:EnableMouse(false);
+  tk:KillElement(CompactRaidFrameManager.toggleButton);
 
   tk:KillAllElements(
     _G.CompactRaidFrameManagerDisplayFrameHeaderDelineator,
