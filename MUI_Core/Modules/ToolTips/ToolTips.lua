@@ -1061,15 +1061,6 @@ function C_ToolTipsModule:OnEnable(data)
     tooltipStyle.backdropBorderColor.GetRGB = _G.ColorMixin.GetRGBA;
   end
 
-  gameTooltip:HookScript("OnShow", function()
-    if (IsInCombatAndHidden(data)) then return end
-    HideAllAuras(data);
-
-    if (not data.settings.muiTexture.enabled) then
-      originalSetBackdropBorderColor(gameTooltip, unpack(data.settings.backdrop.borderColor));
-    end
-  end);
-
   SetBackdropStyle(data);
   ApplyHealthBarChanges(data);
   SetFonts(data);
@@ -1078,40 +1069,35 @@ function C_ToolTipsModule:OnEnable(data)
     if (UnitGUID(MOUSEOVER) ~= guid or IsInCombatAndHidden(data)) then return end
 
     local specID = GetInspectSpecialization(MOUSEOVER);
-    local specializationName = select(2, GetSpecializationInfoByID(specID));
+    local specializationName = (select(2, GetSpecializationInfoByID(specID)));
     local itemLevel = C_PaperDollInfo.GetInspectItemLevel(MOUSEOVER);
 
-    if (not tk.Strings:IsNilOrWhiteSpace(specializationName)) then
-      handler:SetEnabled(false);
-
-      if (obj:IsTable(data.specCache) and data.settings.specShown) then
-        data.specCache[guid] = specializationName;
-        SetDoubleLine(SPEC_LABEL, specializationName);
-      end
-
-      if (obj:IsTable(data.itemLevelCache) and data.settings.itemLevelShown) then
-        data.itemLevelCache[guid] = itemLevel;
-        SetDoubleLine(ITEM_LEVEL_LABEL, itemLevel);
-      end
-
-      RefreshPadding(data);
+    if (tk.Strings:IsNilOrWhiteSpace(specializationName)) then
+      specializationName = L["No Spec"];
     end
+
+    handler:SetEnabled(false);
+
+    if (obj:IsTable(data.specCache) and data.settings.specShown) then
+      data.specCache[guid] = specializationName;
+      SetDoubleLine(SPEC_LABEL, specializationName);
+    end
+
+    if (obj:IsTable(data.itemLevelCache) and data.settings.itemLevelShown) then
+      data.itemLevelCache[guid] = itemLevel;
+      SetDoubleLine(ITEM_LEVEL_LABEL, itemLevel);
+    end
+
+    RefreshPadding(data);
   end);
 
   specListener:RegisterEvent("INSPECT_READY");
   specListener:SetEnabled(false);
 
-  local combatListener = em:CreateEventListener(function()
-    IsInCombatAndHidden(data, nil, true);
-  end);
+  local regenDisabledListener = function() IsInCombatAndHidden(data, nil, true) end;
+  em:CreateEventListener(regenDisabledListener):RegisterEvent("PLAYER_REGEN_DISABLED");
 
-  combatListener:RegisterEvent("PLAYER_REGEN_DISABLED");
-
-  gameTooltip:HookScript("OnShow", function()
-    RefreshPadding(data);
-  end);
-
-  local listener = em:CreateEventListener(function()
+  local function UpdateUnitInformation()
     local unitExists = UnitExists(MOUSEOVER);
     if (not unitExists or IsInCombatAndHidden(data)) then return end
 
@@ -1157,17 +1143,15 @@ function C_ToolTipsModule:OnEnable(data)
     end
 
     RefreshPadding(data);
-  end);
+  end
 
-  listener:RegisterEvent("UPDATE_MOUSEOVER_UNIT");
-
-
-  local function UpdateTooltipPosition(tooltip, parent)
+  local function UpdatePositioning(tooltip, parent)
     parent = parent or tooltip:GetParent();
+
     if (IsInCombatAndHidden(data, tooltip) or not tooltip or not parent) then return end
     local anchorType;
 
-    if (UnitExists(MOUSEOVER) or (tooltip:GetUnit())) then
+    if (UnitExists(MOUSEOVER) or (tooltip:GetUnit()) or parent.unit) then
       anchorType = data.settings.anchors.units:lower();
     else
       anchorType = data.settings.anchors.standard:lower();
@@ -1180,12 +1164,6 @@ function C_ToolTipsModule:OnEnable(data)
 
     local anchor = data.settings.anchors[anchorType.."Anchor"];
 
-    -- local effScale = tooltip:GetEffectiveScale();
-    -- local cursorX, cursorY = GetCursorPosition();
-    -- local xOffset = (cursorX / effScale + anchor.xOffset);
-    -- local yOffset = (cursorY / effScale + anchor.yOffset);
-    -- tooltip:SetPoint(anchor.point, _G.UIParent, "BOTTOMLEFT", xOffset, yOffset);
-
     if (anchorType == "mouse") then
       tooltip:ClearAllPoints();
       tooltip:SetOwner(parent, anchor.point, anchor.xOffset, anchor.yOffset);
@@ -1196,6 +1174,21 @@ function C_ToolTipsModule:OnEnable(data)
     end
   end
 
-  -- set positioning of tooltip:
-  hooksecurefunc("GameTooltip_SetDefaultAnchor", UpdateTooltipPosition);
+  -- Set Positioning (mouse or anchor):
+  hooksecurefunc("GameTooltip_SetDefaultAnchor", UpdatePositioning);
+
+  -- Update Unit Frame Information on Tooltip:
+  hooksecurefunc("UnitFrame_UpdateTooltip", UpdateUnitInformation);
+  em:CreateEventListener(UpdateUnitInformation):RegisterEvent("UPDATE_MOUSEOVER_UNIT");
+
+  -- Reset Padding and Hide Auras:
+  gameTooltip:HookScript("OnShow", function()
+    if (IsInCombatAndHidden(data)) then return end
+    RefreshPadding(data);
+    HideAllAuras(data);
+
+    if (not data.settings.muiTexture.enabled) then
+      originalSetBackdropBorderColor(gameTooltip, unpack(data.settings.backdrop.borderColor));
+    end
+  end);
 end
