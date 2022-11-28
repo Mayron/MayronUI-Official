@@ -16,6 +16,9 @@ local FillLocalizedClassList, UnitName = _G.FillLocalizedClassList, _G.UnitName;
 local BaseModule = obj:CreateClass("BaseModule");
 obj:Export(BaseModule, "MayronUI");
 
+local locale = _G.GetLocale();
+local unsupportedFont = locale == "ruRU" or locale == "zhCN" or locale == "zhTW" or locale == "koKR";
+
 -- Load Database Defaults -------------
 
 db:AddToDefaults("global", {
@@ -33,7 +36,7 @@ db:AddToDefaults("global", {
       master = "MUI_Font";
       useMasterFont = true;
 
-      combat = "Prototype";
+      combat = (unsupportedFont and "MUI_Font") or "Prototype";
       useCombatFont = true;
     };
 

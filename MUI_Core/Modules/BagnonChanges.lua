@@ -9,6 +9,7 @@ function BagnonChanges:Apply()
   if (IsAddOnLoaded("Bagnon")) then
     -- support for older versions of Bagnon
     if (obj:IsFunction(_G.Bagnon.CreateFrame)) then
+
       tk:HookFunc(_G.Bagnon, "CreateFrame", function(_, id)
         local f = _G.Bagnon:GetFrame(id);
 
@@ -24,6 +25,7 @@ function BagnonChanges:Apply()
 
         f.muiUpdate = true;
       end);
+
     else
       -- newer version of Bagnon
       tk:HookFunc(_G.Bagnon.Frame, "UpdateBackdrop", function(self)
@@ -41,11 +43,14 @@ function BagnonChanges:Apply()
       end);
     end
   else
-    em:CreateEventListener(function(listener, _, name)
+    local callback = function(_, _, name)
       if (name == "Bagnon") then
-        self:SetUpBagnon();
-        listener:Destroy();
+        self:Apply();
       end
-    end):RegisterEvent("ADDON_LOADED");
+    end
+
+    em:CreateEventListener(callback)
+      :RegisterEvent("ADDON_LOADED")
+      :SetExecuteOnce(true);
   end
 end
