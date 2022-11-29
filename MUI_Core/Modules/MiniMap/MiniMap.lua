@@ -19,8 +19,9 @@ local Minimap, math, table, C_Timer, Minimap_ZoomIn, Minimap_ZoomOut,
 local IsInInstance, GetInstanceInfo, GetNumGroupMembers, ipairs =
   _G.IsInInstance, _G.GetInstanceInfo, _G.GetNumGroupMembers, _G.ipairs;
 
-local ShowGarrisonLandingPage, strformat = _G.ShowGarrisonLandingPage,
-  _G.string.format;
+local ShowGarrisonLandingPage, strformat = _G.ShowGarrisonLandingPage, _G.string.format;
+
+local C_Garrison, C_Covenants = _G.C_Garrison, _G.C_Covenants;
 
 do
   local backdrop = _G.MinimapBackdrop;
@@ -42,59 +43,69 @@ local function HideMenu()
   end
 end
 
+local function CanViewMissions()
+  local garrisonType = C_Garrison.GetLandingPageGarrisonType();
+
+  if (garrisonType == 111) then
+    local covenantData = C_Covenants.GetCovenantData(C_Covenants.GetActiveCovenantID());
+    return covenantData ~= nil;
+  end
+
+  return false;
+end
+
 -- Load Database Defaults --------------
 
-db:AddToDefaults(
-  "profile.minimap", {
-    enabled = true;
-    point = "TOPRIGHT";
-    relativePoint = "TOPRIGHT";
-    x = -4;
-    y = -4;
-    size = 200;
-    scale = 1;
-    hideIcons = true;
-    testMode = false; -- for testing
+db:AddToDefaults("profile.minimap", {
+  enabled = true;
+  point = "TOPRIGHT";
+  relativePoint = "TOPRIGHT";
+  x = -4;
+  y = -4;
+  size = 200;
+  scale = 1;
+  hideIcons = true;
+  testMode = false; -- for testing
 
-    widgets = {
-      clock = {
-        hide = false;
-        fontSize = 12;
-        point = "BOTTOMRIGHT";
-        x = 0;
-        y = tk:IsRetail() and 4 or 0
-      };
-
-      difficulty = {
-        show = true;
-        fontSize = 12;
-        point = "TOPRIGHT";
-        x = -8;
-        y = -8;
-      };
-
-      lfg = { scale = 0.9; point = "BOTTOMLEFT"; x = 22; y = 0 };
-
-      mail = {
-        scale = 1;
-        point = "BOTTOMRIGHT";
-        x = -8;
-        y = 22
-      };
-
-      missions = { hide = false; scale = 0.6; point = "TOPLEFT"; x = -8; y = 2 };
-
-      tracking = {
-        hide = false;
-        scale = (tk:IsRetail() and 1.2 or 0.8);
-        point = "BOTTOMLEFT";
-        x = tk:IsRetail() and 2 or 0;
-        y = tk:IsRetail() and 4 or 2;
-      };
-
-      zone = { hide = true; point = "TOP"; fontSize = 10; x = 0; y = -4 };
+  widgets = {
+    clock = {
+      hide = false;
+      fontSize = 12;
+      point = "BOTTOMRIGHT";
+      x = 0;
+      y = tk:IsRetail() and 4 or 0
     };
-  });
+
+    difficulty = {
+      show = true;
+      fontSize = 12;
+      point = "TOPRIGHT";
+      x = -8;
+      y = -8;
+    };
+
+    lfg = { scale = 0.9; point = "BOTTOMLEFT"; x = 22; y = 0 };
+
+    mail = {
+      scale = 1;
+      point = "BOTTOMRIGHT";
+      x = -8;
+      y = 22
+    };
+
+    missions = { hide = false; scale = 0.6; point = "TOPLEFT"; x = -8; y = 2 };
+
+    tracking = {
+      hide = false;
+      scale = (tk:IsRetail() and 1.2 or 0.8);
+      point = "BOTTOMLEFT";
+      x = tk:IsRetail() and 2 or 0;
+      y = tk:IsRetail() and 4 or 2;
+    };
+
+    zone = { hide = true; point = "TOP"; fontSize = 10; x = 0; y = -4 };
+  };
+});
 
 local Minimap_OnDragStart;
 local Minimap_OnDragStop;
@@ -300,10 +311,8 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
 
 do
   local widgetMethods = {};
-  local positioningMethods = {
-    "SetParent"; "ClearAllPoints"; "SetPoint"; "SetScale";
-  };
-  local visibilityMethods = { "Show"; "Hide"; "SetShown" };
+  local positioningMethods = {"SetParent"; "ClearAllPoints"; "SetPoint"; "SetScale"};
+  local visibilityMethods = {"Show"; "Hide"; "SetShown"};
 
   function C_MiniMapModule.Private:SetUpWidget(data, name, widget)
     obj:Assert(widget, "Failed to setup minimap widget %s.", name);
@@ -311,9 +320,8 @@ do
     local methods = widgetMethods[name];
     local settings = data.settings.widgets[name];
 
-    obj:Assert(
-      obj:IsTable(settings),
-        "Mini-Map widget settings not found with key '%s'.", name);
+    obj:Assert(obj:IsTable(settings),
+      "Mini-Map widget settings not found with key '%s'.", name);
 
     if (not methods) then
       methods = obj:PopTable();
@@ -377,8 +385,7 @@ do
           -- don't show missions icon just yet, wait for the garrison type to be available
           shown = false;
           local missionsListener = em:CreateEventListener(function()
-            if (_G.C_Garrison.GetLandingPageGarrisonType() ~= 0) then
-              -- show when player actually has a "GarrisonType", new players always have 0
+            if (CanViewMissions()) then
               if (not widget:IsShown()) then
                 if (widget.SetShown ~= tk.Constants.DUMMY_FUNC) then
                   widget:SetShown(true);
@@ -619,8 +626,7 @@ function C_MiniMapModule.Private:UpdateTrackingMenuOptionVisibility(data)
         text = L["Tracking Menu"];
         notCheckable = true;
         func = function()
-          ToggleDropDownMenu(
-            1, nil, _G.MiniMapTrackingDropDown, "MiniMapTracking", 0, -5);
+          ToggleDropDownMenu(1, nil, _G.MiniMapTrackingDropDown, "MiniMapTracking", 0, -5);
           PlaySound(tk.Constants.CLICK);
         end;
       });
@@ -631,74 +637,49 @@ function C_MiniMapModule:GetRightClickMenuList()
   local menuList = obj:PopTable();
 
   if (tk:IsRetail() or tk:IsWrathClassic()) then
-    table.insert(
-      menuList, {
-        text = L["Calendar"];
-        notCheckable = true;
-        func = function()
-          if (not _G["CalendarFrame"]) then
-            LoadAddOn("Blizzard_Calendar");
-          end
-          _G.Calendar_Toggle();
-        end;
-      });
+    table.insert(menuList, {
+      text = L["Calendar"];
+      notCheckable = true;
+      func = function()
+        if (not _G["CalendarFrame"]) then
+          LoadAddOn("Blizzard_Calendar");
+        end
+        _G.Calendar_Toggle();
+      end;
+    });
   end
 
   if (tk:IsRetail()) then
-    local function ShowMissions(garrTypeId)
-      LoadAddOn("Blizzard_GarrisonUI");
-      local items = _G.C_Garrison.GetAvailableMissions(
-                      _G.GetPrimaryGarrisonFollowerType(
-                        garrTypeId));
+    local listItem = {
+      notCheckable = true;
+      func = function()
+        if (CanViewMissions()) then
+          ShowGarrisonLandingPage(111);
+        else
+          MayronUI:Print(L["You must be a member of a covenant to view this."]);
+        end
+      end;
+    };
 
-      if (obj:IsTable(items)) then
-        ShowGarrisonLandingPage(garrTypeId);
-      else
-        MayronUI:Print("No available missions to show.");
+    table.insert(menuList, listItem);
+
+    local function LoadMissionsListItem()
+      if (not CanViewMissions()) then
+        return false;
       end
+
+      listItem.text = L["Covenant Sanctum"];
+
+      return true;
     end
 
-    table.insert(
-      menuList, {
-        text = L["Garrison Report"];
-        notCheckable = true;
-        func = function()
-          ShowMissions(2);
-        end;
-      });
-
-    table.insert(
-      menuList, {
-        text = L["Class Order Hall"];
-        notCheckable = true;
-        func = function()
-          ShowMissions(3);
-        end;
-      });
-
-    table.insert(
-      menuList, {
-        text = L["Missions"];
-        notCheckable = true;
-        func = function()
-          ShowMissions(9);
-        end;
-      });
-
-    table.insert(
-      menuList, {
-        text = L["Covenant Sanctum"];
-        notCheckable = true;
-        func = function()
-          LoadAddOn("Blizzard_GarrisonUI");
-          if (_G.C_Covenants.GetActiveCovenantID() >= 1) then
-            ShowGarrisonLandingPage(111);
-          else
-            MayronUI:Print(
-              L["You must be a member of a covenant to view this."]);
-          end
-        end;
-      });
+    if (not LoadMissionsListItem()) then
+      em:CreateEventListener(function(self)
+        if (LoadMissionsListItem()) then
+          self:Destroy();
+        end
+      end):RegisterEvent("GARRISON_UPDATE");
+    end
   end
 
   local function TriggerCommand(_, arg1, arg2)
@@ -706,52 +687,51 @@ function C_MiniMapModule:GetRightClickMenuList()
     HideMenu();
   end
 
-  table.insert(
-    menuList, {
-      text = tk.Strings:SetTextColorByTheme("MayronUI");
-      notCheckable = true;
-      keepShownOnClick = true;
-      hasArrow = true;
-      menuList = {
-        {
-          notCheckable = true;
-          text = L["Config Menu"];
-          arg1 = "config";
-          func = TriggerCommand;
-        }; {
-          notCheckable = true;
-          text = L["Install"];
-          arg1 = "install";
-          func = TriggerCommand;
-        }; {
-          notCheckable = true;
-          text = L["Layouts"];
-          arg1 = "layouts";
-          func = TriggerCommand;
-        }; {
-          notCheckable = true;
-          text = L["Profile Manager"];
-          arg1 = "profiles";
-          func = TriggerCommand;
-        }; {
-          notCheckable = true;
-          text = L["Show Profiles"];
-          arg1 = "profiles";
-          arg2 = "list";
-          func = TriggerCommand;
-        }; {
-          notCheckable = true;
-          text = L["Version"];
-          arg1 = "version";
-          func = TriggerCommand;
-        }; {
-          notCheckable = true;
-          text = L["Report"];
-          arg1 = "report";
-          func = TriggerCommand;
-        };
+  table.insert(menuList, {
+    text = tk.Strings:SetTextColorByTheme("MayronUI");
+    notCheckable = true;
+    keepShownOnClick = true;
+    hasArrow = true;
+    menuList = {
+      {
+        notCheckable = true;
+        text = L["Config Menu"];
+        arg1 = "config";
+        func = TriggerCommand;
+      }; {
+        notCheckable = true;
+        text = L["Install"];
+        arg1 = "install";
+        func = TriggerCommand;
+      }; {
+        notCheckable = true;
+        text = L["Layouts"];
+        arg1 = "layouts";
+        func = TriggerCommand;
+      }; {
+        notCheckable = true;
+        text = L["Profile Manager"];
+        arg1 = "profiles";
+        func = TriggerCommand;
+      }; {
+        notCheckable = true;
+        text = L["Show Profiles"];
+        arg1 = "profiles";
+        arg2 = "list";
+        func = TriggerCommand;
+      }; {
+        notCheckable = true;
+        text = L["Version"];
+        arg1 = "version";
+        func = TriggerCommand;
+      }; {
+        notCheckable = true;
+        text = L["Report"];
+        arg1 = "report";
+        func = TriggerCommand;
       };
-    });
+    };
+  });
 
   local libDbIcons = _G.LibStub("LibDBIcon-1.0");
 
@@ -781,8 +761,7 @@ function C_MiniMapModule:GetRightClickMenuList()
         "Button", nil, "MUI_MinimapButton_" .. name, "UIDropDownCustomMenuEntryTemplate");
       customBtn:Hide();
 
-      customBtn:SetHighlightTexture(
-        "Interface\\QuestFrame\\UI-QuestTitleHighlight");
+      customBtn:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight");
 
       local height = _G.UIDROPDOWNMENU_BUTTON_HEIGHT;
       customBtn:SetHeight(height);
@@ -792,8 +771,7 @@ function C_MiniMapModule:GetRightClickMenuList()
       customBtn.icon:SetTexture(iconButton.icon:GetTexture());
       customBtn.icon:SetPoint("RIGHT", 0, 0);
 
-      local fs = customBtn:CreateFontString(
-                   nil, "OVERLAY", "GameFontHighlightSmall");
+      local fs = customBtn:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
       fs:SetPoint("LEFT", 4, 0);
       fs:SetText(knownAddOnsText[name] or name);
       fs:SetJustifyH("LEFT");
@@ -847,8 +825,7 @@ function C_MiniMapModule:GetRightClickMenuList()
         end
       end);
 
-      customBtn:RegisterForClicks(
-        "LeftButtonUp", "RightButtonUp", "MiddleButtonUp");
+      customBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp", "MiddleButtonUp");
 
       customBtn:SetScript("OnClick", function(_, buttonName)
         if (obj:IsFunction(iconButton.dataObject.OnClick)) then
@@ -943,9 +920,8 @@ function C_MiniMapModule:OnEnable(data)
   Minimap.size:SetPoint("TOP", Minimap, "BOTTOM", 0, 40);
 
   Minimap:ClearAllPoints();
-  Minimap:SetPoint(
-    data.settings.point, _G.UIParent, data.settings.relativePoint,
-      data.settings.x, data.settings.y);
+  Minimap:SetPoint(data.settings.point, _G.UIParent, 
+    data.settings.relativePoint, data.settings.x, data.settings.y);
 
   _G.MinimapCluster:EnableMouse(false);
 
@@ -973,12 +949,11 @@ function C_MiniMapModule:OnEnable(data)
     Minimap:SetQuestBlobRingScalar(0);
   end
 
-  Minimap:SetBackdrop(
-    {
-      bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark";
-      edgeFile = tk:GetAssetFilePath("Borders\\Solid.tga");
-      edgeSize = 1;
-    });
+  Minimap:SetBackdrop({
+    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark";
+    edgeFile = tk:GetAssetFilePath("Borders\\Solid.tga");
+    edgeSize = 1;
+  });
 
   Minimap:SetBackdropBorderColor(0, 0, 0);
 
@@ -991,47 +966,44 @@ function C_MiniMapModule:OnEnable(data)
     end);
 
   Minimap:SetScript("OnDragStart", Minimap_OnDragStart);
-  Minimap:SetScript(
-    "OnDragStop", function()
-      Minimap_OnDragStop(data)
-    end);
+  Minimap:SetScript("OnDragStop", function()
+    Minimap_OnDragStop(data)
+  end);
 
-  Minimap:HookScript(
-    "OnEnter", function(self)
-      if (data.settings.Tooltip) then
-        -- helper tooltip (can be hidden)
-        return
+  Minimap:HookScript("OnEnter", function(self)
+    if (data.settings.Tooltip) then
+      -- helper tooltip (can be hidden)
+      return
+    end
+
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -2)
+    GameTooltip:SetText("MUI MiniMap"); -- This sets the top line of text, in gold.
+    GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
+    GameTooltip:AddDoubleLine(
+      L["SHIFT + Drag:"], L["Resize Minimap"], 1, 1, 1);
+    GameTooltip:AddDoubleLine(L["Left Click:"], L["Ping Minimap"], 1, 1, 1);
+    GameTooltip:AddDoubleLine(L["Right Click:"], L["Show Menu"], 1, 1, 1);
+    GameTooltip:AddDoubleLine(L["Mouse Wheel:"], L["Zoom in/out"], 1, 1, 1);
+    GameTooltip:AddDoubleLine(
+      L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
+    GameTooltip:Show();
+  end);
+
+  Minimap:HookScript("OnMouseDown", function(_, button)
+    if ((IsAltKeyDown()) and (button == "LeftButton")) then
+      local tracker = data.settings:GetTrackedTable();
+
+      if (tracker.Tooltip) then
+        tracker.Tooltip = nil;
+        Minimap:GetScript("OnEnter")(Minimap);
+      else
+        tracker.Tooltip = true;
+        GameTooltip:Hide();
       end
 
-      GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -2)
-      GameTooltip:SetText("MUI MiniMap"); -- This sets the top line of text, in gold.
-      GameTooltip:AddDoubleLine(L["CTRL + Drag:"], L["Move Minimap"], 1, 1, 1);
-      GameTooltip:AddDoubleLine(
-        L["SHIFT + Drag:"], L["Resize Minimap"], 1, 1, 1);
-      GameTooltip:AddDoubleLine(L["Left Click:"], L["Ping Minimap"], 1, 1, 1);
-      GameTooltip:AddDoubleLine(L["Right Click:"], L["Show Menu"], 1, 1, 1);
-      GameTooltip:AddDoubleLine(L["Mouse Wheel:"], L["Zoom in/out"], 1, 1, 1);
-      GameTooltip:AddDoubleLine(
-        L["ALT + Left Click:"], L["Toggle this Tooltip"], 1, 0, 0, 1, 0, 0);
-      GameTooltip:Show();
-    end);
-
-  Minimap:HookScript(
-    "OnMouseDown", function(_, button)
-      if ((IsAltKeyDown()) and (button == "LeftButton")) then
-        local tracker = data.settings:GetTrackedTable();
-
-        if (tracker.Tooltip) then
-          tracker.Tooltip = nil;
-          Minimap:GetScript("OnEnter")(Minimap);
-        else
-          tracker.Tooltip = true;
-          GameTooltip:Hide();
-        end
-
-        tracker:SaveChanges();
-      end
-    end);
+      tracker:SaveChanges();
+    end
+  end);
 
   if (tk:IsRetail() or tk:IsWrathClassic()) then
     local eventBtn = tk:CreateFrame("Button", Minimap);
@@ -1041,29 +1013,27 @@ function C_MiniMapModule:OnEnable(data)
     eventBtn:SetHighlightFontObject("GameFontHighlight");
     eventBtn:Hide();
 
-    eventBtn:SetScript(
-      "OnClick", function()
-        if (not _G.CalendarFrame) then
-          LoadAddOn("Blizzard_Calendar");
-        end
-        _G.Calendar_Toggle();
-      end);
+    eventBtn:SetScript("OnClick", function()
+      if (not _G.CalendarFrame) then
+        LoadAddOn("Blizzard_Calendar");
+      end
+      _G.Calendar_Toggle();
+    end);
 
     eventBtn:RegisterEvent("CALENDAR_UPDATE_PENDING_INVITES");
     eventBtn:RegisterEvent("CALENDAR_ACTION_PENDING");
     eventBtn:RegisterEvent("PLAYER_ENTERING_WORLD");
-    eventBtn:SetScript(
-      "OnEvent", function(self)
-        local numPendingInvites = _G.C_Calendar.GetNumPendingInvites();
+    eventBtn:SetScript("OnEvent", function(self)
+      local numPendingInvites = _G.C_Calendar.GetNumPendingInvites();
 
-        if (numPendingInvites > 0) then
-          self:SetText(strformat("%s (%i)", L["New Event!"], numPendingInvites));
-          self:Show();
-        else
-          self:SetText("");
-          self:Hide();
-        end
-      end);
+      if (numPendingInvites > 0) then
+        self:SetText(strformat("%s (%i)", L["New Event!"], numPendingInvites));
+        self:Show();
+      else
+        self:SetText("");
+        self:Hide();
+      end
+    end);
   end
 
   -- Drop down List:
@@ -1073,14 +1043,13 @@ function C_MiniMapModule:OnEnable(data)
   local menuFrame = tk:CreateFrame("Frame", nil, "MinimapRightClickMenu", "UIDropDownMenuTemplate");
   Minimap.oldMouseUp = Minimap:GetScript("OnMouseUp");
 
-  Minimap:SetScript(
-    "OnMouseUp", function(self, btn)
-      if (btn == "RightButton") then
-        EasyMenu(data.menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
-        PlaySound(tk.Constants.CLICK);
-      else
-        HideMenu();
-        self.oldMouseUp(self);
-      end
-    end);
+  Minimap:SetScript("OnMouseUp", function(self, btn)
+    if (btn == "RightButton") then
+      EasyMenu(data.menuList, menuFrame, "cursor", 0, 0, "MENU", 1);
+      PlaySound(tk.Constants.CLICK);
+    else
+      HideMenu();
+      self.oldMouseUp(self);
+    end
+  end);
 end
