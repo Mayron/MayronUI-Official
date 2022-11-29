@@ -529,8 +529,11 @@ do
           bar:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", data.unitID);
-          bar:RegisterUnitEvent("UNIT_SPELLCAST_EMPOWER_START", data.unitID);
-          bar:RegisterUnitEvent("UNIT_SPELLCAST_EMPOWER_STOP", data.unitID);
+
+          if (tk:IsRetail()) then
+            bar:RegisterUnitEvent("UNIT_SPELLCAST_EMPOWER_START", data.unitID);
+            bar:RegisterUnitEvent("UNIT_SPELLCAST_EMPOWER_STOP", data.unitID);
+          end
 
           if (db.global.castBars.showFoodDrink) then
             bar:RegisterUnitEvent("UNIT_AURA", data.unitID);
