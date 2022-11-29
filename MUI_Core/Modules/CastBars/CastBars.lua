@@ -99,6 +99,7 @@ db:AddToDefaults("profile.castBars", {
 -- Channel Ticks
 -------------------
 local Ticks = obj:PopTable();
+
 function Ticks:Create(data)
     local tick = data.frame.statusbar:CreateTexture(nil, "OVERLAY");
     tick:SetSize(26, data.frame.statusbar:GetHeight() + 20);
@@ -113,25 +114,25 @@ end
 local dummyTick = "_";
 
 if (tk:IsRetail()) then
-    -- CLASSIC OR BC-CLASSIC
-    Ticks.data = {
-      -- PRIEST
-      [(GetSpellInfo(15407)) or dummyTick]  = 6;  -- Mind Flay
-      [(GetSpellInfo(205065)) or dummyTick] = 4;  -- Void Torrent
+  -- CLASSIC OR BC-CLASSIC
+  Ticks.data = {
+    -- PRIEST
+    [(GetSpellInfo(15407)) or dummyTick]  = 6;  -- Mind Flay
+    [(GetSpellInfo(205065)) or dummyTick] = 4;  -- Void Torrent
 
-      -- WARLOCK
-      [(GetSpellInfo(234153)) or dummyTick] = 5;  -- Drain Life
-      [(GetSpellInfo(198590)) or dummyTick] = 5;  -- Drain Soul
+    -- WARLOCK
+    [(GetSpellInfo(234153)) or dummyTick] = 5;  -- Drain Life
+    [(GetSpellInfo(198590)) or dummyTick] = 5;  -- Drain Soul
 
-      -- MAGE
-      [(GetSpellInfo(205021)) or dummyTick] = 10; -- Ray of Frost
+    -- MAGE
+    [(GetSpellInfo(205021)) or dummyTick] = 10; -- Ray of Frost
 
-      -- MONK
-      [(GetSpellInfo(117952)) or dummyTick] = 4;  -- Crackling Jade Lightning
-      [(GetSpellInfo(191837)) or dummyTick] = 3;  -- Essence Font
-      [(GetSpellInfo(113656)) or dummyTick] = 20;  -- fists of fury, first tick instant, aoe
-      [(GetSpellInfo(115175)) or dummyTick] = 8;  -- soothing mist
-    };
+    -- MONK
+    [(GetSpellInfo(117952)) or dummyTick] = 4;  -- Crackling Jade Lightning
+    [(GetSpellInfo(191837)) or dummyTick] = 3;  -- Essence Font
+    [(GetSpellInfo(113656)) or dummyTick] = 20;  -- fists of fury, first tick instant, aoe
+    [(GetSpellInfo(115175)) or dummyTick] = 8;  -- soothing mist
+  };
 else
   -- CLASSIC OR BC-CLASSIC
   Ticks.data = {
@@ -223,12 +224,12 @@ end
 function Events:UNIT_SPELLCAST_STOP(castBar, castBarData, unitID)
   if (UnitCastingInfo(castBarData.unitID)) then
     self:UNIT_SPELLCAST_START(castBar, castBarData, unitID);
-    return;
+    return
   end
 
   if (UnitChannelInfo(castBarData.unitID)) then
     self:UNIT_SPELLCAST_CHANNEL_START(castBar, castBarData, unitID);
-    return;
+    return
   end
 
   castBar:StopCasting();
@@ -305,7 +306,8 @@ function Events:UNIT_AURA(castBar, castBarData, unitID)
           startTime = startTime * 1000;
           expirationTime = expirationTime * 1000;
 
-          castBar:StartCasting(false, true, obj:PopTable(name, iconTexture, startTime, expirationTime, auraId));
+          local auraInfo = obj:PopTable(name, iconTexture, startTime, expirationTime, auraId);
+          castBar:StartCasting(false, true, auraInfo);
         end
     end
   end
@@ -319,6 +321,10 @@ function Events:UNIT_SPELLCAST_CHANNEL_START(castBar, castBarData, unitID)
   castBar:StartCasting(true);
 end
 
+function Events:UNIT_SPELLCAST_EMPOWER_START(castBar, castBarData, unitID)
+  self:UNIT_SPELLCAST_CHANNEL_START(castBar, castBarData, unitID);
+end
+
 ---@param castBar CastBar
 ---@param castBarData table
 function Events:UNIT_SPELLCAST_CHANNEL_STOP(castBar, castBarData)
@@ -326,6 +332,11 @@ function Events:UNIT_SPELLCAST_CHANNEL_STOP(castBar, castBarData)
     castBarData.interrupted = true;
   end
 
+  castBarData.frame.statusbar:SetValue(select(2, castBarData.frame.statusbar:GetMinMaxValues()));
+  castBar:StopCasting();
+end
+
+function Events:UNIT_SPELLCAST_EMPOWER_STOP(castBar, castBarData)
   castBarData.frame.statusbar:SetValue(select(2, castBarData.frame.statusbar:GetMinMaxValues()));
   castBar:StopCasting();
 end
@@ -518,6 +529,8 @@ do
           bar:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", data.unitID);
           bar:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", data.unitID);
+          bar:RegisterUnitEvent("UNIT_SPELLCAST_EMPOWER_START", data.unitID);
+          bar:RegisterUnitEvent("UNIT_SPELLCAST_EMPOWER_STOP", data.unitID);
 
           if (db.global.castBars.showFoodDrink) then
             bar:RegisterUnitEvent("UNIT_AURA", data.unitID);
@@ -586,7 +599,7 @@ function C_CastBar:SetTicks(data, numTicks)
   end
 
   if (numTicks == 0) then
-    return;
+    return
   end
 
   local width = data.frame.statusbar:GetWidth();
@@ -648,18 +661,24 @@ obj:DefineParams("boolean", "boolean=true");
 ---Start casting or channelling a spell/ability.
 ---@param channelling boolean @If true, the casting type is set to "channelling" to reverse the bar direction.
 function C_CastBar:StartCasting(data, channelling, fadeIn, auraInfo)
-  local func = channelling and UnitChannelInfo or UnitCastingInfo;
   local name, text, texture, startTime, endTime, notInterruptible;
   local auraId;
+  local numStages = 0;
   local bar = self:GetFrame();
 
   if (not obj:IsTable(auraInfo)) then
-    name, text, texture, startTime, endTime, _, _, notInterruptible = func(data.unitID);
+    if (channelling) then
+      name, text, texture, startTime, endTime, _, notInterruptible, _, _, numStages = UnitChannelInfo(data.unitID);
+    else
+      -- Casting has a cast ID for 7th arg, but channelling does not have this.
+      name, text, texture, startTime, endTime, _, _, notInterruptible = UnitCastingInfo(data.unitID);
+    end
 
     if (not tk:IsRetail()) then
       notInterruptible = false; -- does not get returned  by func
     end
   else
+    -- Used mostly for food and drink:
     name, texture, startTime, endTime, auraId = obj:UnpackTable(auraInfo);
   end
 
@@ -668,6 +687,15 @@ function C_CastBar:StartCasting(data, channelling, fadeIn, auraInfo)
       self:StopCasting();
     end
     return
+  end
+
+  if (tk:IsRetail() and numStages) then
+		local isChargeSpell = numStages > 0;
+
+		if (isChargeSpell) then
+			endTime = endTime + _G.GetUnitEmpowerHoldAtMaxTime(data.unitID);
+      channelling = false;
+		end
   end
 
   startTime = startTime / 1000; -- To make the same as GetTime() format
@@ -707,12 +735,14 @@ function C_CastBar:StartCasting(data, channelling, fadeIn, auraInfo)
     end
   end
 
+  local totalTime = endTime - startTime;
+
+  self:SetTicks(Ticks.data[name] or numStages or 0);
+
   -- ticks:
   if (channelling) then
-    self:SetTicks(Ticks.data[name] or 0);
-    bar.statusbar:SetValue(endTime - startTime);
+    bar.statusbar:SetValue(totalTime);
   else
-    self:SetTicks(0);
     bar.statusbar:SetValue(0);
   end
 
@@ -725,7 +755,7 @@ function C_CastBar:StartCasting(data, channelling, fadeIn, auraInfo)
   data.channelling = channelling;
   data.unitName = UnitName(data.unitID);
   data.startTime = startTime; -- makes OnUpdate start casting the bar
-  data.totalTime = endTime - startTime;
+  data.totalTime = totalTime;
   data.auraId = auraId;
 end
 

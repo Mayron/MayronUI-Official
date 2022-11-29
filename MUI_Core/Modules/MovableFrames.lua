@@ -1,4 +1,5 @@
 -- luacheck: ignore self 143 631
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
@@ -7,16 +8,14 @@ local pairs, ipairs, table, xpcall = _G.pairs, _G.ipairs, _G.table, _G.xpcall;
 local IsAddOnLoaded, strsplit = _G.IsAddOnLoaded, _G.strsplit;
 
 ---@class MovableModule : BaseModule
-local C_MovableFramesModule = MayronUI:RegisterModule(
-                                "MovableFramesModule", L["Movable Frames"]);
+local C_MovableFramesModule = MayronUI:RegisterModule("MovableFramesModule", L["Movable Frames"]);
 
-db:AddToDefaults(
-  "global.movable", {
-    enabled = true;
-    clampToScreen = true;
-    positions = {};
-    talkingHead = { position = "TOP"; yOffset = -50 };
-  });
+db:AddToDefaults("global.movable", {
+  enabled = true;
+  clampToScreen = true;
+  positions = {};
+  talkingHead = { position = "TOP"; yOffset = -50 };
+});
 
 local characterSubFrames = { "ReputationFrame" };
 
@@ -268,10 +267,9 @@ local function CreateFadingAnimations(f)
   alpha:SetFromAlpha(-1);
   alpha:SetToAlpha(1);
 
-  f.fadeIn:SetScript(
-    "OnFinished", function()
-      f:SetAlpha(1);
-    end);
+  f.fadeIn:SetScript("OnFinished", function()
+    f:SetAlpha(1);
+  end);
 
   f.fadeOut = f:CreateAnimationGroup();
   alpha = f.fadeOut:CreateAnimation("Alpha");
@@ -280,10 +278,63 @@ local function CreateFadingAnimations(f)
   alpha:SetFromAlpha(1);
   alpha:SetToAlpha(-1);
 
-  f.fadeOut:SetScript(
-    "OnFinished", function()
-      f:SetAlpha(0);
-    end);
+  f.fadeOut:SetScript("OnFinished", function()
+    f:SetAlpha(0);
+  end);
+end
+
+local function UpdateTalkingHeadFrame(data)
+  local f = _G.TalkingHeadFrame;
+
+  for i, alertSubSystem in pairs(_G.AlertFrame.alertFrameSubSystems) do
+    if (alertSubSystem.anchorFrame == f) then
+      table.remove(_G.AlertFrame.alertFrameSubSystems, i);
+      break
+    end
+  end
+
+  -- uncomment this out for development to prevent closing of frame
+  -- _G.TalkingHeadFrame.Close = tk.Constants.DUMMY_FUNC;
+
+  -- Reskin:
+  f.PortraitFrame:DisableDrawLayer("OVERLAY");
+  f.MainFrame.Model:DisableDrawLayer("BACKGROUND");
+  f.BackgroundFrame:DisableDrawLayer("BACKGROUND");
+
+  local overlay = f.MainFrame.Overlay;
+  _G.Mixin(overlay, _G.BackdropTemplateMixin);
+  overlay:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
+  overlay:SetBackdropColor(0, 0, 0, 0.5);
+  overlay:SetBackdropBorderColor(tk.Constants.AddOnStyle:GetColor("Widget"));
+  overlay:SetSize(118, 122)
+  overlay:SetPoint("TOPLEFT", 20, -16);
+
+  local bg = gui:CreateDialogBox(f.BackgroundFrame, "LOW");
+  bg:SetPoint("TOPLEFT", 14, -10);
+  bg:SetPoint("BOTTOMRIGHT", -10, 10);
+  bg:SetFrameStrata("HIGH");
+  bg:SetFrameLevel(1);
+
+  CreateFadingAnimations(overlay);
+  CreateFadingAnimations(bg);
+
+  tk:HookFunc(f, "PlayCurrent", function()
+    f:ClearAllPoints();
+    f:SetParent(_G.UIParent);
+    f:SetPoint(data.settings.talkingHead.position, 0, data.settings.talkingHead.yOffset);
+
+    overlay.fadeOut:Stop();
+    bg.fadeOut:Stop();
+    overlay.fadeIn:Play();
+    bg.fadeIn:Play();
+  end);
+
+  tk:HookFunc(f, "Close", function()
+    overlay.fadeIn:Stop();
+    bg.fadeIn:Stop();
+    overlay.fadeOut:Play();
+    bg.fadeOut:Play();
+  end);
 end
 
 function C_MovableFramesModule:OnInitialize(data)
@@ -294,75 +345,9 @@ function C_MovableFramesModule:OnInitialize(data)
     _G.UIPARENT_MANAGED_FRAME_POSITIONS.TalkingHeadFrame = nil;
   end
 
-  local listener = em:CreateEventListener(function(self, _, addOnName)
-      if (addOnName ~= "Blizzard_TalkingHeadUI") then
-        return
-      end
-
-      self:Destroy();
-      local f = _G.TalkingHeadFrame;
-
-      -- Reposition talking head frame to top of screen
-      f:ClearAllPoints();
-      f:SetPoint(
-        data.settings.talkingHead.position, 0, data.settings.talkingHead.yOffset);
-      f:SetScript("OnShow", nil);
-      f:SetScript("OnHide", nil);
-
-      for i, alertSubSystem in pairs(_G.AlertFrame.alertFrameSubSystems) do
-        if (alertSubSystem.anchorFrame == f) then
-          table.remove(_G.AlertFrame.alertFrameSubSystems, i);
-          break
-        end
-      end
-
-      if (not _G.BackdropTemplateMixin) then
-        return
-      end
-      -- code below is used reskinning of the talking head frame
-
-      -- uncomment this out for development to prevent closing of frame
-      -- _G.TalkingHeadFrame_Close = tk.Constants.DUMMY_FUNC;
-      f.PortraitFrame:DisableDrawLayer("OVERLAY");
-      f.MainFrame.Model:DisableDrawLayer("BACKGROUND");
-      f.BackgroundFrame:DisableDrawLayer("BACKGROUND");
-
-      local overlay = f.MainFrame.Overlay;
-      _G.Mixin(overlay, _G.BackdropTemplateMixin);
-      overlay:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
-      overlay:SetBackdropColor(0, 0, 0, 0.5);
-      overlay:SetBackdropBorderColor(tk.Constants.AddOnStyle:GetColor("Widget"));
-      overlay:SetSize(118, 122)
-      overlay:SetPoint("TOPLEFT", 20, -16);
-
-      local bg = gui:CreateDialogBox(f.BackgroundFrame, "LOW", nil,
-                     "MUI_TEST");
-      bg:SetPoint("TOPLEFT", 14, -10);
-      bg:SetPoint("BOTTOMRIGHT", -10, 10);
-      bg:SetFrameStrata("HIGH");
-      bg:SetFrameLevel(1);
-
-      CreateFadingAnimations(overlay);
-      CreateFadingAnimations(bg);
-
-      tk:HookFunc(
-        "TalkingHeadFrame_PlayCurrent", function()
-          overlay.fadeOut:Stop();
-          bg.fadeOut:Stop();
-          overlay.fadeIn:Play();
-          bg.fadeIn:Play();
-        end);
-
-      tk:HookFunc(
-        "TalkingHeadFrame_Close", function()
-          overlay.fadeIn:Stop();
-          bg.fadeIn:Stop();
-          overlay.fadeOut:Play();
-          bg.fadeOut:Play();
-        end);
-    end);
-
-  listener:RegisterEvent("ADDON_LOADED");
+  if (tk:IsRetail() and _G.TalkingHeadFrame) then
+    UpdateTalkingHeadFrame(data);
+  end
 
   if (db.global.movable.enabled) then
     self:SetEnabled(true);
