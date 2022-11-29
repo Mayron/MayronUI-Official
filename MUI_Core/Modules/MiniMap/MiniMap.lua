@@ -779,6 +779,7 @@ function C_MiniMapModule:GetRightClickMenuList()
 
       local customBtn = tk:CreateFrame(
         "Button", nil, "MUI_MinimapButton_" .. name, "UIDropDownCustomMenuEntryTemplate");
+      customBtn:Hide();
 
       customBtn:SetHighlightTexture(
         "Interface\\QuestFrame\\UI-QuestTitleHighlight");
@@ -822,7 +823,7 @@ function C_MiniMapModule:GetRightClickMenuList()
 
       iconButton.Show = function()
         local entry = tk.Tables:First(menuList, function(value)
-          return value.customFrame == customBtn
+          return value.customFrame == customBtn;
         end);
 
         entry.text = name;
@@ -831,7 +832,7 @@ function C_MiniMapModule:GetRightClickMenuList()
 
       iconButton.Hide = function()
         local entry = tk.Tables:First(menuList, function(value)
-          return value.customFrame == customBtn
+          return value.customFrame == customBtn;
         end);
 
         entry.text = nil;
