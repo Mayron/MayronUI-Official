@@ -7,6 +7,7 @@ local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuMod
 local max = _G.math.max;
 
 local function OnCheckButtonClick(self)
+  if (not self:IsEnabled()) then return end
   local checked = self:GetChecked();
   configModule:SetDatabaseValue(self:GetParent(), checked);
 
@@ -18,7 +19,9 @@ local function OnCheckButtonClick(self)
 end
 
 local function OnCheckButtonContainerClick(self)
-  self.btn:Click();
+  if (self.btn:IsEnabled()) then
+    self.btn:Click();
+  end
 end
 
 function Components.check(parent, config, value)
@@ -47,6 +50,7 @@ function Components.check(parent, config, value)
   end
 
   Utils:SetComponentEnabled(cbContainer.btn, config.enabled);
+  Utils:SetShown(cbContainer.btn, config.shown);
 
   return cbContainer;
 end

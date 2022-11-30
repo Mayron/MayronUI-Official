@@ -13,17 +13,17 @@ local tostring, string, ipairs = _G.tostring, _G.string, _G.ipairs;
 local tonumber, tinsert = _G.tonumber, _G.table.insert;
 
 local function SetPositionTextFieldsEnabled(enabled, castBarName)
-    for _, textfield in ipairs(position_TextFields[castBarName]) do
-        textfield:SetEnabled(enabled);
-    end
+  for _, textfield in ipairs(position_TextFields[castBarName]) do
+    textfield:SetEnabled(enabled);
+  end
 
-    for _, textfield in ipairs(width_TextFields[castBarName]) do
-        textfield:SetEnabled(enabled);
-    end
+  for _, textfield in ipairs(width_TextFields[castBarName]) do
+    textfield:SetEnabled(enabled);
+  end
 
-    for _, textfield in ipairs(height_TextFields[castBarName]) do
-        textfield:SetEnabled(enabled);
-    end
+  for _, textfield in ipairs(height_TextFields[castBarName]) do
+    textfield:SetEnabled(enabled);
+  end
 end
 
 local function UnlockCastBar(widget, castBarName)
@@ -80,7 +80,7 @@ local function UnlockCastBar(widget, castBarName)
 
       SetPositionTextFieldsEnabled(true, castBarName);
 
-      if (castBarName ~= "Mirror") then
+      if (sufAnchor_CheckButtons[castBarName]) then
         sufAnchor_CheckButtons[castBarName]:SetChecked(false);
         db:SetPathValue(tk.Strings:Join(".", "profile.castBars", castBarName, "anchorToSUF"), false);
       end
@@ -159,6 +159,13 @@ function C_CastBarsModule:GetConfigTable()
                 tooltip = L["Set the spacing between the status bar and the background."],
                 dbPath = "profile.castBars.appearance.inset"
             },
+            {   name = L["Font Size"],
+                type = "slider",
+                step = 1;
+                min = 8;
+                max = 24;
+                dbPath = "profile.castBars.appearance.fontSize"
+            },
             {   type = "fontstring",
                 content = L["Colors"],
                 subtype = "header",
@@ -209,9 +216,11 @@ function C_CastBarsModule:GetConfigTable()
                 type = "title",
             },
             {   type = "loop",
-                args = { "Player", "Target", "Focus", "Mirror", "Pet" },
+                args = { "Player", "Target", "Focus", "Mirror", "Pet", "Power" },
                 func = function(_, name)
                   if (tk:IsClassic() and name == "Focus") then return end
+                  if (not tk:IsRetail() and name == "Power") then return end
+
                   local config =
                   {
                     name = L[name],
@@ -229,16 +238,16 @@ function C_CastBarsModule:GetConfigTable()
                         requiresReload = true; -- TODO: Can this be reverted?
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".enabled");
                       },
+                      -- 2: Remove for Mirror and Power
                       {
                         name = L["Show Icon"],
                         type = "check",
-                        enabled = name ~= "mirror",
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".showIcon")
                       },
+                      -- 3: Remove for anything that's not "Player"
                       {
                         name = L["Show Latency Bar"],
                         type = "check",
-                        enabled = name == "Player",
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".showLatency");
 
                         GetValue = function(self, value)
@@ -249,13 +258,14 @@ function C_CastBarsModule:GetConfigTable()
                           end
                         end
                       },
+                      -- 4: Remove for Mirror and Power
                       {
                         name = L["Anchor to SUF Portrait Bar"],
                         type = "check",
                         OnLoad = function(_, container)
                           sufAnchor_CheckButtons[name] = container.btn;
                         end,
-                        enabled = name ~= "mirror",
+                        shown = name ~= "Mirror",
                         tooltip = string.format(
                           L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."], name),
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".anchorToSUF"),
@@ -273,15 +283,13 @@ function C_CastBarsModule:GetConfigTable()
                           SetPositionTextFieldsEnabled(not newValue, name);
                         end
                       },
+                      -- 5: Remove for Power
                       {
                         name = L["Left to Right"],
                         type = "check",
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".leftToRight")
                       },
-                      {
-                        type = "divider",
-                        enabled = name ~= "mirror",
-                      },
+                      { type = "divider" },
                       {
                         name = L["Unlock"],
                         type = "button",
@@ -374,10 +382,14 @@ function C_CastBarsModule:GetConfigTable()
                     }
                   };
 
-                  if (name == "Mirror") then
+                  if (name == "Mirror" or name == "Power") then
                     config.children[2] = nil;
-                    config.children[3] = nil;
                     config.children[4] = nil;
+                    config.children[15] = nil;
+                  end
+
+                  if (name ~= "Player") then
+                    config.children[3] = nil;
                   end
 
                   return config;

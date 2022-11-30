@@ -144,12 +144,14 @@ obj:DefineParams("string", "string", "?string", "?string");
 ---@param unit1 string @A unitID to register with the unit event (e.g., "player").
 ---@param unit2 string @An optional 2nd unitID to register with the unit event (e.g., "target").
 ---@param unit3 string @An optional 3rd unitID to register with the unit event (e.g., "focus").
+---@return EventListener
 function C_EventListener:RegisterUnitEvent(data, event, unit1, unit2, unit3)
   data.events = data.events or obj:PopTable();
   data.events[event] = obj:PopTable(unit1, unit2, unit3);
 
   local managerData = data:GetFriendData(data.manager);
   managerData.frame:RegisterEvent(event);
+  return self;
 end
 
 obj:DefineParams("table", "string", "?string", "?string", "boolean=true");
@@ -161,6 +163,7 @@ obj:DefineParams("table", "string", "?string", "?string", "boolean=true");
 ---@param pushTable boolean @Optional boolean value to override the default "true" to avoid recycling the
 ---table passed to the events parameter. If not set to false, the table will be emptied and added to an
 ---internal stack for later use by the MayronObjects framework.
+---@return EventListener
 function C_EventListener:RegisterUnitEvents(_, events, unit1, unit2, unit3, pushTable)
   for _, event in ipairs(events) do
     self:RegisterUnitEvent(event, unit1, unit2, unit3);
@@ -169,24 +172,31 @@ function C_EventListener:RegisterUnitEvents(_, events, unit1, unit2, unit3, push
   if (pushTable) then
     obj:PushTable(events);
   end
+
+  return self;
 end
 
 obj:DefineParams("string");
 ---Register a non-Blizzard, custom addon event for the event listener to listen out for. If enabled, the event listener
 ---will execute its callback function when the event manager fires the custom event using its `FireCustomEvent` method.
 ---@param customEvent string @The non-Blizzard, custom addon event to register.
+---@return EventListener
 function C_EventListener:RegisterCustomEvent(data, customEvent)
   data.customEvents = data.customEvents or obj:PopTable();
   data.customEvents[customEvent] = true;
+  return self;
 end
 
 obj:DefineParams("string", "...string");
 ---A helper method that takes a variable argument list of custom event names and calls RegisterCustomEvent for each one.
 ---@vararg string @A variable argument list of (non-Blizzard) custom addon events to register.
+---@return EventListener
 function C_EventListener:RegisterCustomEvents(_, ...)
   for i = 1, select("#", ...) do
     self:RegisterCustomEvent((select(i, ...)));
   end
+
+  return self;
 end
 
 obj:DefineParams("string");

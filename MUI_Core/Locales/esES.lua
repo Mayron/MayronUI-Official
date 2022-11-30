@@ -1055,3 +1055,4 @@ L["The bottom panel can display and control up to two Bartender4 action bars per
 L["Side Bartender4 Action Bars"] = "Side Bartender4 Barras de acción";
 L["Set Column Spacing"] = "Establecer espaciado de columnas";
 L["Column"] = "Columna";
+L["Power"] = "Poder del jugador";

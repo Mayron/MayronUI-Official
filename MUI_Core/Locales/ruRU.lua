@@ -1177,3 +1177,4 @@ L["The bottom panel can display and control up to two Bartender4 action bars per
 L["Side Bartender4 Action Bars"] = "Боковой бармен4 панели действий";
 L["Set Column Spacing"] = "Установить интервал между столбцами";
 L["Column"] = "Столбец";
+L["Power"] = "Сила игрока";

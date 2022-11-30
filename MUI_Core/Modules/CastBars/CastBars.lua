@@ -70,6 +70,7 @@ db:AddToDefaults("profile.castBars", {
     blendMode     = "ADD";
     borderSize    = 1;
     inset         = 1;
+    fontSize         = 12;
     colors = {
       finished    = {r = 0.8, g = 0.8, b = 0.8, a = 0.7};
       interrupted = {r = 1, g = 0, b = 0, a = 0.7};
@@ -93,6 +94,9 @@ db:AddToDefaults("profile.castBars", {
   Mirror = {
     position = {"TOP", "UIParent", "TOP", 0,  -200};
   };
+  Power = {
+    position = {"TOP", "UIParent", "TOP", 0,  -300};
+  }
 });
 
 -------------------
@@ -341,6 +345,42 @@ function Events:UNIT_SPELLCAST_EMPOWER_STOP(castBar, castBarData)
   castBar:StopCasting();
 end
 
+function Events:UNIT_POWER_BAR_HIDE(_, castBarData)
+  UIFrameFadeOut(castBarData.frame, 1, castBarData.frame:GetAlpha(), 0);
+end
+
+function Events:UNIT_POWER_UPDATE(_, castBarData)
+  local barInfo = _G.GetUnitPowerBarInfo("player");
+
+  if (not barInfo) then
+    self:UNIT_POWER_BAR_HIDE(nil, castBarData);
+    return
+  end
+
+  local min = barInfo.minPower;
+  local current = _G.UnitPower("player", _G.ALTERNATE_POWER_INDEX);
+  local max = _G.UnitPowerMax("player", _G.ALTERNATE_POWER_INDEX);
+
+  castBarData.frame.statusbar:SetMinMaxValues(min, max);
+  castBarData.frame.statusbar:SetValue(current);
+
+  local value = (current / max) * 100;
+  local percentage = tk.Numbers:ToPrecision(value, 1);
+  castBarData.frame.duration:SetText(("%d%%"):format(percentage));
+end
+
+function Events:UNIT_POWER_BAR_SHOW(castBar, castBarData)
+  local name, tooltip = _G.GetUnitPowerBarStrings("player");
+  castBarData.frame.name:SetText(name);
+  castBarData.frame.tooltipText = tooltip;
+
+  local c = castBarData.appearance.colors.normal;
+  castBarData.frame.statusbar:SetStatusBarColor(c.r, c.g, c.b, c.a);
+
+  self:UNIT_POWER_UPDATE(castBar, castBarData);
+  UIFrameFadeIn(castBarData.frame, 0.1, castBarData.frame:GetAlpha(), 1);
+end
+
 -- C_CastBar ----------------------
 
 obj:DefineParams("table", "table", "string");
@@ -379,76 +419,76 @@ local function IsFinished(data)
 end
 
 local function CastBarFrame_OnUpdate(self, elapsed, data)
-  if (self:GetAlpha() > 0) then
-    self.totalElapsed = self.totalElapsed + elapsed;
+  if (self:GetAlpha() <= 0) then return end
 
-    if (self.enabled and self.totalElapsed > 0.01) then
-      if (not data.startTime) then
-        if (self:GetAlpha() == 0) then
-          data.fadingOut = nil;
-        end
+  self.totalElapsed = self.totalElapsed + elapsed;
 
-        return
+  if (self.enabled and self.totalElapsed > 0.01) then
+    if (not data.startTime) then
+      if (self:GetAlpha() == 0) then
+        data.fadingOut = nil;
       end
 
-      if (data.unitID == "mirror") then
-        if (not data.paused or data.paused == 0) then
-          for i = 1, _G.MIRRORTIMER_NUMTIMERS do
-            local _, _, _, _, _, label = GetMirrorTimerInfo(i);
-
-            if (label == self.name:GetText()) then
-              local statusBar = _G.MirrorTimer1 and _G.MirrorTimer1.StatusBar or _G.MirrorTimer1StatusBar;
-              local value = statusBar:GetValue();
-              local duration = string.format("%.1f", value);
-
-              if (tonumber(duration) > 60) then
-                duration = date("%M:%S", duration);
-              end
-
-              self.duration:SetText(duration);
-              self.statusbar:SetValue(value);
-              return
-            end
-          end
-        end
-      else
-        if (data.startTime and not IsFinished(data)) then
-          if (UnitCastingInfo(data.unitID)) then
-            local _, _, _, startTime = UnitCastingInfo(data.unitID);
-            data.startTime = startTime / 1000;
-          elseif (UnitChannelInfo(data.unitID)) then
-            local _, _, _, startTime = UnitChannelInfo(data.unitID);
-            data.startTime = startTime / 1000;
-          end
-
-          local difference = GetTime() - data.startTime;
-
-          if (data.channelling or data.unitID == "mirror") then
-            self.statusbar:SetValue(data.totalTime - difference);
-          else
-            self.statusbar:SetValue(difference);
-          end
-
-          local duration = data.totalTime - difference;
-
-          if (duration < 0) then
-            duration = 0;
-          end
-
-          duration = string.format("%.1f", duration);
-
-          if (tonumber(duration) > 60) then
-            duration = date("%M:%S", duration);
-          end
-
-          self.duration:SetText(duration);
-        else
-          self.castBar:StopCasting();
-        end
-      end
-
-      self.totalElapsed = 0;
+      return
     end
+
+    if (data.unitID == "mirror") then
+      if (not data.paused or data.paused == 0) then
+        for i = 1, _G.MIRRORTIMER_NUMTIMERS do
+          local _, _, _, _, _, label = GetMirrorTimerInfo(i);
+
+          if (label == self.name:GetText()) then
+            local statusBar = _G.MirrorTimer1 and _G.MirrorTimer1.StatusBar or _G.MirrorTimer1StatusBar;
+            local value = statusBar:GetValue();
+            local duration = string.format("%.1f", value);
+
+            if (tonumber(duration) > 60) then
+              duration = date("%M:%S", duration);
+            end
+
+            self.duration:SetText(duration);
+            self.statusbar:SetValue(value);
+            return
+          end
+        end
+      end
+    else
+      if (data.startTime and not IsFinished(data)) then
+        if (UnitCastingInfo(data.unitID)) then
+          local _, _, _, startTime = UnitCastingInfo(data.unitID);
+          data.startTime = startTime / 1000;
+        elseif (UnitChannelInfo(data.unitID)) then
+          local _, _, _, startTime = UnitChannelInfo(data.unitID);
+          data.startTime = startTime / 1000;
+        end
+
+        local difference = GetTime() - data.startTime;
+
+        if (data.channelling or data.unitID == "mirror") then
+          self.statusbar:SetValue(data.totalTime - difference);
+        else
+          self.statusbar:SetValue(difference);
+        end
+
+        local duration = data.totalTime - difference;
+
+        if (duration < 0) then
+          duration = 0;
+        end
+
+        duration = string.format("%.1f", duration);
+
+        if (tonumber(duration) > 60) then
+          duration = date("%M:%S", duration);
+        end
+
+        self.duration:SetText(duration);
+      else
+        self.castBar:StopCasting();
+      end
+    end
+
+    self.totalElapsed = 0;
   end
 end
 
@@ -479,6 +519,8 @@ do
     if (unitID == "mirror") then
       _G.MirrorTimer1:SetAlpha(0);
       _G.MirrorTimer1.SetAlpha = tk.Constants.DUMMY_FUNC;
+    elseif (unitID == "power") then
+      tk:KillElement(_G.PlayerPowerBarAlt);
     elseif (unitID == "player") then
       CastingBarFrame:UnregisterAllEvents();
       CastingBarFrame:Hide();
@@ -523,6 +565,11 @@ do
         bar:RegisterEvent("MIRROR_TIMER_PAUSE");
         bar:RegisterEvent("MIRROR_TIMER_START");
         bar:RegisterEvent("MIRROR_TIMER_STOP");
+      elseif (data.unitID == "power" and tk:IsRetail()) then
+        bar:RegisterUnitEvent("UNIT_POWER_BAR_HIDE", "player");
+        bar:RegisterUnitEvent("UNIT_POWER_UPDATE", "player");
+        bar:RegisterUnitEvent("UNIT_POWER_BAR_SHOW", "player");
+        tk:SetBasicTooltip(bar, nil, "ANCHOR_BOTTOM", 0, -6);
       else
         if (not tk:IsClassic() or data.unitID == "player") then
           bar:RegisterUnitEvent("UNIT_SPELLCAST_START", data.unitID);
@@ -574,9 +621,11 @@ do
       bar.castBar = self;
       bar.unitID = data.unitID;
 
-      bar:SetScript("OnUpdate", function(self, elapsed)
-        CastBarFrame_OnUpdate(self, elapsed, data);
-      end);
+      if (data.unitID ~= "power") then
+        bar:SetScript("OnUpdate", function(self, elapsed)
+          CastBarFrame_OnUpdate(self, elapsed, data);
+        end);
+      end
 
       bar:SetScript("OnEvent", CastBarFrame_OnEvent);
     else
@@ -823,7 +872,7 @@ function C_CastBarsModule:OnInitialize(data)
     r = r, g = g, b = b, a = 0.7
   });
 
-  for _, barName in obj:IterateArgs("Player", "Target", "Focus", "Mirror", "Pet") do
+  for _, barName in obj:IterateArgs("Player", "Target", "Focus", "Mirror", "Pet", "Power") do
     if (not (tk:IsClassic() and barName == "Focus")) then
       local sv = db.profile.castBars[barName]; ---@type Observer
       sv:SetParent(db.profile.castBars.__templateCastBar);
@@ -835,6 +884,7 @@ function C_CastBarsModule:OnInitialize(data)
     "Target.enabled";
     "Mirror.enabled";
     "Pet.enabled";
+    "Power.enabled";
   };
 
   local ignore;
@@ -941,6 +991,18 @@ function C_CastBarsModule:OnInitialize(data)
             castBarData.backdrop.edgeFile = tk.Constants.LSM:Fetch("border", value);
             castBarData.frame:SetBackdrop(castBarData.backdrop);
             castBarData.frame:SetBackdropBorderColor(color.r, color.g, color.b, color.a);
+          end
+        end;
+
+        fontSize = function(value)
+          local castBarData;
+          local fontSize = data.settings.appearance.fontSize;
+
+          for _, castBar in pairs(data.bars) do
+            castBarData = data:GetFriendData(castBar);
+            castBarData.backdrop.edgeSize = value;
+            tk:SetFontSize(castBarData.frame.name, fontSize);
+            tk:SetFontSize(castBarData.frame.duration, fontSize);
           end
         end;
 

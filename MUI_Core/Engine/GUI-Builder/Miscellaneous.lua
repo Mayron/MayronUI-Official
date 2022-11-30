@@ -159,13 +159,17 @@ do
 
   local function OnCheckButtonEnter(self)
     local btn = self.btn or self;
-    local container = btn:GetParent();
-    container.background:SetVertexColor(0.7, 0.7, 0.7);
-    container.color:SetBlendMode("ADD");
+
+    if (btn:IsEnabled()) then
+      local container = btn:GetParent();
+      container.background:SetVertexColor(0.7, 0.7, 0.7);
+      container.color:SetBlendMode("ADD");
+    end
   end
 
   local function OnCheckButtonLeave(self)
     local btn = self.btn or self;
+
     local container = btn:GetParent();
     container.background:SetVertexColor(1, 1, 1);
     container.color:SetBlendMode("BLEND");

@@ -4,9 +4,6 @@ local MayronUI = _G.MayronUI;
 
 local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 
----@type Toolkit
-tk = tk;
-
 local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
 local ipairs, hooksecurefunc, CreateFrame, select = _G.ipairs, _G.hooksecurefunc,
   _G.CreateFrame, _G.select;
@@ -42,7 +39,7 @@ do
 
   function tk.BasicTooltip_OnEnter(self)
     SetOwner(self);
-    _G.GameTooltip:AddLine(self.tooltipText);
+    _G.GameTooltip:AddLine(self.tooltipText, 1, 1, 1, true);
     _G.GameTooltip:Show();
   end
 
@@ -222,6 +219,10 @@ function tk:AttachToDummy(element)
   element:Hide();
   element:SetParent(tk.Constants.DUMMY_FRAME);
   element:SetAllPoints(true);
+
+  if (element.UnregisterAllEvents) then
+    element:UnregisterAllEvents();
+  end
 
   if (element:GetObjectType() == "Texture") then
     element:SetTexture(tk.Strings.Empty)
