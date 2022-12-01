@@ -347,6 +347,7 @@ end
 
 function Events:UNIT_POWER_BAR_HIDE(_, castBarData)
   UIFrameFadeOut(castBarData.frame, 1, castBarData.frame:GetAlpha(), 0);
+  castBarData.frame:EnableMouse(true);
 end
 
 function Events:UNIT_POWER_UPDATE(_, castBarData)
@@ -379,6 +380,7 @@ function Events:UNIT_POWER_BAR_SHOW(castBar, castBarData)
 
   self:UNIT_POWER_UPDATE(castBar, castBarData);
   UIFrameFadeIn(castBarData.frame, 0.1, castBarData.frame:GetAlpha(), 1);
+  castBarData.frame:EnableMouse(true);
 end
 
 -- C_CastBar ----------------------
@@ -516,19 +518,6 @@ do
       bar.latencyBar:SetPoint("BOTTOMRIGHT");
     end
 
-    if (unitID == "mirror") then
-      _G.MirrorTimer1:SetAlpha(0);
-      _G.MirrorTimer1.SetAlpha = tk.Constants.DUMMY_FUNC;
-    elseif (unitID == "power") then
-      tk:KillElement(_G.PlayerPowerBarAlt);
-    elseif (unitID == "player") then
-      CastingBarFrame:UnregisterAllEvents();
-      CastingBarFrame:Hide();
-    elseif (unitID == "pet") then
-      _G.PetCastingBarFrame:UnregisterAllEvents();
-      _G.PetCastingBarFrame:Hide();
-    end
-
     bar.name = bar.statusbar:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     bar.name:SetPoint("LEFT", 4, 0);
     bar.name:SetPoint("RIGHT", -40, 0);
@@ -543,6 +532,19 @@ do
     bar.bg:SetPoint("TOPLEFT", bar, "TOPLEFT", -1, 1);
     bar.bg:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 1, -1);
     bar.bg:SetFrameLevel(5);
+
+    if (unitID == "mirror") then
+      _G.MirrorTimer1:SetAlpha(0);
+      _G.MirrorTimer1.SetAlpha = tk.Constants.DUMMY_FUNC;
+    elseif (unitID == "power") then
+      tk:KillElement(_G.PlayerPowerBarAlt);
+    elseif (unitID == "player") then
+      CastingBarFrame:UnregisterAllEvents();
+      CastingBarFrame:Hide();
+    elseif (unitID == "pet") then
+      _G.PetCastingBarFrame:UnregisterAllEvents();
+      _G.PetCastingBarFrame:Hide();
+    end
 
     return bar;
   end
@@ -570,6 +572,7 @@ do
         bar:RegisterUnitEvent("UNIT_POWER_UPDATE", "player");
         bar:RegisterUnitEvent("UNIT_POWER_BAR_SHOW", "player");
         tk:SetBasicTooltip(bar, nil, "ANCHOR_BOTTOM", 0, -6);
+        bar:EnableMouse(false);
       else
         if (not tk:IsClassic() or data.unitID == "player") then
           bar:RegisterUnitEvent("UNIT_SPELLCAST_START", data.unitID);
