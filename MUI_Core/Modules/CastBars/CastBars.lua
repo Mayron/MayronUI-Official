@@ -347,7 +347,7 @@ end
 
 function Events:UNIT_POWER_BAR_HIDE(_, castBarData)
   UIFrameFadeOut(castBarData.frame, 1, castBarData.frame:GetAlpha(), 0);
-  castBarData.frame:EnableMouse(true);
+  castBarData.frame:EnableMouse(false);
 end
 
 function Events:UNIT_POWER_UPDATE(_, castBarData)
