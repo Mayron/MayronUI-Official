@@ -2,8 +2,8 @@
 ## Title: |TInterface/Addons/MUI_Core/Assets/Logo:12:22|t |cff00ccffConfig|r
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
-## Version: 6.7.8
-## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to enable the in-game MayronUI configuration menu|nwhere you'll be able to customize every aspect of MayronUI.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!|n|n|cffffd100Version: 6.7.8|r
+## Version: 6.7.9
+## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to enable the in-game MayronUI configuration menu|nwhere you'll be able to customize every aspect of MayronUI.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!|n|n|cffffd100Version: 6.7.9|r
 
 Utils.lua
 Modules\Modules.xml
