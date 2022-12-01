@@ -887,7 +887,6 @@ function C_CastBarsModule:OnInitialize(data)
     "Target.enabled";
     "Mirror.enabled";
     "Pet.enabled";
-    "Power.enabled";
   };
 
   local ignore;
@@ -896,6 +895,13 @@ function C_CastBarsModule:OnInitialize(data)
     first[4] = "Focus.enabled";
   else
     ignore = { "Focus.enabled" };
+  end
+
+  if (tk:IsRetail()) then
+    table.insert(first, "Power.enabled");
+  else
+    ignore = ignore or {};
+    table.insert(ignore, "Power.enabled");
   end
 
   local options = {

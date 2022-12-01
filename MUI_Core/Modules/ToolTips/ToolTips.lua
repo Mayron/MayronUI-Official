@@ -767,15 +767,17 @@ local function UpdateTargetText(data)
   local totalLines = gameTooltip:NumLines();
 
 	for i = totalLines, 1, -1  do
-		local line = _G["GameTooltipTextLeft"..i];
-    local text = line:GetText();
+		local line1 = _G["GameTooltipTextLeft"..i];
+		local line2 = _G["GameTooltipTextRight"..i];
+    local text = line1:GetText();
 
     if (text == "Target:") then
       if (mouseoverTarget) then
         -- line:SetText(strformat("Target: %s", mouseoverTarget));
         return
       else
-        line:SetText("");
+        line1:SetText("");
+        line2:SetText("");
         break
       end
     end
@@ -811,6 +813,8 @@ local function CreatePowerBar(data)
   powerBar.PowerText = powerText;
 end
 
+local f = _G.CreateFrame("Frame");
+
 local function ApplyHealthBarChanges(data)
   local r, g, b = tk:GetThemeColor();
 
@@ -831,13 +835,27 @@ local function ApplyHealthBarChanges(data)
   healthText:SetPoint("CENTER");
   healthBar.HealthText = healthText;
 
-  gameTooltip:HookScript("OnUpdate", function(_, elapsed)
+  f:SetScript("OnUpdate", function(_, elapsed)
     data.lastUpdated = (data.lastUpdated or 0)  + elapsed;
 
     if (data.lastUpdated > 0.2) then
       data.lastUpdated = 0;
 
-      if (UnitExists(MOUSEOVER)) then
+      local shouldShow = UnitExists(MOUSEOVER);
+
+      if (not data.settings.combat.showUnit and InCombatLockdown()) then
+        return
+      end
+
+      if (shouldShow) then
+        if (not gameTooltip:IsVisible()) then
+          if (not data.anchor) then
+            return
+          end
+
+         _G.UnitFrame_UpdateTooltip(data.anchor);
+        end
+
         -- apply tooltip real time updates
         HandleHealthBarValueChanged(data.settings.healthBar.format, data.settings.healthColors);
 
@@ -1097,7 +1115,12 @@ function C_ToolTipsModule:OnEnable(data)
   local regenDisabledListener = function() IsInCombatAndHidden(data, nil, true) end;
   em:CreateEventListener(regenDisabledListener):RegisterEvent("PLAYER_REGEN_DISABLED");
 
-  local function UpdateUnitInformation()
+  local function UpdateUnitInformation(anchor)
+    if (obj:IsTable(anchor) and anchor.unit) then
+      data.anchor = anchor;
+      data.lastUpdated = 0.1;
+    end
+
     local unitExists = UnitExists(MOUSEOVER);
     if (not unitExists or IsInCombatAndHidden(data)) then return end
 

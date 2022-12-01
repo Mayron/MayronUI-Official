@@ -50,7 +50,7 @@ end
 
 function tk:LogError(errorMessage, ...)
   local prefix = self.Strings:SetTextColorByTheme("MayronUI:");
-  _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, errorMessage:format(...)), 1, 0, 0);
+  _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, errorMessage:format(tostringall(...))), 1, 0, 0);
 end
 
 function tk:GetAssetFilePath(filePath)
