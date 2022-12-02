@@ -227,6 +227,11 @@ function C_ObjectiveTracker:OnEnable(data)
   ObjectiveTrackerFrame:SetParent(data.objectiveContainer);
   ObjectiveTrackerFrame:SetAllPoints(true);
 
+  em:CreateEventListener(function()
+    ObjectiveTrackerFrame:SetParent(data.objectiveContainer);
+    ObjectiveTrackerFrame:SetAllPoints(true);
+  end):RegisterEvents("STOP_MOVIE", "CINEMATIC_STOP");
+
   data.autoHideHandler = tk:CreateFrame("Frame", data.objectiveContainer, nil, "SecureHandlerStateTemplate");
 
   data.autoHideHandler:SetAttribute("_onstate-autoHideHandler",
