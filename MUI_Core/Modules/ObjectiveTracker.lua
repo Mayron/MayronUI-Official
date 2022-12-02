@@ -133,6 +133,11 @@ function C_ObjectiveTracker:OnInitialize(data, sideActionBars)
 
     height = function(value)
       data.objectiveContainer:SetSize(data.settings.width, value);
+      local updater = _G.ObjectiveTracker_Update;
+
+      if (obj:IsFunction(updater)) then
+       updater(); -- this updates the total quests that can fit into the new visible area
+      end
     end;
 
     anchoredToSideBars = SetUpAnchor;
@@ -226,11 +231,10 @@ function C_ObjectiveTracker:OnEnable(data)
   -- blizzard objective tracker frame global variable
   ObjectiveTrackerFrame:SetParent(data.objectiveContainer);
   ObjectiveTrackerFrame:SetAllPoints(true);
-
-  em:CreateEventListener(function()
-    ObjectiveTrackerFrame:SetParent(data.objectiveContainer);
-    ObjectiveTrackerFrame:SetAllPoints(true);
-  end):RegisterEvents("STOP_MOVIE", "CINEMATIC_STOP");
+  ObjectiveTrackerFrame.SetParent = tk.Constants.DUMMY_FUNC;
+  ObjectiveTrackerFrame.SetPoint = tk.Constants.DUMMY_FUNC;
+  ObjectiveTrackerFrame.ClearAllPoints = tk.Constants.DUMMY_FUNC;
+  ObjectiveTrackerFrame.SetAllPoints = tk.Constants.DUMMY_FUNC;
 
   data.autoHideHandler = tk:CreateFrame("Frame", data.objectiveContainer, nil, "SecureHandlerStateTemplate");
 
