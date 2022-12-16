@@ -495,6 +495,7 @@ do
       f("- Resting: %s", errorObject.resting and "Yes" or "No");
       f("- AFK: %s", errorObject.isAFK and "Yes" or "No");
       f("- Dead or ghost: %s", errorObject.isDeadOrGhost and "Yes" or "No");
+      f("- Locals: %s", errorObject.locals or "None");
       AppendLine("");
       AppendLine("```lua");
 

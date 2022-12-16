@@ -816,8 +816,8 @@ local function getBaseHealAmount(spellData, spellName, spellID, spellRank)
 
 	if (MayronUI and not spellData) then
 		MayronUI:LogError(
-			"LibHealComm failed to index spellData for spell '%s' - Rank %s (ID: %s).", 
-			spellName, spellRank, spellID);
+			"LibHealComm failed to index spellData for spell '%s' - Rank %s (ID: %s). Locals: %s", 
+			spellName, spellRank, spellID, debuglocals());
 		return 0;
 	end
 
@@ -2714,6 +2714,13 @@ function HealComm:COMBAT_LOG_EVENT_UNFILTERED(...)
 	elseif( ( eventType == "SPELL_AURA_APPLIED" or eventType == "SPELL_AURA_REFRESH" or eventType == "SPELL_AURA_APPLIED_DOSE" ) and bit.band(sourceFlags, COMBATLOG_OBJECT_AFFILIATION_MINE) == COMBATLOG_OBJECT_AFFILIATION_MINE ) then
 		if( hotData[spellName] ) then
 			-- Single target so we can just send it off now thankfully
+			if (MayronUI and not spellID) then       
+          MayronUI:LogError(
+            "LibHealComm failed to index spellData for spell '%s' (ID: %s). Locals: %s", 
+            spellName, spellID, debuglocals());
+				return
+			end
+
 			local bitType, amount, totalTicks, tickInterval, bombAmount, hasVariableTicks = CalculateHotHealing(destGUID, spellID)
 			if( bitType ) then
 				local targets = GetHealTargets(type, destGUID, spellID)

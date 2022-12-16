@@ -9,7 +9,7 @@ local hooksecurefunc, GetMinimapZoneText = _G.hooksecurefunc, _G.GetMinimapZoneT
 local GetNumGroupMembers, IsResting = _G.GetNumGroupMembers, _G.IsResting;
 local IsInInstance, InCombatLockdown = _G.IsInInstance, _G.InCombatLockdown;
 local UnitIsAFK, UnitIsDeadOrGhost, GetZoneText = _G.UnitIsAFK, _G.UnitIsDeadOrGhost, _G.GetZoneText;
-local debugstack, HandleLuaError = _G.debugstack, _G.HandleLuaError;
+local debugstack, debuglocals, HandleLuaError = _G.debugstack, _G.debuglocals, _G.HandleLuaError;
 
 local ERRORS = {};
 local seterrorhandler = _G.seterrorhandler;
@@ -29,6 +29,7 @@ function C_ErrorHandler:OnInitialize()
       resting = IsResting(),
       isAFK = UnitIsAFK("player"),
       isDeadOrGhost = UnitIsDeadOrGhost("player"),
+      locals = debuglocals(4),
       error = tk.Strings:Join("\n", tostring(errorMessage), (debugstack(4) or tk.Strings.Empty));
     });
   end

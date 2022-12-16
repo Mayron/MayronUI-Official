@@ -250,6 +250,7 @@ do
     container.btn:HookScript("OnEnter", OnCheckButtonEnter);
     container.btn:HookScript("OnLeave", OnCheckButtonLeave);
 
+    container.btn.text = container.btn.text or container.btn.Text;
     container.btn.text:SetFontObject("GameFontHighlight");
     container.btn.text:ClearAllPoints();
     container.btn.text:SetPoint("LEFT", container.btn, "RIGHT", 6, 1);

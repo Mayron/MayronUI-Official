@@ -117,4 +117,9 @@ db:OnStartUp(function(self, sv)
 
   tk:SetGameFont(self.global.core.fonts);
   tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
+
+  if (self:GetCurrentProfile() == "Mayron-Gehennas")  then
+    _G.MUI_DEBUG_MODE = true;
+    MayronUI:Print("MUI_DEBUG_MODE enabled");
+  end
 end);

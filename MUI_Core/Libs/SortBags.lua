@@ -1,4 +1,4 @@
-if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then return end
+if (not _G.GetContainerNumSlots) then return end
 
 local _G, _M = getfenv(0), {}
 setfenv(1, setmetatable(_M, {__index=_G}))

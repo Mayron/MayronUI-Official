@@ -494,6 +494,9 @@ end
 
 function MayronUI:LogError(...)
   tk:LogError(...);
+  if (_G.MUI_DEBUG_MODE) then
+    _G.Screenshot();
+  end
 end
 
 ---@return boolean @Returns true if MayronUI has been previously installing (usually using MUI_Setup).

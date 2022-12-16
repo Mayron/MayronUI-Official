@@ -36,7 +36,6 @@ local UnitLevel, CanInspect, UnitGUID, CheckInteractDistance, GetInspectSpeciali
 local tostring, InCombatLockdown = _G.tostring, _G.InCombatLockdown;
 
 -- Constants
-local MOUSEOVER = "MOUSEOVER";
 local HARMFUL = "HARMFUL";
 local HELPFUL = "HELPFUL";
 local ITEM_LEVEL_LABEL = "Item Level:";
@@ -366,22 +365,22 @@ do
     fontString:SetText(tk.Strings:SetTextColorByRGB(text, r, g, b));
   end
 
-  function HandleHealthBarValueChanged(format, healthColors)
-    local maxHealth = UnitHealthMax(MOUSEOVER);
-    local currentHealth = UnitHealth(MOUSEOVER);
+  function HandleHealthBarValueChanged(format, healthColors, unitID)
+    local maxHealth = UnitHealthMax(unitID);
+    local currentHealth = UnitHealth(unitID);
     local r, g, b = GetHealthColor(healthColors, currentHealth, maxHealth);
     local percentage = maxHealth > 0 and ((currentHealth / maxHealth) * 100) or 0;
 
     SetFormattedColoredText(healthBar.HealthText, format, percentage, currentHealth, maxHealth, r, g, b);
   end
 
-  function HandlePowerBarValueChanged(format, powerColors)
+  function HandlePowerBarValueChanged(format, powerColors, unitID)
       -- verify unit is still using the same power type, if not, update the bar color
-    local powerTypeID = UnitPowerType(MOUSEOVER);
+    local powerTypeID = UnitPowerType(unitID);
     if (powerTypeID < 0) then return end
 
-    local currentPower = UnitPower(MOUSEOVER, powerTypeID);
-    local maxPower = UnitPowerMax(MOUSEOVER, powerTypeID);
+    local currentPower = UnitPower(unitID, powerTypeID);
+    local maxPower = UnitPowerMax(unitID, powerTypeID);
 
     powerBar:SetMinMaxValues(0, maxPower);
     powerBar:SetValue(currentPower);
@@ -445,19 +444,18 @@ local function SetFonts(data)
   end
 end
 
-local function UpdateUnitTooltipLines(guildRankShown)
+local function UpdateUnitTooltipLines(guildRankShown, unitID)
   local totalLines = gameTooltip:NumLines();
-
 	for i = 1, totalLines do
 		local line = _G["GameTooltipTextLeft"..i];
 
     if (i == 1) then
       -- HEADER
-      local unitNameText = tk.Strings:GetUnitFullNameText(MOUSEOVER);
+      local unitNameText = tk.Strings:GetUnitFullNameText(unitID);
       _G.GameTooltipTextLeft1:SetText(unitNameText);
-    elseif (UnitIsPlayer(MOUSEOVER)) then
+    elseif (UnitIsPlayer(unitID)) then
       -- guild Name
-      local guild, guildRank = GetGuildInfo(MOUSEOVER);
+      local guild, guildRank = GetGuildInfo(unitID);
       if (i == 2 and guild) then
         local yourGuild = GetGuildInfo("PLAYER");
         local guildTextColor = guild == yourGuild and "TRANSMOG_VIOLET" or "YELLOW";
@@ -471,8 +469,8 @@ local function UpdateUnitTooltipLines(guildRankShown)
         end
 
       elseif ((not guild and i == 2) or (guild and i == 3)) then
-        local race = UnitRace(MOUSEOVER);
-        local fileName = tk:GetClassFileNameByUnitID(MOUSEOVER);
+        local race = UnitRace(unitID);
+        local fileName = tk:GetClassFileNameByUnitID(unitID);
         local localizedName = tk:GetLocalizedClassNameByFileName(fileName, true);
 
         line:SetFormattedText("%s %s (%s)", race, localizedName, _G.PLAYER);
@@ -481,34 +479,34 @@ local function UpdateUnitTooltipLines(guildRankShown)
       local text = line:GetText();
 
       if (tk.Strings:Contains(text, _G.LEVEL)) then
-        local family = UnitCreatureFamily(MOUSEOVER);
+        local family = UnitCreatureFamily(unitID);
 
         if (family) then
-          line:SetFormattedText("%s %s", UnitCreatureType(MOUSEOVER), tk.Strings:SetTextColorByKey(family, "GRAY"));
+          line:SetFormattedText("%s %s", UnitCreatureType(unitID), tk.Strings:SetTextColorByKey(family, "GRAY"));
         else
-          line:SetText(UnitCreatureType(MOUSEOVER));
+          line:SetText(UnitCreatureType(unitID));
         end
       end
     end
 	end
 end
 
-local UpdateStatusBarOnMouseOver;
+local UpdateStatusBar;
 
 do
   local originalSetStatusBarColor = healthBar.SetStatusBarColor;
 
-  function UpdateStatusBarOnMouseOver(data)
-    local color = tk:GetClassColorByUnitID(MOUSEOVER);
+  function UpdateStatusBar(data, unitID)
+    local color = tk:GetClassColorByUnitID(unitID);
 
-    if (UnitIsPlayer(MOUSEOVER) and color) then
+    if (UnitIsPlayer(unitID) and color) then
       originalSetStatusBarColor(healthBar, color.r, color.g, color.b);
 
       if (not data.settings.muiTexture.enabled and data.settings.backdrop.borderClassColored) then
         originalSetBackdropBorderColor(gameTooltip, color.r, color.g, color.b, data.settings.backdrop.borderColor[4]);
       end
     else
-      local reaction = UnitReaction(MOUSEOVER, "player");
+      local reaction = UnitReaction(unitID, "player");
       local r, g, b;
 
       if (reaction) then
@@ -516,8 +514,8 @@ do
         g = tk.Constants.FACTION_BAR_COLORS[reaction].g;
         b = tk.Constants.FACTION_BAR_COLORS[reaction].b;
       else
-        local maxHealth = UnitHealthMax(MOUSEOVER);
-        local currentHealth = UnitHealth(MOUSEOVER);
+        local maxHealth = UnitHealthMax(unitID);
+        local currentHealth = UnitHealth(unitID);
         r, g, b = GetHealthColor(data.settings.healthColors, currentHealth, maxHealth);
       end
 
@@ -528,16 +526,16 @@ do
       end
     end
 
-    HandleHealthBarValueChanged(data.settings.healthBar.format, data.settings.healthColors);
+    HandleHealthBarValueChanged(data.settings.healthBar.format, data.settings.healthColors, unitID);
 
     if (not (powerBar and powerBar.PowerText)) then return end
-    local powerTypeID = UnitPowerType(MOUSEOVER);
+    local powerTypeID = UnitPowerType(unitID);
 
     local show = data.settings.powerBar.enabled and powerTypeID >= 0;
     powerBar:SetShown(show);
 
     if (not show) then return end
-    HandlePowerBarValueChanged(data.settings.powerBar.format, data.settings.powerColors);
+    HandlePowerBarValueChanged(data.settings.powerBar.format, data.settings.powerColors, unitID);
 
     local powerType = tk.Constants.POWER_TYPES[powerTypeID];
     local powerColor = (obj:IsString(powerType) and data.settings.powerColors[powerType])
@@ -565,7 +563,7 @@ local function HideAllAuras(data)
   end
 end
 
-local function AddAuras(data, filter, anchor)
+local function AddAuras(data, filter, anchor, unitID)
   local id = 1;
   local previousFrame;
   local totalWidth = 0;
@@ -584,7 +582,7 @@ local function AddAuras(data, filter, anchor)
   end
 
   for index = 1, maxAuras do
-    local auraName, iconTexture, _, auraType, duration, endTime, source = UnitAura(MOUSEOVER, index, filter);
+    local auraName, iconTexture, _, auraType, duration, endTime, source = UnitAura(unitID, index, filter);
     local show = true;
 
     if (settings.onlyYours and source ~= "player") then
@@ -683,7 +681,7 @@ local function AddAuras(data, filter, anchor)
   return previousFirstRow;
 end
 
-local function UpdateAuras(data)
+local function UpdateAuras(data, unitID)
   if (not data.auraBackdrop) then
     data.auraBackdrop = obj:PopTable();
     data.auraBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", "Skinner");
@@ -715,18 +713,18 @@ local function UpdateAuras(data)
   data.debuffs = debuffsEnabled and (data.debuffs or obj:PopTable());
 
   if (debuffsEnabled and debuffsFirst) then
-    local nextRelativeFrame = AddAuras(data, HARMFUL, relativeFrame);
+    local nextRelativeFrame = AddAuras(data, HARMFUL, relativeFrame, unitID);
 
     if (samePositions) then
       relativeFrame = nextRelativeFrame;
     end
 
     if (buffsEnabled) then
-      AddAuras(data, HELPFUL, relativeFrame);
+      AddAuras(data, HELPFUL, relativeFrame, unitID);
     end
   else
     if (buffsEnabled) then
-      local nextRelativeFrame = AddAuras(data, HELPFUL, relativeFrame);
+      local nextRelativeFrame = AddAuras(data, HELPFUL, relativeFrame, unitID);
 
       if (samePositions) then
         relativeFrame = nextRelativeFrame;
@@ -734,7 +732,7 @@ local function UpdateAuras(data)
     end
 
     if (debuffsEnabled) then
-      AddAuras(data, HARMFUL, relativeFrame);
+      AddAuras(data, HARMFUL, relativeFrame, unitID);
     end
   end
 end
@@ -841,7 +839,16 @@ local function ApplyHealthBarChanges(data)
     if (data.lastUpdated > 0.2) then
       data.lastUpdated = 0;
 
-      local shouldShow = UnitExists(MOUSEOVER);
+      local displayedUnit = "MOUSEOVER";
+      local shouldShow = UnitExists(displayedUnit);
+
+      -- if (not shouldShow and data.anchor) then
+      --   displayedUnit = data.anchor.displayedUnit;
+
+      --   if (obj:IsString(displayedUnit)) then
+      --     shouldShow = UnitExists(displayedUnit);
+      --   end
+      -- end
 
       if (not data.settings.combat.showUnit and InCombatLockdown()) then
         return
@@ -857,13 +864,13 @@ local function ApplyHealthBarChanges(data)
         end
 
         -- apply tooltip real time updates
-        HandleHealthBarValueChanged(data.settings.healthBar.format, data.settings.healthColors);
+        HandleHealthBarValueChanged(data.settings.healthBar.format, data.settings.healthColors, displayedUnit);
 
         if (data.settings.powerBar.enabled) then
-          HandlePowerBarValueChanged(data.settings.powerBar.format, data.settings.powerColors);
+          HandlePowerBarValueChanged(data.settings.powerBar.format, data.settings.powerColors, displayedUnit);
         end
 
-        UpdateAuras(data);
+        UpdateAuras(data, displayedUnit);
 
         if (data.settings.targetShown) then
           UpdateTargetText(data);
@@ -958,7 +965,7 @@ local function CreateScreenAnchor(data)
 end
 
 local function IsInCombatAndHidden(data, tooltip, inCombat)
-  local unitExists = UnitExists(MOUSEOVER);
+  local unitExists = UnitExists("MOUSEOVER");
   tooltip = tooltip or gameTooltip;
 
   if (inCombat == nil) then
@@ -1084,11 +1091,11 @@ function C_ToolTipsModule:OnEnable(data)
   SetFonts(data);
 
   local specListener = em:CreateEventListener(function(handler, _, guid)
-    if (UnitGUID(MOUSEOVER) ~= guid or IsInCombatAndHidden(data)) then return end
+    if (UnitGUID("MOUSEOVER") ~= guid or IsInCombatAndHidden(data)) then return end
 
-    local specID = GetInspectSpecialization(MOUSEOVER);
+    local specID = GetInspectSpecialization("MOUSEOVER");
     local specializationName = (select(2, GetSpecializationInfoByID(specID)));
-    local itemLevel = C_PaperDollInfo.GetInspectItemLevel(MOUSEOVER);
+    local itemLevel = C_PaperDollInfo.GetInspectItemLevel("MOUSEOVER");
 
     if (tk.Strings:IsNilOrWhiteSpace(specializationName)) then
       specializationName = L["No Spec"];
@@ -1121,21 +1128,23 @@ function C_ToolTipsModule:OnEnable(data)
       data.lastUpdated = 0.1;
     end
 
-    local unitExists = UnitExists(MOUSEOVER);
+    local unitID = anchor.displayedUnit or anchor.unitOwner or "MOUSEOVER";
+    local unitExists = UnitExists(unitID);
+
     if (not unitExists or IsInCombatAndHidden(data)) then return end
 
-    UpdateUnitTooltipLines(data.settings.guildRankShown); -- must be BEFORE padding
-    UpdateStatusBarOnMouseOver(data);
-    UpdateAuras(data);
+    UpdateUnitTooltipLines(data.settings.guildRankShown, unitID); -- must be BEFORE padding
+    UpdateStatusBar(data, unitID);
+    UpdateAuras(data, unitID);
 
     if (data.settings.targetShown) then
       UpdateTargetText(data);
     end
 
-    if (tk:IsRetail() and UnitIsPlayer(MOUSEOVER) and UnitLevel(MOUSEOVER) >= 10
-        and CanInspect(MOUSEOVER) and CheckInteractDistance(MOUSEOVER, 1)) then
+    if (tk:IsRetail() and UnitIsPlayer(unitID) and UnitLevel(unitID) >= 10
+        and CanInspect(unitID) and CheckInteractDistance(unitID, 1)) then
 
-      local guid = UnitGUID(MOUSEOVER) or "";
+      local guid = UnitGUID(unitID) or "";
 
       if (data.settings.specShown) then
         data.specCache = data.specCache or obj:PopTable();
@@ -1161,7 +1170,7 @@ function C_ToolTipsModule:OnEnable(data)
 
       if (data.settings.specShown or data.settings.itemLevelShown) then
         specListener:SetEnabled(true);
-        _G.NotifyInspect(MOUSEOVER);
+        _G.NotifyInspect("MOUSEOVER");
       end
     end
 
@@ -1174,7 +1183,7 @@ function C_ToolTipsModule:OnEnable(data)
     if (IsInCombatAndHidden(data, tooltip) or not tooltip or not parent) then return end
     local anchorType;
 
-    if (UnitExists(MOUSEOVER) or (tooltip:GetUnit()) or parent.unit) then
+    if (UnitExists("MOUSEOVER") or (tooltip:GetUnit()) or parent.unit) then
       anchorType = data.settings.anchors.units:lower();
     else
       anchorType = data.settings.anchors.standard:lower();
