@@ -655,6 +655,11 @@ function MayronUI:SwitchLayouts(layoutName, layoutData)
     db.global.layouts[layoutName] = layoutData;
   end
 
+  if (IsAddOnLoaded("ShadowedUnitFrames")) then
+    -- Prevents a WoW Crash
+    _G.ShadowUF.modules.movers:Disable()
+  end
+
   -- Switch all assigned addons to new profile
   for a, profileName in pairs(layoutData) do
     if (profileName) then
