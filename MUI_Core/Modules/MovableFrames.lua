@@ -131,7 +131,7 @@ local BlizzardFrames = {
   Blizzard_AuctionHouseUI = "AuctionHouseFrame";
   Blizzard_TrainerUI = "ClassTrainerFrame";
   Blizzard_GuildControlUI = "GuildControlUI";
-  Blizzard_InspectUI = "InspectFrame";
+  Blizzard_InspectUI = {"InspectFrame", subFrames = { "InspectTalentFrame" }};
   Blizzard_ItemSocketingUI = "ItemSocketingFrame";
   Blizzard_ItemUpgradeUI = "ItemUpgradeFrame";
   Blizzard_AzeriteUI = "AzeriteEmpoweredItemUI";

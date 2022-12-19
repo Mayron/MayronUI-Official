@@ -1023,9 +1023,9 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
   data.frame.slider = data.slider;
 
   self:SetIconShown(settings.showIcons);
-  self:SetBorderShown(sharedSettings.border.show);
   self:SetSparkShown(settings.showSpark);
   self:SetAuraNameShown(settings.auraName.show);
+  self:SetBorderShown(sharedSettings.border.show);
   self:SetTimeRemainingShown(settings.timeRemaining.show);
   self:SetTooltipsEnabled(sharedSettings.showTooltips);
 
@@ -1149,6 +1149,12 @@ function C_TimerBar:SetAuraNameShown(data, shown)
     data.auraName:SetPoint("RIGHT", -50, 0);
     data.auraName:SetJustifyH("LEFT");
     data.auraName:SetWordWrap(false);
+
+    data.amount = data.frame:CreateFontString(nil, "ARTWORK", "GameFontNormal");
+    data.amount:SetPoint("TOPLEFT", data.frame, "TOPRIGHT", 4, 1);
+    data.amount:SetPoint("BOTTOMLEFT", data.frame, "BOTTOMRIGHT", 4, -1);
+    data.amount:SetJustifyH("LEFT");
+    tk:SetFontSize(data.amount, 12);
   end
 
   local font = tk.Constants.LSM:Fetch("font", data.settings.auraName.font);
@@ -1275,10 +1281,12 @@ function C_TimerBar:UpdateAura(data, auraInfo)
     data.icon:SetTexture(iconPath);
   end
 
+  data.auraName:SetText(auraName);
   if (amount > 1) then
-    data.auraName:SetText(auraName .. " (" .. amount  .. ")");
+    data.amount:SetText(amount);
+    data.amount:Show();
   else
-    data.auraName:SetText(auraName);
+    data.amount:Hide();
   end
 
   if (data.settings.colorStealOrPurge and canStealOrPurge) then
