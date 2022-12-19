@@ -244,11 +244,12 @@ L["Buff Bar Color"] = "Colore barra lucida";
 L["Debuff Bar Color"] = "Colore barra debuff";
 L["Manual Positioning"] = "Posizionamento manuale";
 L["Text Options"] = "Opzioni di testo";
-L["Time Remaining Text"] = "Testo tempo rimanente";
+L["Time Remaining"] = "Tempo rimanente";
+L["Spell Count"] = "Conteggio incantesimi";
+L["Spell Name"] = "Scrivi il nome";
 L["Show"] = "Mostrare";
 L["Font Size"] = "Dimensione del font";
 L["Font Type"] = "Tipo di carattere";
-L["Spell Name Text"] = "Scrivi il testo del nome";
 L["Enter the Name of a %s to Track:"] = "Inserisci il nome di %s da monitorare:";
 L["Only %s casted by you will be tracked."] =
   "Solo %s lanciato da te verrà tracciato.";
@@ -577,7 +578,6 @@ L["Status bar options are disabled when using icons."] =
   "Le opzioni della barra di stato sono disabilitate quando si utilizzano le icone.";
 L["Icon Gap"] = "Icona divario";
 L["Text"] = "Testo";
-L["Time Remaining"] = "Tempo rimanente";
 L["Count"] = "Contare";
 L["Aura Name"] = "Nome dell'Aura";
 L["Border Type"] = "Tipo di bordo";

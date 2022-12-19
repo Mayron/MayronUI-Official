@@ -243,11 +243,12 @@ L["Buff Bar Color"] = "Farbe der Buff Leiste";
 L["Debuff Bar Color"] = "Farbe der Debuff Leiste";
 L["Manual Positioning"] = "Manuelle Positionierung";
 L["Text Options"] = "Text Einstellungen";
-L["Time Remaining Text"] = "Text: Verbleibende Zeit";
+L["Time Remaining"] = "Verbleibende Zeit";
+L["Spell Count"] = "Zauberzahl";
+L["Spell Name"] = "Zaubername";
 L["Show"] = "Anzeigen";
 L["Font Size"] = "Schriftgröße";
 L["Font Type"] = "Schriftart";
-L["Spell Name Text"] = "Text: Zaubername";
 L["Enter the Name of a %s to Track:"] =
   "Gebe den Namen eines %s ein um ihn zu überwachen.";
 L["Only %s casted by you will be tracked."] =
@@ -583,7 +584,6 @@ L["Status bar options are disabled when using icons."] =
   "Die Optionen der Statusleiste sind bei Verwendung von Symbolen deaktiviert.";
 L["Icon Gap"] = "Symbollücken.";
 L["Text"] = "Text";
-L["Time Remaining"] = "Verbleibende Zeit";
 L["Count"] = "Anzahl";
 L["Aura Name"] = "Aura Name";
 L["Border Type"] = "Randtyp";

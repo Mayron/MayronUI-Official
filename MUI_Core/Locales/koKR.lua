@@ -240,11 +240,12 @@ L["Buff Bar Color"] = "버프 바 색상";
 L["Debuff Bar Color"] = "디버프 바 색상";
 L["Manual Positioning"] = "수동 포지셔닝";
 L["Text Options"] = "텍스트 옵션";
-L["Time Remaining Text"] = "남은 시간 텍스트";
 L["Show"] = "보여 주다";
 L["Font Size"] = "글꼴 크기";
 L["Font Type"] = "글꼴 유형";
-L["Spell Name Text"] = "주문 이름 텍스트";
+L["Time Remaining"] = "남은 시간";
+L["Spell Count"] = "철자 수";
+L["Spell Name"] = "철자 이름";
 L["Enter the Name of a %s to Track:"] =
   "추적 할 %s 의 이름을 입력하십시오 :";
 L["Only %s casted by you will be tracked."] =
@@ -576,7 +577,6 @@ L["Status bar options are disabled when using icons."] =
   "아이콘을 사용할 때 상태 표시 줄 옵션이 비활성화됩니다.";
 L["Icon Gap"] = "아이콘 간격";
 L["Text"] = "본문";
-L["Time Remaining"] = "남은 시간";
 L["Count"] = "카운트";
 L["Aura Name"] = "오라 이름";
 L["Border Type"] = "테두리 유형";

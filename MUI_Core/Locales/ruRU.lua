@@ -261,11 +261,10 @@ L["Buff Bar Color"] = "Цвет полоски баффа";
 L["Debuff Bar Color"] = "Цвет панели дебаффов";
 L["Manual Positioning"] = "Ручное позиционирование";
 L["Text Options"] = "Параметры текста";
-L["Time Remaining Text"] = "Оставшееся время текста";
+
 L["Show"] = "Показывать";
 L["Font Size"] = "Размер шрифта";
 L["Font Type"] = "Тип шрифта";
-L["Spell Name Text"] = "Текст названия заклинания";
 L["Enter the Name of a %s to Track:"] =
   "Введите имя %s для отслеживания:";
 L["Only %s casted by you will be tracked."] =
@@ -618,6 +617,8 @@ L["Status bar options are disabled when using icons."] =
 L["Icon Gap"] = "Иконка Гэп";
 L["Text"] = "Текст";
 L["Time Remaining"] = "Времени осталось";
+L["Spell Count"] = "Количество заклинаний";
+L["Spell Name"] = "Название заклинания";
 L["Count"] = "Считать";
 L["Aura Name"] = "Имя ауры";
 L["Border Type"] = "Тип границы";

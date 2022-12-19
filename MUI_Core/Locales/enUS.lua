@@ -202,6 +202,8 @@ L["INSTALL"] = "INSTALL";
 L["CUSTOM INSTALL"] = "CUSTOM INSTALL";
 L["INFORMATION"] = "INFORMATION";
 L["Warning:"] = "Warning:";
+
+
 L["This will reload the UI!"] = "This will reload the UI!";
 L["Setup Menu"] = "Setup Menu";
 L["VERSION"] = "VERSION";
@@ -239,11 +241,12 @@ L["Buff Bar Color"] = "Buff Bar Color";
 L["Debuff Bar Color"] = "Debuff Bar Color";
 L["Manual Positioning"] = "Manual Positioning";
 L["Text Options"] = "Text Options";
-L["Time Remaining Text"] = "Time Remaining Text";
+L["Time Remaining"] = "Time Remaining";
+L["Spell Count"] = "Spell Count";
+L["Spell Name"] = "Spell Name";
 L["Show"] = "Show";
 L["Font Size"] = "Font Size";
 L["Font Type"] = "Font Type";
-L["Spell Name Text"] = "Spell Name Text";
 L["Enter the Name of a %s to Track:"] = "Enter the Name of a %s to Track:";
 L["Only %s casted by you will be tracked."] =
   "Only %s casted by you will be tracked.";
@@ -255,6 +258,8 @@ L["The unit who is affected by the spell."] =
   "The unit who is affected by the spell.";
 L["The field's vertical growth direction:"] =
   "The field's vertical growth direction:";
+
+
 L["Reload UI"] = "Reload UI";
 L["General"] = "General";
 L["Master Font"] = "Master Font";
@@ -562,7 +567,6 @@ L["Status bar options are disabled when using icons."] =
   "Status bar options are disabled when using icons.";
 L["Icon Gap"] = "Icon Gap";
 L["Text"] = "Text";
-L["Time Remaining"] = "Time Remaining";
 L["Count"] = "Count";
 L["Aura Name"] = "Aura Name";
 L["Border Type"] = "Border Type";

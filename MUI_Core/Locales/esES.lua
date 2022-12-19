@@ -209,6 +209,60 @@ L["INSTALL"] = "INSTALAR EN PC";
 L["CUSTOM INSTALL"] = "INSTALACION PERSONALIZADA";
 L["INFORMATION"] = "INFORMACIÓN";
 L["Warning:"] = "Advertencia:";
+L["This will reload the UI!"] = "¡Esto recargará la interfaz de usuario!";
+L["Setup Menu"] = "Menú de configuración";
+L["VERSION"] = "VERSIÓN";
+L["This will ensure that frames are correctly positioned to match the UI scale during installation."] =
+  "Esto garantizará que los marcos se coloquen correctamente para que coincidan con la escala de la interfaz de usuario durante la instalación.";
+L["Only track your %s"] = "Rastree solo su %s";
+L["Track all %s"] = "Seguimiento de todos los %s";
+L["General Options"] = "Opciones generales";
+L["Sort By Time Remaining"] = "Ordenar por tiempo restante";
+L["Show Tooltips On Mouseover"] = "Mostrar información sobre herramientas al pasar el mouse";
+L["Create New Field"] = "Crear nuevo campo";
+L["Name of New TimerBar Field:"] = "Nombre del nuevo campo TimerBar:";
+L["Name of TimerBar Field to Remove:"] = "Nombre del campo TimerBar para eliminar:";
+L["TimerBar field '%s' created."] = "Se creó el campo '%s' de TimerBar.";
+L["TimerBar field '%s' remove."] = "Se eliminó el campo '%s' de TimerBar.";
+L["TimerBar field '%s' does not exist."] = "El campo '%s' de TimerBar no existe.";
+L["Remove Field"] = "Eliminar campo";
+L["Existing Timer Bar Fields"] = "Campos de barra de temporizador existentes";
+L["Enable Field"] = "Habilitar campo";
+L["<%s Field>"] = "<%s Campo>";
+L["Unit to Track"] = "Unidad a rastrear";
+L["Manage Tracking Buffs"] = "Administrar mejoras de seguimiento";
+L["TargetTarget"] = "TargetTarget";
+L["FocusTarget"] = "FocusTarget";
+L["Manage Tracking Debuffs"] = "Administrar desventajas de seguimiento";
+L["Appearance Options"] = "Opciones de apariencia";
+L["Up"] = "Arriba";
+L["Down"] = "Abajo";
+L["Bar Width"] = "Ancho de barra";
+L["Bar Height"] = "Altura de la barra";
+L["Bar Spacing"] = "Espaciado entre barras";
+L["Show Icons"] = "Mostrar iconos";
+L["Show Spark"] = "Mostrar chispa";
+L["Buff Bar Color"] = "Color de la barra de pulido";
+L["Debuff Bar Color"] = "Color de la barra de debilitamiento";
+L["Manual Positioning"] = "Posicionamiento manual";
+L["Text Options"] = "Opciones de texto";
+L["Time Remaining"] = "Tiempo restante";
+L["Spell Count"] = "Conteo de hechizos";
+L["Spell Name"] = "Nombre de hechizo";
+L["Show"] = "Show";
+L["Font Size"] = "Tamaño de fuente";
+L["Font Type"] = "Tipo de fuente";
+L["Enter the Name of a %s to Track:"] = "Ingrese el nombre de un %s para rastrear:";
+L["Only %s casted by you will be tracked."] =
+  "Solo %s enviados por ti serán rastreados.";
+L["Ignore the list of %s to track and track everything."] =
+  "Ignora la lista de %s para rastrear y rastrear todo.";
+L["Enabling this will dynamically generate the list of %s to track."] =
+  "Habilitar esto generará dinámicamente la lista de %s para rastrear.";
+L["The unit who is affected by the spell."] =
+  "La unidad afectada por el hechizo.";
+L["The field's vertical growth direction:"] =
+  "La dirección de crecimiento vertical del campo:";
 L["Reload UI"] = "Recargar IU";
 L["General"] = "General";
 L["Master Font"] = "Fuente maestra";
@@ -529,7 +583,6 @@ L["Status bar options are disabled when using icons."] =
   "Las opciones de la barra de estado están deshabilitadas cuando se usan íconos.";
 L["Icon Gap"] = "Icon Gap";
 L["Text"] = "Texto";
-L["Time Remaining"] = "Tiempo restante";
 L["Count"] = "Contar";
 L["Aura Name"] = "Nombre de Aura";
 L["Border Type"] = "Tipo de borde";

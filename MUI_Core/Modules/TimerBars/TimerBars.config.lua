@@ -461,7 +461,7 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Text Options"];
                               type = "title";
                           };
-                          {   content = L["Time Remaining Text"];
+                          {   content = L["Time Remaining"];
                               type = "fontstring";
                               subtype = "header";
                           };
@@ -484,7 +484,7 @@ function C_TimerBars:GetConfigTable()
                               fontPicker = true;
                               options = tk.Constants.LSM:List("font");
                           };
-                          {   content = L["Spell Name Text"];
+                          {   content = L["Spell Name"];
                               type = "fontstring";
                               subtype = "header";
                           };
@@ -506,6 +506,45 @@ function C_TimerBars:GetConfigTable()
                               dbPath = dbFieldPath .. ".auraName.font";
                               fontPicker = true;
                               options = tk.Constants.LSM:List("font");
+                          };
+                          {   content = L["Spell Count"];
+                              type = "fontstring";
+                              subtype = "header";
+                          };
+                          {   name = L["Show"];
+                              type = "check";
+                              height = 50;
+                              dbPath = dbFieldPath .. ".spellCount.show";
+                          };
+                          {   name = L["Font Size"];
+                              type = "slider";
+                              step = 1;
+                              min = 8;
+                              max = 22;
+                              dbPath = dbFieldPath .. ".spellCount.fontSize";
+                          };
+                          {   name = L["Font Type"];
+                              type = "dropdown";
+                              dbPath = dbFieldPath .. ".spellCount.font";
+                              fontPicker = true;
+                              options = tk.Constants.LSM:List("font");
+                          };
+                          {  name = L["Position"],
+                             type = "dropdown",
+                             options = {
+                                [L["Left"]] = "LEFT",
+                                [L["Right"]] = "RIGHT",
+                                [L["Center"]] = "CENTER",
+                             },
+                             dbPath = dbFieldPath .. ".spellCount.position";
+                          },
+                          {
+                            name = L["X-Offset"];
+                            type = "slider";
+                            step = 1;
+                            min = -50;
+                            max = 50;
+                            dbPath = dbFieldPath .. ".spellCount.xOffset";
                           };
                           {   name = L["Filters"];
                               type = "title";

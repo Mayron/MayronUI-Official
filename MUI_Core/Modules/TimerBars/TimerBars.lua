@@ -111,6 +111,14 @@ db:AddToDefaults("profile", {
       font        = "MUI_Font";
     };
 
+    spellCount = {
+      show     = true;
+      fontSize = 16;
+      font     = "MUI_Font";
+      position = "LEFT";
+      xOffset = -28;
+    };
+
     timeRemaining = {
       show        = true;
       fontSize    = 11;
@@ -266,6 +274,13 @@ function C_TimerBars:OnInitialize(data)
           timeRemaining = function(_, _, field, fieldName)
             for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
               bar:SetTimeRemainingShown(data.settings.fields[fieldName].timeRemaining.show);
+            end
+          end;
+
+          ---@param field TimerField
+          spellCount = function(_, _, field, fieldName)
+            for _, bar in obj:IterateArgs(field:GetAllTimerBars()) do
+              bar:SetSpellCountShown(data.settings.fields[fieldName].spellCount.show);
             end
           end;
 
@@ -1024,8 +1039,9 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
 
   self:SetIconShown(settings.showIcons);
   self:SetSparkShown(settings.showSpark);
-  self:SetAuraNameShown(settings.auraName.show);
   self:SetBorderShown(sharedSettings.border.show);
+  self:SetAuraNameShown(settings.auraName.show);
+  self:SetSpellCountShown(settings.spellCount.show);
   self:SetTimeRemainingShown(settings.timeRemaining.show);
   self:SetTooltipsEnabled(sharedSettings.showTooltips);
 
@@ -1149,17 +1165,10 @@ function C_TimerBar:SetAuraNameShown(data, shown)
     data.auraName:SetPoint("RIGHT", -50, 0);
     data.auraName:SetJustifyH("LEFT");
     data.auraName:SetWordWrap(false);
-
-    data.amount = data.frame:CreateFontString(nil, "ARTWORK", "GameFontNormal");
-    data.amount:SetPoint("TOPLEFT", data.frame, "TOPRIGHT", 4, 1);
-    data.amount:SetPoint("BOTTOMLEFT", data.frame, "BOTTOMRIGHT", 4, -1);
-    data.amount:SetJustifyH("LEFT");
-    tk:SetFontSize(data.amount, 12);
   end
 
   local font = tk.Constants.LSM:Fetch("font", data.settings.auraName.font);
   data.auraName:SetFont(font, data.settings.auraName.fontSize);
-
   data.auraName:SetWidth(data.settings.bar.width - data.settings.bar.height - 50);
   data.auraName:SetShown(shown);
 end
@@ -1179,6 +1188,45 @@ function C_TimerBar:SetTimeRemainingShown(data, shown)
   local font = tk.Constants.LSM:Fetch("font", data.settings.timeRemaining.font);
   data.timeRemaining:SetFont(font, data.settings.timeRemaining.fontSize);
   data.timeRemaining:SetShown(shown);
+end
+
+obj:DefineParams("boolean");
+---@param shown boolean @Set to true to show the timer bar's time remaining text.
+function C_TimerBar:SetSpellCountShown(data, shown)
+  if (not data.spellCount and not shown) then
+    return;
+  end
+
+  if (not data.spellCount) then
+    data.spellCount = data.slider:CreateFontString(nil, "ARTWORK", "GameFontNormal");
+  end
+
+  local font = tk.Constants.LSM:Fetch("font", data.settings.spellCount.font);
+  data.spellCount:SetFont(font, data.settings.spellCount.fontSize);
+
+  local relPoint = data.settings.spellCount.position;
+  local xOffset = data.settings.spellCount.xOffset;
+  data.spellCount:ClearAllPoints();
+
+  if (relPoint == "CENTER") then
+    data.spellCount:SetPoint("CENTER", data.slider, "CENTER", xOffset, 0);
+    data.spellCount:SetJustifyH("CENTER");
+  else
+    local position;
+
+    if (relPoint == "LEFT") then
+      position = "RIGHT";
+    elseif (relPoint == "RIGHT") then
+      position = "LEFT";
+    end
+
+    data.spellCount:SetPoint("TOP"..position, data.slider, "TOP"..relPoint, xOffset, 0);
+    data.spellCount:SetPoint("BOTTOM"..position, data.slider, "BOTTOM"..relPoint, xOffset, 0);
+    data.spellCount:SetJustifyH(position);
+  end
+
+  data.spellCount:SetWidth(math.max(20, data.spellCount:GetStringWidth()));
+  data.spellCount:SetShown(shown);
 end
 
 obj:DefineParams("boolean");
@@ -1267,7 +1315,7 @@ obj:DefineParams("table");
 function C_TimerBar:UpdateAura(data, auraInfo)
   local auraName        = auraInfo[1];
   local iconPath        = auraInfo[2];
-  local amount          = auraInfo[3];
+  local count          = auraInfo[3];
   local debuffType      = auraInfo[4];
   local canStealOrPurge = auraInfo[8];
 
@@ -1282,11 +1330,13 @@ function C_TimerBar:UpdateAura(data, auraInfo)
   end
 
   data.auraName:SetText(auraName);
-  if (amount > 1) then
-    data.amount:SetText(amount);
-    data.amount:Show();
+
+  if (count > 1) then
+    data.spellCount:SetText(count);
+    data.spellCount:SetWidth(math.max(20, data.spellCount:GetStringWidth()));
+    data.spellCount:Show();
   else
-    data.amount:Hide();
+    data.spellCount:Hide();
   end
 
   if (data.settings.colorStealOrPurge and canStealOrPurge) then
