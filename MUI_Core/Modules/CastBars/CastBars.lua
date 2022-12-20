@@ -673,19 +673,18 @@ obj:DefineParams("boolean");
 function C_CastBar:SetIconEnabled(data, enabled)
   if (not enabled and not data.square) then
     return; -- nothing to do
-    end
+  end
 
-    if (not data.square) then
-      data.square = tk:CreateFrame("Frame", data.frame, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
-      data.square:SetPoint("TOPRIGHT", data.frame, "TOPLEFT", -2, 0);
-      data.square:SetPoint("BOTTOMRIGHT", data.frame, "BOTTOMLEFT", -2, 0);
+  if (not data.square) then
+    -- See the anchorToSUF update function for more details on how this gets set up:
+    data.square = tk:CreateFrame("Frame", data.frame, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+    data.icon = data.square:CreateTexture(nil, "ARTWORK");
+    data.icon:SetPoint("TOPLEFT", data.square, "TOPLEFT", 1, -1);
+    data.icon:SetPoint("BOTTOMRIGHT", data.square, "BOTTOMRIGHT", -1, 1);
+  end
 
-      data.icon = data.square:CreateTexture(nil, "ARTWORK");
-      data.icon:SetPoint("TOPLEFT", data.square, "TOPLEFT", 1, -1);
-      data.icon:SetPoint("BOTTOMRIGHT", data.square, "BOTTOMRIGHT", -1, 1);
-    end
-
-    data.square:SetShown(enabled);
+  data.square:SetShown(enabled);
+  self:PositionCastBar();
 end
 
 ---Stop casting or channelling a spell/ability.
@@ -817,36 +816,48 @@ end
 function C_CastBar:PositionCastBar(data)
   self:ClearAllPoints();
 
+  if (data.square) then
+    data.square:ClearAllPoints();
+  end
+
   local anchorToSUF = IsAddOnLoaded("ShadowedUnitFrames") and data.settings.anchorToSUF;
   local unitframe = _G[ string.format("SUFUnit%s", data.unitID:lower()) ];
   local sufAnchor = unitframe and unitframe.portrait;
+  local manualPosition = not (anchorToSUF and sufAnchor);
 
-  if (not (anchorToSUF and sufAnchor)) then
-    -- manual position...
+  if (manualPosition) then
     local point = data.settings.position[1];
     local relativeFrame = data.settings.position[2];
     local relativePoint = data.settings.position[3];
     local x, y = data.settings.position[4], data.settings.position[5];
 
-    self:SetParent(_G.UIParent);
+    data.frame:SetParent(_G.UIParent);
 
     if (point and relativeFrame and relativePoint and x and y) then
-      self:SetPoint(point, _G[relativeFrame], relativePoint, x, y);
+      data.frame:SetPoint(point, _G[relativeFrame], relativePoint, x, y);
     else
-      self:SetPoint("CENTER");
+      data.frame:SetPoint("CENTER");
     end
-
-    if (data.sqaure) then
-      data.square:SetWidth(data.settings.height);
-    end
-  elseif (sufAnchor) then
-    -- anchor to ShadowedUnitFrames
-    self:SetParent(sufAnchor);
-    self:SetPoint("TOPLEFT", sufAnchor, "TOPLEFT", -1, 1);
-    self:SetPoint("BOTTOMRIGHT", sufAnchor, "BOTTOMRIGHT", 1, -1);
 
     if (data.square) then
-      data.square:SetWidth(sufAnchor:GetHeight() + 2);
+
+      data.square:SetWidth(data.settings.height);
+      data.square:SetPoint("TOPRIGHT", data.frame, "TOPLEFT", -2, 0);
+      data.square:SetPoint("BOTTOMRIGHT", data.frame, "BOTTOMLEFT", -2, 0);
+    end
+  elseif (sufAnchor) then
+    data.frame:SetParent(sufAnchor);
+    data.frame:SetPoint("BOTTOMRIGHT", 1, -1);
+
+    -- anchor to ShadowedUnitFrames
+    if (data.square and data.settings.showIcon) then
+      data.square:SetPoint("TOPLEFT", sufAnchor, "TOPLEFT", -1, 1);
+      data.square:SetPoint("BOTTOMLEFT", sufAnchor, "BOTTOMLEFT", -1, -1);
+      local height = sufAnchor:GetHeight();
+      data.square:SetWidth(height);
+      data.frame:SetPoint("TOPLEFT", data.square, "TOPRIGHT", 0, 0);
+    else
+      data.frame:SetPoint("TOPLEFT", -1, 1);
     end
   end
 
@@ -1000,6 +1011,11 @@ function C_CastBarsModule:OnInitialize(data)
             castBarData.backdrop.edgeFile = tk.Constants.LSM:Fetch("border", value);
             castBarData.frame:SetBackdrop(castBarData.backdrop);
             castBarData.frame:SetBackdropBorderColor(color.r, color.g, color.b, color.a);
+
+            if (castBarData.square) then
+              castBarData.square:SetBackdrop(castBarData.backdrop);
+              castBarData.square:SetBackdropBorderColor(color.r, color.g, color.b, color.a);
+            end
           end
         end;
 
@@ -1024,6 +1040,11 @@ function C_CastBarsModule:OnInitialize(data)
             castBarData.backdrop.edgeSize = value;
             castBarData.frame:SetBackdrop(castBarData.backdrop);
             castBarData.frame:SetBackdropBorderColor(color.r, color.g, color.b, color.a);
+
+            if (castBarData.square) then
+              castBarData.square:SetBackdrop(castBarData.backdrop);
+              castBarData.square:SetBackdropBorderColor(color.r, color.g, color.b, color.a);
+            end
           end
         end;
 
@@ -1061,7 +1082,7 @@ function C_CastBarsModule:OnInitialize(data)
               castBarData = data:GetFriendData(castBar);
               castBarData.frame:SetBackdropBorderColor(value.r, value.g, value.b, value.a);
 
-              if (castBarData.settings.showIcon) then
+              if (castBarData.square) then
                 castBarData.square:SetBackdropBorderColor(value.r, value.g, value.b, value.a);
               end
             end

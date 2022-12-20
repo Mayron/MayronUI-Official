@@ -403,6 +403,14 @@ local function SetFonts(data)
   local size = data.settings.standardFontSize;
   local headerSize = data.settings.headerFontSize;
 
+  if (size <= 0) then
+    size = 14;
+  end
+
+  if (headerSize <= 0) then
+    headerSize = 16;
+  end
+
   if (flag == "None") then
     flag = "";
   end
@@ -1000,9 +1008,9 @@ function C_ToolTipsModule:OnInitialize(data)
 	self:RegisterUpdateFunctions(db.profile.tooltips, {
     font = SetFontsWrapper;--"MUI_Font";
     flag = SetFontsWrapper;
-    standardFontSize = SetFontsWrapper;--14;
-    headerFontSize = SetFontsWrapper;--14;
-    scale = SetBackdropStyleWrapper;--0.8
+    standardFontSize = SetFontsWrapper; --14;
+    headerFontSize = SetFontsWrapper; --16;
+    scale = SetBackdropStyleWrapper; --0.8
     muiTexture = SetBackdropStyleWrapper; -- if true, does not use backdrop
     backdrop = SetBackdropStyleWrapper;
     healthBar = {

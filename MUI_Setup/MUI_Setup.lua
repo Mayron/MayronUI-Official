@@ -773,7 +773,7 @@ do
     EditModeManagerFrame.highestLayoutIndexByType = {};
 
     if (highest > 0) then
-      EditModeManagerFrame.highestLayoutIndexByType[layoutType] = highest
+      EditModeManagerFrame.highestLayoutIndexByType[layoutType] = highest;
     end
   end
 
