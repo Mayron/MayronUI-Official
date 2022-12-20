@@ -6,7 +6,9 @@ local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ToolTipsModule = MayronUI:GetModuleClass("Tooltips");
 
 local muiTextureSubmenu, customBackdropSubmenu;
-local screenPointXOffsetTextField, screenPointYOffsetTextField, screenPointDropdown;
+local screenPointXOffsetTextField, screenPointYOffsetTextField;
+local screenPointDropdown; ---@type DropDownMenu
+local tostring = _G.tostring;
 
 local function UnlockScreenAnchor(button, screenAnchor)
   screenAnchor.unlocked = not screenAnchor.unlocked;
@@ -403,7 +405,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                 options = tk.Constants.POINT_OPTIONS;
                 appendDbPath = "anchors.screenAnchor.point";
                 OnLoad = function(_, container)
-                  screenPointDropdown = container.component;
+                  screenPointDropdown = container.component.dropdown;
                 end;
             };
             {   type = "textfield";

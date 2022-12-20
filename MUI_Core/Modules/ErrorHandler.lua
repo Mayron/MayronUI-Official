@@ -14,14 +14,19 @@ local debugstack, debuglocals, HandleLuaError = _G.debugstack, _G.debuglocals, _
 local ERRORS = {};
 local seterrorhandler = _G.seterrorhandler;
 local ScriptErrorsFrame = _G.ScriptErrorsFrame;
-local tostring = _G.tostring;
 
 ---@class C_ErrorHandler : BaseModule
 local C_ErrorHandler = MayronUI:RegisterModule("ErrorHandlerModule");
 
 function C_ErrorHandler:OnInitialize()
   local function addError(errorMessage)
-    table.insert(ERRORS, {
+    for _, errorInfo in pairs(ERRORS) do
+      if (errorInfo.error == errorMessage) then
+        return -- don't add the same error more than once
+      end
+    end
+
+    local newErrorInfo = {
       zone = string.format("%s (%s)", GetZoneText(), GetMinimapZoneText()),
       groupSize = GetNumGroupMembers(),
       instanceType = (select(2, IsInInstance())),
@@ -30,8 +35,12 @@ function C_ErrorHandler:OnInitialize()
       isAFK = UnitIsAFK("player"),
       isDeadOrGhost = UnitIsDeadOrGhost("player"),
       locals = debuglocals(4),
-      error = tk.Strings:Join("\n", tostring(errorMessage), (debugstack(4) or tk.Strings.Empty));
-    });
+      stacktrace = debugstack(4),
+      error = errorMessage,
+    };
+
+    print(type(newErrorInfo.locals));
+    table.insert(ERRORS, newErrorInfo);
   end
 
   local listener = em:CreateEventListener(function(_, event, name, func)

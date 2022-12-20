@@ -484,25 +484,28 @@ do
 
     -- Captured Error Info (player details when error occurred):
     AppendLine(string.format("Captured Errors (%d)", #data.errors), true);
-    for id, errorObject in ipairs(data.errors) do
+    for id, errorInfo in ipairs(data.errors) do
       if (id > 3) then
         break
       end -- only get the first 3
-      f("- Zone: %s", errorObject.zone);
-      f("- Group size: %s", errorObject.groupSize);
-      f("- Instance type: %s", errorObject.instanceType);
-      f("- In combat: %s", errorObject.inCombat and "Yes" or "No");
-      f("- Resting: %s", errorObject.resting and "Yes" or "No");
-      f("- AFK: %s", errorObject.isAFK and "Yes" or "No");
-      f("- Dead or ghost: %s", errorObject.isDeadOrGhost and "Yes" or "No");
-      f("- Locals: %s", errorObject.locals or "None");
-      AppendLine("");
-      AppendLine("```lua");
+      f("- Zone: %s", errorInfo.zone);
+      f("- Group size: %s", errorInfo.groupSize);
+      f("- Instance type: %s", errorInfo.instanceType);
+      f("- In combat: %s", errorInfo.inCombat and "Yes" or "No");
+      f("- Resting: %s", errorInfo.resting and "Yes" or "No");
+      f("- AFK: %s", errorInfo.isAFK and "Yes" or "No");
+      f("- Dead or ghost: %s", errorInfo.isDeadOrGhost and "Yes" or "No");
 
+      if (_G.MUI_DEBUG_MODE) then
+        f("- Locals: %s", errorInfo.locals or "None");
+      end
+
+      f("- Stack Trace: %s", errorInfo.stacktrace or "None");
+      AppendLine("");
+
+      AppendLine("```lua");
       local maxLength = 3000 - (min(3, #data.errors) * 500);
-      local errorMessage = string.sub(
-                             errorObject.error, 1,
-                               min(#errorObject.error, maxLength));
+      local errorMessage = string.sub(errorInfo.error, 1, min(#errorInfo.error, maxLength));
       AppendLine(errorMessage);
       AppendLine("```");
 
@@ -516,16 +519,16 @@ do
     -- Append MUI_Core Global Settings:
     AppendLine("MUI_Core global settings", true);
 
-    local global = GetCopyOfSavedVariableTable(db.global);
+    local globalSettings = GetCopyOfSavedVariableTable(db.global);
 
     -- these tables get incredibly large so ignore them
-    global.installed = nil;
-    global.movable = nil;
+    globalSettings.installed = nil;
+    globalSettings.movable = nil;
 
-    global = obj:ToLongString(global);
+    globalSettings = obj:ToLongString(globalSettings);
 
     AppendLine("```lua");
-    AppendLine(global);
+    AppendLine(globalSettings);
     AppendLine("```");
 
     -- Append MUI_Core Current Profile Settings:

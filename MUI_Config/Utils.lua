@@ -99,6 +99,13 @@ function Utils:AppendDefaultValueToTooltip(config)
   if (not tk.Strings:Contains(config.tooltip, L["Default value is"]) and config.dbPath) then
     local default = db:GetDefault(config.dbPath);
 
+    if (not default) then
+      local timerBarsDb = MayronUI:GetComponent("TimerBarsDatabase", true);
+      if (timerBarsDb) then
+        default = timerBarsDb:GetDefault(config.dbPath);
+      end
+    end
+
     if (obj:IsNumber(default) or obj:IsString(default) or obj:IsBoolean(default)) then
       default = tostring(default);
       local defaultTooltip = tk.Strings:JoinWithSpace(L["Default value is"], default);
@@ -109,7 +116,7 @@ function Utils:AppendDefaultValueToTooltip(config)
         config.tooltip = defaultTooltip;
       end
     end
-  end 
+  end
 end
 
 function Utils:SetBasicTooltip(widget, config)
