@@ -686,6 +686,7 @@ L["Show Item Level"] = "항목 레벨 표시";
 L["In Combat Options"] = "전투 옵션";
 L["Show Unit Tooltips In Combat"] = "전투에서 유닛 툴팁 표시";
 L["Show Guild Rank"] = "길드 등급 표시";
+L["Show Realm Name"] = "영역 이름 표시";
 L["Show Target"] = "대상 표시";
 L["Show Standard Tooltips In Combat"] = "전투에서 표준 툴팁 표시";
 L["Standard tooltips display non-unit related information, such as action-bar abilities, buffs and debuffs, and more."] =

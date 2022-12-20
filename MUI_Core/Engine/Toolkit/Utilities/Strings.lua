@@ -165,13 +165,17 @@ function tk.Strings:JoinWithSpace(...)
 end
 
 -- also includes level at the end
-local UnitName, UnitLevel, UnitClassification, tonumber, UnitIsPlayer, UnitAffectingCombat, IsResting,
-UnitIsConnected, UnitIsAFK, UnitIsDND, UnitReaction = _G.UnitName, _G.UnitLevel,
+local UnitFullName, UnitLevel, UnitClassification, tonumber, UnitIsPlayer, UnitAffectingCombat, IsResting,
+UnitIsConnected, UnitIsAFK, UnitIsDND, UnitReaction = _G.UnitFullName, _G.UnitLevel,
 _G.UnitClassification, _G.tonumber, _G.UnitIsPlayer, _G.UnitAffectingCombat, _G.IsResting,
 _G.UnitIsConnected, _G.UnitIsAFK,   _G.UnitIsDND, _G.UnitReaction;
 
-function tk.Strings:GetUnitNameText(unitID, overflow)
-  local unitName = UnitName(unitID)
+function tk.Strings:GetUnitNameText(unitID, overflow, includeRealName)
+  local unitName, realm = UnitFullName(unitID);
+
+  if (includeRealName and obj:IsString(realm) and not tk.Strings:IsNilOrWhiteSpace(realm)) then
+    unitName = unitName.."-"..realm;
+  end
 
   if (overflow) then
     unitName = tk.Strings:SetOverflow(unitName, overflow);
@@ -250,8 +254,8 @@ function tk.Strings:GetUnitStatusText(unitID)
   end
 end
 
-function tk.Strings:GetUnitFullNameText(unitID, unitLevel, nameOverflow)
-  local unitName = self:GetUnitNameText(unitID, nameOverflow);
+function tk.Strings:GetUnitFullNameText(unitID, unitLevel, nameOverflow, includeRealName)
+  local unitName = self:GetUnitNameText(unitID, nameOverflow, includeRealName);
   unitLevel = self:GetUnitLevelText(unitID, unitLevel);
   local unitStatus = self:GetUnitStatusText(unitID);
 

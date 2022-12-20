@@ -660,6 +660,7 @@ L["Show Item Level"] = "顯示物品等級";
 L["In Combat Options"] = "在戰鬥選項中";
 L["Show Unit Tooltips In Combat"] = "在戰鬥中顯示單位工具提示";
 L["Show Guild Rank"] = "顯示公會等級";
+L["Show Realm Name"] = "顯示領域名稱";
 L["Show Target"] = "顯示目標";
 L["Show Standard Tooltips In Combat"] = "在戰鬥中顯示標準工具提示";
 L["Standard tooltips display non-unit related information, such as action-bar abilities, buffs and debuffs, and more."] =

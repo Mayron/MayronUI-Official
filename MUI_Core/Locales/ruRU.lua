@@ -735,6 +735,7 @@ L["In Combat Options"] = "В боевых опциях";
 L["Show Unit Tooltips In Combat"] =
   "Показывать подсказки отряда в бою";
 L["Show Guild Rank"] = "Показать ранг гильдии";
+L["Show Realm Name"] = "Показать имя области";
 L["Show Target"] = "Показать цель";
 L["Show Standard Tooltips In Combat"] =
   "Показывать стандартные подсказки в бою";

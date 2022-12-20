@@ -39,7 +39,6 @@ function C_ErrorHandler:OnInitialize()
       error = errorMessage,
     };
 
-    print(type(newErrorInfo.locals));
     table.insert(ERRORS, newErrorInfo);
   end
 

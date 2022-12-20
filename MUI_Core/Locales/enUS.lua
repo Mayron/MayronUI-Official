@@ -673,6 +673,7 @@ L["Show Item Level"] = "Show Item Level";
 L["In Combat Options"] = "In Combat Options";
 L["Show Unit Tooltips In Combat"] = "Show Unit Tooltips In Combat";
 L["Show Guild Rank"] = "Show Guild Rank";
+L["Show Realm Name"] = "Show Realm Name";
 L["Show Target"] = "Show Target";
 L["Show Standard Tooltips In Combat"] = "Show Standard Tooltips In Combat";
 L["Standard tooltips display non-unit related information, such as action-bar abilities, buffs and debuffs, and more."] =

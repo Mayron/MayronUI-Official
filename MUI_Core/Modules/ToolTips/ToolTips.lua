@@ -64,6 +64,7 @@ db:AddToDefaults("profile.tooltips", {
   enabled = not (select(1, IsAddOnLoaded("TipTac")));
   targetShown = true;
   guildRankShown = true;
+  realmShown = true;
   itemLevelShown = true;
   specShown = true;
   font = "MUI_Font";
@@ -452,14 +453,14 @@ local function SetFonts(data)
   end
 end
 
-local function UpdateUnitTooltipLines(guildRankShown, unitID)
+local function UpdateUnitTooltipLines(guildRankShown, realmShown, unitID)
   local totalLines = gameTooltip:NumLines();
 	for i = 1, totalLines do
 		local line = _G["GameTooltipTextLeft"..i];
 
     if (i == 1) then
       -- HEADER
-      local unitNameText = tk.Strings:GetUnitFullNameText(unitID);
+      local unitNameText = tk.Strings:GetUnitFullNameText(unitID, nil, nil, realmShown);
       _G.GameTooltipTextLeft1:SetText(unitNameText);
     elseif (UnitIsPlayer(unitID)) then
       -- guild Name
@@ -1141,7 +1142,7 @@ function C_ToolTipsModule:OnEnable(data)
 
     if (not unitExists or IsInCombatAndHidden(data)) then return end
 
-    UpdateUnitTooltipLines(data.settings.guildRankShown, unitID); -- must be BEFORE padding
+    UpdateUnitTooltipLines(data.settings.guildRankShown, data.settings.realmShown, unitID); -- must be BEFORE padding
     UpdateStatusBar(data, unitID);
     UpdateAuras(data, unitID);
 

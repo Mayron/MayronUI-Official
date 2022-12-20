@@ -694,6 +694,7 @@ L["In Combat Options"] = "Dans les options de combat";
 L["Show Unit Tooltips In Combat"] =
   "Afficher les infobulles des unités en combat";
 L["Show Guild Rank"] = "Afficher le rang de guilde";
+L["Show Realm Name"] = "Afficher le nom du domaine";
 L["Show Target"] = "Afficher la cible";
 L["Show Standard Tooltips In Combat"] =
   "Afficher les infobulles standard au combat";
