@@ -158,8 +158,17 @@ function Style:ApplyColor(_, colorName, alpha, ...)
       end
 
     elseif (objectType == "CheckButton") then
-      element:GetCheckedTexture():SetColorTexture(r, g, b, alpha);
-      element:GetHighlightTexture():SetColorTexture(r, g, b, alpha);
+      local checkedTexture = element:GetCheckedTexture();
+
+      if (checkedTexture) then
+        checkedTexture:SetColorTexture(r, g, b, alpha);
+      end
+
+      local highlightTexture = element:GetHighlightTexture();
+
+      if (highlightTexture) then
+        highlightTexture:SetColorTexture(r, g, b, alpha);
+      end
 
     elseif (objectType == "Button") then
       element:GetNormalTexture():SetVertexColor(r, g, b, alpha);

@@ -168,8 +168,7 @@ local function OnMenuTabButtonClick(self)
     C_Timer.After(0.02, ExpandSetupWindow);
     UIFrameFadeIn(submenu, 0.4, submenu:GetAlpha(), 1);
     UIFrameFadeOut(window.banner.left, 0.4, window.banner.left:GetAlpha(), 0.5);
-    UIFrameFadeOut(
-      window.banner.right, 0.4, window.banner.right:GetAlpha(), 0.5);
+    UIFrameFadeOut(window.banner.right, 0.4, window.banner.right:GetAlpha(), 0.5);
   else
     setUpModule:SetExpanded(false);
 
@@ -683,11 +682,12 @@ function C_SetUpModule:Show(data)
   local tabs = {};
 
   for i, text in ipairs(tabText) do
-    local tab = tk:CreateFrame("CheckButton", window.menu:GetFrame());
+    local tab = tk:CreateFrame("CheckButton", window.menu:GetFrame(), ("MUI_SetupTab%d"):format(i));
     tab:SetNormalFontObject("GameFontHighlight");
     tab:SetText(text);
     tab:SetCheckedTexture(1);
     tab:SetHighlightTexture(1);
+    tab:GetFontString():SetDrawLayer("OVERLAY")
     tab:SetSize(tab:GetFontString():GetWidth() + 50, 30);
     tab:SetScript("OnClick", OnMenuTabButtonClick);
 
@@ -701,7 +701,7 @@ function C_SetUpModule:Show(data)
   end
 
   tk:ApplyThemeColor(0.5, unpack(tabs));
-  tk:GroupCheckButtons(tabs);
+  tk:GroupCheckButtons(tabs, true);
 
   window:AddCells(window.menu, window.banner, window.info);
   data.window = window;
@@ -867,7 +867,8 @@ do
           -- dragonflight:
           chatFrame:EditMode_OnResized();
           EditModeManagerFrame:OnSystemPositionChange(chatFrame);
-          EditModeManagerFrame:SaveLayouts();
+          --EditModeManagerFrame:SaveLayouts(); -- this was causing some bugs for people
+          C_EditMode.SaveLayouts(EditModeManagerFrame.layoutInfo);
         end
 
       elseif (id == 2 and resetChat) then
