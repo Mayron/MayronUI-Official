@@ -64,6 +64,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             {   name = L["Show Realm Name"],
                 type = "check",
                 appendDbPath = "realmShown",
+                client = "retail";
             },
             {   name = L["Show Item Level"],
                 tooltip = tk.Strings:Join("\n\n",

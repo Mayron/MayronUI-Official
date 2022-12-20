@@ -170,10 +170,10 @@ UnitIsConnected, UnitIsAFK, UnitIsDND, UnitReaction = _G.UnitFullName, _G.UnitLe
 _G.UnitClassification, _G.tonumber, _G.UnitIsPlayer, _G.UnitAffectingCombat, _G.IsResting,
 _G.UnitIsConnected, _G.UnitIsAFK,   _G.UnitIsDND, _G.UnitReaction;
 
-function tk.Strings:GetUnitNameText(unitID, overflow, includeRealName)
+function tk.Strings:GetUnitNameText(unitID, overflow, includeRealmName)
   local unitName, realm = UnitFullName(unitID);
 
-  if (includeRealName and obj:IsString(realm) and not tk.Strings:IsNilOrWhiteSpace(realm)) then
+  if (includeRealmName and obj:IsString(realm) and not tk.Strings:IsNilOrWhiteSpace(realm)) then
     unitName = unitName.."-"..realm;
   end
 
