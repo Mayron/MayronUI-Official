@@ -131,7 +131,8 @@ clickHandlers[buttonKeys.HelpMenu] = ToggleHelpFrame;
 if (tk:IsRetail()) then
   -- PVP
   clickHandlers[buttonKeys.PVP] = function()
-    if (UnitLevel("player") < 10) then
+    local playerLevel = UnitLevel("player") or 0;
+    if (playerLevel < 10) then
       tk:Print(L["Requires level 10+ to view the PVP window."]);
     else
       TogglePVPUI();
@@ -146,10 +147,11 @@ end
 
 -- Talents
 clickHandlers[buttonKeys.Talents] = function()
-  if (UnitLevel("player") < SHOW_TALENT_LEVEL) then
+  local playerLevel = UnitLevel("player") or 0;
+  if (playerLevel < SHOW_TALENT_LEVEL) then
     tk:Print(L["Must be level 10 or higher to use Talents."]);
   else
-    ToggleTalentFrame();
+    _G.ToggleTalentFrame();
   end
 end
 
