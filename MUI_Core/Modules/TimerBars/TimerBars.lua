@@ -16,7 +16,7 @@ _G.MUI_TimerBars = {}; -- Create new global
 
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo;
 local unpack, UnitIsDeadOrGhost = _G.unpack, _G.UnitIsDeadOrGhost;
-local string, date, pairs, ipairs = _G.string, _G.date, _G.pairs, _G.ipairs;
+local string, date, pairs, ipairs, max = _G.string, _G.date, _G.pairs, _G.ipairs, _G.math.max;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
 local table, GetTime, UnitAura, tonumber = _G.table, _G.GetTime, _G.UnitAura, _G.tonumber;
 
@@ -1225,7 +1225,7 @@ function C_TimerBar:SetSpellCountShown(data, shown)
     data.spellCount:SetJustifyH(position);
   end
 
-  data.spellCount:SetWidth(math.max(20, data.spellCount:GetStringWidth()));
+  data.spellCount:SetWidth(max(16, data.spellCount:GetStringWidth() + 6));
   data.spellCount:SetShown(shown);
 end
 
@@ -1333,7 +1333,7 @@ function C_TimerBar:UpdateAura(data, auraInfo)
 
   if (count > 1) then
     data.spellCount:SetText(count);
-    data.spellCount:SetWidth(math.max(20, data.spellCount:GetStringWidth()));
+    data.spellCount:SetWidth(max(16, data.spellCount:GetStringWidth() + 6));
     data.spellCount:Show();
   else
     data.spellCount:Hide();
