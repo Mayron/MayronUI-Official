@@ -82,7 +82,6 @@ function C_ToolTipsModule:GetConfigTable(data)
                 client = "retail,wrath";
                 appendDbPath = "specShown",
             },
-           
             {   name = "Positioning and Visibility Options",
                 description = "Configure each type of anchor point and tooltip type";
                 type = "title",
@@ -92,225 +91,125 @@ function C_ToolTipsModule:GetConfigTable(data)
                 content = "TIPS:",
             },
             {
-                type = "fontstring",
-                list = {
-                  "Assigning tooltips to the mouse anchor point will fix them to your mouse cursor, causing them to follow your mouse movements.";
-                  "Assigning tooltips to the screen anchor point will fix them to that single spot and will not move.";
-                  "World units are 3D player models within the world and are not part of the UI.";
-                  "Unit frame tooltips are the UI frames that represent NPCs or players.";
-                  "Standard tooltips are any other tooltip with no special category (i.e., inventory item and spell tooltips have their own unique category and will not be affected).";
-                }
-              },
-            {   type = "fontstring",
-                subtype = "header",
-                content = "Unit Frame Tooltips",
-            },
-            {
-              type = "frame";
-              width = "50%";
-              children = {
-                {   type = "fontstring",
-                    subtype = "sub-header",
-                    content = "Choose an Anchor Point:",
-                },
-                {   name = "Mouse";
-                    type = "radio";
-                    groupName = "world_unit_anchor_type";
-                    appendDbPath = "worldUnits.anchor";
-
-                    GetValue = function(_, value)
-                        return value == "mouse";
-                    end;
-
-                    SetValue = function(path, value)
-                        db:SetPathValue(path, value and "mouse" or "screen");
-                    end;
-                },
-                {   name = "Screen";
-                    type = "radio";
-                    groupName = "world_unit_anchor_type";
-                    appendDbPath = "worldUnits.anchor";
-
-                    GetValue = function(_, value)
-                        return value == "screen";
-                    end;
-
-                    SetValue = function(path, value)
-                        db:SetPathValue(path, value and "screen" or "mouse");
-                    end;
-                },
+              type = "fontstring",
+              list = {
+                "Assigning tooltips to the mouse anchor point will fix them to your mouse cursor, causing them to follow your mouse movements.";
+                "Assigning tooltips to the screen anchor point will fix them to that single spot and will not move.";
+                "World units are 3D player models within the world and are not part of the UI.";
+                "Unit frame tooltips are the UI frames that represent NPCs or players.";
+                "Standard tooltips are any other tooltip with no special category (i.e., inventory item and spell tooltips have their own unique category and will not be affected).";
               }
-            };
-            {
-                type = "frame";
-                width = "50%";
-                children = {
-                    {   type = "fontstring",
+            },
+            { type = "loop";
+              args = { "Unit Frame Tooltips"; "World Unit Tooltips"; "Standard Tooltips" };
+              func = function(index, header)
+                local settingsName = "standard";
+
+                if (index == 1) then
+                  settingsName = "unitFrames";
+                elseif (index == 2) then
+                  settingsName = "worldUnits";
+                end
+
+                local radioGroupName = settingsName.."_anchor_type";
+
+                local children = {
+                  { type = "fontstring";
+                    subtype = "header";
+                    content = header;
+                  };
+                  { type = "frame";
+                    width = "50%";
+                    appendDbPath = settingsName;
+                    children = {
+                      { type = "fontstring",
+                        subtype = "sub-header",
+                        content = "Choose an Anchor Point:",
+                      };
+                      { name = "Mouse";
+                        type = "radio";
+                        groupName = radioGroupName;
+                        appendDbPath = "anchor";
+
+                        GetValue = function(_, value)
+                            return value == "mouse";
+                        end;
+
+                        SetValue = function(path, value)
+                            db:SetPathValue(path, value and "mouse" or "screen");
+                        end;
+                      };
+                      { name = "Screen";
+                        type = "radio";
+                        groupName = radioGroupName;
+                        appendDbPath = "anchor";
+
+                        GetValue = function(_, value)
+                          return value == "screen";
+                        end;
+
+                        SetValue = function(path, value)
+                          db:SetPathValue(path, value and "screen" or "mouse");
+                        end;
+                      },
+                    }
+                  };
+                  {
+                    type = "frame";
+                    width = "50%";
+                    appendDbPath = settingsName;
+                    children = {
+                      { type = "fontstring",
                         subtype = "sub-header",
                         content = "Visibility Options:",
-                    },
-                    {   type = "check";
+                      },
+                      { type = "check";
                         name = "Set Shown";
                         tooltip = "If unchecked, tooltips of this type will never show";
                         appendDbPath = "show";
-                    };
-                    {   type = "check";
+                      };
+                      { type = "check";
                         name = "Hide in Combat";
                         tooltip = "If unchecked, tooltips of this type will not show while you are in combat.";
-                        appendDbPath = "show";
-                    };
-                }
+                        appendDbPath = "hideInCombat";
+                      };
+                    }
+                  };
+                };
+
+                return children;
+              end
             };
             { type = "fontstring",
               subtype = "header",
-              content = "World Unit Tooltips",
-            },
-            {
-              type = "frame";
-              width = "50%";
-              children = {
-                {   type = "fontstring",
-                    subtype = "sub-header",
-                    content = "Choose an Anchor Point:",
-                },
-                {   name = "Mouse";
-                    type = "radio";
-                    groupName = "world_unit_anchor_type";
-                    appendDbPath = "worldUnits.anchor";
-
-                    GetValue = function(_, value)
-                        return value == "mouse";
-                    end;
-
-                    SetValue = function(path, value)
-                        db:SetPathValue(path, value and "mouse" or "screen");
-                    end;
-                },
-                {   name = "Screen";
-                    type = "radio";
-                    groupName = "world_unit_anchor_type";
-                    appendDbPath = "worldUnits.anchor";
-
-                    GetValue = function(_, value)
-                        return value == "screen";
-                    end;
-
-                    SetValue = function(path, value)
-                        db:SetPathValue(path, value and "screen" or "mouse");
-                    end;
-                },
+              content = "Mouse Anchor Point",
+            };
+            { name = "Point",
+              tooltip = L["The bottom-[point] corner of the tooltip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."];
+              type = "dropdown",
+              appendDbPath = "anchors.mouse.point",
+              options = {
+                [L["Left"]] = "ANCHOR_CURSOR_LEFT",
+                [L["Right"]] = "ANCHOR_CURSOR_RIGHT"
               }
             };
-            {
-                type = "frame";
-                width = "50%";
-                children = {
-                    {   type = "fontstring",
-                        subtype = "sub-header",
-                        content = "Visibility Options:",
-                    },
-                    {   type = "check";
-                        name = "Set Shown";
-                        tooltip = "If unchecked, tooltips of this type will never show";
-                        appendDbPath = "show";
-                    };
-                    {   type = "check";
-                        name = "Hide in Combat";
-                        tooltip = "If unchecked, tooltips of this type will not show while you are in combat.";
-                        appendDbPath = "show";
-                    };
-                }
+            { type = "slider";
+              name = L["X-Offset"];
+              tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "2");
+              appendDbPath = "anchors.mouse.xOffset";
+              min = -20,
+              max = 20
             };
-            {   type = "fontstring",
-                subtype = "header",
-                content = "Standard Tooltips",
-            },
-            {
-              type = "frame";
-              width = "50%";
-              children = {
-                {   type = "fontstring",
-                    subtype = "sub-header",
-                    content = "Choose an Anchor Point:",
-                },
-                {   name = "Mouse";
-                    type = "radio";
-                    groupName = "world_unit_anchor_type";
-                    appendDbPath = "worldUnits.anchor";
-
-                    GetValue = function(_, value)
-                        return value == "mouse";
-                    end;
-
-                    SetValue = function(path, value)
-                        db:SetPathValue(path, value and "mouse" or "screen");
-                    end;
-                },
-                {   name = "Screen";
-                    type = "radio";
-                    groupName = "world_unit_anchor_type";
-                    appendDbPath = "worldUnits.anchor";
-
-                    GetValue = function(_, value)
-                        return value == "screen";
-                    end;
-
-                    SetValue = function(path, value)
-                        db:SetPathValue(path, value and "screen" or "mouse");
-                    end;
-                },
-              }
+            { type = "slider";
+              name = L["Y-Offset"];
+              tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "4");
+              appendDbPath = "anchors.mouse.yOffset";
+              min = -20,
+              max = 20
             };
-            {
-                type = "frame";
-                width = "50%";
-                children = {
-                    {   type = "fontstring",
-                        subtype = "sub-header",
-                        content = "Visibility Options:",
-                    },
-                    {   type = "check";
-                        name = "Set Shown";
-                        tooltip = "If unchecked, tooltips of this type will never show";
-                        appendDbPath = "show";
-                    };
-                    {   type = "check";
-                        name = "Hide in Combat";
-                        tooltip = "If unchecked, tooltips of this type will not show while you are in combat.";
-                        appendDbPath = "show";
-                    };
-                }
-            };
-            {   type = "fontstring",
-                subtype = "header",
-                content = "Configure your Mouse Anchor Point",
-            },
-            {   name = "Point",
-                tooltip = L["The bottom-[point] corner of the tooltip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."];
-                type = "dropdown",
-                appendDbPath = "anchors.mouse.point",
-                options = {
-                  [L["Left"]] = "ANCHOR_CURSOR_LEFT",
-                  [L["Right"]] = "ANCHOR_CURSOR_RIGHT"
-                }
-            };
-            {   type = "slider";
-                name = L["X-Offset"];
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "2");
-                appendDbPath = "anchors.mouse.xOffset";
-                min = -20,
-                max = 20
-            };
-            {   type = "slider";
-                name = L["Y-Offset"];
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "4");
-                appendDbPath = "anchors.mouse.yOffset";
-                min = -20,
-                max = 20
-            };
-            {   type = "fontstring",
-                subtype = "header",
-                content = "Configure your Screen Anchor Point",
+            { type = "fontstring",
+              subtype = "header",
+              content = "Screen Anchor Point",
             },
             {
               name = L["Unlock"],
@@ -459,96 +358,75 @@ function C_ToolTipsModule:GetConfigTable(data)
                   customBackdropSubmenu = submenu;
                 end;
                 children = {
-                    {   name = L["Color border by class or NPC type"],
-                        tooltip = L["If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit."];
-                        type = "check",
-                        appendDbPath = "borderClassColored",
+                    { name = L["Color border by class or NPC type"],
+                      tooltip = L["If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit."];
+                      type = "check",
+                      appendDbPath = "borderClassColored",
                     },
-                    {   name = L["Border Color"];
-                        tooltip = L["If color border by class or NPC type is checked, this color will be used for all non-unit tooltips, else it will be used for every tooltip border."];
-                        type = "color";
-                        hasOpacity = true;
-                        width = 200;
-                        useIndexes = true;
-                        appendDbPath = "borderColor";
+                    { name = L["Border Color"];
+                      tooltip = L["If color border by class or NPC type is checked, this color will be used for all non-unit tooltips, else it will be used for every tooltip border."];
+                      type = "color";
+                      hasOpacity = true;
+                      width = 200;
+                      useIndexes = true;
+                      appendDbPath = "borderColor";
                     };
-                    {   name = L["Background Color"];
-                        type = "color";
-                        hasOpacity = true;
-                        width = 200;
-                        useIndexes = true;
-                        appendDbPath = "bgColor";
+                    { name = L["Background Color"];
+                      type = "color";
+                      hasOpacity = true;
+                      width = 200;
+                      useIndexes = true;
+                      appendDbPath = "bgColor";
                     };
-                    {   type = "divider"
+                    { type = "divider" };
+                    { type = "dropdown",
+                      name = L["Background Texture"];
+                      options = tk.Constants.LSM:List(tk.Constants.LSM.MediaType.BACKGROUND);
+                      appendDbPath = "bgFile";
                     };
-                    {   type = "dropdown",
-                        name = L["Background Texture"];
-                        options = tk.Constants.LSM:List(tk.Constants.LSM.MediaType.BACKGROUND);
-                        appendDbPath = "bgFile";
+                    { type = "dropdown",
+                      name = L["Border Type"];
+                      options = tk.Constants.LSM:List(tk.Constants.LSM.MediaType.BORDER);
+                      appendDbPath = "edgeFile";
                     };
-                    {   type = "dropdown",
-                        name = L["Border Type"];
-                        options = tk.Constants.LSM:List(tk.Constants.LSM.MediaType.BORDER);
-                        appendDbPath = "edgeFile";
+                    { type = "slider",
+                      name = L["Border Size"];
+                      tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "1");
+                      step = 1;
+                      min = 0;
+                      max = 5;
+                      appendDbPath = "edgeSize";
+                      SetValue = function(path, value)
+                        db:SetPathValue(path, value + 0.25); -- fixes pixel perfect
+                      end;
                     };
-                    {   type = "slider",
-                        name = L["Border Size"];
-                        tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "1");
-                        step = 1;
-                        min = 0;
-                        max = 5;
-                        appendDbPath = "edgeSize";
-                        SetValue = function(path, value)
-                          db:SetPathValue(path, value + 0.25); -- fixes pixel perfect
-                        end;
+                    { type = "fontstring";
+                      subtype = "header";
+                      content = L["Border Insets"];
                     };
-                    {    type = "fontstring";
-                        subtype = "header";
-                        content = L["Border Insets"];
+                    { name = L["Left"];
+                      appendDbPath = "insets.left";
+                      type = "slider";
+                      min = -10;
+                      max = 10;
                     };
-                    {   name         = L["Left"];
-                        type         = "textfield";
-                        valueType    = "number";
-                        tooltip      = tk.Strings:Concat(
-                          L["Minimum value is"], " -10.\n",
-                          L["Maximum value is"], " 10.\n",
-                          L["Default value is"], " 1.");
-                        min = -10;
-                        max = 10;
-                        appendDbPath = "insets.left";
+                    { name = L["Right"];
+                      appendDbPath = "insets.right";
+                      type = "slider";
+                      min = -10;
+                      max = 10;
                     };
-                    {   name         = L["Right"];
-                        type         = "textfield";
-                        valueType    = "number";
-                        tooltip      = tk.Strings:Concat(
-                          L["Minimum value is"], " -10.\n",
-                          L["Maximum value is"], " 10.\n",
-                          L["Default value is"], " 1.");
-                        min = -10;
-                        max = 10;
-                        appendDbPath = "insets.right";
+                    { name = L["Top"];
+                      appendDbPath = "insets.top";
+                      type = "slider";
+                      min = -10;
+                      max = 10;
                     };
-                    {   name         = L["Top"];
-                        type         = "textfield";
-                        valueType    = "number";
-                        tooltip      = tk.Strings:Concat(
-                          L["Minimum value is"], " -10.\n",
-                          L["Maximum value is"], " 10.\n",
-                          L["Default value is"], " 1.");
-                        min = -10;
-                        max = 10;
-                        appendDbPath = "insets.top";
-                    };
-                    {   name         = L["Bottom"];
-                        type         = "textfield";
-                        valueType    = "number";
-                        tooltip      = tk.Strings:Concat(
-                          L["Minimum value is"], " -10.\n",
-                          L["Maximum value is"], " 10.\n",
-                          L["Default value is"], " 1.");
-                        min = -10;
-                        max = 10;
-                        appendDbPath = "insets.bottom";
+                    { name      = L["Bottom"];
+                      appendDbPath = "insets.bottom";
+                      type = "slider";
+                      min = -10;
+                      max = 10;
                     };
                 }
             };

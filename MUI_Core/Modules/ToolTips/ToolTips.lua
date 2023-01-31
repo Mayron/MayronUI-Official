@@ -228,7 +228,12 @@ local function SetBackdropStyle(data)
   local bgFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BACKGROUND, data.settings.backdrop.bgFile);
   local edgeFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BORDER, data.settings.backdrop.edgeFile);
 
-  data.tooltipBackdrop = data.tooltipBackdrop or obj:PopTable();
+  -- It won't update unless it's a completely new table
+  if (obj:IsTable(data.tooltipBackdrop)) then
+    obj:PushTable(data.tooltipBackdrop);
+  end
+
+  data.tooltipBackdrop = {};
   data.tooltipBackdrop.bgFile = bgFile;
   data.tooltipBackdrop.edgeFile = edgeFile;
   data.tooltipBackdrop.edgeSize = data.settings.backdrop.edgeSize;
@@ -984,29 +989,28 @@ local function CreateScreenAnchor(data)
   data.screenAnchor:Lock(true);
 end
 
-local function IsInCombatAndHidden(data, tooltip)
-  if (InCombatLockdown()) then
-    local _, unitID = tooltip:GetUnit();
+local function ShouldBeHidden(data, tooltip)
+  local _, unitID = tooltip:GetUnit();
+  local inCombat = InCombatLockdown();
 
-    if (unitID) then
-      if (data.settings.unitFrames.hideInCombat) then
-        if (unitID ~= "mouseover") then
-          tooltip:Hide();
-          return true;
-        end
+  if (unitID) then
+    if ((inCombat and data.settings.unitFrames.hideInCombat) or not data.settings.unitFrames.show) then
+      if (unitID ~= "mouseover") then
+        tooltip:Hide();
+        return true;
       end
-
-      if (data.settings.worldUnits.hideInCombat) then
-        if (unitID == "mouseover") then
-          tooltip:Hide();
-          return true;
-        end
-      end
-
-    elseif (data.settings.standard.hideInCombat) then
-      tooltip:Hide();
-      return true;
     end
+
+    if ((inCombat and data.settings.worldUnits.hideInCombat) or not data.settings.worldUnits.show) then
+      if (unitID == "mouseover") then
+        tooltip:Hide();
+        return true;
+      end
+    end
+
+  elseif ((inCombat and data.settings.standard.hideInCombat) or not data.settings.standard.show) then
+    tooltip:Hide();
+    return true;
   end
 
   return false;
@@ -1055,9 +1059,10 @@ function C_ToolTipsModule:OnInitialize(data)
       end;
     };
     anchors = {
-      screenAnchor = function()
+      screen = function()
         data.screenAnchor:ClearAllPoints();
-        data.screenAnchor:SetPoint(data.settings.anchors.screen.point,
+        data.screenAnchor:SetPoint(
+          data.settings.anchors.screen.point,
           data.settings.anchors.screen.xOffset,
           data.settings.anchors.screen.yOffset);
       end;
@@ -1189,7 +1194,7 @@ function C_ToolTipsModule:OnEnable(data)
   ApplyHealthBarChanges(data);
 
   gameTooltip:HookScript("OnShow", function(self)
-    if (IsInCombatAndHidden(data, self)) then return end
+    if (ShouldBeHidden(data, self)) then return end
 
     if (not self:GetUnit()) then
       HideAllAuras(data);

@@ -303,11 +303,11 @@ do
 end
 
 obj:DefineParams("table");
-function C_ConfigMenuModule:RenderComponent(data, config)
-  if (config.type == "loop" or config.type == "condition") then
+function C_ConfigMenuModule:RenderComponent(data, componentConfig)
+  if (componentConfig.type == "loop" or componentConfig.type == "condition") then
     -- run the loop to gather component children
     local components = MayronUI:GetComponent("ConfigMenuComponents");
-    local children = components[config.type](data.selectedButton.menu:GetFrame(), config);
+    local children = components[componentConfig.type](data.selectedButton.menu:GetFrame(), componentConfig);
 
     if (obj:IsTable(children)) then -- Sometimes a condition may not return anything
       for _, c in ipairs(children) do
@@ -326,23 +326,25 @@ function C_ConfigMenuModule:RenderComponent(data, config)
     end
 
     -- the table was previously popped
-    obj:PushTable(config);
+    obj:PushTable(componentConfig);
 
     return
   end
 
-  local componentType = config.type; -- config gets deleted after SetUpcomponent and type does not get mapped
-  local component = self:SetUpComponent(config);
+  local componentType = componentConfig.type; -- config gets deleted after SetUpcomponent and type does not get mapped
+  local component = self:SetUpComponent(componentConfig);
 
   if (componentType == "frame" and obj:IsTable(component.children)) then
     local dynamicFrame = component; ---@type DynamicFrame
     local frame = component:GetFrame();
+    data.tempFrameComponent = component;
 
     for _, subcomponentConfigTable in ipairs(component.children) do
       local childcomponent = self:SetUpComponent(subcomponentConfigTable, frame);
       dynamicFrame:AddChildren(childcomponent);
     end
 
+    data.tempFrameComponent = nil;
     component = frame;
   end
 
@@ -410,23 +412,28 @@ function C_ConfigMenuModule:RefreshMenu(data)
   menu:Refresh();
 end
 
-local function ApplyMenuConfigTable(componentConfig, menuConfig)
+local function ApplyMenuConfigTable(componentConfig, menuConfig, frameComponent)
   local dbPath = menuConfig.dbPath;
+
+  if (obj:IsTable(frameComponent) and frameComponent.dbPath) then
+    dbPath = frameComponent.dbPath;
+  end
 
   if (obj:IsFunction(dbPath)) then
     dbPath = dbPath();
   end
 
-  if (not tk.Strings:IsNilOrWhiteSpace(dbPath) and not tk.Strings:IsNilOrWhiteSpace(componentConfig.appendDbPath)) then
+  if (not tk.Strings:IsNilOrWhiteSpace(dbPath) and
+      not tk.Strings:IsNilOrWhiteSpace(componentConfig.appendDbPath)) then
 
     -- append the component config table's dbPath value onto it!
     obj:Assert(componentConfig.dbPath == nil,
       "Cannot use both appendDbPath and dbPath on the same config table.");
 
     if (tk.Strings:StartsWith(componentConfig.appendDbPath, "[")) then
-      componentConfig.dbPath = tk.Strings:Concat(menuConfig.dbPath, componentConfig.appendDbPath);
+      componentConfig.dbPath = tk.Strings:Concat(dbPath, componentConfig.appendDbPath);
     else
-      componentConfig.dbPath = tk.Strings:Join(".", menuConfig.dbPath, componentConfig.appendDbPath);
+      componentConfig.dbPath = tk.Strings:Join(".", dbPath, componentConfig.appendDbPath);
     end
 
     componentConfig.appendDbPath = nil;
@@ -475,20 +482,20 @@ do
   end
 
   obj:DefineParams("table", "?Frame");
-  ---@param config table @A component config table used to control the rendering and behavior of a component in the config menu.
+  ---@param componentConfig table @A component config table used to control the rendering and behavior of a component in the config menu.
   ---@param parent Frame @(optional) A custom parent frame for the component, else the parent will be the menu scroll child.
   ---@return Frame @(possibly nil if component is disabled) The created component.
-  function C_ConfigMenuModule:SetUpComponent(data, config, parent)
+  function C_ConfigMenuModule:SetUpComponent(data, componentConfig, parent)
     if (not parent) then
       parent = data.selectedButton.menu:GetFrame();
       parent = parent.ScrollFrame:GetScrollChild();
     end
 
     if (obj:IsTable(data.tempMenuConfigTable)) then
-      ApplyMenuConfigTable(config, data.tempMenuConfigTable);
+      ApplyMenuConfigTable(componentConfig, data.tempMenuConfigTable, data.tempFrameComponent);
     end
 
-    local componentType = config.type;
+    local componentType = componentConfig.type;
 
     -- treat the component like a check button (except when grouping the check buttons)
     if (componentType == "radio") then
@@ -499,41 +506,41 @@ do
 
     tk:Assert(components[componentType],
       "Unsupported component type '%s' found in config data for config table '%s'.",
-      componentType or "nil", config.name or "nil");
+      componentType or "nil", componentConfig.name or "nil");
 
-    if (config.OnInitialize) then
+    if (componentConfig.OnInitialize) then
       -- do disabled components need to be initialized?
-      config.OnInitialize(config);
-      config.OnInitialize = nil;
+      componentConfig.OnInitialize(componentConfig);
+      componentConfig.OnInitialize = nil;
     end
 
-    local currentValue = GetDatabaseValue(self, config);
-    local component = components[componentType](parent, config, currentValue);
+    local currentValue = GetDatabaseValue(self, componentConfig);
+    local component = components[componentType](parent, componentConfig, currentValue);
 
-    if (config.devMode) then
+    if (componentConfig.devMode) then
       -- highlight the component in dev mode.
       tk:SetBackground(component, mrandom(), mrandom(), mrandom());
     end
 
     -- If using Rendercomponent manually in config then this won't work
-    if (data.tempMenuConfigTable and config.type == "radio" and config.groupName) then
+    if (data.tempMenuConfigTable and componentConfig.type == "radio" and componentConfig.groupName) then
       -- get groups[groupName] value from tempRadioButtonGroup
-      local tempRadioButtonGroup = tk.Tables:GetTable(data.tempMenuConfigTable, "groups", config.groupName);
+      local tempRadioButtonGroup = tk.Tables:GetTable(data.tempMenuConfigTable, "groups", componentConfig.groupName);
       table.insert(tempRadioButtonGroup, component.btn);
     end
 
-    if (config.disabled) then
+    if (componentConfig.disabled) then
       return
     end
 
     -- setup complete, so run the OnLoad callback if one exists
-    if (config.OnLoad) then
-      config.OnLoad(config, component, currentValue);
-      config.OnLoad = nil;
+    if (componentConfig.OnLoad) then
+      componentConfig.OnLoad(componentConfig, component, currentValue);
+      componentConfig.OnLoad = nil;
     end
 
     if (componentType ~= "submenu") then
-      TransferComponentAttributes(component, config);
+      TransferComponentAttributes(component, componentConfig);
     end
 
     return component;
