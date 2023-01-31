@@ -104,16 +104,16 @@ local configTable = {
         end);
       end;
     },
-    { name    = "Export Profile";
-      tooltip = "Export the current profile into a string that can be imported by other players.";
+    { name    = L["Export Profile"];
+      tooltip = L["Export the current profile into a string that can be imported by other players."];
       type    = "button";
       OnClick = function()
         _G.StaticPopupDialogs["MUI_ExportProfile"] = _G.StaticPopupDialogs["MUI_ExportProfile"] or {
           text = tk.Strings:Join(
             "\n", tk.Strings:SetTextColorByTheme("MayronUI"), L["(CTRL+C to Copy, CTRL+V to Paste)"]
           );
-          subText = "Copy the import string below and give it to other players so they can import your current profile.",
-          button1 = "Close";
+          subText = L["Copy the import string below and give it to other players so they can import your current profile."],
+          button1 = L["Close"];
           hasEditBox = true;
           maxLetters = 1024;
           editBoxWidth = 350;
@@ -132,16 +132,16 @@ local configTable = {
         editbox:HighlightText();
       end;
     },
-    { name    = "Import Profile";
-      tooltip = "Import a profile from another player from an import string.";
+    { name    = L["Import Profile"];
+      tooltip = L["Import a profile from another player from an import string."];
       type    = "button";
 
       OnClick = function()
-        tk:ShowInputPopup("Paste an import string into the box below to import a profile.",
-        "Warning: This will completely replace your current profile with the imported profile settings!", 
+        tk:ShowInputPopup(L["Paste an import string into the box below to import a profile."],
+        L["Warning: This will completely replace your current profile with the imported profile settings!"], 
         "", nil, "Import", function(_, importStr)
           db:ImportProfile(importStr);
-          MayronUI:Print("Successfully imported profile settings into your current profile!");
+          MayronUI:Print(L["Successfully imported profile settings into your current profile!"]);
           MayronUI:ShowReloadUIPopUp();
         end, nil, nil, true);
       end;

@@ -71,7 +71,6 @@ function C_ToolTipsModule:GetConfigTable(data)
                   L["If checked and the player is level 10 or higher, the item level of the player displayed in the tooltip will be shown."],
                   L["The player must be close enough to be inspected for this information to load."]),
                 type = "check",
-                client = "retail,wrath";
                 appendDbPath = "itemLevelShown",
             },
             {   name = L["Show Specialization"],
@@ -79,11 +78,10 @@ function C_ToolTipsModule:GetConfigTable(data)
                   L["If checked and the player is level 10 or higher and has chosen a class specialization, the specialization of the player displayed in the tooltip will be shown."],
                   L["The player must be close enough to be inspected for this information to load."]),
                 type = "check",
-                client = "retail,wrath";
                 appendDbPath = "specShown",
             },
-            {   name = "Positioning and Visibility Options",
-                description = "Configure each type of anchor point and tooltip type";
+            {   name = L["Positioning and Visibility Options"],
+                description = L["Configure each type of anchor point and tooltip type"];
                 type = "title",
             };
             {   type = "fontstring",
@@ -93,15 +91,15 @@ function C_ToolTipsModule:GetConfigTable(data)
             {
               type = "fontstring",
               list = {
-                "Assigning tooltips to the mouse anchor point will fix them to your mouse cursor, causing them to follow your mouse movements.";
-                "Assigning tooltips to the screen anchor point will fix them to that single spot and will not move.";
-                "World units are 3D player models within the world and are not part of the UI.";
-                "Unit frame tooltips are the UI frames that represent NPCs or players.";
-                "Standard tooltips are any other tooltip with no special category (i.e., inventory item and spell tooltips have their own unique category and will not be affected).";
+                L["Assigning tooltips to the mouse anchor point will fix them to your mouse cursor, causing them to follow your mouse movements."];
+                L["Assigning tooltips to the screen anchor point will fix them to that single spot and will not move."];
+                L["World units are 3D player models within the world and are not part of the UI."];
+                L["Unit frame tooltips are the UI frames that represent NPCs or players."];
+                L["Standard tooltips are any other tooltip with no special category (i.e., inventory item and spell tooltips have their own unique category and will not be affected)."];
               }
             },
             { type = "loop";
-              args = { "Unit Frame Tooltips"; "World Unit Tooltips"; "Standard Tooltips" };
+              args = { L["Unit Frame Tooltips"]; L["World Unit Tooltips"]; L["Standard Tooltips"] };
               func = function(index, header)
                 local settingsName = "standard";
 
@@ -124,9 +122,9 @@ function C_ToolTipsModule:GetConfigTable(data)
                     children = {
                       { type = "fontstring",
                         subtype = "sub-header",
-                        content = "Choose an Anchor Point:",
+                        content = L["Choose an Anchor Point:"],
                       };
-                      { name = "Mouse";
+                      { name = L["Mouse"];
                         type = "radio";
                         groupName = radioGroupName;
                         appendDbPath = "anchor";
@@ -139,7 +137,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                             db:SetPathValue(path, value and "mouse" or "screen");
                         end;
                       };
-                      { name = "Screen";
+                      { name = L["Screen"];
                         type = "radio";
                         groupName = radioGroupName;
                         appendDbPath = "anchor";
@@ -161,16 +159,16 @@ function C_ToolTipsModule:GetConfigTable(data)
                     children = {
                       { type = "fontstring",
                         subtype = "sub-header",
-                        content = "Visibility Options:",
+                        content = L["Visibility Options:"],
                       },
                       { type = "check";
-                        name = "Set Shown";
-                        tooltip = "If unchecked, tooltips of this type will never show";
+                        name = L["Set Shown"];
+                        tooltip = L["If unchecked, tooltips of this type will never show"];
                         appendDbPath = "show";
                       };
                       { type = "check";
-                        name = "Hide in Combat";
-                        tooltip = "If unchecked, tooltips of this type will not show while you are in combat.";
+                        name = L["Hide in Combat"];
+                        tooltip = L["If unchecked, tooltips of this type will not show while you are in combat."];
                         appendDbPath = "hideInCombat";
                       };
                     }
@@ -182,7 +180,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             { type = "fontstring",
               subtype = "header",
-              content = "Mouse Anchor Point",
+              content = L["Mouse Anchor Point"],
             };
             { name = "Point",
               tooltip = L["The bottom-[point] corner of the tooltip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."];
@@ -209,7 +207,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             { type = "fontstring",
               subtype = "header",
-              content = "Screen Anchor Point",
+              content = L["Screen Anchor Point"],
             },
             {
               name = L["Unlock"],

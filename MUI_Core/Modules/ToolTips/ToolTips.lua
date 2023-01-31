@@ -4,7 +4,6 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local C_ToolTipsModule = MayronUI:RegisterModule("Tooltips", L["Tooltips"]);
 
-local retailOrWrath = tk:IsRetail() or tk:IsWrathClassic();
 local tooltipStyle = _G.GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT or _G.TOOLTIP_BACKDROP_STYLE_DEFAULT;
 local gameTooltip = _G.GameTooltip;
 local healthBar, powerBar = _G.GameTooltipStatusBar, nil;
@@ -822,7 +821,7 @@ local function UpdateTargetText(data, unitID)
 end
 
 local function UpdateSpecAndItemLevel(data, unitID, updateTooltip)
-  if (retailOrWrath and (data.settings.specShown or data.settings.itemLevelShown) and UnitExists(unitID)) then
+  if ((data.settings.specShown or data.settings.itemLevelShown) and UnitExists(unitID)) then
     local unitGuid = UnitGUID(unitID);
 
     if (unitGuid) then
@@ -1181,10 +1180,8 @@ function C_ToolTipsModule:OnEnable(data)
     CreateScreenAnchor(data);
   end
 
-  if (retailOrWrath) then
-    data.specCache = {};
-    data.itemLevelCache = {};
-  end
+  data.specCache = {};
+  data.itemLevelCache = {};
 
 	-- Fixes inconsistency with Blizzard code to support backdrop alphas:
   if (tooltipStyle) then
@@ -1213,28 +1210,26 @@ function C_ToolTipsModule:OnEnable(data)
       local _, unitID = self:GetUnit();
 
       if (unitID) then
-        if (retailOrWrath) then
-          local unitGuid = UnitGUID(unitID);
+        local unitGuid = UnitGUID(unitID);
 
-          local previouslyInspected = data.itemLevelCache[unitGuid] or data.specCache[unitGuid];
-          if (data.settings.itemLevelShown and previouslyInspected) then
-            local itemLevel = tk:GetInspectItemLevel(unitID);
+        local previouslyInspected = data.itemLevelCache[unitGuid] or data.specCache[unitGuid];
+        if (data.settings.itemLevelShown and previouslyInspected) then
+          local itemLevel = tk:GetInspectItemLevel(unitID);
 
-            if (itemLevel > 0) then
-              if (data.itemLevelCache[unitGuid] == nil and data.notifying ~= unitGuid) then
-                data.itemLevelCache[#data.itemLevelCache + 1] = unitGuid;
-              end
-
-              -- Update existing entry:
-              data.itemLevelCache[unitGuid] = itemLevel;
-
-              SetDoubleLine(data, ITEM_LEVEL_LABEL, itemLevel);
+          if (itemLevel > 0) then
+            if (data.itemLevelCache[unitGuid] == nil and data.notifying ~= unitGuid) then
+              data.itemLevelCache[#data.itemLevelCache + 1] = unitGuid;
             end
-          end
 
-          if (data.settings.specShown and data.specCache[unitGuid]) then
-            SetDoubleLine(data, SPEC_LABEL, data.specCache[unitGuid]);
+            -- Update existing entry:
+            data.itemLevelCache[unitGuid] = itemLevel;
+
+            SetDoubleLine(data, ITEM_LEVEL_LABEL, itemLevel);
           end
+        end
+
+        if (data.settings.specShown and data.specCache[unitGuid]) then
+          SetDoubleLine(data, SPEC_LABEL, data.specCache[unitGuid]);
         end
 
         -- apply tooltip real time updates
@@ -1300,134 +1295,132 @@ function C_ToolTipsModule:OnEnable(data)
     gameTooltip:HookScript("OnTooltipSetUnit", OnTooltipSetUnit);
   end
 
-  if (retailOrWrath) then
-    local inspectListener = em:CreateEventListener(function(_, _, unitGuid)
-      local foundUnitID = nil;
+  local inspectListener = em:CreateEventListener(function(_, _, unitGuid)
+    local foundUnitID = nil;
 
-      if (data.notifying == unitGuid) then
-        data.notifying = nil;
+    if (data.notifying == unitGuid) then
+      data.notifying = nil;
+    end
+
+    if (UnitGUID("mouseover") == unitGuid) then
+      foundUnitID = "mouseover";
+
+    elseif (UnitGUID("player") == unitGuid) then
+      foundUnitID = "player";
+
+    elseif (IsInGroup()) then
+      if (IsInRaid()) then
+        for userIndex = 1, 40 do
+          local unitID = ("raid%d"):format(userIndex);
+
+          if (UnitExists(unitID) and UnitGUID(unitID) == unitGuid) then
+            foundUnitID = unitID;
+            break
+          end
+        end
+      else
+        for userIndex = 1, 5 do
+          local unitID = ("party%d"):format(userIndex);
+
+          if (UnitExists(unitID) and UnitGUID(unitID) == unitGuid) then
+            foundUnitID = unitID;
+            break
+          end
+        end
       end
+    end
 
-      if (UnitGUID("mouseover") == unitGuid) then
-        foundUnitID = "mouseover";
+    if (not foundUnitID) then
+      return
+    end
 
-      elseif (UnitGUID("player") == unitGuid) then
-        foundUnitID = "player";
+    local specName = tk:GetPlayerSpecialization(nil, foundUnitID);
 
-      elseif (IsInGroup()) then
+    if (tk.Strings:IsNilOrWhiteSpace(specName)) then
+      specName = L["No Spec"];
+    end
+
+    local _, tooltipUnitID = gameTooltip:GetUnit();
+    local tooltipGuid;
+
+    if (tooltipUnitID) then
+      tooltipGuid = UnitGUID(tooltipUnitID);
+    end
+
+    if (data.settings.specShown) then
+      data.specCache[unitGuid] = specName;
+      data.specCache[#data.specCache + 1] = unitGuid;
+      MayronUI:LogDebug("Storing spec: %s for %s", specName, UnitName(foundUnitID))
+
+      if (tooltipGuid == unitGuid) then
+        SetDoubleLine(data, SPEC_LABEL, specName);
+      end
+    end
+
+    if (data.settings.itemLevelShown) then
+      local itemLevel = tk:GetInspectItemLevel(foundUnitID);
+
+      if (itemLevel > 0)  then
+        data.itemLevelCache[unitGuid] = itemLevel;
+        data.itemLevelCache[#data.itemLevelCache + 1] = unitGuid;
+        MayronUI:LogDebug("Storing item level: %s for %s", itemLevel, UnitName(foundUnitID))
+
+        if (tooltipGuid == unitGuid) then
+          SetDoubleLine(data, ITEM_LEVEL_LABEL, itemLevel);
+        end
+      end
+    end
+  end);
+
+  inspectListener:RegisterEvent("INSPECT_READY");
+
+  local f = _G.CreateFrame("Frame");
+  f:RegisterEvent("PLAYER_REGEN_ENABLED");
+  f:SetScript("OnEvent", function(self)
+    self.lastUpdated = 0;
+    self.cacheUpdate = 0;
+  end);
+
+  f:SetScript("OnUpdate", function(self, elapsed)
+    self.lastUpdated = (self.lastUpdated or 0) + elapsed;
+    self.cacheUpdate = (self.cacheUpdate or 0) + elapsed;
+
+    local tooManySpecs = data.specCache and #data.specCache > 100;
+    local tooManyItemLevels = data.itemLevelCache and #data.itemLevelCache > 100;
+
+    if (self.cacheUpdate > 300 or tooManySpecs or tooManyItemLevels) then
+      self.cacheUpdate = 0;
+      RunCacheMaintenanceTask(data);
+    end
+
+    if (self.lastUpdated > 5) then
+      self.lastUpdated = 0;
+      data.notifying = nil;
+
+      local _, tooltipUnit = gameTooltip:GetUnit();
+      if (tooltipUnit) then return end
+
+      if (IsInGroup()) then
         if (IsInRaid()) then
           for userIndex = 1, 40 do
             local unitID = ("raid%d"):format(userIndex);
+            local notifyRequestSent = UpdateSpecAndItemLevel(data, unitID, false);
 
-            if (UnitExists(unitID) and UnitGUID(unitID) == unitGuid) then
-              foundUnitID = unitID;
+            if (notifyRequestSent) then
               break
             end
           end
         else
           for userIndex = 1, 5 do
             local unitID = ("party%d"):format(userIndex);
+            local notifyRequestSent = UpdateSpecAndItemLevel(data, unitID, false);
 
-            if (UnitExists(unitID) and UnitGUID(unitID) == unitGuid) then
-              foundUnitID = unitID;
+            if (notifyRequestSent) then
               break
             end
           end
         end
       end
-
-      if (not foundUnitID) then
-        return
-      end
-
-      local specName = tk:GetPlayerSpecialization(nil, foundUnitID);
-
-      if (tk.Strings:IsNilOrWhiteSpace(specName)) then
-        specName = L["No Spec"];
-      end
-
-      local _, tooltipUnitID = gameTooltip:GetUnit();
-      local tooltipGuid;
-
-      if (tooltipUnitID) then
-        tooltipGuid = UnitGUID(tooltipUnitID);
-      end
-
-      if (data.settings.specShown) then
-        data.specCache[unitGuid] = specName;
-        data.specCache[#data.specCache + 1] = unitGuid;
-        MayronUI:LogDebug("Storing spec: %s for %s", specName, UnitName(foundUnitID))
-
-        if (tooltipGuid == unitGuid) then
-          SetDoubleLine(data, SPEC_LABEL, specName);
-        end
-      end
-
-      if (data.settings.itemLevelShown) then
-        local itemLevel = tk:GetInspectItemLevel(foundUnitID);
-
-        if (itemLevel > 0)  then
-          data.itemLevelCache[unitGuid] = itemLevel;
-          data.itemLevelCache[#data.itemLevelCache + 1] = unitGuid;
-          MayronUI:LogDebug("Storing item level: %s for %s", itemLevel, UnitName(foundUnitID))
-
-          if (tooltipGuid == unitGuid) then
-            SetDoubleLine(data, ITEM_LEVEL_LABEL, itemLevel);
-          end
-        end
-      end
-    end);
-
-    inspectListener:RegisterEvent("INSPECT_READY");
-
-    local f = _G.CreateFrame("Frame");
-    f:RegisterEvent("PLAYER_REGEN_ENABLED");
-    f:SetScript("OnEvent", function(self)
-      self.lastUpdated = 0;
-      self.cacheUpdate = 0;
-    end);
-
-    f:SetScript("OnUpdate", function(self, elapsed)
-      self.lastUpdated = (self.lastUpdated or 0) + elapsed;
-      self.cacheUpdate = (self.cacheUpdate or 0) + elapsed;
-
-      local tooManySpecs = data.specCache and #data.specCache > 100;
-      local tooManyItemLevels = data.itemLevelCache and #data.itemLevelCache > 100;
-
-      if (self.cacheUpdate > 300 or tooManySpecs or tooManyItemLevels) then
-        self.cacheUpdate = 0;
-        RunCacheMaintenanceTask(data);
-      end
-
-      if (self.lastUpdated > 5) then
-        self.lastUpdated = 0;
-        data.notifying = nil;
-
-        local _, tooltipUnit = gameTooltip:GetUnit();
-        if (tooltipUnit) then return end
-
-        if (IsInGroup()) then
-          if (IsInRaid()) then
-            for userIndex = 1, 40 do
-              local unitID = ("raid%d"):format(userIndex);
-              local notifyRequestSent = UpdateSpecAndItemLevel(data, unitID, false);
-
-              if (notifyRequestSent) then
-                break
-              end
-            end
-          else
-            for userIndex = 1, 5 do
-              local unitID = ("party%d"):format(userIndex);
-              local notifyRequestSent = UpdateSpecAndItemLevel(data, unitID, false);
-
-              if (notifyRequestSent) then
-                break
-              end
-            end
-          end
-        end
-      end
-    end);
-  end
+    end
+  end);
 end

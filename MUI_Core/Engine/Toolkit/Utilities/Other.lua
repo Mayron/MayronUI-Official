@@ -193,10 +193,16 @@ do
 end
 
 local GetSpecializationInfo, GetSpecialization = _G.GetSpecializationInfo, _G.GetSpecialization;
-local GetTalentTabInfo = _G.GetTalentTabInfo;
+local GetTalentTabInfo, UnitGUID = _G.GetTalentTabInfo, _G.UnitGUID;
 
 function tk:GetPlayerSpecialization(specGroupId, unitID)
-  local isInspect = unitID ~= nil;
+  local isInspect = false;
+
+  if (obj:IsString(unitID)) then
+    local unitGUID = UnitGUID(unitID);
+    local playerGUID = UnitGUID("player");
+    isInspect = unitGUID ~= playerGUID;
+  end
 
   if (tk:IsRetail()) then
     if (specGroupId == nil) then
@@ -220,10 +226,10 @@ function tk:GetPlayerSpecialization(specGroupId, unitID)
   local specName, specIndex, specIcon;
   local maxPointsSpent = 0;
 
-  for i = 1, _G.MAX_TALENT_TABS do
+  for i = 1, _G.MAX_TALENT_TABS or 5 do
     local name, icon, pointsSpent = GetTalentTabInfo(i, isInspect, nil, specGroupId);
 
-    if (pointsSpent > maxPointsSpent) then
+    if (name and pointsSpent > maxPointsSpent) then
       specName = name;
       specIcon = icon;
       specIndex = i;
