@@ -15,6 +15,7 @@ L["Achievements"] = "업적";
 L["Glyphs"] = "글리프";
 L["Calendar"] = "달력";
 L["LFD"] = "LFD";
+L["LFG"] = "LFG";
 L["Enable Max Camera Zoom"] = "최대 카메라 줌 활성화";
 L["Move AddOn Buttons"] = "애드온 버튼 이동";
 L["MOVE_ADDON_BUTTONS_TOOLTIP"] = "체크하면 미니맵 상단에 나타나는 애드온 아이콘 버튼이 미니맵의 우클릭 메뉴로 이동됩니다.";

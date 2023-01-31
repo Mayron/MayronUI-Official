@@ -18,6 +18,7 @@ L["Achievements"] = "Réalisations";
 L["Glyphs"] = "Glyphes";
 L["Calendar"] = "Calendrier";
 L["LFD"] = "LFD";
+L["LFG"] = "LFG";
 L["Enable Max Camera Zoom"] = "Activer le zoom maximal de la caméra";
 L["Move AddOn Buttons"] = "Déplacer les boutons supplémentaires";
 L["MOVE_ADDON_BUTTONS_TOOLTIP"] = "Si cette case est cochée, les boutons d'icône d'extension qui apparaissent en haut de la mini-carte seront déplacés vers le menu contextuel de la mini-carte.";

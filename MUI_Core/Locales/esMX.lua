@@ -18,6 +18,7 @@ L["Achievements"] = "Logros";
 L["Glyphs"] = "Glifos";
 L["Calendar"] = "Calendario";
 L["LFD"] = "LFD";
+L["LFG"] = "LFG";
 L["Enable Max Camera Zoom"] = "Habilitar el zoom máximo de la cámara";
 L["Move AddOn Buttons"] = "Mover botones adicionales";
 L["MOVE_ADDON_BUTTONS_TOOLTIP"] = "Si está marcado, los botones de íconos adicionales que aparecen en la parte superior del minimapa se moverán al menú contextual del minimapa.";

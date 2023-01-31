@@ -18,6 +18,7 @@ L["Achievements"] = "Conquistas";
 L["Glyphs"] = "Glifos";
 L["Calendar"] = "Calendário";
 L["LFD"] = "LFD";
+L["LFG"] = "LFG";
 L["Enable Max Camera Zoom"] = "Ativar zoom máximo da câmera";
 L["Move AddOn Buttons"] = "Mover botões de complemento";
 L["MOVE_ADDON_BUTTONS_TOOLTIP"] = "Se marcado, os botões do ícone de complemento que aparecem na parte superior do minimapa serão movidos para o menu do botão direito do minimapa.";

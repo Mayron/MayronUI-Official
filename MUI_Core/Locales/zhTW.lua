@@ -15,6 +15,7 @@ L["Achievements"] = "成就";
 L["Glyphs"] = "字形";
 L["Calendar"] = "日曆";
 L["LFD"] = "LFD";
+L["LFG"] = "LFG";
 L["Enable Max Camera Zoom"] = "啟用最大相機縮放";
 L["Move AddOn Buttons"] = "移動插件按鈕";
 L["MOVE_ADDON_BUTTONS_TOOLTIP"] = "如果選中，出現在小地圖頂部的插件圖標按鈕將被移動到小地圖的右鍵菜單中。";

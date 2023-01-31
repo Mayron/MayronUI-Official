@@ -30,7 +30,7 @@ end
 ToggleCharacter ContainerFrame1 ToggleBackpack OpenAllBags ToggleFrame SpellBookFrame PlayerTalentFrame MacroFrame
 ToggleFriendsFrame ToggleHelpFrame TogglePVPUI ToggleAchievementFrame ToggleCalendar ToggleQuestLog
 ToggleLFDParentFrame ToggleRaidFrame ToggleEncounterJournal ToggleCollectionsJournal ToggleWorldMap
-ToggleWorldStateScoreFrame TalentFrame
+ToggleWorldStateScoreFrame TalentFrame ToggleLFGParentFrame
 ]]
 
 local buttonKeys = {
@@ -63,11 +63,13 @@ if (not tk:IsRetail()) then
     table.insert(C_ChatModule.Static.ButtonNames, 9, L["Glyphs"]);
     table.insert(C_ChatModule.Static.ButtonNames, 10, L["Calendar"]);
     table.insert(C_ChatModule.Static.ButtonNames, 11, L["Currency"]);
+    table.insert(C_ChatModule.Static.ButtonNames, 12, L["LFG"]);
 
     buttonKeys.Currency = L["Currency"];
     buttonKeys.Achievements = L["Achievements"];
     buttonKeys.Glyphs = L["Glyphs"];
     buttonKeys.Calendar = L["Calendar"];
+    buttonKeys.LFG = L["LFG"];
   end
 else
   C_ChatModule.Static.ButtonNames = {
@@ -175,6 +177,12 @@ if (tk:IsWrathClassic() and obj:IsNumber(SHOW_INSCRIPTION_LEVEL) and obj:IsFunct
       ToggleGlyphFrame();
     end
   end
+end
+
+if (tk:IsWrathClassic()) then
+  clickHandlers[buttonKeys.LFG] = function()
+    ToggleLFGParentFrame();
+  end;
 end
 
 if (tk:IsRetail()) then

@@ -18,6 +18,7 @@ L["Achievements"] = "Erfolge";
 L["Glyphs"] = "Glyphen";
 L["Calendar"] = "Kalender";
 L["LFD"] = "LFD";
+L["LFG"] = "LFG";
 L["Enable Max Camera Zoom"] = "Aktivieren Sie den maximalen Kamerazoom";
 L["Move AddOn Buttons"] = "AddOn-Buttons verschieben";
 L["MOVE_ADDON_BUTTONS_TOOLTIP"] = "Wenn diese Option aktiviert ist, werden die Addon-Symbolschaltflächen, die oben auf der Minikarte erscheinen, in das Rechtsklickmenü der Minikarte verschoben.";
