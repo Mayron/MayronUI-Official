@@ -206,7 +206,7 @@ function tk:GetPlayerSpecialization(specGroupId, unitID)
 
   if (tk:IsRetail()) then
     if (specGroupId == nil) then
-      if (unitID) then
+      if (isInspect) then
         specGroupId = _G.GetInspectSpecialization(unitID);
       else
         specGroupId = GetSpecialization();
