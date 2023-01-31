@@ -9,6 +9,7 @@ local tooltipStyle = _G.GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT or _G.TOOLTIP_BACKDR
 local gameTooltip = _G.GameTooltip;
 local healthBar, powerBar = _G.GameTooltipStatusBar, nil;
 local IsInGroup, IsInRaid, After = _G.IsInGroup, _G.IsInRaid, _G.C_Timer.After;
+local TooltipDataProcessor = _G.TooltipDataProcessor;
 
 local originalSetBackdropBorderColor = gameTooltip.SetBackdropBorderColor;
 gameTooltip.SetBackdropBorderColor = tk.Constants.DUMMY_FUNC;
@@ -1198,8 +1199,9 @@ function C_ToolTipsModule:OnEnable(data)
 
     if (not self:GetUnit()) then
       HideAllAuras(data);
-      RefreshPadding(data);
     end
+
+    RefreshPadding(data); -- Needed for DF
   end);
 
   gameTooltip:HookScript("OnUpdate", function(self, elapsed)
@@ -1275,7 +1277,7 @@ function C_ToolTipsModule:OnEnable(data)
     end
   end);
 
-  gameTooltip:HookScript("OnTooltipSetUnit", function(self)
+  local function OnTooltipSetUnit(self)
     local _, unitID = self:GetUnit();
 
     if (unitID) then
@@ -1286,7 +1288,17 @@ function C_ToolTipsModule:OnEnable(data)
     end
 
     RefreshPadding(data);
-  end);
+  end
+
+  if (tk:IsRetail() and TooltipDataProcessor) then
+    TooltipDataProcessor.AddTooltipPostCall(_G.Enum.TooltipDataType.Unit, function(self, ...)
+      if (self == gameTooltip) then
+        OnTooltipSetUnit(self, ...);
+      end
+    end);
+  else
+    gameTooltip:HookScript("OnTooltipSetUnit", OnTooltipSetUnit);
+  end
 
   if (retailOrWrath) then
     local inspectListener = em:CreateEventListener(function(_, _, unitGuid)

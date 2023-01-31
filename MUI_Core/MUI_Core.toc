@@ -1,4 +1,4 @@
-## Interface: 100002
+## Interface: 100005
 ## Title: |TInterface/Addons/MUI_Core/Assets/Logo:12:22|t |cff00ccffCore|r
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb
 ## OptionalDeps: ShadowedUnitFrames, Bartender4

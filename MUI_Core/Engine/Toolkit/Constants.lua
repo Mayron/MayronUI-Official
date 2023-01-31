@@ -313,5 +313,6 @@ _G.BINDING_NAME_MUI_SHOW_INSTALLER = "Show Installer";
 
 tk.Constants.DEBUG_WHITELIST = {
   ["Mayron-Gehennas"] = true;
+  ["Mayron-TwistingNether"] = true;
   ["Maulron-Gehennas"] = true;
 }
