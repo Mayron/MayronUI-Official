@@ -59,4 +59,6 @@
 
   <Script file="Tooltips\Tooltips.lua" />
   <Script file="Tooltips\Tooltips.config.lua" />
+
+  <Script file="CombatAlerts.lua" />
 </Ui>

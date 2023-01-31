@@ -533,13 +533,7 @@ do
     end
 
     if (componentType ~= "submenu") then
-      local printIt = config.name and tk.Strings:Contains(config.name, L["Choose Profile"]);
       TransferComponentAttributes(component, config);
-
-      if (printIt) then
-        MayronUI:PrintTable(component);
-      end
-
     end
 
     return component;
@@ -559,13 +553,13 @@ function C_ConfigMenuModule:SetUpWindow(data)
 
   if (obj:IsFunction(data.window.SetMinResize)) then
     data.window:SetMinResize(600, 400);
-    data.window:SetMaxResize(1200, 800);
+    data.window:SetMaxResize(1400, 800);
   else
     -- dragonflight:
-    data.window:SetResizeBounds(600, 400, 1200, 800);
+    data.window:SetResizeBounds(600, 400, 1400, 800);
   end
 
-  data.window:SetSize(800, 500);
+  data.window:SetSize(1000, 500);
   data.window:SetPoint("CENTER");
 
   gui:AddTitleBar(data.window, "MUI " .. L["Config"]);

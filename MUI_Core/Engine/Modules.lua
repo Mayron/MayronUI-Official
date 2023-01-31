@@ -166,14 +166,15 @@ local function ValidateRemoveProfile(_, text)
 end
 
 local function RemoveProfile(_, _, profileName, callback)
-  db:RemoveProfile(profileName);
-  tk:Print(
-    "Profile", tk.Strings:SetTextColorByKey(profileName, "gold"),
-      "has been deleted.");
+  local profileChanged = db:RemoveProfile(profileName);
+  tk:Print("Profile", tk.Strings:SetTextColorByKey(profileName, "gold"), "has been deleted.");
 
-  local playerKey = tk:GetPlayerKey();
-  if (db.global.core.setup.profilePerCharacter and db:ProfileExists(playerKey)) then
-    db:SetProfile(playerKey);
+  if (not profileChanged) then
+    local playerKey = tk:GetPlayerKey();
+
+    if (db.global.core.setup.profilePerCharacter and db:ProfileExists(playerKey)) then
+      db:SetProfile(playerKey);
+    end
   end
 
   if (obj:IsFunction(callback)) then
@@ -497,6 +498,10 @@ function MayronUI:LogError(...)
   if (_G.MUI_DEBUG_MODE) then
     _G.Screenshot();
   end
+end
+
+function MayronUI:LogDebug(...)
+  tk:LogDebug(...);
 end
 
 ---@return boolean @Returns true if MayronUI has been previously installing (usually using MUI_Setup).

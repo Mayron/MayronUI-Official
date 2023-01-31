@@ -10,6 +10,7 @@ local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.p
 local hooksecurefunc, UnitLevel, UnitClass = _G.hooksecurefunc, _G.UnitLevel, _G.UnitClass;
 local GetMaxPlayerLevel, tostringall = _G.GetMaxPlayerLevel, _G.tostringall;
 local UnitQuestTrivialLevelRange, GetQuestGreenRange = _G.UnitQuestTrivialLevelRange, _G.GetQuestGreenRange;
+local UnitSex = _G.UnitSex;
 
 function tk.Numbers:ToPrecision(number, precision)
   if (not obj:IsNumber(precision) or precision <= 0) then
@@ -47,10 +48,36 @@ function tk:Print(...)
   _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, tostringall(...)));
 end
 
+do
+  local function LogToChatFrame(message, r, g, b, ...)
+    pcall(function(...)
+      local prefix = tk.Strings:SetTextColorByTheme("MayronUI:");
 
-function tk:LogError(errorMessage, ...)
-  local prefix = self.Strings:SetTextColorByTheme("MayronUI:");
-  _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, errorMessage:format(tostringall(...))), 1, 0, 0);
+      if (tk.Strings:Contains(message, "%%")) then
+        local replaced, count = string.gsub(message, "%%%a", "{arg}")
+
+        for i = 1, count do
+          local arg = tostring(select(i, ...) or nil);
+          replaced = string.gsub(replaced, "{arg}", arg, 1);
+        end
+
+        message = string.join(" ", prefix, replaced);
+      else
+        message = string.join(" ", prefix, message, tostringall(...));
+      end
+
+      _G.DEFAULT_CHAT_FRAME:AddMessage(message, r, g, b);
+    end, ...);
+  end
+
+  function tk:LogError(errorMessage, ...)
+    LogToChatFrame(errorMessage, 1, 0, 0, ...);
+  end
+
+  function tk:LogDebug(debugMessage, ...)
+    if (not _G.MUI_DEBUG_MODE) then return end
+    LogToChatFrame(debugMessage, 1, 0.8, 0.18, ...);
+  end
 end
 
 function tk:GetAssetFilePath(filePath)
@@ -165,6 +192,95 @@ do
   end
 end
 
+local GetSpecializationInfo, GetSpecialization = _G.GetSpecializationInfo, _G.GetSpecialization;
+local GetTalentTabInfo = _G.GetTalentTabInfo;
+
+function tk:GetPlayerSpecialization(specGroupId, unitID)
+  local isInspect = unitID ~= nil;
+
+  if (tk:IsRetail()) then
+    if (specGroupId == nil) then
+      if (unitID) then
+        specGroupId = _G.GetInspectSpecialization(unitID);
+      else
+        specGroupId = GetSpecialization();
+      end
+    end
+
+    if (specGroupId == nil) then
+      return nil;
+    end
+
+    local sex = UnitSex(unitID or "PLAYER");
+    local specIndex, name = GetSpecializationInfo(specGroupId, isInspect, nil, nil, sex);
+
+    return name, specIndex;
+  end
+
+  local specName, specIndex, specIcon;
+  local maxPointsSpent = 0;
+
+  for i = 1, _G.MAX_TALENT_TABS do
+    local name, icon, pointsSpent = GetTalentTabInfo(i, isInspect, nil, specGroupId);
+
+    if (pointsSpent > maxPointsSpent) then
+      specName = name;
+      specIcon = icon;
+      specIndex = i;
+      maxPointsSpent = pointsSpent;
+    end
+  end
+
+  return specName, specIndex, specIcon;
+end
+
+function tk:SetSpecialization(specIndex)
+  local func = _G.SetSpecialization or _G.SetActiveTalentGroup;
+  func(specIndex);
+end
+
+local ITEM_GEAR_SLOTS = {
+  1, 2, 3, 15, 5, 9, 16, 17, 10, 6, 7, 8, 11, 12, 13, 14
+};
+
+local UnitExists, UnitGUID = _G.UnitExists, _G.UnitGUID;
+
+function tk:GetInspectItemLevel(unitID)
+  if (not UnitExists(unitID)) then
+    return -1;
+  end
+
+  if (_G.GetInspectItemLevel) then
+    return _G.C_PaperDollInfo.GetInspectItemLevel(unitID);
+  end
+
+  local total = 0;
+  local maxSlots = #ITEM_GEAR_SLOTS;
+  local guid = UnitGUID(unitID);
+
+  for _, slotID in ipairs(ITEM_GEAR_SLOTS) do
+    if (not UnitExists(unitID) or UnitGUID(unitID) ~= guid) then
+      return -1;
+    end
+
+    local itemLink = _G.GetInventoryItemLink(unitID, slotID);
+
+    if (not itemLink) then
+      if (slotID == 17) then
+        -- if the player has a 2 handed weapon, ignore the shield
+        maxSlots = maxSlots - 1;
+      end
+    else
+      local _, _, _, itemLevel = _G.GetItemInfo(itemLink);
+      total = total + itemLevel;
+    end
+  end
+
+  local average = total / maxSlots;
+  average = tk.Numbers:ToPrecision(average, 1);
+  return average;
+end
+
 function tk:IsPlayerMaxLevel()
   local playerLevel = UnitLevel("player");
   return (GetMaxPlayerLevel() == playerLevel);
@@ -249,8 +365,6 @@ function tk:Error(errorMessage, ...)
 end
 
 do
-    local POPUP_GLOBAL_NAME = "MUI_TOOLKIT_POPUP";
-
     local function EditBox_OnEscapePressed(self)
         local popup = self.popup or self;
         local editBox = popup.editBox;
@@ -260,7 +374,7 @@ do
             onCancel(editBox, editBox:GetText());
         end
 
-        _G.StaticPopup_Hide(POPUP_GLOBAL_NAME);
+        _G.StaticPopup_Hide(popup.key);
     end
 
     local function EditBox_OnEnterPressed(self)
@@ -279,7 +393,7 @@ do
           onAccept(editBox, editBox:GetText(), obj:UnpackTable(args));
         end
 
-        _G.StaticPopup_Hide(POPUP_GLOBAL_NAME);
+        _G.StaticPopup_Hide(popup.key);
     end
 
     local function EditBox_OnTextChanged(self, userInput)
@@ -353,16 +467,22 @@ do
       end
     end
 
-    local function PopUp_OnCancel(self)    
+    local function PopUp_OnCancel(self)
       if (self.data.OnCancel) then
         local args = self.data.args;
         self.data.args = nil;
         self.data.OnCancel(self, obj:UnpackTable(args));
-      end      
+      end
     end
 
     local function GetPopup(message, subMessage)
-      local popup = _G.StaticPopupDialogs[POPUP_GLOBAL_NAME];
+      local key = "MUI_TOOLKIT_POPUP";
+      local popup = _G.StaticPopupDialogs[key];
+
+      if (popup and _G.StaticPopup_FindVisible(key)) then
+        key = string.join("_", key, tostring(math.random(10000)));
+        popup = nil;
+      end
 
       if (not popup) then
         popup = {
@@ -376,11 +496,12 @@ do
           data = obj:PopTable();
         };
 
-        _G.StaticPopupDialogs[POPUP_GLOBAL_NAME] = popup;
+        _G.StaticPopupDialogs[key] = popup;
       end
 
       popup.text = message;
       popup.subText = subMessage;
+      popup.key = key;
 
       return popup;
     end
@@ -414,12 +535,13 @@ do
 
     function tk:ShowConfirmPopup(message, subMessage, confirmText, onConfirm, cancelText, onCancel, isWarning, ...)
       local popup = ShowConfirmPopup(message, subMessage, confirmText, onConfirm, cancelText, onCancel, isWarning, ...);
-      _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+
+      _G.StaticPopup_Show(popup.key, nil, nil, popup.data);
     end
 
     function tk:ShowConfirmPopupWithInsertedFrame(insertedFrame, message, subMessage, confirmText, onConfirm, cancelText, onCancel, isWarning, ...)
       local popup = ShowConfirmPopup(message, subMessage, confirmText, onConfirm, cancelText, onCancel, isWarning, ...);
-      _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data, insertedFrame);
+      _G.StaticPopup_Show(popup.key, nil, nil, popup.data, insertedFrame);
     end
 
     function tk:ShowMessagePopup(message, subMessage, okayText, onOkay, isWarning, ...)    
@@ -431,9 +553,9 @@ do
       popup.OnAccept = onOkay;
       popup.OnCancel = nil;
       popup.showAlert = isWarning;
-      StoreArgs(popup, ...);      
+      StoreArgs(popup, ...);
 
-      _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data); 
+      _G.StaticPopup_Show(popup.key, nil, nil, popup.data);
     end
 
     function tk:ShowInputPopupWithOneButton(message, subMessage, editBoxText, okayText, ...)
@@ -451,7 +573,7 @@ do
       popup.data.OnValidate = nil;
       StoreArgs(popup, ...);
 
-      _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+      _G.StaticPopup_Show(popup.key, nil, nil, popup.data);
   end
 
   function tk:ShowInputPopup(
@@ -476,7 +598,7 @@ do
     popup.data.OnValidate = onValidate;
     StoreArgs(popup, ...);
 
-    _G.StaticPopup_Show(POPUP_GLOBAL_NAME, nil, nil, popup.data);
+    _G.StaticPopup_Show(popup.key, nil, nil, popup.data);
   end
 end
 
@@ -626,7 +748,7 @@ function tk:GetTutorialShowState(oldVersion, afterInstall)
   return shouldShow;
 end
 
-function tk:GetVersion(colorKey)
+function tk:GetVersion(colorKey, raw)
   local client = tk.Strings.Empty;
 
   if (tk:IsRetail()) then
@@ -653,7 +775,9 @@ function tk:GetVersion(colorKey)
     version = string.format("MUI_Core: %s, MUI_Config: %s, MUI_Setup: %s", muiCore, muiConfig, muiSetup);
   end
 
-  version = tk.Strings:SetTextColorByKey(version, colorKey or "GRAY");
+  if (not raw) then
+    version = tk.Strings:SetTextColorByKey(version, colorKey or "GRAY");
+  end
 
   return version;
 end

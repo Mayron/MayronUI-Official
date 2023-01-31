@@ -135,6 +135,17 @@ function tk.Tables:All(tbl, predicate)
   return true;
 end
 
+function tk.Tables:Count(tbl, predicate)
+  local count = 0;
+  for _, value in pairs(tbl) do
+    if (predicate(value)) then
+      count = count + 1;
+    end
+  end
+
+  return count;
+end
+
 function tk.Tables:Filter(tbl, predicate)
   local new = obj:PopTable();
 
@@ -160,9 +171,17 @@ function tk.Tables:First(tbl, predicate)
 end
 
 function tk.Tables:Remove(tbl, predicate)
-  for index, value in ipairs(tbl) do
-    if (predicate(value)) then
-      table.remove(tbl, index);
+  local continue = true;
+
+  while continue do
+    continue = false;
+
+    for index, value in ipairs(tbl) do
+      if (predicate(value)) then
+        table.remove(tbl, index);
+        continue = true;
+        break
+      end
     end
   end
 end

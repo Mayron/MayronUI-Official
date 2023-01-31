@@ -7,6 +7,7 @@ if (obj:Import("MayronDB", true)) then
   return
 end
 
+local LibDeflate = _G.LibStub:GetLibrary("LibDeflate");
 local STACKOVERFLOW_DETECTED_ERROR_MSG = "Failed to iterate table. Key '%s' has been detected over the max limit of %d for table %s.";
 local MAX_KEY_OCCURRENCE = {
   20; -- the default limit for all other keys
@@ -594,6 +595,32 @@ function Database:CopyProfile(data, profileName, copiedProfileName)
   end
 end
 
+function Database:ExportProfile(data, profileName)
+  profileName = profileName or self:GetCurrentProfile();
+  local profile = data.sv.profiles[profileName] or {};
+  local rawStr = obj:ToLongString(profile, 100, -1);
+  local compressed = LibDeflate:CompressDeflate(rawStr);
+  local importStr = LibDeflate:EncodeForPrint(compressed);
+  return importStr;
+end
+
+do
+  local fetcherPattern = "return function() return { %s }; end";
+  local loadstring = _G.loadstring;
+
+  function Database:ImportProfile(data, importStr, profileName)
+    profileName = profileName or self:GetCurrentProfile();
+
+    local compressed = LibDeflate:DecodeForPrint(importStr);
+    local decompressed = LibDeflate:DecompressDeflate(compressed);
+
+    local fetcher = loadstring(fetcherPattern:format(decompressed));
+    local profileData = fetcher()();
+
+    data.sv.profiles[profileName] = profileData;
+  end
+end
+
 obj:DefineParams("string");
 obj:DefineReturns("boolean");
 ---Moves the profile to the bin. The profile cannot be accessed from the bin. Use db:RestoreProfile(profileName) to restore the profile.
@@ -820,7 +847,7 @@ local function VerifyTableContainsNoFunctions(tbl, memorized, originalTable)
     if (obj:IsString(key) and not tonumber(key)) then
       memorized[key] = (memorized[key] or 0) + 1;
       local limit = MAX_KEY_OCCURRENCE[key] or MAX_KEY_OCCURRENCE[1];
-      obj:Assert(memorized[key] < limit, STACKOVERFLOW_DETECTED_ERROR_MSG, key, limit, obj:ToLongString(originalTable, 4, -1));
+      obj:Assert(memorized[key] < limit, STACKOVERFLOW_DETECTED_ERROR_MSG, key, limit, obj:ToLongString(originalTable, nil, -1));
     end
 
     if (obj:IsFunction(value)) then
@@ -1749,7 +1776,7 @@ function FillTable(fromTable, toTable, doNotReplace, memorized, originalTable)
     if (obj:IsString(key) and not tonumber(key)) then
       memorized[key] = (memorized[key] or 0) + 1;
       local limit = MAX_KEY_OCCURRENCE[key] or MAX_KEY_OCCURRENCE[1];
-      obj:Assert(memorized[key] < limit, STACKOVERFLOW_DETECTED_ERROR_MSG, key, limit, obj:ToLongString(originalTable, 4, -1));
+      obj:Assert(memorized[key] < limit, STACKOVERFLOW_DETECTED_ERROR_MSG, key, limit, obj:ToLongString(originalTable, nil, -1));
     end
 
     if (obj:IsTable(value)) then

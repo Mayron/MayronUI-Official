@@ -242,7 +242,7 @@ function C_MiniMapModule:GetConfigTable(data)
               name = L["Dungeon Difficulty"];
               appendDbPath = "widgets.difficulty";
               type = "submenu";
-              client = "retail";
+              client = "retail,wrath";
               children = function()
                 local children = {};
                 AddShowOption(children, "difficulty", L["Dungeon Difficulty"]);

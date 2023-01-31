@@ -443,11 +443,8 @@ do
     end
   end
 
-  -- TODO: Does not work in BCC (PLAYER_DIFFICULTY_CHANGED event does not exist)
-  -- TODO: But BCC can have heroics?
-  -- TODO: What about Wrath?
   local function SetDungeonDifficultyShown(data)
-    if (not tk:IsRetail()) then
+    if (not (tk:IsRetail() or tk:IsWrathClassic())) then
       return
     end
 
@@ -484,8 +481,9 @@ do
       end);
 
       listener:RegisterEvents(
-        "PLAYER_ENTERING_WORLD", "PLAYER_DIFFICULTY_CHANGED",
-          "GROUP_ROSTER_UPDATE");
+        "PLAYER_DIFFICULTY_CHANGED",
+        "UPDATE_INSTANCE_INFO",
+        "GROUP_ROSTER_UPDATE");
     else
       if (widgets.difficulty.show) then
         em:DisableEventListeners("DungeonDifficultyText");
@@ -535,7 +533,6 @@ do
         end
         data.reskinnedLFG = true;
       end
-
       data:Call("SetUpWidget", "lfg", _G.MiniMapLFGFrame);
     end
 

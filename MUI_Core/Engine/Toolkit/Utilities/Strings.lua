@@ -11,18 +11,22 @@ local CreateColor, ipairs = _G.CreateColor, _G.ipairs;
 local string, table, tostring, type = _G.string, _G.table, _G.tostring, _G.type;
 local select, UnitClass, UnitIsTapDenied = _G.select, _G.UnitClass, _G.UnitIsTapDenied;
 
+function tk.Strings:Trim(str)
+  return str:match("^%s*(.-)%s*$");
+end
+
 do
   local function split(char)
     return tk.Strings.Space .. char;
   end
 
-  local function trim1(s)
-    return (s:gsub("^%s*(.-)%s*$", "%1"));
-  end
-
   function tk.Strings:SplitByCamelCase(str)
-    return trim1(str:gsub("[A-Z]", split):gsub("^.", string.upper));
+    return self:Trim(str:gsub("[A-Z]", split):gsub("^.", string.upper));
   end
+end
+
+function tk.Strings:RemoveWhiteSpace(str)
+  return str:gsub("%s+", tk.Strings.Empty);
 end
 
 function tk.Strings:Contains(fullString, subString)
@@ -172,8 +176,9 @@ _G.UnitIsConnected, _G.UnitIsAFK,   _G.UnitIsDND, _G.UnitReaction;
 
 function tk.Strings:GetUnitNameText(unitID, overflow, includeRealmName)
   local unitName, realm = UnitFullName(unitID);
+  unitID = (unitID or ""):lower();
 
-  if (includeRealmName and obj:IsString(realm) and not tk.Strings:IsNilOrWhiteSpace(realm)) then
+  if (unitID ~= "player" and includeRealmName and obj:IsString(realm) and not tk.Strings:IsNilOrWhiteSpace(realm)) then
     unitName = unitName.."-"..realm;
   end
 
@@ -181,7 +186,7 @@ function tk.Strings:GetUnitNameText(unitID, overflow, includeRealmName)
     unitName = tk.Strings:SetOverflow(unitName, overflow);
   end
 
-  if (unitID:lower() == "player") then
+  if (unitID == "player") then
     if (UnitAffectingCombat("player")) then
       unitName = tk.Strings:SetTextColorByRGB(unitName, 1, 0, 0);
 

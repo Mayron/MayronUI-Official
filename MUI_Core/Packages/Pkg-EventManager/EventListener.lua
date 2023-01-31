@@ -1,4 +1,5 @@
 -- luacheck: ignore self 143 631
+local _G = _G;
 local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 if (obj:Import("Pkg-MayronEvents.EventListener", true)) then return end
 
@@ -8,7 +9,7 @@ C_EventListener.Static:AddFriendClass("Pkg-MayronEvents.EventManager");
 obj:Export(C_EventListener, "Pkg-MayronEvents");
 
 local select, unpack, pairs, ipairs, next, tostring = _G.select, _G.unpack, _G.pairs, _G.ipairs, _G.next, _G.tostring;
-
+local pcall = _G.pcall;
 -----------------------------------------------------------
 --- C_EventListener API:
 -----------------------------------------------------------
@@ -117,11 +118,19 @@ obj:DefineParams("string");
 ---@param event string @The Blizzard event to register.
 ---@return EventListener
 function C_EventListener:RegisterEvent(data, event)
-  data.events = data.events or obj:PopTable();
-  data.events[event] = true;
-
   local managerData = data:GetFriendData(data.manager);
-  managerData.frame:RegisterEvent(event);
+
+  local success = pcall(function()
+    managerData.frame:RegisterEvent(event);
+  end);
+
+  if (success) then
+    data.events = data.events or obj:PopTable();
+    data.events[event] = true;
+  elseif (_G.MayronUI) then
+    _G.MayronUI:LogDebug("Failed to register event ", event);
+  end
+
   return self;
 end
 
@@ -146,11 +155,19 @@ obj:DefineParams("string", "string", "?string", "?string");
 ---@param unit3 string @An optional 3rd unitID to register with the unit event (e.g., "focus").
 ---@return EventListener
 function C_EventListener:RegisterUnitEvent(data, event, unit1, unit2, unit3)
-  data.events = data.events or obj:PopTable();
-  data.events[event] = obj:PopTable(unit1, unit2, unit3);
-
   local managerData = data:GetFriendData(data.manager);
-  managerData.frame:RegisterEvent(event);
+
+  local success = pcall(function()
+    managerData.frame:RegisterEvent(event);
+  end);
+
+  if (success) then
+    data.events = data.events or obj:PopTable();
+    data.events[event] = obj:PopTable(unit1, unit2, unit3);
+  elseif (_G.MayronUI) then
+    _G.MayronUI:LogDebug("Failed to register event ", event);
+  end
+
   return self;
 end
 

@@ -27,6 +27,15 @@ local function CancelAura(self)
   if (self.filter) then
     -- it is a standard aura
     CancelUnitBuff("player", self:GetID(), self.filter);
+  else
+    -- It is a weapon enchant (NOT ALLOWED)
+    -- local enchantSlotId = self:GetID();
+
+    -- if (enchantSlotId == 16) then
+    --   _G.CancelItemTempEnchantment(1); -- Main-Hand
+    -- elseif (enchantSlotId == 17) then
+    --   _G.CancelItemTempEnchantment(2); -- Off-Hand
+    -- end
   end
 end
 
@@ -60,15 +69,17 @@ end
 -- C_Aura -------------------------------
 function C_Aura:__Construct(data, parent, settings, auraID, filter)
   data.settings = settings;
-  local btn = tk:CreateFrame("Button", parent);
+  local btn = tk:CreateFrame("Button", parent); -- , nil, "SecureAuraHeaderTemplate"
   self:SetFrame(btn);
+  -- btn:SetAttribute('unit', 'player');
+	-- btn:SetAttribute('filter', filter);
 
   btn:SetID(auraID);
 
   btn.obj = self;
   btn.filter = filter;
 
-  if (filter == "HELPFUL") then
+  if (filter ~= "HARMFUL") then
     btn:RegisterForClicks("RightButtonUp");
     btn:SetScript("OnClick", CancelAura);
   end

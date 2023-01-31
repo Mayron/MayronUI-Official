@@ -1,13 +1,15 @@
+local _G = _G;
 local MayronUI = _G.MayronUI;
 
 -- luacheck: ignore MayronUI self 143 631
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
-if (not tk:IsRetail()) then return end
+if (not (tk:IsRetail() or tk:IsWrathClassic())) then return end
 
-local select, GetSpecializationInfo, C_EquipmentSet = _G.select, _G.GetSpecializationInfo, _G.C_EquipmentSet;
-local GetSpecialization, UnitLevel, string = _G.GetSpecialization, _G.UnitLevel, _G.string;
-local GetLootSpecialization, UnitSex, SetLootSpecialization, print = _G.GetLootSpecialization, _G.UnitSex, _G.SetLootSpecialization, _G.print;
-local SetSpecialization, GetNumSpecializations, GameTooltip = _G.SetSpecialization, _G.GetNumSpecializations, _G.GameTooltip;
+local C_EquipmentSet, GameTooltip = _G.C_EquipmentSet, _G.GameTooltip;
+local UnitLevel, string = _G.UnitLevel, _G.string;
+
+-- retail only:
+local GetLootSpecialization, SetLootSpecialization = _G.GetLootSpecialization, _G.SetLootSpecialization;
 
 -- Register and Import Modules -------
 
@@ -23,7 +25,7 @@ db:AddToDefaults("profile.datatext.specialization", {
 -- Local Functions ----------------
 
 local function Button_OnEnter(self)
-  local _, name = GetSpecializationInfo(GetSpecialization());
+  local name = tk:GetPlayerSpecialization();
 
   if (tk.Strings:IsNilOrWhiteSpace(name)) then
     GameTooltip:Hide();
@@ -33,9 +35,15 @@ local function Button_OnEnter(self)
   local r, g, b = tk:GetThemeColor();
 
   GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 2);
-  GameTooltip:SetText(L["Commands"]..":")
-  GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
-  GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]), L["Choose Loot Spec"], r, g, b, 1, 1, 1);
+
+  if (tk:IsWrathClassic()) then
+    GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
+  else
+    GameTooltip:SetText(L["Commands"]..":");
+    GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Left Click:"]), L["Choose Spec"], r, g, b, 1, 1, 1);
+    GameTooltip:AddDoubleLine(tk.Strings:SetTextColorByTheme(L["Right Click:"]), L["Choose Loot Spec"], r, g, b, 1, 1, 1);
+  end
+
   GameTooltip:Show();
 end
 
@@ -69,7 +77,8 @@ local function CreateEquipmentSetDropDown(settings, contentFrame, popupWidth, da
   dropdown:SetWidth(popupWidth - 10);
   dropdown:Show();
 
-  local specName = select(2, GetSpecializationInfo(specializationID));
+  local specName = tk:GetPlayerSpecialization(specializationID);
+
   local currentEquipmentSetId = settings.sets[specName];
 
   if (obj:IsNumber(currentEquipmentSetId) and currentEquipmentSetId >= 0 and currentEquipmentSetId <= 9) then
@@ -116,7 +125,7 @@ local function CreateLayoutDropDown(settings, contentFrame, popupWidth, dataText
   dropdown:SetWidth(popupWidth - 10);
   dropdown:Show();
 
-  local specName = select(2, GetSpecializationInfo(specializationID));
+  local specName = tk:GetPlayerSpecialization(specializationID);
   local layoutName = settings.layouts[specName];
 
   if (layoutName) then
@@ -171,10 +180,12 @@ function Specialization:__Construct(data, settings, dataTextModule, slideControl
   self.MenuLabels = obj:PopTable();
   self.TotalLabelsShown = 0;
   self.HasLeftMenu = true;
-  self.HasRightMenu = true;
   self.Button = dataTextModule:CreateDataTextButton();
 
-  self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+  if (tk:IsRetail()) then
+    self.HasRightMenu = true;
+    self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+  end
 end
 
 function Specialization:IsEnabled(data)
@@ -190,13 +201,12 @@ function Specialization:SetEnabled(data, enabled)
     self.Button:SetScript("OnLeave", Button_OnLeave);
 
     if (not em:GetEventListenerByID(listenerID)) then
-      local listener = em:CreateEventListenerWithID(listenerID, function(_, _, unitID)
-        if (unitID ~= "player") then return end -- should always be player but just in case
+      local listener = em:CreateEventListenerWithID(listenerID, function()
         self:Update();
 
         if (not data.settings.sets) then return end
 
-        local _, specializationName = GetSpecializationInfo(GetSpecialization());
+        local specializationName = tk:GetPlayerSpecialization();
 
         if (data.settings.sets[specializationName]) then
           local equipmentSetId = data.settings.sets[specializationName];
@@ -217,7 +227,11 @@ function Specialization:SetEnabled(data, enabled)
         end
       end);
 
-      listener:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player");
+      if (tk:IsWrathClassic()) then
+        listener:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED");
+      else
+        listener:RegisterUnitEvent("PLAYER_SPECIALIZATION_CHANGED", "player");
+      end
 
       listener = em:CreateEventListenerWithID("DataText_Specialization_EnteringWorld", function()
         self:Update();
@@ -268,15 +282,11 @@ function Specialization:Update(data, refreshSettings)
     return;
   end
 
-  local specializationID = GetSpecialization();
+  local name = tk:GetPlayerSpecialization();
   local specText = L["No Spec"];
 
-  if (specializationID) then
-    local _, name = GetSpecializationInfo(specializationID, nil, nil, "player");
-
-    if (obj:IsString(name) and not tk.Strings:IsNilOrWhiteSpace(name)) then
-      specText = name;
-    end
+  if (obj:IsString(name) and not tk.Strings:IsNilOrWhiteSpace(name)) then
+    specText = name;
   end
 
   self.Button:SetText(specText);
@@ -303,31 +313,29 @@ function Specialization:GetLabel(data, index)
       return;
     end
 
-    local currentSpecializationID = GetSpecialization();
+    local specName, specIndex = tk:GetPlayerSpecialization();
 
-    if (self.lootSpecID ~= nil) then
+    if (obj:IsFunction(GetLootSpecialization) and self.lootSpecID ~= nil) then
       -- handle changing loot specs
 
       if (GetLootSpecialization() ~= self.lootSpecID) then
         -- update loot spec ID:
-        local sex = UnitSex("player");
-        self.lootSpecID = GetSpecializationInfo(self.specializationID, nil, nil, nil, sex) or 0;
+        self.lootSpecID = specIndex or 0;
 
         -- change loot specialization
         SetLootSpecialization(self.lootSpecID);
 
         if (self.lootSpecID == 0) then
           -- no chat message is printed when set to current spec, so print our own
-          local _, name = GetSpecializationInfo(currentSpecializationID);
-          print(tk.Strings:Concat(_G.YELLOW_FONT_COLOR_CODE,
-            L["Loot Specialization set to: Current Specialization"], " (", name, ")|r"));
+          MayronUI:Print(tk.Strings:Concat(_G.YELLOW_FONT_COLOR_CODE,
+            L["Loot Specialization set to: Current Specialization"], " (", specName, ")|r"));
         end
       end
     else
       -- handle changing spec
-      if (currentSpecializationID ~= self.specializationID) then
+      if (specIndex ~= self.specializationID) then
         -- change specialization
-        SetSpecialization(self.specializationID);
+        tk:SetSpecialization(self.specializationID);
       end
     end
 
@@ -342,7 +350,17 @@ end
 function Specialization:HandleLeftClick(data)
   local totalLabelsShown = 1; -- including title
 
-  for i = 1, GetNumSpecializations() do
+  local totalSections, currentActiveSection;
+
+  if (_G.GetNumSpecializations) then
+    totalSections = _G.GetNumSpecializations();
+    currentActiveSection = _G.GetSpecialization();
+  else
+    totalSections = _G.GetNumTalentGroups();
+    currentActiveSection = _G.GetActiveTalentGroup();
+  end
+
+  for i = 1, totalSections do
     -- create label
     totalLabelsShown = totalLabelsShown + 1;
 
@@ -351,16 +369,17 @@ function Specialization:HandleLeftClick(data)
     label.lootSpecID = nil;
 
     -- update labels based on specialization
-    local specializationName = select(2, GetSpecializationInfo(label.specializationID));
-    local enabled = (label.specializationID ~= GetSpecialization());
 
-    SetLabelEnabled(label, enabled);
+    local isCurrentSpec = i == currentActiveSection;
+    SetLabelEnabled(label, not isCurrentSpec);
 
-    if (not enabled) then
-      specializationName = string.format(L["Current"] .. " (%s)", specializationName);
+    local specName = tk:GetPlayerSpecialization(i);
+
+    if (isCurrentSpec) then
+      specName = string.format(L["Current"] .. " (%s)", specName);
     end
 
-    label.name:SetText(specializationName);
+    label.name:SetText(specName);
 
     -- create Equipment Set dropdown
     totalLabelsShown = totalLabelsShown + 1;
@@ -374,11 +393,12 @@ function Specialization:HandleLeftClick(data)
   return totalLabelsShown;
 end
 
+
 function Specialization:HandleRightClick()
   local totalLabelsShown = 1; -- including title
 
   -- start at index 0 as 0 = setting loot specialization to the "auto" current spec option
-  for i = 0, GetNumSpecializations() do
+  for i = 0, tk:GetNumSpecializations() do
     totalLabelsShown = totalLabelsShown + 1;
 
     local label = self:GetLabel(totalLabelsShown);
@@ -393,24 +413,23 @@ function Specialization:HandleRightClick()
       label.dropdown = nil;
     end
 
-    local sex = UnitSex("player");
-    label.lootSpecID = GetSpecializationInfo(label.specializationID, nil, nil, nil, sex) or 0;
+    local name, specIndex = tk:GetPlayerSpecialization(label.specializationID);
+    label.lootSpecID = specIndex or 0;
 
     -- update labels based on loot spec
     local enabled = (label.lootSpecID ~= GetLootSpecialization());
     SetLabelEnabled(label, enabled);
 
     if (label.specializationID == 0) then
-      local specializationName = select(2, GetSpecializationInfo(GetSpecialization()));
-      label.name:SetText(string.format(L["Current"] .. " (%s)", specializationName));
+      label.name:SetText(string.format(L["Current"] .. " (%s)", name));
     else
-      local specializationName = select(2, GetSpecializationInfo(label.specializationID));
-      label.name:SetText(specializationName);
+      label.name:SetText(name);
     end
   end
 
   return totalLabelsShown;
 end
+
 
 function Specialization:Click(_, button)
   if (UnitLevel("player") < 10) then
@@ -418,7 +437,7 @@ function Specialization:Click(_, button)
     return true;
   end
 
-  local _, name = GetSpecializationInfo(GetSpecialization());
+  local name = tk:GetPlayerSpecialization();
   if (tk.Strings:IsNilOrWhiteSpace(name)) then
     return true;
   end
@@ -429,11 +448,11 @@ function Specialization:Click(_, button)
   title:SetNormalTexture(1);
   title:GetNormalTexture():SetColorTexture(0, 0, 0, 0.4);
 
-  if (button == "LeftButton") then
+  if (tk:IsWrathClassic() or button == "LeftButton") then
     title.name:SetText(tk.Strings:SetTextColorByRGB(L["Choose Spec"]..":", r, g, b));
     self.TotalLabelsShown = self:HandleLeftClick();
 
-  elseif (button == "RightButton") then
+  elseif (tk:IsRetail() and button == "RightButton") then
     title.name:SetText(tk.Strings:SetTextColorByRGB(L["Choose Loot Spec"]..":", r, g, b));
     self.TotalLabelsShown = self:HandleRightClick();
   end

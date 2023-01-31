@@ -158,6 +158,13 @@ end
 function C_ChatModule:OnInitialize(data)
   data.chatFrames = obj:PopTable();
 
+  local currentLayout = db.profile.layout;
+  if (currentLayout) then
+    if (not db.global.layouts[currentLayout]) then
+      db.profile.layout = nil;
+    end
+  end
+
 	local setupOptions = {
     onExecuteAll = {
       last = {

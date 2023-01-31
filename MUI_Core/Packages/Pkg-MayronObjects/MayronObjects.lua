@@ -1209,13 +1209,13 @@ end
 ---@param spaces number @An optional number specifying the spaces to print to intent nested values inside a table.
 ---@param n number @Do NOT manually set this. This controls formatting through recursion.
 ---@return string @A long string containing the contents of the table.
-function Framework:ToLongString(tbl, depth, spaces, result, n)
+function Framework:ToLongString(tbl, depth, spaces, result, n, maxKeys)
   local minify = false;
   result = result or "";
   n = n or 0;
 
   if (depth == nil or depth < 0) then
-    depth = 5;
+    depth = 4;
   end
 
   if (spaces == nil or spaces <= 0) then
@@ -1227,7 +1227,14 @@ function Framework:ToLongString(tbl, depth, spaces, result, n)
     return strformat("%s\n%s", result, strrep(' ', n).."...");
   end
 
+  local totalKeys = 1;
   for key, value in pairs(tbl) do
+    if (maxKeys ~= nil and totalKeys > maxKeys) then
+      break
+    end
+
+    totalKeys = totalKeys + 1;
+
     if (key and self:IsNumber(key) or self:IsString(key)) then
       key = strformat("[\"%s\"]", key);
 
@@ -1240,10 +1247,10 @@ function Framework:ToLongString(tbl, depth, spaces, result, n)
 
         if (next(value)) then
           if (depth == 1) then
-            result = strformat("%s%s = { ... },", result, key);
+            result = strformat("%s%s = { \"...\" },", result, key);
           else
             result = strformat("%s%s = {", result, key);
-            result = self:ToLongString(value, depth - 1, spaces, result, n + spaces);
+            result = self:ToLongString(value, depth - 1, spaces, result, n + spaces, maxKeys);
             result = strformat("%s\n%s},", result, strrep(' ', n));
           end
         else
@@ -1258,6 +1265,15 @@ function Framework:ToLongString(tbl, depth, spaces, result, n)
 
         result = strformat("%s\n%s%s = %s,", result, strrep(' ', n), key, value);
       end
+    end
+  end
+
+  local length = #result;
+
+  if (length > 0) then
+    local lastChar = result:sub(length);
+    if (lastChar == ",") then
+      result = result:sub(1, length - 1);
     end
   end
 

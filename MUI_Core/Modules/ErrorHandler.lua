@@ -2,29 +2,62 @@
 local _, namespace = ...;
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, _, em, _, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+local tk, db, em, _, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
 local table, string, select, pairs = _G.table, _G.string, _G.select, _G.pairs;
 local hooksecurefunc, GetMinimapZoneText = _G.hooksecurefunc, _G.GetMinimapZoneText;
 local GetNumGroupMembers, IsResting = _G.GetNumGroupMembers, _G.IsResting;
 local IsInInstance, InCombatLockdown = _G.IsInInstance, _G.InCombatLockdown;
 local UnitIsAFK, UnitIsDeadOrGhost, GetZoneText = _G.UnitIsAFK, _G.UnitIsDeadOrGhost, _G.GetZoneText;
-local debugstack, debuglocals, HandleLuaError = _G.debugstack, _G.debuglocals, _G.HandleLuaError;
-
-local ERRORS = {};
+local debugstack, HandleLuaError, date = _G.debugstack, _G.HandleLuaError, _G.date;
+local min = _G.math.min;
 local seterrorhandler = _G.seterrorhandler;
 local ScriptErrorsFrame = _G.ScriptErrorsFrame;
+local MAX_ERRORS = 3;
 
 ---@class C_ErrorHandler : BaseModule
 local C_ErrorHandler = MayronUI:RegisterModule("ErrorHandlerModule");
 
-function C_ErrorHandler:OnInitialize()
+function C_ErrorHandler:OnInitialize(data)
+  data.errors = self:GetErrors();
+
   local function addError(errorMessage)
-    for _, errorInfo in pairs(ERRORS) do
+    for _, errorInfo in pairs(data.errors) do
       if (errorInfo.error == errorMessage) then
         return -- don't add the same error more than once
       end
     end
+
+    if (not tk.Strings:Contains(errorMessage, "MUI_")) then
+      return -- only report MUI errors
+    end
+
+    local maxLength = 3000 - (min(MAX_ERRORS, #data.errors) * 500);
+    errorMessage = string.sub(errorMessage, 1, min(#errorMessage, maxLength));
+
+    local stacktrace = debugstack(4) or "None";
+    stacktrace = stacktrace:gsub("@?Interface/AddOns/", "../");
+    stacktrace = stacktrace:gsub("@?Interface/addons/", "../");
+    stacktrace = stacktrace:gsub("@?interface/addons/", "../");
+    stacktrace = stacktrace:gsub("@?interface/addOns/", "../");
+
+    if (stacktrace:find("\n")) then
+      local newStacktrace = nil;
+
+      for line in string.gmatch(stacktrace, "(.-)\n") do
+        if (not line:find("?$")) then
+          if (newStacktrace == nil) then
+            newStacktrace = line;
+          else
+            newStacktrace = newStacktrace .. "\n" .. line;
+          end
+        end
+      end
+
+      stacktrace = newStacktrace;
+    end
+
+    stacktrace = string.sub(stacktrace, 1, min(#stacktrace, maxLength));
 
     local newErrorInfo = {
       zone = string.format("%s (%s)", GetZoneText(), GetMinimapZoneText()),
@@ -34,12 +67,17 @@ function C_ErrorHandler:OnInitialize()
       resting = IsResting(),
       isAFK = UnitIsAFK("player"),
       isDeadOrGhost = UnitIsDeadOrGhost("player"),
-      locals = debuglocals(4),
-      stacktrace = debugstack(4),
+      stacktrace = stacktrace,
       error = errorMessage,
+      date = date(),
+      version = tk:GetVersion(nil, true);
     };
 
-    table.insert(ERRORS, newErrorInfo);
+    table.insert(data.errors, newErrorInfo);
+
+    while (#data.errors > MAX_ERRORS) do
+      table.remove(data.errors, 1);
+    end
   end
 
   local listener = em:CreateEventListener(function(_, event, name, func)
@@ -92,7 +130,7 @@ function C_ErrorHandler:OnInitialize()
           if (tk.Strings:Contains(errorMessage, "MUI_")) then
             isMayronUIError = true;
           end
-          break;
+          break
         end
       end
     end
@@ -158,6 +196,33 @@ function C_ErrorHandler:OnInitialize()
 end
 
 obj:DefineReturns("table");
-function C_ErrorHandler:GetErrors()
-  return ERRORS;
+function C_ErrorHandler:GetErrors(data)
+  if (not db.global.errors) then
+    db.global.errors = {};
+  end
+
+  data.errors = db.global.errors:GetSavedVariable();
+  local errors = obj:PopTable();
+
+  if (#data.errors > 0) then
+    local currentVersion = tk:GetVersion(nil, true);
+
+    for i = 1, #data.errors do
+      local err = data.errors[i];
+
+      if (err.version == currentVersion) then
+        errors[#errors + 1] = err;
+      end
+    end
+  end
+
+  while (#errors > MAX_ERRORS) do
+    table.remove(errors, 1);
+  end
+
+  tk.Tables:Empty(data.errors);
+  tk.Tables:Fill(data.errors, errors);
+  obj:PushTable(errors);
+
+  return data.errors;
 end

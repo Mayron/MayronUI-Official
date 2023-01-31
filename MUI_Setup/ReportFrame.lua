@@ -495,18 +495,12 @@ do
       f("- Resting: %s", errorInfo.resting and "Yes" or "No");
       f("- AFK: %s", errorInfo.isAFK and "Yes" or "No");
       f("- Dead or ghost: %s", errorInfo.isDeadOrGhost and "Yes" or "No");
-
-      if (_G.MUI_DEBUG_MODE) then
-        f("- Locals: %s", errorInfo.locals or "None");
-      end
-
-      f("- Stack Trace: %s", errorInfo.stacktrace or "None");
+      f("- Timestamp: **%s**", errorInfo.date or "Not Set");
       AppendLine("");
 
       AppendLine("```lua");
-      local maxLength = 3000 - (min(3, #data.errors) * 500);
-      local errorMessage = string.sub(errorInfo.error, 1, min(#errorInfo.error, maxLength));
-      AppendLine(errorMessage);
+      AppendLine(errorInfo.error);
+      AppendLine(errorInfo.stacktrace);
       AppendLine("```");
 
       if (id < #data.errors) then
@@ -519,26 +513,27 @@ do
     -- Append MUI_Core Global Settings:
     AppendLine("MUI_Core global settings", true);
 
-    local globalSettings = GetCopyOfSavedVariableTable(db.global);
+    local globals = GetCopyOfSavedVariableTable(db.global);
 
-    -- these tables get incredibly large so ignore them
-    globalSettings.installed = nil;
-    globalSettings.movable = nil;
+    -- these tables get incredibly large or are not useful to show so ignore them
+    globals.installed = nil;
+    globals.movable = nil;
+    globals.errors = nil;
 
-    globalSettings = obj:ToLongString(globalSettings);
+    globals = obj:ToLongString(globals, nil, -1, nil, nil, 10);
 
     AppendLine("```lua");
-    AppendLine(globalSettings);
+    AppendLine("{" .. globals .. "}");
     AppendLine("```");
 
     -- Append MUI_Core Current Profile Settings:
     AppendLine("MUI_Core Current Profile Settings", true);
 
     local profile = GetCopyOfSavedVariableTable(db.profile);
-    profile = obj:ToLongString(profile);
+    profile = obj:ToLongString(profile, nil, -1, nil, nil, 10);
 
     AppendLine("```lua");
-    AppendLine(profile);
+    AppendLine("{" .. profile .. "}");
     AppendLine("```");
 
     -- Append TimerBars Current Profile Settings:
@@ -546,10 +541,10 @@ do
     AppendLine("TimerBars Current Profile Settings", true);
 
     profile = GetCopyOfSavedVariableTable(timerBarsDb.profile);
-    profile = obj:ToLongString(profile);
+    profile = obj:ToLongString(profile, nil, -1, nil, nil, 10);
 
     AppendLine("```lua");
-    AppendLine(profile);
+    AppendLine("{" .. profile .. "}");
     AppendLine("```");
 
     -- Get Loaded AddOns:

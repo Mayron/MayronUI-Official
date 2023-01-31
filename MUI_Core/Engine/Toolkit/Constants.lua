@@ -310,3 +310,8 @@ _G.BINDING_CATEGORY_MUI = "MayronUI";
 _G.BINDING_NAME_MUI_SHOW_CONFIG_MENU = "Show Config Menu";
 _G.BINDING_NAME_MUI_SHOW_LAYOUT_MENU = "Show Layout Menu";
 _G.BINDING_NAME_MUI_SHOW_INSTALLER = "Show Installer";
+
+tk.Constants.DEBUG_WHITELIST = {
+  ["Mayron-Gehennas"] = true;
+  ["Maulron-Gehennas"] = true;
+}

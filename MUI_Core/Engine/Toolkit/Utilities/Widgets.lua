@@ -101,20 +101,23 @@ do
   end
 end
 
-function tk:SetFullWidth(frame, rightPadding)
+function tk:SetFullWidth(frame, rightPadding, percent)
   rightPadding = rightPadding or 0;
+  percent = (percent or 100) / 100;
+
   local parent = frame:GetParent();
 
   if (not parent) then
     hooksecurefunc(frame, "SetParent", function()
-      tk:SetFullWidth(frame, rightPadding);
+      tk:SetFullWidth(frame, rightPadding, percent);
     end);
   else
     parent:HookScript("OnSizeChanged", function(_, width)
-      frame:SetWidth(width - rightPadding);
+      frame:SetWidth((width * percent) - rightPadding);
     end);
 
-    frame:SetWidth(parent:GetWidth() - rightPadding);
+    local parentWidth = parent:GetWidth();
+    frame:SetWidth((parentWidth * percent) - rightPadding);
   end
 end
 

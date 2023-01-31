@@ -1,6 +1,6 @@
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk = MayronUI:GetCoreComponents();
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
@@ -50,7 +50,10 @@ end
 function Components.fontstring(parent, widgetTable)
   local container = tk:CreateFrame("Frame", parent);
   container.padding = widgetTable.padding or 16;
-  container:SetSize(widgetTable.width or 300, widgetTable.height or 50);
+
+  local width = obj:IsNumber(widgetTable.width) and widgetTable.width or 300;
+  local height = obj:IsNumber(widgetTable.height) and widgetTable.height or 50;
+  container:SetSize(width, height);
 
   if (Utils:HasAttribute(widgetTable, "list")) then
     local list = Utils:GetAttribute(widgetTable, "list");
@@ -102,11 +105,11 @@ function Components.fontstring(parent, widgetTable)
     container.content:SetText(content);
   end
 
-  if (not widgetTable.width) then
+  if (not obj:IsNumber(widgetTable.width)) then
     tk:SetFullWidth(container, 20);
   end
 
-  if (not widgetTable.height) then
+  if (not obj:IsNumber(widgetTable.height)) then
     container:HookScript("OnSizeChanged", UpdateContainerHeight);
   end
 

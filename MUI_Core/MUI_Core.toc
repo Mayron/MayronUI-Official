@@ -31,6 +31,7 @@ Libs\LibDBIcon-1.0.lua
 Libs\AceLocale-3.0.lua
 Libs\LibSharedMedia-3.0.lua
 Libs\SortBags.lua
+Libs\LibDeflate.lua
 
 ## Libraries for Classic WoW:
 Libs\LibClassicCasterino.lua

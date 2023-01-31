@@ -6,15 +6,17 @@ local tk, db, _, _, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local C_ConfigMenuModule = MayronUI:GetModuleClass("ConfigMenu");
 local components = {};
 
-local function ResetProfile(self)
-  db:ResetProfile();
-  tk:HookFunc(self, "Hide", function()
-    MayronUI:ShowReloadUIPopUp();
-    return true; -- unhook
-  end);
+local function UpdateCurrentProfileText(currentProfile)
+  currentProfile = tk.Strings:SetTextColorByKey(currentProfile, "GOLD");
+  local text = tk.Strings:Join("", L["Current profile"], ": ", currentProfile);
+  components.currentProfileFontString:SetText(text);
 end
 
-local function CopyProfile(self, profileName)
+local function ResetProfile()
+  db:ResetProfile();
+end
+
+local function CopyProfile(_, profileName)
   local currentProfile = db:GetCurrentProfile();
   db:CopyProfile(currentProfile, profileName);
 
@@ -25,11 +27,6 @@ local function CopyProfile(self, profileName)
   tk.Strings:SetTextColorByKey(currentProfile, "gold"));
 
   tk:Print(copyProfileMessage);
-
-  tk:HookFunc(self, "Hide", function()
-    MayronUI:ShowReloadUIPopUp();
-    return true; -- unhook
-  end);
 end
 
 -- Get all profiles and convert them to a list of options for use with dropdown menus
@@ -56,8 +53,12 @@ local configTable = {
     { type = "fontstring";
       GetContent = function()
         return tk.Strings:Join("",
-        L["Current profile"], ": ",
-        tk.Strings:SetTextColorByKey(db:GetCurrentProfile(), "GOLD"));
+          L["Current profile"], ": ",
+          tk.Strings:SetTextColorByKey(db:GetCurrentProfile(), "GOLD"));
+      end,
+
+      OnLoad = function(_, container)
+        components.currentProfileFontString = container.content;
       end
     },
     { GetOptions = GetProfileOptions;
@@ -67,7 +68,7 @@ local configTable = {
       width      = 200;
 
       OnLoad = function(_, container)
-        components.chooseProfileDropDown = container.component;
+        components.chooseProfileDropDown = container.component.dropdown;
       end;
 
       SetValue = function(_, newValue)
@@ -76,6 +77,7 @@ local configTable = {
         end
 
         db:SetProfile(newValue);
+        UpdateCurrentProfileText(newValue);
         components.deleteProfileButton:SetEnabled(newValue ~= "Default");
       end;
 
@@ -93,11 +95,55 @@ local configTable = {
           local currentProfile = db:GetCurrentProfile();
           components.chooseProfileDropDown:SetLabel(currentProfile);
 
+          UpdateCurrentProfileText(currentProfile);
+
           components.chooseProfileDropDown:AddOption(currentProfile, function()
             db:SetProfile(currentProfile);
             components.deleteProfileButton:SetEnabled(currentProfile ~= "Default");
           end);
         end);
+      end;
+    },
+    { name    = "Export Profile";
+      tooltip = "Export the current profile into a string that can be imported by other players.";
+      type    = "button";
+      OnClick = function()
+        _G.StaticPopupDialogs["MUI_ExportProfile"] = _G.StaticPopupDialogs["MUI_ExportProfile"] or {
+          text = tk.Strings:Join(
+            "\n", tk.Strings:SetTextColorByTheme("MayronUI"), L["(CTRL+C to Copy, CTRL+V to Paste)"]
+          );
+          subText = "Copy the import string below and give it to other players so they can import your current profile.",
+          button1 = "Close";
+          hasEditBox = true;
+          maxLetters = 1024;
+          editBoxWidth = 350;
+          hideOnEscape = 1;
+          timeout = 0;
+          whileDead = 1;
+          preferredIndex = 3;
+        };
+
+        local popup = _G.StaticPopup_Show("MUI_ExportProfile");
+        local editbox = _G[ string.format("%sEditBox", popup:GetName()) ];
+
+        local text = db:ExportProfile();
+        editbox:SetText(text);
+        editbox:SetFocus();
+        editbox:HighlightText();
+      end;
+    },
+    { name    = "Import Profile";
+      tooltip = "Import a profile from another player from an import string.";
+      type    = "button";
+
+      OnClick = function()
+        tk:ShowInputPopup("Paste an import string into the box below to import a profile.",
+        "Warning: This will completely replace your current profile with the imported profile settings!", 
+        "", nil, "Import", function(_, importStr)
+          db:ImportProfile(importStr);
+          MayronUI:Print("Successfully imported profile settings into your current profile!");
+          MayronUI:ShowReloadUIPopUp();
+        end, nil, nil, true);
       end;
     },
     { type = "title";
@@ -119,10 +165,12 @@ local configTable = {
       type    = "button";
 
       OnLoad = function(_, widget)
-        if (db:GetCurrentProfile() == "Default") then
+        local currentProfile = db:GetCurrentProfile();
+        if (currentProfile == "Default") then
           widget:SetEnabled(false);
         end
 
+        UpdateCurrentProfileText(currentProfile);
         components.deleteProfileButton = widget;
       end;
 
@@ -144,17 +192,20 @@ local configTable = {
       GetOptions = GetProfileOptions;
 
       SetValue = function(_, profileName, _, container)
-        if (db:GetCurrentProfile() == profileName) then
-          container.component:SetLabel("Select profile");
+        local dropdown = container.component.dropdown;
+        local currentProfile = db:GetCurrentProfile();
+
+        if (currentProfile == profileName) then
+          dropdown:SetLabel("Select profile");
           return;
         end
 
         local popupMessage = strformat(
-        L["Are you sure you want to override all profile settings in '%s' for those in profile '%s'?"],
-        db:GetCurrentProfile(), profileName);
+          L["Are you sure you want to override all profile settings in '%s' for those in profile '%s'?"],
+          currentProfile, profileName);
 
         tk:ShowConfirmPopup(popupMessage, nil, nil, CopyProfile, nil, nil, true, profileName);
-        container.component:SetLabel(L["Select profile"]);
+        dropdown:SetLabel(L["Select profile"]);
       end;
 
       GetValue = function()

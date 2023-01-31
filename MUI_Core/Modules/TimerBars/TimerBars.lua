@@ -1169,7 +1169,6 @@ function C_TimerBar:SetAuraNameShown(data, shown)
 
   local font = tk.Constants.LSM:Fetch("font", data.settings.auraName.font);
   data.auraName:SetFont(font, data.settings.auraName.fontSize);
-  data.auraName:SetWidth(data.settings.bar.width - data.settings.bar.height - 50);
   data.auraName:SetShown(shown);
 end
 
@@ -1247,14 +1246,18 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
     data.slider:SetMinMaxValues(0, 1);
     data.slider:SetValue(1);
     data.timeRemaining:SetText("");
-    data.auraName:SetPoint("RIGHT", 0, 0);
+
+    if (data.sharedSettings.showUnknownExpiration) then
+      data.auraName:SetPoint("RIGHT", -50, 0);
+    else
+      data.auraName:SetPoint("RIGHT", 0, 0);
+    end
+
     self:SetSparkShown(false);
     return
   end
 
-  if (data.sharedSettings.showUnknownExpiration) then
-    data.auraName:SetPoint("RIGHT", -50, 0);
-  end
+  data.auraName:SetPoint("RIGHT", -50, 0);
 
   local timeRemaining = self.ExpirationTime - currentTime;
 
@@ -1278,10 +1281,10 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
   end
 
   if (data.showSpark) then
-    local _, max = data.slider:GetMinMaxValues();
+    local _, maxValue = data.slider:GetMinMaxValues();
     local offset = data.spark:GetWidth() / 2;
     local barWidth = data.slider:GetWidth();
-    local value = (timeRemaining / max) * barWidth - offset;
+    local value = (timeRemaining / maxValue) * barWidth - offset;
 
     if (value > barWidth - offset) then
       value = barWidth - offset;
