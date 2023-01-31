@@ -206,20 +206,15 @@ function tk:GetPlayerSpecialization(specGroupId, unitID)
 
   if (tk:IsRetail()) then
     if (specGroupId == nil) then
-      if (isInspect) then
-        specGroupId = _G.GetInspectSpecialization(unitID);
-      else
-        specGroupId = GetSpecialization();
-      end
+      -- this works for "PLAYER" as well!
+      specGroupId = _G.GetInspectSpecialization(unitID);
     end
 
     if (specGroupId == nil) then
       return nil;
     end
 
-    local sex = UnitSex(unitID or "PLAYER");
-    local specIndex, name = GetSpecializationInfo(specGroupId, isInspect, nil, nil, sex);
-
+    local specIndex, name = _G.GetSpecializationInfoByID(specGroupId);
     return name, specIndex;
   end
 
