@@ -75,7 +75,7 @@ do
   end
 
   function tk:LogDebug(debugMessage, ...)
-    if (not _G.MUI_DEBUG_MODE) then return end
+    if (not MayronUI.DEBUG_MODE) then return end
     LogToChatFrame(debugMessage, 1, 0.8, 0.18, ...);
   end
 end

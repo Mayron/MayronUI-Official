@@ -119,7 +119,7 @@ db:OnStartUp(function(self, sv)
   tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
 
   if (tk.Constants.DEBUG_WHITELIST[tk:GetPlayerKey()])  then
-    _G.MUI_DEBUG_MODE = true;
+    MayronUI.DEBUG_MODE = true;
     _G.SetCVar("ScriptErrors", "1");
     MayronUI:LogDebug("Debugging Enabled");
   end

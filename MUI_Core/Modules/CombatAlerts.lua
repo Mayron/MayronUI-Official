@@ -3,6 +3,10 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
+if (not (tk:IsWrathClassic() and MayronUI.DEBUG_MODE)) then
+  return
+end
+
 local UnitInVehicle, IsInInstance, UnitIsDeadOrGhost = _G.UnitInVehicle, _G.IsInInstance, _G.UnitIsDeadOrGhost;
 local ALERTS_ON_UPDATE_DELAY = 0.1;
 local ALERT_TEXT_SPACING = 15;

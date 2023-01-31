@@ -495,7 +495,7 @@ end
 
 function MayronUI:LogError(...)
   tk:LogError(...);
-  if (_G.MUI_DEBUG_MODE) then
+  if (MayronUI.DEBUG_MODE) then
     _G.Screenshot();
   end
 end
