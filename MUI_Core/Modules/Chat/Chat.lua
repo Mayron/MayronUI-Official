@@ -123,13 +123,13 @@ local defaults = {
       {
         key = "C"; -- CONTROL
         L["Reputation"];
-        L[((tk:IsRetail() or tk:IsWrathClassic()) and "Currency") or "Skills"];
+        L[(tk:IsRetail() and "LFD") or (tk:IsWrathClassic() and "LFG") or "Skills"];
         L["Quest Log"];
       };
       {
         key = "S"; -- SHIFT
         L[((tk:IsRetail() or tk:IsWrathClassic()) and "Achievements") or "Friends"];
-        L[(tk:IsRetail() and "Collections Journal") or (tk:IsWrathClassic() and "Calendar") or "Guild"];
+        L[(tk:IsRetail() and "Collections Journal") or (tk:IsWrathClassic() and "Currency") or "Guild"];
         L[(tk:IsRetail() and "Encounter Journal") or "Macros"];
       };
     };
