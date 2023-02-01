@@ -196,9 +196,11 @@ if (tk:IsRetail()) then
   clickHandlers[buttonKeys.CollectionsJournal] = function()
     ToggleCollectionsJournal();
   end
+end
 
+if (tk:IsWrathClassic() or tk:IsRetail()) then
   -- Currency
-if (buttonKeys.Currency) then
+  if (buttonKeys.Currency) then
     clickHandlers[buttonKeys.Currency] = function()
       ToggleCharacter("TokenFrame");
     end
@@ -235,7 +237,6 @@ clickHandlers[buttonKeys.PVPScore] = function()
 end
 
 -- Skill
-
 if (buttonKeys.Skills) then
   clickHandlers[buttonKeys.Skills] = function()
     ToggleCharacter("SkillFrame");
