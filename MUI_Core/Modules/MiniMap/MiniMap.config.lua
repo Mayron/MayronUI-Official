@@ -131,9 +131,11 @@ local function AddPositioningOptions(children, name, settings)
 
   children[#children + 1] = {
     name        = L["X-Offset"];
-    type        = "textfield";
-    valueType   = "number";
-    appendDbPath      = "x";
+    type        = "slider";
+    appendDbPath = "x";
+    min = -50;
+    max = 50;
+    step = 1;
     enabled = settings.show;
     OnLoad = function(_, container)
       widgets[name].x = container.component;
@@ -142,8 +144,10 @@ local function AddPositioningOptions(children, name, settings)
 
   children[#children + 1] = {
     name        = L["Y-Offset"];
-    type        = "textfield";
-    valueType   = "number";
+    type        = "slider";
+    min = -50;
+    max = 50;
+    step = 1;
     appendDbPath      = "y";
     enabled = settings.show;
     OnLoad = function(_, container)

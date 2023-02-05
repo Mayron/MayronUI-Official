@@ -6,7 +6,6 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local InCombatLockdown, unpack = _G.InCombatLockdown, _G.unpack;
 local pairs, ipairs, table, xpcall = _G.pairs, _G.ipairs, _G.table, _G.xpcall;
 local IsAddOnLoaded, strsplit = _G.IsAddOnLoaded, _G.strsplit;
-local DEBUG_MODE = false;
 
 ---@class MovableModule : BaseModule
 local C_MovableFramesModule = MayronUI:RegisterModule("MovableFramesModule", L["Movable Frames"]);
@@ -74,7 +73,8 @@ local BlizzardFrames = {
   Blizzard_CovenantRenown = { "CovenantRenownFrame" };
 
   Blizzard_Soulbinds = { "SoulbindViewer" };
-  Blizzard_MajorFactions = { "MajorFactionRenownFrame", subFrames = { "MajorFactionRenownFrame.HeaderFrame" } };
+  Blizzard_MajorFactions = {
+    "ExpansionLandingPage", "MajorFactionRenownFrame", subFrames = { "MajorFactionRenownFrame.HeaderFrame" } };
 
   Blizzard_LookingForGuildUI = {
     hooked = {
@@ -384,7 +384,9 @@ do
     if (not data.eventListener) then
       data.eventListener =
         em:CreateEventListenerWithID("MovableFramesOnAddOnLoaded", function(_, _, addOnName)
-          if (DEBUG_MODE) then print("AddOn Loaded: ", addOnName) end
+          MayronUI:LogDebug("AddOn Loaded: ", addOnName);
+
+
           if (BlizzardFrames[addOnName]) then
             self:ExecuteMakeMovable(BlizzardFrames[addOnName], false);
             BlizzardFrames[addOnName] = nil;

@@ -1104,3 +1104,4 @@ L["Import a profile from another player from an import string."] = "Import a pro
 L["Paste an import string into the box below to import a profile."] = "Paste an import string into the box below to import a profile.";
 L["Warning: This will completely replace your current profile with the imported profile settings!"] = "Warning: This will completely replace your current profile with the imported profile settings!";
 L["Successfully imported profile settings into your current profile!"] = "Successfully imported profile settings into your current profile!";
+L["Reset to default"] = "Reset to default";

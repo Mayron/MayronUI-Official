@@ -47,7 +47,27 @@ function Utils:WrapInNamedContainer(component, config)
   container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   container.name:SetPoint("TOPLEFT", 0, 0);
   container.name:SetText(config.name);
+
   self:SetBasicTooltip(container, config);
+  local default = db:GetDefault(config.dbPath);
+  local canReset = obj:IsString(default) or obj:IsNumber(default) or obj:IsBoolean(default);
+
+  if (obj:IsFunction(component.Reset) and canReset) then
+    container.reset = _G.CreateFrame("Button", nil, container);
+    container.reset:SetPoint("TOPRIGHT");
+    container.reset:SetSize(12, 12);
+    container.reset:SetNormalTexture(tk:GetAssetFilePath("Textures\\refresh"));
+    container.reset:GetNormalTexture():SetVertexColor(tk:GetThemeColor());
+    container.reset:SetHighlightAtlas("chatframe-button-highlight");
+
+    local dbPath = config.dbPath;
+    tk:SetBasicTooltip(container.reset, L["Reset to default"]);
+
+    container.reset:SetScript("OnClick", function()
+      db:SetPathValue(dbPath, default);
+      component:Reset(default);
+    end);
+  end
 
   container:SetHeight(component:GetHeight() + container.name:GetStringHeight() + 5);
   component:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -5);
@@ -107,8 +127,7 @@ function Utils:AppendDefaultValueToTooltip(config)
     end
 
     if (obj:IsNumber(default) or obj:IsString(default) or obj:IsBoolean(default)) then
-      default = tostring(default);
-      local defaultTooltip = tk.Strings:JoinWithSpace(L["Default value is"], default);
+      local defaultTooltip = tk.Strings:JoinWithSpace(L["Default value is"], tostring(default));
 
       if (obj:IsString(config.tooltip)) then
         config.tooltip = tk.Strings:Join("\n\n", config.tooltip, defaultTooltip);

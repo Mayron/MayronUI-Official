@@ -3,6 +3,8 @@ local addOnName = ...;
 local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local missionBtn = _G.ExpansionLandingPageMinimapButton or _G.GarrisonLandingPageMinimapButton;
+
 
 -- Register and Import ---------
 
@@ -47,8 +49,13 @@ local function CanViewMissions()
   local garrisonType = C_Garrison.GetLandingPageGarrisonType();
 
   if (garrisonType == 111) then
-    local covenantData = C_Covenants.GetCovenantData(C_Covenants.GetActiveCovenantID());
-    return covenantData ~= nil;
+    if (missionBtn.garrisonMode) then
+      local covenantData = C_Covenants.GetCovenantData(C_Covenants.GetActiveCovenantID());
+      return covenantData ~= nil;
+    else
+      local info = _G.ExpansionLandingPage:GetOverlayMinimapDisplayInfo();
+      return info ~= nil;
+    end
   end
 
   return false;
@@ -93,7 +100,13 @@ db:AddToDefaults("profile.minimap", {
       y = 22
     };
 
-    missions = { hide = false; scale = 0.6; point = "TOPLEFT"; x = -8; y = 2 };
+    missions = {
+      hide = false;
+      scale = 0.54;
+      point = "TOPLEFT";
+      x = 6;
+      y = -6
+    };
 
     tracking = {
       hide = false;
@@ -314,6 +327,20 @@ do
   local positioningMethods = {"SetParent"; "ClearAllPoints"; "SetPoint"; "SetScale"};
   local visibilityMethods = {"Show"; "Hide"; "SetShown"};
 
+  local function HandleGarrisonUpdate(widget, methods)
+    local canView = CanViewMissions();
+
+    if (canView and not widget:IsShown()) then
+      if (widget.SetShown ~= tk.Constants.DUMMY_FUNC) then
+        widget:SetShown(true);
+      else
+        methods.SetShown(widget, true);
+      end
+    end
+
+    return widget:IsShown();
+  end
+
   function C_MiniMapModule.Private:SetUpWidget(data, name, widget)
     obj:Assert(widget, "Failed to setup minimap widget %s.", name);
 
@@ -382,21 +409,16 @@ do
         shown = false;
       elseif (settings.hide == false or settings.show) then
         if (name == "missions") then
-          -- don't show missions icon just yet, wait for the garrison type to be available
-          shown = false;
-          local missionsListener = em:CreateEventListener(function()
-            if (CanViewMissions()) then
-              if (not widget:IsShown()) then
-                if (widget.SetShown ~= tk.Constants.DUMMY_FUNC) then
-                  widget:SetShown(true);
-                else
-                  methods.SetShown(widget, true);
-                end
-              end
-            end
-          end);
+          local missionsListener = em:GetEventListenerByID("MUI_MiniMap_Garrison_Update");
 
-          missionsListener:RegisterEvents("GARRISON_UPDATE");
+          if (not missionsListener) then
+            missionsListener = em:CreateEventListenerWithID("MUI_MiniMap_Garrison_Update",
+              function() HandleGarrisonUpdate(widget, methods); end);
+
+            missionsListener:RegisterEvents("GARRISON_UPDATE");
+          end
+
+          shown = HandleGarrisonUpdate(widget, methods);
         else
           -- if show, custom MUI widget that should be shown
           shown = true;
@@ -556,15 +578,37 @@ do
       end
     end
 
-    local missionBtn = _G.ExpansionLandingPageMinimapButton or _G.GarrisonLandingPageMinimapButton;
     -- missions icon:
     if (tk:IsRetail() and obj:IsWidget(missionBtn)) then
       -- dragonflight removed this:
       data:Call("SetUpWidget", "missions", missionBtn);
       -- prevents popup from showing:
       missionBtn:DisableDrawLayer("OVERLAY");
-      missionBtn:DisableDrawLayer("BORDER");
+      missionBtn:DisableDrawLayer("HIGHLIGHT");
+      -- missionBtn:DisableDrawLayer("BORDER");
       missionBtn.SideToastGlow:SetTexture("");
+
+      if (not missionBtn.garrisonMode) then
+        -- dragonflight
+        local textures = {
+          missionBtn:GetNormalTexture(),
+          missionBtn:GetPushedTexture(),
+          missionBtn:GetHighlightTexture()
+        };
+
+        for i = 1, 3 do
+          local texture = textures[i];
+          texture:SetTexCoord(0.2, 0.8, 0.2, 0.8);
+          texture:ClearAllPoints();
+          texture:SetPoint("TOPLEFT", 2, -2);
+          texture:SetPoint("BOTTOMRIGHT", -2, 2);
+        end
+
+        _G.Mixin(missionBtn, _G.BackdropTemplateMixin);
+        missionBtn:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
+        missionBtn:SetBackdropBorderColor(0, 0, 0);
+        missionBtn:SetBackdropColor(0, 0, 0);
+      end
     end
 
     -- tracking:
@@ -650,7 +694,7 @@ function C_MiniMapModule:GetRightClickMenuList()
     local listItem = {
       notCheckable = true;
       func = function()
-        if (CanViewMissions()) then
+        if (CanViewMissions(widget)) then
           ShowGarrisonLandingPage(111);
         else
           MayronUI:Print(L["You must be a member of a covenant to view this."]);

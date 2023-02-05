@@ -1098,3 +1098,4 @@ L["Import a profile from another player from an import string."] = "從導入字
 L["Paste an import string into the box below to import a profile."] = "將導入字符串粘貼到下面的框中以導入配置文件。";
 L["Warning: This will completely replace your current profile with the imported profile settings!"] = "警告：這將用導入的配置文件設置完全替換您當前的配置文件！";
 L["Successfully imported profile settings into your current profile!"] = "已成功將配置文件設置導入您當前的配置文件！";
+L["Reset to default"] = "重置為默認";

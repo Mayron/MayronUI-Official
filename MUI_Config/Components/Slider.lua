@@ -25,6 +25,11 @@ local function Slider_OnValueChanged(self, value, userset)
   end
 end
 
+local function Slider_Reset(self, value)
+  self:SetValue(value);
+  self.editBox:SetText(value);
+end
+
 local function Slider_OnEnable(self)
   self:SetAlpha(1);
   self.editBox:SetEnabled(true);
@@ -128,7 +133,10 @@ function Components.slider(parent, config, value)
   slider:SetScript("OnEnable", Slider_OnEnable);
   slider:SetScript("OnDisable", Slider_OnDisable);
 
+  slider.Reset = Slider_Reset;
+
   Utils:SetComponentEnabled(slider, config.enabled);
+
   local container = Utils:WrapInNamedContainer(slider, config);
   container:SetHeight(container:GetHeight() + 28); -- make room for value text
 

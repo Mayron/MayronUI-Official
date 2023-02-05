@@ -1135,3 +1135,4 @@ L["Import a profile from another player from an import string."] = "Importa un p
 L["Paste an import string into the box below to import a profile."] = "Incolla una stringa di importazione nella casella sottostante per importare un profilo.";
 L["Warning: This will completely replace your current profile with the imported profile settings!"] = "Attenzione: questo sostituirà completamente il tuo profilo attuale con le impostazioni del profilo importato!";
 L["Successfully imported profile settings into your current profile!"] = "Impostazioni del profilo importate correttamente nel tuo profilo attuale!";
+L["Reset to default"] = "Ripristina le impostazioni predefinite";

@@ -1133,3 +1133,4 @@ L["Import a profile from another player from an import string."] = "가져오기
 L["Paste an import string into the box below to import a profile."] = "가져오기 문자열을 아래 상자에 붙여넣어 프로필을 가져옵니다.";
 L["Warning: This will completely replace your current profile with the imported profile settings!"] = "경고: 이렇게 하면 현재 프로필이 가져온 프로필 설정으로 완전히 대체됩니다!";
 L["Successfully imported profile settings into your current profile!"] = "프로필 설정을 현재 프로필로 성공적으로 가져왔습니다!";
+L["Reset to default"] = "기본값으로 재설정";
