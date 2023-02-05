@@ -10,6 +10,7 @@ local UnitLevel, string = _G.UnitLevel, _G.string;
 
 -- retail only:
 local GetLootSpecialization, SetLootSpecialization = _G.GetLootSpecialization, _G.SetLootSpecialization;
+local GetNumSpecializations = _G.GetNumSpecializations;
 
 -- Register and Import Modules -------
 
@@ -71,13 +72,13 @@ local function SetEquipmentSet(_, settings, specializationName, equipmentSetId)
   settings:SaveChanges();
 end
 
-local function CreateEquipmentSetDropDown(settings, contentFrame, popupWidth, dataTextBar, specializationID)
+local function CreateEquipmentSetDropDown(settings, contentFrame, popupWidth, dataTextBar, talentGroup)
   -- create dropdown to list all equipment sets per specialization:
   local dropdown = gui:CreateDropDown(contentFrame, "UP", dataTextBar);
   dropdown:SetWidth(popupWidth - 10);
   dropdown:Show();
 
-  local specName = tk:GetPlayerSpecialization(specializationID);
+  local specName = tk:GetPlayerSpecialization(talentGroup);
 
   local currentEquipmentSetId = settings.sets[specName];
 
@@ -119,13 +120,13 @@ local function SetLayout(_, settings, specializationName, layoutName)
   settings:SaveChanges();
 end
 
-local function CreateLayoutDropDown(settings, contentFrame, popupWidth, dataTextBar, specializationID)
+local function CreateLayoutDropDown(settings, contentFrame, popupWidth, dataTextBar, talentGroup)
   -- create dropdown to list all equipment sets per specialization:
   local dropdown = gui:CreateDropDown(contentFrame, "UP", dataTextBar);
   dropdown:SetWidth(popupWidth - 10);
   dropdown:Show();
 
-  local specName = tk:GetPlayerSpecialization(specializationID);
+  local specName = tk:GetPlayerSpecialization(talentGroup);
   local layoutName = settings.layouts[specName];
 
   if (layoutName) then
@@ -282,11 +283,11 @@ function Specialization:Update(data, refreshSettings)
     return;
   end
 
-  local name = tk:GetPlayerSpecialization();
+  local specName = tk:GetPlayerSpecialization();
   local specText = L["No Spec"];
 
-  if (obj:IsString(name) and not tk.Strings:IsNilOrWhiteSpace(name)) then
-    specText = name;
+  if (obj:IsString(specName) and not tk.Strings:IsNilOrWhiteSpace(specName)) then
+    specText = specName;
   end
 
   self.Button:SetText(specText);
@@ -309,19 +310,17 @@ function Specialization:GetLabel(data, index)
   label:SetScript("OnClick", function(self)
     -- must use "self" as label properties are set after GetLabel is called
     -- (so should be dynamically bound, not static using a closure)
-    if (label.dropdown or not self.specializationID) then
+    if (label.dropdown) then
       return;
     end
 
-    local specName, specIndex = tk:GetPlayerSpecialization();
+    local specName = tk:GetPlayerSpecialization();
 
-    if (obj:IsFunction(GetLootSpecialization) and self.lootSpecID ~= nil) then
+    if (obj:IsNumber(self.lootSpecID) and obj:IsFunction(GetLootSpecialization)) then
       -- handle changing loot specs
+      local currentLootSpec = GetLootSpecialization();
 
-      if (GetLootSpecialization() ~= self.lootSpecID) then
-        -- update loot spec ID:
-        self.lootSpecID = specIndex or 0;
-
+      if (currentLootSpec ~= self.lootSpecID) then
         -- change loot specialization
         SetLootSpecialization(self.lootSpecID);
 
@@ -331,12 +330,9 @@ function Specialization:GetLabel(data, index)
             L["Loot Specialization set to: Current Specialization"], " (", specName, ")|r"));
         end
       end
-    else
-      -- handle changing spec
-      if (specIndex ~= self.specializationID) then
-        -- change specialization
-        tk:SetSpecialization(self.specializationID);
-      end
+    elseif (obj:IsNumber(self.specializationID)) then
+      -- change specialization
+      tk:SetSpecialization(self.specializationID);
     end
 
     data.slideController:Start();
@@ -349,18 +345,17 @@ end
 -- show specialization selection with dropdown menus
 function Specialization:HandleLeftClick(data)
   local totalLabelsShown = 1; -- including title
+  local talentGroups, currentActiveSection;
 
-  local totalSections, currentActiveSection;
-
-  if (_G.GetNumSpecializations) then
-    totalSections = _G.GetNumSpecializations();
+  if (GetNumSpecializations) then
+    talentGroups = GetNumSpecializations();
     currentActiveSection = _G.GetSpecialization();
   else
-    totalSections = _G.GetNumTalentGroups();
+    talentGroups = _G.GetNumTalentGroups();
     currentActiveSection = _G.GetActiveTalentGroup();
   end
 
-  for i = 1, totalSections do
+  for i = 1, talentGroups do
     -- create label
     totalLabelsShown = totalLabelsShown + 1;
 
@@ -398,11 +393,10 @@ function Specialization:HandleRightClick()
   local totalLabelsShown = 1; -- including title
 
   -- start at index 0 as 0 = setting loot specialization to the "auto" current spec option
-  for i = 0, tk:GetNumSpecializations() do
+  for i = 0, GetNumSpecializations() do
     totalLabelsShown = totalLabelsShown + 1;
 
     local label = self:GetLabel(totalLabelsShown);
-    label.specializationID = i;
 
     if (label.dropdown) then
       local frame = label.dropdown:GetFrame();
@@ -413,18 +407,21 @@ function Specialization:HandleRightClick()
       label.dropdown = nil;
     end
 
-    local name, specIndex = tk:GetPlayerSpecialization(label.specializationID);
-    label.lootSpecID = specIndex or 0;
+    label.specializationID = nil;
+
+    if (i == 0) then
+      local name = tk:GetPlayerSpecialization();
+      label.name:SetText(string.format(L["Current"] .. " (%s)", name));
+      label.lootSpecID = 0;
+    else
+      local name, specID = tk:GetPlayerSpecialization(i);
+      label.name:SetText(name);
+      label.lootSpecID = specID;
+    end
 
     -- update labels based on loot spec
     local enabled = (label.lootSpecID ~= GetLootSpecialization());
     SetLabelEnabled(label, enabled);
-
-    if (label.specializationID == 0) then
-      label.name:SetText(string.format(L["Current"] .. " (%s)", name));
-    else
-      label.name:SetText(name);
-    end
   end
 
   return totalLabelsShown;
@@ -438,6 +435,7 @@ function Specialization:Click(_, button)
   end
 
   local name = tk:GetPlayerSpecialization();
+
   if (tk.Strings:IsNilOrWhiteSpace(name)) then
     return true;
   end

@@ -10,7 +10,6 @@ local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.p
 local hooksecurefunc, UnitLevel, UnitClass = _G.hooksecurefunc, _G.UnitLevel, _G.UnitClass;
 local GetMaxPlayerLevel, tostringall = _G.GetMaxPlayerLevel, _G.tostringall;
 local UnitQuestTrivialLevelRange, GetQuestGreenRange = _G.UnitQuestTrivialLevelRange, _G.GetQuestGreenRange;
-local UnitSex = _G.UnitSex;
 
 function tk.Numbers:ToPrecision(number, precision)
   if (not obj:IsNumber(precision) or precision <= 0) then
@@ -192,9 +191,13 @@ do
   end
 end
 
-local GetTalentTabInfo, UnitGUID = _G.GetTalentTabInfo, _G.UnitGUID;
+local GetSpecialization, GetInspectSpecialization = _G.GetSpecialization, _G.GetInspectSpecialization;
+local GetTalentTabInfo, UnitGUID, GetSpecializationInfo = _G.GetTalentTabInfo, _G.UnitGUID, _G.GetSpecializationInfo;
+local GetSpecializationInfoByID = _G.GetSpecializationInfoByID;
 
-function tk:GetPlayerSpecialization(specGroupId, unitID)
+-- talentGroup = duel spec, primary, spec, or for retail it can be any numbers 1-5
+-- specID = the unique global ID of the spec
+function tk:GetPlayerSpecialization(talentGroup, unitID)
   local isInspect = false;
 
   if (obj:IsString(unitID)) then
@@ -204,34 +207,36 @@ function tk:GetPlayerSpecialization(specGroupId, unitID)
   end
 
   if (tk:IsRetail()) then
-    if (specGroupId == nil) then
-      -- this works for "PLAYER" as well!
-      specGroupId = _G.GetInspectSpecialization(unitID);
+    if (isInspect) then
+      local specID = GetInspectSpecialization(unitID);
+      local _, name = GetSpecializationInfoByID(specID);
+      return name, specID;
     end
 
-    if (specGroupId == nil) then
-      return nil;
+    if (talentGroup == nil) then
+      talentGroup = GetSpecialization();
     end
 
-    local specIndex, name = _G.GetSpecializationInfoByID(specGroupId);
-    return name, specIndex;
+    local specID, name = GetSpecializationInfo(talentGroup);
+    return name, specID;
   end
 
-  local specName, specIndex, specIcon;
+  local specName;
   local maxPointsSpent = 0;
+  local specID = 0;
 
   for i = 1, _G.MAX_TALENT_TABS or 5 do
-    local name, icon, pointsSpent = GetTalentTabInfo(i, isInspect, nil, specGroupId);
+    -- talentGroup = duel spec or primary spec
+    local name, _, pointsSpent = GetTalentTabInfo(i, isInspect, nil, talentGroup);
 
     if (name and pointsSpent > maxPointsSpent) then
       specName = name;
-      specIcon = icon;
-      specIndex = i;
+      specID = i;
       maxPointsSpent = pointsSpent;
     end
   end
 
-  return specName, specIndex, specIcon;
+  return specName, specID;
 end
 
 function tk:SetSpecialization(specIndex)
