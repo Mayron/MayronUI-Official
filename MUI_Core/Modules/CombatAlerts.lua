@@ -3,11 +3,8 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 
-if (not (tk:IsWrathClassic() and MayronUI.DEBUG_MODE)) then
-  return
-end
-
 local UnitInVehicle, IsInInstance, UnitIsDeadOrGhost = _G.UnitInVehicle, _G.IsInInstance, _G.UnitIsDeadOrGhost;
+local select, UnitClass = _G.select, _G.UnitClass;
 local ALERTS_ON_UPDATE_DELAY = 0.1;
 local ALERT_TEXT_SPACING = 15;
 local HELPFUL, HARMFUL, DEBUFF, BUFF = "HELPFUL", "HARMFUL", "DEBUFF", "BUFF";
@@ -215,6 +212,22 @@ function AlertsFrameMixin:IsAlertTriggered(trigger)
     end
   end
 
+  if (obj:IsString(trigger.class)) then
+    local playerClass = select(2, UnitClass("player"));
+
+    if (trigger.class ~= playerClass) then
+      return false;
+    end
+  end
+
+  if (obj:IsString(trigger.spec)) then
+    local playerSpec = tk:GetPlayerSpecialization();
+
+    if (trigger.spec ~= playerSpec) then
+      return false;
+    end
+  end
+
   local triggerType = trigger.type; ---@type string
   triggerType = tk.Strings:Trim(triggerType:upper());
 
@@ -335,6 +348,10 @@ end
 -- C_CombatAlerts ------------------
 
 function C_CombatAlerts:OnInitialize(data)
+  if (not (tk:IsWrathClassic() and MayronUI.DEBUG_MODE)) then
+    return
+  end
+
   local alertsFrame = tk:CreateFrame("Frame", nil, "MUI_CombatAlertsFrame");
   _G.Mixin(alertsFrame, AlertsFrameMixin);
   data.frame = alertsFrame;
@@ -352,13 +369,53 @@ function C_CombatAlerts:OnInitialize(data)
     class = "SHAMAN";
     spec = "Restoration";
     query = "Water Shield";
-    inInstance = true;
     exists = false;
     unit = "player";
     appearance = {
       text = "Water Shield MISSING!";
       color = { tk.Constants.COLORS.BATTLE_NET_BLUE:GetRGBA() };
       size = 24,
+      icon = {
+        show = true;
+      },
+      font = "MUI_Font",
+      outline = false;
+      shadow = true;
+    },
+  });
+
+  table.insert(alertsFrame.triggers, {
+    type = BUFF;
+    class = "SHAMAN";
+    spec = "Enhancement";
+    query = "Lightning Shield";
+    exists = false;
+    unit = "player";
+    appearance = {
+      text = "Lightning Shield MISSING!";
+      color = { _G.RAID_CLASS_COLORS["SHAMAN"]:GetRGBA() };
+      size = 24,
+      icon = {
+        show = true;
+      },
+      font = "MUI_Font",
+      outline = false;
+      shadow = true;
+    },
+  });
+
+  table.insert(alertsFrame.triggers, {
+    type = BUFF;
+    class = "SHAMAN";
+    spec = "Enhancement";
+    query = "Maelstrom Weapon";
+    exists = true;
+    stacks = 5;
+    unit = "player";
+    appearance = {
+      text = "MAELSTROM";
+      color = { tk.Constants.COLORS.TRANSMOG_VIOLET:GetRGBA() };
+      size = 30,
       icon = {
         show = true;
       },

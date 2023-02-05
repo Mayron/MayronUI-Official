@@ -856,7 +856,6 @@ local function UpdateSpecAndItemLevel(data, unitID, updateTooltip)
 
               After(0.2, function()
                 if (UnitGUID(unitID) == unitGuid) then
-                  MayronUI:LogDebug("Querying %s (spec: %s, items: %s)", UnitName(unitID), shouldFindSpec, shouldFindItemLevel)
                   data.notifying = unitGuid;
                   _G.NotifyInspect(unitID);
                 end
@@ -1136,10 +1135,8 @@ local function CleanCache(cache)
 
     local totalItems = #cache;
     local itemsToRemove = math.ceil(#cache * 0.3);
-    MayronUI:LogDebug("Items to Remove: ", itemsToRemove);
 
     local newTotal = math.min(totalItems - itemsToRemove, 50);
-    MayronUI:LogDebug("New Total: ", newTotal);
 
     if (#newCache < newTotal) then
       for index, guid in pairs(cache) do
@@ -1160,12 +1157,10 @@ end
 
 local function RunCacheMaintenanceTask(data)
   if (not InCombatLockdown()) then
-    MayronUI:LogDebug("Running maintenance task (", #data.specCache, ":", #data.itemLevelCache, ")");
     data.notifying = "BLOCKED";
     CleanCache(data.specCache);
     CleanCache(data.itemLevelCache);
     data.notifying = nil;
-    MayronUI:LogDebug("Finished maintenance task (", #data.specCache, ":", #data.itemLevelCache, ")");
   end
 end
 
@@ -1350,7 +1345,6 @@ function C_ToolTipsModule:OnEnable(data)
     if (data.settings.specShown) then
       data.specCache[unitGuid] = specName;
       data.specCache[#data.specCache + 1] = unitGuid;
-      MayronUI:LogDebug("Storing spec: %s for %s", specName, UnitName(foundUnitID))
 
       if (tooltipGuid == unitGuid) then
         SetDoubleLine(data, SPEC_LABEL, specName);
@@ -1363,7 +1357,6 @@ function C_ToolTipsModule:OnEnable(data)
       if (itemLevel > 0)  then
         data.itemLevelCache[unitGuid] = itemLevel;
         data.itemLevelCache[#data.itemLevelCache + 1] = unitGuid;
-        MayronUI:LogDebug("Storing item level: %s for %s", itemLevel, UnitName(foundUnitID))
 
         if (tooltipGuid == unitGuid) then
           SetDoubleLine(data, ITEM_LEVEL_LABEL, itemLevel);

@@ -192,7 +192,6 @@ do
   end
 end
 
-local GetSpecializationInfo, GetSpecialization = _G.GetSpecializationInfo, _G.GetSpecialization;
 local GetTalentTabInfo, UnitGUID = _G.GetTalentTabInfo, _G.UnitGUID;
 
 function tk:GetPlayerSpecialization(specGroupId, unitID)
