@@ -3,192 +3,197 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
-local GetTime, select, SecondsToTimeAbbrev, GetWeaponEnchantInfo, UnitAura, ipairs, unpack, math,
-    GetInventoryItemTexture, string, BUFF_MAX_DISPLAY, DEBUFF_MAX_DISPLAY, table = _G.GetTime, _G.select,
-    _G.SecondsToTimeAbbrev, _G.GetWeaponEnchantInfo, _G.UnitAura, _G.ipairs, _G.unpack, _G.math,
-    _G.GetInventoryItemTexture, _G.string, _G.BUFF_MAX_DISPLAY, _G.DEBUFF_MAX_DISPLAY, _G.table;
+local unpack, SecondsToTimeAbbrev = _G.unpack, _G.SecondsToTimeAbbrev;
+local GetTime, UnitGUID = _G.GetTime, _G.UnitGUID;
+local GetInventoryItemQuality = _G.GetInventoryItemQuality;
+local GetItemQualityColor = _G.GetItemQualityColor;
+local GetInventoryItemTexture = _G.GetInventoryItemTexture;
+local UnitAura, CreateFrame, GetWeaponEnchantInfo = _G.UnitAura, _G.CreateFrame, _G.GetWeaponEnchantInfo;
+local select, math, string = _G.select, _G.math, _G.string;
+local GetInventoryItemLink, GetItemInfo = _G.GetInventoryItemLink, _G.GetItemInfo;
+local GameTooltip, C_Timer = _G.GameTooltip, _G.C_Timer;
 
--- Main-Hand, Off-Hand, Ranged
-local enchantAuraIds = { 16, 17, 18 };
-local ARGS_PER_ITEM = 4;
 local BUFF_FLASH_TIME_ON = 0.75;
 local BUFF_MIN_ALPHA = 0.3;
 local BUFF_WARNING_TIME = 31;
-local DEFAULT_POSITION = {"CENTER", "UIParent", "CENTER", 0, 0};
 
--- Objects -----------------------------
----@class AurasModule : BaseModule
-local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"]);
+---@class Stack : Object
+local C_Stack = obj:Import("Pkg-Collections.Stack<T>");
 
----@class C_AuraArea : Object
-local C_AuraArea = obj:CreateClass("AuraArea");
-C_AuraArea.Static:AddFriendClass(C_AurasModule);
-obj:Export(C_AuraArea, "MayronUI.AurasModule");
+local colorSettings = {
+  timeRemaining = {1, 1, 1};
+  count         = {1, 0.82, 0};
+  auraName      = {1, 1, 1};
+  helpful        = {0, 0, 0};
+  harmful        = {0.76, 0.2, 0.2};
+  magic         = {0.2, 0.6, 1};
+  disease       = {0.6, 0.4, 0};
+  poison        = {0.0, 0.6, 0};
+  curse         = {0.6, 0.0, 1};
+  background   = { 0, 0, 0, 0.5 };
+  foreground   = { 0.15, 0.15, 0.15 };
+  owned        = { 0.15, 0.15, 0.15 };
+};
 
----@type C_Aura
-local C_Aura = obj:Import("MayronUI.AurasModule.Aura");
+local buffSettings = {
+  mode = "icons";
 
--- Load Database Defaults --------------
-
-db:AddToDefaults("profile.auras", {
-  enabled = true;
-  __templateAuraArea = {
-    enabled = true;
-    showPulseEffect = true;
+  icons = {
+    pulse = false;
+    nonPlayerAlpha = 0.7;
+    vDirection = "DOWN";
+    hDirection = "LEFT";
+    width = 40;
+    height = 30;
+    xSpacing = 4;
+    ySpacing = 20;
+    perRow = 10;
+    secondsWarning = 10;
+    position = { "TOPRIGHT", "Minimap", "TOPLEFT", -4, 0 };
     textSize = {
-      timeRemaining   = 10;
-      count           = 14;
-
-      statusBars = {
-        timeRemaining   = 10;
-        count           = 12;
-        auraName        = 10;
-      }
+      timeRemaining = 10;
+      timeRemainingLarge = 14;
+      count = 14;
     };
     textPosition = {
-      timeRemaining   = {0, -2};
-      count           = {0, 2};
-
-      statusBars = {
-        timeRemaining   = {-4, 0};
-        count           = {0, 2};
-        auraName        = {32, 0};
-      }
+      timeRemaining = { "TOP", "icon", "BOTTOM", 0, -4 };
+      count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
     };
-    border = {
-      type = "Skinner";
-      size = 1;
-    };
-    colors = {
-      enchant               = {0.53, 0.23, 0.78};
-      statusBarBackground   = {0, 0, 0, 0.5};
-      statusBarBorder       = { 0, 0, 0 };
-      timeRemaining         = {1, 1, 1};
-      count                 = {1, 1, 1};
-      auraName              = {1, 1, 1};
-    };
-    icons = {
-      auraSize        = 32;
-      colSpacing      = 4;
-      rowSpacing      = 16;
-      perRow          = 16;
-      growDirection   = "LEFT";
-    };
-    statusBars = {
-      enabled       = false;
-      barTexture    = "MUI_StatusBar";
-      width         = 260;
-      height        = 24;
-      spacing       = 2;
-      growDirection = "DOWN";
-      iconGap       = 2;
-      showSpark     = true;
-    };
-  };
-  Buffs = {
-    icons = {
-      position = {"TOPRIGHT", "Minimap", "TOPLEFT", -4, 0};
-    };
-    statusBars = {
-      position = {"TOPRIGHT", "Minimap", "TOPLEFT", -4, 0};
-    };
-    colors = {
-      aura = {0, 0, 0};
-      statusBarAura = { 0.1, 0.1, 0.1 };
-    }
   };
 
-  Debuffs = {
-    showPulseEffect = false;
-    icons = {
-      position = {"TOPRIGHT", "MUI_BuffsArea", "BOTTOMRIGHT", 0, -10};
+  statusbars = {
+    pulse = false;
+    nonPlayerAlpha = 0.7;
+    vDirection = "DOWN";
+    hDirection = "LEFT";
+    width = 200;
+    height = 22;
+    xSpacing = 4;
+    ySpacing = 1;
+    perRow = 1;
+    secondsWarning = 10;
+    position = { "TOPRIGHT", "Minimap", "TOPLEFT", -4, -200 };
+    texture = "MUI_StatusBar";
+    iconGap = 1;
+    showSpark = true;
+
+    textSize = {
+      timeRemaining = 10;
+      timeRemainingLarge = 14;
+      count = 14;
+      auraName = 10;
     };
-    statusBars = {
-      position = {"TOPRIGHT", "MUI_BuffsArea", "TOPLEFT", -10, 0};
+
+    textPosition = {
+      timeRemaining = { "RIGHT", "bar", -4, 0 };
+      count         = { "RIGHT", "icon", "LEFT", -4, 0 };
+      auraName      = { "LEFT", "bar", "LEFT", 4, 0 };
     };
-    colors = {
-      aura    = {0.76, 0.2, 0.2};
-      statusBarAura = {0.76, 0.2, 0.2};
-      magic   = {0.2, 0.6, 1};
-      disease = {0.6, 0.4, 0};
-      poison  = {0.0, 0.6, 0};
-      curse   = {0.6, 0.0, 1};
-    }
+  }
+};
+
+local debuffSettings = {
+  mode = "statusbars";
+
+  icons = {
+    pulse = false;
+    nonPlayerAlpha = 0.7;
+    vDirection = "DOWN";
+    hDirection = "LEFT";
+    width = 30;
+    height = 30;
+    xSpacing = 4;
+    ySpacing = 20;
+    perRow = 10;
+    secondsWarning = 10;
+    position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
+    textSize = {
+      timeRemaining = 10;
+      timeRemainingLarge = 14;
+      count = 14;
+    };
+    textPosition = {
+      timeRemaining = { "TOP", "icon", "BOTTOM", 0, -4 };
+      count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
+    };
   };
-});
+
+  statusbars = {
+    pulse = false;
+    nonPlayerAlpha = 0.7;
+    vDirection = "DOWN";
+    hDirection = "LEFT";
+    width = 200;
+    height = 22;
+    xSpacing = 4;
+    ySpacing = 1;
+    perRow = 1;
+    secondsWarning = 10;
+    position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
+    texture = "MUI_StatusBar";
+    iconGap = 1;
+    showSpark = true;
+
+    textSize = {
+      timeRemaining = 10;
+      timeRemainingLarge = 14;
+      count = 14;
+      auraName = 10;
+    };
+
+    textPosition = {
+      timeRemaining = { "RIGHT", "bar", -4, 0 };
+      count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
+      auraName      = { "LEFT", "bar", "LEFT", 4, 0 };
+    };
+  }
+};
 
 -- Local Functions -------------
-local GetEnchantNameAndDuration;
+local GetEnchantName;
 
 do
-  local scanner;
-  local durationCache = {};
+  local scanners = C_Stack:UsingTypes("GameTooltip")(); ---@type Stack
 
-  local function GetDurationValue(text)
-      local value = tk.Strings:Split(text, " ", 1);
+  scanners:OnNewItem(function()
+    local scanner = tk:CreateFrame("GameTooltip", nil, "MUIAurasScanner", "GameTooltipTemplate");
+    scanner:SetOwner(_G.MUI_BuffFrames, "ANCHOR_NONE");
+    return scanner;
+  end);
 
-      if (string.match(text, "min")) then
-        value = value * 60;
-      elseif (string.match(text, "hour")) then
-        value = value * 60 * 60;
-      end
+  local function GetEnchantNameBySlotID(slotID)
+    local scanner = scanners:Pop();
+    scanner:SetInventoryItem("player", slotID);
 
-      return value;
-  end
+    local totalLines = scanner:NumLines();
 
-  local function GetEnchantNameAndDurationBySlotID(slotID)
-    for i = 1, 60 do
-      scanner.lines[i]:SetText("");
-    end
-
-    scanner:SetInventoryItem("Player", slotID);
-
-    for i = 1, 60 do
-      local text = scanner.lines[i]:GetText();
+    for i = 1, totalLines  do
+      local line1 = _G["MUIAurasScannerTextLeft"..i];
+      local text = line1:GetText();
 
       if (text) then
-          local auraName, durationText = select(3, string.find(text, "^(.+) %((%d+ [^%)]+)%)$"))
+        local auraName = select(3, string.find(text, "^(.+) %("));
 
         if (auraName) then
-            if (not durationCache[auraName]) then
-                durationCache[auraName] = GetDurationValue(durationText);
-            end
-
-          return auraName, durationCache[auraName];
+          return auraName;
         end
       end
     end
 
+    scanners:Push(scanner);
     return nil;
   end
 
-  GetEnchantNameAndDuration = function(slotID)
-    if (not scanner) then
-      scanner = tk:CreateFrame("GameTooltip");
-      scanner:SetOwner(_G.UIParent, "ANCHOR_NONE");
-      scanner.lines = obj:PopTable();
-
-      for _ = 1, 30 do
-        local left = scanner:CreateFontString(nil, "ARTWORK", "GameFontNormal");
-        local right = scanner:CreateFontString(nil, "ARTWORK", "GameFontNormal");
-
-        scanner:AddFontStrings(left, right)
-        table.insert(scanner.lines, left);
-        table.insert(scanner.lines, right);
-      end
-    end
-
-    local enchantName, duration = GetEnchantNameAndDurationBySlotID(slotID);
+  GetEnchantName = function(slotID)
+    local itemlink = GetInventoryItemLink("player", slotID);
+    local enchantName = GetEnchantNameBySlotID(slotID);
 
     if (enchantName) then
-      return enchantName, duration;
+      return enchantName;
     end
 
-    -- If we cannot find the enchant name from tooltip then use the items's name:
-    local itemlink = _G.GetInventoryItemLink("player", slotID);
-
     if (itemlink) then
-      local itemName = _G.GetItemInfo(itemlink);
+      local itemName = GetItemInfo(itemlink);
 
       if (itemName) then
         return itemName;
@@ -200,581 +205,640 @@ do
   end
 end
 
----@param auraArea C_AuraArea
----@param data table
-local function AuraArea_OnEvent(_, _, auraArea, data)
-  if (data.enchantButtons) then
-    local totalArgs = select("#", GetWeaponEnchantInfo());
-    local totalEnchantItems = totalArgs / ARGS_PER_ITEM;
+-- Objects -----------------------------
+---@class AurasModule : BaseModule
+local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"]);
 
-    -- check weapon enchant auras:
-    for index = 1, totalEnchantItems do
-      local hasEnchant = select(ARGS_PER_ITEM * (index - 1) + 1, GetWeaponEnchantInfo());
-      local btn = data.enchantButtons[index];
-      local iconTexture, auraName, duration;
+local AuraButtonMixin = {};
 
-      if (data.settings.statusBars.enabled) then
-        auraName, duration = GetEnchantNameAndDuration(enchantAuraIds[index]);
-        btn.duration = duration;
-      end
+local progressColors = {
+  low = { r = 1, g = 77/255, b = 77/255 },
+  medium = { r = 1, g = 1, b = 128/255 },
+  high = { r = 1, g = 1, b = 1 }
+};
 
-      iconTexture = hasEnchant and GetInventoryItemTexture("player", btn:GetID());
-      btn.obj:SetAura(iconTexture, auraName);
-    end
+local function GetProgressColor(current, max)
+  local percent = max > 0 and (current / max) or 0;
+
+  if (percent >= 1) then
+    return progressColors.high.r, progressColors.high.g, progressColors.high.b;
   end
 
-  for auraID = 1, data.totalAuras do
-    local name, iconTexture = UnitAura("player", auraID, data.filter);
-    local btn = data.auraButtons[auraID];
-
-    if (name and iconTexture) then
-      -- get or create new aura frame
-      btn = btn or C_Aura(data.frame, data.settings, auraID, data.filter):GetFrame();
-      data.auraButtons[auraID] = btn;
-    end
-
-    if (btn) then
-      btn.obj:SetAura(iconTexture or false, name);
-    end
+	if (percent <= 0.125) then
+    return progressColors.low.r, progressColors.low.g, progressColors.low.b;
   end
 
-  auraArea:RefreshAnchors();
+  -- start and end R,B,G values:
+  local start, stop;
+
+	if (percent > 0.5) then
+    -- greater than half way
+		start = progressColors.high;
+		stop = progressColors.medium;
+	else
+    -- less than half way
+		start = progressColors.medium;
+		stop = progressColors.low;
+	end
+
+  return tk:MixColorsByPercentage(start, stop, percent);
 end
 
-local function AuraButton_UpdateAlpha(self, elapsed)
-  self.pulseTime = (self.pulseTime or 0) - elapsed;
+function AuraButtonMixin:ApplyTextStyle(name)
+  local fontString = self[name.."Text"];
+  fontString:SetTextColor(unpack(self.settings.colors[name]));
 
-  if (self.pulseTime < 0) then
-    local overtime = -self.pulseTime;
+  local point, relativeFrame, relativePoint, xOffset, yOffset = unpack(self.settings.textPosition[name]);
 
-    if (self.isPulsing == 0) then
-      self.isPulsing = 1;
-      self.pulseTime = 0.75;
-    else
-      self.isPulsing = 0;
-      self.pulseTime = 0.75;
+  if (relativeFrame == "icon") then
+    relativeFrame = self.iconFrame;
+  elseif (relativeFrame == "bar") then
+    relativeFrame = self.statusbarFrame;
+  end
+
+  if (not obj:IsTable(relativeFrame)) then
+    relativeFrame = self;
+  end
+
+  fontString:SetPoint(point, relativeFrame, relativePoint, xOffset, yOffset);
+  tk:SetFontSize(fontString, self.settings.textSize[name]);
+end
+
+local ITERATIONS = 50;
+
+function AuraButtonMixin:SetSliderValue(new)
+  self.endValue = new;
+  if (self.timer and not self.timer:IsCancelled()) then return end
+
+  local startValue = self.statusbar:GetValue();
+  local diff = startValue - new;
+
+  if (diff >= 0) then
+    self.statusbar:SetValue(new);
+    return
+  end
+
+  diff = math.ceil(math.abs(diff));
+
+  if (diff < 2) then
+    self.statusbar:SetValue(new);
+    return
+  end
+
+  local _, max = self.statusbar:GetMinMaxValues();
+  local percentDiff = (diff / max) * 100;
+
+  if (percentDiff < 5) then
+    self.statusbar:SetValue(new);
+    return
+  end
+
+  local extra = 0;
+
+  if (diff > ITERATIONS) then
+    local remaining = diff - ITERATIONS;
+    extra = remaining / ITERATIONS;
+  elseif (diff < ITERATIONS) then
+    local remaining = diff - ITERATIONS;
+    extra = remaining / ITERATIONS;
+  end
+
+  diff = diff * 100; -- in milliseconds
+
+  local i = 0;
+  self.timer = C_Timer.NewTicker(0.01, function()
+    i = i + 1;
+
+    if (i >= ITERATIONS) then
+      self.statusbar:SetValue(self.endValue);
+      self.timer:Cancel();
     end
 
-    if (overtime < self.pulseTime) then
-      self.pulseTime = self.pulseTime - overtime;
+    local percent = i/ITERATIONS;
+    percent = math.min(1, -(math.cos(math.pi * percent) - 1) / 2);
+
+    local shouldCancel, stepValue;
+    local changeAmount = (percent * diff) + extra;
+    local changeInSeconds = changeAmount / 100;
+
+    stepValue = math.max(startValue + changeInSeconds, 0);
+
+    if (stepValue >= self.endValue) then
+      shouldCancel = true;
+      stepValue = self.endValue;
+    end
+
+    -- if (fill) then
+
+    -- else
+    --   stepValue = math.max(startValue - changeInSeconds, 0);
+
+    --   if (stepValue <= self.endValue) then
+    --     shouldCancel = true;
+    --     stepValue = self.endValue;
+    --   end
+    -- end
+
+    self.statusbar:SetValue(stepValue);
+    if (shouldCancel) then
+      self.timer:Cancel();
+    end
+  end, ITERATIONS);
+end
+
+
+local function HandleAuraButtonOnUpdate(self, elapsed)
+  self.timeRemainingLastUpdate = (self.timeRemainingLastUpdate or 0) + elapsed;
+  self.countLastUpdate = (self.countLastUpdate or 0) + elapsed;
+  self.sliderLastUpdate = (self.sliderLastUpdate or 0) + elapsed;
+
+  self.timeRemaining = self.expiryTime - GetTime();
+  local hasTimeRemaining = obj:IsNumber(self.timeRemaining) and self.timeRemaining > 0;
+
+  if (self.settings.pulse) then
+    self.pulseLastUpdate = (self.pulseLastUpdate or 0) - elapsed;
+
+    if (hasTimeRemaining and self.timeRemaining < BUFF_WARNING_TIME) then
+      local alphaValue;
+
+      if (self.pulseLastUpdate < 0) then
+        local overtime = -self.pulseLastUpdate;
+
+        if (self.isPulsing == 0) then
+          self.isPulsing = 1;
+          self.pulseLastUpdate = 0.75;
+        else
+          self.isPulsing = 0;
+          self.pulseLastUpdate = 0.75;
+        end
+
+        if (overtime < self.pulseLastUpdate) then
+          self.pulseLastUpdate = self.pulseLastUpdate - overtime;
+        end
+      end
+
+      if (self.isPulsing == 1) then
+        alphaValue = (BUFF_FLASH_TIME_ON - self.pulseLastUpdate) / BUFF_FLASH_TIME_ON;
+      else
+        alphaValue = self.pulseLastUpdate / BUFF_FLASH_TIME_ON;
+      end
+
+      alphaValue = (alphaValue * (1 - BUFF_MIN_ALPHA)) + BUFF_MIN_ALPHA;
+      self:SetAlpha(alphaValue);
+    else
+      self.pulseLastUpdate = 0;
+      self:SetAlpha(1);
     end
   end
 
-  local expirationTime = select(6, UnitAura("player", self:GetID(), "HELPFUL"));
+  if (self.countLastUpdate > 0.1) then
+    local _, _, count = UnitAura("player", self:GetID(), self.filter);
 
-  if (not expirationTime or expirationTime <= 0) then
-    self:SetAlpha(1);
+    if (not count or count < 1) then
+      self.countText:SetText(tk.Strings.Empty);
+      self.countLastUpdate = -10;
+    else
+      self.countText:SetText(count);
+      self.countLastUpdate = 0;
+    end
+  end
+
+  if (self.timeRemainingLastUpdate > 0.1 and self.expiryTime == 0) then
+    self.timeRemainingText:SetText(tk.Strings.Empty);
+
+    if (self.statusbar) then
+      self.statusbar:SetMinMaxValues(0, 1);
+      self.statusbar:SetValue(1);
+    end
+
+    if (self.spark) then
+      self.spark:Hide();
+    end
+
+    self.timeRemainingLastUpdate = -3600;
+    self.sliderLastUpdate = -3600;
+    return
+  end
+
+  if (self.statusbar and self.sliderLastUpdate > 0.1) then
+    if (hasTimeRemaining) then
+      self.statusbar:SetMinMaxValues(0, self.duration);
+      self:SetSliderValue(self.timeRemaining);
+
+      if (self.spark) then
+        local offset = self.spark:GetWidth() / 2;
+        local barWidth = self.statusbar:GetWidth();
+        local sparkOffset = (self.timeRemaining / self.duration) * barWidth - offset;
+
+        if (sparkOffset > barWidth - offset) then
+          sparkOffset = barWidth - offset;
+        end
+
+        self.spark:SetPoint("LEFT", sparkOffset, 0);
+        self.spark:Show();
+      end
+    else
+      self.statusbar:SetValue(0);
+
+      if (self.spark) then
+        self.spark:Hide();
+      end
+    end
+
+    self.sliderLastUpdate = 0;
+  end
+
+  if (self.timeRemainingLastUpdate > 0.5) then
+    if (hasTimeRemaining) then
+      local format, value = SecondsToTimeAbbrev(self.timeRemaining);
+
+      if (format == _G.SECOND_ONELETTER_ABBR) then
+        value = math.ceil(value);
+        self.timeRemainingText:SetFormattedText("%d", value);
+      else
+        local text = string.format(format, value);
+        text = tk.Strings:RemoveWhiteSpace(text);
+        self.timeRemainingText:SetText(text);
+      end
+
+      local current = math.min(30, self.timeRemaining);
+      local r, g, b = GetProgressColor(current, 30);
+      self.timeRemainingText:SetTextColor(r, g, b);
+
+      if (value <= self.settings.secondsWarning and self.timeRemaining < 20) then
+        tk:SetFontSize(self.timeRemainingText, self.settings.textSize["timeRemainingLarge"]);
+      else
+        tk:SetFontSize(self.timeRemainingText, self.settings.textSize["timeRemaining"]);
+      end
+    else
+      self.timeRemainingText:SetText(tk.Strings.Empty);
+    end
+
+    if (self.timeRemaining > 80) then
+      self.timeRemainingLastUpdate = -10;
+    else
+      self.timeRemainingLastUpdate = 0;
+    end
+  end
+end
+
+local function HandleAuraButtonOnEnter(self)
+  GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT");
+  GameTooltip:SetFrameLevel(self.cooldown:GetFrameLevel() + 2);
+  if (self.auraType == "item") then
+    GameTooltip:SetInventoryItem("player", self:GetID());
+  else
+    GameTooltip:SetUnitAura("player", self:GetID(), self.filter);
+  end
+end
+
+function AuraButtonMixin:SetSparkShown(shown)
+  if (not self.spark and not shown) then return end
+
+  if (not self.spark) then
+    self.spark = self.statusbar:CreateTexture(nil, "OVERLAY");
+    self.spark:SetSize(26, 50);
+    self.spark:SetTexture("Interface\\CastingBar\\UI-CastingBar-Spark");
+
+    local r, g, b = tk:GetThemeColor();
+    self.spark:SetVertexColor(r, g, b);
+    self.spark:SetBlendMode("ADD");
+  end
+
+  self.spark:SetShown(shown);
+end
+
+local masqueGroup;
+
+function AuraButtonMixin:ApplyStyling()
+  if (self.iconFrame) then return end
+  if (not self.texture) then return end
+
+  self:SetSize(self.settings.width, self.settings.height);
+  local auraBackdrop = tk.Constants.BACKDROP_WITH_BACKGROUND;
+  -- auraBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", "Skinner");
+  -- auraBackdrop.edgeSize = 1;
+  local edge = auraBackdrop.edgeSize;
+
+  self.iconFrame = tk:CreateFrame("Frame", self, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+  self.backdrop = tk:SetBackground(self.iconFrame, unpack(self.settings.colors.background));
+  -- self.iconFrame:SetBackdrop(auraBackdrop);
+  -- self.iconFrame:SetBackdropBorderColor(0, 0, 0);
+  -- self.iconFrame:SetBackdropColor(unpack(self.settings.colors.background));
+
+  self.iconTexture = self.iconFrame:CreateTexture(nil, "ARTWORK");
+  self.iconTexture:SetTexture(self.texture);
+  self.iconTexture:ClearAllPoints();
+  self.iconTexture:SetPoint("TOPLEFT", edge, -edge);
+  self.iconTexture:SetPoint("BOTTOMRIGHT", -edge, edge);
+
+  if (self.settings.mode == "statusbars") then
+    self.iconFrame:SetPoint("TOPLEFT");
+    self.iconFrame:SetPoint("BOTTOMLEFT");
+    self.iconFrame:SetWidth(self.settings.height);
+    self.iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
+  else
+    self.iconFrame:SetAllPoints(true);
+
+    local width = self.settings.width;
+    local height = self.settings.height;
+
+    if (width > height) then
+      local diff = (1 - (height / width)) / 2;
+      self.iconTexture:SetTexCoord(0.1, 0.9, diff, 1 - diff);
+    elseif (height > width) then
+      local diff = (1 - (width / height)) / 2;
+      self.iconTexture:SetTexCoord(diff, 1 - diff, 0.1, 0.9);
+    else
+      self.iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
+
+    end
+  end
+
+  self.cooldown = tk:CreateFrame("Cooldown", self.iconFrame, nil, "CooldownFrameTemplate");
+  self.cooldown:SetReverse(1);
+  self.cooldown:SetHideCountdownNumbers(true);
+  self.cooldown.noCooldownCount = true;
+  self.cooldown:SetPoint("TOPLEFT", edge, -edge);
+  self.cooldown:SetPoint("BOTTOMRIGHT", -edge, edge);
+  self.cooldown:SetFrameStrata("TOOLTIP");
+
+  local countTemplate = (self.settings.mode == "statusbars" and "GameFontNormal") or "NumberFont_Outline_Large";
+  self.countText = self.cooldown:CreateFontString(nil, "OVERLAY", countTemplate);
+  self:ApplyTextStyle("count");
+
+  self.timeRemainingText = self.cooldown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
+  self:ApplyTextStyle("timeRemaining");
+
+  if (self.settings.mode == "statusbars") then
+    self.statusbarFrame = tk:CreateFrame("Frame", self, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+    self.statusbarFrame:SetPoint("TOPLEFT", self.iconFrame, "TOPRIGHT", self.settings.iconGap, 0);
+    self.statusbarFrame:SetPoint("BOTTOMRIGHT");
+    self.statusbarFrame:SetBackdrop(auraBackdrop);
+    self.statusbarFrame:SetBackdropBorderColor(0, 0, 0);
+    self.statusbarFrame:SetBackdropColor(unpack(self.settings.colors.background));
+
+    self.statusbar = tk:CreateFrame("StatusBar", self.statusbarFrame);
+    self.statusbar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", self.settings.texture));
+    self.statusbar:SetPoint("TOPLEFT", 1, -1);
+    self.statusbar:SetPoint("BOTTOMRIGHT", -1, 1);
+
+    self.auraNameText = self.statusbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
+    self:ApplyTextStyle("auraName");
+    self.auraNameText:SetJustifyH("LEFT");
+    self.auraNameText:SetWordWrap(false);
+
+    self:SetSparkShown(self.settings.showSpark);
+  end
+
+  self:HookScript("OnUpdate", HandleAuraButtonOnUpdate);
+  self:HookScript("OnEnter", HandleAuraButtonOnEnter);
+  self:HookScript("OnLeave", tk.GeneralTooltip_OnLeave);
+
+  if (not masqueGroup) then
+    local masque = _G.LibStub("Masque", true);
+
+    if (masque) then
+      masqueGroup = masque:Group("MayronUI", "Auras");
+    end
+  end
+
+  if (masqueGroup) then
+    local masqueType;
+
+    if (self.filter == "HELPFUL") then
+      if (self.auraType == "item") then
+        masqueType = "Enchant";
+      else
+        masqueType = "Buff";
+      end
+    else
+      masqueType = "Debuff";
+    end
+
+    masqueGroup:AddButton(self, {
+      Backdrop = self.backdrop,
+      Count = self.countText,
+      Icon = self.iconTexture,
+      Cooldown = self.cooldown,
+    }, masqueType, true);
+  end
+end
+
+function AuraButtonMixin:UpdateDisplayInfo()
+  self.iconTexture:SetTexture(self.texture);
+
+  local hasTimeRemainingText = obj:IsNumber(self.timeRemaining) and self.timeRemaining > 0;
+  local hasCooldown = obj:IsNumber(self.duration) and self.duration > 0 and obj:IsNumber(self.startTime) and self.startTime > 0;
+
+  if (hasTimeRemainingText and hasCooldown) then
+    if (self.auraNameText) then
+      self.auraNameText:SetWidth(self.settings.width - 60);
+    end
+    self.cooldown:SetCooldown(self.startTime, self.duration);
+  else
+    if (self.auraNameText) then
+      self.auraNameText:SetWidth(self.settings.width);
+    end
+    self.cooldown:Clear();
+  end
+
+  local auraColor = self.settings.colors[self.filter:lower()];
+  local r, g , b = unpack(auraColor);
+  self:SetAlpha(1);
+
+  if (self.auraType == "item") then
+    local invSlotId = self:GetID();
+    local quality = GetInventoryItemQuality("player", invSlotId);
+
+    if (obj:IsNumber(quality)) then
+      r, g, b = GetItemQualityColor(quality);
+    end
+
+  elseif (self.filter == "HARMFUL") then
+    if (obj:IsString(self.auraType)) then
+      local typeColor = self.settings.colors[self.auraType:lower()];
+
+      if (obj:IsTable(typeColor)) then
+        r, g, b = unpack(typeColor);
+      end
+    end
+
+  elseif (self.owned) then
+    r, g, b = unpack(self.settings.colors.owned);
+  elseif (self.statusbar) then
+    r, g, b = unpack(self.settings.colors.foreground);
+  else
+    self:SetAlpha(self.settings.nonPlayerAlpha);
+  end
+
+  if (self.auraNameText) then
+    self.auraNameText:SetText(self.name);
+  end
+
+  if (self.statusbar) then
+    self.iconFrame:SetBackdropBorderColor(0, 0, 0);
+    self.statusbar:SetStatusBarColor(r, g, b);
+  else
+    self.iconFrame:SetBackdropBorderColor(r, g, b);
+  end
+
+  self.timeRemainingLastUpdate = 1;
+  self.countLastUpdate = 1;
+  self.sliderLastUpdate = 1;
+
+  if (self.timer) then
+    self.timer:Cancel();
+  end
+end
+
+local enchantDurations = {};
+
+local function OnAuraButtonAttributeChanged(self, attribute, value)
+  if (not (attribute == "index" or attribute == "target-slot")) then
+    return
+  end
+
+  self:SetID(value);
+
+  if (attribute == 'index') then
+    local name, texture, count, auraType, duration, expiryTime, source = UnitAura("player", value, self.filter);
+
+    self.expiryTime = expiryTime;
+    self.startTime = expiryTime - duration;
+    self.duration = duration; -- can use cooldown
+    self.timeRemaining = expiryTime - GetTime();
+    self.auraType = auraType;
+    self.count = count;
+    self.name = name;
+    self.owned = source and (UnitGUID("player") == UnitGUID(source));
+
+    if (name) then
+      self.texture = texture;
+    end
+
+  elseif (attribute == "target-slot") then
+    local hasEnchant, timeRemainingInThousands, count;
+
+    if (value == 16) then -- main hand
+      hasEnchant, timeRemainingInThousands, count = GetWeaponEnchantInfo();
+
+    elseif (value == 17) then -- off hand
+      hasEnchant, timeRemainingInThousands, count = select(5, GetWeaponEnchantInfo());
+    end
+
+    if (hasEnchant) then
+      local name = GetEnchantName(value);
+      self.duration = enchantDurations[name] or timeRemainingInThousands / 1000;
+
+      if (not enchantDurations[name] or enchantDurations[name] < self.duration) then
+        enchantDurations[name] = self.duration;
+      end
+
+      self.timeRemaining = timeRemainingInThousands / 1000;
+      self.expiryTime = self.timeRemaining + GetTime();
+      self.startTime = self.expiryTime - self.duration; -- we can't know the beginning of every possible enchant
+      self.auraType = "item";
+      self.count = count;
+      self.name = name;
+
+      local texture = GetInventoryItemTexture("player", value);
+      self.texture = texture;
+    end
+  end
+
+  self:ApplyStyling();
+  self:UpdateDisplayInfo();
+end
+
+local function OnHeaderAttributeChanged(self, name, btn)
+  if (not (name:match("^child") or name:match("^tempenchant"))) then
     return;
   end
 
-  local timeRemaining = expirationTime - GetTime();
+  btn.filter = self.filter;
+  btn.settings = self.settings;
 
-  -- Handle flashing
-  if (timeRemaining and timeRemaining < BUFF_WARNING_TIME) then
-    local alphaValue;
+  _G.Mixin(btn, AuraButtonMixin);
 
-    if (self.isPulsing == 1) then
-      alphaValue = (BUFF_FLASH_TIME_ON - self.pulseTime) / BUFF_FLASH_TIME_ON;
-    else
-      alphaValue = self.pulseTime / BUFF_FLASH_TIME_ON;
-    end
+  if (self.filter == "HELPFUL") then
+    btn:RegisterForClicks('RightButtonUp');
+    btn:SetAttribute('type2', 'cancelaura');
+  end
 
-    alphaValue = (alphaValue * (1 - BUFF_MIN_ALPHA)) + BUFF_MIN_ALPHA;
+  btn:SetScript('OnAttributeChanged', OnAuraButtonAttributeChanged);
+  btn:Show();
+end
 
-    self:SetAlpha(alphaValue);
+local function CreateAuraHeader(filter, settings)
+  local mode = settings.mode;
+  settings = settings[mode];
+
+  if (not obj:IsTable(settings)) then
+    MayronUI:LogError("Failed to load settings for %s auras with mode %s", filter, mode);
+  end
+
+  settings.colors = colorSettings;
+  settings.mode = mode;
+
+  local auraPoint;
+  local xOffset = math.abs(settings.width + settings.xSpacing);
+  local yOffset = math.abs(settings.height + settings.ySpacing);
+
+  if (settings.vDirection == "DOWN") then
+    auraPoint = "TOP";
+    yOffset = -yOffset;
   else
-    self:SetAlpha(1.0);
+    auraPoint = "BOTTOM";
   end
-end
 
-local function AuraButton_OnUpdate(self)
-  local _, _, count, _, duration, expirationTime, _, _, _,
-      _, _, _, _, _, timeMod = UnitAura("player", self:GetID(), self.filter);
-
-  if (not count or count < 1) then
-    self.countText:SetText(tk.Strings.Empty);
+  if (settings.hDirection == "LEFT") then
+    auraPoint = auraPoint .. "RIGHT";
+    xOffset = -xOffset;
   else
-    self.countText:SetText(count);
+    auraPoint = auraPoint .. "LEFT";
   end
 
-  if (not expirationTime) then return end
+  local globalName = filter == "HELPFUL" and "MUI_BuffFrames" or "MUI_DebuffFrames";
+  local header = CreateFrame("Frame", globalName, _G.UIParent, "SecureAuraHeaderTemplate");
+  header.filter = filter;
+  header.settings = settings;
 
-  local timeRemaining = expirationTime - GetTime();
+  local pos = settings.position;
+  local relativeFrame = _G[pos[2]] or _G.UIParent;
+  header:SetPoint(pos[1], relativeFrame, pos[3], pos[4], pos[5]);
+  header:SetSize(settings.width, settings.height);
 
-  if (timeRemaining > 0) then
-    if (timeMod > 0) then
-      timeRemaining = timeRemaining / timeMod;
-    end
+  header:SetAttribute("unit", "player");
+  header:SetAttribute("filter", filter)
 
-    self.timeRemaining = timeRemaining;
-    self.timeRemainingText:SetFormattedText(SecondsToTimeAbbrev(timeRemaining));
-  else
-    self.timeRemaining = nil;
-    self.timeRemainingText:SetText(tk.Strings.Empty);
+  if (filter == "HELPFUL") then
+    header:SetAttribute("includeWeapons", 1);
+    header:SetAttribute("weaponTemplate", "SecureActionButtonTemplate");
   end
 
-  if (self.statusBar) then
-    self.obj:UpdateStatusBar(duration, timeRemaining);
-  end
-end
-
-local function AuraEnchantButton_OnUpdate(self, btn, globalName)
-  local index = tk.Tables:IndexOf(enchantAuraIds, btn:GetID());
-  local hasEnchant, expirationTime, count = select(ARGS_PER_ITEM * (index - 1) + 1, GetWeaponEnchantInfo());
-
-  if (not (hasEnchant and expirationTime and count)) then
-      if (btn.isEnchantActive) then
-        btn.isEnchantActive = nil;
-        -- enable/disable auraButtons:
-        em:TriggerEventListenerByID(globalName.."Listener");
-      end
-
-      return;
-  end
-
-  if (self.timeSinceLastUpdate > 1 or btn.forceUpdate) then
-    btn.forceUpdate = nil;
-
-    if (count < 1) then
-      btn.countText:SetText(tk.Strings.Empty);
-    else
-      btn.countText:SetText(count);
-    end
-
-    if (expirationTime) then
-      expirationTime = expirationTime / 1000;
-      btn.timeRemaining = expirationTime;
-      btn.timeRemainingText:SetFormattedText(SecondsToTimeAbbrev(expirationTime));
-    else
-      btn.timeRemaining = nil;
-      btn.timeRemainingText:SetText(tk.Strings.Empty);
-    end
-
-    if (btn.statusBar) then
-      btn.obj:UpdateStatusBar(btn.duration, expirationTime);
-    end
-  end
-
-  -- ensure that PLAYER_ENTERING_WORLD works for enchants
-  if (not btn.isEnchantActive) then
-    btn.isEnchantActive = true;
-    -- enable/disable auraButtons:
-    em:TriggerEventListenerByID(globalName.."Listener");
-  end
-end
-
--- should only handle updating time remaining and counts
-local function AuraArea_OnUpdate(self, elapsed, auraButtons, enchantButtons, pulse)
-  self.timeSinceLastUpdate = self.timeSinceLastUpdate + elapsed;
-
-  for _, btn in ipairs(auraButtons) do
-    if (pulse) then
-      AuraButton_UpdateAlpha(btn, elapsed);
-    end
-
-    if (self.timeSinceLastUpdate > 1 or btn.forceUpdate) then
-      btn.forceUpdate = nil;
-      AuraButton_OnUpdate(btn);
-    end
-  end
-
-  if (enchantButtons) then
-    for _, btn in ipairs(enchantButtons) do
-      AuraEnchantButton_OnUpdate(self, btn, self:GetName());
-    end
-  end
-
-  if (self.timeSinceLastUpdate > 1) then
-    self.timeSinceLastUpdate = 0;
-  end
-end
-
--- C_AuraArea ----------------------
-
-obj:DefineParams("table", "string");
-function C_AuraArea:__Construct(data, moduleSettings, areaName)
-  data.settings = moduleSettings[areaName];
-  data.globalName = string.format("MUI_%sArea", areaName);
-  data.auraButtons = obj:PopTable();
-  data.enchantButtons = false;
-  data.areaName = areaName;
-
-  if (areaName == "Buffs") then
-    data.enchantButtons = obj:PopTable();
-    data.totalAuras = BUFF_MAX_DISPLAY;
-    data.filter = "HELPFUL";
-
-    -- Hide Blizzard frames
-    tk:KillElement(_G.BuffFrame);
-    tk:KillElement(_G.TemporaryEnchantFrame);
-  else
-    data.totalAuras = DEBUFF_MAX_DISPLAY;
-    data.filter = "HARMFUL";
-    tk:KillElement(_G.DebuffFrame);
-  end
-end
-
-function C_AuraArea:UpdateSize(data)
-  if (data.settings.statusBars.enabled) then
-    local bars = data.settings.statusBars;
-
-    data.frame:SetSize(bars.width, ((bars.height + bars.spacing) * data.totalAuras) - bars.spacing);
-  else
-    local icons = data.settings.icons;
-    local maxColumns;
-
-    if (data.enchantButtons) then
-      maxColumns = math.ceil((data.totalAuras + 1) / icons.perRow);
-    else
-      maxColumns = math.ceil((data.totalAuras) / icons.perRow);
-    end
-
-    data.frame:SetSize(
-        ((icons.auraSize + icons.colSpacing) * icons.perRow) - icons.colSpacing,
-        ((icons.auraSize + icons.rowSpacing) * maxColumns) - icons.rowSpacing);
-  end
-end
-
-obj:DefineParams("boolean")
-function C_AuraArea:SetEnabled(data, enabled)
-  if (not data.frame and not enabled) then return end
-
-  local newlyCreated;
-
-  if (enabled) then
-    if (not data.frame) then
-      data.frame = tk:CreateFrame("Frame", nil, data.globalName);
-
-      if (data.enchantButtons) then
-        for index, enchantID in ipairs(enchantAuraIds) do
-          data.enchantButtons[index] = C_Aura(data.frame, data.settings, enchantID, false):GetFrame();
-          data.enchantButtons[index]:Hide();
-        end
-      end
-
-      self:UpdateSize();
-
-      local listenerID = data.globalName.."Listener";
-      local listener = em:CreateEventListenerWithID(listenerID, AuraArea_OnEvent);
-      listener:SetCallbackArgs(self, data);
-      listener:RegisterUnitEvent("UNIT_AURA", "player");
-      listener:RegisterEvent("GROUP_ROSTER_UPDATE");
-      listener:RegisterEvent("PLAYER_ENTERING_WORLD");
-      em:TriggerEventListenerByID(listenerID);
-      newlyCreated = true;
-    end
-
-    data.frame.timeSinceLastUpdate = 0;
-    data.frame:SetScript("OnUpdate", function(self, elapsed)
-      AuraArea_OnUpdate(self, elapsed, data.auraButtons, data.enchantButtons, data.settings.showPulseEffect);
-    end);
-
-    data.frame:SetParent(UIParent);
-    data.frame:ClearAllPoints();
-
-    local position;
-
-    if (data.settings.statusBars.enabled) then
-      position = data.settings.statusBars.position;
-
-      if (not _G[position[2]]) then
-        position = tk.Tables:Copy(DEFAULT_POSITION);
-        -- save in database:
-        db.profile.auras[data.areaName].statusBars.position = position;
-      end
-    else
-      position = data.settings.icons.position;
-
-      if (not _G[position[2]]) then
-        position = tk.Tables:Copy(DEFAULT_POSITION);
-        -- save in database:
-        db.profile.auras[data.areaName].icons.position = position;
-      end
-    end
-
-    data.frame:SetPoint(unpack(position));
-  else
-    data.frame:SetScript("OnUpdate", nil);
-    data.frame:SetParent(tk.Constants.DUMMY_FRAME);
-    data.frame:SetAllPoints(tk.Constants.DUMMY_FRAME);
-  end
-
-  if (not newlyCreated) then
-    local listener = em:GetEventListenerByID(data.globalName.."Listener");
-    listener:SetEnabled(enabled);
-  end
-
-  data.frame:SetShown(enabled);
-  data.enabled = enabled;
-end
-
-local function SortByTimeRemaining(a, b)
-  if (not (a and b)) then
-    return true;
-  end
-
-  if (not a.timeRemaining and b.timeRemaining) then
-    return true;
-  end
-
-  if (a.timeRemaining and not b.timeRemaining) then
-    return false;
-  end
-
-  if (not a.timeRemaining and not b.timeRemaining) then
-    return false;
-  end
-
-  return a.timeRemaining > b.timeRemaining;
-end
-
-function C_AuraArea:GetAuraButtons(data, excludeEnchantButtons)
-  local auraButtons = obj:PopTable();
-
-  if (not excludeEnchantButtons and data.enchantButtons) then
-    for _, enchantBtn in ipairs(data.enchantButtons) do
-      table.insert(auraButtons, enchantBtn);
-    end
-  end
-
-  for _, auraBtn in ipairs(data.auraButtons) do
-    table.insert(auraButtons, auraBtn);
-  end
-
-  return auraButtons;
-end
-
-function C_AuraArea:RefreshAnchors(data)
-  local totalPositioned = 0;
-  local activeButons = obj:PopTable();
-
-  for _, auraBtn in ipairs(data.auraButtons) do
-    auraBtn:ClearAllPoints();
-
-    if (auraBtn:IsShown()) then
-      table.insert(activeButons, auraBtn);
-    end
-  end
-
-  table.sort(activeButons, SortByTimeRemaining);
-
-  if (data.enchantButtons) then
-    for id, enchantBtn in ipairs(data.enchantButtons) do
-      enchantBtn:ClearAllPoints();
-
-      if (enchantBtn:IsShown()) then
-        table.insert(activeButons, id, enchantBtn);
-      end
-    end
-  end
-
-  for id, auraBtn in ipairs(activeButons) do
-    if (not auraBtn:IsShown()) then
-      break;
-    end
-
-    if (data.settings.statusBars.enabled) then
-      local bars = data.settings.statusBars;
-
-      if (id == 1) then
-        if (bars.growDirection == "DOWN") then
-          auraBtn:SetPoint("TOP");
-        elseif (bars.growDirection == "UP") then
-          auraBtn:SetPoint("BOTTOM");
-        end
-
-      else
-        if (bars.growDirection == "DOWN") then
-          auraBtn:SetPoint("TOP", activeButons[id - 1], "BOTTOM", 0, -bars.spacing);
-        elseif (bars.growDirection == "UP") then
-          auraBtn:SetPoint("BOTTOM", activeButons[id - 1], "TOP", 0, bars.spacing);
-        end
-      end
-    else
-      local icons = data.settings.icons;
-
-      if (id == 1) then
-        if (data.settings.icons.growDirection == "LEFT") then
-          auraBtn:SetPoint("TOPRIGHT");
-        elseif (icons.growDirection == "RIGHT") then
-          auraBtn:SetPoint("TOPLEFT");
-        end
-
-      elseif (totalPositioned % icons.perRow == 0) then
-        local anchor = activeButons[(totalPositioned - icons.perRow) + 1];
-        auraBtn:SetPoint("TOP", anchor, "BOTTOM", 0, -icons.rowSpacing);
-
-      elseif (icons.growDirection == "LEFT") then
-        auraBtn:SetPoint("RIGHT", activeButons[id - 1], "LEFT", -icons.colSpacing, 0);
-      elseif (icons.growDirection == "RIGHT") then
-        auraBtn:SetPoint("LEFT", activeButons[id - 1], "RIGHT", icons.colSpacing, 0);
-      end
-    end
-
-    totalPositioned = totalPositioned + 1;
-  end
-
-  obj:PushTable(activeButons);
+  header:SetAttribute("template", "SecureActionButtonTemplate")
+  header:SetAttribute("minWidth", settings.width);
+  header:SetAttribute("minHeight", settings.height);
+  header:SetAttribute("point", auraPoint);
+  header:SetAttribute("xOffset", xOffset);
+  header:SetAttribute("yOffset", 0);
+  header:SetAttribute("wrapAfter", settings.perRow);
+  header:SetAttribute("wrapXOffset", 0);
+  header:SetAttribute("wrapYOffset", yOffset);
+  header:SetAttribute("sortMethod", "TIME");
+  header:SetAttribute("sortDirection", "-");
+  header:HookScript('OnAttributeChanged', OnHeaderAttributeChanged);
+  header:Show();
 end
 
 -- C_AurasModule -----------------------
-function C_AurasModule:OnInitialize(data)
-  data.auraAreas = obj:PopTable();
+function C_AurasModule:OnInitialize()
+  CreateAuraHeader("HELPFUL", buffSettings);
+  CreateAuraHeader("HARMFUL", debuffSettings);
 
-  for _, areaName in obj:IterateArgs("Buffs", "Debuffs") do
-    local sv = db.profile.auras[areaName]; ---@type Observer
-    sv:SetParent(db.profile.auras.__templateAuraArea);
-  end
-
-  local options = {
-    onExecuteAll = {
-      first = {
-        "Buffs.enabled";
-        "Debuffs.enabled";
-      };
-      ignore = { ".*" }; -- ignore everything else
-    };
-    groups = {
-      {
-        patterns = { ".*" }; -- (i.e. "Buffs.<setting>")
-
-        onPre = function(value, keysList)
-          local areaName = keysList:PopFront(); ---@type LinkedList
-          local auraArea = data.auraAreas[areaName]; ---@type C_AuraArea
-          local settingName = keysList:GetFront();
-
-          if (settingName == "enabled" and not auraArea and value) then
-            auraArea = C_AuraArea(data.settings, areaName);
-            data.auraAreas[areaName] = auraArea;
-          end
-
-          if (not auraArea) then
-            return; -- do not execute
-            end
-
-            return auraArea, areaName;
-          end;
-
-        value = {
-          enabled = function(value, _, auraArea, areaName)
-            auraArea:SetEnabled(value, areaName);
-          end;
-          textSize = function(value, keysList, auraArea)
-            local auras = auraArea:GetAuraButtons();
-            local textName = keysList:GetBack();
-
-            for _, aura in ipairs(auras) do
-              tk:SetFontSize(aura[textName .. "Text"], value);
-            end
-          end;
-          textPosition = function(value, keysList, auraArea)
-            local auras = auraArea:GetAuraButtons();
-            local settingName = keysList:PopBack();
-            local textName = keysList:PopBack();
-
-            for _, aura in ipairs(auras) do
-              local fontString = aura[textName .. "Text"];
-              local p, rf, rp, x, y = fontString:GetPoint();
-
-              if (settingName == 1) then
-                fontString:SetPoint(p, rf, rp, value, y);
-              elseif (settingName == 2) then
-                fontString:SetPoint(p, rf, rp, x, value);
-              end
-            end
-          end;
-          border = function(_, _, auraArea)
-            local auras = auraArea:GetAuraButtons();
-
-            for _, aura in ipairs(auras) do
-              aura.obj:SetUpBorder();
-            end
-          end;
-          colors = function(value, keysList, auraArea, _)
-            local auras = auraArea:GetAuraButtons();
-            local settingName = keysList:GetBack();
-
-            for _, aura in ipairs(auras) do
-              if (settingName == "statusBarBackground") then
-                aura.background:SetVertexColor(unpack(value));
-              else
-                aura.obj:SetUpBorder();
-              end
-            end
-          end;
-          icons = function(value, keysList, auraArea, areaName)
-            local settingName = keysList:PopBack();
-            local isPosition = keysList:PopBack() == "position";
-
-            if (isPosition) then
-              auraArea:ClearAllPoints();
-              local p, rf, rp, x, y = unpack(data.settings[areaName].icons.position);
-              rf = _G[rf];
-              auraArea:SetPoint(p, rf, rp, x, y);
-              return;
-            end
-
-            if (settingName == "auraSize") then
-              local auras = auraArea:GetAuraButtons();
-
-              for _, aura in ipairs(auras) do
-                aura:SetSize(value, value);
-              end
-            else
-              auraArea:RefreshAnchors();
-            end
-
-            auraArea:UpdateSize();
-          end;
-          statusBars = function(value, keysList, auraArea, areaName)
-            local settingName = keysList:PopBack();
-            local isPosition = keysList:PopBack() == "position";
-
-            if (isPosition) then
-              auraArea:ClearAllPoints();
-              local p, rf, rp, x, y = unpack(data.settings[areaName].statusBars.position);
-              rf = _G[rf];
-              auraArea:SetPoint(p, rf, rp, x, y);
-              return;
-            end
-
-            if (settingName == "growDirection" or settingName == "spacing") then
-              auraArea:RefreshAnchors();
-              auraArea:UpdateSize();
-              return;
-            end
-
-            local auras = auraArea:GetAuraButtons();
-
-            for _, aura in ipairs(auras) do
-              if (settingName == "width") then
-                aura:SetWidth(value);
-
-              elseif (settingName == "height") then
-                aura:SetHeight(value);
-                auraArea:UpdateSize();
-
-              elseif (settingName == "iconGap") then
-                aura.statusBarFrame:SetPoint("TOPLEFT", aura.iconFrame, "TOPRIGHT", value, 0);
-
-              elseif (settingName == "showSpark") then
-                aura.obj:SetSparkShown(value);
-
-              elseif (settingName == "barTexture") then
-                aura.statusBar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", value));
-              end
-            end
-          end;
-        }
-      };
-    };
-  };
-
-  self:RegisterUpdateFunctions(db.profile.auras, {}, options);
-end
-
-function C_AurasModule:OnInitialized(data)
-  if (data.settings.enabled) then
-    self:SetEnabled(true);
-  end
+  -- Hide Blizzard frames
+  tk:KillElement(_G.BuffFrame);
+  tk:KillElement(_G.TemporaryEnchantFrame);
+  tk:KillElement(_G.DebuffFrame);
 end

@@ -47,36 +47,25 @@ function tk:Print(...)
   _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, tostringall(...)));
 end
 
-do
-  local function LogToChatFrame(message, r, g, b, ...)
-    pcall(function(...)
-      local prefix = tk.Strings:SetTextColorByTheme("MayronUI:");
+function tk:LogToChatFrame(message, r, g, b, ...)
+  pcall(function(...)
+    local prefix = tk.Strings:SetTextColorByTheme("MayronUI:");
 
-      if (tk.Strings:Contains(message, "%%")) then
-        local replaced, count = string.gsub(message, "%%%a", "{arg}")
+    if (tk.Strings:Contains(message, "%%")) then
+      local replaced, count = string.gsub(message, "%%%a", "{arg}")
 
-        for i = 1, count do
-          local arg = tostring(select(i, ...) or nil);
-          replaced = string.gsub(replaced, "{arg}", arg, 1);
-        end
-
-        message = string.join(" ", prefix, replaced);
-      else
-        message = string.join(" ", prefix, message, tostringall(...));
+      for i = 1, count do
+        local arg = tostring(select(i, ...) or nil);
+        replaced = string.gsub(replaced, "{arg}", arg, 1);
       end
 
-      _G.DEFAULT_CHAT_FRAME:AddMessage(message, r, g, b);
-    end, ...);
-  end
+      message = string.join(" ", prefix, replaced);
+    else
+      message = string.join(" ", prefix, message, tostringall(...));
+    end
 
-  function tk:LogError(errorMessage, ...)
-    LogToChatFrame(errorMessage, 1, 0, 0, ...);
-  end
-
-  function tk:LogDebug(debugMessage, ...)
-    if (not MayronUI.DEBUG_MODE) then return end
-    LogToChatFrame(debugMessage, 1, 0.8, 0.18, ...);
-  end
+    _G.DEFAULT_CHAT_FRAME:AddMessage(message, r, g, b);
+  end, ...);
 end
 
 function tk:GetAssetFilePath(filePath)

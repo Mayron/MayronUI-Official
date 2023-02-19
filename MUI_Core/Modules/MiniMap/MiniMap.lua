@@ -485,21 +485,21 @@ do
           return
         end
 
-        local difficulty = select(4, GetInstanceInfo());
+        local difficultyID = select(3, GetInstanceInfo());
 
-        if (difficulty == "Heroic") then
-          difficulty = "H";
-        elseif (difficulty == "Mythic") then
-          difficulty = "M";
-        elseif (difficulty == "Looking For Raid") then
-          difficulty = "RF";
+        if (difficultyID == 2 or difficultyID == 5 or difficultyID == 6 or difficultyID == 15) then
+          difficultyID = "H";
+        elseif (difficultyID == 8 or difficultyID == 16 or difficultyID == 23) then
+          difficultyID = "M";
+        elseif (difficultyID == 7) then
+          difficultyID = "RF";
         else
-          difficulty = "";
+          difficultyID = "";
         end
 
         local players = GetNumGroupMembers();
         players = (players > 0 and players) or 1;
-        data.dungeonDifficulty:SetText(players .. difficulty); -- localization possible?
+        data.dungeonDifficulty:SetText(players .. difficultyID); -- localization possible?
       end);
 
       listener:RegisterEvents(

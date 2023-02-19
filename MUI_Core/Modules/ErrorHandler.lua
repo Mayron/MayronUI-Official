@@ -22,6 +22,8 @@ function C_ErrorHandler:OnInitialize(data)
   data.errors = self:GetErrors();
 
   local function addError(errorMessage)
+    MayronUI:LogError(errorMessage);
+
     for _, errorInfo in pairs(data.errors) do
       if (errorInfo.error == errorMessage) then
         return -- don't add the same error more than once

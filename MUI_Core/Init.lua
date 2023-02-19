@@ -120,7 +120,7 @@ db:OnStartUp(function(self, sv)
 
   if (tk.Constants.DEBUG_WHITELIST[tk:GetPlayerKey()])  then
     MayronUI.DEBUG_MODE = true;
-    _G.SetCVar("ScriptErrors", "1");
+    -- _G.SetCVar("ScriptErrors", "1");
     MayronUI:LogDebug("Debugging Enabled");
   end
 end);

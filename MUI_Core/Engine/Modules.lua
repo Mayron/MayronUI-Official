@@ -122,6 +122,10 @@ commands.install = function()
   MayronUI:ImportModule("SetUpModule"):Show();
 end
 
+commands.clr = function()
+  _G.ChatFrame1:Clear();
+end;
+
 commands.report = function(forceShow)
   if (not LoadMuiAddOn("MUI_Setup")) then
     return
@@ -493,15 +497,36 @@ function MayronUI:Print(...)
   tk:Print(...);
 end
 
-function MayronUI:LogError(...)
-  tk:LogError(...);
-  if (MayronUI.DEBUG_MODE) then
-    _G.Screenshot();
+do
+  local GetTime = _G.GetTime;
+  local lastScreenshot = GetTime();
+  local Screenshot = _G.Screenshot;
+  local TakeScreenshot = function() Screenshot() end;
+
+  function MayronUI:LogError(errorMessage, ...)
+    -- if (not MayronUI.DEBUG_MODE) then return end
+    -- tk:LogToChatFrame(errorMessage, 1, 0, 0, ...);
+
+    -- if (InCombatLockdown()) then
+    --   local currentTime = GetTime();
+    --   local secondsAgo = currentTime - lastScreenshot;
+
+    --   if (secondsAgo > 10) then
+    --     lastScreenshot = currentTime;
+    --     _G.C_Timer.After(1, TakeScreenshot);
+    --   end
+    -- end
   end
 end
 
-function MayronUI:LogDebug(...)
-  tk:LogDebug(...);
+function MayronUI:LogDebug(debugMessage, ...)
+  if (not MayronUI.DEBUG_MODE) then return end
+  tk:LogToChatFrame(debugMessage, 1, 0.8, 0.18, ...);
+end
+
+function MayronUI:LogInfo(debugMessage, ...)
+  if (not MayronUI.DEBUG_MODE) then return end
+  tk:LogToChatFrame(debugMessage, 0.510, 0.773, 1.0, ...);
 end
 
 ---@return boolean @Returns true if MayronUI has been previously installing (usually using MUI_Setup).

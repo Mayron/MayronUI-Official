@@ -8,7 +8,7 @@ local tooltipStyle = _G.GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT or _G.TOOLTIP_BACKDR
 local gameTooltip = _G.GameTooltip;
 local healthBar, powerBar = _G.GameTooltipStatusBar, nil;
 local IsInGroup, IsInRaid, After = _G.IsInGroup, _G.IsInRaid, _G.C_Timer.After;
-local TooltipDataProcessor = _G.TooltipDataProcessor;
+local TooltipDataProcessor, UnitIsDeadOrGhost = _G.TooltipDataProcessor, _G.UnitIsDeadOrGhost;
 
 local originalSetBackdropBorderColor = gameTooltip.SetBackdropBorderColor;
 gameTooltip.SetBackdropBorderColor = tk.Constants.DUMMY_FUNC;
@@ -526,6 +526,15 @@ do
   function UpdateUnitStatusBars(data, unitID)
     local color = tk:GetClassColorByUnitID(unitID);
 
+    if (gameTooltip.SetGridColor) then
+      if (UnitIsPlayer(unitID)) then
+        gameTooltip:SetGridColor(color.r, color.g, color.b);
+      else
+        local r, g, b = tk:GetThemeColor();
+        gameTooltip:SetGridColor(r, g, b);
+      end
+    end
+
     if (UnitIsPlayer(unitID) and color) then
       originalSetStatusBarColor(healthBar, color.r, color.g, color.b);
 
@@ -838,7 +847,7 @@ local function UpdateSpecAndItemLevel(data, unitID, updateTooltip)
         SetDoubleLine(data, ITEM_LEVEL_LABEL, foundItemLevel);
       end
 
-      if (shouldFindSpec or shouldFindItemLevel) then
+      if ((shouldFindSpec or shouldFindItemLevel) and not InCombatLockdown() and not UnitIsDeadOrGhost("player")) then
         if (not data.notifying and
           UnitIsPlayer(unitID) and
           CheckInteractDistance(unitID, 1) and
@@ -1191,6 +1200,10 @@ function C_ToolTipsModule:OnEnable(data)
 
     if (not self:GetUnit()) then
       HideAllAuras(data);
+      if (self.SetGridColor) then
+        local r, g, b = tk:GetThemeColor();
+        self:SetGridColor(r, g, b);
+      end
     end
 
     RefreshPadding(data); -- Needed for DF
