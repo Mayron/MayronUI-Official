@@ -24,7 +24,7 @@ local colorSettings = {
   timeRemaining = {1, 1, 1};
   count         = {1, 0.82, 0};
   auraName      = {1, 1, 1};
-  helpful        = {0, 0, 0};
+  helpful        = {0.2, 0.2, 0.2};
   harmful        = {0.76, 0.2, 0.2};
   magic         = {0.2, 0.6, 1};
   disease       = {0.6, 0.4, 0};
@@ -43,20 +43,22 @@ local buffSettings = {
     nonPlayerAlpha = 0.7;
     vDirection = "DOWN";
     hDirection = "LEFT";
-    width = 40;
-    height = 30;
-    xSpacing = 4;
+    iconWidth = 40;
+    iconHeight = 30;
+    iconBorderSize = 1.125;
+    masque = true;
+    xSpacing = 6;
     ySpacing = 20;
     perRow = 10;
     secondsWarning = 10;
-    position = { "TOPRIGHT", "Minimap", "TOPLEFT", -4, 0 };
+    position = { "TOPRIGHT", "Minimap", "TOPLEFT", -4, -0.5 };
     textSize = {
       timeRemaining = 10;
       timeRemainingLarge = 14;
       count = 14;
     };
     textPosition = {
-      timeRemaining = { "TOP", "icon", "BOTTOM", 0, -4 };
+      timeRemaining = { "TOP", "iconFrame", "BOTTOM", 0, -4 };
       count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
     };
   };
@@ -66,17 +68,20 @@ local buffSettings = {
     nonPlayerAlpha = 0.7;
     vDirection = "DOWN";
     hDirection = "LEFT";
-    width = 200;
-    height = 22;
+    iconWidth = 40;
+    iconHeight = 30;
+    iconBorderSize = 1;
+    barWidth = 200;
+    barHeight = 22;
     xSpacing = 4;
     ySpacing = 1;
     perRow = 1;
     secondsWarning = 10;
-    position = { "TOPRIGHT", "Minimap", "TOPLEFT", -4, -200 };
     texture = "MUI_StatusBar";
     iconGap = 1;
     showSpark = true;
 
+    position = { "TOPRIGHT", "Minimap", "TOPLEFT", -4, -200 };
     textSize = {
       timeRemaining = 10;
       timeRemainingLarge = 14;
@@ -93,16 +98,18 @@ local buffSettings = {
 };
 
 local debuffSettings = {
-  mode = "statusbars";
+  mode = "icons";
 
   icons = {
     pulse = false;
     nonPlayerAlpha = 0.7;
     vDirection = "DOWN";
     hDirection = "LEFT";
-    width = 30;
-    height = 30;
-    xSpacing = 4;
+    iconWidth = 40;
+    iconHeight = 30;
+    iconBorderSize = 1;
+    masque = true;
+    xSpacing = 6;
     ySpacing = 20;
     perRow = 10;
     secondsWarning = 10;
@@ -113,7 +120,7 @@ local debuffSettings = {
       count = 14;
     };
     textPosition = {
-      timeRemaining = { "TOP", "icon", "BOTTOM", 0, -4 };
+      timeRemaining = { "TOP", "iconFrame", "BOTTOM", 0, -4 };
       count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
     };
   };
@@ -123,8 +130,11 @@ local debuffSettings = {
     nonPlayerAlpha = 0.7;
     vDirection = "DOWN";
     hDirection = "LEFT";
-    width = 200;
-    height = 22;
+    iconWidth = 40;
+    iconHeight = 30;
+    iconBorderSize = 1;
+    barWidth = 200;
+    barHeight = 22;
     xSpacing = 4;
     ySpacing = 1;
     perRow = 1;
@@ -251,7 +261,9 @@ function AuraButtonMixin:ApplyTextStyle(name)
   local point, relativeFrame, relativePoint, xOffset, yOffset = unpack(self.settings.textPosition[name]);
 
   if (relativeFrame == "icon") then
-    relativeFrame = self.iconFrame;
+    relativeFrame = self.maskTexture;
+  elseif (relativeFrame == "iconFrame") then
+    relativeFrame = self.icnFrame;
   elseif (relativeFrame == "bar") then
     relativeFrame = self.statusbarFrame;
   end
@@ -508,102 +520,131 @@ function AuraButtonMixin:SetSparkShown(shown)
   self.spark:SetShown(shown);
 end
 
+local function GetAuraButtonSize(settings)
+  local width = settings.iconWidth;
+  local height = settings.iconHeight;
+
+  if (settings.mode == "statusbars") then
+    width = settings.iconGap + settings.barWidth;
+    height = math.max(height, settings.barHeight);
+  end
+
+  return width, height;
+end
+
+
 local masqueGroup;
 
 function AuraButtonMixin:ApplyStyling()
   if (self.iconFrame) then return end
   if (not self.texture) then return end
 
-  self:SetSize(self.settings.width, self.settings.height);
-  local auraBackdrop = tk.Constants.BACKDROP_WITH_BACKGROUND;
-  -- auraBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", "Skinner");
-  -- auraBackdrop.edgeSize = 1;
-  local edge = auraBackdrop.edgeSize;
+  local width, height = GetAuraButtonSize(self.settings);
+  self:SetSize(width, height);
 
+  -- Set Up Icon:
   self.iconFrame = tk:CreateFrame("Frame", self, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
-  self.backdrop = tk:SetBackground(self.iconFrame, unpack(self.settings.colors.background));
-  -- self.iconFrame:SetBackdrop(auraBackdrop);
-  -- self.iconFrame:SetBackdropBorderColor(0, 0, 0);
-  -- self.iconFrame:SetBackdropColor(unpack(self.settings.colors.background));
+  self.iconFrame:SetSize(self.settings.iconWidth, self.settings.iconHeight);
+  self.iconFrame:SetPoint("TOPLEFT");
+  self.iconBorder = tk:SetBackground(self.iconFrame, 0, 0, 0);
+  self.iconBorder:SetDrawLayer("BORDER");
 
-  self.iconTexture = self.iconFrame:CreateTexture(nil, "ARTWORK");
+  local b = self.settings.iconBorderSize;
+  local maskTexturePath = tk:GetAssetFilePath("Textures\\black");
+  self.maskTexture = self.iconFrame:CreateMaskTexture();
+  self.maskTexture:SetTexture(maskTexturePath, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE");
+  self.maskTexture:SetPoint("TOPLEFT", b, -b);
+  self.maskTexture:SetPoint("BOTTOMRIGHT", -b, b);
+
+  self.iconTexture = self.iconFrame:CreateTexture(nil, "BACKGROUND");
   self.iconTexture:SetTexture(self.texture);
-  self.iconTexture:ClearAllPoints();
-  self.iconTexture:SetPoint("TOPLEFT", edge, -edge);
-  self.iconTexture:SetPoint("BOTTOMRIGHT", -edge, edge);
+  self.iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
+  self.iconTexture:SetPoint("CENTER");
 
-  if (self.settings.mode == "statusbars") then
-    self.iconFrame:SetPoint("TOPLEFT");
-    self.iconFrame:SetPoint("BOTTOMLEFT");
-    self.iconFrame:SetWidth(self.settings.height);
-    self.iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
-  else
-    self.iconFrame:SetAllPoints(true);
+  local diff = math.abs(self.settings.iconWidth - self.settings.iconHeight);
+  local iconWidth, iconHeight = self.settings.iconWidth, self.settings.iconHeight;
 
-    local width = self.settings.width;
-    local height = self.settings.height;
+  if (diff > 5) then
+    diff = diff * 0.1;
 
-    if (width > height) then
-      local diff = (1 - (height / width)) / 2;
-      self.iconTexture:SetTexCoord(0.1, 0.9, diff, 1 - diff);
-    elseif (height > width) then
-      local diff = (1 - (width / height)) / 2;
-      self.iconTexture:SetTexCoord(diff, 1 - diff, 0.1, 0.9);
+    if (self.settings.iconWidth > self.settings.iconHeight) then
+      iconHeight = iconHeight - diff;
     else
-      self.iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
-
+      iconWidth = iconWidth - diff;
     end
   end
 
+  self.iconTexture:SetSize(iconWidth, iconHeight);
+  self.iconTexture:AddMaskTexture(self.maskTexture);
+
+  local fakeIconTexture = self.iconFrame:CreateTexture(nil, "ARTWORK");
+  fakeIconTexture:SetTexture("");
+  fakeIconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
+  fakeIconTexture:SetPoint("TOPLEFT", b, -b);
+  fakeIconTexture:SetPoint("BOTTOMRIGHT", -b, b);
+
+  -- Cooldown
   self.cooldown = tk:CreateFrame("Cooldown", self.iconFrame, nil, "CooldownFrameTemplate");
   self.cooldown:SetReverse(1);
   self.cooldown:SetHideCountdownNumbers(true);
-  self.cooldown.noCooldownCount = true;
-  self.cooldown:SetPoint("TOPLEFT", edge, -edge);
-  self.cooldown:SetPoint("BOTTOMRIGHT", -edge, edge);
+  self.cooldown.noCooldownCount = true; -- disable OmniCC
+  self.cooldown:SetPoint("TOPLEFT", b, -b);
+  self.cooldown:SetPoint("BOTTOMRIGHT", -b, b);
   self.cooldown:SetFrameStrata("TOOLTIP");
 
-  local countTemplate = (self.settings.mode == "statusbars" and "GameFontNormal") or "NumberFont_Outline_Large";
-  self.countText = self.cooldown:CreateFontString(nil, "OVERLAY", countTemplate);
-  self:ApplyTextStyle("count");
-
-  self.timeRemainingText = self.cooldown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
-  self:ApplyTextStyle("timeRemaining");
-
+  -- Status Bar:
   if (self.settings.mode == "statusbars") then
     self.statusbarFrame = tk:CreateFrame("Frame", self, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
-    self.statusbarFrame:SetPoint("TOPLEFT", self.iconFrame, "TOPRIGHT", self.settings.iconGap, 0);
-    self.statusbarFrame:SetPoint("BOTTOMRIGHT");
-    self.statusbarFrame:SetBackdrop(auraBackdrop);
-    self.statusbarFrame:SetBackdropBorderColor(0, 0, 0);
-    self.statusbarFrame:SetBackdropColor(unpack(self.settings.colors.background));
+    self.statusbarFrame:SetPoint("LEFT", self.iconFrame, "RIGHT", self.settings.iconGap, 0);
+    self.statusbarFrame:SetPoint("RIGHT");
+    tk:SetBackground(self.statusbarFrame, unpack(self.settings.colors.background));
 
     self.statusbar = tk:CreateFrame("StatusBar", self.statusbarFrame);
     self.statusbar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", self.settings.texture));
     self.statusbar:SetPoint("TOPLEFT", 1, -1);
     self.statusbar:SetPoint("BOTTOMRIGHT", -1, 1);
 
-    self.auraNameText = self.statusbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
-    self:ApplyTextStyle("auraName");
-    self.auraNameText:SetJustifyH("LEFT");
-    self.auraNameText:SetWordWrap(false);
-
     self:SetSparkShown(self.settings.showSpark);
   end
 
+  -- FontStrings
+  local countTemplate = (self.settings.mode == "statusbars" and "GameFontNormal") or "NumberFont_Outline_Large";
+  self.countText = self.cooldown:CreateFontString(nil, "OVERLAY", countTemplate);
+  self:ApplyTextStyle("count");
+
+  if (self.settings.mode == "statusbars") then
+    self.auraNameText = self.statusbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
+    self:ApplyTextStyle("auraName");
+
+    self.auraNameText:SetJustifyH("LEFT");
+    self.auraNameText:SetWordWrap(false);
+  end
+
+  self.timeRemainingText = self.cooldown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
+  self:ApplyTextStyle("timeRemaining");
+
+  -- Scripts:
   self:HookScript("OnUpdate", HandleAuraButtonOnUpdate);
   self:HookScript("OnEnter", HandleAuraButtonOnEnter);
   self:HookScript("OnLeave", tk.GeneralTooltip_OnLeave);
 
-  if (not masqueGroup) then
-    local masque = _G.LibStub("Masque", true);
+  -- Masque Support:
+  if (self.settings.masque) then
+    if (not masqueGroup) then
+      local masque = _G.LibStub("Masque", true);
 
-    if (masque) then
-      masqueGroup = masque:Group("MayronUI", "Auras");
+      if (masque) then
+        masqueGroup = masque:Group("MayronUI", "Auras");
+        -- masqueGroup.db.Gloss = true;
+        -- masqueGroup.db.Colors.Normal = {};
+
+        masqueGroup:SetCallback(function(GroupID, Group, SkinID, Backdrop, Shadow, Gloss, Colors, Disabled)
+          print("Hello from my callback!")
+          print(GroupID, Group, SkinID, Backdrop, Shadow, Gloss, Colors, Disabled);
+        end)
+      end
     end
-  end
 
-  if (masqueGroup) then
     local masqueType;
 
     if (self.filter == "HELPFUL") then
@@ -616,10 +657,10 @@ function AuraButtonMixin:ApplyStyling()
       masqueType = "Debuff";
     end
 
-    masqueGroup:AddButton(self, {
-      Backdrop = self.backdrop,
-      Count = self.countText,
-      Icon = self.iconTexture,
+    masqueGroup:AddButton(self.iconFrame, {
+      Mask = self.maskTexture,
+      IconBorder = self.iconBorder,
+      Icon = self.fakeIconTexture,
       Cooldown = self.cooldown,
     }, masqueType, true);
   end
@@ -633,12 +674,12 @@ function AuraButtonMixin:UpdateDisplayInfo()
 
   if (hasTimeRemainingText and hasCooldown) then
     if (self.auraNameText) then
-      self.auraNameText:SetWidth(self.settings.width - 60);
+      self.auraNameText:SetWidth(self.settings.barWidth - 60);
     end
     self.cooldown:SetCooldown(self.startTime, self.duration);
   else
     if (self.auraNameText) then
-      self.auraNameText:SetWidth(self.settings.width);
+      self.auraNameText:SetWidth(self.settings.barWidth);
     end
     self.cooldown:Clear();
   end
@@ -664,12 +705,13 @@ function AuraButtonMixin:UpdateDisplayInfo()
       end
     end
 
-  elseif (self.owned) then
-    r, g, b = unpack(self.settings.colors.owned);
   elseif (self.statusbar) then
-    r, g, b = unpack(self.settings.colors.foreground);
-  else
-    self:SetAlpha(self.settings.nonPlayerAlpha);
+    if (self.owned) then
+      r, g, b = unpack(self.settings.colors.owned);
+    else
+      self:SetAlpha(self.settings.nonPlayerAlpha);
+      r, g, b = unpack(self.settings.colors.foreground);
+    end
   end
 
   if (self.auraNameText) then
@@ -680,7 +722,7 @@ function AuraButtonMixin:UpdateDisplayInfo()
     self.iconFrame:SetBackdropBorderColor(0, 0, 0);
     self.statusbar:SetStatusBarColor(r, g, b);
   else
-    self.iconFrame:SetBackdropBorderColor(r, g, b);
+    self.iconBorder:SetVertexColor(r, g, b);
   end
 
   self.timeRemainingLastUpdate = 1;
@@ -782,8 +824,10 @@ local function CreateAuraHeader(filter, settings)
   settings.mode = mode;
 
   local auraPoint;
-  local xOffset = math.abs(settings.width + settings.xSpacing);
-  local yOffset = math.abs(settings.height + settings.ySpacing);
+
+  local width, height = GetAuraButtonSize(settings);
+  local xOffset = math.abs(width + settings.xSpacing);
+  local yOffset = math.abs(height + settings.ySpacing);
 
   if (settings.vDirection == "DOWN") then
     auraPoint = "TOP";
@@ -807,7 +851,7 @@ local function CreateAuraHeader(filter, settings)
   local pos = settings.position;
   local relativeFrame = _G[pos[2]] or _G.UIParent;
   header:SetPoint(pos[1], relativeFrame, pos[3], pos[4], pos[5]);
-  header:SetSize(settings.width, settings.height);
+  header:SetSize(width, height);
 
   header:SetAttribute("unit", "player");
   header:SetAttribute("filter", filter)
@@ -817,9 +861,9 @@ local function CreateAuraHeader(filter, settings)
     header:SetAttribute("weaponTemplate", "SecureActionButtonTemplate");
   end
 
-  header:SetAttribute("template", "SecureActionButtonTemplate")
-  header:SetAttribute("minWidth", settings.width);
-  header:SetAttribute("minHeight", settings.height);
+  header:SetAttribute("template", "SecureActionButtonTemplate"); -- ActionButtonTemplate
+  header:SetAttribute("minWidth", width);
+  header:SetAttribute("minHeight", height);
   header:SetAttribute("point", auraPoint);
   header:SetAttribute("xOffset", xOffset);
   header:SetAttribute("yOffset", 0);
