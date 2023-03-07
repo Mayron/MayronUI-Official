@@ -3,7 +3,7 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
-local unpack, SecondsToTimeAbbrev = _G.unpack, _G.SecondsToTimeAbbrev;
+local unpack, SecondsToTimeAbbrev, Mixin = _G.unpack, _G.SecondsToTimeAbbrev, _G.Mixin;
 local GetTime, UnitGUID = _G.GetTime, _G.UnitGUID;
 local GetInventoryItemQuality = _G.GetInventoryItemQuality;
 local GetItemQualityColor = _G.GetItemQualityColor;
@@ -404,7 +404,7 @@ local function HandleAuraButtonOnUpdate(self, elapsed)
   end
 
   if (self.countLastUpdate > 0.1) then
-    local _, _, count = UnitAura("player", self:GetID(), self.filter);
+    local _, _, count = UnitAura("player", self.id or self:GetID(), self.filter);
 
     if (not count or count < 1) then
       self.countText:SetText(tk.Strings.Empty);
@@ -497,10 +497,12 @@ end
 local function HandleAuraButtonOnEnter(self)
   GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT");
   GameTooltip:SetFrameLevel(self.cooldown:GetFrameLevel() + 2);
+  local auraId = self.id or self:GetID();
+
   if (self.auraType == "item") then
-    GameTooltip:SetInventoryItem("player", self:GetID());
+    GameTooltip:SetInventoryItem("player", auraId);
   else
-    GameTooltip:SetUnitAura("player", self:GetID(), self.filter);
+    GameTooltip:SetUnitAura("player", auraId, self.filter);
   end
 end
 
@@ -531,7 +533,6 @@ local function GetAuraButtonSize(settings)
 
   return width, height;
 end
-
 
 local masqueGroup;
 
@@ -638,10 +639,12 @@ function AuraButtonMixin:ApplyStyling()
         -- masqueGroup.db.Gloss = true;
         -- masqueGroup.db.Colors.Normal = {};
 
-        masqueGroup:SetCallback(function(GroupID, Group, SkinID, Backdrop, Shadow, Gloss, Colors, Disabled)
-          print("Hello from my callback!")
-          print(GroupID, Group, SkinID, Backdrop, Shadow, Gloss, Colors, Disabled);
-        end)
+        if (masqueGroup) then
+          masqueGroup:SetCallback(function(GroupID, Group, SkinID, Backdrop, Shadow, Gloss, Colors, Disabled)
+            print("Hello from my callback!")
+            print(GroupID, Group, SkinID, Backdrop, Shadow, Gloss, Colors, Disabled);
+          end);
+        end
       end
     end
 
@@ -657,12 +660,14 @@ function AuraButtonMixin:ApplyStyling()
       masqueType = "Debuff";
     end
 
-    masqueGroup:AddButton(self.iconFrame, {
-      Mask = self.maskTexture,
-      IconBorder = self.iconBorder,
-      Icon = self.fakeIconTexture,
-      Cooldown = self.cooldown,
-    }, masqueType, true);
+    if (masqueGroup) then
+      masqueGroup:AddButton(self.iconFrame, {
+        Mask = self.maskTexture,
+        IconBorder = self.iconBorder,
+        Icon = self.fakeIconTexture,
+        Cooldown = self.cooldown,
+      }, masqueType, true);
+    end
   end
 end
 
@@ -689,7 +694,7 @@ function AuraButtonMixin:UpdateDisplayInfo()
   self:SetAlpha(1);
 
   if (self.auraType == "item") then
-    local invSlotId = self:GetID();
+    local invSlotId = self.id or self:GetID();
     local quality = GetInventoryItemQuality("player", invSlotId);
 
     if (obj:IsNumber(quality)) then
@@ -741,9 +746,11 @@ local function OnAuraButtonAttributeChanged(self, attribute, value)
     return
   end
 
-  self:SetID(value);
+  -- this is required to fix a blizz bug with Enchant Auras assigning
+  -- the ID after instead of before, like all other auras:
+  self.id = value;
 
-  if (attribute == 'index') then
+  if (attribute == "index") then
     local name, texture, count, auraType, duration, expiryTime, source = UnitAura("player", value, self.filter);
 
     self.expiryTime = expiryTime;
@@ -795,21 +802,19 @@ end
 
 local function OnHeaderAttributeChanged(self, name, btn)
   if (not (name:match("^child") or name:match("^tempenchant"))) then
-    return;
+    return
   end
 
   btn.filter = self.filter;
   btn.settings = self.settings;
 
-  _G.Mixin(btn, AuraButtonMixin);
+  Mixin(btn, AuraButtonMixin);
 
   if (self.filter == "HELPFUL") then
     btn:RegisterForClicks('RightButtonUp');
-    btn:SetAttribute('type2', 'cancelaura');
   end
 
   btn:SetScript('OnAttributeChanged', OnAuraButtonAttributeChanged);
-  btn:Show();
 end
 
 local function CreateAuraHeader(filter, settings)
@@ -852,13 +857,15 @@ local function CreateAuraHeader(filter, settings)
   local relativeFrame = _G[pos[2]] or _G.UIParent;
   header:SetPoint(pos[1], relativeFrame, pos[3], pos[4], pos[5]);
   header:SetSize(width, height);
-
   header:SetAttribute("unit", "player");
-  header:SetAttribute("filter", filter)
+  header:SetAttribute("filter", filter);
 
   if (filter == "HELPFUL") then
     header:SetAttribute("includeWeapons", 1);
     header:SetAttribute("weaponTemplate", "SecureActionButtonTemplate");
+    header:SetAttribute('initialConfigFunction', [[
+      self:SetAttribute('type2', 'cancelaura');
+    ]]);
   end
 
   header:SetAttribute("template", "SecureActionButtonTemplate"); -- ActionButtonTemplate

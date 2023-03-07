@@ -35,6 +35,7 @@ local UnitPowerType, UnitPower, UnitPowerMax, min = _G.UnitPowerType, _G.UnitPow
 local UnitLevel, CanInspect, UnitGUID, CheckInteractDistance =
   _G.UnitLevel, _G.CanInspect, _G.UnitGUID, _G.CheckInteractDistance;
 local tostring, InCombatLockdown = _G.tostring, _G.InCombatLockdown;
+local IsPlayerMoving, IsGUIDInGroup = _G.IsPlayerMoving, _G.IsGUIDInGroup;
 local pairs = _G.pairs;
 
 -- Constants
@@ -247,6 +248,25 @@ local function SetBackdropStyle(data)
     tooltipStyle.edgeSize = data.tooltipBackdrop.edgeSize;
   end
 
+  if (data.settings.muiTexture.enabled) then
+    local closeBtn = _G["ItemRefCloseButton"];
+
+    if (obj:IsWidget(closeBtn)) then
+      local closeTexture = tk.Constants.AddOnStyle:GetTexture("CloseButtonBackground");
+      closeBtn:SetNormalTexture(closeTexture, "BLEND");
+      closeBtn:SetHighlightTexture(closeTexture, "ADD");
+
+      local pushed = closeBtn:GetPushedTexture();
+      tk:KillElement(pushed);
+
+      tk.Constants.AddOnStyle:ApplyColor(nil, nil, closeBtn);
+
+      local scale = closeBtn:GetParent():GetScale();
+      closeBtn:SetSize(28/scale, 24/scale);
+      closeBtn:SetPoint("TOPRIGHT", -1, 0);
+    end
+  end
+
   for _, tooltipName in ipairs(tooltipsToReskin) do
     local tooltip = _G[tooltipName];
 
@@ -274,10 +294,8 @@ local function SetBackdropStyle(data)
         ManageGetterOverrides(data, tooltip, true);
 
         if (not obj:IsFunction(tooltip.SetGridTextureShown)) then
-          local texture = tk.Constants.AddOnStyle:GetTexture("DialogBoxBackground");
-          texture = strformat("%s%s", texture, "Medium");
-
-          gui:CreateGridTexture(tooltip, texture, 10, 6, 512, 512);
+          local texture = tk.Constants.AddOnStyle:GetTexture("Tooltip");
+          gui:CreateGridTexture(tooltip, texture, 10, 10, 512, 512);
         end
 
         if (data.settings.muiTexture.useTheme) then
@@ -829,56 +847,81 @@ local function UpdateTargetText(data, unitID)
   SetDoubleLine(data, "Target:", targetName);
 end
 
-local function UpdateSpecAndItemLevel(data, unitID, updateTooltip)
-  if ((data.settings.specShown or data.settings.itemLevelShown) and UnitExists(unitID)) then
-    local unitGuid = UnitGUID(unitID);
-
-    if (unitGuid) then
-      local foundSpec = data.specCache[unitGuid];
-      local foundItemLevel = data.itemLevelCache[unitGuid];
-      local shouldFindSpec = not foundSpec and data.settings.specShown;
-      local shouldFindItemLevel = not foundItemLevel and data.settings.itemLevelShown;
-
-      if (updateTooltip and foundSpec and data.settings.specShown) then
-        SetDoubleLine(data, SPEC_LABEL, foundSpec);
-      end
-
-      if (updateTooltip and foundItemLevel and data.settings.itemLevelShown) then
-        SetDoubleLine(data, ITEM_LEVEL_LABEL, foundItemLevel);
-      end
-
-      if ((shouldFindSpec or shouldFindItemLevel) and not InCombatLockdown() and not UnitIsDeadOrGhost("player")) then
-        if (not data.notifying and
-          UnitIsPlayer(unitID) and
-          CheckInteractDistance(unitID, 1) and
-          UnitLevel(unitID) >= 10) then
-
-          if (CanInspect(unitID, false)) then
-            if (not (_G.InspectFrame and _G.InspectFrame:IsVisible())) then
-              if (updateTooltip and shouldFindSpec) then
-                SetDoubleLine(data, SPEC_LABEL, "loading...");
-              end
-
-              if (updateTooltip and shouldFindItemLevel) then
-                SetDoubleLine(data, ITEM_LEVEL_LABEL, "loading...");
-              end
-
-              After(0.2, function()
-                if (UnitGUID(unitID) == unitGuid) then
-                  data.notifying = unitGuid;
-                  _G.NotifyInspect(unitID);
-                end
-              end);
-
-              return true;
-            end
-          end
-        end
-      end
-    end
+local function ShouldInspectUnit(unitID)
+  if (InCombatLockdown() or UnitIsDeadOrGhost("player")) then
+    return false;
   end
 
-  return false;
+  local unitGuid = UnitGUID(unitID);
+
+  if (not UnitExists(unitID)) then
+    return false;
+  end
+
+  if (IsPlayerMoving() and not IsGUIDInGroup(unitGuid)) then
+    return false;
+  end
+
+  local shouldInspect =
+    UnitIsPlayer(unitID) and
+    CheckInteractDistance(unitID, 1) and
+    CanInspect(unitID, false) and
+    UnitLevel(unitID) >= 10 and
+    (not (_G.InspectFrame and _G.InspectFrame:IsVisible()));
+
+  return shouldInspect;
+end
+
+local function UpdateSpecAndItemLevel(data, unitID, updateTooltip)
+  local runScript = (data.settings.specShown or data.settings.itemLevelShown) and UnitExists(unitID);
+
+  if (not runScript) then
+    return false;
+  end
+
+  local unitGuid = UnitGUID(unitID);
+
+  if (not unitGuid) then
+    return false;
+  end
+
+  local foundSpec = data.specCache[unitGuid];
+  local foundItemLevel = data.itemLevelCache[unitGuid];
+  local shouldFindSpec = not foundSpec and data.settings.specShown;
+  local shouldFindItemLevel = not foundItemLevel and data.settings.itemLevelShown;
+
+  if (updateTooltip and foundSpec and data.settings.specShown) then
+    SetDoubleLine(data, SPEC_LABEL, foundSpec);
+  end
+
+  if (updateTooltip and foundItemLevel and data.settings.itemLevelShown) then
+    SetDoubleLine(data, ITEM_LEVEL_LABEL, foundItemLevel);
+  end
+
+  if (data.notifying or (not (shouldFindSpec or shouldFindItemLevel))) then
+    return false;
+  end
+
+  if (not ShouldInspectUnit(unitID)) then
+    return false;
+  end
+
+  if (updateTooltip and shouldFindSpec) then
+    SetDoubleLine(data, SPEC_LABEL, "loading...");
+  end
+
+  if (updateTooltip and shouldFindItemLevel) then
+    SetDoubleLine(data, ITEM_LEVEL_LABEL, "loading...");
+  end
+
+  After(0.2, function()
+    if (UnitGUID(unitID) == unitGuid) then
+      data.notifying = unitGuid;
+      _G.NotifyInspect(unitID);
+    end
+  end);
+
+  return true;
 end
 
 local function CreatePowerBar(data)
@@ -1165,12 +1208,14 @@ local function CleanCache(cache)
 end
 
 local function RunCacheMaintenanceTask(data)
-  if (not InCombatLockdown()) then
-    data.notifying = "BLOCKED";
-    CleanCache(data.specCache);
-    CleanCache(data.itemLevelCache);
-    data.notifying = nil;
+  if (InCombatLockdown() or UnitIsDeadOrGhost("player")) then
+    return
   end
+
+  data.notifying = "BLOCKED";
+  CleanCache(data.specCache);
+  CleanCache(data.itemLevelCache);
+  data.notifying = nil;
 end
 
 function C_ToolTipsModule:OnInitialized(data)
@@ -1195,14 +1240,14 @@ function C_ToolTipsModule:OnEnable(data)
 
   ApplyHealthBarChanges(data);
 
-  gameTooltip:HookScript("OnShow", function(self)
-    if (ShouldBeHidden(data, self)) then return end
+  gameTooltip:HookScript("OnShow", function()
+    if (ShouldBeHidden(data, gameTooltip)) then return end
 
-    if (not self:GetUnit()) then
+    if (not gameTooltip:GetUnit()) then
       HideAllAuras(data);
-      if (self.SetGridColor) then
+      if (gameTooltip.SetGridColor) then
         local r, g, b = tk:GetThemeColor();
-        self:SetGridColor(r, g, b);
+        gameTooltip:SetGridColor(r, g, b);
       end
     end
 
@@ -1220,19 +1265,21 @@ function C_ToolTipsModule:OnEnable(data)
       if (unitID) then
         local unitGuid = UnitGUID(unitID);
 
-        local previouslyInspected = data.itemLevelCache[unitGuid] or data.specCache[unitGuid];
-        if (data.settings.itemLevelShown and previouslyInspected) then
-          local itemLevel = tk:GetInspectItemLevel(unitID);
+        local previousItemLevel = data.itemLevelCache[unitGuid];
 
-          if (itemLevel > 0) then
+        if (data.settings.itemLevelShown and previousItemLevel and not InCombatLockdown()) then
+          if (ShouldInspectUnit(unitID)) then
+            previousItemLevel = tk:GetInspectItemLevel(unitID);
+          end
+
+          if (previousItemLevel > 0) then
             if (data.itemLevelCache[unitGuid] == nil and data.notifying ~= unitGuid) then
               data.itemLevelCache[#data.itemLevelCache + 1] = unitGuid;
             end
 
-            -- Update existing entry:
-            data.itemLevelCache[unitGuid] = itemLevel;
-
-            SetDoubleLine(data, ITEM_LEVEL_LABEL, itemLevel);
+            -- -- Update existing entry:
+            data.itemLevelCache[unitGuid] = previousItemLevel;
+            SetDoubleLine(data, ITEM_LEVEL_LABEL, previousItemLevel);
           end
         end
 
@@ -1401,12 +1448,17 @@ function C_ToolTipsModule:OnEnable(data)
 
     if (self.lastUpdated > 5) then
       self.lastUpdated = 0;
-      data.notifying = nil;
+
+      if (InCombatLockdown() or UnitIsDeadOrGhost("player")) then
+        return false;
+      end
 
       local _, tooltipUnit = gameTooltip:GetUnit();
       if (tooltipUnit) then return end
 
       if (IsInGroup()) then
+        data.notifying = nil;
+
         if (IsInRaid()) then
           for userIndex = 1, 40 do
             local unitID = ("raid%d"):format(userIndex);

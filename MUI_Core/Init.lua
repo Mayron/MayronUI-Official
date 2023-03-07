@@ -92,6 +92,7 @@ db:OnStartUp(function(self, sv)
   style:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\GraphicalArrow"), "ArrowButtonTexture");
   style:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\SmallArrow"), "SmallArrow");
   style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\Texture-"), "DialogBoxBackground");
+  style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\Tooltip"), "Tooltip");
   style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\TitleBar"), "TitleBarBackground");
   style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "CloseButtonBackground");
   style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "DownButton");

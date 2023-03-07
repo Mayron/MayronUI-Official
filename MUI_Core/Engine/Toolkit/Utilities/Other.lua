@@ -237,15 +237,18 @@ local ITEM_GEAR_SLOTS = {
   1, 2, 3, 15, 5, 9, 16, 17, 10, 6, 7, 8, 11, 12, 13, 14
 };
 
-local UnitExists, UnitGUID = _G.UnitExists, _G.UnitGUID;
+local UnitExists, ipairs = _G.UnitExists, _G.ipairs;
+local GetItemInfo, GetInventoryItemLink = _G.GetItemInfo, _G.GetInventoryItemLink;
+local GetInspectItemLevel = _G.GetInspectItemLevel;
+
 
 function tk:GetInspectItemLevel(unitID)
   if (not UnitExists(unitID)) then
     return -1;
   end
 
-  if (_G.GetInspectItemLevel) then
-    return _G.C_PaperDollInfo.GetInspectItemLevel(unitID);
+  if (GetInspectItemLevel) then
+    return GetInspectItemLevel(unitID);
   end
 
   local total = 0;
@@ -257,7 +260,7 @@ function tk:GetInspectItemLevel(unitID)
       return -1;
     end
 
-    local itemLink = _G.GetInventoryItemLink(unitID, slotID);
+    local itemLink = GetInventoryItemLink(unitID, slotID);
 
     if (not itemLink) then
       if (slotID == 17) then
@@ -265,7 +268,7 @@ function tk:GetInspectItemLevel(unitID)
         maxSlots = maxSlots - 1;
       end
     else
-      local _, _, _, itemLevel = _G.GetItemInfo(itemLink);
+      local _, _, _, itemLevel = GetItemInfo(itemLink);
       total = total + itemLevel;
     end
   end
