@@ -1,7 +1,7 @@
 -- luacheck: ignore self 143
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
+local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 
 local unpack, SecondsToTimeAbbrev, Mixin = _G.unpack, _G.SecondsToTimeAbbrev, _G.Mixin;
 local GetTime, UnitGUID = _G.GetTime, _G.UnitGUID;
@@ -24,6 +24,7 @@ local colorSettings = {
   timeRemaining = {1, 1, 1};
   count         = {1, 0.82, 0};
   auraName      = {1, 1, 1};
+  statusbarBorder = {0, 0, 0};
   helpful        = {0.2, 0.2, 0.2};
   harmful        = {0.76, 0.2, 0.2};
   magic         = {0.2, 0.6, 1};
@@ -45,13 +46,12 @@ local buffSettings = {
     hDirection = "LEFT";
     iconWidth = 40;
     iconHeight = 30;
-    iconBorderSize = 1.125;
-    masque = true;
+    iconBorderSize = 2;
     xSpacing = 6;
     ySpacing = 20;
     perRow = 10;
     secondsWarning = 10;
-    position = { "TOPRIGHT", "Minimap", "TOPLEFT", -4, -0.5 };
+    position = { "TOPRIGHT", "UIParent", "TOPRIGHT", -5, -5 };
     textSize = {
       timeRemaining = 10;
       timeRemainingLarge = 14;
@@ -69,19 +69,19 @@ local buffSettings = {
     vDirection = "DOWN";
     hDirection = "LEFT";
     iconWidth = 40;
-    iconHeight = 30;
+    iconHeight = 24;
     iconBorderSize = 1;
     barWidth = 200;
-    barHeight = 22;
+    barHeight = 24;
     xSpacing = 4;
     ySpacing = 1;
+    iconSpacing = 1;
     perRow = 1;
     secondsWarning = 10;
     texture = "MUI_StatusBar";
-    iconGap = 1;
     showSpark = true;
 
-    position = { "TOPRIGHT", "Minimap", "TOPLEFT", -4, -200 };
+    position = { "TOPRIGHT", "UIParent", "TOPRIGHT", -3, -3 };
     textSize = {
       timeRemaining = 10;
       timeRemainingLarge = 14;
@@ -108,7 +108,6 @@ local debuffSettings = {
     iconWidth = 40;
     iconHeight = 30;
     iconBorderSize = 1;
-    masque = true;
     xSpacing = 6;
     ySpacing = 20;
     perRow = 10;
@@ -137,11 +136,11 @@ local debuffSettings = {
     barHeight = 22;
     xSpacing = 4;
     ySpacing = 1;
+    iconSpacing = 1;
     perRow = 1;
     secondsWarning = 10;
     position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
     texture = "MUI_StatusBar";
-    iconGap = 1;
     showSpark = true;
 
     textSize = {
@@ -261,7 +260,7 @@ function AuraButtonMixin:ApplyTextStyle(name)
   local point, relativeFrame, relativePoint, xOffset, yOffset = unpack(self.settings.textPosition[name]);
 
   if (relativeFrame == "icon") then
-    relativeFrame = self.maskTexture;
+    relativeFrame = self.mask;
   elseif (relativeFrame == "iconFrame") then
     relativeFrame = self.icnFrame;
   elseif (relativeFrame == "bar") then
@@ -527,77 +526,85 @@ local function GetAuraButtonSize(settings)
   local height = settings.iconHeight;
 
   if (settings.mode == "statusbars") then
-    width = settings.iconGap + settings.barWidth;
+    width = settings.iconWidth + settings.iconSpacing + settings.barWidth;
     height = math.max(height, settings.barHeight);
   end
 
   return width, height;
 end
 
-local masqueGroup;
-
 function AuraButtonMixin:ApplyStyling()
   if (self.iconFrame) then return end
   if (not self.texture) then return end
 
   local width, height = GetAuraButtonSize(self.settings);
+  local borderSize = self.settings.iconBorderSize;
   self:SetSize(width, height);
 
   -- Set Up Icon:
   self.iconFrame = tk:CreateFrame("Frame", self, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
   self.iconFrame:SetSize(self.settings.iconWidth, self.settings.iconHeight);
   self.iconFrame:SetPoint("TOPLEFT");
-  self.iconBorder = tk:SetBackground(self.iconFrame, 0, 0, 0);
-  self.iconBorder:SetDrawLayer("BORDER");
 
-  local b = self.settings.iconBorderSize;
+  local borderTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\IconBorder");
+  gui:CreateGridTexture(self.iconFrame, borderTexturePath, 4, 2, 64, 64, "OVERLAY");
+
   local maskTexturePath = tk:GetAssetFilePath("Textures\\black");
-  self.maskTexture = self.iconFrame:CreateMaskTexture();
-  self.maskTexture:SetTexture(maskTexturePath, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE");
-  self.maskTexture:SetPoint("TOPLEFT", b, -b);
-  self.maskTexture:SetPoint("BOTTOMRIGHT", -b, b);
 
-  self.iconTexture = self.iconFrame:CreateTexture(nil, "BACKGROUND");
-  self.iconTexture:SetTexture(self.texture);
-  self.iconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
-  self.iconTexture:SetPoint("CENTER");
+  self.mask = self.iconFrame:CreateMaskTexture();
+  self.mask:SetTexture(maskTexturePath, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE");
+  self.mask:SetPoint("TOPLEFT");
+  self.mask:SetPoint("BOTTOMRIGHT", 0, 2);
+
+  local glossTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\Gloss");
+  self.gloss = self.iconFrame:CreateTexture(nil, "OVERLAY");
+  self.gloss:SetAlpha(0.4);
+  self.gloss:SetTexture(glossTexturePath);
+  self.gloss:SetPoint("TOPLEFT", borderSize, -borderSize);
+  self.gloss:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
+
+  self.cooldown = tk:CreateFrame("Cooldown", self.iconFrame, nil, "CooldownFrameTemplate");
+  self.cooldown:SetReverse(1);
+  self.cooldown:SetHideCountdownNumbers(true);
+  self.cooldown:SetPoint("TOPLEFT", borderSize, -borderSize);
+  self.cooldown:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
+  self.cooldown:SetFrameStrata("TOOLTIP");
+  self.cooldown.noCooldownCount = true; -- disable OmniCC
+
+  self.icon = self.iconFrame:CreateTexture(nil, "ARTWORK");
+  self.icon:SetTexture(self.texture);
+  self.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9);
 
   local diff = math.abs(self.settings.iconWidth - self.settings.iconHeight);
   local iconWidth, iconHeight = self.settings.iconWidth, self.settings.iconHeight;
 
   if (diff > 5) then
-    diff = diff * 0.1;
+    diff = diff * 0.25; -- squish the texture by only 25%
 
-    if (self.settings.iconWidth > self.settings.iconHeight) then
-      iconHeight = iconHeight - diff;
+    if (iconWidth > iconHeight) then
+      iconHeight = math.max(iconWidth - diff, iconHeight);
     else
-      iconWidth = iconWidth - diff;
+      iconWidth = math.max(iconHeight - diff, iconWidth);
     end
   end
 
-  self.iconTexture:SetSize(iconWidth, iconHeight);
-  self.iconTexture:AddMaskTexture(self.maskTexture);
-
-  local fakeIconTexture = self.iconFrame:CreateTexture(nil, "ARTWORK");
-  fakeIconTexture:SetTexture("");
-  fakeIconTexture:SetTexCoord(0.1, 0.9, 0.1, 0.9);
-  fakeIconTexture:SetPoint("TOPLEFT", b, -b);
-  fakeIconTexture:SetPoint("BOTTOMRIGHT", -b, b);
-
-  -- Cooldown
-  self.cooldown = tk:CreateFrame("Cooldown", self.iconFrame, nil, "CooldownFrameTemplate");
-  self.cooldown:SetReverse(1);
-  self.cooldown:SetHideCountdownNumbers(true);
-  self.cooldown.noCooldownCount = true; -- disable OmniCC
-  self.cooldown:SetPoint("TOPLEFT", b, -b);
-  self.cooldown:SetPoint("BOTTOMRIGHT", -b, b);
-  self.cooldown:SetFrameStrata("TOOLTIP");
+  self.icon:SetPoint("CENTER");
+  self.icon:SetSize(iconWidth, iconHeight);
+  self.icon:AddMaskTexture(self.mask);
 
   -- Status Bar:
   if (self.settings.mode == "statusbars") then
     self.statusbarFrame = tk:CreateFrame("Frame", self, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
-    self.statusbarFrame:SetPoint("LEFT", self.iconFrame, "RIGHT", self.settings.iconGap, 0);
+    self.statusbarFrame:SetPoint("LEFT", self.iconFrame, "RIGHT", self.settings.iconSpacing, 0);
     self.statusbarFrame:SetPoint("RIGHT");
+    self.statusbarFrame:SetHeight(self.settings.barHeight);
+
+    self.statusbarFrame:SetBackdrop({
+      edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
+      edgeSize = borderSize,
+    });
+
+    self.statusbarFrame:SetBackdropBorderColor(unpack(self.settings.colors.statusbarBorder));
     tk:SetBackground(self.statusbarFrame, unpack(self.settings.colors.background));
 
     self.statusbar = tk:CreateFrame("StatusBar", self.statusbarFrame);
@@ -628,63 +635,25 @@ function AuraButtonMixin:ApplyStyling()
   self:HookScript("OnUpdate", HandleAuraButtonOnUpdate);
   self:HookScript("OnEnter", HandleAuraButtonOnEnter);
   self:HookScript("OnLeave", tk.GeneralTooltip_OnLeave);
-
-  -- Masque Support:
-  if (self.settings.masque) then
-    if (not masqueGroup) then
-      local masque = _G.LibStub("Masque", true);
-
-      if (masque) then
-        masqueGroup = masque:Group("MayronUI", "Auras");
-        -- masqueGroup.db.Gloss = true;
-        -- masqueGroup.db.Colors.Normal = {};
-
-        if (masqueGroup) then
-          masqueGroup:SetCallback(function(GroupID, Group, SkinID, Backdrop, Shadow, Gloss, Colors, Disabled)
-            print("Hello from my callback!")
-            print(GroupID, Group, SkinID, Backdrop, Shadow, Gloss, Colors, Disabled);
-          end);
-        end
-      end
-    end
-
-    local masqueType;
-
-    if (self.filter == "HELPFUL") then
-      if (self.auraType == "item") then
-        masqueType = "Enchant";
-      else
-        masqueType = "Buff";
-      end
-    else
-      masqueType = "Debuff";
-    end
-
-    if (masqueGroup) then
-      masqueGroup:AddButton(self.iconFrame, {
-        Mask = self.maskTexture,
-        IconBorder = self.iconBorder,
-        Icon = self.fakeIconTexture,
-        Cooldown = self.cooldown,
-      }, masqueType, true);
-    end
-  end
 end
 
 function AuraButtonMixin:UpdateDisplayInfo()
-  self.iconTexture:SetTexture(self.texture);
+  self.icon:SetTexture(self.texture);
 
   local hasTimeRemainingText = obj:IsNumber(self.timeRemaining) and self.timeRemaining > 0;
   local hasCooldown = obj:IsNumber(self.duration) and self.duration > 0 and obj:IsNumber(self.startTime) and self.startTime > 0;
 
   if (hasTimeRemainingText and hasCooldown) then
     if (self.auraNameText) then
-      self.auraNameText:SetWidth(self.settings.barWidth - 60);
+      local xOffset = select(4, self.auraNameText:GetPoint());
+      self.auraNameText:SetWidth(self.settings.barWidth - xOffset - 34);
     end
+
     self.cooldown:SetCooldown(self.startTime, self.duration);
   else
     if (self.auraNameText) then
-      self.auraNameText:SetWidth(self.settings.barWidth);
+      local xOffset = select(4, self.auraNameText:GetPoint());
+      self.auraNameText:SetWidth(self.settings.barWidth - xOffset - 4);
     end
     self.cooldown:Clear();
   end
@@ -724,10 +693,10 @@ function AuraButtonMixin:UpdateDisplayInfo()
   end
 
   if (self.statusbar) then
-    self.iconFrame:SetBackdropBorderColor(0, 0, 0);
+    self.iconFrame:SetGridColor(0, 0, 0);
     self.statusbar:SetStatusBarColor(r, g, b);
   else
-    self.iconBorder:SetVertexColor(r, g, b);
+    self.iconFrame:SetGridColor(r, g, b);
   end
 
   self.timeRemainingLastUpdate = 1;

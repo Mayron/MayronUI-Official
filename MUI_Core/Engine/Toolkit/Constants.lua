@@ -34,7 +34,7 @@ tk.Constants = {
   LSM = LibStub("LibSharedMedia-3.0");
 
   BACKDROP = {
-    edgeFile = "Interface\\Buttons\\WHITE8X8",
+    edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
     edgeSize = 1.125,
   };
 

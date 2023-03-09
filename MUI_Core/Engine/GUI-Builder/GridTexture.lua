@@ -31,7 +31,7 @@ local function SetGridCornerSize(self, cornerSize)
 end
 
 -- Places the borders of a texture into their own sections to ensure they do not stretch when the frame is resized.
-function gui:CreateGridTexture(frame, texture, cornerSize, inset, originalTextureWidth, originalTextureHeight)
+function gui:CreateGridTexture(frame, texture, cornerSize, inset, originalTextureWidth, originalTextureHeight, layer)
   local smallWidth = cornerSize / originalTextureWidth;
   local largeWidth = 1 - smallWidth;
   local smallHeight = cornerSize / originalTextureHeight;
@@ -39,7 +39,7 @@ function gui:CreateGridTexture(frame, texture, cornerSize, inset, originalTextur
   inset = inset or 0;
 
   for _, key in ipairs(regions) do
-    frame[key] = frame:CreateTexture(nil, "BACKGROUND");
+    frame[key] = frame:CreateTexture(nil, layer or "BACKGROUND");
     frame[key]:SetTexture(texture);
     frame[key]:SetSize(cornerSize, cornerSize);
   end
