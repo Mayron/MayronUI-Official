@@ -337,25 +337,29 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
   );
 
   local scrollBar = chatFrame.ScrollBar;
-  scrollBar:SetPoint("TOPLEFT", chatFrame, "TOPRIGHT", 1, 0);
 
-  local thumb, track = scrollBar:GetThumb(), scrollBar:GetTrack();
+  -- Only Retail seems to have a scroll bar on the chat frame
+  if (obj:IsWidget(scrollBar)) then
+    scrollBar:SetPoint("TOPLEFT", chatFrame, "TOPRIGHT", 1, 0);
 
-  if (obj:IsWidget(track)) then
-    track:DisableDrawLayer("ARTWORK");
-  end
+    local thumb, track = scrollBar:GetThumb(), scrollBar:GetTrack();
 
-  if (obj:IsWidget(thumb)) then
-    thumb:SetSize(8, 34);
+    if (obj:IsWidget(track)) then
+      track:DisableDrawLayer("ARTWORK");
+    end
 
-    if (thumb:GetObjectType() == "Button") then
-      tk:KillAllElements(scrollBar.Forward, scrollBar.Back, thumb.Begin, thumb.Middle, thumb.End);
-      local r, g, b = tk:GetThemeColor();
-      local reskin = thumb:CreateTexture(nil, "BACKGROUND");
-      reskin:SetColorTexture(r, g, b);
-      reskin:SetAllPoints(true);
-    elseif (thumb:GetObjectType() == "Texture") then
-      tk.Constants.AddOnStyle:ApplyColor(nil, 1, thumb);
+    if (obj:IsWidget(thumb)) then
+      thumb:SetSize(8, 34);
+
+      if (thumb:GetObjectType() == "Button") then
+        tk:KillAllElements(scrollBar.Forward, scrollBar.Back, thumb.Begin, thumb.Middle, thumb.End);
+        local r, g, b = tk:GetThemeColor();
+        local reskin = thumb:CreateTexture(nil, "BACKGROUND");
+        reskin:SetColorTexture(r, g, b);
+        reskin:SetAllPoints(true);
+      elseif (thumb:GetObjectType() == "Texture") then
+        tk.Constants.AddOnStyle:ApplyColor(nil, 1, thumb);
+      end
     end
   end
 
