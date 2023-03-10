@@ -278,7 +278,15 @@ function tk:GetInspectItemLevel(unitID)
   return average;
 end
 
+local StatusTrackingBarManager = _G.StatusTrackingBarManager;
+
 function tk:IsPlayerMaxLevel()
+  if (obj:IsTable(StatusTrackingBarManager) and obj:IsFunction(StatusTrackingBarManager.CanShowBar)) then
+    local barIndex = tk.Constants.RESOURCE_BAR_IDS.Experience;
+    local experienceBarEnabled = (StatusTrackingBarManager:CanShowBar(barIndex) == true);
+    return not experienceBarEnabled;
+  end
+
   local playerLevel = UnitLevel("player");
   return (GetMaxPlayerLevel() == playerLevel);
 end

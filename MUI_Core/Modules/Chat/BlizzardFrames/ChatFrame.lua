@@ -1,5 +1,6 @@
 -- luacheck: ignore MayronUI self 143
 -- @Description: Controls the Blizzard Chat Frame changes (not the MUI Chat Frame!)
+local _G = _G;
 local string, MayronUI = _G.string, _G.MayronUI;
 local pairs, ipairs, PlaySound, unpack = _G.pairs, _G.ipairs, _G.PlaySound, _G.unpack;
 local select, GetChannelList, hooksecurefunc = _G.select, _G.GetChannelList, _G.hooksecurefunc;
@@ -245,7 +246,9 @@ end
 
 local function OnScrollChangedCallback(self, offset)
   if (obj:IsWidget(self.ScrollBar)) then
-    self.ScrollBar:SetValue(self:GetNumMessages() - offset);
+    if (self.ScrollBar.SetValue) then
+      self.ScrollBar:SetValue(self:GetNumMessages() - offset);
+    end
 
     if (offset > 0) then
       self.ScrollBar:SetAlpha(1);
@@ -333,11 +336,27 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
     _G[ string.format("%sButtonFrame", chatFrameName) ]
   );
 
-  if (obj:IsWidget(chatFrame.ScrollBar)) then
-    chatFrame.ScrollBar.ThumbTexture:SetColorTexture(1, 1, 1);
-    chatFrame.ScrollBar.ThumbTexture:SetSize(8, 34);
-    tk.Constants.AddOnStyle:ApplyColor(nil, 1, chatFrame.ScrollBar.ThumbTexture);
-    chatFrame.ScrollBar:SetPoint("TOPLEFT", chatFrame, "TOPRIGHT", 1, 0);
+  local scrollBar = chatFrame.ScrollBar;
+  scrollBar:SetPoint("TOPLEFT", chatFrame, "TOPRIGHT", 1, 0);
+
+  local thumb, track = scrollBar:GetThumb(), scrollBar:GetTrack();
+
+  if (obj:IsWidget(track)) then
+    track:DisableDrawLayer("ARTWORK");
+  end
+
+  if (obj:IsWidget(thumb)) then
+    thumb:SetSize(8, 34);
+
+    if (thumb:GetObjectType() == "Button") then
+      tk:KillAllElements(scrollBar.Forward, scrollBar.Back, thumb.Begin, thumb.Middle, thumb.End);
+      local r, g, b = tk:GetThemeColor();
+      local reskin = thumb:CreateTexture(nil, "BACKGROUND");
+      reskin:SetColorTexture(r, g, b);
+      reskin:SetAllPoints(true);
+    elseif (thumb:GetObjectType() == "Texture") then
+      tk.Constants.AddOnStyle:ApplyColor(nil, 1, thumb);
+    end
   end
 
   local downBtn = chatFrame.ScrollToBottomButton;
@@ -348,6 +367,8 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
     downBtn:SetPushedTexture(downButtonTexture, "BLEND");
     downBtn:SetHighlightTexture(downButtonTexture, "ADD");
     downBtn:DisableDrawLayer("OVERLAY");
+    downBtn:SetSize(24, 24);
+    downBtn:SetPoint("BOTTOMRIGHT", chatFrame.ResizeButton, "TOPRIGHT", 0, -2);
     tk.Constants.AddOnStyle:ApplyColor(nil, 1, downBtn);
   end
 
@@ -356,7 +377,6 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
   if (not tk:IsRetail()) then
     downBtn:ClearAllPoints();
     downBtn:SetPoint("BOTTOMLEFT", chatFrame, "BOTTOMRIGHT", 4, 0);
---    downBtn.ClearAllPoints = tk.Constants.Dumm
   end
 
   if (chatFrameName == "ChatFrame1") then

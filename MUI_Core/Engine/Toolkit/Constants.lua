@@ -180,6 +180,15 @@ tk.Constants = {
     [8] = {r = 0, g = 0.6, b = 0.1}; -- Exalted
   };
 
+  RESOURCE_BAR_IDS = {
+    None = -1;
+    Reputation = 1;
+    Honor = 2;
+    Artifact = 3;
+    Experience = 4;
+    Azerite = 5;
+  };
+
   -- Blizzard global colors are tables containing r, g, b, keys and functions such as:
   -- GetRGB(), GetRGBA(), WrapTextInColorCode(), GenerateHexColor(), and more...
   COLORS = {

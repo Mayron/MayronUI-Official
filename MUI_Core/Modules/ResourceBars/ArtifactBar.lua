@@ -4,7 +4,7 @@ local MayronUI = _G.MayronUI;
 local tk, _, em, _, obj = MayronUI:GetCoreComponents(); -- luacheck: ignore
 if (not tk:IsRetail()) then return end
 
-local C_ArtifactUI, ArtifactBarMixin = _G.C_ArtifactUI, _G.ArtifactBarMixin;
+local C_ArtifactUI, ArtifactBarMixin, StatusTrackingBarManager = _G.C_ArtifactUI, _G.ArtifactBarMixin, _G.StatusTrackingBarManager;
 local GetNumPurchasableArtifactTraits = _G.ArtifactBarGetNumArtifactTraitsPurchasableFromXP;
 local C_ArtifactBar = obj:Import("MayronUI.ArtifactBar");
 local strformat, select = _G.string.format, _G.select;
@@ -48,12 +48,13 @@ end
 
 obj:DefineReturns("boolean");
 function C_ArtifactBar:CanUse()
-  if (obj:IsTable(ArtifactBarMixin)) then
-    if (obj:IsFunction(ArtifactBarMixin.ShouldBeVisible)) then
-      return ArtifactBarMixin:ShouldBeVisible() == true;
-    elseif (obj:IsFunction(ArtifactBarMixin.IsArtifactMaxed)) then
-      return ArtifactBarMixin:IsArtifactMaxed() == true;
-    end
+  if (obj:IsTable(StatusTrackingBarManager) and obj:IsFunction(StatusTrackingBarManager.CanShowBar)) then
+    local barIndex = tk.Constants.RESOURCE_BAR_IDS.Artifact;
+    return StatusTrackingBarManager:CanShowBar(barIndex) == true;
+  end
+
+  if (obj:IsTable(ArtifactBarMixin) and obj:IsFunction(ArtifactBarMixin.ShouldBeVisible)) then
+    return ArtifactBarMixin:ShouldBeVisible() == true;
   end
 
   return false;
