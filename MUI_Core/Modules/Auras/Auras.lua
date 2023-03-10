@@ -31,7 +31,7 @@ local colorSettings = {
   disease       = {0.6, 0.4, 0};
   poison        = {0.0, 0.6, 0};
   curse         = {0.6, 0.0, 1};
-  background   = { 0, 0, 0, 0.5 };
+  background   = { 0, 0, 0, 0.6 };
   foreground   = { 0.15, 0.15, 0.15 };
   owned        = { 0.15, 0.15, 0.15 };
 };
@@ -50,6 +50,7 @@ local buffSettings = {
     xSpacing = 6;
     ySpacing = 20;
     perRow = 10;
+    iconShadow = true;
     secondsWarning = 10;
     position = { "TOPRIGHT", "UIParent", "TOPRIGHT", -5, -5 };
     textSize = {
@@ -65,17 +66,18 @@ local buffSettings = {
 
   statusbars = {
     pulse = false;
-    nonPlayerAlpha = 0.7;
+    nonPlayerAlpha = 1;
     vDirection = "DOWN";
     hDirection = "LEFT";
-    iconWidth = 40;
-    iconHeight = 24;
+    iconWidth = 22;
+    iconHeight = 20;
     iconBorderSize = 1;
     barWidth = 200;
-    barHeight = 24;
+    barHeight = 22;
     xSpacing = 4;
     ySpacing = 1;
-    iconSpacing = 1;
+    iconSpacing = 2;
+    iconShadow = false;
     perRow = 1;
     secondsWarning = 10;
     texture = "MUI_StatusBar";
@@ -111,6 +113,7 @@ local debuffSettings = {
     xSpacing = 6;
     ySpacing = 20;
     perRow = 10;
+    iconShadow = true;
     secondsWarning = 10;
     position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
     textSize = {
@@ -137,6 +140,7 @@ local debuffSettings = {
     xSpacing = 4;
     ySpacing = 1;
     iconSpacing = 1;
+    iconShadow = false;
     perRow = 1;
     secondsWarning = 10;
     position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
@@ -546,11 +550,12 @@ function AuraButtonMixin:ApplyStyling()
   self.iconFrame:SetSize(self.settings.iconWidth, self.settings.iconHeight);
   self.iconFrame:SetPoint("TOPLEFT");
 
+  tk:SetBackground(self.iconFrame, 0, 0, 0);
+
   local borderTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\IconBorder");
   gui:CreateGridTexture(self.iconFrame, borderTexturePath, 4, 2, 64, 64, "OVERLAY");
 
   local maskTexturePath = tk:GetAssetFilePath("Textures\\black");
-
   self.mask = self.iconFrame:CreateMaskTexture();
   self.mask:SetTexture(maskTexturePath, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE");
   self.mask:SetPoint("TOPLEFT");

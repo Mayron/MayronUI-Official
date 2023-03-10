@@ -65,6 +65,7 @@ local tooltipsToReskin =  {
 db:AddToDefaults("profile.tooltips", {
   enabled = not (select(1, IsAddOnLoaded("TipTac")));
   targetShown = true;
+  runIlvlBackgroundScanner = false;
   guildRankShown = true;
   realmShown = true;
   itemLevelShown = true;
@@ -555,6 +556,7 @@ do
 
     if (UnitIsPlayer(unitID) and color) then
       originalSetStatusBarColor(healthBar, color.r, color.g, color.b);
+      healthBar.bg:SetBackdropColor(color.r * 0.4, color.g * 0.4, color.b * 0.4);
 
       if (not data.settings.muiTexture.enabled and data.settings.backdrop.borderClassColored) then
         originalSetBackdropBorderColor(gameTooltip, color.r, color.g, color.b, data.settings.backdrop.borderColor[4]);
@@ -574,6 +576,7 @@ do
       end
 
       originalSetStatusBarColor(healthBar, r, g, b);
+      healthBar.bg:SetBackdropColor(r * 0.4, g * 0.4, b * 0.4);
 
       if (not data.settings.muiTexture.enabled and data.settings.backdrop.borderClassColored) then
         originalSetBackdropBorderColor(gameTooltip, r, g, b, data.settings.backdrop.borderColor[4]);
@@ -961,7 +964,6 @@ local function ApplyHealthBarChanges(data)
   healthBar.bg:SetAllPoints();
 	healthBar.bg:SetFrameLevel(healthBar:GetFrameLevel() - 1);
 	healthBar.bg:SetBackdrop({ bgFile = tk.Constants.BACKDROP_WITH_BACKGROUND.bgFile });
-	healthBar.bg:SetBackdropColor(r * 0.4, g * 0.4, b * 0.4);
 
   local healthText = healthBar:CreateFontString(nil, "OVERLAY");
   healthText:SetPoint("CENTER");
@@ -1353,9 +1355,6 @@ function C_ToolTipsModule:OnEnable(data)
   local inspectListener = em:CreateEventListener(function(_, _, unitGuid)
     local foundUnitID = nil;
 
-    if (data.notifying == unitGuid) then
-      data.notifying = nil;
-    end
 
     if (UnitGUID("mouseover") == unitGuid) then
       foundUnitID = "mouseover";
@@ -1386,6 +1385,7 @@ function C_ToolTipsModule:OnEnable(data)
     end
 
     if (not foundUnitID) then
+      data.notifying = nil;
       return
     end
 
@@ -1423,9 +1423,15 @@ function C_ToolTipsModule:OnEnable(data)
         end
       end
     end
+
+    data.notifying = nil;
   end);
 
   inspectListener:RegisterEvent("INSPECT_READY");
+
+  if (not data.settings.runIlvlBackgroundScanner) then
+    return
+  end
 
   local f = _G.CreateFrame("Frame");
   f:RegisterEvent("PLAYER_REGEN_ENABLED");
