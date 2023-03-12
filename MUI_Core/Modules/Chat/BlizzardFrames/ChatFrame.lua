@@ -342,7 +342,10 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
   if (obj:IsWidget(scrollBar)) then
     scrollBar:SetPoint("TOPLEFT", chatFrame, "TOPRIGHT", 1, 0);
 
-    local thumb, track = scrollBar:GetThumb(), scrollBar:GetTrack();
+    local thumb, track = scrollBar.ThumbTexture, scrollBar.Track;
+    if (obj:IsFunction(scrollBar.GetThumb)) then
+      thumb, track = scrollBar:GetThumb(), scrollBar:GetTrack();
+    end
 
     if (obj:IsWidget(track)) then
       track:DisableDrawLayer("ARTWORK");
@@ -350,15 +353,15 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
 
     if (obj:IsWidget(thumb)) then
       thumb:SetSize(8, 34);
+      local r, g, b = tk:GetThemeColor();
 
       if (thumb:GetObjectType() == "Button") then
         tk:KillAllElements(scrollBar.Forward, scrollBar.Back, thumb.Begin, thumb.Middle, thumb.End);
-        local r, g, b = tk:GetThemeColor();
         local reskin = thumb:CreateTexture(nil, "BACKGROUND");
         reskin:SetColorTexture(r*0.8, g*0.8, b*0.8);
         reskin:SetAllPoints(true);
       elseif (thumb:GetObjectType() == "Texture") then
-        tk.Constants.AddOnStyle:ApplyColor(nil, 1, thumb);
+        thumb:SetColorTexture(r*0.8, g*0.8, b*0.8);
       end
     end
   end
