@@ -355,7 +355,7 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
         tk:KillAllElements(scrollBar.Forward, scrollBar.Back, thumb.Begin, thumb.Middle, thumb.End);
         local r, g, b = tk:GetThemeColor();
         local reskin = thumb:CreateTexture(nil, "BACKGROUND");
-        reskin:SetColorTexture(r, g, b);
+        reskin:SetColorTexture(r*0.8, g*0.8, b*0.8);
         reskin:SetAllPoints(true);
       elseif (thumb:GetObjectType() == "Texture") then
         tk.Constants.AddOnStyle:ApplyColor(nil, 1, thumb);

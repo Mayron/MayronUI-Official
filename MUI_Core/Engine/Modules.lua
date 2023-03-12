@@ -107,6 +107,10 @@ commands.config = function()
   end
 end
 
+commands.dump = function(tbl, depth, spaces)
+  MayronUI:PrintTable(tbl, depth, spaces);
+end
+
 commands.layouts = function()
   if (not LoadMuiAddOn("MUI_Config")) then
     return;
@@ -266,6 +270,7 @@ commands.c = commands.config;
 commands.v = commands.version;
 commands.r = commands.report;
 commands.l = commands.layouts;
+commands.d = commands.dump;
 
 commands.help = function()
   print(" ");
@@ -502,20 +507,24 @@ do
   local lastScreenshot = GetTime();
   local Screenshot = _G.Screenshot;
   local TakeScreenshot = function() Screenshot() end;
+  local screenShotErrors;
+  local After = _G.C_Timer.After;
 
   function MayronUI:LogError(errorMessage, ...)
-    -- if (not MayronUI.DEBUG_MODE) then return end
-    -- tk:LogToChatFrame(errorMessage, 1, 0, 0, ...);
+    if (not MayronUI.DEBUG_MODE) then return end
+    screenShotErrors = screenShotErrors or {};
+    tk:LogToChatFrame(errorMessage, 1, 0, 0, ...);
 
-    -- if (InCombatLockdown()) then
-    --   local currentTime = GetTime();
-    --   local secondsAgo = currentTime - lastScreenshot;
+    if (not screenShotErrors[errorMessage] and InCombatLockdown()) then
+      local currentTime = GetTime();
+      local secondsAgo = currentTime - lastScreenshot;
 
-    --   if (secondsAgo > 10) then
-    --     lastScreenshot = currentTime;
-    --     _G.C_Timer.After(1, TakeScreenshot);
-    --   end
-    -- end
+      if (secondsAgo > 10) then
+        lastScreenshot = currentTime;
+        screenShotErrors[errorMessage] = true;
+        After(1, TakeScreenshot);
+      end
+    end
   end
 end
 
@@ -765,6 +774,16 @@ end
 local C_CoreModule = MayronUI:RegisterModule("CoreModule", "MUI Core", true);
 
 function C_CoreModule:OnInitialize()
+  _G["SLASH_CLR1"] = "/clr";
+  _G.SlashCmdList.CLR = function()
+    commands.clr();
+  end
+
+  _G["SLASH_RELOADUI1"] = "/rl";
+  _G.SlashCmdList.RELOADUI = function()
+    _G.ReloadUI();
+  end
+
   _G["SLASH_MUI1"] = "/mui";
   _G.SlashCmdList.MUI = function(str)
     if (#str == 0) then
