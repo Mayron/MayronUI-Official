@@ -7,21 +7,23 @@ local DatabaseMixin = {}; ---@class DatabaseMixin
 local RepositoryMixin = {}; ---@class RepositoryMixin
 local ProfileManagerMixin = {}; ---@class ProfileManagerMixin
 local Utilities = {}; ---@class Utilities
+
 local UnitFullName, strsplit = _G.UnitFullName, _G.strsplit;
+local GetServerTime = _G.GetServerTime;
 
 ---@alias RepositoryHandler fun(sv: table, db: DatabaseMixin): table
 ---@alias OnInitializedCallback fun(db: DatabaseMixin)
-
----@class DatabaseMetadata
----@field svName string
----@field profileManager ProfileManagerMixin
----@field database DatabaseMixin
----@field config DatabaseConfig
----@field initialized boolean
----@field activeProfile string|nil
+---@alias DatabaseCallbackType "profileChanged"|"profileListChanged"|"binListChanged"
+---@alias DatabaseCallback fun(db: DatabaseMixin, ...: any)
+---@alias Observer fun(db: DatabaseMixin, value: any, previousValue: any)
 
 ---@class DatabaseConfig
+---@field GetDefaultProfile fun(): string
 ---@field repositoryHandlers table<string, RepositoryHandler>
+---@field defaults table
+---@field schemas table
+---@field observers table<string, Observer[]>
+
 local defaultConfig = {
   GetDefaultProfile = function() return "Default"; end;
   repositoryHandlers = {
@@ -37,13 +39,22 @@ local defaultConfig = {
     end,
     ["character"] = function(sv)
       local characterName = UnitFullName("player");
-      assert(characterName, "Failed to get character repository. Character name cannot be nil");
+      assert(type(characterName) == "string",
+        "Failed to get character repository; character name is invalid.");
       sv.characters = sv.characters or {};
       sv.characters[characterName] = sv.characters[characterName] or {};
       return sv.characters[characterName];
     end,
   }
 };
+
+---@class DatabaseMetadata
+---@field callbacks table<DatabaseCallbackType, DatabaseCallback[]>
+---@field svName string
+---@field profileManager ProfileManagerMixin
+---@field database DatabaseMixin
+---@field config DatabaseConfig
+---@field initialized boolean
 
 ---@type table<string, DatabaseMetadata>
 local metadata = {};
@@ -142,13 +153,40 @@ function DatabaseMixin:GetProfileManager()
 end
 
 function DatabaseMixin:OnProfileChanged(callback)
+  Utilities:AddCallback(self, "profileChanged", callback);
+end
+
+function DatabaseMixin:OnProfileListChanged(callback)
+  Utilities:AddCallback(self, "profileListChanged", callback);
+end
+
+function DatabaseMixin:OnBinListChanged(callback)
+  Utilities:AddCallback(self, "binListChanged", callback);
+end
+
+function DatabaseMixin:AddDefaults(defaults)
   local data = metadata[tostring(self)];
+  assert(not data.initialized,
+    "Unable to modify the database defaults after the database has been initialized");
+  data.config.defaults = Utilities:Assign(data.config.defaults, defaults);
+end
 
-  if (not data.callbacks) then
-    data.callbacks = { profileChanged = {} };
-  end
+function DatabaseMixin:AddSchema(schema)
+  local data = metadata[tostring(self)];
+  assert(not data.initialized,
+  "Unable to modify the database schema after the database has been initialized");
+  data.config.schemas = Utilities:Assign(data.config.schemas, schema);
+end
 
-  table.insert(data.callbacks.profileChanged, callback);
+---@param query string
+---@param observer Observer
+function DatabaseMixin:Subscribe(query, observer)
+  local data = metadata[tostring(self)];
+  data.config.observers = data.config.observers or {};
+  data.config.observers[query] = data.config.observers[query] or {};
+
+  local list = data.config.observers[query];
+  list[#list+1] = observer;
 end
 
 --------------------------
@@ -158,46 +196,111 @@ end
 ---@return string
 function ProfileManagerMixin:GetActive()
   local data = metadata[tostring(self)];
+  local profileKeys = Utilities:GetSavedVariableSubTable(self, "profileKeys");
 
-  return data.activeProfile:lower();
-  --return data.activeProfile or data.config.GetDefaultProfile();
+  local characterName = UnitFullName("player");
+  assert(type(characterName) == "string",
+  "Failed to get active profile; invalid character name");
+  return profileKeys[characterName] or data.config.GetDefaultProfile();
 end
 
 ---@param profileName string
 function ProfileManagerMixin:SetActive(profileName)
-  local data = metadata[tostring(self)];
-  data.activeProfile = profileName;
+  local profileKeys = Utilities:GetSavedVariableSubTable(self, "profileKeys");
+
+  local characterName = UnitFullName("player");
+  assert(type(characterName) == "string",
+  "Failed to set active profile; invalid character name");
+  profileKeys[characterName] = profileName;
+
+  Utilities:TriggerCallback(self)
 end
 
+---@return string[]
 function ProfileManagerMixin:GetAll()
-  local data = metadata[tostring(self)];
+  local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
+
+  local profileNames = {};
+  for profileName, _ in pairs(profiles) do
+    profileNames[#profileNames+1] = profileName;
+  end
+
+  return profileNames;
 end
 
-function ProfileManagerMixin:Delete()
-  local data = metadata[tostring(self)];
+function ProfileManagerMixin:Delete(profileName)
+  local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
+
+  if (type(profiles[profileName]) ~= "table") then
+    return false;
+  end
+
+  local profileData = self:Export(profileName);
+  profiles[profileName] = nil;
+
+  local bin = Utilities:GetSavedVariableSubTable(self, "bin");
+  bin[profileName] = {
+    expiry = GetServerTime() + 604800, -- add 7 days (in seconds)
+    data = profileData
+  };
+
+  return true;
 end
 
-function ProfileManagerMixin:New()
-  local data = metadata[tostring(self)];
+function ProfileManagerMixin:Rename(profileName, newProfileName, force)
+  local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
+  local profileKeys = Utilities:GetSavedVariableSubTable(self, "profileKeys");
+
+  assert(type(profiles[newProfileName]) ~= "table" or force,
+  ("Failed to rename profile '%s' to '%s'; a profile with the new name already exists")
+    :format(profileName, newProfileName));
+
+  profiles[newProfileName] = profiles[profileName];
+
+  for characterName, characterProfile in pairs(profileKeys) do
+    if (characterProfile == profileName) then
+      profileKeys[characterName] = newProfileName;
+    end
+  end
+
+  profiles[profileName] = nil;
 end
 
-function ProfileManagerMixin:Rename()
-  local data = metadata[tostring(self)];
-end
-
+---@return string[]
 function ProfileManagerMixin:GetDeleted()
+  local bin = Utilities:GetSavedVariableSubTable(self, "bin");
+
+  local deletedProfiles = {};
+  for profileName, _ in pairs(bin) do
+    deletedProfiles[#deletedProfiles+1] = profileName;
+  end
+
+  return deletedProfiles;
+end
+
+function ProfileManagerMixin:Restore(profileName, force)
+  local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
+
+  assert(type(profiles[profileName]) ~= "table" or force,
+    ("Failed to restore profile '%s'; a profile with that name already exists"):format(profileName));
+
+  local bin = Utilities:GetSavedVariableSubTable(self, "bin");
+
+  if (type(bin[profileName]) ~= "table") then
+    return false;
+  end
+
+  local profileDataString = bin[profileName].data;
+  self:Import(profileName, profileDataString);
+
+  return true;
+end
+
+function ProfileManagerMixin:Export(profileName)
   local data = metadata[tostring(self)];
 end
 
-function ProfileManagerMixin:Restore()
-  local data = metadata[tostring(self)];
-end
-
-function ProfileManagerMixin:Export()
-  local data = metadata[tostring(self)];
-end
-
-function ProfileManagerMixin:Import()
+function ProfileManagerMixin:Import(profileName, profileDataString)
   local data = metadata[tostring(self)];
 end
 
@@ -213,27 +316,18 @@ function RepositoryMixin:Query(query)
 end
 
 function RepositoryMixin:Store(query, value)
-end
+  Utilities:VerifyArgs(query, "string");
+  local repository = Utilities:GetRepositoryTable(self);
+  local previousValue = Utilities:Store(repository, query, value);
 
-function RepositoryMixin:Exists(query)
-end
-
-function RepositoryMixin:AddDefaults(defaults)
-  local data = metadata[tostring(self)];
-  assert(not data.initialized, "Unable to add defaults to already initialized database");
-  local name = Utilities:GetRepositoryName(self);
-
-  if (name) then
-    data.defaults = data.defaults or {};
-    data.defaults[name] = Utilities:Assign(data.defaults[name] or {}, defaults);
+  if (previousValue ~= value) then
+    local data = metadata[tostring(self)];
+    Utilities:NotifyChange(data, query, value, previousValue);
   end
 end
 
-
-function RepositoryMixin:Subscribe(query, observer)
-end
-
-function RepositoryMixin:Notify(query)
+function RepositoryMixin:Exists(query)
+  return self:Query(query) ~= nil;
 end
 
 --------------------------
@@ -255,14 +349,21 @@ function Utilities:VerifyArgs(...)
   end
 end
 
----@return DatabaseConfig
+---@return table
 function Utilities:Assign(...)
   local merged = {};
 
   for i = 1, select("#", ...) do
     local tbl = (select(i, ...));
-    for key, value in pairs(tbl) do
-      merged[key] = value;
+
+    if (type(tbl) == "table") then
+      for key, value in pairs(tbl) do
+        if (type(value) == "table") then
+          merged[key] = self:Assign(value); -- if merged[key] is a table, replace it as well
+        else
+          merged[key] = value;
+        end
+      end
     end
   end
 
@@ -293,72 +394,132 @@ function Utilities:GetRepositoryName(repository)
   end
 end
 
----@param root table
+function Utilities:GetSavedVariableSubTable(obj, tblName)
+  local data = metadata[tostring(obj)];
+  local sv = _G[data.svName];
+  sv[tblName] = sv[tblName] or {};
+  return sv[tblName];
+end
+
+---@param callbackName DatabaseCallbackType
+function Utilities:AddCallback(obj, callbackName, callback)
+  local data = metadata[tostring(obj)];
+  data.callbacks = data.callbacks or {};
+  data.callbacks[callbackName] = data.callbacks[callbackName] or {};
+  local list = data.callbacks[callbackName];
+  list[#list+1] = callback;
+end
+
+---@param callbackName DatabaseCallbackType
+function Utilities:TriggerCallback(obj, callbackName, ...)
+  local data = metadata[tostring(obj)];
+
+  if (type(data.callbacks) ~= "table") then
+    return
+  end
+
+  if (type(data.callbacks[callbackName]) ~= "table") then
+    return
+  end
+
+  for _, callback in ipairs(data.callbacks[callbackName]) do
+    callback(data.database, ...)
+  end
+end
+
+---@param data DatabaseMetadata
 ---@param query string
-function Utilities:ParseQuery(root, query)
-  local normalized = query:gsub("%[%s+?['\"](.*)['\"]%s+?%]", "$1");
-  local keys = strsplit(".", normalized); ---@type string[]
+---@param newValue any
+---@param oldValue any
+function Utilities:NotifyChange(data, query, newValue, oldValue)
+  local observers = data.config.observers;
+  if (type(observers) ~= "table") then return end
 
-  local result = root;
-  for _, key in ipairs(keys) do
-    if (type(result) ~= "table") then
-      return nil;
-    end
+  observers = observers[query];
+  if (type(observers) ~= "table") then return end
 
-    local sanitizedKey = key:gsub("%[%s+?%d+%%s+?%]", "");
-    result = result[sanitizedKey];
+  for _, observer in ipairs(observers) do
+    observer(data.database, newValue, oldValue);
+  end
+end
 
-    for i in key:gmatch("%[%s+?(%d+)%%s+?%]") do
-      local index = tonumber(i);
+do
+  local normalizePattern = "%[%s-['\"]([^%[\"']*)['\"]%s-%]";
+  local removeIndexesPattern = "%[%s-%d+%s-%]";
+  local matchIndexesPattern = "%[%s-(%d+)%s-%]";
 
+  ---@param root table
+  ---@param query string
+  ---@return any
+  function Utilities:ParseQuery(root, query)
+    local normalized = query:gsub(normalizePattern, ".%1");
+    local keys = strsplit(".", normalized); ---@type string[]
+
+    local result = root;
+    for _, key in ipairs(keys) do
       if (type(result) ~= "table") then
         return nil;
       end
 
-      assert(type(index) == "number" and index > 0,
-        ("Failed to parse query %s at key %s"):format(query, i));
+      local sanitizedKey = key:gsub(removeIndexesPattern, "");
+      result = result[sanitizedKey];
 
-      result = result[index];
-    end
-  end
+      for i in key:gmatch(matchIndexesPattern) do
+        local index = tonumber(i);
 
-  if (result == root) then
-    return nil;
-  end
+        if (type(result) ~= "table") then
+          return nil;
+        end
 
-  return result;
-end
+        assert(type(index) == "number" and index > 0,
+          ("Failed to parse query %s at key %s"):format(query, i));
 
-function Utilities:Store(root, query, value)
-  local normalized = query:gsub("%[%s+?['\"](.*)['\"]%s+?%]", "$1");
-  local keys = strsplit(".", normalized); ---@type string[]
-
-  local sanitizedKeys = {};
-
-  for _, key in ipairs(keys) do
-    local sanitizedKey = key:gsub("%[%s+?%d+%%s+?%]", "");
-    sanitizedKeys[#sanitizedKeys+1] = sanitizedKey;
-
-    for i in key:gmatch("%[%s+?(%d+)%%s+?%]") do
-      local index = tonumber(i);
-      assert(type(index) == "number" and index > 0,
-        ("Failed to parse query %s at key %s; index is invalid"):format(query, i));
-
-      sanitizedKeys[#sanitizedKeys+1] = tonumber(index);
-    end
-  end
-
-  local storageTbl = root;
-  for i, key in ipairs(sanitizedKeys) do
-    if (i < #sanitizedKeys and type(storageTbl[key]) ~= "table") then
-      storageTbl[key] = {};
+        result = result[index];
+      end
     end
 
-    assert(type(storageTbl) == "table",
-      ("Failed to parse query %s at key %s; storage location is not a table"):format(query, key));
+    if (result == root) then
+      return nil;
+    end
 
-    if (i == #storageTbl) then
-      storageTbl[key] = value;
+    return result;
+  end
+
+  ---@param root table
+  ---@param query string
+  ---@param value any
+  function Utilities:Store(root, query, value)
+    local normalized = query:gsub(normalizePattern, ".%1");
+    local keys = strsplit(".", normalized); ---@type string[]
+
+    local sanitizedKeys = {};
+
+    for _, key in ipairs(keys) do
+      local sanitizedKey = key:gsub(removeIndexesPattern, "");
+      sanitizedKeys[#sanitizedKeys+1] = sanitizedKey;
+
+      for i in key:gmatch(matchIndexesPattern) do
+        local index = tonumber(i);
+        assert(type(index) == "number" and index > 0,
+          ("Failed to parse query %s at key %s; index is invalid"):format(query, i));
+
+        sanitizedKeys[#sanitizedKeys+1] = tonumber(index);
+      end
+    end
+
+    local storageTbl = root;
+    for i, key in ipairs(sanitizedKeys) do
+      if (i < #sanitizedKeys) then
+        if (type(storageTbl[key]) ~= "table") then
+          storageTbl[key] = {};
+        end
+
+        storageTbl = storageTbl[key];
+      else
+        local previousValue = storageTbl[key];
+        storageTbl[key] = value;
+        return previousValue;
+      end
     end
   end
 end
