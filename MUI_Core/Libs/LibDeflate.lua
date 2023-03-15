@@ -81,7 +81,7 @@ licenses shall be comply when used.
 	Project Version: 1.0.2-release
 --]]
 
-local LibDeflate
+local LibDeflate ---@class LibDeflate
 
 do
 	-- Semantic version. all lowercase.

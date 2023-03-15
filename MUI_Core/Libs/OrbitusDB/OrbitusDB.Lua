@@ -1,9 +1,14 @@
 -- luacheck: ignore self
----@diagnostic enable
-
 local _G = _G;
+local LibDeflate = _G.LibStub:GetLibrary("LibDeflate");
+
 local OrbitusApi = {};
-local DatabaseMixin = {}; ---@class DatabaseMixin
+
+---@class DatabaseMixin
+---@field profile RepositoryMixin
+---@field global RepositoryMixin
+---@field character RepositoryMixin
+local DatabaseMixin = {};
 local RepositoryMixin = {}; ---@class RepositoryMixin
 local ProfileManagerMixin = {}; ---@class ProfileManagerMixin
 local Utilities = {}; ---@class Utilities
@@ -15,14 +20,14 @@ local GetServerTime = _G.GetServerTime;
 ---@alias OnInitializedCallback fun(db: DatabaseMixin)
 ---@alias DatabaseCallbackType "profileChanged"|"profileListChanged"|"binListChanged"
 ---@alias DatabaseCallback fun(db: DatabaseMixin, ...: any)
----@alias Observer fun(db: DatabaseMixin, value: any, previousValue: any)
+---@alias OrbitusObserver fun(db: DatabaseMixin, value: any, previousValue: any)
 
 ---@class DatabaseConfig
 ---@field GetDefaultProfile fun(): string
 ---@field repositoryHandlers table<string, RepositoryHandler>
 ---@field defaults table
 ---@field schemas table
----@field observers table<string, Observer[]>
+---@field observers table<string, OrbitusObserver[]>
 
 local defaultConfig = {
   GetDefaultProfile = function() return "Default"; end;
@@ -179,7 +184,7 @@ function DatabaseMixin:AddSchema(schema)
 end
 
 ---@param query string
----@param observer Observer
+---@param observer OrbitusObserver
 function DatabaseMixin:Subscribe(query, observer)
   local data = metadata[tostring(self)];
   data.config.observers = data.config.observers or {};
@@ -199,8 +204,7 @@ function ProfileManagerMixin:GetActive()
   local profileKeys = Utilities:GetSavedVariableSubTable(self, "profileKeys");
 
   local characterName = UnitFullName("player");
-  assert(type(characterName) == "string",
-  "Failed to get active profile; invalid character name");
+  assert(type(characterName) == "string", "Failed to get active profile; invalid character name");
   return profileKeys[characterName] or data.config.GetDefaultProfile();
 end
 
@@ -209,11 +213,12 @@ function ProfileManagerMixin:SetActive(profileName)
   local profileKeys = Utilities:GetSavedVariableSubTable(self, "profileKeys");
 
   local characterName = UnitFullName("player");
-  assert(type(characterName) == "string",
-  "Failed to set active profile; invalid character name");
+  assert(type(characterName) == "string", "Failed to set active profile; invalid character name");
+
+  local oldProfileName = self:GetActive();
   profileKeys[characterName] = profileName;
 
-  Utilities:TriggerCallback(self)
+  Utilities:TriggerCallback(self, "profileChanged", profileName, oldProfileName);
 end
 
 ---@return string[]
@@ -292,16 +297,39 @@ function ProfileManagerMixin:Restore(profileName, force)
 
   local profileDataString = bin[profileName].data;
   self:Import(profileName, profileDataString);
+  bin[profileName] = nil;
 
   return true;
 end
 
 function ProfileManagerMixin:Export(profileName)
-  local data = metadata[tostring(self)];
+  local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
+  local profileData = profiles[profileName];
+
+  assert(type(profileData) == "table", ("Failed to export unknown profile '%s'"):format(profileName));
+
+  local rawStr = Utilities:Serialize(profileData, 100, -1);
+  local compressed = LibDeflate:CompressDeflate(rawStr);
+  local profileDataString = LibDeflate:EncodeForPrint(compressed);
+  return profileDataString;
 end
 
-function ProfileManagerMixin:Import(profileName, profileDataString)
-  local data = metadata[tostring(self)];
+local fetcherPattern = "return function() return { %s }; end";
+local loadstring = _G.loadstring;
+
+function ProfileManagerMixin:Import(profileName, profileDataString, force)
+  local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
+
+  assert(type(profiles[profileName]) ~= "table" or force,
+    ("Failed to import profile '%s'; a profile with that name already exists"):format(profileName));
+
+  local compressed = LibDeflate:DecodeForPrint(profileDataString);
+  local decompressed = LibDeflate:DecompressDeflate(compressed);
+
+  local fetcher = loadstring(fetcherPattern:format(decompressed)); ---@cast fetcher function
+  local profileData = fetcher()(); ---@cast profileData table
+
+  profiles[profileName] = profileData;
 end
 
 --------------------------
@@ -423,7 +451,7 @@ function Utilities:TriggerCallback(obj, callbackName, ...)
   end
 
   for _, callback in ipairs(data.callbacks[callbackName]) do
-    callback(data.database, ...)
+    callback(data.database, ...);
   end
 end
 
@@ -522,4 +550,89 @@ do
       end
     end
   end
+end
+
+---A helper function to return the contents of a table as a long string, similar to
+---what the PrintTable utility method prints except it does not print it.
+---@param tbl table @The table to convert to a long string.
+---@param depth number @An optional number specifying the depth of sub-tables to traverse through and append to the long string.
+---@param spaces number @An optional number specifying the spaces to print to intent nested values inside a table.
+---@param result? string @Do NOT manually set this. This is the result accomulated through recursion.
+---@param n? number @Do NOT manually set this. This controls formatting through recursion.
+---@return string @A long string containing the contents of the table.
+function Utilities:Serialize(tbl, depth, spaces, result, n, maxKeys)
+  local minify = false;
+  result = result or "";
+  n = n or 0;
+  local whitespace = (' '):rep(n);
+
+  if (depth == nil or depth < 0) then
+    depth = 4;
+  end
+
+  if (spaces == nil or spaces <= 0) then
+    minify = spaces == -1;
+    spaces = 2;
+  end
+
+  if (depth == 0) then
+    return ("%s\n%s..."):format(result, whitespace);
+  end
+
+  local totalKeys = 1;
+  for key, value in pairs(tbl) do
+    if (maxKeys ~= nil and totalKeys > maxKeys) then
+      break
+    end
+
+    totalKeys = totalKeys + 1;
+
+    if (key and type(key) == "number" or type(key) == "string") then
+      key = ("[\"%s\"]"):format(key);
+
+      if (type(value) == "table") then
+        if (#result > 0) then
+          result = ("%s\n%s"):format(result, whitespace);
+        else
+          result = whitespace;
+        end
+
+        if (next(value)) then
+          if (depth == 1) then
+            result = ("%s%s = { \"...\" },"):format(result, key);
+          else
+            result = ("%s%s = {"):format(result, key);
+            result = self:Serialize(value, depth - 1, spaces, result, n + spaces, maxKeys);
+            result = ("%s\n%s},"):format(result, whitespace);
+          end
+        else
+          result = ("%s%s%s = {},"):format(result, whitespace, key);
+        end
+      else
+        if (type(value) == "string") then
+          value = ("\"%s\""):format(value);
+        else
+          value = tostring(value);
+        end
+
+        result = ("%s\n%s%s = %s,"):format(result, whitespace, key, value);
+      end
+    end
+  end
+
+  local length = #result;
+
+  if (length > 0) then
+    local lastChar = result:sub(length);
+
+    if (lastChar == ",") then
+      result = result:sub(1, length - 1);
+    end
+  end
+
+  if (n == 0 and minify) then
+    result = result:gsub("\n", ""):gsub("%s+=%s+", "="):gsub("%{%s+", "{"):gsub("%s+%}", "}"):gsub("%s+%[", "[");
+  end
+
+  return result;
 end
