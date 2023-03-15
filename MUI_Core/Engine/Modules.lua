@@ -107,16 +107,14 @@ commands.config = function()
   end
 end
 
-commands.dump = function(tbl, depth, spaces)
-  MayronUI:PrintTable(tbl, depth, spaces);
-end
-
 commands.layouts = function()
-  if (not LoadMuiAddOn("MUI_Config")) then
-    return;
-  end
+  if (not LoadMuiAddOn("MUI_Config")) then return end
+
   local layoutSwitcher = MayronUI:ImportModule("LayoutSwitcher");
-  layoutSwitcher:ShowLayoutTool();
+
+  if (layoutSwitcher) then
+    layoutSwitcher:ShowLayoutTool();
+  end
 end
 
 commands.install = function()
@@ -134,7 +132,10 @@ commands.report = function(forceShow)
   if (not LoadMuiAddOn("MUI_Setup")) then
     return
   end
-  local reportIssue = MayronUI:ImportModule("ReportIssue"); ---@type C_ReportIssue
+
+  local reportIssue = MayronUI:ImportModule("ReportIssue"); ---@cast reportIssue C_ReportIssue
+
+  if (not reportIssue) then return end
 
   if (not reportIssue:IsInitialized()) then
     reportIssue:Initialize();
@@ -144,9 +145,12 @@ commands.report = function(forceShow)
     reportIssue:Toggle();
   end
 
-  local errorHandlerModule = MayronUI:ImportModule("ErrorHandlerModule"); ---@type C_ErrorHandler
-  local errors = errorHandlerModule:GetErrors();
-  reportIssue:SetErrors(errors);
+  local errorHandlerModule = MayronUI:ImportModule("ErrorHandlerModule");
+  if (errorHandlerModule) then
+    ---@cast errorHandlerModule C_ErrorHandler
+    local errors = errorHandlerModule:GetErrors();
+    reportIssue:SetErrors(errors);
+  end
 end
 
 local function ValidateNewProfileName(_, profileName)
@@ -270,7 +274,6 @@ commands.c = commands.config;
 commands.v = commands.version;
 commands.r = commands.report;
 commands.l = commands.layouts;
-commands.d = commands.dump;
 
 commands.help = function()
   print(" ");
@@ -603,7 +606,8 @@ function MayronUI:GetModuleClass(moduleKey)
 end
 
 ---@param moduleKey string @The unique key associated with the registered module.
----@param silent boolean @If silent, this function will return nil if the module cannot be found, else it will throw an error
+---@param silent boolean|nil @If silent, this function will return nil if the module cannot be found, else it will throw an error
+---@return BaseModule|nil, table|nil
 function MayronUI:ImportModule(moduleKey, silent)
   local registryInfo = registeredModules[moduleKey];
 

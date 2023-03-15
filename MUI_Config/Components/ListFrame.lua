@@ -219,7 +219,7 @@ function C_ListFrame:AddItem(data, itemName)
   UpdateListFrame(data.items, data.scrollChild);
 end
 
-local function RemoveItem(data, item, index)
+local function RemoveItem(self, data, item, index)
   table.remove(data.items, index);
   data.itemStack:Push(item);
 
@@ -238,11 +238,11 @@ end
 obj:DefineParams("Frame");
 function C_ListFrame:RemoveItem(data, item)
   local index = tk.Tables:GetIndex(data.items, item);
-  RemoveItem(data, item, index);
+  RemoveItem(self, data, item, index);
 end
 
 obj:DefineParams("number");
 function C_ListFrame:RemoveItemByIndex(data, index)
   local item = data.items[index];
-  RemoveItem(data, item, index);
+  RemoveItem(self, data, item, index);
 end
