@@ -21,15 +21,21 @@ local GetServerTime = _G.GetServerTime;
 ---@alias DatabaseCallbackType "profileChanged"|"profileListChanged"|"binListChanged"
 ---@alias DatabaseCallback fun(db: DatabaseMixin, ...: any)
 ---@alias OrbitusObserver fun(db: DatabaseMixin, value: any, previousValue: any)
+---@alias QueryableList (string|number)[]
+---@alias RepositoryName "global"|"profile"|"character"
 
 ---@class DatabaseConfig
+---@field defaults { [RepositoryName]: table }
+---@field schemas { [RepositoryName]: table }
+---@field observers { [RepositoryName]: OrbitusObserver[] }
 ---@field GetDefaultProfile fun(): string
----@field repositoryHandlers table<string, RepositoryHandler>
----@field defaults table
----@field schemas table
----@field observers table<string, OrbitusObserver[]>
+---@field repositoryHandlers table<RepositoryName, RepositoryHandler>
 
+---@type DatabaseConfig
 local defaultConfig = {
+  defaults = {};
+  schemas = {};
+  observers = {};
   GetDefaultProfile = function() return "Default"; end;
   repositoryHandlers = {
     ["global"] = function(sv)
@@ -59,13 +65,13 @@ local defaultConfig = {
 ---@field profileManager ProfileManagerMixin
 ---@field database DatabaseMixin
 ---@field config DatabaseConfig
----@field initialized boolean
+---@field indexer { [string]: table }
 
 ---@type table<string, DatabaseMetadata>
 local metadata = {};
 
 ---@type table<string, DatabaseConfig>
-local registeredDatabases = {};
+local registeredDatabaseConfigs = {};
 
 ---@type table<string, OnInitializedCallback>
 local onInitializedCallbacks = {};
@@ -75,10 +81,9 @@ local CreateFromMixins = _G.CreateFromMixins;
 
 dbLoader:RegisterEvent("ADDON_LOADED");
 dbLoader:SetScript("OnEvent", function()
-  for savedVariableName, _ in pairs(registeredDatabases) do
-    if (not dbLoader[savedVariableName] and type(_G[savedVariableName]) == "table") then
+  for savedVariableName, _ in pairs(registeredDatabaseConfigs) do
+    if (type(_G[savedVariableName]) == "table") then
       CreateAndInitFromMixin(DatabaseMixin, savedVariableName);
-      dbLoader[savedVariableName] = true;
     end
   end
 end);
@@ -87,12 +92,22 @@ end);
 --> OrbitusApi:
 --------------------------
 
-function OrbitusApi:Register(savedVariableName, userConfig)
-  assert(registeredDatabases[savedVariableName] == nil, 
+---@param savedVariableName string
+---@param userConfig DatabaseConfig?
+---@param onInitialized OnInitializedCallback
+---@overload fun(self, savedVariableName: string, onInitialized: OnInitializedCallback)
+function OrbitusApi:Register(savedVariableName, userConfig, onInitialized)
+  if (type(userConfig) == "function" and onInitialized == nil) then
+    onInitialized = userConfig;
+    userConfig = nil;
+  end
+
+  assert(registeredDatabaseConfigs[savedVariableName] == nil,
     ("Database %s has already been registered"):format(savedVariableName));
 
   local config = Utilities:Assign(defaultConfig, userConfig);
-  registeredDatabases[savedVariableName] = config;
+  registeredDatabaseConfigs[savedVariableName] = config;
+  onInitializedCallbacks[savedVariableName] = onInitialized;
 
   if (type(_G[savedVariableName]) == "table") then
     CreateAndInitFromMixin(DatabaseMixin, savedVariableName);
@@ -100,11 +115,7 @@ function OrbitusApi:Register(savedVariableName, userConfig)
 end
 
 ---@param savedVariableName string
----@param callback OnInitializedCallback
-function OrbitusApi:OnInitialized(savedVariableName, callback)
-  onInitializedCallbacks[savedVariableName] = callback;
-end
-
+---@return DatabaseMixin?
 function OrbitusApi:GetDatabase(savedVariableName)
   for _, data in pairs(metadata) do
     if (data.svName == savedVariableName) then
@@ -113,36 +124,60 @@ function OrbitusApi:GetDatabase(savedVariableName)
   end
 end
 
+-- May not end up using this:
+-- ---@param savedVariableName string
+-- ---@param repositoryName RepositoryName
+-- ---@param defaults table
+-- function OrbitusApi:AddDefaults(savedVariableName, repositoryName, defaults)
+--   local config = registeredDatabaseConfigs[savedVariableName];
+--   local data = metadata[tostring(self)];
+--   assert(not data and type(config) == "table",
+--     "Unable to modify the database defaults after the database has been initialized");
+--   config.defaults = Utilities:Assign(config.defaults, { [repositoryName] = defaults });
+-- end
+
+-- ---@param savedVariableName string
+-- ---@param repositoryName RepositoryName
+-- ---@param schema table
+-- function OrbitusApi:AddSchema(savedVariableName, repositoryName, schema)
+--   local config = registeredDatabaseConfigs[savedVariableName];
+--   local data = metadata[tostring(self)];
+--   assert(not data and type(config) == "table",
+--     "Unable to modify the database schema after the database has been initialized");
+--   config.schemas = Utilities:Assign(config.schemas, { [repositoryName] = schema });
+-- end
+
 --------------------------
 --> DatabaseMixin:
 --------------------------
 
+---@param savedVariableName string
 function DatabaseMixin:Init(savedVariableName)
-  assert(type(registeredDatabases[savedVariableName]) == "table",
+  assert(type(registeredDatabaseConfigs[savedVariableName]) == "table",
     ("Database %s cannot be initialized because it has not been registered"):format(savedVariableName));
 
-  local config = registeredDatabases[savedVariableName];
-
   assert(type(_G[savedVariableName]) == "table",
-  ("Database %s failed to initialize because the saved variable table '%s' was not found"):format(savedVariableName));
+    ("Database %s failed to initialize because the saved variable table '%s' was not found"):format(savedVariableName));
+
+  assert(type(metadata[tostring(self)]) == nil,
+    ("Database %s failed to initialize because it has already been initialized"):format(savedVariableName));
 
   local profileManager = CreateFromMixins(ProfileManagerMixin);
 
   ---@type DatabaseMetadata
   local data = {
     svName = savedVariableName;
-    config = config;
+    config = registeredDatabaseConfigs[savedVariableName];
     database = self;
-    initialized = true,
+    indexer = {}
   };
 
+  registeredDatabaseConfigs[savedVariableName] = nil;
   metadata[tostring(self)] = data;
   metadata[tostring(profileManager)] = data;
 
   for repositoryName, _ in pairs(data.config.repositoryHandlers) do
-    local repository = CreateFromMixins(RepositoryMixin);
-    repository[tostring(repository)] = data;
-    self[repositoryName] = repository;
+    CreateAndInitFromMixin(RepositoryMixin, self, repositoryName);
   end
 
   local callback = onInitializedCallbacks[savedVariableName];
@@ -157,46 +192,20 @@ function DatabaseMixin:GetProfileManager()
   return data.profileManager;
 end
 
-function DatabaseMixin:OnProfileChanged(callback)
-  Utilities:AddCallback(self, "profileChanged", callback);
-end
-
-function DatabaseMixin:OnProfileListChanged(callback)
-  Utilities:AddCallback(self, "profileListChanged", callback);
-end
-
-function DatabaseMixin:OnBinListChanged(callback)
-  Utilities:AddCallback(self, "binListChanged", callback);
-end
-
-function DatabaseMixin:AddDefaults(defaults)
-  local data = metadata[tostring(self)];
-  assert(not data.initialized,
-    "Unable to modify the database defaults after the database has been initialized");
-  data.config.defaults = Utilities:Assign(data.config.defaults, defaults);
-end
-
-function DatabaseMixin:AddSchema(schema)
-  local data = metadata[tostring(self)];
-  assert(not data.initialized,
-  "Unable to modify the database schema after the database has been initialized");
-  data.config.schemas = Utilities:Assign(data.config.schemas, schema);
-end
-
----@param query string
----@param observer OrbitusObserver
-function DatabaseMixin:Subscribe(query, observer)
-  local data = metadata[tostring(self)];
-  data.config.observers = data.config.observers or {};
-  data.config.observers[query] = data.config.observers[query] or {};
-
-  local list = data.config.observers[query];
-  list[#list+1] = observer;
-end
-
 --------------------------
 --> ProfileManagerMixin:
 --------------------------
+function ProfileManagerMixin:OnProfileChanged(callback)
+  Utilities:AddCallback(self, "profileChanged", callback);
+end
+
+function ProfileManagerMixin:OnProfileListChanged(callback)
+  Utilities:AddCallback(self, "profileListChanged", callback);
+end
+
+function ProfileManagerMixin:OnBinListChanged(callback)
+  Utilities:AddCallback(self, "binListChanged", callback);
+end
 
 ---@return string
 function ProfileManagerMixin:GetActive()
@@ -335,27 +344,64 @@ end
 --------------------------
 --> RepositoryMixin:
 --------------------------
+
+---comment
+---@param database DatabaseMetadata
+---@param repositoryName RepositoryName
+function RepositoryMixin:Init(database, repositoryName)
+  local data = metadata[tostring(database)];
+  metadata[tostring(self)] = data;
+  database[repositoryName] = self;
+
+  local sv = Utilities:GetRepositoryTable(self);
+
+  -- Apply Schema
+  local schema = data.config.schemas[repositoryName];
+  if (type(schema) == "table") then
+    Utilities:ApplySchema(schema, sv);
+  end
+
+  local defaults = data.config.defaults[repositoryName];
+  if (type(defaults) == "table") then
+    Utilities:ApplyDefaults(defaults, sv);
+  end
+
+  -- Create Indexer
+  local indexer = Utilities:GetRepostoryIndexer(self);
+  Utilities:BuildIndexer(indexer, defaults, sv);
+end
+
+---@param query string
+---@param observer OrbitusObserver
+function RepositoryMixin:Subscribe(query, observer)
+  local data = metadata[tostring(self)];
+  data.config.observers = data.config.observers or {};
+  data.config.observers[query] = data.config.observers[query] or {};
+
+  local list = data.config.observers[query];
+  list[#list+1] = observer;
+end
+
 ---@param query string
 function RepositoryMixin:Query(query)
   Utilities:VerifyArgs(query, "string");
-  local repository = Utilities:GetRepositoryTable(self);
-  local results = Utilities:ParseQuery(repository, query);
-  return results;
+  local normalizedQuery = Utilities:NormalizeQuery(query);
+  local indexer = Utilities:GetRepostoryIndexer(self);
+  return indexer[normalizedQuery];
 end
 
 function RepositoryMixin:Store(query, value)
   Utilities:VerifyArgs(query, "string");
-  local repository = Utilities:GetRepositoryTable(self);
-  local previousValue = Utilities:Store(repository, query, value);
+  local normalizedQuery = Utilities:NormalizeQuery(query);
+  local indexer = Utilities:GetRepostoryIndexer(self);
+
+  local previousValue = indexer[normalizedQuery];
+  indexer[normalizedQuery] = value;
 
   if (previousValue ~= value) then
     local data = metadata[tostring(self)];
     Utilities:NotifyChange(data, query, value, previousValue);
   end
-end
-
-function RepositoryMixin:Exists(query)
-  return self:Query(query) ~= nil;
 end
 
 --------------------------
@@ -410,16 +456,12 @@ function Utilities:GetRepositoryTable(repository)
   end
 end
 
----@return string | nil
-function Utilities:GetRepositoryName(repository)
-  local data = metadata[tostring(repository)];
-  local database = data.database;
-
-  for repositoryName, _ in pairs(data.config.repositoryHandlers) do
-    if (repository == database[repositoryName]) then
-      return repositoryName;
-    end
-  end
+---@return table
+function Utilities:GetRepostoryIndexer(repository)
+  local key = tostring(repository);
+  local data = metadata[key];
+  data.indexer[key] = data.indexer[key] or {};
+  return data.indexer[key];
 end
 
 function Utilities:GetSavedVariableSubTable(obj, tblName)
@@ -476,38 +518,43 @@ do
   local removeIndexesPattern = "%[%s-%d+%s-%]";
   local matchIndexesPattern = "%[%s-(%d+)%s-%]";
 
-  ---@param root table
-  ---@param query string
-  ---@return any
-  function Utilities:ParseQuery(root, query)
-    local normalized = query:gsub(normalizePattern, ".%1");
-    local keys = strsplit(".", normalized); ---@type string[]
+  function Utilities:NormalizeQuery(query)
+    return query:gsub(normalizePattern, ".%1");
+  end
 
-    local result = root;
+  ---@return QueryableList
+  function Utilities:ToQueryableList(query)
+    local keys = strsplit(".", query); ---@type string[]
+    local list = {}; ---@type QueryableList
+
     for _, key in ipairs(keys) do
-      if (type(result) ~= "table") then
-        return nil;
-      end
-
       local sanitizedKey = key:gsub(removeIndexesPattern, "");
-      result = result[sanitizedKey];
+      list[#list+1] = sanitizedKey;
 
       for i in key:gmatch(matchIndexesPattern) do
         local index = tonumber(i);
 
-        if (type(result) ~= "table") then
-          return nil;
-        end
-
         assert(type(index) == "number" and index > 0,
-          ("Failed to parse query %s at key %s"):format(query, i));
+          ("Failed to convert query '%s' to queryable list at key %s"):format(query, i));
 
-        result = result[index];
+        list[#list+1] = tonumber(index);
       end
     end
 
-    if (result == root) then
-      return nil;
+    return list;
+  end
+
+  ---@param root table
+  ---@param query string
+  ---@return any
+  function Utilities:ParseQuery(root, query)
+    local normalizedQuery = self:NormalizeQuery(query);
+    local queryableList = self:ToQueryableList(normalizedQuery);
+
+    local result = root;
+    for _, key in ipairs(queryableList) do
+      if (type(result) ~= "table") then return nil; end
+      result = result[key];
     end
 
     return result;
@@ -517,33 +564,19 @@ do
   ---@param query string
   ---@param value any
   function Utilities:Store(root, query, value)
-    local normalized = query:gsub(normalizePattern, ".%1");
-    local keys = strsplit(".", normalized); ---@type string[]
-
-    local sanitizedKeys = {};
-
-    for _, key in ipairs(keys) do
-      local sanitizedKey = key:gsub(removeIndexesPattern, "");
-      sanitizedKeys[#sanitizedKeys+1] = sanitizedKey;
-
-      for i in key:gmatch(matchIndexesPattern) do
-        local index = tonumber(i);
-        assert(type(index) == "number" and index > 0,
-          ("Failed to parse query %s at key %s; index is invalid"):format(query, i));
-
-        sanitizedKeys[#sanitizedKeys+1] = tonumber(index);
-      end
-    end
+    local normalizedQuery = self:NormalizeQuery(query);
+    local queryableList = self:ToQueryableList(normalizedQuery);
 
     local storageTbl = root;
-    for i, key in ipairs(sanitizedKeys) do
-      if (i < #sanitizedKeys) then
+    for i, key in ipairs(queryableList) do
+      if (i < #queryableList) then
         if (type(storageTbl[key]) ~= "table") then
           storageTbl[key] = {};
         end
 
         storageTbl = storageTbl[key];
       else
+        -- the last key
         local previousValue = storageTbl[key];
         storageTbl[key] = value;
         return previousValue;
@@ -635,4 +668,78 @@ function Utilities:Serialize(tbl, depth, spaces, result, n, maxKeys)
   end
 
   return result;
+end
+
+function Utilities:ApplySchema(schema, sv)
+  for key, value in pairs(sv) do
+    local schemaType = schema[key];
+
+    if (type(schemaType) == "table") then
+      schemaType = "table"; -- should be a string or an actual table with more nested schema rules
+    end
+
+    local valueType = type(value);
+
+    if (schemaType ~= valueType) then
+      sv[key] = nil;
+    elseif (valueType == "table") then
+      self:ApplySchema(schema[key], value);
+    end
+  end
+end
+
+function Utilities:ApplyDefaults(defaults, sv)
+  for key, value in pairs(sv) do
+    local defaultValue = defaults[key];
+    local defaultType = type(defaultValue);
+    local valueType = type(value);
+    local matchingType = (defaultType == valueType) and defaultType or nil;
+
+    if (matchingType) then
+      if (matchingType == "table") then
+        self:ApplySchema(defaultValue, value);
+      elseif (value == defaultValue) then
+        sv[key] = nil;
+      end
+    end
+  end
+end
+
+function Utilities:BuildIndexer(indexer, defaults, sv)
+  local flattenedDefaults = self:Flatten(defaults);
+
+  for key, value in pairs(flattenedDefaults) do
+    indexer[key] = value;
+  end
+
+  local flattenedSv = self:Flatten(sv);
+
+  for key, value in pairs(flattenedSv) do
+    indexer[key] = value;
+  end
+end
+
+function Utilities:Flatten(inputTable)
+  local outputTable = {}
+
+  local function TraverseTable(currentTable, prefix)
+    for key, value in pairs(currentTable) do
+      local currentKey;
+
+      if type(key) == "number" then
+        currentKey = ("[%d]"):format(key);
+      else
+        currentKey = (".%s"):format(key);
+      end
+
+      if type(value) == "table" then
+        TraverseTable(value, prefix .. currentKey);
+      else
+        outputTable[prefix .. currentKey] = value;
+      end
+    end
+  end
+
+  TraverseTable(inputTable, "");
+  return outputTable;
 end
