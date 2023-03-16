@@ -518,13 +518,9 @@ end
 ---@param repository RepositoryMixin
 function Utilities:GetRepositoryTable(repository)
   local data = metadata[tostring(repository)];
-  local database = data.database;
-
-  for repositoryName, handler in pairs(data.config.repositoryHandlers) do
-    if (repository == database[repositoryName]) then
-      return handler(_G[data.svName], data.database);
-    end
-  end
+  local name = repository:GetRepositoryName();
+  local handler = data.config.repositoryHandlers[name];
+  return handler.GetSavedVariableTable(_G[data.svName], data.database);
 end
 
 ---@param repository RepositoryMixin
