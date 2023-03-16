@@ -16,8 +16,13 @@ local Utilities = {}; ---@class Utilities
 local UnitFullName, strsplit = _G.UnitFullName, _G.strsplit;
 local GetServerTime = _G.GetServerTime;
 
----@alias RepositoryHandler fun(sv: table, db: DatabaseMixin): table
+---@class RepositoryHandler
+---@field GetSavedVariableTable fun(sv: table, db: DatabaseMixin): table
+---@field Configure fun(db: DatabaseMixin)
+---@field GetDefaultKey fun(): string
+
 ---@alias OnInitializedCallback fun(db: DatabaseMixin)
+---@alias OnProfileChanged fun(db: DatabaseMixin, newProfileName: string, oldProfileName: string)
 ---@alias DatabaseCallbackType "profileChanged"|"profileListChanged"|"binListChanged"
 ---@alias DatabaseCallback fun(db: DatabaseMixin, ...: any)
 ---@alias OrbitusObserver fun(db: DatabaseMixin, value: any, previousValue: any)
@@ -28,7 +33,6 @@ local GetServerTime = _G.GetServerTime;
 ---@field defaults { [RepositoryName]: table }
 ---@field schemas { [RepositoryName]: table }
 ---@field observers { [RepositoryName]: OrbitusObserver[] }
----@field GetDefaultProfile fun(): string
 ---@field repositoryHandlers table<RepositoryName, RepositoryHandler>
 
 ---@type DatabaseConfig
@@ -36,26 +40,44 @@ local defaultConfig = {
   defaults = {};
   schemas = {};
   observers = {};
-  GetDefaultProfile = function() return "Default"; end;
+
   repositoryHandlers = {
-    ["global"] = function(sv)
-      sv.global = sv.global or {};
-      return sv.global;
-    end,
-    ["profile"] = function(sv, db)
-      local profileName = db:GetProfileManager():GetActive();
-      sv.profiles = sv.profiles or {};
-      sv.profiles[profileName] = sv.profiles[profileName] or {};
-      return sv.profiles[profileName];
-    end,
-    ["character"] = function(sv)
-      local characterName = UnitFullName("player");
-      assert(type(characterName) == "string",
-        "Failed to get character repository; character name is invalid.");
-      sv.characters = sv.characters or {};
-      sv.characters[characterName] = sv.characters[characterName] or {};
-      return sv.characters[characterName];
-    end,
+    ["global"] = {
+      GetSavedVariableTable = function(sv)
+        sv.global = sv.global or {};
+        return sv.global;
+      end
+    },
+
+    -- Needs to Send "OnProfileChanged" and "OnProfileListChanged" events
+    -- If we had "OnSpecializationChanged" then this would send that too
+    ["profile"] = {
+      GetSavedVariableTable = function(sv, db)
+        local profileName = db:GetProfileManager():GetActive();
+        sv.profiles = sv.profiles or {};
+        sv.profiles[profileName] = sv.profiles[profileName] or {};
+        return sv.profiles[profileName];
+      end,
+
+      GetDefaultKey = function() return "Default" end,
+
+      Configure = function(db)
+        db:GetProfileManager():OnProfileChanged(function()
+          db.profile:RebuildIndex();
+        end);
+      end
+    },
+
+    ["character"] = {
+      GetSavedVariableTable = function(sv)
+        local characterName = UnitFullName("player");
+        assert(type(characterName) == "string",
+          "Failed to get character repository; character name is invalid.");
+        sv.characters = sv.characters or {};
+        sv.characters[characterName] = sv.characters[characterName] or {};
+        return sv.characters[characterName];
+      end,
+    },
   }
 };
 
@@ -65,7 +87,7 @@ local defaultConfig = {
 ---@field profileManager ProfileManagerMixin
 ---@field database DatabaseMixin
 ---@field config DatabaseConfig
----@field indexer { [string]: table }
+---@field indexer { [RepositoryName]: { [string]: table } } -- TODO: Rebuild when changed
 
 ---@type table<string, DatabaseMetadata>
 local metadata = {};
@@ -195,6 +217,7 @@ end
 --------------------------
 --> ProfileManagerMixin:
 --------------------------
+---@param callback OnProfileChanged
 function ProfileManagerMixin:OnProfileChanged(callback)
   Utilities:AddCallback(self, "profileChanged", callback);
 end
@@ -214,7 +237,7 @@ function ProfileManagerMixin:GetActive()
 
   local characterName = UnitFullName("player");
   assert(type(characterName) == "string", "Failed to get active profile; invalid character name");
-  return profileKeys[characterName] or data.config.GetDefaultProfile();
+  return profileKeys[characterName] or data.config.repositoryHandlers.profile.GetDefaultKey();
 end
 
 ---@param profileName string
@@ -371,6 +394,27 @@ function RepositoryMixin:Init(database, repositoryName)
   Utilities:BuildIndexer(indexer, defaults, sv);
 end
 
+function RepositoryMixin:RebuildIndex()
+  local indexer = Utilities:GetRepostoryIndexer(self);
+  local defaults = metadata[tostring(self)].config.defaults;
+  local sv = Utilities:GetRepositoryTable(self);
+  Utilities:BuildIndexer(indexer, defaults, sv);
+end
+
+---@return string
+function RepositoryMixin:GetRepositoryName()
+  local data = metadata[tostring(self)];
+  local database = data.database;
+
+  for key, value in pairs(database) do
+    if (value == self) then
+      return key;
+    end
+  end
+
+  return "";
+end
+
 ---@param query string
 ---@param observer OrbitusObserver
 function RepositoryMixin:Subscribe(query, observer)
@@ -393,6 +437,25 @@ end
 function RepositoryMixin:Store(query, value)
   Utilities:VerifyArgs(query, "string");
   local normalizedQuery = Utilities:NormalizeQuery(query);
+
+  if (type(value) == "table") then
+    local flattened = Utilities:Flatten(value);
+
+    for key, nestedValue in pairs(flattened) do
+      local nestedQuery;
+
+      if (key:sub(1, 1) == "[") then
+        nestedQuery = query .. key;
+      else
+        nestedQuery = query .. "." .. key;
+      end
+
+      self:Store(nestedQuery, nestedValue);
+    end
+
+    return
+  end
+
   local indexer = Utilities:GetRepostoryIndexer(self);
 
   local previousValue = indexer[normalizedQuery];
@@ -400,7 +463,15 @@ function RepositoryMixin:Store(query, value)
 
   if (previousValue ~= value) then
     local data = metadata[tostring(self)];
-    Utilities:NotifyChange(data, query, value, previousValue);
+    local observers = data.config.observers[tostring(self)];
+    if (type(observers) ~= "table") then return end
+
+    observers = observers[query];
+    if (type(observers) ~= "table") then return end
+
+    for _, observer in ipairs(observers) do
+      observer(data.database, newValue, oldValue);
+    end
   end
 end
 
@@ -456,12 +527,13 @@ function Utilities:GetRepositoryTable(repository)
   end
 end
 
+---@param repository RepositoryMixin
 ---@return table
 function Utilities:GetRepostoryIndexer(repository)
-  local key = tostring(repository);
-  local data = metadata[key];
-  data.indexer[key] = data.indexer[key] or {};
-  return data.indexer[key];
+  local name = repository:GetRepositoryName();
+  local data = metadata[tostring(self)];
+  data.indexer[name] = data.indexer[name] or {};
+  return data.indexer[name];
 end
 
 function Utilities:GetSavedVariableSubTable(obj, tblName)
@@ -494,22 +566,6 @@ function Utilities:TriggerCallback(obj, callbackName, ...)
 
   for _, callback in ipairs(data.callbacks[callbackName]) do
     callback(data.database, ...);
-  end
-end
-
----@param data DatabaseMetadata
----@param query string
----@param newValue any
----@param oldValue any
-function Utilities:NotifyChange(data, query, newValue, oldValue)
-  local observers = data.config.observers;
-  if (type(observers) ~= "table") then return end
-
-  observers = observers[query];
-  if (type(observers) ~= "table") then return end
-
-  for _, observer in ipairs(observers) do
-    observer(data.database, newValue, oldValue);
   end
 end
 
@@ -697,7 +753,7 @@ function Utilities:ApplyDefaults(defaults, sv)
 
     if (matchingType) then
       if (matchingType == "table") then
-        self:ApplySchema(defaultValue, value);
+        self:ApplyDefaults(defaultValue, value);
       elseif (value == defaultValue) then
         sv[key] = nil;
       end
@@ -719,6 +775,7 @@ function Utilities:BuildIndexer(indexer, defaults, sv)
   end
 end
 
+---@return { [string]: any }
 function Utilities:Flatten(inputTable)
   local outputTable = {}
 
