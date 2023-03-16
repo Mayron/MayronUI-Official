@@ -22,7 +22,9 @@ local GetServerTime = _G.GetServerTime;
 ---@field GetDefaultKey fun(): string
 
 ---@alias OnInitializedCallback fun(db: DatabaseMixin)
----@alias OnProfileChanged fun(db: DatabaseMixin, newProfileName: string, oldProfileName: string)
+---@alias OnProfileChanged fun(profileManager: ProfileManagerMixin, newProfileName: string, oldProfileName: string)
+---@alias OnProfileListChanged fun(profileManager: ProfileManagerMixin)
+---@alias OnBinListChanged fun(profileManager: ProfileManagerMixin)
 ---@alias DatabaseCallbackType "profileChanged"|"profileListChanged"|"binListChanged"
 ---@alias DatabaseCallback fun(db: DatabaseMixin, ...: any)
 ---@alias OrbitusObserver fun(db: DatabaseMixin, value: any, previousValue: any)
@@ -222,10 +224,12 @@ function ProfileManagerMixin:OnProfileChanged(callback)
   Utilities:AddCallback(self, "profileChanged", callback);
 end
 
+---@param callback OnProfileListChanged
 function ProfileManagerMixin:OnProfileListChanged(callback)
   Utilities:AddCallback(self, "profileListChanged", callback);
 end
 
+---@param callback OnBinListChanged
 function ProfileManagerMixin:OnBinListChanged(callback)
   Utilities:AddCallback(self, "binListChanged", callback);
 end
@@ -241,14 +245,36 @@ function ProfileManagerMixin:GetActive()
 end
 
 ---@param profileName string
-function ProfileManagerMixin:SetActive(profileName)
-  local profileKeys = Utilities:GetSavedVariableSubTable(self, "profileKeys");
+---@return boolean
+function ProfileManagerMixin:Exists(profileName)
+  local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
+  return type(profiles[profileName]) == "table";
+end
 
+---@param profileName string
+---@return boolean
+function ProfileManagerMixin:IsInBin(profileName)
+  local bin = Utilities:GetSavedVariableSubTable(self, "bin");
+  return type(bin[profileName]) == "table";
+end
+
+---@param profileName string
+function ProfileManagerMixin:SetActive(profileName)
   local characterName = UnitFullName("player");
   assert(type(characterName) == "string", "Failed to set active profile; invalid character name");
 
   local oldProfileName = self:GetActive();
+
+  if (oldProfileName == profileName) then return end
+
+  local profileKeys = Utilities:GetSavedVariableSubTable(self, "profileKeys");
+  local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
   profileKeys[characterName] = profileName;
+
+  if (type(profiles[profileName]) ~= "table") then
+    profiles[profileName] = {};
+    Utilities:TriggerCallback(self, "profileListChanged");
+  end
 
   Utilities:TriggerCallback(self, "profileChanged", profileName, oldProfileName);
 end
@@ -275,11 +301,15 @@ function ProfileManagerMixin:Delete(profileName)
   local profileData = self:Export(profileName);
   profiles[profileName] = nil;
 
+  Utilities:TriggerCallback(self, "profileListChanged");
+
   local bin = Utilities:GetSavedVariableSubTable(self, "bin");
   bin[profileName] = {
     expiry = GetServerTime() + 604800, -- add 7 days (in seconds)
     data = profileData
   };
+
+  Utilities:TriggerCallback(self, "binListChanged");
 
   return true;
 end
@@ -561,7 +591,7 @@ function Utilities:TriggerCallback(obj, callbackName, ...)
   end
 
   for _, callback in ipairs(data.callbacks[callbackName]) do
-    callback(data.database, ...);
+    callback(obj, ...);
   end
 end
 
