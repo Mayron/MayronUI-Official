@@ -1,25 +1,38 @@
 -- luacheck: ignore self
+local OrbitusApi = {};
+
 local _G = _G;
 local LibDeflate = _G.LibStub:GetLibrary("LibDeflate");
 
-local OrbitusApi = {};
+---@class RepositoryMixin
+---@field private __manager table?
+local RepositoryMixin = {};
 
 ---@class DatabaseMixin
 ---@field profile RepositoryMixin
 ---@field global RepositoryMixin
 ---@field character RepositoryMixin
 local DatabaseMixin = {};
-local RepositoryMixin = {}; ---@class RepositoryMixin
+
 local ProfileManagerMixin = {}; ---@class ProfileManagerMixin
 local Utilities = {}; ---@class Utilities
+
+---@class IndexActionsMixin
+---@field GetIndex fun(self: IndexActionsMixin): Index
+---@field RebuildIndex fun(self: IndexActionsMixin)
+---@field GetIndexChanges fun(self: IndexActionsMixin, fromIndex: Index, toIndex: Index): IndexChanges
+---@field NotifyIndexChanges fun(self: IndexActionsMixin, changes: IndexChanges)
+---@field private __repository RepositoryMixin
+---@field private Init fun(self: IndexActionsMixin, repository: RepositoryMixin)
+local IndexActionsMixin = {};
 
 local UnitFullName, strsplit = _G.UnitFullName, _G.strsplit;
 local GetServerTime = _G.GetServerTime;
 
 ---@class RepositoryHandler
----@field GetSavedVariableTable fun(sv: table, db: DatabaseMixin): table
----@field ConfigureIndexer fun(db: DatabaseMixin, actions: ConfigureIndexerActions)
----@field GetDefaultKey fun(): string
+---@field GetSavedVariableTable fun(sv: table, repository: RepositoryMixin): table
+---@field ConfigureIndex fun(repository: RepositoryMixin, actions: IndexActionsMixin)
+---@field GetDefaultKey fun(repository: RepositoryMixin): string
 
 ---@alias OnInitializedCallback fun(db: DatabaseMixin)
 ---@alias OnProfileChanged fun(profileManager: ProfileManagerMixin, newProfileName: string, oldProfileName: string)
@@ -30,8 +43,8 @@ local GetServerTime = _G.GetServerTime;
 ---@alias OrbitusObserver fun(query: string, value: any, previousValue: any)
 ---@alias QueryableList (string|number)[]
 ---@alias RepositoryName "global"|"profile"|"character"
----@alias IndexerChanges { [string]: { from: any, to: any }}
----@alias ConfigureIndexerActions { RebuildIndex: fun(): IndexerChanges }
+---@alias IndexChanges { [string]: { from: string|boolean|number|nil, to: string|boolean|number|nil }}
+---@alias Index { [string]: string|boolean|number }
 
 ---@class DatabaseConfig
 ---@field defaults { [RepositoryName]: table }
@@ -56,8 +69,9 @@ local defaultConfig = {
     -- Needs to Send "OnProfileChanged" and "OnProfileListChanged" events
     -- If we had "OnSpecializationChanged" then this would send that too
     ["profile"] = {
-      GetSavedVariableTable = function(sv, db)
-        local profileName = db:GetProfileManager():GetActive();
+      GetSavedVariableTable = function(sv, repository)
+        local manager = repository:GetManager(); ---@cast manager ProfileManagerMixin
+        local profileName = manager:GetActive();
         sv.profiles = sv.profiles or {};
         sv.profiles[profileName] = sv.profiles[profileName] or {};
         return sv.profiles[profileName];
@@ -65,13 +79,13 @@ local defaultConfig = {
 
       GetDefaultKey = function() return "Default" end,
 
-      ConfigureIndexer = function(db, actions)
-        db:GetProfileManager():OnProfileChanged(function()
-          local changeLog = actions:RebuildIndex();
-
-          for query, changes in pairs(changeLog) do
-            db.profile:NotifyChange(query, changes.from, changes.to);
-          end
+      ConfigureIndex = function(repository, actions)
+        local manager = repository:GetManager(); ---@cast manager ProfileManagerMixin
+        manager:OnProfileChanged(function()
+          local index = actions:GetIndex();
+          local newIndex = actions:RebuildIndex();
+          local changes = actions:GetIndexChanges(index, newIndex);
+          actions:NotifyIndexChanges(changes);
         end);
       end
     },
@@ -92,10 +106,9 @@ local defaultConfig = {
 ---@class DatabaseMetadata
 ---@field callbacks table<DatabaseCallbackType, DatabaseCallback[]>
 ---@field svName string
----@field profileManager ProfileManagerMixin
 ---@field database DatabaseMixin
 ---@field config DatabaseConfig
----@field indexers { [RepositoryName]: { [string]: table } } -- TODO: Rebuild when changed
+---@field indices { [RepositoryName]: Index }
 
 ---@type table<string, DatabaseMetadata>
 local metadata = {};
@@ -123,19 +136,19 @@ end);
 --------------------------
 
 ---@param savedVariableName string
----@param userConfig DatabaseConfig?
+---@param databaseConfig DatabaseConfig?
 ---@param onInitialized OnInitializedCallback
 ---@overload fun(self, savedVariableName: string, onInitialized: OnInitializedCallback)
-function OrbitusApi:Register(savedVariableName, userConfig, onInitialized)
-  if (type(userConfig) == "function" and onInitialized == nil) then
-    onInitialized = userConfig;
-    userConfig = nil;
+function OrbitusApi:Register(savedVariableName, databaseConfig, onInitialized)
+  if (type(databaseConfig) == "function" and onInitialized == nil) then
+    onInitialized = databaseConfig;
+    databaseConfig = nil;
   end
 
   assert(registeredDatabaseConfigs[savedVariableName] == nil,
     ("Database %s has already been registered"):format(savedVariableName));
 
-  local config = Utilities:Assign(defaultConfig, userConfig);
+  local config = Utilities:Assign(defaultConfig, databaseConfig);
   registeredDatabaseConfigs[savedVariableName] = config;
   onInitializedCallbacks[savedVariableName] = onInitialized;
 
@@ -154,33 +167,11 @@ function OrbitusApi:GetDatabase(savedVariableName)
   end
 end
 
--- May not end up using this:
--- ---@param savedVariableName string
--- ---@param repositoryName RepositoryName
--- ---@param defaults table
--- function OrbitusApi:AddDefaults(savedVariableName, repositoryName, defaults)
---   local config = registeredDatabaseConfigs[savedVariableName];
---   local data = metadata[tostring(self)];
---   assert(not data and type(config) == "table",
---     "Unable to modify the database defaults after the database has been initialized");
---   config.defaults = Utilities:Assign(config.defaults, { [repositoryName] = defaults });
--- end
-
--- ---@param savedVariableName string
--- ---@param repositoryName RepositoryName
--- ---@param schema table
--- function OrbitusApi:AddSchema(savedVariableName, repositoryName, schema)
---   local config = registeredDatabaseConfigs[savedVariableName];
---   local data = metadata[tostring(self)];
---   assert(not data and type(config) == "table",
---     "Unable to modify the database schema after the database has been initialized");
---   config.schemas = Utilities:Assign(config.schemas, { [repositoryName] = schema });
--- end
-
 --------------------------
 --> DatabaseMixin:
 --------------------------
 
+---@private
 ---@param savedVariableName string
 function DatabaseMixin:Init(savedVariableName)
   assert(type(registeredDatabaseConfigs[savedVariableName]) == "table",
@@ -193,37 +184,25 @@ function DatabaseMixin:Init(savedVariableName)
   assert(type(metadata[tostring(self)]) == nil,
     ("Database %s failed to initialize because it has already been initialized"):format(savedVariableName));
 
-  local profileManager = CreateFromMixins(ProfileManagerMixin);
-
   ---@type DatabaseMetadata
   local data = {
     svName = savedVariableName;
     config = registeredDatabaseConfigs[savedVariableName];
     database = self;
-    indexers = {}
+    indices = {}
   };
 
   registeredDatabaseConfigs[savedVariableName] = nil;
   metadata[tostring(self)] = data;
-  metadata[tostring(profileManager)] = data;
 
   for repositoryName, _ in pairs(data.config.repositoryHandlers) do
     CreateAndInitFromMixin(RepositoryMixin, self, repositoryName);
   end
 
   for repositoryName, handler in pairs(data.config.repositoryHandlers) do
-    if (handler.ConfigureIndexer) then
-      handler.ConfigureIndexer(self, {
-        RebuildIndex = function()
-          local repository = self[repositoryName]; ---@type RepositoryMixin
-          local repoDefaults = data.config.defaults[repositoryName];
-          local repoSv = handler.GetSavedVariableTable(svTable, self);
-
-          local currentIndexer = data.indexers[repository];
-          local newIndexer = Utilities:BuildIndex(repoDefaults, repoSv);
-          return Utilities:GetIndexerChanges(currentIndexer, newIndexer);
-        end
-      });
+    if (handler.ConfigureIndex) then
+      local actions = CreateAndInitFromMixin(IndexActionsMixin, data, repositoryName, handler);
+      handler.ConfigureIndex(self[repositoryName], actions);
     end
   end
 
@@ -231,12 +210,6 @@ function DatabaseMixin:Init(savedVariableName)
   if (callback) then
     callback(self);
   end
-end
-
----@return ProfileManagerMixin
-function DatabaseMixin:GetProfileManager()
-  local data = metadata[tostring(self)];
-  return data.profileManager;
 end
 
 --------------------------
@@ -264,7 +237,10 @@ function ProfileManagerMixin:GetActive()
 
   local characterName = UnitFullName("player");
   assert(type(characterName) == "string", "Failed to get active profile; invalid character name");
-  return profileKeys[characterName] or data.config.repositoryHandlers.profile.GetDefaultKey();
+
+  local repository = data.database.profile;
+  local handler = data.config.repositoryHandlers.profile;
+  return profileKeys[characterName] or handler.GetDefaultKey(repository);
 end
 
 ---@param profileName string
@@ -417,17 +393,27 @@ function ProfileManagerMixin:Import(profileName, profileDataString, force)
   profiles[profileName] = profileData;
 end
 
+function ProfileManagerMixin:GetDatabase()
+  local data = metadata[tostring(self)];
+  return data.database;
+end
+
 --------------------------
 --> RepositoryMixin:
 --------------------------
 
----comment
+---@private
 ---@param database DatabaseMetadata
 ---@param repositoryName RepositoryName
 function RepositoryMixin:Init(database, repositoryName)
   local data = metadata[tostring(database)];
   metadata[tostring(self)] = data;
   database[repositoryName] = self;
+
+  if (repositoryName == "profile") then
+    self.__manager = CreateFromMixins(ProfileManagerMixin);
+    metadata[tostring(self.__manager)] = data;
+  end
 
   local repoSv = Utilities:GetRepositoryTable(self);
 
@@ -442,14 +428,13 @@ function RepositoryMixin:Init(database, repositoryName)
     Utilities:ApplyDefaults(repoDefaults, repoSv);
   end
 
-  -- Create Indexer
-  data.indexers[repositoryName] = Utilities:BuildIndex(repoDefaults, repoSv);
+  -- Create Index
+  data.indices[repositoryName] = Utilities:BuildIndex(repoDefaults, repoSv);
 end
 
 ---@return string
 function RepositoryMixin:GetRepositoryName()
-  local data = metadata[tostring(self)];
-  local database = data.database;
+  local database = self:GetDatabase();
 
   for key, value in pairs(database) do
     if (value == self) then
@@ -458,6 +443,16 @@ function RepositoryMixin:GetRepositoryName()
   end
 
   return "";
+end
+
+function RepositoryMixin:GetDatabase()
+  local data = metadata[tostring(self)];
+  return data.database;
+end
+
+---@return table?
+function RepositoryMixin:GetManager()
+  return self.__manager;
 end
 
 ---@param query string
@@ -482,82 +477,94 @@ function RepositoryMixin:Query(query)
   Utilities:VerifyArgs(query, "string");
   local repositoryName = self:GetRepositoryName();
   local data = metadata[tostring(self)];
-  local indexer = data.indexers[repositoryName];
+  local index = data.indices[repositoryName];
   local normalizedQuery = Utilities:NormalizeQuery(query);
-  return indexer[normalizedQuery];
+  return index[normalizedQuery];
 end
 
 function RepositoryMixin:Store(query, value)
   Utilities:VerifyArgs(query, "string");
+
   local normalizedQuery = Utilities:NormalizeQuery(query);
+  local data = metadata[tostring(self)];
+  local repositoryName = self:GetRepositoryName();
+  local index = data.indices[repositoryName];
+  local observers = data.config.observers[repositoryName];
+  local changes; ---@type IndexChanges?
 
   if (type(value) == "table") then
-    local flattened = Utilities:Flatten(value);
+    local flattenedValue = Utilities:Flatten(value);
+    local newValues = {};
 
-    for key, nestedValue in pairs(flattened) do
-      local nestedQuery;
+    for key, newValue in pairs(flattenedValue) do
+      local fullKey;
 
-      if (key:sub(1, 1) == "[") then
-        nestedQuery = query .. key;
+      if (string.sub(key, 1, 1) == "[") then
+        fullKey = ("%s%s"):format(normalizedQuery, key);
       else
-        nestedQuery = query .. "." .. key;
+        fullKey = ("%s.%s"):format(normalizedQuery, key);
       end
 
-      self:Store(nestedQuery, nestedValue);
+      newValues[fullKey] = newValue;
     end
 
-    return
-  end
+    for subQuery, subValue in pairs(newValues) do
+      local previousValue = index[subQuery];
+      index[subQuery] = subValue;
 
-  local repositoryName = self:GetRepositoryName();
-  local data = metadata[tostring(self)];
-  local indexer = data.indexers[repositoryName];
-
-  local previousValue = indexer[normalizedQuery];
-  indexer[normalizedQuery] = value;
-
-  if (previousValue ~= value) then
-    self:NotifyChange(normalizedQuery, previousValue, value);
-  end
-end
-
-function RepositoryMixin:NotifyChange(query, previousValue, newValue)
-  local normalizedQuery = Utilities:NormalizeQuery(query);
-  local repoSv = Utilities:GetRepositoryTable(self);
-  Utilities:Persist(repoSv, normalizedQuery, newValue);
-
-  local data = metadata[tostring(self)];
-  local repositoryName = self:GetRepositoryName();
-  local observers = data.config.observers[repositoryName];
-
-  local queryableList = Utilities:ToQueryableList(normalizedQuery);
-  local prefix;
-
-  for _, key in pairs(queryableList) do
-    local currentKey;
-
-    if type(key) == "number" then
-      currentKey = ("%s[%d]"):format(prefix or "", key);
-    elseif (prefix) then
-      currentKey = ("%s.%s"):format(prefix, key);
-    else
-      currentKey = key;
-    end
-
-    local notifiers = observers[currentKey];
-    if (type(notifiers) == "table") then
-      for _, notifier in ipairs(notifiers) do
-        notifier(query, newValue, previousValue);
+      if (previousValue ~= subValue) then
+        changes = changes or {};
+        changes[subQuery] = { from = subValue, to = previousValue };
       end
     end
+  else
+    local previousValue = index[normalizedQuery];
+    index[normalizedQuery] = value;
 
-    prefix = currentKey;
+    if (previousValue ~= value) then
+      changes = {};
+      changes[normalizedQuery] = { from = previousValue, to = value }
+    end
+  end
+
+  if (changes) then
+    Utilities:NotifyChanges(self, observers, changes);
   end
 end
 
 --------------------------
 --> Utilities:
 --------------------------
+
+---@param repository RepositoryMixin
+---@param observers { [string]: OrbitusObserver[] }
+---@param changes IndexChanges
+function Utilities:NotifyChanges(repository, observers, changes)
+  if (not next(observers)) then return end
+
+  local svTable = self:GetRepositoryTable(repository);
+
+  for query, observer in pairs(observers) do
+    local relevantChanges = {};
+
+    if (type(observer) == "table" and #observer > 0) then
+      for changeQuery, change in pairs(changes) do
+        if (#changeQuery >= #query) then
+          local isRelevantChange = changeQuery:sub(1, #query) == query;
+          if (isRelevantChange) then
+            relevantChanges[changeQuery] = change;
+          end
+        end
+      end
+
+      for _, notifier in ipairs(observer) do
+        local value = self:Fetch(svTable, query);
+        notifier(value, relevantChanges);
+      end
+    end
+  end
+end
+
 
 local errorTemplate = "bad argument #%d (%s expected, got %s)";
 
@@ -600,7 +607,7 @@ function Utilities:GetRepositoryTable(repository)
   local data = metadata[tostring(repository)];
   local name = repository:GetRepositoryName();
   local handler = data.config.repositoryHandlers[name];
-  return handler.GetSavedVariableTable(_G[data.svName], data.database);
+  return handler.GetSavedVariableTable(_G[data.svName], repository);
 end
 
 function Utilities:GetSavedVariableSubTable(obj, tblName)
@@ -700,9 +707,7 @@ do
         storageTbl = storageTbl[key];
       else
         -- the last key
-        local previousValue = storageTbl[key];
         storageTbl[key] = value;
-        return previousValue;
       end
     end
   end
@@ -791,39 +796,20 @@ end
 ---@param repoSv table
 ---@return table
 function Utilities:BuildIndex(repoDefaults, repoSv)
-  local indexer = {};
+  local index = {};
   local flattenedDefaults = self:Flatten(repoDefaults);
 
   for key, value in pairs(flattenedDefaults) do
-    indexer[key] = value;
+    index[key] = value;
   end
 
   local flattenedSv = self:Flatten(repoSv);
 
   for key, value in pairs(flattenedSv) do
-    indexer[key] = value;
+    index[key] = value;
   end
 
-  return indexer;
-end
-
----@return IndexerChanges
-function Utilities:GetIndexerChanges(from, to)
-  local changes = {};
-
-  for key, value in pairs(from) do
-    if (value ~= to[key]) then
-      changes[key] = { from = value, to = to[key] };
-    end
-  end
-
-  for key, value in pairs(to) do
-    if (from[key] == nil) then
-      changes[key] = { from = nil, to = value };
-    end
-  end
-
-  return changes
+  return index;
 end
 
 ---@return { [string]: any }
@@ -853,3 +839,58 @@ function Utilities:Flatten(inputTable)
   TraverseTable(inputTable);
   return outputTable;
 end
+
+----------------------
+--> IndexActionsMixin
+----------------------
+function IndexActionsMixin:Init(repository)
+  self.__repository = repository;
+end
+
+function IndexActionsMixin:GetIndex()
+  local repository = self.__repository;
+  local data = metadata[tostring(repository)];
+  local repositoryName = repository:GetRepositoryName();
+  return data.indices[repositoryName];
+end
+
+function IndexActionsMixin:RebuildIndex()
+  local repository = self.__repository;
+  local data = metadata[tostring(repository)];
+  local repositoryName = repository:GetRepositoryName();
+
+  local handler = data.config.repositoryHandlers[repositoryName];
+  local repoDefaults = data.config.defaults[repositoryName];
+  local repoSv = handler.GetSavedVariableTable(_G[data.svName], data.database);
+
+  data.indices[repositoryName] = Utilities:BuildIndex(repoDefaults, repoSv);
+end
+
+function IndexActionsMixin:NotifyIndexChanges(changes)
+  local repository = self.__repository;
+  local data = metadata[tostring(repository)];
+  local repositoryName = repository:GetRepositoryName();
+  local observers = data.config.observers[repositoryName];
+  Utilities:NotifyChanges(repository, observers, changes);
+end
+
+function IndexActionsMixin:GetIndexChanges(fromIndex, toIndex)
+  local changes = {};
+
+  for key, value in pairs(fromIndex) do
+    if (value ~= toIndex[key]) then
+      changes[key] = { from = value, to = toIndex[key] };
+    end
+  end
+
+  for key, value in pairs(toIndex) do
+    if (fromIndex[key] == nil) then
+      changes[key] = { from = nil, to = value };
+    end
+  end
+
+  return changes;
+end
+
+
+return OrbitusApi;
