@@ -1,8 +1,9 @@
 -- luacheck: ignore self
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, _, _, _, obj, L = MayronUI:GetCoreComponents();
 
+---@class Toolkit
+local tk, _, _, _, obj, L = MayronUI:GetCoreComponents();
 tk.Numbers = {};
 
 local string, tostring, select, unpack, type = _G.string, _G.tostring, _G.select, _G.unpack, _G.type;

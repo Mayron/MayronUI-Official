@@ -1,18 +1,14 @@
 -- luacheck: ignore self
 local _G = _G;
-local MayronUI = _G.MayronUI;
+local MayronUI = _G.MayronUI; ---@type MayronUI
 
+---@class Toolkit
 local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 
 local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
 local ipairs, hooksecurefunc, CreateFrame, select = _G.ipairs, _G.hooksecurefunc,
   _G.CreateFrame, _G.select;
 local CreateColor = _G.CreateColor;
-
-function tk:SetFontSize(fontString, size)
-  local fontPath, _, flags = fontString:GetFont();
-  fontString:SetFont(fontPath, size, flags);
-end
 
 do
   local function SetOwner(widget)

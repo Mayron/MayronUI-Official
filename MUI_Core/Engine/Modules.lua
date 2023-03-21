@@ -1,6 +1,9 @@
 -- luacheck: ignore MayronUI LibStub self 143 631
 local _G = _G;
-local MayronUI = _G.MayronUI; ---@type MayronUI
+
+---@class MayronUI
+local MayronUI = _G.MayronUI;
+
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
 local table, ipairs, pairs, select, string, unpack, print = _G.table, _G.ipairs,
@@ -12,7 +15,7 @@ local collectgarbage = _G.collectgarbage;
 local InCombatLockdown = _G.InCombatLockdown;
 local FillLocalizedClassList, UnitName = _G.FillLocalizedClassList, _G.UnitName;
 
----@class BaseModule : Object
+---@class BaseModule : MayronObjects.Class
 local BaseModule = obj:CreateClass("BaseModule");
 obj:Export(BaseModule, "MayronUI");
 
@@ -621,10 +624,11 @@ function MayronUI:ImportModule(moduleKey, silent)
 end
 
 ---MayronUI automatically initializes modules during the "PLAYER_ENTERING_WORLD" event unless initializeOnDemand is true.
----@param moduleKey string @A unique key used to register the module to MayronUI.
+---@generic T
+---@param moduleKey `T` @A unique key used to register the module to MayronUI.
 ---@param moduleName string @A human-friendly name of the module to be used in-game (such as on the config window).
----@param initializeOnDemand boolean @(optional) If true, must be initialized manually instead of
----@return Class @Returns a new module Class so that a module can be given additional methods and definitions where required.
+---@param initializeOnDemand boolean? @(optional) If true, must be initialized manually instead of
+---@return T|BaseModule|MayronObjects.Class @Returns a new module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
   local moduleClass = obj:CreateClass(moduleKey, BaseModule);
 

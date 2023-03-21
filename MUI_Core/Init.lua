@@ -10,8 +10,12 @@ local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 local MayronUI = {};
 _G.MayronUI = MayronUI;
 
-local tk = {}; ---@class Toolkit
-local gui = {}; ---@class GUIBuilder
+---@class Toolkit
+local tk = {};
+
+---@class GUIBuilder
+local gui = {};
+
 local db = obj:Import("MayronDB").Static:CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI"); ---@class Database
 local em = obj:Import("Pkg-MayronEvents.EventManager")(); ---@class EventManager
 local L = _G.LibStub("AceLocale-3.0"):GetLocale("MayronUI"); ---@class Locale

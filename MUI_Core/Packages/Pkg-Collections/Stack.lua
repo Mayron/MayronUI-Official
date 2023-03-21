@@ -3,8 +3,9 @@ local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 
 if (obj:Import("Pkg-Collections.Stack<T>", true)) then return end
 
----@class Stack : Object
+---@class Pkg-Collections.Stack : MayronObjects.Class
 local C_Stack = obj:CreateClass("Stack<T>");
+
 obj:Export(C_Stack, "Pkg-Collections");
 
 local unpack, ipairs = _G.unpack, _G.ipairs;

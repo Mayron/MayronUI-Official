@@ -1,21 +1,27 @@
 -- luacheck: ignore self
-local OrbitusApi = {};
-
 local _G = _G;
-local LibDeflate = _G.LibStub:GetLibrary("LibDeflate");
+local LibStub = _G.LibStub;
+local LibDeflate = LibStub:GetLibrary("LibDeflate");
+
+---@class OrbitusDB
+local OrbitusDB = LibStub:NewLibrary("OrbitusDB", 1);
+
+if (not OrbitusDB) then return end -- no update required
 
 ---@class RepositoryMixin
----@field private __manager table?
 local RepositoryMixin = {};
 
+---@class ProfileRepositoryMixin: RepositoryMixin
+local ProfileRepositoryMixin = {};
+
+---@class Utilities
+local Utilities = {};
+
 ---@class DatabaseMixin
----@field profile RepositoryMixin
+---@field profile ProfileRepositoryMixin
 ---@field global RepositoryMixin
 ---@field character RepositoryMixin
 local DatabaseMixin = {};
-
-local ProfileManagerMixin = {}; ---@class ProfileManagerMixin
-local Utilities = {}; ---@class Utilities
 
 ---@class IndexActionsMixin
 ---@field GetIndex fun(self: IndexActionsMixin): Index
@@ -30,14 +36,15 @@ local UnitFullName, strsplit = _G.UnitFullName, _G.strsplit;
 local GetServerTime = _G.GetServerTime;
 
 ---@class RepositoryHandler
+---@field Mixin table|nil
 ---@field GetSavedVariableTable fun(sv: table, repository: RepositoryMixin): table
 ---@field ConfigureIndex fun(repository: RepositoryMixin, actions: IndexActionsMixin)
 ---@field GetDefaultKey fun(repository: RepositoryMixin): string
 
 ---@alias OnInitializedCallback fun(db: DatabaseMixin)
----@alias OnProfileChanged fun(profileManager: ProfileManagerMixin, newProfileName: string, oldProfileName: string)
----@alias OnProfileListChanged fun(profileManager: ProfileManagerMixin)
----@alias OnBinListChanged fun(profileManager: ProfileManagerMixin)
+---@alias OnProfileChanged fun(repository: ProfileRepositoryMixin, newProfileName: string, oldProfileName: string)
+---@alias OnProfileListChanged fun(repository: ProfileRepositoryMixin)
+---@alias OnBinListChanged fun(repository: ProfileRepositoryMixin)
 ---@alias DatabaseCallbackType "profileChanged"|"profileListChanged"|"binListChanged"
 ---@alias DatabaseCallback fun(db: DatabaseMixin, ...: any)
 ---@alias OrbitusObserver fun(query: string, value: any, previousValue: any)
@@ -70,18 +77,20 @@ local defaultConfig = {
     -- If we had "OnSpecializationChanged" then this would send that too
     ["profile"] = {
       GetSavedVariableTable = function(sv, repository)
-        local manager = repository:GetManager(); ---@cast manager ProfileManagerMixin
-        local profileName = manager:GetActive();
+        ---@cast repository ProfileRepositoryMixin
+        local profileName = repository:GetActiveProfile();
         sv.profiles = sv.profiles or {};
         sv.profiles[profileName] = sv.profiles[profileName] or {};
         return sv.profiles[profileName];
       end,
 
+      Mixin = ProfileRepositoryMixin,
+
       GetDefaultKey = function() return "Default" end,
 
       ConfigureIndex = function(repository, actions)
-        local manager = repository:GetManager(); ---@cast manager ProfileManagerMixin
-        manager:OnProfileChanged(function()
+        ---@cast repository ProfileRepositoryMixin
+        repository:OnProfileChanged(function()
           local index = actions:GetIndex();
           local newIndex = actions:RebuildIndex();
           local changes = actions:GetIndexChanges(index, newIndex);
@@ -132,14 +141,14 @@ dbLoader:SetScript("OnEvent", function()
 end);
 
 --------------------------
---> OrbitusApi:
+--> OrbitusDB:
 --------------------------
 
 ---@param savedVariableName string
 ---@param databaseConfig DatabaseConfig?
 ---@param onInitialized OnInitializedCallback
 ---@overload fun(self, savedVariableName: string, onInitialized: OnInitializedCallback)
-function OrbitusApi:Register(savedVariableName, databaseConfig, onInitialized)
+function OrbitusDB:Register(savedVariableName, databaseConfig, onInitialized)
   if (type(databaseConfig) == "function" and onInitialized == nil) then
     onInitialized = databaseConfig;
     databaseConfig = nil;
@@ -159,7 +168,7 @@ end
 
 ---@param savedVariableName string
 ---@return DatabaseMixin?
-function OrbitusApi:GetDatabase(savedVariableName)
+function OrbitusDB:GetDatabase(savedVariableName)
   for _, data in pairs(metadata) do
     if (data.svName == savedVariableName) then
       return data.database;
@@ -195,8 +204,15 @@ function DatabaseMixin:Init(savedVariableName)
   registeredDatabaseConfigs[savedVariableName] = nil;
   metadata[tostring(self)] = data;
 
-  for repositoryName, _ in pairs(data.config.repositoryHandlers) do
-    CreateAndInitFromMixin(RepositoryMixin, self, repositoryName);
+  for repositoryName, handler in pairs(data.config.repositoryHandlers) do
+    local mixin = RepositoryMixin;
+
+    local handlerMixin = handler.Mixin;
+    if (type(handlerMixin) == "table") then
+      mixin = CreateFromMixins(handlerMixin, RepositoryMixin);
+    end
+
+    CreateAndInitFromMixin(mixin, self, repositoryName);
   end
 
   for repositoryName, handler in pairs(data.config.repositoryHandlers) do
@@ -213,25 +229,25 @@ function DatabaseMixin:Init(savedVariableName)
 end
 
 --------------------------
---> ProfileManagerMixin:
+--> ProfileRepositoryMixin:
 --------------------------
 ---@param callback OnProfileChanged
-function ProfileManagerMixin:OnProfileChanged(callback)
+function ProfileRepositoryMixin:OnProfileChanged(callback)
   Utilities:AddCallback(self, "profileChanged", callback);
 end
 
 ---@param callback OnProfileListChanged
-function ProfileManagerMixin:OnProfileListChanged(callback)
+function ProfileRepositoryMixin:OnProfileListChanged(callback)
   Utilities:AddCallback(self, "profileListChanged", callback);
 end
 
 ---@param callback OnBinListChanged
-function ProfileManagerMixin:OnBinListChanged(callback)
+function ProfileRepositoryMixin:OnBinListChanged(callback)
   Utilities:AddCallback(self, "binListChanged", callback);
 end
 
 ---@return string
-function ProfileManagerMixin:GetActive()
+function ProfileRepositoryMixin:GetActiveProfile()
   local data = metadata[tostring(self)];
   local profileKeys = Utilities:GetSavedVariableSubTable(self, "profileKeys");
 
@@ -245,24 +261,24 @@ end
 
 ---@param profileName string
 ---@return boolean
-function ProfileManagerMixin:Exists(profileName)
+function ProfileRepositoryMixin:ProfileExists(profileName)
   local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
   return type(profiles[profileName]) == "table";
 end
 
 ---@param profileName string
 ---@return boolean
-function ProfileManagerMixin:IsInBin(profileName)
+function ProfileRepositoryMixin:IsProfileInBin(profileName)
   local bin = Utilities:GetSavedVariableSubTable(self, "bin");
   return type(bin[profileName]) == "table";
 end
 
 ---@param profileName string
-function ProfileManagerMixin:SetActive(profileName)
+function ProfileRepositoryMixin:SetActiveProfile(profileName)
   local characterName = UnitFullName("player");
   assert(type(characterName) == "string", "Failed to set active profile; invalid character name");
 
-  local oldProfileName = self:GetActive();
+  local oldProfileName = self:GetActiveProfile();
 
   if (oldProfileName == profileName) then return end
 
@@ -279,7 +295,7 @@ function ProfileManagerMixin:SetActive(profileName)
 end
 
 ---@return string[]
-function ProfileManagerMixin:GetAll()
+function ProfileRepositoryMixin:GetAllProfiles()
   local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
 
   local profileNames = {};
@@ -290,14 +306,14 @@ function ProfileManagerMixin:GetAll()
   return profileNames;
 end
 
-function ProfileManagerMixin:Delete(profileName)
+function ProfileRepositoryMixin:DeleteProfile(profileName)
   local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
 
   if (type(profiles[profileName]) ~= "table") then
     return false;
   end
 
-  local profileData = self:Export(profileName);
+  local profileData = self:ExportProfile(profileName);
   profiles[profileName] = nil;
 
   Utilities:TriggerCallback(self, "profileListChanged");
@@ -313,7 +329,7 @@ function ProfileManagerMixin:Delete(profileName)
   return true;
 end
 
-function ProfileManagerMixin:Rename(profileName, newProfileName, force)
+function ProfileRepositoryMixin:RenameProfile(profileName, newProfileName, force)
   local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
   local profileKeys = Utilities:GetSavedVariableSubTable(self, "profileKeys");
 
@@ -333,7 +349,7 @@ function ProfileManagerMixin:Rename(profileName, newProfileName, force)
 end
 
 ---@return string[]
-function ProfileManagerMixin:GetDeleted()
+function ProfileRepositoryMixin:GetDeletedProfiles()
   local bin = Utilities:GetSavedVariableSubTable(self, "bin");
 
   local deletedProfiles = {};
@@ -344,7 +360,7 @@ function ProfileManagerMixin:GetDeleted()
   return deletedProfiles;
 end
 
-function ProfileManagerMixin:Restore(profileName, force)
+function ProfileRepositoryMixin:RestoreProfile(profileName, force)
   local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
 
   assert(type(profiles[profileName]) ~= "table" or force,
@@ -357,13 +373,13 @@ function ProfileManagerMixin:Restore(profileName, force)
   end
 
   local profileDataString = bin[profileName].data;
-  self:Import(profileName, profileDataString);
+  self:ImportProfile(profileName, profileDataString);
   bin[profileName] = nil;
 
   return true;
 end
 
-function ProfileManagerMixin:Export(profileName)
+function ProfileRepositoryMixin:ExportProfile(profileName)
   local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
   local profileData = profiles[profileName];
 
@@ -378,7 +394,7 @@ end
 local fetcherPattern = "return function() return { %s }; end";
 local loadstring = _G.loadstring;
 
-function ProfileManagerMixin:Import(profileName, profileDataString, force)
+function ProfileRepositoryMixin:ImportProfile(profileName, profileDataString, force)
   local profiles = Utilities:GetSavedVariableSubTable(self, "profiles");
 
   assert(type(profiles[profileName]) ~= "table" or force,
@@ -393,11 +409,6 @@ function ProfileManagerMixin:Import(profileName, profileDataString, force)
   profiles[profileName] = profileData;
 end
 
-function ProfileManagerMixin:GetDatabase()
-  local data = metadata[tostring(self)];
-  return data.database;
-end
-
 --------------------------
 --> RepositoryMixin:
 --------------------------
@@ -409,11 +420,6 @@ function RepositoryMixin:Init(database, repositoryName)
   local data = metadata[tostring(database)];
   metadata[tostring(self)] = data;
   database[repositoryName] = self;
-
-  if (repositoryName == "profile") then
-    self.__manager = CreateFromMixins(ProfileManagerMixin);
-    metadata[tostring(self.__manager)] = data;
-  end
 
   local repoSv = Utilities:GetRepositoryTable(self);
 
@@ -448,11 +454,6 @@ end
 function RepositoryMixin:GetDatabase()
   local data = metadata[tostring(self)];
   return data.database;
-end
-
----@return table?
-function RepositoryMixin:GetManager()
-  return self.__manager;
 end
 
 ---@param query string
@@ -861,7 +862,7 @@ function IndexActionsMixin:RebuildIndex()
 
   local handler = data.config.repositoryHandlers[repositoryName];
   local repoDefaults = data.config.defaults[repositoryName];
-  local repoSv = handler.GetSavedVariableTable(_G[data.svName], data.database);
+  local repoSv = handler.GetSavedVariableTable(_G[data.svName], repository);
 
   data.indices[repositoryName] = Utilities:BuildIndex(repoDefaults, repoSv);
 end
@@ -893,4 +894,4 @@ function IndexActionsMixin:GetIndexChanges(fromIndex, toIndex)
 end
 
 
-return OrbitusApi;
+return OrbitusDB;

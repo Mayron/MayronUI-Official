@@ -1,7 +1,10 @@
 -- luacheck: ignore self 143
 local _G = _G;
+local LibStub = _G.LibStub;
+
 local MayronUI = _G.MayronUI;
-local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
+local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents();
+local OrbitusDB = LibStub:GetLibrary("OrbitusDB");
 
 local unpack, SecondsToTimeAbbrev, Mixin = _G.unpack, _G.SecondsToTimeAbbrev, _G.Mixin;
 local GetTime, UnitGUID = _G.GetTime, _G.UnitGUID;
@@ -17,156 +20,168 @@ local BUFF_FLASH_TIME_ON = 0.75;
 local BUFF_MIN_ALPHA = 0.3;
 local BUFF_WARNING_TIME = 31;
 
----@class Stack : Object
 local C_Stack = obj:Import("Pkg-Collections.Stack<T>");
+---@cast C_Stack Pkg-Collections.Stack
 
-local colorSettings = {
-  timeRemaining = {1, 1, 1};
-  count         = {1, 0.82, 0};
-  auraName      = {1, 1, 1};
-  statusbarBorder = {0, 0, 0};
-  helpful        = {0.2, 0.2, 0.2};
-  harmful        = {0.76, 0.2, 0.2};
-  magic         = {0.2, 0.6, 1};
-  disease       = {0.6, 0.4, 0};
-  poison        = {0.0, 0.6, 0};
-  curse         = {0.6, 0.0, 1};
-  background   = { 0, 0, 0, 0.6 };
-  foreground   = { 0.15, 0.15, 0.15 };
-  owned        = { 0.15, 0.15, 0.15 };
-};
+--------------------------
+--> Database SetUp:
+--------------------------
 
-local buffSettings = {
-  mode = "icons";
+---@type DatabaseConfig
+local databaseConfig = {
+  defaults = {
+    ---@class MayronUI.AurasProfileSettings: ProfileRepositoryMixin
+    profile = {
+      colors = {
+        timeRemaining = {1, 1, 1};
+        count         = {1, 0.82, 0};
+        auraName      = {1, 1, 1};
+        statusbarBorder = {0, 0, 0};
+        helpful        = {0.2, 0.2, 0.2};
+        harmful        = {0.76, 0.2, 0.2};
+        magic         = {0.2, 0.6, 1};
+        disease       = {0.6, 0.4, 0};
+        poison        = {0.0, 0.6, 0};
+        curse         = {0.6, 0.0, 1};
+        background   = { 0, 0, 0, 0.6 };
+        foreground   = { 0.15, 0.15, 0.15 };
+        owned        = { 0.15, 0.15, 0.15 };
+      },
 
-  icons = {
-    pulse = false;
-    nonPlayerAlpha = 0.7;
-    vDirection = "DOWN";
-    hDirection = "LEFT";
-    iconWidth = 40;
-    iconHeight = 30;
-    iconBorderSize = 2;
-    xSpacing = 6;
-    ySpacing = 20;
-    perRow = 10;
-    iconShadow = true;
-    secondsWarning = 10;
-    position = { "TOPRIGHT", "UIParent", "TOPRIGHT", -5, -5 };
-    textSize = {
-      timeRemaining = 10;
-      timeRemainingLarge = 14;
-      count = 14;
-    };
-    textPosition = {
-      timeRemaining = { "TOP", "iconFrame", "BOTTOM", 0, -4 };
-      count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
-    };
+      buffs = {
+        mode = "icons";
+
+        icons = {
+          pulse = false;
+          nonPlayerAlpha = 0.7;
+          vDirection = "DOWN";
+          hDirection = "LEFT";
+          iconWidth = 40;
+          iconHeight = 30;
+          iconBorderSize = 2;
+          xSpacing = 6;
+          ySpacing = 20;
+          perRow = 10;
+          iconShadow = true;
+          secondsWarning = 10;
+          position = { "TOPRIGHT", "UIParent", "TOPRIGHT", -5, -5 };
+          textSize = {
+            timeRemaining = 10;
+            timeRemainingLarge = 14;
+            count = 14;
+          };
+          textPosition = {
+            timeRemaining = { "TOP", "iconFrame", "BOTTOM", 0, -4 };
+            count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
+          };
+        };
+
+        statusbars = {
+          pulse = false;
+          nonPlayerAlpha = 1;
+          vDirection = "DOWN";
+          hDirection = "LEFT";
+          iconWidth = 22;
+          iconHeight = 20;
+          iconBorderSize = 1;
+          barWidth = 200;
+          barHeight = 22;
+          xSpacing = 4;
+          ySpacing = 1;
+          iconSpacing = 2;
+          iconShadow = false;
+          perRow = 1;
+          secondsWarning = 10;
+          texture = "MUI_StatusBar";
+          showSpark = true;
+
+          position = { "TOPRIGHT", "UIParent", "TOPRIGHT", -3, -3 };
+          textSize = {
+            timeRemaining = 10;
+            timeRemainingLarge = 14;
+            count = 14;
+            auraName = 10;
+          };
+
+          textPosition = {
+            timeRemaining = { "RIGHT", "bar", -4, 0 };
+            count         = { "RIGHT", "icon", "LEFT", -4, 0 };
+            auraName      = { "LEFT", "bar", "LEFT", 4, 0 };
+          };
+        }
+      };
+
+      debuffs = {
+        mode = "icons";
+
+        icons = {
+          pulse = false;
+          nonPlayerAlpha = 0.7;
+          vDirection = "DOWN";
+          hDirection = "LEFT";
+          iconWidth = 40;
+          iconHeight = 30;
+          iconBorderSize = 1;
+          xSpacing = 6;
+          ySpacing = 20;
+          perRow = 10;
+          iconShadow = true;
+          secondsWarning = 10;
+          position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
+          textSize = {
+            timeRemaining = 10;
+            timeRemainingLarge = 14;
+            count = 14;
+          };
+          textPosition = {
+            timeRemaining = { "TOP", "iconFrame", "BOTTOM", 0, -4 };
+            count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
+          };
+        };
+
+        statusbars = {
+          pulse = false;
+          nonPlayerAlpha = 0.7;
+          vDirection = "DOWN";
+          hDirection = "LEFT";
+          iconWidth = 40;
+          iconHeight = 30;
+          iconBorderSize = 1;
+          barWidth = 200;
+          barHeight = 22;
+          xSpacing = 4;
+          ySpacing = 1;
+          iconSpacing = 1;
+          iconShadow = false;
+          perRow = 1;
+          secondsWarning = 10;
+          position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
+          texture = "MUI_StatusBar";
+          showSpark = true;
+
+          textSize = {
+            timeRemaining = 10;
+            timeRemainingLarge = 14;
+            count = 14;
+            auraName = 10;
+          };
+
+          textPosition = {
+            timeRemaining = { "RIGHT", "bar", -4, 0 };
+            count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
+            auraName      = { "LEFT", "bar", "LEFT", 4, 0 };
+          };
+        }
+      }
+    }
   };
-
-  statusbars = {
-    pulse = false;
-    nonPlayerAlpha = 1;
-    vDirection = "DOWN";
-    hDirection = "LEFT";
-    iconWidth = 22;
-    iconHeight = 20;
-    iconBorderSize = 1;
-    barWidth = 200;
-    barHeight = 22;
-    xSpacing = 4;
-    ySpacing = 1;
-    iconSpacing = 2;
-    iconShadow = false;
-    perRow = 1;
-    secondsWarning = 10;
-    texture = "MUI_StatusBar";
-    showSpark = true;
-
-    position = { "TOPRIGHT", "UIParent", "TOPRIGHT", -3, -3 };
-    textSize = {
-      timeRemaining = 10;
-      timeRemainingLarge = 14;
-      count = 14;
-      auraName = 10;
-    };
-
-    textPosition = {
-      timeRemaining = { "RIGHT", "bar", -4, 0 };
-      count         = { "RIGHT", "icon", "LEFT", -4, 0 };
-      auraName      = { "LEFT", "bar", "LEFT", 4, 0 };
-    };
-  }
-};
-
-local debuffSettings = {
-  mode = "icons";
-
-  icons = {
-    pulse = false;
-    nonPlayerAlpha = 0.7;
-    vDirection = "DOWN";
-    hDirection = "LEFT";
-    iconWidth = 40;
-    iconHeight = 30;
-    iconBorderSize = 1;
-    xSpacing = 6;
-    ySpacing = 20;
-    perRow = 10;
-    iconShadow = true;
-    secondsWarning = 10;
-    position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
-    textSize = {
-      timeRemaining = 10;
-      timeRemainingLarge = 14;
-      count = 14;
-    };
-    textPosition = {
-      timeRemaining = { "TOP", "iconFrame", "BOTTOM", 0, -4 };
-      count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
-    };
-  };
-
-  statusbars = {
-    pulse = false;
-    nonPlayerAlpha = 0.7;
-    vDirection = "DOWN";
-    hDirection = "LEFT";
-    iconWidth = 40;
-    iconHeight = 30;
-    iconBorderSize = 1;
-    barWidth = 200;
-    barHeight = 22;
-    xSpacing = 4;
-    ySpacing = 1;
-    iconSpacing = 1;
-    iconShadow = false;
-    perRow = 1;
-    secondsWarning = 10;
-    position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
-    texture = "MUI_StatusBar";
-    showSpark = true;
-
-    textSize = {
-      timeRemaining = 10;
-      timeRemainingLarge = 14;
-      count = 14;
-      auraName = 10;
-    };
-
-    textPosition = {
-      timeRemaining = { "RIGHT", "bar", -4, 0 };
-      count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
-      auraName      = { "LEFT", "bar", "LEFT", 4, 0 };
-    };
-  }
 };
 
 -- Local Functions -------------
 local GetEnchantName;
 
 do
-  local scanners = C_Stack:UsingTypes("GameTooltip")(); ---@type Stack
+  local scanners = C_Stack:UsingTypes("GameTooltip")();
 
   scanners:OnNewItem(function()
     local scanner = tk:CreateFrame("GameTooltip", nil, "MUIAurasScanner", "GameTooltipTemplate");
@@ -219,9 +234,7 @@ do
 end
 
 -- Objects -----------------------------
----@class AurasModule : BaseModule
-local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"]);
-
+local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"], false);
 local AuraButtonMixin = {};
 
 local progressColors = {
@@ -791,16 +804,22 @@ local function OnHeaderAttributeChanged(self, name, btn)
   btn:SetScript('OnAttributeChanged', OnAuraButtonAttributeChanged);
 end
 
-local function CreateAuraHeader(filter, settings)
-  local mode = settings.mode;
-  settings = settings[mode];
+---@param filter "HELPFUL"|"HARMFUL"
+---@param profile MayronUI.AurasProfileSettings
+local function CreateAuraHeader(filter, profile)
+  local auraSettings = filter == "HELPFUL" and profile.buffs or profile.debuffs;
+  local settings = auraSettings.icons;
 
-  if (not obj:IsTable(settings)) then
-    MayronUI:LogError("Failed to load settings for %s auras with mode %s", filter, mode);
+  if (auraSettings.mode == "statusbars") then
+    settings = auraSettings.statusbars
   end
 
-  settings.colors = colorSettings;
-  settings.mode = mode;
+  if (not obj:IsTable(settings)) then
+    MayronUI:LogError("Failed to load settings for %s auras with mode %s", filter, auraSettings.mode);
+  end
+
+  settings.colors = profile.colors;
+  settings.mode = auraSettings.mode;
 
   local auraPoint;
 
@@ -858,12 +877,19 @@ local function CreateAuraHeader(filter, settings)
 end
 
 -- C_AurasModule -----------------------
-function C_AurasModule:OnInitialize()
-  CreateAuraHeader("HELPFUL", buffSettings);
-  CreateAuraHeader("HARMFUL", debuffSettings);
+---@param db DatabaseMixin
+function C_AurasModule:OnInitialize(db)
+  local profile = db.profile;
+  ---@cast profile MayronUI.AurasProfileSettings;
+  CreateAuraHeader("HELPFUL", profile);
+  CreateAuraHeader("HARMFUL", profile);
 
   -- Hide Blizzard frames
   tk:KillElement(_G.BuffFrame);
   tk:KillElement(_G.TemporaryEnchantFrame);
   tk:KillElement(_G.DebuffFrame);
 end
+
+OrbitusDB:Register("MayronAurasDB", databaseConfig, function (db)
+  C_AurasModule:Initialize(db);
+end);

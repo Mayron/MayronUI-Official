@@ -1,6 +1,8 @@
 -- luacheck: ignore self
 local _G = _G;
 local MayronUI = _G.MayronUI;
+
+---@class Toolkit
 local tk, _, _, _, obj = MayronUI:GetCoreComponents(); ---@type Toolkit
 
 tk.Strings = {};
