@@ -122,6 +122,7 @@ local defaultConfig = {
 ---@field database DatabaseMixin
 ---@field config DatabaseConfig
 ---@field indices { [RepositoryName]: Index }
+---@field defaults { [RepositoryName]: Index }
 
 ---@type table<string, DatabaseMetadata>
 local metadata = {};
@@ -205,7 +206,8 @@ function DatabaseMixin:Init(savedVariableName)
     svName = savedVariableName;
     config = registeredDatabaseConfigs[savedVariableName];
     database = self;
-    indices = {}
+    indices = {};
+    defaults = {};
   };
 
   registeredDatabaseConfigs[savedVariableName] = nil;
@@ -428,21 +430,15 @@ function RepositoryMixin:Init(database, repositoryName)
   metadata[tostring(self)] = data;
   database[repositoryName] = self;
 
-  local repoSv = Utilities:GetRepositoryTable(self);
-
-  -- Apply Schema
-  local schema = data.config.schemas[repositoryName];
-  if (type(schema) == "table") then
-    Utilities:ApplySchema(schema, repoSv);
-  end
-
   local repoDefaults = data.config.defaults[repositoryName];
+
   if (type(repoDefaults) == "table") then
-    Utilities:ApplyDefaults(repoDefaults, repoSv);
+    data.defaults[repositoryName] = Utilities:Flatten(repoDefaults);
+  else
+    data.defaults[repositoryName] = {};
   end
 
-  -- Create Index
-  data.indices[repositoryName] = Utilities:BuildIndex(repoDefaults, repoSv);
+  Utilities:BuildIndex(self);
 end
 
 ---@return string
@@ -485,9 +481,11 @@ function RepositoryMixin:Query(query)
   Utilities:VerifyArgs(query, "string");
   local repositoryName = self:GetRepositoryName();
   local data = metadata[tostring(self)];
-  local index = data.indices[repositoryName];
   local normalizedQuery = Utilities:NormalizeQuery(query);
-  return index[normalizedQuery];
+
+  local index = data.indices[repositoryName];
+  local defaults = data.defaults[repositoryName];
+  return index[normalizedQuery] or defaults[normalizedQuery];
 end
 
 function RepositoryMixin:Store(query, value)
@@ -813,30 +811,6 @@ function Utilities:ApplyDefaults(defaults, sv)
   end
 end
 
----@param repoDefaults table?
----@param repoSv table
----@return table
-function Utilities:BuildIndex(repoDefaults, repoSv)
-  self:VerifyArgs(repoDefaults, "table|nil", repoSv, "table");
-  local index = {};
-
-  if (type(repoDefaults) == "table") then
-    local flattenedDefaults = self:Flatten(repoDefaults);
-
-    for key, value in pairs(flattenedDefaults) do
-      index[key] = value;
-    end
-  end
-
-  local flattenedSv = self:Flatten(repoSv);
-
-  for key, value in pairs(flattenedSv) do
-    index[key] = value;
-  end
-
-  return index;
-end
-
 ---@return { [string]: any }
 function Utilities:Flatten(inputTable)
   local outputTable = {}
@@ -865,6 +839,28 @@ function Utilities:Flatten(inputTable)
   return outputTable;
 end
 
+---@param repository RepositoryMixin
+function Utilities:BuildIndex(repository)
+  local data = metadata[tostring(repository)];
+  local repositoryName = repository:GetRepositoryName();
+
+  local repoSv = self:GetRepositoryTable(repository);
+  local repoDefaults = data.config.defaults[repositoryName];
+
+  if (type(repoDefaults) == "table") then
+    Utilities:ApplyDefaults(repoDefaults, repoSv);
+  end
+
+  -- Apply Schema
+  local schema = data.config.schemas[repositoryName];
+  if (type(schema) == "table") then
+    Utilities:ApplySchema(schema, repoSv);
+  end
+
+  -- Create Index
+  data.indices[repositoryName] = Utilities:Flatten(repoSv);
+end
+
 ----------------------
 --> IndexActionsMixin
 ----------------------
@@ -880,15 +876,7 @@ function IndexActionsMixin:GetIndex()
 end
 
 function IndexActionsMixin:RebuildIndex()
-  local repository = self.__repository;
-  local data = metadata[tostring(repository)];
-  local repositoryName = repository:GetRepositoryName();
-
-  local handler = data.config.repositoryHandlers[repositoryName];
-  local repoDefaults = data.config.defaults[repositoryName];
-  local repoSv = handler.GetSavedVariableTable(_G[data.svName], repository);
-
-  data.indices[repositoryName] = Utilities:BuildIndex(repoDefaults, repoSv);
+  Utilities:BuildIndex(self.__repository);
 end
 
 function IndexActionsMixin:NotifyIndexChanges(changes)
