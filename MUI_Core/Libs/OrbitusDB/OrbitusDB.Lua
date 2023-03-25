@@ -1,12 +1,16 @@
 -- luacheck: ignore self
 local _G = _G;
-local LibStub = _G.LibStub;
-local LibDeflate = LibStub:GetLibrary("LibDeflate");
+local OrbitusDB; ---@class OrbitusDB
+local LibDeflate; ---@type LibDeflate
 
----@class OrbitusDB
-local OrbitusDB = LibStub:NewLibrary("OrbitusDB", 1);
+if (_G.LibStub) then
+  OrbitusDB = _G.LibStub:NewLibrary("OrbitusDB", 1);
+  if (not OrbitusDB) then return end -- no update required
 
-if (not OrbitusDB) then return end -- no update required
+  LibDeflate = _G.LibStub:GetLibrary("LibDeflate");
+else
+  OrbitusDB = {};
+end
 
 ---@class RepositoryMixin
 local RepositoryMixin = {};
@@ -127,18 +131,21 @@ local registeredDatabaseConfigs = {};
 
 ---@type table<string, OnInitializedCallback>
 local onInitializedCallbacks = {};
-local dbLoader = _G.CreateFrame("Frame");
+
 local CreateAndInitFromMixin = _G.CreateAndInitFromMixin;
 local CreateFromMixins = _G.CreateFromMixins;
 
-dbLoader:RegisterEvent("ADDON_LOADED");
-dbLoader:SetScript("OnEvent", function()
-  for savedVariableName, _ in pairs(registeredDatabaseConfigs) do
-    if (type(_G[savedVariableName]) == "table") then
-      CreateAndInitFromMixin(DatabaseMixin, savedVariableName);
+if (_G.CreateFrame) then
+  local dbLoader = _G.CreateFrame("Frame");
+  dbLoader:RegisterEvent("ADDON_LOADED");
+  dbLoader:SetScript("OnEvent", function()
+    for savedVariableName, _ in pairs(registeredDatabaseConfigs) do
+      if (type(_G[savedVariableName]) == "table") then
+        CreateAndInitFromMixin(DatabaseMixin, savedVariableName);
+      end
     end
-  end
-end);
+  end);
+end
 
 --------------------------
 --> OrbitusDB:
@@ -188,9 +195,9 @@ function DatabaseMixin:Init(savedVariableName)
 
   local svTable = _G[savedVariableName];
   assert(type(svTable) == "table",
-    ("Database %s failed to initialize because the saved variable table '%s' was not found"):format(savedVariableName));
+    ("Database %s failed to initialize because the saved variable table was not found"):format(savedVariableName));
 
-  assert(type(metadata[tostring(self)]) == nil,
+  assert(metadata[tostring(self)] == nil,
     ("Database %s failed to initialize because it has already been initialized"):format(savedVariableName));
 
   ---@type DatabaseMetadata
@@ -559,6 +566,7 @@ function Utilities:NotifyChanges(repository, observers, changes)
       end
 
       for _, notifier in ipairs(observer) do
+        -- TODO: This returns nil as we haven't stored it
         local value = self:Fetch(svTable, query);
         notifier(value, relevantChanges);
       end
@@ -575,10 +583,22 @@ function Utilities:VerifyArgs(...)
   for i = 1, select("#", ...), 2 do
     parameterIndex = parameterIndex + 1;
     local arg, expectedArgType = select(i, ...);
+    ---@cast expectedArgType string
     local actualArgType = type(arg);
 
-    assert(actualArgType == expectedArgType,
-      errorTemplate:format(parameterIndex, expectedArgType, actualArgType));
+    local success = actualArgType == expectedArgType;
+
+    if (expectedArgType:find("|")) then
+      local expectedTypes = strsplit("|", expectedArgType);
+      expectedArgType = table.concat(expectedTypes, " or ");
+
+      for _, expectedType in ipairs(expectedTypes) do
+        success = actualArgType == expectedType;
+        if (success) then break end
+      end
+    end
+
+    assert(success, errorTemplate:format(parameterIndex, expectedArgType, actualArgType));
   end
 end
 
@@ -793,15 +813,19 @@ function Utilities:ApplyDefaults(defaults, sv)
   end
 end
 
----@param repoDefaults table
+---@param repoDefaults table?
 ---@param repoSv table
 ---@return table
 function Utilities:BuildIndex(repoDefaults, repoSv)
+  self:VerifyArgs(repoDefaults, "table|nil", repoSv, "table");
   local index = {};
-  local flattenedDefaults = self:Flatten(repoDefaults);
 
-  for key, value in pairs(flattenedDefaults) do
-    index[key] = value;
+  if (type(repoDefaults) == "table") then
+    local flattenedDefaults = self:Flatten(repoDefaults);
+
+    for key, value in pairs(flattenedDefaults) do
+      index[key] = value;
+    end
   end
 
   local flattenedSv = self:Flatten(repoSv);

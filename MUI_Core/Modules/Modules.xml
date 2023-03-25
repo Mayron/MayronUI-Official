@@ -23,7 +23,6 @@
   <Script file="BagnonChanges.lua" />
 
   <Script file="Auras\Auras.lua" />
-  <!-- <Script file="Auras\Auras.config.lua" /> -->
 
   <Script file="CastBars\CastBars.lua" />
   <Script file="CastBars\CastBars.config.lua" />

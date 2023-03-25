@@ -30,7 +30,6 @@ local C_Stack = obj:Import("Pkg-Collections.Stack<T>");
 ---@type DatabaseConfig
 local databaseConfig = {
   defaults = {
-    ---@class MayronUI.AurasProfileSettings: ProfileRepositoryMixin
     profile = {
       colors = {
         timeRemaining = {1, 1, 1};
@@ -185,7 +184,7 @@ do
 
   scanners:OnNewItem(function()
     local scanner = tk:CreateFrame("GameTooltip", nil, "MUIAurasScanner", "GameTooltipTemplate");
-    scanner:SetOwner(_G.MUI_BuffFrames, "ANCHOR_NONE");
+    scanner:SetOwner(_G["MUI_BuffFrames"], "ANCHOR_NONE");
     return scanner;
   end);
 
@@ -355,17 +354,6 @@ function AuraButtonMixin:SetSliderValue(new)
       shouldCancel = true;
       stepValue = self.endValue;
     end
-
-    -- if (fill) then
-
-    -- else
-    --   stepValue = math.max(startValue - changeInSeconds, 0);
-
-    --   if (stepValue <= self.endValue) then
-    --     shouldCancel = true;
-    --     stepValue = self.endValue;
-    --   end
-    -- end
 
     self.statusbar:SetValue(stepValue);
     if (shouldCancel) then
@@ -805,8 +793,9 @@ local function OnHeaderAttributeChanged(self, name, btn)
 end
 
 ---@param filter "HELPFUL"|"HARMFUL"
----@param profile MayronUI.AurasProfileSettings
+---@param profile ProfileRepositoryMixin
 local function CreateAuraHeader(filter, profile)
+  local buffs = profile:Query("buffs");
   local auraSettings = filter == "HELPFUL" and profile.buffs or profile.debuffs;
   local settings = auraSettings.icons;
 
@@ -880,7 +869,6 @@ end
 ---@param db DatabaseMixin
 function C_AurasModule:OnInitialize(db)
   local profile = db.profile;
-  ---@cast profile MayronUI.AurasProfileSettings;
   CreateAuraHeader("HELPFUL", profile);
   CreateAuraHeader("HARMFUL", profile);
 
@@ -890,6 +878,6 @@ function C_AurasModule:OnInitialize(db)
   tk:KillElement(_G.DebuffFrame);
 end
 
-OrbitusDB:Register("MayronAurasDB", databaseConfig, function (db)
+OrbitusDB:Register("MUI_AurasDB", databaseConfig, function (db)
   C_AurasModule:Initialize(db);
 end);
