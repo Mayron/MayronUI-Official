@@ -1005,21 +1005,15 @@ function OrbitusDB:VerifyArgs(...)
 
   for i = 1, select("#", ...), 2 do
     parameterIndex = parameterIndex + 1;
-
     local arg, expectedArgType = select(i, ...);
-    ---@cast expectedArgType string
-
     self:VerifyArg(parameterIndex, arg, expectedArgType);
   end
 end
 
----@alias ExpectedTypeContext { name: string, value: any, expectedType: string }
----@param ... ExpectedTypeContext
 function OrbitusDB:VerifyArgsByName(...)
-  for i = 1, select("#", ...) do
-    local context = select(i, ...);
-    ---@cast context ExpectedTypeContext
-    self:VerifyArg(context.name, context.value, context.expectedType);
+  for i = 1, select("#", ...), 3 do
+    local name, arg, expectedArgType = select(i, ...);
+    self:VerifyArg(name, arg, expectedArgType);
   end
 end
 
