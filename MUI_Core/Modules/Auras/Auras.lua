@@ -526,13 +526,22 @@ function AuraButtonMixin:SetSparkShown(shown)
   self.spark:SetShown(shown);
 end
 
-local function GetAuraButtonSize(settings)
-  local width = settings.iconWidth;
-  local height = settings.iconHeight;
+---@param auraType "buffs"|"debuffs"
+---@param mode "icons"|"statusbars"
+---@param profile ProfileRepositoryMixin
+---@return number width
+---@return number height
+local function GetAuraButtonSize(auraType, mode, profile)
+  local width = profile:Query({auraType, mode, "iconWidth"}, "number");
+  local height = profile:Query({auraType, mode, "iconHeight"}, "number");
 
-  if (settings.mode == "statusbars") then
-    width = settings.iconWidth + settings.iconSpacing + settings.barWidth;
-    height = math.max(height, settings.barHeight);
+  if (mode == "statusbars") then
+    local iconSpacing = profile:Query({auraType, mode, "iconSpacing"}, "number");
+    local barWidth = profile:Query({auraType, mode, "barWidth"}, "number");
+    local barHeight = profile:Query({auraType, mode, "barHeight"}, "number");
+
+    width = width + iconSpacing + barWidth;
+    height = math.max(height, barHeight);
   end
 
   return width, height;
@@ -795,24 +804,24 @@ end
 ---@param filter "HELPFUL"|"HARMFUL"
 ---@param profile ProfileRepositoryMixin
 local function CreateAuraHeader(filter, profile)
-  local buffs = profile:Query("buffs");
-  local auraSettings = filter == "HELPFUL" and profile.buffs or profile.debuffs;
-  local settings = auraSettings.icons;
+  local auraType = (filter == "HELPFUL") and "buffs" or "debuffs";
+  local mode = profile:Query({auraType, "mode"}, "string");
 
-  if (auraSettings.mode == "statusbars") then
-    settings = auraSettings.statusbars
-  end
-
-  if (not obj:IsTable(settings)) then
-    MayronUI:LogError("Failed to load settings for %s auras with mode %s", filter, auraSettings.mode);
-  end
-
-  settings.colors = profile.colors;
-  settings.mode = auraSettings.mode;
+  local settings = profile:QueryAll({auraType, mode}, {
+    "xSpacing",
+    "ySpacing",
+    "vDirection",
+    "hDirection",
+    ["position[1]"] = "point",
+    ["position[2]"] = "relFrameName",
+    ["position[3]"] = "relPoint",
+    ["position[4]"] = "frameXOffset",
+    ["position[5]"] = "frameYOffset"
+  });
 
   local auraPoint;
 
-  local width, height = GetAuraButtonSize(settings);
+  local width, height = GetAuraButtonSize(auraType, mode, profile);
   local xOffset = math.abs(width + settings.xSpacing);
   local yOffset = math.abs(height + settings.ySpacing);
 
@@ -835,9 +844,14 @@ local function CreateAuraHeader(filter, profile)
   header.filter = filter;
   header.settings = settings;
 
-  local pos = settings.position;
-  local relativeFrame = _G[pos[2]] or _G.UIParent;
-  header:SetPoint(pos[1], relativeFrame, pos[3], pos[4], pos[5]);
+  local point = OrbitusDB:VerifyVar("point", settings.point, "string");
+  local relFrameName = OrbitusDB:VerifyVar("relFrameName", settings.relFrameName, "string");
+  local relPoint = OrbitusDB:VerifyVar("relPoint", settings.relPoint, "string");
+  local frameXOffset = OrbitusDB:VerifyVar("frameXOffset", settings.frameXOffset, "number");
+  local frameYOffset = OrbitusDB:VerifyVar("frameYOffset", settings.frameYOffset, "number");
+
+  local relativeFrame = _G[relFrameName] or _G.UIParent;
+  header:SetPoint(point, relativeFrame, relPoint, frameXOffset, frameYOffset);
   header:SetSize(width, height);
   header:SetAttribute("unit", "player");
   header:SetAttribute("filter", filter);

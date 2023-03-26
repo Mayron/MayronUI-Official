@@ -54,8 +54,9 @@ local GetServerTime = _G.GetServerTime;
 ---@alias OrbitusObserver fun(query: string, value: any, previousValue: any)
 ---@alias QueryableList (string|number)[]
 ---@alias RepositoryName "global"|"profile"|"character"
----@alias IndexChanges { [string]: { from: string|boolean|number|nil, to: string|boolean|number|nil }}
----@alias Index { [string]: string|boolean|number }
+---@alias IndexValue string|boolean|number
+---@alias IndexChanges { [string]: { from: IndexValue?, to: IndexValue? }}
+---@alias Index { [string]: IndexValue? }
 
 ---@class DatabaseConfig
 ---@field defaults { [RepositoryName]: table }
@@ -476,21 +477,77 @@ function RepositoryMixin:Subscribe(query, observer)
   list[#list+1] = observer;
 end
 
----@param query string
-function RepositoryMixin:Query(query)
-  Utilities:VerifyArgs(query, "string");
+---@param query string|table
+---@param keys table
+---@return table<string, IndexValue?>
+---@nodiscard
+function RepositoryMixin:QueryAll(query, keys)
+  OrbitusDB:VerifyArgs(query, "string|table", keys, "table");
+  local normalizedQuery = Utilities:NormalizeQuery(query);
+  local results = {};
+
+  for index, key in pairs(keys) do
+    key = OrbitusDB:VerifyVar("key", key, "string");
+    local propName = key;
+
+    if (type(index) == "string") then
+      key = index;
+    end
+
+    key = OrbitusDB:VerifyVar("key", key, "string");
+
+    local subQuery;
+
+    if (key:sub(1, 1) == "[") then
+      subQuery = normalizedQuery..key;
+    else
+      subQuery = ("%s.%s"):format(normalizedQuery, key);
+    end
+
+    results[propName] = self:Query(subQuery);
+  end
+
+  setmetatable(results, {
+    __index = function(_, key)
+      if (not keys[key]) then
+        error(("Invalid key '%s'"):format(key));
+      end
+
+      return nil;
+    end
+  });
+
+  return results;
+end
+
+---@generic T
+---@param query string|table
+---@param resultType `T`
+---@return T
+---@overload fun(self: RepositoryMixin, query: string|table): IndexValue?
+---@nodiscard
+function RepositoryMixin:Query(query, resultType)
+  OrbitusDB:VerifyArgs(query, "string|table");
+
+  local normalizedQuery = Utilities:NormalizeQuery(query);
   local repositoryName = self:GetRepositoryName();
   local data = metadata[tostring(self)];
-  local normalizedQuery = Utilities:NormalizeQuery(query);
 
   local index = data.indices[repositoryName];
   local defaults = data.defaults[repositoryName];
-  return index[normalizedQuery] or defaults[normalizedQuery];
+  local result = index[normalizedQuery] or defaults[normalizedQuery];
+
+  if (resultType) then
+    OrbitusDB:VerifyVar("result", result, resultType);
+  end
+
+  return result;
 end
 
+---@param query string|table
+---@param value any
 function RepositoryMixin:Store(query, value)
-  Utilities:VerifyArgs(query, "string");
-
+  OrbitusDB:VerifyArgs(query, "string|table");
   local normalizedQuery = Utilities:NormalizeQuery(query);
   local data = metadata[tostring(self)];
   local repositoryName = self:GetRepositoryName();
@@ -572,34 +629,6 @@ function Utilities:NotifyChanges(repository, observers, changes)
   end
 end
 
-
-local errorTemplate = "bad argument #%d (%s expected, got %s)";
-
-function Utilities:VerifyArgs(...)
-  local parameterIndex = 0;
-
-  for i = 1, select("#", ...), 2 do
-    parameterIndex = parameterIndex + 1;
-    local arg, expectedArgType = select(i, ...);
-    ---@cast expectedArgType string
-    local actualArgType = type(arg);
-
-    local success = actualArgType == expectedArgType;
-
-    if (expectedArgType:find("|")) then
-      local expectedTypes = strsplit("|", expectedArgType);
-      expectedArgType = table.concat(expectedTypes, " or ");
-
-      for _, expectedType in ipairs(expectedTypes) do
-        success = actualArgType == expectedType;
-        if (success) then break end
-      end
-    end
-
-    assert(success, errorTemplate:format(parameterIndex, expectedArgType, actualArgType));
-  end
-end
-
 ---@return table
 function Utilities:Assign(...)
   local merged = {};
@@ -668,6 +697,16 @@ do
   local matchIndexesPattern = "%[%s-(%d+)%s-%]";
 
   function Utilities:NormalizeQuery(query)
+    if (type(query) == "table") then
+      for index, key in ipairs(query) do
+        if (type(key) == "number") then
+          query[index] = ("[%d]"):format(key);
+        end
+      end
+
+      query = table.concat(query, ".");
+    end
+
     return query:gsub(normalizePattern, ".%1");
   end
 
@@ -905,5 +944,83 @@ function IndexActionsMixin:GetIndexChanges(fromIndex, toIndex)
   return changes;
 end
 
+do
+  local errorArgIndexTemplate = "bad argument #%d (%s expected, got %s)";
+  local errorArgNameTemplate = "bad argument '%s' (%s expected, got %s)";
+  local errorValTemplate = "bad value '%s' (%s expected, got %s)";
+
+  local function IsValidType(value, expectedType)
+    local actualType = type(value);
+
+    if (expectedType:find("|")) then
+      local expectedTypes = strsplit("|", expectedType);
+
+      for _, t in ipairs(expectedTypes) do
+        if (actualType == t) then
+          return true;
+        end
+      end
+    end
+
+    return actualType == expectedType;
+  end
+
+  ---@generic T
+  ---@param variableName string
+  ---@param value any
+  ---@param expectedType `T`
+  ---@return T value
+  function OrbitusDB:VerifyVar(variableName, value, expectedType)
+    local isValid = IsValidType(value, expectedType);
+
+    if (not isValid) then
+      expectedType = string.gsub(expectedType, "|", " or ");
+      error(errorValTemplate:format(variableName, expectedType, type(value)));
+    end
+
+    return value;
+  end
+
+  ---@generic T
+  ---@param parameter number|string
+  ---@param arg any
+  ---@param expectedArgType T
+  ---@return T arg
+  function OrbitusDB:VerifyArg(parameter, arg, expectedArgType)
+    local isValid = IsValidType(arg, expectedArgType);
+
+    if (not isValid) then
+      expectedArgType = string.gsub(expectedArgType, "|", " or ");
+
+      local template = (type(parameter) == "number") and errorArgIndexTemplate or errorArgNameTemplate
+      error(template:format(parameter, expectedArgType, type(arg)));
+    end
+
+    return arg;
+  end
+end
+
+function OrbitusDB:VerifyArgs(...)
+  local parameterIndex = 0;
+
+  for i = 1, select("#", ...), 2 do
+    parameterIndex = parameterIndex + 1;
+
+    local arg, expectedArgType = select(i, ...);
+    ---@cast expectedArgType string
+
+    self:VerifyArg(parameterIndex, arg, expectedArgType);
+  end
+end
+
+---@alias ExpectedTypeContext { name: string, value: any, expectedType: string }
+---@param ... ExpectedTypeContext
+function OrbitusDB:VerifyArgsByName(...)
+  for i = 1, select("#", ...) do
+    local context = select(i, ...);
+    ---@cast context ExpectedTypeContext
+    self:VerifyArg(context.name, context.value, context.expectedType);
+  end
+end
 
 return OrbitusDB;
