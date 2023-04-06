@@ -120,7 +120,6 @@ local defaultConfig = {
 
 ---@class DatabaseMetadata
 ---@field callbacks table<DatabaseCallbackType, DatabaseCallback[]>
----@field svName string
 ---@field database DatabaseMixin
 ---@field config DatabaseConfig
 ---@field indices { [RepositoryName]: Index }
@@ -188,7 +187,7 @@ end
 ---@return DatabaseMixin?
 function OrbitusDB:GetDatabase(savedVariableName)
   for _, data in pairs(metadata) do
-    if (data.svName == savedVariableName) then
+    if (data.config.svName == savedVariableName) then
       return data.database;
     end
   end
@@ -210,7 +209,6 @@ function DatabaseMixin:Init(config)
 
   ---@type DatabaseMetadata
   local data = {
-    svName = config.svName;
     config = config;
     database = self;
     indices = {};
@@ -712,12 +710,12 @@ function Utilities:GetRepositoryTable(repository)
   local data = metadata[tostring(repository)];
   local name = repository:GetRepositoryName();
   local handler = data.config.repositoryHandlers[name];
-  return handler.GetSavedVariableTable(_G[data.svName], repository);
+  return handler.GetSavedVariableTable(_G[data.config.svName], repository);
 end
 
 function Utilities:GetSavedVariableSubTable(obj, tblName)
   local data = metadata[tostring(obj)];
-  local sv = _G[data.svName];
+  local sv = _G[data.config.svName];
   sv[tblName] = sv[tblName] or {};
   return sv[tblName];
 end
