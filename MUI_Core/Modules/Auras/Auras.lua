@@ -1,4 +1,5 @@
 -- luacheck: ignore self 143
+local addOnName = ...;
 local _G = _G;
 local LibStub = _G.LibStub;
 
@@ -897,7 +898,7 @@ function C_AurasModule:OnInitialize(_, db)
   end
 end
 
-OrbitusDB:Register("MUI_AurasDB", databaseConfig, function (db)
+OrbitusDB:Register(addOnName, "MUI_AurasDB", databaseConfig, function (db)
   local aurasModule = MayronUI:ImportModule("AurasModule");
   print("db2:", aurasModule,  db)
   if (aurasModule) then

@@ -63,6 +63,7 @@ local GetServerTime = _G.GetServerTime;
 ---@field schemas { [RepositoryName]: table }
 ---@field observers { [RepositoryName]: table<string, OrbitusObserver[]> }
 ---@field repositoryHandlers table<RepositoryName, RepositoryHandler>
+---@field svName string
 
 ---@type DatabaseConfig
 local defaultConfig = {
@@ -140,10 +141,19 @@ local CreateFromMixins = _G.CreateFromMixins;
 if (_G.CreateFrame) then
   local dbLoader = _G.CreateFrame("Frame");
   dbLoader:RegisterEvent("ADDON_LOADED");
-  dbLoader:SetScript("OnEvent", function()
-    for savedVariableName, _ in pairs(registeredDatabaseConfigs) do
-      if (type(_G[savedVariableName]) == "table") then
-        CreateAndInitFromMixin(DatabaseMixin, savedVariableName);
+  dbLoader:SetScript("OnEvent", function(loadedAddOn)
+    for addOnName, config in pairs(registeredDatabaseConfigs) do
+      if (addOnName == loadedAddOn) then
+        local db = CreateAndInitFromMixin(DatabaseMixin, config.svName);
+
+        local callback = onInitializedCallbacks[addOnName];
+        if (callback) then
+          callback(db);
+          onInitializedCallbacks[addOnName] = nil;
+        end
+
+        registeredDatabaseConfigs[addOnName] = nil;
+        break
       end
     end
   end);
@@ -153,26 +163,25 @@ end
 --> OrbitusDB:
 --------------------------
 
+---@param addOnName string
 ---@param savedVariableName string
 ---@param databaseConfig DatabaseConfig?
 ---@param onInitialized OnInitializedCallback
 ---@overload fun(self, savedVariableName: string, onInitialized: OnInitializedCallback)
-function OrbitusDB:Register(savedVariableName, databaseConfig, onInitialized)
+function OrbitusDB:Register(addOnName, savedVariableName, databaseConfig, onInitialized)
   if (type(databaseConfig) == "function" and onInitialized == nil) then
     onInitialized = databaseConfig;
     databaseConfig = nil;
   end
 
-  assert(registeredDatabaseConfigs[savedVariableName] == nil,
-    ("Database %s has already been registered"):format(savedVariableName));
+  assert(registeredDatabaseConfigs[addOnName] == nil,
+    ("Database for addOn %s has already been registered"):format(addOnName));
 
-  local config = Utilities:Assign(defaultConfig, databaseConfig);
-  registeredDatabaseConfigs[savedVariableName] = config;
-  onInitializedCallbacks[savedVariableName] = onInitialized;
+  local config = Utilities:Assign(defaultConfig, databaseConfig); ---@type DatabaseConfig
+  config.svName = savedVariableName;
 
-  if (type(_G[savedVariableName]) == "table") then
-    CreateAndInitFromMixin(DatabaseMixin, savedVariableName);
-  end
+  registeredDatabaseConfigs[addOnName] = config;
+  onInitializedCallbacks[addOnName] = onInitialized;
 end
 
 ---@param savedVariableName string
@@ -190,28 +199,24 @@ end
 --------------------------
 
 ---@private
----@param savedVariableName string
-function DatabaseMixin:Init(savedVariableName)
-  assert(type(registeredDatabaseConfigs[savedVariableName]) == "table",
-    ("Database %s cannot be initialized because it has not been registered"):format(savedVariableName));
-
-  local svTable = _G[savedVariableName];
-  assert(type(svTable) == "table",
-    ("Database %s failed to initialize because the saved variable table was not found"):format(savedVariableName));
-
+---@param config DatabaseConfig
+function DatabaseMixin:Init(config)
   assert(metadata[tostring(self)] == nil,
-    ("Database %s failed to initialize because it has already been initialized"):format(savedVariableName));
+    ("Database %s failed to initialize because it has already been initialized"):format(config.svName));
+
+  if (type(_G[config.svName]) ~= "table") then
+    _G[config.svName] = {};
+  end
 
   ---@type DatabaseMetadata
   local data = {
-    svName = savedVariableName;
-    config = registeredDatabaseConfigs[savedVariableName];
+    svName = config.svName;
+    config = config;
     database = self;
     indices = {};
     defaults = {};
   };
 
-  registeredDatabaseConfigs[savedVariableName] = nil;
   metadata[tostring(self)] = data;
 
   for repositoryName, handler in pairs(data.config.repositoryHandlers) do
@@ -230,11 +235,6 @@ function DatabaseMixin:Init(savedVariableName)
       local actions = CreateAndInitFromMixin(IndexActionsMixin, data, repositoryName, handler);
       handler.ConfigureIndex(self[repositoryName], actions);
     end
-  end
-
-  local callback = onInitializedCallbacks[savedVariableName];
-  if (callback) then
-    callback(self);
   end
 end
 
