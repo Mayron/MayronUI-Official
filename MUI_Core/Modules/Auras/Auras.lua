@@ -233,7 +233,7 @@ do
 end
 
 -- Objects -----------------------------
-local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"], false);
+local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"], true);
 local AuraButtonMixin = {};
 
 local progressColors = {
@@ -881,17 +881,26 @@ end
 
 -- C_AurasModule -----------------------
 ---@param db DatabaseMixin
-function C_AurasModule:OnInitialize(db)
-  local profile = db.profile;
-  CreateAuraHeader("HELPFUL", profile);
-  CreateAuraHeader("HARMFUL", profile);
+function C_AurasModule:OnInitialize(_, db)
+  print("db: ", db)
 
-  -- Hide Blizzard frames
-  tk:KillElement(_G.BuffFrame);
-  tk:KillElement(_G.TemporaryEnchantFrame);
-  tk:KillElement(_G.DebuffFrame);
+  if (TAD) then
+    local profile = db.profile;
+    MayronUI:PrintTable(db);
+    CreateAuraHeader("HELPFUL", profile);
+    CreateAuraHeader("HARMFUL", profile);
+
+    -- Hide Blizzard frames
+    tk:KillElement(_G.BuffFrame);
+    tk:KillElement(_G.TemporaryEnchantFrame);
+    tk:KillElement(_G.DebuffFrame);
+  end
 end
 
 OrbitusDB:Register("MUI_AurasDB", databaseConfig, function (db)
-  C_AurasModule:Initialize(db);
+  local aurasModule = MayronUI:ImportModule("AurasModule");
+  print("db2:", aurasModule,  db)
+  if (aurasModule) then
+    aurasModule:Initialize(db);
+  end
 end);

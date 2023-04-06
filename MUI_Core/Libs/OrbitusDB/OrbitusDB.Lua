@@ -51,7 +51,7 @@ local GetServerTime = _G.GetServerTime;
 ---@alias OnBinListChanged fun(repository: ProfileRepositoryMixin)
 ---@alias DatabaseCallbackType "profileChanged"|"profileListChanged"|"binListChanged"
 ---@alias DatabaseCallback fun(db: DatabaseMixin, ...: any)
----@alias OrbitusObserver fun(query: string, value: any, previousValue: any)
+---@alias OrbitusObserver fun(value: any, changes: IndexChanges)
 ---@alias QueryableList (string|number)[]
 ---@alias RepositoryName "global"|"profile"|"character"
 ---@alias IndexValue string|boolean|number
@@ -573,15 +573,29 @@ function RepositoryMixin:Store(query, value)
 
     for subQuery, subValue in pairs(newValues) do
       local previousValue = index[subQuery];
+
+      for key, _ in pairs(index) do
+        if (subQuery:sub(1, #key) == key) then
+          index[key] = nil;
+        end
+      end
+
       index[subQuery] = subValue;
 
       if (previousValue ~= subValue) then
         changes = changes or {};
-        changes[subQuery] = { from = subValue, to = previousValue };
+        changes[subQuery] = { from = previousValue, to = subValue };
       end
     end
   else
     local previousValue = index[normalizedQuery];
+
+    for key, _ in pairs(index) do
+      if (normalizedQuery:sub(1, #key) == key) then
+        index[key] = nil;
+      end
+    end
+
     index[normalizedQuery] = value;
 
     if (previousValue ~= value) then
@@ -591,7 +605,14 @@ function RepositoryMixin:Store(query, value)
   end
 
   if (changes) then
-    Utilities:NotifyChanges(self, observers, changes);
+    local svTable = Utilities:GetRepositoryTable(self);
+
+    -- Actually store the changes:
+    for path, change in pairs(changes) do
+      Utilities:Persist(svTable, path, change.to);
+    end
+
+    Utilities:NotifyChanges(svTable, observers, changes);
   end
 end
 
@@ -599,31 +620,32 @@ end
 --> Utilities:
 --------------------------
 
----@param repository RepositoryMixin
+---@param root table
 ---@param observers { [string]: OrbitusObserver[] }
 ---@param changes IndexChanges
-function Utilities:NotifyChanges(repository, observers, changes)
+function Utilities:NotifyChanges(root, observers, changes)
   if (not next(observers)) then return end
 
-  local svTable = self:GetRepositoryTable(repository);
-
   for query, observer in pairs(observers) do
-    local relevantChanges = {};
+    local relevantChanges = nil;
 
     if (type(observer) == "table" and #observer > 0) then
       for changeQuery, change in pairs(changes) do
         if (#changeQuery >= #query) then
           local isRelevantChange = changeQuery:sub(1, #query) == query;
+
           if (isRelevantChange) then
+            relevantChanges = relevantChanges or {};
             relevantChanges[changeQuery] = change;
           end
         end
       end
 
-      for _, notifier in ipairs(observer) do
-        -- TODO: This returns nil as we haven't stored it
-        local value = self:Fetch(svTable, query);
-        notifier(value, relevantChanges);
+      if (relevantChanges) then
+        for _, notifier in ipairs(observer) do
+          local value = self:Fetch(root, query);
+          notifier(value, relevantChanges);
+        end
       end
     end
   end
@@ -923,7 +945,9 @@ function IndexActionsMixin:NotifyIndexChanges(changes)
   local data = metadata[tostring(repository)];
   local repositoryName = repository:GetRepositoryName();
   local observers = data.config.observers[repositoryName];
-  Utilities:NotifyChanges(repository, observers, changes);
+  local svTable = Utilities:GetRepositoryTable(repository);
+
+  Utilities:NotifyChanges(svTable, observers, changes);
 end
 
 function IndexActionsMixin:GetIndexChanges(fromIndex, toIndex)

@@ -476,8 +476,8 @@ end
 
 ---A helper function to print a table's contents using the MayronUI prefix in the chat frame.
 ---@param tbl table @The table to print.
----@param depth number @The depth of sub-tables to traverse through and print (defaults to 1).
----@param spaces number @The number of spaces used for nested values inside a table (defaults to 2).
+---@param depth number? @The depth of sub-tables to traverse through and print (defaults to 1).
+---@param spaces number? @The number of spaces used for nested values inside a table (defaults to 2).
 function MayronUI:PrintTable(tbl, depth, spaces)
   tk:Assert(obj:IsTable(tbl), "bad argument #1 (table expected, got %s)", type(tbl));
   tk.Tables:Print(tbl, depth or 1, spaces);

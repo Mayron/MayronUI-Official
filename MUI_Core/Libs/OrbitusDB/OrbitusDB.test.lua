@@ -190,22 +190,39 @@ local databaseConfig = {
 _G["MUI_AurasDB"] = {};
 
 OrbitusDB:Register("MUI_AurasDB", databaseConfig, function (db)
-  db.profile:Subscribe("something", function(a, b, c)
-    print("from something: ", a, b, c);
+  db.profile:Subscribe("something", function(value, changes)
+    print("'something' observer value: ", value);
+
+    for query, change in pairs(changes) do
+      print("'something' observer change - query: ", query, ", from: ", change.from, ", to: ", change.to)
+    end
   end);
 
-  db.profile:Subscribe("something.hello.okay", function(a, b, c)
-    print("from something.hello.okay: ", a, b, c);
+  db.profile:Subscribe("something.hello.okay", function(value, changes)
+    print("'something.hello.okay' observer value: ", value);
+
+    for query, change in pairs(changes) do
+      print("'something.hello.okay' observer change - query: ", query, ", from: ", change.from, ", to: ", change.to)
+    end
   end);
 
-  db.profile:Subscribe("something.hello.okay.chair", function(a, b, c)
-    print("from something.hello.okay.chair: ", a, b, c);
+  db.profile:Subscribe("something.hello.okay.chair", function(value, changes)
+    print("'something.hello.okay.chair' observer value: ", value);
+
+    for query, change in pairs(changes) do
+      print("'something.hello.okay.chair' observer change - query: ", query, ", from: ", change.from, ", to: ", change.to)
+    end
   end);
 
   db.profile:Store("something['hello'].okay", 123);
 
   local result = db.profile:Query("something.hello.okay");
   assert(result == 123);
+
+  print(" ");
+  print("---------------------------------------");
+  print("---------------------------------------");
+  print(" ");
 
   db.profile:Store("something.hello.okay", {
     chair = 123;

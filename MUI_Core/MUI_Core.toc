@@ -32,6 +32,7 @@ Libs\AceLocale-3.0.lua
 Libs\LibSharedMedia-3.0.lua
 Libs\SortBags.lua
 Libs\LibDeflate.lua
+Libs\OrbitusDB\OrbitusDB.lua
 
 ## Libraries for Classic WoW:
 Libs\LibClassicCasterino.lua

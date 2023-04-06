@@ -99,10 +99,11 @@ end
 
 ---A helper function to print a table's contents.
 ---@param tbl table @The table to print.
----@param depth number @The depth of sub-tables to traverse through and print.
-function tk.Tables:Print(tbl, depth)
+---@param depth number? @The depth of sub-tables to traverse through and print.
+---@param spaces number? @An optional number specifying the spaces to print to intent nested values inside a table.
+function tk.Tables:Print(tbl, depth, spaces)
   if (obj:IsTable(tbl)) then
-    obj:PrintTable(tbl, depth);
+    obj:PrintTable(tbl, depth, spaces);
   end
 end
 
