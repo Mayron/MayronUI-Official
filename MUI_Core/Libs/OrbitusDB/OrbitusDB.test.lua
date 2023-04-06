@@ -228,9 +228,12 @@ OrbitusDB:Register("MUI_AurasDB", databaseConfig, function (db)
     chair = 123;
   });
 
-  result = db.profile:Query("something.hello.okay");
-  assert(result == nil);
+  local tblResult = db.profile:Query("something.hello.okay", "table");
+  assert(tblResult.chair == 123);
 
   result = db.profile:Query("something.hello.okay.chair");
   assert(result == 123);
+
+  local timeRemaining = db.profile:Query("colors.timeRemaining", "table");
+  assert(timeRemaining[1] == 1);
 end);

@@ -524,7 +524,7 @@ end
 ---@param query string|table
 ---@param resultType `T`
 ---@return T
----@overload fun(self: RepositoryMixin, query: string|table): IndexValue?
+---@overload fun(self: RepositoryMixin, query: string|table): (IndexValue | table)?
 ---@nodiscard
 function RepositoryMixin:Query(query, resultType)
   OrbitusDB:VerifyArgs(query, "string|table");
@@ -536,6 +536,41 @@ function RepositoryMixin:Query(query, resultType)
   local index = data.indices[repositoryName];
   local defaults = data.defaults[repositoryName];
   local result = index[normalizedQuery] or defaults[normalizedQuery];
+
+  if (result == nil) then
+    local tableResult;
+
+    for key, value in pairs(index) do
+      if (#query < #key and key:sub(1, #query) == query) then
+        local subQuery = key:sub(#query + 1, #key);
+        subQuery = subQuery:gsub("^%.", "");
+        tableResult = tableResult or {};
+        tableResult[subQuery] = value;
+      end
+    end
+
+    for key, value in pairs(defaults) do
+      if (#query < #key and key:sub(1, #query) == query) then
+        local subQuery = key:sub(#query + 1, #key);
+        subQuery = subQuery:gsub("^%.", "");
+        tableResult = tableResult or {};
+
+        if (tableResult[subQuery] == nil) then
+          tableResult[subQuery] = value;
+        end
+      end
+    end
+
+    if (tableResult) then
+      tableResult = Utilities:Unflatten(tableResult);
+
+      if (resultType) then
+        OrbitusDB:VerifyVar("result", tableResult, resultType);
+      end
+
+      return tableResult;
+    end
+  end
 
   if (resultType) then
     OrbitusDB:VerifyVar("result", result, resultType);
@@ -562,7 +597,7 @@ function RepositoryMixin:Store(query, value)
     for key, newValue in pairs(flattenedValue) do
       local fullKey;
 
-      if (string.sub(key, 1, 1) == "[") then
+      if (key:sub(1, 1) == "[") then
         fullKey = ("%s%s"):format(normalizedQuery, key);
       else
         fullKey = ("%s.%s"):format(normalizedQuery, key);
@@ -739,7 +774,10 @@ do
 
     for _, key in ipairs(keys) do
       local sanitizedKey = key:gsub(removeIndexesPattern, "");
-      list[#list+1] = sanitizedKey;
+
+      if (#sanitizedKey > 0) then
+        list[#list+1] = sanitizedKey;
+      end
 
       for i in key:gmatch(matchIndexesPattern) do
         local index = tonumber(i);
@@ -898,6 +936,18 @@ function Utilities:Flatten(inputTable)
 
   TraverseTable(inputTable);
   return outputTable;
+end
+
+---@param tbl table
+---@return table
+function Utilities:Unflatten(tbl)
+  local result = {};
+
+  for path, value in pairs(tbl) do
+   self:Persist(result, path, value);
+  end
+
+  return result;
 end
 
 ---@param repository RepositoryMixin
