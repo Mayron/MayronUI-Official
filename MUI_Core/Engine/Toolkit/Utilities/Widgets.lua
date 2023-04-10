@@ -285,7 +285,22 @@ function tk:GetThemeColor(returnTable)
     return tk.Constants.AddOnStyle:GetColor(nil, returnTable);
   end
 
+  if (not db.profile) then
+    if (returnTable) then
+      return tk.Constants.COLORS.BATTLE_NET_BLUE;
+    end
+
+    local r, g, b = tk.Constants.COLORS.BATTLE_NET_BLUE:GetRGB();
+    local hex = tk.Constants.COLORS.BATTLE_NET_BLUE:GenerateHexColor();
+    return r, g, b, hex;
+  end
+
   local color = db.profile.theme.color;
+
+  if (returnTable) then
+    return color;
+  end
+
   return color.r, color.g, color.b, color.hex;
 end
 

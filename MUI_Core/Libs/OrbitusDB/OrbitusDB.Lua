@@ -180,6 +180,7 @@ end
 ---@param onInitialized OnInitializedCallback
 ---@overload fun(self, savedVariableName: string, onInitialized: OnInitializedCallback)
 function OrbitusDB:Register(addOnName, savedVariableName, databaseConfig, onInitialized)
+
   if (type(databaseConfig) == "function" and onInitialized == nil) then
     onInitialized = databaseConfig;
     databaseConfig = nil;
@@ -777,10 +778,9 @@ end
   ---@return QueryList
   function UtilitiesMixin:ToQueryList(query)
     self:VerifyArgsByName("query", query, "string");
-    local keys = strsplit(".", query); ---@type string[]
     local list = {}; ---@type QueryList
 
-    for _, key in ipairs(keys) do
+    for key in query:gmatch("[^.]*") do
       local sanitizedKey = key:gsub(removeIndexesPattern, "");
 
       if (#sanitizedKey > 0) then
@@ -855,17 +855,11 @@ do
   local function IsValidType(value, expectedType)
     local actualType = type(value);
 
-    if (expectedType:find("|")) then
-      local expectedTypes = strsplit("|", expectedType);
-
-      for _, t in ipairs(expectedTypes) do
-        if (actualType == t) then
-          return true;
-        end
+    for t in expectedType:gmatch("[^|]*") do
+      if (actualType == t) then
+        return true;
       end
     end
-
-    return actualType == expectedType;
   end
 
   ---@generic T

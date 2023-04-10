@@ -257,7 +257,7 @@ local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & D
 
 ---@class AuraButtonMixin : Button
 ---@field filter "HELPFUL"|"HARMFUL"
----@field auraType "buffs"|"debuffs"
+---@field auraSubType string? # The type of buff or debuff, e.g., "curse", "poison", etc... or "item" for weapon enchants
 ---@field mode "icons"|"statusbars"
 ---@field texture string?
 ---@field name string
@@ -571,15 +571,16 @@ function AuraButtonMixin:SetSparkShown(shown)
   self.spark:SetShown(shown);
 end
 
----@param auraType string
+---@param filter "HELPFUL"|"HARMFUL"
 ---@param db DatabaseMixin?
 ---@return number width
 ---@return number height
-local function GetAuraButtonSize(auraType, db)
+local function GetAuraButtonSize(filter, db)
   if (not db) then
     db = MayronUI:GetComponent("MUI_AurasDB");
   end
 
+  local auraType = (filter == "HELPFUL") and "buffs" or "debuffs";
   local mode = db.profile:QueryType("string", auraType, "mode");
   local width = db.profile:QueryType("number", auraType, mode, "iconWidth");
   local height = db.profile:QueryType("number", auraType, mode, "iconHeight");
@@ -604,7 +605,8 @@ end
 ---@nodiscard
 function AuraButtonMixin:GetSetting(settingType, settingName, ...)
   local db = MayronUI:GetComponent("MUI_AurasDB");
-  return db.profile:QueryType(settingType, self.auraType, self.mode, settingName, ...);
+  local auraType = (self.filter == "HELPFUL") and "buffs" or "debuffs";
+  return db.profile:QueryType(settingType, auraType, self.mode, settingName, ...);
 end
 
 ---@param colorSettingName AuraColorTypes
@@ -622,7 +624,8 @@ end
 ---@return string, string, string, number, number
 function AuraButtonMixin:GetTextPositionSettings(textName)
   local db = MayronUI:GetComponent("MUI_AurasDB");
-  local position = db.profile:QueryType("table", self.auraType, self.mode, "textPosition", textName);
+  local auraType = (self.filter == "HELPFUL") and "buffs" or "debuffs";
+  local position = db.profile:QueryType("table", auraType, self.mode, "textPosition", textName);
   return unpack(position);
 end
 
@@ -631,7 +634,7 @@ function AuraButtonMixin:ApplyStyling()
   if (not self.texture) then return end
 
   local db = MayronUI:GetComponent("MUI_AurasDB");
-  local width, height = GetAuraButtonSize(self.auraType, db);
+  local width, height = GetAuraButtonSize(self.filter, db);
 
   local borderSize = self:GetSetting("number", "iconBorderSize");
   local iconHeight = self:GetSetting("number", "iconHeight");
@@ -750,11 +753,10 @@ function AuraButtonMixin:UpdateDisplayInfo()
     obj:IsNumber(self.startTime) and
     self.startTime > 0;
 
-  local barWidth = self:GetSetting("number", "barWidth");
-
   if (hasTimeRemainingText and hasCooldown) then
     if (self.auraNameText) then
       local xOffset = select(4, self.auraNameText:GetPoint());
+      local barWidth = self:GetSetting("number", "barWidth");
       self.auraNameText:SetWidth(barWidth - xOffset - 34);
     end
 
@@ -762,6 +764,7 @@ function AuraButtonMixin:UpdateDisplayInfo()
   else
     if (self.auraNameText) then
       local xOffset = select(4, self.auraNameText:GetPoint());
+      local barWidth = self:GetSetting("number", "barWidth");
       self.auraNameText:SetWidth(barWidth - xOffset - 4);
     end
     self.cooldown:Clear();
@@ -770,7 +773,7 @@ function AuraButtonMixin:UpdateDisplayInfo()
   local r, g, b = self:GetColorSetting(self.filter:lower());
   self:SetAlpha(1);
 
-  if (self.auraType == "item") then
+  if (self.auraSubType == "item") then
     local invSlotId = self.id or self:GetID() or 0;
     local quality = GetInventoryItemQuality("player", invSlotId);
 
@@ -779,8 +782,8 @@ function AuraButtonMixin:UpdateDisplayInfo()
     end
 
   elseif (self.filter == "HARMFUL") then
-    if (obj:IsString(self.auraType)) then
-      r, g, b = self:GetColorSetting(self.auraType:lower());
+    if (obj:IsString(self.auraSubType)) then
+      r, g, b = self:GetColorSetting(self.auraSubType:lower());
     end
 
   elseif (self.statusbar) then
@@ -825,13 +828,13 @@ local function OnAuraButtonAttributeChanged(self, attribute, value)
   self.id = value;
 
   if (attribute == "index") then
-    local name, texture, count, auraType, duration, expiryTime, source = UnitAura("player", value, self.filter);
+    local name, texture, count, auraSubType, duration, expiryTime, source = UnitAura("player", value, self.filter);
 
     self.expiryTime = expiryTime;
     self.startTime = expiryTime - duration;
     self.duration = duration; -- can use cooldown
     self.timeRemaining = expiryTime - GetTime();
-    self.auraType = auraType;
+    self.auraSubType = auraSubType;
     self.count = count;
     self.name = name;
     self.owned = source and (UnitGUID("player") == UnitGUID(source));
@@ -861,7 +864,7 @@ local function OnAuraButtonAttributeChanged(self, attribute, value)
       self.timeRemaining = timeRemainingInThousands / 1000;
       self.expiryTime = self.timeRemaining + GetTime();
       self.startTime = self.expiryTime - self.duration; -- we can't know the beginning of every possible enchant
-      self.auraType = "item";
+      self.auraSubType = "item";
       self.count = count;
       self.name = name;
 
@@ -880,16 +883,15 @@ local function OnHeaderAttributeChanged(self, name, btn)
   end
 
   btn.filter = self.filter;
-  btn.auraType = self.auraType;
   btn.mode = self.mode;
 
   Mixin(btn, AuraButtonMixin);
 
   if (self.filter == "HELPFUL") then
-    btn:RegisterForClicks('RightButtonUp');
+    btn:RegisterForClicks("RightButtonUp");
   end
 
-  btn:SetScript('OnAttributeChanged', OnAuraButtonAttributeChanged);
+  btn:SetScript("OnAttributeChanged", OnAuraButtonAttributeChanged);
 end
 
 ---@param filter "HELPFUL"|"HARMFUL"
@@ -926,7 +928,6 @@ local function CreateAuraHeader(filter, db)
 
   local header = CreateFrame("Frame", globalName, _G.UIParent, "SecureAuraHeaderTemplate");
   header.filter = filter;
-  header.auraType = auraType;
   header.mode = mode;
 
   local position = db.profile:QueryType("table", auraType, mode, "position");

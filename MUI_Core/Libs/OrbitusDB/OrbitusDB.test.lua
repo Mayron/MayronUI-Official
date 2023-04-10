@@ -27,7 +27,7 @@ function strsplit(delimiter, str)
     table.insert(t, s)
   end
 
-  return t;
+  return unpack(t);
 end
 
 function strtrim(s)
