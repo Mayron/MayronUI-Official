@@ -30,7 +30,13 @@ function strsplit(delimiter, str)
   return t;
 end
 
+function strtrim(s)
+  return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+
+
 string.split = strsplit;
+string.trim = strtrim;
 
 function UnitFullName()
   return "Mayron-Gehennas";
@@ -189,7 +195,7 @@ local databaseConfig = {
 
 _G["MUI_AurasDB"] = {};
 
-OrbitusDB:Register("MUI_AurasDB", databaseConfig, function (db)
+OrbitusDB:Register("Testing", "MUI_AurasDB", databaseConfig, function (db)
   db.profile:Subscribe("something", function(value, changes)
     print("'something' observer value: ", value);
 
@@ -228,12 +234,12 @@ OrbitusDB:Register("MUI_AurasDB", databaseConfig, function (db)
     chair = 123;
   });
 
-  local tblResult = db.profile:Query("something.hello.okay", "table");
+  local tblResult = db.profile:QueryType("table", "something.hello.okay");
   assert(tblResult.chair == 123);
 
   result = db.profile:Query("something.hello.okay.chair");
   assert(result == 123);
 
-  local timeRemaining = db.profile:Query("colors.timeRemaining", "table");
+  local timeRemaining = db.profile:QueryType("table", "colors.timeRemaining");
   assert(timeRemaining[1] == 1);
 end);

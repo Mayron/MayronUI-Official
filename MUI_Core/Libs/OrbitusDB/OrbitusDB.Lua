@@ -40,7 +40,7 @@ local DatabaseMixin = {};
 ---@field private Init fun(self: IndexActionsMixin, repository: RepositoryMixin)
 local IndexActionsMixin = {};
 
-local UnitFullName, strsplit = _G.UnitFullName, _G.strsplit;
+local UnitFullName, strsplit, strtrim = _G.UnitFullName, _G.strsplit, _G.strtrim;
 local GetServerTime, unpack = _G.GetServerTime, _G.unpack;
 
 ---@class RepositoryHandler
@@ -140,22 +140,27 @@ local onInitializedCallbacks = {};
 local CreateAndInitFromMixin = _G.CreateAndInitFromMixin;
 local CreateFromMixins = _G.CreateFromMixins;
 
+---@param addOnName string
+local function LoadDatabase(addOnName)
+  local config = registeredDatabaseConfigs[addOnName];
+  local db = CreateAndInitFromMixin(DatabaseMixin, config);
+
+  local callback = onInitializedCallbacks[addOnName];
+  if (callback) then
+    callback(db);
+    onInitializedCallbacks[addOnName] = nil;
+  end
+
+  registeredDatabaseConfigs[addOnName] = nil;
+end
+
 if (_G.CreateFrame) then
   local dbLoader = _G.CreateFrame("Frame");
   dbLoader:RegisterEvent("ADDON_LOADED");
   dbLoader:SetScript("OnEvent", function(_, _, loadedAddOn)
-    for addOnName, config in pairs(registeredDatabaseConfigs) do
+    for addOnName, _ in pairs(registeredDatabaseConfigs) do
       if (addOnName == loadedAddOn) then
-        local db = CreateAndInitFromMixin(DatabaseMixin, config);
-
-        local callback = onInitializedCallbacks[addOnName];
-        if (callback) then
-          callback(db);
-          onInitializedCallbacks[addOnName] = nil;
-        end
-
-        registeredDatabaseConfigs[addOnName] = nil;
-        break
+        LoadDatabase(addOnName);
       end
     end
 
@@ -188,6 +193,10 @@ function OrbitusDB:Register(addOnName, savedVariableName, databaseConfig, onInit
 
   registeredDatabaseConfigs[addOnName] = config;
   onInitializedCallbacks[addOnName] = onInitialized;
+
+  if (type(_G[config.svName]) == "table") then
+    LoadDatabase(addOnName);
+  end
 end
 
 ---@param savedVariableName string
@@ -501,82 +510,82 @@ function RepositoryMixin:Query(...)
   local index = data.indices[repositoryName];
   local result = index[query];
 
-  if (type(result) == "table") then
-    return UtilitiesMixin:MergeTables(result);
+  if (result == nil) then
+    for fullKey, value in pairs(index) do
+      if (fullKey:sub(1, #query) == query) then
+        local subKey = fullKey:sub(#query + 1, #fullKey);
+        result = result or {};
+        UtilitiesMixin:Store(result, subKey, value);
+      end
+    end
   end
 
   return result;
 end
 
----@param query string
----@param value any
-function RepositoryMixin:Store(query, value)
-  UtilitiesMixin:VerifyArgs(query, "string");
-  local normalizedQuery = UtilitiesMixin:NormalizeQuery(query);
-  local data = metadata[tostring(self)];
-  local repositoryName = self:GetRepositoryName();
-  local index = data.indices[repositoryName];
-  local observers = data.config.observers[repositoryName];
-  local changes; ---@type IndexChanges?
+do
+  ---comment
+  ---@param index Index
+  ---@param key string|number
+  ---@param value any
+  ---@param changes IndexChanges?
+  ---@return IndexChanges?
+  local function AddToIndex(index, key, value, changes)
+    local previousValue = index[key];
 
-  if (type(value) == "table") then
-    local flattenedValue = UtilitiesMixin:Flatten(value);
-    local newValues = {};
-
-    for key, newValue in pairs(flattenedValue) do
-      local fullKey;
-
-      if (key:sub(1, 1) == "[") then
-        fullKey = ("%s%s"):format(normalizedQuery, key);
-      else
-        fullKey = ("%s.%s"):format(normalizedQuery, key);
+    -- We can infer that all subkeys are now allocated to a table value, so they can be deleted
+    for subKey, _ in pairs(index) do
+      if (key:sub(1, #subKey) == subKey) then
+        index[subKey] = nil;
       end
-
-      newValues[fullKey] = newValue;
     end
 
-    for subQuery, subValue in pairs(newValues) do
-      local previousValue = index[subQuery];
+    if (type(value) ~= "table") then
+      index[key] = value;
+    else
+      local flattenedValue = UtilitiesMixin:Flatten(value);
 
-      for key, _ in pairs(index) do
-        if (subQuery:sub(1, #key) == key) then
-          index[key] = nil;
+      for subKey, newValue in pairs(flattenedValue) do
+        local fullKey;
+
+        if (subKey:sub(1, 1) == "[") then
+          fullKey = ("%s%s"):format(key, subKey);
+        else
+          fullKey = ("%s.%s"):format(key, subKey);
         end
-      end
 
-      index[subQuery] = subValue;
-
-      if (previousValue ~= subValue) then
-        changes = changes or {};
-        changes[subQuery] = { from = previousValue, to = subValue };
+        changes = AddToIndex(index, fullKey, newValue, changes);
       end
     end
-  else
-    local previousValue = index[normalizedQuery];
-
-    for key, _ in pairs(index) do
-      if (normalizedQuery:sub(1, #key) == key) then
-        index[key] = nil;
-      end
-    end
-
-    index[normalizedQuery] = value;
 
     if (previousValue ~= value) then
-      changes = {};
-      changes[normalizedQuery] = { from = previousValue, to = value }
+      changes = changes or {};
+      changes[key] = { from = previousValue, to = value };
+      return changes;
     end
   end
 
-  if (changes) then
-    local svTable = Internal:GetRepositoryTable(self);
+  ---@param query string
+  ---@param value QueryResult
+  function RepositoryMixin:Store(query, value)
+    UtilitiesMixin:VerifyArgs(query, "string", value, "string|number|boolean|table|nil");
+    local normalizedQuery = UtilitiesMixin:NormalizeQuery(query);
+    local data = metadata[tostring(self)];
+    local repositoryName = self:GetRepositoryName();
+    local index = data.indices[repositoryName];
+    local observers = data.config.observers[repositoryName];
+    local changes = AddToIndex(index, normalizedQuery, value);
 
-    -- Actually store the changes:
-    for path, change in pairs(changes) do
-      UtilitiesMixin:Store(svTable, path, change.to);
+    if (changes) then
+      local svTable = Internal:GetRepositoryTable(self);
+
+      -- Actually store the changes:
+      for path, change in pairs(changes) do
+        UtilitiesMixin:Store(svTable, path, change.to);
+      end
+
+      Internal:NotifyChanges(svTable, observers, changes);
     end
-
-    Internal:NotifyChanges(svTable, observers, changes);
   end
 end
 
@@ -725,7 +734,7 @@ do
 
   function UtilitiesMixin:NormalizeQuery(query)
     self:VerifyArgsByName("query", query, "string");
-    query = query:trim():gsub(normalizePattern, ".%1");
+    query = strtrim(query):gsub(normalizePattern, ".%1");
 
     if (query:sub(1, 1) == ".") then
       query = query:sub(2, #query);
