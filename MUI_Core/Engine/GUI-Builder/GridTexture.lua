@@ -1,7 +1,9 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local gui = MayronUI:GetComponent("GUIBuilder"); ---@type GUIBuilder
+
+---@class GUIBuilder
+local gui = MayronUI:GetComponent("GUIBuilder");
 
 local ipairs = _G.ipairs;
 local regions = {"tl", "tr", "bl", "br", "t", "b", "l", "r", "c"};

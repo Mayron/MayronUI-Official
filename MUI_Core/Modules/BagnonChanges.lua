@@ -3,6 +3,8 @@ local _G = _G;
 local MayronUI = _G.MayronUI; ---@type MayronUI
 local tk, _, em, _, obj = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local IsAddOnLoaded = _G.IsAddOnLoaded;
+
+---@class BagnonChanges
 local BagnonChanges = MayronUI:NewComponent("BagnonChanges");
 
 function BagnonChanges:Apply()

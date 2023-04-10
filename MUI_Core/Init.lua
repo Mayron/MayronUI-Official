@@ -35,6 +35,10 @@ function MayronUI:GetCoreComponents()
   return tk, db, em, gui, obj, L;
 end
 
+---@generic T : string
+---@param componentName `T`
+---@param silent boolean?
+---@return T
 function MayronUI:GetComponent(componentName, silent)
   tk:Assert(silent or obj:IsString(componentName), "Invalid component '%s'", componentName);
 
@@ -44,10 +48,14 @@ function MayronUI:GetComponent(componentName, silent)
   return component;
 end
 
+---@param componentName string
+---@param component table
 function MayronUI:AddComponent(componentName, component)
   components[componentName] = component;
 end
 
+---@param componentName string
+---@return table
 function MayronUI:NewComponent(componentName)
   local component = {};
   components[componentName] = component;
@@ -72,15 +80,15 @@ db:OnStartUp(function(self, sv)
 
   local r, g, b = tk:GetThemeColor();
 
-  local myFont = CreateFont("MUI_FontNormal");
+  local myFont = CreateFont("MUI_FontNormal"); ---@cast myFont FontString
   myFont:SetFontObject("GameFontNormal");
   myFont:SetTextColor(r, g, b);
 
-  myFont = CreateFont("MUI_FontSmall");
+  myFont = CreateFont("MUI_FontSmall"); ---@cast myFont FontString
   myFont:SetFontObject("GameFontNormalSmall");
   myFont:SetTextColor(r, g, b);
 
-  myFont = CreateFont("MUI_FontLarge");
+  myFont = CreateFont("MUI_FontLarge"); ---@cast myFont FontString
   myFont:SetFontObject("GameFontNormalLarge");
   myFont:SetTextColor(r, g, b);
 

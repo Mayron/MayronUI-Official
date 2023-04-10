@@ -21,12 +21,30 @@ local BUFF_FLASH_TIME_ON = 0.75;
 local BUFF_MIN_ALPHA = 0.3;
 local BUFF_WARNING_TIME = 31;
 
-local C_Stack = obj:Import("Pkg-Collections.Stack<T>");
----@cast C_Stack Pkg-Collections.Stack
+local C_Stack = obj:Import("Pkg-Collections.Stack<T>"); ---@cast C_Stack Pkg-Collections.Stack
 
+---@class MUI_AurasDB : DatabaseMixin
 --------------------------
 --> Database SetUp:
 --------------------------
+---@enum AuraColorTypes
+local AuraColorTypes = {
+  timeRemaining = "timeRemaining";
+  count = "count";
+  auraName = "auraName";
+  statusbarBorder = "statusbarBorder";
+  helpful = "helpful";
+  harmful = "harmful";
+  magic = "magic";
+  disease = "disease";
+  poison = "poison";
+  curse = "curse";
+  background = "background";
+  foreground = "foreground";
+  owned = "owned";
+};
+
+---@alias AuraTextName "auraName"|"timeRemaining"|"count"
 
 ---@type DatabaseConfig
 local databaseConfig = {
@@ -47,7 +65,6 @@ local databaseConfig = {
         foreground   = { 0.15, 0.15, 0.15 };
         owned        = { 0.15, 0.15, 0.15 };
       },
-
       buffs = {
         mode = "icons";
 
@@ -104,7 +121,7 @@ local databaseConfig = {
           };
 
           textPosition = {
-            timeRemaining = { "RIGHT", "bar", -4, 0 };
+            timeRemaining = { "RIGHT", "bar", "RIGHT", -4, 0 };
             count         = { "RIGHT", "icon", "LEFT", -4, 0 };
             auraName      = { "LEFT", "bar", "LEFT", 4, 0 };
           };
@@ -235,6 +252,22 @@ end
 
 -- Objects -----------------------------
 local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"], true);
+
+---@class BackdropFrame : BackdropTemplate, Frame
+
+---@class AuraButtonMixin : Button
+---@field filter "HELPFUL"|"HARMFUL"
+---@field auraType "buffs"|"debuffs"
+---@field mode "icons"|"statusbars"
+---@field texture string?
+---@field name string
+---@field statusbarFrame BackdropFrame
+---@field expiryTime number
+---@field duration number
+---@field startTime number?
+---@field timeRemaining number?
+---@field id number?
+---@field owned boolean
 local AuraButtonMixin = {};
 
 local progressColors = {
@@ -270,17 +303,20 @@ local function GetProgressColor(current, max)
   return tk:MixColorsByPercentage(start, stop, percent);
 end
 
+---@param name AuraTextName
 function AuraButtonMixin:ApplyTextStyle(name)
   local fontString = self[name.."Text"];
-  fontString:SetTextColor(unpack(self.settings.colors[name]));
 
-  local point, relativeFrame, relativePoint, xOffset, yOffset = unpack(self.settings.textPosition[name]);
+  fontString:SetTextColor(self:GetColorSetting(name));
 
-  if (relativeFrame == "icon") then
+  local point, relativeFrameName, relativePoint, xOffset, yOffset = self:GetTextPositionSettings(name);
+  local relativeFrame;
+
+  if (relativeFrameName == "icon") then
     relativeFrame = self.mask;
-  elseif (relativeFrame == "iconFrame") then
-    relativeFrame = self.icnFrame;
-  elseif (relativeFrame == "bar") then
+  elseif (relativeFrameName == "iconFrame") then
+    relativeFrame = self.iconFrame;
+  elseif (relativeFrameName == "bar") then
     relativeFrame = self.statusbarFrame;
   end
 
@@ -289,7 +325,9 @@ function AuraButtonMixin:ApplyTextStyle(name)
   end
 
   fontString:SetPoint(point, relativeFrame, relativePoint, xOffset, yOffset);
-  tk:SetFontSize(fontString, self.settings.textSize[name]);
+
+  local textSize = self:GetSetting("number", "textSize", name);
+  tk:SetFontSize(fontString, textSize);
 end
 
 local ITERATIONS = 50;
@@ -363,7 +401,7 @@ function AuraButtonMixin:SetSliderValue(new)
   end, ITERATIONS);
 end
 
-
+---@param self AuraButtonMixin
 local function HandleAuraButtonOnUpdate(self, elapsed)
   self.timeRemainingLastUpdate = (self.timeRemainingLastUpdate or 0) + elapsed;
   self.countLastUpdate = (self.countLastUpdate or 0) + elapsed;
@@ -372,7 +410,8 @@ local function HandleAuraButtonOnUpdate(self, elapsed)
   self.timeRemaining = self.expiryTime - GetTime();
   local hasTimeRemaining = obj:IsNumber(self.timeRemaining) and self.timeRemaining > 0;
 
-  if (self.settings.pulse) then
+  local pulse = self:GetSetting("boolean", "pulse");
+  if (pulse) then
     self.pulseLastUpdate = (self.pulseLastUpdate or 0) - elapsed;
 
     if (hasTimeRemaining and self.timeRemaining < BUFF_WARNING_TIME) then
@@ -409,7 +448,9 @@ local function HandleAuraButtonOnUpdate(self, elapsed)
   end
 
   if (self.countLastUpdate > 0.1) then
-    local _, _, count = UnitAura("player", self.id or self:GetID(), self.filter);
+    local id = self.id or self:GetID() or 0;
+    ---@diagnostic disable-next-line: param-type-mismatch
+    local _, _, count = UnitAura("player", id, self.filter);
 
     if (not count or count < 1) then
       self.countText:SetText(tk.Strings.Empty);
@@ -482,11 +523,14 @@ local function HandleAuraButtonOnUpdate(self, elapsed)
       local r, g, b = GetProgressColor(current, 30);
       self.timeRemainingText:SetTextColor(r, g, b);
 
-      if (value <= self.settings.secondsWarning and self.timeRemaining < 20) then
-        tk:SetFontSize(self.timeRemainingText, self.settings.textSize["timeRemainingLarge"]);
-      else
-        tk:SetFontSize(self.timeRemainingText, self.settings.textSize["timeRemaining"]);
+      local secondsWarning = self:GetSetting("number", "secondsWarning");
+      local fontSize = self:GetSetting("number", "textSize", "timeRemaining");
+
+      if (value <= secondsWarning and self.timeRemaining < 20) then
+        fontSize = self:GetSetting("number", "textSize", "timeRemainingLarge");
       end
+
+      tk:SetFontSize(self.timeRemainingText, fontSize);
     else
       self.timeRemainingText:SetText(tk.Strings.Empty);
     end
@@ -527,19 +571,23 @@ function AuraButtonMixin:SetSparkShown(shown)
   self.spark:SetShown(shown);
 end
 
----@param auraType "buffs"|"debuffs"
----@param mode "icons"|"statusbars"
----@param profile ProfileRepositoryMixin
+---@param auraType string
+---@param db DatabaseMixin?
 ---@return number width
 ---@return number height
-local function GetAuraButtonSize(auraType, mode, profile)
-  local width = profile:Query({auraType, mode, "iconWidth"}, "number");
-  local height = profile:Query({auraType, mode, "iconHeight"}, "number");
+local function GetAuraButtonSize(auraType, db)
+  if (not db) then
+    db = MayronUI:GetComponent("MUI_AurasDB");
+  end
+
+  local mode = db.profile:QueryType("string", auraType, "mode");
+  local width = db.profile:QueryType("number", auraType, mode, "iconWidth");
+  local height = db.profile:QueryType("number", auraType, mode, "iconHeight");
 
   if (mode == "statusbars") then
-    local iconSpacing = profile:Query({auraType, mode, "iconSpacing"}, "number");
-    local barWidth = profile:Query({auraType, mode, "barWidth"}, "number");
-    local barHeight = profile:Query({auraType, mode, "barHeight"}, "number");
+    local iconSpacing = db.profile:QueryType("number", auraType, mode, "iconSpacing");
+    local barWidth = db.profile:QueryType("number", auraType, mode, "barWidth");
+    local barHeight = db.profile:QueryType("number", auraType, mode, "barHeight");
 
     width = width + iconSpacing + barWidth;
     height = math.max(height, barHeight);
@@ -548,17 +596,51 @@ local function GetAuraButtonSize(auraType, mode, profile)
   return width, height;
 end
 
+---@generic T
+---@param settingType `T`
+---@param settingName string
+---@param ... (string|number)
+---@return T
+---@nodiscard
+function AuraButtonMixin:GetSetting(settingType, settingName, ...)
+  local db = MayronUI:GetComponent("MUI_AurasDB");
+  return db.profile:QueryType(settingType, self.auraType, self.mode, settingName, ...);
+end
+
+---@param colorSettingName AuraColorTypes
+---@return number, number, number
+---@nodiscard
+function AuraButtonMixin:GetColorSetting(colorSettingName)
+  local db = MayronUI:GetComponent("MUI_AurasDB");
+  local r = db.profile:QueryType("number", "colors", colorSettingName, 1);
+  local g = db.profile:QueryType("number", "colors", colorSettingName, 2);
+  local b = db.profile:QueryType("number", "colors", colorSettingName, 3);
+  return r, g, b;
+end
+
+---@param textName AuraTextName
+---@return string, string, string, number, number
+function AuraButtonMixin:GetTextPositionSettings(textName)
+  local db = MayronUI:GetComponent("MUI_AurasDB");
+  local position = db.profile:QueryType("table", self.auraType, self.mode, "textPosition", textName);
+  return unpack(position);
+end
+
 function AuraButtonMixin:ApplyStyling()
   if (self.iconFrame) then return end
   if (not self.texture) then return end
 
-  local width, height = GetAuraButtonSize(self.settings);
-  local borderSize = self.settings.iconBorderSize;
+  local db = MayronUI:GetComponent("MUI_AurasDB");
+  local width, height = GetAuraButtonSize(self.auraType, db);
+
+  local borderSize = self:GetSetting("number", "iconBorderSize");
+  local iconHeight = self:GetSetting("number", "iconHeight");
+  local iconWidth = self:GetSetting("number", "iconWidth");
   self:SetSize(width, height);
 
   -- Set Up Icon:
   self.iconFrame = tk:CreateFrame("Frame", self, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
-  self.iconFrame:SetSize(self.settings.iconWidth, self.settings.iconHeight);
+  self.iconFrame:SetSize(iconWidth, iconHeight);
   self.iconFrame:SetPoint("TOPLEFT");
 
   tk:SetBackground(self.iconFrame, 0, 0, 0);
@@ -591,8 +673,7 @@ function AuraButtonMixin:ApplyStyling()
   self.icon:SetTexture(self.texture);
   self.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9);
 
-  local diff = math.abs(self.settings.iconWidth - self.settings.iconHeight);
-  local iconWidth, iconHeight = self.settings.iconWidth, self.settings.iconHeight;
+  local diff = math.abs(iconWidth - iconHeight);
 
   if (diff > 5) then
     diff = diff * 0.25; -- squish the texture by only 25%
@@ -609,34 +690,39 @@ function AuraButtonMixin:ApplyStyling()
   self.icon:AddMaskTexture(self.mask);
 
   -- Status Bar:
-  if (self.settings.mode == "statusbars") then
+  if (self.mode == "statusbars") then
+    local iconSpacing = self:GetSetting("number", "iconSpacing");
+    local barHeight = self:GetSetting("number", "barHeight");
+
     self.statusbarFrame = tk:CreateFrame("Frame", self, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
-    self.statusbarFrame:SetPoint("LEFT", self.iconFrame, "RIGHT", self.settings.iconSpacing, 0);
+    self.statusbarFrame:SetPoint("LEFT", self.iconFrame, "RIGHT", iconSpacing, 0);
     self.statusbarFrame:SetPoint("RIGHT");
-    self.statusbarFrame:SetHeight(self.settings.barHeight);
+    self.statusbarFrame:SetHeight(barHeight);
 
     self.statusbarFrame:SetBackdrop({
       edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
       edgeSize = borderSize,
     });
 
-    self.statusbarFrame:SetBackdropBorderColor(unpack(self.settings.colors.statusbarBorder));
-    tk:SetBackground(self.statusbarFrame, unpack(self.settings.colors.background));
+    self.statusbarFrame:SetBackdropBorderColor(self:GetColorSetting(AuraColorTypes.statusbarBorder));
+    tk:SetBackground(self.statusbarFrame, self:GetColorSetting(AuraColorTypes.background));
 
     self.statusbar = tk:CreateFrame("StatusBar", self.statusbarFrame);
-    self.statusbar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", self.settings.texture));
+    local texturePath = self:GetSetting("string", "texture");
+    self.statusbar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", texturePath));
     self.statusbar:SetPoint("TOPLEFT", 1, -1);
     self.statusbar:SetPoint("BOTTOMRIGHT", -1, 1);
 
-    self:SetSparkShown(self.settings.showSpark);
+    local showSpark = self:GetSetting("boolean", "showSpark");
+    self:SetSparkShown(showSpark);
   end
 
   -- FontStrings
-  local countTemplate = (self.settings.mode == "statusbars" and "GameFontNormal") or "NumberFont_Outline_Large";
+  local countTemplate = (self.mode == "statusbars" and "GameFontNormal") or "NumberFont_Outline_Large";
   self.countText = self.cooldown:CreateFontString(nil, "OVERLAY", countTemplate);
   self:ApplyTextStyle("count");
 
-  if (self.settings.mode == "statusbars") then
+  if (self.mode == "statusbars") then
     self.auraNameText = self.statusbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
     self:ApplyTextStyle("auraName");
 
@@ -657,29 +743,35 @@ function AuraButtonMixin:UpdateDisplayInfo()
   self.icon:SetTexture(self.texture);
 
   local hasTimeRemainingText = obj:IsNumber(self.timeRemaining) and self.timeRemaining > 0;
-  local hasCooldown = obj:IsNumber(self.duration) and self.duration > 0 and obj:IsNumber(self.startTime) and self.startTime > 0;
+
+  local hasCooldown =
+    obj:IsNumber(self.duration) and
+    self.duration > 0 and
+    obj:IsNumber(self.startTime) and
+    self.startTime > 0;
+
+  local barWidth = self:GetSetting("number", "barWidth");
 
   if (hasTimeRemainingText and hasCooldown) then
     if (self.auraNameText) then
       local xOffset = select(4, self.auraNameText:GetPoint());
-      self.auraNameText:SetWidth(self.settings.barWidth - xOffset - 34);
+      self.auraNameText:SetWidth(barWidth - xOffset - 34);
     end
 
     self.cooldown:SetCooldown(self.startTime, self.duration);
   else
     if (self.auraNameText) then
       local xOffset = select(4, self.auraNameText:GetPoint());
-      self.auraNameText:SetWidth(self.settings.barWidth - xOffset - 4);
+      self.auraNameText:SetWidth(barWidth - xOffset - 4);
     end
     self.cooldown:Clear();
   end
 
-  local auraColor = self.settings.colors[self.filter:lower()];
-  local r, g , b = unpack(auraColor);
+  local r, g, b = self:GetColorSetting(self.filter:lower());
   self:SetAlpha(1);
 
   if (self.auraType == "item") then
-    local invSlotId = self.id or self:GetID();
+    local invSlotId = self.id or self:GetID() or 0;
     local quality = GetInventoryItemQuality("player", invSlotId);
 
     if (obj:IsNumber(quality)) then
@@ -688,19 +780,16 @@ function AuraButtonMixin:UpdateDisplayInfo()
 
   elseif (self.filter == "HARMFUL") then
     if (obj:IsString(self.auraType)) then
-      local typeColor = self.settings.colors[self.auraType:lower()];
-
-      if (obj:IsTable(typeColor)) then
-        r, g, b = unpack(typeColor);
-      end
+      r, g, b = self:GetColorSetting(self.auraType:lower());
     end
 
   elseif (self.statusbar) then
     if (self.owned) then
-      r, g, b = unpack(self.settings.colors.owned);
+      r, g, b = self:GetColorSetting("owned");
     else
-      self:SetAlpha(self.settings.nonPlayerAlpha);
-      r, g, b = unpack(self.settings.colors.foreground);
+      local alpha = self:GetSetting("number", "nonPlayerAlpha");
+      self:SetAlpha(alpha);
+      r, g, b = self:GetColorSetting("foreground");
     end
   end
 
@@ -791,7 +880,8 @@ local function OnHeaderAttributeChanged(self, name, btn)
   end
 
   btn.filter = self.filter;
-  btn.settings = self.settings;
+  btn.auraType = self.auraType;
+  btn.mode = self.mode;
 
   Mixin(btn, AuraButtonMixin);
 
@@ -803,37 +893,29 @@ local function OnHeaderAttributeChanged(self, name, btn)
 end
 
 ---@param filter "HELPFUL"|"HARMFUL"
----@param profile ProfileRepositoryMixin
-local function CreateAuraHeader(filter, profile)
+---@param db DatabaseMixin
+local function CreateAuraHeader(filter, db)
   local auraType = (filter == "HELPFUL") and "buffs" or "debuffs";
-  local mode = profile:Query({auraType, "mode"}, "string");
+  local mode = db.profile:QueryType("string", auraType, "mode");
 
-  local settings = profile:QueryAll({auraType, mode}, {
-    "xSpacing",
-    "ySpacing",
-    "vDirection",
-    "hDirection",
-    ["position[1]"] = "point",
-    ["position[2]"] = "relFrameName",
-    ["position[3]"] = "relPoint",
-    ["position[4]"] = "frameXOffset",
-    ["position[5]"] = "frameYOffset"
-  });
+  local hDirection = db.profile:QueryType("string", auraType, mode, "hDirection");
+  local vDirection = db.profile:QueryType("string", auraType, mode, "vDirection");
+  local xSpacing = db.profile:QueryType("number", auraType, mode, "xSpacing");
+  local ySpacing = db.profile:QueryType("number", auraType, mode, "ySpacing");
+
+  local width, height = GetAuraButtonSize(auraType, db);
+  local xOffset = math.abs(width + xSpacing);
+  local yOffset = math.abs(height + ySpacing);
 
   local auraPoint;
-
-  local width, height = GetAuraButtonSize(auraType, mode, profile);
-  local xOffset = math.abs(width + settings.xSpacing);
-  local yOffset = math.abs(height + settings.ySpacing);
-
-  if (settings.vDirection == "DOWN") then
+  if (vDirection == "DOWN") then
     auraPoint = "TOP";
     yOffset = -yOffset;
   else
     auraPoint = "BOTTOM";
   end
 
-  if (settings.hDirection == "LEFT") then
+  if (hDirection == "LEFT") then
     auraPoint = auraPoint .. "RIGHT";
     xOffset = -xOffset;
   else
@@ -841,18 +923,16 @@ local function CreateAuraHeader(filter, profile)
   end
 
   local globalName = filter == "HELPFUL" and "MUI_BuffFrames" or "MUI_DebuffFrames";
+
   local header = CreateFrame("Frame", globalName, _G.UIParent, "SecureAuraHeaderTemplate");
   header.filter = filter;
-  header.settings = settings;
+  header.auraType = auraType;
+  header.mode = mode;
 
-  local point = OrbitusDB:VerifyVar("point", settings.point, "string");
-  local relFrameName = OrbitusDB:VerifyVar("relFrameName", settings.relFrameName, "string");
-  local relPoint = OrbitusDB:VerifyVar("relPoint", settings.relPoint, "string");
-  local frameXOffset = OrbitusDB:VerifyVar("frameXOffset", settings.frameXOffset, "number");
-  local frameYOffset = OrbitusDB:VerifyVar("frameYOffset", settings.frameYOffset, "number");
+  local position = db.profile:QueryType("table", auraType, mode, "position");
 
-  local relativeFrame = _G[relFrameName] or _G.UIParent;
-  header:SetPoint(point, relativeFrame, relPoint, frameXOffset, frameYOffset);
+  local relativeFrame = _G[position[2]] or _G.UIParent;
+  header:SetPoint(position[1], relativeFrame, position[3], position[4], position[5]);
   header:SetSize(width, height);
   header:SetAttribute("unit", "player");
   header:SetAttribute("filter", filter);
@@ -871,7 +951,9 @@ local function CreateAuraHeader(filter, profile)
   header:SetAttribute("point", auraPoint);
   header:SetAttribute("xOffset", xOffset);
   header:SetAttribute("yOffset", 0);
-  header:SetAttribute("wrapAfter", settings.perRow);
+
+  local perRow = db.profile:QueryType("number", auraType, mode, "perRow");
+  header:SetAttribute("wrapAfter", perRow);
   header:SetAttribute("wrapXOffset", 0);
   header:SetAttribute("wrapYOffset", yOffset);
   header:SetAttribute("sortMethod", "TIME");
@@ -883,24 +965,19 @@ end
 -- C_AurasModule -----------------------
 ---@param db DatabaseMixin
 function C_AurasModule:OnInitialize(_, db)
-  print("db: ", db)
+  CreateAuraHeader("HELPFUL", db);
+  CreateAuraHeader("HARMFUL", db);
 
-  if (TAD) then
-    local profile = db.profile;
-    MayronUI:PrintTable(db);
-    CreateAuraHeader("HELPFUL", profile);
-    CreateAuraHeader("HARMFUL", profile);
-
-    -- Hide Blizzard frames
-    tk:KillElement(_G.BuffFrame);
-    tk:KillElement(_G.TemporaryEnchantFrame);
-    tk:KillElement(_G.DebuffFrame);
-  end
+  -- Hide Blizzard frames
+  tk:KillElement(_G.BuffFrame);
+  tk:KillElement(_G.TemporaryEnchantFrame);
+  tk:KillElement(_G.DebuffFrame);
 end
 
 OrbitusDB:Register(addOnName, "MUI_AurasDB", databaseConfig, function (db)
+  MayronUI:AddComponent("MUI_AurasDB", db);
   local aurasModule = MayronUI:ImportModule("AurasModule");
-  print("db2:", aurasModule,  db)
+
   if (aurasModule) then
     aurasModule:Initialize(db);
   end

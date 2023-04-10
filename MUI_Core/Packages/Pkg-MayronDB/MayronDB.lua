@@ -271,6 +271,7 @@ obj:DefineParams("function");
 ---(i.e. when the saved variable becomes accessible). By default, this function is called by the MayronDBrary
 ---with 2 arguments: the database and the addOn name passed to MayronDB.Static:CreateDatabase(...).
 ---@param callback function @The start up callback function
+---@overload fun(self, callback: function)
 function Database:OnStartUp(data, callback)
   local startUpCallbacks = data.callbacks.OnStartUp or obj:PopTable();
   data.callbacks.OnStartUp = startUpCallbacks;
