@@ -411,6 +411,7 @@ local function HandleAuraButtonOnUpdate(self, elapsed)
   local hasTimeRemaining = obj:IsNumber(self.timeRemaining) and self.timeRemaining > 0;
 
   local pulse = self:GetSetting("boolean", "pulse");
+
   if (pulse) then
     self.pulseLastUpdate = (self.pulseLastUpdate or 0) - elapsed;
 
@@ -873,6 +874,10 @@ local function OnAuraButtonAttributeChanged(self, attribute, value)
     end
   end
 
+  self.timeRemainingLastUpdate = 0;
+  self.countLastUpdate = 0;
+  self.sliderLastUpdate = 0;
+
   self:ApplyStyling();
   self:UpdateDisplayInfo();
 end
@@ -905,7 +910,7 @@ local function CreateAuraHeader(filter, db)
   local xSpacing = db.profile:QueryType("number", auraType, mode, "xSpacing");
   local ySpacing = db.profile:QueryType("number", auraType, mode, "ySpacing");
 
-  local width, height = GetAuraButtonSize(auraType, db);
+  local width, height = GetAuraButtonSize(filter, db);
   local xOffset = math.abs(width + xSpacing);
   local yOffset = math.abs(height + ySpacing);
 

@@ -40,7 +40,7 @@ local DatabaseMixin = {};
 ---@field private Init fun(self: IndexActionsMixin, repository: RepositoryMixin)
 local IndexActionsMixin = {};
 
-local UnitFullName, strsplit, strtrim = _G.UnitFullName, _G.strsplit, _G.strtrim;
+local UnitFullName, strtrim = _G.UnitFullName, _G.strtrim;
 local GetServerTime, unpack = _G.GetServerTime, _G.unpack;
 
 ---@class RepositoryHandler
@@ -323,7 +323,7 @@ end
 function ProfileRepositoryMixin:GetAllProfiles()
   local profiles = Internal:GetSavedVariableSubTable(self, "profiles");
 
-  local profileNames = {};
+  local profileNames = UtilitiesMixin:PopTable();
   for profileName, _ in pairs(profiles) do
     profileNames[#profileNames+1] = profileName;
   end
@@ -377,7 +377,7 @@ end
 function ProfileRepositoryMixin:GetDeletedProfiles()
   local bin = Internal:GetSavedVariableSubTable(self, "bin");
 
-  local deletedProfiles = {};
+  local deletedProfiles = UtilitiesMixin:PopTable();
   for profileName, _ in pairs(bin) do
     deletedProfiles[#deletedProfiles+1] = profileName;
   end
@@ -475,12 +475,12 @@ function RepositoryMixin:Subscribe(query, observer)
   local dbObservers = data.config.observers;
 
   local repositoryName = self:GetRepositoryName();
-  dbObservers[repositoryName] = dbObservers[repositoryName] or {};
+  dbObservers[repositoryName] = dbObservers[repositoryName] or UtilitiesMixin:PopTable();
 
   local observers = dbObservers[repositoryName];
   local normalizedQuery = UtilitiesMixin:NormalizeQuery(query);
 
-  observers[normalizedQuery] = observers[normalizedQuery] or {};
+  observers[normalizedQuery] = observers[normalizedQuery] or UtilitiesMixin:PopTable();
   local list = observers[normalizedQuery];
   list[#list+1] = observer;
 end
@@ -515,7 +515,7 @@ function RepositoryMixin:Query(...)
     for fullKey, value in pairs(index) do
       if (fullKey:sub(1, #query) == query) then
         local subKey = fullKey:sub(#query + 1, #fullKey);
-        result = result or {};
+        result = result or UtilitiesMixin:PopTable();
         UtilitiesMixin:Store(result, subKey, value);
       end
     end
@@ -557,11 +557,18 @@ do
 
         changes = AddToIndex(index, fullKey, newValue, changes);
       end
+
+      UtilitiesMixin:PushTable(flattenedValue);
     end
 
     if (previousValue ~= value) then
-      changes = changes or {};
-      changes[key] = { from = previousValue, to = value };
+      changes = changes or UtilitiesMixin:PopTable();
+
+      local change = UtilitiesMixin:PopTable();
+      change.from = previousValue;
+      change.to = value;
+      changes[key] = change;
+
       return changes;
     end
   end
@@ -600,16 +607,18 @@ function UtilitiesMixin:Query(tbl, query)
   local normalizedQuery = self:NormalizeQuery(query);
   local queryableList = self:ToQueryList(normalizedQuery);
 
-  local result = tbl;
+  local result = tbl; ---@type table?
 
   for _, key in ipairs(queryableList) do
     if (type(result) ~= "table") then
-      return nil;
+      result = nil;
+      break
     end
 
     result = result[key];
   end
 
+  self:PushTable(queryableList);
   return result;
 end
 
@@ -624,7 +633,7 @@ function UtilitiesMixin:Store(tbl, query, value)
   for i, key in ipairs(queryableList) do
     if (i < #queryableList) then
       if (type(storageTbl[key]) ~= "table") then
-        storageTbl[key] = {};
+        storageTbl[key] = self:PopTable();
       end
 
       storageTbl = storageTbl[key];
@@ -633,11 +642,13 @@ function UtilitiesMixin:Store(tbl, query, value)
       storageTbl[key] = value;
     end
   end
+
+  self:PushTable(queryableList);
 end
 
 ---@return table
 function UtilitiesMixin:MergeTables(...)
-  local merged = {};
+  local merged = UtilitiesMixin:PopTable();
 
   for i = 1, select("#", ...) do
     local tbl = (select(i, ...));
@@ -658,7 +669,7 @@ end
 
 ---@return { [string]: any }
 function UtilitiesMixin:Flatten(inputTable)
-  local outputTable = {}
+  local outputTable = UtilitiesMixin:PopTable();
 
   local function TraverseTable(currentTable, prefix)
     for key, value in pairs(currentTable) do
@@ -730,8 +741,7 @@ end
 
 do
   local normalizePattern = "%[%s*['\"](.-)['\"]%s*%]";
-  local removeIndexesPattern = "%[%s*%d+%s*%]";
-  local matchIndexesPattern = "%[%s*(%d+)%s*%]";
+  local stringKeyPattern = "^%s*[\"'](.-)[\"']%s*$";
 
   function UtilitiesMixin:NormalizeQuery(query)
     self:VerifyArgsByName("query", query, "string");
@@ -744,56 +754,90 @@ do
     return query;
   end
 
----@param ... (string|number)
----@return string
----@overload fun(self, list: QueryList)
-function UtilitiesMixin:ToQueryString(...)
-  local query = "";
+  local tables = {};
 
-  for i = 1, select("#", ...) do
-    local arg = (select(i, ...));
-
-    if (i == 1 and type(arg) == "table") then
-      return self:ToQueryString(unpack(arg));
+  ---@return table
+  function UtilitiesMixin:PopTable()
+    if (#tables > 0) then
+      return table.remove(tables);
     end
 
-    arg = UtilitiesMixin:VerifyArg(i, arg, "string|number");
+    return {};
+  end
 
-    if (type(arg) == "number") then
-      query = ("%s[%d]"):format(query, arg);
-    else
-      ---@cast arg string
-      if (arg:sub(1, 1) == ".") then
-        query = ("%s%s"):format(query, arg);
-      else
-        query = ("%s.%s"):format(query, arg);
-      end
+  ---@param tbl table
+  function UtilitiesMixin:PushTable(tbl)
+    if (type(tbl) ~= "table") then return end
+    if (#tables < 50) then
+      setmetatable(tbl);
+      table.wipe(tbl);
+      return table.insert(tables, tbl);
     end
   end
 
-  return UtilitiesMixin:NormalizeQuery(query);
-end
+  ---@param ... (string|number)
+  ---@return string
+  ---@overload fun(self, list: QueryList)
+  function UtilitiesMixin:ToQueryString(...)
+    local query = "";
+
+    for i = 1, select("#", ...) do
+      local arg = (select(i, ...));
+
+      if (i == 1 and type(arg) == "table") then
+        return self:ToQueryString(unpack(arg));
+      end
+
+      arg = UtilitiesMixin:VerifyArg(i, arg, "string|number");
+
+      if (type(arg) == "number") then
+        query = ("%s[%d]"):format(query, arg);
+      else
+        ---@cast arg string
+        if (arg:sub(1, 1) == ".") then
+          query = ("%s%s"):format(query, arg);
+        else
+          query = ("%s.%s"):format(query, arg);
+        end
+      end
+    end
+
+    return UtilitiesMixin:NormalizeQuery(query);
+  end
 
   ---@param query string
   ---@return QueryList
   function UtilitiesMixin:ToQueryList(query)
     self:VerifyArgsByName("query", query, "string");
-    local list = {}; ---@type QueryList
 
-    for key in query:gmatch("[^.]*") do
-      local sanitizedKey = key:gsub(removeIndexesPattern, "");
+    local list = self:PopTable(); ---@type QueryList
+    local cur = 1;
+    local hasStartBracket;
 
-      if (#sanitizedKey > 0) then
-        list[#list+1] = sanitizedKey;
-      end
+    for i = 1, #query do
+      local char = query:sub(i, i);
 
-      for i in key:gmatch(matchIndexesPattern) do
-        local index = tonumber(i);
+      if (char == "." or char == "[") then
+        -- new string
+        if (#list > 0 and hasStartBracket) then
+          local previous = list[#list];
+          local number = tonumber(previous);
 
-        assert(type(index) == "number" and index > 0,
-          ("Failed to convert query '%s' to queryable list at key %s"):format(query, i));
+          if (number ~= nil) then
+            list[#list] = number;
+          else
+            local sanitized =  previous:match(stringKeyPattern);
+            if (sanitized ~= nil) then
+              list[#list] = sanitized;
+            end
+          end
+        end
 
-        list[#list+1] = tonumber(index);
+        cur = cur + 1;
+        hasStartBracket = char == "[";
+      elseif (char ~= "]") then
+        -- continue
+        list[cur] = (list[cur] or "")..char;
       end
     end
 
@@ -830,17 +874,22 @@ function IndexActionsMixin:NotifyIndexChanges(changes)
 end
 
 function IndexActionsMixin:GetIndexChanges(fromIndex, toIndex)
-  local changes = {};
+  local changes = UtilitiesMixin:PopTable();
 
   for key, value in pairs(fromIndex) do
     if (value ~= toIndex[key]) then
-      changes[key] = { from = value, to = toIndex[key] };
+      local change = UtilitiesMixin:PopTable();
+      change.from = value;
+      change.to = toIndex[key];
+      changes[key] = change;
     end
   end
 
   for key, value in pairs(toIndex) do
     if (fromIndex[key] == nil) then
-      changes[key] = { from = nil, to = value };
+      local change = UtilitiesMixin:PopTable();
+      change.to = value;
+      changes[key] = change;
     end
   end
 
@@ -851,15 +900,33 @@ do
   local errorArgIndexTemplate = "bad argument #%d (%s expected, got %s)";
   local errorArgNameTemplate = "bad argument '%s' (%s expected, got %s)";
   local errorValTemplate = "bad value '%s' (%s expected, got %s)";
+  local emptySpace = " ";
+  local expectedTypesSeparator = "|";
+  local orString = " or ";
+  local emptyString = "";
 
-  local function IsValidType(value, expectedType)
+  local function IsValidType(value, expectedTypeDefinition)
     local actualType = type(value);
+    local expectedType = emptyString;
 
-    for t in expectedType:gmatch("[^|]*") do
-      if (actualType == t) then
-        return true;
+    for i = 1, #expectedTypeDefinition do
+      local char = expectedTypeDefinition:sub(i, i);
+
+      if (char ~= emptySpace) then
+        if (char == expectedTypesSeparator) then
+          if (expectedType == actualType) then
+            return true;
+          end
+
+          -- new string
+          expectedType = emptyString;
+        else
+          expectedType = expectedType .. char;
+        end
       end
     end
+
+    return expectedType == actualType;
   end
 
   ---@generic T
@@ -871,7 +938,7 @@ do
     local isValid = IsValidType(value, expectedType);
 
     if (not isValid) then
-      expectedType = string.gsub(expectedType, "|", " or ");
+      expectedType = string.gsub(expectedType, expectedTypesSeparator, orString);
       error(errorValTemplate:format(variableName, expectedType, type(value)));
     end
 
@@ -887,7 +954,7 @@ do
     local isValid = IsValidType(arg, expectedArgType);
 
     if (not isValid) then
-      expectedArgType = string.gsub(expectedArgType, "|", " or ");
+      expectedArgType = string.gsub(expectedArgType, expectedTypesSeparator, orString);
 
       local template = (type(parameter) == "number") and errorArgIndexTemplate or errorArgNameTemplate
       error(template:format(parameter, expectedArgType, type(arg)));
@@ -897,23 +964,26 @@ do
   end
 end
 
-function UtilitiesMixin:VerifyArgs(...)
-  local parameterIndex = 0;
+do
+  local lengthOperator = "#";
 
-  for i = 1, select("#", ...), 2 do
-    parameterIndex = parameterIndex + 1;
-    local arg, expectedArgType = select(i, ...);
-    self:VerifyArg(parameterIndex, arg, expectedArgType);
+  function UtilitiesMixin:VerifyArgs(...)
+    local parameterIndex = 0;
+
+    for i = 1, select(lengthOperator, ...), 2 do
+      parameterIndex = parameterIndex + 1;
+      local arg, expectedArgType = select(i, ...);
+      self:VerifyArg(parameterIndex, arg, expectedArgType);
+    end
+  end
+
+  function UtilitiesMixin:VerifyArgsByName(...)
+    for i = 1, select(lengthOperator, ...), 3 do
+      local name, arg, expectedArgType = select(i, ...);
+      self:VerifyArg(name, arg, expectedArgType);
+    end
   end
 end
-
-function UtilitiesMixin:VerifyArgsByName(...)
-  for i = 1, select("#", ...), 3 do
-    local name, arg, expectedArgType = select(i, ...);
-    self:VerifyArg(name, arg, expectedArgType);
-  end
-end
-
 --------------------------
 --> Internal:
 --------------------------
@@ -932,7 +1002,7 @@ function Internal:NotifyChanges(root, observers, changes)
           local isRelevantChange = changeQuery:sub(1, #query) == query;
 
           if (isRelevantChange) then
-            relevantChanges = relevantChanges or {};
+            relevantChanges = relevantChanges or UtilitiesMixin:PopTable();
             relevantChanges[changeQuery] = change;
           end
         end
@@ -943,9 +1013,21 @@ function Internal:NotifyChanges(root, observers, changes)
           local value = UtilitiesMixin:Query(root, query);
           notifier(value, relevantChanges);
         end
+
+        for _, value in pairs(relevantChanges) do
+          UtilitiesMixin:PushTable(value);
+        end
+
+        UtilitiesMixin:PushTable(relevantChanges);
       end
     end
   end
+
+  for _, value in pairs(changes) do
+    UtilitiesMixin:PushTable(value);
+  end
+
+  UtilitiesMixin:PushTable(changes);
 end
 
 ---@param repository RepositoryMixin
@@ -966,8 +1048,8 @@ end
 ---@param callbackName DatabaseCallbackType
 function Internal:AddCallback(obj, callbackName, callback)
   local data = metadata[tostring(obj)];
-  data.callbacks = data.callbacks or {};
-  data.callbacks[callbackName] = data.callbacks[callbackName] or {};
+  data.callbacks = data.callbacks or UtilitiesMixin:PopTable();
+  data.callbacks[callbackName] = data.callbacks[callbackName] or UtilitiesMixin:PopTable();
   local list = data.callbacks[callbackName];
   list[#list+1] = callback;
 end
