@@ -596,7 +596,7 @@ function MayronUI:Hook(moduleKey, eventName, func)
 end
 
 ---@param moduleKey string @The unique key associated with the registered module.
----@return Class @Returns a module Class so that a module can be given additional methods and definitions where required.
+---@return MayronObjects.Class @Returns a module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:GetModuleClass(moduleKey)
   local registryInfo = registeredModules[moduleKey];
 
@@ -608,27 +608,29 @@ function MayronUI:GetModuleClass(moduleKey)
   return registryInfo.class;
 end
 
----@param moduleKey string @The unique key associated with the registered module.
----@param silent boolean|nil @If silent, this function will return nil if the module cannot be found, else it will throw an error
----@return BaseModule|nil, table|nil
+---@generic T : BaseModule
+---@param moduleKey `T` @The unique key associated with the registered module.
+---@param silent boolean? @If true, nil can be returned, else if the module cannot be found an error is thrown.
+---@return T, BaseModule
 function MayronUI:ImportModule(moduleKey, silent)
   local registryInfo = registeredModules[moduleKey];
 
   if (not registryInfo) then
     -- addon is disabled so cannot import module
     obj:Assert(silent, "Failed to import module '%s'. Has it been registered?", moduleKey);
-    return nil;
+    ---@diagnostic disable-next-line: return-type-mismatch
+    return nil, nil;
   end
 
   return registryInfo.instance, registryInfo.class;
 end
 
 ---MayronUI automatically initializes modules during the "PLAYER_ENTERING_WORLD" event unless initializeOnDemand is true.
----@generic T
+---@generic T : BaseModule
 ---@param moduleKey `T` @A unique key used to register the module to MayronUI.
----@param moduleName string @A human-friendly name of the module to be used in-game (such as on the config window).
+---@param moduleName string? @A human-friendly name of the module to be used in-game (such as on the config window).
 ---@param initializeOnDemand boolean? @(optional) If true, must be initialized manually instead of
----@return T|BaseModule|MayronObjects.Class @Returns a new module Class so that a module can be given additional methods and definitions where required.
+---@return T @Returns a new module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
   local moduleClass = obj:CreateClass(moduleKey, BaseModule);
 

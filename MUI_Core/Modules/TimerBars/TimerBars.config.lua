@@ -118,8 +118,8 @@ end
 
 function C_TimerBars:GetConfigTable()
     return {
-      module            = "TimerBars";
-      hasOwnDatabase    = true;
+      module = "TimerBars";
+      database = "TimerBarsDatabase";
       children = {
           {   name = L["Enabled"],
               tooltip = "If checked, this module will be enabled.",
@@ -269,10 +269,10 @@ function C_TimerBars:GetConfigTable()
                   local dbFieldPath = "profile.fields."..name;
 
                   return {
-                      name              = name;
-                      type              = "submenu";
-                      module            = "TimerBars";
-                      hasOwnDatabase    = true;
+                      name = name;
+                      type = "submenu";
+                      module = "TimerBars";
+                      database    = "TimerBarsDatabase";
 
                       OnLoad = function()
                           position_TextFields[name] = obj:PopTable();

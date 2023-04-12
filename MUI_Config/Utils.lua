@@ -111,7 +111,7 @@ function Utils.OnMenuButtonClick(menuButton)
     return
   end
 
-  local configMenu = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule
+  local configMenu = MayronUI:ImportModule("ConfigMenu");
   configMenu:OpenMenu(menuButton);
 end
 

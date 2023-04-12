@@ -14,8 +14,9 @@ local strsplit, radians = _G.strsplit, _G.math.rad;
 ---@type LinkedList
 local C_LinkedList = obj:Import("Pkg-Collections.LinkedList");
 
----@class ConfigMenuModule : BaseModule
+---@class ConfigMenu : BaseModule
 local C_ConfigMenuModule = MayronUI:RegisterModule("ConfigMenu");
+
 
 -- Local functions -------------------
 local CreateTopMenuButton;
@@ -92,7 +93,7 @@ do
     "requiresReload";
     "requiresRestart";
     "module";
-    "hasOwnDatabase";
+    "database";
     "valueType";
     "min";
     "max";
@@ -150,11 +151,10 @@ function C_ConfigMenuModule:GetDatabase(data, tbl)
   tbl = data.tempMenuConfigTable or tbl;
 
   if (tbl) then
-    if (tbl.hasOwnDatabase) then
+    if (tbl.database) then
       moduleKey = tbl.module;
+      dbObject = MayronUI:GetComponent(tbl.database);
     end
-
-    dbObject = MayronUI:GetComponent(moduleKey.."Database");
   end
 
   obj:Assert(dbObject, "Failed to get database object for module '%s'", moduleKey);
@@ -208,6 +208,7 @@ end
 
 obj:DefineParams("CheckButton|Button");
 ---@param menuButton CheckButton|Button @The clicked menu button is associated with a menu.
+---@overload fun(self, menuButton: CheckButton|Button)
 function C_ConfigMenuModule:OpenMenu(data, menuButton)
   if (menuButton.type == "menu") then
     data.history:Clear();
@@ -442,7 +443,7 @@ local function ApplyMenuConfigTable(componentConfig, menuConfig, frameComponent)
   if (not obj:IsTable(menuConfig.inherit)) then
     menuConfig.inherit = obj:PopTable();
     menuConfig.inherit.module = menuConfig.module;
-    menuConfig.inherit.hasOwnDatabase = menuConfig.hasOwnDatabase;
+    menuConfig.inherit.database = menuConfig.database;
   end
 
   if (not menuConfig.inherit.__index) then

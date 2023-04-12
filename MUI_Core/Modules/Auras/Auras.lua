@@ -24,6 +24,7 @@ local BUFF_WARNING_TIME = 31;
 local C_Stack = obj:Import("Pkg-Collections.Stack<T>"); ---@cast C_Stack Pkg-Collections.Stack
 
 ---@class MUI_AurasDB : DatabaseMixin
+
 --------------------------
 --> Database SetUp:
 --------------------------

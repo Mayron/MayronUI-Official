@@ -220,7 +220,8 @@ function C_ConfigMenu:GetConfigTable()
           valueType = "number";
           tooltip = L["Adjust the width of the main container."];
           dbPath = "profile.bottomui.width";
-        }; {
+        };
+        {
           name = L["Frame Strata"];
           type = "dropdown";
           options = tk.Constants.ORDERED_FRAME_STRATAS;
@@ -231,18 +232,20 @@ function C_ConfigMenu:GetConfigTable()
           type = "textfield";
           valueType = "number";
           dbPath = "profile.bottomui.frameLevel";
-        }; { type = "divider" }; {
+        };
+        { type = "divider" };
+        {
           name = L["X-Offset"];
           type = "textfield";
           valueType = "number";
           dbPath = "profile.bottomui.xOffset";
-        }; {
+        };
+        {
           name = L["Y-Offset"];
           type = "textfield";
           valueType = "number";
           dbPath = "profile.bottomui.yOffset";
         };
-
         { type = "title"; name = L["Blizzard Frames"] };
         {
           name = L["Movable Frames"];
