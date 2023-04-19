@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 local MayronUI = _G.MayronUI;
-local tk, _, _, _, obj, L = MayronUI:GetCoreComponents();
-local db = MayronUI:GetComponent("MUI_AurasDB");
+local tk, _, _, _, _, L = MayronUI:GetCoreComponents();
+-- local db = MayronUI:GetComponent("MUI_AurasDB");
 local _, C_AurasModule = MayronUI:ImportModule("AurasModule");
 
 function C_AurasModule:GetConfigTable()

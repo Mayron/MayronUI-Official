@@ -451,6 +451,12 @@ function tk:SetGameFont(fontSettings)
   end
 end
 
+---@generic T
+---@param frameType `T`
+---@param parent Frame?
+---@param globalName string?
+---@param templates string?
+---@return T
 function tk:CreateFrame(frameType, parent, globalName, templates)
   local frame =  CreateFrame(frameType or "Frame", globalName, parent or _G.UIParent, templates);
   frame:ClearAllPoints();

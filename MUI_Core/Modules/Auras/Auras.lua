@@ -832,6 +832,10 @@ local function OnAuraButtonAttributeChanged(self, attribute, value)
   if (attribute == "index") then
     local name, texture, count, auraSubType, duration, expiryTime, source = UnitAura("player", value, self.filter);
 
+    if (name ~= "Lightning Shield") then
+      self:SetAttribute("statehidden", "true");
+    end
+
     self.expiryTime = expiryTime;
     self.startTime = expiryTime - duration;
     self.duration = duration; -- can use cooldown

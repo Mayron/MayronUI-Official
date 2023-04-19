@@ -1,7 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
+
+---@class GUIBuilder
+local gui = MayronUI:GetComponent("GUIBuilder");
 
 local string, hooksecurefunc, PlaySound, unpack, min, max =
   _G.string, _G.hooksecurefunc, _G.PlaySound, _G.unpack, _G.math.min, _G.math.max;
@@ -30,10 +33,10 @@ local function HandleShowingTooltipOnEnter(self)
   _G.GameTooltip:Show();
 end
 
----@param parent Frame @(optional) The parent frame to give the new frame if frame param is nil
----@param alphaType string @(optional) the dialog box background type ("high", "medium", "low")
----@param frame Frame @(optional) A frame to apply the dialog box background texture to (a new one is created if nil)
----@param globalName string @(optional) A global name to give the new frame if frame param is nil
+---@param parent Frame? @(optional) The parent frame to give the new frame if frame param is nil
+---@param alphaType string? @(optional) the dialog box background type ("high", "medium", "low")
+---@param frame Frame? @(optional) A frame to apply the dialog box background texture to (a new one is created if nil)
+---@param globalName string? @(optional) A global name to give the new frame if frame param is nil
 ---@return Frame @The new frame (or existing frame if the frame param was supplied).
 function gui:CreateDialogBox(parent, alphaType, frame, globalName)
   frame = frame or tk:CreateFrame("Frame", parent, globalName);

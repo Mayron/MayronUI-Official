@@ -1,7 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
+
+---@class GUIBuilder
+local gui = MayronUI:GetComponent("GUIBuilder");
 
 local TextField = obj:CreateClass("TextField");
 obj:Export(TextField, "MayronUI");

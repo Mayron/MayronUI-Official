@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local obj = MayronUI:GetComponent("Objects"); ---@type MayronObjects
+local obj = MayronUI:GetComponent("Objects"); ---@cast obj MayronObjects
 
 ---@class SlideController : Object
 local SlideController = obj:CreateClass("SlideController");

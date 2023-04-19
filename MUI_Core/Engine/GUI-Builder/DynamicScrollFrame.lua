@@ -1,7 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, _, _, gui = MayronUI:GetCoreComponents();
+local tk = MayronUI:GetCoreComponents();
+
+---@class GUIBuilder
+local gui = MayronUI:GetComponent("GUIBuilder");
 
 local hooksecurefunc = _G.hooksecurefunc;
 local math = _G.math;

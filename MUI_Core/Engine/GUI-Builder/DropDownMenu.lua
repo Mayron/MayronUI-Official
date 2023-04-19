@@ -1,7 +1,11 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
+
+---@class GUIBuilder
+local gui = MayronUI:GetComponent("GUIBuilder");
+
 local SlideController = obj:Import("MayronUI.SlideController");
 local DropDownMenu = obj:CreateClass("DropDownMenu"); ---@class DropDownMenu
 obj:Export(DropDownMenu, "MayronUI");

@@ -1,7 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local _, _, _, gui, obj = MayronUI:GetCoreComponents();
+local _, _, _, _, obj = MayronUI:GetCoreComponents();
+
+---@class GUIBuilder
+local gui = MayronUI:GetComponent("GUIBuilder");
 
 local DynamicFrame = obj:CreateClass("DynamicFrame"); ---@class DynamicFrame
 obj:Export(DynamicFrame, "MayronUI");

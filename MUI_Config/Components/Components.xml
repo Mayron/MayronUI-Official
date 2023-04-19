@@ -12,4 +12,5 @@
     <Script file="TextField.lua"/>
     <Script file="Title.lua"/>
     <Script file="ListFrame.lua"/>
+    <Script file="Tabs.lua"/>
 </Ui>
