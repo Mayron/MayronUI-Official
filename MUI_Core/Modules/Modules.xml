@@ -60,4 +60,6 @@
   <Script file="Tooltips\Tooltips.config.lua" />
 
   <Script file="CombatAlerts.lua" />
+
+  <Script file="Inventory\Inventory.lua" />
 </Ui>

@@ -326,4 +326,5 @@ tk.Constants.DEBUG_WHITELIST = {
   ["Mayron-Gehennas"] = true;
   ["Mayron-TwistingNether"] = true;
   ["Maulron-Gehennas"] = true;
+  ["Maragor-Gehennas"] = true;
 }
