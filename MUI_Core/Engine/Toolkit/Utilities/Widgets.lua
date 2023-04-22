@@ -170,15 +170,14 @@ function tk:MakeResizable(frame, dragger)
   dragger:RegisterForDrag("LeftButton");
 
   dragger:HookScript("OnDragStart", function()
-      frame:StartSizing();
-    end);
+    frame:StartSizing();
+  end);
 
   dragger:HookScript("OnDragStop", function()
-      frame:StopMovingOrSizing();
-    end);
+    frame:StopMovingOrSizing();
+  end);
 end
 
----comment
 ---@param frame Frame
 function tk:SetResizeBounds(frame, minWidth, minHeight, maxWidth, maxHeight)
   if (obj:IsFunction(frame.SetMinResize)) then
@@ -188,6 +187,18 @@ function tk:SetResizeBounds(frame, minWidth, minHeight, maxWidth, maxHeight)
     -- dragonflight:
     ---@diagnostic disable-next-line: undefined-field
     frame:SetResizeBounds(minWidth, minHeight, maxWidth, maxHeight);
+  end
+end
+
+function tk:GetResizeBounds(frame)
+  if (obj:IsFunction(frame.GetMinResize)) then
+    local minWidth, minHeight = frame:GetMinResize();
+    local maxWidth, maxHeight = frame:GetMaxResize();
+    return minWidth, minHeight, maxWidth, maxHeight;
+  else
+    -- dragonflight:
+    ---@diagnostic disable-next-line: undefined-field
+    return frame:GetResizeBounds();
   end
 end
 

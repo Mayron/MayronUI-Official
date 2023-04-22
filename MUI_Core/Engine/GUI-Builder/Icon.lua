@@ -26,7 +26,7 @@ local gui = MayronUI:GetComponent("GUIBuilder");
 local function CreateIcon(iconFrame, borderSize, iconType, disableOmniCC)
   iconFrame = iconFrame--[[@as MayronUI.Icon|Frame]];
   iconFrame.iconType = iconType;
-  tk:SetBackground(iconFrame, 0, 0, 0, 0.5);
+  tk:SetBackground(iconFrame, 0, 0, 0, 0.4);
 
   local borderTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\IconBorder");
   iconFrame = gui:CreateGridTexture(iconFrame, borderTexturePath, 4, 2, 64, 64, "OVERLAY");

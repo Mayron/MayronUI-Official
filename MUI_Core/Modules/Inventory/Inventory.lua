@@ -41,6 +41,7 @@ local Mixin, Item, GetMoney = _G.Mixin, _G.Item, _G.GetMoney;
 ---@field BagStaticTop Texture
 ---@field newitemglowAnim AnimationGroup
 ---@field flashAnim AnimationGroup
+---@field questTexture Texture
 
 ---@class MayronUI.Inventory.Bag : Frame
 ---@field slots MayronUI.Inventory.Slot[]
@@ -49,10 +50,20 @@ local Mixin, Item, GetMoney = _G.Mixin, _G.Item, _G.GetMoney;
 ---@field bags MayronUI.Inventory.Bag[]
 ---@field currency FontString
 ---@field freeSlots FontString
+---@field dragger Frame
+---@field minWidth number
+---@field maxWidth number
 
 -- Register and Import Modules -----------
 local C_Inventory = MayronUI:RegisterModule("Inventory", "Inventory");
 
+-- Settings:
+local slotWidth, slotHeight = 36, 30;
+local slotSpacing = 6;
+local initialColumns = 10;
+local minColumns = 5;
+local maxColumns = 20;
+local containerPadding = { top = 30, right = 8, bottom = 34, left = 8 };
 
 -- Local Functions --------------
 ---@param slot MayronUI.Inventory.Slot
@@ -85,7 +96,8 @@ local function UpdateBagSlot(slot)
   local countText = "";
 
   local invType = slot:GetInventoryType();
-  if (invType > 0) then
+  local quality = slot:GetItemQuality();
+  if (invType > 0 or quality > 1) then
     local color = slot:GetItemQualityColor();
     slot:SetGridColor(color.r, color.g, color.b);
   else
@@ -104,8 +116,16 @@ local function UpdateBagSlot(slot)
   slot.Count:Show();
 
   local questInfo = GetContainerItemQuestInfo(bagID, slotIndex);-- Could also use `isActive`
-  local iconQuestTexture = _G[slot:GetName().."IconQuestTexture"];
-  iconQuestTexture:SetShown(questInfo.isQuestItem);
+  if (questInfo.questId and not questInfo.isActive) then
+		slot.questTexture:SetTexture(_G["TEXTURE_ITEM_QUEST_BANG"]);
+		slot.questTexture:Show();
+	elseif (questInfo.questId or questInfo.isQuestItem) then
+		slot.questTexture:SetTexture(_G["TEXTURE_ITEM_QUEST_BORDER"]);
+		slot.questTexture:Show();
+	else
+		slot.questTexture:Hide();
+	end
+
   slot.JunkIcon:SetShown(slot:GetItemQuality() == 0);
   slot.searchOverlay:SetShown(info.isFiltered);
 
@@ -119,7 +139,7 @@ local function UpdateBagSlot(slot)
   end
 end
 
-local function CreateBagItemSlot(bagFrame, slotIndex, slotWidth, slotHeight)
+local function CreateBagItemSlot(bagFrame, slotIndex)
   local bagGlobalName = bagFrame:GetName();
   local bagID = bagFrame:GetID();
   local slotGlobalName = bagGlobalName.."Slot"..tostring(slotIndex);
@@ -128,6 +148,9 @@ local function CreateBagItemSlot(bagFrame, slotIndex, slotWidth, slotHeight)
   slot:SetSize(slotWidth, slotHeight);
   slot.cooldown = _G[slotGlobalName.."Cooldown"];
 
+  slot.questTexture = _G[slotGlobalName.."IconQuestTexture"];
+  slot.questTexture:SetSize(slotWidth, slotHeight);
+
   slot = gui:ReskinIcon(slot, 2);
   Mixin(slot, Item:CreateFromBagAndSlot(bagID, slotIndex));
 
@@ -135,8 +158,6 @@ local function CreateBagItemSlot(bagFrame, slotIndex, slotWidth, slotHeight)
 
   slot:SetID(slotIndex);
   ClearBagSlot(slot);
-
-  bagFrame.slots[slotIndex] = slot;
 
   tk:KillAllElements(
     slot.ExtendedOverlay,
@@ -199,7 +220,6 @@ end
 local function InventoryFrameOnEvent(inventoryFrame, event, bagID, slotIndex)
   local bag = type(bagID) == "number" and bagID >= 0 and inventoryFrame.bags[bagID + 1];
 
-  MayronUI:LogDebug("Inventory Event: %s with bagID: %s and slotIndex: %s", event, bagID, slotIndex);
 --[[
 	if ( event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_SPECIALIZATION_CHANGED" ) then
 		ContainerFrame_UpdateItemUpgradeIcons(self);
@@ -290,7 +310,93 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagID, slotIndex)
 
 end
 
+local UpdateInventorySlotAnchors;
 
+do
+  local function GetGridSizeByNumColumns(inventoryFrame, totalColumns, updateAnchors)
+    local newWidth = containerPadding.left + containerPadding.right;
+    local newHeight = containerPadding.top + containerPadding.bottom;
+    local columnIndex = 1;
+    local totalRows = 1;
+
+    for _, bag in ipairs(inventoryFrame.bags) do
+      for _, slot in ipairs(bag.slots) do
+        if ((columnIndex % (totalColumns + 1)) == 0) then
+            -- next row
+          totalRows = totalRows + 1;
+          columnIndex = 1;
+        end
+
+        local xOffset = (columnIndex - 1) * (slotWidth + slotSpacing);
+        local yOffset = (totalRows - 1) * (slotHeight + slotSpacing);
+
+        if (updateAnchors) then
+          slot:SetPoint("TOPLEFT", xOffset, -yOffset);
+        end
+
+        columnIndex = columnIndex + 1; -- next column
+      end
+    end
+
+    local slotXOffset = (slotWidth + slotSpacing);
+    local slotYOffset = (slotHeight + slotSpacing);
+
+    newWidth = newWidth + (slotXOffset * totalColumns) - slotSpacing;
+    newHeight = newHeight + (slotYOffset * totalRows) - slotSpacing;
+    return newWidth, newHeight;
+  end
+
+  ---@param inventoryFrame MayronUI.Inventory.Frame
+  ---@return number, number
+  UpdateInventorySlotAnchors = function(inventoryFrame)
+    local currentWidth = inventoryFrame:GetWidth();
+
+    if (currentWidth > 0) then
+      local totalColumns = 1;
+
+      for columns = 1, 100 do
+        local width = ((slotWidth + slotSpacing) * columns) - slotSpacing + containerPadding.left + containerPadding.right;
+
+        if (width > currentWidth) then break end
+        totalColumns = columns;
+      end
+
+      local newWidth, newHeight = GetGridSizeByNumColumns(inventoryFrame, totalColumns, true);
+      tk:SetResizeBounds(inventoryFrame, inventoryFrame.minWidth, newHeight, inventoryFrame.maxWidth, newHeight);
+
+      return newWidth, newHeight;
+    end
+
+    local minWidth, maxHeight = GetGridSizeByNumColumns(inventoryFrame, minColumns);
+    local maxWidth, minHeight = GetGridSizeByNumColumns(inventoryFrame, maxColumns);
+    inventoryFrame.minWidth = minWidth;
+    inventoryFrame.maxWidth = maxWidth;
+
+    tk:SetResizeBounds(inventoryFrame, minWidth, minHeight, maxWidth, maxHeight);
+
+    return GetGridSizeByNumColumns(inventoryFrame, initialColumns, true);
+  end
+end
+
+local InventoryFrameOnUpdate;
+
+do
+  local totalElapsed = 0;
+
+  ---@param self MayronUI.Inventory.Frame
+  ---@param elapsed number
+  InventoryFrameOnUpdate = function (self, elapsed)
+    totalElapsed = totalElapsed + elapsed;
+
+    if (totalElapsed > 0.1) then
+      totalElapsed = 0;
+
+      if (self.dragger:IsDragging()) then
+        UpdateInventorySlotAnchors(self);
+      end
+    end
+  end
+end
 
 -- C_Inventory ------------------
 
@@ -299,11 +405,9 @@ function C_Inventory:OnInitialize()
     return
   end
 
-  local slotWidth, slotHeight = 36, 30;
-  local slotSpacing = 6;
-  local maxColumns = 10;
-  local containerPadding = { top = 30, right = 8, bottom = 30, left = 8 };
   local inventoryFrame = tk:CreateFrame("Frame", nil, "MUI_Inventory")--[[@as MayronUI.Inventory.Frame]];
+  table.insert(_G["UISpecialFrames"], "MUI_Inventory");
+  inventoryFrame:SetPoint("CENTER");
   inventoryFrame:Hide();
 
   -- local OpenInventoryFrame = function() inventoryFrame:Show(); end
@@ -349,18 +453,13 @@ function C_Inventory:OnInitialize()
 	-- inventoryFrame:RegisterEvent("BAG_SLOT_FLAGS_UPDATED");
 	-- inventoryFrame:RegisterEvent("BANK_BAG_SLOT_FLAGS_UPDATED");
 
-  print("Loaded Inventory Module");
-
-  -- The current cell in the grid of rows and columns
-  local columnIndex = 1;
-  local rowIndex = 1;
-
+  -- Create Bags and Slots:
   for bagID = 0, _G.NUM_BAG_SLOTS do
     tk:KillElement(_G["ContainerFrame"..tostring(bagID + 1)]);
 
     local numSlots = GetContainerNumSlots(bagID);
     local bagGlobalName = "MUI_InventoryBag"..tostring(bagID + 1);
-    local bagFrame = tk:CreateFrame("Frame", inventoryFrame, bagGlobalName);
+    local bagFrame = tk:CreateFrame("Frame", inventoryFrame, bagGlobalName)--[[@as MayronUI.Inventory.Bag]];
     inventoryFrame.bags[bagID + 1] = bagFrame;
 
     bagFrame:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
@@ -370,30 +469,27 @@ function C_Inventory:OnInitialize()
 
     if (numSlots > 0) then
       for slotIndex = 1, numSlots do
-        local slot = CreateBagItemSlot(bagFrame, slotIndex, slotWidth, slotHeight);
-
-        if ((columnIndex % (maxColumns + 1)) == 0) then
-           -- next row
-          rowIndex = rowIndex + 1;
-          columnIndex = 1;
-        end
-
-        local xOffset = (columnIndex - 1) * (slotWidth + slotSpacing);
-        local yOffset = (rowIndex - 1) * (slotHeight + slotSpacing);
-
-        slot:SetPoint("TOPLEFT", xOffset, -yOffset);
-        columnIndex = columnIndex + 1; -- next column
+        local slot = CreateBagItemSlot(bagFrame, slotIndex);
+        bagFrame.slots[slotIndex] = slot;
       end
     end
   end
 
-  inventoryFrame:SetPoint("CENTER");
+  local function UpdateInventoryDimensions()
+    local width, height = UpdateInventorySlotAnchors(inventoryFrame);
+    inventoryFrame:SetSize(width, height);
+  end
 
-  local width = ((slotWidth + slotSpacing) * maxColumns) - slotSpacing + (containerPadding.left + containerPadding.right);
-  local height = ((slotHeight + slotSpacing) * rowIndex) - slotSpacing + (containerPadding.top + containerPadding.bottom);
+  UpdateInventoryDimensions();
 
-  tk:SetResizeBounds(inventoryFrame, width, height, width*2, height*2);
-  inventoryFrame:SetSize(width, height);
+  inventoryFrame.dragger:HookScript("OnDragStart", function()
+    inventoryFrame:SetScript("OnUpdate", InventoryFrameOnUpdate);
+  end);
+
+  inventoryFrame.dragger:HookScript("OnDragStop", function()
+    inventoryFrame:SetScript("OnUpdate", nil);
+    UpdateInventoryDimensions();
+  end);
 
   inventoryFrame.currency = inventoryFrame:CreateFontString("MUI_InventoryCurrency", "ARTWORK", "MUI_FontNormal");
   inventoryFrame.currency:SetPoint("BOTTOMLEFT", 8, 8);
