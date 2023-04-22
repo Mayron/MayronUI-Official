@@ -490,7 +490,7 @@ do
       local btnTemplate = tk:IsRetail() and "ProfessionButtonTemplate" or "SpellButtonTemplate";
       local btn = tk:CreateFrame("CheckButton", profMenu, btnName, btnTemplate);
 
-      local iconFrame = tk:CreateFrame("Frame", btn, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+      local iconFrame = tk:CreateBackdropFrame("Frame", btn);
       iconFrame:SetSize(buttonHeight - 8, buttonHeight - 8);
       iconFrame:ClearAllPoints();
       iconFrame:SetPoint("LEFT", 6, 0);

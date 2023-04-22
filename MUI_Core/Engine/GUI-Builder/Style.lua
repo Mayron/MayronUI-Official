@@ -27,10 +27,12 @@ end
 
 -- Style Methods ----------------------
 obj:DefineParams("number", "number", "number", "?string");
+---@param data table
 ---@param red number
----@param green boolean
----@param blue boolean
----@param colorName string @(optional) A unique set to assign to the color to be able to retrieve it (defaults to "default").
+---@param green number
+---@param blue number
+---@param colorName string? # A unique set to assign to the color to be able to retrieve it (defaults to "default").
+---@overload fun(self, red: number, green: number, blue: number, colorName: string?)
 function Style:SetColor(data, red, green, blue, colorName)
   local color = CreateColor(red, green, blue);
   Setter(data, "color", color, colorName);
@@ -91,7 +93,8 @@ end
 obj:DefineParams("?string");
 obj:DefineReturns("string");
 ---@param name string @(optional) The name used to identify and retrieve the texture value.
----@return table @The texture value.
+---@return string @The texture path value.
+---@overload fun(self, name: string): string
 function Style:GetTexture(data, name)
   return Getter(data, "texture", name);
 end

@@ -54,7 +54,7 @@ end
 -- Creates a scroll frame inside a container frame
 function gui:CreateScrollFrame(parent, global, child)
   local style = tk.Constants.AddOnStyle;
-  local container = tk:CreateFrame("Frame", parent, global, _G.BackdropTemplateMixin and "BackdropTemplate");
+  local container = tk:CreateBackdropFrame("Frame", parent, global);
   container.ScrollFrame = tk:CreateFrame("ScrollFrame", container, nil, "UIPanelScrollFrameTemplate");
   container.ScrollFrame:SetAllPoints(true);
   container.ScrollFrame:EnableMouseWheel(true);

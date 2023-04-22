@@ -74,9 +74,7 @@ do
         return
       end
 
-      ---@type ListFrame
-      local C_ListFrame = obj:Import("MayronUI.ListFrame");
-
+      local C_ListFrame = obj:Import("MayronUI.ListFrame") --[[@as ListFrame]];
       btn.listFrame = C_ListFrame(btn.name, btn.dbPath);
 
       if (btn.dbPath:find("white")) then
@@ -87,7 +85,7 @@ do
 
       btn.listFrame:SetScript("OnAddItem", ListFrame_OnAddItem);
       btn.listFrame:SetScript("OnRemoveItem", ListFrame_OnRemoveItem);
-      btn.listFrame:SetScript("OnItemEnter", tk.AuraTooltip_OnEnter);
+      btn.listFrame:SetScript("OnItemEnter", tk.HandleTooltipOnEnter);
       btn.listFrame:SetScript("OnShow", ListFrame_OnShow);
       btn.listFrame:SetShown(true);
     end

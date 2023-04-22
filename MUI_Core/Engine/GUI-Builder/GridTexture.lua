@@ -5,35 +5,42 @@ local MayronUI = _G.MayronUI;
 ---@class GUIBuilder
 local gui = MayronUI:GetComponent("GUIBuilder");
 
-local ipairs = _G.ipairs;
+local ipairs, Mixin = _G.ipairs, _G.Mixin;
 local regions = {"tl", "tr", "bl", "br", "t", "b", "l", "r", "c"};
 
-local function SetGridColor(self, r, g, b, a)
+---@class MayronUI.GridTextureMixin : table
+local GridTextureMixin = {};
+
+function GridTextureMixin:SetGridColor(r, g, b, a)
   for _, key in ipairs(regions) do
     self[key]:SetVertexColor(r, g, b, a);
   end
 end
 
-local function SetGridTexture(self, texture)
+function GridTextureMixin:SetGridTexture(texture)
   for _, key in ipairs(regions) do
     self[key]:SetTexture(texture);
   end
 end
 
-local function SetGridTextureShown(self, shown)
+function GridTextureMixin:SetGridTextureShown(shown)
   for _, key in ipairs(regions) do
     self[key]:SetShown(shown);
   end
 end
 
-local function SetGridCornerSize(self, cornerSize)
+function GridTextureMixin:SetGridCornerSize(cornerSize)
   for _, key in ipairs(regions) do
     self[key]:SetSize(cornerSize, cornerSize);
   end
 end
 
 -- Places the borders of a texture into their own sections to ensure they do not stretch when the frame is resized.
+---@generic T
+---@param frame T
+---@return T|MayronUI.GridTextureMixin
 function gui:CreateGridTexture(frame, texture, cornerSize, inset, originalTextureWidth, originalTextureHeight, layer)
+  frame = frame --[[@as table]];
   local smallWidth = cornerSize / originalTextureWidth;
   local largeWidth = 1 - smallWidth;
   local smallHeight = cornerSize / originalTextureHeight;
@@ -70,8 +77,5 @@ function gui:CreateGridTexture(frame, texture, cornerSize, inset, originalTextur
   frame.c:SetPoint("BOTTOMRIGHT", frame.br, "TOPLEFT");
   frame.c:SetTexCoord(smallWidth, largeWidth, smallHeight, largeHeight);
 
-  frame.SetGridColor = SetGridColor;
-  frame.SetGridTexture = SetGridTexture;
-  frame.SetGridCornerSize = SetGridCornerSize;
-  frame.SetGridTextureShown = SetGridTextureShown;
+  return Mixin(frame, GridTextureMixin);
 end

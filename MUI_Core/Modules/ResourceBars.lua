@@ -332,8 +332,7 @@ function C_BaseResourceBar:UpdateStatusBarTexture(data)
 end
 
 function C_BaseResourceBar:CreateBar(data)
-  local frame = tk:CreateFrame("Frame", data.barsContainer, "MUI_"..data.barName.."Bar",
-    _G.BackdropTemplateMixin and "BackdropTemplate");
+  local frame = tk:CreateBackdropFrame("Frame", data.barsContainer, "MUI_"..data.barName.."Bar");
 
   frame:SetBackdrop(tk.Constants.BACKDROP);
   frame:SetBackdropBorderColor(0, 0, 0);

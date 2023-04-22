@@ -17,6 +17,7 @@
     <Script file="GUI-Builder\GridTexture.lua"/>
     <Script file="GUI-Builder\Miscellaneous.lua"/>
     <Script file="GUI-Builder\TextField.lua"/>
+    <Script file="GUI-Builder\Icon.lua"/>
 
     <Script file="Modules.lua"/>
     <Script file="UpdateFunctions.lua"/>

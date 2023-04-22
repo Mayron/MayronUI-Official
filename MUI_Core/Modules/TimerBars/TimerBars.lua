@@ -584,7 +584,7 @@ do
     obj:EmptyTable(params);
 
     if (optionsMenu:IsShown()) then
-      params.auraId = self.auraId;
+      params.itemID = self.itemID;
       params.auraName = self.auraName
       params.fieldName = timerBar.FieldName;
       params.timerBar = timerBar;
@@ -791,7 +791,7 @@ do
   ---@return Frame @Returns the created field (a Frame widget)
   function C_TimerField:CreateField(data, name)
     local globalName = tk.Strings:Concat("MUI_", name, "TimerField");
-    local frame = tk:CreateFrame("Frame", nil, globalName, _G.BackdropTemplateMixin and "BackdropTemplate");
+    local frame = tk:CreateBackdropFrame("Frame", nil, globalName);
 
     local fieldHeight = (data.settings.bar.maxBars * (data.settings.bar.height + data.settings.bar.spacing)) - data.settings.bar.spacing;
     frame:SetSize(data.settings.bar.width, fieldHeight);
@@ -1016,7 +1016,6 @@ end
 
 obj:DefineParams("table", "table");
 ---@param settings table @The config settings table.
----@param auraId number @The unique id of the aura used to find and update the aura.
 function C_TimerBar:__Construct(data, sharedSettings, settings)
 
   -- fields
@@ -1027,7 +1026,7 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
   data.settings = settings;
   data.sharedSettings = sharedSettings;
 
-  data.frame = tk:CreateFrame("Button", nil, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+  data.frame = tk:CreateBackdropFrame("Button");
   data.frame:SetSize(settings.bar.width, settings.bar.height);
   data.frame:RegisterForClicks("RightButtonUp");
   data.frame:Hide();
@@ -1059,8 +1058,7 @@ function C_TimerBar:SetIconShown(data, shown)
 
   if (shown) then
     if (not data.iconFrame) then
-      data.iconFrame = tk:CreateFrame("Frame", data.frame, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
-
+      data.iconFrame = tk:CreateBackdropFrame("Frame", data.frame);
       data.icon = data.iconFrame:CreateTexture(nil, "ARTWORK");
       data.icon:SetTexCoord(0.1, 0.92, 0.08, 0.92);
     end
@@ -1229,10 +1227,11 @@ function C_TimerBar:SetSpellCountShown(data, shown)
 end
 
 obj:DefineParams("boolean");
----@param shown boolean @Set to true to show the aura tooltip on mouse over.
+---@param enabled boolean @Set to true to show the aura tooltip on mouse over.
 function C_TimerBar:SetTooltipsEnabled(data, enabled)
   if (enabled) then
-    tk:SetAuraTooltip(data.frame);
+    data.frame:SetScript("OnEnter", tk.HandleTooltipOnEnter);
+    data.frame:SetScript("OnLeave", tk.HandleTooltipOnLeave);
   else
     data.frame:SetScript("OnEnter", tk.Constants.DUMMY_FUNC);
     data.frame:SetScript("OnLeave", tk.Constants.DUMMY_FUNC);
@@ -1325,7 +1324,7 @@ function C_TimerBar:UpdateAura(data, auraInfo)
   obj:PushTable(auraInfo);
 
   -- this is needed for the tooltip mouse over + right click menu
-  data.frame.auraId = self.AuraId;
+  data.frame.itemID = self.AuraId;
   data.frame.auraName = auraName;
 
   if (data.icon) then

@@ -16,7 +16,7 @@ local function CreateListItem(listFrame, data)
 
   if (obj:IsFunction(data.OnItemEnter)) then
     item:SetScript("OnEnter", data.OnItemEnter);
-    item:SetScript("OnLeave",  tk.GeneralTooltip_OnLeave);
+    item:SetScript("OnLeave",  tk.HandleTooltipOnLeave);
   end
 
   item.normal = tk:SetBackground(item, 0, 0, 0, 0);

@@ -506,7 +506,7 @@ end
 
 do
   local function CreateBarFrame(unitID, settings, globalName)
-    local bar = tk:CreateFrame("Frame", nil, globalName, _G.BackdropTemplateMixin and "BackdropTemplate");
+    local bar = tk:CreateBackdropFrame("Frame", nil, globalName);
     bar:SetAlpha(0);
 
     bar.statusbar = tk:CreateFrame("StatusBar", bar);
@@ -677,7 +677,7 @@ function C_CastBar:SetIconEnabled(data, enabled)
 
   if (not data.square) then
     -- See the anchorToSUF update function for more details on how this gets set up:
-    data.square = tk:CreateFrame("Frame", data.frame, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+    data.square = tk:CreateBackdropFrame("Frame", data.frame);
     data.icon = data.square:CreateTexture(nil, "ARTWORK");
     data.icon:SetPoint("TOPLEFT", data.square, "TOPLEFT", 1, -1);
     data.icon:SetPoint("BOTTOMRIGHT", data.square, "BOTTOMRIGHT", -1, 1);

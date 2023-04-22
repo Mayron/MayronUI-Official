@@ -254,20 +254,18 @@ end
 -- Objects -----------------------------
 local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"], true);
 
----@class BackdropFrame : BackdropTemplate, Frame
-
 ---@class AuraButtonMixin : Button
 ---@field filter "HELPFUL"|"HARMFUL"
----@field auraSubType string? # The type of buff or debuff, e.g., "curse", "poison", etc... or "item" for weapon enchants
+---@field auraSubType string? # The type of buff or debuff, e.g., "curse", "poison", etc... or "item"
 ---@field mode "icons"|"statusbars"
 ---@field texture string?
 ---@field name string
----@field statusbarFrame BackdropFrame
+---@field statusbarFrame BackdropTemplate|Frame
 ---@field expiryTime number
 ---@field duration number
+---@field itemID number?
 ---@field startTime number?
 ---@field timeRemaining number?
----@field id number?
 ---@field owned boolean
 local AuraButtonMixin = {};
 
@@ -314,7 +312,7 @@ function AuraButtonMixin:ApplyTextStyle(name)
   local relativeFrame;
 
   if (relativeFrameName == "icon") then
-    relativeFrame = self.mask;
+    relativeFrame = self.iconFrame.mask;
   elseif (relativeFrameName == "iconFrame") then
     relativeFrame = self.iconFrame;
   elseif (relativeFrameName == "bar") then
@@ -450,7 +448,7 @@ local function HandleAuraButtonOnUpdate(self, elapsed)
   end
 
   if (self.countLastUpdate > 0.1) then
-    local id = self.id or self:GetID() or 0;
+    local id = self.itemID or self:GetID() or 0;
     ---@diagnostic disable-next-line: param-type-mismatch
     local _, _, count = UnitAura("player", id, self.filter);
 
@@ -545,18 +543,6 @@ local function HandleAuraButtonOnUpdate(self, elapsed)
   end
 end
 
-local function HandleAuraButtonOnEnter(self)
-  GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT");
-  GameTooltip:SetFrameLevel(self.cooldown:GetFrameLevel() + 2);
-  local auraId = self.id or self:GetID();
-
-  if (self.auraType == "item") then
-    GameTooltip:SetInventoryItem("player", auraId);
-  else
-    GameTooltip:SetUnitAura("player", auraId, self.filter);
-  end
-end
-
 function AuraButtonMixin:SetSparkShown(shown)
   if (not self.spark and not shown) then return end
 
@@ -637,69 +623,21 @@ function AuraButtonMixin:ApplyStyling()
 
   local db = MayronUI:GetComponent("MUI_AurasDB");
   local width, height = GetAuraButtonSize(self.filter, db);
-
-  local borderSize = self:GetSetting("number", "iconBorderSize");
-  local iconHeight = self:GetSetting("number", "iconHeight");
-  local iconWidth = self:GetSetting("number", "iconWidth");
   self:SetSize(width, height);
 
+  local borderSize = self:GetSetting("number", "iconBorderSize");
+  local iconWidth = self:GetSetting("number", "iconWidth");
+  local iconHeight = self:GetSetting("number", "iconHeight");
+
   -- Set Up Icon:
-  self.iconFrame = tk:CreateFrame("Frame", self, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
-  self.iconFrame:SetSize(iconWidth, iconHeight);
-  self.iconFrame:SetPoint("TOPLEFT");
-
-  tk:SetBackground(self.iconFrame, 0, 0, 0);
-
-  local borderTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\IconBorder");
-  gui:CreateGridTexture(self.iconFrame, borderTexturePath, 4, 2, 64, 64, "OVERLAY");
-
-  local maskTexturePath = tk:GetAssetFilePath("Textures\\black");
-  self.mask = self.iconFrame:CreateMaskTexture();
-  self.mask:SetTexture(maskTexturePath, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE");
-  self.mask:SetPoint("TOPLEFT");
-  self.mask:SetPoint("BOTTOMRIGHT", 0, 2);
-
-  local glossTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\Gloss");
-  self.gloss = self.iconFrame:CreateTexture(nil, "OVERLAY");
-  self.gloss:SetAlpha(0.4);
-  self.gloss:SetTexture(glossTexturePath);
-  self.gloss:SetPoint("TOPLEFT", borderSize, -borderSize);
-  self.gloss:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
-
-  self.cooldown = tk:CreateFrame("Cooldown", self.iconFrame, nil, "CooldownFrameTemplate");
-  self.cooldown:SetReverse(1);
-  self.cooldown:SetHideCountdownNumbers(true);
-  self.cooldown:SetPoint("TOPLEFT", borderSize, -borderSize);
-  self.cooldown:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
-  self.cooldown:SetFrameStrata("TOOLTIP");
-  self.cooldown.noCooldownCount = true; -- disable OmniCC
-
-  self.icon = self.iconFrame:CreateTexture(nil, "ARTWORK");
-  self.icon:SetTexture(self.texture);
-  self.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9);
-
-  local diff = math.abs(iconWidth - iconHeight);
-
-  if (diff > 5) then
-    diff = diff * 0.25; -- squish the texture by only 25%
-
-    if (iconWidth > iconHeight) then
-      iconHeight = math.max(iconWidth - diff, iconHeight);
-    else
-      iconWidth = math.max(iconHeight - diff, iconWidth);
-    end
-  end
-
-  self.icon:SetPoint("CENTER");
-  self.icon:SetSize(iconWidth, iconHeight);
-  self.icon:AddMaskTexture(self.mask);
+  self.iconFrame = gui:CreateIcon(borderSize, iconWidth, iconHeight, self, "aura", self.texture, true);
 
   -- Status Bar:
   if (self.mode == "statusbars") then
     local iconSpacing = self:GetSetting("number", "iconSpacing");
     local barHeight = self:GetSetting("number", "barHeight");
 
-    self.statusbarFrame = tk:CreateFrame("Frame", self, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+    self.statusbarFrame = tk:CreateBackdropFrame("Frame", self);
     self.statusbarFrame:SetPoint("LEFT", self.iconFrame, "RIGHT", iconSpacing, 0);
     self.statusbarFrame:SetPoint("RIGHT");
     self.statusbarFrame:SetHeight(barHeight);
@@ -724,7 +662,7 @@ function AuraButtonMixin:ApplyStyling()
 
   -- FontStrings
   local countTemplate = (self.mode == "statusbars" and "GameFontNormal") or "NumberFont_Outline_Large";
-  self.countText = self.cooldown:CreateFontString(nil, "OVERLAY", countTemplate);
+  self.countText = self.iconFrame.cooldown:CreateFontString(nil, "OVERLAY", countTemplate);
   self:ApplyTextStyle("count");
 
   if (self.mode == "statusbars") then
@@ -735,17 +673,16 @@ function AuraButtonMixin:ApplyStyling()
     self.auraNameText:SetWordWrap(false);
   end
 
-  self.timeRemainingText = self.cooldown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
+  self.timeRemainingText = self.iconFrame.cooldown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
   self:ApplyTextStyle("timeRemaining");
 
   -- Scripts:
   self:HookScript("OnUpdate", HandleAuraButtonOnUpdate);
-  self:HookScript("OnEnter", HandleAuraButtonOnEnter);
-  self:HookScript("OnLeave", tk.GeneralTooltip_OnLeave);
 end
 
 function AuraButtonMixin:UpdateDisplayInfo()
-  self.icon:SetTexture(self.texture);
+  self.iconFrame.icon:SetTexture(self.texture);
+  self.iconFrame.itemID = self.itemID;
 
   local hasTimeRemainingText = obj:IsNumber(self.timeRemaining) and self.timeRemaining > 0;
 
@@ -762,21 +699,21 @@ function AuraButtonMixin:UpdateDisplayInfo()
       self.auraNameText:SetWidth(barWidth - xOffset - 34);
     end
 
-    self.cooldown:SetCooldown(self.startTime, self.duration);
+    self.iconFrame.cooldown:SetCooldown(self.startTime, self.duration);
   else
     if (self.auraNameText) then
       local xOffset = select(4, self.auraNameText:GetPoint());
       local barWidth = self:GetSetting("number", "barWidth");
       self.auraNameText:SetWidth(barWidth - xOffset - 4);
     end
-    self.cooldown:Clear();
+    self.iconFrame.cooldown:Clear();
   end
 
   local r, g, b = self:GetColorSetting(self.filter:lower());
   self:SetAlpha(1);
 
   if (self.auraSubType == "item") then
-    local invSlotId = self.id or self:GetID() or 0;
+    local invSlotId = self.itemID or self:GetID() or 0;
     local quality = GetInventoryItemQuality("player", invSlotId);
 
     if (obj:IsNumber(quality)) then
@@ -827,7 +764,7 @@ local function OnAuraButtonAttributeChanged(self, attribute, value)
 
   -- this is required to fix a blizz bug with Enchant Auras assigning
   -- the ID after instead of before, like all other auras:
-  self.id = value;
+  self.itemID = value;
 
   if (attribute == "index") then
     local name, texture, count, auraSubType, duration, expiryTime, source = UnitAura("player", value, self.filter);

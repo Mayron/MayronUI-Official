@@ -5,97 +5,99 @@ local MayronUI = _G.MayronUI; ---@type MayronUI
 ---@class Toolkit
 local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 
-local TOOLTIP_ANCHOR_POINT = "ANCHOR_TOP";
-local ipairs, hooksecurefunc, CreateFrame, select = _G.ipairs, _G.hooksecurefunc,
-  _G.CreateFrame, _G.select;
+local ipairs, hooksecurefunc, CreateFrame, select = _G.ipairs, _G.hooksecurefunc, _G.CreateFrame, _G.select;
 local CreateColor = _G.CreateColor;
+local GameTooltip = _G.GameTooltip;
+
+------------------------------------------------
+--> Tooltip Functions
+------------------------------------------------
+function tk.HandleTooltipOnLeave()
+  GameTooltip:Hide();
+end
 
 do
-  local function SetOwner(widget)
-    local anchor = widget.tooltipAnchor;
-    local point = TOOLTIP_ANCHOR_POINT
-    local xOffset = 0;
-    local yOffset = 2;
+  ---@param widget Frame|table
+  ---@param defaultAnchorPoint TooltipAnchor?
+  ---@param defaultXOffset number?
+  ---@param defaultYOffset number?
+  local function SetTooltipOwner(widget, defaultAnchorPoint, defaultXOffset, defaultYOffset)
+    local anchor = defaultAnchorPoint or "ANCHOR_TOP";
+    local xOffset = defaultXOffset or 0;
+    local yOffset = defaultYOffset or 2;
 
-    if (obj:IsTable(anchor)) then
-      point = anchor.point or TOOLTIP_ANCHOR_POINT;
-      xOffset = anchor.xOffset or xOffset;
-      yOffset = anchor.yOffset or yOffset;
-
-    elseif (obj:IsString(anchor)) then
-      point = anchor;
+    if (obj:IsTable(widget.tooltipAnchor)) then
+      anchor = widget.tooltipAnchor.point or anchor;
+      xOffset = widget.tooltipAnchor.xOffset or xOffset;
+      yOffset = widget.tooltipAnchor.yOffset or yOffset;
     end
 
-    _G.GameTooltip:SetOwner(widget, point, xOffset, yOffset);
+    GameTooltip:SetOwner(widget, anchor, xOffset, yOffset);
   end
 
-  function tk.GeneralTooltip_OnLeave()
-    _G.GameTooltip:Hide();
-  end
+  ---@param widget Frame|table
+  function tk.HandleTooltipOnEnter(widget)
+    SetTooltipOwner(widget, "ANCHOR_BOTTOMLEFT");
 
-  function tk.BasicTooltip_OnEnter(self)
-    SetOwner(self);
-    _G.GameTooltip:AddLine(self.tooltipText, 1, 1, 1, true);
-    _G.GameTooltip:Show();
-  end
-
-  function tk.AuraTooltip_OnEnter(self)
-    if (self.auraId) then
-      _G.GameTooltip:SetOwner(self, TOOLTIP_ANCHOR_POINT, 0, 2);
-      _G.GameTooltip:SetSpellByID(self.auraId);
-      _G.GameTooltip:Show();
+    if (widget.cooldown) then
+      GameTooltip:SetFrameLevel(widget.cooldown:GetFrameLevel() + 2);
     end
-  end
 
-  local function MultipleLinesTooltip_OnEnter(self)
-    SetOwner(self);
+    local itemId = widget.itemID or widget:GetID();
 
-    for _, line in ipairs(self.lines) do
-      if (line.text) then
-        _G.GameTooltip:AddLine(line.text);
+    if (widget.iconType == "item") then
+      GameTooltip:SetInventoryItem("player", itemId);
 
-      elseif (line.leftText and line.rightText) then
-        local r, g, b = tk:GetThemeColor();
-        _G.GameTooltip:AddDoubleLine(line.leftText, line.rightText, r, g, b, 1, 1, 1);
+    elseif (widget.iconType == "aura") then
+      GameTooltip:SetUnitAura("player", itemId, widget.filter);
+
+    elseif (widget.iconType == "spell") then
+      GameTooltip:SetSpellByID(itemId);
+
+    elseif (widget.tooltipText) then
+      GameTooltip:AddLine(widget.tooltipText, 1, 1, 1, true);
+
+    elseif (widget.lines) then
+      for _, line in ipairs(widget.lines) do
+        if (line.text) then
+          GameTooltip:AddLine(line.text);
+
+        elseif (line.leftText and line.rightText) then
+          local r, g, b = tk:GetThemeColor();
+          GameTooltip:AddDoubleLine(line.leftText, line.rightText, r, g, b, 1, 1, 1);
+        end
       end
     end
 
-    _G.GameTooltip:Show();
-  end
-
-  -- point, xOffset, yOffset are all optional
-  function tk:SetBasicTooltip(widget, text, point, xOffset, yOffset)
-    widget.tooltipText = text;
-
-    if (xOffset or yOffset) then
-      widget.tooltipAnchor = obj:PopTable();
-      widget.tooltipAnchor.point = point;
-      widget.tooltipAnchor.xOffset = xOffset;
-      widget.tooltipAnchor.yOffset = yOffset;
-    else
-      widget.tooltipAnchor = point;
-    end
-
-    widget:SetScript("OnEnter", tk.BasicTooltip_OnEnter);
-    widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
-  end
-
-  function tk:SetAuraTooltip(widget, auraId)
-    if (auraId) then
-      widget.auraId = auraId;
-    end
-
-    widget:SetScript("OnEnter", tk.AuraTooltip_OnEnter);
-    widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
-  end
-
-  function tk:SetMultipleLinesTooltip(widget, cleanUp)
-    widget.cleanUp = cleanUp;
-
-    widget:SetScript("OnEnter", MultipleLinesTooltip_OnEnter);
-    widget:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
+    GameTooltip:Show();
   end
 end
+
+-- Configures a widget to show a basic text tooltip on mouseover.
+---@param widget Frame|table
+---@param point TooltipAnchor? # Default is "ANCHOR_TOP"
+---@param xOffset number? # Default is 0
+---@param yOffset number? # Default is 2
+function tk:SetBasicTooltip(widget, text, point, xOffset, yOffset)
+  widget.tooltipText = text;
+
+  if (xOffset or yOffset) then
+    -- Defaults will be applied in the `SetTooltipOwner` function
+    widget.tooltipAnchor = obj:PopTable();
+    widget.tooltipAnchor.point = point;
+    widget.tooltipAnchor.xOffset = xOffset;
+    widget.tooltipAnchor.yOffset = yOffset;
+  else
+    widget.tooltipAnchor = point;
+  end
+
+  widget:SetScript("OnEnter", tk.HandleTooltipOnEnter);
+  widget:SetScript("OnLeave", tk.HandleTooltipOnLeave);
+end
+
+------------------------------------------------
+--> Frame Moving and Resizing Functions
+------------------------------------------------
 
 function tk:SetFullWidth(frame, rightPadding, percent)
   rightPadding = rightPadding or 0;
@@ -176,6 +178,10 @@ function tk:MakeResizable(frame, dragger)
     end);
 end
 
+------------------------------------------------
+--> Frame Texture Functions
+------------------------------------------------
+
 function tk:FlipTexture(texture, direction)
   direction = direction:trim():upper();
 
@@ -224,7 +230,7 @@ function tk:AttachToDummy(element)
   end
 
   if (element:GetObjectType() == "Texture") then
-    element:SetTexture(tk.Strings.Empty)
+    element:SetTexture(tk.Strings.Empty);
     element.SetTexture = tk.Constants.DUMMY_FUNC;
   end
 end
@@ -253,19 +259,28 @@ function tk:HideFrameElements(frame, kill)
   end
 end
 
----deprecated - Use Other.lua HookFunc and UnhookFunc
-function tk:HookOnce(func)
-  local execute = true;
+function tk:SetBackground(frame, texturePath, g, b, a, inset)
+  inset = inset or 0;
+  local texture = frame:CreateTexture(nil, "BACKGROUND");
 
-  local function wrapper(...)
-    if (execute) then
-      func(...);
-      execute = nil;
-    end
+  texture:SetPoint("TOPLEFT", frame, "TOPLEFT", inset, -inset);
+  texture:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -inset, inset);
+
+  if (obj:IsString(texturePath)) then
+    texture:SetTexture(texturePath);
+  else
+    local r = texturePath;
+    texture:SetTexture(tk.Constants.SOLID_TEXTURE);
+    texture:SetVertexColor(r, g, b, a);
   end
 
-  return wrapper;
+  return texture;
 end
+
+
+------------------------------------------------
+--> Color Functions
+------------------------------------------------
 
 -- apply theme color to a vararg list of elements
 -- first arg can be a number specifying the alpha value
@@ -345,50 +360,9 @@ function tk:SetGradient(texture, direction, r, g, b, a, r2, g2, b2, a2)
   end
 end
 
-function tk:SetBackground(frame, texturePath, g, b, a, inset)
-  inset = inset or 0;
-  local texture = frame:CreateTexture(nil, "BACKGROUND");
-
-  texture:SetPoint("TOPLEFT", frame, "TOPLEFT", inset, -inset);
-  texture:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -inset, inset);
-
-  if (obj:IsString(texturePath)) then
-    texture:SetTexture(texturePath);
-  else
-    local r = texturePath;
-    texture:SetTexture(tk.Constants.SOLID_TEXTURE);
-    texture:SetVertexColor(r, g, b, a);
-  end
-
-  return texture;
-end
-
-function tk:GroupCheckButtons(radioButtonsInGroup, canUncheck)
-  for id, btn in ipairs(radioButtonsInGroup) do
-    local oldScript = btn:GetScript("OnClick");
-    btn.previousValue = btn:GetChecked();
-
-    btn:SetScript("OnClick", function(self, ...)
-      if (not canUncheck) then
-        self:SetChecked(true); -- Can never uncheck a radio button by reclicking in
-      end
-
-      for otherId, otherBtn in ipairs(radioButtonsInGroup) do
-        if (id ~= otherId) then
-          otherBtn:SetChecked(false);
-          otherBtn.previousValue = false;
-        end
-      end
-
-      if (not self.previousValue) then
-        oldScript(self, ...);
-        self.previousValue = true;
-      elseif (canUncheck) then
-        oldScript(self, ...);
-      end
-    end);
-  end
-end
+------------------------------------------------
+--> Font Functions
+------------------------------------------------
 
 function tk:SetFontSize(fontstring, size)
   local filename, _, flags = fontstring:GetFont();
@@ -402,7 +376,7 @@ end
 function tk:SetGameFont(fontSettings)
   local media = tk.Constants.LSM;
   local masterFont = media:Fetch("font", fontSettings.master);
-   
+
   if (fontSettings.useCombatFont) then
     local combatFont = media:Fetch("font", fontSettings.combat);
     _G["DAMAGE_TEXT_FONT"] = combatFont; -- for damage AND healing font
@@ -451,7 +425,37 @@ function tk:SetGameFont(fontSettings)
   end
 end
 
----@generic T
+------------------------------------------------
+--> Widget Creation Functions
+------------------------------------------------
+function tk:GroupCheckButtons(radioButtonsInGroup, canUncheck)
+  for id, btn in ipairs(radioButtonsInGroup) do
+    local oldScript = btn:GetScript("OnClick");
+    btn.previousValue = btn:GetChecked();
+
+    btn:SetScript("OnClick", function(self, ...)
+      if (not canUncheck) then
+        self:SetChecked(true); -- Can never uncheck a radio button by reclicking in
+      end
+
+      for otherId, otherBtn in ipairs(radioButtonsInGroup) do
+        if (id ~= otherId) then
+          otherBtn:SetChecked(false);
+          otherBtn.previousValue = false;
+        end
+      end
+
+      if (not self.previousValue) then
+        oldScript(self, ...);
+        self.previousValue = true;
+      elseif (canUncheck) then
+        oldScript(self, ...);
+      end
+    end);
+  end
+end
+
+---@generic T : FrameType
 ---@param frameType `T`
 ---@param parent Frame?
 ---@param globalName string?
@@ -459,6 +463,27 @@ end
 ---@return T
 function tk:CreateFrame(frameType, parent, globalName, templates)
   local frame =  CreateFrame(frameType or "Frame", globalName, parent or _G.UIParent, templates);
+  frame:ClearAllPoints();
+  frame:Show();
+  return frame;
+end
+
+---@generic T: FrameType
+---@param frameType `T`
+---@param parent Frame?
+---@param globalName string?
+---@param templates string?
+---@return T|BackdropTemplate
+function tk:CreateBackdropFrame(frameType, parent, globalName, templates)
+  if (_G.BackdropTemplateMixin) then
+    if (templates) then
+      templates = templates..", BackdropTemplate";
+    else
+      templates = "BackdropTemplate";
+    end
+  end
+
+  local frame =  tk:CreateFrame(frameType, parent, globalName, templates);
   frame:ClearAllPoints();
   frame:Show();
   return frame;

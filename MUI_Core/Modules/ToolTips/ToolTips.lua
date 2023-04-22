@@ -650,7 +650,7 @@ local function AddAuras(data, filter, anchor, unitID)
       local frame = auraFrames[id];
 
       if (not frame) then
-        auraFrames[id] = tk:CreateFrame("Frame", gameTooltip, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+        auraFrames[id] = tk:CreateBackdropFrame("Frame", gameTooltip);
         frame = auraFrames[id];
 
         frame:SetBackdrop(data.auraBackdrop);
@@ -928,8 +928,7 @@ local function UpdateSpecAndItemLevel(data, unitID, updateTooltip)
 end
 
 local function CreatePowerBar(data)
-  powerBar = tk:CreateFrame("StatusBar", healthBar, "GameTooltipPowerBar",
-    _G.BackdropTemplateMixin and "BackdropTemplate");
+  powerBar = tk:CreateFrame("StatusBar", healthBar, "GameTooltipPowerBar");
   powerBar:SetHeight(data.settings.powerBar.height);
 
   local statusBarTexture = tk.Constants.LSM:Fetch("statusbar", data.settings.powerBar.texture);
@@ -937,7 +936,7 @@ local function CreatePowerBar(data)
   powerBar:SetFrameLevel(10);
 
   -- Create backdrop for status bar:
-  powerBar.bg = tk:CreateFrame("Frame", powerBar, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+  powerBar.bg = tk:CreateBackdropFrame("Frame", powerBar);
   powerBar.bg:SetAllPoints();
 	powerBar.bg:SetFrameLevel(healthBar:GetFrameLevel() - 1);
 	powerBar.bg:SetBackdrop({ bgFile = tk.Constants.BACKDROP_WITH_BACKGROUND.bgFile });
@@ -960,7 +959,7 @@ local function ApplyHealthBarChanges(data)
   healthBar.SetStatusBarColor = tk.Constants.DUMMY_FUNC;
 
   -- Create backdrop for status bar:
-  healthBar.bg = tk:CreateFrame("Frame", healthBar, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+  healthBar.bg = tk:CreateBackdropFrame("Frame", healthBar);
   healthBar.bg:SetAllPoints();
 	healthBar.bg:SetFrameLevel(healthBar:GetFrameLevel() - 1);
 	healthBar.bg:SetBackdrop({ bgFile = tk.Constants.BACKDROP_WITH_BACKGROUND.bgFile });

@@ -100,7 +100,7 @@ function gui:CreateDropDown(parent, direction, menuParent)
     frame.toggleButton.menuParent = menuParent;
   end
 
-  local header = tk:CreateFrame("Frame", frame, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+  local header = tk:CreateBackdropFrame("Frame", frame, nil);
   header:SetPoint("TOPLEFT", frame);
   header:SetPoint("BOTTOMRIGHT", frame.toggleButton, "BOTTOMLEFT", -2, 0);
   header:SetBackdrop(style:GetBackdrop("DropDownMenu"));
@@ -187,7 +187,7 @@ end
 do
   local function ApplyTooltipScripts(f)
     f:SetScript("OnEnter", OnDropDownEnter);
-    f:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);    
+    f:SetScript("OnLeave", tk.HandleTooltipOnLeave);    
   end
 
   function DropDownMenu:SetTooltip(data, tooltip)

@@ -86,7 +86,7 @@ do
     local style = tk.Constants.AddOnStyle;
     local backgroundTexture = style:GetTexture("ButtonTexture");
 
-    button = button or tk:CreateFrame("Button", parent, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+    button = button or tk:CreateBackdropFrame("Button", parent, nil);
     button.tooltip = tooltip;
     button.padding = padding or 30;
     button.minWidth = minWidth;
@@ -116,7 +116,7 @@ do
 
     if (tooltip) then
       button:SetScript("OnEnter", HandleShowingTooltipOnEnter);
-      button:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
+      button:SetScript("OnLeave", tk.HandleTooltipOnLeave);
     end
 
     button:SetScript("OnEnable", OnButtonEnabled);
@@ -242,9 +242,9 @@ do
     if (tooltip) then
       container.tooltip = tooltip;
       container:SetScript("OnEnter", HandleShowingTooltipOnEnter);
-      container:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
+      container:SetScript("OnLeave", tk.HandleTooltipOnLeave);
       container.btn:SetScript("OnEnter", HandleShowingTooltipOnEnter);
-      container.btn:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
+      container.btn:SetScript("OnLeave", tk.HandleTooltipOnLeave);
     end
 
     -- Handle Styling:

@@ -644,19 +644,34 @@ do
         end
     end
 
+    ---@param tbl table
+    ---@param methodName string
+    ---@param callback function
+    ---@param ... any
+    ---@return function
+    ---@overload fun(self, globalFunctionName: string, callback: function, ...): function?
     function tk:HookFunc(tbl, methodName, callback, ...)
       if (obj:IsString(tbl)) then
-        local realGlobalMethodName = tbl;
-        local realCallback = methodName;
-        local firstArg = callback;
+        local globalFunctionName = tbl--[[@as string]];
 
-        local key = string.format("%s|%s", realGlobalMethodName, tostring(realCallback));
+        if (not _G[globalFunctionName]) then
+          return nil;
+        end
+
+        local realCallback = methodName--[[@as function]];
+        local firstArg = callback--[[@as any]];
+
+        local key = string.format("%s|%s", globalFunctionName, tostring(realCallback));
         local callbackWrapper = CreateCallbackWrapper(key, tbl, methodName);
 
         callbacks[key] = obj:PopTable(realCallback, firstArg, ...);
-        hooksecurefunc(realGlobalMethodName, callbackWrapper);
+        hooksecurefunc(globalFunctionName, callbackWrapper);
         return realCallback;
       else
+        if (not tbl or not tbl[methodName]) then
+          return nil;
+        end
+
         local key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
         local callbackWrapper = CreateCallbackWrapper(key, tbl, methodName);
 

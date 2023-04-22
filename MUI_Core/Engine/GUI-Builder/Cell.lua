@@ -12,7 +12,7 @@ local Panel = obj:Import("MayronUI.Panel");
 
 -- @constructor
 function Panel:CreateCell(data, frame)
-  frame = frame or tk:CreateFrame("Frame", _G.UIParent, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+  frame = frame or tk:CreateBackdropFrame("Frame", _G.UIParent, nil);
   frame:SetParent(data.frame);
 
   if (data.devMode) then

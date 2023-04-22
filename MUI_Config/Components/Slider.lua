@@ -99,9 +99,8 @@ function Components.slider(parent, config, value)
   slider:SetThumbTexture(tk:GetAssetFilePath("Textures\\Widgets\\SliderThumb"));
   slider:GetThumbTexture():SetSize(14, 24);
 
-  local backdrop = _G.BackdropTemplateMixin and "BackdropTemplate, InputBoxTemplate" or "InputBoxTemplate";
-
-  slider.editBox = tk:CreateFrame("EditBox", slider, nil, backdrop);
+  local template = _G.BackdropTemplateMixin and "BackdropTemplate, InputBoxTemplate" or "InputBoxTemplate";
+  slider.editBox = tk:CreateFrame("EditBox", slider, nil, template);
   slider.editBox:SetAutoFocus(false);
 
   slider.editBox:SetScript("OnEscapePressed", SliderEditBox_OnEscapePressed);
