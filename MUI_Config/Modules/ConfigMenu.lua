@@ -643,13 +643,7 @@ function C_ConfigMenuModule:SetUpWindow(data)
   data.window:SetFrameStrata("DIALOG");
   data.window:Hide();
 
-  if (obj:IsFunction(data.window.SetMinResize)) then
-    data.window:SetMinResize(600, 400);
-    data.window:SetMaxResize(1400, 800);
-  else
-    -- dragonflight:
-    data.window:SetResizeBounds(600, 400, 1400, 800);
-  end
+  tk:SetResizeBounds(data.window, 600, 400, 1400, 800);
 
   data.window:SetSize(1000, 500);
   data.window:SetPoint("CENTER");

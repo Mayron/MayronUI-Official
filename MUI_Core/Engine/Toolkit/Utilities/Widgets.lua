@@ -178,6 +178,19 @@ function tk:MakeResizable(frame, dragger)
     end);
 end
 
+---comment
+---@param frame Frame
+function tk:SetResizeBounds(frame, minWidth, minHeight, maxWidth, maxHeight)
+  if (obj:IsFunction(frame.SetMinResize)) then
+    frame:SetMinResize(minWidth, minHeight);
+    frame:SetMaxResize(maxWidth, maxHeight);
+  else
+    -- dragonflight:
+    ---@diagnostic disable-next-line: undefined-field
+    frame:SetResizeBounds(minWidth, minHeight, maxWidth, maxHeight);
+  end
+end
+
 ------------------------------------------------
 --> Frame Texture Functions
 ------------------------------------------------
@@ -281,6 +294,49 @@ end
 ------------------------------------------------
 --> Color Functions
 ------------------------------------------------
+do
+  local progressColors = {
+    low = { r = 1, g = 77/255, b = 77/255 },
+    medium = { r = 1, g = 1, b = 128/255 },
+    high = { r = 1, g = 1, b = 1 }
+  };
+
+  function tk:GetProgressColor(current, max, invert)
+    local percent = max > 0 and (current / max) or 0;
+
+    local high = progressColors.high;
+    local medium = progressColors.medium;
+    local low = progressColors.low;
+
+    if (invert) then
+      high = progressColors.low;
+      low = progressColors.high;
+    end
+
+    if (percent >= 1) then
+      return high.r, high.g, high.b;
+    end
+
+    if (percent <= 0.125) then
+      return low.r, low.g, low.b;
+    end
+
+    -- start and end R,B,G values:
+    local start, stop;
+
+    if (percent > 0.5) then
+      -- greater than half way
+      start = high;
+      stop = medium;
+    else
+      -- less than half way
+      start = medium;
+      stop = low;
+    end
+
+    return self:MixColorsByPercentage(start, stop, percent);
+  end
+end
 
 -- apply theme color to a vararg list of elements
 -- first arg can be a number specifying the alpha value
@@ -295,27 +351,31 @@ function tk:ApplyThemeColor(...)
   end
 end
 
-function tk:GetThemeColor(returnTable)
+function tk:GetThemeColorMixin()
   if (tk.Constants.AddOnStyle) then
-    return tk.Constants.AddOnStyle:GetColor(nil, returnTable);
+    return tk.Constants.AddOnStyle:GetColor(nil, true);
   end
 
   if (not db.profile) then
-    if (returnTable) then
-      return tk.Constants.COLORS.BATTLE_NET_BLUE;
-    end
+    return tk.Constants.COLORS.BATTLE_NET_BLUE;
+  end
 
+  return db.profile.theme.color;
+end
+
+function tk:GetThemeColor()
+  if (tk.Constants.AddOnStyle) then
+    local r, g, b, hex = tk.Constants.AddOnStyle:GetColor();
+    return r, g, b, hex;
+  end
+
+  if (not db.profile) then
     local r, g, b = tk.Constants.COLORS.BATTLE_NET_BLUE:GetRGB();
     local hex = tk.Constants.COLORS.BATTLE_NET_BLUE:GenerateHexColor();
     return r, g, b, hex;
   end
 
   local color = db.profile.theme.color;
-
-  if (returnTable) then
-    return color;
-  end
-
   return color.r, color.g, color.b, color.hex;
 end
 
@@ -456,7 +516,7 @@ function tk:GroupCheckButtons(radioButtonsInGroup, canUncheck)
 end
 
 ---@generic T : FrameType
----@param frameType `T`
+---@param frameType FrameType|`T`
 ---@param parent Frame?
 ---@param globalName string?
 ---@param templates string?

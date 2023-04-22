@@ -80,15 +80,15 @@ db:OnStartUp(function(self, sv)
 
   local r, g, b = tk:GetThemeColor();
 
-  local myFont = CreateFont("MUI_FontNormal"); ---@cast myFont FontString
+  local myFont = CreateFont("MUI_FontNormal");
   myFont:SetFontObject("GameFontNormal");
   myFont:SetTextColor(r, g, b);
 
-  myFont = CreateFont("MUI_FontSmall"); ---@cast myFont FontString
+  myFont = CreateFont("MUI_FontSmall");
   myFont:SetFontObject("GameFontNormalSmall");
   myFont:SetTextColor(r, g, b);
 
-  myFont = CreateFont("MUI_FontLarge"); ---@cast myFont FontString
+  myFont = CreateFont("MUI_FontLarge");
   myFont:SetFontObject("GameFontNormalLarge");
   myFont:SetTextColor(r, g, b);
 

@@ -40,11 +40,14 @@ end
 
 obj:DefineParams("?string", "?boolean");
 obj:DefineReturns("table|number", "?number", "?number");
----@param colorName string @(optional) The name used to identify and get the correct color previously set.
----@param returnTable boolean @(optional) If true, returns the full blizzard color object, else (by default) returns r, g, b, a unpacked values.
----@return Color @A Blizzard Color object  containing the r, g, b color values and a few helper functions, or r, g, b, a unpacked values.
+---@param data table
+---@param colorName string? @ The name used to identify and get the correct color previously set.
+---@param returnTable boolean? @ If true, returns the full blizzard color object, else (by default) returns r, g, b, a unpacked values.
+---@return ColorMixin @A Blizzard Color object  containing the r, g, b color values and a few helper functions, or r, g, b, a unpacked values.
+---@overload fun(self, colorName: string?, returnTable: true): ColorMixin
+---@overload fun(self, colorName: string?): number, number, number, string
 function Style:GetColor(data, colorName, returnTable)
-  local color = Getter(data, "color", colorName, _G.HIGHLIGHT_FONT_COLOR);
+  local color = Getter(data, "color", colorName, _G["HIGHLIGHT_FONT_COLOR"]);
   if (returnTable) then
     return color;
   else

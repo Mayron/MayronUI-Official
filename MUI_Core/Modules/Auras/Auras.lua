@@ -269,39 +269,6 @@ local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & D
 ---@field owned boolean
 local AuraButtonMixin = {};
 
-local progressColors = {
-  low = { r = 1, g = 77/255, b = 77/255 },
-  medium = { r = 1, g = 1, b = 128/255 },
-  high = { r = 1, g = 1, b = 1 }
-};
-
-local function GetProgressColor(current, max)
-  local percent = max > 0 and (current / max) or 0;
-
-  if (percent >= 1) then
-    return progressColors.high.r, progressColors.high.g, progressColors.high.b;
-  end
-
-	if (percent <= 0.125) then
-    return progressColors.low.r, progressColors.low.g, progressColors.low.b;
-  end
-
-  -- start and end R,B,G values:
-  local start, stop;
-
-	if (percent > 0.5) then
-    -- greater than half way
-		start = progressColors.high;
-		stop = progressColors.medium;
-	else
-    -- less than half way
-		start = progressColors.medium;
-		stop = progressColors.low;
-	end
-
-  return tk:MixColorsByPercentage(start, stop, percent);
-end
-
 ---@param name AuraTextName
 function AuraButtonMixin:ApplyTextStyle(name)
   local fontString = self[name.."Text"];
@@ -520,7 +487,7 @@ local function HandleAuraButtonOnUpdate(self, elapsed)
       end
 
       local current = math.min(30, self.timeRemaining);
-      local r, g, b = GetProgressColor(current, 30);
+      local r, g, b = tk:GetProgressColor(current, 30);
       self.timeRemainingText:SetTextColor(r, g, b);
 
       local secondsWarning = self:GetSetting("number", "secondsWarning");

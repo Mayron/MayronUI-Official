@@ -120,7 +120,7 @@ function tk.Strings:SetTextColorByClassFileName(text, classFileName)
 end
 
 function tk.Strings:SetTextColorByTheme(text)
-  local themeColor = tk:GetThemeColor(true);
+  local themeColor = tk:GetThemeColorMixin();
   return themeColor:WrapTextInColorCode(text);
 end
 
@@ -130,8 +130,12 @@ function tk.Strings:SetTextColorByRGB(text, r, g, b)
   return color:WrapTextInColorCode(text);
 end
 
+---@param text string
+---@param colorKey MayronUI.ColorKey
+---@return string
 function tk.Strings:SetTextColorByKey(text, colorKey)
-  return tk.Constants.COLORS[colorKey:upper()]:WrapTextInColorCode(text);
+  local color = tk.Constants.COLORS[colorKey:upper()];
+  return color:WrapTextInColorCode(text);
 end
 
 function tk.Strings:Concat(...)
@@ -249,6 +253,48 @@ function tk.Strings:GetUnitLevelText(unitID, unitLevel)
   end
 
   return unitLevel;
+end
+
+do
+  local goldIcon = "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t";
+  local silverIcon = "|TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t";
+  local copperIcon = "|TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t";
+
+  ---@param money number
+  ---@param colorKey MayronUI.ColorKey?
+  function tk.Strings:GetFormattedCurrency(money, colorKey)
+    local text = "";
+    local gold = math.floor(math.abs(money / 10000));
+    local silver = math.floor(math.abs((money / 100) % 100));
+    local copper = math.floor(math.abs(money % 100));
+
+    colorKey = colorKey or "WHITE";
+
+    if (gold > 0) then
+      if (tonumber(gold) >= 1000) then
+        local goldFormatted = string.gsub(gold, "^(-?%d+)(%d%d%d)", '%1,%2');
+        return self:SetTextColorByKey(goldFormatted .. goldIcon, colorKey);
+      else
+        text = gold .. goldIcon;
+      end
+    end
+
+    if (silver > 0) then
+      text = string.format("%s %s%s", text, silver, silverIcon);
+    end
+
+    if (gold < 100 and copper > 0) then
+      text = string.format("%s %s%s", text, copper, copperIcon);
+    end
+
+    if (text == "") then
+      text = string.format("%d%s", 0, goldIcon);
+      text = string.format("%s %d%s", text, 0, silverIcon);
+      text = string.format("%s %d%s", text, 0, copperIcon);
+    end
+
+    return self:SetTextColorByKey(text, colorKey);
+  end
 end
 
 function tk.Strings:GetUnitStatusText(unitID)
