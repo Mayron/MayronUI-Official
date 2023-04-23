@@ -333,12 +333,12 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 
   data.viewingLayout = db.profile.layout;
 
-  data.layoutTool = gui:CreateDialogBox();
+  data.layoutTool = gui:CreateLargeDialogBox("Regular");
   data.layoutTool:SetSize(700, 400);
   data.layoutTool:SetPoint("CENTER");
 
   gui:AddTitleBar(data.layoutTool, L["MUI Layout Tool"]);
-  gui:AddCloseButton(data.layoutTool, nil, tk.Constants.CLICK);
+  gui:AddCloseButton(data.layoutTool);
 
   -- convert to panel
   data.layoutTool = gui:CreatePanel(data.layoutTool);
@@ -358,14 +358,14 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
   data.description.text:SetText(LAYOUT_MESSAGE);
 
   data.addonWindow = gui:CreateDynamicFrame(data.layoutTool:GetFrame(), 5, 10);
-  gui:CreateDialogBox(nil, "LOW", data.addonWindow:GetFrame());
+  gui:CreateLargeDialogBox("Low", data.addonWindow:GetFrame());
 
   data.addonWindow = data.layoutTool:CreateCell(data.addonWindow);
   data.addonWindow.dynamicFrame = data.addonWindow:GetFrame();
   data.addonWindow:SetInsets(10, 0, 10, 10);
 
   local parent = data.layoutTool:GetFrame();
-  data.menu = gui:CreateDialogBox(parent, "LOW");
+  data.menu = gui:CreateLargeDialogBox("Low", nil, parent);
   data.menu = data.layoutTool:CreateCell(data.menu);
   data.menu:SetInsets(10, 10, 10, 15);
 

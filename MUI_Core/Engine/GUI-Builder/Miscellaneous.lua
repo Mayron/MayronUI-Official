@@ -33,32 +33,47 @@ local function HandleShowingTooltipOnEnter(self)
   _G.GameTooltip:Show();
 end
 
----@param parent Frame? @(optional) The parent frame to give the new frame if frame param is nil
----@param alphaType string? @(optional) the dialog box background type ("high", "medium", "low")
----@param frame Frame? @(optional) A frame to apply the dialog box background texture to (a new one is created if nil)
----@param globalName string? @(optional) A global name to give the new frame if frame param is nil
----@return Frame @The new frame (or existing frame if the frame param was supplied).
-function gui:CreateDialogBox(parent, alphaType, frame, globalName)
+local function CreateDialogBox(textureType, frame, parent, globalName)
   frame = frame or tk:CreateFrame("Frame", parent, globalName);
   frame:EnableMouse(true);
 
-  alphaType = alphaType or "Medium";
-  alphaType = alphaType:lower();
-  alphaType = alphaType:gsub("^%l", string.upper);
-
-  local style = tk.Constants.AddOnStyle;
-  local texture = style:GetTexture("DialogBoxBackground");
-  texture = string.format("%s%s", texture, alphaType);
-
-  gui:CreateGridTexture(frame, texture, 10, 6, 512, 512);
+  local texture = tk:GetAssetFilePath("Textures\\DialogBox\\DialogBackground-"..textureType);
+  local cornerSize = (textureType == "Medium" and 10) or 6;
+  gui:CreateGridTexture(frame, texture, 10, cornerSize, 512, 512);
 
   -- apply the theme color for each Grid Cell
-  style:ApplyColor(
-    nil, nil, frame.tl, frame.tr, frame.bl, frame.br, frame.t, frame.b, frame.l,
-    frame.r, frame.c);
+  tk.Constants.AddOnStyle:ApplyColor(
+    nil, nil, frame.tl, frame.tr, frame.bl, frame.br,
+    frame.t, frame.b, frame.l, frame.r, frame.c);
+
   frame:SetFrameStrata("DIALOG");
 
   return frame;
+end
+
+---@param alphaType ("High"|"Regular"|"Low") The dialog box background alpha type
+---@param frame Frame? @(optional) A frame to apply the dialog box background texture to (a new one is created if nil)
+---@param parent Frame? @(optional) The parent frame to give the new frame if frame param is nil
+---@param globalName string? @(optional) A global name to give the new frame if frame param is nil
+---@return Frame @The new frame (or existing frame if the frame param was supplied).
+function gui:CreateLargeDialogBox(alphaType, frame, parent, globalName)
+  return CreateDialogBox(alphaType, frame, parent, globalName);
+end
+
+---@param frame Frame? @(optional) A frame to apply the dialog box background texture to (a new one is created if nil)
+---@param parent Frame? @(optional) The parent frame to give the new frame if frame param is nil
+---@param globalName string? @(optional) A global name to give the new frame if frame param is nil
+---@return Frame @The new frame (or existing frame if the frame param was supplied).
+function gui:CreateSmallDialogBox(frame, parent, globalName)
+  return CreateDialogBox("Small", frame, parent, globalName);
+end
+
+---@param frame Frame? @(optional) A frame to apply the dialog box background texture to (a new one is created if nil)
+---@param parent Frame? @(optional) The parent frame to give the new frame if frame param is nil
+---@param globalName string? @(optional) A global name to give the new frame if frame param is nil
+---@return Frame @The new frame (or existing frame if the frame param was supplied).
+function gui:CreateMediumDialogBox(frame, parent, globalName)
+  return CreateDialogBox("Medium", frame, parent, globalName);
 end
 
 do
@@ -333,16 +348,44 @@ function gui:AddResizer(frame)
   style:ApplyColor(nil, nil, frame.dragger:GetHighlightTexture());
 end
 
-function gui:AddCloseButton(frame, onHideCallback, clickSoundFilePath)
-  frame.closeBtn = tk:CreateFrame("Button", frame);
-  frame.closeBtn:SetSize(28, 24);
-  frame.closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1);
+do
+  local function DisableHighlightOnMouseDown(btn)
+    btn:GetHighlightTexture():SetAlpha(0);
+  end
 
-  local style = tk.Constants.AddOnStyle;
-  local texture = style:GetTexture("CloseButtonBackground");
-  frame.closeBtn:SetNormalTexture(texture, "BLEND");
-  frame.closeBtn:SetHighlightTexture(texture, "ADD");
-  style:ApplyColor(nil, nil, frame.closeBtn);
+  local function EnableHighlightOnMouseUp(btn)
+    btn:GetHighlightTexture():SetAlpha(1);
+  end
+
+  ---@param iconName "close"|"sort"|"filter"
+  ---@param parent Frame?
+  ---@param globalName string?
+  ---@return Button
+  function gui:CreateIconButton(iconName, parent, globalName)
+    local btn = tk:CreateFrame("Button", parent, globalName);
+
+    if (iconName == "close") then
+      btn:SetSize(28, 24);
+    else
+      btn:SetSize(30, 24);
+    end
+
+    local style = tk.Constants.AddOnStyle;
+    local textureFilePath = tk:GetAssetFilePath("Icons\\"..iconName);
+    btn:SetNormalTexture(textureFilePath);
+    btn:SetHighlightTexture(textureFilePath, "ADD");
+    style:ApplyColor(nil, nil, btn);
+
+    btn:HookScript("OnMouseDown", DisableHighlightOnMouseDown);
+    btn:HookScript("OnMouseUp", EnableHighlightOnMouseUp);
+
+    return btn;
+  end
+end
+
+function gui:AddCloseButton(frame, onHideCallback)
+  frame.closeBtn = self:CreateIconButton("close", frame);
+  frame.closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1);
 
   local group = frame:CreateAnimationGroup();
   group.a1 = group:CreateAnimation("Translation");
@@ -365,10 +408,7 @@ function gui:AddCloseButton(frame, onHideCallback, clickSoundFilePath)
 
   frame.closeBtn:SetScript("OnClick", function()
     group:Play();
-
-    if (clickSoundFilePath) then
-      PlaySound(clickSoundFilePath);
-    end
+    PlaySound(tk.Constants.CLICK);
   end);
 end
 

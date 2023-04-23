@@ -253,7 +253,7 @@ local function SetBackdropStyle(data)
     local closeBtn = _G["ItemRefCloseButton"];
 
     if (obj:IsWidget(closeBtn)) then
-      local closeTexture = tk.Constants.AddOnStyle:GetTexture("CloseButtonBackground");
+      local closeTexture = tk:GetAssetFilePath("Icons\\close");
       closeBtn:SetNormalTexture(closeTexture, "BLEND");
       closeBtn:SetHighlightTexture(closeTexture, "ADD");
 
@@ -295,8 +295,7 @@ local function SetBackdropStyle(data)
         ManageGetterOverrides(data, tooltip, true);
 
         if (not obj:IsFunction(tooltip.SetGridTextureShown)) then
-          local texture = tk.Constants.AddOnStyle:GetTexture("Tooltip");
-          gui:CreateGridTexture(tooltip, texture, 10, 10, 512, 512);
+          gui:CreateSmallDialogBox(tooltip)
         end
 
         if (data.settings.muiTexture.useTheme) then

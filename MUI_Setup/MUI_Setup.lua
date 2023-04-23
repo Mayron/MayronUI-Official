@@ -415,7 +415,7 @@ function Private:LoadCustomMenu(menuSection)
 
   local scrollChild = menuSection.addonContainer.ScrollFrame:GetScrollChild();
 
-  gui:CreateDialogBox(nil, "LOW", menuSection.addonContainer);
+  gui:CreateLargeDialogBox("Low", menuSection.addonContainer);
 
   local totalAddOnsLoaded = 0;
   menuSection.addOnCheckBoxes = obj:PopTable();
@@ -609,7 +609,7 @@ function C_SetUpModule:Show(data)
       "X-Patrons", "X-Development-and-Bug-Fixes",
       "X-Translation-Support", "X-Community-Support-Team"));
 
-  local window = gui:CreateDialogBox(nil, nil, nil, "MUI_Setup");
+  local window = gui:CreateLargeDialogBox("High", nil, nil, "MUI_Setup");
   window:SetSize(750, 485);
   window:SetPoint("CENTER");
   window:SetFrameStrata("DIALOG");
@@ -624,7 +624,7 @@ function C_SetUpModule:Show(data)
   end
 
   gui:AddTitleBar(window, L["Setup Menu"]);
-  gui:AddCloseButton(window, nil, tk.Constants.CLICK);
+  gui:AddCloseButton(window);
 
   window.bg = tk:SetBackground(window, 0, 0, 0, 0.8); -- was 0.8 but set to 0.2 for testing
   window.bg:SetDrawLayer("BACKGROUND", -5);
@@ -673,7 +673,7 @@ function C_SetUpModule:Show(data)
   version:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 2, 0);
   tk:SetFontSize(version, 12);
 
-  window.submenu = gui:CreateDialogBox(window.banner:GetFrame());
+  window.submenu = gui:CreateLargeDialogBox("Regular", window.banner:GetFrame());
   window.submenu:SetAllPoints(window.banner:GetFrame());
   window.submenu:SetAlpha(0);
   window.submenu:Hide();

@@ -131,9 +131,10 @@ function Style:GetPadding(data, name, disableUnpacking)
   return unpack(value);
 end
 
----@param colorName string @The name of a color to get (using GetColor) to be applied to all widgets.
----@param alpha number|Frame @(optional) An alpha value to be applied with the color for all widgets.
----@param ... Frame @A variable argument list of widgets (can have alpha value at the start of list)
+---@param colorName string? @(Optional)The name of a color to get (using GetColor) to be applied to all widgets.
+---@param alpha (number|Frame)? @(optional) An alpha value to be applied with the color for all widgets.
+---@param ... any @A variable argument list of widgets (can have alpha value at the start of list)
+---@overload fun(self, colorName: string?, alpha: (number|Frame)?, ...)
 function Style:ApplyColor(_, colorName, alpha, ...)
   colorName = colorName or "default";
 

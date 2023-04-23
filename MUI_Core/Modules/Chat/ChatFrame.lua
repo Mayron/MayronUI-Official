@@ -822,8 +822,8 @@ do
       frame:SetPoint("CENTER");
       frame:Hide();
 
-      gui:CreateDialogBox(nil, nil, frame);
-      gui:AddCloseButton(frame, nil, tk.Constants.CLICK);
+      gui:CreateMediumDialogBox(frame);
+      gui:AddCloseButton(frame);
       gui:AddTitleBar(frame, L["Copy Chat Text"]);
 
       local editBox = tk:CreateFrame("EditBox", frame, "MUI_CopyChatEditBox");

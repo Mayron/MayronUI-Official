@@ -1077,7 +1077,7 @@ function Framework.IsObject(self, value)
 end
 
 ---@param value any @Any value to check whether it is of the expected widget type.
----@param widgetType string @An optional widget type to test if the value is that type of widget.
+---@param widgetType string? @An optional widget type to test if the value is that type of widget.
 ---@return boolean @true if the value is a Blizzard widgets, such as a Frame or Button.
 function Framework.IsWidget(self, value, widgetType)
   if (self ~= Framework) then value = self; end

@@ -311,7 +311,7 @@ local function UpdateTalkingHeadFrame(data)
   overlay:SetSize(118, 122)
   overlay:SetPoint("TOPLEFT", 20, -16);
 
-  local bg = gui:CreateDialogBox(f.BackgroundFrame, "LOW");
+  local bg = gui:CreateLargeDialogBox("Low", nil, f.BackgroundFrame);
   bg:SetPoint("TOPLEFT", 14, -10);
   bg:SetPoint("BOTTOMRIGHT", -10, 10);
   bg:SetFrameStrata("HIGH");

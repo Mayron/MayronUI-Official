@@ -303,7 +303,7 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
           end
         end);
 
-      local bg = gui:CreateDialogBox(mapFrame, "HIGH", nil, "MUI_ZoneMap");
+      local bg = gui:CreateMediumDialogBox(mapFrame, nil, "MUI_ZoneMap");
       bg:SetAllPoints(true);
       bg:SetFrameStrata("LOW");
       bg:SetAlpha(1.0 - mapOptions.opacity);

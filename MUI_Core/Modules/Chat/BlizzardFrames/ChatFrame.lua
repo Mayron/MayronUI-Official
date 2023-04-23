@@ -369,7 +369,7 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
   local downBtn = chatFrame.ScrollToBottomButton;
 
   if (obj:IsWidget(downBtn)) then
-    local downButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\DownButton");
+    local downButtonTexture = tk:GetAssetFilePath("Icons\\down");
     downBtn:SetNormalTexture(downButtonTexture, "BLEND");
     downBtn:SetPushedTexture(downButtonTexture, "BLEND");
     downBtn:SetHighlightTexture(downButtonTexture, "ADD");

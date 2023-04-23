@@ -35,8 +35,9 @@ local function CreateListItem(listFrame, data)
   item.btn:SetSize(28, 24);
   item.btn:SetPoint("RIGHT", -8, 0);
 
-  item.btn:SetNormalTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "BLEND");
-  item.btn:SetHighlightTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "ADD");
+  local closeFilePath = tk:GetAssetFilePath("Icons\\close");
+  item.btn:SetNormalTexture(closeFilePath, "BLEND");
+  item.btn:SetHighlightTexture(closeFilePath, "ADD");
 
   item.btn:SetScript("OnClick", function(btn)
     listFrame:RemoveItem(btn:GetParent());
@@ -121,7 +122,7 @@ function C_ListFrame:SetShown(data, shown)
     return;
   end
 
-  data.listFrame = gui:CreateDialogBox(_G["MUI_Config"], "HIGH");
+  data.listFrame = gui:CreateMediumDialogBox(nil, _G["MUI_Config"]);
   data.rows = obj:PopTable();
 
   gui:AddTitleBar(data.listFrame, data.listFrameTitle);

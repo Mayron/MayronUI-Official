@@ -28,12 +28,12 @@ function C_ReportIssue:OnInitialize(data)
     [3] = L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"];
   }
 
-  local frame = gui:CreateDialogBox(nil, "HIGH");
+  local frame = gui:CreateLargeDialogBox("High");
   frame:SetSize(600, 400);
   frame:SetPoint("CENTER");
   data.reportFrame = frame;
 
-  gui:AddCloseButton(frame, nil, tk.Constants.CLICK);
+  gui:AddCloseButton(frame);
   gui:AddTitleBar(frame, L["Report Issue"]);
   gui:AddResizer(frame);
 

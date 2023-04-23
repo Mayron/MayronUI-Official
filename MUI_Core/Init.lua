@@ -97,17 +97,14 @@ db:OnStartUp(function(self, sv)
   local style = obj:Import("MayronUI.Style")(); ---@type Style
   tk.Constants.AddOnStyle = style;
 
+  -- TODO: Deprecate this
   style:SetPadding(10, 10, 10, 10);
   style:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");
   style:SetBackdrop(tk.Constants.BACKDROP, "ButtonBackdrop");
   style:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\Button"), "ButtonTexture");
   style:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\GraphicalArrow"), "ArrowButtonTexture");
   style:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\SmallArrow"), "SmallArrow");
-  style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\Texture-"), "DialogBoxBackground");
-  style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\Tooltip"), "Tooltip");
   style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\TitleBar"), "TitleBarBackground");
-  style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "CloseButtonBackground");
-  style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "DownButton");
   style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\DragRegion"), "DraggerTexture");
   style:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\TextField"), "TextField");
   style:SetColor(r, g, b);

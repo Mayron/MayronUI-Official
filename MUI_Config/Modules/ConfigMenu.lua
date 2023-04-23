@@ -388,7 +388,7 @@ function C_ConfigMenuModule:CreateMenu(data)
 
   -- add graphical dialog box to dynamic frame:
   -- TODO: Create Tabs
-  gui:CreateDialogBox(nil, "Low", menuScrollFrame);
+  gui:CreateLargeDialogBox("Low", menuScrollFrame);
 
   menuScrollFrame:SetAllPoints(true);
 
@@ -639,7 +639,7 @@ function C_ConfigMenuModule:SetUpWindow(data)
 
   data.history = C_LinkedList();
 
-  data.window = gui:CreateDialogBox(nil, nil, nil, "MUI_Config");
+  data.window = gui:CreateLargeDialogBox("Regular", nil, nil, "MUI_Config");
   data.window:SetFrameStrata("DIALOG");
   data.window:Hide();
 
@@ -650,7 +650,7 @@ function C_ConfigMenuModule:SetUpWindow(data)
 
   gui:AddTitleBar(data.window, "MUI " .. L["Config"]);
   gui:AddResizer(data.window);
-  gui:AddCloseButton(data.window, nil, tk.Constants.CLICK);
+  gui:AddCloseButton(data.window);
 
   -- convert container to a panel
   data.window = gui:CreatePanel(data.window);

@@ -53,6 +53,9 @@ local Mixin, Item, GetMoney = _G.Mixin, _G.Item, _G.GetMoney;
 ---@field dragger Frame
 ---@field minWidth number
 ---@field maxWidth number
+---@field closeBtn Button
+---@field sortBtn Button
+---@field titleBar Button
 
 -- Register and Import Modules -----------
 local C_Inventory = MayronUI:RegisterModule("Inventory", "Inventory");
@@ -61,8 +64,8 @@ local C_Inventory = MayronUI:RegisterModule("Inventory", "Inventory");
 local slotWidth, slotHeight = 36, 30;
 local slotSpacing = 6;
 local initialColumns = 10;
-local minColumns = 5;
-local maxColumns = 20;
+local minColumns = 8;
+local maxColumns = 30;
 local containerPadding = { top = 30, right = 8, bottom = 34, left = 8 };
 
 -- Local Functions --------------
@@ -71,6 +74,7 @@ local function ClearBagSlot(slot)
   slot.icon:Hide();
   slot.JunkIcon:Hide();
   slot.searchOverlay:Hide();
+  slot.questTexture:Hide();
   slot.Count:Hide();
   slot.gloss:Hide();
   slot:SetGridColor(0.2, 0.2, 0.2);
@@ -116,10 +120,11 @@ local function UpdateBagSlot(slot)
   slot.Count:Show();
 
   local questInfo = GetContainerItemQuestInfo(bagID, slotIndex);-- Could also use `isActive`
-  if (questInfo.questId and not questInfo.isActive) then
+
+  if ((questInfo.questId or questInfo.questID) and not questInfo.isActive) then
 		slot.questTexture:SetTexture(_G["TEXTURE_ITEM_QUEST_BANG"]);
 		slot.questTexture:Show();
-	elseif (questInfo.questId or questInfo.isQuestItem) then
+	elseif ((questInfo.questId or questInfo.questID) or questInfo.isQuestItem) then
 		slot.questTexture:SetTexture(_G["TEXTURE_ITEM_QUEST_BORDER"]);
 		slot.questTexture:Show();
 	else
@@ -212,6 +217,21 @@ local function UpdateAllBagSlots(bag)
   UpdateFreeSlots(inventoryFrame);
 end
 
+---@param bags MayronUI.Inventory.Bag[]
+local function UpdateSearchOverlays(bags)
+  for _, bag in ipairs(bags) do
+    local bagID = bag:GetID() or 0;
+
+    for slotIndex, slot in ipairs(bag.slots) do
+      if (slot:IsItemEmpty()) then
+        ClearBagSlot(slot);
+      else
+        local info = GetContainerItemInfo(bagID, slotIndex);
+        slot.searchOverlay:SetShown(info.isFiltered);
+      end
+    end
+  end
+end
 
 ---@param inventoryFrame MayronUI.Inventory.Frame
 ---@param event string
@@ -288,10 +308,10 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagID, slotIndex)
   --   return
   -- end
 
-	-- if ( event == "INVENTORY_SEARCH_UPDATE" ) then
-	-- 	-- ContainerFrame_UpdateSearchResults(self);
-  --   return
-  -- end
+	if (event == "INVENTORY_SEARCH_UPDATE") then
+    UpdateSearchOverlays(inventoryFrame.bags);
+    return
+  end
 
 	-- if ( event == "BAG_SLOT_FLAGS_UPDATED" ) then
 	-- 	-- if (self:GetID() == bagID) then
@@ -398,6 +418,87 @@ do
   end
 end
 
+---@param inventoryFrame MayronUI.Inventory.Frame
+local function CreateSearchBox(inventoryFrame)
+  --Searchbox
+	local searchEditBox = tk:CreateFrame("EditBox", inventoryFrame, "MUI_InventorySearch");
+	searchEditBox:SetPoint("LEFT", inventoryFrame.freeSlots, "RIGHT", 12, 0);
+	searchEditBox:SetPoint("RIGHT", inventoryFrame.dragger, "LEFT", -12, 0);
+	searchEditBox:SetPoint("BOTTOM", 0, 4);
+
+	searchEditBox:SetAutoFocus(false);
+	searchEditBox:SetHeight(24);
+	searchEditBox:SetMaxLetters(50);
+	searchEditBox:SetTextInsets(26, 22, 0, 1);
+	searchEditBox:SetFontObject("GameFontHighlight");
+
+	local bg = searchEditBox:CreateTexture(nil, "BACKGROUND");
+	bg:SetTexture(tk:GetAssetFilePath("Textures\\searchbox"));
+	bg:SetAllPoints();
+	tk.Constants.AddOnStyle:ApplyColor(nil, nil, bg);
+
+	local searchIcon = searchEditBox:CreateTexture(nil, "OVERLAY");
+	searchIcon:SetPoint("LEFT", searchEditBox, "LEFT", 6, 1);
+	searchIcon:SetSize(14, 14);
+	searchIcon:SetTexture("Interface\\Common\\UI-Searchbox-Icon");
+	searchIcon:SetTexCoord(0, 0.8215, 0, 0.8125); -- for some reason there's a 3px white space to the right and bottom
+	searchIcon:SetVertexColor(0.6, 0.6, 0.6);
+
+	local clearBtn = tk:CreateFrame("Button", searchEditBox);
+	clearBtn:SetPoint("RIGHT", searchEditBox, "RIGHT", -4, 1);
+	clearBtn:SetSize(20, 18);
+	clearBtn:SetShown(false);
+	clearBtn:SetNormalTexture("Interface\\FriendsFrame\\ClearBroadcastIcon");
+	clearBtn:SetHighlightTexture("Interface\\FriendsFrame\\ClearBroadcastIcon", "ADD");
+
+	searchEditBox:SetScript("OnEscapePressed", function()
+    searchEditBox:ClearFocus();
+  end);
+
+	searchEditBox:SetScript("OnEnterPressed", searchEditBox.ClearFocus);
+
+	searchEditBox:SetScript("OnEditFocusLost", function(self)
+		if (self:GetText() == "") then
+			searchIcon:SetVertexColor(0.6, 0.6, 0.6);
+			clearBtn:Hide();
+		end
+	end);
+
+	searchEditBox:SetScript("OnEditFocusGained", function()
+		searchIcon:SetVertexColor(1.0, 1.0, 1.0);
+		clearBtn:Show();
+	end);
+
+	searchEditBox:SetScript("OnTextChanged", function(self)
+    C_Container.SetItemSearch(self:GetText());
+	end);
+
+	clearBtn:SetScript("OnMouseDown", function(self)
+		local normalTexture = self:GetNormalTexture();
+		local highlightTexture = self:GetHighlightTexture();
+		normalTexture:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -1);
+		normalTexture:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", 1, -1);
+		highlightTexture:SetPoint("TOPLEFT", self, "TOPLEFT", 1, -1);
+		highlightTexture:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", 1, -1);
+	end);
+
+	clearBtn:SetScript("OnMouseUp", function(self)
+		local normalTexture = self:GetNormalTexture();
+		local highlightTexture = self:GetHighlightTexture();
+		normalTexture:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0);
+		normalTexture:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", 0, 0);
+		highlightTexture:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0);
+		highlightTexture:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", 0, 0);
+	end);
+
+	clearBtn:SetScript("OnClick", function(self)
+		_G.PlaySound(_G.SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+		local editBox = self:GetParent();
+		editBox:SetText("");
+		editBox:ClearFocus();
+	end);
+end
+
 -- C_Inventory ------------------
 
 function C_Inventory:OnInitialize()
@@ -426,7 +527,7 @@ function C_Inventory:OnInitialize()
   -- tk:HookFunc("CloseAllBags", function() print("CloseAllBags") end);
   -- tk:HookFunc("CloseBackpack", function() print("CloseBackpack") end);
 
-  gui:CreateDialogBox(nil, "high", inventoryFrame);
+  gui:CreateMediumDialogBox(inventoryFrame);
   inventoryFrame:SetFrameStrata(tk.Constants.FRAME_STRATAS.HIGH);
   gui:AddTitleBar(inventoryFrame, "Inventory");
   gui:AddCloseButton(inventoryFrame)
@@ -449,7 +550,7 @@ function C_Inventory:OnInitialize()
 
   -- Bag Extensions:
 	-- inventoryFrame:RegisterEvent("DISPLAY_SIZE_CHANGED"); -- UpdateContainerFrameAnchors();
-	-- inventoryFrame:RegisterEvent("INVENTORY_SEARCH_UPDATE"); -- ContainerFrame_UpdateSearchResults(self);
+	inventoryFrame:RegisterEvent("INVENTORY_SEARCH_UPDATE"); -- ContainerFrame_UpdateSearchResults(self);
 	-- inventoryFrame:RegisterEvent("BAG_SLOT_FLAGS_UPDATED");
 	-- inventoryFrame:RegisterEvent("BANK_BAG_SLOT_FLAGS_UPDATED");
 
@@ -498,6 +599,13 @@ function C_Inventory:OnInitialize()
   inventoryFrame.freeSlots = inventoryFrame:CreateFontString("MUI_InventorySlots", "ARTWORK", "MUI_FontNormal");
   inventoryFrame.freeSlots:SetPoint("BOTTOMLEFT", inventoryFrame.currency, "BOTTOMRIGHT", 12, 0);
   inventoryFrame.freeSlots:SetJustifyH("LEFT");
+
+  inventoryFrame.sortBtn = gui:CreateIconButton("sort", inventoryFrame, "MUI_InventorySort");
+  inventoryFrame.sortBtn:SetPoint("RIGHT", inventoryFrame.closeBtn, "LEFT", -4, 0);
+  tk:SetBasicTooltip(inventoryFrame.sortBtn, "Sort Bags");
+  inventoryFrame.sortBtn:SetScript("OnClick", _G["SortBags"]);
+
+  CreateSearchBox(inventoryFrame);
 
   InventoryFrameOnEvent(inventoryFrame, "PLAYER_MONEY");
   UpdateFreeSlots(inventoryFrame);
