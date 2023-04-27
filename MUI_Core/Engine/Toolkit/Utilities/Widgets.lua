@@ -22,7 +22,7 @@ do
   ---@param defaultXOffset number?
   ---@param defaultYOffset number?
   local function SetTooltipOwner(widget, defaultAnchorPoint, defaultXOffset, defaultYOffset)
-    local anchor = defaultAnchorPoint or "ANCHOR_TOP";
+    local anchor = defaultAnchorPoint or "ANCHOR_BOTTOMLEFT";
     local xOffset = defaultXOffset or 0;
     local yOffset = defaultYOffset or 2;
 
@@ -30,6 +30,8 @@ do
       anchor = widget.tooltipAnchor.point or anchor;
       xOffset = widget.tooltipAnchor.xOffset or xOffset;
       yOffset = widget.tooltipAnchor.yOffset or yOffset;
+    elseif (obj:IsString(widget.tooltipAnchor)) then
+      anchor = widget.tooltipAnchor;
     end
 
     GameTooltip:SetOwner(widget, anchor, xOffset, yOffset);
@@ -75,7 +77,8 @@ end
 
 -- Configures a widget to show a basic text tooltip on mouseover.
 ---@param widget Frame|table
----@param point TooltipAnchor? # Default is "ANCHOR_TOP"
+---@param text string # The tooltip text to display
+---@param point TooltipAnchor? # Default is "ANCHOR_BOTTOMLEFT"
 ---@param xOffset number? # Default is 0
 ---@param yOffset number? # Default is 2
 function tk:SetBasicTooltip(widget, text, point, xOffset, yOffset)

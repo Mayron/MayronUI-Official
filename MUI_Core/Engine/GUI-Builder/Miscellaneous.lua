@@ -357,7 +357,7 @@ do
     btn:GetHighlightTexture():SetAlpha(1);
   end
 
-  ---@param iconName "close"|"sort"|"filter"
+  ---@param iconName "close"|"sort"|"bags"
   ---@param parent Frame?
   ---@param globalName string?
   ---@return Button

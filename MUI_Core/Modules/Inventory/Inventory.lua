@@ -55,6 +55,7 @@ local Mixin, Item, GetMoney = _G.Mixin, _G.Item, _G.GetMoney;
 ---@field maxWidth number
 ---@field closeBtn Button
 ---@field sortBtn Button
+---@field bagsBtn Button
 ---@field titleBar Button
 
 -- Register and Import Modules -----------
@@ -101,6 +102,7 @@ local function UpdateBagSlot(slot)
 
   local invType = slot:GetInventoryType();
   local quality = slot:GetItemQuality();
+
   if (invType > 0 or quality > 1) then
     local color = slot:GetItemQualityColor();
     slot:SetGridColor(color.r, color.g, color.b);
@@ -499,6 +501,33 @@ local function CreateSearchBox(inventoryFrame)
 	end);
 end
 
+local function HighlightBagSlots(self)
+  local inventoryFrame = _G["MUI_Inventory"]--[[@as MayronUI.Inventory.Frame]];
+
+  for _, bag in ipairs(inventoryFrame.bags) do
+    local bagID = bag:GetID();
+
+    for _, slot in ipairs(bag.slots) do
+      slot.searchOverlay:SetShown(bagID ~= self.bagIndex);
+    end
+  end
+end
+
+local function ClearBagSlotHighlights(self)
+  local inventoryFrame = _G["MUI_Inventory"]--[[@as MayronUI.Inventory.Frame]];
+
+  for _, bag in ipairs(inventoryFrame.bags) do
+    for _, slot in ipairs(bag.slots) do
+      slot.searchOverlay:SetShown(false);
+    end
+  end
+end
+
+-- TODO: Dragging a bag and dropping needs to update the bagBtn and the total slots when equipped and unequipped
+-- TODO: Need to show the backgroundTexture
+-- TODO: Need to update the Count of bagBtn's
+-- TODO: Need to set the bagBtn to desaturated when dragging
+
 -- C_Inventory ------------------
 
 function C_Inventory:OnInitialize()
@@ -554,18 +583,82 @@ function C_Inventory:OnInitialize()
 	-- inventoryFrame:RegisterEvent("BAG_SLOT_FLAGS_UPDATED");
 	-- inventoryFrame:RegisterEvent("BANK_BAG_SLOT_FLAGS_UPDATED");
 
-  -- Create Bags and Slots:
-  for bagID = 0, _G.NUM_BAG_SLOTS do
-    tk:KillElement(_G["ContainerFrame"..tostring(bagID + 1)]);
+  local bagsFrame = tk:CreateFrame("Frame", inventoryFrame, "MUI_InventoryBagsFrame");
+  bagsFrame:SetSize(_G.NUM_BAG_SLOTS * (slotWidth + slotSpacing) - slotSpacing, slotHeight);
+  bagsFrame:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
+  bagsFrame:Hide();
 
-    local numSlots = GetContainerNumSlots(bagID);
-    local bagGlobalName = "MUI_InventoryBag"..tostring(bagID + 1);
+  -- Create Bags and Slots:
+  for bagIndex = 0, _G.NUM_BAG_SLOTS do
+    -- tk:KillElement(_G["ContainerFrame"..tostring(bagID + 1)]);
+
+    local bagBtnName;
+
+    if (bagIndex == 0) then
+      bagBtnName = "MUI_InventoryBackpack";
+    else
+      bagBtnName = "MUI_InventoryBagSlot"..tostring(bagIndex + 1);
+    end
+
+    local bagBtn = tk:CreateFrame("CheckButton", bagsFrame, bagBtnName, "ItemButtonTemplate");
+    bagBtn.bagIndex = bagIndex;
+    bagBtn:SetSize(slotWidth, slotHeight);
+    bagBtn:ClearAllPoints();
+    bagBtn = gui:ReskinIcon(bagBtn, 2);
+    tk:KillElement(bagBtn:GetNormalTexture());
+    bagBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+    bagBtn:SetScript("OnLeave", tk.HandleTooltipOnLeave);
+
+    bagBtn.count = _G[bagBtnName.."Count"];
+    bagBtn.count:Show();
+
+    if (bagIndex == 0) then
+      -- backpack
+      local icon = _G[bagBtnName.."IconTexture"];
+      icon:SetTexture("Interface\\Buttons\\Button-Backpack-Up");
+      tk:SetBasicTooltip(bagBtn, _G["BACKPACK_TOOLTIP"], "ANCHOR_LEFT");
+      bagBtn:SetScript("OnClick", _G["BackpackButton_OnClick"]);
+      local freeSlots = GetContainerNumFreeSlots(0);
+      bagBtn.count:SetText(freeSlots);
+      bagBtn:SetGridColor(0.2, 0.2, 0.2);
+    else
+      local id, backgroundTexture = GetInventorySlotInfo("Bag"..tostring(bagIndex - 1).."Slot");
+      local quality = GetInventoryItemQuality("player", id);
+
+      if (quality > 1) then
+        local r, g, b = GetItemQualityColor(quality);
+        bagBtn:SetGridColor(r, g, b);
+      else
+        bagBtn:SetGridColor(0.2, 0.2, 0.2);
+      end
+
+      local textureName = GetInventoryItemTexture("player", id);
+      bagBtn:SetID(id);
+      local icon = _G[bagBtnName.."IconTexture"];
+      icon:SetTexture(textureName);
+
+      bagBtn:RegisterForDrag("LeftButton");
+      bagBtn:SetScript("OnEnter", _G["BagSlotButton_OnEnter"]);
+      bagBtn:SetScript("OnClick", _G["BagSlotButton_OnClick"]);
+      bagBtn:SetScript("OnDragStart", _G["BagSlotButton_OnDrag"]);
+      bagBtn:SetScript("OnReceiveDrag", _G["BagSlotButton_OnClick"]);
+      local freeSlots = GetContainerNumFreeSlots(bagIndex);
+      bagBtn.count:SetText(freeSlots);
+    end
+
+    bagBtn:SetPoint("TOPLEFT", (slotWidth + slotSpacing) * bagIndex, 0);
+    bagBtn:HookScript("OnEnter", HighlightBagSlots);
+    bagBtn:HookScript("OnLeave", ClearBagSlotHighlights);
+
+    local numSlots = GetContainerNumSlots(bagIndex);
+
+    local bagGlobalName = "MUI_InventoryBag"..tostring(bagIndex + 1);
     local bagFrame = tk:CreateFrame("Frame", inventoryFrame, bagGlobalName)--[[@as MayronUI.Inventory.Bag]];
-    inventoryFrame.bags[bagID + 1] = bagFrame;
+    inventoryFrame.bags[bagIndex + 1] = bagFrame;
 
     bagFrame:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
     bagFrame:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
-    bagFrame:SetID(bagID);
+    bagFrame:SetID(bagIndex);
     bagFrame.slots = {};
 
     if (numSlots > 0) then
@@ -604,6 +697,32 @@ function C_Inventory:OnInitialize()
   inventoryFrame.sortBtn:SetPoint("RIGHT", inventoryFrame.closeBtn, "LEFT", -4, 0);
   tk:SetBasicTooltip(inventoryFrame.sortBtn, "Sort Bags");
   inventoryFrame.sortBtn:SetScript("OnClick", _G["SortBags"]);
+
+  local originalTopPadding = containerPadding.top;
+
+  local function ToggleBagsFrame()
+    local bagsFrameShown = not bagsFrame:IsShown();
+    bagsFrame:SetShown(bagsFrameShown);
+
+    if (bagsFrameShown) then
+      containerPadding.top = originalTopPadding + slotHeight + containerPadding.left;
+    else
+      containerPadding.top = originalTopPadding;
+    end
+
+    for _, bagFrame in ipairs(inventoryFrame.bags) do
+      bagFrame:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
+    end
+
+    UpdateInventoryDimensions();
+  end
+
+  ToggleBagsFrame();
+
+  inventoryFrame.bagsBtn = gui:CreateIconButton("bags", inventoryFrame, "MUI_InventoryBags");
+  inventoryFrame.bagsBtn:SetPoint("RIGHT", inventoryFrame.sortBtn, "LEFT", -4, 0);
+  tk:SetBasicTooltip(inventoryFrame.bagsBtn, "Toggle Bags");
+  inventoryFrame.bagsBtn:SetScript("OnClick", ToggleBagsFrame);
 
   CreateSearchBox(inventoryFrame);
 
