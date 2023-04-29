@@ -15,7 +15,7 @@ local GetContainerNumFreeSlots = C_Container.GetContainerNumFreeSlots;
 local GetInventorySlotInfo = _G.GetInventorySlotInfo;
 local UpdateInventorySlotAnchors;
 
-local Mixin, Item, GetMoney = _G.Mixin, _G.Item, _G.GetMoney;
+local Mixin, Item, GetMoney, GetItemInfoInstant = _G.Mixin, _G.Item, _G.GetMoney, _G.GetItemInfoInstant;
 
 ---@class MayronUI.Inventory.BagButton : CheckButton, ItemMixin, MayronUI.Icon
 ---@field icon Texture
@@ -65,6 +65,7 @@ local Mixin, Item, GetMoney = _G.Mixin, _G.Item, _G.GetMoney;
 ---@field sortBtn Button
 ---@field bagsBtn Button
 ---@field titleBar Button
+---@field filteredItemClass Enum.ItemClass?
 
 -- Register and Import Modules -----------
 local C_Inventory = MayronUI:RegisterModule("Inventory", "Inventory");
@@ -79,8 +80,8 @@ local containerPadding = { top = 30, right = 8, bottom = 34, left = 8 };
 
 -- Local Functions --------------
 
-local function UpdateInventoryDimensions(inventoryFrame)
-  local width, height = UpdateInventorySlotAnchors(inventoryFrame);
+local function UpdateInventoryDimensions(inventoryFrame, resetSlotOrder)
+  local width, height = UpdateInventorySlotAnchors(inventoryFrame, resetSlotOrder);
   inventoryFrame:SetSize(width, height);
 end
 
@@ -516,32 +517,75 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
 end
 
 do
-  local function GetGridSizeByNumColumns(inventoryFrame, totalColumns, updateAnchors)
-    local newWidth = containerPadding.left + containerPadding.right;
-    local newHeight = containerPadding.top + containerPadding.bottom;
+  local orderedSlots = {}; ---@type MayronUI.Inventory.Slot[]
+  local emptySlots = {}; ---@type MayronUI.Inventory.Slot[]
+
+  local function PositionBagSlots(updateAnchors, totalColumns)
     local columnIndex = 1;
     local totalRows = 1;
 
-    for _, bag in ipairs(inventoryFrame.bags) do
-      if (bag:IsShown()) then
-        for _, slot in ipairs(bag.slots) do
-          if ((columnIndex % (totalColumns + 1)) == 0) then
-              -- next row
-            totalRows = totalRows + 1;
-            columnIndex = 1;
+    for _, slot in ipairs(orderedSlots) do
+      if (slot:IsShown()) then
+        if ((columnIndex % (totalColumns + 1)) == 0) then
+            -- next row
+          totalRows = totalRows + 1;
+          columnIndex = 1;
+        end
+
+        local xOffset = (columnIndex - 1) * (slotWidth + slotSpacing);
+        local yOffset = (totalRows - 1) * (slotHeight + slotSpacing);
+
+        if (updateAnchors) then
+          slot:SetPoint("TOPLEFT", xOffset, -yOffset);
+        end
+
+        columnIndex = columnIndex + 1; -- next column
+      end
+    end
+
+    return totalRows;
+  end
+
+  ---@param inventoryFrame MayronUI.Inventory.Frame
+  local function GetGridSizeByNumColumns(inventoryFrame, totalColumns, updateAnchors, resetSlotOrder)
+    local newWidth = containerPadding.left + containerPadding.right;
+    local newHeight = containerPadding.top + containerPadding.bottom;
+
+    if (resetSlotOrder) then
+      tk.Tables:Empty(orderedSlots);
+    end
+
+    if (tk.Tables:IsEmpty(orderedSlots)) then
+      if (inventoryFrame.filteredItemClass ~= nil) then
+        tk.Tables:Empty(emptySlots);
+
+        for _, bag in ipairs(inventoryFrame.bags) do
+          for _, slot in ipairs(bag.slots) do
+            if (resetSlotOrder and slot:IsItemEmpty()) then
+              emptySlots[#emptySlots+1] = slot;
+            else
+              orderedSlots[#orderedSlots+1] = slot;
+            end
           end
+        end
 
-          local xOffset = (columnIndex - 1) * (slotWidth + slotSpacing);
-          local yOffset = (totalRows - 1) * (slotHeight + slotSpacing);
+        for _, emptySlot in ipairs(emptySlots) do
+          orderedSlots[#orderedSlots+1] = emptySlot;
+        end
 
-          if (updateAnchors) then
-            slot:SetPoint("TOPLEFT", xOffset, -yOffset);
+        tk.Tables:Empty(emptySlots);
+      else
+        for _, bag in ipairs(inventoryFrame.bags) do
+          if (bag:IsShown()) then
+            for _, slot in ipairs(bag.slots) do
+              orderedSlots[#orderedSlots+1] = slot;
+            end
           end
-
-          columnIndex = columnIndex + 1; -- next column
         end
       end
     end
+
+    local totalRows = PositionBagSlots(updateAnchors, totalColumns);
 
     local slotXOffset = (slotWidth + slotSpacing);
     local slotYOffset = (slotHeight + slotSpacing);
@@ -553,7 +597,7 @@ do
 
   ---@param inventoryFrame MayronUI.Inventory.Frame
   ---@return number, number
-  UpdateInventorySlotAnchors = function(inventoryFrame)
+  UpdateInventorySlotAnchors = function(inventoryFrame, resetSlotOrder)
     local currentWidth = inventoryFrame:GetWidth();
 
     if (currentWidth > 0) then
@@ -566,7 +610,7 @@ do
         totalColumns = columns;
       end
 
-      local newWidth, newHeight = GetGridSizeByNumColumns(inventoryFrame, totalColumns, true);
+      local newWidth, newHeight = GetGridSizeByNumColumns(inventoryFrame, totalColumns, true, resetSlotOrder);
       tk:SetResizeBounds(inventoryFrame, inventoryFrame.minWidth, newHeight, inventoryFrame.maxWidth, newHeight);
 
       return newWidth, newHeight;
@@ -579,7 +623,7 @@ do
 
     tk:SetResizeBounds(inventoryFrame, minWidth, minHeight, maxWidth, maxHeight);
 
-    return GetGridSizeByNumColumns(inventoryFrame, initialColumns, true);
+    return GetGridSizeByNumColumns(inventoryFrame, initialColumns, true, resetSlotOrder);
   end
 end
 
@@ -815,10 +859,47 @@ function C_Inventory:OnInitialize()
     UpdateInventoryDimensions(inventoryFrame);
   end
 
+  ---@param filteredItemClass Enum.ItemClass?
+  local function FilterByItemType(filteredItemClass)
+    if (inventoryFrame.filteredItemClass == filteredItemClass) then
+      return
+    end
+
+    inventoryFrame.filteredItemClass = filteredItemClass;
+
+    for _, bag in ipairs(inventoryFrame.bags) do
+      for _, slot in ipairs(bag.slots) do
+        local hasFilter = inventoryFrame.filteredItemClass ~= nil;
+
+        if (not hasFilter) then
+          slot:Show();
+        else
+          local itemID = slot:GetItemID();
+
+          if (itemID) then
+            local _, _, _, _, _, itemTypeClassID = GetItemInfoInstant(itemID);
+            local showSlot = inventoryFrame.filteredItemClass == itemTypeClassID;
+            slot:SetShown(showSlot);
+          else
+            slot:Show(); -- Show empty slots
+          end
+        end
+      end
+    end
+
+    UpdateInventoryDimensions(inventoryFrame, true);
+  end
+
   inventoryFrame.bagsBtn = gui:CreateIconButton("bags", inventoryFrame, "MUI_InventoryBags");
   inventoryFrame.bagsBtn:SetPoint("RIGHT", inventoryFrame.sortBtn, "LEFT", -4, 0);
   tk:SetBasicTooltip(inventoryFrame.bagsBtn, "Toggle Bags");
-  inventoryFrame.bagsBtn:SetScript("OnClick", ToggleBagsFrame);
+
+  -- inventoryFrame.bagsBtn:SetScript("OnClick", ToggleBagsFrame);
+
+  -- TODO: TESTING FILTERS:
+  inventoryFrame.bagsBtn:SetScript("OnClick", function()
+    FilterByItemType(0);
+  end);
 
   CreateSearchBox(inventoryFrame);
 
