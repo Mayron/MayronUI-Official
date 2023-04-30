@@ -14,6 +14,8 @@ local GetContainerItemQuestInfo = C_Container.GetContainerItemQuestInfo;
 local GetContainerNumFreeSlots = C_Container.GetContainerNumFreeSlots;
 local GetInventorySlotInfo = _G.GetInventorySlotInfo;
 local UpdateInventorySlotAnchors;
+local PlaySound = _G.PlaySound;
+local SoundKit = _G.SOUNDKIT;
 
 ---@enum MayronUI.Inventory.TabType
 local TabTypesEnum = {
@@ -776,7 +778,7 @@ local function CreateSearchBox(inventoryFrame)
 	end);
 
 	clearBtn:SetScript("OnClick", function(self)
-		_G.PlaySound(_G.SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+		PlaySound(SoundKit.IG_MAINMENU_OPTION_CHECKBOX_ON);
 		local editBox = self:GetParent();
 		editBox:SetText("");
 		editBox:ClearFocus();
@@ -888,7 +890,14 @@ function C_Inventory:OnInitialize()
   inventoryFrame:Hide();
 
   tk:HookFunc("ToggleAllBags", function()
-    inventoryFrame:SetShown(not inventoryFrame:IsShown());
+    local show = not inventoryFrame:IsShown();
+    inventoryFrame:SetShown(show);
+
+    if (show) then
+      PlaySound(SoundKit.IG_BACKPACK_OPEN);
+    else
+      PlaySound(SoundKit.IG_BACKPACK_CLOSE);
+    end
   end);
 
   gui:CreateMediumDialogBox(inventoryFrame);
