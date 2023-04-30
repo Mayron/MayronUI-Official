@@ -94,8 +94,8 @@ function tk:SetBasicTooltip(widget, text, point, xOffset, yOffset)
     widget.tooltipAnchor = point;
   end
 
-  widget:SetScript("OnEnter", tk.HandleTooltipOnEnter);
-  widget:SetScript("OnLeave", tk.HandleTooltipOnLeave);
+  widget:HookScript("OnEnter", tk.HandleTooltipOnEnter);
+  widget:HookScript("OnLeave", tk.HandleTooltipOnLeave);
 end
 
 ------------------------------------------------
@@ -516,12 +516,22 @@ function tk:GroupCheckButtons(radioButtonsInGroup, canUncheck)
         if (id ~= otherId) then
           otherBtn:SetChecked(false);
           otherBtn.previousValue = false;
+
+          local onLeave = otherBtn:GetScript("OnLeave");
+          if (obj:IsFunction(onLeave)) then
+            onLeave(otherBtn);
+          end
         end
       end
 
       if (not self.previousValue) then
         oldScript(self, ...);
         self.previousValue = true;
+
+        local onLeave = self:GetScript("OnLeave");
+        if (obj:IsFunction(onLeave)) then
+          onLeave(self);
+        end
       elseif (canUncheck) then
         oldScript(self, ...);
       end

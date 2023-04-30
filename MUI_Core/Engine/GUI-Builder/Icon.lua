@@ -6,12 +6,13 @@ local tk = MayronUI:GetCoreComponents();
 ---@class GUIBuilder
 local gui = MayronUI:GetComponent("GUIBuilder");
 
----@alias MayronUI.IconType "item"|"spell"|"aura"
+---@alias MayronUI.IconType "item"|"spell"|"aura"|"button"|"check-button"
 
 ---@class MayronUI.Icon : MayronUI.GridTextureMixin, Frame
 ---@field mask Texture
 ---@field gloss Texture
 ---@field cooldown Cooldown
+---@field background Texture
 ---@field icon Texture
 ---@field itemID number?
 ---@field iconType MayronUI.IconType?
@@ -26,7 +27,7 @@ local gui = MayronUI:GetComponent("GUIBuilder");
 local function CreateIcon(iconFrame, borderSize, iconType, disableOmniCC)
   iconFrame = iconFrame--[[@as MayronUI.Icon|Frame]];
   iconFrame.iconType = iconType;
-  tk:SetBackground(iconFrame, 0, 0, 0, 0.4);
+  iconFrame.background = tk:SetBackground(iconFrame, 0, 0, 0, 0.4);
 
   local borderTexturePath = tk:GetAssetFilePath("Textures\\Widgets\\IconBorder");
   iconFrame = gui:CreateGridTexture(iconFrame, borderTexturePath, 4, 2, 64, 64, "OVERLAY");
@@ -44,12 +45,14 @@ local function CreateIcon(iconFrame, borderSize, iconType, disableOmniCC)
   iconFrame.gloss:SetPoint("TOPLEFT", borderSize, -borderSize);
   iconFrame.gloss:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
 
-  iconFrame.cooldown:SetReverse(1);
-  iconFrame.cooldown:SetHideCountdownNumbers(true);
-  iconFrame.cooldown:SetPoint("TOPLEFT", borderSize, -borderSize);
-  iconFrame.cooldown:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
-  iconFrame.cooldown:SetFrameStrata("TOOLTIP");
-  iconFrame.cooldown.noCooldownCount = disableOmniCC; -- disable OmniCC
+  if (iconFrame.cooldown) then
+    iconFrame.cooldown:SetReverse(1);
+    iconFrame.cooldown:SetHideCountdownNumbers(true);
+    iconFrame.cooldown:SetPoint("TOPLEFT", borderSize, -borderSize);
+    iconFrame.cooldown:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
+    iconFrame.cooldown:SetFrameStrata("TOOLTIP");
+    iconFrame.cooldown.noCooldownCount = disableOmniCC; -- disable OmniCC
+  end
 
   iconFrame.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9);
 
@@ -84,8 +87,9 @@ end
 ---@param borderSize number
 ---@param iconType MayronUI.IconType?
 ---@param iconTexture Texture?
+---@param disableOmniCC boolean?
 ---@return T|MayronUI.Icon # The icon frame
-function gui:ReskinIcon(iconFrame, borderSize, iconType, iconTexture)
+function gui:ReskinIcon(iconFrame, borderSize, iconType, iconTexture, disableOmniCC)
   iconFrame = iconFrame--[[@as Frame]];
   local width, height = iconFrame:GetSize();
 
@@ -103,11 +107,11 @@ function gui:ReskinIcon(iconFrame, borderSize, iconType, iconTexture)
   if (iconFrame.cooldown) then
     iconFrame.cooldown:SetParent(iconFrame);
     iconFrame.cooldown:ClearAllPoints();
-  else
+  elseif (not iconType or not iconType:find("button")) then
     iconFrame.cooldown = tk:CreateFrame("Cooldown", iconFrame, nil, "CooldownFrameTemplate");
   end
 
-  return CreateIcon(iconFrame, borderSize, iconType);
+  return CreateIcon(iconFrame, borderSize, iconType, disableOmniCC);
 end
 
 ---Creates an icon in the style of MayronUI without applying user config settings
@@ -115,20 +119,32 @@ end
 ---@param iconWidth number
 ---@param iconHeight number
 ---@param parent Frame
----@param iconType MayronUI.IconType?
+---@param iconType MayronUI.IconType
 ---@param texture string? # Will not use `icon:SetTexture(texture)` if nil
 ---@param disableOmniCC boolean?
+---@param globalName string?
 ---@return MayronUI.Icon # The icon frame
-function gui:CreateIcon(borderSize, iconWidth, iconHeight, parent, iconType, texture, disableOmniCC)
-  local iconFrame = tk:CreateBackdropFrame("Frame", parent) --[[@as MayronUI.Icon]];
+function gui:CreateIcon(borderSize, iconWidth, iconHeight, parent, iconType, texture, disableOmniCC, globalName)
+  local widgetType;
+
+  if (iconType == "button") then
+    widgetType = "Button";
+  elseif (iconType == "check-button") then
+    widgetType = "CheckButton";
+  end
+
+  local iconFrame = tk:CreateBackdropFrame(widgetType, parent, globalName) --[[@as MayronUI.Icon]];
   iconFrame:SetSize(iconWidth, iconHeight);
   iconFrame:SetPoint("TOPLEFT");
 
   iconFrame.icon = iconFrame:CreateTexture(nil, "ARTWORK");
-  iconFrame.cooldown = tk:CreateFrame("Cooldown", iconFrame, nil, "CooldownFrameTemplate");
 
   if (texture) then
     iconFrame.icon:SetTexture(texture);
+  end
+
+  if (not iconType:find("button")) then
+    iconFrame.cooldown = tk:CreateFrame("Cooldown", iconFrame, nil, "CooldownFrameTemplate");
   end
 
   return CreateIcon(iconFrame, borderSize, iconType, disableOmniCC);

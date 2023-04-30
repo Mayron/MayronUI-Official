@@ -373,8 +373,12 @@ do
     local style = tk.Constants.AddOnStyle;
     local textureFilePath = tk:GetAssetFilePath("Icons\\"..iconName);
     btn:SetNormalTexture(textureFilePath);
+    btn:SetDisabledTexture(textureFilePath);
     btn:SetHighlightTexture(textureFilePath, "ADD");
     style:ApplyColor(nil, nil, btn);
+
+    local disabledTexture = btn:GetDisabledTexture() --[[@as Texture]];
+    disabledTexture:SetVertexColor(1, 1, 1);
 
     btn:HookScript("OnMouseDown", DisableHighlightOnMouseDown);
     btn:HookScript("OnMouseUp", EnableHighlightOnMouseUp);

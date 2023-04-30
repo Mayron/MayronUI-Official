@@ -15,6 +15,15 @@ local GetContainerNumFreeSlots = C_Container.GetContainerNumFreeSlots;
 local GetInventorySlotInfo = _G.GetInventorySlotInfo;
 local UpdateInventorySlotAnchors;
 
+---@enum MayronUI.Inventory.TabType
+local TabTypesEnum = {
+  AllItems = 0;
+  Equipment = 1;
+  Consumables = 2;
+  TradeGoods = 3;
+  QuestItems = 4;
+}
+
 local Mixin, Item, GetMoney, GetItemInfoInstant = _G.Mixin, _G.Item, _G.GetMoney, _G.GetItemInfoInstant;
 
 ---@class MayronUI.Inventory.BagButton : CheckButton, ItemMixin, MayronUI.Icon
@@ -26,8 +35,6 @@ local Mixin, Item, GetMoney, GetItemInfoInstant = _G.Mixin, _G.Item, _G.GetMoney
 ---@class MayronUI.Inventory.BagBar : Frame
 ---@field buttons MayronUI.Inventory.BagButton[]
 
---- Also has `$parentNormalTexture`, `PushedTexture`, `HighlightTexture`, `$parentStock FontString`,
---- `$parentCooldown`, and `$parentIconQuestTexture`
 ---@class MayronUI.Inventory.Slot : Button, ItemMixin, MayronUI.Icon
 ---@field icon Texture
 ---@field Count FontString
@@ -65,7 +72,8 @@ local Mixin, Item, GetMoney, GetItemInfoInstant = _G.Mixin, _G.Item, _G.GetMoney
 ---@field sortBtn Button
 ---@field bagsBtn Button
 ---@field titleBar Button
----@field filteredItemClass Enum.ItemClass?
+---@field selectedTabID MayronUI.Inventory.TabType?
+---@field tabs (MayronUI.Icon|CheckButton)[]
 
 -- Register and Import Modules -----------
 local C_Inventory = MayronUI:RegisterModule("Inventory", "Inventory");
@@ -148,16 +156,22 @@ local function UpdateBagSlot(slot, highlighted)
   slot.Count:Show();
 
   local questInfo = GetContainerItemQuestInfo(bag.bagIndex, slotIndex);-- Could also use `isActive`
+  local questTexture;
 
   if ((questInfo.questId or questInfo.questID) and not questInfo.isActive) then
-		slot.questTexture:SetTexture(_G["TEXTURE_ITEM_QUEST_BANG"]);
-		slot.questTexture:Show();
-	elseif ((questInfo.questId or questInfo.questID) or questInfo.isQuestItem) then
-		slot.questTexture:SetTexture(_G["TEXTURE_ITEM_QUEST_BORDER"]);
-		slot.questTexture:Show();
+    questTexture = _G["TEXTURE_ITEM_QUEST_BANG"];
+	elseif (questInfo.questId or questInfo.questID or questInfo.isQuestItem) then
+    questTexture = _G["TEXTURE_ITEM_QUEST_BORDER"];
 	else
 		slot.questTexture:Hide();
 	end
+
+  if (questTexture) then
+    slot.questTexture:SetTexture(questTexture);
+    slot.questTexture:Show();
+    local r, g, b = tk.Constants.COLORS.GOLD:GetRGB();
+    slot:SetGridColor(r, g, b);
+  end
 
   slot.JunkIcon:SetShown(slot:GetItemQuality() == 0);
   slot.searchOverlay:SetShown(info.isFiltered);
@@ -180,10 +194,12 @@ local function CreateBagItemSlot(bagFrame, slotIndex)
   local slotGlobalName = bagGlobalName.."Slot"..tostring(slotIndex);
 
   local slot = tk:CreateFrame("Button", bagFrame, slotGlobalName, "ContainerFrameItemButtonTemplate")--[[@as MayronUI.Inventory.Slot]];
+  slot:SetID(slotIndex);
   slot:SetSize(slotWidth, slotHeight);
   slot.cooldown = _G[slotGlobalName.."Cooldown"];
   slot.questTexture = _G[slotGlobalName.."IconQuestTexture"];
   slot.questTexture:SetSize(slotWidth, slotHeight);
+  slot.questTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95);
 
   slot = gui:ReskinIcon(slot, 2);
   Mixin(slot, Item:CreateFromBagAndSlot(bagFrame.bagIndex, slotIndex));
@@ -191,8 +207,6 @@ local function CreateBagItemSlot(bagFrame, slotIndex)
   slot.searchOverlay:SetDrawLayer("OVERLAY", 7);
 
   ---@cast slot MayronUI.Inventory.Slot
-
-  slot:SetID(slotIndex);
   ClearBagSlot(slot);
 
   tk:KillAllElements(
@@ -215,12 +229,13 @@ local function CreateBagItemSlot(bagFrame, slotIndex)
   return slot;
 end
 
----@param bagFrame MayronUI.Inventory.BagFrame
-local function HighlightBagSlots(bagFrame)
+---@param toggleBtn MayronUI.Inventory.BagButton
+local function HighlightBagSlots(toggleBtn)
+  if (not toggleBtn.bagFrame:IsShown()) then return end
   local inventoryFrame = _G["MUI_Inventory"]--[[@as MayronUI.Inventory.Frame]];
 
   for _, otherBagFrame in ipairs(inventoryFrame.bags) do
-    otherBagFrame.highlighted = otherBagFrame.bagIndex == bagFrame.bagIndex;
+    otherBagFrame.highlighted = otherBagFrame.bagIndex == toggleBtn.bagIndex;
 
     for _, slot in ipairs(otherBagFrame.slots) do
       slot.searchOverlay:SetShown(not otherBagFrame.highlighted); -- fade out other bags
@@ -293,7 +308,7 @@ local function BagToggleButtonOnHide(self)
   self:UnregisterAllEvents();
 end
 
-local function CreateBagBarToggleButton(bagIndex, bagBar, bagFrame)
+local function CreateBagBarToggleButton(bagIndex, bagBar, bagFrame, iteration)
   local bagBtnName;
   local isBackpack = bagIndex == 0;
 
@@ -310,7 +325,7 @@ local function CreateBagBarToggleButton(bagIndex, bagBar, bagFrame)
 
   bagToggleBtn:SetSize(slotWidth, slotHeight);
   bagToggleBtn:ClearAllPoints();
-  bagToggleBtn = gui:ReskinIcon(bagToggleBtn, 2);
+  bagToggleBtn = gui:ReskinIcon(bagToggleBtn, 2, "button");
   tk:KillElement(bagToggleBtn:GetNormalTexture());
   bagToggleBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp");
   bagToggleBtn:SetScript("OnLeave", tk.HandleTooltipOnLeave);
@@ -338,13 +353,13 @@ local function CreateBagBarToggleButton(bagIndex, bagBar, bagFrame)
     bagToggleBtn:SetScript("OnReceiveDrag", _G["BagSlotButton_OnClick"]);
   end
 
-  bagToggleBtn:SetPoint("TOPLEFT", (slotWidth + slotSpacing) * bagIndex, 0);
+  bagToggleBtn:SetPoint("TOPLEFT", (slotWidth + slotSpacing) * iteration, 0);
   bagToggleBtn:HookScript("OnEnter", HighlightBagSlots);
   bagToggleBtn:HookScript("OnLeave", ClearBagSlotHighlights);
   bagToggleBtn:HookScript("OnClick", function()
     local isOpen = not bagFrame:IsShown();
     bagFrame:SetShown(isOpen);
-    UpdateInventoryDimensions(bagBar:GetParent());
+    UpdateInventoryDimensions(bagBar:GetParent(), true);
     ClearBagSlotHighlights();
 
     if (bagBar:IsShown()) then
@@ -360,11 +375,10 @@ local function UpdateFreeSlots(inventoryFrame)
   local totalFreeSlots = 0;
   local totalNumSlots = 0;
 
-  for i, _ in ipairs(inventoryFrame.bags) do
-    local bagIndex = i - 1;
+  for i, bag in ipairs(inventoryFrame.bags) do
     local bagToggleBtn = inventoryFrame.bagBar.buttons[i];
-    local numBagSlots = GetContainerNumSlots(bagIndex) or 0;
-    local freeBagSlots = GetContainerNumFreeSlots(bagIndex) or 0;
+    local numBagSlots = GetContainerNumSlots(bag.bagIndex) or 0;
+    local freeBagSlots = GetContainerNumFreeSlots(bag.bagIndex) or 0;
 
     totalFreeSlots = totalFreeSlots + freeBagSlots;
     totalNumSlots = totalNumSlots + numBagSlots;
@@ -555,11 +569,23 @@ do
       tk.Tables:Empty(orderedSlots);
     end
 
+    local showAllItems = inventoryFrame.selectedTabID == TabTypesEnum.AllItems;
+
     if (tk.Tables:IsEmpty(orderedSlots)) then
-      if (inventoryFrame.filteredItemClass ~= nil) then
+      if (showAllItems) then
+        for _, bag in ipairs(inventoryFrame.bags) do
+          if (bag:IsShown()) then
+            for _, slot in ipairs(bag.slots) do
+              orderedSlots[#orderedSlots+1] = slot;
+            end
+          end
+        end
+      else
         tk.Tables:Empty(emptySlots);
 
         for _, bag in ipairs(inventoryFrame.bags) do
+          bag:Show();
+
           for _, slot in ipairs(bag.slots) do
             if (resetSlotOrder and slot:IsItemEmpty()) then
               emptySlots[#emptySlots+1] = slot;
@@ -574,14 +600,6 @@ do
         end
 
         tk.Tables:Empty(emptySlots);
-      else
-        for _, bag in ipairs(inventoryFrame.bags) do
-          if (bag:IsShown()) then
-            for _, slot in ipairs(bag.slots) do
-              orderedSlots[#orderedSlots+1] = slot;
-            end
-          end
-        end
       end
     end
 
@@ -622,7 +640,6 @@ do
     inventoryFrame.maxWidth = maxWidth;
 
     tk:SetResizeBounds(inventoryFrame, minWidth, minHeight, maxWidth, maxHeight);
-
     return GetGridSizeByNumColumns(inventoryFrame, initialColumns, true, resetSlotOrder);
   end
 end
@@ -728,6 +745,98 @@ local function CreateSearchBox(inventoryFrame)
 	end);
 end
 
+local originalTopPadding = containerPadding.top;
+
+---@param self MayronUI.Icon|Button
+local function ToggleBagsBar(self)
+  local inventoryFrame = self:GetParent()--[[@as MayronUI.Inventory.Frame]]
+  local bagsFrameShown = not inventoryFrame.bagBar:IsShown();
+  inventoryFrame.bagBar:SetShown(bagsFrameShown);
+
+  if (bagsFrameShown) then
+    containerPadding.top = originalTopPadding + slotHeight + containerPadding.left;
+  else
+    containerPadding.top = originalTopPadding;
+  end
+
+  for _, bag in ipairs(inventoryFrame.bags) do
+    bag:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
+  end
+
+  UpdateInventoryDimensions(inventoryFrame);
+end
+
+---@param self CheckButton|MayronUI.Icon
+local function HandleTabOnLeave(self)
+  if (self:GetChecked()) then
+    self.icon:SetDesaturated(false);
+    local r, g, b = tk:GetThemeColor();
+    self:SetGridColor(r, g, b);
+  else
+    self.icon:SetDesaturated(true);
+    self:SetGridColor(0.2, 0.2, 0.2);
+  end
+end
+
+---@param self CheckButton|MayronUI.Icon
+local function HandleTabOnEnter(self)
+  if (not self:GetChecked()) then
+    self.icon:SetDesaturated(false);
+    self:SetGridColor(1, 1, 1);
+  end
+end
+
+---@param self CheckButton|MayronUI.Icon
+local function HandleTabOnClick(self)
+  local inventoryFrame = self:GetParent()--[[@as MayronUI.Inventory.Frame]];
+  local tabID = self:GetID()--[[@as MayronUI.Inventory.TabType]];
+
+  if (inventoryFrame.selectedTabID == tabID) then
+    return
+  end
+
+  HandleTabOnLeave(self);
+  inventoryFrame.selectedTabID = tabID;
+
+  local showAllItems = inventoryFrame.selectedTabID == TabTypesEnum.AllItems;
+  inventoryFrame.bagsBtn:SetEnabled(showAllItems);
+
+  if (not showAllItems and inventoryFrame.bagBar:IsShown()) then
+    ToggleBagsBar(inventoryFrame.bagsBtn);
+  end
+
+  for _, bag in ipairs(inventoryFrame.bags) do
+    for _, slot in ipairs(bag.slots) do
+      if (showAllItems) then
+        slot:Show();
+      else
+        local itemID = slot:GetItemID();
+
+        if (itemID) then
+          local _, _, _, _, _, itemTypeClassID = GetItemInfoInstant(itemID);
+          local showSlot = false;
+
+          if (tabID == TabTypesEnum.Consumables) then
+            showSlot = itemTypeClassID == 0;
+          elseif (tabID == TabTypesEnum.Equipment) then
+            showSlot = itemTypeClassID == 4 or itemTypeClassID == 2; -- armor or weapons
+          elseif (tabID == TabTypesEnum.QuestItems) then
+            showSlot = itemTypeClassID == 12;
+          elseif (tabID == TabTypesEnum.TradeGoods) then
+            showSlot = itemTypeClassID == 7 or itemTypeClassID == 19; -- tradegoods or profession
+          end
+
+          slot:SetShown(showSlot);
+        else
+          slot:Show(); -- Show empty slots
+        end
+      end
+    end
+  end
+
+  UpdateInventoryDimensions(inventoryFrame, true);
+end
+
 -- C_Inventory ------------------
 
 function C_Inventory:OnInitialize()
@@ -791,13 +900,15 @@ function C_Inventory:OnInitialize()
   bagBar.buttons = {};
 
   -- Create Bags and Slots:
-  for bagIndex = 0, _G.NUM_BAG_SLOTS do
-    tk:KillElement(_G["ContainerFrame"..tostring(bagIndex + 1)]);
+  for i = 0, _G.NUM_BAG_SLOTS do
+    local bagIndex = _G.NUM_BAG_SLOTS - i;
+
+    -- tk:KillElement(_G["ContainerFrame"..tostring(bagIndex + 1)]);
     local numSlots = GetContainerNumSlots(bagIndex);
 
     local bagGlobalName = "MUI_InventoryBag"..tostring(bagIndex + 1);
     local bagFrame = tk:CreateFrame("Frame", inventoryFrame, bagGlobalName)--[[@as MayronUI.Inventory.BagFrame]];
-    inventoryFrame.bags[bagIndex + 1] = bagFrame;
+    inventoryFrame.bags[i + 1] = bagFrame;
 
     bagFrame:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
     bagFrame:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
@@ -812,7 +923,7 @@ function C_Inventory:OnInitialize()
       end
     end
 
-    bagBar.buttons[bagIndex + 1] = CreateBagBarToggleButton(bagIndex, bagBar, bagFrame);
+    bagBar.buttons[i + 1] = CreateBagBarToggleButton(bagIndex, bagBar, bagFrame, i);
   end
 
   UpdateInventoryDimensions(inventoryFrame);
@@ -840,65 +951,70 @@ function C_Inventory:OnInitialize()
   tk:SetBasicTooltip(inventoryFrame.sortBtn, "Sort Bags");
   inventoryFrame.sortBtn:SetScript("OnClick", _G["SortBags"]);
 
-  local originalTopPadding = containerPadding.top;
+  inventoryFrame.sortBtn:RegisterEvent("PLAYER_REGEN_DISABLED");
+  inventoryFrame.sortBtn:RegisterEvent("PLAYER_REGEN_ENABLED");
 
-  local function ToggleBagsFrame()
-    local bagsFrameShown = not bagBar:IsShown();
-    bagBar:SetShown(bagsFrameShown);
-
-    if (bagsFrameShown) then
-      containerPadding.top = originalTopPadding + slotHeight + containerPadding.left;
-    else
-      containerPadding.top = originalTopPadding;
-    end
-
-    for _, bag in ipairs(inventoryFrame.bags) do
-      bag:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
-    end
-
-    UpdateInventoryDimensions(inventoryFrame);
-  end
-
-  ---@param filteredItemClass Enum.ItemClass?
-  local function FilterByItemType(filteredItemClass)
-    if (inventoryFrame.filteredItemClass == filteredItemClass) then
-      return
-    end
-
-    inventoryFrame.filteredItemClass = filteredItemClass;
-
-    for _, bag in ipairs(inventoryFrame.bags) do
-      for _, slot in ipairs(bag.slots) do
-        local hasFilter = inventoryFrame.filteredItemClass ~= nil;
-
-        if (not hasFilter) then
-          slot:Show();
-        else
-          local itemID = slot:GetItemID();
-
-          if (itemID) then
-            local _, _, _, _, _, itemTypeClassID = GetItemInfoInstant(itemID);
-            local showSlot = inventoryFrame.filteredItemClass == itemTypeClassID;
-            slot:SetShown(showSlot);
-          else
-            slot:Show(); -- Show empty slots
-          end
-        end
-      end
-    end
-
-    UpdateInventoryDimensions(inventoryFrame, true);
-  end
+  inventoryFrame.sortBtn:SetScript("OnEvent", function(_, event)
+    inventoryFrame.sortBtn:SetEnabled(event == "PLAYER_REGEN_ENABLED");
+  end);
 
   inventoryFrame.bagsBtn = gui:CreateIconButton("bags", inventoryFrame, "MUI_InventoryBags");
   inventoryFrame.bagsBtn:SetPoint("RIGHT", inventoryFrame.sortBtn, "LEFT", -4, 0);
   tk:SetBasicTooltip(inventoryFrame.bagsBtn, "Toggle Bags");
+  inventoryFrame.bagsBtn:SetScript("OnClick", ToggleBagsBar);
 
-  -- inventoryFrame.bagsBtn:SetScript("OnClick", ToggleBagsFrame);
+  inventoryFrame.tabs = {};
+  inventoryFrame.selectedTabID = TabTypesEnum.AllItems;
 
-  -- TODO: TESTING FILTERS:
-  inventoryFrame.bagsBtn:SetScript("OnClick", function()
-    FilterByItemType(0);
+  for i = 1, 5 do
+    local tab = gui:CreateIcon(2, 34, 30, inventoryFrame, "check-button", nil, nil, "MUI_InventoryTab"..tostring(i))--[[@as CheckButton|MayronUI.Icon]];
+    inventoryFrame.tabs[i] = tab;
+
+    tab:HookScript("OnEnter", HandleTabOnEnter);
+    tab:HookScript("OnLeave", HandleTabOnLeave);
+    tab:SetScript("OnClick", HandleTabOnClick);
+
+    if (i == 1) then
+      tab:SetChecked(true);
+      tab:SetPoint("TOPLEFT", inventoryFrame, "TOPRIGHT", 10, 5);
+      tab.icon:SetTexture("Interface\\Icons\\Inv_misc_bag_07");
+      tab.tooltipText = "All Items";
+      tab:SetID(TabTypesEnum.AllItems);
+    else
+      tab:SetPoint("TOPLEFT", inventoryFrame.tabs[i - 1], "BOTTOMLEFT", 0, -5);
+      tab:SetChecked(false);
+
+      if (i == 2) then
+        tab.icon:SetTexture("Interface\\Icons\\INV_Helmet_20");
+        tab.tooltipText = "Equipment";
+        tab:SetID(TabTypesEnum.Equipment);
+      elseif (i == 3) then
+        tab.icon:SetTexture("Interface\\Icons\\INV_Potion_51");
+        tab.tooltipText = "Consumables";
+        tab.icon:SetSize(28, 24);
+        tab:SetID(TabTypesEnum.Consumables);
+      elseif (i == 4) then
+        tab.icon:SetTexture("Interface\\Icons\\INV_Fabric_Linen_01");
+        tab.tooltipText = "Trade Goods";
+        tab:SetID(TabTypesEnum.TradeGoods);
+      elseif (i == 5) then
+        tab.icon:SetTexture("Interface\\GossipFrame\\AvailableQuestIcon");
+        tab.icon:SetSize(20, 20);
+        tab.tooltipText = "Quest Items";
+        tab:SetID(TabTypesEnum.QuestItems);
+        tab.background:SetVertexColor(0, 0, 0, 1);
+      end
+    end
+
+    HandleTabOnLeave(tab);
+  end
+
+  tk:GroupCheckButtons(inventoryFrame.tabs, false);
+
+  inventoryFrame.sortBtn:HookScript("OnClick", function()
+    local tab1 = inventoryFrame.tabs[1];
+    local onTabClick = tab1:GetScript("OnClick");
+    onTabClick(tab1);
   end);
 
   CreateSearchBox(inventoryFrame);
