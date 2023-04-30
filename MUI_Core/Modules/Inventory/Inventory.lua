@@ -90,7 +90,12 @@ local containerPadding = { top = 30, right = 8, bottom = 34, left = 8 };
 
 local function UpdateInventoryDimensions(inventoryFrame, resetSlotOrder)
   local width, height = UpdateInventorySlotAnchors(inventoryFrame, resetSlotOrder);
-  inventoryFrame:SetSize(width, height);
+
+  if (resetSlotOrder) then
+    inventoryFrame:SetHeight(height);
+  else
+    inventoryFrame:SetSize(width, height);
+  end
 end
 
 ---@param slot MayronUI.Inventory.Slot
@@ -604,7 +609,8 @@ do
           local bag = inventoryFrame.bags[i];
 
           if (bag:IsShown()) then
-            for _, slot in ipairs(bag.slots) do
+            for j = 0, (#bag.slots - 1) do
+              local slot = bag.slots[#bag.slots - j];
               orderedSlots[#orderedSlots+1] = slot;
             end
           end
@@ -616,7 +622,9 @@ do
           local bag = inventoryFrame.bags[i];
           bag:Show();
 
-          for _, slot in ipairs(bag.slots) do
+          for j = 0, (#bag.slots - 1) do
+            local slot = bag.slots[#bag.slots - j];
+
             if (resetSlotOrder and slot:IsItemEmpty()) then
               emptySlots[#emptySlots+1] = slot;
             else
