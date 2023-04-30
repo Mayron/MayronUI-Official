@@ -63,7 +63,7 @@ local Mixin, Item, GetMoney, GetItemInfoInstant = _G.Mixin, _G.Item, _G.GetMoney
 ---@class MayronUI.Inventory.Frame : Frame
 ---@field bags MayronUI.Inventory.BagFrame[]
 ---@field bagBar MayronUI.Inventory.BagBar
----@field currency FontString
+---@field money FontString
 ---@field freeSlots FontString
 ---@field dragger Frame
 ---@field minWidth number
@@ -106,7 +106,7 @@ local function SetBagItemSlotBorderColor(slot, isHighlightedBag)
     end
   end
 
-  if (isHighlightedBag) then
+  if (isHighlightedBag == true) then
     slot:SetGridColor(1, 1, 1);
   else
     slot:SetGridColor(0.2, 0.2, 0.2);
@@ -122,6 +122,28 @@ local function ClearBagSlot(slot)
   slot.Count:Hide();
   slot.gloss:Hide();
   slot:SetGridColor(0.2, 0.2, 0.2);
+end
+
+---@param bag MayronUI.Inventory.BagFrame
+---@param slot MayronUI.Inventory.Slot
+local function UpdateBagSlotCooldown(bag, slot)
+  if (slot:IsItemEmpty()) then
+    slot.cooldown:Clear();
+    return
+  end
+
+  local slotIndex = slot:GetID() or 0;
+  local start, duration = GetContainerItemCooldown(bag.bagIndex, slotIndex);
+  local isCooldownActive = (start or 0) > 0 and (duration or 0) > 0;
+
+  --MayronUI:LogInfo("Update slot %s. isCooldownActive: %s (start: %s, duration: %s).",
+   -- slot:GetItemName(), isCooldownActive, start, duration);
+
+  if (isCooldownActive) then
+    slot.cooldown:SetCooldown(start, duration);
+  else
+    slot.cooldown:Clear();
+  end
 end
 
 ---@param slot MayronUI.Inventory.Slot
@@ -176,14 +198,7 @@ local function UpdateBagSlot(slot, highlighted)
   slot.JunkIcon:SetShown(slot:GetItemQuality() == 0);
   slot.searchOverlay:SetShown(info.isFiltered);
 
-  local start, duration, enable = GetContainerItemCooldown(bag.bagIndex, slotIndex);
-  local isCooldownActive = enable and enable ~= 0 and start > 0 and duration > 0;
-
-  if (isCooldownActive) then
-    slot.cooldown:SetCooldown(start, duration);
-  else
-    slot.cooldown:Clear();
-  end
+  UpdateBagSlotCooldown(bag, slot);
 end
 
 ---@param bagFrame MayronUI.Inventory.BagFrame
@@ -200,6 +215,7 @@ local function CreateBagItemSlot(bagFrame, slotIndex)
   slot.questTexture = _G[slotGlobalName.."IconQuestTexture"];
   slot.questTexture:SetSize(slotWidth, slotHeight);
   slot.questTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95);
+  slot:HookScript("OnClick", UpdateBagSlot);
 
   slot = gui:ReskinIcon(slot, 2);
   Mixin(slot, Item:CreateFromBagAndSlot(bagFrame.bagIndex, slotIndex));
@@ -435,10 +451,21 @@ end
 local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
   local bag = type(bagIndex) == "number" and bagIndex >= 0 and inventoryFrame.bags[bagIndex + 1];
 
+ -- MayronUI:LogInfo("Event: %s (has bag?: %s) with bagIndex %s and slotIndex %s.",event, obj:IsTable(bag), bagIndex, slotIndex);
+
 --[[
 	if ( event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_SPECIALIZATION_CHANGED" ) then
 		ContainerFrame_UpdateItemUpgradeIcons(self);
 --]]
+
+  if (event == "BAG_UPDATE_COOLDOWN") then
+    for _, b in ipairs(inventoryFrame.bags) do
+      for _, slot in ipairs(b.slots) do
+        UpdateBagSlotCooldown(b, slot);
+      end
+    end
+    return
+  end
 
 	if (event == "BAG_UPDATE") then
     if (bag) then
@@ -503,8 +530,8 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
 
   if (event == "PLAYER_MONEY") then
     local money = GetMoney();
-    local currencyText = tk.Strings:GetFormattedCurrency(money);
-    inventoryFrame.currency:SetText(currencyText);
+    local moneyText = tk.Strings:GetFormattedMoney(money);
+    inventoryFrame.money:SetText(moneyText);
     return
 	end
 
@@ -573,7 +600,9 @@ do
 
     if (tk.Tables:IsEmpty(orderedSlots)) then
       if (showAllItems) then
-        for _, bag in ipairs(inventoryFrame.bags) do
+        for i = _G.NUM_BAG_SLOTS + 1, 1, -1 do
+          local bag = inventoryFrame.bags[i];
+
           if (bag:IsShown()) then
             for _, slot in ipairs(bag.slots) do
               orderedSlots[#orderedSlots+1] = slot;
@@ -583,7 +612,8 @@ do
       else
         tk.Tables:Empty(emptySlots);
 
-        for _, bag in ipairs(inventoryFrame.bags) do
+        for i = _G.NUM_BAG_SLOTS + 1, 1, -1 do
+          local bag = inventoryFrame.bags[i];
           bag:Show();
 
           for _, slot in ipairs(bag.slots) do
@@ -872,6 +902,7 @@ function C_Inventory:OnInitialize()
   end
 
   -- self = inventoryFrame:
+	inventoryFrame:RegisterEvent("BAG_UPDATE_COOLDOWN");
 	inventoryFrame:RegisterEvent("BAG_UPDATE");
 	inventoryFrame:RegisterEvent("ITEM_LOCK_CHANGED");
 	inventoryFrame:RegisterEvent("BAG_NEW_ITEMS_UPDATED");
@@ -903,12 +934,12 @@ function C_Inventory:OnInitialize()
   for i = 0, _G.NUM_BAG_SLOTS do
     local bagIndex = _G.NUM_BAG_SLOTS - i;
 
-    -- tk:KillElement(_G["ContainerFrame"..tostring(bagIndex + 1)]);
+    tk:KillElement(_G["ContainerFrame"..tostring(bagIndex + 1)]);
     local numSlots = GetContainerNumSlots(bagIndex);
 
     local bagGlobalName = "MUI_InventoryBag"..tostring(bagIndex + 1);
     local bagFrame = tk:CreateFrame("Frame", inventoryFrame, bagGlobalName)--[[@as MayronUI.Inventory.BagFrame]];
-    inventoryFrame.bags[i + 1] = bagFrame;
+    inventoryFrame.bags[bagIndex + 1] = bagFrame;
 
     bagFrame:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
     bagFrame:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
@@ -923,7 +954,7 @@ function C_Inventory:OnInitialize()
       end
     end
 
-    bagBar.buttons[i + 1] = CreateBagBarToggleButton(bagIndex, bagBar, bagFrame, i);
+    bagBar.buttons[bagIndex + 1] = CreateBagBarToggleButton(bagIndex, bagBar, bagFrame, i);
   end
 
   UpdateInventoryDimensions(inventoryFrame);
@@ -938,12 +969,12 @@ function C_Inventory:OnInitialize()
     inventoryFrame.titleBar.onDragStop();
   end);
 
-  inventoryFrame.currency = inventoryFrame:CreateFontString("MUI_InventoryCurrency", "ARTWORK", "MUI_FontNormal");
-  inventoryFrame.currency:SetPoint("BOTTOMLEFT", 8, 8);
-  inventoryFrame.currency:SetJustifyH("LEFT");
+  inventoryFrame.money = inventoryFrame:CreateFontString("MUI_InventoryMoney", "ARTWORK", "MUI_FontNormal");
+  inventoryFrame.money:SetPoint("BOTTOMLEFT", 8, 8);
+  inventoryFrame.money:SetJustifyH("LEFT");
 
   inventoryFrame.freeSlots = inventoryFrame:CreateFontString("MUI_InventorySlots", "ARTWORK", "MUI_FontNormal");
-  inventoryFrame.freeSlots:SetPoint("BOTTOMLEFT", inventoryFrame.currency, "BOTTOMRIGHT", 12, 0);
+  inventoryFrame.freeSlots:SetPoint("BOTTOMLEFT", inventoryFrame.money, "BOTTOMRIGHT", 12, 0);
   inventoryFrame.freeSlots:SetJustifyH("LEFT");
 
   inventoryFrame.sortBtn = gui:CreateIconButton("sort", inventoryFrame, "MUI_InventorySort");

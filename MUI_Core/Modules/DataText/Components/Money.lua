@@ -113,7 +113,7 @@ function Money:__Construct(data, settings, dataTextModule, slideController)
   data.info[1] = tk.Strings:SetTextColorByTheme(L["Current Money"]..":");
   data.info[2] = nil; -- value of current money
   data.info[3] = tk.Strings:SetTextColorByTheme(L["Start of the day"]..":");
-  data.info[4] = tk.Strings:GetFormattedCurrency(data.settings.todayMoney);
+  data.info[4] = tk.Strings:GetFormattedMoney(data.settings.todayMoney);
   data.info[5] = tk.Strings:SetTextColorByTheme(L["Today's profit"]..":");
   data.info[6] = nil; -- value of today's profile
 
@@ -153,11 +153,11 @@ local function GetTodaysProfit(todayMoney)
   local money = GetMoney() - todayMoney;
 
   if (money >= 0) then
-    return tk.Strings:GetFormattedCurrency(money,  "GREEN");
+    return tk.Strings:GetFormattedMoney(money,  "GREEN");
 
   elseif (money < 0) then
     money = "-"..tostring(math.abs(money));
-    return tk.Strings:GetFormattedCurrency(money, "RED");
+    return tk.Strings:GetFormattedMoney(money, "RED");
   end
 end
 
@@ -167,7 +167,7 @@ function Money:Update(data, refreshSettings)
   end
 
   local money = GetMoney();
-  local currentMoney = tk.Strings:GetFormattedCurrency(money);
+  local currentMoney = tk.Strings:GetFormattedMoney(money);
   local coloredKey = tk.Strings:SetTextColorByClassFileName(tk:GetPlayerKey());
 
   self.Button:SetText(currentMoney);
@@ -236,7 +236,7 @@ function Money:HandleLeftClick(data)
   self.MenuLabels = self.MenuLabels or obj:PopTable();
 
   -- Update these 2 info values (check __Construct for a better understanding of what these are!)
-  data.info[2] = tk.Strings:GetFormattedCurrency(GetMoney());
+  data.info[2] = tk.Strings:GetFormattedMoney(GetMoney());
   data.info[6] = GetTodaysProfit(data.settings.todayMoney);
 
   local r, g, b = tk:GetThemeColor();
@@ -274,7 +274,7 @@ function Money:HandleLeftClick(data)
     local moneyLabel = self:GetLabel(totalLabelsShown, false);
     moneyLabel:SetNormalTexture(1);
     moneyLabel:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);
-    moneyLabel.name:SetText(tk.Strings:GetFormattedCurrency(money));
+    moneyLabel.name:SetText(tk.Strings:GetFormattedMoney(money));
   end
 
   return totalLabelsShown;

@@ -262,7 +262,7 @@ do
 
   ---@param money number
   ---@param colorKey MayronUI.ColorKey?
-  function tk.Strings:GetFormattedCurrency(money, colorKey)
+  function tk.Strings:GetFormattedMoney(money, colorKey)
     local text = "";
     local gold = math.floor(math.abs(money / 10000));
     local silver = math.floor(math.abs((money / 100) % 100));
