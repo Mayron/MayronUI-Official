@@ -449,7 +449,12 @@ local function HandleAuraButtonOnUpdate(self, elapsed)
       self.countText:SetText(tk.Strings.Empty);
       self.countLastUpdate = -10;
     else
-      self.countText:SetText(count);
+      if (count == 1) then
+        self.countText:SetText(tk.Strings.Empty);
+      else
+        self.countText:SetText(count);
+      end
+
       self.countLastUpdate = 0;
     end
   end
@@ -668,7 +673,7 @@ function AuraButtonMixin:ApplyStyling()
     self.auraNameText:SetWordWrap(false);
   end
 
-  self.timeRemainingText = self.iconFrame.cooldown:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
+  self.timeRemainingText = self.iconFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
   self:ApplyTextStyle("timeRemaining");
 
   -- Scripts:

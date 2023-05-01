@@ -42,16 +42,21 @@ do
     SetTooltipOwner(widget, "ANCHOR_BOTTOMLEFT");
 
     if (widget.cooldown) then
-      GameTooltip:SetFrameLevel(widget.cooldown:GetFrameLevel() + 2);
+      print("Ok")
+      GameTooltip:SetFrameLevel(widget.cooldown:GetFrameLevel() + 10);
     end
 
     local itemId = widget.itemID or widget:GetID();
 
     if (widget.iconType == "item") then
       GameTooltip:SetInventoryItem("player", itemId);
-
     elseif (widget.iconType == "aura") then
-      GameTooltip:SetUnitAura("player", itemId, widget.filter);
+
+      if (widget.auraSubType == "item") then
+        GameTooltip:SetInventoryItem("player", itemId);
+      else
+        GameTooltip:SetUnitAura("player", itemId, widget.filter);
+      end
 
     elseif (widget.iconType == "spell") then
       GameTooltip:SetSpellByID(itemId);
