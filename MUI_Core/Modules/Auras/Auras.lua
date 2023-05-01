@@ -624,6 +624,8 @@ function AuraButtonMixin:ApplyStyling()
 
   -- Set Up Icon:
   self.iconFrame = gui:CreateIcon(borderSize, iconWidth, iconHeight, self, "aura", self.texture, true);
+  self.icon = self.iconFrame.icon;
+  self.cooldown = self.iconFrame.cooldown;
 
   -- Status Bar:
   if (self.mode == "statusbars") then

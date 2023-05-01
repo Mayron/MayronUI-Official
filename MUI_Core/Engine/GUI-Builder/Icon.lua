@@ -17,6 +17,13 @@ local gui = MayronUI:GetComponent("GUIBuilder");
 ---@field itemID number?
 ---@field iconType MayronUI.IconType?
 
+
+local function HandleAuraRightClick(_, button)
+  if (button == "RightButton") then
+    tk.HandleTooltipOnLeave();
+  end
+end
+
 ---Creates an icon in the style of MayronUI without applying user config settings
 ---@generic T
 ---@param iconFrame T # If provided, no new iconFrame is created
@@ -76,8 +83,17 @@ local function CreateIcon(iconFrame, borderSize, iconType, disableOmniCC)
 
   -- Scripts:
   if (iconType) then
-    iconFrame:HookScript("OnEnter", tk.HandleTooltipOnEnter);
-    iconFrame:HookScript("OnLeave", tk.HandleTooltipOnLeave);
+    local container = iconFrame;
+
+    if (iconType == "aura") then
+      -- aura's have a secure frame that handles things such as right-click to dismiss
+      container = iconFrame:GetParent();
+      container.iconType = iconType;
+      container:HookScript("OnClick", HandleAuraRightClick);
+    end
+
+    container:HookScript("OnEnter", tk.HandleTooltipOnEnter);
+    container:HookScript("OnLeave", tk.HandleTooltipOnLeave);
   end
 
   return iconFrame;
