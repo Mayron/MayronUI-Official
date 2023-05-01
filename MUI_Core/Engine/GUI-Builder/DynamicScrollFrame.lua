@@ -17,30 +17,36 @@ local function HideIfAnimating(self)
 end
 
 local function DynamicScrollBar_OnChange(self)
-  if (not self.scrollable or not self.ScrollFrame) then
+  local container = self;
+  local scrollFrame = self.ScrollFrame;
+
+  if (not scrollFrame) then
+    scrollFrame = self;
+    container = self:GetParent();
+  end
+
+  local scrollBar = scrollFrame.ScrollBar;
+
+  if (not scrollFrame.scrollable) then
     self.showScrollBar = nil;
-
-    if (self.ScrollBar) then
-      self.ScrollBar:Hide();
-    end
-
+    scrollBar:Hide();
     return
   end
 
-  local scrollChild = self.ScrollFrame:GetScrollChild();
+  local scrollChild = scrollFrame:GetScrollChild();
   local scrollChildHeight = math.floor(scrollChild:GetHeight() + 0.5);
-  local containerHeight = math.floor(self:GetHeight() + 0.5);
+  local containerHeight = math.floor(container:GetHeight() + 0.5);
 
   if (scrollChild and scrollChildHeight > containerHeight) then
-    if (self.ScrollFrame.animating) then
-      self.ScrollBar:Hide();
-      self.showScrollBar = self.ScrollBar;
+    if (scrollFrame.animating) then
+      scrollBar:Hide();
+      self.showScrollBar = scrollBar;
     else
-      self.ScrollBar:Show();
+      scrollBar:Show();
     end
   else
     self.showScrollBar = nil;
-    self.ScrollBar:Hide();
+    scrollBar:Hide();
   end
 end
 
@@ -99,10 +105,10 @@ function gui:CreateScrollFrame(parent, global, child)
   container:SetScript("OnShow", DynamicScrollBar_OnChange);
   container:HookScript("OnSizeChanged", DynamicScrollBar_OnChange);
   container.ScrollFrame:SetScript("OnMouseWheel", ScrollFrame_OnMouseWheel);
-  container.ScrollFrame:HookScript("OnScrollRangeChanged", DynamicScrollBar_OnChange);
+  -- container.ScrollFrame:HookScript("OnScrollRangeChanged", DynamicScrollBar_OnChange);
 
   child.SetScrollable = function(_, scrollable)
-    container.scrollable = scrollable;
+    container.ScrollFrame.scrollable = scrollable;
   end
 
   return container;

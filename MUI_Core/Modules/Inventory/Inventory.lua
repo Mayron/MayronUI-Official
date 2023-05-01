@@ -23,7 +23,7 @@ local TabTypesEnum = {
   Consumables = 2;
   TradeGoods = 3;
   QuestItems = 4;
-}
+};
 
 local Mixin, Item, GetMoney, GetItemInfoInstant = _G.Mixin, _G.Item, _G.GetMoney, _G.GetItemInfoInstant;
 
@@ -38,6 +38,8 @@ local Mixin, Item, GetMoney, GetItemInfoInstant = _G.Mixin, _G.Item, _G.GetMoney
 
 ---@class MayronUI.Inventory.Slot : Button, ItemMixin, MayronUI.Icon
 ---@field icon Texture
+---@field itemName FontString
+---@field itemSubClass FontString
 ---@field Count FontString
 ---@field searchOverlay Texture
 ---@field IconBorder Texture
@@ -60,6 +62,7 @@ local Mixin, Item, GetMoney, GetItemInfoInstant = _G.Mixin, _G.Item, _G.GetMoney
 ---@field slots MayronUI.Inventory.Slot[]
 ---@field bagIndex number
 ---@field highlighted boolean
+---@field inventoryFrame MayronUI.Inventory.Frame
 
 ---@class MayronUI.Inventory.Frame : Frame
 ---@field bags MayronUI.Inventory.BagFrame[]
@@ -78,13 +81,14 @@ local Mixin, Item, GetMoney, GetItemInfoInstant = _G.Mixin, _G.Item, _G.GetMoney
 ---@field detailedView boolean
 ---@field bagsContainer BackdropTemplate|Frame
 ---@field scrollBar Frame
+---@field scrollFrameContainer BackdropTemplate|Frame
 
 -- Register and Import Modules -----------
 local C_Inventory = MayronUI:RegisterModule("Inventory", "Inventory");
 
 -- Settings:
 local slotWidth, slotHeight = 36, 30;
-local detailedSlotWidth, detailedSlotHeight = 300, 50;
+local detailedSlotWidth, detailedSlotHeight = 350, 40;
 local initialDetailedSlotRows = 8;
 local minDetailedSlotRows = 4;
 local maxDetailedSlotRows = 16;
@@ -203,6 +207,7 @@ local function UpdateInventorySlotAnchors(inventoryFrame, resetSlotOrder)
       if (slot:IsShown()) then
         local yOffset = (totalRows - 1) * slotYOffset;
         slot:SetPoint("TOPLEFT", 0, -yOffset);
+        slot:SetPoint("TOPRIGHT", 0, -yOffset);
       end
     end
 
@@ -269,13 +274,32 @@ end
 local function SetDetailedViewEnabled(inventoryFrame, enabled)
   inventoryFrame.detailedView = enabled;
   inventoryFrame.bagsContainer:ClearAllPoints();
-  inventoryFrame.bagsContainer:SetScrollable(inventoryFrame.detailedView);
+  inventoryFrame.bagsContainer:SetScrollable(enabled);
 
-  if (inventoryFrame.detailedView) then
+  if (enabled) then
     inventoryFrame.bagsContainer:SetPoint("TOPLEFT");
-    inventoryFrame.bagsContainer:SetPoint("TOPRIGHT");
+    inventoryFrame.bagsContainer:SetPoint("TOPRIGHT", -12, 0);
+
+    for _, bag in ipairs(inventoryFrame.bags) do
+      for _, slot in ipairs(bag.slots) do
+        slot:SetHeight(detailedSlotHeight);
+        slot.icon:ClearAllPoints();
+        slot.icon:SetPoint("TOPLEFT", 2, -2);
+        slot.icon:SetPoint("BOTTOMLEFT", 2, 2);
+        slot.icon:SetWidth(detailedSlotHeight);
+        slot.gloss:SetAlpha(0.2);
+        slot.Count:SetPoint("BOTTOMRIGHT", slot.icon, "BOTTOMRIGHT", -2, 2);
+      end
+    end
   else
     inventoryFrame.bagsContainer:SetAllPoints(true);
+
+    for _, bag in ipairs(inventoryFrame.bags) do
+      for _, slot in ipairs(bag.slots) do
+        slot:SetSize(slotWidth, slotHeight);
+        slot.gloss:SetAlpha(0.4);
+      end
+    end
   end
 
   UpdateInventoryDisplay(inventoryFrame);
@@ -309,6 +333,8 @@ local function ClearBagSlot(slot)
   slot.questTexture:Hide();
   slot.Count:Hide();
   slot.gloss:Hide();
+  slot.itemName:SetText("");
+  slot.itemSubClass:SetText("");
   slot:SetGridColor(0.2, 0.2, 0.2);
 end
 
@@ -335,7 +361,7 @@ local function UpdateBagSlotCooldown(bag, slot)
 end
 
 ---@param slot MayronUI.Inventory.Slot
-local function UpdateBagSlot(slot, highlighted)
+local function UpdateBagSlot(slot)
   if (slot:IsItemEmpty()) then
     ClearBagSlot(slot);
     return
@@ -352,7 +378,7 @@ local function UpdateBagSlot(slot, highlighted)
   local info = GetContainerItemInfo(bag.bagIndex, slotIndex);
   local countText = "";
 
-  SetBagItemSlotBorderColor(slot, highlighted);
+  SetBagItemSlotBorderColor(slot, bag.highlighted);
 
   if (info.stackCount > 1) then
     if (info.stackCount > 9999) then
@@ -364,6 +390,59 @@ local function UpdateBagSlot(slot, highlighted)
 
   slot.Count:SetText(countText);
   slot.Count:Show();
+
+  local detailedView = bag.inventoryFrame.detailedView;
+  slot.itemName:SetShown(detailedView);
+  slot.itemSubClass:SetShown(detailedView);
+
+  local quality = slot:GetItemQuality();
+
+  if (detailedView) then
+    slot:GetInventoryType();
+    slot.itemName:SetText(slot:GetItemName());
+
+    local _, itemClass, itemSubClass, equipLocation, _, classID, subClassID = GetItemInfoInstant(slot:GetItemID());
+    local subText;
+
+    if (classID == Enum.ItemClass.Miscellaneous and quality > 0) then
+      local isJunk = subClassID == Enum.ItemMiscellaneousSubclass.Junk;
+      local isOther = subClassID == Enum.ItemMiscellaneousSubclass.Other;
+
+      if (isJunk or isOther) then
+        -- if the item is classed as Junk but the quality isn't poor,
+        -- use the itemClass instead as its more useful
+        subText = itemClass;
+      else
+        subText = itemSubClass or itemClass;
+      end
+    else
+      subText = itemSubClass or itemClass;
+    end
+
+    local invType = slot:GetInventoryType();
+    if (invType > 0 and equipLocation) then
+      local inventorySlot = _G[equipLocation];
+
+      if (subText and equipLocation and subText ~= inventorySlot) then
+        local itemLevel = slot:GetCurrentItemLevel();
+
+        if (type(itemLevel) == "number" and itemLevel > 0) then
+          subText = inventorySlot .. ", ".. subText .. " (item level: " .. tostring(itemLevel) .. ")";
+        else
+          subText = inventorySlot .. ", ".. subText;
+        end
+      else
+        subText = inventorySlot;
+      end
+    end
+
+    slot.itemSubClass:SetText(subText or "");
+
+    if (invType > 0 or quality > 1) then
+      local color = slot:GetItemQualityColor();
+      slot.itemName:SetTextColor(color.r, color.g, color.b);
+    end
+  end
 
   local questInfo = GetContainerItemQuestInfo(bag.bagIndex, slotIndex);-- Could also use `isActive`
   local questTexture;
@@ -383,7 +462,7 @@ local function UpdateBagSlot(slot, highlighted)
     slot:SetGridColor(r, g, b);
   end
 
-  slot.JunkIcon:SetShown(slot:GetItemQuality() == 0);
+  slot.JunkIcon:SetShown(quality == 0);
   slot.searchOverlay:SetShown(info.isFiltered);
 
   UpdateBagSlotCooldown(bag, slot);
@@ -401,12 +480,31 @@ local function CreateBagItemSlot(bagFrame, slotIndex)
   slot:SetSize(slotWidth, slotHeight);
   slot.cooldown = _G[slotGlobalName.."Cooldown"];
   slot.questTexture = _G[slotGlobalName.."IconQuestTexture"];
-  slot.questTexture:SetSize(slotWidth, slotHeight);
   slot.questTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95);
-  slot:HookScript("OnClick", UpdateBagSlot);
+  -- slot:HookScript("OnClick", UpdateBagSlot);
 
   slot = gui:ReskinIcon(slot, 2);
   Mixin(slot, Item:CreateFromBagAndSlot(bagFrame.bagIndex, slotIndex));
+
+  slot.questTexture:ClearAllPoints();
+  slot.questTexture:SetAllPoints(slot.icon);
+
+  slot.itemName = slot:CreateFontString("$parentItemName", "OVERLAY", "GameFontHighlight");
+  slot.itemName:SetPoint("TOPLEFT", slot.icon, "TOPRIGHT", 8, -4);
+  slot.itemName:SetPoint("TOPRIGHT", -8, -4);
+  slot.itemName:Hide();
+  slot.itemName:SetJustifyH("LEFT");
+  slot.itemName:SetWordWrap(false);
+  tk:SetFontSize(slot.itemName, 12);
+
+  slot.itemSubClass = slot:CreateFontString("$parentItemClass", "OVERLAY", "GameFontHighlight");
+  slot.itemSubClass:SetPoint("TOPLEFT", slot.itemName, "BOTTOMLEFT", 0, -2);
+  slot.itemSubClass:SetPoint("TOPRIGHT", slot.itemName, "BOTTOMRIGHT", 0, -2);
+  slot.itemSubClass:Hide();
+  slot.itemSubClass:SetJustifyH("LEFT");
+  tk:SetFontSize(slot.itemSubClass, 10);
+
+  slot.itemSubClass:SetTextColor(tk.Constants.COLORS.GRAY:GetRGB());
 
   slot.searchOverlay:SetDrawLayer("OVERLAY", 7);
 
@@ -421,12 +519,14 @@ local function CreateBagItemSlot(bagFrame, slotIndex)
     slot.BagStaticTop,
     slot.IconBorder,
     slot.BattlepayItemTexture,
-    slot:GetNormalTexture()
+    slot:GetNormalTexture(),
+    slot:GetPushedTexture(),
+    slot:GetHighlightTexture()
   );
 
   if (not slot:IsItemEmpty()) then
     slot:ContinueOnItemLoad(function()
-      UpdateBagSlot(slot, bagFrame.highlighted);
+      UpdateBagSlot(slot);
     end);
   end
 
@@ -611,11 +711,10 @@ end
 ---@param bag MayronUI.Inventory.BagFrame
 local function UpdateAllBagSlots(bag)
   for _, slot in ipairs(bag.slots) do
-    UpdateBagSlot(slot, bag.highlighted);
+    UpdateBagSlot(slot);
   end
 
-  local inventoryFrame = bag:GetParent()--[[@as MayronUI.Inventory.Frame]];
-  UpdateFreeSlots(inventoryFrame);
+  UpdateFreeSlots(bag.inventoryFrame);
 end
 
 ---@param bags MayronUI.Inventory.BagFrame[]
@@ -759,7 +858,7 @@ do
       totalElapsed = 0;
 
       if (self.dragger:IsDragging() and not self.detailedView) then
-        UpdateInventorySlotAnchors(self);
+        UpdateInventorySlotAnchors(self, false);
       end
     end
   end
@@ -860,9 +959,7 @@ local function ToggleBagsBar(self)
     containerPadding.top = originalTopPadding;
   end
 
-  for _, bag in ipairs(inventoryFrame.bags) do
-    bag:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
-  end
+  inventoryFrame.scrollFrameContainer:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
 
   UpdateInventoryDisplay(inventoryFrame);
 end
@@ -950,6 +1047,9 @@ function C_Inventory:OnInitialize()
   inventoryFrame:SetPoint("TOPLEFT", 800, -500);
   inventoryFrame:Hide();
 
+  -- TODO: Temporary:
+  inventoryFrame.detailedView = true;
+
   tk:HookFunc("ToggleAllBags", function()
     local show = not inventoryFrame:IsShown();
     inventoryFrame:SetShown(show);
@@ -1013,6 +1113,7 @@ function C_Inventory:OnInitialize()
   scrollFrameContainer:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
   inventoryFrame.bagsContainer = scrollFrameContainer.ScrollFrame:GetScrollChild();
   inventoryFrame.scrollBar = scrollFrameContainer.ScrollBar;
+  inventoryFrame.scrollFrameContainer  = scrollFrameContainer;
 
   -- Create Bags and Slots:
   for i = 0, _G.NUM_BAG_SLOTS do
@@ -1023,6 +1124,7 @@ function C_Inventory:OnInitialize()
 
     local bagGlobalName = "MUI_InventoryBag"..tostring(bagIndex + 1);
     local bagFrame = tk:CreateFrame("Frame", inventoryFrame.bagsContainer--[[@as Frame]], bagGlobalName)--[[@as MayronUI.Inventory.BagFrame]];
+    bagFrame.inventoryFrame = inventoryFrame;
     inventoryFrame.bags[bagIndex + 1] = bagFrame;
     bagFrame:SetAllPoints(true);
 
@@ -1041,13 +1143,18 @@ function C_Inventory:OnInitialize()
   end
 
   inventoryFrame.dragger:HookScript("OnDragStart", function()
-    inventoryFrame:SetScript("OnUpdate", InventoryFrameOnUpdate);
+    if (not inventoryFrame.detailedView) then
+      inventoryFrame:SetScript("OnUpdate", InventoryFrameOnUpdate);
+    end
   end);
 
   inventoryFrame.dragger:HookScript("OnDragStop", function()
     inventoryFrame:SetScript("OnUpdate", nil);
-    UpdateInventoryDisplay(inventoryFrame);
-    inventoryFrame.titleBar.onDragStop();
+
+    if (not inventoryFrame.detailedView) then
+      UpdateInventoryDisplay(inventoryFrame);
+      inventoryFrame.titleBar.onDragStop();
+    end
   end);
 
   inventoryFrame.money = inventoryFrame:CreateFontString("MUI_InventoryMoney", "ARTWORK", "MUI_FontNormal");
@@ -1137,5 +1244,5 @@ function C_Inventory:OnInitialize()
   inventoryFrame:SetScript("OnEvent", InventoryFrameOnEvent);
 
   -- TODO: Details View button testing:
-  SetDetailedViewEnabled(inventoryFrame, false);
+  SetDetailedViewEnabled(inventoryFrame, true);
 end
