@@ -35,7 +35,6 @@ end
 
 local function CreateDialogBox(textureType, frame, parent, globalName)
   frame = frame or tk:CreateFrame("Frame", parent, globalName);
-  frame:EnableMouse(true);
 
   local texture = tk:GetAssetFilePath("Textures\\DialogBox\\DialogBackground-"..textureType);
   local cornerSize = (textureType == "Medium" and 10) or 6;

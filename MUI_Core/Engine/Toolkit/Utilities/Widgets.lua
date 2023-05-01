@@ -438,9 +438,15 @@ end
 --> Font Functions
 ------------------------------------------------
 
-function tk:SetFontSize(fontstring, size)
-  local filename, _, flags = fontstring:GetFont();
-  fontstring:SetFont(filename, size, flags);
+function tk:SetFontSize(fontString, size)
+  local filePath, _, flags = fontString:GetFont();
+  fontString:SetFont(filePath, size, flags);
+end
+
+function tk:SetFont(fontString, fontName)
+  local filePath = tk.Constants.LSM:Fetch("font", fontName);
+  local _, size, flags = fontString:GetFont();
+  fontString:SetFont(filePath, size, flags);
 end
 
 function tk:GetMasterFont()

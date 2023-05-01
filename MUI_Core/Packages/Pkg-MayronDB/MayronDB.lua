@@ -283,6 +283,7 @@ obj:DefineParams("function");
 ---Hooks a callback function onto the "ProfileChanged" event to be called when the database changes profile
 ---(i.e. only changed by the user using db:SetProfile() or db:RemoveProfile(currentProfile)).
 ---@param callback function @The profile changing callback function
+---@overload fun(self, callback: function)
 function Database:OnProfileChange(data, callback)
   local profileChangedCallback = data.callbacks["OnProfileChange"]
                                    or obj:PopTable();

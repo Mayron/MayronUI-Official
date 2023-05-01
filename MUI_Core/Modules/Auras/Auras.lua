@@ -83,8 +83,12 @@ local databaseConfig = {
           iconShadow = true;
           secondsWarning = 10;
           position = { "TOPRIGHT", "UIParent", "TOPRIGHT", -5, -5 };
+          fonts = {
+            timeRemaining = "Prototype";
+            count = "Prototype";
+          },
           textSize = {
-            timeRemaining = 10;
+            timeRemaining = 12;
             timeRemainingLarge = 14;
             count = 14;
           };
@@ -114,8 +118,15 @@ local databaseConfig = {
           showSpark = true;
 
           position = { "TOPRIGHT", "UIParent", "TOPRIGHT", -3, -3 };
+
+          fonts = {
+            timeRemaining = "Prototype";
+            count = "Prototype";
+            auraName = "MayronUI";
+          },
+
           textSize = {
-            timeRemaining = 10;
+            timeRemaining = 12;
             timeRemainingLarge = 14;
             count = 14;
             auraName = 10;
@@ -146,8 +157,14 @@ local databaseConfig = {
           iconShadow = true;
           secondsWarning = 10;
           position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
+
+          fonts = {
+            timeRemaining = "Prototype";
+            count = "Prototype";
+          },
+
           textSize = {
-            timeRemaining = 10;
+            timeRemaining = 12;
             timeRemainingLarge = 14;
             count = 14;
           };
@@ -177,8 +194,14 @@ local databaseConfig = {
           texture = "MUI_StatusBar";
           showSpark = true;
 
+          fonts = {
+            timeRemaining = "Prototype";
+            count = "Prototype";
+            auraName = "MayronUI";
+          },
+
           textSize = {
-            timeRemaining = 10;
+            timeRemaining = 12;
             timeRemainingLarge = 14;
             count = 14;
             auraName = 10;
@@ -252,7 +275,7 @@ do
 end
 
 -- Objects -----------------------------
-local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"], true);
+local C_AurasModule = MayronUI:RegisterModule("AurasModule", L["Auras (Buffs & Debuffs)"]);
 
 ---@class AuraButtonMixin : Button
 ---@field filter "HELPFUL"|"HARMFUL"
@@ -294,6 +317,9 @@ function AuraButtonMixin:ApplyTextStyle(name)
 
   local textSize = self:GetSetting("number", "textSize", name);
   tk:SetFontSize(fontString, textSize);
+
+  local font = self:GetSetting("string", "fonts", name);
+  tk:SetFont(fontString, font);
 end
 
 local ITERATIONS = 50;
@@ -873,22 +899,16 @@ local function CreateAuraHeader(filter, db)
 end
 
 -- C_AurasModule -----------------------
----@param db DatabaseMixin
-function C_AurasModule:OnInitialize(_, db)
-  CreateAuraHeader("HELPFUL", db);
-  CreateAuraHeader("HARMFUL", db);
+function C_AurasModule:OnInitialize()
+  OrbitusDB:Register(addOnName, "MUI_AurasDB", databaseConfig, function (db)
+    MayronUI:AddComponent("MUI_AurasDB", db);
+    CreateAuraHeader("HELPFUL", db);
+    CreateAuraHeader("HARMFUL", db);
 
-  -- Hide Blizzard frames
-  tk:KillElement(_G.BuffFrame);
-  tk:KillElement(_G.TemporaryEnchantFrame);
-  tk:KillElement(_G.DebuffFrame);
+    -- Hide Blizzard frames
+    tk:KillElement(_G.BuffFrame);
+    tk:KillElement(_G.TemporaryEnchantFrame);
+    tk:KillElement(_G.DebuffFrame);
+  end);
 end
 
-OrbitusDB:Register(addOnName, "MUI_AurasDB", databaseConfig, function (db)
-  MayronUI:AddComponent("MUI_AurasDB", db);
-  local aurasModule = MayronUI:ImportModule("AurasModule");
-
-  if (aurasModule) then
-    aurasModule:Initialize(db);
-  end
-end);

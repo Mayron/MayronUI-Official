@@ -66,6 +66,11 @@ local function RenameAliases(text, settings, r, g, b)
     if (obj:IsString(channelName) and not loadedChannels[channelName]) then
       local path = tk.Strings:Concat("profile.chat.aliases[", channelName, "]");
       local default = (channelName:gsub("[a-z%s]", ""));
+
+      if (tk.Strings:IsNilOrWhiteSpace(default)) then
+        default = channelName;
+      end
+
       db:AddToDefaults(path, default);
       loadedChannels[channelName] = true;
       changed = true;
@@ -137,10 +142,6 @@ local function NewAddMessage(self, settings, text, r, g, b, ...)
   local newText = text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink);
   MayronUI.text = newText;
 	self:oldAddMessage(newText, r, g, b, ...);
-end
-
-local function OnHyperLinkLeave()
-	_G.GameTooltip:Hide();
 end
 
 local function OnHyperLinkEnter(self, linkData)
@@ -296,7 +297,7 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
     end;
 
 		chatFrame:SetScript("OnHyperLinkEnter", OnHyperLinkEnter);
-		chatFrame:SetScript("OnHyperLinkLeave", OnHyperLinkLeave);
+		chatFrame:SetScript("OnHyperLinkLeave", tk.HandleTooltipOnLeave);
 		chatFrame:SetScript("OnHyperlinkClick", OnHyperLinkClick);
 	end
 

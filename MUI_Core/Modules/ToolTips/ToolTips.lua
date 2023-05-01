@@ -295,7 +295,7 @@ local function SetBackdropStyle(data)
         ManageGetterOverrides(data, tooltip, true);
 
         if (not obj:IsFunction(tooltip.SetGridTextureShown)) then
-          gui:CreateSmallDialogBox(tooltip)
+          gui:CreateSmallDialogBox(tooltip);
         end
 
         if (data.settings.muiTexture.useTheme) then
