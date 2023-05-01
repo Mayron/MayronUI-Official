@@ -114,9 +114,11 @@ end
 
 obj:DefineParams("?string", "?boolean");
 obj:DefineReturns("table");
----@param name string @(optional) The name used to identify and retrieve the padding values.
+---@param name string? @(optional) The name used to identify and retrieve the padding values.
 ---@param disableUnpacking boolean @(optional) If true, the table containing padding values will not be unpacked and instead the entire table will be returned.
----@return number, number, number, number @If disableUnpacking is true, a table will be returned instead.
+---@return number, number?, number?, number? @If disableUnpacking is true, a table will be returned instead.
+---@overload fun(self, name: string?, disableUnpacking: true): table
+---@overload fun(self, name: string?): number, number, number, number
 function Style:GetPadding(data, name, disableUnpacking)
   local value = Getter(data, "padding", name, {0, 0, 0, 0});
 

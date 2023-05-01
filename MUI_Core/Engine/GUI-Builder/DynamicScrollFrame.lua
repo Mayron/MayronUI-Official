@@ -17,7 +17,15 @@ local function HideIfAnimating(self)
 end
 
 local function DynamicScrollBar_OnChange(self)
-  if (not self.ScrollFrame) then return end
+  if (not self.scrollable or not self.ScrollFrame) then
+    self.showScrollBar = nil;
+
+    if (self.ScrollBar) then
+      self.ScrollBar:Hide();
+    end
+
+    return
+  end
 
   local scrollChild = self.ScrollFrame:GetScrollChild();
   local scrollChildHeight = math.floor(scrollChild:GetHeight() + 0.5);
@@ -37,6 +45,7 @@ local function DynamicScrollBar_OnChange(self)
 end
 
 local function ScrollFrame_OnMouseWheel(self, step)
+  if (not self.scrollable) then return end
   local newvalue = self:GetVerticalScroll() - (step * 20);
 
   if (newvalue < 0) then
@@ -55,7 +64,7 @@ end
 function gui:CreateScrollFrame(parent, global, child)
   local style = tk.Constants.AddOnStyle;
   local container = tk:CreateBackdropFrame("Frame", parent, global);
-  container.ScrollFrame = tk:CreateFrame("ScrollFrame", container, nil, "UIPanelScrollFrameTemplate");
+  container.ScrollFrame = tk:CreateFrame("ScrollFrame", container--[[@as Frame]], nil, "UIPanelScrollFrameTemplate");
   container.ScrollFrame:SetAllPoints(true);
   container.ScrollFrame:EnableMouseWheel(true);
   container.ScrollFrame:SetClipsChildren(true);
@@ -89,9 +98,12 @@ function gui:CreateScrollFrame(parent, global, child)
 
   container:SetScript("OnShow", DynamicScrollBar_OnChange);
   container:HookScript("OnSizeChanged", DynamicScrollBar_OnChange);
-
   container.ScrollFrame:SetScript("OnMouseWheel", ScrollFrame_OnMouseWheel);
   container.ScrollFrame:HookScript("OnScrollRangeChanged", DynamicScrollBar_OnChange);
+
+  child.SetScrollable = function(_, scrollable)
+    container.scrollable = scrollable;
+  end
 
   return container;
 end
