@@ -52,16 +52,18 @@ end
 
 local function ScrollFrame_OnMouseWheel(self, step)
   if (not self.scrollable) then return end
-  local newvalue = self:GetVerticalScroll() - (step * 20);
 
-  if (newvalue < 0) then
-    newvalue = 0;
+  local amount = self:GetParent():GetHeight() * 0.2;
+  local offset = self:GetVerticalScroll() - (step * amount);
+
+  if (offset < 0) then
+    offset = 0;
     -- max scroll range is scrollchild.height - scrollframe.height!
-  elseif (newvalue > self:GetVerticalScrollRange()) then
-    newvalue = self:GetVerticalScrollRange();
+  elseif (offset > self:GetVerticalScrollRange()) then
+    offset = self:GetVerticalScrollRange();
   end
 
-  self:SetVerticalScroll(newvalue);
+  self:SetVerticalScroll(offset);
 end
 
 -- Lib Methods ------------------
@@ -87,8 +89,8 @@ function gui:CreateScrollFrame(parent, global, child)
   container.ScrollBar:SetPoint("TOPLEFT", container.ScrollFrame, "TOPRIGHT", -8, 0);
   container.ScrollBar:SetPoint("BOTTOMRIGHT", container.ScrollFrame, "BOTTOMRIGHT", 0, 0);
 
-  container.ScrollBar.ClearAllPoints = gui.DUMMY_FUNC;
-  container.ScrollBar.SetPoint = gui.DUMMY_FUNC;
+  container.ScrollBar.ClearAllPoints = tk.Constants.DUMMY_FUNC;
+  container.ScrollBar.SetPoint = tk.Constants.DUMMY_FUNC;
   hooksecurefunc(container.ScrollBar, "Show", HideIfAnimating);
 
   container.ScrollBar.thumb = container.ScrollBar:GetThumbTexture();
@@ -105,10 +107,13 @@ function gui:CreateScrollFrame(parent, global, child)
   container:SetScript("OnShow", DynamicScrollBar_OnChange);
   container:HookScript("OnSizeChanged", DynamicScrollBar_OnChange);
   container.ScrollFrame:SetScript("OnMouseWheel", ScrollFrame_OnMouseWheel);
-  -- container.ScrollFrame:HookScript("OnScrollRangeChanged", DynamicScrollBar_OnChange);
+
+  -- required to override Blizzard functionality that shows the ScrollBar for us
+  container.ScrollFrame:HookScript("OnScrollRangeChanged", DynamicScrollBar_OnChange);
 
   child.SetScrollable = function(_, scrollable)
     container.ScrollFrame.scrollable = scrollable;
+    container.ScrollFrame:GetVerticalScrollRange();
   end
 
   return container;

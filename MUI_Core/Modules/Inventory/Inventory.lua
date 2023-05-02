@@ -88,8 +88,8 @@ local C_Inventory = MayronUI:RegisterModule("Inventory", "Inventory");
 
 -- Settings:
 local slotWidth, slotHeight = 36, 30;
-local detailedSlotWidth, detailedSlotHeight = 350, 40;
-local initialDetailedSlotRows = 8;
+local detailedSlotWidth, detailedSlotHeight = 350, 36;
+local initialDetailedSlotRows = 16;
 local minDetailedSlotRows = 4;
 local maxDetailedSlotRows = 16;
 local slotSpacing = 6;
@@ -481,7 +481,9 @@ local function CreateBagItemSlot(bagFrame, slotIndex)
   slot.cooldown = _G[slotGlobalName.."Cooldown"];
   slot.questTexture = _G[slotGlobalName.."IconQuestTexture"];
   slot.questTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95);
-  -- slot:HookScript("OnClick", UpdateBagSlot);
+
+  -- Required to show cooldown
+  slot:HookScript("OnClick", UpdateBagSlot);
 
   slot = gui:ReskinIcon(slot, 2);
   Mixin(slot, Item:CreateFromBagAndSlot(bagFrame.bagIndex, slotIndex));
@@ -738,7 +740,7 @@ end
 local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
   local bag = type(bagIndex) == "number" and bagIndex >= 0 and inventoryFrame.bags[bagIndex + 1];
 
- -- MayronUI:LogInfo("Event: %s (has bag?: %s) with bagIndex %s and slotIndex %s.",event, obj:IsTable(bag), bagIndex, slotIndex);
+--  MayronUI:LogInfo("Event: %s (has bag?: %s) with bagIndex %s and slotIndex %s.",event, obj:IsTable(bag), bagIndex, slotIndex);
 
 --[[
 	if ( event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_SPECIALIZATION_CHANGED" ) then
@@ -1048,7 +1050,7 @@ function C_Inventory:OnInitialize()
   inventoryFrame:Hide();
 
   -- TODO: Temporary:
-  inventoryFrame.detailedView = true;
+  -- inventoryFrame.detailedView = true;
 
   tk:HookFunc("ToggleAllBags", function()
     local show = not inventoryFrame:IsShown();
@@ -1244,5 +1246,5 @@ function C_Inventory:OnInitialize()
   inventoryFrame:SetScript("OnEvent", InventoryFrameOnEvent);
 
   -- TODO: Details View button testing:
-  SetDetailedViewEnabled(inventoryFrame, true);
+  SetDetailedViewEnabled(inventoryFrame, false);
 end
