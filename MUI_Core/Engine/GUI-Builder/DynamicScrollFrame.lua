@@ -113,8 +113,9 @@ function gui:CreateScrollFrame(parent, global, child)
 
   child.SetScrollable = function(_, scrollable)
     container.ScrollFrame.scrollable = scrollable;
-    container.ScrollFrame:GetVerticalScrollRange();
   end
+
+  child:SetScrollable(true);
 
   return container;
 end

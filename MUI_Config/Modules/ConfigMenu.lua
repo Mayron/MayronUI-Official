@@ -654,7 +654,7 @@ function C_ConfigMenuModule:SetUpWindow(data)
 
   -- convert container to a panel
   data.window = gui:CreatePanel(data.window);
-  data.window:SetDevMode(true); -- shows or hides the red frame info overlays
+  data.window:SetDevMode(false); -- shows or hides the red frame info overlays
   data.window:SetDimensions(2, 3);
   data.window:GetColumn(1):SetFixed(200);
   data.window:GetRow(1):SetFixed(80);

@@ -42,7 +42,6 @@ do
     SetTooltipOwner(widget, "ANCHOR_BOTTOMLEFT");
 
     if (widget.cooldown) then
-      print("Ok")
       GameTooltip:SetFrameLevel(widget.cooldown:GetFrameLevel() + 10);
     end
 
