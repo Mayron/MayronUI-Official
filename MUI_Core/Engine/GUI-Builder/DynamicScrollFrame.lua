@@ -53,7 +53,14 @@ end
 local function ScrollFrame_OnMouseWheel(self, step)
   if (not self.scrollable) then return end
 
-  local amount = self:GetParent():GetHeight() * 0.2;
+  local container = self:GetParent();
+
+  if (not container.ScrollBar:IsShown()) then
+    self:SetVerticalScroll(0);
+    return
+  end
+
+  local amount = container:GetHeight() * 0.2;
   local offset = self:GetVerticalScroll() - (step * amount);
 
   if (offset < 0) then
@@ -69,13 +76,12 @@ end
 -- Lib Methods ------------------
 
 -- Creates a scroll frame inside a container frame
-function gui:CreateScrollFrame(parent, global, child)
+function gui:CreateScrollFrame(parent, global, child, scrollBarOffset)
   local style = tk.Constants.AddOnStyle;
   local container = tk:CreateBackdropFrame("Frame", parent, global);
   container.ScrollFrame = tk:CreateFrame("ScrollFrame", container--[[@as Frame]], nil, "UIPanelScrollFrameTemplate");
   container.ScrollFrame:SetAllPoints(true);
   container.ScrollFrame:EnableMouseWheel(true);
-  container.ScrollFrame:SetClipsChildren(true);
 
   child = child or tk:CreateFrame("Frame", container.ScrollFrame);
   container.ScrollFrame:SetScrollChild(child);
@@ -83,11 +89,16 @@ function gui:CreateScrollFrame(parent, global, child)
   local padding = style:GetPadding(nil, true);
   tk:SetFullWidth(child, padding.right);
 
+  local barWidth = 8;
+  if (scrollBarOffset == nil) then
+    scrollBarOffset = 0;
+  end
+
   -- ScrollBar ------------------
-  container.ScrollBar = container.ScrollFrame.ScrollBar;
+  container.ScrollBar = container.ScrollFrame.ScrollBar--[[@as Slider]];
   container.ScrollBar:ClearAllPoints();
-  container.ScrollBar:SetPoint("TOPLEFT", container.ScrollFrame, "TOPRIGHT", -8, 0);
-  container.ScrollBar:SetPoint("BOTTOMRIGHT", container.ScrollFrame, "BOTTOMRIGHT", 0, 0);
+  container.ScrollBar:SetPoint("TOPLEFT", container, "TOPRIGHT", scrollBarOffset, 0);
+  container.ScrollBar:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", scrollBarOffset + barWidth, 0);
 
   container.ScrollBar.ClearAllPoints = tk.Constants.DUMMY_FUNC;
   container.ScrollBar.SetPoint = tk.Constants.DUMMY_FUNC;

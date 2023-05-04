@@ -551,7 +551,7 @@ end
 
 ---@generic T : FrameType
 ---@param frameType FrameType|`T`
----@param parent Frame?
+---@param parent (BackdropTemplate|Frame)?
 ---@param globalName string?
 ---@param templates string?
 ---@return T

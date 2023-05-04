@@ -75,34 +75,81 @@ local Mixin, Item, GetMoney, GetItemInfoInstant = _G.Mixin, _G.Item, _G.GetMoney
 ---@field closeBtn Button
 ---@field sortBtn Button
 ---@field bagsBtn Button
+---@field viewBtn Button
 ---@field titleBar Button
 ---@field selectedTabID MayronUI.Inventory.TabType?
 ---@field tabs (MayronUI.Icon|CheckButton)[]
 ---@field detailedView boolean
----@field bagsContainer BackdropTemplate|Frame
+---@field scrollChild BackdropTemplate|Frame
 ---@field scrollBar Frame
----@field scrollFrameContainer BackdropTemplate|Frame
+---@field bagsContainer BackdropTemplate|Frame
 
 -- Register and Import Modules -----------
 local C_Inventory = MayronUI:RegisterModule("Inventory", "Inventory");
 
 -- Settings:
-local slotWidth, slotHeight = 36, 30;
-local detailedSlotWidth, detailedSlotHeight = 350, 36;
-local initialDetailedSlotRows = 16;
-local minDetailedSlotRows = 4;
-local maxDetailedSlotRows = 16;
+
+-- local initialDetailedSlotRows = 16;
+-- local minDetailedSlotRows = 4;
+-- local maxDetailedSlotRows = 16;
 local slotSpacing = 6;
-local initialColumns = 10;
-local minColumns = 8;
-local maxColumns = 30;
+
+---@class MayronUI.Inventory.ViewSettings
+---@field height number
+---@field widths { initial: number, min: number, max:number }
+---@field columns { initial: number, min: number, max:number }
+---@field rows { initial: number, min: number, max:number }
+
+local viewSettings = {
+  ---@type MayronUI.Inventory.ViewSettings
+  detailed = {
+    height = 36;
+    widths = { initial = 300, min = 260, max = 350 };
+    columns = { initial = 1, min = 1, max = 4 };
+    rows = { initial = 10, min = 5, max = 15 }; -- the max it can be per boundary
+  };
+  ---@type MayronUI.Inventory.ViewSettings
+  grid = {
+    height = 30;
+    widths = { initial = 36, min = 36, max = 36 };
+    columns = { initial = 10, min = 8, max = 30 };
+    rows = { initial = 30, min = 30, max = 30 }; -- the max it can be per boundary
+  };
+};
+
 local containerPadding = { top = 30, right = 8, bottom = 34, left = 8 };
+local originalTopPadding = containerPadding.top;
+local originalRightPadding = containerPadding.right;
+
 
 -- Local Functions --------------
 
-local function PositionBagSlotsByTotalColumns(updateAnchors, totalColumns, orderedSlots)
+---@param settings MayronUI.Inventory.ViewSettings
+---@param totalColumns number|"min"|"max"|"initial"
+---@return integer totalRows, number slotWidth
+local function UpdateBagSlotAnchors(settings, updateAnchors, totalColumns, orderedSlots, containerWidth)
   local columnIndex = 1;
   local totalRows = 1;
+
+  local slotWidth = settings.widths.initial;
+
+  if (type(totalColumns) == "string") then
+    slotWidth = settings.widths[totalColumns];
+    totalColumns = settings.columns[totalColumns];
+  end
+
+  if (settings.widths.min ~= settings.widths.max and containerWidth > 0) then
+    slotWidth = (containerWidth / totalColumns);
+
+    if (totalColumns > 1) then
+      local gaps = totalColumns - 1;
+      local totalSpace = gaps * slotSpacing;
+      local widthReduction = totalSpace / totalColumns;
+      slotWidth = slotWidth - widthReduction;
+    end
+
+    slotWidth = math.max(math.min(slotWidth, settings.widths.max), settings.widths.min);
+  end
 
   for _, slot in ipairs(orderedSlots) do
     if (slot:IsShown()) then
@@ -112,18 +159,18 @@ local function PositionBagSlotsByTotalColumns(updateAnchors, totalColumns, order
         columnIndex = 1;
       end
 
-      local xOffset = (columnIndex - 1) * (slotWidth  + slotSpacing);
-      local yOffset = (totalRows - 1) * (slotHeight + slotSpacing);
-
       if (updateAnchors) then
+        local xOffset = (columnIndex - 1) * (slotWidth + slotSpacing);
+        local yOffset = (totalRows - 1) * (settings.height + slotSpacing);
         slot:SetPoint("TOPLEFT", xOffset, -yOffset);
       end
 
+      slot:SetWidth(slotWidth);
       columnIndex = columnIndex + 1; -- next column
     end
   end
 
-  return totalRows;
+  return totalRows, slotWidth;
 end
 
 local GetOrderedSlots; ---@type fun(inventoryFrame: MayronUI.Inventory.Frame, resetSlotOrder: boolean?): MayronUI.Inventory.Slot[]
@@ -181,58 +228,38 @@ do
   end
 end
 
+---@param settings MayronUI.Inventory.ViewSettings
 ---@param totalColumns number
----@param updateAnchors boolean
----@param orderedSlots MayronUI.Inventory.Slot[]
-local function GetInventoryFrameSizeByTotalColumns(totalColumns, updateAnchors, orderedSlots)
-  local totalRows = PositionBagSlotsByTotalColumns(updateAnchors, totalColumns, orderedSlots);
-
+---@param slotWidth number
+---@param totalRows number
+---@param maxRows number
+local function GetFrameDimensionsByTotalColumns(settings, totalColumns, slotWidth, totalRows, maxRows)
   local slotXOffset = (slotWidth + slotSpacing);
-  local slotYOffset = (slotHeight + slotSpacing);
-  local newWidth = (containerPadding.left + containerPadding.right) + (slotXOffset * totalColumns) - slotSpacing;
-  local newHeight = (containerPadding.top + containerPadding.bottom) + (slotYOffset * totalRows) - slotSpacing;
-  return newWidth, newHeight;
+  local slotYOffset = (settings.height + slotSpacing);
+
+  local scrollChildHeight = (slotYOffset * totalRows) - slotSpacing;
+  local bagsContainerWidth = (slotXOffset * totalColumns) - slotSpacing;
+  local bagsContainerHeight = (slotYOffset * math.min(totalRows, maxRows)) - slotSpacing;
+
+  local newWidth = containerPadding.left + bagsContainerWidth + containerPadding.right;
+  local newHeight = containerPadding.top + bagsContainerHeight + containerPadding.bottom;
+  return newWidth, newHeight, scrollChildHeight;
 end
 
 ---@param inventoryFrame MayronUI.Inventory.Frame
 ---@param resetSlotOrder boolean
----@return number, number
-local function UpdateInventorySlotAnchors(inventoryFrame, resetSlotOrder)
+---@return number inventoryWidth, number inventoryHeight, number scrollChildHeight
+local function UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder)
   local orderedSlots = GetOrderedSlots(inventoryFrame, resetSlotOrder);
+  local containerWidth = inventoryFrame.bagsContainer:GetWidth();
+  local settings = inventoryFrame.detailedView and viewSettings.detailed or viewSettings.grid;
 
-  if (inventoryFrame.detailedView) then
-    local slotYOffset = detailedSlotHeight + slotSpacing;
-
-    for totalRows, slot in ipairs(orderedSlots) do
-      if (slot:IsShown()) then
-        local yOffset = (totalRows - 1) * slotYOffset;
-        slot:SetPoint("TOPLEFT", 0, -yOffset);
-        slot:SetPoint("TOPRIGHT", 0, -yOffset);
-      end
-    end
-
-    -- this height includes the overflow
-    local fullBagHeight = (containerPadding.top + containerPadding.bottom) + (slotYOffset * #orderedSlots) - slotSpacing;
-    inventoryFrame.bagsContainer:SetHeight(fullBagHeight);
-
-    local inventoryWidth = containerPadding.left + containerPadding.right + detailedSlotWidth;
-
-    local minInventoryHeight = containerPadding.top + (slotYOffset * minDetailedSlotRows) - slotSpacing + containerPadding.bottom;
-    local maxInventoryHeight = containerPadding.top + (slotYOffset * maxDetailedSlotRows) - slotSpacing + containerPadding.bottom;
-    tk:SetResizeBounds(inventoryFrame, inventoryWidth*0.75, minInventoryHeight, inventoryWidth*1.25, maxInventoryHeight);
-
-    local initialBagContainerHeight = (slotYOffset * initialDetailedSlotRows) - slotSpacing;
-    local inventoryHeight = containerPadding.top + initialBagContainerHeight + containerPadding.bottom;
-    return inventoryWidth, inventoryHeight;
-  end
-
-  local currentWidth = inventoryFrame:GetWidth();
-
-  if (currentWidth > 0) then
+  if (inventoryFrame.minWidth and inventoryFrame.maxWidth) then
     local totalColumns = 1;
+    local currentWidth = inventoryFrame:GetWidth();
 
-    for columns = 1, 100 do
-      local width = ((slotWidth + slotSpacing) * columns) - slotSpacing + containerPadding.left + containerPadding.right;
+    for columns = 1, settings.columns.max do
+      local width = ((settings.widths.min + slotSpacing) * columns) - slotSpacing + containerPadding.left + containerPadding.right;
 
       if (width > currentWidth) then
         break
@@ -242,30 +269,49 @@ local function UpdateInventorySlotAnchors(inventoryFrame, resetSlotOrder)
     end
 
     -- return the real dimensions for the current number of slots to show
-    local newWidth, newHeight = GetInventoryFrameSizeByTotalColumns(totalColumns, true, orderedSlots);
-    tk:SetResizeBounds(inventoryFrame, inventoryFrame.minWidth, newHeight, inventoryFrame.maxWidth, newHeight);
+    local totalRows, dynamicSlotWidth = UpdateBagSlotAnchors(settings, true, totalColumns, orderedSlots, containerWidth);
+    local newWidth, newHeight, scrollChildHeight = GetFrameDimensionsByTotalColumns(settings, totalColumns, dynamicSlotWidth, totalRows, settings.rows.max);
 
-    return newWidth, newHeight;
+    if (not inventoryFrame.detailedView) then
+      -- fix the height to the correct constraints
+      tk:SetResizeBounds(inventoryFrame, inventoryFrame.minWidth, newHeight, inventoryFrame.maxWidth, newHeight);
+    end
+
+    return newWidth, newHeight, scrollChildHeight;
   end
 
   -- calculate min/max dimensions for resizing:
-  local minWidth, maxHeight = GetInventoryFrameSizeByTotalColumns(minColumns, false, orderedSlots);
-  local maxWidth, minHeight = GetInventoryFrameSizeByTotalColumns(maxColumns, false, orderedSlots);
+  local maxRows, minSlotWidth = UpdateBagSlotAnchors(settings, false, "min", orderedSlots, 0);
+  local minWidth, maxHeight = GetFrameDimensionsByTotalColumns(settings, settings.columns.min, minSlotWidth, maxRows, settings.rows.max);
+
+  local minRows, maxSlotWidth = UpdateBagSlotAnchors(settings, false, "max", orderedSlots, 0);
+  local maxWidth, minHeight = GetFrameDimensionsByTotalColumns(settings, settings.columns.max, maxSlotWidth, minRows, settings.rows.min);
+
   inventoryFrame.minWidth = minWidth;
   inventoryFrame.maxWidth = maxWidth;
 
-  -- return the real dimensions for the initial number of slots to show
   tk:SetResizeBounds(inventoryFrame, minWidth, minHeight, maxWidth, maxHeight);
-  return GetInventoryFrameSizeByTotalColumns(initialColumns, true, orderedSlots);
+
+  local initialRows, initialSlotWidth = UpdateBagSlotAnchors(settings, true, "initial", orderedSlots, 0);
+  local initialWidth, initialHeight, scrollChildHeight = GetFrameDimensionsByTotalColumns(
+    settings, settings.columns.initial, initialSlotWidth, initialRows, settings.rows.initial);
+
+  return initialWidth, initialHeight, scrollChildHeight;
 end
 
-local function UpdateInventoryDisplay(inventoryFrame, resetSlotOrder)
-  local width, height = UpdateInventorySlotAnchors(inventoryFrame, resetSlotOrder);
+---@param inventoryFrame MayronUI.Inventory.Frame
+---@param fullUpdate boolean
+---@param resetSlotOrder boolean
+local function UpdateInventoryFrameCoreProperties(inventoryFrame, fullUpdate, resetSlotOrder)
+  local width, height, scrollChildHeight = UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder);
+  inventoryFrame.scrollChild:SetHeight(scrollChildHeight);
 
-  if (resetSlotOrder) then
+  if (inventoryFrame.detailedView or fullUpdate) then
+    inventoryFrame:SetWidth(width);
+  end
+
+  if (not inventoryFrame.detailedView or fullUpdate) then
     inventoryFrame:SetHeight(height);
-  else
-    inventoryFrame:SetSize(width, height);
   end
 end
 
@@ -273,36 +319,56 @@ end
 ---@param enabled boolean
 local function SetDetailedViewEnabled(inventoryFrame, enabled)
   inventoryFrame.detailedView = enabled;
-  inventoryFrame.bagsContainer:ClearAllPoints();
-  inventoryFrame.bagsContainer:SetScrollable(enabled);
+  inventoryFrame.scrollChild:SetScrollable(enabled);
+
+  -- required to reset inventory frame and slots
+  -- back to initial values and recalculate minWidth/maxWidth
+  inventoryFrame.minWidth = nil;
+  inventoryFrame.maxWidth = nil;
+
+  containerPadding.right = originalRightPadding + (enabled and (slotSpacing + 8) or 0);
+  inventoryFrame.bagsContainer:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
+
+  local settings = enabled and viewSettings.detailed or viewSettings.grid;
 
   if (enabled) then
-    inventoryFrame.bagsContainer:SetPoint("TOPLEFT");
-    inventoryFrame.bagsContainer:SetPoint("TOPRIGHT", -12, 0);
+    tk:SetBasicTooltip(inventoryFrame.viewBtn, "Switch to Grid View");
+  else
+    tk:SetBasicTooltip(inventoryFrame.viewBtn, "Switch to Detailed View");
+  end
 
+  if (enabled) then
     for _, bag in ipairs(inventoryFrame.bags) do
       for _, slot in ipairs(bag.slots) do
-        slot:SetHeight(detailedSlotHeight);
+        slot:SetSize(settings.widths.initial, settings.height);
+        slot.gloss:SetAlpha(0.2);
+        slot.Count:SetPoint("BOTTOMRIGHT", slot.icon, "BOTTOMRIGHT", -2, 2);
+
         slot.icon:ClearAllPoints();
         slot.icon:SetPoint("TOPLEFT", 2, -2);
         slot.icon:SetPoint("BOTTOMLEFT", 2, 2);
-        slot.icon:SetWidth(detailedSlotHeight);
-        slot.gloss:SetAlpha(0.2);
-        slot.Count:SetPoint("BOTTOMRIGHT", slot.icon, "BOTTOMRIGHT", -2, 2);
+        slot.questTexture:ClearAllPoints();
+        slot.questTexture:SetAllPoints(slot.icon);
       end
     end
   else
-    inventoryFrame.bagsContainer:SetAllPoints(true);
+    inventoryFrame.scrollChild:SetHeight(1);
 
     for _, bag in ipairs(inventoryFrame.bags) do
       for _, slot in ipairs(bag.slots) do
-        slot:SetSize(slotWidth, slotHeight);
+        slot:SetSize(settings.widths.initial, settings.height);
         slot.gloss:SetAlpha(0.4);
+        slot.Count:SetPoint("BOTTOMRIGHT", slot, "BOTTOMRIGHT", -2, 2);
+
+        slot.icon:ClearAllPoints();
+        slot.icon:SetPoint("CENTER");
+        slot.questTexture:ClearAllPoints();
+        slot.questTexture:SetAllPoints(slot);
       end
     end
   end
 
-  UpdateInventoryDisplay(inventoryFrame);
+  UpdateInventoryFrameCoreProperties(inventoryFrame, true, false);
 end
 
 ---@param slot MayronUI.Inventory.Slot
@@ -361,7 +427,9 @@ local function UpdateBagSlotCooldown(bag, slot)
 end
 
 ---@param slot MayronUI.Inventory.Slot
-local function UpdateBagSlot(slot)
+local function UpdateBagSlot(slot, button)
+  if (button == "LeftButton") then return end
+
   if (slot:IsItemEmpty()) then
     ClearBagSlot(slot);
     return
@@ -471,13 +539,12 @@ end
 ---@param bagFrame MayronUI.Inventory.BagFrame
 ---@param slotIndex number
 ---@return MayronUI.Inventory.Slot
-local function CreateBagItemSlot(bagFrame, slotIndex)
+local function CreateBagSlot(bagFrame, slotIndex)
   local bagGlobalName = bagFrame:GetName();
   local slotGlobalName = bagGlobalName.."Slot"..tostring(slotIndex);
 
   local slot = tk:CreateFrame("Button", bagFrame, slotGlobalName, "ContainerFrameItemButtonTemplate")--[[@as MayronUI.Inventory.Slot]];
   slot:SetID(slotIndex);
-  slot:SetSize(slotWidth, slotHeight);
   slot.cooldown = _G[slotGlobalName.."Cooldown"];
   slot.questTexture = _G[slotGlobalName.."IconQuestTexture"];
   slot.questTexture:SetTexCoord(0.05, 0.95, 0.05, 0.95);
@@ -487,9 +554,6 @@ local function CreateBagItemSlot(bagFrame, slotIndex)
 
   slot = gui:ReskinIcon(slot, 2);
   Mixin(slot, Item:CreateFromBagAndSlot(bagFrame.bagIndex, slotIndex));
-
-  slot.questTexture:ClearAllPoints();
-  slot.questTexture:SetAllPoints(slot.icon);
 
   slot.itemName = slot:CreateFontString("$parentItemName", "OVERLAY", "GameFontHighlight");
   slot.itemName:SetPoint("TOPLEFT", slot.icon, "TOPRIGHT", 8, -4);
@@ -629,7 +693,7 @@ local function CreateBagBarToggleButton(bagIndex, bagBar, bagFrame, iteration)
   bagToggleBtn.bagIndex = bagIndex;
   bagToggleBtn.icon = _G[bagBtnName.."IconTexture"];
 
-  bagToggleBtn:SetSize(slotWidth, slotHeight);
+  bagToggleBtn:SetSize(viewSettings.grid.widths.initial, viewSettings.grid.height);
   bagToggleBtn:ClearAllPoints();
   bagToggleBtn = gui:ReskinIcon(bagToggleBtn, 2, "button");
   tk:KillElement(bagToggleBtn:GetNormalTexture());
@@ -659,13 +723,13 @@ local function CreateBagBarToggleButton(bagIndex, bagBar, bagFrame, iteration)
     bagToggleBtn:SetScript("OnReceiveDrag", _G["BagSlotButton_OnClick"]);
   end
 
-  bagToggleBtn:SetPoint("TOPLEFT", (slotWidth + slotSpacing) * iteration, 0);
+  bagToggleBtn:SetPoint("TOPLEFT", (viewSettings.grid.widths.initial + slotSpacing) * iteration, 0);
   bagToggleBtn:HookScript("OnEnter", HighlightBagSlots);
   bagToggleBtn:HookScript("OnLeave", ClearBagSlotHighlights);
   bagToggleBtn:HookScript("OnClick", function()
     local isOpen = not bagFrame:IsShown();
     bagFrame:SetShown(isOpen);
-    UpdateInventoryDisplay(bagBar:GetParent(), true);
+    UpdateInventoryFrameCoreProperties(bagBar:GetParent(), false, false);
     ClearBagSlotHighlights();
 
     if (bagBar:IsShown()) then
@@ -717,6 +781,18 @@ local function UpdateAllBagSlots(bag)
   end
 
   UpdateFreeSlots(bag.inventoryFrame);
+end
+
+
+local function ToggleDetailedView(self)
+  local inventoryFrame = self:GetParent()--[[@as MayronUI.Inventory.Frame]];
+  SetDetailedViewEnabled(inventoryFrame, not inventoryFrame.detailedView);
+
+  for _, bag in ipairs(inventoryFrame.bags) do
+    for _, slot in ipairs(bag.slots) do
+      UpdateBagSlot(slot);
+    end
+  end
 end
 
 ---@param bags MayronUI.Inventory.BagFrame[]
@@ -828,22 +904,6 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
     UpdateSearchOverlays(inventoryFrame.bags);
     return
   end
-
-	-- if ( event == "BAG_SLOT_FLAGS_UPDATED" ) then
-	-- 	-- if (self:GetID() == bagID) then
-	-- 	-- 	self.localFlag = nil;
-	-- 	-- 	if (self:IsShown()) then
-	-- 	-- 		UpdateDisplay(self);
-	-- 	-- 	end
-	-- 	-- end
-	-- elseif ( event == "BANK_BAG_SLOT_FLAGS_UPDATED" ) then
-	-- 	-- if (self:GetID() == (bagID + NUM_BAG_SLOTS)) then
-	-- 	-- 	self.localFlag = nil;
-	-- 	-- 	if (self:IsShown()) then
-	-- 	-- 		UpdateDisplay(self);
-	-- 	-- 	end
-	-- 	-- end
-
 end
 
 local InventoryFrameOnUpdate;
@@ -859,8 +919,8 @@ do
     if (totalElapsed > 0.1) then
       totalElapsed = 0;
 
-      if (self.dragger:IsDragging() and not self.detailedView) then
-        UpdateInventorySlotAnchors(self, false);
+      if (self.dragger:IsDragging()) then
+        UpdateInventorySlotCoreProperties(self, false);
       end
     end
   end
@@ -947,8 +1007,6 @@ local function CreateSearchBox(inventoryFrame)
 	end);
 end
 
-local originalTopPadding = containerPadding.top;
-
 ---@param self MayronUI.Icon|Button
 local function ToggleBagsBar(self)
   local inventoryFrame = self:GetParent()--[[@as MayronUI.Inventory.Frame]]
@@ -956,14 +1014,14 @@ local function ToggleBagsBar(self)
   inventoryFrame.bagBar:SetShown(bagsFrameShown);
 
   if (bagsFrameShown) then
-    containerPadding.top = originalTopPadding + slotHeight + containerPadding.left;
+    containerPadding.top = originalTopPadding + viewSettings.grid.height + containerPadding.left;
   else
     containerPadding.top = originalTopPadding;
   end
 
-  inventoryFrame.scrollFrameContainer:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
+  inventoryFrame.bagsContainer:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
 
-  UpdateInventoryDisplay(inventoryFrame);
+  UpdateInventoryFrameCoreProperties(inventoryFrame, false, false);
 end
 
 ---@param self CheckButton|MayronUI.Icon
@@ -1034,7 +1092,7 @@ local function HandleTabOnClick(self)
     end
   end
 
-  UpdateInventoryDisplay(inventoryFrame, true);
+  UpdateInventoryFrameCoreProperties(inventoryFrame, false, true);
 end
 
 -- C_Inventory ------------------
@@ -1105,17 +1163,30 @@ function C_Inventory:OnInitialize()
 
   local bagBar = tk:CreateFrame("Frame", inventoryFrame, "MUI_InventoryBagsFrame")--[[@as MayronUI.Inventory.BagBar]];
   inventoryFrame.bagBar = bagBar;
-  bagBar:SetSize(_G.NUM_BAG_SLOTS * (slotWidth + slotSpacing) - slotSpacing, slotHeight);
+  bagBar:SetSize(_G.NUM_BAG_SLOTS * (viewSettings.grid.widths.initial + slotSpacing) - slotSpacing, viewSettings.grid.height);
   bagBar:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
   bagBar:Hide();
   bagBar.buttons = {};
 
-  local scrollFrameContainer = gui:CreateScrollFrame(inventoryFrame, "MUI_InventoryBagsContainer");
-  scrollFrameContainer:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
-  scrollFrameContainer:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
-  inventoryFrame.bagsContainer = scrollFrameContainer.ScrollFrame:GetScrollChild();
-  inventoryFrame.scrollBar = scrollFrameContainer.ScrollBar;
-  inventoryFrame.scrollFrameContainer  = scrollFrameContainer;
+  local bagsContainer = gui:CreateScrollFrame(inventoryFrame, "MUI_InventoryBagsContainer", nil, slotSpacing);
+  bagsContainer:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
+  bagsContainer:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
+  inventoryFrame.scrollChild = bagsContainer.ScrollFrame:GetScrollChild();
+  inventoryFrame.scrollBar = bagsContainer.ScrollBar;
+  inventoryFrame.bagsContainer  = bagsContainer;
+
+  bagsContainer.ScrollFrame:HookScript("OnScrollRangeChanged", function()
+    if (inventoryFrame.detailedView) then
+      local scrollBarShown = inventoryFrame.scrollBar:IsShown();
+      local hasScrollBarPadding = containerPadding.right > originalRightPadding;
+
+      if ((scrollBarShown and not hasScrollBarPadding) or (not scrollBarShown and hasScrollBarPadding)) then
+        containerPadding.right = originalRightPadding + (scrollBarShown and (slotSpacing + 8) or 0);
+        inventoryFrame.bagsContainer:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
+        UpdateInventoryFrameCoreProperties(inventoryFrame, true, false);
+      end
+    end
+  end);
 
   -- Create Bags and Slots:
   for i = 0, _G.NUM_BAG_SLOTS do
@@ -1125,10 +1196,12 @@ function C_Inventory:OnInitialize()
     local numSlots = GetContainerNumSlots(bagIndex);
 
     local bagGlobalName = "MUI_InventoryBag"..tostring(bagIndex + 1);
-    local bagFrame = tk:CreateFrame("Frame", inventoryFrame.bagsContainer--[[@as Frame]], bagGlobalName)--[[@as MayronUI.Inventory.BagFrame]];
+    local bagFrame = tk:CreateFrame("Frame", inventoryFrame.scrollChild--[[@as Frame]], bagGlobalName)--[[@as MayronUI.Inventory.BagFrame]];
     bagFrame.inventoryFrame = inventoryFrame;
     inventoryFrame.bags[bagIndex + 1] = bagFrame;
-    bagFrame:SetAllPoints(true);
+    bagFrame:SetPoint("TOPLEFT");
+    bagFrame:SetPoint("TOPRIGHT");
+    bagFrame:SetHeight(1);
 
     bagFrame:SetID(bagIndex); -- Required for dragging
     bagFrame.slots = {};
@@ -1136,7 +1209,7 @@ function C_Inventory:OnInitialize()
 
     if (numSlots > 0) then
       for slotIndex = 1, numSlots do
-        local slot = CreateBagItemSlot(bagFrame, slotIndex);
+        local slot = CreateBagSlot(bagFrame, slotIndex);
         bagFrame.slots[slotIndex] = slot;
       end
     end
@@ -1144,19 +1217,23 @@ function C_Inventory:OnInitialize()
     bagBar.buttons[bagIndex + 1] = CreateBagBarToggleButton(bagIndex, bagBar, bagFrame, i);
   end
 
+  local blocker = tk:CreateFrame("Frame", bagsContainer);
+  blocker:SetAllPoints(true);
+  blocker:EnableMouse(true);
+  blocker:SetFrameStrata("DIALOG");
+  blocker:SetFrameLevel(20);
+  blocker:Hide();
+
   inventoryFrame.dragger:HookScript("OnDragStart", function()
-    if (not inventoryFrame.detailedView) then
-      inventoryFrame:SetScript("OnUpdate", InventoryFrameOnUpdate);
-    end
+    blocker:Show();
+    inventoryFrame:SetScript("OnUpdate", InventoryFrameOnUpdate);
   end);
 
   inventoryFrame.dragger:HookScript("OnDragStop", function()
     inventoryFrame:SetScript("OnUpdate", nil);
-
-    if (not inventoryFrame.detailedView) then
-      UpdateInventoryDisplay(inventoryFrame);
-      inventoryFrame.titleBar.onDragStop();
-    end
+    UpdateInventoryFrameCoreProperties(inventoryFrame, false, false);
+    inventoryFrame.titleBar.onDragStop();
+    blocker:Hide();
   end);
 
   inventoryFrame.money = inventoryFrame:CreateFontString("MUI_InventoryMoney", "ARTWORK", "MUI_FontNormal");
@@ -1182,8 +1259,12 @@ function C_Inventory:OnInitialize()
   inventoryFrame.bagsBtn = gui:CreateIconButton("bags", inventoryFrame, "MUI_InventoryBags");
   inventoryFrame.bagsBtn:SetPoint("RIGHT", inventoryFrame.sortBtn, "LEFT", -4, 0);
   tk:SetBasicTooltip(inventoryFrame.bagsBtn, "Toggle Bags");
-
   inventoryFrame.bagsBtn:SetScript("OnClick", ToggleBagsBar);
+
+  inventoryFrame.viewBtn = gui:CreateIconButton("bags", inventoryFrame, "MUI_InventoryView");
+  inventoryFrame.viewBtn:SetPoint("RIGHT", inventoryFrame.bagsBtn, "LEFT", -4, 0);
+  tk:SetBasicTooltip(inventoryFrame.viewBtn, "Switch to Detailed View");
+  inventoryFrame.viewBtn:SetScript("OnClick", ToggleDetailedView);
 
   inventoryFrame.tabs = {};
   inventoryFrame.selectedTabID = TabTypesEnum.AllItems;
@@ -1245,6 +1326,5 @@ function C_Inventory:OnInitialize()
   UpdateFreeSlots(inventoryFrame);
   inventoryFrame:SetScript("OnEvent", InventoryFrameOnEvent);
 
-  -- TODO: Details View button testing:
   SetDetailedViewEnabled(inventoryFrame, false);
 end
