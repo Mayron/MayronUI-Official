@@ -17,6 +17,11 @@ function GridTextureMixin:SetGridColor(r, g, b, a)
   end
 end
 
+function GridTextureMixin:GetGridColor()
+  local r, g, b, a = self.c:GetVertexColor();
+  return r, g, b, a;
+end
+
 function GridTextureMixin:SetGridTexture(texture)
   for _, key in ipairs(regions) do
     self[key]:SetTexture(texture);

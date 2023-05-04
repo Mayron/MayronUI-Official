@@ -585,10 +585,27 @@ local function CreateBagSlot(bagFrame, slotIndex)
     slot.BagStaticTop,
     slot.IconBorder,
     slot.BattlepayItemTexture,
-    slot:GetNormalTexture(),
-    slot:GetPushedTexture(),
-    slot:GetHighlightTexture()
+    slot:GetNormalTexture()
   );
+
+  slot:SetHighlightTexture(tk.Constants.SOLID_TEXTURE);
+  slot:SetPushedTexture(tk.Constants.SOLID_TEXTURE);
+
+  -- local highlightTexture = --[[@as Texture]];
+  tk:ApplyThemeColor(0.2, slot:GetHighlightTexture());
+  local pushedTexture = slot:GetPushedTexture()--[[@as Texture]];
+  pushedTexture:SetAlpha(0.2);
+  pushedTexture:SetDrawLayer("OVERLAY");
+  pushedTexture:SetBlendMode("ADD");
+
+  slot:SetScript("OnEnter", function()
+    slot.previousR, slot.previousG, slot.previousB, slot.previousA = slot:GetGridColor();
+    slot:SetGridColor(1, 1, 1);
+  end);
+
+  slot:SetScript("OnLeave", function()
+    slot:SetGridColor(slot.previousR, slot.previousG, slot.previousB, slot.previousA);
+  end);
 
   if (not slot:IsItemEmpty()) then
     slot:ContinueOnItemLoad(function()
@@ -1128,17 +1145,6 @@ function C_Inventory:OnInitialize()
   gui:AddResizer(inventoryFrame);
   inventoryFrame.bags = {};
 
-  inventoryFrame.titleBar.onDragStop = function()
-    local screenBottomDistance = inventoryFrame:GetBottom();
-    local screenLeftDistance = inventoryFrame:GetLeft();
-    inventoryFrame:ClearAllPoints();
-
-    local xOffset = screenLeftDistance;
-    local yOffset = screenBottomDistance + inventoryFrame:GetHeight();
-
-    inventoryFrame:SetPoint("TOPLEFT", _G.UIParent, "BOTTOMLEFT", xOffset, yOffset);
-  end
-
   -- self = inventoryFrame:
 	inventoryFrame:RegisterEvent("BAG_UPDATE_COOLDOWN");
 	inventoryFrame:RegisterEvent("BAG_UPDATE");
@@ -1223,6 +1229,22 @@ function C_Inventory:OnInitialize()
   blocker:SetFrameStrata("DIALOG");
   blocker:SetFrameLevel(20);
   blocker:Hide();
+
+  inventoryFrame.titleBar.onDragStart = function()
+    blocker:Show();
+  end
+
+  inventoryFrame.titleBar.onDragStop = function()
+    local screenBottomDistance = inventoryFrame:GetBottom();
+    local screenLeftDistance = inventoryFrame:GetLeft();
+    inventoryFrame:ClearAllPoints();
+
+    local xOffset = screenLeftDistance;
+    local yOffset = screenBottomDistance + inventoryFrame:GetHeight();
+
+    inventoryFrame:SetPoint("TOPLEFT", _G.UIParent, "BOTTOMLEFT", xOffset, yOffset);
+    blocker:Hide();
+  end
 
   inventoryFrame.dragger:HookScript("OnDragStart", function()
     blocker:Show();
