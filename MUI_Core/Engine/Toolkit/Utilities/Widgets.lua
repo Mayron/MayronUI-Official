@@ -40,6 +40,7 @@ do
   ---@param widget Frame|table
   function tk.HandleTooltipOnEnter(widget)
     SetTooltipOwner(widget, "ANCHOR_BOTTOMLEFT");
+    GameTooltip:SetFrameStrata("TOOLTIP")
 
     if (widget.cooldown) then
       GameTooltip:SetFrameLevel(widget.cooldown:GetFrameLevel() + 10);

@@ -88,7 +88,7 @@ local databaseConfig = {
             count = "Prototype";
           },
           textSize = {
-            timeRemaining = 12;
+            timeRemaining = 11;
             timeRemainingLarge = 14;
             count = 14;
           };
@@ -126,7 +126,7 @@ local databaseConfig = {
           },
 
           textSize = {
-            timeRemaining = 12;
+            timeRemaining = 11;
             timeRemainingLarge = 14;
             count = 14;
             auraName = 10;
@@ -164,7 +164,7 @@ local databaseConfig = {
           },
 
           textSize = {
-            timeRemaining = 12;
+            timeRemaining = 11;
             timeRemainingLarge = 14;
             count = 14;
           };
@@ -201,7 +201,7 @@ local databaseConfig = {
           },
 
           textSize = {
-            timeRemaining = 12;
+            timeRemaining = 11;
             timeRemainingLarge = 14;
             count = 14;
             auraName = 10;

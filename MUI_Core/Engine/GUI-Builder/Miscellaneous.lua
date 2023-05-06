@@ -356,28 +356,93 @@ do
     btn:GetHighlightTexture():SetAlpha(1);
   end
 
-  ---@param iconName "close"|"sort"|"bags"
+  ---@param iconName "bag"|"sort"|"layout"|"arrow"|"cross"|"user"
+  ---@param iconTexture Texture
+  ---@param highlight boolean
+  ---@return Texture
+  local function SetUpIconTexture(iconName, iconTexture, highlight)
+    iconTexture:SetPoint("CENTER", 0, 1);
+    iconTexture:SetSize(18, 15.24);
+
+
+    local left = 0.454545;
+    local right = 0.7272727;
+
+    if (highlight) then
+      left = right;
+      right = 1;
+      iconTexture:SetBlendMode("ADD");
+      iconTexture:SetAlpha(0.8);
+    else
+      tk.Constants.AddOnStyle:ApplyColor(nil, nil, iconTexture);
+    end
+
+    if (iconName == "bag") then
+      iconTexture:SetTexCoord(left, right, 0, 0.196850);
+    elseif (iconName == "sort") then
+      iconTexture:SetTexCoord(left, right, 0.196850, 0.362204);
+    elseif (iconName == "layout") then
+      iconTexture:SetTexCoord(left, right, 0.362204, 0.535433);
+    elseif (iconName == "arrow") then
+      iconTexture:SetTexCoord(left, right, 0.535433, 0.685039);
+    elseif (iconName == "cross") then
+      iconTexture:SetTexCoord(left, right, 0.685039, 0.834645);
+    elseif (iconName == "user") then
+      iconTexture:SetTexCoord(left, right, 0.834645, 1);
+    end
+
+    -- if (highlight) then
+    --   local r, g, b = iconTexture:GetVertexColor();
+    --   iconTexture:SetVertexColor(r*1.2, g*1.2, b*1.2);
+    -- end
+
+    return iconTexture;
+  end
+
+  ---@param iconName "bag"|"sort"|"layout"|"arrow"|"cross"|"user"
   ---@param parent Frame?
   ---@param globalName string?
   ---@return Button
   function gui:CreateIconButton(iconName, parent, globalName)
     local btn = tk:CreateFrame("Button", parent, globalName);
-
-    if (iconName == "close") then
-      btn:SetSize(28, 24);
-    else
-      btn:SetSize(30, 24);
-    end
+    btn:SetSize(30, 27.33);
 
     local style = tk.Constants.AddOnStyle;
-    local textureFilePath = tk:GetAssetFilePath("Icons\\"..iconName);
-    btn:SetNormalTexture(textureFilePath);
-    btn:SetDisabledTexture(textureFilePath);
-    btn:SetHighlightTexture(textureFilePath, "ADD");
-    style:ApplyColor(nil, nil, btn);
+    local textureFilePath = tk:GetAssetFilePath("Icons\\buttons");
 
-    local disabledTexture = btn:GetDisabledTexture() --[[@as Texture]];
-    disabledTexture:SetVertexColor(1, 1, 1);
+    local normalTexture = btn:CreateTexture("$parentNormalTexture", "BACKGROUND");
+    normalTexture:SetTexture(textureFilePath);
+    normalTexture:SetTexCoord(0, 0.454545, 0, 0.322834);
+
+    local disabledTexture = btn:CreateTexture("$parentDisabledTexture", "BACKGROUND");
+    disabledTexture:SetTexture(textureFilePath);
+    disabledTexture:SetTexCoord(0, 0.454545, 0, 0.322834);
+
+    local highlightTexture = btn:CreateTexture("$parentHighlightTexture", "BACKGROUND");
+    highlightTexture:SetTexture(textureFilePath);
+    highlightTexture:SetTexCoord(0, 0.454545, 0.322834, 0.645669);
+
+    local pushedTexture = btn:CreateTexture("$parentPushedTexture", "BACKGROUND");
+    pushedTexture:SetTexture(textureFilePath);
+    pushedTexture:SetTexCoord(0, 0.454545, 0.645669, 0.968503);
+
+    local iconTexture = btn:CreateTexture(nil, "ARTWORK", nil, 7);
+    iconTexture:SetTexture(textureFilePath);
+    SetUpIconTexture(iconName, iconTexture, false)
+
+    local iconHighlightTexture = btn:CreateTexture(nil, "HIGHLIGHT", nil, 7);
+    iconHighlightTexture:SetTexture(textureFilePath);
+    SetUpIconTexture(iconName, iconHighlightTexture, true);
+
+    btn:SetNormalTexture(normalTexture);
+    btn:SetDisabledTexture(disabledTexture);
+
+    btn:SetHighlightTexture(highlightTexture);
+    highlightTexture:SetBlendMode("BLEND");
+
+    btn:SetPushedTexture(pushedTexture);
+
+    style:ApplyColor(nil, nil, normalTexture, highlightTexture, pushedTexture);
 
     btn:HookScript("OnMouseDown", DisableHighlightOnMouseDown);
     btn:HookScript("OnMouseUp", EnableHighlightOnMouseUp);
@@ -387,8 +452,8 @@ do
 end
 
 function gui:AddCloseButton(frame, onHideCallback)
-  frame.closeBtn = self:CreateIconButton("close", frame);
-  frame.closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -1, -1);
+  frame.closeBtn = self:CreateIconButton("cross", frame);
+  frame.closeBtn:SetPoint("TOPRIGHT", -1, -1);
 
   local group = frame:CreateAnimationGroup();
   group.a1 = group:CreateAnimation("Translation");

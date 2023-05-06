@@ -328,7 +328,7 @@ local function SetDetailedViewEnabled(inventoryFrame, enabled)
 
   containerPadding.right = originalRightPadding + (enabled and (slotSpacing + 8) or 0);
   inventoryFrame.bagsContainer:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
-
+  inventoryFrame.bagsContainer.ScrollFrame:SetVerticalScroll(0);
   local settings = enabled and viewSettings.detailed or viewSettings.grid;
 
   if (enabled) then
@@ -536,6 +536,10 @@ local function UpdateBagSlot(slot, button)
   UpdateBagSlotCooldown(bag, slot);
 end
 
+local function HandleBagSlotEntered(slot)
+  slot:SetGridColor(1, 1, 1);
+end
+
 ---@param bagFrame MayronUI.Inventory.BagFrame
 ---@param slotIndex number
 ---@return MayronUI.Inventory.Slot
@@ -598,14 +602,8 @@ local function CreateBagSlot(bagFrame, slotIndex)
   pushedTexture:SetDrawLayer("OVERLAY");
   pushedTexture:SetBlendMode("ADD");
 
-  slot:SetScript("OnEnter", function()
-    slot.previousR, slot.previousG, slot.previousB, slot.previousA = slot:GetGridColor();
-    slot:SetGridColor(1, 1, 1);
-  end);
-
-  slot:SetScript("OnLeave", function()
-    slot:SetGridColor(slot.previousR, slot.previousG, slot.previousB, slot.previousA);
-  end);
+  slot:HookScript("OnEnter", HandleBagSlotEntered);
+  slot:HookScript("OnLeave", UpdateBagSlot);
 
   if (not slot:IsItemEmpty()) then
     slot:ContinueOnItemLoad(function()
@@ -1124,17 +1122,13 @@ function C_Inventory:OnInitialize()
   inventoryFrame:SetPoint("TOPLEFT", 800, -500);
   inventoryFrame:Hide();
 
-  -- TODO: Temporary:
-  -- inventoryFrame.detailedView = true;
-
   tk:HookFunc("ToggleAllBags", function()
-    local show = not inventoryFrame:IsShown();
-    inventoryFrame:SetShown(show);
-
-    if (show) then
-      PlaySound(SoundKit.IG_BACKPACK_OPEN);
-    else
+    if (inventoryFrame:IsShown()) then
       PlaySound(SoundKit.IG_BACKPACK_CLOSE);
+      inventoryFrame:Hide();
+    else
+      PlaySound(SoundKit.IG_BACKPACK_OPEN);
+      inventoryFrame:Show();
     end
   end);
 
@@ -1253,7 +1247,7 @@ function C_Inventory:OnInitialize()
 
   inventoryFrame.dragger:HookScript("OnDragStop", function()
     inventoryFrame:SetScript("OnUpdate", nil);
-    UpdateInventoryFrameCoreProperties(inventoryFrame, false, false);
+    UpdateInventoryFrameCoreProperties(inventoryFrame, not inventoryFrame.detailedView, false);
     inventoryFrame.titleBar.onDragStop();
     blocker:Hide();
   end);
@@ -1278,12 +1272,12 @@ function C_Inventory:OnInitialize()
     inventoryFrame.sortBtn:SetEnabled(event == "PLAYER_REGEN_ENABLED");
   end);
 
-  inventoryFrame.bagsBtn = gui:CreateIconButton("bags", inventoryFrame, "MUI_InventoryBags");
+  inventoryFrame.bagsBtn = gui:CreateIconButton("bag", inventoryFrame, "MUI_InventoryBags");
   inventoryFrame.bagsBtn:SetPoint("RIGHT", inventoryFrame.sortBtn, "LEFT", -4, 0);
   tk:SetBasicTooltip(inventoryFrame.bagsBtn, "Toggle Bags");
   inventoryFrame.bagsBtn:SetScript("OnClick", ToggleBagsBar);
 
-  inventoryFrame.viewBtn = gui:CreateIconButton("bags", inventoryFrame, "MUI_InventoryView");
+  inventoryFrame.viewBtn = gui:CreateIconButton("layout", inventoryFrame, "MUI_InventoryView");
   inventoryFrame.viewBtn:SetPoint("RIGHT", inventoryFrame.bagsBtn, "LEFT", -4, 0);
   tk:SetBasicTooltip(inventoryFrame.viewBtn, "Switch to Detailed View");
   inventoryFrame.viewBtn:SetScript("OnClick", ToggleDetailedView);

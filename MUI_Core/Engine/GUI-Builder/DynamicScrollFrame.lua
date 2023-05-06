@@ -28,7 +28,7 @@ local function DynamicScrollBar_OnChange(self)
   local scrollBar = scrollFrame.ScrollBar;
 
   if (not scrollFrame.scrollable) then
-    self.showScrollBar = nil;
+    container.showScrollBar = nil;
     scrollBar:Hide();
     return
   end
@@ -37,15 +37,17 @@ local function DynamicScrollBar_OnChange(self)
   local scrollChildHeight = math.floor(scrollChild:GetHeight() + 0.5);
   local containerHeight = math.floor(container:GetHeight() + 0.5);
 
-  if (scrollChild and scrollChildHeight > containerHeight) then
+  local contentLargerThanContainer = scrollChildHeight > containerHeight;
+
+  if (contentLargerThanContainer) then
     if (scrollFrame.animating) then
       scrollBar:Hide();
-      self.showScrollBar = scrollBar;
+      container.showScrollBar = scrollBar;
     else
       scrollBar:Show();
     end
   else
-    self.showScrollBar = nil;
+    container.showScrollBar = nil;
     scrollBar:Hide();
   end
 end

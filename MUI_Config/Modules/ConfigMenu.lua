@@ -390,7 +390,8 @@ function C_ConfigMenuModule:CreateMenu(data)
   -- TODO: Create Tabs
   gui:CreateLargeDialogBox("Low", menuScrollFrame);
 
-  menuScrollFrame:SetAllPoints(true);
+  menuScrollFrame:SetPoint("TOPLEFT");
+  menuScrollFrame:SetPoint("BOTTOMRIGHT", -10, 0);
 
   return menu;
 end
@@ -671,12 +672,7 @@ function C_ConfigMenuModule:SetUpWindow(data)
 
   data.topbarFrame = topbar:GetFrame();
 
-  local menuListContainer = gui:CreateScrollFrame(data.window:GetFrame(), "MUI_ConfigSideBar");
-  menuListContainer.ScrollBar:SetPoint(
-    "TOPLEFT", menuListContainer.ScrollFrame, "TOPRIGHT", -5, 0);
-  menuListContainer.ScrollBar:SetPoint(
-    "BOTTOMRIGHT", menuListContainer.ScrollFrame, "BOTTOMRIGHT", 0, 0);
-
+  local menuListContainer = gui:CreateScrollFrame(data.window:GetFrame(), "MUI_ConfigSideBar", nil, -4);
   local menuListCell = data.window:CreateCell(menuListContainer);
   menuListCell:SetInsets(2, 10, 10, 10);
 
@@ -846,10 +842,6 @@ do
   function C_ConfigMenuModule:SetUpSideMenu(data, menuListScrollChild)
     data.menuButtons = {};
 
-    -- contains all menu buttons in the left scroll frame of the main config window
-    local scrollChildHeight = menuListScrollChild:GetHeight() + MENU_BUTTON_HEIGHT;
-    menuListScrollChild:SetHeight(scrollChildHeight);
-
     for _, module in MayronUI:IterateModules() do
 
       if (module.GetConfigTable) then
@@ -889,5 +881,9 @@ do
     end
 
     tk:GroupCheckButtons(data.menuButtons);
+
+    -- contains all menu buttons in the left scroll frame of the main config window
+    local scrollChildHeight = ((MENU_BUTTON_HEIGHT + 5) * #data.menuButtons) - 5;
+    menuListScrollChild:SetHeight(scrollChildHeight);
   end
 end
