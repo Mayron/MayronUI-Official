@@ -614,26 +614,13 @@ function C_AurasModule:GetConfigTable()
 
   return {
     type = "menu",
+    tabs = { "Buffs", "Debuffs", "Colors" };
     module = "AurasModule",
     database = "MUI_AurasDB";
     children = {
-      {
-        type = "tabs";
-        children = {
-          {
-            name = "Buffs";
-            children = GetAuraOptions("buffs");
-          },
-          {
-            name = "Debuffs";
-            children = GetAuraOptions("debuffs");
-          },
-          {
-            name = "Colors";
-            children = colorOptions;
-          },
-        }
-      }
+      GetAuraOptions("buffs");
+      GetAuraOptions("debuffs");
+      colorOptions;
     }
   };
 end

@@ -206,13 +206,15 @@ obj:DefineParams("CheckButton|Button");
 ---@param menuButton CheckButton|Button @The clicked menu button is associated with a menu.
 ---@overload fun(self, menuButton: CheckButton|Button)
 function C_ConfigMenuModule:OpenMenu(data, menuButton)
-  if (menuButton.type == "menu") then
-    data.history:Clear();
+  local history = data.history--[[@as LinkedList]];
+
+  if (menuButton.type == "menu" or menuButton.type == "tab") then
+    history:Clear();
   else
     tk:Assert(menuButton.type == "submenu", "Menu or Sub-Menu expected, got '%s'.", menuButton.type);
   end
 
-  self:SetSelectedButton(menuButton);
+  self:SetSelectedContentButton(menuButton);
 end
 
 function C_ConfigMenuModule:RemoveComponent(data, component)
@@ -233,69 +235,103 @@ function C_ConfigMenuModule:AddComponent(data, component)
   menu:AddChildren(component);
 end
 
-do
-  local function CleanTablesPredicate(_, tbl, key)
-    return (tbl.type ~= "submenu" and key ~= "options");
-  end
-
-  obj:DefineParams("CheckButton|Button");
-  ---@param menuButton CheckButton|Button @The menu button clicked on associated with a menu.
-  function C_ConfigMenuModule:SetSelectedButton(data, menuButton)
-    if (data.selectedButton) then
-      -- hide old menu
+obj:DefineParams("CheckButton|Button");
+---@param btn CheckButton|Button @The menu button clicked on associated with a menu.
+function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
+  -- Hide the old one
+  if (data.selectedButton) then
+    if (data.selectedButton.menu) then
       data.selectedButton.menu:Hide();
     end
 
-    menuButton.menu = menuButton.menu or self:CreateMenu();
-    data.selectedButton = menuButton;
-
-    local history = data.history; ---@type LinkedList
-    history:AddToBack(menuButton);
-
-    if (menuButton:IsObjectType("CheckButton")) then
-      menuButton:SetChecked(true);
+    if (data.selectedButton.type == "tab") then
+      local tabsContainer = data.selectedButton:GetParent();
+      tabsContainer:Hide();
     end
+  end
 
-    if (menuButton.configTable) then
-      self:RenderSelectedMenu(menuButton.configTable);
-      obj:PushTable(menuButton.configTable, CleanTablesPredicate);
+  local optionsFrame = data.options:GetFrame();
 
-      menuButton.configTable = nil;
-
-      if (menuButton.module) then
-        menuButton.module.configTable = nil;
-      end
-    end
-
-    collectgarbage("collect");
-
-    -- fade menu in...
-    data.selectedButton.menu:Show();
-
-    local backBtnEnabled = history:GetSize() > 1;
-    data.window.back:SetEnabled(backBtnEnabled);
-    data.window.back:SetShown(backBtnEnabled);
-    data.windowName:ClearAllPoints();
-
-    if (backBtnEnabled) then
-      local breadcrumbText;
-
-      for _, btn in data.history:Iterate() do
-        if (not breadcrumbText) then
-          breadcrumbText = btn.name;
-        else
-          breadcrumbText = strformat("%s |TInterface/Addons/MUI_Core/Assets/Icons/crumb:16:16|t %s", breadcrumbText, btn.name);
-        end
-      end
-      data.windowName:SetText(breadcrumbText);
-      data.windowName:SetPoint("LEFT", data.window.back, "RIGHT", 15, 0);
+  -- Need to render it if configTable is found
+  if (btn.configTable) then
+    if (btn.configTable.tabs) then
+      self:RenderMenuTabs(btn, optionsFrame);
     else
-      data.windowName:SetText(menuButton.name);
-      data.windowName:SetPoint("LEFT", data.topbarFrame, 2, 0);
+      data.selectedButton = btn;
+
+      -- else, create a new menu (dynamic frame) to based on the module's config data
+      btn.menu = gui:CreateDynamicFrame(optionsFrame, 10, 10);
+      local menuScrollFrame = btn.menu:GetFrame();
+
+      gui:CreateLargeDialogBox("Low", menuScrollFrame);
+      menuScrollFrame:SetPoint("BOTTOMRIGHT", -10, 0);
+
+      if (btn.type == "tab") then
+        menuScrollFrame:SetPoint("TOPLEFT", btn:GetParent(), "BOTTOMLEFT");
+      else
+        menuScrollFrame:SetPoint("TOPLEFT");
+      end
+
+      self:RenderMenuComponents(btn);
+      obj:PushTable(btn.configTable);
     end
 
-    UIFrameFadeIn(data.selectedButton.menu, 0.3, 0, 1);
-    PlaySound(tk.Constants.CLICK);
+    btn.configTable = nil;
+
+    if (btn.module) then
+      btn.module.configTable = nil;
+    end
+  end
+
+  if (btn.tabsContainer and #btn.tabsContainer.tabs > 0) then
+    local firstTab = btn.tabsContainer.tabs[1];
+
+    for _, tab in ipairs(btn.tabsContainer.tabs) do
+      if (tab:GetChecked()) then
+        self:SetSelectedContentButton(firstTab);
+        break
+      end
+    end
+
+    return
+  end
+
+  data.selectedButton = btn;
+
+  -- fade menu in...
+  btn.menu:Show();
+
+  if (btn.type == "tab") then
+    btn:GetParent():Show();
+  end
+
+  PlaySound(tk.Constants.CLICK);
+  UIFrameFadeIn(btn.menu, 0.3, 0, 1);
+
+  local history = data.history; ---@type LinkedList
+  history:AddToBack(btn);
+
+  local backBtnEnabled = history:GetSize() > 1;
+  data.window.back:SetEnabled(backBtnEnabled);
+  data.window.back:SetShown(backBtnEnabled);
+  data.windowName:ClearAllPoints();
+
+  if (backBtnEnabled) then
+    local breadcrumbText;
+
+    for _, previousBtn in data.history:Iterate() do
+      if (not breadcrumbText) then
+        breadcrumbText = previousBtn.name;
+      else
+        breadcrumbText = strformat("%s |TInterface/Addons/MUI_Core/Assets/Icons/crumb:16:16|t %s", breadcrumbText, previousBtn.name);
+      end
+    end
+
+    data.windowName:SetText(breadcrumbText);
+    data.windowName:SetPoint("LEFT", data.window.back, "RIGHT", 15, 0);
+  else
+    data.windowName:SetText(btn.name);
+    data.windowName:SetPoint("LEFT", data.topbarFrame, 2, 0);
   end
 end
 
@@ -349,8 +385,10 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig)
 end
 
 obj:DefineParams("table");
----@param menuConfigTable table @A table containing many component config tables used to render a full menu.
-function C_ConfigMenuModule:RenderSelectedMenu(data, menuConfigTable)
+---@param menuButton Button|CheckButton @A table containing many component config tables used to render a full menu.
+function C_ConfigMenuModule:RenderMenuComponents(data, menuButton)
+  local menuConfigTable = menuButton.configTable;
+
   if (obj:IsFunction(menuConfigTable.children)) then
     menuConfigTable.children = menuConfigTable:children();
   end
@@ -380,106 +418,8 @@ end
 
 obj:DefineReturns("DynamicFrame");
 ---@return DynamicFrame @The dynamic frame which holds the menu frame and controls responsiveness and the scroll bar.
-function C_ConfigMenuModule:CreateMenu(data)
-  -- else, create a new menu (dynamic frame) to based on the module's config data
-  local menuParent = data.options:GetFrame();
-  local menu = gui:CreateDynamicFrame(menuParent, 10, 10);
-  local menuScrollFrame = menu:GetFrame();
+function C_ConfigMenuModule:CreateMenu(_, menuParent)
 
-  -- add graphical dialog box to dynamic frame:
-  -- TODO: Create Tabs
-  gui:CreateLargeDialogBox("Low", menuScrollFrame);
-
-  menuScrollFrame:SetPoint("TOPLEFT");
-  menuScrollFrame:SetPoint("BOTTOMRIGHT", -10, 0);
-
-  return menu;
-end
-
----@param btn Button
-local function handleTabOnClick(btn)
-  local selectedTabId = btn:GetID();
-  local parent = btn:GetParent(); ---@cast parent Frame
-  local level = parent:GetFrameLevel();
-  local baseFrameLevel = level + 10;
-  local tabs= btn.tabs; ---@cast tabs Button[]
-
-  for i, tab in ipairs(tabs) do
-    local isSelected = i == selectedTabId;
-    tab.selected:SetShown(isSelected);
-    tab.unselected:SetShown(not isSelected);
-
-    if (isSelected) then
-      tab:SetFrameLevel(baseFrameLevel + 10);
-    else
-      tab:SetFrameLevel(baseFrameLevel);
-    end
-  end
-end
-
----@param tabNames string[]
-function C_ConfigMenuModule:ShowTabs(data, tabNames)
-  local parent = data.options:GetFrame();
-  local tabsFrame = tk:CreateFrame("Frame", parent);
-  tabsFrame:SetSize(1, 1);
-
-  data.tabs = data.tabs or {};
-
-
-
-  for i, tabConfig in ipairs(config.children) do
-    local btn = tk:CreateFrame("Button", tabsFrame);
-    btn:SetID(i);
-    tabs[i] = btn;
-
-    local fs = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight", 20);
-    fs:SetText(tabConfig.name);
-    btn:SetSize(160, 34);
-
-    local textureName;
-
-    if (i == 1) then
-      textureName = "left";
-      fs:SetPoint("CENTER", -10, 0);
-    elseif (i == #config.children) then
-      textureName = "right";
-      fs:SetPoint("CENTER", 10, 0);
-    else
-      textureName = "both";
-      fs:SetPoint("CENTER");
-    end
-
-    local r, g, b = tk:GetThemeColor();
-    local selectedTextureFilePath = tk:GetAssetFilePath("Textures\\Tabs\\tab-"..textureName.."-selected");
-    btn.selected = btn:CreateTexture(nil, "ARTWORK");
-    btn.selected:SetTexture(selectedTextureFilePath);
-    btn.selected:SetAllPoints(true);
-    btn.selected:SetVertexColor(r, g, b);
-
-    local unselectedTextureFilePath = tk:GetAssetFilePath("Textures\\Tabs\\tab-"..textureName.."-unselected");
-    btn.unselected = btn:CreateTexture(nil, "ARTWORK");
-    btn.unselected:SetTexture(unselectedTextureFilePath);
-    btn.unselected:SetAllPoints(true);
-
-    if (i == 1) then
-      btn:SetPoint("TOPLEFT", tabsFrame, "TOPLEFT");
-      handleTabOnClick(btn);
-    else
-      btn:SetPoint("LEFT", tabs[i - 1], "RIGHT", -46, 0);
-    end
-
-    btn.configTable = tabConfig;
-    btn.type = "submenu";
-    btn.name = tabConfig.name;
-
-    -- btn:SetScript("OnClick", Utils.OnMenuButtonClick);
-
-    btn:SetScript("OnClick", handleTabOnClick);
-
-    if (config.tooltip) then
-      tk:SetBasicTooltip(btn, config.tooltip);
-    end
-  end
 end
 
 function C_ConfigMenuModule:ShowReloadMessage(data)
@@ -633,6 +573,94 @@ do
   end
 end
 
+
+local function HandleTabButtonOnLeave(self)
+  if (self:GetChecked()) then
+    local r, g, b = tk:GetThemeColor();
+    self.leftTexture:SetVertexColor(r, g, b);
+    self.middleTexture:SetVertexColor(r, g, b);
+    self.rightTexture:SetVertexColor(r, g, b);
+  else
+    self.leftTexture:SetVertexColor(1, 1, 1);
+    self.middleTexture:SetVertexColor(1, 1, 1);
+    self.rightTexture:SetVertexColor(1, 1, 1);
+  end
+end
+
+function C_ConfigMenuModule:RenderMenuTabs(_, menuButton, menuParent)
+  local tabNames = menuButton.configTable.tabs;
+  local textureFilePath = tk:GetAssetFilePath("Textures\\tab");
+  local utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
+
+  local tabsContainer = tk:CreateFrame("Frame", menuParent);
+  tabsContainer.tabs = {};
+
+  tabsContainer:SetHeight(30);
+  tabsContainer:SetPoint("TOPLEFT");
+  tabsContainer:SetPoint("TOPRIGHT", -10, 0);
+
+  menuButton.tabsContainer = tabsContainer;
+
+  for i, tabChildren in ipairs(menuButton.configTable.children) do
+    local tab = tk:CreateFrame("CheckButton", tabsContainer);
+    tabsContainer.tabs[i] = tab;
+
+    tab.configTable = { children = tabChildren };
+    tab.type = "tab";
+    tab.name = menuButton.name .. " " .. tabNames[i];
+    tab:SetScript("OnLeave", HandleTabButtonOnLeave);
+    tab:SetScript("OnClick", utils.OnMenuButtonClick);
+
+    local fs = tab:CreateFontString(nil, "OVERLAY", "GameFontHighlight", 20);
+    fs:SetJustifyH("LEFT");
+    fs:SetText(tabNames[i]);
+
+    local tabWidth = fs:GetStringWidth() + 80;
+    tab:SetWidth(tabWidth);
+
+    -- as a decimal where 1 == 100%
+    local sideTexWidthPercent = 0.051652;
+    local leftTexture = tab:CreateTexture(nil, "BACKGROUND");
+    leftTexture:SetTexture(textureFilePath);
+    leftTexture:SetTexCoord(0, sideTexWidthPercent, 0, 1);
+    leftTexture:SetWidth(sideTexWidthPercent * tabWidth);
+
+    local middleTexture = tab:CreateTexture(nil, "BACKGROUND");
+    middleTexture:SetTexture(textureFilePath);
+    middleTexture:SetTexCoord(sideTexWidthPercent, 1 - sideTexWidthPercent, 0, 1);
+
+    local rightTexture = tab:CreateTexture(nil, "BACKGROUND");
+    rightTexture:SetTexture(textureFilePath);
+    rightTexture:SetTexCoord(1 - sideTexWidthPercent, 1, 0, 1);
+    rightTexture:SetWidth(sideTexWidthPercent * tabWidth);
+
+    tab.leftTexture = leftTexture;
+    tab.middleTexture = middleTexture;
+    tab.rightTexture = rightTexture;
+
+    fs:SetPoint("LEFT", middleTexture, "LEFT", 6, 0);
+
+    leftTexture:SetPoint("TOPLEFT");
+    leftTexture:SetPoint("BOTTOMLEFT");
+    rightTexture:SetPoint("TOPRIGHT");
+    rightTexture:SetPoint("BOTTOMRIGHT");
+    middleTexture:SetPoint("TOPLEFT", leftTexture, "TOPRIGHT");
+    middleTexture:SetPoint("BOTTOMRIGHT", rightTexture, "BOTTOMLEFT");
+
+    if (i == 1) then
+      tab:SetPoint("TOPLEFT");
+      tab:SetPoint("BOTTOMLEFT");
+      tab:SetChecked(true);
+      HandleTabButtonOnLeave(tab);
+    else
+      tab:SetPoint("TOPLEFT", tabsContainer.tabs[i - 1], "TOPRIGHT", 6, 0);
+      tab:SetPoint("BOTTOMLEFT", tabsContainer.tabs[i - 1], "BOTTOMRIGHT", 6, 0);
+    end
+  end
+
+  tk:GroupCheckButtons(tabsContainer.tabs, false);
+end
+
 function C_ConfigMenuModule:SetUpWindow(data)
   if (data.window) then
     return
@@ -730,7 +758,7 @@ function C_ConfigMenuModule:SetUpWindow(data)
     data.history:RemoveBack(); -- remove current
     local menuButton = data.history:GetBack();
     data.history:RemoveBack(); -- remove previous so that SetSelectedButton re-adds it.
-    self:SetSelectedButton(menuButton);
+    self:SetSelectedContentButton(menuButton);
   end);
 
   data.windowName = topbar:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
@@ -868,12 +896,11 @@ do
         menuButton:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT", -10, 0);
         menuButton:SetChecked(true);
 
-        self:SetSelectedButton(menuButton);
+        self:SetSelectedContentButton(menuButton);
       else
         local previousMenuButton = data.menuButtons[id - 1];
         menuButton:SetPoint("TOPLEFT", previousMenuButton, "BOTTOMLEFT", 0, -5);
-        menuButton:SetPoint(
-          "TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
+        menuButton:SetPoint(          "TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
 
         -- make room for padding between buttons
         menuListScrollChild:SetHeight(menuListScrollChild:GetHeight() + 5);
