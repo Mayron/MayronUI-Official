@@ -15,7 +15,7 @@ local GetInventoryItemTexture = _G.GetInventoryItemTexture;
 local UnitAura, CreateFrame, GetWeaponEnchantInfo = _G.UnitAura, _G.CreateFrame, _G.GetWeaponEnchantInfo;
 local select, math, string = _G.select, _G.math, _G.string;
 local GetInventoryItemLink, GetItemInfo = _G.GetInventoryItemLink, _G.GetItemInfo;
-local GameTooltip, C_Timer = _G.GameTooltip, _G.C_Timer;
+local C_Timer = _G.C_Timer;
 
 local BUFF_FLASH_TIME_ON = 0.75;
 local BUFF_MIN_ALPHA = 0.3;
@@ -49,6 +49,7 @@ local AuraColorTypes = {
 
 ---@type DatabaseConfig
 local databaseConfig = {
+  svName = "MUI_AurasDB";
   defaults = {
     profile = {
       colors = {
@@ -907,7 +908,7 @@ end
 
 -- C_AurasModule -----------------------
 function C_AurasModule:OnInitialize()
-  OrbitusDB:Register(addOnName, "MUI_AurasDB", databaseConfig, function (db)
+  OrbitusDB:Register(addOnName, databaseConfig, function (db)
     MayronUI:AddComponent("MUI_AurasDB", db);
     CreateAuraHeader("HELPFUL", db);
     CreateAuraHeader("HARMFUL", db);
@@ -918,4 +919,3 @@ function C_AurasModule:OnInitialize()
     tk:KillElement(_G.DebuffFrame);
   end);
 end
-

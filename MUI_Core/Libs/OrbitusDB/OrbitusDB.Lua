@@ -21,13 +21,16 @@ local RepositoryMixin = {};
 ---@class ProfileRepositoryMixin: RepositoryMixin
 local ProfileRepositoryMixin = {};
 
+---@class CharacterRepositoryMixin: RepositoryMixin
+local CharacterRepositoryMixin = {};
+
 ---@class Utilities
 local Internal = {};
 
 ---@class DatabaseMixin
 ---@field profile ProfileRepositoryMixin
 ---@field global RepositoryMixin
----@field character RepositoryMixin
+---@field character CharacterRepositoryMixin
 ---@field utilities UtilitiesMixin
 local DatabaseMixin = {};
 
@@ -42,6 +45,31 @@ local IndexActionsMixin = {};
 
 local UnitFullName, strtrim = _G.UnitFullName, _G.strtrim;
 local GetServerTime, unpack = _G.GetServerTime, _G.unpack;
+local IsAddOnLoaded, UnitClass, UnitLevel, UnitFactionGroup =
+  _G.IsAddOnLoaded, _G.UnitClass, _G.UnitLevel, _G.UnitFactionGroup;
+
+local GetCurrentCharacterName;
+
+do
+  local currentCharacter;
+
+  GetCurrentCharacterName = function()
+    if (currentCharacter ~= nil) then
+      -- when logging out, real is missing so we need to cache it
+      return currentCharacter;
+    end
+
+    local characterName, realm = UnitFullName("player");
+    assert(type(characterName) == "string", "Failed to get the player's character name.");
+
+    if (type(realm) == "string" and #realm > 0) then
+      characterName = characterName.."-"..realm;
+      currentCharacter = characterName;
+    end
+
+    return characterName;
+  end
+end
 
 ---@class RepositoryHandler
 ---@field Mixin table|nil
@@ -111,13 +139,22 @@ local defaultConfig = {
 
     ["character"] = {
       GetSavedVariableTable = function(sv)
-        local characterName = UnitFullName("player");
-        assert(type(characterName) == "string",
-          "Failed to get character repository; character name is invalid.");
+        local characterName = GetCurrentCharacterName();
+
         sv.characters = sv.characters or {};
         sv.characters[characterName] = sv.characters[characterName] or {};
-        return sv.characters[characterName];
+
+        local characterTbl = sv.characters[characterName];
+
+        local _, classFileName = UnitClass("player");
+        characterTbl.__class = classFileName;
+        characterTbl.__level = UnitLevel("player");
+        characterTbl.__faction = UnitFactionGroup("player");
+
+        return characterTbl;
       end,
+
+      Mixin = CharacterRepositoryMixin,
     },
   }
 };
@@ -131,40 +168,42 @@ local defaultConfig = {
 ---@type table<string, DatabaseMetadata>
 local metadata = {};
 
----@type table<string, DatabaseConfig>
-local registeredDatabaseConfigs = {};
+---@class Registration
+---@field config DatabaseConfig
+---@field callback OnInitializedCallback
 
----@type table<string, OnInitializedCallback>
-local onInitializedCallbacks = {};
+---@type table<string, table<string, Registration>>
+local registrar = {};
 
 local CreateAndInitFromMixin = _G.CreateAndInitFromMixin;
 local CreateFromMixins = _G.CreateFromMixins;
 
 ---@param addOnName string
-local function LoadDatabase(addOnName)
-  local config = registeredDatabaseConfigs[addOnName];
-  local db = CreateAndInitFromMixin(DatabaseMixin, config);
+local function LoadDatabase(addOnName, svName)
+  local registration = registrar[addOnName][svName];
+  local db = CreateAndInitFromMixin(DatabaseMixin, registration.config);
 
-  local callback = onInitializedCallbacks[addOnName];
-  if (callback) then
-    callback(db);
-    onInitializedCallbacks[addOnName] = nil;
+  if (registration.callback) then
+    registration.callback(db);
   end
-
-  registeredDatabaseConfigs[addOnName] = nil;
 end
 
 if (_G.CreateFrame) then
   local dbLoader = _G.CreateFrame("Frame");
   dbLoader:RegisterEvent("ADDON_LOADED");
   dbLoader:SetScript("OnEvent", function(_, _, loadedAddOn)
-    for addOnName, _ in pairs(registeredDatabaseConfigs) do
+    for addOnName, svNames in pairs(registrar) do
       if (addOnName == loadedAddOn) then
-        LoadDatabase(addOnName);
+        for svName, _ in pairs(svNames) do
+          LoadDatabase(addOnName, svName);
+        end
+
+        registrar[addOnName] = nil;
+        break
       end
     end
 
-    if (not next(registeredDatabaseConfigs)) then
+    if (not next(registrar)) then
       dbLoader:UnregisterAllEvents();
     end
   end);
@@ -175,39 +214,38 @@ end
 --------------------------
 
 ---@param addOnName string
----@param savedVariableName string
----@param databaseConfig DatabaseConfig?
+---@param databaseConfig DatabaseConfig
 ---@param onInitialized OnInitializedCallback
----@overload fun(self, savedVariableName: string, onInitialized: OnInitializedCallback)
-function OrbitusDB:Register(addOnName, savedVariableName, databaseConfig, onInitialized)
+function OrbitusDB:Register(addOnName, databaseConfig, onInitialized)
+  local config = UtilitiesMixin:MergeTables(defaultConfig, databaseConfig); ---@type DatabaseConfig
 
-  if (type(databaseConfig) == "function" and onInitialized == nil) then
-    onInitialized = databaseConfig;
-    databaseConfig = nil;
+  ---@type Registration
+  local registration = {
+    config = config;
+    callback = onInitialized;
+  };
+
+  if (not registrar[addOnName]) then
+    registrar[addOnName] = {};
   end
 
-  assert(registeredDatabaseConfigs[addOnName] == nil,
-    ("Database for addOn %s has already been registered"):format(addOnName));
+  registrar[addOnName][databaseConfig.svName] = registration;
 
-  local config = UtilitiesMixin:MergeTables(defaultConfig, databaseConfig); ---@type DatabaseConfig
-  config.svName = savedVariableName;
-
-  registeredDatabaseConfigs[addOnName] = config;
-  onInitializedCallbacks[addOnName] = onInitialized;
-
-  if (type(_G[config.svName]) == "table") then
-    LoadDatabase(addOnName);
+  if (IsAddOnLoaded(addOnName)) then
+    LoadDatabase(addOnName, databaseConfig.svName);
   end
 end
 
 ---@param savedVariableName string
----@return DatabaseMixin?
+---@return DatabaseMixin
 function OrbitusDB:GetDatabase(savedVariableName)
   for _, data in pairs(metadata) do
     if (data.config.svName == savedVariableName) then
       return data.database;
     end
   end
+
+  error("Failed to find database "..savedVariableName);
 end
 
 --------------------------
@@ -254,6 +292,83 @@ function DatabaseMixin:Init(config)
 end
 
 --------------------------
+--> CharacterRepositoryMixin:
+--------------------------
+---@nodiscard
+---@return string[]
+function CharacterRepositoryMixin:GetAllCharacters()
+  local characters = Internal:GetSavedVariableSubTable(self, "characters");
+
+  local characterNames = UtilitiesMixin:PopTable();
+  for characterName, _ in pairs(characters) do
+    characterNames[#characterNames+1] = characterName;
+  end
+
+  return characterNames;
+end
+
+---@nodiscard
+---@return string characterName, string classFileName, number level, string faction
+function CharacterRepositoryMixin:GetCurrentCharacterInfo()
+  local characterName = GetCurrentCharacterName();
+  return characterName, self:GetCharacterInfo(characterName);
+end
+
+---@param characterName string
+---@nodiscard
+---@return string classFileName, number level, string faction
+function CharacterRepositoryMixin:GetCharacterInfo(characterName)
+  local characters = Internal:GetSavedVariableSubTable(self, "characters");
+  local characterTbl = characters[characterName];
+
+  if (type(characterTbl) ~= "table") then
+    return "", -1, "";
+  end
+
+  return characterTbl.__class, characterTbl.__level, characterTbl.__faction;
+end
+
+---@param characterName string
+---@param ... (string|number)
+---@return QueryResult
+---@nodiscard
+function CharacterRepositoryMixin:QueryByCharacter(characterName, ...)
+  local characters = Internal:GetSavedVariableSubTable(self, "characters");
+  local characterTbl = characters[characterName];
+
+  if (type(characterTbl) ~= "table") then
+    return nil;
+  end
+
+  local query = UtilitiesMixin:ToQueryString(...);
+  return UtilitiesMixin:Query(characterTbl, query);
+end
+
+---@generic T
+---@param resultType `T`
+---@param ... (string|number)
+---@return T
+---@nodiscard
+function CharacterRepositoryMixin:QueryTypeByCharacter(resultType, characterName, ...)
+  local result = self:QueryByCharacter(characterName, ...);
+
+  if (resultType) then
+    local r = resultType--[[@as string]];
+    if (r:find("?") == #r) then
+      if (result == nil) then
+        return result;
+      end
+
+      resultType = r:sub(1, #r - 1);
+    end
+
+    UtilitiesMixin:VerifyVar("result", result, resultType);
+  end
+
+  return result;
+end
+
+--------------------------
 --> ProfileRepositoryMixin:
 --------------------------
 ---@param callback OnProfileChanged
@@ -276,8 +391,7 @@ function ProfileRepositoryMixin:GetActiveProfile()
   local data = metadata[tostring(self)];
   local profileKeys = Internal:GetSavedVariableSubTable(self, "profileKeys");
 
-  local characterName = UnitFullName("player");
-  assert(type(characterName) == "string", "Failed to get active profile; invalid character name");
+  local characterName = GetCurrentCharacterName();
 
   local repository = data.database.profile;
   local handler = data.config.repositoryHandlers.profile;
@@ -300,9 +414,7 @@ end
 
 ---@param profileName string
 function ProfileRepositoryMixin:SetActiveProfile(profileName)
-  local characterName = UnitFullName("player");
-  assert(type(characterName) == "string", "Failed to set active profile; invalid character name");
-
+  local characterName = GetCurrentCharacterName();
   local oldProfileName = self:GetActiveProfile();
 
   if (oldProfileName == profileName) then return end
@@ -406,34 +518,22 @@ end
 
 function ProfileRepositoryMixin:ExportProfile(profileName)
   local profiles = Internal:GetSavedVariableSubTable(self, "profiles");
-  local profileData = profiles[profileName];
+  local profileTable = profiles[profileName];
 
-  assert(type(profileData) == "table", ("Failed to export unknown profile '%s'"):format(profileName));
+  assert(type(profileTable) == "table", ("Failed to export unknown profile '%s'"):format(profileName));
 
-  local rawStr = UtilitiesMixin:Serialize(profileData);
-  local compressed = LibDeflate:CompressDeflate(rawStr);
-  local profileDataString = LibDeflate:EncodeForPrint(compressed);
+  local profileDataString = UtilitiesMixin:Encode(profileTable);
   return profileDataString;
 end
 
-do
-  local fetcherPattern = "return function() return { %s }; end";
-  local loadstring = _G.loadstring;
+function ProfileRepositoryMixin:ImportProfile(profileName, profileDataString, force)
+  local profiles = Internal:GetSavedVariableSubTable(self, "profiles");
 
-  function ProfileRepositoryMixin:ImportProfile(profileName, profileDataString, force)
-    local profiles = Internal:GetSavedVariableSubTable(self, "profiles");
+  assert(type(profiles[profileName]) ~= "table" or force,
+    ("Failed to import profile '%s'; a profile with that name already exists"):format(profileName));
 
-    assert(type(profiles[profileName]) ~= "table" or force,
-      ("Failed to import profile '%s'; a profile with that name already exists"):format(profileName));
-
-    local compressed = LibDeflate:DecodeForPrint(profileDataString);
-    local decompressed = LibDeflate:DecompressDeflate(compressed);
-
-    local fetcher = loadstring(fetcherPattern:format(decompressed)); ---@cast fetcher function
-    local profileData = fetcher()(); ---@cast profileData table
-
-    profiles[profileName] = profileData;
-  end
+  local profileData = UtilitiesMixin:Decode(profileDataString);
+  profiles[profileName] = profileData;
 end
 
 --------------------------
@@ -494,6 +594,15 @@ function RepositoryMixin:QueryType(resultType, ...)
   local result = self:Query(...);
 
   if (resultType) then
+    local r = resultType--[[@as string]];
+    if (r:find("?") == #r) then
+      if (result == nil) then
+        return result;
+      end
+
+      resultType = r:sub(1, #r - 1);
+    end
+
     UtilitiesMixin:VerifyVar("result", result, resultType);
   end
 
@@ -581,7 +690,6 @@ do
     local data = metadata[tostring(self)];
     local repositoryName = self:GetRepositoryName();
     local index = data.indices[repositoryName];
-    local observers = data.config.observers[repositoryName];
     local changes = AddToIndex(index, normalizedQuery, value);
 
     if (changes) then
@@ -592,7 +700,10 @@ do
         UtilitiesMixin:Store(svTable, path, change.to);
       end
 
-      Internal:NotifyChanges(svTable, observers, changes);
+      local observers = data.config.observers[repositoryName];
+      if (type(observers) == "table") then
+        Internal:NotifyChanges(svTable, observers, changes);
+      end
     end
   end
 end
@@ -604,9 +715,17 @@ end
 ---@param query string
 ---@return any
 function UtilitiesMixin:Query(tbl, query)
-  local normalizedQuery = self:NormalizeQuery(query);
-  local queryableList = self:ToQueryList(normalizedQuery);
+  if (tbl[query] ~= nil) then
+    return tbl[query];
+  end
 
+  local normalizedQuery = self:NormalizeQuery(query);
+
+  if (tbl[normalizedQuery] ~= nil) then
+    return tbl[normalizedQuery];
+  end
+
+  local queryableList = self:ToQueryList(normalizedQuery);
   local result = tbl; ---@type table?
 
   for _, key in ipairs(queryableList) do
@@ -740,6 +859,29 @@ function UtilitiesMixin:Serialize(tbl)
 end
 
 do
+  local fetcherPattern = "return function() return %s; end";
+  local loadstring = _G.loadstring;
+
+  ---@param encodedString string
+  ---@return table
+  function UtilitiesMixin:Decode(encodedString)
+    local compressed = LibDeflate:DecodeForPrint(encodedString);
+    local decompressed = LibDeflate:DecompressDeflate(compressed);
+    local fetcher = loadstring(fetcherPattern:format(decompressed)); ---@cast fetcher function
+    return fetcher()();
+  end
+end
+
+---@param tbl table
+---@return string
+function UtilitiesMixin:Encode(tbl)
+  local rawStr = self:Serialize(tbl);
+  local compressed = LibDeflate:CompressDeflate(rawStr);
+  local encoded = LibDeflate:EncodeForPrint(compressed);
+  return encoded;
+end
+
+do
   local normalizePattern = "%[%s*['\"](.-)['\"]%s*%]";
   local stringKeyPattern = "^%s*[\"'](.-)[\"']%s*$";
 
@@ -769,7 +911,7 @@ do
   function UtilitiesMixin:PushTable(tbl)
     if (type(tbl) ~= "table") then return end
     if (#tables < 50) then
-      setmetatable(tbl);
+      setmetatable(tbl, nil);
       table.wipe(tbl);
       return table.insert(tables, tbl);
     end
@@ -867,10 +1009,12 @@ function IndexActionsMixin:NotifyIndexChanges(changes)
   local repository = self.__repository;
   local data = metadata[tostring(repository)];
   local repositoryName = repository:GetRepositoryName();
-  local observers = data.config.observers[repositoryName];
   local svTable = Internal:GetRepositoryTable(repository);
 
-  Internal:NotifyChanges(svTable, observers, changes);
+  local observers = data.config.observers[repositoryName];
+  if (type(observers) == "table") then
+    Internal:NotifyChanges(svTable, observers, changes);
+  end
 end
 
 function IndexActionsMixin:GetIndexChanges(fromIndex, toIndex)
@@ -991,6 +1135,11 @@ end
 ---@param observers { [string]: OrbitusObserver[] }
 ---@param changes IndexChanges
 function Internal:NotifyChanges(root, observers, changes)
+  UtilitiesMixin:VerifyArgsByName(
+    "root", root, "table",
+    "observers", observers, "table",
+    "changes", changes, "table");
+
   if (not next(observers)) then return end
 
   for query, observer in pairs(observers) do
