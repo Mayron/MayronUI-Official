@@ -90,6 +90,7 @@ local GetMoney = _G.GetMoney;
 ---@field scrollBar Frame
 ---@field bagsContainer BackdropTemplate|Frame
 ---@field character string?
+---@field searchBox EditBox
 
 -- Register and Import Modules -----------
 local C_Inventory = MayronUI:RegisterModule("Inventory", "Inventory");
@@ -207,7 +208,10 @@ do
           if (bag:IsShown()) then
             for j = 0, (#bag.slots - 1) do
               local slot = bag.slots[#bag.slots - j];
-              orderedSlots[#orderedSlots+1] = slot;
+
+              if (slot:IsShown()) then
+                orderedSlots[#orderedSlots+1] = slot;
+              end
             end
           end
         end
@@ -216,15 +220,20 @@ do
 
         for i = #inventoryFrame.bags, 1, -1 do
           local bag = inventoryFrame.bags[i];
-          bag:Show();
+          local isKeyring = bag.bagIndex == Enum.BagIndex.Keyring;
+          bag:SetShown(not isKeyring);
 
-          for j = 0, (#bag.slots - 1) do
-            local slot = bag.slots[#bag.slots - j];
+          if (not isKeyring) then
+            for j = 0, (#bag.slots - 1) do
+              local slot = bag.slots[#bag.slots - j];
 
-            if (resetSlotOrder and slot:IsItemEmpty()) then
-              emptySlots[#emptySlots+1] = slot;
-            else
-              orderedSlots[#orderedSlots+1] = slot;
+              if (slot:IsShown()) then
+                if (resetSlotOrder and slot:IsItemEmpty()) then
+                  emptySlots[#emptySlots+1] = slot;
+                else
+                  orderedSlots[#orderedSlots+1] = slot;
+                end
+              end
             end
           end
         end
@@ -380,8 +389,6 @@ local function SetDetailedViewEnabled(inventoryFrame, enabled)
       end
     end
   end
-
-  UpdateInventoryFrameCoreProperties(inventoryFrame, true, false);
 end
 
 ---@param slot MayronUI.Inventory.Slot
@@ -485,9 +492,10 @@ local function UpdateBagSlot(slot, button)
   slot.itemSubClass:SetShown(detailedView);
 
   local quality = slot:GetItemQuality();
+  local itemName = slot:GetItemName();
 
   if (detailedView) then
-    slot.itemName:SetText(slot:GetItemName());
+    slot.itemName:SetText(itemName);
 
     local _, itemClass, itemSubClass, equipLocation, _, classID, subClassID = GetItemInfoInstant(slot:GetItemID());
     local subText;
@@ -560,10 +568,6 @@ local function UpdateBagSlot(slot, button)
     slot:SetGridColor(r, g, b);
   end
 
-  -- TODO: Can only filter bag and slot items
-  local info = GetContainerItemInfo(bag.bagIndex, slotIndex);
-
-  slot.searchOverlay:SetShown(info and info.isFiltered);
   UpdateBagSlotCooldown(bag, slot);
 end
 
@@ -664,6 +668,8 @@ local function CreateBagSlots(bagFrame)
         local slot = CreateBagSlot(bagFrame, slotIndex);
         bagFrame.slots[slotIndex] = slot;
       end
+
+      bagFrame.slots[slotIndex]:Show();
     end
   end
 end
@@ -880,6 +886,7 @@ end
 local function ToggleDetailedView(self)
   local inventoryFrame = self:GetParent()--[[@as MayronUI.Inventory.Frame]];
   SetDetailedViewEnabled(inventoryFrame, not inventoryFrame.detailedView);
+  UpdateInventoryFrameCoreProperties(inventoryFrame, true, false);
 
   for _, bag in ipairs(inventoryFrame.bags) do
     for _, slot in ipairs(bag.slots) do
@@ -906,6 +913,9 @@ local function SetCharacterInventory(info, inventoryFrame)
     inventoryFrame.character = selectedCharacter;
   end
 
+  inventoryFrame.detailedView = false; -- this is required to get the item names to hide
+  local money;
+
   if (inventoryFrame.character) then
     local itemsEncoded = db.character:QueryTypeByCharacter("string", selectedCharacter, "items");
     local items = db.utilities:Decode(itemsEncoded);
@@ -916,7 +926,7 @@ local function SetCharacterInventory(info, inventoryFrame)
       local isBackpack = bag.bagIndex == Enum.BagIndex.Backpack;
       local isKeyring = bag.bagIndex == Enum.BagIndex.Keyring;
 
-      bag:Show();
+      bag:SetShown(not isKeyring);
 
       if (not (isBackpack or isKeyring)) then
         bagButton:SetItemID(bagInfo.bagItemID);
@@ -929,6 +939,7 @@ local function SetCharacterInventory(info, inventoryFrame)
 
         local slot = bag.slots[s];
         slot:Clear();
+        slot:Show();
 
         if (type(slotInfo) == "table") then
           local slotItemID, countText = unpack(slotInfo);
@@ -938,6 +949,13 @@ local function SetCharacterInventory(info, inventoryFrame)
         end
       end
 
+      for s = (#bagInfo + 1), #bag.slots do
+        -- Hide slots the other character does not have
+        local unavailableSlot = bag.slots[s];
+        unavailableSlot:Clear();
+        unavailableSlot:Hide();
+      end
+
       HandleBagUpdateDelayedEvent(bagButton);
     end
 
@@ -945,43 +963,55 @@ local function SetCharacterInventory(info, inventoryFrame)
       for _, slot in ipairs(bag.slots) do
         slot.__UpdateTooltip = slot.UpdateTooltip;
         slot.UpdateTooltip = nil;
+        slot.__oldOnEnter = slot:GetScript("OnEnter");
         slot:SetScript("OnEnter", HandleBagSlotEntered);
       end
 
       UpdateAllBagSlots(bag);
     end
 
-    local money = db.character:QueryTypeByCharacter("number", selectedCharacter, "money");
-    local moneyText = tk.Strings:GetFormattedMoney(money);
-    inventoryFrame.money:SetText(moneyText);
+    money = db.character:QueryTypeByCharacter("number", selectedCharacter, "money");
+  else
+    for b, bag in ipairs(inventoryFrame.bags) do
+      local bagButton = inventoryFrame.bagBar.buttons[b];
+      local isBackpack = bag.bagIndex == Enum.BagIndex.Backpack;
+      local isKeyring = bag.bagIndex == Enum.BagIndex.Keyring;
+
+      bag:SetShown(not isKeyring);
+
+      if (not (isBackpack or isKeyring)) then
+        local equipmentSlotIndex = bagButton:GetID();
+        local location = ItemLocation:CreateFromEquipmentSlot(equipmentSlotIndex);
+        bagButton:SetItemLocation(location);
+      end
+
+      for slotIndex, slot in ipairs(bag.slots) do
+        slot:SetItemLocation(ItemLocation:CreateFromBagAndSlot(bag.bagIndex, slotIndex));
+        slot.UpdateTooltip = slot.__UpdateTooltip;
+        slot:SetScript("OnEnter", slot.__oldOnEnter);
+        slot:HookScript("OnEnter", HandleBagSlotEntered);
+        slot:Show();
+      end
+
+      local totalSlots = GetContainerNumSlots(bag.bagIndex);
+      for s = totalSlots + 1, #bag.slots do
+        -- Hide slots the currently logged in character does not have
+        local unavailableSlot = bag.slots[s];
+        unavailableSlot:Clear();
+        unavailableSlot:Hide();
+      end
+
+      UpdateAllBagSlots(bag);
+      HandleBagUpdateDelayedEvent(bagButton);
+    end
+
+    money = GetMoney();
   end
 
-  --   for b, bag in ipairs(inventoryFrame.bags) do
-  --     local bagButton = inventoryFrame.bagBar.buttons[b];
-  --     local isBackpack = bag.bagIndex == 0;
-
-  --     if (not isBackpack) then
-  --       local equipmentSlotIndex = bagButton:GetID();
-  --       local location = ItemLocation:CreateFromEquipmentSlot(equipmentSlotIndex);
-  --       bagButton:SetItemLocation(location);
-  --     end
-
-  --     for slotIndex, slot in ipairs(bag.slots) do
-  --       slot:SetItemLocation(ItemLocation:CreateFromBagAndSlot(bag.bagIndex, slotIndex));
-  --     end
-
-  --     UpdateAllBagSlots(bag);
-  --     HandleBagUpdateDelayedEvent(bagButton);
-  --   end
-  -- else
-  --   inventoryFrame.character = characterName;
-
-
-
-  --   
-  -- end
-
-  UpdateInventoryFrameCoreProperties(inventoryFrame, false, true);
+  local moneyText = tk.Strings:GetFormattedMoney(money);
+  inventoryFrame.money:SetText(moneyText);
+  SetDetailedViewEnabled(inventoryFrame, false);
+  UpdateInventoryFrameCoreProperties(inventoryFrame, true, true);
 end
 
 local function ToggleCharactersMenu(self)
@@ -1040,9 +1070,26 @@ local function UpdateSearchOverlays(bags)
     for slotIndex, slot in ipairs(bag.slots) do
       if (slot:IsItemEmpty()) then
         ClearBagSlot(slot);
-      else
+      elseif (slot:HasItemLocation()) then
         local info = GetContainerItemInfo(bag.bagIndex, slotIndex);
         slot.searchOverlay:SetShown(info.isFiltered);
+      else
+        local itemName = slot:GetItemName();
+        local setVisibility;
+
+        if (itemName and #itemName > 0) then
+          local searchQuery = bag.inventoryFrame.searchBox:GetText();
+
+          if (searchQuery and #searchQuery > 0) then
+            local isFiltered = itemName:lower():find(searchQuery:lower()) == nil;
+            slot.searchOverlay:SetShown(isFiltered);
+            setVisibility = true;
+          end
+        end
+
+        if (not setVisibility) then
+          slot.searchOverlay:Hide();
+        end
       end
     end
   end
@@ -1053,6 +1100,11 @@ end
 ---@param bagIndex number?
 ---@param slotIndex number?
 local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
+	if (event == "INVENTORY_SEARCH_UPDATE") then
+    UpdateSearchOverlays(inventoryFrame.bags);
+    return
+  end
+
   if (inventoryFrame.character) then return end
 
   if (event == "BAG_UPDATE" or event == "PLAYER_MONEY") then
@@ -1195,11 +1247,6 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
     return
 	end
 
-	if (event == "INVENTORY_SEARCH_UPDATE") then
-    UpdateSearchOverlays(inventoryFrame.bags);
-    return
-  end
-
   if (event == "BAG_CONTAINER_UPDATE") then
     for _, bagToggleBtn in ipairs(inventoryFrame.bagBar.buttons) do
       local isActive = GetBagName(bagToggleBtn.bagIndex) ~= nil;
@@ -1244,55 +1291,56 @@ end
 ---@param inventoryFrame MayronUI.Inventory.Frame
 local function CreateSearchBox(inventoryFrame)
   --Searchbox
-	local searchEditBox = tk:CreateFrame("EditBox", inventoryFrame, "MUI_InventorySearch");
-	searchEditBox:SetPoint("LEFT", inventoryFrame.freeSlots, "RIGHT", 12, 0);
-	searchEditBox:SetPoint("RIGHT", inventoryFrame.dragger, "LEFT", -12, 0);
-	searchEditBox:SetPoint("BOTTOM", 0, 4);
+	local searchBox = tk:CreateFrame("EditBox", inventoryFrame, "MUI_InventorySearch");
+	searchBox:SetPoint("LEFT", inventoryFrame.freeSlots, "RIGHT", 12, 0);
+	searchBox:SetPoint("RIGHT", inventoryFrame.dragger, "LEFT", -12, 0);
+	searchBox:SetPoint("BOTTOM", 0, 4);
+  inventoryFrame.searchBox = searchBox;
 
-	searchEditBox:SetAutoFocus(false);
-	searchEditBox:SetHeight(24);
-	searchEditBox:SetMaxLetters(50);
-	searchEditBox:SetTextInsets(26, 22, 0, 1);
-	searchEditBox:SetFontObject("GameFontHighlight");
+	searchBox:SetAutoFocus(false);
+	searchBox:SetHeight(24);
+	searchBox:SetMaxLetters(50);
+	searchBox:SetTextInsets(26, 22, 0, 1);
+	searchBox:SetFontObject("GameFontHighlight");
 
-	local bg = searchEditBox:CreateTexture(nil, "BACKGROUND");
+	local bg = searchBox:CreateTexture(nil, "BACKGROUND");
 	bg:SetTexture(tk:GetAssetFilePath("Textures\\searchbox"));
 	bg:SetAllPoints();
 	tk.Constants.AddOnStyle:ApplyColor(nil, nil, bg);
 
-	local searchIcon = searchEditBox:CreateTexture(nil, "OVERLAY");
-	searchIcon:SetPoint("LEFT", searchEditBox, "LEFT", 6, 1);
+	local searchIcon = searchBox:CreateTexture(nil, "OVERLAY");
+	searchIcon:SetPoint("LEFT", searchBox, "LEFT", 6, 1);
 	searchIcon:SetSize(14, 14);
 	searchIcon:SetTexture("Interface\\Common\\UI-Searchbox-Icon");
 	searchIcon:SetTexCoord(0, 0.8215, 0, 0.8125); -- for some reason there's a 3px white space to the right and bottom
 	searchIcon:SetVertexColor(0.6, 0.6, 0.6);
 
-	local clearBtn = tk:CreateFrame("Button", searchEditBox);
-	clearBtn:SetPoint("RIGHT", searchEditBox, "RIGHT", -4, 1);
+	local clearBtn = tk:CreateFrame("Button", searchBox);
+	clearBtn:SetPoint("RIGHT", searchBox, "RIGHT", -4, 1);
 	clearBtn:SetSize(20, 18);
 	clearBtn:SetShown(false);
 	clearBtn:SetNormalTexture("Interface\\FriendsFrame\\ClearBroadcastIcon");
 	clearBtn:SetHighlightTexture("Interface\\FriendsFrame\\ClearBroadcastIcon", "ADD");
 
-	searchEditBox:SetScript("OnEscapePressed", function()
-    searchEditBox:ClearFocus();
+	searchBox:SetScript("OnEscapePressed", function()
+    searchBox:ClearFocus();
   end);
 
-	searchEditBox:SetScript("OnEnterPressed", searchEditBox.ClearFocus);
+	searchBox:SetScript("OnEnterPressed", searchBox.ClearFocus);
 
-	searchEditBox:SetScript("OnEditFocusLost", function(self)
+	searchBox:SetScript("OnEditFocusLost", function(self)
 		if (self:GetText() == "") then
 			searchIcon:SetVertexColor(0.6, 0.6, 0.6);
 			clearBtn:Hide();
 		end
 	end);
 
-	searchEditBox:SetScript("OnEditFocusGained", function()
+	searchBox:SetScript("OnEditFocusGained", function()
 		searchIcon:SetVertexColor(1.0, 1.0, 1.0);
 		clearBtn:Show();
 	end);
 
-	searchEditBox:SetScript("OnTextChanged", function(self)
+	searchBox:SetScript("OnTextChanged", function(self)
     C_Container.SetItemSearch(self:GetText());
 	end);
 
@@ -1379,7 +1427,11 @@ local function HandleTabOnClick(self)
   end
 
   for _, bag in ipairs(inventoryFrame.bags) do
-    for _, slot in ipairs(bag.slots) do
+    local totalSlots = GetContainerNumSlots(bag.bagIndex);
+
+    for s = 1, totalSlots do
+      local slot = bag.slots[s];
+
       if (showAllItems) then
         slot:Show();
       else
@@ -1491,25 +1543,24 @@ function C_Inventory:OnInitialize()
     end);
 
     -- Create Bags and Slots:
-    for i = totalBagFrames, 1, -1 do
+    for i = 0, (totalBagFrames - 1) do
       local bagIndex, bagGlobalName;
 
-      if (i == 1) then
+      if (i == (totalBagFrames - 1)) then
         -- keyring:
         bagIndex = Enum.BagIndex.Keyring;
         bagGlobalName = "MUI_InventoryKeyring";
-
-      elseif (i == 2) then
+      elseif (i == 0) then
         -- backpack:
         bagIndex = Enum.BagIndex.Backpack;
         bagGlobalName = "MUI_InventoryBackpack";
       else
-        bagIndex =  Enum.BagIndex["Bag_"..(i - 2)];
-        bagGlobalName = "MUI_InventoryBag"..(i - 2);
+        bagIndex =  Enum.BagIndex["Bag_"..i];
+        bagGlobalName = "MUI_InventoryBag"..i;
       end
 
-      if (i > 1) then
-        tk:KillElement(_G["ContainerFrame"..(i - 1)]);
+      if (i > 0) then
+        tk:KillElement(_G["ContainerFrame"..i]);
       end
 
       local bagFrame = tk:CreateFrame("Frame", inventoryFrame.scrollChild--[[@as Frame]], bagGlobalName)--[[@as MayronUI.Inventory.BagFrame]];
@@ -1528,7 +1579,7 @@ function C_Inventory:OnInitialize()
       bagFrame.slots = {};
       bagFrame.bagIndex = bagIndex;
 
-      local bagToggleBtn = CreateBagToggleButton(bagBar, bagFrame, #inventoryFrame.bags - 1);
+      local bagToggleBtn = CreateBagToggleButton(bagBar, bagFrame, i);
       table.insert(bagBar.buttons, bagToggleBtn);
 
       CreateBagSlots(bagFrame);
@@ -1668,6 +1719,7 @@ function C_Inventory:OnInitialize()
     inventoryFrame:SetScript("OnEvent", InventoryFrameOnEvent);
 
     SetDetailedViewEnabled(inventoryFrame, false);
+    UpdateInventoryFrameCoreProperties(inventoryFrame, true, true);
 
     do
       local xOffset = db.global:QueryType("number?", "xOffset");
