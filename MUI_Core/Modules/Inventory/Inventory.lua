@@ -18,7 +18,7 @@ local GetContainerNumFreeSlots = C_Container.GetContainerNumFreeSlots;
 local GetInventorySlotInfo = _G.GetInventorySlotInfo;
 local PlaySound, GetScreenWidth, GetScreenHeight = _G.PlaySound, _G.GetScreenWidth, _G.GetScreenHeight;
 local SoundKit, GetItemInfoInstant = _G.SOUNDKIT, _G.GetItemInfoInstant;
-local EasyMenu, GetTime, ipairs = _G.EasyMenu, _G.GetTime, _G.ipairs;
+local EasyMenu, GetTime, ipairs, IsAddOnLoaded = _G["EasyMenu"], _G.GetTime, _G.ipairs, _G.IsAddOnLoaded;
 
 ---@enum MayronUI.Inventory.TabType
 local TabTypesEnum = {
@@ -97,6 +97,7 @@ local C_Inventory = MayronUI:RegisterModule("Inventory", "Inventory");
 
 -- Settings:
 local slotSpacing = 6;
+local minInventoryFrameWidth = 340;
 
 ---@class MayronUI.Inventory.ViewSettings
 ---@field height number
@@ -309,10 +310,10 @@ local function UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder)
   local minRows, maxSlotWidth = UpdateBagSlotAnchors(settings, false, "max", orderedSlots, 0);
   local maxWidth, minHeight = GetFrameDimensionsByTotalColumns(settings, settings.columns.max, maxSlotWidth, minRows, settings.rows.min);
 
-  inventoryFrame.minWidth = minWidth;
+  inventoryFrame.minWidth = math.max(minWidth, minInventoryFrameWidth);
   inventoryFrame.maxWidth = maxWidth;
 
-  tk:SetResizeBounds(inventoryFrame, minWidth, minHeight, maxWidth, maxHeight);
+  tk:SetResizeBounds(inventoryFrame, inventoryFrame.minWidth, minHeight, maxWidth, maxHeight);
 
   local initialRows, initialSlotWidth = UpdateBagSlotAnchors(settings, true, "initial", orderedSlots, 0);
   local initialWidth, initialHeight, scrollChildHeight = GetFrameDimensionsByTotalColumns(
@@ -329,7 +330,7 @@ local function UpdateInventoryFrameCoreProperties(inventoryFrame, fullUpdate, re
   inventoryFrame.scrollChild:SetHeight(scrollChildHeight);
 
   if (inventoryFrame.detailedView or fullUpdate) then
-    inventoryFrame:SetWidth(width);
+    inventoryFrame:SetWidth(math.max(width, minInventoryFrameWidth));
   end
 
   if (not inventoryFrame.detailedView or fullUpdate) then
@@ -397,10 +398,13 @@ local function SetBagItemSlotBorderColor(slot, isHighlightedBag)
     local invType = slot:GetInventoryType();
     local quality = slot:GetItemQuality();
 
-    if (invType and invType > 0 or quality > 1) then
+    if ((invType and invType > 0) or (quality and quality > 1)) then
       local color = slot:GetItemQualityColor();
-      slot:SetGridColor(color.r, color.g, color.b);
-      return
+
+      if (obj:IsTable(color)) then
+        slot:SetGridColor(color.r, color.g, color.b);
+        return
+      end
     end
   end
 
@@ -482,6 +486,8 @@ local function UpdateBagSlot(slot, button)
   local iconFileID = slot:GetItemIcon();
 
   slot.icon:SetTexture(iconFileID);
+  local locked = slot:IsItemLocked();
+  slot.icon:SetDesaturated(locked);
   slot.icon:Show();
   slot.gloss:Show();
 
@@ -523,7 +529,7 @@ local function UpdateBagSlot(slot, button)
         local itemLevel = slot:GetCurrentItemLevel();
 
         if (type(itemLevel) == "number" and itemLevel > 0) then
-          subText = inventorySlot .. ", ".. subText .. " (item level: " .. tostring(itemLevel) .. ")";
+          subText = inventorySlot .. ", ".. subText .. " (iLvl: " .. tostring(itemLevel) .. ")";
         else
           subText = inventorySlot .. ", ".. subText;
         end
@@ -615,6 +621,7 @@ local function CreateBagSlot(bagFrame, slotIndex)
   slot.itemSubClass = slot:CreateFontString("$parentItemClass", "OVERLAY", "GameFontHighlight");
   slot.itemSubClass:SetPoint("TOPLEFT", slot.itemName, "BOTTOMLEFT", 0, -2);
   slot.itemSubClass:SetPoint("TOPRIGHT", slot.itemName, "BOTTOMRIGHT", 0, -2);
+  slot.itemSubClass:SetWordWrap(false);
   slot.itemSubClass:Hide();
   slot.itemSubClass:SetJustifyH("LEFT");
   tk:SetFontSize(slot.itemSubClass, 10);
@@ -909,8 +916,12 @@ local function SetCharacterInventory(info, inventoryFrame)
 
   if (currentCharacterName == selectedCharacter) then
     inventoryFrame.character = nil;
+    inventoryFrame.titleBar.text:SetText("Inventory");
+    inventoryFrame.sortBtn:Enable();
   else
     inventoryFrame.character = selectedCharacter;
+    inventoryFrame.titleBar.text:SetText(selectedCharacter);
+    inventoryFrame.sortBtn:Disable();
   end
 
   inventoryFrame.detailedView = false; -- this is required to get the item names to hide
@@ -1162,7 +1173,7 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
     end
   end
 
-  -- MayronUI:LogInfo("Event: %s (has bag?: %s) with bagIndex %s and slotIndex %s.",event, obj:IsTable(bagFrame), bagIndex, slotIndex);
+  --MayronUI:LogInfo("Event: %s (has bag?: %s) with bagIndex %s and slotIndex %s.",event, obj:IsTable(bagFrame), bagIndex, slotIndex);
 
 --[[
 	if ( event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_SPECIALIZATION_CHANGED" ) then
@@ -1693,8 +1704,8 @@ function C_Inventory:OnInitialize()
           tab.tooltipText = "Trade Goods";
           tab:SetID(TabTypesEnum.TradeGoods);
         elseif (i == 5) then
-          tab.icon:SetTexture("Interface\\GossipFrame\\AvailableQuestIcon");
-          tab.icon:SetSize(20, 20);
+          tab.icon:SetTexture("Interface\\QuestFrame\\UI-QuestLog-BookIcon");
+          tab.icon:SetSize(28, 24);
           tab.tooltipText = "Quest Items";
           tab:SetID(TabTypesEnum.QuestItems);
           tab.background:SetVertexColor(0, 0, 0, 1);
@@ -1720,6 +1731,30 @@ function C_Inventory:OnInitialize()
 
     SetDetailedViewEnabled(inventoryFrame, false);
     UpdateInventoryFrameCoreProperties(inventoryFrame, true, true);
+
+    local totalBags = 0;
+
+    for i = 1, _G.NUM_BAG_SLOTS do
+      local isActive = GetBagName(i) ~= nil;
+
+      if (isActive) then
+        totalBags = totalBags + 1;
+      end
+    end
+
+    if (totalBags < 2) then
+      ToggleBagsBar(inventoryFrame.bagsBtn);
+    end
+
+    local bagnonFrames = tk.Tables:GetValueOrNil(_G["Bagnon"], "Frames")--[[@as table]];
+    local bagnonInventorySettings = tk.Tables:GetValueOrNil(_G["Bagnon"], "profile", "inventory")--[[@as table]];
+
+    if (IsAddOnLoaded("Bagnon") and
+      obj:IsTable(bagnonFrames) and
+      bagnonFrames:IsEnabled("inventory") and
+      obj:IsTable(bagnonInventorySettings)) then
+        bagnonInventorySettings.enabled = false;
+    end
 
     do
       local xOffset = db.global:QueryType("number?", "xOffset");
