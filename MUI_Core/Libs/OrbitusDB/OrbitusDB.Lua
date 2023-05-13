@@ -12,35 +12,36 @@ else
   OrbitusDB = {};
 end
 
----@class UtilitiesMixin
+---@class OrbitusDB.UtilitiesMixin
+---@field db OrbitusDB.DatabaseMixin
 local UtilitiesMixin = {};
 
----@class RepositoryMixin
+---@class OrbitusDB.RepositoryMixin
 local RepositoryMixin = {};
 
----@class ProfileRepositoryMixin: RepositoryMixin
+---@class OrbitusDB.ProfileRepositoryMixin: OrbitusDB.RepositoryMixin
 local ProfileRepositoryMixin = {};
 
----@class CharacterRepositoryMixin: RepositoryMixin
+---@class OrbitusDB.CharacterRepositoryMixin: OrbitusDB.RepositoryMixin
 local CharacterRepositoryMixin = {};
 
 ---@class Utilities
 local Internal = {};
 
----@class DatabaseMixin
----@field profile ProfileRepositoryMixin
----@field global RepositoryMixin
----@field character CharacterRepositoryMixin
----@field utilities UtilitiesMixin
+---@class OrbitusDB.DatabaseMixin
+---@field profile OrbitusDB.ProfileRepositoryMixin
+---@field global OrbitusDB.RepositoryMixin
+---@field character OrbitusDB.CharacterRepositoryMixin
+---@field utilities OrbitusDB.UtilitiesMixin
 local DatabaseMixin = {};
 
----@class IndexActionsMixin
----@field GetIndex fun(self: IndexActionsMixin): Index
----@field RebuildIndex fun(self: IndexActionsMixin)
----@field GetIndexChanges fun(self: IndexActionsMixin, fromIndex: Index, toIndex: Index): IndexChanges
----@field NotifyIndexChanges fun(self: IndexActionsMixin, changes: IndexChanges)
----@field private __repository RepositoryMixin
----@field private Init fun(self: IndexActionsMixin, repository: RepositoryMixin)
+---@class OrbitusDB.IndexActionsMixin
+---@field GetIndex fun(self: OrbitusDB.IndexActionsMixin): OrbitusDB.Index
+---@field RebuildIndex fun(self: OrbitusDB.IndexActionsMixin)
+---@field GetIndexChanges fun(self: OrbitusDB.IndexActionsMixin, fromIndex: OrbitusDB.Index, toIndex: OrbitusDB.Index): OrbitusDB.IndexChanges
+---@field NotifyIndexChanges fun(self: OrbitusDB.IndexActionsMixin, changes: OrbitusDB.IndexChanges)
+---@field private __repository OrbitusDB.RepositoryMixin
+---@field private Init fun(self: OrbitusDB.IndexActionsMixin, repository: OrbitusDB.RepositoryMixin)
 local IndexActionsMixin = {};
 
 local UnitFullName, strtrim = _G.UnitFullName, _G.strtrim;
@@ -71,33 +72,33 @@ do
   end
 end
 
----@class RepositoryHandler
+---@class OrbitusDB.RepositoryHandler
 ---@field Mixin table|nil
----@field GetSavedVariableTable fun(sv: table, repository: RepositoryMixin): table
----@field ConfigureIndex fun(repository: RepositoryMixin, actions: IndexActionsMixin)
----@field GetDefaultKey fun(repository: RepositoryMixin): string
+---@field GetSavedVariableTable fun(sv: table, repository: OrbitusDB.RepositoryMixin): table
+---@field ConfigureIndex fun(repository: OrbitusDB.RepositoryMixin, actions: OrbitusDB.IndexActionsMixin)
+---@field GetDefaultKey fun(repository: OrbitusDB.RepositoryMixin): string
 
----@alias OnInitializedCallback fun(db: DatabaseMixin)
----@alias OnProfileChanged fun(repository: ProfileRepositoryMixin, newProfileName: string, oldProfileName: string)
----@alias OnProfileListChanged fun(repository: ProfileRepositoryMixin)
----@alias OnBinListChanged fun(repository: ProfileRepositoryMixin)
----@alias DatabaseCallbackType "profileChanged"|"profileListChanged"|"binListChanged"
----@alias DatabaseCallback fun(db: DatabaseMixin, ...: any)
----@alias OrbitusObserver fun(value: any, changes: IndexChanges)
----@alias QueryList (string|number)[]
----@alias RepositoryName "global"|"profile"|"character"
----@alias QueryResult string|boolean|number|table|nil
----@alias IndexChanges { [string]: { from: QueryResult, to: QueryResult }}
----@alias Index { [string]: QueryResult }
+---@alias OrbitusDB.OnInitializedCallback fun(db: OrbitusDB.DatabaseMixin)
+---@alias OrbitusDB.OnProfileChanged fun(repository: OrbitusDB.ProfileRepositoryMixin, newProfileName: string, oldProfileName: string)
+---@alias OrbitusDB.OnProfileListChanged fun(repository: OrbitusDB.ProfileRepositoryMixin)
+---@alias OrbitusDB.OnBinListChanged fun(repository: OrbitusDB.ProfileRepositoryMixin)
+---@alias OrbitusDB.DatabaseCallbackType "profileChanged"|"profileListChanged"|"binListChanged"
+---@alias OrbitusDB.DatabaseCallback fun(db: OrbitusDB.DatabaseMixin, ...: any)
+---@alias OrbitusDB.Observer fun(value: any, changes: OrbitusDB.IndexChanges)
+---@alias OrbitusDB.QueryList (string|number)[]
+---@alias OrbitusDB.RepositoryName "global"|"profile"|"character"
+---@alias OrbitusDB.QueryResult string|boolean|number|table|nil
+---@alias OrbitusDB.IndexChanges { [string]: { from: OrbitusDB.QueryResult, to: OrbitusDB.QueryResult }}
+---@alias OrbitusDB.Index { [string]: OrbitusDB.QueryResult }
 
----@class DatabaseConfig
----@field defaults { [RepositoryName]: table }
----@field schemas { [RepositoryName]: table }
----@field observers { [RepositoryName]: table<string, OrbitusObserver[]> }
----@field repositoryHandlers table<RepositoryName, RepositoryHandler>
+---@class OrbitusDB.DatabaseConfig
+---@field defaults { [OrbitusDB.RepositoryName]: table }
+---@field schemas { [OrbitusDB.RepositoryName]: table }
+---@field observers { [OrbitusDB.RepositoryName]: table<string, OrbitusDB.Observer[]> }
+---@field repositoryHandlers table<OrbitusDB.RepositoryName, OrbitusDB.RepositoryHandler>
 ---@field svName string
 
----@type DatabaseConfig
+---@type OrbitusDB.DatabaseConfig
 local defaultConfig = {
   defaults = {};
   schemas = {};
@@ -115,7 +116,7 @@ local defaultConfig = {
     -- If we had "OnSpecializationChanged" then this would send that too
     ["profile"] = {
       GetSavedVariableTable = function(sv, repository)
-        ---@cast repository ProfileRepositoryMixin
+        ---@cast repository OrbitusDB.ProfileRepositoryMixin
         local profileName = repository:GetActiveProfile();
         sv.profiles = sv.profiles or {};
         sv.profiles[profileName] = sv.profiles[profileName] or {};
@@ -127,7 +128,7 @@ local defaultConfig = {
       GetDefaultKey = function() return "Default" end,
 
       ConfigureIndex = function(repository, actions)
-        ---@cast repository ProfileRepositoryMixin
+        ---@cast repository OrbitusDB.ProfileRepositoryMixin
         repository:OnProfileChanged(function()
           local index = actions:GetIndex();
           local newIndex = actions:RebuildIndex();
@@ -159,20 +160,20 @@ local defaultConfig = {
   }
 };
 
----@class DatabaseMetadata
----@field callbacks table<DatabaseCallbackType, DatabaseCallback[]>
----@field database DatabaseMixin
----@field config DatabaseConfig
----@field indices { [RepositoryName]: Index }
+---@class OrbitusDB.DatabaseMetadata
+---@field callbacks table<OrbitusDB.DatabaseCallbackType, OrbitusDB.DatabaseCallback[]>
+---@field database OrbitusDB.DatabaseMixin
+---@field config OrbitusDB.DatabaseConfig
+---@field indices { [OrbitusDB.RepositoryName]: OrbitusDB.Index }
 
----@type table<string, DatabaseMetadata>
+---@type table<string, OrbitusDB.DatabaseMetadata>
 local metadata = {};
 
----@class Registration
----@field config DatabaseConfig
----@field callback OnInitializedCallback
+---@class OrbitusDB.Registration
+---@field config OrbitusDB.DatabaseConfig
+---@field callback OrbitusDB.OnInitializedCallback
 
----@type table<string, table<string, Registration>>
+---@type table<string, table<string, OrbitusDB.Registration>>
 local registrar = {};
 
 local CreateAndInitFromMixin = _G.CreateAndInitFromMixin;
@@ -214,12 +215,12 @@ end
 --------------------------
 
 ---@param addOnName string
----@param databaseConfig DatabaseConfig
----@param onInitialized OnInitializedCallback
+---@param databaseConfig OrbitusDB.DatabaseConfig
+---@param onInitialized OrbitusDB.OnInitializedCallback
 function OrbitusDB:Register(addOnName, databaseConfig, onInitialized)
-  local config = UtilitiesMixin:MergeTables(defaultConfig, databaseConfig); ---@type DatabaseConfig
+  local config = UtilitiesMixin:MergeTables(defaultConfig, databaseConfig); ---@type OrbitusDB.DatabaseConfig
 
-  ---@type Registration
+  ---@type OrbitusDB.Registration
   local registration = {
     config = config;
     callback = onInitialized;
@@ -237,7 +238,7 @@ function OrbitusDB:Register(addOnName, databaseConfig, onInitialized)
 end
 
 ---@param savedVariableName string
----@return DatabaseMixin
+---@return OrbitusDB.DatabaseMixin
 function OrbitusDB:GetDatabase(savedVariableName)
   for _, data in pairs(metadata) do
     if (data.config.svName == savedVariableName) then
@@ -253,7 +254,7 @@ end
 --------------------------
 
 ---@private
----@param config DatabaseConfig
+---@param config OrbitusDB.DatabaseConfig
 function DatabaseMixin:Init(config)
   assert(metadata[tostring(self)] == nil,
     ("Database %s failed to initialize because it has already been initialized"):format(config.svName));
@@ -262,7 +263,7 @@ function DatabaseMixin:Init(config)
     _G[config.svName] = {};
   end
 
-  ---@type DatabaseMetadata
+  ---@type OrbitusDB.DatabaseMetadata
   local data = {
     config = config;
     database = self;
@@ -271,6 +272,7 @@ function DatabaseMixin:Init(config)
 
   metadata[tostring(self)] = data;
   self.utilities = CreateFromMixins(UtilitiesMixin);
+  self.utilities.db = self;
 
   for repositoryName, handler in pairs(data.config.repositoryHandlers) do
     local mixin = RepositoryMixin;
@@ -330,7 +332,7 @@ end
 
 ---@param characterName string
 ---@param ... (string|number)
----@return QueryResult
+---@return OrbitusDB.QueryResult
 ---@nodiscard
 function CharacterRepositoryMixin:QueryByCharacter(characterName, ...)
   local characters = Internal:GetSavedVariableSubTable(self, "characters");
@@ -371,17 +373,17 @@ end
 --------------------------
 --> ProfileRepositoryMixin:
 --------------------------
----@param callback OnProfileChanged
+---@param callback OrbitusDB.OnProfileChanged
 function ProfileRepositoryMixin:OnProfileChanged(callback)
   Internal:AddCallback(self, "profileChanged", callback);
 end
 
----@param callback OnProfileListChanged
+---@param callback OrbitusDB.OnProfileListChanged
 function ProfileRepositoryMixin:OnProfileListChanged(callback)
   Internal:AddCallback(self, "profileListChanged", callback);
 end
 
----@param callback OnBinListChanged
+---@param callback OrbitusDB.OnBinListChanged
 function ProfileRepositoryMixin:OnBinListChanged(callback)
   Internal:AddCallback(self, "binListChanged", callback);
 end
@@ -541,8 +543,8 @@ end
 --------------------------
 
 ---@private
----@param database DatabaseMetadata
----@param repositoryName RepositoryName
+---@param database OrbitusDB.DatabaseMetadata
+---@param repositoryName OrbitusDB.RepositoryName
 function RepositoryMixin:Init(database, repositoryName)
   local data = metadata[tostring(database)];
   metadata[tostring(self)] = data;
@@ -569,7 +571,7 @@ function RepositoryMixin:GetDatabase()
 end
 
 ---@param query string
----@param observer OrbitusObserver
+---@param observer OrbitusDB.Observer
 function RepositoryMixin:Subscribe(query, observer)
   local data = metadata[tostring(self)];
   local dbObservers = data.config.observers;
@@ -610,11 +612,13 @@ function RepositoryMixin:QueryType(resultType, ...)
 end
 
 ---@param ... (string|number)
----@return QueryResult
+---@return OrbitusDB.QueryResult
 ---@nodiscard
 function RepositoryMixin:Query(...)
   local query = UtilitiesMixin:ToQueryString(...);
   local repositoryName = self:GetRepositoryName();
+  query = Internal:RemoveRepositoryNamePrefixFromQuery(query, repositoryName);
+
   local data = metadata[tostring(self)];
 
   local index = data.indices[repositoryName];
@@ -635,11 +639,11 @@ end
 
 do
   ---comment
-  ---@param index Index
+  ---@param index OrbitusDB.Index
   ---@param key string|number
   ---@param value any
-  ---@param changes IndexChanges?
-  ---@return IndexChanges?
+  ---@param changes OrbitusDB.IndexChanges?
+  ---@return OrbitusDB.IndexChanges?
   local function AddToIndex(index, key, value, changes)
     local previousValue = index[key];
 
@@ -683,12 +687,14 @@ do
   end
 
   ---@param query string
-  ---@param value QueryResult
+  ---@param value OrbitusDB.QueryResult
   function RepositoryMixin:Store(query, value)
     UtilitiesMixin:VerifyArgs(query, "string", value, "string|number|boolean|table|nil");
     local normalizedQuery = UtilitiesMixin:NormalizeQuery(query);
-    local data = metadata[tostring(self)];
     local repositoryName = self:GetRepositoryName();
+    normalizedQuery = Internal:RemoveRepositoryNamePrefixFromQuery(normalizedQuery, repositoryName);
+
+    local data = metadata[tostring(self)];
     local index = data.indices[repositoryName];
     local changes = AddToIndex(index, normalizedQuery, value);
 
@@ -763,6 +769,18 @@ function UtilitiesMixin:Store(tbl, query, value)
   end
 
   self:PushTable(queryableList);
+end
+
+---@param query string
+---@return OrbitusDB.RepositoryMixin?
+function UtilitiesMixin:GetRepositoryFromQuery(query)
+  local data = metadata[tostring(self.db)];
+
+  for repositoryName, _ in pairs(data.config.repositoryHandlers) do
+    if (query:sub(1, #repositoryName) == repositoryName) then
+      return self.db[repositoryName];
+    end
+  end
 end
 
 ---@return table
@@ -885,12 +903,13 @@ do
   local normalizePattern = "%[%s*['\"](.-)['\"]%s*%]";
   local stringKeyPattern = "^%s*[\"'](.-)[\"']%s*$";
 
+  ---@param query string
   function UtilitiesMixin:NormalizeQuery(query)
     self:VerifyArgsByName("query", query, "string");
     query = strtrim(query):gsub(normalizePattern, ".%1");
 
     if (query:sub(1, 1) == ".") then
-      query = query:sub(2, #query);
+      query = query:sub(2);
     end
 
     return query;
@@ -919,7 +938,7 @@ do
 
   ---@param ... (string|number)
   ---@return string
-  ---@overload fun(self, list: QueryList)
+  ---@overload fun(self, list: OrbitusDB.QueryList)
   function UtilitiesMixin:ToQueryString(...)
     local query = "";
 
@@ -948,11 +967,11 @@ do
   end
 
   ---@param query string
-  ---@return QueryList
+  ---@return OrbitusDB.QueryList
   function UtilitiesMixin:ToQueryList(query)
     self:VerifyArgsByName("query", query, "string");
 
-    local list = self:PopTable(); ---@type QueryList
+    local list = self:PopTable(); ---@type OrbitusDB.QueryList
     local cur = 1;
     local hasStartBracket;
 
@@ -1132,8 +1151,8 @@ end
 --> Internal:
 --------------------------
 ---@param root table
----@param observers { [string]: OrbitusObserver[] }
----@param changes IndexChanges
+---@param observers { [string]: OrbitusDB.Observer[] }
+---@param changes OrbitusDB.IndexChanges
 function Internal:NotifyChanges(root, observers, changes)
   UtilitiesMixin:VerifyArgsByName(
     "root", root, "table",
@@ -1179,7 +1198,7 @@ function Internal:NotifyChanges(root, observers, changes)
   UtilitiesMixin:PushTable(changes);
 end
 
----@param repository RepositoryMixin
+---@param repository OrbitusDB.RepositoryMixin
 function Internal:GetRepositoryTable(repository)
   local data = metadata[tostring(repository)];
   local name = repository:GetRepositoryName();
@@ -1194,7 +1213,22 @@ function Internal:GetSavedVariableSubTable(obj, tblName)
   return sv[tblName];
 end
 
----@param callbackName DatabaseCallbackType
+---@param query string
+---@param repositoryName string
+---@return string
+function Internal:RemoveRepositoryNamePrefixFromQuery(query, repositoryName)
+  if (query:sub(1, #repositoryName) == repositoryName) then
+    query = query:sub(#repositoryName + 1);
+  end
+
+  if (query:sub(1, 1) == ".") then
+    query = query:sub(2, #query);
+  end
+
+  return query;
+end
+
+---@param callbackName OrbitusDB.DatabaseCallbackType
 function Internal:AddCallback(obj, callbackName, callback)
   local data = metadata[tostring(obj)];
   data.callbacks = data.callbacks or UtilitiesMixin:PopTable();
@@ -1203,7 +1237,7 @@ function Internal:AddCallback(obj, callbackName, callback)
   list[#list+1] = callback;
 end
 
----@param callbackName DatabaseCallbackType
+---@param callbackName OrbitusDB.DatabaseCallbackType
 function Internal:TriggerCallback(obj, callbackName, ...)
   local data = metadata[tostring(obj)];
 
@@ -1256,7 +1290,7 @@ function Internal:ApplyDefaults(defaults, sv)
   end
 end
 
----@param repository RepositoryMixin
+---@param repository OrbitusDB.RepositoryMixin
 function Internal:BuildIndex(repository)
   local data = metadata[tostring(repository)];
   local repositoryName = repository:GetRepositoryName();

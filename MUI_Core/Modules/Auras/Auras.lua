@@ -23,7 +23,7 @@ local BUFF_WARNING_TIME = 31;
 
 local C_Stack = obj:Import("Pkg-Collections.Stack<T>"); ---@cast C_Stack Pkg-Collections.Stack
 
----@class MUI_AurasDB : DatabaseMixin
+---@class MUI_AurasDB : OrbitusDB.DatabaseMixin
 
 --------------------------
 --> Database SetUp:
@@ -47,11 +47,12 @@ local AuraColorTypes = {
 
 ---@alias AuraTextName "auraName"|"timeRemaining"|"count"
 
----@type DatabaseConfig
+---@type OrbitusDB.DatabaseConfig
 local databaseConfig = {
   svName = "MUI_AurasDB";
   defaults = {
     profile = {
+      enabled = true;
       colors = {
         timeRemaining = {1, 1, 1};
         count         = {1, 0.82, 0};
@@ -559,7 +560,7 @@ function AuraButtonMixin:SetSparkShown(shown)
 end
 
 ---@param filter "HELPFUL"|"HARMFUL"
----@param db DatabaseMixin?
+---@param db OrbitusDB.DatabaseMixin?
 ---@return number width
 ---@return number height
 local function GetAuraButtonSize(filter, db)
@@ -839,7 +840,7 @@ local function OnHeaderAttributeChanged(self, name, btn)
 end
 
 ---@param filter "HELPFUL"|"HARMFUL"
----@param db DatabaseMixin
+---@param db OrbitusDB.DatabaseMixin
 local function CreateAuraHeader(filter, db)
   local auraType = (filter == "HELPFUL") and "buffs" or "debuffs";
   local mode = db.profile:QueryType("string", auraType, "mode");
@@ -904,18 +905,46 @@ local function CreateAuraHeader(filter, db)
   header:SetAttribute("sortDirection", "-");
   header:HookScript('OnAttributeChanged', OnHeaderAttributeChanged);
   header:Show();
+  return header;
 end
 
 -- C_AurasModule -----------------------
 function C_AurasModule:OnInitialize()
   OrbitusDB:Register(addOnName, databaseConfig, function (db)
     MayronUI:AddComponent("MUI_AurasDB", db);
-    CreateAuraHeader("HELPFUL", db);
-    CreateAuraHeader("HARMFUL", db);
 
-    -- Hide Blizzard frames
-    tk:KillElement(_G.BuffFrame);
-    tk:KillElement(_G.TemporaryEnchantFrame);
-    tk:KillElement(_G.DebuffFrame);
+    if (db.profile:QueryType("boolean", "enabled")) then
+      self:SetEnabled(true);
+    end
   end);
+end
+
+function C_AurasModule:OnEnabled(data)
+  local db = MayronUI:GetComponent("MUI_AurasDB");
+
+  if (not data.buffsHeader) then
+    data.buffsHeader = CreateAuraHeader("HELPFUL", db);
+  end
+
+  if (not data.debuffsHeader) then
+    data.debuffsHeader = CreateAuraHeader("HARMFUL", db);
+  end
+
+  data.buffsHeader:Show();
+  data.debuffsHeader:Show();
+
+  -- Hide Blizzard frames
+  tk:KillElement(_G.BuffFrame);
+  tk:KillElement(_G.TemporaryEnchantFrame);
+  tk:KillElement(_G.DebuffFrame);
+end
+
+function C_AurasModule:OnDisabled(data)
+  if (data.buffsHeader) then
+    data.buffsHeader:Hide();
+  end
+
+  if (data.debuffsHeader) then
+    data.debuffsHeader:Hide();
+  end
 end

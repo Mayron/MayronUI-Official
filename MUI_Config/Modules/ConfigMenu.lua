@@ -115,10 +115,6 @@ do
       end
     end
 
-    if (config.type == "frame") then
-      component.children = config.children;
-    end
-
     obj:PushTable(config);
   end
 end
@@ -143,16 +139,13 @@ function C_ConfigMenuModule:Show(data)
   PlaySound(tk.Constants.MENU_OPENED_CLICK);
 end
 
-obj:DefineReturns("Database");
----@return Database
-function C_ConfigMenuModule:GetDatabase(data, tbl)
+---@return table
+local function GetDatabase(componentOrConfigTbl)
   local dbObject = MayronUI:GetComponent("Database");
 
-  tbl = data.tempMenuConfigTable or tbl;
-
-  if (tbl and tbl.database) then
-    dbObject = MayronUI:GetComponent(tbl.database);
-    obj:Assert(dbObject, "Failed to get database object for module '%s'", tbl.module);
+  if (componentOrConfigTbl and componentOrConfigTbl.database) then
+    dbObject = MayronUI:GetComponent(componentOrConfigTbl.database);
+    obj:Assert(dbObject, "Failed to get database object for module '%s'", componentOrConfigTbl.module);
   end
 
   return dbObject;
@@ -163,7 +156,7 @@ obj:DefineParams("table");
 ---@param component table @The created widger frame.
 ---@param value any @The value to add to the database using the dbPath value attached to the component table.
 function C_ConfigMenuModule:SetDatabaseValue(_, component, newValue)
-  local db = self:GetDatabase(component);
+  local db = GetDatabase(component);
   local oldValue;
   local dbPath = component.dbPath;
 
@@ -267,13 +260,12 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
       menuScrollFrame:SetPoint("BOTTOMRIGHT", -10, 0);
 
       if (btn.type == "tab") then
-        menuScrollFrame:SetPoint("TOPLEFT", btn:GetParent(), "BOTTOMLEFT");
+        menuScrollFrame:SetPoint("TOPLEFT", btn:GetParent(), "BOTTOMLEFT", 2, -2);
       else
         menuScrollFrame:SetPoint("TOPLEFT");
       end
 
       self:RenderMenuComponents(btn);
-      obj:PushTable(btn.configTable);
     end
 
     btn.configTable = nil;
@@ -336,11 +328,34 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
 end
 
 obj:DefineParams("table");
-function C_ConfigMenuModule:RenderComponent(data, componentConfig)
-  if (componentConfig.type == "loop" or componentConfig.type == "condition") then
+function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
+  ---------------------------------
+  --> Apply MenuConfig Table and Transfer onto ComponentConfig Table (before transferring to components)
+  for key, value in pairs(menuConfig) do
+    if (key ~= "children" and key ~= "type" and componentConfig[key] == nil) then
+      componentConfig[key] = value;
+    end
+  end
+
+  if (not tk.Strings:IsNilOrWhiteSpace(componentConfig.dbPath) and
+      not tk.Strings:IsNilOrWhiteSpace(componentConfig.appendDbPath)) then
+
+    if (tk.Strings:StartsWith(componentConfig.appendDbPath, "[")) then
+      componentConfig.dbPath = componentConfig.dbPath..componentConfig.appendDbPath;
+    else
+      componentConfig.dbPath = componentConfig.dbPath.."."..componentConfig.appendDbPath;
+    end
+
+    componentConfig.appendDbPath = nil;
+  end
+  ---------------------------------
+
+  local componentType = componentConfig.type; -- config gets deleted after SetUpcomponent and type does not get mapped
+
+  if (componentType == "loop" or componentType == "condition") then
     -- run the loop to gather component children
     local components = MayronUI:GetComponent("ConfigMenuComponents");
-    local children = components[componentConfig.type](data.selectedButton.menu:GetFrame(), componentConfig);
+    local children = components[componentType](data.selectedButton.menu:GetFrame(), componentConfig);
 
     if (obj:IsTable(children)) then -- Sometimes a condition may not return anything
       for _, c in ipairs(children) do
@@ -364,20 +379,27 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig)
     return
   end
 
-  local componentType = componentConfig.type; -- config gets deleted after SetUpcomponent and type does not get mapped
+  local componentChildren = componentConfig.children; -- else it'll be pushed when transfering
   local component = self:SetUpComponent(componentConfig);
 
-  if (componentType == "frame" and obj:IsTable(component.children)) then
-    local dynamicFrame = component; ---@type DynamicFrame
-    local frame = component:GetFrame();
-    data.tempFrameComponent = component;
+  if (componentType ~= "submenu") then
+    TransferComponentAttributes(component, componentConfig);
+  end
 
-    for _, subcomponentConfigTable in ipairs(component.children) do
-      local childcomponent = self:SetUpComponent(subcomponentConfigTable, frame);
+  if (componentType == "frame" and obj:IsTable(componentChildren)) then
+    local dynamicFrame = component --[[@as DynamicFrame|Object]];
+    local frame = dynamicFrame:GetFrame();
+
+    for _, subComponentConfigTable in ipairs(componentChildren) do
+      local childcomponent = self:SetUpComponent(subComponentConfigTable, frame);
+
+      if (subComponentConfigTable.type ~= "submenu") then
+        TransferComponentAttributes(childcomponent, subComponentConfigTable);
+      end
+
       dynamicFrame:AddChildren(childcomponent);
     end
 
-    data.tempFrameComponent = nil;
     component = frame;
   end
 
@@ -385,41 +407,39 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig)
 end
 
 obj:DefineParams("table");
----@param menuButton Button|CheckButton @A table containing many component config tables used to render a full menu.
-function C_ConfigMenuModule:RenderMenuComponents(data, menuButton)
-  local menuConfigTable = menuButton.configTable;
+---@param menuButton Button|CheckButton|table @A table containing many component config tables used to render a full menu.
+---@overload fun(self, menuButton: Button|CheckButton)
+function C_ConfigMenuModule:RenderMenuComponents(_, menuButton)
+  local menuConfig = menuButton.configTable;
 
-  if (obj:IsFunction(menuConfigTable.children)) then
-    menuConfigTable.children = menuConfigTable:children();
+  if (obj:IsFunction(menuConfig.dbPath)) then
+    menuConfig.dbPath = menuConfig.dbPath();
   end
 
-  if (not obj:IsTable(menuConfigTable.children)) then
+  if (obj:IsFunction(menuConfig.children)) then
+    menuConfig.children = menuConfig:children();
+  end
+
+  if (not obj:IsTable(menuConfig.children)) then
     return
   end
 
-  data.tempMenuConfigTable = menuConfigTable;
-
-  for _, componentConfigTable in pairs(menuConfigTable.children) do
+  for _, componentConfigTable in pairs(menuConfig.children) do
     if (not IsUnsupportedByClient(componentConfigTable.client)) then
-      self:RenderComponent(componentConfigTable);
+      self:RenderComponent(componentConfigTable, menuConfig);
     end
   end
 
-  if (data.tempMenuConfigTable.groups) then
-    for _, group in pairs(data.tempMenuConfigTable.groups) do
+  if (menuConfig.groups) then
+    for _, group in pairs(menuConfig.groups) do
       tk:GroupCheckButtons(group);
     end
 
-    obj:PushTable(data.tempMenuConfigTable.groups);
+    obj:PushTable(menuConfig.groups);
   end
 
-  data.tempMenuConfigTable = nil;
-end
-
-obj:DefineReturns("DynamicFrame");
----@return DynamicFrame @The dynamic frame which holds the menu frame and controls responsiveness and the scroll bar.
-function C_ConfigMenuModule:CreateMenu(_, menuParent)
-
+  obj:PushTable(menuConfig);
+  menuButton.configTable = nil;
 end
 
 function C_ConfigMenuModule:ShowReloadMessage(data)
@@ -438,51 +458,8 @@ function C_ConfigMenuModule:RefreshMenu(data)
   menu:Refresh();
 end
 
-local function ApplyMenuConfigTable(componentConfig, menuConfig, frameComponent)
-  local dbPath = menuConfig.dbPath;
-
-  if (obj:IsTable(frameComponent) and frameComponent.dbPath) then
-    dbPath = frameComponent.dbPath;
-  end
-
-  if (obj:IsFunction(dbPath)) then
-    dbPath = dbPath();
-  end
-
-  if (not tk.Strings:IsNilOrWhiteSpace(dbPath) and
-      not tk.Strings:IsNilOrWhiteSpace(componentConfig.appendDbPath)) then
-
-    -- append the component config table's dbPath value onto it!
-    obj:Assert(componentConfig.dbPath == nil,
-      "Cannot use both appendDbPath and dbPath on the same config table.");
-
-    if (tk.Strings:StartsWith(componentConfig.appendDbPath, "[")) then
-      componentConfig.dbPath = tk.Strings:Concat(dbPath, componentConfig.appendDbPath);
-    else
-      componentConfig.dbPath = tk.Strings:Join(".", dbPath, componentConfig.appendDbPath);
-    end
-
-    componentConfig.appendDbPath = nil;
-  end
-
-  if (not obj:IsTable(menuConfig.inherit)) then
-    menuConfig.inherit = obj:PopTable();
-    menuConfig.inherit.module = menuConfig.module;
-    menuConfig.inherit.database = menuConfig.database;
-  end
-
-  if (not menuConfig.inherit.__index) then
-    local metaTable = obj:PopTable();
-    metaTable.__index = menuConfig.inherit;
-    menuConfig.inherit = metaTable;
-  end
-
-  -- Inherit all key and value pairs from a menu table
-  setmetatable(componentConfig, menuConfig.inherit);
-end
-
 do
-  local function GetDatabaseValue(module, config)
+  local function GetDatabaseValue(config)
     if (obj:IsFunction(config.dbPath)) then
       config.dbPath = config.dbPath();
     end
@@ -493,11 +470,21 @@ do
       return config.GetValue and config.GetValue(config);
     end
 
-    local db = module:GetDatabase(config);
-    local value = db:ParsePathValue(dbPath);
+    local db = GetDatabase(config);
+    local value;
 
-    if (obj:IsTable(value) and value.GetUntrackedTable) then
-      value = value:GetUntrackedTable();
+    if (config.dbFramework == "orbitus") then
+      ---@cast db OrbitusDB.DatabaseMixin
+      local repository = db.utilities:GetRepositoryFromQuery(dbPath);
+      assert(repository, "Failed to find database repository from dbPath "..dbPath);
+      value = repository:Query(dbPath);
+    else
+      ---@cast db Database
+      value = db:ParsePathValue(dbPath);
+
+      if (obj:IsTable(value) and value.GetUntrackedTable) then
+        value = value:GetUntrackedTable();
+      end
     end
 
     if (config.GetValue) then
@@ -509,16 +496,13 @@ do
 
   obj:DefineParams("table", "?Frame");
   ---@param componentConfig table @A component config table used to control the rendering and behavior of a component in the config menu.
-  ---@param parent Frame @(optional) A custom parent frame for the component, else the parent will be the menu scroll child.
-  ---@return Frame @(possibly nil if component is disabled) The created component.
+  ---@param parent Frame? @(optional) A custom parent frame for the component, else the parent will be the menu scroll child.
+  ---@return Frame? @(possibly nil if component is disabled) The created component.
+  ---@overload fun(self, componentConfig: table, parent: Frame?): Frame|table
   function C_ConfigMenuModule:SetUpComponent(data, componentConfig, parent)
     if (not parent) then
       parent = data.selectedButton.menu:GetFrame();
       parent = parent.ScrollFrame:GetScrollChild();
-    end
-
-    if (obj:IsTable(data.tempMenuConfigTable)) then
-      ApplyMenuConfigTable(componentConfig, data.tempMenuConfigTable, data.tempFrameComponent);
     end
 
     local componentType = componentConfig.type;
@@ -540,7 +524,7 @@ do
       componentConfig.OnInitialize = nil;
     end
 
-    local currentValue = GetDatabaseValue(self, componentConfig);
+    local currentValue = GetDatabaseValue(componentConfig);
     local component = components[componentType](parent, componentConfig, currentValue);
 
     if (componentConfig.devMode) then
@@ -549,24 +533,21 @@ do
     end
 
     -- If using Rendercomponent manually in config then this won't work
-    if (data.tempMenuConfigTable and componentConfig.type == "radio" and componentConfig.groupName) then
+    if (componentConfig.groups and componentConfig.type == "radio" and componentConfig.groupName) then
       -- get groups[groupName] value from tempRadioButtonGroup
-      local tempRadioButtonGroup = tk.Tables:GetTable(data.tempMenuConfigTable, "groups", componentConfig.groupName);
-      table.insert(tempRadioButtonGroup, component.btn);
+      if (not componentConfig.groups[componentConfig.groupName]) then
+        componentConfig.groups[componentConfig.groupName] = obj:PopTable();
+      end
+
+      table.insert(componentConfig.groups[componentConfig.groupName], component.btn);
     end
 
-    if (componentConfig.disabled) then
-      return
-    end
+    if (componentConfig.disabled) then return end
 
     -- setup complete, so run the OnLoad callback if one exists
     if (componentConfig.OnLoad) then
       componentConfig.OnLoad(componentConfig, component, currentValue);
       componentConfig.OnLoad = nil;
-    end
-
-    if (componentType ~= "submenu") then
-      TransferComponentAttributes(component, componentConfig);
     end
 
     return component;
@@ -605,7 +586,15 @@ function C_ConfigMenuModule:RenderMenuTabs(_, menuButton, menuParent)
     local tab = tk:CreateFrame("CheckButton", tabsContainer);
     tabsContainer.tabs[i] = tab;
 
-    tab.configTable = { children = tabChildren };
+    tab.configTable = {};
+
+    for key, value in pairs(menuButton.configTable) do
+      tab.configTable[key] = value;
+    end
+
+    tab.configTable.tabs = nil; -- a tab cannot also have tabs
+    tab.configTable.children = tabChildren;
+
     tab.type = "tab";
     tab.name = menuButton.name .. " " .. tabNames[i];
     tab:SetScript("OnLeave", HandleTabButtonOnLeave);

@@ -44,7 +44,7 @@ end
 
 local OrbitusDB = require("MUI_Core/Libs/OrbitusDB/OrbitusDB");
 
----@type DatabaseConfig
+---@type OrbitusDB.DatabaseConfig
 local databaseConfig = {
   defaults = {
     profile = {

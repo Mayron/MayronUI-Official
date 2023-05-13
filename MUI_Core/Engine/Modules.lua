@@ -381,6 +381,7 @@ end
 
 obj:DefineParams("boolean");
 ---@param enabled boolean
+---@overload fun(self, enabled: boolean)
 function BaseModule:SetEnabled(data, enabled, ...)
   local registryInfo = registeredModules[tostring(self)];
   local hooks;
@@ -626,11 +627,10 @@ function MayronUI:ImportModule(moduleKey, silent)
 end
 
 ---MayronUI automatically initializes modules during the "PLAYER_ENTERING_WORLD" event unless initializeOnDemand is true.
----@generic T : BaseModule
----@param moduleKey `T` @A unique key used to register the module to MayronUI.
+---@param moduleKey string @A unique key used to register the module to MayronUI.
 ---@param moduleName string? @A human-friendly name of the module to be used in-game (such as on the config window).
 ---@param initializeOnDemand boolean? @(optional) If true, must be initialized manually instead of
----@return T @Returns a new module Class so that a module can be given additional methods and definitions where required.
+---@return table|BaseModule|MayronObjects.Class @Returns a new module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
   local moduleClass = obj:CreateClass(moduleKey, BaseModule);
 

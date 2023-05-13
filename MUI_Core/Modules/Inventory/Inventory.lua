@@ -122,7 +122,7 @@ local viewSettings = {
   };
 };
 
----@type DatabaseConfig
+---@type OrbitusDB.DatabaseConfig
 local databaseConfig = {
   svName = "MUI_InventoryDB";
   defaults = {

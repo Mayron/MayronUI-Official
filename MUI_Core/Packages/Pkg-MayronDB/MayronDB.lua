@@ -466,6 +466,7 @@ obj:DefineParams("table|string", "?string");
 ---@param rootTableOrPath table|string @The root table to begin searching through using the path address. OR a string that starts with "global" or "profile" so that the rootTable can be calculated.
 ---@param pathOrNil string|nil @(optional) The path of the value to search for(example: "myTable.mySubTable[2]"), or if rootTableOrPath is a string representing the path then this is nil.
 ---@return any @The value found at the location specified by the path address. Might return nil if the path address is invalid, or no value is located at the address.
+---@overload fun(self, rootTableOrPath: table|string, pathOrNil: string|nil): any
 function Database:ParsePathValue(_, rootTableOrPath, pathOrNil)
   local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrNil);
   return MayronDB.Static:ParsePathValue(rootTable, path);

@@ -613,10 +613,10 @@ function C_AurasModule:GetConfigTable()
   local colorOptions = {};
 
   return {
-    type = "menu",
     tabs = { "Buffs", "Debuffs", "Colors" };
     module = "AurasModule",
     database = "MUI_AurasDB";
+    dbFramework = "orbitus";
     children = {
       GetAuraOptions("buffs");
       GetAuraOptions("debuffs");

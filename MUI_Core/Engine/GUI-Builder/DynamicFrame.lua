@@ -6,7 +6,7 @@ local _, _, _, _, obj = MayronUI:GetCoreComponents();
 ---@class GUIBuilder
 local gui = MayronUI:GetComponent("GUIBuilder");
 
-local DynamicFrame = obj:CreateClass("DynamicFrame"); ---@class DynamicFrame
+local DynamicFrame = obj:CreateClass("DynamicFrame"); ---@class DynamicFrame : MayronObjects.Class
 obj:Export(DynamicFrame, "MayronUI");
 
 local mceil, mfloor, unpack, ipairs = _G.math.ceil, _G.math.floor, _G.unpack, _G.ipairs;
@@ -94,6 +94,7 @@ function DynamicFrame:__Construct(data, frame)
 end
 
 -- adds children to container of the ScrollFrame
+---@overload fun(self, ...)
 function DynamicFrame:AddChildren(data, ...)
   local width, height = data.frame:GetSize();
 
