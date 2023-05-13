@@ -5,7 +5,7 @@ local string, MayronUI = _G.string, _G.MayronUI;
 local pairs, ipairs, PlaySound, unpack = _G.pairs, _G.ipairs, _G.PlaySound, _G.unpack;
 local select, GetChannelList, hooksecurefunc = _G.select, _G.GetChannelList, _G.hooksecurefunc;
 
-local tk, db, _, _, obj = MayronUI:GetCoreComponents();
+local tk, db, _, gui, obj = MayronUI:GetCoreComponents();
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 --------------------------------------
 local CHANNEL_PATTERNS = {
@@ -367,17 +367,13 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
     end
   end
 
-  local downBtn = chatFrame.ScrollToBottomButton;
+  local downBtn = chatFrame.ScrollToBottomButton--[[@as Button]];
 
   if (obj:IsWidget(downBtn)) then
-    local downButtonTexture = tk:GetAssetFilePath("Icons\\down");
-    downBtn:SetNormalTexture(downButtonTexture, "BLEND");
-    downBtn:SetPushedTexture(downButtonTexture, "BLEND");
-    downBtn:SetHighlightTexture(downButtonTexture, "ADD");
+    gui:ReskinIconButton(downBtn, "arrow", -180);
     downBtn:DisableDrawLayer("OVERLAY");
-    downBtn:SetSize(24, 24);
     downBtn:SetPoint("BOTTOMRIGHT", chatFrame.ResizeButton, "TOPRIGHT", 0, -2);
-    tk.Constants.AddOnStyle:ApplyColor(nil, 1, downBtn);
+    downBtn:SetSize(24, 21);
   end
 
   chatFrame:SetOnScrollChangedCallback(OnScrollChangedCallback);

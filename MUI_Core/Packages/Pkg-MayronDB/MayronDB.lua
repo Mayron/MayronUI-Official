@@ -358,6 +358,7 @@ obj:DefineParams("string", "any");
 ---Adds a value to the database defaults table relative to the path: defaults.<path> = <value>
 ---@param path string @A database path string, such as "myTable.mySubTable[2]"
 ---@param value any @A value to assign to the database defaults table using the path
+---@overload fun(self, path, value)
 function Database:AddToDefaults(data, path, value)
   self:SetPathValue(data.defaults, path, value);
 end

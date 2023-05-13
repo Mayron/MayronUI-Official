@@ -133,7 +133,7 @@ local databaseConfig = {
   };
 };
 
-local containerPadding = { top = 30, right = 8, bottom = 34, left = 8 };
+local containerPadding = { top = 34, right = 4, bottom = 36, left = 4 };
 local originalTopPadding = containerPadding.top;
 local originalRightPadding = containerPadding.right;
 
@@ -735,7 +735,7 @@ local function HandleBagUpdateDelayedEvent(bagBtn)
     if (isOpen) then
       local quality = bagBtn:GetItemQuality();
 
-      if (quality > 1) then
+      if (quality and quality > 1) then
         local color = bagBtn:GetItemQualityColor();
         bagBtn:SetGridColor(color.r, color.g, color.b);
       else
@@ -950,6 +950,7 @@ local function SetCharacterInventory(info, inventoryFrame)
 
         local slot = bag.slots[s];
         slot:Clear();
+        slot:EnableMouse(false);
         slot:Show();
 
         if (type(slotInfo) == "table") then
@@ -971,11 +972,23 @@ local function SetCharacterInventory(info, inventoryFrame)
     end
 
     for _, bag in ipairs(inventoryFrame.bags) do
-      for _, slot in ipairs(bag.slots) do
-        slot.__UpdateTooltip = slot.UpdateTooltip;
-        slot.UpdateTooltip = nil;
-        slot.__oldOnEnter = slot:GetScript("OnEnter");
-        slot:SetScript("OnEnter", HandleBagSlotEntered);
+      if (not bag.savedEventHandlers) then
+        for _, slot in ipairs(bag.slots) do
+          slot.__UpdateTooltip = slot.UpdateTooltip;
+          slot.UpdateTooltip = nil;
+          slot.__oldOnEnter = slot:GetScript("OnEnter");
+          slot.__oldOnClick = slot:GetScript("OnClick");
+          slot.__oldOnReceiveDrag = slot:GetScript("OnReceiveDrag");
+          slot.__oldOnDragStart = slot:GetScript("OnDragStart");
+          slot.__oldOnDragStop = slot:GetScript("OnDragStop");
+          slot:SetScript("OnClick", nil);
+          slot:SetScript("OnReceiveDrag", nil);
+          slot:SetScript("OnDragStart", nil);
+          slot:SetScript("OnDragStop", nil);
+          slot:SetScript("OnEnter", HandleBagSlotEntered);
+        end
+
+        bag.savedEventHandlers = true;
       end
 
       UpdateAllBagSlots(bag);
@@ -999,10 +1012,16 @@ local function SetCharacterInventory(info, inventoryFrame)
       for slotIndex, slot in ipairs(bag.slots) do
         slot:SetItemLocation(ItemLocation:CreateFromBagAndSlot(bag.bagIndex, slotIndex));
         slot.UpdateTooltip = slot.__UpdateTooltip;
+        slot:SetScript("OnClick", slot.__oldOnClick);
+        slot:SetScript("OnReceiveDrag", slot.__oldOnReceiveDrag);
+        slot:SetScript("OnDragStart", slot.__oldOnDragStart);
+        slot:SetScript("OnDragStop", slot.__oldOnDragStop);
         slot:SetScript("OnEnter", slot.__oldOnEnter);
         slot:HookScript("OnEnter", HandleBagSlotEntered);
         slot:Show();
       end
+
+      bag.savedEventHandlers = nil;
 
       local totalSlots = GetContainerNumSlots(bag.bagIndex);
       for s = totalSlots + 1, #bag.slots do
@@ -1497,7 +1516,7 @@ function C_Inventory:OnInitialize()
     gui:CreateMediumDialogBox(inventoryFrame);
     inventoryFrame:SetFrameStrata(tk.Constants.FRAME_STRATAS.HIGH);
     gui:AddTitleBar(inventoryFrame, "Inventory");
-    gui:AddCloseButton(inventoryFrame)
+    gui:AddCloseButton(inventoryFrame);
     gui:AddResizer(inventoryFrame);
     inventoryFrame.bags = {};
 

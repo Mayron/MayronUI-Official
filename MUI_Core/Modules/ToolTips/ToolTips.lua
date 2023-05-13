@@ -253,18 +253,10 @@ local function SetBackdropStyle(data)
     local closeBtn = _G["ItemRefCloseButton"];
 
     if (obj:IsWidget(closeBtn)) then
-      local closeTexture = tk:GetAssetFilePath("Icons\\close");
-      closeBtn:SetNormalTexture(closeTexture, "BLEND");
-      closeBtn:SetHighlightTexture(closeTexture, "ADD");
-
-      local pushed = closeBtn:GetPushedTexture();
-      tk:KillElement(pushed);
-
-      tk.Constants.AddOnStyle:ApplyColor(nil, nil, closeBtn);
-
+      gui:ReskinIconButton(closeBtn, "cross");
       local scale = closeBtn:GetParent():GetScale();
       closeBtn:SetSize(28/scale, 24/scale);
-      closeBtn:SetPoint("TOPRIGHT", -1, 0);
+      closeBtn:SetPoint("TOPRIGHT", -5, -4);
     end
   end
 

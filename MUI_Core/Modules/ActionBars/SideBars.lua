@@ -3,8 +3,7 @@ local _G = _G
 local MayronUI = _G.MayronUI
 local tk, db, em, gui, _, L = MayronUI:GetCoreComponents()
 
-local InCombatLockdown, IsAddOnLoaded = _G.InCombatLockdown, _G.IsAddOnLoaded;
-local radians = _G.math.rad;
+local IsAddOnLoaded = _G.IsAddOnLoaded;
 
 local EXPAND_BUTTON_ID = 1;
 local RETRACT_BUTTON_ID = 2;
@@ -301,17 +300,16 @@ function C_SideActionBars:SetUpExpandRetract(data)
       OnArrowButtonClick(btnId, data.settings.animation.activeSets);
     end);
 
-    btn.icon = btn:CreateTexture(nil, "OVERLAY");
+    local iconRotation = -90;
+    if (btnId == EXPAND_BUTTON_ID) then
+      iconRotation = 90;
+    end
+
+    btn.icon = gui:CreateIconTexture("arrow", btn, true, iconRotation);
+    btn.icon:ClearAllPoints();
+    btn.icon:SetDrawLayer("OVERLAY");
     btn.icon:SetSize(12, 8);
     btn.icon:SetPoint("CENTER");
-    btn.icon:SetTexture(tk:GetAssetFilePath("Icons\\arrow"));
-    tk:ApplyThemeColor(btn.icon);
-
-    if (btnId == EXPAND_BUTTON_ID) then
-      btn.icon:SetRotation(radians(90));
-    else
-      btn.icon:SetRotation(radians(-90));
-    end
 
     local btnKey = btnId == EXPAND_BUTTON_ID and "expand" or "retract";
     data[btnKey] = btn;

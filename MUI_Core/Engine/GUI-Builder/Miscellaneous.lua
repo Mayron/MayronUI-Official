@@ -357,13 +357,17 @@ do
   end
 
   ---@param iconName "bag"|"sort"|"layout"|"arrow"|"cross"|"user"
-  ---@param iconTexture Texture
+  ---@param parent Frame
   ---@param highlight boolean
+  ---@param iconRotation number?
   ---@return Texture
-  local function SetUpIconTexture(iconName, iconTexture, highlight)
-    iconTexture:SetPoint("CENTER", 0, 1);
-    iconTexture:SetSize(18, 15.24);
-
+  function gui:CreateIconTexture(iconName, parent, highlight, iconRotation)
+    local textureFilePath = tk:GetAssetFilePath("Icons\\buttons");
+    local iconTexture = parent:CreateTexture(nil, highlight and "HIGHLIGHT" or "ARTWORK", nil, 7);
+    iconTexture:SetTexture(textureFilePath);
+    iconTexture:SetPoint("TOPLEFT", 6, -5);
+    iconTexture:SetPoint("BOTTOMRIGHT", -6, 7);
+    tk.Constants.AddOnStyle:ApplyColor(nil, nil, iconTexture);
 
     local left = 0.454545;
     local right = 0.7272727;
@@ -372,9 +376,7 @@ do
       left = right;
       right = 1;
       iconTexture:SetBlendMode("ADD");
-      iconTexture:SetAlpha(0.8);
-    else
-      tk.Constants.AddOnStyle:ApplyColor(nil, nil, iconTexture);
+      iconTexture:SetAlpha(0.6);
     end
 
     if (iconName == "bag") then
@@ -391,10 +393,9 @@ do
       iconTexture:SetTexCoord(left, right, 0.834645, 1);
     end
 
-    -- if (highlight) then
-    --   local r, g, b = iconTexture:GetVertexColor();
-    --   iconTexture:SetVertexColor(r*1.2, g*1.2, b*1.2);
-    -- end
+    if (iconRotation) then
+      iconTexture:SetRotation(math.rad(iconRotation));
+    end
 
     return iconTexture;
   end
@@ -402,9 +403,10 @@ do
   ---@param iconName "bag"|"sort"|"layout"|"arrow"|"cross"|"user"
   ---@param parent Frame?
   ---@param globalName string?
+  ---@param iconRotation number?
   ---@return Button
-  function gui:CreateIconButton(iconName, parent, globalName)
-    local btn = tk:CreateFrame("Button", parent, globalName);
+  function gui:CreateIconButton(iconName, parent, globalName, closeBtn, iconRotation)
+    local btn = closeBtn or tk:CreateFrame("Button", parent, globalName);
     btn:SetSize(30, 27.33);
 
     local style = tk.Constants.AddOnStyle;
@@ -413,26 +415,25 @@ do
     local normalTexture = btn:CreateTexture("$parentNormalTexture", "BACKGROUND");
     normalTexture:SetTexture(textureFilePath);
     normalTexture:SetTexCoord(0, 0.454545, 0, 0.322834);
+    normalTexture:SetAllPoints(true);
 
     local disabledTexture = btn:CreateTexture("$parentDisabledTexture", "BACKGROUND");
     disabledTexture:SetTexture(textureFilePath);
     disabledTexture:SetTexCoord(0, 0.454545, 0, 0.322834);
+    disabledTexture:SetAllPoints(true);
 
     local highlightTexture = btn:CreateTexture("$parentHighlightTexture", "BACKGROUND");
     highlightTexture:SetTexture(textureFilePath);
     highlightTexture:SetTexCoord(0, 0.454545, 0.322834, 0.645669);
+    highlightTexture:SetAllPoints(true);
 
     local pushedTexture = btn:CreateTexture("$parentPushedTexture", "BACKGROUND");
     pushedTexture:SetTexture(textureFilePath);
     pushedTexture:SetTexCoord(0, 0.454545, 0.645669, 0.968503);
+    pushedTexture:SetAllPoints(true);
 
-    local iconTexture = btn:CreateTexture(nil, "ARTWORK", nil, 7);
-    iconTexture:SetTexture(textureFilePath);
-    SetUpIconTexture(iconName, iconTexture, false)
-
-    local iconHighlightTexture = btn:CreateTexture(nil, "HIGHLIGHT", nil, 7);
-    iconHighlightTexture:SetTexture(textureFilePath);
-    SetUpIconTexture(iconName, iconHighlightTexture, true);
+    gui:CreateIconTexture(iconName, btn, false, iconRotation);
+    gui:CreateIconTexture(iconName, btn, true, iconRotation);
 
     btn:SetNormalTexture(normalTexture);
     btn:SetDisabledTexture(disabledTexture);
@@ -451,9 +452,16 @@ do
   end
 end
 
+---@param iconName "bag"|"sort"|"layout"|"arrow"|"cross"|"user"
+---@param iconRotation number?
+function gui:ReskinIconButton(btn, iconName, iconRotation)
+  local frame = btn:GetParent();
+  frame.closeBtn = self:CreateIconButton(iconName, frame, nil, btn, iconRotation);
+end
+
 function gui:AddCloseButton(frame, onHideCallback)
   frame.closeBtn = self:CreateIconButton("cross", frame);
-  frame.closeBtn:SetPoint("TOPRIGHT", -1, -1);
+  frame.closeBtn:SetPoint("TOPRIGHT", -2, -1);
 
   local group = frame:CreateAnimationGroup();
   group.a1 = group:CreateAnimation("Translation");
