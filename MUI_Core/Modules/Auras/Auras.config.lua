@@ -33,7 +33,8 @@ function C_AurasModule:GetConfigTable()
         children = {
           {
             type = "title";
-            name = "Icon Options"
+            name = "Icon Options";
+            marginTop = 0;
           },
           {
             type = "check";

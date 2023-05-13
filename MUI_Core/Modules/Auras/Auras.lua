@@ -7,7 +7,7 @@ local MayronUI = _G.MayronUI;
 local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents();
 local OrbitusDB = LibStub:GetLibrary("OrbitusDB");
 
-local unpack, SecondsToTimeAbbrev, Mixin = _G.unpack, _G.SecondsToTimeAbbrev, _G.Mixin;
+local unpack, Mixin = _G.unpack, _G.Mixin;
 local GetTime, UnitGUID = _G.GetTime, _G.UnitGUID;
 local GetInventoryItemQuality = _G.GetInventoryItemQuality;
 local GetItemQualityColor = _G.GetItemQualityColor;
@@ -72,7 +72,7 @@ local databaseConfig = {
 
         icons = {
           pulse = false;
-          nonPlayerAlpha = 0.7;
+          nonPlayerAlpha = 1;
           vDirection = "DOWN";
           hDirection = "LEFT";
           iconWidth = 40;
@@ -101,7 +101,7 @@ local databaseConfig = {
 
         statusbars = {
           pulse = false;
-          nonPlayerAlpha = 1;
+          nonPlayerAlpha = 0.7;
           vDirection = "DOWN";
           hDirection = "LEFT";
           iconWidth = 22;
@@ -146,7 +146,7 @@ local databaseConfig = {
 
         icons = {
           pulse = false;
-          nonPlayerAlpha = 0.7;
+          nonPlayerAlpha = 1;
           vDirection = "DOWN";
           hDirection = "LEFT";
           iconWidth = 40;
@@ -640,7 +640,13 @@ function AuraButtonMixin:UpdateDisplayInfo()
       r, g, b = self:GetColorSetting(self.auraSubType:lower());
     end
 
-  elseif (self.statusbar) then
+    if (self.owned) then
+      self:SetAlpha(1);
+    else
+      local alpha = self:GetSetting("number", "nonPlayerAlpha");
+      self:SetAlpha(alpha);
+    end
+  else
     if (self.owned) then
       r, g, b = self:GetColorSetting("owned");
     else

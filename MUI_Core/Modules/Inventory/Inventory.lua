@@ -1516,6 +1516,7 @@ function C_Inventory:OnInitialize()
     gui:CreateMediumDialogBox(inventoryFrame);
     inventoryFrame:SetFrameStrata(tk.Constants.FRAME_STRATAS.HIGH);
     gui:AddTitleBar(inventoryFrame, "Inventory");
+    inventoryFrame.titleBar:SetPoint("TOPLEFT", inventoryFrame, "TOPLEFT", -11, 11);
     gui:AddCloseButton(inventoryFrame);
     gui:AddResizer(inventoryFrame);
     inventoryFrame.bags = {};

@@ -20,10 +20,10 @@ function Components.frame(parent, config)
     percent = tonumber(percent);
   end
 
-  if (obj:IsNumber(percent) or not config.width) then
-    tk:SetFullWidth(frame, 20, percent);
+  if (obj:IsNumber(percent) or not obj:IsNumber(config.width)) then
+    tk:SetFullWidth(frame, 10, percent);
   else
-    frame:SetWidth(config.width or 200);
+    frame:SetWidth(config.width);
   end
 
   frame.originalHeight = config.height or 60; -- needed for fontstring resizing

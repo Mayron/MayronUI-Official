@@ -60,7 +60,12 @@ function Components.title(parent, config)
 
   container.title:SetText(config.name:upper());
 
-  tk:SetFullWidth(container, 10);
+  local paddingRight = 10;
+  if (parent.dynamicFrame) then
+    paddingRight = 20; -- the dynamic frame also has padding we need to account for
+  end
+
+  tk:SetFullWidth(container, paddingRight);
   container:HookScript("OnSizeChanged", UpdateContainerHeight);
 
   return container;
