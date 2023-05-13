@@ -15,7 +15,6 @@ local GetInventoryItemTexture = _G.GetInventoryItemTexture;
 local UnitAura, CreateFrame, GetWeaponEnchantInfo = _G.UnitAura, _G.CreateFrame, _G.GetWeaponEnchantInfo;
 local select, math, string = _G.select, _G.math, _G.string;
 local GetInventoryItemLink, GetItemInfo = _G.GetInventoryItemLink, _G.GetItemInfo;
-local C_Timer = _G.C_Timer;
 
 local BUFF_FLASH_TIME_ON = 0.75;
 local BUFF_MIN_ALPHA = 0.3;
@@ -58,7 +57,7 @@ local databaseConfig = {
         count         = {1, 0.82, 0};
         auraName      = {1, 1, 1};
         statusbarBorder = {0, 0, 0};
-        helpful        = {0.2, 0.2, 0.2};
+        helpful        = {0.15, 0.15, 0.15};
         harmful        = {0.76, 0.2, 0.2};
         magic         = {0.2, 0.6, 1};
         disease       = {0.6, 0.4, 0};
@@ -324,75 +323,8 @@ function AuraButtonMixin:ApplyTextStyle(name)
   tk:SetFont(fontString, font);
 end
 
-local ITERATIONS = 50;
-
-function AuraButtonMixin:SetSliderValue(new)
-  self.endValue = new;
-  if (self.timer and not self.timer:IsCancelled()) then return end
-
-  local startValue = self.statusbar:GetValue();
-  local diff = startValue - new;
-
-  if (diff >= 0) then
-    self.statusbar:SetValue(new);
-    return
-  end
-
-  diff = math.ceil(math.abs(diff));
-
-  if (diff < 2) then
-    self.statusbar:SetValue(new);
-    return
-  end
-
-  local _, max = self.statusbar:GetMinMaxValues();
-  local percentDiff = (diff / max) * 100;
-
-  if (percentDiff < 5) then
-    self.statusbar:SetValue(new);
-    return
-  end
-
-  local extra = 0;
-
-  if (diff > ITERATIONS) then
-    local remaining = diff - ITERATIONS;
-    extra = remaining / ITERATIONS;
-  elseif (diff < ITERATIONS) then
-    local remaining = diff - ITERATIONS;
-    extra = remaining / ITERATIONS;
-  end
-
-  diff = diff * 100; -- in milliseconds
-
-  local i = 0;
-  self.timer = C_Timer.NewTicker(0.01, function()
-    i = i + 1;
-
-    if (i >= ITERATIONS) then
-      self.statusbar:SetValue(self.endValue);
-      self.timer:Cancel();
-    end
-
-    local percent = i/ITERATIONS;
-    percent = math.min(1, -(math.cos(math.pi * percent) - 1) / 2);
-
-    local shouldCancel, stepValue;
-    local changeAmount = (percent * diff) + extra;
-    local changeInSeconds = changeAmount / 100;
-
-    stepValue = math.max(startValue + changeInSeconds, 0);
-
-    if (stepValue >= self.endValue) then
-      shouldCancel = true;
-      stepValue = self.endValue;
-    end
-
-    self.statusbar:SetValue(stepValue);
-    if (shouldCancel) then
-      self.timer:Cancel();
-    end
-  end, ITERATIONS);
+function AuraButtonMixin:SetSliderValue(newValue)
+  tk:AnimateSliderChange(self.statusbar, newValue);
 end
 
 ---@param self AuraButtonMixin
@@ -508,29 +440,10 @@ local function HandleAuraButtonOnUpdate(self, elapsed)
 
   if (self.timeRemainingLastUpdate > 0.5) then
     if (hasTimeRemaining) then
-      local format, value = SecondsToTimeAbbrev(self.timeRemaining);
-
-      if (format == _G.SECOND_ONELETTER_ABBR) then
-        value = math.ceil(value);
-        self.timeRemainingText:SetFormattedText("%d", value);
-      else
-        local text = string.format(format, value);
-        text = tk.Strings:RemoveWhiteSpace(text);
-        self.timeRemainingText:SetText(text);
-      end
-
-      local current = math.min(30, self.timeRemaining);
-      local r, g, b = tk:GetProgressColor(current, 30);
-      self.timeRemainingText:SetTextColor(r, g, b);
-
-      local secondsWarning = self:GetSetting("number", "secondsWarning");
       local fontSize = self:GetSetting("number", "textSize", "timeRemaining");
-
-      if (value <= secondsWarning and self.timeRemaining < 20) then
-        fontSize = self:GetSetting("number", "textSize", "timeRemainingLarge");
-      end
-
-      tk:SetFontSize(self.timeRemainingText, fontSize);
+      local secondsWarning = self:GetSetting("number", "secondsWarning");
+      local largeFontSize = self:GetSetting("number", "textSize", "timeRemainingLarge");
+      tk:SetTimeRemaining(self.timeRemainingText, self.timeRemaining, fontSize, secondsWarning, largeFontSize);
     else
       self.timeRemainingText:SetText(tk.Strings.Empty);
     end

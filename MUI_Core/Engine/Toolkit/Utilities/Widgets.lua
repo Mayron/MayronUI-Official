@@ -356,6 +356,116 @@ do
   end
 end
 
+do
+  local ITERATIONS = 50;
+  local C_Timer = _G.C_Timer;
+
+  ---@param statusBar StatusBar
+  ---@param newValue number
+  function tk:AnimateSliderChange(statusBar, newValue)
+    statusBar.endValue = newValue;
+    if (statusBar.timer and not statusBar.timer:IsCancelled()) then return end
+
+    local startValue = statusBar:GetValue();
+    local diff = startValue - newValue;
+
+    if (diff >= 0) then
+      statusBar:SetValue(newValue);
+      return
+    end
+
+    diff = math.ceil(math.abs(diff));
+
+    if (diff < 2) then
+      statusBar:SetValue(newValue);
+      return
+    end
+
+    local _, max = statusBar:GetMinMaxValues();
+    local percentDiff = (diff / max) * 100;
+
+    if (percentDiff < 5) then
+      statusBar:SetValue(newValue);
+      return
+    end
+
+    local extra = 0;
+
+    if (diff > ITERATIONS) then
+      local remaining = diff - ITERATIONS;
+      extra = remaining / ITERATIONS;
+    elseif (diff < ITERATIONS) then
+      local remaining = diff - ITERATIONS;
+      extra = remaining / ITERATIONS;
+    end
+
+    diff = diff * 100; -- in milliseconds
+
+    local i = 0;
+    statusBar.timer = C_Timer.NewTicker(0.01, function()
+      i = i + 1;
+
+      if (i >= ITERATIONS) then
+        statusBar:SetValue(statusBar.endValue);
+        statusBar.timer:Cancel();
+      end
+
+      local percent = i/ITERATIONS;
+      percent = math.min(1, -(math.cos(math.pi * percent) - 1) / 2);
+
+      local shouldCancel, stepValue;
+      local changeAmount = (percent * diff) + extra;
+      local changeInSeconds = changeAmount / 100;
+
+      stepValue = math.max(startValue + changeInSeconds, 0);
+
+      if (stepValue >= statusBar.endValue) then
+        shouldCancel = true;
+        stepValue = statusBar.endValue;
+      end
+
+      statusBar:SetValue(stepValue);
+      if (shouldCancel) then
+        statusBar.timer:Cancel();
+      end
+    end, ITERATIONS);
+  end
+end
+
+do
+  local SecondsToTimeAbbrev = _G.SecondsToTimeAbbrev;
+  local SECOND_ONELETTER_ABBR = _G["SECOND_ONELETTER_ABBR"];
+
+  ---comment
+  ---@param fontString FontString
+  ---@param timeRemainingInSeconds integer
+  ---@param fontSize number
+  ---@param secondsWarning integer?
+  ---@param largeFontSize number?
+  function tk:SetTimeRemaining(fontString, timeRemainingInSeconds, fontSize, secondsWarning, largeFontSize)
+    local format, value = SecondsToTimeAbbrev(timeRemainingInSeconds);
+
+    if (format == SECOND_ONELETTER_ABBR) then
+      value = math.ceil(value);
+      fontString:SetFormattedText("%d", value);
+    else
+      local text = string.format(format, value);
+      text = self.Strings:RemoveWhiteSpace(text);
+      fontString:SetText(text);
+    end
+
+    local current = math.min(30, timeRemainingInSeconds);
+    local r, g, b = self:GetProgressColor(current, 30);
+    fontString:SetTextColor(r, g, b);
+
+    if (largeFontSize and value <= (secondsWarning or 10) and timeRemainingInSeconds < 20) then
+      fontSize = largeFontSize;
+    end
+
+    self:SetFontSize(fontString, fontSize);
+  end
+end
+
 -- apply theme color to a vararg list of elements
 -- first arg can be a number specifying the alpha value
 function tk:ApplyThemeColor(...)

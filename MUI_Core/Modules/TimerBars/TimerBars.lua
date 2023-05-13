@@ -74,7 +74,7 @@ db:AddToDefaults("profile", {
 
   colors = {
     background        = { 0, 0, 0, 0.6 };
-    basicBuff         = { 0.1, 0.1, 0.1, 1 };
+    basicBuff         = { 0.15, 0.15, 0.15, 1 };
     basicDebuff       = { 0.76, 0.2, 0.2, 1 };
     border            = { 0, 0, 0, 1 };
     canStealOrPurge   = { 1, 0.5, 0.25, 1 };
@@ -1273,7 +1273,7 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
     data.slider:SetMinMaxValues(0, self.TotalDuration);
   end
 
-  data.slider:SetValue(timeRemaining);
+  tk:AnimateSliderChange(data.slider, timeRemaining);
 
   if (not data.showSpark and data.settings.showSpark) then
     self:SetSparkShown(true);
@@ -1292,23 +1292,8 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
     data.spark:SetPoint("LEFT", value, 0);
   end
 
-  if (not data.timeRemaining) then return end
-
-  local timeRemainingText = tk.Numbers:ToPrecision(timeRemaining, 0);
-
-  if (data.timeRemainingText ~= timeRemainingText) then
-    data.timeRemainingText = timeRemainingText;
-
-    if (timeRemainingText > 3600) then
-      timeRemainingText = tonumber(date("%H", timeRemainingText));
-      timeRemainingText = string.format("< %uh", timeRemainingText + 1);
-
-    elseif (timeRemainingText > 60) then
-      timeRemainingText = date("%M:%S", timeRemainingText);
-    end
-
-    -- this hogs memory so need to reduce the calls to it:
-    data.timeRemaining:SetText(timeRemainingText);
+  if (data.timeRemaining) then
+    tk:SetTimeRemaining(data.timeRemaining, timeRemaining, data.settings.timeRemaining.fontSize, 10, 14);
   end
 end
 
