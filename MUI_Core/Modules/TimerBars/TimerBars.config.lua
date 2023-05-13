@@ -366,8 +366,8 @@ function C_TimerBars:GetConfigTable()
                                   return value == "UP";
                               end;
 
-                              SetValue = function(dbPath)
-                                  db:SetPathValue(dbPath, "UP");
+                              SetValue = function(self)
+                                db:SetPathValue(self.dbPath, "UP");
                               end;
                           };
                           {   name = L["Down"];
@@ -379,8 +379,8 @@ function C_TimerBars:GetConfigTable()
                                   return value == "DOWN";
                               end;
 
-                              SetValue = function(dbPath)
-                                  db:SetPathValue(dbPath, "DOWN");
+                              SetValue = function(self)
+                                db:SetPathValue(self.dbPath, "DOWN");
                               end;
                           };
                           {   type = "divider"

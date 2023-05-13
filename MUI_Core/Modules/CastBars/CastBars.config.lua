@@ -270,11 +270,11 @@ function C_CastBarsModule:GetConfigTable()
                           L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."], name),
                         dbPath = tk.Strings:Concat("profile.castBars.", name, ".anchorToSUF"),
 
-                        SetValue = function(path, newValue, _, container)
+                        SetValue = function(self, newValue)
                           local unitframe = _G["SUFUnit"..name:lower()];
 
                           if (newValue and not (unitframe and unitframe.portrait)) then
-                            container.btn:SetChecked(false);
+                            self.container.btn:SetChecked(false);
                             tk:Print(string.format(L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."], name));
                             return;
                           end

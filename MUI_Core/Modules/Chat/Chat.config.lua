@@ -108,16 +108,16 @@ function C_ChatModule:GetConfigTable(_, configModule)
           return false;
         end,
 
-        SetValue = function(valueDbPath, checked, oldValue)
+        SetValue = function(self, checked, oldValue)
           if (checked) then
             -- add it
             local newValue = (oldValue and tk.Strings:Concat(oldValue, modKeyFirstChar)) or modKeyFirstChar;
-            db:SetPathValue(valueDbPath, newValue);
+            db:SetPathValue(self.dbPath, newValue);
 
           elseif (oldValue and oldValue:find(modKeyFirstChar)) then
             -- remove it
             local newValue = oldValue:gsub(modKeyFirstChar, tk.Strings.Empty);
-            db:SetPathValue(valueDbPath, newValue);
+            db:SetPathValue(self.dbPath, newValue);
           end
         end
       });
@@ -433,8 +433,8 @@ function C_ChatModule:GetConfigTable(_, configModule)
             GetValue = function(_, value)
               return value == "TOP";
             end;
-            SetValue = function(path)
-              db:SetPathValue(path, "TOP");
+            SetValue = function(self)
+              db:SetPathValue(self.dbPath, "TOP");
             end;
           },
           { name = L["Bottom"];
@@ -444,8 +444,8 @@ function C_ChatModule:GetConfigTable(_, configModule)
             GetValue = function(_, value)
               return value == "BOTTOM";
             end;
-            SetValue = function(path)
-              db:SetPathValue(path, "BOTTOM");
+            SetValue = function(self)
+              db:SetPathValue(self.dbPath, "BOTTOM");
             end;
           },
           {   type = "divider";
@@ -526,8 +526,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
                   local _, label = tk.Tables:First(iconOptions, function(v) return v == value end);
                   return label;
                 end;
-                ---@param old Observer
-                SetValue = function(path, newType, oldType)
+                SetValue = function(self, newType, oldType)
                   local oldIcon = _G["MUI_ChatFrameIcon_"..tostring(oldType)];
 
                   if (obj:IsWidget(oldIcon)) then
@@ -553,7 +552,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
                     end
                   end
 
-                  db:SetPathValue(path, newType);
+                  db:SetPathValue(self.dbPath, newType);
                 end;
               };
             end

@@ -24,7 +24,7 @@ local function AddShowOption(children, name, text)
     appendDbPath = "show";
     height = 50;
 
-    SetValue = function(dbPath, value)
+    SetValue = function(self, value)
       widgets[name].point:SetEnabled(value);
       widgets[name].x:SetEnabled(value);
       widgets[name].y:SetEnabled(value);
@@ -41,7 +41,7 @@ local function AddShowOption(children, name, text)
         widgets.testModeButton:GetScript("OnClick")(widgets.testModeButton);
       end
 
-      db:SetPathValue(dbPath, value);
+      db:SetPathValue(self.dbPath, value);
     end;
   };
 end
@@ -53,7 +53,7 @@ local function AddHideOption(children, name, text, func)
     appendDbPath = "hide";
     height = 50;
 
-    SetValue = function(dbPath, value)
+    SetValue = function(self, value)
       widgets[name].point:SetEnabled(not value);
       widgets[name].x:SetEnabled(not value);
       widgets[name].y:SetEnabled(not value);
@@ -70,7 +70,7 @@ local function AddHideOption(children, name, text, func)
         widgets.testModeButton:GetScript("OnClick")(widgets.testModeButton);
       end
 
-      db:SetPathValue(dbPath, value);
+      db:SetPathValue(self.dbPath, value);
       if (func) then func(); end
     end;
   };

@@ -32,5 +32,7 @@ function Components.frame(parent, config)
   tk:SetBackground(frame, 0, 0, 0, 0.2);
   Utils:SetShown(frame, config.shown);
 
+  frame.dynamicFrame = dynamicFrame; -- required for transferring config values into the real component
+
   return dynamicFrame;
 end

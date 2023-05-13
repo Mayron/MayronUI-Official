@@ -593,7 +593,8 @@ end
 ---@return T
 ---@nodiscard
 function RepositoryMixin:QueryType(resultType, ...)
-  local result = self:Query(...);
+  local query = UtilitiesMixin:ToQueryString(...);
+  local result = self:Query(query);
 
   if (resultType) then
     local r = resultType--[[@as string]];
@@ -605,7 +606,7 @@ function RepositoryMixin:QueryType(resultType, ...)
       resultType = r:sub(1, #r - 1);
     end
 
-    UtilitiesMixin:VerifyVar("result", result, resultType);
+    UtilitiesMixin:VerifyVar("result", result, resultType, "Failed to query "..query);
   end
 
   return result;
@@ -940,9 +941,20 @@ do
   ---@return string
   ---@overload fun(self, list: OrbitusDB.QueryList)
   function UtilitiesMixin:ToQueryString(...)
-    local query = "";
+    local totalArgs = select("#", ...);
 
-    for i = 1, select("#", ...) do
+    if (totalArgs == 1) then
+      local arg = ...;
+
+      if (type(arg) == "string") then
+        return UtilitiesMixin:NormalizeQuery(arg);
+      elseif (type(arg) == "number") then
+        return ("[%d]"):format(arg);
+      end
+    end
+
+    local query = "";
+    for i = 1, totalArgs do
       local arg = (select(i, ...));
 
       if (i == 1 and type(arg) == "table") then
@@ -1096,13 +1108,20 @@ do
   ---@param variableName string
   ---@param value any
   ---@param expectedType `T`
+  ---@param message string?
   ---@return T value
-  function UtilitiesMixin:VerifyVar(variableName, value, expectedType)
+  function UtilitiesMixin:VerifyVar(variableName, value, expectedType, message)
     local isValid = IsValidType(value, expectedType);
 
     if (not isValid) then
       expectedType = string.gsub(expectedType, expectedTypesSeparator, orString);
-      error(errorValTemplate:format(variableName, expectedType, type(value)));
+      local errorMessage = errorValTemplate:format(variableName, expectedType, type(value));
+
+      if (message) then
+        errorMessage = errorMessage .. " - " .. message;
+      end
+
+      error(errorMessage);
     end
 
     return value;

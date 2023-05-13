@@ -63,8 +63,8 @@ local function AddRepStandingIDColorOptions(repSettings, child)
       tooltip = L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."];
       type = "check";
       dbPath = "profile.resourceBars.reputationBar.useDefaultColor";
-      SetValue = function(dbPath, newValue)
-        db:SetPathValue(dbPath, newValue);
+      SetValue = function(self, newValue)
+        db:SetPathValue(self.dbPath, newValue);
         fixedBtn:SetEnabled(newValue);
 
         for _, btn in ipairs(repColors) do
@@ -188,8 +188,8 @@ function C_ConfigMenu:GetConfigTable()
           tooltip = L["Enable/disable the AFK Display"];
           dbPath = "global.AFKDisplay.enabled";
 
-          SetValue = function(dbPath, newValue)
-            db:SetPathValue(dbPath, newValue);
+          SetValue = function(self, newValue)
+            db:SetPathValue(self.dbPath, newValue);
             MayronUI:ImportModule("AFKDisplay"):SetEnabled(newValue);
           end;
         }; {
@@ -197,8 +197,8 @@ function C_ConfigMenu:GetConfigTable()
           type = "check";
           tooltip = L["Enable Max Camera Zoom"];
           dbPath = "global.core.maxCameraZoom";
-          SetValue = function(dbPath, newValue)
-            db:SetPathValue(dbPath, newValue);
+          SetValue = function(self, newValue)
+            db:SetPathValue(self.dbPath, newValue);
 
             if (newValue) then
               SetCVar("cameraDistanceMaxZoomFactor", 4.0);
@@ -253,8 +253,8 @@ function C_ConfigMenu:GetConfigTable()
           tooltip = L["Allows you to move Blizzard Frames outside of combat only."];
           dbPath = "global.movable.enabled";
 
-          SetValue = function(dbPath, newValue)
-            db:SetPathValue(dbPath, newValue);
+          SetValue = function(self, newValue)
+            db:SetPathValue(self.dbPath, newValue);
             MayronUI:ImportModule("MovableFramesModule"):SetEnabled(newValue);
           end;
         };
@@ -297,8 +297,8 @@ function C_ConfigMenu:GetConfigTable()
             return value == "TOP";
           end;
 
-          SetValue = function(path)
-            db:SetPathValue(path, "TOP");
+          SetValue = function(self)
+            db:SetPathValue(self.dbPath, "TOP");
           end;
         }; {
           name = L["Bottom of Screen"];
@@ -311,8 +311,8 @@ function C_ConfigMenu:GetConfigTable()
             return value == "BOTTOM";
           end;
 
-          SetValue = function(path)
-            db:SetPathValue(path, "BOTTOM");
+          SetValue = function(self)
+            db:SetPathValue(self.dbPath, "BOTTOM");
           end;
         }; {
           name = L["Y-Offset"];
@@ -537,8 +537,8 @@ function C_ConfigMenu:GetConfigTable()
                 return GetModKeyValue(arg, currentValue);
               end;
 
-              SetValue = function(dbPath, newValue, oldValue)
-                SetModKeyValue(arg, dbPath, newValue, oldValue);
+              SetValue = function(self, newValue, oldValue)
+                SetModKeyValue(arg, self.dbPath, newValue, oldValue);
               end;
             };
           end;

@@ -133,8 +133,8 @@ function C_ToolTipsModule:GetConfigTable(data)
                             return value == "mouse";
                         end;
 
-                        SetValue = function(path, value)
-                            db:SetPathValue(path, value and "mouse" or "screen");
+                        SetValue = function(self, value)
+                          db:SetPathValue(self.dbPath, value and "mouse" or "screen");
                         end;
                       };
                       { name = L["Screen"];
@@ -146,8 +146,8 @@ function C_ToolTipsModule:GetConfigTable(data)
                           return value == "screen";
                         end;
 
-                        SetValue = function(path, value)
-                          db:SetPathValue(path, value and "screen" or "mouse");
+                        SetValue = function(self, value)
+                          db:SetPathValue(self.dbPath, value and "screen" or "mouse");
                         end;
                       },
                     }
@@ -299,10 +299,10 @@ function C_ToolTipsModule:GetConfigTable(data)
                 appendDbPath = "muiTexture.enabled";
                 width = 250;
 
-                SetValue = function(path, value)
+                SetValue = function(self, value)
                   muiTextureSubmenu:Enable();
                   customBackdropSubmenu:Disable();
-                  db:SetPathValue(path, value);
+                  db:SetPathValue(self.dbPath, value);
                 end;
             },
             {   name = L["Custom Backdrop"];
@@ -315,10 +315,10 @@ function C_ToolTipsModule:GetConfigTable(data)
                   return not value;
                 end;
 
-                SetValue = function(path, value)
+                SetValue = function(self, value)
                   muiTextureSubmenu:Disable();
                   customBackdropSubmenu:Enable();
-                  db:SetPathValue(path, not value);
+                  db:SetPathValue(self.dbPath, not value);
                 end;
             },
             {   type = "divider" };
@@ -394,8 +394,8 @@ function C_ToolTipsModule:GetConfigTable(data)
                       min = 0;
                       max = 5;
                       appendDbPath = "edgeSize";
-                      SetValue = function(path, value)
-                        db:SetPathValue(path, value + 0.25); -- fixes pixel perfect
+                      SetValue = function(self, value)
+                        db:SetPathValue(self.dbPath, value + 0.25); -- fixes pixel perfect
                       end;
                     };
                     { type = "fontstring";
@@ -611,8 +611,8 @@ function C_ToolTipsModule:GetConfigTable(data)
                   return not value;
                 end;
 
-                SetValue = function(path, value)
-                  db:SetPathValue(path, not value);
+                SetValue = function(self, value)
+                  db:SetPathValue(self.dbPath, not value);
                 end;
             };
         }

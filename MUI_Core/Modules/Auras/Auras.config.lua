@@ -1,12 +1,12 @@
 -- luacheck: ignore MayronUI self 143 631
 local MayronUI = _G.MayronUI;
 local tk, _, _, _, _, L = MayronUI:GetCoreComponents();
--- local db = MayronUI:GetComponent("MUI_AurasDB");
+
 local _, C_AurasModule = MayronUI:ImportModule("AurasModule");
 
 function C_AurasModule:GetConfigTable()
-
   local configMenu = MayronUI:ImportModule("ConfigMenu");
+  local db = MayronUI:GetComponent("MUI_AurasDB");
 
   local function GetAuraOptions(auraType)
     local iconOptionsFrame;
@@ -25,13 +25,16 @@ function C_AurasModule:GetConfigTable()
         end,
       };
       {
-        type = "title";
-        name = "Icon Options";
+        type = "frame";
         appendDbPath = "profile." .. auraType .. ".icons";
         OnLoad = function(_, frame)
           iconOptionsFrame = frame;
         end,
         children = {
+          {
+            type = "title";
+            name = "Icon Options"
+          },
           {
             type = "check";
             name = "Pulse Effect";
@@ -49,8 +52,8 @@ function C_AurasModule:GetConfigTable()
           },
           {
             type = "fontstring";
-            subtype="header";
-            content= "Vertical Direction";
+            subtype = "header";
+            content = "Vertical Direction";
           },
           {
             name = "Up";
@@ -61,6 +64,9 @@ function C_AurasModule:GetConfigTable()
             GetValue = function(_, value)
               return value == "UP";
             end;
+            SetValue = function(self)
+              db.profile:Store(self.dbPath, "UP");
+            end;
           };
           {
             name = "Down";
@@ -70,6 +76,9 @@ function C_AurasModule:GetConfigTable()
             height = 50;
             GetValue = function(_, value)
               return value == "DOWN";
+            end;
+            SetValue = function(self)
+              db.profile:Store(self.dbPath, "DOWN");
             end;
           };
           {
@@ -283,13 +292,16 @@ function C_AurasModule:GetConfigTable()
         }
       },
       {
-        type = "title";
-        name = "Bar Options";
+        type = "frame";
         appendDbPath = "profile." .. auraType .. ".statusbars";
         OnLoad = function(_, frame)
           barOptionsFrame = frame;
         end,
         children = {
+          {
+            type = "title";
+            name = "Bar Options";
+          },
           {
             type = "check";
             name = "Pulse Effect";

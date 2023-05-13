@@ -24,8 +24,8 @@ function C_DataTextModule:GetConfigTable()
         {   name = "Hide Label";
             type = "check";
             dbPath = "profile.datatext.labels.hidden." .. module;
-            SetValue = function(dbPath, newValue)
-              db:SetPathValue(dbPath, newValue and true or nil);
+            SetValue = function(self, newValue)
+              db:SetPathValue(self.dbPath, newValue and true or nil);
               local label = label_TextFields[module];
               label:SetEnabled(not newValue); -- if hidden == true then hide label option
             end
@@ -146,7 +146,7 @@ function C_DataTextModule:GetConfigTable()
                     return dataTextLabels[value];
                   end;
 
-                  SetValue = function(dbPath, newLabel)
+                  SetValue = function(self, newLabel)
                     local newValue;
 
                     for value, label in pairs(dataTextLabels) do
@@ -156,7 +156,7 @@ function C_DataTextModule:GetConfigTable()
                       end
                     end
 
-                    db:SetPathValue(dbPath, newValue);
+                    db:SetPathValue(self.dbPath, newValue);
                   end;
                 };
 
@@ -204,75 +204,86 @@ function C_DataTextModule:GetConfigTable()
                   return children;
                 end;
             };
-            {   type = "submenu",
-                name = L["Inventory"],
-                module = "DataText",
-                appendDbPath = "inventory",
-                children = function()
-                  local children = CreateLabelOptions("inventory");
-                  children[#children + 1] =
-                  {  name = L["Show Total Slots"];
-                      type = "check";
-                      appendDbPath = "showTotalSlots";
-                  };
-                  children[#children + 1] =
-                  {   name = L["Show Used Slots"];
-                      type = "radio";
-                      groupName = "inventory";
-                      appendDbPath = "slotsToShow";
+            {
+              type = "submenu",
+              name = L["Inventory"],
+              module = "DataText",
+              appendDbPath = "inventory",
+              children = function()
+                local children = CreateLabelOptions("inventory");
+                children[#children + 1] =
+                {
+                  name = L["Show Total Slots"];
+                  type = "check";
+                  appendDbPath = "showTotalSlots";
+                };
+                children[#children + 1] =
+                {
+                  name = L["Show Used Slots"];
+                  type = "radio";
+                  groupName = "inventory";
+                  appendDbPath = "slotsToShow";
 
-                      GetValue = function(_, value)
-                          return value == "used";
-                      end;
+                  GetValue = function(_, value)
+                    return value == "used";
+                  end;
 
-                      SetValue = function(path)
-                          db:SetPathValue(path, "used");
-                      end;
-                  };
-                  children[#children + 1] =
-                  {   name = L["Show Free Slots"];
-                      type = "radio";
-                      groupName = "inventory";
-                      appendDbPath = "slotsToShow";
+                  SetValue = function(self)
+                    db:SetPathValue(self.dbPath, "used");
+                  end;
+                };
+                children[#children + 1] =
+                {
+                  name = L["Show Free Slots"];
+                  type = "radio";
+                  groupName = "inventory";
+                  appendDbPath = "slotsToShow";
 
-                      GetValue = function(_, value)
-                          return value == "free";
-                      end;
+                  GetValue = function(_, value)
+                    return value == "free";
+                  end;
 
-                      SetValue = function(path)
-                          db:SetPathValue(path, "free");
-                      end;
-                  };
-                  return children;
-                end;
+                  SetValue = function(self)
+                    db:SetPathValue(self.dbPath, "free");
+                  end;
+                };
+                return children;
+              end;
             },
-            {   type = "submenu",
-                module = "DataText",
-                name = L["Performance"],
-                appendDbPath = "performance",
-                children = {
-                    {   type = "fontstring",
-                        content = L["Changes to these settings will take effect after 0-3 seconds."];
-                    },
-                    {   name = L["Show FPS"],
-                        type = "check",
-                        appendDbPath = "showFps",
-                    },
-                    {   type = "divider"
-                    },
-                    {   name = L["Show Server Latency (ms)"],
-                        type = "check",
-                        width = 230,
-                        appendDbPath = "showServerLatency",
-                    },
-                    {   type = "divider"
-                    },
-                    {   name = L["Show Home Latency (ms)"],
-                        type = "check",
-                        width = 230,
-                        appendDbPath = "showHomeLatency",
-                    },
-                }
+            {
+              type = "submenu",
+              module = "DataText",
+              name = L["Performance"],
+              appendDbPath = "performance",
+              children = {
+                {
+                  type = "fontstring",
+                  content = L["Changes to these settings will take effect after 0-3 seconds."];
+                },
+                {
+                  name = L["Show FPS"],
+                  type = "check",
+                  appendDbPath = "showFps",
+                },
+                {
+                  type = "divider"
+                },
+                {
+                  name = L["Show Server Latency (ms)"],
+                  type = "check",
+                  width = 230,
+                  appendDbPath = "showServerLatency",
+                },
+                {
+                  type = "divider"
+                },
+                {
+                  name = L["Show Home Latency (ms)"],
+                  type = "check",
+                  width = 230,
+                  appendDbPath = "showHomeLatency",
+                },
+              }
             },
             {   type = "submenu",
                 name = L["Money"];

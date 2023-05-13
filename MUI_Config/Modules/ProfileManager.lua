@@ -191,8 +191,8 @@ local configTable = {
       width = 200;
       GetOptions = GetProfileOptions;
 
-      SetValue = function(_, profileName, _, container)
-        local dropdown = container.component.dropdown;
+      SetValue = function(self, profileName)
+        local dropdown = self.component.dropdown;
         local currentProfile = db:GetCurrentProfile();
 
         if (currentProfile == profileName) then

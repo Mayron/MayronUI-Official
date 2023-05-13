@@ -86,15 +86,20 @@ local function IsUnsupportedByClient(client)
   return false;
 end
 
-local TransferComponentAttributes;
+local TransferConfigAttributes, InheritConfigAttributes;
 do
-  local map = {
+  local inheritableAttributes = {
+    "appendDbPath";
+    "dbFramework";
+    "module";
+    "database";
+  };
+
+  local componentAttributes = {
     "dbPath";
     "name";
     "requiresReload";
     "requiresRestart";
-    "module";
-    "database";
     "valueType";
     "min";
     "max";
@@ -106,16 +111,66 @@ do
     ["SetValue"] = "__SetValue";
   };
 
-  function TransferComponentAttributes(component, config)
-    for index, key in pairs(map) do
-      if (obj:IsNumber(index)) then
-        component[key] = config[key];
+  function InheritConfigAttributes(parentConfig, childConfig)
+    local parentHasAppendDbPath = not tk.Strings:IsNilOrWhiteSpace(parentConfig.appendDbPath);
+
+    if (parentHasAppendDbPath and not tk.Strings:IsNilOrWhiteSpace(childConfig.appendDbPath)) then
+      if (tk.Strings:StartsWith(childConfig.appendDbPath, "[")) then
+        childConfig.appendDbPath = parentConfig.appendDbPath..childConfig.appendDbPath;
       else
-        component[key] = config[index];
+        childConfig.appendDbPath = parentConfig.appendDbPath.."."..childConfig.appendDbPath;
       end
     end
 
-    obj:PushTable(config);
+    for _, key in ipairs(inheritableAttributes) do
+      if (childConfig[key] == nil) then
+        childConfig[key] = parentConfig[key];
+      end
+    end
+
+    if (obj:IsTable(parentConfig.inherit)) then
+      for key, value in pairs(parentConfig.inherit) do
+        if (childConfig[key] == nil) then
+          childConfig[key] = value;
+        end
+      end
+    end
+
+    if (obj:IsFunction(childConfig.dbPath)) then
+      childConfig.dbPath = childConfig.dbPath();
+    end
+
+    if (not tk.Strings:IsNilOrWhiteSpace(childConfig.dbPath) and parentHasAppendDbPath) then
+      local appendDbPath = childConfig.appendDbPath or parentConfig.appendDbPath;
+
+      if (tk.Strings:StartsWith(childConfig.dbPath, "[")) then
+        childConfig.dbPath = appendDbPath..childConfig.dbPath;
+      else
+        childConfig.dbPath = appendDbPath.."."..childConfig.dbPath;
+      end
+    end
+  end
+
+  function TransferConfigAttributes(childConfig, component)
+    if (component.type == "submenu") then return end -- not sure why
+
+    for _, key in ipairs(inheritableAttributes) do
+      if (component[key] == nil) then
+        component[key] = childConfig[key];
+      end
+    end
+
+    for index, key in pairs(componentAttributes) do
+      if (component[key] == nil) then
+        if (obj:IsNumber(index)) then
+          component[key] = childConfig[key];
+        else
+          component[key] = childConfig[index];
+        end
+      end
+    end
+
+    obj:PushTable(childConfig);
   end
 end
 
@@ -140,12 +195,12 @@ function C_ConfigMenuModule:Show(data)
 end
 
 ---@return table
-local function GetDatabase(componentOrConfigTbl)
+local function GetDatabase(config)
   local dbObject = MayronUI:GetComponent("Database");
 
-  if (componentOrConfigTbl and componentOrConfigTbl.database) then
-    dbObject = MayronUI:GetComponent(componentOrConfigTbl.database);
-    obj:Assert(dbObject, "Failed to get database object for module '%s'", componentOrConfigTbl.module);
+  if (obj:IsTable(config) and config.database) then
+    dbObject = MayronUI:GetComponent(config.database);
+    obj:Assert(dbObject, "Failed to get database object for module '%s'", config.module);
   end
 
   return dbObject;
@@ -157,19 +212,23 @@ obj:DefineParams("table");
 ---@param value any @The value to add to the database using the dbPath value attached to the component table.
 function C_ConfigMenuModule:SetDatabaseValue(_, component, newValue)
   local db = GetDatabase(component);
-  local oldValue;
   local dbPath = component.dbPath;
-
-  if (obj:IsFunction(dbPath)) then
-    dbPath = dbPath();
-  end
+  local oldValue, repository;
 
   if (not tk.Strings:IsNilOrWhiteSpace(dbPath)) then
-    oldValue = db:ParsePathValue(dbPath);
+    if (component.dbFramework == "orbitus") then
+      ---@cast db OrbitusDB.DatabaseMixin
+      repository = db.utilities:GetRepositoryFromQuery(dbPath);
+      assert(repository, "Failed to find database repository from dbPath "..dbPath);
+      oldValue = repository:Query(dbPath);
+    else
+      ---@cast db Database
+      oldValue = db:ParsePathValue(dbPath);
+    end
   end
 
   if (component.__SetValue) then
-    component.__SetValue(dbPath, newValue, oldValue, component);
+    component.__SetValue(component, newValue, oldValue);
   else
     -- dbPath is required if not using a custom __SetValue function!
     if (component.name and component.name.IsObjectType and component.name:IsObjectType("FontString")) then
@@ -181,7 +240,13 @@ function C_ConfigMenuModule:SetDatabaseValue(_, component, newValue)
         "Unknown config data is missing database path address element (dbPath).");
     end
 
-    db:SetPathValue(dbPath, newValue);
+    if (component.dbFramework == "orbitus") then
+      ---@cast repository OrbitusDB.RepositoryMixin
+      repository:Store(dbPath, newValue);
+    else
+      ---@cast db Database
+      db:SetPathValue(dbPath, newValue);
+    end
   end
 
   if (component.OnValueChanged) then
@@ -329,28 +394,8 @@ end
 
 obj:DefineParams("table");
 function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
-  ---------------------------------
-  --> Apply MenuConfig Table and Transfer onto ComponentConfig Table (before transferring to components)
-  for key, value in pairs(menuConfig) do
-    if (key ~= "children" and key ~= "type" and componentConfig[key] == nil) then
-      componentConfig[key] = value;
-    end
-  end
-
-  if (not tk.Strings:IsNilOrWhiteSpace(componentConfig.dbPath) and
-      not tk.Strings:IsNilOrWhiteSpace(componentConfig.appendDbPath)) then
-
-    if (tk.Strings:StartsWith(componentConfig.appendDbPath, "[")) then
-      componentConfig.dbPath = componentConfig.dbPath..componentConfig.appendDbPath;
-    else
-      componentConfig.dbPath = componentConfig.dbPath.."."..componentConfig.appendDbPath;
-    end
-
-    componentConfig.appendDbPath = nil;
-  end
-  ---------------------------------
-
-  local componentType = componentConfig.type; -- config gets deleted after SetUpcomponent and type does not get mapped
+  InheritConfigAttributes(menuConfig, componentConfig);
+  local componentType = componentConfig.type;
 
   if (componentType == "loop" or componentType == "condition") then
     -- run the loop to gather component children
@@ -361,12 +406,12 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
       for _, c in ipairs(children) do
         if (obj:IsTable(c) and not c.type) then
           for _, c2 in ipairs(c) do
-            self:RenderComponent(c2);
+            self:RenderComponent(c2, menuConfig);
           end
 
           obj:PushTable(c);
         else
-          self:RenderComponent(c);
+          self:RenderComponent(c, menuConfig);
         end
       end
 
@@ -379,28 +424,16 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
     return
   end
 
-  local componentChildren = componentConfig.children; -- else it'll be pushed when transfering
-  local component = self:SetUpComponent(componentConfig);
+  local componentChildrenConfigs = componentConfig.children; -- else it'll be pushed when transfering
+  local component = self:CreateComponent(componentConfig, menuConfig.groups);
+  componentConfig = nil; --luacheck: ignore (this has been consumed and transferred)
 
-  if (componentType ~= "submenu") then
-    TransferComponentAttributes(component, componentConfig);
-  end
-
-  if (componentType == "frame" and obj:IsTable(componentChildren)) then
-    local dynamicFrame = component --[[@as DynamicFrame|Object]];
-    local frame = dynamicFrame:GetFrame();
-
-    for _, subComponentConfigTable in ipairs(componentChildren) do
-      local childcomponent = self:SetUpComponent(subComponentConfigTable, frame);
-
-      if (subComponentConfigTable.type ~= "submenu") then
-        TransferComponentAttributes(childcomponent, subComponentConfigTable);
-      end
-
-      dynamicFrame:AddChildren(childcomponent);
+  if (componentType == "frame" and obj:IsTable(componentChildrenConfigs)) then
+    for _, childConfig in ipairs(componentChildrenConfigs) do
+      InheritConfigAttributes(component, childConfig);
+      local childComponent = self:CreateComponent(childConfig, menuConfig.groups, component);
+      component.dynamicFrame:AddChildren(childComponent);
     end
-
-    component = frame;
   end
 
   data.selectedButton.menu:AddChildren(component);
@@ -412,10 +445,6 @@ obj:DefineParams("table");
 function C_ConfigMenuModule:RenderMenuComponents(_, menuButton)
   local menuConfig = menuButton.configTable;
 
-  if (obj:IsFunction(menuConfig.dbPath)) then
-    menuConfig.dbPath = menuConfig.dbPath();
-  end
-
   if (obj:IsFunction(menuConfig.children)) then
     menuConfig.children = menuConfig:children();
   end
@@ -424,20 +453,19 @@ function C_ConfigMenuModule:RenderMenuComponents(_, menuButton)
     return
   end
 
+  menuConfig.groups = {};
+
   for _, componentConfigTable in pairs(menuConfig.children) do
     if (not IsUnsupportedByClient(componentConfigTable.client)) then
       self:RenderComponent(componentConfigTable, menuConfig);
     end
   end
 
-  if (menuConfig.groups) then
-    for _, group in pairs(menuConfig.groups) do
-      tk:GroupCheckButtons(group);
-    end
-
-    obj:PushTable(menuConfig.groups);
+  for _, group in pairs(menuConfig.groups) do
+    tk:GroupCheckButtons(group);
   end
 
+  obj:PushTable(menuConfig.groups);
   obj:PushTable(menuConfig);
   menuButton.configTable = nil;
 end
@@ -460,10 +488,6 @@ end
 
 do
   local function GetDatabaseValue(config)
-    if (obj:IsFunction(config.dbPath)) then
-      config.dbPath = config.dbPath();
-    end
-
     local dbPath = config.dbPath;
 
     if (tk.Strings:IsNilOrWhiteSpace(dbPath)) then
@@ -494,12 +518,13 @@ do
     return value;
   end
 
-  obj:DefineParams("table", "?Frame");
+  obj:DefineParams("table", "table", "?Frame");
   ---@param componentConfig table @A component config table used to control the rendering and behavior of a component in the config menu.
+  ---@param menuGroups table
   ---@param parent Frame? @(optional) A custom parent frame for the component, else the parent will be the menu scroll child.
   ---@return Frame? @(possibly nil if component is disabled) The created component.
-  ---@overload fun(self, componentConfig: table, parent: Frame?): Frame|table
-  function C_ConfigMenuModule:SetUpComponent(data, componentConfig, parent)
+  ---@overload fun(self, componentConfig: table, menuGroups: table, parent: Frame?): Frame|table
+  function C_ConfigMenuModule:CreateComponent(data, componentConfig, menuGroups, parent)
     if (not parent) then
       parent = data.selectedButton.menu:GetFrame();
       parent = parent.ScrollFrame:GetScrollChild();
@@ -532,24 +557,27 @@ do
       tk:SetBackground(component, mrandom(), mrandom(), mrandom());
     end
 
-    -- If using Rendercomponent manually in config then this won't work
-    if (componentConfig.groups and componentConfig.type == "radio" and componentConfig.groupName) then
-      -- get groups[groupName] value from tempRadioButtonGroup
-      if (not componentConfig.groups[componentConfig.groupName]) then
-        componentConfig.groups[componentConfig.groupName] = obj:PopTable();
+    if (componentConfig.type == "radio" and componentConfig.groupName) then
+      if (not menuGroups[componentConfig.groupName]) then
+        menuGroups[componentConfig.groupName] = obj:PopTable();
       end
 
-      table.insert(componentConfig.groups[componentConfig.groupName], component.btn);
+      table.insert(menuGroups[componentConfig.groupName], component.btn);
     end
 
-    if (componentConfig.disabled) then return end
-
-    -- setup complete, so run the OnLoad callback if one exists
-    if (componentConfig.OnLoad) then
-      componentConfig.OnLoad(componentConfig, component, currentValue);
-      componentConfig.OnLoad = nil;
+    if (not componentConfig.disabled) then
+      -- setup complete, so run the OnLoad callback if one exists
+      if (componentConfig.OnLoad) then
+        componentConfig.OnLoad(componentConfig, component, currentValue);
+        componentConfig.OnLoad = nil;
+      end
     end
 
+    if (componentConfig.type == "frame") then
+      component = component:GetFrame();
+    end
+
+    TransferConfigAttributes(componentConfig, component);
     return component;
   end
 end

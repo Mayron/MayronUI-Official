@@ -378,18 +378,20 @@ function C_BottomActionBars:SetUpExpandRetract(data)
     btn:SetBackdrop(tk.Constants.BACKDROP);
     btn:SetBackdropBorderColor(0, 0, 0);
 
-    btn.icon = btn:CreateTexture(nil, "OVERLAY");
+    local iconRotation;
+    if (btnId == RETRACT_BUTTON_ID) then
+      iconRotation = 180;
+    end
+
+    btn.icon = gui:CreateIconTexture("arrow", btn, true, iconRotation);
+    btn.icon:ClearAllPoints();
+    btn.icon:SetDrawLayer("OVERLAY");
     btn.icon:SetSize(16, 10);
     btn.icon:SetPoint("CENTER");
-    btn.icon:SetTexture(tk:GetAssetFilePath("Icons\\arrow"));
-    tk:ApplyThemeColor(btn.icon);
+    btn.icon:SetAlpha(1);
 
     local normalTexture = btn:GetNormalTexture();
     normalTexture:SetVertexColor(0.15, 0.15, 0.15, 1);
-
-    if (btnId == RETRACT_BUTTON_ID) then
-      btn.icon:SetTexCoord(0, 1, 1, 0);
-    end
 
     local btnKey = btnId == EXPAND_BUTTON_ID and "expand" or "retract";
     data[btnKey] = btn;
