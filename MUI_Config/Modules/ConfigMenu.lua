@@ -5,10 +5,8 @@ local MayronUI = _G.MayronUI;
 local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local MENU_BUTTON_HEIGHT = 40;
-local pairs, ipairs, table, mrandom, setmetatable = _G.pairs, _G.ipairs,
-  _G.table, _G.math.random, _G.setmetatable;
-local DisableAddOn, collectgarbage, UIFrameFadeIn, PlaySound, strformat =
-  _G.DisableAddOn, _G.collectgarbage, _G.UIFrameFadeIn, _G.PlaySound, _G.string.format;
+local pairs, ipairs, table, mrandom = _G.pairs, _G.ipairs,  _G.table, _G.math.random;
+local DisableAddOn, UIFrameFadeIn, PlaySound, strformat = _G.DisableAddOn, _G.UIFrameFadeIn, _G.PlaySound, _G.string.format;
 local strsplit, radians = _G.strsplit, _G.math.rad;
 
 -- Registers and Imports -------------
@@ -37,11 +35,10 @@ do
       btn:SetParent(menuButtons[#menuButtons]);
     end
 
-    btn:SetScript(
-      "OnClick", function()
-        onClick();
-        PlaySound(tk.Constants.CLICK);
-      end);
+    btn:SetScript("OnClick", function()
+      onClick();
+      PlaySound(tk.Constants.CLICK);
+    end);
 
     table.insert(menuButtons, btn);
 
@@ -476,6 +473,11 @@ end
 
 obj:DefineParams("table");
 function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
+  if (componentConfig.ignore) then
+    obj:PushTable(componentConfig);
+    return
+  end
+
   InheritConfigAttributes(menuConfig, componentConfig);
   local componentType = componentConfig.type;
 
@@ -506,6 +508,9 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
     return
   end
 
+  if (obj:IsFunction(componentConfig.children)) then
+    componentConfig.children = componentConfig.children();
+  end
 
   local componentChildrenConfigs = componentConfig.children; -- else it'll be pushed when transfering
   local menuScrollChild = data.selectedButton.menu:GetFrame().ScrollFrame:GetScrollChild(); -- the component's parent
@@ -514,9 +519,13 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
 
   if (componentType == "frame" and obj:IsTable(componentChildrenConfigs)) then
     for _, childConfig in ipairs(componentChildrenConfigs) do
-      InheritConfigAttributes(component, childConfig);
-      local childComponent = CreateComponent(childConfig, menuConfig.groups, component);
-      component.dynamicFrame:AddChildren(childComponent);
+      if (childConfig.ignore) then
+        obj:PushTable(childConfig);
+      else
+        InheritConfigAttributes(component, childConfig);
+        local childComponent = CreateComponent(childConfig, menuConfig.groups, component);
+        component.dynamicFrame:AddChildren(childComponent);
+      end
     end
   end
 
@@ -666,15 +675,14 @@ function C_ConfigMenuModule:RenderMenuTabs(_, menuButton, menuParent)
 end
 
 function C_ConfigMenuModule:SetUpWindow(data)
-  if (data.window) then
-    return
-  end
+  if (data.window) then return end
 
   data.history = C_LinkedList();
 
   data.window = gui:CreateLargeDialogBox("Regular", nil, nil, "MUI_Config");
   data.window:SetFrameStrata("DIALOG");
   data.window:Hide();
+  data.window:EnableMouse(true);
 
   tk:SetResizeBounds(data.window, 600, 400, 1400, 800);
 

@@ -292,6 +292,7 @@ local AuraButtonMixin = {};
 ---@param name AuraTextName
 function AuraButtonMixin:ApplyTextStyle(name)
   local fontString = self[name.."Text"];
+  if (not fontString) then return end
 
   fontString:SetTextColor(self:GetColorSetting(name));
 
@@ -526,6 +527,104 @@ function AuraButtonMixin:GetTextPositionSettings(textName)
   return unpack(position);
 end
 
+function AuraButtonMixin:UpdateStyling()
+  local db = MayronUI:GetComponent("MUI_AurasDB");
+  local auraType = (self.filter == "HELPFUL") and "buffs" or "debuffs";
+  local width, height = GetAuraButtonSize(auraType, db);
+  self:SetSize(width, height);
+
+  local borderSize = self:GetSetting("number", "iconBorderSize");
+  local iconWidth = self:GetSetting("number", "iconWidth");
+  local iconHeight = self:GetSetting("number", "iconHeight");
+
+  -- Set Up Icon:
+  self.iconFrame:SetSize(iconWidth, iconHeight);
+  local diff = math.abs(iconWidth - iconHeight);
+
+  if (diff > 5) then
+    diff = diff * 0.25; -- squish the texture by only 25%
+
+    if (iconWidth > iconHeight) then
+      iconHeight = math.max(iconWidth - diff, iconHeight);
+    else
+      iconWidth = math.max(iconHeight - diff, iconWidth);
+    end
+  end
+
+  self.icon:SetSize(iconWidth, iconHeight);
+  self.iconFrame.gloss:SetPoint("TOPLEFT", borderSize, -borderSize);
+  self.iconFrame.gloss:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
+
+  if (self.cooldown) then
+    self.cooldown:SetPoint("TOPLEFT", borderSize, -borderSize);
+    self.cooldown:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
+  end
+
+  -- Status Bar:
+  if (self.mode == "statusbars") then
+    local backdrop = self.statusbarFrame:GetBackdrop();
+    backdrop.edgeSize = borderSize;
+    self.statusbarFrame:SetBackdrop(backdrop);
+
+    local iconSpacing = self:GetSetting("number", "iconSpacing");
+    self.statusbarFrame:SetPoint("LEFT", self.iconFrame, "RIGHT", iconSpacing, 0);
+
+    local barHeight = self:GetSetting("number", "barHeight");
+    self.statusbarFrame:SetHeight(barHeight);
+  end
+end
+
+function AuraButtonMixin:SetStatusBarEnabled(enabled)
+  if (not self.statusbarFrame and not enabled) then return end
+
+  local iconSpacing = self:GetSetting("number", "iconSpacing");
+  local barHeight = self:GetSetting("number", "barHeight");
+
+  self.statusbarFrame = tk:CreateBackdropFrame("Frame", self);
+  self.statusbarFrame:SetPoint("LEFT", self.iconFrame, "RIGHT", iconSpacing, 0);
+  self.statusbarFrame:SetPoint("RIGHT");
+  self.statusbarFrame:SetHeight(barHeight);
+
+  local borderSize = self:GetSetting("number", "iconBorderSize");
+
+  self.statusbarFrame:SetBackdrop({
+    edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
+    edgeSize = borderSize,
+  });
+
+  self.statusbarFrame:SetBackdropBorderColor(self:GetColorSetting(AuraColorTypes.statusbarBorder));
+  tk:SetBackground(self.statusbarFrame, self:GetColorSetting(AuraColorTypes.background));
+
+  self.statusbar = tk:CreateFrame("StatusBar", self.statusbarFrame);
+  local texturePath = self:GetSetting("string", "texture");
+  self.statusbar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", texturePath));
+  self.statusbar:SetPoint("TOPLEFT", 1, -1);
+  self.statusbar:SetPoint("BOTTOMRIGHT", -1, 1);
+
+  local showSpark = self:GetSetting("boolean", "showSpark");
+  self:SetSparkShown(showSpark);
+
+  local countTemplate = (enabled and "GameFontNormal") or "NumberFont_Outline_Large";
+
+  if (self.countText) then
+    self.countText:SetFontObject(countTemplate);
+  else
+    self.countText = self.iconFrame.cooldown:CreateFontString(nil, "OVERLAY", countTemplate);
+  end
+
+  if (enabled) then
+    if (not self.auraNameText) then
+      self.auraNameText = self.statusbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
+      self.auraNameText:SetJustifyH("LEFT");
+      self.auraNameText:SetWordWrap(false);
+    end
+
+    self.auraNameText:Show();
+  elseif (not enabled and self.auraNameText) then
+    self.auraNameText:Hide();
+  end
+end
+
 function AuraButtonMixin:ApplyStyling()
   if (self.iconFrame) then return end
   if (not self.texture) then return end
@@ -545,45 +644,10 @@ function AuraButtonMixin:ApplyStyling()
   self.cooldown = self.iconFrame.cooldown;
 
   -- Status Bar:
-  if (self.mode == "statusbars") then
-    local iconSpacing = self:GetSetting("number", "iconSpacing");
-    local barHeight = self:GetSetting("number", "barHeight");
+  self:SetStatusBarEnabled(self.mode == "statusbars");
 
-    self.statusbarFrame = tk:CreateBackdropFrame("Frame", self);
-    self.statusbarFrame:SetPoint("LEFT", self.iconFrame, "RIGHT", iconSpacing, 0);
-    self.statusbarFrame:SetPoint("RIGHT");
-    self.statusbarFrame:SetHeight(barHeight);
-
-    self.statusbarFrame:SetBackdrop({
-      edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
-      edgeSize = borderSize,
-    });
-
-    self.statusbarFrame:SetBackdropBorderColor(self:GetColorSetting(AuraColorTypes.statusbarBorder));
-    tk:SetBackground(self.statusbarFrame, self:GetColorSetting(AuraColorTypes.background));
-
-    self.statusbar = tk:CreateFrame("StatusBar", self.statusbarFrame);
-    local texturePath = self:GetSetting("string", "texture");
-    self.statusbar:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", texturePath));
-    self.statusbar:SetPoint("TOPLEFT", 1, -1);
-    self.statusbar:SetPoint("BOTTOMRIGHT", -1, 1);
-
-    local showSpark = self:GetSetting("boolean", "showSpark");
-    self:SetSparkShown(showSpark);
-  end
-
-  -- FontStrings
-  local countTemplate = (self.mode == "statusbars" and "GameFontNormal") or "NumberFont_Outline_Large";
-  self.countText = self.iconFrame.cooldown:CreateFontString(nil, "OVERLAY", countTemplate);
+  self:ApplyTextStyle("auraName");
   self:ApplyTextStyle("count");
-
-  if (self.mode == "statusbars") then
-    self.auraNameText = self.statusbar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
-    self:ApplyTextStyle("auraName");
-
-    self.auraNameText:SetJustifyH("LEFT");
-    self.auraNameText:SetWordWrap(false);
-  end
 
   self.timeRemainingText = self.iconFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
   self:ApplyTextStyle("timeRemaining");
@@ -786,6 +850,10 @@ local function SetUpAuraHeaderDirection(db, header, auraType, mode)
   header:SetAttribute("wrapYOffset", yOffset);
 end
 
+---@param db OrbitusDB.DatabaseMixin
+---@param header Frame|table
+---@param auraType "buffs"|"debuffs"
+---@param mode "icons"|"statusbars"
 local function SetUpAuraHeaderPosition(db, header, auraType, mode)
   local position = db.profile:QueryType("table", auraType, mode, "position");
   local relativeFrame = _G[position[2]] or _G.UIParent;
@@ -866,10 +934,15 @@ function C_AurasModule:OnEnabled(data)
     local auraType = i == 1 and "buffs" or "debuffs";
     local header = i == 1 and data.buffsHeader or data.debuffsHeader;
 
-    local function updateAllAuraButtonStyling(...)
-      local children = header:GetChildren();
-      print(children, header:GetNumChildren(), ", args: ", ...)
-      -- need to run ApplyStyling
+    local function updateAllAuraButtonStyling()
+      for c = 1, 40 do
+        local child = header:GetAttribute("child" .. c)--[[@as AuraButtonMixin]];
+        if (not child or not child:IsShown()) then return end
+
+        if (child.UpdateStyling) then
+          child:UpdateStyling();
+        end
+      end
     end
 
     local function updateAllAuraButtonTextStyling(...)
@@ -878,8 +951,17 @@ function C_AurasModule:OnEnabled(data)
       -- call ApplyTextStyle
     end
 
-    db.profile:Subscribe(auraType..".mode", function()
+    db.profile:Subscribe(auraType..".mode", function(value)
       CreateOrUpdateAuraHeader(header.filter, db, header);
+
+      for c = 1, 40 do
+        local child = header:GetAttribute("child" .. c)--[[@as AuraButtonMixin]];
+        if (not child or not child:IsShown()) then return end
+
+        if (child.SetStatusBarEnabled) then
+          child:SetStatusBarEnabled(value == "statusbars");
+        end
+      end
     end);
 
     for m = 1, 2 do
@@ -889,13 +971,22 @@ function C_AurasModule:OnEnabled(data)
         SetUpAuraHeaderDirection(db, header, auraType, mode);
       end
 
-      local widthHeightObserver = function(...)
+      local widthHeightObserver = function()
         SetUpAuraHeaderDirection(db, header, auraType, mode);
         updateAllAuraButtonStyling();
+      end
 
-        local children = header:GetChildren();
-        print("widthHeightObserver: ", children, header:GetNumChildren(), ", args: ", ...)
-        -- also, run UpdateDisplayInfo if barWidth or barHeight to update auraNameText
+      local barWidthHeightObserver = function()
+        widthHeightObserver();
+
+        -- run UpdateDisplayInfo if barWidth or barHeight to update auraNameText
+        for c = 1, 40 do
+          local child = header:GetAttribute("child" .. c)--[[@as AuraButtonMixin]];
+          if (not child or not child:IsShown()) then return end
+          if (child.UpdateDisplayInfo) then
+            child:UpdateDisplayInfo();
+          end
+        end
       end
 
       db.profile:Subscribe(auraType.."."..mode..".hDirection", directionAndSpacingObserver);
@@ -907,10 +998,36 @@ function C_AurasModule:OnEnabled(data)
       db.profile:Subscribe(auraType.."."..mode..".iconBorderSize", updateAllAuraButtonStyling);
       db.profile:Subscribe(auraType.."."..mode..".textSize", updateAllAuraButtonTextStyling);
       db.profile:Subscribe(auraType.."."..mode..".textPosition", updateAllAuraButtonTextStyling);
-      db.profile:Subscribe(auraType.."."..mode..".barWidth", widthHeightObserver);
-      db.profile:Subscribe(auraType.."."..mode..".barHeight", widthHeightObserver);
-      db.profile:Subscribe(auraType.."."..mode..".showSpark", updateAllAuraButtonStyling);
-      db.profile:Subscribe(auraType.."."..mode..".texture", updateAllAuraButtonStyling);
+      db.profile:Subscribe(auraType.."."..mode..".barWidth", barWidthHeightObserver);
+      db.profile:Subscribe(auraType.."."..mode..".barHeight", barWidthHeightObserver);
+      db.profile:Subscribe(auraType.."."..mode..".iconSpacing", widthHeightObserver);
+
+      if (mode == "statusbars") then
+        db.profile:Subscribe(auraType.."."..mode..".showSpark", function(value)
+          for c = 1, 40 do
+            local child = header:GetAttribute("child" .. c)--[[@as AuraButtonMixin]];
+            if (not child or not child:IsShown()) then return end
+
+            if (child.SetSparkShown) then
+              child:SetSparkShown(value);
+            end
+          end
+        end);
+
+        db.profile:Subscribe(auraType.."."..mode..".texture", function(value)
+          local statusBarTexture = tk.Constants.LSM:Fetch("statusbar", value);
+          print(statusBarTexture, value);
+
+          for c = 1, 40 do
+            local child = header:GetAttribute("child" .. c)--[[@as AuraButtonMixin]];
+            if (not child or not child:IsShown()) then return end
+
+            if (child.statusbar) then
+              child.statusbar:SetStatusBarTexture(statusBarTexture);
+            end
+          end
+        end);
+      end
 
       db.profile:Subscribe(auraType.."."..mode..".position", function()
         SetUpAuraHeaderPosition(db, header, auraType, mode);

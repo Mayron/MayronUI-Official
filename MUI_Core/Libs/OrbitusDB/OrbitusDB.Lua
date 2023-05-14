@@ -345,7 +345,7 @@ function CharacterRepositoryMixin:QueryByCharacter(characterName, ...)
   end
 
   local query = UtilitiesMixin:ToQueryString(...);
-  return UtilitiesMixin:QueryTable(characterTbl, query);
+  return UtilitiesMixin:GetTableValue(characterTbl, query);
 end
 
 ---@generic T
@@ -624,33 +624,46 @@ function RepositoryMixin:Query(...)
 
   local data = metadata[tostring(self)];
   local index = data.indices[repositoryName];
-  local result = index[query];
-
-  if (result ~= nil) then
-    return result;
-  end
-
   local defaults = data.defaults[repositoryName];
-  result = defaults[query];
 
-  if (result ~= nil) then
-    -- defaults are inside the index but the index might have been set to `nil`
-    return result;
+  if (index[query] ~= nil) then
+    return index[query];
   end
 
+  if (defaults[query] ~= nil) then
+    return defaults[query];
+  end
+
+  local indexResults;
   for fullKey, value in pairs(index) do
     if (fullKey:sub(1, #query) == query) then
       local subKey = fullKey:sub(#query + 1, #fullKey);
-      result = result or UtilitiesMixin:PopTable();
-      UtilitiesMixin:Store(result, subKey, value);
+      indexResults = indexResults or UtilitiesMixin:PopTable();
+      UtilitiesMixin:SetTableValue(indexResults, subKey, value);
     end
   end
 
-  return result;
+  local defaultResults;
+  for fullKey, value in pairs(defaults) do
+    if (fullKey:sub(1, #query) == query) then
+      local subKey = fullKey:sub(#query + 1, #fullKey);
+      defaultResults = defaultResults or UtilitiesMixin:PopTable();
+      UtilitiesMixin:SetTableValue(defaultResults, subKey, value);
+    end
+  end
+
+  if (indexResults and defaultResults) then
+    return UtilitiesMixin:MergeTables(defaultResults, indexResults);
+  end
+
+  if (indexResults) then
+    return indexResults;
+  end
+
+  return defaultResults;
 end
 
 do
-  ---comment
   ---@param index OrbitusDB.Index
   ---@param defaults OrbitusDB.Index
   ---@param key string|number
@@ -722,7 +735,7 @@ do
 
       -- Actually store the changes:
       for path, change in pairs(changes) do
-        UtilitiesMixin:Store(svTable, path, change.to);
+        UtilitiesMixin:SetTableValue(svTable, path, change.to);
       end
 
       local observers = data.config.observers[repositoryName];
@@ -739,7 +752,7 @@ end
 ---@param tbl table
 ---@param query string
 ---@return any
-function UtilitiesMixin:QueryTable(tbl, query)
+function UtilitiesMixin:GetTableValue(tbl, query)
   if (tbl[query] ~= nil) then
     return tbl[query];
   end
@@ -769,7 +782,7 @@ end
 ---@param tbl table
 ---@param query string
 ---@param value any
-function UtilitiesMixin:Store(tbl, query, value)
+function UtilitiesMixin:SetTableValue(tbl, query, value)
   local normalizedQuery = self:NormalizeQuery(query);
   local queryableList = self:ToQueryList(normalizedQuery);
 
@@ -810,7 +823,25 @@ end
 function UtilitiesMixin:QueryDefaults(rawQuery)
   local data = metadata[tostring(self.db)];
   local normalizedQuery = self:NormalizeQuery(rawQuery);
-  return self:QueryTable(data.defaults, normalizedQuery);
+  local repository = self:GetRepositoryFromQuery(normalizedQuery);
+  local repositoryName = repository:GetRepositoryName();
+  local query = Internal:RemoveRepositoryNamePrefixFromQuery(normalizedQuery, repositoryName);
+  local defaults = data.defaults[repositoryName];
+
+  if (defaults[query] ~= nil) then
+    return defaults[query];
+  end
+
+  local defaultResults;
+  for fullKey, value in pairs(defaults) do
+    if (fullKey:sub(1, #query) == query) then
+      local subKey = fullKey:sub(#query + 1, #fullKey);
+      defaultResults = defaultResults or UtilitiesMixin:PopTable();
+      UtilitiesMixin:SetTableValue(defaultResults, subKey, value);
+    end
+  end
+
+  return defaultResults;
 end
 
 ---@return table
@@ -842,7 +873,7 @@ function UtilitiesMixin:Flatten(inputTable)
     for key, value in pairs(currentTable) do
       local currentKey;
 
-      if (type(key) == "number") then
+      if (tonumber(key) ~= nil) then
         currentKey = ("%s[%d]"):format(prefix or "", key);
       elseif (prefix) then
         currentKey = ("%s.%s"):format(prefix, key);
@@ -850,15 +881,16 @@ function UtilitiesMixin:Flatten(inputTable)
         currentKey = key;
       end
 
-      outputTable[currentKey] = value;
-
       if (type(value) == "table") then
         TraverseTable(value, currentKey);
+      else
+        outputTable[currentKey] = value;
       end
     end
   end
 
   TraverseTable(inputTable);
+
   return outputTable;
 end
 
@@ -936,13 +968,13 @@ do
   ---@param query string
   function UtilitiesMixin:NormalizeQuery(query)
     self:VerifyArgsByName("query", query, "string");
-    query = strtrim(query):gsub(normalizePattern, ".%1");
+    local normalizedQuery = strtrim(query):gsub(normalizePattern, ".%1");
 
-    if (query:sub(1, 1) == ".") then
-      query = query:sub(2);
+    if (normalizedQuery:sub(1, 1) == ".") then
+      normalizedQuery = normalizedQuery:sub(2);
     end
 
-    return query;
+    return normalizedQuery;
   end
 
   local tables = {};
@@ -1019,7 +1051,7 @@ do
     for i = 1, #query do
       local char = query:sub(i, i);
 
-      if (char == "." or char == "[") then
+      if (char == "." or char == "[" or (i == #query and char == "]")) then
         -- new string
         if (#list > 0 and hasStartBracket) then
           local previous = list[#list];
@@ -1028,14 +1060,17 @@ do
           if (number ~= nil) then
             list[#list] = number;
           else
-            local sanitized =  previous:match(stringKeyPattern);
+            local sanitized = previous:match(stringKeyPattern);
             if (sanitized ~= nil) then
               list[#list] = sanitized;
             end
           end
         end
 
-        cur = cur + 1;
+        if (#list > 0) then
+          cur = cur + 1;
+        end
+
         hasStartBracket = char == "[";
       elseif (char ~= "]") then
         -- continue
@@ -1226,7 +1261,7 @@ function Internal:NotifyChanges(root, observers, changes)
 
       if (relevantChanges) then
         for _, notifier in ipairs(observer) do
-          local value = UtilitiesMixin:QueryTable(root, query);
+          local value = UtilitiesMixin:GetTableValue(root, query);
           notifier(value, relevantChanges);
         end
 
@@ -1362,6 +1397,7 @@ function Internal:BuildIndex(repository)
 
   data.defaults[repositoryName] = indexDefaults;
   local index = UtilitiesMixin:MergeTables(indexDefaults, indexSavedVariables);
+
   data.indices[repositoryName] = index;
 end
 

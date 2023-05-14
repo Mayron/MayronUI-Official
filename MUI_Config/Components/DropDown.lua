@@ -4,7 +4,7 @@ local tk, _, _, gui = MayronUI:GetCoreComponents();
 
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
-local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule
+local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenu
 
 local tostring, pairs, tonumber = _G.tostring, _G.pairs, _G.tonumber;
 
@@ -19,6 +19,7 @@ local function OnDropDownValueChanged(dropdown, value)
     container = container.wrapper; -- using a named container wrapper
   end
 
+  MayronUI:LogInfo("Dropdown changed value to ", value)
   configModule:SetDatabaseValue(container, value);
 end
 
@@ -59,7 +60,7 @@ function Components.dropdown(parent, config, value)
     end
   end
 
-  Utils:AppendDefaultValueToTooltip(config);
+  Utils:AppendDefaultValueToTooltip(config, options);
 
   if (config.tooltip) then
     dropdown:SetTooltip(config.tooltip);

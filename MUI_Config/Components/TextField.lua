@@ -60,7 +60,7 @@ function Components.textfield(parent, config, value)
   Utils:SetBasicTooltip(textField:GetEditBox(), config);
 
   textField:OnTextChanged(TextField_OnTextChanged, container);
-  
+
   Utils:SetShown(container, config.shown);
   return container;
 end

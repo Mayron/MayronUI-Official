@@ -118,8 +118,8 @@ function gui:CreateDropDown(parent, direction, menuParent)
   local slideController = SlideController(DropDownMenu.Static.Menu, "VERTICAL");
   slideController:SetMinValue(1);
 
-  slideController:OnEndRetract(function(_, frame)
-    frame:Hide();
+  slideController:OnEndRetract(function(_, f)
+    f:Hide();
   end);
 
   frame.dropdown = DropDownMenu(style, header, direction, slideController, frame);

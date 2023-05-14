@@ -6,32 +6,7 @@ local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 ---@class GUIBuilder
 local gui = MayronUI:GetComponent("GUIBuilder");
 
-local string, hooksecurefunc, PlaySound, unpack, min, max =
-  _G.string, _G.hooksecurefunc, _G.PlaySound, _G.unpack, _G.math.min, _G.math.max;
-
-local function HandleShowingTooltipOnEnter(self)
-  local tooltip = self.tooltip;
-  local anchor = self.btn or self;
-
-  if (not obj:IsString(self.tooltip)) then
-    local parent = self:GetParent(); -- update anchor
-    tooltip = parent.tooltip;
-  end
-
-  if (not obj:IsString(tooltip)) then
-    return -- no tooltip to show
-  end
-
-  _G.GameTooltip:SetOwner(anchor, "ANCHOR_TOPLEFT", 4, 4);
-
-  if (#tooltip > 100) then
-    local minWidth = min(#tooltip, 400);
-    _G.GameTooltip:SetMinimumWidth(minWidth);
-  end
-
-  _G.GameTooltip:AddLine(tooltip, nil, nil, nil, true);
-  _G.GameTooltip:Show();
-end
+local hooksecurefunc, PlaySound, unpack, max = _G.hooksecurefunc, _G.PlaySound, _G.unpack, _G.math.max;
 
 local function CreateDialogBox(textureType, frame, parent, globalName)
   frame = frame or tk:CreateFrame("Frame", parent, globalName);
@@ -101,7 +76,6 @@ do
     local backgroundTexture = style:GetTexture("ButtonTexture");
 
     button = button or tk:CreateBackdropFrame("Button", parent, nil);
-    button.tooltip = tooltip;
     button.padding = padding or 30;
     button.minWidth = minWidth;
     button:SetHeight(30);
@@ -128,9 +102,8 @@ do
     button:SetNormalFontObject("GameFontHighlight");
     button:SetDisabledFontObject("GameFontDisable");
 
-    if (tooltip) then
-      button:SetScript("OnEnter", HandleShowingTooltipOnEnter);
-      button:SetScript("OnLeave", tk.HandleTooltipOnLeave);
+    if (obj:IsString(tooltip)) then
+      tk:SetBasicTooltip(button, tooltip, "ANCHOR_TOP");
     end
 
     button:SetScript("OnEnable", OnButtonEnabled);
@@ -213,8 +186,6 @@ do
 
   function gui:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment, radio)
     local container = tk:CreateFrame("Button", parent);
-    container.tooltip = tooltip;
-
     container:SetSize(150, 30);
 
     container.btn = tk:CreateFrame("CheckButton", container, globalName, "UICheckButtonTemplate");
@@ -254,11 +225,9 @@ do
     container:UpdateColor();
 
     if (tooltip) then
-      container.tooltip = tooltip;
-      container:SetScript("OnEnter", HandleShowingTooltipOnEnter);
-      container:SetScript("OnLeave", tk.HandleTooltipOnLeave);
-      container.btn:SetScript("OnEnter", HandleShowingTooltipOnEnter);
-      container.btn:SetScript("OnLeave", tk.HandleTooltipOnLeave);
+      tk:SetBasicTooltip(container.btn, tooltip, "ANCHOR_TOPLEFT");
+      container.wrapper = container.btn;
+      tk:SetBasicTooltip(container, tooltip, "ANCHOR_TOPLEFT");
     end
 
     -- Handle Styling:

@@ -40,11 +40,11 @@ do
 
   ---@param widget Frame|table
   function tk.HandleTooltipOnEnter(widget)
-    SetTooltipOwner(widget, "ANCHOR_BOTTOMLEFT");
+    SetTooltipOwner(widget.wrapper or widget, "ANCHOR_BOTTOMLEFT");
     local itemId = widget.itemID or widget:GetID();
 
-    GameTooltip:SetFrameStrata("TOOLTIP");
     GameTooltip.__oldSetFrameStrata = GameTooltip.SetFrameStrata;
+    GameTooltip:SetFrameStrata("TOOLTIP");
     GameTooltip.SetFrameStrata = tk.Constants.DUMMY_FUNC;
 
     if (widget.cooldown) then
@@ -63,8 +63,13 @@ do
     elseif (widget.iconType == "spell") then
       GameTooltip:SetSpellByID(itemId);
 
-    elseif (widget.tooltipText) then
-      GameTooltip:AddLine(widget.tooltipText, 1, 1, 1, true);
+    elseif (obj:IsString(widget.tooltipText)) then
+      if (#widget.tooltipText > 100) then
+        local minWidth = math.min(#widget.tooltipText, 400);
+        GameTooltip:SetMinimumWidth(minWidth);
+      end
+
+      GameTooltip:AddLine(widget.tooltipText, nil, nil, nil, true);
 
     elseif (widget.lines) then
       for _, line in ipairs(widget.lines) do

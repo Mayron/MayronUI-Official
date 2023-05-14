@@ -8,7 +8,10 @@ local tostring = _G.tostring;
 local Utils = MayronUI:NewComponent("ConfigMenuUtils");
 
 local function GetDefaultValue(config)
+  if (not config.dbPath) then return end
+
   local default;
+
   if (config.dbFramework == "orbitus") then
     local db = MayronUI:GetComponent(config.database)--[[@as OrbitusDB.DatabaseMixin]];
     default = db.utilities:QueryDefaults(config.dbPath);
@@ -51,6 +54,8 @@ function Utils:SetShown(frame, shown)
   end
 end
 
+local containerPadding = 12;
+
 --- This function wraps the widget inside of a new container with a "name" fontstring label.
 function Utils:WrapInNamedContainer(component, config)
   local oldParent = component:GetParent();
@@ -58,7 +63,7 @@ function Utils:WrapInNamedContainer(component, config)
   component:SetParent(container);
 
   local currentWidth = component:GetWidth();
-  container:SetWidth(currentWidth);
+  container:SetWidth(currentWidth + containerPadding);
 
   -- this is needed to access the component from the container
   -- which is passed to some config functions (i.e. OnLoad):
@@ -66,24 +71,25 @@ function Utils:WrapInNamedContainer(component, config)
   component.wrapper = container;
 
   container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-  container.name:SetPoint("TOPLEFT", 0, -6);
+  container.name:SetPoint("TOPLEFT", 6, -6);
   container.name:SetText(config.name);
 
-  local desiredWidth = container.name:GetStringWidth() or 0;
-  local default = GetDefaultValue(config);
-  local canReset = obj:IsString(default) or obj:IsNumber(default) or obj:IsBoolean(default);
+  local desiredWidth = (container.name:GetStringWidth() or 0) + containerPadding;
+  local default = self:AppendDefaultValueToTooltip(config);
+  local canReset = default ~= nil and (obj:IsString(default) or obj:IsNumber(default) or obj:IsBoolean(default));
 
   if (obj:IsFunction(component.Reset) and canReset) then
-    container.reset = _G.CreateFrame("Button", nil, container);
-    container.reset:SetPoint("LEFT", container.name, "RIGHT", 6, 0);
+    container.reset = tk:CreateFrame("Button", container);
+    local offset = containerPadding / 2;
+    container.reset:SetPoint("TOPRIGHT", -offset, -offset);
     container.reset:SetSize(12, 12);
-    desiredWidth = desiredWidth + 18; -- 12 + 6 for spacing between text and reset button
+    desiredWidth = desiredWidth + 12 + offset;
     container.reset:SetNormalTexture(tk:GetAssetFilePath("Textures\\refresh"));
     container.reset:GetNormalTexture():SetVertexColor(tk:GetThemeColor());
     container.reset:SetHighlightAtlas("chatframe-button-highlight");
 
     local dbPath = config.dbPath;
-    tk:SetBasicTooltip(container.reset, L["Reset to default"]);
+    tk:SetBasicTooltip(container.reset, L["Reset to default"], "ANCHOR_TOP");
 
     container.reset:SetScript("OnClick", function()
       if (component.dbFramework == "orbitus") then
@@ -100,11 +106,14 @@ function Utils:WrapInNamedContainer(component, config)
   end
 
   if (desiredWidth > currentWidth) then
-    container:SetWidth(desiredWidth + 6);
-    component:SetWidth(desiredWidth);
+    container:SetWidth(desiredWidth);
+    component:SetWidth(desiredWidth - containerPadding);
   end
 
-  container:SetHeight(component:GetHeight() + container.name:GetStringHeight() + 8 + 6 + 4);
+  self:SetBasicTooltip(container, config);
+  self:SetBasicTooltip(component, config);
+
+  container:SetHeight(component:GetHeight() + container.name:GetStringHeight() + 8 + containerPadding);
   component:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -8);
 
   return container;
@@ -150,26 +159,37 @@ function Utils.OnMenuButtonClick(menuButton)
   configMenu:OpenMenu(menuButton);
 end
 
-function Utils:AppendDefaultValueToTooltip(config)
-  if (not tk.Strings:Contains(config.tooltip, L["Default value is"]) and config.dbPath) then
-    local default = GetDefaultValue(config);
+function Utils:AppendDefaultValueToTooltip(config, dropdownOptions)
+  local default = GetDefaultValue(config);
+  local canReset = default ~= nil and (obj:IsNumber(default) or obj:IsString(default) or obj:IsBoolean(default));
+  local doesNotContainDefaultTooltip = not tk.Strings:Contains(config.tooltip, L["Default value is"]);
 
-    if (obj:IsNumber(default) or obj:IsString(default) or obj:IsBoolean(default)) then
-      local defaultTooltip = tk.Strings:JoinWithSpace(L["Default value is"], tostring(default));
-
-      if (obj:IsString(config.tooltip)) then
-        config.tooltip = tk.Strings:Join("\n\n", config.tooltip, defaultTooltip);
-      else
-        config.tooltip = defaultTooltip;
+  if (canReset and doesNotContainDefaultTooltip) then
+    if (dropdownOptions and obj:IsTable(dropdownOptions)) then
+      for key, value in pairs(dropdownOptions) do
+        if (obj:IsString(key)) then
+          if (value == default) then
+            default = key; -- use the key of the DropDown component to represent the name of the default value to the user
+            break
+          end
+        end
       end
     end
+
+    local defaultTooltip = tk.Strings:JoinWithSpace(L["Default value is"], tostring(default));
+
+    if (obj:IsString(config.tooltip)) then
+      config.tooltip = tk.Strings:Join("\n\n", config.tooltip, defaultTooltip);
+    else
+      config.tooltip = defaultTooltip;
+    end
   end
+
+  return default;
 end
 
 function Utils:SetBasicTooltip(widget, config)
-  self:AppendDefaultValueToTooltip(config);
-
   if (obj:IsString(config.tooltip)) then
-    tk:SetBasicTooltip(widget, config.tooltip, "ANCHOR_TOP");
+    tk:SetBasicTooltip(widget, config.tooltip, "ANCHOR_TOPLEFT");
   end
 end

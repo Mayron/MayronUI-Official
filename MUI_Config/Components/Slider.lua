@@ -79,14 +79,13 @@ function Components.slider(parent, config, value)
   bg:SetHeight(8);
 
   slider.precision = config.precision or 1; -- at most 1 decimal place
-  Utils:SetBasicTooltip(slider, config);
 
   -- widgetTable gets cleaned
   local maxValue = config.max or 1;
   local minValue = config.min or 0;
 
   obj:Assert(maxValue > minValue,
-    "Failed to create slider %s - max value %s is less than or equal to min value %s.", 
+    "Failed to create slider %s - max value %s is less than or equal to min value %s.",
     config.name, maxValue, minValue);
 
   local step = config.step or ((maxValue - minValue) / (config.steps or 10));
@@ -106,8 +105,7 @@ function Components.slider(parent, config, value)
   slider.editBox:SetScript("OnEscapePressed", SliderEditBox_OnEscapePressed);
   slider.editBox:SetScript("OnEnterPressed", SliderEditBox_OnEnterPressed);
 
-  slider.editBox:SetPoint("TOP", slider, "BOTTOM", 0, -6);
-  slider.editBox:SetSize(40, 20);
+  slider.editBox:SetSize(40, 18);
   tk:SetFontSize(slider.editBox, 10);
   slider.editBox:SetText(value or minValue);
   slider.editBox:DisableDrawLayer("BACKGROUND");
@@ -115,16 +113,18 @@ function Components.slider(parent, config, value)
   slider.editBox:SetBackdrop(tk.Constants.BACKDROP);
   slider.editBox:SetBackdropBorderColor(tk:GetThemeColor());
 
+  if (obj:IsString(config.label) and not tk.Strings:IsNilOrWhiteSpace(config.label)) then
+    local label = slider.editBox:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall");
+    label:SetText(config.label);
+    slider.editBox:SetPoint("TOP", slider, "BOTTOM", -(label:GetStringWidth() / 2), -8);
+    label:SetPoint("LEFT", slider.editBox, "RIGHT", 6, 0);
+  else
+    slider.editBox:SetPoint("TOP", slider, "BOTTOM", 0, -8);
+  end
+
   local texture = slider.editBox:CreateTexture(nil, "BORDER");
   texture:SetAllPoints(true);
   texture:SetColorTexture(0, 0, 0, 0.5);
-
-  slider.Low:SetText(minValue);
-  slider.Low:ClearAllPoints();
-  slider.Low:SetPoint("BOTTOMLEFT", 9, -8);
-  slider.High:SetText(maxValue);
-  slider.High:ClearAllPoints();
-  slider.High:SetPoint("BOTTOMRIGHT", -5, -8);
 
   slider:SetSize(config.width or 150, 18);
   slider:SetHitRectInsets(0, 0, 0, 0);
@@ -133,11 +133,27 @@ function Components.slider(parent, config, value)
   slider:SetScript("OnDisable", Slider_OnDisable);
 
   slider.Reset = Slider_Reset;
-
   Utils:SetComponentEnabled(slider, config.enabled);
 
   local container = Utils:WrapInNamedContainer(slider, config);
   container:SetHeight(container:GetHeight() + 28); -- make room for value text
+
+  slider.Low:SetParent(container);
+  slider.Low:SetText(minValue);
+  slider.Low:ClearAllPoints();
+  slider.Low:SetPoint("LEFT", 6, 0);
+
+  slider.High:SetParent(container);
+  slider.High:SetText(maxValue);
+  slider.High:ClearAllPoints();
+  slider.High:SetPoint("RIGHT", -6, 0);
+
+  slider:ClearAllPoints();
+  slider:SetPoint("LEFT", slider.Low, "RIGHT", 6, 0);
+  slider:SetPoint("RIGHT", slider.High, "LEFT", -6, 0);
+
+  slider.editBox.wrapper = container;
+  Utils:SetBasicTooltip(slider.editBox, config);
 
   Utils:SetShown(container, config.shown);
   return container;
