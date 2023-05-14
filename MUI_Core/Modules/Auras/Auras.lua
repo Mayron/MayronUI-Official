@@ -472,16 +472,16 @@ function AuraButtonMixin:SetSparkShown(shown)
   self.spark:SetShown(shown);
 end
 
----@param filter "HELPFUL"|"HARMFUL"
+---@param auraType "buffs"|"debuffs"
 ---@param db OrbitusDB.DatabaseMixin?
 ---@return number width
 ---@return number height
-local function GetAuraButtonSize(filter, db)
+local function GetAuraButtonSize(auraType, db)
   if (not db) then
     db = MayronUI:GetComponent("MUI_AurasDB");
   end
 
-  local auraType = (filter == "HELPFUL") and "buffs" or "debuffs";
+
   local mode = db.profile:QueryType("string", auraType, "mode");
   local width = db.profile:QueryType("number", auraType, mode, "iconWidth");
   local height = db.profile:QueryType("number", auraType, mode, "iconHeight");
@@ -535,7 +535,8 @@ function AuraButtonMixin:ApplyStyling()
   if (not self.texture) then return end
 
   local db = MayronUI:GetComponent("MUI_AurasDB");
-  local width, height = GetAuraButtonSize(self.filter, db);
+  local auraType = (self.filter == "HELPFUL") and "buffs" or "debuffs";
+  local width, height = GetAuraButtonSize(auraType, db);
   self:SetSize(width, height);
 
   local borderSize = self:GetSetting("number", "iconBorderSize");
@@ -758,18 +759,16 @@ local function OnHeaderAttributeChanged(self, name, btn)
   btn:SetScript("OnAttributeChanged", OnAuraButtonAttributeChanged);
 end
 
----@param filter "HELPFUL"|"HARMFUL"
----@param db OrbitusDB.DatabaseMixin
-local function CreateAuraHeader(filter, db)
-  local auraType = (filter == "HELPFUL") and "buffs" or "debuffs";
-  local mode = db.profile:QueryType("string", auraType, "mode");
 
+local function SetUpAuraHeaderDirection(db, header, auraType, mode)
   local hDirection = db.profile:QueryType("string", auraType, mode, "hDirection");
   local vDirection = db.profile:QueryType("string", auraType, mode, "vDirection");
+
+  MayronUI:LogInfo("vDirection: ", vDirection);
   local xSpacing = db.profile:QueryType("number", auraType, mode, "xSpacing");
   local ySpacing = db.profile:QueryType("number", auraType, mode, "ySpacing");
 
-  local width, height = GetAuraButtonSize(filter, db);
+  local width, height = GetAuraButtonSize(auraType, db);
   local xOffset = math.abs(width + xSpacing);
   local yOffset = math.abs(height + ySpacing);
 
@@ -788,15 +787,36 @@ local function CreateAuraHeader(filter, db)
     auraPoint = auraPoint .. "LEFT";
   end
 
-  local globalName = filter == "HELPFUL" and "MUI_BuffFrames" or "MUI_DebuffFrames";
-  local header = CreateFrame("Frame", globalName, _G.UIParent, "SecureAuraHeaderTemplate");
+  header:SetAttribute("point", auraPoint);
+  header:SetAttribute("xOffset", xOffset);
+  header:SetAttribute("wrapYOffset", yOffset);
+end
+
+local function SetUpAuraHeaderPosition(db, header, auraType, mode)
+  local position = db.profile:QueryType("table", auraType, mode, "position");
+  local relativeFrame = _G[position[2]] or _G.UIParent;
+  header:ClearAllPoints();
+  header:SetPoint(position[1], relativeFrame, position[3], position[4], position[5]);
+end
+
+---@param filter "HELPFUL"|"HARMFUL"
+---@param db OrbitusDB.DatabaseMixin
+---@param header (Frame|table)?
+local function CreateOrUpdateAuraHeader(filter, db, header)
+  local auraType = (filter == "HELPFUL") and "buffs" or "debuffs";
+
+  local mode = db.profile:QueryType("string", auraType, "mode");
+  local perRow = db.profile:QueryType("number", auraType, mode, "perRow");
+  local width, height = GetAuraButtonSize(auraType, db);
+
+  if (not header) then
+    local globalName = filter == "HELPFUL" and "MUI_BuffFrames" or "MUI_DebuffFrames";
+    header = CreateFrame("Frame", globalName, _G.UIParent, "SecureAuraHeaderTemplate");
+  end
+
   header.filter = filter;
   header.mode = mode;
 
-  local position = db.profile:QueryType("table", auraType, mode, "position");
-
-  local relativeFrame = _G[position[2]] or _G.UIParent;
-  header:SetPoint(position[1], relativeFrame, position[3], position[4], position[5]);
   header:SetSize(width, height);
   header:SetAttribute("unit", "player");
   header:SetAttribute("filter", filter);
@@ -812,17 +832,16 @@ local function CreateAuraHeader(filter, db)
   header:SetAttribute("template", "SecureActionButtonTemplate"); -- ActionButtonTemplate
   header:SetAttribute("minWidth", width);
   header:SetAttribute("minHeight", height);
-  header:SetAttribute("point", auraPoint);
-  header:SetAttribute("xOffset", xOffset);
   header:SetAttribute("yOffset", 0);
-
-  local perRow = db.profile:QueryType("number", auraType, mode, "perRow");
   header:SetAttribute("wrapAfter", perRow);
   header:SetAttribute("wrapXOffset", 0);
-  header:SetAttribute("wrapYOffset", yOffset);
   header:SetAttribute("sortMethod", "TIME");
   header:SetAttribute("sortDirection", "-");
   header:HookScript('OnAttributeChanged', OnHeaderAttributeChanged);
+
+  SetUpAuraHeaderPosition(db, header, auraType, mode);
+  SetUpAuraHeaderDirection(db, header, auraType, mode);
+
   header:Show();
   return header;
 end
@@ -842,11 +861,42 @@ function C_AurasModule:OnEnabled(data)
   local db = MayronUI:GetComponent("MUI_AurasDB");
 
   if (not data.buffsHeader) then
-    data.buffsHeader = CreateAuraHeader("HELPFUL", db);
+    data.buffsHeader = CreateOrUpdateAuraHeader("HELPFUL", db);
   end
 
   if (not data.debuffsHeader) then
-    data.debuffsHeader = CreateAuraHeader("HARMFUL", db);
+    data.debuffsHeader = CreateOrUpdateAuraHeader("HARMFUL", db);
+  end
+
+  for i = 1, 2 do
+    local auraType = i == 1 and "buffs" or "debuffs";
+    local header = i == 1 and data.buffsHeader or data.debuffsHeader;
+
+    db.profile:Subscribe(auraType..".mode", function()
+      CreateOrUpdateAuraHeader(header.filter, db, header);
+    end);
+
+    for m = 1, 2 do
+      local mode = m == 1 and "icons" or "statusbars";
+
+      local directionAndSpacingObserver = function(...)
+        MayronUI:LogInfo("TRIGGERED!: ", ...);
+        SetUpAuraHeaderDirection(db, header, auraType, mode);
+      end
+
+      db.profile:Subscribe(auraType.."."..mode..".hDirection", directionAndSpacingObserver);
+      db.profile:Subscribe(auraType.."."..mode..".vDirection", directionAndSpacingObserver);
+      db.profile:Subscribe(auraType.."."..mode..".xSpacing", directionAndSpacingObserver);
+      db.profile:Subscribe(auraType.."."..mode..".ySpacing", directionAndSpacingObserver);
+
+      db.profile:Subscribe(auraType.."."..mode..".position", function()
+        SetUpAuraHeaderPosition(db, header, auraType, mode);
+      end);
+
+      db.profile:Subscribe(auraType.."."..mode..".perRow", function(perRow)
+        header:SetAttribute("wrapAfter", perRow);
+      end);
+    end
   end
 
   data.buffsHeader:Show();

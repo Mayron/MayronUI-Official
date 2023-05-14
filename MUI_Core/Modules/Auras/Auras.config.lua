@@ -96,6 +96,9 @@ function C_AurasModule:GetConfigTable()
             GetValue = function(_, value)
               return value == "LEFT";
             end;
+            SetValue = function(self)
+              db.profile:Store(self.dbPath, "LEFT");
+            end;
           };
           {
             name = "Right";
@@ -105,6 +108,9 @@ function C_AurasModule:GetConfigTable()
             height = 50;
             GetValue = function(_, value)
               return value == "RIGHT";
+            end;
+            SetValue = function(self)
+              db.profile:Store(self.dbPath, "RIGHT");
             end;
           };
           {
