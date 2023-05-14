@@ -81,7 +81,6 @@ local databaseConfig = {
           xSpacing = 6;
           ySpacing = 20;
           perRow = 10;
-          iconShadow = true;
           secondsWarning = 10;
           position = { "TOPRIGHT", "UIParent", "TOPRIGHT", -5, -5 };
           fonts = {
@@ -112,7 +111,6 @@ local databaseConfig = {
           xSpacing = 4;
           ySpacing = 1;
           iconSpacing = 2;
-          iconShadow = false;
           perRow = 1;
           secondsWarning = 10;
           texture = "MUI_StatusBar";
@@ -155,7 +153,6 @@ local databaseConfig = {
           xSpacing = 6;
           ySpacing = 20;
           perRow = 10;
-          iconShadow = true;
           secondsWarning = 10;
           position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
 
@@ -188,7 +185,6 @@ local databaseConfig = {
           xSpacing = 4;
           ySpacing = 1;
           iconSpacing = 1;
-          iconShadow = false;
           perRow = 1;
           secondsWarning = 10;
           position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
@@ -763,8 +759,6 @@ end
 local function SetUpAuraHeaderDirection(db, header, auraType, mode)
   local hDirection = db.profile:QueryType("string", auraType, mode, "hDirection");
   local vDirection = db.profile:QueryType("string", auraType, mode, "vDirection");
-
-  MayronUI:LogInfo("vDirection: ", vDirection);
   local xSpacing = db.profile:QueryType("number", auraType, mode, "xSpacing");
   local ySpacing = db.profile:QueryType("number", auraType, mode, "ySpacing");
 
@@ -872,6 +866,18 @@ function C_AurasModule:OnEnabled(data)
     local auraType = i == 1 and "buffs" or "debuffs";
     local header = i == 1 and data.buffsHeader or data.debuffsHeader;
 
+    local function updateAllAuraButtonStyling(...)
+      local children = header:GetChildren();
+      print(children, header:GetNumChildren(), ", args: ", ...)
+      -- need to run ApplyStyling
+    end
+
+    local function updateAllAuraButtonTextStyling(...)
+      local children = header:GetChildren();
+      print(children, header:GetNumChildren(), ", args: ", ...)
+      -- call ApplyTextStyle
+    end
+
     db.profile:Subscribe(auraType..".mode", function()
       CreateOrUpdateAuraHeader(header.filter, db, header);
     end);
@@ -879,15 +885,32 @@ function C_AurasModule:OnEnabled(data)
     for m = 1, 2 do
       local mode = m == 1 and "icons" or "statusbars";
 
-      local directionAndSpacingObserver = function(...)
-        MayronUI:LogInfo("TRIGGERED!: ", ...);
+      local directionAndSpacingObserver = function()
         SetUpAuraHeaderDirection(db, header, auraType, mode);
+      end
+
+      local widthHeightObserver = function(...)
+        SetUpAuraHeaderDirection(db, header, auraType, mode);
+        updateAllAuraButtonStyling();
+
+        local children = header:GetChildren();
+        print("widthHeightObserver: ", children, header:GetNumChildren(), ", args: ", ...)
+        -- also, run UpdateDisplayInfo if barWidth or barHeight to update auraNameText
       end
 
       db.profile:Subscribe(auraType.."."..mode..".hDirection", directionAndSpacingObserver);
       db.profile:Subscribe(auraType.."."..mode..".vDirection", directionAndSpacingObserver);
       db.profile:Subscribe(auraType.."."..mode..".xSpacing", directionAndSpacingObserver);
       db.profile:Subscribe(auraType.."."..mode..".ySpacing", directionAndSpacingObserver);
+      db.profile:Subscribe(auraType.."."..mode..".iconWidth", widthHeightObserver);
+      db.profile:Subscribe(auraType.."."..mode..".iconHeight", widthHeightObserver);
+      db.profile:Subscribe(auraType.."."..mode..".iconBorderSize", updateAllAuraButtonStyling);
+      db.profile:Subscribe(auraType.."."..mode..".textSize", updateAllAuraButtonTextStyling);
+      db.profile:Subscribe(auraType.."."..mode..".textPosition", updateAllAuraButtonTextStyling);
+      db.profile:Subscribe(auraType.."."..mode..".barWidth", widthHeightObserver);
+      db.profile:Subscribe(auraType.."."..mode..".barHeight", widthHeightObserver);
+      db.profile:Subscribe(auraType.."."..mode..".showSpark", updateAllAuraButtonStyling);
+      db.profile:Subscribe(auraType.."."..mode..".texture", updateAllAuraButtonStyling);
 
       db.profile:Subscribe(auraType.."."..mode..".position", function()
         SetUpAuraHeaderPosition(db, header, auraType, mode);

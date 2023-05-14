@@ -26,6 +26,10 @@ function C_AurasModule:GetConfigTable()
       };
       {
         type = "frame";
+        shown = function()
+          local mode = db.profile:QueryType("string", auraType, "mode");
+          return mode == "icons";
+        end;
         appendDbPath = "profile." .. auraType .. ".icons";
         OnLoad = function(_, frame)
           iconOptionsFrame = frame;
@@ -136,11 +140,6 @@ function C_AurasModule:GetConfigTable()
             min = 0;
             max = 5;
             step = 1;
-          };
-          {
-            type = "check";
-            name = "Show Icon Shadow";
-            dbPath = "iconShadow";
           };
           {
             type = "slider";
@@ -301,6 +300,10 @@ function C_AurasModule:GetConfigTable()
       {
         type = "frame";
         appendDbPath = "profile." .. auraType .. ".statusbars";
+        shown = function()
+          local mode = db.profile:QueryType("string", auraType, "mode");
+          return mode == "statusbars";
+        end;
         OnLoad = function(_, frame)
           barOptionsFrame = frame;
         end,
@@ -415,19 +418,6 @@ function C_AurasModule:GetConfigTable()
             step = 1;
           };
           {
-            type = "check";
-            name = "Show Icon Shadow";
-            dbPath = "iconShadow";
-          };
-          {
-            type = "slider";
-            name = "Warning Threshold (in Seconds)";
-            dbPath = "secondsWarning";
-            min = 0;
-            max = 30;
-            step = 1;
-          };
-          {
             type = "slider";
             name = "Auras Per Row";
             dbPath = "perRow";
@@ -451,7 +441,14 @@ function C_AurasModule:GetConfigTable()
             step = 1;
             dbPath = "xSpacing";
           };
-
+          {
+            type = "slider";
+            name = "Warning Threshold (in Seconds)";
+            dbPath = "secondsWarning";
+            min = 0;
+            max = 30;
+            step = 1;
+          };
           {
             type = "check";
             name = "Show Bar Spark";

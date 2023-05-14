@@ -13,6 +13,7 @@ local GameTooltip = _G.GameTooltip;
 --> Tooltip Functions
 ------------------------------------------------
 function tk.HandleTooltipOnLeave()
+  GameTooltip.SetFrameStrata = GameTooltip.__oldSetFrameStrata;
   GameTooltip:Hide();
 end
 
@@ -40,13 +41,15 @@ do
   ---@param widget Frame|table
   function tk.HandleTooltipOnEnter(widget)
     SetTooltipOwner(widget, "ANCHOR_BOTTOMLEFT");
+    local itemId = widget.itemID or widget:GetID();
+
     GameTooltip:SetFrameStrata("TOOLTIP");
+    GameTooltip.__oldSetFrameStrata = GameTooltip.SetFrameStrata;
+    GameTooltip.SetFrameStrata = tk.Constants.DUMMY_FUNC;
 
     if (widget.cooldown) then
       GameTooltip:SetFrameLevel(widget.cooldown:GetFrameLevel() + 10);
     end
-
-    local itemId = widget.itemID or widget:GetID();
 
     if (widget.iconType == "item") then
       GameTooltip:SetInventoryItem("player", itemId);

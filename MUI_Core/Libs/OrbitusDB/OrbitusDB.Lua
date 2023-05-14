@@ -164,6 +164,7 @@ local defaultConfig = {
 ---@field callbacks table<OrbitusDB.DatabaseCallbackType, OrbitusDB.DatabaseCallback[]>
 ---@field database OrbitusDB.DatabaseMixin
 ---@field config OrbitusDB.DatabaseConfig
+---@field defaults { [OrbitusDB.RepositoryName]: OrbitusDB.Index }
 ---@field indices { [OrbitusDB.RepositoryName]: OrbitusDB.Index }
 
 ---@type table<string, OrbitusDB.DatabaseMetadata>
@@ -268,6 +269,7 @@ function DatabaseMixin:Init(config)
     config = config;
     database = self;
     indices = {};
+    defaults = {};
   };
 
   metadata[tostring(self)] = data;
@@ -343,7 +345,7 @@ function CharacterRepositoryMixin:QueryByCharacter(characterName, ...)
   end
 
   local query = UtilitiesMixin:ToQueryString(...);
-  return UtilitiesMixin:Query(characterTbl, query);
+  return UtilitiesMixin:QueryTable(characterTbl, query);
 end
 
 ---@generic T
@@ -621,17 +623,26 @@ function RepositoryMixin:Query(...)
   query = Internal:RemoveRepositoryNamePrefixFromQuery(query, repositoryName);
 
   local data = metadata[tostring(self)];
-
   local index = data.indices[repositoryName];
   local result = index[query];
 
-  if (result == nil) then
-    for fullKey, value in pairs(index) do
-      if (fullKey:sub(1, #query) == query) then
-        local subKey = fullKey:sub(#query + 1, #fullKey);
-        result = result or UtilitiesMixin:PopTable();
-        UtilitiesMixin:Store(result, subKey, value);
-      end
+  if (result ~= nil) then
+    return result;
+  end
+
+  local defaults = data.defaults[repositoryName];
+  result = defaults[query];
+
+  if (result ~= nil) then
+    -- defaults are inside the index but the index might have been set to `nil`
+    return result;
+  end
+
+  for fullKey, value in pairs(index) do
+    if (fullKey:sub(1, #query) == query) then
+      local subKey = fullKey:sub(#query + 1, #fullKey);
+      result = result or UtilitiesMixin:PopTable();
+      UtilitiesMixin:Store(result, subKey, value);
     end
   end
 
@@ -641,11 +652,12 @@ end
 do
   ---comment
   ---@param index OrbitusDB.Index
+  ---@param defaults OrbitusDB.Index
   ---@param key string|number
   ---@param value any
   ---@param changes OrbitusDB.IndexChanges?
   ---@return OrbitusDB.IndexChanges?
-  local function AddToIndex(index, key, value, changes)
+  local function AddToIndex(index, defaults, key, value, changes)
     local previousValue = index[key];
 
     -- We can infer that all subkeys are now allocated to a table value, so they can be deleted
@@ -656,6 +668,10 @@ do
     end
 
     if (type(value) ~= "table") then
+      if (value == nil) then
+        value = defaults[key];
+      end
+
       index[key] = value;
     else
       local flattenedValue = UtilitiesMixin:Flatten(value);
@@ -669,7 +685,7 @@ do
           fullKey = ("%s.%s"):format(key, subKey);
         end
 
-        changes = AddToIndex(index, fullKey, newValue, changes);
+        changes = AddToIndex(index, defaults, fullKey, newValue, changes);
       end
 
       UtilitiesMixin:PushTable(flattenedValue);
@@ -697,7 +713,9 @@ do
 
     local data = metadata[tostring(self)];
     local index = data.indices[repositoryName];
-    local changes = AddToIndex(index, normalizedQuery, value);
+    local defaults = data.defaults[repositoryName];
+
+    local changes = AddToIndex(index, defaults, normalizedQuery, value);
 
     if (changes) then
       local svTable = Internal:GetRepositoryTable(self);
@@ -721,7 +739,7 @@ end
 ---@param tbl table
 ---@param query string
 ---@return any
-function UtilitiesMixin:Query(tbl, query)
+function UtilitiesMixin:QueryTable(tbl, query)
   if (tbl[query] ~= nil) then
     return tbl[query];
   end
@@ -772,16 +790,27 @@ function UtilitiesMixin:Store(tbl, query, value)
   self:PushTable(queryableList);
 end
 
----@param query string
----@return OrbitusDB.RepositoryMixin?
-function UtilitiesMixin:GetRepositoryFromQuery(query)
+---@param rawQuery string
+---@return OrbitusDB.RepositoryMixin
+---@nodiscard
+function UtilitiesMixin:GetRepositoryFromQuery(rawQuery)
   local data = metadata[tostring(self.db)];
 
   for repositoryName, _ in pairs(data.config.repositoryHandlers) do
-    if (query:sub(1, #repositoryName) == repositoryName) then
+    if (rawQuery:sub(1, #repositoryName) == repositoryName) then
       return self.db[repositoryName];
     end
   end
+
+  error("Failed to get repository from query "..tostring(rawQuery));
+end
+
+---@param rawQuery string
+---@nodiscard
+function UtilitiesMixin:QueryDefaults(rawQuery)
+  local data = metadata[tostring(self.db)];
+  local normalizedQuery = self:NormalizeQuery(rawQuery);
+  return self:QueryTable(data.defaults, normalizedQuery);
 end
 
 ---@return table
@@ -1197,7 +1226,7 @@ function Internal:NotifyChanges(root, observers, changes)
 
       if (relevantChanges) then
         for _, notifier in ipairs(observer) do
-          local value = UtilitiesMixin:Query(root, query);
+          local value = UtilitiesMixin:QueryTable(root, query);
           notifier(value, relevantChanges);
         end
 
@@ -1331,8 +1360,9 @@ function Internal:BuildIndex(repository)
   -- Create Index
   indexSavedVariables = UtilitiesMixin:Flatten(repoSv);
 
+  data.defaults[repositoryName] = indexDefaults;
   local index = UtilitiesMixin:MergeTables(indexDefaults, indexSavedVariables);
-  data.indices[repositoryName]  = index;
+  data.indices[repositoryName] = index;
 end
 
 return OrbitusDB;

@@ -197,7 +197,6 @@ local function GetDatabaseValue(config)
   if (config.dbFramework == "orbitus") then
     ---@cast db OrbitusDB.DatabaseMixin
     local repository = db.utilities:GetRepositoryFromQuery(dbPath);
-    assert(repository, "Failed to find database repository from dbPath "..dbPath);
     value = repository:Query(dbPath);
   else
     ---@cast db Database
@@ -303,7 +302,6 @@ function C_ConfigMenuModule:SetDatabaseValue(_, component, newValue)
     if (component.dbFramework == "orbitus") then
       ---@cast db OrbitusDB.DatabaseMixin
       repository = db.utilities:GetRepositoryFromQuery(dbPath);
-      assert(repository, "Failed to find database repository from dbPath "..dbPath);
       oldValue = repository:Query(dbPath);
     else
       ---@cast db Database
