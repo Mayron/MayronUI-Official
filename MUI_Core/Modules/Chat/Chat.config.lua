@@ -470,7 +470,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
           { type = "divider" };
           { name = L["Border"],
             type = "dropdown",
-            options = tk.Constants.LSM:List("border"),
+            media = "border";
             dbPath = "profile.chat.editBox.border",
           },
           { name = L["Background Color"],

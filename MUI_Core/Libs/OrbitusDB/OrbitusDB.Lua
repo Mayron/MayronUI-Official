@@ -666,26 +666,26 @@ end
 do
   ---@param index OrbitusDB.Index
   ---@param defaults OrbitusDB.Index
-  ---@param key string|number
+  ---@param query string|number
   ---@param value any
   ---@param changes OrbitusDB.IndexChanges?
   ---@return OrbitusDB.IndexChanges?
-  local function AddToIndex(index, defaults, key, value, changes)
-    local previousValue = index[key];
+  local function AddToIndex(index, defaults, query, value, changes)
+    local previousValue = index[query];
+
+    if (value == nil) then
+      value = defaults[query];
+    end
 
     -- We can infer that all subkeys are now allocated to a table value, so they can be deleted
     for subKey, _ in pairs(index) do
-      if (key:sub(1, #subKey) == subKey) then
+      if (query:sub(1, #subKey) == subKey) then
         index[subKey] = nil;
       end
     end
 
     if (type(value) ~= "table") then
-      if (value == nil) then
-        value = defaults[key];
-      end
-
-      index[key] = value;
+      index[query] = value;
     else
       local flattenedValue = UtilitiesMixin:Flatten(value);
 
@@ -693,9 +693,9 @@ do
         local fullKey;
 
         if (subKey:sub(1, 1) == "[") then
-          fullKey = ("%s%s"):format(key, subKey);
+          fullKey = ("%s%s"):format(query, subKey);
         else
-          fullKey = ("%s.%s"):format(key, subKey);
+          fullKey = ("%s.%s"):format(query, subKey);
         end
 
         changes = AddToIndex(index, defaults, fullKey, newValue, changes);
@@ -705,13 +705,12 @@ do
     end
 
     if (previousValue ~= value) then
-      changes = changes or UtilitiesMixin:PopTable();
-
       local change = UtilitiesMixin:PopTable();
       change.from = previousValue;
       change.to = value;
-      changes[key] = change;
 
+      changes = changes or UtilitiesMixin:PopTable();
+      changes[query] = change;
       return changes;
     end
   end
@@ -735,6 +734,9 @@ do
 
       -- Actually store the changes:
       for path, change in pairs(changes) do
+        UtilitiesMixin:VerifyVar("change", change, "table",
+          "Failed to store change for path '"..path.."' using query '"..normalizedQuery.."'.");
+
         UtilitiesMixin:SetTableValue(svTable, path, change.to);
       end
 
@@ -977,24 +979,41 @@ do
     return normalizedQuery;
   end
 
-  local tables = {};
+  local recyclingStack = {};
+
+  local function ResetTable(tbl)
+    setmetatable(tbl, nil);
+    for key in pairs(tbl) do
+      tbl[key] = nil;
+    end
+  end
 
   ---@return table
   function UtilitiesMixin:PopTable()
-    if (#tables > 0) then
-      return table.remove(tables);
+    if (#recyclingStack > 0) then
+      local tbl = table.remove(recyclingStack, 1);
+      ResetTable(tbl);
+      return tbl;
     end
 
     return {};
   end
 
+  local recycledTable_Metatable = {
+    __index = function(_, key)
+      error("Attempt to index key "..tostring(key).." of a recycled table.");
+    end;
+    __newindex = function(_, key, value)
+      error("Attempt to assign key '"..tostring(key).."' the value of "..tostring(value).." onto a recycled table.");
+    end
+  }
+
   ---@param tbl table
   function UtilitiesMixin:PushTable(tbl)
-    if (type(tbl) ~= "table") then return end
-    if (#tables < 50) then
-      setmetatable(tbl, nil);
-      table.wipe(tbl);
-      return table.insert(tables, tbl);
+    if (#recyclingStack < 50 and type(tbl) == "table") then
+      ResetTable(tbl);
+      setmetatable(tbl, recycledTable_Metatable);
+      table.insert(recyclingStack, tbl);
     end
   end
 
@@ -1263,10 +1282,6 @@ function Internal:NotifyChanges(root, observers, changes)
         for _, notifier in ipairs(observer) do
           local value = UtilitiesMixin:GetTableValue(root, query);
           notifier(value, relevantChanges);
-        end
-
-        for _, value in pairs(relevantChanges) do
-          UtilitiesMixin:PushTable(value);
         end
 
         UtilitiesMixin:PushTable(relevantChanges);

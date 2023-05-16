@@ -141,10 +141,9 @@ function C_ConfigMenu:GetConfigTable()
         {
           name = L["Master Font"];
           type = "dropdown";
-          options = tk.Constants.LSM:List("font");
+          media = "font";
           dbPath = "global.core.fonts.master";
           requiresRestart = true;
-          fontPicker = true;
         };
         { type = "divider"};
         {
@@ -161,10 +160,9 @@ function C_ConfigMenu:GetConfigTable()
           name = L["Combat Font"];
           tooltip = L["This font is used to display the damage and healing combat numbers."];
           type = "dropdown";
-          options = tk.Constants.LSM:List("font");
+          media = "font";
           dbPath = "global.core.fonts.combat";
           requiresRestart = true;
-          fontPicker = true;
         };
         { type = "fontstring"; subtype="header"; content = L["Miscellaneous"]};
         {
@@ -914,9 +912,8 @@ function C_ConfigMenu:GetConfigTable()
               }; {
                 type = "dropdown";
                 name = L["Bar Texture"];
-                options = tk.Constants.LSM:List("statusbar");
-                dbPath = tk.Strings:Concat(
-                  "profile.resourceBars.", key, ".texture");
+                media = "statusbar";
+                dbPath = "profile.resourceBars."..key..".texture";
               };
             };
 

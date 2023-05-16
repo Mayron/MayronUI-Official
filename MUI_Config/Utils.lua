@@ -89,11 +89,14 @@ function Utils:WrapInNamedContainer(component, config)
     container.reset:SetHighlightAtlas("chatframe-button-highlight");
 
     local dbPath = config.dbPath;
+    local dbFramework = config.dbFramework;
+    local database = config.database;
+
     tk:SetBasicTooltip(container.reset, L["Reset to default"], "ANCHOR_TOP");
 
     container.reset:SetScript("OnClick", function()
-      if (component.dbFramework == "orbitus") then
-        local db = MayronUI:GetComponent(component.database)--[[@as OrbitusDB.DatabaseMixin]];
+      if (dbFramework == "orbitus") then
+        local db = MayronUI:GetComponent(database)--[[@as OrbitusDB.DatabaseMixin]];
         local repo = db.utilities:GetRepositoryFromQuery(dbPath);
         repo:Store(dbPath, nil);
       else
@@ -120,6 +123,10 @@ function Utils:WrapInNamedContainer(component, config)
 end
 
 function Utils:GetAttribute(configTable, attributeName, ...)
+  if (attributeName == "options" and configTable.media and obj:IsString(configTable.media)) then
+    configTable.options = tk.Constants.LSM:List(configTable.media);
+  end
+
   if (configTable[attributeName] ~= nil) then
     return configTable[attributeName];
   end
@@ -128,6 +135,10 @@ function Utils:GetAttribute(configTable, attributeName, ...)
 
   if (obj:IsFunction(configTable[funcName])) then
     return configTable[funcName](configTable, ...);
+  end
+
+  if (attributeName == "options" and configTable.media) then
+    configTable.options = tk.Constants.LSM:List(configTable.media);
   end
 
   obj:Error("Required attribute '%s' missing for %s widget in config table '%s' using database path '%s'",
@@ -176,7 +187,14 @@ function Utils:AppendDefaultValueToTooltip(config, dropdownOptions)
       end
     end
 
-    local defaultTooltip = tk.Strings:JoinWithSpace(L["Default value is"], tostring(default));
+    local defaultText;
+    if (obj:IsBoolean(default)) then
+      defaultText = default and L["Enabled"] or L["Disabled"];
+    else
+      defaultText = tostring(default);
+    end
+
+    local defaultTooltip = tk.Strings:JoinWithSpace(L["Default value is"], defaultText);
 
     if (obj:IsString(config.tooltip)) then
       config.tooltip = tk.Strings:Join("\n\n", config.tooltip, defaultTooltip);

@@ -58,7 +58,7 @@ local function CreateIcon(iconFrame, borderSize, iconType, disableOmniCC)
     iconFrame.cooldown:SetPoint("TOPLEFT", borderSize, -borderSize);
     iconFrame.cooldown:SetPoint("BOTTOMRIGHT", -borderSize, borderSize);
 
-    iconFrame.cooldown:SetFrameStrata(tk.Constants.FRAME_STRATAS.TOOLTIP);
+    iconFrame.cooldown:SetFrameStrata(tk.Constants.FRAME_STRATAS.HIGH);
     iconFrame.cooldown.noCooldownCount = disableOmniCC; -- disable OmniCC
   end
 

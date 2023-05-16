@@ -127,7 +127,7 @@ function C_CastBarsModule:GetConfigTable()
             },
             {   name = L["Bar Texture"],
                 type = "dropdown",
-                options = tk.Constants.LSM:List("statusbar"),
+                media = "statusbar";
                 dbPath = "profile.castBars.appearance.texture"
             },
             {   name = L["Blend Mode"],
@@ -141,7 +141,7 @@ function C_CastBarsModule:GetConfigTable()
             },
             {   name = L["Border"],
                 type = "dropdown",
-                options = tk.Constants.LSM:List("border"),
+                media = "border";
                 dbPath = "profile.castBars.appearance.border",
             },
             {   type = "divider"

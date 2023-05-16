@@ -251,8 +251,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             {   name = L["Font Type"];
                 type = "dropdown";
                 appendDbPath = "font";
-                fontPicker = true;
-                options = tk.Constants.LSM:List("font");
+                media = "font";
             };
             {   name = L["Font Flag"],
                 type = "dropdown",
@@ -379,12 +378,12 @@ function C_ToolTipsModule:GetConfigTable(data)
                     { type = "divider" };
                     { type = "dropdown",
                       name = L["Background Texture"];
-                      options = tk.Constants.LSM:List(tk.Constants.LSM.MediaType.BACKGROUND);
+                      media = tk.Constants.LSM.MediaType.BACKGROUND;
                       appendDbPath = "bgFile";
                     };
                     { type = "dropdown",
                       name = L["Border Type"];
-                      options = tk.Constants.LSM:List(tk.Constants.LSM.MediaType.BORDER);
+                      media = tk.Constants.LSM.MediaType.BORDER;
                       appendDbPath = "edgeFile";
                     };
                     { type = "slider",
@@ -453,7 +452,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   type = "dropdown";
                 name = L["Bar Texture"];
-                options = tk.Constants.LSM:List("statusbar");
+                media = tk.Constants.LSM.MediaType.STATUSBAR;
                 appendDbPath = "healthBar.texture";
             };
             {   name = L["Text Format"],
@@ -497,7 +496,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   type = "dropdown";
                 name = L["Bar Texture"];
-                options = tk.Constants.LSM:List("statusbar");
+                media = tk.Constants.LSM.MediaType.STATUSBAR;
                 appendDbPath = "powerBar.texture";
             };
             {   name = L["Text Format"],

@@ -16,6 +16,7 @@ function C_AurasModule:GetConfigTable()
       {
         type = "title";
         name = icons and "Icon Options" or "Bar Options";
+        description = "These settings relate to the individual aura icons/bars.";
         marginTop = 0;
       },
       {
@@ -34,68 +35,7 @@ function C_AurasModule:GetConfigTable()
         tooltip = "The alpha of auras not applied by you.";
         dbPath = "nonPlayerAlpha";
       },
-      {
-        type = "fontstring";
-        subtype = "header";
-        content = "Vertical Direction";
-      },
-      {
-        name = "Up";
-        type = "radio";
-        groupName = groupPrefix.."-vDirection";
-        dbPath = "vDirection";
-        height = 50;
-        GetValue = function(_, value)
-          return value == "UP";
-        end;
-        SetValue = function(self)
-          db.profile:Store(self.dbPath, "UP");
-        end;
-      };
-      {
-        name = "Down";
-        type = "radio";
-        groupName = groupPrefix.."-vDirection";
-        dbPath = "vDirection";
-        height = 50;
-        GetValue = function(_, value)
-          return value == "DOWN";
-        end;
-        SetValue = function(self)
-          db.profile:Store(self.dbPath, "DOWN");
-        end;
-      };
-      {
-        type = "fontstring";
-        subtype="header";
-        content= "Horizontal Direction";
-      },
-      {
-        name = "Left";
-        type = "radio";
-        groupName = groupPrefix.."-hDirection";
-        dbPath = "hDirection";
-        height = 50;
-        GetValue = function(_, value)
-          return value == "LEFT";
-        end;
-        SetValue = function(self)
-          db.profile:Store(self.dbPath, "LEFT");
-        end;
-      };
-      {
-        name = "Right";
-        type = "radio";
-        groupName = groupPrefix.."-hDirection";
-        dbPath = "hDirection";
-        height = 50;
-        GetValue = function(_, value)
-          return value == "RIGHT";
-        end;
-        SetValue = function(self)
-          db.profile:Store(self.dbPath, "RIGHT");
-        end;
-      };
+
       { type = "divider"; };
       {
         type = "slider";
@@ -130,7 +70,7 @@ function C_AurasModule:GetConfigTable()
         max = 10;
         step = 1;
       };
-      { type = "divider"; };
+      { type = "divider"; ignore = icons; };
       {
         type = "slider";
         name = "Bar Width";
@@ -145,14 +85,14 @@ function C_AurasModule:GetConfigTable()
         name = "Bar Height";
         dbPath = "barHeight";
         ignore = icons;
-        min = 20;
+        min = 10;
         max = 80;
         step = 1;
       };
       {
         type = "dropdown";
         name = L["Bar Texture"];
-        options = tk.Constants.LSM:List("statusbar");
+        media = "statusbar";
         ignore = icons;
         dbPath = "texture";
       };
@@ -163,13 +103,120 @@ function C_AurasModule:GetConfigTable()
         ignore = icons;
         height = 50;
       };
-      { type = "divider"; ignore = icons; };
+      {
+        type = "title";
+        name = "Container Frame Settings";
+        description = "These settings relate to the frame containing the individual aura icons/bars.";
+      },
+      {
+        type = "fontstring";
+        subtype="header";
+        content= "Positioning";
+      },
+      {
+        name = L["Relative Frame"];
+        type = "dropdown";
+        GetOptions = function()
+          local options = {
+            ["Screen"] = "UIParent";
+            ["Minimap"] = "Minimap";
+          };
+
+          if (auraType == "debuffs") then
+            options["Buffs"] = "MUI_BuffFrames";
+          end
+
+          return options;
+        end;
+        dbPath = "relFrame";
+      };
+      {
+        name = L["Relative Point"];
+        type = "dropdown";
+        options = tk.Constants.POINT_OPTIONS;
+        dbPath = "relPoint";
+      };
       {
         type = "slider";
-        name = "Auras Per Row";
+        name = L["X-Offset"];
+        dbPath = "xOffset";
+        min = -300;
+        max = 300;
+      };
+      {
+        type = "slider";
+        name = L["Y-Offset"];
+        dbPath = "yOffset";
+        min = -300;
+        max = 300;
+      };
+      {
+        type = "fontstring";
+        subtype="header";
+        content= "Growth Direction";
+      },
+      {
+        name = "Up";
+        type = "radio";
+        groupName = groupPrefix.."-vDirection";
+        dbPath = "vDirection";
+        GetValue = function(_, value)
+          return value == "UP";
+        end;
+        SetValue = function(self)
+          db.profile:Store(self.dbPath, "UP");
+        end;
+      };
+      {
+        name = "Down";
+        type = "radio";
+        groupName = groupPrefix.."-vDirection";
+        dbPath = "vDirection";
+        GetValue = function(_, value)
+          return value == "DOWN";
+        end;
+        SetValue = function(self)
+          db.profile:Store(self.dbPath, "DOWN");
+        end;
+      };
+      {
+        name = "Left";
+        type = "radio";
+        groupName = groupPrefix.."-hDirection";
+        dbPath = "hDirection";
+        GetValue = function(_, value)
+          return value == "LEFT";
+        end;
+        SetValue = function(self)
+          db.profile:Store(self.dbPath, "LEFT");
+        end;
+      };
+      {
+        name = "Right";
+        type = "radio";
+        groupName = groupPrefix.."-hDirection";
+        dbPath = "hDirection";
+        GetValue = function(_, value)
+          return value == "RIGHT";
+        end;
+        SetValue = function(self)
+          db.profile:Store(self.dbPath, "RIGHT");
+        end;
+      };
+      {
+        type = "fontstring";
+        subtype="header";
+        content= "Rows and Columns";
+      },
+      {
+        type = "slider";
+        name = icons and "Icons Per Row" or "Bar Columns";
+        tooltip = icons
+          and "The maximum number of aura icons to display per row."
+          or "The maximum number of horizontal bar columns to display.";
         dbPath = "perRow";
-        min = 5;
-        max = 20;
+        min = 1;
+        max = icons and 20 or 5;
         step = 1;
       };
       {
@@ -189,53 +236,6 @@ function C_AurasModule:GetConfigTable()
         dbPath = "xSpacing";
       };
 
-      { type = "title", name = "Aura Frame Position Settings" };
-
-      {
-        name = L["Point"];
-        type = "dropdown";
-        options = tk.Constants.POINT_OPTIONS;
-        dbPath = "position[1]";
-      };
-      {
-        name = L["Relative Frame"];
-        type = "dropdown";
-        GetOptions = function()
-          local options = {
-            ["Screen"] = "UIParent";
-            ["Minimap"] = "Minimap";
-          };
-
-          if (auraType == "debuffs") then
-            options["Buffs"] = "MUI_BuffFrames";
-          end
-
-          return options;
-        end;
-        dbPath = "position[2]";
-      };
-      {
-        name = L["Relative Point"];
-        type = "dropdown";
-        options = tk.Constants.POINT_OPTIONS;
-        dbPath = "position[3]";
-      };
-      { type = "divider" };
-      {
-        type = "slider";
-        name = L["X-Offset"];
-        dbPath = "position[4]";
-        min = -300;
-        max = 300;
-      };
-      {
-        type = "slider";
-        name = L["Y-Offset"];
-        dbPath = "position[5]";
-        min = -300;
-        max = 300;
-      };
-
       { type = "title", name = "Text Settings" };
 
       { type = "fontstring"; content = "Aura Name"; subtype = "header"; ignore = icons; };
@@ -247,8 +247,16 @@ function C_AurasModule:GetConfigTable()
         ignore = icons;
         step = 1;
         dbPath = "textSize.auraName";
-        name = "Font Size";
+        name = L["Font Size"];
       },
+      {
+        type = "dropdown";
+        ignore = icons;
+        dbPath = "fonts.auraName";
+        name = L["Font Type"];
+        media = "font";
+      },
+      { type = "divider" };
       {
         name = L["Point"];
         type = "dropdown";
@@ -257,13 +265,24 @@ function C_AurasModule:GetConfigTable()
         dbPath = "textPosition.auraName[1]";
       };
       {
+        name = L["Relative Frame"];
+        type = "dropdown";
+        ignore = icons;
+        options = {
+          ["Icon"] = "icon";
+          ["Icon Frame"] = "iconFrame";
+          ["Aura Frame"] = "aura";
+          ["Bar"] = "bar";
+        };
+        dbPath = "textPosition.auraName[2]";
+      };
+      {
         name = L["Relative Point"];
         type = "dropdown";
         ignore = icons;
         options = tk.Constants.POINT_OPTIONS;
         dbPath = "textPosition.auraName[3]";
       };
-      { type = "divider" };
       {
         type = "slider";
         name = L["X-Offset"];
@@ -300,6 +319,13 @@ function C_AurasModule:GetConfigTable()
         name= "Warning Font Size";
       },
       {
+        type = "dropdown";
+        dbPath = "fonts.timeRemaining";
+        name = L["Font Type"];
+        media = "font";
+      },
+      { type = "divider" };
+      {
         type = "slider";
         name = "Warning Threshold";
         tooltip = "The minimum number of seconds remaining required for the time remaining text to use the warning font size.";
@@ -315,6 +341,24 @@ function C_AurasModule:GetConfigTable()
         type = "dropdown";
         options = tk.Constants.POINT_OPTIONS;
         dbPath = "textPosition.timeRemaining[1]";
+      };
+      {
+        name = L["Relative Frame"];
+        type = "dropdown";
+        GetOptions = function()
+          local options = {
+            ["Icon"] = "icon";
+            ["Icon Frame"] = "iconFrame";
+            ["Aura Frame"] = "aura";
+          };
+
+          if (not icons) then
+            options["Bar"] = "bar";
+          end
+
+          return options;
+        end;
+        dbPath = "textPosition.timeRemaining[2]";
       };
       {
         name = L["Relative Point"];
@@ -348,10 +392,35 @@ function C_AurasModule:GetConfigTable()
         name= "Font Size";
       },
       {
+        type = "dropdown";
+        dbPath = "fonts.count";
+        name = L["Font Type"];
+        media = "font";
+      },
+      { type = "divider" };
+      {
         name = L["Point"];
         type = "dropdown";
         options = tk.Constants.POINT_OPTIONS;
         dbPath = "textPosition.count[1]";
+      };
+      {
+        name = L["Relative Frame"];
+        type = "dropdown";
+        GetOptions = function()
+          local options = {
+            ["Icon"] = "icon";
+            ["Icon Frame"] = "iconFrame";
+            ["Aura Frame"] = "aura";
+          };
+
+          if (not icons) then
+            options["Bar"] = "bar";
+          end
+
+          return options;
+        end;
+        dbPath = "textPosition.count[2]";
       };
       {
         name = L["Relative Point"];
@@ -359,7 +428,6 @@ function C_AurasModule:GetConfigTable()
         options = tk.Constants.POINT_OPTIONS;
         dbPath = "textPosition.count[3]";
       };
-      { type = "divider" };
       {
         type = "slider";
         name = L["X-Offset"];

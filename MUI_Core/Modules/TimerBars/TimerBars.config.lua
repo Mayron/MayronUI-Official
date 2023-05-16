@@ -154,7 +154,7 @@ function C_TimerBars:GetConfigTable()
           {   name    = L["Bar Texture"];
               type    = "dropdown";
               dbPath  = "profile.statusBarTexture";
-              options = tk.Constants.LSM:List("statusbar");
+              media = "statusbar";
           };
           {   type = "divider";
           };
@@ -166,7 +166,7 @@ function C_TimerBars:GetConfigTable()
           {   name    = L["Border Type"];
               type    = "dropdown";
               dbPath  = "profile.border.type";
-              options = tk.Constants.LSM:List("border");
+              media = "border";
           };
           {   name    = L["Border Size"];
               type    = "slider";
@@ -479,8 +479,7 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Font Type"];
                               type = "dropdown";
                               dbPath = dbFieldPath .. ".timeRemaining.font";
-                              fontPicker = true;
-                              options = tk.Constants.LSM:List("font");
+                              media = "font";
                           };
                           {   content = L["Spell Name"];
                               type = "fontstring";
@@ -502,8 +501,7 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Font Type"];
                               type = "dropdown";
                               dbPath = dbFieldPath .. ".auraName.font";
-                              fontPicker = true;
-                              options = tk.Constants.LSM:List("font");
+                              media = "font";
                           };
                           {   content = L["Spell Count"];
                               type = "fontstring";
@@ -524,8 +522,7 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Font Type"];
                               type = "dropdown";
                               dbPath = dbFieldPath .. ".spellCount.font";
-                              fontPicker = true;
-                              options = tk.Constants.LSM:List("font");
+                              media = "font";
                           };
                           {  name = L["Position"],
                              type = "dropdown",

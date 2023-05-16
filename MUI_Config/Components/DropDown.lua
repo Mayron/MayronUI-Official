@@ -19,8 +19,11 @@ local function OnDropDownValueChanged(dropdown, value)
     container = container.wrapper; -- using a named container wrapper
   end
 
-  MayronUI:LogInfo("Dropdown changed value to ", value)
   configModule:SetDatabaseValue(container, value);
+end
+
+local function HandleDropdownReset(self, value)
+  configModule:SetDatabaseValue(self, value);
 end
 
 function Components.dropdown(parent, config, value)
@@ -42,6 +45,7 @@ function Components.dropdown(parent, config, value)
     local option;
 
     if (tonumber(key) or config.labels == "values") then
+      key = optionValue;
       option = dropdown:AddOption(optionValue, OnDropDownValueChanged, optionValue);
     else
       if (optionValue == "nil") then
@@ -55,8 +59,38 @@ function Components.dropdown(parent, config, value)
       end
     end
 
-    if (config.fontPicker) then
-      option:GetFontString():SetFont(tk.Constants.LSM:Fetch("font", key), 11);
+    if (config.media == tk.Constants.LSM.MediaType.FONT) then
+      local fontType = tk.Constants.LSM:Fetch(config.media, key);
+      option:GetFontString():SetFont(fontType, 11);
+    elseif (
+      config.media == tk.Constants.LSM.MediaType.BACKGROUND or
+      config.media == tk.Constants.LSM.MediaType.STATUSBAR) then
+
+      local texturePath = tk.Constants.LSM:Fetch(config.media, key);
+
+      if (texturePath) then
+        local normalTexture = option:GetNormalTexture()--[[@as Texture]];
+        normalTexture:SetTexture(texturePath);
+
+        local highlightTexture = option:GetHighlightTexture()--[[@as Texture]];
+        highlightTexture:SetTexture(texturePath);
+        tk:ApplyThemeColor(normalTexture, highlightTexture);
+      end
+    elseif (config.media == tk.Constants.LSM.MediaType.BORDER) then
+      local mixin = _G.BackdropTemplateMixin;
+      local edgeFile = tk.Constants.LSM:Fetch(config.media, key);
+
+      if (mixin and edgeFile) then
+        local normalTexture = option:GetNormalTexture()--[[@as Texture]];
+        normalTexture:SetDrawLayer("BACKGROUND");
+
+        _G.Mixin(option, mixin);
+        ---@cast option BackdropTemplate;
+        option:SetBackdrop({
+          edgeFile = edgeFile,
+          edgeSize = 6,
+        });
+      end
     end
   end
 
@@ -79,6 +113,7 @@ function Components.dropdown(parent, config, value)
   local container = dropdownFrame; -- has .dropdown to refer back to dropdown
 
   if (config.name) then
+    dropdownFrame.Reset = HandleDropdownReset;
     container = Utils:WrapInNamedContainer(dropdownFrame, config);
   end
 
