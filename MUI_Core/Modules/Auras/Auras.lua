@@ -442,7 +442,7 @@ local function HandleAuraButtonOnUpdate(self, elapsed)
       self.statusbar:SetMinMaxValues(0, self.duration);
       self:SetSliderValue(self.timeRemaining);
 
-      if (self.spark) then
+      if (self.spark and self.spark.enabled) then
         local offset = self.spark:GetWidth() / 2;
         local barWidth = self.statusbar:GetWidth();
         local sparkOffset = (self.timeRemaining / self.duration) * barWidth - offset;
@@ -498,6 +498,7 @@ function AuraButtonMixin:SetSparkShown(shown)
   end
 
   self.spark:SetShown(shown);
+  self.spark.enabled = shown;
 end
 
 ---@param auraType "buffs"|"debuffs"
@@ -665,7 +666,7 @@ function AuraButtonMixin:CreateStatusBar()
   local statusBarTexture = tk.Constants.LSM:Fetch("statusbar", texture);
   self.statusbar:SetStatusBarTexture(statusBarTexture);
 
-  self.auraNameText = self.cooldown:CreateFontString(parentName.."AuraName", "OVERLAY", "GameFontNormalSmall");
+  self.auraNameText = self.textFrame:CreateFontString(parentName.."AuraName", "OVERLAY", "GameFontNormalSmall");
   self.auraNameText:SetWordWrap(false);
 
   local showSpark = self:GetSetting("boolean", "showSpark");
@@ -682,13 +683,16 @@ function AuraButtonMixin:CreateIconFrame()
 
   -- Set Up Icon:
   self.iconFrame = gui:CreateIcon(borderSize, iconWidth, iconHeight, self, "aura", self.texture, true);
+  self.textFrame = tk:CreateFrame("Frame", self);
+  self.textFrame:SetAllPoints(true);
+  self.textFrame:SetFrameStrata("HIGH");
   self.icon = self.iconFrame.icon;
   self.cooldown = self.iconFrame.cooldown;
 
   local parentName = self:GetName();
 
-  self.countText = self.cooldown:CreateFontString(parentName.."Count", "OVERLAY");
-  self.timeRemainingText = self.cooldown:CreateFontString(parentName.."TimeRemaining", "OVERLAY", "GameFontNormalSmall");
+  self.countText = self.textFrame:CreateFontString(parentName.."Count", "OVERLAY");
+  self.timeRemainingText = self.textFrame:CreateFontString(parentName.."TimeRemaining", "OVERLAY", "GameFontNormalSmall");
 
   -- Status Bar:
   if (self.mode == "statusbars") then
@@ -724,6 +728,7 @@ function AuraButtonMixin:UpdateDisplayInfo()
     if (usingStatusbars and self.auraNameText) then
       local xOffset = select(4, self.auraNameText:GetPoint());
       local barWidth = self:GetSetting("number", "barWidth");
+
       self.auraNameText:SetWidth(barWidth - xOffset - 4);
     end
     self.iconFrame.cooldown:Clear();
