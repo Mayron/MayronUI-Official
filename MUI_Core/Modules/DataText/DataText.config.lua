@@ -55,16 +55,16 @@ function C_DataTextModule:GetConfigTable()
                     L["DataText buttons, as well as the background bar, will not be displayed."]),
                 type = "check",
                 requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
-                appendDbPath = "enabled",
+                dbPath = "enabled",
             },
             {   name = L["Block in Combat"],
                 tooltip = L["Prevents you from using data text modules while in combat."],
                 type = "check",
-                appendDbPath = "blockInCombat",
+                dbPath = "blockInCombat",
             },
             {   name = L["Auto Hide Menu in Combat"],
                 type = "check",
-                appendDbPath = "popup.hideInCombat",
+                dbPath = "popup.hideInCombat",
             },
             {   type = "divider"
             },
@@ -74,7 +74,7 @@ function C_DataTextModule:GetConfigTable()
                 min = 0,
                 max = 5,
                 default = 1,
-                appendDbPath = "spacing",
+                dbPath = "spacing",
             },
             {   name = L["Font Size"],
                 type = "slider",
@@ -82,7 +82,7 @@ function C_DataTextModule:GetConfigTable()
                 min = 8,
                 max = 18,
                 default = 11,
-                appendDbPath = "fontSize",
+                dbPath = "fontSize",
             },
             {   name = L["Height"],
                 type = "slider",
@@ -90,7 +90,7 @@ function C_DataTextModule:GetConfigTable()
                 min = 10;
                 max = 50;
                 tooltip = tk.Strings:Join("\n", L["Adjust the height of the datatext bar."], L["Default value is"].." 24"),
-                appendDbPath = "height",
+                dbPath = "height",
             },
             {   name = L["Menu Width"],
                 type = "slider",
@@ -98,7 +98,7 @@ function C_DataTextModule:GetConfigTable()
                 max = 400;
                 step = 10;
                 tooltip = L["Default value is"].." 200",
-                appendDbPath = "popup.width",
+                dbPath = "popup.width",
             },
             {   name = L["Max Menu Height"],
                 type = "slider",
@@ -106,7 +106,7 @@ function C_DataTextModule:GetConfigTable()
                 max = 400;
                 step = 10;
                 tooltip = L["Default value is"].." 250",
-                appendDbPath = "popup.maxHeight",
+                dbPath = "popup.maxHeight",
             },
             {   type = "divider"
             },
@@ -115,7 +115,7 @@ function C_DataTextModule:GetConfigTable()
                 tooltip = L["The frame strata of the entire DataText bar."],
                 options = tk.Constants.ORDERED_FRAME_STRATAS,
                 disableSorting = true;
-                appendDbPath = "frameStrata";
+                dbPath = "frameStrata";
             },
             {   type = "slider",
                 name = L["Bar Level"],
@@ -123,7 +123,7 @@ function C_DataTextModule:GetConfigTable()
                 min = 1,
                 max = 50,
                 default = 30,
-                appendDbPath = "frameLevel"
+                dbPath = "frameLevel"
             },
             {   name = L["Data Text Modules"],
                 type = "title",
@@ -173,32 +173,32 @@ function C_DataTextModule:GetConfigTable()
             {   type = "submenu",
                 module = "DataText",
                 name = L["Durability"],
-                appendDbPath = "durability",
+                dbPath = "durability",
                 children = CreateLabelOptions("durability");
             },
             {   type = "submenu",
                 module = "DataText",
                 name = L["Friends"],
-                appendDbPath = "friends",
+                dbPath = "friends",
                 children = CreateLabelOptions("friends");
             },
             {   type = "submenu",
                 module = "DataText",
                 name = L["Guild"],
-                appendDbPath = "guild",
+                dbPath = "guild",
                 children = function()
                   local children = CreateLabelOptions("guild");
                   children[#children + 1] =
                   { type = "check",
                     name = L["Show Self"],
                     tooltip = L["Show your character in the guild list."],
-                    appendDbPath = "showSelf"
+                    dbPath = "showSelf"
                   };
                   children[#children + 1] =
                   { type = "check",
                     name = L["Show Tooltips"],
                     tooltip = L["Show guild info tooltips when the cursor is over guild members in the guild list."],
-                    appendDbPath = "showTooltips"
+                    dbPath = "showTooltips"
                   };
 
                   return children;
@@ -208,21 +208,21 @@ function C_DataTextModule:GetConfigTable()
               type = "submenu",
               name = L["Inventory"],
               module = "DataText",
-              appendDbPath = "inventory",
+              dbPath = "inventory",
               children = function()
                 local children = CreateLabelOptions("inventory");
                 children[#children + 1] =
                 {
                   name = L["Show Total Slots"];
                   type = "check";
-                  appendDbPath = "showTotalSlots";
+                  dbPath = "showTotalSlots";
                 };
                 children[#children + 1] =
                 {
                   name = L["Show Used Slots"];
                   type = "radio";
                   groupName = "inventory";
-                  appendDbPath = "slotsToShow";
+                  dbPath = "slotsToShow";
 
                   GetValue = function(_, value)
                     return value == "used";
@@ -237,7 +237,7 @@ function C_DataTextModule:GetConfigTable()
                   name = L["Show Free Slots"];
                   type = "radio";
                   groupName = "inventory";
-                  appendDbPath = "slotsToShow";
+                  dbPath = "slotsToShow";
 
                   GetValue = function(_, value)
                     return value == "free";
@@ -254,7 +254,7 @@ function C_DataTextModule:GetConfigTable()
               type = "submenu",
               module = "DataText",
               name = L["Performance"],
-              appendDbPath = "performance",
+              dbPath = "performance",
               children = {
                 {
                   type = "fontstring",
@@ -263,7 +263,7 @@ function C_DataTextModule:GetConfigTable()
                 {
                   name = L["Show FPS"],
                   type = "check",
-                  appendDbPath = "showFps",
+                  dbPath = "showFps",
                 },
                 {
                   type = "divider"
@@ -272,7 +272,7 @@ function C_DataTextModule:GetConfigTable()
                   name = L["Show Server Latency (ms)"],
                   type = "check",
                   width = 230,
-                  appendDbPath = "showServerLatency",
+                  dbPath = "showServerLatency",
                 },
                 {
                   type = "divider"
@@ -281,31 +281,31 @@ function C_DataTextModule:GetConfigTable()
                   name = L["Show Home Latency (ms)"],
                   type = "check",
                   width = 230,
-                  appendDbPath = "showHomeLatency",
+                  dbPath = "showHomeLatency",
                 },
               }
             },
             {   type = "submenu",
                 name = L["Money"];
                 module = "DataText",
-                appendDbPath = "money",
+                dbPath = "money",
                 children = {
                   {   name = L["Show Realm Name"],
                       type = "check",
-                      appendDbPath = "showRealm",
+                      dbPath = "showRealm",
                   },
                 }
             },
             {   type = "submenu",
                 module = "DataText",
                 name = L["Quests"],
-                appendDbPath = "quest",
+                dbPath = "quest",
                 children = CreateLabelOptions("quest");
             },
             {   type = "submenu",
                 module = "DataText",
                 name = L["Volume Options"],
-                appendDbPath = "volumeOptions",
+                dbPath = "volumeOptions",
                 children = CreateLabelOptions("volumeOptions");
             },
         }

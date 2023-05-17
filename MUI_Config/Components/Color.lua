@@ -67,20 +67,23 @@ local function OnColorComponentValueChanged()
   end
 end
 
-local function OnColorComponentEnabled(self, enabled)
+local function OnColorComponentEnabled(container, enabled)
   local texturePath;
 
+  local btn = container.btn;
+
   if (enabled) then
-    self.text:SetFontObject("GameFontHighlight");
+    btn.text:SetFontObject("GameFontHighlight");
     texturePath = tk:GetAssetFilePath("Textures\\Widgets\\Checked");
-    self:SetAlpha(1);
+    container:SetAlpha(1);
   else
-    self.text:SetFontObject("GameFontDisable");
+    btn.text:SetFontObject("GameFontDisable");
     texturePath = tk:GetAssetFilePath("Textures\\Widgets\\Unchecked");
-    self:SetAlpha(0.8);
+    container:SetAlpha(0.8);
   end
 
-  self.color:SetTexture(texturePath);
+  btn:SetEnabled(enabled);
+  container.color:SetTexture(texturePath);
 end
 
 function Components.color(parent, config, value)

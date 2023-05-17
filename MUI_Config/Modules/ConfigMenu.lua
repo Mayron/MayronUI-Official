@@ -86,7 +86,6 @@ end
 local TransferConfigAttributes, InheritConfigAttributes;
 do
   local inheritableAttributes = {
-    "appendDbPath";
     "dbFramework";
     "module";
     "database";
@@ -109,13 +108,19 @@ do
   };
 
   function InheritConfigAttributes(parentConfig, childConfig)
-    local parentHasAppendDbPath = not tk.Strings:IsNilOrWhiteSpace(parentConfig.appendDbPath);
+    if (obj:IsFunction(childConfig.dbPath)) then
+      childConfig.dbPath = childConfig.dbPath();
+    end
 
-    if (parentHasAppendDbPath and not tk.Strings:IsNilOrWhiteSpace(childConfig.appendDbPath)) then
-      if (tk.Strings:StartsWith(childConfig.appendDbPath, "[")) then
-        childConfig.appendDbPath = parentConfig.appendDbPath..childConfig.appendDbPath;
+    if (obj:IsFunction(parentConfig.dbPath)) then
+      parentConfig.dbPath = parentConfig.dbPath();
+    end
+
+    if (parentConfig.dbPath and childConfig.dbPath) then
+      if (tk.Strings:StartsWith(childConfig.dbPath, "[")) then
+        childConfig.dbPath = parentConfig.dbPath..childConfig.dbPath;
       else
-        childConfig.appendDbPath = parentConfig.appendDbPath.."."..childConfig.appendDbPath;
+        childConfig.dbPath = parentConfig.dbPath.."."..childConfig.dbPath;
       end
     end
 
@@ -130,20 +135,6 @@ do
         if (childConfig[key] == nil) then
           childConfig[key] = value;
         end
-      end
-    end
-
-    if (obj:IsFunction(childConfig.dbPath)) then
-      childConfig.dbPath = childConfig.dbPath();
-    end
-
-    if (not tk.Strings:IsNilOrWhiteSpace(childConfig.dbPath) and parentHasAppendDbPath) then
-      local appendDbPath = childConfig.appendDbPath or parentConfig.appendDbPath;
-
-      if (tk.Strings:StartsWith(childConfig.dbPath, "[")) then
-        childConfig.dbPath = appendDbPath..childConfig.dbPath;
-      else
-        childConfig.dbPath = appendDbPath.."."..childConfig.dbPath;
       end
     end
   end
@@ -315,8 +306,13 @@ function C_ConfigMenuModule:SetDatabaseValue(_, component, newValue)
         "%s is missing database path address element (dbPath) in config data.",
         component.name:GetText());
     else
-      tk:Assert(not tk.Strings:IsNilOrWhiteSpace(dbPath),
-        "Unknown config data is missing database path address element (dbPath).");
+      local isMissingRequiredDbPath = tk.Strings:IsNilOrWhiteSpace(dbPath);
+
+      if (isMissingRequiredDbPath) then
+        MayronUI:PrintTable(component)
+        tk:Error("Unknown config data is missing database path address element (dbPath).");
+      end
+
     end
 
     if (component.dbFramework == "orbitus") then
@@ -414,7 +410,7 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
 
     btn.configTable = nil;
 
-    if (btn.module) then
+    if (btn.type == "menu" and obj:IsTable(btn.module)) then
       btn.module.configTable = nil;
     end
   end

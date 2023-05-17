@@ -192,6 +192,7 @@ do
     container.btn:SetSize(20, 20);
 
     tk:KillElement(container.btn:GetHighlightTexture());
+    tk:KillElement(container.btn:GetDisabledCheckedTexture());
 
     local normalTexturePath, checkedTexturePath;
 

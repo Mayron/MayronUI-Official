@@ -318,7 +318,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
         tooltip = "If checked, this module will be enabled.",
         type = "check",
         requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
-        appendDbPath = "enabled",
+        dbPath = "enabled",
       },
       { type = "divider" };
       { name = L["Text Highlighting"];
@@ -370,40 +370,40 @@ function C_ChatModule:GetConfigTable(_, configModule)
           { type = "divider"; };
           { name = _G.CHAT_MSG_GUILD;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_GUILD, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_GUILD, "]");
           };
           { name = _G.CHAT_MSG_OFFICER;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_OFFICER, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_OFFICER, "]");
           };
           { name = _G.CHAT_MSG_PARTY;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_PARTY, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_PARTY, "]");
           };
           { name = _G.CHAT_MSG_PARTY_LEADER;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_PARTY_LEADER, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_PARTY_LEADER, "]");
           };
           { name = _G.CHAT_MSG_RAID;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID, "]");
           };
           { name = _G.CHAT_MSG_RAID_LEADER;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID_LEADER, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID_LEADER, "]");
           };
           { name = _G.CHAT_MSG_RAID_WARNING;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID_WARNING, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID_WARNING, "]");
           };
           { name = _G.INSTANCE_CHAT;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.INSTANCE_CHAT, "]");
+            dbPath = tk.Strings:Concat("[", _G.INSTANCE_CHAT, "]");
             client = "retail";
           };
           { name = _G.INSTANCE_CHAT_LEADER;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.INSTANCE_CHAT_LEADER, "]");
+            dbPath = tk.Strings:Concat("[", _G.INSTANCE_CHAT_LEADER, "]");
             client = "retail";
           };
           { type = "fontstring";

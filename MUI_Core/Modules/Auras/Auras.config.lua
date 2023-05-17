@@ -484,7 +484,7 @@ function C_AurasModule:GetConfigTable()
           local mode = db.profile:QueryType("string", auraType, "mode");
           return mode == "icons";
         end;
-        appendDbPath = "profile." .. auraType .. ".icons";
+        dbPath = "profile." .. auraType .. ".icons";
         OnLoad = function(_, frame)
           iconOptionsFrame = frame;
         end,
@@ -494,7 +494,7 @@ function C_AurasModule:GetConfigTable()
       },
       {
         type = "frame";
-        appendDbPath = "profile." .. auraType .. ".statusbars";
+        dbPath = "profile." .. auraType .. ".statusbars";
         shown = function()
           local mode = db.profile:QueryType("string", auraType, "mode");
           return mode == "statusbars";

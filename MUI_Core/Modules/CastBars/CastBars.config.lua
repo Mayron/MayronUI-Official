@@ -108,7 +108,7 @@ function C_CastBarsModule:GetConfigTable()
                 tooltip = L["If checked, this module will be enabled."],
                 type = "check",
                 requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
-                appendDbPath = "enabled",
+                dbPath = "enabled",
             },
             {   name = L["Show Food and Drink"],
                 tooltip = L["If checked, the food and drink buff will be displayed as a castbar."],
