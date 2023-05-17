@@ -8,7 +8,6 @@ function C_AurasModule:GetConfigTable()
   local configMenu = MayronUI:ImportModule("ConfigMenu");
   local db = MayronUI:GetComponent("MUI_AurasDB");
 
-
   local function GetFrameOptions(auraType, icons)
     local groupPrefix = auraType .. (icons and "-icons" or "-statusbars");
 
@@ -53,14 +52,15 @@ function C_AurasModule:GetConfigTable()
         max = 80;
         step = 1;
       };
-      {
-        type = "slider";
-        name = "Icon Border Size";
-        dbPath = "iconBorderSize";
-        min = 0;
-        max = 5;
-        step = 1;
-      };
+      -- TODO: This seems broken
+      -- {
+      --   type = "slider";
+      --   name = "Icon Border Size";
+      --   dbPath = "iconBorderSize";
+      --   min = 0;
+      --   max = 5;
+      --   step = 1;
+      -- };
       {
         type = "slider";
         name = "Icon Spacing";
@@ -95,6 +95,21 @@ function C_AurasModule:GetConfigTable()
         media = "statusbar";
         ignore = icons;
         dbPath = "texture";
+      };
+      {
+        type = "dropdown";
+        name = L["Border"];
+        media = "border";
+        ignore = icons;
+        dbPath = "border";
+      };
+      {
+        type = "slider";
+        name = L["Border Size"];
+        min = 0;
+        max = 10;
+        ignore = icons;
+        dbPath = "barBorderSize";
       };
       {
         type = "check";
@@ -494,7 +509,106 @@ function C_AurasModule:GetConfigTable()
     };
   end
 
-  local colorOptions = {};
+  local colorOptions = {
+    {
+      type = "title";
+      name = "Text Colors";
+    };
+    {
+      name = "Time Remaining";
+      type = "color";
+      width = 160,
+      dbPath = "profile.colors.timeRemaining";
+      useIndexes = true;
+    };
+    {
+      name = "Count";
+      type = "color";
+      width = 160,
+      dbPath = "profile.colors.count";
+      useIndexes = true;
+    };
+    {
+      name = "Aura Name";
+      type = "color";
+      width = 160,
+      dbPath = "profile.colors.auraName";
+      useIndexes = true;
+    };
+    {
+      type = "title";
+      name = "Aura Type Colors";
+    };
+    {
+      name = "Basic Buff";
+      type = "color";
+      width = 160,
+      dbPath = "profile.colors.helpful";
+      useIndexes = true;
+    };
+    {
+      name = "Player Owned Buff";
+      tooltips = "Buffs that you applied to yourself.";
+      type = "color";
+      width = 160,
+      dbPath = "profile.colors.owned";
+      useIndexes = true;
+    };
+    {
+      name = "Basic Debuff";
+      type = "color";
+      width = 160,
+      dbPath = "profile.colors.harmful";
+      useIndexes = true;
+    };
+    {
+      name = "Magic Debuff";
+      type = "color";
+      width = 160,
+      dbPath = "profile.colors.magic";
+      useIndexes = true;
+    };
+    {
+      name = "Disease Debuff";
+      type = "color";
+      width = 160,
+      dbPath = "profile.colors.disease";
+      useIndexes = true;
+    };
+    {
+      name = "Poison Debuff";
+      type = "color";
+      width = 160,
+      dbPath = "profile.colors.poison";
+      useIndexes = true;
+    };
+    {
+      name = "Curse Debuff";
+      type = "color";
+      width = 160,
+      dbPath = "profile.colors.curse";
+      useIndexes = true;
+    };
+    {
+      type = "title";
+      name = "Bar Colors";
+    };
+    {
+      name = "Background";
+      type = "color";
+      width = 160,
+      hasOpacity = true;
+      dbPath = "profile.colors.background";
+      useIndexes = true;
+    };
+    {
+      name = "Borders";
+      type = "color";
+      width = 160,
+      dbPath = "profile.colors.barBorders";
+      useIndexes = true;
+    };
+  };
 
   return {
     tabs = { "Buffs", "Debuffs", "Colors" };

@@ -691,7 +691,7 @@ function C_ConfigMenuModule:SetUpWindow(data)
 
   gui:AddTitleBar(data.window, "MUI " .. L["Config"]);
   gui:AddResizer(data.window);
-  gui:AddCloseButton(data.window);
+  gui:AddCloseButton(data.window, nil, 4, 3);
 
   -- convert container to a panel
   data.window = gui:CreatePanel(data.window);

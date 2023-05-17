@@ -40,25 +40,42 @@ local function Slider_OnDisable(self)
     self.editBox:SetEnabled(false);
 end
 
-local function SliderEditBox_OnEnterPressed(editBox)
-  editBox:ClearFocus();
+local function SliderEditBox_OnKeyPressed(editBox, key)
+  local increaseKey = key == "RIGHT";
+  local decreaseKey = key == "LEFT";
+  local enterKey = key == nil;
+
+  if (not (increaseKey or decreaseKey or enterKey)) then
+    return
+  end
+
+  if (enterKey) then
+    editBox:ClearFocus();
+  end
 
   local newValue = tonumber(editBox:GetText());
   local slider = editBox:GetParent();
 
   if (obj:IsNumber(newValue)) then
+    if (increaseKey) then
+      newValue = newValue + 1;
+    elseif (decreaseKey) then
+      newValue = newValue - 1;
+    end
+
     local sliderMin, sliderMax = slider:GetMinMaxValues();
     slider:SetValue(max(min(newValue, sliderMax), sliderMin));
 
     editBox:SetText(newValue);
-
     local container = slider:GetParent();
     configModule:SetDatabaseValue(container, newValue);
   else
     editBox:SetText(slider:GetValue());
   end
 
-  PlaySound(tk.Constants.CLICK);
+  if (enterKey) then
+    PlaySound(tk.Constants.CLICK);
+  end
 end
 
 local function SliderEditBox_OnEscapePressed(editBox)
@@ -103,7 +120,9 @@ function Components.slider(parent, config, value)
   slider.editBox:SetAutoFocus(false);
 
   slider.editBox:SetScript("OnEscapePressed", SliderEditBox_OnEscapePressed);
-  slider.editBox:SetScript("OnEnterPressed", SliderEditBox_OnEnterPressed);
+  slider.editBox:SetScript("OnEnterPressed", SliderEditBox_OnKeyPressed);
+
+  slider.editBox:SetScript("OnKeyUp", SliderEditBox_OnKeyPressed);
 
   slider.editBox:SetSize(40, 18);
   tk:SetFontSize(slider.editBox, 10);

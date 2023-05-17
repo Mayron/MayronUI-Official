@@ -351,8 +351,7 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
   data.description:SetDimensions(2, 1);
   data.description:SetInsets(20, 50, 0, 50);
 
-  data.description.text = data.description:CreateFontString(
-                            nil, "ARTWORK", "GameFontHighlight");
+  data.description.text = data.description:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
   data.description.text:SetAllPoints(true);
   data.description.text:SetWordWrap(true);
   data.description.text:SetText(LAYOUT_MESSAGE);
@@ -383,8 +382,7 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
   self:UpdateAddOnWindow();
 
   -- Add menu content:
-  data.menu.layoutsTitle = data.menu:CreateFontString(
-                             nil, "OVERLAY", "GameFontHighlight");
+  data.menu.layoutsTitle = data.menu:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   data.menu.layoutsTitle:SetText(L["Layouts"] .. ":");
   data.menu.layoutsTitle:SetPoint("TOPLEFT", 35, -35);
 
@@ -402,8 +400,7 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 
   data.menu.createButton = gui:CreateButton(data.menu:GetFrame(), L["Create New Layout"]);
   data.menu.createButton:SetWidth(178);
-  data.menu.createButton:SetPoint(
-    "TOP", data.menu.layoutsDropDown:GetFrame(), "BOTTOM", 0, -20);
+  data.menu.createButton:SetPoint("TOP", data.menu.layoutsDropDown:GetFrame(), "BOTTOM", 0, -20);
   data.menu.createButton:SetScript("OnClick", function()
     self:CreateLayout()
   end);

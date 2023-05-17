@@ -543,6 +543,8 @@ local function UpdateBagSlot(slot, button)
     if (invType > 0 or quality > 1) then
       local color = slot:GetItemQualityColor();
       slot.itemName:SetTextColor(color.r, color.g, color.b);
+    else
+      slot.itemName:SetTextColor(1, 1, 1);
     end
   end
 
@@ -950,7 +952,6 @@ local function SetCharacterInventory(info, inventoryFrame)
 
         local slot = bag.slots[s];
         slot:Clear();
-        slot:EnableMouse(false);
         slot:Show();
 
         if (type(slotInfo) == "table") then
@@ -1494,10 +1495,6 @@ end
 
 -- C_Inventory ------------------
 function C_Inventory:OnInitialize()
-  if (not (tk:IsWrathClassic() and MayronUI.DEBUG_MODE)) then
-    return
-  end
-
   OrbitusDB:Register(addOnName, databaseConfig, function (db)
     local inventoryFrame = tk:CreateFrame("Frame", nil, "MUI_Inventory")--[[@as MayronUI.Inventory.Frame]];
     table.insert(_G["UISpecialFrames"], "MUI_Inventory");
@@ -1517,7 +1514,7 @@ function C_Inventory:OnInitialize()
     inventoryFrame:SetFrameStrata(tk.Constants.FRAME_STRATAS.HIGH);
     gui:AddTitleBar(inventoryFrame, "Inventory");
     inventoryFrame.titleBar:SetPoint("TOPLEFT", inventoryFrame, "TOPLEFT", -11, 11);
-    gui:AddCloseButton(inventoryFrame);
+    gui:AddCloseButton(inventoryFrame, nil, 4, 4);
     gui:AddResizer(inventoryFrame);
     inventoryFrame.bags = {};
 

@@ -333,18 +333,19 @@ do
     local high = progressColors.high;
     local medium = progressColors.medium;
     local low = progressColors.low;
+    local aboveThreshold = percent >= 1;
 
     if (invert) then
       high = progressColors.low;
       low = progressColors.high;
     end
 
-    if (percent >= 1) then
-      return high.r, high.g, high.b;
+    if (aboveThreshold) then
+      return high.r, high.g, high.b, aboveThreshold;
     end
 
     if (percent <= 0.125) then
-      return low.r, low.g, low.b;
+      return low.r, low.g, low.b, aboveThreshold;
     end
 
     -- start and end R,B,G values:
@@ -360,7 +361,8 @@ do
       stop = low;
     end
 
-    return self:MixColorsByPercentage(start, stop, percent);
+    local r, g, b = self:MixColorsByPercentage(start, stop, percent);
+    return r, g, b, aboveThreshold;
   end
 end
 
@@ -450,7 +452,7 @@ do
   ---@param fontSize number
   ---@param secondsWarning integer?
   ---@param largeFontSize number?
-  function tk:SetTimeRemaining(fontString, timeRemainingInSeconds, fontSize, secondsWarning, largeFontSize)
+  function tk:SetTimeRemaining(fontString, timeRemainingInSeconds, fontSize, secondsWarning, largeFontSize, r, g, b)
     local format, value = SecondsToTimeAbbrev(timeRemainingInSeconds);
 
     if (format == SECOND_ONELETTER_ABBR) then
@@ -463,8 +465,13 @@ do
     end
 
     local current = math.min(30, timeRemainingInSeconds);
-    local r, g, b = self:GetProgressColor(current, 30);
-    fontString:SetTextColor(r, g, b);
+    local progressR, progressG, progressB, aboveThreshold = self:GetProgressColor(current, 30);
+
+    if (aboveThreshold and r ~= nil and g ~= nil and b ~= nil) then
+      fontString:SetTextColor(r, g, b);
+    else
+      fontString:SetTextColor(progressR, progressG, progressB);
+    end
 
     if (largeFontSize and value <= (secondsWarning or 10) and timeRemainingInSeconds < 20) then
       fontSize = largeFontSize;

@@ -509,30 +509,9 @@ function MayronUI:Print(...)
   tk:Print(...);
 end
 
-do
-  local GetTime = _G.GetTime;
-  local lastScreenshot = GetTime();
-  local Screenshot = _G.Screenshot;
-  local TakeScreenshot = function() Screenshot() end;
-  local screenShotErrors;
-  local After = _G.C_Timer.After;
-
-  function MayronUI:LogError(errorMessage, ...)
-    if (not MayronUI.DEBUG_MODE) then return end
-    screenShotErrors = screenShotErrors or {};
-    tk:LogToChatFrame(errorMessage, 1, 0, 0, ...);
-
-    if (not screenShotErrors[errorMessage] and InCombatLockdown()) then
-      local currentTime = GetTime();
-      local secondsAgo = currentTime - lastScreenshot;
-
-      if (secondsAgo > 10) then
-        lastScreenshot = currentTime;
-        screenShotErrors[errorMessage] = true;
-        After(1, TakeScreenshot);
-      end
-    end
-  end
+function MayronUI:LogError(errorMessage, ...)
+  if (not MayronUI.DEBUG_MODE) then return end
+  tk:LogToChatFrame(errorMessage, 1, 0, 0, ...);
 end
 
 function MayronUI:LogDebug(debugMessage, ...)
@@ -710,14 +689,20 @@ function MayronUI:SwitchLayouts(layoutName, layoutData)
   end
 
   -- Switch all assigned addons to new profile
-  for a, profileName in pairs(layoutData) do
-    if (profileName) then
-      -- profileName could be false
-      local dbObject = tk.Tables:GetDBObject(a);
+  for addonName, profileName in pairs(layoutData) do
+    local success, errorMsg = pcall(function()
+      if (profileName) then
+        -- profileName could be false
+        local dbObject = tk.Tables:GetDBObject(addonName);
 
-      if (dbObject) then
-        dbObject:SetProfile(profileName);
+        if (dbObject) then
+          dbObject:SetProfile(profileName);
+        end
       end
+    end);
+
+    if (not success and errorMsg) then
+      MayronUI:LogError("Failed to change %s to profile %s: %s", addonName, profileName, errorMsg);
     end
   end
 end

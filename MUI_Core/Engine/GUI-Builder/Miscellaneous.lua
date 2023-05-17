@@ -307,7 +307,7 @@ function gui:AddResizer(frame)
 
   frame.dragger = tk:CreateFrame("Button", frame);
   frame.dragger:SetSize(28, 28);
-  frame.dragger:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -1, 2);
+  frame.dragger:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -2, 2);
   frame.dragger:SetNormalTexture(normalTexture, "BLEND");
   frame.dragger:SetHighlightTexture(highlightTexture, "ADD");
 
@@ -428,9 +428,9 @@ function gui:ReskinIconButton(btn, iconName, iconRotation)
   frame.closeBtn = self:CreateIconButton(iconName, frame, nil, btn, iconRotation);
 end
 
-function gui:AddCloseButton(frame, onHideCallback)
+function gui:AddCloseButton(frame, onHideCallback, xOffset, yOffset)
   frame.closeBtn = self:CreateIconButton("cross", frame);
-  frame.closeBtn:SetPoint("TOPRIGHT", -2, -1);
+  frame.closeBtn:SetPoint("TOPRIGHT", -6 + (xOffset or 0), -4 + (yOffset or 0));
 
   local group = frame:CreateAnimationGroup();
   group.a1 = group:CreateAnimation("Translation");
