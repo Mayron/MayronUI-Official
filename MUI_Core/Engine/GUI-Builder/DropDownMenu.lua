@@ -187,7 +187,7 @@ end
 do
   local function ApplyTooltipScripts(f)
     f:SetScript("OnEnter", OnDropDownEnter);
-    f:SetScript("OnLeave", tk.HandleTooltipOnLeave);    
+    f:SetScript("OnLeave", tk.HandleTooltipOnLeave);
   end
 
   function DropDownMenu:SetTooltip(data, tooltip)
@@ -225,7 +225,7 @@ function DropDownMenu:GetOptionByID(data, optionID)
 end
 
 obj:DefineParams("string");
-obj:DefineReturns("Button");
+obj:DefineReturns("?Button");
 function DropDownMenu:GetOptionByLabel(data, label)
   for _, optionButton in ipairs(data.options) do
     if (optionButton:GetText() == label) then
@@ -237,8 +237,8 @@ end
 obj:DefineParams("function");
 obj:DefineReturns("?Button");
 function DropDownMenu:FindOption(data, func)
-  for _, optionButton in ipairs(data.options) do
-    if (func(optionButton)) then return optionButton; end
+  for id, optionButton in ipairs(data.options) do
+    if (func(optionButton, id)) then return optionButton; end
   end
 end
 

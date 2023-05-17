@@ -82,10 +82,15 @@ function Utils:WrapInNamedContainer(component, config)
     container.reset = tk:CreateFrame("Button", container);
     local offset = containerPadding / 2;
     container.reset:SetPoint("TOPRIGHT", -offset, -offset);
-    container.reset:SetSize(12, 12);
-    desiredWidth = desiredWidth + 12 + offset;
+    container.reset:SetSize(18, 18);
+    desiredWidth = desiredWidth + 18 + offset;
     container.reset:SetNormalTexture(tk:GetAssetFilePath("Textures\\refresh"));
-    container.reset:GetNormalTexture():SetVertexColor(tk:GetThemeColor());
+    local normalTexture = container.reset:GetNormalTexture()--[[@as Texture]];
+    normalTexture:ClearAllPoints();
+    normalTexture:SetPoint("TOPLEFT", 2, -2);
+    normalTexture:SetPoint("BOTTOMRIGHT", -2, 2);
+    normalTexture:SetVertexColor(tk:GetThemeColor());
+
     container.reset:SetHighlightAtlas("chatframe-button-highlight");
 
     local dbPath = config.dbPath;

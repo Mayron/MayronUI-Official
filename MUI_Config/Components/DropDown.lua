@@ -23,7 +23,18 @@ local function OnDropDownValueChanged(dropdown, value)
 end
 
 local function HandleDropdownReset(self, value)
-  configModule:SetDatabaseValue(self, value);
+  local dropdown = self.dropdown--[[@as DropDownMenu]];
+
+  local option = dropdown:FindOption(function(option)
+    for _, arg in ipairs(option.args) do
+      if (value == arg) then
+        return true;
+      end
+    end
+  end);
+
+  tk:Assert(option, "Failed to reset dropdown; no option for value %s found", value);
+  dropdown:SetLabel(option:GetText());
 end
 
 function Components.dropdown(parent, config, value)
