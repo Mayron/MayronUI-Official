@@ -10,12 +10,17 @@ local DisableAddOn, UIFrameFadeIn, PlaySound, strformat = _G.DisableAddOn, _G.UI
 local strsplit, radians = _G.strsplit, _G.math.rad;
 
 -- Registers and Imports -------------
----@type LinkedList
 local C_LinkedList = obj:Import("Pkg-Collections.LinkedList");
 
 ---@class ConfigMenu : BaseModule
 local C_ConfigMenuModule = MayronUI:RegisterModule("ConfigMenu");
 
+---@class MayronUI.ConfigMenu.MenuButton : CheckButton,Button
+---@field menu DynamicFrame
+---@field type string
+---@field module table
+---@field tabsContainer table?
+---@field GetParent fun(): Frame
 
 -- Local functions -------------------
 local CreateTopMenuButton;
@@ -156,7 +161,10 @@ do
       end
     end
 
-    obj:PushTable(childConfig);
+    if (component.type ~= "submenu") then
+      -- submenu will have assigned configTable to itself and needs to be preserved
+      obj:PushTable(childConfig);
+    end
   end
 end
 
@@ -369,8 +377,11 @@ function C_ConfigMenuModule:AddComponent(data, component)
 end
 
 obj:DefineParams("CheckButton|Button");
----@param btn CheckButton|Button @The menu button clicked on associated with a menu.
+---@overload fun(self, btn: MayronUI.ConfigMenu.MenuButton)
 function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
+  ---@cast data table
+  ---@cast btn MayronUI.ConfigMenu.MenuButton
+
   -- Hide the old one
   if (data.selectedButton) then
     if (data.selectedButton.menu) then
@@ -378,7 +389,7 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
     end
 
     if (data.selectedButton.type == "tab") then
-      local tabsContainer = data.selectedButton:GetParent();
+      local tabsContainer = data.selectedButton:GetParent()--[[@as Frame]];
       tabsContainer:Hide();
     end
   end
@@ -483,16 +494,8 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
     local children = components[componentType](data.selectedButton.menu:GetFrame(), componentConfig);
 
     if (obj:IsTable(children)) then -- Sometimes a condition may not return anything
-      for _, c in ipairs(children) do
-        if (obj:IsTable(c) and not c.type) then
-          for _, c2 in ipairs(c) do
-            self:RenderComponent(c2, menuConfig);
-          end
-
-          obj:PushTable(c);
-        else
-          self:RenderComponent(c, menuConfig);
-        end
+      for _, childConfig in ipairs(children) do
+        self:RenderComponent(childConfig, componentConfig);
       end
 
       obj:PushTable(children);

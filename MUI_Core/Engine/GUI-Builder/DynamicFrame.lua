@@ -6,7 +6,8 @@ local _, _, _, _, obj = MayronUI:GetCoreComponents();
 ---@class GUIBuilder
 local gui = MayronUI:GetComponent("GUIBuilder");
 
-local DynamicFrame = obj:CreateClass("DynamicFrame"); ---@class DynamicFrame : MayronObjects.Class
+---@class DynamicFrame : Frame,MayronObjects.Object, MayronObjects.Object
+local DynamicFrame = obj:CreateClass("DynamicFrame");
 obj:Export(DynamicFrame, "MayronUI");
 
 local mceil, mfloor, unpack, ipairs = _G.math.ceil, _G.math.floor, _G.unpack, _G.ipairs;

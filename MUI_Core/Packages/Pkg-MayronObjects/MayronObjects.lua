@@ -48,7 +48,7 @@ local strmatch, error, ipairs = _G.string.match, _G.error, _G.ipairs;
 local ClassMixin = {}; ---@class MayronObjects.Class
 local StaticMixin = {};
 
----@class Object
+---@class MayronObjects.Object
 local InstanceMixin = {};
 
 local objectMetadata = {};
@@ -692,7 +692,7 @@ end
 --- where ... are mixins
 ---@generic T
 ---@param parentClass T?
----@return MayronObjects.Class|T
+---@return MayronObjects.Class|MayronObjects.Object|T
 function Framework:CreateClass(className, parentClass)
   local class = CreateFromMixins(ClassMixin);
   class.Static = self:PopTable();

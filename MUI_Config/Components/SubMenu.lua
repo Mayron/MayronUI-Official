@@ -4,15 +4,15 @@ local tk = MayronUI:GetCoreComponents();
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
 
-function Components.submenu(parent, submenuConfigTable)
+function Components.submenu(parent, config)
   local btn = tk:CreateFrame("Button", parent);
   btn:SetSize(250, 60);
   btn:SetNormalFontObject("GameFontHighlight");
   btn:SetDisabledFontObject("GameFontDisable");
 
-  Utils:SetComponentEnabled(btn, submenuConfigTable.enabled);
+  Utils:SetComponentEnabled(btn, config.enabled);
 
-  btn:SetText(submenuConfigTable.name);
+  btn:SetText(config.name);
   btn.text = btn:GetFontString();
   btn.text:SetJustifyH("LEFT");
   btn.text:ClearAllPoints();
@@ -33,14 +33,14 @@ function Components.submenu(parent, submenuConfigTable)
   btn:SetDisabledTexture(btn.disabled);
   btn:SetHighlightTexture(btn.highlight);
 
-  btn.configTable = submenuConfigTable;
+  btn.configTable = config;
   btn.type = "submenu";
-  btn.name = submenuConfigTable.name;
+  btn.name = config.name;
 
   btn:SetScript("OnClick", Utils.OnMenuButtonClick);
 
-  if (submenuConfigTable.tooltip) then
-    tk:SetBasicTooltip(btn, submenuConfigTable.tooltip);
+  if (config.tooltip) then
+    tk:SetBasicTooltip(btn, config.tooltip);
   end
 
   return btn;
