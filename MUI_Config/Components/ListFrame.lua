@@ -31,13 +31,8 @@ local function CreateListItem(listFrame, data)
   item.name:SetPoint("TOPLEFT", 6, 0);
   item.name:SetPoint("BOTTOMRIGHT", -34, 0);
 
-  item.btn = tk:CreateFrame("Button", item);
-  item.btn:SetSize(28, 24);
-  item.btn:SetPoint("RIGHT", -8, 0);
-
-  local closeFilePath = tk:GetAssetFilePath("Icons\\close");
-  item.btn:SetNormalTexture(closeFilePath, "BLEND");
-  item.btn:SetHighlightTexture(closeFilePath, "ADD");
+  item.btn = gui:CreateIconButton("cross", item);
+  item.btn:SetPoint("RIGHT", -5, -1);
 
   item.btn:SetScript("OnClick", function(btn)
     listFrame:RemoveItem(btn:GetParent());
@@ -126,7 +121,7 @@ function C_ListFrame:SetShown(data, shown)
   data.rows = obj:PopTable();
 
   gui:AddTitleBar(data.listFrame, data.listFrameTitle);
-  gui:AddCloseButton(data.listFrame);
+  gui:AddCloseButton(data.listFrame, nil, 6, 6);
   data.listFrame:SetSize(400, 300);
   data.listFrame:SetPoint("CENTER");
   data.listFrame:SetFrameStrata("DIALOG");
@@ -175,6 +170,7 @@ function C_ListFrame:SetShown(data, shown)
   local container = gui:CreateScrollFrame(data.listFrame);
   data.scrollChild = container.ScrollFrame:GetScrollChild();
 
+  container.ScrollBar:ClearAllPoints();
   container.ScrollBar:SetPoint("TOPLEFT", container.ScrollFrame, "TOPRIGHT", -5, 0);
   container.ScrollBar:SetPoint("BOTTOMRIGHT", container.ScrollFrame, "BOTTOMRIGHT", 0, 0);
   tk:SetBackground(container, 0, 0, 0, 0.3);

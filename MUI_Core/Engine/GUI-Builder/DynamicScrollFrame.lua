@@ -88,8 +88,7 @@ function gui:CreateScrollFrame(parent, global, child, scrollBarOffset)
   child = child or tk:CreateFrame("Frame", container.ScrollFrame);
   container.ScrollFrame:SetScrollChild(child);
 
-  local padding = style:GetPadding(nil, true);
-  tk:SetFullWidth(child, padding.right);
+  tk:SetFullWidth(child);
 
   local barWidth = 8;
   if (scrollBarOffset == nil) then

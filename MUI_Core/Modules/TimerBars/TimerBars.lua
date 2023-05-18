@@ -529,12 +529,15 @@ do
         insertedFrame.btn = tk:CreateFrame("CheckButton", insertedFrame, nil, "UICheckButtonTemplate");
         insertedFrame.btn:SetSize(30, 30);
         insertedFrame.btn:SetPoint("LEFT");
-        insertedFrame.btn.text:SetFontObject("GameFontHighlight");
-        insertedFrame.btn.text:ClearAllPoints();
-        insertedFrame.btn.text:SetPoint("LEFT", insertedFrame.btn, "RIGHT", 5, 0);
+
+        local text = insertedFrame.btn.Text or insertedFrame.btn.text;
+        text:SetFontObject("GameFontHighlight");
+        text:ClearAllPoints();
+        text:SetPoint("LEFT", insertedFrame.btn, "RIGHT", 5, 0);
       end
 
-      insertedFrame.btn.text:SetText(L["Also enable the %s"]:format(listName:lower()));
+      local text = insertedFrame.btn.Text or insertedFrame.btn.text;
+      text:SetText(L["Also enable the %s"]:format(listName:lower()));
       insertedFrame.btn:SetChecked(true);
     end
 
@@ -1311,6 +1314,8 @@ function C_TimerBar:UpdateAura(data, auraInfo)
   -- this is needed for the tooltip mouse over + right click menu
   data.frame.itemID = self.AuraId;
   data.frame.auraName = auraName;
+  data.frame.iconType = "spell";
+  data.frame.tooltipAnchor = "ANCHOR_TOP";
 
   if (data.icon) then
     data.icon:SetTexture(iconPath);

@@ -112,7 +112,7 @@ function C_DataTextModule:OnInitialize(data)
           local component = tk.Tables:First(data.activeComponents, function(c)
             for _, componentName in keysList:Iterate() do
               if (c.SavedVariableName == componentName) then
-                  return true;
+                return true;
               end
             end
           end);

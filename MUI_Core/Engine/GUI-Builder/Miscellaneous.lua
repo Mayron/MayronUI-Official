@@ -373,10 +373,11 @@ do
   ---@param iconName "bag"|"sort"|"layout"|"arrow"|"cross"|"user"
   ---@param parent Frame?
   ---@param globalName string?
+  ---@param button Button?
   ---@param iconRotation number?
   ---@return Button
-  function gui:CreateIconButton(iconName, parent, globalName, closeBtn, iconRotation)
-    local btn = closeBtn or tk:CreateFrame("Button", parent, globalName);
+  function gui:CreateIconButton(iconName, parent, globalName, button, iconRotation)
+    local btn = button or tk:CreateFrame("Button", parent, globalName);
     btn:SetSize(30, 27.33);
 
     local style = tk.Constants.AddOnStyle;

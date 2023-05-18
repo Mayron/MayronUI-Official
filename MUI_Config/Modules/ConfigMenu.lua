@@ -121,7 +121,7 @@ do
       parentConfig.dbPath = parentConfig.dbPath();
     end
 
-    if (parentConfig.dbPath and childConfig.dbPath) then
+    if (parentConfig.dbPath and childConfig.dbPath and not childConfig.absoluteDbPath) then
       if (tk.Strings:StartsWith(childConfig.dbPath, "[")) then
         childConfig.dbPath = parentConfig.dbPath..childConfig.dbPath;
       else
@@ -211,7 +211,7 @@ local function GetDatabaseValue(config)
 end
 
 ---@param componentConfig table @A component config table used to control the rendering and behavior of a component in the config menu.
----@param menuGroups table
+---@param menuGroups table?
 ---@param parent Frame @(optional) A custom parent frame for the component, else the parent will be the menu scroll child.
 ---@return Frame
 local function CreateComponent(componentConfig, menuGroups, parent)
@@ -223,6 +223,10 @@ local function CreateComponent(componentConfig, menuGroups, parent)
   end
 
   local components = MayronUI:GetComponent("ConfigMenuComponents");
+
+  if (not componentType) then
+    MayronUI:PrintTable(componentConfig);
+  end
 
   tk:Assert(components[componentType],
     "Unsupported component type '%s' found in config data for config table '%s'.",
@@ -242,12 +246,14 @@ local function CreateComponent(componentConfig, menuGroups, parent)
     tk:SetBackground(component, mrandom(), mrandom(), mrandom());
   end
 
-  if (componentConfig.type == "radio" and componentConfig.groupName) then
-    if (not menuGroups[componentConfig.groupName]) then
-      menuGroups[componentConfig.groupName] = obj:PopTable();
-    end
+  if (menuGroups) then
+    if (componentConfig.type == "radio" and componentConfig.groupName) then
+      if (not menuGroups[componentConfig.groupName]) then
+        menuGroups[componentConfig.groupName] = obj:PopTable();
+      end
 
-    table.insert(menuGroups[componentConfig.groupName], component.btn);
+      table.insert(menuGroups[componentConfig.groupName], component.btn);
+    end
   end
 
   -- setup complete, so run the OnLoad callback if one exists
@@ -485,23 +491,38 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
     return
   end
 
-  InheritConfigAttributes(menuConfig, componentConfig);
+  if (menuConfig) then
+    -- there are some calls to render components later on demand when the menuConfig no longer exists
+    InheritConfigAttributes(menuConfig, componentConfig);
+  end
+
   local componentType = componentConfig.type;
 
   if (componentType == "loop" or componentType == "condition") then
     -- run the loop to gather component children
     local components = MayronUI:GetComponent("ConfigMenuComponents");
-    local children = components[componentType](data.selectedButton.menu:GetFrame(), componentConfig);
+    local results = components[componentType](data.selectedButton.menu:GetFrame(), componentConfig);
 
-    if (obj:IsTable(children)) then -- Sometimes a condition may not return anything
-      for _, childConfig in ipairs(children) do
-        self:RenderComponent(childConfig, componentConfig);
-      end
-
-      obj:PushTable(children);
+    if (componentType == "condition" and not obj:IsTable(results)) then
+      obj:PushTable(componentConfig);
+      return
     end
 
-    -- the table was previously popped
+    -- results could contain a single childConfigs or a table of childConfigs
+    for _, result in ipairs(results) do
+      if (obj:IsTable(result)) then
+        if (result.type) then
+          local childConfig = result;
+          self:RenderComponent(childConfig, componentConfig);
+        else
+          for _, childConfig in ipairs(result) do
+            self:RenderComponent(childConfig, componentConfig);
+          end
+        end
+      end
+    end
+
+    obj:PushTable(results);
     obj:PushTable(componentConfig);
 
     return
@@ -511,9 +532,10 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
     componentConfig.children = componentConfig.children();
   end
 
+  local menuGroups = menuConfig and menuConfig.groups;
   local componentChildrenConfigs = componentConfig.children; -- else it'll be pushed when transfering
   local menuScrollChild = data.selectedButton.menu:GetFrame().ScrollFrame:GetScrollChild(); -- the component's parent
-  local component = CreateComponent(componentConfig, menuConfig.groups, menuScrollChild);
+  local component = CreateComponent(componentConfig, menuGroups, menuScrollChild);
   componentConfig = nil; --luacheck: ignore (this has been consumed and transferred)
 
   if (componentType == "frame" and obj:IsTable(componentChildrenConfigs)) then
@@ -522,7 +544,7 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
         obj:PushTable(childConfig);
       else
         InheritConfigAttributes(component, childConfig);
-        local childComponent = CreateComponent(childConfig, menuConfig.groups, component);
+        local childComponent = CreateComponent(childConfig, menuGroups, component);
         component.dynamicFrame:AddChildren(childComponent);
       end
     end

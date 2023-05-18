@@ -33,11 +33,13 @@ end
 local function Slider_OnEnable(self)
   self:SetAlpha(1);
   self.editBox:SetEnabled(true);
+  self.wrapper.name:SetTextColor(1, 1, 1);
 end
 
 local function Slider_OnDisable(self)
-    self:SetAlpha(0.7);
-    self.editBox:SetEnabled(false);
+  self:SetAlpha(0.7);
+  self.editBox:SetEnabled(false);
+  self.wrapper.name:SetTextColor(0.5, 0.5, 0.5);
 end
 
 local function SliderEditBox_OnKeyPressed(editBox, key)
@@ -152,10 +154,11 @@ function Components.slider(parent, config, value)
   slider:SetScript("OnDisable", Slider_OnDisable);
 
   slider.Reset = Slider_Reset;
-  Utils:SetComponentEnabled(slider, config.enabled);
 
   local container = Utils:WrapInNamedContainer(slider, config);
   container:SetHeight(container:GetHeight() + 28); -- make room for value text
+
+  Utils:SetComponentEnabled(slider, config.enabled);
 
   slider.Low:SetParent(container);
   slider.Low:SetText(minValue);

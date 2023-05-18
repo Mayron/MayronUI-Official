@@ -7,7 +7,7 @@ local table, string, unpack, tostring, pairs, ipairs = _G.table, _G.string, _G.u
 local tremove, PlaySound, GetChannelList = _G.table.remove, _G.PlaySound, _G.GetChannelList;
 local BetterDate, SetCVar, GetCVar, time = _G.BetterDate, _G.SetCVar, _G.GetCVar, _G.time;
 
----@param configModule ConfigMenuModule
+---@param configModule ConfigMenu
 function C_ChatModule:GetConfigTable(_, configModule)
   local ChatFrameAnchorDropDownOptions = {
     [L["Top Left"]]       = "TOPLEFT";
@@ -223,7 +223,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
         tremove(highlightFrames, id);
 
         db:SetPathValue("profile.chat.highlighted", highlighted);
-        configModule:RemoveWidget(frame);
+        configModule:RemoveComponent(frame);
       end
 
       local frameConfig = {
@@ -297,8 +297,8 @@ function C_ChatModule:GetConfigTable(_, configModule)
     highlighted[id].upperCase = false;
 
     db.profile.chat.highlighted = highlighted;
-    local config = GetTextHighlightingFrameConfigTable(highlighted[id], configModule);
-    configModule:RenderWidget(config);
+    local config = GetTextHighlightingFrameConfigTable(highlighted[id]);
+    configModule:RenderComponent(config);
   end
 
   local channelNames = obj:PopTable();
@@ -357,6 +357,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
           { type = "check";
             name = L["Enable Custom Aliases"];
             dbPath = "profile.chat.enableAliases";
+            requiresReload = true;
           },
           { type = "divider" };
           { type = "slider";

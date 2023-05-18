@@ -128,43 +128,14 @@ function C_ConfigMenu:GetConfigTable()
           end;
         };
         { type = "title"; name = L["Global Settings"]; description = L["These settings are applied account-wide"] };
-        {
-          name = L["Override Master Font"];
-          height = 42;
-          verticalAlignment = "BOTTOM";
-          tooltip = L["Uncheck to prevent MUI from changing the game font."];
+        { type = "check";
+          name = "Enable Inventory Frame";
+          tooltip = "Use the MayronUI custom inventory frame instead of the default Blizzard bags UI.";
+          dbPath = "global.enabled";
           requiresReload = true;
-          width = 180;
-          dbPath = "global.core.fonts.useMasterFont";
-          type = "check";
+          dbFramework = "orbitus";
+          database = "MUI_InventoryDB";
         };
-        {
-          name = L["Master Font"];
-          type = "dropdown";
-          media = "font";
-          dbPath = "global.core.fonts.master";
-          requiresRestart = true;
-        };
-        { type = "divider"};
-        {
-          name = L["Override Combat Font"];
-          height = 42;
-          width = 180;
-          verticalAlignment = "BOTTOM";
-          tooltip = L["Uncheck to prevent MUI from changing the game font."];
-          requiresRestart = true;
-          dbPath = "global.core.fonts.useCombatFont";
-          type = "check";
-        };
-        {
-          name = L["Combat Font"];
-          tooltip = L["This font is used to display the damage and healing combat numbers."];
-          type = "dropdown";
-          media = "font";
-          dbPath = "global.core.fonts.combat";
-          requiresRestart = true;
-        };
-        { type = "fontstring"; subtype="header"; content = L["Miscellaneous"]};
         {
           name = L["Display Lua Errors"];
           type = "check";
@@ -204,6 +175,43 @@ function C_ConfigMenu:GetConfigTable()
               SetCVar("cameraDistanceMaxZoomFactor", 1.9);
             end
           end;
+        };
+        { type = "fontstring"; subtype="header"; content = "Font Settings" };
+        {
+          name = L["Override Master Font"];
+          height = 42;
+          verticalAlignment = "BOTTOM";
+          tooltip = L["Uncheck to prevent MUI from changing the game font."];
+          requiresReload = true;
+          width = 180;
+          dbPath = "global.core.fonts.useMasterFont";
+          type = "check";
+        };
+        {
+          name = L["Master Font"];
+          type = "dropdown";
+          media = "font";
+          dbPath = "global.core.fonts.master";
+          requiresRestart = true;
+        };
+        { type = "divider"};
+        {
+          name = L["Override Combat Font"];
+          height = 42;
+          width = 180;
+          verticalAlignment = "BOTTOM";
+          tooltip = L["Uncheck to prevent MUI from changing the game font."];
+          requiresRestart = true;
+          dbPath = "global.core.fonts.useCombatFont";
+          type = "check";
+        };
+        {
+          name = L["Combat Font"];
+          tooltip = L["This font is used to display the damage and healing combat numbers."];
+          type = "dropdown";
+          media = "font";
+          dbPath = "global.core.fonts.combat";
+          requiresRestart = true;
         };
         { type = "title";
           name = L["Main Container"];
@@ -881,7 +889,7 @@ function C_ConfigMenu:GetConfigTable()
             end
 
             local key = name:lower() .. "Bar";
-            local child = {
+            local children = {
               {
                 name = tk.Strings:JoinWithSpace(L[name], L["Bar"]);
                 type = "title";
@@ -918,16 +926,15 @@ function C_ConfigMenu:GetConfigTable()
             };
 
             if (id == 1) then
-              child[1].marginTop = 0;
+              children[1].marginTop = 0;
             end
 
             if (id == 2) then
               -- rep bar, so show color options
-              AddRepStandingIDColorOptions(
-                db.profile.resourceBars.reputationBar, child);
+              AddRepStandingIDColorOptions(db.profile.resourceBars.reputationBar, children);
             end
 
-            return child;
+            return children;
           end;
         };
       };

@@ -23,9 +23,11 @@ function C_DataTextModule:GetConfigTable()
       return {
         {   name = "Hide Label";
             type = "check";
+            absoluteDbPath = true;
             dbPath = "profile.datatext.labels.hidden." .. module;
             SetValue = function(self, newValue)
-              db:SetPathValue(self.dbPath, newValue and true or nil);
+              local stored = newValue and true or nil;
+              db:SetPathValue(self.dbPath, stored);
               local label = label_TextFields[module];
               label:SetEnabled(not newValue); -- if hidden == true then hide label option
             end
@@ -33,6 +35,7 @@ function C_DataTextModule:GetConfigTable()
         {   name = "Set Label",
             type = "textfield",
             module = module;
+            absoluteDbPath = true;
             dbPath = "profile.datatext.labels." .. module;
             OnLoad = SetLabel_OnLoad,
         },

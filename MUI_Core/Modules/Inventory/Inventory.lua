@@ -126,6 +126,9 @@ local viewSettings = {
 local databaseConfig = {
   svName = "MUI_InventoryDB";
   defaults = {
+    global = {
+      enabled = true;
+    },
     profile = {
       slotSpacing = 6;
       views = viewSettings;
@@ -1496,6 +1499,13 @@ end
 -- C_Inventory ------------------
 function C_Inventory:OnInitialize()
   OrbitusDB:Register(addOnName, databaseConfig, function (db)
+    MayronUI:AddComponent("MUI_InventoryDB", db);
+    local isEnabled = db.global:QueryType("boolean", "enabled");
+
+    if (not isEnabled) then
+      return
+    end
+
     local inventoryFrame = tk:CreateFrame("Frame", nil, "MUI_Inventory")--[[@as MayronUI.Inventory.Frame]];
     table.insert(_G["UISpecialFrames"], "MUI_Inventory");
     inventoryFrame:Hide();
