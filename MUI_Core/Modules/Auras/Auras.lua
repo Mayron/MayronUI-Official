@@ -95,7 +95,7 @@ local databaseConfig = {
           };
           textPosition = {
             timeRemaining = { "TOP", "iconFrame", "BOTTOM", 0, -4 };
-            count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", -5, 2 };
+            count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", -2, 0 };
           };
         };
 
@@ -176,7 +176,7 @@ local databaseConfig = {
           };
           textPosition = {
             timeRemaining = { "TOP", "iconFrame", "BOTTOM", 0, -4 };
-            count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", 0, 2 };
+            count         = { "BOTTOMRIGHT", "icon", "BOTTOMRIGHT", -2, 0 };
           };
         };
 
@@ -686,6 +686,7 @@ function AuraButtonMixin:CreateIconFrame()
   self.textFrame = tk:CreateFrame("Frame", self);
   self.textFrame:SetAllPoints(true);
   self.textFrame:SetFrameStrata("HIGH");
+  self.textFrame:SetFrameLevel(20);
   self.icon = self.iconFrame.icon;
   self.cooldown = self.iconFrame.cooldown;
 

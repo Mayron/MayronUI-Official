@@ -691,6 +691,7 @@ function MayronUI:SwitchLayouts(layoutName, layoutData)
   -- Switch all assigned addons to new profile
   for addonName, profileName in pairs(layoutData) do
     local success, errorMsg = pcall(function()
+      MayronUI.PauseErrors = true;
       if (profileName) then
         -- profileName could be false
         local dbObject = tk.Tables:GetDBObject(addonName);
@@ -701,6 +702,7 @@ function MayronUI:SwitchLayouts(layoutName, layoutData)
       end
     end);
 
+    MayronUI.PauseErrors = nil;
     if (not success and errorMsg) then
       MayronUI:LogError("Failed to change %s to profile %s: %s", addonName, profileName, errorMsg);
     end

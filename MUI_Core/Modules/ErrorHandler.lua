@@ -108,7 +108,9 @@ function C_ErrorHandler:OnInitialize(data)
 
   seterrorhandler(function(errorMessage)
     addError(errorMessage);
-    HandleLuaError(errorMessage);
+    if (not MayronUI.PauseErrors) then
+      HandleLuaError(errorMessage);
+    end
   end);
 
   local reloadBtn, closeBtn = ScriptErrorsFrame.Reload, ScriptErrorsFrame.Close;
