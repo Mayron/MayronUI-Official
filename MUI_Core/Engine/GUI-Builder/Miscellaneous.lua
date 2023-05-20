@@ -6,48 +6,67 @@ local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 ---@class GUIBuilder
 local gui = MayronUI:GetComponent("GUIBuilder");
 
-local hooksecurefunc, PlaySound, unpack, max = _G.hooksecurefunc, _G.PlaySound, _G.unpack, _G.math.max;
+local hooksecurefunc, PlaySound, unpack = _G.hooksecurefunc, _G.PlaySound, _G.unpack;
 
-local function CreateDialogBox(textureType, frame, parent, globalName)
-  frame = frame or tk:CreateFrame("Frame", parent, globalName);
+---comment
+---@param self MayronUI.GridTextureMixin|Frame
+local function OnGridFrameSizeChanged(self)
+  local width, height = self:GetSize();
+  local min, max = math.min(width, height), math.max(width, height);
+  local percent = min/max;
+  local size = width;
 
-  local texture = tk:GetAssetFilePath("Textures\\DialogBox\\DialogBackground-"..textureType);
-  local cornerSize = (textureType == "Medium" and 10) or 6;
-  gui:CreateGridTexture(frame, texture, 10, cornerSize, 512, 512);
+  if (percent < 0.3) then
+    if (max > 500) then
+      size = max;
+    else
+      size = min;
+    end
+  end
+
+  ---@type MayronUI.GridTextureType
+  local textureType = "ExtraLarge"
+
+  if (size < 250) then
+    textureType = "ExtraSmall";
+  elseif (size < 350) then
+    textureType = "Small";
+  elseif (size < 600) then
+    textureType = "Medium";
+  elseif (size < 900) then
+    textureType = "Large";
+  end
+
+  if (self.textureType ~= textureType) then
+    local texture = tk:GetAssetFilePath("Textures\\DialogBox\\Dialog-"..textureType);
+    self:SetGridTexture(texture);
+    self.textureType = textureType;
+  end
+end
+
+---@param frame Frame|BackdropTemplate A frame to apply the dialog box background texture to
+---@param alphaType? MayronUI.GridAlphaType
+---@param padding number?
+---@return Frame|MayronUI.GridTextureMixin|table @The new frame (or existing frame if the frame param was supplied).
+function gui:AddDialogTexture(frame, alphaType, padding)
+  local texture = tk:GetAssetFilePath("Textures\\DialogBox\\Dialog-Medium");
+  local gridFrame = gui:CreateGridTexture(frame, texture, 12, padding or 12, 674, 674);
 
   -- apply the theme color for each Grid Cell
-  tk.Constants.AddOnStyle:ApplyColor(
-    nil, nil, frame.tl, frame.tr, frame.bl, frame.br,
-    frame.t, frame.b, frame.l, frame.r, frame.c);
-
+  local r, g, b = tk:GetThemeColor();
+  gridFrame:SetGridAlphaType(alphaType or "Regular");
+  gridFrame:SetGridColor(r, g, b);
   frame:SetFrameStrata("DIALOG");
 
-  return frame;
-end
+  gridFrame:HookScript("OnSizeChanged", OnGridFrameSizeChanged);
+  gridFrame:HookScript("OnShow", OnGridFrameSizeChanged);
+  local width = gridFrame:GetWidth();
 
----@param alphaType ("High"|"Regular"|"Low") The dialog box background alpha type
----@param frame Frame? @(optional) A frame to apply the dialog box background texture to (a new one is created if nil)
----@param parent Frame? @(optional) The parent frame to give the new frame if frame param is nil
----@param globalName string? @(optional) A global name to give the new frame if frame param is nil
----@return Frame @The new frame (or existing frame if the frame param was supplied).
-function gui:CreateLargeDialogBox(alphaType, frame, parent, globalName)
-  return CreateDialogBox(alphaType, frame, parent, globalName);
-end
+  if (width and width > 0) then
+    OnGridFrameSizeChanged(gridFrame);
+  end
 
----@param frame Frame? @(optional) A frame to apply the dialog box background texture to (a new one is created if nil)
----@param parent Frame? @(optional) The parent frame to give the new frame if frame param is nil
----@param globalName string? @(optional) A global name to give the new frame if frame param is nil
----@return Frame @The new frame (or existing frame if the frame param was supplied).
-function gui:CreateSmallDialogBox(frame, parent, globalName)
-  return CreateDialogBox("Small", frame, parent, globalName);
-end
-
----@param frame Frame? @(optional) A frame to apply the dialog box background texture to (a new one is created if nil)
----@param parent Frame? @(optional) The parent frame to give the new frame if frame param is nil
----@param globalName string? @(optional) A global name to give the new frame if frame param is nil
----@return Frame @The new frame (or existing frame if the frame param was supplied).
-function gui:CreateMediumDialogBox(frame, parent, globalName)
-  return CreateDialogBox("Medium", frame, parent, globalName);
+  return gridFrame;
 end
 
 do
@@ -432,7 +451,7 @@ end
 
 function gui:AddCloseButton(frame, onHideCallback, xOffset, yOffset)
   frame.closeBtn = self:CreateIconButton("cross", frame);
-  frame.closeBtn:SetPoint("TOPRIGHT", -6 + (xOffset or 0), -4 + (yOffset or 0));
+  frame.closeBtn:SetPoint("TOPRIGHT", -2, -1);
 
   local group = frame:CreateAnimationGroup();
   group.a1 = group:CreateAnimation("Translation");

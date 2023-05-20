@@ -70,7 +70,7 @@ local function LoadTutorial(panel)
   frame:SetSize(300, 150);
   frame:SetPoint("BOTTOM", panel, "TOP", 0, 120);
 
-  gui:CreateSmallDialogBox(frame);
+  gui:AddDialogTexture(frame);
   gui:AddCloseButton(frame);
   gui:AddTitleBar(frame, L["Tutorial: Step 1"]);
   gui:AddArrow(frame, "DOWN");

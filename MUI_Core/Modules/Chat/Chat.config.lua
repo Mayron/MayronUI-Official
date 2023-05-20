@@ -298,7 +298,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
 
     db.profile.chat.highlighted = highlighted;
     local config = GetTextHighlightingFrameConfigTable(highlighted[id]);
-    configModule:RenderComponent(config);
+    configModule:RenderComponent(nil, config);
   end
 
   local channelNames = obj:PopTable();
@@ -362,7 +362,6 @@ function C_ChatModule:GetConfigTable(_, configModule)
           { type = "divider" };
           { type = "slider";
             name = L["Alias Brightness"];
-            tooltip = L["Default value is"] .. " 0.7";
             dbPath = "profile.chat.brightness";
             min = 0;
             max = 1;
@@ -456,16 +455,14 @@ function C_ChatModule:GetConfigTable(_, configModule)
             min = -50;
             max = 50;
             valueType = "number",
-            tooltip = tk.Strings:Join(
-              L["Set the vertical positioning of the edit box."],
-              "\n\n", L["Default value is"], " -8.");
+            tooltip = L["Set the vertical positioning of the edit box."];
             dbPath = "profile.chat.editBox.yOffset";
           },
           { name = L["Set Height"];
             type = "slider";
             min = 20;
             max = 50;
-            tooltip = tk.Strings:Join(L["The height of the edit box."], "\n\n", L["Default value is"], " 27.");
+            tooltip = L["The height of the edit box."];
             dbPath = "profile.chat.editBox.height";
           },
           { type = "divider" };
@@ -486,15 +483,14 @@ function C_ChatModule:GetConfigTable(_, configModule)
             type = "slider",
             min = 1;
             max = 10;
-            tooltip = tk.Strings:Join("\n\n", L["Set the border size."], L["Default value is"] .. " 1"),
+            tooltip = L["Set the border size."],
             dbPath = "profile.chat.editBox.borderSize"
           },
           { name = L["Backdrop Inset"],
             type = "slider",
             min = 0;
             max = 10;
-            tooltip = tk.Strings:Join("\n\n",
-              L["Set the spacing between the background and the border."], L["Default value is"] .. " 0"),
+            tooltip = L["Set the spacing between the background and the border."],
             dbPath = "profile.chat.editBox.inset"
           },
         }
@@ -656,8 +652,19 @@ function C_ChatModule:GetConfigTable(_, configModule)
                   dbPath = string.format("%s.enabled", dbPath),
                   OnClick = function(_, value)
                     for _, container in ipairs(disabledWidgets) do
-                      local widget = container.component or container.btn;
-                      widget:SetEnabled(value);
+                      local widget;
+
+                      if (container.component) then
+                        -- could be a slider or dropdown
+                        widget = container.component.dropdown or container.component;
+                      elseif (container.btn) then
+                        -- check button
+                        widget = container.btn;
+                      end
+
+                      if (obj:IsTable(widget) and obj:IsFunction(widget.SetEnabled)) then
+                        widget:SetEnabled(value);
+                      end
                     end
                   end
                 },
@@ -706,7 +713,9 @@ function C_ChatModule:GetConfigTable(_, configModule)
           };
 
           for i = 1, 3 do
-            tk.Tables:AddAll(ConfigTable.children, CreateButtonConfigTable(dbPath, i, chatFrame, addWidget));
+            tk.Tables:AddAll(
+              ConfigTable.children,
+              CreateButtonConfigTable(dbPath, i, chatFrame, addWidget));
           end
 
           return ConfigTable;

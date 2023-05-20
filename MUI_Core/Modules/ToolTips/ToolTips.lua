@@ -288,13 +288,12 @@ local function SetBackdropStyle(data)
         ManageGetterOverrides(data, tooltip, true);
 
         if (not obj:IsFunction(tooltip.SetGridTextureShown)) then
-          gui:CreateSmallDialogBox(tooltip);
+          gui:AddDialogTexture(tooltip);
         end
 
         if (data.settings.muiTexture.useTheme) then
-          tk.Constants.AddOnStyle:ApplyColor(
-            nil, nil, tooltip.tl, tooltip.tr, tooltip.bl, tooltip.br,
-            tooltip.t, tooltip.b, tooltip.l, tooltip.r, tooltip.c);
+          local r, g, b = tk:GetThemeColor();
+          tooltip:SetGridColor(r, g, b, 1);
         else
           -- custom color
           local r, g, b, a = unpack(data.settings.muiTexture.custom);

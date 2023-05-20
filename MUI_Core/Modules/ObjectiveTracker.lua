@@ -254,7 +254,7 @@ function C_ObjectiveTracker:OnEnable(data)
   block.NormalBG:Hide();
   block:SetHeight(70);
 
-  local box = gui:CreateSmallDialogBox(nil, block);
+  local box = gui:CreateDialogBox("Small", nil, block);
   box:SetPoint("TOPLEFT", 5, -5);
   box:SetPoint("BOTTOMRIGHT", -5, 5);
   box:SetFrameStrata("BACKGROUND");

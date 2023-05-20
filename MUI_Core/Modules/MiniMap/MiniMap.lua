@@ -5,7 +5,6 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local missionBtn = _G.ExpansionLandingPageMinimapButton or _G.GarrisonLandingPageMinimapButton;
 
-
 -- Register and Import ---------
 
 ---@class MiniMapModule : BaseModule
@@ -172,8 +171,7 @@ do
     local relativeTo;
 
     settings.size = width;
-    settings.point, relativeTo, settings.relativePoint, settings.x, settings.y =
-      Minimap:GetPoint();
+    settings.point, relativeTo, settings.relativePoint, settings.x, settings.y = Minimap:GetPoint();
 
     local x = math.floor(settings.x + 0.5);
     local y = math.floor(settings.y + 0.5);
@@ -202,8 +200,7 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
   if (IsAddOnLoaded("Blizzard_BattlefieldMap") and _G.BattlefieldMapFrame) then
     local updateSize;
     local originalWidth, originalHeight = 298, 199;
-    local mapFrame, mapTab, mapOptions = _G.BattlefieldMapFrame,
-      _G.BattlefieldMapTab, _G.BattlefieldMapOptions;
+    local mapFrame, mapTab, mapOptions = _G.BattlefieldMapFrame, _G.BattlefieldMapTab, _G.BattlefieldMapOptions;
     local previousWidth;
     local GetMinimapZoneText = _G.GetMinimapZoneText;
 
@@ -253,23 +250,22 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
       gui:AddTitleBar(self, GetMinimapZoneText());
       self.titleBar:SetFrameStrata("HIGH");
       self.titleBar:RegisterForClicks("RightButtonUp");
-      self.titleBar:SetScript(
-        "OnClick", function(self, button)
-          if (button == "RightButton") then
-            PlaySound(tk.Constants.CLICK);
+      self.titleBar:SetScript("OnClick", function(self, button)
+        if (button == "RightButton") then
+          PlaySound(tk.Constants.CLICK);
 
-            -- If Rightclick bring up the options menu
-            if (button == "RightButton") then
-              local function InitializeOptionsDropDown(self)
-                self:GetParent():InitializeOptionsDropDown();
-              end
-              _G.UIDropDownMenu_Initialize(
-                mapTab.OptionsDropDown, InitializeOptionsDropDown, "MENU");
-              ToggleDropDownMenu(1, nil, mapTab.OptionsDropDown, self, 0, 0);
-              return;
+          -- If Rightclick bring up the options menu
+          if (button == "RightButton") then
+            local function InitializeOptionsDropDown(self)
+              self:GetParent():InitializeOptionsDropDown();
             end
+            _G.UIDropDownMenu_Initialize(
+              mapTab.OptionsDropDown, InitializeOptionsDropDown, "MENU");
+            ToggleDropDownMenu(1, nil, mapTab.OptionsDropDown, self, 0, 0);
+            return;
           end
-        end);
+        end
+      end);
 
       self.dragger:SetFrameStrata("HIGH");
       mapTab:Hide();
@@ -278,42 +274,39 @@ callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
       local container = self.ScrollContainer;
       container:SetAllPoints(self);
 
-      self.dragger:HookScript(
-        "OnDragStop", function()
-          container:ZoomIn();
-          container:ZoomOut();
-          updateSize = nil;
-        end);
+      self.dragger:HookScript("OnDragStop", function()
+        container:ZoomIn();
+        container:ZoomOut();
+        updateSize = nil;
+      end);
 
-      self.dragger:HookScript(
-        "OnDragStart", function()
-          updateSize = true;
-          C_Timer.After(0.1, DragStep);
-        end);
+      self.dragger:HookScript("OnDragStart", function()
+        updateSize = true;
+        C_Timer.After(0.1, DragStep);
+      end);
 
       self.reskinned = true;
     end
 
     mapFrame:SetFrameStrata("MEDIUM");
     mapFrame:HookScript("OnShow", update);
-    mapFrame:HookScript(
-      "OnEvent", function(self)
-        if (self.titleBar) then
-          self.titleBar.text:SetText(GetMinimapZoneText());
-        end
-      end);
+    mapFrame:HookScript("OnEvent", function(self)
+      if (self.titleBar) then
+        self.titleBar.text:SetText(GetMinimapZoneText());
+      end
+    end);
 
-    local bg = gui:CreateMediumDialogBox(mapFrame, nil, "MUI_ZoneMap");
+    local bgFrame = tk:CreateFrame("Frame", mapFrame, "MUI_ZoneMap");
+    local bg = gui:AddDialogTexture(bgFrame);
     bg:SetAllPoints(true);
     bg:SetFrameStrata("LOW");
     bg:SetAlpha(1.0 - mapOptions.opacity);
 
-    tk:HookFunc(
-      mapFrame, "RefreshAlpha", function()
-        local alpha = 1.0 - mapOptions.opacity;
-        bg:SetAlpha(1.0 - mapOptions.opacity);
-        mapFrame.titleBar:SetAlpha(math.max(alpha, 0.3));
-      end);
+    tk:HookFunc(mapFrame, "RefreshAlpha", function()
+      local alpha = 1.0 - mapOptions.opacity;
+      bg:SetAlpha(1.0 - mapOptions.opacity);
+      mapFrame.titleBar:SetAlpha(math.max(alpha, 0.3));
+    end);
 
     mapFrame.BorderFrame.CloseButtonBorder:SetTexture("");
     mapFrame.BorderFrame.CloseButton:SetPoint(

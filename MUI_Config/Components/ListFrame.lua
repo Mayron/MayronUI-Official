@@ -117,7 +117,8 @@ function C_ListFrame:SetShown(data, shown)
     return;
   end
 
-  data.listFrame = gui:CreateMediumDialogBox(nil, _G["MUI_Config"]);
+  local frame = tk:CreateFrame("Frame", nil, _G["MUI_Config"]);
+  data.listFrame = gui:AddDialogTexture(frame);
   data.rows = obj:PopTable();
 
   gui:AddTitleBar(data.listFrame, data.listFrameTitle);

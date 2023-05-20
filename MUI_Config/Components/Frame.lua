@@ -5,7 +5,7 @@ local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local tonumber = _G.tonumber;
 
 function Components.frame(parent, config)
-  local frame = tk:CreateFrame(nil, parent);
+  local frame = tk:CreateFrame("Frame", parent);
   local dynamicFrame = gui:CreateDynamicFrame(
     parent, config.spacing or 10, config.padding or 10, frame);
 
@@ -21,7 +21,8 @@ function Components.frame(parent, config)
   end
 
   if (obj:IsNumber(percent) or not obj:IsNumber(config.width)) then
-    tk:SetFullWidth(frame, 10, percent);
+    frame.rightPadding = 20;
+    tk:SetFullWidth(frame, percent);
   else
     frame:SetWidth(config.width);
   end

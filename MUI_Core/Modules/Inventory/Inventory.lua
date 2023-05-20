@@ -136,7 +136,7 @@ local databaseConfig = {
   };
 };
 
-local containerPadding = { top = 34, right = 4, bottom = 36, left = 4 };
+local containerPadding = { top = 38, right = 8, bottom = 38, left = 8 };
 local originalTopPadding = containerPadding.top;
 local originalRightPadding = containerPadding.right;
 
@@ -1520,10 +1520,10 @@ function C_Inventory:OnInitialize()
       end
     end);
 
-    gui:CreateMediumDialogBox(inventoryFrame);
+    gui:AddDialogTexture(inventoryFrame, "High");
     inventoryFrame:SetFrameStrata(tk.Constants.FRAME_STRATAS.HIGH);
     gui:AddTitleBar(inventoryFrame, "Inventory");
-    inventoryFrame.titleBar:SetPoint("TOPLEFT", inventoryFrame, "TOPLEFT", -11, 11);
+    -- inventoryFrame.titleBar:SetPoint("TOPLEFT", inventoryFrame, "TOPLEFT", -11, 11);
     gui:AddCloseButton(inventoryFrame, nil, 4, 4);
     gui:AddResizer(inventoryFrame);
     inventoryFrame.bags = {};

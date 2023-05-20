@@ -553,7 +553,7 @@ do
 
     self.copyChatFrame = frame;
 
-    gui:CreateLargeDialogBox("Regular", frame);
+    gui:AddDialogTexture(frame);
     gui:AddCloseButton(frame);
     gui:AddTitleBar(frame, L["Copy Chat Text"]);
 

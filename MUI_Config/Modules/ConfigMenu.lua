@@ -413,11 +413,11 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
       btn.menu = gui:CreateDynamicFrame(optionsFrame, 10, 10);
       local menuScrollFrame = btn.menu:GetFrame();
 
-      gui:CreateLargeDialogBox("Low", menuScrollFrame);
+      gui:AddDialogTexture(menuScrollFrame);
       menuScrollFrame:SetPoint("BOTTOMRIGHT", -10, 0);
 
       if (btn.type == "tab") then
-        menuScrollFrame:SetPoint("TOPLEFT", btn:GetParent(), "BOTTOMLEFT", 2, -2);
+        menuScrollFrame:SetPoint("TOPLEFT", btn:GetParent(), "BOTTOMLEFT", 4, -4);
       else
         menuScrollFrame:SetPoint("TOPLEFT");
       end
@@ -485,11 +485,14 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
 end
 
 obj:DefineParams("table");
-function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
+function C_ConfigMenuModule:RenderComponent(data, menuConfig, componentConfig)
   if (componentConfig.ignore) then
     obj:PushTable(componentConfig);
     return
   end
+
+  local optionsFrame = data.selectedButton.menu:GetFrame();
+  local menuScrollChild = optionsFrame.ScrollFrame:GetScrollChild(); -- the component's parent
 
   if (menuConfig) then
     -- there are some calls to render components later on demand when the menuConfig no longer exists
@@ -501,7 +504,7 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
   if (componentType == "loop" or componentType == "condition") then
     -- run the loop to gather component children
     local components = MayronUI:GetComponent("ConfigMenuComponents");
-    local results = components[componentType](data.selectedButton.menu:GetFrame(), componentConfig);
+    local results = components[componentType](menuScrollChild, componentConfig);
 
     if (componentType == "condition" and not obj:IsTable(results)) then
       obj:PushTable(componentConfig);
@@ -513,10 +516,10 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
       if (obj:IsTable(result)) then
         if (result.type) then
           local childConfig = result;
-          self:RenderComponent(childConfig, componentConfig);
+          self:RenderComponent(componentConfig, childConfig);
         else
           for _, childConfig in ipairs(result) do
-            self:RenderComponent(childConfig, componentConfig);
+            self:RenderComponent(componentConfig, childConfig);
           end
         end
       end
@@ -534,7 +537,7 @@ function C_ConfigMenuModule:RenderComponent(data, componentConfig, menuConfig)
 
   local menuGroups = menuConfig and menuConfig.groups;
   local componentChildrenConfigs = componentConfig.children; -- else it'll be pushed when transfering
-  local menuScrollChild = data.selectedButton.menu:GetFrame().ScrollFrame:GetScrollChild(); -- the component's parent
+
   local component = CreateComponent(componentConfig, menuGroups, menuScrollChild);
   componentConfig = nil; --luacheck: ignore (this has been consumed and transferred)
 
@@ -569,9 +572,9 @@ function C_ConfigMenuModule:RenderMenuComponents(_, menuButton)
 
   menuConfig.groups = {};
 
-  for _, componentConfigTable in pairs(menuConfig.children) do
-    if (not IsUnsupportedByClient(componentConfigTable.client)) then
-      self:RenderComponent(componentConfigTable, menuConfig);
+  for _, componentConfig in pairs(menuConfig.children) do
+    if (not IsUnsupportedByClient(componentConfig.client)) then
+      self:RenderComponent(menuConfig, componentConfig);
     end
   end
 
@@ -700,7 +703,8 @@ function C_ConfigMenuModule:SetUpWindow(data)
 
   data.history = C_LinkedList();
 
-  data.window = gui:CreateLargeDialogBox("Regular", nil, nil, "MUI_Config");
+  local windowFrame = tk:CreateFrame("Frame", nil, "MUI_Config")
+  data.window = gui:AddDialogTexture(windowFrame);
   data.window:SetFrameStrata("DIALOG");
   data.window:Hide();
   data.window:EnableMouse(true);
@@ -728,25 +732,23 @@ function C_ConfigMenuModule:SetUpWindow(data)
   end);
 
   local topbar = data.window:CreateCell();
-  topbar:SetInsets(25, 14, 2, 10);
+  topbar:SetInsets(25, 15, 2, 10);
   topbar:SetDimensions(2, 1);
 
   data.topbarFrame = topbar:GetFrame();
 
-  local menuListContainer = gui:CreateScrollFrame(data.window:GetFrame(), "MUI_ConfigSideBar", nil, -4);
+  local menuListContainer = gui:CreateScrollFrame(data.window:GetFrame(), "MUI_ConfigSideBar", nil, 6);
   local menuListCell = data.window:CreateCell(menuListContainer);
-  menuListCell:SetInsets(2, 10, 10, 10);
+  menuListCell:SetInsets(0, 14, 10, 10);
 
   data.options = data.window:CreateCell();
-  data.options:SetInsets(2, 14, 2, 2);
+  data.options:SetInsets(2, 10, 2, 2);
 
   local versionCell = data.window:CreateCell();
   versionCell:SetInsets(10, 10, 10, 10);
 
-  versionCell.text = versionCell:CreateFontString(
-                       nil, "OVERLAY", "GameFontHighlight");
+  versionCell.text = versionCell:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   versionCell.text:SetText(strformat("Version: %s", tk:GetVersion()));
-
   versionCell.text:SetPoint("BOTTOMLEFT");
 
   local bottombar = data.window:CreateCell();
@@ -828,8 +830,6 @@ function C_ConfigMenuModule:SetUpWindow(data)
   refreshButton:SetScript("OnClick", _G.ReloadUI);
 
   local menuListScrollChild = menuListContainer.ScrollFrame:GetScrollChild();
-  tk:SetFullWidth(menuListScrollChild);
-
   return menuListScrollChild;
 end
 
@@ -926,7 +926,7 @@ do
       if (id == 1) then
         -- first menu button (does not need to be anchored to a previous button)
         menuButton:SetPoint("TOPLEFT", menuListScrollChild, "TOPLEFT");
-        menuButton:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT", -10, 0);
+        menuButton:SetPoint("TOPRIGHT", menuListScrollChild, "TOPRIGHT");
         menuButton:SetChecked(true);
 
         self:SetSelectedContentButton(menuButton);

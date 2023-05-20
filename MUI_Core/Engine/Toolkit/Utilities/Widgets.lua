@@ -13,7 +13,9 @@ local GameTooltip = _G.GameTooltip;
 --> Tooltip Functions
 ------------------------------------------------
 function tk.HandleTooltipOnLeave()
-  GameTooltip.SetFrameStrata = GameTooltip.__oldSetFrameStrata;
+  if (obj:IsFunction(GameTooltip.__oldSetFrameStrata)) then
+    GameTooltip.SetFrameStrata = GameTooltip.__oldSetFrameStrata;
+  end
   GameTooltip:Hide();
 end
 
@@ -114,23 +116,28 @@ end
 --> Frame Moving and Resizing Functions
 ------------------------------------------------
 
-function tk:SetFullWidth(frame, rightPadding, percent)
-  rightPadding = rightPadding or 0;
+function tk:SetFullWidth(frame, percent)
   percent = (percent or 100) / 100;
 
   local parent = frame:GetParent();
 
   if (not parent) then
     hooksecurefunc(frame, "SetParent", function()
-      tk:SetFullWidth(frame, rightPadding, percent);
+      tk:SetFullWidth(frame, percent);
     end);
   else
-    parent:HookScript("OnSizeChanged", function(_, width)
-      frame:SetWidth((width * percent) - rightPadding);
-    end);
+    if (not frame.__hookParentSizeChanged) then
+      parent:HookScript("OnSizeChanged", function(_, width)
+        frame:SetWidth((width * percent) - (frame.rightPadding or 0));
+      end);
+
+      frame.__hookParentSizeChanged = true;
+    end
 
     local parentWidth = parent:GetWidth();
-    frame:SetWidth((parentWidth * percent) - rightPadding);
+    if (parentWidth > 0) then
+      frame:SetWidth((parentWidth * percent) - (frame.rightPadding or 0));
+    end
   end
 end
 

@@ -80,7 +80,7 @@ end
 
 -- Helper constructor!
 function gui:CreateDynamicFrame(parent, spacing, padding, frame)
-  frame = frame or gui:CreateScrollFrame(parent, nil, nil, 10);
+  frame = frame or gui:CreateScrollFrame(parent);
   frame:HookScript("OnSizeChanged", OnSizeChanged);
   frame.spacing = spacing or 4; -- the spacing around each inner element
   frame.padding = padding or 4; -- the padding around the entire container (which holds all the elements)

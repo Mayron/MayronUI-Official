@@ -85,7 +85,6 @@ local function AddFontSizeOption(children, name, settings)
     step = 1;
     max = 24;
     dbPath = "fontSize";
-    tooltip = L["Default value is"] .. " 12";
     enabled = settings.show;
     OnLoad = function(_, container)
       widgets[name].fontSize = container.component;
@@ -101,7 +100,6 @@ local function AddScaleOption(children, name)
     min = 0.2;
     step = 0.1;
     max = 2;
-    tooltip = L["Default value is"].." 1";
     dbPath = "scale";
     OnLoad = function(_, container)
       widgets[name].scale = container.component;
@@ -189,7 +187,7 @@ function C_MiniMapModule:GetConfigTable(data)
         valueType = "number",
         min = 120;
         max = 400;
-        tooltip = tk.Strings:Join("\n", L["Adjust the size of the minimap."], L["Default value is"].." 200"),
+        tooltip = L["Adjust the size of the minimap."],
         dbPath = "size",
       };
       {
@@ -199,7 +197,7 @@ function C_MiniMapModule:GetConfigTable(data)
         min = 0.5;
         step = 0.1;
         max = 3;
-        tooltip = tk.Strings:Join("\n", L["Adjust the scale of the minimap."], L["Default value is"].." 1"),
+        tooltip = L["Adjust the scale of the minimap."],
         dbPath = "scale",
       };
       { name = L["Enable Test Mode"];

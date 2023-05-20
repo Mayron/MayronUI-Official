@@ -329,4 +329,5 @@ tk.Constants.DEBUG_WHITELIST = {
   ["Maulron-Gehennas"] = true;
   ["Maragor-Gehennas"] = true;
   ["Pyranor-Gehennas"] = true;
+  ["Cinderon-Gehennas"] = true;
 }

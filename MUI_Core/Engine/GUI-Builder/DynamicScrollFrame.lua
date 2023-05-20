@@ -25,7 +25,7 @@ local function DynamicScrollBar_OnChange(self)
     container = self:GetParent();
   end
 
-  local scrollBar = scrollFrame.ScrollBar;
+  local scrollBar = scrollFrame.ScrollBar--[[@as Frame]];
 
   if (not scrollFrame.scrollable) then
     container.showScrollBar = nil;
@@ -50,6 +50,34 @@ local function DynamicScrollBar_OnChange(self)
     container.showScrollBar = nil;
     scrollBar:Hide();
   end
+
+  if (scrollBar:IsShown()) then
+    -- apply rightPadding:
+    for i = 1, scrollBar:GetNumPoints() do
+      local point, _, _, xOffset = scrollBar:GetPoint(i);
+
+      if (point == "BOTTOMLEFT") then
+        local offsetAndWidth = xOffset or 0;
+        scrollChild.rightPadding = math.abs(offsetAndWidth) + 6;
+        break
+      end
+    end
+  else
+    -- remove rightPadding:
+    scrollChild.rightPadding = nil;
+  end
+end
+
+local function DynamicScrollBar_OnShow(self)
+  DynamicScrollBar_OnChange(self);
+  local scrollFrame = self.ScrollFrame;
+
+  if (not scrollFrame) then
+    scrollFrame = self;
+  end
+
+  local scrollChild = scrollFrame:GetScrollChild();
+  tk:SetFullWidth(scrollChild);
 end
 
 local function ScrollFrame_OnMouseWheel(self, step)
@@ -78,7 +106,7 @@ end
 -- Lib Methods ------------------
 
 -- Creates a scroll frame inside a container frame
-function gui:CreateScrollFrame(parent, global, child, scrollBarOffset)
+function gui:CreateScrollFrame(parent, global, child)
   local style = tk.Constants.AddOnStyle;
   local container = tk:CreateBackdropFrame("Frame", parent, global);
   container.ScrollFrame = tk:CreateFrame("ScrollFrame", container--[[@as Frame]], nil, "UIPanelScrollFrameTemplate");
@@ -88,18 +116,15 @@ function gui:CreateScrollFrame(parent, global, child, scrollBarOffset)
   child = child or tk:CreateFrame("Frame", container.ScrollFrame);
   container.ScrollFrame:SetScrollChild(child);
 
-  tk:SetFullWidth(child);
-
-  local barWidth = 8;
-  if (scrollBarOffset == nil) then
-    scrollBarOffset = 0;
-  end
+  local barWidth = 6;
 
   -- ScrollBar ------------------
   container.ScrollBar = container.ScrollFrame.ScrollBar--[[@as Slider]];
   container.ScrollBar:ClearAllPoints();
-  container.ScrollBar:SetPoint("TOPLEFT", container, "TOPRIGHT", scrollBarOffset, 0);
-  container.ScrollBar:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", scrollBarOffset + barWidth, 0);
+  container.ScrollBar:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, 0);
+  container.ScrollBar:SetPoint("BOTTOMLEFT", container, "BOTTOMRIGHT", -barWidth, 0);
+
+  tk:SetFullWidth(child);
 
   container.ScrollBar.ClearAllPoints = tk.Constants.DUMMY_FUNC;
   container.ScrollBar.SetPoint = tk.Constants.DUMMY_FUNC;
@@ -109,14 +134,14 @@ function gui:CreateScrollFrame(parent, global, child, scrollBarOffset)
   container.ScrollBar.thumb:SetColorTexture(1, 1, 1); -- needed to remove old texture and color correctly in ApplyColor (patch 8.1.5)
 
   style:ApplyColor(nil, 1, container.ScrollBar.thumb);
-  container.ScrollBar.thumb:SetSize(6, 50);
+  container.ScrollBar.thumb:SetSize(barWidth, 50);
   container.ScrollBar:Hide();
 
   tk:SetBackground(container.ScrollBar, 0, 0, 0, 0.2);
   tk:KillElement(container.ScrollBar.ScrollUpButton);
   tk:KillElement(container.ScrollBar.ScrollDownButton);
 
-  container:SetScript("OnShow", DynamicScrollBar_OnChange);
+  container:SetScript("OnShow", DynamicScrollBar_OnShow);
   container:HookScript("OnSizeChanged", DynamicScrollBar_OnChange);
   container.ScrollFrame:SetScript("OnMouseWheel", ScrollFrame_OnMouseWheel);
 

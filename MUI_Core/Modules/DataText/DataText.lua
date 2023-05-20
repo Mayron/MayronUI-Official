@@ -238,7 +238,8 @@ function C_DataTextModule:OnEnable(data)
   data.popup.ScrollBar:SetPoint("TOPLEFT", data.popup, "TOPRIGHT", -6, 1);
   data.popup.ScrollBar:SetPoint("BOTTOMRIGHT", data.popup, "BOTTOMRIGHT", -1, 1);
 
-  data.popup.bg = gui:CreateLargeDialogBox("HIGH", data.popup);
+  data.popup.bg = gui:AddDialogTexture(data.popup);
+  data.popup.bg:SetGridAlphaType("High");
   data.popup.bg:SetPoint("TOPLEFT", 0, 2);
   data.popup.bg:SetPoint("BOTTOMRIGHT", 0, -2);
 

@@ -822,7 +822,7 @@ do
       frame:SetPoint("CENTER");
       frame:Hide();
 
-      gui:CreateMediumDialogBox(frame);
+      gui:AddDialogTexture(frame);
       gui:AddCloseButton(frame);
       gui:AddTitleBar(frame, L["Copy Chat Text"]);
 

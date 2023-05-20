@@ -127,7 +127,10 @@ function C_ConfigMenu:GetConfigTable()
             db:RemoveAppended(db.profile, "unitPanels.sufGradients");
           end;
         };
-        { type = "title"; name = L["Global Settings"]; description = L["These settings are applied account-wide"] };
+        { type = "title";
+          name = L["Global Settings"];
+          description = L["These settings are applied account-wide"];
+        };
         { type = "check";
           name = "Enable Inventory Frame";
           tooltip = "Use the MayronUI custom inventory frame instead of the default Blizzard bags UI.";
@@ -896,12 +899,10 @@ function C_ConfigMenu:GetConfigTable()
               }; {
                 name = L["Enabled"];
                 type = "check";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], L["true"]);
                 dbPath = tk.Strings:Concat("profile.resourceBars.", key, ".enabled");
               }; {
                 name = L["Show Text"];
                 type = "check";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], L["false"]);
                 dbPath = tk.Strings:Concat("profile.resourceBars.", key, ".alwaysShowText");
               }; {
                 name = L["Height"];

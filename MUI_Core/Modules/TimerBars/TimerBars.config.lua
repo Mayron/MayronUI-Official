@@ -388,7 +388,6 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Bar Width"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".bar.width";
-                              tooltip = tk.Strings:Concat(L["Default value is"], " 213");
                               step = 1;
                               min = 100;
                               max = 400;
@@ -396,7 +395,6 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Bar Height"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".bar.height";
-                              tooltip = tk.Strings:Concat(L["Default value is"], " 22");
                               step = 1;
                               min = 5;
                               max = 50;
@@ -404,7 +402,6 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Bar Spacing"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".bar.spacing";
-                              tooltip = tk.Strings:Concat(L["Default value is"], " 2");
                               step = 1;
                               min = 0;
                               max = 10;
@@ -412,9 +409,7 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Non-Player Alpha"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".nonPlayerAlpha";
-                              tooltip = tk.Strings:Concat(
-                                L["Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs)."],
-                                "\n\n", L["Default value is"], dbFieldPath == "Player" and " 1" or  "0.7");
+                              tooltip = L["Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs)."];
                               step = 0.1;
                               min = 0;
                               max = 1;
@@ -470,7 +465,6 @@ function C_TimerBars:GetConfigTable()
                           };
                           {   name = L["Font Size"];
                               type = "slider";
-                              tooltip = tk.Strings:JoinWithSpace(L["Default value is"], 11);
                               step = 1;
                               min = 8;
                               max = 22;
@@ -492,7 +486,6 @@ function C_TimerBars:GetConfigTable()
                           };
                           {   name = L["Font Size"];
                               type = "slider";
-                              tooltip = tk.Strings:JoinWithSpace(L["Default value is"], 11);
                               step = 1;
                               min = 8;
                               max = 22;

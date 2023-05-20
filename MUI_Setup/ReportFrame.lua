@@ -28,7 +28,7 @@ function C_ReportIssue:OnInitialize(data)
     [3] = L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"];
   }
 
-  local frame = gui:CreateLargeDialogBox("High");
+  local frame = gui:AddDialogTexture(tk:CreateFrame("Frame"));
   frame:SetSize(600, 400);
   frame:SetPoint("CENTER");
   data.reportFrame = frame;

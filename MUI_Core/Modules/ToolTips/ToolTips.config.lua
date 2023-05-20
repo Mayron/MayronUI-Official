@@ -99,6 +99,7 @@ function C_ToolTipsModule:GetConfigTable(data)
               }
             },
             { type = "loop";
+              dbPath = "profile.tooltips",
               args = { L["Unit Frame Tooltips"]; L["World Unit Tooltips"]; L["Standard Tooltips"] };
               func = function(index, header)
                 local settingsName = "standard";
@@ -193,14 +194,12 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             { type = "slider";
               name = L["X-Offset"];
-              tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "2");
               dbPath = "anchors.mouse.xOffset";
               min = -20,
               max = 20
             };
             { type = "slider";
               name = L["Y-Offset"];
-              tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "4");
               dbPath = "anchors.mouse.yOffset";
               min = -20,
               max = 20
@@ -227,7 +226,6 @@ function C_ToolTipsModule:GetConfigTable(data)
             {   type = "textfield";
                 name = L["X-Offset"];
                 valueType = "number";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "-4");
                 dbPath = "anchors.screen.xOffset";
                 OnLoad = function(_, container)
                   screenPointXOffsetTextField = container.component;
@@ -236,7 +234,6 @@ function C_ToolTipsModule:GetConfigTable(data)
             {   type = "textfield";
                 valueType = "number";
                 name = L["Y-Offset"];
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "4");
                 dbPath = "anchors.screen.yOffset";
                 OnLoad = function(_, container)
                   screenPointYOffsetTextField = container.component;
@@ -266,7 +263,6 @@ function C_ToolTipsModule:GetConfigTable(data)
             { type = "divider" };
             {   name = L["Standard Font Size"];
                 type = "slider";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "14");
                 step = 1;
                 min = 8;
                 max = 20;
@@ -274,7 +270,6 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   name = L["Header Font Size"];
                 type = "slider";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "16");
                 step = 1;
                 min = 8;
                 max = 30;
@@ -282,7 +277,7 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   name = L["Scale"];
                 type = "slider";
-                tooltip = tk.Strings:JoinWithSpace(L["Affects the overall size of the tooltips."], L["Default value is"], "0.8");
+                tooltip = L["Affects the overall size of the tooltips."];
                 step = 0.1;
                 min = 0.5;
                 max = 1.5;
@@ -388,7 +383,6 @@ function C_ToolTipsModule:GetConfigTable(data)
                     };
                     { type = "slider",
                       name = L["Border Size"];
-                      tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "1");
                       step = 1;
                       min = 0;
                       max = 5;
@@ -432,7 +426,6 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   name = L["Font Size"];
                 type = "slider";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "14");
                 step = 1;
                 min = 8;
                 max = 20;
@@ -443,9 +436,8 @@ function C_ToolTipsModule:GetConfigTable(data)
                 dbPath = "healthBar.flag",
                 options = tk.Constants.FONT_FLAG_DROPDOWN_OPTIONS
             };
-            {   name         = L["Height"];
-                type         = "slider";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "18");
+            {   name = L["Height"];
+                type = "slider";
                 min = 4;
                 max = 50;
                 dbPath = "healthBar.height";
@@ -476,7 +468,6 @@ function C_ToolTipsModule:GetConfigTable(data)
             },
             {   name = L["Font Size"];
                 type = "slider";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "14");
                 step = 1;
                 min = 8;
                 max = 20;
@@ -487,9 +478,8 @@ function C_ToolTipsModule:GetConfigTable(data)
                 dbPath = "powerBar.flag",
                 options = tk.Constants.FONT_FLAG_DROPDOWN_OPTIONS;
             };
-            {   name         = L["Height"];
-                type         = "slider";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "18");
+            {   name = L["Height"];
+                type = "slider";
                 min = 4;
                 max = 50;
                 dbPath = "powerBar.height";
@@ -528,7 +518,6 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   name = L["Size"];
                 type = "slider";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "28");
                 step = 1;
                 min = 20;
                 max = 40;
@@ -568,7 +557,6 @@ function C_ToolTipsModule:GetConfigTable(data)
             };
             {   name = L["Size"];
                 type = "slider";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], "28");
                 step = 1;
                 min = 20;
                 max = 40;

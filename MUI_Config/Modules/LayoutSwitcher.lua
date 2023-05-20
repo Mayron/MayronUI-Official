@@ -333,7 +333,8 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 
   data.viewingLayout = db.profile.layout;
 
-  data.layoutTool = gui:CreateLargeDialogBox("Regular");
+  local layoutFrame = tk:CreateFrame("Frame", nil, "MUI_LayoutTool");
+  data.layoutTool = gui:AddDialogTexture(layoutFrame);
   data.layoutTool:SetSize(700, 400);
   data.layoutTool:SetPoint("CENTER");
 
@@ -356,15 +357,16 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
   data.description.text:SetWordWrap(true);
   data.description.text:SetText(LAYOUT_MESSAGE);
 
-  data.addonWindow = gui:CreateDynamicFrame(data.layoutTool:GetFrame(), 5, 10);
-  gui:CreateLargeDialogBox("Low", data.addonWindow:GetFrame());
+  data.addonWindow = gui:CreateDynamicFrame(layoutFrame, 5, 10);
 
+  local addonWindowFrame = data.addonWindow:GetFrame();
+  gui:AddDialogTexture(addonWindowFrame, "Low");
   data.addonWindow = data.layoutTool:CreateCell(data.addonWindow);
   data.addonWindow.dynamicFrame = data.addonWindow:GetFrame();
   data.addonWindow:SetInsets(10, 0, 10, 10);
 
-  local parent = data.layoutTool:GetFrame();
-  data.menu = gui:CreateLargeDialogBox("Low", nil, parent);
+  local menuFrame = tk:CreateFrame("Frame", layoutFrame);
+  data.menu = gui:AddDialogTexture(menuFrame, "Low");
   data.menu = data.layoutTool:CreateCell(data.menu);
   data.menu:SetInsets(10, 10, 10, 15);
 
