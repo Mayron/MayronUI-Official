@@ -22,7 +22,14 @@ local GridTextureMixin = {};
 function GridTextureMixin:SetGridColor(r, g, b, a)
   for _, row in ipairs(regionsByRow) do
     for column = 1, 3 do
-      self[row[column]]:SetVertexColor(r, g, b, a);
+      local texture = self[row[column]]--[[@as Texture]];
+      local alpha = a;
+
+      if (alpha == nil) then
+        alpha = texture:GetAlpha();
+      end
+
+      self[row[column]]:SetVertexColor(r, g, b, alpha or 1);
     end
   end
 end
@@ -49,6 +56,21 @@ function GridTextureMixin:SetGridAlphaType(alphaType)
 
   local r, g, b = self:GetGridColor();
   self.c:SetVertexColor(r, g, b, alpha); -- only reduce middle (not the borders)
+end
+
+---@return MayronUI.GridAlphaType
+function GridTextureMixin:GetGridAlphaType()
+  local _, _, _, alpha = self:GetGridColor();
+
+  if (alpha >= 0.8) then
+    return "High";
+  elseif (alpha <= 0.6 and alpha > 0) then
+    return "Low";
+  elseif (alpha == 0) then
+    return "None";
+  end
+
+  return "Regular";
 end
 
 function GridTextureMixin:GetGridColor()

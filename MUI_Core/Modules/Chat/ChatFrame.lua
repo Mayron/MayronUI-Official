@@ -843,7 +843,7 @@ do
       refreshButton:SetSize(18, 18);
       refreshButton:SetPoint("TOPRIGHT", frame.closeBtn, "TOPLEFT", -10, -3);
       refreshButton:SetNormalTexture(tk:GetAssetFilePath("Textures\\refresh"));
-      refreshButton:GetNormalTexture():SetVertexColor(tk:GetThemeColor());
+      tk:ApplyThemeColor(refreshButton:GetNormalTexture());
       refreshButton:SetHighlightAtlas("chatframe-button-highlight");
       tk:SetBasicTooltip(refreshButton, L["Refresh Chat Text"]);
 

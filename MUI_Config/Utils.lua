@@ -89,7 +89,7 @@ function Utils:WrapInNamedContainer(component, config)
     normalTexture:ClearAllPoints();
     normalTexture:SetPoint("TOPLEFT", 2, -2);
     normalTexture:SetPoint("BOTTOMRIGHT", -2, 2);
-    normalTexture:SetVertexColor(tk:GetThemeColor());
+    tk:ApplyThemeColor(normalTexture);
 
     container.reset:SetHighlightAtlas("chatframe-button-highlight");
 

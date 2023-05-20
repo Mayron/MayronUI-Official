@@ -107,7 +107,6 @@ end
 
 -- Creates a scroll frame inside a container frame
 function gui:CreateScrollFrame(parent, global, child)
-  local style = tk.Constants.AddOnStyle;
   local container = tk:CreateBackdropFrame("Frame", parent, global);
   container.ScrollFrame = tk:CreateFrame("ScrollFrame", container--[[@as Frame]], nil, "UIPanelScrollFrameTemplate");
   container.ScrollFrame:SetAllPoints(true);
@@ -131,9 +130,9 @@ function gui:CreateScrollFrame(parent, global, child)
   hooksecurefunc(container.ScrollBar, "Show", HideIfAnimating);
 
   container.ScrollBar.thumb = container.ScrollBar:GetThumbTexture();
-  container.ScrollBar.thumb:SetColorTexture(1, 1, 1); -- needed to remove old texture and color correctly in ApplyColor (patch 8.1.5)
+  container.ScrollBar.thumb:SetColorTexture(1, 1, 1);
 
-  style:ApplyColor(nil, 1, container.ScrollBar.thumb);
+  tk:ApplyThemeColor(1, container.ScrollBar.thumb);
   container.ScrollBar.thumb:SetSize(barWidth, 50);
   container.ScrollBar:Hide();
 
@@ -155,8 +154,4 @@ function gui:CreateScrollFrame(parent, global, child)
   child:SetScrollable(true);
 
   return container;
-end
-
-function gui:UpdateScrollFrameColor(container, style)
-  style:ApplyColor(nil, 0.8, container.ScrollBar.thumb);
 end

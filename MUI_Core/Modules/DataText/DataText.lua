@@ -275,7 +275,7 @@ end
 obj:DefineReturns("Button");
 function C_DataTextModule:CreateDataTextButton(data)
   local btn = tk:CreateFrame("Button");
-  local btnTextureFilePath = tk.Constants.AddOnStyle:GetTexture("ButtonTexture");
+  local btnTextureFilePath = tk:GetAssetFilePath("Textures\\Widgets\\Button");
   btn:SetNormalTexture(btnTextureFilePath);
   btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
 

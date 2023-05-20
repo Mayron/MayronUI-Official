@@ -122,7 +122,7 @@ function tk.Strings:SetTextColorByClassFileName(text, classFileName)
 end
 
 function tk.Strings:SetTextColorByTheme(text)
-  local themeColor = tk:GetThemeColorMixin();
+  local themeColor = tk.Constants.ThemeColor;
   return themeColor:WrapTextInColorCode(text);
 end
 

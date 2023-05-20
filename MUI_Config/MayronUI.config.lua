@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
+local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local C_ConfigMenu = MayronUI:GetModuleClass("ConfigMenu"); ---@type ConfigMenuModule
 
 local ipairs, strformat, tonumber = _G.ipairs, _G.string.format, _G.tonumber;
@@ -121,10 +121,17 @@ function C_ConfigMenu:GetConfigTable()
           requiresReload = true;
 
           SetValue = function(_, value)
-            value.hex = strformat("%02x%02x%02x", value.r * 255, value.g * 255, value.b * 255);
-            db.profile.theme.color = value;
-            db.profile.bottomui.gradients = nil;
-            db:RemoveAppended(db.profile, "unitPanels.sufGradients");
+            tk:UpdateThemeColor(value);
+          end;
+        };
+        {
+          name = "Set MUI Frame Colors";
+          type = "color";
+          tooltip = "Controls the background color of MUI frames, include the inventory frame, config menu and layout tool.";
+          dbPath = "profile.theme.frameColor";
+          SetValue = function(_, value)
+            db.profile.theme.frameColor = value;
+            gui:SetDialogFrameColor(value.r, value.g, value.b);
           end;
         };
         { type = "title";

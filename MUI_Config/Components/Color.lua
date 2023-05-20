@@ -60,7 +60,7 @@ local function OnColorComponentValueChanged()
   end
 
   SetColorValueToDatabase(container, r, g, b, a);
-  container:UpdateColor(r, g, b, a);
+  container:ApplyThemeColor(r, g, b, a);
 
   if (container.requiresReload) then
     configModule:ShowReloadMessage();
@@ -126,7 +126,7 @@ function Components.color(parent, config, value)
     cbContainer.opacity = 1 - a;
   end
 
-  cbContainer:UpdateColor(r, g, b, a);
+  cbContainer:ApplyThemeColor(r, g, b, a);
 
   hooksecurefunc(cbContainer, "SetEnabled", OnColorComponentEnabled);
   Utils:SetComponentEnabled(cbContainer.btn, config.enabled);

@@ -18,7 +18,7 @@ end
 
 local function OnEnable(self)
   local frame = self:GetParent();
-  frame.bg:SetVertexColor(self.themeColor[1], self.themeColor[2], self.themeColor[3]);
+  tk:ApplyThemeColor(frame.bg);
   self:SetAlpha(1);
 end
 
@@ -30,14 +30,12 @@ local function OnDisable(self)
 end
 
 function TextField:__Construct(data, parent)
-  local style = tk.Constants.AddOnStyle;
-  local r, g, b = style:GetColor();
   data.frame = tk:CreateFrame("Frame", parent);
   data.frame:SetSize(120, 28);
 
-  local background = style:GetTexture("TextField");
+  local background = tk:GetAssetFilePath("Textures\\Widgets\\TextField");
   data.frame.bg = tk:SetBackground(data.frame, background);
-  data.frame.bg:SetVertexColor(r, g, b);
+  tk:ApplyThemeColor(data.frame.bg);
 
   data.editBox = tk:CreateFrame("EditBox", data.frame, nil, "InputBoxTemplate");
   data.editBox:SetPoint("TOPLEFT", data.frame, "TOPLEFT", 8, 0);
@@ -53,8 +51,6 @@ function TextField:__Construct(data, parent)
   data.editBox:SetScript("OnDisable", OnDisable);
 
   tk:KillAllElements(data.editBox.Middle, data.editBox.Left, data.editBox.Right);
-
-  data.editBox.themeColor = obj:PopTable(r, g, b);
 end
 
 function TextField:SetEnabled(data, enabled)

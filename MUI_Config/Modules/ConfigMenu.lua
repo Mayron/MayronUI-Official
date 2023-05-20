@@ -818,7 +818,7 @@ function C_ConfigMenuModule:SetUpWindow(data)
   refreshButton:SetSize(20, 20);
   refreshButton:SetPoint("RIGHT", data.window.layoutsBtn, "LEFT", -10, 0);
   refreshButton:SetNormalTexture(tk:GetAssetFilePath("Textures\\refresh"));
-  refreshButton:GetNormalTexture():SetVertexColor(tk:GetThemeColor());
+  tk:ApplyThemeColor(refreshButton:GetNormalTexture());
   refreshButton:SetHighlightAtlas("chatframe-button-highlight");
 
   local highlight = refreshButton:GetHighlightTexture();

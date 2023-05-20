@@ -92,24 +92,6 @@ db:OnStartUp(function(self, sv)
   myFont:SetFontObject("GameFontNormalLarge");
   myFont:SetTextColor(r, g, b);
 
-  -- To keep UI widget styles consistent ----------
-  -- Can only use once Database is loaded...
-  local style = obj:Import("MayronUI.Style")(); ---@type Style
-  tk.Constants.AddOnStyle = style;
-
-  -- TODO: Deprecate this
-  style:SetPadding(10, 10, 10, 10);
-  style:SetBackdrop(tk.Constants.BACKDROP, "DropDownMenu");
-  style:SetBackdrop(tk.Constants.BACKDROP, "ButtonBackdrop");
-  style:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\Button"), "ButtonTexture");
-  style:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\GraphicalArrow"), "ArrowButtonTexture");
-  style:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\SmallArrow"), "SmallArrow");
-  style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\TitleBar"), "TitleBarBackground");
-  style:SetTexture(tk:GetAssetFilePath("Textures\\DialogBox\\DragRegion"), "DraggerTexture");
-  style:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\TextField"), "TextField");
-  style:SetColor(r, g, b);
-  style:SetColor(r * 0.7, g * 0.7, b * 0.7, "Widget");
-
   -- Load Media using LibSharedMedia --------------
   local media = tk.Constants.LSM;
   local types = media.MediaType;

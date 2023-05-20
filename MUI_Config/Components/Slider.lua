@@ -132,7 +132,9 @@ function Components.slider(parent, config, value)
   slider.editBox:DisableDrawLayer("BACKGROUND");
   slider.editBox:SetJustifyH("CENTER");
   slider.editBox:SetBackdrop(tk.Constants.BACKDROP);
-  slider.editBox:SetBackdropBorderColor(tk:GetThemeColor());
+
+  local r, g, b = tk:GetThemeColor();
+  slider.editBox:SetBackdropBorderColor(r, g, b);
 
   if (obj:IsString(config.label) and not tk.Strings:IsNilOrWhiteSpace(config.label)) then
     local label = slider.editBox:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall");

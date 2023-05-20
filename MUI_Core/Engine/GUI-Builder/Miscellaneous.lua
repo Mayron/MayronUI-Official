@@ -44,29 +44,60 @@ local function OnGridFrameSizeChanged(self)
   end
 end
 
----@param frame Frame|BackdropTemplate A frame to apply the dialog box background texture to
----@param alphaType? MayronUI.GridAlphaType
----@param padding number?
----@return Frame|MayronUI.GridTextureMixin|table @The new frame (or existing frame if the frame param was supplied).
-function gui:AddDialogTexture(frame, alphaType, padding)
-  local texture = tk:GetAssetFilePath("Textures\\DialogBox\\Dialog-Medium");
-  local gridFrame = gui:CreateGridTexture(frame, texture, 12, padding or 12, 674, 674);
+do
+  ---@type MayronUI.GridTextureMixin[]
+  local dialogFrames = {};
+  local themeColor;
 
-  -- apply the theme color for each Grid Cell
-  local r, g, b = tk:GetThemeColor();
-  gridFrame:SetGridAlphaType(alphaType or "Regular");
-  gridFrame:SetGridColor(r, g, b);
-  frame:SetFrameStrata("DIALOG");
+  function gui:SetDialogFrameColor(r, g, b)
+    themeColor = {r, g, b};
 
-  gridFrame:HookScript("OnSizeChanged", OnGridFrameSizeChanged);
-  gridFrame:HookScript("OnShow", OnGridFrameSizeChanged);
-  local width = gridFrame:GetWidth();
-
-  if (width and width > 0) then
-    OnGridFrameSizeChanged(gridFrame);
+    for _, frame in ipairs(dialogFrames) do
+      frame:SetGridColor(r, g, b);
+    end
   end
 
-  return gridFrame;
+  ---@param frame Frame|BackdropTemplate A frame to apply the dialog box background texture to
+  ---@param alphaType? MayronUI.GridAlphaType
+  ---@param padding number?
+  ---@return Frame|MayronUI.GridTextureMixin|table @The new frame (or existing frame if the frame param was supplied).
+  function gui:AddDialogTexture(frame, alphaType, padding)
+    local texture = tk:GetAssetFilePath("Textures\\DialogBox\\Dialog-Medium");
+    local dialogFrame = gui:CreateGridTexture(frame, texture, 12, padding or 12, 674, 674);
+    table.insert(dialogFrames, dialogFrame);
+
+    if (themeColor == nil) then
+      local db = MayronUI:GetComponent("Database");
+
+      if (db.profile) then
+        local dbTheme = db.profile.theme.frameColor;
+        themeColor = { dbTheme.r, dbTheme.g, dbTheme.b };
+      end
+    end
+
+    dialogFrame:SetGridAlphaType(alphaType or "Regular");
+
+    if (themeColor) then
+      local r, g, b = unpack(themeColor);
+      dialogFrame:SetGridColor(r, g, b);
+    else
+      -- fallback (should never be required)
+      local r, g, b = tk:GetThemeColor();
+      dialogFrame:SetGridColor(r, g, b);
+    end
+
+    frame:SetFrameStrata("DIALOG");
+
+    dialogFrame:HookScript("OnSizeChanged", OnGridFrameSizeChanged);
+    dialogFrame:HookScript("OnShow", OnGridFrameSizeChanged);
+    local width = dialogFrame:GetWidth();
+
+    if (width and width > 0) then
+      OnGridFrameSizeChanged(dialogFrame);
+    end
+
+    return dialogFrame;
+  end
 end
 
 do
@@ -90,15 +121,41 @@ do
     fontString:SetPoint("CENTER", self);
   end
 
+  local function ApplyThemeColor(button)
+    local r, g, b = tk:GetThemeColor();
+    local normal = button:GetNormalTexture();
+    local highlight = button:GetHighlightTexture();
+    local disabled = button:GetDisabledTexture();
+
+    button:SetBackdropBorderColor(r, g, b, 0.7);
+
+    if (obj:IsTable(button.enabledBackdrop)) then
+      obj:PushTable(button.enabledBackdrop);
+    end
+
+    button.enabledBackdrop = obj:PopTable(r, g, b);
+
+    normal:SetVertexColor(r * 0.6, g * 0.6, b * 0.6, 1);
+    highlight:SetVertexColor(r, g, b, 0.2);
+
+    local dr, dg, db = _G.DISABLED_FONT_COLOR:GetRGB();
+    disabled:SetVertexColor(dr, dg, db, 0.6);
+
+    if (button:IsEnabled()) then
+      button:SetBackdropBorderColor(r, g, b, 0.7);
+    else
+      button:SetBackdropBorderColor(dr, dg, db, 0.6);
+    end
+  end
+
   function gui:CreateButton(parent, text, button, tooltip, padding, minWidth)
-    local style = tk.Constants.AddOnStyle;
-    local backgroundTexture = style:GetTexture("ButtonTexture");
+    local backgroundTexture = tk:GetAssetFilePath("Textures\\Widgets\\Button");
 
     button = button or tk:CreateBackdropFrame("Button", parent, nil);
     button.padding = padding or 30;
     button.minWidth = minWidth;
     button:SetHeight(30);
-    button:SetBackdrop(style:GetBackdrop("ButtonBackdrop"));
+    button:SetBackdrop(tk.Constants.BACKDROP);
 
     local fs = button:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     button:SetFontString(fs);
@@ -125,35 +182,13 @@ do
       tk:SetBasicTooltip(button, tooltip, "ANCHOR_TOP");
     end
 
+    button.ApplyThemeColor = ApplyThemeColor;
+    tk:ApplyThemeColor(button);
+
     button:SetScript("OnEnable", OnButtonEnabled);
     button:SetScript("OnDisable", OnButtonDisabled);
 
-    self:UpdateButtonColor(button, style);
-
     return button;
-  end
-
-  -- TODO: Should be deprecated and replacedby Style.lua > function Style:ApplyColor(_, colorName, alpha, ...)
-  function gui:UpdateButtonColor(button, style)
-    local r, g, b = style:GetColor();
-    local normal = button:GetNormalTexture();
-    local highlight = button:GetHighlightTexture();
-    local disabled = button:GetDisabledTexture();
-
-    button:SetBackdropBorderColor(r, g, b, 0.7);
-    button.enabledBackdrop = obj:PopTable(r, g, b);
-
-    normal:SetVertexColor(r * 0.6, g * 0.6, b * 0.6, 1);
-    highlight:SetVertexColor(r, g, b, 0.2);
-
-    local dr, dg, db = _G.DISABLED_FONT_COLOR:GetRGB();
-    disabled:SetVertexColor(dr, dg, db, 0.6);
-
-    if (button:IsEnabled()) then
-      button:SetBackdropBorderColor(r, g, b, 0.7);
-    else
-      button:SetBackdropBorderColor(dr, dg, db, 0.6);
-    end
   end
 end
 
@@ -184,7 +219,7 @@ do
     container.color:SetBlendMode("BLEND");
   end
 
-  local function UpdateColor(self, r, g, b, a)
+  local function ApplyThemeColor(self, r, g, b, a)
     if (self.isSwatch) then
       self.r = r;
       self.g = g;
@@ -197,14 +232,14 @@ do
   end
 
   function gui:CreateColorSwatchButton(parent, text, tooltip, globalName, verticalAlignment)
-    local container = self:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment);
-    container.isSwatch = true;
+    local container = self:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment, nil, true);
     container.btn:SetChecked(true);
     return container;
   end
 
-  function gui:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment, radio)
+  function gui:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment, radio, isSwatch)
     local container = tk:CreateFrame("Button", parent);
+    container.isSwatch = isSwatch;
     container:SetSize(150, 30);
 
     container.btn = tk:CreateFrame("CheckButton", container, globalName, "UICheckButtonTemplate");
@@ -241,8 +276,11 @@ do
     container.btn:SetPushedTexture(normalTexturePath);
     container.btn.SetPushedTexture = tk.Constants.DUMMY_FUNC;
 
-    container.UpdateColor = UpdateColor;
-    container:UpdateColor();
+    container.ApplyThemeColor = ApplyThemeColor;
+
+    if (not isSwatch) then
+      container:ApplyThemeColor();
+    end
 
     if (tooltip) then
       tk:SetBasicTooltip(container.btn, tooltip, "ANCHOR_TOPLEFT");
@@ -296,8 +334,7 @@ do
   end
 
   function gui:AddTitleBar(frame, text)
-    local style = tk.Constants.AddOnStyle;
-    local texture = style:GetTexture("TitleBarBackground");
+    local texture = tk:GetAssetFilePath("Textures\\DialogBox\\TitleBar");
 
     frame.titleBar = tk:CreateFrame("Button", frame);
     frame.titleBar:SetSize(260, 31);
@@ -313,7 +350,7 @@ do
     frame.titleBar.text:SetJustifyH("LEFT");
 
     tk:MakeMovable(frame, frame.titleBar);
-    style:ApplyColor(nil, nil, frame.titleBar.bg);
+    tk:ApplyThemeColor(frame.titleBar.bg);
 
     hooksecurefunc(frame.titleBar.text, "SetText", TitleBar_SetWidth);
     frame.titleBar.text:SetText(text);
@@ -321,19 +358,18 @@ do
 end
 
 function gui:AddResizer(frame)
-  local style = tk.Constants.AddOnStyle;
-  local normalTexture = style:GetTexture("DraggerTexture");
-  local highlightTexture = style:GetTexture("DraggerTexture");
+  local textureFilePath = tk:GetAssetFilePath("Textures\\DialogBox\\DragRegion");
 
   frame.dragger = tk:CreateFrame("Button", frame);
   frame.dragger:SetSize(28, 28);
   frame.dragger:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -2, 2);
-  frame.dragger:SetNormalTexture(normalTexture, "BLEND");
-  frame.dragger:SetHighlightTexture(highlightTexture, "ADD");
+  frame.dragger:SetNormalTexture(textureFilePath, "BLEND");
+  frame.dragger:SetHighlightTexture(textureFilePath, "ADD");
 
   tk:MakeResizable(frame, frame.dragger);
-  style:ApplyColor(nil, nil, frame.dragger:GetNormalTexture());
-  style:ApplyColor(nil, nil, frame.dragger:GetHighlightTexture());
+  tk:ApplyThemeColor(
+    frame.dragger:GetNormalTexture(), 
+    frame.dragger:GetHighlightTexture());
 end
 
 do
@@ -356,7 +392,7 @@ do
     iconTexture:SetTexture(textureFilePath);
     iconTexture:SetPoint("TOPLEFT", 6, -5);
     iconTexture:SetPoint("BOTTOMRIGHT", -6, 7);
-    tk.Constants.AddOnStyle:ApplyColor(nil, nil, iconTexture);
+    tk:ApplyThemeColor(iconTexture);
 
     local left = 0.454545;
     local right = 0.7272727;
@@ -399,7 +435,6 @@ do
     local btn = button or tk:CreateFrame("Button", parent, globalName);
     btn:SetSize(30, 27.33);
 
-    local style = tk.Constants.AddOnStyle;
     local textureFilePath = tk:GetAssetFilePath("Icons\\buttons");
 
     local normalTexture = btn:CreateTexture("$parentNormalTexture", "BACKGROUND");
@@ -432,8 +467,7 @@ do
     highlightTexture:SetBlendMode("BLEND");
 
     btn:SetPushedTexture(pushedTexture);
-
-    style:ApplyColor(nil, nil, normalTexture, highlightTexture, pushedTexture);
+    tk:ApplyThemeColor(normalTexture, highlightTexture, pushedTexture);
 
     btn:HookScript("OnMouseDown", DisableHighlightOnMouseDown);
     btn:HookScript("OnMouseUp", EnableHighlightOnMouseUp);
@@ -484,14 +518,11 @@ function gui:AddArrow(frame, direction, center)
 
   frame.arrow = tk:CreateFrame("Frame", frame);
   frame.arrow:SetSize(30, 24);
-
-  local style = tk.Constants.AddOnStyle;
-  local texture = style:GetTexture("ArrowButtonTexture");
+  local texture = tk:GetAssetFilePath("Textures\\Widgets\\GraphicalArrow");
   frame.arrow.bg = frame.arrow:CreateTexture(nil, "ARTWORK");
   frame.arrow.bg:SetAllPoints(true);
   frame.arrow.bg:SetTexture(texture);
-
-  style:ApplyColor(nil, nil, frame.arrow.bg);
+  tk:ApplyThemeColor(frame.arrow.bg);
 
   if (center) then
     frame.arrow:SetPoint("CENTER");

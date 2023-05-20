@@ -307,7 +307,10 @@ local function UpdateTalkingHeadFrame(data)
   _G.Mixin(overlay, _G.BackdropTemplateMixin);
   overlay:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
   overlay:SetBackdropColor(0, 0, 0, 0.5);
-  overlay:SetBackdropBorderColor(tk.Constants.AddOnStyle:GetColor("Widget"));
+
+  local r, g, b = tk:GetThemeColor();
+  overlay:SetBackdropBorderColor(r*0.7, g*0.7, b*0.7);
+
   overlay:SetSize(118, 122)
   overlay:SetPoint("TOPLEFT", 20, -16);
 

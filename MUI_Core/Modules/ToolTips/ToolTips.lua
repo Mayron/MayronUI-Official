@@ -79,11 +79,12 @@ db:AddToDefaults("profile.tooltips", {
   muiTexture = {
     enabled = true;
     useTheme = true;
+    classColored = true;
     custom = { 0, 0, 0, 1 }
   }; -- if true, does not use backdrop
   backdrop = {
     borderClassColored =  true;
-    borderColor = { 0.4, 0.4, 0.4, 1 };
+    borderColor = { 0.4, 0.4, 0.4, 1 }; -- TODO: Doesn't seem to work
     bgColor = { 0, 0, 0, 0.8 };
     bgFile = "MUI_Solid",
     edgeFile = "Skinner",
@@ -535,9 +536,10 @@ do
 
   function UpdateUnitStatusBars(data, unitID)
     local color = tk:GetClassColorByUnitID(unitID);
+    local usingMuiTexture = data.settings.muiTexture.enabled
 
     if (gameTooltip.SetGridColor) then
-      if (UnitIsPlayer(unitID)) then
+      if (UnitIsPlayer(unitID) and usingMuiTexture and data.settings.muiTexture.classColored) then
         gameTooltip:SetGridColor(color.r, color.g, color.b);
       else
         local r, g, b = tk:GetThemeColor();

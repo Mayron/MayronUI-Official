@@ -1340,7 +1340,7 @@ local function CreateSearchBox(inventoryFrame)
 	local bg = searchBox:CreateTexture(nil, "BACKGROUND");
 	bg:SetTexture(tk:GetAssetFilePath("Textures\\searchbox"));
 	bg:SetAllPoints();
-	tk.Constants.AddOnStyle:ApplyColor(nil, nil, bg);
+  tk:ApplyThemeColor(bg);
 
 	local searchIcon = searchBox:CreateTexture(nil, "OVERLAY");
 	searchIcon:SetPoint("LEFT", searchBox, "LEFT", 6, 1);

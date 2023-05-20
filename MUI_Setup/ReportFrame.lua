@@ -192,22 +192,20 @@ function C_ReportIssue.Private:SetUpFooter(data)
   backButton:SetWidth(150);
   backButton:Disable();
 
-  backButton:SetScript(
-    "OnClick", function()
-      PlaySound(tk.Constants.CLICK);
-      data:Call("ShowStep", data.currentStep - 1);
-    end);
+  backButton:SetScript("OnClick", function()
+    PlaySound(tk.Constants.CLICK);
+    data:Call("ShowStep", data.currentStep - 1);
+  end);
 
   local nextButton = gui:CreateButton(parent, L["Next"]);
   nextButton.minWidth = 150;
   nextButton:SetWidth(150);
   nextButton:Disable();
 
-  nextButton:SetScript(
-    "OnClick", function()
-      PlaySound(tk.Constants.CLICK);
-      data:Call("ShowStep", data.currentStep + 1);
-    end);
+  nextButton:SetScript("OnClick", function()
+    PlaySound(tk.Constants.CLICK);
+    data:Call("ShowStep", data.currentStep + 1);
+  end);
 
   data.backButton = backButton;
   data.nextButton = nextButton;
@@ -237,52 +235,45 @@ function C_ReportIssue.Private:CreateEditBox(
   container:SetPoint("TOPRIGHT", title, "BOTTOMRIGHT", 0, -data.ITEM_SPACING);
   container:SetPoint("BOTTOM");
   container:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
-  container:SetBackdropBorderColor(tk:GetThemeColor());
+
+  local r, g, b = tk:GetThemeColor();
+  container:SetBackdropBorderColor(r, g, b);
   container:SetBackdropColor(0, 0, 0, 0.5);
-  container:SetScript(
-    "OnMouseUp", function()
-      editBox:SetFocus(true)
-    end);
+  container:SetScript("OnMouseUp", function() editBox:SetFocus(true) end);
   editBox.container = container;
 
   if (maxLength > 0) then
-    local characters = parent:CreateFontString(
-                         nil, "OVERLAY", "GameFontHighlight");
+    local characters = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
     characters:SetPoint("TOP", container, "BOTTOM", 0, -10);
 
-    local charactersTemplate = tk.Strings:Join(
-                                 "", "%d/1000 ", L["characters"], " %s");
-    editBox:SetScript(
-      "OnTextChanged", function()
-        local size = #(editBox:GetText());
-        local minText = tk.Strings.Empty;
+    local charactersTemplate = "%d/1000 "..L["characters"].." %s";
+    editBox:SetScript("OnTextChanged", function()
+      local size = #(editBox:GetText());
+      local minText = tk.Strings.Empty;
 
-        if (minLength > 0) then
-          minText = string.format("(%s: %d)", L["minimum"], minLength);
-        end
+      if (minLength > 0) then
+        minText = string.format("(%s: %d)", L["minimum"], minLength);
+      end
 
-        local newText = string.format(charactersTemplate, size, minText);
+      local newText = string.format(charactersTemplate, size, minText);
 
-        if (minLength > 0) then
-          if (size < minLength) then
-            data.nextButton:Disable();
-            newText = tk.Strings:SetTextColorByKey(newText, "RED");
-          else
-            data.nextButton:Enable();
-            newText = tk.Strings:SetTextColorByKey(newText, "GREEN");
-          end
+      if (minLength > 0) then
+        if (size < minLength) then
+          data.nextButton:Disable();
+          newText = tk.Strings:SetTextColorByKey(newText, "RED");
         else
           data.nextButton:Enable();
+          newText = tk.Strings:SetTextColorByKey(newText, "GREEN");
         end
+      else
+        data.nextButton:Enable();
+      end
 
-        characters:SetText(newText);
-      end);
+      characters:SetText(newText);
+    end);
   end
 
-  editBox:SetScript(
-    "OnEscapePressed", function()
-      editBox:ClearFocus();
-    end);
+  editBox:SetScript("OnEscapePressed", function() editBox:ClearFocus() end);
 
   container.ScrollFrame:ClearAllPoints();
   container.ScrollFrame:SetPoint("TOPLEFT", 10, -10);

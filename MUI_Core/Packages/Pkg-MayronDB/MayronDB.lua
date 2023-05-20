@@ -806,7 +806,9 @@ obj:DefineReturns("boolean");
 ---@param rootTable Observer @The root database table (observer) to append the value to relative to the path address provided.
 ---@param path string @The path address to specify where the value should be appended to.
 ---@return boolean @Returns whether the value was successfully added.
+---@overload fun(self, rootTable: Observer, path: string): boolean
 function Database:RemoveAppended(data, rootTable, path)
+  ---@cast data table
   local tableType = data.helper:GetDatabaseRootTableName(rootTable);
 
   local appendTable = data.sv.appended[tableType] or obj:PopTable();

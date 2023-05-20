@@ -64,8 +64,12 @@ db:AddToDefaults("profile.theme", {
     r = classColor.r;
     g = classColor.g;
     b = classColor.b;
-    hex = classColor:GenerateHexColor();
   };
+  frameColor = {
+    r = classColor.r;
+    g = classColor.g;
+    b = classColor.b;
+  }
 });
 
 -- Slash Commands ------------------

@@ -689,10 +689,7 @@ end
 -------------------------------------
 --- Framework Methods
 -------------------------------------
---- where ... are mixins
----@generic T
----@param parentClass T?
----@return MayronObjects.Class|MayronObjects.Object|T
+---@return table
 function Framework:CreateClass(className, parentClass)
   local class = CreateFromMixins(ClassMixin);
   class.Static = self:PopTable();
@@ -796,7 +793,10 @@ function Framework:Export(tbl, namespace)
   objectMetadata[tostring(tbl)].namespace = namespace;
 end
 
----@return MayronObjects.Class?
+---@generic T
+---@param namespace `T`
+---@param silent boolean?
+---@return T?
 function Framework:Import(namespace, silent)
   local current = exported;
   local sections = self:PopTable(strsplit(".", namespace));

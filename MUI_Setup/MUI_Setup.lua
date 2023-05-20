@@ -42,19 +42,15 @@ local module = MayronUI:ImportModule("SetUpModule");
 
 -- Local Functions -----------------------
 
-local function ChangeTheme(_, value)
-  if (value) then
-    -- reinject theme colors for next time...
-    db.profile["profile.castbars.appearance.colors.normal"] = nil;
-    db.profile["profile.bottomui.gradients"] = nil;
-
+local function ChangeTheme(_, classFileName)
+  if (classFileName) then
+    tk:UpdateThemeColor(classFileName);
   elseif (db.profile.theme) then
-    value = db.profile.theme.color:GetUntrackedTable();
+    local value = db.profile.theme.color:GetUntrackedTable();
+    tk:UpdateThemeColor(value);
   else
-    return;
+    return
   end
-
-  tk:UpdateThemeColor(value);
 
   local window = module:GetWindow();
   local r, g, b = tk:GetThemeColor();
@@ -74,24 +70,24 @@ local function ChangeTheme(_, value)
 
   if (frame) then
     -- resets color
-    frame.themeDropdown:UpdateColor();
-    frame.chooseProfileDropDown:UpdateColor();
-    frame.profilePerCharacter:UpdateColor();
-    frame.resetChatBtn:UpdateColor();
+    frame.themeDropdown:ApplyThemeColor();
+    frame.chooseProfileDropDown:ApplyThemeColor();
+    frame.profilePerCharacter:ApplyThemeColor();
+    frame.resetChatBtn:ApplyThemeColor();
 
     for _, cb in ipairs(frame.addOnCheckBoxes) do
-      cb:UpdateColor();
+      cb:ApplyThemeColor();
     end
 
-    gui:UpdateButtonColor(frame.applyScaleBtn, tk.Constants.AddOnStyle);
-    gui:UpdateButtonColor(frame.installButton, tk.Constants.AddOnStyle);
-    gui:UpdateButtonColor(frame.deleteProfileButton, tk.Constants.AddOnStyle);
-    gui:UpdateButtonColor(frame.newProfileButton, tk.Constants.AddOnStyle);
+    frame.applyScaleBtn:ApplyThemeColor();
+    frame.installButton:ApplyThemeColor();
+    frame.deleteProfileButton:ApplyThemeColor();
+    frame.newProfileButton:ApplyThemeColor();
 
     local installMenu = window.submenu["Install"];
 
     if (installMenu) then
-      gui:UpdateButtonColor(installMenu.installButton, tk.Constants.AddOnStyle);
+      installMenu.installButton:ApplyThemeColor();
       local reloadMsg = tk.Strings:SetTextColorByTheme(L["Warning:"]).." "..L["This will reload the UI!"];
       installMenu.message:SetText(reloadMsg);
     end
@@ -304,8 +300,8 @@ function Private:LoadThemeMenu(menuSection)
 end
 
 function Private:LoadCustomMenu(menuSection)
-  self:LoadThemeMenu(menuSection, tk.Constants.AddOnStyle);
-  self:LoadProfileMenu(menuSection, tk.Constants.AddOnStyle);
+  self:LoadThemeMenu(menuSection);
+  self:LoadProfileMenu(menuSection);
 
   -- UI Scale
   menuSection.scaleTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");

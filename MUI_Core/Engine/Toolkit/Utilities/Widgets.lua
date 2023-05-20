@@ -488,54 +488,139 @@ do
   end
 end
 
+local themedElements = {};
+
 -- apply theme color to a vararg list of elements
 -- first arg can be a number specifying the alpha value
 function tk:ApplyThemeColor(...)
   local alpha = (select(1, ...));
+  local start = 1;
 
-  -- first argument is "colorName"
-  if (not (obj:IsNumber(alpha) and alpha)) then
-    tk.Constants.AddOnStyle:ApplyColor(nil, 1, ...);
+  if (obj:IsNumber(alpha) and alpha) then
+    start = 2;
   else
-    tk.Constants.AddOnStyle:ApplyColor(nil, ...);
-  end
-end
-
-function tk:GetThemeColorMixin()
-  if (tk.Constants.AddOnStyle) then
-    return tk.Constants.AddOnStyle:GetColor(nil, true);
+    alpha = nil;
   end
 
-  if (not db.profile) then
-    return tk.Constants.COLORS.BATTLE_NET_BLUE;
-  end
+  local r, g, b = self:GetThemeColor();
 
-  return db.profile.theme.color;
+  for i = start, select("#", ...) do
+    local element = (select(i, ...));
+
+    obj:Assert(obj:IsTable(element) and element.GetObjectType,
+      "ApplyThemeColor: Widget expected but received a %s value of %s", type(element), element);
+
+    if (not element.isSwatch) then
+      local key = tostring(element);
+      themedElements[key] = element;
+    end
+
+    if (obj:IsFunction(element.ApplyThemeColor)) then
+      -- a custom way of applying it with more control
+      element:ApplyThemeColor();
+    else
+      local objectType = element:GetObjectType();
+
+      if (objectType == "Texture") then
+        ---@cast element Texture|table
+        local id = element:GetTexture();
+
+
+        if (not id or id == "FileData ID 0") then
+          alpha = alpha or element.__alpha or 1;
+          element:SetColorTexture(r, g, b, alpha);
+          element.__alpha = alpha;
+        else
+          if (alpha == nil) then
+            local _, _, _, a = element:GetVertexColor();
+            alpha = a or 1;
+          end
+
+          element:SetVertexColor(r, g, b, alpha);
+        end
+
+      elseif (objectType == "CheckButton") then
+        ---@cast element CheckButton
+        local checkedTexture = element:GetCheckedTexture()--[[@as Texture|table]];
+
+        if (checkedTexture) then
+          local checkedAlpha = alpha or checkedTexture.__alpha or 1;
+          checkedTexture:SetColorTexture(r, g, b, checkedAlpha);
+          checkedTexture.__alpha = checkedAlpha;
+        end
+
+        local highlightTexture = element:GetHighlightTexture()--[[@as Texture]];
+
+        if (highlightTexture) then
+          local highlightAlpha = alpha or highlightTexture.__alpha or 1;
+          highlightTexture:SetColorTexture(r, g, b, highlightAlpha);
+          highlightTexture.__alpha = highlightAlpha;
+        end
+
+      elseif (objectType == "Button") then
+        local normalTexture = element:GetNormalTexture();
+        local highlightTexture = element:GetHighlightTexture();
+
+        local normalAlpha, highlightAlpha = alpha, alpha;
+
+        if (alpha == nil) then
+          local _, _, _, a1 = normalTexture:GetVertexColor();
+          local _, _, _, a2 = highlightAlpha:GetVertexColor();
+          normalAlpha, highlightAlpha = a1, a2;
+        end
+
+        normalTexture:SetVertexColor(r, g, b, normalAlpha or 1);
+        highlightTexture:SetVertexColor(r, g, b, highlightAlpha or 1);
+
+        if (obj:IsFunction(element.SetBackdropBorderColor)) then
+          element:SetBackdropBorderColor(r, g, b, 0.7);
+        end
+
+        if (element:GetDisabledTexture()) then
+          element:GetDisabledTexture():SetVertexColor(r * 0.3, g * 0.3, b * 0.3, 0.6);
+        end
+
+      elseif (objectType == "FontString") then
+        ---@cast element FontString
+
+        if (alpha == nil) then
+          local _, _, _, a = element:GetTextColor();
+          alpha = a;
+        end
+
+        element:SetTextColor(r, g, b, alpha or 1);
+      end
+    end
+  end
 end
 
 function tk:GetThemeColor()
-  if (tk.Constants.AddOnStyle) then
-    local r, g, b, hex = tk.Constants.AddOnStyle:GetColor();
+  if (not tk.Constants.ThemeColor and db.profile) then
+    local color = db.profile.theme.color;
+    tk.Constants.ThemeColor = CreateColor(color.r, color.g, color.b);
+  end
+
+  if (tk.Constants.ThemeColor) then
+    local r, g, b = tk.Constants.ThemeColor:GetRGB();
+    local hex = tk.Constants.ThemeColor:GenerateHexColor();
     return r, g, b, hex;
   end
 
-  if (not db.profile) then
-    local r, g, b = tk.Constants.COLORS.BATTLE_NET_BLUE:GetRGB();
-    local hex = tk.Constants.COLORS.BATTLE_NET_BLUE:GenerateHexColor();
-    return r, g, b, hex;
-  end
-
-  local color = db.profile.theme.color;
-  return color.r, color.g, color.b, color.hex;
+  local r, g, b = tk.Constants.COLORS.BATTLE_NET_BLUE:GetRGB();
+  local hex = tk.Constants.COLORS.BATTLE_NET_BLUE:GenerateHexColor();
+  return r, g, b, hex;
 end
+
+local GetClassColorObj = _G.GetClassColorObj;
 
 function tk:UpdateThemeColor(value)
   local color;
 
   if (obj:IsTable(value) and value.r and value.g and value.b) then
     color = value;
-  else
-    color = _G.GetClassColorObj(value);
+  elseif (obj:IsString(value)) then
+    -- its a classFileName
+    color = GetClassColorObj(value);
   end
 
   if (not color.GenerateHexColor) then
@@ -546,15 +631,17 @@ function tk:UpdateThemeColor(value)
   colorValues.r = color.r;
   colorValues.g = color.g;
   colorValues.b = color.b;
-  colorValues.hex = color:GenerateHexColor();
 
-  -- update database
+  tk.Constants.ThemeColor = color;
   db.profile.theme.color = colorValues;
 
-  -- update Constant Style Object
-  tk.Constants.AddOnStyle:SetColor(color.r, color.g, color.b);
-  tk.Constants.AddOnStyle:SetColor(
-    color.r * 0.7, color.g * 0.7, color.b * 0.7, "Widget");
+  db:SetPathValue(db.profile, "castbars.appearance.colors.normal", nil);
+  db:SetPathValue(db.profile, "bottomui.gradients", nil);
+  db:RemoveAppended(db.profile, "unitPanels.sufGradients");
+
+  for _, element in pairs(themedElements) do
+    self:ApplyThemeColor(element);
+  end
 end
 
 function tk:SetGradient(texture, direction, r, g, b, a, r2, g2, b2, a2)

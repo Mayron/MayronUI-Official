@@ -327,6 +327,11 @@ function C_ToolTipsModule:GetConfigTable(data)
                     {   type = "fontstring";
                         content = L["The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see the previous menu)."];
                     };
+                    {   name = "Use Class Colors",
+                        tooltip = "If checked, tooltips for other players will be colored based on their class.",
+                        type = "check",
+                        dbPath = "classColored",
+                    },
                     {   name = L["Use MUI Theme Color"],
                         tooltip = L["If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class-colored)."];
                         type = "check",
@@ -336,7 +341,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                         tooltip = L["If not using the MUI theme color, the tooltip will use this custom color for both the background and border color."];
                         type = "color";
                         width = 200;
-                        enabled = db.profile.tooltips.muiTexture.useTheme;
+                        enabled = not db.profile.tooltips.muiTexture.useTheme;
                         useIndexes = true;
                         dbPath = "custom";
                     };
@@ -350,7 +355,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                   customBackdropSubmenu = submenu;
                 end;
                 children = {
-                    { name = L["Color border by class or NPC type"],
+                    { name = "Use Class Colors",
                       tooltip = L["If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit."];
                       type = "check",
                       dbPath = "borderClassColored",
@@ -359,14 +364,12 @@ function C_ToolTipsModule:GetConfigTable(data)
                       tooltip = L["If color border by class or NPC type is checked, this color will be used for all non-unit tooltips, else it will be used for every tooltip border."];
                       type = "color";
                       hasOpacity = true;
-                      width = 200;
                       useIndexes = true;
                       dbPath = "borderColor";
                     };
                     { name = L["Background Color"];
                       type = "color";
                       hasOpacity = true;
-                      width = 200;
                       useIndexes = true;
                       dbPath = "bgColor";
                     };
