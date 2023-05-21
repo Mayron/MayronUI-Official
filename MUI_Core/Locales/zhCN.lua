@@ -546,6 +546,7 @@ L["Icon Size"] = "图标大小";
 L["Column Spacing"] = "列间距";
 L["Row Spacing"] = "行间距";
 L["Icons per Row"] = "每行图标";
+L["Bar Columns"] = "酒吧专栏";
 L["Growth Direction"] = "《成长方向》";
 L["Status Bar Options"] = "状态栏选项";
 L["Status bar options are disabled when using icons."] =
@@ -899,11 +900,13 @@ L["Profile %s has been reset."] = "配置文件 %s 已被重置。";
 --- LARGE TEXT:
 ---------------------------------
 L["PRESS_HOLD_TOGGLE_BUTTONS"] =
-  [[脱离战斗时按住 %s 可显示切换按钮。
+[[脱离战斗时按住 %s 可显示切换按钮。
+
 单击这些将显示或隐藏其他操作栏行。]]
 
 L["CHANGE_KEYBINDINGS"] =
-  [[您可以在 MUI 配置菜单 (%s) 中更改此组合键。
+[[您可以在 MUI 配置菜单 (%s) 中更改此组合键。
+
 有 3 个按键绑定，可以在 1 到 3 行之间快速切换，
 在暴雪键绑定菜单中找到：]]
 
@@ -1099,3 +1102,51 @@ L["Paste an import string into the box below to import a profile."] = "将导入
 L["Warning: This will completely replace your current profile with the imported profile settings!"] = "警告：这将用导入的配置文件设置完全替换您当前的配置文件！";
 L["Successfully imported profile settings into your current profile!"] = "已成功将配置文件设置导入您当前的配置文件！";
 L["Reset to default"] = "重置为默认";
+
+L["Appearance Settings"] = "外观设置";
+L["Set MUI Frames Color"] = "设置 MUI 框架颜色";
+L["MUI_FRAMES_COLOR_TOOLTIP"] = "控制 MUI 框架的背景颜色，包括库存框架、工具提示、配置菜单、布局工具等。";
+L["Set Display Mode"] = "设置显示模式";
+L["These settings relate to the individual aura icons/bars."] = "这些设置与各个光环图标/栏相关。";
+L["These settings relate to the frame containing the individual aura icons/bars."] = "这些设置与包含各个光环图标/栏的框架相关。";
+L["Set Non-Player Alpha"] = "设置非玩家 Alpha";
+L["Icon Width"] = "图标宽度";
+L["Icon Height"] = "图标高度";
+L["If true, when the aura is close to expiring the aura frame will fade in and out."] = "如果为 true，当光环接近到期时，光环框架将淡入淡出。";
+L["The alpha of auras not applied by you."] = "您未应用的光环的阿尔法。";
+L["Icon Spacing"] = "图标间距";
+L["Show Bar Spark"] = "显示栏火花";
+L["Container Frame Settings"] = "容器框架设置";
+L["Positioning"] = "定位";
+L["Rows and Columns"] = "行和列";
+L["The maximum number of aura icons to display per row."] = "每行显示的光环图标的最大数量。";
+L["The maximum number of horizontal bar columns to display."] = "要显示的水平条形列的最大数量。";
+L["Text Settings"] = "文本设置";
+L["Aura Frame"] = "光环框";
+L["Icon Frame"] = "图标框";
+L["Icon"] = "图标";
+L["Normal Font Size"] = "正常字号";
+L["Warning Font Size"] = "警告字体大小";
+L["Warning Threshold"] = "警告阈值";
+L["The minimum number of seconds remaining required for the time remaining text to use the warning font size."] = "剩余时间文本使用警告字体大小所需的最小剩余秒数。";
+L["Text Colors"] = "文字颜色";
+L["Aura Type Colors"] = "光环类型颜色";
+L["Basic Buff"] = "基本增益";
+L["Player Owned Buff"] = "玩家拥有的增益";
+L["Buffs that you applied to yourself."] = "您为自己应用的增益效果。";
+L["Basic Debuff"] = "基本减益";
+L["Bar Colors"] = "条形颜色";
+L["Borders"] = "边框";
+L["Enable Inventory Frame"] = "启用库存框架";
+L["Use the MayronUI custom inventory frame instead of the default Blizzard bags UI."] = "使用 MayronUI 自定义库存框架而不是默认的暴雪包 UI。";
+L["Use Class Colors"] = "使用类颜色";
+L["If checked, tooltips for other players will be colored based on their class."] = "如果选中，其他玩家的工具提示将根据他们的职业着色。";
+L["Switch to Detailed View"] = "切换到详细视图";
+L["Switch to Grid View"] = "切换到网格视图";
+L["View Character Inventory"] = "查看角色清单";
+L["Toggle Bags Bar"] = "切换包袋栏";
+L["Quest Items"] = "任务物品";
+L["Trade Goods"] = "贸易商品";
+L["Consumables"] = "耗材";
+L["Equipment"] = "设备";
+L["All Items"] = "所有项目";

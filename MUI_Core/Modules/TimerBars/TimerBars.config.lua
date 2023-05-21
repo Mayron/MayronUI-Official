@@ -74,9 +74,7 @@ do
         return
       end
 
-      ---@type ListFrame
-      local C_ListFrame = obj:Import("MayronUI.ListFrame");
-
+      local C_ListFrame = obj:Import("MayronUI.ListFrame") --[[@as ListFrame]];
       btn.listFrame = C_ListFrame(btn.name, btn.dbPath);
 
       if (btn.dbPath:find("white")) then
@@ -87,7 +85,7 @@ do
 
       btn.listFrame:SetScript("OnAddItem", ListFrame_OnAddItem);
       btn.listFrame:SetScript("OnRemoveItem", ListFrame_OnRemoveItem);
-      btn.listFrame:SetScript("OnItemEnter", tk.AuraTooltip_OnEnter);
+      btn.listFrame:SetScript("OnItemEnter", tk.HandleTooltipOnEnter);
       btn.listFrame:SetScript("OnShow", ListFrame_OnShow);
       btn.listFrame:SetShown(true);
     end
@@ -118,8 +116,8 @@ end
 
 function C_TimerBars:GetConfigTable()
     return {
-      module            = "TimerBars";
-      hasOwnDatabase    = true;
+      module = "TimerBars";
+      database = "TimerBarsDatabase";
       children = {
           {   name = L["Enabled"],
               tooltip = "If checked, this module will be enabled.",
@@ -156,7 +154,7 @@ function C_TimerBars:GetConfigTable()
           {   name    = L["Bar Texture"];
               type    = "dropdown";
               dbPath  = "profile.statusBarTexture";
-              options = tk.Constants.LSM:List("statusbar");
+              media = "statusbar";
           };
           {   type = "divider";
           };
@@ -168,7 +166,7 @@ function C_TimerBars:GetConfigTable()
           {   name    = L["Border Type"];
               type    = "dropdown";
               dbPath  = "profile.border.type";
-              options = tk.Constants.LSM:List("border");
+              media = "border";
           };
           {   name    = L["Border Size"];
               type    = "slider";
@@ -269,10 +267,10 @@ function C_TimerBars:GetConfigTable()
                   local dbFieldPath = "profile.fields."..name;
 
                   return {
-                      name              = name;
-                      type              = "submenu";
-                      module            = "TimerBars";
-                      hasOwnDatabase    = true;
+                      name = name;
+                      type = "submenu";
+                      module = "TimerBars";
+                      database    = "TimerBarsDatabase";
 
                       OnLoad = function()
                           position_TextFields[name] = obj:PopTable();
@@ -368,8 +366,8 @@ function C_TimerBars:GetConfigTable()
                                   return value == "UP";
                               end;
 
-                              SetValue = function(dbPath)
-                                  db:SetPathValue(dbPath, "UP");
+                              SetValue = function(self)
+                                db:SetPathValue(self.dbPath, "UP");
                               end;
                           };
                           {   name = L["Down"];
@@ -381,8 +379,8 @@ function C_TimerBars:GetConfigTable()
                                   return value == "DOWN";
                               end;
 
-                              SetValue = function(dbPath)
-                                  db:SetPathValue(dbPath, "DOWN");
+                              SetValue = function(self)
+                                db:SetPathValue(self.dbPath, "DOWN");
                               end;
                           };
                           {   type = "divider"
@@ -390,7 +388,6 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Bar Width"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".bar.width";
-                              tooltip = tk.Strings:Concat(L["Default value is"], " 213");
                               step = 1;
                               min = 100;
                               max = 400;
@@ -398,7 +395,6 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Bar Height"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".bar.height";
-                              tooltip = tk.Strings:Concat(L["Default value is"], " 22");
                               step = 1;
                               min = 5;
                               max = 50;
@@ -406,7 +402,6 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Bar Spacing"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".bar.spacing";
-                              tooltip = tk.Strings:Concat(L["Default value is"], " 2");
                               step = 1;
                               min = 0;
                               max = 10;
@@ -414,9 +409,7 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Non-Player Alpha"];
                               type = "slider";
                               dbPath = dbFieldPath .. ".nonPlayerAlpha";
-                              tooltip = tk.Strings:Concat(
-                                L["Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs)."],
-                                "\n\n", L["Default value is"], dbFieldPath == "Player" and " 1" or  "0.7");
+                              tooltip = L["Sets the alpha of timer bars for auras not produced by you (i.e., other player or NPC buffs and debuffs)."];
                               step = 0.1;
                               min = 0;
                               max = 1;
@@ -472,7 +465,6 @@ function C_TimerBars:GetConfigTable()
                           };
                           {   name = L["Font Size"];
                               type = "slider";
-                              tooltip = tk.Strings:JoinWithSpace(L["Default value is"], 11);
                               step = 1;
                               min = 8;
                               max = 22;
@@ -481,8 +473,7 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Font Type"];
                               type = "dropdown";
                               dbPath = dbFieldPath .. ".timeRemaining.font";
-                              fontPicker = true;
-                              options = tk.Constants.LSM:List("font");
+                              media = "font";
                           };
                           {   content = L["Spell Name"];
                               type = "fontstring";
@@ -495,7 +486,6 @@ function C_TimerBars:GetConfigTable()
                           };
                           {   name = L["Font Size"];
                               type = "slider";
-                              tooltip = tk.Strings:JoinWithSpace(L["Default value is"], 11);
                               step = 1;
                               min = 8;
                               max = 22;
@@ -504,8 +494,7 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Font Type"];
                               type = "dropdown";
                               dbPath = dbFieldPath .. ".auraName.font";
-                              fontPicker = true;
-                              options = tk.Constants.LSM:List("font");
+                              media = "font";
                           };
                           {   content = L["Spell Count"];
                               type = "fontstring";
@@ -526,8 +515,7 @@ function C_TimerBars:GetConfigTable()
                           {   name = L["Font Type"];
                               type = "dropdown";
                               dbPath = dbFieldPath .. ".spellCount.font";
-                              fontPicker = true;
-                              options = tk.Constants.LSM:List("font");
+                              media = "font";
                           };
                           {  name = L["Position"],
                              type = "dropdown",

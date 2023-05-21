@@ -553,7 +553,7 @@ do
 
     self.copyChatFrame = frame;
 
-    gui:CreateDialogBox(nil, nil, frame);
+    gui:AddDialogTexture(frame);
     gui:AddCloseButton(frame);
     gui:AddTitleBar(frame, L["Copy Chat Text"]);
 
@@ -576,7 +576,9 @@ do
     refreshButton:SetSize(18, 18);
     refreshButton:SetPoint("TOPRIGHT", frame.closeBtn, "TOPLEFT", -10, -3);
     refreshButton:SetNormalTexture(tk:GetAssetFilePath("Textures\\refresh"));
-    refreshButton:GetNormalTexture():SetVertexColor(tk:GetThemeColor());
+
+    tk:ApplyThemeColor(refreshButton:GetNormalTexture());
+
     refreshButton:SetHighlightAtlas("chatframe-button-highlight");
     tk:SetBasicTooltip(refreshButton, L["Refresh Chat Text"]);
 

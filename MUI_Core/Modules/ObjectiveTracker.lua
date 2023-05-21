@@ -168,8 +168,8 @@ function C_ObjectiveTracker:OnInitialize(data, sideActionBars)
   end
 end
 
-local upButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\UpButton");
-local downButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\DownButton");
+local upButtonTexture = tk:GetAssetFilePath("Icons\\up");
+local downButtonTexture = tk:GetAssetFilePath("Icons\\down");
 
 function C_ObjectiveTracker.Private:HandleObjectiveTracker_Update(data)
   for _, pair in ipairs(data.minButtons) do
@@ -189,20 +189,20 @@ end
 
 obj:DefineParams("Button", "table")
 function C_ObjectiveTracker:ReskinMinifyButton(data, btn, module)
-  tk:ApplyThemeColor(btn);
+  -- TODO: This is broken
+  -- tk:ApplyThemeColor(btn);
+  -- btn:SetSize(20, 20);
+  -- btn:GetNormalTexture():SetTexCoord(0, 1, 0, 1);
+  -- btn:GetPushedTexture():SetTexCoord(0, 1, 0, 1);
+  -- btn:GetHighlightTexture():SetTexCoord(0, 1, 0, 1);
 
-  btn:SetSize(20, 20);
-  btn:GetNormalTexture():SetTexCoord(0, 1, 0, 1);
-  btn:GetPushedTexture():SetTexCoord(0, 1, 0, 1);
-  btn:GetHighlightTexture():SetTexCoord(0, 1, 0, 1);
+  -- btn:GetNormalTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
+  -- btn:GetPushedTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
+  -- btn:GetHighlightTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
 
-  btn:GetNormalTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
-  btn:GetPushedTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
-  btn:GetHighlightTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
-
-  btn:GetNormalTexture().SetRotation = tk.Constants.DUMMY_FUNC;
-  btn:GetPushedTexture().SetRotation = tk.Constants.DUMMY_FUNC;
-  btn:GetHighlightTexture().SetRotation = tk.Constants.DUMMY_FUNC;
+  -- btn:GetNormalTexture().SetRotation = tk.Constants.DUMMY_FUNC;
+  -- btn:GetPushedTexture().SetRotation = tk.Constants.DUMMY_FUNC;
+  -- btn:GetHighlightTexture().SetRotation = tk.Constants.DUMMY_FUNC;
 
   local tbl = obj:PopTable(btn, module);
   tinsert(data.minButtons, tbl);
@@ -250,10 +250,11 @@ function C_ObjectiveTracker:OnEnable(data)
   -- Reskinning (kept very minimal):
   tk:ApplyThemeColor(ObjectiveTrackerFrame.HeaderMenu.Title);
 
-  _G.ScenarioStageBlock.NormalBG:Hide();
-  _G.ScenarioStageBlock:SetHeight(70);
+  local block = _G["ScenarioStageBlock"];
+  block.NormalBG:Hide();
+  block:SetHeight(70);
 
-  local box = gui:CreateDialogBox(_G.ScenarioStageBlock, "LOW");
+  local box = gui:AddDialogTexture(tk:CreateFrame("Frame", block));
   box:SetPoint("TOPLEFT", 5, -5);
   box:SetPoint("BOTTOMRIGHT", -5, 5);
   box:SetFrameStrata("BACKGROUND");

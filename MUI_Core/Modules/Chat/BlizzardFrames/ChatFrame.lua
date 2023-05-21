@@ -1,10 +1,11 @@
 -- luacheck: ignore MayronUI self 143
 -- @Description: Controls the Blizzard Chat Frame changes (not the MUI Chat Frame!)
+local _G = _G;
 local string, MayronUI = _G.string, _G.MayronUI;
 local pairs, ipairs, PlaySound, unpack = _G.pairs, _G.ipairs, _G.PlaySound, _G.unpack;
 local select, GetChannelList, hooksecurefunc = _G.select, _G.GetChannelList, _G.hooksecurefunc;
 
-local tk, db, _, _, obj = MayronUI:GetCoreComponents();
+local tk, db, _, gui, obj = MayronUI:GetCoreComponents();
 local _, C_ChatModule = MayronUI:ImportModule("ChatModule");
 --------------------------------------
 local CHANNEL_PATTERNS = {
@@ -65,6 +66,11 @@ local function RenameAliases(text, settings, r, g, b)
     if (obj:IsString(channelName) and not loadedChannels[channelName]) then
       local path = tk.Strings:Concat("profile.chat.aliases[", channelName, "]");
       local default = (channelName:gsub("[a-z%s]", ""));
+
+      if (tk.Strings:IsNilOrWhiteSpace(default)) then
+        default = channelName;
+      end
+
       db:AddToDefaults(path, default);
       loadedChannels[channelName] = true;
       changed = true;
@@ -136,10 +142,6 @@ local function NewAddMessage(self, settings, text, r, g, b, ...)
   local newText = text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink);
   MayronUI.text = newText;
 	self:oldAddMessage(newText, r, g, b, ...);
-end
-
-local function OnHyperLinkLeave()
-	_G.GameTooltip:Hide();
 end
 
 local function OnHyperLinkEnter(self, linkData)
@@ -245,7 +247,9 @@ end
 
 local function OnScrollChangedCallback(self, offset)
   if (obj:IsWidget(self.ScrollBar)) then
-    self.ScrollBar:SetValue(self:GetNumMessages() - offset);
+    if (self.ScrollBar.SetValue) then
+      self.ScrollBar:SetValue(self:GetNumMessages() - offset);
+    end
 
     if (offset > 0) then
       self.ScrollBar:SetAlpha(1);
@@ -293,7 +297,7 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
     end;
 
 		chatFrame:SetScript("OnHyperLinkEnter", OnHyperLinkEnter);
-		chatFrame:SetScript("OnHyperLinkLeave", OnHyperLinkLeave);
+		chatFrame:SetScript("OnHyperLinkLeave", tk.HandleTooltipOnLeave);
 		chatFrame:SetScript("OnHyperlinkClick", OnHyperLinkClick);
 	end
 
@@ -333,30 +337,54 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
     _G[ string.format("%sButtonFrame", chatFrameName) ]
   );
 
-  if (obj:IsWidget(chatFrame.ScrollBar)) then
-    chatFrame.ScrollBar.ThumbTexture:SetColorTexture(1, 1, 1);
-    chatFrame.ScrollBar.ThumbTexture:SetSize(8, 34);
-    tk.Constants.AddOnStyle:ApplyColor(nil, 1, chatFrame.ScrollBar.ThumbTexture);
-    chatFrame.ScrollBar:SetPoint("TOPLEFT", chatFrame, "TOPRIGHT", 1, 0);
+  local scrollBar = chatFrame.ScrollBar;
+
+  -- Only Retail seems to have a scroll bar on the chat frame
+  if (obj:IsWidget(scrollBar)) then
+    scrollBar:SetPoint("TOPLEFT", chatFrame, "TOPRIGHT", 1, 0);
+
+    local thumb, track = scrollBar.ThumbTexture, scrollBar.Track;
+    if (obj:IsFunction(scrollBar.GetThumb)) then
+      thumb, track = scrollBar:GetThumb(), scrollBar:GetTrack();
+    end
+
+    if (obj:IsWidget(track)) then
+      track:DisableDrawLayer("ARTWORK");
+    end
+
+    if (obj:IsWidget(thumb)) then
+      thumb:SetSize(8, 34);
+      local r, g, b = tk:GetThemeColor();
+
+      if (thumb:GetObjectType() == "Button") then
+        tk:KillAllElements(scrollBar.Forward, scrollBar.Back, thumb.Begin, thumb.Middle, thumb.End);
+        local reskin = thumb:CreateTexture(nil, "BACKGROUND");
+        reskin:SetColorTexture(r*0.8, g*0.8, b*0.8);
+        reskin:SetAllPoints(true);
+      elseif (thumb:GetObjectType() == "Texture") then
+        thumb:SetColorTexture(r*0.8, g*0.8, b*0.8);
+      end
+    end
   end
 
-  local downBtn = chatFrame.ScrollToBottomButton;
+  local downBtn = chatFrame.ScrollToBottomButton--[[@as Button]];
 
   if (obj:IsWidget(downBtn)) then
-    local downButtonTexture = tk:GetAssetFilePath("Textures\\DialogBox\\DownButton");
-    downBtn:SetNormalTexture(downButtonTexture, "BLEND");
-    downBtn:SetPushedTexture(downButtonTexture, "BLEND");
-    downBtn:SetHighlightTexture(downButtonTexture, "ADD");
+    gui:ReskinIconButton(downBtn, "arrow", -180);
     downBtn:DisableDrawLayer("OVERLAY");
-    tk.Constants.AddOnStyle:ApplyColor(nil, 1, downBtn);
+    downBtn:SetPoint("BOTTOMRIGHT", chatFrame.ResizeButton, "TOPRIGHT", 0, -2);
+    downBtn:SetSize(24, 21);
   end
 
   chatFrame:SetOnScrollChangedCallback(OnScrollChangedCallback);
 
+  if (obj:IsWidget(chatFrame.ScrollBar)) then
+    chatFrame.ScrollBar:SetAlpha(0);
+  end
+
   if (not tk:IsRetail()) then
     downBtn:ClearAllPoints();
     downBtn:SetPoint("BOTTOMLEFT", chatFrame, "BOTTOMRIGHT", 4, 0);
---    downBtn.ClearAllPoints = tk.Constants.Dumm
   end
 
   if (chatFrameName == "ChatFrame1") then

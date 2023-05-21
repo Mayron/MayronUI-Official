@@ -9,7 +9,6 @@
     <Script file="GUI-Builder\Panel.lua"/>
     <Script file="GUI-Builder\Cell.lua"/>
     <Script file="GUI-Builder\Group.lua"/>
-    <Script file="GUI-Builder\Style.lua"/>
     <Script file="GUI-Builder\SlideController.lua"/>
     <Script file="GUI-Builder\DropDownMenu.lua"/>
     <Script file="GUI-Builder\DynamicFrame.lua"/>
@@ -17,6 +16,7 @@
     <Script file="GUI-Builder\GridTexture.lua"/>
     <Script file="GUI-Builder\Miscellaneous.lua"/>
     <Script file="GUI-Builder\TextField.lua"/>
+    <Script file="GUI-Builder\Icon.lua"/>
 
     <Script file="Modules.lua"/>
     <Script file="UpdateFunctions.lua"/>

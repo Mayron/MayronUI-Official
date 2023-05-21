@@ -1,9 +1,10 @@
 ## Interface: 30401
-## Title: |TInterface/Addons/MUI_Core/Assets/Logo:12:22|t |cff00ccffSetup|r
+## Title: |TInterface/Addons/MUI_Core/Assets/Logo:20:20|t |cff00ccffSetup|r
+## IconTexture: Interface/Addons/MUI_Core/Assets/Logo
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
-## Version: 6.8.2
-## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to install MayronUI and inject AddOn default settings.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!|n|n|cffffd100Version: 6.8.2|r
+## Version: 6.9.0
+## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to install MayronUI and inject AddOn default settings.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!|n|n|cffffd100Version: 6.9.0|r
 
 MUI_Setup.lua
 ReportFrame.lua

@@ -106,7 +106,8 @@ function Components.fontstring(parent, widgetTable)
   end
 
   if (not obj:IsNumber(widgetTable.width)) then
-    tk:SetFullWidth(container, 20);
+    container.rightPadding = 20;
+    tk:SetFullWidth(container);
   end
 
   if (not obj:IsNumber(widgetTable.height)) then

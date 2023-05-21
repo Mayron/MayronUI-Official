@@ -7,7 +7,7 @@ local table, string, unpack, tostring, pairs, ipairs = _G.table, _G.string, _G.u
 local tremove, PlaySound, GetChannelList = _G.table.remove, _G.PlaySound, _G.GetChannelList;
 local BetterDate, SetCVar, GetCVar, time = _G.BetterDate, _G.SetCVar, _G.GetCVar, _G.time;
 
----@param configModule ConfigMenuModule
+---@param configModule ConfigMenu
 function C_ChatModule:GetConfigTable(_, configModule)
   local ChatFrameAnchorDropDownOptions = {
     [L["Top Left"]]       = "TOPLEFT";
@@ -108,16 +108,16 @@ function C_ChatModule:GetConfigTable(_, configModule)
           return false;
         end,
 
-        SetValue = function(valueDbPath, checked, oldValue)
+        SetValue = function(self, checked, oldValue)
           if (checked) then
             -- add it
             local newValue = (oldValue and tk.Strings:Concat(oldValue, modKeyFirstChar)) or modKeyFirstChar;
-            db:SetPathValue(valueDbPath, newValue);
+            db:SetPathValue(self.dbPath, newValue);
 
           elseif (oldValue and oldValue:find(modKeyFirstChar)) then
             -- remove it
             local newValue = oldValue:gsub(modKeyFirstChar, tk.Strings.Empty);
-            db:SetPathValue(valueDbPath, newValue);
+            db:SetPathValue(self.dbPath, newValue);
           end
         end
       });
@@ -223,7 +223,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
         tremove(highlightFrames, id);
 
         db:SetPathValue("profile.chat.highlighted", highlighted);
-        configModule:RemoveWidget(frame);
+        configModule:RemoveComponent(frame);
       end
 
       local frameConfig = {
@@ -297,8 +297,8 @@ function C_ChatModule:GetConfigTable(_, configModule)
     highlighted[id].upperCase = false;
 
     db.profile.chat.highlighted = highlighted;
-    local config = GetTextHighlightingFrameConfigTable(highlighted[id], configModule);
-    configModule:RenderWidget(config);
+    local config = GetTextHighlightingFrameConfigTable(highlighted[id]);
+    configModule:RenderComponent(nil, config);
   end
 
   local channelNames = obj:PopTable();
@@ -318,7 +318,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
         tooltip = "If checked, this module will be enabled.",
         type = "check",
         requiresReload = true, -- TODO: Maybe modules can be global? - move module enable/disable to general menu?
-        appendDbPath = "enabled",
+        dbPath = "enabled",
       },
       { type = "divider" };
       { name = L["Text Highlighting"];
@@ -357,11 +357,11 @@ function C_ChatModule:GetConfigTable(_, configModule)
           { type = "check";
             name = L["Enable Custom Aliases"];
             dbPath = "profile.chat.enableAliases";
+            requiresReload = true;
           },
           { type = "divider" };
           { type = "slider";
             name = L["Alias Brightness"];
-            tooltip = L["Default value is"] .. " 0.7";
             dbPath = "profile.chat.brightness";
             min = 0;
             max = 1;
@@ -370,40 +370,40 @@ function C_ChatModule:GetConfigTable(_, configModule)
           { type = "divider"; };
           { name = _G.CHAT_MSG_GUILD;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_GUILD, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_GUILD, "]");
           };
           { name = _G.CHAT_MSG_OFFICER;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_OFFICER, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_OFFICER, "]");
           };
           { name = _G.CHAT_MSG_PARTY;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_PARTY, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_PARTY, "]");
           };
           { name = _G.CHAT_MSG_PARTY_LEADER;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_PARTY_LEADER, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_PARTY_LEADER, "]");
           };
           { name = _G.CHAT_MSG_RAID;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID, "]");
           };
           { name = _G.CHAT_MSG_RAID_LEADER;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID_LEADER, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID_LEADER, "]");
           };
           { name = _G.CHAT_MSG_RAID_WARNING;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID_WARNING, "]");
+            dbPath = tk.Strings:Concat("[", _G.CHAT_MSG_RAID_WARNING, "]");
           };
           { name = _G.INSTANCE_CHAT;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.INSTANCE_CHAT, "]");
+            dbPath = tk.Strings:Concat("[", _G.INSTANCE_CHAT, "]");
             client = "retail";
           };
           { name = _G.INSTANCE_CHAT_LEADER;
             type = "textfield";
-            appendDbPath = tk.Strings:Concat("[", _G.INSTANCE_CHAT_LEADER, "]");
+            dbPath = tk.Strings:Concat("[", _G.INSTANCE_CHAT_LEADER, "]");
             client = "retail";
           };
           { type = "fontstring";
@@ -433,8 +433,8 @@ function C_ChatModule:GetConfigTable(_, configModule)
             GetValue = function(_, value)
               return value == "TOP";
             end;
-            SetValue = function(path)
-              db:SetPathValue(path, "TOP");
+            SetValue = function(self)
+              db:SetPathValue(self.dbPath, "TOP");
             end;
           },
           { name = L["Bottom"];
@@ -444,8 +444,8 @@ function C_ChatModule:GetConfigTable(_, configModule)
             GetValue = function(_, value)
               return value == "BOTTOM";
             end;
-            SetValue = function(path)
-              db:SetPathValue(path, "BOTTOM");
+            SetValue = function(self)
+              db:SetPathValue(self.dbPath, "BOTTOM");
             end;
           },
           {   type = "divider";
@@ -455,22 +455,20 @@ function C_ChatModule:GetConfigTable(_, configModule)
             min = -50;
             max = 50;
             valueType = "number",
-            tooltip = tk.Strings:Join(
-              L["Set the vertical positioning of the edit box."],
-              "\n\n", L["Default value is"], " -8.");
+            tooltip = L["Set the vertical positioning of the edit box."];
             dbPath = "profile.chat.editBox.yOffset";
           },
           { name = L["Set Height"];
             type = "slider";
             min = 20;
             max = 50;
-            tooltip = tk.Strings:Join(L["The height of the edit box."], "\n\n", L["Default value is"], " 27.");
+            tooltip = L["The height of the edit box."];
             dbPath = "profile.chat.editBox.height";
           },
           { type = "divider" };
           { name = L["Border"],
             type = "dropdown",
-            options = tk.Constants.LSM:List("border"),
+            media = "border";
             dbPath = "profile.chat.editBox.border",
           },
           { name = L["Background Color"],
@@ -485,15 +483,14 @@ function C_ChatModule:GetConfigTable(_, configModule)
             type = "slider",
             min = 1;
             max = 10;
-            tooltip = tk.Strings:Join("\n\n", L["Set the border size."], L["Default value is"] .. " 1"),
+            tooltip = L["Set the border size."],
             dbPath = "profile.chat.editBox.borderSize"
           },
           { name = L["Backdrop Inset"],
             type = "slider",
             min = 0;
             max = 10;
-            tooltip = tk.Strings:Join("\n\n",
-              L["Set the spacing between the background and the border."], L["Default value is"] .. " 0"),
+            tooltip = L["Set the spacing between the background and the border."],
             dbPath = "profile.chat.editBox.inset"
           },
         }
@@ -526,8 +523,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
                   local _, label = tk.Tables:First(iconOptions, function(v) return v == value end);
                   return label;
                 end;
-                ---@param old Observer
-                SetValue = function(path, newType, oldType)
+                SetValue = function(self, newType, oldType)
                   local oldIcon = _G["MUI_ChatFrameIcon_"..tostring(oldType)];
 
                   if (obj:IsWidget(oldIcon)) then
@@ -553,7 +549,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
                     end
                   end
 
-                  db:SetPathValue(path, newType);
+                  db:SetPathValue(self.dbPath, newType);
                 end;
               };
             end
@@ -656,8 +652,19 @@ function C_ChatModule:GetConfigTable(_, configModule)
                   dbPath = string.format("%s.enabled", dbPath),
                   OnClick = function(_, value)
                     for _, container in ipairs(disabledWidgets) do
-                      local widget = container.component or container.btn;
-                      widget:SetEnabled(value);
+                      local widget;
+
+                      if (container.component) then
+                        -- could be a slider or dropdown
+                        widget = container.component.dropdown or container.component;
+                      elseif (container.btn) then
+                        -- check button
+                        widget = container.btn;
+                      end
+
+                      if (obj:IsTable(widget) and obj:IsFunction(widget.SetEnabled)) then
+                        widget:SetEnabled(value);
+                      end
                     end
                   end
                 },
@@ -706,7 +713,9 @@ function C_ChatModule:GetConfigTable(_, configModule)
           };
 
           for i = 1, 3 do
-            tk.Tables:AddAll(ConfigTable.children, CreateButtonConfigTable(dbPath, i, chatFrame, addWidget));
+            tk.Tables:AddAll(
+              ConfigTable.children,
+              CreateButtonConfigTable(dbPath, i, chatFrame, addWidget));
           end
 
           return ConfigTable;

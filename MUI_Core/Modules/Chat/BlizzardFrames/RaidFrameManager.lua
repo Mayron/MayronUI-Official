@@ -91,7 +91,7 @@ function C_ChatModule:SetUpRaidFrameManager(data)
   btn.displayFrame:ClearAllPoints();
   btn.displayFrame:SetPoint("TOPLEFT", btn, "TOPRIGHT", 5, 0);
 
-  gui:CreateDialogBox(nil, nil, btn.displayFrame);
+  gui:AddDialogTexture(btn.displayFrame);
   tk:MakeMovable(btn.displayFrame);
 
   OnArrowButtonEvent(btn);

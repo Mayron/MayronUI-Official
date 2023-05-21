@@ -60,27 +60,30 @@ local function OnColorComponentValueChanged()
   end
 
   SetColorValueToDatabase(container, r, g, b, a);
-  container:UpdateColor(r, g, b, a);
+  container:ApplyThemeColor(r, g, b, a);
 
   if (container.requiresReload) then
     configModule:ShowReloadMessage();
   end
 end
 
-local function OnColorComponentEnabled(self, enabled)
+local function OnColorComponentEnabled(container, enabled)
   local texturePath;
 
+  local btn = container.btn;
+
   if (enabled) then
-    self.text:SetFontObject("GameFontHighlight");
+    btn.text:SetFontObject("GameFontHighlight");
     texturePath = tk:GetAssetFilePath("Textures\\Widgets\\Checked");
-    self:SetAlpha(1);
+    container:SetAlpha(1);
   else
-    self.text:SetFontObject("GameFontDisable");
+    btn.text:SetFontObject("GameFontDisable");
     texturePath = tk:GetAssetFilePath("Textures\\Widgets\\Unchecked");
-    self:SetAlpha(0.8);
+    container:SetAlpha(0.8);
   end
 
-  self.color:SetTexture(texturePath);
+  btn:SetEnabled(enabled);
+  container.color:SetTexture(texturePath);
 end
 
 function Components.color(parent, config, value)
@@ -123,7 +126,7 @@ function Components.color(parent, config, value)
     cbContainer.opacity = 1 - a;
   end
 
-  cbContainer:UpdateColor(r, g, b, a);
+  cbContainer:ApplyThemeColor(r, g, b, a);
 
   hooksecurefunc(cbContainer, "SetEnabled", OnColorComponentEnabled);
   Utils:SetComponentEnabled(cbContainer.btn, config.enabled);

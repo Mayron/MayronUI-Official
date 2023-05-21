@@ -45,7 +45,7 @@ function C_UnitPanels:SetUnitNamesEnabled(data, enabled)
     data.player:Hide();
     data.target:Hide();
 
-    em:DisableEventHandlers(
+    em:DisableEventListeners(
       "MuiUnitNames_LevelUp",
       "MuiUnitNames_UpdatePlayerName",
       "MuiUnitNames_TargetChanged");

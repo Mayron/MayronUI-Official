@@ -1,7 +1,7 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
+local tk, db, _, gui, obj, L = MayronUI:GetCoreComponents();
 local C_ConfigMenu = MayronUI:GetModuleClass("ConfigMenu"); ---@type ConfigMenuModule
 
 local ipairs, strformat, tonumber = _G.ipairs, _G.string.format, _G.tonumber;
@@ -63,8 +63,8 @@ local function AddRepStandingIDColorOptions(repSettings, child)
       tooltip = L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."];
       type = "check";
       dbPath = "profile.resourceBars.reputationBar.useDefaultColor";
-      SetValue = function(dbPath, newValue)
-        db:SetPathValue(dbPath, newValue);
+      SetValue = function(self, newValue)
+        db:SetPathValue(self.dbPath, newValue);
         fixedBtn:SetEnabled(newValue);
 
         for _, btn in ipairs(repColors) do
@@ -113,7 +113,7 @@ function C_ConfigMenu:GetConfigTable()
       name = L["General"];
       id = 1;
       children = {
-        { type = "title"; name = L["Popular Settings"]; marginTop = 0; };
+        { type = "title"; name = L["Appearance Settings"]; marginTop = 0; };
         {
           name = L["Set Theme Color"];
           type = "color";
@@ -121,13 +121,20 @@ function C_ConfigMenu:GetConfigTable()
           requiresReload = true;
 
           SetValue = function(_, value)
-            value.hex = strformat("%02x%02x%02x", value.r * 255, value.g * 255, value.b * 255);
-            db.profile.theme.color = value;
-            db.profile.bottomui.gradients = nil;
-            db:RemoveAppended(db.profile, "unitPanels.sufGradients");
+            tk:UpdateThemeColor(value);
           end;
         };
-        { type = "title"; name = L["Global Settings"]; description = L["These settings are applied account-wide"] };
+        {
+          name = "Set MUI Frames Color";
+          type = "color";
+          tooltip = L["MUI_FRAMES_COLOR_TOOLTIP"];
+          dbPath = "profile.theme.frameColor";
+          SetValue = function(_, value)
+            db.profile.theme.frameColor = value;
+            gui:UpdateMuiFrameColor(value.r, value.g, value.b);
+          end;
+        };
+        { type = "divider"};
         {
           name = L["Override Master Font"];
           height = 42;
@@ -141,10 +148,9 @@ function C_ConfigMenu:GetConfigTable()
         {
           name = L["Master Font"];
           type = "dropdown";
-          options = tk.Constants.LSM:List("font");
+          media = "font";
           dbPath = "global.core.fonts.master";
           requiresRestart = true;
-          fontPicker = true;
         };
         { type = "divider"};
         {
@@ -161,12 +167,22 @@ function C_ConfigMenu:GetConfigTable()
           name = L["Combat Font"];
           tooltip = L["This font is used to display the damage and healing combat numbers."];
           type = "dropdown";
-          options = tk.Constants.LSM:List("font");
+          media = "font";
           dbPath = "global.core.fonts.combat";
           requiresRestart = true;
-          fontPicker = true;
         };
-        { type = "fontstring"; subtype="header"; content = L["Miscellaneous"]};
+        { type = "title";
+          name = L["Global Settings"];
+          description = L["These settings are applied account-wide"];
+        };
+        { type = "check";
+          name = L["Enable Inventory Frame"];
+          tooltip = L["Use the MayronUI custom inventory frame instead of the default Blizzard bags UI."];
+          dbPath = "global.enabled";
+          requiresReload = true;
+          dbFramework = "orbitus";
+          database = "MUI_InventoryDB";
+        };
         {
           name = L["Display Lua Errors"];
           type = "check";
@@ -188,8 +204,8 @@ function C_ConfigMenu:GetConfigTable()
           tooltip = L["Enable/disable the AFK Display"];
           dbPath = "global.AFKDisplay.enabled";
 
-          SetValue = function(dbPath, newValue)
-            db:SetPathValue(dbPath, newValue);
+          SetValue = function(self, newValue)
+            db:SetPathValue(self.dbPath, newValue);
             MayronUI:ImportModule("AFKDisplay"):SetEnabled(newValue);
           end;
         }; {
@@ -197,8 +213,8 @@ function C_ConfigMenu:GetConfigTable()
           type = "check";
           tooltip = L["Enable Max Camera Zoom"];
           dbPath = "global.core.maxCameraZoom";
-          SetValue = function(dbPath, newValue)
-            db:SetPathValue(dbPath, newValue);
+          SetValue = function(self, newValue)
+            db:SetPathValue(self.dbPath, newValue);
 
             if (newValue) then
               SetCVar("cameraDistanceMaxZoomFactor", 4.0);
@@ -220,7 +236,8 @@ function C_ConfigMenu:GetConfigTable()
           valueType = "number";
           tooltip = L["Adjust the width of the main container."];
           dbPath = "profile.bottomui.width";
-        }; {
+        };
+        {
           name = L["Frame Strata"];
           type = "dropdown";
           options = tk.Constants.ORDERED_FRAME_STRATAS;
@@ -231,18 +248,20 @@ function C_ConfigMenu:GetConfigTable()
           type = "textfield";
           valueType = "number";
           dbPath = "profile.bottomui.frameLevel";
-        }; { type = "divider" }; {
+        };
+        { type = "divider" };
+        {
           name = L["X-Offset"];
           type = "textfield";
           valueType = "number";
           dbPath = "profile.bottomui.xOffset";
-        }; {
+        };
+        {
           name = L["Y-Offset"];
           type = "textfield";
           valueType = "number";
           dbPath = "profile.bottomui.yOffset";
         };
-
         { type = "title"; name = L["Blizzard Frames"] };
         {
           name = L["Movable Frames"];
@@ -250,8 +269,8 @@ function C_ConfigMenu:GetConfigTable()
           tooltip = L["Allows you to move Blizzard Frames outside of combat only."];
           dbPath = "global.movable.enabled";
 
-          SetValue = function(dbPath, newValue)
-            db:SetPathValue(dbPath, newValue);
+          SetValue = function(self, newValue)
+            db:SetPathValue(self.dbPath, newValue);
             MayronUI:ImportModule("MovableFramesModule"):SetEnabled(newValue);
           end;
         };
@@ -294,8 +313,8 @@ function C_ConfigMenu:GetConfigTable()
             return value == "TOP";
           end;
 
-          SetValue = function(path)
-            db:SetPathValue(path, "TOP");
+          SetValue = function(self)
+            db:SetPathValue(self.dbPath, "TOP");
           end;
         }; {
           name = L["Bottom of Screen"];
@@ -308,8 +327,8 @@ function C_ConfigMenu:GetConfigTable()
             return value == "BOTTOM";
           end;
 
-          SetValue = function(path)
-            db:SetPathValue(path, "BOTTOM");
+          SetValue = function(self)
+            db:SetPathValue(self.dbPath, "BOTTOM");
           end;
         }; {
           name = L["Y-Offset"];
@@ -534,8 +553,8 @@ function C_ConfigMenu:GetConfigTable()
                 return GetModKeyValue(arg, currentValue);
               end;
 
-              SetValue = function(dbPath, newValue, oldValue)
-                SetModKeyValue(arg, dbPath, newValue, oldValue);
+              SetValue = function(self, newValue, oldValue)
+                SetModKeyValue(arg, self.dbPath, newValue, oldValue);
               end;
             };
           end;
@@ -867,32 +886,36 @@ function C_ConfigMenu:GetConfigTable()
           type = "loop";
           args = { "Experience"; "Reputation"; "Artifact"; "Azerite" };
           func = function(id, name)
-            if (not tk:IsRetail() and (name == "Artifact" or name == "Azerite")) then
+            if (tk:IsRetail() and (name == "Artifact" or name == "Azerite")) then
               return
             end
 
-            if (name == "Azerite" and not _G.AzeriteBarMixin:ShouldBeVisible()) then
-              return
-            end
+            if (name == "Azerite" or name == "Artifact") then
+              local manager = _G["StatusTrackingBarManager"];
+              if (not manager or not obj:IsFunction(manager.CanShowBar)) then return end
 
-            if (name == "Artifact" and not _G.ArtifactBarMixin:ShouldBeVisible()) then
-              return
+              local barIndex;
+              if (name == "Azerite") then
+                barIndex = tk.Constants.RESOURCE_BAR_IDS.Azerite;
+              else
+                barIndex = tk.Constants.RESOURCE_BAR_IDS.Artifact;
+              end
+
+              if (not manager:CanShowBar(barIndex)) then return end
             end
 
             local key = name:lower() .. "Bar";
-            local child = {
+            local children = {
               {
                 name = tk.Strings:JoinWithSpace(L[name], L["Bar"]);
                 type = "title";
               }; {
                 name = L["Enabled"];
                 type = "check";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], L["true"]);
                 dbPath = tk.Strings:Concat("profile.resourceBars.", key, ".enabled");
               }; {
                 name = L["Show Text"];
                 type = "check";
-                tooltip = tk.Strings:JoinWithSpace(L["Default value is"], L["false"]);
                 dbPath = tk.Strings:Concat("profile.resourceBars.", key, ".alwaysShowText");
               }; {
                 name = L["Height"];
@@ -911,23 +934,21 @@ function C_ConfigMenu:GetConfigTable()
               }; {
                 type = "dropdown";
                 name = L["Bar Texture"];
-                options = tk.Constants.LSM:List("statusbar");
-                dbPath = tk.Strings:Concat(
-                  "profile.resourceBars.", key, ".texture");
+                media = "statusbar";
+                dbPath = "profile.resourceBars."..key..".texture";
               };
             };
 
             if (id == 1) then
-              child[1].marginTop = 0;
+              children[1].marginTop = 0;
             end
 
             if (id == 2) then
               -- rep bar, so show color options
-              AddRepStandingIDColorOptions(
-                db.profile.resourceBars.reputationBar, child);
+              AddRepStandingIDColorOptions(db.profile.resourceBars.reputationBar, children);
             end
 
-            return child;
+            return children;
           end;
         };
       };

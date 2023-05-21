@@ -54,6 +54,7 @@ obj:DefineReturns("EventListener");
 ---Creates an EventListener that calls the provided callback function when a registered event is fired (while the event listener is enabled).
 ---@param callback function @A callback function to execute when a registered event is fired (while the event listener is enabled).
 ---@return EventListener @The event listener object used to register/unregister events, set custom arguments and more.
+---@overload fun(self, callback: function): EventListener
 function C_EventManager:CreateEventListener(_, callback)
   local C_EventListener = obj:Import("Pkg-MayronEvents.EventListener");
   return C_EventListener(callback, self);

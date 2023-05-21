@@ -1,9 +1,10 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local obj = MayronUI:GetComponent("Objects"); ---@type MayronObjects
 
----@class SlideController : Object
+local obj = MayronUI:GetComponent("Objects")--[[@as MayronObjects]];
+
+---@class MayronUI.SlideController
 local SlideController = obj:CreateClass("SlideController");
 obj:Export(SlideController, "MayronUI");
 
@@ -49,7 +50,7 @@ local function SetValue(data, value)
   end
 end
 
----@param slider SlideController
+---@param slider MayronUI.SlideController
 local function StartTransition(slider, data, isExpanding, ...)
   obj:Assert(obj:IsTable(data) and not data.GetObjectType);
   local step = math.abs(data.step);

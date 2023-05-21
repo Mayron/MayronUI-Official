@@ -1,9 +1,10 @@
 ## Interface: 30401
-## Title: |TInterface/Addons/MUI_Core/Assets/Logo:12:22|t |cff00ccffCore|r
-## SavedVariables: MayronUIdb, MUI_TimerBarsDb
+## Title: |TInterface/Addons/MUI_Core/Assets/Logo:20:20|t |cff00ccffCore|r
+## IconTexture: Interface/Addons/MUI_Core/Assets/Logo
+## SavedVariables: MayronUIdb, MUI_TimerBarsDb, MUI_AurasDB, MUI_InventoryDB
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
-## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to run each MUI module.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!|n|n|cffffd100Version: 6.8.2|r
-## Version: 6.8.2
+## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to run each MUI module.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!|n|n|cffffd100Version: 6.9.0|r
+## Version: 6.9.0
 
 ## Links:
 ## ------------------------------------------------
@@ -32,6 +33,7 @@ Libs\AceLocale-3.0.lua
 Libs\LibSharedMedia-3.0.lua
 Libs\SortBags.lua
 Libs\LibDeflate.lua
+Libs\OrbitusDB\OrbitusDB.lua
 
 ## Libraries for Classic WoW:
 Libs\LibClassicCasterino.lua

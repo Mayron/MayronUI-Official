@@ -1,10 +1,17 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
+local tk, _, _, _, obj = MayronUI:GetCoreComponents();
+
+---@class GUIBuilder
+local gui = MayronUI:GetComponent("GUIBuilder");
+
 local SlideController = obj:Import("MayronUI.SlideController");
-local DropDownMenu = obj:CreateClass("DropDownMenu"); ---@class DropDownMenu
+local DropDownMenu = obj:CreateClass("DropDownMenu");
 obj:Export(DropDownMenu, "MayronUI");
+
+---@class DropDownMenu
+---@field Static table
 
 DropDownMenu.Static.MAX_HEIGHT = 200;
 
@@ -51,8 +58,6 @@ local function DropDownContainer_OnHide()
 end
 
 function gui:CreateDropDown(parent, direction, menuParent)
-  local style = tk.Constants.AddOnStyle;
-
   if (not DropDownMenu.Static.Menu) then
     DropDownMenu.Static.Menu = self:CreateScrollFrame(_G.UIParent, "MUI_DropDownMenu");
 
@@ -63,12 +68,15 @@ function gui:CreateDropDown(parent, direction, menuParent)
     end
 
     DropDownMenu.Static.Menu:Hide();
-    DropDownMenu.Static.Menu:SetBackdrop(style:GetBackdrop("DropDownMenu"));
-    DropDownMenu.Static.Menu:SetBackdropBorderColor(style:GetColor("Widget"));
+    DropDownMenu.Static.Menu:SetBackdrop(tk.Constants.BACKDROP);
+
+    local r, g, b = tk:GetThemeColor();
+    r, g, b = r*0.7, g*0.7, b*0.7;
+    DropDownMenu.Static.Menu:SetBackdropBorderColor(r, g, b);
     DropDownMenu.Static.Menu:SetScript("OnHide", FoldAll);
 
     tk:SetBackground(DropDownMenu.Static.Menu, 0, 0, 0, 0.9);
-    tinsert(_G.UISpecialFrames, "MUI_DropDownMenu");
+    tinsert(_G["UISpecialFrames"], "MUI_DropDownMenu");
   end
 
   local frame = tk:CreateFrame("Button", parent);
@@ -82,7 +90,7 @@ function gui:CreateDropDown(parent, direction, menuParent)
   frame.toggleButton:SetScript("OnSizeChanged", OnSizeChanged);
 
   frame.toggleButton.arrow = frame.toggleButton:CreateTexture(nil, "OVERLAY");
-  frame.toggleButton.arrow:SetTexture(style:GetTexture("SmallArrow"));
+  frame.toggleButton.arrow:SetTexture(tk:GetAssetFilePath("Textures\\Widgets\\SmallArrow"));
   frame.toggleButton.arrow:SetPoint("CENTER");
   frame.toggleButton.arrow:SetSize(16, 16);
 
@@ -96,11 +104,11 @@ function gui:CreateDropDown(parent, direction, menuParent)
     frame.toggleButton.menuParent = menuParent;
   end
 
-  local header = tk:CreateFrame("Frame", frame, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+  local header = tk:CreateBackdropFrame("Frame", frame, nil);
   header:SetPoint("TOPLEFT", frame);
   header:SetPoint("BOTTOMRIGHT", frame.toggleButton, "BOTTOMLEFT", -2, 0);
-  header:SetBackdrop(style:GetBackdrop("DropDownMenu"));
-  header.bg = tk:SetBackground(header, style:GetTexture("ButtonTexture"));
+  header:SetBackdrop(tk.Constants.BACKDROP);
+  header.bg = tk:SetBackground(header, tk:GetAssetFilePath("Textures\\Widgets\\Button"));
 
   direction = (direction or "DOWN"):upper();
 
@@ -110,15 +118,15 @@ function gui:CreateDropDown(parent, direction, menuParent)
     frame.toggleButton.arrow:SetTexCoord(0, 1, 0, 1);
   end
 
-  ---@type SlideController
+  ---@type MayronUI.SlideController
   local slideController = SlideController(DropDownMenu.Static.Menu, "VERTICAL");
   slideController:SetMinValue(1);
 
-  slideController:OnEndRetract(function(_, frame)
-    frame:Hide();
+  slideController:OnEndRetract(function(_, f)
+    f:Hide();
   end);
 
-  frame.dropdown = DropDownMenu(style, header, direction, slideController, frame);
+  frame.dropdown = DropDownMenu(header, direction, slideController, frame);
   frame.toggleButton.dropdown = frame.dropdown; -- needed for OnClick
   tinsert(dropdowns, frame.dropdown);
 
@@ -141,15 +149,14 @@ local function OnDropDownEnter(frame)
   tooltip:Show();
 end
 
-obj:DefineParams("Style", "Frame", "string", "SlideController", "Frame")
-function DropDownMenu:__Construct(data, style, header, direction, slideController, frame)
+obj:DefineParams("Frame", "string", "SlideController", "Frame")
+function DropDownMenu:__Construct(data, header, direction, slideController, frame)
   data.header = header;
   data.direction = direction;
   data.slideController = slideController;
   data.scrollHeight = 0;
   data.frame = frame;
   data.menu = DropDownMenu.Static.Menu;
-  data.style = style;
   data.options = obj:PopTable();
 
   data.label = data.header:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
@@ -183,7 +190,7 @@ end
 do
   local function ApplyTooltipScripts(f)
     f:SetScript("OnEnter", OnDropDownEnter);
-    f:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);    
+    f:SetScript("OnLeave", tk.HandleTooltipOnLeave);
   end
 
   function DropDownMenu:SetTooltip(data, tooltip)
@@ -221,7 +228,7 @@ function DropDownMenu:GetOptionByID(data, optionID)
 end
 
 obj:DefineParams("string");
-obj:DefineReturns("Button");
+obj:DefineReturns("?Button");
 function DropDownMenu:GetOptionByLabel(data, label)
   for _, optionButton in ipairs(data.options) do
     if (optionButton:GetText() == label) then
@@ -233,8 +240,8 @@ end
 obj:DefineParams("function");
 obj:DefineReturns("?Button");
 function DropDownMenu:FindOption(data, func)
-  for _, optionButton in ipairs(data.options) do
-    if (func(optionButton)) then return optionButton; end
+  for id, optionButton in ipairs(data.options) do
+    if (func(optionButton, id)) then return optionButton; end
   end
 end
 
@@ -311,26 +318,24 @@ do
 end
 
 function DropDownMenu:AddOption(data, label, func, ...)
-  local r, g, b = data.style:GetColor();
   local child = data.frame.child;
-
   local option = tk:CreateFrame("Button", child);
 
   option:SetHeight(26);
   option:SetNormalFontObject("GameFontHighlight");
   option:SetText(label or " ");
 
-  local optionFontString = option:GetFontString();
+  local optionFontString = option:GetFontString()--[[@as FontString]];
   optionFontString:ClearAllPoints();
   optionFontString:SetPoint("LEFT", 10, 0);
   optionFontString:SetPoint("RIGHT", -10, 0);
   optionFontString:SetWordWrap(false);
   optionFontString:SetJustifyH("LEFT");
 
-  option:SetNormalTexture(1);
-  option:GetNormalTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
-  option:SetHighlightTexture(1);
-  option:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
+  option:SetNormalTexture(tk.Constants.SOLID_TEXTURE);
+  option:SetHighlightTexture(tk.Constants.SOLID_TEXTURE);
+
+  tk:ApplyThemeColor(0.4, option:GetNormalTexture(), option:GetHighlightTexture());
 
   local args = obj:PopTable(...);
   option.args = args;
@@ -357,10 +362,11 @@ function DropDownMenu:AddOption(data, label, func, ...)
   return option;
 end
 
-function DropDownMenu:UpdateColor(data)
-  if (data.frame.isEnabled) then
-    local r, g, b = data.style:GetColor("Widget");
+function DropDownMenu:ApplyThemeColor(data)
+  local r, g, b = tk:GetThemeColor();
+  r, g, b = r*0.7, g*0.7, b*0.7;
 
+  if (data.frame.isEnabled) then
     data.header:SetBackdropBorderColor(r, g, b);
     data.header.bg:SetVertexColor(r, g, b, 0.6);
 
@@ -371,25 +377,22 @@ function DropDownMenu:UpdateColor(data)
     data.frame.toggleButton.arrow:SetAlpha(1);
     data.label:SetTextColor(1, 1, 1);
   else
-    local r, g, b = _G.DISABLED_FONT_COLOR:GetRGB();
+    local disabledR, disabledG, disabledB = _G.DISABLED_FONT_COLOR:GetRGB();
 
-    data.header:SetBackdropBorderColor(r, g, b);
-    data.header.bg:SetVertexColor(r, g, b, 0.6);
-
-    data.frame.toggleButton:SetBackdropBorderColor(r, g, b);
+    data.header:SetBackdropBorderColor(disabledR, disabledG, disabledB);
+    data.header.bg:SetVertexColor(disabledR, disabledG, disabledB, 0.6);
+    data.frame.toggleButton:SetBackdropBorderColor(disabledR, disabledG, disabledB);
 
     data.frame.toggleButton.arrow:SetAlpha(0.5);
-    data.label:SetTextColor(r, g, b);
+    data.label:SetTextColor(disabledR, disabledG, disabledB);
   end
 
-  DropDownMenu.Static.Menu:SetBackdropBorderColor(data.style:GetColor("Widget"));
-  gui:UpdateScrollFrameColor(DropDownMenu.Static.Menu, data.style);
-
-  local r, g, b = data.style:GetColor();
+  DropDownMenu.Static.Menu:SetBackdropBorderColor(r, g, b);
+  DropDownMenu.Static.Menu.ScrollBar.thumb:SetVertexColor(r, g, b, 0.8);
 
   for _, option in ipairs(data.options) do
-    option:GetNormalTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
-    option:GetHighlightTexture():SetColorTexture(r * 0.7, g * 0.7, b * 0.7, 0.4);
+    option:GetNormalTexture():SetColorTexture(r, g, b, 0.4);
+    option:GetHighlightTexture():SetColorTexture(r, g, b, 0.4);
   end
 end
 
@@ -400,7 +403,7 @@ function DropDownMenu:SetEnabled(data, enabled)
 
   data.frame.toggleButton:SetEnabled(enabled);
   data.frame.isEnabled = enabled; -- required for using the correct tooltip
-  self:UpdateColor();
+  self:ApplyThemeColor();
 end
 
 function DropDownMenu:SetHeaderShown(data, shown)

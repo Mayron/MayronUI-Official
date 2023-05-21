@@ -63,18 +63,18 @@ db:AddToDefaults("profile", {
   enabled               = true;
   sortByExpirationTime  = true;
   showTooltips          = true;
-  statusBarTexture      = "MUI_StatusBar";
+  statusBarTexture      = "MayronUI";
   showUnknownExpiration = tk:IsClassic();
 
   border = {
-    type = "Skinner";
+    type = "Solid";
     size = 1;
     show = true;
   };
 
   colors = {
     background        = { 0, 0, 0, 0.6 };
-    basicBuff         = { 0.1, 0.1, 0.1, 1 };
+    basicBuff         = { 0.15, 0.15, 0.15, 1 };
     basicDebuff       = { 0.76, 0.2, 0.2, 1 };
     border            = { 0, 0, 0, 1 };
     canStealOrPurge   = { 1, 0.5, 0.25, 1 };
@@ -529,12 +529,15 @@ do
         insertedFrame.btn = tk:CreateFrame("CheckButton", insertedFrame, nil, "UICheckButtonTemplate");
         insertedFrame.btn:SetSize(30, 30);
         insertedFrame.btn:SetPoint("LEFT");
-        insertedFrame.btn.text:SetFontObject("GameFontHighlight");
-        insertedFrame.btn.text:ClearAllPoints();
-        insertedFrame.btn.text:SetPoint("LEFT", insertedFrame.btn, "RIGHT", 5, 0);
+
+        local text = insertedFrame.btn.Text or insertedFrame.btn.text;
+        text:SetFontObject("GameFontHighlight");
+        text:ClearAllPoints();
+        text:SetPoint("LEFT", insertedFrame.btn, "RIGHT", 5, 0);
       end
 
-      insertedFrame.btn.text:SetText(L["Also enable the %s"]:format(listName:lower()));
+      local text = insertedFrame.btn.Text or insertedFrame.btn.text;
+      text:SetText(L["Also enable the %s"]:format(listName:lower()));
       insertedFrame.btn:SetChecked(true);
     end
 
@@ -584,7 +587,7 @@ do
     obj:EmptyTable(params);
 
     if (optionsMenu:IsShown()) then
-      params.auraId = self.auraId;
+      params.itemID = self.itemID;
       params.auraName = self.auraName
       params.fieldName = timerBar.FieldName;
       params.timerBar = timerBar;
@@ -791,7 +794,7 @@ do
   ---@return Frame @Returns the created field (a Frame widget)
   function C_TimerField:CreateField(data, name)
     local globalName = tk.Strings:Concat("MUI_", name, "TimerField");
-    local frame = tk:CreateFrame("Frame", nil, globalName, _G.BackdropTemplateMixin and "BackdropTemplate");
+    local frame = tk:CreateBackdropFrame("Frame", nil, globalName);
 
     local fieldHeight = (data.settings.bar.maxBars * (data.settings.bar.height + data.settings.bar.spacing)) - data.settings.bar.spacing;
     frame:SetSize(data.settings.bar.width, fieldHeight);
@@ -1016,7 +1019,6 @@ end
 
 obj:DefineParams("table", "table");
 ---@param settings table @The config settings table.
----@param auraId number @The unique id of the aura used to find and update the aura.
 function C_TimerBar:__Construct(data, sharedSettings, settings)
 
   -- fields
@@ -1027,7 +1029,7 @@ function C_TimerBar:__Construct(data, sharedSettings, settings)
   data.settings = settings;
   data.sharedSettings = sharedSettings;
 
-  data.frame = tk:CreateFrame("Button", nil, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+  data.frame = tk:CreateBackdropFrame("Button");
   data.frame:SetSize(settings.bar.width, settings.bar.height);
   data.frame:RegisterForClicks("RightButtonUp");
   data.frame:Hide();
@@ -1059,8 +1061,7 @@ function C_TimerBar:SetIconShown(data, shown)
 
   if (shown) then
     if (not data.iconFrame) then
-      data.iconFrame = tk:CreateFrame("Frame", data.frame, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
-
+      data.iconFrame = tk:CreateBackdropFrame("Frame", data.frame);
       data.icon = data.iconFrame:CreateTexture(nil, "ARTWORK");
       data.icon:SetTexCoord(0.1, 0.92, 0.08, 0.92);
     end
@@ -1229,10 +1230,11 @@ function C_TimerBar:SetSpellCountShown(data, shown)
 end
 
 obj:DefineParams("boolean");
----@param shown boolean @Set to true to show the aura tooltip on mouse over.
+---@param enabled boolean @Set to true to show the aura tooltip on mouse over.
 function C_TimerBar:SetTooltipsEnabled(data, enabled)
   if (enabled) then
-    tk:SetAuraTooltip(data.frame);
+    data.frame:SetScript("OnEnter", tk.HandleTooltipOnEnter);
+    data.frame:SetScript("OnLeave", tk.HandleTooltipOnLeave);
   else
     data.frame:SetScript("OnEnter", tk.Constants.DUMMY_FUNC);
     data.frame:SetScript("OnLeave", tk.Constants.DUMMY_FUNC);
@@ -1274,7 +1276,7 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
     data.slider:SetMinMaxValues(0, self.TotalDuration);
   end
 
-  data.slider:SetValue(timeRemaining);
+  tk:AnimateSliderChange(data.slider, timeRemaining);
 
   if (not data.showSpark and data.settings.showSpark) then
     self:SetSparkShown(true);
@@ -1293,23 +1295,8 @@ function C_TimerBar:UpdateTimeRemaining(data, currentTime)
     data.spark:SetPoint("LEFT", value, 0);
   end
 
-  if (not data.timeRemaining) then return end
-
-  local timeRemainingText = tk.Numbers:ToPrecision(timeRemaining, 0);
-
-  if (data.timeRemainingText ~= timeRemainingText) then
-    data.timeRemainingText = timeRemainingText;
-
-    if (timeRemainingText > 3600) then
-      timeRemainingText = tonumber(date("%H", timeRemainingText));
-      timeRemainingText = string.format("< %uh", timeRemainingText + 1);
-
-    elseif (timeRemainingText > 60) then
-      timeRemainingText = date("%M:%S", timeRemainingText);
-    end
-
-    -- this hogs memory so need to reduce the calls to it:
-    data.timeRemaining:SetText(timeRemainingText);
+  if (data.timeRemaining) then
+    tk:SetTimeRemaining(data.timeRemaining, timeRemaining, data.settings.timeRemaining.fontSize, 10, 14);
   end
 end
 
@@ -1325,8 +1312,10 @@ function C_TimerBar:UpdateAura(data, auraInfo)
   obj:PushTable(auraInfo);
 
   -- this is needed for the tooltip mouse over + right click menu
-  data.frame.auraId = self.AuraId;
+  data.frame.itemID = self.AuraId;
   data.frame.auraName = auraName;
+  data.frame.iconType = "spell";
+  data.frame.tooltipAnchor = "ANCHOR_TOP";
 
   if (data.icon) then
     data.icon:SetTexture(iconPath);

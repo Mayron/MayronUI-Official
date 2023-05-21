@@ -1,9 +1,10 @@
 -- luacheck: ignore self 143 631
+local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
 if (not tk:IsRetail()) then return end
 
-local C_AzeriteItem = _G.C_AzeriteItem;
+local C_AzeriteItem, AzeriteBarMixin, StatusTrackingBarManager = _G.C_AzeriteItem, _G.AzeriteBarMixin, _G.StatusTrackingBarManager;
 local C_AzeriteBar = obj:Import("MayronUI.AzeriteBar");
 local strformat = _G.string.format;
 
@@ -49,7 +50,16 @@ end
 
 obj:DefineReturns("boolean");
 function C_AzeriteBar:CanUse()
-  return _G.AzeriteBarMixin:ShouldBeVisible() == true; -- this is a static mixin method
+  if (obj:IsTable(StatusTrackingBarManager) and obj:IsFunction(StatusTrackingBarManager.CanShowBar)) then
+    local barIndex = tk.Constants.RESOURCE_BAR_IDS.Azerite;
+    return StatusTrackingBarManager:CanShowBar(barIndex) == true;
+  end
+
+  if (obj:IsTable(AzeriteBarMixin) and obj:IsFunction(AzeriteBarMixin.ShouldBeVisible)) then
+    return AzeriteBarMixin:ShouldBeVisible() == true;
+  end
+
+  return false;
 end
 
 obj:DefineParams("boolean");

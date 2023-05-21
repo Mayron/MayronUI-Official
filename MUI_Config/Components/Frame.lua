@@ -5,7 +5,7 @@ local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local tonumber = _G.tonumber;
 
 function Components.frame(parent, config)
-  local frame = tk:CreateFrame(nil, parent);
+  local frame = tk:CreateFrame("Frame", parent);
   local dynamicFrame = gui:CreateDynamicFrame(
     parent, config.spacing or 10, config.padding or 10, frame);
 
@@ -20,10 +20,11 @@ function Components.frame(parent, config)
     percent = tonumber(percent);
   end
 
-  if (obj:IsNumber(percent) or not config.width) then
-    tk:SetFullWidth(frame, 20, percent);
+  if (obj:IsNumber(percent) or not obj:IsNumber(config.width)) then
+    frame.rightPadding = 20;
+    tk:SetFullWidth(frame, percent);
   else
-    frame:SetWidth(config.width or 200);
+    frame:SetWidth(config.width);
   end
 
   frame.originalHeight = config.height or 60; -- needed for fontstring resizing
@@ -31,6 +32,8 @@ function Components.frame(parent, config)
   frame:SetHeight(frame.originalHeight);
   tk:SetBackground(frame, 0, 0, 0, 0.2);
   Utils:SetShown(frame, config.shown);
+
+  frame.dynamicFrame = dynamicFrame; -- required for transferring config values into the real component
 
   return dynamicFrame;
 end

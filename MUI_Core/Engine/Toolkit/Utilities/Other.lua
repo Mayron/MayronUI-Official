@@ -1,8 +1,9 @@
 -- luacheck: ignore self
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, _, _, _, obj, L = MayronUI:GetCoreComponents();
 
+---@class Toolkit
+local tk, _, _, _, obj, L = MayronUI:GetCoreComponents();
 tk.Numbers = {};
 
 local string, tostring, select, unpack, type = _G.string, _G.tostring, _G.select, _G.unpack, _G.type;
@@ -47,36 +48,25 @@ function tk:Print(...)
   _G.DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, tostringall(...)));
 end
 
-do
-  local function LogToChatFrame(message, r, g, b, ...)
-    pcall(function(...)
-      local prefix = tk.Strings:SetTextColorByTheme("MayronUI:");
+function tk:LogToChatFrame(message, r, g, b, ...)
+  pcall(function(...)
+    local prefix = tk.Strings:SetTextColorByTheme("MayronUI:");
 
-      if (tk.Strings:Contains(message, "%%")) then
-        local replaced, count = string.gsub(message, "%%%a", "{arg}")
+    if (tk.Strings:Contains(message, "%%")) then
+      local replaced, count = string.gsub(message, "%%%a", "{arg}")
 
-        for i = 1, count do
-          local arg = tostring(select(i, ...) or nil);
-          replaced = string.gsub(replaced, "{arg}", arg, 1);
-        end
-
-        message = string.join(" ", prefix, replaced);
-      else
-        message = string.join(" ", prefix, message, tostringall(...));
+      for i = 1, count do
+        local arg = tostring(select(i, ...) or nil);
+        replaced = string.gsub(replaced, "{arg}", arg, 1);
       end
 
-      _G.DEFAULT_CHAT_FRAME:AddMessage(message, r, g, b);
-    end, ...);
-  end
+      message = string.join(" ", prefix, replaced);
+    else
+      message = string.join(" ", prefix, message, tostringall(...));
+    end
 
-  function tk:LogError(errorMessage, ...)
-    LogToChatFrame(errorMessage, 1, 0, 0, ...);
-  end
-
-  function tk:LogDebug(debugMessage, ...)
-    if (not MayronUI.DEBUG_MODE) then return end
-    LogToChatFrame(debugMessage, 1, 0.8, 0.18, ...);
-  end
+    _G.DEFAULT_CHAT_FRAME:AddMessage(message, r, g, b);
+  end, ...);
 end
 
 function tk:GetAssetFilePath(filePath)
@@ -200,7 +190,7 @@ local GetSpecializationInfoByID = _G.GetSpecializationInfoByID;
 function tk:GetPlayerSpecialization(talentGroup, unitID)
   local isInspect = false;
 
-  if (obj:IsString(unitID)) then
+  if (obj:IsString(unitID) and unitID ~= "player") then
     local unitGUID = UnitGUID(unitID);
     local playerGUID = UnitGUID("player");
     isInspect = unitGUID ~= playerGUID;
@@ -248,15 +238,18 @@ local ITEM_GEAR_SLOTS = {
   1, 2, 3, 15, 5, 9, 16, 17, 10, 6, 7, 8, 11, 12, 13, 14
 };
 
-local UnitExists, UnitGUID = _G.UnitExists, _G.UnitGUID;
+local UnitExists, ipairs = _G.UnitExists, _G.ipairs;
+local GetItemInfo, GetInventoryItemLink = _G.GetItemInfo, _G.GetInventoryItemLink;
+local GetInspectItemLevel = _G.GetInspectItemLevel;
+
 
 function tk:GetInspectItemLevel(unitID)
   if (not UnitExists(unitID)) then
     return -1;
   end
 
-  if (_G.GetInspectItemLevel) then
-    return _G.C_PaperDollInfo.GetInspectItemLevel(unitID);
+  if (GetInspectItemLevel) then
+    return GetInspectItemLevel(unitID);
   end
 
   local total = 0;
@@ -268,7 +261,7 @@ function tk:GetInspectItemLevel(unitID)
       return -1;
     end
 
-    local itemLink = _G.GetInventoryItemLink(unitID, slotID);
+    local itemLink = GetInventoryItemLink(unitID, slotID);
 
     if (not itemLink) then
       if (slotID == 17) then
@@ -276,7 +269,7 @@ function tk:GetInspectItemLevel(unitID)
         maxSlots = maxSlots - 1;
       end
     else
-      local _, _, _, itemLevel = _G.GetItemInfo(itemLink);
+      local _, _, _, itemLevel = GetItemInfo(itemLink);
       total = total + itemLevel;
     end
   end
@@ -286,7 +279,15 @@ function tk:GetInspectItemLevel(unitID)
   return average;
 end
 
+local StatusTrackingBarManager = _G.StatusTrackingBarManager;
+
 function tk:IsPlayerMaxLevel()
+  if (obj:IsTable(StatusTrackingBarManager) and obj:IsFunction(StatusTrackingBarManager.CanShowBar)) then
+    local barIndex = tk.Constants.RESOURCE_BAR_IDS.Experience;
+    local experienceBarEnabled = (StatusTrackingBarManager:CanShowBar(barIndex) == true);
+    return not experienceBarEnabled;
+  end
+
   local playerLevel = UnitLevel("player");
   return (GetMaxPlayerLevel() == playerLevel);
 end
@@ -643,19 +644,34 @@ do
         end
     end
 
+    ---@param tbl table
+    ---@param methodName string
+    ---@param callback function
+    ---@param ... any
+    ---@return function
+    ---@overload fun(self, globalFunctionName: string, callback: function, ...): function?
     function tk:HookFunc(tbl, methodName, callback, ...)
       if (obj:IsString(tbl)) then
-        local realGlobalMethodName = tbl;
-        local realCallback = methodName;
-        local firstArg = callback;
+        local globalFunctionName = tbl--[[@as string]];
 
-        local key = string.format("%s|%s", realGlobalMethodName, tostring(realCallback));
+        if (not _G[globalFunctionName]) then
+          return nil;
+        end
+
+        local realCallback = methodName--[[@as function]];
+        local firstArg = callback--[[@as any]];
+
+        local key = string.format("%s|%s", globalFunctionName, tostring(realCallback));
         local callbackWrapper = CreateCallbackWrapper(key, tbl, methodName);
 
         callbacks[key] = obj:PopTable(realCallback, firstArg, ...);
-        hooksecurefunc(realGlobalMethodName, callbackWrapper);
+        hooksecurefunc(globalFunctionName, callbackWrapper);
         return realCallback;
       else
+        if (not tbl or not tbl[methodName]) then
+          return nil;
+        end
+
         local key = string.format("%s|%s|%s", tostring(tbl), methodName, tostring(callback));
         local callbackWrapper = CreateCallbackWrapper(key, tbl, methodName);
 

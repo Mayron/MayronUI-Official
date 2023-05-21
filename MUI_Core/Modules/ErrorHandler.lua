@@ -22,6 +22,8 @@ function C_ErrorHandler:OnInitialize(data)
   data.errors = self:GetErrors();
 
   local function addError(errorMessage)
+    MayronUI:LogError(errorMessage);
+
     for _, errorInfo in pairs(data.errors) do
       if (errorInfo.error == errorMessage) then
         return -- don't add the same error more than once
@@ -106,7 +108,9 @@ function C_ErrorHandler:OnInitialize(data)
 
   seterrorhandler(function(errorMessage)
     addError(errorMessage);
-    HandleLuaError(errorMessage);
+    if (not MayronUI.PauseErrors) then
+      HandleLuaError(errorMessage);
+    end
   end);
 
   local reloadBtn, closeBtn = ScriptErrorsFrame.Reload, ScriptErrorsFrame.Close;

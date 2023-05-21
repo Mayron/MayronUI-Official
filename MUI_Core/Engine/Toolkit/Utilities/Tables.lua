@@ -1,14 +1,15 @@
 -- luacheck: ignore self
 local _G = _G;
 local MayronUI = _G.MayronUI;
+
+---@class Toolkit
 local tk, _, _, _, obj = MayronUI:GetCoreComponents();
+tk.Tables = {};
 
 local pcall, pairs, ipairs, type, strsplit, tonumber = _G.pcall, _G.pairs, _G.ipairs, _G.type, _G.strsplit, _G.tonumber;
 local table, select = _G.table, _G.select;
 local LibStub = _G.LibStub;
 local LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type LinkedList
-
-tk.Tables = {};
 
 function tk.Tables:GetKeys(tbl, keys)
   keys = keys or obj:PopTable();
@@ -56,10 +57,9 @@ end
 
 -- can be replaced with: local value = tk.Tables:GetTable(tbl, key, anotherKey);
 function tk.Tables:GetTable(rootTable, ...)
-  tk:Assert(
-    obj:IsTable(rootTable),
-      "tk.Tables.GetTable - invalid rootTable arg (table expected, got %s)",
-      type(rootTable));
+  tk:Assert(obj:IsTable(rootTable),
+    "tk.Tables.GetTable - invalid rootTable arg (table expected, got %s)",
+    type(rootTable));
 
   local currentTable = rootTable;
 
@@ -77,10 +77,6 @@ function tk.Tables:GetTable(rootTable, ...)
 end
 
 function tk.Tables:GetValueOrNil(rootTable, ...)
-  tk:Assert(obj:IsTable(rootTable),
-    "tk.Tables.GetValueOrNil - invalid rootTable arg (table expected, got %s)",
-    type(rootTable));
-
   local current = rootTable;
 
   for i = 1, select("#", ...) do
@@ -98,10 +94,11 @@ end
 
 ---A helper function to print a table's contents.
 ---@param tbl table @The table to print.
----@param depth number @The depth of sub-tables to traverse through and print.
-function tk.Tables:Print(tbl, depth)
+---@param depth number? @The depth of sub-tables to traverse through and print.
+---@param spaces number? @An optional number specifying the spaces to print to intent nested values inside a table.
+function tk.Tables:Print(tbl, depth, spaces)
   if (obj:IsTable(tbl)) then
-    obj:PrintTable(tbl, depth);
+    obj:PrintTable(tbl, depth, spaces);
   end
 end
 
@@ -403,6 +400,10 @@ do
   end
 end
 
+local localizedDbNames = {
+  ["MUI_AurasDB"] = "MUI "..(_G["AURAS"] or "Auras");
+}
+
 -- gets the DB associated with the AddOn based on convention
 function tk.Tables:GetDBObject(addOnName)
   if (addOnName == "MayronUI") then
@@ -416,6 +417,17 @@ function tk.Tables:GetDBObject(addOnName)
 
   if (dbObject) then
     return dbObject;
+  end
+
+  for dbName, localizedName in pairs(localizedDbNames) do
+    if (localizedName == addOnName) then
+      local OrbitusDB = LibStub:GetLibrary("OrbitusDB");
+      local database = OrbitusDB:GetDatabase(dbName, true);
+
+      if (database) then
+        return database;
+      end
+    end
   end
 
   if (_G[addOnName]) then

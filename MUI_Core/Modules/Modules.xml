@@ -22,7 +22,6 @@
   <Script file="Tutorial.lua" />
   <Script file="BagnonChanges.lua" />
 
-  <Script file="Auras\Aura.lua" />
   <Script file="Auras\Auras.lua" />
   <Script file="Auras\Auras.config.lua" />
 
@@ -61,4 +60,6 @@
   <Script file="Tooltips\Tooltips.config.lua" />
 
   <Script file="CombatAlerts.lua" />
+
+  <Script file="Inventory\Inventory.lua" />
 </Ui>

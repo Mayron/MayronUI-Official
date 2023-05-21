@@ -54,7 +54,7 @@ function Quest:SetEnabled(data, enabled)
 
     self.Button:RegisterForClicks("LeftButtonUp");
     self.Button:SetScript("OnEnter", ButtonOnEnter);
-    self.Button:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
+    self.Button:SetScript("OnLeave", tk.HandleTooltipOnLeave);
   else
     em:DisableEventListeners(listenerID);
     self.Button:SetScript("OnEnter", nil);

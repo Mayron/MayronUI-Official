@@ -83,7 +83,7 @@ do
 
     if (showTooltips) then
       label:SetScript("OnEnter", LabelOnEnter);
-      label:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
+      label:SetScript("OnLeave", tk.HandleTooltipOnLeave);
     end
 
     if (not onLabelClickFunc) then
@@ -140,7 +140,7 @@ function Guild:SetEnabled(data, enabled)
 
     self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
     self.Button:SetScript("OnEnter", ButtonOnEnter);
-    self.Button:SetScript("OnLeave", tk.GeneralTooltip_OnLeave);
+    self.Button:SetScript("OnLeave", tk.HandleTooltipOnLeave);
   else
     em:DisableEventListeners(listenerID);
     self.Button:RegisterForClicks("LeftButtonUp");

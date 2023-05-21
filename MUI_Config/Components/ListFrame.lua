@@ -16,7 +16,7 @@ local function CreateListItem(listFrame, data)
 
   if (obj:IsFunction(data.OnItemEnter)) then
     item:SetScript("OnEnter", data.OnItemEnter);
-    item:SetScript("OnLeave",  tk.GeneralTooltip_OnLeave);
+    item:SetScript("OnLeave",  tk.HandleTooltipOnLeave);
   end
 
   item.normal = tk:SetBackground(item, 0, 0, 0, 0);
@@ -31,12 +31,8 @@ local function CreateListItem(listFrame, data)
   item.name:SetPoint("TOPLEFT", 6, 0);
   item.name:SetPoint("BOTTOMRIGHT", -34, 0);
 
-  item.btn = tk:CreateFrame("Button", item);
-  item.btn:SetSize(28, 24);
-  item.btn:SetPoint("RIGHT", -8, 0);
-
-  item.btn:SetNormalTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "BLEND");
-  item.btn:SetHighlightTexture(tk:GetAssetFilePath("Textures\\DialogBox\\CloseButton"), "ADD");
+  item.btn = gui:CreateIconButton("cross", item);
+  item.btn:SetPoint("RIGHT", -5, -1);
 
   item.btn:SetScript("OnClick", function(btn)
     listFrame:RemoveItem(btn:GetParent());
@@ -121,7 +117,8 @@ function C_ListFrame:SetShown(data, shown)
     return;
   end
 
-  data.listFrame = gui:CreateDialogBox(_G["MUI_Config"], "HIGH");
+  local frame = tk:CreateFrame("Frame", nil, _G["MUI_Config"]);
+  data.listFrame = gui:AddDialogTexture(frame);
   data.rows = obj:PopTable();
 
   gui:AddTitleBar(data.listFrame, data.listFrameTitle);
@@ -174,6 +171,7 @@ function C_ListFrame:SetShown(data, shown)
   local container = gui:CreateScrollFrame(data.listFrame);
   data.scrollChild = container.ScrollFrame:GetScrollChild();
 
+  container.ScrollBar:ClearAllPoints();
   container.ScrollBar:SetPoint("TOPLEFT", container.ScrollFrame, "TOPRIGHT", -5, 0);
   container.ScrollBar:SetPoint("BOTTOMRIGHT", container.ScrollFrame, "BOTTOMRIGHT", 0, 0);
   tk:SetBackground(container, 0, 0, 0, 0.3);
@@ -219,7 +217,7 @@ function C_ListFrame:AddItem(data, itemName)
   UpdateListFrame(data.items, data.scrollChild);
 end
 
-local function RemoveItem(data, item, index)
+local function RemoveItem(self, data, item, index)
   table.remove(data.items, index);
   data.itemStack:Push(item);
 
@@ -238,11 +236,11 @@ end
 obj:DefineParams("Frame");
 function C_ListFrame:RemoveItem(data, item)
   local index = tk.Tables:GetIndex(data.items, item);
-  RemoveItem(data, item, index);
+  RemoveItem(self, data, item, index);
 end
 
 obj:DefineParams("number");
 function C_ListFrame:RemoveItemByIndex(data, index)
   local item = data.items[index];
-  RemoveItem(data, item, index);
+  RemoveItem(self, data, item, index);
 end

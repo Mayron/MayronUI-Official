@@ -572,6 +572,7 @@ L["Icon Size"] = "아이콘 크기";
 L["Column Spacing"] = "열 간격";
 L["Row Spacing"] = "행 간격";
 L["Icons per Row"] = "행당 아이콘";
+L["Bar Columns"] = "막대 열";
 L["Growth Direction"] = "성장 방향";
 L["Status Bar Options"] = "상태 막대 옵션";
 L["Status bar options are disabled when using icons."] =
@@ -980,11 +981,13 @@ L["MUI_Setup_CreditsTab"] =
 물론,이 UI 팩에 포함 된 MayronUI가 아닌 애드온의 작성자에게 감사드립니다.]]
 
 L["PRESS_HOLD_TOGGLE_BUTTONS"] =
-  [[전투 중이 아닐 때 %s 를 길게 누르면 토글 버튼이 표시됩니다.
+[[전투 중이 아닐 때 %s 를 길게 누르면 토글 버튼이 표시됩니다.
+
 이를 클릭하면 추가 작업 표시 줄 행을 표시하거나 숨 깁니다.]]
 
 L["CHANGE_KEYBINDINGS"] =
-  [[MUI 구성 메뉴 (%s) 에서이 키 조합을 변경할 수 있습니다.
+[[MUI 구성 메뉴 (%s) 에서이 키 조합을 변경할 수 있습니다.
+
 1 행에서 3 행 사이를 빠르게 전환 할 수있는 3 개의 키 바인딩이 있습니다.
 블리자드의 키 바인딩 메뉴에서 찾을 수 있습니다 :]]
 
@@ -1134,3 +1137,51 @@ L["Paste an import string into the box below to import a profile."] = "가져오
 L["Warning: This will completely replace your current profile with the imported profile settings!"] = "경고: 이렇게 하면 현재 프로필이 가져온 프로필 설정으로 완전히 대체됩니다!";
 L["Successfully imported profile settings into your current profile!"] = "프로필 설정을 현재 프로필로 성공적으로 가져왔습니다!";
 L["Reset to default"] = "기본값으로 재설정";
+
+L["Appearance Settings"] = "외모 설정";
+L["Set MUI Frames Color"] = "MUI 프레임 색상 설정";
+L["MUI_FRAMES_COLOR_TOOLTIP"] = "인벤토리 프레임, 도구 설명, 구성 메뉴, 레이아웃 도구 등을 포함하여 MUI 프레임의 배경색을 제어합니다.";
+L["Set Display Mode"] = "디스플레이 모드 설정";
+L["These settings relate to the individual aura icons/bars."] = "이러한 설정은 개별 아우라 아이콘/막대와 관련이 있습니다.";
+L["These settings relate to the frame containing the individual aura icons/bars."] = "이러한 설정은 개별 아우라 아이콘/막대를 포함하는 프레임과 관련됩니다.";
+L["Set Non-Player Alpha"] = "비 플레이어 알파 설정";
+L["Icon Width"] = "아이콘 너비";
+L["Icon Height"] = "아이콘 높이";
+L["If true, when the aura is close to expiring the aura frame will fade in and out."] = "참이면 오라가 만료되기 직전에 오라 프레임이 페이드 인 및 페이드 아웃됩니다.";
+L["The alpha of auras not applied by you."] = "당신이 적용하지 않은 아우라의 알파.";
+L["Icon Spacing"] = "아이콘 간격";
+L["Show Bar Spark"] = "바 스파크 표시";
+L["Container Frame Settings"] = "컨테이너 프레임 설정";
+L["Positioning"] = "포지셔닝";
+L["Rows and Columns"] = "행과 열";
+L["The maximum number of aura icons to display per row."] = "행당 표시할 아우라 아이콘의 최대 수입니다.";
+L["The maximum number of horizontal bar columns to display."] = "표시할 가로 막대 열의 최대 수입니다.";
+L["Text Settings"] = "텍스트 설정";
+L["Aura Frame"] = "아우라 프레임";
+L["Icon Frame"] = "아이콘 프레임";
+L["Icon"] = "상";
+L["Normal Font Size"] = "일반 글꼴 크기";
+L["Warning Font Size"] = "경고 글꼴 크기";
+L["Warning Threshold"] = "경고 임계값";
+L["The minimum number of seconds remaining required for the time remaining text to use the warning font size."] = "남은 시간 텍스트가 경고 글꼴 크기를 사용하는 데 필요한 최소 남은 시간(초)입니다.";
+L["Text Colors"] = "텍스트 색상";
+L["Aura Type Colors"] = "아우라 유형 색상";
+L["Basic Buff"] = "기본 버프";
+L["Player Owned Buff"] = "플레이어 소유 버프";
+L["Buffs that you applied to yourself."] = "자신에게 적용한 버프입니다.";
+L["Basic Debuff"] = "기본 디버프";
+L["Bar Colors"] = "막대 색상";
+L["Borders"] = "테두리";
+L["Enable Inventory Frame"] = "인벤토리 프레임 활성화";
+L["Use the MayronUI custom inventory frame instead of the default Blizzard bags UI."] = "기본 Blizzard 가방 UI 대신 MayronUI 사용자 정의 인벤토리 프레임을 사용하십시오.";
+L["Use Class Colors"] = "클래스 색상 사용";
+L["If checked, tooltips for other players will be colored based on their class."] = "선택하면 다른 플레이어의 툴팁이 클래스에 따라 색상이 지정됩니다.";
+L["Switch to Detailed View"] = "자세히 보기로 전환";
+L["Switch to Grid View"] = "그리드 보기로 전환";
+L["View Character Inventory"] = "캐릭터 인벤토리 보기";
+L["Toggle Bags Bar"] = "가방 바 전환";
+L["Quest Items"] = "퀘스트 아이템";
+L["Trade Goods"] = "무역품";
+L["Consumables"] = "소모품";
+L["Equipment"] = "장비";
+L["All Items"] = "모든 아이템";

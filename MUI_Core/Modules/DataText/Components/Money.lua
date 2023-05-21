@@ -2,8 +2,8 @@
 -- luacheck: ignore MayronUI self 143 631
 local MayronUI = _G.MayronUI;
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
-local LABEL_PATTERN = "|cffffffff%s|r";
-local tonumber, string, math = _G.tonumber, _G.string, _G.math;
+
+local string, math = _G.string, _G.math;
 local GetMoney, ipairs, strsplit = _G.GetMoney, _G.ipairs, _G.strsplit;
 local GameTooltip = _G.GameTooltip;
 local C_Calendar, C_DateAndTime = _G.C_Calendar, _G.C_DateAndTime;
@@ -13,9 +13,7 @@ local Money = obj:CreateClass("Money");
 
 -- Load Database Defaults ------------
 
-db:AddToDefaults("profile.datatext.money", {
-  showRealm = false;
-});
+db:AddToDefaults("profile.datatext.money", { showRealm = false; });
 
 -- Local Functions ----------------
 
@@ -82,9 +80,6 @@ function Money:__Construct(data, settings, dataTextModule, slideController)
   self.Button = dataTextModule:CreateDataTextButton();
   self.Button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
 
-  data.goldString = "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t";
-  data.silverString = "|TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t";
-  data.copperString = "|TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t";
   data.showMenu = true;
 
   local calendarDate;
@@ -118,10 +113,12 @@ function Money:__Construct(data, settings, dataTextModule, slideController)
   data.info[1] = tk.Strings:SetTextColorByTheme(L["Current Money"]..":");
   data.info[2] = nil; -- value of current money
   data.info[3] = tk.Strings:SetTextColorByTheme(L["Start of the day"]..":");
-  data.info[4] = self:GetFormattedMoney(data.settings.todayMoney);
+  data.info[4] = tk.Strings:GetFormattedMoney(data.settings.todayMoney);
   data.info[5] = tk.Strings:SetTextColorByTheme(L["Today's profit"]..":");
   data.info[6] = nil; -- value of today's profile
-  data.info[7] = tk.Strings:Concat(_G.NORMAL_FONT_COLOR_CODE..L["Money per character"], ":", "|r");
+
+  local moneyPerCharacterText = tk.Strings:SetTextColorByKey(L["Money per character"]..":", "GOLD");
+  data.info[7] = moneyPerCharacterText;
 end
 
 function Money:IsEnabled(data)
@@ -152,54 +149,15 @@ function Money:SetEnabled(data, enabled)
   end
 end
 
-obj:DefineParams("number", "?string");
-function Money:GetFormattedMoney(data, money, colorCode)
-  local text = "";
-  local gold = math.floor(math.abs(money / 10000));
-  local silver = math.floor(math.abs((money / 100) % 100));
-  local copper = math.floor(math.abs(money % 100));
-
-  colorCode = colorCode or "|cffffffff";
-
-  if (gold > 0) then
-    if (tonumber(gold) >= 1000) then
-      gold = string.gsub(gold, "^(-?%d+)(%d%d%d)", '%1,%2');
-      text = string.format("%s %s%s|r%s", text, colorCode, gold, data.goldString);
-      return string.format(LABEL_PATTERN, text:trim());
-    else
-      text = string.format("%s %s%s|r%s", text, colorCode, gold, data.goldString);
-    end
-  end
-
-  if (silver > 0) then
-    text = string.format("%s %s%s|r%s", text, colorCode, silver, data.silverString);
-  end
-
-  if (gold < 100 and copper > 0) then
-    text = string.format("%s %s%s|r%s", text, colorCode, copper, data.copperString);
-  end
-
-  if (text == "") then
-    text = string.format("%d%s", 0, data.goldString);
-    text = string.format("%s %d%s", text, 0, data.silverString);
-    text = string.format("%s %d%s", text, 0, data.copperString);
-  end
-
-  return string.format(LABEL_PATTERN, text:trim());
-end
-
-obj:DefineReturns("string");
-function Money:GetTodaysProfit(data)
-  local money = _G.GetMoney() - data.settings.todayMoney;
+local function GetTodaysProfit(todayMoney)
+  local money = GetMoney() - todayMoney;
 
   if (money >= 0) then
-    return self:GetFormattedMoney(money, _G.GREEN_FONT_COLOR_CODE);
+    return tk.Strings:GetFormattedMoney(money,  "GREEN");
 
   elseif (money < 0) then
-    money = math.abs(money);
-    local result = self:GetFormattedMoney(money, _G.RED_FONT_COLOR_CODE);
-
-    return string.format(_G.RED_FONT_COLOR_CODE.."-%s".."|r", result);
+    money = "-"..tostring(math.abs(money));
+    return tk.Strings:GetFormattedMoney(money, "RED");
   end
 end
 
@@ -209,7 +167,7 @@ function Money:Update(data, refreshSettings)
   end
 
   local money = GetMoney();
-  local currentMoney = self:GetFormattedMoney(money);
+  local currentMoney = tk.Strings:GetFormattedMoney(money);
   local coloredKey = tk.Strings:SetTextColorByClassFileName(tk:GetPlayerKey());
 
   self.Button:SetText(currentMoney);
@@ -278,8 +236,8 @@ function Money:HandleLeftClick(data)
   self.MenuLabels = self.MenuLabels or obj:PopTable();
 
   -- Update these 2 info values (check __Construct for a better understanding of what these are!)
-  data.info[2] = self:GetFormattedMoney(_G.GetMoney());
-  data.info[6] = self:GetTodaysProfit();
+  data.info[2] = tk.Strings:GetFormattedMoney(GetMoney());
+  data.info[6] = GetTodaysProfit(data.settings.todayMoney);
 
   local r, g, b = tk:GetThemeColor();
   local totalLabelsShown;
@@ -297,7 +255,7 @@ function Money:HandleLeftClick(data)
     totalLabelsShown = id;
   end
 
-  for characterName, value in db.global.datatext.money.characters:Iterate() do
+  for characterName, money in db.global.datatext.money.characters:Iterate() do
     -- The character's name
     totalLabelsShown = totalLabelsShown + 1;
     local nameLabel = self:GetLabel(totalLabelsShown, false);
@@ -316,7 +274,7 @@ function Money:HandleLeftClick(data)
     local moneyLabel = self:GetLabel(totalLabelsShown, false);
     moneyLabel:SetNormalTexture(1);
     moneyLabel:GetNormalTexture():SetColorTexture(0, 0, 0, 0.2);
-    moneyLabel.name:SetText(self:GetFormattedMoney(value));
+    moneyLabel.name:SetText(tk.Strings:GetFormattedMoney(money));
   end
 
   return totalLabelsShown;

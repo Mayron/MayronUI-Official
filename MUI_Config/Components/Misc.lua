@@ -6,7 +6,8 @@ local Components = MayronUI:GetComponent("ConfigMenuComponents");
 function Components.divider(parent, widgetTable)
   local divider = tk:CreateFrame("Frame", parent);
   divider:SetHeight(widgetTable.height or 1);
-  tk:SetFullWidth(divider, 10);
+  divider.rightPadding = 10;
+  tk:SetFullWidth(divider);
   return divider;
 end
 

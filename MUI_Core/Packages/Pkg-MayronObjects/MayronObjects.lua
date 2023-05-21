@@ -7,6 +7,7 @@ _G.MayronObjects = _G.MayronObjects or {
 
   NewFramework = function(self, version)
     version = tonumber((version:gsub("%.+", "")));
+    assert(version, "Failed to create new framework - version cannot be nil");
     self.last = version;
 
     if (not self.versions[version]) then
@@ -35,7 +36,7 @@ _G.MayronObjects = _G.MayronObjects or {
   end;
 };
 
----@type MayronObjects
+---@class MayronObjects
 local Framework = _G.MayronObjects:NewFramework("4.0.0");
 if (not Framework) then return end
 
@@ -44,8 +45,12 @@ local select, next, strformat, unpack, print, strrep = _G.select, _G.next, _G.st
 local CreateFromMixins, collectgarbage, setmetatable = _G.CreateFromMixins, _G.collectgarbage, _G.setmetatable;
 local strmatch, error, ipairs = _G.string.match, _G.error, _G.ipairs;
 
+local ClassMixin = {}; ---@class MayronObjects.Class
 local StaticMixin = {};
-local InstanceMixin = {}; ---@class Object
+
+---@class MayronObjects.Object
+local InstanceMixin = {};
+
 local objectMetadata = {};
 local exported = {};
 local pendingParameterRule, pendingReturnRule, pendingGenericTypes;
@@ -640,7 +645,11 @@ privateMetatable.__newindex = function(self, key, value)
 end
 
 -- special class function (should be static but looks confusing when static)
-local function UsingTypes(self, ...)
+---@generic T
+---@param self T
+---@param ... any
+---@return T
+function ClassMixin:UsingTypes(...)
   local metadata = objectMetadata[tostring(self)];
   Framework:Assert(Framework:IsTable(metadata.genericParams), "Cannot specify generic types for non-generic class");
 
@@ -648,7 +657,7 @@ local function UsingTypes(self, ...)
   return self;
 end
 
-local function Implements(class, ...)
+function ClassMixin:Implements(...)
   for i = 1, select("#", ...) do
     local interface = (select(i, ...));
 
@@ -656,7 +665,7 @@ local function Implements(class, ...)
       interface = Framework:Import(interface);
     end
 
-    local classMetadata = objectMetadata[tostring(class)];
+    local classMetadata = objectMetadata[tostring(self)];
     local interfaceMetadata = objectMetadata[tostring(interface)];
 
     Framework:Assert(Framework:IsTable(interfaceMetadata) and interfaceMetadata.rules,
@@ -674,15 +683,15 @@ local function Implements(class, ...)
     classMetadata.interfaces[#classMetadata.interfaces + 1] = interfaceMetadata;
   end
 
-  return class;
+  return self;
 end
 
 -------------------------------------
 --- Framework Methods
 -------------------------------------
---- where ... are mixins
-function Framework:CreateClass(className, ...)
-  local class = self:PopTable();
+---@return table
+function Framework:CreateClass(className, parentClass)
+  local class = CreateFromMixins(ClassMixin);
   class.Static = self:PopTable();
   class.Private = self:PopTable();
 
@@ -707,25 +716,24 @@ function Framework:CreateClass(className, ...)
   classMetadata.interfaces = self:PopTable();
 
   -- add parents in reverse order for class index metamethod to work
-  for i = select("#", ...), 1, -1 do
-    local parent = (select(i, ...));
+  if (Framework:IsString(parentClass)) then
+    parentClass = Framework:Import(parentClass);
+  end
 
-    if (Framework:IsString(parent)) then
-      parent = Framework:Import(parent);
-    end
-
-    local parentMetadata = objectMetadata[tostring(parent)];
+  if (parentClass) then
+    local parentMetadata = objectMetadata[tostring(parentClass)];
 
     if (parentMetadata) then
-      classMetadata.parentClasses[#classMetadata.parentClasses + 1] = parent;
+      classMetadata.parentClasses[#classMetadata.parentClasses + 1] = parentClass;
       -- add parent of parent classes
-      for _, parentClass in ipairs(parentMetadata.parentClasses) do
-        classMetadata.parentClasses[#classMetadata.parentClasses + 1] = parentClass;
+      for _, parentParentClass in ipairs(parentMetadata.parentClasses) do
+        classMetadata.parentClasses[#classMetadata.parentClasses + 1] = parentParentClass;
       end
     else
       Framework:Error("Failed to create class '%s' - bad argument #%d (unknown parent class).", className, i + 1);
     end
   end
+
 
   objectMetadata[tostring(class)] = classMetadata;
   objectMetadata[tostring(class.Static)] = classMetadata;
@@ -734,9 +742,6 @@ function Framework:CreateClass(className, ...)
   for methodName, method in pairs(StaticMixin) do
     class.Static[methodName] = method;
   end
-
-  rawset(class, "UsingTypes", UsingTypes);
-  rawset(class, "Implements", Implements);
 
   return class;
 end
@@ -788,6 +793,10 @@ function Framework:Export(tbl, namespace)
   objectMetadata[tostring(tbl)].namespace = namespace;
 end
 
+---@generic T
+---@param namespace `T`
+---@param silent boolean?
+---@return T?
 function Framework:Import(namespace, silent)
   local current = exported;
   local sections = self:PopTable(strsplit(".", namespace));
@@ -1068,7 +1077,7 @@ function Framework.IsObject(self, value)
 end
 
 ---@param value any @Any value to check whether it is of the expected widget type.
----@param widgetType string @An optional widget type to test if the value is that type of widget.
+---@param widgetType string? @An optional widget type to test if the value is that type of widget.
 ---@return boolean @true if the value is a Blizzard widgets, such as a Frame or Button.
 function Framework.IsWidget(self, value, widgetType)
   if (self ~= Framework) then value = self; end
@@ -1190,9 +1199,9 @@ end
 
 ---A helper function to print a table's contents.
 ---@param tbl table @The table to print.
----@param depth number @An optional number specifying the depth of sub-tables to traverse through and print.
----@param spaces number @An optional number specifying the spaces to print to intent nested values inside a table.
----@param n number @Do NOT manually set this. This controls formatting through recursion.
+---@param depth number? @An optional number specifying the depth of sub-tables to traverse through and print.
+---@param spaces number? @An optional number specifying the spaces to print to intent nested values inside a table.
+---@param n number? @Do NOT manually set this. This controls formatting through recursion.
 function Framework:PrintTable(tbl, depth, spaces, n)
   local value = self:ToLongString(tbl, depth, spaces, nil, n);
 
@@ -1205,9 +1214,9 @@ end
 ---A helper function to return the contents of a table as a long string, similar to
 ---what the PrintTable utility method prints except it does not print it.
 ---@param tbl table @The table to convert to a long string.
----@param depth number @An optional number specifying the depth of sub-tables to traverse through and append to the long string.
----@param spaces number @An optional number specifying the spaces to print to intent nested values inside a table.
----@param n number @Do NOT manually set this. This controls formatting through recursion.
+---@param depth number? @An optional number specifying the depth of sub-tables to traverse through and append to the long string.
+---@param spaces number? @An optional number specifying the spaces to print to intent nested values inside a table.
+---@param n number? @Do NOT manually set this. This controls formatting through recursion.
 ---@return string @A long string containing the contents of the table.
 function Framework:ToLongString(tbl, depth, spaces, result, n, maxKeys)
   local minify = false;

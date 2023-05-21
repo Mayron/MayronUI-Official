@@ -5,7 +5,7 @@ local tk, _, em, _, obj = MayronUI:GetCoreComponents(); -- luacheck: ignore
 local UnitXP, UnitXPMax, GetXPExhaustion = _G.UnitXP, _G.UnitXPMax, _G.GetXPExhaustion;
 local C_ExperienceBar = obj:Import("MayronUI.ExperienceBar");
 local strformat = _G.string.format;
-local GetMaxPlayerLevel = _G.GetMaxPlayerLevel;
+local GetMaxPlayerLevel, StatusTrackingBarManager = _G.GetMaxPlayerLevel, _G.StatusTrackingBarManager;
 local HitMaxLevel = false;
 
 -- Local Functions -----------------------
@@ -54,7 +54,7 @@ function C_ExperienceBar:SetActive(data, active)
 
   if (active and data.notCreated) then
     data.rested = tk:CreateFrame("StatusBar", data.frame);
-    data.rested:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", "MUI_StatusBar"));
+    data.rested:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", "MayronUI"));
     data.rested:SetPoint("TOPLEFT", 1, -1);
     data.rested:SetPoint("BOTTOMRIGHT", -1, 1);
     data.rested:SetOrientation("HORIZONTAL");

@@ -5540,7 +5540,7 @@ setup.import["ShadowedUnitFrames"] = function()
             ["r"] = 1,
           },
           ["alpha"] = 1,
-          ["texture"] = "MUI_StatusBar",
+          ["texture"] = "MayronUI",
         },
         ["auraColors"] = {
           ["removable"] = {
@@ -11275,7 +11275,7 @@ setup.import["ShadowedUnitFrames"] = function()
             ["g"] = 1,
             ["b"] = 1,
           },
-          ["texture"] = "MUI_StatusBar",
+          ["texture"] = "MayronUI",
         },
         ["auras"] = {
           ["borderType"] = "dark",

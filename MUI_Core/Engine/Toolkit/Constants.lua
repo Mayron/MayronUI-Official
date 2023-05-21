@@ -2,7 +2,9 @@
 local _G = _G;
 local MayronUI = _G.MayronUI; ---@type MayronUI
 local LibStub = _G.LibStub;
-local tk, db, _, _, _, L = MayronUI:GetCoreComponents(); ---@type Toolkit
+
+---@class Toolkit
+local tk, _, _, _, _, L = MayronUI:GetCoreComponents();
 
 function tk:IsRetail()
   return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_MAINLINE;
@@ -20,6 +22,8 @@ function tk:IsWrathClassic()
   return _G.WOW_PROJECT_ID == _G.WOW_PROJECT_WRATH_CLASSIC;
 end
 
+---@class MayronUI.Constants
+---@field ThemeColor ColorMixin
 tk.Constants = {
   DRAGONFLIGHT_BAR_LAYOUT_PATCH = "DragonflightBarLayout_V2";
   ASSETS_FOLDER = "Interface\\addons\\MUI_Core\\Assets";
@@ -34,14 +38,14 @@ tk.Constants = {
   LSM = LibStub("LibSharedMedia-3.0");
 
   BACKDROP = {
-    edgeFile = "Interface\\Buttons\\WHITE8X8",
-    edgeSize = 1.25,
+    edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
+    edgeSize = 1.125,
   };
 
   BACKDROP_WITH_BACKGROUND = {
     bgFile = "Interface\\Buttons\\WHITE8X8",
     edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
-    edgeSize = 1.25,
+    edgeSize = 1.125,
   };
 
   -- Used for drop down options only!
@@ -180,25 +184,35 @@ tk.Constants = {
     [8] = {r = 0, g = 0.6, b = 0.1}; -- Exalted
   };
 
-  -- Blizzard global colors are tables containing r, g, b, keys and functions such as:
-  -- GetRGB(), GetRGBA(), WrapTextInColorCode(), GenerateHexColor(), and more...
+  RESOURCE_BAR_IDS = {
+    None = -1;
+    Reputation = 1;
+    Honor = 2;
+    Artifact = 3;
+    Experience = 4;
+    Azerite = 5;
+  };
+
+  ---@alias MayronUI.ColorKey "ARTIFACT_GOLD"|"BATTLE_NET_BLUE"|"BLACK"|"DIM_GREEN"|"DIM_RED"|"DULL_RED"|"GOLD"|"GRAY"|"GREEN"|"LIGHT_YELLOW"|"ORANGE"|"PARTY_CHAT_BLUE"|"RED"|"TRANSMOG_VIOLET"|"WHITE"|"YELLOW"
+  ---Blizzard global colors are `ColorMixin` types containing r, g, b, keys and helper methods<br/>
+  ---e.g., `GetRGB()`, `GetRGBA()`, `WrapTextInColorCode()`, `GenerateHexColor()`.
   COLORS = {
-    ARTIFACT_GOLD   = _G.ARTIFACT_BAR_COLOR;
-    BATTLE_NET_BLUE = _G.BATTLENET_FONT_COLOR;
-    BLACK           = _G.BLACK_FONT_COLOR;
-    DIM_GREEN       = _G.DIM_GREEN_FONT_COLOR;
-    DIM_RED         = _G.DIM_RED_FONT_COLOR;
-    DULL_RED        = _G.DIM_RED_FONT_COLOR;
-    GOLD            = _G.NORMAL_FONT_COLOR;
-    GRAY            = _G.DISABLED_FONT_COLOR;
-    GREEN           = _G.GREEN_FONT_COLOR;
-    LIGHT_YELLOW    = _G.LIGHTYELLOW_FONT_COLOR;
-    ORANGE          = _G.ORANGE_FONT_COLOR;
-    PARTY_CHAT_BLUE = _G.LIGHTBLUE_FONT_COLOR;
-    RED             = _G.RED_FONT_COLOR;
-    TRANSMOG_VIOLET = _G.TRANSMOGRIFY_FONT_COLOR;
-    WHITE           = _G.HIGHLIGHT_FONT_COLOR;
-    YELLOW          = _G.YELLOW_FONT_COLOR;
+    ARTIFACT_GOLD   = _G["ARTIFACT_BAR_COLOR"]--[[@as ColorMixin]];
+    BATTLE_NET_BLUE = _G["BATTLENET_FONT_COLOR"]--[[@as ColorMixin]];
+    BLACK           = _G["BLACK_FONT_COLOR"]--[[@as ColorMixin]];
+    DIM_GREEN       = _G["DIM_GREEN_FONT_COLOR"]--[[@as ColorMixin]];
+    DIM_RED         = _G["DIM_RED_FONT_COLOR"]--[[@as ColorMixin]];
+    DULL_RED        = _G["DIM_RED_FONT_COLOR"]--[[@as ColorMixin]];
+    GOLD            = _G["NORMAL_FONT_COLOR"]--[[@as ColorMixin]];
+    GRAY            = _G["DISABLED_FONT_COLOR"]--[[@as ColorMixin]];
+    GREEN           = _G["GREEN_FONT_COLOR"]--[[@as ColorMixin]];
+    LIGHT_YELLOW    = _G["LIGHTYELLOW_FONT_COLOR"]--[[@as ColorMixin]];
+    ORANGE          = _G["ORANGE_FONT_COLOR"]--[[@as ColorMixin]];
+    PARTY_CHAT_BLUE = _G["LIGHTBLUE_FONT_COLOR"]--[[@as ColorMixin]];
+    RED             = _G["RED_FONT_COLOR"]--[[@as ColorMixin]];
+    TRANSMOG_VIOLET = _G["TRANSMOGRIFY_FONT_COLOR"]--[[@as ColorMixin]];
+    WHITE           = _G["HIGHLIGHT_FONT_COLOR"]--[[@as ColorMixin]];
+    YELLOW          = _G["YELLOW_FONT_COLOR"]--[[@as ColorMixin]];
   };
 
   FONT_TYPES = {
@@ -315,4 +329,7 @@ tk.Constants.DEBUG_WHITELIST = {
   ["Mayron-Gehennas"] = true;
   ["Mayron-TwistingNether"] = true;
   ["Maulron-Gehennas"] = true;
+  ["Maragor-Gehennas"] = true;
+  ["Pyranor-Gehennas"] = true;
+  ["Cinderon-Gehennas"] = true;
 }

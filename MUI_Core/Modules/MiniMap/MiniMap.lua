@@ -5,7 +5,6 @@ local MayronUI = _G.MayronUI;
 local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local missionBtn = _G.ExpansionLandingPageMinimapButton or _G.GarrisonLandingPageMinimapButton;
 
-
 -- Register and Import ---------
 
 ---@class MiniMapModule : BaseModule
@@ -172,8 +171,7 @@ do
     local relativeTo;
 
     settings.size = width;
-    settings.point, relativeTo, settings.relativePoint, settings.x, settings.y =
-      Minimap:GetPoint();
+    settings.point, relativeTo, settings.relativePoint, settings.x, settings.y = Minimap:GetPoint();
 
     local x = math.floor(settings.x + 0.5);
     local y = math.floor(settings.y + 0.5);
@@ -199,128 +197,123 @@ end
 
 local callback;
 callback = tk:HookFunc("BattlefieldMap_LoadUI", function()
-    if (IsAddOnLoaded("Blizzard_BattlefieldMap") and _G.BattlefieldMapFrame) then
-      local updateSize;
-      local originalWidth, originalHeight = 298, 199;
-      local mapFrame, mapTab, mapOptions = _G.BattlefieldMapFrame,
-        _G.BattlefieldMapTab, _G.BattlefieldMapOptions;
-      local previousWidth;
-      local GetMinimapZoneText = _G.GetMinimapZoneText;
+  if (IsAddOnLoaded("Blizzard_BattlefieldMap") and _G.BattlefieldMapFrame) then
+    local updateSize;
+    local originalWidth, originalHeight = 298, 199;
+    local mapFrame, mapTab, mapOptions = _G.BattlefieldMapFrame, _G.BattlefieldMapTab, _G.BattlefieldMapOptions;
+    local previousWidth;
+    local GetMinimapZoneText = _G.GetMinimapZoneText;
 
-      local function DragStep()
-        if (not updateSize) then
-          return
-        end
-        local width = mapFrame:GetWidth();
+    local function DragStep()
+      if (not updateSize) then
+        return
+      end
+      local width = mapFrame:GetWidth();
 
-        if (previousWidth ~= width) then
-          previousWidth = width;
-          width = (math.floor(width + 100.5) - 100);
+      if (previousWidth ~= width) then
+        previousWidth = width;
+        width = (math.floor(width + 100.5) - 100);
 
-          local difference = width / originalWidth;
-          local height = originalHeight * difference;
-          mapFrame:SetSize(width, height);
-          mapFrame.ScrollContainer:OnCanvasSizeChanged()
-        end
-
-        if (updateSize) then
-          C_Timer.After(0.02, DragStep);
-        end
+        local difference = width / originalWidth;
+        local height = originalHeight * difference;
+        mapFrame:SetSize(width, height);
+        mapFrame.ScrollContainer:OnCanvasSizeChanged()
       end
 
-      local function update(self)
-        if (self.reskinned) then
-          if (self.titleBar) then
-            self.titleBar.text:SetText(GetMinimapZoneText());
-          end
-          return
-        end
-
-        self.BorderFrame:DisableDrawLayer("ARTWORK");
-        originalWidth, originalHeight = self.ScrollContainer:GetSize();
-
-        gui:AddResizer(self);
-        self.dragger:SetParent(self.BorderFrame);
-
-        if (obj:IsFunction(self.SetMinResize)) then
-          self:SetMinResize(originalWidth, originalHeight);
-          self:SetMaxResize(1200, 800);
-        else
-          -- dragonflight:
-          self:SetResizeBounds(originalWidth, originalHeight, 1200, 800);
-        end
-
-        gui:AddTitleBar(self, GetMinimapZoneText());
-        self.titleBar:SetFrameStrata("HIGH");
-        self.titleBar:RegisterForClicks("RightButtonUp");
-        self.titleBar:SetScript(
-          "OnClick", function(self, button)
-            if (button == "RightButton") then
-              PlaySound(tk.Constants.CLICK);
-
-              -- If Rightclick bring up the options menu
-              if (button == "RightButton") then
-                local function InitializeOptionsDropDown(self)
-                  self:GetParent():InitializeOptionsDropDown();
-                end
-                _G.UIDropDownMenu_Initialize(
-                  mapTab.OptionsDropDown, InitializeOptionsDropDown, "MENU");
-                ToggleDropDownMenu(1, nil, mapTab.OptionsDropDown, self, 0, 0);
-                return;
-              end
-            end
-          end);
-
-        self.dragger:SetFrameStrata("HIGH");
-        mapTab:Hide();
-        mapTab.Show = tk.Constants.DUMMY_FUNC;
-
-        local container = self.ScrollContainer;
-        container:SetAllPoints(self);
-
-        self.dragger:HookScript(
-          "OnDragStop", function()
-            container:ZoomIn();
-            container:ZoomOut();
-            updateSize = nil;
-          end);
-
-        self.dragger:HookScript(
-          "OnDragStart", function()
-            updateSize = true;
-            C_Timer.After(0.1, DragStep);
-          end);
-
-        self.reskinned = true;
+      if (updateSize) then
+        C_Timer.After(0.02, DragStep);
       end
-
-      mapFrame:SetFrameStrata("MEDIUM");
-      mapFrame:HookScript("OnShow", update);
-      mapFrame:HookScript(
-        "OnEvent", function(self)
-          if (self.titleBar) then
-            self.titleBar.text:SetText(GetMinimapZoneText());
-          end
-        end);
-
-      local bg = gui:CreateDialogBox(mapFrame, "HIGH", nil, "MUI_ZoneMap");
-      bg:SetAllPoints(true);
-      bg:SetFrameStrata("LOW");
-      bg:SetAlpha(1.0 - mapOptions.opacity);
-
-      tk:HookFunc(
-        mapFrame, "RefreshAlpha", function()
-          local alpha = 1.0 - mapOptions.opacity;
-          bg:SetAlpha(1.0 - mapOptions.opacity);
-          mapFrame.titleBar:SetAlpha(math.max(alpha, 0.3));
-        end);
-
-      mapFrame.BorderFrame.CloseButtonBorder:SetTexture("");
-      mapFrame.BorderFrame.CloseButton:SetPoint(
-        "TOPRIGHT", mapFrame.BorderFrame, "TOPRIGHT", 5, 5);
-      tk:UnhookFunc("BattlefieldMap_LoadUI", callback);
     end
-  end);
+
+    local function update(self)
+      if (self.reskinned) then
+        if (self.titleBar) then
+          self.titleBar.text:SetText(GetMinimapZoneText());
+        end
+        return
+      end
+
+      self.BorderFrame:DisableDrawLayer("ARTWORK");
+      originalWidth, originalHeight = self.ScrollContainer:GetSize();
+
+      gui:AddResizer(self);
+      self.dragger:SetParent(self.BorderFrame);
+
+      if (obj:IsFunction(self.SetMinResize)) then
+        self:SetMinResize(originalWidth, originalHeight);
+        self:SetMaxResize(1200, 800);
+      else
+        -- dragonflight:
+        self:SetResizeBounds(originalWidth, originalHeight, 1200, 800);
+      end
+
+      gui:AddTitleBar(self, GetMinimapZoneText());
+      self.titleBar:SetFrameStrata("HIGH");
+      self.titleBar:RegisterForClicks("RightButtonUp");
+      self.titleBar:SetScript("OnClick", function(self, button)
+        if (button == "RightButton") then
+          PlaySound(tk.Constants.CLICK);
+
+          -- If Rightclick bring up the options menu
+          if (button == "RightButton") then
+            local function InitializeOptionsDropDown(self)
+              self:GetParent():InitializeOptionsDropDown();
+            end
+            _G.UIDropDownMenu_Initialize(
+              mapTab.OptionsDropDown, InitializeOptionsDropDown, "MENU");
+            ToggleDropDownMenu(1, nil, mapTab.OptionsDropDown, self, 0, 0);
+            return;
+          end
+        end
+      end);
+
+      self.dragger:SetFrameStrata("HIGH");
+      mapTab:Hide();
+      mapTab.Show = tk.Constants.DUMMY_FUNC;
+
+      local container = self.ScrollContainer;
+      container:SetAllPoints(self);
+
+      self.dragger:HookScript("OnDragStop", function()
+        container:ZoomIn();
+        container:ZoomOut();
+        updateSize = nil;
+      end);
+
+      self.dragger:HookScript("OnDragStart", function()
+        updateSize = true;
+        C_Timer.After(0.1, DragStep);
+      end);
+
+      self.reskinned = true;
+    end
+
+    mapFrame:SetFrameStrata("MEDIUM");
+    mapFrame:HookScript("OnShow", update);
+    mapFrame:HookScript("OnEvent", function(self)
+      if (self.titleBar) then
+        self.titleBar.text:SetText(GetMinimapZoneText());
+      end
+    end);
+
+    local bgFrame = tk:CreateFrame("Frame", mapFrame, "MUI_ZoneMap");
+    local bg = gui:AddDialogTexture(bgFrame);
+    bg:SetAllPoints(true);
+    bg:SetFrameStrata("LOW");
+    bg:SetAlpha(1.0 - mapOptions.opacity);
+
+    tk:HookFunc(mapFrame, "RefreshAlpha", function()
+      local alpha = 1.0 - mapOptions.opacity;
+      bg:SetAlpha(1.0 - mapOptions.opacity);
+      mapFrame.titleBar:SetAlpha(math.max(alpha, 0.3));
+    end);
+
+    mapFrame.BorderFrame.CloseButtonBorder:SetTexture("");
+    mapFrame.BorderFrame.CloseButton:SetPoint(
+      "TOPRIGHT", mapFrame.BorderFrame, "TOPRIGHT", 5, 5);
+    tk:UnhookFunc("BattlefieldMap_LoadUI", callback);
+  end
+end);
 
 do
   local widgetMethods = {};
@@ -485,21 +478,21 @@ do
           return
         end
 
-        local difficulty = select(4, GetInstanceInfo());
+        local difficultyID = select(3, GetInstanceInfo());
 
-        if (difficulty == "Heroic") then
-          difficulty = "H";
-        elseif (difficulty == "Mythic") then
-          difficulty = "M";
-        elseif (difficulty == "Looking For Raid") then
-          difficulty = "RF";
+        if (difficultyID == 2 or difficultyID == 5 or difficultyID == 6 or difficultyID == 15) then
+          difficultyID = "H";
+        elseif (difficultyID == 8 or difficultyID == 16 or difficultyID == 23) then
+          difficultyID = "M";
+        elseif (difficultyID == 7) then
+          difficultyID = "RF";
         else
-          difficulty = "";
+          difficultyID = "";
         end
 
         local players = GetNumGroupMembers();
         players = (players > 0 and players) or 1;
-        data.dungeonDifficulty:SetText(players .. difficulty); -- localization possible?
+        data.dungeonDifficulty:SetText(players .. difficultyID); -- localization possible?
       end);
 
       listener:RegisterEvents(

@@ -60,7 +60,8 @@ function Components.title(parent, config)
 
   container.title:SetText(config.name:upper());
 
-  tk:SetFullWidth(container, 14);
+  container.rightPadding = 20;
+  tk:SetFullWidth(container);
   container:HookScript("OnSizeChanged", UpdateContainerHeight);
 
   return container;

@@ -1,9 +1,10 @@
-## Interface: 100005
-## Title: |TInterface/Addons/MUI_Core/Assets/Logo:12:22|t |cff00ccffConfig|r
+## Interface: 100100
+## Title: |cff00ccffMayronUI|r Config
+## IconTexture: Interface/Addons/MUI_Core/Assets/Logo
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
-## Version: 6.8.2
-## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to enable the in-game MayronUI configuration menu|nwhere you'll be able to customize every aspect of MayronUI.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!|n|n|cffffd100Version: 6.8.2|r
+## Version: 6.9.0
+## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to enable the in-game MayronUI configuration menu|nwhere you'll be able to customize every aspect of MayronUI.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!|n|n|cffffd100Version: 6.9.0|r
 
 Utils.lua
 Modules\Modules.xml

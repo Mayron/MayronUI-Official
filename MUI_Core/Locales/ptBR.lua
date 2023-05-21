@@ -574,6 +574,7 @@ L["Icon Size"] = "Tamanho do ícone";
 L["Column Spacing"] = "Espaçamento entre colunas";
 L["Row Spacing"] = "Espaçamento entre linhas";
 L["Icons per Row"] = "Ícones por linha";
+L["Bar Columns"] = "Barra de Colunas";
 L["Growth Direction"] = "Direção de crescimento";
 L["Status Bar Options"] = "Opções da barra de status";
 L["Status bar options are disabled when using icons."] =
@@ -983,11 +984,13 @@ L["MUI_Setup_CreditsTab"] =
 E, claro, obrigado aos autores dos AddOns não-MayronUI incluídos neste pacote de UI.]]
 
 L["PRESS_HOLD_TOGGLE_BUTTONS"] =
-  [[Pressione e segure %s enquanto estiver fora de combate para mostrar os botões de alternância.
+[[Pressione e segure %s enquanto estiver fora de combate para mostrar os botões de alternância.
+
 Clicar neles mostrará ou ocultará linhas adicionais da barra de ação.]]
 
 L["CHANGE_KEYBINDINGS"] =
-  [[Você pode alterar essa combinação de teclas no menu de configuração do MUI (%s).
+[[Você pode alterar essa combinação de teclas no menu de configuração do MUI (%s).
+
 Existem 3 combinações de teclas para alternar rapidamente entre 1 a 3 linhas,
 encontrado no menu de atalhos de teclado da Blizzard:]]
 
@@ -1132,3 +1135,51 @@ L["Paste an import string into the box below to import a profile."] = "Cole uma 
 L["Warning: This will completely replace your current profile with the imported profile settings!"] = "Aviso: Isso substituirá completamente seu perfil atual pelas configurações de perfil importadas!";
 L["Successfully imported profile settings into your current profile!"] = "Configurações de perfil importadas com sucesso para o seu perfil atual!";
 L["Reset to default"] = "Restaurar ao padrão";
+
+L["Appearance Settings"] = "Configurações de aparência";
+L["Set MUI Frames Color"] = "Definir Cor dos Quadros MUI";
+L["MUI_FRAMES_COLOR_TOOLTIP"] = "Controla a cor de fundo dos quadros MUI, incluindo o quadro de inventário, dicas de ferramentas, menu de configuração, ferramenta de layout e muito mais.";
+L["Set Display Mode"] = "Definir modo de exibição";
+L["These settings relate to the individual aura icons/bars."] = "Essas configurações estão relacionadas aos ícones/barras de aura individuais.";
+L["These settings relate to the frame containing the individual aura icons/bars."] = "Essas configurações estão relacionadas ao quadro que contém os ícones/barras de aura individuais.";
+L["Set Non-Player Alpha"] = "Definir alfa não-jogador";
+L["Icon Width"] = "Largura do Ícone";
+L["Icon Height"] = "Altura do Ícone";
+L["If true, when the aura is close to expiring the aura frame will fade in and out."] = "Se for verdade, quando a aura estiver perto de expirar, o quadro da aura aparecerá e desaparecerá gradualmente.";
+L["The alpha of auras not applied by you."] = "O alfa das auras não aplicado por você.";
+L["Icon Spacing"] = "Espaçamento de ícones";
+L["Show Bar Spark"] = "Mostrar Bar Spark";
+L["Container Frame Settings"] = "Configurações da moldura do contêiner";
+L["Positioning"] = "Posicionamento";
+L["Rows and Columns"] = "Linhas e colunas";
+L["The maximum number of aura icons to display per row."] = "O número máximo de ícones de aura a serem exibidos por linha.";
+L["The maximum number of horizontal bar columns to display."] = "O número máximo de colunas de barra horizontal a serem exibidas.";
+L["Text Settings"] = "Configurações de texto";
+L["Aura Frame"] = "Moldura de Aura";
+L["Icon Frame"] = "Moldura de ícone";
+L["Icon"] = "Ícone";
+L["Normal Font Size"] = "Tamanho normal da fonte";
+L["Warning Font Size"] = "Tamanho da fonte de aviso";
+L["Warning Threshold"] = "Limite de aviso";
+L["The minimum number of seconds remaining required for the time remaining text to use the warning font size."] = "O número mínimo de segundos restantes necessários para o tempo restante do texto para usar o tamanho da fonte de aviso.";
+L["Text Colors"] = "Cores do texto";
+L["Aura Type Colors"] = "Tipo de Aura Cores";
+L["Basic Buff"] = "Bônus Básico";
+L["Player Owned Buff"] = "Buff de propriedade do jogador";
+L["Buffs that you applied to yourself."] = "Buffs que você aplicou a si mesmo.";
+L["Basic Debuff"] = "Debuff básico";
+L["Bar Colors"] = "Cores da barra";
+L["Borders"] = "Fronteiras";
+L["Enable Inventory Frame"] = "Ativar quadro de inventário";
+L["Use the MayronUI custom inventory frame instead of the default Blizzard bags UI."] = "Use o quadro de inventário personalizado MayronUI em vez da interface do usuário padrão das sacolas da Blizzard.";
+L["Use Class Colors"] = "Usar Cores de Classe";
+L["If checked, tooltips for other players will be colored based on their class."] = "Se marcado, as dicas de ferramentas para outros jogadores serão coloridas com base em sua classe.";
+L["Switch to Detailed View"] = "Alternar para visualização detalhada";
+L["Switch to Grid View"] = "Alternar para visualização em grade";
+L["View Character Inventory"] = "Ver Inventário de Personagens";
+L["Toggle Bags Bar"] = "Barra de alternância de bolsas";
+L["Quest Items"] = "Itens de missão";
+L["Trade Goods"] = "Bens de comércio";
+L["Consumables"] = "Consumíveis";
+L["Equipment"] = "Equipamento";
+L["All Items"] = "Todos os itens";

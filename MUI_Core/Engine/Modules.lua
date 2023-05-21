@@ -1,6 +1,9 @@
 -- luacheck: ignore MayronUI LibStub self 143 631
 local _G = _G;
-local MayronUI = _G.MayronUI; ---@type MayronUI
+
+---@class MayronUI
+local MayronUI = _G.MayronUI;
+
 local tk, db, em, _, obj, L = MayronUI:GetCoreComponents();
 
 local table, ipairs, pairs, select, string, unpack, print = _G.table, _G.ipairs,
@@ -12,7 +15,7 @@ local collectgarbage = _G.collectgarbage;
 local InCombatLockdown = _G.InCombatLockdown;
 local FillLocalizedClassList, UnitName = _G.FillLocalizedClassList, _G.UnitName;
 
----@class BaseModule : Object
+---@class BaseModule : MayronObjects.Class
 local BaseModule = obj:CreateClass("BaseModule");
 obj:Export(BaseModule, "MayronUI");
 
@@ -61,8 +64,12 @@ db:AddToDefaults("profile.theme", {
     r = classColor.r;
     g = classColor.g;
     b = classColor.b;
-    hex = classColor:GenerateHexColor();
   };
+  frameColor = {
+    r = 0.5;
+    g = 0.5;
+    b = 0.5;
+  }
 });
 
 -- Slash Commands ------------------
@@ -108,11 +115,13 @@ commands.config = function()
 end
 
 commands.layouts = function()
-  if (not LoadMuiAddOn("MUI_Config")) then
-    return;
-  end
+  if (not LoadMuiAddOn("MUI_Config")) then return end
+
   local layoutSwitcher = MayronUI:ImportModule("LayoutSwitcher");
-  layoutSwitcher:ShowLayoutTool();
+
+  if (layoutSwitcher) then
+    layoutSwitcher:ShowLayoutTool();
+  end
 end
 
 commands.install = function()
@@ -122,11 +131,18 @@ commands.install = function()
   MayronUI:ImportModule("SetUpModule"):Show();
 end
 
+commands.clr = function()
+  _G.ChatFrame1:Clear();
+end;
+
 commands.report = function(forceShow)
   if (not LoadMuiAddOn("MUI_Setup")) then
     return
   end
-  local reportIssue = MayronUI:ImportModule("ReportIssue"); ---@type C_ReportIssue
+
+  local reportIssue = MayronUI:ImportModule("ReportIssue"); ---@cast reportIssue C_ReportIssue
+
+  if (not reportIssue) then return end
 
   if (not reportIssue:IsInitialized()) then
     reportIssue:Initialize();
@@ -136,9 +152,12 @@ commands.report = function(forceShow)
     reportIssue:Toggle();
   end
 
-  local errorHandlerModule = MayronUI:ImportModule("ErrorHandlerModule"); ---@type C_ErrorHandler
-  local errors = errorHandlerModule:GetErrors();
-  reportIssue:SetErrors(errors);
+  local errorHandlerModule = MayronUI:ImportModule("ErrorHandlerModule");
+  if (errorHandlerModule) then
+    ---@cast errorHandlerModule C_ErrorHandler
+    local errors = errorHandlerModule:GetErrors();
+    reportIssue:SetErrors(errors);
+  end
 end
 
 local function ValidateNewProfileName(_, profileName)
@@ -366,6 +385,7 @@ end
 
 obj:DefineParams("boolean");
 ---@param enabled boolean
+---@overload fun(self, enabled: boolean)
 function BaseModule:SetEnabled(data, enabled, ...)
   local registryInfo = registeredModules[tostring(self)];
   local hooks;
@@ -461,8 +481,8 @@ end
 
 ---A helper function to print a table's contents using the MayronUI prefix in the chat frame.
 ---@param tbl table @The table to print.
----@param depth number @The depth of sub-tables to traverse through and print (defaults to 1).
----@param spaces number @The number of spaces used for nested values inside a table (defaults to 2).
+---@param depth number? @The depth of sub-tables to traverse through and print (defaults to 1).
+---@param spaces number? @The number of spaces used for nested values inside a table (defaults to 2).
 function MayronUI:PrintTable(tbl, depth, spaces)
   tk:Assert(obj:IsTable(tbl), "bad argument #1 (table expected, got %s)", type(tbl));
   tk.Tables:Print(tbl, depth or 1, spaces);
@@ -493,15 +513,19 @@ function MayronUI:Print(...)
   tk:Print(...);
 end
 
-function MayronUI:LogError(...)
-  tk:LogError(...);
-  if (MayronUI.DEBUG_MODE) then
-    _G.Screenshot();
-  end
+function MayronUI:LogError(errorMessage, ...)
+  if (not MayronUI.DEBUG_MODE) then return end
+  tk:LogToChatFrame(errorMessage, 1, 0, 0, ...);
 end
 
-function MayronUI:LogDebug(...)
-  tk:LogDebug(...);
+function MayronUI:LogDebug(debugMessage, ...)
+  if (not MayronUI.DEBUG_MODE) then return end
+  tk:LogToChatFrame(debugMessage, 1, 0.8, 0.18, ...);
+end
+
+function MayronUI:LogInfo(debugMessage, ...)
+  if (not MayronUI.DEBUG_MODE) then return end
+  tk:LogToChatFrame(debugMessage, 0.510, 0.773, 1.0, ...);
 end
 
 ---@return boolean @Returns true if MayronUI has been previously installing (usually using MUI_Setup).
@@ -556,7 +580,7 @@ function MayronUI:Hook(moduleKey, eventName, func)
 end
 
 ---@param moduleKey string @The unique key associated with the registered module.
----@return Class @Returns a module Class so that a module can be given additional methods and definitions where required.
+---@return MayronObjects.Class @Returns a module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:GetModuleClass(moduleKey)
   local registryInfo = registeredModules[moduleKey];
 
@@ -568,15 +592,18 @@ function MayronUI:GetModuleClass(moduleKey)
   return registryInfo.class;
 end
 
----@param moduleKey string @The unique key associated with the registered module.
----@param silent boolean @If silent, this function will return nil if the module cannot be found, else it will throw an error
+---@generic T : BaseModule
+---@param moduleKey `T` @The unique key associated with the registered module.
+---@param silent boolean? @If true, nil can be returned, else if the module cannot be found an error is thrown.
+---@return T, BaseModule
 function MayronUI:ImportModule(moduleKey, silent)
   local registryInfo = registeredModules[moduleKey];
 
   if (not registryInfo) then
     -- addon is disabled so cannot import module
     obj:Assert(silent, "Failed to import module '%s'. Has it been registered?", moduleKey);
-    return nil;
+    ---@diagnostic disable-next-line: return-type-mismatch
+    return nil, nil;
   end
 
   return registryInfo.instance, registryInfo.class;
@@ -584,9 +611,9 @@ end
 
 ---MayronUI automatically initializes modules during the "PLAYER_ENTERING_WORLD" event unless initializeOnDemand is true.
 ---@param moduleKey string @A unique key used to register the module to MayronUI.
----@param moduleName string @A human-friendly name of the module to be used in-game (such as on the config window).
----@param initializeOnDemand boolean @(optional) If true, must be initialized manually instead of
----@return Class @Returns a new module Class so that a module can be given additional methods and definitions where required.
+---@param moduleName string? @A human-friendly name of the module to be used in-game (such as on the config window).
+---@param initializeOnDemand boolean? @(optional) If true, must be initialized manually instead of
+---@return table|BaseModule|MayronObjects.Class @Returns a new module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
   local moduleClass = obj:CreateClass(moduleKey, BaseModule);
 
@@ -666,14 +693,26 @@ function MayronUI:SwitchLayouts(layoutName, layoutData)
   end
 
   -- Switch all assigned addons to new profile
-  for a, profileName in pairs(layoutData) do
-    if (profileName) then
-      -- profileName could be false
-      local dbObject = tk.Tables:GetDBObject(a);
+  for addonName, profileName in pairs(layoutData) do
+    local success, errorMsg = pcall(function()
+      MayronUI.PauseErrors = true;
+      if (profileName) then
+        -- profileName could be false
+        local dbObject = tk.Tables:GetDBObject(addonName);
 
-      if (dbObject) then
-        dbObject:SetProfile(profileName);
+        if (dbObject) then
+          if (dbObject.utilities) then
+            dbObject.profile:SetActiveProfile(profileName);
+          else
+            dbObject:SetProfile(profileName);
+          end
+        end
       end
+    end);
+
+    MayronUI.PauseErrors = nil;
+    if (not success and errorMsg) then
+      MayronUI:LogError("Failed to change %s to profile %s: %s", addonName, profileName, errorMsg);
     end
   end
 end
@@ -740,6 +779,16 @@ end
 local C_CoreModule = MayronUI:RegisterModule("CoreModule", "MUI Core", true);
 
 function C_CoreModule:OnInitialize()
+  _G["SLASH_CLR1"] = "/clr";
+  _G.SlashCmdList.CLR = function()
+    commands.clr();
+  end
+
+  _G["SLASH_RELOADUI1"] = "/rl";
+  _G.SlashCmdList.RELOADUI = function()
+    _G.ReloadUI();
+  end
+
   _G["SLASH_MUI1"] = "/mui";
   _G.SlashCmdList.MUI = function(str)
     if (#str == 0) then

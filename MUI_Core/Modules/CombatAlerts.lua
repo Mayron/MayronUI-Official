@@ -130,10 +130,10 @@ function AlertsFrameMixin:SetAlertShown(trigger, shown)
   if (not alert) then
     if (not shown) then return end
     alert = self:CreateFontString(nil, "OVERLAY");
-    alert.icon = tk:CreateFrame("Frame", self, nil, _G.BackdropTemplateMixin and "BackdropTemplate");
+    alert.icon = tk:CreateBackdropFrame("Frame", self);
 
     alert.icon:SetBackdrop({
-      edgeFile = tk.Constants.LSM:Fetch("border", "Skinner");
+      edgeFile = tk.Constants.LSM:Fetch("border", "Solid");
       edgeSize = 1;
     });
 

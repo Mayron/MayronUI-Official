@@ -2,8 +2,12 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
-local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
-local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule
+local Utils = MayronUI:GetComponent("ConfigMenuUtils");
+local configModule = MayronUI:ImportModule("ConfigMenu");
+
+local function HandleReset(self, _, value)
+  self:SetText(value);
+end
 
 local tonumber, tostring = _G.tonumber, _G.tostring;
 
@@ -56,11 +60,12 @@ function Components.textfield(parent, config, value)
   textField:SetText((value and tostring(value)) or tk.Strings.Empty);
   Utils:SetComponentEnabled(textField, config.enabled);
 
+  textField.Reset = HandleReset;
   local container = Utils:WrapInNamedContainer(textField, config);
   Utils:SetBasicTooltip(textField:GetEditBox(), config);
 
   textField:OnTextChanged(TextField_OnTextChanged, container);
-  
+
   Utils:SetShown(container, config.shown);
   return container;
 end

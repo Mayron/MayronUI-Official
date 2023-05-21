@@ -271,6 +271,7 @@ obj:DefineParams("function");
 ---(i.e. when the saved variable becomes accessible). By default, this function is called by the MayronDBrary
 ---with 2 arguments: the database and the addOn name passed to MayronDB.Static:CreateDatabase(...).
 ---@param callback function @The start up callback function
+---@overload fun(self, callback: function)
 function Database:OnStartUp(data, callback)
   local startUpCallbacks = data.callbacks.OnStartUp or obj:PopTable();
   data.callbacks.OnStartUp = startUpCallbacks;
@@ -282,6 +283,7 @@ obj:DefineParams("function");
 ---Hooks a callback function onto the "ProfileChanged" event to be called when the database changes profile
 ---(i.e. only changed by the user using db:SetProfile() or db:RemoveProfile(currentProfile)).
 ---@param callback function @The profile changing callback function
+---@overload fun(self, callback: function)
 function Database:OnProfileChange(data, callback)
   local profileChangedCallback = data.callbacks["OnProfileChange"]
                                    or obj:PopTable();
@@ -356,6 +358,7 @@ obj:DefineParams("string", "any");
 ---Adds a value to the database defaults table relative to the path: defaults.<path> = <value>
 ---@param path string @A database path string, such as "myTable.mySubTable[2]"
 ---@param value any @A value to assign to the database defaults table using the path
+---@overload fun(self, path, value)
 function Database:AddToDefaults(data, path, value)
   self:SetPathValue(data.defaults, path, value);
 end
@@ -463,6 +466,7 @@ obj:DefineParams("table|string", "?string");
 ---@param rootTableOrPath table|string @The root table to begin searching through using the path address. OR a string that starts with "global" or "profile" so that the rootTable can be calculated.
 ---@param pathOrNil string|nil @(optional) The path of the value to search for(example: "myTable.mySubTable[2]"), or if rootTableOrPath is a string representing the path then this is nil.
 ---@return any @The value found at the location specified by the path address. Might return nil if the path address is invalid, or no value is located at the address.
+---@overload fun(self, rootTableOrPath: table|string, pathOrNil: string|nil): any
 function Database:ParsePathValue(_, rootTableOrPath, pathOrNil)
   local rootTable, path = GetDatabasePathInfo(self, rootTableOrPath, pathOrNil);
   return MayronDB.Static:ParsePathValue(rootTable, path);
@@ -471,7 +475,9 @@ end
 obj:DefineParams("string");
 ---Sets the addon profile for the currently logged in character. Creates a new profile if the named profile does not exist.
 ---@param profileName string @The name of the profile to assign to the character.
+---@overload fun(self, profileName: string)
 function Database:SetProfile(data, profileName)
+  ---@cast data table
   -- Get profile or create if it does not exist
   local profile = data.sv.profiles[profileName] or obj:PopTable();
   data.sv.profiles[profileName] = profile;
@@ -802,7 +808,9 @@ obj:DefineReturns("boolean");
 ---@param rootTable Observer @The root database table (observer) to append the value to relative to the path address provided.
 ---@param path string @The path address to specify where the value should be appended to.
 ---@return boolean @Returns whether the value was successfully added.
+---@overload fun(self, rootTable: Observer, path: string): boolean
 function Database:RemoveAppended(data, rootTable, path)
+  ---@cast data table
   local tableType = data.helper:GetDatabaseRootTableName(rootTable);
 
   local appendTable = data.sv.appended[tableType] or obj:PopTable();

@@ -112,7 +112,7 @@ function C_DataTextModule:OnInitialize(data)
           local component = tk.Tables:First(data.activeComponents, function(c)
             for _, componentName in keysList:Iterate() do
               if (c.SavedVariableName == componentName) then
-                  return true;
+                return true;
               end
             end
           end);
@@ -238,7 +238,8 @@ function C_DataTextModule:OnEnable(data)
   data.popup.ScrollBar:SetPoint("TOPLEFT", data.popup, "TOPRIGHT", -6, 1);
   data.popup.ScrollBar:SetPoint("BOTTOMRIGHT", data.popup, "BOTTOMRIGHT", -1, 1);
 
-  data.popup.bg = gui:CreateDialogBox(data.popup, "High");
+  data.popup.bg = gui:AddDialogTexture(data.popup);
+  data.popup.bg:SetGridAlphaType("High");
   data.popup.bg:SetPoint("TOPLEFT", 0, 2);
   data.popup.bg:SetPoint("BOTTOMRIGHT", 0, -2);
 
@@ -274,7 +275,7 @@ end
 obj:DefineReturns("Button");
 function C_DataTextModule:CreateDataTextButton(data)
   local btn = tk:CreateFrame("Button");
-  local btnTextureFilePath = tk.Constants.AddOnStyle:GetTexture("ButtonTexture");
+  local btnTextureFilePath = tk:GetAssetFilePath("Textures\\Widgets\\Button");
   btn:SetNormalTexture(btnTextureFilePath);
   btn:GetNormalTexture():SetVertexColor(0.08, 0.08, 0.08);
 
@@ -451,8 +452,8 @@ function C_DataTextModule:PositionLabels(data, dataModule)
     "Invalid data-text label of type '%s' at index %s.", labelType, i);
 
     if (i == 1) then
-      label:SetPoint("TOPLEFT", 2, 0);
-      label:SetPoint("BOTTOMRIGHT", dataModule.MenuContent, "TOPRIGHT", -2, - labelHeight);
+      label:SetPoint("TOPLEFT", 1, -1);
+      label:SetPoint("BOTTOMRIGHT", dataModule.MenuContent, "TOPRIGHT", -1, -labelHeight + 1);
     else
       local previousLabel = dataModule.MenuLabels[i - 1];
 

@@ -67,18 +67,18 @@ local function LoadTutorial(panel)
   local frame = tk:CreateFrame("Frame", panel);
 
   frame:SetFrameStrata("TOOLTIP");
-  frame:SetSize(300, 150);
+  frame:SetSize(300, 130);
   frame:SetPoint("BOTTOM", panel, "TOP", 0, 120);
 
-  gui:CreateDialogBox(nil, nil, frame);
+  gui:AddDialogTexture(frame, "High");
   gui:AddCloseButton(frame);
   gui:AddTitleBar(frame, L["Tutorial: Step 1"]);
   gui:AddArrow(frame, "DOWN");
 
   frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   frame.text:SetWordWrap(true);
-  frame.text:SetPoint("TOPLEFT", 20, -20);
-  frame.text:SetPoint("BOTTOMRIGHT", -20, 10);
+  frame.text:SetPoint("TOPLEFT", 10, -30);
+  frame.text:SetPoint("BOTTOMRIGHT", -10, 10);
   tk:SetFontSize(frame.text, 13);
 
   local modKey = db.profile.actionbars.bottom.animation.modKey;
@@ -107,7 +107,7 @@ local function LoadTutorial(panel)
     step2Text = strformat(step2Text, tk.Strings:SetTextColorByKey("/mui config", "GOLD"));
     frame.text:SetText(step2Text);
     frame:SetHeight(200);
-    frame.text:SetPoint("BOTTOMRIGHT", -20, 50);
+    frame.text:SetPoint("BOTTOMRIGHT", -10, 50);
 
     local btn = gui:CreateButton(frame, L["Show MUI Key Bindings"]);
     btn:SetPoint("BOTTOM", 0, 20);
@@ -378,18 +378,20 @@ function C_BottomActionBars:SetUpExpandRetract(data)
     btn:SetBackdrop(tk.Constants.BACKDROP);
     btn:SetBackdropBorderColor(0, 0, 0);
 
-    btn.icon = btn:CreateTexture(nil, "OVERLAY");
+    local iconRotation;
+    if (btnId == RETRACT_BUTTON_ID) then
+      iconRotation = 180;
+    end
+
+    btn.icon = gui:CreateIconTexture("arrow", btn, true, iconRotation);
+    btn.icon:ClearAllPoints();
+    btn.icon:SetDrawLayer("OVERLAY");
     btn.icon:SetSize(16, 10);
     btn.icon:SetPoint("CENTER");
-    btn.icon:SetTexture(tk:GetAssetFilePath("Icons\\arrow"));
-    tk:ApplyThemeColor(btn.icon);
+    btn.icon:SetAlpha(1);
 
     local normalTexture = btn:GetNormalTexture();
     normalTexture:SetVertexColor(0.15, 0.15, 0.15, 1);
-
-    if (btnId == RETRACT_BUTTON_ID) then
-      btn.icon:SetTexCoord(0, 1, 1, 0);
-    end
 
     local btnKey = btnId == EXPAND_BUTTON_ID and "expand" or "retract";
     data[btnKey] = btn;

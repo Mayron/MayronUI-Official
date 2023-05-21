@@ -1,9 +1,13 @@
 -- luacheck: ignore MayronUI self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local _, _, _, gui, obj = MayronUI:GetCoreComponents();
+local _, _, _, _, obj = MayronUI:GetCoreComponents();
 
-local DynamicFrame = obj:CreateClass("DynamicFrame"); ---@class DynamicFrame
+---@class GUIBuilder
+local gui = MayronUI:GetComponent("GUIBuilder");
+
+---@class DynamicFrame : Frame,MayronObjects.Object, MayronObjects.Object
+local DynamicFrame = obj:CreateClass("DynamicFrame");
 obj:Export(DynamicFrame, "MayronUI");
 
 local mceil, mfloor, unpack, ipairs = _G.math.ceil, _G.math.floor, _G.unpack, _G.ipairs;
@@ -91,6 +95,7 @@ function DynamicFrame:__Construct(data, frame)
 end
 
 -- adds children to container of the ScrollFrame
+---@overload fun(self, ...)
 function DynamicFrame:AddChildren(data, ...)
   local width, height = data.frame:GetSize();
 
