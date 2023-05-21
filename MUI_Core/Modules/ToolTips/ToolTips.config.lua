@@ -131,7 +131,6 @@ function C_ToolTipsModule:GetConfigTable(data)
                         dbPath = "anchor";
 
                         GetValue = function(self, value)
-                          MayronUI:PrintTable(self);
                           return value == "mouse";
                         end;
 
