@@ -67,7 +67,7 @@ local function LoadTutorial(panel)
   local frame = tk:CreateFrame("Frame", panel);
 
   frame:SetFrameStrata("TOOLTIP");
-  frame:SetSize(300, 150);
+  frame:SetSize(300, 130);
   frame:SetPoint("BOTTOM", panel, "TOP", 0, 120);
 
   gui:AddDialogTexture(frame);
@@ -77,8 +77,8 @@ local function LoadTutorial(panel)
 
   frame.text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   frame.text:SetWordWrap(true);
-  frame.text:SetPoint("TOPLEFT", 20, -20);
-  frame.text:SetPoint("BOTTOMRIGHT", -20, 10);
+  frame.text:SetPoint("TOPLEFT", 10, -30);
+  frame.text:SetPoint("BOTTOMRIGHT", -10, 10);
   tk:SetFontSize(frame.text, 13);
 
   local modKey = db.profile.actionbars.bottom.animation.modKey;
@@ -107,7 +107,7 @@ local function LoadTutorial(panel)
     step2Text = strformat(step2Text, tk.Strings:SetTextColorByKey("/mui config", "GOLD"));
     frame.text:SetText(step2Text);
     frame:SetHeight(200);
-    frame.text:SetPoint("BOTTOMRIGHT", -20, 50);
+    frame.text:SetPoint("BOTTOMRIGHT", -10, 50);
 
     local btn = gui:CreateButton(frame, L["Show MUI Key Bindings"]);
     btn:SetPoint("BOTTOM", 0, 20);

@@ -956,11 +956,13 @@ L["MUI_Setup_CreditsTab"] =
 And of course, thank you to the authors of the non-MayronUI AddOns included in this UI pack.]]
 
 L["PRESS_HOLD_TOGGLE_BUTTONS"] =
-  [[Press and hold %s while out of combat to show toggle buttons.
+[[Press and hold %s while out of combat to show toggle buttons.
+
 Clicking these will show or hide additional action-bar rows.]]
 
 L["CHANGE_KEYBINDINGS"] =
-  [[You can change this key combination in the MUI config menu (%s).
+[[You can change this key combination in the MUI config menu (%s).
+
 There are 3 key bindings to quickly switch between 1 to 3 rows,
 found in Blizzard's key bindings menu:]]
 

@@ -131,7 +131,7 @@ function C_ConfigMenu:GetConfigTable()
           dbPath = "profile.theme.frameColor";
           SetValue = function(_, value)
             db.profile.theme.frameColor = value;
-            gui:SetDialogFrameColor(value.r, value.g, value.b);
+            gui:UpdateMuiFrameColor(value.r, value.g, value.b);
           end;
         };
         { type = "title";

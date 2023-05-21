@@ -990,11 +990,13 @@ L["MUI_Setup_CreditsTab"] =
 Et bien sûr, merci aux auteurs des modules complémentaires non MayronUI inclus dans ce pack d'interface utilisateur.]]
 
 L["PRESS_HOLD_TOGGLE_BUTTONS"] =
-  [[Appuyez et maintenez %s hors combat pour afficher les boutons à bascule.
+[[Appuyez et maintenez %s hors combat pour afficher les boutons à bascule.
+
 En cliquant dessus, vous afficherez ou masquerez des lignes supplémentaires de la barre d'action.]]
 
 L["CHANGE_KEYBINDINGS"] =
-  [[Vous pouvez modifier cette combinaison de touches dans le menu de configuration MUI (%s).
+[[Vous pouvez modifier cette combinaison de touches dans le menu de configuration MUI (%s).
+
 Il y a 3 raccourcis clavier pour basculer rapidement entre 1 à 3 rangées,
 trouvé dans le menu des raccourcis clavier de Blizzard :]]
 

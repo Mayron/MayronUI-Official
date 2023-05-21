@@ -984,11 +984,13 @@ L["MUI_Setup_CreditsTab"] =
 E, naturalmente, grazie agli autori degli AddOn non MayronUI inclusi in questo pacchetto UI.]]
 
 L["PRESS_HOLD_TOGGLE_BUTTONS"] =
-  [[Tieni premuto %s mentre sei fuori dal combattimento per mostrare i pulsanti di attivazione/disattivazione.
+[[Tieni premuto %s mentre sei fuori dal combattimento per mostrare i pulsanti di attivazione/disattivazione.
+
 Facendo clic su questi verranno visualizzate o nascoste righe aggiuntive della barra delle azioni.]]
 
 L["CHANGE_KEYBINDINGS"] =
-  [[Puoi cambiare questa combinazione di tasti nel menu di configurazione MUI (%s).
+[[Puoi cambiare questa combinazione di tasti nel menu di configurazione MUI (%s).
+
 Ci sono 3 combinazioni di tasti per passare rapidamente da 1 a 3 righe,
 trovato nel menu delle associazioni dei tasti di Blizzard:]]
 

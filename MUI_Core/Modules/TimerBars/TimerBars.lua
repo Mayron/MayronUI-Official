@@ -63,11 +63,11 @@ db:AddToDefaults("profile", {
   enabled               = true;
   sortByExpirationTime  = true;
   showTooltips          = true;
-  statusBarTexture      = "MUI_StatusBar";
+  statusBarTexture      = "MayronUI";
   showUnknownExpiration = tk:IsClassic();
 
   border = {
-    type = "Skinner";
+    type = "Solid";
     size = 1;
     show = true;
   };

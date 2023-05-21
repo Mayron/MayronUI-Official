@@ -24,7 +24,7 @@ db:AddToDefaults("profile.resourceBars", {
     alwaysShowText = false;
     showRemaining = true;
     fontSize = 8;
-    texture = "MUI_StatusBar";
+    texture = "MayronUI";
   };
   experienceBar = {
     height = 18;

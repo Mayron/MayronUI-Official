@@ -305,20 +305,23 @@ function tk:HideFrameElements(frame, kill)
   end
 end
 
-function tk:SetBackground(frame, texturePath, g, b, a, inset)
-  inset = inset or 0;
+---@overload fun(self, frame: BackdropTemplate|Frame, r: number, g: number, b: number, a: number?)
+---@overload fun(self, frame: BackdropTemplate|Frame, texturePath: string?, a: number?)
+function tk:SetBackground(frame, ...)
   local texture = frame:CreateTexture(nil, "BACKGROUND");
+  local arg1 = ...;
 
-  texture:SetPoint("TOPLEFT", frame, "TOPLEFT", inset, -inset);
-  texture:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -inset, inset);
-
-  if (obj:IsString(texturePath)) then
-    texture:SetTexture(texturePath);
+  if (arg1 == nil or obj:IsString(arg1)) then
+    local texturePath, a = ...;
+    texture:SetTexture(texturePath or tk.Constants.SOLID_TEXTURE);
+    texture:SetVertexColor(1, 1, 1, a or 1);
   else
-    local r = texturePath;
+    local r, g, b, a = ...;
     texture:SetTexture(tk.Constants.SOLID_TEXTURE);
-    texture:SetVertexColor(r, g, b, a);
+    texture:SetVertexColor(r, g, b, a or 1);
   end
+
+  texture:SetAllPoints(true);
 
   return texture;
 end
@@ -781,12 +784,12 @@ function tk:CreateFrame(frameType, parent, globalName, templates)
   return frame;
 end
 
----@generic T: FrameType
+---@generic T : FrameType
 ---@param frameType `T`
 ---@param parent Frame?
 ---@param globalName string?
 ---@param templates string?
----@return T|BackdropTemplate
+---@return BackdropTemplate|T
 function tk:CreateBackdropFrame(frameType, parent, globalName, templates)
   if (_G.BackdropTemplateMixin) then
     if (templates) then

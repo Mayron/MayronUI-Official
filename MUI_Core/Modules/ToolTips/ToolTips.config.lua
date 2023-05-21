@@ -5,7 +5,7 @@ local MayronUI = _G.MayronUI;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents();
 local C_ToolTipsModule = MayronUI:GetModuleClass("Tooltips");
 
-local muiTextureSubmenu, customBackdropSubmenu;
+local customBackdropSubmenu;
 local screenPointXOffsetTextField, screenPointYOffsetTextField;
 local screenPointDropdown; ---@type DropDownMenu
 local tostring = _G.tostring;
@@ -130,8 +130,9 @@ function C_ToolTipsModule:GetConfigTable(data)
                         groupName = radioGroupName;
                         dbPath = "anchor";
 
-                        GetValue = function(_, value)
-                            return value == "mouse";
+                        GetValue = function(self, value)
+                          MayronUI:PrintTable(self);
+                          return value == "mouse";
                         end;
 
                         SetValue = function(self, value)
@@ -287,14 +288,13 @@ function C_ToolTipsModule:GetConfigTable(data)
                 subtype = "header",
                 content = L["Reskin using the MUI texture or a custom backdrop"],
             },
-            {   name = tk.Strings:JoinWithSpace("MUI", L["Texture"]);
+            {   name = "MUI "..L["Texture"];
                 type = "radio";
                 groupName = "tooltip_texture";
-                dbPath = "muiTexture.enabled";
+                dbPath = "useMuiTexture";
                 width = 250;
 
                 SetValue = function(self, value)
-                  muiTextureSubmenu:Enable();
                   customBackdropSubmenu:Disable();
                   db:SetPathValue(self.dbPath, value);
                 end;
@@ -303,76 +303,32 @@ function C_ToolTipsModule:GetConfigTable(data)
                 type = "radio";
                 width = 250;
                 groupName = "tooltip_texture";
-                dbPath = "muiTexture.enabled";
+                dbPath = "useMuiTexture";
 
                 GetValue = function(_, value)
                   return not value;
                 end;
 
                 SetValue = function(self, value)
-                  muiTextureSubmenu:Disable();
+
                   customBackdropSubmenu:Enable();
                   db:SetPathValue(self.dbPath, not value);
                 end;
             },
             {   type = "divider" };
-            {   name = tk.Strings:JoinWithSpace("MUI", L["Texture Options"]);
-                type = "submenu";
-                enabled = db.profile.tooltips.muiTexture.enabled;
-                dbPath = "muiTexture";
-                OnLoad = function(_, submenu)
-                  muiTextureSubmenu = submenu;
-                end;
-                children = {
-                    {   type = "fontstring";
-                        content = L["The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see the previous menu)."];
-                    };
-                    {   name = "Use Class Colors",
-                        tooltip = "If checked, tooltips for other players will be colored based on their class.",
-                        type = "check",
-                        dbPath = "classColored",
-                    },
-                    {   name = L["Use MUI Theme Color"],
-                        tooltip = L["If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class-colored)."];
-                        type = "check",
-                        dbPath = "useTheme",
-                    },
-                    {   name = L["Custom Color"];
-                        tooltip = L["If not using the MUI theme color, the tooltip will use this custom color for both the background and border color."];
-                        type = "color";
-                        width = 200;
-                        enabled = not db.profile.tooltips.muiTexture.useTheme;
-                        useIndexes = true;
-                        dbPath = "custom";
-                    };
-                }
+            {   name = "Use Class Colors",
+                tooltip = "If checked, tooltips for other players will be colored based on their class.",
+                type = "check",
+                dbPath = "classColored",
             };
             {   name = L["Custom Backdrop Options"];
                 type = "submenu";
                 dbPath = "backdrop";
-                enabled = not db.profile.tooltips.muiTexture.enabled;
+                enabled = not db.profile.tooltips.useMuiTexture;
                 OnLoad = function(_, submenu)
                   customBackdropSubmenu = submenu;
                 end;
                 children = {
-                    { name = "Use Class Colors",
-                      tooltip = L["If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit."];
-                      type = "check",
-                      dbPath = "borderClassColored",
-                    },
-                    { name = L["Border Color"];
-                      tooltip = L["If color border by class or NPC type is checked, this color will be used for all non-unit tooltips, else it will be used for every tooltip border."];
-                      type = "color";
-                      hasOpacity = true;
-                      useIndexes = true;
-                      dbPath = "borderColor";
-                    };
-                    { name = L["Background Color"];
-                      type = "color";
-                      hasOpacity = true;
-                      useIndexes = true;
-                      dbPath = "bgColor";
-                    };
                     { type = "divider" };
                     { type = "dropdown",
                       name = L["Background Texture"];
@@ -416,7 +372,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                       min = -10;
                       max = 10;
                     };
-                    { name      = L["Bottom"];
+                    { name = L["Bottom"];
                       dbPath = "insets.bottom";
                       type = "slider";
                       min = -10;

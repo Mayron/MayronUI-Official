@@ -983,11 +983,13 @@ L["MUI_Setup_CreditsTab"] =
 E, claro, obrigado aos autores dos AddOns não-MayronUI incluídos neste pacote de UI.]]
 
 L["PRESS_HOLD_TOGGLE_BUTTONS"] =
-  [[Pressione e segure %s enquanto estiver fora de combate para mostrar os botões de alternância.
+[[Pressione e segure %s enquanto estiver fora de combate para mostrar os botões de alternância.
+
 Clicar neles mostrará ou ocultará linhas adicionais da barra de ação.]]
 
 L["CHANGE_KEYBINDINGS"] =
-  [[Você pode alterar essa combinação de teclas no menu de configuração do MUI (%s).
+[[Você pode alterar essa combinação de teclas no menu de configuração do MUI (%s).
+
 Existem 3 combinações de teclas para alternar rapidamente entre 1 a 3 linhas,
 encontrado no menu de atalhos de teclado da Blizzard:]]
 

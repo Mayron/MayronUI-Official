@@ -98,10 +98,9 @@ db:OnStartUp(function(self, sv)
   media:Register(types.FONT, "MUI_Font", tk:GetAssetFilePath("Fonts\\MayronUI.ttf"));
   media:Register(types.FONT, "Imagine", tk:GetAssetFilePath("Fonts\\Imagine.ttf"));
   media:Register(types.FONT, "Prototype", tk:GetAssetFilePath("Fonts\\Prototype.ttf"));
-  media:Register(types.STATUSBAR, "MUI_StatusBar", tk:GetAssetFilePath("Textures\\Widgets\\Button.tga"));
-  media:Register(types.BORDER, "Skinner", tk.Constants.BACKDROP.edgeFile);
+  media:Register(types.STATUSBAR, "MayronUI", tk:GetAssetFilePath("Textures\\Widgets\\Button.tga"));
+  media:Register(types.BORDER, "Solid", tk.Constants.BACKDROP.edgeFile);
   media:Register(types.BORDER, "Glow", tk:GetAssetFilePath("Borders\\Glow.tga"));
-  media:Register(types.BACKGROUND, "MUI_Solid", tk.Constants.SOLID_TEXTURE);
 
   hooksecurefunc("MovieFrame_PlayMovie", function(s)
     s:SetFrameStrata("DIALOG");

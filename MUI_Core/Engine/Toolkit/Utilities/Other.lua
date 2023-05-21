@@ -190,7 +190,7 @@ local GetSpecializationInfoByID = _G.GetSpecializationInfoByID;
 function tk:GetPlayerSpecialization(talentGroup, unitID)
   local isInspect = false;
 
-  if (obj:IsString(unitID)) then
+  if (obj:IsString(unitID) and unitID ~= "player") then
     local unitGUID = UnitGUID(unitID);
     local playerGUID = UnitGUID("player");
     isInspect = unitGUID ~= playerGUID;

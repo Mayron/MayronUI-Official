@@ -54,7 +54,7 @@ function C_ExperienceBar:SetActive(data, active)
 
   if (active and data.notCreated) then
     data.rested = tk:CreateFrame("StatusBar", data.frame);
-    data.rested:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", "MUI_StatusBar"));
+    data.rested:SetStatusBarTexture(tk.Constants.LSM:Fetch("statusbar", "MayronUI"));
     data.rested:SetPoint("TOPLEFT", 1, -1);
     data.rested:SetPoint("BOTTOMRIGHT", -1, 1);
     data.rested:SetOrientation("HORIZONTAL");

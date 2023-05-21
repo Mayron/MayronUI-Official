@@ -65,8 +65,8 @@ db:AddToDefaults("profile.castBars", {
     position = {"CENTER", "UIParent", "CENTER", 0,  0};
   };
   appearance = {
-    texture       = "MUI_StatusBar";
-    border        = "Skinner";
+    texture       = "MayronUI";
+    border        = "Solid";
     blendMode     = "ADD";
     borderSize    = 1;
     inset         = 1;

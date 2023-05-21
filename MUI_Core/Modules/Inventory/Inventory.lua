@@ -1198,10 +1198,11 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
 
   --MayronUI:LogInfo("Event: %s (has bag?: %s) with bagIndex %s and slotIndex %s.",event, obj:IsTable(bagFrame), bagIndex, slotIndex);
 
---[[
-	if ( event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_SPECIALIZATION_CHANGED" ) then
-		ContainerFrame_UpdateItemUpgradeIcons(self);
---]]
+  -- Retail Only
+  if (event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_SPECIALIZATION_CHANGED") then
+		-- ContainerFrame_UpdateItemUpgradeIcons(self);
+  end
+
 
   if (event == "BAG_UPDATE_COOLDOWN") then
     for _, b in ipairs(inventoryFrame.bags) do
@@ -1535,21 +1536,18 @@ function C_Inventory:OnInitialize()
     inventoryFrame:RegisterEvent("BAG_NEW_ITEMS_UPDATED");
     inventoryFrame:RegisterEvent("PLAYER_MONEY");
     inventoryFrame:RegisterEvent("BAG_CONTAINER_UPDATE"); -- when a bag is added or removed from the bags bar
+    inventoryFrame:RegisterEvent("INVENTORY_SEARCH_UPDATE");
 
     -- Wrath Only --------------:
     inventoryFrame:RegisterEvent("QUEST_ACCEPTED");
     inventoryFrame:RegisterEvent("UNIT_QUEST_LOG_CHANGED"); -- and arg1 == "player", then also do the same as QUEST_ACCEPTED
     ----------------------------
 
-    inventoryFrame:RegisterEvent("INVENTORY_SEARCH_UPDATE");
-
-    -- Retail?:
-    -- UNIT_INVENTORY_CHANGED, PLAYER_SPECIALIZATION_CHANGED
-
-    -- Bag Extensions:
-    -- inventoryFrame:RegisterEvent("BAG_SLOT_FLAGS_UPDATED");
-    -- inventoryFrame:RegisterEvent("BANK_BAG_SLOT_FLAGS_UPDATED");
-    --CURRENCY_DISPLAY_UPDATE
+    -- Retail:
+    if (tk:IsRetail()) then
+      inventoryFrame:RegisterEvent("UNIT_INVENTORY_CHANGED");
+      inventoryFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED");
+    end
 
     local totalBagFrames = _G.NUM_BAG_SLOTS + 2; -- 2 for backpack and keyring
 

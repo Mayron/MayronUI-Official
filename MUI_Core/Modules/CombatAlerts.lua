@@ -133,7 +133,7 @@ function AlertsFrameMixin:SetAlertShown(trigger, shown)
     alert.icon = tk:CreateBackdropFrame("Frame", self);
 
     alert.icon:SetBackdrop({
-      edgeFile = tk.Constants.LSM:Fetch("border", "Skinner");
+      edgeFile = tk.Constants.LSM:Fetch("border", "Solid");
       edgeSize = 1;
     });
 

@@ -878,9 +878,9 @@ do
     menuButton.text:SetPoint("TOPLEFT", 10, 0);
     menuButton.text:SetPoint("BOTTOMRIGHT");
 
-    local normal = tk:SetBackground(menuButton, tk.Constants.SOLID_TEXTURE);
-    local highlight = tk:SetBackground(menuButton, tk.Constants.SOLID_TEXTURE);
-    local checked = tk:SetBackground(menuButton, tk.Constants.SOLID_TEXTURE);
+    local normal = tk:SetBackground(menuButton);
+    local highlight = tk:SetBackground(menuButton);
+    local checked = tk:SetBackground(menuButton);
 
     -- first argument is the alpha
     tk:ApplyThemeColor(0.3, normal, highlight);

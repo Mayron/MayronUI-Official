@@ -5,25 +5,14 @@ local tk, db, em, gui, obj, L = MayronUI:GetCoreComponents();
 local C_ToolTipsModule = MayronUI:RegisterModule("Tooltips", L["Tooltips"]);
 
 local tooltipStyle = _G.GAME_TOOLTIP_BACKDROP_STYLE_DEFAULT or _G.TOOLTIP_BACKDROP_STYLE_DEFAULT;
-local gameTooltip = _G.GameTooltip;
+local gameTooltip = _G.GameTooltip--[[@as BackdropTemplate|GameTooltip|MayronUI.GridTextureMixin]];
 local healthBar, powerBar = _G.GameTooltipStatusBar, nil;
 local IsInGroup, IsInRaid, After = _G.IsInGroup, _G.IsInRaid, _G.C_Timer.After;
 local TooltipDataProcessor, UnitIsDeadOrGhost = _G.TooltipDataProcessor, _G.UnitIsDeadOrGhost;
 local NotifyInspect = _G.NotifyInspect;
 
-local originalSetBackdropBorderColor = gameTooltip.SetBackdropBorderColor;
-gameTooltip.SetBackdropBorderColor = tk.Constants.DUMMY_FUNC;
-
-local originalSetBackdropColor = gameTooltip.SetBackdropColor;
-gameTooltip.SetBackdropColor = tk.Constants.DUMMY_FUNC;
-
-local originalSetBackdrop = gameTooltip.SetBackdrop;
-
-if (not obj:IsFunction(originalSetBackdrop)) then
+if (not obj:IsFunction(gameTooltip.SetBackdrop)) then
   _G.Mixin(gameTooltip, _G.BackdropTemplateMixin);
-  originalSetBackdrop = gameTooltip.SetBackdrop;
-  originalSetBackdropColor = gameTooltip.SetBackdropColor;
-  originalSetBackdropBorderColor = gameTooltip.SetBackdropBorderColor;
 end
 
 local select, IsAddOnLoaded, strformat, ipairs, UnitAura, unpack,
@@ -36,14 +25,23 @@ local UnitPowerType, UnitPower, UnitPowerMax, min = _G.UnitPowerType, _G.UnitPow
 local UnitLevel, CanInspect, UnitGUID, CheckInteractDistance =
   _G.UnitLevel, _G.CanInspect, _G.UnitGUID, _G.CheckInteractDistance;
 local tostring, InCombatLockdown = _G.tostring, _G.InCombatLockdown;
-local IsPlayerMoving, IsGUIDInGroup = _G.IsPlayerMoving, _G.IsGUIDInGroup;
-local pairs = _G.pairs;
+local IsPlayerMoving = _G.IsPlayerMoving;
+local ClearInspectPlayer, GetTime = _G.ClearInspectPlayer, _G.GetTime;
+
+---@class MayronUI.TooltipCacheEntry
+---@field itemLevel number
+---@field specName string
+---@field createdAt number
+
+---@type table<string, MayronUI.TooltipCacheEntry>
+local guidCache = {};
 
 -- Constants
 local HARMFUL = "HARMFUL";
 local HELPFUL = "HELPFUL";
 local ITEM_LEVEL_LABEL = "Item Level:";
 local SPEC_LABEL = strformat("%s:", _G.SPECIALIZATION);
+local TARGET_LABEL = "Target:";
 local AURA_SPACING = 2;
 
 local tooltipsToReskin =  {
@@ -63,10 +61,10 @@ local tooltipsToReskin =  {
   "LibDBIconTooltip"
 };
 
-db:AddToDefaults("profile.tooltips", {
+---@class MayronUI.TooltipDefaults
+local tooltipDefaults = {
   enabled = not (select(1, IsAddOnLoaded("TipTac")));
   targetShown = true;
-  runIlvlBackgroundScanner = false;
   guildRankShown = true;
   realmShown = true;
   itemLevelShown = true;
@@ -76,21 +74,17 @@ db:AddToDefaults("profile.tooltips", {
   standardFontSize = 14;
   headerFontSize = 16;
   scale = 0.8;
-  muiTexture = {
-    enabled = true;
-    useTheme = true;
-    classColored = true;
-    custom = { 0, 0, 0, 1 }
-  }; -- if true, does not use backdrop
+
+  useClassColors = true;
+  useMuiTexture = true; -- if false, use backdrop
+
   backdrop = {
-    borderClassColored =  true;
-    borderColor = { 0.4, 0.4, 0.4, 1 }; -- TODO: Doesn't seem to work
-    bgColor = { 0, 0, 0, 0.8 };
-    bgFile = "MUI_Solid",
-    edgeFile = "Skinner",
+    bgFile = "Solid", -- default texture in LSM
+    edgeFile = "Solid",
     edgeSize = tk.Constants.BACKDROP_WITH_BACKGROUND.edgeSize,
     insets = { left = 0, right = 0, top = 0, bottom = 0 };
   };
+
   anchors = {
     screen = {
       point = "BOTTOMRIGHT";
@@ -152,7 +146,7 @@ db:AddToDefaults("profile.tooltips", {
   };
   healthBar = {
     fontSize = 14;
-    texture = "MUI_StatusBar";
+    texture = "MayronUI";
     flag = "OUTLINE";
     format = "%"; -- or "", "n", "n/n"
     height = 18;
@@ -160,7 +154,7 @@ db:AddToDefaults("profile.tooltips", {
   powerBar = {
     enabled = false;
     fontSize = 14;
-    texture = "MUI_StatusBar";
+    texture = "MayronUI";
     flag = "OUTLINE";
     format = "%"; -- or "", "n", "n/n"
     height = 18;
@@ -183,75 +177,35 @@ db:AddToDefaults("profile.tooltips", {
       colorByDebuffType = true;
     };
   };
-});
+}
 
-local ManageGetterOverrides;
+db:AddToDefaults("profile.tooltips", tooltipDefaults);
 
-do
-  local original = {};
-  local new = {};
-
-  function ManageGetterOverrides(data, tooltip, replace)
-    local bgColor = data.settings.backdrop.bgColor;
-    local borderColor = data.settings.backdrop.borderColor;
-    local key = tostring(tooltip);
-
-    if (replace) then
-      new[key] = new[key] or obj:PopTable();
-      original[key] = original[key] or obj:PopTable();
-
-      new[key].GetBackdropColor = new[key].GetBackdropColor or function()
-        return unpack(bgColor);
-      end
-
-      new[key].GetBackdropBorderColor = new[key].GetBackdropBorderColor or function()
-        return unpack(borderColor);
-      end
-
-      new[key].GetBackdrop = new[key].GetBackdrop or function()
-        return data.tooltipBackdrop;
-      end
-
-      original[key].GetBackdropColor = tooltip.GetBackdropColor;
-      original[key].GetBackdropBorderColor = tooltip.GetBackdropBorderColor;
-      original[key].GetBackdrop = tooltip.GetBackdrop;
-
-      tooltip.GetBackdropColor = new[key].GetBackdropColor;
-      tooltip.GetBackdropBorderColor = new[key].GetBackdropBorderColor;
-      tooltip.GetBackdrop = new[key].GetBackdrop;
-
-    elseif (obj:IsTable(original[key])) then
-      tooltip.GetBackdropColor = original[key].GetBackdropColor;
-      tooltip.GetBackdropBorderColor = original[key].GetBackdropBorderColor;
-      tooltip.GetBackdrop = original[key].GetBackdrop;
-    end
-  end
-end
-
-local function SetBackdropStyle(data)
-  local bgFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BACKGROUND, data.settings.backdrop.bgFile);
-  local edgeFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BORDER, data.settings.backdrop.edgeFile);
+local function SetBackdropStyle(d)
+  local settings = d.settings--[[@as MayronUI.TooltipDefaults]]
+  local bgFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BACKGROUND, settings.backdrop.bgFile);
+  local edgeFile = tk.Constants.LSM:Fetch(tk.Constants.LSM.MediaType.BORDER, settings.backdrop.edgeFile);
 
   -- It won't update unless it's a completely new table
-  if (obj:IsTable(data.tooltipBackdrop)) then
-    obj:PushTable(data.tooltipBackdrop);
+  if (obj:IsTable(d.tooltipBackdrop)) then
+    obj:PushTable(d.tooltipBackdrop);
   end
 
-  data.tooltipBackdrop = {};
-  data.tooltipBackdrop.bgFile = bgFile;
-  data.tooltipBackdrop.edgeFile = edgeFile;
-  data.tooltipBackdrop.edgeSize = data.settings.backdrop.edgeSize;
-  data.tooltipBackdrop.insets = data.settings.backdrop.insets;
+  d.tooltipBackdrop = {};
+  d.tooltipBackdrop.bgFile = bgFile;
+  d.tooltipBackdrop.edgeFile = edgeFile;
+  d.tooltipBackdrop.edgeSize = settings.backdrop.edgeSize;
+  d.tooltipBackdrop.insets = settings.backdrop.insets;
 
   -- replace backdrop:
   if (tooltipStyle) then
-    tooltipStyle.bgFile = data.tooltipBackdrop.bgFile;
-    tooltipStyle.insets = data.tooltipBackdrop.insets;
-    tooltipStyle.edgeFile = data.tooltipBackdrop.edgeFile;
-    tooltipStyle.edgeSize = data.tooltipBackdrop.edgeSize;
+    tooltipStyle.bgFile = d.tooltipBackdrop.bgFile;
+    tooltipStyle.insets = d.tooltipBackdrop.insets;
+    tooltipStyle.edgeFile = d.tooltipBackdrop.edgeFile;
+    tooltipStyle.edgeSize = d.tooltipBackdrop.edgeSize;
   end
 
-  if (data.settings.muiTexture.enabled) then
+  if (settings.useMuiTexture) then
     local closeBtn = _G["ItemRefCloseButton"];
 
     if (obj:IsWidget(closeBtn)) then
@@ -263,12 +217,12 @@ local function SetBackdropStyle(data)
   end
 
   for _, tooltipName in ipairs(tooltipsToReskin) do
-    local tooltip = _G[tooltipName];
+    local tooltip = _G[tooltipName]--[[@as MayronUI.GridTextureMixin|GameTooltip|table]];
 
     if (obj:IsTable(tooltip) and obj:IsFunction(tooltip.GetObjectType)) then
-      local scale = data.settings.scale;
+      local scale = settings.scale;
 
-      if (tooltip == _G.FriendsTooltip) then
+      if (tooltip == _G["FriendsTooltip"]) then
         scale = scale + 0.2;
       end
 
@@ -282,48 +236,16 @@ local function SetBackdropStyle(data)
         end
       end
 
-      if (data.settings.muiTexture.enabled) then
+      if (settings.useMuiTexture) then
         tooltip:SetBackdrop(nil);
-        tooltip.SetBackdrop = tk.Constants.DUMMY_FUNC;
-
-        ManageGetterOverrides(data, tooltip, true);
 
         if (not obj:IsFunction(tooltip.SetGridTextureShown)) then
           gui:AddDialogTexture(tooltip);
         end
+      end
 
-        if (data.settings.muiTexture.useTheme) then
-          local r, g, b = tk:GetThemeColor();
-          tooltip:SetGridColor(r, g, b, 1);
-        else
-          -- custom color
-          local r, g, b, a = unpack(data.settings.muiTexture.custom);
-          tooltip:SetGridColor(r, g, b, a);
-        end
-
-        tooltip:SetGridTextureShown(true);
-      else
-        local borderColor = data.settings.backdrop.borderColor;
-        local bgColor = data.settings.backdrop.bgColor;
-
-        tooltip.SetBackdrop = originalSetBackdrop;
-        ManageGetterOverrides(data, tooltip);
-
-        tooltip:SetBackdrop(data.tooltipBackdrop);
-        tooltip:SetBackdropBorderColor(unpack(borderColor));
-        tooltip:SetBackdropColor(unpack(bgColor));
-
-        if (tooltip == gameTooltip) then
-          originalSetBackdropColor(tooltip, unpack(bgColor));
-          originalSetBackdropBorderColor(tooltip, unpack(borderColor));
-        else
-          tooltip:SetBackdropBorderColor(unpack(borderColor));
-          tooltip:SetBackdropColor(unpack(bgColor));
-        end
-
-        if (obj:IsFunction(tooltip.SetGridTextureShown)) then
-          tooltip:SetGridTextureShown(false);
-        end
+      if (obj:IsFunction(tooltip.SetGridTextureShown)) then
+        tooltip:SetGridTextureShown(settings.useMuiTexture);
       end
     end
   end
@@ -356,7 +278,7 @@ local function GetHealthColor(healthColors, currentHealth, maxHealth)
   return tk:MixColorsByPercentage(start, stop, percent);
 end
 
-local UpdateUnitHealthBar, UpdateUnitPowerBar;
+local UpdateUnitHealthBarText, UpdateUnitPowerBarText;
 
 do
   local function SetFormattedColoredText(fontString, format, percentage, current, max, r, g, b)
@@ -391,7 +313,7 @@ do
     fontString:SetText(tk.Strings:SetTextColorByRGB(text, r, g, b));
   end
 
-  function UpdateUnitHealthBar(format, healthColors, unitID)
+  function UpdateUnitHealthBarText(format, healthColors, unitID)
     local maxHealth = UnitHealthMax(unitID);
     local currentHealth = UnitHealth(unitID);
     local r, g, b = GetHealthColor(healthColors, currentHealth, maxHealth);
@@ -400,7 +322,7 @@ do
     SetFormattedColoredText(healthBar.HealthText, format, percentage, currentHealth, maxHealth, r, g, b);
   end
 
-  function UpdateUnitPowerBar(format, powerColors, unitID)
+  function UpdateUnitPowerBarText(format, powerColors, unitID)
       -- verify unit is still using the same power type, if not, update the bar color
     local powerTypeID = UnitPowerType(unitID);
     if (powerTypeID < 0) then return end
@@ -529,72 +451,97 @@ local function UpdateExistingUnitTooltipLines(data, unitID)
 	end
 end
 
-local UpdateUnitStatusBars;
+local function UpdateUnitTexture(d, unitID)
+  local classColor = UnitIsPlayer(unitID) and tk:GetClassColorByUnitID(unitID);
+  local settings = d.settings--[[@as MayronUI.TooltipDefaults]];
 
-do
-  local originalSetStatusBarColor = healthBar.SetStatusBarColor;
+  if (classColor) then
+    local r, g, b;
 
-  function UpdateUnitStatusBars(data, unitID)
-    local color = tk:GetClassColorByUnitID(unitID);
-    local usingMuiTexture = data.settings.muiTexture.enabled
-
-    if (gameTooltip.SetGridColor) then
-      if (UnitIsPlayer(unitID) and usingMuiTexture and data.settings.muiTexture.classColored) then
-        gameTooltip:SetGridColor(color.r, color.g, color.b);
-      else
-        local r, g, b = tk:GetThemeColor();
-        gameTooltip:SetGridColor(r, g, b);
-      end
-    end
-
-    if (UnitIsPlayer(unitID) and color) then
-      originalSetStatusBarColor(healthBar, color.r, color.g, color.b);
-      healthBar.bg:SetBackdropColor(color.r * 0.4, color.g * 0.4, color.b * 0.4);
-
-      if (not data.settings.muiTexture.enabled and data.settings.backdrop.borderClassColored) then
-        originalSetBackdropBorderColor(gameTooltip, color.r, color.g, color.b, data.settings.backdrop.borderColor[4]);
-      end
+    if (settings.useClassColors) then
+      r, g, b = classColor:GetRGB();
     else
-      local reaction = UnitReaction(unitID, "player");
-      local r, g, b;
-
-      if (reaction) then
-        r = tk.Constants.FACTION_BAR_COLORS[reaction].r;
-        g = tk.Constants.FACTION_BAR_COLORS[reaction].g;
-        b = tk.Constants.FACTION_BAR_COLORS[reaction].b;
-      else
-        local maxHealth = UnitHealthMax(unitID);
-        local currentHealth = UnitHealth(unitID);
-        r, g, b = GetHealthColor(data.settings.healthColors, currentHealth, maxHealth);
-      end
-
-      originalSetStatusBarColor(healthBar, r, g, b);
-      healthBar.bg:SetBackdropColor(r * 0.4, g * 0.4, b * 0.4);
-
-      if (not data.settings.muiTexture.enabled and data.settings.backdrop.borderClassColored) then
-        originalSetBackdropBorderColor(gameTooltip, r, g, b, data.settings.backdrop.borderColor[4]);
-      end
+      r, g, b = gui:GetMuiFrameColor();
     end
 
-    UpdateUnitHealthBar(data.settings.healthBar.format, data.settings.healthColors, unitID);
+    if (settings.useMuiTexture) then
+      gameTooltip:SetGridColor(r, g, b);
+    else
+      gameTooltip:SetBackdropBorderColor(r, g, b, 1);
+    end
 
-    if (not (powerBar and powerBar.PowerText)) then return end
-    local powerTypeID = UnitPowerType(unitID);
-
-    local show = data.settings.powerBar.enabled and powerTypeID >= 0;
-    powerBar:SetShown(show);
-
-    if (not show) then return end
-    UpdateUnitPowerBar(data.settings.powerBar.format, data.settings.powerColors, unitID);
-
-    local powerType = tk.Constants.POWER_TYPES[powerTypeID];
-    local powerColor = (obj:IsString(powerType) and data.settings.powerColors[powerType])
-      or _G.PowerBarColor[powerTypeID] or data.settings.powerColors["ENERGY"];
-
-    local r, g, b = powerColor.r, powerColor.g, powerColor.b;
-    powerBar:SetStatusBarColor(r, g, b);
-    powerBar.bg:SetBackdropColor(r*0.4, g*0.4, b*0.4);
+    return
   end
+
+  if (settings.useMuiTexture) then
+    local r, g, b = gui:GetMuiFrameColor();
+    gameTooltip:SetGridColor(r, g, b);
+    return
+  end
+
+  local reaction = UnitReaction(unitID, "player");
+  local r, g, b;
+
+  if (reaction) then
+    r = tk.Constants.FACTION_BAR_COLORS[reaction].r;
+    g = tk.Constants.FACTION_BAR_COLORS[reaction].g;
+    b = tk.Constants.FACTION_BAR_COLORS[reaction].b;
+  else
+    r, g, b = gui:GetMuiFrameColor();
+  end
+
+  gameTooltip:SetBackdropBorderColor(r, g, b, 1);
+end
+
+local function UpdateUnitStatusBars(d, unitID)
+  local classColor = UnitIsPlayer(unitID) and tk:GetClassColorByUnitID(unitID);
+  local settings = d.settings--[[@as MayronUI.TooltipDefaults]];
+
+  if (classColor) then
+    healthBar:SetStatusBarColor(classColor.r, classColor.g, classColor.b, 1);
+    healthBar.bg:SetBackdropColor(classColor.r * 0.4, classColor.g * 0.4, classColor.b * 0.4, 0.8);
+  else
+    local reaction = UnitReaction(unitID, "player");
+    local r, g, b;
+
+    if (reaction) then
+      r = tk.Constants.FACTION_BAR_COLORS[reaction].r;
+      g = tk.Constants.FACTION_BAR_COLORS[reaction].g;
+      b = tk.Constants.FACTION_BAR_COLORS[reaction].b;
+    else
+      local maxHealth = UnitHealthMax(unitID);
+      local currentHealth = UnitHealth(unitID);
+      r, g, b = GetHealthColor(settings.healthColors, currentHealth, maxHealth);
+    end
+
+    healthBar:SetStatusBarColor(r, g, b, 1);
+    healthBar.bg:SetBackdropColor(r * 0.4, g * 0.4, b * 0.4, 0.8);
+  end
+
+  UpdateUnitHealthBarText(settings.healthBar.format, settings.healthColors, unitID);
+
+  if (not (powerBar and powerBar.PowerText)) then
+    return
+  end
+
+  local powerTypeID = UnitPowerType(unitID);
+
+  local show = settings.powerBar.enabled and powerTypeID >= 0;
+  powerBar:SetShown(show);
+
+  if (not show) then
+    return
+  end
+
+  UpdateUnitPowerBarText(settings.powerBar.format, settings.powerColors, unitID);
+
+  local powerType = tk.Constants.POWER_TYPES[powerTypeID];
+  local powerColor = (obj:IsString(powerType) and settings.powerColors[powerType])
+    or _G.PowerBarColor[powerTypeID] or settings.powerColors["ENERGY"];
+
+  local r, g, b = powerColor.r, powerColor.g, powerColor.b;
+  powerBar:SetStatusBarColor(r, g, b, 1);
+  powerBar.bg:SetBackdropColor(r*0.4, g*0.4, b*0.4, 0.8);
 end
 
 local function HideAllAuras(data)
@@ -731,10 +678,37 @@ local function AddAuras(data, filter, anchor, unitID)
   return previousFirstRow;
 end
 
+local function UnitInPlayerGroup(unitGuid)
+  if (UnitGUID("player") == unitGuid) then
+    return true;
+
+  elseif (IsInGroup()) then
+    if (IsInRaid()) then
+      for userIndex = 1, 40 do
+        local unitID = ("raid%d"):format(userIndex);
+
+        if (UnitExists(unitID) and UnitGUID(unitID) == unitGuid) then
+          return true;
+        end
+      end
+    else
+      for userIndex = 1, 5 do
+        local unitID = ("party%d"):format(userIndex);
+
+        if (UnitExists(unitID) and UnitGUID(unitID) == unitGuid) then
+          return true;
+        end
+      end
+    end
+  end
+
+  return false;
+end
+
 local function UpdateUnitAuras(data, unitID)
   if (not data.auraBackdrop) then
     data.auraBackdrop = obj:PopTable();
-    data.auraBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", "Skinner");
+    data.auraBackdrop.edgeFile = tk.Constants.LSM:Fetch("border", "Solid");
     data.auraBackdrop.edgeSize = tk.Constants.BACKDROP.edgeSize;
   end
 
@@ -828,7 +802,14 @@ local function SetDoubleLine(data, leftText, rightText)
   RefreshPadding(data);
 end
 
-local function UpdateTargetText(data, unitID)
+local function UpdateTargetText(d, unitID)
+  local settings = d.settings--[[@as MayronUI.TooltipDefaults]];
+
+  if (not settings.targetShown) then
+    SetDoubleLine(d, TARGET_LABEL, nil);
+    return
+  end
+
   local targetUnitId = unitID.."Target";
   local targetName = UnitName(targetUnitId);
 
@@ -840,10 +821,10 @@ local function UpdateTargetText(data, unitID)
     end
   end
 
-  SetDoubleLine(data, "Target:", targetName);
+  SetDoubleLine(d, TARGET_LABEL, targetName);
 end
 
-local function ShouldInspectUnit(unitID)
+local function CanInspectUnit(unitID)
   if (InCombatLockdown() or UnitIsDeadOrGhost("player")) then
     return false;
   end
@@ -868,8 +849,9 @@ local function ShouldInspectUnit(unitID)
   return shouldInspect;
 end
 
-local function UpdateSpecAndItemLevel(data, unitID, updateTooltip)
-  local runScript = (data.settings.specShown or data.settings.itemLevelShown) and UnitExists(unitID);
+local function CheckInspectionState(d, unitID, updateTooltip)
+  local settings = d.settings--[[@as MayronUI.TooltipDefaults]];
+  local runScript = (settings.specShown or settings.itemLevelShown) and UnitExists(unitID);
 
   if (not runScript) then
     return false;
@@ -881,37 +863,36 @@ local function UpdateSpecAndItemLevel(data, unitID, updateTooltip)
     return false;
   end
 
-  local shouldFindSpec = data.settings.specShown;
-  local shouldFindItemLevel = data.settings.itemLevelShown;
+  local entry = guidCache[unitGuid];
 
-  -- if (updateTooltip and foundSpec and data.settings.specShown) then
-  --   SetDoubleLine(data, SPEC_LABEL, foundSpec);
-  -- end
+  if (entry) then
+    if (settings.specShown and entry.specName) then
+      SetDoubleLine(d, SPEC_LABEL, entry.specName);
+    end
 
-  -- if (updateTooltip and foundItemLevel and data.settings.itemLevelShown) then
-  --   SetDoubleLine(data, ITEM_LEVEL_LABEL, foundItemLevel);
-  -- end
+    if (settings.itemLevelShown and entry.itemLevel) then
+      SetDoubleLine(d, ITEM_LEVEL_LABEL, entry.itemLevel);
+    end
+  end
 
-  if (updateTooltip and not ShouldInspectUnit(unitID)) then
+  if (updateTooltip and not CanInspectUnit(unitID)) then
     return false;
   end
 
-  if (updateTooltip and (shouldFindSpec or data.notifying)) then
-    SetDoubleLine(data, SPEC_LABEL, "loading...");
+  if (updateTooltip and (settings.specShown)) then
+    local loadingText = entry and entry.specName or "loading...";
+    SetDoubleLine(d, SPEC_LABEL, loadingText);
   end
 
-  if (updateTooltip and (shouldFindItemLevel or data.notifying)) then
-    SetDoubleLine(data, ITEM_LEVEL_LABEL, "loading...");
+  if (updateTooltip and (settings.itemLevelShown)) then
+    local loadingText = entry and entry.itemLevel or "loading...";
+    SetDoubleLine(d, ITEM_LEVEL_LABEL, loadingText);
   end
-
-  -- if (data.notifying) then
-  --   return false;
-  -- end
 
   After(0.2, function()
     if (UnitGUID(unitID) == unitGuid) then
+      d.inspecting = nil;
       ClearInspectPlayer();
-      data.notifying = unitGuid;
       NotifyInspect(unitID);
     end
   end);
@@ -948,7 +929,6 @@ local function ApplyHealthBarChanges(data)
   healthBar:SetStatusBarTexture(statusBarTexture);
   healthBar:SetStatusBarColor(r, g, b);
   healthBar:SetFrameLevel(10);
-  healthBar.SetStatusBarColor = tk.Constants.DUMMY_FUNC;
 
   -- Create backdrop for status bar:
   healthBar.bg = tk:CreateBackdropFrame("Frame", healthBar);
@@ -988,7 +968,7 @@ local function CreateScreenAnchor(data)
     data.settings.anchors.screen.xOffset,
     data.settings.anchors.screen.yOffset);
 
-  data.screenAnchor.bg = tk:SetBackground(data.screenAnchor, unpack(data.settings.backdrop.bgColor));
+  data.screenAnchor.bg = tk:SetBackground(data.screenAnchor, 0, 0, 0, 0.8);
   data.screenAnchor.bg:SetAllPoints(true);
 
   data.screenAnchor.bg.text = data.screenAnchor:CreateFontString(nil, "BACKGROUND", "GameFontHighlight");
@@ -998,11 +978,12 @@ local function CreateScreenAnchor(data)
 
   function data.screenAnchor:Unlock()
     data.screenAnchor:ClearAllPoints();
-    data.screenAnchor:SetPoint(data.settings.anchors.screen.point,
+    data.screenAnchor:SetPoint(
+      data.settings.anchors.screen.point,
       data.settings.anchors.screen.xOffset,
       data.settings.anchors.screen.yOffset);
 
-    data.screenAnchor.bg:SetAlpha(data.settings.backdrop.bgColor[4]);
+    data.screenAnchor.bg:SetAlpha(0.8);
     data.screenAnchor.bg.text:SetAlpha(1);
     data.screenAnchor:EnableMouse(true);
     data.screenAnchor:SetMovable(true);
@@ -1094,7 +1075,7 @@ function C_ToolTipsModule:OnInitialize(data)
     standardFontSize = SetFontsWrapper; --14;
     headerFontSize = SetFontsWrapper; --16;
     scale = SetBackdropStyleWrapper; --0.8
-    muiTexture = SetBackdropStyleWrapper; -- if true, does not use backdrop
+    useMuiTexture = SetBackdropStyleWrapper; -- if true, does not use backdrop
     backdrop = SetBackdropStyleWrapper;
     healthBar = {
       fontSize = function(value)
@@ -1112,7 +1093,7 @@ function C_ToolTipsModule:OnInitialize(data)
       texture = function(value)
         local statusBarTexture = tk.Constants.LSM:Fetch("statusbar", value);
         healthBar:SetStatusBarTexture(statusBarTexture);
-      end;--"MUI_StatusBar";
+      end;
       height = function(value)
         healthBar:SetHeight(value);
         PositionStatusBars(data);
@@ -1208,32 +1189,42 @@ function C_ToolTipsModule:OnEnable(data)
 
       if (not unitGuid) then return end
 
-      if (data.settings.itemLevelShown) then
-        if (ShouldInspectUnit(unitID)) then
-          local itemLevel = tk:GetInspectItemLevel(unitID);
+      UpdateTargetText(data, unitID);
 
-          if (itemLevel > 0) then
-            SetDoubleLine(data, ITEM_LEVEL_LABEL, itemLevel);
+      if (CanInspectUnit(unitID) and data.inspecting == unitGuid) then
+        local entry = guidCache[unitGuid];
+
+        if (not entry) then
+          guidCache[unitGuid] = obj:PopTable();
+          entry = guidCache[unitGuid];
+          entry.itemLevel = 0;
+          entry.createdAt = GetTime();
+        end
+
+        if (data.settings.itemLevelShown) then
+          local itemLevel = tk:GetInspectItemLevel(unitID);
+          itemLevel = math.max(itemLevel, entry.itemLevel);
+          entry.itemLevel = itemLevel;
+
+          if (entry.itemLevel > 0) then
+            SetDoubleLine(data, ITEM_LEVEL_LABEL, entry.itemLevel);
+          end
+        end
+
+        if (data.settings.specShown) then
+          local specName = tk:GetPlayerSpecialization(nil, unitID);
+
+          if (specName) then
+            entry.specName = specName;
+            SetDoubleLine(data, SPEC_LABEL, entry.specName);
+          else
+            SetDoubleLine(data, SPEC_LABEL, L["No Spec"]);
           end
         end
       end
 
-      -- if (data.settings.specShown) then
-      --   SetDoubleLine(data, SPEC_LABEL, <unknown>);
-      -- end
-
-      -- apply tooltip real time updates
-      UpdateUnitHealthBar(data.settings.healthBar.format, data.settings.healthColors, unitID);
-
-      if (data.settings.powerBar.enabled) then
-        UpdateUnitPowerBar(data.settings.powerBar.format, data.settings.powerColors, unitID);
-      end
-
+      UpdateUnitStatusBars(data, unitID);
       UpdateUnitAuras(data, unitID);
-
-      if (data.settings.targetShown) then
-        UpdateTargetText(data, unitID);
-      end
     end
   end);
 
@@ -1264,20 +1255,21 @@ function C_ToolTipsModule:OnEnable(data)
   local function OnTooltipSetUnit(self)
     local _, unitID = self:GetUnit();
 
+    -- Update features that don't need to change after showing
     if (unitID) then
+      UpdateTargetText(data, unitID); -- Do this here and also in OnUpdate so that it shows up on top
       UpdateExistingUnitTooltipLines(data, unitID); -- must be BEFORE padding
-      UpdateUnitStatusBars(data, unitID); -- power bar + colours and styling
-      UpdateTargetText(data, unitID);
-      UpdateSpecAndItemLevel(data, unitID, true);
+      UpdateUnitTexture(data, unitID);
+      CheckInspectionState(data, unitID, true); -- Sends an inspect request if required
     end
 
     RefreshPadding(data);
   end
 
   if (tk:IsRetail() and TooltipDataProcessor) then
-    TooltipDataProcessor.AddTooltipPostCall(_G.Enum.TooltipDataType.Unit, function(self, ...)
+    TooltipDataProcessor.AddTooltipPostCall(_G.Enum.TooltipDataType.Unit, function(self)
       if (self == gameTooltip) then
-        OnTooltipSetUnit(self, ...);
+        OnTooltipSetUnit(self);
       end
     end);
   else
@@ -1285,122 +1277,40 @@ function C_ToolTipsModule:OnEnable(data)
   end
 
   local inspectListener = em:CreateEventListener(function(_, _, unitGuid)
-    local foundUnitID = nil;
+    data.inspecting = unitGuid;
+  end);
 
+  local f = tk:CreateFrame("Frame");
+  f:SetScript("OnUpdate", function(self, elapsed)
+    self.elapsed = (self.elapsed or 0) + elapsed;
 
-    if (UnitGUID("mouseover") == unitGuid) then
-      foundUnitID = "mouseover";
+    if (self.elapsed > 60) then
+      self.elapsed = 0;
 
-    elseif (UnitGUID("player") == unitGuid) then
-      foundUnitID = "player";
+      local now = GetTime();
+      local expiredEntries;
 
-    elseif (IsInGroup()) then
-      if (IsInRaid()) then
-        for userIndex = 1, 40 do
-          local unitID = ("raid%d"):format(userIndex);
+      for unitGuid, entry in pairs(guidCache) do
+        local timeAgoInSeconds = now - entry.createdAt;
 
-          if (UnitExists(unitID) and UnitGUID(unitID) == unitGuid) then
-            foundUnitID = unitID;
-            break
-          end
-        end
-      else
-        for userIndex = 1, 5 do
-          local unitID = ("party%d"):format(userIndex);
+        if (timeAgoInSeconds > 300) then
+          local inGroup = UnitInPlayerGroup(unitGuid);
 
-          if (UnitExists(unitID) and UnitGUID(unitID) == unitGuid) then
-            foundUnitID = unitID;
-            break
+          if (not inGroup) then
+            expiredEntries = expiredEntries or obj:PopTable();
+            expiredEntries[unitGuid] = entry;
           end
         end
       end
-    end
 
-    if (not foundUnitID) then
-      data.notifying = nil;
-      return
-    end
-
-    local specName = tk:GetPlayerSpecialization(nil, foundUnitID);
-
-    if (tk.Strings:IsNilOrWhiteSpace(specName)) then
-      specName = L["No Spec"];
-    end
-
-    local _, tooltipUnitID = gameTooltip:GetUnit();
-    local tooltipGuid;
-
-    if (tooltipUnitID) then
-      tooltipGuid = UnitGUID(tooltipUnitID);
-    end
-
-    if (data.settings.specShown) then
-      if (tooltipGuid == unitGuid) then
-        SetDoubleLine(data, SPEC_LABEL, specName);
-      end
-    end
-
-    if (data.settings.itemLevelShown) then
-      local itemLevel = tk:GetInspectItemLevel(foundUnitID);
-
-      if (itemLevel > 0)  then
-        if (tooltipGuid == unitGuid) then
-          SetDoubleLine(data, ITEM_LEVEL_LABEL, itemLevel);
+      if (expiredEntries) then
+        for key, entry in pairs(expiredEntries) do
+          guidCache[key] = nil;
+          obj:PushTable(entry);
         end
       end
     end
-
-    data.notifying = nil;
   end);
 
   inspectListener:RegisterEvent("INSPECT_READY");
-
-  if (not data.settings.runIlvlBackgroundScanner) then
-    return
-  end
-
-  local f = _G.CreateFrame("Frame");
-  f:RegisterEvent("PLAYER_REGEN_ENABLED");
-  f:SetScript("OnEvent", function(self)
-    self.lastUpdated = 0;
-  end);
-
-  f:SetScript("OnUpdate", function(self, elapsed)
-    self.lastUpdated = (self.lastUpdated or 0) + elapsed;
-
-    if (self.lastUpdated > 300) then
-      self.lastUpdated = 0;
-
-      if (InCombatLockdown() or UnitIsDeadOrGhost("player")) then
-        return false;
-      end
-
-      local _, tooltipUnit = gameTooltip:GetUnit();
-      if (tooltipUnit) then return end
-
-      if (IsInGroup()) then
-        data.notifying = nil;
-
-        if (IsInRaid()) then
-          for userIndex = 1, 40 do
-            local unitID = ("raid%d"):format(userIndex);
-            local notifyRequestSent = UpdateSpecAndItemLevel(data, unitID, false);
-
-            if (notifyRequestSent) then
-              break
-            end
-          end
-        else
-          for userIndex = 1, 5 do
-            local unitID = ("party%d"):format(userIndex);
-            local notifyRequestSent = UpdateSpecAndItemLevel(data, unitID, false);
-
-            if (notifyRequestSent) then
-              break
-            end
-          end
-        end
-      end
-    end
-  end);
 end

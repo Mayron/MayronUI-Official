@@ -117,7 +117,9 @@ obj:DefineParams("string");
 ---will execute its callback function when the event fires.
 ---@param event string @The Blizzard event to register.
 ---@return EventListener
+---@overload fun(self, event: string): EventListener
 function C_EventListener:RegisterEvent(data, event)
+  ---@cast data table
   local managerData = data:GetFriendData(data.manager);
 
   local success = pcall(function()

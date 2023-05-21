@@ -19,9 +19,9 @@ function Components.submenu(parent, config)
   btn.text:SetPoint("TOPLEFT", 10, 0);
   btn.text:SetPoint("BOTTOMRIGHT");
 
-  btn.normal = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
-  btn.disabled = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
-  btn.highlight = tk:SetBackground(btn, tk.Constants.SOLID_TEXTURE);
+  btn.normal = tk:SetBackground(btn);
+  btn.disabled = tk:SetBackground(btn);
+  btn.highlight = tk:SetBackground(btn);
 
   tk:ApplyThemeColor(btn.normal, btn.highlight);
 

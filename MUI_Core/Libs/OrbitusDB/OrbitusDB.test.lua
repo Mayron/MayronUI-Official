@@ -108,7 +108,7 @@ local databaseConfig = {
           iconShadow = false;
           perRow = 1;
           secondsWarning = 10;
-          texture = "MUI_StatusBar";
+          texture = "MayronUI";
           showSpark = true;
 
           position = { "TOPRIGHT", "UIParent", "TOPRIGHT", -3, -3 };
@@ -172,7 +172,7 @@ local databaseConfig = {
           perRow = 1;
           secondsWarning = 10;
           position = { "TOPRIGHT", "MUI_BuffFrames", "BOTTOMRIGHT", 0, -40 };
-          texture = "MUI_StatusBar";
+          texture = "MayronUI";
           showSpark = true;
 
           textSize = {

@@ -47,14 +47,32 @@ end
 do
   ---@type MayronUI.GridTextureMixin[]
   local dialogFrames = {};
-  local themeColor;
+  local frameColor;
 
-  function gui:SetDialogFrameColor(r, g, b)
-    themeColor = {r, g, b};
+  function gui:UpdateMuiFrameColor(r, g, b)
+    frameColor = {r, g, b};
 
     for _, frame in ipairs(dialogFrames) do
       frame:SetGridColor(r, g, b);
     end
+  end
+
+  function gui:GetMuiFrameColor()
+    if (frameColor == nil) then
+      local db = MayronUI:GetComponent("Database");
+
+      if (db.profile) then
+        local dbTheme = db.profile.theme.frameColor;
+        frameColor = { dbTheme.r, dbTheme.g, dbTheme.b };
+      end
+    end
+
+    if (frameColor == nil) then
+      -- fallback (should never be required)
+      return tk:GetThemeColor();
+    end
+
+    return unpack(frameColor);
   end
 
   ---@param frame Frame|BackdropTemplate A frame to apply the dialog box background texture to
@@ -66,25 +84,10 @@ do
     local dialogFrame = gui:CreateGridTexture(frame, texture, 12, padding or 12, 674, 674);
     table.insert(dialogFrames, dialogFrame);
 
-    if (themeColor == nil) then
-      local db = MayronUI:GetComponent("Database");
-
-      if (db.profile) then
-        local dbTheme = db.profile.theme.frameColor;
-        themeColor = { dbTheme.r, dbTheme.g, dbTheme.b };
-      end
-    end
-
     dialogFrame:SetGridAlphaType(alphaType or "Regular");
 
-    if (themeColor) then
-      local r, g, b = unpack(themeColor);
-      dialogFrame:SetGridColor(r, g, b);
-    else
-      -- fallback (should never be required)
-      local r, g, b = tk:GetThemeColor();
-      dialogFrame:SetGridColor(r, g, b);
-    end
+    local r, g, b = self:GetMuiFrameColor();
+    dialogFrame:SetGridColor(r, g, b);
 
     frame:SetFrameStrata("DIALOG");
 
@@ -167,13 +170,21 @@ do
       button:SetWidth(minWidth or 150);
     end
 
-    local normal = tk:SetBackground(button, backgroundTexture, nil, nil, nil, 1);
-    local highlight = tk:SetBackground(button, backgroundTexture, nil, nil, nil, 1);
-    local disabled = tk:SetBackground(button, backgroundTexture, nil, nil, nil, 1);
+    local inset = tk.Constants.BACKDROP.edgeSize;
+    for i = 1, 3 do
+      local texture = tk:SetBackground(button, backgroundTexture);
+      texture:ClearAllPoints();
+      texture:SetPoint("TOPLEFT", inset, -inset);
+      texture:SetPoint("BOTTOMRIGHT", -inset, inset);
 
-    button:SetNormalTexture(normal);
-    button:SetHighlightTexture(highlight);
-    button:SetDisabledTexture(disabled);
+      if (i == 1) then
+        button:SetNormalTexture(texture);
+      elseif (i == 2) then
+        button:SetHighlightTexture(texture);
+      else
+        button:SetDisabledTexture(texture);
+      end
+    end
 
     button:SetNormalFontObject("GameFontHighlight");
     button:SetDisabledFontObject("GameFontDisable");

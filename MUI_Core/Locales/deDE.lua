@@ -986,11 +986,13 @@ L["MANAGE_PROFILES_HERE"] = [[Hier können Sie Charakterprofile verwalten.
 Standardmäßig hat jeder Char ein eigenes Profil.]]
 
 L["PRESS_HOLD_TOGGLE_BUTTONS"] =
-  [[Halten Sie %s außerhalb des Kampfes gedrückt, um die Umschalttasten anzuzeigen.
+[[Halten Sie %s außerhalb des Kampfes gedrückt, um die Umschalttasten anzuzeigen.
+
 Wenn Sie auf diese klicken, werden zusätzliche Aktionsleistenzeilen ein- oder ausgeblendet.]]
 
 L["CHANGE_KEYBINDINGS"] =
-  [[Sie können diese Tastenkombination im MUI-Konfigurationsmenü (%s) ändern.
+[[Sie können diese Tastenkombination im MUI-Konfigurationsmenü (%s) ändern.
+
 Es gibt 3 Tastenkombinationen, um schnell zwischen 1 bis 3 Reihen zu wechseln,
 finden Sie im Blizzard-Tastenbelegungsmenü:]]
 
