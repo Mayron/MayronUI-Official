@@ -1,5 +1,5 @@
 ## Interface: 30401
-## Title: |TInterface/Addons/MUI_Core/Assets/Logo:12:20|t |cff00ccffSetup|r
+## Title: |TInterface/Addons/MUI_Core/Assets/Logo:20:20|t |cff00ccffSetup|r
 ## IconTexture: Interface/Addons/MUI_Core/Assets/Logo
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
