@@ -66,9 +66,9 @@ db:AddToDefaults("profile.theme", {
     b = classColor.b;
   };
   frameColor = {
-    r = classColor.r;
-    g = classColor.g;
-    b = classColor.b;
+    r = 0.5;
+    g = 0.5;
+    b = 0.5;
   }
 });
 
@@ -701,7 +701,11 @@ function MayronUI:SwitchLayouts(layoutName, layoutData)
         local dbObject = tk.Tables:GetDBObject(addonName);
 
         if (dbObject) then
-          dbObject:SetProfile(profileName);
+          if (dbObject.utilities) then
+            dbObject.profile:SetActiveProfile(profileName);
+          else
+            dbObject:SetProfile(profileName);
+          end
         end
       end
     end);

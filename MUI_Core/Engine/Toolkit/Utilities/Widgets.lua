@@ -528,7 +528,6 @@ function tk:ApplyThemeColor(...)
         ---@cast element Texture|table
         local id = element:GetTexture();
 
-
         if (not id or id == "FileData ID 0") then
           alpha = alpha or element.__alpha or 1;
           element:SetColorTexture(r, g, b, alpha);

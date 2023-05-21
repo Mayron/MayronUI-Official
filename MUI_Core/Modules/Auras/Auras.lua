@@ -510,7 +510,6 @@ local function GetAuraButtonSize(auraType, db)
     db = MayronUI:GetComponent("MUI_AurasDB");
   end
 
-
   local mode = db.profile:QueryType("string", auraType, "mode");
   local width = db.profile:QueryType("number", auraType, mode, "iconWidth");
   local height = db.profile:QueryType("number", auraType, mode, "iconHeight");
@@ -925,6 +924,8 @@ local function CreateOrUpdateAuraHeader(filter, db, header)
   header.filter = filter;
   header.mode = mode;
 
+  MayronUI:LogInfo("Creating/Updating aura header with filter %s and mode %s", filter, mode);
+
   header:SetSize(width, height);
   header:SetAttribute("unit", "player");
   header:SetAttribute("filter", filter);
@@ -945,9 +946,9 @@ local function CreateOrUpdateAuraHeader(filter, db, header)
   header:SetAttribute("wrapXOffset", 0);
   header:SetAttribute("sortMethod", "TIME");
   header:SetAttribute("sortDirection", "-");
-  header:HookScript('OnAttributeChanged', OnHeaderAttributeChanged);
 
   SetUpAuraHeader(db, header, auraType, mode);
+  header:HookScript("OnAttributeChanged", OnHeaderAttributeChanged);
 
   header:Show();
   return header;
@@ -958,7 +959,17 @@ function C_AurasModule:OnInitialize()
   OrbitusDB:Register(addOnName, databaseConfig, function (db)
     MayronUI:AddComponent("MUI_AurasDB", db);
 
-    if (db.profile:QueryType("boolean", "enabled")) then
+    db.profile:OnProfileChanged(function(_, old, new)
+      MayronUI:LogDebug("Changed profile %s to %s", old, new);
+    end);
+
+    db.profile:OnProfileListChanged(function(self)
+      MayronUI:LogDebug("Changed profile list: ", unpack(self:GetAllProfiles()));
+    end);
+
+    local isEnabled = db.profile:QueryType("boolean", "enabled");
+
+    if (isEnabled) then
       self:SetEnabled(true);
     end
   end);

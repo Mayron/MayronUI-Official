@@ -37,7 +37,7 @@ local DatabaseMixin = {};
 
 ---@class OrbitusDB.IndexActionsMixin
 ---@field GetIndex fun(self: OrbitusDB.IndexActionsMixin): OrbitusDB.Index
----@field RebuildIndex fun(self: OrbitusDB.IndexActionsMixin)
+---@field RebuildIndex fun(self: OrbitusDB.IndexActionsMixin): OrbitusDB.Index
 ---@field GetIndexChanges fun(self: OrbitusDB.IndexActionsMixin, fromIndex: OrbitusDB.Index, toIndex: OrbitusDB.Index): OrbitusDB.IndexChanges
 ---@field NotifyIndexChanges fun(self: OrbitusDB.IndexActionsMixin, changes: OrbitusDB.IndexChanges)
 ---@field private __repository OrbitusDB.RepositoryMixin
@@ -239,15 +239,49 @@ function OrbitusDB:Register(addOnName, databaseConfig, onInitialized)
 end
 
 ---@param savedVariableName string
+---@param silent boolean?
 ---@return OrbitusDB.DatabaseMixin
-function OrbitusDB:GetDatabase(savedVariableName)
+function OrbitusDB:GetDatabase(savedVariableName, silent)
   for _, data in pairs(metadata) do
     if (data.config.svName == savedVariableName) then
       return data.database;
     end
   end
 
-  error("Failed to find database "..savedVariableName);
+  if (not silent) then
+    error("Failed to find database "..savedVariableName);
+  end
+end
+
+function OrbitusDB:IterateDatabases()
+  local id = 0;
+  local databases = UtilitiesMixin:PopTable();
+
+  for _, data in pairs(metadata) do
+    if (data.database) then
+      local value = UtilitiesMixin:PopTable();
+      value[1] = data.config.svName;
+      value[2] = data.database;
+      table.insert(databases, value);
+    end
+  end
+
+  return function()
+    id = id + 1;
+
+    if (id <= #databases) then
+      local name, database = unpack(databases[id]);
+      ---@cast name string
+      ---@cast database OrbitusDB.DatabaseMixin
+      UtilitiesMixin:PushTable(databases[id]);
+
+      if (id == #databases) then
+        UtilitiesMixin:PushTable(databases);
+      end
+
+      return name, database;
+    end
+  end
 end
 
 --------------------------
@@ -289,7 +323,7 @@ function DatabaseMixin:Init(config)
 
   for repositoryName, handler in pairs(data.config.repositoryHandlers) do
     if (handler.ConfigureIndex) then
-      local actions = CreateAndInitFromMixin(IndexActionsMixin, data, repositoryName, handler);
+      local actions = CreateAndInitFromMixin(IndexActionsMixin, self[repositoryName]);
       handler.ConfigureIndex(self[repositoryName], actions);
     end
   end
@@ -377,16 +411,19 @@ end
 --------------------------
 ---@param callback OrbitusDB.OnProfileChanged
 function ProfileRepositoryMixin:OnProfileChanged(callback)
+  UtilitiesMixin:VerifyArgsByName("callback", callback, "function");
   Internal:AddCallback(self, "profileChanged", callback);
 end
 
 ---@param callback OrbitusDB.OnProfileListChanged
 function ProfileRepositoryMixin:OnProfileListChanged(callback)
+  UtilitiesMixin:VerifyArgsByName("callback", callback, "function");
   Internal:AddCallback(self, "profileListChanged", callback);
 end
 
 ---@param callback OrbitusDB.OnBinListChanged
 function ProfileRepositoryMixin:OnBinListChanged(callback)
+  UtilitiesMixin:VerifyArgsByName("callback", callback, "function");
   Internal:AddCallback(self, "binListChanged", callback);
 end
 
@@ -396,15 +433,22 @@ function ProfileRepositoryMixin:GetActiveProfile()
   local profileKeys = Internal:GetSavedVariableSubTable(self, "profileKeys");
 
   local characterName = GetCurrentCharacterName();
-
   local repository = data.database.profile;
   local handler = data.config.repositoryHandlers.profile;
-  return profileKeys[characterName] or handler.GetDefaultKey(repository);
+  local activeProfile = profileKeys[characterName] or handler.GetDefaultKey(repository);
+
+  if (type(activeProfile) ~= "string") then
+    activeProfile = handler.GetDefaultKey(repository);
+    profileKeys[characterName] = activeProfile;
+  end
+
+  return activeProfile;
 end
 
 ---@param profileName string
 ---@return boolean
 function ProfileRepositoryMixin:ProfileExists(profileName)
+  UtilitiesMixin:VerifyArgsByName("profileName", profileName, "string");
   local profiles = Internal:GetSavedVariableSubTable(self, "profiles");
   return type(profiles[profileName]) == "table";
 end
@@ -412,12 +456,14 @@ end
 ---@param profileName string
 ---@return boolean
 function ProfileRepositoryMixin:IsProfileInBin(profileName)
+  UtilitiesMixin:VerifyArgsByName("profileName", profileName, "string");
   local bin = Internal:GetSavedVariableSubTable(self, "bin");
   return type(bin[profileName]) == "table";
 end
 
 ---@param profileName string
 function ProfileRepositoryMixin:SetActiveProfile(profileName)
+  UtilitiesMixin:VerifyArgsByName("profileName", profileName, "string");
   local characterName = GetCurrentCharacterName();
   local oldProfileName = self:GetActiveProfile();
 
@@ -448,6 +494,7 @@ function ProfileRepositoryMixin:GetAllProfiles()
 end
 
 function ProfileRepositoryMixin:DeleteProfile(profileName)
+  UtilitiesMixin:VerifyArgsByName("profileName", profileName, "string");
   local profiles = Internal:GetSavedVariableSubTable(self, "profiles");
 
   if (type(profiles[profileName]) ~= "table") then
@@ -471,6 +518,8 @@ function ProfileRepositoryMixin:DeleteProfile(profileName)
 end
 
 function ProfileRepositoryMixin:RenameProfile(profileName, newProfileName, force)
+  UtilitiesMixin:VerifyArgsByName("profileName", profileName, "string");
+  UtilitiesMixin:VerifyArgsByName("newProfileName", newProfileName, "string");
   local profiles = Internal:GetSavedVariableSubTable(self, "profiles");
   local profileKeys = Internal:GetSavedVariableSubTable(self, "profileKeys");
 
@@ -502,6 +551,7 @@ function ProfileRepositoryMixin:GetDeletedProfiles()
 end
 
 function ProfileRepositoryMixin:RestoreProfile(profileName, force)
+  UtilitiesMixin:VerifyArgsByName("profileName", profileName, "string");
   local profiles = Internal:GetSavedVariableSubTable(self, "profiles");
 
   assert(type(profiles[profileName]) ~= "table" or force,
@@ -521,6 +571,7 @@ function ProfileRepositoryMixin:RestoreProfile(profileName, force)
 end
 
 function ProfileRepositoryMixin:ExportProfile(profileName)
+  UtilitiesMixin:VerifyArgsByName("profileName", profileName, "string");
   local profiles = Internal:GetSavedVariableSubTable(self, "profiles");
   local profileTable = profiles[profileName];
 
@@ -531,6 +582,8 @@ function ProfileRepositoryMixin:ExportProfile(profileName)
 end
 
 function ProfileRepositoryMixin:ImportProfile(profileName, profileDataString, force)
+  UtilitiesMixin:VerifyArgsByName("profileName", profileName, "string");
+  UtilitiesMixin:VerifyArgsByName("profileDataString", profileDataString, "string");
   local profiles = Internal:GetSavedVariableSubTable(self, "profiles");
 
   assert(type(profiles[profileName]) ~= "table" or force,
@@ -1116,7 +1169,8 @@ function IndexActionsMixin:GetIndex()
 end
 
 function IndexActionsMixin:RebuildIndex()
-  Internal:BuildIndex(self.__repository);
+  local index = Internal:BuildIndex(self.__repository);
+  return index;
 end
 
 function IndexActionsMixin:NotifyIndexChanges(changes)
@@ -1389,6 +1443,7 @@ function Internal:ApplyDefaults(defaults, sv)
 end
 
 ---@param repository OrbitusDB.RepositoryMixin
+---@return OrbitusDB.Index
 function Internal:BuildIndex(repository)
   local data = metadata[tostring(repository)];
   local repositoryName = repository:GetRepositoryName();
@@ -1411,9 +1466,11 @@ function Internal:BuildIndex(repository)
   indexSavedVariables = UtilitiesMixin:Flatten(repoSv);
 
   data.defaults[repositoryName] = indexDefaults;
-  local index = UtilitiesMixin:MergeTables(indexDefaults, indexSavedVariables);
+  local index = UtilitiesMixin:MergeTables(
+    indexDefaults, indexSavedVariables)--[[@as OrbitusDB.Index]];
 
   data.indices[repositoryName] = index;
+  return index;
 end
 
 return OrbitusDB;

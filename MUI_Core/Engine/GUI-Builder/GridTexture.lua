@@ -44,10 +44,12 @@ end
 
 ---@param alphaType MayronUI.GridAlphaType
 function GridTextureMixin:SetGridAlphaType(alphaType)
-  local alpha = 0.8; -- regular
+  local alpha;
 
   if (alphaType == "High") then
     alpha = 1;
+  elseif (alphaType == "Regular") then
+    alpha = 0.85;
   elseif (alphaType == "Low") then
     alpha = 0.6;
   elseif (alphaType == "None") then

@@ -240,7 +240,7 @@ local function SetBackdropStyle(d)
         tooltip:SetBackdrop(nil);
 
         if (not obj:IsFunction(tooltip.SetGridTextureShown)) then
-          gui:AddDialogTexture(tooltip);
+          gui:AddDialogTexture(tooltip, "High");
         end
       end
 

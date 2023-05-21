@@ -11,6 +11,10 @@ local LAYOUT_MESSAGE =
   L["Customize which addOn/s should change to which profile/s for each layout, "
     .. "as well as manage your existing layouts or create new ones."];
 
+local localizedDbNames = {
+  ["MUI_AurasDB"] = "MUI "..(_G["AURAS"] or "Auras");
+}
+
 -- Local Functions -------------------
 
 local function SetAddOnProfilePair(_, data, addOnName, profileName)
@@ -30,6 +34,27 @@ local function GetSupportedAddOns()
       -- don't allow the full MayronUI db to change as it raises bugs
       -- (db.profile.layout is confusing and needs to be addressed in MUI Gen7)
       addOns[dbName] = database;
+    end
+  end
+
+  local OrbitusDB = LibStub:GetLibrary("OrbitusDB");
+
+  for dbName, database in OrbitusDB:IterateDatabases() do
+    local name = localizedDbNames[dbName];
+
+    if (name) then
+      addOns[name] = {
+        GetCurrentProfile = function()
+          local currentProfile = database.profile:GetActiveProfile()
+          return currentProfile;
+        end,
+        GetProfiles = function()
+          return database.profile:GetAllProfiles();
+        end,
+        SetProfile = function(_, profile)
+          database.profile:SetActiveProfile(profile);
+        end
+      };
     end
   end
 
@@ -106,16 +131,17 @@ function C_LayoutSwitcher:UpdateAddOnWindow(data)
     if (i % 2 ~= 0) then
       -- checkbutton
       addOnName = child.btn.text:GetText();
-      checked = layoutData[addOnName];
+      checked = layoutData[addOnName] ~= nil;
       child.btn:SetChecked(checked);
     else
       -- dropdownmenu
-      local object = tk.Tables:GetDBObject(addOnName);
       child:SetEnabled(checked);
 
       if (checked) then
-        child:SetLabel(layoutData[addOnName]);
+        local profileName = layoutData[addOnName];
+        child:SetLabel(profileName);
       else
+        local object = data.supportedDatabases[addOnName];
         child:SetLabel(object:GetCurrentProfile());
       end
     end
@@ -123,8 +149,7 @@ function C_LayoutSwitcher:UpdateAddOnWindow(data)
 end
 
 obj:DefineParams("DropDownMenu", "string", "table");
-function C_LayoutSwitcher:CreateNewAddOnProfile(
-  data, dropdown, addOnName, dbObject)
+function C_LayoutSwitcher:CreateNewAddOnProfile(data, dropdown, addOnName, dbObject)
   local newProfileLabel = string.format("Create New %s Profile:", addOnName);
   dropdown:SetLabel(db.global.layouts[data.viewingLayout][addOnName]);
 
@@ -297,14 +322,13 @@ function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
   checkButton:SetSize(186, dropdown:GetHeight());
 
   -- setup addOn dropdown menus with options
-  dropdown:SetLabel(dbObject:GetCurrentProfile());
-  dropdown:AddOption(
-    "<" .. L["New Profile"] .. ">", { self; "CreateNewAddOnProfile" },
-      addOnName, dbObject);
+  local currentProfile = dbObject:GetCurrentProfile();
+  dropdown:SetLabel(currentProfile);
+  dropdown:AddOption("<"..L["New Profile"]..">",
+    { self; "CreateNewAddOnProfile" }, addOnName, dbObject);
 
   for _, profileName in ipairs(addOnProfiles) do
-    dropdown:AddOption(
-      profileName, SetAddOnProfilePair, data, addOnName, profileName);
+    dropdown:AddOption(profileName, SetAddOnProfilePair, data, addOnName, profileName);
   end
 
   checkButton.btn:SetScript("OnClick", function()
@@ -372,15 +396,14 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
 
   data.layoutTool:AddCells(data.description, data.addonWindow, data.menu);
 
-  local supportedAddOns = GetSupportedAddOns();
+  data.supportedDatabases = GetSupportedAddOns();
 
   -- Add ScrollFrame content:
-  for addOnName, dbObject in pairs(supportedAddOns) do
+  for addOnName, dbObject in pairs(data.supportedDatabases) do
     local checkButton, dropdown = self:CreateScrollFrameRowContent(dbObject, addOnName);
     data.addonWindow.dynamicFrame:AddChildren(checkButton, dropdown);
   end
 
-  obj:PushTable(supportedAddOns);
   self:UpdateAddOnWindow();
 
   -- Add menu content:

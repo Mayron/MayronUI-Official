@@ -27,7 +27,7 @@ function C_Tutorial:OnEnable()
     frame:SetWidth(500);
   end
 
-  gui:AddDialogTexture(frame);
+  gui:AddDialogTexture(frame, "High");
   gui:AddCloseButton(frame);
 
   local version = GetAddOnMetadata("MUI_Core", "Version");

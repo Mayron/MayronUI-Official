@@ -475,7 +475,9 @@ end
 obj:DefineParams("string");
 ---Sets the addon profile for the currently logged in character. Creates a new profile if the named profile does not exist.
 ---@param profileName string @The name of the profile to assign to the character.
+---@overload fun(self, profileName: string)
 function Database:SetProfile(data, profileName)
+  ---@cast data table
   -- Get profile or create if it does not exist
   local profile = data.sv.profiles[profileName] or obj:PopTable();
   data.sv.profiles[profileName] = profile;

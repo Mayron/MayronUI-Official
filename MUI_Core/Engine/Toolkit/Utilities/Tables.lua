@@ -400,6 +400,10 @@ do
   end
 end
 
+local localizedDbNames = {
+  ["MUI_AurasDB"] = "MUI "..(_G["AURAS"] or "Auras");
+}
+
 -- gets the DB associated with the AddOn based on convention
 function tk.Tables:GetDBObject(addOnName)
   if (addOnName == "MayronUI") then
@@ -413,6 +417,17 @@ function tk.Tables:GetDBObject(addOnName)
 
   if (dbObject) then
     return dbObject;
+  end
+
+  for dbName, localizedName in pairs(localizedDbNames) do
+    if (localizedName == addOnName) then
+      local OrbitusDB = LibStub:GetLibrary("OrbitusDB");
+      local database = OrbitusDB:GetDatabase(dbName, true);
+
+      if (database) then
+        return database;
+      end
+    end
   end
 
   if (_G[addOnName]) then

@@ -8,8 +8,10 @@ local OrbitusDB = LibStub:GetLibrary("OrbitusDB");
 
 local GameTooltip = _G["GameTooltip"];
 local C_Container = _G["C_Container"];
+local C_EquipmentSet = _G["C_EquipmentSet"];
 
 local GetBagName = C_Container.GetBagName;
+local IsContainerItemAnUpgrade = _G["IsContainerItemAnUpgrade"];
 local GetContainerNumSlots = C_Container.GetContainerNumSlots;
 local GetContainerItemCooldown = C_Container.GetContainerItemCooldown;
 local GetContainerItemInfo = C_Container.GetContainerItemInfo;
@@ -402,6 +404,26 @@ local function SetBagItemSlotBorderColor(slot, isHighlightedBag)
     local quality = slot:GetItemQuality();
 
     if ((invType and invType > 0) or (quality and quality > 1)) then
+      local equipmentSets = C_EquipmentSet.GetNumEquipmentSets();
+
+      if (equipmentSets > 0) then
+        local slotID = slot:GetItemID();
+
+        for i = 1, equipmentSets do
+          local items = C_EquipmentSet.GetItemIDs(i);
+
+          if (obj:IsTable(items)) then
+            for _, itemID in ipairs(items) do
+              if (slotID == itemID) then
+                local color = tk.Constants.COLORS.BATTLE_NET_BLUE;
+                slot:SetGridColor(color.r, color.g, color.b);
+                return
+              end
+            end
+          end
+        end
+      end
+
       local color = slot:GetItemQualityColor();
 
       if (obj:IsTable(color)) then
@@ -555,6 +577,11 @@ local function UpdateBagSlot(slot, button)
 
   if (not (slot:HasItemLocation() and slotIndex)) then
     return
+  end
+
+  if (tk:IsRetail() and obj:IsFunction(IsContainerItemAnUpgrade)) then
+    local itemIsUpgrade = IsContainerItemAnUpgrade(bag.bagIndex, slotIndex);
+    slot.UpgradeIcon:SetShown(itemIsUpgrade);
   end
 
   local countText = GetBagSlotItemCountText(slot);
@@ -1200,9 +1227,17 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
 
   -- Retail Only
   if (event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_SPECIALIZATION_CHANGED") then
-		-- ContainerFrame_UpdateItemUpgradeIcons(self);
-  end
+    if (tk:IsRetail() and obj:IsFunction(IsContainerItemAnUpgrade)) then
+      for _, b in ipairs(inventoryFrame.bags) do
+        for s, slot in ipairs(b.slots) do
+          local itemIsUpgrade = IsContainerItemAnUpgrade(b.bagIndex, s);
+          slot.UpgradeIcon:SetShown(itemIsUpgrade);
+        end
+      end
+    end
 
+    return
+  end
 
   if (event == "BAG_UPDATE_COOLDOWN") then
     for _, b in ipairs(inventoryFrame.bags) do
@@ -1521,7 +1556,7 @@ function C_Inventory:OnInitialize()
       end
     end);
 
-    gui:AddDialogTexture(inventoryFrame, "High");
+    gui:AddDialogTexture(inventoryFrame);
     inventoryFrame:SetFrameStrata(tk.Constants.FRAME_STRATAS.HIGH);
     gui:AddTitleBar(inventoryFrame, "Inventory");
     -- inventoryFrame.titleBar:SetPoint("TOPLEFT", inventoryFrame, "TOPLEFT", -11, 11);

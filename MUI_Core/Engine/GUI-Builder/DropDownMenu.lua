@@ -332,8 +332,8 @@ function DropDownMenu:AddOption(data, label, func, ...)
   optionFontString:SetWordWrap(false);
   optionFontString:SetJustifyH("LEFT");
 
-  option:SetNormalTexture(1);
-  option:SetHighlightTexture(1);
+  option:SetNormalTexture(tk.Constants.SOLID_TEXTURE);
+  option:SetHighlightTexture(tk.Constants.SOLID_TEXTURE);
 
   tk:ApplyThemeColor(0.4, option:GetNormalTexture(), option:GetHighlightTexture());
 
