@@ -368,9 +368,9 @@ local function SetDetailedViewEnabled(inventoryFrame, enabled)
   local settings = enabled and viewSettings.detailed or viewSettings.grid;
 
   if (enabled) then
-    tk:SetBasicTooltip(inventoryFrame.viewBtn, "Switch to Grid View");
+    tk:SetBasicTooltip(inventoryFrame.viewBtn, L["Switch to Grid View"]);
   else
-    tk:SetBasicTooltip(inventoryFrame.viewBtn, "Switch to Detailed View");
+    tk:SetBasicTooltip(inventoryFrame.viewBtn, L["Switch to Detailed View"]);
   end
 
   if (enabled) then

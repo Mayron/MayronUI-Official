@@ -573,6 +573,7 @@ L["Icon Size"] = "Dimensione icona";
 L["Column Spacing"] = "Spaziatura colonne";
 L["Row Spacing"] = "Spaziatura tra le righe";
 L["Icons per Row"] = "Icone per riga";
+L["Bar Columns"] = "Colonne della barra";
 L["Growth Direction"] = "Direzione di crescita";
 L["Status Bar Options"] = "Opzioni barra di stato";
 L["Status bar options are disabled when using icons."] =
@@ -1178,6 +1179,7 @@ L["Use the MayronUI custom inventory frame instead of the default Blizzard bags 
 L["Use Class Colors"] = "Usa i colori della classe";
 L["If checked, tooltips for other players will be colored based on their class."] = "Se selezionato, i suggerimenti per gli altri giocatori saranno colorati in base alla loro classe.";
 L["Switch to Detailed View"] = "Passa alla visualizzazione dettagliata";
+L["Switch to Grid View"] = "Passa alla visualizzazione griglia";
 L["View Character Inventory"] = "Visualizza l'inventario dei personaggi";
 L["Toggle Bags Bar"] = "Attiva/disattiva la barra delle borse";
 L["Quest Items"] = "Oggetti della missione";

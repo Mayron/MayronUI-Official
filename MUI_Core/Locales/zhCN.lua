@@ -546,6 +546,7 @@ L["Icon Size"] = "图标大小";
 L["Column Spacing"] = "列间距";
 L["Row Spacing"] = "行间距";
 L["Icons per Row"] = "每行图标";
+L["Bar Columns"] = "酒吧专栏";
 L["Growth Direction"] = "《成长方向》";
 L["Status Bar Options"] = "状态栏选项";
 L["Status bar options are disabled when using icons."] =
@@ -1141,6 +1142,7 @@ L["Use the MayronUI custom inventory frame instead of the default Blizzard bags 
 L["Use Class Colors"] = "使用类颜色";
 L["If checked, tooltips for other players will be colored based on their class."] = "如果选中，其他玩家的工具提示将根据他们的职业着色。";
 L["Switch to Detailed View"] = "切换到详细视图";
+L["Switch to Grid View"] = "切换到网格视图";
 L["View Character Inventory"] = "查看角色清单";
 L["Toggle Bags Bar"] = "切换包袋栏";
 L["Quest Items"] = "任务物品";

@@ -572,6 +572,7 @@ L["Icon Size"] = "아이콘 크기";
 L["Column Spacing"] = "열 간격";
 L["Row Spacing"] = "행 간격";
 L["Icons per Row"] = "행당 아이콘";
+L["Bar Columns"] = "막대 열";
 L["Growth Direction"] = "성장 방향";
 L["Status Bar Options"] = "상태 막대 옵션";
 L["Status bar options are disabled when using icons."] =
@@ -1176,6 +1177,7 @@ L["Use the MayronUI custom inventory frame instead of the default Blizzard bags 
 L["Use Class Colors"] = "클래스 색상 사용";
 L["If checked, tooltips for other players will be colored based on their class."] = "선택하면 다른 플레이어의 툴팁이 클래스에 따라 색상이 지정됩니다.";
 L["Switch to Detailed View"] = "자세히 보기로 전환";
+L["Switch to Grid View"] = "그리드 보기로 전환";
 L["View Character Inventory"] = "캐릭터 인벤토리 보기";
 L["Toggle Bags Bar"] = "가방 바 전환";
 L["Quest Items"] = "퀘스트 아이템";

@@ -216,7 +216,7 @@ function C_AurasModule:GetConfigTable()
       },
       {
         type = "slider";
-        name = icons and "Icons Per Row" or "Bar Columns";
+        name = icons and L["Icons per Row"] or L["Bar Columns"];
         tooltip = icons
           and L["The maximum number of aura icons to display per row."]
           or L["The maximum number of horizontal bar columns to display."];
