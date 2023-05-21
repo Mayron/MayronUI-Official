@@ -1,5 +1,6 @@
 ## Interface: 11403
-## Title: |TInterface/Addons/MUI_Core/Assets/Logo:12:22|t |cff00ccffCore|r
+## Title: |TInterface/Addons/MUI_Core/Assets/Logo|t |cff00ccffCore|r
+## IconTexture: Interface/Addons/MUI_Core/Assets/Logo
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb, MUI_AurasDB, MUI_InventoryDB
 ## OptionalDeps: ShadowedUnitFrames, Bartender4
 ## Notes: A minimalistic, graphical UI replacement package.|n|nThis is required to run each MUI module.|n|nVisit |cff00ccffhttps://mayronui.com|r for links to the|nofficial |cff8aa4ffDiscord|r server, my |cffff666ePatreon|r and more!|n|n|cffffd100Version: 6.9.0|r

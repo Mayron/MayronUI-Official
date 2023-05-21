@@ -1,5 +1,6 @@
 ## Interface: 100100
-## Title: |TInterface/Addons/MUI_Core/Assets/Logo:12:22|t |cff00ccffConfig|r
+## Title: Config
+## IconTexture: Interface/Addons/MUI_Core/Assets/Logo
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1
 ## Version: 6.9.0
