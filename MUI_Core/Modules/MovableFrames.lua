@@ -295,8 +295,12 @@ local function UpdateTalkingHeadFrame(data)
     end
   end
 
-  -- uncomment this out for development to prevent closing of frame
-  -- _G.TalkingHeadFrame.Close = tk.Constants.DUMMY_FUNC;
+  -- uncomment these for development to prevent closing of frame
+  -- f.Close = tk.Constants.DUMMY_FUNC;
+  -- f:Show();
+  -- f:ClearAllPoints();
+  -- f:SetParent(_G.UIParent);
+  -- f:SetPoint(data.settings.talkingHead.position, 0, data.settings.talkingHead.yOffset);
 
   -- Reskin:
   f.PortraitFrame:DisableDrawLayer("OVERLAY");
@@ -315,7 +319,8 @@ local function UpdateTalkingHeadFrame(data)
   overlay:SetPoint("TOPLEFT", 20, -16);
 
   local frame = tk:CreateFrame("Frame", f.BackgroundFrame);
-  local bg = gui:AddDialogTexture(frame, "Low");
+  local bg = gui:AddDialogTexture(frame);
+
   bg:SetPoint("TOPLEFT", 14, -10);
   bg:SetPoint("BOTTOMRIGHT", -10, 10);
   bg:SetFrameStrata("HIGH");
@@ -323,6 +328,11 @@ local function UpdateTalkingHeadFrame(data)
 
   CreateFadingAnimations(overlay);
   CreateFadingAnimations(bg);
+
+  tk:KillElement(f.MainFrame.CloseButton);
+  gui:AddCloseButton(frame, function()
+    f.MainFrame.CloseButton:Click();
+  end, true);
 
   tk:HookFunc(f, "PlayCurrent", function()
     f:ClearAllPoints();
@@ -333,13 +343,6 @@ local function UpdateTalkingHeadFrame(data)
     bg.fadeOut:Stop();
     overlay.fadeIn:Play();
     bg.fadeIn:Play();
-  end);
-
-  tk:HookFunc(f, "Close", function()
-    overlay.fadeIn:Stop();
-    bg.fadeIn:Stop();
-    overlay.fadeOut:Play();
-    bg.fadeOut:Play();
   end);
 end
 

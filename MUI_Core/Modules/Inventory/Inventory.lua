@@ -1604,10 +1604,10 @@ function C_Inventory:OnInitialize()
       end
     end);
 
-    gui:AddDialogTexture(inventoryFrame);
+    gui:AddDialogTexture(inventoryFrame, "High");
     inventoryFrame:SetFrameStrata(tk.Constants.FRAME_STRATAS.HIGH);
     gui:AddTitleBar(inventoryFrame, "Inventory");
-    gui:AddCloseButton(inventoryFrame, nil, 4, 4);
+    gui:AddCloseButton(inventoryFrame);
     gui:AddResizer(inventoryFrame);
     inventoryFrame.bags = {};
 

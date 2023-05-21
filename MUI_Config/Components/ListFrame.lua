@@ -122,7 +122,7 @@ function C_ListFrame:SetShown(data, shown)
   data.rows = obj:PopTable();
 
   gui:AddTitleBar(data.listFrame, data.listFrameTitle);
-  gui:AddCloseButton(data.listFrame, nil, 6, 6);
+  gui:AddCloseButton(data.listFrame);
   data.listFrame:SetSize(400, 300);
   data.listFrame:SetPoint("CENTER");
   data.listFrame:SetFrameStrata("DIALOG");

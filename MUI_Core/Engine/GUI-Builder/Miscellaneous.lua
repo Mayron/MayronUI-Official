@@ -494,9 +494,22 @@ function gui:ReskinIconButton(btn, iconName, iconRotation)
   frame.closeBtn = self:CreateIconButton(iconName, frame, nil, btn, iconRotation);
 end
 
-function gui:AddCloseButton(frame, onHideCallback, xOffset, yOffset)
+function gui:AddCloseButton(frame, onHideCallback, noAnimation)
   frame.closeBtn = self:CreateIconButton("cross", frame);
   frame.closeBtn:SetPoint("TOPRIGHT", -2, -1);
+
+  if (noAnimation) then
+    frame.closeBtn:SetScript("OnClick", function()
+      if (obj:IsFunction(onHideCallback)) then
+        onHideCallback(frame);
+      end
+
+      frame:Hide();
+      PlaySound(tk.Constants.CLICK);
+    end);
+
+    return
+  end
 
   local group = frame:CreateAnimationGroup();
   group.a1 = group:CreateAnimation("Translation");
@@ -518,6 +531,10 @@ function gui:AddCloseButton(frame, onHideCallback, xOffset, yOffset)
   end);
 
   frame.closeBtn:SetScript("OnClick", function()
+    if (obj:IsFunction(onClickCallback)) then
+      onClickCallback(frame);
+    end
+
     group:Play();
     PlaySound(tk.Constants.CLICK);
   end);

@@ -113,7 +113,7 @@ function C_ConfigMenu:GetConfigTable()
       name = L["General"];
       id = 1;
       children = {
-        { type = "title"; name = L["Popular Settings"]; marginTop = 0; };
+        { type = "title"; name = "Appearance Settings"; marginTop = 0; };
         {
           name = L["Set Theme Color"];
           type = "color";
@@ -127,12 +127,49 @@ function C_ConfigMenu:GetConfigTable()
         {
           name = "Set MUI Frame Colors";
           type = "color";
-          tooltip = "Controls the background color of MUI frames, include the inventory frame, config menu and layout tool.";
+          tooltip = "Controls the background color of MUI frames, including the inventory frame, tooltips, config menu, layout tool and more.";
           dbPath = "profile.theme.frameColor";
           SetValue = function(_, value)
             db.profile.theme.frameColor = value;
             gui:UpdateMuiFrameColor(value.r, value.g, value.b);
           end;
+        };
+        { type = "divider"};
+        {
+          name = L["Override Master Font"];
+          height = 42;
+          verticalAlignment = "BOTTOM";
+          tooltip = L["Uncheck to prevent MUI from changing the game font."];
+          requiresReload = true;
+          width = 180;
+          dbPath = "global.core.fonts.useMasterFont";
+          type = "check";
+        };
+        {
+          name = L["Master Font"];
+          type = "dropdown";
+          media = "font";
+          dbPath = "global.core.fonts.master";
+          requiresRestart = true;
+        };
+        { type = "divider"};
+        {
+          name = L["Override Combat Font"];
+          height = 42;
+          width = 180;
+          verticalAlignment = "BOTTOM";
+          tooltip = L["Uncheck to prevent MUI from changing the game font."];
+          requiresRestart = true;
+          dbPath = "global.core.fonts.useCombatFont";
+          type = "check";
+        };
+        {
+          name = L["Combat Font"];
+          tooltip = L["This font is used to display the damage and healing combat numbers."];
+          type = "dropdown";
+          media = "font";
+          dbPath = "global.core.fonts.combat";
+          requiresRestart = true;
         };
         { type = "title";
           name = L["Global Settings"];
@@ -185,43 +222,6 @@ function C_ConfigMenu:GetConfigTable()
               SetCVar("cameraDistanceMaxZoomFactor", 1.9);
             end
           end;
-        };
-        { type = "fontstring"; subtype="header"; content = "Font Settings" };
-        {
-          name = L["Override Master Font"];
-          height = 42;
-          verticalAlignment = "BOTTOM";
-          tooltip = L["Uncheck to prevent MUI from changing the game font."];
-          requiresReload = true;
-          width = 180;
-          dbPath = "global.core.fonts.useMasterFont";
-          type = "check";
-        };
-        {
-          name = L["Master Font"];
-          type = "dropdown";
-          media = "font";
-          dbPath = "global.core.fonts.master";
-          requiresRestart = true;
-        };
-        { type = "divider"};
-        {
-          name = L["Override Combat Font"];
-          height = 42;
-          width = 180;
-          verticalAlignment = "BOTTOM";
-          tooltip = L["Uncheck to prevent MUI from changing the game font."];
-          requiresRestart = true;
-          dbPath = "global.core.fonts.useCombatFont";
-          type = "check";
-        };
-        {
-          name = L["Combat Font"];
-          tooltip = L["This font is used to display the damage and healing combat numbers."];
-          type = "dropdown";
-          media = "font";
-          dbPath = "global.core.fonts.combat";
-          requiresRestart = true;
         };
         { type = "title";
           name = L["Main Container"];
@@ -886,16 +886,22 @@ function C_ConfigMenu:GetConfigTable()
           type = "loop";
           args = { "Experience"; "Reputation"; "Artifact"; "Azerite" };
           func = function(id, name)
-            if (not tk:IsRetail() and (name == "Artifact" or name == "Azerite")) then
+            if (tk:IsRetail() and (name == "Artifact" or name == "Azerite")) then
               return
             end
 
-            if (name == "Azerite" and not _G.AzeriteBarMixin:ShouldBeVisible()) then
-              return
-            end
+            if (name == "Azerite" or name == "Artifact") then
+              local manager = _G["StatusTrackingBarManager"];
+              if (not manager or not obj:IsFunction(manager.CanShowBar)) then return end
 
-            if (name == "Artifact" and not _G.ArtifactBarMixin:ShouldBeVisible()) then
-              return
+              local barIndex;
+              if (name == "Azerite") then
+                barIndex = tk.Constants.RESOURCE_BAR_IDS.Azerite;
+              else
+                barIndex = tk.Constants.RESOURCE_BAR_IDS.Artifact;
+              end
+
+              if (not manager:CanShowBar(barIndex)) then return end
             end
 
             local key = name:lower() .. "Bar";

@@ -580,7 +580,7 @@ function SetUpModule:Show(data)
   end
 
   gui:AddTitleBar(window, L["Setup Menu"]);
-  gui:AddCloseButton(window, 2, 2);
+  gui:AddCloseButton(window);
 
   window.bg = tk:SetBackground(window, 0, 0, 0, 0.8); -- was 0.8 but set to 0.2 for testing
   window.bg:SetDrawLayer("BACKGROUND", -5);
