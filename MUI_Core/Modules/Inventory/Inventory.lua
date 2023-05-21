@@ -10,17 +10,42 @@ local GameTooltip = _G["GameTooltip"];
 local C_Container = _G["C_Container"];
 local C_EquipmentSet = _G["C_EquipmentSet"];
 
-local GetBagName = C_Container.GetBagName;
 local IsContainerItemAnUpgrade = _G["IsContainerItemAnUpgrade"];
-local GetContainerNumSlots = C_Container.GetContainerNumSlots;
-local GetContainerItemCooldown = C_Container.GetContainerItemCooldown;
-local GetContainerItemInfo = C_Container.GetContainerItemInfo;
-local GetContainerItemQuestInfo = C_Container.GetContainerItemQuestInfo;
-local GetContainerNumFreeSlots = C_Container.GetContainerNumFreeSlots;
+
+local GetBagName = _G["GetBagName"];
+local GetContainerNumSlots = _G["GetContainerNumSlots"];
+local GetContainerItemCooldown = _G["GetContainerItemCooldown"];
+local GetContainerItemInfo = _G["GetContainerItemInfo"];
+local GetContainerItemQuestInfo = _G["GetContainerItemQuestInfo"];
+local GetContainerNumFreeSlots = _G["GetContainerNumFreeSlots"];
+local SetItemSearch = _G["SetItemSearch"];
+local ContainerIDToInventoryID = _G["ContainerIDToInventoryID"];
+
+if (C_Container) then
+  GetBagName = C_Container.GetBagName;
+  GetContainerNumSlots = C_Container.GetContainerNumSlots;
+  GetContainerItemCooldown = C_Container.GetContainerItemCooldown;
+  GetContainerItemInfo = C_Container.GetContainerItemInfo;
+  GetContainerItemQuestInfo = C_Container.GetContainerItemQuestInfo;
+  GetContainerNumFreeSlots = C_Container.GetContainerNumFreeSlots;
+  SetItemSearch = C_Container.SetItemSearch;
+  ContainerIDToInventoryID = C_Container.ContainerIDToInventoryID;
+end
+
 local GetInventorySlotInfo = _G.GetInventorySlotInfo;
 local PlaySound, GetScreenWidth, GetScreenHeight = _G.PlaySound, _G.GetScreenWidth, _G.GetScreenHeight;
 local SoundKit, GetItemInfoInstant = _G.SOUNDKIT, _G.GetItemInfoInstant;
 local EasyMenu, GetTime, ipairs, IsAddOnLoaded = _G["EasyMenu"], _G.GetTime, _G.ipairs, _G.IsAddOnLoaded;
+
+local BagIndexes = _G["Enum"] and _G["Enum"].BagIndex or {
+  Keyring = -2,
+  Backpack = 0,
+  ReagentBag = 5,
+  Bag_1 = 1,
+  Bag_2 = 2,
+  Bag_3 = 3,
+  Bag_4 = 4,
+};
 
 ---@enum MayronUI.Inventory.TabType
 local TabTypesEnum = {
@@ -230,7 +255,7 @@ do
 
         for i = #inventoryFrame.bags, 1, -1 do
           local bag = inventoryFrame.bags[i];
-          local isKeyring = bag.bagIndex == Enum.BagIndex.Keyring;
+          local isKeyring = bag.bagIndex == BagIndexes.Keyring;
           bag:SetShown(not isKeyring);
 
           if (not isKeyring) then
@@ -490,13 +515,17 @@ local function GetBagSlotItemCountText(slot)
     local bagIndex = bag:GetID();
 
     if (slotIndex and bagIndex) then
-      local info = GetContainerItemInfo(bagIndex, slotIndex);
+      local info, stackCount = GetContainerItemInfo(bagIndex, slotIndex);
 
-      if (info and info.stackCount > 1) then
-        if (info.stackCount > 9999) then
+      if (obj:IsTable(info) and obj:IsNumber(info.stackCount)) then
+        stackCount = info.stackCount;
+      end
+
+      if (obj:IsNumber(stackCount) and stackCount > 1) then
+        if (stackCount > 9999) then
           countText = "*";
         else
-          countText = tostring(info.stackCount);
+          countText = tostring(stackCount);
         end
       end
     end
@@ -536,8 +565,8 @@ local function UpdateBagSlot(slot, button)
   if (detailedView) then
     slot.itemName:SetText(itemName);
 
-    local _, itemClass, itemSubClass, equipLocation, _, classID, subClassID = GetItemInfoInstant(slot:GetItemID());
     local subText;
+    local _, itemClass, itemSubClass, equipLocation, _, classID, subClassID = GetItemInfoInstant(slot:GetItemID());
 
     if (classID == Enum.ItemClass.Miscellaneous and quality > 0) then
       local isJunk = subClassID == Enum.ItemMiscellaneousSubclass.Junk;
@@ -558,7 +587,7 @@ local function UpdateBagSlot(slot, button)
     if (invType > 0 and equipLocation) then
       local inventorySlot = _G[equipLocation];
 
-      if (subText and equipLocation and subText ~= inventorySlot) then
+      if (obj:IsString(inventorySlot) and obj:IsString(subText) and subText ~= inventorySlot) then
         local itemLevel = slot:GetCurrentItemLevel();
 
         if (type(itemLevel) == "number" and itemLevel > 0) then
@@ -596,22 +625,38 @@ local function UpdateBagSlot(slot, button)
   slot.Count:SetText(countText);
   slot.Count:Show();
 
-  local questInfo = GetContainerItemQuestInfo(bag.bagIndex, slotIndex);-- Could also use `isActive`
-  local questTexture;
+  if (obj:IsFunction(GetContainerItemQuestInfo) and slot.questTexture) then
+    local questInfo = GetContainerItemQuestInfo(bag.bagIndex, slotIndex);-- Could also use `isActive`
+    local questTexture;
 
-  if ((questInfo.questId or questInfo.questID) and not questInfo.isActive) then
-    questTexture = _G["TEXTURE_ITEM_QUEST_BANG"];
-  elseif (questInfo.questId or questInfo.questID or questInfo.isQuestItem) then
-    questTexture = _G["TEXTURE_ITEM_QUEST_BORDER"];
-  else
-    slot.questTexture:Hide();
-  end
+    if ((questInfo.questId or questInfo.questID) and not questInfo.isActive) then
+      questTexture = _G["TEXTURE_ITEM_QUEST_BANG"];
+    elseif (questInfo.questId or questInfo.questID or questInfo.isQuestItem) then
+      questTexture = _G["TEXTURE_ITEM_QUEST_BORDER"];
+    else
+      slot.questTexture:Hide();
+    end
 
-  if (questTexture) then
-    slot.questTexture:SetTexture(questTexture);
-    slot.questTexture:Show();
-    local r, g, b = tk.Constants.COLORS.GOLD:GetRGB();
-    slot:SetGridColor(r, g, b);
+    if (questTexture) then
+      slot.questTexture:SetTexture(questTexture);
+      slot.questTexture:Show();
+      local r, g, b = tk.Constants.COLORS.GOLD:GetRGB();
+      slot:SetGridColor(r, g, b);
+    end
+  elseif (tk:IsClassic()) then
+    local itemClassID = select(6, GetItemInfoInstant(slot:GetItemID()));
+
+    if (itemClassID == Enum.ItemClass.Questitem) then
+      local questTexture = _G["TEXTURE_ITEM_QUEST_BORDER"];
+      if (questTexture) then
+        slot.questTexture:SetTexture(questTexture);
+        slot.questTexture:Show();
+        local r, g, b = tk.Constants.COLORS.GOLD:GetRGB();
+        slot:SetGridColor(r, g, b);
+      end
+    else
+      slot.questTexture:Hide();
+    end
   end
 
   UpdateBagSlotCooldown(bag, slot);
@@ -758,8 +803,8 @@ end
 
 ---@param bagBtn MayronUI.Inventory.BagButton
 local function HandleBagUpdateDelayedEvent(bagBtn)
-  local isBackpack = bagBtn.bagIndex == Enum.BagIndex.Backpack;
-  local isKeyring = bagBtn.bagIndex == Enum.BagIndex.Keyring;
+  local isBackpack = bagBtn.bagIndex == BagIndexes.Backpack;
+  local isKeyring = bagBtn.bagIndex == BagIndexes.Keyring;
   local isOpen = bagBtn.bagFrame:IsShown();
   bagBtn.icon:SetAlpha(isOpen and 1 or 0.25);
 
@@ -794,7 +839,7 @@ local function HandleBagUpdateDelayedEvent(bagBtn)
   else
     local equipmentSlotName = "Bag"..tostring(bagBtn.bagIndex - 1).."Slot";
 
-    if (bagBtn.bagIndex == Enum.BagIndex.ReagentBag) then
+    if (bagBtn.bagIndex == BagIndexes.ReagentBag) then
       equipmentSlotName = "REAGENTBAG0SLOT";
     end
 
@@ -815,9 +860,9 @@ end
 
 local function CreateBagToggleButton(bagBar, bagFrame, xOffset)
   local bagBtnName;
-  local isBackpack = bagFrame.bagIndex == Enum.BagIndex.Backpack;
-  local isKeyring = bagFrame.bagIndex == Enum.BagIndex.Keyring;
-  local isReagentBag = bagFrame.bagIndex == Enum.BagIndex.ReagentBag;
+  local isBackpack = bagFrame.bagIndex == BagIndexes.Backpack;
+  local isKeyring = bagFrame.bagIndex == BagIndexes.Keyring;
+  local isReagentBag = bagFrame.bagIndex == BagIndexes.ReagentBag;
 
   if (isBackpack) then
     bagBtnName = "MUI_InventoryBackpackToggleButton";
@@ -869,7 +914,7 @@ local function CreateBagToggleButton(bagBar, bagFrame, xOffset)
     bagToggleBtn.icon:SetTexture("Interface\\ContainerFrame\\KeyRing-Bag-Icon");
 
   elseif (bagFrame.bagIndex > 0) then
-    local equipmentSlotIndex = C_Container.ContainerIDToInventoryID(bagFrame.bagIndex);
+    local equipmentSlotIndex = ContainerIDToInventoryID(bagFrame.bagIndex);
     bagToggleBtn:SetID(equipmentSlotIndex); -- required for dragging
     Mixin(bagToggleBtn, Item:CreateFromEquipmentSlot(equipmentSlotIndex));
     bagToggleBtn:RegisterForDrag("LeftButton");
@@ -1014,8 +1059,8 @@ local function SetCharacterInventory(info, inventoryFrame)
     for b, bagInfo in ipairs(items) do
       local bag = inventoryFrame.bags[b];
       local bagButton = inventoryFrame.bagBar.buttons[b];
-      local isBackpack = bag.bagIndex == Enum.BagIndex.Backpack;
-      local isKeyring = bag.bagIndex == Enum.BagIndex.Keyring;
+      local isBackpack = bag.bagIndex == BagIndexes.Backpack;
+      local isKeyring = bag.bagIndex == BagIndexes.Keyring;
 
       bag:SetShown(not isKeyring);
 
@@ -1077,8 +1122,8 @@ local function SetCharacterInventory(info, inventoryFrame)
   else
     for b, bag in ipairs(inventoryFrame.bags) do
       local bagButton = inventoryFrame.bagBar.buttons[b];
-      local isBackpack = bag.bagIndex == Enum.BagIndex.Backpack;
-      local isKeyring = bag.bagIndex == Enum.BagIndex.Keyring;
+      local isBackpack = bag.bagIndex == BagIndexes.Backpack;
+      local isKeyring = bag.bagIndex == BagIndexes.Keyring;
 
       bag:SetShown(not isKeyring);
 
@@ -1181,7 +1226,13 @@ local function UpdateSearchOverlays(bags)
         ClearBagSlot(slot);
       elseif (slot:HasItemLocation()) then
         local info = GetContainerItemInfo(bag.bagIndex, slotIndex);
-        slot.searchOverlay:SetShown(info.isFiltered);
+
+        if (obj:IsTable(info)) then
+          slot.searchOverlay:SetShown(info.isFiltered);
+        else
+          local isFiltered = select(8, GetContainerItemInfo(bag.bagIndex, slotIndex));
+          slot.searchOverlay:SetShown(isFiltered);
+        end
       else
         local itemName = slot:GetItemName();
         local setVisibility;
@@ -1225,16 +1276,16 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
 
       local items = {};
       for b, bag in ipairs(inventoryFrame.bags) do
-        local isBackpack = bag.bagIndex == Enum.BagIndex.Backpack;
-        local isKeyring = bag.bagIndex == Enum.BagIndex.Keyring;
+        local isBackpack = bag.bagIndex == BagIndexes.Backpack;
+        local isKeyring = bag.bagIndex == BagIndexes.Keyring;
         local bagButton = inventoryFrame.bagBar.buttons[b];
 
         local bagInfo = {};
 
         if (isBackpack) then
-          bagInfo.bagItemID = Enum.BagIndex.Backpack;
+          bagInfo.bagItemID = BagIndexes.Backpack;
         elseif (isKeyring) then
-          bagInfo.bagItemID = Enum.BagIndex.Keyring;
+          bagInfo.bagItemID = BagIndexes.Keyring;
         else
           bagInfo.bagItemID = bagButton:GetItemID();
         end
@@ -1455,7 +1506,7 @@ local function CreateSearchBox(inventoryFrame)
 	end);
 
 	searchBox:SetScript("OnTextChanged", function(self)
-    C_Container.SetItemSearch(self:GetText());
+    SetItemSearch(self:GetText());
 	end);
 
 	clearBtn:SetScript("OnMouseDown", function(self)
@@ -1613,8 +1664,11 @@ function C_Inventory:OnInitialize()
     inventoryFrame:RegisterEvent("ITEM_LOCK_CHANGED");
     inventoryFrame:RegisterEvent("BAG_NEW_ITEMS_UPDATED");
     inventoryFrame:RegisterEvent("PLAYER_MONEY");
-    inventoryFrame:RegisterEvent("BAG_CONTAINER_UPDATE"); -- when a bag is added or removed from the bags bar
     inventoryFrame:RegisterEvent("INVENTORY_SEARCH_UPDATE");
+
+    if (not tk:IsClassic()) then
+      inventoryFrame:RegisterEvent("BAG_CONTAINER_UPDATE"); -- when a bag is added or removed from the bags bar
+    end
 
     -- Wrath Only --------------:
     inventoryFrame:RegisterEvent("QUEST_ACCEPTED");
@@ -1668,19 +1722,19 @@ function C_Inventory:OnInitialize()
       if (i == (totalBagFrames - 1)) then
         if (tk:IsRetail()) then
           -- reagent:
-          bagIndex = Enum.BagIndex.ReagentBag;
+          bagIndex = BagIndexes.ReagentBag;
           bagGlobalName = "MUI_InventoryReagentBag";
         else
           -- keyring:
-          bagIndex = Enum.BagIndex.Keyring;
+          bagIndex = BagIndexes.Keyring;
           bagGlobalName = "MUI_InventoryKeyring";
         end
       elseif (i == 0) then
         -- backpack:
-        bagIndex = Enum.BagIndex.Backpack;
+        bagIndex = BagIndexes.Backpack;
         bagGlobalName = "MUI_InventoryBackpack";
       else
-        bagIndex =  Enum.BagIndex["Bag_"..i];
+        bagIndex =  BagIndexes["Bag_"..i];
         bagGlobalName = "MUI_InventoryBag"..i;
       end
 
@@ -1692,7 +1746,7 @@ function C_Inventory:OnInitialize()
       bagFrame:SetPoint("TOPRIGHT");
       bagFrame:SetHeight(1);
 
-      if (bagIndex == Enum.BagIndex.Keyring or bagIndex == Enum.BagIndex.ReagentBag) then
+      if (bagIndex == BagIndexes.Keyring or bagIndex == BagIndexes.ReagentBag) then
         bagFrame:Hide();
       end
 
@@ -1792,7 +1846,7 @@ function C_Inventory:OnInitialize()
 
       if (i == 1) then
         tab:SetChecked(true);
-        tab:SetPoint("TOPLEFT", inventoryFrame, "TOPRIGHT", 10, 5);
+        tab:SetPoint("TOPLEFT", inventoryFrame, "TOPRIGHT", 10, 3);
         tab.icon:SetTexture("Interface\\Icons\\Inv_misc_bag_07");
         tab.tooltipText = L["All Items"];
         tab:SetID(TabTypesEnum.AllItems);
