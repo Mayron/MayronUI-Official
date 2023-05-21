@@ -11,6 +11,14 @@ local IsInGroup, IsInRaid, After = _G.IsInGroup, _G.IsInRaid, _G.C_Timer.After;
 local TooltipDataProcessor, UnitIsDeadOrGhost = _G.TooltipDataProcessor, _G.UnitIsDeadOrGhost;
 local NotifyInspect = _G.NotifyInspect;
 
+local originalHealthBarSetStatusBarColor = healthBar.SetStatusBarColor--[[@as function]];
+
+local function SetHealthBarColor(r, g, b, a)
+  originalHealthBarSetStatusBarColor(healthBar, r, g, b, a);
+end
+
+healthBar.SetStatusBarColor = tk.Constants.DUMMY_FUNC;
+
 if (not obj:IsFunction(gameTooltip.SetBackdrop)) then
   _G.Mixin(gameTooltip, _G.BackdropTemplateMixin);
 end
@@ -498,7 +506,7 @@ local function UpdateUnitStatusBars(d, unitID)
   local settings = d.settings--[[@as MayronUI.TooltipDefaults]];
 
   if (classColor) then
-    healthBar:SetStatusBarColor(classColor.r, classColor.g, classColor.b, 1);
+    SetHealthBarColor(classColor.r, classColor.g, classColor.b, 1);
     healthBar.bg:SetBackdropColor(classColor.r * 0.4, classColor.g * 0.4, classColor.b * 0.4, 0.8);
   else
     local reaction = UnitReaction(unitID, "player");
@@ -514,7 +522,7 @@ local function UpdateUnitStatusBars(d, unitID)
       r, g, b = GetHealthColor(settings.healthColors, currentHealth, maxHealth);
     end
 
-    healthBar:SetStatusBarColor(r, g, b, 1);
+    SetHealthBarColor(r, g, b, 1);
     healthBar.bg:SetBackdropColor(r * 0.4, g * 0.4, b * 0.4, 0.8);
   end
 
@@ -863,6 +871,21 @@ local function CheckInspectionState(d, unitID, updateTooltip)
     return false;
   end
 
+  if (unitGuid == UnitGUID("player")) then
+    local specName = tk:GetPlayerSpecialization(nil, "player");
+    local itemLevel = tk:GetInspectItemLevel("player");
+
+    if (settings.specShown) then
+      SetDoubleLine(d, SPEC_LABEL, specName or L["No Spec"]);
+    end
+
+    if (settings.itemLevelShown) then
+      SetDoubleLine(d, ITEM_LEVEL_LABEL, itemLevel);
+    end
+
+    return
+  end
+
   local entry = guidCache[unitGuid];
 
   if (entry) then
@@ -927,7 +950,7 @@ local function ApplyHealthBarChanges(data)
 
   local statusBarTexture = tk.Constants.LSM:Fetch("statusbar", data.settings.healthBar.texture);
   healthBar:SetStatusBarTexture(statusBarTexture);
-  healthBar:SetStatusBarColor(r, g, b);
+  SetHealthBarColor(r, g, b);
   healthBar:SetFrameLevel(10);
 
   -- Create backdrop for status bar:
@@ -1255,12 +1278,15 @@ function C_ToolTipsModule:OnEnable(data)
   local function OnTooltipSetUnit(self)
     local _, unitID = self:GetUnit();
 
-    -- Update features that don't need to change after showing
     if (unitID) then
       UpdateTargetText(data, unitID); -- Do this here and also in OnUpdate so that it shows up on top
       UpdateExistingUnitTooltipLines(data, unitID); -- must be BEFORE padding
       UpdateUnitTexture(data, unitID);
       CheckInspectionState(data, unitID, true); -- Sends an inspect request if required
+
+      -- need to do these here to avoid flickering:
+      UpdateUnitStatusBars(data, unitID);
+      UpdateUnitAuras(data, unitID);
     end
 
     RefreshPadding(data);
