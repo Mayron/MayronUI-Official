@@ -1,5 +1,10 @@
 if (_G.SortBags) then return end
 
+if (C_Container and C_Container.SortBags) then
+	_G.SortBags = C_Container.SortBags;
+	return
+end
+
 local GetBagSlotFlag = GetBagSlotFlag;
 local GetBankBagSlotFlag = GetBankBagSlotFlag;
 local GetContainerNumSlots = GetContainerNumSlots;
@@ -8,12 +13,12 @@ local GetBagName = GetBagName;
 local GetContainerItemLink = GetContainerItemLink;
 
 if (C_Container) then
-    GetBagSlotFlag = C_Container.GetBagSlotFlag;
-    GetBankBagSlotFlag = C_Container.GetBankBagSlotFlag;
-    GetContainerNumSlots = C_Container.GetContainerNumSlots;
-    PickupContainerItem = C_Container.PickupContainerItem;
-    GetBagName = C_Container.GetBagName;
-    GetContainerItemLink = C_Container.GetContainerItemLink;
+	GetBagSlotFlag = C_Container.GetBagSlotFlag;
+	GetBankBagSlotFlag = C_Container.GetBankBagSlotFlag;
+	GetContainerNumSlots = C_Container.GetContainerNumSlots;
+	PickupContainerItem = C_Container.PickupContainerItem;
+	GetBagName = C_Container.GetBagName;
+	GetContainerItemLink = C_Container.GetContainerItemLink;
 end
 
 local _G, _M = getfenv(0), {}

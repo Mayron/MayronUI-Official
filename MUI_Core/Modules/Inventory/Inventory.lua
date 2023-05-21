@@ -215,8 +215,12 @@ do
             for j = 0, (#bag.slots - 1) do
               local slot = bag.slots[#bag.slots - j];
 
+              if (tk:IsRetail()) then
+                slot = bag.slots[j + 1];
+              end
+
               if (slot:IsShown()) then
-                orderedSlots[#orderedSlots+1] = slot;
+                orderedSlots[#orderedSlots + 1] = slot;
               end
             end
           end
@@ -232,6 +236,10 @@ do
           if (not isKeyring) then
             for j = 0, (#bag.slots - 1) do
               local slot = bag.slots[#bag.slots - j];
+
+              if (tk:IsRetail()) then
+                slot = bag.slots[j + 1];
+              end
 
               if (slot:IsShown()) then
                 if (resetSlotOrder and slot:IsItemEmpty()) then
@@ -630,7 +638,14 @@ local function CreateBagSlot(bagFrame, slotIndex)
   local bagGlobalName = bagFrame:GetName();
   local slotGlobalName = bagGlobalName.."Slot"..tostring(slotIndex);
 
-  local slot = tk:CreateFrame("Button", bagFrame, slotGlobalName, "ContainerFrameItemButtonTemplate")--[[@as MayronUI.Inventory.Slot]];
+  local slot;
+
+  if (tk:IsRetail()) then
+    slot = tk:CreateFrame("ItemButton", bagFrame, slotGlobalName, "ContainerFrameItemButtonTemplate")--[[@as MayronUI.Inventory.Slot]];
+  else
+    slot = tk:CreateFrame("Button", bagFrame, slotGlobalName, "ContainerFrameItemButtonTemplate")--[[@as MayronUI.Inventory.Slot]];
+  end
+
   slot:SetID(slotIndex);
   slot.cooldown = _G[slotGlobalName.."Cooldown"];
   slot.questTexture = _G[slotGlobalName.."IconQuestTexture"];
@@ -778,6 +793,11 @@ local function HandleBagUpdateDelayedEvent(bagBtn)
     end
   else
     local equipmentSlotName = "Bag"..tostring(bagBtn.bagIndex - 1).."Slot";
+
+    if (bagBtn.bagIndex == Enum.BagIndex.ReagentBag) then
+      equipmentSlotName = "REAGENTBAG0SLOT";
+    end
+
     local _, backgroundTexture = GetInventorySlotInfo(equipmentSlotName);
     bagBtn.icon:SetTexture(backgroundTexture);
     bagBtn:SetGridColor(0.2, 0.2, 0.2);
@@ -797,16 +817,25 @@ local function CreateBagToggleButton(bagBar, bagFrame, xOffset)
   local bagBtnName;
   local isBackpack = bagFrame.bagIndex == Enum.BagIndex.Backpack;
   local isKeyring = bagFrame.bagIndex == Enum.BagIndex.Keyring;
+  local isReagentBag = bagFrame.bagIndex == Enum.BagIndex.ReagentBag;
 
   if (isBackpack) then
     bagBtnName = "MUI_InventoryBackpackToggleButton";
   elseif (isKeyring) then
     bagBtnName = "MUI_InventoryKeyringToggleButton";
+  elseif (isReagentBag) then
+    bagBtnName = "MUI_InventoryReagentBagToggleButton";
   else
     bagBtnName = "MUI_InventoryBagSlotToggleButton"..tostring(bagFrame.bagIndex);
   end
 
-  local bagToggleBtn = tk:CreateFrame("CheckButton", bagBar, bagBtnName, "ItemButtonTemplate")--[[@as MayronUI.Inventory.BagButton]];
+  local bagToggleBtn;
+  if (tk:IsRetail()) then
+    bagToggleBtn = tk:CreateFrame("ItemButton", bagBar, bagBtnName)--[[@as MayronUI.Inventory.BagButton]];
+  else
+    bagToggleBtn = tk:CreateFrame("CheckButton", bagBar, bagBtnName, "ItemButtonTemplate")--[[@as MayronUI.Inventory.BagButton]];
+  end
+
   bagToggleBtn.bagFrame = bagFrame;
   bagToggleBtn.bagIndex = bagFrame.bagIndex;
   bagToggleBtn.icon = _G[bagBtnName.."IconTexture"];
@@ -831,21 +860,40 @@ local function CreateBagToggleButton(bagBar, bagFrame, xOffset)
     bagToggleBtn:SetScript("OnClick", _G["BackpackButton_OnClick"]);
     bagToggleBtn:SetGridColor(1, 1, 1);
     bagToggleBtn.icon:SetTexture("Interface\\Buttons\\Button-Backpack-Up");
-  elseif (isKeyring) then
+
+  elseif (isKeyring and _G["KeyRingButton"]) then
     tk:SetBasicTooltip(bagToggleBtn, _G["KEYRING"], "ANCHOR_LEFT");
     local onClickScript = _G["KeyRingButton"]:GetScript("OnClick");
     bagToggleBtn:SetScript("OnClick", onClickScript);
     bagToggleBtn:SetGridColor(1, 1, 1);
     bagToggleBtn.icon:SetTexture("Interface\\ContainerFrame\\KeyRing-Bag-Icon");
-  else
-    local equipmentSlotIndex = GetInventorySlotInfo("Bag"..tostring(bagFrame.bagIndex - 1).."Slot");
+
+  elseif (bagFrame.bagIndex > 0) then
+    local equipmentSlotIndex = C_Container.ContainerIDToInventoryID(bagFrame.bagIndex);
     bagToggleBtn:SetID(equipmentSlotIndex); -- required for dragging
     Mixin(bagToggleBtn, Item:CreateFromEquipmentSlot(equipmentSlotIndex));
     bagToggleBtn:RegisterForDrag("LeftButton");
-    bagToggleBtn:SetScript("OnEnter", _G["BagSlotButton_OnEnter"]);
-    bagToggleBtn:SetScript("OnClick", _G["BagSlotButton_OnClick"]);
-    bagToggleBtn:SetScript("OnDragStart", _G["BagSlotButton_OnDrag"]);
-    bagToggleBtn:SetScript("OnReceiveDrag", _G["BagSlotButton_OnClick"]);
+
+    local btnMixin = _G["BaseBagSlotButtonMixin"];
+    if (btnMixin) then
+      Mixin(bagToggleBtn, btnMixin);
+
+      if (isReagentBag) then
+        bagToggleBtn.commandName = "TOGGLEREAGENTBAG1";
+      else
+        bagToggleBtn.commandName = "TOGGLEBAG"..tostring(bagFrame.bagIndex);
+      end
+
+      bagToggleBtn:SetScript("OnEnter", btnMixin.BagSlotOnEnter);
+      bagToggleBtn:SetScript("OnClick", btnMixin.BagSlotOnClick);
+      bagToggleBtn:SetScript("OnDragStart", btnMixin.BagSlotOnDragStart);
+      bagToggleBtn:SetScript("OnReceiveDrag", btnMixin.BagSlotOnReceiveDrag);
+    else
+      bagToggleBtn:SetScript("OnEnter", _G["BagSlotButton_OnEnter"]);
+      bagToggleBtn:SetScript("OnClick", _G["BagSlotButton_OnClick"]);
+      bagToggleBtn:SetScript("OnDragStart", _G["BagSlotButton_OnDrag"]);
+      bagToggleBtn:SetScript("OnReceiveDrag", _G["BagSlotButton_OnClick"]);
+    end
   end
 
   bagToggleBtn:SetPoint("TOPLEFT", (viewSettings.grid.widths.initial + slotSpacing) * xOffset, 0);
@@ -1559,7 +1607,6 @@ function C_Inventory:OnInitialize()
     gui:AddDialogTexture(inventoryFrame);
     inventoryFrame:SetFrameStrata(tk.Constants.FRAME_STRATAS.HIGH);
     gui:AddTitleBar(inventoryFrame, "Inventory");
-    -- inventoryFrame.titleBar:SetPoint("TOPLEFT", inventoryFrame, "TOPLEFT", -11, 11);
     gui:AddCloseButton(inventoryFrame, nil, 4, 4);
     gui:AddResizer(inventoryFrame);
     inventoryFrame.bags = {};
@@ -1582,9 +1629,10 @@ function C_Inventory:OnInitialize()
     if (tk:IsRetail()) then
       inventoryFrame:RegisterEvent("UNIT_INVENTORY_CHANGED");
       inventoryFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED");
+      tk:KillElement(_G["ContainerFrameCombinedBags"]);
     end
 
-    local totalBagFrames = _G.NUM_BAG_SLOTS + 2; -- 2 for backpack and keyring
+    local totalBagFrames = _G.NUM_BAG_SLOTS + 2; -- 2 for backpack and keyring/reagent
 
     local bagBar = tk:CreateFrame("Frame", inventoryFrame, "MUI_InventoryBagsFrame")--[[@as MayronUI.Inventory.BagBar]];
     inventoryFrame.bagBar = bagBar;
@@ -1593,7 +1641,7 @@ function C_Inventory:OnInitialize()
     bagBar:Hide();
     bagBar.buttons = {};
 
-    local bagsContainer = gui:CreateScrollFrame(inventoryFrame, "MUI_InventoryBagsContainer", nil, slotSpacing);
+    local bagsContainer = gui:CreateScrollFrame(inventoryFrame, "MUI_InventoryBagsContainer", nil, slotSpacing + 6);
     bagsContainer:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
     bagsContainer:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
     inventoryFrame.scrollChild = bagsContainer.ScrollFrame:GetScrollChild();
@@ -1613,14 +1661,24 @@ function C_Inventory:OnInitialize()
       end
     end);
 
+    for i = 1, totalBagFrames do
+      tk:KillElement(_G["ContainerFrame"..i]);
+    end
+
     -- Create Bags and Slots:
     for i = 0, (totalBagFrames - 1) do
       local bagIndex, bagGlobalName;
 
       if (i == (totalBagFrames - 1)) then
-        -- keyring:
-        bagIndex = Enum.BagIndex.Keyring;
-        bagGlobalName = "MUI_InventoryKeyring";
+        if (tk:IsRetail()) then
+          -- reagent:
+          bagIndex = Enum.BagIndex.ReagentBag;
+          bagGlobalName = "MUI_InventoryReagentBag";
+        else
+          -- keyring:
+          bagIndex = Enum.BagIndex.Keyring;
+          bagGlobalName = "MUI_InventoryKeyring";
+        end
       elseif (i == 0) then
         -- backpack:
         bagIndex = Enum.BagIndex.Backpack;
@@ -1628,10 +1686,6 @@ function C_Inventory:OnInitialize()
       else
         bagIndex =  Enum.BagIndex["Bag_"..i];
         bagGlobalName = "MUI_InventoryBag"..i;
-      end
-
-      if (i > 0) then
-        tk:KillElement(_G["ContainerFrame"..i]);
       end
 
       local bagFrame = tk:CreateFrame("Frame", inventoryFrame.scrollChild--[[@as Frame]], bagGlobalName)--[[@as MayronUI.Inventory.BagFrame]];
@@ -1642,7 +1696,7 @@ function C_Inventory:OnInitialize()
       bagFrame:SetPoint("TOPRIGHT");
       bagFrame:SetHeight(1);
 
-      if (bagIndex == Enum.BagIndex.Keyring) then
+      if (bagIndex == Enum.BagIndex.Keyring or bagIndex == Enum.BagIndex.ReagentBag) then
         bagFrame:Hide();
       end
 

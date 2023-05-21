@@ -1,5 +1,5 @@
 ## Interface: 100100
-## Title: Config
+## Title: |cff00ccffMayronUI|r Config
 ## IconTexture: Interface/Addons/MUI_Core/Assets/Logo
 ## Dependencies: MUI_Core
 ## LoadOnDemand: 1

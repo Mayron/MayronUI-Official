@@ -189,20 +189,20 @@ end
 
 obj:DefineParams("Button", "table")
 function C_ObjectiveTracker:ReskinMinifyButton(data, btn, module)
-  tk:ApplyThemeColor(btn);
+  -- TODO: This is broken
+  -- tk:ApplyThemeColor(btn);
+  -- btn:SetSize(20, 20);
+  -- btn:GetNormalTexture():SetTexCoord(0, 1, 0, 1);
+  -- btn:GetPushedTexture():SetTexCoord(0, 1, 0, 1);
+  -- btn:GetHighlightTexture():SetTexCoord(0, 1, 0, 1);
 
-  btn:SetSize(20, 20);
-  btn:GetNormalTexture():SetTexCoord(0, 1, 0, 1);
-  btn:GetPushedTexture():SetTexCoord(0, 1, 0, 1);
-  btn:GetHighlightTexture():SetTexCoord(0, 1, 0, 1);
+  -- btn:GetNormalTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
+  -- btn:GetPushedTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
+  -- btn:GetHighlightTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
 
-  btn:GetNormalTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
-  btn:GetPushedTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
-  btn:GetHighlightTexture().SetTexCoord = tk.Constants.DUMMY_FUNC;
-
-  btn:GetNormalTexture().SetRotation = tk.Constants.DUMMY_FUNC;
-  btn:GetPushedTexture().SetRotation = tk.Constants.DUMMY_FUNC;
-  btn:GetHighlightTexture().SetRotation = tk.Constants.DUMMY_FUNC;
+  -- btn:GetNormalTexture().SetRotation = tk.Constants.DUMMY_FUNC;
+  -- btn:GetPushedTexture().SetRotation = tk.Constants.DUMMY_FUNC;
+  -- btn:GetHighlightTexture().SetRotation = tk.Constants.DUMMY_FUNC;
 
   local tbl = obj:PopTable(btn, module);
   tinsert(data.minButtons, tbl);

@@ -106,7 +106,7 @@ end
 -- Lib Methods ------------------
 
 -- Creates a scroll frame inside a container frame
-function gui:CreateScrollFrame(parent, global, child)
+function gui:CreateScrollFrame(parent, global, child, offset)
   local container = tk:CreateBackdropFrame("Frame", parent, global);
   container.ScrollFrame = tk:CreateFrame("ScrollFrame", container--[[@as Frame]], nil, "UIPanelScrollFrameTemplate");
   container.ScrollFrame:SetAllPoints(true);
@@ -116,12 +116,13 @@ function gui:CreateScrollFrame(parent, global, child)
   container.ScrollFrame:SetScrollChild(child);
 
   local barWidth = 6;
+  offset = offset or 0;
 
   -- ScrollBar ------------------
   container.ScrollBar = container.ScrollFrame.ScrollBar--[[@as Slider]];
   container.ScrollBar:ClearAllPoints();
-  container.ScrollBar:SetPoint("TOPRIGHT", container, "TOPRIGHT", 0, 0);
-  container.ScrollBar:SetPoint("BOTTOMLEFT", container, "BOTTOMRIGHT", -barWidth, 0);
+  container.ScrollBar:SetPoint("TOPRIGHT", container, "TOPRIGHT", offset, 0);
+  container.ScrollBar:SetPoint("BOTTOMLEFT", container, "BOTTOMRIGHT", -(barWidth) + offset, 0);
 
   tk:SetFullWidth(child);
 

@@ -377,6 +377,7 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
   end
 
   chatFrame:SetOnScrollChangedCallback(OnScrollChangedCallback);
+  chatFrame.ScrollBar:SetAlpha(0);
 
   if (not tk:IsRetail()) then
     downBtn:ClearAllPoints();

@@ -567,7 +567,7 @@ function tk:ApplyThemeColor(...)
 
         if (alpha == nil) then
           local _, _, _, a1 = normalTexture:GetVertexColor();
-          local _, _, _, a2 = highlightAlpha:GetVertexColor();
+          local _, _, _, a2 = highlightTexture:GetVertexColor();
           normalAlpha, highlightAlpha = a1, a2;
         end
 

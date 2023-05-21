@@ -118,7 +118,7 @@ function gui:ReskinIcon(iconFrame, borderSize, iconType, iconTexture, disableOmn
     iconFrame:SetHeight(30);
   end
 
-  iconFrame.icon = iconFrame.icon or iconTexture;
+  iconFrame.icon = iconFrame.Icon or iconFrame.icon or iconTexture;
   iconFrame.icon:SetDrawLayer("ARTWORK");
 
   if (iconFrame.cooldown) then
