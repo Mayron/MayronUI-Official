@@ -113,7 +113,7 @@ function C_ConfigMenu:GetConfigTable()
       name = L["General"];
       id = 1;
       children = {
-        { type = "title"; name = "Appearance Settings"; marginTop = 0; };
+        { type = "title"; name = L["Appearance Settings"]; marginTop = 0; };
         {
           name = L["Set Theme Color"];
           type = "color";
@@ -125,9 +125,9 @@ function C_ConfigMenu:GetConfigTable()
           end;
         };
         {
-          name = "Set MUI Frame Colors";
+          name = "Set MUI Frames Color";
           type = "color";
-          tooltip = "Controls the background color of MUI frames, including the inventory frame, tooltips, config menu, layout tool and more.";
+          tooltip = L["MUI_FRAMES_COLOR_TOOLTIP"];
           dbPath = "profile.theme.frameColor";
           SetValue = function(_, value)
             db.profile.theme.frameColor = value;
@@ -176,8 +176,8 @@ function C_ConfigMenu:GetConfigTable()
           description = L["These settings are applied account-wide"];
         };
         { type = "check";
-          name = "Enable Inventory Frame";
-          tooltip = "Use the MayronUI custom inventory frame instead of the default Blizzard bags UI.";
+          name = L["Enable Inventory Frame"];
+          tooltip = L["Use the MayronUI custom inventory frame instead of the default Blizzard bags UI."];
           dbPath = "global.enabled";
           requiresReload = true;
           dbFramework = "orbitus";

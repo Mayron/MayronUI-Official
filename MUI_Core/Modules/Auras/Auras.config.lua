@@ -14,31 +14,31 @@ function C_AurasModule:GetConfigTable()
     local children = {
       {
         type = "title";
-        name = icons and "Icon Options" or "Bar Options";
-        description = "These settings relate to the individual aura icons/bars.";
+        name = icons and L["Icon Options"] or L["Status Bar Options"];
+        description = L["These settings relate to the individual aura icons/bars."];
         marginTop = 0;
       },
       {
         type = "check";
-        name = "Pulse Effect";
+        name = L["Show Pulse Effect"];
         height = 50;
-        tooltip = "If true, when the aura is close to expiring the aura frame will fade in and out.";
+        tooltip = L["If true, when the aura is close to expiring the aura frame will fade in and out."];
         dbPath = "pulse";
       },
       {
         type = "slider";
-        name = "Set Non-Player Alpha";
+        name = L["Set Non-Player Alpha"];
         min = 0;
         max = 1;
         step = 0.1;
-        tooltip = "The alpha of auras not applied by you.";
+        tooltip = L["The alpha of auras not applied by you."];
         dbPath = "nonPlayerAlpha";
       },
 
       { type = "divider"; };
       {
         type = "slider";
-        name = "Icon Width";
+        name = L["Icon Width"];
         dbPath = "iconWidth";
         min = 20;
         max = 80;
@@ -46,24 +46,15 @@ function C_AurasModule:GetConfigTable()
       };
       {
         type = "slider";
-        name = "Icon Height";
+        name = L["Icon Height"];
         dbPath = "iconHeight";
         min = 20;
         max = 80;
         step = 1;
       };
-      -- TODO: This seems broken
-      -- {
-      --   type = "slider";
-      --   name = "Icon Border Size";
-      --   dbPath = "iconBorderSize";
-      --   min = 0;
-      --   max = 5;
-      --   step = 1;
-      -- };
       {
         type = "slider";
-        name = "Icon Spacing";
+        name = L["Icon Spacing"];
         dbPath = "iconSpacing";
         ignore = icons;
         min = 0;
@@ -73,7 +64,7 @@ function C_AurasModule:GetConfigTable()
       { type = "divider"; ignore = icons; };
       {
         type = "slider";
-        name = "Bar Width";
+        name = L["Bar Width"];
         dbPath = "barWidth";
         ignore = icons;
         min = 100;
@@ -82,7 +73,7 @@ function C_AurasModule:GetConfigTable()
       };
       {
         type = "slider";
-        name = "Bar Height";
+        name = L["Bar Height"];
         dbPath = "barHeight";
         ignore = icons;
         min = 10;
@@ -113,28 +104,28 @@ function C_AurasModule:GetConfigTable()
       };
       {
         type = "check";
-        name = "Show Bar Spark";
+        name = L["Show Bar Spark"];
         dbPath = "showSpark";
         ignore = icons;
         height = 50;
       };
       {
         type = "title";
-        name = "Container Frame Settings";
-        description = "These settings relate to the frame containing the individual aura icons/bars.";
+        name = L["Container Frame Settings"];
+        description = L["These settings relate to the frame containing the individual aura icons/bars."];
       },
       {
         type = "fontstring";
-        subtype="header";
-        content= "Positioning";
+        subtype ="header";
+        content = L["Positioning"];
       },
       {
         name = L["Relative Frame"];
         type = "dropdown";
         GetOptions = function()
           local options = {
-            ["Screen"] = "UIParent";
-            ["Minimap"] = "Minimap";
+            [L["Screen"]] = "UIParent";
+            [L["Mini-Map"]] = "Minimap";
           };
 
           if (auraType == "debuffs") then
@@ -167,11 +158,11 @@ function C_AurasModule:GetConfigTable()
       };
       {
         type = "fontstring";
-        subtype="header";
-        content= "Growth Direction";
+        subtype = "header";
+        content = L["Growth Direction"];
       },
       {
-        name = "Up";
+        name = L["Up"];
         type = "radio";
         groupName = groupPrefix.."-vDirection";
         dbPath = "vDirection";
@@ -183,7 +174,7 @@ function C_AurasModule:GetConfigTable()
         end;
       };
       {
-        name = "Down";
+        name = L["Down"];
         type = "radio";
         groupName = groupPrefix.."-vDirection";
         dbPath = "vDirection";
@@ -195,7 +186,7 @@ function C_AurasModule:GetConfigTable()
         end;
       };
       {
-        name = "Left";
+        name = L["Left"];
         type = "radio";
         groupName = groupPrefix.."-hDirection";
         dbPath = "hDirection";
@@ -207,7 +198,7 @@ function C_AurasModule:GetConfigTable()
         end;
       };
       {
-        name = "Right";
+        name = L["Right"];
         type = "radio";
         groupName = groupPrefix.."-hDirection";
         dbPath = "hDirection";
@@ -221,21 +212,21 @@ function C_AurasModule:GetConfigTable()
       {
         type = "fontstring";
         subtype="header";
-        content= "Rows and Columns";
+        content= L["Rows and Columns"];
       },
       {
         type = "slider";
         name = icons and "Icons Per Row" or "Bar Columns";
         tooltip = icons
-          and "The maximum number of aura icons to display per row."
-          or "The maximum number of horizontal bar columns to display.";
+          and L["The maximum number of aura icons to display per row."]
+          or L["The maximum number of horizontal bar columns to display."];
         dbPath = "perRow";
         min = 1;
         max = icons and 20 or 5;
         step = 1;
       };
       {
-        name = "Row Spacing";
+        name = L["Row Spacing"];
         type = "slider";
         min = 0;
         max = 80;
@@ -243,7 +234,7 @@ function C_AurasModule:GetConfigTable()
         dbPath = "ySpacing";
       };
       {
-        name = "Column Spacing";
+        name = L["Column Spacing"];
         type = "slider";
         min = 0;
         max = 80;
@@ -251,9 +242,9 @@ function C_AurasModule:GetConfigTable()
         dbPath = "xSpacing";
       };
 
-      { type = "title", name = "Text Settings" };
+      { type = "title", name = L["Text Settings"] };
 
-      { type = "fontstring"; content = "Aura Name"; subtype = "header"; ignore = icons; };
+      { type = "fontstring"; content = L["Aura Name"]; subtype = "header"; ignore = icons; };
 
       {
         type = "slider";
@@ -284,10 +275,10 @@ function C_AurasModule:GetConfigTable()
         type = "dropdown";
         ignore = icons;
         options = {
-          ["Icon"] = "icon";
-          ["Icon Frame"] = "iconFrame";
-          ["Aura Frame"] = "aura";
-          ["Bar"] = "bar";
+          [L["Icon"]] = "icon";
+          [L["Icon Frame"]] = "iconFrame";
+          [L["Aura Frame"]] = "aura";
+          [L["Bar"]] = "bar";
         };
         dbPath = "textPosition.auraName[2]";
       };
@@ -315,23 +306,23 @@ function C_AurasModule:GetConfigTable()
         max = 30;
       };
 
-      { type = "fontstring"; content = "Time Remaining"; subtype = "header" };
+      { type = "fontstring"; content = L["Time Remaining"]; subtype = "header" };
 
       {
+        name = L["Normal Font Size"];
         type = "slider";
         min = 8;
         max = 20;
         step = 1;
         dbPath = "textSize.timeRemaining";
-        name= "Normal Font Size";
       },
       {
+        name= L["Warning Font Size"];
         type = "slider";
         min = 8;
         max = 20;
         step = 1;
         dbPath = "textSize.timeRemainingLarge";
-        name= "Warning Font Size";
       },
       {
         type = "dropdown";
@@ -342,8 +333,8 @@ function C_AurasModule:GetConfigTable()
       { type = "divider" };
       {
         type = "slider";
-        name = "Warning Threshold";
-        tooltip = "The minimum number of seconds remaining required for the time remaining text to use the warning font size.";
+        name = L["Warning Threshold"];
+        tooltip = L["The minimum number of seconds remaining required for the time remaining text to use the warning font size."];
         dbPath = "secondsWarning";
         label = "seconds";
         min = 0;
@@ -362,13 +353,13 @@ function C_AurasModule:GetConfigTable()
         type = "dropdown";
         GetOptions = function()
           local options = {
-            ["Icon"] = "icon";
-            ["Icon Frame"] = "iconFrame";
-            ["Aura Frame"] = "aura";
+            [L["Icon"]] = "icon";
+            [L["Icon Frame"]] = "iconFrame";
+            [L["Aura Frame"]] = "aura";
           };
 
           if (not icons) then
-            options["Bar"] = "bar";
+            options[L["Bar"]] = "bar";
           end
 
           return options;
@@ -396,15 +387,15 @@ function C_AurasModule:GetConfigTable()
         max = 30;
       };
 
-      { type = "fontstring"; content = "Count"; subtype = "header" };
+      { type = "fontstring"; content = L["Count"]; subtype = "header" };
 
       {
+        name= L["Font Size"];
         type = "slider";
         min = 8;
         max = 20;
         step = 1;
         dbPath = "textSize.count";
-        name= "Font Size";
       },
       {
         type = "dropdown";
@@ -424,13 +415,13 @@ function C_AurasModule:GetConfigTable()
         type = "dropdown";
         GetOptions = function()
           local options = {
-            ["Icon"] = "icon";
-            ["Icon Frame"] = "iconFrame";
-            ["Aura Frame"] = "aura";
+            [L["Icon"]] = "icon";
+            [L["Icon Frame"]] = "iconFrame";
+            [L["Aura Frame"]] = "aura";
           };
 
           if (not icons) then
-            options["Bar"] = "bar";
+            options[L["Bar"]] = "bar";
           end
 
           return options;
@@ -468,9 +459,9 @@ function C_AurasModule:GetConfigTable()
 
     return {
       {
-        name = "Set Display Mode";
+        name = L["Set Display Mode"];
         type = "dropdown";
-        options = { ["Icons"] = "icons", ["Bars"] = "statusbars" };
+        options = { [L["Icons"]] = "icons", [L["Status Bars"]] = "statusbars" };
         dbPath = "profile." .. auraType .. ".mode";
         OnValueChanged = function(value)
           iconOptionsFrame:SetShown(value == "icons");
@@ -512,24 +503,24 @@ function C_AurasModule:GetConfigTable()
   local colorOptions = {
     {
       type = "title";
-      name = "Text Colors";
+      name = L["Text Colors"];
     };
     {
-      name = "Time Remaining";
+      name = L["Time Remaining"];
       type = "color";
       width = 160,
       dbPath = "profile.colors.timeRemaining";
       useIndexes = true;
     };
     {
-      name = "Count";
+      name = L["Count"];
       type = "color";
       width = 160,
       dbPath = "profile.colors.count";
       useIndexes = true;
     };
     {
-      name = "Aura Name";
+      name = L["Aura Name"];
       type = "color";
       width = 160,
       dbPath = "profile.colors.auraName";
@@ -537,53 +528,53 @@ function C_AurasModule:GetConfigTable()
     };
     {
       type = "title";
-      name = "Aura Type Colors";
+      name = L["Aura Type Colors"];
     };
     {
-      name = "Basic Buff";
+      name = L["Basic Buff"];
       type = "color";
       width = 160,
       dbPath = "profile.colors.helpful";
       useIndexes = true;
     };
     {
-      name = "Player Owned Buff";
-      tooltips = "Buffs that you applied to yourself.";
+      name = L["Player Owned Buff"];
+      tooltips = L["Buffs that you applied to yourself."];
       type = "color";
       width = 160,
       dbPath = "profile.colors.owned";
       useIndexes = true;
     };
     {
-      name = "Basic Debuff";
+      name = L["Basic Debuff"];
       type = "color";
       width = 160,
       dbPath = "profile.colors.harmful";
       useIndexes = true;
     };
     {
-      name = "Magic Debuff";
+      name = L["Magic Debuff"];
       type = "color";
       width = 160,
       dbPath = "profile.colors.magic";
       useIndexes = true;
     };
     {
-      name = "Disease Debuff";
+      name = L["Disease Debuff"];
       type = "color";
       width = 160,
       dbPath = "profile.colors.disease";
       useIndexes = true;
     };
     {
-      name = "Poison Debuff";
+      name = L["Poison Debuff"];
       type = "color";
       width = 160,
       dbPath = "profile.colors.poison";
       useIndexes = true;
     };
     {
-      name = "Curse Debuff";
+      name = L["Curse Debuff"];
       type = "color";
       width = 160,
       dbPath = "profile.colors.curse";
@@ -591,10 +582,10 @@ function C_AurasModule:GetConfigTable()
     };
     {
       type = "title";
-      name = "Bar Colors";
+      name = L["Bar Colors"];
     };
     {
-      name = "Background";
+      name = L["Background"];
       type = "color";
       width = 160,
       hasOpacity = true;
@@ -602,7 +593,7 @@ function C_AurasModule:GetConfigTable()
       useIndexes = true;
     };
     {
-      name = "Borders";
+      name = L["Borders"];
       type = "color";
       width = 160,
       dbPath = "profile.colors.barBorders";
@@ -611,7 +602,7 @@ function C_AurasModule:GetConfigTable()
   };
 
   return {
-    tabs = { "Buffs", "Debuffs", "Colors" };
+    tabs = { L["Buffs"], L["Debuffs"], L["Colors"] };
     module = "AurasModule",
     database = "MUI_AurasDB";
     dbFramework = "orbitus";

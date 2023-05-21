@@ -2,74 +2,108 @@
 --- STEP 1: Prepare other language
 ------------------------
 
--- Find: (.*)
--- Replace: "$1",
+-- Find: (.*)\n
+-- Replace: "$1";\n
 
 local OtherLanguageValues = {
-"定位和可見性選項",
-"配置每種類型的錨點和工具提示類型",
-"將工具提示分配給鼠標錨點會將它們固定到您的鼠標光標，使它們跟隨您的鼠標移動。",
-"將工具提示分配給屏幕錨點會將它們固定到該單個點並且不會移動。",
-"世界單位是世界中的 3D 播放器模型，不是 UI 的一部分。",
-"單位框架工具提示是代表 NPC 或玩家的 UI 框架。",
-"標準工具提示是任何其他沒有特殊類別的工具提示（即庫存物品和法術工具提示有自己獨特的類別，不會受到影響）。",
-"單位框架工具提示",
-"世界單位工具提示",
-"標準工具提示",
-"選擇錨點：",
-"可見性選項：",
-"設置顯示",
-"如果未選中，則永遠不會顯示此類工具提示",
-"如果未選中，則在戰鬥中不會顯示此類工具提示。",
-"隱藏在戰鬥中",
-"老鼠",
-"屏幕",
-"鼠標錨點",
-"屏幕錨點",
-"導出配置文件",
-"將當前配置文件導出為其他玩家可以導入的字符串。",
-"複製下面的導入字符串並將其提供給其他玩家，以便他們可以導入您當前的個人資料。",
-"關閉",
-"導入配置文件",
-"從導入字符串中導入另一個玩家的配置文件。",
-"將導入字符串粘貼到下面的框中以導入配置文件。",
-"警告：這將用導入的配置文件設置完全替換您當前的配置文件！",
-"已成功將配置文件設置導入您當前的配置文件！",
+"外觀設置";
+"設置 MUI 框架顏色";
+"控制 MUI 框架的背景顏色，包括庫存框架、工具提示、配置菜單、佈局工具等。";
+"設置顯示模式";
+"這些設置與各個光環圖標/欄相關。";
+"這些設置與包含各個光環圖標/欄的框架相關。";
+"設置非玩家 Alpha";
+"圖標寬度";
+"圖標高度";
+"如果為 true，當光環接近到期時，光環框架將淡入淡出。";
+"您未應用的光環的阿爾法。";
+"圖標間距";
+"顯示欄火花";
+"容器框架設置";
+"定位";
+"行和列";
+"每行顯示的光環圖標的最大數量。";
+"要顯示的水平條形列的最大數量。";
+"文本設置";
+"光環框";
+"圖標框";
+"圖標";
+"正常字號";
+"警告字體大小";
+"警告閾值";
+"剩餘時間文本使用警告字體大小所需的最小剩餘秒數。";
+"文字顏色";
+"光環類型顏色";
+"基本增益";
+"玩家擁有的增益";
+"您為自己應用的增益效果。";
+"基本減益";
+"條形顏色";
+"邊框";
+"啟用庫存框架";
+"使用 MayronUI 自定義庫存框架而不是默認的暴雪包 UI。";
+"使用類顏色";
+"如果選中，其他玩家的工具提示將根據他們的職業著色。";
+"切換到詳細視圖";
+"查看角色清單";
+"切換包袋欄";
+"任務物品";
+"貿易商品";
+"耗材";
+"設備";
+"所有項目"
 };
 
 ------------------------
 --- STEP 2:
 ------------------------
 local EnglishKeys = {
-"Positioning and Visibility Options",
-"Configure each type of anchor point and tooltip type",
-"Assigning tooltips to the mouse anchor point will fix them to your mouse cursor, causing them to follow your mouse movements.",
-"Assigning tooltips to the screen anchor point will fix them to that single spot and will not move.",
-"World units are 3D player models within the world and are not part of the UI.",
-"Unit frame tooltips are the UI frames that represent NPCs or players.",
-"Standard tooltips are any other tooltip with no special category (i.e., inventory item and spell tooltips have their own unique category and will not be affected).",
-"Unit Frame Tooltips",
-"World Unit Tooltips",
-"Standard Tooltips",
-"Choose an Anchor Point:",
-"Visibility Options:",
-"Set Shown",
-"If unchecked, tooltips of this type will never show",
-"If unchecked, tooltips of this type will not show while you are in combat.",
-"Hide in Combat",
-"Mouse",
-"Screen",
-"Mouse Anchor Point",
-"Screen Anchor Point",
-"Export Profile",
-"Export the current profile into a string that can be imported by other players.",
-"Copy the import string below and give it to other players so they can import your current profile.",
-"Close",
-"Import Profile",
-"Import a profile from another player from an import string.",
-"Paste an import string into the box below to import a profile.",
-"Warning: This will completely replace your current profile with the imported profile settings!",
-"Successfully imported profile settings into your current profile!",
+"Appearance Settings";
+"Set MUI Frames Color";
+"Controls the background color of MUI frames, including the inventory frame, tooltips, config menu, layout tool and more.";
+"Set Display Mode";
+"These settings relate to the individual aura icons/bars.";
+"These settings relate to the frame containing the individual aura icons/bars.";
+"Set Non-Player Alpha";
+"Icon Width";
+"Icon Height";
+"If true, when the aura is close to expiring the aura frame will fade in and out.";
+"The alpha of auras not applied by you.";
+"Icon Spacing";
+"Show Bar Spark";
+"Container Frame Settings";
+"Positioning";
+"Rows and Columns";
+"The maximum number of aura icons to display per row.";
+"The maximum number of horizontal bar columns to display.";
+"Text Settings";
+"Aura Frame";
+"Icon Frame";
+"Icon";
+"Normal Font Size";
+"Warning Font Size";
+"Warning Threshold";
+"The minimum number of seconds remaining required for the time remaining text to use the warning font size.";
+"Text Colors";
+"Aura Type Colors";
+"Basic Buff";
+"Player Owned Buff";
+"Buffs that you applied to yourself.";
+"Basic Debuff";
+"Bar Colors";
+"Borders";
+"Enable Inventory Frame";
+"Use the MayronUI custom inventory frame instead of the default Blizzard bags UI.";
+"Use Class Colors";
+"If checked, tooltips for other players will be colored based on their class.";
+"Switch to Detailed View";
+"View Character Inventory";
+"Toggle Bags Bar";
+"Quest Items";
+"Trade Goods";
+"Consumables";
+"Equipment";
+"All Items";
 };
 
 ------------------------

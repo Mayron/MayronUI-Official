@@ -315,8 +315,8 @@ function C_ToolTipsModule:GetConfigTable(data)
                 end;
             },
             {   type = "divider" };
-            {   name = "Use Class Colors",
-                tooltip = "If checked, tooltips for other players will be colored based on their class.",
+            {   name = L["Use Class Colors"],
+                tooltip = L["If checked, tooltips for other players will be colored based on their class."],
                 type = "check",
                 dbPath = "classColored",
             };

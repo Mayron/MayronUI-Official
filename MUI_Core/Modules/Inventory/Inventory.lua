@@ -95,7 +95,7 @@ local GetMoney = _G.GetMoney;
 ---@field searchBox EditBox
 
 -- Register and Import Modules -----------
-local C_Inventory = MayronUI:RegisterModule("Inventory", "Inventory");
+local C_Inventory = MayronUI:RegisterModule("Inventory", L["Inventory"]);
 
 -- Settings:
 local slotSpacing = 6;
@@ -1382,10 +1382,6 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
   end
 end
 
--- function MayronUI_InventoryLogOut()
---   InventoryFrameOnEvent(_G["MUI_Inventory"], "PLAYER_LOGOUT");
--- end
-
 local InventoryFrameOnUpdate;
 
 do
@@ -1606,7 +1602,7 @@ function C_Inventory:OnInitialize()
 
     gui:AddDialogTexture(inventoryFrame, "High");
     inventoryFrame:SetFrameStrata(tk.Constants.FRAME_STRATAS.HIGH);
-    gui:AddTitleBar(inventoryFrame, "Inventory");
+    gui:AddTitleBar(inventoryFrame, L["Inventory"]);
     gui:AddCloseButton(inventoryFrame);
     gui:AddResizer(inventoryFrame);
     inventoryFrame.bags = {};
@@ -1758,7 +1754,7 @@ function C_Inventory:OnInitialize()
 
     inventoryFrame.sortBtn = gui:CreateIconButton("sort", inventoryFrame, "MUI_InventorySort");
     inventoryFrame.sortBtn:SetPoint("RIGHT", inventoryFrame.closeBtn, "LEFT", -4, 0);
-    tk:SetBasicTooltip(inventoryFrame.sortBtn, "Sort Bags");
+    tk:SetBasicTooltip(inventoryFrame.sortBtn, L["Sort Bags"]);
     inventoryFrame.sortBtn:SetScript("OnClick", _G["SortBags"]);
 
     inventoryFrame.sortBtn:RegisterEvent("PLAYER_REGEN_DISABLED");
@@ -1770,17 +1766,17 @@ function C_Inventory:OnInitialize()
 
     inventoryFrame.bagsBtn = gui:CreateIconButton("bag", inventoryFrame, "MUI_InventoryBags");
     inventoryFrame.bagsBtn:SetPoint("RIGHT", inventoryFrame.sortBtn, "LEFT", -4, 0);
-    tk:SetBasicTooltip(inventoryFrame.bagsBtn, "Toggle Bags");
+    tk:SetBasicTooltip(inventoryFrame.bagsBtn, L["Toggle Bags Bar"]);
     inventoryFrame.bagsBtn:SetScript("OnClick", ToggleBagsBar);
 
     inventoryFrame.viewBtn = gui:CreateIconButton("layout", inventoryFrame, "MUI_InventoryView");
     inventoryFrame.viewBtn:SetPoint("RIGHT", inventoryFrame.bagsBtn, "LEFT", -4, 0);
-    tk:SetBasicTooltip(inventoryFrame.viewBtn, "Switch to Detailed View");
+    tk:SetBasicTooltip(inventoryFrame.viewBtn, L["Switch to Detailed View"]);
     inventoryFrame.viewBtn:SetScript("OnClick", ToggleDetailedView);
 
     inventoryFrame.charactersBtn = gui:CreateIconButton("user", inventoryFrame, "MUI_InventoryCharacters");
     inventoryFrame.charactersBtn:SetPoint("RIGHT", inventoryFrame.viewBtn, "LEFT", -4, 0);
-    tk:SetBasicTooltip(inventoryFrame.charactersBtn, "View Character Inventory");
+    tk:SetBasicTooltip(inventoryFrame.charactersBtn, L["View Character Inventory"]);
     inventoryFrame.charactersBtn:SetScript("OnClick", ToggleCharactersMenu);
 
     inventoryFrame.tabs = {};
@@ -1798,7 +1794,7 @@ function C_Inventory:OnInitialize()
         tab:SetChecked(true);
         tab:SetPoint("TOPLEFT", inventoryFrame, "TOPRIGHT", 10, 5);
         tab.icon:SetTexture("Interface\\Icons\\Inv_misc_bag_07");
-        tab.tooltipText = "All Items";
+        tab.tooltipText = L["All Items"];
         tab:SetID(TabTypesEnum.AllItems);
       else
         tab:SetPoint("TOPLEFT", inventoryFrame.tabs[i - 1], "BOTTOMLEFT", 0, -5);
@@ -1806,21 +1802,21 @@ function C_Inventory:OnInitialize()
 
         if (i == 2) then
           tab.icon:SetTexture("Interface\\Icons\\INV_Helmet_20");
-          tab.tooltipText = "Equipment";
+          tab.tooltipText = L["Equipment"];
           tab:SetID(TabTypesEnum.Equipment);
         elseif (i == 3) then
           tab.icon:SetTexture("Interface\\Icons\\INV_Potion_51");
-          tab.tooltipText = "Consumables";
+          tab.tooltipText = L["Consumables"];
           tab.icon:SetSize(28, 24);
           tab:SetID(TabTypesEnum.Consumables);
         elseif (i == 4) then
           tab.icon:SetTexture("Interface\\Icons\\INV_Fabric_Linen_01");
-          tab.tooltipText = "Trade Goods";
+          tab.tooltipText = L["Trade Goods"];
           tab:SetID(TabTypesEnum.TradeGoods);
         elseif (i == 5) then
           tab.icon:SetTexture("Interface\\QuestFrame\\UI-QuestLog-BookIcon");
           tab.icon:SetSize(28, 24);
-          tab.tooltipText = "Quest Items";
+          tab.tooltipText = L["Quest Items"];
           tab:SetID(TabTypesEnum.QuestItems);
           tab.background:SetVertexColor(0, 0, 0, 1);
         end

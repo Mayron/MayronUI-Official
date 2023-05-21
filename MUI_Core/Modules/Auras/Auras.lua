@@ -285,7 +285,7 @@ do
 end
 
 -- Objects -----------------------------
-local C_AurasModule = MayronUI:RegisterModule("AurasModule", "Auras");
+local C_AurasModule = MayronUI:RegisterModule("AurasModule", _G["AURAS"] or "Auras");
 
 ---@class AuraButtonMixin : Button
 ---@field filter "HELPFUL"|"HARMFUL"
