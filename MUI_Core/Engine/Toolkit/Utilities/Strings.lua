@@ -126,10 +126,14 @@ function tk.Strings:SetTextColorByTheme(text)
   return themeColor:WrapTextInColorCode(text);
 end
 
-function tk.Strings:SetTextColorByRGB(text, r, g, b)
-  if (not (r and g and b)) then return text; end
-  local color = CreateColor(r, g, b);
-  return color:WrapTextInColorCode(text);
+do
+  local color = CreateColor(1, 1, 1);
+
+  function tk.Strings:SetTextColorByRGB(text, r, g, b)
+    if (not (r and g and b)) then return text; end
+    color:SetRGB(r, g, b);
+    return color:WrapTextInColorCode(text);
+  end
 end
 
 ---@param text string

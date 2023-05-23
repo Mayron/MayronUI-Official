@@ -20,8 +20,6 @@ local BUFF_FLASH_TIME_ON = 0.75;
 local BUFF_MIN_ALPHA = 0.3;
 local BUFF_WARNING_TIME = 31;
 
-local C_Stack = obj:Import("Pkg-Collections.Stack<T>"); ---@cast C_Stack Pkg-Collections.Stack
-
 ---@class MUI_AurasDB : OrbitusDB.DatabaseMixin
 
 --------------------------
@@ -50,7 +48,7 @@ local databaseConfig = {
   svName = "MUI_AurasDB";
   defaults = {
     profile = {
-      enabled = false;
+      enabled = true;
       colors = {
         timeRemaining = {1, 1, 1};
         count         = {1, 0.82, 0};

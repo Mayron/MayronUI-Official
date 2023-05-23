@@ -830,11 +830,104 @@ function C_CoreModule:OnInitialize()
     obj:PushTable(args);
   end
 
+  if (MayronUI.DEBUG_MODE) then
+    local uiParent = _G["UIParent"]--[[@as table]];
+
+    local frames = {
+      "SetShown", "Hide", "SetAlpha",
+      "SetParent", "ClearAllPoints", "SetPoint", "SetAllPoints"
+    };
+
+    local function GetMuiMemoryUsage()
+      UpdateAddOnMemoryUsage();
+
+      for i = 1, GetNumAddOns() do
+        local addOnName = GetAddOnInfo(i);
+
+        if (addOnName == "MUI_Core") then
+          local usage = GetAddOnMemoryUsage(i);
+          local value;
+
+          if (usage > 1000) then
+            value = math.floor(usage / 10) / 100;
+            value = string.format("%smb", value);
+          else
+            value = tk.Numbers:ToPrecision(usage, 0);
+            value = string.format("%skb", value);
+          end
+
+          return value;
+        end
+      end
+    end
+
+    local function ThrowError(key)
+      if (not InCombatLockdown()) then return end
+      print("Error at key: ", key);
+
+      local value = GetMuiMemoryUsage();
+      local errorMessage = ("UIParent.%s (MUI_Core: %s)"):format(key, value);
+
+      local stacktrace = debugstack(3, 30, 30);
+      error(errorMessage..":\n\n"..stacktrace.."\n-------------\n");
+    end
+
+    for _, key in ipairs(frames) do
+      uiParent[key] = function()
+        ThrowError(key);
+      end;
+    end
+
+    uiParent:HookScript("OnHide", function() ThrowError("UIParent.OnHide") end);
+    hooksecurefunc("SetUIVisibility", function() ThrowError("SetUIVisibility"); end);
+
+    local f = CreateFrame("Frame");
+
+    f:SetScript("OnUpdate", function(self, elapsed)
+      self.elapsed = (self.elapsed or 0) + elapsed;
+
+      if (self.elapsed > 2) then
+        self.elapsed = 0;
+        local value = GetMuiMemoryUsage();
+        print(("MUI_Core: %s"):format(value))
+      end
+    end)
+  end
+
+  local ignored = {
+    -- ["CoreModule"] = true;
+    -- ["MainContainer"] = true;
+    -- ["UnitPanels"] = true;
+    -- ["ResourceBars"] = true;
+    -- ["BottomActionBars"] = true;
+    -- ["SideActionBars"] = true;
+    -- ["ErrorHandlerModule"] = true;
+    -- ["ObjectiveTrackerModule"] = true;
+    -- ["AFKDisplay"] = true;
+    -- ["MovableFramesModule"] = true;
+    -- ["TutorialModule"] = true;
+    -- ["AurasModule"] = true;
+    -- ["CastBarsModule"] = true;
+    -- ["ChatModule"] = true;
+    -- ["DataTextModule"] = true;
+    -- ["MiniMap"] = true;
+    -- ["TimerBars"] = true;
+    -- ["Tooltips"] = true;
+    -- ["CombatAlerts"] = true;
+    -- ["Inventory"] = true;
+  };
+
   -- Initialize all modules here!
   for _, module in MayronUI:IterateModules() do
-    if (not module:IsInitializedOnDemand() and not module:IsInitialized()) then
-      -- initialize a module if not set for manual initialization
-      module:Initialize();
+    local name = module:GetModuleKey();
+
+    if (not ignored[name]) then
+      if (not module:IsInitializedOnDemand() and not module:IsInitialized()) then
+        MayronUI:LogInfo("Initializing module %s", name);
+
+        -- initialize a module if not set for manual initialization
+        module:Initialize();
+      end
     end
   end
 

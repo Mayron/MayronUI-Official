@@ -198,23 +198,6 @@ local function GetFrame(frameName)
   return frame;
 end
 
--- Function to fix the "Action[SetPoint] failed because[SetPoint would result in anchor family connection]" bugs
-local function FixAnchorFamilyConnections()
-  local displayFunc = _G.QuestInfo_Display;
-
-  _G.QuestInfo_Display = function(
-    template, parentFrame, acceptButton, material, mapView)
-    _G.QuestInfoSealFrame:ClearAllPoints();
-    displayFunc(template, parentFrame, acceptButton, material, mapView);
-  end
-
-  local setPoint = _G.GameTooltip.SetPoint;
-  _G.GameTooltip.SetPoint = function(self, p, f, rp, x, y)
-    self:ClearAllPoints();
-    setPoint(self, p, f, rp, x, y);
-  end
-end
-
 obj:DefineParams("string|table", "boolean=false");
 function C_MovableFramesModule:ExecuteMakeMovable(_, value, dontSave)
   if (obj:IsString(value)) then
@@ -366,7 +349,7 @@ end
 do
   local function UIParent_OnShownChanged(self, settings, frames)
     if (not settings.enabled) then
-      return;
+      return
     end
 
     for _, frame in ipairs(frames) do
@@ -377,34 +360,25 @@ do
   end
 
   function C_MovableFramesModule:OnEnable(data)
-    tk:HookFunc(
-      "UpdateUIPanelPositions", UIParent_OnShownChanged, self, data.settings,
-        data.frames);
-    tk:HookFunc(
-      "ShowUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
-    tk:HookFunc(
-      "HideUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
-
-    -- Fix for the "Action[SetPoint] failed because[SetPoint would result in anchor family connection]" bugs:
-    FixAnchorFamilyConnections();
+    tk:HookFunc("UpdateUIPanelPositions", UIParent_OnShownChanged, self, data.settings, data.frames);
+    tk:HookFunc("ShowUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
+    tk:HookFunc("HideUIPanel", UIParent_OnShownChanged, self, data.settings, data.frames);
 
     if (not data.eventListener) then
-      data.eventListener =
-        em:CreateEventListenerWithID("MovableFramesOnAddOnLoaded", function(_, _, addOnName)
-          MayronUI:LogDebug("AddOn Loaded: ", addOnName);
+      data.eventListener = em:CreateEventListenerWithID("MovableFramesOnAddOnLoaded", function(_, _, addOnName)
+        MayronUI:LogDebug("AddOn Loaded: ", addOnName);
 
+        if (BlizzardFrames[addOnName]) then
+          self:ExecuteMakeMovable(BlizzardFrames[addOnName], false);
+          BlizzardFrames[addOnName] = nil;
+        end
 
-          if (BlizzardFrames[addOnName]) then
-            self:ExecuteMakeMovable(BlizzardFrames[addOnName], false);
-            BlizzardFrames[addOnName] = nil;
-          end
-
-          if (BlizzardFrames.dontSavePosition[addOnName]) then
-            self:ExecuteMakeMovable(
-              BlizzardFrames.dontSavePosition[addOnName], true);
-            BlizzardFrames.dontSavePosition[addOnName] = nil;
-          end
-        end);
+        if (BlizzardFrames.dontSavePosition[addOnName]) then
+          self:ExecuteMakeMovable(
+            BlizzardFrames.dontSavePosition[addOnName], true);
+          BlizzardFrames.dontSavePosition[addOnName] = nil;
+        end
+      end);
 
       data.eventListener:RegisterEvent("ADDON_LOADED");
 
