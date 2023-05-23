@@ -1712,7 +1712,8 @@ function C_Inventory:OnInitialize()
     end);
 
     for i = 1, totalBagFrames do
-      tk:KillElement(_G["ContainerFrame"..i]);
+      local blizzBag = _G["ContainerFrame"..i];
+      blizzBag:HookScript("OnShow", function() blizzBag:Hide() end);
     end
 
     -- Create Bags and Slots:

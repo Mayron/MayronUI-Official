@@ -32,8 +32,6 @@ local function RunEvent(listener, event, ...)
   end
 
   -- execute callback function here:
-  MayronUI:LogInfo("Running Event ", event);
-
   ---@diagnostic disable-next-line: invisible
   listener.__callback(listener, event, unpack(args, 1, (totalArgs + select("#", ...))));
   obj:PushTable(args);
