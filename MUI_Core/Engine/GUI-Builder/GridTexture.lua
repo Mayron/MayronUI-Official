@@ -2,7 +2,7 @@
 local _G = _G;
 local MayronUI = _G.MayronUI;
 
----@class GUIBuilder
+---@class MayronUI.GUIBuilder
 local gui = MayronUI:GetComponent("GUIBuilder");
 
 local ipairs, Mixin = _G.ipairs, _G.Mixin;

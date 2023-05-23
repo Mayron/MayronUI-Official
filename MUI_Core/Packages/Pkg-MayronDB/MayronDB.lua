@@ -20,13 +20,13 @@ local MAX_KEY_OCCURRENCE = {
 local MayronDB = obj:CreateClass("MayronDB");
 obj:Export(MayronDB);
 
----@class Database : Object
+---@class MayronDB : MayronObjects.Object
 local Database = obj:CreateClass("Database");
 
----@class Observer : Object
+---@class Observer : MayronObjects.Object
 local Observer = obj:CreateClass("Observer");
 
----@class Helper : Object
+---@class Helper : MayronObjects.Object
 local Helper = obj:CreateClass("Helper");
 
 Observer.Static:AddFriendClass("Helper");
@@ -67,7 +67,7 @@ obj:DefineReturns("Database");
 ---@param manualStartUp boolean @(optional) Set to true if you do not want MayronDB to automatically start
 ---    the database when the saved variable becomes accessible.
 ---@param databaseName string @(optional) Assign a (user-friendly) name for the database.
----@return Database @The database object.
+---@return MayronDB @The database object.
 function MayronDB.Static:CreateDatabase(
   addOnName, savedVariableName, manualStartUp, databaseName)
   local database = Database(addOnName, savedVariableName, databaseName);
@@ -88,7 +88,7 @@ end
 
 obj:DefineParams("string");
 obj:DefineReturns("Database");
----@return Database @The database object
+---@return MayronDB @The database object
 function MayronDB.Static:GetDatabaseBySavedVariableName(savedVariableName)
   for _, addOnDatabases in pairs(OnAddOnLoadedListener.RegisteredDatabases) do
     if (addOnDatabases[savedVariableName]) then
@@ -99,7 +99,7 @@ end
 
 obj:DefineParams("string");
 obj:DefineReturns("?Database");
----@return Database @The database object or nil if no database for the given name is found
+---@return MayronDB @The database object or nil if no database for the given name is found
 function MayronDB.Static:GetDatabaseByName(databaseName)
   for _, database in self:IterateDatabases() do
     if (database:GetDatabaseName() == databaseName) then

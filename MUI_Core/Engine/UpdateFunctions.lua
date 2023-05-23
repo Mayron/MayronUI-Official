@@ -187,10 +187,10 @@ do
     end
 
     local observerPath = observer:GetPathAddress();
-    local dbObject = MayronUI:GetComponent(self:GetModuleKey() .. "Database", true); ---@type Database
+    local dbObject = MayronUI:GetComponent(self:GetModuleKey() .. "Database", true); ---@type MayronDB
 
     if (not dbObject) then
-      dbObject = MayronUI:GetComponent("Database"); ---@type Database
+      dbObject = MayronUI:GetComponent("Database"); ---@type MayronDB
     end
 
     -- updateFunctionPath is the located function (or table if no function found) path

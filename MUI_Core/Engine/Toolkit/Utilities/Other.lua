@@ -2,7 +2,7 @@
 local _G = _G;
 local MayronUI = _G.MayronUI;
 
----@class Toolkit
+---@class MayronUI.Toolkit
 local tk, _, _, _, obj, L = MayronUI:GetCoreComponents();
 tk.Numbers = {};
 

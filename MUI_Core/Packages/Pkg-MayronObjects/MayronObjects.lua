@@ -1152,7 +1152,6 @@ do
   local function RunCleaner()
     Framework:EmptyTable(recycledTables);
     pendingClean = nil;
-    collectgarbage("collect");
   end
 
   function Framework:UnpackTable(tbl, startIndex, endIndex)

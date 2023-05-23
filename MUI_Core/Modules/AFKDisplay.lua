@@ -755,6 +755,70 @@ function C_AFKDisplayModule:OnInitialize(data)
   end
 end
 
+local function StartTimer()
+  if (Private.display:IsShown()) then
+    Private.time = Private.time or 0;
+
+    local time = string.format("%.2d:%.2d", (Private.time / 60) % 60, (Private.time % 60));
+    Private.time = Private.time + 1;
+    Private.display.time:SetText(time);
+
+    C_Timer.After(1, StartTimer);
+  end
+end
+
+local function SetAFKDisplayShown(data, show)
+  if (InCombatLockdown() or (_G.AuctionFrame and _G.AuctionFrame:IsVisible())
+    or (_G.MovieFrame and _G.MovieFrame:IsShown())) then
+    -- Do not show AFK Display (even if player is AFK)
+    -- if player is using the Auction house or player is in combat
+    Private:HideDisplay();
+    return;
+  end
+
+  if (show) then
+    -- Hide UIParent and show AFK Display
+    _G.UIParent:Hide();
+    MoveViewLeftStart(0.01);
+
+    if (not Private.display) then
+      Private.display = Private:CreateDisplay();
+
+      if (data.settings.playerModel) then
+        Private.display.modelFrame = Private:CreatePlayerModel();
+      end
+    end
+
+    -- Get Player Level + Spec and update text:
+    local specType;
+    if (GetSpecialization) then
+      specType = (select(2, GetSpecializationInfo(GetSpecialization()))).." ";
+    else
+      specType = tk.Strings.Empty;
+    end
+
+    local name = tk.Strings:Concat(UnitPVPName("player"), " - ",
+    GetRealmName(), "\nLevel ", UnitLevel("player"), ", ",
+    tk.Strings:SetTextColorByClassFileName(tk.Strings:Concat(specType, (select(1, UnitClass("player"))))));
+
+    Private.display.name:SetText(name);
+    Private.display:Show();
+
+    Private:PositionModel();
+    Private:ResetDataText();
+    StartTimer();
+  else
+    -- Hide AFK Display and show UIParent
+    _G.UIParent:Show();
+
+    if (data.settings.rotateCamera) then
+      MoveViewLeftStop();
+    end
+
+    Private:HideDisplay();
+  end
+end
+
 function C_AFKDisplayModule:OnEnable(data)
   if (not data.eventListener) then
     data.eventListener = em:CreateEventListenerWithID("afkDisplayFlagsChanged",
@@ -763,13 +827,14 @@ function C_AFKDisplayModule:OnEnable(data)
         return;
       end
 
-      self:SetShown(UnitIsAFK(unitID));
+      local isAfk = UnitIsAFK(unitID);
+      SetAFKDisplayShown(data, isAfk);
     end);
 
     data.eventListener:RegisterEvent("PLAYER_FLAGS_CHANGED");
 
     local regenDisabled = em:CreateEventListenerWithID("afkDisplayRegenDisabled", function()
-      self:SetShown(false);
+      SetAFKDisplayShown(data, false);
     end);
 
     regenDisabled:RegisterEvent("PLAYER_REGEN_DISABLED");
@@ -781,71 +846,5 @@ end
 function C_AFKDisplayModule:OnDisable(data)
   if (data.eventListener) then
     em:DisableEventListeners("afkDisplayFlagsChanged", "afkDisplayRegenDisabled");
-  end
-end
-
-do
-  local function StartTimer()
-    if (Private.display:IsShown()) then
-      Private.time = Private.time or 0;
-
-      local time = string.format("%.2d:%.2d", (Private.time / 60) % 60, (Private.time % 60));
-      Private.time = Private.time + 1;
-      Private.display.time:SetText(time);
-
-      C_Timer.After(1, StartTimer);
-    end
-  end
-
-  function C_AFKDisplayModule:SetShown(data, show)
-    if (InCombatLockdown() or (_G.AuctionFrame and _G.AuctionFrame:IsVisible())
-      or (_G.MovieFrame and _G.MovieFrame:IsShown())) then
-      -- Do not show AFK Display (even if player is AFK)
-      -- if player is using the Auction house or player is in combat
-      Private:HideDisplay();
-      return;
-    end
-
-    if (show) then
-      -- Hide UIParent and show AFK Display
-      _G.UIParent:Hide();
-      MoveViewLeftStart(0.01);
-
-      if (not Private.display) then
-        Private.display = Private:CreateDisplay();
-
-        if (data.settings.playerModel) then
-          Private.display.modelFrame = Private:CreatePlayerModel();
-        end
-      end
-
-      -- Get Player Level + Spec and update text:
-      local specType;
-      if (GetSpecialization) then
-        specType = (select(2, GetSpecializationInfo(GetSpecialization()))).." ";
-      else
-        specType = tk.Strings.Empty;
-      end
-
-      local name = tk.Strings:Concat(UnitPVPName("player"), " - ",
-      GetRealmName(), "\nLevel ", UnitLevel("player"), ", ",
-      tk.Strings:SetTextColorByClassFileName(tk.Strings:Concat(specType, (select(1, UnitClass("player"))))));
-
-      Private.display.name:SetText(name);
-      Private.display:Show();
-
-      Private:PositionModel();
-      Private:ResetDataText();
-      StartTimer();
-    else
-      -- Hide AFK Display and show UIParent
-      _G.UIParent:Show();
-
-      if (data.settings.rotateCamera) then
-        MoveViewLeftStop();
-      end
-
-      Private:HideDisplay();
-    end
   end
 end

@@ -2,8 +2,8 @@
 local _G = _G;
 local MayronUI = _G.MayronUI;
 
----@class Toolkit
-local tk, _, _, _, obj = MayronUI:GetCoreComponents(); ---@type Toolkit
+---@class MayronUI.Toolkit
+local tk, _, _, _, obj = MayronUI:GetCoreComponents(); ---@type MayronUI.Toolkit
 
 tk.Strings = {};
 tk.Strings.Empty = "";
