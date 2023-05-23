@@ -556,11 +556,15 @@ function AuraButtonMixin:GetTextPositionSettings(textName)
   return unpack(position);
 end
 
+local InCombatLockdown = _G.InCombatLockdown;
+
 function AuraButtonMixin:UpdateStyling()
-  local db = MayronUI:GetComponent("MUI_AurasDB");
-  local auraType = (self.filter == "HELPFUL") and "buffs" or "debuffs";
-  local width, height = GetAuraButtonSize(auraType, db);
-  self:SetSize(width, height);
+  if (not InCombatLockdown()) then
+    local db = MayronUI:GetComponent("MUI_AurasDB");
+    local auraType = (self.filter == "HELPFUL") and "buffs" or "debuffs";
+    local width, height = GetAuraButtonSize(auraType, db);
+    self:SetSize(width, height);
+  end
 
   local borderSize = self:GetSetting("number", "iconBorderSize");
   local iconWidth = self:GetSetting("number", "iconWidth");
@@ -862,7 +866,10 @@ local function OnHeaderAttributeChanged(self, name, btn)
   btn:SetScript("OnAttributeChanged", OnAuraButtonAttributeChanged);
 end
 
-local function SetUpAuraHeader(db, header, auraType, mode)
+local function SetUpAuraHeader(db, header)
+  local auraType = (header.filter == "HELPFUL") and "buffs" or "debuffs";
+  local mode = header.mode;
+
   local hDirection = db.profile:QueryType("string", auraType, mode, "hDirection");
   local vDirection = db.profile:QueryType("string", auraType, mode, "vDirection");
   local xSpacing = db.profile:QueryType("number", auraType, mode, "xSpacing");
@@ -890,6 +897,20 @@ local function SetUpAuraHeader(db, header, auraType, mode)
   header:SetAttribute("point", headerPoint);
   header:SetAttribute("xOffset", headerXOffset);
   header:SetAttribute("wrapYOffset", headerWrapYOffset);
+
+  if (header.filter == "HELPFUL") then
+    header:SetAttribute('initialConfigFunction', ([[
+      self:SetWidth(%d)
+      self:SetHeight(%d)
+      self:SetAttribute('type2', 'cancelaura');
+    ]]):format(width, height));
+  else
+    header:SetAttribute("initialConfigFunction", ([[
+      self:SetWidth(%d)
+      self:SetHeight(%d)
+    ]]):format(width, height));
+  end
+
   tk:HideInPetBattles(header);
 
   local relFrameName = db.profile:QueryType("string", auraType, mode, "relFrame");
@@ -929,9 +950,6 @@ local function CreateOrUpdateAuraHeader(filter, db, header)
   if (filter == "HELPFUL") then
     header:SetAttribute("includeWeapons", 1);
     header:SetAttribute("weaponTemplate", "SecureActionButtonTemplate");
-    header:SetAttribute('initialConfigFunction', [[
-      self:SetAttribute('type2', 'cancelaura');
-    ]]);
   end
 
   header:SetAttribute("template", "SecureActionButtonTemplate"); -- ActionButtonTemplate
@@ -943,7 +961,7 @@ local function CreateOrUpdateAuraHeader(filter, db, header)
   header:SetAttribute("sortMethod", "TIME");
   header:SetAttribute("sortDirection", "-");
 
-  SetUpAuraHeader(db, header, auraType, mode);
+  SetUpAuraHeader(db, header);
   header:HookScript("OnAttributeChanged", OnHeaderAttributeChanged);
 
   header:Show();
@@ -1075,11 +1093,11 @@ function C_AurasModule:OnEnabled(data)
       local mode = m == 1 and "icons" or "statusbars";
 
       local auraHeaderObserver = function()
-        SetUpAuraHeader(db, header, auraType, mode);
+        SetUpAuraHeader(db, header);
       end
 
       local widthHeightObserver = function()
-        SetUpAuraHeader(db, header, auraType, mode);
+        SetUpAuraHeader(db, header);
         updateStylingObserver();
       end
 
