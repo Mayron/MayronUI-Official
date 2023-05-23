@@ -69,9 +69,6 @@ db:OnStartUp(function(self, sv)
   -- setup globals:
   MayronUI.db = self;
 
-  local bagnonChanges = MayronUI:GetComponent("BagnonChanges");
-  bagnonChanges:Apply();
-
   -- Migration Code:
   for _, profile in pairs(sv.profiles) do
     profile.actionBarPanel = nil;

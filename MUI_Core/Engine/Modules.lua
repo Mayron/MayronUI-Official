@@ -931,6 +931,13 @@ function C_CoreModule:OnInitialize()
     end
   end
 
+  for i = 1, 2 do
+    -- This is required to fix pet battle bug
+    local side = i == 1 and "Left" or "Right";
+    local bar = _G["MultiBar"..side];
+    bar.SetScale = tk.Constants.DUMMY_FUNC;
+  end
+
   for addonId, addonData in db.global.core.setup.addOns:Iterate() do
     CheckForNewMayronUIPreset(addonId, addonData);
   end

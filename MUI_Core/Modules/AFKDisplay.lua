@@ -637,11 +637,6 @@ do
     display.bg = tk:SetBackground(display, tk:GetAssetFilePath("Textures\\BottomUI\\Single"));
     tk:ApplyThemeColor(display.bg);
 
-    _G.UIParent:HookScript("OnShow", function()
-      local AFKDisplay = MayronUI:ImportModule("AFKDisplay");
-      AFKDisplay:SetShown(false);
-    end);
-
     display.time = display:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge");
     display.time:SetPoint("TOP", 0, -16);
     display.time:SetWidth(100);
@@ -821,10 +816,9 @@ end
 
 function C_AFKDisplayModule:OnEnable(data)
   if (not data.eventListener) then
-    data.eventListener = em:CreateEventListenerWithID("afkDisplayFlagsChanged",
-    function(_, _, unitID)
+    data.eventListener = em:CreateEventListenerWithID("afkDisplayFlagsChanged", function(_, _, unitID)
       if (unitID ~= "player" or not data.settings.enabled) then
-        return;
+        return
       end
 
       local isAfk = UnitIsAFK(unitID);
@@ -834,6 +828,10 @@ function C_AFKDisplayModule:OnEnable(data)
     data.eventListener:RegisterEvent("PLAYER_FLAGS_CHANGED");
 
     local regenDisabled = em:CreateEventListenerWithID("afkDisplayRegenDisabled", function()
+      SetAFKDisplayShown(data, false);
+    end);
+
+    _G.UIParent:HookScript("OnShow", function()
       SetAFKDisplayShown(data, false);
     end);
 

@@ -60,24 +60,7 @@ function C_Container:OnEnable(data)
     data.container:SetPoint("BOTTOM", data.settings.xOffset, data.settings.yOffset);
     data.container:SetFrameStrata(data.settings.frameStrata);
     data.container:SetFrameLevel(data.settings.frameLevel);
-
-    if (tk:IsRetail()) then
-      local listener = em:CreateEventListener(function()
-        data.container:Show();
-      end);
-
-      listener:RegisterEvent("PET_BATTLE_OVER");
-
-      listener = em:CreateEventListener(function()
-        data.container:Hide();
-      end);
-
-      listener:RegisterEvent("PET_BATTLE_OPENING_START");
-
-      if (C_PetBattles.IsInBattle()) then
-        data.container:Hide();
-      end
-    end
+    tk:HideInPetBattles(data.container);
   end
 
   if (not data.subModules) then

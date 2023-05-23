@@ -175,7 +175,7 @@ end
 ---A helper method that takes a variable argument list of Blizzard event names and calls `RegisterEvent` for each one.
 ---@vararg string @A variable argument list of Blizzard event names register.
 ---@return MayronUI.EventListener
-function EventListenerMixin:RegisterEvents(_, ...)
+function EventListenerMixin:RegisterEvents(...)
   for i = 1, select("#", ...) do
     self:RegisterEvent((select(i, ...)));
   end

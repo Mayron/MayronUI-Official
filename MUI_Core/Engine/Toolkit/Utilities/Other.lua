@@ -883,3 +883,23 @@ do
     return IsClass(unitID, classes.DEMONHUNTER);
   end
 end
+
+do
+  local C_PetBattles = _G["C_PetBattles"];
+
+  function tk:HideInPetBattles(frame)
+    if (not tk:IsRetail() or not C_PetBattles) then return end
+
+    local em = MayronUI:GetComponent("EventManager")--[[@as MayronUI.EventManager]];
+
+    local listener = em:CreateEventListener(function(_, event)
+      frame:SetShown(event == "PET_BATTLE_OVER");
+    end);
+
+    listener:RegisterEvents("PET_BATTLE_OVER", "PET_BATTLE_OPENING_START");
+
+    if (C_PetBattles.IsInBattle()) then
+      frame:Hide();
+    end
+  end
+end

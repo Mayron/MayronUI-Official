@@ -795,6 +795,7 @@ do
   function C_TimerField:CreateField(data, name)
     local globalName = tk.Strings:Concat("MUI_", name, "TimerField");
     local frame = tk:CreateBackdropFrame("Frame", nil, globalName);
+    tk:HideInPetBattles(frame);
 
     local fieldHeight = (data.settings.bar.maxBars * (data.settings.bar.height + data.settings.bar.spacing)) - data.settings.bar.spacing;
     frame:SetSize(data.settings.bar.width, fieldHeight);

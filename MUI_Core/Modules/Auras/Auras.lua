@@ -890,6 +890,7 @@ local function SetUpAuraHeader(db, header, auraType, mode)
   header:SetAttribute("point", headerPoint);
   header:SetAttribute("xOffset", headerXOffset);
   header:SetAttribute("wrapYOffset", headerWrapYOffset);
+  tk:HideInPetBattles(header);
 
   local relFrameName = db.profile:QueryType("string", auraType, mode, "relFrame");
   local relPoint = db.profile:QueryType("string", auraType, mode, "relPoint");
