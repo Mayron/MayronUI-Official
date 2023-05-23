@@ -42,7 +42,7 @@ if (not Framework) then return end
 
 local max, tostring, type, strsplit, strgsub, rawset = _G.math.max, _G.tostring, _G.type, _G.strsplit, _G.string.gsub, _G.rawset;
 local select, next, strformat, unpack, print, strrep = _G.select, _G.next, _G.string.format, _G.unpack, _G.print, _G.string.rep;
-local CreateFromMixins, collectgarbage, setmetatable = _G.CreateFromMixins, _G.collectgarbage, _G.setmetatable;
+local CreateFromMixins, setmetatable = _G.CreateFromMixins, _G.setmetatable;
 local strmatch, error, ipairs = _G.string.match, _G.error, _G.ipairs;
 
 local ClassMixin = {}; ---@class MayronObjects.Class
@@ -1152,7 +1152,6 @@ do
   local function RunCleaner()
     Framework:EmptyTable(recycledTables);
     pendingClean = nil;
-    collectgarbage("collect");
   end
 
   function Framework:UnpackTable(tbl, startIndex, endIndex)

@@ -16,9 +16,9 @@ _G.MUI_TimerBars = {}; -- Create new global
 
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo;
 local unpack, UnitIsDeadOrGhost = _G.unpack, _G.UnitIsDeadOrGhost;
-local string, date, pairs, ipairs, max = _G.string, _G.date, _G.pairs, _G.ipairs, _G.math.max;
+local string, pairs, ipairs, max = _G.string, _G.pairs, _G.ipairs, _G.math.max;
 local UnitExists, UnitGUID, UIParent = _G.UnitExists, _G.UnitGUID, _G.UIParent;
-local table, GetTime, UnitAura, tonumber = _G.table, _G.GetTime, _G.UnitAura, _G.tonumber;
+local table, GetTime, UnitAura = _G.table, _G.GetTime, _G.UnitAura;
 
 local RepositionBars;
 

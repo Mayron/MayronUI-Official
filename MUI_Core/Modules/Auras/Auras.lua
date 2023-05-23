@@ -50,7 +50,7 @@ local databaseConfig = {
   svName = "MUI_AurasDB";
   defaults = {
     profile = {
-      enabled = true;
+      enabled = false;
       colors = {
         timeRemaining = {1, 1, 1};
         count         = {1, 0.82, 0};
@@ -232,16 +232,14 @@ local databaseConfig = {
 local GetEnchantName;
 
 do
-  local scanners = C_Stack:UsingTypes("GameTooltip")();
-
-  scanners:OnNewItem(function()
-    local scanner = tk:CreateFrame("GameTooltip", nil, "MUIAurasScanner", "GameTooltipTemplate");
-    scanner:SetOwner(_G["MUI_BuffFrames"], "ANCHOR_NONE");
-    return scanner;
-  end);
+  local scanner = nil;
 
   local function GetEnchantNameBySlotID(slotID)
-    local scanner = scanners:Pop();
+    if (not scanner) then
+      scanner = tk:CreateFrame("GameTooltip", nil, "MUIAurasScanner", "GameTooltipTemplate");
+      scanner:SetOwner(_G["MUI_BuffFrames"] or _G["UIParent"], "ANCHOR_NONE");
+    end
+
     scanner:SetInventoryItem("player", slotID);
 
     local totalLines = scanner:NumLines();
@@ -259,7 +257,6 @@ do
       end
     end
 
-    scanners:Push(scanner);
     return nil;
   end
 

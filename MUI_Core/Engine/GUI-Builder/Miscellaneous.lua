@@ -81,7 +81,7 @@ do
   ---@return Frame|MayronUI.GridTextureMixin|table @The new frame (or existing frame if the frame param was supplied).
   function gui:AddDialogTexture(frame, alphaType, padding)
     local texture = tk:GetAssetFilePath("Textures\\DialogBox\\Dialog-Medium");
-    local dialogFrame = gui:CreateGridTexture(frame, texture, 12, padding or 12, 674, 674);
+    local dialogFrame = gui:CreateGridTexture(frame, texture, 10, padding or 12, 674, 674);
     table.insert(dialogFrames, dialogFrame);
 
     dialogFrame:SetGridAlphaType(alphaType or "Regular");
