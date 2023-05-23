@@ -628,6 +628,16 @@ function tk:UpdateThemeColor(value)
   end
 end
 
+---@param texture Texture
+---@param direction "HORIZONTAL"|"VERTICAL"
+---@param r number?
+---@param g number?
+---@param b number?
+---@param a number?
+---@param r2 number?
+---@param g2 number?
+---@param b2 number?
+---@param a2 number?
 function tk:SetGradient(texture, direction, r, g, b, a, r2, g2, b2, a2)
   r, g, b, a, r2, g2, b2, a2 = r or 0, g or 0, b or 0, a or 0, r2 or 0, g2 or 0, b2 or 0, a2 or 0;
 
@@ -635,9 +645,13 @@ function tk:SetGradient(texture, direction, r, g, b, a, r2, g2, b2, a2)
     texture:SetGradientAlpha(direction, r, g, b, a, r2, g2, b2, a2);
   else
     -- dragonflight only:
-    local minColor = CreateColor(r, g, b, a);
-    local maxColor = CreateColor(r2, g2, b2, a2);
-    texture:SetGradient(direction, minColor, maxColor);
+    texture.minColor = texture.minColor or CreateColor(r, g, b, a);
+    texture.minColor:SetRGBA(r, g, b, a);
+
+    texture.maxColor = texture.maxColor or CreateColor(r2, g2, b2, a2);
+    texture.maxColor:SetRGBA(r2, g2, b2, a2);
+
+    texture:SetGradient(direction, texture.minColor, texture.maxColor);
   end
 end
 
