@@ -535,6 +535,28 @@ local function GetBagSlotItemCountText(slot)
 end
 
 ---@param slot MayronUI.Inventory.Slot
+local function GetBagSlotQuestItemTexture(slot)
+  local slotIndex = slot:GetID() or 0;
+  local bag = slot:GetParent() --[[@as MayronUI.Inventory.BagFrame]];
+
+  if (obj:IsFunction(GetContainerItemQuestInfo) and slot.questTexture) then
+    local questInfo = GetContainerItemQuestInfo(bag.bagIndex, slotIndex);-- Could also use `isActive`
+    local isQuestItem = questInfo.questId or questInfo.questID or questInfo.isQuestItem;
+
+    if (isQuestItem) then
+      return _G[questInfo.isActive and "TEXTURE_ITEM_QUEST_BANG" or "TEXTURE_ITEM_QUEST_BORDER"];
+    end
+
+  elseif (tk:IsClassic()) then
+    local itemClassID = select(6, GetItemInfoInstant(slot:GetItemID()));
+
+    if (itemClassID == Enum.ItemClass.Questitem) then
+      return _G["TEXTURE_ITEM_QUEST_BORDER"];
+    end
+  end
+end
+
+---@param slot MayronUI.Inventory.Slot
 local function UpdateBagSlot(slot, button)
   if (button == "LeftButton") then return end
 
@@ -625,38 +647,15 @@ local function UpdateBagSlot(slot, button)
   slot.Count:SetText(countText);
   slot.Count:Show();
 
-  if (obj:IsFunction(GetContainerItemQuestInfo) and slot.questTexture) then
-    local questInfo = GetContainerItemQuestInfo(bag.bagIndex, slotIndex);-- Could also use `isActive`
-    local questTexture;
+  local questTexture = GetBagSlotQuestItemTexture(slot);
 
-    if ((questInfo.questId or questInfo.questID) and not questInfo.isActive) then
-      questTexture = _G["TEXTURE_ITEM_QUEST_BANG"];
-    elseif (questInfo.questId or questInfo.questID or questInfo.isQuestItem) then
-      questTexture = _G["TEXTURE_ITEM_QUEST_BORDER"];
-    else
-      slot.questTexture:Hide();
-    end
-
-    if (questTexture) then
-      slot.questTexture:SetTexture(questTexture);
-      slot.questTexture:Show();
-      local r, g, b = tk.Constants.COLORS.GOLD:GetRGB();
-      slot:SetGridColor(r, g, b);
-    end
-  elseif (tk:IsClassic()) then
-    local itemClassID = select(6, GetItemInfoInstant(slot:GetItemID()));
-
-    if (itemClassID == Enum.ItemClass.Questitem) then
-      local questTexture = _G["TEXTURE_ITEM_QUEST_BORDER"];
-      if (questTexture) then
-        slot.questTexture:SetTexture(questTexture);
-        slot.questTexture:Show();
-        local r, g, b = tk.Constants.COLORS.GOLD:GetRGB();
-        slot:SetGridColor(r, g, b);
-      end
-    else
-      slot.questTexture:Hide();
-    end
+  if (questTexture) then
+    slot.questTexture:SetTexture(questTexture);
+    slot.questTexture:Show();
+    local r, g, b = tk.Constants.COLORS.GOLD:GetRGB();
+    slot:SetGridColor(r, g, b);
+  else
+    slot.questTexture:Hide();
   end
 
   UpdateBagSlotCooldown(bag, slot);
@@ -1612,6 +1611,11 @@ local function HandleTabOnClick(self)
             showSlot = itemTypeClassID == 4 or itemTypeClassID == 2; -- armor or weapons
           elseif (tabID == TabTypesEnum.QuestItems) then
             showSlot = itemTypeClassID == 12;
+
+            if (not showSlot) then
+              local questTexture = GetBagSlotQuestItemTexture(slot);
+              showSlot = questTexture ~= nil;
+            end
           elseif (tabID == TabTypesEnum.TradeGoods) then
             showSlot = itemTypeClassID == 7 or itemTypeClassID == 19; -- tradegoods or profession
           end
