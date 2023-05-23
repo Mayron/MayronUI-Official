@@ -6,6 +6,9 @@
     <Script file="Toolkit\Utilities\Strings.lua"/>
     <Script file="Toolkit\Utilities\Widgets.lua"/>
 
+    <Script file="Events\EventManager.lua"/>
+    <Script file="Events\EventListener.lua"/>
+
     <Script file="GUI-Builder\Panel.lua"/>
     <Script file="GUI-Builder\Cell.lua"/>
     <Script file="GUI-Builder\Group.lua"/>

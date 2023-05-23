@@ -195,7 +195,7 @@ local function GetDatabaseValue(config)
     local repository = db.utilities:GetRepositoryFromQuery(dbPath);
     value = repository:Query(dbPath);
   else
-    ---@cast db Database
+    ---@cast db MayronDB
     value = db:ParsePathValue(dbPath);
 
     if (obj:IsTable(value) and value.GetUntrackedTable) then
@@ -306,7 +306,7 @@ function C_ConfigMenuModule:SetDatabaseValue(_, component, newValue)
       repository = db.utilities:GetRepositoryFromQuery(dbPath);
       oldValue = repository:Query(dbPath);
     else
-      ---@cast db Database
+      ---@cast db MayronDB
       oldValue = db:ParsePathValue(dbPath);
     end
   end
@@ -333,7 +333,7 @@ function C_ConfigMenuModule:SetDatabaseValue(_, component, newValue)
       ---@cast repository OrbitusDB.RepositoryMixin
       repository:Store(dbPath, newValue);
     else
-      ---@cast db Database
+      ---@cast db MayronDB
       db:SetPathValue(dbPath, newValue);
     end
   end

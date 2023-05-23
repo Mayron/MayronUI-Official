@@ -3,7 +3,7 @@ local _G = _G;
 local MayronUI = _G.MayronUI; ---@type MayronUI
 local LibStub = _G.LibStub;
 
----@class Toolkit
+---@class MayronUI.Toolkit
 local tk, _, _, _, _, L = MayronUI:GetCoreComponents();
 
 function tk:IsRetail()

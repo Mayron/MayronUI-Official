@@ -1064,6 +1064,38 @@ local function ShouldBeHidden(data, tooltip)
   return false;
 end
 
+local function ThrowError(key)
+  if (not InCombatLockdown()) then return end
+  UpdateAddOnMemoryUsage();
+
+  print("Error at key: ", key);
+
+  local errorMessage = "UIParent."..key;
+
+  for i = 1, GetNumAddOns() do
+    local addOnName = GetAddOnInfo(i);
+
+    if (addOnName == "MUI_Core") then
+      local usage = GetAddOnMemoryUsage(i);
+      local value;
+
+      if (usage > 1000) then
+        value = math.floor(usage / 10) / 100;
+        value = string.format("%smb", value);
+      else
+        value = tk.Numbers:ToPrecision(usage, 0);
+        value = string.format("%skb", value);
+      end
+
+      errorMessage = errorMessage .. (" - %s: %s"):format(addOnName, value);
+      break
+    end
+  end
+
+  local stacktrace = debugstack(3, 30, 30);
+  error(errorMessage..":\n\n"..stacktrace.."\n-------------\n");
+end
+
 -------------------------------
 --- C_ToolTipsModule
 -------------------------------
@@ -1077,11 +1109,13 @@ function C_ToolTipsModule:OnInitialize(data)
     };
 
     for _, key in ipairs(frames) do
-      uiParent[key] = function() error("UIParent."..key) end;
+      uiParent[key] = function()
+        ThrowError(key);
+      end;
     end
 
-    uiParent:HookScript("OnHide", function() error("UIParent.OnHide") end);
-    hooksecurefunc("SetUIVisibility", function() error("SetUIVisibility"); end);
+    uiParent:HookScript("OnHide", function() ThrowError("UIParent.OnHide") end);
+    hooksecurefunc("SetUIVisibility", function() ThrowError("SetUIVisibility"); end);
   end
 
   local function SetFontsWrapper()

@@ -1032,24 +1032,76 @@ do
     return normalizedQuery;
   end
 
-  local recyclingStack = {};
+  local RecycleBin = {};
+  RecycleBin.front = 1;
+  RecycleBin.back = 1;
+  RecycleBin.capacity = 30;
 
-  local function ResetTable(tbl)
+  function RecycleBin:GetSize()
+    if (self.front == self.back) then
+      if (self[self.front] ~= nil) then
+        return 1;
+      end
+
+      return 0;
+    end
+
+    local size = self.front - self.back + 1;
+
+    if (size <= 0) then
+      size = size + self.capacity;
+    end
+
+    return size;
+  end
+
+  function RecycleBin:Push(item)
+    local size = self:GetSize();
+    local full = size == self.capacity;
+
+    if (full) then return end
+
+    if (self[self.front] == nil) then
+      self[self.front] = item;
+      return
+    end
+
+    self.front = self.front + 1;
+
+    if (self.front > self.capacity) then
+      self.front = 1;
+    end
+
+    self[self.front] = item;
+  end
+
+  function RecycleBin:Pop()
+    local size = self:GetSize();
+    local empty = size == 0;
+
+    if (empty) then return {} end
+
+    local item = self[self.back];
+    self[self.back] = nil;
+
+    if (self.front == self.back) then
+      return item;
+    end
+
+    self.back = self.back + 1;
+
+    if (self.back > self.capacity) then
+      self.back = 1;
+    end
+
+    return item;
+  end
+
+  local function ClearTable(tbl)
     setmetatable(tbl, nil);
     for key in pairs(tbl) do
       tbl[key] = nil;
     end
-  end
-
-  ---@return table
-  function UtilitiesMixin:PopTable()
-    if (#recyclingStack > 0) then
-      local tbl = table.remove(recyclingStack, 1);
-      ResetTable(tbl);
-      return tbl;
-    end
-
-    return {};
   end
 
   local recycledTable_Metatable = {
@@ -1059,15 +1111,32 @@ do
     __newindex = function(_, key, value)
       error("Attempt to assign key '"..tostring(key).."' the value of "..tostring(value).." onto a recycled table.");
     end
-  }
+  };
 
   ---@param tbl table
   function UtilitiesMixin:PushTable(tbl)
-    if (#recyclingStack < 50 and type(tbl) == "table") then
-      ResetTable(tbl);
+    if (type(tbl) == "table") then
+      if (type(tbl.GetObjectType) == "function") then
+        local name = tbl.GetName and tbl:GetName();
+
+        if (type(name) == "string" and #name > 0) then
+          error("Cannot recycle widget with name: "..name);
+        else
+          error("Cannot recycle widgets!");
+        end
+      end
+
+      ClearTable(tbl);
       setmetatable(tbl, recycledTable_Metatable);
-      table.insert(recyclingStack, tbl);
+      RecycleBin:Push(tbl);
     end
+  end
+
+  ---@return table
+  function UtilitiesMixin:PopTable()
+    local tbl = RecycleBin:Pop();
+    ClearTable(tbl);
+    return tbl;
   end
 
   ---@param ... (string|number)

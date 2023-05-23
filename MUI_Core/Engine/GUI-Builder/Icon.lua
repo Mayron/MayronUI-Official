@@ -3,7 +3,7 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk = MayronUI:GetCoreComponents();
 
----@class GUIBuilder
+---@class MayronUI.GUIBuilder
 local gui = MayronUI:GetComponent("GUIBuilder");
 
 ---@alias MayronUI.IconType "item"|"spell"|"aura"|"button"|"check-button"

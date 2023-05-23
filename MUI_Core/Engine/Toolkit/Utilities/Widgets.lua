@@ -2,7 +2,7 @@
 local _G = _G;
 local MayronUI = _G.MayronUI; ---@type MayronUI
 
----@class Toolkit
+---@class MayronUI.Toolkit
 local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 
 local ipairs, hooksecurefunc, CreateFrame, select = _G.ipairs, _G.hooksecurefunc, _G.CreateFrame, _G.select;
@@ -284,24 +284,6 @@ end
 function tk:KillAllElements(...)
   for _, element in obj:IterateArgs(...) do
     self:KillElement(element);
-  end
-end
-
-function tk:HideFrameElements(frame, kill)
-  for _, child in obj:IterateArgs(frame:GetChildren()) do
-    if (kill) then
-      self:KillElement(child);
-    else
-      child:Hide();
-    end
-  end
-
-  for _, region in obj:IterateArgs(frame:GetRegions()) do
-    if (kill) then
-      self:KillElement(region);
-    else
-      region:Hide();
-    end
   end
 end
 

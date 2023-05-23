@@ -3,7 +3,7 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local _, _, _, _, obj = MayronUI:GetCoreComponents();
 
----@class GUIBuilder
+---@class MayronUI.GUIBuilder
 local gui = MayronUI:GetComponent("GUIBuilder");
 
 ---@class DynamicFrame : Frame,MayronObjects.Object, MayronObjects.Object

@@ -10,29 +10,29 @@ local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 local MayronUI = {};
 _G.MayronUI = MayronUI;
 
----@class Toolkit
+---@class MayronUI.Toolkit
 local tk = {};
 
----@class GUIBuilder
+---@class MayronUI.GUIBuilder
 local gui = {};
 
-local db = obj:Import("MayronDB").Static:CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI"); ---@class Database
-local em = obj:Import("Pkg-MayronEvents.EventManager")(); ---@class EventManager
-local L = _G.LibStub("AceLocale-3.0"):GetLocale("MayronUI"); ---@class Locale
+local db = obj:Import("MayronDB").Static:CreateDatabase(addOnName, "MayronUIdb", nil, "MayronUI"); ---@type MayronDB
+local L = _G.LibStub("AceLocale-3.0"):GetLocale("MayronUI"); ---@type AceLocale.Localizations
 
+---@class MayronUI.CoreComponents
+---@field EventManager MayronUI.EventManager
 local components = {
   Toolkit = tk;
   Database = db;
-  EventManager = em;
   GUIBuilder = gui;
   Objects = obj;
   Locale = L;
 };
 
 ---Gets the core components of MayronUI
----@return Toolkit, Database, EventManager, GUIBuilder, MayronObjects, Locale
+---@return MayronUI.Toolkit, MayronDB, MayronUI.EventManager, MayronUI.GUIBuilder, MayronObjects, AceLocale.Localizations
 function MayronUI:GetCoreComponents()
-  return tk, db, em, gui, obj, L;
+  return tk, db, components.EventManager, gui, obj, L;
 end
 
 ---@generic T : string

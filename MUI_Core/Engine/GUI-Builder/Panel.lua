@@ -3,7 +3,7 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 
----@class GUIBuilder
+---@class MayronUI.GUIBuilder
 local gui = MayronUI:GetComponent("GUIBuilder");
 
 local math = _G.math;
