@@ -18,8 +18,8 @@ local gui = MayronUI:GetComponent("GUIBuilder");
 ---@field iconType MayronUI.IconType?
 
 
-local function HandleAuraRightClick(_, button)
-  if (button == "RightButton") then
+local function HandleAuraRightClick(self, button)
+  if (button == "RightButton" and type(self.timeRemaining) == "number" and self.timeRemaining > 0) then
     tk.HandleTooltipOnLeave();
   end
 end

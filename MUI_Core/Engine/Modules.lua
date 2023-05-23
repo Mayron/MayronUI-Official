@@ -881,17 +881,17 @@ function C_CoreModule:OnInitialize()
     uiParent:HookScript("OnHide", function() ThrowError("UIParent.OnHide") end);
     hooksecurefunc("SetUIVisibility", function() ThrowError("SetUIVisibility"); end);
 
-    local f = CreateFrame("Frame");
+    -- local f = CreateFrame("Frame");
 
-    f:SetScript("OnUpdate", function(self, elapsed)
-      self.elapsed = (self.elapsed or 0) + elapsed;
+    -- f:SetScript("OnUpdate", function(self, elapsed)
+    --   self.elapsed = (self.elapsed or 0) + elapsed;
 
-      if (self.elapsed > 2) then
-        self.elapsed = 0;
-        local value = GetMuiMemoryUsage();
-        print(("MUI_Core: %s"):format(value))
-      end
-    end)
+    --   if (self.elapsed > 2) then
+    --     self.elapsed = 0;
+    --     local value = GetMuiMemoryUsage();
+    --     print(("MUI_Core: %s"):format(value))
+    --   end
+    -- end)
   end
 
   local ignored = {
