@@ -442,11 +442,12 @@ local function SetBagItemSlotBorderColor(slot, isHighlightedBag)
       if (equipmentSets > 0) then
         local slotID = slot:GetItemID();
 
-        for i = 1, equipmentSets do
+        for i = 0, (equipmentSets - 1) do
           local items = C_EquipmentSet.GetItemIDs(i);
 
           if (obj:IsTable(items)) then
             for _, itemID in ipairs(items) do
+
               if (slotID == itemID) then
                 local color = tk.Constants.COLORS.BATTLE_NET_BLUE;
                 slot:SetGridColor(color.r, color.g, color.b);
