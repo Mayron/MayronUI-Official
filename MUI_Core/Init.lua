@@ -106,6 +106,8 @@ db:OnStartUp(function(self, sv)
   tk:SetGameFont(self.global.core.fonts);
   tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
 
+  _G["DisplayInterfaceActionBlockedMessage"] = tk.Constants.DUMMY_FUNC;
+
   if (tk.Constants.DEBUG_WHITELIST[tk:GetPlayerKey()])  then
     MayronUI.DEBUG_MODE = true;
     -- _G.SetCVar("ScriptErrors", "1");

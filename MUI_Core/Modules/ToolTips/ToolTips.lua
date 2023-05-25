@@ -9,7 +9,7 @@ local gameTooltip = _G.GameTooltip--[[@as BackdropTemplate|GameTooltip|MayronUI.
 local healthBar, powerBar = _G.GameTooltipStatusBar, nil;
 local IsInGroup, IsInRaid, After = _G.IsInGroup, _G.IsInRaid, _G.C_Timer.After;
 local TooltipDataProcessor, UnitIsDeadOrGhost = _G.TooltipDataProcessor, _G.UnitIsDeadOrGhost;
-local NotifyInspect = _G.NotifyInspect;
+local NotifyInspect, UnitInVehicle = _G.NotifyInspect, _G.UnitInVehicle;
 
 local originalHealthBarSetStatusBarColor = healthBar.SetStatusBarColor--[[@as function]];
 
@@ -849,6 +849,7 @@ local function CanInspectUnit(unitID)
 
   local shouldInspect =
     UnitIsPlayer(unitID) and
+    (not UnitInVehicle(unitID)) and
     CheckInteractDistance(unitID, 1) and
     CanInspect(unitID, false) and
     UnitLevel(unitID) >= 10 and

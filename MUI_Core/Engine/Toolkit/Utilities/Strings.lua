@@ -279,7 +279,7 @@ do
     if (gold > 0) then
       if (tonumber(gold) >= 1000) then
         local goldFormatted = string.gsub(gold, "^(-?%d+)(%d%d%d)", '%1,%2');
-        return self:SetTextColorByKey(goldFormatted .. goldIcon, colorKey);
+        return self:SetTextColorByKey(goldFormatted .. " " .. goldIcon, colorKey);
       else
         text = gold .. goldIcon;
       end

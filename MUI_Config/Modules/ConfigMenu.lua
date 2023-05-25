@@ -484,7 +484,6 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
   end
 end
 
-obj:DefineParams("table");
 function C_ConfigMenuModule:RenderComponent(data, menuConfig, componentConfig)
   if (componentConfig.ignore) then
     obj:PushTable(componentConfig);

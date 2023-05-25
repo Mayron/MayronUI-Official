@@ -108,8 +108,8 @@ function tk:SetBasicTooltip(widget, text, point, xOffset, yOffset)
     widget.tooltipAnchor = point;
   end
 
-  widget:HookScript("OnEnter", tk.HandleTooltipOnEnter);
-  widget:HookScript("OnLeave", tk.HandleTooltipOnLeave);
+  widget:SetScript("OnEnter", tk.HandleTooltipOnEnter);
+  widget:SetScript("OnLeave", tk.HandleTooltipOnLeave);
 end
 
 ------------------------------------------------
