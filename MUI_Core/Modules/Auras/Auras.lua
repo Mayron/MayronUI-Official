@@ -857,12 +857,14 @@ local function OnHeaderAttributeChanged(self, name, btn)
   btn.filter = self.filter;
   btn.mode = self.mode;
 
-  Mixin(btn, AuraButtonMixin);
+  if (tk:IsRetail()) then
+    self:RegisterForClicks("RightButtonUp", "RightButtonDown");
 
-  if (self.filter == "HELPFUL") then
-    btn:RegisterForClicks("RightButtonUp");
+  else
+    self:RegisterForClicks("RightButtonUp");
   end
 
+  Mixin(btn, AuraButtonMixin);
   btn:SetScript("OnAttributeChanged", OnAuraButtonAttributeChanged);
 end
 
@@ -900,14 +902,14 @@ local function SetUpAuraHeader(db, header)
 
   if (header.filter == "HELPFUL") then
     header:SetAttribute('initialConfigFunction', ([[
-      self:SetWidth(%d)
-      self:SetHeight(%d)
-      self:SetAttribute('type2', 'cancelaura');
+      self:SetWidth(%d);
+      self:SetHeight(%d);
+      self:SetAttribute("type2", "cancelaura");
     ]]):format(width, height));
   else
     header:SetAttribute("initialConfigFunction", ([[
-      self:SetWidth(%d)
-      self:SetHeight(%d)
+      self:SetWidth(%d);
+      self:SetHeight(%d);
     ]]):format(width, height));
   end
 
