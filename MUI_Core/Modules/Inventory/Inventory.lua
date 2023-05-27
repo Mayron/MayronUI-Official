@@ -256,9 +256,12 @@ do
         for i = #inventoryFrame.bags, 1, -1 do
           local bag = inventoryFrame.bags[i];
           local isKeyring = bag.bagIndex == BagIndexes.Keyring;
-          bag:SetShown(not isKeyring);
+          local isReagentBag = bag.bagIndex == BagIndexes.ReagentBag;
 
-          if (not isKeyring) then
+          local shown = not (isKeyring or isReagentBag);
+          bag:SetShown(shown);
+
+          if (shown) then
             for j = 0, (#bag.slots - 1) do
               local slot = bag.slots[#bag.slots - j];
 
@@ -858,6 +861,13 @@ local function BagToggleButtonOnHide(self)
   self:UnregisterAllEvents();
 end
 
+local function BagBarOnShow(self)
+  local inventoryFrame = self:GetParent()--[[@as MayronUI.Inventory.Frame]]
+  if (not tk:IsClassic()) then
+    inventoryFrame:RegisterEvent("BAG_CONTAINER_UPDATE"); -- when a bag is added or removed from the bags bar
+  end
+end
+
 local function CreateBagToggleButton(bagBar, bagFrame, xOffset)
   local bagBtnName;
   local isBackpack = bagFrame.bagIndex == BagIndexes.Backpack;
@@ -913,7 +923,7 @@ local function CreateBagToggleButton(bagBar, bagFrame, xOffset)
     bagToggleBtn:SetGridColor(1, 1, 1);
     bagToggleBtn.icon:SetTexture("Interface\\ContainerFrame\\KeyRing-Bag-Icon");
 
-  elseif (bagFrame.bagIndex > 0) then
+  elseif (bagFrame.bagIndex > 0 or bagFrame.bagIndex == Enum.BagIndex.ReagentBag) then
     local equipmentSlotIndex = ContainerIDToInventoryID(bagFrame.bagIndex);
     bagToggleBtn:SetID(equipmentSlotIndex); -- required for dragging
     Mixin(bagToggleBtn, Item:CreateFromEquipmentSlot(equipmentSlotIndex));
@@ -1061,8 +1071,10 @@ local function SetCharacterInventory(info, inventoryFrame)
       local bagButton = inventoryFrame.bagBar.buttons[b];
       local isBackpack = bag.bagIndex == BagIndexes.Backpack;
       local isKeyring = bag.bagIndex == BagIndexes.Keyring;
+      local isReagentBag = bag.bagIndex == BagIndexes.ReagentBag;
 
-      bag:SetShown(not isKeyring);
+      local shown = not (isKeyring or isReagentBag);
+      bag:SetShown(shown);
 
       if (not (isBackpack or isKeyring)) then
         bagButton:SetItemID(bagInfo.bagItemID);
@@ -1124,8 +1136,10 @@ local function SetCharacterInventory(info, inventoryFrame)
       local bagButton = inventoryFrame.bagBar.buttons[b];
       local isBackpack = bag.bagIndex == BagIndexes.Backpack;
       local isKeyring = bag.bagIndex == BagIndexes.Keyring;
+      local isReagentBag = bag.bagIndex == BagIndexes.ReagentBag;
 
-      bag:SetShown(not isKeyring);
+      local shown = not (isKeyring or isReagentBag);
+      bag:SetShown(shown);
 
       if (not (isBackpack or isKeyring)) then
         local equipmentSlotIndex = bagButton:GetID();
@@ -1278,6 +1292,7 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
       for b, bag in ipairs(inventoryFrame.bags) do
         local isBackpack = bag.bagIndex == BagIndexes.Backpack;
         local isKeyring = bag.bagIndex == BagIndexes.Keyring;
+        local isReagentBag = bag.bagIndex == BagIndexes.ReagentBag;
         local bagButton = inventoryFrame.bagBar.buttons[b];
 
         local bagInfo = {};
@@ -1286,6 +1301,8 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
           bagInfo.bagItemID = BagIndexes.Backpack;
         elseif (isKeyring) then
           bagInfo.bagItemID = BagIndexes.Keyring;
+        elseif (isReagentBag) then
+          bagInfo.bagItemID = BagIndexes.ReagentBag;
         else
           bagInfo.bagItemID = bagButton:GetItemID();
         end
@@ -1322,7 +1339,7 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
     end
   end
 
-  --MayronUI:LogInfo("Event: %s (has bag?: %s) with bagIndex %s and slotIndex %s.",event, obj:IsTable(bagFrame), bagIndex, slotIndex);
+  -- MayronUI:LogInfo("Event: %s (has bag?: %s) with bagIndex %s and slotIndex %s.", event, obj:IsTable(bagFrame), bagIndex, slotIndex);
 
   -- Retail Only
   if (event == "UNIT_INVENTORY_CHANGED" or event == "PLAYER_SPECIALIZATION_CHANGED") then
@@ -1671,10 +1688,6 @@ function C_Inventory:OnInitialize()
     inventoryFrame:RegisterEvent("PLAYER_MONEY");
     inventoryFrame:RegisterEvent("INVENTORY_SEARCH_UPDATE");
 
-    if (not tk:IsClassic()) then
-      inventoryFrame:RegisterEvent("BAG_CONTAINER_UPDATE"); -- when a bag is added or removed from the bags bar
-    end
-
     -- Wrath Only --------------:
     inventoryFrame:RegisterEvent("QUEST_ACCEPTED");
     inventoryFrame:RegisterEvent("UNIT_QUEST_LOG_CHANGED"); -- and arg1 == "player", then also do the same as QUEST_ACCEPTED
@@ -1693,6 +1706,7 @@ function C_Inventory:OnInitialize()
     inventoryFrame.bagBar = bagBar;
     bagBar:SetSize(totalBagFrames * (viewSettings.grid.widths.initial + slotSpacing) - slotSpacing, viewSettings.grid.height);
     bagBar:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
+    bagBar:SetScript("OnShow", BagBarOnShow);
     bagBar:Hide();
     bagBar.buttons = {};
 
