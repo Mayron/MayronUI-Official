@@ -857,11 +857,13 @@ local function OnHeaderAttributeChanged(self, name, btn)
   btn.filter = self.filter;
   btn.mode = self.mode;
 
-  if (tk:IsRetail()) then
-    self:RegisterForClicks("RightButtonUp", "RightButtonDown");
+  if (self.filter == "HELPFUL") then
+    if (tk:IsRetail()) then
+      btn:RegisterForClicks("RightButtonUp", "RightButtonDown");
 
-  else
-    self:RegisterForClicks("RightButtonUp");
+    else
+      btn:RegisterForClicks("RightButtonUp");
+    end
   end
 
   Mixin(btn, AuraButtonMixin);
