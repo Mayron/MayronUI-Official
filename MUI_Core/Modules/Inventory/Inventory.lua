@@ -71,7 +71,7 @@ local GetMoney = _G.GetMoney;
 ---@class MayronUI.Inventory.Slot : Button, ItemMixin, MayronUI.Icon
 ---@field icon Texture
 ---@field itemName FontString
----@field itemSubClass FontString
+---@field itemDetails FontString
 ---@field Count FontString
 ---@field searchOverlay Texture
 ---@field IconBorder Texture
@@ -413,6 +413,12 @@ local function SetDetailedViewEnabled(inventoryFrame, enabled)
         slot.icon:SetPoint("BOTTOMLEFT", 2, 2);
         slot.questTexture:ClearAllPoints();
         slot.questTexture:SetAllPoints(slot.icon);
+
+        slot.itemDetails:ClearAllPoints();
+        slot.itemDetails:SetPoint("TOPLEFT", slot.itemName, "BOTTOMLEFT", 0, -2);
+        slot.itemDetails:SetPoint("TOPRIGHT", slot.itemName, "BOTTOMRIGHT", 0, -2);
+        slot.itemDetails:SetTextColor(tk.Constants.COLORS.GRAY:GetRGB());
+        tk:SetMasterFont(slot.itemDetails, 10, "");
       end
     end
   else
@@ -428,6 +434,10 @@ local function SetDetailedViewEnabled(inventoryFrame, enabled)
         slot.icon:SetPoint("CENTER");
         slot.questTexture:ClearAllPoints();
         slot.questTexture:SetAllPoints(slot);
+
+        slot.itemDetails:ClearAllPoints();
+        slot.itemDetails:SetPoint("TOP", slot, "TOP", 1, -2);
+        tk:SetFont(slot.itemDetails, "Prototype", 11, "OUTLINE");
       end
     end
   end
@@ -486,7 +496,7 @@ local function ClearBagSlot(slot)
   slot.Count:Hide();
   slot.gloss:Hide();
   slot.itemName:SetText("");
-  slot.itemSubClass:SetText("");
+  slot.itemDetails:SetText("");
   slot:SetGridColor(0.2, 0.2, 0.2);
 end
 
@@ -583,16 +593,17 @@ local function UpdateBagSlot(slot, button)
 
   local detailedView = bag.inventoryFrame.detailedView;
   slot.itemName:SetShown(detailedView);
-  slot.itemSubClass:SetShown(detailedView);
 
   local quality = slot:GetItemQuality();
   local itemName = slot:GetItemName();
+
+  local _, itemClass, itemSubClass, equipLocation, _, classID, subClassID = GetItemInfoInstant(slot:GetItemID());
+  local invType = slot:GetInventoryType();
 
   if (detailedView) then
     slot.itemName:SetText(itemName);
 
     local subText;
-    local _, itemClass, itemSubClass, equipLocation, _, classID, subClassID = GetItemInfoInstant(slot:GetItemID());
 
     if (classID == Enum.ItemClass.Miscellaneous and quality > 0) then
       local isJunk = subClassID == Enum.ItemMiscellaneousSubclass.Junk;
@@ -609,7 +620,6 @@ local function UpdateBagSlot(slot, button)
       subText = itemSubClass or itemClass;
     end
 
-    local invType = slot:GetInventoryType();
     if (invType > 0 and equipLocation) then
       local inventorySlot = _G[equipLocation];
 
@@ -626,13 +636,31 @@ local function UpdateBagSlot(slot, button)
       end
     end
 
-    slot.itemSubClass:SetText(subText or "");
+    slot.itemDetails:SetText(subText or "");
 
     if (invType > 0 or quality > 1) then
       local color = slot:GetItemQualityColor();
       slot.itemName:SetTextColor(color.r, color.g, color.b);
     else
       slot.itemName:SetTextColor(1, 1, 1);
+    end
+  else
+    local itemLevel;
+
+    if (invType > 0 and equipLocation and quality > 1) then
+      local inventorySlot = _G[equipLocation];
+
+      if (obj:IsString(inventorySlot)) then
+        itemLevel = slot:GetCurrentItemLevel();
+      end
+    end
+
+    if (type(itemLevel) == "number" and itemLevel > 0) then
+      local color = slot:GetItemQualityColor();
+      slot.itemDetails:SetTextColor(color.r, color.g, color.b);
+      slot.itemDetails:SetText(itemLevel);
+    else
+      slot.itemDetails:SetText("");
     end
   end
 
@@ -713,15 +741,10 @@ local function CreateBagSlot(bagFrame, slotIndex)
   slot.itemName:SetWordWrap(false);
   tk:SetFontSize(slot.itemName, 12);
 
-  slot.itemSubClass = slot:CreateFontString("$parentItemClass", "OVERLAY", "GameFontHighlight");
-  slot.itemSubClass:SetPoint("TOPLEFT", slot.itemName, "BOTTOMLEFT", 0, -2);
-  slot.itemSubClass:SetPoint("TOPRIGHT", slot.itemName, "BOTTOMRIGHT", 0, -2);
-  slot.itemSubClass:SetWordWrap(false);
-  slot.itemSubClass:Hide();
-  slot.itemSubClass:SetJustifyH("LEFT");
-  tk:SetFontSize(slot.itemSubClass, 10);
-
-  slot.itemSubClass:SetTextColor(tk.Constants.COLORS.GRAY:GetRGB());
+  slot.itemDetails = slot:CreateFontString("$parentItemClass", "OVERLAY", "GameFontHighlight");
+  slot.itemDetails:SetWordWrap(false);
+  slot.itemDetails:SetJustifyH("LEFT");
+  tk:SetFontSize(slot.itemDetails, 10);
 
   slot.searchOverlay:SetDrawLayer("OVERLAY", 7);
 

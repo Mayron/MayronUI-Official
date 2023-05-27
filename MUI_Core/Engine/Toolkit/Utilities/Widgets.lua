@@ -664,14 +664,27 @@ function tk:SetFontSize(fontString, size)
   fontString:SetFont(filePath, size, flags);
 end
 
-function tk:SetFont(fontString, fontName)
+---@param fontString FontString
+---@param fontName string
+---@param newSize number?
+---@param newFlags string?
+function tk:SetFont(fontString, fontName, newSize, newFlags)
   local filePath = tk.Constants.LSM:Fetch("font", fontName);
   local _, size, flags = fontString:GetFont();
-  fontString:SetFont(filePath, size, flags);
+  fontString:SetFont(filePath, newSize or size, newFlags or flags);
 end
 
 function tk:GetMasterFont()
   return tk.Constants.LSM:Fetch("font", db.global.core.fonts.master);
+end
+
+---@param fontString FontString
+---@param newSize number?
+---@param newFlags string?
+function tk:SetMasterFont(fontString, newSize, newFlags)
+  local filePath = tk:GetMasterFont();
+  local _, size, flags = fontString:GetFont();
+  fontString:SetFont(filePath, newSize or size, newFlags or flags);
 end
 
 function tk:SetGameFont(fontSettings)
