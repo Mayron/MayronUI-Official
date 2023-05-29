@@ -1155,3 +1155,7 @@ L["Trade Goods"] = "Trade Goods";
 L["Consumables"] = "Consumables";
 L["Equipment"] = "Equipment";
 L["All Items"] = "All Items";
+
+
+
+L["Padding"] = "Padding";

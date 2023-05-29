@@ -2,10 +2,8 @@ local MayronUI = _G.MayronUI;
 local tk = MayronUI:GetCoreComponents();
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 
-local function UpdateContainerHeight(self)
-  if (self.runningScript) then return end
-  self.runningScript = true;
-
+local function UpdateContainerHeight(self, maxWidth)
+  self:SetWidth(maxWidth);
   local containerHeight = self.title:GetStringHeight();
 
   if (self.description) then
@@ -17,8 +15,6 @@ local function UpdateContainerHeight(self)
   if (containerHeight ~= self:GetHeight()) then
     self:SetHeight(containerHeight);
   end
-
-  self.runningScript = nil;
 end
 
 -- supported title config attributes:
@@ -60,9 +56,8 @@ function Components.title(parent, config)
 
   container.title:SetText(config.name:upper());
 
-  container.rightPadding = 20;
-  tk:SetFullWidth(container);
-  container:HookScript("OnSizeChanged", UpdateContainerHeight);
+  container.fullWidth = true;
+  container.OnDynamicFrameRefresh = UpdateContainerHeight;
 
   return container;
 end

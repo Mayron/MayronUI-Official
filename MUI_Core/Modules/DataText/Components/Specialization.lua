@@ -74,8 +74,8 @@ end
 
 local function CreateEquipmentSetDropDown(settings, contentFrame, popupWidth, dataTextBar, talentGroup)
   -- create dropdown to list all equipment sets per specialization:
-  local dropdown = gui:CreateDropDown(contentFrame, "UP", dataTextBar);
-  dropdown:SetWidth(popupWidth - 10);
+  local dropdown = gui:CreateDropDown(contentFrame, "UP", dataTextBar, "$parentEquipmentSet"..talentGroup);
+  dropdown:SetWidth(popupWidth);
   dropdown:Show();
 
   local specName = tk:GetPlayerSpecialization(talentGroup);
@@ -122,8 +122,8 @@ end
 
 local function CreateLayoutDropDown(settings, contentFrame, popupWidth, dataTextBar, talentGroup)
   -- create dropdown to list all equipment sets per specialization:
-  local dropdown = gui:CreateDropDown(contentFrame, "UP", dataTextBar);
-  dropdown:SetWidth(popupWidth - 10);
+  local dropdown = gui:CreateDropDown(contentFrame, "UP", dataTextBar, "$parentLayout"..talentGroup);
+  dropdown:SetWidth(popupWidth);
   dropdown:Show();
 
   local specName = tk:GetPlayerSpecialization(talentGroup);
@@ -303,7 +303,7 @@ function Specialization:GetLabel(data, index)
   label = tk:CreateFrame("Button", self.MenuContent);
   label.name = label:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   label.name:SetPoint("LEFT", 6, 0);
-  label.name:SetWidth(data.settings.popup.width - 10);
+  label.name:SetWidth(data.settings.popup.width);
   label.name:SetWordWrap(false);
   label.name:SetJustifyH("LEFT");
 

@@ -335,7 +335,7 @@ end
 
 -- This is used by the Resting Pulse feature and by the "alpha" update function:
 function C_UnitPanels.Private:UpdateVisuals(data, frame, restingPulseAlpha)
-  local target = tk:GetClassColorByUnitID("target");
+  local targetR, targetG, targetB = tk:GetClassColor("target");
   local r, g, b = data.left.bg:GetVertexColor();
   local alpha = data.settings.alpha;
 
@@ -353,19 +353,19 @@ function C_UnitPanels.Private:UpdateVisuals(data, frame, restingPulseAlpha)
 
   if (frame == data.center) then
     if (UnitIsPlayer("target") and data.settings.targetClassColored) then
-      tk:SetGradient(frame.bg, "HORIZONTAL", r, g, b, alpha, target.r, target.g, target.b, alpha);
+      tk:SetGradient(frame.bg, "HORIZONTAL", r, g, b, alpha, targetR, targetG, targetB, alpha);
     else
       tk:SetGradient(frame.bg, "HORIZONTAL", r, g, b, alpha, r, g, b, alpha);
     end
   elseif (frame == data.right) then
     if (UnitIsPlayer("target") and data.settings.targetClassColored) then
-      frame.bg:SetVertexColor(target.r, target.g, target.b, alpha);
+      frame.bg:SetVertexColor(targetR, targetG, targetB, alpha);
     else
       frame.bg:SetVertexColor(r, g, b, alpha);
     end
   elseif (frame == data.target) then
     if (UnitIsPlayer("target") and data.settings.unitNames.targetClassColored) then
-      frame.bg:SetVertexColor(target.r, target.g, target.b, alpha);
+      frame.bg:SetVertexColor(targetR, targetG, targetB, alpha);
     else
       frame.bg:SetVertexColor(r, g, b, alpha);
     end

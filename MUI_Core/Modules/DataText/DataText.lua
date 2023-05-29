@@ -227,16 +227,15 @@ function C_DataTextModule:OnEnable(data)
 
   -- create the popup menu (displayed when a data item button is clicked)
   -- each data text module has its own frame to be used as the scroll child
-  data.popup = gui:CreateScrollFrame(_G.MUI_BottomContainer or _G.UIParent, "MUI_DataTextPopupMenu");
+  local frame = tk:CreateFrame("Frame", _G["MUI_BottomContainer"]);
+  local scrollFrame = gui:WrapInScrollFrame(frame, "MUI_DataTextPopupMenu");
+  data.popup = scrollFrame;
   data.popup:SetFrameStrata("DIALOG");
   data.popup:Hide();
   data.popup:SetFrameLevel(2);
 
   -- controls the Esc key behaviour to close the popup (must use global name)
   tinsert(_G.UISpecialFrames, "MUI_DataTextPopupMenu");
-
-  data.popup.ScrollBar:SetPoint("TOPLEFT", data.popup, "TOPRIGHT", -6, 1);
-  data.popup.ScrollBar:SetPoint("BOTTOMRIGHT", data.popup, "BOTTOMRIGHT", -1, 1);
 
   data.popup.bg = gui:AddDialogTexture(data.popup);
   data.popup.bg:SetGridAlphaType("High");
@@ -377,7 +376,7 @@ obj:DefineParams("Frame");
 ---Attach current dataTextModule scroll child onto shared popup and hide previous scroll child
 ---@param content Frame
 function C_DataTextModule:ChangeMenuContent(data, content)
-  local oldContent = data.popup.ScrollFrame:GetScrollChild();
+  local oldContent = data.popup:GetScrollChild();
 
   if (oldContent) then
     oldContent:Hide();
@@ -396,7 +395,7 @@ function C_DataTextModule:ChangeMenuContent(data, content)
   content:SetSize(data.popup:GetWidth(), 10);
 
   -- attach scroll child to menu frame container
-  data.popup.ScrollFrame:SetScrollChild(content);
+  data.popup:SetScrollChild(content);
   content:Show();
 end
 

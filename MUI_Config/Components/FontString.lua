@@ -47,16 +47,15 @@ end
 -- justify - overrides the default horizontal justification ("LEFT")
 -- height - overrides the default height of 30
 -- width - overrides the default width with a specific width
-function Components.fontstring(parent, widgetTable)
+function Components.fontstring(parent, config)
   local container = tk:CreateFrame("Frame", parent);
-  container.padding = widgetTable.padding or 16;
+  container.padding = config.padding or 16;
 
-  local width = obj:IsNumber(widgetTable.width) and widgetTable.width or 300;
-  local height = obj:IsNumber(widgetTable.height) and widgetTable.height or 50;
-  container:SetSize(width, height);
+  local height = obj:IsNumber(config.height) and config.height or 50;
+  container:SetSize(1, height);
 
-  if (Utils:HasAttribute(widgetTable, "list")) then
-    local list = Utils:GetAttribute(widgetTable, "list");
+  if (Utils:HasAttribute(config, "list")) then
+    local list = Utils:GetAttribute(config, "list");
     container.rows = {};
 
     for i = 1, #list do
@@ -91,26 +90,26 @@ function Components.fontstring(parent, widgetTable)
     container.content = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
     container.content:SetAllPoints(true);
     container.content:SetWordWrap(true);
-    container.content:SetJustifyH(widgetTable.justifyH or "LEFT");
-    container.content:SetJustifyV(widgetTable.justifyV or "MIDDLE");
+    container.content:SetJustifyH(config.justifyH or "LEFT");
+    container.content:SetJustifyV(config.justifyV or "MIDDLE");
 
-    if (widgetTable.subtype == "header") then
+    if (config.subtype == "header") then
       container.content:SetFontObject("MUI_FontLarge");
-    elseif (widgetTable.subtype == "sub-header") then
+    elseif (config.subtype == "sub-header") then
       container.content:SetFontObject("AchievementPointsFontSmall");
       tk:SetFontSize(container.content, 13);
     end
 
-    local content = Utils:GetAttribute(widgetTable, "content");
+    local content = Utils:GetAttribute(config, "content");
     container.content:SetText(content);
+    container:SetWidth(container.content:GetStringWidth() or 300);
   end
 
-  if (not obj:IsNumber(widgetTable.width)) then
-    container.rightPadding = 20;
-    tk:SetFullWidth(container);
+  if (not config.inline) then
+    container.fullWidth = true;
   end
 
-  if (not obj:IsNumber(widgetTable.height)) then
+  if (not obj:IsNumber(config.height)) then
     container:HookScript("OnSizeChanged", UpdateContainerHeight);
   end
 

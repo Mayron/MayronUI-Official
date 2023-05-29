@@ -35,7 +35,7 @@ local function CreateLabel(contentFrame, popupWidth)
     label.name:SetWordWrap(false);
     label.name:SetJustifyH("LEFT");
 
-    label.value:SetPoint("RIGHT", -10, 0);
+    label.value:SetPoint("RIGHT", -6, 0);
     label.value:SetWidth(popupWidth * 0.3); -- needs to be removed!
     label.value:SetWordWrap(false);
     label.value:SetJustifyH("RIGHT");

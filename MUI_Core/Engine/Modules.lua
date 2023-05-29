@@ -58,19 +58,17 @@ db:AddToDefaults("global", {
 
 db:AddToDefaults("profile.layout", "DPS");
 
-local classColor = tk:GetClassColorByUnitID("player");
-db:AddToDefaults("profile.theme", {
-  color = {
-    r = classColor.r;
-    g = classColor.g;
-    b = classColor.b;
-  };
-  frameColor = {
-    r = 0.5;
-    g = 0.5;
-    b = 0.5;
-  }
-});
+do
+  local r, g, b = tk:GetClassColor();
+  db:AddToDefaults("profile.theme", {
+    color = { r = r; g = g; b = b; };
+    frameColor = {
+      r = 0.5;
+      g = 0.5;
+      b = 0.5;
+    }
+  });
+end
 
 -- Slash Commands ------------------
 
@@ -580,7 +578,7 @@ function MayronUI:Hook(moduleKey, eventName, func)
 end
 
 ---@param moduleKey string @The unique key associated with the registered module.
----@return MayronObjects.Class @Returns a module Class so that a module can be given additional methods and definitions where required.
+---@return MayronObjects.Class|table @Returns a module Class so that a module can be given additional methods and definitions where required.
 function MayronUI:GetModuleClass(moduleKey)
   local registryInfo = registeredModules[moduleKey];
 

@@ -84,8 +84,12 @@ local function StartTransition(slider, data, isExpanding, ...)
     end
   end
 
-  if (data.frame.ScrollFrame) then
-    data.frame.ScrollFrame.animating = true;
+  if (data.frame) then
+    data.frame.animating = true;
+
+    if (data.frame.ScrollFrame) then
+      data.frame.ScrollFrame.animating = true;
+    end
   end
 
   data.frame:Show();
@@ -150,12 +154,12 @@ end
 function SlideController:Stop(data)
   data.stop = true;
 
-  if (data.frame.ScrollFrame and data.frame.showScrollBar) then
-    data.frame.showScrollBar:Show();
-  end
+  if (data.frame) then
+    data.frame.animating = false;
 
-  if (data.frame.ScrollFrame) then
-    data.frame.ScrollFrame.animating = false;
+    if (data.frame.ScrollFrame) then
+      data.frame.ScrollFrame.animating = false;
+    end
   end
 
   if (self:IsMaxExpanded() and data.onEndExpand) then

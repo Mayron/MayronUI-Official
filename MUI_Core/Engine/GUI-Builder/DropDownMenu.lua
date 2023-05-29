@@ -39,9 +39,11 @@ local function DropDownToggleButton_OnClick(self)
   if (self.menuParent) then
     DropDownMenu.Static.Menu:SetParent(self.menuParent);
   end
-  DropDownMenu.Static.Menu:SetFrameStrata("TOOLTIP");
-  self.dropdown:Toggle(not self.dropdown:IsExpanded());
+
+  tk.HandleTooltipOnLeave();
+  DropDownMenu.Static.Menu:SetFrameStrata(tk.Constants.FRAME_STRATAS.DIALOG);
   FoldAll(self.dropdown);
+  self.dropdown:Toggle(not self.dropdown:IsExpanded());
 end
 
 -- can't remember why this is needed
@@ -57,12 +59,16 @@ local function DropDownContainer_OnHide()
   DropDownMenu.Static.Menu:Hide();
 end
 
-function gui:CreateDropDown(parent, direction, menuParent)
+function gui:CreateDropDown(parent, direction, menuParent, childGlobalName)
   if (not DropDownMenu.Static.Menu) then
-    DropDownMenu.Static.Menu = self:CreateScrollFrame(_G.UIParent, "MUI_DropDownMenu");
+    DropDownMenu.Static.Menu = tk:CreateBackdropFrame("Frame", _G.UIParent, "MUI_DropDownMenu");
+    DropDownMenu.Static.Menu:EnableMouse(true);
+
+    local scrollFrame = self:CreateScrollFrame(DropDownMenu.Static.Menu);
+    DropDownMenu.Static.Menu.ScrollFrame = scrollFrame;
+    scrollFrame:SetAllPoints(true);
 
     if (_G.BackdropTemplateMixin) then
-      _G.Mixin(DropDownMenu.Static.Menu, _G.BackdropTemplateMixin);
       DropDownMenu.Static.Menu:OnBackdropLoaded();
       DropDownMenu.Static.Menu:SetScript("OnSizeChanged", DropDownMenu.Static.Menu.OnBackdropSizeChanged);
     end
@@ -94,8 +100,9 @@ function gui:CreateDropDown(parent, direction, menuParent)
   frame.toggleButton.arrow:SetPoint("CENTER");
   frame.toggleButton.arrow:SetSize(16, 16);
 
-  frame.child = tk:CreateFrame("Frame", DropDownMenu.Static.Menu);
-  tk:SetFullWidth(frame.child);
+  frame.child = tk:CreateFrame("Frame", DropDownMenu.Static.Menu.ScrollFrame, childGlobalName);
+  frame.child:SetPoint("TOPLEFT")
+  frame.child:SetPoint("TOPRIGHT")
 
   frame.toggleButton.child = frame.child; -- needed for OnClick
   frame.toggleButton:SetScript("OnClick", DropDownToggleButton_OnClick);
@@ -136,18 +143,6 @@ end
 -----------------------------------
 -- DropDownMenu Object
 -----------------------------------
-local function OnDropDownEnter(frame)
-  local tooltip = _G.GameTooltip;
-  tooltip:SetOwner(frame, "ANCHOR_TOPLEFT", 0, 2);
-
-  if (frame.isEnabled) then
-    tooltip:AddLine(frame.tooltip);
-  else
-    tooltip:AddLine(frame.disabledTooltip);
-  end
-
-  tooltip:Show();
-end
 
 obj:DefineParams("Frame", "string", "SlideController", "Frame")
 function DropDownMenu:__Construct(data, header, direction, slideController, frame)
@@ -187,21 +182,14 @@ function DropDownMenu:SetSortingEnabled(data, enable)
   end
 end
 
-do
-  local function ApplyTooltipScripts(f)
-    f:SetScript("OnEnter", OnDropDownEnter);
-    f:SetScript("OnLeave", tk.HandleTooltipOnLeave);
-  end
+function DropDownMenu:SetTooltip(data, tooltip)
+  tk:SetBasicTooltip(data.frame, tooltip, "ANCHOR_TOPRIGHT", 0, 4);
+  tk:SetBasicTooltip(data.frame.toggleButton, tooltip, "ANCHOR_TOPRIGHT", 0, 4);
+end
 
-  function DropDownMenu:SetTooltip(data, tooltip)
-    data.frame.tooltip = tooltip;
-    ApplyTooltipScripts(data.frame);
-  end
-
-  function DropDownMenu:SetDisabledTooltip(data, disabledTooltip)
-    data.frame.disabledTooltip = disabledTooltip;
-    ApplyTooltipScripts(data.frame);
-  end
+function DropDownMenu:SetDisabledTooltip(data, disabledTooltip)
+  data.frame.disabledTooltip = disabledTooltip;
+  data.frame.toggleButton.disabledTooltip = disabledTooltip;
 end
 
 obj:DefineParams("string");
@@ -319,7 +307,7 @@ end
 
 function DropDownMenu:AddOption(data, label, func, ...)
   local child = data.frame.child;
-  local option = tk:CreateFrame("Button", child);
+  local option = tk:CreateFrame("Button", child, "$parentOption"..(#data.options + 1));
 
   option:SetHeight(26);
   option:SetNormalFontObject("GameFontHighlight");
@@ -335,13 +323,14 @@ function DropDownMenu:AddOption(data, label, func, ...)
   option:SetNormalTexture(tk.Constants.SOLID_TEXTURE);
   option:SetHighlightTexture(tk.Constants.SOLID_TEXTURE);
 
-  tk:ApplyThemeColor(0.4, option:GetNormalTexture(), option:GetHighlightTexture());
-
   local args = obj:PopTable(...);
   option.args = args;
   option:SetScript("OnClick", function()
+    local isActive = option:GetText() == self:GetLabel();
+    if (isActive) then return end
     self:SetLabel(option:GetText());
     self:Toggle(false);
+    self:ApplyThemeColor(); -- to update option alpha (the selected option has lower alpha)
 
     if (not func) then return end
 
@@ -388,19 +377,17 @@ function DropDownMenu:ApplyThemeColor(data)
   end
 
   DropDownMenu.Static.Menu:SetBackdropBorderColor(r, g, b);
-  DropDownMenu.Static.Menu.ScrollBar.thumb:SetVertexColor(r, g, b, 0.8);
+  DropDownMenu.Static.Menu.ScrollFrame.ScrollBar.thumb:SetVertexColor(r, g, b, 0.8);
 
   for _, option in ipairs(data.options) do
-    option:GetNormalTexture():SetColorTexture(r, g, b, 0.4);
-    option:GetHighlightTexture():SetColorTexture(r, g, b, 0.4);
+    local isActive = option:GetText() == self:GetLabel();
+    local alpha = isActive and 0.1 or 0.4;
+    option:GetNormalTexture():SetColorTexture(r, g, b, alpha);
+    option:GetHighlightTexture():SetColorTexture(r, g, b, alpha);
   end
 end
 
 function DropDownMenu:SetEnabled(data, enabled)
-  if (data.frame.isEnabled == enabled) then
-    return;
-  end
-
   data.frame.toggleButton:SetEnabled(enabled);
   data.frame.isEnabled = enabled; -- required for using the correct tooltip
   self:ApplyThemeColor();
@@ -447,13 +434,17 @@ function DropDownMenu:Toggle(data, show, clickSoundFilePath)
   end
 
   if (show) then
-    local maxHeight = (data.scrollHeight < DropDownMenu.Static.MAX_HEIGHT)
-    and data.scrollHeight or DropDownMenu.Static.MAX_HEIGHT;
+    data.frame.toggleButton:SetScript("OnEnter", nil);
 
+    local maxHeight = (data.scrollHeight < DropDownMenu.Static.MAX_HEIGHT)
+      and data.scrollHeight or DropDownMenu.Static.MAX_HEIGHT;
+
+    DropDownMenu.Static.Menu:Hide();
     DropDownMenu.Static.Menu.ScrollFrame:SetScrollChild(data.frame.child);
     DropDownMenu.Static.Menu:SetHeight(1);
 
     data.frame.child:Show();
+    DropDownMenu.Static.Menu:Show();
     data.slideController:SetMaxValue(maxHeight);
 
     if (data.direction == "DOWN") then
@@ -462,6 +453,8 @@ function DropDownMenu:Toggle(data, show, clickSoundFilePath)
       data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0);
     end
   else
+    data.frame.toggleButton:SetScript("OnEnter", tk.HandleTooltipOnEnter);
+
     if (data.direction == "DOWN") then
       data.frame.toggleButton.arrow:SetTexCoord(1, 0, 1, 0);
     elseif (data.direction == "UP") then

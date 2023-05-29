@@ -11,6 +11,7 @@ local tonumber, math, pairs, pcall, error = _G.tonumber, _G.math, _G.pairs, _G.p
 local hooksecurefunc, UnitLevel, UnitClass = _G.hooksecurefunc, _G.UnitLevel, _G.UnitClass;
 local GetMaxPlayerLevel, tostringall = _G.GetMaxPlayerLevel, _G.tostringall;
 local UnitQuestTrivialLevelRange, GetQuestGreenRange = _G.UnitQuestTrivialLevelRange, _G.GetQuestGreenRange;
+local GetClassColor = _G.GetClassColor;
 
 function tk.Numbers:ToPrecision(number, precision)
   if (not obj:IsNumber(precision) or precision <= 0) then
@@ -315,9 +316,10 @@ function tk:GetLocalizedClassNameByFileName(classFileName, makeClassColored)
   return localizedName;
 end
 
-function tk:GetClassColorByUnitID(unitID)
-  local classFileName = tk:GetClassFileNameByUnitID(unitID);
-  return _G.GetClassColorObj(classFileName);
+---@param unitID UnitId? Defaults to player if omitted
+function tk:GetClassColor(unitID)
+  local classFileName = tk:GetClassFileNameByUnitID(unitID or "player");
+  return GetClassColor(classFileName);
 end
 
 local errorInfo = {};

@@ -375,11 +375,9 @@ function Private:LoadCustomMenu(menuSection)
   menuSection.injectDescription:SetJustifyH("LEFT");
 
   local previous;
-  menuSection.addonContainer = gui:CreateScrollFrame(menuSection, nil);
+  menuSection.addonContainer = gui:WrapInScrollFrame(menuSection);
   menuSection.addonContainer:SetPoint("TOPLEFT", menuSection.injectDescription, "BOTTOMLEFT", 0, -20);
   menuSection.addonContainer:SetPoint("BOTTOMRIGHT", -20, 70);
-
-  local scrollChild = menuSection.addonContainer.ScrollFrame:GetScrollChild();
 
   gui:AddDialogTexture(menuSection.addonContainer, "Low");
 
@@ -390,7 +388,7 @@ function Private:LoadCustomMenu(menuSection)
     local alias, value, addOnName = unpack(addOnData);
 
     if (IsAddOnLoaded(addOnName)) then
-      local cb = gui:CreateCheckButton(scrollChild, alias);
+      local cb = gui:CreateCheckButton(menuSection, alias);
       totalAddOnsLoaded = totalAddOnsLoaded + 1;
 
       cb.btn:SetChecked(value);
@@ -399,12 +397,12 @@ function Private:LoadCustomMenu(menuSection)
       end);
 
       if (not previous) then
-        cb:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 10, -10);
+        cb:SetPoint("TOPLEFT", menuSection, "TOPLEFT", 10, -10);
       else
         cb:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -10);
       end
 
-      scrollChild:SetHeight(scrollChild:GetHeight() + cb:GetHeight() + 10);
+      menuSection:SetHeight(menuSection:GetHeight() + cb:GetHeight() + 10);
       table.insert(menuSection.addOnCheckBoxes, cb);
       previous = cb;
     end
@@ -438,23 +436,23 @@ end
 function Private:LoadInfoMenu(menuSection)
   local font = tk:GetMasterFont();
 
-  local container = gui:CreateScrollFrame(menuSection);
-  menuSection.child = container.ScrollFrame:GetScrollChild();
-  menuSection.scrollBar = container.ScrollBar;
-  menuSection.child:SetHeight(300);
+  local scrollChild = tk:CreateFrame("Frame", menuSection);
+  scrollChild:SetHeight(300);
 
-  container:SetPoint("TOPLEFT", 20, -20);
-  container:SetPoint("BOTTOMRIGHT", -20, 20);
+  local scrollFrame, scrollBar = gui:WrapInScrollFrame(scrollChild);
+  menuSection.child = scrollChild;
+  menuSection.scrollBar = scrollBar;
 
-  menuSection.scrollBar:SetPoint(
-    "TOPLEFT", container.ScrollFrame, "TOPRIGHT", -5, 0);
-  menuSection.scrollBar:SetPoint(
-    "BOTTOMRIGHT", container.ScrollFrame, "BOTTOMRIGHT", 0, 0);
+  scrollFrame:SetPoint("TOPLEFT", 20, -20);
+  scrollFrame:SetPoint("BOTTOMRIGHT", -20, 20);
 
-  container.bg = tk:SetBackground(container, 0, 0, 0, 0.5);
-  container.bg:ClearAllPoints();
-  container.bg:SetPoint("TOPLEFT", -10, 10);
-  container.bg:SetPoint("BOTTOMRIGHT", 10, -10);
+  menuSection.scrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", -5, 0);
+  menuSection.scrollBar:SetPoint("BOTTOMRIGHT", scrollFrame, "BOTTOMRIGHT", 0, 0);
+
+  scrollFrame.bg = tk:SetBackground(scrollFrame, 0, 0, 0, 0.5);
+  scrollFrame.bg:ClearAllPoints();
+  scrollFrame.bg:SetPoint("TOPLEFT", -10, 10);
+  scrollFrame.bg:SetPoint("BOTTOMRIGHT", 10, -10);
 
   local content = tk:CreateFrame("EditBox", menuSection.child);
   content:SetMultiLine(true);
@@ -478,21 +476,22 @@ end
 function Private:LoadCreditsMenu(menuSection)
   local font = tk:GetMasterFont();
 
-  local container = gui:CreateScrollFrame(menuSection);
-  menuSection.child = container.ScrollFrame:GetScrollChild();
-  menuSection.scrollBar = container.ScrollBar;
+  local scrollChild = tk:CreateFrame("Frame");
+  local scrollFrame, scrollBar = gui:WrapInScrollFrame(scrollChild);
+  menuSection.child = scrollChild;
+  menuSection.scrollBar = scrollBar;
   menuSection.child:SetHeight(700); -- can't use GetStringHeight
 
-  container:SetPoint("TOPLEFT", 20, -20);
-  container:SetPoint("BOTTOMRIGHT", -20, 20);
+  scrollFrame:SetPoint("TOPLEFT", 20, -20);
+  scrollFrame:SetPoint("BOTTOMRIGHT", -20, 20);
 
-  menuSection.scrollBar:SetPoint("TOPLEFT", container.ScrollFrame, "TOPRIGHT", -5, 0);
-  menuSection.scrollBar:SetPoint("BOTTOMRIGHT", container.ScrollFrame, "BOTTOMRIGHT", 0, 0);
+  menuSection.scrollBar:SetPoint("TOPLEFT", scrollFrame.ScrollFrame, "TOPRIGHT", -5, 0);
+  menuSection.scrollBar:SetPoint("BOTTOMRIGHT", scrollFrame.ScrollFrame, "BOTTOMRIGHT", 0, 0);
 
-  container.bg = tk:SetBackground(container, 0, 0, 0, 0.5);
-  container.bg:ClearAllPoints();
-  container.bg:SetPoint("TOPLEFT", -10, 10);
-  container.bg:SetPoint("BOTTOMRIGHT", 10, -10);
+  scrollFrame.bg = tk:SetBackground(scrollFrame, 0, 0, 0, 0.5);
+  scrollFrame.bg:ClearAllPoints();
+  scrollFrame.bg:SetPoint("TOPLEFT", -10, 10);
+  scrollFrame.bg:SetPoint("BOTTOMRIGHT", 10, -10);
 
   local content = menuSection.child:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   content:SetWordWrap(true);

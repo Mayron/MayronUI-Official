@@ -35,10 +35,9 @@ function MayronUI:GetCoreComponents()
   return tk, db, components.EventManager, gui, obj, L;
 end
 
----@generic T : string
----@param componentName `T`
+---@param componentName string
 ---@param silent boolean?
----@return T
+---@return table
 function MayronUI:GetComponent(componentName, silent)
   tk:Assert(silent or obj:IsString(componentName), "Invalid component '%s'", componentName);
 

@@ -117,7 +117,8 @@ function C_ListFrame:SetShown(data, shown)
     return;
   end
 
-  local frame = tk:CreateFrame("Frame", nil, _G["MUI_Config"]);
+  --gui:CreateDynamicFrame(_G["MUI_Config"], nil, )
+  local frame =  tk:CreateFrame("Frame", nil, _G["MUI_Config"]);
   data.listFrame = gui:AddDialogTexture(frame);
   data.rows = obj:PopTable();
 
@@ -168,15 +169,15 @@ function C_ListFrame:SetShown(data, shown)
 
   data.rows[#data.rows + 1] = row;
 
-  local container = gui:CreateScrollFrame(data.listFrame);
-  data.scrollChild = container.ScrollFrame:GetScrollChild();
+  local scrollFrame, scrollBar = gui:WrapInScrollFrame(data.listFrame);
+  data.scrollChild = scrollFrame:GetScrollChild();
 
-  container.ScrollBar:ClearAllPoints();
-  container.ScrollBar:SetPoint("TOPLEFT", container.ScrollFrame, "TOPRIGHT", -5, 0);
-  container.ScrollBar:SetPoint("BOTTOMRIGHT", container.ScrollFrame, "BOTTOMRIGHT", 0, 0);
-  tk:SetBackground(container, 0, 0, 0, 0.3);
+  scrollBar:ClearAllPoints();
+  scrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", -5, 0);
+  scrollBar:SetPoint("BOTTOMRIGHT", scrollFrame, "BOTTOMRIGHT", 0, 0);
+  tk:SetBackground(scrollFrame, 0, 0, 0, 0.3);
 
-  row = panel:CreateCell(container);
+  row = panel:CreateCell(scrollFrame);
   row:SetDimensions(1, #data.rows + 3);
   row:SetInsets(0, 5, 5, 5);
 

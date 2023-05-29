@@ -460,14 +460,13 @@ local function UpdateExistingUnitTooltipLines(data, unitID)
 end
 
 local function UpdateUnitTexture(d, unitID)
-  local classColor = UnitIsPlayer(unitID) and tk:GetClassColorByUnitID(unitID);
   local settings = d.settings--[[@as MayronUI.TooltipDefaults]];
 
-  if (classColor) then
+  if (UnitIsPlayer(unitID)) then
     local r, g, b;
 
     if (settings.useClassColors) then
-      r, g, b = classColor:GetRGB();
+      r, g, b = tk:GetClassColor(unitID)
     else
       r, g, b = gui:GetMuiFrameColor();
     end
@@ -502,12 +501,12 @@ local function UpdateUnitTexture(d, unitID)
 end
 
 local function UpdateUnitStatusBars(d, unitID)
-  local classColor = UnitIsPlayer(unitID) and tk:GetClassColorByUnitID(unitID);
   local settings = d.settings--[[@as MayronUI.TooltipDefaults]];
 
-  if (classColor) then
-    SetHealthBarColor(classColor.r, classColor.g, classColor.b, 1);
-    healthBar.bg:SetBackdropColor(classColor.r * 0.4, classColor.g * 0.4, classColor.b * 0.4, 0.8);
+  if (UnitIsPlayer(unitID)) then
+    local r, g, b = tk:GetClassColor(unitID);
+    SetHealthBarColor(r, g, b, 1);
+    healthBar.bg:SetBackdropColor(r * 0.4, g * 0.4, b * 0.4, 0.8);
   else
     local reaction = UnitReaction(unitID, "player");
     local r, g, b;

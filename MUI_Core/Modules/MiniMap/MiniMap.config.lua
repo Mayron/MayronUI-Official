@@ -202,12 +202,11 @@ function C_MiniMapModule:GetConfigTable(data)
       };
       { name = L["Enable Test Mode"];
         type = "button";
-        width = 200;
         tooltip = L["Test mode allows you to easily customize the looks and positioning of widgets by forcing all widgets to be shown."];
-        OnLoad = function(_, button)
-          widgets.testModeButton = button;
-          UpdateTestModeButton(button);
-        end;
+        -- OnLoad = function(_, button)
+        --   widgets.testModeButton = button;
+        --   UpdateTestModeButton(button);
+        -- end;
         OnClick = function(button)
           local testMode = not db.profile.minimap.testMode;
 

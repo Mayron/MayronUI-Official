@@ -391,7 +391,7 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
   -- Hide the old one
   if (data.selectedButton) then
     if (data.selectedButton.menu) then
-      data.selectedButton.menu:Hide();
+      data.selectedButton.menu:GetScrollFrame():Hide();
     end
 
     if (data.selectedButton.type == "tab") then
@@ -410,8 +410,10 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
       data.selectedButton = btn;
 
       -- else, create a new menu (dynamic frame) to based on the module's config data
-      btn.menu = gui:CreateDynamicFrame(optionsFrame, 10, 10);
-      local menuScrollFrame = btn.menu:GetFrame();
+      local dynamicFrame = gui:CreateDynamicFrame(optionsFrame, nil, 10, 10);
+      local menuScrollFrame = dynamicFrame:AddScrollFrame();
+
+      btn.menu = dynamicFrame;
 
       gui:AddDialogTexture(menuScrollFrame);
       menuScrollFrame:SetPoint("BOTTOMRIGHT", -10, 0);
@@ -448,14 +450,15 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
   data.selectedButton = btn;
 
   -- fade menu in...
-  btn.menu:Show();
+  local menuScrollFrame = btn.menu:GetScrollFrame();
+  menuScrollFrame:Show();
 
   if (btn.type == "tab") then
     btn:GetParent():Show();
   end
 
   PlaySound(tk.Constants.CLICK);
-  UIFrameFadeIn(btn.menu, 0.3, 0, 1);
+  UIFrameFadeIn(menuScrollFrame, 0.3, 0, 1);
 
   local history = data.history; ---@type LinkedList
   history:AddToBack(btn);
@@ -490,8 +493,7 @@ function C_ConfigMenuModule:RenderComponent(data, menuConfig, componentConfig)
     return
   end
 
-  local optionsFrame = data.selectedButton.menu:GetFrame();
-  local menuScrollChild = optionsFrame.ScrollFrame:GetScrollChild(); -- the component's parent
+  local menuScrollChild = data.selectedButton.menu:GetFrame(); -- the component's parent
 
   if (menuConfig) then
     -- there are some calls to render components later on demand when the menuConfig no longer exists
@@ -541,15 +543,21 @@ function C_ConfigMenuModule:RenderComponent(data, menuConfig, componentConfig)
   componentConfig = nil; --luacheck: ignore (this has been consumed and transferred)
 
   if (componentType == "frame" and obj:IsTable(componentChildrenConfigs)) then
+    local childComponents = obj:PopTable();
+    childComponents.hasChildren = true;
+
     for _, childConfig in ipairs(componentChildrenConfigs) do
       if (childConfig.ignore) then
         obj:PushTable(childConfig);
       else
         InheritConfigAttributes(component, childConfig);
         local childComponent = CreateComponent(childConfig, menuGroups, component);
-        component.dynamicFrame:AddChildren(childComponent);
+        childComponents[#childComponents+1] = childComponent;
       end
     end
+
+    component.dynamicFrame:AddChildren(childComponents);
+    obj:PushTable(childComponents);
   end
 
   data.selectedButton.menu:AddChildren(component);
@@ -736,8 +744,9 @@ function C_ConfigMenuModule:SetUpWindow(data)
 
   data.topbarFrame = topbar:GetFrame();
 
-  local menuListContainer = gui:CreateScrollFrame(data.window:GetFrame(), "MUI_ConfigSideBar", nil, 6);
-  local menuListCell = data.window:CreateCell(menuListContainer);
+  local menuListFrame = tk:CreateFrame("Frame", data.window:GetFrame(), "MUI_ConfigSideBar");
+  local menuListScrollFrame = gui:WrapInScrollFrame(menuListFrame);
+  local menuListCell = data.window:CreateCell(menuListScrollFrame);
   menuListCell:SetInsets(0, 14, 10, 10);
 
   data.options = data.window:CreateCell();
@@ -828,8 +837,7 @@ function C_ConfigMenuModule:SetUpWindow(data)
   tk:SetBasicTooltip(refreshButton, L["Reload UI"]);
   refreshButton:SetScript("OnClick", _G.ReloadUI);
 
-  local menuListScrollChild = menuListContainer.ScrollFrame:GetScrollChild();
-  return menuListScrollChild;
+  return menuListFrame;
 end
 
 do

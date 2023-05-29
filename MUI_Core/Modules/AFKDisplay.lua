@@ -609,20 +609,21 @@ do
 
     self.chatTypeDropdown = dropdown;
 
-    local container = gui:CreateScrollFrame(frame, nil, editBox);
-    container:SetPoint("TOPLEFT", 10, -30);
-    container:SetPoint("BOTTOMRIGHT", -10, 10);
+    local scrollFrame = gui:WrapInScrollFrame(frame);
+    -- scrollFrame:SetPoint("TOPLEFT", 10, -30);
+    -- scrollFrame:SetPoint("BOTTOMRIGHT", -10, 10);
 
-    container.ScrollFrame:ClearAllPoints();
-    container.ScrollFrame:SetPoint("TOPLEFT", 5, -5);
-    container.ScrollFrame:SetPoint("BOTTOMRIGHT", -5, 5);
+    scrollFrame:ClearAllPoints();
+    scrollFrame:SetPoint("TOPLEFT", 5, -5);
+    scrollFrame:SetPoint("BOTTOMRIGHT", -5, 5);
 
-    container.ScrollFrame:HookScript("OnScrollRangeChanged", function(self)
+    scrollFrame:HookScript("OnScrollRangeChanged", function(self)
       local maxScroll = self:GetVerticalScrollRange();
       self:SetVerticalScroll(maxScroll);
     end);
 
-    tk:SetBackground(container, 0, 0, 0, 0.4);
+    tk:SetBackground(scrollFrame, 0, 0, 0, 0.4);
+
     RefreshChatText(self.copyChatFrame.editBox);
   end
 

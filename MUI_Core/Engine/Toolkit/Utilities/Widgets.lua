@@ -5,7 +5,7 @@ local MayronUI = _G.MayronUI; ---@type MayronUI
 ---@class MayronUI.Toolkit
 local tk, db, _, _, obj = MayronUI:GetCoreComponents();
 
-local ipairs, hooksecurefunc, CreateFrame, select = _G.ipairs, _G.hooksecurefunc, _G.CreateFrame, _G.select;
+local ipairs, CreateFrame, select = _G.ipairs, _G.CreateFrame, _G.select;
 local CreateColor = _G.CreateColor;
 local GameTooltip = _G.GameTooltip;
 
@@ -46,7 +46,7 @@ do
     local itemId = widget.itemID or widget:GetID();
 
     GameTooltip.__oldSetFrameStrata = GameTooltip.SetFrameStrata;
-    GameTooltip:SetFrameStrata("TOOLTIP");
+    GameTooltip:SetFrameStrata(tk.Constants.FRAME_STRATAS.TOOLTIP);
     GameTooltip.SetFrameStrata = tk.Constants.DUMMY_FUNC;
 
     if (widget.cooldown) then
@@ -65,13 +65,23 @@ do
     elseif (widget.iconType == "spell") then
       GameTooltip:SetSpellByID(itemId);
 
-    elseif (obj:IsString(widget.tooltipText)) then
-      if (#widget.tooltipText > 100) then
-        local minWidth = math.min(#widget.tooltipText, 400);
+    elseif (obj:IsString(widget.tooltipText) or obj:IsString(widget.disabledTooltipText)) then
+      local tooltipText = widget.tooltipText;
+
+      if (obj:IsString(widget.disabledTooltipText)) then
+        if (obj:IsFunction(widget.GetEnabled)) then
+          if (not widget:GetEnabled()) then
+            tooltipText = widget.disabledTooltipText;
+          end
+        end
+      end
+
+      if (#tooltipText > 100) then
+        local minWidth = math.min(#tooltipText, 400);
         GameTooltip:SetMinimumWidth(minWidth);
       end
 
-      GameTooltip:AddLine(widget.tooltipText, nil, nil, nil, true);
+      GameTooltip:AddLine(tooltipText, nil, nil, nil, true);
 
     elseif (widget.lines) then
       for _, line in ipairs(widget.lines) do
@@ -95,16 +105,25 @@ end
 ---@param point TooltipAnchor? # Default is "ANCHOR_BOTTOMLEFT"
 ---@param xOffset number? # Default is 0
 ---@param yOffset number? # Default is 2
-function tk:SetBasicTooltip(widget, text, point, xOffset, yOffset)
+---@param disabledText string?
+function tk:SetBasicTooltip(widget, text, point, xOffset, yOffset, disabledText)
   widget.tooltipText = text;
+  widget.disabledTooltipText = disabledText; -- only applies if widget has `GetEnabled`
 
   if (xOffset or yOffset) then
-    -- Defaults will be applied in the `SetTooltipOwner` function
-    widget.tooltipAnchor = obj:PopTable();
+    if (not obj:IsTable(widget.tooltipAnchor)) then
+      -- Defaults will be applied in the `SetTooltipOwner` function
+      widget.tooltipAnchor = obj:PopTable();
+    end
+
     widget.tooltipAnchor.point = point;
     widget.tooltipAnchor.xOffset = xOffset;
     widget.tooltipAnchor.yOffset = yOffset;
   else
+    if (obj:IsTable(widget.tooltipAnchor)) then
+      obj:PushTable(widget.tooltipAnchor);
+    end
+
     widget.tooltipAnchor = point;
   end
 
@@ -115,31 +134,6 @@ end
 ------------------------------------------------
 --> Frame Moving and Resizing Functions
 ------------------------------------------------
-
-function tk:SetFullWidth(frame, percent)
-  percent = (percent or 100) / 100;
-
-  local parent = frame:GetParent();
-
-  if (not parent) then
-    hooksecurefunc(frame, "SetParent", function()
-      tk:SetFullWidth(frame, percent);
-    end);
-  else
-    if (not frame.__hookParentSizeChanged) then
-      parent:HookScript("OnSizeChanged", function(_, width)
-        frame:SetWidth((width * percent) - (frame.rightPadding or 0));
-      end);
-
-      frame.__hookParentSizeChanged = true;
-    end
-
-    local parentWidth = parent:GetWidth();
-    if (parentWidth > 0) then
-      frame:SetWidth((parentWidth * percent) - (frame.rightPadding or 0));
-    end
-  end
-end
 
 do
   local function Dragger_OnDragStart(self)

@@ -5,9 +5,8 @@ local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local tonumber = _G.tonumber;
 
 function Components.frame(parent, config)
-  local frame = tk:CreateFrame("Frame", parent);
-  local dynamicFrame = gui:CreateDynamicFrame(
-    parent, config.spacing or 10, config.padding or 10, frame);
+  local dynamicFrame = gui:CreateDynamicFrame(parent, nil, config.spacing or 10, config.padding or 10);
+  local frame = dynamicFrame:GetFrame();
 
   if (config.OnClose) then
     gui:AddCloseButton(frame, config.OnClose);
@@ -20,9 +19,11 @@ function Components.frame(parent, config)
     percent = tonumber(percent);
   end
 
-  if (obj:IsNumber(percent) or not obj:IsNumber(config.width)) then
-    frame.rightPadding = 20;
-    tk:SetFullWidth(frame, percent);
+  if (config.width == "auto") then
+    frame:SetWidth(1000);
+    frame.auto = true;
+  elseif (obj:IsNumber(percent) or not obj:IsNumber(config.width)) then
+    frame.fullWidth = true;
   else
     frame:SetWidth(config.width);
   end

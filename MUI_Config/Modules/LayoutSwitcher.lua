@@ -381,12 +381,13 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
   data.description.text:SetWordWrap(true);
   data.description.text:SetText(LAYOUT_MESSAGE);
 
-  data.addonWindow = gui:CreateDynamicFrame(layoutFrame, 5, 10);
+  data.addonWindow = gui:CreateDynamicFrame(layoutFrame, nil, 5, 10);
 
   local addonWindowFrame = data.addonWindow:GetFrame();
   gui:AddDialogTexture(addonWindowFrame, "Low");
+
   data.addonWindow = data.layoutTool:CreateCell(data.addonWindow);
-  data.addonWindow.dynamicFrame = data.addonWindow:GetFrame();
+  data.addonWindow.dynamicFrame = data.addonWindow;
   data.addonWindow:SetInsets(10, 0, 10, 10);
 
   local menuFrame = tk:CreateFrame("Frame", layoutFrame);

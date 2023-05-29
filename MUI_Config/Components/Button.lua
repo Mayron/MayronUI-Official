@@ -39,8 +39,9 @@ function Components.button(parent, config)
   button:SetScript("OnClick", Button_OnClick);
 
   if (config.texture) then
-    return button:GetParent();
+    button = button:GetParent();
   end
 
+  button.centered = true;
   return button;
 end

@@ -15,7 +15,7 @@
     <Script file="GUI-Builder\SlideController.lua"/>
     <Script file="GUI-Builder\DropDownMenu.lua"/>
     <Script file="GUI-Builder\DynamicFrame.lua"/>
-    <Script file="GUI-Builder\DynamicScrollFrame.lua"/>
+    <!-- <Script file="GUI-Builder\DynamicScrollFrame.lua"/> -->
     <Script file="GUI-Builder\GridTexture.lua"/>
     <Script file="GUI-Builder\Miscellaneous.lua"/>
     <Script file="GUI-Builder\TextField.lua"/>

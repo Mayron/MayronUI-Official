@@ -870,20 +870,17 @@ do
         end
       end
 
-      local container = gui:CreateScrollFrame(frame, "MUI_CopyChatFrame", editBox);
-      container:SetPoint("TOPLEFT", 10, -30);
-      container:SetPoint("BOTTOMRIGHT", -10, 10);
+      local scrollFrame = gui:WrapInScrollFrame(editBox);
+      scrollFrame:ClearAllPoints();
+      scrollFrame:SetPoint("TOPLEFT", 5, -5);
+      scrollFrame:SetPoint("BOTTOMRIGHT", -5, 5);
 
-      container.ScrollFrame:ClearAllPoints();
-      container.ScrollFrame:SetPoint("TOPLEFT", 5, -5);
-      container.ScrollFrame:SetPoint("BOTTOMRIGHT", -5, 5);
-
-      container.ScrollFrame:HookScript("OnScrollRangeChanged", function(self)
+      scrollFrame:HookScript("OnScrollRangeChanged", function(self)
         local maxScroll = self:GetVerticalScrollRange();
         self:SetVerticalScroll(maxScroll);
       end);
 
-      tk:SetBackground(container, 0, 0, 0, 0.4);
+      tk:SetBackground(scrollFrame, 0, 0, 0, 0.4);
 
       frame.editBox = editBox;
       frame.dropdown = dropdown;

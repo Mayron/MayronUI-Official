@@ -61,4 +61,5 @@
   <Script file="CombatAlerts.lua" />
 
   <Script file="Inventory\Inventory.lua" />
+  <Script file="Inventory\Inventory.config.lua" />
 </Ui>

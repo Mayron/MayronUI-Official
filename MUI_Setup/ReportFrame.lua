@@ -230,21 +230,21 @@ function C_ReportIssue.Private:CreateEditBox(
   editBox:SetFontObject("ChatFontNormal");
   editBox:SetAllPoints(true);
 
-  local container = gui:CreateScrollFrame(parent, nil, editBox);
-  container:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -data.ITEM_SPACING);
-  container:SetPoint("TOPRIGHT", title, "BOTTOMRIGHT", 0, -data.ITEM_SPACING);
-  container:SetPoint("BOTTOM");
-  container:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
+  local scrollFrame = gui:WrapInScrollFrame(editBox);
+  scrollFrame:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -data.ITEM_SPACING);
+  scrollFrame:SetPoint("TOPRIGHT", title, "BOTTOMRIGHT", 0, -data.ITEM_SPACING);
+  scrollFrame:SetPoint("BOTTOM");
+  scrollFrame:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
 
   local r, g, b = tk:GetThemeColor();
-  container:SetBackdropBorderColor(r, g, b);
-  container:SetBackdropColor(0, 0, 0, 0.5);
-  container:SetScript("OnMouseUp", function() editBox:SetFocus(true) end);
-  editBox.container = container;
+  scrollFrame:SetBackdropBorderColor(r, g, b);
+  scrollFrame:SetBackdropColor(0, 0, 0, 0.5);
+  scrollFrame:SetScript("OnMouseUp", function() editBox:SetFocus(true) end);
+  editBox.container = scrollFrame;
 
   if (maxLength > 0) then
     local characters = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    characters:SetPoint("TOP", container, "BOTTOM", 0, -10);
+    characters:SetPoint("TOP", scrollFrame, "BOTTOM", 0, -10);
 
     local charactersTemplate = "%d/1000 "..L["characters"].." %s";
     editBox:SetScript("OnTextChanged", function()
@@ -275,9 +275,9 @@ function C_ReportIssue.Private:CreateEditBox(
 
   editBox:SetScript("OnEscapePressed", function() editBox:ClearFocus() end);
 
-  container.ScrollFrame:ClearAllPoints();
-  container.ScrollFrame:SetPoint("TOPLEFT", 10, -10);
-  container.ScrollFrame:SetPoint("BOTTOMRIGHT", -10, 10);
+  scrollFrame:ClearAllPoints();
+  scrollFrame:SetPoint("TOPLEFT", 10, -10);
+  scrollFrame:SetPoint("BOTTOMRIGHT", -10, 10);
 
   return editBox;
 end
