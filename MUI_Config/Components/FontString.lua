@@ -7,9 +7,6 @@ local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
 local ipairs = _G.ipairs;
 
 local function UpdateContainerHeight(self)
-  if (self.runningScript) then return end
-  self.runningScript = true;
-
   local containerHeight = 0;
 
   if (self.content) then
@@ -37,8 +34,6 @@ local function UpdateContainerHeight(self)
       parent:SetHeight(containerHeight);
     end
   end
-
-  self.runningScript = nil;
 end
 
 -- supported fontstring config attributes:
@@ -110,7 +105,7 @@ function Components.fontstring(parent, config)
   end
 
   if (not obj:IsNumber(config.height)) then
-    container:HookScript("OnSizeChanged", UpdateContainerHeight);
+    container.OnDynamicFrameRefresh = UpdateContainerHeight;
   end
 
   return container;

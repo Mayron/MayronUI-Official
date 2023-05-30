@@ -364,15 +364,15 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
   data.viewingLayout = db.profile.layout;
 
   local layoutFrame = tk:CreateFrame("Frame", nil, "MUI_LayoutTool");
-  data.layoutTool = gui:AddDialogTexture(layoutFrame);
-  data.layoutTool:SetSize(700, 400);
-  data.layoutTool:SetPoint("CENTER");
+  gui:AddDialogTexture(layoutFrame);
+  layoutFrame:SetSize(700, 400);
+  layoutFrame:SetPoint("CENTER");
 
-  gui:AddTitleBar(data.layoutTool, L["MUI Layout Tool"]);
-  gui:AddCloseButton(data.layoutTool);
+  gui:AddTitleBar(layoutFrame, L["MUI Layout Tool"]);
+  gui:AddCloseButton(layoutFrame);
 
   -- convert to panel
-  data.layoutTool = gui:CreatePanel(data.layoutTool);
+  data.layoutTool = gui:CreatePanel(layoutFrame);
   data.layoutTool:SetDevMode(false); -- show or hide the red frame info overlays (default is hidden)
   data.layoutTool:SetDimensions(2, 2);
   data.layoutTool:GetRow(1):SetFixed(80);

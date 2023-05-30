@@ -9,7 +9,7 @@ tk.Tables = {};
 local pcall, pairs, ipairs, type, strsplit, tonumber = _G.pcall, _G.pairs, _G.ipairs, _G.type, _G.strsplit, _G.tonumber;
 local table, select = _G.table, _G.select;
 local LibStub = _G.LibStub;
-local LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type LinkedList
+local LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type Pkg-Collections.LinkedList
 
 function tk.Tables:GetKeys(tbl, keys)
   keys = keys or obj:PopTable();

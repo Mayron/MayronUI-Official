@@ -13,17 +13,18 @@ local gui = MayronUI:GetComponent("GUIBuilder");
 
 local function UpdateScrollChildPosition(self, yRange, offset)
   local frame = self:GetScrollChild();
-  local barOffset = frame.barOffset--[[@as number]];
-  local xOffset = barOffset or 0;
+  local xOffset = 0;
 
   if (yRange > 0 and self.ScrollBar:IsShown()) then
-    xOffset = xOffset + self.ScrollBar:GetWidth();
+    local barOffset = frame.barOffset--[[@as number]] or 0;
+    xOffset = barOffset + self.ScrollBar:GetWidth();
   end
 
   if (xOffset > 0) then
     xOffset = -xOffset;
   end
 
+  frame:ClearAllPoints();
   frame:SetPoint("TOPLEFT", self, "TOPLEFT", 0, offset);
   frame:SetPoint("TOPRIGHT", self, "TOPRIGHT", xOffset, offset);
 end
@@ -41,14 +42,8 @@ local function DynamicScrollFrame_OnScrollRangeChanged(self, xRange, yRange)
       self:SetVerticalScroll(0);
     else
       frame:ClearAllPoints();
-      local barOffset = frame.barOffset--[[@as number]] or 0;
-
-      if (barOffset > 0) then
-        barOffset = -barOffset;
-      end
-
       frame:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0);
-      frame:SetPoint("TOPRIGHT", self, "TOPRIGHT", barOffset, 0);
+      frame:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, 0);
     end
 
     return
@@ -88,16 +83,8 @@ end
 
 local function DynamicScrollFrame_OnShow(self)
   local offset = self:GetVerticalScroll();
-  local frame = self:GetScrollChild();
-  local barOffset = frame.barOffset or 0;
-
-  if (barOffset > 0) then
-    barOffset = -barOffset;
-  end
-
-  frame:ClearAllPoints();
-  frame:SetPoint("TOPLEFT", self, "TOPLEFT", 0, offset);
-  frame:SetPoint("TOPRIGHT", self, "TOPRIGHT", barOffset, offset);
+  local yRange = self:GetVerticalScrollRange();
+  UpdateScrollChildPosition(self, yRange, offset);
 end
 
 ---@param parent Frame The ScrollFrame's parent frame
@@ -130,7 +117,8 @@ function gui:CreateScrollFrame(parent, scrollFrameName)
   local thumb = scrollBar:GetThumbTexture()--[[@as Texture]];
   scrollBar.thumb = thumb;
   local r, g, b = tk:GetThemeColor();
-  thumb:SetColorTexture(r, g, b);
+  thumb:SetTexture(tk.Constants.SOLID_TEXTURE);
+  thumb:SetVertexColor(r, g, b, 0.8);
   thumb:SetSize(ScrollBarWidth, 50);
   scrollBar:Hide();
 
@@ -162,15 +150,9 @@ function gui:WrapInScrollFrame(frame, scrollFrameName, barOffset)
   scrollFrame:SetScrollChild(frame);
 
   frame.barOffset = barOffset or 0;
-  local xOffset = frame.barOffset;
-
-  if (xOffset > 0) then
-    xOffset = -xOffset;
-  end
-
   frame:ClearAllPoints();
   frame:SetPoint("TOPLEFT", scrollFrame, "TOPLEFT", 0, 0);
-  frame:SetPoint("TOPRIGHT", scrollFrame, "TOPRIGHT", xOffset, 0);
+  frame:SetPoint("TOPRIGHT", scrollFrame, "TOPRIGHT", 0, 0);
 
   return scrollFrame, scrollBar;
 end
@@ -365,6 +347,19 @@ function DynamicFrameMixin:Refresh()
 
       elseif (child.fillWidth) then
         childWidth = maxWidth - self.__padding - xOffset + self.__spacing;
+        child:SetWidth(childWidth);
+
+      elseif (child.percentWidth) then
+        local percent = child.percentWidth;
+        if (percent > 1) then
+          percent = percent / 100;
+        end
+
+        if (percent < 0.01) then
+          percent = 0.01;
+        end
+
+        childWidth = (maxWidth - self.__padding) * percent;
         child:SetWidth(childWidth);
 
       elseif (child.minWidth) then

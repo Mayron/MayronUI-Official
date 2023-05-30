@@ -14,6 +14,9 @@ obj:Export(DropDownMenu, "MayronUI");
 ---@field Static table
 
 DropDownMenu.Static.MAX_HEIGHT = 200;
+local OPTIONS_HEIGHT = 25;
+local OPTIONS_GAP = 2;
+local CHILD_FRAME_PADDING = 2;
 
 local select, unpack, ipairs = _G.select, _G.unpack, _G.ipairs;
 local tremove, tsort, tinsert = _G.table.remove, _G.table.sort, _G.table.insert;
@@ -66,7 +69,8 @@ function gui:CreateDropDown(parent, direction, menuParent, childGlobalName)
 
     local scrollFrame = self:CreateScrollFrame(DropDownMenu.Static.Menu);
     DropDownMenu.Static.Menu.ScrollFrame = scrollFrame;
-    scrollFrame:SetAllPoints(true);
+    scrollFrame:SetPoint("TOPLEFT", CHILD_FRAME_PADDING, -CHILD_FRAME_PADDING);
+    scrollFrame:SetPoint("BOTTOMRIGHT", -CHILD_FRAME_PADDING, CHILD_FRAME_PADDING);
 
     if (_G.BackdropTemplateMixin) then
       DropDownMenu.Static.Menu:OnBackdropLoaded();
@@ -101,8 +105,9 @@ function gui:CreateDropDown(parent, direction, menuParent, childGlobalName)
   frame.toggleButton.arrow:SetSize(16, 16);
 
   frame.child = tk:CreateFrame("Frame", DropDownMenu.Static.Menu.ScrollFrame, childGlobalName);
-  frame.child:SetPoint("TOPLEFT")
-  frame.child:SetPoint("TOPRIGHT")
+  frame.child:SetPoint("TOPLEFT");
+  frame.child:SetPoint("TOPRIGHT");
+  frame.child.barOffset = 2;
 
   frame.toggleButton.child = frame.child; -- needed for OnClick
   frame.toggleButton:SetScript("OnClick", DropDownToggleButton_OnClick);
@@ -262,7 +267,7 @@ do
 
   function DropDownMenu:RepositionOptions(data)
     local child = data.frame.child;
-    local height = 30;
+    local height = OPTIONS_HEIGHT;
 
     if (not data.disableSorting) then
       tsort(data.options, SortByLabel);
@@ -275,28 +280,29 @@ do
     for id, option in ipairs(data.options) do
       if (id == 1) then
         if (data.direction == "DOWN") then
-          option:SetPoint("TOPLEFT", 2, -2);
-          option:SetPoint("TOPRIGHT", -2, -2);
+          option:SetPoint("TOPLEFT", 0, 0);
+          option:SetPoint("TOPRIGHT", 0, 0);
         elseif (data.direction == "UP") then
-          option:SetPoint("BOTTOMLEFT", 2, 2);
-          option:SetPoint("BOTTOMRIGHT", -2, 2);
+          option:SetPoint("BOTTOMLEFT", 0, 0);
+          option:SetPoint("BOTTOMRIGHT", 0, 0);
         end
       else
         local previousOption = data.options[id - 1];
 
+
         if (data.direction == "DOWN") then
-          option:SetPoint("TOPLEFT", previousOption, "BOTTOMLEFT", 0, -1);
-          option:SetPoint("TOPRIGHT", previousOption, "BOTTOMRIGHT", 0, -1);
+          option:SetPoint("TOPLEFT", previousOption, "BOTTOMLEFT", 0, -OPTIONS_GAP);
+          option:SetPoint("TOPRIGHT", previousOption, "BOTTOMRIGHT", 0, -OPTIONS_GAP);
         elseif (data.direction == "UP") then
-          option:SetPoint("BOTTOMLEFT", previousOption, "TOPLEFT", 0, 1);
-          option:SetPoint("BOTTOMRIGHT", previousOption, "TOPRIGHT", 0, 1);
+          option:SetPoint("BOTTOMLEFT", previousOption, "TOPLEFT", 0, OPTIONS_GAP);
+          option:SetPoint("BOTTOMRIGHT", previousOption, "TOPRIGHT", 0, OPTIONS_GAP);
         end
 
-        height = height + 27;
+        height = height + OPTIONS_HEIGHT + OPTIONS_GAP;
       end
     end
 
-    data.scrollHeight = height;
+    data.scrollHeight = height + (CHILD_FRAME_PADDING * 2);
     child:SetHeight(height);
 
     if (DropDownMenu.Static.Menu:IsShown()) then
@@ -309,7 +315,7 @@ function DropDownMenu:AddOption(data, label, func, ...)
   local child = data.frame.child;
   local option = tk:CreateFrame("Button", child, "$parentOption"..(#data.options + 1));
 
-  option:SetHeight(26);
+  option:SetHeight(OPTIONS_HEIGHT);
   option:SetNormalFontObject("GameFontHighlight");
   option:SetText(label or " ");
 
@@ -353,7 +359,6 @@ end
 
 function DropDownMenu:ApplyThemeColor(data)
   local r, g, b = tk:GetThemeColor();
-  r, g, b = r*0.7, g*0.7, b*0.7;
 
   if (data.frame.isEnabled) then
     data.header:SetBackdropBorderColor(r, g, b);
@@ -381,7 +386,7 @@ function DropDownMenu:ApplyThemeColor(data)
 
   for _, option in ipairs(data.options) do
     local isActive = option:GetText() == self:GetLabel();
-    local alpha = isActive and 0.1 or 0.4;
+    local alpha = isActive and 0.2 or 0.4;
     option:GetNormalTexture():SetColorTexture(r, g, b, alpha);
     option:GetHighlightTexture():SetColorTexture(r, g, b, alpha);
   end

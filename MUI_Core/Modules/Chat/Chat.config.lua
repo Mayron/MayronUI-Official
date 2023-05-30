@@ -352,7 +352,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
         children = {
           { type = "fontstring";
             content = L["Set short, custom aliases for chat channel names."];
-            width = ""; -- ignore 150 width
+            width = "fill";
           };
           { type = "check";
             name = L["Enable Custom Aliases"];
@@ -409,7 +409,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
           { type = "fontstring";
             subtype = "header";
             content = L["Server Channels"];
-            width = "";
+            width = "fill";
           };
           { type = "loop";
             args =  channelNames;

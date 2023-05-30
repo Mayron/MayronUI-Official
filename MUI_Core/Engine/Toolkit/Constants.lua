@@ -39,13 +39,13 @@ tk.Constants = {
 
   BACKDROP = {
     edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
-    edgeSize = 1.125,
+    edgeSize = 1,
   };
 
   BACKDROP_WITH_BACKGROUND = {
     bgFile = "Interface\\Buttons\\WHITE8X8",
     edgeFile = "interface\\addons\\MUI_Core\\Assets\\Borders\\Solid",
-    edgeSize = 1.125,
+    edgeSize = 1,
   };
 
   -- Used for drop down options only!

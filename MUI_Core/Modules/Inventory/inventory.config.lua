@@ -87,7 +87,7 @@ function C_InventoryModule:GetConfigTable()
 
       {
         type = "frame";
-        width = "auto";
+        width = "fill";
         children = {
           { type = "fontstring"; content = "Set Direction: "; inline = true; };
           {
@@ -98,7 +98,7 @@ function C_InventoryModule:GetConfigTable()
             -- GetValue = function(_, value)
             --   return value == "BOTTOM";
             -- end;
-    
+
             -- SetValue = function(self)
             --   db:SetPathValue(self.dbPath, "BOTTOM");
             -- end;

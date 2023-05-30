@@ -3,14 +3,14 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 
----@class Cell
+---@class MayronUI.PanelCell : Frame
 local Cell = obj:CreateClass("Cell");
 Cell.Static:AddFriendClass("MayronUI.Panel");
 
----@type Panel
+---@class MayronUI.Panel : Frame
 local Panel = obj:Import("MayronUI.Panel");
 
--- @constructor
+---@return MayronUI.PanelCell
 function Panel:CreateCell(data, frame)
   frame = frame or tk:CreateBackdropFrame("Frame", _G.UIParent, nil);
   frame:SetParent(data.frame);
@@ -32,6 +32,7 @@ function Cell:__Construct(data, frame)
   self:SetFrame(frame);
 end
 
+---@overload fun(self, panel: MayronUI.Panel)
 function Cell:SetPanel(data, panel)
   data.panel = panel;
 end
@@ -80,6 +81,7 @@ function Cell:SetInsets(data, ...)
   end
 end
 
+---@return MayronUI.Panel
 function Cell:GetPanel(data)
   return data.panel;
 end

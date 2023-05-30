@@ -3,7 +3,7 @@ local obj = _G.MayronObjects:GetFramework(); ---@type MayronObjects
 
 if (obj:Import("Pkg-Collections.LinkedList", true)) then return end
 
----@class LinkedList
+---@class Pkg-Collections.LinkedList
 local C_LinkedList = obj:CreateClass("LinkedList");
 obj:Export(C_LinkedList, "Pkg-Collections");
 

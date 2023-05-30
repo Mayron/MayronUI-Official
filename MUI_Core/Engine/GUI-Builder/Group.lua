@@ -3,18 +3,19 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local _, _, _, _, obj = MayronUI:GetCoreComponents();
 
-local Group = obj:CreateClass("Group");
+local Group = obj:CreateClass("Group")---@class MayronUI.PanelGroup;
 obj:Export(Group, "MayronUI");
 
-local Panel = obj:Import("MayronUI.Panel"); ---@type Panel
-local LinkedList = obj:Import("Pkg-Collections.LinkedList"); ---@type LinkedList
+local Panel = obj:Import("MayronUI.Panel"); ---@class MayronUI.Panel
+local LinkedList = obj:Import("Pkg-Collections.LinkedList");
 
 local tinsert = _G.table.insert;
 ---------------------------------
 
+---@return MayronUI.PanelGroup
 local function GetGroup(groupID, groupType, panel, panelData)
   if (not panelData.grid) then
-    return false;
+    obj:Error("Failed to get panel group with groupID "..groupID);
   end
 
   local cellsList = obj:PopTable();
@@ -33,10 +34,12 @@ local function GetGroup(groupID, groupType, panel, panelData)
   return Group(groupID, groupType, cellsLinkedList, panel);
 end
 
+---@return MayronUI.PanelGroup
 function Panel:GetRow(data, rowID)
     return GetGroup(rowID, "row", self, data);
 end
 
+---@return MayronUI.PanelGroup
 function Panel:GetColumn(data, columnID)
     return GetGroup(columnID, "column", self, data);
 end

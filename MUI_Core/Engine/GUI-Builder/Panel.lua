@@ -9,13 +9,13 @@ local gui = MayronUI:GetComponent("GUIBuilder");
 local math = _G.math;
 local C_LinkedList = obj:Import("Pkg-Collections.LinkedList");
 
----@class Panel
+---@class MayronUI.Panel : Frame
 local Panel = obj:CreateClass("Panel");
 obj:Export(Panel, "MayronUI");
 
 Panel.Static:AddFriendClass("MayronUI.Group");
 
--- helper constructor
+---@return MayronUI.Panel
 function gui:CreatePanel(frame, globalName, parent)
   return Panel(frame, globalName, parent);
 end
@@ -77,7 +77,7 @@ function Panel:SetDevMode(data, devMode)  -- shows or hides the red frame info o
 end
 
 function Panel:AddCells(data, ...)
-  data.cells = data.cells or C_LinkedList(); --- @type LinkedList
+  data.cells = data.cells or C_LinkedList(); ---@type Pkg-Collections.LinkedList
 
   for _, cell in obj:IterateArgs(...) do
     data.cells:AddToBack(cell);
