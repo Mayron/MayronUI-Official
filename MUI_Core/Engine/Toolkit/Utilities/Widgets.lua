@@ -281,8 +281,8 @@ function tk:KillAllElements(...)
   end
 end
 
----@overload fun(self, frame: BackdropTemplate|Frame, r: number, g: number, b: number, a: number?)
----@overload fun(self, frame: BackdropTemplate|Frame, texturePath: string?, a: number?)
+---@overload fun(self, frame: Frame, r: number, g: number, b: number, a: number?)
+---@overload fun(self, frame: Frame, texturePath: string?, a: number?)
 function tk:SetBackground(frame, ...)
   local texture = frame:CreateTexture(nil, "BACKGROUND");
   local arg1 = ...;

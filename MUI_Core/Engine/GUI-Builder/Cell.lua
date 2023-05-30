@@ -3,7 +3,7 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 
----@class MayronUI.PanelCell : Frame
+---@class MayronUI.PanelCell : Frame, MayronObjects.Object
 local Cell = obj:CreateClass("Cell");
 Cell.Static:AddFriendClass("MayronUI.Panel");
 

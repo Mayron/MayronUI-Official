@@ -10,11 +10,17 @@ local function UpdateContainerHeight(self)
   local containerHeight = 0;
 
   if (self.content) then
-    containerHeight = self.content:GetStringHeight() + self.padding;
+    local padding = self.padding;
+
+    if (self.inline) then
+      padding = 0;
+    end
+
+    containerHeight = self.content:GetStringHeight() + padding;
 
   elseif (self.rows) then
     for _, row in ipairs(self.rows) do
-      local rowHeight = row.content:GetStringHeight() + 8;
+      local rowHeight = row.content:GetStringHeight() + (self.padding / 2);
       row:SetHeight(rowHeight);
 
       containerHeight = containerHeight + rowHeight;
@@ -44,10 +50,13 @@ end
 -- width - overrides the default width with a specific width
 function Components.fontstring(parent, config)
   local container = tk:CreateFrame("Frame", parent);
-  container.padding = config.padding or 16;
+  container.padding = config.padding or 8;
 
-  local height = obj:IsNumber(config.height) and config.height or 50;
-  container:SetSize(1, height);
+  if (config.inline) then
+    container.padding = 0;
+  end
+
+  container:SetSize(1000, 50);
 
   if (Utils:HasAttribute(config, "list")) then
     local list = Utils:GetAttribute(config, "list");
@@ -62,7 +71,7 @@ function Components.fontstring(parent, config)
       bullet:SetPoint("TOPLEFT", -4, 0);
       tk:SetBackground(bullet, tk:GetAssetFilePath("Icons\\crumb"));
 
-      row.content = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
+      row.content = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")--[[@as FontString]];
       row.content:SetWordWrap(true);
       row.content:SetJustifyH("LEFT");
       row.content:SetJustifyV("TOP");
@@ -82,11 +91,11 @@ function Components.fontstring(parent, config)
       container.rows[i] = row;
     end
   else
-    container.content = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
+    container.content = container:CreateFontString(nil, "ARTWORK", "GameFontHighlight")--[[@as FontString]];
     container.content:SetAllPoints(true);
     container.content:SetWordWrap(true);
-    container.content:SetJustifyH(config.justifyH or "LEFT");
-    container.content:SetJustifyV(config.justifyV or "MIDDLE");
+    container.content:SetJustifyH("LEFT");
+    container.content:SetJustifyV("MIDDLE");
 
     if (config.subtype == "header") then
       container.content:SetFontObject("MUI_FontLarge");
@@ -97,16 +106,25 @@ function Components.fontstring(parent, config)
 
     local content = Utils:GetAttribute(config, "content");
     container.content:SetText(content);
-    container:SetWidth(container.content:GetStringWidth() or 300);
   end
 
-  if (not config.inline) then
+  if (config.inline) then
+    local width = 0;
+    if (container.content) then
+      width = container.content:GetStringWidth() or 150;
+    else
+      for _, row in ipairs(container.rows) do
+        local rowWidth = row.content:GetStringWidth();
+        width = math.max(width, rowWidth);
+      end
+    end
+
+    container:SetWidth(width);
+  else
     container.fullWidth = true;
   end
 
-  if (not obj:IsNumber(config.height)) then
-    container.OnDynamicFrameRefresh = UpdateContainerHeight;
-  end
+  container.OnDynamicFrameRefresh = UpdateContainerHeight;
 
   return container;
 end

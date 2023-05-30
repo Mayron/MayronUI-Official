@@ -3,6 +3,8 @@ local _G = _G;
 local MayronUI = _G.MayronUI;
 local ipairs, strformat = _G.ipairs, _G.string.format;
 local tk, db, _, _, obj, L = MayronUI:GetCoreComponents(); -- luacheck: ignore
+
+---@class MayronUI.ConfigMenu
 local C_ConfigMenuModule = MayronUI:GetModuleClass("ConfigMenu");
 local components = {};
 
@@ -45,12 +47,13 @@ end
 local configTable = {
   id = 1;
   name = L["MUI Profile Manager"];
-  type = "category";
   children = {
-    { content = L["MANAGE_PROFILES_HERE"];
+    {
+      content = L["MANAGE_PROFILES_HERE"];
       type    = "fontstring";
     },
-    { type = "fontstring";
+    {
+      type = "fontstring";
       GetContent = function()
         return tk.Strings:Join("",
           L["Current profile"], ": ",
@@ -61,7 +64,8 @@ local configTable = {
         components.currentProfileFontString = container.content;
       end
     },
-    { GetOptions = GetProfileOptions;
+    {
+      GetOptions = GetProfileOptions;
       name       = L["Choose Profile"]..": ";
       tooltip    = L["Choose the currently active profile."];
       type       = "dropdown";
@@ -229,15 +233,15 @@ local configTable = {
 };
 
 function C_ConfigMenuModule:ShowProfileManager(data)
-  if (not data.window or not data.window:IsShown()) then
+  if (not data.configPanel or not data.configPanel:IsShown()) then
     self:Show();
   end
 
-  local menuButton = data.window.profilesBtn;
+  local menuButton = data.configPanel.profilesBtn;
 
   if (not menuButton.name) then
     menuButton.configTable = configTable;
-    menuButton.type = "submenu";
+    menuButton.type = "menu";
     menuButton.name = configTable.name;
   end
 

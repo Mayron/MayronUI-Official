@@ -590,10 +590,9 @@ function MayronUI:GetModuleClass(moduleKey)
   return registryInfo.class;
 end
 
----@generic T : BaseModule
----@param moduleKey `T` @The unique key associated with the registered module.
+---@param moduleKey string @The unique key associated with the registered module.
 ---@param silent boolean? @If true, nil can be returned, else if the module cannot be found an error is thrown.
----@return T, BaseModule
+---@return table, table
 function MayronUI:ImportModule(moduleKey, silent)
   local registryInfo = registeredModules[moduleKey];
 
@@ -624,7 +623,7 @@ function MayronUI:RegisterModule(moduleKey, moduleName, initializeOnDemand)
   return moduleClass;
 end
 
----@return fun(): number, BaseModule @An iterator function to iterate through registered modules.
+---@return fun(): number, BaseModule|table @An iterator function to iterate through registered modules.
 function MayronUI:IterateModules()
   local id = 0;
 

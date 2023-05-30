@@ -7,6 +7,7 @@ function Components.divider(parent, config)
   local divider = tk:CreateFrame("Frame", parent);
   divider:SetHeight(config.height or 1);
   divider.fullWidth = true;
+  divider.divider = true;
   return divider;
 end
 

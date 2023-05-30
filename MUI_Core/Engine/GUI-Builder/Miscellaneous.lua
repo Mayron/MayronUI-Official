@@ -255,7 +255,7 @@ do
   function gui:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment, radio, isSwatch)
     local container = tk:CreateFrame("Button", parent, globalName);
     container.isSwatch = isSwatch;
-    container:SetSize(150, 30);
+    container:SetSize(1000, 20);
 
     local btnGlobalName = (globalName and globalName.."CheckButton") or nil;
     container.btn = tk:CreateFrame("CheckButton", container, btnGlobalName, "UICheckButtonTemplate");
@@ -328,9 +328,8 @@ do
 
     if (text) then
       container.btn.text:SetText(text);
-      local width = container.btn.text:GetStringWidth();
-      width = (width > 100) and width or 100;
-      container:SetWidth(width + container.btn:GetWidth() + 20);
+      local textWidth = container.btn.text:GetStringWidth();
+      container:SetWidth(20 + 6 + textWidth);
     end
 
     return container;

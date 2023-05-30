@@ -87,7 +87,9 @@ function C_InventoryModule:GetConfigTable()
 
       {
         type = "frame";
+        name = "SetDirection";
         width = "fill";
+        noWrap = true;
         children = {
           { type = "fontstring"; content = "Set Direction: "; inline = true; };
           {
@@ -118,7 +120,7 @@ function C_InventoryModule:GetConfigTable()
           };
         }
       };
-      
+
       { type = "divider"};
       {
         type = "check";

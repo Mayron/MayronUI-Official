@@ -158,7 +158,7 @@ function Components.slider(parent, config, value)
   slider.Reset = Slider_Reset;
 
   local container = Utils:WrapInNamedContainer(slider, config);
-  container:SetHeight(container:GetHeight() + 28); -- make room for value text
+  container:SetHeight(container:GetHeight() + 32); -- make room for value text
 
   Utils:SetComponentEnabled(slider, config.enabled);
 

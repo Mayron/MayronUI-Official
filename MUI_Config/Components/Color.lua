@@ -96,20 +96,6 @@ function Components.color(parent, config, value)
   cbContainer.btn:SetScript("OnClick", OnColorSwatchButtonClick);
   cbContainer:SetScript("OnClick", OnColorContainerClick);
 
-  local optimalWidth = cbContainer.btn:GetWidth() + 20 + cbContainer.btn.text:GetStringWidth();
-
-  if (config.width) then
-    local width = max(optimalWidth, config.width);
-    cbContainer:SetWidth(width);
-  else
-    cbContainer:SetWidth(optimalWidth);
-  end
-
-  if (config.height) then
-    cbContainer:SetHeight(config.height);
-  end
-
-
   -- info options:
   cbContainer.extraInfo = cbContainer;
   cbContainer.swatchFunc = OnColorComponentValueChanged;

@@ -51,12 +51,6 @@ local function DynamicScrollFrame_OnScrollRangeChanged(self, xRange, yRange)
 
   ScrollFrame_OnScrollRangeChanged(self, xRange, yRange);
   UpdateScrollChildPosition(self, yRange, offset);
-
-  local refresh = frame.RefreshDynamicFrame--[[@as function]];
-  if (type(refresh) == "function") then
-    refresh();
-  end
-
   local scrollStep = math.floor(frame:GetHeight() + 0.5) * 0.2;
   self.ScrollBar.scrollStep = scrollStep;
 end
@@ -162,6 +156,7 @@ end
 ---@field private __padding number
 ---@field private __children (table|Region)[]
 ---@field private __wrap boolean
+---@field private __devMode boolean
 ---@field private __frame Region|table
 ---@field private __background (Texture|table)?
 ---@field private __scrollFrame (ScrollFrame|table)?
@@ -185,13 +180,13 @@ function DynamicFrameMixin:Init(parent, globalName, spacing, padding)
   self.__spacing = spacing or 0;
   self.__padding = padding or 0;
   self.__wrap = true;
+  self.__devMode = false;
   self.__children = {};
   self.__frame = tk:CreateFrame("Frame", parent, globalName);
 
   local refreshWrapper = function() self:Refresh() end
   self.__frame:SetScript("OnSizeChanged", refreshWrapper);
   self.__frame:SetScript("OnShow", refreshWrapper);
-  self.__frame.RefreshDynamicFrame = refreshWrapper;
 end
 
 ---@param r number
@@ -209,7 +204,6 @@ end
 function DynamicFrameMixin:WrapInScrollFrame()
   if (not self.__scrollFrame) then
     self.__scrollFrame, self.__scrollBar = gui:WrapInScrollFrame(self.__frame);
-    self.__frame:SetScript("OnSizeChanged", nil); -- no need for this because OnScrollRangeChanged does this for us
   end
 
   return self.__scrollFrame, self.__scrollBar;
@@ -273,6 +267,10 @@ function DynamicFrameMixin:AddChild(child)
   self.__children[#self.__children+1] = child;
 end
 
+function DynamicFrameMixin:SetDevMode(devMode)
+  self.__devMode = devMode;
+end
+
 ---@param child Frame
 function DynamicFrameMixin:RemoveChild(child)
   local position;
@@ -291,62 +289,67 @@ end
 
 local function ModifyRowChildren(row, rowHeight)
   for _, rowChild in ipairs(row) do
-    if (rowChild.centered) then
-      local childHeight = rowChild:GetHeight();
-      local diff = rowHeight - childHeight;
+    local childHeight = rowChild:GetHeight();
+    local diff = rowHeight - childHeight;
 
-      if (diff >= 10) then
-        local gap = math.ceil(diff / 2);
-        local point, relFrame, relPoint, xOffset, yOffset = rowChild:GetPoint(1);
-        rowChild:SetPoint(point, relFrame, relPoint, xOffset, yOffset - gap);
-      end
-    else
-      rowChild:SetHeight(rowHeight);
+    if (diff >= 2) then
+      local gap = math.ceil(diff / 2);
+      local point, relFrame, relPoint, xOffset, yOffset = rowChild:GetPoint(1);
+      rowChild:SetPoint(point, relFrame, relPoint, xOffset, yOffset - gap);
     end
   end
 end
 
 function DynamicFrameMixin:Refresh()
-  local maxWidth = self.__frame:GetWidth() - self.__padding;
-  local contentHeight = 0;
   local row = obj:PopTable();
   local rowHeight = 0;
-  local xOffset, yOffset = self.__padding, self.__padding;
+  local rowWidth = 0;
+  local minCanvasWidth;
+  local canvasHeight = 0;
+  local canvasWidth = self.__frame:GetWidth() - (self.__padding * 2);
+  local canvasXOffset, canvasYOffset = 0, 0;
 
   for _, child in ipairs(self.__children) do
     if (child:IsShown()) then
       if (type(child.OnDynamicFrameRefresh) == "function") then
-        child:OnDynamicFrameRefresh(maxWidth);
+        child:OnDynamicFrameRefresh(canvasWidth);
       end
     end
   end
 
   local function AddChildToRow(child)
     local childWidth, childHeight = child:GetSize();
-    child:SetPoint("TOPLEFT", xOffset, -yOffset);
+
+    child:SetPoint("TOPLEFT", canvasXOffset + self.__padding, -(canvasYOffset + self.__padding));
+    canvasXOffset = canvasXOffset + childWidth;
+
     row[#row+1] = child;
 
+    rowWidth = canvasXOffset;
     rowHeight = math.max(rowHeight, childHeight);
-
-    local newRowWidth = xOffset + childWidth;
-    local newContentHeight = yOffset + rowHeight;
-
-    contentHeight = math.max(contentHeight, newContentHeight);
-
-    xOffset = newRowWidth + self.__spacing;
+    canvasHeight = math.max(canvasHeight, canvasYOffset + rowHeight);
   end
 
-  for id, child in ipairs(self.__children) do
+  for _, child in ipairs(self.__children) do
+    if (self.__devMode and not child.__background) then
+      local f = child--[[@as Frame]];
+      tk:SetBackground(f, math.random(), math.random(), math.random());
+    end
+
     if (child:IsShown()) then
       local childWidth = child:GetWidth();
-      local fullWidth = child.fullWidth--[[@as boolean]];
 
-      if (fullWidth) then
-        childWidth = maxWidth - self.__padding;
+      if (child.fullWidth) then
+        childWidth = canvasWidth;
         child:SetWidth(childWidth);
 
       elseif (child.fillWidth) then
-        childWidth = maxWidth - self.__padding - xOffset + self.__spacing;
+        childWidth = canvasWidth - canvasXOffset;
+
+        if (#row > 0) then
+          childWidth = childWidth - self.__spacing;
+        end
+
         child:SetWidth(childWidth);
 
       elseif (child.percentWidth) then
@@ -359,43 +362,64 @@ function DynamicFrameMixin:Refresh()
           percent = 0.01;
         end
 
-        childWidth = (maxWidth - self.__padding) * percent;
+        childWidth = canvasWidth * percent;
         child:SetWidth(childWidth);
-
-      elseif (child.minWidth) then
-        if (childWidth < child.minWidth) then
-          childWidth = child.minWidth;
-          child:SetWidth(childWidth);
-        end
       end
 
-      local newRowWidth = xOffset + childWidth;
-      local isFirstRow = id == 1 or not self.__wrap;
+      if (child.minWidth and childWidth < child.minWidth) then
+        childWidth = child.minWidth;
+        child:SetWidth(childWidth);
+      end
 
-      if (not isFirstRow and ((maxWidth < newRowWidth) or fullWidth)) then
+      local firstChild = #row == 0;
+      local estimatedCanvasXOffset = childWidth; -- if added to current row, this would be the canvasXOffset
+      local forceNewRow = child.divider;
+
+      if (not firstChild) then
+        canvasXOffset = canvasXOffset + self.__spacing;
+        estimatedCanvasXOffset = estimatedCanvasXOffset + canvasXOffset;
+      end
+
+      local notEnoughRoom = canvasWidth < estimatedCanvasXOffset;
+      local multipleRowsAllowed = self.__wrap;
+
+      if (forceNewRow or (not firstChild and multipleRowsAllowed and notEnoughRoom)) then
         -- New row required
-        xOffset = self.__padding;
-        yOffset = yOffset + rowHeight + self.__spacing;
+        canvasXOffset = 0;
 
+        canvasYOffset = canvasYOffset + self.__spacing + rowHeight;
         ModifyRowChildren(row, rowHeight);
+
+        if (minCanvasWidth == nil) then
+          minCanvasWidth = rowWidth;
+        else
+          minCanvasWidth = math.min(minCanvasWidth, rowWidth);
+        end
+
         tk.Tables:Empty(row);
         rowHeight = 0;
-
-        newRowWidth = xOffset + childWidth;
-
-        if (maxWidth < newRowWidth) then
-          maxWidth = newRowWidth + self.__padding;
-        end
       end
 
-      AddChildToRow(child);
+      if (not forceNewRow) then
+        AddChildToRow(child);
+      end
     end
   end
 
   ModifyRowChildren(row, rowHeight);
+
+  if (minCanvasWidth == nil) then
+    minCanvasWidth = rowWidth;
+  else
+    minCanvasWidth = math.min(minCanvasWidth, rowWidth);
+  end
+
+  -- For DynamicFrame's as children of other DynamicFrames
+  self.__frame.minWidth = minCanvasWidth + (self.__padding * 2);
+
   obj:PushTable(row);
 
-  local newFrameHeight = contentHeight + self.__spacing;
+  local newFrameHeight = canvasHeight + (self.__padding * 2);
   self.__frame:SetHeight(newFrameHeight);
 end
 

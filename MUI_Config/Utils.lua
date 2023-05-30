@@ -54,7 +54,7 @@ function Utils:SetShown(frame, shown)
   end
 end
 
-local containerPadding = 12;
+local componentNameSpacing = 8; -- spacing between name and the component
 
 --- This function wraps the widget inside of a new container with a "name" fontstring label.
 function Utils:WrapInNamedContainer(component, config)
@@ -63,7 +63,7 @@ function Utils:WrapInNamedContainer(component, config)
   component:SetParent(container);
 
   local currentWidth = component:GetWidth();
-  container:SetWidth(currentWidth + containerPadding);
+  container:SetWidth(currentWidth);
 
   -- this is needed to access the component from the container
   -- which is passed to some config functions (i.e. OnLoad):
@@ -71,20 +71,20 @@ function Utils:WrapInNamedContainer(component, config)
   component.wrapper = container;
 
   container.name = container:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-  container.name:SetPoint("TOPLEFT", 6, -6);
+  container.name:SetPoint("TOPLEFT");
   container.name:SetText(config.name);
 
-  local desiredWidth = (container.name:GetStringWidth() or 0) + containerPadding;
+  local desiredWidth = (container.name:GetStringWidth() or 0);
   local default = self:AppendDefaultValueToTooltip(config);
   local canReset = default ~= nil and (obj:IsString(default) or obj:IsNumber(default) or obj:IsBoolean(default));
 
   if (obj:IsFunction(component.Reset) and canReset) then
     container.reset = tk:CreateFrame("Button", container);
-    local offset = containerPadding / 2;
-    container.reset:SetPoint("TOPRIGHT", -offset, -offset);
+    container.reset:SetPoint("TOPRIGHT");
     container.reset:SetSize(18, 18);
-    desiredWidth = desiredWidth + 18 + offset;
+    desiredWidth = desiredWidth + 18 + 4; -- 4 for some spacing between name and reset button
     container.reset:SetNormalTexture(tk:GetAssetFilePath("Textures\\refresh"));
+
     local normalTexture = container.reset:GetNormalTexture()--[[@as Texture]];
     normalTexture:ClearAllPoints();
     normalTexture:SetPoint("TOPLEFT", 2, -2);
@@ -115,14 +115,15 @@ function Utils:WrapInNamedContainer(component, config)
 
   if (desiredWidth > currentWidth) then
     container:SetWidth(desiredWidth);
-    component:SetWidth(desiredWidth - containerPadding);
+    component:SetWidth(desiredWidth);
   end
 
   self:SetBasicTooltip(container, config);
   self:SetBasicTooltip(component, config);
 
-  container:SetHeight(component:GetHeight() + container.name:GetStringHeight() + 8 + containerPadding);
-  component:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -8);
+  local desiredHeight = component:GetHeight() + container.name:GetStringHeight() + componentNameSpacing;
+  container:SetHeight(desiredHeight);
+  component:SetPoint("TOPLEFT", container.name, "BOTTOMLEFT", 0, -componentNameSpacing);
 
   return container;
 end
@@ -171,7 +172,7 @@ function Utils.OnMenuButtonClick(menuButton)
     return
   end
 
-  local configMenu = MayronUI:ImportModule("ConfigMenu");
+  local configMenu = MayronUI:ImportModule("ConfigMenu")--[[@as MayronUI.ConfigMenu]];
   configMenu:OpenMenu(menuButton);
 end
 

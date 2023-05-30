@@ -1,7 +1,6 @@
 -- luacheck: ignore self 143 631
 local _G = _G;
 local MayronUI = _G.MayronUI;
-
 local tk, _, _, gui, obj, L = MayronUI:GetCoreComponents();
 
 local MENU_BUTTON_HEIGHT = 40;
@@ -12,11 +11,11 @@ local strsplit, radians = _G.strsplit, _G.math.rad;
 -- Registers and Imports -------------
 local C_LinkedList = obj:Import("Pkg-Collections.LinkedList");
 
----@class ConfigMenu : BaseModule
+---@class MayronUI.ConfigMenu : BaseModule
 local C_ConfigMenuModule = MayronUI:RegisterModule("ConfigMenu");
 
----@class MayronUI.ConfigMenu.MenuButton : CheckButton,Button|table
----@field menu DynamicFrame
+---@class MayronUI.ConfigMenu.MenuButton : CheckButton,Button,table
+---@field menu MayronUI.DynamicFrame
 ---@field type string
 ---@field module table
 ---@field tabsContainer table?
@@ -348,10 +347,10 @@ function C_ConfigMenuModule:SetDatabaseValue(_, component, newValue)
 end
 
 obj:DefineParams("CheckButton|Button");
----@param menuButton CheckButton|Button|table @The clicked menu button is associated with a menu.
----@overload fun(self, menuButton: CheckButton|Button|table)
+---@param menuButton MayronUI.ConfigMenu.MenuButton @The clicked menu button is associated with a menu.
+---@overload fun(self, menuButton: MayronUI.ConfigMenu.MenuButton)
 function C_ConfigMenuModule:OpenMenu(data, menuButton)
-  local history = data.history--[[@as LinkedList]];
+  local history = data.history--[[@as Pkg-Collections.LinkedList]];
 
   if (menuButton.type == "menu" or menuButton.type == "tab") then
     history:Clear();
@@ -386,6 +385,18 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
   ---@cast data table
   ---@cast btn MayronUI.ConfigMenu.MenuButton
 
+  if (btn.type == "menu") then
+    for _, menuBtn in ipairs(data.menuButtons) do
+      if (menuBtn:IsObjectType("CheckButton") and menuBtn:GetChecked()) then
+        menuBtn:SetChecked(false);
+      end
+    end
+
+    if (btn:IsObjectType("CheckButton") and not btn:GetChecked()) then
+      btn:SetChecked(true);
+    end
+  end
+
   -- Hide the old one
   if (data.selectedButton) then
     if (data.selectedButton.menu) then
@@ -408,7 +419,15 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
       data.selectedButton = btn;
 
       -- else, create a new menu (dynamic frame) to based on the module's config data
-      local dynamicFrame = gui:CreateDynamicFrame(optionsFrame, nil, 10, 10);
+      local globalMenuName = nil;
+      local btnName = btn.configTable.module--[[@as string]];
+
+      if (type(btnName) == "string") then
+        globalMenuName = "MUI_Config"..btnName.."Menu";
+      end
+
+      local dynamicFrame = gui:CreateDynamicFrame(optionsFrame, globalMenuName, 15, 10);
+      dynamicFrame:SetDevMode(false); -- if true, all components added to all menu frame's will have a random background color
       local menuScrollFrame = dynamicFrame:WrapInScrollFrame();
 
       btn.menu = dynamicFrame;
@@ -457,7 +476,7 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
   end
 
   PlaySound(tk.Constants.CLICK);
-  UIFrameFadeIn(menuScrollFrame, 0.3, 0, 1);
+  UIFrameFadeIn(menuScrollFrame--[[@as Frame]], 0.3, 0, 1);
 
   local history = data.history; ---@type Pkg-Collections.LinkedList
   history:AddToBack(btn);
@@ -806,10 +825,6 @@ function C_ConfigMenuModule:SetUpWindow(data)
 
   -- profiles button
   data.configPanel.profilesBtn = CreateTopMenuButton(L["Profiles"], function()
-    if (data.selectedButton:IsObjectType("CheckButton")) then
-      data.selectedButton:SetChecked(false);
-    end
-
     self:ShowProfileManager();
   end, data.topbarFrame);
 
@@ -944,8 +959,6 @@ do
         menuListFrame:SetHeight(menuListFrame:GetHeight() + 5);
       end
     end
-
-    tk:GroupCheckButtons(data.menuButtons);
 
     -- contains all menu buttons in the left scroll frame of the main config window
     local scrollChildHeight = ((MENU_BUTTON_HEIGHT + 5) * #data.menuButtons) - 5;
