@@ -368,7 +368,7 @@ function C_ConfigMenuModule:RemoveComponent(data, component)
   obj:Assert(data.selectedButton, "Failed to remove component - No selected button.");
   obj:Assert(data.selectedButton.menu, "Failed to remove component - No selected menu.");
 
-  ---@type DynamicFrame
+  ---@type MayronUI.DynamicFrame
   local menu = data.selectedButton.menu;
   menu:RemoveChild(component);
 end
@@ -377,7 +377,7 @@ function C_ConfigMenuModule:AddComponent(data, component)
   obj:Assert(data.selectedButton, "Failed to add component - No selected button.");
   obj:Assert(data.selectedButton.menu, "Failed to add component - No selected menu.");
 
-  ---@type DynamicFrame
+  ---@type MayronUI.DynamicFrame
   local menu = data.selectedButton.menu;
   menu:AddChildren(component);
 end
@@ -411,7 +411,7 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
 
       -- else, create a new menu (dynamic frame) to based on the module's config data
       local dynamicFrame = gui:CreateDynamicFrame(optionsFrame, nil, 10, 10);
-      local menuScrollFrame = dynamicFrame:AddScrollFrame();
+      local menuScrollFrame = dynamicFrame:WrapInScrollFrame();
 
       btn.menu = dynamicFrame;
 
@@ -605,7 +605,7 @@ function C_ConfigMenuModule:ShowRestartMessage(data)
 end
 
 function C_ConfigMenuModule:RefreshMenu(data)
-  ---@type DynamicFrame
+  ---@type MayronUI.DynamicFrame
   local menu = data.selectedButton.menu;
   menu:Refresh();
 end
@@ -745,9 +745,9 @@ function C_ConfigMenuModule:SetUpWindow(data)
   data.topbarFrame = topbar:GetFrame();
 
   local menuListFrame = tk:CreateFrame("Frame", data.window:GetFrame(), "MUI_ConfigSideBar");
-  local menuListScrollFrame = gui:WrapInScrollFrame(menuListFrame);
+  local menuListScrollFrame = gui:WrapInScrollFrame(menuListFrame, nil, 4);
   local menuListCell = data.window:CreateCell(menuListScrollFrame);
-  menuListCell:SetInsets(0, 14, 10, 10);
+  menuListCell:SetInsets(0, 10, 0, 10);
 
   data.options = data.window:CreateCell();
   data.options:SetInsets(2, 10, 2, 2);
@@ -940,7 +940,7 @@ do
       else
         local previousMenuButton = data.menuButtons[id - 1];
         menuButton:SetPoint("TOPLEFT", previousMenuButton, "BOTTOMLEFT", 0, -5);
-        menuButton:SetPoint(          "TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
+        menuButton:SetPoint("TOPRIGHT", previousMenuButton, "BOTTOMRIGHT", 0, -5);
 
         -- make room for padding between buttons
         menuListScrollChild:SetHeight(menuListScrollChild:GetHeight() + 5);

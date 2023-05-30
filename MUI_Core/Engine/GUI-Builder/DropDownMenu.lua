@@ -41,7 +41,7 @@ local function DropDownToggleButton_OnClick(self)
   end
 
   tk.HandleTooltipOnLeave();
-  DropDownMenu.Static.Menu:SetFrameStrata(tk.Constants.FRAME_STRATAS.DIALOG);
+  DropDownMenu.Static.Menu:SetFrameStrata(tk.Constants.FRAME_STRATAS.FULLSCREEN);
   FoldAll(self.dropdown);
   self.dropdown:Toggle(not self.dropdown:IsExpanded());
 end

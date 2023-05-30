@@ -74,6 +74,7 @@ function Cell:SetInsets(data, ...)
   obj:PushTable(args);
 
   if (data.startAnchor and data.endEnchor) then
+    data.frame:ClearAllPoints();
     data.frame:SetPoint("TOPLEFT", data.startAnchor, "TOPLEFT", data.insets.left, -data.insets.top);
     data.frame:SetPoint("TOPLEFT", data.endEnchor, "TOPLEFT", -data.insets.right, data.insets.bottom);
   end

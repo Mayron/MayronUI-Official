@@ -13,10 +13,15 @@ local gui = MayronUI:GetComponent("GUIBuilder");
 
 local function UpdateScrollChildPosition(self, yRange, offset)
   local frame = self:GetScrollChild();
-  local xOffset = 0;
+  local barOffset = frame.barOffset--[[@as number]];
+  local xOffset = barOffset or 0;
 
   if (yRange > 0 and self.ScrollBar:IsShown()) then
-    xOffset =  -(self.ScrollBar:GetWidth());
+    xOffset = xOffset + self.ScrollBar:GetWidth();
+  end
+
+  if (xOffset > 0) then
+    xOffset = -xOffset;
   end
 
   frame:SetPoint("TOPLEFT", self, "TOPLEFT", 0, offset);
@@ -36,8 +41,14 @@ local function DynamicScrollFrame_OnScrollRangeChanged(self, xRange, yRange)
       self:SetVerticalScroll(0);
     else
       frame:ClearAllPoints();
+      local barOffset = frame.barOffset--[[@as number]] or 0;
+
+      if (barOffset > 0) then
+        barOffset = -barOffset;
+      end
+
       frame:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0);
-      frame:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, 0);
+      frame:SetPoint("TOPRIGHT", self, "TOPRIGHT", barOffset, 0);
     end
 
     return
@@ -46,10 +57,9 @@ local function DynamicScrollFrame_OnScrollRangeChanged(self, xRange, yRange)
   ScrollFrame_OnScrollRangeChanged(self, xRange, yRange);
   UpdateScrollChildPosition(self, yRange, offset);
 
-  local script = frame:GetScript("OnShow");
-
-  if (type(script) == "function") then
-    script();
+  local refresh = frame.RefreshDynamicFrame--[[@as function]];
+  if (type(refresh) == "function") then
+    refresh();
   end
 
   local scrollStep = math.floor(frame:GetHeight() + 0.5) * 0.2;
@@ -79,11 +89,19 @@ end
 local function DynamicScrollFrame_OnShow(self)
   local offset = self:GetVerticalScroll();
   local frame = self:GetScrollChild();
+  local barOffset = frame.barOffset or 0;
+
+  if (barOffset > 0) then
+    barOffset = -barOffset;
+  end
+
   frame:ClearAllPoints();
   frame:SetPoint("TOPLEFT", self, "TOPLEFT", 0, offset);
-  frame:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, offset);
+  frame:SetPoint("TOPRIGHT", self, "TOPRIGHT", barOffset, offset);
 end
 
+---@param parent Frame The ScrollFrame's parent frame
+---@param scrollFrameName string? The global name for the new ScrollFrame
 function gui:CreateScrollFrame(parent, scrollFrameName)
   if (scrollFrameName == nil) then
     local parentName = parent:GetName();
@@ -119,10 +137,11 @@ function gui:CreateScrollFrame(parent, scrollFrameName)
   return scrollFrame, scrollBar;
 end
 
----@param frame Frame The Scroll Child of the new ScrollFrame
+---@param frame Frame The ScrollFrame's Child frame
 ---@param scrollFrameName string? The global name for the new ScrollFrame
+---@param barOffset number? The distance the frame is away from the scroll bar
 ---@return ScrollFrame scrollFrame, Slider scrollBar
-function gui:WrapInScrollFrame(frame, scrollFrameName)
+function gui:WrapInScrollFrame(frame, scrollFrameName, barOffset)
   local parent = frame:GetParent()--[[@as Frame]];
 
   if (scrollFrameName == nil) then
@@ -140,21 +159,28 @@ function gui:WrapInScrollFrame(frame, scrollFrameName)
     scrollFrame:SetPoint(point, relFrame, relPoint, xOffset, yOffset);
   end
 
+  scrollFrame:SetScrollChild(frame);
+
+  frame.barOffset = barOffset or 0;
+  local xOffset = frame.barOffset;
+
+  if (xOffset > 0) then
+    xOffset = -xOffset;
+  end
+
   frame:ClearAllPoints();
   frame:SetPoint("TOPLEFT", scrollFrame, "TOPLEFT", 0, 0);
-  frame:SetPoint("TOPRIGHT", scrollFrame, "TOPRIGHT", 0, 0);
-
-  scrollFrame:SetScrollChild(frame);
+  frame:SetPoint("TOPRIGHT", scrollFrame, "TOPRIGHT", xOffset, 0);
 
   return scrollFrame, scrollBar;
 end
 
----@class DynamicFrame
+---@class MayronUI.DynamicFrame
 ---@field private __spacing number
 ---@field private __padding number
----@field private __children (table|Frame)[]
+---@field private __children (table|Region)[]
 ---@field private __wrap boolean
----@field private __frame Frame|table
+---@field private __frame Region|table
 ---@field private __background (Texture|table)?
 ---@field private __scrollFrame (ScrollFrame|table)?
 ---@field private __scrollBar (Slider|table)?
@@ -164,7 +190,7 @@ local DynamicFrameMixin = {};
 ---@param globalName string?
 ---@param spacing number?
 ---@param padding number?
----@return DynamicFrame
+---@return MayronUI.DynamicFrame
 function gui:CreateDynamicFrame(parent, globalName, spacing, padding)
   return CreateAndInitFromMixin(DynamicFrameMixin, parent, globalName, spacing, padding)
 end
@@ -183,6 +209,7 @@ function DynamicFrameMixin:Init(parent, globalName, spacing, padding)
   local refreshWrapper = function() self:Refresh() end
   self.__frame:SetScript("OnSizeChanged", refreshWrapper);
   self.__frame:SetScript("OnShow", refreshWrapper);
+  self.__frame.RefreshDynamicFrame = refreshWrapper;
 end
 
 ---@param r number
@@ -197,7 +224,7 @@ function DynamicFrameMixin:SetBackgroundColor(r, g, b, a)
   end
 end
 
-function DynamicFrameMixin:AddScrollFrame()
+function DynamicFrameMixin:WrapInScrollFrame()
   if (not self.__scrollFrame) then
     self.__scrollFrame, self.__scrollBar = gui:WrapInScrollFrame(self.__frame);
     self.__frame:SetScript("OnSizeChanged", nil); -- no need for this because OnScrollRangeChanged does this for us
@@ -225,8 +252,13 @@ function DynamicFrameMixin:SetWrappingEnabled(wrap)
   self.__wrap = wrap;
 end
 
----@param ... Frame
----@overload fun(self, children: Frame[])
+---@return (table|Region)[]
+function DynamicFrameMixin:GetChildren()
+  return self.__children;
+end
+
+---@param ... Region
+---@overload fun(self, children: Region[])
 function DynamicFrameMixin:AddChildren(...)
   local length = select("#", ...);
 
@@ -248,7 +280,7 @@ function DynamicFrameMixin:AddChildren(...)
   end
 end
 
----@param child Frame
+---@param child Region
 function DynamicFrameMixin:AddChild(child)
   tk:Assert(
     type(child) == "table" and type(child.GetObjectType) == "function",
@@ -330,16 +362,22 @@ function DynamicFrameMixin:Refresh()
       if (fullWidth) then
         childWidth = maxWidth - self.__padding;
         child:SetWidth(childWidth);
+
+      elseif (child.fillWidth) then
+        childWidth = maxWidth - self.__padding - xOffset + self.__spacing;
+        child:SetWidth(childWidth);
+
+      elseif (child.minWidth) then
+        if (childWidth < child.minWidth) then
+          childWidth = child.minWidth;
+          child:SetWidth(childWidth);
+        end
       end
 
       local newRowWidth = xOffset + childWidth;
+      local isFirstRow = id == 1 or not self.__wrap;
 
-      if (id == 1 or not self.__wrap) then
-        if (newRowWidth > maxWidth) then
-          childWidth = maxWidth - self.__padding;
-          child:SetWidth(childWidth);
-        end
-      elseif ((maxWidth < newRowWidth) or fullWidth) then
+      if (not isFirstRow and ((maxWidth < newRowWidth) or fullWidth)) then
         -- New row required
         xOffset = self.__padding;
         yOffset = yOffset + rowHeight + self.__spacing;

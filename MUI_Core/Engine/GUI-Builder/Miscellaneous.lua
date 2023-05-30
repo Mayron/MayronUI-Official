@@ -154,21 +154,25 @@ do
   function gui:CreateButton(parent, text, button, tooltip, padding, minWidth)
     local backgroundTexture = tk:GetAssetFilePath("Textures\\Widgets\\Button");
 
-    button = button or tk:CreateBackdropFrame("Button", parent, nil);
+    button = button or tk:CreateBackdropFrame("Button", parent, nil)--[[@as Button|BackdropTemplate]];
     button.padding = padding or 30;
-    button.minWidth = minWidth;
+    button.minWidth = minWidth or 150;
     button:SetHeight(30);
     button:SetBackdrop(tk.Constants.BACKDROP);
 
-    local fs = button:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+    local fs = button:CreateFontString(nil, "OVERLAY", "GameFontHighlight")--[[@as FontString]];
     button:SetFontString(fs);
     hooksecurefunc(button, "SetText", SetWidth);
 
+    local width = 0;
+
     if (text) then
       button:SetText(text);
-    else
-      button:SetWidth(minWidth or 150);
+      width = fs:GetStringWidth() + (button.padding * 2);
     end
+
+    width = math.max(width, button.minWidth);
+    button:SetWidth(width);
 
     local inset = tk.Constants.BACKDROP.edgeSize;
     for i = 1, 3 do
@@ -249,11 +253,12 @@ do
   end
 
   function gui:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment, radio, isSwatch)
-    local container = tk:CreateFrame("Button", parent);
+    local container = tk:CreateFrame("Button", parent, globalName);
     container.isSwatch = isSwatch;
     container:SetSize(150, 30);
 
-    container.btn = tk:CreateFrame("CheckButton", container, globalName, "UICheckButtonTemplate");
+    local btnGlobalName = (globalName and globalName.."CheckButton") or nil;
+    container.btn = tk:CreateFrame("CheckButton", container, btnGlobalName, "UICheckButtonTemplate");
     container.btn:SetSize(20, 20);
 
     tk:KillElement(container.btn:GetHighlightTexture());

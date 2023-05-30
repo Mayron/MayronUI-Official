@@ -126,8 +126,9 @@ function C_LayoutSwitcher:UpdateAddOnWindow(data)
   end
 
   local checked, addOnName;
+  local dynamicFrame = data.addonWindow.dynamicFrame--[[@as MayronUI.DynamicFrame]];
 
-  for i, child in obj:IterateArgs(data.addonWindow.dynamicFrame:GetChildren()) do
+  for i, child in ipairs(dynamicFrame:GetChildren()) do
     if (i % 2 ~= 0) then
       -- checkbutton
       addOnName = child.btn.text:GetText();
@@ -146,6 +147,8 @@ function C_LayoutSwitcher:UpdateAddOnWindow(data)
       end
     end
   end
+
+  dynamicFrame:Refresh();
 end
 
 obj:DefineParams("DropDownMenu", "string", "table");
@@ -204,7 +207,7 @@ function C_LayoutSwitcher:CreateLayout(data)
     return;
   end
 
-  local dropdown = data.layoutTool.dropdown;
+  local dropdown = data.layoutsDropDown;
   local length = dropdown:GetNumOptions();
   local totalLayouts = self:GetNumLayouts();
 
@@ -231,7 +234,7 @@ function C_LayoutSwitcher:CreateLayout(data)
         dropdown:SetLabel(layout);
 
         -- cannot delete a layout if only 1 exists
-        data.layoutTool.deleteButton:SetEnabled(totalLayouts ~= 1);
+        data.deleteButton:SetEnabled(totalLayouts ~= 1);
       end
     end;
   };
@@ -268,7 +271,7 @@ function C_LayoutSwitcher:RenameLayout(data)
       db.global.layouts[layout] = old:GetSavedVariable();
       db.global.layouts[oldViewingLayout] = false; -- might be a default layout
 
-      local dropdown = data.layoutTool.dropdown;
+      local dropdown = data.layoutsDropDown;
       local btn = dropdown:GetOptionByLabel(oldViewingLayout);
 
       btn.value = layout;
@@ -304,7 +307,7 @@ function C_LayoutSwitcher:DeleteLayout(data)
 
       local btn = dropdown:GetOptionByLabel(data.viewingLayout);
       dropdown:SetLabel(btn:GetText());
-      data.layoutTool.deleteButton:SetEnabled(self:GetNumLayouts() ~= 1);
+      data.deleteButton:SetEnabled(self:GetNumLayouts() ~= 1);
     end;
   };
 
@@ -314,15 +317,18 @@ end
 obj:DefineParams("table", "string");
 obj:DefineReturns("Frame", "DropDownMenu");
 function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
-  local scrollFrame = data.addonWindow.dynamicFrame:GetFrame();
+  local addonsFrame = data.addonWindow.dynamicFrame:GetFrame();
   local addOnProfiles = dbObject:GetProfiles();
-  local dropdown = gui:CreateDropDown(scrollFrame);
-  local checkButton = gui:CreateCheckButton(scrollFrame, addOnName);
 
-  checkButton:SetSize(186, dropdown:GetHeight());
+  local globalKey = tk.Strings:RemoveWhiteSpace(addOnName);
+  local globalName = "MUI_LayoutToolAddOns_"..globalKey ;
+  local cbContainer = gui:CreateCheckButton(addonsFrame, addOnName, nil, globalName);
 
   -- setup addOn dropdown menus with options
   local currentProfile = dbObject:GetCurrentProfile();
+
+  local dropdown = gui:CreateDropDown(addonsFrame);
+  dropdown.fillWidth = true;
   dropdown:SetLabel(currentProfile);
   dropdown:AddOption("<"..L["New Profile"]..">",
     { self; "CreateNewAddOnProfile" }, addOnName, dbObject);
@@ -331,8 +337,8 @@ function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
     dropdown:AddOption(profileName, SetAddOnProfilePair, data, addOnName, profileName);
   end
 
-  checkButton.btn:SetScript("OnClick", function()
-    local checked = checkButton.btn:GetChecked();
+  cbContainer.btn:SetScript("OnClick", function()
+    local checked = cbContainer.btn:GetChecked();
     dropdown:SetEnabled(checked);
 
     if (not checked) then
@@ -343,7 +349,7 @@ function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
     end
   end);
 
-  return checkButton, dropdown;
+  return cbContainer, dropdown;
 end
 
 function C_LayoutSwitcher:ShowLayoutTool(data)
@@ -370,7 +376,7 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
   data.layoutTool:SetDevMode(false); -- show or hide the red frame info overlays (default is hidden)
   data.layoutTool:SetDimensions(2, 2);
   data.layoutTool:GetRow(1):SetFixed(80);
-  data.layoutTool:GetColumn(1):SetFixed(400);
+  data.layoutTool:GetColumn(1):SetFixed(450);
 
   data.description = data.layoutTool:CreateCell();
   data.description:SetDimensions(2, 1);
@@ -381,71 +387,69 @@ function C_LayoutSwitcher:ShowLayoutTool(data)
   data.description.text:SetWordWrap(true);
   data.description.text:SetText(LAYOUT_MESSAGE);
 
-  data.addonWindow = gui:CreateDynamicFrame(layoutFrame, nil, 5, 10);
+  local addonsDynamicFrame = gui:CreateDynamicFrame(layoutFrame, "$parentAddOns", 10, 10);
+  local addonsScrollFrame = addonsDynamicFrame:WrapInScrollFrame();
+  gui:AddDialogTexture(addonsScrollFrame, "Low");
 
-  local addonWindowFrame = data.addonWindow:GetFrame();
-  gui:AddDialogTexture(addonWindowFrame, "Low");
+  data.addonWindow = data.layoutTool:CreateCell(addonsScrollFrame);
+  data.addonWindow.dynamicFrame = addonsDynamicFrame;
+  data.addonWindow:SetInsets(10, 4, 10, 10);
 
-  data.addonWindow = data.layoutTool:CreateCell(data.addonWindow);
-  data.addonWindow.dynamicFrame = data.addonWindow;
-  data.addonWindow:SetInsets(10, 0, 10, 10);
+  local actionsDynamicFrame = gui:CreateDynamicFrame(layoutFrame, "$parentActions", 20, 10);
+  local actionsScrollFrame = actionsDynamicFrame:WrapInScrollFrame();
+  data.actions = gui:AddDialogTexture(actionsScrollFrame, "Low");
+  data.actions = data.layoutTool:CreateCell(data.actions);
+  data.actions:SetInsets(10);
 
-  local menuFrame = tk:CreateFrame("Frame", layoutFrame);
-  data.menu = gui:AddDialogTexture(menuFrame, "Low");
-  data.menu = data.layoutTool:CreateCell(data.menu);
-  data.menu:SetInsets(10, 10, 10, 15);
-
-  data.layoutTool:AddCells(data.description, data.addonWindow, data.menu);
+  data.layoutTool:AddCells(data.description, data.addonWindow, data.actions);
 
   data.supportedDatabases = GetSupportedAddOns();
 
   -- Add ScrollFrame content:
   for addOnName, dbObject in pairs(data.supportedDatabases) do
-    local checkButton, dropdown = self:CreateScrollFrameRowContent(dbObject, addOnName);
-    data.addonWindow.dynamicFrame:AddChildren(checkButton, dropdown);
+    local cbContainer, dropdown = self:CreateScrollFrameRowContent(dbObject, addOnName);
+    addonsDynamicFrame:AddChildren(cbContainer, dropdown);
   end
 
   self:UpdateAddOnWindow();
 
   -- Add menu content:
-  data.menu.layoutsTitle = data.menu:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-  data.menu.layoutsTitle:SetText(L["Layouts"] .. ":");
-  data.menu.layoutsTitle:SetPoint("TOPLEFT", 35, -35);
+  local actionsFrame = data.actions:GetFrame()--[[@as Frame]];
 
-  data.menu.layoutsDropDown = gui:CreateDropDown(data.menu:GetFrame());
-  data.menu.layoutsDropDown:SetLabel(data.viewingLayout);
-  data.menu.layoutsDropDown:SetPoint(
-    "TOPLEFT", data.menu.layoutsTitle, "BOTTOMLEFT", 0, -5);
-  data.layoutTool.dropdown = data.menu.layoutsDropDown
+  local layoutsDropdownContainer = tk:CreateFrame("Frame", actionsFrame);
+  layoutsDropdownContainer:SetHeight(46);
+  layoutsDropdownContainer.fullWidth = true;
+
+  data.layoutsTitle = layoutsDropdownContainer:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+  data.layoutsTitle:SetText(L["Layouts"] .. ":");
+  data.layoutsTitle:SetPoint("TOPLEFT");
+
+  data.layoutsDropDown = gui:CreateDropDown(layoutsDropdownContainer);
+  data.layoutsDropDown:SetLabel(data.viewingLayout);
+  data.layoutsDropDown:SetPoint("TOPLEFT", data.layoutsTitle, "BOTTOMLEFT", 0, -5);
+  data.layoutsDropDown:SetPoint("BOTTOMRIGHT");
 
   for key, layoutData in db.global.layouts:Iterate() do
     if (layoutData) then
-      data.menu.layoutsDropDown:AddOption(key, { self; "SetViewingLayout" });
+      data.layoutsDropDown:AddOption(key, { self; "SetViewingLayout" });
     end
   end
 
-  data.menu.createButton = gui:CreateButton(data.menu:GetFrame(), L["Create New Layout"]);
-  data.menu.createButton:SetWidth(178);
-  data.menu.createButton:SetPoint("TOP", data.menu.layoutsDropDown:GetFrame(), "BOTTOM", 0, -20);
-  data.menu.createButton:SetScript("OnClick", function()
-    self:CreateLayout()
-  end);
+  data.createButton = gui:CreateButton(actionsFrame, L["Create New Layout"]);
+  data.createButton:SetScript("OnClick", function() self:CreateLayout() end);
+  data.createButton.fullWidth = true;
 
-  data.menu.renameButton = gui:CreateButton(data.menu:GetFrame(), L["Rename Layout"]);
-  data.menu.renameButton:SetWidth(178);
-  data.menu.renameButton:SetPoint(
-    "TOP", data.menu.createButton, "BOTTOM", 0, -20);
-  data.menu.renameButton:SetScript("OnClick", function()
-    self:RenameLayout()
-  end);
+  data.renameButton = gui:CreateButton(actionsFrame, L["Rename Layout"]);
+  data.renameButton:SetScript("OnClick", function() self:RenameLayout() end);
+  data.renameButton.fullWidth = true;
 
-  data.menu.deleteButton = gui:CreateButton(data.menu:GetFrame(), L["Delete Layout"]);
-  data.menu.deleteButton:SetWidth(178);
-  data.menu.deleteButton:SetPoint("TOP", data.menu.renameButton, "BOTTOM", 0, -20);
-  data.menu.deleteButton:SetScript("OnClick", function() self:DeleteLayout() end);
-  data.layoutTool.deleteButton = data.menu.deleteButton;
+  data.deleteButton = gui:CreateButton(actionsFrame, L["Delete Layout"]);
+  data.deleteButton:SetScript("OnClick", function() self:DeleteLayout() end);
+  data.deleteButton:SetEnabled(self:GetNumLayouts() ~= 1);
+  data.deleteButton.fullWidth = true;
 
-  data.menu.deleteButton:SetEnabled(self:GetNumLayouts() ~= 1);
+  actionsDynamicFrame:AddChildren(layoutsDropdownContainer, data.createButton, data.renameButton, data.deleteButton);
+  actionsDynamicFrame:Refresh();
 
   data.layoutTool:Show();
   UIFrameFadeIn(data.layoutTool, 0.3, 0, 1);
