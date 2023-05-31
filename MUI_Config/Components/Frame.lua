@@ -4,7 +4,7 @@ local Utils = MayronUI:GetComponent("ConfigMenuUtils");
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local tonumber = _G.tonumber;
 
-local function UpdateContainerHeight(self)
+local function RefreshDynamicFrame(self)
   self.dynamicFrame:Refresh();
 end
 
@@ -55,7 +55,7 @@ function Components.frame(parent, config)
   Utils:SetShown(frame, config.shown);
 
   frame.dynamicFrame = dynamicFrame; -- required for transferring config values into the real component
-  frame.OnDynamicFrameRefresh = UpdateContainerHeight;
+  frame.OnDynamicFrameRefresh = RefreshDynamicFrame;
 
   return dynamicFrame;
 end

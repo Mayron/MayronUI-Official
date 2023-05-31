@@ -37,6 +37,8 @@ local PlaySound, GetScreenWidth, GetScreenHeight = _G.PlaySound, _G.GetScreenWid
 local SoundKit, GetItemInfoInstant = _G.SOUNDKIT, _G.GetItemInfoInstant;
 local EasyMenu, GetTime, ipairs, IsAddOnLoaded = _G["EasyMenu"], _G.GetTime, _G.ipairs, _G.IsAddOnLoaded;
 
+local ScrollBarWidth = 12;
+
 local BagIndexes = _G["Enum"] and _G["Enum"].BagIndex or {
   Keyring = -2,
   Backpack = 0,
@@ -198,6 +200,18 @@ local containerPadding = { top = 0, right = 0, bottom = 0, left = 0 };
 local originalTopPadding = 0;
 
 -- Local Functions --------------
+local function RepositionInventoryFrame(inventoryFrame)
+  local screenBottomDistance = inventoryFrame:GetBottom();
+  local screenLeftDistance = inventoryFrame:GetLeft();
+  if (not (obj:IsNumber(screenBottomDistance) and obj:IsNumber(screenLeftDistance))) then return end
+  inventoryFrame:ClearAllPoints();
+
+  local xOffset = screenLeftDistance;
+  local yOffset = screenBottomDistance + inventoryFrame:GetHeight();
+  inventoryFrame:SetPoint("TOPLEFT", _G.UIParent, "BOTTOMLEFT", xOffset, yOffset);
+  return  xOffset, yOffset;
+end
+
 ---@param settings MayronUI.Inventory.ViewSettings
 ---@param totalColumns number|"min"|"max"|"initial"
 ---@return integer totalRows, number slotWidth
@@ -333,7 +347,9 @@ end
 ---@param slotWidth number
 ---@param totalRows number
 ---@param maxRows number
-local function GetFrameDimensionsByTotalColumns(inventoryFrame, slotSpacing, totalColumns, slotHeight, slotWidth, totalRows, maxRows)
+local function GetFrameDimensionsByTotalColumns(
+  inventoryFrame, slotSpacing, totalColumns, slotHeight, slotWidth, totalRows, maxRows)
+
   local slotXOffset = (slotWidth + slotSpacing);
   local slotYOffset = (slotHeight + slotSpacing);
 
@@ -341,12 +357,21 @@ local function GetFrameDimensionsByTotalColumns(inventoryFrame, slotSpacing, tot
   local bagsContainerWidth = (slotXOffset * totalColumns) - slotSpacing;
   local bagsContainerHeight = (slotYOffset * math.min(totalRows, maxRows)) - slotSpacing;
 
+  if (not inventoryFrame.detailedView) then
+    -- To account for additional spacing, else the scroll bar will show in error
+    local slot = inventoryFrame.bags[1].slots[1];
+
+    local iconTextureYOffset = math.ceil(slot.icon:GetHeight() - slot:GetHeight());
+    bagsContainerHeight = bagsContainerHeight + iconTextureYOffset;
+
+    local iconTextureXOffset = math.ceil(slot.icon:GetWidth() - slot:GetWidth());
+    bagsContainerWidth = bagsContainerWidth + iconTextureXOffset;
+  elseif (inventoryFrame.scrollBar:IsShown()) then
+    bagsContainerWidth = bagsContainerWidth + ScrollBarWidth; -- for scroll bar
+  end
+
   local newWidth = containerPadding.left + bagsContainerWidth + containerPadding.right;
   local newHeight = containerPadding.top + bagsContainerHeight + containerPadding.bottom;
-
-  local slot = inventoryFrame.bags[1].slots[1];
-  local iconTextureOffset = math.ceil(slot.icon:GetHeight() - slot:GetHeight()) / 2;
-  newHeight = newHeight + iconTextureOffset + iconTextureOffset;
 
   return newWidth, newHeight, scrollChildHeight;
 end
@@ -357,6 +382,10 @@ end
 local function UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder)
   local orderedSlots = GetOrderedSlots(inventoryFrame, resetSlotOrder);
   local containerWidth = inventoryFrame.bagsContainer:GetWidth();
+
+  if (inventoryFrame.detailedView and inventoryFrame.scrollBar:IsShown()) then
+    containerWidth = containerWidth - ScrollBarWidth; -- for scroll bar
+  end
 
   local db = OrbitusDB:GetDatabase("MUI_InventoryDB");
   local settingName = inventoryFrame.detailedView and "detailed" or "grid";
@@ -389,22 +418,11 @@ local function UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder)
       totalColumns = columns;
     end
 
-    local rightPadding = 0;
-
-    if (inventoryFrame.detailedView) then
-      rightPadding = inventoryFrame.scrollBar:IsShown() and 12 or 0;
-    end
-
-    containerWidth = containerWidth - rightPadding;
-
     -- return the real dimensions for the current number of slots to show
-    local totalRows, dynamicSlotWidth = UpdateBagSlotAnchors(
-      settings, true, totalColumns, orderedSlots, containerWidth);
+    local totalRows, dynamicSlotWidth = UpdateBagSlotAnchors(settings, true, totalColumns, orderedSlots, containerWidth);
 
     local newWidth, newHeight, scrollChildHeight = GetFrameDimensionsByTotalColumns(
       inventoryFrame, settings.slotSpacing, totalColumns, settings.height, dynamicSlotWidth, totalRows, settings.maxRows);
-
-    newWidth = newWidth + rightPadding;
 
     if (not inventoryFrame.detailedView) then
       -- fix the height to the correct constraints
@@ -444,21 +462,15 @@ local function UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder)
 end
 
 ---@param inventoryFrame MayronUI.Inventory.Frame
----@param fullUpdate boolean
 ---@param resetSlotOrder boolean
-local function UpdateInventoryFrameCoreProperties(inventoryFrame, fullUpdate, resetSlotOrder)
+local function UpdateInventoryFrameCoreProperties(inventoryFrame, resetSlotOrder)
   local width, height, scrollChildHeight = UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder);
+
+  RepositionInventoryFrame(inventoryFrame);
   inventoryFrame.scrollChild:SetHeight(scrollChildHeight);
+  inventoryFrame:SetWidth(math.max(width, minInventoryFrameWidth));
 
-  if (inventoryFrame.detailedView or fullUpdate) then
-    inventoryFrame:SetWidth(math.max(width, minInventoryFrameWidth));
-  end
-
-  if (not inventoryFrame.detailedView or fullUpdate) then
-    local slot = inventoryFrame.bags[1].slots[1];
-    local iconTextureOffset = math.ceil(slot.icon:GetHeight() -  slot:GetHeight()) / 2;
-    inventoryFrame.scrollChild:SetPoint("TOPLEFT", 0, -iconTextureOffset);
-    inventoryFrame.scrollChild:SetPoint("TOPRIGHT", 0, -iconTextureOffset);
+  if (not inventoryFrame.detailedView) then
     inventoryFrame:SetHeight(height);
   end
 end
@@ -467,7 +479,6 @@ end
 ---@param enabled boolean
 local function SetDetailedViewEnabled(inventoryFrame, enabled)
   inventoryFrame.detailedView = enabled;
-  -- inventoryFrame.bagsContainer:SetScrollable(enabled);
 
   -- required to reset inventory frame and slots
   -- back to initial values and recalculate minWidth/maxWidth
@@ -792,6 +803,7 @@ local function ApplyColorScheme(scheme)
     r = db.profile:QueryType("number", "container.customColor[1]");
     g = db.profile:QueryType("number", "container.customColor[2]");
     b = db.profile:QueryType("number", "container.customColor[3]");
+    MayronUI:LogInfo("Custom: ", r, g, b);
   end
 
   local inventoryFrame = _G["MUI_Inventory"]--[[@as MayronUI.Inventory.Frame]];
@@ -1002,7 +1014,6 @@ local function BagBarOnShow(self)
   end
 end
 
----comment
 ---@param db OrbitusDB.DatabaseMixin
 ---@param bagBar MayronUI.Inventory.BagBar
 ---@param bagFrame MayronUI.Inventory.BagFrame
@@ -1102,7 +1113,7 @@ local function CreateBagToggleButton(db, bagBar, bagFrame, xOffset)
     local isOpen = not bagFrame:IsShown();
     bagFrame:SetShown(isOpen);
     ClearBagSlotHighlights();
-    UpdateInventoryFrameCoreProperties(bagBar:GetParent(), true, true);
+    UpdateInventoryFrameCoreProperties(bagBar:GetParent(), true);
 
     if (bagBar:IsShown()) then
       HandleBagUpdateDelayedEvent(bagToggleBtn);
@@ -1180,7 +1191,7 @@ end
 local function ToggleDetailedView(self)
   local inventoryFrame = self:GetParent()--[[@as MayronUI.Inventory.Frame]];
   SetDetailedViewEnabled(inventoryFrame, not inventoryFrame.detailedView);
-  UpdateInventoryFrameCoreProperties(inventoryFrame, true, false);
+  UpdateInventoryFrameCoreProperties(inventoryFrame, false);
 
   for _, bag in ipairs(inventoryFrame.bags) do
     for _, slot in ipairs(bag.slots) do
@@ -1331,7 +1342,7 @@ local function SetCharacterInventory(info, inventoryFrame)
   local moneyText = tk.Strings:GetFormattedMoney(money);
   inventoryFrame.money:SetText(moneyText);
   SetDetailedViewEnabled(inventoryFrame, false);
-  UpdateInventoryFrameCoreProperties(inventoryFrame, true, true);
+  UpdateInventoryFrameCoreProperties(inventoryFrame, true);
 end
 
 local function ToggleCharactersMenu(self)
@@ -1597,7 +1608,7 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
       end
     end
 
-    UpdateInventoryFrameCoreProperties(inventoryFrame, true, true);
+    UpdateInventoryFrameCoreProperties(inventoryFrame, true);
     return
   end
 end
@@ -1617,7 +1628,6 @@ do
 
       if (self.dragger:IsDragging()) then
         local _, _, _, totalRows, totalColumns = UpdateInventorySlotCoreProperties(self, false);
-
         local db = OrbitusDB:GetDatabase("MUI_InventoryDB");
         local settingName = self.detailedView and "detailed" or "grid";
 
@@ -1730,8 +1740,7 @@ local function ToggleBagsBar(self)
   end
 
   inventoryFrame.bagsContainer:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
-
-  UpdateInventoryFrameCoreProperties(inventoryFrame, false, false);
+  UpdateInventoryFrameCoreProperties(inventoryFrame, false);
 end
 
 ---@param self CheckButton|MayronUI.Icon
@@ -1811,7 +1820,7 @@ local function HandleTabOnClick(self)
     end
   end
 
-  UpdateInventoryFrameCoreProperties(inventoryFrame, false, true);
+  UpdateInventoryFrameCoreProperties(inventoryFrame, true);
 end
 
 local function SetPadding(customPadding)
@@ -1827,7 +1836,7 @@ local function SetPadding(customPadding)
   inventoryFrame.bagsContainer:SetPoint("TOPLEFT", containerPadding.left, -containerPadding.top);
   inventoryFrame.bagsContainer:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
 
-  UpdateInventoryFrameCoreProperties(inventoryFrame, true, true);
+  UpdateInventoryFrameCoreProperties(inventoryFrame, true);
 end
 
 local function CreateOrUpdateTabBar()
@@ -2059,7 +2068,7 @@ function C_InventoryModule:OnInitialize()
 
     local function OnScrollBarVisibilityChange()
       if (inventoryFrame.detailedView) then
-        UpdateInventoryFrameCoreProperties(inventoryFrame, true, false);
+        UpdateInventoryFrameCoreProperties(inventoryFrame, false);
       end
     end
 
@@ -2128,28 +2137,22 @@ function C_InventoryModule:OnInitialize()
     end
 
     inventoryFrame.titleBar.onDragStop = function()
-      local screenBottomDistance = inventoryFrame:GetBottom();
-      local screenLeftDistance = inventoryFrame:GetLeft();
-      inventoryFrame:ClearAllPoints();
-
-      local xOffset = screenLeftDistance;
-      local yOffset = screenBottomDistance + inventoryFrame:GetHeight();
-      inventoryFrame:SetPoint("TOPLEFT", _G.UIParent, "BOTTOMLEFT", xOffset, yOffset);
-
-      db.global:Store("xOffset", screenLeftDistance);
+      local xOffset, yOffset = RepositionInventoryFrame(inventoryFrame);
+      db.global:Store("xOffset", xOffset);
       db.global:Store("yOffset", yOffset);
-
       blocker:Hide();
     end
 
     inventoryFrame.dragger:HookScript("OnDragStart", function()
       blocker:Show();
+      inventoryFrame.bagsContainer.animating = not inventoryFrame.detailedView;
       inventoryFrame:SetScript("OnUpdate", InventoryFrameOnUpdate);
     end);
 
     inventoryFrame.dragger:HookScript("OnDragStop", function()
       inventoryFrame:SetScript("OnUpdate", nil);
-      UpdateInventoryFrameCoreProperties(inventoryFrame, not inventoryFrame.detailedView, false);
+      inventoryFrame.bagsContainer.animating = nil;
+      UpdateInventoryFrameCoreProperties(inventoryFrame, false);
       inventoryFrame.titleBar.onDragStop();
       blocker:Hide();
     end);
@@ -2246,12 +2249,8 @@ end
 function C_InventoryModule:RegisterObservers(_, db)
   db.profile:Subscribe("container.colorScheme", ApplyColorScheme);
 
-  db.profile:Subscribe("container.customColor", function(value)
-    MayronUI:LogDebug("Triggered container.customColor with value: ", value);
-    -- local scheme = db.profile:QueryType("string", "container.colorScheme");
-
-    -- if (scheme == "Custom") then
-    -- end
+  db.profile:Subscribe("container.customColor", function()
+    ApplyColorScheme("Custom");
   end);
 
   db.profile:Subscribe("container.padding", SetPadding);
@@ -2260,7 +2259,7 @@ function C_InventoryModule:RegisterObservers(_, db)
   local function UpdateSlotDimensions()
     local inventoryFrame = _G["MUI_Inventory"]--[[@as MayronUI.Inventory.Frame]];
     SetDetailedViewEnabled(inventoryFrame, inventoryFrame.detailedView);
-    UpdateInventoryFrameCoreProperties(inventoryFrame, true, true);
+    UpdateInventoryFrameCoreProperties(inventoryFrame, true);
   end
 
   db.profile:Subscribe("grid.widths.initial", UpdateSlotDimensions);

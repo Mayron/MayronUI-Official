@@ -10,13 +10,7 @@ local function UpdateContainerHeight(self)
   local containerHeight = 0;
 
   if (self.content) then
-    local padding = self.padding;
-
-    if (self.inline) then
-      padding = 0;
-    end
-
-    containerHeight = self.content:GetStringHeight() + padding;
+    containerHeight = self.content:GetStringHeight() + self.padding;
 
   elseif (self.rows) then
     for _, row in ipairs(self.rows) do
@@ -27,7 +21,8 @@ local function UpdateContainerHeight(self)
     end
   end
 
-  if (containerHeight ~= self:GetHeight()) then
+  local currentHeight =  self:GetHeight();
+  if (containerHeight ~= currentHeight) then
     self:SetHeight(containerHeight);
   end
 
@@ -35,7 +30,7 @@ local function UpdateContainerHeight(self)
 
   if (parent.originalHeight) then
     -- the parent must be a custom Frame created by Components.frame.
-    -- Check if child is too larger and, if so, update parent to fit it.
+    -- Check if child is too large. If so, update parent to fit it.
     if (parent.originalHeight < containerHeight and containerHeight ~= parent:GetHeight()) then
       parent:SetHeight(containerHeight);
     end

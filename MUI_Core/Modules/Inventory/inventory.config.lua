@@ -33,6 +33,7 @@ function C_InventoryModule:GetConfigTable()
       {
         type = "color";
         name = "Set Custom Color";
+        useIndexes = true;
         height = 50;
         dbPath = "profile.container.customColor";
       };
@@ -91,7 +92,11 @@ function C_InventoryModule:GetConfigTable()
         width = "fill";
         noWrap = true;
         children = {
-          { type = "fontstring"; content = "Set Direction: "; inline = true; };
+          {
+            type = "fontstring";
+            content = "Set Direction: ";
+            inline = true;
+          };
           {
             name = L["Up"];
             type = "radio";
