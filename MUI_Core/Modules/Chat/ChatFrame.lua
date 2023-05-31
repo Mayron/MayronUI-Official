@@ -872,15 +872,18 @@ do
 
       local scrollFrame = gui:WrapInScrollFrame(editBox);
       scrollFrame:ClearAllPoints();
-      scrollFrame:SetPoint("TOPLEFT", 5, -5);
-      scrollFrame:SetPoint("BOTTOMRIGHT", -5, 5);
+      scrollFrame:SetPoint("TOPLEFT", 10, -40);
+      scrollFrame:SetPoint("BOTTOMRIGHT", -10, 10);
 
       scrollFrame:HookScript("OnScrollRangeChanged", function(self)
         local maxScroll = self:GetVerticalScrollRange();
         self:SetVerticalScroll(maxScroll);
       end);
 
-      tk:SetBackground(scrollFrame, 0, 0, 0, 0.4);
+      local bg = tk:SetBackground(scrollFrame, 0, 0, 0, 0.4);
+      bg:ClearAllPoints();
+      bg:SetPoint("TOPLEFT", -5, 5);
+      bg:SetPoint("BOTTOMRIGHT", 5, -5);
 
       frame.editBox = editBox;
       frame.dropdown = dropdown;

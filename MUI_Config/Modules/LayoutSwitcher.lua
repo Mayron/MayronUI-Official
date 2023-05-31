@@ -321,8 +321,9 @@ function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
   local addOnProfiles = dbObject:GetProfiles();
 
   local globalKey = tk.Strings:RemoveWhiteSpace(addOnName);
-  local globalName = "MUI_LayoutToolAddOns_"..globalKey ;
+  local globalName = "MUI_LayoutToolAddOns_"..globalKey;
   local cbContainer = gui:CreateCheckButton(addonsFrame, addOnName, nil, globalName);
+  cbContainer.minWidth = 150;
 
   -- setup addOn dropdown menus with options
   local currentProfile = dbObject:GetCurrentProfile();
@@ -330,8 +331,7 @@ function C_LayoutSwitcher:CreateScrollFrameRowContent(data, dbObject, addOnName)
   local dropdown = gui:CreateDropDown(addonsFrame);
   dropdown.fillWidth = true;
   dropdown:SetLabel(currentProfile);
-  dropdown:AddOption("<"..L["New Profile"]..">",
-    { self; "CreateNewAddOnProfile" }, addOnName, dbObject);
+  dropdown:AddOption("<"..L["New Profile"]..">", { self; "CreateNewAddOnProfile" }, addOnName, dbObject);
 
   for _, profileName in ipairs(addOnProfiles) do
     dropdown:AddOption(profileName, SetAddOnProfilePair, data, addOnName, profileName);
