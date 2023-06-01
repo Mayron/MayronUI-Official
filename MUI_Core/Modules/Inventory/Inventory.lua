@@ -481,8 +481,6 @@ local function UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder)
 
   tk:SetResizeBounds(inventoryFrame, minWidth, minHeight, maxWidth, maxHeight);
 
-  MayronUI:LogDebug(minWidth, minHeight, maxWidth, maxHeight);
-
   local initialRows, initialSlotWidth = UpdateBagSlotAnchors(settings, true, "initial", orderedSlots, 0);
 
   local initialWidth, initialHeight, scrollChildHeight = GetFrameDimensionsByTotalColumns(
@@ -490,9 +488,6 @@ local function UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder)
     initialSlotWidth, initialRows, settings.initialRows);
 
   db.utilities:PushTable(settings);
-
-  initialWidth = math.max(math.min(initialWidth, maxWidth), minWidth);
-  initialHeight = math.max(math.min(initialHeight, maxHeight), minHeight);
 
   return initialWidth, initialHeight, scrollChildHeight;
 end
@@ -2375,6 +2370,7 @@ function C_InventoryModule:RegisterObservers(_, db)
   db.profile:Subscribe("container.tabBar", CreateOrUpdateTabBar);
 
   local function UpdateSlotDimensions()
+    SetDetailedViewEnabled(inventoryFrame, inventoryFrame.detailedView);
     UpdateInventoryFrameCoreProperties(inventoryFrame, false);
   end
 
