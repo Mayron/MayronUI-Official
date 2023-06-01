@@ -304,6 +304,7 @@ function C_InventoryModule:GetConfigTable()
         name = "Slot Height";
         dbPath = "profile.detailed.height";
         min = 25;
+        step = 1;
         max = 50;
       };
       {
@@ -314,44 +315,45 @@ function C_InventoryModule:GetConfigTable()
         step = 1;
         max = 15;
       };
-      { type = "divider"; };
-      {
-        type = "slider";
-        name = "Min Columns";
-        dbPath = "profile.detailed.columns.min";
-        tooltip = "The minimum number of columns that can appear per row when resizing the inventory frame using the detailed view.";
-        min = 1;
-        step = 1;
-        max = 8;
-      };
-      {
-        type = "slider";
-        name = "Max Columns";
-        dbPath = "profile.detailed.columns.max";
-        tooltip = "The maximum number of columns that can appear per row when resizing the inventory frame using the detailed view.";
-        min = 1;
-        step = 1;
-        max = 8;
-      };
-      { type = "divider"; };
-      {
-        type = "slider";
-        name = "Min Rows";
-        dbPath = "profile.detailed.rows.min";
-        tooltip = "The minimum number of rows that can appear when resizing the inventory frame using the detailed view.";
-        min = 1;
-        step = 1;
-        max = 20;
-      };
-      {
-        type = "slider";
-        name = "Max Rows";
-        dbPath = "profile.detailed.rows.max";
-        tooltip = "The maximum number of rows that can appear when resizing the inventory frame using the detailed view.";
-        min = 1;
-        step = 1;
-        max = 50;
-      };
+      -- TODO: Trying to get these options to work is a headache
+      -- { type = "divider"; };
+      -- {
+      --   type = "slider";
+      --   name = "Min Columns";
+      --   dbPath = "profile.detailed.columns.min";
+      --   tooltip = "The minimum number of columns that can appear per row when resizing the inventory frame using the detailed view.";
+      --   min = 1;
+      --   step = 1;
+      --   max = 8;
+      -- };
+      -- {
+      --   type = "slider";
+      --   name = "Max Columns";
+      --   dbPath = "profile.detailed.columns.max";
+      --   tooltip = "The maximum number of columns that can appear per row when resizing the inventory frame using the detailed view.";
+      --   min = 1;
+      --   step = 1;
+      --   max = 8;
+      -- };
+      -- { type = "divider"; };
+      -- {
+      --   type = "slider";
+      --   name = "Min Rows";
+      --   dbPath = "profile.detailed.rows.min";
+      --   tooltip = "The minimum number of rows that can appear when resizing the inventory frame using the detailed view.";
+      --   min = 1;
+      --   step = 1;
+      --   max = 20;
+      -- };
+      -- {
+      --   type = "slider";
+      --   name = "Max Rows";
+      --   dbPath = "profile.detailed.rows.max";
+      --   tooltip = "The maximum number of rows that can appear when resizing the inventory frame using the detailed view.";
+      --   min = 1;
+      --   step = 1;
+      --   max = 50;
+      -- };
       { type = "divider"; };
       { type = "title"; name = "Font Options"; };
       {
