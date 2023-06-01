@@ -5,9 +5,14 @@ local C_InventoryModule = MayronUI:GetModuleClass("InventoryModule");
 
 function C_InventoryModule:GetConfigTable()
   -- local configMenu = MayronUI:ImportModule("ConfigMenu");
-  local db = MayronUI:GetComponent("MUI_InventoryDB");
+  local db = MayronUI:GetComponent("MUI_InventoryDB")--[[@as OrbitusDB.DatabaseMixin]];
 
   self:RegisterObservers(db);
+
+  local radioButtonDirectionOption1;
+  local radioButtonDirectionOption2;
+  local setDirectionDynamicFrame;
+  local setCustomColorButton;
 
   local function GetGeneralOptions()
     local options = {
@@ -23,6 +28,9 @@ function C_InventoryModule:GetConfigTable()
         type = "dropdown";
         name = "Set Color Scheme";
         dbPath = "profile.container.colorScheme";
+        OnValueChanged = function(value)
+          setCustomColorButton:SetEnabled(value == "Custom");
+        end;
         options = {
           ["MUI Frames Color"] = "MUI_Frames";
           ["Theme Color"] = "Theme";
@@ -34,6 +42,13 @@ function C_InventoryModule:GetConfigTable()
         type = "color";
         name = "Set Custom Color";
         useIndexes = true;
+        enabled = function()
+          local scheme = db.profile:QueryType("string", "container.colorScheme");
+          return scheme == "Custom";
+        end;
+        OnLoad = function(_, component)
+          setCustomColorButton = component.btn;
+        end;
         height = 50;
         dbPath = "profile.container.customColor";
       };
@@ -55,73 +70,140 @@ function C_InventoryModule:GetConfigTable()
 
       {
         type = "slider";
-        name = "Set X-Offset";
+        name = L["X-Offset"];
         dbPath = "profile.container.tabBar.xOffset";
-        min = 0;
+        min = -20;
         max = 20;
       };
       {
         type = "slider";
-        name = "Set Y-Offset";
+        name = L["Y-Offset"];
         dbPath = "profile.container.tabBar.yOffset";
-        min = 0;
+        min = -20;
         max = 20;
       };
       {
         type = "slider";
-        name = "Set Spacing";
+        name = "Spacing";
         dbPath = "profile.container.tabBar.spacing";
         min = 0;
         max = 20;
       };
       {
+        type = "slider";
+        name = "Scale";
+        dbPath = "profile.container.tabBar.scale";
+        step = 0.2;
+        min = 0.6;
+        max = 5;
+      };
+      {
         type = "dropdown";
         name = "Set Position";
         dbPath = "profile.container.tabBar.position";
+        disableSorting = true;
         options = {
-          [L["Top"]] = "TOP";
-          [L["Right"]] = "RIGHT";
-          [L["Bottom"]] = "BOTTOM";
-          [L["Left"]] = "LEFT";
-        }
-      };
+          { L["Top"], "TOP" };
+          { L["Right"], "RIGHT" };
+          { L["Bottom"], "BOTTOM" };
+          { L["Left"], "LEFT" };
+        },
+        SetValue = function(self, newValue)
+          db.profile:Store(self.dbPath, newValue);
+          local direction = db.profile:QueryType("string", "container.tabBar.direction");
+          local label1, label2;
 
+          if (newValue == "TOP" or newValue == "BOTTOM") then
+            if (direction ~= "LEFT" and direction ~= "RIGHT") then
+              label1 = L["Left"];
+              label2 = L["Right"];
+              direction = "RIGHT";
+            end
+          elseif (direction ~= "UP" and direction ~= "DOWN") then
+            label1 = L["Up"];
+            label2 = L["Down"];
+            direction = "DOWN";
+          end
+
+          if (label1) then
+            db.profile:Store("container.tabBar.direction", direction);
+            radioButtonDirectionOption1:SetCheckButtonLabel(label1);
+            radioButtonDirectionOption1:SetChecked(false);
+            radioButtonDirectionOption2:SetCheckButtonLabel(label2);
+            radioButtonDirectionOption2:SetChecked(true);
+            setDirectionDynamicFrame:Refresh();
+          end
+        end;
+      };
       {
         type = "frame";
         name = "SetDirection";
+        OnLoad = function(_, dynamicFrame)
+          setDirectionDynamicFrame = dynamicFrame;
+        end;
         width = "fill";
         noWrap = true;
         children = {
           {
             type = "fontstring";
-            content = "Set Direction: ";
+            content = L["Growth Direction"]..": ";
             inline = true;
           };
           {
             name = L["Up"];
             type = "radio";
+            defaultText = L["Down"];
             groupName = "inventory_tab_bar_direction";
             dbPath = "profile.container.tabBar.direction";
-            -- GetValue = function(_, value)
-            --   return value == "BOTTOM";
-            -- end;
+            OnLoad = function(_, component, isChecked)
+              radioButtonDirectionOption1 = component;
+              local position = db.profile:QueryType("string", "container.tabBar.position");
 
-            -- SetValue = function(self)
-            --   db:SetPathValue(self.dbPath, "BOTTOM");
-            -- end;
+              if (position == "TOP" or position == "BOTTOM") then
+                component:SetCheckButtonLabel(L["Left"]);
+                component:SetChecked(isChecked);
+              end
+            end;
+            GetValue = function(_, dbValue)
+              return dbValue == "UP" or dbValue == "LEFT";
+            end;
+            SetValue = function(self)
+              local position = db.profile:QueryType("string", "container.tabBar.position");
+
+              if (position == "TOP" or position == "BOTTOM") then
+                db.profile:Store(self.dbPath, "LEFT");
+              else
+                db.profile:Store(self.dbPath, "UP");
+              end
+            end;
           };
           {
             name = L["Down"];
             type = "radio";
+            defaultText = L["Down"];
             groupName = "inventory_tab_bar_direction";
             dbPath = "profile.container.tabBar.direction";
-            -- GetValue = function(_, value)
-            --   return value == "BOTTOM";
-            -- end;
-    
-            -- SetValue = function(self)
-            --   db:SetPathValue(self.dbPath, "BOTTOM");
-            -- end;
+            OnLoad = function(_, component, isChecked)
+              radioButtonDirectionOption2 = component;
+              local position = db.profile:QueryType("string", "container.tabBar.position");
+
+              if (position == "TOP" or position == "BOTTOM") then
+                component:SetCheckButtonLabel(L["Right"]);
+                component:SetChecked(isChecked);
+              end
+            end;
+            GetValue = function(_, dbValue)
+              return dbValue == "DOWN" or dbValue == "RIGHT";
+            end;
+            SetValue = function(self)
+              local position = db.profile:QueryType("string", "container.tabBar.position");
+
+              if (position == "TOP" or position == "BOTTOM") then
+                db.profile:Store(self.dbPath, "RIGHT");
+              else
+                db.profile:Store(self.dbPath, "DOWN");
+              end
+            end;
           };
         }
       };
@@ -182,6 +264,7 @@ function C_InventoryModule:GetConfigTable()
         dbPath = "profile.grid.columns.min";
         tooltip = "The minimum number of icons that can appear per row when resizing the inventory frame using the grid view.";
         min = 1;
+        step = 1;
         max = 8;
       };
       {
@@ -190,6 +273,7 @@ function C_InventoryModule:GetConfigTable()
         dbPath = "profile.grid.columns.max";
         tooltip = "The maximum number of icons that can appear per row when resizing the inventory frame using the grid view.";
         min = 1;
+        step = 1;
         max = 50;
       };
       { type = "divider"; };
@@ -198,8 +282,6 @@ function C_InventoryModule:GetConfigTable()
         name = "Show Item Levels";
         dbPath = "profile.grid.showItemLevels";
         tooltip = "If checked, item levels will show on top of the icons of equipment and weapon items.";
-        min = 0;
-        max = 15;
       };
     }
 

@@ -716,6 +716,33 @@ function RepositoryMixin:Query(...)
   return defaultResults;
 end
 
+---@param ... (string|number)
+---@return OrbitusDB.QueryResult
+---@nodiscard
+function RepositoryMixin:QueryDefaults(...)
+  local query = UtilitiesMixin:ToQueryString(...);
+  local repositoryName = self:GetRepositoryName();
+  query = Internal:RemoveRepositoryNamePrefixFromQuery(query, repositoryName);
+
+  local data = metadata[tostring(self)];
+  local defaults = data.defaults[repositoryName];
+
+  if (defaults[query] ~= nil) then
+    return defaults[query];
+  end
+
+  local defaultResults;
+  for fullKey, value in pairs(defaults) do
+    if (fullKey:sub(1, #query) == query) then
+      local subKey = fullKey:sub(#query + 1, #fullKey);
+      defaultResults = defaultResults or UtilitiesMixin:PopTable();
+      UtilitiesMixin:SetTableValue(defaultResults, subKey, value);
+    end
+  end
+
+  return defaultResults;
+end
+
 do
   ---@param index OrbitusDB.Index
   ---@param defaults OrbitusDB.Index
@@ -795,7 +822,7 @@ do
 
       local observers = data.config.observers[repositoryName];
       if (type(observers) == "table") then
-        Internal:NotifyChanges(svTable, observers, changes);
+        Internal:NotifyChanges(self, observers, changes);
       end
     end
   end
@@ -876,27 +903,9 @@ end
 ---@param rawQuery string
 ---@nodiscard
 function UtilitiesMixin:QueryDefaults(rawQuery)
-  local data = metadata[tostring(self.db)];
   local normalizedQuery = self:NormalizeQuery(rawQuery);
   local repository = self:GetRepositoryFromQuery(normalizedQuery);
-  local repositoryName = repository:GetRepositoryName();
-  local query = Internal:RemoveRepositoryNamePrefixFromQuery(normalizedQuery, repositoryName);
-  local defaults = data.defaults[repositoryName];
-
-  if (defaults[query] ~= nil) then
-    return defaults[query];
-  end
-
-  local defaultResults;
-  for fullKey, value in pairs(defaults) do
-    if (fullKey:sub(1, #query) == query) then
-      local subKey = fullKey:sub(#query + 1, #fullKey);
-      defaultResults = defaultResults or UtilitiesMixin:PopTable();
-      UtilitiesMixin:SetTableValue(defaultResults, subKey, value);
-    end
-  end
-
-  return defaultResults;
+  return repository:QueryDefaults(normalizedQuery);
 end
 
 ---@return table
@@ -1246,11 +1255,10 @@ function IndexActionsMixin:NotifyIndexChanges(changes)
   local repository = self.__repository;
   local data = metadata[tostring(repository)];
   local repositoryName = repository:GetRepositoryName();
-  local svTable = Internal:GetRepositoryTable(repository);
-
   local observers = data.config.observers[repositoryName];
+
   if (type(observers) == "table") then
-    Internal:NotifyChanges(svTable, observers, changes);
+    Internal:NotifyChanges(repository, observers, changes);
   end
 end
 
@@ -1375,14 +1383,16 @@ end
 --------------------------
 --> Internal:
 --------------------------
----@param root table
+---@param repository OrbitusDB.RepositoryMixin
 ---@param observers { [string]: OrbitusDB.Observer[] }
 ---@param changes OrbitusDB.IndexChanges
-function Internal:NotifyChanges(root, observers, changes)
+function Internal:NotifyChanges(repository, observers, changes)
   UtilitiesMixin:VerifyArgsByName(
-    "root", root, "table",
+    "repository", repository, "table",
     "observers", observers, "table",
     "changes", changes, "table");
+
+  local svTable = Internal:GetRepositoryTable(repository);
 
   if (not next(observers)) then return end
 
@@ -1403,8 +1413,21 @@ function Internal:NotifyChanges(root, observers, changes)
 
       if (relevantChanges) then
         for _, notifier in ipairs(observer) do
-          local value = UtilitiesMixin:GetTableValue(root, query);
+          -- could be a table value
+          local value = UtilitiesMixin:GetTableValue(svTable, query);
+
+          if (value == nil) then
+            value = repository:QueryDefaults(query);
+          elseif (type(value) == "table") then
+            local defaults = repository:QueryDefaults(query);
+            value = UtilitiesMixin:MergeTables(defaults, value);
+          end
+
           notifier(value, relevantChanges);
+
+          if (type(value) == "table") then
+            UtilitiesMixin:PushTable(value);
+          end
         end
 
         UtilitiesMixin:PushTable(relevantChanges);

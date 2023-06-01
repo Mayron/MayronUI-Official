@@ -9,9 +9,9 @@ local pairs, string = _G.pairs, _G.string;
 function C_DataTextModule:GetConfigTable()
     local label_TextFields = obj:PopTable();
 
-    local function SetLabel_OnLoad(configTable, container)
-      label_TextFields[configTable.module] = container.component;
-      local path = ("profile.datatext.labels.hidden.%s"):format(configTable.module);
+    local function SetLabel_OnLoad(config, container)
+      label_TextFields[config.module] = container.component;
+      local path = ("profile.datatext.labels.hidden.%s"):format(config.module);
       local isHidden = db:ParsePathValue(path);
 
       if (isHidden) then

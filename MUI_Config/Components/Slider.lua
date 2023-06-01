@@ -56,13 +56,14 @@ local function SliderEditBox_OnKeyPressed(editBox, key)
   end
 
   local newValue = tonumber(editBox:GetText());
-  local slider = editBox:GetParent();
+  local slider = editBox:GetParent()--[[@as Slider|table]];
+  local step = slider.step or 1;
 
   if (obj:IsNumber(newValue)) then
     if (increaseKey) then
-      newValue = newValue + 1;
+      newValue = newValue + step;
     elseif (decreaseKey) then
-      newValue = newValue - 1;
+      newValue = newValue - step;
     end
 
     local sliderMin, sliderMax = slider:GetMinMaxValues();
@@ -112,6 +113,7 @@ function Components.slider(parent, config, value)
   slider:DisableDrawLayer("BORDER");
   slider:SetMinMaxValues(minValue, maxValue);
   slider:SetValueStep(step or 1);
+  slider.step = step or 1;
   slider:SetObeyStepOnDrag(true);
   slider:SetValue(value or minValue);
   slider:SetThumbTexture(tk:GetAssetFilePath("Textures\\Widgets\\SliderThumb"));
@@ -123,7 +125,6 @@ function Components.slider(parent, config, value)
 
   slider.editBox:SetScript("OnEscapePressed", SliderEditBox_OnEscapePressed);
   slider.editBox:SetScript("OnEnterPressed", SliderEditBox_OnKeyPressed);
-
   slider.editBox:SetScript("OnKeyUp", SliderEditBox_OnKeyPressed);
 
   slider.editBox:SetSize(40, 18);

@@ -208,12 +208,12 @@ local function GetDatabaseValue(config)
   return value;
 end
 
----@param componentConfig table @A component config table used to control the rendering and behavior of a component in the config menu.
+---@param config table @A component config table used to control the rendering and behavior of a component in the config menu.
 ---@param menuGroups table?
 ---@param parent Frame @(optional) A custom parent frame for the component, else the parent will be the menu scroll child.
 ---@return Frame
-local function CreateComponent(componentConfig, menuGroups, parent)
-  local componentType = componentConfig.type;
+local function CreateComponent(config, menuGroups, parent)
+  local componentType = config.type;
 
   -- treat the component like a check button (except when grouping the check buttons)
   if (componentType == "radio") then
@@ -223,48 +223,48 @@ local function CreateComponent(componentConfig, menuGroups, parent)
   local components = MayronUI:GetComponent("ConfigMenuComponents");
 
   if (not componentType) then
-    MayronUI:PrintTable(componentConfig);
+    MayronUI:PrintTable(config);
   end
 
   tk:Assert(components[componentType],
     "Unsupported component type '%s' found in config data for config table '%s'.",
-    componentType or "nil", componentConfig.name or "nil");
+    componentType or "nil", config.name or "nil");
 
-  if (componentConfig.OnInitialize) then
+  if (config.OnInitialize) then
     -- do disabled components need to be initialized?
-    componentConfig.OnInitialize(componentConfig);
-    componentConfig.OnInitialize = nil;
+    config.OnInitialize(config);
+    config.OnInitialize = nil;
   end
 
-  local currentValue = GetDatabaseValue(componentConfig);
-  local component = components[componentType](parent, componentConfig, currentValue);
+  local currentValue = GetDatabaseValue(config);
+  local component = components[componentType](parent, config, currentValue);
 
-  if (componentConfig.devMode) then
+  if (config.devMode) then
     -- highlight the component in dev mode.
     tk:SetBackground(component, mrandom(), mrandom(), mrandom());
   end
 
   if (menuGroups) then
-    if (componentConfig.type == "radio" and componentConfig.groupName) then
-      if (not menuGroups[componentConfig.groupName]) then
-        menuGroups[componentConfig.groupName] = obj:PopTable();
+    if (config.type == "radio" and config.groupName) then
+      if (not menuGroups[config.groupName]) then
+        menuGroups[config.groupName] = obj:PopTable();
       end
 
-      table.insert(menuGroups[componentConfig.groupName], component.btn);
+      table.insert(menuGroups[config.groupName], component.btn);
     end
   end
 
   -- setup complete, so run the OnLoad callback if one exists
-  if (componentConfig.OnLoad) then
-    componentConfig.OnLoad(componentConfig, component, currentValue);
-    componentConfig.OnLoad = nil;
+  if (config.OnLoad) then
+    config:OnLoad(component, currentValue);
+    config.OnLoad = nil;
   end
 
-  if (componentConfig.type == "frame") then
+  if (config.type == "frame") then
     component = component:GetFrame();
   end
 
-  TransferConfigAttributes(componentConfig, component);
+  TransferConfigAttributes(config, component);
   return component;
 end
 

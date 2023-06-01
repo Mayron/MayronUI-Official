@@ -91,9 +91,9 @@ do
     end
 end
 
-local function TimerFieldPosition_OnLoad(configTable, container)
-  local positionIndex = configTable.dbPath:match("%[(%d)%]$");
-  position_TextFields[configTable.fieldName][tonumber(positionIndex)] = container.component;
+local function TimerFieldPosition_OnLoad(config, container)
+  local positionIndex = config.dbPath:match("%[(%d)%]$");
+  position_TextFields[config.fieldName][tonumber(positionIndex)] = container.component;
 end
 
 local function Field_OnDragStop(field)

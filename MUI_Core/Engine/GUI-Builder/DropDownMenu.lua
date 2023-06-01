@@ -7,11 +7,11 @@ local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 local gui = MayronUI:GetComponent("GUIBuilder");
 
 local SlideController = obj:Import("MayronUI.SlideController");
+
+---@class MayronUI.DropDownMenu : Frame, MayronObjects.Object
+---@field Static table
 local DropDownMenu = obj:CreateClass("DropDownMenu");
 obj:Export(DropDownMenu, "MayronUI");
-
----@class DropDownMenu
----@field Static table
 
 DropDownMenu.Static.MAX_HEIGHT = 200;
 local OPTIONS_HEIGHT = 25;
@@ -62,6 +62,7 @@ local function DropDownContainer_OnHide()
   DropDownMenu.Static.Menu:Hide();
 end
 
+---@return MayronUI.DropDownMenu
 function gui:CreateDropDown(parent, direction, menuParent, childGlobalName)
   if (not DropDownMenu.Static.Menu) then
     DropDownMenu.Static.Menu = tk:CreateBackdropFrame("Frame", _G.UIParent, "MUI_DropDownMenu");

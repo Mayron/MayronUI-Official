@@ -4,7 +4,7 @@ local MayronUI, strupper = _G.MayronUI, _G.string.upper;
 local tk, _, _, _, obj, L = MayronUI:GetCoreComponents();
 local tostring = _G.tostring;
 
----@class ConfigMenuUtils
+---@class MayronUI.ConfigMenuUtils
 local Utils = MayronUI:NewComponent("ConfigMenuUtils");
 
 local function GetDefaultValue(config)
@@ -128,27 +128,27 @@ function Utils:WrapInNamedContainer(component, config)
   return container;
 end
 
-function Utils:GetAttribute(configTable, attributeName, ...)
-  if (attributeName == "options" and configTable.media and obj:IsString(configTable.media)) then
-    configTable.options = tk.Constants.LSM:List(configTable.media);
+function Utils:GetAttribute(config, attributeName, ...)
+  if (attributeName == "options" and config.media and obj:IsString(config.media)) then
+    config.options = tk.Constants.LSM:List(config.media);
   end
 
-  if (configTable[attributeName] ~= nil) then
-    return configTable[attributeName];
+  if (config[attributeName] ~= nil) then
+    return config[attributeName];
   end
 
   local funcName = tk.Strings:Concat("Get", (attributeName:gsub("^%l", strupper)));
 
-  if (obj:IsFunction(configTable[funcName])) then
-    return configTable[funcName](configTable, ...);
+  if (obj:IsFunction(config[funcName])) then
+    return config[funcName](config, ...);
   end
 
-  if (attributeName == "options" and configTable.media) then
-    configTable.options = tk.Constants.LSM:List(configTable.media);
+  if (attributeName == "options" and config.media) then
+    config.options = tk.Constants.LSM:List(config.media);
   end
 
   obj:Error("Required attribute '%s' missing for %s widget in config table '%s' using database path '%s'",
-    attributeName, configTable.type, configTable.name, configTable.dbPath);
+    attributeName, config.type, config.name, config.dbPath);
 end
 
 function Utils:HasAttribute(configTable, attributeName)
@@ -184,6 +184,12 @@ function Utils:AppendDefaultValueToTooltip(config, dropdownOptions)
   if (canReset and doesNotContainDefaultTooltip) then
     if (dropdownOptions and obj:IsTable(dropdownOptions)) then
       for key, value in pairs(dropdownOptions) do
+        if (obj:IsTable(value)) then
+          local pair = value;
+          key = pair[1];
+          value = pair[2];
+        end
+
         if (obj:IsString(key)) then
           if (value == default) then
             default = key; -- use the key of the DropDown component to represent the name of the default value to the user
@@ -196,6 +202,8 @@ function Utils:AppendDefaultValueToTooltip(config, dropdownOptions)
     local defaultText;
     if (obj:IsBoolean(default)) then
       defaultText = default and L["Enabled"] or L["Disabled"];
+    elseif (config.defaultText) then
+      defaultText = config.defaultText;
     else
       defaultText = tostring(default);
     end

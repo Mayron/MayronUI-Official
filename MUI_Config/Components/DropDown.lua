@@ -1,10 +1,10 @@
 local _G = _G;
 local MayronUI = _G.MayronUI;
-local tk, _, _, gui = MayronUI:GetCoreComponents();
+local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
-local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
-local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenu
+local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type MayronUI.ConfigMenuUtils
+local configMenu = MayronUI:ImportModule("ConfigMenu"); ---@type MayronUI.ConfigMenu
 
 local tostring, pairs, tonumber = _G.tostring, _G.pairs, _G.tonumber;
 
@@ -19,11 +19,11 @@ local function OnDropDownValueChanged(dropdown, value)
     container = container.wrapper; -- using a named container wrapper
   end
 
-  configModule:SetDatabaseValue(container, value);
+  configMenu:SetDatabaseValue(container, value);
 end
 
 local function HandleDropdownReset(self, value)
-  local dropdown = self.dropdown--[[@as DropDownMenu]];
+  local dropdown = self.dropdown--[[@as MayronUI.DropDownMenu]];
 
   local option = dropdown:FindOption(function(option)
     for _, arg in ipairs(option.args) do
@@ -38,7 +38,7 @@ local function HandleDropdownReset(self, value)
 end
 
 function Components.dropdown(parent, config, value)
-  local dropdown = gui:CreateDropDown(parent); ---@type DropDownMenu
+  local dropdown = gui:CreateDropDown(parent); ---@type MayronUI.DropDownMenu
 
   if (config.width) then
     dropdown:SetWidth(config.width);
@@ -57,18 +57,24 @@ function Components.dropdown(parent, config, value)
 
     if (tonumber(key) or config.labels == "values") then
       key = optionValue;
-      option = dropdown:AddOption(optionValue, OnDropDownValueChanged, optionValue);
-    else
-      if (optionValue == "nil") then
-        optionValue = nil; -- cannot assign nil's to key/value pairs
-      end
 
-      option = dropdown:AddOption(key, OnDropDownValueChanged, optionValue);
+      if (type(optionValue) == "table") then
+        -- its an ordered list of keys to values: `{ L["Top"], "TOP" }`
+        local pair = optionValue;
+        key = pair[1];
+        optionValue = pair[2];
+      end
+    end
+
+    if (optionValue == "nil") then
+      optionValue = nil; -- cannot assign nil's to key/value pairs
+    end
+
+    option = dropdown:AddOption(key, OnDropDownValueChanged, optionValue);
 
       if (optionValue == value) then
         dropdown:SetLabel(key);
       end
-    end
 
     if (config.media == tk.Constants.LSM.MediaType.FONT) then
       local fontType = tk.Constants.LSM:Fetch(config.media, key);

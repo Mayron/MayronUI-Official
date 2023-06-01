@@ -3,10 +3,10 @@ local MayronUI = _G.MayronUI;
 local tk, _, _, gui, obj = MayronUI:GetCoreComponents();
 
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
-local Utils = MayronUI:GetComponent("ConfigMenuUtils");
-local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule
+local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type MayronUI.ConfigMenuUtils
+local configMenu = MayronUI:ImportModule("ConfigMenu"); ---@type MayronUI.ConfigMenu
 
-local hooksecurefunc, max = _G.hooksecurefunc, _G.math.max
+local hooksecurefunc = _G.hooksecurefunc;
 
 local function SetColorValueToDatabase(container, r, g, b, a)
   if (container.useIndexes) then
@@ -25,7 +25,7 @@ local function SetColorValueToDatabase(container, r, g, b, a)
     container.opacity = 1 - a;
   end
 
-  configModule:SetDatabaseValue(container, container.value);
+  configMenu:SetDatabaseValue(container, container.value);
 end
 
 local function OnColorContainerClick(self)
@@ -63,7 +63,7 @@ local function OnColorComponentValueChanged()
   container:ApplyThemeColor(r, g, b, a);
 
   if (container.requiresReload) then
-    configModule:ShowReloadMessage();
+    configMenu:ShowReloadMessage();
   end
 end
 

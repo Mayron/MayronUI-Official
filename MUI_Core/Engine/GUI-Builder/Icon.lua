@@ -23,6 +23,26 @@ local function HandleAuraRightClick(self, button)
   end
 end
 
+local function HandleIconFrameSizeChanged(iconFrame)
+  local point = iconFrame.icon:GetPoint(1);
+  if (point ~= "CENTER") then return end
+
+  local iconWidth, iconHeight = iconFrame:GetSize();
+  local diff = math.abs(iconWidth - iconHeight);
+
+  if (diff > 5) then
+    diff = diff * 0.25; -- squish the texture by only 25%
+
+    if (iconWidth > iconHeight) then
+      iconHeight = math.max(iconWidth - diff, iconHeight);
+    else
+      iconWidth = math.max(iconHeight - diff, iconWidth);
+    end
+  end
+
+  iconFrame.icon:SetSize(iconWidth, iconHeight);
+end
+
 ---Creates an icon in the style of MayronUI without applying user config settings
 ---@generic T
 ---@param iconFrame T # If provided, no new iconFrame is created
@@ -62,23 +82,12 @@ local function CreateIcon(iconFrame, borderSize, iconType, disableOmniCC)
   end
 
   iconFrame.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9);
-
-  local iconWidth, iconHeight = iconFrame:GetSize();
-  local diff = math.abs(iconWidth - iconHeight);
-
-  if (diff > 5) then
-    diff = diff * 0.25; -- squish the texture by only 25%
-
-    if (iconWidth > iconHeight) then
-      iconHeight = math.max(iconWidth - diff, iconHeight);
-    else
-      iconWidth = math.max(iconHeight - diff, iconWidth);
-    end
-  end
-
+  iconFrame.icon:ClearAllPoints();
   iconFrame.icon:SetPoint("CENTER");
-  iconFrame.icon:SetSize(iconWidth, iconHeight);
   iconFrame.icon:AddMaskTexture(iconFrame.mask);
+
+  iconFrame:HookScript("OnSizeChanged", HandleIconFrameSizeChanged);
+  HandleIconFrameSizeChanged(iconFrame);
 
   -- Scripts:
   if (iconType) then

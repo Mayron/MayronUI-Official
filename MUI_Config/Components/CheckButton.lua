@@ -3,12 +3,12 @@ local MayronUI = _G.MayronUI;
 local _, _, _, gui, obj = MayronUI:GetCoreComponents();
 local Components = MayronUI:GetComponent("ConfigMenuComponents");
 local Utils = MayronUI:GetComponent("ConfigMenuUtils"); ---@type ConfigMenuUtils
-local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type ConfigMenuModule
-local max = _G.math.max;
+local configModule = MayronUI:ImportModule("ConfigMenu"); ---@type MayronUI.ConfigMenu
 
 local function OnCheckButtonClick(self)
   if (not self:IsEnabled()) then return end
   local checked = self:GetChecked();
+
   configModule:SetDatabaseValue(self:GetParent(), checked);
 
   if (obj:IsFunction(self.OnClick)) then
@@ -31,7 +31,8 @@ function Components.check(parent, config, value)
     parent, config.name, config.tooltip, nil,
   config.verticalAlignment, config.type == "radio");
 
-  cbContainer.btn:SetChecked(value);
+  cbContainer:SetChecked(value);
+  cbContainer.btn:SetScript("OnClick", OnCheckButtonClick);
   cbContainer.btn:SetScript("OnClick", OnCheckButtonClick);
   cbContainer:SetScript("OnClick", OnCheckButtonContainerClick);
   cbContainer.btn.OnClick = config.OnClick;

@@ -90,11 +90,11 @@ local function UnlockCastBar(widget, castBarName)
   end
 end
 
-local function CastBarPosition_OnLoad(configTable, container)
-    local positionIndex = configTable.dbPath:match("%[(%d)%]$");
-    position_TextFields[configTable.castBarName][tonumber(positionIndex)] = container.component;
+local function CastBarPosition_OnLoad(config, container)
+    local positionIndex = config.dbPath:match("%[(%d)%]$");
+    position_TextFields[config.castBarName][tonumber(positionIndex)] = container.component;
 
-    if (db.profile.castBars[configTable.castBarName].anchorToSUF) then
+    if (db.profile.castBars[config.castBarName].anchorToSUF) then
       container.component:SetEnabled(false);
     end
 end

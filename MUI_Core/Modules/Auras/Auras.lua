@@ -945,8 +945,6 @@ local function CreateOrUpdateAuraHeader(filter, db, header)
   header.filter = filter;
   header.mode = mode;
 
-  MayronUI:LogInfo("Creating/Updating aura header with filter %s and mode %s", filter, mode);
-
   header:SetSize(width, height);
   header:SetAttribute("unit", "player");
   header:SetAttribute("filter", filter);

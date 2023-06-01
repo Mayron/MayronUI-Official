@@ -7,6 +7,7 @@ local tk, _, _, _, obj = MayronUI:GetCoreComponents();
 local gui = MayronUI:GetComponent("GUIBuilder");
 
 local hooksecurefunc, PlaySound, unpack = _G.hooksecurefunc, _G.PlaySound, _G.unpack;
+local Mixin = _G.Mixin;
 
 ---comment
 ---@param self MayronUI.GridTextureMixin|Frame
@@ -252,8 +253,29 @@ do
     return container;
   end
 
+  local cbLabelSpacing = 6;
+  local CheckButtonMixin = {};
+
+  function CheckButtonMixin:SetCheckButtonLabel(text)
+    if (not obj:IsString(text)) then return end
+    self.btn.text:SetText(text);
+    local textWidth = self.btn.text:GetStringWidth();
+
+    local btnWidth = self.btn:GetWidth();
+    self:SetWidth(btnWidth + cbLabelSpacing + textWidth);
+  end
+
+  function CheckButtonMixin:SetChecked(checked)
+    checked = checked == true; -- convert to boolean
+
+    if (self.btn:GetChecked() ~= checked) then
+      self.btn:Click(); -- fire onClick script
+    end
+  end
+
   function gui:CreateCheckButton(parent, text, tooltip, globalName, verticalAlignment, radio, isSwatch)
     local container = tk:CreateFrame("Button", parent, globalName);
+    container = Mixin(container, CheckButtonMixin);
     container.isSwatch = isSwatch;
     container:SetSize(1000, 20);
 
@@ -313,7 +335,7 @@ do
     container.btn.text = container.btn.text or container.btn.Text;
     container.btn.text:SetFontObject("GameFontHighlight");
     container.btn.text:ClearAllPoints();
-    container.btn.text:SetPoint("LEFT", container.btn, "RIGHT", 6, 1);
+    container.btn.text:SetPoint("LEFT", container.btn, "RIGHT", cbLabelSpacing, 1);
     container.btn.text:SetHeight(18);
 
     if (verticalAlignment == "TOP") then
@@ -325,12 +347,7 @@ do
     end
 
     hooksecurefunc(container.btn, "SetEnabled", OnCheckButtonSetEnabled);
-
-    if (text) then
-      container.btn.text:SetText(text);
-      local textWidth = container.btn.text:GetStringWidth();
-      container:SetWidth(20 + 6 + textWidth);
-    end
+    container:SetCheckButtonLabel(text);
 
     return container;
   end
