@@ -240,40 +240,33 @@ function C_InventoryModule:GetConfigTable()
         type = "slider";
         name = L["Icon Width"];
         dbPath = "profile.grid.widths.initial";
-        min = 25;
+        step = 1;
+        min = 30;
         max = 50;
       };
       {
         type = "slider";
         name = L["Icon Height"];
         dbPath = "profile.grid.height";
-        min = 25;
+        step = 1;
+        min = 30;
         max = 50;
       };
       {
         type = "slider";
         name = L["Icon Spacing"];
         dbPath = "profile.grid.slotSpacing";
-        min = 0;
-        max = 15;
-      };
-      { type = "divider"; };
-      {
-        type = "slider";
-        name = "Min Icons Per Row";
-        dbPath = "profile.grid.columns.min";
-        tooltip = "The minimum number of icons that can appear per row when resizing the inventory frame using the grid view.";
-        min = 1;
         step = 1;
-        max = 8;
+        min = 4;
+        max = 16;
       };
       {
         type = "slider";
         name = "Max Icons Per Row";
         dbPath = "profile.grid.columns.max";
         tooltip = "The maximum number of icons that can appear per row when resizing the inventory frame using the grid view.";
-        min = 1;
         step = 1;
+        min = 8;
         max = 50;
       };
       { type = "divider"; };
@@ -318,6 +311,7 @@ function C_InventoryModule:GetConfigTable()
         name = "Slot Spacing";
         dbPath = "profile.detailed.slotSpacing";
         min = 0;
+        step = 1;
         max = 15;
       };
       { type = "divider"; };
@@ -327,6 +321,7 @@ function C_InventoryModule:GetConfigTable()
         dbPath = "profile.detailed.columns.min";
         tooltip = "The minimum number of columns that can appear per row when resizing the inventory frame using the detailed view.";
         min = 1;
+        step = 1;
         max = 8;
       };
       {
@@ -335,6 +330,7 @@ function C_InventoryModule:GetConfigTable()
         dbPath = "profile.detailed.columns.max";
         tooltip = "The maximum number of columns that can appear per row when resizing the inventory frame using the detailed view.";
         min = 1;
+        step = 1;
         max = 8;
       };
       { type = "divider"; };
@@ -344,7 +340,8 @@ function C_InventoryModule:GetConfigTable()
         dbPath = "profile.detailed.rows.min";
         tooltip = "The minimum number of rows that can appear when resizing the inventory frame using the detailed view.";
         min = 1;
-        max = 30;
+        step = 1;
+        max = 20;
       };
       {
         type = "slider";
@@ -352,7 +349,8 @@ function C_InventoryModule:GetConfigTable()
         dbPath = "profile.detailed.rows.max";
         tooltip = "The maximum number of rows that can appear when resizing the inventory frame using the detailed view.";
         min = 1;
-        max = 30;
+        step = 1;
+        max = 50;
       };
       { type = "divider"; };
       { type = "title"; name = "Font Options"; };
@@ -366,6 +364,7 @@ function C_InventoryModule:GetConfigTable()
         name = "Item Name Font Size";
         dbPath = "profile.detailed.itemNameFontSize";
         min = 8;
+        step = 1;
         max = 16;
       };
       { type = "divider"};
@@ -385,6 +384,7 @@ function C_InventoryModule:GetConfigTable()
         name = "Item Description Font Size";
         dbPath = "profile.detailed.itemDescriptionFontSize";
         min = 8;
+        step = 1;
         max = 16;
       };
     }

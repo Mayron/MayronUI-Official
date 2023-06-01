@@ -408,6 +408,10 @@ local function UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder)
   settings.maxWidth = db.profile:QueryType("number", settingName, "widths.max");
   settings.slotSpacing = db.profile:QueryType("number", settingName, "slotSpacing");
 
+  if (settings.minColumns > settings.maxColumns) then
+    settings.maxColumns = settings.minColumns;
+  end
+
   if (inventoryFrame.minWidth and inventoryFrame.maxWidth) then
     local totalColumns = 1;
     local slotWidth = inventoryFrame.detailedView and settings.minWidth or settings.initialWidth;
@@ -682,6 +686,7 @@ local function UpdateBagSlot(slot, button)
     return
   end
 
+  local db = OrbitusDB:GetDatabase("MUI_InventoryDB");
   local slotIndex = slot:GetID();
   local bag = slot:GetParent() --[[@as MayronUI.Inventory.BagFrame]];
   local iconFileID = slot:GetItemIcon();
@@ -695,7 +700,12 @@ local function UpdateBagSlot(slot, button)
   SetBagItemSlotBorderColor(slot, bag.highlighted);
 
   local detailedView = bag.inventoryFrame.detailedView;
-  slot.itemName:SetShown(detailedView);
+  local settingName = bag.inventoryFrame.detailedView and "detailed" or "grid";
+  local showItemLevels = db.profile:QueryType("boolean", settingName, "showItemLevels");
+  local showItemName = db.profile:QueryType("boolean", settingName, "showItemName");
+  local showItemType = db.profile:QueryType("boolean", settingName, "showItemType");
+
+  slot.itemName:SetShown(detailedView and showItemName);
 
   local quality = slot:GetItemQuality() or 0;
   local itemName = slot:GetItemName();
@@ -708,34 +718,41 @@ local function UpdateBagSlot(slot, button)
 
     local subText;
 
-    if (classID == Enum.ItemClass.Miscellaneous and quality > 0) then
-      local isJunk = subClassID == Enum.ItemMiscellaneousSubclass.Junk;
-      local isOther = subClassID == Enum.ItemMiscellaneousSubclass.Other;
+    if (showItemType or showItemLevels) then
+      if (classID == Enum.ItemClass.Miscellaneous and quality > 0) then
+        local isJunk = subClassID == Enum.ItemMiscellaneousSubclass.Junk;
+        local isOther = subClassID == Enum.ItemMiscellaneousSubclass.Other;
 
-      if (isJunk or isOther) then
-        -- if the item is classed as Junk but the quality isn't poor,
-        -- use the itemClass instead as its more useful
-        subText = itemClass;
+        if (isJunk or isOther) then
+          -- if the item is classed as Junk but the quality isn't poor,
+          -- use the itemClass instead as its more useful
+          subText = itemClass;
+        else
+          subText = itemSubClass or itemClass;
+        end
       else
         subText = itemSubClass or itemClass;
       end
-    else
-      subText = itemSubClass or itemClass;
-    end
 
-    if (invType > 0 and equipLocation) then
-      local inventorySlot = _G[equipLocation];
+      if (invType > 0 and equipLocation) then
+        local inventorySlot = _G[equipLocation];
 
-      if (obj:IsString(inventorySlot) and obj:IsString(subText) and subText ~= inventorySlot) then
-        local itemLevel = slot:GetCurrentItemLevel();
+        if (obj:IsString(inventorySlot) and obj:IsString(subText) and subText ~= inventorySlot) then
+          local itemLevel = slot:GetCurrentItemLevel();
+          local itemTypeText = "";
 
-        if (type(itemLevel) == "number" and itemLevel > 0) then
-          subText = inventorySlot .. ", ".. subText .. " (iLvl: " .. tostring(itemLevel) .. ")";
+          if (showItemType) then
+            itemTypeText = inventorySlot..", "..subText.." ";
+          end
+
+          if (showItemLevels and type(itemLevel) == "number" and itemLevel > 0) then
+            subText = itemTypeText.."(iLvl: "..itemLevel..")";
+          else
+            subText = itemTypeText;
+          end
         else
-          subText = inventorySlot .. ", ".. subText;
+          subText = showItemType and inventorySlot or "";
         end
-      else
-        subText = inventorySlot;
       end
     end
 
@@ -747,14 +764,21 @@ local function UpdateBagSlot(slot, button)
     else
       slot.itemName:SetTextColor(1, 1, 1);
     end
+
+    local itemNameFontSize = db.profile:QueryType("number", settingName, "itemNameFontSize");
+    tk:SetFontSize(slot.itemName, itemNameFontSize);
+    local itemDescriptionFontSize = db.profile:QueryType("number", settingName, "itemDescriptionFontSize");
+    tk:SetFontSize(slot.itemDetails, itemDescriptionFontSize);
   else
     local itemLevel;
 
-    if (invType > 0 and equipLocation and quality > 1) then
-      local inventorySlot = _G[equipLocation];
+    if (showItemLevels) then
+      if (invType > 0 and equipLocation and quality > 1) then
+        local inventorySlot = _G[equipLocation];
 
-      if (obj:IsString(inventorySlot)) then
-        itemLevel = slot:GetCurrentItemLevel();
+        if (obj:IsString(inventorySlot)) then
+          itemLevel = slot:GetCurrentItemLevel();
+        end
       end
     end
 
@@ -2315,14 +2339,13 @@ function C_InventoryModule:RegisterObservers(_, db)
 
   local function UpdateSlotDimensions()
     local inventoryFrame = _G["MUI_Inventory"]--[[@as MayronUI.Inventory.Frame]];
-    SetDetailedViewEnabled(inventoryFrame, inventoryFrame.detailedView);
+    SetDetailedViewEnabled(inventoryFrame, inventoryFrame.detailedView); -- TODO: This acts strange
     UpdateInventoryFrameCoreProperties(inventoryFrame, true);
   end
 
   db.profile:Subscribe("grid.widths.initial", UpdateSlotDimensions);
   db.profile:Subscribe("grid.height", UpdateSlotDimensions);
   db.profile:Subscribe("grid.slotSpacing", UpdateSlotDimensions);
-  db.profile:Subscribe("grid.columns.min", UpdateSlotDimensions);
   db.profile:Subscribe("grid.columns.max", UpdateSlotDimensions);
   db.profile:Subscribe("grid.showItemLevels", UpdateAllBags);
 
