@@ -313,7 +313,7 @@ function C_TimerBars:GetConfigTable()
                                   end
                               end
                           };
-                          {   name = "Save Position";
+                          {   name = L["Save Position"];
                               type = "button";
 
                               OnLoad = function(_, button)

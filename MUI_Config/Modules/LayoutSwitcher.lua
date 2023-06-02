@@ -8,8 +8,7 @@ local LibStub, IsAddOnLoaded = _G.LibStub, _G.IsAddOnLoaded;
 local UIFrameFadeIn, PlaySound = _G.UIFrameFadeIn, _G.PlaySound;
 
 local LAYOUT_MESSAGE =
-  L["Customize which addOn/s should change to which profile/s for each layout, "
-    .. "as well as manage your existing layouts or create new ones."];
+  L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."];
 
 local localizedDbNames = {
   ["MUI_AurasDB"] = "MUI "..(_G["AURAS"] or "Auras");

@@ -34,7 +34,11 @@ L["Toggle Friends List"] = "Attiva/disattiva Elenco amici";
 L["Show Guild Members"] = "Mostra membri della gilda";
 L["Toggle Guild Pane"] = "Attiva/disattiva riquadro Gilda";
 L["Quests"] = "Missioni";
+L["Save Position"] = "Salvare la posizione";
+L["Experience"] = "Esperienza";
 L["Reputation"] = "Reputazione";
+L["Artifact"] = "Artefatto";
+L["Azerite"] = "Azerite";
 L["PVP Score"] = "Punteggio PVP";
 L["Currency"] = "Moneta";
 L["MUI Layout Button"] = "Pulsante layout MUI";
@@ -86,7 +90,16 @@ L["Toggle Bags"] = "Borse con ginocchiera";
 L["Sort Bags"] = "Ordina borse";
 L["Commands"] = "Comandi";
 L["Armor"] = "Armatura";
-
+L["Head"] = "Testa";
+L["Shoulder"] = "Spalla";
+L["Chest"] = "Il petto";
+L["Waist"] = "Vita";
+L["Legs"] = "Gambe";
+L["Feet"] = "Piedi";
+L["Wrist"] = "Polso";
+L["Hands"] = "Mani";
+L["Main Hand"] = "Mano principale";
+L["Secondary Hand"] = "Seconda mano";
 L["Zone"] = "Zona";
 L["Rank"] = "Rango";
 L["<none>"] = "<nessuno>";
@@ -131,6 +144,8 @@ L["Y-Offset"] = "Y-Offset";
 L["Player"] = "Giocatore";
 L["Target"] = "Bersaglio";
 L["Focus"] = "Messa a fuoco";
+L["Mirror"] = "Specchio";
+L["Pet"] = "Animale domestico";
 L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."] =
   "Se abilitato, la barra di trasmissione verrà fissata alla barra verticale di %s Unit Frame (se esiste).";
 L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."] =
@@ -406,6 +421,7 @@ L["If true, the objective tracker will collapse when entering an instance."] =
   "Se true, il tracker obiettivo si bloccherà quando si immette un'istanza.";
 L["Also enable the %s"] = "Abilita anche %s";
 L["Current"] = "Attuale";
+L["Profiles"] = "Profili";
 L["AFK Display"] = "Visualizzazione AFK";
 L["Movable Frames"] = "Cornici mobili";
 L["Objective Tracker"] = "Inseguitore di obiettivi";
@@ -540,6 +556,8 @@ L["Affects the overall size of the tooltips."] =
 L["Reskin using the MUI texture or a custom backdrop"] =
   "Reskin utilizzando la texture MUI o uno sfondo personalizzato";
 L["Texture"] = "Struttura";
+L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] =
+  "Personalizza quale/i addOn/i deve/devono cambiare in quale/i profilo/i per ogni layout, nonché gestire i tuoi layout esistenti o crearne di nuovi.";
 L["Custom Backdrop"] = "Sfondo personalizzato";
 L["Custom Color"] = "Colore personalizzato";
 L["Custom Backdrop Options"] = "Opzioni sfondo personalizzato";
