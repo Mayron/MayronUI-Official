@@ -272,7 +272,7 @@ function C_InventoryModule:GetConfigTable()
       { type = "divider"; };
       {
         type = "check";
-        name = L["Show Item Levels"];
+        name = L["Show Item Level"];
         dbPath = "profile.grid.showItemLevels";
         tooltip = L["If checked, item levels will show on top of the icons of equipment and weapon items."];
       };
@@ -372,7 +372,7 @@ function C_InventoryModule:GetConfigTable()
       { type = "divider"};
       {
         type = "check";
-        name = L["Show Item Levels"];
+        name = L["Show Item Level"];
         dbPath = "profile.detailed.showItemLevels";
         tooltip = L["If checked, item levels will be shown in description of equipment and weapon items."];
       };

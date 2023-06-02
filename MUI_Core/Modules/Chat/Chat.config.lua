@@ -458,7 +458,7 @@ function C_ChatModule:GetConfigTable(_, configModule)
             tooltip = L["Set the vertical positioning of the edit box."];
             dbPath = "profile.chat.editBox.yOffset";
           },
-          { name = L["Set Height"];
+          { name = L["Height"];
             type = "slider";
             min = 20;
             max = 50;

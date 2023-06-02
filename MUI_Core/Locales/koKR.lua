@@ -37,11 +37,8 @@ L["Currency"] = "통화";
 L["MUI Layout Button"] = "MUI 레이아웃 버튼";
 L["Left Click:"] = "좌 클릭:";
 L["Switch Layout"] = "스위치 레이아웃";
-L["Middle Click:"] = "가운데 클릭 :";
-L["Toggle Blizzard Speech Menu"] = "블리자드 음성 메뉴 전환";
 L["Right Click:"] = "마우스 오른쪽 버튼으로 클릭:";
 L["Show Layout Config Tool"] = "레이아웃 구성 도구 표시";
-L["Toggle Tooltip"] = "툴팁 전환";
 L["Edit Box (Message Input Box)"] = "편집 상자 (메시지 입력 상자)";
 L["Background Color"] = "배경색";
 L["Backdrop Inset"] = "배경 삽입";
@@ -54,11 +51,7 @@ L["Left Button"] = "왼쪽 버튼";
 L["Middle Button"] = "가운데 버튼";
 L["Right Button"] = "오른쪽 버튼";
 L["Shift"] = "시프트";
-L["Ctrl"] = "Ctrl";
 L["Alt"] = "Alt";
-L["Chat Buttons with Modifier Key 1"] =
-  "수정 자 키 1이있는 채팅 버튼";
-L["Chat Buttons with Modifier Key 2"] = "수정 키 2가있는 채팅 버튼";
 L["Set the border size."] = "테두리 크기를 설정하십시오.";
 L["Cannot toggle menu while in combat."] =
   "전투 중에는 메뉴를 전환 할 수 없습니다.";
@@ -70,8 +63,6 @@ L["Set the spacing between the background and the border."] =
   "배경과 테두리 사이의 간격을 설정하십시오.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."] =
   "전투 중 채팅 버튼을 바꾸는 수정 자 키 사용을 허용합니다.";
-L["Failed to load MUI_Config. Possibly missing?"] =
-  "MUI_Config를로드하지 못했습니다. 누락되었을 수 있습니까?";
 L["List of slash commands:"] = "슬래시 명령 목록 :";
 L["Welcome back"] = "환영합니다";
 L["Starter Edition accounts cannot perform this action."] =
@@ -82,27 +73,14 @@ L["Must be level 10 or higher to use Talents."] =
   "특성을 사용하려면 레벨 10 이상이어야합니다.";
 L["Requires level 10+ to view the PVP window."] =
   "PVP 창을 보려면 레벨 10 이상이 필요합니다.";
-L["Requires level 10+ to view the Glyphs window."] =
-  "글리프 창을 보려면 레벨 10 이상이 필요합니다.";
 L["Requires being inside a Battle Ground."] = "전장에 있어야합니다.";
 L["Choose Spec"] = "사양 선택";
 L["Choose Loot Spec"] = "전리품 사양 선택";
-L["Current Spec"] = "현재 사양";
 L[" (current)"] = "(현재)";
 L["Toggle Bags"] = "가방 토글";
 L["Sort Bags"] = "정렬 가방";
 L["Commands"] = "명령";
 L["Armor"] = "갑옷";
-L["Head"] = "머리";
-L["Shoulder"] = "어깨";
-L["Chest"] = "가슴";
-L["Waist"] = "허리";
-L["Legs"] = "다리";
-L["Feet"] = "피트";
-L["Wrist"] = "손목";
-L["Hands"] = "소유";
-L["Main Hand"] = "메인 핸드";
-L["Secondary Hand"] = "세컨더리 핸드";
 L["Zone"] = "존";
 L["Rank"] = "계급";
 L["<none>"] = "<없음>";
@@ -130,7 +108,6 @@ L["Not Interruptible"] = "중단 불가";
 L["Finished Casting"] = "완료된 주조";
 L["Interrupted"] = "중단됨";
 L["Latency"] = "지연 시간";
-L["Backdrop"] = "배경";
 L["Individual Cast Bar Options"] = "개별 캐스트 바 옵션";
 L["Enable Bar"] = "바 활성화";
 L["Show Icon"] = "아이콘 표시";
@@ -140,7 +117,6 @@ L["Width"] = "폭";
 L["Height"] = "신장";
 L["Frame Strata"] = "프레임 지층";
 L["Frame Level"] = "프레임 레벨";
-L["Manual Positioning"] = "수동 포지셔닝";
 L["Point"] = "포인트";
 L["Relative Frame"] = "상대 프레임";
 L["Relative Point"] = "상대 점";
@@ -149,8 +125,6 @@ L["Y-Offset"] = "Y 오프셋";
 L["Player"] = "플레이어";
 L["Target"] = "표적";
 L["Focus"] = "초점";
-L["Mirror"] = "거울";
-L["Pet"] = "애완 동물";
 L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."] =
   "활성화하면 캐스트 바가 %s 유닛 프레임의 세로 바 (존재하는 경우)로 고정됩니다.";
 L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."] =
@@ -170,33 +144,19 @@ L["Show Menu"] = "메뉴 표시";
 L["Zoom in/out"] = "확대 / 축소";
 L["Toggle this Tooltip"] = "이 도구 설명 전환";
 L["New Event!"] = "새로운 이벤트!";
-L["Calendar"] = "달력";
-L["Customer Support"] = "고객 지원";
-L["Class Order Hall"] = "클래스 오더 홀";
-L["Garrison Report"] = "주둔지 보고서";
 L["Tracking Menu"] = "추적 메뉴";
-L["Music Player"] = "음악 플레이어";
 L["Cannot access config menu while in combat."] =
   "전투 중에는 구성 메뉴에 액세스 할 수 없습니다.";
 L["Choose Theme:"] = "테마 선택 :";
-L["Custom Colour"] = "사용자 지정 색상";
 L["Theme"] = "테마";
 L["Choose Profile:"] = "프로필 선택 :";
-L["<new profile>"] = "<새 프로필>";
-L["<remove profile>"] = "<프로필 제거>";
-L["Create New Profile:"] = "새 프로필 만들기 :";
-L["Remove Profile:"] = "프로필 제거 :";
 L["Confirm"] = "확인";
 L["Cancel"] = "취소";
-L["Enabled Chat Frames:"] = "사용 가능한 채팅 프레임 :";
 L["Top Left"] = "왼쪽 상단";
 L["Top Right"] = "맨 위 오른쪽";
 L["Bottom Left"] = "왼쪽 하단";
 L["Bottom Right"] = "오른쪽 하단";
 L["Adjust the UI Scale:"] = "UI 스케일 조정 :";
-L["Use Localization:"] = "현지화 사용 :";
-L["WoW Client: "] = "WoW 클라이언트 :";
-L["AddOn Settings to Override:"] = "무시할 애드온 설정 :";
 L["Install"] = "설치";
 L["INSTALL"] = "설치";
 L["CUSTOM INSTALL"] = "사용자 정의 설치";
@@ -207,17 +167,12 @@ L["Setup Menu"] = "설정 메뉴";
 L["VERSION"] = "버전";
 L["This will ensure that frames are correctly positioned to match the UI scale during installation."] =
   "이렇게하면 설치 중에 프레임이 UI 스케일과 일치하도록 올바르게 배치됩니다.";
-L["Only track your %s"] = "%s 만 추적";
-L["Track all %s"] = "모든 %s 추적";
 L["General Options"] = "일반 옵션";
 L["Sort By Time Remaining"] = "남은 시간으로 정렬";
 L["Show Tooltips On Mouseover"] = "마우스 오버시 툴팁 표시";
 L["Create New Field"] = "새 필드 만들기";
-L["Name of New TimerBar Field:"] = "새 TimerBar 필드 이름 :";
-L["Name of TimerBar Field to Remove:"] = "제거 할 TimerBar 필드 이름 :";
 L["TimerBar field '%s' created."] =
   "TimerBar 필드 '%s' 이 (가) 생성되었습니다.";
-L["TimerBar field '%s' remove."] = "TimerBar 필드 '%s' 제거.";
 L["TimerBar field '%s' does not exist."] =
   "TimerBar 필드 '%s' 이 (가) 없습니다.";
 L["Remove Field"] = "필드 제거";
@@ -225,11 +180,8 @@ L["Existing Timer Bar Fields"] = "기존 타이머 막대 필드";
 L["Enable Field"] = "필드 사용";
 L["<%s Field>"] = "<%s 필드>";
 L["Unit to Track"] = "추적 할 단위";
-L["Manage Tracking Buffs"] = "추적 버프 관리";
 L["TargetTarget"] = "TargetTarget";
 L["FocusTarget"] = "FocusTarget";
-L["Manage Tracking Debuffs"] = "추적 디버프 관리";
-L["Appearance Options"] = "모양 옵션";
 L["Up"] = "쪽으로";
 L["Down"] = "하위";
 L["Bar Width"] = "바 폭";
@@ -241,47 +193,25 @@ L["Buff Bar Color"] = "버프 바 색상";
 L["Debuff Bar Color"] = "디버프 바 색상";
 L["Manual Positioning"] = "수동 포지셔닝";
 L["Text Options"] = "텍스트 옵션";
-L["Show"] = "보여 주다";
 L["Font Size"] = "글꼴 크기";
 L["Font Type"] = "글꼴 유형";
 L["Time Remaining"] = "남은 시간";
 L["Spell Count"] = "철자 수";
 L["Spell Name"] = "철자 이름";
-L["Enter the Name of a %s to Track:"] =
-  "추적 할 %s 의 이름을 입력하십시오 :";
-L["Only %s casted by you will be tracked."] =
-  "당신이 캐스팅 한 %s 만 추적됩니다.";
-L["Ignore the list of %s to track and track everything."] =
-  "모든 것을 추적하고 추적하려면 %s 목록을 무시하십시오.";
-L["Enabling this will dynamically generate the list of %s to track."] =
-  "이 기능을 활성화하면 추적 할 %s 목록이 동적으로 생성됩니다.";
 L["The unit who is affected by the spell."] =
   "주문의 영향을받는 유닛입니다.";
 L["The field's vertical growth direction:"] = "필드의 수직 성장 방향 :";
 L["Reload UI"] = "UI 새로 고침";
 L["General"] = "일반";
 L["Master Font"] = "마스터 글꼴";
-L["Enable Master Font"] = "마스터 글꼴 활성화";
 L["Display Lua Errors"] = "Lua 오류 표시";
 L["Set Theme Color"] = "테마 색상 설정";
-L["Objective (Quest) Tracker"] = "목표 (퀘스트) 추적기";
 L["Anchor to Side Bar"] = "사이드 바에 앵커";
-L["Set Width"] = "폭 설정";
-L["Set Height"] = "높이 설정";
-L["Bottom UI Panels"] = "하단 UI 패널";
-L["Container Width"] = "컨테이너 폭";
 L["Unit Panels"] = "유닛 패널";
 L["Enable Unit Panels"] = "유닛 패널 활성화";
 L["Symmetric Unit Panels"] = "대칭 단위 패널";
 L["Name Panels"] = "이름 패널";
-L["Unit Panel Width"] = "단위 패널 폭";
-L["Target Class Colored"] = "대상 클래스 색상";
-L["Bottom Action Bars"] = "작업 표시 줄 패널";
-L["Enable Panel"] = "패널 활성화";
-L["Animation Speed"] = "애니메이션 속도";
-L["Retract Height"] = "후퇴 높이";
-L["Expand Height"] = "확장 높이";
-L["Expand and Retract Buttons"] = "확장 및 축소 버튼";
+L["Action Bar Panels"] = "작업 표시 줄 패널";
 L["Control"] = "제어";
 L["SUF Portrait Gradient"] = "SUF 세로 그라데이션";
 L["Enable Gradient Effect"] = "그라디언트 효과 사용";
@@ -289,20 +219,10 @@ L["Gradient Colors"] = "그라디언트 색상";
 L["Start Color"] = "시작 색상";
 L["End Color"] = "종료 색상";
 L["Target Class Colored"] = "대상 클래스 색상";
-L["Bartender4 Action Bars"] = "Bartender 액션 바";
 L["Row"] = "열";
-L["First Bartender Bar"] = "첫 바텐더 바";
-L["Second Bartender Bar"] = "두 번째 바텐더 바";
-L["Artifact"] = "인공물";
-L["Experience"] = "경험";
 L["Enabled"] = "사용";
 L["Default value is"] = "기본값은";
-L["Minimum value is"] = "최소값";
-L["Maximum value is"] = "최대 값은";
-L["true"] = "진실";
-L["false"] = "그릇된";
 L["Show Text"] = "텍스트 표시";
-L["Data Text"] = "데이터 텍스트";
 L["General Data Text Options"] = "일반 데이터 텍스트 옵션";
 L["Block in Combat"] = "전투 차단";
 L["Auto Hide Menu in Combat"] = "전투에서 자동 숨기기 메뉴";
@@ -312,62 +232,40 @@ L["Max Menu Height"] = "최대 메뉴 높이";
 L["Bar Strata"] = "Bar Strata";
 L["Bar Level"] = "바 레벨";
 L["Data Text Modules"] = "데이터 텍스트 모듈";
-L["Data Button"] = "데이터 버튼";
-L["Combat_timer"] = "전투 타이머";
 L["Durability"] = "내구성";
 L["Performance"] = "공연";
 L["Memory"] = "기억";
 L["Money"] = "돈";
-L["Show Copper"] = "구리 표시";
-L["Show Silver"] = "실버 표시";
-L["Show Gold"] = "쇼 골드";
-L["Spec"] = "투기";
 L["Disabled"] = "사용 안함";
-L["Blank"] = "공백";
 L["Module Options"] = "모듈 옵션";
 L["Show FPS"] = "FPS 표시";
 L["Show Server Latency (ms)"] = "서버 지연 시간 (ms) 표시";
 L["Show Home Latency (ms)"] = "홈 지연 시간 (밀리 초) 표시";
-L["Show Realm Name"] = "영역 이름 표시";
 L["Show Total Slots"] = "총 슬롯 표시";
 L["Show Used Slots"] = "사용 된 슬롯 표시";
 L["Show Free Slots"] = "무료 슬롯 표시";
 L["Show Self"] = "자기 보여주기";
 L["Show Tooltips"] = "툴팁 표시";
-L["Side Bar"] = "사이드 바";
-L["Width (With 1 Bar)"] = "폭 (바 1 개 포함)";
-L["Width (With 2 Bars)"] = "폭 (바 2 개 포함)";
-L["Hide in Combat"] = "전투에서 숨어";
-L["Show When"] = "시간 표시";
 L["Never"] = "못";
 L["Always"] = "항상";
 L["On Mouse-over"] = "마우스 오버시";
 L["Bar"] = "바";
 L["Uncheck to prevent MUI from changing the game font."] =
   "MUI가 게임 글꼴을 변경하지 않도록하려면 선택을 취소하십시오.";
-L["Config type '%s' unsupported!"] =
-  "구성 유형 '%s' 는 지원되지 않습니다!";
 L["The UI requires reloading to apply changes."] =
   "변경 사항을 적용하려면 UI를 다시로드해야합니다.";
 L["Some changes require a client restart to take effect."] =
   "일부 변경 사항을 적용하려면 클라이언트를 다시 시작해야합니다.";
-L["Warning: This will NOT change the color of CastBars!"] =
-  "경고 : CastBar의 색상은 변경되지 않습니다!";
 L["Previously called 'Classic Mode'."] =
   "이전에는 '클래식 모드'라고했습니다.";
 L["Allow MUI to Control Unit Frames"] =
   "MUI가 장치 프레임을 제어하도록 허용";
-L["Allow MUI to Control Grid"] = "MUI가 그리드를 제어하도록 허용";
 L["What color the gradient should start as."] =
   "그라데이션이 시작되는 색상입니다.";
 L["What color the gradient should change into."] =
   "그라데이션이 어떤 색상으로 변경되어야하는지.";
-L["Allow MUI to Control Selected Bartender4 Bars"] =
-  "MUI가 선택한 바텐더 바를 제어하도록 허용";
 L["Show your character in the guild list."] =
   "길드 목록에 자신의 캐릭터를 보여주세요.";
-L["Adjust the width of the Bottom UI container."] =
-  "하단 UI 컨테이너의 너비를 조정하십시오.";
 L["Adjust the width of the unit frame background panels."] =
   "단위 프레임 배경 패널의 너비를 조정합니다.";
 L["Adjust the width of the unit name background panels."] =
@@ -392,8 +290,6 @@ L["Adjust the spacing between data text buttons."] =
   "데이터 텍스트 버튼 사이의 간격을 조정하십시오.";
 L["The frame strata of the entire DataText bar."] =
   "전체 DataText 바의 프레임 계층.";
-L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] =
-  "목표 추적기를 화면 오른쪽의 작업 표시 줄 컨테이너에 고정하십시오.";
 L["Disable this to stop MUI from controlling the Objective Tracker."] =
   "MUI가 Objective Tracker를 제어하지 못하도록하려면이 기능을 비활성화하십시오.";
 L["Adjust the horizontal positioning of the Objective Tracker."] =
@@ -412,8 +308,6 @@ L["DataText buttons, as well as the background bar, will not be displayed."] =
   "DataText 버튼과 배경 표시 줄이 표시되지 않습니다.";
 L["Prevents you from using data text modules while in combat."] =
   "전투 중 데이터 텍스트 모듈 사용을 방지합니다.";
-L["This is useful for 'clickers'."] =
-  "이는 '클리 커'에게 유용합니다.";
 L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."] =
   "SUF Player 또는 Target 세로 막대가 활성화되면 클래스 색상 그라디언트가 오버레이됩니다.";
 L["Show Overview"] = "개요 표시";
@@ -428,10 +322,6 @@ L["Are you sure you want to reset the money data for %s?"] =
 L["Money data for %s has been reset."] =
   "%s 에 대한 화폐 데이터가 재설정되었습니다.";
 L["Reset Options"] = "재설정 옵션";
-L["All currency data has been reset."] =
-  "모든 통화 데이터가 재설정되었습니다.";
-L["Currency data for %s has been reset."] =
-  "%s 의 통화 데이터가 재설정되었습니다.";
 L["Change Status"] = "상태 변경";
 L["Remove from Whitelist"] = "화이트리스트에서 제거";
 L["Add to Blacklist"] = "블랙리스트에 추가";
@@ -447,16 +337,11 @@ L["Enable Whitelist"] = "허용 목록 활성화";
 L["Configure Whitelist"] = "허용 목록 구성";
 L["Enable Blacklist"] = "블랙리스트 활성화";
 L["Configure Blacklist"] = "블랙리스트 구성";
-L["Are you sure you want to reset the currency data for all of your characters?"] =
-  "모든 캐릭터의 통화 데이터를 재설정 하시겠습니까?";
-L["Are you sure you want to reset the currency data for %s?"] =
-  "정말 %s 의 통화 데이터를 재설정 하시겠습니까?";
 L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."] =
   "허용 목록이 활성화 된 경우 허용 목록에서 %s 을 (를) 제거하면이 타이머 표시 줄이 숨겨집니다.";
 L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."] =
   "블랙리스트가 활성화 된 경우 %s 을 (를) 블랙리스트에 추가하면이 타이머 표시 줄이 숨겨집니다.";
 L["Cast Bars"] = "캐스트 바";
-L["Auras (Buffs & Debuffs)"] = "오라 (버프 및 디버프)";
 L["(CTRL+C to Copy, CTRL+V to Paste)"] =
   "(복사하려면 Ctrl + C, 붙여 넣으려면 Ctrl + V)";
 L["Copy Chat Text"] = "채팅 텍스트 복사";
@@ -493,11 +378,8 @@ L["Mini-Map"] = "미니 맵";
 L["Adjust the size of the minimap."] = "미니 맵 크기를 조정하세요.";
 L["Adjust the scale of the minimap."] =
   "미니 맵의 축척을 조정하십시오.";
-L["Zone Text"] = "영역 텍스트";
 L["Scale"] = "규모";
 L["Size"] = "크기";
-L["Adjust the font size of the zone text."] =
-  "영역 텍스트의 글꼴 크기를 조정하십시오.";
 L["Okay"] = "괜찮아";
 L["Profile %s has been copied into current profile %s."] =
   "%s 프로필이 현재 프로필 %s 에 복사되었습니다.";
@@ -514,36 +396,23 @@ L["Are you sure you want to override all profile settings in '%s' for those in p
 L["Profile Per Character"] = "캐릭터 별 프로필";
 L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."] =
   "활성화하면 새 캐릭터에 기본 프로필 대신 고유 한 캐릭터 프로필이 할당됩니다.";
-L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] =
-  "기존 레이아웃을 관리하거나 새 레이아웃을 생성 할뿐만 아니라 각 레이아웃에 대한 프로필을 변경할 애드온을 사용자 지정합니다.";
 L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] =
   "목표 추적기를 화면 오른쪽의 작업 표시 줄 컨테이너에 고정하십시오.";
-L["You can repeat this step at any time (while out of combat) to hide it."] =
-  "언제든지 (전투 중일 때)이 단계를 반복하여 숨길 수 있습니다.";
 L["If true, the objective tracker will collapse when entering an instance."] =
   "true이면 인스턴스에 들어갈 때 목표 추적기가 축소됩니다.";
-L["If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit."] =
-  "참이면 MUI는 금의 양이 특정 한도를 초과하면 구리 또는은을 표시하지 않습니다.";
 L["Also enable the %s"] = "또한 %s 활성화";
 L["Current"] = "흐름";
-L["Equipment Set"] = "장비 세트";
-L["Installer"] = "설치자";
-L["Profiles"] = "프로필";
 L["AFK Display"] = "AFK 디스플레이";
 L["Movable Frames"] = "이동 프레임";
 L["Objective Tracker"] = "목표 추적기";
-L["Side Action Bars"] = "사이드 액션 바";
 L["(type '/mui' to list all slash commands)"] =
   "(모든 슬래시 명령을 나열하려면 '/ mui'입력)";
 L["Version"] = "버전";
-L["Main Container"] = "메인 컨테이너";
 L["Resource Bars"] = "리소스 바";
-L["Movable Blizzard Frames"] = "움직이는 블리자드 프레임";
 L["Allows you to move Blizzard Frames outside of combat only."] =
   "블리자드 프레임을 전투 외부로만 이동할 수 있습니다.";
 L["Reset Blizzard frames back to their original position."] =
   "블리자드 프레임을 원래 위치로 되돌립니다.";
-L["Reset Blizzard Frame Positions"] = "블리자드 프레임 위치 재설정";
 L["Enable/disable the AFK Display"] =
   "AFK 디스플레이 활성화 / 비활성화";
 L["Show AFK Display"] = "AFK 디스플레이 표시";
@@ -551,48 +420,28 @@ L["Adjust the width of the main container."] =
   "주 용기의 너비를 조정하세요.";
 L["Adjust the height of the unit frame background panels."] =
   "단위 프레임 배경 패널의 높이를 조정하십시오.";
-L["Unit Panel Height"] = "유닛 패널 높이";
-L["Main Container Width:"] = "주 컨테이너 폭 :";
-L["Enable or disable the background panel"] =
-  "배경 패널 활성화 또는 비활성화";
-L["Modifier key/s used to show Expand/Retract button:"] =
-  "확장 / 축소 버튼을 표시하는 데 사용되는 수정 자 키 :";
 L["Side Action Bars"] = "사이드 액션 바";
 L["Collapse in Instance"] = "인스턴스에서 축소";
 L["CREDITS"] = "크레딧";
 L["Buffs"] = "버프";
 L["Debuffs"] = "디버프";
-L["Layout Type"] = "레이아웃 유형";
-L["Save Position"] = "위치 저장";
 L["Show Pulse Effect"] = "펄스 효과 표시";
 L["Icon Options"] = "아이콘 옵션";
-L["Icon options are disabled when using status bars."] =
-  "상태 표시 줄을 사용할 때 아이콘 옵션이 비활성화됩니다.";
-L["Icon Size"] = "아이콘 크기";
 L["Column Spacing"] = "열 간격";
 L["Row Spacing"] = "행 간격";
 L["Icons per Row"] = "행당 아이콘";
 L["Bar Columns"] = "막대 열";
 L["Growth Direction"] = "성장 방향";
 L["Status Bar Options"] = "상태 막대 옵션";
-L["Status bar options are disabled when using icons."] =
-  "아이콘을 사용할 때 상태 표시 줄 옵션이 비활성화됩니다.";
-L["Icon Gap"] = "아이콘 간격";
-L["Text"] = "본문";
 L["Count"] = "카운트";
 L["Aura Name"] = "오라 이름";
 L["Border Type"] = "테두리 유형";
-L["Basic %s"] = "기본 %s";
-L["Weapon Enchants"] = "무기 마법 부여";
 L["Magic Debuff"] = "마법 디버프";
 L["Disease Debuff"] = "질병 디버프";
 L["Poison Debuff"] = "독 디버프";
 L["Curse Debuff"] = "저주 디버프";
-L["Bar Background"] = "바 배경";
-L["Bar Border"] = "바 테두리";
 L["Icons"] = "아이콘";
 L["Status Bars"] = "상태 표시 줄";
-L["Bottom Action Bars"] = "하단 작업 표시 줄";
 L["Can Steal or Purge"] = "훔치거나 제거 할 수 있습니다";
 L["If an aura can be stolen or purged, show a different color."] =
   "오라를 훔치거나 제거 할 수 있다면 다른 색을 보여주세요.";
@@ -601,13 +450,11 @@ L["Enter an aura name to add to the whitelist:"] =
   "허용 목록에 추가 할 aura 이름 입력 :";
 L["Enter an aura name to add to the blacklist:"] =
   "블랙리스트에 추가 할 아우라 이름 입력 :";
-L["Automatic"] = "자동적 인";
 L["Inventory"] = "목록";
 L["Changes to these settings will take effect after 0-3 seconds."] =
   "이 설정에 대한 변경 사항은 0-3 초 후에 적용됩니다.";
 L["Adjust the height of the datatext bar."] =
   "데이터 텍스트 막대의 높이를 조정하십시오.";
-L["Justify Text"] = "텍스트 정렬";
 L["Set the spacing between the status bar and the background."] =
   "상태 표시 줄과 배경 사이의 간격을 설정하십시오.";
 L["Select which chat frame the chat icons should be anchored to."] =
@@ -615,9 +462,6 @@ L["Select which chat frame the chat icons should be anchored to."] =
 L["The height of the edit box."] = "편집 상자의 높이.";
 L["Set the vertical positioning of the edit box."] =
   "편집 상자의 수직 위치를 설정합니다.";
-L["Show Player Status Icon"] = "플레이어 상태 아이콘 표시";
-L["Show Emotes Icon"] = "이모 트 아이콘 표시";
-L["Show Copy Chat Icon"] = "복사 채팅 아이콘 표시";
 L["This is the background bar that goes behind the tabs."] =
   "이것은 탭 뒤에있는 배경 막대입니다.";
 L["Show Tab Bar"] = "탭 바 표시";
@@ -625,9 +469,7 @@ L["Tab Bar"] = "탭 바";
 L["Window"] = "창문";
 L["Layout enabled!"] = "레이아웃 활성화!";
 L["Show Chat Menu"] = "대화 메뉴 표시";
-L["Azerite"] = "아제 라이트";
 L["Covenant Sanctum"] = "코버넌트 성소";
-L["Missions"] = "미션";
 L["You must be a member of a covenant to view this."] =
   "이것을 보려면 언약의 구성원이어야합니다.";
 L["Unmuted"] = "음소거 해제";
@@ -668,8 +510,6 @@ L["Online Status"] = "온라인 상태";
 L["None"] = "없음";
 L["Deafen"] = "들리지 않게 하다";
 L["Mute"] = "음소거";
-L["If checked, this module will be enabled."] =
-  "선택하면이 모듈이 활성화됩니다.";
 L["Unit Tooltip Options"] = "유닛 툴팁 옵션";
 L["These options only affect tooltips that appear when you mouse over a unit, such as an NPC or player."] =
   "이 옵션은 NPC 또는 플레이어와 같은 유닛 위에 마우스를 올려 놓을 때 나타나는 툴팁에만 영향을 미칩니다.";
@@ -685,16 +525,9 @@ L["If checked and the player is level 10 or higher and has chosen a class specia
   "체크하고 플레이어가 레벨 10 이상이고 직업 전문화를 선택한 경우 툴팁에 표시된 플레이어의 전문화가 표시됩니다.";
 L["Show Specialization"] = "전문화 표시";
 L["Show Item Level"] = "항목 레벨 표시";
-L["In Combat Options"] = "전투 옵션";
-L["Show Unit Tooltips In Combat"] = "전투에서 유닛 툴팁 표시";
 L["Show Guild Rank"] = "길드 등급 표시";
 L["Show Realm Name"] = "영역 이름 표시";
 L["Show Target"] = "대상 표시";
-L["Show Standard Tooltips In Combat"] = "전투에서 표준 툴팁 표시";
-L["Standard tooltips display non-unit related information, such as action-bar abilities, buffs and debuffs, and more."] =
-  "표준 툴팁은 액션 바 능력, 버프 및 디버프 등과 같은 유닛과 관련이없는 정보를 표시합니다.";
-L["Unit tooltips display player and NPC information while your mouse cursor is over a unit in the game world."] =
-  "유닛 툴팁은 마우스 커서가 게임 세계의 유닛 위에있는 동안 플레이어와 NPC 정보를 표시합니다.";
 L["Appearance Options"] = "모양 옵션";
 L["These options allow you to customize the appearance of the tooltips."] =
   "이 옵션을 사용하면 도구 설명의 모양을 사용자 지정할 수 있습니다.";
@@ -706,24 +539,9 @@ L["Affects the overall size of the tooltips."] =
 L["Reskin using the MUI texture or a custom backdrop"] =
   "MUI 텍스처 또는 사용자 지정 배경을 사용하여 다시 스킨";
 L["Texture"] = "조직";
-L["Texture Options"] = "텍스처 옵션";
 L["Custom Backdrop"] = "사용자 정의 배경";
-L["The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see the previous menu)."] =
-  "MUI 텍스처는 배경과 테두리 텍스처를 모두 제어합니다.보다 사용자 정의 된 스타일을 원한다면 '사용자 정의 배경'스타일을 대신 사용하십시오 (이전 메뉴 참조).";
-L["Use MUI Theme Color"] = "MUI 테마 색상 사용";
-L["If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class-colored)."] =
-  "선택하면 MUI 텍스처는 배경 및 테두리 색상 모두에 대해 MUI 테마 색상을 사용합니다 (기본적으로 클래스 색상).";
 L["Custom Color"] = "사용자 정의 색상";
-L["If not using the MUI theme color, the tooltip will use this custom color for both the background and border color."] =
-  "MUI 테마 색상을 사용하지 않는 경우 도구 설명은 배경 및 테두리 색상 모두에이 사용자 정의 색상을 사용합니다.";
 L["Custom Backdrop Options"] = "사용자 정의 배경 옵션";
-L["Color border by class or NPC type"] =
-  "클래스 또는 NPC 유형별 색상 테두리";
-L["If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit."] =
-  "선택하면 배경 테두리 색상은 플레이어 유닛의 클래스 또는 NPC 유닛의 유형에 따라 결정됩니다.";
-L["Border Color"] = "테두리 색상";
-L["If color border by class or NPC type is checked, this color will be used for all non-unit tooltips, else it will be used for every tooltip border."] =
-  "클래스 별 또는 NPC 유형별 색상 테두리를 체크하면이 색상은 모든 비 유닛 툴팁에 사용되며, 그렇지 않으면 모든 툴팁 테두리에 사용됩니다.";
 L["Background Texture"] = "배경 질감";
 L["Border Insets"] = "테두리 삽입";
 L["Left"] = "왼쪽";
@@ -731,13 +549,6 @@ L["Right"] = "권리";
 L["Center"] = "센터";
 L["Top"] = "상단";
 L["Bottom"] = "바닥";
-L["Anchor Options"] = "앵커 옵션";
-L["Unit Tooltip Anchor Point"] = "유닛 툴팁 앵커 포인트";
-L["Mouse Cursor"] = "마우스 커서";
-L["Screen Corner"] = "스크린 코너";
-L["Screen Corner Positioning"] = "화면 모서리 위치 지정";
-L["Standard Tooltip Anchor Point"] = "표준 도구 설명 앵커 포인트";
-L["Mouse Cursor Positioning"] = "마우스 커서 위치";
 L["The bottom-[point] corner of the tooltip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."] =
   "도구 설명의 아래쪽 [점] 모서리 ([점]이 '왼쪽'또는 '오른쪽')는 마우스 커서 위치에 고정됩니다.";
 L["Health Bar"] = "건강 바";
@@ -802,13 +613,6 @@ L["Target Class Color Gradient"] = "대상 클래스 색상 그라디언트";
 L["If enabled, the unit panel color will transition to the target's class color using a horizontal gradient effect."] =
   "활성화하면 단위 패널 색상이 수평 그라디언트 효과를 사용하여 대상의 클래스 색상으로 전환됩니다.";
 L["Set Pulse Strength"] = "맥박 강도 설정";
-L["Expanding and Retracting Action Bar Rows"] =
-  "작업 표시 줄 행 확장 및 축소";
-L["Enable Expand and Retract Feature"] = "확장 및 축소 기능 활성화";
-L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."] =
-  "사용하지 않으면 1 행과 2 행의 작업 표시 줄간에 전환 할 수 없습니다.";
-L["This is the fixed height of the action bar panel when MUI is not controlling Bartender4."] =
-  "확장 및 축소 기능이 비활성화 된 경우 사용할 고정 된 기본 높이입니다.";
 L["Set Alpha"] = "알파 설정";
 L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."] =
   "선택하면 평판 표시 줄은 선택한 진영의 평판에 따라 동적으로 변경되는 대신 고정 된 색상을 사용합니다.";
@@ -920,7 +724,6 @@ L["Some settings will not be changed until the UI has been reloaded."] =
   "일부 설정은 UI가 다시로드 될 때까지 변경되지 않습니다.";
 L["Would you like to reload the UI now?"] =
   "지금 UI를 다시로드 하시겠습니까?";
-L["Reload UI"] = "UI 새로 고침";
 L["No"] = "아니";
 L["Profile changed to %s."] = "프로필이 %s (으)로 변경되었습니다.";
 L["Profile %s has been reset."] = "%s 프로필이 재설정되었습니다.";
@@ -934,14 +737,6 @@ MUI 유닛 패널 상단에 맞는 프레임.
 
 또한 자동으로 유닛 프레임을 이동합니다.
 MUI 작업 표시 줄 패널 확장 및 축소.]];
-
-L["TT_MUI_CONTROL_BARTENDER"] =
-  [[활성화 된 경우 MUI는 선택한 바텐더의 위치를 변경합니다.
-막대를 작업 표시 줄 패널의 상단에 맞 춥니 다.
-
-또한 페이드 인 및 페이드 아웃 전환을 제어합니다.
-바텐더 막대 확장 및
-MUI 작업 표시 줄 패널을 철회합니다.]];
 
 L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
   [[선택하면 대상 세로 그라디언트가 대상의 클래스를 사용합니다.
@@ -1030,14 +825,6 @@ L["NO_HIGHLIGHT_TEXT_ADDED"] =
 L["Reset Chat Settings"] = "채팅 설정 재설정";
 L["RESET_CHAT_SETTINGS_TOOLTIP"] = "선택을 취소하면 채팅 탭과 각 채팅 창과 연결된 Blizzard 채팅 설정이 유지됩니다.";
 
-L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] = "새로운 Dragonflight 작업 표시줄 시스템은 현재 Bartender4 설정과 호환되지 않습니다.";
-L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] = "최신 |cff00ccffMayronUI|r 사전 설정 Bartender4 설정으로 교체하여 이 문제를 해결할 수 있습니다.";
-L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] = "지금 하시겠습니까?";
-L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] = "이것은 UI를 다시 로드합니다";
-L["DRAGONFLIGHT_BAR_POPUP_WARNING"] = "경고! 이렇게 하면 Bartender4 작업 표시줄에 대해 수행한 모든 사용자 지정이 지워집니다.";
-L["Yes, I want to update my action bar layout"] = "예, 내 작업 모음 레이아웃을 업데이트하고 싶습니다.";
-
-
 L["MayronUI AddOn Presets"] = "MayronUI 애드온 프리셋";
 L["No Supported AddOns Loaded"] = "지원되는 애드온이 로드되지 않음";
 L["The following selected addons will have their settings reset to the MayronUI preset settings:"] = "다음 선택된 애드온은 해당 설정이 MayronUI 사전 설정으로 재설정됩니다.";
@@ -1068,7 +855,6 @@ L["Override Master Font"] = "마스터 글꼴 재정의";
 L["Override Combat Font"] = "전투 글꼴 재정의";
 L["Combat Font"] = "전투 글꼴";
 L["This font is used to display the damage and healing combat numbers."] = "이 글꼴은 손상 및 치유 전투 숫자를 표시하는 데 사용됩니다.";
-L["Miscellaneous"] = "여러 가지 잡다한";
 L["Blizzard Frames"] = "블리자드 프레임";
 L["Clamped to Screen"] = "화면에 고정";
 L["If checked, Blizzard frames cannot be dragged outside of the screen."] = "체크하면 Blizzard 프레임을 화면 밖으로 드래그할 수 없습니다.";
@@ -1137,9 +923,7 @@ L["Paste an import string into the box below to import a profile."] = "가져오
 L["Warning: This will completely replace your current profile with the imported profile settings!"] = "경고: 이렇게 하면 현재 프로필이 가져온 프로필 설정으로 완전히 대체됩니다!";
 L["Successfully imported profile settings into your current profile!"] = "프로필 설정을 현재 프로필로 성공적으로 가져왔습니다!";
 L["Reset to default"] = "기본값으로 재설정";
-
 L["Appearance Settings"] = "외모 설정";
-L["Set MUI Frames Color"] = "MUI 프레임 색상 설정";
 L["MUI_FRAMES_COLOR_TOOLTIP"] = "인벤토리 프레임, 도구 설명, 구성 메뉴, 레이아웃 도구 등을 포함하여 MUI 프레임의 배경색을 제어합니다.";
 L["Set Display Mode"] = "디스플레이 모드 설정";
 L["These settings relate to the individual aura icons/bars."] = "이러한 설정은 개별 아우라 아이콘/막대와 관련이 있습니다.";
@@ -1185,12 +969,10 @@ L["Trade Goods"] = "무역품";
 L["Consumables"] = "소모품";
 L["Equipment"] = "장비";
 L["All Items"] = "모든 아이템";
-
 L["Padding"] = "심";
 L["Slot Height"] = "슬롯 높이";
 L["Max Slot Width"] = "최대 슬롯 폭";
 L["Min Slot Width"] = "최소 슬롯 너비";
-L["Show Item Levels"] = "아이템 레벨 표시";
 L["If checked, item levels will show on top of the icons of equipment and weapon items."] = "체크하면 장비 및 무기 아이템 아이콘 위에 아이템 레벨이 표시됩니다.";
 L["The maximum number of icons that can appear per row when resizing the inventory frame using the grid view."] = "그리드 보기를 사용하여 인벤토리 프레임 크기를 조정할 때 행당 나타날 수 있는 최대 아이콘 수입니다.";
 L["Max Icons Per Row"] = "행당 최대 아이콘";

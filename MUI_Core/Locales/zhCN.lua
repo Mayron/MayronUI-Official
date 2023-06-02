@@ -37,11 +37,8 @@ L["Currency"] = "货币";
 L["MUI Layout Button"] = "MUI 布局按钮";
 L["Left Click:"] = "左键单击：";
 L["Switch Layout"] = "切换布局";
-L["Middle Click:"] = "中键：";
-L["Toggle Blizzard Speech Menu"] = "切换暴雪语音菜单";
 L["Right Click:"] = "右键点击：";
 L["Show Layout Config Tool"] = "显示布局配置工具";
-L["Toggle Tooltip"] = "切换工具提示";
 L["Edit Box (Message Input Box)"] = "编辑框(消息输入框)";
 L["Background Color"] = "背景颜色";
 L["Backdrop Inset"] = "背景插入";
@@ -54,10 +51,7 @@ L["Left Button"] = "左键";
 L["Middle Button"] = "中间按钮";
 L["Right Button"] = "右键";
 L["Shift"] = "转移";
-L["Ctrl"] = "控制";
 L["Alt"] = "阿尔特";
-L["Chat Buttons with Modifier Key 1"] = "带有修饰键 1 的聊天按钮";
-L["Chat Buttons with Modifier Key 2"] = "带有修饰键 2 的聊天按钮";
 L["Set the border size."] = "设置边框大小。";
 L["Cannot toggle menu while in combat."] = "在战斗中无法切换菜单。";
 L["Cannot switch layouts while in combat."] =
@@ -67,8 +61,6 @@ L["Set the spacing between the background and the border."] =
   "设置背景和边框之间的间距。";
 L["Allow the use of modifier keys to swap chat buttons while in combat."] =
   "允许使用修饰键在战斗中交换聊天按钮。";
-L["Failed to load MUI_Config. Possibly missing?"] =
-  "加载 MUI_Config 失败。可能丢失了？";
 L["List of slash commands:"] = "斜线命令列表：";
 L["Welcome back"] = "欢迎回来";
 L["Starter Edition accounts cannot perform this action."] =
@@ -79,27 +71,14 @@ L["Must be level 10 or higher to use Talents."] =
   "必须达到 10 级或更高才能使用天赋。";
 L["Requires level 10+ to view the PVP window."] =
   "需要 10 级以上才能查看 PVP 窗口。";
-L["Requires level 10+ to view the Glyphs window."] =
-  "需要 10 级以上才能查看 Glyphs 窗口。";
 L["Requires being inside a Battle Ground."] = "需要在战场内。";
 L["Choose Spec"] = "选择规格";
 L["Choose Loot Spec"] = "选择战利品规格";
-L["Current Spec"] = "当前规格";
 L[" (current)"] = " （当前的）";
 L["Toggle Bags"] = "切换袋";
 L["Sort Bags"] = "分拣袋子";
 L["Commands"] = "命令";
 L["Armor"] = "盔甲";
-L["Head"] = "头";
-L["Shoulder"] = "肩膀";
-L["Chest"] = "胸部";
-L["Waist"] = "腰部";
-L["Legs"] = "腿";
-L["Feet"] = "脚";
-L["Wrist"] = "手腕";
-L["Hands"] = "手";
-L["Main Hand"] = "主手";
-L["Secondary Hand"] = "副手";
 L["Zone"] = "区";
 L["Rank"] = "秩";
 L["<none>"] = "<无>";
@@ -127,7 +106,6 @@ L["Not Interruptible"] = "不可中断";
 L["Finished Casting"] = "完成铸造";
 L["Interrupted"] = "中断";
 L["Latency"] = "潜伏";
-L["Backdrop"] = "背景";
 L["Individual Cast Bar Options"] = "个别铸造栏选项";
 L["Enable Bar"] = "启用栏";
 L["Show Icon"] = "显示图标";
@@ -137,7 +115,6 @@ L["Width"] = "宽度";
 L["Height"] = "高度";
 L["Frame Strata"] = "框架层";
 L["Frame Level"] = "帧级";
-L["Manual Positioning"] = "手动定位";
 L["Point"] = "观点";
 L["Relative Frame"] = "相对框架";
 L["Relative Point"] = "相对点";
@@ -146,8 +123,6 @@ L["Y-Offset"] = "Y 偏移";
 L["Player"] = "玩家";
 L["Target"] = "目标";
 L["Focus"] = "重点";
-L["Mirror"] = "镜子";
-L["Pet"] = "宠物";
 L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."] =
   "如果启用,施法栏将固定在 %s 单位框架的肖像栏上（如果存在）。";
 L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."] =
@@ -167,33 +142,19 @@ L["Show Menu"] = "显示菜单";
 L["Zoom in/out"] = "放大/缩小";
 L["Toggle this Tooltip"] = "切换此工具提示";
 L["New Event!"] = "新事件！";
-L["Calendar"] = "日历";
-L["Customer Support"] = "客户支持";
-L["Class Order Hall"] = "班令厅";
-L["Garrison Report"] = "《驻军报告》";
 L["Tracking Menu"] = "跟踪菜单";
-L["Music Player"] = "音乐播放器";
 L["Cannot access config menu while in combat."] =
   "在战斗中无法访问配置菜单。";
 L["Choose Theme:"] = "选择主题：";
-L["Custom Colour"] = "自定义颜色";
 L["Theme"] = "主题";
 L["Choose Profile:"] = "选择个人资料：";
-L["<new profile>"] = "<新配置文件>";
-L["<remove profile>"] = "<删除个人资料>";
-L["Create New Profile:"] = "创建新配置文件：";
-L["Remove Profile:"] = "删除个人资料：";
 L["Confirm"] = "确认";
 L["Cancel"] = "取消";
-L["Enabled Chat Frames:"] = "启用聊天框架：";
 L["Top Left"] = "左上方";
 L["Top Right"] = "右上";
 L["Bottom Left"] = "左下方";
 L["Bottom Right"] = "右下角";
 L["Adjust the UI Scale:"] = "调整 UI 比例：";
-L["Use Localization:"] = "使用本地化：";
-L["WoW Client: "] = "魔兽客户端：";
-L["AddOn Settings to Override:"] = "要覆盖的附加设置：";
 L["Install"] = "安装";
 L["INSTALL"] = "安装";
 L["CUSTOM INSTALL"] = "自定义安装";
@@ -204,28 +165,19 @@ L["Setup Menu"] = "设置菜单";
 L["VERSION"] = "版本";
 L["This will ensure that frames are correctly positioned to match the UI scale during installation."] =
   "这将确保框架在安装过程中正确定位以匹配 UI 比例。";
-L["Only track your %s"] = "只跟踪你的 %s";
-L["Track all %s"] = "跟踪所有 %s";
 L["General Options"] = "常规选项";
 L["Sort By Time Remaining"] = "按剩余时间排序";
 L["Show Tooltips On Mouseover"] = "在鼠标悬停时显示工具提示";
 L["Create New Field"] = "创建新字段";
-L["Name of New TimerBar Field:"] = "新 TimerBar 字段的名称：";
-L["Name of TimerBar Field to Remove:"] =
-  "要删除的 TimerBar 字段的名称：";
 L["TimerBar field '%s' created."] = "已创建 TimerBar 字段 '%s'。";
-L["TimerBar field '%s' remove."] = "TimerBar 字段 '%s' 删除。";
 L["TimerBar field '%s' does not exist."] = "TimerBar 字段 '%s' 不存在。";
 L["Remove Field"] = "删除字段";
 L["Existing Timer Bar Fields"] = "现有的计时器栏字段";
 L["Enable Field"] = "启用字段";
 L["<%s Field>"] = "<%s 字段>";
 L["Unit to Track"] = "要跟踪的单位";
-L["Manage Tracking Buffs"] = "管理跟踪爱好者";
 L["TargetTarget"] = "目标目标";
 L["FocusTarget"] = "焦点目标";
-L["Manage Tracking Debuffs"] = "管理追踪减益";
-L["Appearance Options"] = "外观选项";
 L["Up"] = "向上";
 L["Down"] = "下";
 L["Bar Width"] = "条宽";
@@ -237,43 +189,22 @@ L["Buff Bar Color"] = "抛光条颜色";
 L["Debuff Bar Color"] = "减益条颜色";
 L["Manual Positioning"] = "手动定位";
 L["Text Options"] = "文本选项";
-L["Show"] = "表演";
 L["Font Size"] = "字体大小";
 L["Font Type"] = "字体类型";
-L["Enter the Name of a %s to Track:"] = "输入要跟踪的 %s 的名称：";
-L["Only %s casted by you will be tracked."] =
-  "只有你施放的 %s 会被追踪。";
-L["Ignore the list of %s to track and track everything."] =
-  "忽略 %s 的列表以跟踪和跟踪所有内容。";
-L["Enabling this will dynamically generate the list of %s to track."] =
-  "启用此功能将动态生成要跟踪的 %s 列表。";
 L["The unit who is affected by the spell."] = "受法术影响的单位。";
 L["The field's vertical growth direction:"] =
   "该领域的垂直增长方向：";
 L["Reload UI"] = "重新加载用户界面";
 L["General"] = "一般的";
 L["Master Font"] = "大师字体";
-L["Enable Master Font"] = "启用主字体";
 L["Display Lua Errors"] = "显示 Lua 错误";
 L["Set Theme Color"] = "设置主题颜色";
-L["Objective (Quest) Tracker"] = "目标（任务）追踪器";
 L["Anchor to Side Bar"] = "锚定到侧边栏";
-L["Set Width"] = "设置宽度";
-L["Set Height"] = "设置高度";
-L["Bottom UI Panels"] = "底部 UI 面板";
-L["Container Width"] = "集装箱宽度";
 L["Unit Panels"] = "单元面板";
 L["Enable Unit Panels"] = "启用单位面板";
 L["Symmetric Unit Panels"] = "对称单元面板";
 L["Name Panels"] = "名称面板";
-L["Unit Panel Width"] = "单位面板宽度";
-L["Target Class Colored"] = "目标类有色";
-L["Bottom Action Bars"] = "操作栏面板";
-L["Enable Panel"] = "启用面板";
-L["Animation Speed"] = "动画速度";
-L["Retract Height"] = "收回高度";
-L["Expand Height"] = "展开高度";
-L["Expand and Retract Buttons"] = "展开和缩回按钮";
+L["Action Bar Panels"] = "操作栏面板";
 L["Control"] = "控制";
 L["SUF Portrait Gradient"] = "SUF人像渐变";
 L["Enable Gradient Effect"] = "启用渐变效果";
@@ -281,20 +212,10 @@ L["Gradient Colors"] = "渐变色";
 L["Start Color"] = "起始颜色";
 L["End Color"] = "结束颜色";
 L["Target Class Colored"] = "目标类有色";
-L["Bartender4 Action Bars"] = "调酒师动作条";
 L["Row"] = "排";
-L["First Bartender Bar"] = "第一调酒师酒吧";
-L["Second Bartender Bar"] = "第二调酒师酒吧";
-L["Artifact"] = "神器";
-L["Experience"] = "经验";
 L["Enabled"] = "启用";
 L["Default value is"] = "默认值为";
-L["Minimum value is"] = "最小值是";
-L["Maximum value is"] = "最大值是";
-L["true"] = "真的";
-L["false"] = "错误的";
 L["Show Text"] = "显示文本";
-L["Data Text"] = "数据文本";
 L["General Data Text Options"] = "通用数据文本选项";
 L["Block in Combat"] = "在战斗中阻止";
 L["Auto Hide Menu in Combat"] = "战斗中自动隐藏菜单";
@@ -304,59 +225,38 @@ L["Max Menu Height"] = "最大菜单高度";
 L["Bar Strata"] = "酒吧地层";
 L["Bar Level"] = "酒吧级别";
 L["Data Text Modules"] = "数据文本模块";
-L["Data Button"] = "数据按钮";
-L["Combat_timer"] = "战斗计时器";
 L["Durability"] = "耐用";
 L["Performance"] = "表现";
 L["Memory"] = "记忆";
 L["Money"] = "钱";
-L["Show Copper"] = "《秀铜》";
-L["Show Silver"] = "《秀银》";
-L["Show Gold"] = "秀金";
-L["Spec"] = "规格";
 L["Disabled"] = "残疾";
-L["Blank"] = "空白的";
 L["Module Options"] = "模块选项";
 L["Show FPS"] = "显示帧率";
 L["Show Server Latency (ms)"] = "显示服务器延迟（毫秒）";
 L["Show Home Latency (ms)"] = "显示家庭延迟（毫秒）";
-L["Show Realm Name"] = "显示领域名称";
 L["Show Total Slots"] = "显示总插槽";
 L["Show Used Slots"] = "显示已使用的插槽";
 L["Show Free Slots"] = "显示免费老虎机";
 L["Show Self"] = "《展现自我》";
 L["Show Tooltips"] = "显示工具提示";
-L["Side Bar"] = "边栏";
-L["Width (With 1 Bar)"] = "宽度（带 1 条）";
-L["Width (With 2 Bars)"] = "宽度（带 2 条）";
-L["Hide in Combat"] = "隐藏在战斗中";
-L["Show When"] = "显示时间";
 L["Never"] = "绝不";
 L["Always"] = "总是";
 L["On Mouse-over"] = "鼠标悬停";
 L["Bar"] = "酒吧";
 L["Uncheck to prevent MUI from changing the game font."] =
   "取消选中以防止 MUI 更改游戏字体。";
-L["Config type '%s' unsupported!"] = "不支持配置类型 '%s'！";
 L["The UI requires reloading to apply changes."] =
   "用户界面需要重新加载才能应用更改。";
 L["Some changes require a client restart to take effect."] =
   "某些更改需要重新启动客户端才能生效。";
-L["Warning: This will NOT change the color of CastBars!"] =
-  "警告：这不会改变 CastBars 的颜色！";
 L["Previously called 'Classic Mode'."] = "以前称为'经典模式'。";
 L["Allow MUI to Control Unit Frames"] = "允许 MUI 控制单元框架";
-L["Allow MUI to Control Grid"] = "允许 MUI 控制网格";
 L["What color the gradient should start as."] =
   "渐变应该以什么颜色开始。";
 L["What color the gradient should change into."] =
   "渐变应该变成什么颜色。";
-L["Allow MUI to Control Selected Bartender4 Bars"] =
-  "允许 MUI 控制选定的调酒师酒吧";
 L["Show your character in the guild list."] =
   "在公会列表中展示你的角色。";
-L["Adjust the width of the Bottom UI container."] =
-  "调整底部 UI 容器的宽度。";
 L["Adjust the width of the unit frame background panels."] =
   "调整单元框背景面板的宽度。";
 L["Adjust the width of the unit name background panels."] =
@@ -379,8 +279,6 @@ L["Adjust the spacing between data text buttons."] =
   "调整数据文本按钮之间的间距。";
 L["The frame strata of the entire DataText bar."] =
   "整个 DataText 栏的框架层。";
-L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] =
-  "将目标跟踪器锚定到屏幕右侧的操作栏容器。";
 L["Disable this to stop MUI from controlling the Objective Tracker."] =
   "禁用此功能可阻止 MUI 控制目标跟踪器。";
 L["Adjust the horizontal positioning of the Objective Tracker."] =
@@ -399,7 +297,6 @@ L["DataText buttons, as well as the background bar, will not be displayed."] =
   "DataText 按钮以及背景栏将不会显示。";
 L["Prevents you from using data text modules while in combat."] =
   "阻止你在战斗中使用数据文本模块。";
-L["This is useful for 'clickers'."] = "这对 'clickers' 很有用。";
 L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."] =
   "如果启用了 SUF Player 或 Target 纵向条,类颜色渐变将覆盖它。";
 L["Show Overview"] = "显示概述";
@@ -412,8 +309,6 @@ L["Are you sure you want to reset the money data for %s?"] =
   "您确定要重置 %s 的金钱数据吗？";
 L["Money data for %s has been reset."] = "%s 的金钱数据已被重置。";
 L["Reset Options"] = "重置选项";
-L["All currency data has been reset."] = "所有货币数据已重置。";
-L["Currency data for %s has been reset."] = "%s 的货币数据已被重置。";
 L["Change Status"] = "更改状态";
 L["Remove from Whitelist"] = "从白名单中删除";
 L["Add to Blacklist"] = "加入黑名单";
@@ -427,16 +322,11 @@ L["Enable Whitelist"] = "启用白名单";
 L["Configure Whitelist"] = "配置白名单";
 L["Enable Blacklist"] = "启用黑名单";
 L["Configure Blacklist"] = "配置黑名单";
-L["Are you sure you want to reset the currency data for all of your characters?"] =
-  "您确定要重置所有角色的货币数据吗？";
-L["Are you sure you want to reset the currency data for %s?"] =
-  "您确定要重置 %s 的货币数据吗？";
 L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."] =
   "如果启用了白名单,从白名单中删除 %s 将隐藏此计时器栏。";
 L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."] =
   "如果启用了黑名单,将 %s 添加到黑名单将隐藏此计时器栏。";
 L["Cast Bars"] = "铸棒";
-L["Auras (Buffs & Debuffs)"] = "光环（增益和减益）";
 L["(CTRL+C to Copy, CTRL+V to Paste)"] = "(CTRL+C 复制,CTRL+V 粘贴)";
 L["Copy Chat Text"] = "复制聊天文本";
 L["Data Text Bar"] = "数据文本栏";
@@ -470,11 +360,8 @@ L["Mini-Map Options"] = "小地图选项";
 L["Mini-Map"] = "小地图";
 L["Adjust the size of the minimap."] = "调整小地图的大小。";
 L["Adjust the scale of the minimap."] = "调整小地图的比例。";
-L["Zone Text"] = "区域文本";
 L["Scale"] = "规模";
 L["Size"] = "尺寸";
-L["Adjust the font size of the zone text."] =
-  "调整区域文本的字体大小。";
 L["Okay"] = "好的";
 L["Profile %s has been copied into current profile %s."] =
   "配置文件 %s 已复制到当前配置文件 %s。";
@@ -491,85 +378,53 @@ L["Are you sure you want to override all profile settings in '%s' for those in p
 L["Profile Per Character"] = "每个角色的个人资料";
 L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."] =
   "如果启用,新角色将被分配一个唯一的角色配置文件,而不是默认配置文件。";
-L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] =
-  "为每个布局自定义哪些插件应该更改为哪些配置文件,以及管理现有布局或创建新布局。";
 L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] =
   "将目标跟踪器锚定到屏幕右侧的操作栏容器。";
-L["You can repeat this step at any time (while out of combat) to hide it."] =
-  "你可以在任何时候（脱离战斗时）重复这个步骤来隐藏它。";
 L["If true, the objective tracker will collapse when entering an instance."] =
   "如果为 true,目标跟踪器将在进入实例时崩溃。";
-L["If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit."] =
-  "如果为真,如果金的数量超过一定限度,MUI 将不会显示铜或银。";
 L["Also enable the %s"] = "同时启用 %s";
 L["Current"] = "当前的";
-L["Equipment Set"] = "设备套装";
-L["Installer"] = "安装程序";
-L["Profiles"] = "个人资料";
 L["AFK Display"] = "AFK 显示";
 L["Movable Frames"] = "可移动框架";
 L["Objective Tracker"] = "目标跟踪器";
-L["Side Action Bars"] = "侧面动作栏";
 L["(type '/mui' to list all slash commands)"] =
   "(输入'/mui'列出所有斜线命令)";
 L["Version"] = "版本";
-L["Main Container"] = "主容器";
 L["Resource Bars"] = "资源栏";
-L["Movable Blizzard Frames"] = "可移动的暴风雪框架";
 L["Allows you to move Blizzard Frames outside of combat only."] =
   "只允许你在战斗之外移动暴雪框架。";
 L["Reset Blizzard frames back to their original position."] =
   "将暴雪框架重置回原来的位置。";
-L["Reset Blizzard Frame Positions"] = "重置暴雪帧位置";
 L["Enable/disable the AFK Display"] = "启用/禁用 AFK 显示";
 L["Show AFK Display"] = "显示 AFK 显示";
 L["Adjust the width of the main container."] = "调整主容器的宽度。";
 L["Adjust the height of the unit frame background panels."] =
   "调整单位框架背景面板的高度。";
-L["Unit Panel Height"] = "单元面板高度";
-L["Main Container Width:"] = "主容器宽度：";
-L["Enable or disable the background panel"] = "启用或禁用背景面板";
-L["Modifier key/s used to show Expand/Retract button:"] =
-  "用于显示展开/收缩按钮的修饰键：";
 L["Side Action Bars"] = "侧面动作条";
 L["Collapse in Instance"] = "在实例中折叠";
 L["CREDITS"] = "信用";
 L["Buffs"] = "爱好者";
 L["Debuffs"] = "减益";
-L["Layout Type"] = "布局类型";
-L["Save Position"] = "保存位置";
 L["Show Pulse Effect"] = "显示脉冲效果";
 L["Icon Options"] = "图标选项";
-L["Icon options are disabled when using status bars."] =
-  "使用状态栏时图标选项被禁用。";
-L["Icon Size"] = "图标大小";
 L["Column Spacing"] = "列间距";
 L["Row Spacing"] = "行间距";
 L["Icons per Row"] = "每行图标";
 L["Bar Columns"] = "酒吧专栏";
 L["Growth Direction"] = "《成长方向》";
 L["Status Bar Options"] = "状态栏选项";
-L["Status bar options are disabled when using icons."] =
-  "使用图标时状态栏选项被禁用。";
-L["Icon Gap"] = "图标间隙";
-L["Text"] = "文本";
 L["Time Remaining"] = "剩余时间";
 L["Spell Count"] = "法术计数";
 L["Spell Name"] = "法术名称";
 L["Count"] = "数数";
 L["Aura Name"] = "光环名称";
 L["Border Type"] = "边框类型";
-L["Basic %s"] = "基本";
-L["Weapon Enchants"] = "武器附魔";
 L["Magic Debuff"] = "魔法减益";
 L["Disease Debuff"] = "疾病减益";
 L["Poison Debuff"] = "毒药减益";
 L["Curse Debuff"] = "诅咒减益";
-L["Bar Background"] = "酒吧背景";
-L["Bar Border"] = "酒吧边界";
 L["Icons"] = "图标";
 L["Status Bars"] = "状态栏";
-L["Bottom Action Bars"] = "底部动作栏";
 L["Can Steal or Purge"] = "可以窃取或清除";
 L["If an aura can be stolen or purged, show a different color."] =
   "如果光环可以被窃取或清除,则显示不同的颜色。";
@@ -578,13 +433,11 @@ L["Enter an aura name to add to the whitelist:"] =
   "输入要添加到白名单的光环名称：";
 L["Enter an aura name to add to the blacklist:"] =
   "输入要添加到黑名单的光环名称：";
-L["Automatic"] = "自动的";
 L["Inventory"] = "存货";
 L["Changes to these settings will take effect after 0-3 seconds."] =
   "对这些设置的更改将在 0-3 秒后生效。";
 L["Adjust the height of the datatext bar."] =
   "调整数据文本栏的高度。";
-L["Justify Text"] = "对齐文本";
 L["Set the spacing between the status bar and the background."] =
   "设置状态栏和背景之间的间距。";
 L["Select which chat frame the chat icons should be anchored to."] =
@@ -592,9 +445,6 @@ L["Select which chat frame the chat icons should be anchored to."] =
 L["The height of the edit box."] = "编辑框的高度。";
 L["Set the vertical positioning of the edit box."] =
   "设置编辑框的垂直定位。";
-L["Show Player Status Icon"] = "显示玩家状态图标";
-L["Show Emotes Icon"] = "显示表情图标";
-L["Show Copy Chat Icon"] = "显示复制聊天图标";
 L["This is the background bar that goes behind the tabs."] =
   "这是标签后面的背景栏。";
 L["Show Tab Bar"] = "显示标签栏";
@@ -602,9 +452,7 @@ L["Tab Bar"] = "标签栏";
 L["Window"] = "窗户";
 L["Layout enabled!"] = "布局已启用！";
 L["Show Chat Menu"] = "显示聊天菜单";
-L["Azerite"] = "艾泽里特";
 L["Covenant Sanctum"] = "《圣约圣殿》";
-L["Missions"] = "使命";
 L["You must be a member of a covenant to view this."] =
   "你必须是盟约的成员才能看到这个。";
 L["Unmuted"] = "未静音";
@@ -642,8 +490,6 @@ L["Online Status"] = "在线状态";
 L["None"] = "没有任何";
 L["Deafen"] = "耳聋";
 L["Mute"] = "沉默的";
-L["If checked, this module will be enabled."] =
-  "如果选中,将启用此模块。";
 L["Unit Tooltip Options"] = "单位工具提示选项";
 L["These options only affect tooltips that appear when you mouse over a unit, such as an NPC or player."] =
   "这些选项只影响当你将鼠标悬停在一个单位上时出现的工具提示,比如 NPC 或玩家。";
@@ -659,16 +505,9 @@ L["If checked and the player is level 10 or higher and has chosen a class specia
   "如果选中并且玩家等级为 10 或更高并且选择了职业专精,则会显示工具提示中显示的玩家专精。";
 L["Show Specialization"] = "显示专业化";
 L["Show Item Level"] = "显示物品等级";
-L["In Combat Options"] = "在战斗选项中";
-L["Show Unit Tooltips In Combat"] = "在战斗中显示单位工具提示";
 L["Show Guild Rank"] = "显示公会等级";
 L["Show Realm Name"] = "显示领域名称";
 L["Show Target"] = "显示目标";
-L["Show Standard Tooltips In Combat"] = "在战斗中显示标准工具提示";
-L["Standard tooltips display non-unit related information, such as action-bar abilities, buffs and debuffs, and more."] =
-  "标准工具提示显示与单位无关的信息,例如动作条能力、增益和减益效果等。";
-L["Unit tooltips display player and NPC information while your mouse cursor is over a unit in the game world."] =
-  "当您的鼠标光标位于游戏世界中的一个单位上时,单位工具提示会显示玩家和 NPC 信息。";
 L["Appearance Options"] = "外观选项";
 L["These options allow you to customize the appearance of the tooltips."] =
   "这些选项允许您自定义工具提示的外观。";
@@ -680,24 +519,9 @@ L["Affects the overall size of the tooltips."] =
 L["Reskin using the MUI texture or a custom backdrop"] =
   "使用 MUI 纹理或自定义背景重新换肤";
 L["Texture"] = "质地";
-L["Texture Options"] = "纹理选项";
 L["Custom Backdrop"] = "自定义背景";
-L["The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see the previous menu)."] =
-  "MUI 纹理控制背景和边框纹理。如果您想要更自定义的样式,请改用\"自定义背景\"样式（请参阅上一个菜单）。";
-L["Use MUI Theme Color"] = "使用 MUI 主题颜色";
-L["If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class-colored)."] =
-  "如果选中,MUI 纹理将使用您的 MUI 主题颜色作为背景和边框颜色（默认情况下,这是类颜色）。";
 L["Custom Color"] = "自定义颜色";
-L["If not using the MUI theme color, the tooltip will use this custom color for both the background and border color."] =
-  "如果不使用 MUI 主题颜色,工具提示将使用此自定义颜色作为背景和边框颜色。";
 L["Custom Backdrop Options"] = "自定义背景选项";
-L["Color border by class or NPC type"] =
-  "按职业或 NPC 类型的颜色边框";
-L["If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit."] =
-  "如果选中,背景边框颜色将基于玩家单位的类或 NPC 单位的类型。";
-L["Border Color"] = "边框颜色";
-L["If color border by class or NPC type is checked, this color will be used for all non-unit tooltips, else it will be used for every tooltip border."] =
-  "如果按类或 NPC 类型检查颜色边框,则此颜色将用于所有非单位工具提示,否则它将用于每个工具提示边框。";
 L["Background Texture"] = "背景纹理";
 L["Border Insets"] = "边框插入";
 L["Left"] = "剩下";
@@ -705,13 +529,6 @@ L["Right"] = "正确的";
 L["Center"] = "中心";
 L["Top"] = "最佳";
 L["Bottom"] = "底部";
-L["Anchor Options"] = "锚选项";
-L["Unit Tooltip Anchor Point"] = "单位工具提示锚点";
-L["Mouse Cursor"] = "鼠标光标";
-L["Screen Corner"] = "屏幕角";
-L["Screen Corner Positioning"] = "屏幕角定位";
-L["Standard Tooltip Anchor Point"] = "标准工具提示锚点";
-L["Mouse Cursor Positioning"] = "鼠标光标定位";
 L["The bottom-[point] corner of the tooltip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."] =
   "工具提示的底部-[点] 角,其中 [点] 是'左'或'右',将锚定到鼠标光标的位置。";
 L["Health Bar"] = "健康酒吧";
@@ -775,12 +592,6 @@ L["Target Class Color Gradient"] = "目标类颜色渐变";
 L["If enabled, the unit panel color will transition to the target's class color using a horizontal gradient effect."] =
   "如果启用,单元面板颜色将使用水平渐变效果过渡到目标的类颜色。";
 L["Set Pulse Strength"] = "设置脉冲强度";
-L["Expanding and Retracting Action Bar Rows"] = "展开和收缩动作条行";
-L["Enable Expand and Retract Feature"] = "启用展开和收回功能";
-L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."] =
-  "如果禁用,您将无法在 1 行和 2 行操作栏之间切换。";
-L["This is the fixed height of the action bar panel when MUI is not controlling Bartender4."] =
-  "这是禁用展开和缩回功能时要使用的固定默认高度。";
 L["Set Alpha"] = "设置阿尔法";
 L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."] =
   "如果选中,声望栏将使用固定颜色,而不是根据您在所选派系中的声望动态变化。";
@@ -891,7 +702,6 @@ L["Some settings will not be changed until the UI has been reloaded."] =
   "在重新加载 UI 之前，某些设置不会更改。";
 L["Would you like to reload the UI now?"] =
   "您现在要重新加载用户界面吗？";
-L["Reload UI"] = "重新加载用户界面";
 L["No"] = "不";
 L["Profile changed to %s."] = "配置文件已更改为 %s。";
 L["Profile %s has been reset."] = "配置文件 %s 已被重置。";
@@ -927,14 +737,6 @@ L["TT_MUI_CONTROL_SUF"] = [[如果启用，MUI 将重新定位阴影单元
 
 它也会在以下情况下自动移动单位框架
 展开和缩回 MUI 操作栏面板。]];
-
-L["TT_MUI_CONTROL_BARTENDER"] =
-  [[如果启用，MUI 将重新定位选定的调酒师
-条以适合操作栏面板的顶部。
-
-它还将控制淡入淡出过渡
-展开时选定的第 2 行调酒师栏的数量和
-收回 MUI 操作栏面板。]];
 
 L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
   [[如果选中，目标人像渐变将使用目标的类
@@ -996,13 +798,6 @@ L["UNIQUE_CHARACTER_PROFILE"] =
 L["Reset Chat Settings"] = "重置聊天设置";
 L["RESET_CHAT_SETTINGS_TOOLTIP"] = "取消选中此项将保留您的聊天选项卡以及与每个聊天窗口关联的暴雪聊天设置。";
 
-L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] = "新的 Dragonflight 动作条系统与您当前的 Bartender4 设置不兼容。";
-L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] = "您可以通过将它们替换为最新的 |cff00ccffMayronUI|r 预设 Bartender4 设置来解决此问题。";
-L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] = "你现在想这样做吗？";
-L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] = "这将重新加载 UI";
-L["DRAGONFLIGHT_BAR_POPUP_WARNING"] = "警告！ 这将清除您对 Bartender4 操作栏所做的所有自定义。";
-L["Yes, I want to update my action bar layout"] = "是的，我想更新我的操作栏布局";
-
 L["MayronUI AddOn Presets"] = "MayronUI 插件预设";
 L["No Supported AddOns Loaded"] = "没有加载支持的插件";
 L["The following selected addons will have their settings reset to the MayronUI preset settings:"] = "以下选定插件的设置将重置为 MayronUI 预设设置：";
@@ -1033,7 +828,6 @@ L["Override Master Font"] = "覆盖主字体";
 L["Override Combat Font"] = "覆盖战斗字体";
 L["Combat Font"] = "战斗字体";
 L["This font is used to display the damage and healing combat numbers."] = "此字体用于显示伤害和治疗战斗数字。";
-L["Miscellaneous"] = "各种各样的";
 L["Blizzard Frames"] = "暴雪框架";
 L["Clamped to Screen"] = "夹在屏幕上";
 L["If checked, Blizzard frames cannot be dragged outside of the screen."] = "如果选中，则无法将暴雪帧拖到屏幕外。";
@@ -1102,9 +896,7 @@ L["Paste an import string into the box below to import a profile."] = "将导入
 L["Warning: This will completely replace your current profile with the imported profile settings!"] = "警告：这将用导入的配置文件设置完全替换您当前的配置文件！";
 L["Successfully imported profile settings into your current profile!"] = "已成功将配置文件设置导入您当前的配置文件！";
 L["Reset to default"] = "重置为默认";
-
 L["Appearance Settings"] = "外观设置";
-L["Set MUI Frames Color"] = "设置 MUI 框架颜色";
 L["MUI_FRAMES_COLOR_TOOLTIP"] = "控制 MUI 框架的背景颜色，包括库存框架、工具提示、配置菜单、布局工具等。";
 L["Set Display Mode"] = "设置显示模式";
 L["These settings relate to the individual aura icons/bars."] = "这些设置与各个光环图标/栏相关。";
@@ -1150,12 +942,10 @@ L["Trade Goods"] = "贸易商品";
 L["Consumables"] = "耗材";
 L["Equipment"] = "设备";
 L["All Items"] = "所有项目";
-
 L["Padding"] = "填充";
 L["Slot Height"] = "插槽高度";
 L["Max Slot Width"] = "最大槽宽";
 L["Min Slot Width"] = "最小槽宽";
-L["Show Item Levels"] = "显示物品等级";
 L["If checked, item levels will show on top of the icons of equipment and weapon items."] = "如果选中，物品等级将显示在装备和武器物品图标的顶部。";
 L["The maximum number of icons that can appear per row when resizing the inventory frame using the grid view."] = "使用网格视图调整库存框架大小时每行可以显示的最大图标数。";
 L["Max Icons Per Row"] = "每行最大图标数";

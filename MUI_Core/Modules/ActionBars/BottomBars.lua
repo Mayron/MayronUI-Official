@@ -15,7 +15,7 @@ local RETRACT_BUTTON_ID = 2;
 
 -- Register and Import Modules -----------
 ---@class BottomActionBarsModule
-local C_BottomActionBars = MayronUI:RegisterModule("BottomActionBars", L["Bottom Action Bars"], true);
+local C_BottomActionBars = MayronUI:RegisterModule("BottomActionBars", L["Action Bar Panels"], true);
 
 -- Load Database Defaults ----------------
 db:AddToDefaults("profile.actionbars.bottom", {

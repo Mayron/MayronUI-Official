@@ -40,11 +40,8 @@ L["Currency"] = "Moneta";
 L["MUI Layout Button"] = "Pulsante layout MUI";
 L["Left Click:"] = "Clic sinistro:";
 L["Switch Layout"] = "Cambia layout";
-L["Middle Click:"] = "Clic centrale:";
-L["Toggle Blizzard Speech Menu"] = "Attiva/disattiva menu vocale Blizzard";
 L["Right Click:"] = "Clic destro:";
 L["Show Layout Config Tool"] = "Mostra strumento di configurazione layout";
-L["Toggle Tooltip"] = "Attiva/disattiva descrizione comando";
 L["Edit Box (Message Input Box)"] =
   "Casella di modifica (casella di immissione del messaggio)";
 L["Background Color"] = "Colore di sfondo";
@@ -58,12 +55,7 @@ L["Left Button"] = "Pulsante di sinistra";
 L["Middle Button"] = "Pulsante centrale";
 L["Right Button"] = "Bottone giusto";
 L["Shift"] = "Cambio";
-L["Ctrl"] = "Ctrl";
 L["Alt"] = "Alt";
-L["Chat Buttons with Modifier Key 1"] =
-  "Pulsanti di chat con tasto modificatore 1";
-L["Chat Buttons with Modifier Key 2"] =
-  "Pulsanti di chat con tasto modificatore 2";
 L["Set the border size."] = "Imposta la dimensione del bordo.";
 L["Cannot toggle menu while in combat."] =
   "Impossibile cambiare menu durante il combattimento.";
@@ -75,8 +67,6 @@ L["Set the spacing between the background and the border."] =
   "Imposta la spaziatura tra lo sfondo e il bordo.";
 L["Allow the use of modifier keys to swap chat buttons while in combat."] =
   "Consenti l'uso dei tasti modificatori per scambiare i pulsanti della chat durante il combattimento.";
-L["Failed to load MUI_Config. Possibly missing?"] =
-  "Impossibile caricare MUI_Config. Forse mancante?";
 L["List of slash commands:"] = "Elenco dei comandi barra:";
 L["Welcome back"] = "Ben tornato";
 L["Starter Edition accounts cannot perform this action."] =
@@ -87,28 +77,16 @@ L["Must be level 10 or higher to use Talents."] =
   "Deve essere di livello 10 o superiore per usare i talenti.";
 L["Requires level 10+ to view the PVP window."] =
   "Richiede il livello 10+ per visualizzare la finestra PVP.";
-L["Requires level 10+ to view the Glyphs window."] =
-  "Richiede il livello 10+ per visualizzare la finestra dei Glifi.";
 L["Requires being inside a Battle Ground."] =
   "Richiede essere all'interno di un campo di battaglia.";
 L["Choose Spec"] = "Scegli le specifiche";
 L["Choose Loot Spec"] = "Scegli le specifiche del bottino";
-L["Current Spec"] = "Specifiche attuali";
 L[" (current)"] = " (attuale)";
 L["Toggle Bags"] = "Borse con ginocchiera";
 L["Sort Bags"] = "Ordina borse";
 L["Commands"] = "Comandi";
 L["Armor"] = "Armatura";
-L["Head"] = "Testa";
-L["Shoulder"] = "Spalla";
-L["Chest"] = "Il petto";
-L["Waist"] = "Vita";
-L["Legs"] = "Gambe";
-L["Feet"] = "Piedi";
-L["Wrist"] = "Polso";
-L["Hands"] = "Mani";
-L["Main Hand"] = "Mano principale";
-L["Secondary Hand"] = "Seconda mano";
+
 L["Zone"] = "Zona";
 L["Rank"] = "Rango";
 L["<none>"] = "<nessuno>";
@@ -136,7 +114,6 @@ L["Not Interruptible"] = "Non Interrompibile";
 L["Finished Casting"] = "Lancio finito";
 L["Interrupted"] = "Interrotto";
 L["Latency"] = "Latenza";
-L["Backdrop"] = "Sfondo";
 L["Individual Cast Bar Options"] = "Opzioni individuali della barra di fusione";
 L["Enable Bar"] = "Abilita barra";
 L["Show Icon"] = "Mostra icona";
@@ -146,7 +123,6 @@ L["Width"] = "Larghezza";
 L["Height"] = "Altezza";
 L["Frame Strata"] = "Frame Strati";
 L["Frame Level"] = "Livello del telaio";
-L["Manual Positioning"] = "Posizionamento manuale";
 L["Point"] = "Punto";
 L["Relative Frame"] = "Cornice relativa";
 L["Relative Point"] = "Punto relativo";
@@ -155,8 +131,6 @@ L["Y-Offset"] = "Y-Offset";
 L["Player"] = "Giocatore";
 L["Target"] = "Bersaglio";
 L["Focus"] = "Messa a fuoco";
-L["Mirror"] = "Specchio";
-L["Pet"] = "Animale domestico";
 L["If enabled the Cast Bar will be fixed to the %s Unit Frame's Portrait Bar (if it exists)."] =
   "Se abilitato, la barra di trasmissione verrà fissata alla barra verticale di %s Unit Frame (se esiste).";
 L["The %s Unit Frames's Portrait Bar needs to be enabled to use this feature."] =
@@ -176,33 +150,19 @@ L["Show Menu"] = "Mostra menu";
 L["Zoom in/out"] = "Zoom avanti/indietro";
 L["Toggle this Tooltip"] = "Attiva/disattiva questo suggerimento";
 L["New Event!"] = "Nuovo evento!";
-L["Calendar"] = "Calendario";
-L["Customer Support"] = "Servizio Clienti";
-L["Class Order Hall"] = "Sala degli ordini di classe";
-L["Garrison Report"] = "Rapporto Guarnigione";
 L["Tracking Menu"] = "Menù di monitoraggio";
-L["Music Player"] = "Lettore musicale";
 L["Cannot access config menu while in combat."] =
   "Impossibile accedere al menu di configurazione durante il combattimento.";
 L["Choose Theme:"] = "Scegli tema:";
-L["Custom Colour"] = "Colore personalizzato";
 L["Theme"] = "Tema";
 L["Choose Profile:"] = "Scegli profilo:";
-L["<new profile>"] = "<nuovo profilo>";
-L["<remove profile>"] = "<rimuovi profilo>";
-L["Create New Profile:"] = "Crea nuovo profilo:";
-L["Remove Profile:"] = "Rimuovi profilo:";
 L["Confirm"] = "Confermare";
 L["Cancel"] = "Annulla";
-L["Enabled Chat Frames:"] = "Frame chat abilitate:";
 L["Top Left"] = "A sinistra in alto";
 L["Top Right"] = "In alto a destra";
 L["Bottom Left"] = "In basso a sinistra";
 L["Bottom Right"] = "In basso a destra";
 L["Adjust the UI Scale:"] = "Regola la scala dell'interfaccia utente:";
-L["Use Localization:"] = "Usa localizzazione:";
-L["WoW Client: "] = "Wow Cliente: ";
-L["AddOn Settings to Override:"] = "Impostazioni aggiuntive da sovrascrivere:";
 L["Install"] = "Installare";
 L["INSTALL"] = "INSTALLARE";
 L["CUSTOM INSTALL"] = "INSTALLAZIONE PERSONALIZZATA";
@@ -213,27 +173,19 @@ L["Setup Menu"] = "Menu di configurazione";
 L["VERSION"] = "VERSIONE";
 L["This will ensure that frames are correctly positioned to match the UI scale during installation."] =
   "Ciò garantirà che i frame siano posizionati correttamente in modo che corrispondano alla scala dell'interfaccia utente durante l'installazione.";
-L["Only track your %s"] = "Traccia solo il tuo %s";
-L["Track all %s"] = "Traccia tutto %s";
 L["General Options"] = "Opzioni generali";
 L["Sort By Time Remaining"] = "Ordina per tempo rimanente";
 L["Show Tooltips On Mouseover"] = "Mostra suggerimenti al passaggio del mouse";
 L["Create New Field"] = "Crea nuovo campo";
-L["Name of New TimerBar Field:"] = "Nome del nuovo campo TimerBar:";
-L["Name of TimerBar Field to Remove:"] = "Nome del campo TimerBar da rimuovere:";
 L["TimerBar field '%s' created."] = "Il campo TimerBar '%s' è stato creato.";
-L["TimerBar field '%s' remove."] = "Rimuovi campo TimerBar '%s'.";
 L["TimerBar field '%s' does not exist."] = "Il campo TimerBar '%s' non esiste.";
 L["Remove Field"] = "Rimuovi campo";
 L["Existing Timer Bar Fields"] = "Campi della barra del timer esistenti";
 L["Enable Field"] = "Abilita campo";
 L["<%s Field>"] = "<%s campo>";
 L["Unit to Track"] = "Unità da monitorare";
-L["Manage Tracking Buffs"] = "Gestisci gli appassionati di monitoraggio";
 L["TargetTarget"] = "TargetTarget";
 L["FocusTarget"] = "FocusTarget";
-L["Manage Tracking Debuffs"] = "Gestisci i debuff di monitoraggio";
-L["Appearance Options"] = "Opzioni di aspetto";
 L["Up"] = "Su";
 L["Down"] = "Giù";
 L["Bar Width"] = "Larghezza barra";
@@ -248,16 +200,8 @@ L["Text Options"] = "Opzioni di testo";
 L["Time Remaining"] = "Tempo rimanente";
 L["Spell Count"] = "Conteggio incantesimi";
 L["Spell Name"] = "Scrivi il nome";
-L["Show"] = "Mostrare";
 L["Font Size"] = "Dimensione del font";
 L["Font Type"] = "Tipo di carattere";
-L["Enter the Name of a %s to Track:"] = "Inserisci il nome di %s da monitorare:";
-L["Only %s casted by you will be tracked."] =
-  "Solo %s lanciato da te verrà tracciato.";
-L["Ignore the list of %s to track and track everything."] =
-  "Ignora l'elenco di %s per tenere traccia di tutto.";
-L["Enabling this will dynamically generate the list of %s to track."] =
-  "L'abilitazione di questo genererà dinamicamente l'elenco di %s da tracciare.";
 L["The unit who is affected by the spell."] =
   "L'unità che è influenzata dall'incantesimo.";
 L["The field's vertical growth direction:"] =
@@ -265,27 +209,14 @@ L["The field's vertical growth direction:"] =
 L["Reload UI"] = "Ricarica interfaccia utente";
 L["General"] = "Generale";
 L["Master Font"] = "Carattere principale";
-L["Enable Master Font"] = "Abilita carattere principale";
 L["Display Lua Errors"] = "Visualizza errori Lua";
 L["Set Theme Color"] = "Imposta colore tema";
-L["Objective (Quest) Tracker"] = "Obiettivo (Missione) Tracker";
 L["Anchor to Side Bar"] = "Ancora alla barra laterale";
-L["Set Width"] = "Imposta larghezza";
-L["Set Height"] = "Imposta altezza";
-L["Bottom UI Panels"] = "Pannelli inferiori dell'interfaccia utente";
-L["Container Width"] = "Larghezza contenitore";
 L["Unit Panels"] = "Pannelli unità";
 L["Enable Unit Panels"] = "Abilita pannelli unità";
 L["Symmetric Unit Panels"] = "Pannelli dell'unità simmetrica";
 L["Name Panels"] = "Pannelli dei nomi";
-L["Unit Panel Width"] = "Larghezza pannello unità";
-L["Target Class Colored"] = "Classe di destinazione colorata";
-L["Bottom Action Bars"] = "Pannello barra delle azioni";
-L["Enable Panel"] = "Abilita pannello";
-L["Animation Speed"] = "Velocità di animazione";
-L["Retract Height"] = "Retrazione altezza";
-L["Expand Height"] = "Espandi altezza";
-L["Expand and Retract Buttons"] = "Pulsanti Espandi e Ritira";
+L["Action Bar Panels"] = "Pannello barra delle azioni";
 L["Control"] = "Controllo";
 L["SUF Portrait Gradient"] = "SUF Ritratto Gradiente";
 L["Enable Gradient Effect"] = "Abilita effetto sfumatura";
@@ -293,20 +224,10 @@ L["Gradient Colors"] = "Colori sfumati";
 L["Start Color"] = "Colore iniziale";
 L["End Color"] = "Fine colore";
 L["Target Class Colored"] = "Classe di destinazione colorata";
-L["Bartender4 Action Bars"] = "Bar d'azione barman";
 L["Row"] = "Riga";
-L["First Bartender Bar"] = "Primo Barista Bar";
-L["Second Bartender Bar"] = "Secondo Barista Bar";
-L["Artifact"] = "Artefatto";
-L["Experience"] = "Esperienza";
 L["Enabled"] = "Abilitato";
 L["Default value is"] = "Il valore predefinito è";
-L["Minimum value is"] = "Il valore minimo è";
-L["Maximum value is"] = "Il valore massimo è";
-L["true"] = "vero";
-L["false"] = "falso";
 L["Show Text"] = "Mostra testo";
-L["Data Text"] = "Testo dati";
 L["General Data Text Options"] = "Opzioni di testo dati generali";
 L["Block in Combat"] = "Blocco in combattimento";
 L["Auto Hide Menu in Combat"] = "Menu Nascondi automaticamente in combattimento";
@@ -316,62 +237,40 @@ L["Max Menu Height"] = "Altezza massima del menu";
 L["Bar Strata"] = "Bar Strati";
 L["Bar Level"] = "Livello Bar";
 L["Data Text Modules"] = "Moduli di testo dati";
-L["Data Button"] = "Pulsante dati";
-L["Combat_timer"] = "Combat_timer";
 L["Durability"] = "Durata";
 L["Performance"] = "Prestazione";
 L["Memory"] = "Memoria";
 L["Money"] = "I soldi";
-L["Show Copper"] = "Mostra rame";
-L["Show Silver"] = "Mostra argento";
-L["Show Gold"] = "Mostra oro";
-L["Spec"] = "Specifica";
 L["Disabled"] = "Disabilitato";
-L["Blank"] = "Vuoto";
 L["Module Options"] = "Opzioni modulo";
 L["Show FPS"] = "Mostra FPS";
 L["Show Server Latency (ms)"] = "Mostra latenza server (ms)";
 L["Show Home Latency (ms)"] = "Mostra latenza home (ms)";
-L["Show Realm Name"] = "Mostra nome regno";
 L["Show Total Slots"] = "Mostra slot totali";
 L["Show Used Slots"] = "Mostra slot usati";
 L["Show Free Slots"] = "Mostra slot gratuiti";
 L["Show Self"] = "Mostra te stesso";
 L["Show Tooltips"] = "Mostra suggerimenti";
-L["Side Bar"] = "Bar laterale";
-L["Width (With 1 Bar)"] = "Larghezza (con 1 barra)";
-L["Width (With 2 Bars)"] = "Larghezza (con 2 barre)";
-L["Hide in Combat"] = "Nasconditi in combattimento";
-L["Show When"] = "Mostra quando";
 L["Never"] = "Mai";
 L["Always"] = "Sempre";
 L["On Mouse-over"] = "Al passaggio del mouse";
 L["Bar"] = "Bar";
 L["Uncheck to prevent MUI from changing the game font."] =
   "Deseleziona per impedire a MUI di modificare il carattere del gioco.";
-L["Config type '%s' unsupported!"] =
-  "Tipo di configurazione '%s' non supportato!";
 L["The UI requires reloading to apply changes."] =
   "L'interfaccia utente richiede il ricaricamento per applicare le modifiche.";
 L["Some changes require a client restart to take effect."] =
   "Alcune modifiche richiedono il riavvio del client per avere effetto.";
-L["Warning: This will NOT change the color of CastBars!"] =
-  "Attenzione: questo NON cambierà il colore di CastBars!";
 L["Previously called 'Classic Mode'."] =
   "Precedentemente chiamato 'Modalità classica'.";
 L["Allow MUI to Control Unit Frames"] =
   "Consenti a MUI di controllare i frame dell'unità";
-L["Allow MUI to Control Grid"] = "Consenti a MUI di controllare la griglia";
 L["What color the gradient should start as."] =
   "Di che colore dovrebbe iniziare il gradiente.";
 L["What color the gradient should change into."] =
   "Di che colore dovrebbe cambiare il gradiente.";
-L["Allow MUI to Control Selected Bartender4 Bars"] =
-  "Consenti a MUI di controllare le barre del barista selezionate";
 L["Show your character in the guild list."] =
   "Mostra il tuo personaggio nell'elenco delle gilde.";
-L["Adjust the width of the Bottom UI container."] =
-  "Regola la larghezza del contenitore dell'interfaccia utente inferiore.";
 L["Adjust the width of the unit frame background panels."] =
   "Regola la larghezza dei pannelli di sfondo della cornice dell'unità.";
 L["Adjust the width of the unit name background panels."] =
@@ -395,8 +294,6 @@ L["Adjust the spacing between data text buttons."] =
   "Regola la spaziatura tra i pulsanti di testo dei dati.";
 L["The frame strata of the entire DataText bar."] =
   "Gli strati del frame dell'intera barra DataText.";
-L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] =
-  "Ancora il rilevatore di obiettivi al contenitore della barra delle azioni sul lato destro dello schermo.";
 L["Disable this to stop MUI from controlling the Objective Tracker."] =
   "Disabilita questa opzione per impedire a MUI di controllare l'Inseguitore degli obiettivi.";
 L["Adjust the horizontal positioning of the Objective Tracker."] =
@@ -415,7 +312,6 @@ L["DataText buttons, as well as the background bar, will not be displayed."] =
   "I pulsanti DataText, così come la barra di sfondo, non verranno visualizzati.";
 L["Prevents you from using data text modules while in combat."] =
   "Ti impedisce di utilizzare i moduli di testo dei dati durante il combattimento.";
-L["This is useful for 'clickers'."] = "Questo è utile per i 'clicker'.";
 L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."] =
   "Se le barre verticali di SUF Player o Target sono abilitate, verrà sovrapposto un gradiente colorato di classe.";
 L["Show Overview"] = "Mostra panoramica";
@@ -430,10 +326,6 @@ L["Are you sure you want to reset the money data for %s?"] =
 L["Money data for %s has been reset."] =
   "I dati monetari per %s sono stati azzerati.";
 L["Reset Options"] = "Ripristina opzioni";
-L["All currency data has been reset."] =
-  "Tutti i dati della valuta sono stati reimpostati.";
-L["Currency data for %s has been reset."] =
-  "I dati della valuta per %s sono stati ripristinati.";
 L["Change Status"] = "Cambiare stato";
 L["Remove from Whitelist"] = "Rimuovi dalla lista bianca";
 L["Add to Blacklist"] = "Aggiungi alla lista nera";
@@ -449,16 +341,11 @@ L["Enable Whitelist"] = "Abilita lista bianca";
 L["Configure Whitelist"] = "Configura lista bianca";
 L["Enable Blacklist"] = "Abilita lista nera";
 L["Configure Blacklist"] = "Configura lista nera";
-L["Are you sure you want to reset the currency data for all of your characters?"] =
-  "Sei sicuro di voler reimpostare i dati di valuta per tutti i tuoi personaggi?";
-L["Are you sure you want to reset the currency data for %s?"] =
-  "Sei sicuro di voler reimpostare i dati della valuta per %s?";
 L["Removing %s from the whitelist will hide this timer bar if the whitelist is enabled."] =
   "La rimozione di %s dalla whitelist nasconderà questa barra del timer se la whitelist è abilitata.";
 L["Adding %s to the blacklist will hide this timer bar if the blacklist is enabled."] =
   "L'aggiunta di %s alla lista nera nasconderà questa barra del timer se la lista nera è abilitata.";
 L["Cast Bars"] = "Cast Bar";
-L["Auras (Buffs & Debuffs)"] = "Aure (buff e debuff)";
 L["(CTRL+C to Copy, CTRL+V to Paste)"] =
   "(CTRL+C per copiare, CTRL+V per incollare)";
 L["Copy Chat Text"] = "Copia testo chat";
@@ -495,11 +382,8 @@ L["Mini-Map Options"] = "Opzioni mini-mappa";
 L["Mini-Map"] = "Mini-mappa";
 L["Adjust the size of the minimap."] = "Regola le dimensioni della minimappa.";
 L["Adjust the scale of the minimap."] = "Regola la scala della minimappa.";
-L["Zone Text"] = "Testo zona";
 L["Scale"] = "Scala";
 L["Size"] = "Dimensione";
-L["Adjust the font size of the zone text."] =
-  "Regola la dimensione del carattere del testo della zona.";
 L["Okay"] = "Va bene";
 L["Profile %s has been copied into current profile %s."] =
   "Il profilo %s è stato copiato nel profilo corrente %s.";
@@ -516,84 +400,51 @@ L["Are you sure you want to override all profile settings in '%s' for those in p
 L["Profile Per Character"] = "Profilo per carattere";
 L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."] =
   "Se abilitato, ai nuovi personaggi verrà assegnato un profilo personaggio unico invece del profilo predefinito.";
-L["Customize which addOn/s should change to which profile/s for each layout, as well as manage your existing layouts or create new ones."] =
-  "Personalizza quale/i addOn/i deve/devono cambiare in quale/i profilo/i per ogni layout, nonché gestire i tuoi layout esistenti o crearne di nuovi.";
 L["Anchor the Objective Tracker to the action bar container on the right side of the screen."] =
   "Ancora il rilevatore di obiettivi al contenitore della barra delle azioni sul lato destro dello schermo.";
-L["You can repeat this step at any time (while out of combat) to hide it."] =
-  "Puoi ripetere questo passaggio in qualsiasi momento (fuori dal combattimento) per nasconderlo.";
 L["If true, the objective tracker will collapse when entering an instance."] =
   "Se true, il tracker obiettivo si bloccherà quando si immette un'istanza.";
-L["If true, MUI will not show copper, or silver, if the amount of gold is over a certain limit."] =
-  "Se vero, MUI non mostrerà rame o argento se la quantità di oro supera un certo limite.";
 L["Also enable the %s"] = "Abilita anche %s";
 L["Current"] = "Attuale";
-L["Equipment Set"] = "Set di attrezzature";
-L["Installer"] = "Installatore";
-L["Profiles"] = "Profili";
 L["AFK Display"] = "Visualizzazione AFK";
 L["Movable Frames"] = "Cornici mobili";
 L["Objective Tracker"] = "Inseguitore di obiettivi";
-L["Side Action Bars"] = "Barra delle azioni laterale";
 L["(type '/mui' to list all slash commands)"] =
   "(digita '/mui' per elencare tutti i comandi barra)";
 L["Version"] = "Versione";
-L["Main Container"] = "Contenitore principale";
 L["Resource Bars"] = "Barre delle risorse";
-L["Movable Blizzard Frames"] = "Cornici Blizzard mobili";
 L["Allows you to move Blizzard Frames outside of combat only."] =
   "Ti consente di spostare i frame Blizzard solo al di fuori del combattimento.";
 L["Reset Blizzard frames back to their original position."] =
   "Ripristina i frame Blizzard nella posizione originale.";
-L["Reset Blizzard Frame Positions"] = "Ripristina posizioni fotogramma Blizzard";
 L["Enable/disable the AFK Display"] = "Abilita/disabilita il display AFK";
 L["Show AFK Display"] = "Mostra display AFK";
 L["Adjust the width of the main container."] =
   "Regola la larghezza del contenitore principale.";
 L["Adjust the height of the unit frame background panels."] =
   "Regola l'altezza dei pannelli di sfondo della cornice dell'unità.";
-L["Unit Panel Height"] = "Altezza pannello unità";
-L["Main Container Width:"] = "Larghezza contenitore principale:";
-L["Enable or disable the background panel"] =
-  "Abilita o disabilita il pannello di sfondo";
-L["Modifier key/s used to show Expand/Retract button:"] =
-  "Tasto/i modificatore/i utilizzato/i per mostrare il pulsante Espandi/Ritira:";
 L["Side Action Bars"] = "Barre di azione laterali";
 L["Collapse in Instance"] = "Riduci istanza";
 L["CREDITS"] = "TITOLI DI CODA";
 L["Buffs"] = "Buff";
 L["Debuffs"] = "Debuff";
-L["Layout Type"] = "Tipo di layout";
-L["Save Position"] = "Salvare la posizione";
 L["Show Pulse Effect"] = "Mostra effetto impulso";
 L["Icon Options"] = "Opzioni icona";
-L["Icon options are disabled when using status bars."] =
-  "Le opzioni delle icone sono disabilitate quando si utilizzano le barre di stato.";
-L["Icon Size"] = "Dimensione icona";
 L["Column Spacing"] = "Spaziatura colonne";
 L["Row Spacing"] = "Spaziatura tra le righe";
 L["Icons per Row"] = "Icone per riga";
 L["Bar Columns"] = "Colonne della barra";
 L["Growth Direction"] = "Direzione di crescita";
 L["Status Bar Options"] = "Opzioni barra di stato";
-L["Status bar options are disabled when using icons."] =
-  "Le opzioni della barra di stato sono disabilitate quando si utilizzano le icone.";
-L["Icon Gap"] = "Icona divario";
-L["Text"] = "Testo";
 L["Count"] = "Contare";
 L["Aura Name"] = "Nome dell'Aura";
 L["Border Type"] = "Tipo di bordo";
-L["Basic %s"] = "%s di base";
-L["Weapon Enchants"] = "Incantesimi arma";
 L["Magic Debuff"] = "Debuff magico";
 L["Disease Debuff"] = "Debuff di malattia";
 L["Poison Debuff"] = "Debuff Veleno";
 L["Curse Debuff"] = "Debuff maledizione";
-L["Bar Background"] = "Sfondo della barra";
-L["Bar Border"] = "Confine Bar";
 L["Icons"] = "Icone";
 L["Status Bars"] = "Barre di stato";
-L["Bottom Action Bars"] = "Barre di azione inferiori";
 L["Can Steal or Purge"] = "Può rubare o eliminare";
 L["If an aura can be stolen or purged, show a different color."] =
   "Se un'aura può essere rubata o eliminata, mostra un colore diverso.";
@@ -602,13 +453,11 @@ L["Enter an aura name to add to the whitelist:"] =
   "Inserisci un nome aura da aggiungere alla whitelist:";
 L["Enter an aura name to add to the blacklist:"] =
   "Inserisci un nome aura da aggiungere alla lista nera:";
-L["Automatic"] = "Automatico";
 L["Inventory"] = "Inventario";
 L["Changes to these settings will take effect after 0-3 seconds."] =
   "Le modifiche a queste impostazioni avranno effetto dopo 0-3 secondi.";
 L["Adjust the height of the datatext bar."] =
   "Regola l'altezza della barra del testo dei dati.";
-L["Justify Text"] = "Giustifica testo";
 L["Set the spacing between the status bar and the background."] =
   "Imposta la spaziatura tra la barra di stato e lo sfondo.";
 L["Select which chat frame the chat icons should be anchored to."] =
@@ -616,9 +465,6 @@ L["Select which chat frame the chat icons should be anchored to."] =
 L["The height of the edit box."] = "L'altezza della casella di modifica.";
 L["Set the vertical positioning of the edit box."] =
   "Imposta il posizionamento verticale della casella di modifica.";
-L["Show Player Status Icon"] = "Mostra icona di stato del giocatore";
-L["Show Emotes Icon"] = "Mostra icona emoticon";
-L["Show Copy Chat Icon"] = "Mostra icona copia chat";
 L["This is the background bar that goes behind the tabs."] =
   "Questa è la barra dello sfondo che si trova dietro le schede.";
 L["Show Tab Bar"] = "Mostra barra delle schede";
@@ -626,9 +472,7 @@ L["Tab Bar"] = "barra delle schede";
 L["Window"] = "Finestra";
 L["Layout enabled!"] = "Layout abilitato!";
 L["Show Chat Menu"] = "Mostra menu chat";
-L["Azerite"] = "Azerite";
 L["Covenant Sanctum"] = "Santuario dell'Alleanza";
-L["Missions"] = "Missioni";
 L["You must be a member of a covenant to view this."] =
   "Devi essere un membro di un patto per vederlo.";
 L["Unmuted"] = "Non muto";
@@ -667,8 +511,6 @@ L["Online Status"] = "Stato online";
 L["None"] = "Nessuna";
 L["Deafen"] = "Sordo";
 L["Mute"] = "Muto";
-L["If checked, this module will be enabled."] =
-  "Se selezionato, questo modulo sarà abilitato.";
 L["Unit Tooltip Options"] = "Opzioni descrizione comando unità";
 L["These options only affect tooltips that appear when you mouse over a unit, such as an NPC or player."] =
   "Queste opzioni hanno effetto solo sui tooltip che appaiono quando passi il mouse su un'unità, come un PNG o un giocatore.";
@@ -684,18 +526,9 @@ L["If checked and the player is level 10 or higher and has chosen a class specia
   "Se selezionato e il giocatore è di livello 10 o superiore e ha scelto una specializzazione di classe, verrà mostrata la specializzazione del giocatore visualizzata nel tooltip.";
 L["Show Specialization"] = "Specializzazione spettacolo";
 L["Show Item Level"] = "Mostra livello oggetto";
-L["In Combat Options"] = "Nelle opzioni di combattimento";
-L["Show Unit Tooltips In Combat"] =
-  "Mostra descrizioni comando unità in combattimento";
 L["Show Guild Rank"] = "Mostra rango di gilda";
 L["Show Realm Name"] = "Mostra il nome del regno";
 L["Show Target"] = "Mostra bersaglio";
-L["Show Standard Tooltips In Combat"] =
-  "Mostra tooltip standard in combattimento";
-L["Standard tooltips display non-unit related information, such as action-bar abilities, buffs and debuffs, and more."] =
-  "I tooltip standard mostrano informazioni non relative all'unità, come abilità della barra delle azioni, buff e debuff e altro.";
-L["Unit tooltips display player and NPC information while your mouse cursor is over a unit in the game world."] =
-  "I tooltip delle unità mostrano le informazioni sul giocatore e sull'NPC mentre il cursore del mouse è su un'unità nel mondo di gioco.";
 L["Appearance Options"] = "Opzioni di aspetto";
 L["These options allow you to customize the appearance of the tooltips."] =
   "Queste opzioni ti consentono di personalizzare l'aspetto dei suggerimenti.";
@@ -707,24 +540,9 @@ L["Affects the overall size of the tooltips."] =
 L["Reskin using the MUI texture or a custom backdrop"] =
   "Reskin utilizzando la texture MUI o uno sfondo personalizzato";
 L["Texture"] = "Struttura";
-L["Texture Options"] = "Opzioni di trama";
 L["Custom Backdrop"] = "Sfondo personalizzato";
-L["The MUI texture controls both the background and border textures. If you want a more customized style, use the 'Custom Backdrop' style instead (see the previous menu)."] =
-  "La trama MUI controlla sia le trame di sfondo che quelle dei bordi. Se desideri uno stile più personalizzato, usa invece lo stile 'Sfondo personalizzato' (vedi il menu precedente).";
-L["Use MUI Theme Color"] = "Usa colore tema MUI";
-L["If checked, the MUI texture will use your MUI theme color for both the background and border color (by default, this is class-colored)."] =
-  "Se selezionato, la texture MUI utilizzerà il colore del tema MUI sia per lo sfondo che per il colore del bordo (per impostazione predefinita, questo è del colore della classe).";
 L["Custom Color"] = "Colore personalizzato";
-L["If not using the MUI theme color, the tooltip will use this custom color for both the background and border color."] =
-  "Se non si utilizza il colore del tema MUI, la descrizione comando utilizzerà questo colore personalizzato sia per lo sfondo che per il colore del bordo.";
 L["Custom Backdrop Options"] = "Opzioni sfondo personalizzato";
-L["Color border by class or NPC type"] =
-  "Colore del bordo per classe o tipo di PNG";
-L["If checked, the backdrop border color will be based on the class of the player unit or the type of NPC unit."] =
-  "Se selezionato, il colore del bordo dello sfondo sarà basato sulla classe dell'unità del giocatore o sul tipo di unità NPC.";
-L["Border Color"] = "Colore del bordo";
-L["If color border by class or NPC type is checked, this color will be used for all non-unit tooltips, else it will be used for every tooltip border."] =
-  "Se è selezionato il bordo del colore per classe o tipo di NPC, questo colore verrà utilizzato per tutti i tooltip non di unità, altrimenti verrà utilizzato per ogni bordo del tooltip.";
 L["Background Texture"] = "Struttura di sfondo";
 L["Border Insets"] = "Riquadri di bordo";
 L["Left"] = "Sinistra";
@@ -732,15 +550,6 @@ L["Right"] = "Giusto";
 L["Center"] = "Centro";
 L["Top"] = "Superiore";
 L["Bottom"] = "Parte inferiore";
-L["Anchor Options"] = "Opzioni di ancoraggio";
-L["Unit Tooltip Anchor Point"] =
-  "Punto di ancoraggio descrizione comando unità";
-L["Mouse Cursor"] = "Cursore del mouse";
-L["Screen Corner"] = "Angolo dello schermo";
-L["Screen Corner Positioning"] = "Posizionamento dell'angolo dello schermo";
-L["Standard Tooltip Anchor Point"] =
-  "Punto di ancoraggio descrizione comando standard";
-L["Mouse Cursor Positioning"] = "Posizionamento del cursore del mouse";
 L["The bottom-[point] corner of the tooltip, where [point] is either 'Left' or 'Right', will be anchored to the position of the mouse cursor."] =
   "L'angolo inferiore [punto] della descrizione comando, dove [punto] è 'Sinistra' o 'Destra', sarà ancorato alla posizione del cursore del mouse.";
 L["Health Bar"] = "Bar della salute";
@@ -806,14 +615,6 @@ L["Target Class Color Gradient"] =
 L["If enabled, the unit panel color will transition to the target's class color using a horizontal gradient effect."] =
   "Se abilitato, il colore del pannello dell'unità passerà al colore della classe di destinazione utilizzando un effetto gradiente orizzontale.";
 L["Set Pulse Strength"] = "Imposta l'intensità dell'impulso";
-L["Expanding and Retracting Action Bar Rows"] =
-  "Espansione e ritrazione delle righe della barra delle azioni";
-L["Enable Expand and Retract Feature"] =
-  "Abilita funzione di espansione e ritrazione";
-L["If disabled, you will not be able to toggle between 1 and 2 rows of action bars."] =
-  "Se disabilitato, non sarai in grado di alternare tra 1 e 2 righe di barre delle azioni.";
-L["This is the fixed height of the action bar panel when MUI is not controlling Bartender4."] =
-  "Questa è l'altezza predefinita fissa da utilizzare quando la funzione di espansione e ritrazione è disabilitata.";
 L["Set Alpha"] = "Imposta alfa";
 L["If checked, the reputation bar will use a fixed color instead of dynamically changing based on your reputation with the selected faction."] =
   "Se selezionata, la barra della reputazione utilizzerà un colore fisso invece di cambiare dinamicamente in base alla tua reputazione con la fazione selezionata.";
@@ -925,7 +726,6 @@ L["Some settings will not be changed until the UI has been reloaded."] =
   "Alcune impostazioni non verranno modificate finché l'interfaccia utente non sarà stata ricaricata.";
 L["Would you like to reload the UI now?"] =
   "Vuoi ricaricare l'interfaccia utente ora?";
-L["Reload UI"] = "Ricarica interfaccia utente";
 L["No"] = "No";
 L["Profile changed to %s."] = "Profilo cambiato in %s.";
 L["Profile %s has been reset."] = "Il profilo %s è stato ripristinato.";
@@ -938,14 +738,6 @@ Cornici per adattarsi alla parte superiore dei pannelli dell'unità MUI.
 
 Inoltre, sposterà automaticamente i riquadri dell'unità quando
 espandere e ritrarre il pannello della barra delle azioni MUI.]];
-
-L["TT_MUI_CONTROL_BARTENDER"] =
-  [[Se abilitato, MUI riposizionerà il Barista selezionato
-barre per adattarsi alla parte superiore del pannello della barra delle azioni.
-
-Controllerà anche le transizioni di dissolvenza in entrata e in uscita
-della riga selezionata 2 Bartender bar durante l'espansione e
-ritrarre il pannello della barra delle azioni MUI.]];
 
 L["TT_MUI_USE_TARGET_CLASS_COLOR"] =
   [[Se selezionato, il gradiente verticale di destinazione utilizzerà la classe del bersaglio
@@ -1033,13 +825,6 @@ Premi il pulsante "Modifica testo" qui sotto per aggiungere del testo da evidenz
 L["Reset Chat Settings"] = "Ripristina le impostazioni della chat";
 L["RESET_CHAT_SETTINGS_TOOLTIP"] = "Deselezionando questa opzione, verranno preservate le schede della chat e le impostazioni della chat Blizzard associate a ciascuna finestra della chat.";
 
-L["DRAGONFLIGHT_BAR_POPUP_EXPLAIN_PROBLEM"] = "Il nuovo sistema di barra delle azioni di Dragonflight non è compatibile con le impostazioni correnti di Bartender4.";
-L["DRAGONFLIGHT_BAR_POPUP_SOLUTION"] = "Puoi risolvere questo problema sostituendoli con le ultime impostazioni predefinite di |cff00ccffMayronUI|r Bartender4.";
-L["DRAGONFLIGHT_BAR_POPUP_APPROVAL"] = "Vuoi farlo ora?";
-L["DRAGONFLIGHT_BAR_POPUP_RELOAD_UI"] = "questo ricaricherà l'interfaccia utente";
-L["DRAGONFLIGHT_BAR_POPUP_WARNING"] = "Avvertimento! Questo cancellerà tutte le personalizzazioni che hai apportato alle barre delle azioni di Bartender4.";
-L["Yes, I want to update my action bar layout"] = "Sì, voglio aggiornare il layout della mia barra delle azioni";
-
 L["MayronUI AddOn Presets"] = "Preset aggiuntivi di MayronUI";
 L["No Supported AddOns Loaded"] = "Nessun componente aggiuntivo supportato caricato";
 L["The following selected addons will have their settings reset to the MayronUI preset settings:"] = "I seguenti componenti aggiuntivi selezionati avranno le loro impostazioni ripristinate alle impostazioni preimpostate di MayronUI:";
@@ -1070,7 +855,6 @@ L["Override Master Font"] = "Sostituisci carattere principale";
 L["Override Combat Font"] = "Sostituisci il carattere di combattimento";
 L["Combat Font"] = "Carattere di combattimento";
 L["This font is used to display the damage and healing combat numbers."] = "Questo tipo di carattere viene utilizzato per visualizzare i numeri di combattimento di danni e cure.";
-L["Miscellaneous"] = "Varie";
 L["Blizzard Frames"] = "Cornici Blizzard";
 L["Clamped to Screen"] = "Fissato allo schermo";
 L["If checked, Blizzard frames cannot be dragged outside of the screen."] = "Se selezionato, i frame Blizzard non possono essere trascinati fuori dallo schermo.";
@@ -1139,9 +923,7 @@ L["Paste an import string into the box below to import a profile."] = "Incolla u
 L["Warning: This will completely replace your current profile with the imported profile settings!"] = "Attenzione: questo sostituirà completamente il tuo profilo attuale con le impostazioni del profilo importato!";
 L["Successfully imported profile settings into your current profile!"] = "Impostazioni del profilo importate correttamente nel tuo profilo attuale!";
 L["Reset to default"] = "Ripristina le impostazioni predefinite";
-
 L["Appearance Settings"] = "Impostazioni dell'aspetto";
-L["Set MUI Frames Color"] = "Imposta il colore dei frame MUI";
 L["MUI_FRAMES_COLOR_TOOLTIP"] = "Controlla il colore di sfondo dei frame MUI, inclusi il frame dell'inventario, i suggerimenti, il menu di configurazione, lo strumento di layout e altro.";
 L["Set Display Mode"] = "Imposta la modalità di visualizzazione";
 L["These settings relate to the individual aura icons/bars."] = "Queste impostazioni si riferiscono alle singole icone/barre dell'aura.";
@@ -1187,12 +969,10 @@ L["Trade Goods"] = "Beni commerciali";
 L["Consumables"] = "Materiali di consumo";
 L["Equipment"] = "Attrezzatura";
 L["All Items"] = "Tutti gli articoli";
-
 L["Padding"] = "Imbottitura";
 L["Slot Height"] = "Altezza fessura";
 L["Max Slot Width"] = "Larghezza massima della fessura";
 L["Min Slot Width"] = "Larghezza minima della fessura";
-L["Show Item Levels"] = "Mostra livelli oggetto";
 L["If checked, item levels will show on top of the icons of equipment and weapon items."] = "Se selezionato, i livelli degli oggetti verranno visualizzati sopra le icone degli oggetti di equipaggiamento e armi.";
 L["The maximum number of icons that can appear per row when resizing the inventory frame using the grid view."] = "Il numero massimo di icone che possono essere visualizzate per riga durante il ridimensionamento della cornice dell'inventario utilizzando la vista griglia.";
 L["Max Icons Per Row"] = "Numero massimo di icone per riga";

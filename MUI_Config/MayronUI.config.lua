@@ -228,7 +228,7 @@ function C_ConfigMenu:GetConfigTable()
           description = L["The main container holds the unit frame panels, action bar panels, data-text bar, and all resource bars at the bottom of the screen."]
         };
         {
-          name = L["Set Width"];
+          name = L["Width"];
           type = "slider";
           min = 500;
           max = 1500;
@@ -372,7 +372,7 @@ function C_ConfigMenu:GetConfigTable()
           type = "check";
           dbPath = "profile.unitPanels.controlSUF";
         }; { type = "divider" }; {
-          name = L["Set Width"];
+          name = L["Width"];
           type = "slider";
           module = "UnitPanels";
           min = 200;
@@ -382,7 +382,7 @@ function C_ConfigMenu:GetConfigTable()
           tooltip = L["Adjust the width of the unit frame background panels."];
           dbPath = "profile.unitPanels.unitWidth";
         }; {
-          name = L["Set Height"];
+          name = L["Height"];
           type = "slider";
           module = "UnitPanels";
           valueType = "number";
@@ -424,7 +424,7 @@ function C_ConfigMenu:GetConfigTable()
         };
         { type = "divider" };
         {
-          name = L["Set Width"];
+          name = L["Width"];
           type = "slider";
           min = 150;
           max = 300;
@@ -432,7 +432,7 @@ function C_ConfigMenu:GetConfigTable()
           tooltip = L["Adjust the width of the unit name background panels."];
           dbPath = "profile.unitPanels.unitNames.width";
         }; {
-          name = L["Set Height"];
+          name = L["Height"];
           type = "slider";
           min = 15;
           max = 30;
@@ -461,7 +461,7 @@ function C_ConfigMenu:GetConfigTable()
           tooltip = L["If the SUF Player or Target portrait bars are enabled, a class colored gradient will overlay it."];
           dbPath = "profile.unitPanels.sufGradients.enabled";
         }; {
-          name = L["Set Height"];
+          name = L["Height"];
           type = "slider";
           min = 1;
           max = 50;
@@ -645,7 +645,7 @@ function C_ConfigMenu:GetConfigTable()
         },
         {
           type = "slider",
-          name = L["Set Height"],
+          name = L["Height"],
           dbPath = "profile.actionbars.side.height";
           min = 200; max = 800; step = 10;
         },
@@ -974,7 +974,7 @@ function C_ConfigMenu:GetConfigTable()
           type = "check";
           dbPath = "profile.objectiveTracker.anchoredToSideBars";
         }; { type = "divider" }; {
-          name = L["Set Width"];
+          name = L["Width"];
           type = "slider";
           min = 150;
           max = 400;
@@ -983,7 +983,7 @@ function C_ConfigMenu:GetConfigTable()
           dbPath = "profile.objectiveTracker.width";
           valueType = "number";
         }; {
-          name = L["Set Height"];
+          name = L["Height"];
           type = "slider";
           min = 300;
           max = 1000;

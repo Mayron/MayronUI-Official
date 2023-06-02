@@ -298,7 +298,7 @@ function C_CastBarsModule:GetConfigTable()
                       type = "divider"
                     },
                     {
-                      name = L["Set Width"],
+                      name = L["Width"],
                       tooltip = L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."],
                       type = "slider",
                       min = 100,
@@ -314,7 +314,7 @@ function C_CastBarsModule:GetConfigTable()
                       dbPath = tk.Strings:Concat("profile.castBars.", name, ".width")
                     },
                     {
-                      name = L["Set Height"],
+                      name = L["Height"],
                       tooltip = L["Only takes effect if the Cast Bar is not anchored to a SUF Portrait Bar."],
                       type = "slider",
                       min = 100,
