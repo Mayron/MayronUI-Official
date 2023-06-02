@@ -26,21 +26,21 @@ function C_InventoryModule:GetConfigTable()
       { type = "title"; name = L["Container Frame Settings"]};
       {
         type = "dropdown";
-        name = "Set Color Scheme";
+        name = L["Color Scheme"];
         dbPath = "profile.container.colorScheme";
         OnValueChanged = function(value)
           setCustomColorButton:SetEnabled(value == "Custom");
         end;
         options = {
-          ["MUI Frames Color"] = "MUI_Frames";
-          ["Theme Color"] = "Theme";
-          ["Class Color"] = "Class";
-          ["Custom Color"] = "Custom";
+          [L["MUI Frames Color"]] = "MUI_Frames";
+          [L["Theme Color"]] = "Theme";
+          [L["Class Color"]] = "Class";
+          [L["Custom Color"]] = "Custom";
         }
       };
       {
         type = "color";
-        name = "Set Custom Color";
+        name = L["Custom Color"];
         useIndexes = true;
         enabled = function()
           local scheme = db.profile:QueryType("string", "container.colorScheme");
@@ -60,10 +60,10 @@ function C_InventoryModule:GetConfigTable()
         max = 20;
       };
 
-      { type = "title"; name = "Tab Bar Options" };
+      { type = "title"; name = L["Tab Button Options"] };
       {
         type = "check";
-        name = "Show Tab Bar";
+        name = L["Show Tab Buttons"];
         height = 50;
         dbPath = "profile.container.tabBar.show";
       };
@@ -84,14 +84,14 @@ function C_InventoryModule:GetConfigTable()
       };
       {
         type = "slider";
-        name = "Spacing";
+        name = L["Spacing"];
         dbPath = "profile.container.tabBar.spacing";
         min = 0;
         max = 20;
       };
       {
         type = "slider";
-        name = "Scale";
+        name = L["Scale"];
         dbPath = "profile.container.tabBar.scale";
         step = 0.2;
         min = 0.6;
@@ -99,7 +99,7 @@ function C_InventoryModule:GetConfigTable()
       };
       {
         type = "dropdown";
-        name = "Set Position";
+        name = L["Position"];
         dbPath = "profile.container.tabBar.position";
         disableSorting = true;
         options = {
@@ -211,22 +211,22 @@ function C_InventoryModule:GetConfigTable()
       { type = "divider"};
       {
         type = "check";
-        name = "Show Equipment Tab";
+        name = L["Show Equipment Tab"];
         dbPath = "profile.container.tabBar.showEquipment";
       };
       {
         type = "check";
-        name = "Show Consumables Tab";
+        name = L["Show Consumables Tab"];
         dbPath = "profile.container.tabBar.showConsumables";
       };
       {
         type = "check";
-        name = "Show Trade Goods Tab";
+        name = L["Show Trade Goods Tab"];
         dbPath = "profile.container.tabBar.showTradeGoods";
       };
       {
         type = "check";
-        name = "Show Quest Items Tab";
+        name = L["Show Quest Items Tab"];
         dbPath = "profile.container.tabBar.showQuestItems";
       };
     }
@@ -262,9 +262,9 @@ function C_InventoryModule:GetConfigTable()
       };
       {
         type = "slider";
-        name = "Max Icons Per Row";
+        name = L["Max Icons Per Row"];
         dbPath = "profile.grid.columns.max";
-        tooltip = "The maximum number of icons that can appear per row when resizing the inventory frame using the grid view.";
+        tooltip = L["The maximum number of icons that can appear per row when resizing the inventory frame using the grid view."];
         step = 1;
         min = 8;
         max = 50;
@@ -272,9 +272,9 @@ function C_InventoryModule:GetConfigTable()
       { type = "divider"; };
       {
         type = "check";
-        name = "Show Item Levels";
+        name = L["Show Item Levels"];
         dbPath = "profile.grid.showItemLevels";
-        tooltip = "If checked, item levels will show on top of the icons of equipment and weapon items.";
+        tooltip = L["If checked, item levels will show on top of the icons of equipment and weapon items."];
       };
     }
 
@@ -285,7 +285,7 @@ function C_InventoryModule:GetConfigTable()
     local options = {
       {
         type = "slider";
-        name = "Min Slot Width";
+        name = L["Min Slot Width"];
         dbPath = "profile.detailed.widths.min";
         min = 200;
         max = 400;
@@ -293,7 +293,7 @@ function C_InventoryModule:GetConfigTable()
       };
       {
         type = "slider";
-        name = "Max Slot Width";
+        name = L["Max Slot Width"];
         dbPath = "profile.detailed.widths.max";
         min = 200;
         max = 400;
@@ -301,7 +301,7 @@ function C_InventoryModule:GetConfigTable()
       };
       {
         type = "slider";
-        name = "Slot Height";
+        name = L["Slot Height"];
         dbPath = "profile.detailed.height";
         min = 25;
         step = 1;
@@ -309,7 +309,7 @@ function C_InventoryModule:GetConfigTable()
       };
       {
         type = "slider";
-        name = "Slot Spacing";
+        name = L["Spacing"];
         dbPath = "profile.detailed.slotSpacing";
         min = 0;
         step = 1;
@@ -355,15 +355,15 @@ function C_InventoryModule:GetConfigTable()
       --   max = 50;
       -- };
       { type = "divider"; };
-      { type = "title"; name = "Font Options"; };
+      { type = "title"; name = L["Font Options"]; };
       {
         type = "check";
-        name = "Show Item Name";
+        name = L["Show Item Name"];
         dbPath = "profile.detailed.showItemName";
       };
       {
         type = "slider";
-        name = "Item Name Font Size";
+        name = L["Item Name Font Size"];
         dbPath = "profile.detailed.itemNameFontSize";
         min = 8;
         step = 1;
@@ -372,18 +372,18 @@ function C_InventoryModule:GetConfigTable()
       { type = "divider"};
       {
         type = "check";
-        name = "Show Item Levels";
+        name = L["Show Item Levels"];
         dbPath = "profile.detailed.showItemLevels";
-        tooltip = "If checked, item levels will be shown in description of equipment and weapon items.";
+        tooltip = L["If checked, item levels will be shown in description of equipment and weapon items."];
       };
       {
         type = "check";
-        name = "Show Item Type";
+        name = L["Show Item Type"];
         dbPath = "profile.detailed.showItemType";
       };
       {
         type = "slider";
-        name = "Item Description Font Size";
+        name = L["Item Description Font Size"];
         dbPath = "profile.detailed.itemDescriptionFontSize";
         min = 8;
         step = 1;
@@ -395,7 +395,7 @@ function C_InventoryModule:GetConfigTable()
   end
 
   return {
-    tabs = { "General", "Grid View", "Detailed View" };
+    tabs = { L["General"], L["Grid View"], L["Detailed View"] };
     module = "InventoryModule",
     database = "MUI_InventoryDB";
     dbFramework = "orbitus";

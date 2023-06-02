@@ -1156,6 +1156,29 @@ L["Consumables"] = "Consumables";
 L["Equipment"] = "Equipment";
 L["All Items"] = "All Items";
 
-
-
 L["Padding"] = "Padding";
+L["Slot Height"] = "Slot Height";
+L["Max Slot Width"] = "Max Slot Width";
+L["Min Slot Width"] = "Min Slot Width";
+L["Show Item Levels"] = "Show Item Levels";
+L["If checked, item levels will show on top of the icons of equipment and weapon items."] = "If checked, item levels will show on top of the icons of equipment and weapon items.";
+L["The maximum number of icons that can appear per row when resizing the inventory frame using the grid view."] = "The maximum number of icons that can appear per row when resizing the inventory frame using the grid view.";
+L["Max Icons Per Row"] = "Max Icons Per Row";
+L["Show Quest Items Tab"] = "Show Quest Items Tab";
+L["Show Trade Goods Tab"] = "Show Trade Goods Tab";
+L["Show Consumables Tab"] = "Show Consumables Tab";
+L["Show Equipment Tab"] = "Show Equipment Tab";
+L["Show Tab Buttons"] = "Show Tab Buttons";
+L["Tab Button Options"] = "Tab Button Options";
+L["MUI Frames Color"] = "MUI Frames Color";
+L["Theme Color"] = "Theme Color";
+L["Class Color"] = "Class Color";
+L["Color Scheme"] = "Color Scheme";
+L["Font Options"] = "Font Options";
+L["Show Item Name"] = "Show Item Name";
+L["Item Name Font Size"] = "Item Name Font Size";
+L["If checked, item levels will be shown in description of equipment and weapon items."] = "If checked, item levels will be shown in description of equipment and weapon items.";
+L["Show Item Type"] = "Show Item Type";
+L["Item Description Font Size"] = "Item Description Font Size";
+L["Grid View"] = "Grid View";
+L["Detailed View"] = "Detailed View";
