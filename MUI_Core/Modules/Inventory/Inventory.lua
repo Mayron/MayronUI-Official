@@ -541,6 +541,7 @@ local function SetDetailedViewEnabled(inventoryFrame, enabled)
   local slotHeight = db.profile:QueryType("number", settingName, "height");
 
   inventoryFrame.bagsContainer:SetPoint("BOTTOMRIGHT", -containerPadding.right, containerPadding.bottom);
+  inventoryFrame.bagsContainer:SetVerticalScroll(0);
 
   if (enabled) then
     tk:SetBasicTooltip(inventoryFrame.viewBtn, L["Switch to Grid View"]);
@@ -880,7 +881,19 @@ local function ApplyColorScheme(scheme)
   inventoryFrame:SetGridColor(r, g, b);
 end
 
-local function HandleBagSlotEntered(slot)
+local function HandleBagPreviewSlotOnLeave(preview)
+  tk.HandleTooltipOnLeave();
+  local slot = preview.slot;
+  UpdateBagSlot(slot);
+end
+
+local function HandleBagSlotOnEnter(self)
+  local slot = self;
+
+  if (self.slot) then
+    slot = self.slot;
+  end
+
   slot:SetGridColor(1, 1, 1);
 
   if (not slot:HasItemLocation()) then
@@ -889,7 +902,7 @@ local function HandleBagSlotEntered(slot)
     end
 
     local itemID = slot:GetItemID();
-    GameTooltip:SetOwner(slot, "ANCHOR_RIGHT");
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
     GameTooltip:SetItemByID(itemID);
   end
 end
@@ -971,7 +984,7 @@ local function CreateBagSlot(bagFrame, slotIndex)
   pushedTexture:SetDrawLayer("OVERLAY");
   pushedTexture:SetBlendMode("ADD");
 
-  slot:HookScript("OnEnter", HandleBagSlotEntered);
+  slot:HookScript("OnEnter", HandleBagSlotOnEnter);
   slot:HookScript("OnLeave", UpdateBagSlot);
 
   if (not slot:IsItemEmpty()) then
@@ -1350,21 +1363,17 @@ local function SetCharacterInventory(info, inventoryFrame)
     for _, bag in ipairs(inventoryFrame.bags) do
       if (not bag.savedEventHandlers) then
         for _, slot in ipairs(bag.slots) do
-          slot.__UpdateTooltip = slot.UpdateTooltip;
-          slot.UpdateTooltip = nil;
-
-          if (not slot.__oldOnClick) then
-            slot.__oldOnEnter = slot:GetScript("OnEnter");
-            slot.__oldOnClick = slot:GetScript("OnClick");
-            slot.__oldOnReceiveDrag = slot:GetScript("OnReceiveDrag");
-            slot.__oldOnDragStart = slot:GetScript("OnDragStart");
-            slot.__oldOnDragStop = slot:GetScript("OnDragStop");
-            slot:SetScript("OnClick", nil);
-            slot:SetScript("OnReceiveDrag", nil);
-            slot:SetScript("OnDragStart", nil);
-            slot:SetScript("OnDragStop", nil);
-            slot:SetScript("OnEnter", HandleBagSlotEntered);
+          if (not slot.preview) then
+            slot.preview = tk:CreateFrame("Frame", bag);
+            slot.preview.slot = slot;
+            slot.preview:SetAllPoints(slot);
+            slot.preview:SetFrameStrata(tk.Constants.FRAME_STRATAS.DIALOG);
+            slot.preview:EnableMouse(true);
+            slot.preview:SetScript("OnEnter", HandleBagSlotOnEnter);
+            slot.preview:SetScript("OnLeave", HandleBagPreviewSlotOnLeave);
           end
+
+          slot.preview:Show();
         end
 
         bag.savedEventHandlers = true;
@@ -1392,21 +1401,11 @@ local function SetCharacterInventory(info, inventoryFrame)
 
       for slotIndex, slot in ipairs(bag.slots) do
         slot:SetItemLocation(ItemLocation:CreateFromBagAndSlot(bag.bagIndex, slotIndex));
-        slot.UpdateTooltip = slot.__UpdateTooltip;
-        slot:SetScript("OnEnter", slot.__oldOnEnter);
-        slot:SetScript("OnClick", slot.__oldOnClick);
-        slot:SetScript("OnReceiveDrag", slot.__oldOnReceiveDrag);
-        slot:SetScript("OnDragStart", slot.__oldOnDragStart);
-        slot:SetScript("OnDragStop", slot.__oldOnDragStop);
-
-        slot.__UpdateTooltip = nil;
-        slot.__oldOnEnter = nil;
-        slot.__oldOnClick = nil;
-        slot.__oldOnReceiveDrag = nil;
-        slot.__oldOnDragStart = nil;
-        slot.__oldOnDragStop = nil;
-        slot:HookScript("OnEnter", HandleBagSlotEntered);
         slot:Show();
+
+        if (slot.preview) then
+          slot.preview:Hide();
+        end
       end
 
       bag.savedEventHandlers = nil;
@@ -1417,6 +1416,10 @@ local function SetCharacterInventory(info, inventoryFrame)
         local unavailableSlot = bag.slots[s];
         unavailableSlot:Clear();
         unavailableSlot:Hide();
+
+        if (unavailableSlot.preview) then
+          unavailableSlot.preview:Hide();
+        end
       end
 
       UpdateAllBagSlots(bag);
@@ -2127,6 +2130,7 @@ function C_InventoryModule:OnInitialize()
 
     local inventoryFrame = tk:CreateFrame("Frame", nil, "MUI_Inventory")--[[@as MayronUI.Inventory.Frame]];
     table.insert(_G["UISpecialFrames"], "MUI_Inventory");
+    inventoryFrame:EnableMouse(true);
     inventoryFrame:Hide();
 
     tk:HookFunc("ToggleAllBags", function()
