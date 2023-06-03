@@ -12,6 +12,7 @@ tk.Strings.Space = " ";
 local CreateColor, ipairs = _G.CreateColor, _G.ipairs;
 local string, table, tostring, type = _G.string, _G.table, _G.tostring, _G.type;
 local select, UnitClass, UnitIsTapDenied = _G.select, _G.UnitClass, _G.UnitIsTapDenied;
+local UnitFactionGroup = _G.UnitFactionGroup;
 
 function tk.Strings:Trim(str)
   return str:match("^%s*(.-)%s*$");
@@ -250,7 +251,8 @@ function tk.Strings:GetUnitLevelText(unitID, unitLevel)
       unitLevel = tk.Strings:Concat("|cffff66ff", unitLevel, "|r");
     end
 
-    if (classification == "worldboss" or unitLevel == "boss") then
+    local sameFaction = UnitFactionGroup(unitID) == UnitFactionGroup("player");
+    if (classification == "worldboss" or unitLevel == "boss" or sameFaction) then
       unitLevel = tk.Strings:SetTextColorByKey(unitLevel, "yellow");
     else
       local color = tk:GetDifficultyColor(UnitLevel(unitID));
