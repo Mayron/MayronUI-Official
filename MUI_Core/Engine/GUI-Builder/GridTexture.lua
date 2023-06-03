@@ -15,7 +15,7 @@ local regionsByRow = {
 ---@alias MayronUI.GridTextureType "ExtraLarge"|"Large"|"Medium"|"Small"|"ExtraSmall"
 ---@alias MayronUI.GridAlphaType "High"|"Regular"|"Low"|"None"
 
----@class MayronUI.GridTextureMixin : table
+---@class MayronUI.GridTextureMixin : Frame,table
 ---@field textureType MayronUI.GridTextureType
 local GridTextureMixin = {};
 

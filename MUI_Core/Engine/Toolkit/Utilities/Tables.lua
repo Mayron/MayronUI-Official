@@ -405,6 +405,7 @@ local localizedDbNames = {
 }
 
 -- gets the DB associated with the AddOn based on convention
+---@return table?
 function tk.Tables:GetDBObject(addOnName)
   if (addOnName == "MayronUI") then
     -- restricted due to db.profile.layout bug

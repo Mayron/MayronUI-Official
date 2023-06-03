@@ -28,7 +28,7 @@ function C_ReportIssue:OnInitialize(data)
     [3] = L["Click below to generate your report. Once generated, copy it into a new issue and submit it on GitHub using the link below:"];
   }
 
-  local frame = gui:AddDialogTexture(tk:CreateFrame("Frame"));
+  local frame = gui:AddDialogTexture(tk:CreateFrame("Frame"), "High");
   frame:SetSize(600, 400);
   frame:SetPoint("CENTER");
   data.reportFrame = frame;
@@ -215,36 +215,38 @@ end
 
 obj:DefineParams("Frame", "string", "number=0", "number=1000");
 obj:DefineReturns("EditBox");
-function C_ReportIssue.Private:CreateEditBox(
-  data, parent, titleText, minLength, maxLength)
+function C_ReportIssue.Private:CreateEditBox(data, parent, titleText, minLength, maxLength)
   local title = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
   title:SetPoint("TOPLEFT");
   title:SetPoint("TOPRIGHT");
   title:SetText(titleText);
 
-  local editBox = tk:CreateFrame("EditBox", parent);
+  local container = tk:CreateBackdropFrame("Frame", parent);
+  container:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -10);
+  container:SetPoint("TOPRIGHT", title, "BOTTOMRIGHT", 0, -10);
+  container:SetPoint("BOTTOM");
+  container:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
+
+  local editBox = tk:CreateFrame("EditBox", container);
   editBox:SetMaxLetters(maxLength > 0 and maxLength or 100000);
   editBox:SetMultiLine(true);
   editBox:EnableMouse(true);
   editBox:SetAutoFocus(false);
   editBox:SetFontObject("ChatFontNormal");
-  editBox:SetAllPoints(true);
+  editBox:SetPoint("TOPLEFT", 5, -5);
+  editBox:SetPoint("BOTTOMRIGHT", -5, 5);
 
   local scrollFrame = gui:WrapInScrollFrame(editBox);
-  scrollFrame:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -data.ITEM_SPACING);
-  scrollFrame:SetPoint("TOPRIGHT", title, "BOTTOMRIGHT", 0, -data.ITEM_SPACING);
-  scrollFrame:SetPoint("BOTTOM");
-  scrollFrame:SetBackdrop(tk.Constants.BACKDROP_WITH_BACKGROUND);
+  scrollFrame:SetScript("OnMouseUp", function() editBox:SetFocus(true) end);
 
   local r, g, b = tk:GetThemeColor();
-  scrollFrame:SetBackdropBorderColor(r, g, b);
-  scrollFrame:SetBackdropColor(0, 0, 0, 0.5);
-  scrollFrame:SetScript("OnMouseUp", function() editBox:SetFocus(true) end);
-  editBox.container = scrollFrame;
+  container:SetBackdropBorderColor(r, g, b);
+  container:SetBackdropColor(0, 0, 0, 0.5);
+  editBox.container = container;
 
   if (maxLength > 0) then
     local characters = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-    characters:SetPoint("TOP", scrollFrame, "BOTTOM", 0, -10);
+    characters:SetPoint("TOP", container, "BOTTOM", 0, -10);
 
     local charactersTemplate = "%d/1000 "..L["characters"].." %s";
     editBox:SetScript("OnTextChanged", function()
@@ -274,10 +276,6 @@ function C_ReportIssue.Private:CreateEditBox(
   end
 
   editBox:SetScript("OnEscapePressed", function() editBox:ClearFocus() end);
-
-  scrollFrame:ClearAllPoints();
-  scrollFrame:SetPoint("TOPLEFT", 10, -10);
-  scrollFrame:SetPoint("BOTTOMRIGHT", -10, 10);
 
   return editBox;
 end
@@ -333,8 +331,7 @@ function C_ReportIssue.Private:RenderStep3(data, parent)
 
   local container = tk:CreateFrame("Frame", linkButton);
   container:SetPoint("TOPLEFT", linkButton, "BOTTOMLEFT", 0, -data.ITEM_SPACING);
-  container:SetPoint(
-    "TOPRIGHT", linkButton, "BOTTOMRIGHT", 0, -data.ITEM_SPACING);
+  container:SetPoint("TOPRIGHT", linkButton, "BOTTOMRIGHT", 0, -data.ITEM_SPACING);
   container:SetPoint("BOTTOM", parent, "BOTTOM");
 
   data.generateButton = gui:CreateButton(container, L["Generate Report"]);

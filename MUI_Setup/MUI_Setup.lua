@@ -13,8 +13,7 @@ local tabText = {
   L["INSTALL"]; L["CUSTOM INSTALL"]; L["INFORMATION"]; L["CREDITS"];
 };
 
-local RELOAD_MESSAGE =
-  tk.Strings:SetTextColorByTheme(L["Warning:"]).." "..L["This will reload the UI!"];
+local RELOAD_MESSAGE = tk.Strings:SetTextColorByTheme(L["Warning:"]).." "..L["This will reload the UI!"];
 
 local tabNames = {
   [L["INSTALL"]] = "Install";
@@ -55,48 +54,38 @@ local function ChangeTheme(_, classFileName)
   local window = module:GetWindow();
   local r, g, b = tk:GetThemeColor();
   local frame = window:GetFrame()--[[@as MayronUI.GridTextureMixin|table]];
-
-  frame:SetGridColor(r, g, b);
   tk:ApplyThemeColor(frame.titleBar.bg, frame.closeBtn);
+  tk:ApplyThemeColor(0.5, unpack(window.tabs));
 
-  frame = window;
-  tk:ApplyThemeColor(0.5, unpack(frame.tabs));
+  local customTabDialog = window.tabDialogBox["Custom"];
 
-  frame = frame.submenu--[[@as MayronUI.GridTextureMixin]];
-
-  frame:SetGridColor(r, g, b);
-
-  frame = window.submenu["Custom"];
-
-  if (frame) then
+  if (customTabDialog) then
     -- resets color
-    frame.themeDropdown:ApplyThemeColor();
-    frame.chooseProfileDropDown:ApplyThemeColor();
-    frame.profilePerCharacter:ApplyThemeColor();
-    frame.resetChatBtn:ApplyThemeColor();
+    customTabDialog.themeDropdown:ApplyThemeColor();
+    customTabDialog.chooseProfileDropDown:ApplyThemeColor();
+    customTabDialog.profilePerCharacter:ApplyThemeColor();
+    customTabDialog.resetChatBtn:ApplyThemeColor();
 
-    for _, cb in ipairs(frame.addOnCheckBoxes) do
+    for _, cb in ipairs(customTabDialog.addOnCheckBoxes) do
       cb:ApplyThemeColor();
     end
 
-    frame.applyScaleBtn:ApplyThemeColor();
-    frame.installButton:ApplyThemeColor();
-    frame.deleteProfileButton:ApplyThemeColor();
-    frame.newProfileButton:ApplyThemeColor();
+    customTabDialog.applyScaleBtn:ApplyThemeColor();
+    customTabDialog.installButton:ApplyThemeColor();
+    customTabDialog.deleteProfileButton:ApplyThemeColor();
+    customTabDialog.newProfileButton:ApplyThemeColor();
+  end
 
-    local installMenu = window.submenu["Install"];
+  local instalDialogBox = window.tabDialogBox["Install"];
 
-    if (installMenu) then
-      installMenu.installButton:ApplyThemeColor();
-      local reloadMsg = tk.Strings:SetTextColorByTheme(L["Warning:"]).." "..L["This will reload the UI!"];
-      installMenu.message:SetText(reloadMsg);
-    end
-
-    frame.addonContainer:SetGridColor(r, g, b);
+  if (instalDialogBox) then
+    instalDialogBox.installButton:ApplyThemeColor();
+    RELOAD_MESSAGE = tk.Strings:SetTextColorByTheme(L["Warning:"]).." "..L["This will reload the UI!"];
+    instalDialogBox.message:SetText(RELOAD_MESSAGE);
   end
 
   for _, tabName in pairs(tabNames) do
-    local menu = window.submenu[tabName];
+    local menu = window.tabDialogBox[tabName];
     if (menu and menu.scrollBar) then
       menu.scrollBar.thumb:SetColorTexture(r, g, b);
     end
@@ -127,26 +116,27 @@ end
 
 local function OnMenuTabButtonClick(self)
   local window = module:GetWindow();
-  local content = window.submenu;
+  local dialogFrame = window.tabDialogBox --[[@as MayronUI.GridTextureMixin]]; -- the tab wrapper frame with the dialog box texture
 
   if (self:GetChecked()) then
-    for _, frame in ipairs({ content:GetChildren() }) do
-      frame:Hide();
+    if (dialogFrame.activeTabChildFrame) then
+      dialogFrame.activeTabChildFrame:Hide();
     end
 
     local tabName = tabNames[self:GetText()];
-    if (not content[tabName]) then
-      content[tabName] = tk:CreateFrame("Frame", content);
-      content[tabName]:SetAllPoints(true);
-      Private["Load" .. tabName .. "Menu"](Private, content[tabName]);
+    if (not dialogFrame[tabName]) then
+      local tabContentFrame = tk:CreateFrame("Frame", dialogFrame);
+      tabContentFrame:SetAllPoints(true);
+      dialogFrame[tabName] = Private["Load" .. tabName .. "Menu"](Private, tabContentFrame);
     end
 
-    content[tabName]:Show();
+    dialogFrame[tabName]:Show();
+    dialogFrame.activeTabChildFrame = dialogFrame[tabName];
 
     if (not window.expanded) then
       C_Timer.After(0.02, ExpandSetupWindow);
-      content:SetGridBlendMode("BLEND");
-      UIFrameFadeIn(content, 0.4, content:GetAlpha(), 1);
+      dialogFrame:SetGridBlendMode("BLEND");
+      UIFrameFadeIn(dialogFrame, 0.4, dialogFrame:GetAlpha(), 1);
       UIFrameFadeOut(window.banner.left, 0.4, window.banner.left:GetAlpha(), 0.3);
       UIFrameFadeOut(window.banner.right, 0.4, window.banner.right:GetAlpha(), 0.3);
       window.expanded = true;
@@ -158,106 +148,107 @@ end
 
 -- Private Functions ---------------------------
 
-function Private:LoadInstallMenu(menuSection)
-  menuSection.message = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-  menuSection.message:SetPoint("CENTER", 0, 20);
-  menuSection.message:SetText(RELOAD_MESSAGE);
+function Private:LoadInstallMenu(tabFrame)
+  tabFrame.message = tabFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
+  tabFrame.message:SetPoint("CENTER", 0, 20);
+  tabFrame.message:SetText(RELOAD_MESSAGE);
 
-  menuSection.installButton = gui:CreateButton(menuSection, L["INSTALL"], nil, nil, nil, 200);
-  menuSection.installButton:SetPoint("CENTER", 0, -20);
-  menuSection.installButton:SetScript("OnClick", function() module:Install(); end);
+  tabFrame.installButton = gui:CreateButton(tabFrame, L["INSTALL"], nil, nil, nil, 200);
+  tabFrame.installButton:SetPoint("CENTER", 0, -20);
+  tabFrame.installButton:SetScript("OnClick", function() module:Install(); end);
+  return tabFrame;
 end
 
-function Private:LoadProfileMenu(menuSection)
-  menuSection.profileTitle = menuSection:CreateFontString(
+function Private:LoadProfileMenu(tabFrame)
+  tabFrame.profileTitle = tabFrame:CreateFontString(
     nil, "ARTWORK", "GameFontHighlightLarge");
-  menuSection.profileTitle:SetPoint(
-    "TOPLEFT", menuSection.themeDropdown:GetFrame(), "BOTTOMLEFT", 0, -20);
-  menuSection.profileTitle:SetText(L["Choose Profile:"]);
+  tabFrame.profileTitle:SetPoint(
+    "TOPLEFT", tabFrame.themeDropdown:GetFrame(), "BOTTOMLEFT", 0, -20);
+  tabFrame.profileTitle:SetText(L["Choose Profile:"]);
 
-  menuSection.chooseProfileDropDown = gui:CreateDropDown(menuSection);
-  menuSection.chooseProfileDropDown:SetLabel(db:GetCurrentProfile());
-  menuSection.chooseProfileDropDown:SetPoint(
-    "TOPLEFT", menuSection.profileTitle, "BOTTOMLEFT", 0, -10);
+  tabFrame.chooseProfileDropDown = gui:CreateDropDown(tabFrame);
+  tabFrame.chooseProfileDropDown:SetLabel(db:GetCurrentProfile());
+  tabFrame.chooseProfileDropDown:SetPoint(
+    "TOPLEFT", tabFrame.profileTitle, "BOTTOMLEFT", 0, -10);
 
   for _, name, _ in db:IterateProfiles() do
-    menuSection.chooseProfileDropDown:AddOption(name, ChangeProfile, name);
+    tabFrame.chooseProfileDropDown:AddOption(name, ChangeProfile, name);
   end
 
-  menuSection.newProfileButton = gui:CreateButton(menuSection, L["New Profile"]);
-  menuSection.newProfileButton:SetPoint(
-    "TOPLEFT", menuSection.chooseProfileDropDown:GetFrame(), "BOTTOMLEFT", 0, -20);
+  tabFrame.newProfileButton = gui:CreateButton(tabFrame, L["New Profile"]);
+  tabFrame.newProfileButton:SetPoint(
+    "TOPLEFT", tabFrame.chooseProfileDropDown:GetFrame(), "BOTTOMLEFT", 0, -20);
 
-  menuSection.newProfileButton:SetScript("OnClick", function()
+  tabFrame.newProfileButton:SetScript("OnClick", function()
     MayronUI:TriggerCommand("profile", "new", nil, function()
       local currentProfile = db:GetCurrentProfile();
-      menuSection.chooseProfileDropDown:SetLabel(currentProfile);
-      menuSection.chooseProfileDropDown:AddOption(currentProfile, function()
+      tabFrame.chooseProfileDropDown:SetLabel(currentProfile);
+      tabFrame.chooseProfileDropDown:AddOption(currentProfile, function()
         ChangeProfile(nil, currentProfile);
-        menuSection.deleteProfileButton:SetEnabled(currentProfile ~= "Default");
+        tabFrame.deleteProfileButton:SetEnabled(currentProfile ~= "Default");
       end);
     end);
   end);
 
-  menuSection.deleteProfileButton = gui:CreateButton(menuSection, L["Delete Profile"]);
-  menuSection.deleteProfileButton:SetPoint(
-    "TOPLEFT", menuSection.newProfileButton, "BOTTOMLEFT", 0, -20);
-  menuSection.deleteProfileButton:SetEnabled(
+  tabFrame.deleteProfileButton = gui:CreateButton(tabFrame, L["Delete Profile"]);
+  tabFrame.deleteProfileButton:SetPoint(
+    "TOPLEFT", tabFrame.newProfileButton, "BOTTOMLEFT", 0, -20);
+  tabFrame.deleteProfileButton:SetEnabled(
     db:GetCurrentProfile() ~= "Default");
 
-  menuSection.deleteProfileButton:SetScript("OnClick", function()
+  tabFrame.deleteProfileButton:SetScript("OnClick", function()
     local profileName = db:GetCurrentProfile();
 
     MayronUI:TriggerCommand("profile", "delete", profileName, function()
       local currentProfile = db:GetCurrentProfile();
-      menuSection.chooseProfileDropDown:RemoveOptionByLabel(profileName);
-      menuSection.chooseProfileDropDown:SetLabel(currentProfile);
-      menuSection.deleteProfileButton:SetEnabled(currentProfile ~= "Default");
+      tabFrame.chooseProfileDropDown:RemoveOptionByLabel(profileName);
+      tabFrame.chooseProfileDropDown:SetLabel(currentProfile);
+      tabFrame.deleteProfileButton:SetEnabled(currentProfile ~= "Default");
     end);
   end);
 
-  menuSection.profilePerCharacter = gui:CreateCheckButton(
-    menuSection, L["Profile Per Character"],
+  tabFrame.profilePerCharacter = gui:CreateCheckButton(
+    tabFrame, L["Profile Per Character"],
     L["If enabled, new characters will be assigned a unique character profile instead of the Default profile."]);
 
-  menuSection.profilePerCharacter:SetPoint(
-    "TOPLEFT", menuSection.deleteProfileButton, "BOTTOMLEFT", 0, -20);
+  tabFrame.profilePerCharacter:SetPoint(
+    "TOPLEFT", tabFrame.deleteProfileButton, "BOTTOMLEFT", 0, -20);
 
-  menuSection.profilePerCharacter.btn:SetChecked(
+  tabFrame.profilePerCharacter.btn:SetChecked(
     db.global.core.setup.profilePerCharacter);
 
-  menuSection.profilePerCharacter.btn:SetScript("OnClick", function(self)
+  tabFrame.profilePerCharacter.btn:SetScript("OnClick", function(self)
     local checked = self:GetChecked();
     db:SetPathValue("global.core.setup.profilePerCharacter", checked);
 
     if (checked) then
       local profileName = tk:GetPlayerKey();
-      local foundLabel = menuSection.chooseProfileDropDown:GetOptionByLabel(profileName);
+      local foundLabel = tabFrame.chooseProfileDropDown:GetOptionByLabel(profileName);
 
       if (not foundLabel) then
-        menuSection.chooseProfileDropDown:AddOption(profileName, function()
-          menuSection.deleteProfileButton:SetEnabled(profileName ~= "Default");
+        tabFrame.chooseProfileDropDown:AddOption(profileName, function()
+          tabFrame.deleteProfileButton:SetEnabled(profileName ~= "Default");
           ChangeProfile(nil, profileName);
         end);
       end
 
-      menuSection.chooseProfileDropDown:SetLabel(profileName);
-      menuSection.deleteProfileButton:SetEnabled(true);
+      tabFrame.chooseProfileDropDown:SetLabel(profileName);
+      tabFrame.deleteProfileButton:SetEnabled(true);
       ChangeProfile(nil, profileName);
     else
-      menuSection.chooseProfileDropDown:SetLabel("Default");
-      menuSection.deleteProfileButton:SetEnabled(false);
+      tabFrame.chooseProfileDropDown:SetLabel("Default");
+      tabFrame.deleteProfileButton:SetEnabled(false);
       ChangeProfile(nil, "Default");
     end
   end);
 end
 
-function Private:LoadThemeMenu(menuSection)
-  menuSection.themeTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-  menuSection.themeTitle:SetPoint("TOPLEFT", 20, -20);
-  menuSection.themeTitle:SetText(L["Choose Theme:"]);
+function Private:LoadThemeMenu(tabFrame)
+  tabFrame.themeTitle = tabFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
+  tabFrame.themeTitle:SetPoint("TOPLEFT", 20, -20);
+  tabFrame.themeTitle:SetText(L["Choose Theme:"]);
 
-  menuSection.themeDropdown = gui:CreateDropDown(menuSection);
+  tabFrame.themeDropdown = gui:CreateDropDown(tabFrame);
   local classFileNames = tk.Tables:GetKeys(tk.Constants.CLASS_FILE_NAMES);
   table.sort(classFileNames);
 
@@ -270,10 +261,10 @@ function Private:LoadThemeMenu(menuSection)
 
   obj:PushTable(classFileNames);
 
-  menuSection.themeDropdown:AddOptions(ChangeTheme, optionsTable);
+  tabFrame.themeDropdown:AddOptions(ChangeTheme, optionsTable);
 
   local ColorPickerFrame = _G.ColorPickerFrame;
-  menuSection.themeDropdown:AddOption("Custom Color", function()
+  tabFrame.themeDropdown:AddOption("Custom Color", function()
     local colors = {};
     ColorPickerFrame:SetColorRGB(1, 1, 1);
     ColorPickerFrame.previousValues = { 1; 1; 1; 0 };
@@ -294,101 +285,101 @@ function Private:LoadThemeMenu(menuSection)
     ColorPickerFrame:Show();
   end);
 
-  menuSection.themeDropdown:SetLabel(L["Theme"]);
-  menuSection.themeDropdown:SetPoint(
-    "TOPLEFT", menuSection.themeTitle, "BOTTOMLEFT", 0, -10);
+  tabFrame.themeDropdown:SetLabel(L["Theme"]);
+  tabFrame.themeDropdown:SetPoint("TOPLEFT", tabFrame.themeTitle, "BOTTOMLEFT", 0, -10);
 end
 
-function Private:LoadCustomMenu(menuSection)
-  self:LoadThemeMenu(menuSection);
-  self:LoadProfileMenu(menuSection);
+function Private:LoadCustomMenu(tabFrame)
+  self:LoadThemeMenu(tabFrame);
+  self:LoadProfileMenu(tabFrame);
 
   -- UI Scale
-  menuSection.scaleTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-  menuSection.scaleTitle:SetPoint("TOPLEFT", menuSection.themeTitle, "TOPRIGHT", 150, 0);
-  menuSection.scaleTitle:SetText(L["Adjust the UI Scale:"]);
-  menuSection.scaleTitle:SetWidth(200);
-  menuSection.scaleTitle:SetJustifyH("LEFT");
+  tabFrame.scaleTitle = tabFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
+  tabFrame.scaleTitle:SetPoint("TOPLEFT", tabFrame.themeTitle, "TOPRIGHT", 150, 0);
+  tabFrame.scaleTitle:SetText(L["Adjust the UI Scale:"]);
+  tabFrame.scaleTitle:SetWidth(200);
+  tabFrame.scaleTitle:SetJustifyH("LEFT");
 
-  menuSection.scaler = tk:CreateFrame("Slider", menuSection, nil, "OptionsSliderTemplate");
-  menuSection.scaler:SetPoint("TOPLEFT", menuSection.scaleTitle, "BOTTOMLEFT", 0, -10);
-  menuSection.scaler:SetWidth(200);
+  tabFrame.scaler = tk:CreateFrame("Slider", tabFrame, nil, "OptionsSliderTemplate");
+  tabFrame.scaler:SetPoint("TOPLEFT", tabFrame.scaleTitle, "BOTTOMLEFT", 0, -10);
+  tabFrame.scaler:SetWidth(200);
 
-  menuSection.scaler.tooltipText = L["This will ensure that frames are correctly positioned to match the UI scale during installation."];
+  tabFrame.scaler.tooltipText = L["This will ensure that frames are correctly positioned to match the UI scale during installation."];
 
-  menuSection.scaler:SetMinMaxValues(0.6, 1.2);
-  menuSection.scaler:SetValueStep(0.05);
-  menuSection.scaler:SetObeyStepOnDrag(true);
-  menuSection.scaler:SetValue(db.global.core.uiScale);
+  tabFrame.scaler:SetMinMaxValues(0.6, 1.2);
+  tabFrame.scaler:SetValueStep(0.05);
+  tabFrame.scaler:SetObeyStepOnDrag(true);
+  tabFrame.scaler:SetValue(db.global.core.uiScale);
 
-  menuSection.scaler.Low:SetText(0.6);
-  menuSection.scaler.Low:ClearAllPoints();
-  menuSection.scaler.Low:SetPoint("BOTTOMLEFT", 5, -8);
-  menuSection.scaler.High:SetText(1.2);
-  menuSection.scaler.High:ClearAllPoints();
-  menuSection.scaler.High:SetPoint("BOTTOMRIGHT", -5, -8);
+  tabFrame.scaler.Low:SetText(0.6);
+  tabFrame.scaler.Low:ClearAllPoints();
+  tabFrame.scaler.Low:SetPoint("BOTTOMLEFT", 5, -8);
+  tabFrame.scaler.High:SetText(1.2);
+  tabFrame.scaler.High:ClearAllPoints();
+  tabFrame.scaler.High:SetPoint("BOTTOMRIGHT", -5, -8);
 
-  menuSection.scaler.Value = menuSection.scaler:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
-  menuSection.scaler.Value:SetPoint("BOTTOM", 0, -8);
-  menuSection.scaler.Value:SetText(db.global.core.uiScale);
+  tabFrame.scaler.Value = tabFrame.scaler:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall");
+  tabFrame.scaler.Value:SetPoint("BOTTOM", 0, -8);
+  tabFrame.scaler.Value:SetText(db.global.core.uiScale);
 
-  menuSection.applyScaleBtn = gui:CreateButton(menuSection, L["Apply Scaling"]);
+  tabFrame.applyScaleBtn = gui:CreateButton(tabFrame, L["Apply Scaling"]);
 
-  menuSection.applyScaleBtn:SetPoint("TOPLEFT", menuSection.scaler, "BOTTOMLEFT", 0, -20);
-  menuSection.applyScaleBtn:Disable();
+  tabFrame.applyScaleBtn:SetPoint("TOPLEFT", tabFrame.scaler, "BOTTOMLEFT", 0, -20);
+  tabFrame.applyScaleBtn:Disable();
 
-  menuSection.applyScaleBtn:SetScript("OnClick", function(self)
+  tabFrame.applyScaleBtn:SetScript("OnClick", function(self)
     self:Disable();
     SetCVar("useUiScale", "1");
     SetCVar("uiscale", db.global.core.uiScale);
   end);
 
-  menuSection.scaler:SetScript("OnValueChanged", function(self, value)
+  tabFrame.scaler:SetScript("OnValueChanged", function(self, value)
     value = math.floor((value * 100) + 0.5) / 100;
     self.Value:SetText(value);
     db.global.core.uiScale = value;
-    menuSection.applyScaleBtn:Enable();
+    tabFrame.applyScaleBtn:Enable();
   end);
 
-  menuSection.resetChatBtn = gui:CreateCheckButton(
-    menuSection, L["Reset Chat Settings"], L["RESET_CHAT_SETTINGS_TOOLTIP"]);
+  tabFrame.resetChatBtn = gui:CreateCheckButton(
+    tabFrame, L["Reset Chat Settings"], L["RESET_CHAT_SETTINGS_TOOLTIP"]);
 
-  menuSection.resetChatBtn:SetPoint("TOPLEFT", menuSection.applyScaleBtn, "BOTTOMLEFT", 0, -20);
-  menuSection.resetChatBtn.btn:SetChecked(db.global.core.setup.resetChatSettings);
+  tabFrame.resetChatBtn:SetPoint("TOPLEFT", tabFrame.applyScaleBtn, "BOTTOMLEFT", 0, -20);
+  tabFrame.resetChatBtn.btn:SetChecked(db.global.core.setup.resetChatSettings);
 
-  menuSection.resetChatBtn.btn:SetScript("OnClick", function(self)
+  tabFrame.resetChatBtn.btn:SetScript("OnClick", function(self)
     db.global.core.setup.resetChatSettings = self:GetChecked();
   end);
 
   -- AddOn Settings to Inject
-  menuSection.injectTitle = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
-  menuSection.injectTitle:SetPoint("TOPLEFT", menuSection.scaleTitle, "TOPRIGHT", 50, 0);
-  menuSection.injectTitle:SetText(L["MayronUI AddOn Presets"]);
-  menuSection.injectTitle:SetWidth(320);
-  menuSection.injectTitle:SetJustifyH("LEFT");
+  tabFrame.injectTitle = tabFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlightLarge");
+  tabFrame.injectTitle:SetPoint("TOPLEFT", tabFrame.scaleTitle, "TOPRIGHT", 50, 0);
+  tabFrame.injectTitle:SetText(L["MayronUI AddOn Presets"]);
+  tabFrame.injectTitle:SetWidth(320);
+  tabFrame.injectTitle:SetJustifyH("LEFT");
 
-  menuSection.injectDescription = menuSection:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
-  menuSection.injectDescription:SetPoint("TOPLEFT", menuSection.injectTitle, "BOTTOMLEFT", 0, -5);
-  menuSection.injectDescription:SetWidth(320);
-  menuSection.injectDescription:SetText(
+  tabFrame.injectDescription = tabFrame:CreateFontString(nil, "ARTWORK", "GameFontHighlight");
+  tabFrame.injectDescription:SetPoint("TOPLEFT", tabFrame.injectTitle, "BOTTOMLEFT", 0, -5);
+  tabFrame.injectDescription:SetWidth(320);
+  tabFrame.injectDescription:SetText(
     L["The following selected addons will have their settings reset to the MayronUI preset settings:"])
-  menuSection.injectDescription:SetJustifyH("LEFT");
+  tabFrame.injectDescription:SetJustifyH("LEFT");
 
   local previous;
-  menuSection.addonContainer = gui:WrapInScrollFrame(menuSection);
-  menuSection.addonContainer:SetPoint("TOPLEFT", menuSection.injectDescription, "BOTTOMLEFT", 0, -20);
-  menuSection.addonContainer:SetPoint("BOTTOMRIGHT", -20, 70);
+  local addonsFrame = tk:CreateFrame("Frame", tabFrame);
+  tabFrame.addonContainer = gui:WrapInScrollFrame(addonsFrame);
+  tabFrame.addonContainer:SetPoint("TOPLEFT", tabFrame.injectDescription, "BOTTOMLEFT", 0, -20);
+  tabFrame.addonContainer:SetPoint("BOTTOMRIGHT", -20, 70);
 
-  gui:AddDialogTexture(menuSection.addonContainer, "Low");
+  gui:AddDialogTexture(tabFrame.addonContainer, "Low");
 
   local totalAddOnsLoaded = 0;
-  menuSection.addOnCheckBoxes = obj:PopTable();
+  tabFrame.addOnCheckBoxes = obj:PopTable();
 
   for id, addOnData in db.global.core.setup.addOns:Iterate() do
     local alias, value, addOnName = unpack(addOnData);
 
     if (IsAddOnLoaded(addOnName)) then
-      local cb = gui:CreateCheckButton(menuSection, alias);
+      local cb = gui:CreateCheckButton(addonsFrame, alias);
       totalAddOnsLoaded = totalAddOnsLoaded + 1;
 
       cb.btn:SetChecked(value);
@@ -397,19 +388,19 @@ function Private:LoadCustomMenu(menuSection)
       end);
 
       if (not previous) then
-        cb:SetPoint("TOPLEFT", menuSection, "TOPLEFT", 10, -10);
+        cb:SetPoint("TOPLEFT", addonsFrame, "TOPLEFT", 10, -10);
       else
         cb:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -10);
       end
 
-      menuSection:SetHeight(menuSection:GetHeight() + cb:GetHeight() + 10);
-      table.insert(menuSection.addOnCheckBoxes, cb);
+      addonsFrame:SetHeight(addonsFrame:GetHeight() + cb:GetHeight() + 10);
+      table.insert(tabFrame.addOnCheckBoxes, cb);
       previous = cb;
     end
   end
 
   if (totalAddOnsLoaded == 0) then
-    local fontString = menuSection.addonContainer:CreateFontString(
+    local fontString = tabFrame.addonContainer:CreateFontString(
       nil, "ARTWORK", "GameFontHighlightLarge");
 
     fontString:SetPoint("CENTER");
@@ -417,44 +408,39 @@ function Private:LoadCustomMenu(menuSection)
   end
 
   -- install button
-  menuSection.installButton = gui:CreateButton(menuSection, L["INSTALL"], nil, nil, nil, 200);
-  menuSection.installButton:SetPoint("TOPRIGHT", menuSection.addonContainer, "BOTTOMRIGHT", 0, -20);
+  tabFrame.installButton = gui:CreateButton(tabFrame, L["INSTALL"], nil, nil, nil, 200);
+  tabFrame.installButton:SetPoint("TOPRIGHT", tabFrame.addonContainer, "BOTTOMRIGHT", 0, -20);
 
-  menuSection.installButton:SetScript("OnClick", function() module:Install() end);
+  tabFrame.installButton:SetScript("OnClick", function() module:Install() end);
 
   local GameTooltip = _G.GameTooltip;
-  menuSection.installButton:SetScript("OnEnter", function(self)
+  tabFrame.installButton:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOPRIGHT", 18, 4);
     GameTooltip:AddLine(RELOAD_MESSAGE);
     GameTooltip:SetFrameLevel(30);
     GameTooltip:Show();
   end);
 
-  menuSection.installButton:SetScript("OnLeave", tk.HandleTooltipOnLeave);
+  tabFrame.installButton:SetScript("OnLeave", tk.HandleTooltipOnLeave);
+  return tabFrame;
 end
 
-function Private:LoadInfoMenu(menuSection)
+function Private:LoadInfoMenu(scrollChild)
   local font = tk:GetMasterFont();
 
-  local scrollChild = tk:CreateFrame("Frame", menuSection);
-  scrollChild:SetHeight(300);
-
   local scrollFrame, scrollBar = gui:WrapInScrollFrame(scrollChild);
-  menuSection.child = scrollChild;
-  menuSection.scrollBar = scrollBar;
+  scrollChild.scrollBar = scrollBar;
 
+  scrollChild:SetHeight(300);
   scrollFrame:SetPoint("TOPLEFT", 20, -20);
   scrollFrame:SetPoint("BOTTOMRIGHT", -20, 20);
-
-  menuSection.scrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", -5, 0);
-  menuSection.scrollBar:SetPoint("BOTTOMRIGHT", scrollFrame, "BOTTOMRIGHT", 0, 0);
 
   scrollFrame.bg = tk:SetBackground(scrollFrame, 0, 0, 0, 0.5);
   scrollFrame.bg:ClearAllPoints();
   scrollFrame.bg:SetPoint("TOPLEFT", -10, 10);
   scrollFrame.bg:SetPoint("BOTTOMRIGHT", 10, -10);
 
-  local content = tk:CreateFrame("EditBox", menuSection.child);
+  local content = tk:CreateFrame("EditBox", scrollChild);
   content:SetMultiLine(true);
   content:SetMaxLetters(99999);
   content:EnableMouse(true);
@@ -471,29 +457,26 @@ function Private:LoadInfoMenu(menuSection)
   content:SetScript("OnTextChanged", function(self)
     self:SetText(Private.info);
   end);
+
+  return scrollFrame;
 end
 
-function Private:LoadCreditsMenu(menuSection)
+function Private:LoadCreditsMenu(scrollChild)
   local font = tk:GetMasterFont();
 
-  local scrollChild = tk:CreateFrame("Frame");
   local scrollFrame, scrollBar = gui:WrapInScrollFrame(scrollChild);
-  menuSection.child = scrollChild;
-  menuSection.scrollBar = scrollBar;
-  menuSection.child:SetHeight(700); -- can't use GetStringHeight
+  scrollChild.scrollBar = scrollBar;
 
+  scrollChild:SetHeight(700); -- can't use GetStringHeight
   scrollFrame:SetPoint("TOPLEFT", 20, -20);
   scrollFrame:SetPoint("BOTTOMRIGHT", -20, 20);
-
-  menuSection.scrollBar:SetPoint("TOPLEFT", scrollFrame.ScrollFrame, "TOPRIGHT", -5, 0);
-  menuSection.scrollBar:SetPoint("BOTTOMRIGHT", scrollFrame.ScrollFrame, "BOTTOMRIGHT", 0, 0);
 
   scrollFrame.bg = tk:SetBackground(scrollFrame, 0, 0, 0, 0.5);
   scrollFrame.bg:ClearAllPoints();
   scrollFrame.bg:SetPoint("TOPLEFT", -10, 10);
   scrollFrame.bg:SetPoint("BOTTOMRIGHT", 10, -10);
 
-  local content = menuSection.child:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+  local content = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
   content:SetWordWrap(true);
   content:SetAllPoints(true);
   content:SetJustifyH("LEFT");
@@ -501,6 +484,8 @@ function Private:LoadCreditsMenu(menuSection)
   content:SetText(Private.credits);
   content:SetFont(font, 13); -- font size should be added to config and profile
   content:SetSpacing(6);
+
+  return scrollFrame;
 end
 
 -- C_SetUpModule -----------------------
@@ -626,10 +611,10 @@ function SetUpModule:Show(data)
   tk:SetFontSize(version, 12);
 
   local frame = tk:CreateFrame("Frame", bannerFrame);
-  window.submenu = gui:AddDialogTexture(frame, nil, 15);
-  window.submenu:SetGridAlphaType("None");
-  window.submenu:SetPoint("TOPLEFT", 0, -5);
-  window.submenu:SetPoint("BOTTOMRIGHT", 0, 5);
+  window.tabDialogBox = gui:AddDialogTexture(frame, nil, 15);
+  window.tabDialogBox:SetGridAlphaType("None");
+  window.tabDialogBox:SetPoint("TOPLEFT", 0, -5);
+  window.tabDialogBox:SetPoint("BOTTOMRIGHT", 0, 5);
 
   -- menu buttons:
   local tabs = {};
@@ -883,10 +868,13 @@ function SetUpModule:Install(data)
 
   if (_G["Bartender4"]) then
     local bartenderDB = tk.Tables:GetDBObject("Bartender4");
-    local bartenderCurrentProfile = bartenderDB:GetCurrentProfile();
 
-    if (obj:IsTable(bartenderDB) and bartenderCurrentProfile ~= "MayronUI") then
-      bartenderDB:SetProfile("MayronUI");
+    if (bartenderDB) then
+      local bartenderCurrentProfile = bartenderDB:GetCurrentProfile();
+
+      if (obj:IsTable(bartenderDB) and bartenderCurrentProfile ~= "MayronUI") then
+        bartenderDB:SetProfile("MayronUI");
+      end
     end
   end
 
