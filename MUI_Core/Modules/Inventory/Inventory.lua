@@ -522,12 +522,6 @@ local function UpdateInventoryFrameCoreProperties(inventoryFrame, resetSlotOrder
     inventoryFrame:SetHeight(height);
   end
 
-  if (inventoryFrame.detailedView) then
-    if (not inventoryFrame.scrollBar:IsShown()) then
-      inventoryFrame:SetHeight(height);
-    end
-  end
-
   return width, height;
 end
 
@@ -2266,9 +2260,13 @@ function C_InventoryModule:OnInitialize()
     inventoryFrame.dragger:HookScript("OnDragStop", function()
       inventoryFrame:SetScript("OnUpdate", nil);
       inventoryFrame.bagsContainer.animating = nil;
-      UpdateInventoryFrameCoreProperties(inventoryFrame, false);
+      local _, height = UpdateInventoryFrameCoreProperties(inventoryFrame, false);
       inventoryFrame.titleBar.onDragStop();
       blocker:Hide();
+
+      if (inventoryFrame.detailedView and not inventoryFrame.scrollBar:IsShown()) then
+        inventoryFrame:SetHeight(height);
+      end
     end);
 
     inventoryFrame.money = inventoryFrame:CreateFontString("MUI_InventoryMoney", "ARTWORK", "MUI_FontNormal");
