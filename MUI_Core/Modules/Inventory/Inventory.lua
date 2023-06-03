@@ -1364,15 +1364,16 @@ local function SetCharacterInventory(info, inventoryFrame)
       if (not bag.savedEventHandlers) then
         for _, slot in ipairs(bag.slots) do
           if (not slot.preview) then
-            slot.preview = tk:CreateFrame("Frame", bag);
+            local slotName = slot:GetName();
+            slot.preview = tk:CreateFrame("Frame", inventoryFrame, slotName.."Preview");
             slot.preview.slot = slot;
-            slot.preview:SetAllPoints(slot);
             slot.preview:SetFrameStrata(tk.Constants.FRAME_STRATAS.DIALOG);
             slot.preview:EnableMouse(true);
             slot.preview:SetScript("OnEnter", HandleBagSlotOnEnter);
             slot.preview:SetScript("OnLeave", HandleBagPreviewSlotOnLeave);
           end
 
+          slot.preview:SetAllPoints(slot);
           slot.preview:Show();
         end
 
@@ -1404,6 +1405,7 @@ local function SetCharacterInventory(info, inventoryFrame)
         slot:Show();
 
         if (slot.preview) then
+          slot.preview:SetAllPoints(tk.Constants.DUMMY_FRAME);
           slot.preview:Hide();
         end
       end
@@ -1418,6 +1420,7 @@ local function SetCharacterInventory(info, inventoryFrame)
         unavailableSlot:Hide();
 
         if (unavailableSlot.preview) then
+          unavailableSlot.preview:SetAllPoints(tk.Constants.DUMMY_FRAME);
           unavailableSlot.preview:Hide();
         end
       end
