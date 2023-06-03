@@ -262,9 +262,9 @@ function tk.Strings:GetUnitLevelText(unitID, unitLevel)
 end
 
 do
-  local goldIcon = "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t";
-  local silverIcon = "|TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t";
-  local copperIcon = "|TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t";
+  local goldIcon = "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:2:0|t";
+  local silverIcon = "|TInterface\\MoneyFrame\\UI-SilverIcon:12:12:2:0|t";
+  local copperIcon = "|TInterface\\MoneyFrame\\UI-CopperIcon:12:12:2:0|t";
 
   ---@param money number
   ---@param colorKey MayronUI.ColorKey?
@@ -286,11 +286,11 @@ do
     end
 
     if (silver > 0) then
-      text = string.format("%s %s%s", text, silver, silverIcon);
+      text = string.format("%s %d%s", text, silver, silverIcon);
     end
 
     if (gold < 100 and copper > 0) then
-      text = string.format("%s %s%s", text, copper, copperIcon);
+      text = string.format("%s %d%s", text, copper, copperIcon);
     end
 
     if (text == "") then

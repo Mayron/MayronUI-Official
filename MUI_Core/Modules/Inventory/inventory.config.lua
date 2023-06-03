@@ -260,15 +260,6 @@ function C_InventoryModule:GetConfigTable()
         min = 4;
         max = 16;
       };
-      {
-        type = "slider";
-        name = L["Max Icons Per Row"];
-        dbPath = "profile.grid.columns.max";
-        tooltip = L["The maximum number of icons that can appear per row when resizing the inventory frame using the grid view."];
-        step = 1;
-        min = 8;
-        max = 50;
-      };
       { type = "divider"; };
       {
         type = "check";
@@ -315,45 +306,6 @@ function C_InventoryModule:GetConfigTable()
         step = 1;
         max = 15;
       };
-      -- TODO: Trying to get these options to work is a headache
-      -- { type = "divider"; };
-      -- {
-      --   type = "slider";
-      --   name = "Min Columns";
-      --   dbPath = "profile.detailed.columns.min";
-      --   tooltip = "The minimum number of columns that can appear per row when resizing the inventory frame using the detailed view.";
-      --   min = 1;
-      --   step = 1;
-      --   max = 8;
-      -- };
-      -- {
-      --   type = "slider";
-      --   name = "Max Columns";
-      --   dbPath = "profile.detailed.columns.max";
-      --   tooltip = "The maximum number of columns that can appear per row when resizing the inventory frame using the detailed view.";
-      --   min = 1;
-      --   step = 1;
-      --   max = 8;
-      -- };
-      -- { type = "divider"; };
-      -- {
-      --   type = "slider";
-      --   name = "Min Rows";
-      --   dbPath = "profile.detailed.rows.min";
-      --   tooltip = "The minimum number of rows that can appear when resizing the inventory frame using the detailed view.";
-      --   min = 1;
-      --   step = 1;
-      --   max = 20;
-      -- };
-      -- {
-      --   type = "slider";
-      --   name = "Max Rows";
-      --   dbPath = "profile.detailed.rows.max";
-      --   tooltip = "The maximum number of rows that can appear when resizing the inventory frame using the detailed view.";
-      --   min = 1;
-      --   step = 1;
-      --   max = 50;
-      -- };
       { type = "divider"; };
       { type = "title"; name = L["Font Options"]; };
       {

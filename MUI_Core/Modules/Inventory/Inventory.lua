@@ -146,6 +146,16 @@ local minInventoryFrameWidth = 340;
 local databaseConfig = {
   svName = "MUI_InventoryDB";
   defaults = {
+    character = {
+      detailed = {
+        columns = { initial = 3, min = 1, max = 4 };
+        rows = { initial = 10, min = 5, max = 15 };
+      },
+      grid = {
+        columns = { initial = 10, min = 8, max = 30 };
+        rows = { initial = 30, min = 30, max = 30 };
+      }
+    },
     global = {
       enabled = true;
     },
@@ -155,24 +165,20 @@ local databaseConfig = {
         showItemName = true;
         showItemType = true;
         itemNameFontSize = 11;
-        itemDescriptionFontSize = 11;
+        itemDescriptionFontSize = 10;
         height = 36;
         slotSpacing = 6;
-        widths = { initial = 260, min = 240, max = 340 };
-        columns = { initial = 3, min = 1, max = 4 };
-        rows = { initial = 10, min = 5, max = 15 }; -- the max it can be per boundary
+        widths = { initial = 260, min = 220, max = 320 };
       };
       grid = {
         showItemLevels = true;
         showItemName = false;
         showItemType = false;
         itemNameFontSize = 11;
-        itemDescriptionFontSize = 11;
+        itemDescriptionFontSize = 10;
         height = 30;
         slotSpacing = 6;
         widths = { initial = 36, min = 36, max = 36 };
-        columns = { initial = 10, min = 8, max = 30 };
-        rows = { initial = 30, min = 30, max = 30 }; -- the max it can be per boundary
       };
       container = {
         colorScheme = "MUI_Frames";
@@ -419,13 +425,16 @@ local function UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder)
 
   ---@type MayronUI.Inventory.ViewSettings
   local settings = db.utilities:PopTable();
-  settings.initialColumns = db.profile:QueryType("number", settingName, "columns.initial");
+
+  settings.initialColumns = db.character:QueryType("number", settingName, "columns.initial");
+  settings.maxColumns = db.character:QueryType("number", settingName, "columns.max");
+  settings.minColumns = db.character:QueryType("number", settingName, "columns.min");
+
+  settings.initialRows = db.character:QueryType("number", settingName, "rows.initial");
+  settings.maxRows = db.character:QueryType("number", settingName, "rows.max");
+  settings.minRows = db.character:QueryType("number", settingName, "rows.min");
+
   settings.height = db.profile:QueryType("number", settingName, "height");
-  settings.maxColumns = db.profile:QueryType("number", settingName, "columns.max");
-  settings.minColumns = db.profile:QueryType("number", settingName, "columns.min");
-  settings.initialRows = db.profile:QueryType("number", settingName, "rows.initial");
-  settings.maxRows = db.profile:QueryType("number", settingName, "rows.max");
-  settings.minRows = db.profile:QueryType("number", settingName, "rows.min");
   settings.initialWidth = db.profile:QueryType("number", settingName, "widths.initial");
   settings.minWidth = db.profile:QueryType("number", settingName, "widths.min");
   settings.maxWidth = db.profile:QueryType("number", settingName, "widths.max");
@@ -448,6 +457,8 @@ local function UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder)
 
       totalColumns = columns;
     end
+
+    totalColumns = math.max(settings.minColumns, totalColumns);
 
     -- return the real dimensions for the current number of slots to show
     local totalRows, dynamicSlotWidth = UpdateBagSlotAnchors(settings, true, totalColumns, orderedSlots, containerWidth);
@@ -488,7 +499,6 @@ local function UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder)
     initialSlotWidth, initialRows, settings.initialRows);
 
   db.utilities:PushTable(settings);
-
   return initialWidth, initialHeight, scrollChildHeight;
 end
 
@@ -504,13 +514,18 @@ local function UpdateInventoryFrameCoreProperties(inventoryFrame, resetSlotOrder
   end
 
   local width, height, scrollChildHeight = UpdateInventorySlotCoreProperties(inventoryFrame, resetSlotOrder == true);
-
   RepositionInventoryFrame(inventoryFrame);
   inventoryFrame.scrollChild:SetHeight(scrollChildHeight);
   inventoryFrame:SetWidth(math.max(width, minInventoryFrameWidth));
 
   if (not inventoryFrame.detailedView or h == 0) then
     inventoryFrame:SetHeight(height);
+  end
+
+  if (inventoryFrame.detailedView) then
+    if (not inventoryFrame.scrollBar:IsShown()) then
+      inventoryFrame:SetHeight(height);
+    end
   end
 
   return width, height;
@@ -1710,11 +1725,11 @@ do
         local settingName = self.detailedView and "detailed" or "grid";
 
         if (totalRows ~= nil) then
-          db.profile:Store(settingName..".rows.initial", totalRows);
+          db.character:Store(settingName..".rows.initial", totalRows);
         end
 
         if (totalColumns ~= nil) then
-          db.profile:Store(settingName..".columns.initial", totalColumns);
+          db.character:Store(settingName..".columns.initial", totalColumns);
         end
       end
     end
@@ -2305,19 +2320,6 @@ function C_InventoryModule:OnInitialize()
     SetPadding(customPadding);
 
     inventoryFrame:SetScript("OnShow", UpdateInventoryFrameCoreProperties);
-    local totalBags = 0;
-
-    for i = 1, _G.NUM_BAG_SLOTS do
-      local isActive = GetBagName(i) ~= nil;
-
-      if (isActive) then
-        totalBags = totalBags + 1;
-      end
-    end
-
-    if (totalBags < 2) then
-      ToggleBagsBar(inventoryFrame.bagsBtn);
-    end
 
     local function OnScrollBarVisibilityChange()
       if (inventoryFrame.detailedView) then
@@ -2377,17 +2379,11 @@ function C_InventoryModule:RegisterObservers(_, db)
   db.profile:Subscribe("grid.widths.initial", UpdateSlotDimensions);
   db.profile:Subscribe("grid.height", UpdateSlotDimensions);
   db.profile:Subscribe("grid.slotSpacing", UpdateSlotDimensions);
-  db.profile:Subscribe("grid.columns.max", UpdateSlotDimensions);
   db.profile:Subscribe("grid.showItemLevels", UpdateAllBags);
-
   db.profile:Subscribe("detailed.widths.min", UpdateSlotDimensions);
   db.profile:Subscribe("detailed.widths.max", UpdateSlotDimensions);
   db.profile:Subscribe("detailed.height", UpdateSlotDimensions);
   db.profile:Subscribe("detailed.slotSpacing", UpdateSlotDimensions);
-  db.profile:Subscribe("detailed.columns.min", UpdateSlotDimensions);
-  db.profile:Subscribe("detailed.columns.max", UpdateSlotDimensions);
-  db.profile:Subscribe("detailed.rows.min", UpdateSlotDimensions);
-  db.profile:Subscribe("detailed.rows.max", UpdateSlotDimensions);
   db.profile:Subscribe("detailed.showItemName", UpdateAllBags);
   db.profile:Subscribe("detailed.itemNameFontSize", UpdateAllBags);
   db.profile:Subscribe("detailed.showItemLevels", UpdateAllBags);
