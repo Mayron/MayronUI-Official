@@ -51,7 +51,7 @@ local function DynamicScrollFrame_OnScrollRangeChanged(self, xRange, yRange)
 
   ScrollFrame_OnScrollRangeChanged(self, xRange, yRange);
   UpdateScrollChildPosition(self, yRange, offset);
-  local scrollStep = math.floor(frame:GetHeight() + 0.5) * 0.2;
+  local scrollStep = math.floor(frame:GetHeight() + 0.5) * 0.025;
   self.ScrollBar.scrollStep = scrollStep;
 end
 
@@ -363,7 +363,7 @@ function DynamicFrameMixin:Refresh()
         end
 
         childWidth = canvasWidth * percent;
-        child:SetWidth(childWidth);
+        child:SetWidth(childWidth - self.__spacing);
       end
 
       if (child.minWidth and childWidth < child.minWidth) then

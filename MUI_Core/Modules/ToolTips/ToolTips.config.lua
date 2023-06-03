@@ -99,7 +99,7 @@ function C_ToolTipsModule:GetConfigTable(data)
               }
             },
             { type = "loop";
-              dbPath = "profile.tooltips",
+
               args = { L["Unit Frame Tooltips"]; L["World Unit Tooltips"]; L["Standard Tooltips"] };
               func = function(index, header)
                 local settingsName = "standard";
@@ -119,7 +119,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                   };
                   { type = "frame";
                     width = "50%";
-                    dbPath = settingsName;
+                    dbPath = "profile.tooltips."..settingsName;
                     children = {
                       { type = "fontstring",
                         subtype = "sub-header",
@@ -130,7 +130,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                         groupName = radioGroupName;
                         dbPath = "anchor";
 
-                        GetValue = function(self, value)
+                        GetValue = function(_, value)
                           return value == "mouse";
                         end;
 
@@ -156,7 +156,7 @@ function C_ToolTipsModule:GetConfigTable(data)
                   {
                     type = "frame";
                     width = "50%";
-                    dbPath = settingsName;
+                    dbPath = "profile.tooltips."..settingsName;
                     children = {
                       { type = "fontstring",
                         subtype = "sub-header",

@@ -209,10 +209,10 @@ local function GetDatabaseValue(config)
 end
 
 ---@param config table @A component config table used to control the rendering and behavior of a component in the config menu.
----@param menuGroups table?
 ---@param parent Frame @(optional) A custom parent frame for the component, else the parent will be the menu scroll child.
+---@param radioGroups table?
 ---@return Frame
-local function CreateComponent(config, menuGroups, parent)
+local function CreateComponent(config, parent, radioGroups)
   local componentType = config.type;
 
   -- treat the component like a check button (except when grouping the check buttons)
@@ -244,14 +244,12 @@ local function CreateComponent(config, menuGroups, parent)
     tk:SetBackground(component, mrandom(), mrandom(), mrandom());
   end
 
-  if (menuGroups) then
-    if (config.type == "radio" and config.groupName) then
-      if (not menuGroups[config.groupName]) then
-        menuGroups[config.groupName] = obj:PopTable();
-      end
-
-      table.insert(menuGroups[config.groupName], component.btn);
+  if (radioGroups and config.type == "radio" and config.groupName) then
+    if (not radioGroups[config.groupName]) then
+      radioGroups[config.groupName] = obj:PopTable();
     end
+
+    table.insert(radioGroups[config.groupName], component.btn);
   end
 
   -- setup complete, so run the OnLoad callback if one exists
@@ -505,7 +503,7 @@ function C_ConfigMenuModule:SetSelectedContentButton(data, btn)
   end
 end
 
-function C_ConfigMenuModule:RenderComponent(data, menuConfig, componentConfig)
+function C_ConfigMenuModule:RenderComponent(data, menuConfig, componentConfig, radioGroups)
   if (componentConfig.ignore) then
     obj:PushTable(componentConfig);
     return
@@ -535,10 +533,10 @@ function C_ConfigMenuModule:RenderComponent(data, menuConfig, componentConfig)
       if (obj:IsTable(result)) then
         if (result.type) then
           local childConfig = result;
-          self:RenderComponent(componentConfig, childConfig);
+          self:RenderComponent(componentConfig, childConfig, radioGroups);
         else
           for _, childConfig in ipairs(result) do
-            self:RenderComponent(componentConfig, childConfig);
+            self:RenderComponent(componentConfig, childConfig, radioGroups);
           end
         end
       end
@@ -554,10 +552,9 @@ function C_ConfigMenuModule:RenderComponent(data, menuConfig, componentConfig)
     componentConfig.children = componentConfig.children();
   end
 
-  local menuGroups = menuConfig and menuConfig.groups;
   local componentChildrenConfigs = componentConfig.children; -- else it'll be pushed when transfering
 
-  local component = CreateComponent(componentConfig, menuGroups, menuScrollChild);
+  local component = CreateComponent(componentConfig, menuScrollChild, radioGroups);
   componentConfig = nil; --luacheck: ignore (this has been consumed and transferred)
 
   if (componentType == "frame" and obj:IsTable(componentChildrenConfigs)) then
@@ -569,7 +566,7 @@ function C_ConfigMenuModule:RenderComponent(data, menuConfig, componentConfig)
         obj:PushTable(childConfig);
       else
         InheritConfigAttributes(component, childConfig);
-        local childComponent = CreateComponent(childConfig, menuGroups, component);
+        local childComponent = CreateComponent(childConfig, component, radioGroups);
         childComponents[#childComponents+1] = childComponent;
       end
     end
@@ -595,19 +592,19 @@ function C_ConfigMenuModule:RenderMenuComponents(_, menuButton)
     return
   end
 
-  menuConfig.groups = {};
+  local radioGroups = {};
 
   for _, componentConfig in pairs(menuConfig.children) do
     if (not IsUnsupportedByClient(componentConfig.client)) then
-      self:RenderComponent(menuConfig, componentConfig);
+      self:RenderComponent(menuConfig, componentConfig, radioGroups);
     end
   end
 
-  for _, group in pairs(menuConfig.groups) do
+  for _, group in pairs(radioGroups) do
     tk:GroupCheckButtons(group);
   end
 
-  obj:PushTable(menuConfig.groups);
+  obj:PushTable(radioGroups);
   obj:PushTable(menuConfig);
   menuButton.configTable = nil;
 end
