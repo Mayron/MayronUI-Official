@@ -960,3 +960,4 @@ L["Show Item Type"] = "Show Item Type";
 L["Item Description Font Size"] = "Item Description Font Size";
 L["Grid View"] = "Grid View";
 L["Detailed View"] = "Detailed View";
+L["Settings"] = "Settings";

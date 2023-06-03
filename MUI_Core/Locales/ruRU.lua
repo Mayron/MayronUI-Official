@@ -1063,3 +1063,4 @@ L["Show Item Type"] = "Показать тип элемента";
 L["Item Description Font Size"] = "Пункт Описание Размер шрифта";
 L["Grid View"] = "Вид сетки";
 L["Detailed View"] = "Детальный вид";
+L["Settings"] = "Настройки";

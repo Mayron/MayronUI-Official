@@ -987,3 +987,4 @@ L["Show Item Type"] = "顯示項目類型";
 L["Item Description Font Size"] = "項目 描述 字體大小";
 L["Grid View"] = "網格視圖";
 L["Detailed View"] = "詳細視圖";
+L["Settings"] = "設置";

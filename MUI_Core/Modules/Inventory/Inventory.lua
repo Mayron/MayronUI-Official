@@ -544,9 +544,9 @@ local function SetDetailedViewEnabled(inventoryFrame, enabled)
   inventoryFrame.bagsContainer:SetVerticalScroll(0);
 
   if (enabled) then
-    tk:SetBasicTooltip(inventoryFrame.viewBtn, L["Switch to Grid View"]);
+    tk:SetBasicTooltip(inventoryFrame.viewBtn, L["Switch to Grid View"], "ANCHOR_TOP");
   else
-    tk:SetBasicTooltip(inventoryFrame.viewBtn, L["Switch to Detailed View"]);
+    tk:SetBasicTooltip(inventoryFrame.viewBtn, L["Switch to Detailed View"], "ANCHOR_TOP");
   end
 
   if (enabled) then
@@ -1737,11 +1737,12 @@ do
 end
 
 ---@param inventoryFrame MayronUI.Inventory.Frame
-local function CreateSearchBox(inventoryFrame)
+---@param settingsBtn Button
+local function CreateSearchBox(inventoryFrame, settingsBtn)
   --Searchbox
 	local searchBox = tk:CreateFrame("EditBox", inventoryFrame, "MUI_InventorySearch");
 	searchBox:SetPoint("LEFT", inventoryFrame.freeSlots, "RIGHT", 12, 0);
-	searchBox:SetPoint("RIGHT", inventoryFrame.dragger, "LEFT", -12, 0);
+	searchBox:SetPoint("RIGHT", settingsBtn, "LEFT", -4, 0);
 	searchBox:SetPoint("BOTTOM", 0, 4);
   inventoryFrame.searchBox = searchBox;
 
@@ -2286,7 +2287,7 @@ function C_InventoryModule:OnInitialize()
 
     inventoryFrame.sortBtn = gui:CreateIconButton("sort", inventoryFrame, "MUI_InventorySort");
     inventoryFrame.sortBtn:SetPoint("RIGHT", inventoryFrame.closeBtn, "LEFT", -4, 0);
-    tk:SetBasicTooltip(inventoryFrame.sortBtn, L["Sort Bags"]);
+    tk:SetBasicTooltip(inventoryFrame.sortBtn, L["Sort Bags"], "ANCHOR_TOP");
     inventoryFrame.sortBtn:SetScript("OnClick", _G["SortBags"]);
 
     inventoryFrame.sortBtn:RegisterEvent("PLAYER_REGEN_DISABLED");
@@ -2298,23 +2299,36 @@ function C_InventoryModule:OnInitialize()
 
     inventoryFrame.bagsBtn = gui:CreateIconButton("bag", inventoryFrame, "MUI_InventoryBags");
     inventoryFrame.bagsBtn:SetPoint("RIGHT", inventoryFrame.sortBtn, "LEFT", -4, 0);
-    tk:SetBasicTooltip(inventoryFrame.bagsBtn, L["Toggle Bags Bar"]);
+    tk:SetBasicTooltip(inventoryFrame.bagsBtn, L["Toggle Bags Bar"], "ANCHOR_TOP");
     inventoryFrame.bagsBtn:SetScript("OnClick", ToggleBagsBar);
 
     inventoryFrame.viewBtn = gui:CreateIconButton("layout", inventoryFrame, "MUI_InventoryView");
     inventoryFrame.viewBtn:SetPoint("RIGHT", inventoryFrame.bagsBtn, "LEFT", -4, 0);
-    tk:SetBasicTooltip(inventoryFrame.viewBtn, L["Switch to Detailed View"]);
+    tk:SetBasicTooltip(inventoryFrame.viewBtn, L["Switch to Detailed View"], "ANCHOR_TOP");
     inventoryFrame.viewBtn:SetScript("OnClick", ToggleDetailedView);
 
     inventoryFrame.charactersBtn = gui:CreateIconButton("user", inventoryFrame, "MUI_InventoryCharacters");
     inventoryFrame.charactersBtn:SetPoint("RIGHT", inventoryFrame.viewBtn, "LEFT", -4, 0);
-    tk:SetBasicTooltip(inventoryFrame.charactersBtn, L["View Character Inventory"]);
+    tk:SetBasicTooltip(inventoryFrame.charactersBtn, L["View Character Inventory"], "ANCHOR_TOP");
     inventoryFrame.charactersBtn:SetScript("OnClick", ToggleCharactersMenu);
 
     inventoryFrame.selectedTabID = TabTypesEnum.AllItems;
 
     CreateOrUpdateTabBar();
-    CreateSearchBox(inventoryFrame);
+
+    local settingsBtn = tk:CreateFrame("Button", inventoryFrame);
+    tk:SetBasicTooltip(settingsBtn, L["Settings"]--[[@as string]], "ANCHOR_BOTTOM");
+
+    settingsBtn:SetScript("OnClick", function()
+      MayronUI:TriggerCommand("config", "InventoryModule");
+    end);
+
+    settingsBtn:SetNormalTexture(tk:GetAssetFilePath("Textures\\Chat\\shortcuts"));
+    tk:ApplyThemeColor(settingsBtn:GetNormalTexture());
+    settingsBtn:SetHighlightAtlas("chatframe-button-highlight");
+    settingsBtn:SetSize(28, 28);
+    settingsBtn:SetPoint("RIGHT", inventoryFrame.dragger, "LEFT", -6, 0);
+    CreateSearchBox(inventoryFrame, settingsBtn);
 
     InventoryFrameOnEvent(inventoryFrame, "PLAYER_MONEY");
     UpdateFreeSlots(inventoryFrame);

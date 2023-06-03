@@ -1017,3 +1017,4 @@ L["Show Item Type"] = "Afficher le type d'élément";
 L["Item Description Font Size"] = "Élément Description Taille de la police";
 L["Grid View"] = "Vue Grille";
 L["Detailed View"] = "Vue détaillée";
+L["Settings"] = "Paramètres";

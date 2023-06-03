@@ -1013,3 +1013,4 @@ L["Show Item Type"] = "Artikeltyp anzeigen";
 L["Item Description Font Size"] = "Element Beschreibung Schriftgröße";
 L["Grid View"] = "Rasteransicht";
 L["Detailed View"] = "Detaillierte Ansicht";
+L["Settings"] = "Einstellungen";

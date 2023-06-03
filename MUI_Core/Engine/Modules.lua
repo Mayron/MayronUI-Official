@@ -100,14 +100,14 @@ end
 
 local commands = {};
 
-commands.config = function()
+commands.config = function(module)
   if (InCombatLockdown()) then
     tk:Print(L["Cannot access config menu while in combat."]);
   else
-    local module = GetMuiConfigModule()
+    local configModule = GetMuiConfigModule()--[[@as MayronUI.ConfigMenu]];
 
-    if (module) then
-      module:Show();
+    if (configModule) then
+      configModule:Show(module);
     end
   end
 end

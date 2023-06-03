@@ -175,14 +175,6 @@ function C_ConfigMenu:GetConfigTable()
           name = L["Global Settings"];
           description = L["These settings are applied account-wide"];
         };
-        { type = "check";
-          name = L["Enable Inventory Frame"];
-          tooltip = L["Use the MayronUI custom inventory frame instead of the default Blizzard bags UI."];
-          dbPath = "global.enabled";
-          requiresReload = true;
-          dbFramework = "orbitus";
-          database = "MUI_InventoryDB";
-        };
         {
           name = L["Display Lua Errors"];
           type = "check";

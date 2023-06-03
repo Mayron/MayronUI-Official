@@ -1006,3 +1006,4 @@ L["Show Item Type"] = "Mostrar tipo de item";
 L["Item Description Font Size"] = "Descrição do item Tamanho da fonte";
 L["Grid View"] = "Exibição em grade";
 L["Detailed View"] = "Visão detalhada";
+L["Settings"] = "Configurações";

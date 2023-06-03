@@ -986,3 +986,4 @@ L["Show Item Type"] = "显示项目类型";
 L["Item Description Font Size"] = "项目 描述 字体大小";
 L["Grid View"] = "网格视图";
 L["Detailed View"] = "详细视图";
+L["Settings"] = "设置";

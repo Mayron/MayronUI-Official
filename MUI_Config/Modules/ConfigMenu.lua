@@ -277,12 +277,26 @@ function C_ConfigMenuModule:OnInitialize()
   DisableAddOn("MUI_Config"); -- disable for next time
 end
 
-function C_ConfigMenuModule:Show(data)
+function C_ConfigMenuModule:Show(data, module)
   if (not data.configPanel) then
     self:SetUpWindow();
   end
 
   data.configPanel:Show();
+
+  if (module) then
+    for _, menuBtn in pairs(data.menuButtons) do
+      if (obj:IsTable(menuBtn.module) and menuBtn.module.GetModuleKey) then
+        local moduleName = menuBtn.module:GetModuleKey();
+
+        if (moduleName == module) then
+          self:OpenMenu(menuBtn);
+          break
+        end
+      end
+    end
+  end
+
   PlaySound(tk.Constants.MENU_OPENED_CLICK);
 end
 
