@@ -375,10 +375,11 @@ function Private:LoadCustomMenu(tabFrame)
   local totalAddOnsLoaded = 0;
   tabFrame.addOnCheckBoxes = obj:PopTable();
 
+  local loadedAddOns = {}; -- for some reason, an addon might be shown more than once
   for id, addOnData in db.global.core.setup.addOns:Iterate() do
     local alias, value, addOnName = unpack(addOnData);
 
-    if (IsAddOnLoaded(addOnName)) then
+    if (IsAddOnLoaded(addOnName) and not loadedAddOns[addOnName]) then
       local cb = gui:CreateCheckButton(addonsFrame, alias);
       totalAddOnsLoaded = totalAddOnsLoaded + 1;
 
@@ -396,6 +397,7 @@ function Private:LoadCustomMenu(tabFrame)
       addonsFrame:SetHeight(addonsFrame:GetHeight() + cb:GetHeight() + 10);
       table.insert(tabFrame.addOnCheckBoxes, cb);
       previous = cb;
+      loadedAddOns[addOnName] = true;
     end
   end
 
