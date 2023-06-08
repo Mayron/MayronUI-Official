@@ -11,6 +11,11 @@ local IsInGroup, IsInRaid, After = _G.IsInGroup, _G.IsInRaid, _G.C_Timer.After;
 local TooltipDataProcessor, UnitIsDeadOrGhost = _G.TooltipDataProcessor, _G.UnitIsDeadOrGhost;
 local NotifyInspect, UnitInVehicle = _G.NotifyInspect, _G.UnitInVehicle;
 
+if (not UnitInVehicle) then
+  -- for Classic Era
+  UnitInVehicle = function() return false; end
+end
+
 local originalHealthBarSetStatusBarColor = healthBar.SetStatusBarColor--[[@as function]];
 
 local function SetHealthBarColor(r, g, b, a)
