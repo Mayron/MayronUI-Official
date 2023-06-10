@@ -304,7 +304,7 @@ function C_MiniMapModule:GetConfigTable(data)
         name = L["Tracking Icon"];
         type = "submenu";
         dbPath = "widgets.tracking";
-        client = {"retail", "bcc"};
+
         children = function()
           local children = {
             {

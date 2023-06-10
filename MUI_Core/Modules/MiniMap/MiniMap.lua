@@ -17,6 +17,7 @@ local Minimap, math, table, C_Timer, Minimap_ZoomIn, Minimap_ZoomOut,
   _G.GameTooltip, _G.IsAltKeyDown, _G.LoadAddOn,
   _G.IsAddOnLoaded, _G.ToggleDropDownMenu, _G.PlaySound, _G.EasyMenu, _G.select;
 
+local GetTrackingTexture = _G["GetTrackingTexture"]; ---@type function
 local IsInInstance, GetInstanceInfo, GetNumGroupMembers, ipairs =
   _G.IsInInstance, _G.GetInstanceInfo, _G.GetNumGroupMembers, _G.ipairs;
 
@@ -109,10 +110,10 @@ db:AddToDefaults("profile.minimap", {
 
     tracking = {
       hide = false;
-      scale = (tk:IsRetail() and 1.2 or 0.8);
-      point = "BOTTOMLEFT";
-      x = tk:IsRetail() and 2 or 0;
-      y = tk:IsRetail() and 4 or 2;
+      scale = (tk:IsRetail() and 1.2 or (tk:IsClassic() and 0.7 or 0.8));
+      point = (tk:IsClassic() and "TOPLEFT" or "BOTTOMLEFT");
+      x = tk:IsRetail() and 2 or (tk:IsClassic() and 5 or 0);
+      y = tk:IsRetail() and 4 or (tk:IsClassic() and -5 or 2);
     };
 
     zone = { hide = true; point = "TOP"; fontSize = 10; x = 0; y = -4 };
@@ -511,6 +512,17 @@ do
     SetUpWidgetText(data.dungeonDifficulty, widgets.difficulty);
   end
 
+  local function HandleTrackingChanged(self)
+    local texture = GetTrackingTexture();
+    self.icon:SetTexture(texture);
+
+    if (texture) then
+      self.bg:Show();
+    else
+      self.bg:Hide();
+    end
+  end
+
   function C_MiniMapModule.Private:SetUpWidgets(data)
     local widgets = data.settings.widgets;
 
@@ -605,16 +617,41 @@ do
     end
 
     -- tracking:
-    local tracking = _G.MiniMapTracking or _G.MinimapCluster.Tracking;
+    local tracking = _G.MiniMapTracking or _G.MiniMapTrackingFrame or _G.MinimapCluster.Tracking;
 
-    if (not tk:IsClassic() and obj:IsWidget(tracking)) then
-      if (obj:IsWidget(_G.MiniMapTrackingIcon)) then
-          tk:KillElement(_G.MiniMapTrackingIconOverlay);
-        _G.MiniMapTrackingIcon:SetPoint("CENTER", 0, 0);
+    if (obj:IsWidget(tracking)) then
+      local icon = _G["MiniMapTrackingIcon"]; ---@type Texture
+
+      if (obj:IsWidget(icon)) then
+        tk:KillElement(_G["MiniMapTrackingIconOverlay"]);
+        icon:ClearAllPoints();
+        icon:SetPoint("TOPLEFT", tracking, "TOPLEFT", 2, -2);
+        icon:SetPoint("BOTTOMRIGHT", tracking, "BOTTOMRIGHT", -2, 2);
+        icon:SetDrawLayer("ARTWORK", 7);
+
+        -- for classic era:
+        if (GetTrackingTexture) then
+          if (not icon:GetTexture()) then
+            local texture = GetTrackingTexture();
+
+            if (texture) then
+              icon:SetTexture(texture);
+            end
+          end
+
+          if (obj:IsFunction(icon.SetTexCoord)) then
+            icon:SetTexCoord(0.075, 0.925, 0.075, 0.925);
+            local bg = tk:SetBackground(tracking, 0, 0, 0);
+            tracking.bg = bg;
+            tracking.icon = icon;
+            tracking:HookScript("OnEvent", HandleTrackingChanged);
+            HandleTrackingChanged(tracking);
+          end
+        end
       end
 
       tk:KillElement(_G.MiniMapTrackingBorder or _G.MiniMapTrackingButtonBorder);
-      tk:KillElement(_G.MiniMapTrackingBackground or _G.MinimapCluster.Tracking.Background);
+      tk:KillElement(_G.MiniMapTrackingBackground or (_G.MinimapCluster.Tracking and _G.MinimapCluster.Tracking.Background));
 
       local border = _G.MiniMapTrackingBorder or _G.MiniMapTrackingButtonBorder;
       if (obj:IsWidget(border)) then
@@ -641,6 +678,7 @@ function C_MiniMapModule.Private:UpdateTrackingMenuOptionVisibility(data)
   if (not _G.MiniMapTracking) then
     return
   end
+
   local oldIndex = 0;
 
   for id, option in ipairs(data.menuList) do

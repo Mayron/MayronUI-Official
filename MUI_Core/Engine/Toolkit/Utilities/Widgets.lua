@@ -42,7 +42,8 @@ do
 
   ---@param widget Frame|table
   function tk.HandleTooltipOnEnter(widget)
-    SetTooltipOwner(widget.wrapper or widget, "ANCHOR_BOTTOMLEFT");
+    local owner = widget.wrapper or widget;
+    SetTooltipOwner(owner, "ANCHOR_BOTTOMLEFT");
     local itemId = widget.itemID or widget:GetID();
 
     GameTooltip.__oldSetFrameStrata = GameTooltip.SetFrameStrata;

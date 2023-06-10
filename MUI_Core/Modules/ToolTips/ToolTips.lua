@@ -254,6 +254,7 @@ local function SetBackdropStyle(d)
 
         if (not obj:IsFunction(tooltip.SetGridTextureShown)) then
           gui:AddDialogTexture(tooltip, "High", 10);
+          tooltip:SetFrameStrata("TOOLTIP"); -- because AddDialogTexture changes it to Dialog
         end
       end
 
@@ -1179,7 +1180,7 @@ function C_ToolTipsModule:OnEnable(data)
     if (not gameTooltip:GetUnit()) then
       HideAllAuras(data);
       if (gameTooltip.SetGridColor) then
-        local r, g, b = tk:GetThemeColor();
+        local r, g, b = gui:GetMuiFrameColor();
         gameTooltip:SetGridColor(r, g, b);
       end
     end
