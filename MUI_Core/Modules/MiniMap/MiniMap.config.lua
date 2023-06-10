@@ -168,6 +168,12 @@ function C_MiniMapModule:GetConfigTable(data)
         dbPath = "enabled",
       },
       {
+        name = "Points of Interest";
+        tooltip = "If checked, the points of interest arrows will be shown.";
+        type = "check",
+        dbPath = "showPointsOfInterest",
+      },
+      {
         name = L["Move AddOn Buttons"],
         tooltip = L["MOVE_ADDON_BUTTONS_TOOLTIP"],
         type = "check",

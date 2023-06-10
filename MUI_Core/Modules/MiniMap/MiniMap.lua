@@ -73,6 +73,7 @@ db:AddToDefaults("profile.minimap", {
   scale = 1;
   hideIcons = true;
   testMode = false; -- for testing
+  showPointsOfInterest = true;
 
   widgets = {
     clock = {
@@ -1004,6 +1005,13 @@ function C_MiniMapModule:OnEnable(data)
   Minimap:SetMovable(true);
   Minimap:SetUserPlaced(true);
   Minimap:RegisterForDrag("LeftButton");
+
+  local arrowTexture = "";
+  if (data.settings.showPointsOfInterest) then
+    arrowTexture = tk:GetAssetFilePath("Textures\\MinimapStaticArrow");
+  end
+
+  Minimap:SetStaticPOIArrowTexture(arrowTexture);
 
   if (obj:IsFunction(Minimap.SetMinResize)) then
     Minimap:SetMinResize(120, 120);
