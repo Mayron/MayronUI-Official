@@ -94,17 +94,9 @@ local BlizzardFrames = {
   };
   Blizzard_ItemAlterationUI = "TransmogrifyFrame";
   Blizzard_GuildBankUI = { "GuildBankFrame", subFrames = { "GuildBankFrame.Emblem" }};
-  Blizzard_TalentUI = {
-    (tk:IsClassic() and "TalentFrame" or "PlayerTalentFrame");
-    subFrames = tk:IsWrathClassic() and { "GlyphFrame" };
-  };
-  Blizzard_ClassTalentUI = {
-    "ClassTalentFrame";
-  };
-  Blizzard_GlyphUI = {
-    (tk:IsClassic() and "TalentFrame" or "PlayerTalentFrame");
-    subFrames = tk:IsWrathClassic() and { "GlyphFrame" };
-  };
+  Blizzard_TalentUI = { "PlayerTalentFrame"; subFrames = tk:IsWrathClassic() and { "GlyphFrame" };  };
+  Blizzard_ClassTalentUI = { "ClassTalentFrame"; };
+  Blizzard_GlyphUI = { "PlayerTalentFrame"; subFrames = tk:IsWrathClassic() and { "GlyphFrame" };  };
   Blizzard_MacroUI = "MacroFrame";
   Blizzard_BindingUI = "KeyBindingFrame";
   Blizzard_Calendar = "CalendarFrame";

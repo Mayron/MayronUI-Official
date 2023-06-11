@@ -963,3 +963,5 @@ L["Detailed View"] = "Detailed View";
 L["Settings"] = "Settings";
 L["Points of Interest"] = "Points of Interest";
 L["If checked, the points of interest arrows will be shown."] = "If checked, the points of interest arrows will be shown.";
+L["You have new messages!"] = "You have new messages!";
+L["Clear Chat Messages"] = "Clear Chat Messages";

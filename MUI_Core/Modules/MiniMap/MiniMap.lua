@@ -815,6 +815,7 @@ function C_MiniMapModule:GetRightClickMenuList()
     local knownAddOnsText = {
       ["Leatrix_Plus"] = tk.Strings:SetTextColorByHex("Leatrix Plus", "70db70");
       ["Questie"] = tk.Strings:SetTextColorByHex("Questie", "ffc50f");
+      ["Hardcore"] = tk.Strings:SetTextColorByHex("Hardcore", "b0040e");
       ["Details"] = tk.Strings:SetTextColorByHex("Details", "ffb8b8");
       ["Bartender4"] = tk.Strings:SetTextColorByHex("Bartender4", "ee873a");
       ["DBM"] = tk.Strings:SetTextColorByHex("Deadly Boss Mods", "ff5656");

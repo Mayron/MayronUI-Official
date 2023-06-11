@@ -662,6 +662,7 @@ do
       { "MUI "..L["Config Menu"], "/mui config", function() MayronUI:TriggerCommand("config") end};
       { "MUI "..L["Install"], "/mui install", function() MayronUI:TriggerCommand("install") end};
       { "MUI "..L["Layouts"], "/mui layouts", function() MayronUI:TriggerCommand("layouts") end};
+      { "MUI "..L["Clear Chat Messages"], "/mui clr", function() MayronUI:TriggerCommand("clr") end};
       { "MUI "..L["Profile Manager"], "/mui profiles", function() MayronUI:TriggerCommand("profiles") end};
       { "MUI "..L["Show Profiles"], "/mui profiles list", function() MayronUI:TriggerCommand("profiles", "list") end};
       { "MUI "..L["Version"], "/mui version", function() MayronUI:TriggerCommand("version") end};

@@ -1016,3 +1016,5 @@ L["Detailed View"] = "자세히 보기";
 L["Settings"] = "설정";
 L["Points of Interest"] = "가볼만한 곳";
 L["If checked, the points of interest arrows will be shown."] = "선택하면 관심 지점 화살표가 표시됩니다.";
+L["You have new messages!"] = "새 메시지가 있습니다!";
+L["Clear Chat Messages"] = "채팅 메시지 지우기";

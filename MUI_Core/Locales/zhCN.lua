@@ -989,3 +989,5 @@ L["Detailed View"] = "详细视图";
 L["Settings"] = "设置";
 L["Points of Interest"] = "兴趣点";
 L["If checked, the points of interest arrows will be shown."] = "如果选中，将显示兴趣点箭头。";
+L["You have new messages!"] = "您有新消息！";
+L["Clear Chat Messages"] = "清除聊天消息";

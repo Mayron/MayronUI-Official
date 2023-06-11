@@ -30,9 +30,9 @@ function Private:ResetDataText()
   local left = self.display.left;
   local right = self.display.right;
 
-  left:Disable();
+  left:Enable();
   left.icon:Hide();
-  right:Disable();
+  right:Enable();
   right.icon:Hide();
 
   left.num = 0;
@@ -490,9 +490,16 @@ do
   local GameTime_GetTime = _G.GameTime_GetTime;
   local ChatTypeInfo = _G.ChatTypeInfo;
   local Chat_GetChannelColor = _G.Chat_GetChannelColor;
+  local receivedMessages = {};
 
-  local function IncrementCounter(self, event, display, message, source)
+  local function IncrementCounter(_, event, display, ...)
     local frame = display.left;
+    local message, playerName = ...;
+    local lineId = select(11, ...);
+
+    local cacheKey = tostring(lineId).."|"..message;
+    if (receivedMessages[cacheKey]) then return end
+    receivedMessages[cacheKey] = true;
 
     if (event == "CHAT_MSG_GUILD") then
       frame = display.right;
@@ -503,7 +510,7 @@ do
 
     local timestamp = string.format("[%s] ", (select(1, GameTime_GetTime())));
     timestamp = tk.Strings:SetTextColorByKey(timestamp, "GRAY");
-    table.insert(frame.messages, string.format(messageFormat, timestamp, source, message));
+    table.insert(frame.messages, string.format(messageFormat, timestamp, playerName, message));
 
     frame:Enable();
     frame.icon:Show();
@@ -564,6 +571,8 @@ do
     editBox:SetAutoFocus(false);
     editBox:SetFontObject("GameFontHighlight");
     editBox:SetHeight(200);
+    editBox:SetPoint("TOPLEFT", 10, -40);
+    editBox:SetPoint("BOTTOMRIGHT", -10, 10);
     editBox.messages = messages;
     editBox.chatType = chatType;
     self.copyChatFrame.editBox = editBox;
@@ -609,20 +618,17 @@ do
 
     self.chatTypeDropdown = dropdown;
 
-    local scrollFrame = gui:WrapInScrollFrame(frame);
-    -- scrollFrame:SetPoint("TOPLEFT", 10, -30);
-    -- scrollFrame:SetPoint("BOTTOMRIGHT", -10, 10);
-
-    scrollFrame:ClearAllPoints();
-    scrollFrame:SetPoint("TOPLEFT", 5, -5);
-    scrollFrame:SetPoint("BOTTOMRIGHT", -5, 5);
+    local scrollFrame = gui:WrapInScrollFrame(editBox);
 
     scrollFrame:HookScript("OnScrollRangeChanged", function(self)
       local maxScroll = self:GetVerticalScrollRange();
       self:SetVerticalScroll(maxScroll);
     end);
 
-    tk:SetBackground(scrollFrame, 0, 0, 0, 0.4);
+    local bg = tk:SetBackground(scrollFrame, 0, 0, 0, 0.4);
+    bg:ClearAllPoints();
+    bg:SetPoint("TOPLEFT", -5, 5);
+    bg:SetPoint("BOTTOMRIGHT", 5, -5);
 
     RefreshChatText(self.copyChatFrame.editBox);
   end
@@ -686,7 +692,7 @@ do
 
     if (tk:IsRetail()) then
       display.helpTipInfo = {
-        text = "You have new messages!",
+        text = L["You have new messages!"],
         targetPoint = HelpTip.Point.TopEdgeCenter,
         buttonStyle = HelpTip.ButtonStyle.Close,
         offsetY = 0,

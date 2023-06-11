@@ -1016,3 +1016,5 @@ L["Detailed View"] = "Detaillierte Ansicht";
 L["Settings"] = "Einstellungen";
 L["Points of Interest"] = "Sehenswürdigkeiten";
 L["If checked, the points of interest arrows will be shown."] = "Wenn diese Option aktiviert ist, werden die Pfeile für Sonderziele angezeigt.";
+L["You have new messages!"] = "Sie haben neue Nachrichten!";
+L["Clear Chat Messages"] = "Chat-Nachrichten löschen";

@@ -130,7 +130,10 @@ commands.install = function()
 end
 
 commands.clr = function()
-  _G.ChatFrame1:Clear();
+  for chatFrameID = 1, _G["NUM_CHAT_WINDOWS"] do
+    local chatFrame = _G[string.format("ChatFrame%d", chatFrameID)];
+    chatFrame:Clear();
+  end
 end;
 
 commands.report = function(forceShow)
@@ -301,12 +304,10 @@ commands.help = function()
       .. L["Delete Profile"]:lower());
   tk:Print(
     "|cff00cc66/mui profile new|r - " .. L["Create a new profile"]:lower());
-  tk:Print(
-    "|cff00cc66/mui profile current|r - "
-      .. L["Show Currently Active Profile"]:lower());
-  tk:Print(
-    "|cff00cc66/mui version, /mui v|r - " .. L["Show the Version of MUI"]:lower());
+  tk:Print("|cff00cc66/mui profile current|r - " .. L["Show Currently Active Profile"]:lower());
+  tk:Print("|cff00cc66/mui version, /mui v|r - " .. L["Show the Version of MUI"]:lower());
   tk:Print("|cff00cc66/mui report, /mui r|r - " .. L["Report Issue"]:lower());
+  tk:Print("|cff00cc66/mui clr, /clr|r - " .. L["Clear Chat Messages"]:lower());
   print(" ");
 end
 

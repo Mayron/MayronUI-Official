@@ -1009,3 +1009,5 @@ L["Detailed View"] = "Visão detalhada";
 L["Settings"] = "Configurações";
 L["Points of Interest"] = "Pontos de interesse";
 L["If checked, the points of interest arrows will be shown."] = "Se marcado, as setas dos pontos de interesse serão mostradas.";
+L["You have new messages!"] = "Você tem novas mensagens!";
+L["Clear Chat Messages"] = "Limpar mensagens de bate-papo";
