@@ -788,7 +788,7 @@ local function RefreshPadding(data)
   end
 end
 
-local function SetDoubleLine(data, leftText, rightText)
+local function SetDoubleLine(data, label, rightText)
   local totalLines = gameTooltip:NumLines();
 
 	for i = totalLines, 1, -1  do
@@ -796,7 +796,7 @@ local function SetDoubleLine(data, leftText, rightText)
 		local line2 = _G["GameTooltipTextRight"..i];
     local text = line1:GetText();
 
-    if (text == leftText) then
+    if (text == label) then
       if (rightText) then
         line2:SetText(rightText);
       else
@@ -805,11 +805,15 @@ local function SetDoubleLine(data, leftText, rightText)
       end
 
       return
+
+    -- Prevents Classic Bug:
+    elseif (rightText == line2:GetText()) then
+      line2:SetText("");
     end
   end
 
   if (rightText) then
-    gameTooltip:AddDoubleLine(leftText, rightText);
+    gameTooltip:AddDoubleLine(label, rightText);
   end
 
   RefreshPadding(data);
