@@ -30,9 +30,9 @@ function Private:ResetDataText()
   local left = self.display.left;
   local right = self.display.right;
 
-  left:Enable();
+  left:Disable();
   left.icon:Hide();
-  right:Enable();
+  right:Disable();
   right.icon:Hide();
 
   left.num = 0;
