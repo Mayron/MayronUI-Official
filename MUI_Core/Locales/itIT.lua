@@ -1013,3 +1013,5 @@ L["Item Description Font Size"] = "Voce Descrizione Dimensione carattere";
 L["Grid View"] = "Vista a griglia";
 L["Detailed View"] = "Vista dettagliata";
 L["Settings"] = "Impostazioni";
+L["Points of Interest"] = "Punti di interesse";
+L["If checked, the points of interest arrows will be shown."] = "Se selezionato, verranno mostrate le frecce dei punti di interesse.";

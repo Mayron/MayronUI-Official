@@ -1064,3 +1064,5 @@ L["Item Description Font Size"] = "Пункт Описание Размер шр
 L["Grid View"] = "Вид сетки";
 L["Detailed View"] = "Детальный вид";
 L["Settings"] = "Настройки";
+L["Points of Interest"] = "Точки интереса";
+L["If checked, the points of interest arrows will be shown."] = "Если флажок установлен, точки интереса будут показаны стрелками.";

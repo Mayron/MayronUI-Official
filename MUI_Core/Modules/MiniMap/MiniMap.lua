@@ -73,7 +73,7 @@ db:AddToDefaults("profile.minimap", {
   scale = 1;
   hideIcons = true;
   testMode = false; -- for testing
-  showPointsOfInterest = true;
+  showPointsOfInterest = false;
 
   widgets = {
     clock = {
@@ -111,7 +111,7 @@ db:AddToDefaults("profile.minimap", {
 
     tracking = {
       hide = false;
-      scale = (tk:IsRetail() and 1.2 or (tk:IsClassic() and 0.7 or 0.8));
+      scale = (tk:IsRetail() and 1.2 or (tk:IsClassic() and 0.7 or 0.9));
       point = (tk:IsClassic() and "TOPLEFT" or "BOTTOMLEFT");
       x = tk:IsRetail() and 2 or (tk:IsClassic() and 5 or 0);
       y = tk:IsRetail() and 4 or (tk:IsClassic() and -5 or 2);
@@ -618,35 +618,38 @@ do
     end
 
     -- tracking:
-    local tracking = _G.MiniMapTracking or _G.MiniMapTrackingFrame or _G.MinimapCluster.Tracking;
+    local tracking = _G["MiniMapTracking"] or _G["MiniMapTrackingFrame"] or (_G["MinimapCluster"] and _G["MinimapCluster"].Tracking);
 
     if (obj:IsWidget(tracking)) then
       local icon = _G["MiniMapTrackingIcon"]; ---@type Texture
 
       if (obj:IsWidget(icon)) then
         tk:KillElement(_G["MiniMapTrackingIconOverlay"]);
-        icon:ClearAllPoints();
-        icon:SetPoint("TOPLEFT", tracking, "TOPLEFT", 2, -2);
-        icon:SetPoint("BOTTOMRIGHT", tracking, "BOTTOMRIGHT", -2, 2);
-        icon:SetDrawLayer("ARTWORK", 7);
 
-        -- for classic era:
-        if (GetTrackingTexture) then
-          if (not icon:GetTexture()) then
-            local texture = GetTrackingTexture();
+        if (tk:IsClassic()) then
+          icon:SetDrawLayer("ARTWORK", 7);
+          icon:ClearAllPoints();
+          icon:SetPoint("TOPLEFT", tracking, "TOPLEFT", 2, -2);
+          icon:SetPoint("BOTTOMRIGHT", tracking, "BOTTOMRIGHT", -2, 2);
 
-            if (texture) then
-              icon:SetTexture(texture);
+          -- for classic era:
+          if (GetTrackingTexture) then
+            if (not icon:GetTexture()) then
+              local texture = GetTrackingTexture();
+
+              if (texture) then
+                icon:SetTexture(texture);
+              end
             end
-          end
 
-          if (obj:IsFunction(icon.SetTexCoord)) then
-            icon:SetTexCoord(0.075, 0.925, 0.075, 0.925);
-            local bg = tk:SetBackground(tracking, 0, 0, 0);
-            tracking.bg = bg;
-            tracking.icon = icon;
-            tracking:HookScript("OnEvent", HandleTrackingChanged);
-            HandleTrackingChanged(tracking);
+            if (obj:IsFunction(icon.SetTexCoord)) then
+              icon:SetTexCoord(0.075, 0.925, 0.075, 0.925);
+              local bg = tk:SetBackground(tracking, 0, 0, 0);
+              tracking.bg = bg;
+              tracking.icon = icon;
+              tracking:HookScript("OnEvent", HandleTrackingChanged);
+              HandleTrackingChanged(tracking);
+            end
           end
         end
       end
@@ -937,6 +940,18 @@ function C_MiniMapModule:OnInitialize(data)
         Minimap_ZoomOut();
       end;
 
+      showPointsOfInterest = function(value)
+        if (obj:IsFunction(Minimap.SetStaticPOIArrowTexture)) then
+          local arrowTexture = "";
+
+          if (value) then
+            arrowTexture = tk:GetAssetFilePath("Textures\\MinimapStaticArrow");
+          end
+
+          Minimap:SetStaticPOIArrowTexture(arrowTexture);
+        end
+      end;
+
       scale = function(value)
         Minimap:SetScale(value);
       end;
@@ -1005,13 +1020,6 @@ function C_MiniMapModule:OnEnable(data)
   Minimap:SetMovable(true);
   Minimap:SetUserPlaced(true);
   Minimap:RegisterForDrag("LeftButton");
-
-  local arrowTexture = "";
-  if (data.settings.showPointsOfInterest) then
-    arrowTexture = tk:GetAssetFilePath("Textures\\MinimapStaticArrow");
-  end
-
-  Minimap:SetStaticPOIArrowTexture(arrowTexture);
 
   if (obj:IsFunction(Minimap.SetMinResize)) then
     Minimap:SetMinResize(120, 120);

@@ -1018,3 +1018,5 @@ L["Item Description Font Size"] = "Élément Description Taille de la police";
 L["Grid View"] = "Vue Grille";
 L["Detailed View"] = "Vue détaillée";
 L["Settings"] = "Paramètres";
+L["Points of Interest"] = "Points d'interêts";
+L["If checked, the points of interest arrows will be shown."] = "Si cette case est cochée, les flèches des points d'intérêt seront affichées.";

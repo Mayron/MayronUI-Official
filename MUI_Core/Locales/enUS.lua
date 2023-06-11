@@ -961,3 +961,5 @@ L["Item Description Font Size"] = "Item Description Font Size";
 L["Grid View"] = "Grid View";
 L["Detailed View"] = "Detailed View";
 L["Settings"] = "Settings";
+L["Points of Interest"] = "Points of Interest";
+L["If checked, the points of interest arrows will be shown."] = "If checked, the points of interest arrows will be shown.";

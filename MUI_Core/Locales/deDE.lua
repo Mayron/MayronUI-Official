@@ -1014,3 +1014,5 @@ L["Item Description Font Size"] = "Element Beschreibung Schriftgröße";
 L["Grid View"] = "Rasteransicht";
 L["Detailed View"] = "Detaillierte Ansicht";
 L["Settings"] = "Einstellungen";
+L["Points of Interest"] = "Sehenswürdigkeiten";
+L["If checked, the points of interest arrows will be shown."] = "Wenn diese Option aktiviert ist, werden die Pfeile für Sonderziele angezeigt.";

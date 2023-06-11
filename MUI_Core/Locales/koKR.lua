@@ -1014,3 +1014,5 @@ L["Item Description Font Size"] = "항목 설명 글꼴 크기";
 L["Grid View"] = "그리드 보기";
 L["Detailed View"] = "자세히 보기";
 L["Settings"] = "설정";
+L["Points of Interest"] = "가볼만한 곳";
+L["If checked, the points of interest arrows will be shown."] = "선택하면 관심 지점 화살표가 표시됩니다.";

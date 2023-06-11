@@ -987,3 +987,5 @@ L["Item Description Font Size"] = "项目 描述 字体大小";
 L["Grid View"] = "网格视图";
 L["Detailed View"] = "详细视图";
 L["Settings"] = "设置";
+L["Points of Interest"] = "兴趣点";
+L["If checked, the points of interest arrows will be shown."] = "如果选中，将显示兴趣点箭头。";
