@@ -172,6 +172,7 @@ function C_MiniMapModule:GetConfigTable(data)
         tooltip = L["If checked, the points of interest arrows will be shown."];
         type = "check",
         dbPath = "showPointsOfInterest",
+        client = "not retail";
       },
       {
         name = L["Move AddOn Buttons"],

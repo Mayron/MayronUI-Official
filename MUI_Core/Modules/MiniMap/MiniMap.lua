@@ -103,7 +103,7 @@ db:AddToDefaults("profile.minimap", {
 
     missions = {
       hide = false;
-      scale = 0.54;
+      scale = 0.5;
       point = "TOPLEFT";
       x = 6;
       y = -6

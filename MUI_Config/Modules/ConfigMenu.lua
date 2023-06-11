@@ -70,15 +70,34 @@ local function IsUnsupportedByClient(client)
 
   client = client:trim();
 
+  if (client == "not retail" and tk:IsRetail()) then
+    return true;
+  end
+
+  if (client == "not classic" and tk:IsClassic()) then
+    return true;
+  end
+
+  if (client == "not bcclassic" or client == "not bcc" and tk:IsBCClassic()) then
+    return true;
+  end
+
+  if (client == "not wrathclassic" or client == "not wrath" and tk:IsWrathClassic()) then
+    return true;
+  end
+
   if (client == "retail" and not tk:IsRetail()) then
     return true;
   end
+
   if (client == "classic" and not tk:IsClassic()) then
     return true;
   end
+
   if (client == "bcclassic" or client == "bcc" and not tk:IsBCClassic()) then
     return true;
   end
+
   if (client == "wrathclassic" or client == "wrath" and not tk:IsWrathClassic()) then
     return true;
   end
