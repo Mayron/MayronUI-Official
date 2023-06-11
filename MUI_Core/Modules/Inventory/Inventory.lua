@@ -1622,11 +1622,15 @@ local function InventoryFrameOnEvent(inventoryFrame, event, bagIndex, slotIndex)
   end
 
 	if (event == "BAG_UPDATE") then
-    if (bagFrame) then
-      UpdateAllBagSlots(bagFrame);
-    end
+    if (tk:IsClassic() and #bagFrame.slots == 0) then
+      event = "BAG_CONTAINER_UPDATE";
+    else
+      if (bagFrame) then
+        UpdateAllBagSlots(bagFrame);
+      end
 
-    return
+      return
+    end
   end
 
 	if (event == "ITEM_LOCK_CHANGED") then
