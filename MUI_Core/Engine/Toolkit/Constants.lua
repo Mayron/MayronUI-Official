@@ -333,4 +333,5 @@ tk.Constants.DEBUG_WHITELIST = {
   ["Pyranor-Gehennas"] = true;
   ["Cinderon-Gehennas"] = true;
   ["Pharrax-Razorgore"] = true;
+  ["Mayron-ClassicHardcorePTR"] = true;
 }

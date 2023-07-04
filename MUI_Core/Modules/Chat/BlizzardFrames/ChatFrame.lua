@@ -112,36 +112,107 @@ local function RenameAliases(text, settings, r, g, b)
   return text;
 end
 
--- example: "|Hchannel:channel:4|h[4. LookingForGroup]|h |Hplayer:Numberone:12:CHANNEL:4|h[|cffaad372Numberone|r]|h: LF2M healer and dps UB HC!", 
-local function NewAddMessage(self, settings, text, r, g, b, ...)
-	if (not text) then return; end
+local NewAddMessage;
 
-  if (obj:IsTable(settings.highlighted)) then
-    text = HighlightText(text, settings.highlighted);
+do
+  -- Create an addon frame
+  local classicClassReader;
+  local classColorsDisabled = tk:IsClassic() and not obj:IsFunction(_G["ToggleChatColorNamesByClassGroup"]);
+  local Ambiguate = _G["Ambiguate"];
+  local GetPlayerInfoByGUID = _G["GetPlayerInfoByGUID"];
+
+  if (classColorsDisabled) then
+    classicClassReader = tk:CreateFrame("Frame");
+    classicClassReader:RegisterEvent("CHAT_MSG_CHANNEL");
+    classicClassReader:RegisterEvent("CHAT_MSG_GUILD");
+    classicClassReader:RegisterEvent("CHAT_MSG_OFFICER");
+    classicClassReader:RegisterEvent("CHAT_MSG_PARTY");
+    classicClassReader:RegisterEvent("CHAT_MSG_RAID");
+    classicClassReader:RegisterEvent("CHAT_MSG_SAY");
+    classicClassReader:RegisterEvent("CHAT_MSG_WHISPER");
+    classicClassReader.attempts = {};
+
+    local function OnChatMessage(_, _, ...)
+      local playerName = (select(2, ...));
+      local guid = (select(12, ...));
+
+      if (not playerName or not gui) then
+        return
+      end
+
+      local _, playerClass = GetPlayerInfoByGUID(guid);
+      if (not playerClass) then
+        return
+      end
+
+      playerName = Ambiguate(playerName, "none");
+      classicClassReader[playerName] = playerClass;
+    end
+
+    classicClassReader:SetScript("OnEvent", OnChatMessage);
   end
 
-  if (settings.enableAliases) then
-    text = RenameAliases(text, settings, r, g, b);
-  end
+  local After = _G.C_Timer.After;
+  local classInfoRegex = "|Hplayer:.-:%d-:.-|h%[(.-)%]|h";
+  -- example (classic): "|Hchannel:channel:1|h[1. General - Mulgore]|h |Hplayer:Toppg:2:CHANNEL:1|h[Toppg]|h: hello"
+  NewAddMessage = function(self, settings, text, r, g, b, ...)
+    if (not text) then return end
 
-  if (settings.useTimestampColor and _G.CHAT_TIMESTAMP_FORMAT) then
-    for _, pattern in ipairs(CHANNEL_PATTERNS) do
-      local time, prefix, body = text:match("(.-)" .. pattern);
-      if (time and prefix and body) then
-        time = tk.Strings:SetTextColorByRGB(time,
-          settings.timestampColor.r,
-          settings.timestampColor.g,
-          settings.timestampColor.b);
+    if (classColorsDisabled) then
+      local playerName = string.match(text, classInfoRegex);
 
-        text = time .. prefix .. body;
-        break
+      if (playerName) then
+        if (not classicClassReader[playerName]) then
+
+          local attempts = classicClassReader.attempts[playerName] or 0;
+
+          if (attempts < 3) then
+            classicClassReader.attempts[playerName] = attempts + 1;
+            local args = obj:PopTable(...);
+
+            After(1, function()
+              NewAddMessage(self, settings, text, r, g, b, obj:UnpackTable(args));
+            end);
+
+            return
+          end
+        end
+
+        local classFileName = classicClassReader[playerName];
+
+        if (classFileName) then
+          local classColoredPlayerName = tk.Strings:SetTextColorByClassFileName(playerName, classFileName);
+          text = string.gsub(text, classInfoRegex, "|h["..classColoredPlayerName.."]|h");
+        end
       end
     end
-  end
 
-  local newText = text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink);
-  MayronUI.text = newText;
-	self:oldAddMessage(newText, r, g, b, ...);
+    if (obj:IsTable(settings.highlighted)) then
+      text = HighlightText(text, settings.highlighted);
+    end
+
+    if (settings.enableAliases) then
+      text = RenameAliases(text, settings, r, g, b);
+    end
+
+    if (settings.useTimestampColor and _G["CHAT_TIMESTAMP_FORMAT"]) then
+      for _, pattern in ipairs(CHANNEL_PATTERNS) do
+        local time, prefix, body = text:match("(.-)" .. pattern);
+        if (time and prefix and body) then
+          time = tk.Strings:SetTextColorByRGB(time,
+            settings.timestampColor.r,
+            settings.timestampColor.g,
+            settings.timestampColor.b);
+
+          text = time .. prefix .. body;
+          break
+        end
+      end
+    end
+
+    local newText = text:gsub("[wWhH][wWtT][wWtT][\46pP]%S+[^%p%s]", GetChatLink);
+    self:oldAddMessage(newText, r, g, b, ...);
+  end
 end
 
 local function OnHyperLinkEnter(self, linkData)
@@ -289,9 +360,11 @@ function C_ChatModule:SetUpBlizzardChatFrame(data, chatFrameName)
   chatFrame:HookScript("OnMouseWheel", ChatFrame_OnMouseWheel);
 	_G[string.format("%sEditBox", chatFrameName)]:SetAltArrowKeyMode(false);
 
+
 	if (chatFrame:GetID() ~= 2) then
 		-- if not combat log...
 		chatFrame.oldAddMessage = chatFrame.AddMessage;
+
 		chatFrame.AddMessage = function(self, text, r, g, b)
       NewAddMessage(self, data.settings, text, r, g, b);
     end;

@@ -764,7 +764,11 @@ do
       end
     end
 
-    if (EditModeManagerFrame) then
+    local editModeIsAvailable = tk:IsRetail() and
+    obj:IsTable(EditModeManagerFrame) and
+    obj:IsFunction(EditModeManagerFrame.GetActiveLayoutInfo);
+
+    if (editModeIsAvailable) then
       SetMayronUILayout();
     end
 
@@ -803,7 +807,7 @@ do
         chatFrame:SetHeight(240);
         FCF_StopDragging(chatFrame); -- for the older system
 
-        if (EditModeManagerFrame) then
+        if (editModeIsAvailable) then
           -- dragonflight:
           chatFrame:EditMode_OnResized();
           EditModeManagerFrame:OnSystemPositionChange(chatFrame);
@@ -821,13 +825,15 @@ do
       end
     end
 
-    for i = 1, _G.MAX_WOW_CHAT_CHANNELS do
-      ToggleChatColorNamesByClassGroup(true, "CHANNEL" .. i);
-    end
+    if (obj:IsFunction(ToggleChatColorNamesByClassGroup)) then
+      for i = 1, _G.MAX_WOW_CHAT_CHANNELS do
+        ToggleChatColorNamesByClassGroup(true, "CHANNEL" .. i);
+      end
 
-    for _, value in ipairs(CHAT_CONFIG_CHAT_LEFT) do
-      if (obj:IsTable(value) and obj:IsString(value.type)) then
-        ToggleChatColorNamesByClassGroup(true, value.type);
+      for _, value in ipairs(CHAT_CONFIG_CHAT_LEFT) do
+        if (obj:IsTable(value) and obj:IsString(value.type)) then
+          ToggleChatColorNamesByClassGroup(true, value.type);
+        end
       end
     end
   end

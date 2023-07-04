@@ -102,6 +102,11 @@ db:OnStartUp(function(self, sv)
     s:SetFrameStrata("DIALOG");
   end);
 
+  local totemUpdater = _G["TotemFrame_Update"];
+  if (tk:IsClassic() and not obj:IsFunction(totemUpdater)) then
+    _G["TotemFrame_Update"] = function() end;
+  end
+
   tk:SetGameFont(self.global.core.fonts);
   tk:KillElement(_G.WorldMapFrame.BlackoutFrame);
 
