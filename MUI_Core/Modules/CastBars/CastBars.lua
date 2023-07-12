@@ -420,6 +420,40 @@ local function IsFinished(data)
   return value >= maxValue;
 end
 
+local function UpdateMirrorTimer(timer, i, muiCastBar)
+  local timerID, _, _, _, _, label = GetMirrorTimerInfo(i);
+
+  if (timer.activeTimers) then
+    timer = timer.activeTimers[timerID];
+  end
+
+  if (not timer) then
+    return false;
+  end
+
+  local fontString = timer.name or timer.Text;
+  local statusBar = timer.StatusBar or _G[timer:GetName().."StatusBar"];
+  local found = label == fontString:GetText();
+
+  if (not (fontString and statusBar and found)) then
+    return false;
+  end
+
+  local value = statusBar:GetValue();
+
+  local duration = string.format("%.1f", value);
+  local durationNum = tonumber(duration);
+
+  if (durationNum > 60) then
+    duration = tostring(date("%M:%S", durationNum));
+  end
+
+  muiCastBar.duration:SetText(duration);
+  muiCastBar.statusbar:SetValue(value);
+
+  return true;
+end
+
 local function CastBarFrame_OnUpdate(self, elapsed, data)
   if (self:GetAlpha() <= 0) then return end
 
@@ -436,22 +470,11 @@ local function CastBarFrame_OnUpdate(self, elapsed, data)
 
     if (data.unitID == "mirror") then
       if (not data.paused or data.paused == 0) then
-        for i = 1, _G.MIRRORTIMER_NUMTIMERS do
-          local _, _, _, _, _, label = GetMirrorTimerInfo(i);
+        local timer = _G["MirrorTimer1"] or _G["MirrorTimerContainer"];
 
-          if (label == self.name:GetText()) then
-            local statusBar = _G.MirrorTimer1 and _G.MirrorTimer1.StatusBar or _G.MirrorTimer1StatusBar;
-            local value = statusBar:GetValue();
-            local duration = string.format("%.1f", value);
-
-            if (tonumber(duration) > 60) then
-              duration = date("%M:%S", duration);
-            end
-
-            self.duration:SetText(duration);
-            self.statusbar:SetValue(value);
-            return
-          end
+        for i = 1, _G.MIRRORTIMER_NUMTIMERS or 3 do
+          local found = UpdateMirrorTimer(timer, i, self);
+          if (found) then return end
         end
       end
     else
@@ -534,8 +557,11 @@ do
     bar.bg:SetFrameLevel(5);
 
     if (unitID == "mirror") then
-      _G.MirrorTimer1:SetAlpha(0);
-      _G.MirrorTimer1.SetAlpha = tk.Constants.DUMMY_FUNC;
+      local mirrorBar = _G["MirrorTimer1"] or _G["MirrorTimerContainer"];
+      if (obj:IsWidget(mirrorBar)) then
+        mirrorBar:SetAlpha(0);
+        mirrorBar.SetAlpha = tk.Constants.DUMMY_FUNC;
+      end
     elseif (unitID == "power") then
       tk:KillElement(_G.PlayerPowerBarAlt);
     elseif (unitID == "player") then

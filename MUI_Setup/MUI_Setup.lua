@@ -728,7 +728,7 @@ do
         local newLayoutInfo = tk.Tables:Copy(preset);
         local layoutType = _G.Enum.EditModeLayoutType.Account;
         SetHighestLayoutIndexByType(layoutType);
-        EditModeManagerFrame:MakeNewLayout(newLayoutInfo, layoutType, "MayronUI");
+        EditModeManagerFrame:MakeNewLayout(newLayoutInfo, layoutType, "MayronUI", false);
       end
 
       local muiLayoutIndex = GetMayronUILayoutIndex();

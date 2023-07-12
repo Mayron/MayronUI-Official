@@ -1,4 +1,4 @@
-## Interface: 100100
+## Interface: 100105
 ## Title: |cff00ccffMayronUI|r Core
 ## IconTexture: Interface/Addons/MUI_Core/Assets/Logo
 ## SavedVariables: MayronUIdb, MUI_TimerBarsDb, MUI_AurasDB, MUI_InventoryDB

@@ -1,4 +1,4 @@
-## Interface: 100100
+## Interface: 100105
 ## Title: |cff00ccffMayronUI|r Setup
 ## IconTexture: Interface/Addons/MUI_Core/Assets/Logo
 ## Dependencies: MUI_Core
