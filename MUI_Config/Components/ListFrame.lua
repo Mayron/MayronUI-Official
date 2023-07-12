@@ -3,11 +3,11 @@ local _G, MayronUI = _G, _G.MayronUI;
 local tk, _, _, gui, obj, _ = MayronUI:GetCoreComponents();
 local unpack, ipairs, table = _G.unpack, _G.ipairs, _G.table;
 
----@class ListFrame : Object
+---@class ListFrame : MayronObjects.Class
 local C_ListFrame = obj:CreateClass("ListFrame");
 obj:Export(C_ListFrame, "MayronUI");
 
----@class Stack : Object
+---@class Stack : MayronObjects.Class
 local C_Stack = obj:Import("Pkg-Collections.Stack<T>");
 
 local function CreateListItem(listFrame, data)
@@ -117,9 +117,8 @@ function C_ListFrame:SetShown(data, shown)
     return;
   end
 
-  --gui:CreateDynamicFrame(_G["MUI_Config"], nil, )
-  local frame =  tk:CreateFrame("Frame", nil, _G["MUI_Config"]);
-  data.listFrame = gui:AddDialogTexture(frame);
+  local frame =  tk:CreateFrame("Frame", _G["MUI_Config"]);
+  data.listFrame = gui:AddDialogTexture(frame, "High");
   data.rows = obj:PopTable();
 
   gui:AddTitleBar(data.listFrame, data.listFrameTitle);
@@ -169,7 +168,8 @@ function C_ListFrame:SetShown(data, shown)
 
   data.rows[#data.rows + 1] = row;
 
-  local scrollFrame, scrollBar = gui:WrapInScrollFrame(data.listFrame);
+  local frame = tk:CreateFrame("Frame", data.listFrame);
+  local scrollFrame, scrollBar = gui:WrapInScrollFrame(frame);
   data.scrollChild = scrollFrame:GetScrollChild();
 
   scrollBar:ClearAllPoints();
