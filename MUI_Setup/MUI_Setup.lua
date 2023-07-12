@@ -765,8 +765,8 @@ do
     end
 
     local editModeIsAvailable = tk:IsRetail() and
-    obj:IsTable(EditModeManagerFrame) and
-    obj:IsFunction(EditModeManagerFrame.GetActiveLayoutInfo);
+      obj:IsTable(EditModeManagerFrame) and
+      obj:IsFunction(EditModeManagerFrame.GetActiveLayoutInfo);
 
     if (editModeIsAvailable) then
       SetMayronUILayout();

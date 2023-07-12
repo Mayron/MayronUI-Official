@@ -1,4 +1,4 @@
-## Interface: 30401
+## Interface: 30402
 ## Title: |TInterface/Addons/MUI_Core/Assets/Logo:20:20|t |cff00ccffConfig|r
 ## IconTexture: Interface/Addons/MUI_Core/Assets/Logo
 ## Dependencies: MUI_Core
