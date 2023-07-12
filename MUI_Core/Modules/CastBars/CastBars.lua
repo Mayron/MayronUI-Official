@@ -431,16 +431,16 @@ local function UpdateMirrorTimer(timer, i, muiCastBar)
     return false;
   end
 
-  local fontString = timer.name or timer.Text;
   local statusBar = timer.StatusBar or _G[timer:GetName().."StatusBar"];
-  local found = label == fontString:GetText();
+  if (not statusBar) then
+    return false;
+  end
 
-  if (not (fontString and statusBar and found)) then
+  if (label ~= muiCastBar.name:GetText()) then
     return false;
   end
 
   local value = statusBar:GetValue();
-
   local duration = string.format("%.1f", value);
   local durationNum = tonumber(duration);
 
